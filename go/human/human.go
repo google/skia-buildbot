@@ -3,6 +3,8 @@ package human
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -143,4 +145,33 @@ func FlotTickMarks(ts []int64) []interface{} {
 		return []interface{}{}
 	}
 	return ToFlot(TickMarks(ts, loc))
+}
+
+var durationRe = regexp.MustCompile("([0-9]+)([smhdw])$")
+
+// ParseDuration parses a human readable duration. Note that this understands
+// both days and weeks, which time.ParseDuration does not support.
+func ParseDuration(s string) (time.Duration, error) {
+	parsed := durationRe.FindStringSubmatch(s)
+	if len(parsed) != 3 {
+		return time.Duration(0), fmt.Errorf("Invalid format: %s", s)
+	}
+	n, err := strconv.ParseInt(parsed[1], 10, 32)
+	if err != nil {
+		return time.Duration(0), fmt.Errorf("Invalid numeric format: %s", s)
+	}
+	d := time.Second
+	switch parsed[2][0] {
+	case 's':
+		d = time.Duration(n) * time.Second
+	case 'm':
+		d = time.Duration(n) * time.Minute
+	case 'h':
+		d = time.Duration(n) * time.Hour
+	case 'd':
+		d = time.Duration(n) * 24 * time.Hour
+	case 'w':
+		d = time.Duration(n) * 7 * 24 * time.Hour
+	}
+	return d, nil
 }

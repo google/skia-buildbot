@@ -15,6 +15,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -244,29 +245,10 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse submitted data.")
 		return
 	}
-	parsed := durationRe.FindStringSubmatch(req.Duration)
-	if len(parsed) != 3 {
-		util.ReportError(w, r, fmt.Errorf("Rejected duration: %s", req.Duration), "Failed to parse duration")
-		return
-	}
-	// TODO break out the following into its own func, add tests.
-	n, err := strconv.ParseInt(parsed[1], 10, 32)
+	d, err := human.ParseDuration(req.Duration)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to parse duration")
 		return
-	}
-	d := time.Second
-	switch parsed[2][0] {
-	case 's':
-		d = time.Duration(n) * time.Second
-	case 'm':
-		d = time.Duration(n) * time.Minute
-	case 'h':
-		d = time.Duration(n) * time.Hour
-	case 'd':
-		d = time.Duration(n) * 24 * time.Hour
-	case 'w':
-		d = time.Duration(n) * 7 * 24 * time.Hour
 	}
 	ignoreRule := types.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
 	if err != nil {

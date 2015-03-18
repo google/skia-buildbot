@@ -141,3 +141,62 @@ func TestTickMarks(t *testing.T) {
 		t.Errorf(": Got %v Want %v", got, want)
 	}
 }
+
+func TestParseDuration(t *testing.T) {
+	testCases := []struct {
+		s      string
+		d      time.Duration
+		hasErr bool
+	}{
+		{
+			s:      "",
+			d:      time.Duration(0),
+			hasErr: true,
+		},
+		{
+			s:      "1minute",
+			d:      time.Duration(0),
+			hasErr: true,
+		},
+		{
+			s:      "3",
+			d:      time.Duration(0),
+			hasErr: true,
+		},
+		{
+			s:      "100s",
+			d:      100 * time.Second,
+			hasErr: false,
+		},
+		{
+			s:      "9m",
+			d:      9 * time.Minute,
+			hasErr: false,
+		},
+		{
+			s:      "10h",
+			d:      10 * time.Hour,
+			hasErr: false,
+		},
+		{
+			s:      "2d",
+			d:      2 * 24 * time.Hour,
+			hasErr: false,
+		},
+		{
+			s:      "52w",
+			d:      52 * 7 * 24 * time.Hour,
+			hasErr: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		d, err := ParseDuration(tc.s)
+		if got, want := d, tc.d; got != want {
+			t.Errorf("Wrong duration: Got %v Want %v", got, want)
+		}
+		if got, want := err != nil, tc.hasErr; got != want {
+			t.Errorf("Wrong err status: Got %v Want %v", got, want)
+		}
+	}
+}

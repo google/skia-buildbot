@@ -9,13 +9,13 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/perf/go/human"
 	ptypes "go.skia.org/infra/perf/go/types"
 )
 
