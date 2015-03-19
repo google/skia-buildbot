@@ -418,6 +418,18 @@ func (a *Analyzer) AddIgnoreRule(ignoreRule *types.IgnoreRule) error {
 	return nil
 }
 
+// UpdateIgnoreRule updates an existing ignore rule and recalculates the new state of the
+// system.
+func (a *Analyzer) UpdateIgnoreRule(ruleId int, ignoreRule *types.IgnoreRule) error {
+	if err := a.ignoreStore.Update(ruleId, ignoreRule); err != nil {
+		return err
+	}
+
+	a.processTile(false, false)
+
+	return nil
+}
+
 // DeleteIgnoreRule deletes the ignore rule and recalculates the state of the
 // system.
 func (a *Analyzer) DeleteIgnoreRule(ruleId int, user string) error {
