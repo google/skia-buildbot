@@ -52,6 +52,7 @@ perf/res/common
 perf/third_party
 perf/timestamp.json
 perf/local.toml
+perf/client_secrets.json
 push/google_storage_token.data
 push/third_party
 push/node_modules
