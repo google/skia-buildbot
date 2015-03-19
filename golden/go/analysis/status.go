@@ -10,9 +10,9 @@ import (
 
 const (
 	// Metric names and templates for metric names added in this file.
-	METRIC_TOTAL       = "golden.digests.total"
-	METRIC_ALL_TMPL    = "golden.%s.all"
-	METRIC_CORPUS_TMPL = "golden.%s.by_corpus.%s"
+	METRIC_TOTAL       = "gold.digests.total"
+	METRIC_ALL_TMPL    = "gold.%s.all"
+	METRIC_CORPUS_TMPL = "gold.%s.by_corpus.%s"
 )
 
 var (

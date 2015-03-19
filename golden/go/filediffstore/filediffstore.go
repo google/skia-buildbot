@@ -78,8 +78,8 @@ func (d DiffMetricsCodec) Decode(data []byte) (interface{}, error) {
 
 // Init initializes the module.
 func Init() {
-	downloadSuccessCount = metrics.NewRegisteredCounter("golden.gsdownload.success", metrics.DefaultRegistry)
-	downloadFailureCount = metrics.NewRegisteredCounter("golden.gsdownload.failiure", metrics.DefaultRegistry)
+	downloadSuccessCount = metrics.NewRegisteredCounter("gold.gsdownload.success", metrics.DefaultRegistry)
+	downloadFailureCount = metrics.NewRegisteredCounter("gold.gsdownload.failiure", metrics.DefaultRegistry)
 }
 
 type FileDiffStore struct {

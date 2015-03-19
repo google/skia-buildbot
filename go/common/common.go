@@ -4,8 +4,11 @@ package common
 
 import (
 	"flag"
+	"fmt"
 	"net"
+	"os"
 	"runtime"
+	"strings"
 	"time"
 
 	metrics "github.com/rcrowley/go-metrics"
@@ -33,7 +36,7 @@ func Init() {
 func InitWithMetrics(appName string, graphiteServer *string) {
 	Init()
 
-	_ = StartMetrics(appName, *graphiteServer)
+	startMetrics(appName, *graphiteServer)
 }
 
 // Get the graphite server from a callback function; useful when the graphite
@@ -41,19 +44,35 @@ func InitWithMetrics(appName string, graphiteServer *string) {
 func InitWithMetricsCB(appName string, getGraphiteServer func() string) {
 	Init()
 
-	_ = StartMetrics(appName, getGraphiteServer())
+	// Note(stephana): getGraphiteServer relies on Init() being called first.
+	startMetrics(appName, getGraphiteServer())
 }
 
-func StartMetrics(appName, graphiteServer string) error {
+// TODO(stephana): Refactor startMetrics to return an error instead of
+// terminating the app.
+
+func startMetrics(appName, graphiteServer string) {
+	if graphiteServer == "" {
+		glog.Warningf("No metrics server speicifed.")
+		return
+	}
+
 	addr, err := net.ResolveTCPAddr("tcp", graphiteServer)
 	if err != nil {
-		return err
+		glog.Fatalf("Unable to resolve metrics server address: %s", err)
 	}
+
+	// Get the hostname and create the app-prefix.
+	hostName, err := os.Hostname()
+	if err != nil {
+		glog.Fatalf("Unable to retrieve hostname: %s", err)
+	}
+	appPrefix := fmt.Sprintf("%s.%s", appName, strings.Replace(hostName, ".", "-", -1))
 
 	// Runtime metrics.
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
 	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, SAMPLE_PERIOD)
-	go metrics.Graphite(metrics.DefaultRegistry, SAMPLE_PERIOD, appName, addr)
+	go metrics.Graphite(metrics.DefaultRegistry, SAMPLE_PERIOD, appPrefix, addr)
 
 	// Uptime.
 	uptimeGuage := metrics.GetOrRegisterGaugeFloat64("uptime", metrics.DefaultRegistry)
@@ -64,5 +83,4 @@ func StartMetrics(appName, graphiteServer string) error {
 			uptimeGuage.Update(time.Since(startTime).Seconds())
 		}
 	}()
-	return nil
 }
