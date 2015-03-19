@@ -8,6 +8,10 @@ Displays a summary of an ignore rule.
        The element will produce a 'deleted' event when the delete button is
        pressed. The id of the deleted ignore rule will be included in
        e.detail.
+
+    'edit'
+       The element will produce an 'edit' event when the edit button is
+       pressed. The state of the ignore rule will be included in e.detail.
   Methods:
 -->
 <polymer-element name="ignore-summary-sk">
@@ -55,6 +59,7 @@ Displays a summary of an ignore rule.
     <pre id=query>{{value.query | splitAmp }}</pre>
     <pre id=note>{{value.note}}</pre>
     <div id=count>{{value.count}}</div>
+    <paper-button id=edit title="Edit"><core-icon icon=create><core-icon></paper-button>
     <paper-button id=delete title="Delete"><core-icon icon=delete><core-icon></paper-button>
   </template>
   <script>
@@ -70,7 +75,10 @@ Displays a summary of an ignore rule.
         ready: function() {
           var that = this;
           this.$.delete.addEventListener('click', function() {
-            that.dispatchEvent(new CustomEvent('delete', {detail: that.value.id}));
+            that.dispatchEvent(new CustomEvent('delete', {detail: that.value.id, bubbles: true}));
+          });
+          this.$.edit.addEventListener('click', function() {
+            that.dispatchEvent(new CustomEvent('edit', {detail: that.value, bubbles: true}));
           });
         },
 

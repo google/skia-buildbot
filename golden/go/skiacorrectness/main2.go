@@ -199,6 +199,48 @@ func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func polyIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.")
+		return
+	}
+	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
+	if err != nil {
+		util.ReportError(w, r, err, "ID must be valid integer.")
+		return
+	}
+	req := &IgnoresRequest{}
+	if err := parseJson(r, req); err != nil {
+		util.ReportError(w, r, err, "Failed to parse submitted data.")
+		return
+	}
+	d, err := human.ParseDuration(req.Duration)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to parse duration")
+		return
+	}
+	ignoreRule := types.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to create ignore rule.")
+		return
+	}
+	ignoreRule.ID = int(id)
+
+	if *startAnalyzer {
+		err = analyzer.UpdateIgnoreRule(int(id), ignoreRule)
+	} else {
+		err = ignoreStore.Update(int(id), ignoreRule)
+	}
+
+	if err != nil {
+		util.ReportError(w, r, err, "Unable to update ignore rule.")
+	} else {
+		// If update worked just list the current ignores and return them.
+		polyIgnoresJSONHandler(w, r)
+	}
+}
+
 func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user := login.LoggedInAs(r)
 	if user == "" {
@@ -225,7 +267,7 @@ func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type IgnoresAddRequest struct {
+type IgnoresRequest struct {
 	Duration string `json:"duration"`
 	Filter   string `json:"filter"`
 	Note     string `json:"note"`
@@ -240,7 +282,7 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
 		return
 	}
-	req := &IgnoresAddRequest{}
+	req := &IgnoresRequest{}
 	if err := parseJson(r, req); err != nil {
 		util.ReportError(w, r, err, "Failed to parse submitted data.")
 		return

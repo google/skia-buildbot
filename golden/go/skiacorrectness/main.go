@@ -460,6 +460,7 @@ func main() {
 	router.HandleFunc("/2/_/ignores", polyIgnoresJSONHandler).Methods("GET")
 	router.HandleFunc("/2/_/ignores/del/{id}", polyIgnoresDeleteHandler).Methods("POST")
 	router.HandleFunc("/2/_/ignores/add/", polyIgnoresAddHandler).Methods("POST")
+	router.HandleFunc("/2/_/ignores/save/{id}", polyIgnoresUpdateHandler).Methods("POST")
 	router.HandleFunc("/2/_/test", polyTestHandler).Methods("POST")
 	router.HandleFunc("/2/_/details", polyDetailsHandler).Methods("GET")
 	router.HandleFunc("/2/_/triage", polyTriageHandler).Methods("POST")

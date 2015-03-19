@@ -44,8 +44,16 @@
       }
 
       #dialog {
+        position: absolute;
+        top: 0;
+        left: 0;
         display: none;
-        margin-left: 5em;
+        background: white;
+        margin: 2%;
+        border: solid 1px lightgray;
+        z-index: 100;
+        padding: 1%;
+        box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
       }
 
       #dialog.display {
@@ -59,6 +67,24 @@
       paper-input {
         display: block;
         margin-bottom: 1em;
+      }
+
+      paper-fab {
+        position: absolute;
+        right: 2em;
+        bottom: 2em;
+      }
+
+      #save {
+        display: none;
+      }
+
+      #dialog.save #save {
+        display: inline-block;
+      }
+
+      #dialog.save #add {
+        display: none;
       }
 
     </style>
@@ -76,22 +102,31 @@
         User name  - expires in - query - and the delete button will appear here.
       </div>
 
-      <toggle-display-sk title="Create a new ignore rule.">
-        <core-icon icon=add-box><core-icon>
-      </toggle-display-sk>
-      <div id=dialog>
+      <paper-fab icon="add"></paper-fab>
+      <div id=dialog vertical layout>
         <paper-input id=duration label="Duration (1s, 5m, 2h, 3d, 5w)" value=2d floatingLabel></paper-input>
         <paper-input id=note label="Note" floatingLabel></paper-input>
         <query-sk whiteList='["source_type", "config"]' hideCount noClear></query-sk>
-        <paper-button id=add disabled>Add</paper-button>
-        <paper-button id=cancel>Cancel</paper-button>
+        <div horizontal layout>
+          <paper-button id=add disabled>Add</paper-button>
+          <paper-button id=save disabled>Save</paper-button>
+          <paper-button id=cancel>Cancel</paper-button>
+        </div>
       </div>
+
+      <paper-action-dialog id=confirm heading="Confirm Delete">
+        <p>Are you sure you want to delete this rule?</p>
+        <paper-button affirmative>Cancel</paper-button>
+        <paper-button id=okdelete affirmative>OK</paper-button>
+      </paper-action-dialog>
 
       <paper-toast></paper-toast>
     </scaffold-sk>
 
     <script type="text/javascript" charset="utf-8">
      sk.WebComponentsReady.then(function() {
+
+       var id  = '';
 
        function displayRules(json) {
          var container = $$$('#summaries');
@@ -100,9 +135,6 @@
            var s = document.createElement('ignore-summary-sk');
            container.appendChild(s);
            s.value = c;
-           s.addEventListener('delete', function(e) {
-             deleteRule(e.detail);
-           });
          });
        }
 
@@ -119,6 +151,42 @@
          });
        }
 
+       function beginEdit(value) {
+         id = value.id;
+         console.log(value);
+         $$$('query-sk').setSelections(value.query);
+         $$$('#note').value = value.note;
+         $$$('#duration').value = sk.human.diffDate(value.expires);
+         $$$('#dialog').classList.add('display');
+         $$$('#dialog').classList.add('save');
+       }
+
+       function sendRule(url) {
+         var body = {
+           duration: $$$('#duration').value,
+           filter: $$$('query-sk').currentQuery,
+           note: $$$('#note').value,
+         };
+
+         sk.post(url, JSON.stringify(body)).then(JSON.parse).then(function(json) {
+           $$$('query-sk').clearSelections();
+           displayRules(json);
+           $$$('#dialog').classList.remove('display');
+         }).catch(function(e) {
+           $$$('paper-toast').text = e;
+           $$$('paper-toast').show();
+           $$$('#dialog').classList.remove('display');
+         });
+       }
+
+       function addRule() {
+         sendRule('/2/_/ignores/add/');
+       }
+
+       function saveRule() {
+         sendRule('/2/_/ignores/save/'+id);
+       }
+
        function loadSummaries(query) {
          query = query || '';
          sk.get('/2/_/ignores').then(JSON.parse).then(function(json) {
@@ -132,8 +200,10 @@
        function readyToAdd() {
          if ($$$('#duration').value != "" && $$$('query-sk').currentQuery != "") {
            $$$('#add').removeAttribute('disabled');
+           $$$('#save').removeAttribute('disabled');
          } else {
            $$$('#add').setAttribute('disabled', '');
+           $$$('#save').removeAttribute('disabled');
          }
        }
 
@@ -148,29 +218,34 @@
          });
 
          $$$('#cancel').addEventListener('click', function() {
-           $$$('#dialog').classList.toggle('display');
+           $$$('#dialog').classList.remove('display');
+         });
+
+         $$$('paper-fab').addEventListener('click', function() {
+           $$$('#note').value = '';
+           $$$('#duration').value = '2d';
+           $$$('query-sk').clearSelections();
+           $$$('#dialog').classList.add('display');
+           $$$('#dialog').classList.remove('save');
          });
 
          $$$('query-sk').addEventListener('change', readyToAdd);
          $$$('#duration').addEventListener('change', readyToAdd);
 
+         $$$('#add').addEventListener('click', addRule);
+         $$$('#save').addEventListener('click', saveRule);
 
-         $$$('#add').addEventListener('click', function() {
-           var body = {
-             duration: $$$('#duration').value,
-             filter: $$$('query-sk').currentQuery,
-             note: $$$('#note').value,
-           };
+         $$$('#summaries').addEventListener('delete', function(e) {
+           id = e.detail;
+           $$$('#confirm').open();
+         });
 
-           sk.post('/2/_/ignores/add/', JSON.stringify(body)).then(JSON.parse).then(function(json) {
-             $$$('query-sk').clearSelections();
-             displayRules(json);
-             $$$('#dialog').classList.toggle('display');
-           }).catch(function(e) {
-             $$$('paper-toast').text = e;
-             $$$('paper-toast').show();
-             $$$('#dialog').classList.toggle('display');
-           });
+         $$$('#okdelete').addEventListener('click', function() {
+           deleteRule(id);
+         });
+
+         $$$('#summaries').addEventListener('edit', function(e) {
+           beginEdit(e.detail);
          });
        });
 
