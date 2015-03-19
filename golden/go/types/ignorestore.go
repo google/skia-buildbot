@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"net/url"
 	"sync"
 	"time"
@@ -17,6 +18,9 @@ type IgnoreStore interface {
 
 	// List returns all ignore rules in the ignore store.
 	List() ([]*IgnoreRule, error)
+
+	// Updates an IgnoreRule.
+	Update(id int, rule *IgnoreRule) error
 
 	// Removes an IgnoreRule from the store.
 	Delete(id int, userId string) (int, error)
@@ -78,6 +82,21 @@ func (m *MemIgnoreStore) List() ([]*IgnoreRule, error) {
 	result := make([]*IgnoreRule, len(m.rules))
 	copy(result, m.rules)
 	return result, nil
+}
+
+// Update, see IgnoreStore interface.
+func (m *MemIgnoreStore) Update(id int, updated *IgnoreRule) error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	for i, _ := range m.rules {
+		if updated.ID == id {
+			m.rules[i] = updated
+			return nil
+		}
+	}
+
+	return fmt.Errorf("Did not find an IgnoreRule with id: %d", id)
 }
 
 // Delete, see IgnoreStore interface.

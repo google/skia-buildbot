@@ -54,7 +54,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	assert.True(t, ok)
 	assert.Equal(t, 2, len(found))
 
-	// Remove the third and fourth rue
+	// Remove the third and fourth rule
 	delCount, err := store.Delete(r3.ID, "jon@example.com")
 	assert.Nil(t, err)
 	assert.Equal(t, 1, delCount)
@@ -74,6 +74,21 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	allRules, err = store.List()
 	assert.Equal(t, 1, len(allRules))
 	assert.Equal(t, r2.ID, allRules[0].ID)
+
+	// Update a rule.
+	updatedRule := *allRules[0]
+	updatedRule.Note = "an updated rule"
+	err = store.Update(updatedRule.ID, &updatedRule)
+	assert.NoError(t, err, "Update should succeed.")
+	allRules, err = store.List()
+	assert.Equal(t, 1, len(allRules))
+	assert.Equal(t, r2.ID, allRules[0].ID)
+	assert.Equal(t, "an updated rule", allRules[0].Note)
+
+	// Try to update a non-existent rule.
+	updatedRule = *allRules[0]
+	err = store.Update(100001, &updatedRule)
+	assert.Error(t, err, "Update should fail for a bad id.")
 
 	delCount, err = store.Delete(r2.ID, "jon@example.com")
 	assert.Nil(t, err)

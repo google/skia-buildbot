@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -49,6 +50,21 @@ func (m *SQLIgnoreStore) Create(rule *IgnoreRule) error {
 		return err
 	}
 	rule.ID = int(createdId)
+	return nil
+}
+
+// Update, see IgnoreStore interface.
+func (m *SQLIgnoreStore) Update(id int, rule *IgnoreRule) error {
+	stmt := `UPDATE ignorerule SET userid=?, expires=?, query=?, note=? WHERE id=?`
+
+	res, err := m.vdb.DB.Exec(stmt, rule.Name, rule.Expires.Unix(), rule.Query, rule.Note, rule.ID)
+	if err != nil {
+		return err
+	}
+	n, err := res.RowsAffected()
+	if err == nil && n == 0 {
+		return fmt.Errorf("Did not find an IgnoreRule with id: %d", id)
+	}
 	return nil
 }
 
