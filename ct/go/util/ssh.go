@@ -42,14 +42,12 @@ func executeCmd(cmd, hostname string, config *ssh.ClientConfig, timeout time.Dur
 	}
 	// Use client connection to create new client.
 	client := ssh.NewClient(sshConn, sshChan, req)
-	defer util.Close(client)
 
 	// Client connections can support multiple interactive sessions.
 	session, err := client.NewSession()
 	if err != nil {
 		return "", fmt.Errorf("Failed to ssh connect to %s: %s", hostname, err)
 	}
-	defer util.Close(session)
 
 	var stdoutBuf bytes.Buffer
 	session.Stdout = &stdoutBuf
