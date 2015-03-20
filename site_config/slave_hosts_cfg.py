@@ -288,6 +288,7 @@ _slave_host_dicts = {
   'skia-vm-007': {
     'slaves': [
       ('skiabot-linux-compile-006', '0', False),
+      ('skiabot-linux-housekeeper-000', '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
@@ -301,7 +302,6 @@ _slave_host_dicts = {
 
   'skia-vm-008': {
     'slaves': [
-      ('skiabot-linux-compile-007', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
@@ -315,7 +315,6 @@ _slave_host_dicts = {
 
   'skia-vm-009': {
     'slaves': [
-      ('skiabot-linux-compile-008', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
@@ -329,7 +328,6 @@ _slave_host_dicts = {
 
   'skia-vm-010': {
     'slaves': [
-      ('skiabot-linux-compile-009', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
@@ -343,7 +341,6 @@ _slave_host_dicts = {
 
   'skia-vm-011': {
     'slaves': [
-      ('skiabot-linux-compile-010', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
@@ -357,7 +354,6 @@ _slave_host_dicts = {
 
   'skia-vm-012': {
     'slaves': [
-      ('skiabot-linux-compile-011', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
@@ -371,8 +367,6 @@ _slave_host_dicts = {
 
   'skia-vm-013': {
     'slaves': [
-      ('skiabot-linux-compile-012', '0', False),
-      ('skiabot-linux-housekeeper-000', '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
@@ -567,7 +561,6 @@ _slave_host_dicts = {
 
   'skia-vm-027': {
     'slaves': [
-      ('skiabot-linux-xsan-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
@@ -581,7 +574,6 @@ _slave_host_dicts = {
 
   'skia-vm-028': {
     'slaves': [
-      ('skiabot-linux-xsan-001', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,

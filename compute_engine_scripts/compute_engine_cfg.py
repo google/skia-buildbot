@@ -16,7 +16,7 @@ SCOPES = 'https://www.googleapis.com/auth/devstorage.full_control'
 SKIA_BOT_LINUX_IMAGE_NAME = 'skia-buildbot-v8'
 SKIA_BOT_WIN_IMAGE_NAME = 'windows-server-2008-r2-dc'
 SKIA_BOT_MACHINE_TYPE = os.environ.get(
-    'SKIA_BOT_MACHINE_TYPE', 'n1-standard-16')
+    'SKIA_BOT_MACHINE_TYPE', 'n1-standard-32')
 # Options are Linux and Windows.
 VM_INSTANCE_OS = os.environ.get('VM_INSTANCE_OS', 'Linux')
 IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.112'
@@ -34,7 +34,7 @@ PROJECT_ID = 'google.com:skia-buildbots'
 # instances live in a zone.
 #
 # We flip the default one as required by PCRs in bigcluster.
-ZONE_TAG = os.environ.get('ZONE_TAG', 'f')
+ZONE_TAG = os.environ.get('ZONE_TAG', 'c')
 ZONE = 'us-central1-%s' % ZONE_TAG
 WINDOWS_ZONE = 'us-central1-a'
 
