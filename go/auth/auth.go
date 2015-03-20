@@ -118,7 +118,7 @@ func newCachingTokenSource(cacheFilePath string, ctx context.Context, config *oa
 		fmt.Printf("Your browser has been opened to visit:\n\n%s\n\nEnter the verification code:", url)
 
 		if err = webbrowser.Open(url); err != nil {
-			return nil, fmt.Errorf("Failed to open web browser: %v", err)
+			glog.Errorf("Failed to open web browser. Open manually. \nError: %v", err)
 		}
 
 		var code string
@@ -224,7 +224,7 @@ func RunFlowWithTransport(config *oauth.Config, transport http.RoundTripper) (*h
 
 Enter the verification code:`, url)
 		if err := webbrowser.Open(url); err != nil {
-			return nil, fmt.Errorf("Failed to open web browser: %v", err)
+			glog.Errorf("Failed to open web browser. Please open manually.\nErr: %v", err)
 		}
 		var code string
 		fmt.Scan(&code)
