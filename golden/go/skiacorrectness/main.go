@@ -292,6 +292,11 @@ func recordResponse(h http.Handler) http.Handler {
 func loggingGzipRequestResponse(h http.Handler) http.Handler {
 	// Closure to capture the request.
 	f := func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				glog.Errorf("panic serving %v: %v\n%s", r.URL.Path, err, util.GetStackTrace())
+			}
+		}()
 		glog.Infof("Request: %s %s %#v Content Length: %d", r.URL.Path, r.Method, r.URL, r.ContentLength)
 		h.ServeHTTP(w, r)
 	}
