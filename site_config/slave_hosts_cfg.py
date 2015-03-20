@@ -381,7 +381,14 @@ _slave_host_dicts = {
   'skia-vm-014': {
     'slaves': [
       ('skia-android-canary', '0', True),
-      ('skia-android-build', '1', True),
+      ('skia-android-build-000', '1', True),
+      ('skia-android-build-001', '2', True),
+      ('skia-android-build-002', '3', True),
+      ('skia-android-build-003', '4', True),
+      ('skia-android-build-004', '5', True),
+      ('skia-android-build-005', '6', True),
+      ('skia-android-build-006', '7', True),
+      ('skia-android-build-007', '8', True),
     ],
     'copies': CHROMEBUILD_COPIES,
     'login_cmd': chromecompute_login,
