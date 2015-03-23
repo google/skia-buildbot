@@ -24,16 +24,33 @@
       margin-top: 5px;
     }
     #spacer-left {
-      width: 8px;
+      width: 0px;
     }
     #spacer-right {
-      width: 0px;
+      width: 120px;
     }
     login-sk {
       width: 200px;
     }
     tree-status-sk {
       font-size: 1em;
+    }
+    #sheriff-button {
+      max-width: 150px;
+      width: 150px;
+      white-space: nowrap;
+      text-align: left;
+      margin: 0px;
+    }
+    #sheriff-email {
+      display: inline;
+    }
+    core-icon-button /deep/ core-icon[role=img] {
+      color: #E6AB02;
+    }
+    .inherit {
+      color: inherit;
+      background-color: inherit;
     }
     </style>
   </head>
@@ -43,6 +60,13 @@
         <div id="toolbar" class="top" horizontal layout center fit>
           <menu-sk></menu-sk>
           <autoroll-widget-sk></autoroll-widget-sk>
+          <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" class="inherit">
+            <core-icon-button
+                id="sheriff-button"
+                icon="star">
+              Sheriff:<div id="sheriff-email"></div>
+            </core-icon-button>
+          </a>
           <div id="spacer-left"></div>
           <div id="title" vertical layout flex>
             <h1>Skia Status</h1>
@@ -63,6 +87,7 @@
     (function() {
       sk.WebComponentsReady.then(function() {
         $$$("tree-status-sk").addEventListener("change", function(e) {
+          $$$('#sheriff-email').innerHTML = e.detail.sheriff;
           var tb  = $$$("core-toolbar");
           if (e.detail.open == tb.classList.contains("closed")) {
             tb.classList.toggle("closed");

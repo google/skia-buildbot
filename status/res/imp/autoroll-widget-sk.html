@@ -21,7 +21,7 @@
   <template>
     <style>
     :host {
-      width: 200px;
+      width: 180px;
     }
     #statusIndicator /deep/ core-icon{
       color: #E6AB02;
@@ -40,7 +40,7 @@
         on-tap="{{toggle}}"
         class="{{status.status}}"
         icon="{{status.status == 'In progress' ? 'autorenew' : (status.status == 'Stopped' ? 'error' : 'check-circle')}}">
-      AutoRoll: {{status.status}}
+      Roll: {{status.status}}
     </core-icon-button>
     <paper-dropdown>
       <paper-shadow z="2">
