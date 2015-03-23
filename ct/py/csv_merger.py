@@ -67,10 +67,10 @@ class CsvMerger(object):
         continue
       smallest_row[fieldname] = self._GetSmallest(values)
 
-    print
-    print 'For rows: %s' % rows
-    print 'Smallest row is %s' % smallest_row
-    print
+    # print
+    # print 'For rows: %s' % rows
+    # print 'Smallest row is %s' % smallest_row
+    # print
     return smallest_row
 
   def Merge(self):

@@ -111,12 +111,16 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 			}
 			workersWithOutputs[hostname] = output
 			delete(remainingWorkers, hostname)
-			glog.Infof("Worker %s has completed execution", hostname)
-			glog.Infof("Remaining workers: %s", remainingWorkers)
+			glog.Infoln()
+			glog.Infof("[%d/%d] Worker %s has completed execution", NUM_WORKERS-len(remainingWorkers), NUM_WORKERS, hostname)
+			glog.Infof("Remaining workers: %v", remainingWorkers)
 		}(i, hostname)
 	}
 
 	wg.Wait()
+	glog.Infoln()
+	glog.Infof("Finished running \"%s\" on all %d workers", cmd, NUM_WORKERS)
+	glog.Info("========================================")
 
 	return workersWithOutputs, nil
 }
