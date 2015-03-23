@@ -42,7 +42,7 @@ func (a actionFromDB) toAction() (Action, error) {
 func GetActiveAlerts() ([]*Alert, error) {
 	// Get the Alerts.
 	rv := []*Alert{}
-	if err := DB.Select(&rv, fmt.Sprintf("SELECT id,name,category,triggered,snoozedUntil,dismissedAt,message,nag FROM %s WHERE active = 1;", TABLE_ALERTS)); err != nil {
+	if err := DB.Select(&rv, fmt.Sprintf("SELECT id,name,category,triggered,snoozedUntil,dismissedAt,message,nag,autoDismiss,lastFired FROM %s WHERE active = 1;", TABLE_ALERTS)); err != nil {
 		return nil, fmt.Errorf("Could not retrieve active alerts: %v", err)
 	}
 
@@ -108,7 +108,7 @@ func (a *Alert) replaceIntoDB() (rv error) {
 	if a.DismissedAt == 0 {
 		active = 1
 	}
-	res, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (id,active,name,triggered,category,message,nag,snoozedUntil,dismissedAt) VALUES (?,?,?,?,?,?,?,?,?);", TABLE_ALERTS), a.Id, active, a.Name, a.Triggered, a.Category, a.Message, a.Nag, a.SnoozedUntil, a.DismissedAt)
+	res, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (id,active,name,triggered,category,message,nag,snoozedUntil,dismissedAt,autoDismiss,lastFired) VALUES (?,?,?,?,?,?,?,?,?,?,?);", TABLE_ALERTS), a.Id, active, a.Name, a.Triggered, a.Category, a.Message, a.Nag, a.SnoozedUntil, a.DismissedAt, a.AutoDismiss, a.LastFired)
 	if err != nil {
 		return fmt.Errorf("Failed to push alert into database: %v", err)
 	}

@@ -75,6 +75,16 @@ var v1_down = []string{
 	`DROP TABLE IF EXISTS alerts`,
 }
 
+var v2_up = []string{
+	`ALTER TABLE alerts ADD COLUMN autoDismiss BIGINT NOT NULL;`,
+	`ALTER TABLE alerts ADD COLUMN lastFired BIGINT NOT NULL;`,
+}
+
+var v2_down = []string{
+	`ALTER TABLE alerts DROP COLUMN autoDismiss;`,
+	`ALTER TABLE alerts DROP COLUMN lastFired;`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -83,6 +93,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v1_up,
 		MySQLDown: v1_down,
+	},
+	// version 2. AutoDismiss support.
+	{
+		MySQLUp:   v2_up,
+		MySQLDown: v2_down,
 	},
 }
 

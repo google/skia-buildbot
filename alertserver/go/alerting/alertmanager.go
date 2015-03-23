@@ -50,23 +50,47 @@ func (am *AlertManager) WriteActiveAlertsJson(w io.Writer) error {
 func (am *AlertManager) AddAlert(a *Alert) error {
 	am.mutex.Lock()
 	defer am.mutex.Unlock()
-	// Force some initial values.
-	a.Id = 0
-	a.Triggered = time.Now().UTC().Unix()
-	a.SnoozedUntil = 0
-	a.DismissedAt = 0
-	a.Comments = []*Comment{}
-
+	var alert *Alert
+	active := am.activeAlert(a.Name)
+	t := time.Now().UTC().Unix()
+	if active != 0 {
+		// If the alert is already active, just update LastFired.
+		alert = am.activeAlerts[active]
+		alert.LastFired = t
+	} else {
+		// Otherwise, insert a new alert.
+		alert = a
+		// Force some initial values.
+		a.Id = 0
+		a.Triggered = t
+		a.SnoozedUntil = 0
+		a.DismissedAt = 0
+		a.LastFired = t
+		a.Comments = []*Comment{}
+	}
 	// Insert the alert.
-	if err := am.updateAlert(a); err != nil {
+	if err := am.updateAlert(alert); err != nil {
 		return fmt.Errorf("Failed to add Alert: %v", err)
 	}
 
-	// Trigger the alert actions.
-	for _, action := range a.Actions {
-		go action.Fire(a)
+	// Trigger the alert actions if we inserted a new alert.
+	if active == 0 {
+		for _, action := range alert.Actions {
+			go action.Fire(alert)
+		}
 	}
 	return nil
+}
+
+// activeAlert returns the ID for the active alert with the given name, or
+// zero if no alert with the given name is active.
+func (am *AlertManager) activeAlert(name string) int64 {
+	for _, a := range am.activeAlerts {
+		if a.Name == name {
+			return a.Id
+		}
+	}
+	return 0
 }
 
 // ActiveAlert returns the ID for the active alert with the given name, or
@@ -74,12 +98,7 @@ func (am *AlertManager) AddAlert(a *Alert) error {
 func (am *AlertManager) ActiveAlert(name string) int64 {
 	am.mutex.RLock()
 	defer am.mutex.RUnlock()
-	for _, a := range am.activeAlerts {
-		if a.Name == name {
-			return a.Id
-		}
-	}
-	return 0
+	return am.activeAlert(name)
 }
 
 // updateAlert updates the given Alert in the database and reloads the active
@@ -209,6 +228,12 @@ func (am *AlertManager) tick() error {
 		// Dismiss alerts whose snooze period has expired.
 		if a.Snoozed() && a.SnoozedUntil < now {
 			if err := am.dismiss(a, "AlertServer", "Snooze period expired."); err != nil {
+				return err
+			}
+		}
+		// Dismiss alerts whose auto-dismiss period has expired.
+		if a.AutoDismiss != 0 && a.AutoDismiss < int64(time.Since(time.Unix(a.LastFired, 0))) {
+			if err := am.dismiss(a, "AlertServer", fmt.Sprintf("Alert has not fired in %s", time.Duration(a.AutoDismiss).String())); err != nil {
 				return err
 			}
 		}

@@ -24,6 +24,8 @@ func makeAlert() *Alert {
 		DismissedAt:  0,
 		Message:      "This is a test!",
 		Nag:          int64(time.Hour),
+		AutoDismiss:  0,
+		LastFired:    now,
 		Comments: []*Comment{
 			&Comment{
 				User:    "me",
@@ -155,4 +157,20 @@ func TestAlertFlowE2E(t *testing.T) {
 	assert.Nil(t, am.AddAlert(a))
 	assert.Nil(t, am.Dismiss(getAlert().Id, "test_user", "test dismiss"))
 	assert.Equal(t, 0, len(getAlerts()))
+
+	// Ensure that Alerts auto-dismiss appropriately.
+	a.AutoDismiss = int64(time.Second)
+	assert.Nil(t, am.AddAlert(a))
+	// Normally, the Alert would be re-firing during this time...
+	time.Sleep(2 * time.Second)
+	assert.Nil(t, am.tick())
+	// But since it didn't, we expect no active alerts.
+	assert.Equal(t, 0, len(getAlerts()))
+
+	// Now, ensure that Alerts DON'T auto-dismiss when they shouldn't.
+	a = makeAlert()
+	assert.Nil(t, am.AddAlert(a))
+	time.Sleep(2 * time.Second)
+	assert.Nil(t, am.tick())
+	assert.Equal(t, 1, len(getAlerts()))
 }

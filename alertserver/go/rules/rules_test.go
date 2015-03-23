@@ -39,7 +39,7 @@ func getRule() *Rule {
 			}
 			return []*client.Series{&s}, nil
 		}},
-		AutoDismiss: true,
+		AutoDismiss: int64(time.Second),
 		Actions:     []string{"Print"},
 	}
 	return r
@@ -93,7 +93,7 @@ func TestRuleTriggeringE2E(t *testing.T) {
 	// Hack the condition so that it's no longer true with the fake query results.
 	r.Condition = "x > 10"
 	assert.Nil(t, r.tick(am))
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(2 * time.Second)
 	assert.Equal(t, 0, len(getAlerts()))
 
 	// Stop the AlertManager.
@@ -361,7 +361,7 @@ nag = "1h10m"
 		if err != nil {
 			t.Errorf("Failed to parse:\n%v", c.Input)
 		}
-		_, err = newRule(cfg.Rule[0], nil, false)
+		_, err = newRule(cfg.Rule[0], nil, false, 10)
 		actualErrStr := "nil"
 		if err != nil {
 			actualErrStr = err.Error()

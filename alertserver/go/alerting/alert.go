@@ -11,6 +11,8 @@ type alertFields struct {
 	DismissedAt  int64      `json:"dismissedAt"`
 	Message      string     `json:"message"`
 	Nag          int64      `json:"nag"`
+	AutoDismiss  int64      `json:"autoDismiss"`
+	LastFired    int64      `json:"lastFired"`
 	Comments     []*Comment `json:"comments"`
 	Actions      []string   `json:"actions"`
 }
@@ -25,6 +27,8 @@ type Alert struct {
 	DismissedAt  int64      `db:"dismissedAt"  json:"dismissedAt"`
 	Message      string     `db:"message"      json:"message"`
 	Nag          int64      `db:"nag"          json:"nag"`
+	AutoDismiss  int64      `db:"autoDismiss"  json:"autoDismiss"`
+	LastFired    int64      `db:"lastFired"    json:"lastFired"`
 	Comments     []*Comment `db:"-"            json:"comments"`
 	Actions      []Action   `db:"-"            json:"-"`
 }
@@ -43,6 +47,8 @@ func (a *Alert) MarshalJSON() ([]byte, error) {
 		DismissedAt:  a.DismissedAt,
 		Message:      a.Message,
 		Nag:          a.Nag,
+		AutoDismiss:  a.AutoDismiss,
+		LastFired:    a.LastFired,
 		Comments:     a.Comments,
 		Actions:      actions,
 	}
@@ -62,6 +68,8 @@ func (a *Alert) UnmarshalJSON(b []byte) error {
 	a.DismissedAt = proxy.DismissedAt
 	a.Message = proxy.Message
 	a.Nag = proxy.Nag
+	a.AutoDismiss = proxy.AutoDismiss
+	a.LastFired = proxy.LastFired
 	a.Comments = proxy.Comments
 	actions := make([]Action, 0, len(proxy.Actions))
 	for _, s := range proxy.Actions {

@@ -25,7 +25,7 @@ type Rule struct {
 	Message     string        `json:"message"`
 	Nag         time.Duration `json:"nag"`
 	client      queryable
-	AutoDismiss bool `json:"autoDismiss"`
+	AutoDismiss int64 `json:"autoDismiss"`
 	Actions     []string
 }
 
@@ -37,11 +37,12 @@ func (r *Rule) fire(am *alerting.AlertManager, message string) error {
 		return fmt.Errorf("Could not fire alert: %v", err)
 	}
 	a := alerting.Alert{
-		Name:     r.Name,
-		Category: r.Category,
-		Message:  message,
-		Nag:      int64(r.Nag),
-		Actions:  actions,
+		Name:        r.Name,
+		Category:    r.Category,
+		Message:     message,
+		Nag:         int64(r.Nag),
+		AutoDismiss: r.AutoDismiss,
+		Actions:     actions,
 	}
 	return am.AddAlert(&a)
 }
@@ -52,16 +53,13 @@ func (r *Rule) queryExecutionAlert(queryErr error, am *alerting.AlertManager) er
 		return err
 	}
 	name := "Failed to execute query"
-	if am.ActiveAlert(name) == 0 {
-		return am.AddAlert(&alerting.Alert{
-			Name:     name,
-			Category: r.Category, // Should the category be "internal error" or something?
-			Message:  fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]", r.Name, r.Query),
-			Nag:      int64(1 * time.Hour),
-			Actions:  actions,
-		})
-	}
-	return nil
+	return am.AddAlert(&alerting.Alert{
+		Name:     name,
+		Category: r.Category, // Should the category be "internal error" or something?
+		Message:  fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]", r.Name, r.Query),
+		Nag:      int64(1 * time.Hour),
+		Actions:  actions,
+	})
 }
 
 func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) error {
@@ -70,21 +68,18 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 		return err
 	}
 	name := "Failed to evaluate query"
-	if am.ActiveAlert(name) == 0 {
-		return am.AddAlert(&alerting.Alert{
-			Name:     name,
-			Category: r.Category, // Should the category be "internal error" or something?
-			Message:  fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]\nFull error:\n%v", r.Name, r.Condition, queryErr),
-			Nag:      int64(1 * time.Hour),
-			Actions:  actions,
-		})
-	}
-	return nil
+	return am.AddAlert(&alerting.Alert{
+		Name:     name,
+		Category: r.Category, // Should the category be "internal error" or something?
+		Message:  fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]\nFull error:\n%v", r.Name, r.Condition, queryErr),
+		Nag:      int64(1 * time.Hour),
+		Actions:  actions,
+	})
 }
 
 func (r *Rule) tick(am *alerting.AlertManager) error {
 	a := am.ActiveAlert(r.Name)
-	if a == 0 || r.AutoDismiss {
+	if a == 0 {
 		d, err := executeQuery(r.client, r.Query)
 		if err != nil {
 			// We shouldn't fail to execute a query. Trigger an alert.
@@ -94,9 +89,7 @@ func (r *Rule) tick(am *alerting.AlertManager) error {
 		if err != nil {
 			return r.queryEvaluationAlert(err, am)
 		}
-		if a != 0 && r.AutoDismiss && !doAlert {
-			return am.Dismiss(a, "AlertServer", "Condition is no longer true.")
-		} else if a == 0 && doAlert {
+		if doAlert {
 			return r.fire(am, r.Message)
 		}
 	}
@@ -119,7 +112,7 @@ func (r *Rule) evaluate(d float64) (bool, error) {
 
 type parsedRule map[string]interface{}
 
-func newRule(r parsedRule, client *client.Client, testing bool) (*Rule, error) {
+func newRule(r parsedRule, client *client.Client, testing bool, tickInterval time.Duration) (*Rule, error) {
 	errString := "Alert rule missing field %q"
 	name, ok := r["name"].(string)
 	if !ok {
@@ -137,9 +130,13 @@ func newRule(r parsedRule, client *client.Client, testing bool) (*Rule, error) {
 	if !ok {
 		return nil, fmt.Errorf(errString, "message")
 	}
-	AutoDismiss, ok := r["auto-dismiss"].(bool)
+	autoDismiss, ok := r["auto-dismiss"].(bool)
 	if !ok {
 		return nil, fmt.Errorf(errString, "auto-dismiss")
+	}
+	dismissInterval := int64(0)
+	if autoDismiss {
+		dismissInterval = int64(2 * tickInterval)
 	}
 	actionsInterface, ok := r["actions"]
 	if !ok {
@@ -166,7 +163,7 @@ func newRule(r parsedRule, client *client.Client, testing bool) (*Rule, error) {
 		Message:     message,
 		Nag:         nagDuration,
 		client:      client,
-		AutoDismiss: AutoDismiss,
+		AutoDismiss: dismissInterval,
 		Actions:     actionStrings,
 	}
 	// Verify that the condition can be evaluated.
@@ -195,7 +192,7 @@ func MakeRules(cfgFile string, dbClient *client.Client, tickInterval time.Durati
 	}
 	rules := []*Rule{}
 	for _, r := range parsedRules {
-		r, err := newRule(r, dbClient, testing)
+		r, err := newRule(r, dbClient, testing, tickInterval)
 		if err != nil {
 			return nil, err
 		}
