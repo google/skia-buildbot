@@ -160,6 +160,12 @@ func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
 		err = DB.Ping()
 	}
 
+	// As outlined in this comment:
+	// https://github.com/go-sql-driver/mysql/issues/257#issuecomment-48985975
+	// We can remove this once we have determined it's not necessary.
+	DB.SetMaxIdleConns(0)
+	DB.SetMaxOpenConns(200)
+
 	if err != nil {
 		glog.Fatalln("Failed to open connection to SQL server:", err)
 	}

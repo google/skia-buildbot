@@ -41,6 +41,20 @@ func (e *Expectations) AddDigests(testDigests map[string]types.TestClassificatio
 	}
 }
 
+// RemoveDigests removes the given digests from the expectations.
+// The key in the input is the test name.
+func (e *Expectations) RemoveDigests(digests map[string][]string) {
+	for testName, digests := range digests {
+		for _, digest := range digests {
+			delete(e.Tests[testName], digest)
+		}
+
+		if len(e.Tests[testName]) == 0 {
+			delete(e.Tests, testName)
+		}
+	}
+}
+
 func (e *Expectations) DeepCopy() *Expectations {
 	m := make(map[string]types.TestClassification, len(e.Tests))
 	for k, v := range e.Tests {
@@ -48,6 +62,47 @@ func (e *Expectations) DeepCopy() *Expectations {
 	}
 	return &Expectations{
 		Tests: m,
+	}
+}
+
+// Delta returns the additions and removals that are necessary to
+// get from e to right. The results can be passed directly to the
+// AddChange and RemoveChange functions of the ExpectationsStore.
+func (e *Expectations) Delta(right *Expectations) (*Expectations, map[string][]string) {
+	addExp := subtract(right, e, nil)
+	removeExp := subtract(e, right, addExp.Tests)
+
+	// Copy the testnames and digests into the output.
+	ret := make(map[string][]string, len(removeExp.Tests))
+	for testName, digests := range removeExp.Tests {
+		temp := make([]string, 0, len(digests))
+		for digest := range digests {
+			temp = append(temp, digest)
+		}
+		ret[testName] = temp
+	}
+
+	return addExp, ret
+}
+
+// Returns a copy of expA with all values removed that also appear in expB.
+func subtract(expA, expB *Expectations, exclude map[string]types.TestClassification) *Expectations {
+	ret := make(map[string]types.TestClassification, len(expA.Tests))
+	for testName, digests := range expA.Tests {
+		for digest, labelA := range digests {
+			if _, ok := exclude[testName][digest]; !ok {
+				if labelB, ok := expB.Tests[testName][digest]; !ok || (labelB != labelA) {
+					if found, ok := ret[testName]; !ok {
+						ret[testName] = map[string]types.Label{digest: labelA}
+					} else {
+						found[digest] = labelA
+					}
+				}
+			}
+		}
+	}
+	return &Expectations{
+		Tests: ret,
 	}
 }
 
@@ -65,6 +120,11 @@ type ExpectationsStore interface {
 	// AddChange writes the given classified digests to the database and records the
 	// user that made the change.
 	AddChange(changes map[string]types.TestClassification, userId string) error
+
+	// RemoveChange removes the given digests from the expectations store.
+	// The key in changes is the test name which maps to a list of digests
+	// to remove.
+	RemoveChange(changes map[string][]string) error
 
 	// Changes returns a receive-only channel that will provide a list of test
 	// names every time expectations are updated.
@@ -95,6 +155,7 @@ func (c changesSlice) send(s []string) {
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
 	expectations *Expectations
+	readCopy     *Expectations
 	changes      changesSlice
 
 	// Protects expectations.
@@ -105,6 +166,7 @@ type MemExpectationsStore struct {
 func NewMemExpectationsStore() ExpectationsStore {
 	return &MemExpectationsStore{
 		expectations: NewExpectations(),
+		readCopy:     NewExpectations(),
 		changes:      changesSlice{},
 	}
 }
@@ -115,15 +177,20 @@ func (m *MemExpectationsStore) Get() (*Expectations, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
-	return m.expectations, nil
+	return m.readCopy, nil
 }
 
+func (m *MemExpectationsStore) dataChanged(testNames []string) {
+	m.readCopy = m.expectations.DeepCopy()
+	m.changes.send(testNames)
+}
+
+// See ExpectationsStore interface.
 func (m *MemExpectationsStore) AddChange(changedTests map[string]types.TestClassification, userId string) error {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
 	testNames := make([]string, 0, len(changedTests))
-
 	for testName, digests := range changedTests {
 		if _, ok := m.expectations.Tests[testName]; !ok {
 			m.expectations.Tests[testName] = map[string]types.Label{}
@@ -134,7 +201,28 @@ func (m *MemExpectationsStore) AddChange(changedTests map[string]types.TestClass
 		testNames = append(testNames, testName)
 	}
 
-	m.changes.send(testNames)
+	m.dataChanged(testNames)
+	return nil
+}
+
+// RemoveChange, see ExpectationsStore interface.
+func (m *MemExpectationsStore) RemoveChange(changedDigests map[string][]string) error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	testNames := make([]string, 0, len(changedDigests))
+
+	for testName, digests := range changedDigests {
+		for _, digest := range digests {
+			delete(m.expectations.Tests[testName], digest)
+			if len(m.expectations.Tests[testName]) == 0 {
+				delete(m.expectations.Tests, testName)
+			}
+		}
+		testNames = append(testNames, testName)
+	}
+
+	m.dataChanged(testNames)
 	return nil
 }
 
