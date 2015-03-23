@@ -32,7 +32,7 @@
           </li>
         </ul>
         <ul class="nav navbar-nav navbar-right">
-          <li ng-if="globalStatus.ok" class="statusOk">
+          <!-- <li ng-if="globalStatus.ok" class="statusOk">
             All:
               <span class="glyphicon glyphicon-thumbs-up"></span>
           </li>
@@ -44,13 +44,22 @@
 
           <li style="width: 15em">
             &nbsp;
+          </li> -->
+
+          <li ng-repeat="c in showCorpora" ng-if="corpStatus[c]" ng-class="{'statusOk': corpStatus[c].ok, 'statusFail': !corpStatus[c].ok }">
+            <span style="padding-right: 5em">
+              {{c}}:
+                 <span ng-if="corpStatus[c].ok" class="glyphicon glyphicon-thumbs-up"></span>
+                 <span ng-if="!corpStatus[c].ok">
+                     UT: {{ corpStatus[c].untriagedCount }} &nbsp;
+                     NEG: {{ corpStatus[c].negativeCount }} &nbsp;
+                     <a href="#/triage" ng-click="forceTriage(c)" class="thumbLink" title="Triage: {{c}}">
+                      <span class="glyphicon glyphicon-thumbs-down"></span></a>
+                 </span>
+            </span>
           </li>
 
-          <li ng-if="corpStatus[currentCorpus] && corpStatus[currentCorpus].ok" class="statusOk">
-            {{currentCorpus}}: <span class="glyphicon glyphicon-thumbs-up"></span>
-          </li>
-
-
+<!--
           <li ng-if="corpStatus[currentCorpus] && !corpStatus[currentCorpus].ok" class="statusFail">
             {{currentCorpus}}:
              <span>UT: {{ corpStatus[currentCorpus].untriagedCount }}</span> &nbsp;
@@ -59,6 +68,7 @@
              <a href="#/triage">
               <span class="glyphicon glyphicon-thumbs-down"></span></a>
           </li>
+        -->
 
           <li ng-if="isLoggedIn" class="navbar-text">{{userId}}<li>
           <li ng-if="isLoggedIn" class="active"><a href="{{getLogoutURL()}}">Logout</a></li>

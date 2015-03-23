@@ -129,27 +129,32 @@
 .statusOk {
     color: #66A61E !important;
     word-wrap: normal;
-    font-size: 16pt;
     margin: 10px;
+    font-size: 14pt;
 }
 
 li.statusOk > a {
     color: inherit !important;
     display:inline;
-    padding:0;
+    padding:15px;
+    margin:0;
 }
 
 .statusFail {
     color: #E31A1C !important;
     word-wrap: normal;
-    font-size: 16pt;
     margin: 10px;
+    font-size: 14pt;
 }
 
 li.statusFail > a {
     color: inherit !important;
     display:inline;
     padding:0;
+}
+
+a.thumbLink {
+    color: inherit;
 }
 
 .autoRange {

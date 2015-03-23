@@ -1140,6 +1140,26 @@ var skia = skia || {};
 
     };
 
+    $rootScope.corpusList = [];
+    $rootScope.defaultShowCorpora = ['gm', 'skp'];
+
+    $rootScope.corpusChanged = function () {
+      if (localStorage) {
+        localStorage.setItem('corpus', $rootScope.currentCorpus);
+      }
+      $rootScope.showCorpora = angular.copy($rootScope.defaultShowCorpora);
+      if ($rootScope.showCorpora.indexOf($rootScope.currentCorpus) == -1) {
+        $rootScope.showCorpora.unshift($rootScope.currentCorpus);
+      }
+      $rootScope.$broadcast('corpus-change');
+    };
+
+    $rootScope.forceTriage = function(corpus) {
+      $rootScope.currentCorpus = corpus;
+      $location.path("/triage");
+      $rootScope.corpusChanged();
+    }
+
     // Load the status every 3 seconds.
     $rootScope.checkStatus();
     $interval($rootScope.checkStatus, 3000);
@@ -1147,14 +1167,9 @@ var skia = skia || {};
     // Retrieve the corpus from localStorage if possible.
     var localStorage = $window.localStorage;
     $rootScope.currentCorpus = localStorage && localStorage.getItem('corpus');
-    $rootScope.corpusList = [];
-
-    $rootScope.corpusChanged = function () {
-      if (localStorage) {
-        localStorage.setItem('corpus', $rootScope.currentCorpus);
-      }
-      $rootScope.$broadcast('corpus-change');
-    };
+    if ($rootScope.currentCorpus) {
+      $rootScope.corpusChanged();
+    }
 
     /**
      * @param {string} testName if not null this will cause to fetch counts
