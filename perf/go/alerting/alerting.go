@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"net/http"
-	"strconv"
 	"time"
 
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/clustering"
@@ -23,6 +22,12 @@ import (
 const (
 	CLUSTER_SIZE   = 50
 	CLUSTER_STDDEV = 0.001
+
+	// TRACKED_ITEM_URL_TEMPLATE is used to generate the URL that is
+	// embedded in an issue. It is also used to search for issues linked to a
+	// specific item (cluster). The format verb is to be replaced with the ID
+	// of the tracked item.
+	TRACKED_ITEM_URL_TEMPLATE = "https://perf.skia.org/cl/%d"
 )
 
 var (
@@ -233,69 +238,21 @@ func apiKeyFromFlag(apiKeyFlag string) string {
 	return apiKey
 }
 
-// Issue is an individual issue returned from the project hosting response.
-//
-// It is used in IssueResponse.
-type Issue struct {
-	ID int64 `json:"id"`
-}
-
-// IssueResponse is used to decode JSON responses from the project hosting API.
-type IssueResponse struct {
-	Items []*Issue `json:"items"`
-}
-
 // updateBugs will find all the bugs the reference the alerting cluster will
 // write them into the ClusterSummary and save it back to the store.
-func updateBugs(c *types.ClusterSummary, apiKey string) {
-	// All issues reported through skiaperf will contain a URL of the form:
-	//
-	//   http://skiaperf.com/cl/NNN.
-	//
-	// Where NNN is the alerting cluster ID.
-
-	// Search through the project hosting API for all issues that match that URI.
-	url := "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?q=%3A%2F%2Fskiaperf.com%2Fcl%2F" + strconv.Itoa(int(c.ID)) + ".&fields=items%2Fid,items%2Fstate&key=" + apiKey
-
-	//  This will return a JSON response of the form:
-	//
-	//  {
-	//   "items": [
-	//    {
-	//     "id": 2874,
-	//     "state": "open"
-	//    }
-	//   ]
-	//  }
-	//
-	// We don't currently use "state".
-
-	resp, err := http.Get(url)
+func updateBugs(c *types.ClusterSummary, issueTracker issues.IssueTracker) error {
+	bugs, err := issueTracker.GetIssues(c.ID)
 	if err != nil {
-		glog.Errorf("Request to project hosting failed: %s", err)
-		return
+		return err
 	}
-	defer util.Close(resp.Body)
 
-	issueResponse := &IssueResponse{
-		Items: []*Issue{},
-	}
-	dec := json.NewDecoder(resp.Body)
-	if err := dec.Decode(&issueResponse); err != nil {
-		glog.Errorf("Failed to decode project hosting response: %s", err)
-		return
-	}
-	glog.Infof("For %d Got %#v", c.ID, issueResponse)
-	bugs := []int64{}
-	for _, issue := range issueResponse.Items {
-		bugs = append(bugs, issue.ID)
-	}
 	if !util.Int64Equal(bugs, c.Bugs) {
 		c.Bugs = bugs
 		if err := Write(c); err != nil {
-			glog.Errorf("Alerting: Failed to write updated cluster with bugs: %s", err)
+			return fmt.Errorf("Alerting: Failed to write updated cluster with bugs: %s", err)
 		}
 	}
+	return nil
 }
 
 // trimTime trims the Tile down to at most the last config.MAX_CLUSTER_COMMITS
@@ -310,7 +267,7 @@ func trimTile(tile *types.Tile) (*types.Tile, error) {
 }
 
 // singleStep does a single round of alerting.
-func singleStep(tileStore types.TileStore, apiKey string) {
+func singleStep(tileStore types.TileStore, issueTracker issues.IssueTracker) {
 	latencyBegin := time.Now()
 	tile, err := tileStore.Get(0, -1)
 	if err != nil {
@@ -362,8 +319,11 @@ func singleStep(tileStore types.TileStore, apiKey string) {
 		if c.Status == "New" {
 			count++
 		}
-		if apiKey != "" {
-			updateBugs(c, apiKey)
+		if issueTracker != nil {
+			if err := updateBugs(c, issueTracker); err != nil {
+				glog.Errorf("Error retrieving bugs: %s", err)
+				return
+			}
 		} else {
 			glog.Infof("Skipping ClusterSummary.Bugs update because apiKey is missing.")
 			return
@@ -400,10 +360,15 @@ func calcNewClusters() {
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
 func Start(ts types.TileStore, apiKeyFlag string) {
 	apiKey := apiKeyFromFlag(apiKeyFlag)
+	var issueTracker issues.IssueTracker = nil
+	if apiKey != "" {
+		issueTracker = issues.NewIssueTracker(apiKey, TRACKED_ITEM_URL_TEMPLATE)
+	}
+
 	tileStore = ts
 	go func() {
 		for _ = range time.Tick(config.RECLUSTER_DURATION) {
-			singleStep(ts, apiKey)
+			singleStep(ts, issueTracker)
 		}
 	}()
 }

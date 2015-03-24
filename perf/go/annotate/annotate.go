@@ -14,6 +14,19 @@ import (
 	"go.skia.org/infra/perf/go/types"
 )
 
+// ISSUE_COMMENT_TEMPLATE is boilerplate text that is added when a new
+// issue is created (through redirection in the UI). We convert the template
+// to include the URL template that is used to link a cluster with an
+// issue.
+var ISSUE_COMMENT_TEMPLATE = fmt.Sprintf(`This bug was found via SkiaPerf.
+
+Visit this URL to see the details of the suspicious cluster:
+
+      %s
+
+Don't remove the above URL, it is used to match bugs to alerts.
+    `, alerting.TRACKED_ITEM_URL_TEMPLATE)
+
 // Handler serves the /annotate/ endpoint for changing the status of an
 // alert cluster. It also writes a new types.Activity log record to the database.
 //
@@ -93,15 +106,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	if req.Status == "Bug" {
 		q := url.Values{
-			"labels": []string{"FromSkiaPerf,Type-Defect,Priority-Medium"},
-			"comment": []string{fmt.Sprintf(`This bug was found via SkiaPerf.
-
-Visit this URL to see the details of the suspicious cluster:
-
-      https://skiaperf.com/cl/%d.
-
-Don't remove the above URL, it is used to match bugs to alerts.
-    `, req.Id)},
+			"labels":  []string{"FromSkiaPerf,Type-Defect,Priority-Medium"},
+			"comment": []string{fmt.Sprintf(ISSUE_COMMENT_TEMPLATE, req.Id)},
 		}
 		retval["Bug"] = "https://code.google.com/p/skia/issues/entry?" + q.Encode()
 	}
