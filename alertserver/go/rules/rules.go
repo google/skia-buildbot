@@ -82,20 +82,17 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 }
 
 func (r *Rule) tick(am *alerting.AlertManager) error {
-	a := am.ActiveAlert(r.Name)
-	if a == 0 {
-		d, err := executeQuery(r.client, r.Query)
-		if err != nil {
-			// We shouldn't fail to execute a query. Trigger an alert.
-			return r.queryExecutionAlert(err, am)
-		}
-		doAlert, err := r.evaluate(d)
-		if err != nil {
-			return r.queryEvaluationAlert(err, am)
-		}
-		if doAlert {
-			return r.fire(am, r.Message)
-		}
+	d, err := executeQuery(r.client, r.Query)
+	if err != nil {
+		// We shouldn't fail to execute a query. Trigger an alert.
+		return r.queryExecutionAlert(err, am)
+	}
+	doAlert, err := r.evaluate(d)
+	if err != nil {
+		return r.queryEvaluationAlert(err, am)
+	}
+	if doAlert {
+		return r.fire(am, r.Message)
 	}
 	return nil
 }
