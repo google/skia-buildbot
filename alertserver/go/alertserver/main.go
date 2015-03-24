@@ -223,14 +223,6 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(*resourcesDir))
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", string(300))
-		fileServer.ServeHTTP(w, r)
-	}
-}
-
 func rulesJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	rules := struct {
@@ -258,7 +250,7 @@ func rulesHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(makeResourceHandler())))
+	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(util.MakeResourceHandler(*resourcesDir))))
 	r.HandleFunc("/", util.MakeHandler(alertHandler))
 	r.HandleFunc("/rules", util.MakeHandler(rulesHandler))
 	alerts := r.PathPrefix("/json/alerts").Subrouter()
@@ -339,7 +331,7 @@ func main() {
 			glog.Fatalf("Failed to cache token: %s", err)
 		}
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE)
 
 	var emailAuth *email.GMail
 	if !*testing {

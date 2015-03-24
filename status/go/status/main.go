@@ -111,14 +111,6 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 	return &v32, nil
 }
 
-func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(*resourcesDir))
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", string(300))
-		fileServer.ServeHTTP(w, r)
-	}
-}
-
 func getCommitCache(w http.ResponseWriter, r *http.Request) (*commit_cache.CommitCache, error) {
 	repo, _ := mux.Vars(r)["repo"]
 	cache, ok := commitCaches[repo]
@@ -318,7 +310,7 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(makeResourceHandler())))
+	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(util.MakeResourceHandler(*resourcesDir))))
 	r.HandleFunc("/", util.MakeHandler(commitsHandler))
 	builds := r.PathPrefix("/json/{repo}/builds/{buildId:[0-9]+}").Subrouter()
 	builds.HandleFunc("/comments", util.MakeHandler(addBuildCommentHandler)).Methods("POST")
@@ -374,7 +366,7 @@ func main() {
 		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE)
 
 	// Check out source code.
 	skiaRepo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia.git", path.Join(*workdir, "skia"), true)

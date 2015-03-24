@@ -1072,7 +1072,7 @@ func main() {
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		redirectURL = "https://perf.skia.org/oauth2callback/"
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt)
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE)
 	glog.Infoln("Begin loading data.")
 
 	// Resources are served directly.

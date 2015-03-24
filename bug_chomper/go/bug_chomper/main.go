@@ -14,10 +14,8 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"html/template"
 	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -26,17 +24,22 @@ import (
 	"time"
 
 	"github.com/fiorix/go-web/autogzip"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/bug_chomper/go/issue_tracker"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/util"
 )
 
 const (
 	CERT_FILE           = "certs/cert.pem"
 	KEY_FILE            = "certs/key.pem"
 	ISSUE_COMMENT       = "Edited by BugChomper"
-	OAUTH_CALLBACK_PATH = "/oauth2callback"
+	OAUTH_CALLBACK_PATH = "/oauth2callback/"
 	OAUTH_CONFIG_FILE   = "oauth_client_secret.json"
 	LOCAL_HOST          = "127.0.0.1"
 	MAX_SESSION_LEN     = time.Duration(3600 * time.Second)
@@ -47,9 +50,12 @@ const (
 
 // Flags:
 var (
+	host           = flag.String("host", "localhost", "HTTP service host")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	public         = flag.Bool("public", false, "Make this server publicly accessible.")
+	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
 var (
@@ -78,90 +84,6 @@ func loadTemplates() {
 	))
 }
 
-// SessionState contains data for a given session.
-type SessionState struct {
-	IssueTracker   *issue_tracker.IssueTracker
-	OrigRequestURL string
-	SessionStart   time.Time
-}
-
-// getAbsoluteURL returns the absolute URL of the given Request.
-func getAbsoluteURL(r *http.Request) string {
-	return scheme + "://" + r.Host + r.URL.Path
-}
-
-// getOAuth2CallbackURL returns a callback URL to be used by the OAuth2 login
-// page.
-func getOAuth2CallbackURL(r *http.Request) string {
-	return scheme + "://" + r.Host + OAUTH_CALLBACK_PATH
-}
-
-func saveSession(session *SessionState, w http.ResponseWriter, r *http.Request) error {
-	encodedSession, err := secureCookie.Encode(COOKIE_NAME, session)
-	if err != nil {
-		return fmt.Errorf("unable to encode session state: %s", err)
-	}
-	cookie := &http.Cookie{
-		Name:     COOKIE_NAME,
-		Value:    encodedSession,
-		Domain:   strings.Split(r.Host, ":")[0],
-		Path:     "/",
-		HttpOnly: true,
-	}
-	http.SetCookie(w, cookie)
-	return nil
-}
-
-// makeSession creates a new session for the Request.
-func makeSession(w http.ResponseWriter, r *http.Request) (*SessionState, error) {
-	glog.Info("Creating new session.")
-	// Create the session state.
-	issueTracker, err := issue_tracker.MakeIssueTracker(
-		OAUTH_CONFIG_FILE, getOAuth2CallbackURL(r))
-	if err != nil {
-		return nil, fmt.Errorf("unable to create IssueTracker for session: %s", err)
-	}
-	session := SessionState{
-		IssueTracker:   issueTracker,
-		OrigRequestURL: getAbsoluteURL(r),
-		SessionStart:   time.Now(),
-	}
-
-	// Encode and store the session state.
-	if err := saveSession(&session, w, r); err != nil {
-		return nil, err
-	}
-
-	return &session, nil
-}
-
-// getSession retrieves the active SessionState or creates and returns a new
-// SessionState.
-func getSession(w http.ResponseWriter, r *http.Request) (*SessionState, error) {
-	cookie, err := r.Cookie(COOKIE_NAME)
-	if err != nil {
-		glog.Info("No cookie found! Starting new session.")
-		return makeSession(w, r)
-	}
-	var session SessionState
-	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &session); err != nil {
-		glog.Infof("Invalid or corrupted session. Starting another: %s", err)
-		return makeSession(w, r)
-	}
-
-	currentTime := time.Now()
-	if currentTime.Sub(session.SessionStart) > MAX_SESSION_LEN {
-		glog.Infof("Session starting at %s is expired. Starting another.",
-			session.SessionStart.Format(time.RFC822))
-		return makeSession(w, r)
-	}
-	if err := saveSession(&session, w, r); err != nil {
-		reportError(w, fmt.Sprintf("failed to save session: %v", err), http.StatusInternalServerError)
-		return nil, nil
-	}
-	return &session, nil
-}
-
 // reportError serves the error page with the given message.
 func reportError(w http.ResponseWriter, msg string, code int) {
 	errData := struct {
@@ -182,17 +104,16 @@ func reportError(w http.ResponseWriter, msg string, code int) {
 
 // makeBugChomperPage builds and serves the BugChomper page.
 func makeBugChomperPage(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(w, r)
-	if err != nil {
-		reportError(w, err.Error(), http.StatusInternalServerError)
+	// Redirect for login if needed.
+	user := login.LoggedInAs(r)
+	if user == "" {
+		http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
 		return
 	}
-	issueTracker := session.IssueTracker
-	user, err := issueTracker.GetLoggedInUser()
-	if err != nil {
-		reportError(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	glog.Infof("Logged in as %s", user)
+
+	issueTracker := issue_tracker.New(login.GetHttpClient(r))
+	w.Header().Set("Content-Type", "text/html")
 	glog.Info("Loading bugs for " + user)
 	bugList, err := issueTracker.GetBugs(PROJECT_NAME, user)
 	if err != nil {
@@ -243,33 +164,10 @@ func makeBugChomperPage(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// authIfNeeded determines whether the current user is logged in. If not, it
-// redirects to a login page. Returns true if the user is redirected and false
-// otherwise.
-func authIfNeeded(w http.ResponseWriter, r *http.Request) bool {
-	session, err := getSession(w, r)
-	if err != nil {
-		reportError(w, err.Error(), http.StatusInternalServerError)
-		return false
-	}
-	issueTracker := session.IssueTracker
-	if !issueTracker.IsAuthenticated() {
-		loginURL := issueTracker.MakeAuthRequestURL()
-		glog.Info("Redirecting for login:", loginURL)
-		http.Redirect(w, r, loginURL, http.StatusTemporaryRedirect)
-		return true
-	}
-	return false
-}
-
 // submitData attempts to submit data from a POST request to the IssueTracker.
 func submitData(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(w, r)
-	if err != nil {
-		reportError(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	issueTracker := session.IssueTracker
+	w.Header().Set("Content-Type", "text/html")
+	issueTracker := issue_tracker.New(login.GetHttpClient(r))
 	edits := r.FormValue("all_edits")
 	var editsMap map[string]*issue_tracker.Issue
 	if err := json.Unmarshal([]byte(edits), &editsMap); err != nil {
@@ -318,83 +216,50 @@ func submitData(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-// handleBugChomper handles HTTP requests for the bug_chomper page.
-func handleBugChomper(w http.ResponseWriter, r *http.Request) {
-	if authIfNeeded(w, r) {
-		return
-	}
-	switch r.Method {
-	case "GET":
-		makeBugChomperPage(w, r)
-	case "POST":
-		submitData(w, r)
-	}
-}
-
-// handleOAuth2Callback handles callbacks from the OAuth2 sign-in.
-func handleOAuth2Callback(w http.ResponseWriter, r *http.Request) {
-	session, err := getSession(w, r)
-	if err != nil {
-		reportError(w, err.Error(), http.StatusInternalServerError)
-	}
-	issueTracker := session.IssueTracker
-	invalidLogin := "Invalid login credentials"
-	params, err := url.ParseQuery(r.URL.RawQuery)
-	if err != nil {
-		reportError(w, invalidLogin+": "+err.Error(), http.StatusForbidden)
-		return
-	}
-	code, ok := params["code"]
-	if !ok {
-		reportError(w, invalidLogin+": redirect did not include auth code.",
-			http.StatusForbidden)
-		return
-	}
-	glog.Info("Upgrading auth token:", code[0])
-	if err := issueTracker.UpgradeCode(code[0]); err != nil {
-		errMsg := "failed to upgrade token: " + err.Error()
-		reportError(w, errMsg, http.StatusForbidden)
-		return
-	}
-	if err := saveSession(session, w, r); err != nil {
-		reportError(w, "failed to save session: "+err.Error(),
-			http.StatusInternalServerError)
-		return
-	}
-	http.Redirect(w, r, session.OrigRequestURL, http.StatusTemporaryRedirect)
-	return
-}
-
-// mainHandler is the handler function for all HTTP requests at the root level.
-func mainHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Info("Fetching " + r.URL.Path)
-	if r.URL.Path == "/" || r.URL.Path == "/index.html" {
-		handleBugChomper(w, r)
-		return
-	}
-	http.NotFound(w, r)
+func runServer(serverURL string) {
+	r := mux.NewRouter()
+	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(util.MakeResourceHandler(*resourcesDir))))
+	r.HandleFunc("/", util.MakeHandler(autogzip.HandleFunc(makeBugChomperPage))).Methods("GET")
+	r.HandleFunc("/", util.MakeHandler(autogzip.HandleFunc(submitData))).Methods("POST")
+	r.HandleFunc(OAUTH_CALLBACK_PATH, util.MakeHandler(login.OAuth2CallbackHandler))
+	r.HandleFunc("/logout/", util.MakeHandler(login.LogoutHandler))
+	r.HandleFunc("/loginstatus/", util.MakeHandler(login.StatusHandler))
+	http.Handle("/", r)
+	glog.Info("Server is running at " + serverURL)
+	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 // Run the BugChomper server.
 func main() {
 	common.InitWithMetrics("bug_chomper", graphiteServer)
+
+	v, err := skiaversion.GetVersion()
+	if err != nil {
+		glog.Fatal(err)
+	}
+	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+
 	loadTemplates()
 
-	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
-	http.HandleFunc(OAUTH_CALLBACK_PATH, handleOAuth2Callback)
-	http.Handle("/res/", http.FileServer(http.Dir("./")))
-	glog.Info("Server is running at " + scheme + "://" + LOCAL_HOST + *port)
-	var err error
-	if *public {
-		glog.Warning("WARNING: This server is not secure and should not be made " +
-			"publicly accessible.")
-		scheme = "https"
-		err = http.ListenAndServeTLS(*port, CERT_FILE, KEY_FILE, nil)
-	} else {
-		scheme = "http"
-		err = http.ListenAndServe(LOCAL_HOST+*port, nil)
+	if *testing {
+		*useMetadata = false
 	}
-	if err != nil {
-		glog.Error(err)
+	serverURL := "https://" + *host
+	if *testing {
+		serverURL = "http://" + *host + *port
 	}
+
+	// By default use a set of credentials setup for localhost access.
+	var cookieSalt = "notverysecret"
+	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
+	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
+	var redirectURL = serverURL + "/oauth2callback/"
+	if *useMetadata {
+		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
+		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
+		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
+	}
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt, strings.Join(issue_tracker.OAUTH_SCOPE, " "))
+
+	runServer(serverURL)
 }

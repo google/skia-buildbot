@@ -41,7 +41,8 @@ import (
 )
 
 const (
-	COOKIE_NAME         = "skid"
+	COOKIE_NAME         = "sktoken"
+	DEFAULT_SCOPE       = "email"
 	SESSION_COOKIE_NAME = "sksession"
 )
 
@@ -55,7 +56,7 @@ var (
 	oauthConfig = &oauth.Config{
 		ClientId:     "not-a-valid-client-id",
 		ClientSecret: "not-a-valid-client-secret",
-		Scope:        "email",
+		Scope:        DEFAULT_SCOPE,
 		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
 		TokenURL:     "https://accounts.google.com/o/oauth2/token",
 		RedirectURL:  "http://localhost:8000/oauth2callback/",
@@ -71,15 +72,22 @@ var (
 	domainWhitelist = []string{"google.com", "chromium.org", "skia.org"}
 )
 
+type Session struct {
+	Email     string
+	AuthScope string
+	Token     *oauth.Token
+}
+
 // Init must be called before any other methods.
 //
 // The Client ID, Client Secret, and Redirect URL are listed in the Google
 // Developers Console.
-func Init(clientId, clientSecret, redirectURL, cookieSalt string) {
+func Init(clientId, clientSecret, redirectURL, cookieSalt, scope string) {
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig.ClientId = clientId
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
+	oauthConfig.Scope = scope
 }
 
 // LoginURL returns a URL that the user is to be directed to for login.
@@ -108,18 +116,29 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	return oauthConfig.AuthCodeURL(state)
 }
 
+func getSession(r *http.Request) (*Session, error) {
+	cookie, err := r.Cookie(COOKIE_NAME)
+	if err != nil {
+		return nil, err
+	}
+	var s Session
+	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &s); err != nil {
+		return nil, err
+	}
+	if s.AuthScope != oauthConfig.Scope {
+		return nil, fmt.Errorf("Stored auth scope differs from expected (%s vs %s)", oauthConfig.Scope, s.AuthScope)
+	}
+	return &s, nil
+}
+
 // LoggedInAs returns the user's ID, i.e. their email address, if they are
 // logged in, and "" if they are not logged in.
 func LoggedInAs(r *http.Request) string {
-	cookie, err := r.Cookie(COOKIE_NAME)
+	s, err := getSession(r)
 	if err != nil {
 		return ""
 	}
-	var email string
-	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &email); err != nil {
-		return ""
-	}
-	return email
+	return s.Email
 }
 
 // A JSON Web Token can contain much info, such as 'iss' and 'sub'. We don't care about
@@ -136,7 +155,7 @@ type decodedIDToken struct {
 }
 
 // CookieFor creates an encoded Cookie for the given user id.
-func CookieFor(value string) (*http.Cookie, error) {
+func CookieFor(value *Session) (*http.Cookie, error) {
 	encoded, err := secureCookie.Encode(COOKIE_NAME, value)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to encode cookie")
@@ -150,7 +169,7 @@ func CookieFor(value string) (*http.Cookie, error) {
 	}, nil
 }
 
-func setSkIDCookieValue(w http.ResponseWriter, value string) {
+func setSkIDCookieValue(w http.ResponseWriter, value *Session) {
 	cookie, err := CookieFor(value)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%s", err), 500)
@@ -170,7 +189,7 @@ func setSkIDCookieValue(w http.ResponseWriter, value string) {
 // to revoke any grants they make.
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("LogoutHandler\n")
-	setSkIDCookieValue(w, "")
+	setSkIDCookieValue(w, &Session{})
 	http.Redirect(w, r, r.FormValue("redirect"), 302)
 }
 
@@ -179,13 +198,13 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 // "/oauth2callback".
 func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("OAuth2CallbackHandler\n")
-	session, err := r.Cookie(SESSION_COOKIE_NAME)
-	if err != nil || session.Value == "" {
+	cookie, err := r.Cookie(SESSION_COOKIE_NAME)
+	if err != nil || cookie.Value == "" {
 		http.Error(w, "Invalid session state.", 500)
 		return
 	}
 	state := r.FormValue("state")
-	if state != session.Value {
+	if state != cookie.Value {
 		http.Error(w, "Session state doesn't match callback state.", 500)
 		return
 	}
@@ -242,7 +261,12 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Accounts from your domain are not allowed.", 500)
 		return
 	}
-	setSkIDCookieValue(w, decoded.Email)
+	s := Session{
+		Email:     decoded.Email,
+		AuthScope: oauthConfig.Scope,
+		Token:     token,
+	}
+	setSkIDCookieValue(w, &s)
 	http.Redirect(w, r, "/", 302)
 }
 
@@ -264,4 +288,19 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	if err := enc.Encode(body); err != nil {
 		glog.Errorf("Failed to encode Login status to JSON: %s", err)
 	}
+}
+
+// GetHttpClient returns a http.Client which performs authenticated requests as
+// the logged-in user.
+func GetHttpClient(r *http.Request) *http.Client {
+	s, err := getSession(r)
+	if err != nil {
+		glog.Errorf("Failed to get session state; falling back to default http client.")
+		return &http.Client{}
+	}
+	t := oauth.Transport{
+		Config: oauthConfig,
+		Token:  s.Token,
+	}
+	return t.Client()
 }

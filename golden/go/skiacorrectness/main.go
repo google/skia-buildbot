@@ -338,7 +338,7 @@ func main() {
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		useRedirectURL = *redirectURL
 	}
-	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt)
+	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE)
 
 	// get the Oauthclient if necessary.
 	client := getOAuthClient(*doOauth, *oauthCacheFile)

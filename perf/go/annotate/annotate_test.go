@@ -13,7 +13,7 @@ import (
 var once sync.Once
 
 func loginInit() {
-	login.Init("id", "secret", "http://localhost", "salt")
+	login.Init("id", "secret", "http://localhost", "salt", login.DEFAULT_SCOPE)
 }
 
 func TestMissingLogin(t *testing.T) {
@@ -39,7 +39,12 @@ func TestGoodLogin(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cookie, err := login.CookieFor("fred@example.com")
+	s := &login.Session{
+		Email:     "fred@example.com",
+		AuthScope: login.DEFAULT_SCOPE,
+		Token:     nil,
+	}
+	cookie, err := login.CookieFor(s)
 	if err != nil {
 		t.Fatal(err)
 	}

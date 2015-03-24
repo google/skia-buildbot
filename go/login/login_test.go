@@ -12,7 +12,7 @@ import (
 var once sync.Once
 
 func loginInit() {
-	Init("id", "secret", "http://localhost", "salt")
+	Init("id", "secret", "http://localhost", "salt", DEFAULT_SCOPE)
 }
 
 func TestLoginURL(t *testing.T) {
@@ -45,7 +45,12 @@ func TestLoggedInAs(t *testing.T) {
 
 	assert.Equal(t, LoggedInAs(r), "", "No skid cookie means not logged in.")
 
-	cookie, err := CookieFor("fred@example.com")
+	s := Session{
+		Email:     "fred@example.com",
+		AuthScope: DEFAULT_SCOPE,
+		Token:     nil,
+	}
+	cookie, err := CookieFor(&s)
 	if err != nil {
 		t.Fatal(err)
 	}

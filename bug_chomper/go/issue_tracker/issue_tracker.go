@@ -6,11 +6,7 @@
 	Utilities for interacting with the GoogleCode issue tracker.
 
 	Example usage:
-		issueTracker := issue_tracker.MakeIssueTraker(myOAuthConfigFile)
-		authURL := issueTracker.MakeAuthRequestURL()
-		// Visit the authURL to obtain an authorization code.
-		issueTracker.UpgradeCode(code)
-		// Now issueTracker can be used to retrieve and edit issues.
+		issueTracker := issue_tracker.New()
 */
 package issue_tracker
 
@@ -22,17 +18,14 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 
 	"go.skia.org/infra/go/util"
-
-	"code.google.com/p/goauth2/oauth"
 )
 
 // BugPriorities are the possible values for "Priority-*" labels for issues.
 var BugPriorities = []string{"Critical", "High", "Medium", "Low", "Never"}
 
-var apiScope = []string{
+var OAUTH_SCOPE = []string{
 	"https://www.googleapis.com/auth/projecthosting",
 	"https://www.googleapis.com/auth/userinfo.email",
 }
@@ -50,36 +43,6 @@ const (
 	LABEL_REMOVED
 	LABEL_UNCHANGED
 )
-
-// loadOAuthConfig reads the OAuth given config file path and returns an
-// appropriate oauth.Config.
-func loadOAuthConfig(oauthConfigFile string) (*oauth.Config, error) {
-	errFmt := "failed to read OAuth config file: %s"
-	fileContents, err := ioutil.ReadFile(oauthConfigFile)
-	if err != nil {
-		return nil, fmt.Errorf(errFmt, err)
-	}
-	var decodedJson map[string]struct {
-		AuthURL      string `json:"auth_uri"`
-		ClientId     string `json:"client_id"`
-		ClientSecret string `json:"client_secret"`
-		TokenURL     string `json:"token_uri"`
-	}
-	if err := json.Unmarshal(fileContents, &decodedJson); err != nil {
-		return nil, fmt.Errorf(errFmt, err)
-	}
-	config, ok := decodedJson["web"]
-	if !ok {
-		return nil, fmt.Errorf(errFmt, err)
-	}
-	return &oauth.Config{
-		ClientId:     config.ClientId,
-		ClientSecret: config.ClientSecret,
-		Scope:        strings.Join(apiScope, " "),
-		AuthURL:      config.AuthURL,
-		TokenURL:     config.TokenURL,
-	}, nil
-}
 
 // Issue contains information about an issue.
 type Issue struct {
@@ -103,87 +66,22 @@ type IssueList struct {
 // IssueTracker is the primary point of contact with the issue tracker,
 // providing methods for authenticating to and interacting with it.
 type IssueTracker struct {
-	OAuthConfig    *oauth.Config
-	OAuthTransport *oauth.Transport
+	client *http.Client
 }
 
-// MakeIssueTracker creates and returns an IssueTracker with authentication
-// configuration from the given authConfigFile.
-func MakeIssueTracker(authConfigFile string, redirectURL string) (*IssueTracker, error) {
-	oauthConfig, err := loadOAuthConfig(authConfigFile)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"failed to create IssueTracker: %s", err)
-	}
-	oauthConfig.RedirectURL = redirectURL
+// New creates and returns an IssueTracker which makes requests via the given
+// http.Client.
+func New(client *http.Client) *IssueTracker {
 	return &IssueTracker{
-		OAuthConfig:    oauthConfig,
-		OAuthTransport: &oauth.Transport{Config: oauthConfig},
-	}, nil
-}
-
-// MakeAuthRequestURL returns an authentication request URL which can be used
-// to obtain an authorization code via user sign-in.
-func (it IssueTracker) MakeAuthRequestURL() string {
-	// NOTE: Need to add XSRF protection if we ever want to run this on a public
-	// server.
-	return it.OAuthConfig.AuthCodeURL(it.OAuthConfig.RedirectURL)
-}
-
-// IsAuthenticated determines whether the IssueTracker has sufficient
-// permissions to retrieve and edit Issues.
-func (it IssueTracker) IsAuthenticated() bool {
-	return it.OAuthTransport.Token != nil
-}
-
-// UpgradeCode exchanges the single-use authorization code, obtained by
-// following the URL obtained from IssueTracker.MakeAuthRequestURL, for a
-// multi-use, session token. This is required before IssueTracker can retrieve
-// and edit issues.
-func (it *IssueTracker) UpgradeCode(code string) error {
-	token, err := it.OAuthTransport.Exchange(code)
-	if err == nil {
-		it.OAuthTransport.Token = token
-		return nil
-	} else {
-		return fmt.Errorf(
-			"failed to exchange single-user auth code: %s", err)
+		client,
 	}
-}
-
-// GetLoggedInUser retrieves the email address of the authenticated user.
-func (it IssueTracker) GetLoggedInUser() (string, error) {
-	errFmt := "error retrieving user email: %s"
-	if !it.IsAuthenticated() {
-		return "", fmt.Errorf(errFmt, "User is not authenticated!")
-	}
-	resp, err := it.OAuthTransport.Client().Get(PERSON_API_URL)
-	if err != nil {
-		return "", fmt.Errorf(errFmt, err)
-	}
-	defer util.Close(resp.Body)
-	body, _ := ioutil.ReadAll(resp.Body)
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf(errFmt, fmt.Sprintf(
-			"user data API returned code %d: %v", resp.StatusCode, string(body)))
-	}
-	userInfo := struct {
-		Email string `json:"email"`
-	}{}
-	if err := json.Unmarshal(body, &userInfo); err != nil {
-		return "", fmt.Errorf(errFmt, err)
-	}
-	return userInfo.Email, nil
 }
 
 // GetBug retrieves the Issue with the given ID from the IssueTracker.
 func (it IssueTracker) GetBug(project string, id int) (*Issue, error) {
 	errFmt := fmt.Sprintf("error retrieving issue %d: %s", id, "%s")
-	if !it.IsAuthenticated() {
-		return nil, fmt.Errorf(errFmt, "user is not authenticated!")
-	}
 	requestURL := ISSUE_API_URL + project + "/issues/" + strconv.Itoa(id)
-	resp, err := it.OAuthTransport.Client().Get(requestURL)
+	resp, err := it.client.Get(requestURL)
 	if err != nil {
 		return nil, fmt.Errorf(errFmt, err)
 	}
@@ -204,9 +102,6 @@ func (it IssueTracker) GetBug(project string, id int) (*Issue, error) {
 // returning an IssueList.
 func (it IssueTracker) GetBugs(project string, owner string) (*IssueList, error) {
 	errFmt := "error retrieving issues: %s"
-	if !it.IsAuthenticated() {
-		return nil, fmt.Errorf(errFmt, "user is not authenticated!")
-	}
 	params := map[string]string{
 		"owner":      url.QueryEscape(owner),
 		"can":        "open",
@@ -222,7 +117,7 @@ func (it IssueTracker) GetBugs(project string, owner string) (*IssueList, error)
 		}
 		requestURL += k + "=" + v
 	}
-	resp, err := it.OAuthTransport.Client().Get(requestURL)
+	resp, err := it.client.Get(requestURL)
 	if err != nil {
 		return nil, fmt.Errorf(errFmt, err)
 	}
@@ -244,9 +139,6 @@ func (it IssueTracker) GetBugs(project string, owner string) (*IssueList, error)
 // according to the contents of the passed-in Issue struct.
 func (it IssueTracker) SubmitIssueChanges(issue *Issue, comment string) error {
 	errFmt := "Error updating issue " + strconv.Itoa(issue.Id) + ": %s"
-	if !it.IsAuthenticated() {
-		return fmt.Errorf(errFmt, "user is not authenticated!")
-	}
 	oldIssue, err := it.GetBug(issue.Project, issue.Id)
 	if err != nil {
 		return fmt.Errorf(errFmt, err)
@@ -291,10 +183,8 @@ func (it IssueTracker) SubmitIssueChanges(issue *Issue, comment string) error {
 	if err != nil {
 		return fmt.Errorf(errFmt, err)
 	}
-	requestURL := ISSUE_API_URL + issue.Project + "/issues/" +
-		strconv.Itoa(issue.Id) + "/comments"
-	resp, err := it.OAuthTransport.Client().Post(
-		requestURL, "application/json", bytes.NewReader(postBytes))
+	requestURL := ISSUE_API_URL + issue.Project + "/issues/" + strconv.Itoa(issue.Id) + "/comments"
+	resp, err := it.client.Post(requestURL, "application/json", bytes.NewReader(postBytes))
 	if err != nil {
 		return fmt.Errorf(errFmt, err)
 	}

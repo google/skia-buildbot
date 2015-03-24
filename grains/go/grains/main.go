@@ -100,7 +100,7 @@ func main() {
 		*influxDbName = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_NAME))
 		*influxDbPassword = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_PASSWORD))
 	}
-	login.Init(*clientID, *clientSecret, *redirectURL, *cookieSalt)
+	login.Init(*clientID, *clientSecret, *redirectURL, *cookieSalt, login.DEFAULT_SCOPE)
 	http.Handle("/", NewProxy(*influxDbApiHost, *influxDbApiPort, *grafanaDir))
 	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	glog.Fatal(http.ListenAndServe(*port, nil))

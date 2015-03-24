@@ -209,3 +209,12 @@ func LoggingGzipRequestResponse(h http.Handler) http.Handler {
 
 	return autogzip.Handle(recordResponse(http.HandlerFunc(f)))
 }
+
+// MakeResourceHandler is an HTTP handler function designed for serving files.
+func MakeResourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(resourcesDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", string(300))
+		fileServer.ServeHTTP(w, r)
+	}
+}
