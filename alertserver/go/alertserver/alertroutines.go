@@ -22,6 +22,11 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 	go func() {
 		seriesTmpl := "buildbot.buildslaves.%s.connected"
 		re := regexp.MustCompile("[^A-Za-z0-9]+")
+		emailAction, err := alerting.ParseAction("Email(infra-alerts@skia.org)")
+		if err != nil {
+			glog.Fatal(err)
+		}
+		actions := []alerting.Action{emailAction}
 		for _ = range time.Tick(tickInterval) {
 			glog.Info("Loading buildslave data.")
 			slaves, err := buildbot.GetBuildSlaves()
@@ -45,7 +50,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 							Message:     fmt.Sprintf("Buildslave %s is offline.", s.Name),
 							Nag:         int64(time.Hour),
 							AutoDismiss: int64(2 * tickInterval),
-							Actions:     []alerting.Action{},
+							Actions:     actions,
 						}); err != nil {
 							glog.Error(err)
 						}
