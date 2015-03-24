@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"reflect"
 	"sort"
 	"sync"
 	"time"
@@ -67,6 +68,18 @@ func (am *AlertManager) AddAlert(a *Alert) error {
 		a.DismissedAt = 0
 		a.LastFired = t
 		a.Comments = []*Comment{}
+
+		// Add a PrintAction if there isn't one already.
+		found := false
+		for _, action := range a.Actions {
+			if reflect.TypeOf(action).String() == reflect.TypeOf(NewPrintAction()).String() {
+				found = true
+				break
+			}
+		}
+		if !found {
+			a.Actions = append(a.Actions, NewPrintAction())
+		}
 	}
 	// Insert the alert.
 	if err := am.updateAlert(alert); err != nil {

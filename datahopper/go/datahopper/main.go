@@ -81,28 +81,6 @@ func main() {
 		}
 	}()
 
-	// Buildslave uptime.
-	go func() {
-		for _ = range time.Tick(common.SAMPLE_PERIOD) {
-			glog.Info("Loading buildslave data.")
-			slaves, err := buildbot.GetBuildSlaves()
-			if err != nil {
-				glog.Error(err)
-				continue
-			}
-			for _, m := range slaves {
-				for _, s := range m {
-					v := int64(0)
-					if s.Connected {
-						v = int64(1)
-					}
-					metric := fmt.Sprintf("buildbot.buildslaves.%s.connected", fixName(s.Name))
-					metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
-				}
-			}
-		}
-	}()
-
 	// Average duration of buildsteps over a time period.
 	go func() {
 		period := 24 * time.Hour

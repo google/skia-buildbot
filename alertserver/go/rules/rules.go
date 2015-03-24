@@ -53,10 +53,12 @@ func (r *Rule) queryExecutionAlert(queryErr error, am *alerting.AlertManager) er
 		return err
 	}
 	name := "Failed to execute query"
+	msg := fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]", r.Name, r.Query)
+	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
 		Name:     name,
 		Category: r.Category, // Should the category be "internal error" or something?
-		Message:  fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]", r.Name, r.Query),
+		Message:  msg,
 		Nag:      int64(1 * time.Hour),
 		Actions:  actions,
 	})
@@ -68,10 +70,12 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 		return err
 	}
 	name := "Failed to evaluate query"
+	msg := fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]", r.Name, r.Condition)
+	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
 		Name:     name,
 		Category: r.Category, // Should the category be "internal error" or something?
-		Message:  fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]\nFull error:\n%v", r.Name, r.Condition, queryErr),
+		Message:  msg,
 		Nag:      int64(1 * time.Hour),
 		Actions:  actions,
 	})

@@ -371,6 +371,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to set up rules: %v", err)
 	}
+	StartAlertRoutines(alertManager, 10*parsedPollInterval, dbClient)
 
 	runServer(serverURL)
 }
