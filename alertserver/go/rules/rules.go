@@ -140,7 +140,7 @@ func newRule(r parsedRule, client *client.Client, testing bool, tickInterval tim
 	}
 	dismissInterval := int64(0)
 	if autoDismiss {
-		dismissInterval = int64(2 * tickInterval)
+		dismissInterval = int64(10 * tickInterval)
 	}
 	actionsInterface, ok := r["actions"]
 	if !ok {
