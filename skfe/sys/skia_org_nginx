@@ -97,6 +97,48 @@ server {
     return 301 https://gold-staging.skia.org$request_uri;
 }
 
+#####   gold-android.skia.org   #####################
+server {
+    listen      443;
+    server_name gold-android.skia.org;
+
+    ssl on;
+
+    if ( $host != 'gold-android.skia.org' ) {
+        rewrite ^/(.*)$ https://gold-android.skia.org/$1 permanent;
+    }
+
+    location / {
+        proxy_pass http://skia-gold-android:8001;
+    }
+}
+server {
+    listen      80;
+    server_name gold-android.skia.org;
+    return 301 https://gold-android.skia.org$request_uri;
+}
+
+#####   gold-blink.skia.org   #####################
+server {
+    listen      443;
+    server_name gold-blink.skia.org;
+
+    ssl on;
+
+    if ( $host != 'gold-blink.skia.org' ) {
+        rewrite ^/(.*)$ https://gold-blink.skia.org/$1 permanent;
+    }
+
+    location / {
+        proxy_pass http://skia-gold-blink:8001;
+    }
+}
+server {
+    listen      80;
+    server_name gold-blink.skia.org;
+    return 301 https://gold-blink.skia.org$request_uri;
+}
+
 #####   alerts.skia.org   ###########################
 server {
     listen      443;
