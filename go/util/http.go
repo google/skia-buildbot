@@ -6,11 +6,14 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"runtime"
 	"time"
 
 	// Below is a port of the exponential backoff implementation from
 	// google-http-java-client.
 	"github.com/cenkalti/backoff"
+	"github.com/fiorix/go-web/autogzip"
+	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 )
 
@@ -160,4 +163,49 @@ func MakeHandler(f func(http.ResponseWriter, *http.Request)) func(http.ResponseW
 		glog.Infof("%s: %s from %s", r.Method, url, r.RemoteAddr)
 		f(w, r)
 	}
+}
+
+// responseProxy implements http.ResponseWriter and records the status codes.
+type responseProxy struct {
+	http.ResponseWriter
+	wroteHeader bool
+}
+
+func (rp *responseProxy) WriteHeader(code int) {
+	if !rp.wroteHeader {
+		glog.Infof("Response Code: %d", code)
+		metrics.GetOrRegisterCounter(fmt.Sprintf("http.statuscode.%d", code), metrics.DefaultRegistry).Inc(1)
+		rp.ResponseWriter.WriteHeader(code)
+		rp.wroteHeader = true
+	}
+}
+
+// recordResponse returns a wrapped http.Handler that records the status codes of the
+// responses.
+//
+// Note that if a handler doesn't explicitly set a response code and goes with
+// the default of 200 then this will never record anything.
+func recordResponse(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(&responseProxy{ResponseWriter: w}, r)
+	})
+}
+
+// LoggingGzipRequestResponse records parts of the request and the response to the logs.
+func LoggingGzipRequestResponse(h http.Handler) http.Handler {
+	// Closure to capture the request.
+	f := func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				const size = 64 << 10
+				buf := make([]byte, size)
+				buf = buf[:runtime.Stack(buf, false)]
+				glog.Errorf("panic serving %v: %v\n%s", r.URL.Path, err, buf)
+			}
+		}()
+		glog.Infof("Request: %s %s %#v Content Length: %d", r.URL.Path, r.Method, r.URL, r.ContentLength)
+		h.ServeHTTP(w, r)
+	}
+
+	return autogzip.Handle(recordResponse(http.HandlerFunc(f)))
 }

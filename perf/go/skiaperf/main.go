@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fiorix/go-web/autogzip"
+	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
@@ -1076,30 +1076,34 @@ func main() {
 	glog.Infoln("Begin loading data.")
 
 	// Resources are served directly.
-	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
+	router := mux.NewRouter()
 
-	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
-	http.HandleFunc("/shortcuts/", shortcutHandler)
-	http.HandleFunc("/tiles/", tileHandler)
-	http.HandleFunc("/single/", singleHandler)
-	http.HandleFunc("/query/", queryHandler)
-	http.HandleFunc("/commits/", commitsHandler)
-	http.HandleFunc("/shortcommits/", shortCommitsHandler)
-	http.HandleFunc("/trybots/", autogzip.HandleFunc(trybotHandler))
-	http.HandleFunc("/clusters/", autogzip.HandleFunc(clustersHandler))
-	http.HandleFunc("/clustering/", autogzip.HandleFunc(clusteringHandler))
-	http.HandleFunc("/cl/", autogzip.HandleFunc(clHandler))
-	http.HandleFunc("/activitylog/", autogzip.HandleFunc(activityHandler))
-	http.HandleFunc("/alerts/", autogzip.HandleFunc(alertsHandler))
-	http.HandleFunc("/alerting/", autogzip.HandleFunc(alertingHandler))
-	http.HandleFunc("/alert_reset/", autogzip.HandleFunc(alertResetHandler))
-	http.HandleFunc("/annotate/", autogzip.HandleFunc(annotate.Handler))
-	http.HandleFunc("/compare/", autogzip.HandleFunc(compareHandler))
-	http.HandleFunc("/calc/", autogzip.HandleFunc(calcHandler))
-	http.HandleFunc("/help/", autogzip.HandleFunc(helpHandler))
-	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	http.HandleFunc("/logout/", login.LogoutHandler)
-	http.HandleFunc("/loginstatus/", login.StatusHandler)
+	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+
+	router.HandleFunc("/", mainHandler)
+	router.HandleFunc("/shortcuts/", shortcutHandler)
+	router.PathPrefix("/tiles/").HandlerFunc(tileHandler)
+	router.PathPrefix("/single/").HandlerFunc(singleHandler)
+	router.PathPrefix("/query/").HandlerFunc(queryHandler)
+	router.HandleFunc("/commits/", commitsHandler)
+	router.HandleFunc("/shortcommits/", shortCommitsHandler)
+	router.HandleFunc("/trybots/", trybotHandler)
+	router.HandleFunc("/clusters/", clustersHandler)
+	router.HandleFunc("/clustering/", clusteringHandler)
+	router.PathPrefix("/cl/").HandlerFunc(clHandler)
+	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
+	router.HandleFunc("/alerts/", alertsHandler)
+	router.HandleFunc("/alerting/", alertingHandler)
+	router.HandleFunc("/alert_reset/", alertResetHandler)
+	router.HandleFunc("/annotate/", annotate.Handler)
+	router.HandleFunc("/compare/", compareHandler)
+	router.HandleFunc("/calc/", calcHandler)
+	router.HandleFunc("/help/", helpHandler)
+	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	router.HandleFunc("/logout/", login.LogoutHandler)
+	router.HandleFunc("/loginstatus/", login.StatusHandler)
+
+	http.Handle("/", util.LoggingGzipRequestResponse(router))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))
