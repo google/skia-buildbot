@@ -22,7 +22,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia uptime and latency Prober."
 NAME=prober
-DAEMON=/home/default/golib/bin/prober
+DAEMON=/usr/local/bin/prober
 DAEMON_ARGS="--log_dir=/var/log/logserver --config=/etc/skiaprober/probers.json,/etc/skiaprober/buildbots.json"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME

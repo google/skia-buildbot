@@ -1,28 +1,37 @@
 #!/bin/bash
 #
-# Creates the compute instance for skiamonitor.com.
+# Creates the compute instance for skia-monitoring.
 #
 set -x
 
 source vm_config.sh
 
-gcutil --project=$PROJECT_ID addinstance $INSTANCE_NAME \
-  --zone=$ZONE \
-  --external_ip_address=$MONITORING_IP_ADDRESS \
-  --service_account=$PROJECT_USER \
-  --service_account_scopes=$SCOPES \
-  --network=default \
-  --machine_type=$MONITORING_MACHINE_TYPE \
-  --image=$MONITORING_IMAGE \
-  --persistent_boot_disk
+MONITORING_MACHINE_TYPE=n1-highmem-16
+MONITORING_SOURCE_SNAPSHOT=skia-pushable-base
+MONITORING_SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
+MONITORING_IP_ADDRESS=104.154.112.108
 
-gcutil --project=$PROJECT_ID adddisk \
-  --description="Influx Data" \
-  --disk_type=pd-standard \
-  --size_gb=500 \
-  --zone=$ZONE \
-  $DISK_NAME
+# Create a boot disk from the pushable base snapshot.
+gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
+  --zone $ZONE \
+  --source-snapshot $MONITORING_SOURCE_SNAPSHOT \
+  --type "pd-standard"
 
-gcutil --project=$PROJECT_ID attachdisk \
-  --disk=$DISK_NAME \
-  --zone=$ZONE $INSTANCE_NAME
+# Create a large data disk.
+gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
+  --size "1000" \
+  --zone $ZONE \
+  --type "pd-standard"
+
+# Create the instance with the two disks attached.
+gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
+  --zone $ZONE \
+  --machine-type $MONITORING_MACHINE_TYPE \
+  --network "default" \
+  --maintenance-policy "MIGRATE" \
+  --scopes $MONITORING_SCOPES \
+  --tags "http-server" "https-server" \
+  --metadata-from-file "startup-script=startup-script.sh" \
+  --disk name=${INSTANCE_NAME}      device-name=${INSTANCE_NAME}      "mode=rw" "boot=yes" "auto-delete=yes" \
+  --disk name=${INSTANCE_NAME}-data device-name=${INSTANCE_NAME}-data "mode=rw" "boot=no" \
+  --address=$MONITORING_IP_ADDRESS

@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Deletes the compute instance for skiamonitor.com.
+# Deletes the compute instance for skia-monitoring.
 #
 set -x
 
 source vm_config.sh
 
-gcutil --project=$PROJECT_ID deleteinstance \
-  --zone=$ZONE $INSTANCE_NAME
-
-gcutil --project=$PROJECT_ID deletedisk \
-  --zone=$ZONE $DISK_NAME
+gcloud compute instances delete \
+  --project=$PROJECT_ID \
+  --delete-disks "boot" \
+  --zone=$ZONE \
+  $INSTANCE_NAME
