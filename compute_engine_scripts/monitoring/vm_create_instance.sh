@@ -9,7 +9,7 @@ source vm_config.sh
 MONITORING_MACHINE_TYPE=n1-highmem-16
 MONITORING_SOURCE_SNAPSHOT=skia-pushable-base
 MONITORING_SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
-MONITORING_IP_ADDRESS=104.154.112.108
+MONITORING_IP_ADDRESS=108.170.219.115
 
 # Create a boot disk from the pushable base snapshot.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
