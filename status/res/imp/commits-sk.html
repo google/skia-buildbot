@@ -700,6 +700,7 @@
 
       // Filter out green bots unless "showAllBuilders" is checked.
       filterBuilders: function() {
+        console.time("filterBuilders");
         var filteredBuilders = [];
         var selected = this.builderFilter;
         if (selected == "hide") {
@@ -769,6 +770,7 @@
         }
         this.builderCategories = categories;
         this.builderCategoryList = categoryList;
+        console.timeEnd("filterBuilders");
       },
 
       // Is the info popup open?
@@ -903,6 +905,7 @@
       // commits, where N is the default number returned by the server.
       reloadCommits: function(startIdx, endIdx) {
         console.log("Loading commits.");
+        console.time("loadData");
         if (this.$) {
           this.$.moreButton.style.display = "none";
           this.$.loading.style.display = "block";
@@ -920,6 +923,8 @@
         console.log("GET " + url);
         var that = this;
         sk.get(url).then(JSON.parse).then(function(json) {
+          console.timeEnd("loadData");
+          console.time("processData");
           json.commits.reverse();
           for (var i = 0; i < json.commits.length; i++) {
             json.commits[i].comments = json.comments[json.commits[i].hash] || [];
@@ -1046,6 +1051,7 @@
           that.commits = commits;
           that.branchHeads = json.branch_heads;
           that.draw();
+          console.timeEnd("processData");
         }).then(function() {
           that.resetTimeout();
           if (that.$) {
@@ -1064,6 +1070,7 @@
       },
 
       draw: function() {
+        console.time("draw");
         var commits = this.commits;
         var branchHeads = this.branchHeads;
         console.log("Drawing.");
@@ -1116,6 +1123,7 @@
         this.windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
         this.windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
         this.buildTableWidth = this.windowWidth - w - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth - 25;
+        console.timeEnd("draw");
       },
 
       setBuilderWidth: function() {
