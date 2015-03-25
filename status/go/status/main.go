@@ -34,6 +34,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/commit_cache"
 )
@@ -124,6 +125,7 @@ func getCommitCache(w http.ResponseWriter, r *http.Request) (*commit_cache.Commi
 }
 
 func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("commitsJsonHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
 	cache, err := getCommitCache(w, r)
 	if err != nil {
@@ -168,6 +170,7 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("addBuildCommentHandler").Stop()
 	if !userHasEditRights(r) {
 		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
@@ -214,6 +217,7 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("addBuilderStatusHandler").Stop()
 	if !userHasEditRights(r) {
 		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
@@ -255,6 +259,7 @@ func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("addCommitCommentHandler").Stop()
 	if !userHasEditRights(r) {
 		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
@@ -283,6 +288,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func commitsHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("commitsHandler").Stop()
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in testing mode.
@@ -296,6 +302,7 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func infraHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("infraHandler").Stop()
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in testing mode.

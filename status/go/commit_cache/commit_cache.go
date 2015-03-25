@@ -13,6 +13,7 @@ import (
 
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/build_cache"
 )
@@ -40,6 +41,7 @@ type CommitCache struct {
 
 // fromFile attempts to load the CommitCache from the given file.
 func fromFile(cacheFile string) (*CommitCache, error) {
+	defer timer.New("commit_cache.fromFile()").Stop()
 	c := CommitCache{}
 	if _, err := os.Stat(cacheFile); err != nil {
 		return nil, fmt.Errorf("Could not stat cache file: %v", err)
@@ -57,6 +59,7 @@ func fromFile(cacheFile string) (*CommitCache, error) {
 
 // toFile saves the CommitCache to a file.
 func (c *CommitCache) toFile() error {
+	defer timer.New("commit_cache.toFile()").Stop()
 	f, err := os.Create(c.cacheFile)
 	if err != nil {
 		return err
@@ -72,6 +75,7 @@ func (c *CommitCache) toFile() error {
 // The initial update will load ALL commits from the repository, so expect
 // this to be slow.
 func New(repo *gitinfo.GitInfo, cacheFile string, requestSize int) (*CommitCache, error) {
+	defer timer.New("commit_cache.New()").Stop()
 	c, err := fromFile(cacheFile)
 	if err != nil {
 		glog.Warningf("Failed to read commit cache from file; starting from scratch. Error: %v", err)
@@ -127,6 +131,7 @@ func (c *CommitCache) Slice(startIdx, endIdx int) ([]*gitinfo.LongCommit, error)
 
 // update syncs the source code repository and loads any new commits.
 func (c *CommitCache) update() error {
+	defer timer.New("CommitCache.update()").Stop()
 	glog.Info("Reloading commits.")
 	if err := c.repo.Update(true, true); err != nil {
 		return fmt.Errorf("Failed to update the repo: %v", err)

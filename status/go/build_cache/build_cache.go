@@ -8,6 +8,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/timer"
 )
 
 /*
@@ -43,6 +44,7 @@ type BuildCache struct {
 
 // loadData loads the build data for the given commits.
 func loadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]*buildbot.BuildSummary, map[string]*buildbot.BuilderStatus, error) {
+	defer timer.New("build_cache.loadData()").Stop()
 	builds, err := buildbot.GetBuildsForCommits(commits, nil)
 	if err != nil {
 		return nil, nil, nil, err
@@ -74,6 +76,7 @@ func loadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]
 
 // Update reloads build data for the same set of commits as before.
 func (c *BuildCache) Update() error {
+	defer timer.New("BuildCache.Update()").Stop()
 	glog.Infof("Updating build cache.")
 	byId, byCommit, builders, err := loadData(c.commits)
 	if err != nil {
