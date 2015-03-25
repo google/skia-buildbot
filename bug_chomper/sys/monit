@@ -1,0 +1,13 @@
+check process bug_chomper with pidfile /var/run/bug_chomper.pid
+   start program = "/etc/init.d/bug_chomper start"  with timeout 90 seconds
+   stop program = "/etc/init.d/bug_chomper stop"
+   depends on bug_chomper_init
+   depends on bug_chomper_exe
+
+check file bug_chomper_init
+  with path /etc/init.d/bug_chomper
+  if changed timestamp then restart
+
+check file bug_chomper_exe
+  with path /usr/local/bin/bug_chomper
+  if changed timestamp then restart
