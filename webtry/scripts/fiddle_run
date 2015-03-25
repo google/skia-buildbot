@@ -8,4 +8,12 @@
 [ -z $SKIA_ROOT ] && SKIA_ROOT="/skia_build/skia"
 [ -z $WEBTRY_INOUT ] && WEBTRY_INOUT="/skia_build/inout"
 
-$SKIA_ROOT/out/Release_Developer/$1 --out $WEBTRY_INOUT/$1 "${@:2}"
+EXECUTABLE=$SKIA_ROOT/out/Release_Developer/$1
+OBJ=$SKIA_ROOT/out/Release_Developer/cache/src/$1.$1.o
+
+if nm $OBJ | grep " T " | grep -v -q "_Z4drawP8SkCanvas$"; then
+	echo "Could not run your fiddle."
+	exit 1
+fi
+
+$EXECUTABLE --out $WEBTRY_INOUT/$1 "${@:2}"

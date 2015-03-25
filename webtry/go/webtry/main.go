@@ -367,6 +367,9 @@ func expandCode(code string, source int, width, height int) (string, error) {
 		fmt.Sprintf("// WxH: %d, %d", width, height),
 	}
 	for _, line := range inputCodeLines {
+		if strings.Contains(line, "%:") {
+			return "", fmt.Errorf("Can't build your fiddle.")
+		}
 		outputCodeLines = append(outputCodeLines, line)
 	}
 
