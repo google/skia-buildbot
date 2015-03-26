@@ -191,11 +191,6 @@
     core-icon[icon="undo"] {
       color: #D95F02;
     }
-    #moreButton {
-      width: 40px;
-      height: 40px;
-      display: none;
-    }
     </style>
     <div fit style="overflow: scroll;">
       <div horizontal layout center id="loadstatus">
@@ -336,9 +331,7 @@
           </table>
         </div>
       </div>
-      <!-- TODO(borenet): Automatically loadMore when the user scrolls to the bottom? -->
       <div horizontal center-justified layout>
-        <core-icon-button id="moreButton" icon="expand-more" on-click="{{loadMore}}"></core-icon-button>
         <paper-spinner id="loading" active></paper-spinner>
       </div>
       <paper-dialog id="infoDialog"></paper-dialog>
@@ -618,8 +611,6 @@
         this.buildbotUrlPrefix = "https://build.chromium.org/p";
         this.lastLoaded = "(not yet loaded)";
         this.numBuilders = 0;
-        this.startIdx = null;
-        this.endIdx = null;
         this.timeout = null;
         this.revertedHashToReverter = {};
         this.windowHeight = 0;
@@ -689,13 +680,9 @@
         if (this.reload > 0) {
           var that = this;
           this.timeout = window.setTimeout(function() {
-            that.reloadCommits(that.startIdx);
+            that.reloadCommits();
           }, this.reload * 1000);
         }
-      },
-
-      loadMore: function() {
-        this.reloadCommits(this.startIdx - defaultCommitsToLoad, this.startIdx);
       },
 
       // Filter out green bots unless "showAllBuilders" is checked.
@@ -900,26 +887,15 @@
         }
       },
 
-      // Reload the commits. If the startIdx and endIdx parameters are given,
-      // loads the commits in that range. If not, load the most recent N
-      // commits, where N is the default number returned by the server.
-      reloadCommits: function(startIdx, endIdx) {
+      // Reload the commits.
+      reloadCommits: function() {
         console.log("Loading commits.");
         console.time("loadData");
         if (this.$) {
-          this.$.moreButton.style.display = "none";
           this.$.loading.style.display = "block";
           this.$.loading.active = true;
         }
-        var url = "/json/" + this.repo + "/commits/";
-	if (startIdx) {
-          url += "?start=" + startIdx;
-          if (endIdx) {
-            url += "&end=" + endIdx;
-          }
-	} else {
-          url += "?n=" + defaultCommitsToLoad;
-        }
+        var url = "/json/" + this.repo + "/commits/?n=" + defaultCommitsToLoad;
         console.log("GET " + url);
         var that = this;
         sk.get(url).then(JSON.parse).then(function(json) {
@@ -931,42 +907,8 @@
           }
           that.lastLoaded = new Date().toLocaleTimeString();
 
-          // Merge the new commits into the existing set.
-          // Ensure that the new commits line up exactly with the existing ones.
-          if (json.endIdx - json.startIdx != json.commits.length) {
-            throw "Server returned invalid number of commits.";
-          }
-          var commits = null;
-          // Case 1: Loading initial set of commits.
-          if (!that.startIdx || !that.endIdx) {
-            commits = json.commits;
-            that.startIdx = json.startIdx;
-            that.endIdx = json.endIdx;
-          }
-          // Case 2: Loading earlier commits.
-          else if (json.startIdx < that.startIdx) {
-            if (json.endIdx != that.startIdx) {
-              throw "Server returned invalid set of commits.";
-            }
-            commits = that.commits.concat(json.commits);
-            that.startIdx = json.startIdx;
-          }
-          // Case 3: Loading new commits.
-          else if (json.endIdx >= that.endIdx) {
-            if (json.startIdx != that.startIdx) {
-              throw "Server returned invalid set of commits.";
-            }
-            if (json.commits.length == 0) {
-              console.log("No new commits. Skipping draw.");
-              return;
-            }
-            commits = json.commits;
-            that.endIdx = json.endIdx;
-          }
-          // ???
-          else {
-            throw "Server returned invalid data.";
-          }
+          var commits = json.commits;
+
           // Prepare build data.
           console.log("Preparing build data.");
           var builds = {};
@@ -1055,14 +997,12 @@
         }).then(function() {
           that.resetTimeout();
           if (that.$) {
-            that.$.moreButton.style.display = "block";
             that.$.loading.active = false;
             that.$.loading.display = "none";
           }
         }, function() {
           that.resetTimeout();
           if (that.$) {
-            that.$.moreButton.style.display = "block";
             that.$.loading.active = false;
             that.$.loading.display = "none";
           }

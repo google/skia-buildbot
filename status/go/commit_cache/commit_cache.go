@@ -161,19 +161,26 @@ func (c *CommitCache) update() error {
 	if err != nil {
 		return fmt.Errorf("Failed to read branch information from the repo: %v", err)
 	}
+
+	// Load new builds for the BuildCache.
+	allCommits := append(c.Commits, newCommits...)
+	buildCacheHashes := make([]string, 0, c.requestSize)
+	for _, commit := range allCommits[len(allCommits)-c.requestSize:] {
+		buildCacheHashes = append(buildCacheHashes, commit.Hash)
+	}
+	byId, byCommit, builderStatuses, err := build_cache.LoadData(buildCacheHashes)
+	if err != nil {
+		return fmt.Errorf("Failed to update BuildCache: %v", err)
+	}
+
 	// Update the cached values all at once at at the end.
 	glog.Infof("Updating the cache.")
+	defer timer.New("  CommitCache locked").Stop()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.BranchHeads = branchHeads
-	c.Commits = append(c.Commits, newCommits...)
-	buildCacheHashes := make([]string, 0, c.requestSize)
-	for _, commit := range c.Commits[len(c.Commits)-c.requestSize:] {
-		buildCacheHashes = append(buildCacheHashes, commit.Hash)
-	}
-	if err := c.buildCache.UpdateForCommits(buildCacheHashes); err != nil {
-		return err
-	}
+	c.Commits = allCommits
+	c.buildCache.UpdateWithData(byId, byCommit, builderStatuses)
 	if err := c.toFile(); err != nil {
 		return fmt.Errorf("Failed to save commit cache to file: %v", err)
 	}

@@ -42,9 +42,9 @@ type BuildCache struct {
 	mutex    sync.RWMutex
 }
 
-// loadData loads the build data for the given commits.
-func loadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]*buildbot.BuildSummary, map[string]*buildbot.BuilderStatus, error) {
-	defer timer.New("build_cache.loadData()").Stop()
+// LoadData loads the build data for the given commits.
+func LoadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]*buildbot.BuildSummary, map[string]*buildbot.BuilderStatus, error) {
+	defer timer.New("build_cache.LoadData()").Stop()
 	builds, err := buildbot.GetBuildsForCommits(commits, nil)
 	if err != nil {
 		return nil, nil, nil, err
@@ -74,20 +74,28 @@ func loadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]
 	return byId, byCommit, builderStatuses, nil
 }
 
-// Update reloads build data for the same set of commits as before.
-func (c *BuildCache) Update() error {
-	defer timer.New("BuildCache.Update()").Stop()
-	glog.Infof("Updating build cache.")
-	byId, byCommit, builders, err := loadData(c.commits)
-	if err != nil {
-		return fmt.Errorf("Failed to update build cache: %v", err)
-	}
+// UpdateWithData replaces the contents of the BuildCache with the given
+// data. Not intended to be used by consumers of BuildCache, but exists to
+// allow for loading and storing the cache data separately so that the cache
+// may be locked for the minimum amount of time.
+func (c *BuildCache) UpdateWithData(byId map[int]*buildbot.Build, byCommit map[string]map[string]*buildbot.BuildSummary, builders map[string]*buildbot.BuilderStatus) {
+	defer timer.New("  BuildCache locked").Stop()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.byId = byId
 	c.byCommit = byCommit
 	c.builders = builders
-	glog.Infof("Finished updating build cache.")
+}
+
+// Update reloads build data for the same set of commits as before.
+func (c *BuildCache) Update() error {
+	defer timer.New("BuildCache.Update()").Stop()
+	glog.Infof("Updating build cache.")
+	byId, byCommit, builders, err := LoadData(c.commits)
+	if err != nil {
+		return fmt.Errorf("Failed to update build cache: %v", err)
+	}
+	c.UpdateWithData(byId, byCommit, builders)
 	return nil
 }
 
@@ -122,7 +130,7 @@ func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[strin
 	missingBuilders := map[string]bool{}
 	if len(missing) > 0 {
 		glog.Warningf("Missing build data for some commits; loading now (%v)", missing)
-		_, missingByCommit, builders, err := loadData(missing)
+		_, missingByCommit, builders, err := LoadData(missing)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Failed to load missing builds: %v", err)
 		}

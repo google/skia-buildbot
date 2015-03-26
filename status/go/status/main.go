@@ -131,29 +131,6 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	// Case 1: Requesting specific commit range by index.
-	startIdx, err := getIntParam("start", r)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
-		return
-	}
-	if startIdx != nil {
-		endIdx := cache.NumCommits()
-		end, err := getIntParam("end", r)
-		if err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
-			return
-		}
-		if end != nil {
-			endIdx = *end
-		}
-		if err := cache.RangeAsJson(w, *startIdx, endIdx); err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Failed to load commit range from cache: %v", err))
-			return
-		}
-		return
-	}
-	// Case 2: Requesting N (or the default number) commits.
 	commitsToLoad := DEFAULT_COMMITS_TO_LOAD
 	n, err := getIntParam("n", r)
 	if err != nil {
