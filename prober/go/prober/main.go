@@ -116,7 +116,8 @@ func dialTimeout(network, addr string) (net.Conn, error) {
 
 // validJSON tests whether the response contains valid JSON.
 func validJSON(r io.Reader) bool {
-	return json.NewDecoder(r).Decode(&map[string]interface{}{}) == nil
+	var i interface{}
+	return json.NewDecoder(r).Decode(&i) == nil
 }
 
 // testBuildbotJSON tests that all of the slaves are reported as connected.
