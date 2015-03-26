@@ -130,7 +130,7 @@ func (c *CommitCache) Slice(startIdx, endIdx int) ([]*gitinfo.LongCommit, error)
 }
 
 // update syncs the source code repository and loads any new commits.
-func (c *CommitCache) update() error {
+func (c *CommitCache) update() (rv error) {
 	defer timer.New("CommitCache.update()").Stop()
 	glog.Info("Reloading commits.")
 	if err := c.repo.Update(true, true); err != nil {
@@ -175,15 +175,16 @@ func (c *CommitCache) update() error {
 
 	// Update the cached values all at once at at the end.
 	glog.Infof("Updating the cache.")
+	// Write the cache to disk *after* unlocking it.
+	defer func() {
+		rv = c.toFile()
+	}()
 	defer timer.New("  CommitCache locked").Stop()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	c.BranchHeads = branchHeads
 	c.Commits = allCommits
 	c.buildCache.UpdateWithData(byId, byCommit, builderStatuses)
-	if err := c.toFile(); err != nil {
-		return fmt.Errorf("Failed to save commit cache to file: %v", err)
-	}
 	glog.Infof("Finished updating the cache.")
 	return nil
 }

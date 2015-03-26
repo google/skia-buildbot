@@ -20,7 +20,6 @@ import (
 )
 
 import (
-	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 )
@@ -294,21 +293,21 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(util.MakeResourceHandler(*resourcesDir))))
-	r.HandleFunc("/", util.MakeHandler(commitsHandler))
+	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.HandleFunc("/", commitsHandler)
 	builds := r.PathPrefix("/json/{repo}/builds/{buildId:[0-9]+}").Subrouter()
-	builds.HandleFunc("/comments", util.MakeHandler(addBuildCommentHandler)).Methods("POST")
-	r.HandleFunc("/infra", util.MakeHandler(infraHandler))
+	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
+	r.HandleFunc("/infra", infraHandler)
 	builders := r.PathPrefix("/json/{repo}/builders/{builder}").Subrouter()
-	builders.HandleFunc("/status", util.MakeHandler(addBuilderStatusHandler)).Methods("POST")
+	builders.HandleFunc("/status", addBuilderStatusHandler).Methods("POST")
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
-	commits.HandleFunc("/", util.MakeHandler(commitsJsonHandler))
-	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", util.MakeHandler(addCommitCommentHandler)).Methods("POST")
-	r.HandleFunc("/json/version", util.MakeHandler(skiaversion.JsonHandler))
-	r.HandleFunc("/oauth2callback/", util.MakeHandler(login.OAuth2CallbackHandler))
-	r.HandleFunc("/logout/", util.MakeHandler(login.LogoutHandler))
-	r.HandleFunc("/loginstatus/", util.MakeHandler(login.StatusHandler))
-	http.Handle("/", r)
+	commits.HandleFunc("/", commitsJsonHandler)
+	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
+	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

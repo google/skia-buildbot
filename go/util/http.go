@@ -152,19 +152,6 @@ func ReportError(w http.ResponseWriter, r *http.Request, err error, message stri
 	http.Error(w, fmt.Sprintf("%s %s", message, err), 500)
 }
 
-// MakeHandler wraps an HTTP handler function with one which logs all requests.
-// TODO(borenet): Consolidate with golden/go/skiacorrectness' loggingGzipRequestResponse.
-func MakeHandler(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		url := r.URL.Path
-		if r.URL.RawQuery != "" {
-			url += "?" + r.URL.RawQuery
-		}
-		glog.Infof("%s: %s from %s", r.Method, url, r.RemoteAddr)
-		f(w, r)
-	}
-}
-
 // responseProxy implements http.ResponseWriter and records the status codes.
 type responseProxy struct {
 	http.ResponseWriter

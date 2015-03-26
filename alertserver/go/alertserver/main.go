@@ -22,7 +22,6 @@ import (
 )
 
 import (
-	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"github.com/skia-dev/influxdb/client"
@@ -250,18 +249,18 @@ func rulesHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(util.MakeResourceHandler(*resourcesDir))))
-	r.HandleFunc("/", util.MakeHandler(alertHandler))
-	r.HandleFunc("/rules", util.MakeHandler(rulesHandler))
+	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.HandleFunc("/", alertHandler)
+	r.HandleFunc("/rules", rulesHandler)
 	alerts := r.PathPrefix("/json/alerts").Subrouter()
-	alerts.HandleFunc("/", util.MakeHandler(alertJsonHandler))
-	alerts.HandleFunc("/{alertId:[0-9]+}/{action}", util.MakeHandler(postAlertsJsonHandler)).Methods("POST")
-	r.HandleFunc("/json/rules", util.MakeHandler(rulesJsonHandler))
-	r.HandleFunc("/json/version", util.MakeHandler(skiaversion.JsonHandler))
-	r.HandleFunc("/oauth2callback/", util.MakeHandler(login.OAuth2CallbackHandler))
-	r.HandleFunc("/logout/", util.MakeHandler(login.LogoutHandler))
-	r.HandleFunc("/loginstatus/", util.MakeHandler(login.StatusHandler))
-	http.Handle("/", r)
+	alerts.HandleFunc("/", alertJsonHandler)
+	alerts.HandleFunc("/{alertId:[0-9]+}/{action}", postAlertsJsonHandler).Methods("POST")
+	r.HandleFunc("/json/rules", rulesJsonHandler)
+	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

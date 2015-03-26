@@ -23,7 +23,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/securecookie"
 	"github.com/skia-dev/glog"
@@ -218,13 +217,13 @@ func submitData(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeHandler(autogzip.HandleFunc(util.MakeResourceHandler(*resourcesDir))))
-	r.HandleFunc("/", util.MakeHandler(autogzip.HandleFunc(makeBugChomperPage))).Methods("GET")
-	r.HandleFunc("/", util.MakeHandler(autogzip.HandleFunc(submitData))).Methods("POST")
-	r.HandleFunc(OAUTH_CALLBACK_PATH, util.MakeHandler(login.OAuth2CallbackHandler))
-	r.HandleFunc("/logout/", util.MakeHandler(login.LogoutHandler))
-	r.HandleFunc("/loginstatus/", util.MakeHandler(login.StatusHandler))
-	http.Handle("/", r)
+	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.HandleFunc("/", makeBugChomperPage).Methods("GET")
+	r.HandleFunc("/", submitData).Methods("POST")
+	r.HandleFunc(OAUTH_CALLBACK_PATH, login.OAuth2CallbackHandler)
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Info("Server is running at " + serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
