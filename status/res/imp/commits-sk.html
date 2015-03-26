@@ -890,6 +890,7 @@
       // Reload the commits.
       reloadCommits: function() {
         console.log("Loading commits.");
+        console.time("totalLoadTime");
         console.time("loadData");
         if (this.$) {
           this.$.loading.style.display = "block";
@@ -988,12 +989,13 @@
             });
           }
           console.log("Prepared build data.");
+          console.timeEnd("processData");
 
           // Actually draw the commits.
           that.commits = commits;
           that.branchHeads = json.branch_heads;
           that.draw();
-          console.timeEnd("processData");
+          console.timeEnd("totalLoadTime");
         }).then(function() {
           that.resetTimeout();
           if (that.$) {
