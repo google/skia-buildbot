@@ -43,7 +43,7 @@
           // Change the banner color depending on whether any alerts are active.
           var anyAlerting = false;
           for (var i = 0; i < e.detail.alerts.length; i++) {
-            anyAlerting = anyAlerting || !e.detail.alerts[i].snoozed;
+            anyAlerting = anyAlerting || e.detail.alerts[i].snoozedUntil == 0;
           }
           var tb  = $$$("core-toolbar");
           if (anyAlerting != tb.classList.contains("alerting")) {
