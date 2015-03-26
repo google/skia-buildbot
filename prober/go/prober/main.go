@@ -19,6 +19,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/metadata"
+	imetrics "go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
 )
 
@@ -210,6 +211,7 @@ func monitorIssueTracker() {
 		})
 	}
 
+	liveness := imetrics.NewLiveness("issue-tracker")
 	for _ = range time.Tick(ISSUE_TRACKER_PERIOD) {
 		for _, issue := range issueStatus {
 			resp, err := c.Get(issue.URL)
@@ -226,6 +228,7 @@ func monitorIssueTracker() {
 				util.Close(resp.Body)
 			}
 		}
+		liveness.Update()
 	}
 }
 
@@ -238,6 +241,8 @@ func main() {
 		glog.Fatalln("Failed to resolve the Graphite server: ", err)
 	}
 	glog.Infoln("Found Graphite server.")
+
+	liveness := imetrics.NewLiveness("probes")
 
 	// We have two sets of metrics, one for the probes and one for the probe
 	// server itself. The server's metrics are handled by common.Init()
@@ -305,5 +310,6 @@ func main() {
 			probe.failure.Update(0)
 			probe.latency.Update(d)
 		}
+		liveness.Update()
 	}
 }
