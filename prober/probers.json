@@ -58,7 +58,7 @@
      "mimetype": ""
    },
    "skiaalerts_json": {
-     "url": "https://alerts.skia.org/json/alerts",
+     "url": "https://alerts.skia.org/json/alerts/",
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -72,8 +72,8 @@
      "body": "",
      "mimetype": ""
    },
-   "skiacommits_json": {
-     "url": "https://status.skia.org/json/skia/commits",
+   "skiastatus_json": {
+     "url": "https://status.skia.org/json/skia/commits/",
      "method": "GET",
      "expected": [200],
      "body": "",
