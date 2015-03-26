@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/timer"
 	gtypes "go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/perf/go/types"
@@ -47,6 +48,12 @@ func New(tileStore types.TileStore) (*Tallies, error) {
 	}
 	go func() {
 		for _ = range time.Tick(2 * time.Minute) {
+			tile, err := tileStore.Get(0, -1)
+			if err != nil {
+				glog.Errorf("Couldn't retrieve tile: %s", err)
+				continue
+			}
+
 			trace, test := tallyTile(tile)
 			t.mutex.Lock()
 			t.traceTally = trace
