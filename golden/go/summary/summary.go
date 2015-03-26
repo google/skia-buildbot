@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	gtypes "go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/perf/go/types"
@@ -32,32 +33,29 @@ type Summary struct {
 //
 // It also updates itself when Tallies have been updated.
 type Summaries struct {
-	mutex       sync.Mutex
-	summaries   map[string]*Summary
-	ts          types.TileStore
-	expStore    expstorage.ExpectationsStore
-	tallies     *tally.Tallies
-	diffStore   diff.DiffStore
-	ignoreStore gtypes.IgnoreStore
+	storages  *storage.Storage
+	mutex     sync.Mutex
+	summaries map[string]*Summary
+	tallies   *tally.Tallies
 }
 
-func New(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tally.Tallies, diffStore diff.DiffStore, ignoreStore gtypes.IgnoreStore) (*Summaries, error) {
-	summaries, err := CalcSummaries(ts, expStore, tallies, diffStore, ignoreStore, nil, "", false)
+// New creates a new instance of Summaries.
+func New(storages *storage.Storage, tallies *tally.Tallies) (*Summaries, error) {
+	s := &Summaries{
+		storages: storages,
+		tallies:  tallies,
+	}
+
+	var err error
+	s.summaries, err = s.CalcSummaries(nil, "", false)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to calculate summaries in New: %s", err)
 	}
-	s := &Summaries{
-		summaries:   summaries,
-		ts:          ts,
-		expStore:    expStore,
-		tallies:     tallies,
-		diffStore:   diffStore,
-		ignoreStore: ignoreStore,
-	}
+
 	// TODO(jcgregorio) Move to a channel for tallies and then combine
 	// this and the expStore handling into a single switch statement.
 	tallies.OnChange(func() {
-		summaries, err := CalcSummaries(ts, expStore, tallies, diffStore, ignoreStore, nil, "", false)
+		summaries, err := s.CalcSummaries(nil, "", false)
 		if err != nil {
 			glog.Errorf("Failed to refresh summaries: %s", err)
 			return
@@ -67,12 +65,12 @@ func New(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tal
 		s.mutex.Unlock()
 	})
 
-	ch := expStore.Changes()
+	ch := storages.ExpectationsStore.Changes()
 	go func() {
 		for {
 			testNames := <-ch
 			glog.Info("Updating summaries after expectations change.")
-			partialSummaries, err := CalcSummaries(ts, expStore, tallies, diffStore, ignoreStore, testNames, "", false)
+			partialSummaries, err := s.CalcSummaries(testNames, "", false)
 			if err != nil {
 				glog.Errorf("Failed to refresh summaries: %s", err)
 				continue
@@ -118,10 +116,10 @@ func (p SortableTraceSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 //   Boolean, if true then include all digests in the results, including ones normally hidden
 //   by the ignores list.
 //
-func CalcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, tallies *tally.Tallies, diffStore diff.DiffStore, ignoreStore gtypes.IgnoreStore, testNames []string, query string, includeIgnores bool) (map[string]*Summary, error) {
+func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnores bool) (map[string]*Summary, error) {
 	defer timer.New("CalcSummaries").Stop()
 
-	tile, err := ts.Get(0, -1)
+	tile, err := s.storages.GetLastTileTrimmed()
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
@@ -132,7 +130,7 @@ func CalcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, ta
 
 	ignores := []url.Values{}
 	if !includeIgnores {
-		allIgnores, err := ignoreStore.List()
+		allIgnores, err := s.storages.IgnoreStore.List()
 		if err != nil {
 			return nil, fmt.Errorf("Failed to load ignores: %s", err)
 		}
@@ -153,7 +151,7 @@ func CalcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, ta
 	}
 	ret := map[string]*Summary{}
 
-	e, err := expStore.Get()
+	e, err := s.storages.ExpectationsStore.Get()
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}
@@ -178,14 +176,14 @@ func CalcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, ta
 	}
 	glog.Infof("Found %d matches", len(filtered))
 	sort.Sort(SortableTraceSlice(filtered))
-	traceTally := tallies.ByTrace()
+	traceTally := s.tallies.ByTrace()
 
 	lastTest := ""
 	digests := map[string]bool{}
 	for _, st := range filtered {
 		if st.tr.Params()[gtypes.PRIMARY_KEY_FIELD] != lastTest {
 			if lastTest != "" {
-				ret[lastTest] = makeSummary(lastTest, e, diffStore, corpus[lastTest], util.KeysOfStringSet(digests))
+				ret[lastTest] = makeSummary(lastTest, e, s.storages.DiffStore, corpus[lastTest], util.KeysOfStringSet(digests))
 				lastTest = st.tr.Params()[gtypes.PRIMARY_KEY_FIELD]
 				digests = map[string]bool{}
 			}
@@ -200,7 +198,7 @@ func CalcSummaries(ts types.TileStore, expStore expstorage.ExpectationsStore, ta
 		}
 	}
 	if lastTest != "" {
-		ret[lastTest] = makeSummary(lastTest, e, diffStore, corpus[lastTest], util.KeysOfStringSet(digests))
+		ret[lastTest] = makeSummary(lastTest, e, s.storages.DiffStore, corpus[lastTest], util.KeysOfStringSet(digests))
 	}
 
 	return ret, nil

@@ -218,7 +218,7 @@ func incParamCounts(paramCounts map[string]map[string]int, params map[string]str
 }
 
 func (a *Analyzer) getUrl(digest string) string {
-	absPath := a.diffStore.AbsPath([]string{digest})
+	absPath := a.storages.DiffStore.AbsPath([]string{digest})
 	return a.pathToURLConverter(absPath[digest])
 }
 
@@ -254,7 +254,7 @@ func (a *Analyzer) diameter(testTraces []*LabeledTrace) int {
 		if len(digests) <= 2 {
 			break
 		}
-		dms, err := a.diffStore.Get(digests[0], digests[1:2])
+		dms, err := a.storages.DiffStore.Get(digests[0], digests[1:2])
 		digests = digests[1:]
 		if err != nil {
 			glog.Errorf("Unable to get diff: %s", err)
@@ -272,7 +272,7 @@ func (a *Analyzer) diameter(testTraces []*LabeledTrace) int {
 func (a *Analyzer) newGUIDiffMetrics(digest string, posDigests []string) GUIDiffMetrics {
 	result := GUIDiffMetrics(make([]*GUIDiffMetric, 0, len(posDigests)))
 
-	dms, err := a.diffStore.Get(digest, posDigests)
+	dms, err := a.storages.DiffStore.Get(digest, posDigests)
 	if err != nil {
 		glog.Errorf("Unable to get diff for %s. Got error: %s", digest, err)
 		return nil

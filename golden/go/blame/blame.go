@@ -8,7 +8,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
 )
@@ -22,8 +22,8 @@ type Blamer struct {
 	// testBlameLists are the blamelists keyed by testName and digest.
 	testBlameLists map[string]map[string]*BlameDistribution
 
-	storage *shared.Storage
-	mutex   sync.Mutex
+	storages *storage.Storage
+	mutex    sync.Mutex
 }
 
 // BlameDistribution contains a rough estimation of the probabilities that
@@ -37,10 +37,10 @@ type BlameDistribution struct {
 
 // New returns a new Blamer instance and error. The error is not
 // nil if the first run of calculating the blame lists failed.
-func New(storage *shared.Storage) (*Blamer, error) {
+func New(storages *storage.Storage) (*Blamer, error) {
 	ret := &Blamer{
 		testBlameLists: map[string]map[string]*BlameDistribution{},
-		storage:        storage,
+		storages:       storages,
 	}
 
 	// Process the first tile, schedule a background process.
@@ -51,7 +51,7 @@ func New(storage *shared.Storage) (*Blamer, error) {
 // process to recalculate the blame lists as tiles and expectations change.
 func (b *Blamer) processTileStream() error {
 	// Get the tile stream and build the first blame lists synchronously.
-	tileStreamCh := shared.GetTileStreamNow(b.storage.TileStore, 2*time.Minute)
+	tileStreamCh := storage.GetTileStreamNow(b.storages.TileStore, 2*time.Minute)
 	if err := b.updateBlame(tileStreamCh); err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (b *Blamer) updateBlame(tileStreamCh <-chan *ptypes.Tile) error {
 		return fmt.Errorf("Unable to retrieve a tile.")
 	}
 
-	exp, err := b.storage.ExpectationsStore.Get()
+	exp, err := b.storages.ExpectationsStore.Get()
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (b *Blamer) updateBlame(tileStreamCh <-chan *ptypes.Tile) error {
 				// we cannot calculate a blamelist and set the commit range
 				// to nil.
 				var commitRange []int
-				digestInfo := b.storage.DigestStore.GetDigestInfo(testName, digest)
+				digestInfo := b.storages.DigestStore.GetDigestInfo(testName, digest)
 				if digestInfo.First < firstCommit.CommitTime {
 					commitRange = nil
 				} else {

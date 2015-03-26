@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	gtypes "go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/perf/go/types"
@@ -109,7 +110,7 @@ func TestCalcSummaries(t *testing.T) {
 					"source_type": "gm"},
 			},
 			"c": &types.GoldenTrace{
-				Values: []string{"eee"},
+				Values: []string{"eee", types.MISSING_DIGEST},
 				Params_: map[string]string{
 					"name":        "foo",
 					"config":      "gpu",
@@ -123,7 +124,7 @@ func TestCalcSummaries(t *testing.T) {
 					"source_type": "gm"},
 			},
 			"e": &types.GoldenTrace{
-				Values: []string{"jjj"},
+				Values: []string{"jjj", types.MISSING_DIGEST},
 				Params_: map[string]string{
 					"name":        "quux",
 					"config":      "8888",
@@ -146,12 +147,14 @@ func TestCalcSummaries(t *testing.T) {
 		TileIndex: 0,
 	}
 
-	ts := MockTileStore{
-		Tile: tile,
+	storages := &storage.Storage{
+		DiffStore:         MockDiffStore{},
+		ExpectationsStore: expstorage.NewMemExpectationsStore(),
+		IgnoreStore:       gtypes.NewMemIgnoreStore(),
+		TileStore:         MockTileStore{Tile: tile},
 	}
 
-	exp := expstorage.NewMemExpectationsStore()
-	assert.Nil(t, exp.AddChange(map[string]gtypes.TestClassification{
+	assert.Nil(t, storages.ExpectationsStore.AddChange(map[string]gtypes.TestClassification{
 		"foo": map[string]gtypes.Label{
 			"aaa": gtypes.POSITIVE,
 			"bbb": gtypes.NEGATIVE,
@@ -163,17 +166,19 @@ func TestCalcSummaries(t *testing.T) {
 			"fff": gtypes.NEGATIVE,
 		},
 	}, "foo@example.com"))
-	ta, _ := tally.New(ts)
-	ignoreStore := gtypes.NewMemIgnoreStore()
-	assert.Nil(t, ignoreStore.Create(&gtypes.IgnoreRule{
+
+	ta, _ := tally.New(storages)
+	assert.Nil(t, storages.IgnoreStore.Create(&gtypes.IgnoreRule{
 		ID:      1,
 		Name:    "foo",
 		Expires: time.Now().Add(time.Hour),
 		Query:   "config=565",
 	}))
-	diffStore := MockDiffStore{}
 
-	sum, err := CalcSummaries(ts, exp, ta, diffStore, ignoreStore, nil, "source_type=gm", false)
+	summaries, err := New(storages, ta)
+	assert.Nil(t, err)
+
+	sum, err := summaries.CalcSummaries(nil, "source_type=gm", false)
 	if err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
@@ -181,26 +186,26 @@ func TestCalcSummaries(t *testing.T) {
 	triageCountsCorrect(t, sum, "foo", 2, 1, 0)
 	triageCountsCorrect(t, sum, "bar", 0, 1, 1)
 
-	if sum, err = CalcSummaries(ts, exp, ta, diffStore, ignoreStore, nil, "source_type=gm", true); err != nil {
+	if sum, err = summaries.CalcSummaries(nil, "source_type=gm", true); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 2, len(sum))
 	triageCountsCorrect(t, sum, "foo", 2, 1, 2)
 	triageCountsCorrect(t, sum, "bar", 0, 1, 1)
 
-	if sum, err = CalcSummaries(ts, exp, ta, diffStore, ignoreStore, []string{"foo"}, "source_type=gm", true); err != nil {
+	if sum, err = summaries.CalcSummaries([]string{"foo"}, "source_type=gm", true); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))
 	triageCountsCorrect(t, sum, "foo", 2, 1, 2)
 
-	if sum, err = CalcSummaries(ts, exp, ta, diffStore, ignoreStore, []string{"foo"}, "", false); err != nil {
+	if sum, err = summaries.CalcSummaries([]string{"foo"}, "", false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))
 	triageCountsCorrect(t, sum, "foo", 2, 1, 0)
 
-	if sum, err = CalcSummaries(ts, exp, ta, diffStore, ignoreStore, nil, "config=8888&config=565", false); err != nil {
+	if sum, err = summaries.CalcSummaries(nil, "config=8888&config=565", false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 3, len(sum))
@@ -208,13 +213,13 @@ func TestCalcSummaries(t *testing.T) {
 	triageCountsCorrect(t, sum, "bar", 0, 1, 1)
 	triageCountsCorrect(t, sum, "quux", 0, 0, 1)
 
-	if sum, err = CalcSummaries(ts, exp, ta, diffStore, ignoreStore, nil, "config=gpu", false); err != nil {
+	if sum, err = summaries.CalcSummaries(nil, "config=gpu", false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))
 	triageCountsCorrect(t, sum, "foo", 1, 0, 0)
 
-	if sum, err = CalcSummaries(ts, exp, ta, diffStore, ignoreStore, nil, "config=unknown", false); err != nil {
+	if sum, err = summaries.CalcSummaries(nil, "config=unknown", false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 0, len(sum))

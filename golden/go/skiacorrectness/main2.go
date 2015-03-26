@@ -124,7 +124,7 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// If the query only includes source_type parameters, and include==false, then we can just
 	// filter the response from summaries.Get(). If the query is broader than that, or
-	// include==true, then we need to call summary.CalcSummaries().
+	// include==true, then we need to call summaries.CalcSummaries().
 	if err := r.ParseForm(); err != nil {
 		util.ReportError(w, r, err, "Invalid request.")
 		return
@@ -145,7 +145,7 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		glog.Infof("%q %q", r.FormValue("query"), r.FormValue("include"))
-		sumMap, err := summary.CalcSummaries(tileStore, expStore, tallies, diffStore, ignoreStore, nil, r.FormValue("query"), r.FormValue("include") == "true")
+		sumMap, err := summaries.CalcSummaries(nil, r.FormValue("query"), r.FormValue("include") == "true")
 		if err != nil {
 			util.ReportError(w, r, err, "Failed to calculate summaries.")
 		}
@@ -186,7 +186,7 @@ func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if *startAnalyzer {
 		ignores, err = analyzer.ListIgnoreRules()
 	} else {
-		ignores, err = ignoreStore.List()
+		ignores, err = storages.IgnoreStore.List()
 	}
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to retrieve ignored traces.")
@@ -230,7 +230,7 @@ func polyIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	if *startAnalyzer {
 		err = analyzer.UpdateIgnoreRule(int(id), ignoreRule)
 	} else {
-		err = ignoreStore.Update(int(id), ignoreRule)
+		err = storages.IgnoreStore.Update(int(id), ignoreRule)
 	}
 
 	if err != nil {
@@ -256,7 +256,7 @@ func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	if *startAnalyzer {
 		err = analyzer.DeleteIgnoreRule(int(id), user)
 	} else {
-		_, err = ignoreStore.Delete(int(id), user)
+		_, err = storages.IgnoreStore.Delete(int(id), user)
 	}
 
 	if err != nil {
@@ -301,7 +301,7 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	if *startAnalyzer {
 		err = analyzer.AddIgnoreRule(ignoreRule)
 	} else {
-		err = ignoreStore.Create(ignoreRule)
+		err = storages.IgnoreStore.Create(ignoreRule)
 	}
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to create ignore rule.")
@@ -539,7 +539,7 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 			digestSlice = append(digestSlice, d)
 		}
 		var err error
-		diffMetrics, err = diffStore.Get(digest, digestSlice)
+		diffMetrics, err = storages.DiffStore.Get(digest, digestSlice)
 		if err != nil {
 			return nil, 0, fmt.Errorf("Failed to calculate diffs to sort against: %s", err)
 		}
@@ -621,7 +621,7 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse JSON request.")
 		return
 	}
-	exp, err := expStore.Get()
+	exp, err := storages.ExpectationsStore.Get()
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load expectations.")
 		return
@@ -630,7 +630,7 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 
 	ignores := []url.Values{}
 
-	allIgnores, err := ignoreStore.List()
+	allIgnores, err := storages.IgnoreStore.List()
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load ignore rules.")
 		return
@@ -643,7 +643,7 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, req.TopN, req.TopIncludeIgnores, ignores, req.Sort == "top", req.Dir, req.Digest)
 	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, req.LeftN, req.LeftIncludeIgnores, ignores, req.Sort == "left", req.Dir, req.Digest)
 
-	// Extract out string slices of digests to pass to *AbsPath and diffStore.Get().
+	// Extract out string slices of digests to pass to *AbsPath and storages.DiffStore.Get().
 	allDigests := map[string]bool{}
 	topDigestMap := map[string]bool{}
 	for _, d := range topDigests {
@@ -656,8 +656,8 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 
 	topDigestSlice := util.KeysOfStringSet(topDigestMap)
 	allDigestsSlice := util.KeysOfStringSet(allDigests)
-	thumbs := diffStore.ThumbAbsPath(allDigestsSlice)
-	full := diffStore.AbsPath(allDigestsSlice)
+	thumbs := storages.DiffStore.ThumbAbsPath(allDigestsSlice)
+	full := storages.DiffStore.AbsPath(allDigestsSlice)
 
 	// Fill in the thumbnail URLS in our GUI response struct.
 	for _, t := range topDigests {
@@ -671,7 +671,7 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	grid := [][]*PolyTestDiffInfo{}
 	for _, l := range leftDigests {
 		row := []*PolyTestDiffInfo{}
-		diffs, err := diffStore.Get(l.Digest, topDigestSlice)
+		diffs, err := storages.DiffStore.Get(l.Digest, topDigestSlice)
 		if err != nil {
 			glog.Errorf("Failed to do diffs: %s", err)
 			continue
@@ -746,7 +746,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Or build the expectations change request from filter, query, and include.
 	if req.All {
-		exp, err := expStore.Get()
+		exp, err := storages.ExpectationsStore.Get()
 		if err != nil {
 			util.ReportError(w, r, err, "Failed to load expectations.")
 			return
@@ -755,7 +755,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 		ignores := []url.Values{}
 
 		if req.Include {
-			allIgnores, err := ignoreStore.List()
+			allIgnores, err := storages.IgnoreStore.List()
 			if err != nil {
 				util.ReportError(w, r, err, "Failed to load ignore rules.")
 				return
@@ -790,7 +790,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// Otherwise update the expectations directly.
-		if err := expStore.AddChange(tc, user); err != nil {
+		if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
 			util.ReportError(w, r, err, "Failed to store the updated expectations.")
 			return
 		}
@@ -848,7 +848,7 @@ type PolyDetailsGUI struct {
 //     ]
 //   }
 func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
-	tile, err := tileStore.Get(0, -1)
+	tile, err := storages.GetLastTileTrimmed()
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load tile")
 		return
@@ -868,7 +868,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, fmt.Errorf("Missing the test query parameter."), "No test name specified.")
 		return
 	}
-	exp, err := expStore.Get()
+	exp, err := storages.ExpectationsStore.Get()
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load expectations.")
 		return
@@ -920,7 +920,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
-	tile, err := tileStore.Get(0, -1)
+	tile, err := storages.GetLastTileTrimmed()
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load tile")
 		return

@@ -9,6 +9,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/golden/go/storage"
 	gtypes "go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -27,28 +28,29 @@ type TestTally map[string]*Tally
 // Tallies allows querying for digest counts in different ways.
 type Tallies struct {
 	mutex      sync.Mutex
-	tileStore  types.TileStore
+	storages   *storage.Storage
 	traceTally TraceTally
 	testTally  TestTally
 	callbacks  []OnChangeCallback
 }
 
-// New creates a new Tallies for the given TileStore.
-func New(tileStore types.TileStore) (*Tallies, error) {
-	tile, err := tileStore.Get(0, -1)
+// New creates a new Tallies for the given storage object.
+func New(storages *storage.Storage) (*Tallies, error) {
+	tile, err := storages.GetLastTileTrimmed()
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
+
 	trace, test := tallyTile(tile)
 	t := &Tallies{
 		traceTally: trace,
 		testTally:  test,
-		tileStore:  tileStore,
+		storages:   storages,
 		callbacks:  []OnChangeCallback{},
 	}
 	go func() {
 		for _ = range time.Tick(2 * time.Minute) {
-			tile, err := tileStore.Get(0, -1)
+			tile, err := storages.GetLastTileTrimmed()
 			if err != nil {
 				glog.Errorf("Couldn't retrieve tile: %s", err)
 				continue
@@ -85,7 +87,7 @@ func (t *Tallies) ByTrace() TraceTally {
 
 // ByQuery returns a Tally of all the digests that match the given query.
 func (t *Tallies) ByQuery(query url.Values, ignores ...url.Values) (Tally, error) {
-	tile, err := t.tileStore.Get(0, -1)
+	tile, err := t.storages.GetLastTileTrimmed()
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}

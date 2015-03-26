@@ -12,9 +12,9 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
 )
@@ -22,9 +22,6 @@ import (
 const (
 	NEW_TILE_CACHE_KEY     = "newtile"
 	IGNORED_TILE_CACHE_KEY = "ignoredtile"
-
-	// Number of commits that we are interested in.
-	N_COMMITS = 50
 )
 
 var (
@@ -181,10 +178,7 @@ type AnalyzeState struct {
 // on disk and generating diffs between images. It is the primary interface
 // to be called by the HTTP frontend.
 type Analyzer struct {
-	expStore    expstorage.ExpectationsStore
-	diffStore   diff.DiffStore
-	tileStore   ptypes.TileStore
-	ignoreStore types.IgnoreStore
+	storages *storage.Storage
 
 	// current contains the state of the digests we are primariliy interested in.
 	current *AnalyzeState
@@ -221,14 +215,11 @@ func (d LabeledTileCodec) Decode(data []byte) (interface{}, error) {
 	return &v, err
 }
 
-func NewAnalyzer(expStore expstorage.ExpectationsStore, tileStore ptypes.TileStore, diffStore diff.DiffStore, ignoreStore types.IgnoreStore, puConverter PathToURLConverter, cacheFactory filediffstore.CacheFactory, timeBetweenPolls time.Duration) *Analyzer {
+func NewAnalyzer(storages *storage.Storage, puConverter PathToURLConverter, cacheFactory filediffstore.CacheFactory, timeBetweenPolls time.Duration) *Analyzer {
 	labeledTileCache := cacheFactory("ti", LabeledTileCodec(0))
 
 	result := &Analyzer{
-		expStore:           expStore,
-		diffStore:          diffStore,
-		tileStore:          tileStore,
-		ignoreStore:        ignoreStore,
+		storages:           storages,
 		pathToURLConverter: puConverter,
 
 		current:          &AnalyzeState{},
@@ -300,14 +291,6 @@ func (a *Analyzer) ListTestDetails(query map[string][]string) (*GUITestDetails, 
 	}, nil
 }
 
-func (a *Analyzer) ParamSet() (map[string][]string, error) {
-	tile, err := a.tileStore.Get(0, -1)
-	if err != nil {
-		return nil, err
-	}
-	return tile.ParamSet, nil
-}
-
 // GetTestDetails returns the untriaged, positive and negative digests for a
 // specific test with the necessary information (diff metrics, image urls) to
 // assign a label to the untriaged digests.
@@ -364,11 +347,11 @@ func (a *Analyzer) SetDigestLabels(labeledTestDigests map[string]types.TestClass
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 
-	if err := a.expStore.AddChange(labeledTestDigests, userId); err != nil {
+	if err := a.storages.ExpectationsStore.AddChange(labeledTestDigests, userId); err != nil {
 		return nil, err
 	}
 
-	expectations, err := a.expStore.Get()
+	expectations, err := a.storages.ExpectationsStore.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -395,7 +378,7 @@ func (a *Analyzer) GetStatus() *GUIStatus {
 
 // ListIgnoreRules returns all current ignore rules.
 func (a *Analyzer) ListIgnoreRules() ([]*types.IgnoreRule, error) {
-	rules, err := a.ignoreStore.List()
+	rules, err := a.storages.IgnoreStore.List()
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +392,7 @@ func (a *Analyzer) ListIgnoreRules() ([]*types.IgnoreRule, error) {
 // AddIgnoreRule adds a new ignore rule and recalculates the new state of the
 // system.
 func (a *Analyzer) AddIgnoreRule(ignoreRule *types.IgnoreRule) error {
-	if err := a.ignoreStore.Create(ignoreRule); err != nil {
+	if err := a.storages.IgnoreStore.Create(ignoreRule); err != nil {
 		return err
 	}
 
@@ -421,7 +404,7 @@ func (a *Analyzer) AddIgnoreRule(ignoreRule *types.IgnoreRule) error {
 // UpdateIgnoreRule updates an existing ignore rule and recalculates the new state of the
 // system.
 func (a *Analyzer) UpdateIgnoreRule(ruleId int, ignoreRule *types.IgnoreRule) error {
-	if err := a.ignoreStore.Update(ruleId, ignoreRule); err != nil {
+	if err := a.storages.IgnoreStore.Update(ruleId, ignoreRule); err != nil {
 		return err
 	}
 
@@ -433,7 +416,7 @@ func (a *Analyzer) UpdateIgnoreRule(ruleId int, ignoreRule *types.IgnoreRule) er
 // DeleteIgnoreRule deletes the ignore rule and recalculates the state of the
 // system.
 func (a *Analyzer) DeleteIgnoreRule(ruleId int, user string) error {
-	count, err := a.ignoreStore.Delete(ruleId, user)
+	count, err := a.storages.IgnoreStore.Delete(ruleId, user)
 	if err != nil {
 		return err
 	}
@@ -514,16 +497,10 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 		// Either use a tile already in memory or load a new one.
 		var tile *ptypes.Tile
 		if reloadRawTile || (a.lastRawTile == nil) {
-			tile, err = a.tileStore.Get(0, -1)
+			tile, err = a.storages.GetLastTileTrimmed()
 			if err != nil {
-				glog.Errorf("Error reading tile store: %s\n", err)
+				glog.Errorf("Error retrieving trimmed tile: %s\n", err)
 				errorTileLoadingCounter.Inc(1)
-				return false
-			}
-			tileLen := tile.LastCommitIndex() + 1
-			tile, err = tile.Trim(util.MaxInt(0, tileLen-N_COMMITS), tileLen)
-			if err != nil {
-				glog.Errorf("Error trimming tile: %s\n", err)
 				return false
 			}
 			glog.Infof("TileLen: %d", tile.LastCommitIndex()+1)
@@ -551,7 +528,7 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 	defer a.mutex.Unlock()
 
 	// Retrieve the current expectations.
-	expectations, err := a.expStore.Get()
+	expectations, err := a.storages.ExpectationsStore.Get()
 	if err != nil {
 		glog.Errorf("Error retrieving expectations: %s", err)
 		return false
@@ -580,7 +557,7 @@ func (a *Analyzer) completeDiffs(labeledTile *LabeledTile) {
 				digestsList = append(digestsList, t.Digests)
 			}
 			allDigests := util.UnionStrings(digestsList...)
-			a.diffStore.CalculateDiffs(allDigests)
+			a.storages.DiffStore.CalculateDiffs(allDigests)
 			wg.Done()
 		}(traces)
 	}
@@ -595,7 +572,7 @@ func (a *Analyzer) prepDiffsForLabeledTile(labeledTile *LabeledTile) {
 	glog.Infof("Starting prep diffs")
 	// Get the current expectations.
 	a.mutex.RLock()
-	expectations, err := a.expStore.Get()
+	expectations, err := a.storages.ExpectationsStore.Get()
 	a.mutex.RUnlock()
 	if err != nil {
 		glog.Errorf("Unable to read expectations: %s", err)
@@ -628,11 +605,11 @@ func (a *Analyzer) partitionRawTile(tile *ptypes.Tile) (*LabeledTile, *LabeledTi
 
 	// Get the digests that are unavailable, e.g. they cannot be fetched
 	// from GS or they are not valid images.
-	unavailableDigests := a.diffStore.UnavailableDigests()
+	unavailableDigests := a.storages.DiffStore.UnavailableDigests()
 	glog.Infof("Unavailable digests: %v", unavailableDigests)
 
 	// Get the rule matcher to find traces to ignore.
-	ruleMatcher, err := a.ignoreStore.BuildRuleMatcher()
+	ruleMatcher, err := a.storages.IgnoreStore.BuildRuleMatcher()
 	if err != nil {
 		glog.Errorf("Unable to build rule matcher: %s", err)
 	}

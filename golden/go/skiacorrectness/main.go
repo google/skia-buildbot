@@ -24,15 +24,14 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/analysis"
 	"go.skia.org/infra/golden/go/db"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 	pconfig "go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/filetilestore"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 // Command line flags.
@@ -47,6 +46,7 @@ var (
 	doOauth           = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	oauthCacheFile    = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	memProfile        = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	nCommits          = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 	redirectURL       = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 	redisHost         = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
@@ -79,12 +79,9 @@ var (
 	analyzer *analysis.Analyzer = nil
 
 	// Module level variables that need to be accessible to main2.go.
-	diffStore          diff.DiffStore
-	expStore           expstorage.ExpectationsStore
-	ignoreStore        types.IgnoreStore
+	storages           *storage.Storage
 	pathToURLConverter analysis.PathToURLConverter
 	tallies            *tally.Tallies
-	tileStore          ptypes.TileStore
 	summaries          *summary.Summaries
 )
 
@@ -352,7 +349,7 @@ func main() {
 	}
 
 	// Get the expecations storage, the filediff storage and the tilestore.
-	diffStore, err = filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, cacheFactory, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
+	diffStore, err := filediffstore.NewFileDiffStore(client, *imageDir, *gsBucketName, filediffstore.DEFAULT_GS_IMG_DIR_NAME, cacheFactory, filediffstore.RECOMMENDED_WORKER_POOL_SIZE)
 	if err != nil {
 		glog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
@@ -361,18 +358,23 @@ func main() {
 		glog.Fatal(err)
 	}
 	vdb := database.NewVersionedDB(conf)
-	expStore = expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb))
-	ignoreStore = types.NewSQLIgnoreStore(vdb)
-	tileStore = filetilestore.NewFileTileStore(*tileStoreDir, pconfig.DATASET_GOLD, 2*time.Minute)
+
+	storages := &storage.Storage{
+		DiffStore:         diffStore,
+		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb)),
+		IgnoreStore:       types.NewSQLIgnoreStore(vdb),
+		TileStore:         filetilestore.NewFileTileStore(*tileStoreDir, pconfig.DATASET_GOLD, 2*time.Minute),
+		NCommits:          *nCommits,
+	}
 
 	// Enable the experimental features.
 	if *startExperimental {
-		tallies, err = tally.New(tileStore)
+		tallies, err = tally.New(storages)
 		if err != nil {
 			glog.Fatalf("Failed to build tallies: %s", err)
 		}
 
-		summaries, err = summary.New(tileStore, expStore, tallies, diffStore, ignoreStore)
+		summaries, err = summary.New(storages, tallies)
 		if err != nil {
 			glog.Fatalf("Failed to build summary: %s", err)
 		}
@@ -382,7 +384,7 @@ func main() {
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
 	pathToURLConverter = imgFS.GetURL
 	if *startAnalyzer {
-		analyzer = analysis.NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, imgFS.GetURL, cacheFactory, 5*time.Minute)
+		analyzer = analysis.NewAnalyzer(storages, imgFS.GetURL, cacheFactory, 5*time.Minute)
 	}
 	t.Stop()
 

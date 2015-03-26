@@ -9,7 +9,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
 )
@@ -61,15 +61,15 @@ type GUICorpusStatus struct {
 }
 
 type StatusWatcher struct {
-	storage *shared.Storage
+	storages *storage.Storage
 
 	current *GUIStatus
 	mutex   sync.Mutex
 }
 
-func New(storage *shared.Storage) (*StatusWatcher, error) {
+func New(storages *storage.Storage) (*StatusWatcher, error) {
 	ret := &StatusWatcher{
-		storage: storage,
+		storages: storages,
 	}
 
 	if err := ret.calcAndWatchStatus(); err != nil {
@@ -86,8 +86,8 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 }
 
 func (s *StatusWatcher) calcAndWatchStatus() error {
-	expChanges := s.storage.ExpectationsStore.Changes()
-	tileStream := shared.GetTileStreamNow(s.storage.TileStore, 2*time.Minute)
+	expChanges := s.storages.ExpectationsStore.Changes()
+	tileStream := storage.GetTileStreamNow(s.storages.TileStore, 2*time.Minute)
 
 	lastTile := <-tileStream
 	if err := s.calcStatus(lastTile); err != nil {
@@ -104,7 +104,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 					lastTile = tile
 				}
 			case <-expChanges:
-				shared.DrainChangeChannel(expChanges)
+				storage.DrainChangeChannel(expChanges)
 				if err := s.calcStatus(lastTile); err != nil {
 					glog.Errorf("Error calculating tile after expectation udpate: %s", err)
 				}
@@ -122,7 +122,7 @@ func (s *StatusWatcher) calcStatus(tile *ptypes.Tile) error {
 	minCommitId := map[string]int{}
 	okByCorpus := map[string]bool{}
 
-	expectations, err := s.storage.ExpectationsStore.Get()
+	expectations, err := s.storages.ExpectationsStore.Get()
 	if err != nil {
 		return err
 	}
@@ -169,7 +169,7 @@ func (s *StatusWatcher) calcStatus(tile *ptypes.Tile) error {
 		digest := gTrace.Values[idx]
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 		status := expectations.Classification(testName, digest)
-		digestInfo := s.storage.DigestStore.GetDigestInfo(testName, digest)
+		digestInfo := s.storages.DigestStore.GetDigestInfo(testName, digest)
 
 		okByCorpus[corpus] = okByCorpus[corpus] && ((status == types.POSITIVE) ||
 			((status == types.NEGATIVE) && (len(digestInfo.IssueIDs) > 0)))

@@ -1,9 +1,10 @@
-package shared
+package storage
 
 import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -19,6 +20,14 @@ type Storage struct {
 	IgnoreStore       types.IgnoreStore
 	TileStore         ptypes.TileStore
 	DigestStore       digeststore.DigestStore
+
+	// NCommits is the number of commits we should consider. If NCommits is
+	// 0 or smaller all commits in the last tile will be considered.
+	NCommits int
+
+	// Internal variables used to cache trimmed tiles.
+	lastTrimmedTile *ptypes.Tile
+	lastBaseTile    *ptypes.Tile
 }
 
 // GetTileStreamNow is a utility function that reads tiles from the given
@@ -66,4 +75,36 @@ Loop:
 			break Loop
 		}
 	}
+}
+
+// GetLastTrimmed returns the last tile as read-only trimmed to contain at
+// most NCommits. It caches trimmed tiles as long as the underlying tiles
+// do not change.
+func (s *Storage) GetLastTileTrimmed() (*ptypes.Tile, error) {
+	// Get the last (potentially cached) tile.
+	tile, err := s.TileStore.Get(0, -1)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.NCommits <= 0 {
+		return tile, err
+	}
+
+	// Check if the tile has changed.
+	if tile == s.lastBaseTile {
+		return s.lastTrimmedTile, nil
+	}
+
+	tileLen := tile.LastCommitIndex() + 1
+	retTile, err := tile.Trim(util.MaxInt(0, tileLen-s.NCommits), tileLen)
+	if err != nil {
+		return nil, err
+	}
+
+	// Cache this tile.
+	s.lastTrimmedTile = retTile
+	s.lastBaseTile = tile
+
+	return retTile, err
 }

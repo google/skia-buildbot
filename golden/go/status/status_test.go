@@ -11,7 +11,7 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
-	"go.skia.org/infra/golden/go/shared"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	pconfig "go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/filetilestore"
@@ -47,22 +47,26 @@ func BenchmarkStatusWatcher(b *testing.B) {
 	assert.NotEqual(b, "", tileDir, "Please define the TEST_TILE_DIR environment variable to point to a live tile store.")
 	tileStore := filetilestore.NewFileTileStore(tileDir, pconfig.DATASET_GOLD, 2*time.Minute)
 
+	storages := &storage.Storage{
+		TileStore: tileStore,
+	}
+
 	// Load the tile into memory and reset the timer to avoid measuring
 	// disk load time.
-	_, err := tileStore.Get(0, -1)
+	_, err := storages.GetLastTileTrimmed()
 	assert.Nil(b, err)
 	b.ResetTimer()
 	testStatusWatcher(b, tileStore)
 }
 
 func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
-	storage := &shared.Storage{
+	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(),
 		TileStore:         tileStore,
 		DigestStore:       &MockDigestStore{},
 	}
 
-	watcher, err := New(storage)
+	watcher, err := New(storages)
 	assert.Nil(t, err)
 
 	// Go through all corpora and change all the Items to positive.
@@ -71,10 +75,10 @@ func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
 
 	for corpus, corpStatus := range status.CorpStatus {
 		// Make sure no digests has any issues attached.
-		storage.DigestStore.(*MockDigestStore).issueIDs = nil
+		storages.DigestStore.(*MockDigestStore).issueIDs = nil
 
 		assert.False(t, corpStatus.OK)
-		tile, err := storage.TileStore.Get(0, -1)
+		tile, err := storages.GetLastTileTrimmed()
 		assert.Nil(t, err)
 
 		changes := map[string]types.TestClassification{}
@@ -93,7 +97,7 @@ func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
 		}
 
 		// Update the expecations and wait for the status to change.
-		assert.Nil(t, storage.ExpectationsStore.AddChange(changes, ""))
+		assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
 		time.Sleep(1 * time.Second)
 		newStatus := watcher.GetStatus()
 		assert.False(t, newStatus.CorpStatus[corpus].OK)
@@ -101,8 +105,8 @@ func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
 
 		// Make sure all tests have an issue attached to each DigestInfo and
 		// trigger another expectations update.
-		storage.DigestStore.(*MockDigestStore).issueIDs = []int{1}
-		assert.Nil(t, storage.ExpectationsStore.AddChange(changes, ""))
+		storages.DigestStore.(*MockDigestStore).issueIDs = []int{1}
+		assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
 		time.Sleep(1 * time.Second)
 
 		// Make sure the current corpus is now ok.

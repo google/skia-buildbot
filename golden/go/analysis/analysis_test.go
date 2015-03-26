@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
 	"go.skia.org/infra/golden/go/mocks"
+	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
 )
@@ -78,12 +79,15 @@ func TestGetListTestDetails(t *testing.T) {
 	assert.Equal(t, len(digests), len(params))
 	assert.Equal(t, len(digests[0]), len(commits))
 
-	diffStore := mocks.NewMockDiffStore()
-	expStore := expstorage.NewMemExpectationsStore()
-	tileStore := mocks.NewMockTileStore(t, digests, params, commits)
-	ignoreStore := types.NewMemIgnoreStore()
+	storages := &storage.Storage{
+		DiffStore:         mocks.NewMockDiffStore(),
+		ExpectationsStore: expstorage.NewMemExpectationsStore(),
+		IgnoreStore:       types.NewMemIgnoreStore(),
+		TileStore:         mocks.NewMockTileStore(t, digests, params, commits),
+	}
+
 	timeBetweenPolls := 10 * time.Hour
-	a := NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, mocks.MockUrlGenerator, filediffstore.MemCacheFactory, timeBetweenPolls)
+	a := NewAnalyzer(storages, mocks.MockUrlGenerator, filediffstore.MemCacheFactory, timeBetweenPolls)
 
 	allTests, err := a.ListTestDetails(nil)
 	assert.Nil(t, err)
@@ -173,12 +177,15 @@ func TestAgainstLiveData(t *testing.T) {
 	assert.Nil(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
-	diffStore := mocks.NewMockDiffStore()
-	expStore := expstorage.NewMemExpectationsStore()
-	tileStore := mocks.NewMockTileStoreFromJson(t, TEST_DATA_PATH)
-	ignoreStore := types.NewMemIgnoreStore()
+	storages := &storage.Storage{
+		DiffStore:         mocks.NewMockDiffStore(),
+		ExpectationsStore: expstorage.NewMemExpectationsStore(),
+		TileStore:         mocks.NewMockTileStoreFromJson(t, TEST_DATA_PATH),
+		IgnoreStore:       types.NewMemIgnoreStore(),
+	}
+
 	timeBetweenPolls := 10 * time.Hour
-	a := NewAnalyzer(expStore, tileStore, diffStore, ignoreStore, mocks.MockUrlGenerator, filediffstore.MemCacheFactory, timeBetweenPolls)
+	a := NewAnalyzer(storages, mocks.MockUrlGenerator, filediffstore.MemCacheFactory, timeBetweenPolls)
 
 	// Poll until the Analyzer has process the tile.
 	var allTests *GUITestDetails
