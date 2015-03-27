@@ -359,7 +359,7 @@ func main() {
 	}
 	vdb := database.NewVersionedDB(conf)
 
-	storages := &storage.Storage{
+	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb)),
 		IgnoreStore:       types.NewSQLIgnoreStore(vdb),
