@@ -233,6 +233,52 @@ func monitorIssueTracker() {
 	}
 }
 
+func probeOneRound(cfg Probes, c *http.Client) {
+	var resp *http.Response
+	var begin time.Time
+	for name, probe := range cfg {
+		glog.Infof("Probe: %s Starting fail value: %d", name, probe.failure.Value())
+		begin = time.Now()
+		var err error
+		if probe.Method == "GET" {
+			resp, err = c.Get(probe.URL)
+		} else if probe.Method == "POST" {
+			resp, err = c.Post(probe.URL, probe.MimeType, strings.NewReader(probe.Body))
+		} else {
+			glog.Errorf("Error: unknown method: %s", probe.Method)
+			continue
+		}
+		if err != nil {
+			glog.Errorf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
+			probe.failure.Update(1)
+			continue
+		}
+		bodyTestResults := true
+		if probe.bodyTest != nil && resp.Body != nil {
+			bodyTestResults = probe.bodyTest(resp.Body)
+		}
+		if resp.Body != nil {
+			util.Close(resp.Body)
+		}
+		d := time.Since(begin)
+		// TODO(jcgregorio) Save the last N responses and present them in a web UI.
+
+		if !In(resp.StatusCode, probe.Expected) {
+			glog.Errorf("Got wrong status code: Got %d Want %v", resp.StatusCode, probe.Expected)
+			probe.failure.Update(1)
+			continue
+		}
+		if !bodyTestResults {
+			glog.Errorf("Body test failed. %#v", probe)
+			probe.failure.Update(1)
+			continue
+		}
+
+		probe.failure.Update(0)
+		probe.latency.Update(d)
+	}
+}
+
 func main() {
 	common.InitWithMetrics("probeserver", graphiteServer)
 	go monitorIssueTracker()
@@ -261,8 +307,6 @@ func main() {
 		probe.failure = metrics.NewRegisteredGauge(name+".failure", probeRegistry)
 		probe.latency = metrics.NewRegisteredTimer(name+".latency", probeRegistry)
 	}
-	var resp *http.Response
-	var begin time.Time
 
 	// Create a client that uses our dialer with a timeout.
 	c := &http.Client{
@@ -270,47 +314,9 @@ func main() {
 			Dial: dialTimeout,
 		},
 	}
+	probeOneRound(cfg, c)
 	for _ = range time.Tick(*runEvery) {
-		for name, probe := range cfg {
-			glog.Infof("Probe: %s Starting fail value: %d", name, probe.failure.Value())
-			begin = time.Now()
-			if probe.Method == "GET" {
-				resp, err = c.Get(probe.URL)
-			} else if probe.Method == "POST" {
-				resp, err = c.Post(probe.URL, probe.MimeType, strings.NewReader(probe.Body))
-			} else {
-				glog.Errorf("Error: unknown method: %s", probe.Method)
-				continue
-			}
-			if err != nil {
-				glog.Errorf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
-				probe.failure.Update(1)
-				continue
-			}
-			bodyTestResults := true
-			if probe.bodyTest != nil && resp.Body != nil {
-				bodyTestResults = probe.bodyTest(resp.Body)
-			}
-			if resp.Body != nil {
-				util.Close(resp.Body)
-			}
-			d := time.Since(begin)
-			// TODO(jcgregorio) Save the last N responses and present them in a web UI.
-
-			if !In(resp.StatusCode, probe.Expected) {
-				glog.Errorf("Got wrong status code: Got %d Want %v", resp.StatusCode, probe.Expected)
-				probe.failure.Update(1)
-				continue
-			}
-			if !bodyTestResults {
-				glog.Errorf("Body test failed. %#v", probe)
-				probe.failure.Update(1)
-				continue
-			}
-
-			probe.failure.Update(0)
-			probe.latency.Update(d)
-		}
+		probeOneRound(cfg, c)
 		liveness.Update()
 	}
 }
