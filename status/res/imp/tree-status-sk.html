@@ -122,7 +122,7 @@
       reloadStatus: function() {
         var that = this;
         sk.get("https://skia-tree-status.appspot.com/banner-status?format=json").then(JSON.parse).then(function(json) {
-          that.updateStatus(that.sheriff, json.message, json.general_state == "open", json.username.split("@")[0], sk.human.diffDate(json.date));
+          that.updateStatus(that.sheriff, json.message, json.general_state == "open", json.username.split("@")[0], sk.human.diffDate(json.date + " UTC"));
           that.resetTimeout();
         }).catch(function() {
           that.resetTimeout();
