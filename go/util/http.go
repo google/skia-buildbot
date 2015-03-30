@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	// TIMEOUT is the http timeout when making requests.
-	TIMEOUT = time.Duration(time.Minute)
+	DIAL_TIMEOUT    = time.Minute
+	REQUEST_TIMEOUT = 5 * time.Minute
 
 	// Exponential backoff defaults.
 	INITIAL_INTERVAL     = 500 * time.Millisecond
@@ -31,15 +31,17 @@ const (
 
 // DialTimeout is a dialer that sets a timeout.
 func DialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, TIMEOUT)
+	return net.DialTimeout(network, addr, DIAL_TIMEOUT)
 }
 
-// NewTimeoutClient creates a new http.Client with a timeout.
+// NewTimeoutClient creates a new http.Client with both a dial timeout and a
+// request timeout.
 func NewTimeoutClient() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			Dial: DialTimeout,
 		},
+		Timeout: REQUEST_TIMEOUT,
 	}
 }
 
