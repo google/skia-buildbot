@@ -175,18 +175,7 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: float64(time.Now().UTC().Unix()),
 		Message:   comment.Comment,
 	}
-	buildCache := cache.BuildCache()
-	build, err := buildCache.Get(int(buildId))
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
-		return
-	}
-	build.Comments = append(build.Comments, &c)
-	if err := build.ReplaceIntoDB(); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
-		return
-	}
-	if err := buildCache.Update(); err != nil {
+	if err := cache.AddBuildComment(int(buildId), &c); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
@@ -224,12 +213,8 @@ func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
 		IgnoreFailure: status.IgnoreFailure,
 		Message:       status.Comment,
 	}
-	if _, err := s.InsertIntoDB(); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to add builder status: %v", err))
-		return
-	}
-	if err := cache.BuildCache().Update(); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to refresh cache after adding status: %v", err))
+	if err := cache.SetBuilderStatus(builder, &s); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to set builder status: %v", err))
 		return
 	}
 }

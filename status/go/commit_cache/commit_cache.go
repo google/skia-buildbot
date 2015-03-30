@@ -241,7 +241,17 @@ func (c *CommitCache) LastNAsJson(w io.Writer, n int) error {
 	return c.RangeAsJson(w, start, end)
 }
 
-// BuildCache returns the BuildCache associated with this CommitCache.
-func (c *CommitCache) BuildCache() *build_cache.BuildCache {
-	return c.buildCache
+// AddBuildComment adds the given comment to the given build.
+func (c *CommitCache) AddBuildComment(buildId int, comment *buildbot.BuildComment) error {
+	b, err := c.buildCache.Get(buildId)
+	if err != nil {
+		return fmt.Errorf("No such build: %v", err)
+	}
+	b.Comments = append(b.Comments, comment)
+	return c.buildCache.UpdateBuild(buildId)
+}
+
+// SetBuilderStatus sets a status for the given builder.
+func (c *CommitCache) SetBuilderStatus(builder string, status *buildbot.BuilderStatus) error {
+	return c.buildCache.SetBuilderStatus(builder, status)
 }

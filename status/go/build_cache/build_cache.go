@@ -38,7 +38,6 @@ type BuildCache struct {
 	byId     map[int]*buildbot.Build
 	byCommit map[string]map[string]*buildbot.BuildSummary
 	builders map[string]*buildbot.BuilderStatus
-	commits  []string
 	mutex    sync.RWMutex
 }
 
@@ -85,28 +84,6 @@ func (c *BuildCache) UpdateWithData(byId map[int]*buildbot.Build, byCommit map[s
 	c.byId = byId
 	c.byCommit = byCommit
 	c.builders = builders
-}
-
-// Update reloads build data for the same set of commits as before.
-func (c *BuildCache) Update() error {
-	defer timer.New("BuildCache.Update()").Stop()
-	glog.Infof("Updating build cache.")
-	byId, byCommit, builders, err := LoadData(c.commits)
-	if err != nil {
-		return fmt.Errorf("Failed to update build cache: %v", err)
-	}
-	c.UpdateWithData(byId, byCommit, builders)
-	return nil
-}
-
-// UpdateForCommits reloads build data for the given commits, throwing away any
-// others.
-func (c *BuildCache) UpdateForCommits(commits []string) error {
-	if commits == nil {
-		commits = []string{}
-	}
-	c.commits = commits
-	return c.Update()
 }
 
 // GetBuildsForCommits returns the build data for the given commits.
@@ -174,4 +151,36 @@ func (c *BuildCache) Get(id int) (*buildbot.Build, error) {
 		return b, nil
 	}
 	return nil, fmt.Errorf("No such build: %d", id)
+}
+
+// SetBuilderStatus sets a status for the given builder.
+func (c *BuildCache) SetBuilderStatus(builder string, status *buildbot.BuilderStatus) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	id, err := status.InsertIntoDB()
+	if err != nil {
+		return err
+	}
+	status.Id = id
+	c.builders[builder] = status
+	return nil
+}
+
+// UpdateBuild updates the given build, inserting it into the DB and refreshing
+// it in the cache.
+func (c *BuildCache) UpdateBuild(buildId int) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	b, ok := c.byId[buildId]
+	if !ok {
+		return fmt.Errorf("No such build %d", buildId)
+	}
+	if err := b.ReplaceIntoDB(); err != nil {
+		return err
+	}
+	summary := b.GetSummary()
+	for _, hash := range b.Commits {
+		c.byCommit[hash][b.Builder] = summary
+	}
+	return nil
 }
