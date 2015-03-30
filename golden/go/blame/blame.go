@@ -1,7 +1,6 @@
 package blame
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
@@ -50,17 +49,29 @@ func New(storages *storage.Storage) (*Blamer, error) {
 // processTileStream processes the first tile instantly and starts a background
 // process to recalculate the blame lists as tiles and expectations change.
 func (b *Blamer) processTileStream() error {
-	// Get the tile stream and build the first blame lists synchronously.
-	tileStreamCh := storage.GetTileStreamNow(b.storages.TileStore, 2*time.Minute)
-	if err := b.updateBlame(tileStreamCh); err != nil {
+	expChanges := b.storages.ExpectationsStore.Changes()
+	tileStream := storage.GetTileStreamNow(b.storages.TileStore, 2*time.Minute)
+
+	lastTile := <-tileStream
+	if err := b.updateBlame(lastTile); err != nil {
 		return err
 	}
 
 	// Schedule a background process to keep updating the blame lists.
 	go func() {
 		for {
-			if err := b.updateBlame(tileStreamCh); err != nil {
-				glog.Errorf("Error updating blame lists: %s", err)
+			select {
+			case tile := <-tileStream:
+				if err := b.updateBlame(tile); err != nil {
+					glog.Errorf("Error updating blame lists: %s", err)
+				} else {
+					lastTile = tile
+				}
+			case <-expChanges:
+				storage.DrainChangeChannel(expChanges)
+				if err := b.updateBlame(lastTile); err != nil {
+					glog.Errorf("Error updating blame lists: %s", err)
+				}
 			}
 		}
 	}()
@@ -68,11 +79,16 @@ func (b *Blamer) processTileStream() error {
 	return nil
 }
 
-// GetBlameList returns a blame list for the given test.
-func (b *Blamer) GetBlameList(testName string) (map[string]*BlameDistribution, []*ptypes.Commit) {
+func (b *Blamer) GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*ptypes.Commit) {
 	b.mutex.Lock()
 	blameLists, commits := b.testBlameLists, b.commits
 	b.mutex.Unlock()
+	return blameLists, commits
+}
+
+// GetBlameList returns a blame list for the given test.
+func (b *Blamer) GetBlameList(testName string) (map[string]*BlameDistribution, []*ptypes.Commit) {
+	blameLists, commits := b.GetAllBlameLists()
 
 	if ret, ok := blameLists[testName]; ok {
 		return ret, commits
@@ -84,13 +100,7 @@ func (b *Blamer) GetBlameList(testName string) (map[string]*BlameDistribution, [
 
 // updateBlame reads from the provided tileStream and updates the current
 // blame lists.
-func (b *Blamer) updateBlame(tileStreamCh <-chan *ptypes.Tile) error {
-	// Read from the tile stream.
-	tile := <-tileStreamCh
-	if tile == nil {
-		return fmt.Errorf("Unable to retrieve a tile.")
-	}
-
+func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
 	exp, err := b.storages.ExpectationsStore.Get()
 	if err != nil {
 		return err
@@ -117,9 +127,24 @@ func (b *Blamer) updateBlame(tileStreamCh <-chan *ptypes.Tile) error {
 		lastIdx := -1
 		found := map[string]bool{}
 		for idx, digest := range gtr.Values[:tileLen] {
+			if digest == ptypes.MISSING_DIGEST {
+				continue
+			}
+
 			status := exp.Classification(testName, digest)
 			if (status == types.UNTRIAGED) && !found[digest] {
 				found[digest] = true
+
+				var startIdx int
+				endIdx := idx
+
+				// If we have only seen empty digests, then we do not
+				// consider any digest before the current one.
+				if lastIdx == -1 {
+					startIdx = idx
+				} else {
+					startIdx = lastIdx + 1
+				}
 
 				// If this digest was first seen outside the current tile
 				// we cannot calculate a blamelist and set the commit range
@@ -129,24 +154,23 @@ func (b *Blamer) updateBlame(tileStreamCh <-chan *ptypes.Tile) error {
 				if digestInfo.First < firstCommit.CommitTime {
 					commitRange = nil
 				} else {
-					commitRange = []int{lastIdx + 1, idx}
+					commitRange = []int{startIdx, endIdx}
 				}
 				if blameStartFound, ok := blameStart[testName]; !ok {
-					blameStart[testName] = map[string]int{digest: lastIdx + 1}
-					blameEnd[testName] = map[string]int{digest: idx}
+					blameStart[testName] = map[string]int{digest: startIdx}
+					blameEnd[testName] = map[string]int{digest: endIdx}
 					blameRange[testName] = map[string][][]int{digest: [][]int{commitRange}}
 				} else if currentStart, ok := blameStartFound[digest]; !ok {
-					blameStart[testName][digest] = lastIdx + 1
-					blameEnd[testName][digest] = idx
+					blameStart[testName][digest] = startIdx
+					blameEnd[testName][digest] = endIdx
 					blameRange[testName][digest] = [][]int{commitRange}
 				} else {
-					blameStart[testName][digest] = util.MinInt(currentStart, idx)
-					blameEnd[testName][digest] = util.MinInt(blameEnd[testName][digest], idx)
+					blameStart[testName][digest] = util.MinInt(currentStart, startIdx)
+					blameEnd[testName][digest] = util.MinInt(blameEnd[testName][digest], endIdx)
 					blameRange[testName][digest] = append(blameRange[testName][digest], commitRange)
 				}
-			} else {
-				lastIdx = idx
 			}
+			lastIdx = idx
 		}
 	}
 
@@ -169,10 +193,8 @@ func (b *Blamer) updateBlame(tileStreamCh <-chan *ptypes.Tile) error {
 				}
 
 				// Calculate the blame.
-				for i := commitRange[0]; i <= commitRange[1]; i++ {
-					if i > end {
-						break
-					}
+				idxEnd := util.MinInt(commitRange[0], end)
+				for i := commitRange[0]; i <= idxEnd; i++ {
 					freq[i-start]++
 				}
 			}
