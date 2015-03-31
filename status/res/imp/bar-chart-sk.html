@@ -1,0 +1,106 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <bar-chart-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/bar-chart-sk.html" rel="import" />
+
+  Usage:
+
+    <bar-chart-sk heading="My Chart"></bar-chart-sk>
+    <script>
+      myChart.draw(columns, data);
+    </script>
+
+  Properties:
+    heading: string; title of the chart.
+    colors: array of strings; colors to use in the chart.
+
+  Methods:
+    draw: render the chart using the given columns and data. The 'columns'
+        parameter is an array of arrays indicating the types and names of the
+        columns, eg: [["string", "seriesName"], ["number", "dataPoint"]].
+        The 'data' parameter is an array of arrays containing data for each
+        column, eg: [["series1", 42], ["series2", 7]].
+-->
+<polymer-element name="bar-chart-sk">
+  <template>
+    <style>
+    .chart {
+      border: 1px solid #eeeeee;
+      margin: 5px;
+      padding: 10px;
+    }
+    .collapseHeader {
+      cursor: pointer;
+    }
+    .collapseBody {
+      padding: 10px;
+    }
+    </style>
+    <div class="chart">
+      <div class="collapseHeader" on-click="{{toggle}}">
+        {{heading}}
+      </div>
+      <core-collapse id="collapse">
+        <div class="collapseBody" id="chartcontainer"></div>
+      </core-collapse>
+    </div>
+
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        heading: {
+          value: null,
+          reflect: true,
+        },
+        colors: {
+          value: [],
+          reflect: false,
+        },
+      },
+
+      toggle: function() {
+        this.$.collapse.toggle();
+      },
+
+      draw: function(columns, data) {
+        var table = new google.visualization.DataTable();
+        for (var i = 0; i < columns.length; i++) {
+          table.addColumn(columns[i][0], columns[i][1]);
+        }
+        table.addRows(data);
+
+        var headerHeight = 0;
+        var chartWidth = 400;
+        var chartHeight = 15 * data.length;
+        var labelWidth = 410;
+        var options = {
+          "chartArea": {
+            "top": headerHeight,
+            "left": labelWidth,
+            "width": chartWidth,
+            "height": chartHeight,
+          },
+          "legend": { "position": "none" },
+          "width": labelWidth + chartWidth,
+          "height": headerHeight + chartHeight,
+          "fontSize": 12,
+          "titleTextStyle": { "fontSize": 18 },
+        };
+        if (this.colors) {
+          options["colors"] = this.colors;
+        }
+
+        var chart = new google.visualization.BarChart(this.$.chartcontainer);
+        chart.draw(table, options);
+      },
+    });
+  </script>
+</polymer-element>

@@ -633,3 +633,12 @@ func (c *CommitComment) InsertIntoDB() (int, error) {
 	c.Id = int(id)
 	return c.Id, nil
 }
+
+// GetBuildsFromDateRange retrieves all builds which finished in the given date range.
+func GetBuildsFromDateRange(start, end time.Time) (map[int]*Build, error) {
+	var ids []int
+	if err := DB.Select(&ids, fmt.Sprintf("SELECT id FROM %s WHERE finished > ? and finished < ?", TABLE_BUILDS), float64(start.UTC().Unix()), float64(end.UTC().Unix())); err != nil {
+		return nil, fmt.Errorf("Failed to obtain builds from date range: %v", err)
+	}
+	return GetBuildsFromDB(ids)
+}

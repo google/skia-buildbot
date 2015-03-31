@@ -45,10 +45,11 @@ const (
 )
 
 var (
-	commitCaches    map[string]*commit_cache.CommitCache = nil
-	commitsTemplate *template.Template                   = nil
-	infraTemplate   *template.Template                   = nil
-	dbClient        *influxdb.Client                     = nil
+	commitCaches         map[string]*commit_cache.CommitCache = nil
+	buildbotDashTemplate *template.Template                   = nil
+	commitsTemplate      *template.Template                   = nil
+	infraTemplate        *template.Template                   = nil
+	dbClient             *influxdb.Client                     = nil
 )
 
 // flags
@@ -86,6 +87,10 @@ func reloadTemplates() {
 	))
 	infraTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/infra.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	buildbotDashTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/buildbot_dash.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
@@ -258,7 +263,7 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := commitsTemplate.Execute(w, struct{}{}); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 	}
 }
 
@@ -272,7 +277,68 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := infraTemplate.Execute(w, struct{}{}); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+	}
+}
+
+func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("buildsHandler").Stop()
+	w.Header().Set("Content-Type", "application/json")
+
+	start, err := getIntParam("start", r)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"start\": %v", err))
+		return
+	}
+	end, err := getIntParam("end", r)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"end\": %v", err))
+		return
+	}
+
+	var startTime time.Time
+	var endTime time.Time
+
+	if end == nil {
+		endTime = time.Now()
+	} else {
+		endTime = time.Unix(int64(*end), 0)
+	}
+
+	if start == nil {
+		startTime = endTime.AddDate(0, 0, -1)
+	} else {
+		startTime = time.Unix(int64(*start), 0)
+	}
+
+	buildsById, err := buildbot.GetBuildsFromDateRange(startTime, endTime)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
+		return
+	}
+
+	builds := make([]*buildbot.Build, 0, len(buildsById))
+	for _, b := range buildsById {
+		builds = append(builds, b)
+	}
+
+	if err := json.NewEncoder(w).Encode(builds); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
+func buildbotDashHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("buildbotDashHandler").Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	if err := buildbotDashTemplate.Execute(w, struct{}{}); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 	}
 }
 
@@ -280,8 +346,10 @@ func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", commitsHandler)
+	r.HandleFunc("/json/builds", buildsJsonHandler)
 	builds := r.PathPrefix("/json/{repo}/builds/{buildId:[0-9]+}").Subrouter()
 	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
+	r.HandleFunc("/buildbots", buildbotDashHandler)
 	r.HandleFunc("/infra", infraHandler)
 	builders := r.PathPrefix("/json/{repo}/builders/{builder}").Subrouter()
 	builders.HandleFunc("/status", addBuilderStatusHandler).Methods("POST")
