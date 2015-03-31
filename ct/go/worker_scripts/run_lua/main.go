@@ -107,7 +107,7 @@ func main() {
 		"--skpPath", localSkpsDir,
 		"--luaFile", luaScriptLocalPath,
 	}
-	if err := util.ExecuteCmd(filepath.Join(util.SkiaTreeDir, "out", "Release", util.BINARY_LUA_PICTURES), args, []string{}, 15*time.Minute, stdoutFile, stderrFile); err != nil {
+	if err := util.ExecuteCmd(filepath.Join(util.SkiaTreeDir, "out", "Release", util.BINARY_LUA_PICTURES), args, []string{}, 30*time.Minute, stdoutFile, stderrFile); err != nil {
 		glog.Error(err)
 		return
 	}
