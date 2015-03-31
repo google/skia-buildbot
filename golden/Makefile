@@ -65,8 +65,12 @@ web:
 	-mkdir -p app/fonts
 	cp $(GOLD_SRC_FONTS)/* app/fonts/
 
+.PHONY: touch_elements
+touch_elements:
+	touch elements.html
+
 .PHONY: release
-release: web skiacorrectness correctness_migratedb
+release: touch_elements web skiacorrectness correctness_migratedb
 	./build_release "$(MESSAGE)"
 
 .PHONY: all

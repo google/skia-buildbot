@@ -407,15 +407,18 @@ var skia = skia || {};
       if (unt.hasOwnProperty(digest)) {
         total += unt[digest].count;
         var posDiffs = [];
-        for(var i=0, len=unt[digest].diffs.length; i < len; i++) {
-          // TODO (stephana): Fill in expanding the diff information.
-          // This will be done once triaging works. So we can test it
-          // with real data.
-          d = unt[digest].diffs[i];
-          if (d) {
-            posd = positive[d.posDigest];
-            posDiffs.push(new ns.DiffDigestInfo(d.posDigest, posd.imgUrl,
-                                           posd.count, posd.paramCounts, d));
+        var useDiffs = robust_get(unt, [digest, 'diffs']);
+        if (useDiffs) {
+          for(var i=0, len=useDiffs.length; i < len; i++) {
+            // TODO (stephana): Fill in expanding the diff information.
+            // This will be done once triaging works. So we can test it
+            // with real data.
+            d = useDiffs[i];
+            if (d) {
+              posd = positive[d.posDigest];
+              posDiffs.push(new ns.DiffDigestInfo(d.posDigest, posd.imgUrl,
+                                             posd.count, posd.paramCounts, d));
+            }
           }
         }
         hasPos = hasPos || (posDiffs.length > 0);
