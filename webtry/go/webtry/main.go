@@ -936,6 +936,42 @@ func getOutputData(hash string) (rasterImg, gpuImg, pdfURL string, rasterMod, gp
 	return
 }
 
+type OutputImages struct {
+	Raster, Gpu, Pdf string
+}
+
+func writeOutputImage(encodedImage, path string) error {
+	if encodedImage == "" {
+		return nil
+	}
+	decodedImage, err := base64.StdEncoding.DecodeString(encodedImage)
+	if err != nil {
+		glog.Errorf("failed to decode image file: %q", err)
+		return err
+	}
+	if err = ioutil.WriteFile(path, decodedImage, 0666); err != nil {
+		glog.Errorf("failed to write image file: %q", err)
+		return err
+	}
+	return nil
+}
+
+func writeOutputImages(hash string, outputImages OutputImages) error {
+
+	rasterPath, gpuPath, pdfPath := getOutputPaths(hash)
+
+	if err := writeOutputImage(outputImages.Raster, rasterPath); err != nil {
+		return err
+	}
+	if err := writeOutputImage(outputImages.Gpu, gpuPath); err != nil {
+		return err
+	}
+	if err := writeOutputImage(outputImages.Pdf, pdfPath); err != nil {
+		return err
+	}
+	return nil
+}
+
 // mainHandler handles the GET and POST of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Main Handler: %q\n", r.URL.Path)
@@ -1048,8 +1084,11 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 		message, err := util.DoCmd(cmd)
 
-		outputLines := strings.Split(message, "\n")
+		buildAndRunOutput := strings.SplitN(message, "-=-=-=-=-=-=-", 2)
+
+		outputLines := strings.Split(buildAndRunOutput[0], "\n")
 		errorLines := []compileError{}
+
 		for _, line := range outputLines {
 			match := errorRE.FindStringSubmatch(line)
 			if len(match) > 0 {
@@ -1081,6 +1120,19 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		var outputImages OutputImages
+
+		if err = json.NewDecoder(strings.NewReader(buildAndRunOutput[1])).Decode(&outputImages); err != nil {
+			reportTryError(w, r, err, "Failed to decode the fiddle output.", hash)
+			return
+		}
+
+		err = writeOutputImages(hash, outputImages)
+		if err != nil {
+			reportTryError(w, r, err, "Couldn't write the generated images to disk.", hash)
+			return
+		}
+
 		m := response{
 			Hash:   hash,
 			BugURL: makeBugURL(hash),
@@ -1089,6 +1141,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		rasterImg, gpuImg, pdfURL, rasterMod, gpuMod, pdfMod, err, errMsg := getOutputData(hash)
 		if err != nil {
 			reportTryError(w, r, err, errMsg, hash)
+			return
 		}
 
 		m.RasterImg = rasterImg

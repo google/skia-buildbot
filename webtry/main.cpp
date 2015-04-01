@@ -1,8 +1,10 @@
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <fcntl.h>
 
 #include "GrContextFactory.h"
 
+#include "SkBase64.h"
 #include "SkCanvas.h"
 #include "SkCommandLineFlags.h"
 #include "SkData.h"
@@ -21,7 +23,6 @@
 
 __SK_FORCE_IMAGE_DECODER_LINKING;
 
-DEFINE_string(out, "", "Output basename; fiddle will append the config used and the appropriate extension");
 DEFINE_string(source, "", "Filename of the source image.");
 DEFINE_int32(width, 256, "Width of output image.");
 DEFINE_int32(height, 256, "Height of output image.");
@@ -143,14 +144,21 @@ static void drawPDF(SkWStream* stream, SkImageInfo info) {
     document->close();
 }
 
+static void dumpOutput(SkDynamicMemoryWStream *stream, const char *name, bool last=true) {
+    SkAutoDataUnref pngData(stream->copyToData());
+    size_t b64Size = SkBase64::Encode(pngData->data(), pngData->size(), NULL);
+    SkAutoTMalloc<char> b64Data(b64Size);
+    SkBase64::Encode(pngData->data(), pngData->size(), b64Data.get());
+    printf( "\t\"%s\": \"%.*s\"", name, (int) b64Size, b64Data.get() );
+    if (!last) {
+        printf( "," );
+    }
+    printf( "\n" );
+}
+
 int main(int argc, char** argv) {
     SkCommandLineFlags::Parse(argc, argv);
     SkAutoGraphics init;
-
-    if (FLAGS_out.count() == 0) {
-      perror("The --out flag must have an argument.");
-      return 1;
-    }
 
     if (FLAGS_source.count() == 1) {
         const char *sourceDir = getenv("WEBTRY_INOUT");
@@ -167,22 +175,16 @@ int main(int argc, char** argv) {
     // make sure to open any needed output files before we set up the security
     // jail
 
-    SkWStream* streams[3] = {NULL, NULL, NULL};
+    SkDynamicMemoryWStream* streams[3] = {NULL, NULL, NULL};
 
     if (FLAGS_raster) {
-        SkString outPath;
-        outPath.printf("%s_raster.png", FLAGS_out[0]);
-        streams[0] = SkNEW_ARGS(SkFILEWStream,(outPath.c_str()));
+        streams[0] = SkNEW(SkDynamicMemoryWStream);
     }
     if (FLAGS_gpu) {
-        SkString outPath;
-        outPath.printf("%s_gpu.png", FLAGS_out[0]);
-        streams[1] = SkNEW_ARGS(SkFILEWStream,(outPath.c_str()));
+        streams[1] = SkNEW(SkDynamicMemoryWStream);
     }
     if (FLAGS_pdf) {
-        SkString outPath;
-        outPath.printf("%s.pdf", FLAGS_out[0]);
-        streams[2] = SkNEW_ARGS(SkFILEWStream,(outPath.c_str()));
+        streams[2] = SkNEW(SkDynamicMemoryWStream);
     }
 
     SkImageInfo info = SkImageInfo::MakeN32(FLAGS_width, FLAGS_height, kPremul_SkAlphaType);
@@ -210,15 +212,22 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    printf( "{\n" );
+
     if (NULL != streams[0]) {
         drawRaster(streams[0], info);
+        dumpOutput(streams[0], "Raster", NULL == streams[1] && NULL == streams[2] );
     }
     if (NULL != streams[1]) {
         drawGPU(streams[1], gr, info);
+        dumpOutput(streams[1], "Gpu", NULL == streams[2] );
     }
     if (NULL != streams[2]) {
         drawPDF(streams[2], info);
+        dumpOutput(streams[2], "Pdf" );
     }
+
+    printf( "}\n" );
 
     if (gr) {
         delete grFactory;

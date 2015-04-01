@@ -16,4 +16,5 @@ if nm $OBJ | grep " T " | grep -v -q "_Z4drawP8SkCanvas$"; then
 	exit 1
 fi
 
-$EXECUTABLE --out $WEBTRY_INOUT/$1 "${@:2}"
+echo "-=-=-=-=-=-=-"
+$EXECUTABLE "${@:2}"
