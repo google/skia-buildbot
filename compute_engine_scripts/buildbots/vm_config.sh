@@ -22,7 +22,10 @@ REQUIRED_FILES_FOR_LINUX_BOTS=(/tmp/.boto \
                                /tmp/.bot_password \
                                /tmp/.netrc \
                                $CHROME_MASTER_HOST)
-REQUIRED_FILES_FOR_WIN_BOTS=(/tmp/chrome-bot.txt \
+# Use a different chrome-bot password for windows due to the issue mentioned
+# here: https://buganizer.corp.google.com/u/0/issues/18817374#comment29
+# The password is available in valentine (win-chrome-bot).
+REQUIRED_FILES_FOR_WIN_BOTS=(/tmp/win-chrome-bot.txt \
                              /tmp/.boto \
                              /tmp/.bot_password \
                              /tmp/.netrc \

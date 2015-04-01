@@ -21,7 +21,8 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   MODIFIED_STARTUP_SCRIPT="/tmp/win_setup.ps1"
   # Set chrome-bot's password in win_setup.ps1
   cp $ORIG_STARTUP_SCRIPT $MODIFIED_STARTUP_SCRIPT
-  sed -i "s/CHROME_BOT_PASSWORD/$(echo $(cat /tmp/chrome-bot.txt) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
+  WIN_CHROME_BOT_PWD=$(echo $(cat /tmp/win-chrome-bot.txt) | sed -e 's/[\/&]/\\&/g')
+  sed -i "s/CHROME_BOT_PASSWORD/${WIN_CHROME_BOT_PWD}/g" $MODIFIED_STARTUP_SCRIPT
   sed -i "s/GS_ACCESS_KEY_ID/$(echo $(cat ~/.boto | sed -n 2p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
   sed -i "s/GS_SECRET_ACCESS_KEY/$(echo $(cat ~/.boto | sed -n 3p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
   python ../../scripts/insert_file.py $MODIFIED_STARTUP_SCRIPT $MODIFIED_STARTUP_SCRIPT
@@ -31,7 +32,7 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   todos $MODIFIED_STARTUP_SCRIPT
 
   METADATA_ARGS="--metadata=gce-initial-windows-user:chrome-bot \
-                 --metadata_from_file=gce-initial-windows-password:/tmp/chrome-bot.txt \
+                 --metadata_from_file=gce-initial-windows-password:/tmp/win-chrome-bot.txt \
                  --metadata_from_file=sysprep-oobe-script-ps1:$MODIFIED_STARTUP_SCRIPT"
   DISK_ARGS="--boot_disk_size_gb=$PERSISTENT_DISK_SIZE_GB"
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_WIN_BOTS[@]}
@@ -78,6 +79,14 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     echo "===== There was an error creating ${INSTANCE_NAME}. ====="
     echo
     exit 1
+  fi
+
+  if [ "$VM_INSTANCE_OS" == "Windows" ]; then
+    # Specify the initial user and password again because of a bug.
+    gcloud compute --project $PROJECT_ID instances add-metadata \
+      --metadata gce-initial-windows-user=chrome-bot \
+      --metadata gce-initial-windows-password=$WIN_CHROME_BOT_PWD \
+      --zone $ZONE $INSTANCE_NAME
   fi
 done
 
@@ -128,7 +137,10 @@ cat <<INP
 Instances are ready to use.
 
 Note:
-If you created windows instances then please log in and open the Windows update
-service and select "Download updates but let me choose whether to install them".
+If you created windows instances then please do the following:
+* Log in and open the Windows update service, click on "Change settings" and select
+  "Download updates but let me choose whether to install them".
+* Click on properties of the "C:\0" folder and click on "Security". Add "Full control"
+  for "Users". 
 
 INP

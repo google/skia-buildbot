@@ -14,7 +14,7 @@ SKIA_NETWORK_NAME = 'default'
 SKIA_REPO_DIR = '/home/%s/storage/skia-repo' % PROJECT_USER
 SCOPES = 'https://www.googleapis.com/auth/devstorage.full_control'
 SKIA_BOT_LINUX_IMAGE_NAME = 'skia-buildbot-v8'
-SKIA_BOT_WIN_IMAGE_NAME = 'windows-server-2008-r2-dc'
+SKIA_BOT_WIN_IMAGE_NAME = 'projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310'
 SKIA_BOT_MACHINE_TYPE = os.environ.get(
     'SKIA_BOT_MACHINE_TYPE', 'n1-standard-32')
 # Options are Linux and Windows.
