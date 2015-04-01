@@ -45,7 +45,7 @@ func main() {
 	// Email admins if there are any unhealthy machines.
 	if len(offlineMachines) != 0 || len(offlineDevices) != 0 || len(missingDevices) != 0 {
 		emailSubject := "There are unhealthy Cluster telemetry machines"
-		emailBody := "Please file a ticket to hwops-interrupts-atl@ and chrome-labs-tech-ticket@ using https://docs.google.com/spreadsheets/d/1whlE4nDJB0XFBemJliupOORepdXf_vXyAfFgsprTAxY/edit#gid=0 for-<br/><br/>"
+		emailBody := "Please file a ticket to chrome-golo-tech-ticket@ (for offline devices) and chrome-labs-tech-ticket@ (for offline machines) using https://docs.google.com/spreadsheets/d/1whlE4nDJB0XFBemJliupOORepdXf_vXyAfFgsprTAxY/edit#gid=0 for-<br/><br/>"
 		if len(offlineMachines) != 0 {
 			emailBody += fmt.Sprintf("The following machines are offline: %s<br/>", strings.Join(offlineMachines, ","))
 		}
