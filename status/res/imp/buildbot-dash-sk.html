@@ -169,12 +169,12 @@
         this.stepTimes = {};
         this.buildResults = {};
         this.stepResults = {};
-        this.excludedBots = [];
+        excludedBots = {};
 
         for (var i = 0; i < this.builds.length; i++) {
           var build = this.builds[i];
           if (!this.includeBuilder(build.Builder)) {
-            this.excludedBots.push(build.Builder);
+            excludedBots[build.Builder] = true;
             continue;
           }
 
@@ -207,6 +207,11 @@
             this.stepResults[step.Name].push(step.Results == 0 ? 0 : 1);
           }
         }
+        this.excludedBots = [];
+        for (var bot in excludedBots) {
+          this.excludedBots.push(bot);
+        }
+        this.excludedBots.sort();
 
         console.timeEnd("processBuilds");
         this.drawCharts();
