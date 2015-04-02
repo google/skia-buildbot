@@ -28,9 +28,10 @@ APP_DIR="$SHARED_DIR/app"
 RESOURCE_DIR="$SHARED_DIR"
 IMAGE_STORE="$DATA_DIR/imageStore"
 DATABASE_CONFIG="--db_host=<<REPLACE_DATABASE_HOST>> --db_name=<<REPLACE_DATABASE_NAME>>"
+GS_CONFIG="--gs_bucket=<<REPLACE_GS_BUCKET>>"
 REDIRECT_URL="<<REPLACE_REDIRECT_URL>>"
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS="--port=:8001 --log_dir=/var/log/logserver --tile_store_dir=$DATA_DIR/tileStore3 --static_dir=$APP_DIR --image_dir=$IMAGE_STORE --redis_host=localhost:6379 --oauth_cache_file=$DATA_DIR/correctness-google_storage_token.data --resources_dir=$RESOURCE_DIR $DATABASE_CONFIG --redirect_url=$REDIRECT_URL"
+DAEMON_ARGS="--port=:8001 --log_dir=/var/log/logserver --tile_store_dir=$DATA_DIR/tileStore3 --static_dir=$APP_DIR --image_dir=$IMAGE_STORE --redis_host=localhost:6379 --oauth_cache_file=$DATA_DIR/correctness-google_storage_token.data --resources_dir=$RESOURCE_DIR $DATABASE_CONFIG --redirect_url=$REDIRECT_URL $GS_CONFIG"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 

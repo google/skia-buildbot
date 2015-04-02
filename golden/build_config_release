@@ -9,6 +9,7 @@ case "$INSTANCE_ID" in
 	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness"
 	INGEST_DATABASE_NAME="skia"
   REDIRECT_URL="https://gold.skia.org/oauth2callback/"
+  GS_BUCKET="chromium-skia-gm"
 	;;
 
   # stage instance
@@ -17,6 +18,7 @@ case "$INSTANCE_ID" in
 	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_stage"
 	INGEST_DATABASE_NAME="skiacorr_ingest_stage"
   REDIRECT_URL="https://gold-staging.skia.org/oauth2callback/"
+  GS_BUCKET="chromium-skia-gm"
   ;;
 
   # experimental android instance: uses the staging database server for now.
@@ -25,6 +27,7 @@ case "$INSTANCE_ID" in
   SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_android"
   INGEST_DATABASE_NAME="skiacorr_ingest_android"
   REDIRECT_URL="https://gold-android.skia.org/oauth2callback/"
+  GS_BUCKET="skia-android-dm"
   ;;
 
   # experimental blink instance: uses the staging database server for now.
@@ -33,6 +36,7 @@ case "$INSTANCE_ID" in
   SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_blink"
   INGEST_DATABASE_NAME="skiacorr_ingest_blink"
   REDIRECT_URL="https://gold-blink.skia.org/oauth2callback/"
+  GS_BUCKET="chromium-skia-gm"
   ;;
 
   *)
@@ -52,8 +56,10 @@ DEPENDS=git
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
+set -e
+
 # Generate the init file for ingest and skiacorrectness.
-sed "s#<<REPLACE_DATABASE_HOST>>#$DATABASE_HOST#g;s#<<REPLACE_DATABASE_NAME>>#$SKIACORRECTNESS_DATABASE_NAME#g;s#<<REPLACE_REDIRECT_URL>>#$REDIRECT_URL#g" \
+sed "s#<<REPLACE_DATABASE_HOST>>#$DATABASE_HOST#g;s#<<REPLACE_DATABASE_NAME>>#$SKIACORRECTNESS_DATABASE_NAME#g;s#<<REPLACE_REDIRECT_URL>>#$REDIRECT_URL#g;s#<<REPLACE_GS_BUCKET>>#$GS_BUCKET#g" \
     ./sys/skiacorrectness_init.template > ./sys/skiacorrectness_init
 
 sed "s/<<REPLACE_DATABASE_HOST>>/$DATABASE_HOST/g;s/<<REPLACE_DATABASE_NAME>>/$INGEST_DATABASE_NAME/g" \
