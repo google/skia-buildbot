@@ -82,6 +82,10 @@
           value: null,
           reflect: false,
         },
+        tooltipFormatter: {
+          value: null,
+          reflect: false,
+        },
       },
 
       created: function() {
@@ -119,6 +123,13 @@
         }
       },
 
+      formatTooltip: function(columnName, v) {
+        if (!!this.tooltipFormatter) {
+          return this.tooltipFormatter(columnName, v);
+        }
+        return columnName + "\n" + v.toString();
+      },
+
       draw: function() {
         if (!this.columns || !this.data) {
           return;
@@ -129,7 +140,14 @@
           for (var i = 0; i < that.columns.length; i++) {
             table.addColumn(that.columns[i][0], that.columns[i][1]);
           }
-          table.addRows(that.data);
+          table.addColumn({"type": "string", "role": "tooltip"});
+
+          var dataRows = [];
+          for (var i = 0; i < that.data.length; i++) {
+            var tooltip = that.formatTooltip(that.columns[1][1], that.data[i][1]);
+            dataRows.push(that.data[i].concat([tooltip]));
+          }
+          table.addRows(dataRows);
 
           var totalWidth = that.$.host.offsetWidth;
           var headerHeight = 0;

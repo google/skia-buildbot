@@ -199,6 +199,26 @@ this.sk = this.sk || function() {
   ];
 
   /**
+   * Returns a human-readable format of the given duration in seconds.
+   *
+   * For example, 'strDuration(123)' would return "2m 3s".
+   */
+  sk.human.strDuration = function(seconds) {
+    var rv = "";
+    for (var i=0; i<DELTAS.length; i++) {
+      if (DELTAS[i].delta < seconds) {
+        var s = Math.floor(seconds/DELTAS[i].delta)+DELTAS[i].units;
+        while (s.length < 4) {
+          s = ' ' + s;
+        }
+        rv += s;
+        seconds = seconds % DELTAS[i].delta;
+      }
+    }
+    return rv;
+  };
+
+  /**
    * Returns the difference between the current time and 's' as a string in a
    * human friendly format.
    *

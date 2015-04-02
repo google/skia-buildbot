@@ -214,7 +214,14 @@
 
       drawCharts: function() {
         console.time("drawCharts");
-        // Draw charts.
+
+        var timeFormatter = function(col, time) {
+          return col + "\n" + sk.human.strDuration(time);
+        };
+
+        var failRateFormatter = function(col, failRate) {
+          return col + "\n" + (Math.round(failRate*100)/100);
+        };
 
         // Build times.
         this.$.build_times_chart.colors = this.colors;
@@ -222,6 +229,7 @@
             ["string", "Builder"],
             ["number", "Time (s)"],
         ];
+        this.$.build_times_chart.tooltipFormatter = timeFormatter;
         this.$.build_times_chart.data = this.generateStats(this.buildTimes, mean);
 
         // Step times.
@@ -230,6 +238,7 @@
             ["string", "Step"],
             ["number", "Time (s)"],
         ];
+        this.$.step_times_chart.tooltipFormatter = timeFormatter;
         this.$.step_times_chart.data = this.generateStats(this.stepTimes, mean);
 
         // Build failure rate.
@@ -238,6 +247,7 @@
             ["string", "Builder"],
             ["number", "Failure Rate"],
         ];
+        this.$.build_failure_rate_chart.tooltipFormatter = failRateFormatter;
         this.$.build_failure_rate_chart.data = this.generateStats(this.buildResults, mean);
 
         // Step failure rate.
@@ -246,6 +256,7 @@
             ["string", "Step"],
             ["number", "Failure Rate"],
         ];
+        this.$.step_failure_rate_chart.tooltipFormatter = failRateFormatter;
         this.$.step_failure_rate_chart.data = this.generateStats(this.stepResults, mean);
 
         console.timeEnd("drawCharts");
