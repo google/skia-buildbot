@@ -67,6 +67,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
+	glog.Info("Got authenticated client.")
 
 	store, err := storage.New(client)
 	if err != nil {
@@ -80,6 +81,7 @@ func main() {
 			continue
 		}
 
+		glog.Info("About to read package list.")
 		// Read the old and new packages from their respective storage locations.
 		serverList, err := packages.InstalledForServer(client, store, *hostname)
 		if err != nil {
@@ -92,6 +94,7 @@ func main() {
 			continue
 		}
 
+		glog.Info("Comparing against currently installed packages.")
 		// Install any new or updated packages.
 		newPackages := differences(serverList.Names, localList)
 		save := false

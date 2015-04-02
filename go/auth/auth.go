@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"code.google.com/p/goauth2/oauth"
-	"github.com/oxtoacart/webbrowser"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
@@ -41,6 +40,7 @@ func GCEServiceAccountClient(transport http.RoundTripper) *http.Client {
 			Source: google.ComputeTokenSource(""),
 			Base:   transport,
 		},
+		Timeout: util.REQUEST_TIMEOUT,
 	}
 }
 
@@ -73,6 +73,7 @@ func InstalledAppClient(cacheFilePath, configFilePath string, transport http.Rou
 			Source: tokenSource,
 			Base:   transport,
 		},
+		Timeout: util.REQUEST_TIMEOUT,
 	}
 
 	return client, nil
@@ -116,10 +117,6 @@ func newCachingTokenSource(cacheFilePath string, ctx context.Context, config *oa
 		// Run through the flow.
 		url := config.AuthCodeURL("state", oauth2.AccessTypeOffline)
 		fmt.Printf("Your browser has been opened to visit:\n\n%s\n\nEnter the verification code:", url)
-
-		if err = webbrowser.Open(url); err != nil {
-			glog.Errorf("Failed to open web browser. Open manually. \nError: %v", err)
-		}
 
 		var code string
 		if _, err = fmt.Scan(&code); err != nil {
@@ -223,9 +220,6 @@ func RunFlowWithTransport(config *oauth.Config, transport http.RoundTripper) (*h
   %s
 
 Enter the verification code:`, url)
-		if err := webbrowser.Open(url); err != nil {
-			glog.Errorf("Failed to open web browser. Please open manually.\nErr: %v", err)
-		}
 		var code string
 		fmt.Scan(&code)
 		if _, err := oauthTransport.Exchange(code); err != nil {

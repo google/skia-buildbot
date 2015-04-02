@@ -2,13 +2,11 @@
 package gsauth
 
 import (
-	"fmt"
 	"net/http"
 
-	"code.google.com/p/goauth2/compute/serviceaccount"
 	"code.google.com/p/google-api-go-client/compute/v1"
 	"code.google.com/p/google-api-go-client/storage/v1"
-
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/util"
 )
@@ -19,22 +17,24 @@ import (
 func NewClient(doOAuth bool, oauthCacheFile string) (*http.Client, error) {
 	var client *http.Client
 	var err error
+
+	transport := &http.Transport{
+		Dial: util.DialTimeout,
+	}
+
 	if doOAuth {
-		config := auth.OAuthConfig(oauthCacheFile, storage.DevstorageFull_controlScope+" "+compute.ComputeReadonlyScope)
-		client, err = auth.RunFlow(config)
+		// Use a local client secret file to load data.
+		client, err = auth.InstalledAppClient(oauthCacheFile, "client_secret.json",
+			transport,
+			storage.DevstorageFull_controlScope,
+			compute.ComputeReadonlyScope)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to auth: %s", err)
+			glog.Fatalf("Unable to create installed app oauth client:%s", err)
 		}
 	} else {
-		ops := &serviceaccount.Options{
-			Transport: &http.Transport{
-				Dial: util.DialTimeout,
-			},
-		}
-		client, err = serviceaccount.NewClient(ops)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to create service account authorized client: %s", err)
-		}
+		// Use compute engine service account.
+		client = auth.GCEServiceAccountClient(transport)
 	}
+
 	return client, nil
 }
