@@ -1,0 +1,284 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <buildbot-dash-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/buildbot-dash-sk.html" rel="import" />
+
+  Usage:
+
+    <buildbot-dash-sk></buildbot-dash-sk>
+-->
+<polymer-element name="buildbot-dash-sk">
+  <template>
+    <style>
+    paper-button {
+      text-transform: none;
+    }
+    h1 {
+      font-size: 1.7em;
+      margin-bottom: 2px;
+      margin-top: 5px;
+    }
+    #controls {
+      width: 200px;
+    }
+    .control {
+      margin: 5px;
+      padding: 10px;
+      border: 1px solid #eeeeee;
+      font-size: 12px;
+    }
+    .control > h2 {
+      font-size: 16px;
+    }
+    #maincontent {
+      padding-top: 10px;
+    }
+    </style>
+      <div id="maincontent">
+        <div id="spinner" horizontal layout center fit>
+          <div vertical layout center flex>
+            <paper-spinner active></paper-spinner>
+          </div>
+        </div>
+        <div id="chart_container" horizontal layout>
+          <div id="controls">
+            <div class="control">
+              <h2>Results from last</h2>
+              <paper-button id="time_select_button" on-click="{{openTimeSelect}}">
+                <div id="time_select_label"></div>
+                <core-icon icon="arrow-drop-down"></core-icon>
+              </paper-button>
+              <paper-dropdown id="time_select">
+                <core-menu id="time_menu" selected=0 on-core-select="{{timeSelected}}">
+                  <paper-item value=24>24 hours</paper-item>
+                  <paper-item value=72>3 days</paper-item>
+                  <paper-item value=168>1 week</paper-item>
+                  <paper-item value=336>2 weeks</paper-item>
+                </core-menu>
+              </paper-dropdown>
+            </div>
+            <input-list-sk
+                id="include_builders"
+                heading="Include Patterns"
+                values="{{include}}"
+                on-change="{{processBuilds}}"></input-list-sk>
+            <input-list-sk
+                id="exclude_builders"
+                heading="Exclude Patterns"
+                values="{{exclude}}"
+                on-change="{{processBuilds}}"></input-list-sk>
+            <div class="control">
+              <h2>Excluded Builders</h2>
+              <ul>
+                <template repeat="{{bot in excludedBots}}">
+                  <li>{{bot}}</li>
+                </template>
+              </ul>
+            </div>
+          </div>
+          <div id="charts" flex>
+            <bar-chart-sk heading="Build Times" id="build_times_chart"></bar-chart-sk>
+            <bar-chart-sk heading="Step Times" id="step_times_chart"></bar-chart-sk>
+            <bar-chart-sk heading="Build Failure Rate" id="build_failure_rate_chart"></bar-chart-sk>
+            <bar-chart-sk heading="Step Failure Rate" id="step_failure_rate_chart"></bar-chart-sk>
+          </div>
+        </div>
+      </div>
+  </template>
+  <script>
+  (function() {
+    function mean(data) {
+      // TODO(borenet): Use a more stable algorithm.
+      var sum = 0;
+      for (var i = 0; i < data.length; i++) {
+        sum += data[i];
+      }
+      return sum / data.length;
+    }
+
+    Polymer({
+      created: function() {
+        this.builds = [];
+        this.buildTimes = {};
+        this.stepTimes = {};
+        this.buildResults = {};
+        this.stepResults = {};
+
+        this.include = [];
+        this.exclude = [];
+        this.excludedBots = [];
+
+        var palette = [
+          "#03DCFB", "#00C2DD", "#008699", "#006C7C", "#00535E", // Blue
+          "#FFAE00", "#FFAE00", "#FAAB00", "#CA8A00", "#9A6900", // Yellow
+          "#FF1300", "#FF1300", "#FA1200", "#CA0F00", "#9A0B00", // Red
+        ];
+        var paletteRowLen = 5;
+        this.colors = [
+          palette[2*paletteRowLen+3],
+          palette[1*paletteRowLen+3],
+          palette[0*paletteRowLen+3],
+        ];
+      },
+
+      reloadBuilds: function(start, end) {
+        console.time("loadData");
+        url = "/json/builds";
+        if (!!start) {
+          url += "?start=" + start;
+          if (!!end) {
+            url += "&end=" + end;
+          }
+        }
+        this.$.spinner.style.display = "flex";
+        this.$.chart_container.style.display = "none";
+        var that = this;
+        sk.get(url).then(JSON.parse).then(function(json) {
+          console.timeEnd("loadData");
+          that.builds = json;
+          that.processBuilds();
+          that.$.spinner.style.display = "none";
+          that.$.chart_container.style.display = "flex";
+        });
+      },
+
+      includeBuilder: function(builder) {
+        for (var i = 0; i < this.exclude.length; i++) {
+          if (builder.match(this.exclude[i])) {
+            return false;
+          }
+        }
+        for (var i = 0; i < this.include.length; i++) {
+          if (!builder.match(this.include[i])) {
+            return false;
+          }
+        }
+        return true;
+      },
+
+      processBuilds: function() {
+        console.time("processBuilds");
+        this.buildTimes = {};
+        this.stepTimes = {};
+        this.buildResults = {};
+        this.stepResults = {};
+        this.excludedBots = [];
+
+        for (var i = 0; i < this.builds.length; i++) {
+          var build = this.builds[i];
+          if (!this.includeBuilder(build.Builder)) {
+            this.excludedBots.push(build.Builder);
+            continue;
+          }
+
+          var duration = build.Finished - build.Started;
+          if (!this.buildTimes[build.Builder]) {
+            this.buildTimes[build.Builder] = [];
+          }
+          this.buildTimes[build.Builder].push(duration);
+
+          if (!this.buildResults[build.Builder]) {
+            this.buildResults[build.Builder] = [];
+          }
+          this.buildResults[build.Builder].push(build.Results == 0 ? 0 : 1);
+
+          for (var j = 0; j < build.Steps.length; j++) {
+            var step = build.Steps[j];
+            // Always exclude these steps.
+            if (step.Name == "steps" || step.Name == "Uncaught Exception") {
+              continue;
+            }
+            var stepDuration = step.Finished - step.Started;
+            if (!this.stepTimes[step.Name]) {
+              this.stepTimes[step.Name] = [];
+            }
+            this.stepTimes[step.Name].push(stepDuration);
+
+            if (!this.stepResults[step.Name]) {
+              this.stepResults[step.Name] = [];
+            }
+            this.stepResults[step.Name].push(step.Results == 0 ? 0 : 1);
+          }
+        }
+
+        console.timeEnd("processBuilds");
+        this.drawCharts();
+      },
+
+      drawCharts: function() {
+        console.time("drawCharts");
+        // Draw charts.
+
+        // Build times.
+        this.$.build_times_chart.colors = this.colors;
+        this.$.build_times_chart.columns = [
+            ["string", "Builder"],
+            ["number", "Time (s)"],
+        ];
+        this.$.build_times_chart.data = this.generateStats(this.buildTimes, mean);
+
+        // Step times.
+        this.$.step_times_chart.colors = this.colors;
+        this.$.step_times_chart.columns = [
+            ["string", "Step"],
+            ["number", "Time (s)"],
+        ];
+        this.$.step_times_chart.data = this.generateStats(this.stepTimes, mean);
+
+        // Build failure rate.
+        this.$.build_failure_rate_chart.colors = this.colors;
+        this.$.build_failure_rate_chart.columns = [
+            ["string", "Builder"],
+            ["number", "Failure Rate"],
+        ];
+        this.$.build_failure_rate_chart.data = this.generateStats(this.buildResults, mean);
+
+        // Step failure rate.
+        this.$.step_failure_rate_chart.colors = this.colors;
+        this.$.step_failure_rate_chart.columns = [
+            ["string", "Step"],
+            ["number", "Failure Rate"],
+        ];
+        this.$.step_failure_rate_chart.data = this.generateStats(this.stepResults, mean);
+
+        console.timeEnd("drawCharts");
+      },
+
+      generateStats: function(data, aggregator) {
+        var stats = [];
+        for (var series in data) {
+          stats.push([series, aggregator(data[series])]);
+        }
+        stats.sort(function(a, b) {
+          return b[1] - a[1];
+        });
+        return stats;
+      },
+
+      openTimeSelect: function() {
+        this.$.time_select.open();
+      },
+
+      timeSelected: function(e) {
+        this.$.time_select.close();
+        if (e.detail.isSelected) {
+          this.$.time_select_label.innerHTML = e.detail.item.innerHTML;
+          this.updateTimePeriod(e.detail.item.getAttribute("value"));
+        }
+      },
+
+      updateTimePeriod: function(timePeriod) {
+        var now = Math.round(new Date().getTime() / 1000);
+        this.reloadBuilds(now - timePeriod * 3600, now);
+      },
+    });
+  })();
+  </script>
+</polymer-element>

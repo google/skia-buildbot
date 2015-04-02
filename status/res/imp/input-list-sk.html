@@ -1,0 +1,78 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <input-list-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/input-list-sk.html" rel="import" />
+
+  Usage:
+
+    <input-list-sk></input-list-sk>
+
+  Properties:
+    values: array of strings; the values of the inputs.
+-->
+<polymer-element name="input-list-sk">
+  <template>
+    <style>
+    #container {
+      margin: 5px;
+      padding: 10px;
+      border: 1px solid #eeeeee;
+      font-size: 12px;
+    }
+    h2 {
+      font-size: 16px;
+    }
+    core-icon-button /deep/ core-icon[role=img] {
+      width: 14px;
+      height: 14px;
+    }
+    .filter {
+      font-style: italic;
+    }
+    </style>
+    <div id="container" vertical layout>
+      <h2>{{heading}}</h2>
+      <template repeat="{{value, i in values}}">
+        <div horizontal layout center>
+          <span class="filter" flex>{{value}}</span>
+          <core-icon-button icon="close" index="{{i}}" on-click="{{deleteValue}}"></core-icon-button>
+        </div>
+      </template>
+      <paper-input id="new" label="Enter a pattern" on-change="{{addValue}}"></paper-input>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        heading: {
+          value: null,
+          reflect: true,
+        },
+        values: {
+          value: [],
+          reflect: true,
+        },
+      },
+
+      addValue: function() {
+        if (this.$.new.value && this.$.new.value != "") {
+          this.values.push(this.$.new.value);
+        }
+        this.$.new.value = "";
+        this.fire("change");
+      },
+
+      deleteValue: function(e, detail, sender) {
+        this.values.splice(sender.getAttribute("index"), 1);
+        this.fire("change");
+      },
+    });
+  </script>
+</polymer-element>

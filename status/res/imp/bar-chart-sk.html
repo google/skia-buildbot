@@ -20,13 +20,13 @@
   Properties:
     heading: string; title of the chart.
     colors: array of strings; colors to use in the chart.
+    columns: array of arrays indicating the types and names of the columns, eg:
+        [["string", "seriesName"], ["number", "dataPoint"]].
+    data: array of arrays containing data for each column, eg:
+        [["series1", 42], ["series2", 7]].
 
   Methods:
-    draw: render the chart using the given columns and data. The 'columns'
-        parameter is an array of arrays indicating the types and names of the
-        columns, eg: [["string", "seriesName"], ["number", "dataPoint"]].
-        The 'data' parameter is an array of arrays containing data for each
-        column, eg: [["series1", 42], ["series2", 7]].
+    draw: render the chart.
 -->
 <polymer-element name="bar-chart-sk">
   <template>
@@ -35,6 +35,10 @@
       border: 1px solid #eeeeee;
       margin: 5px;
       padding: 10px;
+      font-size: 12px;
+    }
+    h2 {
+      font-size: 16px;
     }
     .collapseHeader {
       cursor: pointer;
@@ -43,17 +47,23 @@
       padding: 10px;
     }
     </style>
-    <div class="chart">
-      <div class="collapseHeader" on-click="{{toggle}}">
-        {{heading}}
+    <div class="chart" id="host">
+      <div class="collapseHeader" on-click="{{toggle}}" horizontal layout center>
+        <h2 flex>{{heading}}</h2>
+        <core-icon icon="{{icon}}"></core-icon>
       </div>
-      <core-collapse id="collapse">
+      <core-collapse id="collapse" on-core-collapse-open="{{collapseOpen}}">
         <div class="collapseBody" id="chartcontainer"></div>
       </core-collapse>
     </div>
 
   </template>
   <script>
+  (function() {
+    var chartsReady = new Promise(function(resolve, reject) {
+      google.setOnLoadCallback(resolve);
+    });
+
     Polymer({
       publish: {
         heading: {
@@ -64,43 +74,90 @@
           value: [],
           reflect: false,
         },
+        columns: {
+          value: null,
+          reflect: false,
+        },
+        data: {
+          value: null,
+          reflect: false,
+        },
+      },
+
+      created: function() {
+        this.icon = "arrow-drop-down";
+      },
+
+      ready: function() {
+        var that = this;
+        window.addEventListener("resize", function() {
+          that.draw();
+        });
       },
 
       toggle: function() {
         this.$.collapse.toggle();
       },
 
-      draw: function(columns, data) {
-        var table = new google.visualization.DataTable();
-        for (var i = 0; i < columns.length; i++) {
-          table.addColumn(columns[i][0], columns[i][1]);
-        }
-        table.addRows(data);
+      colorsChanged: function() {
+        this.draw();
+      },
 
-        var headerHeight = 0;
-        var chartWidth = 400;
-        var chartHeight = 15 * data.length;
-        var labelWidth = 410;
-        var options = {
-          "chartArea": {
-            "top": headerHeight,
-            "left": labelWidth,
-            "width": chartWidth,
-            "height": chartHeight,
-          },
-          "legend": { "position": "none" },
-          "width": labelWidth + chartWidth,
-          "height": headerHeight + chartHeight,
-          "fontSize": 12,
-          "titleTextStyle": { "fontSize": 18 },
-        };
-        if (this.colors) {
-          options["colors"] = this.colors;
-        }
+      columnsChanged: function() {
+        this.draw();
+      },
 
-        var chart = new google.visualization.BarChart(this.$.chartcontainer);
-        chart.draw(table, options);
+      dataChanged: function() {
+        this.draw();
+      },
+
+      collapseOpen: function() {
+        if (this.$.collapse.opened) {
+          this.icon = "arrow-drop-up";
+        } else {
+          this.icon = "arrow-drop-down";
+        }
+      },
+
+      draw: function() {
+        if (!this.columns || !this.data) {
+          return;
+        }
+        var that = this;
+        chartsReady.then(function() {
+          var table = new google.visualization.DataTable();
+          for (var i = 0; i < that.columns.length; i++) {
+            table.addColumn(that.columns[i][0], that.columns[i][1]);
+          }
+          table.addRows(that.data);
+
+          var totalWidth = that.$.host.offsetWidth;
+          var headerHeight = 0;
+          var labelWidth = 410;
+          var chartWidth = totalWidth - labelWidth;
+          var chartHeight = 15 * that.data.length;
+          var options = {
+            "chartArea": {
+              "top": headerHeight,
+              "left": labelWidth,
+              "width": chartWidth,
+              "height": chartHeight,
+            },
+            "legend": { "position": "none" },
+            "width": totalWidth,
+            "height": headerHeight + chartHeight,
+            "fontSize": 12,
+            "titleTextStyle": { "fontSize": 18 },
+          };
+          if (that.colors) {
+            options["colors"] = that.colors;
+          }
+
+          var chart = new google.visualization.BarChart(that.$.chartcontainer);
+          chart.draw(table, options);
+        });
       },
     });
+  })();
   </script>
 </polymer-element>
