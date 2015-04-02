@@ -62,7 +62,7 @@ func New(storages *storage.Storage) (*Tallies, error) {
 			t.testTally = test
 			t.mutex.Unlock()
 			for _, cb := range t.callbacks {
-				cb()
+				go cb()
 			}
 		}
 	}()
