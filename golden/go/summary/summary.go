@@ -155,7 +155,6 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}
-	glog.Infof("%#v", e)
 
 	// Filter the traces, then sort and sum.
 	filtered := []SortableTrace{}
