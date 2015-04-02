@@ -99,7 +99,14 @@ def GoImports():
 
 
 def GoErrCheck():
-  return RunGoTest(['errcheck', 'go.skia.org/infra/...'], '.')
+  cmd = ['errcheck', 'go.skia.org/infra/...']
+  try:
+    return RunGoTest(cmd, '.')
+  except OSError:
+    return [GO_TEST_FAILED % (
+        ' '.join(cmd), '.',
+        ('errcheck failed to run! Is it installed? You may need to run:\n'
+         'go get github.com/kisielk/errcheck'))]
 
 
 if __name__ == '__main__':
