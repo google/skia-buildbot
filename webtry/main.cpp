@@ -19,8 +19,6 @@
 #include "SkStream.h"
 #include "SkSurface.h"
 
-#include "seccomp_bpf.h"
-
 __SK_FORCE_IMAGE_DECODER_LINKING;
 
 DEFINE_string(source, "", "Filename of the source image.");
@@ -32,75 +30,6 @@ DEFINE_bool(pdf, false, "Use PDF rendering.");
 
 // Defined in template.cpp.
 extern SkBitmap source;
-
-static bool install_syscall_filter() {
-
-#ifndef SK_UNSAFE_BUILD_DESKTOP_ONLY
-    struct sock_filter filter[] = {
-        /* Grab the system call number. */
-        EXAMINE_SYSCALL,
-        /* List allowed syscalls. */
-        ALLOW_SYSCALL(exit_group),
-        ALLOW_SYSCALL(exit),
-        ALLOW_SYSCALL(fstat),
-        ALLOW_SYSCALL(read),
-        ALLOW_SYSCALL(write),
-        ALLOW_SYSCALL(close),
-        ALLOW_SYSCALL(mmap),
-        ALLOW_SYSCALL(munmap),
-        ALLOW_SYSCALL(brk),
-        ALLOW_SYSCALL(futex),
-        ALLOW_SYSCALL(lseek),
-        KILL_PROCESS,
-    };
-    struct sock_fprog prog = {
-        SK_ARRAY_COUNT(filter),
-        filter,
-    };
-
-    // Lock down the app so that it can't get new privs, such as setuid.
-    // Calling this is a requirement for an unprivileged process to use mode
-    // 2 seccomp filters, ala SECCOMP_MODE_FILTER, otherwise we'd have to be
-    // root.
-    if (prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0)) {
-        perror("prctl(NO_NEW_PRIVS)");
-        goto failed;
-    }
-    // Now call seccomp and restrict the system calls that can be made to only
-    // the ones in the provided filter list.
-    if (prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, &prog)) {
-        perror("prctl(SECCOMP)");
-        goto failed;
-    }
-    return true;
-
-failed:
-    if (errno == EINVAL) {
-        fprintf(stderr, "SECCOMP_FILTER is not available. :(\n");
-    }
-    return false;
-#else
-    return true;
-#endif /* SK_UNSAFE_BUILD_DESKTOP_ONLY */
-}
-
-static void setLimits() {
-    struct rlimit n;
-
-    // Limit to 5 seconds of CPU.
-    n.rlim_cur = 5;
-    n.rlim_max = 5;
-    if (setrlimit(RLIMIT_CPU, &n)) {
-        perror("setrlimit(RLIMIT_CPU)");
-    }
-
-    // Limit to 150M of Address space.
-    n.rlim_cur = 150000000;
-    n.rlim_max = 150000000;
-    if (setrlimit(RLIMIT_AS, &n)) {
-        perror("setrlimit(RLIMIT_CPU)");
-    }
-}
 
 extern void draw(SkCanvas* canvas);
 
@@ -198,18 +127,6 @@ int main(int argc, char** argv) {
         GrContext::Options grContextOpts;
         grFactory = new GrContextFactory(grContextOpts);
         gr = grFactory->get(GrContextFactory::kMESA_GLContextType);
-    }
-
-    // RefDefault will cause the custom font manager to scan the system for fonts
-    // and cache an SkStream for each one; that way we don't have to open font files
-    // after we've set up the chroot jail.
-
-    SkAutoTUnref<SkFontMgr> unusedFM(SkFontMgr::RefDefault());
-
-    setLimits();
-
-    if (!install_syscall_filter()) {
-        return 1;
     }
 
     printf( "{\n" );
