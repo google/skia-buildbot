@@ -114,6 +114,11 @@ if __name__ == '__main__':
   short = False
   if '--short' in sys.argv:
     short = True
+
+  verbose = False
+  if '--verbose' in sys.argv or '-v' in sys.argv:
+    verbose = True
+
   tests_to_run = []
 
   for (dirpath, dirnames, filenames) in os.walk(BUILDBOT_PATH, topdown=True):
@@ -132,6 +137,8 @@ if __name__ == '__main__':
   print 'Found %d tests.' % num_tests
   errors = []
   for test in tests_to_run:
+    if verbose:
+      print 'Running test: %s' % test
     proc = subprocess.Popen(['python', test], stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
     if proc.wait() != 0:
@@ -139,8 +146,12 @@ if __name__ == '__main__':
 
   for go_dir in GO_DIRS:
     for test in go_tests_cwd:
+      if verbose:
+        print 'Running test: %s in %s' % (test.__name__, go_dir)
       errors.extend(test(go_dir, short=short))
   for go_test in go_tests:
+    if verbose:
+      print 'Running test: %s' % go_test.__name__
     errors.extend(go_test())
 
   if errors:
