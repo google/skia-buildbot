@@ -12,7 +12,7 @@ var cachedGitHashes = map[string]string{}
 // PreIngestionHook. The returned function accepts a DMResults instance
 // and looks up the corresponding git hash from the androidbuildinternal
 // service.
-func getAndroidGoldPreIngestHook(gitHashLookup *androidbuild.GitHashLookup) PreIngestionHook {
+func getAndroidGoldPreIngestHook(gitHashInfo androidbuild.Info) PreIngestionHook {
 	return func(dmResults *DMResults) error {
 		branch := dmResults.Key["branch"]
 		target := dmResults.Key["build_flavor"]
@@ -36,7 +36,7 @@ func getAndroidGoldPreIngestHook(gitHashLookup *androidbuild.GitHashLookup) PreI
 		key := branch + ":" + target + ":" + buildID
 		if gitHash, ok = cachedGitHashes[key]; !ok {
 			// Look up the git hash.
-			commit, err := gitHashLookup.FindCommit(branch, target, buildID, false)
+			commit, err := gitHashInfo.Get(branch, target, buildID)
 			if err != nil {
 				return err
 			}

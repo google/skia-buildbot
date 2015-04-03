@@ -2,12 +2,13 @@ package main
 
 // android_hashlookup is a test tool to verify in different environments
 // (locally and on GCE) that looking up skia githashes via the android
-// build servers works.
+// build API works.
 
 import (
 	"flag"
 	"net/http"
 	"os"
+	"time"
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/skia-dev/glog"
@@ -50,7 +51,12 @@ func main() {
 	var client *http.Client
 	var err error
 
-	transport := util.NewBackOffTransport()
+	// In this case we don't want a backoff transport since the Apiary backend
+	// seems to fail a lot, so we basically want to fall back to polling if a
+	// call fails.
+	transport := &http.Transport{
+		Dial: util.DialTimeout,
+	}
 
 	if *local {
 		// Use a local client secret file to load data.
@@ -66,40 +72,21 @@ func main() {
 		client = auth.GCEServiceAccountClient(transport)
 	}
 
-	// Make sure storage access works.
-	glog.Info("Starting simple storage test.")
-	service, err := storage.New(client)
+	f, err := androidbuild.New("/tmp/android-gold-ingest", client)
 	if err != nil {
-		glog.Fatalf("Storage error: %s", err)
+		glog.Fatalf("Failed to construct client: %s", err)
 	}
-
-	buckets, err := service.Buckets.List("google.com:skia-buildbots").Do()
-	if err != nil {
-		glog.Fatalf("Storage error: %s", err)
-	}
-
-	for _, item := range buckets.Items {
-		glog.Infof("Bucket: %v", item)
-	}
-
-	glog.Info("Storage test successful.")
-
-	// Make sure we can look up a git hash from android builds.
-	glog.Info("Starting githash lookup.")
-
-	lookup, err := androidbuild.New(client)
-	if err != nil {
-		glog.Fatalf("Unable to create lookup client: %s", err)
-	}
-
-	// Do the lookup a few times, so we can see if subsequent calls are faster.
-	for i := 0; i < 3; i++ {
-		commit, err := lookup.FindCommit(branch, target, buildID, true)
+	for {
+		r, err := f.Get(branch, target, buildID)
 		if err != nil {
-			glog.Fatalf("Unable to find commit: %s", err)
+			glog.Errorf("Failed to get requested info: %s", err)
+			time.Sleep(1 * time.Minute)
+			continue
 		}
-		glog.Infof("Commit:  %v", commit)
-	}
+		if r != nil {
+			glog.Infof("Successfully found: %#v", *r)
+		}
 
-	glog.Info("Successfully tested oauth and githash lookup.")
+		time.Sleep(1 * time.Minute)
+	}
 }

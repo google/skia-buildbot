@@ -7,6 +7,7 @@ package main
 import (
 	"flag"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
@@ -137,8 +138,10 @@ func main() {
 
 	// Initialize the ingester and gold ingester.
 	ingester.Init(client)
-	if err := goldingester.Init(client); err != nil {
-		glog.Fatalf("Unable to initialize GoldIngester: %s", err)
+	if _, ok := config.Ingesters["gold"]; ok {
+		if err := goldingester.Init(client, filepath.Join(config.Ingesters["gold"].StatusDir, "android-build-info")); err != nil {
+			glog.Fatalf("Unable to initialize GoldIngester: %s", err)
+		}
 	}
 
 	git, err := gitinfo.NewGitInfo(config.Common.GitRepoDir, true, false)

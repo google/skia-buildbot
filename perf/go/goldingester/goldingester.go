@@ -17,14 +17,14 @@ import (
 )
 
 // Init registers the GoldIngester and the Android specific GoldIngester.
-func Init(client *http.Client) error {
-	gitHashLookup, err := androidbuild.New(client)
+func Init(client *http.Client, dir string) error {
+	gitHashInfo, err := androidbuild.New(dir, client)
 	if err != nil {
 		return err
 	}
 
 	// Generate the pre-ingestion hook and register the ingester.
-	preIngestHook := getAndroidGoldPreIngestHook(gitHashLookup)
+	preIngestHook := getAndroidGoldPreIngestHook(gitHashInfo)
 	ingester.Register(config.CONSTRUCTOR_ANDROID_GOLD, func() ingester.ResultIngester { return NewGoldIngester(preIngestHook) })
 	ingester.Register(config.CONSTRUCTOR_GOLD, func() ingester.ResultIngester { return NewGoldIngester(nil) })
 	return nil

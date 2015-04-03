@@ -18,6 +18,8 @@ services/bugdroid/bugdroid_log.txt
 # Eclipse project files
 .project
 .pydevproject
+client_secret.json
+oauth-token.cache
 bug_chomper/oauth_client_secret.json
 # Generated Go files.
 go/skiaversion/gen_version.go
