@@ -18,15 +18,10 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	r2 := NewIgnoreRule("jim@example.com", time.Now().Add(time.Minute*10), "config=8888", "No good reason.")
 	r3 := NewIgnoreRule("jon@example.com", time.Now().Add(time.Minute*50), "extra=123&extra=abc", "Ignore multiple.")
 	r4 := NewIgnoreRule("jon@example.com", time.Now().Add(time.Minute*100), "extra=123&extra=abc&config=8888", "Ignore multiple.")
-	r5 := NewIgnoreRule("jon@example.com", time.Now().Add(time.Millisecond*5), "extra=123&extra=abc&config=8888", "Ignore multiple.")
 	assert.Nil(t, store.Create(r1))
 	assert.Nil(t, store.Create(r2))
 	assert.Nil(t, store.Create(r3))
 	assert.Nil(t, store.Create(r4))
-	assert.Nil(t, store.Create(r5))
-
-	// Wait long enough for r5 to expire
-	time.Sleep(time.Millisecond * 10)
 
 	allRules, err := store.List()
 	assert.Nil(t, err)

@@ -221,12 +221,15 @@ this.sk = this.sk || function() {
   /**
    * Returns the difference between the current time and 's' as a string in a
    * human friendly format.
+   * If 's' is a number it is assumed to contain the time in milliseconds
+   * otherwise it is assumed to contain a time string.
    *
    * For example, a difference of 123 seconds between 's' and the current time
    * would return "2m".
    */
   sk.human.diffDate = function(s) {
-    var diff = (Date.parse(s) - Date.now())/1000;
+    var ms = (s instanceof Number) ? s : Date.parse(s);
+    var diff = (ms - Date.now())/1000;
     if (diff < 0) {
       diff = -1.0 * diff;
     }

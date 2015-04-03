@@ -89,7 +89,10 @@ Displays a summary of an ignore rule.
           }
         },
 
-        humanDiffDate: sk.human.diffDate,
+        humanDiffDate: function(s) {
+          var ms = Date.parse(s);
+          return (ms < Date.now()) ? "Expired" : sk.human.diffDate(s);
+        },
 
         encoded: function(s) {
           return encodeURIComponent(s);
