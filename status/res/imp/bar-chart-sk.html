@@ -19,11 +19,15 @@
 
   Properties:
     heading: string; title of the chart.
+    caption: string; caption or subtitle of the chart.
     colors: array of strings; colors to use in the chart.
     columns: array of arrays indicating the types and names of the columns, eg:
         [["string", "seriesName"], ["number", "dataPoint"]].
     data: array of arrays containing data for each column, eg:
         [["series1", 42], ["series2", 7]].
+    selectedCallback: function to call when an item on the chart is selected.
+    tooltipFormatter: function which accepts a series name and value and
+        returns a string to be used as a tooltip for the value.
 
   Methods:
     draw: render the chart.
@@ -40,6 +44,10 @@
     h2 {
       font-size: 16px;
     }
+    h3 {
+      font-weight: normal;
+      font-size: 1.1em;
+    }
     .collapseHeader {
       cursor: pointer;
     }
@@ -53,6 +61,9 @@
         <core-icon icon="{{icon}}"></core-icon>
       </div>
       <core-collapse id="collapse" on-core-collapse-open="{{collapseOpen}}">
+        <template if="{{caption}}">
+          <h3>{{caption}}</h3>
+        </template>
         <div class="collapseBody" id="chartcontainer"></div>
       </core-collapse>
     </div>
@@ -70,6 +81,10 @@
           value: null,
           reflect: true,
         },
+        caption: {
+          value: null,
+          reflect: true,
+        },
         colors: {
           value: [],
           reflect: false,
@@ -79,6 +94,10 @@
           reflect: false,
         },
         data: {
+          value: null,
+          reflect: false,
+        },
+        selectedCallback: {
           value: null,
           reflect: false,
         },
@@ -131,9 +150,11 @@
       },
 
       draw: function() {
-        if (!this.columns || !this.data) {
+        if (!this.columns || !this.data || this.data.length == 0) {
+          this.$.chartcontainer.innerHTML = "No data.";
           return;
         }
+
         var that = this;
         chartsReady.then(function() {
           var table = new google.visualization.DataTable();
@@ -161,6 +182,9 @@
               "width": chartWidth,
               "height": chartHeight,
             },
+            "hAxis": {
+              "baseline": 0,
+            },
             "legend": { "position": "none" },
             "width": totalWidth,
             "height": headerHeight + chartHeight,
@@ -173,6 +197,11 @@
 
           var chart = new google.visualization.BarChart(that.$.chartcontainer);
           chart.draw(table, options);
+          google.visualization.events.addListener(chart, "select", function(e) {
+            if (!!that.selectedCallback) {
+              that.selectedCallback(that.data[chart.getSelection()[0].row][0]);
+            }
+          });
         });
       },
     });

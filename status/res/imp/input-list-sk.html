@@ -16,6 +16,10 @@
 
   Properties:
     values: array of strings; the values of the inputs.
+
+  Methods:
+    addValue: Add the given value to the list.
+    deleteValue: Remove the given value from the list.
 -->
 <polymer-element name="input-list-sk">
   <template>
@@ -39,13 +43,13 @@
     </style>
     <div id="container" vertical layout>
       <h2>{{heading}}</h2>
-      <template repeat="{{value, i in values}}">
+      <template repeat="{{value in values}}">
         <div horizontal layout center>
           <span class="filter" flex>{{value}}</span>
-          <core-icon-button icon="close" index="{{i}}" on-click="{{deleteValue}}"></core-icon-button>
+          <core-icon-button icon="close" value="{{value}}" on-click="{{valueDeleted}}"></core-icon-button>
         </div>
       </template>
-      <paper-input id="new" label="Enter a pattern" on-change="{{addValue}}"></paper-input>
+      <paper-input id="new" label="Enter a pattern" on-change="{{newValueEntered}}"></paper-input>
     </div>
   </template>
   <script>
@@ -61,17 +65,29 @@
         },
       },
 
-      addValue: function() {
-        if (this.$.new.value && this.$.new.value != "") {
-          this.values.push(this.$.new.value);
+      addValue: function(value) {
+        if (!!value && value != "" && this.values.indexOf(value) == -1) {
+          this.values.push(value);
+          this.fire("change");
         }
-        this.$.new.value = "";
-        this.fire("change");
       },
 
-      deleteValue: function(e, detail, sender) {
-        this.values.splice(sender.getAttribute("index"), 1);
-        this.fire("change");
+      deleteValue: function(value) {
+        var idx = this.values.indexOf(value);
+        if (idx >= 0) {
+          this.values.splice(idx, 1);
+          this.fire("change");
+        }
+      },
+
+      newValueEntered: function() {
+        var v = this.$.new.value;
+        this.$.new.value = "";
+        this.addValue(v);
+      },
+
+      valueDeleted: function(e, detail, sender) {
+        this.deleteValue(sender.getAttribute("value"));
       },
     });
   </script>

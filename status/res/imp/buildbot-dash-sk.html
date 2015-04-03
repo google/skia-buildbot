@@ -228,13 +228,20 @@
           return col + "\n" + (Math.round(failRate*100)/100);
         };
 
+        var that = this;
+        var builderSelectedCallback = function(selectedRow) {
+          that.$.include_builders.addValue("^" + selectedRow + "$");
+        };
+
         // Build times.
+        this.$.build_times_chart.caption = "Select a builder to add it as a filter.";
         this.$.build_times_chart.colors = this.colors;
         this.$.build_times_chart.columns = [
             ["string", "Builder"],
             ["number", "Time (s)"],
         ];
         this.$.build_times_chart.tooltipFormatter = timeFormatter;
+        this.$.build_times_chart.selectedCallback = builderSelectedCallback;
         this.$.build_times_chart.data = this.generateStats(this.buildTimes, mean);
 
         // Step times.
@@ -247,12 +254,14 @@
         this.$.step_times_chart.data = this.generateStats(this.stepTimes, mean);
 
         // Build failure rate.
+        this.$.build_failure_rate_chart.caption = "Select a builder to add it as a filter.";
         this.$.build_failure_rate_chart.colors = this.colors;
         this.$.build_failure_rate_chart.columns = [
             ["string", "Builder"],
             ["number", "Failure Rate"],
         ];
         this.$.build_failure_rate_chart.tooltipFormatter = failRateFormatter;
+        this.$.build_failure_rate_chart.selectedCallback = builderSelectedCallback;
         this.$.build_failure_rate_chart.data = this.generateStats(this.buildResults, mean);
 
         // Step failure rate.
