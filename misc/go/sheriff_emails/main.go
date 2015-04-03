@@ -17,7 +17,7 @@ import (
 const (
 	NEXT_SHERIFF_JSON_URL = "http://skia-tree-status.appspot.com/next-sheriff"
 
-	EXTRA_RECIPIENT = "skiabot@google.com"
+	EXTRA_RECIPIENT = "rmistry@google.com"
 
 	EMAIL_TEMPLATE = `
 Hi %s,
