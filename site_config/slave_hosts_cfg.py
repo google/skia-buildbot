@@ -852,6 +852,20 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
+  'build5-m3': {
+    'slaves': [
+      ('build5-m3', '0', False),
+    ],
+    'copies': None,
+    'login_cmd': None,
+    'ip': NO_IP_ADDR,
+    'kvm_num': NO_KVM_NUM,
+    'path_module': posixpath,
+    'path_to_buildbot': None,
+    'remote_access': False,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
   'build32-a3': {
     'slaves': [
       ('build32-a3', '0', False),
