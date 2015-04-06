@@ -998,6 +998,29 @@ func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// polyAllHashesHandler returns the list of all hashes we currently know about regardless of triage status.
+//
+// Endpoint used by the Android buildbots to avoid transferring already known images.
+func polyAllHashesHandler(w http.ResponseWriter, r *http.Request) {
+	byTest := tallies.ByTest()
+	hashes := map[string]bool{}
+	for _, test := range byTest {
+		for k, _ := range *test {
+			hashes[k] = true
+		}
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	for k, _ := range hashes {
+		if _, err := w.Write([]byte(k)); err != nil {
+			util.ReportError(w, r, err, "Failed to write result.")
+		}
+		if _, err := w.Write([]byte("\n")); err != nil {
+			util.ReportError(w, r, err, "Failed to write result.")
+		}
+	}
+}
+
 // makeResourceHandler creates a static file handler that sets a caching policy.
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))

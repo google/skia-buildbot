@@ -432,6 +432,8 @@ func main() {
 	router.HandleFunc("/2/triagelog", polyTriageLogView).Methods("GET")
 	router.HandleFunc("/2/_/triagelog", polyTriageLogHandler).Methods("GET")
 
+	router.HandleFunc("/2/_/hashes", polyAllHashesHandler).Methods("GET")
+
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))
 
