@@ -841,6 +841,7 @@ type PolyDetailsGUI struct {
 	LeftStatus string             `json:"leftStatus"`
 	Params     []*PerParamCompare `json:"params"`
 	Traces     []*Trace           `json:"traces"`
+	Commits    []*ptypes.Commit   `json:"commits"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -941,6 +942,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	// Now build the trace data.
 	if r.Form.Get("graphs") == "true" {
 		ret.Traces = buildTraceData(top, traceNames, tile, tally)
+		ret.Commits = tile.Commits
 	}
 
 	w.Header().Set("Content-Type", "application/json")

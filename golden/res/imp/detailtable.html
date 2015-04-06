@@ -32,6 +32,11 @@ attribute is false.
         stroke: #44aa99;
       }
 
+      #commits {
+          padding: 1em;
+          padding-left: 3em;
+      }
+
       svg {
         box-shadow: 5px 5px 10px 2px rgba(133,133,133,1);
       }
@@ -130,28 +135,36 @@ attribute is false.
         <tr>
           <th>Per Trace</th>
           <td class=perTrace>
-            <div vertical layout>
-              <paper-input disabled value="" label="Highlighted Trace ID" id="tracename"></paper-input>
-              <svg
-                id=svg
-                width="520"
-                height="{{(details.traces.length+2)*10}}"
-                viewBox="-1 -1 51 {{details.traces.length+1}}">
+            <div horizontal layout>
+              <div vertical layout>
+                <paper-input disabled value="" label="Highlighted Trace ID" id="tracename"></paper-input>
+                <svg
+                  id=svg
+                  width="520"
+                  height="{{(details.traces.length+2)*10}}"
+                  viewBox="-1 -1 51 {{details.traces.length+1}}">
 
-                <template repeat="{{trace in details.traces}}">
-                  <g data-id="{{trace.label}}" stroke="#999" fill="#999" stroke-width="0.2">
-                    <line
-                    x1="{{trace.data[0].x}}"
-                    y1="{{trace.data[0].y}}"
-                    x2="{{trace.data[trace.data.length-1].x}}"
-                    y2="{{trace.data[0].y}}"/>
-                    <template repeat="{{pt in trace.data}}">
-                      <circle cx="{{pt.x}}" cy="{{pt.y}}" r="0.3"
-                      class="{{pt.s ? 'match' : ''}}"/>
-                    </template>
-                  </g>
+                  <template repeat="{{trace in details.traces}}">
+                    <g data-id="{{trace.label}}" stroke="#999" fill="#999" stroke-width="0.2">
+                      <line
+                      x1="{{trace.data[0].x}}"
+                      y1="{{trace.data[0].y}}"
+                      x2="{{trace.data[trace.data.length-1].x}}"
+                      y2="{{trace.data[0].y}}"/>
+                      <template repeat="{{pt in trace.data}}">
+                        <circle cx="{{pt.x}}" cy="{{pt.y}}" r="0.3"
+                        class="{{pt.s ? 'match' : ''}}"/>
+                      </template>
+                    </g>
+                  </template>
+                </svg>
+              </div>
+              <div id=commits>
+                <template if="{{committer}}">
+                  <h3>Commits</h3>
+                  <span>{{committer}} <a href="https://skia.googlesource.com/skia/+/{{commithash}}">{{commithash}}</a></span>
                 </template>
-              </svg>
+              </div>
             </div>
           </td>
           <td class=both></td>
@@ -201,6 +214,10 @@ attribute is false.
           leftStatus: "untriaged",
         };
 
+        // Information about a commit. Displayed when a dot in the graph is clicked.
+        this.committer = "";
+        this.commithash = "";
+
         this.getInProgress = false;
 
         var that = this;
@@ -235,7 +252,10 @@ attribute is false.
 
           this.$.svg.addEventListener('click', function(e) {
             if (e.target.nodeName == "circle") {
-              // TODO(jcgregorio) Bring up commit info on click.
+              // The dots 'cx' value is actually the offset into the list of commits.
+              var commit = that.details.commits[e.target.cx.baseVal.value];
+              that.committer = commit.author;
+              that.commithash = commit.hash;
             }
           });
         }
