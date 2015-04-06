@@ -85,6 +85,11 @@ func (m MockDiffStore) CalculateDiffs([]string)                        {}
     bar -                  neg(fff):1   unt(ggg):1
     quux -                              unt(jjj):1
 
+  config=565&config=8888 head=true
+    foo -                  neg(bbb):1
+    bar -                               unt(ggg):1
+    quux -                              unt(jjj):1
+
   config=gpu
     foo - pos(eee):1
 
@@ -178,7 +183,7 @@ func TestCalcSummaries(t *testing.T) {
 	summaries, err := New(storages, ta)
 	assert.Nil(t, err)
 
-	sum, err := summaries.CalcSummaries(nil, "source_type=gm", false)
+	sum, err := summaries.CalcSummaries(nil, "source_type=gm", false, false)
 	if err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
@@ -186,26 +191,26 @@ func TestCalcSummaries(t *testing.T) {
 	triageCountsCorrect(t, sum, "foo", 2, 1, 0)
 	triageCountsCorrect(t, sum, "bar", 0, 1, 1)
 
-	if sum, err = summaries.CalcSummaries(nil, "source_type=gm", true); err != nil {
+	if sum, err = summaries.CalcSummaries(nil, "source_type=gm", true, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 2, len(sum))
 	triageCountsCorrect(t, sum, "foo", 2, 1, 2)
 	triageCountsCorrect(t, sum, "bar", 0, 1, 1)
 
-	if sum, err = summaries.CalcSummaries([]string{"foo"}, "source_type=gm", true); err != nil {
+	if sum, err = summaries.CalcSummaries([]string{"foo"}, "source_type=gm", true, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))
 	triageCountsCorrect(t, sum, "foo", 2, 1, 2)
 
-	if sum, err = summaries.CalcSummaries([]string{"foo"}, "", false); err != nil {
+	if sum, err = summaries.CalcSummaries([]string{"foo"}, "", false, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))
 	triageCountsCorrect(t, sum, "foo", 2, 1, 0)
 
-	if sum, err = summaries.CalcSummaries(nil, "config=8888&config=565", false); err != nil {
+	if sum, err = summaries.CalcSummaries(nil, "config=8888&config=565", false, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 3, len(sum))
@@ -213,13 +218,21 @@ func TestCalcSummaries(t *testing.T) {
 	triageCountsCorrect(t, sum, "bar", 0, 1, 1)
 	triageCountsCorrect(t, sum, "quux", 0, 0, 1)
 
-	if sum, err = summaries.CalcSummaries(nil, "config=gpu", false); err != nil {
+	if sum, err = summaries.CalcSummaries(nil, "config=8888&config=565", false, true); err != nil {
+		t.Fatalf("Failed to calc: %s", err)
+	}
+	assert.Equal(t, 3, len(sum))
+	triageCountsCorrect(t, sum, "foo", 0, 1, 0)
+	triageCountsCorrect(t, sum, "bar", 0, 0, 1)
+	triageCountsCorrect(t, sum, "quux", 0, 0, 1)
+
+	if sum, err = summaries.CalcSummaries(nil, "config=gpu", false, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))
 	triageCountsCorrect(t, sum, "foo", 1, 0, 0)
 
-	if sum, err = summaries.CalcSummaries(nil, "config=unknown", false); err != nil {
+	if sum, err = summaries.CalcSummaries(nil, "config=unknown", false, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 0, len(sum))

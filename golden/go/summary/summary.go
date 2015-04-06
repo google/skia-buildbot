@@ -47,7 +47,7 @@ func New(storages *storage.Storage, tallies *tally.Tallies) (*Summaries, error) 
 	}
 
 	var err error
-	s.summaries, err = s.CalcSummaries(nil, "", false)
+	s.summaries, err = s.CalcSummaries(nil, "", false, false)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to calculate summaries in New: %s", err)
 	}
@@ -55,7 +55,7 @@ func New(storages *storage.Storage, tallies *tally.Tallies) (*Summaries, error) 
 	// TODO(jcgregorio) Move to a channel for tallies and then combine
 	// this and the expStore handling into a single switch statement.
 	tallies.OnChange(func() {
-		summaries, err := s.CalcSummaries(nil, "", false)
+		summaries, err := s.CalcSummaries(nil, "", false, false)
 		if err != nil {
 			glog.Errorf("Failed to refresh summaries: %s", err)
 			return
@@ -70,7 +70,7 @@ func New(storages *storage.Storage, tallies *tally.Tallies) (*Summaries, error) 
 		for {
 			testNames := <-ch
 			glog.Info("Updating summaries after expectations change.")
-			partialSummaries, err := s.CalcSummaries(testNames, "", false)
+			partialSummaries, err := s.CalcSummaries(testNames, "", false, false)
 			if err != nil {
 				glog.Errorf("Failed to refresh summaries: %s", err)
 				continue
@@ -116,8 +116,9 @@ func (p SortableTraceSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 //   Boolean, if true then include all digests in the results, including ones normally hidden
 //   by the ignores list.
 //
-func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnores bool) (map[string]*Summary, error) {
+func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnores bool, head bool) (map[string]*Summary, error) {
 	defer timer.New("CalcSummaries").Stop()
+	glog.Infof("CalcSummaries: includeIgnores %v head %v", includeIgnores, head)
 
 	tile, err := s.storages.GetLastTileTrimmed()
 	if err != nil {
@@ -177,6 +178,7 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 	sort.Sort(SortableTraceSlice(filtered))
 	traceTally := s.tallies.ByTrace()
 
+	lastCommitIndex := tile.LastCommitIndex()
 	lastTest := ""
 	digests := map[string]bool{}
 	for _, st := range filtered {
@@ -188,11 +190,22 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 			}
 			lastTest = st.tr.Params()[gtypes.PRIMARY_KEY_FIELD]
 		}
-		if t, ok := traceTally[st.id]; !ok {
-			continue
+		if head {
+			for i := lastCommitIndex; i >= 0; i-- {
+				if st.tr.IsMissing(i) {
+					continue
+				} else {
+					digests[st.tr.(*types.GoldenTrace).Values[i]] = true
+					break
+				}
+			}
 		} else {
-			for k, _ := range *t {
-				digests[k] = true
+			if t, ok := traceTally[st.id]; !ok {
+				continue
+			} else {
+				for k, _ := range *t {
+					digests[k] = true
+				}
 			}
 		}
 	}
@@ -233,8 +246,11 @@ func makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffSto
 	}
 	sort.Strings(diamDigests)
 	return &Summary{
-		Name:      name,
-		Diameter:  diameter(diamDigests, diffStore),
+		Name: name,
+		// TODO(jcgregorio) Make diameter faster with better thumbnailing, and also make
+		// the actual diameter metric better. Until then disable it.
+		// Diameter:  diameter(diamDigests, diffStore),
+		Diameter:  0,
 		Pos:       pos,
 		Neg:       neg,
 		Untriaged: unt,

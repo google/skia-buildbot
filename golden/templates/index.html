@@ -22,6 +22,9 @@
       #search {
         display: block;
       }
+      .headToggle {
+        font-size: 20px;
+      }
     </style>
   </head>
   <body>
@@ -29,16 +32,19 @@
       {{template "titlebar.html" .}}
 
       <div vertical layout>
-        <div horizontal layout>
+        <div horizontal layout center>
           <paper-button id=search>
             <core-icon icon=search></core-icon>
           </paper-button>
+          <div class=headToggle>
+            Head <paper-toggle-button id=head checked></paper-toggle-button>
+          </div>
         </div>
         <query-dialog-sk id=query src="/2/_/paramset"></query-dialog-sk>
 
         <sort-sk target=summaries>
           <paper-button class=header data-key="name" data-alpha=true>Name</paper-button>
-          <paper-button class="header short" data-key="diameter">Diam</paper-button>
+         <!-- <paper-button class="header short" data-key="diameter">Diam</paper-button> -->
           <paper-button class="header short" data-key="pos">Pos</paper-button>
           <paper-button class="header short" data-key="neg">Neg</paper-button>
           <paper-button class="header short" data-key="untriaged">Un-Triaged</paper-button>
@@ -59,8 +65,9 @@
 
        // The current state of the page.
        page.state = {
-         query: "source_type=gm&source_type=skp",
+         query:   "source_type=gm&source_type=skp",
          include: false,
+         head:    true,
        }
 
        function displaySummaries(corpus) {
@@ -102,6 +109,11 @@
          $$$('#query').addEventListener('closed', function(e) {
            page.state.query = e.detail.query;
            page.state.include = e.detail.useIgnored;
+           loadList();
+         });
+
+         $$$('#head').addEventListener('change', function() {
+           page.state.head = $$$('#head').checked;
            loadList();
          });
        });

@@ -104,6 +104,7 @@ func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // Takes two query parameters:
 //  include - True if ignored digests should be included. (true, false)
 //  query   - A query to restrict the responses to, encoded as a URL encoded paramset.
+//  head    - True if only digest that appear at head should be included.
 //
 // The return format looks like:
 //
@@ -135,7 +136,7 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	_, hasSourceType := q["source_type"]
 	sumSlice := []*summary.Summary{}
-	if r.FormValue("include") == "false" && len(q) == 1 && hasSourceType {
+	if r.FormValue("include") == "false" && r.FormValue("head") == "false" && len(q) == 1 && hasSourceType {
 		sumMap := summaries.Get()
 		corpus := q["source_type"]
 		for _, s := range sumMap {
@@ -144,8 +145,8 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else {
-		glog.Infof("%q %q", r.FormValue("query"), r.FormValue("include"))
-		sumMap, err := summaries.CalcSummaries(nil, r.FormValue("query"), r.FormValue("include") == "true")
+		glog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
+		sumMap, err := summaries.CalcSummaries(nil, r.FormValue("query"), r.FormValue("include") == "true", r.FormValue("head") == "true")
 		if err != nil {
 			util.ReportError(w, r, err, "Failed to calculate summaries.")
 		}
