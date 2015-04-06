@@ -139,7 +139,7 @@ func TestBlamerWithLiveData(t *testing.T) {
 
 	err := testutils.DownloadTestDataFile(t, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 	assert.Nil(t, err, "Unable to download testdata.")
-	// defer testutils.RemoveAll(t, TEST_DATA_DIR)
+	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
 	tileStore := mocks.NewMockTileStoreFromJson(t, TEST_DATA_PATH)
 	testBlamerWithLiveData(t, tileStore)
