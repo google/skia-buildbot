@@ -21,7 +21,9 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/summary"
+	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
+	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 var (
@@ -819,12 +821,26 @@ type PerParamCompare struct {
 	Left []string `json:"left"` // All the parameter values that appear for the left digest.
 }
 
+// Point is a single point. Used in Plot.
+type Point struct {
+	X int  `json:"x"` // The commit index [0-49].
+	Y int  `json:"y"`
+	S bool `json:"s"` // True if the digest matches our search, false otherwise.
+}
+
+// Trace represents a single test over time.
+type Trace struct {
+	Data  []Point `json:"data"`  // One Point for each test result.
+	Label string  `json:"label"` // The id of the trace.
+}
+
 // PolyDetailsGUI is used in the JSON returned from polyDetailsHandler. It
 // represents the known information about a single digest for a given test.
 type PolyDetailsGUI struct {
 	TopStatus  string             `json:"topStatus"`
 	LeftStatus string             `json:"leftStatus"`
 	Params     []*PerParamCompare `json:"params"`
+	Traces     []*Trace           `json:"traces"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -834,6 +850,7 @@ type PolyDetailsGUI struct {
 //   test - The name of the test.
 //   top  - A digest in the test.
 //   left - A digest in the test.
+//   graphs - Boolean that's true if graph data should be returned.
 //
 // The response looks like:
 //   {
@@ -846,6 +863,14 @@ type PolyDetailsGUI struct {
 //         "left": ["gpu"],
 //       },
 //       ...
+//     ],
+//     traces: [
+//        {
+//          data: {x: 1, y: 1, s: true}, {x: 5, y: 1, s: true},
+//          label: "key1",
+//          _params: {"os: "Android", ...}
+//        },
+//        ...
 //     ]
 //   }
 func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -879,6 +904,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		TopStatus:  exp.Classification(test, top).String(),
 		LeftStatus: exp.Classification(test, left).String(),
 		Params:     []*PerParamCompare{},
+		Traces:     []*Trace{},
 	}
 
 	topParamSet := map[string][]string{}
@@ -886,6 +912,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Now build out the ParamSet for each digest.
 	tally := tallies.ByTrace()
+	traceNames := []string{}
 	for id, tr := range tile.Traces {
 		traceTally, ok := tally[id]
 		if !ok {
@@ -895,11 +922,10 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 			if _, ok := (*traceTally)[top]; ok {
 				topParamSet = util.AddParamsToParamSet(topParamSet, tr.Params())
 			}
-		}
-		if tr.Params()[types.PRIMARY_KEY_FIELD] == test {
 			if _, ok := (*traceTally)[left]; ok {
 				leftParamSet = util.AddParamsToParamSet(leftParamSet, tr.Params())
 			}
+			traceNames = append(traceNames, id)
 		}
 	}
 
@@ -912,12 +938,51 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 			Left: safeGet(leftParamSet, k),
 		})
 	}
+	// Now build the trace data.
+	if r.Form.Get("graphs") == "true" {
+		ret.Traces = buildTraceData(top, traceNames, tile, tally)
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ret); err != nil {
 		util.ReportError(w, r, err, "Failed to encode result")
 	}
+}
+
+// buildTraceData returns a populated []*Trace for all the traces that contain 'digest'.
+func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally tally.TraceTally) []*Trace {
+	sort.Strings(traceNames)
+	ret := []*Trace{}
+	last := tile.LastCommitIndex()
+	y := 0
+	for _, id := range traceNames {
+		traceTally, ok := tally[id]
+		if !ok {
+			continue
+		}
+		if count, ok := (*traceTally)[digest]; !ok || count == 0 {
+			continue
+		}
+		p := &Trace{
+			Data:  []Point{},
+			Label: id,
+		}
+		trace := tile.Traces[id].(*ptypes.GoldenTrace)
+		for i := 0; i <= last; i++ {
+			if trace.IsMissing(i) {
+				continue
+			}
+			p.Data = append(p.Data, Point{
+				X: i,
+				Y: y,
+				S: trace.Values[i] == digest,
+			})
+		}
+		ret = append(ret, p)
+		y += 1
+	}
+	return ret
 }
 
 func polyParamsHandler(w http.ResponseWriter, r *http.Request) {

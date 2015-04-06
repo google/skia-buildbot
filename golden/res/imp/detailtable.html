@@ -22,6 +22,24 @@ attribute is false.
 <polymer-element name="detail-table-sk" attributes="top left test bothcolumns">
   <template>
     <style type="text/css" media="screen">
+      .match {
+        fill: #000000;
+        stroke: #000000;
+      }
+
+      g:hover circle {
+        fill: #44aa99;
+        stroke: #44aa99;
+      }
+
+      svg {
+        box-shadow: 5px 5px 10px 2px rgba(133,133,133,1);
+      }
+
+      .perTrace {
+        width: 100%;
+      }
+
       th {
         text-align: right;
       }
@@ -37,7 +55,7 @@ attribute is false.
         display: block;
       }
 
-      #paramHeader {
+      .sectionHeader {
         padding-top: 2em;
         text-decoration: underline;
       }
@@ -90,7 +108,7 @@ attribute is false.
         <td class=both><a href="/2/detail?test={{test}}&digest={{top}}">{{top}}</a></td>
       </tr>
 
-      <tr><th colspan=2 id=paramHeader>Parameters</th></tr>
+      <tr><th colspan=2 class=sectionHeader>Parameters</th></tr>
       <template repeat="{{p in details.params}}">
         <tr>
           <th>{{p.name}}</th>
@@ -106,6 +124,40 @@ attribute is false.
           </td>
         </tr>
       </template>
+
+      <template if="{{!bothcolumns}}">
+        <tr><th colspan=2 class=sectionHeader>Graphs</th></tr>
+        <tr>
+          <th>Per Trace</th>
+          <td class=perTrace>
+            <div vertical layout>
+              <paper-input disabled value="" label="Highlighted Trace ID" id="tracename"></paper-input>
+              <svg
+                id=svg
+                width="520"
+                height="{{(details.traces.length+2)*10}}"
+                viewBox="-1 -1 51 {{details.traces.length+1}}">
+
+                <template repeat="{{trace in details.traces}}">
+                  <g data-id="{{trace.label}}" stroke="#999" fill="#999" stroke-width="0.2">
+                    <line
+                    x1="{{trace.data[0].x}}"
+                    y1="{{trace.data[0].y}}"
+                    x2="{{trace.data[trace.data.length-1].x}}"
+                    y2="{{trace.data[0].y}}"/>
+                    <template repeat="{{pt in trace.data}}">
+                      <circle cx="{{pt.x}}" cy="{{pt.y}}" r="0.3"
+                      class="{{pt.s ? 'match' : ''}}"/>
+                    </template>
+                  </g>
+                </template>
+              </svg>
+            </div>
+          </td>
+          <td class=both></td>
+        </tr>
+      </template>
+
     </table>
   </template>
   <script>
@@ -149,6 +201,8 @@ attribute is false.
           leftStatus: "untriaged",
         };
 
+        this.getInProgress = false;
+
         var that = this;
         this.$.topDetail.addEventListener('change', function(e) {
           e.stopPropagation();
@@ -168,16 +222,35 @@ attribute is false.
           };
           that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
         });
+
+        this.hoverElement = null;
+
+        if (this.$.svg) {
+          this.$.svg.addEventListener('mouseover', function(e) {
+            if (e.target.nodeName == "circle" && that.hoverElement != e.target) {
+              that.hoverElement = e.target;
+              that.$.tracename.value = e.target.parentElement.dataset.id;
+            }
+          });
+
+          this.$.svg.addEventListener('click', function(e) {
+            if (e.target.nodeName == "circle") {
+              // TODO(jcgregorio) Bring up commit info on click.
+            }
+          });
+        }
       },
 
       changeImpl_: function() {
-        if (this.test == "" || this.top == "" || this.left == "") {
+        if (this.test == "" || this.top == "" || this.left == "" || this.getInProgress) {
           return
         }
+        this.getInProgress = true;
         var that = this;
-        var q = '?test=' + this.test + '&top=' + this.top + '&left=' + this.left;
+        var q = '?test=' + this.test + '&top=' + this.top + '&left=' + this.left + '&graphs=' + !this.bothcolumns;
         sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
           that.details = json;
+          that.getInProgress = false;
         });
       },
 
