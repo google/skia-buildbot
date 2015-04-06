@@ -50,6 +50,16 @@ func In(s string, a []string) bool {
 	return false
 }
 
+// Index returns the index of |s| *in* |a| slice, and -1 if not found.
+func Index(s string, a []string) int {
+	for i, x := range a {
+		if x == s {
+			return i
+		}
+	}
+	return -1
+}
+
 // AtMost returns a subslice of at most the first n members of a.
 func AtMost(a []string, n int) []string {
 	if n > len(a) {

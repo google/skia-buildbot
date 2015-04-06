@@ -22,14 +22,50 @@ attribute is false.
 <polymer-element name="detail-table-sk" attributes="top left test bothcolumns">
   <template>
     <style type="text/css" media="screen">
-      .match {
-        fill: #000000;
-        stroke: #000000;
+      g:hover circle {
+        fill:   #44aa99;
+        stroke: #44aa99;
       }
 
-      g:hover circle {
-        fill: #44aa99;
-        stroke: #44aa99;
+      circle.status0 {
+        fill:   #000000;
+        stroke: #000000;
+      }
+      circle.status1 {
+        fill:   #ffffff;
+        stroke: #1B9E77;
+      }
+      circle.status2 {
+        fill:   #ffffff;
+        stroke: #D95F02;
+      }
+      circle.status3 {
+        fill:   #ffffff;
+        stroke: #7570B3;
+      }
+      circle.status4 {
+        fill:   #ffffff;
+        stroke: #E7298A;
+      }
+      circle.status5 {
+        fill:   #ffffff;
+        stroke: #66A61E;
+      }
+      circle.status6 {
+        fill:   #ffffff;
+        stroke: #E6AB02;
+      }
+      circle.status7 {
+        fill:   #ffffff;
+        stroke: #A6761D;
+      }
+      circle.status8 {
+        fill:   #ffffff;
+        stroke: #999999;
+      }
+
+      #legend {
+        margin-top: 2em;
       }
 
       #commits {
@@ -37,7 +73,7 @@ attribute is false.
           padding-left: 3em;
       }
 
-      svg {
+      #svg {
         box-shadow: 5px 5px 10px 2px rgba(133,133,133,1);
       }
 
@@ -153,11 +189,19 @@ attribute is false.
                       y2="{{trace.data[0].y}}"/>
                       <template repeat="{{pt in trace.data}}">
                         <circle cx="{{pt.x}}" cy="{{pt.y}}" r="0.3"
-                        class="{{pt.s ? 'match' : ''}}"/>
+                        class="status{{pt.s}}"/>
                       </template>
                     </g>
                   </template>
                 </svg>
+
+                <table id=legend>
+                  <tr><th colspan=2>Legend</th></tr>
+                  <tr> <td> <svg width=10 height=10 viewBox="-1 -1 2 2"> <circle cx=0 cy=0 r="0.3" class="status0"/> </svg> </td> <td>{{top}}</td> </tr>
+                  <template repeat="{{hash, i in details.otherHashes}}">
+                    <tr> <td> <svg width=10 height=10 viewBox="-1 -1 2 2"> <circle cx=0 cy=0 r="0.3" class="status{{i+1}}"/> </svg> </td> <td><a href="/2/detail?test={{test}}&digest={{hash}}">{{hash}}</a></td> </tr>
+                  </template>
+                </table>
               </div>
               <div id=commits>
                 <template if="{{committer}}">
