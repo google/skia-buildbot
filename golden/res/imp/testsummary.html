@@ -13,6 +13,7 @@
          }
     query - paramset in URL query string format.
     include - boolean, include ignores.
+    head - boolean, only use digests at head.
 
   Events:
   Methods:
@@ -30,7 +31,7 @@
         width: 5em;
       }
     </style>
-    <span><b><a href="/2/cmp/{{summary.name}}?topQuery={{query}}&topIncludeIgnores={{include}}&leftQuery={{query}}&leftIncludeIgnores={{include}}">{{summary.name}}</a></b></span>
+    <span><b><a href="/2/cmp/{{summary.name}}?topQuery={{query}}&topIncludeIgnores={{include}}&leftQuery={{query}}&leftIncludeIgnores={{include}}&head={{head}}">{{summary.name}}</a></b></span>
     <!-- <span class=short>{{summary.diameter}}</span> -->
     <span class=short>{{summary.pos}}</span>
     <span class=short>{{summary.neg}}</span>
@@ -50,6 +51,10 @@
         },
         include: {
           value: false,
+          reflect: true,
+        },
+        head: {
+          value: true,
           reflect: true,
         },
       },

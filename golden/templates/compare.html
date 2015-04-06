@@ -86,9 +86,12 @@
         padding: 1em;
       }
 
-      test-status-sk {
-        display: block;
+      #heading {
         margin: 0.5em 0 1em 2em;
+      }
+
+      .headToggle {
+        margin-left: 3em;
       }
     </style>
   </head>
@@ -96,7 +99,12 @@
     <scaffold-sk responsiveWidth="700px">
       {{template "titlebar.html" .}}
 
-      <test-status-sk></test-status-sk>
+      <div horizontal layout id=heading>
+        <test-status-sk></test-status-sk>
+        <div class=headToggle>
+          Head <paper-toggle-button id=head checked></paper-toggle-button>
+        </div>
+      </div>
       <div id=page horizontal layout>
         <div vertical layout>
           <tri-sk id=leftFilter vert filter value=positive></tri-sk>
@@ -165,6 +173,7 @@
          sort:               "", // "top", or "left".
          dir:                "", // ["", "asc", "desc"]
          digest:             "", // Digest to sort against.
+         head:               true,
        };
 
 
@@ -173,6 +182,7 @@
          $$$('#topFilter').value = page.state.topFilter;
          $$$('#queryLeftButton').title = page.state.leftQuery;
          $$$('#queryTopButton').title = page.state.topQuery;
+         $$$('#head').checked = page.state.head;
          loadGrid();
        }
 
@@ -272,6 +282,11 @@
          loadGrid();
        });
 
+       $$$('#head').addEventListener('change', function() {
+         page.state.head = $$$('#head').checked;
+         loadGrid();
+       });
+
        function loadGrid() {
          $$$('group-triage-dialog-sk').close();
          sk.post('/2/_/test', JSON.stringify(page.state)).then(JSON.parse).then(function(json) {
@@ -365,6 +380,7 @@
              query: query,
              filter: filter,
              include: include,
+             head: page.state.head,
            };
            sk.post('/2/_/triage', JSON.stringify(request)).then(function(){
              $$$('test-status-sk').kick();

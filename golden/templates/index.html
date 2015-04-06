@@ -79,6 +79,7 @@
            s.summary = c;
            s.query = encodeURIComponent(page.state.query);
            s.include = page.state.include;
+           s.head = page.state.head;
          });
          $$$('paper-spinner').active = false;
        }
@@ -87,6 +88,7 @@
        function loadList() {
          sk.clearChildren($$$('#summaries'));
          $$$('paper-spinner').active = true;
+         $$$('#head').checked = page.state.head;
          sk.get('/2/_/list?'+sk.query.fromObject(page.state)).then(JSON.parse).then(function(json) {
            summaries = json;
            displaySummaries();

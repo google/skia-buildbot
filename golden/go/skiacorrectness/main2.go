@@ -448,6 +448,7 @@ type PolyTestRequest struct {
 	Sort               string `json:"sort"`   // Which side to sort, "top" or "left".
 	Dir                string `json:"dir"`    // Direction to sort, ["", "asc", "desc"]
 	Digest             string `json:"digest"` // The digest to sort against.
+	Head               bool   `json:"head"`   // If true only return digests at head.
 }
 
 // PolyTestImgInfo info about a single source digest. Used in PolyTestGUI.
@@ -515,20 +516,43 @@ type PolyTestGUI struct {
 // max maybe set to -1, which means to not truncate the response digest slice.
 // If sortAgainstHash is true then the result will be sorted in direction 'dir' versus the given 'digest',
 // otherwise the results will be sorted in terms of ascending N.
-func imgInfo(filter, queryString, testName string, e types.TestClassification, max int, includeIgnores bool, ignores []url.Values, sortAgainstHash bool, dir string, digest string) ([]*PolyTestImgInfo, int, error) {
+//
+// If head is true then only return digests that appear at head.
+func imgInfo(filter, queryString, testName string, e types.TestClassification, max int, includeIgnores bool, ignores []url.Values, sortAgainstHash bool, dir string, digest string, head bool) ([]*PolyTestImgInfo, int, error) {
 	query, err := url.ParseQuery(queryString)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Failed to parse Query in imgInfo: %s", err)
 	}
-	query["name"] = []string{testName}
-
-	t := timer.New("tallies.ByQuery")
+	query[types.PRIMARY_KEY_FIELD] = []string{testName}
 	if includeIgnores {
 		ignores = []url.Values{}
 	}
-	digests, err := tallies.ByQuery(query, ignores...)
-	if err != nil {
-		return nil, 0, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
+
+	t := timer.New("finding digests")
+	digests := map[string]int{}
+	if head {
+		tile, err := storages.GetLastTileTrimmed()
+		if err != nil {
+			return nil, 0, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
+		}
+		lastCommitIndex := tile.LastCommitIndex()
+		for _, tr := range tile.Traces {
+			if ptypes.MatchesWithIgnores(tr, query, ignores...) {
+				for i := lastCommitIndex; i >= 0; i-- {
+					if tr.IsMissing(i) {
+						continue
+					} else {
+						digests[tr.(*ptypes.GoldenTrace).Values[i]] = 1
+						break
+					}
+				}
+			}
+		}
+	} else {
+		digests, err = tallies.ByQuery(query, ignores...)
+		if err != nil {
+			return nil, 0, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
+		}
 	}
 	glog.Infof("Num Digests: %d", len(digests))
 	t.Stop()
@@ -598,6 +622,7 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 //      leftIncludeIgnores: bool,
 //      topN: topN,
 //      leftN: leftN,
+//      head: [true, false],
 //   }
 //
 //
@@ -643,8 +668,8 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		ignores = append(ignores, q)
 	}
 
-	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, req.TopN, req.TopIncludeIgnores, ignores, req.Sort == "top", req.Dir, req.Digest)
-	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, req.LeftN, req.LeftIncludeIgnores, ignores, req.Sort == "left", req.Dir, req.Digest)
+	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, req.TopN, req.TopIncludeIgnores, ignores, req.Sort == "top", req.Dir, req.Digest, req.Head)
+	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, req.LeftN, req.LeftIncludeIgnores, ignores, req.Sort == "left", req.Dir, req.Digest, req.Head)
 
 	// Extract out string slices of digests to pass to *AbsPath and storages.DiffStore.Get().
 	allDigests := map[string]bool{}
@@ -724,6 +749,7 @@ type PolyTriageRequest struct {
 	Query   string   `json:"query"`
 	Filter  string   `json:"filter"`
 	Include bool     `json:"include"` // Include ignored digests.
+	Head    bool     `json:"head"`    // Only include digests at head if true.
 }
 
 // polyTriageHandler handles a request to change the triage status of one or more
@@ -768,7 +794,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 				ignores = append(ignores, q)
 			}
 		}
-		ii, _, err := imgInfo(req.Filter, req.Query, req.Test, e, -1, req.Include, ignores, false, "", "")
+		ii, _, err := imgInfo(req.Filter, req.Query, req.Test, e, -1, req.Include, ignores, false, "", "", req.Head)
 		digests = []string{}
 		for _, d := range ii {
 			digests = append(digests, d.Digest)
