@@ -100,7 +100,7 @@ this.sk = this.sk || function() {
           clearInterval(id);
           resolve(img);
         }
-      });
+      }, 100);
     });
   };
 
