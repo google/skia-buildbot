@@ -9,11 +9,5 @@
 
 PATH=$PATH:/skia_build/depot_tools
 
-if [ "$(uname)" == "Linux" ]; then
-	TARGETS="$1 fiddle_secwrap"
-else
-	TARGETS="$1"
-fi
-
-ninja -C $SKIA_ROOT/out/Release_Developer $TARGETS
+ninja -C $SKIA_ROOT/out/Release_Developer $1
 

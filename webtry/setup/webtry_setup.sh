@@ -70,7 +70,6 @@ sudo chown -R webtry:webtry ${CHROOT_JAIL}/skia_build/skia
 
 sudo cp ../main.cpp ${CHROOT_JAIL}/skia_build/fiddle_main/
 sudo cp ../seccmp_bpf.h ${CHROOT_JAIL}/skia_build/fiddle_main/
-sudo cp ../fiddle_secwrap.cpp ${CHROOT_JAIL}/skia_build/fiddle_main/
 sudo cp ../scripts/* ${CHROOT_JAIL}/skia_build/scripts/
 sudo cp ../safec ${CHROOT_JAIL}/skia_build/scripts/
 sudo cp ../safec++ ${CHROOT_JAIL}/skia_build/scripts/
