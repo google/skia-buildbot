@@ -755,7 +755,13 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		for _, t := range topDigests {
-			d := diffs[t.Digest]
+			d, ok := diffs[t.Digest]
+			if !ok {
+				glog.Errorf("Failed to find expected diff for: %s", t.Digest)
+				d = &diff.DiffMetrics{
+					MaxRGBADiffs: []int{},
+				}
+			}
 			row = append(row, &PolyTestDiffInfo{
 				Test:             req.Test,
 				TopDigest:        t.Digest,
