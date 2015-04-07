@@ -39,6 +39,9 @@ var (
 	// singleTemplate is the page for viewing a single digest.
 	singleTemplate *template.Template = nil
 
+	// diffTemplate is the page for viewing a single digest.
+	diffTemplate *template.Template = nil
+
 	// helpTemplate is the help page.
 	helpTemplate *template.Template = nil
 
@@ -77,6 +80,12 @@ func loadTemplates() {
 
 	singleTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/single.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+
+	diffTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/diff.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -335,6 +344,60 @@ func polySingleDigestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := singleTemplate.Execute(w, struct{}{}); err != nil {
 		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// polyDiffDigestHandler is a page about the differences between two digests.
+func polyDiffDigestHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Poly Diff Digest Handler: %q\n", r.URL.Path)
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if err := diffTemplate.Execute(w, struct{}{}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// polyDiffJSONDigestHandler takes three parameters (top, left, and test), and
+// returns a JSON serialized PolyTestDiffInfo as the response.
+func polyDiffJSONDigestHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		util.ReportError(w, r, err, "Failed to parse form values")
+		return
+	}
+	top := r.Form.Get("top")
+	left := r.Form.Get("left")
+	test := r.Form.Get("test")
+	if top == "" || left == "" || test == "" {
+		util.ReportError(w, r, fmt.Errorf("Some query parameters are missing: %q %q %q", top, left, test), "Missing query parameters.")
+		return
+	}
+
+	diffs, err := storages.DiffStore.Get(left, []string{top})
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to do diffs")
+		return
+	}
+	full := storages.DiffStore.AbsPath([]string{top, left})
+	d := diffs[top]
+	ret := PolyTestDiffInfo{
+		Test:             test,
+		Thumb:            pathToURLConverter(d.ThumbnailPixelDiffFilePath),
+		TopDigest:        top,
+		LeftDigest:       left,
+		NumDiffPixels:    d.NumDiffPixels,
+		PixelDiffPercent: d.PixelDiffPercent,
+		MaxRGBADiffs:     d.MaxRGBADiffs,
+		DiffImg:          pathToURLConverter(d.PixelDiffFilePath),
+		TopImg:           pathToURLConverter(full[top]),
+		LeftImg:          pathToURLConverter(full[left]),
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ret); err != nil {
+		util.ReportError(w, r, err, "Failed to encode result")
 	}
 }
 
@@ -718,7 +781,6 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 				TopImg:           pathToURLConverter(full[t.Digest]),
 				LeftImg:          pathToURLConverter(full[l.Digest]),
 			})
-
 		}
 		grid = append(grid, row)
 	}

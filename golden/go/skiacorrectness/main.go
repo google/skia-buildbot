@@ -418,6 +418,8 @@ func main() {
 	router.HandleFunc("/2/ignores", polyIgnoresHandler).Methods("GET")
 	router.HandleFunc("/2/cmp/{test}", polyCompareHandler).Methods("GET")
 	router.HandleFunc("/2/detail", polySingleDigestHandler).Methods("GET")
+	router.HandleFunc("/2/diff", polyDiffDigestHandler).Methods("GET")
+	router.HandleFunc("/2/_/diff", polyDiffJSONDigestHandler).Methods("GET")
 	router.HandleFunc("/2/_/list", polyListTestsHandler).Methods("GET")
 	router.HandleFunc("/2/_/paramset", polyParamsHandler).Methods("GET")
 	router.HandleFunc("/2/_/ignores", polyIgnoresJSONHandler).Methods("GET")

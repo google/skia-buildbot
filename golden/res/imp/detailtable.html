@@ -196,10 +196,22 @@ attribute is false.
                 </svg>
 
                 <table id=legend>
-                  <tr><th colspan=2>Legend</th></tr>
+                  <tr><th colspan=3>Legend</th></tr>
                   <tr> <td> <svg width=10 height=10 viewBox="-1 -1 2 2"> <circle cx=0 cy=0 r="0.3" class="status0"/> </svg> </td> <td>{{top}}</td> </tr>
                   <template repeat="{{hash, i in details.otherHashes}}">
-                    <tr> <td> <svg width=10 height=10 viewBox="-1 -1 2 2"> <circle cx=0 cy=0 r="0.3" class="status{{i+1}}"/> </svg> </td> <td><a href="/2/detail?test={{test}}&digest={{hash}}">{{hash}}</a></td> </tr>
+                    <tr>
+                      <td>
+                        <svg width=10 height=10 viewBox="-1 -1 2 2">
+                          <circle cx=0 cy=0 r="0.3" class="status{{i+1}}"/>
+                        </svg>
+                      </td>
+                      <td>
+                        <a href="/2/detail?test={{test}}&digest={{hash}}">{{hash}}</a>
+                      </td>
+                      <td>
+                        <a href="/2/diff?test={{test}}&left={{hash}}&top={{top}}">diff</a>
+                      </td>
+                    </tr>
                   </template>
                 </table>
               </div>
