@@ -383,7 +383,6 @@ func polyDiffJSONDigestHandler(w http.ResponseWriter, r *http.Request) {
 	d := diffs[top]
 	ret := PolyTestDiffInfo{
 		Test:             test,
-		Thumb:            pathToURLConverter(d.ThumbnailPixelDiffFilePath),
 		TopDigest:        top,
 		LeftDigest:       left,
 		NumDiffPixels:    d.NumDiffPixels,
@@ -516,7 +515,6 @@ type PolyTestRequest struct {
 
 // PolyTestImgInfo info about a single source digest. Used in PolyTestGUI.
 type PolyTestImgInfo struct {
-	Thumb            string  `json:"thumb"`
 	Digest           string  `json:"digest"`
 	N                int     `json:"n"`    // The number of images with this digest.
 	PixelDiffPercent float32 `json:"diff"` // Diff from the given digest to compare against, otherwise zero.
@@ -552,7 +550,6 @@ func (p PolyTestImgInfoDiffAscSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 // PolyTestGUI.
 type PolyTestDiffInfo struct {
 	Test             string  `json:"test"`
-	Thumb            string  `json:"thumb"`
 	TopDigest        string  `json:"topDigest"`
 	LeftDigest       string  `json:"leftDigest"`
 	NumDiffPixels    int     `json:"numDiffPixels"`
@@ -747,17 +744,7 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 
 	topDigestSlice := util.KeysOfStringSet(topDigestMap)
 	allDigestsSlice := util.KeysOfStringSet(allDigests)
-	thumbs := storages.DiffStore.ThumbAbsPath(allDigestsSlice)
 	full := storages.DiffStore.AbsPath(allDigestsSlice)
-
-	// Fill in the thumbnail URLS in our GUI response struct.
-	for _, t := range topDigests {
-		t.Thumb = pathToURLConverter(thumbs[t.Digest])
-	}
-
-	for _, l := range leftDigests {
-		l.Thumb = pathToURLConverter(thumbs[l.Digest])
-	}
 
 	grid := [][]*PolyTestDiffInfo{}
 	for _, l := range leftDigests {
@@ -771,7 +758,6 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 			d := diffs[t.Digest]
 			row = append(row, &PolyTestDiffInfo{
 				Test:             req.Test,
-				Thumb:            pathToURLConverter(d.ThumbnailPixelDiffFilePath),
 				TopDigest:        t.Digest,
 				LeftDigest:       l.Digest,
 				NumDiffPixels:    d.NumDiffPixels,

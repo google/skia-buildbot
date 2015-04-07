@@ -121,6 +121,14 @@ attribute is false.
       table.singlecolumn .single {
         display: table-row;
       }
+
+      img.small {
+        border: solid 1px lightgray;
+        max-width: 128px;
+        max-height: 128px;
+        width: auto;
+        height: auto;
+      }
     </style>
     <table class="{{bothcolumns?'':'singlecolumn'}}">
       <tr class=both>
@@ -135,8 +143,8 @@ attribute is false.
       </tr>
       <tr>
         <th>Image</th>
-        <td class=openInNew><img src="/img/images/{{left}}-thumbnail.png"> <a href="/img/images/{{left}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
-        <td class="openInNew both"><img src="/img/images/{{top}}-thumbnail.png"> <a href="/img/images/{{top}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
+        <td class=openInNew><img class=small src="/img/images/{{left}}.png"> <a href="/img/images/{{left}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
+        <td class="openInNew both"><img class=small src="/img/images/{{top}}.png"> <a href="/img/images/{{top}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
       </tr>
       <tr class=single>
         <th>Test</th>

@@ -21,86 +21,77 @@ func TestDiffMetrics(t *testing.T) {
 	// Assert different images with the same dimensions.
 	assertDiffs(t, "4029959456464745507", "16465366847175223174",
 		&DiffMetrics{
-			NumDiffPixels:              16,
-			PixelDiffPercent:           0.0064,
-			PixelDiffFilePath:          "",
-			ThumbnailPixelDiffFilePath: "",
-			MaxRGBADiffs:               []int{54, 100, 125, 0},
-			DimDiffer:                  false})
+			NumDiffPixels:     16,
+			PixelDiffPercent:  0.0064,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{54, 100, 125, 0},
+			DimDiffer:         false})
 	assertDiffs(t, "5024150605949408692", "11069776588985027208",
 		&DiffMetrics{
-			NumDiffPixels:              2233,
-			PixelDiffPercent:           0.8932,
-			PixelDiffFilePath:          "",
-			ThumbnailPixelDiffFilePath: "",
-			MaxRGBADiffs:               []int{0, 0, 1, 0},
-			DimDiffer:                  false})
+			NumDiffPixels:     2233,
+			PixelDiffPercent:  0.8932,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{0, 0, 1, 0},
+			DimDiffer:         false})
 	// Assert the same image.
 	assertDiffs(t, "5024150605949408692", "5024150605949408692",
 		&DiffMetrics{
-			NumDiffPixels:              0,
-			PixelDiffPercent:           0,
-			PixelDiffFilePath:          "",
-			ThumbnailPixelDiffFilePath: "",
-			MaxRGBADiffs:               []int{0, 0, 0, 0},
-			DimDiffer:                  false})
+			NumDiffPixels:     0,
+			PixelDiffPercent:  0,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{0, 0, 0, 0},
+			DimDiffer:         false})
 	// Assert different images with different dimensions.
 	assertDiffs(t, "ffce5042b4ac4a57bd7c8657b557d495", "fffbcca7e8913ec45b88cc2c6a3a73ad",
 		&DiffMetrics{
-			NumDiffPixels:              571674,
-			PixelDiffPercent:           89.324066,
-			PixelDiffFilePath:          "",
-			ThumbnailPixelDiffFilePath: "",
-			MaxRGBADiffs:               []int{255, 255, 255, 0},
-			DimDiffer:                  true})
+			NumDiffPixels:     571674,
+			PixelDiffPercent:  89.324066,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{255, 255, 255, 0},
+			DimDiffer:         true})
 	// Assert with images that match in dimensions but where all pixels differ.
 	assertDiffs(t, "4029959456464745507", "4029959456464745507-inverted",
 		&DiffMetrics{
-			NumDiffPixels:              250000,
-			PixelDiffPercent:           100.0,
-			PixelDiffFilePath:          "",
-			ThumbnailPixelDiffFilePath: "",
-			MaxRGBADiffs:               []int{255, 255, 255, 0},
-			DimDiffer:                  false})
+			NumDiffPixels:     250000,
+			PixelDiffPercent:  100.0,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{255, 255, 255, 0},
+			DimDiffer:         false})
 
 	// Assert different images where neither fits into the other.
 	assertDiffs(t, "fffbcca7e8913ec45b88cc2c6a3a73ad", "fffbcca7e8913ec45b88cc2c6a3a73ad-rotated",
 		&DiffMetrics{
-			NumDiffPixels:              172466,
-			PixelDiffPercent:           74.8550347222,
-			PixelDiffFilePath:          "",
-			ThumbnailPixelDiffFilePath: "",
-			MaxRGBADiffs:               []int{255, 255, 255, 0},
-			DimDiffer:                  true})
+			NumDiffPixels:     172466,
+			PixelDiffPercent:  74.8550347222,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{255, 255, 255, 0},
+			DimDiffer:         true})
 	// Make sure the metric is symmetric.
 	assertDiffs(t, "fffbcca7e8913ec45b88cc2c6a3a73ad-rotated", "fffbcca7e8913ec45b88cc2c6a3a73ad",
 		&DiffMetrics{
-			NumDiffPixels:              172466,
-			PixelDiffPercent:           74.8550347222,
-			PixelDiffFilePath:          "",
-			ThumbnailPixelDiffFilePath: "",
-			MaxRGBADiffs:               []int{255, 255, 255, 0},
-			DimDiffer:                  true})
+			NumDiffPixels:     172466,
+			PixelDiffPercent:  74.8550347222,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{255, 255, 255, 0},
+			DimDiffer:         true})
 
 	// Compare two images where one has an alpha channel and the other doesn't.
 	assertDiffs(t, "b716a12d5b98d04b15db1d9dd82c82ea", "df1591dde35907399734ea19feb76663",
 		&DiffMetrics{
-			NumDiffPixels:              8750,
-			PixelDiffPercent:           2.8483074,
-			PixelDiffFilePath:          "",
-			ThumbnailPixelDiffFilePath: "",
-			MaxRGBADiffs:               []int{255, 2, 255, 0},
-			DimDiffer:                  false})
+			NumDiffPixels:     8750,
+			PixelDiffPercent:  2.8483074,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{255, 2, 255, 0},
+			DimDiffer:         false})
 
 	// Compare two images where the alpha differs.
 	assertDiffs(t, "df1591dde35907399734ea19feb76663", "df1591dde35907399734ea19feb76663-6-alpha-diff",
 		&DiffMetrics{
-			NumDiffPixels:              6,
-			PixelDiffPercent:           0.001953125,
-			PixelDiffFilePath:          "",
-			ThumbnailPixelDiffFilePath: "",
-			MaxRGBADiffs:               []int{0, 0, 0, 235},
-			DimDiffer:                  false})
+			NumDiffPixels:     6,
+			PixelDiffPercent:  0.001953125,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{0, 0, 0, 235},
+			DimDiffer:         false})
 }
 
 const SRC1 = `! SKTEXTSIMPLE

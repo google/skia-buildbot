@@ -59,33 +59,27 @@ func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool
 	ret := temp.(*FileDiffStore)
 
 	relDiffPath1_2 := fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION)
-	relDiffThumbPath1_2 := fmt.Sprintf("%s-%s-thumbnail.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION)
 	diffpath1_2 := filepath.Join(ret.localDiffDir, relDiffPath1_2)
-	diffThumbPath1_2 := filepath.Join(ret.localDiffDir, relDiffThumbPath1_2)
 	// Set the expected values for diff metrics.
 	expectedDiffMetrics1_2 = &diff.DiffMetrics{
-		NumDiffPixels:              2233,
-		PixelDiffPercent:           0.8932,
-		PixelDiffFilePath:          diffpath1_2,
-		ThumbnailPixelDiffFilePath: diffThumbPath1_2,
-		MaxRGBADiffs:               []int{0, 0, 1, 0},
-		DimDiffer:                  false,
+		NumDiffPixels:     2233,
+		PixelDiffPercent:  0.8932,
+		PixelDiffFilePath: diffpath1_2,
+		MaxRGBADiffs:      []int{0, 0, 1, 0},
+		DimDiffer:         false,
 	}
 	relExpectedDiffMetrics1_2 = &diff.DiffMetrics{}
 	*relExpectedDiffMetrics1_2 = *expectedDiffMetrics1_2
 	relExpectedDiffMetrics1_2.PixelDiffFilePath = relDiffPath1_2
-	relExpectedDiffMetrics1_2.ThumbnailPixelDiffFilePath = relDiffThumbPath1_2
 
 	// DiffMetrics between TEST_DIGEST1 and TEST_DIGEST3.
 	diffpath1_3 := filepath.Join(ret.localDiffDir, fmt.Sprintf("%s-%s.%s", TEST_DIGEST3, TEST_DIGEST1, DIFF_EXTENSION))
-	diffThumbPath1_3 := filepath.Join(ret.localDiffDir, fmt.Sprintf("%s-%s-thumbnail.%s", TEST_DIGEST3, TEST_DIGEST1, DIFF_EXTENSION))
 	expectedDiffMetrics1_3 = &diff.DiffMetrics{
-		NumDiffPixels:              250000,
-		PixelDiffPercent:           100,
-		PixelDiffFilePath:          diffpath1_3,
-		ThumbnailPixelDiffFilePath: diffThumbPath1_3,
-		MaxRGBADiffs:               []int{248, 90, 113, 0},
-		DimDiffer:                  true,
+		NumDiffPixels:     250000,
+		PixelDiffPercent:  100,
+		PixelDiffFilePath: diffpath1_3,
+		MaxRGBADiffs:      []int{248, 90, 113, 0},
+		DimDiffer:         true,
 	}
 
 	return ret
@@ -182,18 +176,6 @@ func TestAbsPath(t *testing.T) {
 	assert.Equal(t, filepath.Join(fds.localImgDir, fmt.Sprintf("%s.%s", TEST_DIGEST2, IMG_EXTENSION)), digestToPaths[TEST_DIGEST2])
 
 	digestToPaths = fds.AbsPath([]string{})
-	assert.Equal(t, 0, len(digestToPaths))
-}
-
-func TestThumbAbsPath(t *testing.T) {
-	fds := getTestFileDiffStore(t, TESTDATA_DIR, true)
-
-	digestToPaths := fds.ThumbAbsPath([]string{TEST_DIGEST1, TEST_DIGEST2})
-	assert.Equal(t, 2, len(digestToPaths))
-	assert.Equal(t, filepath.Join(fds.localImgDir, fmt.Sprintf("%s-thumbnail.%s", TEST_DIGEST1, IMG_EXTENSION)), digestToPaths[TEST_DIGEST1])
-	assert.Equal(t, filepath.Join(fds.localImgDir, fmt.Sprintf("%s-thumbnail.%s", TEST_DIGEST2, IMG_EXTENSION)), digestToPaths[TEST_DIGEST2])
-
-	digestToPaths = fds.ThumbAbsPath([]string{})
 	assert.Equal(t, 0, len(digestToPaths))
 }
 

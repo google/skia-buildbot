@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
-	"go.skia.org/infra/golden/go/thumb"
 )
 
 const (
@@ -238,7 +237,7 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 
 	// 1. Check if the DiffMetrics exists in the memory cache.
 	baseName := getDiffBasename(dMain, dOther)
-	if obj, ok := fs.diffCache.Get(baseName); ok && obj.(*diff.DiffMetrics).ThumbnailPixelDiffFilePath != "" {
+	if obj, ok := fs.diffCache.Get(baseName); ok {
 		diffMetrics = obj.(*diff.DiffMetrics)
 	} else {
 		// Check if it's in the file cache.
@@ -248,7 +247,7 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 			return nil
 		}
 
-		if diffMetrics != nil && diffMetrics.ThumbnailPixelDiffFilePath != "" {
+		if diffMetrics != nil {
 			// 2. The DiffMetrics exists locally return it.
 			fs.diffCache.Add(baseName, diffMetrics)
 		} else {
@@ -281,7 +280,6 @@ func (fs *FileDiffStore) getOne(dMain, dOther string) interface{} {
 
 	// Expand the path of the diff images.
 	diffMetrics.PixelDiffFilePath = filepath.Join(fs.localDiffDir, diffMetrics.PixelDiffFilePath)
-	diffMetrics.ThumbnailPixelDiffFilePath = filepath.Join(fs.localDiffDir, diffMetrics.ThumbnailPixelDiffFilePath)
 	return diffMetrics
 }
 
@@ -358,36 +356,6 @@ func (fs *FileDiffStore) Get(dMain string, dRest []string) (map[string]*diff.Dif
 			}
 		}
 	}
-}
-
-// ThumbAbsPath documentation is found in diff.DiffStore interface.
-//
-// Calls AbsPath and then confirms each thumbnail exists, creating it if
-// necessary.
-func (fs *FileDiffStore) ThumbAbsPath(digests []string) map[string]string {
-	fullsize := fs.AbsPath(digests)
-	ret := map[string]string{}
-	for digest, filename := range fullsize {
-		// TODO(stephana): Remove thumb.AbsPath and generate the thumbnail in
-		// this package.
-		thumbFilename := thumb.AbsPath(filename)
-		if _, err := os.Stat(thumbFilename); os.IsNotExist(err) {
-			// TODO Should be changed to a safe write that writes to a tmp file then renames it.
-			img, err := diff.OpenImage(filename)
-			f, err := os.Create(thumbFilename)
-			if err != nil {
-				glog.Errorf("Failed to create thumbnail for %s %s: %s", digest, thumbFilename, err)
-				continue
-			}
-			defer util.Close(f)
-			if err := png.Encode(f, thumb.Thumbnail(img)); err != nil {
-				glog.Errorf("Failed to encode thumbnail for %s %s: %s", digest, thumbFilename, err)
-				continue
-			}
-		}
-		ret[digest] = thumbFilename
-	}
-	return ret
 }
 
 // AbsPath documentation is found in the diff.DiffStore interface.
@@ -582,8 +550,6 @@ func (fs *FileDiffStore) isDigestInCache(d string) (bool, error) {
 // digest cache. If the provided digest does not exist in Google Storage then
 // downloadFailureCount is incremented.
 //
-// TODO Thumbnailing should also be done here in addition to filediffstore.go
-//   so that thumbnails are always available.
 func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 	storage, err := storage.New(fs.client)
 	if err != nil {
@@ -699,20 +665,6 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 
 	baseName := getDiffBasename(d1, d2)
 
-	// TODO(stephana): The current thumbnailing is too expensive. We should make
-	// it faster and ideally move to a HTTP handlers as middleware.
-
-	// Create the thumbnail.
-	thumbFilename := fs.getDiffThumbName(baseName)
-	thumbF, err := os.Create(filepath.Join(fs.localDiffDir, thumbFilename))
-	if err != nil {
-		return nil, err
-	}
-	defer util.Close(thumbF)
-	if err := png.Encode(thumbF, thumb.Thumbnail(resultImg)); err != nil {
-		return nil, err
-	}
-
 	// Write the diff image to disk.
 	diffFilename := fmt.Sprintf("%s.%s", baseName, IMG_EXTENSION)
 	f, err := os.Create(filepath.Join(fs.localDiffDir, diffFilename))
@@ -720,8 +672,6 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 		return nil, err
 	}
 
-	// TODO(stephana) Increase compression level once the thumbnailing code
-	// is moved and/or faster. This is a compromise between best/no compression.
 	encoder := png.Encoder{CompressionLevel: png.BestSpeed}
 	if err := encoder.Encode(f, resultImg); err != nil {
 		return nil, err
@@ -729,7 +679,6 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 
 	// Set the filenames of the images in the diff metric.
 	dm.PixelDiffFilePath = diffFilename
-	dm.ThumbnailPixelDiffFilePath = thumbFilename
 	return dm, nil
 }
 
@@ -765,9 +714,4 @@ func (fs *FileDiffStore) getDigestImagePath(digest string) string {
 func (fs *FileDiffStore) getDiffMetricPath(baseName string) string {
 	fName := fmt.Sprintf("%s.%s", baseName, DIFFMETRICS_EXTENSION)
 	return filepath.Join(fs.localDiffMetricsDir, fName)
-}
-
-// getDiffThumbBasename
-func (fs *FileDiffStore) getDiffThumbName(baseName string) string {
-	return fmt.Sprintf("%s-thumbnail.%s", baseName, IMG_EXTENSION)
 }

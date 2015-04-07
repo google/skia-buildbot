@@ -60,9 +60,18 @@ between two images.
       table {
         margin-left: 5em;
       }
-      .diffThumb,
+
       #zoom {
         display: inline-block;
+      }
+
+      img.small {
+        display: inline-block;
+        border: solid 1px lightgray;
+        max-width: 128px;
+        max-height: 128px;
+        width: auto;
+        height: auto;
       }
 
       #digestRow th,
@@ -86,7 +95,7 @@ between two images.
         <tr><th>Max RGBA Diffs</th><td>{{value.maxRGBADiffs}}</td></tr>
         <tr>
           <th>Diff</th>
-          <td class=openInNew><img id=diffThumb src="{{value.thumb}}"><a href="{{value.diffImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
+          <td class=openInNew><img class=small src="{{value.diffImgUrl}}"><a href="{{value.diffImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a></td>
           <td><paper-button id=zoom>Zoom</paper-button></td>
         </tr>
       </table>

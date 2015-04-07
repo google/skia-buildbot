@@ -247,9 +247,9 @@ func makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffSto
 	sort.Strings(diamDigests)
 	return &Summary{
 		Name: name,
-		// TODO(jcgregorio) Make diameter faster with better thumbnailing, and also make
-		// the actual diameter metric better. Until then disable it.
-		// Diameter:  diameter(diamDigests, diffStore),
+		// TODO(jcgregorio) Make diameter faster, and also make the actual diameter
+		// metric better. Until then disable it.  Diameter:  diameter(diamDigests,
+		// diffStore),
 		Diameter:  0,
 		Pos:       pos,
 		Neg:       neg,

@@ -32,14 +32,12 @@ Where:
       Where imgX looks like:
 
          {
-           thumb: "https:/....", // URL of thumbnail.
            digest: "abc12..."    // The image digest.
          }
 
       And diffXY looks like:
 
         {
-          thumb:            "https://...",  // URL of thumbnail.
           topDigest:        "abc123...",    // Digest of top image.
           leftDigest:       "999def...",    // Digest of left image.
           numDiffPixels:    27,             // Number of differing pixels.
@@ -74,13 +72,12 @@ Where:
 <polymer-element name="grid-sk">
   <template>
     <style type="text/css" media="screen">
-      #empty,
       img {
-        margin: 5px;
-      }
-
-      img {
-        border: solid 2px lightgray;
+        display: block;
+        max-width:64px;
+        max-height:64px;
+        width: auto;
+        height: auto;
       }
 
       img.changed {
@@ -88,9 +85,18 @@ Where:
       }
 
       #empty {
+        margin: 5px;
+        border: solid 2px white;
         width: 64px;
         height: 64px;
-        border: solid 2px white;
+      }
+
+      core-tooltip {
+        margin: 5px;
+        border: solid 2px lightgray;
+        display: block;
+        width: 68px;
+        height: 68px;
       }
     </style>
     <div id=container vertical layout>
@@ -99,7 +105,7 @@ Where:
         <template repeat="{{t in value.top}}">
           <core-tooltip>
             <checkable-sk data-location=top data-digest="{{t.digest}}">
-              <img src="{{t.thumb}}" data-digest="{{t.digest}}"/>
+              <img src="/img/images/{{t.digest}}.png" data-digest="{{t.digest}}"/>
             </checkable-sk>
             <div tip large>
               <table border="0" cellspacing="5" cellpadding="5">
@@ -114,7 +120,7 @@ Where:
           <template repeat="{{l in value.left}}">
             <core-tooltip>
               <checkable-sk data-location=left data-digest="{{l.digest}}">
-                <img src="{{l.thumb}}" data-digest="{{l.digest}}"/>
+                <img src="/img/images/{{l.digest}}.png" data-digest="{{l.digest}}"/>
               </checkable-sk>
             <div tip large>
               <table border="0" cellspacing="5" cellpadding="5">
@@ -129,7 +135,7 @@ Where:
             <div horizontal layout>
               <template repeat="{{g in row}}">
                 <core-tooltip>
-                  <img src="{{g.thumb}}" data-top="{{g.topDigest}}" data-left="{{g.leftDigest}}"/>
+                  <img src="{{g.diffImgUrl}}" data-top="{{g.topDigest}}" data-left="{{g.leftDigest}}"/>
                   <div tip large>
                     <table border="0" cellspacing="5" cellpadding="5">
                       <tr><th>Pixel Diff (%)</th><td>{{g.pixelDiffPercent}}</td></tr>

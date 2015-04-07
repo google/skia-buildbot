@@ -57,10 +57,9 @@ func deltaOffset(n int) int {
 }
 
 type DiffMetrics struct {
-	NumDiffPixels              int
-	PixelDiffPercent           float32
-	PixelDiffFilePath          string
-	ThumbnailPixelDiffFilePath string
+	NumDiffPixels     int
+	PixelDiffPercent  float32
+	PixelDiffFilePath string
 	// Contains the maximum difference between the images for each R/G/B channel.
 	MaxRGBADiffs []int
 	// True if the dimensions of the compared images are different.
@@ -75,10 +74,6 @@ type DiffStore interface {
 	// AbsPath returns the paths of the images that correspond to the given
 	// image digests.
 	AbsPath(digest []string) map[string]string
-
-	// ThumbAbsPath returns the paths of the thumbnails of the images that
-	// correspond to the given image digests.
-	ThumbAbsPath(digest []string) map[string]string
 
 	// UnavailableDigests returns the set of digests that cannot be downloaded or
 	// processed (e.g. because the PNG is corrupted) and should therefore be
