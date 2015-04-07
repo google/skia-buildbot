@@ -40,6 +40,10 @@ run_skia_correctness_on_workers:
 fix_archives_on_workers:
 	go install -v ./go/master_scripts/fix_archives_on_workers/
 
+.PHONY: logserver_proxy
+logserver_proxy:
+	go install -v ./go/master_scripts/logserver_proxy/
+
 # Worker scripts.
 .PHONY: create_pagesets
 create_pagesets:
@@ -79,7 +83,7 @@ test:
 	go test ./go/...
 
 .PHONY: master_scripts
-master_scripts: run_command check_workers_health build_chromium create_pagesets_on_workers capture_archives_on_workers run_lua_on_workers run_benchmark_on_workers run_chromium_perf_on_workers run_skia_correctness_on_workers fix_archives_on_workers
+master_scripts: run_command check_workers_health build_chromium create_pagesets_on_workers capture_archives_on_workers run_lua_on_workers run_benchmark_on_workers run_chromium_perf_on_workers run_skia_correctness_on_workers fix_archives_on_workers logserver_proxy
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua run_benchmark run_chromium_perf run_skia_correctness fix_archives

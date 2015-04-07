@@ -1,6 +1,9 @@
 package util
 
-import "path/filepath"
+import (
+	"fmt"
+	"path/filepath"
+)
 
 const (
 	CT_USER                  = "chrome-bot"
@@ -84,6 +87,7 @@ type PagesetTypeInfo struct {
 }
 
 var (
+	Master = fmt.Sprintf(WORKER_NAME_TEMPLATE, 101)
 	Slaves = GetCTWorkers()
 
 	// Email address of cluster telemetry admins. They will be notified everytime
