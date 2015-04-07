@@ -206,10 +206,17 @@ attribute is false.
                         </svg>
                       </td>
                       <td>
-                        <a href="/2/detail?test={{test}}&digest={{hash}}">{{hash}}</a>
+                        <template if="{{i<7}}">
+                          <a href="/2/detail?test={{test}}&digest={{hash}}">{{hash}}</a>
+                        </template>
+                        <template if="{{i==7}}">
+                          One of many other digests.
+                        </template>
                       </td>
                       <td>
-                        <a href="/2/diff?test={{test}}&left={{hash}}&top={{top}}">diff</a>
+                        <template if="{{i<7}}">
+                          <a href="/2/diff?test={{test}}&left={{hash}}&top={{top}}">diff</a>
+                        </template>
                       </td>
                     </tr>
                   </template>
