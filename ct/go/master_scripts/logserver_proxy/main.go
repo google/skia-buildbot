@@ -37,6 +37,7 @@ func main() {
 		fmt.Fprintf(w, "</pre>\n")
 	})
 
+	http.Handle(fmt.Sprintf("/%s/", util.Master), getReverseProxy(util.Master))
 	for _, hostname := range util.Slaves {
 		http.Handle(fmt.Sprintf("/%s/", hostname), getReverseProxy(hostname))
 	}
