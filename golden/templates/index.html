@@ -57,7 +57,7 @@
         </sort-sk>
         <div id="summaries"></div>
         <paper-spinner active></paper-spinner>
-        <paper-toast></paper-toast>
+        <paper-toast duration=10000></paper-toast>
       </div>
 
     </scaffold-sk>
@@ -77,8 +77,10 @@
        }
 
        function displaySummaries(corpus) {
+         $$$('paper-toast').dismiss();
          var container = $$$('#summaries');
          sk.clearChildren(container);
+         var n = 0;
          summaries.forEach(function(c) {
            if (page.state.untonly && c.untriaged == 0) {
              return
@@ -89,12 +91,18 @@
            s.query = encodeURIComponent(page.state.query);
            s.include = page.state.include;
            s.head = page.state.head;
+           n+=1;
          });
+         if (n==0) {
+           $$$('paper-toast').text = "No tests matched your query.";
+           $$$('paper-toast').show();
+         }
          $$$('paper-spinner').active = false;
        }
 
 
        function loadList() {
+         $$$('paper-toast').dismiss();
          sk.clearChildren($$$('#summaries'));
          $$$('paper-spinner').active = true;
          $$$('#head').checked = page.state.head;
