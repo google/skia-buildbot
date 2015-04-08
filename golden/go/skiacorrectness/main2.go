@@ -106,7 +106,7 @@ func loadTemplates() {
 type SummarySlice []*summary.Summary
 
 func (p SummarySlice) Len() int           { return len(p) }
-func (p SummarySlice) Less(i, j int) bool { return p[i].Name < p[j].Name }
+func (p SummarySlice) Less(i, j int) bool { return p[i].Untriaged > p[j].Untriaged }
 func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // polyListTestsHandler returns a JSON list with high level information about
