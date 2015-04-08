@@ -25,6 +25,9 @@
       .headToggle {
         font-size: 20px;
       }
+      .headToggle paper-toggle-button {
+        margin-right: 2em;
+      }
     </style>
   </head>
   <body>
@@ -38,6 +41,7 @@
           </paper-button>
           <div class=headToggle>
             Head <paper-toggle-button id=head checked></paper-toggle-button>
+            Unt Only <paper-toggle-button id=untonly checked></paper-toggle-button>
           </div>
         </div>
         <query-dialog-sk id=query src="/2/_/paramset"></query-dialog-sk>
@@ -68,12 +72,16 @@
          query:   "source_type=gm",
          include: false,
          head:    true,
+         untonly: true,
        }
 
        function displaySummaries(corpus) {
          var container = $$$('#summaries');
          sk.clearChildren(container);
          summaries.forEach(function(c) {
+           if (page.state.untonly && c.untriaged == 0) {
+             return
+           }
            var s = document.createElement('test-summary-sk');
            container.appendChild(s);
            s.summary = c;
@@ -117,6 +125,11 @@
          $$$('#head').addEventListener('change', function() {
            page.state.head = $$$('#head').checked;
            loadList();
+         });
+
+         $$$('#untonly').addEventListener('change', function() {
+           page.state.untonly = $$$('#untonly').checked;
+           displaySummaries();
          });
        });
      })();
