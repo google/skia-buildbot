@@ -22,7 +22,7 @@
   <template>
     <style type="text/css" media="screen">
       span {
-        width: 20em;
+        width: 25em;
         display: inline-block;
         overflow-wrap: break-word;
         margin-left: 1em;
@@ -31,8 +31,15 @@
         width: 5em;
       }
     </style>
-    <span><b><a href="/2/cmp/{{summary.name}}?topQuery={{query}}&topIncludeIgnores={{include}}&leftQuery={{query}}&leftIncludeIgnores={{include}}&head={{head}}">{{summary.name}}</a></b></span>
+    <span><b>
+        <a href="/#/triage/{{summary.name}}?head={{head}}">{{summary.name}}</a>
+    </b></span>
     <!-- <span class=short>{{summary.diameter}}</span> -->
+    <span class=short>
+      <a href="/2/cmp/{{summary.name}}?topQuery={{query}}&topIncludeIgnores={{include}}&leftQuery={{query}}&leftIncludeIgnores={{include}}&head={{head}}">
+        <core-icon icon=apps></core-icon>
+      </a>
+    </span>
     <span class=short>{{summary.pos}}</span>
     <span class=short>{{summary.neg}}</span>
     <span class=short>{{summary.untriaged}}</span>
