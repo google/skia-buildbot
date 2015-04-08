@@ -191,17 +191,22 @@ func MakeRules(cfgFile string, dbClient *client.Client, tickInterval time.Durati
 	if err != nil {
 		return nil, err
 	}
-	rules := []*Rule{}
+	rules := map[string]*Rule{}
 	for _, r := range parsedRules {
 		r, err := newRule(r, dbClient, testing, tickInterval)
 		if err != nil {
 			return nil, err
 		}
-		rules = append(rules, r)
+		if _, ok := rules[r.Name]; ok {
+			return nil, fmt.Errorf("Found multiple rules with the same name: %s", r.Name)
+		}
+		rules[r.Name] = r
 	}
 
 	// Start the goroutines.
+	rv := make([]*Rule, 0, len(rules))
 	for _, r := range rules {
+		rv = append(rv, r)
 		go func(rule *Rule) {
 			if err := rule.tick(am); err != nil {
 				glog.Error(err)
@@ -214,7 +219,7 @@ func MakeRules(cfgFile string, dbClient *client.Client, tickInterval time.Durati
 		}(r)
 	}
 
-	return rules, nil
+	return rv, nil
 }
 
 type queryable interface {
