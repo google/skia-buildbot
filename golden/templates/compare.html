@@ -108,7 +108,11 @@
       <div id=page horizontal layout>
         <div vertical layout>
           <tri-sk id=leftFilter vert filter value=positive></tri-sk>
-          <paper-button title="Filter" id=queryLeftButton><core-icon icon=search></core-icon></paper-button>
+          <core-tooltip large position="right">
+            <paper-button title="Filter" id=queryLeftButton><core-icon icon=search></core-icon></paper-button>
+            <pre tip id=leftQueryTip>
+            </pre>
+          </core-tooltip>
           <sort-grid-sk disabled data-id=left></sort-grid-sk>
           <div id=leftSummary></div>
         </div>
@@ -116,7 +120,11 @@
         <div flex verical layout>
           <div flex horizontal layout>
             <tri-sk id=topFilter filter value=untriaged></tri-sk>
-            <paper-button title="Filter" id=queryTopButton><core-icon icon=search></core-icon></paper-button>
+            <core-tooltip large>
+              <paper-button title="Filter" id=queryTopButton><core-icon icon=search></core-icon></paper-button>
+              <pre tip id=topQueryTip>
+              </pre>
+            </core-tooltip>
             <sort-grid-sk disabled data-id=top></sort-grid-sk>
             <div id=topSummary></div>
           </div>
@@ -176,13 +184,22 @@
          head:               true,
        };
 
+       var ampRegex = new RegExp('&', 'g');
+
+       function splitAmp(s) {
+         if (s) {
+           return s.replace(ampRegex, '\n');
+         }
+       }
+
 
        function loadGridFromURL() {
          $$$('#leftFilter').value = page.state.leftFilter;
          $$$('#topFilter').value = page.state.topFilter;
-         $$$('#queryLeftButton').title = page.state.leftQuery;
-         $$$('#queryTopButton').title = page.state.topQuery;
+         $$$('#leftQueryTip').innerHTML = splitAmp(page.state.leftQuery);
+         $$$('#topQueryTip').innerHTML = splitAmp(page.state.topQuery);
          $$$('#head').checked = page.state.head;
+
          loadGrid();
        }
 
@@ -255,14 +272,14 @@
        $$$('#queryTopDialog').addEventListener('closed', function(e) {
          page.state.topQuery = e.detail.query;
          page.state.topIncludeIgnores = e.detail.useIgnored;
-         $$$('#queryTopButton').title = page.state.topQuery;
+         $$$('#topQueryTip').innerHTML = splitAmp(page.state.topQuery);
          loadGrid();
        });
 
        $$$('#queryLeftDialog').addEventListener('closed', function(e) {
          page.state.leftQuery = e.detail.query;
          page.state.leftIncludeIgnores = e.detail.useIgnored;
-         $$$('#queryLeftButton').title = page.state.leftQuery;
+         $$$('#leftQueryTip').innerHTML = splitAmp(page.state.leftQuery);
          loadGrid();
        });
 
