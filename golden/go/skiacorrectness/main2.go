@@ -923,6 +923,7 @@ type PolyDetailsGUI struct {
 	Traces      []*Trace           `json:"traces"`
 	Commits     []*ptypes.Commit   `json:"commits"`
 	OtherHashes []string           `json:"otherHashes"`
+	TileSize    int                `json:"tileSize"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -987,6 +988,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		LeftStatus: exp.Classification(test, left).String(),
 		Params:     []*PerParamCompare{},
 		Traces:     []*Trace{},
+		TileSize:   len(tile.Commits),
 	}
 
 	topParamSet := map[string][]string{}
