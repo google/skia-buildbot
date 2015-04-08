@@ -147,7 +147,7 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	_, hasSourceType := q["source_type"]
 	sumSlice := []*summary.Summary{}
-	if r.FormValue("include") == "false" && r.FormValue("head") == "false" && len(q) == 1 && hasSourceType {
+	if r.FormValue("include") == "false" && r.FormValue("head") == "true" && len(q) == 1 && hasSourceType {
 		sumMap := summaries.Get()
 		corpus := q["source_type"]
 		for _, s := range sumMap {

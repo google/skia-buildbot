@@ -47,7 +47,7 @@ func New(storages *storage.Storage, tallies *tally.Tallies) (*Summaries, error) 
 	}
 
 	var err error
-	s.summaries, err = s.CalcSummaries(nil, "", false, false)
+	s.summaries, err = s.CalcSummaries(nil, "", false, true)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to calculate summaries in New: %s", err)
 	}
@@ -55,7 +55,7 @@ func New(storages *storage.Storage, tallies *tally.Tallies) (*Summaries, error) 
 	// TODO(jcgregorio) Move to a channel for tallies and then combine
 	// this and the expStore handling into a single switch statement.
 	tallies.OnChange(func() {
-		summaries, err := s.CalcSummaries(nil, "", false, false)
+		summaries, err := s.CalcSummaries(nil, "", false, true)
 		if err != nil {
 			glog.Errorf("Failed to refresh summaries: %s", err)
 			return
@@ -70,7 +70,7 @@ func New(storages *storage.Storage, tallies *tally.Tallies) (*Summaries, error) 
 		for {
 			testNames := <-ch
 			glog.Info("Updating summaries after expectations change.")
-			partialSummaries, err := s.CalcSummaries(testNames, "", false, false)
+			partialSummaries, err := s.CalcSummaries(testNames, "", false, true)
 			if err != nil {
 				glog.Errorf("Failed to refresh summaries: %s", err)
 				continue
@@ -92,19 +92,11 @@ func (s *Summaries) Get() map[string]*Summary {
 	return s.summaries
 }
 
-// SortableTrace is used to hold traces, along with their ids, for sorting.
-type SortableTrace struct {
+// TraceID is used to hold traces, along with their ids.
+type TraceID struct {
 	id string
 	tr types.Trace
 }
-
-type SortableTraceSlice []SortableTrace
-
-func (p SortableTraceSlice) Len() int { return len(p) }
-func (p SortableTraceSlice) Less(i, j int) bool {
-	return p[i].tr.Params()[gtypes.PRIMARY_KEY_FIELD] < p[j].tr.Params()[gtypes.PRIMARY_KEY_FIELD]
-}
-func (p SortableTraceSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // CalcSummaries returns a Summary for each test that matches the given input filters.
 //
@@ -112,9 +104,11 @@ func (p SortableTraceSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 //   If not nil or empty then restrict the results to only tests that appear in this slice.
 // query
 //   URL encoded paramset to use for filtering.
-// include
+// includeIgnores
 //   Boolean, if true then include all digests in the results, including ones normally hidden
 //   by the ignores list.
+// head
+//   Only consider digests at head if true.
 //
 func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnores bool, head bool) (map[string]*Summary, error) {
 	defer timer.New("CalcSummaries").Stop()
@@ -129,6 +123,8 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 		return nil, fmt.Errorf("Failed to parse Query in CalcSummaries: %s", err)
 	}
 
+	// Decide the set of ignore filters we are using.
+	t := timer.New("Gather Ignores")
 	ignores := []url.Values{}
 	if !includeIgnores {
 		allIgnores, err := s.storages.IgnoreStore.List()
@@ -140,16 +136,8 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 			ignores = append(ignores, q)
 		}
 	}
-	glog.Infof("%#v", ignores)
-	// The corpus each test belongs to.
-	corpus := map[string]string{}
-	for _, tr := range tile.Traces {
-		if test, ok := tr.Params()[gtypes.PRIMARY_KEY_FIELD]; ok {
-			if corpusName, ok := tr.Params()["source_type"]; ok {
-				corpus[test] = corpusName
-			}
-		}
-	}
+	t.Stop()
+
 	ret := map[string]*Summary{}
 
 	e, err := s.storages.ExpectationsStore.Get()
@@ -157,61 +145,62 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}
 
-	// Filter the traces, then sort and sum.
-	filtered := []SortableTrace{}
+	// Filter down to just the traces we are interested in, based on query and ignores.
+	filtered := map[string][]*TraceID{}
+	t = timer.New("Filter Traces")
 	for id, tr := range tile.Traces {
 		name := tr.Params()[gtypes.PRIMARY_KEY_FIELD]
 		if len(testNames) > 0 && !util.In(name, testNames) {
 			continue
 		}
-		if _, ok := corpus[name]; !ok {
-			continue
-		}
 		if types.MatchesWithIgnores(tr, q, ignores...) {
-			filtered = append(filtered, SortableTrace{
-				id: id,
-				tr: tr,
-			})
+			if slice, ok := filtered[name]; ok {
+				filtered[name] = append(slice, &TraceID{tr: tr, id: id})
+			} else {
+				filtered[name] = []*TraceID{&TraceID{tr: tr, id: id}}
+			}
 		}
 	}
-	glog.Infof("Found %d matches", len(filtered))
-	sort.Sort(SortableTraceSlice(filtered))
+	t.Stop()
+
 	traceTally := s.tallies.ByTrace()
 
+	// Now create summaries for each test using the filtered set of traces.
+	t = timer.New("Tally up the filtered traces")
 	lastCommitIndex := tile.LastCommitIndex()
-	lastTest := ""
-	digests := map[string]bool{}
-	for _, st := range filtered {
-		if st.tr.Params()[gtypes.PRIMARY_KEY_FIELD] != lastTest {
-			if lastTest != "" {
-				ret[lastTest] = makeSummary(lastTest, e, s.storages.DiffStore, corpus[lastTest], util.KeysOfStringSet(digests))
-				lastTest = st.tr.Params()[gtypes.PRIMARY_KEY_FIELD]
-				digests = map[string]bool{}
-			}
-			lastTest = st.tr.Params()[gtypes.PRIMARY_KEY_FIELD]
-		}
-		if head {
-			for i := lastCommitIndex; i >= 0; i-- {
-				if st.tr.IsMissing(i) {
-					continue
-				} else {
-					digests[st.tr.(*types.GoldenTrace).Values[i]] = true
-					break
+	for name, traces := range filtered {
+		digests := map[string]bool{}
+		corpus := ""
+		for _, trid := range traces {
+			corpus = trid.tr.Params()["source_type"]
+			if head {
+				// Find the last non-missing value in the trace.
+				for i := lastCommitIndex; i >= 0; i-- {
+					if trid.tr.IsMissing(i) {
+						continue
+					} else {
+						digests[trid.tr.(*types.GoldenTrace).Values[i]] = true
+						break
+					}
 				}
-			}
-		} else {
-			if t, ok := traceTally[st.id]; !ok {
-				continue
 			} else {
-				for k, _ := range *t {
-					digests[k] = true
+				// Use the traceTally if available, otherwise just inspect the trace.
+				if t, ok := traceTally[trid.id]; ok {
+					for k, _ := range *t {
+						digests[k] = true
+					}
+				} else {
+					for i := lastCommitIndex; i >= 0; i-- {
+						if !trid.tr.IsMissing(i) {
+							digests[trid.tr.(*types.GoldenTrace).Values[i]] = true
+						}
+					}
 				}
 			}
 		}
+		ret[name] = makeSummary(name, e, s.storages.DiffStore, corpus, util.KeysOfStringSet(digests))
 	}
-	if lastTest != "" {
-		ret[lastTest] = makeSummary(lastTest, e, s.storages.DiffStore, corpus[lastTest], util.KeysOfStringSet(digests))
-	}
+	t.Stop()
 
 	return ret, nil
 }
