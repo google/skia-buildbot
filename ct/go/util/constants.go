@@ -63,6 +63,7 @@ const (
 	PLATFORM_LINUX   = "Linux"
 
 	// Benchmarks supported by CT.
+	BENCHMARK_DRAW_PROPERTIES   = "draw_properties"
 	BENCHMARK_SKPICTURE_PRINTER = "skpicture_printer"
 	BENCHMARK_RR                = "rasterize_and_record_micro"
 	BENCHMARK_REPAINT           = "repaint"
@@ -136,6 +137,7 @@ var (
 
 	// Information about the different CT benchmarks.
 	BenchmarksToPagesetName = map[string]string{
+		BENCHMARK_DRAW_PROPERTIES:   "DrawPropertiesCTPages",
 		BENCHMARK_SKPICTURE_PRINTER: "SkpicturePrinter",
 		BENCHMARK_RR:                "RasterizeAndRecordMicroCTPages",
 		BENCHMARK_REPAINT:           "RepaintCTPages",

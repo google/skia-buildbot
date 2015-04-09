@@ -37,6 +37,7 @@ PAGESET_TYPES = {
 CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
     'repaint',
     'rasterize_and_record_micro',
+    'draw_properties',
     # 'pixeldiffs',
     # 'smoothness',
     # 'loading_trace',
