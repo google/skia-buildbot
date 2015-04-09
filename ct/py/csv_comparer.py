@@ -178,9 +178,6 @@ class CsvComparer(object):
             except ValueError:
               # We expected only floats, cannot compare strings. Skip field.
               continue
-            if csv1_value < 0 or csv2_value < 0:
-              # If either value is less than 0 then something went wrong, skip.
-              continue
 
             # Update the total in the dict.
             fieldname_values = fieldnames_to_totals.get(

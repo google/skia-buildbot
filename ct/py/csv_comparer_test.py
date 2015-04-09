@@ -101,7 +101,8 @@ class TestCsvComparer(unittest.TestCase):
         skia_hash='tuvwxyz1234567',
     )
     comparer.Compare()
-    self._AssertHTMLFiles('keep_outliers', ('fieldname2.html',))
+    self._AssertHTMLFiles('keep_outliers',
+                          ('fieldname2.html', 'fieldname3.html'))
 
 
 if __name__ == '__main__':
