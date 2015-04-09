@@ -20,13 +20,14 @@ import (
 
 // Summary contains rolled up metrics for one test.
 type Summary struct {
-	Name      string `json:"name"`
-	Diameter  int    `json:"diameter"`
-	Pos       int    `json:"pos"`
-	Neg       int    `json:"neg"`
-	Untriaged int    `json:"untriaged"`
-	Num       int    `json:"num"`
-	Corpus    string `json:"corpus"`
+	Name      string   `json:"name"`
+	Diameter  int      `json:"diameter"`
+	Pos       int      `json:"pos"`
+	Neg       int      `json:"neg"`
+	Untriaged int      `json:"untriaged"`
+	UntHashes []string `json:"untHashes"`
+	Num       int      `json:"num"`
+	Corpus    string   `json:"corpus"`
 }
 
 // Summaries contains a Summary for each test.
@@ -211,6 +212,7 @@ func makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffSto
 	neg := 0
 	unt := 0
 	diamDigests := []string{}
+	untHashes := []string{}
 	if expectations, ok := e.Tests[name]; ok {
 		for _, digest := range digests {
 			if dtype, ok := expectations[digest]; ok {
@@ -218,6 +220,7 @@ func makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffSto
 				case gtypes.UNTRIAGED:
 					unt += 1
 					diamDigests = append(diamDigests, digest)
+					untHashes = append(untHashes, digest)
 				case gtypes.NEGATIVE:
 					neg += 1
 				case gtypes.POSITIVE:
@@ -227,13 +230,16 @@ func makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffSto
 			} else {
 				unt += 1
 				diamDigests = append(diamDigests, digest)
+				untHashes = append(untHashes, digest)
 			}
 		}
 	} else {
 		unt += len(digests)
 		diamDigests = digests
+		untHashes = digests
 	}
 	sort.Strings(diamDigests)
+	sort.Strings(untHashes)
 	return &Summary{
 		Name: name,
 		// TODO(jcgregorio) Make diameter faster, and also make the actual diameter
@@ -243,6 +249,7 @@ func makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffSto
 		Pos:       pos,
 		Neg:       neg,
 		Untriaged: unt,
+		UntHashes: untHashes,
 		Num:       pos + neg + unt,
 		Corpus:    corpus,
 	}
