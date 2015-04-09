@@ -326,3 +326,21 @@ server {
     rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
     rewrite ^ https://code.google.com/p/skia/issues/list redirect;
 }
+
+#####   bug.skia.org (REDIRECT)   ###########################
+server {
+    listen 443;
+
+    ssl on;
+
+    server_name bug.skia.org;
+    rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
+    rewrite ^ https://code.google.com/p/skia/issues/list redirect;
+}
+
+server {
+    listen 80;
+    server_name bug.skia.org;
+    rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
+    rewrite ^ https://code.google.com/p/skia/issues/list redirect;
+}
