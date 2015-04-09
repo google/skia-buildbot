@@ -65,7 +65,7 @@ func sendEmail(recipients []string) {
 func updateWebappTask() {
 	extraData := map[string]string{
 		"patch_link":         skiaPatchLink,
-		"slave1_output_link": util.WORKER1_LOGSERVER_LINK,
+		"slave1_output_link": util.WORKERS_LOGSERVER_LINK,
 		"html_output_link":   htmlOutputLink,
 	}
 	if err := util.UpdateWebappTask(*gaeTaskID, util.UpdateSkiaCorrectnessTasksWebapp, extraData); err != nil {

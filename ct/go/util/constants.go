@@ -73,7 +73,7 @@ const (
 
 	// Logserver links. These are only accessible from Google corp.
 	MASTER_LOGSERVER_LINK  = "http://build.chromium.org:10115/"
-	WORKER1_LOGSERVER_LINK = "http://build.chromium.org:10116/"
+	WORKERS_LOGSERVER_LINK = "http://build.chromium.org:10116/"
 )
 
 type PagesetTypeInfo struct {
