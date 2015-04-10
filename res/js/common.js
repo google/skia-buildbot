@@ -455,5 +455,48 @@ this.sk = this.sk || function() {
     window.addEventListener('popstate', stateFromURL);
   }
 
+  // Find a "round" number in the given range. Attempts to find numbers which
+  // consist of a multiple of one of the following, order of preference:
+  // [5, 2, 1], followed by zeroes.
+  //
+  // TODO(borenet): It would be nice to support other multiples, for example,
+  // when dealing with time data, it'd be nice to round to seconds, minutes,
+  // hours, days, etc.
+  sk.getRoundNumber = function(min, max, base) {
+    if (min > max) {
+      throw ("sk.getRoundNumber: min > max! (" + min + " > " + max + ")");
+    }
+    var multipleOf = [5, 2, 1];
+
+    var val = (max + min) / 2;
+    // Determine the number of digits left of the decimal.
+    if (!base) {
+      base = 10;
+    }
+    var digits = Math.floor(Math.log(Math.abs(val)) / Math.log(base)) + 1;
+
+    // Start with just the most significant digit and attempt to round it to
+    // multiples of the above numbers, gradually including more digits until
+    // a "round" value is found within the given range.
+    for (var shift = 0; ; shift++) {
+      // Round by shifting digits and dividing by a multiplier, then performing
+      // the round function, then multiplying and shifting back.
+      var shiftDiv = Math.pow(base, (digits - shift));
+      for (var i = 0; i < multipleOf.length; i++) {
+        var f = shiftDiv * multipleOf[i];
+        // Actually perform the rounding. The 10s are included to intentionally
+        // reduce precision to round off floating point error.
+        var newVal = ((Math.round(val / f) * 10) * f) / 10;
+        if (newVal >= min && newVal <= max) {
+          return newVal;
+        }
+      }
+    }
+
+    console.error("sk.getRoundNumber Couldn't find appropriate rounding " +
+                  "value. Returning midpoint.");
+    return val;
+  }
+
   return sk;
 }();

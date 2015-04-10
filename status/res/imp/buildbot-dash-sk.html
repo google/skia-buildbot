@@ -88,6 +88,7 @@
             <bar-chart-sk heading="Step Times" id="step_times_chart"></bar-chart-sk>
             <bar-chart-sk heading="Build Failure Rate" id="build_failure_rate_chart"></bar-chart-sk>
             <bar-chart-sk heading="Step Failure Rate" id="step_failure_rate_chart"></bar-chart-sk>
+            <line-chart-sk heading="Build Duration over Time" id="build_duration_time_chart"></line-chart-sk>
           </div>
         </div>
       </div>
@@ -106,8 +107,9 @@
     Polymer({
       created: function() {
         this.builds = [];
-        this.buildTimes = {};
-        this.stepTimes = {};
+        this.buildData = {};
+        this.buildDurations = {};
+        this.stepDurations = {};
         this.buildResults = {};
         this.stepResults = {};
 
@@ -165,8 +167,9 @@
 
       processBuilds: function() {
         console.time("processBuilds");
-        this.buildTimes = {};
-        this.stepTimes = {};
+        this.buildData = {};
+        this.buildDurations = {};
+        this.stepDurations = {};
         this.buildResults = {};
         this.stepResults = {};
         excludedBots = {};
@@ -179,10 +182,10 @@
           }
 
           var duration = build.Finished - build.Started;
-          if (!this.buildTimes[build.Builder]) {
-            this.buildTimes[build.Builder] = [];
+          if (!this.buildData[build.Builder]) {
+            this.buildData[build.Builder] = [];
           }
-          this.buildTimes[build.Builder].push(duration);
+          this.buildData[build.Builder].push([build.Started, duration]);
 
           if (!this.buildResults[build.Builder]) {
             this.buildResults[build.Builder] = [];
@@ -196,10 +199,10 @@
               continue;
             }
             var stepDuration = step.Finished - step.Started;
-            if (!this.stepTimes[step.Name]) {
-              this.stepTimes[step.Name] = [];
+            if (!this.stepDurations[step.Name]) {
+              this.stepDurations[step.Name] = [];
             }
-            this.stepTimes[step.Name].push(stepDuration);
+            this.stepDurations[step.Name].push(stepDuration);
 
             if (!this.stepResults[step.Name]) {
               this.stepResults[step.Name] = [];
@@ -207,6 +210,17 @@
             this.stepResults[step.Name].push(step.Results == 0 ? 0 : 1);
           }
         }
+
+        for (var builder in this.buildData) {
+          this.buildData[builder].sort(function(a, b) {
+            return b[0] - a[0];
+          });
+          this.buildDurations[builder] = [];
+          for (var i = 0; i < this.buildData[builder].length; i++) {
+            this.buildDurations[builder].push(this.buildData[builder][i][1]);
+          }
+        }
+
         this.excludedBots = [];
         for (var bot in excludedBots) {
           this.excludedBots.push(bot);
@@ -242,7 +256,7 @@
         ];
         this.$.build_times_chart.tooltipFormatter = timeFormatter;
         this.$.build_times_chart.selectedCallback = builderSelectedCallback;
-        this.$.build_times_chart.data = this.generateStats(this.buildTimes, mean);
+        this.$.build_times_chart.data = this.generateStats(this.buildDurations, mean);
 
         // Step times.
         this.$.step_times_chart.colors = this.colors;
@@ -251,7 +265,7 @@
             ["number", "Time (s)"],
         ];
         this.$.step_times_chart.tooltipFormatter = timeFormatter;
-        this.$.step_times_chart.data = this.generateStats(this.stepTimes, mean);
+        this.$.step_times_chart.data = this.generateStats(this.stepDurations, mean);
 
         // Build failure rate.
         this.$.build_failure_rate_chart.caption = "Select a builder to add it as a filter.";
@@ -273,6 +287,12 @@
         this.$.step_failure_rate_chart.tooltipFormatter = failRateFormatter;
         this.$.step_failure_rate_chart.data = this.generateStats(this.stepResults, mean);
 
+        // Build durations over time.
+        this.$.build_duration_time_chart.colors = this.colors;
+        this.$.build_duration_time_chart.data = this.buildData;
+        this.$.build_duration_time_chart.tooltipFormatter = function(series, x, y) {
+          return series + "<br/>" + (new Date(x * 1000)).toString() + "<br/>" + sk.human.strDuration(y);
+        }
         console.timeEnd("drawCharts");
       },
 

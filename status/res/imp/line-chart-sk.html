@@ -1,0 +1,314 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <line-chart-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/line-chart-sk.html" rel="import" />
+
+  Usage:
+
+    <line-chart-sk heading="My Chart"></line-chart-sk>
+    <script>
+      myChart.data = data;
+    </script>
+
+  Properties:
+    heading: string; title of the chart.
+    caption: string; caption or subtitle of the chart.
+    colors: array of strings; colors to use in the chart.
+    data: map of arrays of arrays containing data for each series, eg:
+        {"mySeries": [[0, 42], [1, 7]], ...}
+    selectedCallback: function to call when an item on the chart is selected.
+    tooltipFormatter: function which accepts a series name and x-and y-values
+        and returns a string to be used as a tooltip for the value.
+-->
+<polymer-element name="line-chart-sk">
+  <template>
+    <style>
+    .chart {
+      border: 1px solid #eeeeee;
+      margin: 5px;
+      padding: 10px;
+      font-size: 12px;
+    }
+    h2 {
+      font-size: 16px;
+    }
+    h3 {
+      font-weight: normal;
+      font-size: 1.1em;
+    }
+    .collapseHeader {
+      cursor: pointer;
+    }
+    .collapseBody {
+      padding: 10px;
+    }
+    #tooltip {
+      position: absolute;
+      display: none;
+      background-color: #FFFFFF;
+      border: 1px solid #000000;
+      border-radius: 3px;
+      padding: 5px;
+    }
+    </style>
+    <div class="chart" id="host">
+      <div class="collapseHeader" on-click="{{toggle}}" horizontal layout center>
+        <h2 flex>{{heading}}</h2>
+        <core-icon icon="{{icon}}"></core-icon>
+      </div>
+      <core-collapse id="collapse" on-core-collapse-open="{{collapseOpen}}">
+        <template if="{{caption}}">
+          <h3>{{caption}}</h3>
+        </template>
+        <div class="collapseBody" id="chartcontainer">
+          <div id="message"></div>
+          <div id="tooltip"></div>
+          <svg id="chart_svg" viewBox="0 0 {{chartWidth}} {{chartHeight}}" width="{{chartWidth}}" height="{{chartHeight}}">
+            <template repeat="{{line in gridLines}}">
+              <line
+                x1="{{line.x1|transformX}}"
+                y1="{{line.y1|transformY}}"
+                x2="{{line.x2|transformX}}"
+                y2="{{line.y2|transformY}}"
+                stroke="#EEEEEE"/>
+            </template>
+            <template repeat="{{axis in axes}}">
+              <line
+                x1="{{axis.x1|transformX}}"
+                y1="{{axis.y1|transformY}}"
+                x2="{{axis.x2|transformX}}"
+                y2="{{axis.y2|transformY}}"
+                stroke="#000000"/>
+            </template>
+            <template repeat="{{s, i in series}}">
+              <template repeat="{{pt, j in data[s]}}">
+                <circle
+                    cx="{{pt[0]|transformX}}"
+                    cy="{{pt[1]|transformY}}"
+                    r="3"
+                    stroke="{{i|getColor}}"
+                    stroke-width="1"
+                    fill="{{i|getColor}}"
+                    on-mousemove="{{showTooltip}}"
+                    on-mouseout="{{hideTooltip}}"
+                    series="{{s}}"
+                    x="{{pt[0]}}"
+                    y="{{pt[1]}}"/>
+                <template if="{{j > 0}}">
+                  <line
+                      x1="{{pt[0]|transformX}}"
+                      y1="{{pt[1]|transformY}}"
+                      x2="{{data[s][j-1][0]|transformX}}"
+                      y2="{{data[s][j-1][1]|transformY}}"
+                      stroke="{{i|getColor}}"/>
+                </template>
+              </template>
+            </template>
+          </svg>
+        </div>
+      </core-collapse>
+    </div>
+
+  </template>
+  <script>
+  (function() {
+    var chartsReady = new Promise(function(resolve, reject) {
+      google.setOnLoadCallback(resolve);
+    });
+
+    Polymer({
+      publish: {
+        heading: {
+          value: null,
+          reflect: true,
+        },
+        caption: {
+          value: null,
+          reflect: true,
+        },
+        colors: {
+          value: [],
+          reflect: false,
+        },
+        data: {
+          value: null,
+          reflect: false,
+        },
+        selectedCallback: {
+          value: null,
+          reflect: false,
+        },
+        tooltipFormatter: {
+          value: null,
+          reflect: false,
+        },
+      },
+
+      created: function() {
+        this.defaultColors = [
+          "#FF0000",
+          "#00FF00",
+          "#0000FF",
+        ];
+        this.icon = "arrow-drop-down";
+        this.series = null;
+        this.xMin = 0;
+        this.xMax = 0;
+        this.yMin = 0;
+        this.yMax = 0;
+        this.minChartWidth = 500;
+        this.minChartHeight = 500;
+        this.chartWidth = this.minChartWidth;
+        this.chartHeight = this.minChartHeight;
+        this.margin = 0.05; // Buffer % around the data points in the chart.
+        this.axes = [];
+        this.gridLines = [];
+        this.minGridLineSpacing = 50;
+        this.maxGridLineSpacing = 75;
+      },
+
+      ready: function() {
+        var that = this;
+        window.addEventListener("resize", function() {
+          that.draw();
+        });
+      },
+
+      toggle: function() {
+        this.$.collapse.toggle();
+      },
+
+      transformX: function(x) {
+        return (x - this.xMin) / (this.xMax - this.xMin) * this.chartWidth;
+      },
+
+      transformY: function(y) {
+        return this.chartHeight - (y - this.yMin) / (this.yMax - this.yMin) * this.chartHeight;
+      },
+
+      getColor: function(i) {
+        var colors = this.defaultColors;
+        if (this.colors) {
+          colors = this.colors;
+        }
+        return colors[i % colors.length];
+      },
+
+      colorsChanged: function() {
+        this.draw();
+      },
+
+      dataChanged: function() {
+        this.draw();
+      },
+
+      draw: function() {
+        if (!this.data || this.data.length == 0) {
+          this.$.message.innerHTML = "No data.";
+          return;
+        }
+        this.$.message.innerHTML = "";
+
+        this.chartWidth = Math.max(this.minChartWidth, this.$.host.offsetWidth);
+        this.chartHeight = Math.max(this.minChartHeight, 0.75 * this.chartWidth);
+
+        var series = [];
+        var xMin = Infinity;
+        var xMax = -Infinity;
+        var yMin = 0;
+        var yMax = -Infinity;
+        for (var s in this.data) {
+          series.push(s);
+          for (var i = 0; i < this.data[s].length; i++) {
+            var x = this.data[s][i][0];
+            var y = this.data[s][i][1];
+            if (x < xMin) {
+              xMin = x;
+            }
+            if (x > xMax) {
+              xMax = x;
+            }
+            if (y > yMax) {
+              yMax = y;
+            }
+          }
+        }
+        series.sort();
+        this.series = series;
+        var marginX = (xMax - xMin) * this.margin;
+        var marginY = (yMax - yMin) * this.margin;
+        this.xMin = xMin - marginX;
+        this.xMax = xMax + marginX;
+        this.yMin = yMin - marginY;
+        this.yMax = yMax + marginY;
+
+        var xAxis = {x1: xMin, y1: 0,
+                     x2: xMax, y2: 0};
+        var yAxis = {x1: xMin, y1: 0,
+                     x2: xMin, y2: yMax};
+        this.axes = [xAxis, yAxis];
+
+        // Draw gridlines at appropriate intervals.
+        var minGridSpacingX = (xMax - xMin) * this.minGridLineSpacing / this.chartWidth;
+        var maxGridSpacingX = (xMax - xMin) * this.maxGridLineSpacing / this.chartWidth;
+        var minGridSpacingY = (yMax - yMin) * this.minGridLineSpacing / this.chartHeight;
+        var maxGridSpacingY = (yMax - yMin) * this.maxGridLineSpacing / this.chartHeight;
+        var gridSpacingX = sk.getRoundNumber(minGridSpacingX, maxGridSpacingX);
+        var gridSpacingY = sk.getRoundNumber(minGridSpacingY, maxGridSpacingY);
+
+        var gridLines = [];
+        var gridX = Math.ceil(xMin / gridSpacingX);
+        while (gridX * gridSpacingX <= xMax) {
+          gridLines.push({x1: gridX * gridSpacingX, y1: yMin,
+                          x2: gridX * gridSpacingX, y2: yMax});
+          gridX++;
+        }
+        var gridY = Math.ceil(yMin / gridSpacingY);
+        while (gridY * gridSpacingY <= yMax) {
+          gridLines.push({x1: xMin, y1: gridY * gridSpacingY,
+                          x2: xMax, y2: gridY * gridSpacingY});
+          gridY++;
+        }
+        this.gridLines = gridLines;
+      },
+
+      collapseOpen: function() {
+        if (this.$.collapse.opened) {
+          this.icon = "arrow-drop-up";
+        } else {
+          this.icon = "arrow-drop-down";
+        }
+      },
+
+      showTooltip: function(e, t, s) {
+        this.$.tooltip.style.display = "block";
+        var pos = sk.elePos(s);
+        this.$.tooltip.style.left = -pos.x + e.clientX + "px";
+        this.$.tooltip.style.top = -pos.y + e.clientY + "px";
+        var series = s.getAttribute("series");
+        var x = s.getAttribute("x");
+        var y = s.getAttribute("y");
+        this.$.tooltip.innerHTML = this.formatTooltip(series, x, y);
+      },
+
+      hideTooltip: function(e) {
+        this.$.tooltip.style.display = "none";
+      },
+
+      formatTooltip: function(series, x, y) {
+        if (!!this.tooltipFormatter) {
+          return this.tooltipFormatter(series, x, y);
+        }
+        return columnName + "<br/>" + v.toString();
+      },
+    });
+  })();
+  </script>
+</polymer-element>
