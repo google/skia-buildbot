@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/database"
@@ -9,7 +10,9 @@ import (
 )
 
 type SQLIgnoreStore struct {
-	vdb *database.VersionedDB
+	vdb      *database.VersionedDB
+	mutex    sync.Mutex
+	revision int64
 }
 
 func NewSQLIgnoreStore(vdb *database.VersionedDB) IgnoreStore {
@@ -18,6 +21,12 @@ func NewSQLIgnoreStore(vdb *database.VersionedDB) IgnoreStore {
 	}
 
 	return ret
+}
+
+func (m *SQLIgnoreStore) inc() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.revision += 1
 }
 
 // Create, see IgnoreStore interface.
@@ -34,6 +43,7 @@ func (m *SQLIgnoreStore) Create(rule *IgnoreRule) error {
 		return err
 	}
 	rule.ID = int(createdId)
+	m.inc()
 	return nil
 }
 
@@ -49,6 +59,7 @@ func (m *SQLIgnoreStore) Update(id int, rule *IgnoreRule) error {
 	if err == nil && n == 0 {
 		return fmt.Errorf("Did not find an IgnoreRule with id: %d", id)
 	}
+	m.inc()
 	return nil
 }
 
@@ -88,7 +99,17 @@ func (m *SQLIgnoreStore) Delete(id int, userId string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+	if rowsAffected > 0 {
+		m.inc()
+	}
 	return int(rowsAffected), nil
+}
+
+// Revisison, see IngoreStore interface.
+func (m *SQLIgnoreStore) Revision() int64 {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	return m.revision
 }
 
 // BuildRuleMatcher, see IgnoreStore interface.

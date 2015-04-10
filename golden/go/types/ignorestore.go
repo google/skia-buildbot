@@ -25,6 +25,12 @@ type IgnoreStore interface {
 	// Removes an IgnoreRule from the store.
 	Delete(id int, userId string) (int, error)
 
+	// Revision returns a monotonically increasing int64 that goes up each time
+	// the ignores have been changed. It will not persist nor will it be the same
+	// between different instances of IgnoreStore. I.e. it will probably start at
+	// zero each time an IngoreStore is instantiated.
+	Revision() int64
+
 	// BuildRuleMatcher returns a RuleMatcher based on the current content
 	// of the ignore store.
 	BuildRuleMatcher() (RuleMatcher, error)
@@ -51,15 +57,20 @@ func NewIgnoreRule(name string, expires time.Time, queryStr string, note string)
 
 // MemIgnoreStore is an in-memory implementation of IgnoreStore.
 type MemIgnoreStore struct {
-	rules  []*IgnoreRule
-	mutex  sync.Mutex
-	nextId int
+	rules    []*IgnoreRule
+	mutex    sync.Mutex
+	nextId   int
+	revision int64
 }
 
 func NewMemIgnoreStore() IgnoreStore {
 	return &MemIgnoreStore{
 		rules: []*IgnoreRule{},
 	}
+}
+
+func (m *MemIgnoreStore) inc() {
+	m.revision += 1
 }
 
 // Create, see IgnoreStore interface.
@@ -70,6 +81,7 @@ func (m *MemIgnoreStore) Create(rule *IgnoreRule) error {
 	rule.ID = m.nextId
 	m.nextId++
 	m.rules = append(m.rules, rule)
+	m.inc()
 	return nil
 }
 
@@ -92,6 +104,7 @@ func (m *MemIgnoreStore) Update(id int, updated *IgnoreRule) error {
 	for i, _ := range m.rules {
 		if updated.ID == id {
 			m.rules[i] = updated
+			m.inc()
 			return nil
 		}
 	}
@@ -107,11 +120,19 @@ func (m *MemIgnoreStore) Delete(id int, userId string) (int, error) {
 	for idx, rule := range m.rules {
 		if rule.ID == id {
 			m.rules = append(m.rules[:idx], m.rules[idx+1:]...)
+			m.inc()
 			return 1, nil
 		}
 	}
 
 	return 0, nil
+}
+
+func (m *MemIgnoreStore) Revision() int64 {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	return m.revision
 }
 
 func (m *MemIgnoreStore) expire() {
