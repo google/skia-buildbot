@@ -125,11 +125,12 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 	return workersWithOutputs, nil
 }
 
-// RebootWorkers reboots all CT workers and waits for 4 mins before returning.
+// RebootWorkers reboots all CT workers and waits for few mins before returning.
 func RebootWorkers() {
 	if _, err := SSH("sudo reboot", Slaves, 5*time.Minute); err != nil {
 		glog.Errorf("Got error while rebooting workers: %v", err)
 	}
-	// Sleep for 4 mins for all slaves to come back.
-	time.Sleep(4 * time.Minute)
+	waitTime := 8 * time.Minute
+	glog.Infof("Waiting for %s till all workers come back from reboot", waitTime)
+	time.Sleep(waitTime)
 }
