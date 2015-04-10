@@ -169,19 +169,20 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 // the client.
 func sendErrorResponse(w http.ResponseWriter, errorMsg string, status int) {
 	resp := ResponseEnvelope{nil, &errorMsg, status, nil}
-	sendJson(w, &resp)
+	sendJson(w, &resp, status)
 }
 
 // sendResponse wraps the data of a succesful response in a response envelope
 // and sends it to the client.
 func sendResponse(w http.ResponseWriter, data interface{}, status int, pagination *ResponsePagination) {
 	resp := ResponseEnvelope{&data, nil, status, pagination}
-	sendJson(w, &resp)
+	sendJson(w, &resp, status)
 }
 
 // sendJson serializes the response envelope and sends ito the client.
-func sendJson(w http.ResponseWriter, resp *ResponseEnvelope) {
+func sendJson(w http.ResponseWriter, resp *ResponseEnvelope, status int) {
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

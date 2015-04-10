@@ -81,6 +81,13 @@ func TestMySQLExpectationsStore(t *testing.T) {
 
 // Test against the expectation store interface.
 func testExpectationStore(t *testing.T, store ExpectationsStore) {
+	// Get the initial log size. This is necessary because we
+	// call this function multiple times with the same underlying
+	// SQLExpectationStore.
+	initialLogRecs, initialLogTotal, err := store.QueryLog(0, 5)
+	assert.Nil(t, err)
+	initialLogRecsLen := len(initialLogRecs)
+
 	TEST_1, TEST_2 := "test1", "test2"
 
 	// digests
@@ -97,7 +104,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore) {
 			DIGEST_22: types.NEGATIVE,
 		},
 	}
-	err := store.AddChange(newExps, "user-0")
+	err = store.AddChange(newExps, "user-0")
 	assert.Nil(t, err)
 
 	foundExps, err := store.Get()
@@ -145,4 +152,15 @@ func testExpectationStore(t *testing.T, store ExpectationsStore) {
 	foundExps, err = store.Get()
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(foundExps.Tests))
+
+	// Make sure we added the correct number of triage log entries.
+	logEntries, total, err := store.QueryLog(0, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 2+initialLogTotal, total)
+	assert.Equal(t, 2+initialLogRecsLen, len(logEntries))
+
+	logEntries, total, err = store.QueryLog(100, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 2+initialLogTotal, total)
+	assert.Equal(t, 0, len(logEntries))
 }

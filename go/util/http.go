@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"runtime"
+	"strconv"
 	"time"
 
 	// Below is a port of the exponential backoff implementation from
@@ -150,7 +152,6 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 // ReportError formats an HTTP error response and also logs the detailed error message.
 func ReportError(w http.ResponseWriter, r *http.Request, err error, message string) {
 	glog.Errorln(message, err)
-	w.Header().Set("Content-Type", "text/plain")
 	http.Error(w, fmt.Sprintf("%s %s", message, err), 500)
 }
 
@@ -206,4 +207,42 @@ func MakeResourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Re
 		w.Header().Add("Cache-Control", string(300))
 		fileServer.ServeHTTP(w, r)
 	}
+}
+
+// PaginationParams is helper function to extract pagination parameters from a
+// URL query string. It assumes that 'offset' and 'size' are the query parameters
+// used for pagination. It parses the values and returns an error if they are
+// not integers. If the params are not set the defaults are proviced.
+// Further it ensures that size is never above max size.
+func PaginationParams(query url.Values, defaultOffset, defaultSize, maxSize int) (int, int, error) {
+	size, err := getPositiveInt(query, "size", defaultSize)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	offset, err := getPositiveInt(query, "offset", defaultOffset)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return offset, MinInt(size, maxSize), nil
+}
+
+// getPositiveInt parses the param in query and ensures it is >= 0 using
+// default value when necessary.
+func getPositiveInt(query url.Values, param string, defaultVal int) (int, error) {
+	var val int
+	var err error
+	if valStr := query.Get(param); valStr == "" {
+		return defaultVal, nil
+	} else {
+		val, err = strconv.Atoi(valStr)
+		if err != nil {
+			return 0, err
+		}
+	}
+	if val < 0 {
+		return defaultVal, nil
+	}
+	return val, nil
 }

@@ -161,6 +161,46 @@ func (e *SQLExpectationsStore) Changes() <-chan []string {
 	return nil
 }
 
+// See ExpectationsStore interface.
+func (m *SQLExpectationsStore) QueryLog(offset, size int) ([]*TriageLogEntry, int, error) {
+	const stmtList = `SELECT ec.userid, ec.ts, count(*)
+					  FROM exp_change AS ec
+						LEFT OUTER JOIN exp_test_change AS tc
+							ON ec.id=tc.changeid
+					  GROUP BY ec.id ORDER BY ec.ts DESC
+					  LIMIT ?, ?`
+
+	const stmtTotal = `SELECT count(*) FROM exp_change`
+
+	// Get the total number of records.
+	row := m.vdb.DB.QueryRow(stmtTotal)
+	var total int
+	if err := row.Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	if total == 0 {
+		return []*TriageLogEntry{}, 0, nil
+	}
+
+	// Fetch the records we are interested in.
+	rows, err := m.vdb.DB.Query(stmtList, offset, size)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer util.Close(rows)
+
+	result := make([]*TriageLogEntry, 0, size)
+	for rows.Next() {
+		entry := &TriageLogEntry{}
+		if err = rows.Scan(&entry.Name, &entry.TS, &entry.ChangeCount); err != nil {
+			return nil, 0, err
+		}
+		result = append(result, entry)
+	}
+	return result, total, nil
+}
+
 // Wraps around an ExpectationsStore and caches the expectations using
 // MemExpecationsStore.
 type CachingExpectationStore struct {
@@ -212,4 +252,9 @@ func (c *CachingExpectationStore) RemoveChange(changedDigests map[string][]strin
 // See ExpectationsStore interface.
 func (c *CachingExpectationStore) Changes() <-chan []string {
 	return c.cache.Changes()
+}
+
+// See ExpectationsStore interface.
+func (c *CachingExpectationStore) QueryLog(offset, size int) ([]*TriageLogEntry, int, error) {
+	return c.store.QueryLog(offset, size)
 }

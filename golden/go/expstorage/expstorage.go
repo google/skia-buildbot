@@ -106,11 +106,6 @@ func subtract(expA, expB *Expectations, exclude map[string]types.TestClassificat
 	}
 }
 
-// ------------  Interface to store expectations
-
-// TODO(stephana): Add RemoveChange to allow the removal of
-// tests/digests from the expectations.
-
 // Defines the storage interface for expectations.
 type ExpectationsStore interface {
 	// Get the current classifications for image digests. The keys of the
@@ -129,6 +124,19 @@ type ExpectationsStore interface {
 	// Changes returns a receive-only channel that will provide a list of test
 	// names every time expectations are updated.
 	Changes() <-chan []string
+
+	// QueryLog allows to paginate through the changes in the expecations.
+	QueryLog(offset, size int) ([]*TriageLogEntry, int, error)
+}
+
+// TODO(stephana): Expand the TriageLogEntry with change id and the
+// map of changed digests and their labels to support undo functionality.
+
+// TriageLogEntry represents one change in the expectation store.
+type TriageLogEntry struct {
+	Name        string `json:"name"`
+	TS          int64  `json:"ts"`
+	ChangeCount int    `json:"changeCount"`
 }
 
 // changesSlice is a slice of channels.
@@ -226,10 +234,17 @@ func (m *MemExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 	return nil
 }
 
+// See ExpectationsStore interface.
 func (m *MemExpectationsStore) Changes() <-chan []string {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	ch := make(chan []string)
 	m.changes = append(m.changes, ch)
 	return ch
+}
+
+// See ExpectationsStore interface.
+func (m *MemExpectationsStore) QueryLog(offset, size int) ([]*TriageLogEntry, int, error) {
+	glog.Fatal("MemExpectation store does not support querying the logs.")
+	return nil, 0, nil
 }

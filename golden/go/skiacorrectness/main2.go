@@ -20,10 +20,19 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
+)
+
+const (
+	// Default page size used for pagination.
+	DEFAULT_PAGE_SIZE = 20
+
+	// Maximum page size used for pagination.
+	MAX_PAGE_SIZE = 100
 )
 
 var (
@@ -437,63 +446,30 @@ func polyTriageLogView(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO(stephana): Refactor when moving to actual log entries.
-type GUITriageLogEntry struct {
-	Name        string `json:"name"`
-	TS          int64  `json:"ts"`
-	ChangeCount int    `json:"changeCount"`
-}
-
 // polyTriageLogHandler returns the entries in the triagelog paginated
 // in reverse chronological order.
 func polyTriageLogHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO(stephana): Replace the mock data below with the actual triage log
-	// data.
-	logEntries := make([]interface{}, 100)
-	defaultSize := 10
-	maxSize := 20
+	// Get the pagination params.
+	var logEntries []*expstorage.TriageLogEntry
+	var total int
 
-	now := time.Now()
-	for idx := range logEntries {
-		logEntries[idx] = &GUITriageLogEntry{
-			Name:        fmt.Sprintf("John Doe %d", idx),
-			TS:          now.Add(time.Duration(idx) * time.Minute).Unix(),
-			ChangeCount: 10 + idx,
-		}
+	offset, size, err := util.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	if err == nil {
+		logEntries, total, err = storages.ExpectationsStore.QueryLog(offset, size)
 	}
 
-	total := len(logEntries)
-	var size int
-	var offset int
-	var err error
-	query := r.URL.Query()
-	size, err = strconv.Atoi(query.Get("size"))
 	if err != nil {
-		size = defaultSize
-	}
-	offset, err = strconv.Atoi(query.Get("offset"))
-	if err != nil {
-		offset = 0
+		util.ReportError(w, r, err, "Unable to retrieve triage log.")
+		return
 	}
 
-	if size < 1 {
-		size = 1
-	} else if size > maxSize {
-		size = maxSize
-	}
-
-	if (offset < 0) || (offset >= total) {
-		offset = 0
-	}
-
-	result := logEntries[offset : offset+size]
 	pagination := &ResponsePagination{
 		Offset: offset,
 		Size:   size,
 		Total:  total,
 	}
 
-	sendResponse(w, result, http.StatusOK, pagination)
+	sendResponse(w, logEntries, http.StatusOK, pagination)
 }
 
 // PolyTestRequest is the POST'd request body handled by polyTestHandler.

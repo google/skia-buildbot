@@ -1,70 +1,84 @@
+<!-- The <triagelog-sk> custom element declaration.
 
+Shows a listing of expectation changes in reverse
+chronological order.
 
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+
+-->
 <polymer-element name="triagelog-sk">
   <template>
     <style>
+      .nameHeader,
+      .dateTimeHeader,
+      .changesHeader {
+        font-weight: bold;
+      }
 
-    .nameHeader, .dateTimeHeader, .changesHeader {
-      font-weight: bold;
-    }
+      .nameHeader,
+      .nameValue {
+        width: 30em;
+      }
 
-    .nameHeader, .nameValue {
-    	width: 30em;
-    }
+      .dateTimeHeader,
+      .dateTimeValue {
+        width: 30em;
+      }
 
-    .dateTimeHeader, .dateTimeValue {
-    	width: 30em;
-    }
+      .changesHeader,
+      .changesValue {
+        width: 20em;
+      }
 
-    .changesHeader, .changesValue {
-      width: 20em;
-    }
+      .headerContainer {
+        padding-top: 2em;
+      }
 
-    .headerContainer {
-      padding-top: 2em;
-    }
-
-    .tableRow {
-      display: flex;
-      flex-direction: row;
-      padding-bottom: .5em;
-    }
-
+      .tableRow {
+        display: flex;
+        flex-direction: row;
+        padding-bottom: .5em;
+      }
     </style>
 
     <paging-sk pagination="{{pagination}}" on-pagechange="{{pageChangedHandler}}"></paging-sk>
 
     <div class="tableRow headerContainer">
-       <div class="dateTimeHeader">Date/Time</div>
-       <div class="nameHeader">Name</div>
-       <div class="changesHeader">#Changes</div>
+      <div class="dateTimeHeader">Date/Time</div>
+      <div class="nameHeader">Name</div>
+      <div class="changesHeader">#Changes</div>
     </div>
 
     <div vertical layout>
-    	<template repeat="{{entry in logEntries}}">
+      <template repeat="{{entry in logEntries}}">
         <div class="tableRow">
-          <div class="dateTimeValue">{{entry.ts}}</div>
+          <div class="dateTimeValue">{{entry.ts | toLocalDate}}</div>
           <div class="nameValue">{{entry.name}}</div>
           <div class="changesValue">{{entry.changeCount}}</div>
         </div>
-    	</template>
+      </template>
     </div>
-	<paper-toast id="toast" duration="15000">
-    <div class="retryLink" on-tap="{{reload}}">Reload</div>
-  </paper-toast>
-
-
+    <paper-toast id="toast" duration="15000">
+      <div on-tap="{{reload}}">Reload</div>
+    </paper-toast>
   </template>
+
   <script>
-  	Polymer('triagelog-sk', {
-  		ready: function() {
-        var that = this;
+    Polymer('triagelog-sk', {
+      ready: function() {
         this.pagination = null;
 
         // Set up the paging change handler and load the data.
         this.pageChangedHandler = this.reload.bind(this);
         this.reload();
-  		},
+      },
 
       // Load or reload the listing.
       reload: function() {
@@ -73,21 +87,24 @@
         if (this.pagination !== null) {
           URL += '?' + sk.query.fromObject({
             offset: this.pagination.offset,
-            size: this.paginationsize,
+            size: this.pagination.size
           });
         }
 
         sk.get(URL).then(JSON.parse).then(function(json) {
-              that.logEntries = json.data;
-              that.pagination = json.pagination;
-          }).catch(function(errorMessage) {
-              console.log("ERROR:", errorMessage);
-              var t = that.$.toast;
-              t.text = errorMessage;
-              t.show();
-          });
+          that.logEntries = json.data;
+          that.pagination = json.pagination;
+        }).catch(function(errorMessage) {
+          var t = that.$.toast;
+          t.text = json.err;
+          t.show();
+        });
+      },
+
+      toLocalDate: function(timeStampMS) {
+        return (new Date(timeStampMS)).toLocaleString();
       }
-  	});
+    });
   </script>
 </polymer-element>
 
