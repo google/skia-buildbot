@@ -1,6 +1,7 @@
 package types
 
 import (
+	"net/url"
 	"testing"
 	"time"
 
@@ -107,4 +108,19 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(allRules))
 	assert.Equal(t, 9, store.Revision())
+}
+
+func TestToQuery(t *testing.T) {
+	queries, err := ToQuery([]*IgnoreRule{})
+	assert.Nil(t, err)
+	assert.Len(t, queries, 0)
+
+	r1 := NewIgnoreRule("jon@example.com", time.Now().Add(time.Hour), "config=gpu", "reason")
+	queries, err = ToQuery([]*IgnoreRule{r1})
+	assert.Nil(t, err)
+	assert.Equal(t, queries[0], url.Values{"config": []string{"gpu"}})
+
+	r1 = NewIgnoreRule("jon@example.com", time.Now().Add(time.Hour), "bad=%", "reason")
+	queries, err = ToQuery([]*IgnoreRule{r1})
+	assert.NotNil(t, err)
 }
