@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -28,6 +29,7 @@ type Storage struct {
 	// Internal variables used to cache trimmed tiles.
 	lastTrimmedTile *ptypes.Tile
 	lastBaseTile    *ptypes.Tile
+	mutex           sync.Mutex
 }
 
 // GetTileStreamNow is a utility function that reads tiles from the given
@@ -86,6 +88,9 @@ func (s *Storage) GetLastTileTrimmed() (*ptypes.Tile, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 
 	if s.NCommits <= 0 {
 		return tile, err
