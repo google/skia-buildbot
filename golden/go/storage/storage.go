@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
-	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/ignore"
 	ptypes "go.skia.org/infra/perf/go/types"
 )
 
@@ -18,7 +18,7 @@ import (
 type Storage struct {
 	DiffStore         diff.DiffStore
 	ExpectationsStore expstorage.ExpectationsStore
-	IgnoreStore       types.IgnoreStore
+	IgnoreStore       ignore.IgnoreStore
 	TileStore         ptypes.TileStore
 	DigestStore       digeststore.DigestStore
 

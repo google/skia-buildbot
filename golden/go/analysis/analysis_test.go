@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
+	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
@@ -82,7 +83,7 @@ func TestGetListTestDetails(t *testing.T) {
 	storages := &storage.Storage{
 		DiffStore:         mocks.NewMockDiffStore(),
 		ExpectationsStore: expstorage.NewMemExpectationsStore(),
-		IgnoreStore:       types.NewMemIgnoreStore(),
+		IgnoreStore:       ignore.NewMemIgnoreStore(),
 		TileStore:         mocks.NewMockTileStore(t, digests, params, commits),
 	}
 
@@ -181,7 +182,7 @@ func TestAgainstLiveData(t *testing.T) {
 		DiffStore:         mocks.NewMockDiffStore(),
 		ExpectationsStore: expstorage.NewMemExpectationsStore(),
 		TileStore:         mocks.NewMockTileStoreFromJson(t, TEST_DATA_PATH),
-		IgnoreStore:       types.NewMemIgnoreStore(),
+		IgnoreStore:       ignore.NewMemIgnoreStore(),
 	}
 
 	timeBetweenPolls := 10 * time.Hour

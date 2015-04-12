@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
@@ -198,11 +199,11 @@ func polyTestStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// polyIgnoresJSONHandler returns the current ignore rules in JSON format.
+// polyIgnoresJSONHandler returns the current ignore rules in JSON f ormat.
 func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	ignores := []*types.IgnoreRule{}
+	ignores := []*ignore.IgnoreRule{}
 	var err error
 	if *startAnalyzer {
 		ignores, err = analyzer.ListIgnoreRules()
@@ -241,7 +242,7 @@ func polyIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse duration")
 		return
 	}
-	ignoreRule := types.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
+	ignoreRule := ignore.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
@@ -313,7 +314,7 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse duration")
 		return
 	}
-	ignoreRule := types.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
+	ignoreRule := ignore.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to create ignore rule.")
 		return

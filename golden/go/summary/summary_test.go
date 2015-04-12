@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	gtypes "go.skia.org/infra/golden/go/types"
@@ -155,7 +156,7 @@ func TestCalcSummaries(t *testing.T) {
 	storages := &storage.Storage{
 		DiffStore:         MockDiffStore{},
 		ExpectationsStore: expstorage.NewMemExpectationsStore(),
-		IgnoreStore:       gtypes.NewMemIgnoreStore(),
+		IgnoreStore:       ignore.NewMemIgnoreStore(),
 		TileStore:         MockTileStore{Tile: tile},
 	}
 
@@ -173,7 +174,7 @@ func TestCalcSummaries(t *testing.T) {
 	}, "foo@example.com"))
 
 	ta, _ := tally.New(storages)
-	assert.Nil(t, storages.IgnoreStore.Create(&gtypes.IgnoreRule{
+	assert.Nil(t, storages.IgnoreStore.Create(&ignore.IgnoreRule{
 		ID:      1,
 		Name:    "foo",
 		Expires: time.Now().Add(time.Hour),

@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
+	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
@@ -47,7 +48,7 @@ type LabeledTrace struct {
 	Digests     []string
 	Labels      []types.Label
 	Id          int
-	IgnoreRules []*types.IgnoreRule
+	IgnoreRules []*ignore.IgnoreRule
 }
 
 func NewLabeledTrace(params map[string]string, capacity int, traceId int) *LabeledTrace {
@@ -57,7 +58,7 @@ func NewLabeledTrace(params map[string]string, capacity int, traceId int) *Label
 		Digests:     make([]string, 0, capacity),
 		Labels:      make([]types.Label, 0, capacity),
 		Id:          traceId,
-		IgnoreRules: []*types.IgnoreRule{},
+		IgnoreRules: []*ignore.IgnoreRule{},
 	}
 }
 
@@ -69,7 +70,7 @@ func (lt *LabeledTrace) addLabeledDigests(commitIds []int, digests []string, lab
 }
 
 // addIgnoreRules attaches the ignore rules that match his trace.
-func (lt *LabeledTrace) addIgnoreRules(newRules []*types.IgnoreRule) {
+func (lt *LabeledTrace) addIgnoreRules(newRules []*ignore.IgnoreRule) {
 	lt.IgnoreRules = append(lt.IgnoreRules, newRules...)
 }
 
@@ -377,7 +378,7 @@ func (a *Analyzer) GetStatus() *GUIStatus {
 }
 
 // ListIgnoreRules returns all current ignore rules.
-func (a *Analyzer) ListIgnoreRules() ([]*types.IgnoreRule, error) {
+func (a *Analyzer) ListIgnoreRules() ([]*ignore.IgnoreRule, error) {
 	rules, err := a.storages.IgnoreStore.List()
 	if err != nil {
 		return nil, err
@@ -391,7 +392,7 @@ func (a *Analyzer) ListIgnoreRules() ([]*types.IgnoreRule, error) {
 
 // AddIgnoreRule adds a new ignore rule and recalculates the new state of the
 // system.
-func (a *Analyzer) AddIgnoreRule(ignoreRule *types.IgnoreRule) error {
+func (a *Analyzer) AddIgnoreRule(ignoreRule *ignore.IgnoreRule) error {
 	if err := a.storages.IgnoreStore.Create(ignoreRule); err != nil {
 		return err
 	}
@@ -403,7 +404,7 @@ func (a *Analyzer) AddIgnoreRule(ignoreRule *types.IgnoreRule) error {
 
 // UpdateIgnoreRule updates an existing ignore rule and recalculates the new state of the
 // system.
-func (a *Analyzer) UpdateIgnoreRule(ruleId int, ignoreRule *types.IgnoreRule) error {
+func (a *Analyzer) UpdateIgnoreRule(ruleId int, ignoreRule *ignore.IgnoreRule) error {
 	if err := a.storages.IgnoreStore.Update(ruleId, ignoreRule); err != nil {
 		return err
 	}

@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
+	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
@@ -363,7 +364,7 @@ func main() {
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb)),
-		IgnoreStore:       types.NewSQLIgnoreStore(vdb),
+		IgnoreStore:       ignore.NewSQLIgnoreStore(vdb),
 		TileStore:         filetilestore.NewFileTileStore(*tileStoreDir, pconfig.DATASET_GOLD, 2*time.Minute),
 		NCommits:          *nCommits,
 	}
