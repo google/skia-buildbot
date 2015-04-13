@@ -42,6 +42,7 @@
           <div class=headToggle>
             Head <paper-toggle-button id=head checked></paper-toggle-button>
             Unt Only <paper-toggle-button id=untonly checked></paper-toggle-button>
+            Details <paper-toggle-button id=details></paper-toggle-button>
           </div>
         </div>
         <query-dialog-sk id=query src="/2/_/paramset"></query-dialog-sk>
@@ -74,6 +75,7 @@
          include: false,
          head:    true,
          untonly: true,
+         details: false,
        }
 
        function displaySummaries(corpus) {
@@ -91,6 +93,7 @@
            s.query = encodeURIComponent(page.state.query);
            s.include = page.state.include;
            s.head = page.state.head;
+           s.details = page.state.details;
            n+=1;
          });
          if (n==0) {
@@ -106,6 +109,7 @@
          sk.clearChildren($$$('#summaries'));
          $$$('paper-spinner').active = true;
          $$$('#head').checked = page.state.head;
+         $$$('#details').checked = page.state.details;
          sk.get('/2/_/list?'+sk.query.fromObject(page.state)).then(JSON.parse).then(function(json) {
            summaries = json;
            displaySummaries();
@@ -140,6 +144,12 @@
            page.state.untonly = $$$('#untonly').checked;
            displaySummaries();
          });
+
+         $$$('#details').addEventListener('change', function() {
+           page.state.details = $$$('#details').checked;
+           displaySummaries();
+         });
+
        });
      })();
     </script>

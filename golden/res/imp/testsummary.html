@@ -9,11 +9,14 @@
            "name": "01-original",
            "diameter": 123242,
            "untriaged": 2,
-           "num": 2
+           "num": 2,
+           "untHashes": ["ababab...", "2b2b2b2...", ...],
          }
+
     query - paramset in URL query string format.
     include - boolean, include ignores.
     head - boolean, only use digests at head.
+    details - boolean, if true display the details about the untriaged digests.
 
   Events:
   Methods:
@@ -30,20 +33,35 @@
       span.short {
         width: 5em;
       }
+      .detail {
+        margin-left: 3em;
+        padding: 0.5em;
+      }
     </style>
-    <span><b>
-        <a href="/#/triage/{{summary.name}}?head={{head}}">{{summary.name}}</a>
-    </b></span>
-    <!-- <span class=short>{{summary.diameter}}</span> -->
-    <span class=short>
-      <a href="/2/cmp/{{summary.name}}?topQuery={{query}}&topIncludeIgnores={{include}}&leftQuery={{query}}&leftIncludeIgnores={{include}}&head={{head}}">
-        <core-icon icon=apps></core-icon>
-      </a>
-    </span>
-    <span class=short>{{summary.pos}}</span>
-    <span class=short>{{summary.neg}}</span>
-    <span class=short>{{summary.untriaged}}</span>
-    <span class=short>{{summary.num}}</span>
+    <div vertical layout>
+      <div horizontal layout>
+        <span><b> <a href="/#/triage/{{summary.name}}?head={{head}}">{{summary.name}}</a> </b></span>
+        <!-- <span class=short>{{summary.diameter}}</span> -->
+        <span class=short>
+          <a href="/2/cmp/{{summary.name}}?topQuery={{query}}&topIncludeIgnores={{include}}&leftQuery={{query}}&leftIncludeIgnores={{include}}&head={{head}}">
+            <core-icon icon=apps></core-icon>
+          </a>
+        </span>
+        <span class=short>{{summary.pos}}</span>
+        <span class=short>{{summary.neg}}</span>
+        <span class=short>{{summary.untriaged}}</span>
+        <span class=short>{{summary.num}}</span>
+      </div>
+      <div vertical layout>
+        <template if="{{details}}">
+          <template repeat="{{d in summary.untHashes}}">
+            <div class=detail><a
+                href="/2/detail?test={{summary.name}}&digest={{d}}">{{d}}</a>
+            </div>
+          </template>
+        </template>
+      </div>
+    </div>
   </template>
   <script>
     Polymer({
