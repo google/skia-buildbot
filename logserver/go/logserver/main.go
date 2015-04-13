@@ -23,6 +23,43 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	JS_TEMPLATE = `
+		<script type="text/javascript">
+			function refreshPage () {
+				var bodyElem = document.getElementsByTagName("body")[0];
+				var page_y;
+				if (bodyElem.scrollTop + window.innerHeight == bodyElem.scrollHeight) {
+					page_y = "end";
+				} else {
+					page_y = document.getElementsByTagName("body")[0].scrollTop;
+				}
+				window.location.href = window.location.href.split('?')[0] + '?page_y=' + page_y;
+			}
+
+			window.onload = function () {
+				setTimeout(refreshPage, 10000);
+				var req = new XMLHttpRequest();
+				req.onload = function(){
+					document.getElementById('file_content').innerHTML = this.responseText;
+					if ( window.location.href.indexOf('page_y') != -1 ) {
+						var match = window.location.href.split('?')[1].split("&")[0].split("=");
+						var page_y;
+						if (match[1] == "end") {
+							page_y = document.getElementsByTagName("body")[0].scrollHeight;
+						} else {
+							page_y = match[1];
+						}
+						document.getElementsByTagName("body")[0].scrollTop = page_y;
+					}
+				};
+				req.open("get", "%s", true);
+				req.send();
+			}
+		</script>
+`
+)
+
 var (
 	port           = flag.String("port", ":10115", "HTTP service address (e.g., ':10115')")
 	dir            = flag.String("dir", "/tmp/glog", "Directory to serve log files from.")
@@ -37,6 +74,20 @@ var (
 		"If any app's logs for a log level use up more than app_log_threshold then the files with the oldest modified time are deleted till size is less than app_log_threshold - app_log_threshold_buffer.")
 	dirWatchDuration = flag.Duration("dir_watch_duration", 10*time.Second, "How long dir watcher sleeps for before checking the dir.")
 )
+
+func FileServerWrapperHandler(w http.ResponseWriter, r *http.Request) {
+	endpoint := fmt.Sprintf("file_server/%s", r.URL.Path)
+	// Adjust the path if we are dealing with single or multiple directories.
+	for i := 1; i <= strings.Count(r.URL.Path, "/"); i++ {
+		endpoint = "../" + endpoint
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=-1")
+	fmt.Fprintf(w, fmt.Sprintf(JS_TEMPLATE, endpoint))
+	fmt.Fprintf(w, "<pre>")
+	fmt.Fprintf(w, "<div id='file_content'></div>")
+	fmt.Fprintf(w, "</pre>")
+}
 
 // FileServer returns a handler that serves HTTP requests
 // with the contents of the file system rooted at root.
@@ -234,9 +285,6 @@ func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name 
 			w.WriteHeader(http.StatusMovedPermanently)
 			return
 		}
-	}
-
-	if d.IsDir() {
 		glog.Infof("Dir List: %s", name)
 		dirList(w, f)
 		return
@@ -484,6 +532,7 @@ func main() {
 
 	go dirWatcher(*dirWatchDuration, *dir)
 
-	http.Handle("/", http.StripPrefix("/", FileServer(http.Dir(*dir))))
+	http.HandleFunc("/", FileServerWrapperHandler)
+	http.Handle("/file_server/", http.StripPrefix("/file_server/", FileServer(http.Dir(*dir))))
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
