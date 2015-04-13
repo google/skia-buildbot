@@ -555,26 +555,23 @@ type PolyTestGUI struct {
 // otherwise the results will be sorted in terms of ascending N.
 //
 // If head is true then only return digests that appear at head.
-func imgInfo(filter, queryString, testName string, e types.TestClassification, max int, includeIgnores bool, ignores []url.Values, sortAgainstHash bool, dir string, digest string, head bool) ([]*PolyTestImgInfo, int, error) {
+func imgInfo(filter, queryString, testName string, e types.TestClassification, max int, includeIgnores bool, sortAgainstHash bool, dir string, digest string, head bool) ([]*PolyTestImgInfo, int, error) {
 	query, err := url.ParseQuery(queryString)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Failed to parse Query in imgInfo: %s", err)
 	}
 	query[types.PRIMARY_KEY_FIELD] = []string{testName}
-	if includeIgnores {
-		ignores = []url.Values{}
-	}
 
 	t := timer.New("finding digests")
 	digests := map[string]int{}
 	if head {
-		tile, err := storages.GetLastTileTrimmed()
+		tile, err := storages.GetLastTileTrimmed(includeIgnores)
 		if err != nil {
 			return nil, 0, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
 		}
 		lastCommitIndex := tile.LastCommitIndex()
 		for _, tr := range tile.Traces {
-			if ptypes.MatchesWithIgnores(tr, query, ignores...) {
+			if ptypes.Matches(tr, query) {
 				for i := lastCommitIndex; i >= 0; i-- {
 					if tr.IsMissing(i) {
 						continue
@@ -586,7 +583,7 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 			}
 		}
 	} else {
-		digests, err = tallies.ByQuery(query, ignores...)
+		digests, err = tallies.ByQuery(query, includeIgnores)
 		if err != nil {
 			return nil, 0, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
 		}
@@ -693,20 +690,8 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	e := exp.Tests[req.Test]
 
-	ignores := []url.Values{}
-
-	allIgnores, err := storages.IgnoreStore.List()
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to load ignore rules.")
-		return
-	}
-	for _, i := range allIgnores {
-		q, _ := url.ParseQuery(i.Query)
-		ignores = append(ignores, q)
-	}
-
-	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, req.TopN, req.TopIncludeIgnores, ignores, req.Sort == "top", req.Dir, req.Digest, req.Head)
-	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, req.LeftN, req.LeftIncludeIgnores, ignores, req.Sort == "left", req.Dir, req.Digest, req.Head)
+	topDigests, topTotal, err := imgInfo(req.TopFilter, req.TopQuery, req.Test, e, req.TopN, req.TopIncludeIgnores, req.Sort == "top", req.Dir, req.Digest, req.Head)
+	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, req.LeftN, req.LeftIncludeIgnores, req.Sort == "left", req.Dir, req.Digest, req.Head)
 
 	// Extract out string slices of digests to pass to *AbsPath and storages.DiffStore.Get().
 	allDigests := map[string]bool{}
@@ -812,20 +797,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		e := exp.Tests[req.Test]
-		ignores := []url.Values{}
-
-		if req.Include {
-			allIgnores, err := storages.IgnoreStore.List()
-			if err != nil {
-				util.ReportError(w, r, err, "Failed to load ignore rules.")
-				return
-			}
-			for _, i := range allIgnores {
-				q, _ := url.ParseQuery(i.Query)
-				ignores = append(ignores, q)
-			}
-		}
-		ii, _, err := imgInfo(req.Filter, req.Query, req.Test, e, -1, req.Include, ignores, false, "", "", req.Head)
+		ii, _, err := imgInfo(req.Filter, req.Query, req.Test, e, -1, req.Include, false, "", "", req.Head)
 		digests = []string{}
 		for _, d := range ii {
 			digests = append(digests, d.Digest)
@@ -933,7 +905,7 @@ type PolyDetailsGUI struct {
 //     ]
 //   }
 func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
-	tile, err := storages.GetLastTileTrimmed()
+	tile, err := storages.GetLastTileTrimmed(true)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load tile")
 		return
@@ -1064,7 +1036,7 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 }
 
 func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
-	tile, err := storages.GetLastTileTrimmed()
+	tile, err := storages.GetLastTileTrimmed(false)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load tile")
 		return

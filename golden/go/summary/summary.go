@@ -115,7 +115,7 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 	defer timer.New("CalcSummaries").Stop()
 	glog.Infof("CalcSummaries: includeIgnores %v head %v", includeIgnores, head)
 
-	tile, err := s.storages.GetLastTileTrimmed()
+	tile, err := s.storages.GetLastTileTrimmed(includeIgnores)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
@@ -124,21 +124,6 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 		return nil, fmt.Errorf("Failed to parse Query in CalcSummaries: %s", err)
 	}
 
-	// Decide the set of ignore filters we are using.
-	t := timer.New("Gather Ignores")
-	ignores := []url.Values{}
-	if !includeIgnores {
-		allIgnores, err := s.storages.IgnoreStore.List()
-		if err != nil {
-			return nil, fmt.Errorf("Failed to load ignores: %s", err)
-		}
-		for _, i := range allIgnores {
-			q, _ := url.ParseQuery(i.Query)
-			ignores = append(ignores, q)
-		}
-	}
-	t.Stop()
-
 	ret := map[string]*Summary{}
 
 	e, err := s.storages.ExpectationsStore.Get()
@@ -146,15 +131,15 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}
 
-	// Filter down to just the traces we are interested in, based on query and ignores.
+	// Filter down to just the traces we are interested in, based on query.
 	filtered := map[string][]*TraceID{}
-	t = timer.New("Filter Traces")
+	t := timer.New("Filter Traces")
 	for id, tr := range tile.Traces {
 		name := tr.Params()[gtypes.PRIMARY_KEY_FIELD]
 		if len(testNames) > 0 && !util.In(name, testNames) {
 			continue
 		}
-		if types.MatchesWithIgnores(tr, q, ignores...) {
+		if types.Matches(tr, q) {
 			if slice, ok := filtered[name]; ok {
 				filtered[name] = append(slice, &TraceID{tr: tr, id: id})
 			} else {

@@ -158,6 +158,7 @@ func TestCalcSummaries(t *testing.T) {
 		ExpectationsStore: expstorage.NewMemExpectationsStore(),
 		IgnoreStore:       ignore.NewMemIgnoreStore(),
 		TileStore:         MockTileStore{Tile: tile},
+		NCommits:          50,
 	}
 
 	assert.Nil(t, storages.ExpectationsStore.AddChange(map[string]gtypes.TestClassification{
@@ -191,8 +192,8 @@ func TestCalcSummaries(t *testing.T) {
 	assert.Equal(t, 2, len(sum))
 	triageCountsCorrect(t, sum, "foo", 2, 1, 0)
 	triageCountsCorrect(t, sum, "bar", 0, 1, 1)
-	assert.Equal(t, sum["foo"].UntHashes, []string{})
-	assert.Equal(t, sum["bar"].UntHashes, []string{"ggg"})
+	assert.Equal(t, []string{}, sum["foo"].UntHashes)
+	assert.Equal(t, []string{"ggg"}, sum["bar"].UntHashes)
 
 	if sum, err = summaries.CalcSummaries(nil, "source_type=gm", true, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)

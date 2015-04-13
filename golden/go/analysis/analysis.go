@@ -498,7 +498,7 @@ func (a *Analyzer) processTile(useCached bool, reloadRawTile bool) bool {
 		// Either use a tile already in memory or load a new one.
 		var tile *ptypes.Tile
 		if reloadRawTile || (a.lastRawTile == nil) {
-			tile, err = a.storages.GetLastTileTrimmed()
+			tile, err = a.storages.GetLastTileTrimmed(true)
 			if err != nil {
 				glog.Errorf("Error retrieving trimmed tile: %s\n", err)
 				errorTileLoadingCounter.Inc(1)

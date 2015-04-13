@@ -36,7 +36,7 @@ type Tallies struct {
 
 // New creates a new Tallies for the given storage object.
 func New(storages *storage.Storage) (*Tallies, error) {
-	tile, err := storages.GetLastTileTrimmed()
+	tile, err := storages.GetLastTileTrimmed(true)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
@@ -50,7 +50,7 @@ func New(storages *storage.Storage) (*Tallies, error) {
 	}
 	go func() {
 		for _ = range time.Tick(2 * time.Minute) {
-			tile, err := storages.GetLastTileTrimmed()
+			tile, err := storages.GetLastTileTrimmed(true)
 			if err != nil {
 				glog.Errorf("Couldn't retrieve tile: %s", err)
 				continue
@@ -86,20 +86,20 @@ func (t *Tallies) ByTrace() TraceTally {
 }
 
 // ByQuery returns a Tally of all the digests that match the given query.
-func (t *Tallies) ByQuery(query url.Values, ignores ...url.Values) (Tally, error) {
-	tile, err := t.storages.GetLastTileTrimmed()
+func (t *Tallies) ByQuery(query url.Values, includeIgnores bool) (Tally, error) {
+	tile, err := t.storages.GetLastTileTrimmed(includeIgnores)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
-	return tallyBy(tile, t.traceTally, query, ignores...), nil
+	return tallyBy(tile, t.traceTally, query), nil
 
 }
 
 // tallyBy does the actual work of ByQuery.
-func tallyBy(tile *types.Tile, traceTally TraceTally, query url.Values, ignores ...url.Values) Tally {
+func tallyBy(tile *types.Tile, traceTally TraceTally, query url.Values) Tally {
 	ret := Tally{}
 	for k, tr := range tile.Traces {
-		if types.MatchesWithIgnores(tr, query, ignores...) {
+		if types.Matches(tr, query) {
 			if _, ok := traceTally[k]; !ok {
 				continue
 			}

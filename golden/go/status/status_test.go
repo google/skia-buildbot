@@ -53,7 +53,7 @@ func BenchmarkStatusWatcher(b *testing.B) {
 
 	// Load the tile into memory and reset the timer to avoid measuring
 	// disk load time.
-	_, err := storages.GetLastTileTrimmed()
+	_, err := storages.GetLastTileTrimmed(true)
 	assert.Nil(b, err)
 	b.ResetTimer()
 	testStatusWatcher(b, tileStore)
@@ -78,7 +78,7 @@ func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
 		storages.DigestStore.(*MockDigestStore).issueIDs = nil
 
 		assert.False(t, corpStatus.OK)
-		tile, err := storages.GetLastTileTrimmed()
+		tile, err := storages.GetLastTileTrimmed(true)
 		assert.Nil(t, err)
 
 		changes := map[string]types.TestClassification{}
