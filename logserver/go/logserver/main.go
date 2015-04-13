@@ -76,13 +76,15 @@ var (
 )
 
 func FileServerWrapperHandler(w http.ResponseWriter, r *http.Request) {
-	endpoint := fmt.Sprintf("file_server/%s", r.URL.Path)
+	endpoint := fmt.Sprintf("file_server%s", r.URL.Path)
 	// Adjust the path if we are dealing with single or multiple directories.
-	for i := 1; i <= strings.Count(r.URL.Path, "/"); i++ {
+	for i := 1; i < strings.Count(r.URL.Path, "/"); i++ {
 		endpoint = "../" + endpoint
 	}
+	endpoint = fmt.Sprintf("http://%s/%s", r.Host, endpoint)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=-1")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	fmt.Fprintf(w, fmt.Sprintf(JS_TEMPLATE, endpoint))
 	fmt.Fprintf(w, "<pre>")
 	fmt.Fprintf(w, "<div id='file_content'></div>")
@@ -113,6 +115,8 @@ func (f *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = upath
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=-1")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	serveFile(w, r, f.root, path.Clean(upath))
 }
 
@@ -532,7 +536,7 @@ func main() {
 
 	go dirWatcher(*dirWatchDuration, *dir)
 
-	http.HandleFunc("/", FileServerWrapperHandler)
 	http.Handle("/file_server/", http.StripPrefix("/file_server/", FileServer(http.Dir(*dir))))
+	http.HandleFunc("/", FileServerWrapperHandler)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
