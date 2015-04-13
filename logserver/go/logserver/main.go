@@ -40,6 +40,7 @@ const (
 			window.onload = function () {
 				setTimeout(refreshPage, 10000);
 				var req = new XMLHttpRequest();
+				req.withCredentials = true
 				req.onload = function(){
 					document.getElementById('file_content').innerHTML = this.responseText;
 					if ( window.location.href.indexOf('page_y') != -1 ) {
@@ -65,6 +66,7 @@ var (
 	dir            = flag.String("dir", "/tmp/glog", "Directory to serve log files from.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	stateFile      = flag.String("state_file", "/tmp/logserver.state", "File where logserver stores all encountered log files. This ensures that metrics are not duplicated for already processed log files.")
+	allowOrigin    = flag.String("allow_origin", "", "Which site this logserver can share data with.")
 
 	appLogThreshold = flag.Int64(
 		"app_log_threshold", 100*1024*1024,
@@ -84,7 +86,10 @@ func FileServerWrapperHandler(w http.ResponseWriter, r *http.Request) {
 	endpoint = fmt.Sprintf("http://%s/%s", r.Host, endpoint)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=-1")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	if *allowOrigin != "" {
+		w.Header().Set("Access-Control-Allow-Origin", *allowOrigin)
+	}
 	fmt.Fprintf(w, fmt.Sprintf(JS_TEMPLATE, endpoint))
 	fmt.Fprintf(w, "<pre>")
 	fmt.Fprintf(w, "<div id='file_content'></div>")
@@ -116,7 +121,10 @@ func (f *fileHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=-1")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
+	if *allowOrigin != "" {
+		w.Header().Set("Access-Control-Allow-Origin", *allowOrigin)
+	}
 	serveFile(w, r, f.root, path.Clean(upath))
 }
 
