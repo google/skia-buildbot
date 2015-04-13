@@ -369,6 +369,10 @@ func main() {
 		NCommits:          *nCommits,
 	}
 
+	if err := ignore.Init(storages.IgnoreStore); err != nil {
+		glog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
+	}
+
 	// Enable the experimental features.
 	if *startExperimental {
 		tallies, err = tally.New(storages)
