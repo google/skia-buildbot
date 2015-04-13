@@ -18,11 +18,11 @@ GOLD_JS_SOURCE_FILES = app/third_party/bower_components/jquery/dist/jquery.min.j
                        app/third_party/bower_components/angular-route/angular-route.js
 GOLD_SRC_FONTS = app/third_party/bower_components/bootstrap/fonts
 
-default: skiacorrectness
+default: skiacorrectness res/css/core.css core_js elements_html
 
 include ../go/skiaversion/skiaversion.mk
 
-.PHONY: skiacorrectness
+.PHONY: skiacorrectness 
 skiacorrectness: skiaversion
 	go install -v ./go/skiacorrectness
 

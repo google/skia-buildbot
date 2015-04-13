@@ -928,7 +928,6 @@ type PolyDetailsGUI struct {
 //        {
 //          data: {x: 1, y: 1, s: true}, {x: 5, y: 1, s: true},
 //          label: "key1",
-//          _params: {"os: "Android", ...}
 //        },
 //        ...
 //     ]

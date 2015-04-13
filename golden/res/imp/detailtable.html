@@ -22,48 +22,6 @@ attribute is false.
 <polymer-element name="detail-table-sk" attributes="top left test bothcolumns">
   <template>
     <style type="text/css" media="screen">
-      g:hover circle {
-        fill:   #44aa99;
-        stroke: #44aa99;
-      }
-
-      circle.status0 {
-        fill:   #000000;
-        stroke: #000000;
-      }
-      circle.status1 {
-        fill:   #ffffff;
-        stroke: #1B9E77;
-      }
-      circle.status2 {
-        fill:   #ffffff;
-        stroke: #D95F02;
-      }
-      circle.status3 {
-        fill:   #ffffff;
-        stroke: #7570B3;
-      }
-      circle.status4 {
-        fill:   #ffffff;
-        stroke: #E7298A;
-      }
-      circle.status5 {
-        fill:   #ffffff;
-        stroke: #66A61E;
-      }
-      circle.status6 {
-        fill:   #ffffff;
-        stroke: #E6AB02;
-      }
-      circle.status7 {
-        fill:   #ffffff;
-        stroke: #A6761D;
-      }
-      circle.status8 {
-        fill:   #ffffff;
-        stroke: #999999;
-      }
-
       #legend {
         margin-top: 2em;
       }
@@ -73,7 +31,7 @@ attribute is false.
           padding-left: 3em;
       }
 
-      #svg {
+      dots-sk {
         box-shadow: 5px 5px 10px 2px rgba(133,133,133,1);
       }
 
@@ -182,26 +140,7 @@ attribute is false.
             <div horizontal layout>
               <div vertical layout>
                 <paper-input disabled value="" label="Highlighted Trace ID" id="tracename"></paper-input>
-                <svg
-                  id=svg
-                  width="{{(details.tileSize)*10+20}}"
-                  height="{{(details.traces.length+2)*10}}"
-                  viewBox="-1 -1 51 {{details.traces.length+1}}">
-
-                  <template repeat="{{trace in details.traces}}">
-                    <g data-id="{{trace.label}}" stroke="#999" fill="#999" stroke-width="0.2">
-                      <line
-                      x1="{{trace.data[0].x}}"
-                      y1="{{trace.data[0].y}}"
-                      x2="{{trace.data[trace.data.length-1].x}}"
-                      y2="{{trace.data[0].y}}"/>
-                      <template repeat="{{pt in trace.data}}">
-                        <circle cx="{{pt.x}}" cy="{{pt.y}}" r="0.3"
-                        class="status{{pt.s}}"/>
-                      </template>
-                    </g>
-                  </template>
-                </svg>
+                <dots-sk id=dots></dots-sk>
 
                 <table id=legend>
                   <tr><th colspan=3>Legend</th></tr>
@@ -327,47 +266,13 @@ attribute is false.
 
           this.hoverElement = null;
 
-          if (this.$.svg) {
-            this.$.svg.addEventListener('mouseover', function(e) {
-              if (e.target.nodeName == "circle" && that.hoverElement != e.target) {
-                that.hoverElement = e.target;
-                that.$.tracename.value = e.target.parentElement.dataset.id;
-              }
+          if (this.$.dots) {
+            this.$.dots.addEventListener('hover', function(e) {
+              that.$.tracename.value = e.detail;
             });
 
-            this.$.svg.addEventListener('click', function(e) {
-              if (e.target.nodeName == "circle") {
-                // The dots cx value is actually the offset into the list of commits.
-                // The cy is the offset into the list of traces.
-                var x = e.target.cx.baseVal.value;
-                var y = e.target.cy.baseVal.value;
-
-                // Look backwards in the trace for the previous commit with data.
-                var firstCommit = 0;
-                var trace = that.details.traces[y];
-                for (var i=trace.data.length-1; i>=0; i--) {
-                  if (trace.data[i].x == x) {
-                    if (i>0) {
-                      firstCommit = trace.data[i-1].x+1;
-                      break;
-                    }
-                  }
-                }
-
-                // Display all those hashes.
-                that.commitinfo = that.details.commits.slice(firstCommit, x+1);
-                that.commitinfo.reverse();
-
-                // Query the gitiles endpoint for the commit messages.
-                var end = that.details.commits[x].hash;
-                // TODO(jcgregorio) The googlesource.com URL shouldn't be hard coded.
-                var url = "https://skia.googlesource.com/skia/+log/" + end + "~" + that.commitinfo.length + ".." + end + "?format=json";
-                sk.get(url).then(removeSecurityHeader).then(JSON.parse).then(function(json) {
-                  for (var i=0; i<json.log.length; i++) {
-                    that.details.commits[x-i].message = json.log[i].message.slice(0, 40);
-                  }
-                });
-              }
+            this.$.dots.addEventListener('selected', function(e) {
+                that.commitinfo = e.detail;
             });
           }
         },
@@ -382,6 +287,18 @@ attribute is false.
           sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
             that.details = json;
             that.getInProgress = false;
+            that.$.dots.setValue(json);
+            that.$.dots.setCommits(json.commits);
+
+            // Now populate the commit messages.
+            var lastHash = json.commits[json.commits.length-1].hash;
+            var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + json.commits.length + ".." + lastHash + "?format=json";
+            sk.get(url).then(removeSecurityHeader).then(JSON.parse).then(function(json) {
+              var len = that.details.commits.length;
+              for (var i=0; i<json.log.length; i++) {
+                that.details.commits[len-i-1].message = json.log[i].message.slice(0, 40);
+              }
+            });
           });
         },
 

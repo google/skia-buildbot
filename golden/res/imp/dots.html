@@ -1,0 +1,179 @@
+<!-- The <dots-sk> custom element declaration.
+
+  A custom element for displaying a dot chart of digests by trace, such as:
+
+    ooo-o-o-oo•••
+
+
+  Attributes:
+    None.
+
+  Events:
+    selected - Event generated when a dot is clicked.
+      e.details contains a slice of commits that could have
+      made up that dot.
+
+    hover - Event generated when the mouse hovers over a trace.
+      e.details is the trace id.
+
+  Methods:
+    setValue(value) - Where value is an object of the form:
+
+      {
+        tileSize: 50,
+        traces: [
+          {
+            label: "some:trace:id",
+            data: [
+              {
+                x: 2, // Commit index.
+                y: 0, // Trace index.
+                s: 0  // Color code.
+              },
+              { x: 5, y: 0, s: 1 },
+              ...
+            ],
+          },
+          ...
+        ]
+      }
+
+      Where s is a color code, 0 is the target digest, while
+      1-6 indicate unique digests that are different from
+      the target digest. A code of 7 means that there are more
+      than 7 unique digests in the trace and all digests
+      after the first 7 unique digests are represented by
+      this code.
+
+    setCommits(commits) - Where commits is an array of commits:
+
+      [
+        {
+          author: "committer@example.org"
+          commit_time: 1428445634
+          hash: "c654e9016a15985ebeb24f94f819d113ad48a251"
+        },
+        ...
+      ]
+-->
+<polymer-element name="dots-sk">
+  <template>
+    <style type="text/css" media="screen">
+      g:hover circle {
+        fill:   #44aa99;
+        stroke: #44aa99;
+      }
+
+      circle.status0 {
+        fill:   #000000;
+        stroke: #000000;
+      }
+      circle.status1 {
+        fill:   #ffffff;
+        stroke: #1B9E77;
+      }
+      circle.status2 {
+        fill:   #ffffff;
+        stroke: #D95F02;
+      }
+      circle.status3 {
+        fill:   #ffffff;
+        stroke: #7570B3;
+      }
+      circle.status4 {
+        fill:   #ffffff;
+        stroke: #E7298A;
+      }
+      circle.status5 {
+        fill:   #ffffff;
+        stroke: #66A61E;
+      }
+      circle.status6 {
+        fill:   #ffffff;
+        stroke: #E6AB02;
+      }
+      circle.status7 {
+        fill:   #ffffff;
+        stroke: #A6761D;
+      }
+      circle.status8 {
+        fill:   #ffffff;
+        stroke: #999999;
+      }
+    </style>
+    <svg id=dots
+      width="{{(value.tileSize)*10+20}}"
+      height="{{(value.traces.length+2)*10}}"
+      viewBox="-1 -1 {{value.tileSize+1}} {{value.traces.length+1}}">
+
+      <template repeat="{{trace in value.traces}}">
+        <g data-id="{{trace.label}}" stroke="#999" fill="#999" stroke-width="0.2">
+          <line
+          x1="{{trace.data[0].x}}"
+          y1="{{trace.data[0].y}}"
+          x2="{{trace.data[trace.data.length-1].x}}"
+          y2="{{trace.data[0].y}}"/>
+          <template repeat="{{pt in trace.data}}">
+            <circle cx="{{pt.x}}" cy="{{pt.y}}" r="0.3"
+            class="status{{pt.s}}"/>
+          </template>
+        </g>
+      </template>
+    </svg>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        // Keep track of the last element hovered over to reduce the number of
+        // events we generate.
+        this.hoverElement =  null;
+
+        this.value = {};
+        this.commits = [];
+
+        var that = this;
+
+        this.$.dots.addEventListener('mouseover', function(e) {
+          if (e.target.nodeName == "circle" && that.hoverElement != e.target) {
+            that.hoverElement = e.target;
+            that.dispatchEvent(new CustomEvent('hover', {detail: e.target.parentElement.dataset.id}));
+          }
+        });
+
+        this.$.dots.addEventListener('click', function(e) {
+          if (e.target.nodeName == "circle") {
+            // The dots cx value is actually the offset into the list of commits.
+            // The cy is the offset into the list of traces.
+            var x = e.target.cx.baseVal.value;
+            var y = e.target.cy.baseVal.value;
+
+            // Look backwards in the trace for the previous commit with data.
+            var firstCommit = 0;
+            var trace = that.value.traces[y];
+            for (var i=trace.data.length-1; i>=0; i--) {
+              if (trace.data[i].x == x) {
+                if (i>0) {
+                  firstCommit = trace.data[i-1].x+1;
+                  break;
+                }
+              }
+            }
+
+            var commitinfo = that.value.commits.slice(firstCommit, x+1);
+            commitinfo.reverse();
+            that.dispatchEvent(new CustomEvent('selected', {detail: commitinfo}));
+          }
+        });
+      },
+
+      setValue: function(value) {
+        this.value = value;
+      },
+
+      setCommits: function(commits) {
+        this.commits = commits;
+      },
+
+    });
+  </script>
+</polymer-element>
