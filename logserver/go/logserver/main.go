@@ -38,7 +38,7 @@ const (
 			}
 
 			window.onload = function () {
-				setTimeout(refreshPage, 10000);
+				setTimeout(refreshPage, %f);
 				var req = new XMLHttpRequest();
 				req.withCredentials = true
 				req.onload = function(){
@@ -67,6 +67,7 @@ var (
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	stateFile      = flag.String("state_file", "/tmp/logserver.state", "File where logserver stores all encountered log files. This ensures that metrics are not duplicated for already processed log files.")
 	allowOrigin    = flag.String("allow_origin", "", "Which site this logserver can share data with.")
+	reloadDuration = flag.Duration("reload_after", 20*time.Second, "Duration after which the logserver will automatically reload.")
 
 	appLogThreshold = flag.Int64(
 		"app_log_threshold", 100*1024*1024,
@@ -90,7 +91,7 @@ func FileServerWrapperHandler(w http.ResponseWriter, r *http.Request) {
 	if *allowOrigin != "" {
 		w.Header().Set("Access-Control-Allow-Origin", *allowOrigin)
 	}
-	fmt.Fprintf(w, fmt.Sprintf(JS_TEMPLATE, endpoint))
+	fmt.Fprintf(w, fmt.Sprintf(JS_TEMPLATE, (*reloadDuration).Seconds()*1000, endpoint))
 	fmt.Fprintf(w, "<pre>")
 	fmt.Fprintf(w, "<div id='file_content'></div>")
 	fmt.Fprintf(w, "</pre>")
