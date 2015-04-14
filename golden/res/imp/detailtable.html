@@ -206,20 +206,7 @@ attribute is false.
                   </template>
                 </table>
               </div>
-              <div id=commits>
-                <template if="{{commitinfo}}">
-                  <h3>Commits</h3>
-                  <table>
-                  <template repeat="{{c in commitinfo}}">
-                    <tr>
-                      <td>{{c.author}}</td>
-                      <td><a href="https://skia.googlesource.com/skia/+/{{c.hash}}">{{c.hash}}</a></td>
-                      <td>{{c.message}}</td>
-                    </tr>
-                  </template>
-                </table>
-                </template>
-              </div>
+              <commits-sk id=commits></commits-sk>
             </div>
           </td>
           <td class=both></td>
@@ -276,9 +263,6 @@ attribute is false.
             leftStatus: "untriaged",
           };
 
-          // Information about a commit. Displayed when a dot in the graph is clicked.
-          this.commitinfo=[];
-
           this.getInProgress = false;
 
           var that = this;
@@ -309,7 +293,7 @@ attribute is false.
             });
 
             this.$.dots.addEventListener('selected', function(e) {
-                that.commitinfo = e.detail;
+              that.$.commits.setCommitInfo(e.detail);
             });
           }
         },
@@ -324,18 +308,22 @@ attribute is false.
           sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
             that.details = json;
             that.getInProgress = false;
-            that.$.dots.setValue(json);
-            that.$.dots.setCommits(json.commits);
+            if (that.$.dots) {
+              that.$.dots.setValue(json);
+              that.$.dots.setCommits(json.commits);
+            }
 
-            // Now populate the commit messages.
-            var lastHash = json.commits[json.commits.length-1].hash;
-            var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + json.commits.length + ".." + lastHash + "?format=json";
-            sk.get(url).then(removeSecurityHeader).then(JSON.parse).then(function(json) {
-              var len = that.details.commits.length;
-              for (var i=0; i<json.log.length; i++) {
-                that.details.commits[len-i-1].message = json.log[i].message.slice(0, 40);
-              }
-            });
+            if (json.commits) {
+              // Now populate the commit messages.
+              var lastHash = json.commits[json.commits.length-1].hash;
+              var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + json.commits.length + ".." + lastHash + "?format=json";
+              sk.get(url).then(removeSecurityHeader).then(JSON.parse).then(function(json) {
+                var len = that.details.commits.length;
+                for (var i=0; i<json.log.length; i++) {
+                  that.details.commits[len-i-1].message = json.log[i].message.slice(0, 40);
+                }
+              });
+            }
           });
         },
 

@@ -228,7 +228,7 @@ this.sk = this.sk || function() {
    * would return "2m".
    */
   sk.human.diffDate = function(s) {
-    var ms = (s instanceof Number) ? s : Date.parse(s);
+    var ms = (typeof(s) == "number") ? s : Date.parse(s);
     var diff = (ms - Date.now())/1000;
     if (diff < 0) {
       diff = -1.0 * diff;

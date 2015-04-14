@@ -1,0 +1,69 @@
+<!-- The <commits-sk> custom element declaration.
+
+  An element to display information on one or more commits.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    setCommitInfo(commitinfo) - Where commitinfo is an array of objects of the form:
+
+       {
+         author: "foo@example.org"
+         commit_time: 1428574804
+         hash: "d9f8862ab6bed4195cbfe5dda48693e1062b01e2"
+       }
+
+-->
+<polymer-element name="commits-sk">
+  <template>
+    <table>
+      <template repeat="{{c in commitinfo}}">
+        <tr>
+          <td>{{c.author}}</td>
+          <td>{{c.commit_time | humanize}}</td>
+          <td><a href="https://skia.googlesource.com/skia/+/{{c.hash}}">{{c.hash}}</a></td>
+          <td>{{c.message}}</td>
+        </tr>
+      </template>
+    </table>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+      },
+
+      setCommitInfo: function(commitinfo) {
+        this.commitinfo = commitinfo;
+
+        // Populate the commit messages if they aren't already present.
+        if (commitinfo && commitinfo[0].message == undefined) {
+          var that = this;
+          var lastHash = commitinfo[commitinfo.length-1].hash;
+          var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + commitinfo.length + ".." + lastHash + "?format=json";
+          sk.get(url).then(this.removeSecurityHeader).then(JSON.parse).then(function(json) {
+            var len = that.commitinfo.length;
+            for (var i=0; i<json.log.length; i++) {
+              that.commitinfo[len-i-1].message = json.log[i].message.slice(0, 40);
+            }
+          });
+        }
+      },
+
+      // removeSecurityHeader strips the first 4 chars from the input. Needed
+      // since googlesource.com prefixes all JSON responses with )]}' as an
+      // XSS defense.
+      removeSecurityHeader: function(s) {
+        return s.slice(4, s.length);
+      },
+
+      humanize: function(s) {
+        return sk.human.diffDate(s*1000)
+      },
+
+    });
+  </script>
+</polymer-element>
