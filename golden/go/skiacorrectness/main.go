@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
@@ -61,6 +62,11 @@ const (
 	IMAGE_URL_PREFIX = "/img/"
 )
 
+// TODO(stephana): Once the analyzer related code is removed, simplify
+// the ResponseEnvelope and use it solely to wrap JSON arrays.
+// Remove sendResponse and sendErrorResponse in favor of sendJsonResponse
+// and util.ReportError.
+
 // ResponseEnvelope wraps all responses. Some fields might be empty depending
 // on context or whether there was an error or not.
 type ResponseEnvelope struct {
@@ -84,6 +90,7 @@ var (
 	pathToURLConverter analysis.PathToURLConverter
 	tallies            *tally.Tallies
 	summaries          *summary.Summaries
+	statusWatcher      *status.StatusWatcher
 )
 
 // tileCountsHandler handles GET requests for the classification counts over
@@ -384,6 +391,11 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Failed to build summary: %s", err)
 		}
+
+		statusWatcher, err = status.New(storages)
+		if err != nil {
+			glog.Fatalf("Failed to initialize status watcher: %s", err)
+		}
 	}
 
 	// Initialize the Analyzer
@@ -441,6 +453,8 @@ func main() {
 	router.HandleFunc("/2/_/triagelog", polyTriageLogHandler).Methods("GET")
 
 	router.HandleFunc("/2/_/hashes", polyAllHashesHandler).Methods("GET")
+
+	router.HandleFunc("/2/_/status", polyStatusHandler).Methods("GET")
 
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))

@@ -1071,6 +1071,21 @@ func polyAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// polyStatusHandler returns the current status of with respect to
+// HEAD.
+func polyStatusHandler(w http.ResponseWriter, r *http.Request) {
+	sendJsonResponse(w, statusWatcher.GetStatus())
+}
+
+// sendJsonResponse serializes resp to JSON. If an error occurs
+// a text based error code is send to the client.
+func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		util.ReportError(w, nil, err, "Failed to encode result")
+	}
+}
+
 // makeResourceHandler creates a static file handler that sets a caching policy.
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
