@@ -146,11 +146,17 @@ func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
 					startIdx = lastIdx + 1
 				}
 
+				// Get the info about this digest.
+				digestInfo, err := b.storages.GetOrUpdateDigestInfo(testName, digest, tile.Commits[idx])
+				if err != nil {
+					return err
+				}
+
 				// If this digest was first seen outside the current tile
 				// we cannot calculate a blamelist and set the commit range
 				// to nil.
 				var commitRange []int
-				digestInfo := b.storages.DigestStore.GetDigestInfo(testName, digest)
+
 				if digestInfo.First < firstCommit.CommitTime {
 					commitRange = nil
 				} else {

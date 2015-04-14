@@ -169,7 +169,11 @@ func (s *StatusWatcher) calcStatus(tile *ptypes.Tile) error {
 		digest := gTrace.Values[idx]
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 		status := expectations.Classification(testName, digest)
-		digestInfo := s.storages.DigestStore.GetDigestInfo(testName, digest)
+
+		digestInfo, err := s.storages.GetOrUpdateDigestInfo(testName, digest, tile.Commits[idx])
+		if err != nil {
+			return err
+		}
 
 		okByCorpus[corpus] = okByCorpus[corpus] && ((status == types.POSITIVE) ||
 			((status == types.NEGATIVE) && (len(digestInfo.IssueIDs) > 0)))

@@ -156,3 +156,14 @@ func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*ptypes.Tile, error) 
 		return s.lastTrimmedIgnoredTile, nil
 	}
 }
+
+// GetOrUpdateDigestInfo is a helper function that retrieves the DigestInfo for
+// the given test name/digest pair or updates the underlying info if it is not
+// in the digest store yet.
+func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *ptypes.Commit) (*digeststore.DigestInfo, error) {
+	digestInfo, ok := s.DigestStore.GetDigestInfo(testName, digest)
+	if ok {
+		return digestInfo, nil
+	}
+	return s.DigestStore.UpdateDigestTimeStamps(testName, digest, commit)
+}

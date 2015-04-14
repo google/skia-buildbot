@@ -124,6 +124,16 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, 1, len(blameLists["foo"]))
 	assert.Equal(t, 2, len(blameLists["bar"]))
 	assert.Equal(t, []int{1, 0, 0}, blameLists["bar"][DI_7].Freq)
+
+	// Simulate the case where the digest is not found in digest store.
+	storages.DigestStore.(*MockDigestStore).okValue = false
+	assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
+	time.Sleep(10 * time.Millisecond)
+	blameLists, _ = blamer.GetAllBlameLists()
+	assert.Equal(t, 2, len(blameLists))
+	assert.Equal(t, 1, len(blameLists["foo"]))
+	assert.Equal(t, 2, len(blameLists["bar"]))
+	assert.Equal(t, []int{1, 0, 0}, blameLists["bar"][DI_7].Freq)
 }
 
 func BenchmarkBlamer(b *testing.B) {
@@ -151,6 +161,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileStore ptypes.TileStore) {
 		TileStore:         tileStore,
 		DigestStore: &MockDigestStore{
 			firstSeen: time.Now().Unix(),
+			okValue:   true,
 		},
 	}
 
@@ -297,12 +308,19 @@ func forEachTestTraceDo(tile *ptypes.Tile, fn func(string, []string)) {
 type MockDigestStore struct {
 	issueIDs  []int
 	firstSeen int64
+	okValue   bool
 }
 
-func (m *MockDigestStore) GetDigestInfo(testName, digest string) *digeststore.DigestInfo {
+func (m *MockDigestStore) GetDigestInfo(testName, digest string) (*digeststore.DigestInfo, bool) {
 	return &digeststore.DigestInfo{
 		TestName: testName,
 		Digest:   digest,
 		First:    m.firstSeen,
-	}
+	}, m.okValue
+}
+
+func (m *MockDigestStore) UpdateDigestTimeStamps(testName, digest string, commit *ptypes.Commit) (*digeststore.DigestInfo, error) {
+	m.okValue = true
+	ret, _ := m.GetDigestInfo(testName, digest)
+	return ret, nil
 }
