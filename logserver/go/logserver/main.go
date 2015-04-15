@@ -84,7 +84,6 @@ func FileServerWrapperHandler(w http.ResponseWriter, r *http.Request) {
 	for i := 1; i < strings.Count(r.URL.Path, "/"); i++ {
 		endpoint = "../" + endpoint
 	}
-	endpoint = fmt.Sprintf("http://%s/%s", r.Host, endpoint)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=-1")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
