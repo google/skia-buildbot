@@ -42,12 +42,12 @@
         // Populate the commit messages if they aren't already present.
         if (commitinfo && commitinfo[0].message == undefined) {
           var that = this;
-          var lastHash = commitinfo[commitinfo.length-1].hash;
+          var lastHash = commitinfo[0].hash;
           var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + commitinfo.length + ".." + lastHash + "?format=json";
           sk.get(url).then(this.removeSecurityHeader).then(JSON.parse).then(function(json) {
             var len = that.commitinfo.length;
             for (var i=0; i<json.log.length; i++) {
-              that.commitinfo[len-i-1].message = json.log[i].message.slice(0, 40);
+              that.commitinfo[i].message = json.log[i].message.slice(0, 40);
             }
           });
         }
