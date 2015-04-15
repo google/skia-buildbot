@@ -34,7 +34,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 				glog.Error(err)
 				continue
 			}
-			for _, m := range slaves {
+			for masterName, m := range slaves {
 				for _, s := range m {
 					v := int64(0)
 					if s.Connected {
@@ -47,7 +47,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 						if err := am.AddAlert(&alerting.Alert{
 							Name:        fmt.Sprintf("Buildslave %s offline", s.Name),
 							Category:    "Infra",
-							Message:     fmt.Sprintf("Buildslave %s is offline.", s.Name),
+							Message:     fmt.Sprintf("Buildslave %s is not connected to https://uberchromegw.corp.gogle.com/i/%s/buildslaves/%s.", s.Name, masterName, s.Name),
 							Nag:         int64(time.Hour),
 							AutoDismiss: int64(2 * tickInterval),
 							Actions:     actions,
