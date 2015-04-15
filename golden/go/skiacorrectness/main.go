@@ -56,10 +56,14 @@ var (
 	startAnalyzer     = flag.Bool("start_analyzer", true, "Create an instance of the analyzer and start it running.")
 	startExperimental = flag.Bool("start_experimental", true, "Start experimental features.")
 	cpuProfile        = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
+	forceLogin        = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
 )
 
 const (
 	IMAGE_URL_PREFIX = "/img/"
+
+	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
+	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
 // TODO(stephana): Once the analyzer related code is removed, simplify
@@ -420,7 +424,7 @@ func main() {
 
 	// Set up the login related resources.
 	// TODO (stephana): Clean up the URLs so they have the same prefix.
-	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	router.HandleFunc("/rest/logout", login.LogoutHandler)
 	router.HandleFunc("/rest/loginstatus", login.StatusHandler)
 
@@ -460,8 +464,14 @@ func main() {
 	// Everything else is served out of the static directory.
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))
 
-	// Send all requests to the router
-	http.Handle("/", util.LoggingGzipRequestResponse(router))
+	// Add the necessary middleware and have the router handle all requests.
+	// By structuring the middleware this way we only log requests that are
+	// authenticated.
+	rootHandler := util.LoggingGzipRequestResponse(router)
+	if *forceLogin {
+		rootHandler = login.ForceAuth(rootHandler, OAUTH2_CALLBACK_PATH)
+	}
+	http.Handle("/", rootHandler)
 
 	// Start the server
 	glog.Infoln("Serving on http://127.0.0.1" + *port)

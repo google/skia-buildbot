@@ -304,3 +304,26 @@ func GetHttpClient(r *http.Request) *http.Client {
 	}
 	return t.Client()
 }
+
+// ForceAuth is middleware that enforces authentication
+// before the wrapped handler is called. oauthCallbackPath is the
+// URL path that the user is redirected to at the end of the auth flow.
+func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userId := LoggedInAs(r)
+		if userId == "" {
+			// If this is not the oauth callback then redirect.
+			if !strings.HasPrefix(r.URL.Path, oauthCallbackPath) {
+				redirectUrl := LoginURL(w, r)
+				glog.Infof("Redirect URL: %s", redirectUrl)
+				if redirectUrl == "" {
+					util.ReportError(w, r, fmt.Errorf("Unable to get redirect URL."), "Redirect to login failed:")
+					return
+				}
+				http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)
+				return
+			}
+		}
+		h.ServeHTTP(w, r)
+	})
+}
