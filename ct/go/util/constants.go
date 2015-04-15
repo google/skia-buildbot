@@ -11,6 +11,7 @@ const (
 	WORKER_NAME_TEMPLATE     = "build%d-m5"
 	GS_BUCKET_NAME           = "cluster-telemetry"
 	GS_HTTP_LINK             = "https://storage.cloud.google.com/"
+	LOGS_LINK_PREFIX         = "http://chromegw.corp.google.com/i/skia-ct-worker"
 
 	// File names and dir names.
 	TIMESTAMP_FILE_NAME             = "TIMESTAMP"
