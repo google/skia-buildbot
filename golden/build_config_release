@@ -5,6 +5,7 @@ INSTANCE_ID=$2
 # Default values.
 GS_BUCKET="chromium-skia-gm"
 N_COMMITS="50"
+ADD_FLAGS=""
 
 case "$INSTANCE_ID" in
   # prod instance
@@ -31,6 +32,7 @@ case "$INSTANCE_ID" in
   REDIRECT_URL="https://gold-android.skia.org/oauth2callback/"
   GS_BUCKET="skia-android-dm"
   N_COMMITS="200"
+  ADD_FLAGS="--force_login"
   ;;
 
   # experimental blink instance: uses the staging database server for now.
@@ -65,6 +67,7 @@ CORR_SED="$CORR_SED;s#<<REPLACE_DATABASE_NAME>>#$SKIACORRECTNESS_DATABASE_NAME#g
 CORR_SED="$CORR_SED;s#<<REPLACE_REDIRECT_URL>>#$REDIRECT_URL#g"
 CORR_SED="$CORR_SED;s#<<REPLACE_GS_BUCKET>>#$GS_BUCKET#g"
 CORR_SED="$CORR_SED;s#<<REPLACE_N_COMMITS>>#$N_COMMITS#g"
+CORR_SED="$CORR_SED;s#<<REPLACE_ADD_FLAGS>>#$ADD_FLAGS#g"
 
 # Generate the init file for ingest and skiacorrectness.
 sed "$CORR_SED" \
