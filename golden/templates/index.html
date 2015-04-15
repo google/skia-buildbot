@@ -28,6 +28,10 @@
       .headToggle paper-toggle-button {
         margin-right: 2em;
       }
+      #commitdialog {
+        right: 1em;
+        bottom: 1em;
+      }
     </style>
   </head>
   <body>
@@ -59,6 +63,9 @@
         <div id="summaries"></div>
         <paper-spinner active></paper-spinner>
         <paper-toast duration=10000></paper-toast>
+        <paper-dialog id=commitdialog core-transition-bottom heading="Commit(s)" autoCloseDisabled layered=false>
+          <commits-sk id=commitinfo></commits-sk>
+        </paper-dialog>
       </div>
 
     </scaffold-sk>
@@ -66,8 +73,8 @@
     <script type="text/javascript" charset="utf-8">
      (function() {
        var summaries  = [];
-
        var page = {};
+       var LIMIT = 7;
 
        // The current state of the page.
        page.state = {
@@ -83,7 +90,7 @@
          var container = $$$('#summaries');
          sk.clearChildren(container);
          var n = 0;
-         summaries.forEach(function(c) {
+         summaries.forEach(function(c, i) {
            if (page.state.untonly && c.untriaged == 0) {
              return
            }
@@ -94,6 +101,7 @@
            s.include = page.state.include;
            s.head = page.state.head;
            s.details = page.state.details;
+           s.limit = LIMIT;
            n+=1;
          });
          if (n==0) {
@@ -148,6 +156,11 @@
          $$$('#details').addEventListener('change', function() {
            page.state.details = $$$('#details').checked;
            displaySummaries();
+         });
+
+         $$$('#summaries').addEventListener('commit-selected', function(e) {
+           $$$('#commitinfo').setCommitInfo(e.detail);
+           $$$('#commitdialog').open();
          });
 
        });

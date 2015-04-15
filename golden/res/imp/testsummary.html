@@ -17,6 +17,7 @@
     include - boolean, include ignores.
     head - boolean, only use digests at head.
     details - boolean, if true display the details about the untriaged digests.
+    limit - The maximum number of traces and digests to show when displaying details.
 
   Events:
   Methods:
@@ -37,6 +38,18 @@
         margin-left: 3em;
         padding: 0.5em;
       }
+      test-summary-details-sk {
+        box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left: 3em;
+        padding: 1em;
+      }
+      .only {
+        margin-left: 3em;
+        font-weight: bold;
+        padding: 1em;
+      }
     </style>
     <div vertical layout>
       <div horizontal layout>
@@ -54,10 +67,13 @@
       </div>
       <div vertical layout>
         <template if="{{details}}">
-          <template repeat="{{d in summary.untHashes}}">
-            <div class=detail><a
-                href="/2/detail?test={{summary.name}}&digest={{d}}">{{d}}</a>
-            </div>
+          <template repeat="{{d, i in summary.untHashes}}">
+            <template if="{{i<limit}}">
+              <test-summary-details-sk test="{{summary.name}}" digest="{{d}}" limit="{{limit}}"></test-summary-details-sk>
+            </template>
+          </template>
+          <template if="{{summary.untHashes.length>limit}}">
+            <div class=only>Only the first {{limit}} hashes are shown.</only>
           </template>
         </template>
       </div>
@@ -80,6 +96,10 @@
         },
         head: {
           value: true,
+          reflect: true,
+        },
+        limit: {
+          value: 0,
           reflect: true,
         },
       },

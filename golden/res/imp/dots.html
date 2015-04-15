@@ -9,7 +9,7 @@
     None.
 
   Events:
-    selected - Event generated when a dot is clicked.
+    commit-selected - Event generated when a dot is clicked.
       e.details contains a slice of commits that could have
       made up that dot.
 
@@ -161,7 +161,7 @@
 
             var commitinfo = that.value.commits.slice(firstCommit, x+1);
             commitinfo.reverse();
-            that.dispatchEvent(new CustomEvent('selected', {detail: commitinfo}));
+            that.dispatchEvent(new CustomEvent('commit-selected', {detail: commitinfo, "bubbles": true}));
           }
         });
       },

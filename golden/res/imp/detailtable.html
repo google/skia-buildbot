@@ -292,7 +292,7 @@ attribute is false.
               that.$.tracename.value = e.detail;
             });
 
-            this.$.dots.addEventListener('selected', function(e) {
+            this.$.dots.addEventListener('commit-selected', function(e) {
               that.$.commits.setCommitInfo(e.detail);
             });
           }

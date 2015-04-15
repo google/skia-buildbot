@@ -1,0 +1,162 @@
+<!-- The <test-summary-details-sk> custom element declaration.
+
+  Displays the details about all the untriaged digests in one test summary.
+
+  Attributes:
+    test - The name of the test.
+    digest - The digest we are interested in.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+<polymer-element name="test-summary-details-sk">
+  <template>
+    <style type="text/css" media="screen">
+      g:hover circle {
+        fill:   #44aa99;
+        stroke: #44aa99;
+      }
+      circle.status0 {
+        fill:   #000000;
+        stroke: #000000;
+      }
+      circle.status1 {
+        fill:   #ffffff;
+        stroke: #1B9E77;
+      }
+      circle.status2 {
+        fill:   #ffffff;
+        stroke: #D95F02;
+      }
+      circle.status3 {
+        fill:   #ffffff;
+        stroke: #7570B3;
+      }
+      circle.status4 {
+        fill:   #ffffff;
+        stroke: #E7298A;
+      }
+      circle.status5 {
+        fill:   #ffffff;
+        stroke: #66A61E;
+      }
+      circle.status6 {
+        fill:   #ffffff;
+        stroke: #E6AB02;
+      }
+      circle.status7 {
+        fill:   #ffffff;
+        stroke: #A6761D;
+      }
+      circle.status8 {
+        fill:   #ffffff;
+        stroke: #999999;
+      }
+      #legend {
+        margin-left: 5em;
+        margin-bottom: 2em;
+      }
+      dots-sk {
+        display: block;
+      }
+      .more {
+        margin-left: 3em;
+      }
+    </style>
+    <div horizontal layout>
+      <div vertical layout>
+        <a href="/2/detail?test={{test}}&digest={{digest}}">{{digest}}</a>
+        <dots-sk id=dots></dots-sk>
+        <template if="{{isTruncated}}">
+          <div class=more><a href="/2/detail?test={{test}}&digest={{digest}}">(more)</a></div>
+        </template>
+      </div>
+      <table id=legend>
+        <template repeat="{{hash, i in details.otherHashes}}">
+          <tr>
+            <td>
+              <svg width=10 height=10 viewBox="-1 -1 2 2">
+                <circle cx=0 cy=0 r="0.3" class="status{{i+1}}"/>
+              </svg>
+            </td>
+            <td>
+              <template if="{{i<7}}">
+                <a href="/2/detail?test={{test}}&digest={{hash}}">{{hash}}</a>
+              </template>
+              <template if="{{i==7}}">
+                One of many other digests.
+              </template>
+            </td>
+            <td>
+              <template if="{{i<7}}">
+                <a href="/2/diff?test={{test}}&left={{hash}}&top={{digest}}">diff</a>
+              </template>
+            </td>
+          </tr>
+        </template>
+      </table>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        test: {
+          value: "",
+          reflect: true,
+        },
+        digest: {
+          value: "",
+          reflect: true,
+        },
+        limit: {
+          value: 0,
+          reflect: true,
+        },
+      },
+
+      ready: function() {
+        this.details = {};
+        this.isTruncated = false;
+      },
+
+      reloadData: function() {
+        if (this.test == "" || this.digest == "") {
+          return
+        }
+
+        var that = this;
+        var q = '?test=' + this.test + '&top=' + this.digest+ '&left=' + this.digest+ '&graphs=true';
+        sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
+          if (that.limit && that.limit < json.traces.length) {
+            json.traces = json.traces.slice(0, that.limit);
+            that.isTruncated = true;
+          }
+          that.details = json;
+          that.$.dots.setValue(that.details);
+          that.$.dots.setCommits(that.details.commits);
+        });
+      },
+
+      testChanged: function() {
+        this.reloadData();
+      },
+
+      digestChanged: function() {
+        this.reloadData();
+      },
+
+      limitChanged: function() {
+        if (this.details.traces && this.limit < this.details.traces.length) {
+          this.details.traces = this.details.traces.slice(0, this.limit);
+          this.$.dots.setValue(this.details);
+          this.isTruncated = true;
+        } else {
+          this.reloadData();
+        }
+      }
+    });
+  </script>
+</polymer-element>
