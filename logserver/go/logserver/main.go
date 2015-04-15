@@ -29,7 +29,7 @@ const (
 			function refreshPage () {
 				var bodyElem = document.getElementsByTagName("body")[0];
 				var page_y;
-				if (bodyElem.scrollTop + window.innerHeight == bodyElem.scrollHeight) {
+				if (bodyElem.scrollTop + window.innerHeight >= bodyElem.scrollHeight) {
 					page_y = "end";
 				} else {
 					page_y = document.getElementsByTagName("body")[0].scrollTop;
