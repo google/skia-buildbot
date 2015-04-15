@@ -15,7 +15,7 @@ fi
 # The base names of the VM instances. Actual names are VM_NAME_BASE-name
 VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
-# The name of instance where skia docs is running on.
+# The name of instance where skia frontend is running on.
 INSTANCE_NAME=${VM_NAME_BASE}-skfe
 
 NUM_INSTANCES=2
