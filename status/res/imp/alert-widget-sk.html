@@ -62,10 +62,10 @@
     <a href="#" onClick="return false;">
       <core-icon-button
           id="notifications"
-          icon="social:notifications{{alerts.length > 0 ? '' : '-none'}}"
-          class="{{alerts.length > 0 ? 'alerting' : ''}}"
+          icon="social:notifications{{activeAlerts > 0 ? '' : '-none'}}"
+          class="{{activeAlerts > 0 ? 'alerting' : ''}}"
           on-tap="{{toggle}}">
-        <div id="numAlerts">{{alerts.length}}</div>
+        <div id="numAlerts">{{activeAlerts}}</div>
       </core-icon-button>
     </a>
     <paper-dropdown halign="right">
@@ -75,7 +75,7 @@
             <template repeat="{{alert in alerts}}">
               <alert-sk alert="{{alert}}" compact></alert-sk>
             </template>
-            <template if="{{alerts.length == 0}}">
+            <template if="{{activeAlerts == 0}}">
               No alerts are active.
             </template>
           </div>
