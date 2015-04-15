@@ -330,7 +330,7 @@ func main() {
 			glog.Fatalf("Failed to cache token: %s", err)
 		}
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE)
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST)
 
 	var emailAuth *email.GMail
 	if !*testing {

@@ -46,6 +46,9 @@ const (
 	SESSION_COOKIE_NAME = "sksession"
 )
 
+// DEFAULT_DOMAIN_WHITELIST is a white list of domains we use frequently.
+var DEFAULT_DOMAIN_WHITELIST = []string{"google.com", "chromium.org", "skia.org"}
+
 var (
 	// cookieSalt is some entropy for our encoders.
 	cookieSalt = ""
@@ -68,8 +71,8 @@ var (
 		ApprovalPrompt: "auto",
 	}
 
-	// domainWhitelist is the list of domains that are allowed to log in to our site.
-	domainWhitelist = []string{"google.com", "chromium.org", "skia.org"}
+	// activeDomainWhitelist is the list of domains that are allowed to log in to our site.
+	activeDomainWhitelist = []string{}
 )
 
 type Session struct {
@@ -81,13 +84,15 @@ type Session struct {
 // Init must be called before any other methods.
 //
 // The Client ID, Client Secret, and Redirect URL are listed in the Google
-// Developers Console.
-func Init(clientId, clientSecret, redirectURL, cookieSalt, scope string) {
+// Developers Console. The domainWhitelist is the list of domains that are
+// allowed to log in.
+func Init(clientId, clientSecret, redirectURL, cookieSalt, scope string, domainWhitelist []string) {
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig.ClientId = clientId
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
 	oauthConfig.Scope = scope
+	activeDomainWhitelist = domainWhitelist
 }
 
 // LoginURL returns a URL that the user is to be directed to for login.
@@ -257,7 +262,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid email address received.", 500)
 		return
 	}
-	if !util.In(parts[1], domainWhitelist) {
+	if !util.In(parts[1], activeDomainWhitelist) {
 		http.Error(w, "Accounts from your domain are not allowed.", 500)
 		return
 	}

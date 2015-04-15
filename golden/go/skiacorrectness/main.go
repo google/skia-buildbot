@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime/pprof"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -38,25 +39,26 @@ import (
 
 // Command line flags.
 var (
-	graphiteServer    = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	port              = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	staticDir         = flag.String("static_dir", "./app", "Directory with static content to serve")
-	tileStoreDir      = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
-	imageDir          = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
-	gsBucketName      = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
-	doOauth           = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	oauthCacheFile    = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
-	memProfile        = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
-	nCommits          = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
-	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-	redirectURL       = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-	redisHost         = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
-	redisDB           = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
-	startAnalyzer     = flag.Bool("start_analyzer", true, "Create an instance of the analyzer and start it running.")
-	startExperimental = flag.Bool("start_experimental", true, "Start experimental features.")
-	cpuProfile        = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
-	forceLogin        = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
+	graphiteServer     = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	staticDir          = flag.String("static_dir", "./app", "Directory with static content to serve")
+	tileStoreDir       = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
+	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+	gsBucketName       = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
+	doOauth            = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	oauthCacheFile     = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
+	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	nCommits           = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+	redirectURL        = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+	redisHost          = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
+	redisDB            = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
+	startAnalyzer      = flag.Bool("start_analyzer", true, "Create an instance of the analyzer and start it running.")
+	startExperimental  = flag.Bool("start_experimental", true, "Start experimental features.")
+	cpuProfile         = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
+	forceLogin         = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
+	domainWhitelistStr = flag.String("domain_whitelist", strings.Join(login.DEFAULT_DOMAIN_WHITELIST, ","), "Comma separated list of domains that are allowed to login.")
 )
 
 const (
@@ -348,7 +350,9 @@ func main() {
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		useRedirectURL = *redirectURL
 	}
-	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE)
+
+	domainWhitelist := strings.Split(*domainWhitelistStr, ",")
+	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE, domainWhitelist)
 
 	// get the Oauthclient if necessary.
 	client := getOAuthClient(*doOauth, *oauthCacheFile)
