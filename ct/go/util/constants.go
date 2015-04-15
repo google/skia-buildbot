@@ -74,8 +74,8 @@ const (
 	WEBAPP_ROOT = "https://skia-tree-status.appspot.com/skia-telemetry/"
 
 	// Logserver links. These are only accessible from Google corp.
-	MASTER_LOGSERVER_LINK  = "http://build.chromium.org:10115/"
-	WORKERS_LOGSERVER_LINK = "http://build.chromium.org:10116/"
+	MASTER_LOGSERVER_LINK  = "http://chromegw.corp.google.com/i/skia-ct-master/"
+	WORKERS_LOGSERVER_LINK = "http://chromegw.corp.google.com/i/skia-ct-master/all_logs"
 )
 
 type PagesetTypeInfo struct {
