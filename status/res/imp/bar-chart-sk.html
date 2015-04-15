@@ -158,15 +158,22 @@
         var that = this;
         chartsReady.then(function() {
           var table = new google.visualization.DataTable();
-          for (var i = 0; i < that.columns.length; i++) {
+          table.addColumn(that.columns[0][0]);
+          for (var i = 1; i < that.columns.length; i++) {
             table.addColumn(that.columns[i][0], that.columns[i][1]);
+            table.addColumn({"type": "string", "role": "tooltip"});
           }
-          table.addColumn({"type": "string", "role": "tooltip"});
 
           var dataRows = [];
           for (var i = 0; i < that.data.length; i++) {
-            var tooltip = that.formatTooltip(that.columns[1][1], that.data[i][1]);
-            dataRows.push(that.data[i].concat([tooltip]));
+            var row = [that.data[i][0]];
+            for (var j = 1; j < that.data[i].length; j++) {
+              var v = that.data[i][j];
+              var tooltip = that.formatTooltip(that.columns[j][1], v);
+              row.push(v);
+              row.push(tooltip);
+            }
+            dataRows.push(row);
           }
           table.addRows(dataRows);
 

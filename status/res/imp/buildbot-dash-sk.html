@@ -262,10 +262,23 @@
         this.$.step_times_chart.colors = this.colors;
         this.$.step_times_chart.columns = [
             ["string", "Step"],
-            ["number", "Time (s)"],
+            ["number", "Avg duration of step (s)"],
+            ["number", "Avg time spent on step in all builds (s)"],
         ];
         this.$.step_times_chart.tooltipFormatter = timeFormatter;
-        this.$.step_times_chart.data = this.generateStats(this.stepDurations, mean);
+        var numTotalBuilds = 0;
+        for (var b in this.buildData) {
+          numTotalBuilds += this.buildData[b].length;
+        }
+        var stepTimeData = [];
+        for (var series in this.stepDurations) {
+          var m = mean(this.stepDurations[series]);
+          stepTimeData.push([series, m, m * this.stepDurations[series].length / numTotalBuilds]);
+        }
+        stepTimeData.sort(function(a, b) {
+          return b[2] - a[2];
+        });
+        this.$.step_times_chart.data = stepTimeData;
 
         // Build failure rate.
         this.$.build_failure_rate_chart.caption = "Select a builder to add it as a filter.";
