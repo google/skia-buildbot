@@ -237,6 +237,10 @@ func polyIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to parse submitted data.")
 		return
 	}
+	if req.Filter == "" {
+		util.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
+		return
+	}
 	d, err := human.ParseDuration(req.Duration)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to parse duration")
@@ -307,6 +311,10 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	req := &IgnoresRequest{}
 	if err := parseJson(r, req); err != nil {
 		util.ReportError(w, r, err, "Failed to parse submitted data.")
+		return
+	}
+	if req.Filter == "" {
+		util.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
 		return
 	}
 	d, err := human.ParseDuration(req.Duration)
