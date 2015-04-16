@@ -199,7 +199,9 @@ func dirList(w http.ResponseWriter, f http.File) {
 	fmt.Fprintf(w, "<pre>\n")
 	// Datastructures to populate and output.
 	topLevelSymlinks := make([]os.FileInfo, 0)
+	topLevelSymlinkMaxFileName := 0
 	appToLogs := make(map[string][]os.FileInfo)
+	appToMaxFileName := make(map[string]int)
 	for {
 		fileInfos, err := f.Readdir(10000)
 		if err != nil || len(fileInfos) == 0 {
@@ -211,8 +213,14 @@ func dirList(w http.ResponseWriter, f http.File) {
 			nameTokens := strings.Split(name, ".")
 			if len(nameTokens) == 2 {
 				topLevelSymlinks = append(topLevelSymlinks, fileInfo)
+				if len(fileInfo.Name()) > topLevelSymlinkMaxFileName {
+					topLevelSymlinkMaxFileName = len(fileInfo.Name())
+				}
 			} else if len(nameTokens) > 1 {
 				appToLogs[nameTokens[0]] = append(appToLogs[nameTokens[0]], fileInfo)
+				if len(fileInfo.Name()) > appToMaxFileName[nameTokens[0]] {
+					appToMaxFileName[nameTokens[0]] = len(fileInfo.Name())
+				}
 			} else {
 				// File all directories or files created by something other than
 				// glog under "unknown" app.
@@ -224,7 +232,7 @@ func dirList(w http.ResponseWriter, f http.File) {
 	// First output the top level symlinks.
 	sort.Sort(FileInfoModifiedSlice{fileInfos: topLevelSymlinks, reverseSort: true})
 	for _, fileInfo := range topLevelSymlinks {
-		writeFileInfo(w, fileInfo)
+		writeFileInfo(w, fileInfo, topLevelSymlinkMaxFileName)
 	}
 	// Second output app links to their anchors.
 	var keys []string
@@ -245,23 +253,26 @@ func dirList(w http.ResponseWriter, f http.File) {
 		sort.Sort(FileInfoModifiedSlice{fileInfos: appFileInfos, reverseSort: true})
 		fmt.Fprintf(w, "\n===== <a name=\"%s\">%s</a> =====\n\n", app, template.HTMLEscapeString(app))
 		for _, fileInfo := range appFileInfos {
-			writeFileInfo(w, fileInfo)
+			writeFileInfo(w, fileInfo, appToMaxFileName[app])
 		}
 	}
 	fmt.Fprintf(w, "</pre>\n")
 }
 
-func writeFileInfo(w http.ResponseWriter, fileInfo os.FileInfo) {
+func writeFileInfo(w http.ResponseWriter, fileInfo os.FileInfo, maxFileName int) {
 	name := fileInfo.Name()
 	if fileInfo.IsDir() {
 		name += "/"
 	}
 
 	url := url.URL{Path: name}
-	downloadLink := ""
+	fileLinks := ""
 	if !fileInfo.IsDir() {
 		fileSize := util.GetFormattedByteSize(float64(fileInfo.Size()))
-		downloadLink = fmt.Sprintf("(%s <a href=\"%s\" download=\"%s\">download</a>)", fileSize, url.String(), template.HTMLEscapeString(name))
+		buffer := strings.Repeat(" ", maxFileName-len(fileInfo.Name()))
+		staticViewLink := fmt.Sprintf("<a href='file_server/%s'>static</a>", url.String())
+		downloadLink := fmt.Sprintf("<a href='file_server/%s' download='file_server/%s'>download</a>", url.String(), template.HTMLEscapeString(name))
+		fileLinks = fmt.Sprintf("%s(%s  %s  %s)", buffer, fileSize, staticViewLink, downloadLink)
 	}
 	modTime := fileInfo.ModTime()
 	// Use the destination file's mode time if it is a symlink.
@@ -273,7 +284,7 @@ func writeFileInfo(w http.ResponseWriter, fileInfo os.FileInfo) {
 			modTime = destFileInfo.ModTime()
 		}
 	}
-	fmt.Fprintf(w, "%s <a href=\"%s\">%s</a>    %s\n", modTime, url.String(), template.HTMLEscapeString(name), downloadLink)
+	fmt.Fprintf(w, "%s <a href=\"%s\">%s</a>  %s\n", modTime.Round(time.Second), url.String(), template.HTMLEscapeString(name), fileLinks)
 }
 
 func serveFile(w http.ResponseWriter, r *http.Request, fs http.FileSystem, name string) {
