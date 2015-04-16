@@ -25,7 +25,8 @@
         <tr>
           <td>{{c.author}}</td>
           <td>{{c.commit_time | humanize}}</td>
-          <td><a href="https://skia.googlesource.com/skia/+/{{c.hash}}">{{c.hash}}</a></td>
+          <td><a
+              href="https://skia.googlesource.com/skia/+/{{c.hash}}">{{c.hash | trunc}}</a></td>
           <td>{{c.message}}</td>
         </tr>
       </template>
@@ -47,7 +48,7 @@
           sk.get(url).then(this.removeSecurityHeader).then(JSON.parse).then(function(json) {
             var len = that.commitinfo.length;
             for (var i=0; i<json.log.length; i++) {
-              that.commitinfo[i].message = json.log[i].message.slice(0, 40);
+              that.commitinfo[i].message = json.log[i].message.slice(0, 60);
             }
           });
         }
@@ -61,8 +62,12 @@
       },
 
       humanize: function(s) {
-        return sk.human.diffDate(s*1000)
+        return sk.human.diffDate(s*1000);
       },
+
+      trunc: function(s) {
+        return s.slice(0, 7);
+      }
 
     });
   </script>
