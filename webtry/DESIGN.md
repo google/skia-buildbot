@@ -250,13 +250,13 @@ The bitmap is read, decoded and stored in source before the seccomp jail is
 instantiated.
 
 
-Squid
+NGINX
 -----
 
-Squid is configured to run on port 80 and run as an accelerator for the actual
-Go program which is running on port 8000. The config for the squid proxy is
-held in setup/sys/webtry_squid, which is copied into place during installation
-and squid is kept running via monit.
+NGINX is configured to run on port 80 and act as a reverse proxy for the actual
+Go program which is running on port 8000. The config for the nginx is held in
+setup/sys/webtry_nginx, which is copied into place during installation and is
+kept running via monit.
 
 Workspaces
 ----------
