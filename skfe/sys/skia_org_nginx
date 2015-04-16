@@ -344,3 +344,25 @@ server {
     rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
     rewrite ^ https://code.google.com/p/skia/issues/list redirect;
 }
+
+#####   grandcentral.skia.org   ###########################
+server {
+    listen      443;
+    server_name grandcentral.skia.org;
+
+    ssl on;
+
+    if ( $host != 'grandcentral.skia.org' ) {
+        rewrite ^/(.*)$ https://grandcentral.skia.org/$1 permanent;
+    }
+
+    location / {
+        proxy_pass http://skia-grandcentral:8002;
+    }
+}
+server {
+    listen      80;
+    server_name grandcentral.skia.org;
+    return 301 https://grandcentral.skia.org$request_uri;
+}
+
