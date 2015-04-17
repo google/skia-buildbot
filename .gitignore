@@ -23,6 +23,8 @@ oauth-token.cache
 bug_chomper/oauth_client_secret.json
 # Generated Go files.
 go/skiaversion/gen_version.go
+# Generated for Go package.
+go/pdf/build
 # Server executables/config
 golden/app/third_party
 golden/node_modules
