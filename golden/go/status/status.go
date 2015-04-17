@@ -7,6 +7,7 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
+	imetrics "go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/storage"
@@ -94,20 +95,29 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		return err
 	}
 
+	liveness := imetrics.NewLiveness("status-monitoring")
+
 	go func() {
 		for {
 			select {
-			case tile := <-tileStream:
+			case <-tileStream:
+				tile, err := s.storages.GetLastTileTrimmed(false)
+				if err != nil {
+					glog.Errorf("Error retrieving tile: %s", err)
+					continue
+				}
 				if err := s.calcStatus(tile); err != nil {
 					glog.Errorf("Error calculating status: %s", err)
 				} else {
 					lastTile = tile
+					liveness.Update()
 				}
 			case <-expChanges:
 				storage.DrainChangeChannel(expChanges)
 				if err := s.calcStatus(lastTile); err != nil {
-					glog.Errorf("Error calculating tile after expectation udpate: %s", err)
+					glog.Errorf("Error calculating tile after expectation update: %s", err)
 				}
+				liveness.Update()
 			}
 		}
 	}()
