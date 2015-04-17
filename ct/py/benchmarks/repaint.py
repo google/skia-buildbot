@@ -30,9 +30,13 @@ class _Repaint(benchmark.Benchmark):
     parser.add_option('--page-set-name',  action='store', type='string')
     parser.add_option('--page-set-base-dir', action='store', type='string')
 
+  def CreateUserStorySet(self, options):
+    page_set_class = skpicture_printer._MatchPageSetName(
+        options.page_set_name, options.page_set_base_dir)
+    return page_set_class()
+
   def CreatePageTest(self, options):
-    return repaint_measurement.Repaint(options.mode, options.width,
-                                       options.height)
+    return repaint_measurement.Repaint()
 
 
 @benchmark.Disabled

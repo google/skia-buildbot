@@ -109,6 +109,7 @@ if '__main__' == __name__:
 
 from telemetry.page import page as page_module
 from telemetry.page import page_set as page_set_module
+from page_sets import repaint_helpers
 
 
 class TypicalAlexaPage(page_module.Page):
@@ -119,7 +120,7 @@ class TypicalAlexaPage(page_module.Page):
     self.archive_data_file = '%s'
 
   def RunPageInteractions(self, action_runner):
-    action_runner.RepaintContinuously(seconds=5)
+    repaint_helpers.Repaint(action_runner)
 
 
 class TypicalAlexaPageSet(page_set_module.PageSet):
