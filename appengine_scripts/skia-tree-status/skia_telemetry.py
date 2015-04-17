@@ -35,7 +35,7 @@ PAGESET_TYPES = {
 
 # Constants for ChromiumTryPage.
 CHROMIUM_TRY_SUPPORTED_BENCHMARKS = (
-    'repaint',
+    # 'repaint',  # due to skia:3740
     'rasterize_and_record_micro',
     'draw_properties',
     # 'pixeldiffs',
