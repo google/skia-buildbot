@@ -181,8 +181,8 @@ attribute is false.
 
                 <table id=legend>
                   <tr><th colspan=3>Legend</th></tr>
-                  <tr> <td> <svg width=10 height=10 viewBox="-1 -1 2 2"> <circle cx=0 cy=0 r="0.3" class="status0"/> </svg> </td> <td>{{top}}</td> </tr>
-                  <template repeat="{{hash, i in details.otherHashes}}">
+                  <tr> <td> <svg width=10 height=10 viewBox="-1 -1 2 2"> <circle cx=0 cy=0 r="0.3" class="status0"/> </svg> </td> <td><code>{{top}}</code></td> </tr>
+                  <template repeat="{{digestInfo, i in details.otherDigests}}">
                     <tr>
                       <td>
                         <svg width=10 height=10 viewBox="-1 -1 2 2">
@@ -191,7 +191,7 @@ attribute is false.
                       </td>
                       <td>
                         <template if="{{i<7}}">
-                          <a href="/2/detail?test={{test}}&digest={{hash}}">{{hash}}</a>
+                          <code><a href="/2/detail?test={{test}}&digest={{digestInfo.digest}}">{{digestInfo.digest}}</a></code>
                         </template>
                         <template if="{{i==7}}">
                           One of many other digests.
@@ -199,7 +199,12 @@ attribute is false.
                       </td>
                       <td>
                         <template if="{{i<7}}">
-                          <a href="/2/diff?test={{test}}&left={{hash}}&top={{top}}">diff</a>
+                          <tricon-sk value="{{digestInfo.status}}"></tricon-sk>
+                        </template>
+                      </td>
+                      <td>
+                        <template if="{{i<7}}">
+                          <a href="/2/diff?test={{test}}&left={{digestInfo.digest}}&top={{top}}">diff</a>
                         </template>
                       </td>
                     </tr>

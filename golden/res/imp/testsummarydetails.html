@@ -75,7 +75,7 @@
         </template>
       </div>
       <table id=legend>
-        <template repeat="{{hash, i in details.otherHashes}}">
+        <template repeat="{{digestInfo, i in details.otherDigests}}">
           <tr>
             <td>
               <svg width=10 height=10 viewBox="-1 -1 2 2">
@@ -84,7 +84,7 @@
             </td>
             <td>
               <template if="{{i<7}}">
-                <a href="/2/detail?test={{test}}&digest={{hash}}">{{hash}}</a>
+                <code><a href="/2/detail?test={{test}}&digest={{digestInfo.digest}}">{{digestInfo.digest}}</a></code>
               </template>
               <template if="{{i==7}}">
                 One of many other digests.
@@ -92,7 +92,12 @@
             </td>
             <td>
               <template if="{{i<7}}">
-                <a href="/2/diff?test={{test}}&left={{hash}}&top={{digest}}">diff</a>
+                <tricon-sk value="{{digestInfo.status}}"></tricon-sk>
+              </template>
+            </td>
+            <td>
+              <template if="{{i<7}}">
+                <a href="/2/diff?test={{test}}&left={{digestInfo.digest}}&top={{digest}}">diff</a>
               </template>
             </td>
           </tr>

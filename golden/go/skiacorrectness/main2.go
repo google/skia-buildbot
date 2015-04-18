@@ -871,16 +871,22 @@ type Trace struct {
 	Label string  `json:"label"` // The id of the trace.
 }
 
+// DigestStatus is a digest and its status, used in PolyDetailsGUI.
+type DigestStatus struct {
+	Digest string `json:"digest"`
+	Status string `json:"status"`
+}
+
 // PolyDetailsGUI is used in the JSON returned from polyDetailsHandler. It
 // represents the known information about a single digest for a given test.
 type PolyDetailsGUI struct {
-	TopStatus   string             `json:"topStatus"`
-	LeftStatus  string             `json:"leftStatus"`
-	Params      []*PerParamCompare `json:"params"`
-	Traces      []*Trace           `json:"traces"`
-	Commits     []*ptypes.Commit   `json:"commits"`
-	OtherHashes []string           `json:"otherHashes"`
-	TileSize    int                `json:"tileSize"`
+	TopStatus    string             `json:"topStatus"`
+	LeftStatus   string             `json:"leftStatus"`
+	Params       []*PerParamCompare `json:"params"`
+	Traces       []*Trace           `json:"traces"`
+	Commits      []*ptypes.Commit   `json:"commits"`
+	OtherDigests []*DigestStatus    `json:"otherDigests"`
+	TileSize     int                `json:"tileSize"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -912,6 +918,7 @@ type PolyDetailsGUI struct {
 //        ...
 //     ]
 //   }
+//
 func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	tile, err := storages.GetLastTileTrimmed(true)
 	if err != nil {
@@ -980,7 +987,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Now build the trace data.
 	if r.Form.Get("graphs") == "true" {
-		ret.Traces, ret.OtherHashes = buildTraceData(top, traceNames, tile, tally)
+		ret.Traces, ret.OtherDigests = buildTraceData(top, traceNames, tile, tally, exp)
 		ret.Commits = tile.Commits
 	}
 
@@ -991,14 +998,24 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// digestIndex returns the index of the digest d in digestInfo, or -1 if not found.
+func digestIndex(d string, digestInfo []*DigestStatus) int {
+	for i, di := range digestInfo {
+		if di.Digest == d {
+			return i
+		}
+	}
+	return -1
+}
+
 // buildTraceData returns a populated []*Trace for all the traces that contain 'digest'.
-func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally tally.TraceTally) ([]*Trace, []string) {
+func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally tally.TraceTally, exp *expstorage.Expectations) ([]*Trace, []*DigestStatus) {
 	sort.Strings(traceNames)
 	ret := []*Trace{}
 	last := tile.LastCommitIndex()
 	y := 0
 	// Keep track of the first 7 non-matching digests we encounter so we can color them differently.
-	otherHashes := []string{}
+	otherDigests := []*DigestStatus{}
 	for _, id := range traceNames {
 		traceTally, ok := tally[id]
 		if !ok {
@@ -1019,12 +1036,17 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 			// s is the status of the digest, it is either 0 for a match, or [1-8] if not.
 			s := 0
 			if trace.Values[i] != digest {
-				if index := util.Index(trace.Values[i], otherHashes); index != -1 {
+				if index := digestIndex(trace.Values[i], otherDigests); index != -1 {
 					s = index + 1
 				} else {
-					if len(otherHashes) < 8 {
-						otherHashes = append(otherHashes, trace.Values[i])
-						s = len(otherHashes)
+					if len(otherDigests) < 8 {
+						d := trace.Values[i]
+						test := trace.Params()[types.PRIMARY_KEY_FIELD]
+						otherDigests = append(otherDigests, &DigestStatus{
+							Digest: d,
+							Status: exp.Classification(test, d).String(),
+						})
+						s = len(otherDigests)
 					} else {
 						s = 8
 					}
@@ -1040,7 +1062,7 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 		y += 1
 	}
 
-	return ret, otherHashes
+	return ret, otherDigests
 }
 
 func polyParamsHandler(w http.ResponseWriter, r *http.Request) {

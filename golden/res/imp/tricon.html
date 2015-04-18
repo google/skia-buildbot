@@ -1,0 +1,55 @@
+<!-- The <tricon-sk> custom element declaration.
+
+  Show the triage status as an icon.
+
+  Attributes:
+    value - A string representing the triage status, one of
+      "untriaged", "positive", or "negative".
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+-->
+<polymer-element name="tricon-sk" attributes="value">
+  <template>
+    <style type="text/css" media="screen">
+      .positive {
+        color: #1B9E77;
+      }
+
+      .negative {
+        color: #E7298A;
+      }
+
+      .untriaged {
+        color: #A6761D;
+      }
+
+      core-icon {
+        width: 10px;
+        height: 10px;
+        opacity: 0.3;
+      }
+    </style>
+    <core-icon icon="{{value | statusAsIcon}}" class={{value}}></core-icon>
+  </template>
+  <script>
+    (function() {
+      var icons = {
+        "untriaged": "help",
+        "positive": "check-circle",
+        "negative": "cancel",
+      };
+
+      Polymer({
+        statusAsIcon: function(s) {
+          return icons[s];
+        },
+
+      });
+    })();
+  </script>
+</polymer-element>
