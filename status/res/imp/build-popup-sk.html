@@ -42,7 +42,7 @@
           <td>Failed steps:</td>
           <td>
             <template repeat="{{step in build.failedSteps}}">
-              {{step}}<br/>
+              <a href="{{buildbotUrlPrefix}}/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}/steps/{{step}}/logs/stdio" target="_blank">{{step}}</a><br/>
             </template>
           </td>
         </tr>
