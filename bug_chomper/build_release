@@ -1,6 +1,6 @@
 #!/bin/bash
-# Builds and uploads a debian package for bug_chomper.
-APPNAME=bug_chomper
+# Builds and uploads a debian package for bugchomper.
+APPNAME=bugchomper
 DESCRIPTION="Tool for quickly prioritizing bugs."
 
 # Copy files into the right locations in ${ROOT}.
@@ -11,8 +11,6 @@ INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/bug_chomper    ${ROOT}/usr/local/bin/bug_chomper
 ${INSTALL} --mode=644 -T ./sys/monit                  ${ROOT}/etc/monit/conf.d/bug_chomper
 ${INSTALL} --mode=755 -T ./sys/init                   ${ROOT}/etc/init.d/bug_chomper
-${INSTALL} --mode=644 -T ./res/favicon.ico            ${ROOT}/usr/local/share/bug_chomper/res/img/favicon.ico
-${INSTALL} --mode=644 -T ./res/js/core.js             ${ROOT}/usr/local/share/bug_chomper/res/js/core.js
 ${INSTALL} --mode=644 -T ./templates/bug_chomper.html ${ROOT}/usr/local/share/bug_chomper/templates/bug_chomper.html
 ${INSTALL} --mode=644 -T ./templates/error.html       ${ROOT}/usr/local/share/bug_chomper/templates/error.html
 ${INSTALL} --mode=644 -T ./templates/submitted.html   ${ROOT}/usr/local/share/bug_chomper/templates/submitted.html
