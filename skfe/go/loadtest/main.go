@@ -31,7 +31,7 @@ var (
 // Targets to exercise.
 var targets = []Target{
 	{
-		URL:  "http://www.skiadev.org/",
+		URL:  "https://www.skia.org/",
 		Code: 200,
 	},
 }
