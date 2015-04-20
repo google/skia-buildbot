@@ -249,7 +249,7 @@ server {
     ssl on;
 
     location / {
-        proxy_pass http://skia-webtry-test:8000;
+        proxy_pass http://skia-webtry-experimental:8000;
     }
 }
 server {
