@@ -268,6 +268,7 @@ this.sk = this.sk || function() {
 
   /**
    * Formats the given string, replacing newlines with <br/> and auto-linkifying URLs.
+   * References to bugs like "skia:123" and "chromium:123" are also converted into links.
    *
    * If linksInNewWindow is true, links are created with target="_blank".
    */
@@ -276,7 +277,33 @@ this.sk = this.sk || function() {
     if (linksInNewWindow) {
       sub = '<a href="$&" target="_blank">$&</a>';
     }
-    return s.replace(/https?:\/\/[^ \t\n<]*/g, sub).replace(/(?:\n|\r|\r\n)/g, '<br/>');
+    s = s.replace(/https?:\/\/[^ \t\n<]*/g, sub).replace(/(?:\n|\r|\r\n)/g, '<br/>');
+    return sk.linkifyBugs(s);
+  }
+
+  var PROJECTS_TO_ISSUETRACKERS = {
+    'chromium': 'http://crbug.com/',
+    'skia': 'http://skbug.com/',
+  }
+
+  /**
+   * Formats bug references like "skia:123" and "chromium:123" into links.
+   */
+  sk.linkifyBugs = function(s) {
+    for (var project in PROJECTS_TO_ISSUETRACKERS) {
+      var re = new RegExp(project + ":[0-9]+", "g");
+      var found_bugs = s.match(re);
+      if (found_bugs) {
+        found_bugs.forEach(function(found_bug) {
+          var bug_number = found_bug.split(":")[1];
+          var bug_link = '<a href="' + PROJECTS_TO_ISSUETRACKERS[project] +
+                         bug_number + '" target="_blank">' + found_bug +
+                         '</a>';
+          s = s.replace(found_bug, bug_link);
+        });
+      }
+    }
+    return s;
   }
 
   // Namespace for utilities for working with URL query strings.
