@@ -39,6 +39,7 @@ NO_CRAWL_DIRS = [
   'common',
   'git_poller_skia.git',
   'third_party',
+  'build'
 ]
 
 

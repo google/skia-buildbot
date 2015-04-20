@@ -31,14 +31,17 @@ var (
 )
 
 // differences returns all strings that appear in server but not local.
-func differences(server, local []string) []string {
-	ret := []string{}
+func differences(server, local []string) ([]string, []string) {
+	newPackages := []string{}
+	installedPackages := []string{}
 	for _, s := range server {
-		if !util.In(s, local) {
-			ret = append(ret, s)
+		if util.In(s, local) {
+			installedPackages = append(installedPackages, s)
+		} else {
+			newPackages = append(newPackages, s)
 		}
 	}
-	return ret
+	return newPackages, installedPackages
 }
 
 // containsPull returns true if the list of installed packages contains the 'pull' package.
@@ -96,7 +99,14 @@ func main() {
 
 		glog.Info("Comparing against currently installed packages.")
 		// Install any new or updated packages.
-		newPackages := differences(serverList.Names, localList)
+		newPackages, installedPackages := differences(serverList.Names, localList)
+		for _, p := range newPackages {
+			glog.Infof("New Package:%s", p)
+		}
+		for _, p := range installedPackages {
+			glog.Infof("Installed Package:%s", p)
+		}
+
 		save := false
 		for _, name := range newPackages {
 			// If just an appname appears w/o a packge name then that means
@@ -106,17 +116,16 @@ func main() {
 			}
 			if err := packages.Install(client, store, name); err != nil {
 				glog.Errorf("Failed to install package %s: %s", name, err)
-				save = false
-				break
+				continue
 			}
+			installedPackages = append(installedPackages, name)
 			save = true
 		}
-		// Only write out the local copy of the packages list if there were any new
-		// packages and all installs were successful.
+		// Only write out the file if any new packages were installed.
 		if !save {
 			continue
 		}
-		if err := packages.ToLocalFile(serverList.Names, *installedPackagesFile); err != nil {
+		if err := packages.ToLocalFile(installedPackages, *installedPackagesFile); err != nil {
 			glog.Errorf("Failed to write local package list: %s", err)
 		}
 
