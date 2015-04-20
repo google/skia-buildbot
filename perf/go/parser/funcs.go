@@ -302,3 +302,54 @@ func (SumFunc) Describe() string {
 }
 
 var sumFunc = SumFunc{}
+
+type GeoFunc struct{}
+
+// geoFunc implements Func and merges the values of all argument
+// traces into a single trace with a geometric mean.
+//
+// MISSING_DATA_SENTINEL and negative values are not included in the mean.
+// Note that if all the values at an index are MISSING_DATA_SENTINEL or
+// negative then the mean will be MISSING_DATA_SENTINEL.
+func (GeoFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("geo() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("geo() takes a function argument.")
+	}
+	traces, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("geo() argument failed to evaluate: %s", err)
+	}
+
+	if len(traces) == 0 {
+		return traces, nil
+	}
+
+	ret := types.NewPerfTraceN(len(traces[0].Values))
+	ret.Params()["id"] = types.AsFormulaID(ctx.formula)
+	for i, _ := range ret.Values {
+		// We're accumulating a product, but in log-space to avoid large N overflow.
+		sumLog := 0.0
+		count := 0
+		for _, tr := range traces {
+			if v := tr.Values[i]; v >= 0 && v != config.MISSING_DATA_SENTINEL {
+				sumLog += math.Log(v)
+				count += 1
+			}
+		}
+		if count > 0 {
+			// The geometric mean is the N-th root of the product of N terms.
+			// In log-space, the root becomes a division, then we translate back to normal space.
+			ret.Values[i] = math.Exp(sumLog / float64(count))
+		}
+	}
+	return []*types.PerfTrace{ret}, nil
+}
+
+func (GeoFunc) Describe() string {
+	return `geo() folds the values of all argument traces into a single geometric mean trace.`
+}
+
+var geoFunc = GeoFunc{}

@@ -229,3 +229,22 @@ func TestSum(t *testing.T) {
 		}
 	}
 }
+
+func TestGeo(t *testing.T) {
+	ctx := newTestContext()
+	ctx.Tile.Traces["t1"].(*types.PerfTrace).Values = []float64{1.0, -1.0, 2.0, 1e100}
+	ctx.Tile.Traces["t2"].(*types.PerfTrace).Values = []float64{1e100, 2.0, 8.0, -2.0}
+	traces, err := ctx.Eval(`geo(filter(""))`)
+	if err != nil {
+		t.Fatalf("Failed to eval geo() test: %s", err)
+	}
+	if got, want := len(traces), 1; got != want {
+		t.Errorf("geo() returned wrong length: Got %v Want %v", got, want)
+	}
+
+	for i, want := range []float64{1.0, 2.0, 4.0, 1e100} {
+		if got := traces[0].Values[i]; !near(got, want) {
+			t.Errorf("Distance mismatch: Got %v Want %v", got, want)
+		}
+	}
+}
