@@ -201,6 +201,8 @@ code {
 .CodeMirror {
   border: solid gray 1px;
   height: auto !important;
+
+  z-index: 0;
 }
 
 /* Make the code editor automatically resize */
