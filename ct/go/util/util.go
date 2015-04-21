@@ -149,10 +149,10 @@ func SyncDir(dir string) error {
 	if err := os.Chdir(dir); err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
-	if err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, 5*time.Minute, nil, nil); err != nil {
+	if err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, 10*time.Minute, nil, nil); err != nil {
 		return fmt.Errorf("Error running git pull on %s: %s", dir, err)
 	}
-	return ExecuteCmd(BINARY_GCLIENT, []string{"sync"}, []string{}, 5*time.Minute, nil, nil)
+	return ExecuteCmd(BINARY_GCLIENT, []string{"sync"}, []string{}, 15*time.Minute, nil, nil)
 }
 
 // BuildSkiaTools builds "tools" in the Skia trunk directory.
