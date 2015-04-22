@@ -77,6 +77,26 @@ var migrationSteps = []database.MigrationStep{
 		},
 	},
 
+	// version 4
+	{
+		MySQLUp: []string{
+			`CREATE TABLE test_digest (
+				name          VARCHAR(255)  NOT NULL,
+				digest        VARCHAR(255)  NOT NULL,
+				first         BIGINT        NOT NULL,
+				last          BIGINT        NOT NULL,
+				exception     VARCHAR(1024) NOT NULL,
+				PRIMARY KEY (name, digest),
+				INDEX first_idx (first),
+				INDEX last_idx (last),
+				INDEX exception_idx (exception)
+			)`,
+		},
+		MySQLDown: []string{
+			`DROP TABLE test_digest`,
+		},
+	},
+
 	// Use this is a template for more migration steps.
 	// version x
 	// {

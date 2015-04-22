@@ -123,13 +123,13 @@ type MockDigestStore struct {
 	issueIDs []int
 }
 
-func (m *MockDigestStore) GetDigestInfo(testName, digest string) (*digeststore.DigestInfo, bool) {
+func (m *MockDigestStore) GetDigestInfo(testName, digest string) (*digeststore.DigestInfo, bool, error) {
 	return &digeststore.DigestInfo{
 		IssueIDs: m.issueIDs,
-	}, true
+	}, true, nil
 }
 
 func (m *MockDigestStore) UpdateDigestTimeStamps(testName, digest string, commit *ptypes.Commit) (*digeststore.DigestInfo, error) {
-	ret, _ := m.GetDigestInfo(testName, digest)
-	return ret, nil
+	ret, _, err := m.GetDigestInfo(testName, digest)
+	return ret, err
 }

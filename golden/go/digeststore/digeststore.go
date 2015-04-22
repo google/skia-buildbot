@@ -31,7 +31,7 @@ type DigestInfo struct {
 type DigestStore interface {
 	// GetDigestInfo returns the information about the given testName-digest
 	// pair.
-	GetDigestInfo(testName, digest string) (*DigestInfo, bool)
+	GetDigestInfo(testName, digest string) (*DigestInfo, bool, error)
 
 	// UpdateDigestTimeStamps updates the information about the digest. If there
 	// is no "new" information it will not change the underlying datastore.
@@ -53,11 +53,11 @@ func NewMemDigestStore() DigestStore {
 	}
 }
 
-func (m *MemDigestStore) GetDigestInfo(testName, digest string) (*DigestInfo, bool) {
+func (m *MemDigestStore) GetDigestInfo(testName, digest string) (*DigestInfo, bool, error) {
 	m.readMutex.RLock()
 	defer m.readMutex.RUnlock()
 	ret, ok := m.readCopy[testName][digest]
-	return ret, ok
+	return ret, ok, nil
 }
 
 func (m *MemDigestStore) UpdateDigestTimeStamps(testName, digest string, commit *ptypes.Commit) (*DigestInfo, error) {
@@ -90,8 +90,8 @@ func (m *MemDigestStore) UpdateDigestTimeStamps(testName, digest string, commit 
 		m.makeReadCopy()
 	}
 
-	ret, _ := m.GetDigestInfo(testName, digest)
-	return ret, nil
+	ret, _, err := m.GetDigestInfo(testName, digest)
+	return ret, err
 }
 
 func (m *MemDigestStore) makeReadCopy() {
