@@ -284,7 +284,7 @@ func installChromeAPK(chromiumBuildName string) error {
 	// Install the APK on the Android device.
 	chromiumApk := filepath.Join(util.ChromiumBuildsDir, chromiumBuildName, util.ApkName)
 	glog.Infof("Installing the APK at %s", chromiumApk)
-	if err := util.ExecuteCmd(util.BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{}, 5*time.Minute, nil, nil); err != nil {
+	if err := util.ExecuteCmd(util.BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{}, 15*time.Minute, nil, nil); err != nil {
 		return fmt.Errorf("Could not install the chromium APK at %s: %s", chromiumBuildName, err)
 	}
 	return nil
