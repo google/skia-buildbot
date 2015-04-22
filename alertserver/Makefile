@@ -26,3 +26,6 @@ migratedb:
 debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
+
+release: alertserver
+	./build_release "$(MESSAGE)"
