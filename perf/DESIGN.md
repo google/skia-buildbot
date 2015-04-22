@@ -164,7 +164,7 @@ res/imp/login.html.
 Monitoring
 ----------
 
-Monitoring of the application is done via Graphite at http://skiamonitor.com.
+Monitoring of the application is done via Graphite at https://mon.skia.org.
 Both system and application level metrics are monitored.
 
 

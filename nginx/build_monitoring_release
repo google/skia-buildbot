@@ -1,7 +1,7 @@
 #!/bin/bash
 # Builds and uploads a debian package with configuration files for nginx.
 APPNAME=nginx-monitoring
-DESCRIPTION="The SSL certs for nginx serving skiamonitor.com and skiaalerts.com"
+DESCRIPTION="The SSL certs for nginx serving mon.skia.org alerts.skia.org"
 
 # This package depends upon nginx being installed.
 DEPENDS=nginx
