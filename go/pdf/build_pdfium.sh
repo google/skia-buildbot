@@ -8,7 +8,7 @@ fi
 set -x -e
 
 REPO="https://pdfium.googlesource.com/pdfium"
-COMMIT="c7a3f3c0e2652130cf62f0a937dd21f15d19882f"
+COMMIT="1ddf056da74de0a34631b8a719f4f02b4ec82144"
 
 TARGET_DIRECTORY="$1"
 PDFIUM_BUILD_DIRECTORY="$2"
