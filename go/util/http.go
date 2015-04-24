@@ -209,6 +209,14 @@ func MakeResourceHandler(resourcesDir string) func(http.ResponseWriter, *http.Re
 	}
 }
 
+// CorsHandler is an HTTP handler function which adds the necessary header for CORS.
+func CorsHandler(h func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Access-Control-Allow-Origin", "*")
+		h(w, r)
+	}
+}
+
 // PaginationParams is helper function to extract pagination parameters from a
 // URL query string. It assumes that 'offset' and 'size' are the query parameters
 // used for pagination. It parses the values and returns an error if they are

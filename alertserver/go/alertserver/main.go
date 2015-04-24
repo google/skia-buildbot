@@ -124,7 +124,6 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 
 func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if err := alertManager.WriteActiveAlertsJson(w); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Unable to write JSON: %v", err))
 	}
@@ -253,7 +252,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/", alertHandler)
 	r.HandleFunc("/rules", rulesHandler)
 	alerts := r.PathPrefix("/json/alerts").Subrouter()
-	alerts.HandleFunc("/", alertJsonHandler)
+	alerts.HandleFunc("/", util.CorsHandler(alertJsonHandler))
 	alerts.HandleFunc("/{alertId:[0-9]+}/{action}", postAlertsJsonHandler).Methods("POST")
 	r.HandleFunc("/json/rules", rulesJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)

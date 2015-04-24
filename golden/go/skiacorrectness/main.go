@@ -423,7 +423,7 @@ func main() {
 	router.HandleFunc("/rest/triage", listTestDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
-	router.HandleFunc("/rest/status", statusHandler).Methods("GET")
+	router.HandleFunc("/rest/status", util.CorsHandler(statusHandler)).Methods("GET")
 	router.HandleFunc("/rest/blame/{testname}", blameHandler).Methods("GET")
 
 	// Set up the login related resources.
