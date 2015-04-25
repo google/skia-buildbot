@@ -11,7 +11,7 @@ const (
 	WORKER_NAME_TEMPLATE     = "build%d-m5"
 	GS_BUCKET_NAME           = "cluster-telemetry"
 	GS_HTTP_LINK             = "https://storage.cloud.google.com/"
-	LOGS_LINK_PREFIX         = "http://chromegw.corp.google.com/i/skia-ct-worker"
+	LOGS_LINK_PREFIX         = "http://uberchromegw.corp.google.com/i/skia-ct-worker"
 
 	// File names and dir names.
 	TIMESTAMP_FILE_NAME             = "TIMESTAMP"
@@ -74,8 +74,8 @@ const (
 	WEBAPP_ROOT = "https://skia-tree-status.appspot.com/skia-telemetry/"
 
 	// Logserver links. These are only accessible from Google corp.
-	MASTER_LOGSERVER_LINK  = "http://chromegw.corp.google.com/i/skia-ct-master/"
-	WORKERS_LOGSERVER_LINK = "http://chromegw.corp.google.com/i/skia-ct-master/all_logs"
+	MASTER_LOGSERVER_LINK  = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
+	WORKERS_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/all_logs"
 )
 
 type PagesetTypeInfo struct {
