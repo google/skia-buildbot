@@ -634,11 +634,51 @@ func (c *CommitComment) InsertIntoDB() (int, error) {
 	return c.Id, nil
 }
 
+// TinyBuildStep is a struct containing a small subset of a BuildStep's fields.
+type TinyBuildStep struct {
+	Name     string
+	Started  float64
+	Finished float64
+	Results  int
+}
+
+// TinyBuild is a struct containing a small subset of a Build's fields.
+type TinyBuild struct {
+	Builder  string
+	Started  float64
+	Finished float64
+	Results  int
+	Steps    []*TinyBuildStep
+}
+
 // GetBuildsFromDateRange retrieves all builds which finished in the given date range.
-func GetBuildsFromDateRange(start, end time.Time) (map[int]*Build, error) {
+func GetBuildsFromDateRange(start, end time.Time) ([]*TinyBuild, error) {
 	var ids []int
 	if err := DB.Select(&ids, fmt.Sprintf("SELECT id FROM %s WHERE finished > ? and finished < ?", TABLE_BUILDS), float64(start.UTC().Unix()), float64(end.UTC().Unix())); err != nil {
 		return nil, fmt.Errorf("Failed to obtain builds from date range: %v", err)
 	}
-	return GetBuildsFromDB(ids)
+	builds, err := GetBuildsFromDB(ids)
+	if err != nil {
+		return nil, err
+	}
+	rv := make([]*TinyBuild, 0, len(builds))
+	for _, b := range builds {
+		steps := make([]*TinyBuildStep, 0, len(b.Steps))
+		for _, s := range b.Steps {
+			steps = append(steps, &TinyBuildStep{
+				Name:     s.Name,
+				Started:  s.Started,
+				Finished: s.Finished,
+				Results:  s.Results,
+			})
+		}
+		rv = append(rv, &TinyBuild{
+			Builder:  b.Builder,
+			Started:  b.Started,
+			Finished: b.Finished,
+			Results:  b.Results,
+			Steps:    steps,
+		})
+	}
+	return rv, nil
 }

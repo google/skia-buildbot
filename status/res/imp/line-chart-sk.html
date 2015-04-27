@@ -210,6 +210,7 @@
       },
 
       draw: function() {
+        console.time("line-chart-sk:draw");
         if (!this.data || this.data.length == 0) {
           this.$.message.innerHTML = "No data.";
           return;
@@ -277,6 +278,7 @@
           gridY++;
         }
         this.gridLines = gridLines;
+        console.timeEnd("line-chart-sk:draw");
       },
 
       collapseOpen: function() {

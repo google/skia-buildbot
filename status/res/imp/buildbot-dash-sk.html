@@ -61,6 +61,7 @@
                   <paper-item value=72>3 days</paper-item>
                   <paper-item value=168>1 week</paper-item>
                   <paper-item value=336>2 weeks</paper-item>
+                  <paper-item value=672>4 weeks</paper-item>
                 </core-menu>
               </paper-dropdown>
             </div>
@@ -89,6 +90,7 @@
             <bar-chart-sk heading="Build Failure Rate" id="build_failure_rate_chart"></bar-chart-sk>
             <bar-chart-sk heading="Step Failure Rate" id="step_failure_rate_chart"></bar-chart-sk>
             <line-chart-sk heading="Build Duration over Time" id="build_duration_time_chart"></line-chart-sk>
+            <line-chart-sk heading="Avg Build Duration over Time" id="avg_build_duration_time_chart"></line-chart-sk>
           </div>
         </div>
       </div>
@@ -109,6 +111,7 @@
         this.builds = [];
         this.buildData = {};
         this.buildDurations = {};
+        this.includedBuilds = [];
         this.stepDurations = {};
         this.buildResults = {};
         this.stepResults = {};
@@ -144,6 +147,9 @@
         var that = this;
         sk.get(url).then(JSON.parse).then(function(json) {
           console.timeEnd("loadData");
+          json.sort(function(a, b) {
+            return a.Finished - b.Finished;
+          });
           that.builds = json;
           that.processBuilds();
           that.$.spinner.style.display = "none";
@@ -169,6 +175,7 @@
         console.time("processBuilds");
         this.buildData = {};
         this.buildDurations = {};
+        this.includedBuilds = [];
         this.stepDurations = {};
         this.buildResults = {};
         this.stepResults = {};
@@ -180,6 +187,7 @@
             excludedBots[build.Builder] = true;
             continue;
           }
+          this.includedBuilds.push(build);
 
           var duration = build.Finished - build.Started;
           if (!this.buildData[build.Builder]) {
@@ -304,6 +312,52 @@
         this.$.build_duration_time_chart.colors = this.colors;
         this.$.build_duration_time_chart.data = this.buildData;
         this.$.build_duration_time_chart.tooltipFormatter = function(series, x, y) {
+          return series + "<br/>" + (new Date(x * 1000)).toString() + "<br/>" + sk.human.strDuration(y);
+        }
+
+        // Avg build durations over time.
+
+        // Compute the average build time across all builders over several window sizes.
+        var windowSizes = [1, 6, 24, 7*24]; // In hours.
+        var avgs = {};
+        var hour = 60 * 60;
+        var inc = 1 * hour; // How far (seconds) the window moves at each step.
+        var timeStart = this.includedBuilds[0].Finished;
+        var timeEnd = this.includedBuilds[this.includedBuilds.length - 1].Finished;
+        for (var i = 0; i < windowSizes.length; i++) {
+          var windowSecs = windowSizes[i] * hour;
+          var series = [];
+          var windowStart = timeStart;
+          var buildStartIdx = 0;
+          do {
+            var windowEnd = windowStart + windowSecs;
+
+            // Get builds in the window, average their durations, and add to the data set.
+            while (this.includedBuilds[buildStartIdx].Finished < windowStart) {
+              buildStartIdx++;
+              if (buildStartIdx >= this.includedBuilds.length) {
+                break;
+              }
+            }
+            var durations = [];
+            for (var j = buildStartIdx; j < this.includedBuilds.length; j++) {
+              var build = this.includedBuilds[j];
+              if (build.Finished > windowEnd) {
+                break;
+              }
+              durations.push(build.Finished - build.Started);
+            }
+            if (durations.length > 0) {
+              series.push([windowEnd, mean(durations)]);
+            }
+
+            windowStart += inc;
+          } while (windowStart <= timeEnd && windowEnd <= timeEnd)
+          avgs[windowSizes[i] + " hour avg"] = series;
+        }
+        this.$.avg_build_duration_time_chart.colors = this.colors;
+        this.$.avg_build_duration_time_chart.data = avgs;
+        this.$.avg_build_duration_time_chart.tooltipFormatter = function(series, x, y) {
           return series + "<br/>" + (new Date(x * 1000)).toString() + "<br/>" + sk.human.strDuration(y);
         }
         console.timeEnd("drawCharts");

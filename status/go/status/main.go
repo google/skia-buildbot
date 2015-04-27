@@ -311,15 +311,10 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		startTime = time.Unix(int64(*start), 0)
 	}
 
-	buildsById, err := buildbot.GetBuildsFromDateRange(startTime, endTime)
+	builds, err := buildbot.GetBuildsFromDateRange(startTime, endTime)
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
 		return
-	}
-
-	builds := make([]*buildbot.Build, 0, len(buildsById))
-	for _, b := range buildsById {
-		builds = append(builds, b)
 	}
 
 	if err := json.NewEncoder(w).Encode(builds); err != nil {
