@@ -82,7 +82,9 @@ sudo cp ../safec++ ${CHROOT_JAIL}/skia_build/scripts/
 banner "Building the webtry server outside the jail"
 
 sudo cp continue_install.sh /home/webtry
+sudo cp sys/webtry_toml /home/webtry/webtry.toml
 sudo chown webtry:webtry /home/webtry/continue_install.sh
+sudo chown webtry:webtry /home/webtry/webtry.toml
 sudo su - webtry -c /home/webtry/continue_install.sh
 
 banner "Setting up system initialization scripts"

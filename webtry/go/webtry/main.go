@@ -34,8 +34,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/webtry/go/config"
 )
 
 const (
@@ -136,12 +138,7 @@ var (
 
 // Command line flags.
 var (
-	useChroot    = flag.Bool("use_chroot", false, "Run the compiled code in the schroot jail.")
-	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	resourcePath = flag.String("resource_path", "", "Full path to find resources (e.g., templates)")
-	cachePath    = flag.String("cache_path", "../../cache", "Full path for source/gyp cache directory")
-	inoutPath    = flag.String("inout_path", "../../inout", "Full path for image input/output directory")
-	useMetadata  = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	configFilename = flag.String("config", "webtry.toml", "Configuration filename")
 )
 
 // lineNumbers adds #line numbering to the user's code.
@@ -158,7 +155,16 @@ func LineNumbers(c string) string {
 func Init() {
 	rand.Seed(time.Now().UnixNano())
 
-	path, err := filepath.Abs(*resourcePath)
+	config.Fiddle.UseChroot = false
+	config.Fiddle.Port = ":8000"
+	config.Fiddle.ResourcePath = ""
+	config.Fiddle.CachePath = "../../cache"
+	config.Fiddle.InoutPath = "../../inout"
+	config.Fiddle.UseMetadata = true
+
+	common.DecodeTomlFile(*configFilename, &config.Fiddle)
+
+	path, err := filepath.Abs(config.Fiddle.ResourcePath)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -207,7 +213,7 @@ func Init() {
 	gitHash = logInfo[0]
 	gitInfo = logInfo[1] + " " + logInfo[2] + " " + logInfo[0][0:6]
 
-	if *useMetadata {
+	if config.Fiddle.UseMetadata {
 		password := metadata.MustGet(PASSWORD_METADATA_KEY)
 
 		// The IP address of the database is found here:
@@ -317,7 +323,7 @@ func writeOutAllSourceImages() {
 			glog.Errorf("failed to fetch from database: %q", err)
 			continue
 		}
-		filename := fmt.Sprintf(filepath.Join(*inoutPath, "image-%d.png"), id)
+		filename := fmt.Sprintf(filepath.Join(config.Fiddle.InoutPath, "image-%d.png"), id)
 		if _, err := os.Stat(filename); os.IsExist(err) {
 			glog.Infof("Skipping write since file exists: %q", filename)
 			continue
@@ -386,13 +392,13 @@ func expandCode(code string, source int, width, height int) (string, error) {
 	// At this point we are running in buildbot/webtry, making cache a
 	// peer directory to skia.
 	// TODO(jcgregorio) Make all relative directories into flags.
-	err := expandToFile(fmt.Sprintf(filepath.Join(*cachePath, "src/%s.cpp"), hash), fontFriendlyCode, codeTemplate)
+	err := expandToFile(fmt.Sprintf(filepath.Join(config.Fiddle.CachePath, "src/%s.cpp"), hash), fontFriendlyCode, codeTemplate)
 	return hash, err
 }
 
 // expandGyp produces the GYP file needed to build the code
 func expandGyp(hash string) error {
-	return writeTemplate(fmt.Sprintf(filepath.Join(*cachePath, "%s.gyp"), hash), gypTemplate, struct{ Hash string }{hash})
+	return writeTemplate(fmt.Sprintf(filepath.Join(config.Fiddle.CachePath, "%s.gyp"), hash), gypTemplate, struct{ Hash string }{hash})
 }
 
 // response is serialized to JSON as a response to POSTs.
@@ -544,8 +550,8 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	filename := match[1]
 	w.Header().Set("Content-Type", contentType)
-	glog.Infof(fmt.Sprintf(filepath.Join(*inoutPath, "%s"), filename))
-	http.ServeFile(w, r, fmt.Sprintf(filepath.Join(*inoutPath, "%s"), filename))
+	glog.Infof(fmt.Sprintf(filepath.Join(config.Fiddle.InoutPath, "%s"), filename))
+	http.ServeFile(w, r, fmt.Sprintf(filepath.Join(config.Fiddle.InoutPath, "%s"), filename))
 }
 
 type Try struct {
@@ -844,7 +850,7 @@ func tryInfoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func cleanCompileOutput(s, hash string) string {
-	old := filepath.Join(*cachePath, "src/") + hash + ".cpp:"
+	old := filepath.Join(config.Fiddle.CachePath, "src/") + hash + ".cpp:"
 	glog.Infof("replacing %q\n", old)
 	return strings.Replace(s, old, "usercode.cpp:", -1)
 }
@@ -858,9 +864,9 @@ type compileError struct {
 // getOutputPaths returns the pathname to any (potential) output files for
 // a given hash.
 func getOutputPaths(hash string) (rasterPath, gpuPath, pdfPath string) {
-	rasterPath = filepath.Join(*inoutPath, fmt.Sprintf("%s_raster.png", hash))
-	gpuPath = filepath.Join(*inoutPath, fmt.Sprintf("%s_gpu.png", hash))
-	pdfPath = filepath.Join(*inoutPath, fmt.Sprintf("%s.pdf", hash))
+	rasterPath = filepath.Join(config.Fiddle.InoutPath, fmt.Sprintf("%s_raster.png", hash))
+	gpuPath = filepath.Join(config.Fiddle.InoutPath, fmt.Sprintf("%s_gpu.png", hash))
+	pdfPath = filepath.Join(config.Fiddle.InoutPath, fmt.Sprintf("%s.pdf", hash))
 	return
 }
 
@@ -1075,7 +1081,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		if request.PDF {
 			cmd += " --pdf"
 		}
-		if *useChroot {
+		if config.Fiddle.UseChroot {
 			cmd = "schroot -c webtry --directory=/ -- /skia_build/" + cmd
 		}
 		if request.Source > 0 {
@@ -1175,5 +1181,5 @@ func main() {
 
 	// TODO Break out /c/ as it's own handler.
 	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	glog.Fatal(http.ListenAndServe(config.Fiddle.Port, nil))
 }

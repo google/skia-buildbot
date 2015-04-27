@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/BurntSushi/toml"
+	"github.com/davecgh/go-spew/spew"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 )
@@ -83,4 +85,13 @@ func startMetrics(appName, graphiteServer string) {
 			uptimeGuage.Update(time.Since(startTime).Seconds())
 		}
 	}()
+}
+
+func DecodeTomlFile(filename string, configuration interface{}) {
+	if _, err := toml.DecodeFile(filename, configuration); err != nil {
+		glog.Fatalf("Failed to decode config file %s: %s", filename, err)
+	}
+
+	conf_str := spew.Sdump(configuration)
+	glog.Infof("Read TOML configuration from %s: %s", filename, conf_str)
 }

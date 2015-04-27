@@ -1,0 +1,9 @@
+RESOURCEPATH="/home/webtry/golib/src/go.skia.org/infra/webtry"
+DAEMON_ARGS="--use_chroot --log_dir=/var/log/logserver --resource_path=$RESOURCEPATH --cache_path=/home/webtry/cache --inout_path=/home/webtry/inout"
+
+UseChroot    = true         # Run the compiled code in the schroot jail?
+Port         = ":8000"       # HTTP service address (e.g., ':8000')
+ResourcePath = "/home/webtry/golib/src/go.skia.org/infra/webtry"            # Full path to find resources (e.g., templates)
+CachePath    = "/home/webtry/cache" # Full path for source/gyp cache directory
+InoutPath    = "/home/webtry/inout" # Full path for image input/output directory
+UseMetadata  = true          # Load sensitive values from metadata not from flags.
