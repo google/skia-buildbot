@@ -72,7 +72,7 @@ func TestRuleTriggeringE2E(t *testing.T) {
 
 	getAlerts := func() []*alerting.Alert {
 		b := bytes.NewBuffer([]byte{})
-		assert.Nil(t, am.WriteActiveAlertsJson(b))
+		assert.Nil(t, am.WriteActiveAlertsJson(b, func(*alerting.Alert) bool { return true }))
 		var active []*alerting.Alert
 		assert.Nil(t, json.Unmarshal(b.Bytes(), &active))
 		return active

@@ -41,6 +41,8 @@ import (
 
 const (
 	GMAIL_TOKEN_CACHE_FILE = "google_email_token.data"
+	PARAM_INCLUDE_CATEGORY = "category"
+	PARAM_EXCLUDE_CATEGORY = "excludeCategory"
 )
 
 var (
@@ -122,9 +124,39 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 	return &v32, nil
 }
 
+func makeAlertFilter(r *http.Request) func(*alerting.Alert) bool {
+	includeCategories := []string{}
+	excludeCategories := []string{}
+	queryInclude, ok := r.URL.Query()[PARAM_INCLUDE_CATEGORY]
+	if ok {
+		includeCategories = queryInclude
+	}
+	queryExclude, ok := r.URL.Query()[PARAM_EXCLUDE_CATEGORY]
+	if ok {
+		excludeCategories = queryExclude
+	}
+	return func(a *alerting.Alert) bool {
+		if len(includeCategories) > 0 {
+			for _, include := range includeCategories {
+				if a.Category == include {
+					return true
+				}
+			}
+			return false
+		}
+		for _, exclude := range excludeCategories {
+			if a.Category == exclude {
+				return false
+			}
+		}
+		return true
+	}
+}
+
 func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if err := alertManager.WriteActiveAlertsJson(w); err != nil {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if err := alertManager.WriteActiveAlertsJson(w, makeAlertFilter(r)); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Unable to write JSON: %v", err))
 	}
 }
@@ -209,16 +241,42 @@ func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func alertHandler(w http.ResponseWriter, r *http.Request) {
+func handleAlerts(w http.ResponseWriter, r *http.Request, title string, categories []string, excludeCategories []string) {
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in testing mode.
 	if *testing {
 		reloadTemplates()
 	}
-	if err := alertsTemplate.Execute(w, struct{}{}); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+
+	categoriesJson, err := json.Marshal(categories)
+	if err != nil {
+		util.ReportError(w, r, fmt.Errorf("Failed to encode JSON."), "Failed to encode JSON")
 	}
+	excludeJson, err := json.Marshal(excludeCategories)
+	if err != nil {
+		util.ReportError(w, r, fmt.Errorf("Failed to encode JSON."), "Failed to encode JSON")
+	}
+	inp := struct {
+		Categories        string
+		ExcludeCategories string
+		Title             string
+	}{
+		Categories:        string(categoriesJson),
+		ExcludeCategories: string(excludeJson),
+		Title:             title,
+	}
+	if err := alertsTemplate.Execute(w, inp); err != nil {
+		util.ReportError(w, r, fmt.Errorf("Failed to expand template: %v", err), "Failed to expand template.")
+	}
+}
+
+func alertHandler(w http.ResponseWriter, r *http.Request) {
+	handleAlerts(w, r, "Skia Alerts", []string{}, []string{alerting.INFRA_ALERT})
+}
+
+func infraAlertHandler(w http.ResponseWriter, r *http.Request) {
+	handleAlerts(w, r, "Skia Infra Alerts", []string{alerting.INFRA_ALERT}, []string{})
 }
 
 func rulesJsonHandler(w http.ResponseWriter, r *http.Request) {
@@ -250,6 +308,7 @@ func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", alertHandler)
+	r.HandleFunc("/infra", infraAlertHandler)
 	r.HandleFunc("/rules", rulesHandler)
 	alerts := r.PathPrefix("/json/alerts").Subrouter()
 	alerts.HandleFunc("/", util.CorsHandler(alertJsonHandler))

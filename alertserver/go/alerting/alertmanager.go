@@ -31,13 +31,15 @@ type AlertManager struct {
 }
 
 // Alerts returns a slice containing the currently active Alerts.
-func (am *AlertManager) WriteActiveAlertsJson(w io.Writer) error {
+func (am *AlertManager) WriteActiveAlertsJson(w io.Writer, filter func(*Alert) bool) error {
 	am.mutex.RLock()
 	defer am.mutex.RUnlock()
 	out := make([]*Alert, 0, len(am.activeAlerts))
 	ids := make([]int64, 0, len(am.activeAlerts))
 	for _, a := range am.activeAlerts {
-		ids = append(ids, a.Id)
+		if filter(a) {
+			ids = append(ids, a.Id)
+		}
 	}
 	sort.Sort(util.Int64Slice(ids))
 	for _, id := range ids {

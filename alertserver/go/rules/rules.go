@@ -57,7 +57,7 @@ func (r *Rule) queryExecutionAlert(queryErr error, am *alerting.AlertManager) er
 	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
 		Name:     name,
-		Category: r.Category, // Should the category be "internal error" or something?
+		Category: alerting.INFRA_ALERT,
 		Message:  msg,
 		Nag:      int64(1 * time.Hour),
 		Actions:  actions,
@@ -74,7 +74,7 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
 		Name:     name,
-		Category: r.Category, // Should the category be "internal error" or something?
+		Category: alerting.INFRA_ALERT,
 		Message:  msg,
 		Nag:      int64(1 * time.Hour),
 		Actions:  actions,

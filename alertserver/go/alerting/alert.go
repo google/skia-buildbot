@@ -2,6 +2,8 @@ package alerting
 
 import "encoding/json"
 
+const INFRA_ALERT = "infra"
+
 type alertFields struct {
 	Id           int64      `json:"id"`
 	Name         string     `json:"name"`

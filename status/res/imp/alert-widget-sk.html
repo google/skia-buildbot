@@ -15,6 +15,8 @@
     <alert-widget-sk></alert-widget-sk>
 
   Properties:
+    categories: Which alert categories to include.
+    excludeCategories: Which alert categories to ignore.
     reload: How often (in seconds) to reload alert data.
 -->
 <polymer-element name="alert-widget-sk">
@@ -86,6 +88,14 @@
   <script>
     Polymer({
       publish: {
+        categories: {
+          value: [],
+          reflect: true,
+        },
+        excludeCategories: {
+          value: [],
+          reflect: true,
+        },
         reload: {
           value: 60,
           reflect: true,
@@ -164,7 +174,19 @@
 
       reloadAlerts: function() {
         var that = this;
-        sk.get("https://alerts.skia.org/json/alerts/").then(JSON.parse).then(function(json) {
+        var url = "https://alerts.skia.org/json/alerts/";
+        var params = [];
+        for (var i = 0; i < this.categories.length; i++) {
+          params.push("category=" + this.categories[i]);
+        }
+        for (var i = 0; i < this.excludeCategories.length; i++) {
+          params.push("excludeCategory=" + this.excludeCategories[i]);
+        }
+        if (params.length > 0) {
+          url += "?" + params.join("&");
+        }
+        console.log("Loading alerts from " + url);
+        sk.get(url).then(JSON.parse).then(function(json) {
           that.updateAlerts(json);
           that.resetTimeout();
         }).catch(function() {

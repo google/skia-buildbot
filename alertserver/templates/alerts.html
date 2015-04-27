@@ -3,7 +3,7 @@
   <head>
     {{template "header.html" .}}
 
-    <title>Skia Alerts</title>
+    <title>{{.Title}}</title>
 
     <style>
     core-header-panel {
@@ -28,9 +28,9 @@
     <core-header-panel flex>
       <core-toolbar>
         <div><a href="/rules">Alert Rules</a></div><div flex></div><login-sk></login-sk>
-        <h1 class="bottom" flex>Skia Alerts</h1>
+        <h1 class="bottom" flex>{{.Title}}</h1>
       </core-toolbar>
-      <alerts-sk reload=60></alerts-sk>
+      <alerts-sk reload=60 categories='{{.Categories}}' excludeCategories='{{.ExcludeCategories}}'></alerts-sk>
     </core-header-panel>
     <div horizontal layout>
       <div flex></div>

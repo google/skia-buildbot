@@ -123,7 +123,7 @@ func TestAlertFlowE2E(t *testing.T) {
 	assert.Nil(t, am.tick())
 	getAlerts := func() []*Alert {
 		b := bytes.NewBuffer([]byte{})
-		assert.Nil(t, am.WriteActiveAlertsJson(b))
+		assert.Nil(t, am.WriteActiveAlertsJson(b, func(*Alert) bool { return true }))
 		var active []*Alert
 		assert.Nil(t, json.Unmarshal(b.Bytes(), &active))
 		return active

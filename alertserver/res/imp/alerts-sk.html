@@ -15,7 +15,9 @@
     <alerts-sk></alerts-sk>
 
   Properties:
+    categories: Which alert categories to include.
     compact: If true, minimal information about alerts is displayed.
+    excludeCategories: Which alert categories to ignore.
     reload: How often (in seconds) to reload alert data.
 -->
 <polymer-element name="alerts-sk">
@@ -41,8 +43,16 @@
   <script>
     Polymer({
       publish: {
+        categories: {
+          value: [],
+          reflect: true,
+        },
         compact: {
           value: false,
+          reflect: true,
+        },
+        excludeCategories: {
+          value: [],
           reflect: true,
         },
         reload: {
@@ -60,6 +70,9 @@
         if (params.compact && params.compact.length > 0 && params.compact[0] == "true") {
           this.compact = true;
         }
+      },
+
+      ready: function() {
         this.reloadAlerts();
       },
 
@@ -78,9 +91,20 @@
       },
 
       reloadAlerts: function() {
-        console.log("Loading alerts.");
+        var url = "/json/alerts/";
+        var params = [];
+        for (var i = 0; i < this.categories.length; i++) {
+          params.push("category=" + this.categories[i]);
+        }
+        for (var i = 0; i < this.excludeCategories.length; i++) {
+          params.push("excludeCategory=" + this.excludeCategories[i]);
+        }
+        if (params.length > 0) {
+          url += "?" + params.join("&");
+        }
+        console.log("Loading alerts from " + url);
         var that = this;
-        sk.get("/json/alerts/").then(JSON.parse).then(function(json) {
+        sk.get(url).then(JSON.parse).then(function(json) {
           that.alerts = json;
           that.lastLoaded = new Date().toLocaleTimeString();
           that.resetTimeout();
