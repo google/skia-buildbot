@@ -5,8 +5,15 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
-
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/golden/go/types"
+)
+
+// Events emmited by this packacke.
+const (
+	// Event emitted when expecations change.
+	// Callback argument: []string with the names of changed tests.
+	EV_EXPSTORAGE_CHANGED = "expstorage:changed"
 )
 
 // Wraps the set of expectations and provides methods to manipulate them.
@@ -165,17 +172,19 @@ type MemExpectationsStore struct {
 	expectations *Expectations
 	readCopy     *Expectations
 	changes      changesSlice
+	eventBus     *eventbus.EventBus
 
 	// Protects expectations.
 	mutex sync.Mutex
 }
 
 // New instance of memory backed expecation storage.
-func NewMemExpectationsStore() ExpectationsStore {
+func NewMemExpectationsStore(eventBus *eventbus.EventBus) ExpectationsStore {
 	return &MemExpectationsStore{
 		expectations: NewExpectations(),
 		readCopy:     NewExpectations(),
 		changes:      changesSlice{},
+		eventBus:     eventBus,
 	}
 }
 
@@ -208,7 +217,9 @@ func (m *MemExpectationsStore) AddChange(changedTests map[string]types.TestClass
 		}
 		testNames = append(testNames, testName)
 	}
-
+	if m.eventBus != nil {
+		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, testNames)
+	}
 	m.dataChanged(testNames)
 	return nil
 }

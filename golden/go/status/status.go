@@ -10,6 +10,7 @@ import (
 	imetrics "go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
@@ -87,7 +88,11 @@ func (s *StatusWatcher) GetStatus() *GUIStatus {
 }
 
 func (s *StatusWatcher) calcAndWatchStatus() error {
-	expChanges := s.storages.ExpectationsStore.Changes()
+	expChanges := make(chan []string)
+	s.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
+		expChanges <- e.([]string)
+	})
+
 	tileStream := storage.GetTileStreamNow(s.storages.TileStore, 2*time.Minute)
 
 	lastTile := <-tileStream

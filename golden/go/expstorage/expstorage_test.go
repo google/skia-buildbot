@@ -1,13 +1,15 @@
 package expstorage
 
-import "testing"
+import (
+	"sort"
+	"testing"
+)
 
 import (
-	// Using 'require' which is like using 'assert' but causes tests to fail.
 	assert "github.com/stretchr/testify/require"
-
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/types"
@@ -15,7 +17,7 @@ import (
 
 func TestChanges(t *testing.T) {
 	// Create the starting point of expectations.
-	m := NewMemExpectationsStore()
+	m := NewMemExpectationsStore(nil)
 	_, err := m.Get()
 	if err != nil {
 		t.Fatalf("Failed to get expectations: %s", err)
@@ -72,21 +74,32 @@ func TestMySQLExpectationsStore(t *testing.T) {
 
 	// Test the MySQL backed store
 	sqlStore := NewSQLExpectationStore(vdb)
-	testExpectationStore(t, sqlStore)
+	testExpectationStore(t, sqlStore, nil)
 
 	// Test the caching version of the MySQL store.
-	cachingStore := NewCachingExpectationStore(sqlStore)
-	testExpectationStore(t, cachingStore)
+	eventBus := eventbus.New()
+	cachingStore := NewCachingExpectationStore(sqlStore, eventBus)
+	testExpectationStore(t, cachingStore, eventBus)
 }
 
 // Test against the expectation store interface.
-func testExpectationStore(t *testing.T, store ExpectationsStore) {
+func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *eventbus.EventBus) {
 	// Get the initial log size. This is necessary because we
 	// call this function multiple times with the same underlying
 	// SQLExpectationStore.
 	initialLogRecs, initialLogTotal, err := store.QueryLog(0, 5)
 	assert.Nil(t, err)
 	initialLogRecsLen := len(initialLogRecs)
+
+	// If we have an event bus then keep gathering events.
+	callbackCh := make(chan []string, 3)
+	if eventBus != nil {
+		eventBus.SubscribeAsync(EV_EXPSTORAGE_CHANGED, func(e interface{}) {
+			testNames := append([]string{}, e.([]string)...)
+			sort.Strings(testNames)
+			callbackCh <- testNames
+		})
+	}
 
 	TEST_1, TEST_2 := "test1", "test2"
 
@@ -104,8 +117,12 @@ func testExpectationStore(t *testing.T, store ExpectationsStore) {
 			DIGEST_22: types.NEGATIVE,
 		},
 	}
-	err = store.AddChange(newExps, "user-0")
-	assert.Nil(t, err)
+	assert.Nil(t, store.AddChange(newExps, "user-0"))
+	if eventBus != nil {
+		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
+		assert.Equal(t, 1, len(callbackCh))
+		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
+	}
 
 	foundExps, err := store.Get()
 	assert.Nil(t, err)
@@ -122,13 +139,26 @@ func testExpectationStore(t *testing.T, store ExpectationsStore) {
 			DIGEST_22: types.UNTRIAGED,
 		},
 	}
-	err = store.AddChange(updExps, "user-1")
-	assert.Nil(t, err)
+	assert.Nil(t, store.AddChange(updExps, "user-1"))
+	if eventBus != nil {
+		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
+		assert.Equal(t, 1, len(callbackCh))
+		assert.Equal(t, []string{TEST_1, TEST_2}, <-callbackCh)
+	}
 
 	foundExps, err = store.Get()
 	assert.Nil(t, err)
 	assert.Equal(t, types.NEGATIVE, foundExps.Tests[TEST_1][DIGEST_11])
 	assert.Equal(t, types.UNTRIAGED, foundExps.Tests[TEST_2][DIGEST_22])
+
+	// Send empty changes to test the event bus.
+	emptyChanges := map[string]types.TestClassification{}
+	assert.Nil(t, store.AddChange(emptyChanges, ""))
+	if eventBus != nil {
+		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
+		assert.Equal(t, 1, len(callbackCh))
+		assert.Equal(t, []string{}, <-callbackCh)
+	}
 
 	// Remove digests.
 	removeDigests := map[string][]string{
@@ -156,11 +186,11 @@ func testExpectationStore(t *testing.T, store ExpectationsStore) {
 	// Make sure we added the correct number of triage log entries.
 	logEntries, total, err := store.QueryLog(0, 5)
 	assert.Nil(t, err)
-	assert.Equal(t, 2+initialLogTotal, total)
-	assert.Equal(t, 2+initialLogRecsLen, len(logEntries))
+	assert.Equal(t, 3+initialLogTotal, total)
+	assert.Equal(t, util.MinInt(3+initialLogRecsLen, 5), len(logEntries))
 
 	logEntries, total, err = store.QueryLog(100, 5)
 	assert.Nil(t, err)
-	assert.Equal(t, 2+initialLogTotal, total)
+	assert.Equal(t, 3+initialLogTotal, total)
 	assert.Equal(t, 0, len(logEntries))
 }

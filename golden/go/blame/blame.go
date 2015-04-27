@@ -7,6 +7,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
@@ -49,7 +50,12 @@ func New(storages *storage.Storage) (*Blamer, error) {
 // processTileStream processes the first tile instantly and starts a background
 // process to recalculate the blame lists as tiles and expectations change.
 func (b *Blamer) processTileStream() error {
-	expChanges := b.storages.ExpectationsStore.Changes()
+	expChanges := make(chan []string)
+	b.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
+		expChanges <- e.([]string)
+	})
+
+	b.storages.ExpectationsStore.Changes()
 	tileStream := storage.GetTileStreamNow(b.storages.TileStore, 2*time.Minute)
 
 	lastTile := <-tileStream

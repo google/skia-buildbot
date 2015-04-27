@@ -8,6 +8,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -64,10 +65,12 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, len(commits), len(digests[0]))
 	assert.Equal(t, len(digests), len(params))
 
+	eventBus := eventbus.New()
 	storages := &storage.Storage{
-		ExpectationsStore: expstorage.NewMemExpectationsStore(),
+		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		TileStore:         mocks.NewMockTileStore(t, digests, params, commits),
 		DigestStore:       &MockDigestStore{firstSeen: start + 1000},
+		EventBus:          eventBus,
 	}
 	blamer, err := New(storages)
 	assert.Nil(t, err)
@@ -156,13 +159,15 @@ func TestBlamerWithLiveData(t *testing.T) {
 }
 
 func testBlamerWithLiveData(t assert.TestingT, tileStore ptypes.TileStore) {
+	eventBus := eventbus.New()
 	storage := &storage.Storage{
-		ExpectationsStore: expstorage.NewMemExpectationsStore(),
+		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		TileStore:         tileStore,
 		DigestStore: &MockDigestStore{
 			firstSeen: time.Now().Unix(),
 			okValue:   true,
 		},
+		EventBus: eventBus,
 	}
 
 	blamer, err := New(storage)

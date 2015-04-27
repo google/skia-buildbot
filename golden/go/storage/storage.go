@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
@@ -22,6 +23,7 @@ type Storage struct {
 	IgnoreStore       ignore.IgnoreStore
 	TileStore         ptypes.TileStore
 	DigestStore       digeststore.DigestStore
+	EventBus          *eventbus.EventBus
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.

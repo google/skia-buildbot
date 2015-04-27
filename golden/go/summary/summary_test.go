@@ -155,7 +155,7 @@ func TestCalcSummaries(t *testing.T) {
 
 	storages := &storage.Storage{
 		DiffStore:         MockDiffStore{},
-		ExpectationsStore: expstorage.NewMemExpectationsStore(),
+		ExpectationsStore: expstorage.NewMemExpectationsStore(nil),
 		IgnoreStore:       ignore.NewMemIgnoreStore(),
 		TileStore:         MockTileStore{Tile: tile},
 		NCommits:          50,

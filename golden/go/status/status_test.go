@@ -7,6 +7,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -60,10 +61,12 @@ func BenchmarkStatusWatcher(b *testing.B) {
 }
 
 func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
+	eventBus := eventbus.New()
 	storages := &storage.Storage{
-		ExpectationsStore: expstorage.NewMemExpectationsStore(),
+		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		TileStore:         tileStore,
 		DigestStore:       &MockDigestStore{},
+		EventBus:          eventBus,
 	}
 
 	watcher, err := New(storages)

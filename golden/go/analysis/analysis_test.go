@@ -82,7 +82,7 @@ func TestGetListTestDetails(t *testing.T) {
 
 	storages := &storage.Storage{
 		DiffStore:         mocks.NewMockDiffStore(),
-		ExpectationsStore: expstorage.NewMemExpectationsStore(),
+		ExpectationsStore: expstorage.NewMemExpectationsStore(nil),
 		IgnoreStore:       ignore.NewMemIgnoreStore(),
 		TileStore:         mocks.NewMockTileStore(t, digests, params, commits),
 	}
@@ -180,7 +180,7 @@ func TestAgainstLiveData(t *testing.T) {
 
 	storages := &storage.Storage{
 		DiffStore:         mocks.NewMockDiffStore(),
-		ExpectationsStore: expstorage.NewMemExpectationsStore(),
+		ExpectationsStore: expstorage.NewMemExpectationsStore(nil),
 		TileStore:         mocks.NewMockTileStoreFromJson(t, TEST_DATA_PATH),
 		IgnoreStore:       ignore.NewMemIgnoreStore(),
 	}

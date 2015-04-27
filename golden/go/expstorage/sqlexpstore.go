@@ -3,6 +3,7 @@ package expstorage
 import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/types"
@@ -204,16 +205,18 @@ func (m *SQLExpectationsStore) QueryLog(offset, size int) ([]*TriageLogEntry, in
 // Wraps around an ExpectationsStore and caches the expectations using
 // MemExpecationsStore.
 type CachingExpectationStore struct {
-	store   ExpectationsStore
-	cache   ExpectationsStore
-	refresh bool
+	store    ExpectationsStore
+	cache    ExpectationsStore
+	eventBus *eventbus.EventBus
+	refresh  bool
 }
 
-func NewCachingExpectationStore(store ExpectationsStore) ExpectationsStore {
+func NewCachingExpectationStore(store ExpectationsStore, eventBus *eventbus.EventBus) ExpectationsStore {
 	return &CachingExpectationStore{
-		store:   store,
-		cache:   NewMemExpectationsStore(),
-		refresh: true,
+		store:    store,
+		cache:    NewMemExpectationsStore(nil),
+		eventBus: eventBus,
+		refresh:  true,
 	}
 }
 
@@ -238,7 +241,15 @@ func (c *CachingExpectationStore) AddChange(changedTests map[string]types.TestCl
 		return err
 	}
 
-	return c.cache.AddChange(changedTests, userId)
+	ret := c.cache.AddChange(changedTests, userId)
+	if ret == nil {
+		testNames := make([]string, 0, len(changedTests))
+		for testName := range changedTests {
+			testNames = append(testNames, testName)
+		}
+		c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, testNames)
+	}
+	return ret
 }
 
 func (c *CachingExpectationStore) RemoveChange(changedDigests map[string][]string) error {

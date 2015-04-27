@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/redisutil"
@@ -376,12 +377,14 @@ func main() {
 	}
 	vdb := database.NewVersionedDB(conf)
 
+	eventBus := eventbus.New()
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
-		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb)),
+		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), eventBus),
 		IgnoreStore:       ignore.NewSQLIgnoreStore(vdb),
 		TileStore:         filetilestore.NewFileTileStore(*tileStoreDir, pconfig.DATASET_GOLD, 2*time.Minute),
 		NCommits:          *nCommits,
+		EventBus:          eventBus,
 	}
 
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
