@@ -1,0 +1,96 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <perf-status-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/perf-status-sk.html" rel="import" />
+
+  Usage:
+
+    <perf-status-sk></perf-status-sk>
+
+  Attributes:
+    reload: How often (in seconds) to reload.
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<polymer-element name="perf-status-sk">
+  <template>
+    <style>
+    a {
+      color: #FFFFFF;
+      text-decoration: none;
+    }
+    .label {
+      padding: 5px;
+    }
+    .value {
+      background-color: #E6AB02;
+      border-radius: 3px;
+      padding: 5px;
+    }
+    core-icon-button /deep/ core-icon[role=img] {
+      color: #E6AB02;
+    }
+    </style>
+    <a href="https://perf.skia.org/alerts/" target="_blank">
+      <core-icon-button icon="trending-up">
+        <span class="label">perf alerts</span>
+        <span class="value">{{numActiveAlerts}}</span>
+      </core-icon-button>
+    </a>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        reload: {
+          value: 60,
+          reflect: true,
+        },
+      },
+
+      created: function() {
+        this.timeout = null;
+        this.numActiveAlerts = 0;
+      },
+
+      ready: function() {
+        this.reloadStatus();
+      },
+
+      reloadChanged: function() {
+        this.resetTimeout();
+      },
+
+      resetTimeout: function() {
+        if (this.timeout) {
+          window.clearTimeout(this.timeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this.timeout = window.setTimeout(function() { that.reloadStatus(); }, this.reload * 1000);
+        }
+      },
+
+      reloadStatus: function() {
+        var that = this;
+        sk.get("/json/perfAlerts").then(JSON.parse).then(function(json) {
+          that.numActiveAlerts = json["alerts"];
+          that.resetTimeout();
+        }).catch(function() {
+          that.resetTimeout();
+        });
+      },
+
+    });
+  </script>
+</polymer-element>

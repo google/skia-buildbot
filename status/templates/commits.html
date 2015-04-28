@@ -24,26 +24,39 @@
       margin-top: 5px;
     }
     #spacer-left {
-      width: 0px;
+      width: 30px;
     }
     #spacer-right {
-      width: 120px;
+      width: 0px;
+    }
+    autoroll-widget-sk {
+      width: 180px;
+      min-width: 180px;
+      max-width: 180px;
     }
     login-sk {
       width: 200px;
+      min-width: 200px;
+      max-width: 200px;
     }
     tree-status-sk {
       font-size: 1em;
     }
     #sheriff-button {
-      max-width: 150px;
-      width: 150px;
+      min-width: 200px;
+      max-width: 200px;
+      width: 200px;
       white-space: nowrap;
       text-align: left;
       margin: 0px;
     }
     #sheriff-email {
       display: inline;
+    }
+    perf-status-sk {
+      width: 200px;
+      min-width: 200px;
+      max-width: 200px;
     }
     core-icon-button /deep/ core-icon[role=img] {
       color: #E6AB02;
@@ -73,6 +86,7 @@
             <tree-status-sk></tree-status-sk>
           </div>
           <div id="spacer-right"></div>
+          <perf-status-sk title="Active Perf alerts"></perf-status-sk>
           <alert-widget-sk excludeCategories="['infra']"></alert-widget-sk>
           <login-sk></login-sk>
         </div>

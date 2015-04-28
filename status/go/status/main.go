@@ -334,6 +334,22 @@ func buildbotDashHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := buildbotDashTemplate.Execute(w, struct{}{}); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		return
+	}
+}
+
+func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var res struct {
+		Value int `json:"alerts" influxdb:"value"`
+	}
+	if err := dbClient.Query(&res, "select value from /skiaperf.skia-perf.alerting.new.value/ limit 1"); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to obtain current number of alerts: %v", err))
+		return
+	}
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
 	}
 }
 
@@ -351,6 +367,7 @@ func runServer(serverURL string) {
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
 	commits.HandleFunc("/", commitsJsonHandler)
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
+	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
