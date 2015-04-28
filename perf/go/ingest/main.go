@@ -11,7 +11,6 @@ import (
 	"time"
 
 	storage "code.google.com/p/google-api-go-client/storage/v1"
-	"github.com/BurntSushi/toml"
 	"github.com/skia-dev/glog"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
@@ -90,11 +89,7 @@ func main() {
 	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
 
 	common.InitWithMetricsCB("ingest", func() string {
-		// Read toml config file.
-		if _, err := toml.DecodeFile(*configFilename, &config); err != nil {
-			glog.Fatalf("Failed to decode config file: %s", err)
-		}
-
+		common.DecodeTomlFile(*configFilename, &config)
 		return config.Common.GraphiteServer
 	})
 
