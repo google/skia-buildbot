@@ -100,19 +100,6 @@ var (
 	statusWatcher      *status.StatusWatcher
 )
 
-// tileCountsHandler handles GET requests for the classification counts over
-// all tests and digests of a tile.
-func tileCountsHandler(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	result, err := analyzer.GetTileCounts(query)
-	if err != nil {
-		sendErrorResponse(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	sendResponse(w, result, http.StatusOK, nil)
-}
-
 func listTestDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	result, err := analyzer.ListTestDetails(query)
@@ -422,7 +409,6 @@ func main() {
 
 	// Wire up the resources. We use the 'rest' prefix to avoid any name
 	// clashes witht the static files being served.
-	router.HandleFunc("/rest/counts", tileCountsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage", listTestDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
 	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")

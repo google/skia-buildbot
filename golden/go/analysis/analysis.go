@@ -9,7 +9,6 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -144,16 +143,6 @@ func newLabelCounts(length int) *LabelCounts {
 	}
 }
 
-// GUITileCounts is an output type for the aggregated label counts.
-type GUITileCounts struct {
-	Commits    []*ptypes.Commit        `json:"commits"`
-	Ticks      []interface{}           `json:"ticks"`
-	Aggregated *LabelCounts            `json:"aggregated"`
-	Counts     map[string]*LabelCounts `json:"counts"`
-	AllParams  map[string][]string     `json:"allParams"`
-	Query      map[string][]string     `json:"query"`
-}
-
 // AnalyzeState captures the state of a partition of the incoming data.
 // When a tile is read from disk it is partitioned into two tiles: current
 // and ignored. current contains everything we want to be able to review
@@ -169,7 +158,6 @@ type AnalyzeState struct {
 	Index *LabeledTileIndex
 
 	// Output data structures that are derived from Tile.
-	TileCounts  *GUITileCounts
 	TestDetails *GUITestDetails
 	Status      *GUIStatus
 	BlameLists  *GUIBlameLists
@@ -231,25 +219,6 @@ func NewAnalyzer(storages *storage.Storage, puConverter PathToURLConverter, cach
 
 	go result.loop(timeBetweenPolls)
 	return result
-}
-
-// GetTileCounts returns an entire Tile which is a collection of 'traces' over
-// a series of commits. Each trace contains the digests and their labels
-// based on our knowledge about digests (expectations).
-func (a *Analyzer) GetTileCounts(query map[string][]string) (*GUITileCounts, error) {
-	a.mutex.RLock()
-	defer a.mutex.RUnlock()
-
-	if len(query) > 0 {
-		tile, effectiveQuery := a.getSubTile(query)
-		if len(effectiveQuery) > 0 {
-			ret := a.getOutputCounts(tile, a.current.Index)
-			ret.Query = effectiveQuery
-			return ret, nil
-		}
-	}
-
-	return a.current.TileCounts, nil
 }
 
 // ListTestDetails returns a list of triage details based on the supplied
@@ -699,7 +668,6 @@ func (a *Analyzer) setDerivedOutputs(labeledTile *LabeledTile, expectations *exp
 
 	// Don't calculate these during prep runs.
 	if !prep {
-		state.TileCounts = a.getOutputCounts(state.Tile, state.Index)
 		state.Status = calcStatus(state)
 		state.BlameLists = getBlameLists(state.Tile)
 	}
@@ -800,96 +768,4 @@ func (a *Analyzer) getUntriagedTestDetails(query, effectiveQuery map[string][]st
 	}
 
 	return ret
-}
-
-// getSubTile queries the index and returns a LabeledTile that contains the
-// set of found traces. It also returns the subset of 'query' that contained
-// valid parameters and values.
-// If the returned query is empty the first return value is set to Nil,
-// because now valid filter parameters were found in the query.
-func (a *Analyzer) getSubTile(query map[string][]string) (*LabeledTile, map[string][]string) {
-	// TODO(stephana): Use the commitStart and commitEnd return values
-	// if we really need this method. GetTileCounts and getSubTile might be
-	// removed.
-	effectiveQuery := make(map[string][]string, len(query))
-	traces, _, _, _ := a.current.Index.query(query, effectiveQuery)
-	if len(effectiveQuery) == 0 {
-		return nil, effectiveQuery
-	}
-
-	result := NewLabeledTile()
-	result.Commits = a.current.Tile.Commits
-
-	result.Traces = map[string][]*LabeledTrace{}
-	for _, t := range traces {
-		testName := t.Params[types.PRIMARY_KEY_FIELD]
-		if _, ok := result.Traces[testName]; !ok {
-			result.Traces[testName] = []*LabeledTrace{}
-		}
-		result.Traces[testName] = append(result.Traces[testName], t)
-	}
-
-	return result, effectiveQuery
-}
-
-// getOutputCounts derives the output counts from the given labeled tile.
-func (a *Analyzer) getOutputCounts(labeledTile *LabeledTile, index *LabeledTileIndex) *GUITileCounts {
-	glog.Info("Starting to process output counts.")
-	// Stores the aggregated counts of a tile for each test.
-	tileCountsMap := make(map[string]*LabelCounts, len(labeledTile.Traces))
-
-	// Overall aggregated counts over all tests.
-	overallAggregates := newLabelCounts(len(labeledTile.Commits))
-
-	updateCounts(labeledTile, tileCountsMap, overallAggregates)
-
-	// TODO (stephana): Factor out human.FlotTickMarks and move it from
-	// perf to the shared go library.
-	// Generate the tickmarks for the commits.
-	ts := make([]int64, 0, len(labeledTile.Commits))
-	for _, c := range labeledTile.Commits {
-		if c.CommitTime != 0 {
-			ts = append(ts, c.CommitTime)
-		}
-	}
-
-	tileCounts := &GUITileCounts{
-		Commits:    labeledTile.Commits,
-		Ticks:      human.FlotTickMarks(ts),
-		Aggregated: overallAggregates,
-		Counts:     tileCountsMap,
-		AllParams:  index.getAllParams(nil),
-	}
-
-	glog.Info("Done processing output counts.")
-
-	return tileCounts
-}
-
-func updateCounts(labeledTile *LabeledTile, tileCountsMap map[string]*LabelCounts, overallAggregates *LabelCounts) {
-	for testName, testTraces := range labeledTile.Traces {
-		acc := newLabelCounts(len(labeledTile.Commits))
-
-		for _, oneTrace := range testTraces {
-			for i, ci := range oneTrace.CommitIds {
-				switch oneTrace.Labels[i] {
-				case types.UNTRIAGED:
-					acc.Unt[ci]++
-				case types.POSITIVE:
-					acc.Pos[ci]++
-				case types.NEGATIVE:
-					acc.Neg[ci]++
-				}
-			}
-		}
-
-		tileCountsMap[testName] = acc
-
-		// Add the aggregates fro this test to the overall aggregates.
-		for idx, u := range acc.Unt {
-			overallAggregates.Unt[idx] += u
-			overallAggregates.Pos[idx] += acc.Pos[idx]
-			overallAggregates.Neg[idx] += acc.Neg[idx]
-		}
-	}
 }
