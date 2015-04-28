@@ -18,6 +18,7 @@
     head - boolean, only use digests at head.
     details - boolean, if true display the details about the untriaged digests.
     limit - The maximum number of traces and digests to show when displaying details.
+    triage - If true display the image, its closest match, and the triage controls.
 
   Events:
   Methods:
@@ -64,12 +65,19 @@
         <span class=short>{{summary.neg}}</span>
         <span class=short>{{summary.untriaged}}</span>
         <span class=short>{{summary.num}}</span>
+        <span class=short>
+          <template if="{{!triage}}">
+            <a href="/2/?query={{query}}%26name%3D{{summary.name}}&include={{include}}&head={{head}}&untonly=false&details=true&limit=500&triage=true">
+              Triage
+            </a>
+          </template>
+        </span>
       </div>
-      <div vertical layout>
+      <div vertical layout id=details>
         <template if="{{details}}">
           <template repeat="{{d, i in summary.untHashes}}">
             <template if="{{i<limit}}">
-              <test-summary-details-sk test="{{summary.name}}" digest="{{d}}" limit="{{limit}}"></test-summary-details-sk>
+              <test-summary-details-sk test="{{summary.name}}" digest="{{d}}" limit="{{limit}}" triage="{{triage}}"></test-summary-details-sk>
             </template>
           </template>
           <template if="{{summary.untHashes.length>limit}}">
@@ -102,6 +110,10 @@
           value: 0,
           reflect: true,
         },
+        triage: {
+          value: false,
+          reflect: true,
+        },
       },
 
       created: function() {
@@ -118,7 +130,8 @@
         this.dataset.neg = this.summary.neg;
         this.dataset.untriaged = this.summary.untriaged;
         this.dataset.num  = this.summary.num;
-      }
+      },
+
     });
   </script>
 </polymer-element>

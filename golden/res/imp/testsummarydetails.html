@@ -5,9 +5,18 @@
   Attributes:
     test - The name of the test.
     digest - The digest we are interested in.
+    limit - The maximum number of digests to display.
+    triage - A boolean, if true, then display the triage controls.
 
   Events:
-    None.
+    triage - A triage event is generated when the triage button is pressed. The e.detail
+       of the event looks like:
+
+       {
+         digest: ["ba636123..."],
+         status: "positive",
+         test: "blurs"
+       }
 
   Methods:
     None.
@@ -65,44 +74,83 @@
       .more {
         margin-left: 3em;
       }
+      .preview {
+        margin: 5px;
+        border: solid 2px lightgray;
+        display: block;
+        width: 132px;
+        height: 132px;
+      }
+      .preview img {
+        display: block;
+        max-width: 128px;
+        max-height: 128px;
+        width: auto;
+        height: auto;
+
+      }
+      .hidden {
+        display: none;
+      }
+      .triageInfo,
+      .triageInfo div {
+        padding: 0.5em;
+      }
     </style>
     <div horizontal layout>
+      <template if="{{triage && details.closest}}">
+        <div class=preview>
+          <img src="/img/images/{{details.closest}}.png" />
+        </div>
+        <div class=preview>
+          <img src="/img/diffs/{{diffDigests}}.png" />
+        </div>
+        <div class=preview>
+          <img src="/img/images/{{digest}}.png" />
+        </div>
+      </template>
       <div vertical layout>
         <a href="/2/detail?test={{test}}&digest={{digest}}">{{digest}}</a>
         <dots-sk id=dots></dots-sk>
         <template if="{{isTruncated}}">
           <div class=more><a href="/2/detail?test={{test}}&digest={{digest}}">(more)</a></div>
         </template>
+        <table id=legend>
+          <template repeat="{{digestInfo, i in details.otherDigests}}">
+            <tr>
+              <td>
+                <svg width=10 height=10 viewBox="-1 -1 2 2">
+                  <circle cx=0 cy=0 r="0.3" class="status{{i+1}}"/>
+                </svg>
+              </td>
+              <td>
+                <template if="{{i<7}}">
+                  <code><a href="/2/detail?test={{test}}&digest={{digestInfo.digest}}">{{digestInfo.digest}}</a></code>
+                </template>
+                <template if="{{i==7}}">
+                  One of many other digests.
+                </template>
+              </td>
+              <td>
+                <template if="{{i<7}}">
+                  <tricon-sk value="{{digestInfo.status}}"></tricon-sk>
+                </template>
+              </td>
+              <td>
+                <template if="{{i<7}}">
+                  <a href="/2/diff?test={{test}}&left={{digestInfo.digest}}&top={{digest}}">diff</a>
+                </template>
+              </td>
+            </tr>
+          </template>
+        </table>
       </div>
-      <table id=legend>
-        <template repeat="{{digestInfo, i in details.otherDigests}}">
-          <tr>
-            <td>
-              <svg width=10 height=10 viewBox="-1 -1 2 2">
-                <circle cx=0 cy=0 r="0.3" class="status{{i+1}}"/>
-              </svg>
-            </td>
-            <td>
-              <template if="{{i<7}}">
-                <code><a href="/2/detail?test={{test}}&digest={{digestInfo.digest}}">{{digestInfo.digest}}</a></code>
-              </template>
-              <template if="{{i==7}}">
-                One of many other digests.
-              </template>
-            </td>
-            <td>
-              <template if="{{i<7}}">
-                <tricon-sk value="{{digestInfo.status}}"></tricon-sk>
-              </template>
-            </td>
-            <td>
-              <template if="{{i<7}}">
-                <a href="/2/diff?test={{test}}&left={{digestInfo.digest}}&top={{digest}}">diff</a>
-              </template>
-            </td>
-          </tr>
-        </template>
-      </table>
+      <div vertical layout class="{{triage ? 'triageInfo' : 'hidden'}}">
+        <div><a href="/2/diff?test={{test}}&left={{digest}}&top={{details.closest}}">Details</a></div>
+        <div>Diff: {{details.closestDiff | fixedPercent }}%</div>
+        <div>Max RGBA: [{{details.closestMaxRGBA}}]</div>
+        <tri-sk data-digest="{{digest}}" data-test="{{test}}" value=untriaged id=triage></tri-sk>
+      </div>
     </div>
   </template>
   <script>
@@ -120,11 +168,26 @@
           value: 0,
           reflect: true,
         },
+        triage: {
+          value: false,
+          reflect: true,
+        },
       },
 
       ready: function() {
         this.details = {};
         this.isTruncated = false;
+        this.diffDigests = "";
+        var that = this;
+        this.$.triage.addEventListener('change', function(e) {
+          // Convert the change event from the triage button into a more detailed triage event.
+          var detail = {
+            "test": e.target.dataset.test,
+            "digest": [e.target.dataset.digest],
+            "status": e.target.value,
+          };
+          that.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
+        });
       },
 
       reloadData: function() {
@@ -133,7 +196,7 @@
         }
 
         var that = this;
-        var q = '?test=' + this.test + '&top=' + this.digest+ '&left=' + this.digest+ '&graphs=true';
+        var q = '?test=' + this.test + '&top=' + this.digest+ '&left=' + this.digest+ '&graphs=true&closest=true';
         sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
           if (that.limit && that.limit < json.traces.length) {
             json.traces = json.traces.slice(0, that.limit);
@@ -142,6 +205,13 @@
           that.details = json;
           that.$.dots.setValue(that.details);
           that.$.dots.setCommits(that.details.commits);
+          if (json.closest != "") {
+            if (json.closest < that.digest) {
+              that.diffDigests = json.closest + "-" + that.digest;
+            } else {
+              that.diffDigests = that.digest + "-" + json.closest;
+            }
+          }
         });
       },
 
@@ -161,7 +231,15 @@
         } else {
           this.reloadData();
         }
-      }
+      },
+
+      fixedPercent: function(i) {
+        if (i) {
+          return i.toFixed(2);
+        } else {
+          return '';
+        }
+      },
     });
   </script>
 </polymer-element>

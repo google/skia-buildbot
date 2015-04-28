@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -880,13 +881,16 @@ type DigestStatus struct {
 // PolyDetailsGUI is used in the JSON returned from polyDetailsHandler. It
 // represents the known information about a single digest for a given test.
 type PolyDetailsGUI struct {
-	TopStatus    string             `json:"topStatus"`
-	LeftStatus   string             `json:"leftStatus"`
-	Params       []*PerParamCompare `json:"params"`
-	Traces       []*Trace           `json:"traces"`
-	Commits      []*ptypes.Commit   `json:"commits"`
-	OtherDigests []*DigestStatus    `json:"otherDigests"`
-	TileSize     int                `json:"tileSize"`
+	TopStatus      string             `json:"topStatus"`
+	LeftStatus     string             `json:"leftStatus"`
+	Params         []*PerParamCompare `json:"params"`
+	Traces         []*Trace           `json:"traces"`
+	Commits        []*ptypes.Commit   `json:"commits"`
+	OtherDigests   []*DigestStatus    `json:"otherDigests"`
+	TileSize       int                `json:"tileSize"`
+	Closest        string             `json:"closest"` // The closest positive digest, empty if there are no positive digests.
+	ClosestDiff    float32            `json:"closestDiff"`
+	ClosestMaxRGBA []int              `json:"closestMaxRGBA"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -897,6 +901,7 @@ type PolyDetailsGUI struct {
 //   top  - A digest in the test.
 //   left - A digest in the test.
 //   graphs - Boolean that's true if graph data should be returned.
+//   closest - Boolean that's true if the closest positive digest should be returned.
 //
 // The response looks like:
 //   {
@@ -919,6 +924,7 @@ type PolyDetailsGUI struct {
 //     ]
 //   }
 //
+// TODO(jcgregorio) Factor polyDetailsHandler into smaller functions and add unit tests.
 func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	tile, err := storages.GetLastTileTrimmed(true)
 	if err != nil {
@@ -989,6 +995,33 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Form.Get("graphs") == "true" {
 		ret.Traces, ret.OtherDigests = buildTraceData(top, traceNames, tile, tally, exp)
 		ret.Commits = tile.Commits
+	}
+
+	// Now find the closest positive digest.
+	if r.Form.Get("closest") == "true" {
+		pos := []string{}
+		if e, ok := exp.Tests[test]; ok {
+			for digest, label := range e {
+				if label == types.POSITIVE {
+					pos = append(pos, digest)
+				}
+			}
+		}
+		if diffMetrics, err := storages.DiffStore.Get(top, pos); err == nil {
+			bestDigest := ""
+			var bestRGBA []int
+			var bestDiff float32 = math.MaxFloat32
+			for digest, diff := range diffMetrics {
+				if diff.PixelDiffPercent < bestDiff {
+					bestDigest = digest
+					bestDiff = diff.PixelDiffPercent
+					bestRGBA = diff.MaxRGBADiffs
+				}
+			}
+			ret.Closest = bestDigest
+			ret.ClosestDiff = bestDiff
+			ret.ClosestMaxRGBA = bestRGBA
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
