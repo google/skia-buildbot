@@ -7,6 +7,9 @@
     digest - The digest we are interested in.
     limit - The maximum number of digests to display.
     triage - A boolean, if true, then display the triage controls.
+    data-diff - A read-only attribute that is the size of the difference between
+        this digest and the closest positive digest. Will be set before the
+        'loaded' event. May be set to Infinity if there are no positive digests.
 
   Events:
     triage - A triage event is generated when the triage button is pressed. The e.detail
@@ -17,6 +20,10 @@
          status: "positive",
          test: "blurs"
        }
+
+    details-loaded - A loaded event is generated the the control has finished loading data
+      from the server and the data-diff attribute has been set. The test-summary-details-sk
+      element is returned in e.detail.
 
   Methods:
     None.
@@ -89,7 +96,7 @@
         height: auto;
 
       }
-      .hidden {
+      .hidden * {
         display: none;
       }
       .triageInfo,
@@ -206,12 +213,16 @@
           that.$.dots.setValue(that.details);
           that.$.dots.setCommits(that.details.commits);
           if (json.closest != "") {
+            that.setAttribute('data-diff', json.closestDiff)
             if (json.closest < that.digest) {
               that.diffDigests = json.closest + "-" + that.digest;
             } else {
               that.diffDigests = that.digest + "-" + json.closest;
             }
+          } else {
+            that.setAttribute('data-diff', Infinity)
           }
+          that.dispatchEvent(new CustomEvent('details-loaded', {detail: that, bubbles: true}));
         });
       },
 

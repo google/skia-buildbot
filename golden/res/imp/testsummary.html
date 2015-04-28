@@ -46,6 +46,12 @@
         margin-left: 3em;
         padding: 1em;
       }
+      test-summary-details-sk[triage] {
+        display: none;
+      }
+      test-summary-details-sk[triage][data-diff] {
+        display: block;
+      }
       .only {
         margin-left: 3em;
         font-weight: bold;
@@ -67,6 +73,7 @@
         <span class=short>{{summary.num}}</span>
         <span class=short>
           <template if="{{!triage}}">
+            <!-- TODO(jcgregorio) Strip out all other test names from query. -->
             <a href="/2/?query={{query}}%26name%3D{{summary.name}}&include={{include}}&head={{head}}&untonly=false&details=true&limit=500&triage=true">
               Triage
             </a>
@@ -85,6 +92,7 @@
           </template>
         </template>
       </div>
+      <paper-spinner id=spinner></paper-spinner>
     </div>
   </template>
   <script>
@@ -110,6 +118,10 @@
           value: 0,
           reflect: true,
         },
+        details: {
+          value: false,
+          reflect: true,
+        },
         triage: {
           value: false,
           reflect: true,
@@ -121,6 +133,33 @@
       },
 
       ready: function() {
+        this.loadedCount = 0;
+        var that = this;
+        // Listen for each test-summary-details-sk to complete loading.
+        this.$.details.addEventListener('details-loaded', function(e) {
+          // Move the newly loaded element to the right location in the list.
+          var node = e.detail;
+          var last = null;
+          var diffValue = +node.dataset.diff;
+          // Find the sibling element we should appear before, which is the
+          // first element with a smaller diff value.
+          $$('test-summary-details-sk', that.$.details).forEach(function(ele) {
+            var d = ele.dataset.diff;
+            if (d) {
+              if (last == undefined && +d < diffValue) {
+                last = ele;
+              }
+            }
+          });
+          // Insert the node, in the list, or as the first child if last=null.
+          that.$.details.insertBefore(node, last);
+
+          // Keep the spinner spinning until all details elements have been loaded.
+          that.loadedCount++;
+          if (that.loadedCount == that.summary.untHashes.length) {
+            that.$.spinner.active = false;
+          }
+        });
       },
 
       summaryChanged: function() {
@@ -130,6 +169,10 @@
         this.dataset.neg = this.summary.neg;
         this.dataset.untriaged = this.summary.untriaged;
         this.dataset.num  = this.summary.num;
+        this.loadedCount = 0;
+        if (this.triage && this.details) {
+          this.$.spinner.active = true;
+        }
       },
 
     });
