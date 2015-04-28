@@ -1,18 +1,6 @@
 [FrontEnd]
 
 Port         = ":8000"  # "HTTP service address (e.g., ':8000')")
+ResourcePath = ""       #  "Full path to find resources (e.g., templates)")
+
 GraphiteServer = "skia-monitoring-b:2003" # address of the graphite server
-
-[Common]
-
-ResourcePath = "/Users/humper/work/gocode/src/go.skia.org/infra/fuzzer"
-
-[Fuzzer]
-
-CachePath     = "/Users/humper/work/fuzzer_cache"
-SkiaSourceDir = "/Users/humper/work/skia"
-
-[Generators]
-
-[Generators.dummy]
-Weight=1
