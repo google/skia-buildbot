@@ -1,7 +1,6 @@
 package expstorage
 
 import (
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/timer"
@@ -157,12 +156,6 @@ func (e *SQLExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 }
 
 // See ExpectationsStore interface.
-func (e *SQLExpectationsStore) Changes() <-chan []string {
-	glog.Fatal("SQLExpectationsStore doesn't really support Changes.")
-	return nil
-}
-
-// See ExpectationsStore interface.
 func (m *SQLExpectationsStore) QueryLog(offset, size int) ([]*TriageLogEntry, int, error) {
 	const stmtList = `SELECT ec.userid, ec.ts, count(*)
 					  FROM exp_change AS ec
@@ -257,12 +250,15 @@ func (c *CachingExpectationStore) RemoveChange(changedDigests map[string][]strin
 		return err
 	}
 
-	return c.cache.RemoveChange(changedDigests)
-}
-
-// See ExpectationsStore interface.
-func (c *CachingExpectationStore) Changes() <-chan []string {
-	return c.cache.Changes()
+	err := c.cache.RemoveChange(changedDigests)
+	if err == nil {
+		testNames := make([]string, 0, len(changedDigests))
+		for testName := range changedDigests {
+			testNames = append(testNames, testName)
+		}
+		c.eventBus.Publish(EV_EXPSTORAGE_CHANGED, testNames)
+	}
+	return err
 }
 
 // See ExpectationsStore interface.

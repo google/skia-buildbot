@@ -6,6 +6,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
@@ -47,7 +48,10 @@ func newHistorian(storages *storage.Storage, nTilesToBackfill int) (*historian, 
 }
 
 func (h *historian) start() error {
-	expChanges := h.storages.ExpectationsStore.Changes()
+	expChanges := make(chan []string)
+	h.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
+		expChanges <- e.([]string)
+	})
 	tileStream := storage.GetTileStreamNow(h.storages.TileStore, 2*time.Minute)
 
 	lastTile := <-tileStream

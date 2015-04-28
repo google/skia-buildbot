@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
@@ -153,12 +154,14 @@ func TestCalcSummaries(t *testing.T) {
 		TileIndex: 0,
 	}
 
+	eventBus := eventbus.New()
 	storages := &storage.Storage{
 		DiffStore:         MockDiffStore{},
-		ExpectationsStore: expstorage.NewMemExpectationsStore(nil),
+		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		IgnoreStore:       ignore.NewMemIgnoreStore(),
 		TileStore:         MockTileStore{Tile: tile},
 		NCommits:          50,
+		EventBus:          eventBus,
 	}
 
 	assert.Nil(t, storages.ExpectationsStore.AddChange(map[string]gtypes.TestClassification{

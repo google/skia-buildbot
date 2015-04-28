@@ -66,23 +66,20 @@ func New(storages *storage.Storage, tallies *tally.Tallies) (*Summaries, error) 
 		s.mutex.Unlock()
 	})
 
-	ch := storages.ExpectationsStore.Changes()
-	go func() {
-		for {
-			testNames := <-ch
-			glog.Info("Updating summaries after expectations change.")
-			partialSummaries, err := s.CalcSummaries(testNames, "", false, true)
-			if err != nil {
-				glog.Errorf("Failed to refresh summaries: %s", err)
-				continue
-			}
-			s.mutex.Lock()
-			for k, v := range partialSummaries {
-				s.summaries[k] = v
-			}
-			s.mutex.Unlock()
+	storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
+		testNames := e.([]string)
+		glog.Info("Updating summaries after expectations change.")
+		partialSummaries, err := s.CalcSummaries(testNames, "", false, true)
+		if err != nil {
+			glog.Errorf("Failed to refresh summaries: %s", err)
+			return
 		}
-	}()
+		s.mutex.Lock()
+		for k, v := range partialSummaries {
+			s.summaries[k] = v
+		}
+		s.mutex.Unlock()
+	})
 	return s, nil
 }
 

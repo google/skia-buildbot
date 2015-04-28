@@ -2,7 +2,6 @@ package expstorage
 
 import (
 	"sync"
-	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
@@ -128,10 +127,6 @@ type ExpectationsStore interface {
 	// to remove.
 	RemoveChange(changes map[string][]string) error
 
-	// Changes returns a receive-only channel that will provide a list of test
-	// names every time expectations are updated.
-	Changes() <-chan []string
-
 	// QueryLog allows to paginate through the changes in the expecations.
 	QueryLog(offset, size int) ([]*TriageLogEntry, int, error)
 }
@@ -146,32 +141,10 @@ type TriageLogEntry struct {
 	ChangeCount int    `json:"changeCount"`
 }
 
-// changesSlice is a slice of channels.
-type changesSlice [](chan []string)
-
-// send will send all the string slices down each channel.
-//
-// Each send is done in its own go routine so this call will
-// not block.
-func (c changesSlice) send(s []string) {
-	for _, ch := range c {
-		go func(ch chan []string) {
-			ticker := time.Tick(time.Second * 10)
-			select {
-			case ch <- s:
-				break
-			case <-ticker:
-				glog.Errorf("Failed to send a change event.")
-			}
-		}(ch)
-	}
-}
-
 // Implements ExpectationsStore in memory for prototyping and testing.
 type MemExpectationsStore struct {
 	expectations *Expectations
 	readCopy     *Expectations
-	changes      changesSlice
 	eventBus     *eventbus.EventBus
 
 	// Protects expectations.
@@ -183,7 +156,6 @@ func NewMemExpectationsStore(eventBus *eventbus.EventBus) ExpectationsStore {
 	return &MemExpectationsStore{
 		expectations: NewExpectations(),
 		readCopy:     NewExpectations(),
-		changes:      changesSlice{},
 		eventBus:     eventBus,
 	}
 }
@@ -195,11 +167,6 @@ func (m *MemExpectationsStore) Get() (*Expectations, error) {
 	defer m.mutex.Unlock()
 
 	return m.readCopy, nil
-}
-
-func (m *MemExpectationsStore) dataChanged(testNames []string) {
-	m.readCopy = m.expectations.DeepCopy()
-	m.changes.send(testNames)
 }
 
 // See ExpectationsStore interface.
@@ -220,7 +187,8 @@ func (m *MemExpectationsStore) AddChange(changedTests map[string]types.TestClass
 	if m.eventBus != nil {
 		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, testNames)
 	}
-	m.dataChanged(testNames)
+
+	m.readCopy = m.expectations.DeepCopy()
 	return nil
 }
 
@@ -240,18 +208,12 @@ func (m *MemExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 		}
 		testNames = append(testNames, testName)
 	}
+	if m.eventBus != nil {
+		m.eventBus.Publish(EV_EXPSTORAGE_CHANGED, testNames)
+	}
 
-	m.dataChanged(testNames)
+	m.readCopy = m.expectations.DeepCopy()
 	return nil
-}
-
-// See ExpectationsStore interface.
-func (m *MemExpectationsStore) Changes() <-chan []string {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	ch := make(chan []string)
-	m.changes = append(m.changes, ch)
-	return ch
 }
 
 // See ExpectationsStore interface.
