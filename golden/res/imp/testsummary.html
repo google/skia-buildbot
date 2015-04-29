@@ -184,7 +184,6 @@
       // moveFocus does the actual work of changing the focus from lastEle
       // to nextEle.
       moveFocus: function(lastEle, nextEle) {
-        console.log(lastEle, nextEle);
         // Don't wrap around past the bottom of the list.
         if (lastEle != null && nextEle == null) {
           return
@@ -239,7 +238,6 @@
         // Allow keyboard navigation for fast triaging.
         document.body.addEventListener('keydown', function(e){
           var c = String.fromCharCode(e.keyCode);
-          console.log(c);
           switch (c) {
             case "J":
               that.focusNext();
