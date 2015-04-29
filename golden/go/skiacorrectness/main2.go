@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -21,6 +20,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/summary"
@@ -924,7 +924,7 @@ type PolyDetailsGUI struct {
 //     ]
 //   }
 //
-// TODO(jcgregorio) Factor polyDetailsHandler into smaller functions and add unit tests.
+// TODO(jcgregorio) Add unit tests.
 func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	tile, err := storages.GetLastTileTrimmed(true)
 	if err != nil {
@@ -991,6 +991,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 			Left: safeGet(leftParamSet, k),
 		})
 	}
+
 	// Now build the trace data.
 	if r.Form.Get("graphs") == "true" {
 		ret.Traces, ret.OtherDigests = buildTraceData(top, traceNames, tile, tally, exp)
@@ -999,29 +1000,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Now find the closest positive digest.
 	if r.Form.Get("closest") == "true" {
-		pos := []string{}
-		if e, ok := exp.Tests[test]; ok {
-			for digest, label := range e {
-				if label == types.POSITIVE {
-					pos = append(pos, digest)
-				}
-			}
-		}
-		if diffMetrics, err := storages.DiffStore.Get(top, pos); err == nil {
-			bestDigest := ""
-			var bestRGBA []int
-			var bestDiff float32 = math.MaxFloat32
-			for digest, diff := range diffMetrics {
-				if diff.PixelDiffPercent < bestDiff {
-					bestDigest = digest
-					bestDiff = diff.PixelDiffPercent
-					bestRGBA = diff.MaxRGBADiffs
-				}
-			}
-			ret.Closest = bestDigest
-			ret.ClosestDiff = bestDiff
-			ret.ClosestMaxRGBA = bestRGBA
-		}
+		ret.Closest, ret.ClosestDiff, ret.ClosestMaxRGBA = digesttools.ClosestDigest(test, top, exp, storages.DiffStore)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
