@@ -237,6 +237,9 @@
         var that = this;
         // Allow keyboard navigation for fast triaging.
         document.body.addEventListener('keydown', function(e){
+          if (!that.triage) {
+            return
+          }
           var c = String.fromCharCode(e.keyCode);
           switch (c) {
             case "J":
