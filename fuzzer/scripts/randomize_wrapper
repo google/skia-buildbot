@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# randomize_wrapper takes the hash of the fuzz as its first argument, and additional arguments t
+# be passed to the build fuzz executable.  Then it:
+#
+# 1) runs randomize_gyp to create the gyp file
+# 2) runs randomize_ninja to build the executable
+# 3) runs randomize_run to generate the output .png file.
+#
+# the output PNG file goes into the inout directory, which is shared between the chroot
+# jail and the webserver environment.
+
+[ -z "$FUZZER_ROOT" ] && FUZZER_ROOT="/skia_build/"
+
+cd $FUZZER_ROOT/scripts
+
+./randomize_gyp $1
+./randomize_ninja $1
+./randomize_run $@

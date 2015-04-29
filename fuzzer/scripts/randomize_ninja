@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# randomize_ninja simply builds the provided fuzz into the
+# local skia tree's out/Release_Developer directory.
+#
+# This script must be run after randomize_gyp
+
+[ -z $FUZZER_SKIA ] && FUZZER_SKIA="/skia_build/skia"
+
+PATH=$PATH:/skia_build/depot_tools
+
+ninja -C $FUZZER_SKIA/out/Release_Developer $1
+

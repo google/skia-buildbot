@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# randomize_run executes the build fuzz (from the local
+# skia tree's out/Release_Developer directory) and places the output
+# png into the inout directory so it can be seen
+# outside the chroot jail and served back to the user.
+
+[ -z $FUZZER_SKIA ] && FUZZER_SKIA="/skia_build/skia"
+[ -z $FUZZER_CACHE_DIR ] && FUZZER_CACHE_DIR="/skia_build/cache"
+
+$FUZZER_SKIA/out/Release_Developer/$1 --out $FUZZER_CACHE_DIR/$1 "${@:2}"

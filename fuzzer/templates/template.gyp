@@ -33,7 +33,7 @@
       ],
       'sources': [
         '../../fuzzer_cache/src/{{.Hash}}.cpp',
-        '../../fuzzer_main/main.cpp'
+        '{{.ResourcePath}}/main.cpp'
       ],
     }
   ]

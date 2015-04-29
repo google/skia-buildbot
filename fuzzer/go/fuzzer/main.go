@@ -43,7 +43,6 @@ func setup() (string, error) {
 	path, err := filepath.Abs(config.Config.Common.ResourcePath)
 	if err != nil {
 		return path, fmt.Errorf("Couldn't get abs path for %s: %s", config.Config.Common.ResourcePath, err)
-
 	}
 	if err := os.Chdir(path); err != nil {
 		return path, fmt.Errorf("Couldn't change to directory %s: %s", path, err)
@@ -64,6 +63,11 @@ func writeTemplate(filename string, t *template.Template, context interface{}) e
 	return t.Execute(f, context)
 }
 
+type CppTemplateContext struct {
+	Hash         string
+	ResourcePath string
+}
+
 func writeFuzz(code string) (string, error) {
 	h := md5.New()
 	_, err := h.Write([]byte(code))
@@ -81,7 +85,7 @@ func writeFuzz(code string) (string, error) {
 
 	err = writeTemplate(fmt.Sprintf(filepath.Join(config.Config.Fuzzer.CachePath, "%s.gyp"), hash),
 		gypTemplate,
-		struct{ Hash string }{hash})
+		CppTemplateContext{hash, config.Config.Common.ResourcePath})
 
 	if err != nil {
 		return hash, fmt.Errorf("Coudln't write GYP template: %s", err)
@@ -145,6 +149,50 @@ func checkCPPTemplate(path string) {
 	codeTemplate = template.Must(template.ParseFiles(templatePath))
 }
 
+func runFuzz(hash string) error {
+	cacheDir := config.Config.Fuzzer.CachePath
+	skiaDir := config.Config.Fuzzer.SkiaSourceDir
+
+	err := os.Chdir(skiaDir)
+	if err != nil {
+		glog.Fatalf("Couldn't change to the skia dir %s: %s", skiaDir, err)
+	}
+
+	gypFilename := fmt.Sprintf("%s.gyp", hash)
+
+	glog.Infof("Linking %s to %s", filepath.Join(cacheDir, gypFilename), filepath.Join(skiaDir, "gyp", gypFilename))
+	outPath := filepath.Join(skiaDir, "gyp", gypFilename)
+	err = os.Link(filepath.Join(cacheDir, gypFilename), outPath)
+	if err != nil {
+		glog.Fatalf("Couldn't copy the generated gyp file to %s: %s", outPath, err)
+	}
+	glog.Infof("Running gyp for %s...", hash)
+
+	cmd := fmt.Sprintf("./gyp_skia gyp/%s.gyp gyp/most.gyp -Dskia_mesa=1", hash)
+	message, err := util.DoCmd(cmd)
+	if err != nil {
+		glog.Fatalf("Couldn't run gyp: %s", err)
+	}
+
+	glog.Infof("Running ninja for %s...", hash)
+
+	cmd = fmt.Sprintf("ninja -C %s/out/Release_Developer %s", skiaDir, hash)
+	message, err = util.DoCmd(cmd)
+	if err != nil {
+		glog.Fatalf("Couldn't run ninja: %s", err)
+	}
+
+	cmd = fmt.Sprintf("%s/out/Release_Developer/%s --out %s/%s", skiaDir, hash, cacheDir, hash)
+	message, err = util.DoCmd(cmd)
+	if err != nil {
+		glog.Fatalf("Couldn't run fuzz: %s", err)
+	}
+
+	glog.Infof(message)
+
+	return nil
+}
+
 func main() {
 	flag.Parse()
 
@@ -167,10 +215,13 @@ func main() {
 			glog.Fatalf("Couldn't create a fuzz: %s", err)
 		}
 
-		_, err = writeFuzz(fuzz)
+		hash, err := writeFuzz(fuzz)
 		if err != nil {
 			glog.Fatalf("Couldn't create the fuzz hash: %s", err)
 		}
 
+		if err := runFuzz(hash); err != nil {
+			glog.Fatalf("Couldn't run the fuzz (%s): %s", hash, err)
+		}
 	}
 }

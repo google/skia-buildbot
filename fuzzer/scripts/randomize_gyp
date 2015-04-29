@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# randomize_gyp will copy the fuzz-specific gyp file from the cache
+# into the local skia tree, and generate the necessary ninja build
+# files.
+#
+# Because gyp is really picky about directory structures, this is
+# necessary to avoid re-building the entire skia library every time.
+
+[ -z "$FUZZER_SKIA" ] && FUZZER_SKIA="../skia"
+[ -z "$FUZZER_CACHE_DIR" ] && FUZZER_CACHE_DIR="../cache"
+
+pwd
+cp $FUZZER_CACHE_DIR/$1.gyp $FUZZER_SKIA/gyp
+(cd $FUZZER_SKIA ; ./gyp_skia gyp/$1.gyp gyp/most.gyp -Dskia_mesa=1 -Dskia_no_fontconfig=1)
