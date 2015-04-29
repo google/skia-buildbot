@@ -353,6 +353,26 @@ func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	res := map[string]int{}
+	for _, corpus := range []string{"gm", "skp", "image"} {
+		var val struct {
+			Value int `influxdb:"value"`
+		}
+		q := fmt.Sprintf("select value from /skia-gold-prod.skiacorrectness.skia-gold-prod.gold.untriaged.by_corpus.%s.value/ limit 1", corpus)
+		if err := dbClient.Query(&val, q); err != nil {
+			util.ReportError(w, r, err, fmt.Sprintf("Failed to obtain current number of alerts: %v", err))
+			return
+		}
+		res[corpus] = val.Value
+	}
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
@@ -368,6 +388,7 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/", commitsJsonHandler)
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
+	r.HandleFunc("/json/goldStatus", goldJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)

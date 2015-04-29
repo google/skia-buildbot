@@ -24,10 +24,14 @@
       margin-top: 5px;
     }
     #spacer-left {
-      width: 30px;
+      width: 330px;
+      min-width: 330px;
+      max-width: 330px;
     }
     #spacer-right {
       width: 0px;
+      min-width: 0px;
+      max-width: 0px;
     }
     autoroll-widget-sk {
       width: 180px;
@@ -58,6 +62,11 @@
       min-width: 200px;
       max-width: 200px;
     }
+    gold-status-sk {
+      width: 300px;
+      min-width: 300px;
+      max-width: 300px;
+    }
     core-icon-button /deep/ core-icon[role=img] {
       color: #E6AB02;
     }
@@ -72,10 +81,11 @@
       <core-toolbar class="short">
         <div id="toolbar" class="top" horizontal layout center fit>
           <menu-sk></menu-sk>
-          <autoroll-widget-sk></autoroll-widget-sk>
+          <autoroll-widget-sk title="Skia DEPS roll status"></autoroll-widget-sk>
           <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" class="inherit">
             <core-icon-button
                 id="sheriff-button"
+                title="The current Skia sheriff"
                 icon="star">
               Sheriff:<div id="sheriff-email"></div>
             </core-icon-button>
@@ -87,6 +97,7 @@
           </div>
           <div id="spacer-right"></div>
           <perf-status-sk title="Active Perf alerts"></perf-status-sk>
+          <gold-status-sk title="Skia Gold: Untriaged image count"></gold-status-sk>
           <alert-widget-sk excludeCategories="['infra']"></alert-widget-sk>
           <login-sk></login-sk>
         </div>
