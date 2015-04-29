@@ -33,10 +33,6 @@
       width: 0px;
       height: 0px;
     }
-    #loadstatus {
-      font-size: 0.8em;
-      padding: 15px;
-    }
     table.commitList {
       border: 0px;
       border-spacing: 0px;
@@ -192,22 +188,21 @@
       color: #D95F02;
     }
     </style>
-    <div fit style="overflow: scroll;">
-      <div horizontal layout center id="loadstatus">
-        <div>
-          Reload (s):
-          <core-input type="number" value="{{reload}}" preventInvalidInput style="width: 50px;"></core-input>
-        </div>
-        <div flex></div>
-        <div>Last loaded at {{lastLoaded}}</div>
-      </div>
+    <div>
       <div horizontal layout flex>
         <div>
           <!-- Use another as a spacer for the canvas. I couldn't find a sane
                way to put the canvas in the same table as the commit data. -->
           <table class="commitList">
             <thead>
-              <tr><th class="header"></th></tr>
+              <tr>
+                <th class="header" style="font-size: 0.7em; font-weight: normal;">
+                  <nobr>Reload (s):
+                  <paper-input type="number" value="{{reload}}" preventInvalidInput style="width: 50px;"></paper-input></nobr>
+                  <br/>
+                  Loaded {{lastLoaded}}
+                </th>
+              </tr>
               <template if="{{numBuilders > 0}}">
                 <tr><th class="category"></th></tr>
                 <tr><th class="subcategory"></th></tr>
@@ -611,6 +606,7 @@
         this.buildbotUrlPrefix = "https://build.chromium.org/p";
         this.lastLoaded = "(not yet loaded)";
         this.numBuilders = 0;
+        this.minCanvasWidth = 120;
         this.timeout = null;
         this.revertedHashToReverter = {};
         this.windowHeight = 0;
@@ -1040,7 +1036,7 @@
         // Redraw the canvas.
         var scale = window.devicePixelRatio || 1.0;
         var canvas = this.shadowRoot.getElementById("commitCanvas");
-        var w = longestWidth + paddingX;
+        var w = Math.max(longestWidth + paddingX, this.minCanvasWidth);
         var h = commitY * commits.length;
         canvas.style.width = Math.floor(w) + "px";
         canvas.style.height = Math.floor(h) + "px";

@@ -18,20 +18,31 @@
     core-toolbar.closed {
       background-color: #D95F02;
     }
+    #toolbar {
+      background-color: #66A61E;
+    }
+    #toolbar.closed {
+      background-color: #D95F02;
+    }
     h1 {
       font-size: 1.7em;
       margin-bottom: 2px;
       margin-top: 5px;
     }
     #spacer-left {
-      width: 330px;
-      min-width: 330px;
-      max-width: 330px;
+      width: 210px;
+      min-width: 210px;
+      max-width: 210px;
     }
     #spacer-right {
       width: 0px;
       min-width: 0px;
       max-width: 0px;
+    }
+    autoroll-widget-sk {
+      width: 180px;
+      min-width: 180px;
+      max-width: 180px;
     }
     autoroll-widget-sk {
       width: 180px;
@@ -77,10 +88,20 @@
     </style>
   </head>
   <body fullbleed vertical layout unresolved>
-    <core-header-panel flex>
-      <core-toolbar class="short">
+    <core-header-panel flex mode="waterfall-tall" tallClass="medium-tall">
+      <core-toolbar class="medium-tall">
         <div id="toolbar" class="top" horizontal layout center fit>
           <menu-sk></menu-sk>
+          <div id="spacer-left"></div>
+          <div id="title" vertical layout flex>
+            <h1>Skia Status</h1>
+            <tree-status-sk></tree-status-sk>
+          </div>
+          <div id="spacer-right"></div>
+          <alert-widget-sk excludeCategories="['infra']"></alert-widget-sk>
+          <login-sk></login-sk>
+        </div>
+        <div id="infobar" class="bottom" horizontal layout flex>
           <autoroll-widget-sk title="Skia DEPS roll status"></autoroll-widget-sk>
           <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" class="inherit">
             <core-icon-button
@@ -90,24 +111,19 @@
               Sheriff:<div id="sheriff-email"></div>
             </core-icon-button>
           </a>
-          <div id="spacer-left"></div>
-          <div id="title" vertical layout flex>
-            <h1>Skia Status</h1>
-            <tree-status-sk></tree-status-sk>
-          </div>
-          <div id="spacer-right"></div>
+          <div flex></div>
           <perf-status-sk title="Active Perf alerts"></perf-status-sk>
           <gold-status-sk title="Skia Gold: Untriaged image count"></gold-status-sk>
-          <alert-widget-sk excludeCategories="['infra']"></alert-widget-sk>
-          <login-sk></login-sk>
         </div>
       </core-toolbar>
-      <commits-sk></commits-sk>
+      <div>
+        <commits-sk></commits-sk>
+        <div horizontal layout>
+          <div flex></div>
+          <version-sk></version-sk>
+        </div>
+      </div>
     </core-header-panel>
-    <div horizontal layout>
-      <div flex></div>
-      <version-sk></version-sk>
-    </div>
     <script type="text/javascript" charset="utf-8">
     (function() {
       sk.WebComponentsReady.then(function() {
@@ -116,6 +132,7 @@
           var tb  = $$$("core-toolbar");
           if (e.detail.open == tb.classList.contains("closed")) {
             tb.classList.toggle("closed");
+            $$$("#toolbar").classList.toggle("closed");
           }
         })
         $$$("autoroll-widget-sk").addEventListener("change", function(e) {
