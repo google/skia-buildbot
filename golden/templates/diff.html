@@ -28,7 +28,7 @@
          });
        });
 
-       $$$('detail-table-sk').addEventListener('triage', function(e) {
+       $$$('diff-detail-sk').addEventListener('triage', function(e) {
          sk.post('/2/_/triage', JSON.stringify(e.detail)).then(function(){
          }).catch(function(e) {
            $$$('paper-toast').text = e;
