@@ -103,17 +103,30 @@
       .triageInfo div {
         padding: 0.5em;
       }
+      #images {
+        margin-right: 1.5em;
+      }
     </style>
     <div horizontal layout>
       <template if="{{triage && details.closest}}">
-        <div class=preview>
-          <img src="/img/images/{{details.closest}}.png" />
+        <div horizontal layout id=images>
+          <div class=preview>
+            <img src="/img/images/{{details.closest}}.png" />
+          </div>
+          <a href="/img/images/{{details.closest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+          <div class=preview>
+            <img src="/img/diffs/{{diffDigests}}.png" />
+          </div>
+          <a href="/img/images/{{diffDigests}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+          <div class=preview>
+            <img src="/img/images/{{digest}}.png" />
+          </div>
+          <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
         </div>
-        <div class=preview>
-          <img src="/img/diffs/{{diffDigests}}.png" />
-        </div>
-        <div class=preview>
-          <img src="/img/images/{{digest}}.png" />
+      </template>
+      <template if="{{triage && !details.closest}}">
+        <div horizontal layout id=images>
+          <strong>No Positive Digests Found.</strong>
         </div>
       </template>
       <div vertical layout>
