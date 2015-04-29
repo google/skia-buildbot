@@ -36,7 +36,6 @@ PROJECT_ID = 'google.com:skia-buildbots'
 # We flip the default one as required by PCRs in bigcluster.
 ZONE_TAG = os.environ.get('ZONE_TAG', 'c')
 ZONE = 'us-central1-%s' % ZONE_TAG
-WINDOWS_ZONE = 'us-central1-a'
 
 # The below constants determine which instances the delete and create/setup
 # scripts apply to.
