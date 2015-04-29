@@ -70,7 +70,7 @@ type Probe struct {
 
 	bodyTest BodyTester
 	failure  metrics.Gauge
-	latency  metrics.Timer
+	latency  metrics.Gauge // Latency in ms.
 }
 
 // Probes is all the probes that are to be run.
@@ -275,7 +275,7 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		}
 
 		probe.failure.Update(0)
-		probe.latency.Update(d)
+		probe.latency.Update(d.Nanoseconds() * 1000 * 1000)
 	}
 }
 
@@ -305,7 +305,7 @@ func main() {
 	// Register counters for each probe.
 	for name, probe := range cfg {
 		probe.failure = metrics.NewRegisteredGauge(name+".failure", probeRegistry)
-		probe.latency = metrics.NewRegisteredTimer(name+".latency", probeRegistry)
+		probe.latency = metrics.NewRegisteredGauge(name+".latency", probeRegistry)
 	}
 
 	// Create a client that uses our dialer with a timeout.
