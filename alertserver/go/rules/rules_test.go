@@ -250,6 +250,7 @@ func TestRuleParsing(t *testing.T) {
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
 condition = "x > 0.5"
 actions = ["Print"]
 auto-dismiss = false
@@ -261,6 +262,7 @@ auto-dismiss = false
 			Input: `[[rule]]
 message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
 condition = "x > 0.5"
 actions = ["Print"]
 auto-dismiss = false
@@ -272,6 +274,7 @@ auto-dismiss = false
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
+category = "testing"
 condition = "x > 0.5"
 actions = ["Print"]
 auto-dismiss = false
@@ -284,6 +287,7 @@ auto-dismiss = false
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
 actions = ["Print"]
 auto-dismiss = false
 `,
@@ -295,6 +299,7 @@ auto-dismiss = false
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
 condition = "x > 0.5"
 auto-dismiss = false
 `,
@@ -306,6 +311,7 @@ auto-dismiss = false
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
 condition = "x > y"
 actions = ["Print"]
 auto-dismiss = false
@@ -317,6 +323,7 @@ auto-dismiss = false
 			Input: `[[rule]]
 name = "randombits"
 query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
 condition = "x > 0.5"
 actions = ["Print"]
 auto-dismiss = false
@@ -328,6 +335,7 @@ auto-dismiss = false
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
+category = "testing"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print"]
@@ -340,12 +348,26 @@ actions = ["Print"]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
 condition = "x > 0.5"
 actions = ["Print"]
 auto-dismiss = false
 nag = "1h10m"
 `,
 			ExpectedErr: nil,
+		},
+		parseCase{
+			Name: "NoCategory",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+query = "select mean(value) from random_bits where time > now() - 5s"
+condition = "x > 0.5"
+actions = ["Print"]
+auto-dismiss = false
+nag = "1h10m"
+`,
+			ExpectedErr: fmt.Errorf("Alert rule missing field \"category\""),
 		},
 	}
 	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"

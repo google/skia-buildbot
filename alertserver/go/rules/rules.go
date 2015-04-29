@@ -123,6 +123,10 @@ func newRule(r parsedRule, client *client.Client, testing bool, tickInterval tim
 	if !ok {
 		return nil, fmt.Errorf(errString, "query")
 	}
+	category, ok := r["category"].(string)
+	if !ok {
+		return nil, fmt.Errorf(errString, "category")
+	}
 	condition, ok := r["condition"].(string)
 	if !ok {
 		return nil, fmt.Errorf(errString, "condition")
@@ -160,6 +164,7 @@ func newRule(r parsedRule, client *client.Client, testing bool, tickInterval tim
 	rule := Rule{
 		Name:        name,
 		Query:       query,
+		Category:    category,
 		Condition:   condition,
 		Message:     message,
 		Nag:         nagDuration,
