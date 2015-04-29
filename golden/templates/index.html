@@ -32,13 +32,16 @@
         right: 1em;
         bottom: 1em;
       }
+      #core {
+        margin-top: 2em;
+      }
     </style>
   </head>
   <body>
     <scaffold-sk responsiveWidth="700px">
       {{template "titlebar.html" .}}
 
-      <div vertical layout>
+      <div vertical layout id=core>
         <div horizontal layout center>
           <paper-button id=search>
             <core-icon icon=search></core-icon>

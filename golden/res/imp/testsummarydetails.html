@@ -26,7 +26,7 @@
       element is returned in e.detail.
 
   Methods:
-    None.
+    triggerTriage(status) - Set the triage status of the digest, triggering the triage event.
 -->
 <polymer-element name="test-summary-details-sk">
   <template>
@@ -208,6 +208,16 @@
           };
           that.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
         });
+      },
+
+      triggerTriage: function(status) {
+        this.$.triage.value = status;
+        var detail = {
+          "test": this.$.triage.dataset.test,
+          "digest": [this.$.triage.dataset.digest],
+          "status": status,
+        };
+        this.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
       },
 
       reloadData: function() {

@@ -46,6 +46,9 @@
         margin-left: 3em;
         padding: 1em;
       }
+      test-summary-details-sk[data-focus] {
+        box-shadow: 3px 3px 6px 5px #FF7F00;
+      }
       test-summary-details-sk[triage] {
         display: none;
       }
@@ -93,6 +96,16 @@
         </template>
       </div>
       <paper-spinner id=spinner></paper-spinner>
+      <paper-dialog id=help heading="Keyboard Shortcuts">
+        <table>
+          <tr><th>J</th><td>Next</td></tr>
+          <tr><th>K</th><td>Prev</td></tr>
+          <tr><th></th><td></td></tr>
+          <tr><th>A</th><td>Postive</td></tr>
+          <tr><th>S</th><td>Negative</td></tr>
+          <tr><th>D</th><td>Untriaged</td></tr>
+        </table>
+      </paper-dialog>
     </div>
   </template>
   <script>
@@ -158,6 +171,94 @@
           that.loadedCount++;
           if (that.loadedCount == that.summary.untHashes.length) {
             that.$.spinner.active = false;
+          }
+        });
+        this.enableKeyboardShortcuts();
+      },
+
+      // findFocus returns the current details element with the keyboard focus.
+      findFocus: function() {
+        return $$$('test-summary-details-sk[data-focus]', this.shadowRoot)
+      },
+
+      // moveFocus does the actual work of changing the focus from lastEle
+      // to nextEle.
+      moveFocus: function(lastEle, nextEle) {
+        console.log(lastEle, nextEle);
+        // Don't wrap around past the bottom of the list.
+        if (lastEle != null && nextEle == null) {
+          return
+        }
+        if (lastEle != null) {
+          lastEle.removeAttribute('data-focus');
+        }
+        // If nothing is selected, then focus on the first details element.
+        if (nextEle == null) {
+          nextEle = $$$('test-summary-details-sk', this.shadowRoot);
+        }
+        nextEle.setAttribute('data-focus', 'true');
+        nextEle.scrollIntoView(false);
+      },
+
+      // Move the focus to the next digest.
+      focusNext: function() {
+        var nextEle = null;
+        var lastEle = this.findFocus();
+        if (lastEle != null) {
+          nextEle = lastEle.nextElementSibling;
+        }
+        this.moveFocus(lastEle, nextEle);
+      },
+
+      // Move the focus to the previous digest.
+      focusPrev: function() {
+        var nextEle = null;
+        var lastEle = this.findFocus();
+        if (lastEle != null) {
+          nextEle = lastEle.previousElementSibling;
+          if (nextEle.nodeName == "TEMPLATE") {
+            nextEle = null;
+          }
+        }
+        this.moveFocus(lastEle, nextEle);
+      },
+
+      // Set the triage status of the digest with focus to 'status'.
+      markFocus: function(status) {
+        if (!this.triage) {
+          return
+        }
+        var focus = this.findFocus();
+        if (focus != null) {
+          focus.triggerTriage(status);
+        }
+      },
+
+      enableKeyboardShortcuts: function() {
+        var that = this;
+        // Allow keyboard navigation for fast triaging.
+        document.body.addEventListener('keydown', function(e){
+          var c = String.fromCharCode(e.keyCode);
+          console.log(c);
+          switch (c) {
+            case "J":
+              that.focusNext();
+              break;
+            case "K":
+              that.focusPrev();
+              break;
+            case "A":
+              that.markFocus("positive");
+              break;
+            case "S":
+              that.markFocus("negative");
+              break;
+            case "D":
+              that.markFocus("untriaged");
+              break;
+            case "¿":
+              that.$.help.open();
+              break;
           }
         });
       },
