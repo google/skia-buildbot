@@ -275,7 +275,7 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		}
 
 		probe.failure.Update(0)
-		probe.latency.Update(d.Nanoseconds() * 1000 * 1000)
+		probe.latency.Update(d.Nanoseconds() / (1000 * 1000))
 	}
 }
 
