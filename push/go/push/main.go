@@ -357,7 +357,7 @@ func main() {
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		redirectURL = "https://push.skia.org/oauth2callback/"
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST)
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, *local)
 
 	// Resources are served directly.
 	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))

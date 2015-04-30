@@ -37,6 +37,7 @@ import (
 	"code.google.com/p/goauth2/oauth"
 	"github.com/gorilla/securecookie"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
 )
 
@@ -47,7 +48,7 @@ const (
 )
 
 // DEFAULT_DOMAIN_WHITELIST is a white list of domains we use frequently.
-var DEFAULT_DOMAIN_WHITELIST = []string{"google.com", "chromium.org", "skia.org"}
+const DEFAULT_DOMAIN_WHITELIST = "google.com chromium.org skia.org"
 
 var (
 	// cookieSalt is some entropy for our encoders.
@@ -71,8 +72,11 @@ var (
 		ApprovalPrompt: "auto",
 	}
 
-	// activeDomainWhitelist is the list of domains that are allowed to log in to our site.
-	activeDomainWhitelist = []string{}
+	// activeDomainWhiteList is the list of domains that are allowed to log in.
+	activeDomainWhiteList map[string]bool
+
+	// activeEmailWhiteList is the list of whitelisted email addresses.
+	activeEmailWhiteList map[string]bool
 )
 
 type Session struct {
@@ -84,15 +88,27 @@ type Session struct {
 // Init must be called before any other methods.
 //
 // The Client ID, Client Secret, and Redirect URL are listed in the Google
-// Developers Console. The domainWhitelist is the list of domains that are
-// allowed to log in.
-func Init(clientId, clientSecret, redirectURL, cookieSalt, scope string, domainWhitelist []string) {
+// Developers Console. The authWhiteList is the space separated list of domains
+// and email addresses that are allowed to log in.
+func Init(clientId, clientSecret, redirectURL, cookieSalt, scope string, authWhiteList string, local bool) {
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
 	oauthConfig.ClientId = clientId
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
 	oauthConfig.Scope = scope
-	activeDomainWhitelist = domainWhitelist
+
+	// If we are in the cloud and there is a whitelist in meta data then use the
+	// meta data version.
+	if !local {
+		// We allow for meta data to not be present.
+		whiteList, err := metadata.Get(metadata.AUTH_WHITE_LIST)
+		if err != nil {
+			glog.Infof("Unable to retrieve auth whitelist from meta data. Error:", err)
+		} else {
+			authWhiteList = whiteList
+		}
+	}
+	activeDomainWhiteList, activeEmailWhiteList = splitAuthWhiteList(authWhiteList)
 }
 
 // LoginURL returns a URL that the user is to be directed to for login.
@@ -257,17 +273,20 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Failed to JSON decode id_token.", 500)
 		return
 	}
-	parts := strings.Split(decoded.Email, "@")
+
+	email := strings.ToLower(decoded.Email)
+	parts := strings.Split(email, "@")
 	if len(parts) != 2 {
 		http.Error(w, "Invalid email address received.", 500)
 		return
 	}
-	if !util.In(parts[1], activeDomainWhitelist) {
-		http.Error(w, "Accounts from your domain are not allowed.", 500)
+
+	if !activeDomainWhiteList[parts[1]] && !activeEmailWhiteList[email] {
+		http.Error(w, "Accounts from your domain are not allowed or your email address is not white listed.", 500)
 		return
 	}
 	s := Session{
-		Email:     decoded.Email,
+		Email:     email,
 		AuthScope: oauthConfig.Scope,
 		Token:     token,
 	}
@@ -331,4 +350,20 @@ func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
 		}
 		h.ServeHTTP(w, r)
 	})
+}
+
+func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
+	domains := map[string]bool{}
+	emails := map[string]bool{}
+
+	for _, entry := range strings.Fields(whiteList) {
+		trimmed := strings.ToLower(strings.TrimSpace(entry))
+		if strings.Contains(trimmed, "@") {
+			emails[trimmed] = true
+		} else {
+			domains[trimmed] = true
+		}
+	}
+
+	return domains, emails
 }

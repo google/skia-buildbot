@@ -12,7 +12,7 @@ import (
 var once sync.Once
 
 func loginInit() {
-	Init("id", "secret", "http://localhost", "salt", DEFAULT_SCOPE, DEFAULT_DOMAIN_WHITELIST)
+	Init("id", "secret", "http://localhost", "salt", DEFAULT_SCOPE, DEFAULT_DOMAIN_WHITELIST, false)
 }
 
 func TestLoginURL(t *testing.T) {

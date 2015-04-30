@@ -13,7 +13,7 @@ import (
 var once sync.Once
 
 func loginInit() {
-	login.Init("id", "secret", "http://localhost", "salt", login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST)
+	login.Init("id", "secret", "http://localhost", "salt", login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, false)
 }
 
 func TestMissingLogin(t *testing.T) {

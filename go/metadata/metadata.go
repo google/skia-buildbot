@@ -33,6 +33,10 @@ const (
 	// readwrite and root user respectively.
 	DATABASE_RW_PASSWORD   = "database_readwrite"
 	DATABASE_ROOT_PASSWORD = "database_root"
+
+	// AUTH_WHITE_LIST is the comma or whitespace separated list of domains
+	// and email address that are allowed to log into an app.
+	AUTH_WHITE_LIST = "auth_white_list"
 )
 
 // get retrieves the named value from the Metadata server. See
