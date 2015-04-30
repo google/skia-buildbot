@@ -1,18 +1,22 @@
 <!-- The <zoom-sk> custom element declaration.
 
-This element is a pop-up view that allows zooming into images.
-The dialog displays the three images, left, top and diff, and
-then allows zooming and panning over various combinations
-of the images. There is a single pixel in the center of the zoomed
-view which is highlighted, and its information is displayed
-on the zoom dialog.
+This element is a pop-up view that allows zooming into images.  The dialog
+displays the three images, left, top and diff, and then allows zooming and
+panning over various combinations of the images. There is a single pixel in
+the center of the zoomed view which is highlighted, and its information is
+displayed on the zoom dialog.
 
-There are three images that it deals with, called left, top, and diff.
-The left and top are coming from the grid view, and the diff is the
-diff between the two images.
+There are three images that it deals with, called left, top, and diff.  The
+left and top are coming from the grid view, and the diff is the diff between
+the two images.
 
   Attributes:
+    llabel - The label for the image on the left.
+    rlabel - The label for the image on the right.
+
   Events:
+    None.
+
   Methods:
     setDetails(details) - Sets the information the zoom dialog needs, which
       is an object of the following form, where each member is a
@@ -23,6 +27,8 @@ diff between the two images.
         leftImgUrl: "...",
         diffImgUrl: "...",
       }
+
+    open() - Makes the zoom dialog visible.
 -->
 <polymer-element name="zoom-sk">
   <template>
@@ -85,23 +91,23 @@ diff between the two images.
           <img id=top src="{{details.topImgUrl}}">
         </crosshair-sk>
         <a href="{{details.topImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a>
-        <crosshair-sk id=leftCrosshair>
-          <img id=left src="{{details.leftImgUrl}}">
-        </crosshair-sk>
-        <a href="{{details.leftImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a>
         <crosshair-sk id=diffCrosshair>
           <img id=diff src="{{details.diffImgUrl}}">
         </crosshair-sk>
         <a href="{{details.diffImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+        <crosshair-sk id=leftCrosshair>
+          <img id=left src="{{details.leftImgUrl}}">
+        </crosshair-sk>
+        <a href="{{details.leftImgUrl}}" target=_blank><core-icon icon="open-in-new"></core-icon></a>
         <div class=options vertical layout>
           <div class=choice>
-            <paper-checkbox id=topToggle toggles checked?="{{topChecked}}"></paper-checkbox> Left
-          </div>
-          <div class=choice>
-            <paper-checkbox id=leftToggle toggles checked?="{{leftChecked}}"></paper-checkbox> Top
+            <paper-checkbox id=topToggle toggles checked?="{{topChecked}}"></paper-checkbox> {{llabel}}
           </div>
           <div class=choice>
             <paper-checkbox id=diffToggle toggles checked?="{{diffChecked}}"></paper-checkbox> Diff
+          </div>
+          <div class=choice>
+            <paper-checkbox id=leftToggle toggles checked?="{{leftChecked}}"></paper-checkbox> {{rlabel}}
           </div>
         </div>
       </div>
@@ -119,9 +125,9 @@ diff between the two images.
           </table>
           <table border="0" cellspacing="5" cellpadding="5">
             <tr><th>Coord</th><td><pre>({{x}}, {{y}})</pre><td></tr>
-            <tr><th>Top</th><td><pre>{{centerPixel.top}}</pre><td></tr>
-            <tr><th>Left</th><td><pre>{{centerPixel.left}}</pre><td></tr>
+            <tr><th>{{llabel}}</th><td><pre>{{centerPixel.left}}</pre><td></tr>
             <tr><th>Diff</th><td><pre>{{centerPixel.diff}}</pre><td></tr>
+            <tr><th>{{rlabel}}</th><td><pre>{{centerPixel.top}}</pre><td></tr>
           </table>
           <div horizontal layout end-justified>
             <paper-button id=close>Close</paper-button>
@@ -153,6 +159,17 @@ diff between the two images.
       }
 
       Polymer({
+        publish: {
+          llabel: {
+            value: "Left",
+            reflect: true,
+          },
+          rlabel: {
+            value: "Top",
+            reflect: true,
+          },
+        },
+
         ready: function() {
           var that=this;
 
@@ -308,7 +325,7 @@ diff between the two images.
                 that.recalcPixelDims();
                 break;
               case "Z":
-                that.PIXELS = Math.min(that.PIXELS*2, 128);
+                that.PIXELS = Math.min(that.PIXELS*2, that.ctx.canvas.width/2);
                 that.recalcPixelDims();
                 break;
             }
@@ -439,8 +456,8 @@ diff between the two images.
           this.details = details;
         },
 
-        // Toggles the visibility of the dialog.
-        toggle: function() {
+        // Make the dialog visible.
+        open: function() {
           this.$.dialog.classList.add('display');
           this.recalcPixelDims();
         },
@@ -448,12 +465,13 @@ diff between the two images.
         // Sizes the canvas to display the desired number of zoom pixels
         // in the available space.
         recalcPixelDims: function() {
-          var width = this.$.dialog.clientWidth*0.95;
-          var height = (this.$.dialog.clientHeight-150)*0.9;
+          var width = document.documentElement.clientWidth*0.8;
+          var height = document.documentElement.clientHeight*0.8;
           var size = Math.min(width, height);
           this.pixelSize = Math.floor(size/this.PIXELS);
           this.$.canvas.width = this.PIXELS*this.pixelSize;
           this.$.canvas.height = this.PIXELS*this.pixelSize;
+          this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         },
 
         // syncXY propagates the x,y value to each crosshair.

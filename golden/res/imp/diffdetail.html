@@ -116,7 +116,7 @@ between two images.
         var that = this;
         this.$.zoom.addEventListener('click', function() {
           that.$.zoomer.setDetails(that.value);
-          that.$.zoomer.toggle();
+          that.$.zoomer.open();
         });
       },
 
@@ -132,7 +132,7 @@ between two images.
 
       doZoom: function() {
         this.$.zoomer.setDetails(this.value);
-        this.$.zoomer.toggle();
+        this.$.zoomer.open();
       },
     });
   </script>
