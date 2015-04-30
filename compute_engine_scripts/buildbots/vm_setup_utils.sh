@@ -13,7 +13,7 @@ function install_packages {
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
     "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password tmp_pass' && " \
     "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password tmp_pass' && " \
-    "sudo apt-get -y install mercurial mysql-client mysql-server valgrind && " \
+    "sudo apt-get -y install mercurial mysql-client mysql-server valgrind libosmesa-dev && " \
     "mysql -uroot -ptmp_pass -e \"SET PASSWORD = PASSWORD('');\"" \
     || FAILED="$FAILED InstallPackages"
   echo
