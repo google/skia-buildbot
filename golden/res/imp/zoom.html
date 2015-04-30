@@ -15,7 +15,7 @@ the two images.
     rlabel - The label for the image on the right.
 
   Events:
-    None.
+    zoom-closed - Event triggered when the zoom dialog is closed.
 
   Methods:
     setDetails(details) - Sets the information the zoom dialog needs, which
@@ -29,14 +29,15 @@ the two images.
       }
 
     open() - Makes the zoom dialog visible.
+    close() - Closes the zoom dialog. Also triggers the zoom-closed event.
 -->
 <polymer-element name="zoom-sk">
   <template>
     <style type="text/css" media="screen">
       #dialog {
-        position: absolute;
-        top: 0;
-        left: 0;
+        position: fixed;
+        top: 2em;
+        left: 2em;
         height: 90%;
         display: none;
         background: white;
@@ -175,6 +176,8 @@ the two images.
 
           this.details = {};
 
+          this.displayed = false;
+
           // The current coordinates of the highlighted pixel of the zoom on the image.
           this.x = 0;
           this.y = 0;
@@ -232,9 +235,7 @@ the two images.
           // one of topCopy, leftCopy, or diffCopy.
           this.canvasCopy = null;
 
-          this.$.close.addEventListener('click', function() {
-            that.$.dialog.classList.remove('display');
-          });
+          this.$.close.addEventListener('click', this.close.bind(this));
 
           // Update our x and y when the crosshair moves. Also update
           // all the other crosshair elements.
@@ -303,8 +304,11 @@ the two images.
 
           // Allow keyboard navigation for moving around the zoomed image.
           document.body.addEventListener('keydown', function(e){
+            if (!that.displayed) {
+              return
+            }
             if (e.keyCode == 27) {
-              that.$.dialog.classList.remove('display');
+              that.close();
             }
             var c = String.fromCharCode(e.keyCode);
             switch (c) {
@@ -459,7 +463,16 @@ the two images.
         // Make the dialog visible.
         open: function() {
           this.$.dialog.classList.add('display');
+          this.displayed = true;
           this.recalcPixelDims();
+        },
+
+
+        // Closes the dialog.
+        close: function() {
+          this.$.dialog.classList.remove('display');
+          this.displayed = true;
+          this.dispatchEvent(new CustomEvent('zoom-closed', {bubbles: true}));
         },
 
         // Sizes the canvas to display the desired number of zoom pixels

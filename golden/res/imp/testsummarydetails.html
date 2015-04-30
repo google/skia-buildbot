@@ -10,6 +10,10 @@
     data-diff - A read-only attribute that is the size of the difference between
         this digest and the closest positive digest. Will be set before the
         'loaded' event. May be set to Infinity if there are no positive digests.
+    data-closest - A read-only attribute that is the digest of the closest image.
+    data-diffdigests - A read-only attribute of the digest and the closest positive
+      image digest, separated by a dash, ala "abbab-12131>". The digests are in
+      sorted order, so they can be used in /img/diffs/ URLs.
 
   Events:
     triage - A triage event is generated when the triage button is pressed. The e.detail
@@ -117,7 +121,7 @@
           <div class=preview>
             <img src="/img/diffs/{{diffDigests}}.png" />
           </div>
-          <a href="/img/images/{{diffDigests}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+          <a href="/img/diffs/{{diffDigests}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
           <div class=preview>
             <img src="/img/images/{{digest}}.png" />
           </div>
@@ -236,12 +240,14 @@
           that.$.dots.setValue(that.details);
           that.$.dots.setCommits(that.details.commits);
           if (json.closest != "") {
-            that.setAttribute('data-diff', json.closestDiff)
+            that.setAttribute('data-diff', json.closestDiff);
+            that.setAttribute('data-closest', json.closest);
             if (json.closest < that.digest) {
               that.diffDigests = json.closest + "-" + that.digest;
             } else {
               that.diffDigests = that.digest + "-" + json.closest;
             }
+            that.setAttribute('data-diffdigests', that.diffDigests);
           } else {
             that.setAttribute('data-diff', Infinity)
           }

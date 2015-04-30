@@ -22,6 +22,12 @@
 
   Events:
   Methods:
+
+      focusNext() - Move the focus to the next digest. Returns true if focus actually moved.
+
+      focusPrev() - Move the focus to the previous digest. Returns true if focus actually moved.
+
+      markFocus(status) - Set the triage status of the digest with focus to 'status'.
 -->
 <polymer-element name="test-summary-sk">
   <template>
@@ -96,16 +102,6 @@
         </template>
       </div>
       <paper-spinner id=spinner></paper-spinner>
-      <paper-dialog id=help heading="Keyboard Shortcuts">
-        <table>
-          <tr><th>J</th><td>Next</td></tr>
-          <tr><th>K</th><td>Prev</td></tr>
-          <tr><th></th><td></td></tr>
-          <tr><th>A</th><td>Postive</td></tr>
-          <tr><th>S</th><td>Negative</td></tr>
-          <tr><th>D</th><td>Untriaged</td></tr>
-        </table>
-      </paper-dialog>
     </div>
   </template>
   <script>
@@ -173,7 +169,6 @@
             that.$.spinner.active = false;
           }
         });
-        this.enableKeyboardShortcuts();
       },
 
       // findFocus returns the current details element with the keyboard focus.
@@ -183,10 +178,12 @@
 
       // moveFocus does the actual work of changing the focus from lastEle
       // to nextEle.
+      //
+      // Returns true if focus actually moved.
       moveFocus: function(lastEle, nextEle) {
         // Don't wrap around past the bottom of the list.
         if (lastEle != null && nextEle == null) {
-          return
+          return false;
         }
         if (lastEle != null) {
           lastEle.removeAttribute('data-focus');
@@ -197,6 +194,7 @@
         }
         nextEle.setAttribute('data-focus', 'true');
         nextEle.scrollIntoView(false);
+        return true;
       },
 
       // Move the focus to the next digest.
@@ -206,7 +204,7 @@
         if (lastEle != null) {
           nextEle = lastEle.nextElementSibling;
         }
-        this.moveFocus(lastEle, nextEle);
+        return this.moveFocus(lastEle, nextEle);
       },
 
       // Move the focus to the previous digest.
@@ -219,7 +217,7 @@
             nextEle = null;
           }
         }
-        this.moveFocus(lastEle, nextEle);
+        return this.moveFocus(lastEle, nextEle);
       },
 
       // Set the triage status of the digest with focus to 'status'.
@@ -231,37 +229,6 @@
         if (focus != null) {
           focus.triggerTriage(status);
         }
-      },
-
-      enableKeyboardShortcuts: function() {
-        var that = this;
-        // Allow keyboard navigation for fast triaging.
-        document.body.addEventListener('keydown', function(e){
-          if (!that.triage) {
-            return
-          }
-          var c = String.fromCharCode(e.keyCode);
-          switch (c) {
-            case "J":
-              that.focusNext();
-              break;
-            case "K":
-              that.focusPrev();
-              break;
-            case "A":
-              that.markFocus("positive");
-              break;
-            case "S":
-              that.markFocus("negative");
-              break;
-            case "D":
-              that.markFocus("untriaged");
-              break;
-            case "¿":
-              that.$.help.open();
-              break;
-          }
-        });
       },
 
       summaryChanged: function() {

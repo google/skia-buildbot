@@ -69,6 +69,18 @@
         <paper-dialog id=commitdialog core-transition-bottom heading="Commit(s)" autoCloseDisabled layered=false>
           <commits-sk id=commitinfo></commits-sk>
         </paper-dialog>
+        <paper-dialog id=help heading="Keyboard Shortcuts">
+          <table>
+            <tr><th>J</th><td>Next</td></tr>
+            <tr><th>K</th><td>Prev</td></tr>
+            <tr><th></th><td></td></tr>
+            <tr><th>W</th><td>Zoom</td></tr>
+            <tr><th>A</th><td>Postive</td></tr>
+            <tr><th>S</th><td>Negative</td></tr>
+            <tr><th>D</th><td>Untriaged</td></tr>
+          </table>
+        </paper-dialog>
+        <zoom-sk id=zoomer llabel="Positive" rlabel="Untriaged"></zoom-sk>
       </div>
 
     </scaffold-sk>
@@ -89,6 +101,13 @@
          triage: false,
        }
 
+       // Is the zoom dialog displayed?
+       var zooming = false;
+
+       $$$('#zoomer').addEventListener('zoom-closed', function() {
+         zooming = false;
+       });
+
        function displaySummaries(corpus) {
          $$$('paper-toast').dismiss();
          var container = $$$('#summaries');
@@ -99,14 +118,14 @@
              return
            }
            var s = document.createElement('test-summary-sk');
-           container.appendChild(s);
-           s.summary = c;
            s.query = encodeURIComponent(page.state.query);
            s.include = page.state.include;
            s.head = page.state.head;
            s.details = page.state.details;
            s.limit = page.state.limit;
            s.triage = page.state.triage;
+           s.summary = c;
+           container.appendChild(s);
            n+=1;
          });
          if (n==0) {
@@ -132,10 +151,63 @@
          });
        }
 
+       // Open up the zoom dialog on the focused digest.
+       function zoom() {
+         var details = $$$('test-summary-sk');
+         var ele = details.findFocus();
+         if (ele == null) {
+           return
+         }
+         details = {
+           topImgUrl:  "/img/images/" + ele.digest + ".png",
+           leftImgUrl: "/img/images/" + ele.dataset.closest + ".png",
+           diffImgUrl: "/img/diffs/" + ele.dataset.diffdigests + ".png",
+         };
+         $$$('#zoomer', this.shadowRoot).setDetails(details);
+         $$$('#zoomer', this.shadowRoot).open();
+         this.zooming = true;
+       }
+
+       function enableKeyboardShortcuts() {
+         // Allow keyboard navigation for fast triaging.
+         document.body.addEventListener('keydown', function(e){
+           if (!page.state.triage || zooming) {
+             return
+           }
+           var details = $$$('test-summary-sk');
+           var c = String.fromCharCode(e.keyCode);
+           switch (c) {
+             case "J":
+               details.focusNext();
+               break;
+             case "K":
+               details.focusPrev();
+               break;
+             case "A":
+               details.markFocus("positive");
+               break;
+             case "S":
+               details.markFocus("negative");
+               break;
+             case "D":
+               details.markFocus("untriaged");
+               break;
+             case "W":
+               zoom();
+               break;
+             case "¿":
+               $$$('#help').open();
+               break;
+           }
+         });
+       }
+
        // Map state to/from the URL.
        sk.stateReflector(page, loadList);
 
        sk.WebComponentsReady.then(function(){
+         enableKeyboardShortcuts();
+
          $$$('#search').addEventListener('click', function() {
            $$$('#query').query = page.state.query;
            $$$('#query').include = page.state.include;
