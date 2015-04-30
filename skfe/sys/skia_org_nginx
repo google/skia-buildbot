@@ -215,7 +215,7 @@ server {
     }
 
     location / {
-        proxy_pass http://skia-webtry-b:8000;
+        proxy_pass http://skia-webtry:8000;
     }
 }
 server {
