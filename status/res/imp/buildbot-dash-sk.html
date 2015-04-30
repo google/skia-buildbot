@@ -316,49 +316,50 @@
         }
 
         // Avg build durations over time.
+        if (this.includedBuilds.length > 0) {
+          // Compute the average build time across all builders over several window sizes.
+          var windowSizes = [1, 6, 24, 7*24]; // In hours.
+          var avgs = {};
+          var hour = 60 * 60;
+          var inc = 1 * hour; // How far (seconds) the window moves at each step.
+          var timeStart = this.includedBuilds[0].Finished;
+          var timeEnd = this.includedBuilds[this.includedBuilds.length - 1].Finished;
+          for (var i = 0; i < windowSizes.length; i++) {
+            var windowSecs = windowSizes[i] * hour;
+            var series = [];
+            var windowStart = timeStart;
+            var buildStartIdx = 0;
+            do {
+              var windowEnd = windowStart + windowSecs;
 
-        // Compute the average build time across all builders over several window sizes.
-        var windowSizes = [1, 6, 24, 7*24]; // In hours.
-        var avgs = {};
-        var hour = 60 * 60;
-        var inc = 1 * hour; // How far (seconds) the window moves at each step.
-        var timeStart = this.includedBuilds[0].Finished;
-        var timeEnd = this.includedBuilds[this.includedBuilds.length - 1].Finished;
-        for (var i = 0; i < windowSizes.length; i++) {
-          var windowSecs = windowSizes[i] * hour;
-          var series = [];
-          var windowStart = timeStart;
-          var buildStartIdx = 0;
-          do {
-            var windowEnd = windowStart + windowSecs;
-
-            // Get builds in the window, average their durations, and add to the data set.
-            while (this.includedBuilds[buildStartIdx].Finished < windowStart) {
-              buildStartIdx++;
-              if (buildStartIdx >= this.includedBuilds.length) {
-                break;
+              // Get builds in the window, average their durations, and add to the data set.
+              while (this.includedBuilds[buildStartIdx].Finished < windowStart) {
+                buildStartIdx++;
+                if (buildStartIdx >= this.includedBuilds.length) {
+                  break;
+                }
               }
-            }
-            var durations = [];
-            for (var j = buildStartIdx; j < this.includedBuilds.length; j++) {
-              var build = this.includedBuilds[j];
-              if (build.Finished > windowEnd) {
-                break;
+              var durations = [];
+              for (var j = buildStartIdx; j < this.includedBuilds.length; j++) {
+                var build = this.includedBuilds[j];
+                if (build.Finished > windowEnd) {
+                  break;
+                }
+                durations.push(build.Finished - build.Started);
               }
-              durations.push(build.Finished - build.Started);
-            }
-            if (durations.length > 0) {
-              series.push([windowEnd, mean(durations)]);
-            }
+              if (durations.length > 0) {
+                series.push([windowEnd, mean(durations)]);
+              }
 
-            windowStart += inc;
-          } while (windowStart <= timeEnd && windowEnd <= timeEnd)
-          avgs[windowSizes[i] + " hour avg"] = series;
-        }
-        this.$.avg_build_duration_time_chart.colors = this.colors;
-        this.$.avg_build_duration_time_chart.data = avgs;
-        this.$.avg_build_duration_time_chart.tooltipFormatter = function(series, x, y) {
-          return series + "<br/>" + (new Date(x * 1000)).toString() + "<br/>" + sk.human.strDuration(y);
+              windowStart += inc;
+            } while (windowStart <= timeEnd && windowEnd <= timeEnd)
+            avgs[windowSizes[i] + " hour avg"] = series;
+          }
+          this.$.avg_build_duration_time_chart.colors = this.colors;
+          this.$.avg_build_duration_time_chart.data = avgs;
+          this.$.avg_build_duration_time_chart.tooltipFormatter = function(series, x, y) {
+            return series + "<br/>" + (new Date(x * 1000)).toString() + "<br/>" + sk.human.strDuration(y);
+          }
         }
         console.timeEnd("drawCharts");
       },
