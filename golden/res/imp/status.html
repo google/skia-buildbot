@@ -1,0 +1,87 @@
+<!-- The <status-sk> custom element declaration.
+
+Shows the triage status of HEAD to be included in the header of the page.
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+
+-->
+<polymer-element name="status-sk">
+  <template>
+    <style>
+
+    .statusLine {
+      padding-right: 3em;
+    }
+
+    .corpusEntry {
+      padding-right: 1em;
+    }
+
+    .statusLine,
+    .corpusEntry {
+      font-size: 12pt;
+    }
+
+    </style>
+    <div horizontal layout >
+      <template if="{{status}}">
+
+        <div class="statusLine" layout horizontal>
+          <div>
+            <a href="https://skia.googlesource.com/skia/+/{{status.lastCommit.hash}}" target="_blank">Last Commit: {{ status.lastCommit.hash | limitTo(7) }} - {{ status.lastCommit.author|limitTo(0) }}</a>
+          </div>
+        </div>
+
+        <div class="statusLine" layout horizontal>
+          <div>Status: &nbsp;</div>
+          <template repeat="{{c in status.corpStatus}}">
+            <div class="corpusEntry">
+              {{c.name}}:{{c.untriagedCount}} / {{c.negativeCount}}
+            <div>
+          </template>
+        </div>
+      </template>
+    </div>
+  </template>
+
+  <script>
+    Polymer('status-sk', {
+      ready: function() {
+        this.status = null;
+        this.reload();
+      },
+
+      // Load or reload the listing.
+      reload: function() {
+        var that = this;
+        sk.get("/2/_/status").then(JSON.parse).then(function (json) {
+          that.status = json;
+        }).catch(function(errorMessage) {
+          that.status = null;
+          console.log("Status Error:", errorMessage);
+        });
+
+        // Schedule the next call.
+        this.async(this.reload, null, 3000);
+      },
+
+      // limitTo is a custom filter that returns the first len characters of
+      // a string or all characters before '(' - depending on len.
+      limitTo: function(val, len) {
+        if (len > 0) {
+          return val.substr(0, len);
+        }
+        var idx = val.indexOf('(');
+        return val.substring(0, (idx === -1) ? val.length : idx);
+      }
+    });
+  </script>
+</polymer-element>
+

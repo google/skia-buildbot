@@ -2,6 +2,7 @@ package status
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -45,10 +46,13 @@ type GUIStatus struct {
 	LastCommit *ptypes.Commit `json:"lastCommit"`
 
 	// Status per corpus.
-	CorpStatus map[string]*GUICorpusStatus `json:"corpStatus"`
+	CorpStatus []*GUICorpusStatus `json:"corpStatus"`
 }
 
 type GUICorpusStatus struct {
+	// Name of the corpus.
+	Name string `json:"name"`
+
 	// Indicats whether this status is ok.
 	OK bool `json:"ok"`
 
@@ -61,6 +65,13 @@ type GUICorpusStatus struct {
 	// Number of negative digests in HEAD.
 	NegativeCount int `json:"negativeCount"`
 }
+
+type CorpusStatusSorter []*GUICorpusStatus
+
+// Implement sort.Interface
+func (c CorpusStatusSorter) Len() int           { return len(c) }
+func (c CorpusStatusSorter) Less(i, j int) bool { return c[i].Name < c[j].Name }
+func (c CorpusStatusSorter) Swap(i, j int)      { c[i], c[j] = c[j], c[i] }
 
 type StatusWatcher struct {
 	storages *storage.Storage
@@ -133,7 +144,6 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 func (s *StatusWatcher) calcStatus(tile *ptypes.Tile) error {
 	defer timer.New("Calc status timer:").Stop()
 
-	corpStatus := map[string]*GUICorpusStatus{}
 	minCommitId := map[string]int{}
 	okByCorpus := map[string]bool{}
 
@@ -201,17 +211,19 @@ func (s *StatusWatcher) calcStatus(tile *ptypes.Tile) error {
 	allUntriagedCount := 0
 	allPositiveCount := 0
 	allNegativeCount := 0
+	corpStatus := make([]*GUICorpusStatus, 0, len(byCorpus))
 	for corpus := range byCorpus {
 		overallOk = overallOk && okByCorpus[corpus]
 		untriagedCount := len(byCorpus[corpus][types.UNTRIAGED])
 		positiveCount := len(byCorpus[corpus][types.POSITIVE])
 		negativeCount := len(byCorpus[corpus][types.NEGATIVE])
-		corpStatus[corpus] = &GUICorpusStatus{
+		corpStatus = append(corpStatus, &GUICorpusStatus{
+			Name:           corpus,
 			OK:             okByCorpus[corpus],
 			MinCommitHash:  commits[minCommitId[corpus]].Hash,
 			UntriagedCount: untriagedCount,
 			NegativeCount:  negativeCount,
-		}
+		})
 		allUntriagedCount += untriagedCount
 		allNegativeCount += negativeCount
 		allPositiveCount += positiveCount
@@ -224,6 +236,8 @@ func (s *StatusWatcher) calcStatus(tile *ptypes.Tile) error {
 	allPositiveGauge.Update(int64(allPositiveCount))
 	allNegativeGauge.Update(int64(allNegativeCount))
 	totalGauge.Update(int64(allUntriagedCount + allPositiveCount + allNegativeCount))
+
+	sort.Sort(CorpusStatusSorter(corpStatus))
 
 	// Swap out the current tile.
 	result := &GUIStatus{

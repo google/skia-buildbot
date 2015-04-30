@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -23,6 +24,7 @@ import (
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
@@ -1116,7 +1118,44 @@ func polyAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 // polyStatusHandler returns the current status of with respect to
 // HEAD.
 func polyStatusHandler(w http.ResponseWriter, r *http.Request) {
-	sendJsonResponse(w, statusWatcher.GetStatus())
+	// TODO(stephana): Replace with commented out code once the history
+	// package works correctly.
+	//	ret := statusWatcher.GetStatus()
+
+	// Testing purposes only.
+	ret := &status.GUIStatus{
+		OK: false,
+		LastCommit: &ptypes.Commit{
+			Hash:       "abcdefgh",
+			CommitTime: time.Now().Unix(),
+			Author:     "John Doe",
+		},
+		CorpStatus: []*status.GUICorpusStatus{
+			&status.GUICorpusStatus{
+				Name:           "gm",
+				OK:             false,
+				MinCommitHash:  "ijklm",
+				UntriagedCount: int(rand.Int31())%20 + 1,
+				NegativeCount:  10,
+			},
+			&status.GUICorpusStatus{
+				Name:           "image",
+				OK:             false,
+				MinCommitHash:  "uvw",
+				UntriagedCount: int(rand.Int31())%20 + 50,
+				NegativeCount:  201,
+			},
+			&status.GUICorpusStatus{
+				Name:           "skp",
+				OK:             false,
+				MinCommitHash:  "xyz",
+				UntriagedCount: int(rand.Int31())%20 + 100,
+				NegativeCount:  301,
+			},
+		},
+	}
+
+	sendJsonResponse(w, ret)
 }
 
 // sendJsonResponse serializes resp to JSON. If an error occurs

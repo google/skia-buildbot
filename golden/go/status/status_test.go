@@ -76,7 +76,7 @@ func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
 	status := watcher.GetStatus()
 	assert.NotNil(t, status)
 
-	for corpus, corpStatus := range status.CorpStatus {
+	for idx, corpStatus := range status.CorpStatus {
 		// Make sure no digests has any issues attached.
 		storages.DigestStore.(*MockDigestStore).issueIDs = nil
 
@@ -87,7 +87,7 @@ func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
 		changes := map[string]types.TestClassification{}
 		posOrNeg := []types.Label{types.POSITIVE, types.NEGATIVE}
 		for _, trace := range tile.Traces {
-			if trace.Params()[types.CORPUS_FIELD] == corpus {
+			if trace.Params()[types.CORPUS_FIELD] == corpStatus.Name {
 				gTrace := trace.(*ptypes.GoldenTrace)
 				testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 				for _, digest := range gTrace.Values {
@@ -103,7 +103,7 @@ func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
 		assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
 		time.Sleep(1 * time.Second)
 		newStatus := watcher.GetStatus()
-		assert.False(t, newStatus.CorpStatus[corpus].OK)
+		assert.False(t, newStatus.CorpStatus[idx].OK)
 		assert.False(t, newStatus.OK)
 
 		// Make sure all tests have an issue attached to each DigestInfo and
@@ -114,7 +114,7 @@ func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
 
 		// Make sure the current corpus is now ok.
 		newStatus = watcher.GetStatus()
-		assert.True(t, newStatus.CorpStatus[corpus].OK)
+		assert.True(t, newStatus.CorpStatus[idx].OK)
 	}
 
 	// All corpora are ok therefore the overall status should be ok.
