@@ -15,14 +15,12 @@ function banner {
 
 banner "Installing debian packages needed for the server"
 
-sudo apt-get install schroot debootstrap monit nginx nodejs nodejs-legacy mercurial
-
-# wheezy nodejs install doesn't come with npm
-[ -f /usr/bin/npm ] || curl https://www.npmjs.com/install.sh | sudo sh
+sudo apt-get update
+sudo apt-get install -y schroot debootstrap monit nginx nodejs nodejs-legacy npm mercurial gcc g++ make
 
 # although aufs is being replaced by overlayfs, it's not clear
 # to me if overlayfs is completely supported by schroot yet.
-sudo apt-get install aufs-tools
+sudo apt-get install -y aufs-tools
 
 banner "Setting up the webtry user account"
 sudo adduser webtry
@@ -31,10 +29,12 @@ sudo mkdir /home/webtry/cache
 sudo mkdir /home/webtry/cache/src
 sudo mkdir /home/webtry/inout
 sudo mkdir -p /tmp/wwwlogs
+sudo mkdir -p /var/log/logserver
 sudo chmod 777 /home/webtry/inout
 sudo chmod 777 /home/webtry/cache
 sudo chmod 777 /home/webtry/cache/src
 sudo chmod 777 /tmp/weblogs
+sudo chmod 777 /var/log/logserver
 
 sudo cp sys/webtry_schroot /etc/schroot/chroot.d/webtry
 
@@ -44,14 +44,11 @@ if [ ! -d ${CHROOT_JAIL} ]; then
 	banner "Building the chroot jail"
 	sudo mkdir -p ${CHROOT_JAIL}
 
-	sudo debootstrap --variant=minbase wheezy ${CHROOT_JAIL}
+	sudo debootstrap utopic ${CHROOT_JAIL}
 	sudo cp setup_jail.sh ${CHROOT_JAIL}/bin
 	sudo chmod 755 ${CHROOT_JAIL}/bin/setup_jail.sh
 	sudo chroot ${CHROOT_JAIL} /bin/setup_jail.sh
 	sudo sh -c "echo 'none /dev/shm tmpfs rw,nosuid,nodev,noexec 0 0' >> ${CHROOT_JAIL}/etc/fstab"
-	sudo sh -c "echo 'deb     http://http.debian.net/debian wheezy         contrib' >> ${CHROOT_JAIL}/etc/apt/sources.list"
-	sudo sh -c "echo 'deb-src http://http.debian.net/debian wheezy         contrib' >> ${CHROOT_JAIL}/etc/apt/sources.list"
-
 fi
 
 gsutil cp gs://skia-push/debs/pull/pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-15T14:12:52Z:6152bc3bcdaa54989c957809e77bed282c35676b.deb pull.deb
@@ -69,7 +66,8 @@ sudo chroot ${CHROOT_JAIL} /bin/continue_install_jail.sh
 sudo chown -R webtry:webtry ${CHROOT_JAIL}/skia_build/skia
 
 sudo cp ../main.cpp ${CHROOT_JAIL}/skia_build/fiddle_main/
-sudo cp ../seccmp_bpf.h ${CHROOT_JAIL}/skia_build/fiddle_main/
+sudo cp ../seccomp_bpf.h ${CHROOT_JAIL}/skia_build/fiddle_main/
+sudo cp ../fiddle_secwrap.cpp ${CHROOT_JAIL}/skia_build/fiddle_main/
 sudo cp ../scripts/* ${CHROOT_JAIL}/skia_build/scripts/
 sudo cp ../safec ${CHROOT_JAIL}/skia_build/scripts/
 sudo cp ../safec++ ${CHROOT_JAIL}/skia_build/scripts/
