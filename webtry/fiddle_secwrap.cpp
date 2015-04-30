@@ -120,9 +120,9 @@ int do_child(int argc, char **argv) {
 // It allocates memory and returns it to the caller;
 // it is the caller's responsibility to free it.
 char *read_string(pid_t child, unsigned long addr) {
-#define INTIAL_ALLOCATION 4096
-    char *val = (char *) malloc(INTIAL_ALLOCATION);
-    size_t allocated = INTIAL_ALLOCATION
+#define INITIAL_ALLOCATION 4096
+    char *val = (char *) malloc(INITIAL_ALLOCATION);
+    size_t allocated = INITIAL_ALLOCATION;
     size_t read = 0;
     unsigned long tmp;
 
