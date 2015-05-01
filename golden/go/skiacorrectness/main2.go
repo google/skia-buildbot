@@ -890,7 +890,8 @@ type PolyDetailsGUI struct {
 	Commits      []*ptypes.Commit     `json:"commits"`
 	OtherDigests []*DigestStatus      `json:"otherDigests"`
 	TileSize     int                  `json:"tileSize"`
-	Closest      *digesttools.Closest `json:"closest"`
+	PosClosest   *digesttools.Closest `json:"posClosest"`
+	NegClosest   *digesttools.Closest `json:"negClosest"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -901,7 +902,7 @@ type PolyDetailsGUI struct {
 //   top  - A digest in the test.
 //   left - A digest in the test.
 //   graphs - Boolean that's true if graph data should be returned.
-//   closest - Boolean that's true if the closest positive digest should be returned.
+//   closest - Boolean that's true if the closest positive and negative digests should be returned.
 //
 // The response looks like:
 //   {
@@ -998,9 +999,10 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		ret.Commits = tile.Commits
 	}
 
-	// Now find the closest positive digest.
+	// Now find the closest positive and negative digests.
 	if r.Form.Get("closest") == "true" {
-		ret.Closest = digesttools.ClosestDigest(test, top, exp, storages.DiffStore)
+		ret.PosClosest = digesttools.ClosestDigest(test, top, exp, storages.DiffStore, types.POSITIVE)
+		ret.NegClosest = digesttools.ClosestDigest(test, top, exp, storages.DiffStore, types.NEGATIVE)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

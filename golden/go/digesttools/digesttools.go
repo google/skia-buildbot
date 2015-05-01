@@ -24,20 +24,20 @@ func newClosest() *Closest {
 	}
 }
 
-// ClosestDigest returns the closest positive digest to 'digest', or "" if there aren't any positive digests.
+// ClosestDigest returns the closest digest of type 'label' to 'digest', or "" if there aren't any positive digests.
 //
-// If no positive digest is found Closest.Digest is the empty string.
-func ClosestDigest(test string, digest string, exp *expstorage.Expectations, diffStore diff.DiffStore) *Closest {
+// If no digest of type 'label' is found then Closest.Digest is the empty string.
+func ClosestDigest(test string, digest string, exp *expstorage.Expectations, diffStore diff.DiffStore, label types.Label) *Closest {
 	ret := newClosest()
-	positives := []string{}
+	selected := []string{}
 	if e, ok := exp.Tests[test]; ok {
-		for d, label := range e {
-			if label == types.POSITIVE {
-				positives = append(positives, d)
+		for d, l := range e {
+			if l == label {
+				selected = append(selected, d)
 			}
 		}
 	}
-	if diffMetrics, err := diffStore.Get(digest, positives); err != nil {
+	if diffMetrics, err := diffStore.Get(digest, selected); err != nil {
 		glog.Errorf("ClosestDigest: Failed to get diff: %s", err)
 		return ret
 	} else {
