@@ -124,6 +124,24 @@ attribute is false.
         fill:   #ffffff;
         stroke: #999999;
       }
+      .preview {
+        margin: 5px;
+        border: solid 2px lightgray;
+        display: block;
+        width: 132px;
+        height: 132px;
+      }
+      .preview img {
+        display: block;
+        max-width: 128px;
+        max-height: 128px;
+        width: auto;
+        height: auto;
+      }
+      .closestDetails div {
+        padding-bottom: 0.5em;
+        padding-left: 0.5em;
+      }
     </style>
     <table class="{{bothcolumns?'':'singlecolumn'}}">
       <tr class=both>
@@ -216,8 +234,65 @@ attribute is false.
           </td>
           <td class=both></td>
         </tr>
+        <template if="{{details.topStatus!='positive'}}">
+          <tr><th colspan=2 class=sectionHeader>Closest Postive Digest</th></tr>
+          <tr>
+            <td colspan=2>
+              <div vertical layout class=closestDetails>
+                <div>
+                  <a href="/2/detail?test={{test}}&digest={{details.posClosest.digest}}">{{details.posClosest.digest}}</a>
+                  <a href="/2/diff?test=blurs&left={{top}}&top={{details.posClosest.digest}}">Details</a>
+                </div>
+                <div><strong>Diff:</strong> {{details.posClosest.diff | fixedPercent}}%</div>
+                <div><strong>RGBA:</strong> {{details.posClosest.maxRGBA}}</div>
+              </div>
+              <div horizontal layout id=images>
+                <div class=preview>
+                  <img src="/img/images/{{details.posClosest.digest}}.png" />
+                </div>
+                <a href="/img/images/{{details.posClosest.digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+                <div class=preview>
+                  <img src="/img/diffs/{{details.posClosest.digest | diffTo}}.png" />
+                </div>
+                <a href="/img/diffs/{{details.posClosest.digest | diffTo}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+                <div class=preview>
+                  <img src="/img/images/{{top}}.png" />
+                </div>
+                <a href="/img/images/{{top}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+              </div>
+            </td>
+          </tr>
+        </template>
+        <template if="{{details.topStatus!='negative'}}">
+          <tr><th colspan=2 class=sectionHeader>Closest Negative Digest</th></tr>
+          <tr>
+            <td colspan=2>
+              <div vertical layout class=closestDetails>
+                <div>
+                  <a href="/2/detail?test={{test}}&digest={{details.negClosest.digest}}">{{details.negClosest.digest}}</a>
+                  <a href="/2/diff?test=blurs&left={{top}}&top={{details.negClosest.digest}}">Details</a>
+                </div>
+                <div><strong>Diff:</strong> {{details.negClosest.diff | fixedPercent}}%</div>
+                <div><strong>RGBA:</strong> {{details.negClosest.maxRGBA}}</div>
+              </div>
+              <div horizontal layout id=images>
+                <div class=preview>
+                  <img src="/img/images/{{details.negClosest.digest}}.png" />
+                </div>
+                <a href="/img/images/{{details.negClosest.digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+                <div class=preview>
+                  <img src="/img/diffs/{{details.negClosest.digest | diffTo}}.png" />
+                </div>
+                <a href="/img/diffs/{{details.negClosest.digest | diffTo}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+                <div class=preview>
+                  <img src="/img/images/{{top}}.png" />
+                </div>
+                <a href="/img/images/{{top}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+              </div>
+            </td>
+          </tr>
+        </template>
       </template>
-
     </table>
   </template>
   <script>
@@ -309,7 +384,7 @@ attribute is false.
           }
           this.getInProgress = true;
           var that = this;
-          var q = '?test=' + this.test + '&top=' + this.top + '&left=' + this.left + '&graphs=' + !this.bothcolumns;
+          var q = "?test=" + this.test + "&top=" + this.top + "&left=" + this.left + "&graphs=" + !this.bothcolumns + "&closest=" + !this.bothcolumns;
           sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
             that.details = json;
             that.getInProgress = false;
@@ -330,6 +405,25 @@ attribute is false.
               });
             }
           });
+        },
+
+        // diffTo is a template filter that returns "d1-d2", where d1 and d2
+        // are two digests, with d1 < d2, which makes it useful for
+        // referencing diff images.
+        diffTo: function(s) {
+          if (s<this.top) {
+            return s+"-"+this.top;
+          } else {
+            return this.top+"-"+s;;
+          }
+        },
+
+        fixedPercent: function(i) {
+          if (i) {
+            return i.toFixed(2);
+          } else {
+            return '';
+          }
         },
 
         testChanged: function() {
