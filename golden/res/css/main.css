@@ -27,6 +27,12 @@ html /deep/ core-toolbar,
   margin-left: auto;
 }
 
+/* Hide status-sk in plain sight until it has live data. */
+#title status-sk /deep/ span,
+#title status-sk /deep/ a {
+  color: #D95F02;
+}
+
 #title login-sk {
   margin-left: 3em;
 }
