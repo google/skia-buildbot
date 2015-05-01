@@ -883,16 +883,14 @@ type DigestStatus struct {
 // PolyDetailsGUI is used in the JSON returned from polyDetailsHandler. It
 // represents the known information about a single digest for a given test.
 type PolyDetailsGUI struct {
-	TopStatus      string             `json:"topStatus"`
-	LeftStatus     string             `json:"leftStatus"`
-	Params         []*PerParamCompare `json:"params"`
-	Traces         []*Trace           `json:"traces"`
-	Commits        []*ptypes.Commit   `json:"commits"`
-	OtherDigests   []*DigestStatus    `json:"otherDigests"`
-	TileSize       int                `json:"tileSize"`
-	Closest        string             `json:"closest"` // The closest positive digest, empty if there are no positive digests.
-	ClosestDiff    float32            `json:"closestDiff"`
-	ClosestMaxRGBA []int              `json:"closestMaxRGBA"`
+	TopStatus    string               `json:"topStatus"`
+	LeftStatus   string               `json:"leftStatus"`
+	Params       []*PerParamCompare   `json:"params"`
+	Traces       []*Trace             `json:"traces"`
+	Commits      []*ptypes.Commit     `json:"commits"`
+	OtherDigests []*DigestStatus      `json:"otherDigests"`
+	TileSize     int                  `json:"tileSize"`
+	Closest      *digesttools.Closest `json:"closest"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -1002,7 +1000,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Now find the closest positive digest.
 	if r.Form.Get("closest") == "true" {
-		ret.Closest, ret.ClosestDiff, ret.ClosestMaxRGBA = digesttools.ClosestDigest(test, top, exp, storages.DiffStore)
+		ret.Closest = digesttools.ClosestDigest(test, top, exp, storages.DiffStore)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

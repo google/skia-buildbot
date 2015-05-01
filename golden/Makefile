@@ -22,7 +22,7 @@ default: skiacorrectness res/css/core.css core_js elements_html
 
 include ../go/skiaversion/skiaversion.mk
 
-.PHONY: skiacorrectness 
+.PHONY: skiacorrectness
 skiacorrectness: skiaversion
 	go install -v ./go/skiacorrectness
 
@@ -67,6 +67,7 @@ web:
 
 .PHONY: touch_elements
 touch_elements:
+	rm res/js/core.js
 	touch elements.html
 
 .PHONY: release

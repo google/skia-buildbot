@@ -47,14 +47,14 @@ func TestClosestDigest(t *testing.T) {
 	}
 
 	// First test against a test that has positive digests.
-	d, diff, rgba := ClosestDigest("foo", "fff", exp, diffStore)
-	assert.Equal(t, 0.1, diff)
-	assert.Equal(t, "eee", d)
-	assert.Equal(t, []int{5, 3, 4, 0}, rgba)
+	c := ClosestDigest("foo", "fff", exp, diffStore)
+	assert.Equal(t, 0.1, c.Diff)
+	assert.Equal(t, "eee", c.Digest)
+	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
 
 	// Now test against a test with no positive digests.
-	d, diff, rgba = ClosestDigest("bar", "fff", exp, diffStore)
-	assert.Equal(t, float32(math.MaxFloat32), diff)
-	assert.Equal(t, "", d)
-	assert.Equal(t, []int{}, rgba)
+	c = ClosestDigest("bar", "fff", exp, diffStore)
+	assert.Equal(t, float32(math.MaxFloat32), c.Diff)
+	assert.Equal(t, "", c.Digest)
+	assert.Equal(t, []int{}, c.MaxRGBA)
 }

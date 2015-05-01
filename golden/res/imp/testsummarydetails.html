@@ -112,12 +112,12 @@
       }
     </style>
     <div horizontal layout>
-      <template if="{{triage && details.closest}}">
+      <template if="{{triage && details.closest.digest}}">
         <div horizontal layout id=images>
           <div class=preview>
-            <img src="/img/images/{{details.closest}}.png" />
+            <img src="/img/images/{{details.closest.digest}}.png" />
           </div>
-          <a href="/img/images/{{details.closest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+          <a href="/img/images/{{details.closest.digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
           <div class=preview>
             <img src="/img/diffs/{{diffDigests}}.png" />
           </div>
@@ -128,7 +128,7 @@
           <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
         </div>
       </template>
-      <template if="{{triage && !details.closest}}">
+      <template if="{{triage && !details.closest.digest}}">
         <div horizontal layout id=images>
           <strong>No Positive Digests Found.</strong>
         </div>
@@ -170,9 +170,9 @@
         </table>
       </div>
       <div vertical layout class="{{triage ? 'triageInfo' : 'hidden'}}">
-        <div><a href="/2/diff?test={{test}}&left={{digest}}&top={{details.closest}}">Details</a></div>
-        <div>Diff: {{details.closestDiff | fixedPercent }}%</div>
-        <div>Max RGBA: [{{details.closestMaxRGBA}}]</div>
+        <div><a href="/2/diff?test={{test}}&left={{digest}}&top={{details.closest.digest}}">Details</a></div>
+        <div>Diff: {{details.closest.diff | fixedPercent }}%</div>
+        <div>Max RGBA: [{{details.closest.maxRGBA}}]</div>
         <tri-sk data-digest="{{digest}}" data-test="{{test}}" value=untriaged id=triage></tri-sk>
       </div>
     </div>
@@ -239,13 +239,13 @@
           that.details = json;
           that.$.dots.setValue(that.details);
           that.$.dots.setCommits(that.details.commits);
-          if (json.closest != "") {
-            that.setAttribute('data-diff', json.closestDiff);
-            that.setAttribute('data-closest', json.closest);
-            if (json.closest < that.digest) {
-              that.diffDigests = json.closest + "-" + that.digest;
+          if (json.closest.digest != "") {
+            that.setAttribute('data-diff', json.closest.diff);
+            that.setAttribute('data-closest', json.closest.digest);
+            if (json.closest.digest < that.digest) {
+              that.diffDigests = json.closest.digest + "-" + that.digest;
             } else {
-              that.diffDigests = that.digest + "-" + json.closest;
+              that.diffDigests = that.digest + "-" + json.closest.digest;
             }
             that.setAttribute('data-diffdigests', that.diffDigests);
           } else {
