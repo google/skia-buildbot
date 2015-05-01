@@ -15,38 +15,24 @@ Shows the triage status of HEAD to be included in the header of the page.
 <polymer-element name="status-sk">
   <template>
     <style>
-
-    .statusLine {
-      padding-right: 3em;
-    }
-
-    .corpusEntry {
-      padding-right: 1em;
-    }
-
-    .statusLine,
-    .corpusEntry {
-      font-size: 12pt;
-    }
-
+      span {
+        padding-right: 3em;
+        font-size: 15px;
+      }
+      div {
+        margin-top: 5px;
+      }
     </style>
-    <div horizontal layout >
+    <div horizontal layout center>
       <template if="{{status}}">
-
-        <div class="statusLine" layout horizontal>
-          <div>
-            <a href="https://skia.googlesource.com/skia/+/{{status.lastCommit.hash}}" target="_blank">Last Commit: {{ status.lastCommit.hash | limitTo(7) }} - {{ status.lastCommit.author|limitTo(0) }}</a>
-          </div>
-        </div>
-
-        <div class="statusLine" layout horizontal>
-          <div>Status: &nbsp;</div>
-          <template repeat="{{c in status.corpStatus}}">
-            <div class="corpusEntry">
-              {{c.name}}:{{c.untriagedCount}} / {{c.negativeCount}}
-            <div>
-          </template>
-        </div>
+        <template repeat="{{c in status.corpStatus}}">
+          <span>
+            {{c.name}}:{{c.untriagedCount}} / {{c.negativeCount}}
+          </span>
+        </template>
+        <span>
+          <a href="https://skia.googlesource.com/skia/+/{{status.lastCommit.hash}}" target="_blank">Last Commit: {{ status.lastCommit.hash | limitTo(7) }} - {{ status.lastCommit.author|limitTo(0) }}</a>
+        </span>
       </template>
     </div>
   </template>
