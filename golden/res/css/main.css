@@ -23,8 +23,12 @@ html /deep/ core-toolbar,
   color: #fff;
 }
 
-#title login-sk {
+#title status-sk {
   margin-left: auto;
+}
+
+#title login-sk {
+  margin-left: 3em;
 }
 
 #title /deep/ a {
