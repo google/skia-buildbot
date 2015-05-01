@@ -32,7 +32,7 @@ case "$INSTANCE_ID" in
   REDIRECT_URL="https://gold-android.skia.org/oauth2callback/"
   GS_BUCKET="skia-android-dm"
   N_COMMITS="200"
-  ADD_FLAGS="--force_login --domain_whitelist=google.com"
+  ADD_FLAGS="--force_login --auth_whitelist=google.com"
   ;;
 
   # experimental blink instance: uses the staging database server for now.
