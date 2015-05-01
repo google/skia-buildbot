@@ -48,7 +48,7 @@ func TestClosestDigest(t *testing.T) {
 
 	// First test against a test that has positive digests.
 	c := ClosestDigest("foo", "fff", exp, diffStore, types.POSITIVE)
-	assert.Equal(t, 0.1, c.Diff)
+	assert.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	assert.Equal(t, "eee", c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
 
@@ -60,7 +60,13 @@ func TestClosestDigest(t *testing.T) {
 
 	// Now test against negative digests.
 	c = ClosestDigest("foo", "fff", exp, diffStore, types.NEGATIVE)
-	assert.Equal(t, 2.0, c.Diff)
+	assert.InDelta(t, 0.166, float64(c.Diff), 0.01)
 	assert.Equal(t, "bbb", c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
+}
+
+func TestCombinedDiffMetric(t *testing.T) {
+	assert.InDelta(t, 0, combinedDiffMetric(0.0, []int{}), 0.000001)
+	assert.InDelta(t, 1.0, combinedDiffMetric(1.0, []int{255, 255, 255, 255}), 0.000001)
+	assert.InDelta(t, math.Sqrt(0.5), combinedDiffMetric(0.5, []int{255, 255, 255, 255}), 0.000001)
 }
