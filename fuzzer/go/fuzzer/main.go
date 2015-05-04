@@ -20,6 +20,7 @@ import (
 
 import (
 	_ "go.skia.org/infra/fuzzer/go/generator/dummy"
+	_ "go.skia.org/infra/fuzzer/go/generator/paths"
 )
 
 var (
@@ -78,7 +79,6 @@ func writeFuzz(code string) (string, error) {
 	err = writeTemplate(fmt.Sprintf(filepath.Join(config.Config.Fuzzer.CachePath, "src/%s.cpp"), hash),
 		codeTemplate,
 		struct{ Code string }{code})
-
 	if err != nil {
 		return hash, fmt.Errorf("Coudln't write CPP template: %s", err)
 	}
@@ -86,7 +86,6 @@ func writeFuzz(code string) (string, error) {
 	err = writeTemplate(fmt.Sprintf(filepath.Join(config.Config.Fuzzer.CachePath, "%s.gyp"), hash),
 		gypTemplate,
 		CppTemplateContext{hash, config.Config.Common.ResourcePath})
-
 	if err != nil {
 		return hash, fmt.Errorf("Coudln't write GYP template: %s", err)
 	}
