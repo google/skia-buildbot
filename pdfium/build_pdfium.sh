@@ -4,18 +4,20 @@
 # not already there.
 set -x -e
 
+OLD_DIR=`pwd`
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 source ./build_setup.sh
 
 REPO="https://pdfium.googlesource.com/pdfium"
-COMMIT="1ddf056da74de0a34631b8a719f4f02b4ec82144"
+COMMIT=$(<${PDFIUM_COMMIT_FILE})
 
 TARGET_DIRECTORY=`pwd`
 PDFIUM_BUILD_DIRECTORY="./build"
 
 # Get rid of the MD5 file to detect failures.
-rm "${MD5_FILE}"
+rm -f "${TARGET_DIRECTORY}/${MD5_FILE}"
 
-OLD_DIR=`pwd`
 mkdir -p "$PDFIUM_BUILD_DIRECTORY"
 cd "$PDFIUM_BUILD_DIRECTORY"
 
@@ -50,7 +52,6 @@ ninja -C out/Release ${EXECUTABLE}
 mkdir -p "$TARGET_DIRECTORY"
 
 cp -a out/Release/${EXECUTABLE} "${TARGET_DIRECTORY}/${EXECUTABLE}"
-cd "$OLD_DIR"
 
 # Get the MD5 hash
 MD5=`md5sum ${TARGET_DIRECTORY}/${EXECUTABLE} | awk '{ print $1 }'`
@@ -60,5 +61,7 @@ CLOUD_PATH="${CLOUD_PATH_BASE}-${MD5}"
 gsutil cp -n "${TARGET_DIRECTORY}/${EXECUTABLE}" "${CLOUD_PATH}"
 
 # Write the local MD5 hash of the binary and remove the binary.
-echo "$MD5" > "${MD5_FILE}"
+echo ${MD5} > ${TARGET_DIRECTORY}/${MD5_FILE}
 rm "${TARGET_DIRECTORY}/${EXECUTABLE}"
+
+cd "$OLD_DIR"

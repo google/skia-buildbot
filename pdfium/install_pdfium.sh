@@ -4,10 +4,19 @@
 
 set -x -e
 
+OLD_DIR=`pwd`
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 source ./build_setup.sh
 
 EXE_PATH="${GOPATH}/bin/${EXECUTABLE}"
 EXE_MD5=""
+
+# If there is no hash of the executable, we have nothing to do.
+if [[ ! -f "$MD5_FILE" ]]; then
+    echo "File ${MD5_FILE} doesn't exist."
+    exit 1
+fi
 CURR_MD5="$(<${MD5_FILE})"
 CLOUD_PATH="${CLOUD_PATH_BASE}-${CURR_MD5}"
 
@@ -23,3 +32,5 @@ if [[ "$CURR_MD5" != "$EXE_MD5" ]]; then
 else
     echo "${EXECUTABLE} up to date. Nothing to do."
 fi
+
+cd "$OLD_DIR"

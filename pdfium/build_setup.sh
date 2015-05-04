@@ -3,4 +3,4 @@
 EXECUTABLE="pdfium_test"
 MD5_FILE="pdfium.md5"
 CLOUD_PATH_BASE="gs://skia-binaries/pdfium/${EXECUTABLE}"
-
+PDFIUM_COMMIT_FILE="pdfium-build.commit"

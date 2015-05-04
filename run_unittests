@@ -120,6 +120,21 @@ if __name__ == '__main__':
   if '--verbose' in sys.argv or '-v' in sys.argv:
     verbose = True
 
+  # If we are running full tests make sure we have the latest
+  # pdfium_test installed.
+  if not short:
+    print "Installing pdfium_test if necessary."
+    pdfium_dir = os.path.join(os.getcwd(), 'pdfium')
+    cmd = os.path.join(pdfium_dir, 'install_pdfium.sh')
+    proc = subprocess.Popen([cmd],
+                            cwd=pdfium_dir,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    if proc.wait() != 0:
+      print "ERROR running pdfium/install_pdfium.sh.\n\n%s\n" % proc.communicate()[0]
+    else:
+      print "Latest pdfium_test installed successfully."
+
   tests_to_run = []
 
   for (dirpath, dirnames, filenames) in os.walk(BUILDBOT_PATH, topdown=True):
