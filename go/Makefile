@@ -7,14 +7,16 @@ packages:
 	go install -v ./...
 
 .PHONY: testgo
-testgo: pdfium
+testgo:
 	go test ./... -v -test.short
 
+.PHONY: test
+test: pdfium
+	go test ./... -v
+
 .PHONY: all
-all: packages android_hashlookup pdfium
+all: packages android_hashlookup
 
 .PHONY: pdfium
-pdfium: ${GOPATH}/bin/pdfium_test
-
-${GOPATH}/bin/pdfium_test: pdf/build_pdfium.sh
-	sh pdf/build_pdfium.sh "${GOPATH}/bin" "pdf/build"
+pdfium:
+	../pdfium/install_pdfium.sh
