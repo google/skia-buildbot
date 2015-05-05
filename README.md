@@ -31,12 +31,26 @@ Go Setup
 
 For working on Go code run:
 
+```
 $ go get -u go.skia.org/infra/...
+```
 
 This fetches the repository into your $GOPATH directory along with all the
 needed dependencies.
 Note: go.skia.org is a custom import path and will only work if used like the examples [here](http://golang.org/cmd/go/#hdr-Remote_import_paths).
 
+To run the presubmit tests you need to install these dependencies:
+
+```
+$ go get github.com/kisielk/errcheck
+$ go get golang.org/x/tools/cmd/goimports
+```
+
+Use this command to run the presubmit tests: 
+
+```
+$ python run_unittests -v
+```
 
 Quick Start
 ===========
