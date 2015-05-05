@@ -34,7 +34,7 @@ echo "Install required packages."
 # TODO(rmistry): No parallel package for ubuntu, it is required for pdfviewer.
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
   "sudo apt-get update; " \
-  "sudo apt-get -y install subversion git make postfix python-dev libfreetype6-dev xvfb python-twisted-core libpng-dev zlib1g-dev fontconfig libfontconfig-dev libglu-dev " \
+  "sudo apt-get -y install subversion git make postfix python-dev libfreetype6-dev xvfb python-twisted-core libpng-dev zlib1g-dev fontconfig libfontconfig-dev libglu-dev poppler-utils netpbm " \
   "vim gyp g++ gdb unzip linux-tools libgif-dev python-imaging libosmesa-dev linux-tools-3.11.0-17-generic && " \
   "sudo apt-get install gcc python-dev python-setuptools && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod" \
   || FAILED="$FAILED InstallPackages"
