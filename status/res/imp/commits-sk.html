@@ -258,7 +258,7 @@
                   <template repeat="{{c in builderCategoryList}}">
                     <template repeat="{{s in builderCategories[c].subcategoryList}}">
                       <template repeat="{{b in builderCategories[c].subcategories[s].builders}}">
-                        <td class="build">
+                        <td class="build" title="{{b}}">
                           <paper-shadow z="1" class="builder">
                           <a id="openBuilder|{{b}}" class="builder build build_single" href="#" onClick="return false;" on-click="{{openBuilderPopup}}">
                             <template if="{{allBuilders[b].ignoreFailure}}">
@@ -310,6 +310,7 @@
                                onClick="return false;"
                                on-click="{{openBuildPopup}}"
                                style="background-color: {{buildDetails[commit.hash][builder].color}};"
+                               title="{{builder}}, #{{buildDetails[commit.hash][builder].number}}"
                               >
                               <template if="{{buildDetails[commit.hash][builder].comments && buildDetails[commit.hash][builder].comments.length > 0 && (commit.displayClass[builder] == 'build_top' || commit.displayClass[builder] == 'build_single')}}">
                                 <core-icon class="tiny" icon="communication:chat" alt="There are comments on this build." style="margin-top: 5px;"></core-icon>
