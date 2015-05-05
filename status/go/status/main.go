@@ -50,6 +50,10 @@ var (
 	commitsTemplate      *template.Template                   = nil
 	infraTemplate        *template.Template                   = nil
 	dbClient             *influxdb.Client                     = nil
+	goldGMStatus         *influxdb.IntPollingStatus           = nil
+	goldSKPStatus        *influxdb.IntPollingStatus           = nil
+	goldImageStatus      *influxdb.IntPollingStatus           = nil
+	perfStatus           *influxdb.PollingStatus              = nil
 )
 
 // flags
@@ -340,34 +344,20 @@ func buildbotDashHandler(w http.ResponseWriter, r *http.Request) {
 
 func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var res struct {
-		Value int `json:"alerts" influxdb:"value"`
-	}
-	if err := dbClient.Query(&res, "select value from /skiaperf.skia-perf.alerting.new.value/ limit 1"); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to obtain current number of alerts: %v", err))
-		return
-	}
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+	if err := perfStatus.WriteJson(w); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to report Perf status: %v", err))
 		return
 	}
 }
 
 func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	res := map[string]int{}
-	for _, corpus := range []string{"gm", "skp", "image"} {
-		var val struct {
-			Value int `influxdb:"value"`
-		}
-		q := fmt.Sprintf("select value from /skia-gold-prod.skiacorrectness.skia-gold-prod.gold.untriaged.by_corpus.%s.value/ limit 1", corpus)
-		if err := dbClient.Query(&val, q); err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Failed to obtain current number of alerts: %v", err))
-			return
-		}
-		res[corpus] = val.Value
+	status := map[string]int{
+		"gm":    goldGMStatus.Get(),
+		"skp":   goldSKPStatus.Get(),
+		"image": goldImageStatus.Get(),
 	}
-	if err := json.NewEncoder(w).Encode(res); err != nil {
+	if err := json.NewEncoder(w).Encode(status); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
 	}
@@ -474,6 +464,27 @@ func main() {
 	}
 	commitCaches[INFRA_REPO] = infraCache
 	glog.Info("commit_cache complete")
+
+	// Load Perf and Gold data in a loop.
+	var perfRes struct {
+		Value int `json:"alerts" influxdb:"value"`
+	}
+	perfStatus, err = influxdb.NewPollingStatus(&perfRes, "select value from /skiaperf.skia-perf.alerting.new.value/ limit 1", dbClient)
+	if err != nil {
+		glog.Fatalf("Failed to create polling Perf status: %v", err)
+	}
+	goldGMStatus, err = influxdb.NewIntPollingStatus("select value from /skia-gold-prod.skiacorrectness.skia-gold-prod.gold.untriaged.by_corpus.gm.value/ limit 1", dbClient)
+	if err != nil {
+		glog.Fatalf("Failed to create polling Gold status: %v", err)
+	}
+	goldSKPStatus, err = influxdb.NewIntPollingStatus("select value from /skia-gold-prod.skiacorrectness.skia-gold-prod.gold.untriaged.by_corpus.skp.value/ limit 1", dbClient)
+	if err != nil {
+		glog.Fatalf("Failed to create polling Gold status: %v", err)
+	}
+	goldImageStatus, err = influxdb.NewIntPollingStatus("select value from /skia-gold-prod.skiacorrectness.skia-gold-prod.gold.untriaged.by_corpus.image.value/ limit 1", dbClient)
+	if err != nil {
+		glog.Fatalf("Failed to create polling Gold status: %v", err)
+	}
 
 	runServer(serverURL)
 }

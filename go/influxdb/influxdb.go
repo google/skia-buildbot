@@ -120,10 +120,18 @@ func structToSeries(data interface{}, series string) (*client.Series, error) {
 // "sequence_number" columns. All types of ints, floats, uints, and strings
 // are supported. No nested structs are supported.
 func seriesToStruct(rv interface{}, s *client.Series) error {
-	v := reflect.Indirect(reflect.ValueOf(rv))
+	ptr := reflect.ValueOf(rv)
+	v := reflect.ValueOf(rv)
+	for v.Type().Kind() == reflect.Interface || v.Type().Kind() == reflect.Ptr {
+		ptr = v
+		v = v.Elem()
+	}
+	if ptr.Type().Kind() != reflect.Ptr {
+		return fmt.Errorf("Return value is required to be a pointer to a struct (is a %s)", ptr.Type().Kind())
+	}
 	t := v.Type()
 	if t.Kind() != reflect.Struct {
-		return fmt.Errorf("Return value is required to be a struct (is a %s)", t.Kind())
+		return fmt.Errorf("Return value is required to be a pointer to a struct (is a %s)", t.Kind())
 	}
 	points := s.Points
 	if len(points) < 1 {
