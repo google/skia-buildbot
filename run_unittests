@@ -132,6 +132,7 @@ if __name__ == '__main__':
                             stderr=subprocess.STDOUT)
     if proc.wait() != 0:
       print "ERROR running pdfium/install_pdfium.sh.\n\n%s\n" % proc.communicate()[0]
+      sys.exit(1)
     else:
       print "Latest pdfium_test installed successfully."
 

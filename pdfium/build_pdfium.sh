@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # This script builds pdfium in place. Upon succesfull build it saves the
 # MD5 sum in 'pdfium.md5' and uploads the executable to cloud storage, if it's
 # not already there.

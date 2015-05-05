@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # This bash script checks if the md5sum of ${GOPATH}/pdfium_test matches
 # the one in pdfium.md5. If not it will download it from gloud storage.
 
@@ -11,6 +11,9 @@ source ./build_setup.sh
 
 EXE_PATH="${GOPATH}/bin/${EXECUTABLE}"
 EXE_MD5=""
+
+# Make sure the bin directory on the GOPATH exists.
+mkdir -p "${GOPATH}/bin"
 
 # If there is no hash of the executable, we have nothing to do.
 if [[ ! -f "$MD5_FILE" ]]; then
