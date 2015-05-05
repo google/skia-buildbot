@@ -1,0 +1,55 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <menu-section-sk>
+
+  To use this file import it:
+
+    <link href="menu-section-sk.html" rel="import" />
+
+  Usage:
+
+    <menu-section-sk header="My Menu Items"></menu-section-sk>
+
+  Attributes:
+    header: Title text for the menu section.
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<polymer-element name="menu-section-sk">
+  <template>
+    <style>
+    div.section-head {
+      color: #000000;
+      font-size: 1.5em;
+      margin-top: 10px;
+      text-align: left;
+    }
+    div.section-body {
+      border: 1px solid #AAAAAA;
+      color: #000000;
+    }
+    </style>
+    <div class="section-head">{{header}}</div>
+    <div class="section-body">
+      <content></content>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        header: {
+          value: null,
+          reflect: true,
+        },
+      },
+    });
+  </script>
+</polymer-element>

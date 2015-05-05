@@ -1,0 +1,68 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <menu-item-sk>
+
+  To use this file import it:
+
+    <link href="menu-item-sk.html" rel="import" />
+
+  Usage:
+
+    <menu-item-sk
+        icon="home"
+        label="Skia Home"
+        url="https://skia.org">
+    </menu-item-sk>
+
+  Attributes:
+    icon: Which icon to display next to the menu item.
+    label: Text to display.
+    url: Target URL for the menu item.
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<polymer-element name="menu-item-sk">
+  <template>
+    <style>
+    a {
+      color: #000000;
+      text-decoration: none;
+    }
+    paper-item {
+      text-align: left;
+    }
+    </style>
+    <paper-item>
+      <a href="{{url}}">
+        <core-icon icon="{{icon}}"></core-icon>
+        {{label}}
+      </a>
+    </paper-item>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        icon: {
+          value: null,
+          reflect: true,
+        },
+        label: {
+          value: null,
+          reflect: true,
+        },
+        url: {
+          value: null,
+          reflect: true,
+        },
+      },
+    });
+  </script>
+</polymer-element>

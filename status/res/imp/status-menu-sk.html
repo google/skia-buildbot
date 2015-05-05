@@ -1,0 +1,39 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <status-menu-sk>
+
+  To use this file import it:
+
+    <link href="status-menu-sk.html" rel="import" />
+
+  Usage:
+
+    <status-menu-sk></status-menu-sk>
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<polymer-element name="status-menu-sk">
+  <template>
+    <menu-sk>
+      <menu-section-sk header="Skia Status">
+        <menu-item-sk label="Status Home" url="/" icon="search"></menu-item-sk>
+        <menu-item-sk label="Infra Status" url="/infra" icon="settings"></menu-item-sk>
+        <menu-item-sk label="Buildbot Dash" url="/buildbots" icon="social:poll"></menu-item-sk>
+      </menu-section-sk>
+    </menu-sk>
+  </template>
+  <script>
+    Polymer({});
+  </script>
+</polymer-element>

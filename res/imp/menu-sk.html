@@ -12,81 +12,44 @@
 
   Usage:
 
-    <menu-sk></menu-sk>
+    <menu-sk>
+      <menu-section-sk header="My Menu Items">
+        <menu-item-sk label="Item 1" icon="icon1" url="/item1"></menu-item-sk>
+        <menu-item-sk label="Item 2" icon="icon2" url="/item2"></menu-item-sk>
+      </menu-section-sk>
+    </menu-sk>
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
 -->
 <polymer-element name="menu-sk">
   <template>
-    <style>
-    a {
-      color: #000000;
-      text-decoration: none;
-    }
-    paper-item {
-      text-align: left;
-    }
-    </style>
-    <paper-menu-button>
+    <paper-menu-button id="wrapper">
       <paper-icon-button icon="menu" noink></paper-icon-button>
       <paper-dropdown id="dropdown" class="dropdown">
         <core-menu class="menu">
-          <paper-item>
-            <a href="https://docs.skia.org">
-              <core-icon icon="description"></core-icon>
-              Documentation
-            </a>
-          </paper-item>
-          <paper-item>
-            <a href="https://status.skia.org">
-              <core-icon icon="search"></core-icon>
-              Status
-            </a>
-          </paper-item>
-          <paper-item>
-            <a href="https://perf.skia.org">
-              <core-icon icon="trending-up"></core-icon>
-              Perf
-            </a>
-          </paper-item>
-          <paper-item>
-            <a href="https://gold.skia.org">
-              <core-icon icon="thumbs-up-down"></core-icon>
-              Gold
-            </a>
-          </paper-item>
-          <paper-item>
-            <a href="https://fiddle.skia.org">
-              <core-icon icon="assignment"></core-icon>
-              Fiddle
-            </a>
-          </paper-item>
-          <paper-item>
-            <a href="https://ct.skia.org">
-              <core-icon icon="cloud"></core-icon>
-              Cluster Telemetry
-            </a>
-          </paper-item>
-          <paper-item>
-            <a href="https://code.google.com/p/skia/issues/list">
-              <core-icon icon="bug-report"></core-icon>
-              Issue Tracker
-            </a>
-          </paper-item>
-          <paper-item>
-            <a href="https://skia.googlesource.com/skia">
-              <core-icon icon="folder"></core-icon>
-              Code
-            </a>
-          </paper-item>
+          <content></content>
+          <menu-section-sk header="Skia">
+            <menu-item-sk label="Documentation" url="https://docs.skia.org" icon="description"></menu-item-sk>
+            <menu-item-sk label="Status" url="https://status.skia.org" icon="search"></menu-item-sk>
+            <menu-item-sk label="Perf" url="https://perf.skia.org" icon="trending-up"></menu-item-sk>
+            <menu-item-sk label="Gold" url="https://gold.skia.org" icon="thumbs-up-down"></menu-item-sk>
+            <menu-item-sk label="Fiddle" url="https://fiddle.skia.org" icon="assignment"></menu-item-sk>
+            <menu-item-sk label="Cluster Telemetry" url="https://ct.skia.org" icon="cloud"></menu-item-sk>
+            <menu-item-sk label="Issue Tracker" url="https://code.google.com/p/skia/issues/list" icon="bug-report"></menu-item-sk>
+            <menu-item-sk label="Code" url="https://skia.googlesource.com/skia" icon="folder"/>
+          </menu-section-sk>
         </core-menu>
       </paper-dropdown>
     </paper-menu-button>
   </template>
   <script>
-    Polymer({
-      publish: {},
-      toggle: function() {
-        this.$.dropdown.toggle()
-      },
-    });
+    Polymer({});
   </script>
 </polymer-element>
