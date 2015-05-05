@@ -11,6 +11,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
 )
 
@@ -440,11 +441,14 @@ func NumTotalBuilds() (int, error) {
 
 // IngestNewBuildsLoop continually ingests new builds.
 func IngestNewBuildsLoop(workdir string) {
+	lv := metrics.NewLiveness("buildbot-ingest")
 	repos := newRepoMap(workdir)
 	for _ = range time.Tick(30 * time.Second) {
 		glog.Info("Ingesting builds.")
 		if err := ingestNewBuilds(repos); err != nil {
 			glog.Errorf("Failed to ingest new builds: %v", err)
+		} else {
+			lv.Update()
 		}
 	}
 }
