@@ -58,7 +58,7 @@ MD5=`md5sum ${TARGET_DIRECTORY}/${EXECUTABLE} | awk '{ print $1 }'`
 CLOUD_PATH="${CLOUD_PATH_BASE}-${MD5}"
 
 # Upload the file to GS if it's not already there.
-gsutil cp -n "${TARGET_DIRECTORY}/${EXECUTABLE}" "${CLOUD_PATH}"
+gsutil cp -n -a public-read "${TARGET_DIRECTORY}/${EXECUTABLE}" "${CLOUD_PATH}"
 
 # Write the local MD5 hash of the binary and remove the binary.
 echo ${MD5} > ${TARGET_DIRECTORY}/${MD5_FILE}
