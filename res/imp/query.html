@@ -20,6 +20,7 @@
     hideCount: If false, then query back to the server for the count
       of matching traces.
     noClear: Don't display the clear selections button.
+    fast:    Display a edit box for fast trimming of options.
 
   Methods:
     setParamSet(set): Set the params to be displayed.
@@ -68,10 +69,20 @@
         overflow-y: auto;
         border: solid lightgray 1px;
       }
+      .hide {
+        display: none;
+      }
 
     </style>
-    <paper-button raised id="clear">Clear selections</paper-button>
-    <span id="count"></span>
+    <div>
+      <paper-button raised id="clear">Clear selections</paper-button>
+      <span id="count"></span>
+    </div>
+    <template if="{{fast}}">
+      <div>
+        <paper-input id=fast label="Filter"></paper-input>
+      </div>
+    </template>
     <div id="inputs" horizontal layout wrap>
       <template repeat="{{sel in primary}}">
         <div class="node">
@@ -113,7 +124,11 @@
           noClear: {
             value: false,
             reflect: true
-          }
+          },
+          fast: {
+            value: false,
+            reflect: true,
+          },
         },
 
         created: function() {
@@ -133,6 +148,7 @@
         },
 
         ready: function() {
+          var that = this;
           this.currentQuery = '';
 
           this.$.inputs.addEventListener('core-select', this.fireChange.bind(this));
@@ -143,6 +159,31 @@
           if (this.noClear) {
             this.$.clear.style.display = 'none';
           }
+          if (this.$.fast) {
+            this.$.fast.addEventListener('input', function(e) {
+              that.fastFilter();
+            });
+          }
+        },
+
+        fastFilter: function() {
+          var filters = this.$.fast.value.trim().toLowerCase().split(/\s+/);
+
+          // Create a closure that returns true if the given label
+          // matches the filter.
+          var matches = function(s) {
+            s = s.toLowerCase();
+            for (var i=0; i<filters.length; i++) {
+              if (s.indexOf(filters[i]) >= 0) {
+                return true;
+              }
+            }
+            return false;
+          };
+
+          $$('div[label]', this.$.inputs).forEach(function(ele) {
+            ele.classList.toggle('hide', !matches(ele.getAttribute('label')));
+          });
         },
 
         clearSelections: function() {
@@ -196,7 +237,7 @@
                 });
               }
           });
-          return sel.join('&')
+          return sel.join('&');
         },
 
         // Selects all the values in paramset.
