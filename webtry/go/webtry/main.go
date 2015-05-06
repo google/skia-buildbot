@@ -1165,6 +1165,11 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	path := filepath.Join(config.Fiddle.ResourcePath, "favicon.ico")
+	http.ServeFile(w, r, path)
+}
+
 func main() {
 	flag.Parse()
 	Init()
@@ -1174,6 +1179,7 @@ func main() {
 	http.HandleFunc("/iframe/", autogzip.HandleFunc(iframeHandler))
 	http.HandleFunc("/json/", autogzip.HandleFunc(tryInfoHandler))
 	http.HandleFunc("/sources/", autogzip.HandleFunc(sourcesHandler))
+	http.HandleFunc("/favicon.ico", faviconHandler)
 
 	// Resources are served directly
 	// TODO add support for caching/etags/gzip
