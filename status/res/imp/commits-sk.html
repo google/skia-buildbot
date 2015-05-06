@@ -41,6 +41,7 @@
     th {
       text-align: left;
       white-space: nowrap;
+      font-size: 12px;
     }
     th.header {
       height: 53px;
@@ -187,6 +188,18 @@
     core-icon[icon="undo"] {
       color: #D95F02;
     }
+    #buildbotSelector > paper-radio-button {
+      padding-right: 12px;
+    }
+    paper-radio-group::shadow ::content > * {
+      padding: 2px;
+    }
+    paper-radio-button::shadow #ink {
+      top: 0px;
+      left: 0px;
+      width: 16px;
+      height: 16px;
+    }
     </style>
     <div>
       <div horizontal layout flex>
@@ -222,9 +235,12 @@
           <table class="commitList">
             <thead>
               <tr>
-                <th class="header">Author</th>
-                <th class="header"><!-- Comment indicators --></th>
-                <th class="header"><!-- Revert indicators --></th>
+                <th class="header" colspan="3">
+                  <paper-radio-group id="authorSubjectSelector" selected="{{authorSubject}}">
+                    <paper-radio-button name="author" label="Author"></paper-radio-button><br/>
+                    <paper-radio-button name="subject" label="Subject"></paper-radio-button>
+                  </paper-radio-group>
+                </th>
                 <th class="header" colspan="{{numBuilders}}">
                   Buildbot Results:
                   <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
@@ -234,6 +250,7 @@
                     <paper-radio-button name="all" label="All"></paper-radio-button>
                   </paper-radio-group>
                 </th>
+                <th class="header"><!-- Commit message --></th>
               </tr>
               <template if="{{numBuilders > 0}}">
                 <tr>
@@ -282,8 +299,15 @@
             <tbody>
               <template repeat="{{commit, i in commits}}">
                 <tr class="commit alt">
-                  <td class="author" id="{{commit.hash}}-author-td" >
-                    <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{openCommitPopup}}">{{commit.author|shortAuthor}}</a>
+                  <td class="author" id="{{commit.hash}}-author-td" title="{{commit.subject|shortSubject}}">
+                    <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{openCommitPopup}}">
+                      <span style="display: {{authorSubject == 'author' ? 'block' : 'none'}}">
+                        {{commit.author|shortAuthor}}
+                      </span>
+                      <span style="display: {{authorSubject == 'author' ? 'none' : 'block'}}">
+                        {{commit.subject|shortSubject}}
+                      </span>
+                    </a>
                   </td>
                   <td class="commentIndicator">
                     <template if="{{commit.comments && commit.comments.length > 0}}">
@@ -590,28 +614,33 @@
 
       created: function() {
         this.allBuilders = {};
-        this.authorWidth = 100;
+        this.authorSubject = "author";
         this.autorollCurrent = null;
         this.autorollLast = null;
         this.branchHeads = [];
+        this.buildbotUrlPrefix = "https://build.chromium.org/p";
         this.builderCategories = {};
         this.builderCategoryList = [];
         this.builderWidth = "5px";
         this.builds = {};
         this.buildDetails = {};
         this.buildTableWidth = 0;
+        this.cellWidthAuthor = 100;
+        this.cellWidthSubject = 440;
         this.commentIndicatorWidth = 14;
-        this.revertIndicatorWidth = 14;
         this.commits = [];
         this.displayCommits = {};
-        this.buildbotUrlPrefix = "https://build.chromium.org/p";
         this.lastLoaded = "(not yet loaded)";
         this.numBuilders = 0;
         this.minCanvasWidth = 120;
-        this.timeout = null;
         this.revertedHashToReverter = {};
+        this.revertIndicatorWidth = 14;
+        this.showSubject = false;
+        this.timeout = null;
         this.windowHeight = 0;
         this.windowWidth = 0;
+
+        this.authorWidth = this.cellWidthAuthor;
 
         var that = this;
         sk.Login.then(function(status) {
@@ -628,6 +657,15 @@
 
       ready: function() {
         this.reloadCommits();
+      },
+
+      authorSubjectChanged: function() {
+        if (this.authorSubject == "author") {
+          this.authorWidth = this.cellWidthAuthor;
+        } else {
+          this.authorWidth = this.cellWidthSubject;
+        }
+        this.draw();
       },
 
       builderFilterChanged: function() {
@@ -1061,7 +1099,7 @@
         // Get the build table width.
         this.windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
         this.windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-        this.buildTableWidth = this.windowWidth - w - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth - 25;
+        this.buildTableWidth = this.windowWidth - w - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth;
         console.timeEnd("draw");
       },
 
