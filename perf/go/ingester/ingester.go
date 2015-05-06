@@ -152,7 +152,7 @@ func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, 
 		processedFiles, err = leveldb.OpenFile(filepath.Join(statusDir, "processed_files.ldb"), nil)
 	}
 	if err != nil {
-		glog.Fatalf("Unable to open status db: %s", err)
+		glog.Fatalf("Unable to open status db at %s: %s", filepath.Join(statusDir, "processed_files.ldb"), err)
 	}
 
 	i := &Ingester{

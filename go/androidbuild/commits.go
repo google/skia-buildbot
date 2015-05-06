@@ -29,7 +29,7 @@ type androidCommits struct {
 func newAndroidCommits(client *http.Client) (commits, error) {
 	service, err := androidbuildinternal.New(client)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to build commits: %s", err)
 	}
 
 	return &androidCommits{

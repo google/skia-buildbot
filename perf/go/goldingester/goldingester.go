@@ -20,7 +20,7 @@ import (
 func Init(client *http.Client, dir string) error {
 	gitHashInfo, err := androidbuild.New(dir, client)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to init android build: %s", err)
 	}
 
 	// Generate the pre-ingestion hook and register the ingester.

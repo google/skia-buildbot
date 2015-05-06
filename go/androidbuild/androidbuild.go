@@ -68,11 +68,11 @@ func New(dir string, client *http.Client) (Info, error) {
 		db, err = leveldb.RecoverFile(dir, nil)
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to open leveldb at %s: %s", dir, err)
 	}
 	c, err := newAndroidCommits(client)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create commits: %s", err)
 	}
 
 	i := &info{db: db, commits: c}
