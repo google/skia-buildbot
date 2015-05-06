@@ -190,7 +190,7 @@ int do_trace(pid_t child, char *allowed_exec) {
                 if (O_RDONLY != (flags & O_ACCMODE)) {
                             CHILD_FAIL( "No writing to files..." );
                 }
-                const char *allowed_prefixes[] = { "/usr/share/fonts", "/etc/ld.so.cache", "/lib/", "/usr/lib/", "skia.conf" };
+                const char *allowed_prefixes[] = { "/usr/share/fonts", "/etc/ld.so.cache", "/lib/", "/usr/lib/", "skia.conf", "/skia_build/inout/" };
                 bool okay = false;
                 for (unsigned int i = 0 ; i < sizeof(allowed_prefixes) / sizeof(allowed_prefixes[0]) ; i++) {
                     if (!strncmp(allowed_prefixes[i], name, strlen(allowed_prefixes[i]))) {
