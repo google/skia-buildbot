@@ -103,16 +103,21 @@ int do_child(int argc, char **argv) {
 
     if (ptrace(PTRACE_TRACEME, 0, 0, 0)) {
         perror("ptrace");
-        exit(1);
+        exit(-1);
     }
     kill(getpid(), SIGSTOP);
 
     setLimits();
     if (!install_syscall_filter()) {
-        return 1;
+        return -1;
     }
 
-    return execvp(args[0], args);
+    int ret = execvp(args[0], args);
+    // if execvp returns, we couldn't run the child.  Probably
+    // because the compile failed.  Let's kill ourselves so the
+    // parent sees the signal and exits appropriately.
+    kill(getpid(), SIGKILL);
+    return -1;
 }
 
 // read_string copies a null-terminated string out
@@ -156,7 +161,7 @@ int do_trace(pid_t child, char *allowed_exec) {
 #define CHILD_FAIL(message) \
     perror(message); \
     kill(child, SIGKILL); \
-    exit(1)
+    exit(-1)
 
     while(1) {
         waitpid(child, &status, 0);
@@ -171,7 +176,7 @@ int do_trace(pid_t child, char *allowed_exec) {
             struct user_regs_struct regs; 
             if(ptrace(PTRACE_GETREGS, child, NULL, &regs)) {
                   perror("The child failed...");
-                  exit(1);
+                  exit(-1);
             }
 
             int syscall = regs.orig_rax;
