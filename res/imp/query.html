@@ -161,6 +161,7 @@
           }
           if (this.$.fast) {
             this.$.fast.addEventListener('input', function(e) {
+              $$$('toggle-display-sk', that.shadowRoot).open();
               that.fastFilter();
             });
           }
@@ -182,6 +183,9 @@
           };
 
           $$('div[label]', this.$.inputs).forEach(function(ele) {
+            ele.classList.toggle('hide', !matches(ele.getAttribute('label')));
+          });
+          $$('div[label]', this.$.more).forEach(function(ele) {
             ele.classList.toggle('hide', !matches(ele.getAttribute('label')));
           });
         },

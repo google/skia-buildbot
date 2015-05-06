@@ -33,6 +33,15 @@
                        query, the first one will be toggled.
 
                        If absent, the next sibling element will be toggled.
+  Methods:
+
+    open() - Adds the display class.
+
+    toggle() - Toggles the display class.
+
+  Events:
+
+    None.
 
 -->
 <polymer-element name="toggle-display-sk" attributes="target">
@@ -50,31 +59,40 @@
     </paper-button>
   </template>
   <script>
-    (function() {
-      function toggle(e) {
-        var target;
-        if (this.target != "") {
-          target = $$$(this.target);
-        } else {
-          target = this.nextElementSibling;
+    Polymer({
+      publish: {
+        target: {
+          value: "",
+          reflect: true
         }
-        target.classList.toggle("display");
-      };
+      },
 
-      Polymer({
-        publish: {
-          target: {
-            value: "",
-            reflect: true
-          }
-        },
-        ready: function() {
-           this.addEventListener('click', toggle);
-        },
-        detached: function() {
-           this.removeEventListener('click', toggle);
-        },
-      });
-    })();
+      ready: function() {
+        this.addEventListener('click', this.toggle.bind(this));
+      },
+
+      detached: function() {
+        this.removeEventListener('click', this.toggle.bind(this));
+      },
+
+      targetEle: function() {
+        var ret;
+        if (this.target != "") {
+          ret = $$$(this.target);
+        } else {
+          ret = this.nextElementSibling;
+        }
+        return ret
+      },
+
+      toggle: function(e) {
+        this.targetEle().classList.toggle("display");
+      },
+
+      open: function() {
+        this.targetEle().classList.toggle("display", false);
+      },
+
+    });
   </script>
 </polymer-element>
