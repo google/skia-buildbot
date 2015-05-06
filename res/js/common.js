@@ -309,7 +309,34 @@ this.sk = this.sk || function() {
   // Namespace for utilities for working with URL query strings.
   sk.query = {};
 
-  // ToParamSet parses a query string into an object with
+
+  // fromParamSet encodes an object of the form:
+  //
+  // {
+  //   a:["2", "4"],
+  //   b:["3"]
+  // }
+  //
+  // to a query string like:
+  //
+  // "a=2&a=4&b=3"
+  //
+  // This function handles URI encoding of both keys and values.
+  sk.query.fromParamSet = function(o) {
+    if (!o) {
+      return "";
+    }
+    var ret = [];
+    var keys = Object.keys(o).sort();
+    keys.forEach(function(key) {
+      o[key].forEach(function(value) {
+        ret.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+      });
+    });
+    return ret.join('&');
+  }
+
+  // toParamSet parses a query string into an object with
   // arrays of values for the values. I.e.
   //
   //   "a=2&b=3&a=4"

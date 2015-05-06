@@ -46,11 +46,21 @@ describe('Test sk encoding and decoding functions.',
       assert.deepEqual(sk.query.toParamSet("a=2%20"),{a: ["2 "]});
     }
 
+    function testEncodeFromParamSet() {
+      assert.deepEqual(sk.query.fromParamSet(), "");
+      assert.deepEqual(sk.query.fromParamSet({}), "");
+      assert.deepEqual(sk.query.fromParamSet({a: ["2"]}), "a=2");
+      assert.deepEqual(sk.query.fromParamSet({a: ["2", "3"]}), "a=2&a=3");
+      assert.deepEqual(sk.query.fromParamSet({a: ["2", "3"], b: ["foo"]}), "a=2&a=3&b=foo");
+      assert.deepEqual(sk.query.fromParamSet({a: ["2 "]}), "a=2%20");
+    }
+
     it('should be able to encode and decode objects.', function() {
       testEncode();
       testDecodeToObject();
       testRoundTrip();
       testDecodeToParamSet();
+      testEncodeFromParamSet();
     });
   }
 );
