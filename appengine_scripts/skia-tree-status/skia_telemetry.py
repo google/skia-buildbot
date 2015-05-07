@@ -826,6 +826,49 @@ class SkiaTryPage(BasePage):
     self.DisplayTemplate('skia_try.html', template_values)
 
 
+def _AddChromiumTryTask(self, username):
+  benchmark_name = self.request.get('benchmark_name')
+  benchmark_arguments = self.request.get('benchmark_arguments')
+  browser_args_1 = self.request.get('browser_args_1')
+  browser_args_2 = self.request.get('browser_args_2')
+  target_platform = self.request.get('target_platform')
+  pageset_type = self.request.get('pageset_type')
+  num_repeated_runs = int(self.request.get('num_repeated_runs'))
+  variance_threshold = float(self.request.get('variance_threshold'))
+  discard_outliers = float(self.request.get('discard_outliers'))
+  description = self.request.get('description')
+  if not description:
+    description = 'None'
+  skia_patch = db.Blob(str(self.request.get('skia_patch')))
+  chromium_patch = db.Blob(str(self.request.get('chromium_patch')))
+  blink_patch = db.Blob(str(self.request.get('blink_patch')))
+  requested_time = datetime.datetime.now()
+
+  ChromiumTryTasks(
+      username=username,
+      benchmark_name=benchmark_name,
+      benchmark_arguments=benchmark_arguments,
+      browser_args_1=browser_args_1,
+      browser_args_2=browser_args_2,
+      target_platform=target_platform,
+      pageset_type=pageset_type,
+      skia_patch=skia_patch,
+      chromium_patch=chromium_patch,
+      blink_patch=blink_patch,
+      num_repeated_runs=num_repeated_runs,
+      variance_threshold=variance_threshold,
+      discard_outliers=discard_outliers,
+      requested_time=requested_time,
+      description=description).put()
+
+
+class AddChromiumTryTask(BasePage):
+  """Adds the specified Chromium try task."""
+  @utils.admin_only
+  def post(self):
+    _AddChromiumTryTask(self, self.request.get('username'))
+
+
 class ChromiumTryPage(BasePage):
   """Displays the Chromium try page."""
 
@@ -843,39 +886,7 @@ class ChromiumTryPage(BasePage):
       return
 
     # It is an add chromium try task request.
-    benchmark_name = self.request.get('benchmark_name')
-    benchmark_arguments = self.request.get('benchmark_arguments')
-    browser_args_1 = self.request.get('browser_args_1')
-    browser_args_2 = self.request.get('browser_args_2')
-    target_platform = self.request.get('target_platform')
-    pageset_type = self.request.get('pageset_type')
-    num_repeated_runs = int(self.request.get('num_repeated_runs'))
-    variance_threshold = float(self.request.get('variance_threshold'))
-    discard_outliers = float(self.request.get('discard_outliers'))
-    description = self.request.get('description')
-    if not description:
-      description = 'None'
-    skia_patch = db.Blob(str(self.request.get('skia_patch')))
-    chromium_patch = db.Blob(str(self.request.get('chromium_patch')))
-    blink_patch = db.Blob(str(self.request.get('blink_patch')))
-    requested_time = datetime.datetime.now()
-
-    ChromiumTryTasks(
-        username=self.user.email(),
-        benchmark_name=benchmark_name,
-        benchmark_arguments=benchmark_arguments,
-        browser_args_1=browser_args_1,
-        browser_args_2=browser_args_2,
-        target_platform=target_platform,
-        pageset_type=pageset_type,
-        skia_patch=skia_patch,
-        chromium_patch=chromium_patch,
-        blink_patch=blink_patch,
-        num_repeated_runs=num_repeated_runs,
-        variance_threshold=variance_threshold,
-        discard_outliers=discard_outliers,
-        requested_time=requested_time,
-        description=description).put()
+    _AddChromiumTryTask(self, self.user.email())
     self.redirect('chromium_try')
 
   def _handle(self):
