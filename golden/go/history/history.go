@@ -6,6 +6,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
@@ -125,18 +126,45 @@ func (h *historian) backFillDigestInfo(tilesToBackfill int) {
 func (h *historian) processTile(tile *ptypes.Tile) error {
 	dStore := h.storages.DigestStore
 	tileLen := tile.LastCommitIndex() + 1
-	commits := tile.Commits[:tileLen]
+
+	var digestInfo *digeststore.DigestInfo
+	var ok bool
+	counter := 0
+	minMaxTimes := map[string]map[string]*digeststore.DigestInfo{}
 	for _, trace := range tile.Traces {
 		gTrace := trace.(*ptypes.GoldenTrace)
 		testName := trace.Params()[types.PRIMARY_KEY_FIELD]
 		for idx, digest := range gTrace.Values[:tileLen] {
-			// Update the digest store.
-			_, err := dStore.UpdateDigestTimeStamps(testName, digest, commits[idx])
-			if err != nil {
-				return err
+			if digest != ptypes.MISSING_DIGEST {
+				timeStamp := tile.Commits[idx].CommitTime
+				if digestInfo, ok = minMaxTimes[testName][digest]; !ok {
+					digestInfo = &digeststore.DigestInfo{
+						TestName: testName,
+						Digest:   digest,
+						First:    timeStamp,
+						Last:     timeStamp,
+					}
+
+					if testVal, ok := minMaxTimes[testName]; !ok {
+						minMaxTimes[testName] = map[string]*digeststore.DigestInfo{digest: digestInfo}
+					} else {
+						testVal[digest] = digestInfo
+					}
+					counter++
+				} else {
+					digestInfo.First = util.MinInt64(digestInfo.First, timeStamp)
+					digestInfo.Last = util.MaxInt64(digestInfo.Last, timeStamp)
+				}
 			}
 		}
 	}
 
-	return nil
+	digestInfos := make([]*digeststore.DigestInfo, 0, counter)
+	for _, digests := range minMaxTimes {
+		for _, digestInfo := range digests {
+			digestInfos = append(digestInfos, digestInfo)
+		}
+	}
+
+	return dStore.Update(digestInfos)
 }

@@ -1,9 +1,16 @@
 package digeststore
 
 import (
-	"sync"
+	"encoding/json"
+	"os"
+	"path"
 
-	ptypes "go.skia.org/infra/perf/go/types"
+	"github.com/boltdb/bolt"
+)
+
+const (
+	SUB_DIR_NAME   = "digeststore"
+	DIGEST_DB_NAME = "digest_store.boltdb"
 )
 
 // DigestInfo aggregates all information we have about an individual digest.
@@ -28,84 +35,105 @@ type DigestInfo struct {
 	IssueIDs []int
 }
 
+// UpdateTimestamps updates the time stamps of a DigestInfo based on the
+// arguments. It returns true if the digest info was modified.
+func (d *DigestInfo) UpdateTimestamps(first int64, last int64) bool {
+	changed := false
+	if first < d.First {
+		d.First = first
+		changed = true
+	}
+	if last > d.Last {
+		d.Last = last
+		changed = true
+	}
+	return changed
+}
+
 type DigestStore interface {
-	// GetDigestInfo returns the information about the given testName-digest
-	// pair.
-	GetDigestInfo(testName, digest string) (*DigestInfo, bool, error)
+	// Get returns the information about the given testName/digest pair.
+	Get(testName, digest string) (*DigestInfo, bool, error)
 
-	// UpdateDigestTimeStamps updates the information about the digest. If there
-	// is no "new" information it will not change the underlying datastore.
-	UpdateDigestTimeStamps(testName, digest string, commit *ptypes.Commit) (*DigestInfo, error)
+	// Update updates the stored information about the testname/digest
+	// pairs identified in the list of DigestInfos.
+	Update(digetInfos []*DigestInfo) error
 }
 
-// MemDigestStore implements the DigestStore interface in memory.
-type MemDigestStore struct {
-	digestInfos map[string]map[string]*DigestInfo
-	readCopy    map[string]map[string]*DigestInfo
-	readMutex   sync.RWMutex
-	updateMutex sync.Mutex
+type BoltDigestStore struct {
+	digestDB *bolt.DB
 }
 
-func NewMemDigestStore() DigestStore {
-	return &MemDigestStore{
-		digestInfos: map[string]map[string]*DigestInfo{},
-		readCopy:    map[string]map[string]*DigestInfo{},
+func New(storageDir string) (DigestStore, error) {
+	dbDir := path.Join(storageDir, SUB_DIR_NAME)
+	if err := os.MkdirAll(dbDir, 0755); err != nil {
+		return nil, err
 	}
-}
-
-func (m *MemDigestStore) GetDigestInfo(testName, digest string) (*DigestInfo, bool, error) {
-	m.readMutex.RLock()
-	defer m.readMutex.RUnlock()
-	ret, ok := m.readCopy[testName][digest]
-	return ret, ok, nil
-}
-
-func (m *MemDigestStore) UpdateDigestTimeStamps(testName, digest string, commit *ptypes.Commit) (*DigestInfo, error) {
-	m.updateMutex.Lock()
-	defer m.updateMutex.Unlock()
-
-	updated := true
-	if curr, ok := m.digestInfos[testName][digest]; ok {
-		if curr.Last < commit.CommitTime {
-			curr.Last = commit.CommitTime
-		} else if curr.First > commit.CommitTime {
-			curr.First = commit.CommitTime
-		} else {
-			updated = false
-		}
-	} else {
-		if _, ok = m.digestInfos[testName]; !ok {
-			m.digestInfos[testName] = map[string]*DigestInfo{}
-		}
-		m.digestInfos[testName][digest] = &DigestInfo{
-			TestName: testName,
-			Digest:   digest,
-			First:    commit.CommitTime,
-			Last:     commit.CommitTime,
-			IssueIDs: []int{},
-		}
+	db, err := bolt.Open(path.Join(dbDir, DIGEST_DB_NAME), 0666, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	if updated {
-		m.makeReadCopy()
-	}
-
-	ret, _, err := m.GetDigestInfo(testName, digest)
-	return ret, err
+	return &BoltDigestStore{digestDB: db}, nil
 }
 
-func (m *MemDigestStore) makeReadCopy() {
-	newReadCopy := make(map[string]map[string]*DigestInfo, len(m.digestInfos))
-	for testName, digests := range m.digestInfos {
-		newReadCopy[testName] = make(map[string]*DigestInfo, len(digests))
-		for digest, digestInfo := range digests {
-			temp := &DigestInfo{}
-			*temp = *digestInfo
-			newReadCopy[testName][digest] = temp
+func (b *BoltDigestStore) Get(testName, digest string) (*DigestInfo, bool, error) {
+	var ret *DigestInfo = nil
+	err := b.digestDB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(testName))
+		if bucket == nil {
+			return nil
 		}
-	}
 
-	m.readMutex.Lock()
-	m.readCopy = newReadCopy
-	m.readMutex.Unlock()
+		if retBytes := bucket.Get([]byte(digest)); retBytes != nil {
+			if err := json.Unmarshal(retBytes, &ret); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	return ret, ret != nil, err
+}
+
+func (b *BoltDigestStore) Update(digestInfos []*DigestInfo) error {
+	return b.digestDB.Update(func(tx *bolt.Tx) error {
+		// Wrap everything into a single transaction. This avoids a write lock
+		// by using the lock of the transaction.
+		writeDigestInfos := make([]*DigestInfo, 0, len(digestInfos))
+		for _, digestInfo := range digestInfos {
+			di, found, err := b.Get(digestInfo.TestName, digestInfo.Digest)
+			if err != nil {
+				return err
+			}
+
+			// If the testname/digest was not found or needs to be updated we
+			// record it.
+			if !found {
+				writeDigestInfos = append(writeDigestInfos, digestInfo)
+			} else if di.UpdateTimestamps(digestInfo.First, digestInfo.Last) {
+				writeDigestInfos = append(writeDigestInfos, di)
+			}
+		}
+
+		// If no digest needs updating we are done.
+		if len(writeDigestInfos) == 0 {
+			return nil
+		}
+
+		for _, digestInfo := range writeDigestInfos {
+			bucket, err := tx.CreateBucketIfNotExists([]byte(digestInfo.TestName))
+			if err != nil {
+				return err
+			}
+
+			jsonBytes, err := json.Marshal(digestInfo)
+			if err != nil {
+				return err
+			}
+
+			if err = bucket.Put([]byte(digestInfo.Digest), jsonBytes); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }

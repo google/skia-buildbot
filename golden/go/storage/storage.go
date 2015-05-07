@@ -163,7 +163,7 @@ func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*ptypes.Tile, error) 
 // the given test name/digest pair or updates the underlying info if it is not
 // in the digest store yet.
 func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *ptypes.Commit) (*digeststore.DigestInfo, error) {
-	digestInfo, ok, err := s.DigestStore.GetDigestInfo(testName, digest)
+	digestInfo, ok, err := s.DigestStore.Get(testName, digest)
 	if err != nil {
 		return nil, err
 	}
@@ -171,5 +171,16 @@ func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *ptypes.
 	if ok {
 		return digestInfo, nil
 	}
-	return s.DigestStore.UpdateDigestTimeStamps(testName, digest, commit)
+	digestInfo = &digeststore.DigestInfo{
+		TestName: testName,
+		Digest:   digest,
+		First:    commit.CommitTime,
+		Last:     commit.CommitTime,
+	}
+	err = s.DigestStore.Update([]*digeststore.DigestInfo{digestInfo})
+	if err != nil {
+		return nil, err
+	}
+
+	return digestInfo, nil
 }

@@ -126,13 +126,12 @@ type MockDigestStore struct {
 	issueIDs []int
 }
 
-func (m *MockDigestStore) GetDigestInfo(testName, digest string) (*digeststore.DigestInfo, bool, error) {
+func (m *MockDigestStore) Get(testName, digest string) (*digeststore.DigestInfo, bool, error) {
 	return &digeststore.DigestInfo{
 		IssueIDs: m.issueIDs,
 	}, true, nil
 }
 
-func (m *MockDigestStore) UpdateDigestTimeStamps(testName, digest string, commit *ptypes.Commit) (*digeststore.DigestInfo, error) {
-	ret, _, err := m.GetDigestInfo(testName, digest)
-	return ret, err
+func (m *MockDigestStore) Update([]*digeststore.DigestInfo) error {
+	return nil
 }

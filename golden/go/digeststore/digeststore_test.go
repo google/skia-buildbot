@@ -1,57 +1,56 @@
 package digeststore
 
 import (
+	"os"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/database"
-	"go.skia.org/infra/go/database/testutil"
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/db"
-	ptypes "go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/go/testutils"
 )
 
-func TestMemDigestStore(t *testing.T) {
-	testDigestStore(t, NewMemDigestStore())
-}
+const TEST_DATA_DIR = "testdata"
 
-func TestSQLDigestStore(t *testing.T) {
-	// Set up the test database.
-	testDb := testutil.SetupMySQLTestDatabase(t, db.MigrationSteps())
-	defer testDb.Close(t)
+func TestDigestStore(t *testing.T) {
+	assert.Nil(t, os.MkdirAll(TEST_DATA_DIR, 0755))
+	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
-	conf := testutil.LocalTestDatabaseConfig(db.MigrationSteps())
-	vdb := database.NewVersionedDB(conf)
-	defer util.Close(vdb)
-
-	testDigestStore(t, NewSQLDigestStore(vdb))
+	digestStore, err := New(TEST_DATA_DIR)
+	assert.Nil(t, err)
+	testDigestStore(t, digestStore)
 }
 
 func testDigestStore(t assert.TestingT, digestStore DigestStore) {
 	testName_1, digest_1 := "smapleTest_1", "sampleDigest_1"
-	commit_1 := &ptypes.Commit{CommitTime: time.Now().Unix() - 20}
+	timestamp_1 := time.Now().Unix() - 20
 
-	di, ok, err := digestStore.GetDigestInfo(testName_1, digest_1)
+	di, ok, err := digestStore.Get(testName_1, digest_1)
 	assert.Nil(t, err)
 	assert.False(t, ok)
 
-	_, err = digestStore.UpdateDigestTimeStamps(testName_1, digest_1, commit_1)
-	assert.Nil(t, err)
-	di, ok, err = digestStore.GetDigestInfo(testName_1, digest_1)
+	digestInfos := []*DigestInfo{
+		&DigestInfo{TestName: testName_1, Digest: digest_1, First: timestamp_1, Last: timestamp_1},
+	}
+	assert.Nil(t, digestStore.Update(digestInfos))
+
+	di, ok, err = digestStore.Get(testName_1, digest_1)
 	assert.Nil(t, err)
 	assert.True(t, ok)
-	assert.Equal(t, commit_1.CommitTime, di.Last)
-	assert.Equal(t, commit_1.CommitTime, di.First)
+	assert.Equal(t, timestamp_1, di.Last)
+	assert.Equal(t, timestamp_1, di.First)
 
 	// Update the digest with a commit 10 seconds later than the first one.
-	commit_2 := &ptypes.Commit{CommitTime: commit_1.CommitTime + 10}
-	_, err = digestStore.UpdateDigestTimeStamps(testName_1, digest_1, commit_2)
-	assert.Nil(t, err)
-	di, ok, err = digestStore.GetDigestInfo(testName_1, digest_1)
+	timestamp_2 := timestamp_1 + 10
+	digestInfos = []*DigestInfo{
+		&DigestInfo{TestName: testName_1, Digest: digest_1, First: timestamp_2, Last: timestamp_2},
+	}
+
+	assert.Nil(t, digestStore.Update(digestInfos))
+
+	di, ok, err = digestStore.Get(testName_1, digest_1)
 	assert.Nil(t, err)
 	assert.True(t, ok)
 
-	assert.Equal(t, commit_1.CommitTime, di.First)
-	assert.Equal(t, commit_2.CommitTime, di.Last)
+	assert.Equal(t, timestamp_1, di.First)
+	assert.Equal(t, timestamp_2, di.Last)
 }

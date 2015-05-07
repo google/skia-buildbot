@@ -32,11 +32,11 @@ var (
 func TestBlamerWithSyntheticData(t *testing.T) {
 	start := time.Now().Unix()
 	commits := []*ptypes.Commit{
-		&ptypes.Commit{CommitTime: start + 50, Hash: "h1", Author: "John Doe 1"},
-		&ptypes.Commit{CommitTime: start + 40, Hash: "h2", Author: "John Doe 2"},
+		&ptypes.Commit{CommitTime: start + 10, Hash: "h1", Author: "John Doe 1"},
+		&ptypes.Commit{CommitTime: start + 20, Hash: "h2", Author: "John Doe 2"},
 		&ptypes.Commit{CommitTime: start + 30, Hash: "h3", Author: "John Doe 3"},
-		&ptypes.Commit{CommitTime: start + 20, Hash: "h4", Author: "John Doe 4"},
-		&ptypes.Commit{CommitTime: start + 10, Hash: "h5", Author: "John Doe 5"},
+		&ptypes.Commit{CommitTime: start + 40, Hash: "h4", Author: "John Doe 4"},
+		&ptypes.Commit{CommitTime: start + 50, Hash: "h5", Author: "John Doe 5"},
 	}
 
 	params := []map[string]string{
@@ -69,7 +69,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		TileStore:         mocks.NewMockTileStore(t, digests, params, commits),
-		DigestStore:       &MockDigestStore{firstSeen: start + 1000},
+		DigestStore:       &MockDigestStore{firstSeen: start + 1000, okValue: true},
 		EventBus:          eventBus,
 	}
 	blamer, err := New(storages)
@@ -316,7 +316,7 @@ type MockDigestStore struct {
 	okValue   bool
 }
 
-func (m *MockDigestStore) GetDigestInfo(testName, digest string) (*digeststore.DigestInfo, bool, error) {
+func (m *MockDigestStore) Get(testName, digest string) (*digeststore.DigestInfo, bool, error) {
 	return &digeststore.DigestInfo{
 		TestName: testName,
 		Digest:   digest,
@@ -324,8 +324,7 @@ func (m *MockDigestStore) GetDigestInfo(testName, digest string) (*digeststore.D
 	}, m.okValue, nil
 }
 
-func (m *MockDigestStore) UpdateDigestTimeStamps(testName, digest string, commit *ptypes.Commit) (*digeststore.DigestInfo, error) {
+func (m *MockDigestStore) Update([]*digeststore.DigestInfo) error {
 	m.okValue = true
-	ret, _, err := m.GetDigestInfo(testName, digest)
-	return ret, err
+	return nil
 }
