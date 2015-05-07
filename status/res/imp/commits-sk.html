@@ -135,6 +135,8 @@
     }
     a {
       color: inherit;
+      position: relative;
+      z-index: 2;
     }
     a.author {
       text-decoration: none;
@@ -199,6 +201,19 @@
       left: 0px;
       width: 16px;
       height: 16px;
+    }
+    div.commitHighlight {
+      position: absolute;
+      top: -16px;
+      left: -{{canvasWidth}}px;
+      width: {{windowWidth}}px;
+      height: 19px;
+      border: 1px solid red;
+      z-index: 1;
+    }
+    .authorText {
+      position: relative;
+      z-index: 2;
     }
     </style>
     <div>
@@ -303,13 +318,18 @@
                 <tr class="commit alt">
                   <td class="author" id="{{commit.hash}}-author-td" title="{{commit.subject|shortSubject}}">
                     <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{openCommitPopup}}">
-                      <span style="display: {{authorSubject == 'author' ? 'block' : 'none'}}">
+                      <span class="authorText" style="display: {{authorSubject == 'author' ? 'block' : 'none'}}">
                         {{commit.author|shortAuthor}}
                       </span>
-                      <span style="display: {{authorSubject == 'author' ? 'none' : 'block'}}">
+                      <span class="authorText" style="display: {{authorSubject == 'author' ? 'none' : 'block'}}">
                         {{commit.subject|shortSubject}}
                       </span>
                     </a>
+                    <span style="position: relative; display: block;">
+                      <template if="{{commit.hash|shouldHighlight}}">
+                        <div class="commitHighlight"></div>
+                      </template>
+                    </span>
                   </td>
                   <td class="commentIndicator">
                     <template if="{{commit.comments && commit.comments.length > 0}}">
@@ -615,6 +635,7 @@
       },
 
       created: function() {
+        var params = sk.query.toParamSet(window.location.search.split("?")[1]);
         this.allBuilders = {};
         this.authorSubject = "author";
         this.autorollCurrent = null;
@@ -627,11 +648,14 @@
         this.builds = {};
         this.buildDetails = {};
         this.buildTableWidth = 0;
+        this.canvasWidth = 0;
+        this.canvasHeight = 0;
         this.cellWidthAuthor = 100;
         this.cellWidthSubject = 440;
         this.commentIndicatorWidth = 14;
         this.commits = [];
         this.displayCommits = {};
+        this.highlightedCommits = params["commit"];
         this.lastLoaded = "(not yet loaded)";
         this.numBuilders = 0;
         this.minCanvasWidth = 120;
@@ -1084,12 +1108,12 @@
         // Redraw the canvas.
         var scale = window.devicePixelRatio || 1.0;
         var canvas = this.shadowRoot.getElementById("commitCanvas");
-        var w = Math.max(longestWidth + paddingX, this.minCanvasWidth);
-        var h = commitY * commits.length;
-        canvas.style.width = Math.floor(w) + "px";
-        canvas.style.height = Math.floor(h) + "px";
-        canvas.width = w * scale;
-        canvas.height = h * scale;
+        this.canvasWidth = Math.max(longestWidth + paddingX, this.minCanvasWidth);
+        this.canvasHeight = commitY * commits.length;
+        canvas.style.width = Math.floor(this.canvasWidth) + "px";
+        canvas.style.height = Math.floor(this.canvasHeight) + "px";
+        canvas.width = this.canvasWidth * scale;
+        canvas.height = this.canvasHeight * scale;
         var ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.setTransform(scale, 0, 0, scale, 0, 0);
@@ -1108,7 +1132,7 @@
         // Get the build table width.
         this.windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
         this.windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-        this.buildTableWidth = this.windowWidth - w - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth;
+        this.buildTableWidth = this.windowWidth - this.canvasWidth - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth;
         console.timeEnd("draw");
       },
 
@@ -1135,6 +1159,15 @@
         if (forceChanged) {
           this.builderFilterChanged();
         }
+      },
+
+      shouldHighlight: function(commit) {
+        for (var i = 0; i < this.highlightedCommits.length; i++) {
+          if (commit.indexOf(this.highlightedCommits[i]) == 0) {
+            return true;
+          }
+        }
+        return false;
       },
     });
   })();
