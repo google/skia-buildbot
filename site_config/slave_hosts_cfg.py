@@ -711,6 +711,20 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
+  'skiabot-mac-10_10-ios': {
+    'slaves': [
+      ('skiabot-ipad4-000', '0', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'login_cmd': skia_lab_login,
+    'ip': '192.168.1.???', # ??
+    'kvm_num': '?',
+    'path_module': posixpath,
+    'path_to_buildbot': ['buildbot'],
+    'remote_access': True,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
 ############################### Windows Machines ###############################
 
   'win7-intel-002': {
