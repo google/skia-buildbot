@@ -655,7 +655,7 @@
         this.commentIndicatorWidth = 14;
         this.commits = [];
         this.displayCommits = {};
-        this.highlightedCommits = params["commit"];
+        this.highlightedCommits = params["commit"] || [];
         this.lastLoaded = "(not yet loaded)";
         this.numBuilders = 0;
         this.minCanvasWidth = 120;
