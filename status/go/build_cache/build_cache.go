@@ -19,7 +19,6 @@ var (
 	// Patterns indicating which bots to skip.
 	BOT_BLACKLIST = []*regexp.Regexp{
 		regexp.MustCompile(".*-Trybot"),
-		regexp.MustCompile(".*Housekeeper.*"),
 	}
 )
 

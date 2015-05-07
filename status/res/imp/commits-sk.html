@@ -248,7 +248,9 @@
                     <paper-radio-button name="interesting" label="Interesting"></paper-radio-button>
                     <paper-radio-button name="failures" label="Failures"></paper-radio-button>
                     <paper-radio-button name="all" label="All"></paper-radio-button>
+                    <paper-radio-button name="search" label=" "></paper-radio-button>
                   </paper-radio-group>
+                  <paper-input id="builderTextFilter" on-change="{{builderTextFilterChanged}}" label="Search Builders"></paper-input>
                 </th>
                 <th class="header"><!-- Commit message --></th>
               </tr>
@@ -755,6 +757,13 @@
               }
             }
           }
+        } else if (selected == "search") {
+          var matchText = this.$.builderTextFilter.value;
+          for (var builder in this.allBuilders) {
+            if (builder.toLowerCase().match(matchText.toLowerCase())) {
+              filteredBuilders.push(builder);
+            }
+          }
         } else {
           console.error("Invalid builder filter selection: " + selected);
         }
@@ -1113,6 +1122,19 @@
 
       numBuildersChanged: function() {
         this.setBuilderWidth();
+      },
+
+      builderTextFilterChanged: function() {
+        // If "search" is already selected, the on-change event for
+        // this.builderFilter doesn't trigger. We have to trigger it.
+        var forceChanged = false;
+        if (this.builderFilter == "search") {
+          forceChanged = true;
+        }
+        this.builderFilter = "search";
+        if (forceChanged) {
+          this.builderFilterChanged();
+        }
       },
     });
   })();
