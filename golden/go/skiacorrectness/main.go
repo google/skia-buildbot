@@ -25,8 +25,10 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/analysis"
 	"go.skia.org/infra/golden/go/db"
+	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
+	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
@@ -59,6 +61,8 @@ var (
 	cpuProfile        = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 	forceLogin        = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
 	authWhiteList     = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+	nTilesToBackfill  = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
+	storageDir        = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
 )
 
 const (
@@ -369,18 +373,28 @@ func main() {
 	}
 	vdb := database.NewVersionedDB(conf)
 
+	digestStore, err := digeststore.New(*storageDir)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	eventBus := eventbus.New()
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), eventBus),
 		IgnoreStore:       ignore.NewSQLIgnoreStore(vdb),
 		TileStore:         filetilestore.NewFileTileStore(*tileStoreDir, pconfig.DATASET_GOLD, 2*time.Minute),
+		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          eventBus,
 	}
 
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
 		glog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
+	}
+
+	if err := history.Init(storages, *nTilesToBackfill); err != nil {
+		glog.Fatalf("Unable to initialize history package: %s", err)
 	}
 
 	// Enable the experimental features.
