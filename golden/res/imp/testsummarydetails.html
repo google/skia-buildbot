@@ -145,10 +145,10 @@
         </div>
       </template>
       <div vertical layout>
-        <a href="/2/detail?test={{test}}&digest={{digest}}">{{digest}}</a>
+        <a href="/detail?test={{test}}&digest={{digest}}">{{digest}}</a>
         <dots-sk id=dots></dots-sk>
         <template if="{{isTruncated}}">
-          <div class=more><a href="/2/detail?test={{test}}&digest={{digest}}">(more)</a></div>
+          <div class=more><a href="/detail?test={{test}}&digest={{digest}}">(more)</a></div>
         </template>
         <table id=legend>
           <template repeat="{{digestInfo, i in details.otherDigests}}">
@@ -160,7 +160,7 @@
               </td>
               <td>
                 <template if="{{i<7}}">
-                  <code><a href="/2/detail?test={{test}}&digest={{digestInfo.digest}}">{{digestInfo.digest}}</a></code>
+                  <code><a href="/detail?test={{test}}&digest={{digestInfo.digest}}">{{digestInfo.digest}}</a></code>
                 </template>
                 <template if="{{i==7}}">
                   One of many other digests.
@@ -173,7 +173,7 @@
               </td>
               <td>
                 <template if="{{i<7}}">
-                  <a href="/2/diff?test={{test}}&left={{digestInfo.digest}}&top={{digest}}">diff</a>
+                  <a href="/diff?test={{test}}&left={{digestInfo.digest}}&top={{digest}}">diff</a>
                 </template>
               </td>
             </tr>
@@ -181,7 +181,7 @@
         </table>
       </div>
       <div vertical layout class="{{triage ? 'triageInfo' : 'hidden'}}">
-        <div><a href="/2/diff?test={{test}}&left={{digest}}&top={{details.closest.digest}}">Details</a></div>
+        <div><a href="/diff?test={{test}}&left={{digest}}&top={{details.closest.digest}}">Details</a></div>
         <div>Diff: {{details.closest.diff | fixedPercent }}%</div>
         <div>Max RGBA: [{{details.closest.maxRGBA}}]</div>
         <tri-sk data-digest="{{digest}}" data-test="{{test}}" value=untriaged id=triage></tri-sk>
@@ -243,7 +243,7 @@
 
         var that = this;
         var q = '?test=' + this.test + '&top=' + this.digest+ '&left=' + this.digest + '&graphs=true&closest=' + this.triage;
-        sk.get('/2/_/details'+q).then(JSON.parse).then(function(json) {
+        sk.get('/_/details'+q).then(JSON.parse).then(function(json) {
           if (that.limit && that.limit < json.traces.length) {
             json.traces = json.traces.slice(0, that.limit);
             that.isTruncated = true;

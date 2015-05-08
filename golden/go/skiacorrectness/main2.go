@@ -69,7 +69,7 @@ func polyMainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if err := indexTemplate.Execute(w, struct{}{}); err != nil {
+	if err := indexTemplate.Execute(w, commonEnv); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -351,7 +351,7 @@ func polyIgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if err := ignoresTemplate.Execute(w, struct{}{}); err != nil {
+	if err := ignoresTemplate.Execute(w, commonEnv); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -363,7 +363,7 @@ func polySingleDigestHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if err := singleTemplate.Execute(w, struct{}{}); err != nil {
+	if err := singleTemplate.Execute(w, commonEnv); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -375,7 +375,7 @@ func polyDiffDigestHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if err := diffTemplate.Execute(w, struct{}{}); err != nil {
+	if err := diffTemplate.Execute(w, commonEnv); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -429,7 +429,7 @@ func polyHelpHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if err := helpTemplate.Execute(w, struct{}{}); err != nil {
+	if err := helpTemplate.Execute(w, commonEnv); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -441,7 +441,7 @@ func polyCompareHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if err := compareTemplate.Execute(w, struct{}{}); err != nil {
+	if err := compareTemplate.Execute(w, commonEnv); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -453,7 +453,7 @@ func polyTriageLogView(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if err := triageLogTemplate.Execute(w, struct{}{}); err != nil {
+	if err := triageLogTemplate.Execute(w, commonEnv); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }

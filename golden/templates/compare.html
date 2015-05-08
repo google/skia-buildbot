@@ -137,8 +137,8 @@
       </div>
       <paper-toast></paper-toast>
 
-      <query-dialog-sk id=queryTopDialog src="/2/_/paramset"></query-dialog-sk>
-      <query-dialog-sk id=queryLeftDialog src="/2/_/paramset"></query-dialog-sk>
+      <query-dialog-sk id=queryTopDialog src="/_/paramset"></query-dialog-sk>
+      <query-dialog-sk id=queryLeftDialog src="/_/paramset"></query-dialog-sk>
       <group-triage-dialog-sk></group-triage-dialog-sk>
 
 
@@ -157,7 +157,7 @@
        var moreDelta = 5;
 
        // Strip off the /testname from the URL.
-       var re = new RegExp("/2/cmp/(.*)", "");
+       var re = new RegExp("/cmp/(.*)", "");
        var s = window.location.pathname;
        var match = s.match(re);
        var testName = "";
@@ -306,7 +306,7 @@
 
        function loadGrid() {
          $$$('group-triage-dialog-sk').close();
-         sk.post('/2/_/test', JSON.stringify(page.state)).then(JSON.parse).then(function(json) {
+         sk.post('/_/test', JSON.stringify(page.state)).then(JSON.parse).then(function(json) {
            topTotal = json.topTotal;
            leftTotal = json.leftTotal;
 
@@ -352,7 +352,7 @@
        });
 
        $$$('diff-detail-sk').addEventListener('triage', function(e) {
-         sk.post('/2/_/triage', JSON.stringify(e.detail)).then(function(){
+         sk.post('/_/triage', JSON.stringify(e.detail)).then(function(){
            $$$('grid-sk').markChanged(e.detail.digest);
            $$$('#refresh').classList.add('display');
            $$$('test-status-sk').kick();
@@ -399,7 +399,7 @@
              include: include,
              head: page.state.head,
            };
-           sk.post('/2/_/triage', JSON.stringify(request)).then(function(){
+           sk.post('/_/triage', JSON.stringify(request)).then(function(){
              $$$('test-status-sk').kick();
              if (request.all) {
                loadGrid();
