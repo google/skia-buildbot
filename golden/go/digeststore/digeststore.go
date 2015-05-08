@@ -76,7 +76,7 @@ func New(storageDir string) (DigestStore, error) {
 	return &BoltDigestStore{digestDB: db}, nil
 }
 
-func (b *BoltDigestStore) Get(testName, digest string) (*DigestInfo, bool, error) {
+func (b BoltDigestStore) Get(testName, digest string) (*DigestInfo, bool, error) {
 	var ret *DigestInfo = nil
 	err := b.digestDB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(testName))
@@ -94,7 +94,7 @@ func (b *BoltDigestStore) Get(testName, digest string) (*DigestInfo, bool, error
 	return ret, ret != nil, err
 }
 
-func (b *BoltDigestStore) Update(digestInfos []*DigestInfo) error {
+func (b BoltDigestStore) Update(digestInfos []*DigestInfo) error {
 	return b.digestDB.Update(func(tx *bolt.Tx) error {
 		// Wrap everything into a single transaction. This avoids a write lock
 		// by using the lock of the transaction.
