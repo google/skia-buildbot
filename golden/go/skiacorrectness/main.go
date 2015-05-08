@@ -409,11 +409,10 @@ func main() {
 			glog.Fatalf("Failed to build summary: %s", err)
 		}
 
-		// TODO(stephana): Re-enable once DigestStore in storages is initialized.
-		// statusWatcher, err = status.New(storages)
-		// if err != nil {
-		// 	glog.Fatalf("Failed to initialize status watcher: %s", err)
-		// }
+		statusWatcher, err = status.New(storages)
+		if err != nil {
+			glog.Fatalf("Failed to initialize status watcher: %s", err)
+		}
 	}
 
 	// Initialize the Analyzer
