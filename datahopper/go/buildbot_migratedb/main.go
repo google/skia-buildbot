@@ -19,20 +19,18 @@ var (
 
 func main() {
 	// Set up flags.
-	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_ROOT, buildbot.PROD_DB_NAME)
+	dbConf := database.ConfigFromFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_ROOT, buildbot.PROD_DB_NAME, buildbot.MigrationSteps())
 
 	// Global init to initialize glog and parse arguments.
 	common.Init()
 
-	pw, err := database.PromptForPassword()
+	if err := dbConf.PromptForPassword(); err != nil {
+		glog.Fatal(err)
+	}
+	vdb, err := dbConf.NewVersionedDB()
 	if err != nil {
 		glog.Fatal(err)
 	}
-	conf, err := database.ConfigFromFlags(pw, *local, buildbot.MigrationSteps())
-	if err != nil {
-		glog.Fatal(err)
-	}
-	vdb := database.NewVersionedDB(conf)
 
 	// Get the current database version
 	maxDBVersion := vdb.MaxDBVersion()

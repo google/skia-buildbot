@@ -14,7 +14,6 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/util"
 )
@@ -41,18 +40,19 @@ func fixName(s string) string {
 
 func main() {
 	// Setup flags.
-	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_RW, buildbot.PROD_DB_NAME)
+	dbConf := buildbot.DBConfigFromFlags()
 	influxdb.SetupFlags()
 
 	// Global init to initialize glog and parse arguments.
 	common.InitWithMetrics("datahopper", graphiteServer)
 
 	// Initialize the buildbot database.
-	conf, err := database.ConfigFromFlagsAndMetadata(*local, buildbot.MigrationSteps())
-	if err != nil {
-		glog.Fatal(err)
+	if !*local {
+		if err := dbConf.GetPasswordFromMetadata(); err != nil {
+			glog.Fatal(err)
+		}
 	}
-	if err := buildbot.InitDB(conf); err != nil {
+	if err := dbConf.InitDB(); err != nil {
 		glog.Fatal(err)
 	}
 

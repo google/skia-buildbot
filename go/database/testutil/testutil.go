@@ -38,13 +38,25 @@ const (
 // LocalTestDatabaseConfig returns a DatabaseConfig appropriate for local
 // testing.
 func LocalTestDatabaseConfig(m []database.MigrationStep) *database.DatabaseConfig {
-	return database.NewDatabaseConfig(USER_RW, "", TEST_DB_HOST, TEST_DB_PORT, TEST_DB_NAME, m)
+	return &database.DatabaseConfig{
+		User:           USER_RW,
+		Host:           TEST_DB_HOST,
+		Port:           TEST_DB_PORT,
+		Name:           TEST_DB_NAME,
+		MigrationSteps: m,
+	}
 }
 
 // LocalTestRootDatabaseConfig returns a DatabaseConfig appropriate for local
 // testing, with root access.
 func LocalTestRootDatabaseConfig(m []database.MigrationStep) *database.DatabaseConfig {
-	return database.NewDatabaseConfig(USER_ROOT, "", TEST_DB_HOST, TEST_DB_PORT, TEST_DB_NAME, m)
+	return &database.DatabaseConfig{
+		User:           USER_ROOT,
+		Host:           TEST_DB_HOST,
+		Port:           TEST_DB_PORT,
+		Name:           TEST_DB_NAME,
+		MigrationSteps: m,
+	}
 }
 
 // Creates an MySQL test database and runs migration tests against it using the
@@ -57,7 +69,8 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 	lockDB := GetMySQlLock(t, rootConf)
 	defer lockDB.Close(t)
 
-	rootVdb := database.NewVersionedDB(rootConf)
+	rootVdb, err := rootConf.NewVersionedDB()
+	assert.Nil(t, err)
 	ClearMySQLTables(t, rootVdb)
 	assert.Nil(t, rootVdb.Close())
 
@@ -67,17 +80,16 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 	// Open DB as readwrite user and make sure it fails because of a missing
 	// version table.
 	// Note: This requires the database to be empty.
-	assert.Panics(t, func() {
-		database.NewVersionedDB(readWriteConf)
-	})
+	_, err = readWriteConf.NewVersionedDB()
+	assert.NotNil(t, err)
 
-	rootVdb = database.NewVersionedDB(rootConf)
+	rootVdb, err = rootConf.NewVersionedDB()
+	assert.Nil(t, err)
 	testDBVersioning(t, rootVdb)
 
-	// Make sure it doesn't panic for readwrite user after the migration
-	assert.NotPanics(t, func() {
-		database.NewVersionedDB(readWriteConf)
-	})
+	// Make sure it doesn't fail for readwrite user after the migration
+	_, err = readWriteConf.NewVersionedDB()
+	assert.Nil(t, err)
 
 	// Downgrade database, removing most if not all tables.
 	downgradeDB(t, rootVdb)
@@ -90,7 +102,7 @@ type LockDB struct {
 
 // Get a lock from MySQL to serialize DB tests.
 func GetMySQlLock(t *testing.T, conf *database.DatabaseConfig) *LockDB {
-	db, err := sqlx.Open("mysql", conf.MySQLString)
+	db, err := sqlx.Open("mysql", conf.MySQLString())
 	assert.Nil(t, err)
 
 	for {
@@ -152,12 +164,14 @@ type MySQLTestDatabase struct {
 func SetupMySQLTestDatabase(t *testing.T, migrationSteps []database.MigrationStep) *MySQLTestDatabase {
 	conf := LocalTestRootDatabaseConfig(migrationSteps)
 	lock := GetMySQlLock(t, conf)
-	rootVdb := database.NewVersionedDB(conf)
+	rootVdb, err := conf.NewVersionedDB()
+	assert.Nil(t, err)
 	ClearMySQLTables(t, rootVdb)
 	if err := rootVdb.Close(); err != nil {
 		t.Fatal(err)
 	}
-	rootVdb = database.NewVersionedDB(conf)
+	rootVdb, err = conf.NewVersionedDB()
+	assert.Nil(t, err)
 	if err := rootVdb.Migrate(rootVdb.MaxDBVersion()); err != nil {
 		t.Fatal(err)
 	}

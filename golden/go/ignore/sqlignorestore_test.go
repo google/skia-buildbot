@@ -3,7 +3,7 @@ package ignore
 import (
 	"testing"
 
-	"go.skia.org/infra/go/database"
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/db"
@@ -16,7 +16,8 @@ func TestSQLIgnoreStore(t *testing.T) {
 	mysqlDB := testutil.SetupMySQLTestDatabase(t, migrationSteps)
 	defer mysqlDB.Close(t)
 
-	vdb := database.NewVersionedDB(testutil.LocalTestDatabaseConfig(migrationSteps))
+	vdb, err := testutil.LocalTestDatabaseConfig(migrationSteps).NewVersionedDB()
+	assert.Nil(t, err)
 	defer testutils.AssertCloses(t, vdb)
 
 	store := NewSQLIgnoreStore(vdb)

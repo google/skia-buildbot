@@ -5,12 +5,8 @@ package main
 // it is not entered via the command line.
 
 import (
-	"bufio"
 	"flag"
-	"fmt"
-	"os"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -29,7 +25,7 @@ var (
 
 func main() {
 	// Set up flags.
-	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME)
+	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME, db.MigrationSteps())
 
 	// Global init to initialize glog and parse arguments.
 	common.Init()
@@ -40,25 +36,15 @@ func main() {
 	}
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
-	var conf *database.DatabaseConfig
-	var password string
-
-	// TODO(stephana): The code to prompt for the password should be
-	// merged with similar code in the DB package. Same for a copy of this
-	// in perf_migratedb.
 	if *promptPassword {
-		fmt.Printf("Enter root password: ")
-		reader := bufio.NewReader(os.Stdin)
-		password, err = reader.ReadString('\n')
-		password = strings.Trim(password, "\n")
-		conf, err = database.ConfigFromFlags(password, *local, db.MigrationSteps())
-	} else {
-		conf, err = database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+		if err := dbConf.PromptForPassword(); err != nil {
+			glog.Fatal(err)
+		}
 	}
+	vdb, err := dbConf.NewVersionedDB()
 	if err != nil {
 		glog.Fatal(err)
 	}
-	vdb := database.NewVersionedDB(conf)
 
 	// Get the current database version
 	maxDBVersion := vdb.MaxDBVersion()

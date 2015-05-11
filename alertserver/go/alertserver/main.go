@@ -31,7 +31,6 @@ import (
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/alertserver/go/rules"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -324,7 +323,7 @@ func runServer(serverURL string) {
 }
 
 func main() {
-	database.SetupFlags(alerting.PROD_DB_HOST, alerting.PROD_DB_PORT, database.USER_RW, alerting.PROD_DB_NAME)
+	alertDBConf := alerting.DBConfigFromFlags()
 	common.InitWithMetrics("alertserver", graphiteServer)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
@@ -402,14 +401,14 @@ func main() {
 	}
 
 	// Initialize the database.
-	conf, err := database.ConfigFromFlagsAndMetadata(*testing, alerting.MigrationSteps())
-	if err != nil {
+	if !*testing && *useMetadata {
+		if err := alertDBConf.GetPasswordFromMetadata(); err != nil {
+			glog.Fatal(err)
+		}
+	}
+	if err := alertDBConf.InitDB(); err != nil {
 		glog.Fatal(err)
 	}
-	if err := alerting.InitDB(conf); err != nil {
-		glog.Fatal(err)
-	}
-	glog.Infof("Database config: %s", conf.MySQLString)
 
 	// Create the AlertManager.
 	alertManager, err = alerting.MakeAlertManager(parsedPollInterval, emailAuth)

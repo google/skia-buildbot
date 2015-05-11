@@ -19,6 +19,9 @@ const (
 	// Template for DB connection strings.
 	DB_CONN_TMPL = "%s:%s@tcp(%s:%d)/%s?parseTime=true"
 
+	// Default database driver.
+	DEFAULT_DRIVER = "mysql"
+
 	// Name of the root user.
 	USER_ROOT = "root"
 
@@ -26,107 +29,84 @@ const (
 	USER_RW = "readwrite"
 )
 
-var (
-	// Flags
-	dbHost *string
-	dbPort *int
-	dbUser *string
-	dbName *string
-)
-
-// SetupFlags adds command-line flags for the database.
-func SetupFlags(defaultHost string, defaultPort int, defaultUser, defaultDatabase string) {
-	dbHost = flag.String("db_host", defaultHost, "Hostname of the MySQL database server.")
-	dbPort = flag.Int("db_port", defaultPort, "Port number of the MySQL database.")
-	dbUser = flag.String("db_user", defaultUser, "MySQL user name.")
-	dbName = flag.String("db_name", defaultDatabase, "Name of the MySQL database.")
+// DatabaseConfig contains information required to create a database connection.
+type DatabaseConfig struct {
+	Host           string
+	Port           int
+	User           string
+	Name           string
+	Password       string
+	MigrationSteps []MigrationStep
 }
 
-// checkFlags returns an error if the command-line flags have not been set.
-func checkFlags() error {
-	if dbHost == nil || dbPort == nil || dbUser == nil || dbName == nil {
+// ConfigFromPrefixedFlags adds command-line flags for the database with the given prefix.
+func ConfigFromPrefixedFlags(defaultHost string, defaultPort int, defaultUser, defaultDatabase string, migrationSteps []MigrationStep, prefix string) *DatabaseConfig {
+	c := DatabaseConfig{
+		MigrationSteps: migrationSteps,
+	}
+	flag.StringVar(&c.Host, prefix+"db_host", defaultHost, "Hostname of the MySQL database server.")
+	flag.IntVar(&c.Port, prefix+"db_port", defaultPort, "Port number of the MySQL database.")
+	flag.StringVar(&c.User, prefix+"db_user", defaultUser, "MySQL user name.")
+	flag.StringVar(&c.Name, prefix+"db_name", defaultDatabase, "Name of the MySQL database.")
+	return &c
+}
+
+// ConfigFromPrefixedFlags adds command-line flags for the database.
+func ConfigFromFlags(defaultHost string, defaultPort int, defaultUser, defaultDatabase string, migrationSteps []MigrationStep) *DatabaseConfig {
+	return ConfigFromPrefixedFlags(defaultHost, defaultPort, defaultUser, defaultDatabase, migrationSteps, "")
+}
+
+// validate returns an error if the command-line flags have not been set.
+func (c *DatabaseConfig) validate() error {
+	if c.Host == "" || c.Port == 0 || c.User == "" || c.Name == "" {
 		return fmt.Errorf(
 			"One or more of the required command-line flags was not set. " +
-				"Did you call forget to call database.SetupFlags?")
+				"Did you call forget to call flag.Parse?")
 	}
 	return nil
 }
 
-// PromptForPassword prompts for a password.
-func PromptForPassword() (string, error) {
+// PromptForPassword prompts for a password and sets the Password field.
+func (c *DatabaseConfig) PromptForPassword() error {
+	if err := c.validate(); err != nil {
+		return err
+	}
+
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Printf("Enter password for MySQL user %s: ", *dbUser)
+	fmt.Printf("Enter password for MySQL user %s: ", c.User)
 	pw, err := reader.ReadString('\n')
 	if err != nil {
-		return "", fmt.Errorf("Failed to get password: %v", err)
+		return fmt.Errorf("Failed to get password: %v", err)
 	}
-	pw = strings.Trim(pw, "\n")
-	return pw, nil
+	c.Password = strings.Trim(pw, "\n")
+	return nil
 }
 
-// ConfigFromFlags obtains a DatabaseConfig based on parsed command-line flags.
-// If local is true, the DB host is overridden.
-func ConfigFromFlags(password string, local bool, m []MigrationStep) (*DatabaseConfig, error) {
-	if err := checkFlags(); err != nil {
-		return nil, err
+// GetPasswordFromMetadata retrieve the password from metadata and sets the Password field.
+func (c *DatabaseConfig) GetPasswordFromMetadata() error {
+	if err := c.validate(); err != nil {
+		return err
 	}
-	// Override the DB host in local mode.
-	useHost := *dbHost
-	if local {
-		useHost = "localhost"
+	key := ""
+	if c.User == USER_RW {
+		key = metadata.DATABASE_RW_PASSWORD
+	} else if c.User == USER_ROOT {
+		key = metadata.DATABASE_ROOT_PASSWORD
 	}
-
-	usePassword := password
-	// Prompt for password if necessary.
-	if usePassword == "" && !local {
-		var err error
-		usePassword, err = PromptForPassword()
-		if err != nil {
-			return nil, err
-		}
+	if key == "" {
+		return fmt.Errorf("Unknown user %s; could not obtain password from metadata.", c.User)
 	}
-	return NewDatabaseConfig(*dbUser, usePassword, useHost, *dbPort, *dbName, m), nil
+	password, err := metadata.ProjectGet(key)
+	if err != nil {
+		return fmt.Errorf("Failed to find metadata.")
+	}
+	c.Password = password
+	return nil
 }
 
-// ConfigFromFlagsAndMetadata obtains a DatabaseConfig based on a combination
-// of parsed command-line flags and metadata when not running in local mode.
-func ConfigFromFlagsAndMetadata(local bool, m []MigrationStep) (*DatabaseConfig, error) {
-	if err := checkFlags(); err != nil {
-		return nil, err
-	}
-	// If not in local mode, get the password from metadata.
-	password := ""
-	if !local {
-		key := ""
-		if *dbUser == USER_RW {
-			key = metadata.DATABASE_RW_PASSWORD
-		} else if *dbUser == USER_ROOT {
-			key = metadata.DATABASE_ROOT_PASSWORD
-		}
-		if key == "" {
-			return nil, fmt.Errorf("Unknown user %s; could not obtain password from metadata.", *dbUser)
-		}
-		var err error
-		password, err = metadata.ProjectGet(key)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to find metadata. Use 'local' flag when running locally.")
-		}
-	}
-	return ConfigFromFlags(password, local, m)
-}
-
-// Config information to create a database connection.
-type DatabaseConfig struct {
-	MySQLString    string
-	MigrationSteps []MigrationStep
-}
-
-// NewDatabaseConfig constructs a DatabaseConfig from the given options.
-func NewDatabaseConfig(user, password, host string, port int, database string, m []MigrationStep) *DatabaseConfig {
-	return &DatabaseConfig{
-		MySQLString:    fmt.Sprintf(DB_CONN_TMPL, user, password, host, port, database),
-		MigrationSteps: m,
-	}
+// MySQLString returns a MySQL connection string derived from the DatabaseConfig.
+func (c *DatabaseConfig) MySQLString() string {
+	return fmt.Sprintf(DB_CONN_TMPL, c.User, c.Password, c.Host, c.Port, c.Name)
 }
 
 // Single step to migrated from one database version to the next and back.
@@ -147,7 +127,11 @@ type VersionedDB struct {
 // Init must be called once before DB is used.
 //
 // Since it used glog, make sure it is also called after flag.Parse is called.
-func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
+func (c *DatabaseConfig) NewVersionedDB() (*VersionedDB, error) {
+	if err := c.validate(); err != nil {
+		return nil, err
+	}
+
 	// If there is a connection string then connect to the MySQL server.
 	// This is for testing only. In production we get the relevant information
 	// from the metadata server.
@@ -155,9 +139,14 @@ func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
 	var DB *sql.DB = nil
 
 	glog.Infoln("Opening SQL database.")
-	if DB, err = sql.Open("mysql", conf.MySQLString); err == nil {
-		glog.Infoln("Sending Ping.")
-		err = DB.Ping()
+	DB, err = sql.Open(DEFAULT_DRIVER, c.MySQLString())
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open connection to SQL server: %v", err)
+	}
+
+	glog.Infoln("Sending Ping.")
+	if err := DB.Ping(); err != nil {
+		return nil, fmt.Errorf("Failed to ping SQL server: %v", err)
 	}
 
 	// As outlined in this comment:
@@ -166,21 +155,14 @@ func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
 	DB.SetMaxIdleConns(0)
 	DB.SetMaxOpenConns(200)
 
-	if err != nil {
-		glog.Fatalln("Failed to open connection to SQL server:", err)
-	}
-
 	result := &VersionedDB{
 		DB:             DB,
-		migrationSteps: conf.MigrationSteps,
+		migrationSteps: c.MigrationSteps,
 	}
 
 	// Make sure the migration table exists.
 	if err := result.checkVersionTable(); err != nil {
-		// We are using panic() instead of Fataln() to be able to trap this
-		// in tests and make sure it fails when no version table exists.
-		glog.Errorln("Unable to create version table.")
-		panic("Attempt to create version table returned: " + err.Error())
+		return nil, fmt.Errorf("Attempt to create version table returned: %v", err)
 	}
 	glog.Infoln("Version table OK.")
 
@@ -195,7 +177,7 @@ func NewVersionedDB(conf *DatabaseConfig) *VersionedDB {
 		}
 	}()
 
-	return result
+	return result, nil
 }
 
 // Close the underlying database.

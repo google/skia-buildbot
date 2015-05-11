@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	cconfig "go.skia.org/infra/go/config"
-	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/util"
 	pconfig "go.skia.org/infra/perf/go/config"
@@ -86,7 +85,7 @@ func NewIngestionProcess(git *gitinfo.GitInfo, tileDir, datasetName string, ri i
 
 func main() {
 	// Setup DB flags.
-	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
+	dbConf := db.DBConfigFromFlags()
 
 	common.InitWithMetricsCB("ingest", func() string {
 		common.DecodeTomlFile(*configFilename, &config)
@@ -94,11 +93,14 @@ func main() {
 	})
 
 	// Initialize the database. We might not need the oauth dialog if it fails.
-	conf, err := database.ConfigFromFlagsAndMetadata(config.Common.Local, db.MigrationSteps())
-	if err != nil {
+	if !config.Common.Local {
+		if err := dbConf.GetPasswordFromMetadata(); err != nil {
+			glog.Fatal(err)
+		}
+	}
+	if err := dbConf.InitDB(); err != nil {
 		glog.Fatal(err)
 	}
-	db.Init(conf)
 
 	// Get a backoff transport.
 	transport := util.NewBackOffTransport()
@@ -114,6 +116,7 @@ func main() {
 
 	// Initialize the oauth client that is used to access all scopes.
 	var client *http.Client
+	var err error
 	if config.Common.Local {
 		if config.Common.DoOAuth {
 			client, err = auth.InstalledAppClient(config.Common.OAuthCacheFile,

@@ -27,7 +27,6 @@ import (
 import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
@@ -391,7 +390,7 @@ func runServer(serverURL string) {
 
 func main() {
 	// Setup flags.
-	database.SetupFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_RW, buildbot.PROD_DB_NAME)
+	dbConf := buildbot.DBConfigFromFlags()
 	influxdb.SetupFlags()
 
 	common.InitWithMetrics("status", graphiteServer)
@@ -442,14 +441,14 @@ func main() {
 	glog.Info("CloneOrUpdate complete")
 
 	// Initialize the buildbot database.
-	conf, err := database.ConfigFromFlagsAndMetadata(*testing, buildbot.MigrationSteps())
-	if err != nil {
+	if *useMetadata {
+		if err := dbConf.GetPasswordFromMetadata(); err != nil {
+			glog.Fatal(err)
+		}
+	}
+	if err := dbConf.InitDB(); err != nil {
 		glog.Fatal(err)
 	}
-	if err := buildbot.InitDB(conf); err != nil {
-		glog.Fatal(err)
-	}
-	glog.Infof("Database config: %s", conf.MySQLString)
 
 	// Create the commit caches.
 	commitCaches = map[string]*commit_cache.CommitCache{}

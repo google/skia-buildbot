@@ -64,7 +64,7 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 
 	conf := testutil.LocalTestDatabaseConfig(migrationSteps)
 	var err error
-	DB, err = sqlx.Open("mysql", conf.MySQLString)
+	DB, err = sqlx.Open("mysql", conf.MySQLString())
 	assert.Nil(t, err, failMsg)
 
 	return testDb

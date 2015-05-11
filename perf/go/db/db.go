@@ -17,10 +17,26 @@ var (
 	DB *sql.DB = nil
 )
 
+// DatabaseConfig is a struct containing database configuration information.
+type DatabaseConfig struct {
+	*database.DatabaseConfig
+}
+
+// DBConfigFromFlags creates a DatabaseConfig from command-line flags.
+func DBConfigFromFlags() *DatabaseConfig {
+	return &DatabaseConfig{
+		database.ConfigFromFlags(PROD_DB_HOST, PROD_DB_PORT, database.USER_RW, PROD_DB_NAME, migrationSteps),
+	}
+}
+
 // Setup the database to be shared across the app.
-func Init(conf *database.DatabaseConfig) {
-	vdb := database.NewVersionedDB(conf)
+func (c *DatabaseConfig) InitDB() error {
+	vdb, err := c.NewVersionedDB()
+	if err != nil {
+		return err
+	}
 	DB = vdb.DB
+	return nil
 }
 
 // MigrationSteps returns the migration (up and down) for the database.

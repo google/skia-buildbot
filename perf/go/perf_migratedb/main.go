@@ -5,11 +5,7 @@ package main
 // it is not entered via the command line.
 
 import (
-	"bufio"
 	"flag"
-	"fmt"
-	"os"
-	"strings"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
@@ -24,28 +20,20 @@ var (
 
 func main() {
 	// Set up flags.
-	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME)
+	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_ROOT, db.PROD_DB_NAME, db.MigrationSteps())
 
 	// Global init to initialize glog and parse arguments.
 	common.Init()
 
-	var conf *database.DatabaseConfig
-	var err error
-	var password string
-
 	if *promptPassword {
-		fmt.Printf("Enter root password: ")
-		reader := bufio.NewReader(os.Stdin)
-		password, err = reader.ReadString('\n')
-		password = strings.Trim(password, "\n")
-		conf, err = database.ConfigFromFlags(password, *local, db.MigrationSteps())
-	} else {
-		conf, err = database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+		if err := dbConf.PromptForPassword(); err != nil {
+			glog.Fatal(err)
+		}
 	}
+	vdb, err := dbConf.NewVersionedDB()
 	if err != nil {
 		glog.Fatal(err)
 	}
-	vdb := database.NewVersionedDB(conf)
 
 	// Get the current database version
 	maxDBVersion := vdb.MaxDBVersion()

@@ -18,7 +18,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/login"
@@ -1050,15 +1049,19 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func main() {
 	// Setup DB flags.
-	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
+	dbConf := db.DBConfigFromFlags()
 
 	common.InitWithMetrics("skiaperf", graphiteServer)
 	Init()
-	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
-	if err != nil {
+	if !*local {
+		if err := dbConf.GetPasswordFromMetadata(); err != nil {
+			glog.Fatal(err)
+		}
+	}
+	if err := dbConf.InitDB(); err != nil {
 		glog.Fatal(err)
 	}
-	db.Init(conf)
+
 	stats.Start(nanoTileStore, git)
 	alerting.Start(nanoTileStore, *apikey)
 

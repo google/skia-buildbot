@@ -5,8 +5,6 @@ package buildbot
 */
 
 import (
-	"fmt"
-
 	"github.com/jmoiron/sqlx"
 	"go.skia.org/infra/go/database"
 )
@@ -29,13 +27,25 @@ var (
 	DB *sqlx.DB = nil
 )
 
-// Setup the database to be shared across the app.
-func InitDB(conf *database.DatabaseConfig) error {
-	db, err := sqlx.Open("mysql", conf.MySQLString)
-	if err != nil {
-		return fmt.Errorf("Failed to open database: %v", err)
+// DatabaseConfig is a struct containing database configuration information.
+type DatabaseConfig struct {
+	*database.DatabaseConfig
+}
+
+// DBConfigFromFlags creates a DatabaseConfig from command-line flags.
+func DBConfigFromFlags() *DatabaseConfig {
+	return &DatabaseConfig{
+		database.ConfigFromPrefixedFlags(PROD_DB_HOST, PROD_DB_PORT, database.USER_RW, PROD_DB_NAME, migrationSteps, "buildbot_"),
 	}
-	DB = db
+}
+
+// Setup the database to be shared across the app.
+func (c *DatabaseConfig) InitDB() error {
+	vdb, err := c.NewVersionedDB()
+	if err != nil {
+		return err
+	}
+	DB = sqlx.NewDb(vdb.DB, database.DEFAULT_DRIVER)
 	return nil
 }
 

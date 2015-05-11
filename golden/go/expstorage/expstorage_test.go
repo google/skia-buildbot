@@ -7,7 +7,6 @@ import (
 
 import (
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/util"
@@ -21,7 +20,8 @@ func TestMySQLExpectationsStore(t *testing.T) {
 	defer testDb.Close(t)
 
 	conf := testutil.LocalTestDatabaseConfig(db.MigrationSteps())
-	vdb := database.NewVersionedDB(conf)
+	vdb, err := conf.NewVersionedDB()
+	assert.Nil(t, err)
 
 	// Test the MySQL backed store
 	sqlStore := NewSQLExpectationStore(vdb)

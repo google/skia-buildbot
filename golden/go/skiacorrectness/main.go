@@ -274,7 +274,7 @@ func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
 func main() {
 	t := timer.New("main init")
 	// Setup DB flags.
-	database.SetupFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME)
+	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
 
 	// Get the hostname.
 	hostName, err := os.Hostname()
@@ -367,11 +367,16 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Allocating DiffStore failed: %s", err)
 	}
-	conf, err := database.ConfigFromFlagsAndMetadata(*local, db.MigrationSteps())
+
+	if !*local {
+		if err := dbConf.GetPasswordFromMetadata(); err != nil {
+			glog.Fatal(err)
+		}
+	}
+	vdb, err := dbConf.NewVersionedDB()
 	if err != nil {
 		glog.Fatal(err)
 	}
-	vdb := database.NewVersionedDB(conf)
 
 	digestStore, err := digeststore.New(*storageDir)
 	if err != nil {
