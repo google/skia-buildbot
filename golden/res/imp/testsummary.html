@@ -253,9 +253,9 @@
 
       // filterNames removes all parameters with a key of 'name' from a param set query string.
       filterNames: function(s) {
-        var o = sk.query.toParamSet(s);
+        var o = sk.query.toParamSet(window.decodeURIComponent(s));
         delete o["name"];
-        return sk.query.fromParamSet(o);
+        return window.encodeURIComponent(sk.query.fromParamSet(o));
       },
     });
   </script>
