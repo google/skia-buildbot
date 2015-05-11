@@ -868,8 +868,9 @@ type Point struct {
 
 // Trace represents a single test over time.
 type Trace struct {
-	Data  []Point `json:"data"`  // One Point for each test result.
-	Label string  `json:"label"` // The id of the trace.
+	Data   []Point           `json:"data"`  // One Point for each test result.
+	Label  string            `json:"label"` // The id of the trace.
+	Params map[string]string `json:"params"`
 }
 
 // DigestStatus is a digest and its status, used in PolyDetailsGUI.
@@ -1036,11 +1037,12 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 		if count, ok := (*traceTally)[digest]; !ok || count == 0 {
 			continue
 		}
-		p := &Trace{
-			Data:  []Point{},
-			Label: id,
-		}
 		trace := tile.Traces[id].(*ptypes.GoldenTrace)
+		p := &Trace{
+			Data:   []Point{},
+			Label:  id,
+			Params: trace.Params(),
+		}
 		for i := 0; i <= last; i++ {
 			if trace.IsMissing(i) {
 				continue

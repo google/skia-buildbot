@@ -116,6 +116,10 @@
         padding: 1em;
         color: #E7298A;
       }
+      #paramset th {
+        text-align: right;
+        padding-right: 0.5em;
+      }
     </style>
     <div horizontal layout>
       <template if="{{triage && negIsClosest}}">
@@ -174,6 +178,20 @@
               <td>
                 <template if="{{i<7}}">
                   <a href="/diff?test={{test}}&left={{digestInfo.digest}}&top={{digest}}">diff</a>
+                </template>
+              </td>
+            </tr>
+          </template>
+        </table>
+      </div>
+      <div vertical layout id=paramset>
+        <table>
+          <template repeat="{{p in details.params}}">
+            <tr>
+              <th>{{p.name}}</th>
+              <td>
+                <template repeat="{{v in p.top}}">
+                  <span data-id="{{v}}">{{v}}</span>
                 </template>
               </td>
             </tr>
