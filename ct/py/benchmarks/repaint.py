@@ -9,7 +9,7 @@
 
 from benchmarks import silk_flags
 from benchmarks import skpicture_printer
-from measurements import repaint as repaint_measurement
+from measurements import smoothness
 import page_sets
 from telemetry import benchmark
 
@@ -36,12 +36,12 @@ class _Repaint(benchmark.Benchmark):
     return page_set_class()
 
   def CreatePageTest(self, options):
-    return repaint_measurement.Repaint()
+    return smoothness.Repaint()
 
 
 @benchmark.Disabled
 class RepaintCTPages(_Repaint):
-  test = repaint_measurement.Repaint
+  test = smoothness.Repaint
 
   @classmethod
   def ProcessCommandLineArgs(cls, parser, args):
