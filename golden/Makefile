@@ -18,7 +18,8 @@ GOLD_JS_SOURCE_FILES = app/third_party/bower_components/jquery/dist/jquery.min.j
                        app/third_party/bower_components/angular-route/angular-route.js
 GOLD_SRC_FONTS = app/third_party/bower_components/bootstrap/fonts
 
-default: skiacorrectness res/css/core.css core_js elements_html
+.PHONY: all
+all: allgo touch_elements res/css/core.css core_js elements_html web
 
 include ../go/skiaversion/skiaversion.mk
 
@@ -71,10 +72,10 @@ touch_elements:
 	touch elements.html
 
 .PHONY: release
-release: touch_elements res/css/core.css core_js elements_html web skiacorrectness correctness_migratedb
+release: all
 	./build_release "$(MESSAGE)"
 
-.PHONY: all
-all: skiacorrectness correctness_migratedb
+.PHONY: allgo
+allgo: skiacorrectness correctness_migratedb
 
 include ../webtools/webtools.mk
