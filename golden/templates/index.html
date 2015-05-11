@@ -66,9 +66,10 @@
         <div id="summaries"></div>
         <paper-spinner active></paper-spinner>
         <paper-toast duration=10000></paper-toast>
-        <paper-dialog id=commitdialog core-transition-bottom heading="Commit(s)" autoCloseDisabled layered=false>
+        <paper-action-dialog id=commitdialog core-transition-bottom heading="Commit(s)" autoCloseDisabled layered=false>
           <commits-sk id=commitinfo></commits-sk>
-        </paper-dialog>
+          <paper-button affirmative>Close</paper-button>
+        </paper-action-dialog>
         <paper-dialog id=help heading="Keyboard Shortcuts">
           <table>
             <tr><th>J</th><td>Next</td></tr>
