@@ -993,7 +993,7 @@ _slave_host_dicts = {
 # Class which holds configuration data describing a build slave host.
 SlaveHostConfig = collections.namedtuple('SlaveHostConfig',
                                          ('hostname, slaves, copies, login_cmd,'
-                                          ' ip, kvm_switch kvm_num,'
+                                          ' ip, kvm_switch, kvm_num,'
                                           ' path_module, path_to_buildbot,'
                                           ' remote_access, launch_script'))
 
@@ -1029,6 +1029,7 @@ def default_slave_host_config(hostname):
     copies=CHROMEBUILD_COPIES,
     login_cmd=None,
     ip=None,
+    kvm_switch=None,
     kvm_num=None,
     path_module=os.path,
     path_to_buildbot=path_to_buildbot,
