@@ -69,7 +69,13 @@
     </style>
     <div vertical layout>
       <div horizontal layout>
-        <span><b> <a href="/#/triage/{{summary.name}}?head={{head}}">{{summary.name}}</a> </b></span>
+        <span>
+          <b>
+            <a href="/?query={{query | filterNames}}%26name%3D{{summary.name}}&include={{include}}&head={{head}}&untonly=false&details=true&limit=500&triage=true">
+              {{summary.name}}
+            </a>
+          </b>
+        </span>
         <!-- <span class=short>{{summary.diameter}}</span> -->
         <span class=short>
           <a href="/cmp/{{summary.name}}?topQuery={{query}}&topIncludeIgnores={{include}}&leftQuery={{query}}&leftIncludeIgnores={{include}}&head={{head}}">
@@ -81,10 +87,8 @@
         <span class=short>{{summary.untriaged}}</span>
         <span class=short>{{summary.num}}</span>
         <span class=short>
-          <template if="{{!triage}}">
-            <a href="/?query={{query | filterNames}}%26name%3D{{summary.name}}&include={{include}}&head={{head}}&untonly=false&details=true&limit=500&triage=true">
-              Triage
-            </a>
+          <template if="{{showLegacy && !triage}}">
+            <a href="/#/triage/{{summary.name}}?head={{head}}">Legacy Triage</a>
           </template>
         </span>
       </div>
@@ -100,7 +104,7 @@
           </template>
         </template>
       </div>
-      <paper-spinner id=spinner></paper-spinner>
+      <paper-spinner id="spinner"></paper-spinner>
     </div>
   </template>
   <script>
@@ -168,6 +172,10 @@
             that.$.spinner.active = false;
           }
         });
+
+        // TODO(stephana): Remove once Angular is removed in production.
+        // Also remove the tag where showLegacy is used.
+        this.showLegacy = !$$$('base').href==='/';
       },
 
       // findFocus returns the current details element with the keyboard focus.
