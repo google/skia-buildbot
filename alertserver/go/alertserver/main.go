@@ -30,6 +30,7 @@ import (
 import (
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/alertserver/go/rules"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/login"
@@ -324,6 +325,7 @@ func runServer(serverURL string) {
 
 func main() {
 	alertDBConf := alerting.DBConfigFromFlags()
+	buildbotDBConf := buildbot.DBConfigFromFlags()
 	common.InitWithMetrics("alertserver", graphiteServer)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
@@ -405,8 +407,14 @@ func main() {
 		if err := alertDBConf.GetPasswordFromMetadata(); err != nil {
 			glog.Fatal(err)
 		}
+		if err := buildbotDBConf.GetPasswordFromMetadata(); err != nil {
+			glog.Fatal(err)
+		}
 	}
 	if err := alertDBConf.InitDB(); err != nil {
+		glog.Fatal(err)
+	}
+	if err := buildbotDBConf.InitDB(); err != nil {
 		glog.Fatal(err)
 	}
 

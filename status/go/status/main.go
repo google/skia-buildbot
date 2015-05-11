@@ -314,14 +314,55 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		startTime = time.Unix(int64(*start), 0)
 	}
 
+	// Fetch the builds.
 	builds, err := buildbot.GetBuildsFromDateRange(startTime, endTime)
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
 		return
 	}
+	// Shrink the builds.
+
+	// TinyBuildStep is a struct containing a small subset of a BuildStep's fields.
+	type TinyBuildStep struct {
+		Name     string
+		Started  float64
+		Finished float64
+		Results  int
+	}
+
+	// TinyBuild is a struct containing a small subset of a Build's fields.
+	type TinyBuild struct {
+		Builder    string
+		BuildSlave string
+		Started    float64
+		Finished   float64
+		Results    int
+		Steps      []*TinyBuildStep
+	}
+
+	rv := make([]*TinyBuild, 0, len(builds))
+	for _, b := range builds {
+		steps := make([]*TinyBuildStep, 0, len(b.Steps))
+		for _, s := range b.Steps {
+			steps = append(steps, &TinyBuildStep{
+				Name:     s.Name,
+				Started:  s.Started,
+				Finished: s.Finished,
+				Results:  s.Results,
+			})
+		}
+		rv = append(rv, &TinyBuild{
+			Builder:    b.Builder,
+			BuildSlave: b.BuildSlave,
+			Started:    b.Started,
+			Finished:   b.Finished,
+			Results:    b.Results,
+			Steps:      steps,
+		})
+	}
 
 	defer timer.New("buildsHandler_encode").Stop()
-	if err := json.NewEncoder(w).Encode(builds); err != nil {
+	if err := json.NewEncoder(w).Encode(rv); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
 	}
