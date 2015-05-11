@@ -11,6 +11,7 @@ import (
 	"github.com/skia-dev/influxdb/client"
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/util"
 )
 
 /*
@@ -78,6 +79,15 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 
 	// Alerts for buildbot data.
 	go func() {
+		// Don't generate alerts for these buildslaves, since they always fail.
+		buildslaveBlacklist := []string{
+			"skiabot-shuttle-ubuntu12-galaxys3-001",
+			"skiabot-shuttle-ubuntu12-galaxys3-002",
+			"skiabot-shuttle-ubuntu12-galaxys4-001",
+			"skiabot-shuttle-ubuntu12-galaxys4-002",
+			"build5-m3",
+		}
+
 		failedInARowThreshold := 3
 		failureRateThreshold := 0.5
 		for _ = range time.Tick(tickInterval) {
@@ -96,6 +106,11 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 				buildsBySlave[b.BuildSlave] = append(buildsBySlave[b.BuildSlave], b)
 			}
 			for slave, b := range buildsBySlave {
+				if util.In(slave, buildslaveBlacklist) {
+					glog.Warningf("Skipping blacklisted buildslave %s", slave)
+					continue
+				}
+
 				// We can assume there's at least one build for the slave, and
 				// we can assume that the slave only connects to one master.
 				master := b[0].Master
@@ -104,8 +119,9 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 				sort.Sort(BuildSlice(b))
 
 				// N failures in a row.
-				overThreshold := true
+				overThreshold := false
 				if len(b) >= failedInARowThreshold {
+					overThreshold = true
 					for i := 0; i < failedInARowThreshold; i++ {
 						if b[len(b)-i-1].Results == 0 {
 							overThreshold = false
