@@ -321,6 +321,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	defer timer.New("buildsHandler_encode").Stop()
 	if err := json.NewEncoder(w).Encode(builds); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return

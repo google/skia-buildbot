@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 )
 
@@ -653,6 +654,7 @@ type TinyBuild struct {
 
 // GetBuildsFromDateRange retrieves all builds which finished in the given date range.
 func GetBuildsFromDateRange(start, end time.Time) ([]*TinyBuild, error) {
+	defer timer.New("GetBuildsFromDateRange").Stop()
 	var ids []int
 	if err := DB.Select(&ids, fmt.Sprintf("SELECT id FROM %s WHERE finished > ? and finished < ?", TABLE_BUILDS), float64(start.UTC().Unix()), float64(end.UTC().Unix())); err != nil {
 		return nil, fmt.Errorf("Failed to obtain builds from date range: %v", err)
