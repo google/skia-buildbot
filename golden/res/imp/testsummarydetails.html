@@ -120,6 +120,11 @@
         text-align: right;
         padding-right: 0.5em;
       }
+
+      #paramset .hover {
+        color: #44aa99;
+        font-weight: bold;
+      }
     </style>
     <div horizontal layout>
       <template if="{{triage && negIsClosest}}">
@@ -191,7 +196,7 @@
               <th>{{p.name}}</th>
               <td>
                 <template repeat="{{v in p.top}}">
-                  <span data-id="{{v}}">{{v}}</span>
+                  <span id="param_{{p.name}}_{{v | asId}}">{{v}}</span>
                 </template>
               </td>
             </tr>
@@ -242,6 +247,39 @@
           };
           that.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
         });
+
+        this.$.dots.addEventListener('hover', function(e) {
+          var id = e.detail;
+          var params = {};
+          // Find the matching trace in details.traces.
+          for (var i=0; i<that.details.traces.length; i++) {
+            if (that.details.traces[i].label == id) {
+              params = that.details.traces[i].params;
+              break;
+            }
+          }
+          that.clearParamHighlights();
+          Object.keys(params).forEach(function(k) {
+            $$$('#param_'+k+'_'+that.asId(params[k]), that.$.paramset).classList.add('hover');
+          });
+        });
+
+        this.$.dots.addEventListener('mouseleave', function() {
+          that.clearParamHighlights();
+        });
+      },
+
+      // Remove the hover class from all of the paramset values.
+      clearParamHighlights: function() {
+        $$('[class=hover]', this.$.paramset).forEach(function(ele) {
+          ele.classList.remove('hover');
+        });
+      },
+
+      // asId strips out non-alphanum characters, which makes them into
+      // strings that can be easily used by querySelector as an id.
+      asId: function(s) {
+        return s.replace(/[^a-zA-Z0-9]/gi, '');
       },
 
       triggerTriage: function(status) {
