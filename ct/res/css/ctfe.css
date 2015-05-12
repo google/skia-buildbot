@@ -98,3 +98,10 @@ core-item:hover {
   background: lightgray;
 }
 
+.left_padded {
+  padding-left: 2em;
+}
+
+.top_padded {
+  padding-top: 2em;
+}

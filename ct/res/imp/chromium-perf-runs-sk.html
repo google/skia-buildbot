@@ -1,0 +1,289 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <chromium-perf-runs-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/chromium-perf-runs-sk.html" rel="import" />
+
+  Usage:
+
+    <chromium-perf-runs-sk></chromium-perf-runs-sk>
+-->
+
+<polymer-element name="chromium-perf-runs-sk">
+  <template>
+    <style>
+      table.runshistory {
+        border-spacing: 0px;
+      }
+      tr.headers {
+        background-color: #CCCCFF;
+        text-align: center;
+      }
+      td.nowrap {
+        white-space: nowrap;
+      }
+    </style>
+
+    <h2><template if="{{constrainByUser}}">My </template>Chromium Perf Runs</h2>
+
+    <!-- Pagination buttons -->
+    <paper-button raised id="previous" on-click="{{ previousPage }}">Previous</paper-button>
+    Page {{ pageNumber }}
+    <paper-button raised id="next" on-click="{{ nextPage }}">Next</paper-button>
+    <!-- View all/my runs button -->
+    <paper-button raised id="constrain_runs" on-click="{{ constrainRuns }}">{{constrainButtonText}}</paper-button>
+
+    <br/>
+    <br/>
+
+    <table class="runshistory" cellpadding="5" border="1">
+      <tr class="headers">
+        <td>Id</td>
+        <td>User</td>
+        <td>Timestamps</td>
+        <td>Task Config</td>
+        <td>Description</td>
+        <td>Results</td>
+        <td>Arguments</td>
+        <td>Patches</td>
+      </tr>
+
+      <template repeat="{{chromiumPerfTask, index in chromiumPerfTasks}}">
+      <tr style="border: 1px solid black;" id="row{{index}}">
+        <!-- Id col --> 
+        <td>{{ chromiumPerfTask["Id"] }}</td>
+
+        <!-- User col --> 
+        <td>{{ chromiumPerfTask["Username"] }}</td>
+
+        <!-- Timestamps col --> 
+        <td>
+          <table>
+            <tr>
+              <td>Added:</td>
+              <td class="nowrap">{{ chromiumPerfTask["TsAdded"]["Int64"] | getFormattedTimestamp }}</td>
+            </tr>
+            <tr>
+              <td>Started:</td>
+              <td class="nowrap">{{ chromiumPerfTask["TsStarted"]["Int64"] | getFormattedTimestamp }}</td>
+            </tr>
+            <tr>
+              <td>Completed:</td>
+              <td class="nowrap">{{ chromiumPerfTask["TsCompleted"]["Int64"] | getFormattedTimestamp }}</td>
+            </tr>
+          </table>
+        </td>
+
+        <!-- Task Config col --> 
+        <td>
+          <table>
+            <tr>
+              <td>Benchmark:</td>
+              <td>{{ chromiumPerfTask["Benchmark"] }}</td>
+            </tr>
+            <tr>
+              <td>Platform:</td>
+              <td>{{ chromiumPerfTask["Platform"] }}</td>
+            </tr>
+            <tr>
+              <td>PageSet:</td>
+              <td>{{ chromiumPerfTask["PageSets"] }}</td>
+            </tr>
+            <tr>
+              <td>Repeats:</td>
+              <td>{{ chromiumPerfTask["RepeatRuns"] }}</td>
+            </tr>
+          </table>
+        </td>
+
+        <!-- Description col --> 
+        <td>{{ chromiumPerfTask["Description"] }}</td>
+
+        <!-- Results col --> 
+        <td class="nowrap">
+          <template if="{{ !chromiumPerfTask['Results']['String'] }}">
+            <template if="{{ chromiumPerfTask['Failure']['Bool'] }}">
+              <div style="color:red;">Failed</div>
+            </template>
+            <template if="{{ !chromiumPerfTask['TsCompleted']['Int64'] }}">
+              <div style="color:green;">Waiting</div>
+            </template>
+          </template>
+          <template if="{{ chromiumPerfTask['Results']['String'] }}">
+            <a href="{{ chromiumPerfTask['Results']['String'] }}" target="_blank">Overall Result</a>
+            <br/>
+            <a href="{{ chromiumPerfTask['NoPatchRawOutput']['String'] }}" target="_blank">NoPatch Raw Output</a>
+            <br/>
+            <a href="{{ chromiumPerfTask['WithPatchRawOutput']['String'] }}" target="_blank">WithPatch Raw Output</a>
+          </template>
+        </td>
+
+        <!-- Arguments --> 
+        <td class="nowrap">
+          <template if="{{ chromiumPerfTask['BenchmarkArgs'] }}">
+            <a on-tap="{{toggleBenchmarkArgs}}" href="javascript:void(0);">Benchmark Args</a>
+            <paper-dialog heading="Benchmark Args" id="benchmark_args{{index}}">
+              <pre>{{ chromiumPerfTask["BenchmarkArgs"] }}</pre>
+            </paper-dialog>
+            <br/>
+          </template>
+          <template if="{{ chromiumPerfTask['BrowserArgsNoPatch'] }}">
+            <a on-tap="{{toggleBrowserArgsNoPatch}}" href="javascript:void(0);">NoPatch Browser Args</a>
+            <paper-dialog heading="Browser Args NoPatch" id="browser_args_nopatch{{index}}">
+              <pre>{{ chromiumPerfTask["BrowserArgsNoPatch"] }}</pre>
+            </paper-dialog>
+            <br/>
+          </template>
+          <template if="{{ chromiumPerfTask['BrowserArgsWithPatch'] }}">
+            <a on-tap="{{toggleBrowserArgsWithPatch}}" href="javascript:void(0);">WithPatch Browser Args</a>
+            <paper-dialog heading="Browser Args WithPatch" id="browser_args_withpatch{{index}}">
+              <pre>{{ chromiumPerfTask["BrowserArgsWithPatch"] }}</pre>
+            </paper-dialog>
+            <br/>
+          </template>
+        </td>
+
+        <!-- Patches -->
+        <td>
+          <template if="{{ chromiumPerfTask['ChromiumPatch'] }}">
+            <a on-tap="{{toggleChromiumPatch}}" href="javascript:void(0);">Chromium</a>
+            <paper-dialog heading="Chromium Patch" id="chromium_patch{{index}}">
+              <pre>{{ chromiumPerfTask["ChromiumPatch"] }}</pre>
+            </paper-dialog>
+            <br/>
+          </template>
+          <template if="{{ chromiumPerfTask['BlinkPatch'] }}">
+            <a on-tap="{{toggleBlinkPatch}}" href="javascript:void(0);">Blink</a>
+            <paper-dialog heading="Blink Patch" id="blink_patch{{index}}">
+              <pre>{{ chromiumPerfTask["BlinkPatch"] }}</pre>
+            </paper-dialog>
+            <br/>
+          </template>
+          <template if="{{ chromiumPerfTask['SkiaPatch'] }}">
+            <a on-tap="{{toggleSkiaPatch}}" href="javascript:void(0);">Skia</a>
+            <paper-dialog heading="Skia Patch" id="skia_patch{{index}}">
+              <pre>{{ chromiumPerfTask["SkiaPatch"] }}</pre>
+            </paper-dialog>
+          </template>
+        </td>
+      </tr>
+    </template>
+    </table>
+    <br/>
+  </template>
+
+
+  <script>
+   Polymer({
+     created: function() {
+       this.chromiumPerfTasks = this.chromiumPerfTasks || [];
+       this.chromiumPerfStart = 0;
+       this.chromiumPerfOffset = 5;
+       this.pageNumber = 1;
+       this.constrainByUser = false;
+       this.myRunsConstrainText = 'View only my runs';
+       this.allRunsConstrainText = 'View all runs';
+       this.constrainButtonText = this.myRunsConstrainText;
+     },
+
+     ready: function() {
+       this.updateChromiumPerfTasks();
+     },
+
+     updateChromiumPerfTasks: function() {
+       var queryParams = {
+         "start": this.chromiumPerfStart,
+         "offset": this.chromiumPerfOffset,
+       }
+       if (this.constrainByUser) {
+         queryParams["username"] = $$$('login-sk').email;
+       }
+       chromiumPerfQueryStr = "?" + sk.query.fromObject(queryParams);
+       var that = this;
+       sk.post('/_/get_chromium_perf_tasks' + chromiumPerfQueryStr).then(JSON.parse).then(function(json) {
+         that.chromiumPerfTasks = json;
+         that.$.previous.disabled = (that.chromiumPerfStart == 0);
+         that.$.next.disabled = (that.chromiumPerfTasks.length < that.chromiumPerfOffset);
+       }).catch(function(err) {
+         alert(err);
+       });
+     },
+
+     resetPagination: function() {
+       this.pageNumber = 1;
+       this.chromiumPerfStart = 0;
+     },
+
+     constrainRuns: function() {
+       this.constrainByUser = !this.constrainByUser;
+       this.resetPagination();
+       this.updateChromiumPerfTasks();
+     },
+
+     constrainByUserChanged: function() {
+       this.constrainButtonText = this.myRunsConstrainText;
+       if (this.constrainByUser) {
+         this.constrainButtonText = this.allRunsConstrainText;
+       }
+     },
+
+     previousPage: function() {
+       this.chromiumPerfStart -= this.chromiumPerfOffset;
+       this.updateChromiumPerfTasks();
+       this.pageNumber--;
+     },
+
+     nextPage: function() {
+       this.chromiumPerfStart += this.chromiumPerfOffset;
+       this.updateChromiumPerfTasks(); 
+       this.pageNumber++;
+     },
+
+     toggleChromiumPatch: function(e) {
+       var index = e.target.templateInstance.model.index;
+       this.toggleDialog("#chromium_patch" + index);
+     },
+
+     toggleBlinkPatch: function(e) {
+       var index = e.target.templateInstance.model.index;
+       this.toggleDialog("#blink_patch" + index);
+     },
+
+     toggleSkiaPatch: function(e) {
+       var index = e.target.templateInstance.model.index;
+       this.toggleDialog("#skia_patch" + index);
+     },
+
+     toggleBenchmarkArgs: function(e) {
+       var index = e.target.templateInstance.model.index;
+       this.toggleDialog("#benchmark_args" + index);
+     },
+
+     toggleBrowserArgsNoPatch: function(e) {
+       var index = e.target.templateInstance.model.index;
+       this.toggleDialog("#browser_args_nopatch" + index);
+     },
+
+     toggleBrowserArgsWithPatch: function(e) {
+       var index = e.target.templateInstance.model.index;
+       this.toggleDialog("#browser_args_withpatch" + index);
+     },
+
+     toggleDialog: function(id) {
+       this.shadowRoot.querySelector(id).toggle();
+     },
+
+     getFormattedTimestamp: function(timestamp) {
+       if (timestamp == 0) {
+         return "<pending>";
+       }
+       var pattern = /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+       return new Date(String(timestamp).replace(pattern,'$1-$2-$3T$4:$5:$6')).toLocaleString();
+     },
+  });
+  </script>
+</polymer-element>

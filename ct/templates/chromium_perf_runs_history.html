@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chromium Perf Runs</title>
+
+    {{template "header.html" .}}
+
+    <link href="/res/imp/chromium-perf-runs-sk.html" rel="import" />
+
+    <style type="text/css" media="screen">
+      .scrollable {
+        overflow: auto;
+      }
+    </style>
+  </head>
+
+  <body>
+    <scaffold-sk responsiveWidth="700px" drawerWidth="180px">
+      {{template "titlebar.html" .}}
+      <div id="container" class="scrollable">
+        <section id=chromium_perf_runs_history class="left_padded">
+          <chromium-perf-runs-sk id="chromium_perf_runs"></chromium-perf-runs-sk>
+        </section>
+      </div>
+    </scaffold-sk>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Runs History</title>
+
+    {{template "header.html" .}}
+
+  </head>
+
+  <body>
+    <scaffold-sk responsiveWidth="700px" drawerWidth="180px">
+      {{template "titlebar.html" .}}
+      <div id="container" class="scrollable">
+        <section id=runs_history class="left_padded top_padded">
+          View the runs of the following CT tasks:
+          <ul>
+            <li><a href="/chromium_perf_runs/">Chromium Perf Runs</a></li>
+            <li><a href="/skia_correctness_runs/">Skia Correctness Runs</a></li>
+            <li><a href="/skp_runs/">SKP Runs</a></li>
+            <li><a href="/lua_script_runs/">Lua Script Runs</a></li>
+            <li><a href="/chromium_builds_runs/">Chromium Builds Runs</a></li>
+            <li><a href="/admin_task_runs/">Admin Task Runs</a></li>
+          </ul>
+        </section>
+      </div>
+    </scaffold-sk>
+
+  </body>
+</html>
