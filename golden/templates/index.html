@@ -52,7 +52,7 @@
             Details <paper-toggle-button id=details></paper-toggle-button>
           </div>
         </div>
-        <query-dialog-sk id=query src="/_/paramset"></query-dialog-sk>
+        <query-dialog-sk id=query src="_/paramset"></query-dialog-sk>
 
         <sort-sk target=summaries>
           <paper-button class=header data-key="name" data-alpha=true>Name</paper-button>
@@ -153,7 +153,7 @@
          $$$('paper-spinner').active = true;
          $$$('#head').checked = page.state.head;
          $$$('#details').checked = page.state.details;
-         sk.get('/_/list?'+sk.query.fromObject(page.state)).then(JSON.parse).then(function(json) {
+         sk.get('_/list?'+sk.query.fromObject(page.state)).then(JSON.parse).then(function(json) {
            summaries = json;
            displaySummaries();
          }).catch(function(e) {
@@ -252,7 +252,7 @@
          });
 
          $$$('#summaries').addEventListener('triage', function(e) {
-           sk.post('/_/triage', JSON.stringify(e.detail)).then(function() {
+           sk.post('_/triage', JSON.stringify(e.detail)).then(function() {
            }).catch(function(e) {
              $$$('paper-toast').text = e;
              $$$('paper-toast').show();

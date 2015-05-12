@@ -30,7 +30,7 @@
        });
 
        $$$('detail-table-sk').addEventListener('triage', function(e) {
-         sk.post('/_/triage', JSON.stringify(e.detail)).then(function(){
+         sk.post('_/triage', JSON.stringify(e.detail)).then(function(){
          }).catch(function(e) {
            $$$('paper-toast').text = e;
            $$$('paper-toast').show();

@@ -23,13 +23,13 @@
      (function() {
        sk.WebComponentsReady.then(function() {
          var q = sk.query.toObject(window.location.search.slice(1));
-         sk.get('/_/diff'+window.location.search).then(JSON.parse).then(function(json) {
+         sk.get('_/diff'+window.location.search).then(JSON.parse).then(function(json) {
            $$$('diff-detail-sk').value = json;
          });
        });
 
        $$$('diff-detail-sk').addEventListener('triage', function(e) {
-         sk.post('/_/triage', JSON.stringify(e.detail)).then(function(){
+         sk.post('_/triage', JSON.stringify(e.detail)).then(function(){
          }).catch(function(e) {
            $$$('paper-toast').text = e;
            $$$('paper-toast').show();

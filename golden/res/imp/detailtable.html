@@ -385,7 +385,7 @@ attribute is false.
           this.getInProgress = true;
           var that = this;
           var q = "?test=" + this.test + "&top=" + this.top + "&left=" + this.left + "&graphs=" + !this.bothcolumns + "&closest=" + !this.bothcolumns;
-          sk.get('/_/details'+q).then(JSON.parse).then(function(json) {
+          sk.get('_/details'+q).then(JSON.parse).then(function(json) {
             that.details = json;
             that.getInProgress = false;
             if (that.$.dots) {

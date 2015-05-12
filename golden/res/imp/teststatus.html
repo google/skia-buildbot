@@ -3,7 +3,7 @@
 Displays the current status of a single test. Updates
 itself periodically.
 
-The request is sent to /_/status/{test} and the expected
+The request is sent to _/status/{test} and the expected
 response is a JSON serialized summary.Summary.
 
   Attributes:
@@ -90,7 +90,7 @@ response is a JSON serialized summary.Summary.
         }
         var that = this;
         if (this.test) {
-          sk.get("/_/status/"+this.test).then(JSON.parse).then(function(json){
+          sk.get("_/status/"+this.test).then(JSON.parse).then(function(json){
             that.summary = json;
           });
         }
