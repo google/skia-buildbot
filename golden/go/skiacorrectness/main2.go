@@ -1043,7 +1043,7 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 			Label:  id,
 			Params: trace.Params(),
 		}
-		for i := 0; i <= last; i++ {
+		for i := last; i >= 0; i-- {
 			if trace.IsMissing(i) {
 				continue
 			}
