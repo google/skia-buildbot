@@ -166,8 +166,8 @@ attribute is false.
       </tr>
       <tr>
         <th>Digest</th>
-        <td><a href="/detail?test={{test}}&digest={{left}}">{{left}}</a></td>
-        <td class=both><a href="/detail?test={{test}}&digest={{top}}">{{top}}</a></td>
+        <td><a href="detail?test={{test}}&digest={{left}}">{{left}}</a></td>
+        <td class=both><a href="detail?test={{test}}&digest={{top}}">{{top}}</a></td>
       </tr>
 
       <tr><th colspan=2 class=sectionHeader>Parameters</th></tr>
@@ -209,7 +209,7 @@ attribute is false.
                       </td>
                       <td>
                         <template if="{{i<7}}">
-                          <code><a href="/detail?test={{test}}&digest={{digestInfo.digest}}">{{digestInfo.digest}}</a></code>
+                          <code><a href="detail?test={{test}}&digest={{digestInfo.digest}}">{{digestInfo.digest}}</a></code>
                         </template>
                         <template if="{{i==7}}">
                           One of many other digests.
@@ -222,7 +222,7 @@ attribute is false.
                       </td>
                       <td>
                         <template if="{{i<7}}">
-                          <a href="/diff?test={{test}}&left={{digestInfo.digest}}&top={{top}}">diff</a>
+                          <a href="diff?test={{test}}&left={{digestInfo.digest}}&top={{top}}">diff</a>
                         </template>
                       </td>
                     </tr>
@@ -240,8 +240,8 @@ attribute is false.
             <td colspan=2>
               <div vertical layout class=closestDetails>
                 <div>
-                  <a href="/detail?test={{test}}&digest={{details.posClosest.digest}}">{{details.posClosest.digest}}</a>
-                  <a href="/diff?test=blurs&left={{top}}&top={{details.posClosest.digest}}">Details</a>
+                  <a href="detail?test={{test}}&digest={{details.posClosest.digest}}">{{details.posClosest.digest}}</a>
+                  <a href="diff?test=blurs&left={{top}}&top={{details.posClosest.digest}}">Details</a>
                 </div>
                 <div><strong>Diff:</strong> {{details.posClosest.diff | fixedPercent}}%</div>
                 <div><strong>RGBA:</strong> {{details.posClosest.maxRGBA}}</div>
@@ -269,8 +269,8 @@ attribute is false.
             <td colspan=2>
               <div vertical layout class=closestDetails>
                 <div>
-                  <a href="/detail?test={{test}}&digest={{details.negClosest.digest}}">{{details.negClosest.digest}}</a>
-                  <a href="/diff?test=blurs&left={{top}}&top={{details.negClosest.digest}}">Details</a>
+                  <a href="detail?test={{test}}&digest={{details.negClosest.digest}}">{{details.negClosest.digest}}</a>
+                  <a href="diff?test=blurs&left={{top}}&top={{details.negClosest.digest}}">Details</a>
                 </div>
                 <div><strong>Diff:</strong> {{details.negClosest.diff | fixedPercent}}%</div>
                 <div><strong>RGBA:</strong> {{details.negClosest.maxRGBA}}</div>
