@@ -68,6 +68,7 @@ var (
 	alertPollInterval     = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
 	alertsFile            = flag.String("alerts_file", "alerts.cfg", "Config file containing alert rules.")
 	testing               = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
+	validateAndExit       = flag.Bool("validate_and_exit", false, "If set, just validate the config file and then exit.")
 	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
@@ -334,6 +335,13 @@ func main() {
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	Init()
+	if *validateAndExit {
+		if _, err := rules.MakeRules(*alertsFile, nil, time.Second, nil, *testing); err != nil {
+			glog.Fatalf("Failed to set up rules: %v", err)
+		}
+		return
+	}
+
 	parsedPollInterval, err := time.ParseDuration(*alertPollInterval)
 	if err != nil {
 		glog.Fatalf("Failed to parse -alertPollInterval: %s", *alertPollInterval)
