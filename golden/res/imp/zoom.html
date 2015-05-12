@@ -126,6 +126,7 @@ the two images.
             <tr><th>L</th><td>Right</td></tr>
             <tr><th>A</th><td>Zoom In</td></tr>
             <tr><th>Z</th><td>Zoom Out</td></tr>
+            <tr><th>U</th><td>Jump To Largest Diff</td></tr>
           </table>
           <table border="0" cellspacing="5" cellpadding="5">
             <tr><th>Coord</th><td><pre>({{x}}, {{y}})</pre><td></tr>
@@ -160,6 +161,12 @@ the two images.
           s = ' '+s;
         }
         return s;
+      }
+
+      // colorDist returns the distance of a color from (0, 0, 0, 0) using a
+      // crude square distance per channel.
+      function colorDist(r, g, b, a) {
+        return r*r + g*g + b*b + a*a;
       }
 
       Polymer({
@@ -341,8 +348,11 @@ the two images.
                 that.PIXELS = Math.min(that.PIXELS*2, that.ctx.canvas.width/2);
                 that.recalcPixelDims();
                 break;
+              case "U":
+                that.moveToLargestDiff();
+                break;
             }
-            if ("HJKLAZ".indexOf(c) != -1 ) {
+            if ("HJKLAZU".indexOf(c) != -1 ) {
               that.drawZoom();
               $$('crosshair-sk', that.$.smallImages).forEach(function(ele) {
                 ele.x = that.x;
@@ -363,7 +373,6 @@ the two images.
           var colors = this.canvasCopy.getContext('2d').getImageData(this.x-this.PIXELS/2, this.y-this.PIXELS/2, this.PIXELS, this.PIXELS).data;
           for (var x=0; x<this.PIXELS; x++) {
             for (var y=0; y<this.PIXELS; y++) {
-              // We use imgData.width, because getImageData seems to return what it likes.
               var offset = (y*this.PIXELS+x)*4; // Offset into the colors array.
               this.ctx.fillStyle = 'rgba(' + colors[offset] + ', ' + colors[offset+1] + ', ' + colors[offset+2] + ', ' + colors[offset+3]/255.0 + ')';
               this.ctx.fillRect(x*dx, y*dy, dx-1, dy-1);
@@ -506,6 +515,33 @@ the two images.
             ele.x = that.x;
             ele.y = that.y;
           });
+        },
+
+        // Find the largest diff across the pixels and move the focus to that location.
+        moveToLargestDiff: function() {
+          var topColors = this.topCopy.getContext('2d').getImageData(0, 0, this.topCopy.width, this.topCopy.height).data;
+          var leftColors = this.leftCopy.getContext('2d').getImageData(0, 0, this.leftCopy.width, this.leftCopy.height).data;
+          var max = 0;
+          var dx = 0;
+          var dy = 0
+          for (var x=0; x<this.topCopy.width-1; x++) {
+            for (var y=0; y<this.topCopy.height-1; y++) {
+              var offset = (y*this.topCopy.width+x)*4; // Offset into the colors array.
+              var dist = colorDist(
+                  topColors[offset+0]-leftColors[offset+0],
+                  topColors[offset+1]-leftColors[offset+1],
+                  topColors[offset+2]-leftColors[offset+2],
+                  topColors[offset+3]-leftColors[offset+3]
+                  );
+              if (dist > max) {
+                max = dist;
+                dx = x;
+                dy = y;
+              }
+            }
+          }
+          this.x = dx;
+          this.y = dy;
         },
 
       });
