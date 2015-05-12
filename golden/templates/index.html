@@ -139,7 +139,7 @@
            $$$('paper-toast').text = "No tests matched your query.";
            $$$('paper-toast').show();
          }
-         if (limitExceeded) {
+         if (limitExceeded && page.state.details) {
            $$$('paper-toast').text = "Too many tests to expand all of them. Try filtering down the number of tests.";
            $$$('paper-toast').show();
          }
