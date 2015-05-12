@@ -114,6 +114,7 @@
          var container = $$$('#summaries');
          sk.clearChildren(container);
          var n = 0;
+         var limitExceeded = false;
          summaries.forEach(function(c, i) {
            if (page.state.untonly && c.untriaged == 0) {
              return
@@ -122,7 +123,12 @@
            s.query = encodeURIComponent(page.state.query);
            s.include = page.state.include;
            s.head = page.state.head;
-           s.details = page.state.details;
+           if (i<page.state.limit) {
+             s.details = page.state.details;
+           } else {
+             s.details = false;
+             limitExceeded = true;
+           }
            s.limit = page.state.limit;
            s.triage = page.state.triage;
            s.summary = c;
@@ -131,6 +137,10 @@
          });
          if (n==0) {
            $$$('paper-toast').text = "No tests matched your query.";
+           $$$('paper-toast').show();
+         }
+         if (limitExceeded) {
+           $$$('paper-toast').text = "Too many tests to expand all of them. Try filtering down the number of tests.";
            $$$('paper-toast').show();
          }
          $$$('paper-spinner').active = false;
