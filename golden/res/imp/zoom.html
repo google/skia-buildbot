@@ -85,6 +85,9 @@ the two images.
         margin: 2em;
         background: #ddd;
       }
+      .choice.highlight {
+        font-weight: bold;
+      }
     </style>
     <div veritcal layout id=dialog>
       <div horizontal layout id=smallImages>
@@ -287,15 +290,21 @@ the two images.
             if (that.topChecked) {
               c.push(that.topCopy);
             }
-            if (that.leftChecked) {
-              c.push(that.leftCopy);
-            }
             if (that.diffChecked) {
               c.push(that.diffCopy);
             }
+            if (that.leftChecked) {
+              c.push(that.leftCopy);
+            }
             if (c.length > 0) {
+              if (that.canvasCopy) {
+                $$$('#'+that.canvasCopy.dataset.id, that.shadowRoot).parentElement.classList.remove('highlight');
+              }
               t = (t+1)%c.length;
               that.canvasCopy = c[t];
+              if (that.canvasCopy) {
+                $$$('#'+that.canvasCopy.dataset.id, that.shadowRoot).parentElement.classList.add('highlight');
+              }
               if (that.canvasCopy != null) {
                 that.drawZoom()
               }
@@ -436,6 +445,7 @@ the two images.
               that.topCopy = document.createElement('canvas');
               that.topCopy.width = img.naturalWidth;
               that.topCopy.height = img.naturalHeight;
+              that.topCopy.dataset.id = "topToggle";
               that.topCopy.getContext('2d').drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
             });
           }
@@ -445,6 +455,7 @@ the two images.
               that.leftCopy = document.createElement('canvas');
               that.leftCopy.width = img.naturalWidth;
               that.leftCopy.height = img.naturalHeight;
+              that.leftCopy.dataset.id = "leftToggle";
               that.leftCopy.getContext('2d').drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
             });
           }
@@ -454,6 +465,7 @@ the two images.
               that.diffCopy = document.createElement('canvas');
               that.diffCopy.width = img.naturalWidth;
               that.diffCopy.height = img.naturalHeight;
+              that.diffCopy.dataset.id = "diffToggle";
               that.diffCopy.getContext('2d').drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight);
             });
           }
