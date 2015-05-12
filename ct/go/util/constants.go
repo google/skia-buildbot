@@ -86,6 +86,7 @@ type PagesetTypeInfo struct {
 	CreatePagesetsTimeoutSecs  int
 	RunBenchmarksTimeoutSecs   int
 	RunChromiumPerfTimeoutSecs int
+	Description                string
 }
 
 var (
@@ -155,6 +156,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
 			RunChromiumPerfTimeoutSecs: 150,
+			Description:                "Top 1M (with desktop user-agent)",
 		},
 		PAGESET_TYPE_10k: &PagesetTypeInfo{
 			NumPages:                   10000,
@@ -164,6 +166,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
 			RunChromiumPerfTimeoutSecs: 150,
+			Description:                "Top 10K (with desktop user-agent)",
 		},
 		PAGESET_TYPE_MOBILE_10k: &PagesetTypeInfo{
 			NumPages:                   10000,
@@ -173,6 +176,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
 			RunChromiumPerfTimeoutSecs: 150,
+			Description:                "Top 10K (with mobile user-agent)",
 		},
 		PAGESET_TYPE_DUMMY_1k: &PagesetTypeInfo{
 			NumPages:                   1000,
@@ -182,6 +186,24 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			RunBenchmarksTimeoutSecs:   300,
 			RunChromiumPerfTimeoutSecs: 150,
+			Description:                "Top 1K (used for testing)",
 		},
+	}
+
+	// Frontend constants below.
+	SupportedBenchmarks = []string{
+		BENCHMARK_RR,
+		BENCHMARK_REPAINT,
+		BENCHMARK_DRAW_PROPERTIES,
+	}
+
+	SupportedPlatformsToDesc = map[string]string{
+		PLATFORM_LINUX:   "Linux (100 Ubuntu12.04 machines)",
+		PLATFORM_ANDROID: "Android (100 N5 devices)",
+	}
+
+	SupportedPageSetsToDesc = map[string]string{
+		PLATFORM_LINUX:   "Linux (100 Ubuntu12.04 machines)",
+		PLATFORM_ANDROID: "Android (100 N5 devices)",
 	}
 )

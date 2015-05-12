@@ -1,3 +1,27 @@
+# The list of files we want to go into core.js, which is concat'd and
+# minified. These files should be either present in the project, brought
+# into third_party/bower_compoents via bower, or in node_modules.
+CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
+          third_party/bower_components/webcomponentsjs/webcomponents.min.js \
+          ../res/js/common.js
+
+BOWER_DIR=third_party/bower_components
+
+
+include ../go/skiaversion/skiaversion.mk
+
+.PHONY: ctfe_migratedb
+ctfe_migratedb:
+	go install -v ./go/ctfe_migratedb
+
+ctfe: res/css/ctfe.css core_js elements_html skiaversion ctfe_migratedb
+	go install -v ./go/ctfe
+
+# Build debug versions of core.js and elements.html.
+.PHONY: debug
+debug: clean_webtools debug_core_js debug_elements_html
+
+include ../webtools/webtools.mk
 
 # Master scripts.
 .PHONY: run_command

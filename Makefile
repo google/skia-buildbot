@@ -29,6 +29,10 @@ logserver:
 ct:
 	cd ct && $(MAKE) all
 
+.PHONY: ctfe
+ctfe:
+	cd ct && $(MAKE) ctfe
+
 .PHONY: grains
 grains:
 	cd grains && $(MAKE) default
@@ -42,7 +46,7 @@ status:
 	cd status && $(MAKE) all
 
 .PHONY: all
-all: golden perf sharedgo alertserver datahopper logserver ct tags status
+all: golden perf sharedgo alertserver datahopper logserver ct ctfe tags status
 
 .PHONY: tags
 tags:
