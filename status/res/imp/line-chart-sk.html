@@ -23,6 +23,7 @@
     colors: array of strings; colors to use in the chart.
     data: map of arrays of arrays containing data for each series, eg:
         {"mySeries": [[0, 42], [1, 7]], ...}
+    opened: bool; whether or not the core-collapse is open.
     selectedCallback: function to call when an item on the chart is selected.
     tooltipFormatter: function which accepts a series name and x-and y-values
         and returns a string to be used as a tooltip for the value.
@@ -63,7 +64,7 @@
         <h2 flex>{{heading}}</h2>
         <core-icon icon="{{icon}}"></core-icon>
       </div>
-      <core-collapse id="collapse" on-core-collapse-open="{{collapseOpen}}">
+      <core-collapse id="collapse" on-core-collapse-open="{{collapseOpen}}" opened="{{opened}}">
         <template if="{{caption}}">
           <h3>{{caption}}</h3>
         </template>
@@ -141,6 +142,10 @@
           value: null,
           reflect: false,
         },
+        opened: {
+          value: false,
+          reflect: false,
+        },
         selectedCallback: {
           value: null,
           reflect: false,
@@ -211,6 +216,9 @@
 
       draw: function() {
         console.time("line-chart-sk:draw");
+        if (!this.$.collapse.opened) {
+          return;
+        }
         if (!this.data || this.data.length == 0) {
           this.$.message.innerHTML = "No data.";
           return;
@@ -284,6 +292,7 @@
       collapseOpen: function() {
         if (this.$.collapse.opened) {
           this.icon = "arrow-drop-up";
+          this.draw();
         } else {
           this.icon = "arrow-drop-down";
         }

@@ -25,6 +25,7 @@
         [["string", "seriesName"], ["number", "dataPoint"]].
     data: array of arrays containing data for each column, eg:
         [["series1", 42], ["series2", 7]].
+    opened: bool; whether or not the core-collapse is open.
     selectedCallback: function to call when an item on the chart is selected.
     tooltipFormatter: function which accepts a series name and value and
         returns a string to be used as a tooltip for the value.
@@ -60,7 +61,7 @@
         <h2 flex>{{heading}}</h2>
         <core-icon icon="{{icon}}"></core-icon>
       </div>
-      <core-collapse id="collapse" on-core-collapse-open="{{collapseOpen}}">
+      <core-collapse id="collapse" on-core-collapse-open="{{collapseOpen}}" opened="{{opened}}">
         <template if="{{caption}}">
           <h3>{{caption}}</h3>
         </template>
@@ -95,6 +96,10 @@
         },
         data: {
           value: null,
+          reflect: false,
+        },
+        opened: {
+          value: false,
           reflect: false,
         },
         selectedCallback: {
@@ -137,6 +142,7 @@
       collapseOpen: function() {
         if (this.$.collapse.opened) {
           this.icon = "arrow-drop-up";
+          this.draw();
         } else {
           this.icon = "arrow-drop-down";
         }
@@ -150,6 +156,9 @@
       },
 
       draw: function() {
+        if (!this.$.collapse.opened) {
+          return;
+        }
         if (!this.columns || !this.data || this.data.length == 0) {
           this.$.chartcontainer.innerHTML = "No data.";
           return;
