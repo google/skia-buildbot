@@ -53,16 +53,20 @@
         font-size: 15px;
       }
     </style>
-    <span id=email></span>
+    <span id=email>{{email}}</span>
     <a id=logInOut href=""></a>
   </template>
   <script>
     Polymer({
+      created: function() {
+        this.email = '';
+      },
+
       ready: function() {
         var ele = this;
         sk.Login.then(function(status) {
-          ele.$.email.innerText = status['Email'];
-          if (status['Email'] == '') {
+          ele.email = status['Email'];
+          if (ele.email == '') {
             ele.$.logInOut.href = status['LoginURL'];
             ele.$.logInOut.innerText = 'Login';
           } else {
