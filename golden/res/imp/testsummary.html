@@ -175,7 +175,7 @@
 
         // TODO(stephana): Remove once Angular is removed in production.
         // Also remove the tag where showLegacy is used.
-        this.showLegacy = !$$$('base').href==='/';
+        this.showLegacy = ($$$('base').href.lastIndexOf("/2/") !== -1);
       },
 
       // findFocus returns the current details element with the keyboard focus.

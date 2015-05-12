@@ -299,7 +299,6 @@
 
         var that = this;
         var q = '?test=' + this.test + '&top=' + this.digest+ '&left=' + this.digest + '&graphs=true&closest=' + this.triage;
-        debugger;
         sk.get('_/details'+q).then(JSON.parse).then(function(json) {
           if (that.limit && that.limit < json.traces.length) {
             json.traces = json.traces.slice(0, that.limit);
