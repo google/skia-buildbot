@@ -81,11 +81,13 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 	go func() {
 		// Don't generate alerts for these buildslaves, since they always fail.
 		buildslaveBlacklist := []string{
+			"build4-a3",
+			"build5-a3",
+			"build5-m3",
 			"skiabot-shuttle-ubuntu12-galaxys3-001",
 			"skiabot-shuttle-ubuntu12-galaxys3-002",
 			"skiabot-shuttle-ubuntu12-galaxys4-001",
 			"skiabot-shuttle-ubuntu12-galaxys4-002",
-			"build5-m3",
 		}
 
 		failedInARowThreshold := 3
