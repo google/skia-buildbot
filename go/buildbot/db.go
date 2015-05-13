@@ -639,7 +639,7 @@ func (c *CommitComment) InsertIntoDB() (int, error) {
 func GetBuildsFromDateRange(start, end time.Time) ([]*Build, error) {
 	defer timer.New("GetBuildsFromDateRange").Stop()
 	var ids []int
-	if err := DB.Select(&ids, fmt.Sprintf("SELECT id FROM %s WHERE finished > ? and finished < ?", TABLE_BUILDS), float64(start.UTC().Unix()), float64(end.UTC().Unix())); err != nil {
+	if err := DB.Select(&ids, fmt.Sprintf("SELECT id FROM %s WHERE started > ? and started < ?", TABLE_BUILDS), float64(start.UTC().Unix()), float64(end.UTC().Unix())); err != nil {
 		return nil, fmt.Errorf("Failed to obtain builds from date range: %v", err)
 	}
 	builds, err := GetBuildsFromDB(ids)

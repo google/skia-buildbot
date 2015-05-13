@@ -312,7 +312,6 @@
             excludedBots[build.Builder] = true;
             continue;
           }
-          this.includedBuilds.push(build);
 
           // Builds by buildslave and builder.
           if (!this.buildsByBuildslaveByBuilder[build.Builder]) {
@@ -323,36 +322,41 @@
           }
           this.buildsByBuildslaveByBuilder[build.Builder][build.BuildSlave].push(build);
 
-          // Builds by builder.
-          var duration = build.Finished - build.Started;
-          if (!this.buildData[build.Builder]) {
-            this.buildData[build.Builder] = [];
-          }
-          this.buildData[build.Builder].push([build.Started, duration]);
+          // The graphs are only valid for completed builds.
+          if (build.Finished > build.Started) {
+            this.includedBuilds.push(build);
 
-          // Build results by builder.
-          if (!this.buildResults[build.Builder]) {
-            this.buildResults[build.Builder] = [];
-          }
-          this.buildResults[build.Builder].push(build.Results == 0 ? 0 : 1);
+            // Builds by builder.
+            var duration = build.Finished - build.Started;
+            if (!this.buildData[build.Builder]) {
+              this.buildData[build.Builder] = [];
+            }
+            this.buildData[build.Builder].push([build.Started, duration]);
 
-          // Build steps.
-          for (var j = 0; j < build.Steps.length; j++) {
-            var step = build.Steps[j];
-            // Always exclude these steps.
-            if (step.Name == "steps" || step.Name == "Uncaught Exception") {
-              continue;
+            // Build results by builder.
+            if (!this.buildResults[build.Builder]) {
+              this.buildResults[build.Builder] = [];
             }
-            var stepDuration = step.Finished - step.Started;
-            if (!this.stepDurations[step.Name]) {
-              this.stepDurations[step.Name] = [];
-            }
-            this.stepDurations[step.Name].push(stepDuration);
+            this.buildResults[build.Builder].push(build.Results == 0 ? 0 : 1);
 
-            if (!this.stepResults[step.Name]) {
-              this.stepResults[step.Name] = [];
+            // Build steps.
+            for (var j = 0; j < build.Steps.length; j++) {
+              var step = build.Steps[j];
+              // Always exclude these steps.
+              if (step.Name == "steps" || step.Name == "Uncaught Exception") {
+                continue;
+              }
+              var stepDuration = step.Finished - step.Started;
+              if (!this.stepDurations[step.Name]) {
+                this.stepDurations[step.Name] = [];
+              }
+              this.stepDurations[step.Name].push(stepDuration);
+
+              if (!this.stepResults[step.Name]) {
+                this.stepResults[step.Name] = [];
+              }
+              this.stepResults[step.Name].push(step.Results == 0 ? 0 : 1);
             }
-            this.stepResults[step.Name].push(step.Results == 0 ? 0 : 1);
           }
         }
 
