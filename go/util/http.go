@@ -73,6 +73,12 @@ type BackOffTransport struct {
 	backOffConfig *BackOffConfig
 }
 
+type ResponsePagination struct {
+	Offset int `json:"offset"`
+	Size   int `json:"size"`
+	Total  int `json:"total"`
+}
+
 // NewBackOffTransport creates a BackOffTransport with the specified config.
 //
 // Example: The default retry_interval is .5 seconds, default randomization_factor

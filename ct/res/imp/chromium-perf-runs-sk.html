@@ -30,11 +30,8 @@
 
     <h2><template if="{{constrainByUser}}">My </template>Chromium Perf Runs</h2>
 
-    <!-- Pagination buttons -->
-    <paper-button raised id="previous" on-click="{{ previousPage }}">Previous</paper-button>
-    Page {{ pageNumber }}
-    <paper-button raised id="next" on-click="{{ nextPage }}">Next</paper-button>
-    <!-- View all/my runs button -->
+    <paging-sk pagination="{{pagination}}" on-pagechange="{{pageChangedHandler}}"></paging-sk>
+    <br/>
     <paper-button raised id="constrain_runs" on-click="{{ constrainRuns }}">{{constrainButtonText}}</paper-button>
 
     <br/>
@@ -181,23 +178,25 @@
    Polymer({
      created: function() {
        this.chromiumPerfTasks = this.chromiumPerfTasks || [];
-       this.chromiumPerfStart = 0;
-       this.chromiumPerfOffset = 5;
-       this.pageNumber = 1;
+       this.defaultSize = 5;
        this.constrainByUser = false;
        this.myRunsConstrainText = 'View only my runs';
        this.allRunsConstrainText = 'View all runs';
        this.constrainButtonText = this.myRunsConstrainText;
+       this.pagination = {"offset": 0, "size": this.defaultSize};
+       this.pageChangedHandler = null;
      },
 
      ready: function() {
-       this.updateChromiumPerfTasks();
+       this.pageChangedHandler = this.reload.bind(this);
+       this.reload();
      },
 
-     updateChromiumPerfTasks: function() {
+     // Load or reload the listing.
+     reload: function() {
        var queryParams = {
-         "start": this.chromiumPerfStart,
-         "offset": this.chromiumPerfOffset,
+         "offset": this.pagination.offset,
+         "size": this.pagination.size,
        }
        if (this.constrainByUser) {
          queryParams["username"] = $$$('login-sk').email;
@@ -205,23 +204,22 @@
        chromiumPerfQueryStr = "?" + sk.query.fromObject(queryParams);
        var that = this;
        sk.post('/_/get_chromium_perf_tasks' + chromiumPerfQueryStr).then(JSON.parse).then(function(json) {
-         that.chromiumPerfTasks = json;
-         that.$.previous.disabled = (that.chromiumPerfStart == 0);
-         that.$.next.disabled = (that.chromiumPerfTasks.length < that.chromiumPerfOffset);
+         that.chromiumPerfTasks = json.data;
+         that.pagination = json.pagination;
        }).catch(function(err) {
          alert(err);
        });
      },
 
      resetPagination: function() {
-       this.pageNumber = 1;
-       this.chromiumPerfStart = 0;
+       this.pagination["offset"] = 0;
+       this.pagination["size"] = this.defaultSize;
      },
 
      constrainRuns: function() {
        this.constrainByUser = !this.constrainByUser;
        this.resetPagination();
-       this.updateChromiumPerfTasks();
+       this.reload();
      },
 
      constrainByUserChanged: function() {
@@ -229,18 +227,6 @@
        if (this.constrainByUser) {
          this.constrainButtonText = this.allRunsConstrainText;
        }
-     },
-
-     previousPage: function() {
-       this.chromiumPerfStart -= this.chromiumPerfOffset;
-       this.updateChromiumPerfTasks();
-       this.pageNumber--;
-     },
-
-     nextPage: function() {
-       this.chromiumPerfStart += this.chromiumPerfOffset;
-       this.updateChromiumPerfTasks(); 
-       this.pageNumber++;
      },
 
      toggleChromiumPatch: function(e) {

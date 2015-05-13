@@ -31,6 +31,14 @@ import (
 	skutil "go.skia.org/infra/go/util"
 )
 
+const (
+	// Default page size used for pagination.
+	DEFAULT_PAGE_SIZE = 5
+
+	// Maximum page size used for pagination.
+	MAX_PAGE_SIZE = 100
+)
+
 var (
 	chromiumPerfTemplate            *template.Template = nil
 	chromiumPerfRunsHistoryTemplate *template.Template = nil
@@ -228,24 +236,51 @@ func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
 	// Filter by either username or not started yet.
 	username := r.FormValue("username")
 	notCompleted := r.FormValue("not_completed")
-	startIndex := r.FormValue("start")
-	offset := r.FormValue("offset")
+	offset, size, err := skutil.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	if err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to get pagination params: %v", err))
+		return
+	}
+	args := []interface{}{}
 	query := fmt.Sprintf("SELECT * FROM %s", db.TABLE_CHROMIUM_PERF_TASKS)
 	if username != "" {
-		query += fmt.Sprintf(" WHERE username=\"%s\"", username)
+		query += " WHERE username=?"
+		args = append(args, username)
 	} else if notCompleted != "" {
 		query += " WHERE ts_completed IS NULL"
 	}
-	query += " ORDER BY id DESC"
-	if startIndex != "" && offset != "" {
-		query += fmt.Sprintf(" LIMIT %s,%s", startIndex, offset)
-	}
-	fmt.Println(query)
-	if err := db.DB.Select(&chromiumPerfTasks, query); err != nil {
+	query += " ORDER BY id DESC LIMIT ?,?"
+	args = append(args, offset, size)
+	glog.Infof("Running %s", query)
+	if err := db.DB.Select(&chromiumPerfTasks, query, args...); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query chromium perf tasks: %v", err))
 		return
 	}
-	if err := json.NewEncoder(w).Encode(chromiumPerfTasks); err != nil {
+
+	// Get the total count.
+	countArgs := []interface{}{}
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s", db.TABLE_CHROMIUM_PERF_TASKS)
+	if username != "" {
+		countQuery += " WHERE username=?"
+		countArgs = append(countArgs, username)
+	}
+	glog.Infof("Running %s", countQuery)
+	countVal := []int{}
+	if err := db.DB.Select(&countVal, countQuery, countArgs...); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query chromium perf tasks: %v", err))
+		return
+	}
+
+	pagination := &skutil.ResponsePagination{
+		Offset: offset,
+		Size:   size,
+		Total:  countVal[0],
+	}
+	jsonResponse := map[string]interface{}{
+		"data":       chromiumPerfTasks,
+		"pagination": pagination,
+	}
+	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
 	}

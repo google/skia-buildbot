@@ -473,7 +473,7 @@ func polyTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pagination := &ResponsePagination{
+	pagination := &util.ResponsePagination{
 		Offset: offset,
 		Size:   size,
 		Total:  total,

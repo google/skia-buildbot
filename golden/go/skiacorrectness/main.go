@@ -80,16 +80,10 @@ const (
 // ResponseEnvelope wraps all responses. Some fields might be empty depending
 // on context or whether there was an error or not.
 type ResponseEnvelope struct {
-	Data       *interface{}        `json:"data"`
-	Err        *string             `json:"err"`
-	Status     int                 `json:"status"`
-	Pagination *ResponsePagination `json:"pagination"`
-}
-
-type ResponsePagination struct {
-	Offset int `json:"offset"`
-	Size   int `json:"size"`
-	Total  int `json:"total"`
+	Data       *interface{}             `json:"data"`
+	Err        *string                  `json:"err"`
+	Status     int                      `json:"status"`
+	Pagination *util.ResponsePagination `json:"pagination"`
 }
 
 // CommonEnv captures shared that affect the frontend as well as the backend.
@@ -187,7 +181,7 @@ func sendErrorResponse(w http.ResponseWriter, errorMsg string, status int) {
 
 // sendResponse wraps the data of a succesful response in a response envelope
 // and sends it to the client.
-func sendResponse(w http.ResponseWriter, data interface{}, status int, pagination *ResponsePagination) {
+func sendResponse(w http.ResponseWriter, data interface{}, status int, pagination *util.ResponsePagination) {
 	resp := ResponseEnvelope{&data, nil, status, pagination}
 	sendJson(w, &resp, status)
 }
