@@ -552,5 +552,12 @@ this.sk = this.sk || function() {
     return val;
   }
 
+  // Sort the given array of strings, ignoring case.
+  sk.sortStrings = function(s) {
+    return s.sort(function(a, b) {
+      return a.localeCompare(b, "en", {"sensitivity": "base"});
+    });
+  }
+
   return sk;
 }();

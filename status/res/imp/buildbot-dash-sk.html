@@ -401,24 +401,24 @@
         for (var builder in this.buildslavesByBuilder) {
           this.builders.push(builder);
           // Sort the builders while we're here.
-          this.buildslavesByBuilder[builder].sort();
+          sk.sortStrings(this.buildslavesByBuilder[builder]);
         }
-        this.builders.sort();
+        sk.sortStrings(this.builders);
 
         // All buildslaves.
         this.buildslaves = [];
         for (var buildslave in this.buildersByBuildslave) {
           this.buildslaves.push(buildslave);
           // Sort the buildslaves while we're here.
-          this.buildersByBuildslave[buildslave].sort();
+          sk.sortStrings(this.buildersByBuildslave[buildslave]);
         }
-        this.buildslaves.sort();
+        sk.sortStrings(this.buildslaves);
 
         this.excludedBots = [];
         for (var bot in excludedBots) {
           this.excludedBots.push(bot);
         }
-        this.excludedBots.sort();
+        sk.sortStrings(this.excludedBots);
 
         console.timeEnd("processBuilds");
         this.drawCharts();

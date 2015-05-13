@@ -791,7 +791,7 @@
         } else {
           console.error("Invalid builder filter selection: " + selected);
         }
-        filteredBuilders.sort();
+        sk.sortStrings(filteredBuilders);
         this.numBuilders = filteredBuilders.length;
 
         var categories = {};
