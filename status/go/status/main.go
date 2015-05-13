@@ -334,6 +334,8 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	type TinyBuild struct {
 		Builder    string
 		BuildSlave string
+		Master     string
+		Number     int
 		Started    float64
 		Finished   float64
 		Results    int
@@ -354,6 +356,8 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		rv = append(rv, &TinyBuild{
 			Builder:    b.Builder,
 			BuildSlave: b.BuildSlave,
+			Master:     b.Master,
+			Number:     b.Number,
 			Started:    b.Started,
 			Finished:   b.Finished,
 			Results:    b.Results,

@@ -40,6 +40,58 @@
     #maincontent {
       padding-top: 10px;
     }
+    paper-tab {
+      font-size: 1.7em;
+      font-weight: bold;
+    }
+    paper-tabs::shadow #selectionBar {
+      background-color: {{colors[0]}};
+    }
+    #buildersTable {
+      border-collapse: collapse;
+      font-size: 12px;
+      margin: 5px;
+      white-space: nowrap;
+    }
+    a.plain {
+      text-decoration: none;
+      color: inherit;
+    }
+    a.plain:hover {
+      text-decoration: underline;
+    }
+    a.build {
+      margin: 2px;
+      padding: 2px;
+      border-radius: 2px;
+      text-align: center;
+    }
+    a.success {
+      background-color: rgba(102, 166, 30, 0.3);
+    }
+    a.failure {
+      background-color: #D95F02;
+    }
+    a.exception {
+      background-color: #7570B3;
+    }
+    a.inprogress {
+      background-color: yellow;
+    }
+    td.builder {
+      text-align: right;
+      padding: 10px;
+    }
+    tr.top td {
+      border-top: 1px solid #eeeeee;
+    }
+    tr.bottom td {
+      border-bottom: 1px solid #eeeeee;
+    }
+    td.build {
+      padding: 4px 1px;
+      text-align: center;
+    }
     </style>
       <div id="maincontent">
         <div id="spinner" horizontal layout center fit>
@@ -84,13 +136,61 @@
               </ul>
             </div>
           </div>
-          <div id="charts" flex>
-            <bar-chart-sk heading="Build Times" id="build_times_chart"></bar-chart-sk>
-            <bar-chart-sk heading="Step Times" id="step_times_chart"></bar-chart-sk>
-            <bar-chart-sk heading="Build Failure Rate" id="build_failure_rate_chart"></bar-chart-sk>
-            <bar-chart-sk heading="Step Failure Rate" id="step_failure_rate_chart"></bar-chart-sk>
-            <line-chart-sk heading="Build Duration over Time" id="build_duration_time_chart"></line-chart-sk>
-            <line-chart-sk heading="Avg Build Duration over Time" id="avg_build_duration_time_chart"></line-chart-sk>
+          <div vertical layout flex>
+            <paper-tabs id="tabs" selected="0" on-core-select="{{pageSelected}}" noink>
+              <paper-tab>Graphs</paper-tab>
+              <paper-tab>Builders/Slaves</paper-tab>
+            </paper-tabs>
+            <core-animated-pages id="pages" flex>
+              <div id="charts" flex>
+                <bar-chart-sk heading="Build Times" id="build_times_chart"></bar-chart-sk>
+                <bar-chart-sk heading="Step Times" id="step_times_chart"></bar-chart-sk>
+                <bar-chart-sk heading="Build Failure Rate" id="build_failure_rate_chart"></bar-chart-sk>
+                <bar-chart-sk heading="Step Failure Rate" id="step_failure_rate_chart"></bar-chart-sk>
+                <line-chart-sk heading="Build Duration over Time" id="build_duration_time_chart"></line-chart-sk>
+                <line-chart-sk heading="Avg Build Duration over Time" id="avg_build_duration_time_chart"></line-chart-sk>
+              </div>
+              <div id="builddata">
+                Group by:
+                <paper-radio-group id="botGrouping" selected="{{botGrouping}}">
+                  <paper-radio-button name="builder" label="Builder"></paper-radio-button>
+                  <paper-radio-button name="buildslave" label="Buildslave"></paper-radio-button>
+                </paper-radio-group>
+                <table id="buildersTable">
+                  <template repeat="{{b1 in (byBuilder ? builders : buildslaves)}}">
+                    <template repeat="{{b2, i in (byBuilder ? buildslavesByBuilder[b1] : buildersByBuildslave[b1])}}">
+                      <tr class="{{i == 0 ? 'top' : ''}} {{i == (byBuilder ? buildslavesByBuilder[b1] : buildersByBuildslave[b1]).length - 1 ? 'bottom' : ''}}">
+                        <template if="{{i == 0}}">
+                          <td class="builder" rowspan="{{(byBuilder ? buildslavesByBuilder[b1] : buildersByBuildslave[b1]).length}}">
+                            <a class="plain"
+                               target="_blank"
+                               href="https://uberchromegw.corp.google.com/i/{{masterLookup[b1]}}/{{byBuilder ? 'builders' : 'buildslaves'}}/{{b1}}">
+                              {{b1}}
+                            </a>
+                          </td>
+                        </template>
+                        <td>
+                          <a class="plain"
+                             target="_blank"
+                             href="https://uberchromegw.corp.google.com/i/{{masterLookup[b2]}}/{{byBuilder ? 'buildslaves' : 'builders'}}/{{b2}}">
+                            {{b2}}
+                          </a>
+                        </td>
+                        <template repeat="{{build in (byBuilder ? buildsByBuildslaveByBuilder[b1][b2] : buildsByBuildslaveByBuilder[b2][b1])}}">
+                          <td class="build">
+                            <a class="plain build {{build.Finished == 0 ? 'inprogress' : build.Results == 0 || build.Results == 1 || build.Results == 3 ? 'success' : build.Results == 2 ? 'failure' : build.Results == 4 || build.Results == 5 ? 'exception' : 'unknown'}}"
+                               target="_blank"
+                               href="https://uberchromegw.corp.google.com/i/{{build.Master}}/builders/{{build.Builder}}/builds/{{build.Number}}">
+                              {{build.Number}}
+                           </a>
+                          </td>
+                        </template>
+                      </tr>
+                    </template>
+                  </template>
+                </table>
+              </div>
+            </core-animated-pages>
           </div>
         </div>
       </div>
@@ -108,10 +208,18 @@
 
     Polymer({
       created: function() {
+        this.botGrouping = "builder";
         this.builds = [];
         this.buildData = {};
         this.buildDurations = {};
+        this.builders = [];
+        this.buildersByBuildslave = {};
+        this.buildslaves = [];
+        this.buildslavesByBuilder = {};
+        this.buildsByBuildslaveByBuilder = {};
+        this.byBuilder = true;
         this.includedBuilds = [];
+        this.masterLookup = {};
         this.stepDurations = {};
         this.buildResults = {};
         this.stepResults = {};
@@ -131,6 +239,22 @@
           palette[1*paletteRowLen+3],
           palette[0*paletteRowLen+3],
         ];
+      },
+
+      botGroupingChanged: function() {
+        this.byBuilder = this.botGrouping == "builder";
+      },
+
+      pageSelected: function() {
+        // Close all charts before switching pages.
+        $$("bar-chart-sk", this.shadowRoot).forEach(function(chart) {
+          chart.opened = false;
+        });
+        $$("line-chart-sk", this.shadowRoot).forEach(function(chart) {
+          chart.opened = false;
+        });
+
+        this.$.pages.selected = this.$.tabs.selected;
       },
 
       reloadBuilds: function(start, end) {
@@ -175,6 +299,7 @@
         console.time("processBuilds");
         this.buildData = {};
         this.buildDurations = {};
+        this.buildsByBuildslaveByBuilder = {};
         this.includedBuilds = [];
         this.stepDurations = {};
         this.buildResults = {};
@@ -189,17 +314,29 @@
           }
           this.includedBuilds.push(build);
 
+          // Builds by buildslave and builder.
+          if (!this.buildsByBuildslaveByBuilder[build.Builder]) {
+            this.buildsByBuildslaveByBuilder[build.Builder] = {};
+          }
+          if (!this.buildsByBuildslaveByBuilder[build.Builder][build.BuildSlave]) {
+            this.buildsByBuildslaveByBuilder[build.Builder][build.BuildSlave] = [];
+          }
+          this.buildsByBuildslaveByBuilder[build.Builder][build.BuildSlave].push(build);
+
+          // Builds by builder.
           var duration = build.Finished - build.Started;
           if (!this.buildData[build.Builder]) {
             this.buildData[build.Builder] = [];
           }
           this.buildData[build.Builder].push([build.Started, duration]);
 
+          // Build results by builder.
           if (!this.buildResults[build.Builder]) {
             this.buildResults[build.Builder] = [];
           }
           this.buildResults[build.Builder].push(build.Results == 0 ? 0 : 1);
 
+          // Build steps.
           for (var j = 0; j < build.Steps.length; j++) {
             var step = build.Steps[j];
             // Always exclude these steps.
@@ -219,6 +356,7 @@
           }
         }
 
+        // Build durations by builder.
         for (var builder in this.buildData) {
           this.buildData[builder].sort(function(a, b) {
             return b[0] - a[0];
@@ -228,6 +366,53 @@
             this.buildDurations[builder].push(this.buildData[builder][i][1]);
           }
         }
+
+        // Buildslaves by builder, builders by buildslave, master lookup.
+        this.buildslavesByBuilder = {};
+        this.buildersByBuildslave = {};
+        this.masterLookup = {};
+        for (var builder in this.buildsByBuildslaveByBuilder) {
+          for (var buildslave in this.buildsByBuildslaveByBuilder[builder]) {
+            if (!this.buildslavesByBuilder[builder]) {
+              this.buildslavesByBuilder[builder] = [];
+            }
+            this.buildslavesByBuilder[builder].push(buildslave);
+
+            if (!this.buildersByBuildslave[buildslave]) {
+              this.buildersByBuildslave[buildslave] = [];
+            }
+            this.buildersByBuildslave[buildslave].push(builder);
+
+            this.buildsByBuildslaveByBuilder[builder][buildslave].sort(function(a, b) {
+              return b.Number - a.Number;
+            });
+
+            // Master lookup. This does extra work but it's not a lot.
+            if (this.buildsByBuildslaveByBuilder[builder][buildslave].length > 0) {
+              var master = this.buildsByBuildslaveByBuilder[builder][buildslave][0].Master;
+              this.masterLookup[builder] = master;
+              this.masterLookup[buildslave] = master;
+            }
+          }
+        }
+
+        // All builders.
+        this.builders = [];
+        for (var builder in this.buildslavesByBuilder) {
+          this.builders.push(builder);
+          // Sort the builders while we're here.
+          this.buildslavesByBuilder[builder].sort();
+        }
+        this.builders.sort();
+
+        // All buildslaves.
+        this.buildslaves = [];
+        for (var buildslave in this.buildersByBuildslave) {
+          this.buildslaves.push(buildslave);
+          // Sort the buildslaves while we're here.
+          this.buildersByBuildslave[buildslave].sort();
+        }
+        this.buildslaves.sort();
 
         this.excludedBots = [];
         for (var bot in excludedBots) {
@@ -361,6 +546,10 @@
             return series + "<br/>" + (new Date(x * 1000)).toString() + "<br/>" + sk.human.strDuration(y);
           }
         }
+
+        // Hack to get the paper-tabs underline to draw.
+        window.setTimeout(0, this.$.tabs.resizeHandler());
+
         console.timeEnd("drawCharts");
       },
 
