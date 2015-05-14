@@ -16,15 +16,12 @@ import (
 	"flag"
 	"html/template"
 	"net/http"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/gorilla/securecookie"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/bug_chomper/go/issue_tracker"
 	"go.skia.org/infra/go/common"
@@ -35,16 +32,11 @@ import (
 )
 
 const (
-	CERT_FILE           = "certs/cert.pem"
-	KEY_FILE            = "certs/key.pem"
 	ISSUE_COMMENT       = "Edited by BugChomper"
 	OAUTH_CALLBACK_PATH = "/oauth2callback/"
 	OAUTH_CONFIG_FILE   = "oauth_client_secret.json"
-	LOCAL_HOST          = "127.0.0.1"
-	MAX_SESSION_LEN     = time.Duration(3600 * time.Second)
 	PRIORITY_PREFIX     = "Priority-"
 	PROJECT_NAME        = "skia"
-	COOKIE_NAME         = "BugChomperCookie"
 )
 
 // Flags:
@@ -60,26 +52,20 @@ var (
 var (
 	// templates is the list of html templates used by bug_chomper.
 	templates *template.Template = nil
-
-	scheme       = "http"
-	hashKey      = securecookie.GenerateRandomKey(32)
-	blockKey     = securecookie.GenerateRandomKey(32)
-	secureCookie = securecookie.New(hashKey, blockKey)
 )
 
 func loadTemplates() {
 	// Change the current working directory to two directories up from this
 	// source file so that we can read templates.
-	_, filename, _, _ := runtime.Caller(0)
-	cwd := filepath.Join(filepath.Dir(filename), "../..")
-	if err := os.Chdir(cwd); err != nil {
-		glog.Fatal(err)
+	if *resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
 	templates = template.Must(template.ParseFiles(
-		filepath.Join(cwd, "templates/bug_chomper.html"),
-		filepath.Join(cwd, "templates/submitted.html"),
-		filepath.Join(cwd, "templates/error.html"),
+		filepath.Join(*resourcesDir, "templates/bug_chomper.html"),
+		filepath.Join(*resourcesDir, "templates/submitted.html"),
+		filepath.Join(*resourcesDir, "templates/error.html"),
 	))
 }
 

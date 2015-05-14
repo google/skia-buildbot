@@ -366,3 +366,23 @@ server {
     return 301 https://grandcentral.skia.org$request_uri;
 }
 
+#####   bugchomper.skia.org   ###########################
+server {
+    listen      443;
+    server_name bugchomper.skia.org;
+
+    ssl on;
+
+    if ( $host != 'bugchomper.skia.org' ) {
+        rewrite ^/(.*)$ https://bugchomper.skia.org/$1 permanent;
+    }
+
+    location / {
+        proxy_pass http://skia-monitoring:8050;
+    }
+}
+server {
+    listen      80;
+    server_name bugchomper.skia.org;
+    return 301 https://bugchomper.skia.org$request_uri;
+}
