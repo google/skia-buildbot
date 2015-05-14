@@ -866,6 +866,12 @@ type Point struct {
 	S int `json:"s"` // Status of the digest: 0 if the digest matches our search, 1-8 otherwise.
 }
 
+type PointSlice []Point
+
+func (p PointSlice) Len() int           { return len(p) }
+func (p PointSlice) Less(i, j int) bool { return p[i].X < p[j].X }
+func (p PointSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 // Trace represents a single test over time.
 type Trace struct {
 	Data   []Point           `json:"data"`  // One Point for each test result.
@@ -1074,6 +1080,7 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 				S: s,
 			})
 		}
+		sort.Sort(PointSlice(p.Data))
 		ret = append(ret, p)
 		y += 1
 	}
