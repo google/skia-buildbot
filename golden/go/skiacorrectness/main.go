@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/analysis"
+	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -103,6 +104,7 @@ var (
 	summaries          *summary.Summaries
 	statusWatcher      *status.StatusWatcher
 	commonEnv          CommonEnv
+	blamer             *blame.Blamer
 )
 
 func listTestDetailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -266,6 +268,8 @@ func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
 }
 
 func main() {
+	var err error
+
 	t := timer.New("main init")
 	// Setup DB flags.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
@@ -386,6 +390,10 @@ func main() {
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          eventBus,
+	}
+
+	if blamer, err = blame.New(storages); err != nil {
+		glog.Fatalf("Unable to create blamer: %s", err)
 	}
 
 	if err := ignore.Init(storages.IgnoreStore); err != nil {

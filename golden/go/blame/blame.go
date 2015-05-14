@@ -1,6 +1,7 @@
 package blame
 
 import (
+	"sort"
 	"sync"
 	"time"
 
@@ -100,6 +101,43 @@ func (b *Blamer) GetBlameList(testName string) (map[string]*BlameDistribution, [
 
 	glog.Warningf("Unable to find blame lists for test: %s", testName)
 	return map[string]*BlameDistribution{}, commits
+}
+
+// TODO(stephana): Remove all public functions other than GetBlame
+// once blame is working on the front-end.
+
+// GetBlame returns the indices of the provided list of commits that likely
+// caused the given test name/digest pair. If the result is empty we are not
+// able to determine blame, because the test name/digest appeared prior
+// to the current tile.
+func (b *Blamer) GetBlame(testName string, digest string, commits []*ptypes.Commit) []int {
+	blameLists, blameCommits := b.GetAllBlameLists()
+
+	blameDistribution, ok := blameLists[testName][digest]
+	if !ok || (len(blameDistribution.Freq) == 0) {
+		return []int{}
+	}
+
+	// We have a blamelist. Let's find the indices relative to the given
+	// list of commits.
+	freq := blameDistribution.Freq
+	ret := make([]int, 0, len(freq))
+	maxCount := util.MaxInt(freq...)
+
+	// Find the first element in the list and align the commits.
+	idx := 0
+	for freq[idx] < maxCount {
+		idx++
+	}
+	tgtCommit := blameCommits[len(blameCommits)-len(freq)+idx]
+	commitIdx := sort.Search(len(commits), func(i int) bool { return commits[i].CommitTime >= tgtCommit.CommitTime })
+	for (idx < len(freq)) && (freq[idx] > 0) && (commitIdx < len(commits)) {
+		ret = append(ret, commitIdx)
+		idx++
+		commitIdx++
+	}
+
+	return ret
 }
 
 // updateBlame reads from the provided tileStream and updates the current

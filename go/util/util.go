@@ -124,12 +124,15 @@ func MapsEqual(a, b map[string]string) bool {
 	return true
 }
 
-// MaxInt returns largest integer of a and b.
-func MaxInt(a, b int) int {
-	if a < b {
-		return b
+// MaxInt returns the largest integer of the arguments provided.
+func MaxInt(intList ...int) int {
+	ret := intList[0]
+	for _, i := range intList[1:] {
+		if i > ret {
+			ret = i
+		}
 	}
-	return a
+	return ret
 }
 
 // MaxInt64 returns largest integer of a and b.

@@ -891,6 +891,7 @@ type PolyDetailsGUI struct {
 	TileSize     int                  `json:"tileSize"`
 	PosClosest   *digesttools.Closest `json:"posClosest"`
 	NegClosest   *digesttools.Closest `json:"negClosest"`
+	Blame        []int                `json:"blame"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -996,6 +997,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Form.Get("graphs") == "true" {
 		ret.Traces, ret.OtherDigests = buildTraceData(top, traceNames, tile, tally, exp)
 		ret.Commits = tile.Commits
+		ret.Blame = blamer.GetBlame(test, top, ret.Commits)
 	}
 
 	// Now find the closest positive and negative digests.
