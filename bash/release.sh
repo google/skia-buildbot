@@ -35,6 +35,15 @@
 # startup script. See https://cloud.google.com/compute/docs/startupscript
 #
 # For more details see ../push/DESIGN.md.
+#
+# SYSTEMD
+# -------
+# If defined this should be a space separated list of *.service files that are
+# to be enabled and started when the package is installed. The target system
+# must support systemd. The service file(s) should be copied into
+# /etc/systemd/system/*.service in your copy_release_files() function. A
+# post-installation script will be run that enables and runs all such
+# services.
 
 set -x -e
 
@@ -65,6 +74,18 @@ cat <<-EOF > ${ROOT}/DEBIAN/control
 	Priority: optional
 	Description: ${DESCRIPTION}
 EOF
+
+if [ -v SYSTEMD ]
+then
+cat <<-EOF > ${ROOT}/DEBIAN/postinst
+#!/bin/sh
+set -e
+/bin/systemctl daemon-reload
+/bin/systemctl enable ${SYSTEMD}
+/bin/systemctl restart ${SYSTEMD}
+EOF
+chmod 755 ${ROOT}/DEBIAN/postinst
+fi
 
 copy_release_files
 
@@ -98,6 +119,7 @@ then
     -h x-goog-meta-datetime:${DATETIME} \
     -h x-goog-meta-dirty:${DIRTY} \
     -h "x-goog-meta-note:$1" \
+    -h "x-goog-meta-services:${SYSTEMD}" \
     cp ${OUT}/${APPNAME}.deb \
     gs://skia-push/debs/${APPNAME}/${APPNAME}:${USERID}:${DATETIME}:${HASH}.deb
 else
