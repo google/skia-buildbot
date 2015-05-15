@@ -223,8 +223,11 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		"DISPLAY=:0",
 	}
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunChromiumPerfTimeoutSecs
-	skutil.LogErr(
-		util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
+	if err := util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
+		glog.Errorf("Run benchmark command failed with: %s", err)
+		glog.Errorf("Killing all running chrome processes in case there is a non-recoverable error.")
+		skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, 5*time.Minute, nil, nil))
+	}
 	return nil
 }
 
