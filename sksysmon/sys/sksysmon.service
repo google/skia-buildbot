@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/sksysmon --port=:10114 --log_dir=/var/log/logserver
+ExecStart=/usr/local/bin/sksysmon --port=:10116 --log_dir=/var/log/logserver --resources_dir=/usr/local/share/sksysmon/
 Restart=always
 User=root
 Group=root

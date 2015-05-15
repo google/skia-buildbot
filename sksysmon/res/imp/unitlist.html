@@ -1,0 +1,39 @@
+<!-- The <unit-list-sk> custom element declaration.
+
+  Displays a list of systemd Units and their status.
+
+  Attributes:
+    units - A serialized slice of dbus.UnitStatus. See:
+       http://godoc.org/github.com/coreos/go-systemd/dbus#UnitStatus Events:
+
+  Methods:
+    none.
+
+  Events:
+    none.
+-->
+<polymer-element name="unit-list-sk">
+  <template>
+    <style type="text/css" media="screen">
+      table {
+        font-size: 20px;
+      }
+    </style>
+    <table>
+      <tr><th>Service</th><th>Status</th></tr>
+      <template repeat="{{u in units}}">
+        <tr><td>{{u.Name}}</td><td>{{u.SubState}}</td></tr>
+      </template>
+    </table>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        units: {
+          value: [],
+          reflect: false,
+        }
+      },
+    });
+  </script>
+</polymer-element>

@@ -13,4 +13,7 @@ default: core_js elements_html
 release: default
 	./build_release
 
+.PHONY: debug
+debug: clean_webtools debug_core_js debug_elements_html
+
 include ../webtools/webtools.mk

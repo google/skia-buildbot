@@ -36,8 +36,18 @@
       html /deep/ #mainContainer {
         background: white;
       }
+
       paper-toast {
         margin: 2em;
+      }
+
+      unit-list-sk {
+        margin: 2em;
+        display: block;
+      }
+
+      table {
+        font-size: 20px;
       }
     </style>
   </head>
@@ -45,10 +55,20 @@
     <scaffold-sk responsiveWidth="700px">
       {{template "titlebar.html" .}}
 
-      <h1>Coming soon.</h1>
-
+      <unit-list-sk></unit-list-sk>
       <paper-toast></paper-toast>
     </scaffold-sk>
+
+    <script type="text/javascript" charset="utf-8">
+      sk.WebComponentsReady.then(function(){
+        sk.get("/_/list").then(JSON.parse).then(function(json) {
+          $$$('unit-list-sk').units = json;
+        }).catch(function(e){
+          $$$('paper-toast').text = e;
+          $$$('paper-toast').show();
+        });
+      });
+    </script>
 
   </body>
 </html>
