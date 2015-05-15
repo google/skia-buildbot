@@ -63,6 +63,11 @@ push/res/vul
 push/res/js/core.js
 push/res/js/core-debug.js
 push/res/common
+sksysmon/third_party
+sksysmon/res/vul
+sksysmon/res/js/core.js
+sksysmon/res/js/core-debug.js
+sksysmon/res/common
 doc/res/common
 doc/res/css/docs.css
 doc/res/js/core.js

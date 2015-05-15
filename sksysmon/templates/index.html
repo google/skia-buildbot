@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>sksysmon</title>
+
+    {{template "header.html" .}}
+
+    <style type="text/css" media="screen">
+      body {
+        font-family: Arial, sans-serif;
+        font-size: 15px;
+      }
+
+      #pageWrapper {
+        background: white;
+      }
+      .col {
+        padding: 0.5em;
+      }
+
+      html /deep/ core-toolbar,
+      #title {
+        background-color: #1f78b4;
+        color: #fff;
+      }
+
+      #title /deep/ a {
+        color: white;
+      }
+
+      html /deep/ a {
+        color: #1f78b4;
+        font-weight: bold;
+      }
+
+      html /deep/ #mainContainer {
+        background: white;
+      }
+      paper-toast {
+        margin: 2em;
+      }
+    </style>
+  </head>
+  <body>
+    <scaffold-sk responsiveWidth="700px">
+      {{template "titlebar.html" .}}
+
+      <h1>Coming soon.</h1>
+
+      <paper-toast></paper-toast>
+    </scaffold-sk>
+
+  </body>
+</html>
