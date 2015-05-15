@@ -124,7 +124,7 @@ class TypicalAlexaPage(page_module.Page):
     self.archive_data_file = '%(archive_data_file)s'
 
   def RunNavigateSteps(self, action_runner):
-    action_runner.NavigateToPage(self)
+    action_runner.Navigate(self.url)
     action_runner.Wait(2)
 
   def RunPageInteractions(self, action_runner):
