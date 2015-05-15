@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 
 	"github.com/coreos/go-systemd/dbus"
@@ -31,6 +32,12 @@ var (
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
+
+type UnitSlice []dbus.UnitStatus
+
+func (p UnitSlice) Len() int           { return len(p) }
+func (p UnitSlice) Less(i, j int) bool { return p[i].Name < p[j].Name }
+func (p UnitSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 func loadResouces() {
 	if *resourcesDir == "" {
@@ -88,6 +95,7 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	units = serviceOnly(units)
+	sort.Sort(UnitSlice(units))
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(units); err != nil {
 		util.ReportError(w, r, err, "Failed to encode response.")
