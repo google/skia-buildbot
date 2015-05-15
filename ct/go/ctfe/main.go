@@ -40,9 +40,14 @@ const (
 )
 
 var (
+	taskTables = []string{
+		db.TABLE_CHROMIUM_PERF_TASKS,
+	}
+
 	chromiumPerfTemplate            *template.Template = nil
 	chromiumPerfRunsHistoryTemplate *template.Template = nil
 	runsHistoryTemplate             *template.Template = nil
+	pendingTasksTemplate            *template.Template = nil
 
 	dbClient *influxdb.Client = nil
 )
@@ -76,6 +81,47 @@ type ChromiumPerfVars struct {
 	TsAdded string
 }
 
+type CommonCols struct {
+	Id          int64          `db:"id"`
+	TsAdded     sql.NullInt64  `db:"ts_added"`
+	TsStarted   sql.NullInt64  `db:"ts_started"`
+	TsCompleted sql.NullInt64  `db:"ts_completed"`
+	Results     sql.NullString `db:"results"`
+}
+
+type Task interface {
+	GetAddedTimestamp() int64
+	GetTaskName() string
+}
+
+type ChromiumPerfDBTask struct {
+	CommonCols
+
+	Username             string         `db:"username"`
+	Benchmark            string         `db:"benchmark"`
+	Platform             string         `db:"platform"`
+	PageSets             string         `db:"page_sets"`
+	RepeatRuns           int64          `db:"repeat_runs"`
+	BenchmarkArgs        string         `db:"benchmark_args"`
+	BrowserArgsNoPatch   string         `db:"browser_args_nopatch"`
+	BrowserArgsWithPatch string         `db:"browser_args_withpatch"`
+	Description          string         `db:"description"`
+	ChromiumPatch        string         `db:"chromium_patch"`
+	BlinkPatch           string         `db:"blink_patch"`
+	SkiaPatch            string         `db:"skia_patch"`
+	Failure              sql.NullBool   `db:"failure"`
+	NoPatchRawOutput     sql.NullString `db:"nopatch_raw_output"`
+	WithPatchRawOutput   sql.NullString `db:"withpatch_raw_output"`
+}
+
+func (task ChromiumPerfDBTask) GetAddedTimestamp() int64 {
+	return task.CommonCols.TsAdded.Int64
+}
+
+func (task ChromiumPerfDBTask) GetTaskName() string {
+	return "ChromiumPerf"
+}
+
 func reloadTemplates() {
 	if *resourcesDir == "" {
 		// If resourcesDir is not specified then consider the directory two directories up from this
@@ -96,6 +142,12 @@ func reloadTemplates() {
 
 	runsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+
+	pendingTasksTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/pending_tasks.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -209,29 +261,7 @@ func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("getChromiumPerfTasksHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
 
-	type chromiumPerfTask struct {
-		Id                   int64          `db:"id"`
-		Username             string         `db:"username"`
-		Benchmark            string         `db:"benchmark"`
-		Platform             string         `db:"platform"`
-		PageSets             string         `db:"page_sets"`
-		RepeatRuns           int64          `db:"repeat_runs"`
-		BenchmarkArgs        string         `db:"benchmark_args"`
-		BrowserArgsNoPatch   string         `db:"browser_args_nopatch"`
-		BrowserArgsWithPatch string         `db:"browser_args_withpatch"`
-		Description          string         `db:"description"`
-		ChromiumPatch        string         `db:"chromium_patch"`
-		BlinkPatch           string         `db:"blink_patch"`
-		SkiaPatch            string         `db:"skia_patch"`
-		TsAdded              sql.NullInt64  `db:"ts_added"`
-		TsStarted            sql.NullInt64  `db:"ts_started"`
-		TsCompleted          sql.NullInt64  `db:"ts_completed"`
-		Failure              sql.NullBool   `db:"failure"`
-		NoPatchRawOutput     sql.NullString `db:"nopatch_raw_output"`
-		WithPatchRawOutput   sql.NullString `db:"withpatch_raw_output"`
-		Results              sql.NullString `db:"results"`
-	}
-	chromiumPerfTasks := []chromiumPerfTask{}
+	chromiumPerfTasks := []ChromiumPerfDBTask{}
 
 	// Filter by either username or not started yet.
 	username := r.FormValue("username")
@@ -316,6 +346,67 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func getAllPendingTasks() ([]Task, error) {
+	tasks := []Task{}
+	for _, tableName := range taskTables {
+		var task Task
+		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_completed IS NULL ORDER BY ts_added LIMIT 1;", tableName)
+		if tableName == db.TABLE_CHROMIUM_PERF_TASKS {
+			task = &ChromiumPerfDBTask{}
+		}
+
+		if err := db.DB.Get(task, query); err != nil {
+			return nil, fmt.Errorf("Failed to query DB: %v", err)
+		}
+		tasks = append(tasks, task)
+	}
+	return tasks, nil
+}
+
+func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("getOldestPendingTaskHandler").Stop()
+	w.Header().Set("Content-Type", "application/json")
+
+	tasks, err := getAllPendingTasks()
+	if err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to get all pending tasks: %v", err))
+		return
+	}
+
+	var oldestTask Task
+	for _, task := range tasks {
+		if oldestTask == nil {
+			oldestTask = task
+		} else if oldestTask.GetAddedTimestamp() < task.GetAddedTimestamp() {
+			oldestTask = task
+		}
+	}
+
+	oldestTaskJsonRepr := map[string]Task{}
+	if oldestTask != nil {
+		oldestTaskJsonRepr[oldestTask.GetTaskName()] = oldestTask
+	}
+	if err := json.NewEncoder(w).Encode(oldestTaskJsonRepr); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
+func pendingTasksView(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("pendingTasksView").Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in local mode.
+	if *local {
+		reloadTemplates()
+	}
+
+	if err := pendingTasksTemplate.Execute(w, struct{}{}); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		return
+	}
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(skutil.MakeResourceHandler(*resourcesDir))
@@ -330,6 +421,10 @@ func runServer(serverURL string) {
 
 	// Runs history handlers.
 	r.HandleFunc("/history/", runsHistoryView).Methods("GET")
+
+	// Task Queue handlers.
+	r.HandleFunc("/queue/", pendingTasksView).Methods("GET")
+	r.HandleFunc("/_/get_oldest_pending_task", getOldestPendingTaskHandler).Methods("GET")
 
 	// Common handlers used by different pages.
 	r.HandleFunc("/_/page_sets/", pageSetsHandler).Methods("POST")

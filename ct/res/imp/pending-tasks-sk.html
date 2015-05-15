@@ -1,0 +1,124 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <pending-tasks-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/pending-tasks-sk.html" rel="import" />
+
+  Usage:
+
+    <pending-tasks-sk></pending-tasks-sk>
+-->
+
+<polymer-element name="pending-tasks-sk">
+  <template>
+    <style>
+      table.queue {
+        border-spacing: 0px;
+        padding-top: 2em;
+      }
+      tr.headers {
+        background-color: #CCCCFF;
+        text-align: center;
+      }
+      td.nowrap {
+        white-space: nowrap;
+      }
+      th,
+      td  {
+        padding: 15px;
+        border: solid black 1px;
+      }
+    </style>
+
+    <h2>Tasks in the Queue</h2>
+
+    <table class="queue">
+      <tr class="headers">
+        <td>Queue Position</td>
+        <td>Added</td>
+        <td>Task Type</td>
+        <td>User</td>
+        <td>Request</td>
+      </tr>
+
+      <template repeat="{{pendingTask, index in pendingTasks}}">
+      <tr id="row{{index}}">
+        <!-- Queue Position col --> 
+        <td>{{ index + 1 }}
+        </td>
+
+        <!-- Added col --> 
+        <td>{{ pendingTask["TsAdded"]["Int64"] | formatTimestamp }}</td>
+
+        <!-- Task Type col --> 
+        <td>{{ pendingTask["TaskType"] }}</td>
+
+        <!-- User col --> 
+        <td>{{ pendingTask["Username"] }}</td>
+
+        <!-- Request col -->
+        <td class="nowrap">
+          <a on-tap="{{toggleTaskDetails}}" href="javascript:void(0);">Task Details</a>
+          <paper-dialog heading="Task Details" id="task_details{{index}}">
+            <pre>{{ pendingTask | formatTask }}</pre>
+          </paper-dialog>
+        </td>
+      </tr>
+    </template>
+    </table>
+    <br/>
+  </template>
+
+
+  <script>
+   Polymer({
+     created: function() {
+       this.pendingTasks = this.pendingTasks || [];
+     },
+
+     ready: function() {
+       var queryParams = {
+         "size": 100,
+         "not_completed": true,
+       }
+       var queryStr = "?" + sk.query.fromObject(queryParams);
+       var that = this;
+       sk.post('/_/get_chromium_perf_tasks' + queryStr).then(JSON.parse).then(function(json) {
+         that.updatePendingTasks(json.data, "ChromiumPerfTask");
+       }).catch(function(err) {
+         alert(err);
+       });
+     },
+
+     formatTask: function(task) {
+       return JSON.stringify(task, null, 4);
+     },
+
+     updatePendingTasks: function(tasks, tasksType) {
+       for (index in tasks) {
+         tasks[index]["TaskType"] = tasksType;
+       }
+       this.pendingTasks = this.pendingTasks.concat(tasks)
+       // Sort pending tasks according to TsAdded.
+       this.pendingTasks.sort(function(a, b){return a["TsAdded"]["Int64"] - b["TsAdded"]["Int64"]});
+     },
+
+     toggleTaskDetails: function(e) {
+       var index = e.target.templateInstance.model.index;
+       this.toggleDialog("#task_details" + index);
+     },
+
+     toggleDialog: function(id) {
+       this.shadowRoot.querySelector(id).toggle();
+     },
+
+     formatTimestamp: function(timestamp) {
+       return getFormattedTimestamp(timestamp);
+     },
+  });
+  </script>
+</polymer-element>

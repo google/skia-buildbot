@@ -62,15 +62,15 @@
           <table>
             <tr>
               <td>Added:</td>
-              <td class="nowrap">{{ chromiumPerfTask["TsAdded"]["Int64"] | getFormattedTimestamp }}</td>
+              <td class="nowrap">{{ chromiumPerfTask["TsAdded"]["Int64"] | formatTimestamp }}</td>
             </tr>
             <tr>
               <td>Started:</td>
-              <td class="nowrap">{{ chromiumPerfTask["TsStarted"]["Int64"] | getFormattedTimestamp }}</td>
+              <td class="nowrap">{{ chromiumPerfTask["TsStarted"]["Int64"] | formatTimestamp }}</td>
             </tr>
             <tr>
               <td>Completed:</td>
-              <td class="nowrap">{{ chromiumPerfTask["TsCompleted"]["Int64"] | getFormattedTimestamp }}</td>
+              <td class="nowrap">{{ chromiumPerfTask["TsCompleted"]["Int64"] | formatTimestamp }}</td>
             </tr>
           </table>
         </td>
@@ -263,12 +263,8 @@
        this.shadowRoot.querySelector(id).toggle();
      },
 
-     getFormattedTimestamp: function(timestamp) {
-       if (timestamp == 0) {
-         return "<pending>";
-       }
-       var pattern = /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-       return new Date(String(timestamp).replace(pattern,'$1-$2-$3T$4:$5:$6')).toLocaleString();
+     formatTimestamp: function(timestamp) {
+       return getFormattedTimestamp(timestamp);
      },
   });
   </script>
