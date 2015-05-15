@@ -128,17 +128,25 @@ type ExpectationsStore interface {
 	RemoveChange(changes map[string][]string) error
 
 	// QueryLog allows to paginate through the changes in the expecations.
-	QueryLog(offset, size int) ([]*TriageLogEntry, int, error)
+	// If details is true the result will include a list of triage operations
+	// that were part a change.
+	QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error)
 }
 
-// TODO(stephana): Expand the TriageLogEntry with change id and the
-// map of changed digests and their labels to support undo functionality.
+// TriageDetails represents one changed digest and the label that was
+// assigned as part of the triage operation.
+type TriageDetail struct {
+	TestName string `json:"test_name"`
+	Digest   string `json:"digest"`
+	Label    string `json:"label"`
+}
 
 // TriageLogEntry represents one change in the expectation store.
 type TriageLogEntry struct {
-	Name        string `json:"name"`
-	TS          int64  `json:"ts"`
-	ChangeCount int    `json:"changeCount"`
+	Name        string          `json:"name"`
+	TS          int64           `json:"ts"`
+	ChangeCount int             `json:"changeCount"`
+	Details     []*TriageDetail `json:"details"`
 }
 
 // Implements ExpectationsStore in memory for prototyping and testing.
@@ -217,7 +225,7 @@ func (m *MemExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 }
 
 // See ExpectationsStore interface.
-func (m *MemExpectationsStore) QueryLog(offset, size int) ([]*TriageLogEntry, int, error) {
+func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error) {
 	glog.Fatal("MemExpectation store does not support querying the logs.")
 	return nil, 0, nil
 }

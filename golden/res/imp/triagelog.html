@@ -41,14 +41,41 @@ chronological order.
         padding-top: 2em;
       }
 
+      .testValue {
+        padding-left:7em;
+        width:30em;
+      }
+
+      .digestValue {
+        width:20em;
+      }
+
+      .labelValue {
+        width:30em;
+      }
+
       .tableRow {
         display: flex;
         flex-direction: row;
         padding-bottom: .5em;
       }
+
+      .topToggle {
+        font-size: 20px;
+        margin-right: 2em;
+        padding-top: 1em;
+        padding-right: 1em;
+      }
     </style>
 
     <paging-sk pagination="{{pagination}}" on-pagechange="{{pageChangedHandler}}"></paging-sk>
+    <div horizontal layout>
+      <div class="topToggle">
+        Details
+        <paper-toggle-button checked="{{page.state.details}}" on-change="{{detailsToggleChanged}}" role="button" aria-pressed="false" tabindex="0" touch-action="pan-y">
+        </paper-toggle-button>
+     </div>
+    </div>
 
     <div class="tableRow headerContainer">
       <div class="dateTimeHeader">Date/Time</div>
@@ -63,6 +90,15 @@ chronological order.
           <div class="nameValue">{{entry.name}}</div>
           <div class="changesValue">{{entry.changeCount}}</div>
         </div>
+          <template repeat="{{detail in entry.details}}">
+            <div class="tableRow">
+                <div class="testValue">{{detail.test_name}}</div>
+                <div class="digestValue">
+                  <a href="detail?test={{detail.test_name}}&digest={{detail.digest}}" target="_blank">{{detail.digest}}</a>
+                </div>
+                <div class="labelValue">{{detail.label}}</div>
+            </div>
+        </template>
       </template>
     </div>
     <paper-toast id="toast" duration="15000">
@@ -74,18 +110,24 @@ chronological order.
     Polymer('triagelog-sk', {
       ready: function() {
         this.pagination = null;
+        this.page = {};
+        this.page.state = {
+          details: false
+        };
+        // Note: This forces and immediate trigger of reload.
+        sk.stateReflector(this.page, this.reload.bind(this));
 
         // Set up the paging change handler and load the data.
         this.pageChangedHandler = this.reload.bind(this);
-        this.reload();
       },
 
       // Load or reload the listing.
       reload: function() {
         var that = this;
-        var URL = '_/triagelog';
+        var URL = '_/triagelog?'+sk.query.fromObject(this.page.state);
+
         if (this.pagination !== null) {
-          URL += '?' + sk.query.fromObject({
+          URL += '&' + sk.query.fromObject({
             offset: this.pagination.offset,
             size: this.pagination.size
           });
@@ -103,6 +145,11 @@ chronological order.
 
       toLocalDate: function(timeStampMS) {
         return (new Date(timeStampMS)).toLocaleString();
+      },
+
+      detailsToggleChanged: function(event, detail, sender) {
+        this.page.state.details = sender.checked;
+        this.reload();
       }
     });
   </script>

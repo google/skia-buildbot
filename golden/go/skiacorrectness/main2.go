@@ -463,9 +463,11 @@ func polyTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	var logEntries []*expstorage.TriageLogEntry
 	var total int
 
-	offset, size, err := util.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	q := r.URL.Query()
+	offset, size, err := util.PaginationParams(q, 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
-		logEntries, total, err = storages.ExpectationsStore.QueryLog(offset, size)
+		details := q.Get("details") == "true"
+		logEntries, total, err = storages.ExpectationsStore.QueryLog(offset, size, details)
 	}
 
 	if err != nil {

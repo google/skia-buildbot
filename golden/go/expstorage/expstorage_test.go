@@ -38,7 +38,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	// Get the initial log size. This is necessary because we
 	// call this function multiple times with the same underlying
 	// SQLExpectationStore.
-	initialLogRecs, initialLogTotal, err := store.QueryLog(0, 5)
+	initialLogRecs, initialLogTotal, err := store.QueryLog(0, 5, true)
 	assert.Nil(t, err)
 	initialLogRecsLen := len(initialLogRecs)
 
@@ -68,6 +68,13 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 			DIGEST_22: types.NEGATIVE,
 		},
 	}
+	logEntry_1 := []*TriageDetail{
+		&TriageDetail{TEST_1, DIGEST_11, "positive"},
+		&TriageDetail{TEST_1, DIGEST_12, "negative"},
+		&TriageDetail{TEST_2, DIGEST_21, "positive"},
+		&TriageDetail{TEST_2, DIGEST_22, "negative"},
+	}
+
 	assert.Nil(t, store.AddChange(newExps, "user-0"))
 	if eventBus != nil {
 		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
@@ -90,6 +97,11 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 			DIGEST_22: types.UNTRIAGED,
 		},
 	}
+	logEntry_2 := []*TriageDetail{
+		&TriageDetail{TEST_1, DIGEST_11, "negative"},
+		&TriageDetail{TEST_2, DIGEST_22, "untriaged"},
+	}
+
 	assert.Nil(t, store.AddChange(updExps, "user-1"))
 	if eventBus != nil {
 		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
@@ -148,12 +160,16 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	}
 
 	// Make sure we added the correct number of triage log entries.
-	logEntries, total, err := store.QueryLog(0, 5)
+	logEntries, total, err := store.QueryLog(0, 5, true)
 	assert.Nil(t, err)
 	assert.Equal(t, 3+initialLogTotal, total)
 	assert.Equal(t, util.MinInt(3+initialLogRecsLen, 5), len(logEntries))
 
-	logEntries, total, err = store.QueryLog(100, 5)
+	assert.Equal(t, 0, len(logEntries[0].Details))
+	assert.Equal(t, logEntry_2, logEntries[1].Details)
+	assert.Equal(t, logEntry_1, logEntries[2].Details)
+
+	logEntries, total, err = store.QueryLog(100, 5, true)
 	assert.Nil(t, err)
 	assert.Equal(t, 3+initialLogTotal, total)
 	assert.Equal(t, 0, len(logEntries))

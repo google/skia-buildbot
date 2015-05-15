@@ -1,6 +1,9 @@
 package expstorage
 
 import (
+	"fmt"
+	"strings"
+
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/timer"
@@ -156,13 +159,18 @@ func (e *SQLExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 }
 
 // See ExpectationsStore interface.
-func (m *SQLExpectationsStore) QueryLog(offset, size int) ([]*TriageLogEntry, int, error) {
-	const stmtList = `SELECT ec.userid, ec.ts, count(*)
+func (m *SQLExpectationsStore) QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error) {
+	const stmtList = `SELECT ec.id, ec.userid, ec.ts, count(*)
 					  FROM exp_change AS ec
 						LEFT OUTER JOIN exp_test_change AS tc
 							ON ec.id=tc.changeid
 					  GROUP BY ec.id ORDER BY ec.ts DESC
 					  LIMIT ?, ?`
+
+	const stmtDetails = `SELECT ec.id, tc.name, tc.digest, tc.label
+					  FROM exp_change AS ec, exp_test_change AS tc
+					  WHERE (ec.id=tc.changeid) AND (ec.id IN (%s))
+					  ORDER BY ec.ts DESC, tc.name ASC, tc.digest ASC`
 
 	const stmtTotal = `SELECT count(*) FROM exp_change`
 
@@ -184,14 +192,54 @@ func (m *SQLExpectationsStore) QueryLog(offset, size int) ([]*TriageLogEntry, in
 	}
 	defer util.Close(rows)
 
+	var ids []interface{}
+	var placeHolders []string
+
+	if details {
+		ids = make([]interface{}, 0, size)
+		placeHolders = make([]string, 0, size)
+	}
+
 	result := make([]*TriageLogEntry, 0, size)
+	var recID int
 	for rows.Next() {
 		entry := &TriageLogEntry{}
-		if err = rows.Scan(&entry.Name, &entry.TS, &entry.ChangeCount); err != nil {
+		if err = rows.Scan(&recID, &entry.Name, &entry.TS, &entry.ChangeCount); err != nil {
 			return nil, 0, err
 		}
 		result = append(result, entry)
+		if details {
+			ids = append(ids, recID)
+			placeHolders = append(placeHolders, "?")
+		}
 	}
+
+	if details && len(result) > 0 {
+		stmt := fmt.Sprintf(stmtDetails, strings.Join(placeHolders, ","))
+		rows, err := m.vdb.DB.Query(stmt, ids...)
+		if err != nil {
+			return nil, 0, err
+		}
+
+		idx := 0
+		curr := make([]*TriageDetail, 0, result[0].ChangeCount)
+		for rows.Next() {
+			detail := &TriageDetail{}
+			if err = rows.Scan(&recID, &detail.TestName, &detail.Digest, &detail.Label); err != nil {
+				return nil, 0, err
+			}
+
+			if ids[idx].(int) != recID {
+				result[idx].Details = curr
+				idx++
+				curr = make([]*TriageDetail, 0, result[idx].ChangeCount)
+			}
+			curr = append(curr, detail)
+		}
+
+		result[idx].Details = curr
+	}
+
 	return result, total, nil
 }
 
@@ -262,6 +310,6 @@ func (c *CachingExpectationStore) RemoveChange(changedDigests map[string][]strin
 }
 
 // See ExpectationsStore interface.
-func (c *CachingExpectationStore) QueryLog(offset, size int) ([]*TriageLogEntry, int, error) {
-	return c.store.QueryLog(offset, size)
+func (c *CachingExpectationStore) QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error) {
+	return c.store.QueryLog(offset, size, details)
 }
