@@ -60,14 +60,19 @@
     </scaffold-sk>
 
     <script type="text/javascript" charset="utf-8">
-      sk.WebComponentsReady.then(function(){
-        sk.get("/_/list").then(JSON.parse).then(function(json) {
-          $$$('unit-list-sk').units = json;
-        }).catch(function(e){
-          $$$('paper-toast').text = e;
-          $$$('paper-toast').show();
-        });
-      });
+      (function() {
+        function loadData() {
+          sk.get("/_/list").then(JSON.parse).then(function(json) {
+            $$$('unit-list-sk').units = json;
+          }).catch(function(e){
+            $$$('paper-toast').text = e;
+            $$$('paper-toast').show();
+          });
+        }
+
+        sk.WebComponentsReady.then(loadData);
+        $$$('unit-list-sk').addEventListener('unit-updated', loadData);
+      })();
     </script>
 
   </body>

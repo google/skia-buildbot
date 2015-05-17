@@ -10,21 +10,28 @@
     none.
 
   Events:
-    none.
+    unit-updated - Sent when a units status has changed and the list should be
+       reloaded.
 -->
 <polymer-element name="unit-list-sk">
   <template>
     <style type="text/css" media="screen">
-      table {
-        font-size: 20px;
+      paper-button:hover {
+        background: #eee;
       }
     </style>
-    <table>
+    <table id=list>
       <tr><th>Service</th><th>Status</th></tr>
       <template repeat="{{u in units}}">
-        <tr><td>{{u.Name}}</td><td>{{u.SubState}}</td></tr>
+        <tr>
+          <td>{{u.Name}}</td><td>{{u.SubState}}</td>
+          <td><paper-button raised data-action="start" data-name="{{u.Name}}">Start</paper-button></td>
+          <td><paper-button raised data-action="stop" data-name="{{u.Name}}">Stop</paper-button></td>
+          <td><paper-button raised data-action="restart" data-name="{{u.Name}}">Restart</paper-button></td>
+        </tr>
       </template>
     </table>
+    <paper-toast id=toast></paper-toast>
   </template>
   <script>
     Polymer({
@@ -33,6 +40,35 @@
           value: [],
           reflect: false,
         }
+      },
+
+      ready: function() {
+        var that=this;
+        this.$.list.addEventListener('click', function(e) {
+          // Find the paper-button element, it has the name and action
+          // to perform in its data-attributes.
+          var ele = null;
+          for (var i=0; i<e.path.length; i++) {
+            if (e.path[i].nodeName == "PAPER-BUTTON") {
+              ele = e.path[i];
+              break;
+            }
+          }
+          if (ele) {
+            var params = {
+              name: ele.dataset.name,
+              action: ele.dataset.action,
+            };
+            sk.post('/_/change?'+sk.query.fromObject(params)).then(JSON.parse).then(function(json) {
+              that.$.toast.text = ele.dataset.name + ": " + json.result;
+              that.$.toast.show();
+              that.dispatchEvent(new CustomEvent('unit-updated'));
+            }).catch(function(e) {
+              that.$.toast.text = e;
+              that.$.toast.show();
+            })
+          }
+        });
       },
     });
   </script>

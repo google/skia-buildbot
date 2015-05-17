@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"html/template"
 	"net/http"
 	"path/filepath"
@@ -23,6 +24,8 @@ var (
 
 	// dbc is the dbus connection we use to talk to systemd.
 	dbc *dbus.Conn
+
+	ACTIONS = []string{"start", "stop", "restart"}
 )
 
 // flags
@@ -58,6 +61,70 @@ func Init() {
 		glog.Fatalf("Failed to initialize dbus: %s", err)
 	}
 	loadResouces()
+}
+
+// ChangeResult is the serialized JSON response from changeHandler.
+type ChangeResult struct {
+	Result string `json:"result"`
+}
+
+// changeHandler changes the status of a service.
+//
+// Takes the following query parameters:
+//
+//   name - The name of the service.
+//   action - The action to perform. One of ["start", "stop", "restart"].
+//
+// The response is of the form:
+//
+//   {
+//     "result": "started"
+//   }
+//
+func changeHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Change Handler: %q\n", r.URL.Path)
+	var err error
+
+	if err := r.ParseForm(); err != nil {
+		util.ReportError(w, r, err, "Failed to parse form.")
+		return
+	}
+	action := r.Form.Get("action")
+	if !util.In(action, ACTIONS) {
+		util.ReportError(w, r, fmt.Errorf("Not a valid action: %s", action), "Invalid action.")
+		return
+	}
+	name := r.Form.Get("name")
+	if name == "" {
+		util.ReportError(w, r, fmt.Errorf("Not a valid service name: %s", name), "Invalid service name.")
+		return
+	}
+	if *local {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(ChangeResult{"started"}); err != nil {
+			util.ReportError(w, r, err, "Failed to encode response.")
+		}
+		return
+	}
+	ch := make(chan string)
+	switch action {
+	case "start":
+		_, err = dbc.StartUnit(name, "replace", ch)
+	case "stop":
+		_, err = dbc.StopUnit(name, "replace", ch)
+	case "restart":
+		_, err = dbc.RestartUnit(name, "replace", ch)
+	}
+	if err != nil {
+		util.ReportError(w, r, err, "Action failed.")
+		return
+	}
+	res := ChangeResult{}
+	res.Result = <-ch
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		util.ReportError(w, r, err, "Failed to encode response.")
+	}
 }
 
 // serviceOnly returns only units that are services.
@@ -124,6 +191,7 @@ func main() {
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler).Methods("GET")
 	r.HandleFunc("/_/list", listHandler).Methods("GET")
+	r.HandleFunc("/_/change", changeHandler).Methods("POST")
 	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))
