@@ -56,6 +56,11 @@ func main() {
 	browserArgs := *browserExtraArgs
 	repeats := *repeatBenchmark
 
+	// Reset the local chromium checkout.
+	if err := util.ResetCheckout(util.ChromiumSrcDir); err != nil {
+		glog.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
+		return
+	}
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
 		glog.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
