@@ -44,9 +44,16 @@ case "$1" in
     GOLD_DATA_DISK_SIZE="500GB"
     ;;
 
+  # For testing only. Destroy after creation.
+  testinstance)
+    GOLD_MACHINE_TYPE=n1-highmem-16
+    GOLD_IP_ADDRESS=104.154.112.111
+    GOLD_DATA_DISK_SIZE="500GB"
+    ;;
+
   *)
     # There must be a target instance id provided.
-    echo "Usage: $0 {prod | stage | android | blink}"
+    echo "Usage: $0 {prod | stage | android | blink | testinstance}"
     echo "   An instance id must be provided as the first argument."
     exit 1
     ;;
