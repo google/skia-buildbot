@@ -11,32 +11,6 @@
         font-size: 15px;
       }
 
-      #pageWrapper {
-        background: white;
-      }
-      .col {
-        padding: 0.5em;
-      }
-
-      html /deep/ core-toolbar,
-      #title {
-        background-color: #1f78b4;
-        color: #fff;
-      }
-
-      #title /deep/ a {
-        color: white;
-      }
-
-      html /deep/ a {
-        color: #1f78b4;
-        font-weight: bold;
-      }
-
-      html /deep/ #mainContainer {
-        background: white;
-      }
-
       paper-toast {
         margin: 2em;
       }
@@ -45,19 +19,16 @@
         margin: 2em;
         display: block;
       }
-
-      table {
-        font-size: 20px;
-      }
     </style>
   </head>
   <body>
-    <scaffold-sk responsiveWidth="700px">
-      {{template "titlebar.html" .}}
-
-      <unit-list-sk></unit-list-sk>
-      <paper-toast></paper-toast>
-    </scaffold-sk>
+    <body class="fullbleed layout vertical">
+      <paper-header-panel class="flex">
+        {{template "titlebar.html" .}}
+        <unit-list-sk machine="joe-systemd"></unit-list-sk>
+        <paper-toast></paper-toast>
+      </paper-header-panel>
+    </body>
 
     <script type="text/javascript" charset="utf-8">
       (function() {
@@ -70,10 +41,22 @@
           });
         }
 
-        sk.WebComponentsReady.then(loadData);
-        $$$('unit-list-sk').addEventListener('unit-updated', loadData);
+        loadData();
+        $$$('unit-list-sk').addEventListener('unit-action', function(e) {
+          var params = {
+            name: e.detail.name,
+            action: e.detail.action,
+          }
+          sk.post('/_/change?'+sk.query.fromObject(params)).then(JSON.parse).then(function(json) {
+            $$$('paper-toast').text = e.detail.name + ": " + json.result;
+            $$$('paper-toast').show();
+            loadData();
+          }).catch(function(e) {
+            $$$('paper-toast').text = e;
+            $$$('paper-toast').show();
+          });
+        });
       })();
     </script>
-
   </body>
 </html>

@@ -1,75 +1,86 @@
 <!-- The <unit-list-sk> custom element declaration.
 
-  Displays a list of systemd Units and their status.
-
   Attributes:
-    units - A serialized slice of dbus.UnitStatus. See:
-       http://godoc.org/github.com/coreos/go-systemd/dbus#UnitStatus Events:
-
-  Methods:
-    none.
+    machine - The DNS name of the machine.
 
   Events:
-    unit-updated - Sent when a units status has changed and the list should be
-       reloaded.
+    unit-action - Event generated when start, stop, or restart are clicked.
+        Emits an event of the form:
+
+        {
+          machine: "skia-monitoring",
+          name: "logserver.service",
+          action: "restart"
+        }
+
+  Methods:
 -->
-<polymer-element name="unit-list-sk">
+
+<dom-module id="unit-list-sk">
+  <style>
+    paper-button:hover {
+      background: #eee;
+    }
+
+    td,
+    th {
+      padding: 0.2em 0.4em;
+    }
+
+    table {
+      font-size: 20px;
+    }
+  </style>
   <template>
-    <style type="text/css" media="screen">
-      paper-button:hover {
-        background: #eee;
-      }
-    </style>
     <table id=list>
       <tr><th>Service</th><th>Status</th></tr>
-      <template repeat="{{u in units}}">
+      <template is="dom-repeat" items="{{units}}">
         <tr>
-          <td>{{u.Name}}</td><td>{{u.SubState}}</td>
-          <td><paper-button raised data-action="start" data-name="{{u.Name}}">Start</paper-button></td>
-          <td><paper-button raised data-action="stop" data-name="{{u.Name}}">Stop</paper-button></td>
-          <td><paper-button raised data-action="restart" data-name="{{u.Name}}">Restart</paper-button></td>
+          <td>{{item.Name}}</td><td>{{item.SubState}}</td>
+          <td><paper-button raised data-action="start"   data-name$="{{item.Name}}">Start  </paper-button></td>
+          <td><paper-button raised data-action="stop"    data-name$="{{item.Name}}">Stop   </paper-button></td>
+          <td><paper-button raised data-action="restart" data-name$="{{item.Name}}">Restart</paper-button></td>
         </tr>
       </template>
     </table>
-    <paper-toast id=toast></paper-toast>
   </template>
-  <script>
-    Polymer({
-      publish: {
-        units: {
-          value: [],
-          reflect: false,
-        }
-      },
+</dom-module>
 
-      ready: function() {
-        var that=this;
-        this.$.list.addEventListener('click', function(e) {
-          // Find the paper-button element, it has the name and action
-          // to perform in its data-attributes.
-          var ele = null;
-          for (var i=0; i<e.path.length; i++) {
-            if (e.path[i].nodeName == "PAPER-BUTTON") {
-              ele = e.path[i];
-              break;
-            }
-          }
-          if (ele) {
-            var params = {
-              name: ele.dataset.name,
-              action: ele.dataset.action,
-            };
-            sk.post('/_/change?'+sk.query.fromObject(params)).then(JSON.parse).then(function(json) {
-              that.$.toast.text = ele.dataset.name + ": " + json.result;
-              that.$.toast.show();
-              that.dispatchEvent(new CustomEvent('unit-updated'));
-            }).catch(function(e) {
-              that.$.toast.text = e;
-              that.$.toast.show();
-            })
-          }
-        });
+<script>
+  Polymer({
+    is: "unit-list-sk",
+    properties: {
+      units: {
+        type: Array,
+        value: [],
       },
-    });
-  </script>
-</polymer-element>
+      machine: {
+        type: String,
+        value: "",
+      }
+    },
+    ready: function() {
+      this.foo = "bar";
+      var that=this;
+      this.$.list.addEventListener('click', function(e) {
+        // Find the paper-button element, it has the name and action
+        // to perform in its data-attributes.
+        var ele = null;
+        for (var i=0; i<e.path.length; i++) {
+          if (e.path[i].nodeName == "PAPER-BUTTON") {
+            ele = e.path[i];
+            break;
+          }
+        }
+        if (ele) {
+          var detail = {
+            machine: this.machine,
+            name: ele.dataset.name,
+            action: ele.dataset.action,
+          };
+          that.dispatchEvent(new CustomEvent('unit-action', {detail: detail}));
+        }
+      });
+    },
+  });
+</script>

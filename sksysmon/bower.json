@@ -14,13 +14,13 @@
     "tests"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#^0.5",
-    "core-elements": "Polymer/core-elements#^0.5",
-    "paper-elements": "Polymer/paper-elements#^0.5",
-    "webcomponentsjs": "Polymer/webcomponentsjs#^0.7",
-    "native-promise-only": "~0.7.6-a"
+    "native-promise-only": "~0.7.6-a",
+    "polymer": "Polymer/polymer#^0.9.0",
+    "iron-elements": "PolymerElements/iron-elements#~0.9.1",
+    "paper-elements": "PolymerElements/paper-elements#~0.9.1",
+    "layout": "Polymer/layout"
   },
   "resolutions": {
-    "webcomponentsjs": "0.7.0"
+    "polymer": "^0.9.0"
   }
 }
