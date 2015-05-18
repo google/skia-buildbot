@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"regexp"
-	"sort"
 	"time"
 
 	"github.com/rcrowley/go-metrics"
@@ -90,8 +90,9 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 			"skiabot-shuttle-ubuntu12-galaxys4-002",
 		}
 
-		failedInARowThreshold := 3
-		failureRateThreshold := 0.5
+		// Generate an alert if the failure rate exceeds the mean by
+		// this many standard deviations,
+		sigStdDevs := 0.5
 		for _ = range time.Tick(tickInterval) {
 			now := time.Now()
 			start := now.Add(-24 * time.Hour)
@@ -100,12 +101,30 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 				glog.Error(err)
 				continue
 			}
+			buildsByBuilder := map[string][]*buildbot.Build{}
 			buildsBySlave := map[string][]*buildbot.Build{}
 			for _, b := range builds {
+				if _, ok := buildsByBuilder[b.Builder]; !ok {
+					buildsByBuilder[b.Builder] = []*buildbot.Build{}
+				}
+				buildsByBuilder[b.Builder] = append(buildsByBuilder[b.Builder], b)
 				if _, ok := buildsBySlave[b.BuildSlave]; !ok {
 					buildsBySlave[b.BuildSlave] = []*buildbot.Build{}
 				}
 				buildsBySlave[b.BuildSlave] = append(buildsBySlave[b.BuildSlave], b)
+			}
+			failuresByBuilder := map[string]int{}
+			for builder, builds := range buildsByBuilder {
+				failures := 0
+				for _, b := range builds {
+					if b.Results == 0 || b.Results == 1 || b.Results == 3 {
+						// Success | Warnings | Skipped
+					} else {
+						// Failure | Exception | Retry
+						failures++
+					}
+				}
+				failuresByBuilder[builder] = failures
 			}
 			for slave, b := range buildsBySlave {
 				if util.In(slave, buildslaveBlacklist) {
@@ -117,46 +136,51 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 				// we can assume that the slave only connects to one master.
 				master := b[0].Master
 
-				// Sort by finish time.
-				sort.Sort(BuildSlice(b))
-
-				// N failures in a row.
-				overThreshold := false
-				if len(b) >= failedInARowThreshold {
-					overThreshold = true
-					for i := 0; i < failedInARowThreshold; i++ {
-						if b[len(b)-i-1].Results == 0 {
-							overThreshold = false
-							break
-						}
-					}
-				}
-				if overThreshold {
-					if err := am.AddAlert(&alerting.Alert{
-						Name:        fmt.Sprintf("Buildslave %s failed %d times", slave, failedInARowThreshold),
-						Category:    alerting.INFRA_ALERT,
-						Message:     fmt.Sprintf("Buildslave %s has failed its last %d builds: https://uberchromegw.corp.google.com/i/%s/buildslaves/%s", slave, failedInARowThreshold, master, slave),
-						Nag:         int64(3 * time.Hour),
-						AutoDismiss: int64(2 * tickInterval),
-						Actions:     actions,
-					}); err != nil {
-						glog.Error(err)
-					}
-				}
-
-				// Failure rate > k.
+				// Loop through the builds:
+				// 1. Calculate the failure rate for this slave.
+				// 2. Calculate a mean failure rate: the combined
+				//    failure rate of all builders that this slave ran.
+				builders := map[string]bool{}
 				failed := 0
 				for _, build := range b {
 					if build.Results != 0 {
 						failed++
 					}
+					builders[build.Builder] = true
 				}
 				failureRate := float64(failed) / float64(len(b))
-				if failureRate > failureRateThreshold {
+				if failureRate == 0 {
+					continue
+				}
+				failedOnAllBuilders := 0
+				ranOnAllBuilders := 0
+				for builder, _ := range builders {
+					ranOnAllBuilders += len(buildsByBuilder[builder])
+					failedOnAllBuilders += failuresByBuilder[builder]
+				}
+				meanFailureRate := float64(failedOnAllBuilders) / float64(ranOnAllBuilders)
+
+				// Calculate the standard deviation.
+				sumSquares := float64(0.0)
+				// (val - mean)^2 for failures.
+				f := float64(1.0) - meanFailureRate
+				f = f * f
+				// (val - mean)^2 for successes.
+				s := float64(0.0) - meanFailureRate
+				s = s * s
+				for builder, _ := range builders {
+					sumSquares += f * float64(failuresByBuilder[builder])
+					sumSquares += s * float64(len(buildsByBuilder[builder])-failuresByBuilder[builder])
+				}
+				stddev := math.Sqrt(sumSquares / float64(ranOnAllBuilders))
+				glog.Infof("Failure rate: %f Mean: %f Stddev: %f on %s", failureRate, meanFailureRate, stddev, slave)
+
+				threshold := meanFailureRate + sigStdDevs*stddev
+				if failureRate > threshold {
 					if err := am.AddAlert(&alerting.Alert{
-						Name:        fmt.Sprintf("Buildslave %s failure rate > %f", slave, failureRateThreshold),
+						Name:        fmt.Sprintf("Buildslave %s failure rate is too high", slave),
 						Category:    alerting.INFRA_ALERT,
-						Message:     fmt.Sprintf("Buildslave %s failure rate exceeds %f (%f): https://uberchromegw.corp.google.com/i/%s/buildslaves/%s", slave, failureRateThreshold, failureRate, master, slave),
+						Message:     fmt.Sprintf("Buildslave %s failure rate (%f) is significantly higher than the average failure rate of the builders it runs. Mean: %f StdDev: %f .Significance defined as %f standard deviations for a threshold of %f. https://uberchromegw.corp.google.com/i/%s/buildslaves/%s", slave, failureRate, meanFailureRate, stddev, sigStdDevs, threshold, master, slave),
 						Nag:         int64(3 * time.Hour),
 						AutoDismiss: int64(2 * tickInterval),
 						Actions:     actions,
