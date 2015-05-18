@@ -129,6 +129,9 @@
         color: #E7298A;
         font-weight: bold;
       }
+      .noCompare {
+        padding-right: 1em;
+      }
     </style>
     <div horizontal layout>
       <template if="{{triage && negIsClosest}}">
@@ -136,8 +139,8 @@
           Closest Image Is Negative!
         </div>
       </template>
-      <template if="{{triage && details.closest.digest}}">
-        <div horizontal layout id=images>
+      <div horizontal layout id=images>
+        <template if="{{triage && details.closest.digest}}">
           <div class=preview>
             <img src="/img/images/{{details.closest.digest}}.png" />
           </div>
@@ -146,15 +149,17 @@
             <img src="/img/diffs/{{diffDigests}}.png" />
           </div>
           <a href="/img/diffs/{{diffDigests}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+        </template>
+        <template if="{{triage}}">
           <div class=preview>
             <img src="/img/images/{{digest}}.png" />
           </div>
           <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
-        </div>
-      </template>
+        </template>
+      </div>
       <template if="{{triage && !details.closest.digest}}">
-        <div>
-          <strong>No Positive Digests Found.</strong>
+        <div class=noCompare>
+          <strong>No Positive or Negative Digests Found.</strong>
         </div>
       </template>
       <div vertical layout>
@@ -208,9 +213,11 @@
         </table>
       </div>
       <div vertical layout class="{{triage ? 'triageInfo' : 'hidden'}}">
-        <div><a href="diff?test={{test}}&left={{digest}}&top={{details.closest.digest}}">Details</a></div>
-        <div>Diff: {{details.closest.diff | fixedPercent }}%</div>
-        <div>Max RGBA: [{{details.closest.maxRGBA}}]</div>
+        <template if="{{details.closest.digest}}">
+          <div><a href="diff?test={{test}}&left={{digest}}&top={{details.closest.digest}}">Details</a></div>
+          <div>Diff: {{details.closest.diff | fixedPercent }}%</div>
+          <div>Max RGBA: [{{details.closest.maxRGBA}}]</div>
+        </template>
         <tri-sk data-digest="{{digest}}" data-test="{{test}}" value=untriaged id=triage></tri-sk>
       </div>
     </div>
