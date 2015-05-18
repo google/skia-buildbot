@@ -75,6 +75,7 @@ func NewContext(tile *types.Tile) *Context {
 			"ratio":  ratioFunc,
 			"sum":    sumFunc,
 			"geo":    geoFunc,
+			"log":    logFunc,
 		},
 	}
 }

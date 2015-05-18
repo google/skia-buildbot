@@ -353,3 +353,40 @@ func (GeoFunc) Describe() string {
 }
 
 var geoFunc = GeoFunc{}
+
+type LogFunc struct{}
+
+// logFunc implements Func and transforms a trace of x into a trace of log10(x).
+//
+// Values <= 0 are set to MISSING_DATA_SENTINEL.  MISSING_DATA_SENTINEL values are left untouched.
+func (LogFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
+	if len(node.Args) != 1 {
+		return nil, fmt.Errorf("log() takes a single argument.")
+	}
+	if node.Args[0].Typ != NodeFunc {
+		return nil, fmt.Errorf("log() takes a function argument.")
+	}
+	traces, err := node.Args[0].Eval(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("log() failed evaluating argument: %s", err)
+	}
+
+	for _, tr := range traces {
+		for i, v := range tr.Values {
+			if v != config.MISSING_DATA_SENTINEL {
+				if v > 0 {
+					tr.Values[i] = math.Log10(v)
+				} else {
+					tr.Values[i] = config.MISSING_DATA_SENTINEL
+				}
+			}
+		}
+	}
+	return traces, nil
+}
+
+func (LogFunc) Describe() string {
+	return `log() applies a base-10 logarithm to the datapoints.`
+}
+
+var logFunc = LogFunc{}
