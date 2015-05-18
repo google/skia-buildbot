@@ -9,6 +9,7 @@ BOWER_DIR=third_party/bower_components
 
 default: core_js elements_html
 	go install -v ./go/pull
+	go install -v ./go/pulld
 	go install -v ./go/push
 
 release: default
