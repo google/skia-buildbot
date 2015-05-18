@@ -41,6 +41,7 @@ const (
 	DEFAULT_COMMITS_TO_LOAD = 50
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
+	GOLD_STATUS_QUERY_TMPL  = "select value from /skiacorrectness.skia-gold-prod.status.untriaged.by_corpus.%s.value/ limit 1"
 )
 
 var (
@@ -518,15 +519,15 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to create polling Perf status: %v", err)
 	}
-	goldGMStatus, err = influxdb.NewIntPollingStatus("select value from /skia-gold-prod.skiacorrectness.skia-gold-prod.gold.untriaged.by_corpus.gm.value/ limit 1", dbClient)
+	goldGMStatus, err = influxdb.NewIntPollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), dbClient)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
 	}
-	goldSKPStatus, err = influxdb.NewIntPollingStatus("select value from /skia-gold-prod.skiacorrectness.skia-gold-prod.gold.untriaged.by_corpus.skp.value/ limit 1", dbClient)
+	goldSKPStatus, err = influxdb.NewIntPollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "skp"), dbClient)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
 	}
-	goldImageStatus, err = influxdb.NewIntPollingStatus("select value from /skia-gold-prod.skiacorrectness.skia-gold-prod.gold.untriaged.by_corpus.image.value/ limit 1", dbClient)
+	goldImageStatus, err = influxdb.NewIntPollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), dbClient)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
 	}

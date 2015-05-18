@@ -274,15 +274,8 @@ func main() {
 	// Setup DB flags.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
 
-	// Get the hostname.
-	hostName, err := os.Hostname()
-	if err != nil {
-		glog.Fatalf("Unable to retrieve hostname: %s", err)
-	}
-	appName := hostName + ".skiacorrectness"
-
 	// Global init to initialize
-	common.InitWithMetrics(appName, graphiteServer)
+	common.InitWithMetrics("skiacorrectness", graphiteServer)
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {

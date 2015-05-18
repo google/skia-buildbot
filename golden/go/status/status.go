@@ -19,9 +19,9 @@ import (
 
 const (
 	// Metric names and templates for metric names added in this file.
-	METRIC_TOTAL       = "gold.digests.total"
-	METRIC_ALL_TMPL    = "gold.%s.all"
-	METRIC_CORPUS_TMPL = "gold.%s.by_corpus.%s"
+	METRIC_TOTAL       = "status.digests.total"
+	METRIC_ALL_TMPL    = "status.%s.all"
+	METRIC_CORPUS_TMPL = "status.%s.by_corpus.%s"
 )
 
 var (
@@ -104,7 +104,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		expChanges <- e.([]string)
 	})
 
-	tileStream := storage.GetTileStreamNow(s.storages.TileStore, 2*time.Minute)
+	tileStream := s.storages.GetTileStreamNow(2*time.Minute, false)
 
 	lastTile := <-tileStream
 	if err := s.calcStatus(lastTile); err != nil {

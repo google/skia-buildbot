@@ -37,20 +37,20 @@ type Storage struct {
 	mutex                  sync.Mutex
 }
 
-// GetTileStreamNow is a utility function that reads tiles from the given
-// TileStore in the given interval and sends them on the returned channel.
+// GetTileStreamNow is a utility function that reads tiles in the given
+// interval and sends them on the returned channel.
 // The first tile is send immediately.
 // Should the call to read a new tile fail it will send that last
 // successfully read tile. Thus it guarantees to send a tile in the provided
 // interval, assuming at least one tile could be read.
-func GetTileStreamNow(tileStore ptypes.TileStore, interval time.Duration) <-chan *ptypes.Tile {
+func (s *Storage) GetTileStreamNow(interval time.Duration, includeIgnores bool) <-chan *ptypes.Tile {
 	retCh := make(chan *ptypes.Tile)
 
 	go func() {
 		var lastTile *ptypes.Tile = nil
 
 		readOneTile := func() {
-			if tile, err := tileStore.Get(0, -1); err != nil {
+			if tile, err := s.GetLastTileTrimmed(includeIgnores); err != nil {
 				// Log the error and send the best tile we have right now.
 				glog.Errorf("Error reading tile: %s", err)
 				if lastTile != nil {
