@@ -241,7 +241,7 @@ func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
 				}
 
 				// Calculate the blame.
-				idxEnd := util.MinInt(commitRange[0], end)
+				idxEnd := util.MinInt(commitRange[1], end)
 				for i := commitRange[0]; i <= idxEnd; i++ {
 					freq[i-start]++
 				}

@@ -46,10 +46,13 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 		map[string]string{"name": "bar", "config": "8888", "source_type": "gm"},
 		map[string]string{"name": "bar", "config": "565", "source_type": "gm"},
 		map[string]string{"name": "bar", "config": "gpu", "source_type": "gm"},
+		map[string]string{"name": "baz", "config": "565", "source_type": "gm"},
+		map[string]string{"name": "baz", "config": "gpu", "source_type": "gm"},
 	}
 
 	DI_1, DI_2, DI_3 := "digest1", "digest2", "digest3"
 	DI_4, DI_5, DI_6 := "digest4", "digest5", "digest6"
+	DI_7, DI_8, DI_9 := "digest7", "digest8", "digest9"
 	MISS := ptypes.MISSING_DIGEST
 
 	digests := [][]string{
@@ -59,6 +62,8 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 		[]string{DI_5, DI_4, DI_5, DI_5, DI_5},
 		[]string{DI_6, MISS, DI_4, MISS, MISS},
 		[]string{MISS, MISS, MISS, MISS, MISS},
+		[]string{DI_7, DI_7, MISS, DI_8, MISS},
+		[]string{DI_7, MISS, DI_7, DI_8, MISS},
 	}
 
 	// Make sure the data are consistent and create a mock TileStore.
@@ -79,7 +84,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	blameLists, _ := blamer.GetAllBlameLists()
 	assert.NotNil(t, blameLists)
 
-	assert.Equal(t, 2, len(blameLists))
+	assert.Equal(t, 3, len(blameLists))
 	assert.Equal(t, 3, len(blameLists["foo"]))
 	assert.Equal(t, []int{1, 0, 0, 0}, blameLists["foo"][DI_1].Freq)
 	assert.Equal(t, []int{1, 0}, blameLists["foo"][DI_2].Freq)
@@ -108,24 +113,25 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	waitForChange(blamer, blameLists)
 	blameLists, _ = blamer.GetAllBlameLists()
 
-	assert.Equal(t, 2, len(blameLists))
+	assert.Equal(t, 3, len(blameLists))
 	assert.Equal(t, 1, len(blameLists["foo"]))
 	assert.Equal(t, []int{1, 0, 0, 0, 0}, blameLists["foo"][DI_3].Freq)
 
 	assert.Equal(t, 1, len(blameLists["bar"]))
 	assert.Equal(t, []int{1, 0, 0, 0, 0}, blameLists["bar"][DI_5].Freq)
+	assert.Equal(t, []int{1, 2, 0}, blameLists["baz"][DI_8].Freq)
 
 	assert.Equal(t, []int{0}, blamer.GetBlame("foo", DI_3, commits))
 	assert.Equal(t, []int{0}, blamer.GetBlame("bar", DI_5, commits))
+	assert.Equal(t, []int{3}, blamer.GetBlame("baz", DI_8, commits))
 
 	// Change the underlying tile and trigger with another change.
 	tile, err := storages.TileStore.Get(0, -1)
 	assert.Nil(t, err)
 
 	// Get the trace for the last parameters and set a value.
-	DI_7 := "digest7"
-	gTrace := tile.Traces[mocks.TraceKey(params[len(params)-1])].(*ptypes.GoldenTrace)
-	gTrace.Values[2] = DI_7
+	gTrace := tile.Traces[mocks.TraceKey(params[5])].(*ptypes.GoldenTrace)
+	gTrace.Values[2] = DI_9
 
 	assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
 
@@ -133,26 +139,26 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	waitForChange(blamer, blameLists)
 	blameLists, _ = blamer.GetAllBlameLists()
 
-	assert.Equal(t, 2, len(blameLists))
+	assert.Equal(t, 3, len(blameLists))
 	assert.Equal(t, 1, len(blameLists["foo"]))
 	assert.Equal(t, 2, len(blameLists["bar"]))
-	assert.Equal(t, []int{1, 0, 0}, blameLists["bar"][DI_7].Freq)
+	assert.Equal(t, []int{1, 0, 0}, blameLists["bar"][DI_9].Freq)
 
-	assert.Equal(t, []int{2}, blamer.GetBlame("bar", DI_7, commits))
+	assert.Equal(t, []int{2}, blamer.GetBlame("bar", DI_9, commits))
 
 	// Simulate the case where the digest is not found in digest store.
 	storages.DigestStore.(*MockDigestStore).okValue = false
 	assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
 	time.Sleep(10 * time.Millisecond)
 	blameLists, _ = blamer.GetAllBlameLists()
-	assert.Equal(t, 2, len(blameLists))
+	assert.Equal(t, 3, len(blameLists))
 	assert.Equal(t, 1, len(blameLists["foo"]))
 	assert.Equal(t, 2, len(blameLists["bar"]))
-	assert.Equal(t, []int{1, 0, 0}, blameLists["bar"][DI_7].Freq)
+	assert.Equal(t, []int{1, 0, 0}, blameLists["bar"][DI_9].Freq)
 
-	assert.Equal(t, []int{2}, blamer.GetBlame("bar", DI_7, commits))
-	assert.Equal(t, []int{1}, blamer.GetBlame("bar", DI_7, commits[1:4]))
-	assert.Equal(t, []int{}, blamer.GetBlame("bar", DI_7, commits[0:2]))
+	assert.Equal(t, []int{2}, blamer.GetBlame("bar", DI_9, commits))
+	assert.Equal(t, []int{1}, blamer.GetBlame("bar", DI_9, commits[1:4]))
+	assert.Equal(t, []int{}, blamer.GetBlame("bar", DI_9, commits[0:2]))
 }
 
 func BenchmarkBlamer(b *testing.B) {
