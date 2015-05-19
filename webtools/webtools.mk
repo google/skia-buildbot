@@ -22,6 +22,10 @@
 #     These files should be either present in the project or brought into
 #     $(BOWER_DIR) via bower. This makefile runs bower on the local directory
 #     to bring in dependencies.
+#
+#  VULCANIZE1: If defined then this presumes vulcanize 1.0 or later is installed
+#     and uses the new command line flags. This can be removed once all projects
+#     have moved to vulcanize 1.x.
 
 ##### core_js ####
 
@@ -64,7 +68,11 @@ debug_elements_html:
 
 res/vul/elements.html: res/imp/*.html elements.html ./node_modules/.bin/vulcanize
 	-mkdir res/vul
-	./node_modules/.bin/vulcanize --csp=false --inline=true --strip=true --abspath=./ elements.html -o res/vul/elements.html
+ifdef VULCANIZE1
+	  ./node_modules/.bin/vulcanize --inline-css=true  --inline-scripts=true --strip-comments=true --abspath=./ elements.html > res/vul/elements.html
+else
+	  ./node_modules/.bin/vulcanize --inline=true --strip=true --abspath=./ elements.html -o res/vul/elements.html
+endif
 
 #### clean_webtools ####
 
