@@ -6,7 +6,8 @@
 
 
   Attributes:
-    None.
+    withblame - Boolean attribute that controls whether to show blame
+      information, defaults to false.
 
   Events:
     commit-selected - Event generated when a dot is clicked.
@@ -56,7 +57,7 @@
         ...
       ]
 -->
-<polymer-element name="dots-sk">
+<polymer-element name="dots-sk" attributes="withblame">
   <template>
     <style type="text/css" media="screen">
       g:hover circle {
@@ -100,29 +101,76 @@
         fill:   #ffffff;
         stroke: #999999;
       }
+
+      .circHoverCommit {
+        fill: #E7298A !important;
+        stroke: #E7298A !important;
+      }
+
+      div.commitEntry:hover {
+        color: #E7298A;
+      }
+
+      div.commitEntry {
+        padding-left: 2em;
+      }
+
+      .blameHeader {
+        font-weight: bold;
+        padding-top: 1em;
+      }
+
+      .blameContainer {
+        padding-top: 1em;
+        padding-bottom: 1em;
+      }
+
     </style>
     <svg id=dots
       width="{{(value.tileSize)*10+20}}"
       height="{{(value.traces.length+2)*10}}"
       viewBox="-1 -1 {{value.tileSize+1}} {{value.traces.length+1}}">
 
-      <template repeat="{{trace in value.traces}}">
+      <template repeat="{{trace, i in value.traces}}">
         <g data-id="{{trace.label}}" stroke="#999" fill="#999" stroke-width="0.2">
           <line
           x1="{{trace.data[0].x}}"
           y1="{{trace.data[0].y}}"
           x2="{{trace.data[trace.data.length-1].x}}"
           y2="{{trace.data[0].y}}"/>
-          <template repeat="{{pt in trace.data}}">
+          <template repeat="{{pt, j in trace.data}}">
             <circle cx="{{pt.x}}" cy="{{pt.y}}" r="0.3"
-            class="status{{pt.s}}"/>
+            id="{{'circ-' + i + '-' + j}}" class="status{{pt.s}}"/>
           </template>
         </g>
       </template>
     </svg>
+
+    <template if="{{withblame && value.blame.length > 0}}">
+      <div class="blameContainer">
+        <div class="blameHeader">Blame</div>
+        <template repeat="{{b in value.blame}}">
+            <div class="commitEntry" data-idx="{{b}}" on-mouseover="{{hoverCommits}}" on-mouseout="{{hoverCommits}}">
+              {{commits[b].commit_time | humanDiffDate}} - {{commits[b].author}}
+            </div>
+        </template>
+      </div>
+    </template>
+    <template if="{{withblame && !(value.blame.length > 0)}}">
+      <div class="blameContainer">
+        No blames available - Digest too old !
+      </div>
+    </template>
   </template>
   <script>
     Polymer({
+      publish: {
+        withblame: {
+          value: false,
+          reflect: true
+        }
+      },
+
       ready: function() {
         // Keep track of the last element hovered over to reduce the number of
         // events we generate.
@@ -174,6 +222,32 @@
         this.commits = commits;
       },
 
+      hoverCommits: function(e) {
+        var commitIdx = parseInt(e.target.attributes['data-idx'].value);
+        var targetNodes = [];
+        for(var i=0, iLen=this.value.traces.length; i < iLen; i++) {
+          for(var j=0, jLen=this.value.traces[i].data.length; j < jLen; j++) {
+            if (this.value.traces[i].data[j].x >= commitIdx) {
+              targetNodes.push(this.shadowRoot.querySelector('#circ-' + i + '-' + j));
+              break;
+            }
+          }
+        }
+
+        if (e.type == 'mouseover') {
+          targetNodes.forEach(function(ele) {
+            ele.classList.add('circHoverCommit');
+          });
+        } else {
+          targetNodes.forEach(function(ele) {
+            ele.classList.remove('circHoverCommit');
+          });
+        }
+      },
+
+      humanDiffDate: function(s) {
+        return sk.human.diffDate(s*1000);
+      }
     });
   </script>
 </polymer-element>

@@ -385,16 +385,16 @@ func main() {
 		EventBus:          eventBus,
 	}
 
+	if err := history.Init(storages, *nTilesToBackfill); err != nil {
+		glog.Fatalf("Unable to initialize history package: %s", err)
+	}
+
 	if blamer, err = blame.New(storages); err != nil {
 		glog.Fatalf("Unable to create blamer: %s", err)
 	}
 
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
 		glog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
-	}
-
-	if err := history.Init(storages, *nTilesToBackfill); err != nil {
-		glog.Fatalf("Unable to initialize history package: %s", err)
 	}
 
 	// Enable the experimental features.

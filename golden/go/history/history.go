@@ -5,6 +5,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -31,6 +32,8 @@ type historian struct {
 
 // Create a new instance of historian.
 func newHistorian(storages *storage.Storage, nTilesToBackfill int) (*historian, error) {
+	defer timer.New("historian").Stop()
+
 	ret := &historian{
 		storages: storages,
 	}

@@ -164,7 +164,7 @@
       </template>
       <div vertical layout>
         <a href="detail?test={{test}}&digest={{digest}}">{{digest}}</a>
-        <dots-sk id=dots></dots-sk>
+        <dots-sk id="dots" withblame></dots-sk>
         <template if="{{isTruncated}}">
           <div class=more><a href="detail?test={{test}}&digest={{digest}}">(more)</a></div>
         </template>
