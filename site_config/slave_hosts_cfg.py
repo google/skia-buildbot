@@ -3,23 +3,11 @@ machines. """
 
 
 import collections
+import json
 import ntpath
 import os
 import posixpath
 import sys
-
-import skia_vars
-
-
-buildbot_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                             os.pardir))
-sys.path.append(buildbot_path)
-
-
-from compute_engine_scripts.compute_engine_cfg import \
-    PROJECT_USER as CHROMECOMPUTE_USERNAME
-from compute_engine_scripts.compute_engine_cfg import \
-    PROJECT_ID as CHROMECOMPUTE_PROJECT
 
 
 CHROMECOMPUTE_BUILDBOT_PATH = ['storage', 'skia-repo', 'buildbot']
@@ -43,48 +31,11 @@ CHROMEBUILD_COPIES = [
   },
 ]
 
-GCE_PROJECT = skia_vars.GetGlobalVariable('gce_project')
-GCE_USERNAME = skia_vars.GetGlobalVariable('gce_username')
-GCE_ZONE = skia_vars.GetGlobalVariable('gce_compile_bots_zone')
-
-GCE_COMPILE_A_ONLINE = GCE_ZONE == 'a'
-GCE_COMPILE_B_ONLINE = GCE_ZONE == 'b'
-GCE_COMPILE_C_ONLINE = True
-
 KVM_SWITCH_DOOR = 1   # KVM switch closest to the door.
 KVM_SWITCH_OFFICE = 2 # KVM switch closest to the office.
 
 LAUNCH_SCRIPT_UNIX = ['scripts', 'skiabot-slave-start-on-boot.sh']
 LAUNCH_SCRIPT_WIN = ['scripts', 'skiabot-slave-start-on-boot.bat']
-
-SKIALAB_ROUTER_IP = skia_vars.GetGlobalVariable('skialab_router_ip')
-SKIALAB_USERNAME = skia_vars.GetGlobalVariable('skialab_username')
-
-
-# Procedures for logging in to the host machines.
-
-def skia_lab_login(hostname, config):
-  """Procedure for logging into SkiaLab machines."""
-  return [
-    'ssh', '%s@%s' % (SKIALAB_USERNAME, SKIALAB_ROUTER_IP),
-    'ssh', '%s@%s' % (SKIALAB_USERNAME, config['ip'])
-  ]
-
-
-def compute_engine_login(hostname, config):
-  """Procedure for logging into Skia GCE instances."""
-  return [
-    'gcutil', '--project=%s' % GCE_PROJECT,
-    'ssh', '--ssh_user=%s' % GCE_USERNAME, hostname,
-  ]
-
-
-def chromecompute_login(hostname, config):
-  """Procedure for logging into ChromeCompute GCE instances."""
-  return [
-    'gcutil', '--project=%s' % CHROMECOMPUTE_PROJECT,
-    'ssh', '--ssh_user=%s' % CHROMECOMPUTE_USERNAME, hostname,
-  ]
 
 
 # Data for all Skia build slave hosts.
@@ -97,13 +48,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-gtx550ti-001', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.132',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': 'A',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -112,13 +60,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-gtx660-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.113',
     'kvm_switch': KVM_SWITCH_DOOR,
     'kvm_num': 'E',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -127,13 +72,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-gtx660-bench', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.122',
     'kvm_switch': KVM_SWITCH_DOOR,
     'kvm_num': 'F',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -148,13 +90,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-galaxys3-002',    '12', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.110',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': 'C',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -173,13 +112,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-galaxys4-002',    '11', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.109',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': 'B',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -187,13 +123,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.120',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': 'D',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -202,13 +135,10 @@ _slave_host_dicts = {
       ('skiabot-linux-compile-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -217,13 +147,10 @@ _slave_host_dicts = {
       ('skiabot-linux-compile-001', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -232,13 +159,10 @@ _slave_host_dicts = {
       ('skiabot-linux-compile-002', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -247,13 +171,10 @@ _slave_host_dicts = {
       ('skiabot-linux-compile-003', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -262,13 +183,10 @@ _slave_host_dicts = {
       ('skiabot-linux-compile-004', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -277,13 +195,10 @@ _slave_host_dicts = {
       ('skiabot-linux-compile-005', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -293,13 +208,10 @@ _slave_host_dicts = {
       ('skiabot-linux-housekeeper-000', '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -307,13 +219,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -321,13 +230,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -335,13 +241,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -349,13 +252,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -363,13 +263,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -377,13 +274,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -400,13 +294,10 @@ _slave_host_dicts = {
       ('skia-android-build-007', '8', True),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -416,13 +307,10 @@ _slave_host_dicts = {
       ('skiabot-linux-housekeeper-002', '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -431,13 +319,10 @@ _slave_host_dicts = {
       ('skiabot-win-compile-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -446,13 +331,10 @@ _slave_host_dicts = {
       ('skiabot-win-compile-001', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -461,13 +343,10 @@ _slave_host_dicts = {
       ('skiabot-win-compile-002', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -476,13 +355,10 @@ _slave_host_dicts = {
       ('skiabot-win-compile-003', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -491,13 +367,10 @@ _slave_host_dicts = {
       ('skiabot-linux-tester-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -506,13 +379,10 @@ _slave_host_dicts = {
       ('skiabot-linux-tester-001', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -521,13 +391,10 @@ _slave_host_dicts = {
       ('skiabot-linux-tester-002', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -536,13 +403,10 @@ _slave_host_dicts = {
       ('skiabot-linux-tester-003', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -551,13 +415,10 @@ _slave_host_dicts = {
       ('skia-vm-024', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -565,13 +426,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -579,13 +437,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -593,13 +448,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -607,13 +459,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -621,13 +470,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -635,13 +481,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -649,13 +492,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -663,13 +503,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -677,13 +514,10 @@ _slave_host_dicts = {
     'slaves': [
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': chromecompute_login,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'remote_access': GCE_COMPILE_C_ONLINE,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -695,13 +529,10 @@ _slave_host_dicts = {
       ('skiabot-macmini-10_8-001', '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.125',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': '8',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -710,13 +541,10 @@ _slave_host_dicts = {
       ('skiabot-macmini-10_8-bench', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.135',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': '6',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -734,13 +562,10 @@ _slave_host_dicts = {
       ('skiabot-mac-10_8-compile-009', '9', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.104',
     'kvm_switch': KVM_SWITCH_DOOR,
     'kvm_num': '7',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -749,13 +574,10 @@ _slave_host_dicts = {
       ('skiabot-ipad4-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': skia_lab_login,
     'ip': '192.168.1.141',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': '2',
-    'path_module': posixpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': True,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -766,13 +588,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-win7-intel-bench', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': '192.168.1.139',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': 'F',
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -781,13 +600,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-win7-intel-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': '192.168.1.114',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': 'G',
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -796,13 +612,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-win8-gtx660-bench', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': '192.168.1.133',
     'kvm_switch': KVM_SWITCH_DOOR,
     'kvm_num': 'B',
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -811,13 +624,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-win8-hd7770-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': '192.168.1.117',
     'kvm_switch': KVM_SWITCH_DOOR,
     'kvm_num': 'C',
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -826,13 +636,10 @@ _slave_host_dicts = {
       ('skiabot-shuttle-win8-hd7770-bench', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'login_cmd': None,
     'ip': '192.168.1.107',
     'kvm_switch': KVM_SWITCH_DOOR,
     'kvm_num': 'D',
-    'path_module': ntpath,
     'path_to_buildbot': ['buildbot'],
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
@@ -843,13 +650,10 @@ _slave_host_dicts = {
       ('build3-a3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': None,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -858,13 +662,10 @@ _slave_host_dicts = {
       ('build4-a3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': None,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -873,13 +674,10 @@ _slave_host_dicts = {
       ('build5-a3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -888,13 +686,10 @@ _slave_host_dicts = {
       ('build5-m3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -903,13 +698,10 @@ _slave_host_dicts = {
       ('build32-a3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -918,13 +710,10 @@ _slave_host_dicts = {
       ('build33-a3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -933,13 +722,10 @@ _slave_host_dicts = {
       ('slave11-c3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -948,13 +734,10 @@ _slave_host_dicts = {
       ('vm690-m3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -963,13 +746,10 @@ _slave_host_dicts = {
       ('vm691-m3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -978,13 +758,10 @@ _slave_host_dicts = {
       ('vm692-m3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -993,13 +770,10 @@ _slave_host_dicts = {
       ('vm693-m3', '0', False),
     ],
     'copies': None,
-    'login_cmd': None,
     'ip': NO_IP_ADDR,
     'kvm_switch': NO_KVM_SWITCH,
     'kvm_num': NO_KVM_NUM,
-    'path_module': posixpath,
     'path_to_buildbot': None,
-    'remote_access': False,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 }
@@ -1007,21 +781,15 @@ _slave_host_dicts = {
 
 # Class which holds configuration data describing a build slave host.
 SlaveHostConfig = collections.namedtuple('SlaveHostConfig',
-                                         ('hostname, slaves, copies, login_cmd,'
+                                         ('hostname, slaves, copies,'
                                           ' ip, kvm_switch, kvm_num,'
-                                          ' path_module, path_to_buildbot,'
-                                          ' remote_access, launch_script'))
+                                          ' path_to_buildbot,'
+                                          ' launch_script'))
 
 
 SLAVE_HOSTS = {}
 for (_hostname, _config) in _slave_host_dicts.iteritems():
-  login_cmd = _config.pop('login_cmd')
-  if login_cmd:
-    resolved_login_cmd = login_cmd(_hostname, _config)
-  else:
-    resolved_login_cmd = None
   SLAVE_HOSTS[_hostname] = SlaveHostConfig(hostname=_hostname,
-                                           login_cmd=resolved_login_cmd,
                                            **_config)
 
 
@@ -1042,13 +810,10 @@ def default_slave_host_config(hostname):
     hostname=hostname,
     slaves=[(hostname, '0', True)],
     copies=CHROMEBUILD_COPIES,
-    login_cmd=None,
     ip=None,
     kvm_switch=None,
     kvm_num=None,
-    path_module=os.path,
     path_to_buildbot=path_to_buildbot,
-    remote_access=False,
     launch_script=launch_script,
   )
 
@@ -1064,3 +829,7 @@ def get_slave_host_config(hostname):
       SlaveHostConfig instance representing the given host.
   """
   return SLAVE_HOSTS.get(hostname, default_slave_host_config(hostname))
+
+
+if __name__ == '__main__':
+  print json.dumps(_slave_host_dicts)
