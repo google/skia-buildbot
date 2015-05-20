@@ -65,12 +65,12 @@
       this.$.list.addEventListener('click', function(e) {
         // Find the paper-button element, it has the name and action
         // to perform in its data-attributes.
-        var ele = null;
-        for (var i=0; i<e.path.length; i++) {
-          if (e.path[i].nodeName == "PAPER-BUTTON") {
-            ele = e.path[i];
+        var ele = e.target;
+        while (ele != null) {
+          if (ele.nodeName == "PAPER-BUTTON") {
             break;
           }
+          ele = ele.parentElement;
         }
         if (ele) {
           var detail = {
