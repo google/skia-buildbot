@@ -14,6 +14,7 @@ case "$INSTANCE_ID" in
 	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness"
 	INGEST_DATABASE_NAME="skia"
   REDIRECT_URL="https://gold.skia.org/oauth2callback/"
+  ADD_FLAGS="--backfill_tiles=2"
 	;;
 
   # stage instance
