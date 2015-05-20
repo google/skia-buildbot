@@ -54,14 +54,14 @@ var config IngestConfig
 type ProcessStarter func()
 
 // NewIngestionProcess creates a Process for ingesting data.
-func NewIngestionProcess(git *gitinfo.GitInfo, tileDir, datasetName string, ri ingester.ResultIngester, gsBucket, gsDir string, every time.Duration, nCommits int, minDuration time.Duration, statusDir, metricName string) ProcessStarter {
+func NewIngestionProcess(git *gitinfo.GitInfo, tileDir, datasetName string, ri ingester.ResultIngester, config map[string]string, every time.Duration, nCommits int, minDuration time.Duration, statusDir, metricName string) ProcessStarter {
 	return func() {
-		i, err := ingester.NewIngester(git, tileDir, datasetName, ri, nCommits, minDuration, gsBucket, gsDir, statusDir, metricName)
+		i, err := ingester.NewIngester(git, tileDir, datasetName, ri, nCommits, minDuration, config, statusDir, metricName)
 		if err != nil {
 			glog.Fatalf("Failed to create Ingester: %s", err)
 		}
 
-		glog.Infof("Starting %s ingester. Run every %s. Fetch from %s ", datasetName, every.String(), gsDir)
+		glog.Infof("Starting %s ingester. Run every %s.", datasetName, every.String())
 
 		// oneStep is a single round of ingestion.
 		oneStep := func() {
@@ -164,8 +164,7 @@ func main() {
 			config.Common.TileDir,
 			dataset,
 			resultIngester,
-			ingesterConfig.ExtraParams["GSBucket"],
-			ingesterConfig.ExtraParams["GSDir"],
+			ingesterConfig.ExtraParams,
 			ingesterConfig.RunEvery.Duration,
 			ingesterConfig.NCommits,
 			minDuration,

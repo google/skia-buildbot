@@ -1,13 +1,15 @@
 package ingester
 
 import (
+	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
-
+	"strings"
 	"time"
 )
 
@@ -115,8 +117,7 @@ type Ingester struct {
 	hashToNumber   map[string]int
 	lastIngestTime time.Time
 	resultIngester ResultIngester
-	storageBucket  string
-	storageBaseDir string
+	config         map[string]string
 	datasetName    string
 	nCommits       int
 	minDuration    time.Duration
@@ -140,29 +141,32 @@ func newCounter(name, suffix string) metrics.Counter {
 }
 
 // NewIngester creates an Ingester given the repo and tilestore specified.
-func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, ri ResultIngester, nCommits int, minDuration time.Duration, storageBucket, storageBaseDir, statusDir, metricName string) (*Ingester, error) {
-	storage, err := storage.New(client)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create interace to Google Storage: %s\n", err)
+func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, ri ResultIngester, nCommits int, minDuration time.Duration, config map[string]string, statusDir, metricName string) (*Ingester, error) {
+	var storageService *storage.Service = nil
+	var err error = nil
+	// check if the ingestion source is coming from Google Storage
+	if config["GSDir"] != "" {
+		storageService, err = storage.New(client)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to create interace to Google Storage: %s\n", err)
+		}
 	}
-
 	var processedFiles *leveldb.DB = nil
 	if statusDir != "" {
 		statusDir = fileutil.Must(fileutil.EnsureDirExists(filepath.Join(statusDir, datasetName)))
 		processedFiles, err = leveldb.OpenFile(filepath.Join(statusDir, "processed_files.ldb"), nil)
-	}
-	if err != nil {
-		glog.Fatalf("Unable to open status db at %s: %s", filepath.Join(statusDir, "processed_files.ldb"), err)
+		if err != nil {
+			glog.Fatalf("Unable to open status db at %s: %s", filepath.Join(statusDir, "processed_files.ldb"), err)
+		}
 	}
 
 	i := &Ingester{
 		git:                            git,
 		tileStore:                      filetilestore.NewFileTileStore(tileStoreDir, datasetName, -1),
-		storage:                        storage,
+		storage:                        storageService,
 		hashToNumber:                   map[string]int{},
 		resultIngester:                 ri,
-		storageBucket:                  storageBucket,
-		storageBaseDir:                 storageBaseDir,
+		config:                         config,
 		datasetName:                    datasetName,
 		elapsedTimePerUpdate:           newGauge(metricName, "update"),
 		metricsProcessed:               newCounter(metricName, "processed"),
@@ -358,7 +362,9 @@ func (i *Ingester) Update() error {
 // files we have not seen before, but a future version should clever about
 // picking a better timerange.
 func (i *Ingester) UpdateTiles() error {
+	var err error = nil
 	startTS, endTS, err := i.getCommitRangeOfInterest()
+
 	if err != nil {
 		return err
 	}
@@ -368,7 +374,19 @@ func (i *Ingester) UpdateTiles() error {
 	glog.Infof("Ingest %s: Starting UpdateTiles", i.datasetName)
 
 	tt := NewTileTracker(i.tileStore, i.hashToNumber)
-	resultsFiles, err := getResultsFileLocations(startTS, endTS, i.storage, i.storageBucket, i.storageBaseDir)
+
+	var resultsFiles []*ResultsFileLocation
+
+	if i.config["GSDir"] != "" {
+		storageBucket := i.config["GSBucket"]
+		storageBaseDir := i.config["GSDir"]
+
+		resultsFiles, err = getGSResultsFileLocations(startTS, endTS, i.storage, storageBucket, storageBaseDir)
+	} else if i.config["LocalDir"] != "" {
+		resultsFiles, err = getLocalResultsFileLocations(startTS, endTS, i.config["LocalDir"])
+	} else {
+		return fmt.Errorf("No location for results file specified (missing both GSDir and LocalDir from config)")
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to update tiles: %s", err)
 	}
@@ -503,25 +521,29 @@ func NewResultsFileLocation(uri, name string, md5Hash string) *ResultsFileLocati
 //
 // Callers must call Close() on the returned io.ReadCloser.
 func (b ResultsFileLocation) Fetch() (io.ReadCloser, error) {
-	for i := 0; i < config.MAX_URI_GET_TRIES; i++ {
-		glog.Infof("Fetching: %s", b.Name)
-		request, err := gs.RequestForStorageURL(b.URI)
-		if err != nil {
-			glog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
-			continue
+	if strings.HasPrefix(b.URI, "file://") {
+		return os.Open(b.URI[6:])
+	} else {
+		for i := 0; i < config.MAX_URI_GET_TRIES; i++ {
+			glog.Infof("Fetching: %s", b.Name)
+			request, err := gs.RequestForStorageURL(b.URI)
+			if err != nil {
+				glog.Warningf("Unable to create Storage MediaURI request: %s\n", err)
+				continue
+			}
+			resp, err := client.Do(request)
+			if err != nil {
+				glog.Warningf("Unable to retrieve URI while creating file iterator: %s", err)
+				continue
+			}
+			if resp.StatusCode != 200 {
+				glog.Errorf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
+			}
+			glog.Infof("GS FETCH %s", b.URI)
+			return resp.Body, nil
 		}
-		resp, err := client.Do(request)
-		if err != nil {
-			glog.Warningf("Unable to retrieve URI while creating file iterator: %s", err)
-			continue
-		}
-		if resp.StatusCode != 200 {
-			glog.Errorf("Failed to retrieve: %d  %s", resp.StatusCode, resp.Status)
-		}
-		glog.Infof("GS FETCH %s", b.URI)
-		return resp.Body, nil
+		return nil, fmt.Errorf("Failed fetching JSON after %d attempts", config.MAX_URI_GET_TRIES)
 	}
-	return nil, fmt.Errorf("Failed fetching JSON after %d attempts", config.MAX_URI_GET_TRIES)
 }
 
 // getFilesFromGSDir returns a list of URIs to get of the JSON files in the
@@ -556,11 +578,11 @@ func getFilesFromGSDir(bucket, dir string, earliestTimestamp int64, storage *sto
 	return results, nil
 }
 
-// GetResultsFileLocations retrieves a list of ResultsFileLocations from Cloud Storage, each one
+// GetGSResultsFileLocations retrieves a list of ResultsFileLocations from Cloud Storage, each one
 // corresponding to a single JSON file.
-func getResultsFileLocations(startTS int64, endTS int64, storage *storage.Service, bucket, dir string) ([]*ResultsFileLocation, error) {
+func getGSResultsFileLocations(startTS int64, endTS int64, storage *storage.Service, bucket, dir string) ([]*ResultsFileLocation, error) {
 	dirs := gs.GetLatestGSDirs(startTS, endTS, dir)
-	glog.Infof("getResultsFileLocations: Looking in bucket %s and dirs: %v ", bucket, dirs)
+	glog.Infof("getGSResultsFileLocations: Looking in bucket %s and dirs: %v ", bucket, dirs)
 
 	retval := []*ResultsFileLocation{}
 	for _, dir := range dirs {
@@ -570,5 +592,69 @@ func getResultsFileLocations(startTS int64, endTS int64, storage *storage.Servic
 		}
 		retval = append(retval, files...)
 	}
+	return retval, nil
+}
+
+func computeMd5(path string) (string, error) {
+	var result []byte
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer util.Close(file)
+
+	hash := md5.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(hash.Sum(result)), nil
+}
+
+func getFilesFromLocalDir(dir string, earliestTimestamp int64) ([]*ResultsFileLocation, error) {
+	results := []*ResultsFileLocation{}
+	glog.Infof("Looking in local directory %s", dir)
+
+	visit := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if info.IsDir() {
+			return nil
+		}
+		updateDate := info.ModTime()
+		updateTimestamp := updateDate.Unix()
+		if updateTimestamp > earliestTimestamp {
+			hash, err := computeMd5(path)
+			if err != nil {
+				return fmt.Errorf("Couldn't compute MD5 hash of %s: %v", path, err)
+			}
+			results = append(results, NewResultsFileLocation(fmt.Sprintf("file://%s", path), info.Name(), hash))
+		}
+		return nil
+	}
+	if err := filepath.Walk(dir, visit); err != nil {
+		return nil, fmt.Errorf("Unable to read the local dir %s: %s", dir, err)
+	}
+
+	return results, nil
+}
+
+func getLocalResultsFileLocations(startTS, endTS int64, localDir string) ([]*ResultsFileLocation, error) {
+	retval := []*ResultsFileLocation{}
+	glog.Infof("getLocalResultsFileLocations: Looking in local directory %s", localDir)
+
+	// although GetLatestGSDirs is in the "gs" package, there's nothing specific about
+	// its operation that makes it not re-usable here.
+	dirs := gs.GetLatestGSDirs(startTS, endTS, localDir)
+
+	for _, dir := range dirs {
+		files, err := getFilesFromLocalDir(dir, startTS)
+		if err != nil {
+			return nil, err
+		}
+		retval = append(retval, files...)
+	}
+
 	return retval, nil
 }

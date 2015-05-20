@@ -186,15 +186,22 @@ func DownloadTestDataArchive(t T, uriPath, targetDir string) error {
 		}
 
 		targetPath := filepath.Join(targetDir, hdr.Name)
-		f, err := os.Create(targetPath)
-		if err != nil {
-			return err
+
+		if hdr.Typeflag == tar.TypeDir {
+			if err := os.MkdirAll(targetPath, 0755); err != nil {
+				return err
+			}
+		} else {
+			f, err := os.Create(targetPath)
+			if err != nil {
+				return err
+			}
+			_, err = io.Copy(f, tarReader)
+			if err != nil {
+				return err
+			}
+			CloseInTest(t, f)
 		}
-		_, err = io.Copy(f, tarReader)
-		if err != nil {
-			return err
-		}
-		CloseInTest(t, f)
 	}
 
 	return nil
