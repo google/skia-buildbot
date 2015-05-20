@@ -26,10 +26,6 @@
     th {
       padding: 0.2em 0.4em;
     }
-
-    table {
-      font-size: 20px;
-    }
   </style>
   <template>
     <table id=list>
@@ -57,6 +53,10 @@
       machine: {
         type: String,
         value: "",
+      },
+      header: {
+        type: Boolean,
+        value: false,
       }
     },
     ready: function() {
