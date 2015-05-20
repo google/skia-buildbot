@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"sort"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/gs"
@@ -23,12 +24,13 @@ import (
 
 // Package represents a single Debian package uploaded to Google Storage.
 type Package struct {
-	Name   string // The unique name of this release package.
-	Hash   string
-	UserID string
-	Built  time.Time
-	Dirty  bool
-	Note   string
+	Name     string // The unique name of this release package.
+	Hash     string
+	UserID   string
+	Built    time.Time
+	Dirty    bool
+	Note     string
+	Services []string
 }
 
 // Installed is a list of all the packages installed on a server.
@@ -93,12 +95,13 @@ func AllAvailable(store *storage.Service) (map[string][]*Package, error) {
 				continue
 			}
 			p := &Package{
-				Name:   o.Name[5:], // Strip of debs/ from the beginning.
-				Hash:   safeGet(o.Metadata, "hash", ""),
-				UserID: safeGet(o.Metadata, "userid", ""),
-				Built:  safeGetTime(o.Metadata, "datetime"),
-				Dirty:  safeGetBool(o.Metadata, "dirty"),
-				Note:   safeGet(o.Metadata, "note", ""),
+				Name:     o.Name[5:], // Strip of debs/ from the beginning.
+				Hash:     safeGet(o.Metadata, "hash", ""),
+				UserID:   safeGet(o.Metadata, "userid", ""),
+				Built:    safeGetTime(o.Metadata, "datetime"),
+				Dirty:    safeGetBool(o.Metadata, "dirty"),
+				Note:     safeGet(o.Metadata, "note", ""),
+				Services: strings.Split(safeGet(o.Metadata, "services", ""), " "),
 			}
 			if _, ok := ret[key]; !ok {
 				ret[key] = []*Package{}
