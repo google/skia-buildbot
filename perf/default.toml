@@ -11,40 +11,43 @@ Local          = false                                  # Running locally if tru
 
 	[Ingesters.nano]
 
-	RunEvery       = "5m"                                   # How often the ingester should pull data from Google Storage.
-	RunTrybotEvery = "1m"                                   # How often the ingester to pull trybot data from Google Storage.
-	Commits        = 100                                    # Minimum number of commits that should be ingested.
-	MinDays        = 7                                      # Minimum number of days that should be covered by the ingested commits.
-	StatusDir      = "/tmp/ingestStatusDir"                 # Path where the ingest process keeps its status between restarts.
-	MetricName     = "nano-ingest"                          # Graphite metric name to use for this ingester
+	RunEvery       = "5m"                               # How often the ingester should pull data from Google Storage.
+	RunTrybotEvery = "1m"                               # How often the ingester to pull trybot data from Google Storage.
+	Commits        = 100                                # Minimum number of commits that should be ingested.
+	MinDays        = 7                                  # Minimum number of days that should be covered by the ingested commits.
+	StatusDir      = "/tmp/ingestStatusDir"             # Path where the ingest process keeps its status between restarts.
+	MetricName     = "nano-ingest"                      # Graphite metric name to use for this ingester
 
 	[Ingesters.nano.ExtraParams]
 
-		GSDir          = "nano-json-v1"							# Google storage directory to draw from
+		GSDir          = "nano-json-v1"					# Google storage directory to draw from
+		# LocalDir     = "/projects/local_nano_results" # Local directory to draw results from.  Mutually exclusive with GSDir.
+		                                                # The presence of "GSDir" will trump the presence of "LocalDir" in case
+		                                                # the configuration file nonsensically includes both.
 
 [Ingesters.nano-trybot]
 
-	RunEvery       = "5m"                                   # How often the ingester should pull data from Google Storage.
-	RunTrybotEvery = "1m"                                   # How often the ingester to pull trybot data from Google Storage.
-	Commits        = 100                                    # Minimum number of commits that should be ingested.
-	MinDays        = 7                                      # Minimum number of days that should be covered by the ingested commits.
-	StatusDir      = "/tmp/ingestStatusDir"                 # Path where the ingest process keeps its status between restarts.
-	MetricName     = "nano-trybot"                          # Graphite metric name to use for this ingester
+	RunEvery       = "5m"                               # How often the ingester should pull data from Google Storage.
+	RunTrybotEvery = "1m"                               # How often the ingester to pull trybot data from Google Storage.
+	Commits        = 100                                # Minimum number of commits that should be ingested.
+	MinDays        = 7                                  # Minimum number of days that should be covered by the ingested commits.
+	StatusDir      = "/tmp/ingestStatusDir"             # Path where the ingest process keeps its status between restarts.
+	MetricName     = "nano-trybot"                      # Graphite metric name to use for this ingester
 
 	[Ingesters.nano-trybot.ExtraParams]
 
-		GSDir          = "trybot/nano-json-v1"					# Google storage directory to draw from
+		GSDir          = "trybot/nano-json-v1"			# Google storage directory to draw from
 
 [Ingesters.gold]
 
-	RunEvery       = "5m"                                   # How often the ingester should pull data from Google Storage.
-	RunTrybotEvery = "1m"                                   # How often the ingester to pull trybot data from Google Storage.
-	Commits        = 100                                    # Minimum number of commits that should be ingested.
-	MinDays        = 7                                      # Minimum number of days that should be covered by the ingested commits.
-	StatusDir      = "/tmp/ingestStatusDir"                 # Path where the ingest process keeps its status between restarts.
-	MetricName     = "gold-ingest"                          # Graphite metric name to use for this ingester
+	RunEvery       = "5m"                               # How often the ingester should pull data from Google Storage.
+	RunTrybotEvery = "1m"                               # How often the ingester to pull trybot data from Google Storage.
+	Commits        = 100                                # Minimum number of commits that should be ingested.
+	MinDays        = 7                                  # Minimum number of days that should be covered by the ingested commits.
+	StatusDir      = "/tmp/ingestStatusDir"             # Path where the ingest process keeps its status between restarts.
+	MetricName     = "gold-ingest"                      # Graphite metric name to use for this ingester
 
 	[Ingesters.gold.ExtraParams]
 
-		GSBucket       = "chromium-skia-gm"                 # Google storage bucket to draw from
-		GSDir          = "dm-json-v1"						# Google storage directory to draw from
+		GSBucket       = "chromium-skia-gm"             # Google storage bucket to draw from
+		GSDir          = "dm-json-v1"					# Google storage directory to draw from
