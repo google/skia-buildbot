@@ -1,97 +1,3 @@
-<!-- The <push-selection-sk> custom element declaration.
-
-  Presents a dialog of package choices and generates an event when the user has
-  made a selection. It is a custom element used by <push-server-sk>.
-
-  Attributes:
-    'choices'
-        The list of packages that are available.
-    'choice'
-        The selected package.
-  Events:
-    'change'
-        A 'change' event is generated when the user selects a package to push.
-        The change event has the following attributes:
-
-          event.detail.name   - The full name of the package selected.
-  Methods:
-    toggle()
-        Toggles the visibility of the selection dialog.
--->
-<style type="text/css" media="screen">
-  html /deep/ .pushSelection {
-    font-family: monospace;
-    padding: 0.5em;
-    cursor: pointer;
-  }
-  html /deep/ .pushSelection:hover {
-    background: #eee;
-  }
-  html /deep/ .built {
-    color: #D95F02;
-    display:inline;
-  }
-  html /deep/ .userid {
-    color: #7570B3;
-    display:inline;
-  }
-</style>
-<polymer-element name="push-selection-sk">
-  <template>
-    <paper-action-dialog id=chooser heading="Choose a release package to push">
-      <core-selector id=newChoice>
-        <template repeat="{{p in choices}}">
-          <div class=pushSelection name="{{p.Name}}">
-            <core-icon icon="{{choice == p.Name ? 'check' : ''}}" title="Currently installed"></core-icon>
-            <a href="https://github.com/google/skia-buildbot/compare/{{p.Hash}}...HEAD">{{p.Hash | short}}</a>
-            <pre class=built> {{p.Built | humanDiffDate }} </pre>
-            <pre class=userid title="{{p.UserID}}"> {{p.UserID | short}} </pre>
-            {{p.Note}}
-            <core-icon icon="{{p.Dirty ? 'warning' : ''}}" title="Uncommited changes when the package was built."></core-icon>
-          </div>
-        </template>
-      </core-selector>
-      <paper-button dismissive>Cancel</paper-button>
-    </paper-action-dialog>
-  </template>
-  <script>
-    (function() {
-      Polymer({
-        publish: {
-          choices: {
-            value: [],
-            reflect: false
-          },
-          choice: {
-            value: '',
-            reflect: false
-          }
-        },
-
-        ready: function() {
-          var that = this;
-          this.$.newChoice.addEventListener('core-activate', function(e) {
-            that.toggle();
-            var detail = {name: that.$.newChoice.selected};
-            that.dispatchEvent(new CustomEvent('change', {detail: detail}));
-          });
-        },
-
-        toggle: function() {
-          this.$.chooser.toggle();
-        },
-
-        // short is a utility function used in templates to truncate strings.
-        short: function(s) {
-          return s.slice(0, 8);
-        },
-
-        humanDiffDate: sk.human.diffDate,
-      });
-    })();
-  </script>
-</polymer-element>
-
 <!-- The <push-server-sk> custom element declaration.
 
 Displays the server configurations, along with the ability to modify application selections.
@@ -144,8 +50,8 @@ Displays the server configurations, along with the ability to modify application
       }
 
   Events:
-    'change'
-        A 'change' event is generated when the user selects a package to push.
+    'change-package'
+        A 'change-package' event is generated when the user selects a package to push.
         The change event has the following attributes:
 
           event.detail.server - The name of the server.
@@ -252,12 +158,12 @@ Displays the server configurations, along with the ability to modify application
         // When the push-selection-sk dialog notifies us of a selection
         // we fill in some more details and pass that along as another
         // CustomEvent.
-        this.$.extChooser.addEventListener('change', function(e) {
+        this.$.extChooser.addEventListener('change-package', function(e) {
           var detail = {
             name:   e.detail.name,
             server: that.server
           };
-          that.dispatchEvent(new CustomEvent('change', {detail: detail}));
+          that.dispatchEvent(new CustomEvent('change-package', {detail: detail}));
         });
       },
 
