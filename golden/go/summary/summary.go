@@ -10,6 +10,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
@@ -28,6 +29,7 @@ type Summary struct {
 	UntHashes []string `json:"untHashes"`
 	Num       int      `json:"num"`
 	Corpus    string   `json:"corpus"`
+	Blame     []string `json:"blame"`
 }
 
 // Summaries contains a Summary for each test.
@@ -38,13 +40,15 @@ type Summaries struct {
 	mutex     sync.Mutex
 	summaries map[string]*Summary
 	tallies   *tally.Tallies
+	blamer    *blame.Blamer
 }
 
 // New creates a new instance of Summaries.
-func New(storages *storage.Storage, tallies *tally.Tallies) (*Summaries, error) {
+func New(storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer) (*Summaries, error) {
 	s := &Summaries{
 		storages: storages,
 		tallies:  tallies,
+		blamer:   blamer,
 	}
 
 	var err error
@@ -181,7 +185,7 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 				}
 			}
 		}
-		ret[name] = makeSummary(name, e, s.storages.DiffStore, corpus, util.KeysOfStringSet(digests))
+		ret[name] = s.makeSummary(name, e, s.storages.DiffStore, corpus, util.KeysOfStringSet(digests))
 	}
 	t.Stop()
 
@@ -189,7 +193,7 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 }
 
 // makeSummary returns a Summary for the given digests.
-func makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
+func (s *Summaries) makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffStore, corpus string, digests []string) *Summary {
 	pos := 0
 	neg := 0
 	unt := 0
@@ -234,6 +238,7 @@ func makeSummary(name string, e *expstorage.Expectations, diffStore diff.DiffSto
 		UntHashes: untHashes,
 		Num:       pos + neg + unt,
 		Corpus:    corpus,
+		Blame:     s.blamer.GetBlamesForTest(name),
 	}
 }
 

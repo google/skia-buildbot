@@ -10,6 +10,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/digeststore"
 	pconfig "go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/filetilestore"
 	ptypes "go.skia.org/infra/perf/go/types"
@@ -119,6 +120,25 @@ func (m *MockTileStore) Put(scale, index int, tile *ptypes.Tile) error {
 
 func (m *MockTileStore) GetModifiable(scale, index int) (*ptypes.Tile, error) {
 	return m.Get(scale, index)
+}
+
+type MockDigestStore struct {
+	IssueIDs  []int
+	FirstSeen int64
+	OkValue   bool
+}
+
+func (m *MockDigestStore) Get(testName, digest string) (*digeststore.DigestInfo, bool, error) {
+	return &digeststore.DigestInfo{
+		TestName: testName,
+		Digest:   digest,
+		First:    m.FirstSeen,
+	}, m.OkValue, nil
+}
+
+func (m *MockDigestStore) Update([]*digeststore.DigestInfo) error {
+	m.OkValue = true
+	return nil
 }
 
 // GetTileStoreFromEnv looks at the TEST_TILE_DIR environement variable for the

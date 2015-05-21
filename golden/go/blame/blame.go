@@ -91,16 +91,26 @@ func (b *Blamer) GetAllBlameLists() (map[string]map[string]*BlameDistribution, [
 	return blameLists, commits
 }
 
-// GetBlameList returns a blame list for the given test.
-func (b *Blamer) GetBlameList(testName string) (map[string]*BlameDistribution, []*ptypes.Commit) {
+// GetBlamesForTest returns the list of authors that have blame assigned to
+// them for the given test.
+func (b *Blamer) GetBlamesForTest(testName string) []string {
 	blameLists, commits := b.GetAllBlameLists()
 
-	if ret, ok := blameLists[testName]; ok {
-		return ret, commits
+	digestBlameList := blameLists[testName]
+	blameMap := map[string]bool{}
+	for _, blameDistribution := range digestBlameList {
+		commitIndices := b.getBlame(blameDistribution, commits, commits)
+		for _, commitIdx := range commitIndices {
+			blameMap[commits[commitIdx].Author] = true
+		}
 	}
 
-	glog.Warningf("Unable to find blame lists for test: %s", testName)
-	return map[string]*BlameDistribution{}, commits
+	ret := make([]string, 0, len(blameMap))
+	for author := range blameMap {
+		ret = append(ret, author)
+	}
+
+	return ret
 }
 
 // TODO(stephana): Remove all public functions other than GetBlame
@@ -112,9 +122,11 @@ func (b *Blamer) GetBlameList(testName string) (map[string]*BlameDistribution, [
 // to the current tile.
 func (b *Blamer) GetBlame(testName string, digest string, commits []*ptypes.Commit) []int {
 	blameLists, blameCommits := b.GetAllBlameLists()
+	return b.getBlame(blameLists[testName][digest], blameCommits, commits)
+}
 
-	blameDistribution, ok := blameLists[testName][digest]
-	if !ok || (len(blameDistribution.Freq) == 0) {
+func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, commits []*ptypes.Commit) []int {
+	if (blameDistribution == nil) || (len(blameDistribution.Freq) == 0) {
 		return []int{}
 	}
 

@@ -35,6 +35,16 @@
       #core {
         margin-top: 2em;
       }
+
+      .blameHeader {
+        padding-top: 0.7em;
+        padding-right: 0.57em;
+        padding-bottom: 0.7em;
+        padding-left: 0.57em;
+        color: #1F78B4;
+        text-transform: uppercase;
+      }
+
     </style>
   </head>
   <body>
@@ -62,6 +72,9 @@
           <paper-button class="header short" data-key="neg">Neg</paper-button>
           <paper-button class="header short" data-key="untriaged">Unt</paper-button>
           <paper-button class="header short" data-key="num">Total</paper-button>
+          <span class="blameHeader">
+            Blame
+          </span>
         </sort-sk>
         <div id="summaries"></div>
         <paper-spinner active></paper-spinner>
@@ -119,6 +132,7 @@
            if (page.state.untonly && c.untriaged == 0) {
              return
            }
+
            var s = document.createElement('test-summary-sk');
            s.query = encodeURIComponent(page.state.query);
            s.include = page.state.include;

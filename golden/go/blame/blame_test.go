@@ -10,7 +10,6 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
@@ -74,7 +73,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		TileStore:         mocks.NewMockTileStore(t, digests, params, commits),
-		DigestStore:       &MockDigestStore{firstSeen: start + 1000, okValue: true},
+		DigestStore:       &mocks.MockDigestStore{FirstSeen: start + 1000, OkValue: true},
 		EventBus:          eventBus,
 	}
 	blamer, err := New(storages)
@@ -147,7 +146,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, []int{2}, blamer.GetBlame("bar", DI_9, commits))
 
 	// Simulate the case where the digest is not found in digest store.
-	storages.DigestStore.(*MockDigestStore).okValue = false
+	storages.DigestStore.(*mocks.MockDigestStore).OkValue = false
 	assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
 	time.Sleep(10 * time.Millisecond)
 	blameLists, _ = blamer.GetAllBlameLists()
@@ -185,9 +184,9 @@ func testBlamerWithLiveData(t assert.TestingT, tileStore ptypes.TileStore) {
 	storage := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		TileStore:         tileStore,
-		DigestStore: &MockDigestStore{
-			firstSeen: time.Now().Unix(),
-			okValue:   true,
+		DigestStore: &mocks.MockDigestStore{
+			FirstSeen: time.Now().Unix(),
+			OkValue:   true,
 		},
 		EventBus: eventBus,
 	}
@@ -241,7 +240,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileStore ptypes.TileStore) {
 
 	// Set 'First' for all digests in the past and trigger another
 	// calculation.
-	storage.DigestStore.(*MockDigestStore).firstSeen = 0
+	storage.DigestStore.(*mocks.MockDigestStore).FirstSeen = 0
 	assert.Nil(t, storage.ExpectationsStore.AddChange(changes, ""))
 	waitForChange(blamer, blameLists)
 	blameLists, _ = blamer.GetAllBlameLists()
@@ -259,7 +258,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileStore ptypes.TileStore) {
 
 	// Randomly assign labels to the different digests and make sure
 	// that the blamelists are correct.
-	storage.DigestStore.(*MockDigestStore).firstSeen = time.Now().Unix()
+	storage.DigestStore.(*mocks.MockDigestStore).FirstSeen = time.Now().Unix()
 
 	changes = map[string]types.TestClassification{}
 	choices := []types.Label{types.POSITIVE, types.NEGATIVE, types.UNTRIAGED}
@@ -330,23 +329,4 @@ func forEachTestTraceDo(tile *ptypes.Tile, fn func(string, []string)) {
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 		fn(testName, gTrace.Values[:tileLen])
 	}
-}
-
-type MockDigestStore struct {
-	issueIDs  []int
-	firstSeen int64
-	okValue   bool
-}
-
-func (m *MockDigestStore) Get(testName, digest string) (*digeststore.DigestInfo, bool, error) {
-	return &digeststore.DigestInfo{
-		TestName: testName,
-		Digest:   digest,
-		First:    m.firstSeen,
-	}, m.okValue, nil
-}
-
-func (m *MockDigestStore) Update([]*digeststore.DigestInfo) error {
-	m.okValue = true
-	return nil
 }

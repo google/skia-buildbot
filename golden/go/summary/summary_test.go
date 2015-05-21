@@ -6,9 +6,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	gtypes "go.skia.org/infra/golden/go/types"
@@ -162,6 +164,7 @@ func TestCalcSummaries(t *testing.T) {
 		TileStore:         MockTileStore{Tile: tile},
 		NCommits:          50,
 		EventBus:          eventBus,
+		DigestStore:       &mocks.MockDigestStore{FirstSeen: time.Now().Unix() + 1000, OkValue: true},
 	}
 
 	assert.Nil(t, storages.ExpectationsStore.AddChange(map[string]gtypes.TestClassification{
@@ -185,7 +188,10 @@ func TestCalcSummaries(t *testing.T) {
 		Query:   "config=565",
 	}))
 
-	summaries, err := New(storages, ta)
+	blamer, err := blame.New(storages)
+	assert.Nil(t, err)
+
+	summaries, err := New(storages, ta, blamer)
 	assert.Nil(t, err)
 
 	sum, err := summaries.CalcSummaries(nil, "source_type=gm", false, false)

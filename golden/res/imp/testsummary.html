@@ -86,6 +86,11 @@
         <span class=short>{{summary.neg}}</span>
         <span class=short>{{summary.untriaged}}</span>
         <span class=short>{{summary.num}}</span>
+        <div vertical layout>
+          <template repeat="{{b in summary.blame}}">
+           <div>{{b}}</div>
+          </template>
+        </div>
         <span class=short>
           <template if="{{showLegacy && !triage}}">
             <a href="/#/triage/{{summary.name}}?head={{head}}">Legacy Triage</a>

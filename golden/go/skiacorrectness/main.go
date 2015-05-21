@@ -404,7 +404,7 @@ func main() {
 			glog.Fatalf("Failed to build tallies: %s", err)
 		}
 
-		summaries, err = summary.New(storages, tallies)
+		summaries, err = summary.New(storages, tallies, blamer)
 		if err != nil {
 			glog.Fatalf("Failed to build summary: %s", err)
 		}
