@@ -63,145 +63,169 @@ Displays the server configurations, along with the ability to modify application
   Clicking on an app brings up a selection dialog with all available options,
   the current one already selected. A selection will update and push.
 -->
-<polymer-element name="push-server-sk">
+
+<dom-module id="push-server-sk">
+  <style type="text/css" media="screen">
+    table {
+      margin-left: 3em;
+    }
+
+    h2 {
+      color: #33A02C;
+      margin-left: 1em;
+      display: inline;
+      padding-right: 1em;
+    }
+
+    .appName {
+      padding-right: 2em;
+    }
+
+    td iron-icon {
+      padding-right: 1em;
+    }
+
+    paper-button {
+      color: #1f78b4;
+    }
+
+    paper-button:hover {
+      background: #eee;
+    }
+  </style>
   <template>
-    <style type="text/css" media="screen">
-      table {
-        margin-left: 3em;
-      }
-      h2 {
-        color: #33A02C;
-        margin-left: 1em;
-        display: inline;
-        padding-right: 1em;
-      }
-      .appName {
-        padding-right: 2em;
-      }
-      td core-icon {
-        padding-right: 1em;
-      }
-      paper-button {
-        color: #1f78b4;
-      }
-      paper-button:hover {
-        background: #eee;
-      }
-    </style>
-    <template repeat="{{server in servers}}">
-      <section>
-        <h2>{{server.Name}}</h2> [<a target=_blank href="http://{{ip[server.Name]}}:10114">monit</a>] [<a target=_blank href="http://{{ip[server.Name]}}:10115">logs</a>]
-        <table>
-          <template repeat="{{id in server.Installed}}">
-          <tr>
-            <td>
-              <paper-button class=application data-server="{{server.Name}}" data-name="{{id}}" data-app="{{id | prefixOf}}"><core-icon icon="create" title="Edit which package is installed."></core-icon></paper-button>
-            </td>
-            <td><span class=appName>{{id | prefixOf}}</span></td>
-            <td><span class=appName><a href="https://github.com/google/skia-buildbot/compare/{{id | fullHash}}...HEAD">{{id | short}}</a></span></td>
-            <td><core-icon icon="{{packageLookup[id].Latest ? '' : 'alarm'}}" title="Out of date."></core-icon></td>
-            <td><core-icon icon="{{packageLookup[id].Dirty ? 'warning' : ''}}" title="Uncommited changes when the package was built."></core-icon></td>
-          </tr>
-          </template>
-        </table>
-      </section>
-    </template>
+    <div id=list>
+      <template is="dom-repeat" items="{{servers}}" as=server>
+        <section>
+          <h2>{{server.Name}}</h2>
+            [<a target=_blank href$="{{monURI(server.Name)}}">mon</a>]
+            [<a target=_blank href$="{{logsURI(server.Name)}}">logs</a>]
+          <table>
+            <template is="dom-repeat" items="{{server.Installed}}" as="installed">
+              <tr>
+                <td>
+                  <paper-button class=application
+                    data-server$="{{server.Name}}" data-name$="{{installed}}" data-app$="{{prefixOf(installed)}}"><iron-icon icon="create" title="Edit which package is installed."></iron-icon></paper-button>
+                </td>
+                <td><span class=appName>{{prefixOf(installed)}}</span></td>
+                <td><span class=appName><a href$="https://github.com/google/skia-buildbot/compare/{{fullHash(installed)}}...HEAD">{{short(installed)}}</a></span></td>
+                <td><iron-icon icon$="{{alarmIfNotLatest(installed)}}" title="Out of date."></iron-icon></td>
+                <td><iron-icon icon$="{{warnIfDirty(installed)}}" title="Uncommited changes when the package was built."></iron-icon></td>
+              </tr>
+            </template>
+          </table>
+        </section>
+      </template>
+    </div>
     <push-selection-sk id=extChooser></push-selection-sk>
   </template>
-  <script>
-    Polymer({
-      publish: {
-        servers: {
-          value: {},
-          reflect: false
-        },
-        packages: {
-          value: {},
-          reflect: false
-        },
-        ip: {
-          value: {},
-          reflect: false
-        },
-        packageLookup: {
-          value: {},
-          reflect: false
-        },
-        server: {
-          value: '',
-          reflect: false
-        }
-      },
+</dom-module>
+<script>
+  Polymer({
+    is: "push-server-sk",
 
-      ready: function() {
+    properties: {
+      servers: {
+        type: Array,
+        value: function() { return []; },
+      },
+      packages: {
+        type: Array,
+        value: function() { return []; },
+      },
+      ip: {
+        type: Object,
+        value: function() { return {}; },
+      },
+      packageLookup: {
+        type: Object,
+        value: function() { return {}; },
+      },
+      server: {
+        type: String,
+        value: '',
+      }
+    },
+
+    ready: function() {
+      var that = this;
+      this.$.list.addEventListener('click', function(e) {
+        that.server = '';
+        var id = '';
+        var app = '';
+        var button = sk.findParent(e.target, "PAPER-BUTTON");
+        if (button == null) {
+          return
+        }
+        that.server = button.dataset.server;
+        id = button.dataset.name;
+        app = button.dataset.app;
+        if (app != "") {
+          that.$.extChooser.choices = that.packages[app];
+          that.$.extChooser.choice = id;
+          that.$.extChooser.toggle();
+        }
+      });
+
+      // When the push-selection-sk dialog notifies us of a selection
+      // we fill in some more details and pass that along as another
+      // CustomEvent.
+      this.$.extChooser.addEventListener('change-package', function(e) {
+        var detail = {
+          name:   e.detail.name,
+          server: that.server
+        };
+        that.dispatchEvent(new CustomEvent('change-package', {detail: detail}));
+      });
+    },
+
+    setConfig: function(servers, packages, ip) {
+      this.servers = servers;
+      this.packages = packages;
+      this.ip = ip;
+      for (appName in this.packages) {
         var that = this;
-        this.addEventListener('click', function(e) {
-          this.server = '';
-          var id = '';
-          var app = '';
-          // Bump up the parent path until we find our containing .application element.
-          for (var i=0; i<e.path.length; i++) {
-            if (e.path[i]["classList"] && e.path[i].classList.contains('application')) {
-              this.server = e.path[i].dataset.server;
-              id = e.path[i].dataset.name;
-              app = e.path[i].dataset.app;
-              break;
-            }
-          }
-          if (app != "") {
-            this.$.extChooser.choices = this.packages[app];
-            this.$.extChooser.choice = id;
-            this.$.extChooser.toggle();
-          }
+        var latest = true;
+        this.packages[appName].forEach(function(details) {
+          that.packageLookup[details.Name] = details;
+          that.packageLookup[details.Name].Latest = latest;
+          latest = false;
         });
+      }
+    },
 
-        // When the push-selection-sk dialog notifies us of a selection
-        // we fill in some more details and pass that along as another
-        // CustomEvent.
-        this.$.extChooser.addEventListener('change-package', function(e) {
-          var detail = {
-            name:   e.detail.name,
-            server: that.server
-          };
-          that.dispatchEvent(new CustomEvent('change-package', {detail: detail}));
-        });
-      },
+    // prefixOf is a helper used in templates that returns all the text
+    // that appears before the first '/'.
+    prefixOf: function(s) {
+      return s.split('/')[0];
+    },
 
-      setConfig: function(servers, packages, ip) {
-        this.servers = servers;
-        this.packages = packages;
-        this.ip = ip;
-        for (appName in this.packages) {
-          var that = this;
-          var latest = true;
-          this.packages[appName].forEach(function(details) {
-            that.packageLookup[details.Name] = details;
-            that.packageLookup[details.Name].Latest = latest;
-            latest = false;
-          });
-        }
-      },
+    // fullHash is a utility function used in templates to extract the full git hash
+    // from a package name.
+    fullHash: function(s) {
+      return s.slice(s.length-44, s.length-4)
+    },
 
-      // prefixOf is a helper used in templates that returns all the text
-      // that appears before the first '/'.
-      prefixOf: function(s) {
-        return s.split('/')[0];
-      },
+    // short is a utility function used in templates to truncate strings.
+    short: function(s) {
+      return this.fullHash(s).slice(0, 6);
+    },
 
-      // fullHash is a utility function used in templates to extract the full git hash
-      // from a package name.
-      fullHash: function(s) {
-        return s.slice(s.length-44, s.length-4)
-      },
+    alarmIfNotLatest: function(installed) {
+      return this.packageLookup[installed].Latest ? '' : 'alarm';
+    },
 
-      // short is a utility function used in templates to truncate strings.
-      short: function(s) {
-        return this.fullHash(s).slice(0, 6);
-      },
+    warnIfDirty: function(installed) {
+      return this.packageLookup[installed].Dirty ? 'warning' : '';
+    },
 
+    monURI: function(name) {
+      return "http://" + this.ip[name] + ":10114";
+    },
 
-    });
-  </script>
-</polymer-element>
+    logsURI: function(name) {
+      return "http://" + this.ip[name] + ":10115";
+    },
 
-
+  });
+</script>

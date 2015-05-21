@@ -78,16 +78,20 @@ var (
 	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
 )
 
-func Init() {
-	if *resourcesDir == "" {
-		_, filename, _, _ := runtime.Caller(0)
-		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
-	}
+func loadTemplates() {
 	indexTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
+}
+
+func Init() {
+	if *resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+	}
+	loadTemplates()
 
 	// Read toml config file.
 	if _, err := toml.DecodeFile(*configFilename, &config); err != nil {
@@ -326,6 +330,9 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 // mainHandler handles the GET of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Main Handler: %q\n", r.URL.Path)
+	if *local {
+		loadTemplates()
+	}
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
 		if err := indexTemplate.Execute(w, struct{}{}); err != nil {

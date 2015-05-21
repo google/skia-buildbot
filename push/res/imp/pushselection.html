@@ -18,76 +18,102 @@
     toggle()
         Toggles the visibility of the selection dialog.
 -->
-<style type="text/css" media="screen">
-  html /deep/ .pushSelection {
-    font-family: monospace;
-    padding: 0.5em;
-    cursor: pointer;
-  }
-  html /deep/ .pushSelection:hover {
-    background: #eee;
-  }
-  html /deep/ .built {
-    color: #D95F02;
-    display:inline;
-  }
-  html /deep/ .userid {
-    color: #7570B3;
-    display:inline;
-  }
-</style>
-<polymer-element name="push-selection-sk">
+
+<dom-module id="push-selection-sk">
+  <style>
+    .pushSelection {
+      font-family: monospace;
+      padding: 0.5em;
+      cursor: pointer;
+    }
+    .pushSelection:hover {
+      background: #eee;
+    }
+    .built {
+      color: #D95F02;
+      display:inline;
+    }
+    .userid {
+      color: #7570B3;
+      display:inline;
+    }
+    paper-dialog div {
+      padding: 5px 24px;
+    }
+  </style>
   <template>
-    <paper-action-dialog id=chooser heading="Choose a release package to push">
-      <core-selector id=newChoice>
-        <template repeat="{{p in choices}}">
-          <div class=pushSelection name="{{p.Name}}">
-            <core-icon icon="{{choice == p.Name ? 'check' : ''}}" title="Currently installed"></core-icon>
-            <a href="https://github.com/google/skia-buildbot/compare/{{p.Hash}}...HEAD">{{p.Hash | short}}</a>
-            <pre class=built> {{p.Built | humanDiffDate }} </pre>
-            <pre class=userid title="{{p.UserID}}"> {{p.UserID | short}} </pre>
-            {{p.Note}}
-            <core-icon icon="{{p.Dirty ? 'warning' : ''}}" title="Uncommited changes when the package was built."></core-icon>
-          </div>
-        </template>
-      </core-selector>
-      <paper-button dismissive>Cancel</paper-button>
-    </paper-action-dialog>
+    <paper-dialog id=chooser>
+      <h2>Choose a release package to push</h2>
+      <paper-dialog-scrollable>
+        <iron-selector id=newChoice>
+          <template is="dom-repeat" items$="{{choices}}">
+            <div class=pushSelection data-name$="{{item.Name}}">
+              <iron-icon icon$="{{checkIfInstalled(choice, item.Name)}}" title="Currently installed"></iron-icon>
+              <a href="https://github.com/google/skia-buildbot/compare/{{item.Hash}}...HEAD">{{short(item.Hash)}}</a>
+              <pre class=built>{{humanDiffDate(item.Built)}}</pre>
+              <pre class=userid title$="{{item.UserID}}">{{short(item.UserID)}}</pre>
+              <span>{{item.Note}}</span>
+              <iron-icon icon$="{{warnIfDirty(item.Dirty)}}" title="Uncommited changes when the package was built."></iron-icon>
+            </div>
+          </template>
+        </iron-selector>
+      </paper-dialog-scrollable>
+      <div class="buttons">
+        <paper-button dialog-dismiss>Cancel</paper-button>
+      </div>
+    </paper-dialog>
   </template>
-  <script>
-    (function() {
-      Polymer({
-        publish: {
-          choices: {
-            value: [],
-            reflect: false
-          },
-          choice: {
-            value: '',
-            reflect: false
-          }
-        },
+</dom-module>
 
-        ready: function() {
-          var that = this;
-          this.$.newChoice.addEventListener('core-activate', function(e) {
-            that.toggle();
-            var detail = {name: that.$.newChoice.selected};
-            that.dispatchEvent(new CustomEvent('change-package', {detail: detail}));
-          });
-        },
+<script>
+  Polymer({
+    is: "push-selection-sk",
 
-        toggle: function() {
-          this.$.chooser.toggle();
-        },
-
-        // short is a utility function used in templates to truncate strings.
-        short: function(s) {
-          return s.slice(0, 8);
-        },
-
-        humanDiffDate: sk.human.diffDate,
+    ready: function() {
+      var that = this;
+      this.$.newChoice.addEventListener('click', function(e) {
+        that.toggle();
+        var div = sk.findParent(e.target, "DIV");
+        if (div == null) {
+          return
+        }
+        var detail = { name: div.dataset.name };
+        that.dispatchEvent(new CustomEvent('change-package', {detail: detail}));
       });
-    })();
-  </script>
-</polymer-element>
+    },
+
+    properties: {
+      choices: {
+        type: Array,
+        value: [],
+      },
+      choice: {
+        type: String,
+        value: '',
+      }
+    },
+
+    toggle: function() {
+      this.$.chooser.toggle();
+    },
+
+    // short is a utility function used in templates to truncate strings.
+    short: function(s) {
+      return s.slice(0, 8);
+    },
+
+    humanDiffDate: sk.human.diffDate,
+
+    checkIfInstalled: function(id, name) {
+      if (id == name) {
+        return 'check';
+      }
+      return '';
+    },
+
+    warnIfDirty: function(dirty) {
+      return dirty ? 'warning' : ''
+    },
+
+  });
+</script>

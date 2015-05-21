@@ -7,6 +7,8 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 
 BOWER_DIR=third_party/bower_components
 
+VULCANIZE1=true
+
 default: core_js elements_html
 	go install -v ./go/pull
 	go install -v ./go/pulld
@@ -17,5 +19,8 @@ release: default
 
 pull_release: default
 	./build_pull_release
+
+.PHONY: debug
+debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk

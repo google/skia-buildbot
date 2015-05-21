@@ -1,0 +1,84 @@
+<!--
+  This in an HTML Import-able file that contains the JS and HTML Templates for
+  the login.
+
+  To use this file import it:
+
+    <link href="/res/imp/login.html" rel="import" />
+
+  There is nothing to instantiate, on load the #login element will be found and
+  populated with the users login status.
+-->
+<script type="text/javascript" charset="utf-8">
+(function(){
+
+  var importer__ = new sk.Importer();
+
+  // A Promise that will be resolved with the users current login status.
+  //
+  // The resolution object looks like:
+  //
+  //   {
+  //     "Email": "fred@example.com",
+  //     "LoginURL": "https://..."
+  //   }
+  //
+  // The Email will be the empty string if the user is not logged in.
+  sk.Login = new Promise(function(resolve, reject) {
+      sk.get('/loginstatus/').then(JSON.parse).then(resolve).catch(reject);
+    });
+
+})();
+</script>
+
+<!--
+  The <login-sk> custom element.
+
+  Uses sk.Login promise to display the current login status and provides
+  login/logout links.
+-->
+
+<dom-module id="login-sk">
+  <style type="text/css" media="screen">
+    @media (max-width: 500px) {
+      #email {
+        display: none;
+      }
+    }
+    #logInOut {
+      margin-left: 10px;
+    }
+    #email,
+    #logInOut {
+      font-size: 15px;
+    }
+  </style>
+  <template>
+    <span id=email>{{email}}</span>
+    <a id=logInOut href=""></a>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "login-sk",
+
+    ready: function() {
+      this.email = '';
+    },
+
+    ready: function() {
+      var that = this;
+      sk.Login.then(function(status) {
+        that.email = status['Email'];
+        if (that.email == '') {
+          that.$.logInOut.href = status['LoginURL'];
+          that.$.logInOut.innerText = 'Login';
+        } else {
+          that.$.logInOut.href = "/logout/?redirect=" + encodeURIComponent(document.location);
+          that.$.logInOut.innerText = 'Logout';
+        }
+      });
+    }
+  });
+</script>

@@ -48,6 +48,23 @@ this.sk = this.sk || function() {
   }
 
   /**
+   * findParent finds a parent of 'ele' that has the nodeName of 'nodeName'.
+   *
+   * Note that nodeName is all caps, i.e. "DIV" or "PAPER-BUTTON".
+   *
+   * The return value is null if no containing element has that node name.
+   */
+  sk.findParent = function(ele, nodeName) {
+    while (ele != null) {
+      if (ele.nodeName == nodeName) {
+        return ele;
+      }
+      ele = ele.parentElement;
+    }
+    return null;
+  }
+
+  /**
    * Importer simplifies importing HTML Templates from HTML Imports.
    *
    * Just instantiate an instance in the HTML Import:
