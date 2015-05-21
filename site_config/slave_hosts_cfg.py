@@ -87,7 +87,7 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-nexus10-003',     '3', False),
     ],
     'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.110',
+    'ip': '192.168.1.112',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': 'A',
     'path_to_buildbot': ['buildbot'],
