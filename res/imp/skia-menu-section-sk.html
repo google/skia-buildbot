@@ -1,0 +1,46 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <skia-menu-section-sk>
+
+  To use this file import it:
+
+    <link href="/res/common/imp/skia-menu-section-sk.html" rel="import" />
+
+  Usage:
+
+    <menu-sk>
+      <skia-menu-section-sk></skia-menu-section-sk>
+    </menu-sk>
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<link rel="import" href="/res/common/imp/menu-item-sk.html" />
+<link rel="import" href="/res/common/imp/menu-section-sk.html" />
+<polymer-element name="skia-menu-section-sk">
+  <template>
+    <menu-section-sk header="Skia">
+      <menu-item-sk label="Documentation" url="https://docs.skia.org" icon="description"></menu-item-sk>
+      <menu-item-sk label="Status" url="https://status.skia.org" icon="search"></menu-item-sk>
+      <menu-item-sk label="Perf" url="https://perf.skia.org" icon="trending-up"></menu-item-sk>
+      <menu-item-sk label="Gold" url="https://gold.skia.org" icon="thumbs-up-down"></menu-item-sk>
+      <menu-item-sk label="Fiddle" url="https://fiddle.skia.org" icon="assignment"></menu-item-sk>
+      <menu-item-sk label="Cluster Telemetry" url="https://ct.skia.org" icon="cloud"></menu-item-sk>
+      <menu-item-sk label="Issue Tracker" url="https://code.google.com/p/skia/issues/list" icon="bug-report"></menu-item-sk>
+      <menu-item-sk label="Code" url="https://skia.googlesource.com/skia" icon="folder"/>
+    </menu-section-sk>
+  </template>
+  <script>
+    Polymer({});
+  </script>
+</polymer-element>

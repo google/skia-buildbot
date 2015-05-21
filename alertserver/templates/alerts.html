@@ -6,36 +6,26 @@
     <title>{{.Title}}</title>
 
     <style>
-    core-header-panel {
+    html /deep/ core-header-panel {
       background: white;
       font-family: sans-serif;
     }
-    core-toolbar {
+    html /deep/ core-toolbar {
       background-color: #88CCEE;
       color: #FFFFFF;
       text-align: center;
       font-size: 15px;
     }
-    core-toolbar.alerting {
+    html /deep/ core-toolbar.alerting {
       background-color: #CC6677;
-    }
-    h1 {
-      font-size: 1.7em;
     }
     </style>
   </head>
   <body fullbleed vertical layout unresolved>
-    <core-header-panel flex>
-      <core-toolbar>
-        <div><a href="/rules">Alert Rules</a></div><div flex></div><login-sk></login-sk>
-        <h1 class="bottom" flex>{{.Title}}</h1>
-      </core-toolbar>
+    <app-sk fit id="appLayout" appName="{{.Title}}" drawerWidth="230px">
+      <alerts-menu-section-sk navigation></alerts-menu-section-sk>
       <alerts-sk reload=60 categories='{{.Categories}}' excludeCategories='{{.ExcludeCategories}}'></alerts-sk>
-    </core-header-panel>
-    <div horizontal layout>
-      <div flex></div>
-      <version-sk></version-sk>
-    </div>
+    </app-sk>
     <script type="text/javascript" charset="utf-8">
     (function() {
       sk.WebComponentsReady.then(function() {
@@ -45,9 +35,11 @@
           for (var i = 0; i < e.detail.alerts.length; i++) {
             anyAlerting = anyAlerting || e.detail.alerts[i].snoozedUntil == 0;
           }
-          var tb  = $$$("core-toolbar");
-          if (anyAlerting != tb.classList.contains("alerting")) {
-            tb.classList.toggle("alerting");
+          var tb  = $$("html /deep/ core-toolbar");
+          for (var i = 0; i < tb.length; i++) {
+            if (anyAlerting != tb[i].classList.contains("alerting")) {
+              tb[i].classList.toggle("alerting");
+            }
           }
 
           // Dynamically generate a favicon with the number of active alerts.

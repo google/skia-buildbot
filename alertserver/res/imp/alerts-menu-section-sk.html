@@ -1,0 +1,41 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <alerts-menu-sk>
+
+  To use this file import it:
+
+    <link href="alerts-menu-sk.html" rel="import" />
+
+  Usage:
+
+    <alerts-menu-sk></alerts-menu-sk>
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<link rel="import" href="/res/common/imp/menu-item-sk.html" />
+<link rel="import" href="/res/common/imp/menu-section-sk.html" />
+<link rel="import" href="/res/common/imp/menu-sk.html" />
+<link rel="import" href="/res/imp/bower_components/core-icons/av-icons.html" />
+<polymer-element name="alerts-menu-section-sk">
+  <template>
+    <menu-section-sk header="">
+      <menu-item-sk label="Home" url="/" icon="home"></menu-item-sk>
+      <menu-item-sk label="Infra Alerts" url="/infra" icon="settings"></menu-item-sk>
+      <menu-item-sk label="Alert Rules" url="/rules" icon="av:my-library-books"></menu-item-sk>
+    </menu-section-sk>
+  </template>
+  <script>
+    Polymer({});
+  </script>
+</polymer-element>
