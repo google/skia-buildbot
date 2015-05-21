@@ -573,15 +573,6 @@ _slave_host_dicts = {
   'skiabot-mac-10_8-compile': {
     'slaves': [
       ('skiabot-mac-10_8-compile-000', '0', False),
-      ('skiabot-mac-10_8-compile-001', '1', False),
-      ('skiabot-mac-10_8-compile-002', '2', False),
-      ('skiabot-mac-10_8-compile-003', '3', False),
-      ('skiabot-mac-10_8-compile-004', '4', False),
-      ('skiabot-mac-10_8-compile-005', '5', False),
-      ('skiabot-mac-10_8-compile-006', '6', False),
-      ('skiabot-mac-10_8-compile-007', '7', False),
-      ('skiabot-mac-10_8-compile-008', '8', False),
-      ('skiabot-mac-10_8-compile-009', '9', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': '192.168.1.104',
