@@ -227,10 +227,17 @@ func NewURLAwareFileServer(baseDir, baseUrl string) *URLAwareFileServer {
 		glog.Fatalf("Unable to get abs path of %s. Got error: %s", baseDir, err)
 	}
 
+	fileHandler := http.StripPrefix(baseUrl, http.FileServer(http.Dir(absPath)))
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Cache images for 12 hours.
+		w.Header().Set("Cache-control", "public, max-age=43200")
+		fileHandler.ServeHTTP(w, r)
+	})
+
 	return &URLAwareFileServer{
 		baseDir: absPath,
 		baseUrl: baseUrl,
-		Handler: http.StripPrefix(baseUrl, http.FileServer(http.Dir(absPath))),
+		Handler: handler,
 	}
 }
 
