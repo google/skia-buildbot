@@ -55,7 +55,7 @@ func (b *Blamer) processTileStream() error {
 	b.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		expChanges <- e.([]string)
 	})
-	tileStream := b.storages.GetTileStreamNow(2*time.Minute, true)
+	tileStream := b.storages.GetTileStreamNow(2*time.Minute, false)
 
 	lastTile := <-tileStream
 	if err := b.updateBlame(lastTile); err != nil {
