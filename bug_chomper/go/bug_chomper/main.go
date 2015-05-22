@@ -66,6 +66,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/bug_chomper.html"),
 		filepath.Join(*resourcesDir, "templates/submitted.html"),
 		filepath.Join(*resourcesDir, "templates/error.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
 
@@ -206,6 +207,7 @@ func runServer(serverURL string) {
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", makeBugChomperPage).Methods("GET")
 	r.HandleFunc("/", submitData).Methods("POST")
+	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc(OAUTH_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
