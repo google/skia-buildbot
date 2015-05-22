@@ -66,6 +66,9 @@
         font-weight: bold;
         padding: 1em;
       }
+      paper-spinner {
+        margin-left: 1em;
+      }
     </style>
     <div vertical layout>
       <div horizontal layout>
@@ -98,6 +101,10 @@
         </span>
       </div>
       <div vertical layout id=details>
+        <div horizontal layout center>
+          <counter-sk id="counter"></counter-sk>
+          <paper-spinner id="spinner"></paper-spinner>
+        </div>
         <template if="{{details}}">
           <template repeat="{{d, i in summary.untHashes}}">
             <template if="{{i<limit}}">
@@ -109,7 +116,6 @@
           </template>
         </template>
       </div>
-      <paper-spinner id="spinner"></paper-spinner>
     </div>
   </template>
   <script>
@@ -173,8 +179,10 @@
 
           // Keep the spinner spinning until all details elements have been loaded.
           that.loadedCount++;
+          that.$.counter.current = that.loadedCount;
           if (that.loadedCount == that.summary.untHashes.length) {
             that.$.spinner.active = false;
+            that.$.counter.active = false;
           }
         });
 
@@ -253,6 +261,9 @@
         this.loadedCount = 0;
         if (this.triage && this.details) {
           this.$.spinner.active = true;
+          this.$.counter.current = 0;
+          this.$.counter.max = this.summary.untHashes.length;
+          this.$.counter.active = true;
         }
       },
 

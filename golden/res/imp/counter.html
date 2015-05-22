@@ -1,0 +1,47 @@
+<!-- The <counter-sk> custom element declaration.
+
+  Displays "Loaded N / M" while active.
+
+  Attributes:
+    current - The current number of items loaded.
+    max     - The maximum number of items loaded.
+    active  - Boolean, true if the message should be displayed.
+
+  Events:
+
+  Methods:
+
+-->
+<polymer-element name="counter-sk">
+  <template>
+    <style type="text/css" media="screen">
+      .disabled {
+        display: none;
+      }
+      div {
+        font-weight: bold;
+      }
+    </style>
+    <div class="{{active ? '' : 'disabled'}}">
+      Loaded {{current}}/{{max}}
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        current: {
+          value: 0,
+          reflect: true,
+        },
+        max: {
+          value: 0,
+          reflect: true,
+        },
+        active: {
+          value: false,
+          reflect: true,
+        }
+      }
+    });
+  </script>
+</polymer-element>
