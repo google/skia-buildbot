@@ -35,7 +35,7 @@ There are several components to the system, as seen below:
      | |  |                   |
      | |  | GCE Instance      |
      +-+  |   running         |
-       +--+   pull client     |
+       +--+   pulld client    |
           |                   |
           +-------------------+
 
@@ -77,7 +77,7 @@ list is of the actual Debian image names held in `/debs/`.
 For example, `gs://skia-push/server/skia-push.json` looks like this:
 
     [
-      "pull/pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-09T19:05:02Z:7e0ff6059e653eb75a36efb621d0fd66d1ced433.deb",
+      "pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-09T19:05:02Z:7e0ff6059e653eb75a36efb621d0fd66d1ced433.deb",
       "push/push:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-09T18:45:59Z:2d9eea8b121f61ac8f1ab853fedc30fc092b3f70.deb",
       "logserver/logserver:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-09T18:15:56Z:52a8ec0da66d45a58274947080870b742404a92f.deb"
     ]
@@ -87,10 +87,13 @@ Pull Client
 -----------
 
 On every GCE instance that is managed by the Push Server there is a long
-running 'pull' process that polls the
+running 'pulld' process that polls the
 `gs://skia-push/server/{servername}.json` file and looks for it to change.
 When it does change then any new Debian packages are downloaded from
 `gs://skia-push/debs` and installed.
+The push server will also send a request to
+http://[server-name]:10116/pullpullpull to trigger pulld to look for changes
+in the json file.
 
 
 GCE Instances

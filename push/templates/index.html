@@ -38,10 +38,20 @@
       paper-toast {
         margin: 2em;
       }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+      }
+
+      paper-header-panel {
+        height: 100%;
+      }
+
     </style>
   </head>
   <body class="fullbleed layout vertical">
-    <paper-header-panel class="flex">
+    <paper-header-panel mode=scroll>
       {{template "titlebar.html" .}}
 
       <push-server-sk></push-server-sk>

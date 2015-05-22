@@ -297,6 +297,10 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 				util.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
+			resp, err := client.Get(fmt.Sprintf("http://%s:10116/pullpullpull", push.Server))
+			if err != nil || resp == nil {
+				glog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)
+			}
 			allInstalled[push.Server].Names = newInstalled
 		}
 	}

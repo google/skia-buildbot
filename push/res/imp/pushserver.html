@@ -212,11 +212,19 @@ Displays the server configurations, along with the ability to modify application
     },
 
     alarmIfNotLatest: function(installed) {
-      return this.packageLookup[installed].Latest ? '' : 'alarm';
+      if (!this.packageLookup[installed]) {
+        return '';
+      } else {
+        return this.packageLookup[installed].Latest ? '' : 'alarm';
+      }
     },
 
     warnIfDirty: function(installed) {
-      return this.packageLookup[installed].Dirty ? 'warning' : '';
+      if (!this.packageLookup[installed]) {
+        return '';
+      } else {
+        return this.packageLookup[installed].Dirty ? 'warning' : '';
+      }
     },
 
     monURI: function(name) {
