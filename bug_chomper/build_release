@@ -11,11 +11,14 @@ INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/bug_chomper            ${ROOT}/usr/local/bin/bug_chomper
 ${INSTALL} --mode=644 -T ./sys/monit                          ${ROOT}/etc/monit/conf.d/bug_chomper
 ${INSTALL} --mode=755 -T ./sys/init                           ${ROOT}/etc/init.d/bug_chomper
+${INSTALL} --mode=644 -T ./res/css/style.css                  ${ROOT}/usr/local/share/bug_chomper/res/css/style.css
+${INSTALL} --mode=644 -T ./res/js/core.js                  ${ROOT}/usr/local/share/bug_chomper/res/js/core.js
+${INSTALL} --mode=644 -T ./res/third_party/jquery.tablednd.js ${ROOT}/usr/local/share/bug_chomper/res/third_party/jquery.tablednd.js
+${INSTALL} --mode=644 -T ./res/vul/elements.html              ${ROOT}/usr/local/share/bug_chomper/res/vul/elements.html
 ${INSTALL} --mode=644 -T ./templates/bug_chomper.html         ${ROOT}/usr/local/share/bug_chomper/templates/bug_chomper.html
+${INSTALL} --mode=644 -T ./templates/header.html              ${ROOT}/usr/local/share/bug_chomper/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/error.html               ${ROOT}/usr/local/share/bug_chomper/templates/error.html
 ${INSTALL} --mode=644 -T ./templates/submitted.html           ${ROOT}/usr/local/share/bug_chomper/templates/submitted.html
-${INSTALL} --mode=644 -T ./res/css/style.css                  ${ROOT}/usr/local/share/bug_chomper/res/css/style.css
-${INSTALL} --mode=644 -T ./res/third_party/jquery.tablednd.js ${ROOT}/usr/local/share/bug_chomper/res/third_party/jquery.tablednd.js
 ${INSTALL_DIR} --mode=777                                     ${ROOT}/mnt/pd0/bug_chomper_scratch
 }
 
