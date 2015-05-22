@@ -142,6 +142,9 @@ attribute is false.
         padding-bottom: 0.5em;
         padding-left: 0.5em;
       }
+      paper-spinner {
+        margin-left: 1em;
+      }
     </style>
     <table class="{{bothcolumns?'':'singlecolumn'}}">
       <tr class=both>
@@ -170,7 +173,8 @@ attribute is false.
         <td class=both><a href="detail?test={{test}}&digest={{top}}">{{top}}</a></td>
       </tr>
 
-      <tr><th colspan=2 class=sectionHeader>Parameters</th></tr>
+      <tr><th colspan=2 class=sectionHeader>Parameters <paper-spinner active="{{getInProgress}}"></paper-spinner></th></tr>
+
       <template repeat="{{p in details.params}}">
         <tr>
           <th>{{p.name}}</th>
