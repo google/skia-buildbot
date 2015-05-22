@@ -17,6 +17,7 @@ import (
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/timer"
 )
 
 const (
@@ -199,7 +200,7 @@ func LoggingGzipRequestResponse(h http.Handler) http.Handler {
 				glog.Errorf("panic serving %v: %v\n%s", r.URL.Path, err, buf)
 			}
 		}()
-		glog.Infof("Request: %s %s %#v Content Length: %d", r.URL.Path, r.Method, r.URL, r.ContentLength)
+		defer timer.New(fmt.Sprintf("Request: %s %s %#v Content Length: %d Latency:", r.URL.Path, r.Method, r.URL, r.ContentLength)).Stop()
 		h.ServeHTTP(w, r)
 	}
 
