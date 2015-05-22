@@ -63,7 +63,7 @@ The sort options are:
       ready: function() {
         var that=this;
 
-        this.$.menu.addEventListener('core-select', function(e) {
+        this.$.menu.addEventListener('core-activate', function(e) {
           that.value = e.detail.item.dataset.id;
           that.$.dropdown.close();
           that.dispatchEvent(new CustomEvent('change', {detail: that.value}));

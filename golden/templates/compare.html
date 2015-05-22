@@ -438,6 +438,7 @@
            ele.addEventListener('change', function() {
              updateSortState();
              updateSortButtons();
+             $$$('grid-sk').clearChecks();
              loadGrid();
            });
          });
