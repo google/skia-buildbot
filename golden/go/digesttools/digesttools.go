@@ -58,6 +58,9 @@ func ClosestDigest(test string, digest string, exp *expstorage.Expectations, dif
 // combinedDiffMetric returns a value in [0, 1] that represents how large
 // the diff is between two images.
 func combinedDiffMetric(pixelDiffPercent float32, maxRGBA []int) float32 {
+	if len(maxRGBA) == 0 {
+		return 1.0
+	}
 	// Turn maxRGBA into a percent by taking the root mean square difference from
 	// [0, 0, 0, 0].
 	sum := 0.0
