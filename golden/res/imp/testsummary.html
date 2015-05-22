@@ -108,7 +108,7 @@
         <template if="{{details}}">
           <template repeat="{{d, i in summary.untHashes}}">
             <template if="{{i<limit}}">
-              <test-summary-details-sk test="{{summary.name}}" digest="{{d}}" limit="{{limit}}" triage="{{triage}}"></test-summary-details-sk>
+              <test-summary-details-sk test="{{summary.name}}" images="{{!triage || loaded}}" digest="{{d}}" limit="{{limit}}" triage="{{triage}}"></test-summary-details-sk>
             </template>
           </template>
           <template if="{{summary.untHashes.length>limit}}">
@@ -157,6 +157,7 @@
 
       ready: function() {
         this.loadedCount = 0;
+        this.loaded = false;
         var that = this;
         // Listen for each test-summary-details-sk to complete loading.
         this.$.details.addEventListener('details-loaded', function(e) {
@@ -183,6 +184,7 @@
           if (that.loadedCount == that.summary.untHashes.length) {
             that.$.spinner.active = false;
             that.$.counter.active = false;
+            that.loaded = true;
           }
         });
 

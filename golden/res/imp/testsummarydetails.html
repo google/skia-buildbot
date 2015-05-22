@@ -14,6 +14,8 @@
     data-diffdigests - A read-only attribute of the digest and the closest positive
       image digest, separated by a dash, ala "abbab-12131>". The digests are in
       sorted order, so they can be used in /img/diffs/ URLs.
+    images - A boolean, if true the images are displayed.
+    failed - A boolean, true if the request to the server for details failed.
 
   Events:
     triage - A triage event is generated when the triage button is pressed. The e.detail
@@ -25,9 +27,10 @@
          test: "blurs"
        }
 
-    details-loaded - A loaded event is generated the the control has finished loading data
+    details-loaded - A loaded event is generated when the control has finished loading data
       from the server and the data-diff attribute has been set. The test-summary-details-sk
-      element is returned in e.detail.
+      element is returned in e.detail. This event will be triggered even if the HTTP
+      request failed, listeners can check the 'failed' attribute to see if that's the case.
 
   Methods:
     triggerTriage(status) - Set the triage status of the digest, triggering the triage event.
@@ -139,6 +142,11 @@
       }
     </style>
     <div horizontal layout>
+      <template if="{{failed}}">
+        <div vertical layout id=warning>
+          Failed to load results.
+        </div>
+      </template>
       <template if="{{triage && negIsClosest}}">
         <div vertical layout id=warning>
           Closest Image Is Negative!
@@ -147,17 +155,17 @@
       <div horizontal layout id=images>
         <template if="{{triage && details.closest.digest}}">
           <div class=preview>
-            <img src="/img/images/{{details.closest.digest}}.png" />
+            <img src="{{images | digestUrl(details.closest.digest)}}" />
           </div>
           <a href="/img/images/{{details.closest.digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
           <div class=preview>
-            <img src="/img/diffs/{{diffDigests}}.png" />
+            <img src="{{images | diffUrl(diffDigests)}}" />
           </div>
           <a href="/img/diffs/{{diffDigests}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
         </template>
         <template if="{{triage}}">
           <div class=preview>
-            <img src="/img/images/{{digest}}.png" />
+            <img src="{{images | digestUrl(digest)}}" />
           </div>
           <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
         </template>
@@ -246,6 +254,14 @@
           value: false,
           reflect: true,
         },
+        images: {
+          value: true,
+          reflect: true,
+        },
+        failed: {
+          value: false,
+          reflect: true,
+        }
       },
 
       ready: function() {
@@ -343,6 +359,9 @@
             }
           }
           that.dispatchEvent(new CustomEvent('details-loaded', {detail: that, bubbles: true}));
+        }).catch(function() {
+          that.failed = true;
+          that.dispatchEvent(new CustomEvent('details-loaded', {detail: that, bubbles: true}));
         });
       },
 
@@ -371,6 +390,23 @@
           return '';
         }
       },
+
+      digestUrl: function(showImages, digest) {
+        if (showImages) {
+          return "/img/images/"+digest+".png"
+        } else {
+          return ""
+        }
+      },
+
+      diffUrl: function(showImages, digest) {
+        if (showImages) {
+          return "/img/diffs/"+digest+".png"
+        } else {
+          return ""
+        }
+      }
+
     });
   </script>
 </polymer-element>
