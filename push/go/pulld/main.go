@@ -9,6 +9,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -21,11 +23,17 @@ import (
 	"go.skia.org/infra/push/go/packages"
 )
 
+// flags
 var (
 	graphiteServer        = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	doOauth               = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	oauthCacheFile        = flag.String("oauth_cache_file", "google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	installedPackagesFile = flag.String("installed_packages_file", "installed_packages.json", "Path to the file where to cache the list of installed debs.")
+	port                  = flag.String("port", ":10116", "HTTP service address (e.g., ':8000')")
+)
+
+var (
+	httpTriggerCh = make(chan bool, 1)
 )
 
 // differences returns all strings that appear in server but not local.
@@ -40,6 +48,54 @@ func differences(server, local []string) ([]string, []string) {
 		}
 	}
 	return newPackages, installedPackages
+}
+
+func step(client *http.Client, store *storage.Service, hostname string) {
+	glog.Info("About to read package list.")
+	// Read the old and new packages from their respective storage locations.
+	serverList, err := packages.InstalledForServer(client, store, hostname)
+	if err != nil {
+		glog.Errorf("Failed to retrieve remote package list: %s", err)
+		return
+	}
+	localList, err := packages.FromLocalFile(*installedPackagesFile)
+	if err != nil {
+		glog.Errorf("Failed to retrieve local package list: %s", err)
+		return
+	}
+
+	// Install any new or updated packages.
+	newPackages, installed := differences(serverList.Names, localList)
+	glog.Infof("New: %v, Installed: %v", newPackages, installed)
+
+	for _, name := range newPackages {
+		// If just an appname appears w/o a package name then that means
+		// that package hasn't been selected, so just skip it for now.
+		if len(strings.Split(name, "/")) == 1 {
+			continue
+		}
+		installed = append(installed, name)
+		if err := packages.ToLocalFile(installed, *installedPackagesFile); err != nil {
+			glog.Errorf("Failed to write local package list: %s", err)
+			continue
+		}
+		if err := packages.Install(client, store, name); err != nil {
+			glog.Errorf("Failed to install package %s: %s", name, err)
+			// Pop last name from 'installed' then rewrite the file since the
+			// install failed.
+			installed = installed[:len(installed)-1]
+			if err := packages.ToLocalFile(installed, *installedPackagesFile); err != nil {
+				glog.Errorf("Failed to rewrite local package list after install failure for %s: %s", name, err)
+			}
+			continue
+		}
+	}
+}
+
+// pullHandler triggers a pull when /pullpullpull is requested.
+func pullHandler(w http.ResponseWriter, r *http.Request) {
+	httpTriggerCh <- true
+	fmt.Fprintf(w, "Pull triggered.")
 }
 
 func main() {
@@ -62,45 +118,17 @@ func main() {
 		glog.Fatalf("Failed to create storage service client: %s", err)
 	}
 
-	for _ = range time.Tick(time.Second * 15) {
-		glog.Info("About to read package list.")
-		// Read the old and new packages from their respective storage locations.
-		serverList, err := packages.InstalledForServer(client, store, hostname)
-		if err != nil {
-			glog.Errorf("Failed to retrieve remote package list: %s", err)
-			continue
-		}
-		localList, err := packages.FromLocalFile(*installedPackagesFile)
-		if err != nil {
-			glog.Errorf("Failed to retrieve local package list: %s", err)
-			continue
-		}
-
-		// Install any new or updated packages.
-		newPackages, installed := differences(serverList.Names, localList)
-		glog.Infof("New: %v, Installed: %v", newPackages, installed)
-
-		for _, name := range newPackages {
-			// If just an appname appears w/o a package name then that means
-			// that package hasn't been selected, so just skip it for now.
-			if len(strings.Split(name, "/")) == 1 {
-				continue
+	step(client, store, hostname)
+	timeCh := time.Tick(time.Second * 60)
+	go func() {
+		for {
+			select {
+			case <-timeCh:
+			case <-httpTriggerCh:
 			}
-			installed = append(installed, name)
-			if err := packages.ToLocalFile(installed, *installedPackagesFile); err != nil {
-				glog.Errorf("Failed to write local package list: %s", err)
-				continue
-			}
-			if err := packages.Install(client, store, name); err != nil {
-				glog.Errorf("Failed to install package %s: %s", name, err)
-				// Pop last name from 'installed' then rewrite the file since the
-				// install failed.
-				installed = installed[:len(installed)-1]
-				if err := packages.ToLocalFile(installed, *installedPackagesFile); err != nil {
-					glog.Errorf("Failed to rewrite local package list after install failure for %s: %s", name, err)
-				}
-				continue
-			}
+			step(client, store, hostname)
 		}
-	}
+	}()
+	http.HandleFunc("/pullpullpull", pullHandler)
+	glog.Fatal(http.ListenAndServe(*port, nil))
 }
