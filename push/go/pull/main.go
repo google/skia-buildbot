@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"flag"
 
+	"code.google.com/p/google-api-go-client/compute/v1"
 	"code.google.com/p/google-api-go-client/storage/v1"
 
 	"os"
@@ -16,9 +17,9 @@ import (
 
 	"strings"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/push/go/gsauth"
 	"go.skia.org/infra/push/go/packages"
 )
 
@@ -66,7 +67,10 @@ func main() {
 	common.InitWithMetrics("pull."+*hostname, graphiteServer)
 	glog.Infof("Running with hostname: %s", *hostname)
 
-	client, err := gsauth.NewClient(*doOauth, *oauthCacheFile)
+	client, err := auth.NewClient(*doOauth, *oauthCacheFile,
+		storage.DevstorageFull_controlScope,
+		compute.ComputeReadonlyScope)
+
 	if err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}

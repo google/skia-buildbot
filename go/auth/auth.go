@@ -16,6 +16,32 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
+// NewClient returns an authenticated http client that can be subsequently
+// used to connect to the services passed in via 'scopes'
+func NewClient(doOAuth bool, oauthCacheFile string, scopes ...string) (*http.Client, error) {
+	var client *http.Client
+	var err error
+
+	transport := &http.Transport{
+		Dial: util.DialTimeout,
+	}
+
+	if doOAuth {
+		// Use a local client secret file to load data.
+		client, err = InstalledAppClient(oauthCacheFile, "client_secret.json",
+			transport,
+			scopes...)
+		if err != nil {
+			glog.Fatalf("Unable to create installed app oauth client:%s", err)
+		}
+	} else {
+		// Use compute engine service account.
+		client = GCEServiceAccountClient(transport)
+	}
+
+	return client, nil
+}
+
 // TODO(stephana): Remove the goauth2 dependency and convert everything to
 // using the newer golang.org/x/oauth2 package.
 

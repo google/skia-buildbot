@@ -19,11 +19,11 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/fiorix/go-web/autogzip"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/push/go/gsauth"
 	"go.skia.org/infra/push/go/packages"
 )
 
@@ -103,7 +103,7 @@ func Init() {
 	}
 
 	var err error
-	if client, err = gsauth.NewClient(*doOauth, *oauthCacheFile); err != nil {
+	if client, err = auth.NewClient(*doOauth, *oauthCacheFile); err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 
