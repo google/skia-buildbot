@@ -56,23 +56,20 @@ def get_device_serials(slaves):
   slave_info = env['SLAVE_INFO']
   rv = []
   for slave in slaves:
-    rv.append((slave, slave_info[slave].serial))
+    if slave_info.get(slave):
+      rv.append((slave, slave_info[slave].serial))
   return rv
 
 
 def get_connected_devices():
   """Return the list of connected Android devices."""
   output = subprocess.check_output(['adb', 'devices']).splitlines()
-  # Throw away any "daemon not running" type messages.
-  while len(output) > 0 and output[0].startswith('*'):
-    output = output[1:]
-
-  # Throw away "List of devices attached"
-  output = output[1:]
-
   rv = []
   for line in output:
-    if line == '':
+    if (line == '' or
+        'List of devices attached' in line or
+        line.startswith('*') or
+        'no permissions' in line):
       continue
     serial, status = shlex.split(line)
     if status == 'device':
