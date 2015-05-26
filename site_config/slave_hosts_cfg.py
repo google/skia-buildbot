@@ -31,8 +31,8 @@ CHROMEBUILD_COPIES = [
   },
 ]
 
-KVM_SWITCH_DOOR = 1   # KVM switch closest to the door.
-KVM_SWITCH_OFFICE = 2 # KVM switch closest to the office.
+KVM_SWITCH_DOOR = 'DOOR'   # KVM switch closest to the door.
+KVM_SWITCH_OFFICE = 'OFFICE' # KVM switch closest to the office.
 
 LAUNCH_SCRIPT_UNIX = ['scripts', 'skiabot-slave-start-on-boot.sh']
 LAUNCH_SCRIPT_WIN = ['scripts', 'skiabot-slave-start-on-boot.bat']
