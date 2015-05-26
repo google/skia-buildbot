@@ -5,6 +5,12 @@
 
     {{template "header.html" .}}
 
+    <style is="custom-style" type="text/css" media="screen">
+      :root {
+        --default-primary-color: #AA4499;
+      }
+    </style>
+
     <style type="text/css" media="screen">
       body {
         font-family: Arial, sans-serif;
@@ -19,11 +25,20 @@
         margin: 2em;
         display: block;
       }
+
+      html, body {
+        height: 100%;
+        margin: 0;
+      }
+
+      paper-header-panel {
+        height: 100%;
+      }
     </style>
   </head>
   <body>
     <body class="fullbleed layout vertical">
-      <paper-header-panel class="flex">
+      <paper-header-panel mode=scroll>
         {{template "titlebar.html" .}}
         <unit-list-sk header=true></unit-list-sk>
         <paper-toast></paper-toast>
