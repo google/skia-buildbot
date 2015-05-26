@@ -74,7 +74,6 @@ var (
 	oauthCacheFile = flag.String("oauth_cache_file", "google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	zone           = flag.String("zone", "us-central1-f", "The Google Compute Engine zone.")
 	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
 )
 
@@ -128,16 +127,23 @@ type IPAddresses struct {
 }
 
 func (i *IPAddresses) loadIPAddresses() error {
-	ip := map[string]string{}
-	list, err := comp.Instances.List(*project, *zone).Do()
+	zones, err := comp.Zones.List(*project).Do()
 	if err != nil {
-		return fmt.Errorf("Failed to list instances: %s", err)
+		return fmt.Errorf("Failed to list zones: %s", err)
 	}
-	for _, item := range list.Items {
-		for _, nif := range item.NetworkInterfaces {
-			for _, acc := range nif.AccessConfigs {
-				if strings.HasPrefix(strings.ToLower(acc.Name), "external") {
-					ip[item.Name] = acc.NatIP
+	ip := map[string]string{}
+	for _, zone := range zones.Items {
+		glog.Infof("Zone: %s", zone.Name)
+		list, err := comp.Instances.List(*project, zone.Name).Do()
+		if err != nil {
+			return fmt.Errorf("Failed to list instances: %s", err)
+		}
+		for _, item := range list.Items {
+			for _, nif := range item.NetworkInterfaces {
+				for _, acc := range nif.AccessConfigs {
+					if strings.HasPrefix(strings.ToLower(acc.Name), "external") {
+						ip[item.Name] = acc.NatIP
+					}
 				}
 			}
 		}
@@ -166,7 +172,7 @@ func NewIPAddresses(comp *compute.Service) (*IPAddresses, error) {
 		return nil, err
 	}
 	go func() {
-		for _ = range time.Tick(time.Second * 10) {
+		for _ = range time.Tick(time.Second * 60) {
 			if err := i.loadIPAddresses(); err != nil {
 				glog.Infof("Error refreshing IP address list: %s", err)
 			}

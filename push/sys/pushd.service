@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/pushd --oauth=false --log_dir=/var/log/logserver --resources_dir=/usr/local/share/pushd/ --config_filename=/etc/pushd/skiapush.conf --zone=us-central1-f --project=google.com:skia-buildbots
+ExecStart=/usr/local/bin/pushd --oauth=false --log_dir=/var/log/logserver --resources_dir=/usr/local/share/pushd/ --config_filename=/etc/pushd/skiapush.conf --project=google.com:skia-buildbots
 Restart=always
 User=default
 Group=default
