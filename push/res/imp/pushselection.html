@@ -40,11 +40,15 @@
     paper-dialog div {
       padding: 5px 24px;
     }
+    #scrollable {
+      height: 80vh;
+      overflow-y: auto;
+    }
   </style>
   <template>
     <paper-dialog id=chooser>
       <h2>Choose a release package to push</h2>
-      <paper-dialog-scrollable>
+      <div id=scrollable>
         <iron-selector id=newChoice>
           <template is="dom-repeat" items$="{{choices}}">
             <div class=pushSelection data-name$="{{item.Name}}">
@@ -57,7 +61,7 @@
             </div>
           </template>
         </iron-selector>
-      </paper-dialog-scrollable>
+      </div>
       <div class="buttons">
         <paper-button dialog-dismiss>Cancel</paper-button>
       </div>
