@@ -95,6 +95,7 @@ func step(client *http.Client, store *storage.Service, hostname string) {
 // pullHandler triggers a pull when /pullpullpull is requested.
 func pullHandler(w http.ResponseWriter, r *http.Request) {
 	httpTriggerCh <- true
+	w.Header().Set("Content-Type", "text/plain")
 	fmt.Fprintf(w, "Pull triggered.")
 }
 
@@ -129,6 +130,6 @@ func main() {
 			step(client, store, hostname)
 		}
 	}()
-	http.HandleFunc("/pullpullpull", pullHandler)
+	http.Handle("/pullpullpull", util.LoggingGzipRequestResponse(http.HandlerFunc(pullHandler)))
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
