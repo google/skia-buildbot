@@ -456,11 +456,7 @@ func main() {
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 
-	commonEnv.BaseURL = "/2/"
-	if !*startAnalyzer {
-		commonEnv.BaseURL = "/"
-	}
-
+	commonEnv.BaseURL = "/"
 	polyRouter := router.PathPrefix(commonEnv.BaseURL).Subrouter()
 	polyRouter.HandleFunc("/", polyMainHandler).Methods("GET")
 	polyRouter.HandleFunc("/ignores", polyIgnoresHandler).Methods("GET")
@@ -486,10 +482,8 @@ func main() {
 
 	polyRouter.HandleFunc("/_/status", polyStatusHandler).Methods("GET")
 
-	if *startAnalyzer {
-		// Everything else is served out of the static directory.
-		router.PathPrefix("/").Handler(http.FileServer(http.Dir(*staticDir)))
-	}
+	// Serve the legacy app from the static directory.
+	router.PathPrefix("/legacy/").Handler(http.StripPrefix("/legacy", http.FileServer(http.Dir(*staticDir))))
 
 	// Add the necessary middleware and have the router handle all requests.
 	// By structuring the middleware this way we only log requests that are

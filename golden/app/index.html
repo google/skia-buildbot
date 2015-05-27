@@ -26,8 +26,8 @@
         <ul class="nav navbar-nav">
           <!-- <li><a href="#/counts">Counts</a></li> -->
           <li><a href="#/triage">Triage</a></li>
-          <li><a href="/2/ignores">Ignores</a></li>
-          <li><a href="/2/">Experimental</a></li>
+          <li><a href="/ignores">Ignores</a></li>
+          <li><a href="/">New UI</a></li>
           <li ng-if="globalStatus.lastCommit">
                <a href="https://skia.googlesource.com/skia/+/{{globalStatus.lastCommit.hash}}" target="_blank">Last Commit: {{ globalStatus.lastCommit.hash | limitTo:7 }} - {{ globalStatus.lastCommit.author|limitTo:globalStatus.lastCommit.author.indexOf('(')}}</a>
           </li>

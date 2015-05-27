@@ -69,6 +69,11 @@
       paper-spinner {
         margin-left: 1em;
       }
+
+      .blameColumn {
+        width: 20em;
+      }
+
     </style>
     <div vertical layout>
       <div horizontal layout>
@@ -89,14 +94,14 @@
         <span class=short>{{summary.neg}}</span>
         <span class=short>{{summary.untriaged}}</span>
         <span class=short>{{summary.num}}</span>
-        <div vertical layout>
+        <div class="blameColumn" vertical layout>
           <template repeat="{{b in summary.blame}}">
            <div>{{b}}</div>
           </template>
         </div>
         <span class=short>
-          <template if="{{showLegacy && !triage}}">
-            <a href="/#/triage/{{summary.name}}?head={{head}}">Legacy Triage</a>
+          <template if="{{!triage}}">
+            <a href="/legacy/#/triage/{{summary.name}}?head={{head}}">Legacy Triage</a>
           </template>
         </span>
       </div>
@@ -187,10 +192,6 @@
             that.loaded = true;
           }
         });
-
-        // TODO(stephana): Remove once Angular is removed in production.
-        // Also remove the tag where showLegacy is used.
-        this.showLegacy = ($$$('base').href.lastIndexOf("/2/") !== -1);
       },
 
       // findFocus returns the current details element with the keyboard focus.
