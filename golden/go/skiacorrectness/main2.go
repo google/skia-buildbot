@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -890,16 +891,16 @@ type DigestStatus struct {
 // PolyDetailsGUI is used in the JSON returned from polyDetailsHandler. It
 // represents the known information about a single digest for a given test.
 type PolyDetailsGUI struct {
-	TopStatus    string               `json:"topStatus"`
-	LeftStatus   string               `json:"leftStatus"`
-	Params       []*PerParamCompare   `json:"params"`
-	Traces       []*Trace             `json:"traces"`
-	Commits      []*ptypes.Commit     `json:"commits"`
-	OtherDigests []*DigestStatus      `json:"otherDigests"`
-	TileSize     int                  `json:"tileSize"`
-	PosClosest   *digesttools.Closest `json:"posClosest"`
-	NegClosest   *digesttools.Closest `json:"negClosest"`
-	Blame        []int                `json:"blame"`
+	TopStatus    string                   `json:"topStatus"`
+	LeftStatus   string                   `json:"leftStatus"`
+	Params       []*PerParamCompare       `json:"params"`
+	Traces       []*Trace                 `json:"traces"`
+	Commits      []*ptypes.Commit         `json:"commits"`
+	OtherDigests []*DigestStatus          `json:"otherDigests"`
+	TileSize     int                      `json:"tileSize"`
+	PosClosest   *digesttools.Closest     `json:"posClosest"`
+	NegClosest   *digesttools.Closest     `json:"negClosest"`
+	Blame        *blame.BlameDistribution `json:"blame"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.

@@ -125,6 +125,10 @@
         padding-bottom: 1em;
       }
 
+      .footNote {
+        padding-top: 1em;
+      }
+
     </style>
     <svg id=dots
       width="{{(value.tileSize)*10+20}}"
@@ -146,17 +150,22 @@
       </template>
     </svg>
 
-    <template if="{{withblame && value.blame.length > 0}}">
+    <template if="{{withblame && value.blame.freq.length > 0}}">
       <div class="blameContainer">
         <div class="blameHeader">Blame</div>
-        <template repeat="{{b in value.blame}}">
+        <template repeat="{{b in value.blame.freq}}">
             <div class="commitEntry" data-idx="{{b}}" on-mouseover="{{hoverCommits}}" on-mouseout="{{hoverCommits}}">
               {{commits[b].commit_time | humanDiffDate}} - {{commits[b].author}}
             </div>
         </template>
+        <template if="{{value.blame.old}}">
+          <div class="footNote">
+            * Digest appeared before current range. Blame might be incorrect.
+          </div>
+        </template>
       </div>
     </template>
-    <template if="{{withblame && !(value.blame.length > 0)}}">
+    <template if="{{withblame && !(value.blame.freq.length > 0)}}">
       <div class="blameContainer">
         No blames available - Digest too old !
       </div>

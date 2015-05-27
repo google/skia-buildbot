@@ -29,11 +29,17 @@ type Blamer struct {
 
 // BlameDistribution contains a rough estimation of the probabilities that
 // a commit was responsible for the contained digest.
+// We also use it as the output structure for the front end.
 type BlameDistribution struct {
 	// Freq contains likelihood counts that a commit was responsible
 	// for the observed digest. The counts apply to the last len(Freq)
-	// commits. An empty Freq slice means we cannot calculate a blame list.
+	// commits. When used as output structure in the GetBlame function
+	// Freq contains the indices of commits.
 	Freq []int `json:"freq"`
+
+	// Old indicates whether the digest has been seen prior to the current
+	// tile. In that case the blame might be unreliable.
+	Old bool `json:"old"`
 }
 
 // New returns a new Blamer instance and error. The error is not
@@ -114,15 +120,20 @@ func (b *Blamer) GetBlamesForTest(testName string) []string {
 }
 
 // TODO(stephana): Remove all public functions other than GetBlame
-// once blame is working on the front-end.
+// once blame is working on the front-end and refactor BlameDistribution
+// to be more obvious about the ways it is used (as intermediated and output
+// format).
 
 // GetBlame returns the indices of the provided list of commits that likely
 // caused the given test name/digest pair. If the result is empty we are not
 // able to determine blame, because the test name/digest appeared prior
 // to the current tile.
-func (b *Blamer) GetBlame(testName string, digest string, commits []*ptypes.Commit) []int {
+func (b *Blamer) GetBlame(testName string, digest string, commits []*ptypes.Commit) *BlameDistribution {
 	blameLists, blameCommits := b.GetAllBlameLists()
-	return b.getBlame(blameLists[testName][digest], blameCommits, commits)
+	return &BlameDistribution{
+		Freq: b.getBlame(blameLists[testName][digest], blameCommits, commits),
+		Old:  blameLists[testName][digest].Old,
+	}
 }
 
 func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, commits []*ptypes.Commit) []int {
@@ -170,8 +181,9 @@ func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
 	// blameRange stores the candidate ranges for a testName/digest pair.
 	blameRange := map[string]map[string][][]int{}
 	firstCommit := tile.Commits[0]
-
 	tileLen := tile.LastCommitIndex() + 1
+	ret := map[string]map[string]*BlameDistribution{}
+
 	for _, trace := range tile.Traces {
 		gtr := trace.(*ptypes.GoldenTrace)
 		testName := gtr.Params()[types.PRIMARY_KEY_FIELD]
@@ -206,28 +218,24 @@ func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
 					return err
 				}
 
-				// If this digest was first seen outside the current tile
-				// we cannot calculate a blamelist and set the commit range
-				// to nil.
-				var commitRange []int
-
-				if digestInfo.First < firstCommit.CommitTime {
-					commitRange = nil
-				} else {
-					commitRange = []int{startIdx, endIdx}
-				}
+				// Check if the digest was first seen outside the current tile.
+				isOld := digestInfo.First < firstCommit.CommitTime
+				commitRange := []int{startIdx, endIdx}
 				if blameStartFound, ok := blameStart[testName]; !ok {
 					blameStart[testName] = map[string]int{digest: startIdx}
 					blameEnd[testName] = map[string]int{digest: endIdx}
 					blameRange[testName] = map[string][][]int{digest: [][]int{commitRange}}
+					ret[testName] = map[string]*BlameDistribution{digest: &BlameDistribution{Old: isOld}}
 				} else if currentStart, ok := blameStartFound[digest]; !ok {
 					blameStart[testName][digest] = startIdx
 					blameEnd[testName][digest] = endIdx
 					blameRange[testName][digest] = [][]int{commitRange}
+					ret[testName][digest] = &BlameDistribution{Old: isOld}
 				} else {
 					blameStart[testName][digest] = util.MinInt(currentStart, startIdx)
 					blameEnd[testName][digest] = util.MinInt(blameEnd[testName][digest], endIdx)
 					blameRange[testName][digest] = append(blameRange[testName][digest], commitRange)
+					ret[testName][digest].Old = isOld || ret[testName][digest].Old
 				}
 			}
 			lastIdx = idx
@@ -235,10 +243,7 @@ func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
 	}
 
 	commits := tile.Commits[:tileLen]
-	ret := make(map[string]map[string]*BlameDistribution, len(blameStart))
-
 	for testName, digests := range blameRange {
-		ret[testName] = make(map[string]*BlameDistribution, len(digests))
 		for digest, commitRanges := range digests {
 			start := blameStart[testName][digest]
 			end := blameEnd[testName][digest]
@@ -259,9 +264,7 @@ func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
 				}
 			}
 
-			ret[testName][digest] = &BlameDistribution{
-				Freq: freq,
-			}
+			ret[testName][digest].Freq = freq
 		}
 	}
 
