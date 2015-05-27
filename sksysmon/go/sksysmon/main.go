@@ -138,6 +138,16 @@ func serviceOnly(units []dbus.UnitStatus) []dbus.UnitStatus {
 	return ret
 }
 
+// serviceByName returns the status for the named unit.
+func serviceByName(units []dbus.UnitStatus, name string) *dbus.UnitStatus {
+	for _, u := range units {
+		if u.Name == name {
+			return &u
+		}
+	}
+	return nil
+}
+
 // listHandler returns the list of units.
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("List Handler: %q\n", r.URL.Path)
@@ -169,6 +179,50 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Properties is serialized to JSON in the return of propsHandler.
+type Properties struct {
+	// Status is the current status of the unit.
+	Status *dbus.UnitStatus
+
+	// Props is the set of unit properties returned from GetUnitTypeProperties.
+	Props map[string]interface{}
+}
+
+// propsHandler returns the properties of the requested service unit.
+//
+// Query parameters:
+//
+//    service - The name of the service, such as "pulld.service".
+//
+func propsHandler(w http.ResponseWriter, r *http.Request) {
+	glog.Infof("Properties Handler: %q\n", r.URL.Path)
+	var err error
+
+	if err := r.ParseForm(); err != nil {
+		util.ReportError(w, r, err, "Failed to parse form.")
+		return
+	}
+	service := r.Form.Get("service")
+	props, err := dbc.GetUnitTypeProperties(service, "Service")
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to list properties.")
+	}
+	units, err := dbc.ListUnits()
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to list unit status.")
+	}
+	status := serviceByName(units, service)
+
+	ret := Properties{
+		Status: status,
+		Props:  props,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(ret); err != nil {
+		util.ReportError(w, r, err, "Failed to encode response.")
+	}
+}
+
 // mainHandler handles the GET of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Main Handler: %q\n", r.URL.Path)
@@ -191,6 +245,7 @@ func main() {
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler).Methods("GET")
 	r.HandleFunc("/_/list", listHandler).Methods("GET")
+	r.HandleFunc("/_/props", propsHandler).Methods("GET")
 	r.HandleFunc("/_/change", changeHandler).Methods("POST")
 	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infoln("Ready to serve.")
