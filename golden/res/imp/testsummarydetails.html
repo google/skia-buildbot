@@ -32,6 +32,9 @@
       element is returned in e.detail. This event will be triggered even if the HTTP
       request failed, listeners can check the 'failed' attribute to see if that's the case.
 
+    zoom-clicked - This event is triggered when the user clicks on the 'zoom'
+      button. The 'detail' in the event is the test-summary-details-sk object.
+
   Methods:
     triggerTriage(status) - Set the triage status of the digest, triggering the triage event.
 -->
@@ -152,23 +155,26 @@
           Closest Image Is Negative!
         </div>
       </template>
-      <div horizontal layout id=images>
-        <template if="{{triage && details.closest.digest}}">
-          <div class=preview>
-            <img src="{{images | digestUrl(details.closest.digest)}}" />
-          </div>
-          <a href="/img/images/{{details.closest.digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
-          <div class=preview>
-            <img src="{{images | diffUrl(diffDigests)}}" />
-          </div>
-          <a href="/img/diffs/{{diffDigests}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
-        </template>
-        <template if="{{triage}}">
-          <div class=preview>
-            <img src="{{images | digestUrl(digest)}}" />
-          </div>
-          <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
-        </template>
+      <div vertical layout>
+        <div horizontal layout id=images>
+          <template if="{{triage && details.closest.digest}}">
+            <div class=preview>
+              <img src="{{images | digestUrl(details.closest.digest)}}" />
+            </div>
+            <a href="/img/images/{{details.closest.digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+            <div class=preview>
+              <img src="{{images | diffUrl(diffDigests)}}" />
+            </div>
+            <a href="/img/diffs/{{diffDigests}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+          </template>
+          <template if="{{triage}}">
+            <div class=preview>
+              <img src="{{images | digestUrl(digest)}}" />
+            </div>
+            <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+          </template>
+        </div>
+        <paper-button id=zoomButton>Zoom</paper-button>
       </div>
       <template if="{{triage && !details.closest.digest}}">
         <div class=noCompare>
@@ -298,6 +304,10 @@
 
         this.$.dots.addEventListener('mouseleave', function() {
           that.clearParamHighlights();
+        });
+
+        this.$.zoomButton.addEventListener('click', function() {
+          that.dispatchEvent(new CustomEvent('zoom-clicked', {detail: that, bubbles: true}));
         });
       },
 

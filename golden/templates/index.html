@@ -94,7 +94,7 @@
             <tr><th>D</th><td>Untriaged</td></tr>
           </table>
         </paper-dialog>
-        <zoom-sk id=zoomer llabel="Positive" rlabel="Untriaged"></zoom-sk>
+        <zoom-sk id=zoomer llabel="Closest Triaged" rlabel="Untriaged"></zoom-sk>
       </div>
 
     </scaffold-sk>
@@ -177,11 +177,17 @@
        }
 
        // Open up the zoom dialog on the focused digest.
-       function zoom() {
-         var details = $$$('test-summary-sk');
-         var ele = details.findFocus();
-         if (ele == null) {
-           return
+       //
+       // ele (optional) - The test-summary-details-sk that should
+       //   be zoomed. If ele isn't provided then the one with keyboard
+       //   focus is used.
+       function zoom(ele) {
+         if (!ele) {
+           var summary = $$$('test-summary-sk');
+           ele = summary.findFocus();
+           if (ele == null) {
+             return
+           }
          }
          details = {
            topImgUrl:  "/img/images/" + ele.digest + ".png",
@@ -271,6 +277,10 @@
              $$$('paper-toast').text = e;
              $$$('paper-toast').show();
            });
+         });
+
+         $$$('#summaries').addEventListener('zoom-clicked', function(e) {
+           zoom(e.detail);
          });
 
        });
