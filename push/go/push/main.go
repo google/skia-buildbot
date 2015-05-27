@@ -223,6 +223,13 @@ func appNames(installed []string) []string {
 	return ret
 }
 
+// AllUI contains all the information we know about the system.
+type AllUI struct {
+	Servers  ServersUI                      `json:"servers"`
+	Packages map[string][]*packages.Package `json:"packages"`
+	IP       map[string]string              `json:"ip"`
+}
+
 // jsonHandler handles the GET of the JSON.
 func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("JSON Handler: %q\n", r.URL.Path)
@@ -326,10 +333,10 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	err = enc.Encode(map[string]interface{}{
-		"servers":  servers,
-		"packages": allAvailable,
-		"ip":       ip.Get(),
+	err = enc.Encode(AllUI{
+		Servers:  servers,
+		Packages: allAvailable,
+		IP:       ip.Get(),
 	})
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to encode response.")
