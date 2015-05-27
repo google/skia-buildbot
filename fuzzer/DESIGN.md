@@ -17,13 +17,13 @@ Randomizer
 
 The randomizer continuously generates standalone Skia programs. It then builds
 and runs these programs against the raster, GPU, and PDF backends of skia.
-Each such program will be referred  to as an "skfuzz".
+Each such program will be referred to as a "fuzz".
 
-We are not so much interested in the graphical output of an skfuzz (although
-we will save it), but rather whether the skfuzz successfully executed or not.
+We are not so much interested in the graphical output of a fuzz (although
+we will save it), but rather whether the fuzz successfully executed or not.
 
-Each skfuzz's source code and generated images / PDF will be stored in Google
-storage.  Metadata will also be maintained to record the skfuzz's time of
+Each fuzz's source code and generated images / PDF will be stored in Google
+storage.  Metadata will also be maintained to record the fuzz's time of
 creation, runtime exit status, and system architecture.
 
 Note that the upload to google storage will be optional; users will be able to
@@ -42,9 +42,9 @@ know, the interesting part :)
 Aggregator
 ----------
 
-The aggregator will periodically count the number of skfuzzes in google
+The aggregator will periodically count the number of fuzzes in google
 storage that have a failing exit status and upload that metric to the skia
-monitoring server.  This will allow us to create alerts for failing skfuzzes.
+monitoring server.  This will allow us to create alerts for failing fuzzes.
 
 The aggregator will run quite frequently, probably at least once a minute.
 
@@ -52,7 +52,7 @@ Sanitizer
 ---------
 
 Because we don't need to maintain an infinite backlog of working programs, the
-sanitizer will periodically purge skfuzzes from google storage that are marked
+sanitizer will periodically purge fuzzes from google storage that are marked
 as successful and older than some threshold.
 
 Web Front End

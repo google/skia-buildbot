@@ -1,20 +1,24 @@
 package main
 
 import (
+	"bytes"
 	"crypto/md5"
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
 	"text/template"
 
-	"github.com/BurntSushi/toml"
+	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/generator"
+	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/util"
 )
 
@@ -27,6 +31,8 @@ var (
 	configFilename                    = flag.String("config", "fuzzer.toml", "Configuration filename")
 	codeTemplate   *template.Template = nil
 	gypTemplate    *template.Template = nil
+	client         *http.Client       = nil
+	store          *storage.Service   = nil
 )
 
 func setDefaults() {
@@ -148,7 +154,7 @@ func checkCPPTemplate(path string) {
 	codeTemplate = template.Must(template.ParseFiles(templatePath))
 }
 
-func runFuzz(hash string) error {
+func runFuzz(hash string) (int, error) {
 	cacheDir := config.Config.Fuzzer.CachePath
 	skiaDir := config.Config.Fuzzer.SkiaSourceDir
 
@@ -159,9 +165,9 @@ func runFuzz(hash string) error {
 
 	gypFilename := fmt.Sprintf("%s.gyp", hash)
 
-	glog.Infof("Linking %s to %s", filepath.Join(cacheDir, gypFilename), filepath.Join(skiaDir, "gyp", gypFilename))
+	glog.Infof("Moving %s to %s", filepath.Join(cacheDir, gypFilename), filepath.Join(skiaDir, "gyp", gypFilename))
 	outPath := filepath.Join(skiaDir, "gyp", gypFilename)
-	err = os.Link(filepath.Join(cacheDir, gypFilename), outPath)
+	err = os.Rename(filepath.Join(cacheDir, gypFilename), outPath)
 	if err != nil {
 		glog.Fatalf("Couldn't copy the generated gyp file to %s: %s", outPath, err)
 	}
@@ -189,6 +195,34 @@ func runFuzz(hash string) error {
 
 	glog.Infof(message)
 
+	return 0, nil
+}
+
+func uploadFuzz(hash, code string, status int) error {
+	glog.Infof("Uploading fuzz %s to GS bucket %s.", hash, config.Config.Common.FuzzOutputGSBucket)
+
+	parent := "working"
+
+	if status != 0 {
+		parent = "failed"
+	}
+
+	buf := bytes.NewBufferString(code)
+	req := store.Objects.Insert(config.Config.Common.FuzzOutputGSBucket, &storage.Object{Name: parent + "/" + hash + "/fuzz_fragment.cpp"}).Media(buf)
+	if _, err := req.Do(); err != nil {
+		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", hash, err)
+	}
+
+	image, err := os.Open(config.Config.Fuzzer.CachePath + "/" + hash + "_raster.png")
+	if err != nil {
+		glog.Fatalf("Couldn't open the PNG file for %s: %s", hash, err)
+	}
+	defer util.Close(image)
+
+	req = store.Objects.Insert(config.Config.Common.FuzzOutputGSBucket, &storage.Object{Name: parent + "/" + hash + "/raster.png"}).Media(image)
+	if _, err := req.Do(); err != nil {
+		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", hash, err)
+	}
 	return nil
 }
 
@@ -197,8 +231,15 @@ func main() {
 
 	setDefaults()
 
-	if _, err := toml.DecodeFile(*configFilename, &config.Config); err != nil {
-		glog.Fatalf("Failed to decode config file: %s", err)
+	common.DecodeTomlFile(*configFilename, &config.Config)
+
+	var err error
+	if client, err = auth.NewClient(config.Config.Common.DoOAuth, config.Config.Common.OAuthCacheFile, storage.DevstorageFull_controlScope); err != nil {
+		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
+	}
+
+	if store, err = storage.New(client); err != nil {
+		glog.Fatalf("Failed to create storage service client: %s", err)
 	}
 
 	resourcePath, err := setup()
@@ -209,6 +250,8 @@ func main() {
 	checkCPPTemplate(resourcePath)
 
 	for {
+		var status int
+
 		fuzz, err := generator.Fuzz()
 		if err != nil {
 			glog.Fatalf("Couldn't create a fuzz: %s", err)
@@ -219,8 +262,12 @@ func main() {
 			glog.Fatalf("Couldn't create the fuzz hash: %s", err)
 		}
 
-		if err := runFuzz(hash); err != nil {
+		if status, err = runFuzz(hash); err != nil {
 			glog.Fatalf("Couldn't run the fuzz (%s): %s", hash, err)
+		}
+
+		if err := uploadFuzz(hash, fuzz, status); err != nil {
+			glog.Fatalf("Couldn't upload the fuzz results (%s): %s", hash, err)
 		}
 	}
 }

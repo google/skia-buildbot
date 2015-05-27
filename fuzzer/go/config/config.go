@@ -1,7 +1,11 @@
 package config
 
 type Common struct {
-	ResourcePath string
+	ResourcePath          string
+	FuzzOutputGSBucket    string
+	DoOAuth               bool
+	OAuthCacheFile        string
+	OAuthClientSecretFile string
 }
 
 type FrontEnd struct {
