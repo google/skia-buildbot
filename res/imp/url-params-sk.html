@@ -1,0 +1,178 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <url-param-sk>
+
+  This element uses two-way* data binding to synchronize a URL parameter with
+  a variable. On page load, if the parameter is provided in the URL, its value
+  is assigned to the variable. When the variable changes, its new value is
+  updated in the URL.
+
+  * It's not exactly two-way, because the URL is not watched for changes. This
+    is fine in most cases, since the page reloads when the URL is changed by the
+    user, and it should be rare that the parameter is changed by a different
+    piece of code.
+
+  To use this file import it:
+
+    <link href="/res/common/imp/url-param-sk.html" rel="import" />
+
+  Usage:
+
+    <template>
+      <url-param-sk name="myParam" value="{{myValues}}" valid="{{validValues}}" multi></url-param-sk>
+      ...
+      <template repeat="{{val in myValues}}">
+        <li>{{val}}</li>
+      </template>
+    </template>
+    <script>
+    Polymer({
+      ...
+      created: function() {
+        ...
+        validValues = ["a", "b", "c"];
+        myValues = ["a"]; // Default; overwritten by URL params if provided.
+        ...
+      },
+      ...
+    });
+    </script>
+
+  Attributes:
+    name: (string) The name of the URL parameter.
+    value: (string) The initial value of the parameter.
+    multi: (bool) Whether the variable can take multiple values. Default is
+        false.  If true, 'value' must be an array of strings.
+    valid: (array of strings) Acceptable values. Default is null. If empty or
+        null, any value is accepted. If an invalid value is provided in the
+        URL parameters, the existing or default value is used.
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<polymer-element name="url-param-sk">
+  <template>
+    <paper-toast id="toast"></paper-toast>
+  </template>
+  <script>
+    Polymer('url-param-sk', {
+      publish: {
+        name: {
+          value: "",
+          reflect: true,
+        },
+        value: {
+          value: "",
+          reflect: true,
+        },
+        multi: {
+          value: false,
+          reflect: true,
+        },
+        valid: {
+          value: null,
+          reflect: true,
+        },
+      },
+
+      ready: function() {
+        // Read the URL parameters. If our variable is set, save its value.
+        // Otherwise, place our value in the URL.
+        var val = this.getURL();
+        if (val && this.isValid(val)) {
+          this.value = val;
+        } else {
+          this.putURL();
+        }
+      },
+
+      // Retrieve the value for our variable from the URL.
+      getURL: function() {
+        var vals = sk.query.toParamSet(window.location.search.substring(1))[this.name];
+        if (!vals) {
+          return null;
+        }
+        if (this.multi) {
+          return vals;
+        }
+        if (vals.length > 1) {
+          this.error("Multiple values provided for " + this.name +
+                     " but only one accepted: " + vals);
+          return null;
+        }
+        return vals[0];
+      },
+
+      // Store the value for our variable in the URL.
+      putURL: function() {
+        var params = sk.query.toParamSet(window.location.search.substring(1));
+        delete params[this.name];
+        if (!this.value || (Array.isArray(this.value) && this.value.length == 0)) {
+          // Don't insert undefined/empty values.
+        } else {
+          if (this.multi) {
+            params[this.name] = this.value;
+          } else {
+            params[this.name] = [this.value];
+          }
+        }
+        var newUrl = window.location.href.split("?")[0] + "?" + sk.query.fromParamSet(params);
+        window.history.replaceState("", "", newUrl);
+      },
+
+      // Check to see whether the given value is valid.
+      isValid: function(val) {
+        var that = this;
+        var checkValid = function(val) {
+          if (that.valid) {
+            for (var i = 0; i < that.valid.length; i++) {
+              if (val == that.valid[i]) {
+                return true;
+              }
+            }
+            that.error("Invalid value for " + that.name + ": \"" + val +
+                       "\". Must be one of: " + that.valid);
+            return false;
+          }
+          return true;
+        };
+        if (this.multi) {
+          // Verify that it's an array and that all elements are valid.
+          if (!Array.isArray(val)) {
+            this.console.error("url-param-sk: Value is not an array: " + val);
+            return false;
+          }
+          for (var i = 0; i < val.length; i++) {
+            if (!checkValid(val[i])) {
+              return false;
+            }
+          }
+        } else {
+          if (Array.isArray(val)) {
+            this.error("Multiple values provided for " + this.name +
+                       " but only one accepted: " + val);
+          }
+          return checkValid(val);
+        }
+        return true;
+      },
+
+      valueChanged: function() {
+        // Save our value to the URL.
+        this.putURL();
+      },
+
+      error: function(msg) {
+        this.$.toast.text = msg;
+        this.$.toast.show();
+      },
+    });
+  </script>
+</polymer-element>
