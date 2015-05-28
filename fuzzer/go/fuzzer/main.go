@@ -210,7 +210,7 @@ func uploadFuzz(hash, code string, status int) error {
 	buf := bytes.NewBufferString(code)
 	req := store.Objects.Insert(config.Config.Common.FuzzOutputGSBucket, &storage.Object{Name: parent + "/" + hash + "/fuzz_fragment.cpp"}).Media(buf)
 	if _, err := req.Do(); err != nil {
-		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", hash, err)
+		return fmt.Errorf("Failed to write fuzz code to Google Storage for %s: %s", hash, err)
 	}
 
 	image, err := os.Open(config.Config.Fuzzer.CachePath + "/" + hash + "_raster.png")
@@ -221,7 +221,7 @@ func uploadFuzz(hash, code string, status int) error {
 
 	req = store.Objects.Insert(config.Config.Common.FuzzOutputGSBucket, &storage.Object{Name: parent + "/" + hash + "/raster.png"}).Media(image)
 	if _, err := req.Do(); err != nil {
-		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", hash, err)
+		return fmt.Errorf("Failed to write output image to Google Storage for %s: %s", hash, err)
 	}
 	return nil
 }
