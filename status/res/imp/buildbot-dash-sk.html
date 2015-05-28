@@ -96,6 +96,7 @@
       <url-param-sk name="botGrouping" value="{{botGrouping}}"></url-param-sk>
       <url-param-sk name="include" value="{{include}}" multi></url-param-sk>
       <url-param-sk name="exclude" value="{{exclude}}" multi></url-param-sk>
+      <url-param-sk name="filterBy" value="{{filterBy}}" valid="{{validFilters}}"></url-param-sk>
       <url-param-sk name="tab" value="{{tab}}"></url-param-sk>
       <url-param-sk name="timePeriod" value="{{selectedTimePeriod}}" valid="{{validTimePeriods}}"></url-param-sk>
       <div id="maincontent">
@@ -119,6 +120,14 @@
                   </template>
                 </core-menu>
               </paper-dropdown>
+            </div>
+            <div class="control">
+              <h2>Filter By</h2>
+              <paper-radio-group selected="{{filterBy}}" on-core-select="{{processBuilds}}">
+                <template repeat="{{f in validFilters}}">
+                  <paper-radio-button name="{{f}}" label="{{f|capitalize}}"></paper-radio-button>
+                </template>
+              </paper-radio-group>
             </div>
             <input-list-sk
                 id="include_builders"
@@ -237,6 +246,13 @@
         this.validTimePeriods = Object.keys(this.timePeriods);
         this.selectedTimePeriod = this.validTimePeriods[0];
 
+        this.filters = {
+          "builder": function(build) { return build.Builder; },
+          "buildslave": function(build) { return build.BuildSlave; },
+        };
+        this.validFilters = Object.keys(this.filters);
+        this.filterBy = this.validFilters[0];
+
         this.include = [];
         this.exclude = [];
         this.excludedBots = [];
@@ -294,14 +310,15 @@
         });
       },
 
-      includeBuilder: function(builder) {
+      includeBuild: function(build) {
+        var key = this.filters[this.filterBy](build);
         for (var i = 0; i < this.exclude.length; i++) {
-          if (builder.match(this.exclude[i])) {
+          if (key.match(this.exclude[i])) {
             return false;
           }
         }
         for (var i = 0; i < this.include.length; i++) {
-          if (!builder.match(this.include[i])) {
+          if (!key.match(this.include[i])) {
             return false;
           }
         }
@@ -321,7 +338,7 @@
 
         for (var i = 0; i < this.builds.length; i++) {
           var build = this.builds[i];
-          if (!this.includeBuilder(build.Builder)) {
+          if (!this.includeBuild(build)) {
             excludedBots[build.Builder] = true;
             continue;
           }
@@ -596,6 +613,10 @@
       updateTimePeriod: function(timePeriod) {
         var now = Math.round(new Date().getTime() / 1000);
         this.reloadBuilds(now - timePeriod * 3600, now);
+      },
+
+      capitalize: function(str) {
+        return str.toCapWords();
       },
     });
   })();

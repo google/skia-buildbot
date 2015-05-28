@@ -576,5 +576,12 @@ this.sk = this.sk || function() {
     });
   }
 
+  // Capitalize each word in the string.
+  String.prototype.toCapWords = function() {
+    return this.replace(/\b\w/g, function(firstLetter) {
+      return firstLetter.toUpperCase();
+    });
+  }
+
   return sk;
 }();
