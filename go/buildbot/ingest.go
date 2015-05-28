@@ -19,12 +19,12 @@ var (
 	// TODO(borenet): Avoid hard-coding this list. Instead, obtain it from
 	// checked-in code or the set of masters which are actually running.
 	MASTER_NAMES = []string{"client.skia", "client.skia.android", "client.skia.compile", "client.skia.fyi"}
-	httpGet      = util.NewTimeoutClient().Get
+	httpClient   = util.NewTimeoutClient()
 )
 
 // get loads data from a buildbot JSON endpoint.
 func get(url string, rv interface{}) error {
-	resp, err := httpGet(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %v", url, err)
 	}

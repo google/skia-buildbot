@@ -1,11 +1,8 @@
 package buildbot
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"path/filepath"
 	"testing"
 
@@ -14,6 +11,7 @@ import (
 
 	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -37,9 +35,7 @@ var (
 	venue466        = testutils.MustReadFile("venue466.json")
 	housekeeper1035 = testutils.MustReadFile("housekeeper1035.json")
 
-	// urlMap is a map of URLs to data returned from that URL, used for
-	// mocking http.Get.
-	urlMap = map[string][]byte{
+	testHttpClient = mockhttpclient.New(map[string][]byte{
 		"http://build.chromium.org/p/client.skia/json/builders":                                                                    []byte(buildersSkia),
 		"http://build.chromium.org/p/client.skia.android/json/builders":                                                            []byte(buildersAndroid),
 		"http://build.chromium.org/p/client.skia.compile/json/builders":                                                            []byte(buildersCompile),
@@ -50,7 +46,7 @@ var (
 		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/465":         []byte(venue465),
 		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/466":         []byte(venue466),
 		"http://build.chromium.org/p/client.skia.fyi/json/builders/Housekeeper-PerCommit/builds/1035":                              []byte(housekeeper1035),
-	}
+	})
 )
 
 // clearDB initializes the database, upgrading it if needed, and removes all
@@ -70,32 +66,10 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 	return testDb
 }
 
-// respBodyCloser is a wrapper which lets us pretend to implement io.ReadCloser
-// by wrapping a bytes.Reader.
-type respBodyCloser struct {
-	io.Reader
-}
-
-// Close is a stub method which lets us pretend to implement io.ReadCloser.
-func (r respBodyCloser) Close() error {
-	return nil
-}
-
-// testGet is a mocked version of http.Get which returns data stored in the
-// urlMap.
-func testGet(url string) (*http.Response, error) {
-	if data, ok := urlMap[url]; ok {
-		return &http.Response{
-			Body: &respBodyCloser{bytes.NewReader(data)},
-		}, nil
-	}
-	return nil, fmt.Errorf("No such URL in urlMap!")
-}
-
 // testGetBuildFromMaster is a helper function which pretends to load JSON data
 // from a build master and decodes it into a Build object.
 func testGetBuildFromMaster(repos *repoMap) (*Build, error) {
-	httpGet = testGet
+	httpClient = testHttpClient
 	return getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX660-x86-Release", 721, repos)
 }
 
@@ -328,7 +302,7 @@ func testUnfinishedBuild(t *testing.T) {
 	}
 
 	// Obtain and insert an unfinished build.
-	httpGet = testGet
+	httpClient = testHttpClient
 	b, err := getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
 	assert.Nil(t, err)
 	assert.False(t, b.IsFinished(), fmt.Errorf("Unfinished build thinks it's finished!"))
@@ -473,7 +447,7 @@ func TestGetLatestBuilds(t *testing.T) {
 		},
 	}
 
-	httpGet = testGet
+	httpClient = testHttpClient
 	actual, err := getLatestBuilds()
 	assert.Nil(t, err)
 	testutils.AssertDeepEqual(t, expected, actual)
@@ -547,7 +521,7 @@ func testGetUningestedBuilds(t *testing.T) {
 			},
 		},
 	}
-	httpGet = testGet
+	httpClient = testHttpClient
 	actual, err := getUningestedBuilds()
 	assert.Nil(t, err)
 	testutils.AssertDeepEqual(t, expected, actual)

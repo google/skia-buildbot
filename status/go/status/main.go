@@ -50,10 +50,10 @@ var (
 	commitsTemplate      *template.Template                   = nil
 	infraTemplate        *template.Template                   = nil
 	dbClient             *influxdb.Client                     = nil
-	goldGMStatus         *influxdb.IntPollingStatus           = nil
-	goldSKPStatus        *influxdb.IntPollingStatus           = nil
-	goldImageStatus      *influxdb.IntPollingStatus           = nil
-	perfStatus           *influxdb.PollingStatus              = nil
+	goldGMStatus         *util.IntPollingStatus               = nil
+	goldSKPStatus        *util.IntPollingStatus               = nil
+	goldImageStatus      *util.IntPollingStatus               = nil
+	perfStatus           *util.PollingStatus                  = nil
 )
 
 // flags
