@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.join('benchmarks'))
 
 
 if __name__ == '__main__':
-  environment = benchmark_runner.Environment(
+  config = benchmark_runner.ProjectConfig(
       top_level_dir=CT_BASE_DIR,
       benchmark_dirs=[CT_BASE_DIR])
-  sys.exit(benchmark_runner.main(environment))
+  sys.exit(benchmark_runner.main(config))
