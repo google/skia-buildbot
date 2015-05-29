@@ -32,7 +32,7 @@
       <tr><th>Service</th><th>Status</th></tr>
       <template is="dom-repeat" items="{{units}}">
         <tr>
-          <td>{{item.Name}}</td><td>{{item.SubState}}</td>
+          <td>{{item.Name}}</td><td><unit-status-sk status="{{item.SubState}}"></unit-status-sk></td>
           <td><paper-button raised data-action="start"   data-name$="{{item.Name}}">Start  </paper-button></td>
           <td><paper-button raised data-action="stop"    data-name$="{{item.Name}}">Stop   </paper-button></td>
           <td><paper-button raised data-action="restart" data-name$="{{item.Name}}">Restart</paper-button></td>

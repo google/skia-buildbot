@@ -30,7 +30,7 @@ var (
 
 // flags
 var (
-	port           = flag.String("port", ":10116", "HTTP service address (e.g., ':8000')")
+	port           = flag.String("port", ":10114", "HTTP service address (e.g., ':8000')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")

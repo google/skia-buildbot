@@ -129,7 +129,7 @@ Displays the server configurations, along with the ability to modify application
                     <template is="dom-repeat"  items="{{servicesOf(installed)}}" as="service">
                       <tr>
                         <td class=service>{{service}}</td>
-                        <td class=status>{{statusOf(server.Name,service)}}</td>
+                        <td class=status><unit-status-sk status="{{statusOf(server.Name,service)}}"></unit-status-sk></td>
                         <td class=uptime>{{uptimeOf(server.Name,service)}}</td>
                       </tr>
                     </template>
