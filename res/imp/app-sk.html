@@ -53,8 +53,9 @@ To have the content fits to the main area, use `fit` attribute.
       responsiveWidth="{{responsiveWidth}}"
       drawerWidth="{{drawerWidth}}"
       mode="{{mode}}"
-      narrow="{{narrow}}">
-    <core-header-panel navigation flex mode="{{mode}}" vertical layout>
+      narrow="{{narrow}}"
+      tallClass="{{tallClass}}">
+    <core-header-panel navigation flex mode="{{mode}}" tallClass="{{tallClass}}" vertical layout>
       <core-toolbar>
         <template if="{{!narrow}}">
           <h1 flex>{{appName}}</h1>
@@ -118,7 +119,22 @@ To have the content fits to the main area, use `fit` attribute.
        * @type string
        * @default 'seamed'
        */
-      mode: {value: 'seamed', reflect: true}
+      mode: {
+        value: 'seamed',
+        reflect: true,
+      },
+
+      /**
+       * Used to controll the `tallClass` attribute of `core-header-panel`
+       *
+       * @attribute tallClass
+       * @type string
+       * @default 'tall'
+       */
+      tallClass: {
+        value: 'tall',
+        reflect: true,
+      },
     },
 
     /**

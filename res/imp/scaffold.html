@@ -77,7 +77,7 @@ the menu width.
     <div vertical layout drawer>
       <content select="[navigation], nav"></content>
     </div>
-    <core-header-panel id="headerPanel" main mode="{{mode}}">
+    <core-header-panel id="headerPanel" main mode="{{mode}}" tallClass="{{tallClass}}">
       <core-toolbar>
         <core-icon-button id="menuButton" icon="menu" on-tap="{{togglePanel}}"></core-icon-button>
         <content select="[tool]"></content>
@@ -137,6 +137,15 @@ the menu width.
        * @default 'seamed'
        */
       mode: {value: 'seamed', reflect: true},
+
+      /**
+       * Used to control the `tallClass` attribute of `core-header-panel`
+       *
+       * @attribute tallClass
+       * @type string
+       * @default 'tall'
+       */
+      tallClass: {value: 'tall', reflect: true},
 
       narrow: {value: false, reflect: true}
     },

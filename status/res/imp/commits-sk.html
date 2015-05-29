@@ -216,7 +216,7 @@
       z-index: 2;
     }
     </style>
-    <div>
+    <div id="container">
       <div horizontal layout flex>
         <div>
           <!-- Use another as a spacer for the canvas. I couldn't find a sane
@@ -677,7 +677,7 @@
           }
         });
         window.addEventListener("resize", function() {
-          that.draw();
+          window.setTimeout(function() { that.draw(); }, 0);
         }, true);
       },
 
@@ -1130,14 +1130,14 @@
         }
 
         // Get the build table width.
-        this.windowWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        this.windowHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-        this.buildTableWidth = this.windowWidth - this.canvasWidth - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth;
+        this.windowWidth = this.$.container.offsetWidth;
+        this.windowHeight = this.$.container.offsetHeight;
+        this.buildTableWidth = this.windowWidth - this.canvasWidth - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth - 4;
         console.timeEnd("draw");
       },
 
       setBuilderWidth: function() {
-        this.builderWidth = Math.floor(this.buildTableWidth / this.numBuilders) - 1;
+        this.builderWidth = Math.max(Math.floor(this.buildTableWidth / this.numBuilders) - 1, 1);
       },
 
       buildTableWidthChanged: function() {

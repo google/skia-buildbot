@@ -22,7 +22,7 @@
     </style>
   </head>
   <body fullbleed vertical layout unresolved>
-    <app-sk fit id="appLayout" appName="{{.Title}}" drawerWidth="230px">
+    <app-sk fit appName="{{.Title}}" drawerWidth="230px">
       <alerts-menu-section-sk navigation></alerts-menu-section-sk>
       <alerts-sk reload=60 categories='{{.Categories}}' excludeCategories='{{.ExcludeCategories}}'></alerts-sk>
     </app-sk>

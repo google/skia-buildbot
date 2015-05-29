@@ -5,32 +5,25 @@
     <title>Skia Infra Status</title>
 
     <style>
-    core-header-panel {
-      background: white;
+    html /deep/ core-header-panel {
       font-family: sans-serif;
     }
-    core-toolbar {
+    html /deep/ core-toolbar {
       background-color: #66A61E;
       color: #FFFFFF;
       text-align: center;
       font-size: 15px;
     }
-    core-toolbar.closed {
+    html /deep/ core-toolbar.closed {
       background-color: #D95F02;
+    }
+    html /deep/ [main] {
+      background-color: #FFFFFF;
     }
     h1 {
       font-size: 1.7em;
       margin-bottom: 2px;
       margin-top: 5px;
-    }
-    #spacer-left {
-      width: 8px;
-    }
-    #spacer-right {
-      width: 0px;
-    }
-    login-sk {
-      width: 200px;
     }
     tree-status-sk {
       font-size: 1em;
@@ -38,32 +31,18 @@
     </style>
   </head>
   <body fullbleed vertical layout unresolved>
-    <core-header-panel flex>
-      <core-toolbar class="short">
-        <div id="toolbar" class="top" horizontal layout center fit>
-          <status-menu-sk></status-menu-sk>
-          <autoroll-widget-sk></autoroll-widget-sk>
-          <div id="spacer-left"></div>
-          <div id="title" vertical layout flex>
-            <h1>Skia Infra Status</h1>
-            <tree-status-sk></tree-status-sk>
-          </div>
-          <div id="spacer-right"></div>
-          <alert-widget-sk categories="['infra']"></alert-widget-sk>
-          <login-sk></login-sk>
-        </div>
-      </core-toolbar>
+    <app-sk fit appName="Infra Status" drawerWidth="230px" responsiveWidth="1100px">
+      <status-menu-section-sk navigation></status-menu-section-sk>
+      <tree-status-sk tool></tree-status-sk>
+      <autoroll-widget-sk tool></autoroll-widget-sk>
+      <alert-widget-sk categories="['infra']" tool></alert-widget-sk>
       <commits-sk repo="infra" builderFilter="all"></commits-sk>
-    </core-header-panel>
-    <div horizontal layout>
-      <div flex></div>
-      <version-sk></version-sk>
-    </div>
+    </app-sk>
     <script type="text/javascript" charset="utf-8">
     (function() {
       sk.WebComponentsReady.then(function() {
-        $$$("tree-status-sk").addEventListener("change", function(e) {
-          var tb  = $$$("core-toolbar");
+        $$$("html /deep/ tree-status-sk").addEventListener("change", function(e) {
+          var tb  = $$$("html /deep/ core-toolbar");
           if (e.detail.open == tb.classList.contains("closed")) {
             tb.classList.toggle("closed");
           }

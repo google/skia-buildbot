@@ -5,48 +5,25 @@
     <title>Skia Buildbot Dashboard</title>
 
     <style>
-    core-header-panel {
+    html /deep/ core-header-panel {
       background: white;
       font-family: sans-serif;
     }
-    core-toolbar {
+    html /deep/ core-toolbar {
       background-color: #006C7C;
       color: #FFFFFF;
       text-align: center;
       font-size: 15px;
     }
-    #spacer-left {
-      width: 160px;
-    }
-    #spacer-right {
-      width: 0px;
-    }
-    login-sk {
-      width: 200px;
-    }
-    tree-status-sk {
-      font-size: 1em;
+    html /deep/ [main] {
+      background-color: #FFFFFF;
     }
     </style>
   </head>
   <body fullbleed vertical layout unresolved>
-    <core-header-panel flex>
-      <core-toolbar class="short">
-        <div id="toolbar" class="top" horizontal layout center fit>
-          <status-menu-sk></status-menu-sk>
-          <div id="spacer-left"></div>
-          <div id="title" vertical layout flex>
-            <h1>Skia Buildbot Dashboard</h1>
-          </div>
-          <div id="spacer-right"></div>
-          <login-sk></login-sk>
-        </div>
-      </core-toolbar>
+    <app-sk fit appName="Skia Buildbot Dashboard" drawerWidth="230px" responsiveWidth="1300px">
+      <status-menu-section-sk navigation></status-menu-section-sk>
       <buildbot-dash-sk></buildbot-dash-sk>
-    </core-header-panel>
-    <div horizontal layout>
-      <div flex></div>
-      <version-sk></version-sk>
-    </div>
+    </app-sk>
   </body>
 </html>
