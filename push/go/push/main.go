@@ -225,7 +225,7 @@ type Properties struct {
 // nil if the information wasn't able to be retrieved.
 func getStatus(server, service string) *Status {
 	serverName := server
-	if ipaddr, ok := ip.Get()[server]; ok {
+	if ipaddr, ok := ip.Get()[server]; ok && *local {
 		serverName = ipaddr
 	}
 	resp, err := http.Get(fmt.Sprintf("http://%s:10114/_/props?service=%s", serverName, service))
