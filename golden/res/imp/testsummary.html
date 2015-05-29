@@ -96,7 +96,7 @@
         <span class=short>{{summary.num}}</span>
         <div class="blameColumn" vertical layout>
           <template repeat="{{b in summary.blame}}">
-           <div>{{b}}</div>
+           <div>{{b.prob | formatPercent }}% - {{b.author}}</div>
           </template>
         </div>
         <span class=short>
@@ -276,6 +276,10 @@
         delete o["name"];
         return window.encodeURIComponent(sk.query.fromParamSet(o));
       },
+
+      formatPercent: function(prob) {
+        return (prob*100).toFixed(1);
+      }
     });
   </script>
 </polymer-element>

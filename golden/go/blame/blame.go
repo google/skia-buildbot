@@ -42,6 +42,20 @@ type BlameDistribution struct {
 	Old bool `json:"old"`
 }
 
+// WeightedBlame combines an authors name with a probabily that she
+// is on a blamelist this is aggregated over the digests of a test.
+type WeightedBlame struct {
+	Author string  `json:"author"`
+	Prob   float64 `json:"prob"`
+}
+
+// Sorting wrapper around WeightedBlame.
+type WeightedBlameSlice []*WeightedBlame
+
+func (w WeightedBlameSlice) Len() int           { return len(w) }
+func (w WeightedBlameSlice) Less(i, j int) bool { return w[i].Prob < w[j].Prob }
+func (w WeightedBlameSlice) Swap(i, j int)      { w[i], w[j] = w[j], w[i] }
+
 // New returns a new Blamer instance and error. The error is not
 // nil if the first run of calculating the blame lists failed.
 func New(storages *storage.Storage) (*Blamer, error) {
@@ -99,23 +113,26 @@ func (b *Blamer) GetAllBlameLists() (map[string]map[string]*BlameDistribution, [
 
 // GetBlamesForTest returns the list of authors that have blame assigned to
 // them for the given test.
-func (b *Blamer) GetBlamesForTest(testName string) []string {
+func (b *Blamer) GetBlamesForTest(testName string) []*WeightedBlame {
 	blameLists, commits := b.GetAllBlameLists()
 
 	digestBlameList := blameLists[testName]
-	blameMap := map[string]bool{}
+	total := 0.0
+	blameMap := map[string]int{}
 	for _, blameDistribution := range digestBlameList {
-		commitIndices := b.getBlame(blameDistribution, commits, commits)
+		commitIndices, maxCount := b.getBlame(blameDistribution, commits, commits)
 		for _, commitIdx := range commitIndices {
-			blameMap[commits[commitIdx].Author] = true
+			blameMap[commits[commitIdx].Author] += maxCount
 		}
+		total += float64(maxCount * len(commitIndices))
 	}
 
-	ret := make([]string, 0, len(blameMap))
-	for author := range blameMap {
-		ret = append(ret, author)
+	ret := make([]*WeightedBlame, 0, len(blameMap))
+	for author, count := range blameMap {
+		ret = append(ret, &WeightedBlame{author, float64(count) / total})
 	}
 
+	sort.Sort(sort.Reverse(WeightedBlameSlice(ret)))
 	return ret
 }
 
@@ -130,15 +147,16 @@ func (b *Blamer) GetBlamesForTest(testName string) []string {
 // to the current tile.
 func (b *Blamer) GetBlame(testName string, digest string, commits []*ptypes.Commit) *BlameDistribution {
 	blameLists, blameCommits := b.GetAllBlameLists()
+	commitIndices, _ := b.getBlame(blameLists[testName][digest], blameCommits, commits)
 	return &BlameDistribution{
-		Freq: b.getBlame(blameLists[testName][digest], blameCommits, commits),
+		Freq: commitIndices,
 		Old:  blameLists[testName][digest].Old,
 	}
 }
 
-func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, commits []*ptypes.Commit) []int {
+func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, commits []*ptypes.Commit) ([]int, int) {
 	if (blameDistribution == nil) || (len(blameDistribution.Freq) == 0) {
-		return []int{}
+		return []int{}, 0
 	}
 
 	// We have a blamelist. Let's find the indices relative to the given
@@ -160,7 +178,7 @@ func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, co
 		commitIdx++
 	}
 
-	return ret
+	return ret, maxCount
 }
 
 // updateBlame reads from the provided tileStream and updates the current

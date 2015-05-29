@@ -21,15 +21,15 @@ import (
 
 // Summary contains rolled up metrics for one test.
 type Summary struct {
-	Name      string   `json:"name"`
-	Diameter  int      `json:"diameter"`
-	Pos       int      `json:"pos"`
-	Neg       int      `json:"neg"`
-	Untriaged int      `json:"untriaged"`
-	UntHashes []string `json:"untHashes"`
-	Num       int      `json:"num"`
-	Corpus    string   `json:"corpus"`
-	Blame     []string `json:"blame"`
+	Name      string                 `json:"name"`
+	Diameter  int                    `json:"diameter"`
+	Pos       int                    `json:"pos"`
+	Neg       int                    `json:"neg"`
+	Untriaged int                    `json:"untriaged"`
+	UntHashes []string               `json:"untHashes"`
+	Num       int                    `json:"num"`
+	Corpus    string                 `json:"corpus"`
+	Blame     []*blame.WeightedBlame `json:"blame"`
 }
 
 // Summaries contains a Summary for each test.
