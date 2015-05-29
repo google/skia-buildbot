@@ -188,13 +188,15 @@
                             {{b2}}
                           </a>
                         </td>
-                        <template repeat="{{build in (byBuilder ? buildsByBuildslaveByBuilder[b1][b2] : buildsByBuildslaveByBuilder[b2][b1])}}">
+                        <template repeat="{{build in (byBuilder ? buildsByBuilder[b1] : buildsByBuildslave[b1])}}">
                           <td class="build">
-                            <a class="plain build {{build.Finished == 0 ? 'inprogress' : build.Results == 0 || build.Results == 1 || build.Results == 3 ? 'success' : build.Results == 2 ? 'failure' : build.Results == 4 || build.Results == 5 ? 'exception' : 'unknown'}}"
-                               target="_blank"
-                               href="https://uberchromegw.corp.google.com/i/{{build.Master}}/builders/{{build.Builder}}/builds/{{build.Number}}">
-                              {{build.Number}}
-                           </a>
+                            <template if="{{byBuilder ? (build.BuildSlave == b2) : (build.Builder == b2)}}">
+                              <a class="plain build {{build.Finished == 0 ? 'inprogress' : build.Results == 0 || build.Results == 1 || build.Results == 3 ? 'success' : build.Results == 2 ? 'failure' : build.Results == 4 || build.Results == 5 ? 'exception' : 'unknown'}}"
+                                target="_blank"
+                                href="https://uberchromegw.corp.google.com/i/{{build.Master}}/builders/{{build.Builder}}/builds/{{build.Number}}">
+                                {{build.Number}}
+                             </a>
+                           </template>
                           </td>
                         </template>
                       </tr>
@@ -224,11 +226,15 @@
         this.builds = [];
         this.buildData = {};
         this.buildDurations = {};
+
         this.builders = [];
-        this.buildersByBuildslave = {};
-        this.buildslaves = [];
+        this.buildsByBuilder = {};
         this.buildslavesByBuilder = {};
-        this.buildsByBuildslaveByBuilder = {};
+
+        this.buildslaves = [];
+        this.buildsByBuildslave = {};
+        this.buildersByBuildslave = {};
+
         this.byBuilder = true;
         this.includedBuilds = [];
         this.masterLookup = {};
@@ -329,12 +335,16 @@
         console.time("processBuilds");
         this.buildData = {};
         this.buildDurations = {};
-        this.buildsByBuildslaveByBuilder = {};
+        this.buildsByBuilder = {};
+        this.buildsByBuildslave = {};
         this.includedBuilds = [];
         this.stepDurations = {};
         this.buildResults = {};
         this.stepResults = {};
         excludedBots = {};
+
+        var buildersByBuildslave = {};
+        var buildslavesByBuilder = {};
 
         for (var i = 0; i < this.builds.length; i++) {
           var build = this.builds[i];
@@ -343,14 +353,20 @@
             continue;
           }
 
-          // Builds by buildslave and builder.
-          if (!this.buildsByBuildslaveByBuilder[build.Builder]) {
-            this.buildsByBuildslaveByBuilder[build.Builder] = {};
+          // Builds, builders, buildslaves, by buildslave and builder.
+          if (!this.buildsByBuilder[build.Builder]) {
+            this.buildsByBuilder[build.Builder] = [];
+            buildslavesByBuilder[build.Builder] = {};
           }
-          if (!this.buildsByBuildslaveByBuilder[build.Builder][build.BuildSlave]) {
-            this.buildsByBuildslaveByBuilder[build.Builder][build.BuildSlave] = [];
+          this.buildsByBuilder[build.Builder].push(build)
+          buildslavesByBuilder[build.Builder][build.BuildSlave] = true;
+
+          if (!this.buildsByBuildslave[build.BuildSlave]) {
+            this.buildsByBuildslave[build.BuildSlave] = [];
+            buildersByBuildslave[build.BuildSlave] = {};
           }
-          this.buildsByBuildslaveByBuilder[build.Builder][build.BuildSlave].push(build);
+          this.buildsByBuildslave[build.BuildSlave].push(build);
+          buildersByBuildslave[build.BuildSlave][build.Builder] = true;
 
           // The graphs are only valid for completed builds.
           if (build.Finished > build.Started) {
@@ -401,33 +417,29 @@
           }
         }
 
-        // Buildslaves by builder, builders by buildslave, master lookup.
-        this.buildslavesByBuilder = {};
+        // Buildslaves by builder, builders by buildslave.
         this.buildersByBuildslave = {};
+        for (var buildslave in buildersByBuildslave) {
+          this.buildersByBuildslave[buildslave] = Object.keys(buildersByBuildslave[buildslave]);
+        }
+        this.buildslavesByBuilder = {};
+        for (var builder in buildslavesByBuilder) {
+          this.buildslavesByBuilder[builder] = Object.keys(buildslavesByBuilder[builder]);
+        }
+
+        // Sort the builds by builder/buildslave, create master lookup.
         this.masterLookup = {};
-        for (var builder in this.buildsByBuildslaveByBuilder) {
-          for (var buildslave in this.buildsByBuildslaveByBuilder[builder]) {
-            if (!this.buildslavesByBuilder[builder]) {
-              this.buildslavesByBuilder[builder] = [];
-            }
-            this.buildslavesByBuilder[builder].push(buildslave);
-
-            if (!this.buildersByBuildslave[buildslave]) {
-              this.buildersByBuildslave[buildslave] = [];
-            }
-            this.buildersByBuildslave[buildslave].push(builder);
-
-            this.buildsByBuildslaveByBuilder[builder][buildslave].sort(function(a, b) {
-              return b.Number - a.Number;
-            });
-
-            // Master lookup. This does extra work but it's not a lot.
-            if (this.buildsByBuildslaveByBuilder[builder][buildslave].length > 0) {
-              var master = this.buildsByBuildslaveByBuilder[builder][buildslave][0].Master;
-              this.masterLookup[builder] = master;
-              this.masterLookup[buildslave] = master;
-            }
-          }
+        for (var builder in this.buildsByBuilder) {
+          this.buildsByBuilder[builder].sort(function(a, b) {
+            return b.Started - a.Started;
+          });
+          this.masterLookup[builder] = this.buildsByBuilder[builder][0].Master;
+        }
+        for (var buildslave in this.buildsByBuildslave) {
+          this.buildsByBuildslave[buildslave].sort(function(a, b) {
+            return b.Started - a.Started;
+          });
+          this.masterLookup[buildslave] = this.buildsByBuildslave[buildslave][0].Master;
         }
 
         // All builders.
