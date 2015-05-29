@@ -143,8 +143,7 @@
           Applied to Chromium ToT
         </td>
         <td>
-          <iron-autogrow-textarea class="long-field" rows=5 maxRows=20>
-            <textarea id="chromium_patch"></textarea>
+          <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 id="chromium_patch">
           </iron-autogrow-textarea>
         </td>
       </tr>
@@ -155,8 +154,7 @@
           Applied to Blink Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
         </td>
         <td>
-          <iron-autogrow-textarea class="long-field" rows=5 maxRows=20>
-            <textarea id="blink_patch"></textarea>
+          <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 id="blink_patch">
           </iron-autogrow-textarea>
         </td>
       </tr>
@@ -167,8 +165,7 @@
           Applied to Skia Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
         </td>
         <td>
-          <iron-autogrow-textarea class="long-field" rows=5 maxRows=20>
-            <textarea id="skia_patch"></textarea>
+          <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 id="skia_patch">
           </iron-autogrow-textarea>
         </td>
       </tr>
@@ -286,9 +283,9 @@
          params["browser_args_nopatch"] = this.$.browser_args_nopatch.value;
          params["browser_args_withpatch"] = this.$.browser_args_withpatch.value;
          params["desc"] = this.$.desc.value;
-         params["chromium_patch"] = this.$.chromium_patch.value;
-         params["blink_patch"] = this.$.blink_patch.value;
-         params["skia_patch"] = this.$.skia_patch.value;
+         params["chromium_patch"] = this.$.chromium_patch.textarea.value;
+         params["blink_patch"] = this.$.blink_patch.textarea.value;
+         params["skia_patch"] = this.$.skia_patch.textarea.value;
 
          var that = this;
          sk.post("/_/add_chromium_perf_task", JSON.stringify(params)).then(function(resp) {
