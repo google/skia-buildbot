@@ -71,6 +71,19 @@ func safeGet(m map[string]string, key string, def string) string {
 	}
 }
 
+func safeGetStringSlice(m map[string]string, key string) []string {
+	if value, ok := m[key]; !ok {
+		return []string{}
+	} else {
+		value = strings.TrimSpace(value)
+		if value == "" {
+			return []string{}
+		} else {
+			return strings.Split(value, " ")
+		}
+	}
+}
+
 // PackageSlice is for sorting Packages by Built time.
 type PackageSlice []*Package
 
@@ -101,7 +114,7 @@ func AllAvailable(store *storage.Service) (map[string][]*Package, error) {
 				Built:    safeGetTime(o.Metadata, "datetime"),
 				Dirty:    safeGetBool(o.Metadata, "dirty"),
 				Note:     safeGet(o.Metadata, "note", ""),
-				Services: strings.Split(safeGet(o.Metadata, "services", ""), " "),
+				Services: safeGetStringSlice(o.Metadata, "services"),
 			}
 			if _, ok := ret[key]; !ok {
 				ret[key] = []*Package{}

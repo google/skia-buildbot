@@ -67,7 +67,7 @@
 
         p.then(function() {
           sk.get("/json/").then(JSON.parse).then(function(json) {
-            $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip);
+            $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip, json.status);
           });
           $$$('push-server-sk').addEventListener('change-package', function(e) {
             var body = {

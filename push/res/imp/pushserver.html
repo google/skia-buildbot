@@ -92,6 +92,19 @@ Displays the server configurations, along with the ability to modify application
     paper-button:hover {
       background: #eee;
     }
+
+    .service {
+      width: 14em;
+    }
+
+    .status,
+    .uptime {
+      width: 10em;
+    }
+
+    .uptime {
+      font-family: monospace;
+    }
   </style>
   <template>
     <div id=list>
@@ -111,7 +124,17 @@ Displays the server configurations, along with the ability to modify application
                 <td><span class=appName><a href$="https://github.com/google/skia-buildbot/compare/{{fullHash(installed)}}...HEAD">{{short(installed)}}</a></span></td>
                 <td><iron-icon icon$="{{alarmIfNotLatest(installed)}}" title="Out of date."></iron-icon></td>
                 <td><iron-icon icon$="{{warnIfDirty(installed)}}" title="Uncommited changes when the package was built."></iron-icon></td>
-              </tr>
+                <td>
+                  <table>
+                    <template is="dom-repeat"  items="{{servicesOf(installed)}}" as="service">
+                      <tr>
+                        <td class=service>{{service}}</td>
+                        <td class=status>{{statusOf(server.Name,service)}}</td>
+                        <td class=uptime>{{uptimeOf(server.Name,service)}}</td>
+                      </tr>
+                    </template>
+                  </table>
+                </td>
             </template>
           </table>
         </section>
@@ -179,10 +202,11 @@ Displays the server configurations, along with the ability to modify application
       });
     },
 
-    setConfig: function(servers, packages, ip) {
+    setConfig: function(servers, packages, ip, status) {
       this.servers = servers;
       this.packages = packages;
       this.ip = ip;
+      this.status = status;
       for (appName in this.packages) {
         var that = this;
         var latest = true;
@@ -225,6 +249,30 @@ Displays the server configurations, along with the ability to modify application
       } else {
         return this.packageLookup[installed].Dirty ? 'warning' : '';
       }
+    },
+
+    servicesOf: function(installed) {
+      var package = this.packageLookup[installed];
+      if (!package) {
+        return [];
+      }
+      return package.Services;
+    },
+
+    statusOf: function(server, service) {
+      var status = this.status[server+":"+service];
+      if (!status) {
+        return '[unknown]';
+      }
+      return status.status;
+    },
+
+    uptimeOf: function(server, service) {
+      var status = this.status[server+":"+service];
+      if (!status) {
+        return '[unknown]';
+      }
+      return sk.human.strDuration(status.uptime);
     },
 
     monURI: function(name) {
