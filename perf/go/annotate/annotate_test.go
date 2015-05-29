@@ -6,9 +6,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
-	"time"
 
-	"code.google.com/p/goauth2/oauth"
 	"go.skia.org/infra/go/login"
 )
 
@@ -44,11 +42,7 @@ func TestGoodLogin(t *testing.T) {
 	s := &login.Session{
 		Email:     "fred@example.com",
 		AuthScope: login.DEFAULT_SCOPE,
-		Token: &oauth.Token{
-			AccessToken:  "dummy",
-			RefreshToken: "",
-			Expiry:       time.Now().Add(time.Hour),
-		},
+		Token:     nil,
 	}
 	cookie, err := login.CookieFor(s)
 	if err != nil {

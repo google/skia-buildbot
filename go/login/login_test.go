@@ -5,9 +5,7 @@ import (
 	"net/http/httptest"
 	"sync"
 	"testing"
-	"time"
 
-	"code.google.com/p/goauth2/oauth"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,11 +48,7 @@ func TestLoggedInAs(t *testing.T) {
 	s := Session{
 		Email:     "fred@example.com",
 		AuthScope: DEFAULT_SCOPE,
-		Token: &oauth.Token{
-			AccessToken:  "dummy",
-			RefreshToken: "",
-			Expiry:       time.Now().Add(time.Hour),
-		},
+		Token:     nil,
 	}
 	cookie, err := CookieFor(&s)
 	if err != nil {

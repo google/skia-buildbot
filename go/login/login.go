@@ -149,12 +149,6 @@ func getSession(r *http.Request) (*Session, error) {
 	if s.AuthScope != oauthConfig.Scope {
 		return nil, fmt.Errorf("Stored auth scope differs from expected (%s vs %s)", oauthConfig.Scope, s.AuthScope)
 	}
-	if s.Token == nil {
-		return nil, fmt.Errorf("No auth token found.")
-	}
-	if s.Token.Expired() {
-		return nil, fmt.Errorf("The token has expired.")
-	}
 	return &s, nil
 }
 
