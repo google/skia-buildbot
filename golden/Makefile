@@ -68,7 +68,7 @@ web:
 
 .PHONY: touch_elements
 touch_elements:
-	rm res/js/core.js
+	rm -f res/js/core.js
 	touch elements.html
 
 .PHONY: release
