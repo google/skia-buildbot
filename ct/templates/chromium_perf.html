@@ -2,32 +2,39 @@
 <html>
   <head>
     <title>Chromium Perf</title>
-
     {{template "header.html" .}}
-
     <link href="/res/imp/chromium-perf-sk.html" rel="import" />
-
   </head>
-
   <body>
-    <scaffold-sk responsiveWidth="700px" drawerWidth="180px">
+
+    <paper-header-panel class="fit">
+
       {{template "titlebar.html" .}}
-      <div id="container">
-        <section id=chromium_perf class="left_padded">
-          <h2>Test performance of Chromium / Blink / Skia patches on the top 10k webpages</h2>
-          <p>
-            <span style="text-align: center;">
-              Read <a href="https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.lgvqzgu7bc4d" target="_blank">this</a> for an explanation of CT's accuracy of results.
-            </span>
-          </p>
-          <br/><br/>
-          <chromium-perf-sk id="chromium_perf"></chromium-perf-sk>
-        </section>
+
+      <div class="content">
+        <paper-drawer-panel>
+          <div drawer>
+            {{template "drawer.html" .}}
+          </div>
+          <div main id="scrollable">
+            <section id=chromium_perf class="left_padded">
+              <h2>Test performance of Chromium / Blink / Skia patches on the top 10k webpages</h2>
+              <p>
+                <span style="text-align: center;">
+                  Read <a href="https://docs.google.com/a/chromium.org/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.lgvqzgu7bc4d" target="_blank">this</a> for an explanation of CT's accuracy of results.
+                </span>
+              </p>
+              <br/><br/>
+              <chromium-perf-sk id="chromium_perf"></chromium-perf-sk>
+            </section>
+          </div>
+        </paper-drawer-panel>
       </div>
-    </scaffold-sk>
+
+    </paper-header-panel>
 
     <script type="text/javascript" charset="utf-8">
-       sk.WebComponentsReady.then(function(){
+       (function() {
          sk.post('/_/chromium_perf/').then(JSON.parse).then(function(json) {
            $$$('chromium-perf-sk').benchmarks = json["benchmarks"];
            $$$('chromium-perf-sk').platformsToDesc = json["platforms"];
@@ -41,7 +48,8 @@
          }).catch(function(err) {
            alert(err);
          });
-       });
+       })();
     </script>
+
   </body>
 </html>

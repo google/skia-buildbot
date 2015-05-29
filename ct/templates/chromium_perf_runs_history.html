@@ -2,26 +2,30 @@
 <html>
   <head>
     <title>Chromium Perf Runs</title>
-
     {{template "header.html" .}}
-
     <link href="/res/imp/chromium-perf-runs-sk.html" rel="import" />
-
-    <style type="text/css" media="screen">
-      .scrollable {
-        overflow: auto;
-      }
     </style>
   </head>
-
   <body>
-    <scaffold-sk responsiveWidth="700px" drawerWidth="180px">
+
+    <paper-header-panel class="fit">
+
       {{template "titlebar.html" .}}
-      <div id="container" class="scrollable">
-        <section id=chromium_perf_runs_history class="left_padded">
-          <chromium-perf-runs-sk id="chromium_perf_runs"></chromium-perf-runs-sk>
-        </section>
+
+      <div class="content">
+        <paper-drawer-panel>
+          <div drawer>
+            {{template "drawer.html" .}}
+          </div>
+          <div main id="scrollable">
+            <section id=chromium_perf_runs_history class="left_padded">
+              <chromium-perf-runs-sk id="chromium_perf_runs"></chromium-perf-runs-sk>
+            </section>
+          </div>
+        </paper-drawer-panel>
       </div>
-    </scaffold-sk>
+
+    </paper-header-panel>
+
   </body>
 </html>

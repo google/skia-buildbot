@@ -1,19 +1,4 @@
-      <core-header-panel navigation flex mode=seamed>
-        <core-toolbar>Cluster Telemetry 2.0</core-toolbar>
-        <core-menu theme="core-light-theme" style="padding: 15px 0px 0px 10px;">
-          <core-item icon="trending-up" label="Performance"><a href="/chromium_perf/"></a></core-item>
-          <core-item icon="view-module" label="Correctness"><a href="/skia_correctness/"></a></core-item>
-          <core-item icon="image:photo-camera" label="SkPictures"><a href="/skps/"></a></core-item>
-          <core-item icon="cloud" label="Lua Scripts"><a href="/lua_script/"></a></core-item>
-          <core-item icon="shopping-cart" label="Builds"><a href="/chromium_builds/"></a></core-item>
-          <core-item icon="social:person" label="Admin Tasks"><a href="/admin_tasks/"></a></core-item>
-          <core-item icon="reorder" label="View Queue"><a href="/queue/"></a></core-item>
-          <core-item icon="history" label="Runs History"><a href="/history/"></a></core-item>
-          <core-item icon="folder" label="Code"><a href="https://github.com/google/skia-buildbot/tree/master/ct"></a></core-item>
-          <core-item icon="help" label="Docs"><a href="/docs/"></a></core-item>
-        </core-menu>
-      </core-header-panel>
-      <div id=title tool flex horizontal layout>
-        <login-sk></login-sk>
-        <span id="version"></span>
-      </div>
+<paper-toolbar>
+  <span class="flex">Cluster Telemetry 2.0</span>
+  <div><login-sk></login-sk></div>
+</paper-toolbar>

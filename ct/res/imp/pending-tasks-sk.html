@@ -13,30 +13,30 @@
     <pending-tasks-sk></pending-tasks-sk>
 -->
 
-<polymer-element name="pending-tasks-sk">
+<dom-module id="pending-tasks-sk">
+  <style>
+    table.queue {
+      border-spacing: 0px;
+      padding-top: 2em;
+    }
+    tr.headers {
+      background-color: #CCCCFF;
+      text-align: center;
+    }
+    td.nowrap {
+      white-space: nowrap;
+    }
+    th,
+    td  {
+      padding: 15px;
+      border: solid black 1px;
+    }
+  </style>
   <template>
-    <style>
-      table.queue {
-        border-spacing: 0px;
-        padding-top: 2em;
-      }
-      tr.headers {
-        background-color: #CCCCFF;
-        text-align: center;
-      }
-      td.nowrap {
-        white-space: nowrap;
-      }
-      th,
-      td  {
-        padding: 15px;
-        border: solid black 1px;
-      }
-    </style>
 
     <h2>Tasks in the Queue</h2>
 
-    <table class="queue">
+    <table class="queue" id="queue">
       <tr class="headers">
         <td>Queue Position</td>
         <td>Added</td>
@@ -45,39 +45,44 @@
         <td>Request</td>
       </tr>
 
-      <template repeat="{{pendingTask, index in pendingTasks}}">
-      <tr id="row{{index}}">
-        <!-- Queue Position col --> 
-        <td>{{ index + 1 }}
-        </td>
+      <template is="dom-repeat" items="{{pendingTasks}}" as="pendingTask" index-as="index">
+        <tr>
+          <!-- Queue Position col --> 
+          <td>{{ incrementOne(index) }}</td>
 
-        <!-- Added col --> 
-        <td>{{ pendingTask["TsAdded"]["Int64"] | formatTimestamp }}</td>
+          <!-- Added col --> 
+          <td>{{ formatTimestamp(pendingTask.TsAdded.Int64) }}</td>
 
-        <!-- Task Type col --> 
-        <td>{{ pendingTask["TaskType"] }}</td>
+          <!-- Task Type col --> 
+          <td>{{pendingTask.TaskType}}</td>
 
-        <!-- User col --> 
-        <td>{{ pendingTask["Username"] }}</td>
+          <!-- User col --> 
+          <td>{{pendingTask.Username}}</td>
 
-        <!-- Request col -->
-        <td class="nowrap">
-          <a on-tap="{{toggleTaskDetails}}" href="javascript:void(0);">Task Details</a>
-          <paper-dialog heading="Task Details" id="task_details{{index}}">
-            <pre>{{ pendingTask | formatTask }}</pre>
-          </paper-dialog>
-        </td>
-      </tr>
-    </template>
+          <!-- Request col -->
+          <td class="nowrap">
+            <a href="javascript:void(0);" data-id$="{{index}}">Task Details</a>
+            <paper-dialog heading="Task Details" id="{{ getTaskDetailsId(index) }}">
+              <paper-dialog-scrollable>
+                <pre>{{ formatTask(pendingTask) }}</pre>
+              </paper-dialog-scrollable>
+            </paper-dialog>
+          </td>
+        </tr>
+      </template>
     </table>
-    <br/>
   </template>
+</dom-module>
 
 
-  <script>
+<script>
    Polymer({
-     created: function() {
-       this.pendingTasks = this.pendingTasks || [];
+     is: "pending-tasks-sk",
+     properties: {
+       pendingTasks: {
+         type: Array,
+         value: [],
+       },
      },
 
      ready: function() {
@@ -92,6 +97,22 @@
        }).catch(function(err) {
          alert(err);
        });
+
+       this.$.queue.addEventListener('click', function(e) {
+         var anchor = sk.findParent(e.target, "A");
+         if (anchor != null) {
+           var index = anchor.dataset.id;
+           that.toggleDialog(that.getTaskDetailsId(index));
+         }
+       });
+     },
+
+     incrementOne: function(index) {
+       return index + 1;
+     },
+
+     getTaskDetailsId: function(index) {
+       return "task_details" + index;
      },
 
      formatTask: function(task) {
@@ -107,18 +128,12 @@
        this.pendingTasks.sort(function(a, b){return a["TsAdded"]["Int64"] - b["TsAdded"]["Int64"]});
      },
 
-     toggleTaskDetails: function(e) {
-       var index = e.target.templateInstance.model.index;
-       this.toggleDialog("#task_details" + index);
-     },
-
      toggleDialog: function(id) {
-       this.shadowRoot.querySelector(id).toggle();
+       Polymer.dom(this.root).querySelector('#' + id).toggle();
      },
 
      formatTimestamp: function(timestamp) {
        return getFormattedTimestamp(timestamp);
      },
   });
-  </script>
-</polymer-element>
+</script>

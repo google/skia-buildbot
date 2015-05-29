@@ -21,94 +21,91 @@
     pageSets: List of all supported page sets.
 -->
 
-<polymer-element name="chromium-perf-sk">
-  <template>
-    <style>
-      paper-input,
-      paper-dropdown-menu {
-        width: 20em;
-      }
+<dom-module id="chromium-perf-sk">
+  <style>
+    paper-input,
+    paper-dropdown-menu {
+      width: 20em;
+    }
 
-      paper-autogrow-textarea {
-        border: solid;
-        border-width: 1px;
-      }
 
-      .long-field {
-        width: 40em;
-      }
+    .iron-selected {
+      background-color: #D6ECF2;
+    }
 
-      .short-field {
-        width: 5em;
-      }
+    .long-field {
+      width: 40em;
+    }
 
-      .label {
-        margin-right: 2em;
-      }
+    .short-field {
+      width: 5em;
+    }
+
+    iron-selector.medium-field > div {
+      width: 20em;
+    }
+
+    iron-selector.short-field > div {
+      width: 5em;
+    }
+
+    .label {
+      margin-right: 2em;
+    }
  
-      table.options td {
-        padding: 0em 2em;
-      }
-    </style>
+    table.options td {
+      padding: 1em 2em;
+    }
+
+    td.center {
+      text-align:center;
+      padding-top:2em;
+    }
+  </style>
+  <template>
 
     <table class="options">
       <tr>
         <td>Benchmark Name</td>
         <td>
-          <paper-dropdown-menu>
-            <paper-dropdown class="dropdown">
-              <core-menu id="benchmark_name" class="menu" selected="rasterize_and_record_micro" valueattr="id">
-                <template repeat="{{benchmark in benchmarks}}">
-                  <paper-item id="{{benchmark}}">{{benchmark}}</paper-item>
-                </template>
-              </core-menu>
-            </paper-dropdown>
-          </paper-dropdown-menu>
+          <iron-selector attr-for-selected="id" id="benchmark_name" selected="rasterize_and_record_micro" class="medium-field">
+            <template is="dom-repeat" items="{{benchmarks}}">
+              <div id="{{item}}">{{item}}</div>
+            </template>
+          </iron-selector>
         </td>
       </tr>
 
       <tr>
         <td>Target Platform</td>
         <td>
-          <paper-dropdown-menu>
-            <paper-dropdown class="dropdown">
-              <core-menu id="target_platform" class="menu" selected="Linux" valueattr="id" on-core-select="{{platformChanged}}">
-                <template repeat="{{platform in platforms}}">
-                  <paper-item value="{{platform}}" id="{{platform}}">{{platformsToDesc[platform]}}</paper-item>
-                </template>
-              </core-menu>
-            </paper-dropdown>
-          </paper-dropdown-menu>
+          <iron-selector attr-for-selected="id" id="target_platform" selected="Linux" class="medium-field">
+            <template is="dom-repeat" items="{{platforms}}">
+              <div id="{{item}}">{{getPlatformDesc(item)}}</div>
+            </template>
+          </iron-selector>
         </td>
       </tr>
 
       <tr>
         <td>PageSets Type</td>
         <td>
-          <paper-dropdown-menu>
-            <paper-dropdown class="dropdown">
-              <core-menu id="page_sets" class="menu" selected="10k" valueattr="id">
-                <template repeat="{{pageSet in pageSets}}">
-                  <paper-item value="{{pageSet}}" id="{{pageSet}}">{{pageSetsToDesc[pageSet]}}</paper-item>
-                </template>
-              </core-menu>
-            </paper-dropdown>
-          </paper-dropdown-menu>
+          <iron-selector attr-for-selected="id" id="page_sets" selected="10k" class="medium-field">
+            <template is="dom-repeat" items="{{pageSets}}">
+              <div id="{{item}}">{{getPageSetsDesc(item)}}</div>
+            </template>
+          </iron-selector>
         </td>
       </tr>
 
       <tr>
         <td>Repeat each page</td>
         <td>
-          <paper-dropdown-menu class="short-field">
-            <paper-dropdown class="dropdown">
-              <core-menu id="repeat_runs" class="menu" selected="3" valueattr="id">
-                <paper-item id="3">3</paper-item>
-                <paper-item id="2">2</paper-item>
-                <paper-item id="1">1</paper-item>
-              </core-menu>
-            </paper-dropdown>
-          </paper-dropdown-menu>
+          <iron-selector attr-for-selected="id" id="repeat_runs" selected="3" class="short-field">
+            <div id="3">3</div>
+            <div id="2">2</div>
+            <div id="1">1</div>
+          </iron-selector>
         </td>
       </tr>
 
@@ -146,9 +143,9 @@
           Applied to Chromium ToT
         </td>
         <td>
-          <paper-autogrow-textarea class="long-field" rows=5 maxRows=20>
+          <iron-autogrow-textarea class="long-field" rows=5 maxRows=20>
             <textarea id="chromium_patch"></textarea>
-          </paper-autogrow-textarea>
+          </iron-autogrow-textarea>
         </td>
       </tr>
 
@@ -158,9 +155,9 @@
           Applied to Blink Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
         </td>
         <td>
-          <paper-autogrow-textarea class="long-field" rows=5 maxRows=20>
+          <iron-autogrow-textarea class="long-field" rows=5 maxRows=20>
             <textarea id="blink_patch"></textarea>
-          </paper-autogrow-textarea>
+          </iron-autogrow-textarea>
         </td>
       </tr>
 
@@ -170,20 +167,20 @@
           Applied to Skia Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
         </td>
         <td>
-          <paper-autogrow-textarea class="long-field" rows=5 maxRows=20>
+          <iron-autogrow-textarea class="long-field" rows=5 maxRows=20>
             <textarea id="skia_patch"></textarea>
-          </paper-autogrow-textarea>
+          </iron-autogrow-textarea>
         </td>
       </tr>
 
       <tr>
-        <td colspan="2" style="text-align:center; padding-top:2em;">
-          <paper-button raised id="submit" on-click="{{queueTask}}">Queue Task</paper-button>
+        <td colspan="2" class="center">
+          <paper-button raised id="submit_task">Queue Task</paper-button>
         </td>
       </tr>
       <tr>
-        <td colspan="2" style="text-align:center; padding-top:2em;">
-          <paper-button raised id="submit" on-click="{{gotoRunsHistory}}">View runs history</paper-button>
+        <td colspan="2" class="center">
+          <paper-button raised id="view_history">View runs history</paper-button>
         </td>
       </tr>
     </table>
@@ -191,17 +188,63 @@
     <br/><br/>
 
   </template>
+</dom-module>
 
-
-  <script>
+<script>
    Polymer({
-     created: function() {
-       this.benchmarks = this.benchmarks || [];
-       this.platforms = this.platforms || [];
-       this.platformsToDesc = this.platformsToDesc || {};
-       this.pageSets = this.pageSets || {};
-       this.pageSetsToDesc = this.pageSetsToDesc || {};
-       this.defaultLinuxBrowserArgs = "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting";
+     is: "chromium-perf-sk",
+     properties: {
+       benchmarks: {
+         type: Array,
+         value: [],
+       },
+       platforms: {
+         type: Array,
+         value: [],
+       },
+       platformsToDesc: {
+         type: Object,
+         value: {},
+       },
+       pageSets: {
+         type: Array,
+         value: [],
+         observer: 'pageSetsChanged',
+       },
+       pageSetsToDesc: {
+         type: Object,
+         value: {},
+       },
+       defaultLinuxBrowserArgs: {
+         type: String,
+         value: "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting",
+       },
+     },
+
+     ready: function() {
+      var that = this;
+      this.$.target_platform.addEventListener('click', function(e) {
+        that.platformChanged();
+      });
+      this.$.submit_task.addEventListener('click', function(e) {
+        that.queueTask();
+      });
+      this.$.view_history.addEventListener('click', function(e) {
+        that.gotoRunsHistory();
+      });
+      this.platformChanged();
+     },
+
+     getPlatformDesc: function(platform) {
+       if (this.platformsToDesc) {
+         return this.platformsToDesc[platform];
+       }
+     },
+
+     getPageSetsDesc: function(pageSet) {
+       if (this.pageSetsToDesc) {
+         return this.pageSetsToDesc[pageSet];
+       }
      },
 
      pageSetsChanged: function() {
@@ -260,5 +303,4 @@
        window.location.href = "/chromium_perf_runs/";
      },
    });
-  </script>
-</polymer-element>
+</script>

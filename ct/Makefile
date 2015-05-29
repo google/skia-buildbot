@@ -8,6 +8,7 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
 
 BOWER_DIR=third_party/bower_components
 
+VULCANIZE1=true
 
 include ../go/skiaversion/skiaversion.mk
 

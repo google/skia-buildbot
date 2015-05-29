@@ -105,3 +105,18 @@ core-item:hover {
 .top_padded {
   padding-top: 2em;
 }
+
+.right_padded {
+  padding-right: 2em;
+}
+
+.nolink {
+  text-decoration: none;
+  color: black;
+  font-weight: normal;
+}
+
+#scrollable {
+  height: 80vh;
+  overflow-y: auto;
+}

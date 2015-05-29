@@ -131,25 +131,29 @@ func reloadTemplates() {
 	}
 	chromiumPerfTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/chromium_perf.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 	chromiumPerfRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/chromium_perf_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 
 	runsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 
 	pendingTasksTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/pending_tasks.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 }
 
