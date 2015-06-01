@@ -20,6 +20,6 @@
     "paper-elements": "PolymerElements/paper-elements#^1.0.0"
   },
   "resolutions": {
-    "polymer": "^1.0.0"
+    "polymer": "^1.0.2"
   }
 }

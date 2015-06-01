@@ -10,7 +10,7 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 default: core_js elements_html
-	go install -v ./go/sksysmon
+	go install -v ./go/pulld
 
 release: default
 	./build_release

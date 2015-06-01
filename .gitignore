@@ -54,6 +54,9 @@ fuzzer/res/js/core-debug.js
 fuzzer/res/js/core.js
 fuzzer/res/vul
 fuzzer/third_party
+pulld/res/vul/elements.html
+pulld/res/js/core-debug.js
+pulld/res/js/core.js
 perf/bqtoken.data
 perf/google_storage_token.data
 perf/res/css/perf.css

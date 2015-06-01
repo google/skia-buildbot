@@ -278,7 +278,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	common.InitWithMetrics("sksysmon", graphiteServer)
+	common.InitWithMetrics("pulld", graphiteServer)
 	Init()
 	pullInit()
 

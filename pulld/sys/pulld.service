@@ -1,0 +1,14 @@
+[Unit]
+Description=Skia systemd monitoring UI and pull service.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/pulld --port=:10114 --log_dir=/var/log/logserver --resources_dir=/usr/local/share/pulld/ --oauth=false --log_dir=/var/log/logserver --installed_packages_file=/var/pulld/installed_packages.json
+Restart=always
+User=root
+Group=root
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

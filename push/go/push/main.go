@@ -104,7 +104,7 @@ func Init() {
 	}
 
 	var err error
-	if client, err = auth.NewClient(*doOauth, *oauthCacheFile); err != nil {
+	if client, err = auth.NewClient(*doOauth, *oauthCacheFile, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 
@@ -380,7 +380,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 				util.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
-			resp, err := client.Get(fmt.Sprintf("http://%s:10116/pullpullpull", push.Server))
+			resp, err := client.Get(fmt.Sprintf("http://%s:10114/pullpullpull", push.Server))
 			if err != nil || resp == nil {
 				glog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)
 			}
