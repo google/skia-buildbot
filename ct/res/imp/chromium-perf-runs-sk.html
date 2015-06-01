@@ -241,7 +241,7 @@
      },
 
      ready: function() {
-       this.constrainButtonText = this.allRunsConstrainText;
+       this.constrainButtonText = this.myRunsConstrainText;
        this.pagination = {"offset": 0, "size": this.defaultSize};
        this.pageChangedHandler = this.reload.bind(this);
        this.reload();
@@ -274,7 +274,11 @@
          "size": this.pagination.size,
        }
        if (this.constrainByUser) {
-         queryParams["username"] = $$$('login-sk').email;
+         var username = $$$("login-sk").email;
+         if (!username) {
+           window.open("/login/", "_self");
+         }
+         queryParams["username"] = username;
        }
        chromiumPerfQueryStr = "?" + sk.query.fromObject(queryParams);
        var that = this;

@@ -225,7 +225,7 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("addChromiumPerfTaskHandler").Stop()
 	if !userHasEditRights(r) {
-		skutil.ReportError(w, r, fmt.Errorf("Please login."), "")
+		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to add tasks"), "")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -411,6 +411,11 @@ func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, login.LoginURL(w, r), http.StatusFound)
+	return
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(skutil.MakeResourceHandler(*resourcesDir))
@@ -434,6 +439,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/_/page_sets/", pageSetsHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	r.HandleFunc("/login/", loginHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.Handle("/", skutil.LoggingGzipRequestResponse(r))
