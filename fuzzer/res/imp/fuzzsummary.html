@@ -1,0 +1,23 @@
+<!-- The <fuzz-summary-sk> element displays a summary of a given fuzz hash.
+
+Attributes:
+
+  hash - the MD5 hash of the fuzz's source code
+
+-->
+
+<polymer-element name="fuzz-summary-sk">
+  <template>
+  	<div>{{hash}}</div>
+  </template>
+  <script>
+  	Polymer({
+  		publish: {
+  			hash: {
+  				value: "",
+  				reflect: true,
+  			}
+  		}
+  	});
+  </script>
+</polymer-element>

@@ -6,11 +6,14 @@ type Common struct {
 	DoOAuth               bool
 	OAuthCacheFile        string
 	OAuthClientSecretFile string
+	Local                 bool
 }
 
 type FrontEnd struct {
 	Port           string
 	GraphiteServer string
+	RedirectURL    string
+	ForceLogin     bool
 }
 
 type Fuzzer struct {

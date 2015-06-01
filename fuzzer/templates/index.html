@@ -5,6 +5,52 @@
     {{template "header.html" .}}
 </head>
 <body>
+	<scaffold-sk responsiveWidth="700px">
+      {{template "titlebar.html" .}}
+      <div id="fuzzes"></div>
+	</scaffold-sk>
+
+<script type="text/javascript" charset="utf-8">
+(function() {
+	sk.WebComponentsReady.then(function() {
+		var page = {};
+		var fuzzes = [];
+
+		page.state = {
+			failed: true,
+			passed: false
+		};
+
+		function displayFuzzes() {
+			var container = $$$("#fuzzes");
+			sk.clearChildren(container);
+
+			fuzzes.forEach(function(c, i) {
+				var s = document.createElement('fuzz-summary-sk');
+				s.hash = c;
+
+				container.appendChild(s);
+			})
+		}
+
+		function loadFuzzes() {
+			sk.get("{{.LoadFuzzListURL}}?"+sk.query.fromObject(page.state)).then(JSON.parse).then(function(data) {
+				fuzzes = data;
+				displayFuzzes();
+			});
+		}
+
+		path = document.location.pathname;
+		if (path.startsWith("/passed")) {
+			page.state.failed = false;
+			page.state.passed = true;
+		}
+
+		sk.stateReflector(page, loadFuzzes);
+	});
+})();
+</script>
+
   {{template "footer.html" .}}
 </body>
 </html>

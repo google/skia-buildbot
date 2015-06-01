@@ -583,5 +583,14 @@ this.sk = this.sk || function() {
     });
   }
 
+  // Polyfill for String.startsWith from 
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith#Polyfill
+  // returns true iff the string starts with the given prefix
+  if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function(searchString, position) {
+      position = position || 0;
+      return this.indexOf(searchString, position) === position;
+    };
+  }
   return sk;
 }();

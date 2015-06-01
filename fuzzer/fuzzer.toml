@@ -5,12 +5,14 @@ FuzzOutputGSBucket	  = "skia-fuzzer"
 DoOauth               = true
 OauthCacheFile        = "/Users/humper/work/gocode/src/go.skia.org/infra/perf/google_storage_token.data"
 OAuthClientSecretFile = "/Users/humper/work/gocode/src/go.skia.org/infra/perf/client_secret.json"
-
+Local                 = false
 
 [FrontEnd]
 
-Port         = ":8000"  # "HTTP service address (e.g., ':8000')")
+Port           = ":8000"  # "HTTP service address (e.g., ':8000')")
 GraphiteServer = "skia-monitoring-b:2003" # address of the graphite server
+RedirectURL    = "https://fuzzer.skia.org/oauth2callback/" # OAuth2 redirect URL
+ForceLogin     = true
 
 [Fuzzer]
 
