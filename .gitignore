@@ -19,6 +19,7 @@ services/bugdroid/bugdroid_log.txt
 .project
 .pydevproject
 client_secret.json
+google_oauth_token.data
 oauth-token.cache
 bug_chomper/oauth_client_secret.json
 # Bower and Node related directories
