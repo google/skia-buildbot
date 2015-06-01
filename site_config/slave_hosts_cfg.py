@@ -620,6 +620,30 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
+  'win8-4790k-000': {
+    'slaves': [
+      ('skiabot-shuttle-win8-i7-4790k-000', '0', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'ip': '192.168.1.128',
+    'kvm_switch': KVM_SWITCH_DOOR,
+    'kvm_num': 'H',
+    'path_to_buildbot': ['buildbot'],
+    'launch_script': LAUNCH_SCRIPT_WIN,
+  },
+
+  'win8-4790k-001': {
+    'slaves': [
+      ('skiabot-shuttle-win8-i7-4790k-001', '0', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'ip': '192.168.1.108',
+    'kvm_switch': KVM_SWITCH_DOOR,
+    'kvm_num': 'G',
+    'path_to_buildbot': ['buildbot'],
+    'launch_script': LAUNCH_SCRIPT_WIN,
+  },
+
   'win8-gtx660-001': {
     'slaves': [
       ('skiabot-shuttle-win8-gtx660-bench', '0', False),
