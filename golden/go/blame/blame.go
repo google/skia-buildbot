@@ -147,10 +147,10 @@ func (b *Blamer) GetBlamesForTest(testName string) []*WeightedBlame {
 // to the current tile.
 func (b *Blamer) GetBlame(testName string, digest string, commits []*ptypes.Commit) *BlameDistribution {
 	blameLists, blameCommits := b.GetAllBlameLists()
-	commitIndices, _ := b.getBlame(blameLists[testName][digest], blameCommits, commits)
+	commitIndices, maxCount := b.getBlame(blameLists[testName][digest], blameCommits, commits)
 	return &BlameDistribution{
 		Freq: commitIndices,
-		Old:  blameLists[testName][digest].Old,
+		Old:  (maxCount != 0) && blameLists[testName][digest].Old,
 	}
 }
 
