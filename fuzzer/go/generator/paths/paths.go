@@ -1,8 +1,6 @@
 package paths
 
 import (
-	"fmt"
-
 	"go.skia.org/infra/fuzzer/go/generator"
 )
 
@@ -32,8 +30,8 @@ func (pr PathGenerator) Fuzz(g *generator.Writer) error {
 		segmentLimit = generator.RandInt(1, 2)
 		path.Rand(depthLimit, contourCount, segmentLimit)
 
-		g.AddStatement(fmt.Sprintf("canvas->setMatrix(%s)", matrix.Name))
-		g.AddStatement(fmt.Sprintf("canvas->drawPath(%s,%s)", path.Name, paint.Name))
+		g.AddStatement("canvas->setMatrix(%s)", matrix.Name)
+		g.AddStatement("canvas->drawPath(%s,%s)", path.Name, paint.Name)
 
 	})
 	return nil

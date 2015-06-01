@@ -24,3 +24,6 @@ SkiaSourceDir = "/Users/humper/work/skia"
 	
 	[Generators.paths]
 	Weight=1
+	
+	[Generators.fail]
+	Weight=0

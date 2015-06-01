@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/md5"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -24,6 +25,7 @@ import (
 
 import (
 	_ "go.skia.org/infra/fuzzer/go/generator/dummy"
+	_ "go.skia.org/infra/fuzzer/go/generator/fail"
 	_ "go.skia.org/infra/fuzzer/go/generator/paths"
 )
 
@@ -154,7 +156,7 @@ func checkCPPTemplate(path string) {
 	codeTemplate = template.Must(template.ParseFiles(templatePath))
 }
 
-func runFuzz(hash string) (int, error) {
+func runFuzz(hash string) error {
 	cacheDir := config.Config.Fuzzer.CachePath
 	skiaDir := config.Config.Fuzzer.SkiaSourceDir
 
@@ -189,21 +191,59 @@ func runFuzz(hash string) (int, error) {
 
 	cmd = fmt.Sprintf("%s/out/Release_Developer/%s --out %s/%s", skiaDir, hash, cacheDir, hash)
 	message, err = util.DoCmd(cmd)
-	if err != nil {
-		glog.Fatalf("Couldn't run fuzz: %s", err)
-	}
 
 	glog.Infof(message)
 
-	return 0, nil
+	return err
 }
 
-func uploadFuzz(hash, code string, status int) error {
+type fuzzInfo struct {
+	Hash          string
+	FailureReason string
+}
+
+func updateString(oldReason *string, reason string, args ...interface{}) {
+	if *oldReason == "" {
+		*oldReason = fmt.Sprintf(reason, args...)
+	}
+}
+
+func uploadFuzz(hash, code string, runtimeError error) error {
 	glog.Infof("Uploading fuzz %s to GS bucket %s.", hash, config.Config.Common.FuzzOutputGSBucket)
 
-	parent := "working"
+	fuzzSuccess := true
+	failureReason := ""
 
-	if status != 0 {
+	if runtimeError != nil {
+		fuzzSuccess = false
+		updateString(&failureReason, "Runtime error: %s", runtimeError)
+	}
+
+	haveImage := true
+	image, err := os.Open(config.Config.Fuzzer.CachePath + "/" + hash + "_raster.png")
+	if err != nil {
+		haveImage = false
+		updateString(&failureReason, "Couldn't open the PNG file for %s: %s", hash, err)
+	} else {
+		defer util.Close(image)
+		fi, err := image.Stat()
+		if err != nil {
+			haveImage = false
+			updateString(&failureReason, "Couldn't stat the PNG file for %s: %s", hash, err)
+		} else {
+			if fi.Size() == 0 {
+				updateString(&failureReason, "Generated image is zero-length.")
+				haveImage = false
+			}
+		}
+	}
+
+	if !haveImage {
+		fuzzSuccess = false
+	}
+
+	parent := "working"
+	if !fuzzSuccess {
 		parent = "failed"
 	}
 
@@ -213,16 +253,27 @@ func uploadFuzz(hash, code string, status int) error {
 		return fmt.Errorf("Failed to write fuzz code to Google Storage for %s: %s", hash, err)
 	}
 
-	image, err := os.Open(config.Config.Fuzzer.CachePath + "/" + hash + "_raster.png")
-	if err != nil {
-		glog.Fatalf("Couldn't open the PNG file for %s: %s", hash, err)
+	if haveImage {
+		req = store.Objects.Insert(config.Config.Common.FuzzOutputGSBucket, &storage.Object{Name: parent + "/" + hash + "/raster.png"}).Media(image)
+		if _, err := req.Do(); err != nil {
+			return fmt.Errorf("Failed to write output image to Google Storage for %s: %s", hash, err)
+		}
 	}
-	defer util.Close(image)
 
-	req = store.Objects.Insert(config.Config.Common.FuzzOutputGSBucket, &storage.Object{Name: parent + "/" + hash + "/raster.png"}).Media(image)
-	if _, err := req.Do(); err != nil {
-		return fmt.Errorf("Failed to write output image to Google Storage for %s: %s", hash, err)
+	info := fuzzInfo{
+		hash,
+		failureReason,
 	}
+
+	jsonBytes, err := json.Marshal(info)
+	if err != nil {
+		glog.Fatalf("Failed to marsal the fuzz info as JSON!")
+	}
+	req = store.Objects.Insert(config.Config.Common.FuzzOutputGSBucket, &storage.Object{Name: parent + "/" + hash + "/fuzz.json"}).Media(bytes.NewReader(jsonBytes))
+	if _, err := req.Do(); err != nil {
+		return fmt.Errorf("Failed to write fuzz code to Google Storage for %s: %s", hash, err)
+	}
+
 	return nil
 }
 
@@ -250,8 +301,6 @@ func main() {
 	checkCPPTemplate(resourcePath)
 
 	for {
-		var status int
-
 		fuzz, err := generator.Fuzz()
 		if err != nil {
 			glog.Fatalf("Couldn't create a fuzz: %s", err)
@@ -262,11 +311,12 @@ func main() {
 			glog.Fatalf("Couldn't create the fuzz hash: %s", err)
 		}
 
-		if status, err = runFuzz(hash); err != nil {
-			glog.Fatalf("Couldn't run the fuzz (%s): %s", hash, err)
+		runtimeErr := runFuzz(hash)
+		if runtimeErr != nil {
+			glog.Errorf("Looks like the fuzz %s failed: %s", hash, runtimeErr)
 		}
 
-		if err := uploadFuzz(hash, fuzz, status); err != nil {
+		if err := uploadFuzz(hash, fuzz, runtimeErr); err != nil {
 			glog.Fatalf("Couldn't upload the fuzz results (%s): %s", hash, err)
 		}
 	}

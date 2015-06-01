@@ -56,6 +56,8 @@ func initializeSampler() {
 		probs[i] /= sum
 	}
 
+	glog.Infof("probs: %v", probs)
+
 	sampler = discreterand.NewAlias(probs, rand.NewSource(0))
 }
 
@@ -68,6 +70,7 @@ func Fuzz() (string, error) {
 	}
 	idx := sampler.Next()
 	pluginName := pluginNames[idx]
+	glog.Infof("Chose generator %s", pluginName)
 	plugin := Constructor(pluginName)()
 
 	g := NewWriter(config.Config.Generators[pluginName])
