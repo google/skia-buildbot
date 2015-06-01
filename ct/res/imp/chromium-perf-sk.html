@@ -267,7 +267,8 @@
 
      queueTask: function() {
        if (! this.$.desc.value) {
-         alert("Please specify a description!");
+         $$$('paper-toast').text = "Please specify a description";
+         $$$('paper-toast').show();
          this.$.desc.focus();
          return;
        }
@@ -291,7 +292,8 @@
          sk.post("/_/add_chromium_perf_task", JSON.stringify(params)).then(function(resp) {
            that.gotoRunsHistory();
          }).catch(function(err) {
-           alert(err);
+           $$$('paper-toast').text = err;
+           $$$('paper-toast').show();
          });
        }
      },

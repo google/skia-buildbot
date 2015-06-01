@@ -282,7 +282,8 @@
          that.chromiumPerfTasks = json.data;
          that.pagination = json.pagination;
        }).catch(function(err) {
-         alert(err);
+         $$$('paper-toast').text = err;
+         $$$('paper-toast').show();
        });
      },
 

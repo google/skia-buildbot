@@ -31,6 +31,7 @@
         </paper-drawer-panel>
       </div>
 
+      <paper-toast duration=10000></paper-toast>
     </paper-header-panel>
 
     <script type="text/javascript" charset="utf-8">
@@ -40,13 +41,15 @@
            $$$('chromium-perf-sk').platformsToDesc = json["platforms"];
            $$$('chromium-perf-sk').platforms = Object.keys(json["platforms"]);
          }).catch(function(err) {
-           alert(err);
+           $$$('paper-toast').text = err;
+           $$$('paper-toast').show();
          });
          sk.post('/_/page_sets/').then(JSON.parse).then(function(json) {
            $$$('chromium-perf-sk').pageSetsToDesc = json;
            $$$('chromium-perf-sk').pageSets = Object.keys(json);
          }).catch(function(err) {
-           alert(err);
+           $$$('paper-toast').text = err;
+           $$$('paper-toast').show();
          });
        })();
     </script>
