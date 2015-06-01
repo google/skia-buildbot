@@ -113,6 +113,9 @@
       .triageInfo div {
         padding: 0.5em;
       }
+      .untriagedImage svg {
+        margin: auto;
+      }
       #images {
         margin-right: 1.5em;
       }
@@ -168,10 +171,17 @@
             <a href="/img/diffs/{{diffDigests}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
           </template>
           <template if="{{triage}}">
-            <div class=preview>
-              <img src="{{images | digestUrl(digest)}}" />
+            <div vertical layout class=untriagedImage>
+              <div horizontal layout>
+                <div class=preview>
+                  <img src="{{images | digestUrl(digest)}}" />
+                </div>
+                <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+              </div>
+              <svg width=10 height=10 viewBox="-1 -1 2 2">
+                <circle cx=0 cy=0 r="0.3" class="status0"/>
+              </svg>
             </div>
-            <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
           </template>
         </div>
         <paper-button id=zoomButton>Zoom</paper-button>
