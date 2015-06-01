@@ -11,7 +11,6 @@ VULCANIZE1=true
 
 default: core_js elements_html
 	go install -v ./go/pull
-	go install -v ./go/pulld
 	go install -v ./go/push
 
 release: default
