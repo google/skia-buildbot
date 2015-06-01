@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strconv"
 	"testing"
 	"time"
 
@@ -28,7 +29,10 @@ func TestIntPollingStatus(t *testing.T) {
 
 	time.Sleep(duration / 2)
 	for j, v := range tc {
-		assert.Equal(t, v, ps.Get())
+		bytes, err := json.Marshal(ps)
+		assert.Nil(t, err)
+
+		assert.Equal(t, []byte(strconv.FormatInt(int64(v), 10)), bytes)
 		i = j + 1
 		time.Sleep(duration)
 	}

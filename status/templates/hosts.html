@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {{template "header.html" .}}
+    <title>SkiaLab Hosts</title>
+
+    <style>
+    html /deep/ core-header-panel {
+      font-family: sans-serif;
+    }
+    html /deep/ core-toolbar {
+      background-color: #006600;
+      color: #FFFFFF;
+      text-align: center;
+      font-size: 15px;
+    }
+    html /deep/ [main] {
+      background-color: #FFFFFF;
+    }
+    h1 {
+      font-size: 1.7em;
+      margin-bottom: 2px;
+      margin-top: 5px;
+    }
+    tree-status-sk {
+      font-size: 1em;
+    }
+    </style>
+  </head>
+  <body fullbleed vertical layout unresolved>
+    <app-sk fit appName="SkiaLab Hosts" drawerWidth="230px" responsiveWidth="800px">
+      <status-menu-section-sk navigation></status-menu-section-sk>
+      <slave-hosts-sk></slave-hosts-sk>
+    </app-sk>
+  </body>
+</html>

@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/status/go/commit_cache"
+	"go.skia.org/infra/status/go/device_cfg"
 )
 
 const (
@@ -48,12 +49,16 @@ var (
 	commitCaches         map[string]*commit_cache.CommitCache = nil
 	buildbotDashTemplate *template.Template                   = nil
 	commitsTemplate      *template.Template                   = nil
+	hostsTemplate        *template.Template                   = nil
 	infraTemplate        *template.Template                   = nil
 	dbClient             *influxdb.Client                     = nil
 	goldGMStatus         *util.IntPollingStatus               = nil
 	goldSKPStatus        *util.IntPollingStatus               = nil
 	goldImageStatus      *util.IntPollingStatus               = nil
 	perfStatus           *util.PollingStatus                  = nil
+	slaveHosts           *util.PollingStatus                  = nil
+	androidDevices       *util.PollingStatus                  = nil
+	sshDevices           *util.PollingStatus                  = nil
 )
 
 // flags
@@ -87,6 +92,10 @@ func reloadTemplates() {
 	}
 	commitsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/commits.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	hostsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/hosts.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	infraTemplate = template.Must(template.ParseFiles(
@@ -390,7 +399,7 @@ func buildbotDashHandler(w http.ResponseWriter, r *http.Request) {
 
 func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if err := perfStatus.WriteJson(w); err != nil {
+	if err := json.NewEncoder(w).Encode(perfStatus); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to report Perf status: %v", err))
 		return
 	}
@@ -398,14 +407,39 @@ func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	status := map[string]int{
-		"gm":    goldGMStatus.Get(),
-		"skp":   goldSKPStatus.Get(),
-		"image": goldImageStatus.Get(),
-	}
-	if err := json.NewEncoder(w).Encode(status); err != nil {
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
+		"gm":    goldGMStatus,
+		"skp":   goldSKPStatus,
+		"image": goldImageStatus,
+	}); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
+	}
+}
+
+func slaveHostsJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
+		"hosts":          slaveHosts,
+		"androidDevices": androidDevices,
+		"sshDevices":     sshDevices,
+	}); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
+func hostsHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("hostsHandler").Stop()
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *testing {
+		reloadTemplates()
+	}
+
+	if err := hostsTemplate.Execute(w, struct{}{}); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 	}
 }
 
@@ -417,6 +451,7 @@ func runServer(serverURL string) {
 	builds := r.PathPrefix("/json/{repo}/builds/{buildId:[0-9]+}").Subrouter()
 	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
 	r.HandleFunc("/buildbots", buildbotDashHandler)
+	r.HandleFunc("/hosts", hostsHandler)
 	r.HandleFunc("/infra", infraHandler)
 	builders := r.PathPrefix("/json/{repo}/builders/{builder}").Subrouter()
 	builders.HandleFunc("/status", addBuilderStatusHandler).Methods("POST")
@@ -425,6 +460,7 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
 	r.HandleFunc("/json/goldStatus", goldJsonHandler)
+	r.HandleFunc("/json/slaveHosts", slaveHostsJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
@@ -479,7 +515,8 @@ func main() {
 		glog.Fatalf("Failed to check out Skia: %v", err)
 	}
 
-	infraRepo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/buildbot.git", path.Join(*workdir, "infra"), true)
+	infraRepoPath := path.Join(*workdir, "infra")
+	infraRepo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/buildbot.git", infraRepoPath, true)
 	if err != nil {
 		glog.Fatalf("Failed to checkout Infra: %v", err)
 	}
@@ -530,6 +567,20 @@ func main() {
 	goldImageStatus, err = influxdb.NewIntPollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), dbClient)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
+	}
+
+	// Load slave_hosts_cfg and device cfgs in a loop.
+	slaveHosts, err = buildbot.SlaveHostsCfgPoller(infraRepoPath)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	androidDevices, err = device_cfg.AndroidDeviceCfgPoller(*workdir)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	sshDevices, err = device_cfg.SSHDeviceCfgPoller(*workdir)
+	if err != nil {
+		glog.Fatal(err)
 	}
 
 	runServer(serverURL)

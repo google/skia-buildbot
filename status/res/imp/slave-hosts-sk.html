@@ -1,0 +1,166 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <slave-hosts-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/slave-hosts-sk.html" rel="import" />
+
+  Usage:
+
+    <slave-hosts-sk></slave-hosts-sk>
+
+  Properties:
+    None
+
+  Events:
+    None
+-->
+<polymer-element name="slave-hosts-sk">
+  <template>
+    <style>
+      div.host {
+        background-color: #EEEEEE;
+        border-radius: 5px;
+        padding: 5px 20px 20px 20px;
+        margin: 5px;
+      }
+      div.filter {
+        margin: 5px;
+        padding: 0px 10px;
+      }
+      div.filterLabel {
+        margin: 0px 10px 0px 0px;
+        padding: 5px;
+      }
+      table {
+        font-family: monospace;
+        width: 100%;
+      }
+      th {
+        text-align: left;
+      }
+      td {
+        padding: 3px;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+    <url-param-sk name="filter" value="{{filter}}"></url-param-sk>
+    <div class="filter" horizontal layout center>
+      <div class="filterLabel">Filter:</div>
+      <paper-input value="{{filter}}" flex></paper-input>
+    </div>
+    <template repeat="{{h in hostNames}}">
+      <div class="host">
+        <h3><a href="#" id="select|{{h}}" on-click="{{select}}" onClick="return false;">{{h}}</a></h3>
+        <table>
+          <tr><td style="width: 20%">IP Address</td><td>{{hosts[h].ip}}</td></tr>
+          <tr><td style="width: 20%">KVM Switch</td><td>{{hosts[h].kvm_switch}}</td></tr>
+          <tr><td style="width: 20%">KVM Number</td><td>{{hosts[h].kvm_num}}</td></tr>
+          <tr>
+            <td style="width: 20%">Slaves</td>
+            <td>
+              <template if="{{hosts[h].slaves && hosts[h].slaves.length > 0}}">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Buildslave</th>
+                      <th>Extra Information</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template repeat="{{slave in hosts[h].slaves}}">
+                      <tr>
+                        <td style="width: 50%">
+                          <a href="/buildbots?botGrouping=buildslave&filterBy=buildslave&tab=builds&include=%5E{{slave.name}}%24" target="_blank">
+                            <nobr>{{slave.name}}</nobr>
+                          </a>
+                        </td>
+                        <td style="width: 50%">
+                          <template if="{{androidDevices[slave.name]}}">
+                            Serial: {{androidDevices[slave.name].serial}}<br/>
+                          </template>
+                          <template if="{{sshDevices[slave.name]}}">
+                            ssh {{sshDevices[slave.name].user}}@{{sshDevices[slave.name].host}}:{{sshDevices[slave.name].port}}<br/>
+                          </template>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                <table>
+              </template>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </template>
+  </template>
+  <script>
+    Polymer({
+      created: function() {
+        this.hosts = {};
+        this.hostNames = [];
+        this.androidDevices = {};
+        this.sshDevices = {};
+        this.filter = "";
+      },
+
+      ready: function() {
+        this.reloadHosts();
+      },
+
+      select: function(e, d, s) {
+        var split = s.id.split("|");
+        if (split.length != 2) {
+          throw "Invalid id: " + s.id;
+        }
+        this.filter = "^" + split[1] + "$";
+      },
+
+      filterHosts: function() {
+        var hostNames = [];
+        for (var hostName in this.hosts) {
+          if (hostName.match(this.filter)) {
+            hostNames.push(hostName);
+            continue;
+          }
+          for (var i = 0; i < this.hosts[hostName].slaves.length; i++) {
+            if (this.hosts[hostName].slaves[i].name.match(this.filter)) {
+              hostNames.push(hostName);
+              break;
+            }
+          }
+        }
+        this.hostNames = hostNames;
+      },
+
+      filterChanged: function() {
+        this.filterHosts();
+      },
+
+      reloadHosts: function() {
+        var url = "/json/slaveHosts";
+        console.log("GET: " + url);
+        var that = this;
+        sk.get(url).then(JSON.parse).then(function(json) {
+          that.hosts = json.hosts;
+          that.androidDevices = json.androidDevices;
+          that.sshDevices = json.sshDevices;
+          console.log(that.androidDevices);
+          console.log(that.sshDevices);
+          that.filterHosts();
+        });
+      },
+    });
+  </script>
+</polymer-element>

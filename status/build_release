@@ -16,6 +16,7 @@ ${INSTALL} --mode=644 -T ./res/js/core.js                  ${ROOT}/usr/local/sha
 ${INSTALL} --mode=644 -T ./res/vul/elements.html           ${ROOT}/usr/local/share/status/res/vul/elements.html
 ${INSTALL} --mode=644 -T ./templates/header.html           ${ROOT}/usr/local/share/status/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/commits.html          ${ROOT}/usr/local/share/status/templates/commits.html
+${INSTALL} --mode=644 -T ./templates/hosts.html            ${ROOT}/usr/local/share/status/templates/hosts.html
 ${INSTALL} --mode=644 -T ./templates/infra.html            ${ROOT}/usr/local/share/status/templates/infra.html
 ${INSTALL} --mode=644 -T ./templates/buildbot_dash.html    ${ROOT}/usr/local/share/status/templates/buildbot_dash.html
 ${INSTALL_DIR} --mode=777                          ${ROOT}/mnt/pd0/status_scratch

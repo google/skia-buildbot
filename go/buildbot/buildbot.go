@@ -152,6 +152,7 @@ func (b *Build) GetSummary() *BuildSummary {
 	}
 	return &BuildSummary{
 		Builder:     b.Builder,
+		BuildSlave:  b.BuildSlave,
 		FailedSteps: steps,
 		Finished:    b.IsFinished(),
 		Id:          b.Id,
@@ -166,6 +167,7 @@ func (b *Build) GetSummary() *BuildSummary {
 // that we care to see on the dashboard.
 type BuildSummary struct {
 	Builder     string          `json:"builder"`
+	BuildSlave  string          `json:"buildslave"`
 	FailedSteps []string        `json:"failedSteps"`
 	Finished    bool            `json:"finished"`
 	Id          int             `json:"id"`

@@ -2,8 +2,8 @@ package util
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -54,10 +54,10 @@ func (s *PollingStatus) poll() error {
 	return nil
 }
 
-func (s *PollingStatus) WriteJson(w io.Writer) error {
+func (s *PollingStatus) MarshalJSON() ([]byte, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	return json.NewEncoder(w).Encode(s.value)
+	return json.Marshal(s.value)
 }
 
 func (s *PollingStatus) Stop() {
@@ -83,10 +83,10 @@ func NewIntPollingStatus(poll func(interface{}) error, frequency time.Duration) 
 	return &IntPollingStatus{s}, nil
 }
 
-func (s *IntPollingStatus) Get() int {
+func (s *IntPollingStatus) MarshalJSON() ([]byte, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
-	return s.value.(*intValue).Value
+	return []byte(strconv.FormatInt(int64(s.value.(*intValue).Value), 10)), nil
 }
 
 // JSONPollingStatus is a wrapper around PollingStatus which makes HTTP

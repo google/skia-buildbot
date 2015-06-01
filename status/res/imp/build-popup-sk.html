@@ -23,14 +23,20 @@
   <template>
     <style>
     a {
-      color: #000;
+      color: inherit;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
     }
     h3 {
       white-space: nowrap;
     }
     </style>
     <h3>
-      <a href="{{buildbotUrlPrefix}}/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}" target="_blank">{{build.builder}} #{{build.number}}</a>
+      <a href="{{buildbotUrlPrefix}}/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}" target="_blank">
+        {{build.builder}} #{{build.number}} <core-icon icon="launch"></core-icon>
+      </a>
     </h3>
     <table>
       <tr>
@@ -47,6 +53,30 @@
           </td>
         </tr>
       </template>
+      <tr>
+        <td>Builder</td>
+        <td>
+          <a href="/buildbots?botGrouping=builder&filterBy=builder&include=%5E{{build.builder}}%24&tab=builds" target="_blank">
+            {{build.builder}}
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>Buildslave</td>
+        <td>
+          <a href="/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%5E{{build.buildslave}}%24&tab=builds" target="_blank">
+            {{build.buildslave}}
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>Host machine</td>
+        <td>
+          <a href="/hosts?filter=%5E{{build.buildslave}}%24" target="_blank">
+            Lookup
+          </a>
+        </td>
+      </tr>
     </table>
     <hr/>
     <comments-sk comments="{{build.comments}}" addCommentUrl="/json/{{repo}}/builds/{{build.id}}/comments" on-submit="{{commentAdded}}"></comments-sk>
@@ -66,6 +96,10 @@
           value: "skia",
           reflect: true,
         },
+      },
+
+      ready: function() {
+        console.log(this.build);
       },
 
       commentAdded: function() {
