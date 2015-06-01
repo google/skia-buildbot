@@ -1,41 +1,25 @@
-// pulld is an application that monitors and pulls down new Debian packages and installs them.
-//
-// It presumes each package is monitored via systemd and not monit, so there's
-// no monitoring of monit config files is done.
-//
-// Note that it is safe for pulld to install pulld since the list of installed
-// packages is written out before 'dpkg -i' is called.
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
-	"code.google.com/p/google-api-go-client/compute/v1"
 	"code.google.com/p/google-api-go-client/storage/v1"
-
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/util"
-)
-
-// flags
-var (
-	graphiteServer        = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	doOauth               = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	oauthCacheFile        = flag.String("oauth_cache_file", "google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
-	installedPackagesFile = flag.String("installed_packages_file", "installed_packages.json", "Path to the file where to cache the list of installed debs.")
-	port                  = flag.String("port", ":10116", "HTTP service address (e.g., ':8000')")
+	"google.golang.org/api/compute/v1"
 )
 
 var (
 	httpTriggerCh = make(chan bool, 1)
+
+	store *storage.Service
 )
 
 // differences returns all strings that appear in server but not local.
@@ -101,7 +85,7 @@ func pullHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Pull triggered.")
 }
 
-func main() {
+func pullInit() {
 	hostname, err := os.Hostname()
 	if err != nil {
 		// Never call glog before common.Init*.
@@ -118,7 +102,7 @@ func main() {
 	}
 	glog.Info("Got authenticated client.")
 
-	store, err := storage.New(client)
+	store, err = storage.New(client)
 	if err != nil {
 		glog.Fatalf("Failed to create storage service client: %s", err)
 	}
@@ -134,6 +118,4 @@ func main() {
 			step(client, store, hostname)
 		}
 	}()
-	http.Handle("/pullpullpull", util.LoggingGzipRequestResponse(http.HandlerFunc(pullHandler)))
-	glog.Fatal(http.ListenAndServe(*port, nil))
 }

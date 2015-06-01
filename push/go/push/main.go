@@ -24,8 +24,8 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/push/go/packages"
 )
 
 // Server is used in PushConfig.

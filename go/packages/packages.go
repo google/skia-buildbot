@@ -132,6 +132,22 @@ func AllAvailable(store *storage.Service) (map[string][]*Package, error) {
 	return ret, nil
 }
 
+// AllAvailableByPackageName returns all known packages for all applications
+// uploaded to gs://skia-push/debs/. They are mapped by the package name.
+func AllAvailableByPackageName(store *storage.Service) (map[string]*Package, error) {
+	allAvailable, err := AllAvailable(store)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to retrieve all available packages: %s", err)
+	}
+	ret := map[string]*Package{}
+	for _, ps := range allAvailable {
+		for _, p := range ps {
+			ret[p.Name] = p
+		}
+	}
+	return ret, nil
+}
+
 // InstalledForServer returns a list of package names of installed packages for
 // the given server.
 func InstalledForServer(client *http.Client, store *storage.Service, serverName string) (*Installed, error) {

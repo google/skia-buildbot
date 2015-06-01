@@ -4,23 +4,19 @@ package main
 import (
 	"bytes"
 	"flag"
-
-	"code.google.com/p/google-api-go-client/compute/v1"
-	"code.google.com/p/google-api-go-client/storage/v1"
-
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
+	"code.google.com/p/google-api-go-client/compute/v1"
+	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/skia-dev/glog"
-
-	"strings"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/push/go/packages"
 )
 
 var (

@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/util"
 )
 
@@ -30,10 +31,13 @@ var (
 
 // flags
 var (
-	port           = flag.String("port", ":10114", "HTTP service address (e.g., ':8000')")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	doOauth               = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	graphiteServer        = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	installedPackagesFile = flag.String("installed_packages_file", "installed_packages.json", "Path to the file where to cache the list of installed debs.")
+	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	oauthCacheFile        = flag.String("oauth_cache_file", "google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
+	port                  = flag.String("port", ":10114", "HTTP service address (e.g., ':8000')")
+	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
 type UnitSlice []dbus.UnitStatus
@@ -138,6 +142,40 @@ func serviceOnly(units []dbus.UnitStatus) []dbus.UnitStatus {
 	return ret
 }
 
+// filterService returns only units with names in filter.
+func filterService(units []dbus.UnitStatus, filter map[string]bool) []dbus.UnitStatus {
+	ret := []dbus.UnitStatus{}
+	for _, u := range units {
+		if filter[u.Name] {
+			ret = append(ret, u)
+		}
+	}
+	return ret
+}
+
+// filterUnits fitlers down the units to only the interesting ones.
+func filterUnits(units []dbus.UnitStatus) []dbus.UnitStatus {
+	units = serviceOnly(units)
+	sort.Sort(UnitSlice(units))
+
+	// Filter the list down to just services installed by push packages.
+	installedPackages, err := packages.FromLocalFile(*installedPackagesFile)
+	if err != nil {
+		return units
+	}
+	allPackages, err := packages.AllAvailableByPackageName(store)
+	if err != nil {
+		return units
+	}
+	allServices := map[string]bool{}
+	for _, p := range installedPackages {
+		for _, name := range allPackages[p].Services {
+			allServices[name] = true
+		}
+	}
+	return filterService(units, allServices)
+}
+
 // serviceByName returns the status for the named unit.
 func serviceByName(units []dbus.UnitStatus, name string) *dbus.UnitStatus {
 	for _, u := range units {
@@ -171,8 +209,10 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	units = serviceOnly(units)
-	sort.Sort(UnitSlice(units))
+	if !*local {
+		units = filterUnits(units)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(units); err != nil {
 		util.ReportError(w, r, err, "Failed to encode response.")
@@ -240,6 +280,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	common.InitWithMetrics("sksysmon", graphiteServer)
 	Init()
+	pullInit()
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
@@ -247,6 +288,7 @@ func main() {
 	r.HandleFunc("/_/list", listHandler).Methods("GET")
 	r.HandleFunc("/_/props", propsHandler).Methods("GET")
 	r.HandleFunc("/_/change", changeHandler).Methods("POST")
+	r.HandleFunc("/pullpullpull", pullHandler)
 	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))
