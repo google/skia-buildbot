@@ -11,11 +11,11 @@ describe('Test sk.string functions.',
         "abc def": "Abc Def",
       };
       for (var input in tc) {
-        assert.equal(input.toCapWords(), tc[input]);
+        assert.equal(sk.toCapWords(input), tc[input]);
       }
     }
 
-    it('Verify that String.prototype.toCapWords works as expected.', function() {
+    it('Verify that sk.toCapWords works as expected.', function() {
       testCapWords();
     });
   }

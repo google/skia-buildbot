@@ -577,8 +577,8 @@ this.sk = this.sk || function() {
   }
 
   // Capitalize each word in the string.
-  String.prototype.toCapWords = function() {
-    return this.replace(/\b\w/g, function(firstLetter) {
+  sk.toCapWords = function(s) {
+    return s.replace(/\b\w/g, function(firstLetter) {
       return firstLetter.toUpperCase();
     });
   }
