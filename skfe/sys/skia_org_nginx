@@ -17,6 +17,9 @@ server {
     listen      443 default_server;
     server_name skia.org www.skia.org;
 
+    access_log /var/log/nginx/skia.access.log;
+    error_log /var/log/nginx/skia.error.log error;
+
     ssl on;
 
     if ( $host != 'skia.org' ) {
@@ -39,6 +42,9 @@ server {
     listen      443;
     server_name perf.skia.org;
 
+    access_log /var/log/nginx/perf.access.log;
+    error_log /var/log/nginx/perf.error.log error;
+
     ssl on;
 
     if ( $host != 'perf.skia.org' ) {
@@ -60,6 +66,9 @@ server {
     listen      443;
     server_name gold.skia.org;
 
+    access_log /var/log/nginx/gold.access.log;
+    error_log /var/log/nginx/gold.error.log error;
+
     ssl on;
 
     if ( $host != 'gold.skia.org' ) {
@@ -80,6 +89,9 @@ server {
 server {
     listen      443;
     server_name gold-staging.skia.org;
+
+    access_log /var/log/nginx/gold-stage.access.log;
+    error_log /var/log/nginx/gold-stage.error.log error;
 
     ssl on;
 
@@ -104,6 +116,9 @@ server {
 
     ssl on;
 
+    access_log /var/log/nginx/gold-android.access.log;
+    error_log /var/log/nginx/gold-android.error.log error;
+
     if ( $host != 'gold-android.skia.org' ) {
         rewrite ^/(.*)$ https://gold-android.skia.org/$1 permanent;
     }
@@ -124,6 +139,9 @@ server {
     server_name gold-blink.skia.org;
 
     ssl on;
+
+    access_log /var/log/nginx/gold-blink.access.log;
+    error_log /var/log/nginx/gold-blink.error.log error;
 
     if ( $host != 'gold-blink.skia.org' ) {
         rewrite ^/(.*)$ https://gold-blink.skia.org/$1 permanent;
@@ -146,6 +164,9 @@ server {
 
     ssl on;
 
+    access_log /var/log/nginx/alerts.access.log;
+    error_log /var/log/nginx/alerts.error.log error;
+
     if ( $host != 'alerts.skia.org' ) {
         rewrite ^/(.*)$ https://alerts.skia.org/$1 permanent;
     }
@@ -166,6 +187,9 @@ server {
     server_name mon.skia.org;
 
     ssl on;
+
+    access_log /var/log/nginx/mon.access.log;
+    error_log /var/log/nginx/mon.error.log error;
 
     if ( $host != 'mon.skia.org' ) {
         rewrite ^/(.*)$ https://mon.skia.org/$1 permanent;
@@ -189,6 +213,9 @@ server {
 
     ssl on;
 
+    access_log /var/log/nginx/push.access.log;
+    error_log /var/log/nginx/push.error.log error;
+
     if ( $host != 'push.skia.org' ) {
         rewrite ^/(.*)$ https://push.skia.org/$1 permanent;
     }
@@ -209,6 +236,9 @@ server {
     server_name fiddle.skia.org;
 
     ssl on;
+
+    access_log /var/log/nginx/fiddle.access.log;
+    error_log /var/log/nginx/fiddle.error.log error;
 
     if ( $host != 'fiddle.skia.org' ) {
         rewrite ^/(.*)$ https://fiddle.skia.org/$1 permanent;
@@ -248,6 +278,9 @@ server {
 
     ssl on;
 
+    access_log /var/log/nginx/fiddle-stage.access.log;
+    error_log /var/log/nginx/fiddle-stage.error.log error;
+
     location / {
         proxy_pass http://skia-webtry-experimental:8000;
     }
@@ -264,6 +297,10 @@ server {
 server {
     listen      80;
     server_name health.skia.org;
+
+    access_log /var/log/nginx/health.access.log;
+    error_log /var/log/nginx/health.error.log error;
+
     location / {
       return 200;
     }
@@ -275,6 +312,9 @@ server {
     server_name status.skia.org;
 
     ssl on;
+
+    access_log /var/log/nginx/status.access.log;
+    error_log /var/log/nginx/status.error.log error;
 
     if ( $host != 'status.skia.org' ) {
         rewrite ^/(.*)$ https://status.skia.org/$1 permanent;
@@ -297,6 +337,9 @@ server {
 
     ssl on;
 
+    access_log /var/log/nginx/go.access.log;
+    error_log /var/log/nginx/go.error.log error;
+
     location / {
         add_header Content-Type text/html;
         return 200 '<meta name="go-import" content="go.skia.org/infra git https://skia.googlesource.com/buildbot">';
@@ -308,6 +351,9 @@ server {
     listen 443;
 
     ssl on;
+
+    access_log /var/log/nginx/ct.access.log;
+    error_log /var/log/nginx/ct.error.log error;
 
     server_name ct.skia.org;
     rewrite ^ https://skia-tree-status.appspot.com/skia-telemetry/chromium_try redirect;
@@ -323,6 +369,10 @@ server {
 server {
     listen 80;
     server_name skbug.com;
+
+    access_log /var/log/nginx/sk-bug.access.log;
+    error_log /var/log/nginx/sk-bug.error.log error;
+
     rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
     rewrite ^ https://code.google.com/p/skia/issues/list redirect;
 }
@@ -332,6 +382,9 @@ server {
     listen 443;
 
     ssl on;
+
+    access_log /var/log/nginx/bug.access.log;
+    error_log /var/log/nginx/bug.error.log error;
 
     server_name bug.skia.org;
     rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
@@ -351,6 +404,9 @@ server {
     server_name grandcentral.skia.org;
 
     ssl on;
+
+    access_log /var/log/nginx/grand-central.access.log;
+    error_log /var/log/nginx/grand-central.error.log error;
 
     if ( $host != 'grandcentral.skia.org' ) {
         rewrite ^/(.*)$ https://grandcentral.skia.org/$1 permanent;
@@ -372,6 +428,9 @@ server {
     server_name bugchomper.skia.org;
 
     ssl on;
+
+    access_log /var/log/nginx/bugchomper.access.log;
+    error_log /var/log/nginx/bugchomper.error.log error;
 
     if ( $host != 'bugchomper.skia.org' ) {
         rewrite ^/(.*)$ https://bugchomper.skia.org/$1 permanent;
