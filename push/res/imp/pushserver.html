@@ -264,7 +264,7 @@ Displays the server configurations, along with the ability to modify application
       if (!status) {
         return '[unknown]';
       }
-      return status.status;
+      return status.status.Substate;
     },
 
     uptimeOf: function(server, service) {
@@ -272,7 +272,9 @@ Displays the server configurations, along with the ability to modify application
       if (!status) {
         return '[unknown]';
       }
-      return sk.human.strDuration(status.uptime);
+      // ExecMainStartTimestamp is in microseconds, convert to milliseconds
+      // before calling diffDate.
+      return sk.human.diffDate(status.props.ExecMainStartTimestamp/1000);
     },
 
     monURI: function(name) {

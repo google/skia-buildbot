@@ -18,7 +18,7 @@ import (
 	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/BurntSushi/toml"
 	"github.com/coreos/go-systemd/dbus"
-	"github.com/fiorix/go-web/autogzip"
+	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -206,29 +206,23 @@ type PushNewPackage struct {
 	Server string `json:"server"`
 }
 
-// Status represents the status of a single service (aka a systemd unit).
-type Status struct {
-	Status string `json:"status"` // Such as 'running', 'failed', etc.
-	Uptime int32  `json:"uptime"` // In seconds.
-}
-
-// Properties is serialized to JSON in the return of sksysmon propsHandler.
-type Properties struct {
+// UnitStatus is serialized to JSON in the return of pulld propsHandler.
+type UnitStatus struct {
 	// Status is the current status of the unit.
-	Status *dbus.UnitStatus
+	Status *dbus.UnitStatus `json:"status"`
 
 	// Props is the set of unit properties returned from GetUnitTypeProperties.
-	Props map[string]interface{}
+	Props map[string]interface{} `json:"props"`
 }
 
-// getStatus returns a populated *Status for the given server and service, and
+// getStatus returns a populated *UnitStatus for the given server and service, and
 // nil if the information wasn't able to be retrieved.
-func getStatus(server, service string) *Status {
+func getStatus(server, service string) *UnitStatus {
 	serverName := server
 	if ipaddr, ok := ip.Get()[server]; ok && *local {
 		serverName = ipaddr
 	}
-	resp, err := http.Get(fmt.Sprintf("http://%s:10114/_/props?service=%s", serverName, service))
+	resp, err := client.Get(fmt.Sprintf("http://%s:10114/_/props?service=%s", serverName, service))
 	if err != nil || resp.StatusCode > 400 {
 		glog.Infof("Failed to get status of: %s %s", server, service)
 		return nil
@@ -236,24 +230,19 @@ func getStatus(server, service string) *Status {
 	dec := json.NewDecoder(resp.Body)
 	defer util.Close(resp.Body)
 
-	props := Properties{
+	props := &UnitStatus{
 		Props: map[string]interface{}{},
 	}
-	if err := dec.Decode(&props); err != nil {
+	if err := dec.Decode(props); err != nil {
 		return nil
 	}
-	return &Status{
-		Status: props.Status.SubState,
-
-		// The starting timestamp of the service start is returned in microseconds.
-		Uptime: int32(time.Now().Unix() - int64(props.Props["ExecMainStartTimestamp"].(float64)/1000000)),
-	}
+	return props
 }
 
-// serviceStatus returns a map[string]*Status, with one entry for each service running on each
+// serviceStatus returns a map[string]*UnitStatus, with one entry for each service running on each
 // server. The keys for the return value are "<server_name>:<service_name>", for example,
 // "skia-push:logserverd.service".
-func serviceStatus(servers ServersUI, allAvailable map[string][]*packages.Package) map[string]*Status {
+func serviceStatus(servers ServersUI, allAvailable map[string][]*packages.Package) map[string]*UnitStatus {
 	// First populate a quick package lookup map.
 	packageLookup := map[string]*packages.Package{}
 	for _, ps := range allAvailable {
@@ -262,7 +251,7 @@ func serviceStatus(servers ServersUI, allAvailable map[string][]*packages.Packag
 		}
 	}
 
-	ret := map[string]*Status{}
+	ret := map[string]*UnitStatus{}
 	for _, server := range servers {
 		for _, packageName := range server.Installed {
 			for _, service := range packageLookup[packageName].Services {
@@ -297,7 +286,7 @@ type AllUI struct {
 	Servers  ServersUI                      `json:"servers"`
 	Packages map[string][]*packages.Package `json:"packages"`
 	IP       map[string]string              `json:"ip"`
-	Status   map[string]*Status             `json:"status"`
+	Status   map[string]*UnitStatus         `json:"status"`
 }
 
 // jsonHandler handles the GET of the JSON.
@@ -454,15 +443,14 @@ func main() {
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, *local)
 
-	// Resources are served directly.
-	http.HandleFunc("/res/", autogzip.HandleFunc(makeResourceHandler()))
-
-	http.HandleFunc("/", autogzip.HandleFunc(mainHandler))
-	http.HandleFunc("/json/", autogzip.HandleFunc(jsonHandler))
-	http.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	http.HandleFunc("/logout/", login.LogoutHandler)
-	http.HandleFunc("/loginstatus/", login.StatusHandler)
-
+	r := mux.NewRouter()
+	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/json/", jsonHandler)
+	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
