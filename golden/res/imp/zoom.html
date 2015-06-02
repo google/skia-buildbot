@@ -37,8 +37,9 @@ the two images.
       #dialog {
         position: fixed;
         top: 2em;
-        left: 2em;
-        height: 90%;
+        right: 2em;
+        height: 70%;
+        min-width: 70em;
         display: none;
         background: white;
         margin: 2%;
@@ -80,13 +81,23 @@ the two images.
         width: 128px;
       }
 
-      #nav {
-        font-size: 90%;
-        margin: 2em;
-        background: #ddd;
-      }
       .choice.highlight {
         font-weight: bold;
+      }
+
+      #legend {
+        margin: 2em;
+        font-size: 90%;
+        overflow-y: auto;
+        height: 60%;
+        position: absolute;
+      }
+
+      #close {
+        display: inline-block;
+        position: absolute;
+        bottom: 1em;
+        left: 1em;
       }
     </style>
     <div veritcal layout id=dialog>
@@ -132,7 +143,13 @@ the two images.
       </div>
       <div horizontal layout>
         <canvas id=canvas width=640 height=480 touch-action=none></canvas>
-        <div vertical layout end-justified>
+        <div id=legend>
+          <table border="0" cellspacing="5" cellpadding="5">
+            <tr><th>Coord</th><td><pre>({{x}}, {{y}})</pre><td></tr>
+            <tr><th>{{llabel}}</th><td><pre>{{centerPixel.left}}</pre><td></tr>
+            <tr><th>Diff</th><td><pre>{{centerPixel.diff}}</pre><td></tr>
+            <tr><th>{{rlabel}}</th><td><pre>{{centerPixel.top}}</pre><td></tr>
+          </table>
           <table border="0" cellspacing="5" cellpadding="5">
             <tr><th>Color Distance</th><th>RGBA</th><th>Alpha</th></tr>
             <tr><td>1-1	</td><td><div style="background :#fdd0a2">&nbsp;</div>	</td><td><div style="background :#c6dbef">&nbsp;</div></td></tr>
@@ -153,15 +170,9 @@ the two images.
             <tr><th>Z</th><td>Zoom Out</td></tr>
             <tr><th>U</th><td>Jump To Largest Diff</td></tr>
           </table>
-          <table border="0" cellspacing="5" cellpadding="5">
-            <tr><th>Coord</th><td><pre>({{x}}, {{y}})</pre><td></tr>
-            <tr><th>{{llabel}}</th><td><pre>{{centerPixel.left}}</pre><td></tr>
-            <tr><th>Diff</th><td><pre>{{centerPixel.diff}}</pre><td></tr>
-            <tr><th>{{rlabel}}</th><td><pre>{{centerPixel.top}}</pre><td></tr>
-          </table>
-          <div horizontal layout end-justified>
-            <paper-button id=close>Close</paper-button>
-          </div>
+        </div>
+        <div horizontal layout end-justified>
+          <paper-button id=close>Close</paper-button>
         </div>
       </div>
     </div>
@@ -475,7 +486,8 @@ the two images.
           // image in a canvas so we can read out pixel values.
           if (this.details.topImgUrl != details.topImgUrl) {
             this.$.top.src = "";
-            sk.imageLoaded(this.$.top).then(function(img) {
+            this.$.top.addEventListener('load', function(e) {
+              var img = e.target;
               that.topCopy = document.createElement('canvas');
               that.topCopy.width = img.naturalWidth;
               that.topCopy.height = img.naturalHeight;
@@ -485,7 +497,8 @@ the two images.
           }
           if (this.details.leftImgUrl != details.leftImgUrl) {
             this.$.left.src = "";
-            sk.imageLoaded(this.$.left).then(function(img) {
+            this.$.left.addEventListener('load', function(e) {
+              var img = e.target;
               that.leftCopy = document.createElement('canvas');
               that.leftCopy.width = img.naturalWidth;
               that.leftCopy.height = img.naturalHeight;
@@ -495,7 +508,8 @@ the two images.
           }
           if (this.details.diffImgUrl != details.diffImgUrl) {
             this.$.diff.src = "";
-            sk.imageLoaded(this.$.diff).then(function(img) {
+            this.$.diff.addEventListener('load', function(e) {
+              var img = e.target;
               that.diffCopy = document.createElement('canvas');
               that.diffCopy.width = img.naturalWidth;
               that.diffCopy.height = img.naturalHeight;
@@ -524,12 +538,15 @@ the two images.
         // Sizes the canvas to display the desired number of zoom pixels
         // in the available space.
         recalcPixelDims: function() {
-          var width = document.documentElement.clientWidth*0.8;
-          var height = document.documentElement.clientHeight*0.8;
+          var width = document.documentElement.clientWidth*0.5;
+          var height = document.documentElement.clientHeight*0.5;
           var size = Math.min(width, height);
+          size = Math.pow(2, Math.floor(Math.log2(size)));
           this.pixelSize = Math.floor(size/this.PIXELS);
           this.$.canvas.width = this.PIXELS*this.pixelSize;
           this.$.canvas.height = this.PIXELS*this.pixelSize;
+          this.$.canvas.style.width = this.PIXELS*this.pixelSize + "px";
+          this.$.canvas.style.height = this.PIXELS*this.pixelSize + "px";
           this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         },
 

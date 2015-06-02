@@ -61,7 +61,8 @@ Takes an img as a child element and displays a crosshair over it.
         // The image might not be loaded yet if the img.src is set via JS, so
         // we need to wait for the loading to complete before continuing
         // the initialization.
-        sk.imageLoaded(this.img).then(function(){
+        this.img.addEventListener('load', function(e) {
+          var img = e.target;
           this.imgWidth = this.img.width;
           this.imgHeight = this.img.height;
 
@@ -82,6 +83,7 @@ Takes an img as a child element and displays a crosshair over it.
           this.canvas.style.position = "absolute";
           this.canvas.style.top = 0;
           this.canvas.style.left = 0;
+          this.canvas.style.width = 128;
 
           this.appendChild(this.canvas);
 
