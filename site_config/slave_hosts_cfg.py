@@ -599,30 +599,6 @@ _slave_host_dicts = {
 
 ############################### Windows Machines ###############################
 
-  'win7-intel-002': {
-    'slaves': [
-      ('skiabot-shuttle-win7-intel-bench', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.139',
-    'kvm_switch': KVM_SWITCH_OFFICE,
-    'kvm_num': 'F',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
-  'win7-intel-003': {
-    'slaves': [
-      ('skiabot-shuttle-win7-intel-000', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.114',
-    'kvm_switch': KVM_SWITCH_OFFICE,
-    'kvm_num': 'G',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
   'win8-4790k-000': {
     'slaves': [
       ('skiabot-shuttle-win8-i7-4790k-000', '0', False),
