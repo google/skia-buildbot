@@ -191,12 +191,14 @@
        //   be zoomed. If ele isn't provided then the one with keyboard
        //   focus is used.
        function zoom(ele) {
+         var summary = $$$('test-summary-sk');
          if (!ele) {
-           var summary = $$$('test-summary-sk');
            ele = summary.findFocus();
            if (ele == null) {
              return
            }
+         } else {
+           summary.focusSet(ele);
          }
          details = {
            topImgUrl:  "/img/images/" + ele.digest + ".png",

@@ -215,6 +215,11 @@
         return true;
       },
 
+      focusSet: function(ele) {
+        var lastEle = this.findFocus();
+        this.moveFocus(lastEle, ele);
+      },
+
       // Move the focus to the next digest.
       focusNext: function() {
         var nextEle = null;
