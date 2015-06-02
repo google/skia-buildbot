@@ -29,13 +29,14 @@
   </style>
   <template>
     <table id=list>
-      <tr><th>Service</th><th>Status</th></tr>
+      <tr><th>Service</th><th>Status</th><th>Uptime</th></tr>
       <template is="dom-repeat" items="{{units}}">
         <tr>
-          <td>[[item.Name]]</td><td><unit-status-sk status="[[item.SubState]]"></unit-status-sk></td>
-          <td><paper-button raised data-action="start" data-name$="[[item.Name]]">Start  </paper-button></td>
-          <td><paper-button raised data-action="stop" data-name$="[[item.Name]]">Stop   </paper-button></td>
-          <td><paper-button raised data-action="restart" data-name$="[[item.Name]]">Restart</paper-button></td>
+          <td>[[item.status.Name]]</td><td><unit-status-sk status="[[item.status.SubState]]"></unit-status-sk></td>
+          <td>[[uptimeOf(item.props.ExecMainStartTimestamp)]]</td>
+          <td><paper-button raised data-action="start" data-name$="[[item.status.Name]]">Start  </paper-button></td>
+          <td><paper-button raised data-action="stop" data-name$="[[item.status.Name]]">Stop   </paper-button></td>
+          <td><paper-button raised data-action="restart" data-name$="[[item.status.Name]]">Restart</paper-button></td>
         </tr>
       </template>
     </table>
@@ -45,6 +46,7 @@
 <script>
   Polymer({
     is: "unit-list-sk",
+
     properties: {
       units: {
         type: Array,
@@ -59,6 +61,7 @@
         value: false,
       }
     },
+
     ready: function() {
       this.foo = "bar";
       var that=this;
@@ -82,5 +85,10 @@
         }
       });
     },
+
+    uptimeOf: function(microSeconds) {
+      return sk.human.diffDate(microSeconds/1000);
+    },
+
   });
 </script>

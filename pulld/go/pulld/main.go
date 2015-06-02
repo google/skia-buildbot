@@ -40,11 +40,20 @@ var (
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
-type UnitSlice []dbus.UnitStatus
+// UnitStatus is serialized to JSON in the return of propsHandler.
+type UnitStatus struct {
+	// Status is the current status of the unit.
+	Status *dbus.UnitStatus `json:"status"`
 
-func (p UnitSlice) Len() int           { return len(p) }
-func (p UnitSlice) Less(i, j int) bool { return p[i].Name < p[j].Name }
-func (p UnitSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+	// Props is the set of unit properties returned from GetUnitTypeProperties.
+	Props map[string]interface{} `json:"props"`
+}
+
+type UnitStatusSlice []*UnitStatus
+
+func (p UnitStatusSlice) Len() int           { return len(p) }
+func (p UnitStatusSlice) Less(i, j int) bool { return p[i].Status.Name < p[j].Status.Name }
+func (p UnitStatusSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 func loadResouces() {
 	if *resourcesDir == "" {
@@ -132,10 +141,10 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // serviceOnly returns only units that are services.
-func serviceOnly(units []dbus.UnitStatus) []dbus.UnitStatus {
-	ret := []dbus.UnitStatus{}
+func serviceOnly(units []*UnitStatus) []*UnitStatus {
+	ret := []*UnitStatus{}
 	for _, u := range units {
-		if strings.HasSuffix(u.Name, ".service") {
+		if strings.HasSuffix(u.Status.Name, ".service") {
 			ret = append(ret, u)
 		}
 	}
@@ -143,10 +152,10 @@ func serviceOnly(units []dbus.UnitStatus) []dbus.UnitStatus {
 }
 
 // filterService returns only units with names in filter.
-func filterService(units []dbus.UnitStatus, filter map[string]bool) []dbus.UnitStatus {
-	ret := []dbus.UnitStatus{}
+func filterService(units []*UnitStatus, filter map[string]bool) []*UnitStatus {
+	ret := []*UnitStatus{}
 	for _, u := range units {
-		if filter[u.Name] {
+		if filter[u.Status.Name] {
 			ret = append(ret, u)
 		}
 	}
@@ -154,9 +163,9 @@ func filterService(units []dbus.UnitStatus, filter map[string]bool) []dbus.UnitS
 }
 
 // filterUnits fitlers down the units to only the interesting ones.
-func filterUnits(units []dbus.UnitStatus) []dbus.UnitStatus {
+func filterUnits(units []*UnitStatus) []*UnitStatus {
 	units = serviceOnly(units)
-	sort.Sort(UnitSlice(units))
+	sort.Sort(UnitStatusSlice(units))
 
 	// Filter the list down to just services installed by push packages.
 	installedPackages, err := packages.FromLocalFile(*installedPackagesFile)
@@ -189,19 +198,30 @@ func serviceByName(units []dbus.UnitStatus, name string) *dbus.UnitStatus {
 // listHandler returns the list of units.
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("List Handler: %q\n", r.URL.Path)
-	units, err := dbc.ListUnits()
+	unitStatus, err := dbc.ListUnits()
+	units := make([]*UnitStatus, 0, len(unitStatus))
+	for _, st := range unitStatus {
+		units = append(units, &UnitStatus{
+			Status: &st,
+		})
+	}
+
 	if err != nil {
 		if *local {
 			// If running locally the above will fail because we aren't on systemd
 			// yet, so return some dummy data.
-			units = []dbus.UnitStatus{
-				dbus.UnitStatus{
-					Name:     "test.service",
-					SubState: "running",
+			units = []*UnitStatus{
+				&UnitStatus{
+					Status: &dbus.UnitStatus{
+						Name:     "test.service",
+						SubState: "running",
+					},
 				},
-				dbus.UnitStatus{
-					Name:     "something.service",
-					SubState: "halted",
+				&UnitStatus{
+					Status: &dbus.UnitStatus{
+						Name:     "something.service",
+						SubState: "halted",
+					},
 				},
 			}
 		} else {
@@ -211,21 +231,20 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if !*local {
 		units = filterUnits(units)
+		// Now fill in the Props for each unit.
+		var err error
+		for _, unit := range units {
+			unit.Props, err = dbc.GetUnitTypeProperties(unit.Status.Name, "Service")
+			if err != nil {
+				glog.Errorf("Failed to get props for the unit %s: %s", unit.Status.Name, err)
+			}
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(units); err != nil {
 		util.ReportError(w, r, err, "Failed to encode response.")
 	}
-}
-
-// Properties is serialized to JSON in the return of propsHandler.
-type Properties struct {
-	// Status is the current status of the unit.
-	Status *dbus.UnitStatus
-
-	// Props is the set of unit properties returned from GetUnitTypeProperties.
-	Props map[string]interface{}
 }
 
 // propsHandler returns the properties of the requested service unit.
@@ -253,7 +272,7 @@ func propsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	status := serviceByName(units, service)
 
-	ret := Properties{
+	ret := UnitStatus{
 		Status: status,
 		Props:  props,
 	}
