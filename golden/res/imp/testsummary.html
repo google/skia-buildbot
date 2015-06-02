@@ -99,11 +99,6 @@
            <div>{{b.prob | formatPercent }}% - {{b.author}}</div>
           </template>
         </div>
-        <span class=short>
-          <template if="{{!triage}}">
-            <a href="/legacy/#/triage/{{summary.name}}?head={{head}}">Legacy Triage</a>
-          </template>
-        </span>
       </div>
       <div vertical layout id=details>
         <div horizontal layout center>
