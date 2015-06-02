@@ -434,25 +434,25 @@ func main() {
 
 	// Wire up the resources. We use the 'rest' prefix to avoid any name
 	// clashes witht the static files being served.
-	router.HandleFunc("/rest/triage", listTestDetailsHandler).Methods("GET")
-	router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
-	router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
-	router.HandleFunc("/rest/status", util.CorsHandler(statusHandler)).Methods("GET")
-	router.HandleFunc("/rest/blame/{testname}", blameHandler).Methods("GET")
-
-	// Set up the login related resources.
-	// TODO (stephana): Clean up the URLs so they have the same prefix.
-	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
-	router.HandleFunc("/rest/logout", login.LogoutHandler)
-	router.HandleFunc("/rest/loginstatus", login.StatusHandler)
+	if *startAnalyzer {
+		router.HandleFunc("/rest/triage", listTestDetailsHandler).Methods("GET")
+		router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
+		router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
+		router.HandleFunc("/rest/status", util.CorsHandler(statusHandler)).Methods("GET")
+		router.HandleFunc("/rest/blame/{testname}", blameHandler).Methods("GET")
+		router.HandleFunc("/rest/logout", login.LogoutHandler)
+		router.HandleFunc("/rest/loginstatus", login.StatusHandler)
+	}
 
 	// Set up the resource to serve the image files.
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)
 
 	// New Polymer based UI endpoints.
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+
 	// All the handlers will be prefixed with poly to differentiate it from the
 	// angular code until the angular code is removed.
+	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 
