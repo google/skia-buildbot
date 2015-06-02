@@ -169,6 +169,7 @@ the two images.
             <tr><th>A</th><td>Zoom In</td></tr>
             <tr><th>Z</th><td>Zoom Out</td></tr>
             <tr><th>U</th><td>Jump To Largest Diff</td></tr>
+            <tr><th>M</th><td>Manual Toggle</td></tr>
           </table>
         </div>
         <div horizontal layout end-justified>
@@ -387,6 +388,9 @@ the two images.
               case "U":
                 that.moveToLargestDiff();
                 break;
+              case "M":
+                that.manualToggle();
+                break;
             }
             if ("HJKLAZU".indexOf(c) != -1 ) {
               that.drawZoom();
@@ -584,6 +588,19 @@ the two images.
           }
           this.x = dx;
           this.y = dy;
+        },
+
+        manualToggle: function() {
+          this.$.diffToggle.checked = false;
+          var top = this.$.topToggle;
+          var left = this.$.leftToggle;
+          if (top.checked) {
+            top.checked = false;
+            left.checked = true;
+          } else {
+            top.checked = true;
+            left.checked = false;
+          }
         },
 
       });
