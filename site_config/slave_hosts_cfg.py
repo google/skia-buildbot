@@ -117,8 +117,6 @@ _slave_host_dicts = {
       ('skiabot-shuttle-ubuntu12-nexus5-001',      '0',  False),
       ('skiabot-shuttle-ubuntu12-nexus5-002',      '1',  False),
       ('skiabot-shuttle-ubuntu12-nexus7-001',      '2', False),
-      ('skiabot-shuttle-ubuntu12-nexus7-002',      '3', False),
-      ('skiabot-shuttle-ubuntu12-nexus7-003',      '4', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': '192.168.1.110',
@@ -140,6 +138,18 @@ _slave_host_dicts = {
     'ip': '192.168.1.138',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': 'D',
+    'path_to_buildbot': ['buildbot'],
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'skiabot-shuttle-ubuntu15-004': {
+    'slaves': [
+      ('skiabot-shuttle-ubuntu12-nexus7-003', '0', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'ip': '192.168.1.???',
+    'kvm_switch': KVM_SWITCH_OFFICE,
+    'kvm_num': 'F',
     'path_to_buildbot': ['buildbot'],
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
@@ -593,6 +603,18 @@ _slave_host_dicts = {
     'ip': '192.168.1.141',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': '2',
+    'path_to_buildbot': ['buildbot'],
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'skiabot-mac-10_10-001': {
+    'slaves': [
+      ('skiabot-shuttle-ubuntu12-nexus7-002', '0', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'ip': '192.168.1.???',
+    'kvm_switch': KVM_SWITCH_OFFICE,
+    'kvm_num': '1',
     'path_to_buildbot': ['buildbot'],
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
