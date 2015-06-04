@@ -115,7 +115,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(ChangeResult{"started"}); err != nil {
-			util.ReportError(w, r, err, "Failed to encode response.")
+			glog.Errorf("Failed to write or encode output: %s", err)
 		}
 		return
 	}
@@ -136,7 +136,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	res.Result = <-ch
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(res); err != nil {
-		util.ReportError(w, r, err, "Failed to encode response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -243,7 +243,7 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(units); err != nil {
-		util.ReportError(w, r, err, "Failed to encode response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -278,7 +278,7 @@ func propsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(ret); err != nil {
-		util.ReportError(w, r, err, "Failed to encode response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 

@@ -168,7 +168,7 @@ func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := enc.Encode(fuzzes); err != nil {
-		util.ReportError(w, r, err, "Failed to encode results")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 

@@ -181,7 +181,7 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(sumSlice); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -197,7 +197,7 @@ func polyTestStatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(summary); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -219,7 +219,7 @@ func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO(stephana): Wrap in response envelope if it makes sense !
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ignores); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -416,7 +416,7 @@ func polyDiffJSONDigestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ret); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -764,7 +764,7 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(p); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -842,7 +842,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(map[string]string{}); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -1018,7 +1018,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ret); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -1100,7 +1100,7 @@ func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(tile.ParamSet); err != nil {
-		util.ReportError(w, r, err, "Failed to encode result")
+		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 
@@ -1119,10 +1119,10 @@ func polyAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/plain")
 	for k, _ := range hashes {
 		if _, err := w.Write([]byte(k)); err != nil {
-			util.ReportError(w, r, err, "Failed to write result.")
+			glog.Errorf("Failed to write or encode result: %s", err)
 		}
 		if _, err := w.Write([]byte("\n")); err != nil {
-			util.ReportError(w, r, err, "Failed to write result.")
+			glog.Errorf("Failed to write or encode result: %s", err)
 		}
 	}
 }
@@ -1138,7 +1138,7 @@ func polyStatusHandler(w http.ResponseWriter, r *http.Request) {
 func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		util.ReportError(w, nil, err, "Failed to encode result")
+		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
 

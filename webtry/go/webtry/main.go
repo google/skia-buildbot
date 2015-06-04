@@ -481,7 +481,7 @@ func sourcesHandler(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(sources); err != nil {
-			util.ReportError(w, r, err, "Failed to serialize a response.")
+			glog.Errorf("Failed to write or encode output: %s", err)
 			return
 		}
 	} else if r.Method == "POST" {
@@ -844,7 +844,7 @@ func tryInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(m); err != nil {
-		util.ReportError(w, r, err, "Failed to serialize a response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }

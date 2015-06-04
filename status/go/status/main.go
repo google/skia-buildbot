@@ -377,7 +377,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer timer.New("buildsHandler_encode").Stop()
 	if err := json.NewEncoder(w).Encode(rv); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -412,7 +412,7 @@ func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
 		"skp":   goldSKPStatus,
 		"image": goldImageStatus,
 	}); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -424,7 +424,7 @@ func slaveHostsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		"androidDevices": androidDevices,
 		"sshDevices":     sshDevices,
 	}); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -439,7 +439,7 @@ func hostsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := hostsTemplate.Execute(w, struct{}{}); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 

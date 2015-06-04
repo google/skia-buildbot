@@ -114,6 +114,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(retval); err != nil {
-		util.ReportError(w, r, err, "Error while encoding annotation response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }

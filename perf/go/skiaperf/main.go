@@ -185,7 +185,7 @@ func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		enc := json.NewEncoder(w)
 		if err := enc.Encode(map[string]string{"id": id}); err != nil {
-			util.ReportError(w, r, err, "Error while encoding response.")
+			glog.Errorf("Failed to write or encode output: %s", err)
 		}
 	} else {
 		http.NotFound(w, r)
@@ -203,7 +203,7 @@ func trybotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	enc := json.NewEncoder(w)
 	if err = enc.Encode(try); err != nil {
-		util.ReportError(w, r, err, "Error while encoding response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -237,7 +237,7 @@ func alertingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	enc := json.NewEncoder(w)
 	if err = enc.Encode(map[string][]*types.ClusterSummary{"Clusters": alerts}); err != nil {
-		util.ReportError(w, r, err, "Error while encoding response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -342,7 +342,7 @@ func clustersHandler(w http.ResponseWriter, r *http.Request) {
 func writeClusterSummaries(summary *clustering.ClusterSummaries, w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(summary); err != nil {
-		util.ReportError(w, r, err, "Error while encoding ClusterSummaries response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -547,7 +547,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	_, err = w.Write(marshaledResult)
 	if err != nil {
-		util.ReportError(w, r, err, "Error while marshalling results.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 	glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
 }
@@ -671,7 +671,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		glog.Info("Count: ", total)
 		inc := json.NewEncoder(w)
 		if err := inc.Encode(map[string]int{"matches": total}); err != nil {
-			util.ReportError(w, r, err, "Error while encoding query response.")
+			glog.Errorf("Failed to write or encode output: %s", err)
 			return
 		}
 	} else {
@@ -718,7 +718,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		enc := json.NewEncoder(w)
 		if err := enc.Encode(ret); err != nil {
-			util.ReportError(w, r, err, "Error while encoding query response.")
+			glog.Errorf("Failed to write or encode output: %s", err)
 			return
 		}
 	}
@@ -805,7 +805,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ret); err != nil {
-		util.ReportError(w, r, err, "Error while encoding single results.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 	glog.Infoln("Total handler time: ", time.Since(handlerStart).Nanoseconds())
 }
@@ -910,7 +910,7 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(data); err != nil {
-		util.ReportError(w, r, err, "Error while encoding query response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -964,7 +964,7 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write([]byte(fmt.Sprintf("<pre>%s</pre>", linkified))); err != nil {
-		util.ReportError(w, r, err, "Failed to write response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
@@ -1012,7 +1012,7 @@ func shortCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(commits); err != nil {
-		util.ReportError(w, r, err, "Error while encoding response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 

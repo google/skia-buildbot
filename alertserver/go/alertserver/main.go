@@ -158,7 +158,7 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	if err := alertManager.WriteActiveAlertsJson(w, makeAlertFilter(r)); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Unable to write JSON: %v", err))
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -268,7 +268,7 @@ func handleAlerts(w http.ResponseWriter, r *http.Request, title string, categori
 		Title:             title,
 	}
 	if err := alertsTemplate.Execute(w, inp); err != nil {
-		util.ReportError(w, r, fmt.Errorf("Failed to expand template: %v", err), "Failed to expand template.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 

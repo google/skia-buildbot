@@ -399,7 +399,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 		Status:   serviceStatus(servers, allAvailable),
 	})
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to encode response.")
+		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
