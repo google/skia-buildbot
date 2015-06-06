@@ -49,11 +49,11 @@ Shows the triage status of HEAD to be included in the header of the page.
         var that = this;
         sk.get("_/status").then(JSON.parse).then(function (json) {
           that.status = json;
-          that.async(this.reload, null, 3000);
+          that.async(that.reload, null, 3000);
         }).catch(function(errorMessage) {
           that.status = null;
           console.log("Status Error:", errorMessage);
-          that.async(this.reload, null, 3000);
+          that.async(that.reload, null, 3000);
         });
       },
 
