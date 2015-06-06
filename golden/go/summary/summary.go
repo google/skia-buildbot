@@ -116,7 +116,9 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 	defer timer.New("CalcSummaries").Stop()
 	glog.Infof("CalcSummaries: includeIgnores %v head %v", includeIgnores, head)
 
+	t := timer.New("CalcSummaries:GetLastTileTrimmed")
 	tile, err := s.storages.GetLastTileTrimmed(includeIgnores)
+	t.Stop()
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
@@ -127,14 +129,16 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 
 	ret := map[string]*Summary{}
 
+	t = timer.New("CalcSummaries:Expectations")
 	e, err := s.storages.ExpectationsStore.Get()
+	t.Stop()
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}
 
 	// Filter down to just the traces we are interested in, based on query.
 	filtered := map[string][]*TraceID{}
-	t := timer.New("Filter Traces")
+	t = timer.New("Filter Traces")
 	for id, tr := range tile.Traces {
 		name := tr.Params()[gtypes.PRIMARY_KEY_FIELD]
 		if len(testNames) > 0 && !util.In(name, testNames) {
