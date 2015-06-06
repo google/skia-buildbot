@@ -1120,9 +1120,11 @@ func polyAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	for k, _ := range hashes {
 		if _, err := w.Write([]byte(k)); err != nil {
 			glog.Errorf("Failed to write or encode result: %s", err)
+			return
 		}
 		if _, err := w.Write([]byte("\n")); err != nil {
 			glog.Errorf("Failed to write or encode result: %s", err)
+			return
 		}
 	}
 }
