@@ -281,6 +281,13 @@
       },
 
       ready: function() {
+        // The parameters that were in play the last time data was loaded
+        // from the server.
+        this.reloadParams = {
+          test: "",
+          digest: "",
+          limit: 0,
+        };
         this.details = {};
         this.isTruncated = false;
         this.negIsClosest = false;
@@ -345,9 +352,13 @@
       },
 
       reloadData: function() {
-        if (this.test == "" || this.digest == "") {
+        // Don't bother reloading if nothing's changed.
+        if (this.test == this.reloadParams.test && this.digest == this.reloadParams.digest && this.limit == this.reloadParams.limit) {
           return
         }
+        this.reloadParams.test = this.test;
+        this.reloadParams.digest = this.digest;
+        this.reloadParams.limit = this.limit;
 
         var that = this;
         var q = '?test=' + this.test + '&top=' + this.digest+ '&left=' + this.digest + '&graphs=true&closest=' + this.triage;
