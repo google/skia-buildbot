@@ -216,6 +216,9 @@
       z-index: 2;
     }
     </style>
+    <url-param-sk name="commitLabel" value="{{commitLabel}}" valid="{{validCommitLabels}}"></url-param-sk>
+    <url-param-sk name="filter" value="{{builderFilter}}" valid="{{validFilters}}"></url-param-sk>
+    <url-param-sk name="search" value="{{builderSearch}}"></url-param-sk>
     <div id="container">
       <div horizontal layout flex>
         <div>
@@ -251,21 +254,20 @@
             <thead>
               <tr>
                 <th class="header" colspan="3">
-                  <paper-radio-group id="authorSubjectSelector" selected="{{authorSubject}}">
-                    <paper-radio-button name="author" label="Author"></paper-radio-button><br/>
-                    <paper-radio-button name="subject" label="Subject"></paper-radio-button>
+                  <paper-radio-group id="commitLabelSelector" selected="{{commitLabel}}">
+                    <template repeat="{{label in validCommitLabels}}">
+                      <paper-radio-button name="{{label}}" label="{{commitLabels[label]}}"></paper-radio-button><br/>
+                    </template>
                   </paper-radio-group>
                 </th>
                 <th class="header" colspan="{{numBuilders}}">
                   Buildbot Results:
                   <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
-                    <paper-radio-button name="hide" label="Hide"></paper-radio-button>
-                    <paper-radio-button name="interesting" label="Interesting"></paper-radio-button>
-                    <paper-radio-button name="failures" label="Failures"></paper-radio-button>
-                    <paper-radio-button name="all" label="All"></paper-radio-button>
-                    <paper-radio-button name="search" label=" "></paper-radio-button>
+                    <template repeat="{{filter in validFilters}}">
+                    <paper-radio-button name="{{filter}}" label="{{filters[filter]}}"></paper-radio-button>
+                    </template>
                   </paper-radio-group>
-                  <paper-input id="builderTextFilter" on-change="{{builderTextFilterChanged}}" label="Search Builders"></paper-input>
+                  <paper-input id="builderTextFilter" value="{{builderSearch}}" label="Search Builders"></paper-input>
                 </th>
                 <th class="header"><!-- Commit message --></th>
               </tr>
@@ -318,10 +320,10 @@
                 <tr class="commit alt">
                   <td class="author" id="{{commit.hash}}-author-td" title="{{commit.subject|shortSubject}}">
                     <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{openCommitPopup}}">
-                      <span class="authorText" style="display: {{authorSubject == 'author' ? 'block' : 'none'}}">
+                      <span class="authorText" style="display: {{commitLabel == 'author' ? 'block' : 'none'}}">
                         {{commit.author|shortAuthor}}
                       </span>
-                      <span class="authorText" style="display: {{authorSubject == 'author' ? 'none' : 'block'}}">
+                      <span class="authorText" style="display: {{commitLabel == 'author' ? 'none' : 'block'}}">
                         {{commit.subject|shortSubject}}
                       </span>
                     </a>
@@ -637,13 +639,13 @@
       created: function() {
         var params = sk.query.toParamSet(window.location.search.split("?")[1]);
         this.allBuilders = {};
-        this.authorSubject = "author";
         this.autorollCurrent = null;
         this.autorollLast = null;
         this.branchHeads = [];
         this.buildbotUrlPrefix = "https://build.chromium.org/p";
         this.builderCategories = {};
         this.builderCategoryList = [];
+        this.builderSearchChangedTimeout = null;
         this.builderWidth = "5px";
         this.builds = {};
         this.buildDetails = {};
@@ -668,6 +670,25 @@
 
         this.authorWidth = this.cellWidthAuthor;
 
+        // Builder filters.
+        this.filters = {
+          "hide": "Hide",
+          "interesting": "Interesting",
+          "failures": "Failures",
+          "all": "All",
+          "search": " ",
+        };
+        this.validFilters = Object.keys(this.filters);
+        this.builderSearch = "";
+
+        // Commit labels.
+        this.commitLabels = {
+          "author": "Author",
+          "subject": "Subject",
+        };
+        this.validCommitLabels = Object.keys(this.commitLabels);
+        this.commitLabel = this.validCommitLabels[0];
+
         var that = this;
         sk.Login.then(function(status) {
           var email = status['Email'];
@@ -685,8 +706,8 @@
         this.reloadCommits();
       },
 
-      authorSubjectChanged: function() {
-        if (this.authorSubject == "author") {
+      commitLabelChanged: function() {
+        if (this.commitLabel == "author") {
           this.authorWidth = this.cellWidthAuthor;
         } else {
           this.authorWidth = this.cellWidthSubject;
@@ -1148,17 +1169,29 @@
         this.setBuilderWidth();
       },
 
-      builderTextFilterChanged: function() {
-        // If "search" is already selected, the on-change event for
-        // this.builderFilter doesn't trigger. We have to trigger it.
-        var forceChanged = false;
-        if (this.builderFilter == "search") {
-          forceChanged = true;
+      builderSearchChanged: function() {
+        // This callback fires every time the user presses a key inside the
+        // input box. Updating the display can be really slow when there are
+        // a lot of builders, so we should wait until the user is done typing
+        // before re-filtering.
+        if (this.builderSearchChangedTimeout) {
+          window.clearTimeout(this.builderSearchChangedTimeout);
         }
-        this.builderFilter = "search";
-        if (forceChanged) {
-          this.builderFilterChanged();
-        }
+        var that = this;
+        this.builderSearchChangedTimeout = window.setTimeout(function() {
+          that.builderSearchChangedTimeout = null;
+
+          // If "search" is already selected, the on-change event for
+          // this.builderFilter doesn't trigger. We have to trigger it.
+          var forceChanged = false;
+          if (that.builderFilter == "search") {
+            forceChanged = true;
+          }
+          that.builderFilter = "search";
+          if (forceChanged) {
+            that.builderFilterChanged();
+          }
+        }, 600);
       },
 
       shouldHighlight: function(commit) {
