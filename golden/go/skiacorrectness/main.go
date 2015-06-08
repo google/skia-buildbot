@@ -36,6 +36,7 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
+	"go.skia.org/infra/golden/go/warmer"
 	pconfig "go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/filetilestore"
 )
@@ -427,6 +428,10 @@ func main() {
 	pathToURLConverter = imgFS.GetURL
 	if *startAnalyzer {
 		analyzer = analysis.NewAnalyzer(storages, imgFS.GetURL, cacheFactory, 5*time.Minute)
+	}
+
+	if err := warmer.Init(storages, summaries); err != nil {
+		glog.Fatalf("Failed to initialize the warmer: %s", err)
 	}
 	t.Stop()
 
