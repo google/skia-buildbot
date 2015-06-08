@@ -47,7 +47,7 @@ Shows the triage status of HEAD to be included in the header of the page.
       // Load or reload the listing.
       reload: function() {
         var that = this;
-        sk.get("_/status").then(JSON.parse).then(function (json) {
+        sk.get("_/trstatus").then(JSON.parse).then(function (json) {
           that.status = json;
           that.async(that.reload, null, 3000);
         }).catch(function(errorMessage) {

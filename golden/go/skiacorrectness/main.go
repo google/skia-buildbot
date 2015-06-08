@@ -485,8 +485,6 @@ func main() {
 
 	polyRouter.HandleFunc("/_/hashes", polyAllHashesHandler).Methods("GET")
 
-	polyRouter.HandleFunc("/_/status", polyStatusHandler).Methods("GET")
-
 	// Serve the legacy app from the static directory.
 	router.PathPrefix("/legacy/").Handler(http.StripPrefix("/legacy", http.FileServer(http.Dir(*staticDir))))
 
@@ -497,6 +495,9 @@ func main() {
 	if *forceLogin {
 		rootHandler = login.ForceAuth(rootHandler, OAUTH2_CALLBACK_PATH)
 	}
+
+	// The polyStatusHandler is being polled, so we exclude it from logging.
+	http.HandleFunc("/_/trstatus", polyStatusHandler)
 	http.Handle("/", rootHandler)
 
 	// Start the server
