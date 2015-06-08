@@ -96,6 +96,7 @@
             Blame
           </span>
         </sort-sk>
+        <div></div>
         <div id="summaries"></div>
         <paper-spinner active></paper-spinner>
         <paper-toast duration=10000></paper-toast>
@@ -137,10 +138,26 @@
          sk.clearChildren(container);
          var n = 0;
          var limitExceeded = false;
+
+         var countsEle = document.createElement('test-summary-sk');
+         var counts = {
+            pos: 0,
+            neg: 0,
+            untriaged: 0,
+            num:0
+         };
+         countsEle.summary = counts;
+         container.appendChild(countsEle);
+
          summaries.forEach(function(c, i) {
            if (page.state.untonly && c.untriaged == 0) {
              return
            }
+
+           counts.pos += c.pos;
+           counts.neg += c.neg;
+           counts.untriaged += c.untriaged;
+           counts.num += c.num;
 
            var s = document.createElement('test-summary-sk');
            s.query = encodeURIComponent(page.state.query);

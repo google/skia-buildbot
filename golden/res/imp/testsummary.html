@@ -78,17 +78,21 @@
     <div vertical layout>
       <div horizontal layout>
         <span>
-          <b>
-            <a href="?query={{query | filterNames}}%26name%3D{{summary.name}}&include={{include}}&head={{head}}&untonly=false&details=true&limit=500&triage=true">
-              {{summary.name}}
-            </a>
-          </b>
+          <template if="{{summary.name}}">
+            <b>
+              <a href="?query={{query | filterNames}}%26name%3D{{summary.name}}&include={{include}}&head={{head}}&untonly=false&details=true&limit=500&triage=true">
+                {{summary.name}}
+              </a>
+            </b>
+          </template>
         </span>
         <!-- <span class=short>{{summary.diameter}}</span> -->
         <span class=short>
-          <a href="cmp/{{summary.name}}?topQuery={{query}}&topIncludeIgnores={{include}}&leftQuery={{query}}&leftIncludeIgnores={{include}}&head={{head}}">
-            <core-icon icon=apps></core-icon>
-          </a>
+          <template if="{{summary.name}}">
+            <a href="cmp/{{summary.name}}?topQuery={{query}}&topIncludeIgnores={{include}}&leftQuery={{query}}&leftIncludeIgnores={{include}}&head={{head}}">
+              <core-icon icon=apps></core-icon>
+            </a>
+          </template>
         </span>
         <span class=short>{{summary.pos}}</span>
         <span class=short>{{summary.neg}}</span>
