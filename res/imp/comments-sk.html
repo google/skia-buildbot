@@ -18,10 +18,18 @@
     </comments-sk>
 
   Properties:
+    collapsed: Bool indicating whether all comments are shown, or if some are
+        hidden behind a "view more" link.
+    collapseThreshold: Number indicating the maximum number of comments to show
+        when collapsed.
     comments: Array of comment objects, with attributes 'time', 'user', and
         'message'.
     addCommentUrl: URL which accepts POST requests for adding comments.
     allowEmptyComments: Whether or not to allow empty comments.
+
+  Methods:
+    collapse: Hides comments when there are more than `collapseThreshold`
+    uncollapse: Shows all comments.
 
   Events:
     submit: When a comment is added, the 'submit' event is triggered. New
@@ -33,28 +41,36 @@
 <polymer-element name="comments-sk">
   <template>
     <style>
-    .comments {
-      display: table;
+    .viewlink {
+      font-size: 0.7em;
     }
-    .comment {
-      display: table-row;
-    }
-    .commentCell {
-      display: table-cell;
-      padding: 10px;
+    td {
+      padding: 5px;
     }
     </style>
-    <div class="comments">
-      <template repeat="{{comment in comments}}">
-        <div class="comment">
-          <template if="{{comment.time && comment.user && comment.message}}">
-            <div class="commentCell">{{comment.time|parseDate}}</div>
-            <div class="commentCell">{{comment.user}}</div>
-            <div class="commentCell" message="{{comment.message}}"></div>
-          </template>
-        </div>
+    <table>
+      <template if="{{collapsed && comments.length > collapseThreshold}}">
+        <td colspan="3" class="viewlink">
+          <a href="#" onClick="return false;" on-click="{{uncollapse}}">... view {{comments.length - collapseThreshold}} more comments</a>
+        </td>
       </template>
-    </div>
+      <template if="{{!collapsed && comments.length > collapseThreshold}}">
+        <td colspan="3" class="viewlink">
+          <a href="#" onClick="return false;" on-click="{{collapse}}">... view fewer comments</a>
+        </td>
+      </template>
+      <template repeat="{{comment, index in comments}}">
+        <template if="{{!collapsed || index >= comments.length - collapseThreshold}}">
+          <tr class="comment">
+            <template if="{{comment.time && comment.user && comment.message}}">
+              <td class="commentCell">{{comment.time|parseDate}}</td>
+              <td class="commentCell">{{comment.user}}</td>
+              <td class="commentCell">{{comment.message}}</td>
+            </template>
+          </tr>
+        </template>
+      </template>
+    </table>
     <content id="content"></content>
     <template if="{{editRights}}">
       <div horizontal layout>
@@ -67,6 +83,14 @@
   <script>
     Polymer({
       publish: {
+        collapsed: {
+          value: true,
+          reflect: true,
+        },
+        collapseThreshold: {
+          value: 3,
+          reflect: true,
+        },
         comments: {
           value: [],
           reflect: true,
@@ -90,6 +114,14 @@
             ele.editRights = true;
           }
         });
+      },
+
+      collapse: function() {
+        this.collapsed = true;
+      },
+
+      uncollapse: function() {
+        this.collapsed = false;
       },
 
       domReady: function() {
