@@ -269,8 +269,8 @@ func mergeUploadCSVFiles(localOutputDir, pathToPyFiles, runID, remoteDir string,
 			continue
 		}
 	}
-	// Call csv_merger.py to merge all results into a single results CSV.
-	pathToCsvMerger := filepath.Join(pathToPyFiles, "csv_merger.py")
+	// Call csv_pivot_table_merger.py to merge all results into a single results CSV.
+	pathToCsvMerger := filepath.Join(pathToPyFiles, "csv_pivot_table_merger.py")
 	outputFileName := runID + ".output"
 	args := []string{
 		pathToCsvMerger,
@@ -278,7 +278,7 @@ func mergeUploadCSVFiles(localOutputDir, pathToPyFiles, runID, remoteDir string,
 		"--output_csv_name=" + filepath.Join(localOutputDir, outputFileName),
 	}
 	if err := util.ExecuteCmd("python", args, []string{}, 10*time.Minute, nil, nil); err != nil {
-		return fmt.Errorf("Error running csv_merger.py: %s", err)
+		return fmt.Errorf("Error running csv_pivot_table_merger.py: %s", err)
 	}
 	// Copy the output file to Google Storage.
 	remoteOutputDir := filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "outputs")

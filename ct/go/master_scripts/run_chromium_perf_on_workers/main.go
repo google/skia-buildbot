@@ -217,8 +217,8 @@ func main() {
 		return
 	}
 
-	// If "--output-format=csv" was specified then merge all CSV files and upload.
-	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
+	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
+	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
 		for _, runID := range []string{runIDNoPatch, runIDWithPatch} {
 			if err := mergeUploadCSVFiles(runID, gs); err != nil {
 				glog.Errorf("Unable to merge and upload CSV files for %s: %s", runID, err)
