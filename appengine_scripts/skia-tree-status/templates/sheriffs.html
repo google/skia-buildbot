@@ -10,14 +10,14 @@
     {% endif %}
   {% endif %}
   <br><br>
-  <h2>Sheriff Rotation Schedule</h2>
+  <h2>{% if sheriff_type %}{{ sheriff_type }}  {% endif %}Sheriff Rotation Schedule</h2>
   <br>
   <img border="0" src="/static/clint.jpg" width="180" height="120">
   <br/><br/>
   <font size="2">
-    Sheriffs: Please contact rmistry@ or skiabot@ if you need to swap your schedule.
+    {% if sheriff_type %}{{ sheriff_type }}  {% endif %}Sheriffs: Please contact rmistry@ or skiabot@ if you need to swap your schedule.
     <br/>
-    Documentation for sheriffs is <a href='https://skia.org/dev/sheriffing'>here</a>.
+    Documentation for {% if sheriff_type %}{{ sheriff_type }}  {% endif %}sheriffs is <a href='{{ sheriff_doc }}'>here</a>.
   </font>
   <br><br>
   <table border="1" cellpadding="5">
