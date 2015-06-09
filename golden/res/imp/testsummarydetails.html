@@ -243,7 +243,7 @@
                   <code><a href="detail?test={{test}}&digest={{details.closest.digest}}">{{details.closest.digest}}</a></code>
               </td>
               <td>
-                  <tricon-sk value="{{details.closest.status}}"></tricon-sk>
+                  <tricon-sk value="{{negIsClosest ? 'negative' : 'positive'}}"></tricon-sk>
               </td>
               <td>
                   <a href="diff?test={{test}}&left={{details.closest.digest}}&top={{digest}}">diff</a>
@@ -396,7 +396,6 @@
           if (that.triage) {
             json.closest = json.posClosest.diff < json.negClosest.diff ? json.posClosest : json.negClosest;
             that.negIsClosest = json.negClosest.diff < json.posClosest.diff;
-            json.closest.status = (that.negIsClosest) ? 'negative' : 'positive';
           }
           that.details = json;
           that.$.dots.setValue(that.details);
