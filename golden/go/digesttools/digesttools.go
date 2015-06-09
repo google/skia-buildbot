@@ -31,14 +31,25 @@ func newClosest() *Closest {
 // If no digest of type 'label' is found then Closest.Digest is the empty string.
 func ClosestDigest(test string, digest string, exp *expstorage.Expectations, diffStore diff.DiffStore, label types.Label) *Closest {
 	ret := newClosest()
+	unavailableDigests := diffStore.UnavailableDigests()
+
+	if unavailableDigests[digest] {
+		return ret
+	}
+
 	selected := []string{}
 	if e, ok := exp.Tests[test]; ok {
 		for d, l := range e {
-			if l == label {
+			if !unavailableDigests[d] && (l == label) {
 				selected = append(selected, d)
 			}
 		}
 	}
+
+	if len(selected) == 0 {
+		return ret
+	}
+
 	if diffMetrics, err := diffStore.Get(digest, selected); err != nil {
 		glog.Errorf("ClosestDigest: Failed to get diff: %s", err)
 		return ret
