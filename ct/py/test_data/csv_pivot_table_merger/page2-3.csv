@@ -1,2 +1,3 @@
-pixels_rasterized (pixels),pixels_recorded (pixels),page_name
-3,1,http://www.google.com
+page_set,page,name,value,units,run_index
+alexa2_2,http://www.google.com,pixels_recorded,1,pixels,0
+alexa2_2,http://www.google.com,pixels_rasterized,3,pixels,0
