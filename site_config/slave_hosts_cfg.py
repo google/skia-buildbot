@@ -610,7 +610,8 @@ _slave_host_dicts = {
 
   'skiabot-mac-10_10-001': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-nexus7-002', '0', False),
+      ('skiabot-shuttle-ubuntu12-nexus7-002',        '0', False),
+      ('skiabot-shuttle-ubuntu15-nvidia-shield-001', '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': '192.168.1.121',
