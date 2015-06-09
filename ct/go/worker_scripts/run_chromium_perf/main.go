@@ -310,7 +310,7 @@ func getRowsFromCSV(csvPath string) ([]string, []string, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not read %s: %s", csvPath, err)
 	}
-	if len(rawCSVdata) != 2 {
+	if len(rawCSVdata) < 2 {
 		return nil, nil, fmt.Errorf("No data in %s", csvPath)
 	}
 	return rawCSVdata[0], rawCSVdata[1], nil
