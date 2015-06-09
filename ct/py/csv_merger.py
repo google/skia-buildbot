@@ -17,7 +17,12 @@ import os
 import sys
 
 
-TELEMETRY_PAGE_NAME_KEY = 'page_name'
+TELEMETRY_PAGE_NAME_KEY = 'page'
+TELEMETRY_FIELD_NAME_KEY = 'name'
+TELEMETRY_FIELD_VALUE_KEY = 'value'
+TELEMETRY_FIELD_UNITS_KEY = 'units'
+
+OUTPUT_PAGE_NAME_KEY = 'page_name'
 
 
 class CsvMerger(object):
@@ -31,10 +36,22 @@ class CsvMerger(object):
         if os.path.getsize(os.path.join(csv_dir, f))])
     self._output_csv_name = os.path.join(csv_dir, output_csv_name)
 
+  def _GetFieldNameFromRow(self, row):
+    fieldname = row[TELEMETRY_FIELD_NAME_KEY]
+    units = row[TELEMETRY_FIELD_UNITS_KEY]
+    if units:
+      fieldname = '%s (%s)' % (fieldname, units)
+    return fieldname
+
   def _GetFieldNames(self):
     field_names = set()
     for csv_file in self._input_csv_files:
-      field_names.update(csv.DictReader(open(csv_file, 'r')).fieldnames)
+      dict_reader = csv.DictReader(open(csv_file, 'r'))
+      for row in dict_reader:
+        field_name = self._GetFieldNameFromRow(row)
+        field_names.add(field_name)
+    # We use 'page_name' in the output CSV to ID the webpage.
+    field_names.add(OUTPUT_PAGE_NAME_KEY);
     return field_names
 
   def _GetSmallest(self, l):
@@ -46,23 +63,23 @@ class CsvMerger(object):
     """Parses the specified rows and returns a row with the smallest values."""
     fieldname_to_values = {}
     for row in rows:
-      for fieldname in row:
-        if fieldname == TELEMETRY_PAGE_NAME_KEY:
-          fieldname_to_values[fieldname] = row[fieldname]
-          continue
-        try:
-          value = float(row[fieldname])
-        except (ValueError, TypeError):
-          # We expected only floats, cannot compare strings. Skip this field.
-          continue
-        if fieldname in fieldname_to_values:
-          fieldname_to_values[fieldname].append(value)
-        else:
-          fieldname_to_values[fieldname] = [value]
+      page_name = row[TELEMETRY_PAGE_NAME_KEY]
+      value = row[TELEMETRY_FIELD_VALUE_KEY]
+      fieldname = self._GetFieldNameFromRow(row)
+      fieldname_to_values[OUTPUT_PAGE_NAME_KEY] = page_name
+      try:
+        value = float(value)
+      except (ValueError, TypeError):
+        # We expected only floats, cannot compare strings. Skip this row.
+        continue
+      if fieldname in fieldname_to_values:
+        fieldname_to_values[fieldname].append(value)
+      else:
+        fieldname_to_values[fieldname] = [value]
 
     smallest_row = {}
     for fieldname, values in fieldname_to_values.items():
-      if fieldname == TELEMETRY_PAGE_NAME_KEY:
+      if fieldname == OUTPUT_PAGE_NAME_KEY:
         smallest_row[fieldname] = values
         continue
       smallest_row[fieldname] = self._GetSmallest(values)
@@ -92,17 +109,12 @@ class CsvMerger(object):
     for csv_file in self._input_csv_files:
       dict_reader = csv.DictReader(open(csv_file, 'r'))
       for row in dict_reader:
-        if TELEMETRY_PAGE_NAME_KEY in row:
-          # Add rows found with 'page_name' to a different dictionary for
-          # processing.
+        # Ensure that the row contains page name and that is not empty.
+        if TELEMETRY_PAGE_NAME_KEY in row and row[TELEMETRY_PAGE_NAME_KEY]:
           if row[TELEMETRY_PAGE_NAME_KEY] in page_names_to_rows:
             page_names_to_rows[row[TELEMETRY_PAGE_NAME_KEY]].append(row)
           else:
             page_names_to_rows[row[TELEMETRY_PAGE_NAME_KEY]] = [row]
-        else:
-          # Add rows found without TELEMETRY_PAGE_NAME_KEY to the final list of
-          # rows, they require no further processing.
-          csv_rows.append(row)
 
     if page_names_to_rows:
       for page_name in page_names_to_rows:

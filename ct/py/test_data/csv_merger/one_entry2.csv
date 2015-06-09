@@ -1,2 +1,4 @@
-x,y,d
-x5,y5,d5
+page_set,page,name,value,run_index,units
+,,x,x5,0,
+,,y,y5,0,
+,,d,d5,0,
