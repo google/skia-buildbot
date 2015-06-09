@@ -162,8 +162,8 @@ func main() {
 		}
 	}
 
-	// If "--output-format=csv" was specified then merge all CSV files and upload.
-	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv") {
+	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
+	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
 		if err := mergeUploadCSVFiles(localOutputDirNoPatch, pathToPyFiles, *runIDNoPatch, remoteDirNoPatch, gs); err != nil {
 			glog.Errorf("Error while processing nopatch CSV files: %s", err)
 			return
