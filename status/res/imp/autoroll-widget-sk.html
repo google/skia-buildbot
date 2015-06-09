@@ -70,9 +70,9 @@
                     disabled?="{{status.status == 'Stopped'}}"
                     on-tap="{{stopRoller}}">
                 </core-icon-button>
-             </a>
-             <a href="https://skia-tree-status.appspot.com/set_arb_action?is_stopped=false"
-                target="_blank">
+              </a>
+              <a href="https://skia-tree-status.appspot.com/set_arb_action?is_stopped=false"
+                 target="_blank">
                 <core-icon-button
                     icon="av:play-arrow"
                     disabled?="{{status.status != 'Stopped'}}"
@@ -81,6 +81,13 @@
               </a>
             </td>
           </tr>
+          <tr>
+            <td>
+              <a href="https://codereview.chromium.org/user/skia-deps-roller" target="_blank">
+                Uploaded Roll CLs on Rietveld
+              </a>
+            </td>
+          <tr>
         </table>
       </paper-shadow>
     </paper-dropdown>
