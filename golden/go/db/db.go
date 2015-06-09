@@ -29,7 +29,7 @@ var migrationSteps = []database.MigrationStep{
 			)`,
 		},
 		MySQLDown: []string{
-			`DROP TABLE expectations`,
+			`DROP TABLE IF EXISTS expectations`,
 		},
 	},
 
@@ -46,7 +46,7 @@ var migrationSteps = []database.MigrationStep{
 			)`,
 		},
 		MySQLDown: []string{
-			`DROP TABLE ignorerule`,
+			`DROP TABLE IF EXISTS ignorerule`,
 		},
 	},
 
@@ -72,8 +72,8 @@ var migrationSteps = []database.MigrationStep{
 			)`,
 		},
 		MySQLDown: []string{
-			`DROP TABLE exp_test_change`,
-			`DROP TABLE exp_change`,
+			`DROP TABLE IF EXISTS exp_test_change`,
+			`DROP TABLE IF EXISTS exp_change`,
 		},
 	},
 
@@ -93,8 +93,18 @@ var migrationSteps = []database.MigrationStep{
 			)`,
 		},
 		MySQLDown: []string{
-			`DROP TABLE test_digest`,
+			`DROP TABLE IF EXISTS test_digest`,
 		},
+	},
+
+	// Remove unused tables.
+	// version 5
+	{
+		MySQLUp: []string{
+			`DROP TABLE IF EXISTS expectations`,
+			`DROP TABLE IF EXISTS test_digest`,
+		},
+		MySQLDown: []string{},
 	},
 
 	// Use this is a template for more migration steps.
