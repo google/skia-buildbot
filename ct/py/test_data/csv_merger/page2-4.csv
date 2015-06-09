@@ -1,4 +1,2 @@
-page_set,page,name,value,units,run_index
-alexa2_2,http://www.google.com,pixels_recorded,2,pixels,0
-alexa2_2,http://www.google.com,y,,,0
-alexa2_2,http://www.google.com,pixels_rasterized,4,pixels,0
+pixels_rasterized (pixels),pixels_recorded (pixels),page_name,y
+4,2,http://www.google.com,

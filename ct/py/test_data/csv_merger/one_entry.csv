@@ -1,5 +1,2 @@
-page_set,page,name,value,run_index,units
-,,a,a2,0,
-,,c,c2,0,
-,,d,d2,0,
-,,e,e2,0,
+a,c,d,e
+a2,c2,d2,e2
