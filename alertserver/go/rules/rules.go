@@ -56,11 +56,12 @@ func (r *Rule) queryExecutionAlert(queryErr error, am *alerting.AlertManager) er
 	msg := fmt.Sprintf("Failed to execute query for rule \"%s\": [ %s ]", r.Name, r.Query)
 	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
-		Name:     name,
-		Category: alerting.INFRA_ALERT,
-		Message:  msg,
-		Nag:      int64(1 * time.Hour),
-		Actions:  actions,
+		Name:        name,
+		Category:    alerting.INFRA_ALERT,
+		Message:     msg,
+		Nag:         int64(1 * time.Hour),
+		AutoDismiss: int64(15 * time.Minute),
+		Actions:     actions,
 	})
 }
 
@@ -73,11 +74,12 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 	msg := fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]", r.Name, r.Condition)
 	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
-		Name:     name,
-		Category: alerting.INFRA_ALERT,
-		Message:  msg,
-		Nag:      int64(1 * time.Hour),
-		Actions:  actions,
+		Name:        name,
+		Category:    alerting.INFRA_ALERT,
+		Message:     msg,
+		Nag:         int64(1 * time.Hour),
+		AutoDismiss: int64(15 * time.Minute),
+		Actions:     actions,
 	})
 }
 
