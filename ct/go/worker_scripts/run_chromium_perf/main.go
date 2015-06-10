@@ -260,8 +260,10 @@ func mergeUploadCSVFiles(localOutputDir, pathToPyFiles, runID, remoteDir string,
 		}
 		pageRank := strings.Split(fileInfo.Name(), "_")[1]
 		for i := range headers {
-			if headers[i] == "page" {
-				values[i] = fmt.Sprintf("%s (#%s)", values[i], pageRank)
+			for j := range values {
+				if headers[i] == "page" {
+					values[j][i] = fmt.Sprintf("%s (#%s)", values[j][i], pageRank)
+				}
 			}
 		}
 		if err := writeRowsToCSV(newFile, headers, values); err != nil {
@@ -298,7 +300,7 @@ func installChromeAPK(chromiumBuildName string) error {
 	return nil
 }
 
-func getRowsFromCSV(csvPath string) ([]string, []string, error) {
+func getRowsFromCSV(csvPath string) ([]string, [][]string, error) {
 	csvFile, err := os.Open(csvPath)
 	defer skutil.Close(csvFile)
 	if err != nil {
@@ -313,10 +315,10 @@ func getRowsFromCSV(csvPath string) ([]string, []string, error) {
 	if len(rawCSVdata) < 2 {
 		return nil, nil, fmt.Errorf("No data in %s", csvPath)
 	}
-	return rawCSVdata[0], rawCSVdata[1], nil
+	return rawCSVdata[0], rawCSVdata[1:], nil
 }
 
-func writeRowsToCSV(csvPath string, headers, values []string) error {
+func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 	csvFile, err := os.OpenFile(csvPath, os.O_WRONLY, 666)
 	defer skutil.Close(csvFile)
 	if err != nil {
@@ -324,7 +326,12 @@ func writeRowsToCSV(csvPath string, headers, values []string) error {
 	}
 	writer := csv.NewWriter(csvFile)
 	defer writer.Flush()
-	for _, row := range [][]string{headers, values} {
+	// Write the headers.
+	if err := writer.Write(headers); err != nil {
+		return fmt.Errorf("Could not write to %s: %s", csvPath, err)
+	}
+	// Write all values.
+	for _, row := range values {
 		if err := writer.Write(row); err != nil {
 			return fmt.Errorf("Could not write to %s: %s", csvPath, err)
 		}
