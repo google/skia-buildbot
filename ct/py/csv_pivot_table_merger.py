@@ -6,7 +6,7 @@
 """Python utility to merge many CSV files into a single file.
 
 If there are multiple CSV files with the same TELEMETRY_PAGE_NAME_KEY then the
-smallest of all values is stored in the resultant CSV file.
+avg of all values is stored in the resultant CSV file.
 """
 
 
@@ -59,8 +59,15 @@ class CsvMerger(object):
     l.sort()
     return l[0]
 
-  def _GetRowWithSmallestValues(self, rows):
-    """Parses the specified rows and returns a row with the smallest values."""
+  def _GetAvg(self, l):
+    """Returns the avg value from the specified list."""
+    avg = 0
+    for v in l:
+      avg += v
+    return avg/len(l)
+
+  def _GetRowWithAvgValues(self, rows):
+    """Parses the specified rows and returns a row with the avg values."""
     fieldname_to_values = {}
     for row in rows:
       page_name = row[TELEMETRY_PAGE_NAME_KEY]
@@ -77,18 +84,18 @@ class CsvMerger(object):
       else:
         fieldname_to_values[fieldname] = [value]
 
-    smallest_row = {}
+    avg_row = {}
     for fieldname, values in fieldname_to_values.items():
       if fieldname == OUTPUT_PAGE_NAME_KEY:
-        smallest_row[fieldname] = values
+        avg_row[fieldname] = values
         continue
-      smallest_row[fieldname] = self._GetSmallest(values)
+      avg_row[fieldname] = self._GetAvg(values)
 
-    # print
-    # print 'For rows: %s' % rows
-    # print 'Smallest row is %s' % smallest_row
-    # print
-    return smallest_row
+    print
+    print 'For rows: %s' % rows
+    print 'Avg row is %s' % avg_row
+    print
+    return avg_row
 
   def Merge(self):
     """Method that does the CSV merging."""
@@ -98,11 +105,11 @@ class CsvMerger(object):
 
     # List that will contain all rows read from the CSV files. It will also
     # combine all rows found with the same TELEMETRY_PAGE_NAME_KEY into one
-    # with smallest values.
+    # with avg values.
     csv_rows = []
 
     # Dictionary containing all the encountered page names. If a page name that
-    # is already in the dictionary is encountered then the smallest of its
+    # is already in the dictionary is encountered then the avg of its
     # values is used.
     page_names_to_rows = {}
 
@@ -119,10 +126,10 @@ class CsvMerger(object):
     if page_names_to_rows:
       for page_name in page_names_to_rows:
         rows = page_names_to_rows[page_name]
-        smallest_row = self._GetRowWithSmallestValues(rows)
-        # Add a single row that contains smallest values from all rows with the
+        avg_row = self._GetRowWithAvgValues(rows)
+        # Add a single row that contains avg values from all rows with the
         # same TELEMETRY_PAGE_NAME_KEY.
-        csv_rows.append(smallest_row)
+        csv_rows.append(avg_row)
 
     # Write all rows in csv_rows to the specified output CSV.
     dict_writer = csv.DictWriter(open(self._output_csv_name, 'w'), field_names)

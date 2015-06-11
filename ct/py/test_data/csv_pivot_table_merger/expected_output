@@ -1,4 +1,4 @@
 a,c,b,e,d,pixels_rasterized (pixels),pixels_recorded (pixels),record_time (ms),"e,heading",page_name,"a,heading",y,x,z,rasterize_time (ms)
-,,,,,1.0,1.0,,,http://www.google.com,,,,,1.0
+,,,,,2.5,1.5,,,http://www.google.com,,,,,1.0
 ,,,,,1.0,,,,http://www.gmail.com,,,,,1.0
-,,,,,1310720.0,1172655.0,0.738,,http://www.facebook.com/,,,,,2.359
+,,,,,1310720.0,1172655.0,0.7406666666666667,,http://www.facebook.com/,,,,,2.372
