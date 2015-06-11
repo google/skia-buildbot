@@ -377,6 +377,10 @@ func main() {
 		glog.Fatal(err)
 	}
 
+	if !vdb.IsLatestVersion() {
+		glog.Fatal("Wrong DB version. Please updated to latest version.")
+	}
+
 	digestStore, err := digeststore.New(*storageDir)
 	if err != nil {
 		glog.Fatal(err)

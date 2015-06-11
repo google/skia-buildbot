@@ -250,6 +250,23 @@ func (vdb *VersionedDB) MaxDBVersion() int {
 	return len(vdb.migrationSteps)
 }
 
+// IsLatestVersion returns true or false depending on whether the DB is up to
+// date. If an error occured it will log it and return false. If the
+// current version is not the latest possible version it will log to info.
+func (vdb *VersionedDB) IsLatestVersion() bool {
+	dbVersion, err := vdb.DBVersion()
+	if err != nil {
+		glog.Errorf("Error retrieving db version: %s", err)
+		return false
+	}
+
+	if dbVersion != vdb.MaxDBVersion() {
+		glog.Infof("The current DB version is %d. The latest available version is %d", dbVersion, vdb.MaxDBVersion())
+		return false
+	}
+	return true
+}
+
 // Returns an error if the version table does not exist.
 func (vdb *VersionedDB) checkVersionTable() error {
 	// Check if the table exists in MySQL.
