@@ -261,13 +261,13 @@
                   </paper-radio-group>
                 </th>
                 <th class="header" colspan="{{numBuilders}}">
-                  Buildbot Results:
                   <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
                     <template repeat="{{filter in validFilters}}">
                     <paper-radio-button name="{{filter}}" label="{{filters[filter]}}"></paper-radio-button>
                     </template>
                   </paper-radio-group>
-                  <paper-input id="builderTextFilter" value="{{builderSearch}}" label="Search Builders"></paper-input>
+                  <paper-input id="builderTextFilter" value="{{builderSearch}}" label="Search">
+                  </paper-input>
                 </th>
                 <th class="header"><!-- Commit message --></th>
               </tr>
@@ -672,9 +672,10 @@
 
         // Builder filters.
         this.filters = {
-          "hide": "Hide",
           "interesting": "Interesting",
           "failures": "Failures",
+          "comments": "Comments",
+          "nocomment": "Failing w/o comment",
           "all": "All",
           "search": " ",
         };
@@ -772,13 +773,11 @@
         console.time("filterBuilders");
         var filteredBuilders = [];
         var selected = this.builderFilter;
-        if (selected == "hide") {
-          filteredBuilders = [];
-        } else if (selected == "all") {
+        if (selected == "all") {
           for (var builder in this.allBuilders) {
             filteredBuilders.push(builder);
           }
-        } else if (selected == "interesting" || selected == "failures") {
+        } else if (selected == "interesting" || selected == "failures" || selected == "nocomment") {
           for (var builder in this.allBuilders) {
             var failed = false;
             var succeeded = false;
@@ -792,11 +791,38 @@
               } else {
                 failed = true;
               }
-              if (succeeded && failed && selected == "interesting" && !this.allBuilders[builder].ignoreFailure) {
-                filteredBuilders.push(builder);
-                break;
+              if (selected == "interesting") {
+                if (succeeded && failed && !this.allBuilders[builder].ignoreFailure) {
+                  filteredBuilders.push(builder);
+                  break;
+                }
+              } else if (selected == "failures") {
+                if (failed) {
+                  filteredBuilders.push(builder);
+                  break;
+                }
+              } else if (selected == "nocomment") {
+                if (build.results != 0 && !this.allBuilders[builder].message) {
+                  if (!build.comments || build.comments.length == 0) {
+                    filteredBuilders.push(builder);
+                    break;
+                  }
+                }
               }
-              if (failed && selected == "failures") {
+            }
+          }
+        } else if (selected == "comments") {
+          for (var builder in this.allBuilders) {
+            if (this.allBuilders[builder].message) {
+              filteredBuilders.push(builder);
+              continue;
+            }
+            for (var buildNum in this.builds[builder]) {
+              var build = this.builds[builder][buildNum];
+              if (!build.finished) {
+                continue;
+              }
+              if (build.comments && build.comments.length > 0) {
                 filteredBuilders.push(builder);
                 break;
               }
