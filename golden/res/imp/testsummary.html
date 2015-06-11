@@ -108,7 +108,7 @@
         <template if="{{details}}">
           <template repeat="{{d, i in summary.untHashes}}">
             <template if="{{i<limit}}">
-              <test-summary-details-sk test="{{summary.name}}" images="{{!triage || loaded}}" digest="{{d}}" limit="{{limit}}" triage="{{triage}}"></test-summary-details-sk>
+              <test-summary-details-sk test="{{summary.name}}" images=false digest="{{d}}" limit="{{limit}}" triage="{{triage}}"></test-summary-details-sk>
             </template>
           </template>
           <template if="{{summary.untHashes.length>limit}}">
@@ -157,7 +157,6 @@
 
       ready: function() {
         this.loadedCount = 0;
-        this.loaded = false;
         var that = this;
         // Listen for each test-summary-details-sk to complete loading.
         this.$.details.addEventListener('details-loaded', function(e) {
@@ -184,9 +183,27 @@
           if (that.loadedCount == that.summary.untHashes.length) {
             that.$.spinner.active = false;
             that.$.counter.active = false;
-            that.loaded = true;
+            if (that.triage) {
+              that.loadDetailImagesStep($$('test-summary-details-sk', that.$.details));
+            }
           }
         });
+      },
+
+      // Once all the details have been loaded, and if we are triaging,
+      // then start loading images, starting from the top. This function
+      // is called every 100ms until all the details elements have been
+      // changed to load images.
+      //
+      //   details - An array of test-summary-details-sk elements.
+      //
+      loadDetailImagesStep: function(details) {
+        details.splice(0, 3).forEach(function(ele) {
+          ele.images = true;
+        });
+        if (details.length > 0) {
+          window.setTimeout(this.loadDetailImagesStep.bind(this), 100, details);
+        }
       },
 
       // findFocus returns the current details element with the keyboard focus.
