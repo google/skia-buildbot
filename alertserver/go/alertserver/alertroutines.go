@@ -10,6 +10,7 @@ import (
 	"github.com/skia-dev/glog"
 	"github.com/skia-dev/influxdb/client"
 	"go.skia.org/infra/alertserver/go/alerting"
+	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/util"
 )
@@ -184,6 +185,32 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 						Nag:         int64(3 * time.Hour),
 						AutoDismiss: int64(2 * tickInterval),
 						Actions:     actions,
+					}); err != nil {
+						glog.Error(err)
+					}
+				}
+			}
+		}
+	}()
+
+	// AutoRoll failure.
+	go func() {
+		lastSearch := time.Now()
+		for now := range time.Tick(time.Minute) {
+			glog.Infof("Searching for DEPS rolls.")
+			results, err := autoroll.GetRecentRolls(lastSearch)
+			if err != nil {
+				glog.Errorf("Failed to search for DEPS rolls: %v", err)
+				continue
+			}
+			lastSearch = now
+			for _, issue := range results {
+				if issue.Closed && !issue.Committed {
+					if err := am.AddAlert(&alerting.Alert{
+						Name:    "AutoRoll Failed",
+						Message: fmt.Sprintf("DEPS roll failed: %s/%d", autoroll.RIETVELD_URL, issue.Issue),
+						Nag:     int64(3 * time.Hour),
+						Actions: actions,
 					}); err != nil {
 						glog.Error(err)
 					}

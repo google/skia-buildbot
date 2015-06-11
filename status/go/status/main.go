@@ -25,6 +25,7 @@ import (
 )
 
 import (
+	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
@@ -56,6 +57,7 @@ var (
 	goldSKPStatus        *util.IntPollingStatus               = nil
 	goldImageStatus      *util.IntPollingStatus               = nil
 	perfStatus           *util.PollingStatus                  = nil
+	rollStatus           *util.PollingStatus                  = nil
 	slaveHosts           *util.PollingStatus                  = nil
 	androidDevices       *util.PollingStatus                  = nil
 	sshDevices           *util.PollingStatus                  = nil
@@ -417,6 +419,14 @@ func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func autoRollJsonHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(rollStatus); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to report AutoRoll status: %v", err))
+		return
+	}
+}
+
 func slaveHostsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]interface{}{
@@ -445,26 +455,27 @@ func hostsHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", commitsHandler)
-	r.HandleFunc("/json/builds", buildsJsonHandler)
-	builds := r.PathPrefix("/json/{repo}/builds/{buildId:[0-9]+}").Subrouter()
-	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
 	r.HandleFunc("/buildbots", buildbotDashHandler)
 	r.HandleFunc("/hosts", hostsHandler)
 	r.HandleFunc("/infra", infraHandler)
+	r.HandleFunc("/json/autoRoll", autoRollJsonHandler)
+	r.HandleFunc("/json/builds", buildsJsonHandler)
+	r.HandleFunc("/json/goldStatus", goldJsonHandler)
+	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
+	r.HandleFunc("/json/slaveHosts", slaveHostsJsonHandler)
+	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	builds := r.PathPrefix("/json/{repo}/builds/{buildId:[0-9]+}").Subrouter()
+	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
 	builders := r.PathPrefix("/json/{repo}/builders/{builder}").Subrouter()
 	builders.HandleFunc("/status", addBuilderStatusHandler).Methods("POST")
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
 	commits.HandleFunc("/", commitsJsonHandler)
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
-	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
-	r.HandleFunc("/json/goldStatus", goldJsonHandler)
-	r.HandleFunc("/json/slaveHosts", slaveHostsJsonHandler)
-	r.HandleFunc("/json/version", skiaversion.JsonHandler)
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
-	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
@@ -579,6 +590,12 @@ func main() {
 		glog.Fatal(err)
 	}
 	sshDevices, err = device_cfg.SSHDeviceCfgPoller(*workdir)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
+	// Load AutoRoll data in a loop.
+	rollStatus, err = autoroll.AutoRollStatusPoller()
 	if err != nil {
 		glog.Fatal(err)
 	}

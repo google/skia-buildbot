@@ -19,6 +19,7 @@ import (
 var (
 	committedIssueRegexp []string = []string{
 		"Committed patchset #[0-9]+ \\((id:)?[0-9]+\\) as [0-9a-f]{2,40}",
+		"Committed patchset #[0-9]+",
 		"Change committed as [0-9]+",
 	}
 )
@@ -114,16 +115,9 @@ func SearchOpen(open bool) *SearchTerm {
 	}
 }
 
-func SearchLimit(limit int) *SearchTerm {
-	return &SearchTerm{
-		Key:   "limit",
-		Value: fmt.Sprintf("%d", limit),
-	}
-}
-
 // Search returns a slice of Issues which fit the given criteria.
-func (r Rietveld) Search(terms ...*SearchTerm) ([]*Issue, error) {
-	searchUrl := "/search?format=json"
+func (r Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
+	searchUrl := fmt.Sprintf("/search?format=json&limit=%d", limit)
 	for _, term := range terms {
 		searchUrl += fmt.Sprintf("&%s=%s", term.Key, term.Value)
 	}
@@ -165,6 +159,9 @@ func (r Rietveld) Search(terms ...*SearchTerm) ([]*Issue, error) {
 				}
 				issues = append(issues, &fullIssue)
 			}
+		}
+		if len(issues) >= limit {
+			break
 		}
 		cursor = "&cursor=" + data.Cursor
 	}

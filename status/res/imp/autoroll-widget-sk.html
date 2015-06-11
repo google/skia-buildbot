@@ -23,6 +23,13 @@
     :host {
       width: 180px;
     }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
     #statusIndicator /deep/ core-icon{
       color: #E6AB02;
     }
@@ -33,6 +40,28 @@
       color: #000000;
       text-align: left;
       padding: 10px;
+    }
+    table.rollHistory {
+      border-collapse: collapse;
+    }
+    table.rollHistory /deep/ td {
+      padding: 5px;
+    }
+    table.rollHistory /deep/ th {
+      background-color: #EEEEEE;
+      font-weight: normal;
+      font-size: 1.1em;
+      padding: 8px;
+      text-align:center;
+    }
+    tr.success {
+      background-color: #D1E4BC;
+    }
+    tr.failure {
+      background-color: #D95F02;
+    }
+    tr.inprogress {
+      background-color: #FFFF00;
     }
     </style>
     <core-icon-button
@@ -82,12 +111,32 @@
             </td>
           </tr>
           <tr>
+            <td>Recent:</td>
+            <td>
+              <table class="rollHistory">
+                <tr>
+                  <th>Roll</th>
+                  <th>Status</th>
+                  <th>Last Modified</th>
+                </tr>
+                <template repeat="{{roll in recent}}">
+                  <tr class="{{roll.Closed ? (roll.Committed ? 'success' : 'failure') : 'inprogress'}}">
+                    <td><a href="https://codereview.chromium.org/{{roll.Issue}}" target="_blank">{{roll.Issue}}</a></td>
+                    <td>{{roll.Closed ? (roll.Committed ? 'Succeeded' : 'Failed') : 'In progress'}}</td>
+                    <td>{{roll.Modified|readableDate}}</td>
+                  </tr>
+                </template>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td>Full History:</td>
             <td>
               <a href="https://codereview.chromium.org/user/skia-deps-roller" target="_blank">
-                Uploaded Roll CLs on Rietveld
+                https://codereview.chromium.org/user/skia-deps-roller
               </a>
             </td>
-          <tr>
+          </tr>
         </table>
       </paper-shadow>
     </paper-dropdown>
@@ -102,12 +151,15 @@
       },
 
       created: function() {
+        this.recent = null;
+        this.recentTimeout = null;
         this.status = null;
-        this.timeout = null;
+        this.statusTimeout = null;
       },
 
       ready: function() {
         this.reloadStatus();
+        this.reloadRecent();
       },
 
       toggle: function() {
@@ -118,17 +170,37 @@
       },
 
       reloadChanged: function() {
-        this.resetTimeout();
+        this.resetRecentTimeout();
+        this.resetStatusTimeout();
       },
 
-      resetTimeout: function() {
-        if (this.timeout) {
-          window.clearTimeout(this.timeout);
+      resetRecentTimeout: function() {
+        if (this.recentTimeout) {
+          window.clearTimeout(this.recentTimeout);
         }
         if (this.reload > 0) {
           var that = this;
-          this.timeout = window.setTimeout(function() { that.reloadStatus(); }, this.reload * 1000);
+          this.recentTimeout = window.setTimeout(function() { that.reloadRecent(); }, this.reload * 1000);
         }
+      },
+
+      resetStatusTimeout: function() {
+        if (this.statusTimeout) {
+          window.clearTimeout(this.statusTimeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this.statusTimeout = window.setTimeout(function() { that.reloadStatus(); }, this.reload * 1000);
+        }
+      },
+
+      updateRecent: function(recent) {
+        this.recent = recent;
+        this.dispatchEvent(new CustomEvent("change", {
+          detail: {
+            recent: this.recent,
+          }
+        }));
       },
 
       updateStatus: function(status) {
@@ -137,16 +209,26 @@
           detail: {
             status: this.status,
           }
-        }))
+        }));
+      },
+
+      reloadRecent: function() {
+        var that = this;
+        sk.get("/json/autoRoll").then(JSON.parse).then(function(json) {
+          that.updateRecent(json.reverse());
+          that.resetRecentTimeout();
+        }).catch(function() {
+          that.resetRecentTimeout();
+        });
       },
 
       reloadStatus: function() {
         var that = this;
         sk.get("https://skia-tree-status.appspot.com/get_arb_status").then(JSON.parse).then(function(json) {
           that.updateStatus(json);
-          that.resetTimeout();
+          that.resetStatusTimeout();
         }).catch(function() {
-          that.resetTimeout();
+          that.resetStatusTimeout();
         });
       },
 
@@ -155,6 +237,11 @@
           return commit.substring(0, 7);
         }
         return commit;
+      },
+
+      readableDate: function(d) {
+        var rv = new Date(d);
+        return rv.toLocaleDateString() + ", " + rv.toLocaleTimeString();
       },
     });
   </script>
