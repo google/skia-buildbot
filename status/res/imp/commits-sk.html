@@ -1093,11 +1093,13 @@
           that.buildDetails = buildDetails;
           that.allBuilders = builders;
           that.filterBuilders();
-          if (that.autorollLast && that.autorollCurrent) {
+          if (that.autorollLast) {
             json.branch_heads.push({
                 name: "last DEPS roll",
                 head: that.autorollLast,
             });
+          }
+          if (that.autorollCurrent) {
             json.branch_heads.push({
               name: "current DEPS roll",
               head: that.autorollCurrent,
