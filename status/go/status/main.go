@@ -201,6 +201,33 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("deleteBuildCommentHandler").Stop()
+	if !userHasEditRights(r) {
+		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	cache, err := getCommitCache(w, r)
+	if err != nil {
+		return
+	}
+	buildId, err := strconv.ParseInt(mux.Vars(r)["buildId"], 10, 32)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid build id: %v", err))
+		return
+	}
+	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
+		return
+	}
+	if err := cache.DeleteBuildComment(int(buildId), int(commentId)); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
+		return
+	}
+}
+
 func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("addBuilderStatusHandler").Stop()
 	if !userHasEditRights(r) {
@@ -471,6 +498,7 @@ func runServer(serverURL string) {
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	builds := r.PathPrefix("/json/{repo}/builds/{buildId:[0-9]+}").Subrouter()
 	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
+	builds.HandleFunc("/comments/{commentId:[0-9]+}", deleteBuildCommentHandler).Methods("DELETE")
 	builders := r.PathPrefix("/json/{repo}/builders/{builder}").Subrouter()
 	builders.HandleFunc("/status", addBuilderStatusHandler).Methods("POST")
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()

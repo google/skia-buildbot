@@ -26,6 +26,7 @@
         'message'.
     addCommentUrl: URL which accepts POST requests for adding comments.
     allowEmptyComments: Whether or not to allow empty comments.
+    allowDelete: Whether or not to allow deletion of comments.
 
   Methods:
     collapse: Hides comments when there are more than `collapseThreshold`
@@ -66,6 +67,11 @@
               <td class="commentCell">{{comment.time|parseDate}}</td>
               <td class="commentCell">{{comment.user}}</td>
               <td class="commentCell">{{comment.message}}</td>
+              <template if="{{editRights && allowDelete}}">
+                <td class="commentCell">
+                  <core-icon-button icon="clear" x-data="{{comment.id}}" on-click="{{deleteComment}}"></core-icon-button>
+                </td>
+              </template>
             </template>
           </tr>
         </template>
@@ -74,7 +80,7 @@
     <content id="content"></content>
     <template if="{{editRights}}">
       <div horizontal layout>
-        <paper-input id="commentBox" label="comment" flex></paper-input>
+        <paper-input id="commentBox" label="comment" value="{{commentText}}" flex></paper-input>
         <paper-button on-click="{{addComment}}">submit</paper-button>
       </div>
     </template>
@@ -95,8 +101,16 @@
           value: [],
           reflect: true,
         },
+        commentText: {
+          value: "",
+          reflect: true,
+        },
         addCommentUrl: {
           value: "/comments/add",
+          reflect: true,
+        },
+        allowDelete: {
+          value: false,
           reflect: true,
         },
         allowEmptyComments: {
@@ -155,8 +169,7 @@
       },
 
       addComment: function() {
-        var commentText = this.shadowRoot.querySelector("#commentBox").value;
-        if (!this.allowEmptyComments && commentText == "") {
+        if (!this.allowEmptyComments && this.commentText == "") {
           this.showErrorDialog("Empty comments are not allowed.");
           return;
         }
@@ -172,7 +185,7 @@
             }
           }
         }
-        params["comment"] = commentText;
+        params["comment"] = this.commentText;
 
         var that = this;
         sk.post(this.addCommentUrl, JSON.stringify(params)).then(function(resp) {
@@ -181,6 +194,16 @@
           that.showErrorDialog(err);
         });
         this.shadowRoot.querySelector("#commentBox").value = "";
+      },
+
+      deleteComment: function(e, d, t) {
+        var commentId = t.getAttribute("x-data");
+        var that = this;
+        sk.delete(this.addCommentUrl + "/" + commentId).then(function(resp) {
+          that.dispatchEvent(new CustomEvent("submit", null));
+        }, function(err) {
+          that.showErrorDialog(err);
+        });
       },
     });
   </script>

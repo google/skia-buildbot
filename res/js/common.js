@@ -121,47 +121,19 @@ this.sk = this.sk || function() {
     });
   };
 
-  // Returns a Promise that uses XMLHttpRequest to make a request to the given URL.
-  sk.get = function(url) {
+  // Returns a Promise that uses XMLHttpRequest to make a request with the given
+  // method to the given URL with the given headers and body.
+  sk.request = function(method, url, body, headers) {
     // Return a new promise.
     return new Promise(function(resolve, reject) {
       // Do the usual XHR stuff
       var req = new XMLHttpRequest();
-      req.open('GET', url);
-
-      req.onload = function() {
-        // This is called even on 404 etc
-        // so check the status
-        if (req.status == 200) {
-          // Resolve the promise with the response text
-          resolve(req.response);
-        } else {
-          // Otherwise reject with the status text
-          // which will hopefully be a meaningful error
-          reject(req.response);
+      req.open(method, url);
+      if (headers) {
+        for (var k in headers) {
+          req.setRequestHeader(k, headers[k]);
         }
-      };
-
-      // Handle network errors
-      req.onerror = function() {
-        reject(Error("Network Error"));
-      };
-
-      // Make the request
-      req.send();
-    });
-  }
-
-
-  // Returns a Promise that uses XMLHttpRequest to make a POST request to the
-  // given URL with the given JSON body.
-  sk.post = function(url, body) {
-    // Return a new promise.
-    return new Promise(function(resolve, reject) {
-      // Do the usual XHR stuff
-      var req = new XMLHttpRequest();
-      req.open('POST', url);
-      req.setRequestHeader("Content-Type", "application/json");
+      }
       document.body.style.cursor = 'wait';
 
       req.onload = function() {
@@ -187,6 +159,24 @@ this.sk = this.sk || function() {
       // Make the request
       req.send(body);
     });
+  }
+
+  // Returns a Promise that uses XMLHttpRequest to make a request to the given URL.
+  sk.get = function(url) {
+    return sk.request('GET', url);
+  }
+
+
+  // Returns a Promise that uses XMLHttpRequest to make a POST request to the
+  // given URL with the given JSON body.
+  sk.post = function(url, body) {
+    return sk.request('POST', url, body, {"Content-Type": "application/json"});
+  }
+
+  // Returns a Promise that uses XMLHttpRequest to make a DELETE request to the
+  // given URL.
+  sk.delete = function(url) {
+    return sk.request('DELETE', url);
   }
 
   // A Promise the resolves when DOMContentLoaded has fired.

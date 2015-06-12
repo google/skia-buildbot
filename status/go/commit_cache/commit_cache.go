@@ -251,6 +251,26 @@ func (c *CommitCache) AddBuildComment(buildId int, comment *buildbot.BuildCommen
 	return c.buildCache.UpdateBuild(buildId)
 }
 
+// DeleteBuildComment deletes the given comment from the given build.
+func (c *CommitCache) DeleteBuildComment(buildId, commentId int) error {
+	b, err := c.buildCache.Get(buildId)
+	if err != nil {
+		return fmt.Errorf("No such build: %v", err)
+	}
+	idx := -1
+	for i, comment := range b.Comments {
+		if comment.Id == commentId {
+			idx = i
+			break
+		}
+	}
+	if idx == -1 {
+		return fmt.Errorf("No such comment: %d", commentId)
+	}
+	b.Comments = append(b.Comments[:idx], b.Comments[idx+1:]...)
+	return c.buildCache.UpdateBuild(buildId)
+}
+
 // SetBuilderStatus sets a status for the given builder.
 func (c *CommitCache) SetBuilderStatus(builder string, status *buildbot.BuilderStatus) error {
 	return c.buildCache.SetBuilderStatus(builder, status)
