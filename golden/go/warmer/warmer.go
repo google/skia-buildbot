@@ -9,10 +9,12 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/types"
+	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 func Init(storages *storage.Storage, summaries *summary.Summaries) error {
@@ -21,7 +23,7 @@ func Init(storages *storage.Storage, summaries *summary.Summaries) error {
 		return err
 	}
 	go func() {
-		for _ = range time.Tick(time.Minute) {
+		oneRun := func() {
 			t := timer.New("warmer one loop")
 			for test, sum := range summaries.Get() {
 				for _, digest := range sum.UntHashes {
@@ -36,6 +38,34 @@ func Init(storages *storage.Storage, summaries *summary.Summaries) error {
 			} else {
 				exp = newExp
 			}
+
+			// Make sure all images are downloaded. This is necessary, because
+			// the front-end doesn't get URLs (generated via DiffStore.AbsPath)
+			// which ensures that the image has been downloaded.
+			// TODO(stephana): Remove this once the new diffstore is in place.
+			tile, err := storages.GetLastTileTrimmed(true)
+			if err != nil {
+				glog.Errorf("Error retrieving tile: %s", err)
+			}
+			tileLen := tile.LastCommitIndex() + 1
+			traceDigests := make(map[string]bool, tileLen)
+			for _, trace := range tile.Traces {
+				gTrace := trace.(*ptypes.GoldenTrace)
+				for _, digest := range gTrace.Values {
+					if digest != ptypes.MISSING_DIGEST {
+						traceDigests[digest] = true
+					}
+				}
+			}
+
+			digests := util.KeysOfStringSet(traceDigests)
+			glog.Infof("FOUND %d digests to fetch.", len(digests))
+			storages.DiffStore.AbsPath(digests)
+		}
+
+		oneRun()
+		for _ = range time.Tick(time.Minute) {
+			oneRun()
 		}
 	}()
 	return nil
