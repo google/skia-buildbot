@@ -58,7 +58,12 @@
     <h3 id="commitSubject"></h3>
     <p id="commitBody"></p>
     <hr/>
-    <comments-sk comments="{{commit.comments}}" addCommentUrl="/json/{{repo}}/commits/{{commit.hash}}/comments" on-submit="{{commentAdded}}"></comments-sk>
+    <comments-sk
+        comments="{{commit.comments}}"
+        addCommentUrl="/json/{{repo}}/commits/{{commit.hash}}/comments"
+        on-submit="{{commentAdded}}"
+        allowDelete>
+    </comments-sk>
   </template>
   <script>
     Polymer({

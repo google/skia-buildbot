@@ -851,6 +851,15 @@ func (c *CommitComment) InsertIntoDB() (int, error) {
 	return c.Id, nil
 }
 
+// DeleteCommitComment deletes the given CommitComment from the database.
+func DeleteCommitComment(id int) error {
+	stmt := fmt.Sprintf("DELETE FROM %s WHERE id = ?", TABLE_COMMIT_COMMENTS)
+	if _, err := DB.Exec(stmt, id); err != nil {
+		return fmt.Errorf("Unable to delete commit comment: %v", err)
+	}
+	return nil
+}
+
 // GetBuildsFromDateRange retrieves all builds which finished in the given date range.
 func GetBuildsFromDateRange(start, end time.Time) ([]*Build, error) {
 	defer timer.New("GetBuildsFromDateRange").Stop()

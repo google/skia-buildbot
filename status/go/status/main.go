@@ -295,6 +295,24 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("deleteCommitCommentHandler").Stop()
+	if !userHasEditRights(r) {
+		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
+		return
+	}
+	if err := buildbot.DeleteCommitComment(int(commentId)); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %v", err))
+		return
+	}
+}
+
 func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("commitsHandler").Stop()
 	w.Header().Set("Content-Type", "text/html")
@@ -504,6 +522,7 @@ func runServer(serverURL string) {
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
 	commits.HandleFunc("/", commitsJsonHandler)
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
+	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{commentId:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
 	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
