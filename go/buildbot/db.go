@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -66,6 +67,13 @@ func (s buildStepFromDB) toBuildStep() *BuildStep {
 		Started:  s.Started.Float64,
 		Finished: s.Finished.Float64,
 	}
+}
+
+// commitFromDB is a convenience struct for storing commits for a build.
+type commitFromDB struct {
+	Id       int    `db:"id"`
+	BuildID  int    `db:"buildId"`
+	Revision string `db:"revision"`
 }
 
 // GetBuildForCommit retrieves the build number of the build which first
@@ -167,6 +175,17 @@ func GetBuildsForCommits(commits []string, ignore map[int]bool) (map[string][]*B
 		}
 	}
 	return buildsByCommit, nil
+}
+
+// GetBuildIDFromDB retrieves the ID for the given build from the database
+// as specified by the given master, builder, and build number.
+func GetBuildIDFromDB(builder, master string, buildNumber int) (int, error) {
+	var id int
+	stmt := fmt.Sprintf("SELECT id FROM %s WHERE builder = ? AND master = ? AND number = ?", TABLE_BUILDS)
+	if err := DB.Get(&id, stmt, builder, master, buildNumber); err != nil {
+		return -1, fmt.Errorf("Unable to retrieve build ID from database: %v", err)
+	}
+	return id, nil
 }
 
 // GetBuildFromDB retrieves the given build from the database as specified by
@@ -311,11 +330,7 @@ func GetBuildsFromDB(ids []int) (map[int]*Build, error) {
 	}()
 
 	// Commits for each build.
-	commitsFromDB := []struct {
-		Id       int    `db:"id"`
-		BuildId  int    `db:"buildId"`
-		Revision string `db:"revision"`
-	}{}
+	commitsFromDB := []*commitFromDB{}
 	var commitsErr error
 	wg.Add(1)
 	go func() {
@@ -371,7 +386,7 @@ func GetBuildsFromDB(ids []int) (map[int]*Build, error) {
 
 	// Associate commits with builds.
 	for _, c := range commitsFromDB {
-		build, ok := buildsById[c.BuildId]
+		build, ok := buildsById[c.BuildID]
 		if !ok {
 			return nil, fmt.Errorf("Failed to retrieve builds; got a commit with no associated build.")
 		}
@@ -407,6 +422,224 @@ func (b *Build) ReplaceIntoDB() error {
 	return err
 }
 
+// replaceStepsIntoDB inserts, updates, or deletes the given BuildSteps into
+// the database. Returns a map whose keys are pointers to any newly-inserted
+// BuildSteps and whose values are the IDs which should be assigned to those
+// steps. This allows us to postpone assigning any IDs until the transaction
+// has completed successfully.
+func replaceStepsIntoDB(tx *sqlx.Tx, steps []*BuildStep, newBuildID int) (map[*BuildStep]int, error) {
+	// First, determine which steps need to be inserted, updated, and deleted.
+	stepsFromDB := []*buildStepFromDB{}
+	stmt := fmt.Sprintf("SELECT * FROM %s WHERE buildId = ?;", TABLE_BUILD_STEPS)
+	if err := tx.Select(&stepsFromDB, stmt, newBuildID); err != nil {
+		return nil, fmt.Errorf("Could not retrieve build steps from database: %v", err)
+	}
+	oldSteps := make(map[int]bool, len(stepsFromDB))
+	for _, s := range stepsFromDB {
+		oldSteps[int(s.Id)] = true
+	}
+	newSteps := make(map[int]*BuildStep, len(steps))
+	for _, s := range steps {
+		newSteps[s.Id] = s
+	}
+	update := make([]*BuildStep, 0, len(steps))
+	insert := make([]*BuildStep, 0, len(steps))
+	remove := make([]int, 0, len(steps))
+	for _, s := range steps {
+		if _, ok := oldSteps[s.Id]; ok {
+			update = append(update, s)
+			delete(oldSteps, s.Id)
+		} else {
+			insert = append(insert, s)
+		}
+	}
+	for id, _ := range oldSteps {
+		remove = append(remove, id)
+	}
+
+	rv := map[*BuildStep]int{}
+
+	// Delete any no-longer-existing steps.
+	if len(remove) > 0 {
+		idTmpl := util.RepeatJoin("?", ",", len(remove))
+		removeIds := make([]interface{}, 0, len(remove))
+		for _, id := range remove {
+			removeIds = append(removeIds, id)
+		}
+		stmt := fmt.Sprintf("DELETE FROM %s WHERE id IN (%s)", TABLE_BUILD_STEPS, idTmpl)
+		if _, err := tx.Exec(stmt, removeIds...); err != nil {
+			return nil, fmt.Errorf("Could not remove old build steps.")
+		}
+	}
+
+	// Insert any new steps.
+	for _, s := range insert {
+		stmt := fmt.Sprintf("INSERT INTO %s (buildId,name,results,number,started,finished) VALUES (?,?,?,?,?,?);", TABLE_BUILD_STEPS)
+		res, err := tx.Exec(stmt, newBuildID, s.Name, s.Results, s.Number, s.Started, s.Finished)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to push buildsteps into database: %v", err)
+		}
+		id, err := res.LastInsertId()
+		if err != nil {
+			return nil, fmt.Errorf("Unable to get ID for inserted buildstep: %v", err)
+		}
+		rv[s] = int(id)
+	}
+
+	// Update any already-existing steps.
+	for _, s := range update {
+		stmt := fmt.Sprintf("UPDATE %s SET buildId=?, name=?, results=?, number=?, started=?, finished=? WHERE id = ?", TABLE_BUILD_STEPS)
+		if _, err := tx.Exec(stmt, s.BuildID, s.Name, s.Results, s.Number, s.Started, s.Finished, s.Id); err != nil {
+			return nil, fmt.Errorf("Failed to update build steps: %v", err)
+		}
+	}
+
+	return rv, nil
+}
+
+// replaceCommitsIntoDB inserts, updates, or deletes the commits for the
+// build into the database.
+func replaceCommitsIntoDB(tx *sqlx.Tx, commits []string, buildID int) error {
+	// First, determine which commits need to be inserted, updated, and deleted.
+	commitsFromDB := []*commitFromDB{}
+	stmt := fmt.Sprintf("SELECT * FROM %s WHERE buildId = ?;", TABLE_BUILD_REVISIONS)
+	if err := DB.Select(&commitsFromDB, stmt, buildID); err != nil {
+		return fmt.Errorf("Could not retrieve commits from database: %v", err)
+	}
+	oldCommits := make(map[string]*commitFromDB, len(commitsFromDB))
+	for _, c := range commitsFromDB {
+		oldCommits[c.Revision] = c
+	}
+	newCommits := make(map[string]bool, len(commits))
+	for _, c := range commits {
+		newCommits[c] = true
+	}
+	update := make([]*commitFromDB, 0, len(commits))
+	insert := make([]*commitFromDB, 0, len(commits))
+	remove := make([]int, 0, len(commits))
+	for _, c := range commits {
+		if old, ok := oldCommits[c]; ok {
+			update = append(update, old)
+			delete(oldCommits, old.Revision)
+		} else {
+			insert = append(insert, &commitFromDB{
+				BuildID:  buildID,
+				Revision: c,
+			})
+		}
+	}
+	for _, c := range oldCommits {
+		remove = append(remove, c.Id)
+	}
+
+	// Delete any no-longer-existing commits.
+	if len(remove) > 0 {
+		idTmpl := util.RepeatJoin("?", ",", len(remove))
+		removeIds := make([]interface{}, 0, len(remove))
+		for _, id := range remove {
+			removeIds = append(removeIds, id)
+		}
+		stmt := fmt.Sprintf("DELETE FROM %s WHERE id IN (%s)", TABLE_BUILD_REVISIONS, idTmpl)
+		if _, err := tx.Exec(stmt, removeIds...); err != nil {
+			return fmt.Errorf("Could not remove old build revisions.")
+		}
+	}
+
+	// Insert any new commits.
+	for _, c := range insert {
+		c.BuildID = buildID
+		stmt := fmt.Sprintf("INSERT INTO %s (buildId,revision) VALUES (?,?);", TABLE_BUILD_REVISIONS)
+		if _, err := tx.Exec(stmt, c.BuildID, c.Revision); err != nil {
+			return fmt.Errorf("Unable to push revisions into database: %v", err)
+		}
+	}
+
+	// Update any already-existing commits.
+	for _, c := range update {
+		stmt := fmt.Sprintf("UPDATE %s SET buildId=?, revision=? WHERE id = ?", TABLE_BUILD_REVISIONS)
+		if _, err := tx.Exec(stmt, c.BuildID, c.Revision, c.Id); err != nil {
+			return fmt.Errorf("Failed to update build revisions: %v", err)
+		}
+	}
+
+	return nil
+}
+
+// replaceCommentsIntoDB inserts, updates, or deletes the given BuildComments
+// into the database. Returns a map whose keys are pointers to any
+// newly-inserted BuildComments and whose values are the IDs which should be
+// assigned to those comments. This allows us to postpone assigning any IDs
+// until the transaction has completed successfully.
+func replaceCommentsIntoDB(tx *sqlx.Tx, comments []*BuildComment, newBuildID int) (map[*BuildComment]int, error) {
+	// First, determine which comments need to be inserted, updated, and deleted.
+	commentsFromDB := []*BuildComment{}
+	stmt := fmt.Sprintf("SELECT * FROM %s WHERE buildId = ?;", TABLE_BUILD_COMMENTS)
+	if err := tx.Select(&commentsFromDB, stmt, newBuildID); err != nil {
+		return nil, fmt.Errorf("Could not retrieve build comments from database: %v", err)
+	}
+	oldComments := make(map[int]bool, len(commentsFromDB))
+	for _, c := range commentsFromDB {
+		oldComments[int(c.Id)] = true
+	}
+	newComments := make(map[int]*BuildComment, len(comments))
+	for _, c := range comments {
+		newComments[c.Id] = c
+	}
+	update := make([]*BuildComment, 0, len(comments))
+	insert := make([]*BuildComment, 0, len(comments))
+	remove := make([]int, 0, len(comments))
+	for _, c := range comments {
+		if _, ok := oldComments[c.Id]; ok {
+			update = append(update, c)
+			delete(oldComments, c.Id)
+		} else {
+			insert = append(insert, c)
+		}
+	}
+	for id, _ := range oldComments {
+		remove = append(remove, id)
+	}
+
+	rv := map[*BuildComment]int{}
+
+	// Delete any no-longer-existing comments.
+	if len(remove) > 0 {
+		idTmpl := util.RepeatJoin("?", ",", len(remove))
+		removeIds := make([]interface{}, 0, len(remove))
+		for _, id := range remove {
+			removeIds = append(removeIds, id)
+		}
+		stmt := fmt.Sprintf("DELETE FROM %s WHERE id IN (%s)", TABLE_BUILD_COMMENTS, idTmpl)
+		if _, err := tx.Exec(stmt, removeIds...); err != nil {
+			return nil, fmt.Errorf("Could not remove old build comments.")
+		}
+	}
+
+	// Insert any new comments.
+	for _, c := range insert {
+		stmt := fmt.Sprintf("INSERT INTO %s (buildId,user,timestamp,message) VALUES (?,?,?,?);", TABLE_BUILD_COMMENTS)
+		res, err := tx.Exec(stmt, newBuildID, c.User, c.Timestamp, c.Message)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to push build comments into database: %v", err)
+		}
+		id, err := res.LastInsertId()
+		if err != nil {
+			return nil, fmt.Errorf("Unable to get ID for inserted build comment: %v", err)
+		}
+		rv[c] = int(id)
+	}
+
+	// Update any already-existing comments.
+	for _, c := range update {
+		stmt := fmt.Sprintf("UPDATE %s SET buildId=?, user=?, timestamp=?, message=? WHERE id = ?", TABLE_BUILD_COMMENTS)
+		if _, err := tx.Exec(stmt, c.BuildId, c.User, c.Timestamp, c.Message, c.Id); err != nil {
+			return nil, fmt.Errorf("Failed to update build comments: %v", err)
+		}
+	}
+
+	return rv, nil
+}
+
 // replaceIntoDB inserts or updates the Build in the database.
 func (b *Build) replaceIntoDB() (rv error) {
 	// Insert the build itself.
@@ -414,80 +647,63 @@ func (b *Build) replaceIntoDB() (rv error) {
 	if err != nil {
 		return fmt.Errorf("Unable to push build into database - Could not begin transaction: %v", err)
 	}
-	defer func() { rv = database.CommitOrRollback(tx, rv) }()
 
-	res, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (builder,master,number,results,gotRevision,buildslave,started,finished,properties,branch,repository) VALUES (?,?,?,?,?,?,?,?,?,?,?);", TABLE_BUILDS), b.Builder, b.Master, b.Number, b.Results, b.GotRevision, b.BuildSlave, b.Started, b.Finished, b.PropertiesStr, b.Branch, b.Repository)
-	if err != nil {
-		return fmt.Errorf("Failed to push build into database: %v", err)
+	buildID := b.Id
+	var stepIDMap map[*BuildStep]int
+	var commentIDMap map[*BuildComment]int
+
+	// Defer committing/rolling back the transaction. If successful,
+	// update the Build with new IDs.
+	defer func() {
+		rv = database.CommitOrRollback(tx, rv)
+		if rv == nil {
+			// Update the build with any new IDs.
+			b.Id = buildID
+			for _, s := range b.Steps {
+				s.BuildID = b.Id
+			}
+			for s, id := range stepIDMap {
+				s.Id = id
+			}
+			for c, id := range commentIDMap {
+				c.Id = id
+			}
+		}
+	}()
+
+	if buildID == 0 {
+		stmt := fmt.Sprintf("INSERT INTO %s (builder,master,number,results,gotRevision,buildslave,started,finished,properties,branch,repository) VALUES (?,?,?,?,?,?,?,?,?,?,?);", TABLE_BUILDS)
+		res, err := tx.Exec(stmt, b.Builder, b.Master, b.Number, b.Results, b.GotRevision, b.BuildSlave, b.Started, b.Finished, b.PropertiesStr, b.Branch, b.Repository)
+		if err != nil {
+			return fmt.Errorf("Failed to push build into database: %v", err)
+		}
+		id, err := res.LastInsertId()
+		if err != nil {
+			return fmt.Errorf("Failed to push build into database; LastInsertId failed: %v", err)
+		}
+		buildID = int(id)
+	} else {
+		stmt := fmt.Sprintf("UPDATE %s set builder=?, master=?, number=?, results=?, gotRevision=?, buildslave=?, started=?, finished=?, properties=?, branch=?, repository=? WHERE id=?;", TABLE_BUILDS)
+		if _, err := tx.Exec(stmt, b.Builder, b.Master, b.Number, b.Results, b.GotRevision, b.BuildSlave, b.Started, b.Finished, b.PropertiesStr, b.Branch, b.Repository, buildID); err != nil {
+			return fmt.Errorf("Failed to push build into database: %v", err)
+		}
 	}
-	id, err := res.LastInsertId()
-	if err != nil {
-		return fmt.Errorf("Failed to push build into database; LastInsertId failed: %v", err)
-	}
-	b.Id = int(id)
 
 	// Build steps.
-
-	// First, delete existing steps so that we don't have leftovers hanging
-	// around from before.
-	if _, err := tx.Exec(fmt.Sprintf("DELETE FROM %s WHERE buildId = ?;", TABLE_BUILD_STEPS), b.Id); err != nil {
-		return fmt.Errorf("Failed to delete build steps from database: %v", err)
-	}
-	// Actually insert the steps.
-	if len(b.Steps) > 0 {
-		stepFields := 6
-		stepTmpl := util.RepeatJoin("?", ",", stepFields)
-		stepsTmpl := util.RepeatJoin(fmt.Sprintf("(%s)", stepTmpl), ",", len(b.Steps))
-		flattenedSteps := make([]interface{}, 0, stepFields*len(b.Steps))
-		for _, s := range b.Steps {
-			s.BuildID = b.Id
-			flattenedSteps = append(flattenedSteps, s.BuildID, s.Name, s.Results, s.Number, s.Started, s.Finished)
-		}
-		if _, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (buildId,name,results,number,started,finished) VALUES %s;", TABLE_BUILD_STEPS, stepsTmpl), flattenedSteps...); err != nil {
-			return fmt.Errorf("Unable to push buildsteps into database: %v", err)
-		}
+	stepIDMap, err = replaceStepsIntoDB(tx, b.Steps, buildID)
+	if err != nil {
+		return err
 	}
 
 	// Commits.
-
-	// First, delete existing revisions so that we don't have leftovers
-	// hanging around from before.
-	if _, err := tx.Exec(fmt.Sprintf("DELETE FROM %s WHERE buildId = ?;", TABLE_BUILD_REVISIONS), b.Id); err != nil {
-		return fmt.Errorf("Unable to delete revisions from database: %v", err)
-	}
-	// Actually insert the commits.
-	if len(b.Commits) > 0 {
-		commitFields := 2
-		commitTmpl := util.RepeatJoin("?", ",", commitFields)
-		commitsTmpl := util.RepeatJoin(fmt.Sprintf("(%s)", commitTmpl), ",", len(b.Commits))
-		flattenedCommits := make([]interface{}, 0, commitFields*len(b.Commits))
-		for _, c := range b.Commits {
-			flattenedCommits = append(flattenedCommits, b.Id, c)
-		}
-		if _, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (buildId,revision) VALUES %s;", TABLE_BUILD_REVISIONS, commitsTmpl), flattenedCommits...); err != nil {
-			return fmt.Errorf("Unable to push commits into database: %v", err)
-		}
+	if err := replaceCommitsIntoDB(tx, b.Commits, buildID); err != nil {
+		return err
 	}
 
 	// Comments.
-
-	// First, delete existing comments so that we don't have leftovers
-	// hanging around from before.
-	if _, err := tx.Exec(fmt.Sprintf("DELETE FROM %s WHERE buildId = ?;", TABLE_BUILD_COMMENTS), b.Id); err != nil {
-		return fmt.Errorf("Unable to delete comments from database: %v", err)
-	}
-	// Actually insert the comments.
-	if b.Comments != nil && len(b.Comments) > 0 {
-		commentFields := 4
-		commentTmpl := util.RepeatJoin("?", ",", commentFields)
-		commentsTmpl := util.RepeatJoin(fmt.Sprintf("(%s)", commentTmpl), ",", len(b.Comments))
-		flattenedComments := make([]interface{}, 0, commentFields*len(b.Comments))
-		for _, c := range b.Comments {
-			flattenedComments = append(flattenedComments, b.Id, c.User, c.Timestamp, c.Message)
-		}
-		if _, err := tx.Exec(fmt.Sprintf("REPLACE INTO %s (buildId,user,timestamp,message) VALUES %s", TABLE_BUILD_COMMENTS, commentsTmpl), flattenedComments...); err != nil {
-			return fmt.Errorf("Unable to push comments into database: %v", err)
-		}
+	commentIDMap, err = replaceCommentsIntoDB(tx, b.Comments, buildID)
+	if err != nil {
+		return err
 	}
 
 	// The transaction is committed during the deferred function.

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	assert "github.com/stretchr/testify/require"
@@ -228,17 +229,23 @@ func TestFindCommitsForBuild(t *testing.T) {
 // dbSerializeAndCompare is a helper function used by TestDbBuild which takes
 // a Build object, writes it into the database, reads it back out, and compares
 // the structs. Returns any errors encountered including a comparison failure.
-func dbSerializeAndCompare(t *testing.T, b1 *Build) {
+func dbSerializeAndCompare(t *testing.T, b1 *Build, ignoreIds bool) {
 	assert.Nil(t, b1.ReplaceIntoDB())
 	b2, err := GetBuildFromDB(b1.Builder, b1.Master, b1.Number)
 	assert.Nil(t, err)
 
 	// Force the IDs to be equal, since the DB assigns ID, and we
 	// don't care to try to predict them.
-	b2.Id = b1.Id
-	assert.Equal(t, len(b1.Steps), len(b2.Steps), "Got incorrect number of steps.")
-	for i, s := range b2.Steps {
-		s.Id = b1.Steps[i].Id
+	if ignoreIds {
+		b2.Id = b1.Id
+		assert.Equal(t, len(b1.Steps), len(b2.Steps), "Got incorrect number of steps.")
+		for i, s := range b2.Steps {
+			s.Id = b1.Steps[i].Id
+		}
+		assert.Equal(t, len(b1.Comments), len(b2.Comments), "Got incorrect number of comments.")
+		for i, c := range b2.Comments {
+			c.Id = b1.Comments[i].Id
+		}
 	}
 
 	testutils.AssertDeepEqual(t, b1, b2)
@@ -277,8 +284,99 @@ func testBuildDbSerialization(t *testing.T) {
 
 	testCases := []*Build{emptyBuild, buildFromFullJson}
 	for _, b := range testCases {
-		dbSerializeAndCompare(t, b)
+		dbSerializeAndCompare(t, b, true)
 	}
+}
+
+// testBuildDbIdConsistency verifies that we maintain IDs across build updates.
+func testBuildDbIdConsistency(t *testing.T) {
+	d := clearDB(t)
+	defer d.Close(t)
+
+	// Load the test repo.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
+	assert.Nil(t, err)
+
+	repos := &repoMap{
+		repos: map[string]*gitinfo.GitInfo{
+			"https://skia.googlesource.com/skia.git": repo,
+		},
+		workdir: tr.Dir,
+	}
+
+	// Retrieve a full build.
+	b, err := testGetBuildFromMaster(repos)
+	assert.Nil(t, err)
+
+	// Assert that all IDs are zero, since we haven't yet inserted the build.
+	assert.Equal(t, 0, b.Id)
+	for _, s := range b.Steps {
+		assert.Equal(t, 0, s.Id)
+	}
+
+	// Insert the build for the first time.
+	err = b.ReplaceIntoDB()
+	assert.Nil(t, err)
+
+	// Rename a step.
+	b.Steps[2].Name = "differentName"
+	dbSerializeAndCompare(t, b, false)
+
+	// Remove a step.
+	b.Steps = append(b.Steps[:2], b.Steps[3:]...)
+	dbSerializeAndCompare(t, b, false)
+
+	// Keep track of the original IDs, verify that IDs are non-zero.
+	origBuildId := b.Id
+	assert.NotEqual(t, 0, b.Id)
+	origStepIds := make([]int, 0, len(b.Steps))
+	for _, s := range b.Steps {
+		assert.NotEqual(t, 0, s.Id)
+		origStepIds = append(origStepIds, s.Id)
+	}
+
+	// Add some comments.
+	b.Comments = append(b.Comments, &BuildComment{
+		BuildId:   b.Id,
+		User:      "testbot",
+		Timestamp: float64(time.Now().UTC().Unix()),
+		Message:   "Hi.",
+	})
+
+	// Insert the build again.
+	err = b.ReplaceIntoDB()
+	assert.Nil(t, err)
+
+	// Assert that the IDs were maintained.
+	assert.Equal(t, origBuildId, b.Id)
+	for i, s := range b.Steps {
+		assert.Equal(t, origStepIds[i], s.Id)
+	}
+
+	// Assert that our comment was given an ID, record it for posterity.
+	origCommentId := b.Comments[0].Id
+	assert.NotEqual(t, 0, origCommentId)
+
+	// Add another comment.
+	b.Comments = append(b.Comments, &BuildComment{
+		BuildId:   b.Id,
+		User:      "testbot",
+		Timestamp: float64(time.Now().UTC().Unix()),
+		Message:   "Here's another comment",
+	})
+
+	// Insert the build again.
+	err = b.ReplaceIntoDB()
+	assert.Nil(t, err)
+
+	// Assert that the IDs were maintained.
+	assert.Equal(t, origBuildId, b.Id)
+	for i, s := range b.Steps {
+		assert.Equal(t, origStepIds[i], s.Id)
+	}
+	assert.Equal(t, b.Comments[0].Id, origCommentId)
 }
 
 // testUnfinishedBuild verifies that we can write a build which is not yet
@@ -306,7 +404,7 @@ func testUnfinishedBuild(t *testing.T) {
 	b, err := getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
 	assert.Nil(t, err)
 	assert.False(t, b.IsFinished(), fmt.Errorf("Unfinished build thinks it's finished!"))
-	dbSerializeAndCompare(t, b)
+	dbSerializeAndCompare(t, b, true)
 
 	// Ensure that the build is found by getUnfinishedBuilds.
 	unfinished, err := getUnfinishedBuilds()
@@ -337,7 +435,7 @@ func testUnfinishedBuild(t *testing.T) {
 	}
 	b.Steps = append(b.Steps, s)
 	assert.True(t, b.IsFinished(), "Finished build thinks it's unfinished!")
-	dbSerializeAndCompare(t, b)
+	dbSerializeAndCompare(t, b, true)
 
 	// Ensure that the finished build is NOT found by getUnfinishedBuilds.
 	unfinished, err = getUnfinishedBuilds()
@@ -624,6 +722,11 @@ func testIngestNewBuilds(t *testing.T) {
 func TestMySQLBuildDbSerialization(t *testing.T) {
 	testutils.SkipIfShort(t)
 	testBuildDbSerialization(t)
+}
+
+func TestMySQLBuildDbIdConsistency(t *testing.T) {
+	testutils.SkipIfShort(t)
+	testBuildDbIdConsistency(t)
 }
 
 func TestMySQLUnfinishedBuild(t *testing.T) {

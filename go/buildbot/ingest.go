@@ -190,6 +190,12 @@ func IngestBuild(master, builder string, buildNumber int, repos *repoMap) error 
 	if !(strings.HasSuffix(b.Builder, "-Trybot") || strings.Contains(b.Builder, "Housekeeper")) && len(b.Commits) == 0 {
 		glog.Infof("Got build with 0 revs: %s #%d GotRev=%s", b.Builder, b.Number, b.GotRevision)
 	}
+	// Determine whether we've already ingested this build. If so, fix up the ID
+	// so that we update it rather than insert a new copy.
+	existingBuildID, err := GetBuildIDFromDB(builder, master, buildNumber)
+	if err == nil {
+		b.Id = existingBuildID
+	}
 	return b.ReplaceIntoDB()
 }
 
