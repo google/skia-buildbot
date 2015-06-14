@@ -62,14 +62,6 @@ func (h *historian) start() error {
 	if err := h.updateDigestInfo(lastTile); err != nil {
 		return err
 	}
-
-	// Do the first round to expire expectations in the background.
-	go func() {
-		if err := h.retireTestDigests(lastTile); err != nil {
-			glog.Errorf("Error expiring expectations based on the current tile: %s", err)
-		}
-	}()
-
 	liveness := metrics.NewLiveness("digest-history-monitoring")
 
 	// Keep processing tiles and feed them into the process channel.
@@ -79,13 +71,10 @@ func (h *historian) start() error {
 			case tile := <-tileStream:
 				if err := h.updateDigestInfo(tile); err != nil {
 					glog.Errorf("Error calculating status: %s", err)
+					continue
+				} else {
+					lastTile = tile
 				}
-
-				if err := h.retireTestDigests(lastTile); err != nil {
-					glog.Errorf("Error retiring digests: %s", err)
-				}
-
-				lastTile = tile
 			case <-expChanges:
 				storage.DrainChangeChannel(expChanges)
 				if err := h.updateDigestInfo(lastTile); err != nil {
@@ -181,46 +170,4 @@ func (h *historian) processTile(tile *ptypes.Tile) error {
 	}
 
 	return dStore.Update(digestInfos)
-}
-
-// Remove all digests that are no longer on the current tile.
-func (h *historian) retireTestDigests(tile *ptypes.Tile) error {
-	tileLen := tile.LastCommitIndex() + 1
-	oldestCommitTime := tile.Commits[0].CommitTime
-	currExp, err := h.storages.ExpectationsStore.Get()
-	if err != nil {
-		return err
-	}
-
-	deltaExp := currExp.DeepCopy()
-	for _, trace := range tile.Traces {
-		gTrace := trace.(*ptypes.GoldenTrace)
-		testName := trace.Params()[types.PRIMARY_KEY_FIELD]
-		for _, digest := range gTrace.Values[:tileLen] {
-			if digest != ptypes.MISSING_DIGEST {
-				delete(deltaExp.Tests[testName], digest)
-			}
-		}
-	}
-
-	// Remove all expecations not in the current tile.
-	removeMap := make(map[string][]string, len(deltaExp.Tests))
-	counter := 0
-	for testName, digests := range deltaExp.Tests {
-		temp := make([]string, 0, len(digests))
-		for d := range digests {
-			if digestInfo, found, err := h.storages.DigestStore.Get(testName, d); err != nil {
-				glog.Errorf("Error retrieving test (%s/%s): %s", testName, d, err)
-			} else if !found || (digestInfo.Last < oldestCommitTime) {
-				temp = append(temp, d)
-				glog.Infof("REMOVING test last seen on (%s): %s  :  %s", time.Unix(digestInfo.Last, 0), testName, d)
-				counter++
-			}
-		}
-		removeMap[testName] = temp
-	}
-
-	glog.Infof("Removing %d expectations.", counter)
-
-	return h.storages.ExpectationsStore.RemoveChange(removeMap)
 }
