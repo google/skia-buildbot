@@ -137,19 +137,11 @@ func (e *SQLExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 	                         SET removed = IF(removed IS NULL, ?, removed)
 	                         WHERE (name=?) AND (digest=?)`
 
-	// start a transaction
-	tx, err := e.vdb.DB.Begin()
-	if err != nil {
-		return err
-	}
-
-	defer func() { retErr = database.CommitOrRollback(tx, retErr) }()
-
 	// Mark all the digests as removed.
 	now := util.TimeStampMs()
 	for testName, digests := range changedDigests {
 		for _, digest := range digests {
-			if _, err = tx.Exec(markRemovedStmt, now, testName, digest); err != nil {
+			if _, err := e.vdb.DB.Exec(markRemovedStmt, now, testName, digest); err != nil {
 				return err
 			}
 		}

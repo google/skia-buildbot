@@ -21,10 +21,10 @@ type DigestInfo struct {
 	// Digest that uniquely identifies the digest within this test.
 	Digest string
 
-	// First containes the timestamp of the first occurance of this digest.
+	// First containes the timestamp (in seconds) of the first occurance of this digest.
 	First int64
 
-	// Last contains the timestamp of the last time we have seen this digest.
+	// Last contains the timestamp (in seconds) of the last time we have seen this digest.
 	Last int64
 
 	// Exception stores a string representing the exception that was encountered
