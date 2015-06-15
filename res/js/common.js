@@ -48,7 +48,7 @@ this.sk = this.sk || function() {
   }
 
   /**
-   * findParent finds a parent of 'ele' that has the nodeName of 'nodeName'.
+   * findParent returns either 'ele' or a parent of 'ele' that has the nodeName of 'nodeName'.
    *
    * Note that nodeName is all caps, i.e. "DIV" or "PAPER-BUTTON".
    *
@@ -195,6 +195,61 @@ this.sk = this.sk || function() {
     window.addEventListener('polymer-ready', resolve);
   });
 
+  // _Mailbox is an object that allows distributing, possibly in a time
+  // delayed manner, values to subscribers to mailbox names.
+  //
+  // For example, a series of large objects may need to be distributed across
+  // a DOM tree in a way that doesn't easily fit with normal data binding.
+  // Instead each element can subscribe to a mailbox name where the data will
+  // be placed, and receive a callback when the data is updated. Note that
+  // upon first subscribing to a mailbox the callback will be triggered
+  // immediately with the value there, which may be the default of null.
+  //
+  // There is no order required for subscribe and send calls. You can send to
+  // a mailbox with no subscribers, and a subscription can be registered for a
+  // mailbox that has not been sent any data yet.
+  var _Mailbox = function() {
+    this.boxes = {};
+  };
+
+  // Subscribe to a mailbox of the name 'addr'. The callback 'cb' will
+  // be called each time the mailbox is updated, including the very first time
+  // a callback is registered, possibly with the default value of null.
+  _Mailbox.prototype.subscribe = function(addr, cb) {
+    var box = this.boxes[addr] || { callbacks: [], value: null };
+    box.callbacks.push(cb);
+    cb(box.value);
+    this.boxes[addr] = box;
+  };
+
+  // Remove a callback from a subscription.
+  _Mailbox.prototype.unsubscribe = function(addr, cb) {
+    var box = this.boxes[addr] || { callbacks: [], value: null };
+    // Use a countdown loop so multiple removals is safe.
+    for (var i = box.callbacks.length-1; i >= 0; i--) {
+      if (box.callbacks[i] == cb) {
+        box.callbacks.splice(i, 1);
+      }
+    }
+  };
+
+  // Send data to a mailbox. All registered callbacks will be triggered
+  // synchronously.
+  _Mailbox.prototype.send = function(addr, value) {
+    var box = this.boxes[addr] || { callbacks: [], value: null };
+    box.value = value;
+    this.boxes[addr] = box;
+    box.callbacks.forEach(function(cb) {
+      cb(value);
+    });
+  };
+
+  // sk.Mailbox is an instance of sk._Mailbox, the only instance
+  // that should be needed.
+  sk.Mailbox = new _Mailbox();
+
+
+  // Namespace for utilities for working with human i/o.
   sk.human = {};
 
   var DELTAS = [
@@ -252,6 +307,7 @@ this.sk = this.sk || function() {
     return diff + "s";
   }
 
+  // Namespace for utilities for working with arrays.
   sk.array = {};
 
   /**
