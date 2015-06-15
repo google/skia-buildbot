@@ -179,7 +179,7 @@ this.sk = this.sk || function() {
     return sk.request('DELETE', url);
   }
 
-  // A Promise the resolves when DOMContentLoaded has fired.
+  // A Promise that resolves when DOMContentLoaded has fired.
   sk.DomReady = new Promise(function(resolve, reject) {
       if (document.readyState != 'loading') {
         // If readyState is already past loading then

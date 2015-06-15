@@ -7,16 +7,6 @@
 //
 // Karma configuration
 
-var browsers;
-var os = require('os').type();
-if (os === 'Darwin') {
-  browsers = ['Chrome', 'ChromeCanaryExperimental', 'Firefox', 'Safari'];
-} else if (os === 'Windows_NT') {
-  browsers = ['Chrome', 'Firefox', 'IE'];
-} else {
-  browsers = ['Chrome'];
-}
-
 module.exports = function(config) {
   config.set({
 
@@ -31,7 +21,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       '../res/js/common.js',
-      'tests/*.js',
+      '*.js',
     ],
 
 
@@ -63,8 +53,8 @@ module.exports = function(config) {
     autoWatch: true,
 
 
-    // Start these browsers, currently detected at runtime based on platform:
-    browsers: browsers,
+    // Start these browsers; we only care about Chrome for infra projects.
+    browsers: ['Chrome'],
 
 
     // If browser does not capture in given timeout [ms], kill it

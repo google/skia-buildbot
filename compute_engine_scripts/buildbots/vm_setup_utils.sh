@@ -13,8 +13,13 @@ function install_packages {
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
     "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password tmp_pass' && " \
     "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password tmp_pass' && " \
-    "sudo apt-get -y install mercurial mysql-client mysql-server valgrind libosmesa-dev && " \
-    "mysql -uroot -ptmp_pass -e \"SET PASSWORD = PASSWORD('');\"" \
+    "sudo apt-get -y install mercurial mysql-client mysql-server valgrind libosmesa-dev npm " \
+    "  nodejs-legacy && " \
+    "mysql -uroot -ptmp_pass -e \"SET PASSWORD = PASSWORD('');\" && " \
+    "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && " \
+    "mkdir -p ~/.config/google-chrome && touch ~/.config/google-chrome/First\ Run && " \
+    "(sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f -y install) && " \
+    "rm google-chrome-stable_current_amd64.deb " \
     || FAILED="$FAILED InstallPackages"
   echo
 }

@@ -36,6 +36,13 @@ instances.
 How to create new instances
 ===========================
 
+Ensure gcutil is available on your PATH by running `gcutil --help` and following
+instructions if you do not get a help message.
+
+Download the files at
+https://drive.google.com/a/google.com/folderview?id=0B8qNi7tiU4KjflRQYnRxc2x1cW9VY3Z6VG54UkpOc0NrRmNDUUZqVjZQaDNscmNtcnBwcEk
+to /tmp.
+
 Look at
 https://skia.googlesource.com/buildbot/+/master/site_config/slave_hosts_cfg.py
 to see what the roles of the instances are going to be.
@@ -49,6 +56,12 @@ The following are a few examples:
 - VM_IS_ANDROID_MERGE=1 VM_INSTANCE_OS=Linux \
   SKIA_BOT_MACHINE_TYPE=n1-standard-16 VM_BOT_COUNT_START=14 \
   VM_BOT_COUNT_END=14 bash vm_create_setup_instances.sh
+
+Access instances
+================
+
+Run `gcloud compute ssh default@skia-vm-NNN`. Find the correct zone at
+https://pantheon.corp.google.com/project/31977622648/compute/instances
 
 
 How to delete old instances

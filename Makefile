@@ -1,6 +1,10 @@
 testgo:
 	go test -test.short ./go/...
 
+.PHONY: testjs
+testjs:
+	cd js && $(MAKE) test
+
 .PHONY: sharedgo
 sharedgo:
 	cd go && $(MAKE) all

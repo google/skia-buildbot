@@ -10,7 +10,7 @@
 //
 //  ./node_modules/.bin/karma start --no-single-run
 //
-describe('Test our implementation of $$',
+describe.only('Test our implementation of $$',
   function() {
     beforeEach(function() { });
     afterEach(function() { });
