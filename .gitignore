@@ -68,6 +68,7 @@ perf/third_party
 perf/timestamp.json
 perf/local.toml
 perf/client_secrets.json
+perf/go/ingester/testdata/local-ingest-test/
 push/google_storage_token.data
 push/third_party
 push/res/vul
