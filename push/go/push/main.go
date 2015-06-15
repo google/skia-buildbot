@@ -64,6 +64,9 @@ var (
 
 	// comp is an Google Compute API client authorized to read compute information.
 	comp *compute.Service
+
+	// packageInfo is a cache of info about packages.
+	packageInfo *packages.AllInfo
 )
 
 // flags
@@ -117,6 +120,11 @@ func Init() {
 	ip, err = NewIPAddresses(comp)
 	if err != nil {
 		glog.Fatalf("Failed to load IP addresses at startup: %s", err)
+	}
+
+	packageInfo, err = packages.NewAllInfo(client, store, serverNames)
+	if err != nil {
+		glog.Fatalf("Failed to create packages.AllInfo at startup: %s", err)
 	}
 }
 
@@ -294,16 +302,8 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("JSON Handler: %q\n", r.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
 
-	allAvailable, err := packages.AllAvailable(store)
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to read available packages.")
-		return
-	}
-	allInstalled, err := packages.AllInstalled(client, store, serverNames)
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to read installed packages.")
-		return
-	}
+	allAvailable := packageInfo.AllAvailable()
+	allInstalled := packageInfo.AllInstalled()
 
 	// Update allInstalled to add in missing applications.
 	//
@@ -346,11 +346,11 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 		dec := json.NewDecoder(r.Body)
 		defer util.Close(r.Body)
 		if err := dec.Decode(&push); err != nil {
-			util.ReportError(w, r, err, "Failed to decode push request")
+			util.ReportError(w, r, fmt.Errorf("Failed to decode push request"), "Failed to decode push request")
 			return
 		}
 		if installedPackages, ok := allInstalled[push.Server]; !ok {
-			util.ReportError(w, r, err, "Unknown server name")
+			util.ReportError(w, r, fmt.Errorf("Unknown server name"), "Unknown server name")
 			return
 		} else {
 			// Find a string starting with the same appname, replace it with
@@ -365,7 +365,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 				newInstalled = append(newInstalled, goodName)
 			}
 			glog.Infof("Updating %s with %#v giving %#v", push.Server, push.Name, newInstalled)
-			if err := packages.PutInstalled(store, client, push.Server, newInstalled, installedPackages.Generation); err != nil {
+			if err := packageInfo.PutInstalled(push.Server, newInstalled, installedPackages.Generation); err != nil {
 				util.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
@@ -392,7 +392,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enc := json.NewEncoder(w)
-	err = enc.Encode(AllUI{
+	err := enc.Encode(AllUI{
 		Servers:  servers,
 		Packages: allAvailable,
 		IP:       ip.Get(),

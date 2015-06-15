@@ -12,14 +12,13 @@ import (
 	"os/exec"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
+	"code.google.com/p/google-api-go-client/storage/v1"
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
-
-	"github.com/skia-dev/glog"
-
-	"code.google.com/p/google-api-go-client/storage/v1"
 )
 
 // Package represents a single Debian package uploaded to Google Storage.
@@ -42,6 +41,107 @@ type Installed struct {
 	// Generation is the Google Storage generation number of the config file at the time we read it.
 	// Use this to avoid the lost-update problem: https://cloud.google.com/storage/docs/generations-preconditions#_ReadModWrite
 	Generation int64
+}
+
+// AllInfo keeps a cache of all installed packages and all available to be installed packages.
+type AllInfo struct {
+	mutex        sync.Mutex
+	allInstalled map[string]*Installed
+	allAvailable map[string][]*Package
+	client       *http.Client
+	store        *storage.Service
+	serverNames  []string
+}
+
+func NewAllInfo(client *http.Client, store *storage.Service, serverNames []string) (*AllInfo, error) {
+	a := &AllInfo{
+		client:      client,
+		store:       store,
+		serverNames: serverNames,
+	}
+	if err := a.step(); err != nil {
+		return nil, fmt.Errorf("Failed to create packages.AllInfo: %s", err)
+	}
+	go func() {
+		for _ = range time.Tick(1 * time.Minute) {
+			if err := a.step(); err != nil {
+				glog.Errorf("Failed to update AllInfo: %s", err)
+			}
+		}
+	}()
+	return a, nil
+}
+
+func (a *AllInfo) step() error {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	var err error
+	a.allInstalled, err = allInstalled(a.client, a.store, a.serverNames)
+	if err != nil {
+		return err
+	}
+	a.allAvailable, err = AllAvailable(a.store)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *AllInfo) AllAvailable() map[string][]*Package {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+
+	return a.allAvailable
+}
+
+// AllAvailableByPackageName returns all known packages for all applications
+// uploaded to gs://skia-push/debs/. They are mapped by the package name.
+func (a *AllInfo) AllAvailableByPackageName() map[string]*Package {
+	allAvailable := a.AllAvailable()
+	ret := map[string]*Package{}
+	for _, ps := range allAvailable {
+		for _, p := range ps {
+			ret[p.Name] = p
+		}
+	}
+	return ret
+}
+
+// PutInstalled writes a new list of installed packages for the given server.
+func (a *AllInfo) PutInstalled(serverName string, packages []string, generation int64) error {
+	b, err := json.Marshal(packages)
+	if err != nil {
+		return fmt.Errorf("Failed to encode installed packages: %s", err)
+	}
+	buf := bytes.NewBuffer(b)
+	req := a.store.Objects.Insert("skia-push", &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf)
+	if generation != -1 {
+		req = req.IfGenerationMatch(generation)
+	}
+	if _, err = req.Do(); err != nil {
+		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", serverName, err)
+	}
+	return a.step()
+}
+
+func (a *AllInfo) AllInstalled() map[string]*Installed {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+
+	return a.allInstalled
+}
+
+// allInstalled returns a map of all known server names to their list of installed package names.
+func allInstalled(client *http.Client, store *storage.Service, names []string) (map[string]*Installed, error) {
+	ret := map[string]*Installed{}
+	for _, name := range names {
+		p, err := InstalledForServer(client, store, name)
+		if err != nil {
+			glog.Errorf("Failed to retrieve remote package list: %s", err)
+		}
+		ret[name] = p
+	}
+	return ret, nil
 }
 
 func safeGetTime(m map[string]string, key string) time.Time {
@@ -186,36 +286,6 @@ func InstalledForServer(client *http.Client, store *storage.Service, serverName 
 	ret.Generation = obj.Generation
 
 	return ret, nil
-}
-
-// AllInstalled returns a map of all known server names to their list of installed package names.
-func AllInstalled(client *http.Client, store *storage.Service, names []string) (map[string]*Installed, error) {
-	ret := map[string]*Installed{}
-	for _, name := range names {
-		p, err := InstalledForServer(client, store, name)
-		if err != nil {
-			glog.Errorf("Failed to retrieve remote package list: %s", err)
-		}
-		ret[name] = p
-	}
-	return ret, nil
-}
-
-// PutInstalled writes a new list of installed packages for the given server.
-func PutInstalled(store *storage.Service, client *http.Client, serverName string, packages []string, generation int64) error {
-	b, err := json.Marshal(packages)
-	if err != nil {
-		return fmt.Errorf("Failed to encode installed packages: %s", err)
-	}
-	buf := bytes.NewBuffer(b)
-	req := store.Objects.Insert("skia-push", &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf)
-	if generation != -1 {
-		req = req.IfGenerationMatch(generation)
-	}
-	if _, err = req.Do(); err != nil {
-		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", serverName, err)
-	}
-	return nil
 }
 
 // FromLocalFile loads a list of installed debian package names from a local file.

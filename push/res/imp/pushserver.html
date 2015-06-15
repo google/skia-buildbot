@@ -252,11 +252,11 @@ Displays the server configurations, along with the ability to modify application
     },
 
     servicesOf: function(installed) {
-      var package = this.packageLookup[installed];
-      if (!package) {
+      var p = this.packageLookup[installed];
+      if (!p) {
         return [];
       }
-      return package.Services;
+      return p.Services;
     },
 
     statusOf: function(server, service) {
