@@ -266,7 +266,11 @@
                     <paper-radio-button name="{{filter}}" label="{{filters[filter]}}"></paper-radio-button>
                     </template>
                   </paper-radio-group>
-                  <paper-input id="builderTextFilter" value="{{builderSearch}}" label="Search">
+                  <paper-input
+                      id="builderTextFilter"
+                      value="{{builderSearch}}"
+                      label="Search"
+                      on-change="{{setFilterToSearch}}">
                   </paper-input>
                 </th>
                 <th class="header"><!-- Commit message --></th>
@@ -1197,6 +1201,10 @@
         this.setBuilderWidth();
       },
 
+      setFilterToSearch: function() {
+        this.builderFilter = "search";
+      },
+
       builderSearchChanged: function() {
         // This callback fires every time the user presses a key inside the
         // input box. Updating the display can be really slow when there are
@@ -1209,15 +1217,9 @@
         this.builderSearchChangedTimeout = window.setTimeout(function() {
           that.builderSearchChangedTimeout = null;
 
-          // If "search" is already selected, the on-change event for
-          // this.builderFilter doesn't trigger. We have to trigger it.
-          var forceChanged = false;
+          // If "search" is already selected, filter the builders.
           if (that.builderFilter == "search") {
-            forceChanged = true;
-          }
-          that.builderFilter = "search";
-          if (forceChanged) {
-            that.builderFilterChanged();
+            that.filterBuilders();
           }
         }, 600);
       },
