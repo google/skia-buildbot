@@ -307,7 +307,7 @@
                             <template if="{{allBuilders[b].flaky}}">
                               <core-icon class="tiny" icon="image:texture" alt="This builder is marked as flaky."></core-icon>
                             </template>
-                            <template if="{{allBuilders[b].message}}">
+                            <template if="{{allBuilders[b].comments.length > 0}}">
                               <core-icon class="tiny" icon="communication:chat" alt="This builder has a comment."></core-icon>
                             </template>
                           </a>
@@ -1060,15 +1060,24 @@
               if (!builds[builder]) {
                 // This is the first time we've seen this builder.
                 builds[builder] = {};
-                var builderDetails = json.builders[builder] || {builder: builder};
-                builderDetails.master = build.master;
-                // We're traveling backward in time, so the first build we
-                // find for a given builder is its most recent.
-                builderDetails.color = build.color;
+                var builderDetails = {
+                    "comments": json.builders[builder] || [],
+                    "builder": builder,
+                    "master": build.master,
+                    // We're traveling backward in time, so the first build we
+                    // find for a given builder is its most recent.
+                    "color": build.color,
+                    "flaky": false,
+                    "ignoreFailure": false,
+                };
                 var split = builder.split("-");
                 if (split.length > 2) {
                   builderDetails.category = split[0];
                   builderDetails.subcategory = split[1];
+                }
+                if (builderDetails.comments.length > 0) {
+                  builderDetails.flaky = !!builderDetails.comments[builderDetails.comments.length-1].flaky;
+                  builderDetails.ignoreFailure = !!builderDetails.comments[builderDetails.comments.length-1].ignoreFailure
                 }
                 builders[builder] = builderDetails;
               }

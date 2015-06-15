@@ -228,8 +228,8 @@ func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("addBuilderStatusHandler").Stop()
+func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("addBuilderCommentHandler").Stop()
 	if !userHasEditRights(r) {
 		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
@@ -241,27 +241,50 @@ func addBuilderStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	builder := mux.Vars(r)["builder"]
 
-	status := struct {
+	comment := struct {
 		Comment       string `json:"comment"`
 		Flaky         bool   `json:"flaky"`
 		IgnoreFailure bool   `json:"ignoreFailure"`
 	}{}
-	if err := json.NewDecoder(r.Body).Decode(&status); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
 	defer util.Close(r.Body)
 
-	s := buildbot.BuilderStatus{
+	c := buildbot.BuilderComment{
 		Builder:       builder,
 		User:          login.LoggedInAs(r),
 		Timestamp:     float64(time.Now().UTC().Unix()),
-		Flaky:         status.Flaky,
-		IgnoreFailure: status.IgnoreFailure,
-		Message:       status.Comment,
+		Flaky:         comment.Flaky,
+		IgnoreFailure: comment.IgnoreFailure,
+		Message:       comment.Comment,
 	}
-	if err := cache.SetBuilderStatus(builder, &s); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to set builder status: %v", err))
+	if err := cache.AddBuilderComment(builder, &c); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to add builder comment: %v", err))
+		return
+	}
+}
+
+func deleteBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("deleteBuilderCommentHandler").Stop()
+	if !userHasEditRights(r) {
+		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	cache, err := getCommitCache(w, r)
+	if err != nil {
+		return
+	}
+	builder := mux.Vars(r)["builder"]
+	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
+		return
+	}
+	if err := cache.DeleteBuilderComment(builder, int(commentId)); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
 }
@@ -518,7 +541,8 @@ func runServer(serverURL string) {
 	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
 	builds.HandleFunc("/comments/{commentId:[0-9]+}", deleteBuildCommentHandler).Methods("DELETE")
 	builders := r.PathPrefix("/json/{repo}/builders/{builder}").Subrouter()
-	builders.HandleFunc("/status", addBuilderStatusHandler).Methods("POST")
+	builders.HandleFunc("/comments", addBuilderCommentHandler).Methods("POST")
+	builders.HandleFunc("/comments/{commentId:[0-9]+}", deleteBuilderCommentHandler).Methods("DELETE")
 	commits := r.PathPrefix("/json/{repo}/commits").Subrouter()
 	commits.HandleFunc("/", commitsJsonHandler)
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")

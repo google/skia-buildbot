@@ -36,12 +36,12 @@ func skipBot(b string) bool {
 type BuildCache struct {
 	byId     map[int]*buildbot.Build
 	byCommit map[string]map[string]*buildbot.BuildSummary
-	builders map[string]*buildbot.BuilderStatus
+	builders map[string][]*buildbot.BuilderComment
 	mutex    sync.RWMutex
 }
 
 // LoadData loads the build data for the given commits.
-func LoadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]*buildbot.BuildSummary, map[string]*buildbot.BuilderStatus, error) {
+func LoadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]*buildbot.BuildSummary, map[string][]*buildbot.BuilderComment, error) {
 	defer timer.New("build_cache.LoadData()").Stop()
 	builds, err := buildbot.GetBuildsForCommits(commits, nil)
 	if err != nil {
@@ -65,18 +65,18 @@ func LoadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]
 	for b, _ := range builders {
 		builderList = append(builderList, b)
 	}
-	builderStatuses, err := buildbot.GetBuilderStatuses(builderList)
+	builderComments, err := buildbot.GetBuildersComments(builderList)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	return byId, byCommit, builderStatuses, nil
+	return byId, byCommit, builderComments, nil
 }
 
 // UpdateWithData replaces the contents of the BuildCache with the given
 // data. Not intended to be used by consumers of BuildCache, but exists to
 // allow for loading and storing the cache data separately so that the cache
 // may be locked for the minimum amount of time.
-func (c *BuildCache) UpdateWithData(byId map[int]*buildbot.Build, byCommit map[string]map[string]*buildbot.BuildSummary, builders map[string]*buildbot.BuilderStatus) {
+func (c *BuildCache) UpdateWithData(byId map[int]*buildbot.Build, byCommit map[string]map[string]*buildbot.BuildSummary, builders map[string][]*buildbot.BuilderComment) {
 	defer timer.New("  BuildCache locked").Stop()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -86,10 +86,10 @@ func (c *BuildCache) UpdateWithData(byId map[int]*buildbot.Build, byCommit map[s
 }
 
 // GetBuildsForCommits returns the build data for the given commits.
-func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[string]*buildbot.BuildSummary, map[string]*buildbot.BuilderStatus, error) {
+func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[string]*buildbot.BuildSummary, map[string][]*buildbot.BuilderComment, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	builders := map[string]*buildbot.BuilderStatus{}
+	builders := map[string][]*buildbot.BuilderComment{}
 	for k, v := range c.builders {
 		builders[k] = v
 	}
@@ -123,11 +123,11 @@ func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[strin
 	for b, _ := range missingBuilders {
 		missingBuilderList = append(missingBuilderList, b)
 	}
-	missingStatuses, err := buildbot.GetBuilderStatuses(missingBuilderList)
+	missingComments, err := buildbot.GetBuildersComments(missingBuilderList)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to load missing builder statuses: %v", err)
+		return nil, nil, fmt.Errorf("Failed to load missing builder comments: %v", err)
 	}
-	for b, s := range missingStatuses {
+	for b, s := range missingComments {
 		builders[b] = s
 	}
 	return byCommit, builders, nil
@@ -152,16 +152,34 @@ func (c *BuildCache) Get(id int) (*buildbot.Build, error) {
 	return nil, fmt.Errorf("No such build: %d", id)
 }
 
-// SetBuilderStatus sets a status for the given builder.
-func (c *BuildCache) SetBuilderStatus(builder string, status *buildbot.BuilderStatus) error {
+// AddBuilderComment adds a comment for the given builder.
+func (c *BuildCache) AddBuilderComment(builder string, comment *buildbot.BuilderComment) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	id, err := status.InsertIntoDB()
-	if err != nil {
+	if err := comment.InsertIntoDB(); err != nil {
 		return err
 	}
-	status.Id = id
-	c.builders[builder] = status
+	c.builders[builder] = append(c.builders[builder], comment)
+	return nil
+}
+
+// DeleteBuilderComment deletes the given comment.
+func (c *BuildCache) DeleteBuilderComment(builder string, commentId int) error {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	idx := -1
+	for i, comment := range c.builders[builder] {
+		if comment.Id == commentId {
+			idx = i
+		}
+	}
+	if idx == -1 {
+		return fmt.Errorf("No such comment")
+	}
+	if err := buildbot.DeleteBuilderComment(commentId); err != nil {
+		return err
+	}
+	c.builders[builder] = append(c.builders[builder][:idx], c.builders[builder][idx+1:]...)
 	return nil
 }
 

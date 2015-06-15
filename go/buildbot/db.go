@@ -741,59 +741,74 @@ func NumIngestedBuilds() (int, error) {
 	return i, nil
 }
 
-// GetLastBuilderStatus returns the last status for the given builder.
-func GetBuilderStatus(builder string) (*BuilderStatus, error) {
-	s := BuilderStatus{}
-	if err := DB.Get(&s, fmt.Sprintf("SELECT * FROM %s WHERE builder = ? ORDER BY id DESC LIMIT 1;", TABLE_BUILDER_STATUS), builder); err != nil {
+// GetBuilderComments returns the comments for the given builder.
+func GetBuilderComments(builder string) ([]*BuilderComment, error) {
+	c := []*BuilderComment{}
+	stmt := fmt.Sprintf("SELECT * FROM %s WHERE builder = ?;", TABLE_BUILDER_COMMENTS)
+	if err := DB.Get(&c, stmt, builder); err != nil {
 		if err == sql.ErrNoRows {
-			// No status for this builder, just return nil with no error.
-			return nil, nil
+			// No comments for this builder, just return an empty slice with no error.
+			return c, nil
 		}
-		return nil, fmt.Errorf("Unable to retrieve builder status: %v", err)
+		return nil, fmt.Errorf("Unable to retrieve builder comments: %v", err)
 	}
-	return &s, nil
+	return c, nil
 }
 
-// GetBuilderStatuses returns the last status for each of the given builders.
-func GetBuilderStatuses(builders []string) (map[string]*BuilderStatus, error) {
+// GetBuildersComments returns the comments for each of the given builders.
+func GetBuildersComments(builders []string) (map[string][]*BuilderComment, error) {
 	if len(builders) == 0 {
-		return map[string]*BuilderStatus{}, nil
+		return map[string][]*BuilderComment{}, nil
 	}
 	buildersInterface := make([]interface{}, 0, len(builders))
 	for _, b := range builders {
 		buildersInterface = append(buildersInterface, b)
 	}
 	tmpl := util.RepeatJoin("?", ",", len(buildersInterface))
-	s := []*BuilderStatus{}
-	if err := DB.Select(&s, fmt.Sprintf("SELECT * FROM %s WHERE id IN (SELECT MAX(id) FROM %s WHERE builder IN (%s) GROUP BY builder);", TABLE_BUILDER_STATUS, TABLE_BUILDER_STATUS, tmpl), buildersInterface...); err != nil {
+	c := []*BuilderComment{}
+	stmt := fmt.Sprintf("SELECT * FROM %s WHERE builder IN (%s);", TABLE_BUILDER_COMMENTS, tmpl)
+	if err := DB.Select(&c, stmt, buildersInterface...); err != nil {
 		if err == sql.ErrNoRows {
-			// None of these builders have statuses.
-			return map[string]*BuilderStatus{}, nil
+			// None of these builders have comments.
+			return map[string][]*BuilderComment{}, nil
 		}
-		return nil, fmt.Errorf("Unable to retrieve statuses for builders: %v", err)
+		return nil, fmt.Errorf("Unable to retrieve comment for builders: %v", err)
 	}
-	rv := map[string]*BuilderStatus{}
-	for _, status := range s {
-		rv[status.Builder] = status
+	rv := map[string][]*BuilderComment{}
+	for _, comment := range c {
+		if _, ok := rv[comment.Builder]; !ok {
+			rv[comment.Builder] = []*BuilderComment{}
+		}
+		rv[comment.Builder] = append(rv[comment.Builder], comment)
 	}
 	return rv, nil
 }
 
-// InsertIntoDB inserts the BuilderStatus into the database.
-func (s *BuilderStatus) InsertIntoDB() (int, error) {
-	if s.Id != 0 {
-		return -1, fmt.Errorf("BuilderStatus has non-zero ID %d; has it already been inserted?", s.Id)
+// InsertIntoDB inserts the BuilderComment into the database.
+func (c *BuilderComment) InsertIntoDB() error {
+	if c.Id != 0 {
+		return fmt.Errorf("BuilderComment has non-zero ID %d; has it already been inserted?", c.Id)
 	}
-	res, err := DB.Exec(fmt.Sprintf("INSERT INTO %s (builder,user,timestamp,flaky,ignoreFailure,message) VALUES (?,?,?,?,?,?);", TABLE_BUILDER_STATUS), s.Builder, s.User, s.Timestamp, s.Flaky, s.IgnoreFailure, s.Message)
+	stmt := fmt.Sprintf("INSERT INTO %s (builder,user,timestamp,flaky,ignoreFailure,message) VALUES (?,?,?,?,?,?);", TABLE_BUILDER_COMMENTS)
+	res, err := DB.Exec(stmt, c.Builder, c.User, c.Timestamp, c.Flaky, c.IgnoreFailure, c.Message)
 	if err != nil {
-		return -1, fmt.Errorf("Unable to insert builder status: %v", err)
+		return fmt.Errorf("Unable to insert builder status: %v", err)
 	}
 	id, err := res.LastInsertId()
 	if err != nil {
-		return -1, fmt.Errorf("Unable to get last insert ID: %v", err)
+		return fmt.Errorf("Unable to get last insert ID: %v", err)
 	}
-	s.Id = int(id)
-	return s.Id, nil
+	c.Id = int(id)
+	return nil
+}
+
+// DeleteBuilderComment deletes the BuilderComment from the database.
+func DeleteBuilderComment(id int) error {
+	stmt := fmt.Sprintf("DELETE FROM %s WHERE id = ?", TABLE_BUILDER_COMMENTS)
+	if _, err := DB.Exec(stmt, id); err != nil {
+		return fmt.Errorf("Failed to delete builder comment: %v", err)
+	}
+	return nil
 }
 
 // GetCommitComments returns the comments on the given commit.

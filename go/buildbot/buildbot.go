@@ -69,8 +69,8 @@ type BuildComment struct {
 	Message   string  `db:"message"   json:"message"`
 }
 
-// BuilderStatus contains status information about a builder.
-type BuilderStatus struct {
+// BuilderComment contains a comment about a builder.
+type BuilderComment struct {
 	Id            int     `db:"id"            json:"id"`
 	Builder       string  `db:"builder"       json:"builder"`
 	User          string  `db:"user"          json:"user"`

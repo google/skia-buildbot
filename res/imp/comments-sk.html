@@ -27,6 +27,9 @@
     addCommentUrl: URL which accepts POST requests for adding comments.
     allowEmptyComments: Whether or not to allow empty comments.
     allowDelete: Whether or not to allow deletion of comments.
+    extraFields: Additional fields which are part of a comment. Array of
+        objects with attributes 'name', 'label', and 'type'. Valid values of
+        'type' are 'bool' and 'text'.
 
   Methods:
     collapse: Hides comments when there are more than `collapseThreshold`
@@ -39,11 +42,18 @@
         has been inserted. Therefore, the 'submit' event may be used to reload
         the comments from the database.
 -->
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html" />
+<link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html" />
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html" />
+<link rel="import" href="/res/imp/bower_components/paper-toast/paper-toast.html" />
 <polymer-element name="comments-sk">
   <template>
     <style>
     .viewlink {
       font-size: 0.7em;
+    }
+    table {
+      width: 100%;
     }
     td {
       padding: 5px;
@@ -63,10 +73,28 @@
       <template repeat="{{comment, index in comments}}">
         <template if="{{!collapsed || index >= comments.length - collapseThreshold}}">
           <tr class="comment">
-            <template if="{{comment.time && comment.user && comment.message}}">
+            <template if="{{comment.time && comment.user}}">
               <td class="commentCell">{{comment.time|parseDate}}</td>
               <td class="commentCell">{{comment.user}}</td>
               <td class="commentCell">{{comment.message}}</td>
+              <template repeat="{{field in extraFields}}">
+                <td class="commentCell">
+                  <template if="{{field.type == 'bool'}}">
+                    <paper-checkbox
+                        label="{{field.label}}"
+                        checked?="{{comment[field.name]}}"
+                        disabled>
+                    </paper-checkbox>
+                  </template>
+                  <template if="{{field.type == 'text'}}">
+                    <paper-input
+                        label="{{field.label}}"
+                        value="{{comment[field.name]}}"
+                        disabled>
+                    </paper-input>
+                  </template>
+                </td>
+              </template>
               <template if="{{editRights && allowDelete}}">
                 <td class="commentCell">
                   <core-icon-button icon="clear" x-data="{{comment.id}}" on-click="{{deleteComment}}"></core-icon-button>
@@ -76,14 +104,38 @@
           </tr>
         </template>
       </template>
+      <template if="{{editRights}}">
+        <tr>
+          <td class="commentCell" colspan="3">
+            <paper-input
+                id="commentBox"
+                label="Comment"
+                value="{{commentText}}"
+                style="width: 100%">
+            </paper-input>
+          </td>
+          <template repeat="{{field in extraFields}}">
+            <td class="commentCell">
+              <template if="{{field.type == 'bool'}}">
+                <paper-checkbox
+                    id="extraField_{{field.name}}"
+                    label="{{field.label}}">
+                </paper-checkbox>
+              </template>
+              <template if="{{field.type == 'text'}}">
+                <paper-input
+                    id="extraField_{{field.name}}"
+                    label="{{field.label}}">
+                </paper-input>
+              </template>
+            </td>
+          </template>
+          <td class="commentCell">
+            <paper-button on-click="{{addComment}}">submit</paper-button>
+          </td>
+        </tr>
+      </template>
     </table>
-    <content id="content"></content>
-    <template if="{{editRights}}">
-      <div horizontal layout>
-        <paper-input id="commentBox" label="comment" value="{{commentText}}" flex></paper-input>
-        <paper-button on-click="{{addComment}}">submit</paper-button>
-      </div>
-    </template>
     <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
   </template>
   <script>
@@ -115,6 +167,10 @@
         },
         allowEmptyComments: {
           value: false,
+          reflect: true,
+        },
+        extraFields: {
+          value: [],
           reflect: true,
         },
       },
@@ -175,15 +231,16 @@
         }
 
         var params = {};
-        for (var i = 0; i < this.children.length; i++) {
-          var child = this.children[i];
-          if (child.id) {
-            if (child.value != undefined) {
-              params[child.id] = child.value;
-            } else if (child.checked != undefined) {
-              params[child.id] = child.checked ? true : false;
-            }
+        for (var i = 0; i < this.extraFields.length; i++) {
+          var field = this.extraFields[i];
+          var valElem = this.shadowRoot.querySelector("#extraField_" + field.name);
+          var value = null;
+          if (field.type == "bool") {
+            value = valElem.checked;
+          } else {
+            value = valElem.value;
           }
+          params[field.name] = value;
         }
         params["comment"] = this.commentText;
 

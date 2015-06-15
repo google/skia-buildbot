@@ -46,10 +46,13 @@
       </tr>
     </table>
     <hr/>
-    Status:<br/>
-    <comments-sk comments="{{[builder]}}" addCommentUrl="/json/{{repo}}/builders/{{builder.builder}}/status" on-submit="{{commentAdded}}" allowEmptyComments>
-      <paper-checkbox id="flaky" label="Flaky" checked?="{{builder.flaky}}" disabled?="{{!editRights}}"></paper-checkbox>
-      <paper-checkbox id="ignoreFailure" label="Ignore Failure" checked?="{{builder.ignoreFailure}}" disabled?="{{!editRights}}"></paper-checkbox>
+    <comments-sk
+        comments="{{builder.comments}}"
+        addCommentUrl="/json/{{repo}}/builders/{{builder.builder}}/comments"
+        on-submit="{{commentAdded}}"
+        extraFields="{{extraFields}}"
+        allowDelete
+        allowEmptyComments>
     </comments-sk>
   </template>
   <script>
@@ -67,6 +70,17 @@
           value: "skia",
           reflect: true,
         },
+      },
+
+      created: function() {
+        this.extraFields = [
+          { name: "flaky",
+            label: "Flaky",
+            type: "bool", },
+          { name: "ignoreFailure",
+            label: "Ignore Failure",
+            type: "bool", },
+        ];
       },
 
       ready: function() {

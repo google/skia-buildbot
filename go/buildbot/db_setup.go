@@ -19,8 +19,10 @@ const (
 	TABLE_BUILD_COMMENTS  = "buildComments"
 	TABLE_BUILD_REVISIONS = "buildRevisions2"
 	TABLE_BUILD_STEPS     = "buildSteps2"
-	TABLE_BUILDER_STATUS  = "builderStatus"
-	TABLE_COMMIT_COMMENTS = "commitComments"
+	// TODO(borenet): Next time we change the schema, rename this table
+	// to "builderComments".
+	TABLE_BUILDER_COMMENTS = "builderStatus"
+	TABLE_COMMIT_COMMENTS  = "commitComments"
 )
 
 var (

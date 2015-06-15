@@ -215,7 +215,7 @@ func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
 		Commits     []*gitinfo.LongCommit                        `json:"commits"`
 		BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
 		Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
-		Builders    map[string]*buildbot.BuilderStatus           `json:"builders"`
+		Builders    map[string][]*buildbot.BuilderComment        `json:"builders"`
 		StartIdx    int                                          `json:"startIdx"`
 		EndIdx      int                                          `json:"endIdx"`
 	}{
@@ -271,7 +271,12 @@ func (c *CommitCache) DeleteBuildComment(buildId, commentId int) error {
 	return c.buildCache.UpdateBuild(buildId)
 }
 
-// SetBuilderStatus sets a status for the given builder.
-func (c *CommitCache) SetBuilderStatus(builder string, status *buildbot.BuilderStatus) error {
-	return c.buildCache.SetBuilderStatus(builder, status)
+// AddBuilderComment adds a comment about the given builder.
+func (c *CommitCache) AddBuilderComment(builder string, comment *buildbot.BuilderComment) error {
+	return c.buildCache.AddBuilderComment(builder, comment)
+}
+
+// DeleteBuilderComment deletes the given comment from the given builder.
+func (c *CommitCache) DeleteBuilderComment(builder string, id int) error {
+	return c.buildCache.DeleteBuilderComment(builder, id)
 }
