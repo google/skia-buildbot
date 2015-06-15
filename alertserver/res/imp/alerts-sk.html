@@ -28,6 +28,15 @@
       font-size: 0.8em;
       padding: 15px;
     }
+    div.alertSection {
+      border: 1px solid #AAAAAA;
+      border-radius: 10px;
+      margin: 5px;
+      padding: 5px;
+    }
+    div.alertSection > h3 {
+      margin-left: 20px;
+    }
     </style>
     <div horizontal layout center id="loadstatus">
       <div>
@@ -37,9 +46,22 @@
       <div flex></div>
       <div>Last loaded at {{lastLoaded}}</div>
     </div>
-    <template repeat="{{a in alerts}}">
-      <alert-sk alert="{{a}}" compact?="{{compact}}"></alert-sk>
-    </template>
+    <div class="alertSection">
+      <h3>Active</h3>
+      <template repeat="{{a in alerts}}">
+        <template if="{{a.snoozedUntil == 0}}">
+          <alert-sk alert="{{a}}" compact?="{{compact}}"></alert-sk>
+        </template>
+      </template>
+    </div>
+    <div class="alertSection">
+      <h3>Snoozed</h3>
+      <template repeat="{{a in alerts}}">
+        <template if="{{a.snoozedUntil != 0}}">
+          <alert-sk alert="{{a}}" compact?="{{compact}}"></alert-sk>
+        </template>
+      </template>
+    </div>
   </template>
   <script>
     Polymer({
