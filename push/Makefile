@@ -14,7 +14,7 @@ default: core_js elements_html
 	go install -v ./go/push
 
 release: default
-	./build_push_release
+	./build_pushd_release
 
 pull_release: default
 	./build_pull_release
