@@ -3,7 +3,7 @@
   <head>
     <title>pulld</title>
 
-    {{template "header.html" .}}
+    {%template "header.html" .%}
 
     <style is="custom-style" type="text/css" media="screen">
       :root {
@@ -37,10 +37,13 @@
     </style>
   </head>
   <body>
-    <body class="fullbleed layout vertical">
+    <body>
       <paper-header-panel mode=scroll>
-        {{template "titlebar.html" .}}
-        <unit-list-sk header=true></unit-list-sk>
+        {%template "titlebar.html" .%}
+        {%$hostname := .Hostname%}
+        {%range .Units%}
+        <systemd-unit-status-sk machine="{%$hostname%}" service="{%.Status.Name%}"></systemd-unit-status-sk>
+        {%end%}
         <paper-toast></paper-toast>
       </paper-header-panel>
     </body>
@@ -49,7 +52,9 @@
       (function() {
         function loadData() {
           sk.get("/_/list").then(JSON.parse).then(function(json) {
-            $$$('unit-list-sk').units = json;
+            json.forEach(function(e) {
+              sk.Mailbox.send("{%$hostname%}:"+e.status.Name, e);
+            });
           }).catch(function(e){
             $$$('paper-toast').text = e;
             $$$('paper-toast').show();
@@ -57,7 +62,7 @@
         }
 
         loadData();
-        $$$('unit-list-sk').addEventListener('unit-action', function(e) {
+        document.body.addEventListener('unit-action', function(e) {
           var params = {
             name: e.detail.name,
             action: e.detail.action,

@@ -15,7 +15,7 @@
   ],
   "dependencies": {
     "native-promise-only": "~0.7.6-a",
-    "polymer": "Polymer/polymer#^1.0.2",
+    "polymer": "Polymer/polymer#^1.0.3",
     "iron-elements": "PolymerElements/iron-elements#^1.0.0",
     "paper-elements": "PolymerElements/paper-elements#^1.0.1"
   },

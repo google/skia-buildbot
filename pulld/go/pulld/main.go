@@ -6,16 +6,19 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/coreos/go-systemd/dbus"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/packages"
+	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 )
 
@@ -25,6 +28,8 @@ var (
 
 	// dbc is the dbus connection we use to talk to systemd.
 	dbc *dbus.Conn
+
+	hostname = ""
 
 	ACTIONS = []string{"start", "stop", "restart"}
 )
@@ -40,16 +45,7 @@ var (
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
-// UnitStatus is serialized to JSON in the return of propsHandler.
-type UnitStatus struct {
-	// Status is the current status of the unit.
-	Status *dbus.UnitStatus `json:"status"`
-
-	// Props is the set of unit properties returned from GetUnitTypeProperties.
-	Props map[string]interface{} `json:"props"`
-}
-
-type UnitStatusSlice []*UnitStatus
+type UnitStatusSlice []*systemd.UnitStatus
 
 func (p UnitStatusSlice) Len() int           { return len(p) }
 func (p UnitStatusSlice) Less(i, j int) bool { return p[i].Status.Name < p[j].Status.Name }
@@ -60,11 +56,16 @@ func loadResouces() {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
-	indexTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
+	indexTemplate = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
+		filepath.Join(*resourcesDir, "templates", "index.html"),
+		filepath.Join(*resourcesDir, "templates", "titlebar.html"),
+		filepath.Join(*resourcesDir, "templates", "header.html"),
 	))
+}
+
+// ChangeResult is the serialized JSON response from changeHandler.
+type ChangeResult struct {
+	Result string `json:"result"`
 }
 
 func Init() {
@@ -73,12 +74,13 @@ func Init() {
 	if err != nil {
 		glog.Fatalf("Failed to initialize dbus: %s", err)
 	}
-	loadResouces()
-}
 
-// ChangeResult is the serialized JSON response from changeHandler.
-type ChangeResult struct {
-	Result string `json:"result"`
+	hostname, err = os.Hostname()
+	if err != nil {
+		glog.Fatalf("Unable to retrieve hostname: %s", err)
+	}
+
+	loadResouces()
 }
 
 // changeHandler changes the status of a service.
@@ -95,7 +97,6 @@ type ChangeResult struct {
 //   }
 //
 func changeHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Change Handler: %q\n", r.URL.Path)
 	var err error
 
 	if err := r.ParseForm(); err != nil {
@@ -141,8 +142,8 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // serviceOnly returns only units that are services.
-func serviceOnly(units []*UnitStatus) []*UnitStatus {
-	ret := []*UnitStatus{}
+func serviceOnly(units []*systemd.UnitStatus) []*systemd.UnitStatus {
+	ret := []*systemd.UnitStatus{}
 	for _, u := range units {
 		if strings.HasSuffix(u.Status.Name, ".service") {
 			ret = append(ret, u)
@@ -152,8 +153,8 @@ func serviceOnly(units []*UnitStatus) []*UnitStatus {
 }
 
 // filterService returns only units with names in filter.
-func filterService(units []*UnitStatus, filter map[string]bool) []*UnitStatus {
-	ret := []*UnitStatus{}
+func filterService(units []*systemd.UnitStatus, filter map[string]bool) []*systemd.UnitStatus {
+	ret := []*systemd.UnitStatus{}
 	for _, u := range units {
 		if filter[u.Status.Name] {
 			ret = append(ret, u)
@@ -163,7 +164,7 @@ func filterService(units []*UnitStatus, filter map[string]bool) []*UnitStatus {
 }
 
 // filterUnits fitlers down the units to only the interesting ones.
-func filterUnits(units []*UnitStatus) []*UnitStatus {
+func filterUnits(units []*systemd.UnitStatus) []*systemd.UnitStatus {
 	units = serviceOnly(units)
 	sort.Sort(UnitStatusSlice(units))
 
@@ -185,48 +186,42 @@ func filterUnits(units []*UnitStatus) []*UnitStatus {
 	return filterService(units, allServices)
 }
 
-// serviceByName returns the status for the named unit.
-func serviceByName(units []dbus.UnitStatus, name string) *dbus.UnitStatus {
-	for _, u := range units {
-		if u.Name == name {
-			return &u
-		}
-	}
-	return nil
-}
-
-// listHandler returns the list of units.
-func listHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("List Handler: %q\n", r.URL.Path)
+func listUnits() ([]*systemd.UnitStatus, error) {
 	unitStatus, err := dbc.ListUnits()
-	units := make([]*UnitStatus, 0, len(unitStatus))
-	for _, st := range unitStatus {
-		units = append(units, &UnitStatus{
-			Status: &st,
-		})
-	}
-
-	if err != nil {
+	units := make([]*systemd.UnitStatus, 0, len(unitStatus))
+	if err == nil {
+		for _, st := range unitStatus {
+			cpst := st
+			units = append(units, &systemd.UnitStatus{
+				Status: &cpst,
+			})
+		}
+	} else {
 		if *local {
 			// If running locally the above will fail because we aren't on systemd
 			// yet, so return some dummy data.
-			units = []*UnitStatus{
-				&UnitStatus{
+			units = []*systemd.UnitStatus{
+				&systemd.UnitStatus{
 					Status: &dbus.UnitStatus{
 						Name:     "test.service",
 						SubState: "running",
 					},
+					Props: map[string]interface{}{
+						"ExecMainStartTimestamp": time.Now().Add(-5*time.Minute).Unix() * 1000000,
+					},
 				},
-				&UnitStatus{
+				&systemd.UnitStatus{
 					Status: &dbus.UnitStatus{
 						Name:     "something.service",
 						SubState: "halted",
 					},
+					Props: map[string]interface{}{
+						"ExecMainStartTimestamp": time.Now().Add(-2*time.Hour).Unix() * 1000000,
+					},
 				},
 			}
 		} else {
-			util.ReportError(w, r, err, "Failed to list units.")
-			return
+			return nil, fmt.Errorf("Failed to list units: %s", err)
 		}
 	}
 	if !*local {
@@ -240,6 +235,16 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+	return units, nil
+}
+
+// listHandler returns the list of units.
+func listHandler(w http.ResponseWriter, r *http.Request) {
+	units, err := listUnits()
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to list units.")
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(units); err != nil {
@@ -247,50 +252,29 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// propsHandler returns the properties of the requested service unit.
-//
-// Query parameters:
-//
-//    service - The name of the service, such as "pulld.service".
-//
-func propsHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Properties Handler: %q\n", r.URL.Path)
-	var err error
-
-	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse form.")
-		return
-	}
-	service := r.Form.Get("service")
-	props, err := dbc.GetUnitTypeProperties(service, "Service")
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to list properties.")
-	}
-	units, err := dbc.ListUnits()
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to list unit status.")
-	}
-	status := serviceByName(units, service)
-
-	ret := UnitStatus{
-		Status: status,
-		Props:  props,
-	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(ret); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
-	}
+// IndexBody is the context for evaluating the index.html template.
+type IndexBody struct {
+	Hostname string
+	Units    []*systemd.UnitStatus
 }
 
 // mainHandler handles the GET of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Main Handler: %q\n", r.URL.Path)
 	if r.Method == "GET" {
 		if *local {
 			loadResouces()
 		}
+		units, err := listUnits()
+		if err != nil {
+			util.ReportError(w, r, err, "Failed to list units.")
+			return
+		}
+		context := &IndexBody{
+			Hostname: hostname,
+			Units:    units,
+		}
 		w.Header().Set("Content-Type", "text/html")
-		if err := indexTemplate.Execute(w, struct{}{}); err != nil {
+		if err := indexTemplate.ExecuteTemplate(w, "index.html", context); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
 	}
@@ -305,7 +289,6 @@ func main() {
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler).Methods("GET")
 	r.HandleFunc("/_/list", listHandler).Methods("GET")
-	r.HandleFunc("/_/props", propsHandler).Methods("GET")
 	r.HandleFunc("/_/change", changeHandler).Methods("POST")
 	r.HandleFunc("/pullpullpull", pullHandler)
 	http.Handle("/", util.LoggingGzipRequestResponse(r))

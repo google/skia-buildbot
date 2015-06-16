@@ -9,7 +9,7 @@ Displays the server configurations, along with the ability to modify application
         {
           Name: 'skia-monitoring',
           Installed: [
-            'pull/pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-08T02:09:58Z:79f6b17ea316c5d877f4f1e3fa9c7a4ea950916c.deb',
+            'pull:jcgregorio@jcgregorio.cnc.corp.google.com:2014-12-08T02:09:58Z:79f6b17ea316c5d877f4f1e3fa9c7a4ea950916c.deb',
             'logserver/',
           ]
         },
@@ -107,12 +107,12 @@ Displays the server configurations, along with the ability to modify application
     }
   </style>
   <template>
-    <div id=list>
+    <div on-tap="editClicked">
       <template is="dom-repeat" items="{{servers}}" as=server>
         <section>
           <h2>{{server.Name}}</h2>
-            [<a target=_blank href$="{{monURI(server.Name)}}">mon</a>]
-            [<a target=_blank href$="{{logsURI(server.Name)}}">logs</a>]
+          [<a target=_blank href$="{{monURI(server.Name)}}">mon</a>]
+          [<a target=_blank href$="{{logsURI(server.Name)}}">logs</a>]
           <table>
             <template is="dom-repeat" items="{{server.Installed}}" as="installed">
               <tr>
@@ -126,21 +126,20 @@ Displays the server configurations, along with the ability to modify application
                 <td><iron-icon icon$="{{warnIfDirty(installed)}}" title="Uncommited changes when the package was built."></iron-icon></td>
                 <td>
                   <table>
-                    <template is="dom-repeat"  items="{{servicesOf(installed)}}" as="service">
+                    <template is="dom-repeat" items="{{servicesOf(installed)}}" as="service">
                       <tr>
-                        <td class=service>{{service}}</td>
-                        <td class=status><unit-status-sk status="{{statusOf(server.Name,service)}}"></unit-status-sk></td>
-                        <td class=uptime>{{uptimeOf(server.Name,service)}}</td>
+                        <systemd-unit-status-sk machine="{{server.Name}}" service="{{service}}"></systemd-unit-status-sk>
                       </tr>
                     </template>
                   </table>
                 </td>
+              </tr>
             </template>
           </table>
         </section>
       </template>
+      <push-selection-sk id=extChooser></push-selection-sk>
     </div>
-    <push-selection-sk id=extChooser></push-selection-sk>
   </template>
 </dom-module>
 <script>
@@ -171,42 +170,37 @@ Displays the server configurations, along with the ability to modify application
     },
 
     ready: function() {
-      var that = this;
-      this.$.list.addEventListener('click', function(e) {
-        that.server = '';
-        var id = '';
-        var app = '';
-        var button = sk.findParent(e.target, "PAPER-BUTTON");
-        if (button == null) {
-          return
-        }
-        that.server = button.dataset.server;
-        id = button.dataset.name;
-        app = button.dataset.app;
-        if (app != "") {
-          that.$.extChooser.choices = that.packages[app];
-          that.$.extChooser.choice = id;
-          that.$.extChooser.toggle();
-        }
-      });
-
       // When the push-selection-sk dialog notifies us of a selection
       // we fill in some more details and pass that along as another
       // CustomEvent.
       this.$.extChooser.addEventListener('change-package', function(e) {
         var detail = {
           name:   e.detail.name,
-          server: that.server
+          server: this.server
         };
-        that.dispatchEvent(new CustomEvent('change-package', {detail: detail}));
-      });
+        this.dispatchEvent(new CustomEvent('change-package', {detail: detail}));
+      }.bind(this));
     },
 
-    setConfig: function(servers, packages, ip, status) {
+    editClicked: function(e) {
+      var button = sk.findParent(e.target, "PAPER-BUTTON");
+      if (button == null || !button.dataset.server) {
+        return
+      }
+      this.server = button.dataset.server;
+      var id = button.dataset.name;
+      var app = button.dataset.app;
+      if (app != "") {
+        this.$.extChooser.choices = this.packages[app];
+        this.$.extChooser.choice = id;
+        this.$.extChooser.toggle();
+      }
+    },
+
+    setConfig: function(servers, packages, ip) {
       this.servers = servers;
       this.packages = packages;
       this.ip = ip;
-      this.status = status;
       for (appName in this.packages) {
         var that = this;
         var latest = true;
@@ -257,24 +251,6 @@ Displays the server configurations, along with the ability to modify application
         return [];
       }
       return p.Services;
-    },
-
-    statusOf: function(server, service) {
-      var status = this.status[server+":"+service];
-      if (!status) {
-        return '[unknown]';
-      }
-      return status.status.Substate;
-    },
-
-    uptimeOf: function(server, service) {
-      var status = this.status[server+":"+service];
-      if (!status) {
-        return '[unknown]';
-      }
-      // ExecMainStartTimestamp is in microseconds, convert to milliseconds
-      // before calling diffDate.
-      return sk.human.diffDate(status.props.ExecMainStartTimestamp/1000);
     },
 
     monURI: function(name) {

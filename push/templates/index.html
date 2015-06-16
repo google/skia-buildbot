@@ -59,30 +59,35 @@
     </paper-header-panel>
 
     <script type="text/javascript" charset="utf-8">
-      (function() {
-
-        var p  = new Promise(function(resolve, reject) {
-          window.addEventListener('WebComponentsReady', resolve);
+      sk.get("/_/state").then(JSON.parse).then(function(json) {
+        $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip);
+        Object.keys(json.status).forEach(function(service) {
+          sk.Mailbox.send(service, json.status[service]);
         });
+      });
 
-        p.then(function() {
-          sk.get("/json/").then(JSON.parse).then(function(json) {
-            $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip, json.status);
-          });
-          $$$('push-server-sk').addEventListener('change-package', function(e) {
-            var body = {
-              Name: e.detail.name,
-              Server: e.detail.server
-            };
-            sk.post("/json/", JSON.stringify(body)).then(JSON.parse).then(function(json) {
-              $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip);
-            }).catch(function(e){
-              $$$('paper-toast').text = e;
-              $$$('paper-toast').show();
-            });
-          });
+      $$$('push-server-sk').addEventListener('change-package', function(e) {
+        var body = {
+          Name: e.detail.name,
+          Server: e.detail.server
+        };
+        sk.post("/_/state", JSON.stringify(body)).then(JSON.parse).then(function(json) {
+          $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip);
+        }).catch(function(e){
+          $$$('paper-toast').text = e;
+          $$$('paper-toast').show();
         });
-      })();
+      });
+
+      $$$('push-server-sk').addEventListener('unit-action', function(e) {
+        sk.post("/_/change?" + sk.query.fromObject(e.detail), "").then(JSON.parse).then(function(json) {
+          $$$('paper-toast').text = json.result;
+          $$$('paper-toast').show();
+        }).catch(function(e) {
+          $$$('paper-toast').text = e;
+          $$$('paper-toast').show();
+        });
+      });
     </script>
   </body>
 </html>

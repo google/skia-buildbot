@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
 	"path/filepath"
 	"runtime"
@@ -17,7 +18,6 @@ import (
 	"code.google.com/p/google-api-go-client/compute/v1"
 	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/BurntSushi/toml"
-	"github.com/coreos/go-systemd/dbus"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/packages"
+	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 )
 
@@ -172,6 +173,15 @@ func (i *IPAddresses) Get() map[string]string {
 	return i.ip
 }
 
+// Resolve the server name to an ip address, but only if running locally.
+func (i *IPAddresses) Resolve(server string) string {
+	serverName := server
+	if ipaddr, ok := i.Get()[server]; ok && *local {
+		serverName = ipaddr
+	}
+	return serverName
+}
+
 func NewIPAddresses(comp *compute.Service) (*IPAddresses, error) {
 	i := &IPAddresses{
 		ip:   map[string]string{},
@@ -214,61 +224,48 @@ type PushNewPackage struct {
 	Server string `json:"server"`
 }
 
-// UnitStatus is serialized to JSON in the return of pulld propsHandler.
-type UnitStatus struct {
-	// Status is the current status of the unit.
-	Status *dbus.UnitStatus `json:"status"`
-
-	// Props is the set of unit properties returned from GetUnitTypeProperties.
-	Props map[string]interface{} `json:"props"`
-}
-
-// getStatus returns a populated *UnitStatus for the given server and service, and
-// nil if the information wasn't able to be retrieved.
-func getStatus(server, service string) *UnitStatus {
-	serverName := server
-	if ipaddr, ok := ip.Get()[server]; ok && *local {
-		serverName = ipaddr
-	}
-	resp, err := client.Get(fmt.Sprintf("http://%s:10114/_/props?service=%s", serverName, service))
+// getStatus returns a populated []*systemd.UnitStatus for the given server, one for each
+// push managed service, and nil if the information wasn't able to be retrieved.
+func getStatus(server string) []*systemd.UnitStatus {
+	resp, err := client.Get(fmt.Sprintf("http://%s:10114/_/list", ip.Resolve(server)))
 	if err != nil || resp.StatusCode > 400 {
-		glog.Infof("Failed to get status of: %s %s", server, service)
+		glog.Infof("Failed to get status of: %s", server)
 		return nil
 	}
 	dec := json.NewDecoder(resp.Body)
 	defer util.Close(resp.Body)
 
-	props := &UnitStatus{
-		Props: map[string]interface{}{},
-	}
-	if err := dec.Decode(props); err != nil {
+	ret := []*systemd.UnitStatus{}
+	if err := dec.Decode(&ret); err != nil {
+		glog.Infof("Failed to decode: %s", err)
 		return nil
 	}
-	return props
+	glog.Infof("%s - %#v", server, ret)
+	return ret
 }
 
-// serviceStatus returns a map[string]*UnitStatus, with one entry for each service running on each
+// serviceStatus returns a map[string]*systemd.UnitStatus, with one entry for each service running on each
 // server. The keys for the return value are "<server_name>:<service_name>", for example,
 // "skia-push:logserverd.service".
-func serviceStatus(servers ServersUI, allAvailable map[string][]*packages.Package) map[string]*UnitStatus {
-	// First populate a quick package lookup map.
-	packageLookup := map[string]*packages.Package{}
-	for _, ps := range allAvailable {
-		for _, p := range ps {
-			packageLookup[p.Name] = p
-		}
-	}
-
-	ret := map[string]*UnitStatus{}
+func serviceStatus(servers ServersUI) map[string]*systemd.UnitStatus {
+	var mutex sync.Mutex
+	var wg sync.WaitGroup
+	ret := map[string]*systemd.UnitStatus{}
 	for _, server := range servers {
-		for _, packageName := range server.Installed {
-			if p, ok := packageLookup[packageName]; ok {
-				for _, service := range p.Services {
-					ret[server.Name+":"+service] = getStatus(server.Name, service)
+		wg.Add(1)
+		go func(server string) {
+			defer wg.Done()
+			allServices := getStatus(server)
+			mutex.Lock()
+			defer mutex.Unlock()
+			for _, status := range allServices {
+				if status.Status != nil {
+					ret[server+":"+status.Status.Name] = status
 				}
 			}
-		}
+		}(server.Name)
 	}
+	wg.Wait()
 
 	return ret
 }
@@ -296,12 +293,11 @@ type AllUI struct {
 	Servers  ServersUI                      `json:"servers"`
 	Packages map[string][]*packages.Package `json:"packages"`
 	IP       map[string]string              `json:"ip"`
-	Status   map[string]*UnitStatus         `json:"status"`
+	Status   map[string]*systemd.UnitStatus `json:"status"`
 }
 
-// jsonHandler handles the GET of the JSON.
-func jsonHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("JSON Handler: %q\n", r.URL.Path)
+// stateHandler handles the GET of the JSON.
+func stateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	allAvailable := packageInfo.AllAvailable()
@@ -398,7 +394,7 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 		Servers:  servers,
 		Packages: allAvailable,
 		IP:       ip.Get(),
-		Status:   serviceStatus(servers, allAvailable),
+		Status:   serviceStatus(servers),
 	})
 	if err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
@@ -406,9 +402,37 @@ func jsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// changeHandler handles actions on individual services.
+//
+// The actions are forwarded off to the pulld service
+// running on the machine hosting that service.
+func changeHandler(w http.ResponseWriter, r *http.Request) {
+	if login.LoggedInAs(r) == "" {
+		util.ReportError(w, r, fmt.Errorf("You must be logged on to push."), "")
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		util.ReportError(w, r, err, "Failed to parse form.")
+		return
+	}
+	action := r.Form.Get("action")
+	name := r.Form.Get("name")
+	machine := ip.Resolve(r.Form.Get("machine"))
+	url := fmt.Sprintf("http://%s:10114/_/change?name=%s&action=%s", machine, name, action)
+	resp, err := client.Post(url, "", nil)
+	if err != nil || resp.StatusCode > 400 {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
+		return
+	}
+	defer util.Close(resp.Body)
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := io.Copy(w, resp.Body); err != nil {
+		glog.Errorf("Failed to copy JSON error out: %s", err)
+	}
+}
+
 // mainHandler handles the GET of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Main Handler: %q\n", r.URL.Path)
 	if *local {
 		loadTemplates()
 	}
@@ -448,10 +472,11 @@ func main() {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
-	r.HandleFunc("/json/", jsonHandler)
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/_/change", changeHandler)
+	r.HandleFunc("/_/state", stateHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))
