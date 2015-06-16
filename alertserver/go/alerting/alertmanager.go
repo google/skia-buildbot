@@ -148,7 +148,7 @@ func (am *AlertManager) Contains(id int64) bool {
 }
 
 // Snooze the given alert until the given time.
-func (am *AlertManager) Snooze(id int64, until time.Time, user string) error {
+func (am *AlertManager) Snooze(id int64, until time.Time, user, message string) error {
 	am.mutex.Lock()
 	defer am.mutex.Unlock()
 	a, ok := am.activeAlerts[id]
@@ -156,15 +156,19 @@ func (am *AlertManager) Snooze(id int64, until time.Time, user string) error {
 		return fmt.Errorf("Unknown alert: %d", id)
 	}
 	a.SnoozedUntil = until.UTC().Unix()
+	msg := fmt.Sprintf("Snoozed until %s", until.UTC().String())
+	if message != "" {
+		msg += ": " + message
+	}
 	return am.addComment(a, &Comment{
 		Time:    time.Now().UTC().Unix(),
 		User:    user,
-		Message: fmt.Sprintf("Snoozed until %s", until.UTC().String()),
+		Message: msg,
 	})
 }
 
 // Unsnooze the given alert.
-func (am *AlertManager) Unsnooze(id int64, user string) error {
+func (am *AlertManager) Unsnooze(id int64, user, message string) error {
 	am.mutex.Lock()
 	defer am.mutex.Unlock()
 	a, ok := am.activeAlerts[id]
@@ -172,10 +176,14 @@ func (am *AlertManager) Unsnooze(id int64, user string) error {
 		return fmt.Errorf("Unknown alert: %d", id)
 	}
 	a.SnoozedUntil = 0
+	msg := fmt.Sprintf("Unsnoozed.")
+	if message != "" {
+		msg = fmt.Sprintf("Unsnoozed: %s", message)
+	}
 	return am.addComment(a, &Comment{
 		Time:    time.Now().UTC().Unix(),
 		User:    user,
-		Message: "Unsnoozed",
+		Message: msg,
 	})
 }
 

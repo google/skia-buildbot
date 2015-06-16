@@ -18,15 +18,16 @@
     </comments-sk>
 
   Properties:
+    addCommentUrl: URL which accepts POST requests for adding comments.
+    allowAddComment: Whether or not to allow addition of new comments.
+    allowEmptyComments: Whether or not to allow empty comments.
+    allowDelete: Whether or not to allow deletion of comments.
     collapsed: Bool indicating whether all comments are shown, or if some are
         hidden behind a "view more" link.
     collapseThreshold: Number indicating the maximum number of comments to show
         when collapsed.
     comments: Array of comment objects, with attributes 'time', 'user', and
         'message'.
-    addCommentUrl: URL which accepts POST requests for adding comments.
-    allowEmptyComments: Whether or not to allow empty comments.
-    allowDelete: Whether or not to allow deletion of comments.
     extraFields: Additional fields which are part of a comment. Array of
         objects with attributes 'name', 'label', and 'type'. Valid values of
         'type' are 'bool' and 'text'.
@@ -42,6 +43,7 @@
         has been inserted. Therefore, the 'submit' event may be used to reload
         the comments from the database.
 -->
+<link rel="import" href="/res/imp/bower_components/core-icon-button/core-icon-button.html" />
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html" />
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html" />
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html" />
@@ -104,7 +106,7 @@
           </tr>
         </template>
       </template>
-      <template if="{{editRights}}">
+      <template if="{{editRights && allowAddComment}}">
         <tr>
           <td class="commentCell" colspan="3">
             <paper-input
@@ -155,6 +157,10 @@
         },
         commentText: {
           value: "",
+          reflect: true,
+        },
+        allowAddComment: {
+          value: true,
           reflect: true,
         },
         addCommentUrl: {

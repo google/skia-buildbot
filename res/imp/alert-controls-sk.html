@@ -1,0 +1,161 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <alert-controls-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/alert-controls-sk.html" rel="import" />
+
+  Usage:
+
+    <alert-controls-sk></alert-controls-sk>
+
+  Attributes:
+    alertUrl: URL associated with this alert.
+    showSnooze: Whether or not to show the "snooze" button.
+    showUnsnooze: Whether or not to show the "unsnooze" button.
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<link rel="import" href="/res/imp/bower_components/core-icon-button/core-icon-button.html" />
+<link rel="import" href="/res/imp/bower_components/core-icons/communication-icons.html" />
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html" />
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html" />
+<link rel="import" href="/res/imp/bower_components/paper-toast/paper-toast.html" />
+<polymer-element name="alert-controls-sk">
+  <template>
+    <div flex horizontal layout>
+      <paper-input value="{{commentText}}" label="Comment" flex></paper-input>
+      <template if="{{showSnooze}}">
+        <paper-dialog id="snoozeDialog" heading="How long?" transition="paper-dialog-transition-center">
+          <div>
+            <paper-input type="number" label="Days" value="{{snoozeDays}}" floatingLabel></paper-input>
+            <paper-input type="number" label="Hours" value="{{snoozeHours}}" floatingLabel></paper-input>
+            <paper-input type="number" label="Minutes" value="{{snoozeMins}}" floatingLabel></paper-input>
+            <paper-input type="number" label="Seconds" value="{{snoozeSecs}}" floatingLabel></paper-input>
+            <paper-button on-click="{{snoozeAlert}}" affirmative>Ok</paper-button>
+          </div>
+        </paper-dialog>
+        <core-icon-button icon="alarm" on-click="{{snoozeDialog}}" title="Snooze and add comment"></core-icon-button>
+      </template>
+      <template if="{{showUnsnooze}}">
+        <core-icon-button icon="alarm-off" on-click="{{unsnoozeAlert}}" title="Unsnooze and add comment"></core-icon-button>
+      </template>
+      <core-icon-button icon="highlight-remove" on-click="{{dismissAlert}}" title="Dismiss and add comment"></core-icon-button>
+      <core-icon-button icon="communication:comment" on-click="{{addComment}}" title="Add comment"></paper-button>
+    </div>
+    <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        alertUrl: {
+          value: "",
+          reflect: true,
+        },
+        showSnooze: {
+          value: true,
+          reflect: true,
+        },
+        showUnsnooze: {
+          value: false,
+          reflect: true,
+        },
+      },
+
+      created: function() {
+        this.commentText = "";
+        this.snoozeDays = 0;
+        this.snoozeHours = 0;
+        this.snoozeMins = 0;
+        this.snoozeSecs = 0;
+      },
+
+      dismissAlert: function() {
+        var params = {
+          "comment": this.commentText,
+        };
+        var that = this;
+        sk.post(this.alertUrl + "/dismiss", JSON.stringify(params)).then(function(resp) {
+          that.reload();
+        }, function(err) {
+          that.showErrorDialog("Action failed: " + err);
+        });
+      },
+
+      snoozeAlert: function() {
+        var until = new Date();
+        until.setDate(until.getDate() + parseInt(this.snoozeDays));
+        until.setHours(until.getHours() + parseInt(this.snoozeHours));
+        until.setMinutes(until.getMinutes() + parseInt(this.snoozeMins));
+        until.setSeconds(until.getSeconds() + parseInt(this.snoozeSecs));
+        this.snoozeDays = 0;
+        this.snoozeHours = 0;
+        this.snoozeMins = 0;
+        this.snoozeSecs = 0;
+        var params = {
+          "comment": this.commentText,
+          "until": Math.round(until.getTime() / 1000),
+        };
+        var that = this;
+        sk.post(this.alertUrl + "/snooze", JSON.stringify(params)).then(function(resp) {
+          that.reload();
+        }, function(err) {
+          that.showErrorDialog("Action failed: " + err);
+        });
+      },
+
+      snoozeDialog: function() {
+        this.shadowRoot.querySelector("#snoozeDialog").toggle();
+      },
+
+      unsnoozeAlert: function() {
+        var params = {
+          "comment": this.commentText,
+        };
+        var that = this;
+        sk.post(this.alertUrl + "/unsnooze", JSON.stringify(params)).then(function(resp) {
+          that.reload();
+        }, function(err) {
+          that.showErrorDialog("Action failed: " + err);
+        });
+      },
+
+      addComment: function() {
+        if (this.commentText == "") {
+          this.showErrorDialog("Empty comments are not allowed.");
+          return;
+        }
+        var params = {
+          "comment": this.commentText,
+        };
+        var that = this;
+        sk.post(this.alertUrl + "/addcomment", JSON.stringify(params)).then(function(resp) {
+          that.reload();
+        }, function(err) {
+          that.showErrorDialog("Action failed: " + err);
+        });
+
+      },
+
+      reload: function() {
+        // Reload the page.
+        window.location.href = window.location.href;
+      },
+
+      showErrorDialog: function(msg) {
+        var errorDiag = this.$.actionFailed;
+        errorDiag.text = msg;
+        errorDiag.show();
+      },
+    });
+  </script>
+</polymer-element>

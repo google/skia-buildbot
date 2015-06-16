@@ -138,16 +138,16 @@ func TestAlertFlowE2E(t *testing.T) {
 	assert.False(t, got.Snoozed())
 
 	// Snooze the Alert.
-	assert.Nil(t, am.Snooze(got.Id, time.Now().UTC().Add(30*time.Second), "test_user"))
+	assert.Nil(t, am.Snooze(got.Id, time.Now().UTC().Add(30*time.Second), "test_user", "msg"))
 	assert.True(t, getAlert().Snoozed())
 
 	// Unsnooze the Alert.
-	assert.Nil(t, am.Unsnooze(got.Id, "test_user"))
+	assert.Nil(t, am.Unsnooze(got.Id, "test_user", "msg"))
 	assert.False(t, getAlert().Snoozed())
 
 	// Snooze the Alert and make sure it gets dismissed after the snooze
 	// period expires.
-	assert.Nil(t, am.Snooze(got.Id, time.Now().UTC().Add(1*time.Millisecond), "test_user"))
+	assert.Nil(t, am.Snooze(got.Id, time.Now().UTC().Add(1*time.Millisecond), "test_user", "msg"))
 	time.Sleep(2 * time.Second)
 	assert.Nil(t, am.tick())
 	assert.False(t, am.Contains(got.Id))

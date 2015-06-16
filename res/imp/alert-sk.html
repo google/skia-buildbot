@@ -18,6 +18,7 @@
     alert: The alert object.
     compact: If true, minimal information about alerts is displayed.
 -->
+<link rel="import" href="/res/common/imp/alert-controls-sk.html" />
 <link rel="import" href="/res/common/imp/comments-sk.html" />
 <polymer-element name="alert-sk">
   <template>
@@ -44,54 +45,21 @@
       <template if="{{alert.snoozedUntil > 0}}">
         <div class="message">Snoozed until {{alert.snoozedUntil | parseDate}}</div>
       </template>
-      <template if="{{editRights && !compact}}">
-        <template if="{{alert.snoozedUntil == 0}}">
-          <core-ajax
-              id="snooze"
-              url="/json/alerts/{{alert.id}}/snooze"
-              method="POST"
-              contentType="application/json"
-              on-core-response="{{reload}}"
-              on-core-error="{{error}}">
-          </core-ajax>
-          <paper-dialog id="snoozeDialog" heading="How long?" transition="paper-dialog-transition-center">
-            <div>
-              <paper-input type="number" label="Days" value="{{snoozeDays}}" floatingLabel></paper-input>
-              <paper-input type="number" label="Hours" value="{{snoozeHours}}" floatingLabel></paper-input>
-              <paper-input type="number" label="Minutes" value="{{snoozeMins}}" floatingLabel></paper-input>
-              <paper-input type="number" label="Seconds" value="{{snoozeSecs}}" floatingLabel></paper-input>
-              <paper-button on-click="{{snoozeAlert}}" affirmative>Ok</paper-button>
-            </div>
-          </paper-dialog>
-          <core-icon-button icon="alarm" on-click="{{snoozeDialog}}"></core-icon-button>
-        </template>
-        <template if="{{alert.snoozedUntil > 0}}">
-          <core-ajax
-              id="unsnooze"
-              url="/json/alerts/{{alert.id}}/unsnooze"
-              method="POST"
-              contentType="application/json"
-              on-core-response="{{reload}}"
-              on-core-error="{{error}}">
-          </core-ajax>
-          <core-icon-button icon="alarm-off" on-click="{{unsnoozeAlert}}"></core-icon-button>
-        </template>
-        <core-ajax
-            id="dismiss"
-            url="/json/alerts/{{alert.id}}/dismiss"
-            method="POST"
-            contentType="application/json"
-            on-core-response="{{reload}}"
-            on-core-error="{{error}}">
-        </core-ajax>
-        <core-icon-button icon="highlight-remove" on-click="{{dismissAlert}}"></core-icon-button>
-      </template>
       </div>
       <template if="{{!compact}}">
-        <comments-sk comments="{{alert.comments}}" addCommentUrl="/json/alerts/{{alert.id}}/addcomment" on-submit="{{reload}}"></comments-sk>
+        <comments-sk
+            comments="{{alert.comments}}"
+            allowAddComment="false">
+        </comments-sk>
+        <template if="{{editRights}}">
+          <alert-controls-sk
+              alertUrl="/json/alerts/{{alert.id}}"
+              showSnooze="{{alert.snoozedUntil == 0}}"
+              showUnsnooze="{{alert.snoozedUntil != 0}}">
+          </alert-controls-sk>
+        </template>
       </template>
     </div>
-    <paper-toast id="actionFailed" text="Action Failed"></paper-toast>
   </template>
   <script>
     Polymer({
@@ -108,10 +76,6 @@
 
       created: function() {
         this.editRights = false;
-        this.snoozeDays = 0;
-        this.snoozeHours = 0;
-        this.snoozeMins = 0;
-        this.snoozeSecs = 0;
       },
 
       ready: function() {
@@ -130,55 +94,9 @@
         }
       },
 
-      dismissAlert: function() {
-        this.$.wrapper.querySelector("#dismiss").go();
-      },
-
-      snoozeAlert: function() {
-        var until = new Date();
-        until.setDate(until.getDate() + parseInt(this.snoozeDays));
-        until.setHours(until.getHours() + parseInt(this.snoozeHours));
-        until.setMinutes(until.getMinutes() + parseInt(this.snoozeMins));
-        until.setSeconds(until.getSeconds() + parseInt(this.snoozeSecs));
-        this.snoozeDays = 0;
-        this.snoozeHours = 0;
-        this.snoozeMins = 0;
-        this.snoozeSecs = 0;
-        var req = this.$.wrapper.querySelector("#snooze");
-        req.body = '{"until": ' + this.unParseDate(until) + '}'
-        req.go();
-      },
-
-      snoozeDialog: function() {
-        this.$.wrapper.querySelector("#snoozeDialog").toggle();
-      },
-
-      unsnoozeAlert: function() {
-        this.$.wrapper.querySelector("#unsnooze").go();
-      },
-
-      reload: function() {
-        // Reload the page.
-        window.location.href = window.location.href;
-      },
-
-      showErrorDialog: function(msg) {
-        var errorDiag = this.$.actionFailed;
-        errorDiag.text = msg;
-        errorDiag.show();
-      },
-
-      error: function(e) {
-        this.showErrorDialog("Action failed: " + e.detail.response);
-      },
-
       parseDate: function(v) {
         var d = new Date(v * 1000)
         return d.toLocaleDateString() + ", " + d.toLocaleTimeString();
-      },
-
-      unParseDate: function(d) {
-        return Math.round(d.getTime() / 1000);
       },
     });
   </script>

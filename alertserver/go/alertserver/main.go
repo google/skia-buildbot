@@ -183,54 +183,49 @@ func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		util.ReportError(w, r, fmt.Errorf("No action provided."), "No action provided.")
 	}
+	body := struct {
+		Until   int
+		Comment string
+	}{}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		util.ReportError(w, r, err, "Failed to decode request body.")
+		return
+	}
 
 	if action == "dismiss" {
 		glog.Infof("%s %d", action, alertId)
-		if err := alertManager.Dismiss(alertId, email, ""); err != nil {
+		if err := alertManager.Dismiss(alertId, email, body.Comment); err != nil {
 			util.ReportError(w, r, err, "Failed to dismiss alert.")
 			return
 		}
 		return
 	} else if action == "snooze" {
-		d := json.NewDecoder(r.Body)
-		body := struct {
-			Until int
-		}{}
-		err := d.Decode(&body)
-		if err != nil || body.Until == 0 {
-			util.ReportError(w, r, err, fmt.Sprintf("Unable to decode request body: %s", r.Body))
+		if body.Until == 0 {
+			util.ReportError(w, r, err, fmt.Sprintf("Invalid snooze time"))
 			return
 		}
-		defer util.Close(r.Body)
 		until := time.Unix(int64(body.Until), 0)
 		glog.Infof("%s %d until %v", action, alertId, until.String())
-		if err := alertManager.Snooze(alertId, until, email); err != nil {
+		if err := alertManager.Snooze(alertId, until, email, body.Comment); err != nil {
 			util.ReportError(w, r, err, "Failed to snooze alert.")
 			return
 		}
 		return
 	} else if action == "unsnooze" {
 		glog.Infof("%s %d", action, alertId)
-		if err := alertManager.Unsnooze(alertId, email); err != nil {
+		if err := alertManager.Unsnooze(alertId, email, body.Comment); err != nil {
 			util.ReportError(w, r, err, "Failed to unsnooze alert.")
 			return
 		}
 		return
 	} else if action == "addcomment" {
-		c := struct {
-			Comment string `json:"comment"`
-		}{}
-		if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Unable to read request body: %s", r.Body))
+		if !StringIsInteresting(body.Comment) {
+			util.ReportError(w, r, fmt.Errorf("Invalid comment text."), body.Comment)
 			return
 		}
-		defer util.Close(r.Body)
-		if !StringIsInteresting(c.Comment) {
-			util.ReportError(w, r, fmt.Errorf("Invalid comment text."), c.Comment)
-			return
-		}
-		glog.Infof("%s %d: %s", action, alertId, c.Comment)
-		if err := alertManager.AddComment(alertId, email, c.Comment); err != nil {
+		glog.Infof("%s %d: %s", action, alertId, body.Comment)
+		if err := alertManager.AddComment(alertId, email, body.Comment); err != nil {
 			util.ReportError(w, r, err, "Failed to add comment.")
 			return
 		}
