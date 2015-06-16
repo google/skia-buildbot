@@ -16,6 +16,7 @@
 
   Attributes:
     alertUrl: URL associated with this alert.
+    extraParams: Any extra parameters to submit with POST requests.
     showSnooze: Whether or not to show the "snooze" button.
     showUnsnooze: Whether or not to show the "unsnooze" button.
 
@@ -61,6 +62,10 @@
           value: "",
           reflect: true,
         },
+        extraParams: {
+          value: {},
+          reflect: false,
+        },
         showSnooze: {
           value: true,
           reflect: true,
@@ -83,6 +88,9 @@
         var params = {
           "comment": this.commentText,
         };
+        for (var p in this.extraParams) {
+          params[p] = this.extraParams[p];
+        }
         var that = this;
         sk.post(this.alertUrl + "/dismiss", JSON.stringify(params)).then(function(resp) {
           that.reload();
@@ -105,6 +113,9 @@
           "comment": this.commentText,
           "until": Math.round(until.getTime() / 1000),
         };
+        for (var p in this.extraParams) {
+          params[p] = this.extraParams[p];
+        }
         var that = this;
         sk.post(this.alertUrl + "/snooze", JSON.stringify(params)).then(function(resp) {
           that.reload();
@@ -121,6 +132,9 @@
         var params = {
           "comment": this.commentText,
         };
+        for (var p in this.extraParams) {
+          params[p] = this.extraParams[p];
+        }
         var that = this;
         sk.post(this.alertUrl + "/unsnooze", JSON.stringify(params)).then(function(resp) {
           that.reload();
@@ -137,6 +151,9 @@
         var params = {
           "comment": this.commentText,
         };
+        for (var p in this.extraParams) {
+          params[p] = this.extraParams[p];
+        }
         var that = this;
         sk.post(this.alertUrl + "/addcomment", JSON.stringify(params)).then(function(resp) {
           that.reload();

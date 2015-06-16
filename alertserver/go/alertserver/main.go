@@ -162,70 +162,52 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
+func handleAlert(alertId int64, comment string, until int, w http.ResponseWriter, r *http.Request) {
 	email := login.LoggedInAs(r)
 	if !userHasEditRights(email) {
 		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in to an account with edit rights to do that.")
 		return
 	}
 
-	// Get the alert ID.
-	alertIdStr, ok := mux.Vars(r)["alertId"]
-	if !ok {
-		util.ReportError(w, r, fmt.Errorf("No alert ID provided."), "No alert ID provided.")
-	}
-	alertId, err := strconv.ParseInt(alertIdStr, 10, 64)
-	if err != nil {
-		util.ReportError(w, r, fmt.Errorf("Invalid alert ID %s", alertIdStr), "Not found.")
-	}
-
 	action, ok := mux.Vars(r)["action"]
 	if !ok {
 		util.ReportError(w, r, fmt.Errorf("No action provided."), "No action provided.")
-	}
-	body := struct {
-		Until   int
-		Comment string
-	}{}
-	defer util.Close(r.Body)
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		util.ReportError(w, r, err, "Failed to decode request body.")
 		return
 	}
 
 	if action == "dismiss" {
 		glog.Infof("%s %d", action, alertId)
-		if err := alertManager.Dismiss(alertId, email, body.Comment); err != nil {
+		if err := alertManager.Dismiss(alertId, email, comment); err != nil {
 			util.ReportError(w, r, err, "Failed to dismiss alert.")
 			return
 		}
 		return
 	} else if action == "snooze" {
-		if body.Until == 0 {
-			util.ReportError(w, r, err, fmt.Sprintf("Invalid snooze time"))
+		if until == 0 {
+			util.ReportError(w, r, fmt.Errorf("Invalid snooze time."), fmt.Sprintf("Invalid snooze time"))
 			return
 		}
-		until := time.Unix(int64(body.Until), 0)
+		until := time.Unix(int64(until), 0)
 		glog.Infof("%s %d until %v", action, alertId, until.String())
-		if err := alertManager.Snooze(alertId, until, email, body.Comment); err != nil {
+		if err := alertManager.Snooze(alertId, until, email, comment); err != nil {
 			util.ReportError(w, r, err, "Failed to snooze alert.")
 			return
 		}
 		return
 	} else if action == "unsnooze" {
 		glog.Infof("%s %d", action, alertId)
-		if err := alertManager.Unsnooze(alertId, email, body.Comment); err != nil {
+		if err := alertManager.Unsnooze(alertId, email, comment); err != nil {
 			util.ReportError(w, r, err, "Failed to unsnooze alert.")
 			return
 		}
 		return
 	} else if action == "addcomment" {
-		if !StringIsInteresting(body.Comment) {
-			util.ReportError(w, r, fmt.Errorf("Invalid comment text."), body.Comment)
+		if !StringIsInteresting(comment) {
+			util.ReportError(w, r, fmt.Errorf("Invalid comment text."), comment)
 			return
 		}
-		glog.Infof("%s %d: %s", action, alertId, body.Comment)
-		if err := alertManager.AddComment(alertId, email, body.Comment); err != nil {
+		glog.Infof("%s %d: %s", action, alertId, comment)
+		if err := alertManager.AddComment(alertId, email, comment); err != nil {
 			util.ReportError(w, r, err, "Failed to add comment.")
 			return
 		}
@@ -235,6 +217,55 @@ func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the alert ID.
+	alertIdStr, ok := mux.Vars(r)["alertId"]
+	if !ok {
+		util.ReportError(w, r, fmt.Errorf("No alert ID provided."), "No alert ID provided.")
+		return
+	}
+	alertId, err := strconv.ParseInt(alertIdStr, 10, 64)
+	if err != nil {
+		util.ReportError(w, r, fmt.Errorf("Invalid alert ID %s", alertIdStr), "Not found.")
+		return
+	}
+
+	var req struct {
+		Until   int    `json:"until"`
+		Comment string `json:"comment"`
+	}
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.ReportError(w, r, err, "Failed to decode request body.")
+		return
+	}
+
+	handleAlert(alertId, req.Comment, req.Until, w, r)
+}
+
+func postMultiAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		AlertIDs []int64 `json:"alerts"`
+		Until    int     `json:"until"`
+		Comment  string  `json:"comment"`
+	}
+
+	defer util.Close(r.Body)
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		util.ReportError(w, r, err, "Failed to decode request body.")
+		return
+	}
+
+	if len(req.AlertIDs) < 1 {
+		util.ReportError(w, r, fmt.Errorf("No alerts specified."), "No alerts specified.")
+		return
+	}
+
+	for _, a := range req.AlertIDs {
+		handleAlert(a, req.Comment, req.Until, w, r)
+	}
 }
 
 func handleAlerts(w http.ResponseWriter, r *http.Request, title string, categories []string, excludeCategories []string) {
@@ -309,6 +340,7 @@ func runServer(serverURL string) {
 	alerts := r.PathPrefix("/json/alerts").Subrouter()
 	alerts.HandleFunc("/", util.CorsHandler(alertJsonHandler))
 	alerts.HandleFunc("/{alertId:[0-9]+}/{action}", postAlertsJsonHandler).Methods("POST")
+	alerts.HandleFunc("/multi/{action}", postMultiAlertsJsonHandler).Methods("POST")
 	r.HandleFunc("/json/rules", rulesJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

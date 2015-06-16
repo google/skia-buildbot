@@ -21,6 +21,8 @@
     reload: How often (in seconds) to reload alert data.
 -->
 <link rel="import" href="/res/common/imp/alert-sk.html" />
+<link rel="import" href="/res/common/imp/alert-controls-sk.html" />
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <polymer-element name="alerts-sk">
   <template>
     <style>
@@ -41,16 +43,30 @@
     <div horizontal layout center id="loadstatus">
       <div>
         Reload (s):
-        <core-input type="number" value="{{reload}}" preventInvalidInput style="width: 50px;"></core-input>
+        <paper-input type="number" value="{{reload}}" preventInvalidInput style="width: 50px;"></paper-input>
       </div>
       <div flex></div>
       <div>Last loaded at {{lastLoaded}}</div>
+    </div>
+    <div horizontal layout center style="{{showMultiControls ? '' : 'display: none;'}}">
+      <div style="padding: 5px">Selected:</div>
+      <alert-controls-sk
+          alertUrl="/json/alerts/multi"
+          extraParams="{{multiAlertParams}}"
+          showSnooze
+          showUnsnooze
+          flex>
+      </alert-controls-sk>
     </div>
     <div class="alertSection">
       <h3>Active</h3>
       <template repeat="{{a in alerts}}">
         <template if="{{a.snoozedUntil == 0}}">
-          <alert-sk alert="{{a}}" compact?="{{compact}}"></alert-sk>
+          <alert-sk
+              alert="{{a}}"
+              compact="{{compact || showMultiControls}}"
+              on-select-changed="{{alertSelectChanged}}">
+          </alert-sk>
         </template>
       </template>
     </div>
@@ -58,7 +74,11 @@
       <h3>Snoozed</h3>
       <template repeat="{{a in alerts}}">
         <template if="{{a.snoozedUntil != 0}}">
-          <alert-sk alert="{{a}}" compact?="{{compact}}"></alert-sk>
+          <alert-sk
+              alert="{{a}}"
+              compact="{{compact || showMultiControls}}"
+              on-select-changed="{{alertSelectChanged}}">
+          </alert-sk>
         </template>
       </template>
     </div>
@@ -87,6 +107,8 @@
       created: function() {
         this.alerts = [];
         this.lastLoaded = null;
+        this.multiAlertParams = {"alerts": []};
+        this.showMultiControls = false;
         this.timeout = null;
 
         var params = sk.query.toParamSet(window.location.search.substring(1));
@@ -126,9 +148,31 @@
           url += "?" + params.join("&");
         }
         console.log("Loading alerts from " + url);
+
+        // Maintain the set of selected alerts across reloads.
+        var selected = {};
+        if (this.alerts) {
+          for (var i = 0; i < this.alerts.length; i++) {
+            if (this.alerts[i].selected) {
+              selected[this.alerts[i].id] = true;
+            }
+          }
+        }
+
         var that = this;
         sk.get(url).then(JSON.parse).then(function(json) {
           that.alerts = json;
+
+          // Select alerts that were selected before.
+          for (var i = 0; i < that.alerts.length; i++) {
+            if (selected[that.alerts[i].id]) {
+              that.alerts[i].selected = true;
+            } else {
+              that.alerts[i].selected = false;
+            }
+          }
+          that.alertSelectChanged();
+
           that.lastLoaded = new Date().toLocaleTimeString();
           that.resetTimeout();
           that.dispatchEvent(new CustomEvent("change", { detail: { alerts: that.alerts } }))
@@ -136,6 +180,18 @@
 	}).catch(function() {
           that.resetTimeout();
         });
+      },
+
+      alertSelectChanged: function() {
+        this.showMultiControls = false;
+        var selectedIds = [];
+        for (var i = 0; i < this.alerts.length; i++) {
+          if (this.alerts[i].selected) {
+            this.showMultiControls = true;
+            selectedIds.push(this.alerts[i].id);
+          }
+        }
+        this.multiAlertParams["alerts"] = selectedIds;
       },
     });
   </script>

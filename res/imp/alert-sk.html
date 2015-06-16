@@ -20,6 +20,7 @@
 -->
 <link rel="import" href="/res/common/imp/alert-controls-sk.html" />
 <link rel="import" href="/res/common/imp/comments-sk.html" />
+<link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <polymer-element name="alert-sk">
   <template>
     <style>
@@ -38,9 +39,19 @@
     div.message[disabled] {
       color: #AAAAAA;
     }
+    paper-checkbox {
+      margin-right: 10px;
+    }
     </style>
     <div id="wrapper" vertical horizontal center>
-      <div horizontal layout>
+      <div horizontal layout start>
+        <template if="{{editRights}}">
+          <paper-checkbox
+              id="checkbox"
+              on-change="{{selectedChanged}}"
+              checked="{{alert.selected}}">
+          </paper-checkbox>
+        </template>
       <div class="message" flex>{{alert.message}}</div>
       <template if="{{alert.snoozedUntil > 0}}">
         <div class="message">Snoozed until {{alert.snoozedUntil | parseDate}}</div>
@@ -97,6 +108,10 @@
       parseDate: function(v) {
         var d = new Date(v * 1000)
         return d.toLocaleDateString() + ", " + d.toLocaleTimeString();
+      },
+
+      selectedChanged: function() {
+        this.fire("select-changed", {id: this.alert.id, selected: this.alert.selected});
       },
     });
   </script>
