@@ -731,6 +731,24 @@ func getUnfinishedBuilds() ([]*BuildID, error) {
 	return b, nil
 }
 
+// GetUnfinishedBuilds returns a slice of Builds which are not finished.
+func GetUnfinishedBuilds() ([]*Build, error) {
+	ids := []int{}
+	stmt := fmt.Sprintf("SELECT id FROM %s WHERE finished = 0;", TABLE_BUILDS)
+	if err := DB.Select(&ids, stmt); err != nil {
+		return nil, err
+	}
+	builds, err := GetBuildsFromDB(ids)
+	if err != nil {
+		return nil, err
+	}
+	rv := make([]*Build, 0, len(builds))
+	for _, b := range builds {
+		rv = append(rv, b)
+	}
+	return rv, nil
+}
+
 // NumIngestedBuilds returns the total number of builds which have been
 // ingested into the database.
 func NumIngestedBuilds() (int, error) {

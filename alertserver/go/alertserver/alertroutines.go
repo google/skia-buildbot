@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/rcrowley/go-metrics"
@@ -19,6 +20,14 @@ import (
 	This file contains goroutines which trigger more complex alerts than
 	can be expressed using the rule format in alerts.cfg.
 */
+
+const (
+	ANDROID_DISCONNECT = `The Android device for %s appears to be disconnected.
+
+Build: https://uberchromegw.corp.google.com/i/%s/builders/%s/builds/%d
+
+Host info: https://status.skia.org/hosts?filter=%s`
+)
 
 type BuildSlice []*buildbot.Build
 
@@ -174,7 +183,6 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 					sumSquares += s * float64(len(buildsByBuilder[builder])-failuresByBuilder[builder])
 				}
 				stddev := math.Sqrt(sumSquares / float64(ranOnAllBuilders))
-				glog.Infof("Failure rate: %f Mean: %f Stddev: %f on %s", failureRate, meanFailureRate, stddev, slave)
 
 				threshold := meanFailureRate + sigStdDevs*stddev
 				if failureRate > threshold {
@@ -218,4 +226,37 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 			}
 		}
 	}()
+
+	// Android device disconnects.
+	go func() {
+		for _ = range time.Tick(tickInterval) {
+			glog.Infof("Searching for disconnected Android devices.")
+			builds, err := buildbot.GetUnfinishedBuilds()
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			for _, b := range builds {
+				if strings.Contains(b.Builder, "Android") && !strings.Contains(b.Builder, "Build") {
+					for _, s := range b.Steps {
+						if strings.Contains(s.Name, "wait for device") {
+							// If "wait for device" has been running for 10 minutes, the device is probably offline.
+							if s.Finished == 0 && time.Since(time.Unix(int64(s.Started), 0)) > 10*time.Minute {
+								if err := am.AddAlert(&alerting.Alert{
+									Name:     fmt.Sprintf("Android device disconnected (%s)", b.BuildSlave),
+									Category: alerting.INFRA_ALERT,
+									Message:  fmt.Sprintf(ANDROID_DISCONNECT, b.BuildSlave, b.Master, b.Builder, b.Number, b.BuildSlave),
+									Nag:      int64(3 * time.Hour),
+									Actions:  actions,
+								}); err != nil {
+									glog.Error(err)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}()
+
 }
