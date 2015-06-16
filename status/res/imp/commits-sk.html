@@ -806,7 +806,7 @@
                   break;
                 }
               } else if (selected == "nocomment") {
-                if (build.results != 0 && !this.allBuilders[builder].message) {
+                if (build.results != 0 && this.allBuilders[builder].comments.length == 0) {
                   if (!build.comments || build.comments.length == 0) {
                     filteredBuilders.push(builder);
                     break;
@@ -817,7 +817,7 @@
           }
         } else if (selected == "comments") {
           for (var builder in this.allBuilders) {
-            if (this.allBuilders[builder].message) {
+            if (this.allBuilders[builder].comments.length > 0) {
               filteredBuilders.push(builder);
               continue;
             }
