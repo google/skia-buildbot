@@ -32,7 +32,7 @@
     tree-status-sk {
       font-size: 1em;
     }
-    #sheriff-button {
+    #sheriff-button, #gpu-sheriff-button {
       min-width: 200px;
       max-width: 200px;
       width: 200px;
@@ -40,7 +40,7 @@
       text-align: left;
       margin: 0px;
     }
-    #sheriff-email {
+    #sheriff-email, #gpu-sheriff-email {
       display: inline;
     }
     perf-status-sk {
@@ -69,16 +69,24 @@
         tallClass="medium-tall"
         responsiveWidth="1200px">
       <status-menu-section-sk navigation></status-menu-section-sk>
+      <autoroll-widget-sk title="Skia DEPS roll status" tool></autoroll-widget-sk>
       <tree-status-sk tool></tree-status-sk>
       <alert-widget-sk excludeCategories="['infra']" tool></alert-widget-sk>
       <div id="infobar" class="bottom" horizontal layout flex tool>
-        <autoroll-widget-sk title="Skia DEPS roll status"></autoroll-widget-sk>
         <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" class="inherit">
           <core-icon-button
               id="sheriff-button"
               title="The current Skia sheriff"
               icon="star">
             Sheriff:<div id="sheriff-email"></div>
+          </core-icon-button>
+        </a>
+        <a href="http://skia-tree-status.appspot.com/gpu-sheriff" target="_blank" class="inherit">
+          <core-icon-button
+              id="gpu-sheriff-button"
+              title="The current GPU wranger"
+              icon="hardware:sim-card">
+            GPU:<div id="gpu-sheriff-email"></div>
           </core-icon-button>
         </a>
         <div flex></div>
@@ -92,6 +100,7 @@
       sk.WebComponentsReady.then(function() {
         $$$("tree-status-sk").addEventListener("change", function(e) {
           $$$('#sheriff-email').innerHTML = e.detail.sheriff;
+          $$$('#gpu-sheriff-email').innerHTML = e.detail.gpuSheriff;
           var tb  = $$("html /deep/ core-toolbar");
           for (var i = 0; i < tb.length; i++) {
             if (e.detail.open == tb[i].classList.contains("closed")) {
