@@ -2,9 +2,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strings"
 
@@ -20,16 +22,16 @@ const (
 	EXTRA_RECIPIENT = "rmistry@google.com"
 
 	EMAIL_TEMPLATE = `
-Hi %s,
+Hi {{.SheriffName}},
 <br/><br/>
 
-You will be the Skia sheriff for the coming week (%s - %s).
+You will be the {{.SheriffType}} for the coming week ({{.ScheduleStart}} - {{.ScheduleEnd}}).
 <br/><br/>
 
-Documentation for sheriffs is in https://skia.org/dev/sheriffing.
+Documentation for {{.SheriffType}}s is in {{.SheriffDoc}}.
 <br/><br/>
 
-The schedule for sheriffs is in http://skia-tree-status.appspot.com/sheriff.
+The schedule for {{.SheriffType}}s is in {{.SheriffSchedules}}.
 <br/><br/>
 
 If you need to swap shifts with someone (because you are out sick or on vacation), please get approval from the person you want to swap with. Then send an email to skiabot@google.com to have someone make the change in the database (or directly ping rmistry@).
@@ -42,8 +44,18 @@ Thanks!
 `
 )
 
+type ShiftType struct {
+	shiftName           string
+	schedulesLink       string
+	documentationLink   string
+	nextSheriffEndpoint string
+}
+
 var (
-	emailTokenPath = flag.String("email_token_path", "", "The file where the email token can be found.")
+	emailTokenPath   = flag.String("email_token_path", "", "The file where the email token can be found.")
+	skiaSheriffShift = &ShiftType{shiftName: "Skia Sheriff", schedulesLink: "http://skia-tree-status.appspot.com/sheriff", documentationLink: "https://skia.org/dev/sheriffing", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-sheriff"}
+	gpuWranglerShift = &ShiftType{shiftName: "GPU Wrangler", schedulesLink: "http://skia-tree-status.appspot.com/gpu-sheriff", documentationLink: "https://skia.org/dev/sheriffing/gpu", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-gpu-sheriff"}
+	allShiftTypes    = []*ShiftType{skiaSheriffShift, gpuWranglerShift}
 )
 
 // sendEmail sends an email with the specified header and body to the recipients.
@@ -71,22 +83,45 @@ func main() {
 
 	defer glog.Flush()
 
-	res, err := http.Get(NEXT_SHERIFF_JSON_URL)
-	if err != nil {
-		glog.Fatalf("Could not HTTP Get: %s", err)
-	}
-	defer util.Close(res.Body)
+	for _, shiftType := range allShiftTypes {
 
-	var jsonType map[string]interface{}
-	if err := json.NewDecoder(res.Body).Decode(&jsonType); err != nil {
-		glog.Fatalf("Could not unmarshal JSON: %s", err)
-	}
-	sheriffEmail, _ := jsonType["username"].(string)
-	sheriffUsername := strings.Split(string(sheriffEmail), "@")[0]
+		res, err := http.Get(shiftType.nextSheriffEndpoint)
+		if err != nil {
+			glog.Fatalf("Could not HTTP Get: %s", err)
+		}
+		defer util.Close(res.Body)
 
-	emailBody := fmt.Sprintf(EMAIL_TEMPLATE, sheriffUsername, jsonType["schedule_start"], jsonType["schedule_end"])
-	emailSubject := fmt.Sprintf("%s is the next Skia Sheriff", sheriffUsername)
-	if err := sendEmail([]string{sheriffEmail, EXTRA_RECIPIENT}, emailSubject, emailBody); err != nil {
-		glog.Fatalf("Error sending email to sheriff: %s", err)
+		var jsonType map[string]interface{}
+		if err := json.NewDecoder(res.Body).Decode(&jsonType); err != nil {
+			glog.Fatalf("Could not unmarshal JSON: %s", err)
+		}
+		sheriffEmail, _ := jsonType["username"].(string)
+		sheriffUsername := strings.Split(string(sheriffEmail), "@")[0]
+
+		emailTemplateParsed := template.Must(template.New("sheriff_email").Parse(EMAIL_TEMPLATE))
+		emailBytes := new(bytes.Buffer)
+		if err := emailTemplateParsed.Execute(emailBytes, struct {
+			SheriffName      string
+			SheriffType      string
+			SheriffSchedules string
+			SheriffDoc       string
+			ScheduleStart    string
+			ScheduleEnd      string
+		}{
+			SheriffName:      sheriffUsername,
+			SheriffType:      shiftType.shiftName,
+			SheriffSchedules: shiftType.schedulesLink,
+			SheriffDoc:       shiftType.documentationLink,
+			ScheduleStart:    jsonType["schedule_start"].(string),
+			ScheduleEnd:      jsonType["schedule_end"].(string),
+		}); err != nil {
+			glog.Errorf("Failed to execute template: %s", err)
+			return
+		}
+
+		emailSubject := fmt.Sprintf("%s is the next %s", sheriffUsername, shiftType.shiftName)
+		if err := sendEmail([]string{sheriffEmail, EXTRA_RECIPIENT}, emailSubject, emailBytes.String()); err != nil {
+			glog.Fatalf("Error sending email to sheriff: %s", err)
+		}
 	}
 }
