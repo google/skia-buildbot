@@ -202,6 +202,10 @@ class BaseSheriffPage(BasePage):
   def sheriff_type(self):
     raise NotImplementedError, "Must be implemented by subclasses."
 
+  @property
+  def sheriff_image(self):
+    raise NotImplementedError, "Must be implemented by subclasses."
+
   @utils.require_user
   def get(self):
     template_values = self.InitializeTemplate(
@@ -223,6 +227,7 @@ class BaseSheriffPage(BasePage):
     template_values['schedules'] = upcoming_schedules
     template_values['sheriff_doc'] = self.sheriff_doc
     template_values['sheriff_type'] = self.sheriff_type
+    template_values['sheriff_image'] = self.sheriff_image
     self.DisplayTemplate('sheriffs.html', template_values)
 
 
@@ -238,7 +243,11 @@ class SheriffPage(BaseSheriffPage):
 
   @property
   def sheriff_type(self):
-    return None
+    return 'Sheriff'
+
+  @property
+  def sheriff_image(self):
+    return 'clint.jpg'
 
 
 class GpuSheriffPage(BaseSheriffPage):
@@ -249,12 +258,15 @@ class GpuSheriffPage(BaseSheriffPage):
 
   @property
   def sheriff_doc(self):
-    # TODO(rmistry): Update the below when skia:3915 is fixed.
-    return 'https://skia.org/dev/sheriffing'
+    return 'https://skia.org/dev/sheriffing/gpu'
 
   @property
   def sheriff_type(self):
-    return 'GPU'
+    return 'GPU Wrangler'
+
+  @property
+  def sheriff_image(self):
+    return 'wrangler.jpg'
 
 
 class BaseUpdateSheriffsSchedulePage(BasePage):
