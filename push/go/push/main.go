@@ -262,8 +262,10 @@ func serviceStatus(servers ServersUI, allAvailable map[string][]*packages.Packag
 	ret := map[string]*UnitStatus{}
 	for _, server := range servers {
 		for _, packageName := range server.Installed {
-			for _, service := range packageLookup[packageName].Services {
-				ret[server.Name+":"+service] = getStatus(server.Name, service)
+			if p, ok := packageLookup[packageName]; ok {
+				for _, service := range p.Services {
+					ret[server.Name+":"+service] = getStatus(server.Name, service)
+				}
 			}
 		}
 	}
