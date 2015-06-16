@@ -106,21 +106,6 @@ this.sk = this.sk || function() {
     return {x: x, y: y};
   }
 
-  // imageLoaded returns a promise that resolves when the image is fully loaded.
-  //
-  // The value of img.complete is checked along with the image height and
-  // width. Note that this can't be used with a size 0 image.
-  sk.imageLoaded = function(img) {
-    return new Promise(function(resolve, reject) {
-      var id = window.setInterval(function() {
-        if (img.src != '' && img.complete && img.width != 0 && img.height != 0) {
-          clearInterval(id);
-          resolve(img);
-        }
-      }, 100);
-    });
-  };
-
   // Returns a Promise that uses XMLHttpRequest to make a request with the given
   // method to the given URL with the given headers and body.
   sk.request = function(method, url, body, headers) {
