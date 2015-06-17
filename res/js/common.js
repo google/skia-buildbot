@@ -65,6 +65,20 @@ this.sk = this.sk || function() {
   }
 
   /**
+   * errorMessage dispatches an event with the error message in it.
+   *
+   * See <error-toast-sk> for an element that listens for such events
+   * and displays the error messages.
+   *
+   */
+  sk.errorMessage = function(message) {
+    var detail = {
+      message: message,
+    }
+    document.dispatchEvent(new CustomEvent('error-sk', {detail: detail, bubbles: true}));
+  }
+
+  /**
    * Importer simplifies importing HTML Templates from HTML Imports.
    *
    * Just instantiate an instance in the HTML Import:
@@ -623,5 +637,6 @@ this.sk = this.sk || function() {
       return this.indexOf(searchString, position) === position;
     };
   }
+
   return sk;
 }();

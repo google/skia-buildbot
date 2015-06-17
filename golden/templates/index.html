@@ -98,7 +98,7 @@
         </sort-sk>
         <div id="summaries"></div>
         <paper-spinner active></paper-spinner>
-        <paper-toast duration=10000></paper-toast>
+        <error-toast-sk></error-toast-sk>
         <paper-action-dialog id=commitdialog core-transition-bottom heading="Commit(s)" autoCloseDisabled layered=false>
           <commits-sk id=commitinfo></commits-sk>
           <paper-button affirmative>Close</paper-button>
@@ -132,7 +132,6 @@
        });
 
        function displaySummaries(corpus) {
-         $$$('paper-toast').dismiss();
          var container = $$$('#summaries');
          sk.clearChildren(container);
          var n = 0;
@@ -159,19 +158,16 @@
            n+=1;
          });
          if (n==0) {
-           $$$('paper-toast').text = "No tests matched your query.";
-           $$$('paper-toast').show();
+           sk.errorMessage("No tests matched your query.");
          }
          if (limitExceeded && page.state.details) {
-           $$$('paper-toast').text = "Too many tests to expand all of them. Try filtering down the number of tests.";
-           $$$('paper-toast').show();
+           sk.errorMessage("Too many tests to expand all of them. Try filtering down the number of tests.");
          }
          $$$('paper-spinner').active = false;
        }
 
 
        function loadList() {
-         $$$('paper-toast').dismiss();
          sk.clearChildren($$$('#summaries'));
          $$$('paper-spinner').active = true;
          $$$('#head').checked = page.state.head;
@@ -180,8 +176,7 @@
            summaries = json;
            displaySummaries();
          }).catch(function(e) {
-           $$$('paper-toast').text = e;
-           $$$('paper-toast').show();
+           sk.errorMessage(e);
          });
        }
 
@@ -282,8 +277,7 @@
          $$$('#summaries').addEventListener('triage', function(e) {
            sk.post('_/triage', JSON.stringify(e.detail)).then(function() {
            }).catch(function(e) {
-             $$$('paper-toast').text = e;
-             $$$('paper-toast').show();
+             sk.errorMessage(e);
            });
          });
 
