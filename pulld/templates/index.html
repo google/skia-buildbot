@@ -34,6 +34,15 @@
       paper-header-panel {
         height: 100%;
       }
+
+      systemd-unit-status-sk {
+        display: block;
+        margin: 1em;
+      }
+
+      #units {
+        margin-top: 2em;
+      }
     </style>
   </head>
   <body>
@@ -41,9 +50,11 @@
       <paper-header-panel mode=scroll>
         {%template "titlebar.html" .%}
         {%$hostname := .Hostname%}
-        {%range .Units%}
-        <systemd-unit-status-sk machine="{%$hostname%}" service="{%.Status.Name%}"></systemd-unit-status-sk>
-        {%end%}
+        <div id=units>
+          {%range .Units%}
+          <systemd-unit-status-sk machine="{%$hostname%}" service="{%.Status.Name%}"></systemd-unit-status-sk>
+          {%end%}
+        </div>
         <paper-toast></paper-toast>
       </paper-header-panel>
     </body>
