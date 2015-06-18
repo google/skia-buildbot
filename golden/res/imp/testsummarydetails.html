@@ -273,7 +273,7 @@
           <div>Diff: {{details.closest.diff | fixedPercent }}%</div>
           <div>Max RGBA: [{{details.closest.maxRGBA}}]</div>
         </template>
-        <tri-sk data-digest="{{digest}}" data-test="{{test}}" value=untriaged id=triage></tri-sk>
+        <tri-sk data-digest="{{digest}}" data-test="{{test}}" value="{{details.leftStatus}}" id=triage></tri-sk>
       </div>
     </div>
   </template>
@@ -304,6 +304,14 @@
           value: false,
           reflect: true,
         }
+      },
+
+      // Force the template expansion to be in the Light DOM.
+      parseDeclaration: function(elementElement) {
+        var template = this.fetchTemplate(elementElement);
+        if (template != null) {
+          this.lightFromTemplate(template);
+        };
       },
 
       ready: function() {

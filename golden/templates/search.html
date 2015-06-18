@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Skia Correctness Server | Search</title>
+
+    {%template "header.html" .%}
+
+    <style>
+      #action {
+        background: #4285f4;
+        color: white;
+        margin-top: 1em;
+        margin-bottom: 2em;
+      }
+      test-summary-details-sk {
+        display: block;
+        box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left: 3em;
+        padding: 1em;
+      }
+      test-summary-details-sk[data-focus] {
+        box-shadow: 3px 3px 6px 5px #FF7F00;
+      }
+      #missing {
+        display: none;
+        font-weight: bold;
+      }
+      #missing.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <scaffold-sk responsiveWidth="700px">
+      {%template "titlebar.html" .%}
+
+      <div>
+        <template id=controls is="auto-binding">
+          <p><paper-toggle-button id=head checked="{{state.head}}"></paper-toggle-button> Head</p>
+          <p><paper-toggle-button id=include checked="{{state.include}}"></paper-toggle-button>Include Ignored</p>
+          <p><paper-toggle-button id=pos checked="{{state.pos}}"></paper-toggle-button>Positive</p>
+          <p><paper-toggle-button id=neg checked="{{state.neg}}"></paper-toggle-button>Negative</p>
+          <p><paper-toggle-button id=unt checked="{{state.unt}}"></paper-toggle-button>Untriaged</p>
+        </template>
+        <query-sk whiteList="[]" hideCount fast></query-sk>
+        <paper-button id=action raised>Search</paper-button>
+      </div>
+
+      <div horizontal layout center>
+        <paper-spinner id=spinner></paper-spinner>
+        <counter-sk id=counter></counter-sk>
+        <p id=missing>No digests match your query.</p>
+      </div>
+
+      <detail-list-sk id=results>
+        <template id=details is="auto-binding">
+          <template repeat="{{s in summaries}}">
+            <test-summary-details-sk test="{{s.test}}" digest="{{s.digest}}" triage images=false></test-summary-details-sk>
+          </template>
+        </template>
+      </detail-list-sk>
+    </scaffold-sk>
+
+    <script type="text/javascript" charset="utf-8">
+     (function() {
+       var page = {};
+       var MAX_RESULTS = 200;
+
+       // The current state of the page.
+       page.state = {
+         q:       0,
+         include: false,
+         head:    true,
+         pos:     false,
+         neg:     false,
+         unt:     true,
+         query:   "",
+       }
+
+       var results = $$$('#results');
+       var counter = $$$('#counter');
+       var spinner = $$$('#spinner');
+       var missing = $$$('#missing');
+
+       // Once all the details have been loaded, and if we are triaging,
+       // then start loading images, starting from the top. This function
+       // is called every 100ms until all the details elements have been
+       // changed to load images.
+       //
+       //   details - An array of test-summary-details-sk elements.
+       //
+       function loadDetailImagesStep(details) {
+         details.splice(0, 3).forEach(function(ele) {
+           ele.images = true;
+         });
+         if (details.length > 0) {
+           window.setTimeout(loadDetailImagesStep, 100, details);
+         }
+       }
+
+       results.addEventListener('details-loaded', function(e) {
+         // Move the newly loaded element to the right location in the list.
+         var node = e.detail;
+         var last = null;
+         var diffValue = +node.dataset.diff;
+         // Find the sibling element we should appear before, which is the
+         // first element with a smaller diff value.
+         $$('test-summary-details-sk', results).forEach(function(ele) {
+           var d = ele.dataset.diff;
+           if (d) {
+             if (last == undefined && +d < diffValue) {
+               last = ele;
+             }
+           }
+         });
+         // Insert the node, in the list, or as the first child if last=null.
+         results.insertBefore(node, last);
+
+          counter.current = counter.current + 1;
+          if (counter.current == counter.max) {
+             counter.active = false;
+             spinner.active = false;
+             loadDetailImagesStep($$('test-summary-details-sk', results));
+          }
+       });
+
+       function loadList() {
+         $$$('#controls').state = page.state;
+         $$$('query-sk').setSelections(page.state.query);
+         if (page.state.q) {
+           $$('test-summary-details-sk', results).forEach(function(ele) {
+             results.removeChild(ele);
+           });
+
+           sk.get('_/search?'+sk.query.fromObject(page.state)).then(JSON.parse).then(function(json) {
+             var hasMatches = json.length > 0;
+             missing.classList.toggle('visible', !hasMatches);
+             spinner.active = hasMatches;
+             counter.active = hasMatches;
+             if (json.length > MAX_RESULTS) {
+               json = json.slice(0, MAX_RESULTS);
+               sk.errorMessage('Too many digests to display, truncated to ' + MAX_RESULTS + '. Try restricting your search.');
+             }
+             counter.current = 0;
+             counter.max = json.length;
+             $$$('#details').summaries = json;
+           });
+         }
+       }
+
+       // Map state to/from the URL.
+       sk.stateReflector(page, loadList);
+
+       sk.WebComponentsReady.then(function(){
+        sk.get("_/paramset").then(JSON.parse).then(function(json){
+          $$$('query-sk').setParamSet(json);
+          // The timeout is needed to let the template finish expanding after setParamSet.
+          setTimeout(function(){
+            $$$('query-sk').setSelections(page.state.query);
+          },1)
+        });
+
+        $$$('#action').addEventListener('click', function() {
+          page.state.q = 1;
+          page.state.include = $$$('#include').checked;
+          page.state.head = $$$('#head').checked;
+          page.state.query = $$$('query-sk').currentQuery;
+          page.state.pos = $$$('#pos').checked;
+          page.state.neg = $$$('#neg').checked;
+          page.state.unt = $$$('#unt').checked;
+          loadList();
+        });
+
+       });
+     })();
+    </script>
+  </body>
+</html>

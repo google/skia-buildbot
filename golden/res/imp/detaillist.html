@@ -1,0 +1,165 @@
+<!-- The <detail-list-sk> custom element declaration.
+
+  Manages a list of child elements like test-summary-details-sk
+  that produce zoom, triage and commit-info events.
+
+  Handles the events and also focus highlighting.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+<polymer-element name="detail-list-sk">
+  <template>
+    <style type="text/css" media="screen">
+      #commitdialog {
+        right: 1em;
+        bottom: 1em;
+      }
+    </style>
+    <content></content>
+    <zoom-sk id=zoomer llabel="Closest Triaged" rlabel="Untriaged"></zoom-sk>
+    <error-toast-sk></error-toast-sk>
+    <paper-action-dialog id=commitdialog core-transition-bottom heading="Commit(s)" autoCloseDisabled layered=false>
+      <commits-sk id=commitinfo></commits-sk>
+      <paper-button affirmative>Close</paper-button>
+    </paper-action-dialog>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        this.zooming = false;
+
+        this.$.zoomer.addEventListener('zoom-closed', function() {
+          this.zooming = false;
+        }.bind(this));
+
+        this.addEventListener('zoom-clicked', function(e) {
+          this.zoom(e.detail);
+        }.bind(this));
+
+        this.addEventListener('triage', function(e) {
+          sk.post('_/triage', JSON.stringify(e.detail)).catch(sk.errorMessage);
+        });
+
+        this.addEventListener('commit-selected', function(e) {
+          this.$.commitinfo.setCommitInfo(e.detail);
+          this.$.commitdialog.open();
+        }.bind(this));
+
+
+        document.body.addEventListener('keydown', function(e){
+          if (this.zooming) {
+            return
+          }
+          var c = String.fromCharCode(e.keyCode);
+          switch (c) {
+            case "J":
+              this.focusNext();
+              break;
+            case "K":
+              this.focusPrev();
+              break;
+            case "A":
+              this.markFocus("positive");
+              break;
+            case "S":
+              this.markFocus("negative");
+              break;
+            case "D":
+              this.markFocus("untriaged");
+              break;
+            case "W":
+              this.zoom();
+              break;
+          }
+        }.bind(this));
+
+      },
+
+      zoom: function(ele) {
+        if (!ele) {
+          ele = this.findFocus();
+          if (ele == null) {
+            return
+          }
+        } else {
+          this.focusSet(ele);
+        }
+
+        details = {
+          topImgUrl:  "/img/images/" + ele.digest + ".png",
+          leftImgUrl: "/img/images/" + ele.dataset.closest + ".png",
+          diffImgUrl: "/img/diffs/" + ele.dataset.diffdigests + ".png",
+        };
+        this.$.zoomer.setDetails(details);
+        this.$.zoomer.open();
+        this.zooming = true;
+      },
+
+
+      // findFocus returns the current details element with the keyboard focus.
+      findFocus: function() {
+        return $$$('[data-focus]', this);
+      },
+
+      // moveFocus does the actual work of changing the focus from lastEle
+      // to nextEle.
+      //
+      // Returns true if focus actually moved.
+      moveFocus: function(lastEle, nextEle) {
+        // Don't wrap around past the bottom of the list.
+        if (lastEle != null && nextEle == null) {
+          return false;
+        }
+        if (lastEle != null) {
+          lastEle.removeAttribute('data-focus');
+        }
+        // If nothing is selected, then focus on the first details element.
+        if (nextEle == null) {
+          // Skip the first element which is the template.
+          nextEle = this.firstElementChild.nextElementSibling;
+        }
+        nextEle.setAttribute('data-focus', 'true');
+        nextEle.scrollIntoView(false);
+        return true;
+      },
+
+      focusSet: function(ele) {
+        var lastEle = this.findFocus();
+        this.moveFocus(lastEle, ele);
+      },
+
+      // Move the focus to the next digest.
+      focusNext: function() {
+        var nextEle = null;
+        var lastEle = this.findFocus();
+        if (lastEle != null) {
+          nextEle = lastEle.nextElementSibling;
+        }
+        return this.moveFocus(lastEle, nextEle);
+      },
+
+      // Move the focus to the previous digest.
+      focusPrev: function() {
+        var nextEle = null;
+        var lastEle = this.findFocus();
+        if (lastEle != null) {
+          nextEle = lastEle.previousElementSibling;
+          if (nextEle.nodeName == "TEMPLATE") {
+            nextEle = null;
+          }
+        }
+        return this.moveFocus(lastEle, nextEle);
+      },
+
+      markFocus: function(status) {
+        var ele = this.findFocus();
+        if (ele && ele.triggerTriage) {
+          ele.triggerTriage(status);
+        }
+      },
+
+    });
+  </script>
+</polymer-element>

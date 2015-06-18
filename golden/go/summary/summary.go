@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/skia-dev/glog"
@@ -192,6 +193,102 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 		ret[name] = s.makeSummary(name, e, s.storages.DiffStore, corpus, util.KeysOfStringSet(digests))
 	}
 	t.Stop()
+
+	return ret, nil
+}
+
+// DigestInfo is test name and a digest found in that test. Returned from Search.
+type DigestInfo struct {
+	Test   string `json:"test"`
+	Digest string `json:"digest"`
+}
+
+// Search returns a slice of DigestInfo with all the digests that match the given query parameters.
+//
+// Note that unlike CalcSummaries the results aren't restricted by test name.
+// Also note that the result can include positive and negative digests.
+func (s *Summaries) Search(query string, includeIgnores bool, head bool, pos bool, neg bool, unt bool) ([]DigestInfo, error) {
+	t := timer.New("Search:GetLastTileTrimmed")
+	tile, err := s.storages.GetLastTileTrimmed(includeIgnores)
+	t.Stop()
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
+	}
+	q, err := url.ParseQuery(query)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
+	}
+
+	t = timer.New("Search:Expectations")
+	e, err := s.storages.ExpectationsStore.Get()
+	t.Stop()
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
+	}
+
+	// Filter down to just the traces we are interested in, based on query.
+	filtered := map[string]types.Trace{}
+	t = timer.New("Filter Traces")
+	for id, tr := range tile.Traces {
+		if types.Matches(tr, q) {
+			filtered[id] = tr
+		}
+	}
+	t.Stop()
+
+	traceTally := s.tallies.ByTrace()
+
+	// Find all test:digest's in the filtered traces.
+	matches := map[string]bool{}
+	t = timer.New("Tally up the filtered traces")
+	lastCommitIndex := tile.LastCommitIndex()
+	for id, trace := range filtered {
+		test := trace.Params()[gtypes.PRIMARY_KEY_FIELD]
+		if head {
+			// Find the last non-missing value in the trace.
+			for i := lastCommitIndex; i >= 0; i-- {
+				if trace.IsMissing(i) {
+					continue
+				} else {
+					matches[test+":"+trace.(*types.GoldenTrace).Values[i]] = true
+					break
+				}
+			}
+		} else {
+			if t, ok := traceTally[id]; ok {
+				for d, _ := range *t {
+					matches[test+":"+d] = true
+				}
+			}
+		}
+	}
+	t.Stop()
+
+	// Now create DigestInfo for each test:digest found, filtering out
+	// digests with that don't match the triage classification.
+	ret := []DigestInfo{}
+	for key, _ := range matches {
+		testDigest := strings.Split(key, ":")
+		if len(testDigest) != 2 {
+			glog.Errorf("Invalid test name or digest value: %s", key)
+			continue
+		}
+		test := testDigest[0]
+		digest := testDigest[1]
+		class := e.Classification(test, digest)
+		switch {
+		case class == gtypes.NEGATIVE && !neg:
+			continue
+		case class == gtypes.POSITIVE && !pos:
+			continue
+		case class == gtypes.UNTRIAGED && !unt:
+			continue
+		}
+		ret = append(ret, DigestInfo{
+			Test:   test,
+			Digest: digest,
+		})
+	}
 
 	return ret, nil
 }

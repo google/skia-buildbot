@@ -51,6 +51,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/diff.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/triagelog.html"),
+		filepath.Join(*resourcesDir, "templates/search.html"),
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -334,6 +335,23 @@ func polyDiffJSONDigestHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ret); err != nil {
+		glog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
+func polySearchJSONHandler(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		util.ReportError(w, r, err, "Invalid request.")
+		return
+	}
+	di, err := summaries.Search(r.FormValue("query"), r.FormValue("include") == "true", r.FormValue("head") == "true", r.FormValue("pos") == "true", r.FormValue("neg") == "true", r.FormValue("unt") == "true")
+	if err != nil {
+		util.ReportError(w, r, err, "Search failed.")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(di); err != nil {
 		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }

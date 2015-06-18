@@ -464,6 +464,7 @@ func main() {
 	router.HandleFunc("/_/ignores/save/{id}", polyIgnoresUpdateHandler).Methods("POST")
 	router.HandleFunc("/_/list", polyListTestsHandler).Methods("GET")
 	router.HandleFunc("/_/paramset", polyParamsHandler).Methods("GET")
+	router.HandleFunc("/_/search", polySearchJSONHandler).Methods("GET")
 	router.HandleFunc("/_/status/{test}", polyTestStatusHandler).Methods("GET")
 	router.HandleFunc("/_/test", polyTestHandler).Methods("POST")
 	router.HandleFunc("/_/triage", polyTriageHandler).Methods("POST")
@@ -475,6 +476,7 @@ func main() {
 	router.HandleFunc("/ignores", templateHandler("ingores.html")).Methods("GET")
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
+	router.HandleFunc("/search", templateHandler("search.html")).Methods("GET")
 	router.HandleFunc("/triagelog", templateHandler("triagelog.html")).Methods("GET")
 
 	// Add the necessary middleware and have the router handle all requests.
