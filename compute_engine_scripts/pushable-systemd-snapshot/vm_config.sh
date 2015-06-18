@@ -19,4 +19,4 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 INSTANCE_NAME=${VM_NAME_BASE}-systemd-snapshot-maker
 MACHINE_TYPE=n1-standard-4
 IMAGE_TYPE="https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/ubuntu-1504-vivid-v20150422"
-IP_ADDRESS=104.154.112.110
+IP_ADDRESS=104.154.112.111

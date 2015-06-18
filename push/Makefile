@@ -14,10 +14,10 @@ default: core_js elements_html
 	go install -v ./go/push
 
 release: default
-	./build_pushd_release
+	./build_pushd_release "$(MESSAGE)"
 
 pull_release: default
-	./build_pull_release
+	./build_pull_release "$(MESSAGE)"
 
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html

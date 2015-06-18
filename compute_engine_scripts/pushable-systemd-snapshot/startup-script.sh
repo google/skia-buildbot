@@ -9,10 +9,14 @@
 #
 # For more details see ../../push/DESIGN.md.
 sudo apt-get update
-sudo apt-get --assume-yes upgrade
+# Running "sudo apt-get --assume-yes upgrade" may upgrade the package
+# gce-startup-scripts, which would cause systemd to restart gce-startup-scripts,
+# which would kill this script because it is a child process of
+# gce-startup-scripts.
 sudo apt-get --assume-yes -o Dpkg::Options::="--force-confold" install collectd
 gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2015-05-22T18:21:00Z:bc431998188dfb34b619eb7049d2cd384fe434d9.deb pulld.deb
 sudo dpkg -i pulld.deb
+sudo apt-get --assume-yes install --fix-broken
 
 # Setup collectd.
 sudo cat <<EOF > collectd.conf
