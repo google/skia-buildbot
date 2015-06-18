@@ -39,80 +39,34 @@ const (
 )
 
 var (
-	// indexTemplate is the main index.html page we serve.
-	indexTemplate *template.Template = nil
-
-	// ignoresTemplate is the page for setting up ignore filters.
-	ignoresTemplate *template.Template = nil
-
-	// compareTemplate is the page for setting up ignore filters.
-	compareTemplate *template.Template = nil
-
-	// singleTemplate is the page for viewing a single digest.
-	singleTemplate *template.Template = nil
-
-	// diffTemplate is the page for viewing a single digest.
-	diffTemplate *template.Template = nil
-
-	// helpTemplate is the help page.
-	helpTemplate *template.Template = nil
-
-	// triageLogTemplate renders the triage changes listing.
-	triageLogTemplate *template.Template = nil
+	templates *template.Template
 )
 
-// polyMainHandler is the main page for the Polymer based frontend.
-func polyMainHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Poly Main Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		loadTemplates()
-	}
-	if err := indexTemplate.Execute(w, commonEnv); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
+func loadTemplates() {
+	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
+		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/ignores.html"),
+		filepath.Join(*resourcesDir, "templates/compare.html"),
+		filepath.Join(*resourcesDir, "templates/single.html"),
+		filepath.Join(*resourcesDir, "templates/diff.html"),
+		filepath.Join(*resourcesDir, "templates/help.html"),
+		filepath.Join(*resourcesDir, "templates/triagelog.html"),
+		// Sub templates used by other templates.
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
 }
 
-func loadTemplates() {
-	indexTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	ignoresTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/ignores.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	compareTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/compare.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-
-	singleTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/single.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-
-	diffTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/diff.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-
-	helpTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/help.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-
-	triageLogTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/triagelog.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
+func templateHandler(name string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		if *local {
+			loadTemplates()
+		}
+		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
+			glog.Errorln("Failed to expand template:", err)
+		}
+	}
 }
 
 type SummarySlice []*summary.Summary
@@ -343,42 +297,6 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	polyIgnoresJSONHandler(w, r)
 }
 
-// polyIgnoresHandler is for setting up ignores rules.
-func polyIgnoresHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Poly Ignores Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		loadTemplates()
-	}
-	if err := ignoresTemplate.Execute(w, commonEnv); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
-// polySingleDigestHandler is a page about a single digest.
-func polySingleDigestHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Poly Single Digest Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		loadTemplates()
-	}
-	if err := singleTemplate.Execute(w, commonEnv); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
-// polyDiffDigestHandler is a page about the differences between two digests.
-func polyDiffDigestHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Poly Diff Digest Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		loadTemplates()
-	}
-	if err := diffTemplate.Execute(w, commonEnv); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
 // polyDiffJSONDigestHandler takes three parameters (top, left, and test), and
 // returns a JSON serialized PolyTestDiffInfo as the response.
 func polyDiffJSONDigestHandler(w http.ResponseWriter, r *http.Request) {
@@ -417,43 +335,6 @@ func polyDiffJSONDigestHandler(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ret); err != nil {
 		glog.Errorf("Failed to write or encode result: %s", err)
-	}
-}
-
-// polyHelpHandler is for serving the main compare page.
-func polyHelpHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Poly Help Handler: %q\n", r.URL.Path)
-
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		loadTemplates()
-	}
-	if err := helpTemplate.Execute(w, commonEnv); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
-// polyCompareHandler is for serving the main compare page.
-func polyCompareHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Poly Compare Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		loadTemplates()
-	}
-	if err := compareTemplate.Execute(w, commonEnv); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
-// polyTriageLogView is for serving the main triage log page.
-func polyTriageLogView(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Poly Triagelog Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		loadTemplates()
-	}
-	if err := triageLogTemplate.Execute(w, commonEnv); err != nil {
-		glog.Errorln("Failed to expand template:", err)
 	}
 }
 

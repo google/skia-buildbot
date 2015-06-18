@@ -88,13 +88,6 @@ type ResponseEnvelope struct {
 	Pagination *util.ResponsePagination `json:"pagination"`
 }
 
-// CommonEnv captures shared that affect the frontend as well as the backend.
-// It is used in setting up endpoints as well as rendering HTML.
-type CommonEnv struct {
-	// BaseURL is the base path of the application.
-	BaseURL string
-}
-
 var (
 	analyzer *analysis.Analyzer = nil
 
@@ -104,7 +97,6 @@ var (
 	tallies            *tally.Tallies
 	summaries          *summary.Summaries
 	statusWatcher      *status.StatusWatcher
-	commonEnv          CommonEnv
 	blamer             *blame.Blamer
 )
 
@@ -462,35 +454,28 @@ func main() {
 	// All the handlers will be prefixed with poly to differentiate it from the
 	// angular code until the angular code is removed.
 	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
+	router.HandleFunc("/", templateHandler("index.html")).Methods("GET")
+	router.HandleFunc("/_/details", polyDetailsHandler).Methods("GET")
+	router.HandleFunc("/_/diff", polyDiffJSONDigestHandler).Methods("GET")
+	router.HandleFunc("/_/hashes", polyAllHashesHandler).Methods("GET")
+	router.HandleFunc("/_/ignores", polyIgnoresJSONHandler).Methods("GET")
+	router.HandleFunc("/_/ignores/add/", polyIgnoresAddHandler).Methods("POST")
+	router.HandleFunc("/_/ignores/del/{id}", polyIgnoresDeleteHandler).Methods("POST")
+	router.HandleFunc("/_/ignores/save/{id}", polyIgnoresUpdateHandler).Methods("POST")
+	router.HandleFunc("/_/list", polyListTestsHandler).Methods("GET")
+	router.HandleFunc("/_/paramset", polyParamsHandler).Methods("GET")
+	router.HandleFunc("/_/status/{test}", polyTestStatusHandler).Methods("GET")
+	router.HandleFunc("/_/test", polyTestHandler).Methods("POST")
+	router.HandleFunc("/_/triage", polyTriageHandler).Methods("POST")
+	router.HandleFunc("/_/triagelog", polyTriageLogHandler).Methods("GET")
+	router.HandleFunc("/cmp/{test}", templateHandler("compare.html")).Methods("GET")
+	router.HandleFunc("/detail", templateHandler("single.html")).Methods("GET")
+	router.HandleFunc("/diff", templateHandler("diff.html")).Methods("GET")
+	router.HandleFunc("/help", templateHandler("help.html")).Methods("GET")
+	router.HandleFunc("/ignores", templateHandler("ingores.html")).Methods("GET")
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
-
-	commonEnv.BaseURL = "/"
-	polyRouter := router.PathPrefix(commonEnv.BaseURL).Subrouter()
-	polyRouter.HandleFunc("/", polyMainHandler).Methods("GET")
-	polyRouter.HandleFunc("/ignores", polyIgnoresHandler).Methods("GET")
-	polyRouter.HandleFunc("/cmp/{test}", polyCompareHandler).Methods("GET")
-	polyRouter.HandleFunc("/detail", polySingleDigestHandler).Methods("GET")
-	polyRouter.HandleFunc("/diff", polyDiffDigestHandler).Methods("GET")
-	polyRouter.HandleFunc("/_/diff", polyDiffJSONDigestHandler).Methods("GET")
-	polyRouter.HandleFunc("/_/list", polyListTestsHandler).Methods("GET")
-	polyRouter.HandleFunc("/_/paramset", polyParamsHandler).Methods("GET")
-	polyRouter.HandleFunc("/_/ignores", polyIgnoresJSONHandler).Methods("GET")
-	polyRouter.HandleFunc("/_/ignores/del/{id}", polyIgnoresDeleteHandler).Methods("POST")
-	polyRouter.HandleFunc("/_/ignores/add/", polyIgnoresAddHandler).Methods("POST")
-	polyRouter.HandleFunc("/_/ignores/save/{id}", polyIgnoresUpdateHandler).Methods("POST")
-	polyRouter.HandleFunc("/_/test", polyTestHandler).Methods("POST")
-	polyRouter.HandleFunc("/_/details", polyDetailsHandler).Methods("GET")
-	polyRouter.HandleFunc("/_/triage", polyTriageHandler).Methods("POST")
-	polyRouter.HandleFunc("/_/status/{test}", polyTestStatusHandler).Methods("GET")
-
-	polyRouter.HandleFunc("/triagelog", polyTriageLogView).Methods("GET")
-	polyRouter.HandleFunc("/_/triagelog", polyTriageLogHandler).Methods("GET")
-
-	polyRouter.HandleFunc("/_/hashes", polyAllHashesHandler).Methods("GET")
-
-	// Serve the legacy app from the static directory.
-	router.PathPrefix("/legacy/").Handler(http.StripPrefix("/legacy", http.FileServer(http.Dir(*staticDir))))
+	router.HandleFunc("/triagelog", templateHandler("triagelog.html")).Methods("GET")
 
 	// Add the necessary middleware and have the router handle all requests.
 	// By structuring the middleware this way we only log requests that are

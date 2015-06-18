@@ -3,7 +3,7 @@
   <head>
     <title>Skia Correctness Server</title>
 
-    {{template "header.html" .}}
+    {%template "header.html" .%}
 
     <!-- TODO(jcgregorio) Move this into res/css/main.css. -->
     <style type="text/css" media="screen">
@@ -97,7 +97,7 @@
   </head>
   <body>
     <scaffold-sk responsiveWidth="700px">
-      {{template "titlebar.html" .}}
+      {%template "titlebar.html" .%}
 
       <div horizontal layout id=heading>
         <test-status-sk></test-status-sk>
