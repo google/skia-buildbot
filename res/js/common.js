@@ -133,12 +133,10 @@ this.sk = this.sk || function() {
           req.setRequestHeader(k, headers[k]);
         }
       }
-      document.body.style.cursor = 'wait';
 
       req.onload = function() {
         // This is called even on 404 etc
         // so check the status
-        document.body.style.cursor = 'auto';
         if (req.status == 200) {
           // Resolve the promise with the response text
           resolve(req.response);
@@ -151,7 +149,6 @@ this.sk = this.sk || function() {
 
       // Handle network errors
       req.onerror = function() {
-        document.body.style.cursor = 'auto';
         reject(Error("Network Error"));
       };
 
