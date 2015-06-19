@@ -473,7 +473,7 @@ func main() {
 	router.HandleFunc("/detail", templateHandler("single.html")).Methods("GET")
 	router.HandleFunc("/diff", templateHandler("diff.html")).Methods("GET")
 	router.HandleFunc("/help", templateHandler("help.html")).Methods("GET")
-	router.HandleFunc("/ignores", templateHandler("ingores.html")).Methods("GET")
+	router.HandleFunc("/ignores", templateHandler("ignores.html")).Methods("GET")
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/search", templateHandler("search.html")).Methods("GET")
