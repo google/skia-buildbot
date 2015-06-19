@@ -53,7 +53,8 @@
           <template is="dom-repeat" items$="{{choices}}">
             <div class=pushSelection data-name$="{{item.Name}}">
               <iron-icon icon$="{{checkIfInstalled(choice, item.Name)}}" title="Currently installed"></iron-icon>
-              <a href="https://github.com/google/skia-buildbot/compare/{{item.Hash}}...HEAD">{{short(item.Hash)}}</a>
+              <a target=_blank href="{{linkToCommit(item.Hash)}}">{{short(item.Hash)}}</a>
+              <a target=_blank href="{{linkToDiff(item.Hash)}}">log</a>
               <pre class=built>{{humanDiffDate(item.Built)}}</pre>
               <pre class=userid title$="{{item.UserID}}">{{short(item.UserID)}}</pre>
               <span>{{item.Note}}</span>
@@ -76,6 +77,9 @@
     ready: function() {
       var that = this;
       this.$.newChoice.addEventListener('click', function(e) {
+        if (e.target.nodeName == 'A') {
+          return;
+        }
         that.toggle();
         var div = sk.findParent(e.target, "DIV");
         if (div == null) {
@@ -89,11 +93,15 @@
     properties: {
       choices: {
         type: Array,
-        value: [],
+        value: function() { return []; },
       },
       choice: {
         type: String,
         value: '',
+      },
+      installedHash: {
+        type: String,
+        computed: 'findInstalledHash(choice, choices)',
       }
     },
 
@@ -117,6 +125,32 @@
 
     warnIfDirty: function(dirty) {
       return dirty ? 'warning' : ''
+    },
+
+    linkToCommit: function(hash) {
+      return 'https://skia.googlesource.com/buildbot/+/' + hash;
+    },
+
+    findInstalledHash: function(choice, choices) {
+      ret = '';
+      choices.forEach(function(e) {
+        if (e.Name == choice) {
+          ret = e.Hash;
+        }
+      });
+      return ret;
+    },
+
+    linkToDiff: function(hash) {
+      if (this.installedHash == '' || this.installedHash == hash) {
+        return this.linkToCommit(hash);
+      } else {
+        // This link only works if the installed package is older than
+        // the package you are inspecting, which is normally the case.
+        // To get the link 100% right would require looking up the hashes
+        // in the Git repo.
+        return 'https://skia.googlesource.com/buildbot/+log/' + this.installedHash + '..' + hash;
+      }
     },
 
   });
