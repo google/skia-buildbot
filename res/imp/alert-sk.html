@@ -16,6 +16,7 @@
 
   Properties:
     alert: The alert object.
+    allowEdit: Whether or not to allow edits if the user has edit rights.
     compact: If true, minimal information about alerts is displayed.
 -->
 <link rel="import" href="/res/common/imp/alert-controls-sk.html" />
@@ -79,6 +80,10 @@
           value: null,
           reflect: true,
         },
+        allowEdit: {
+          value: true,
+          reflect: true,
+        },
         compact: {
           value: false,
           reflect: true,
@@ -90,14 +95,18 @@
       },
 
       ready: function() {
-        var ele = this;
-        sk.Login.then(function(status) {
-          var email = status['Email'];
-          var validEmail = "@google.com"
-          if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
-            ele.editRights = true;
-          }
-        });
+        if (this.allowEdit) {
+          var ele = this;
+          sk.Login.then(function(status) {
+            var email = status['Email'];
+            var validEmail = "@google.com"
+            if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
+              ele.editRights = true;
+            }
+          });
+        } else {
+          this.editRights = false;
+        }
         // Linkify the messages.
         var messages = this.shadowRoot.querySelectorAll("div.message");
         for (var i = 0; i < messages.length; i++) {
