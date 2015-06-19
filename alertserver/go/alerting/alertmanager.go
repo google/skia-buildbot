@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	NAG_MSG_TMPL = "This alert has been active for %s since the last update. Please verify that it is still valid and either fix the issue or dismiss/snooze the alert."
+	NAG_MSG_TMPL     = "This alert has been active for %s since the last update. Please verify that it is still valid and either fix the issue or dismiss/snooze the alert."
+	USER_ALERTSERVER = "AlertServer"
 )
 
 var (
@@ -269,7 +270,7 @@ func (am *AlertManager) tick() error {
 			if time.Since(time.Unix(int64(lastMsgTime), 0)) > time.Duration(a.Nag) {
 				if err := am.addComment(a, &Comment{
 					Time:    time.Now().UTC().Unix(),
-					User:    "AlertServer",
+					User:    USER_ALERTSERVER,
 					Message: fmt.Sprintf(NAG_MSG_TMPL, time.Duration(a.Nag).String()),
 				}); err != nil {
 					return err

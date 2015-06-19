@@ -27,6 +27,7 @@ const (
 Build: https://uberchromegw.corp.google.com/i/%s/builders/%s/builds/%d
 
 Host info: https://status.skia.org/hosts?filter=%s`
+	AUTOROLL_ALERT_NAME = "AutoRoll Failed"
 )
 
 type BuildSlice []*buildbot.Build
@@ -212,15 +213,25 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 				continue
 			}
 			lastSearch = now
+			activeAlert := am.ActiveAlert(AUTOROLL_ALERT_NAME)
 			for _, issue := range results {
-				if issue.Closed && !issue.Committed {
-					if err := am.AddAlert(&alerting.Alert{
-						Name:    "AutoRoll Failed",
-						Message: fmt.Sprintf("DEPS roll failed: %s/%d", autoroll.RIETVELD_URL, issue.Issue),
-						Nag:     int64(3 * time.Hour),
-						Actions: actions,
-					}); err != nil {
-						glog.Error(err)
+				if issue.Closed {
+					if issue.Committed {
+						if activeAlert != 0 {
+							msg := fmt.Sprintf("Subsequent roll succeeded: %s/%d", autoroll.RIETVELD_URL, issue.Issue)
+							if err := am.Dismiss(activeAlert, alerting.USER_ALERTSERVER, msg); err != nil {
+								glog.Error(err)
+							}
+						}
+					} else {
+						if err := am.AddAlert(&alerting.Alert{
+							Name:    AUTOROLL_ALERT_NAME,
+							Message: fmt.Sprintf("DEPS roll failed: %s/%d", autoroll.RIETVELD_URL, issue.Issue),
+							Nag:     int64(3 * time.Hour),
+							Actions: actions,
+						}); err != nil {
+							glog.Error(err)
+						}
 					}
 				}
 			}
