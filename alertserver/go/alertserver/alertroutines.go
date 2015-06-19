@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"regexp"
 	"strings"
 	"time"
@@ -13,7 +12,6 @@ import (
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
-	"go.skia.org/infra/go/util"
 )
 
 /*
@@ -82,120 +80,6 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 						}); err != nil {
 							glog.Error(err)
 						}
-					}
-				}
-			}
-		}
-	}()
-
-	// Alerts for buildbot data.
-	go func() {
-		// Don't generate alerts for these buildslaves, since they always fail.
-		buildslaveBlacklist := []string{
-			"build4-a3",
-			"build5-a3",
-			"build5-m3",
-			"skiabot-shuttle-ubuntu12-galaxys3-001",
-			"skiabot-shuttle-ubuntu12-galaxys3-002",
-			"skiabot-shuttle-ubuntu12-galaxys4-001",
-			"skiabot-shuttle-ubuntu12-galaxys4-002",
-		}
-
-		// Generate an alert if the failure rate exceeds the mean by
-		// this many standard deviations,
-		sigStdDevs := 0.5
-		for _ = range time.Tick(tickInterval) {
-			now := time.Now()
-			start := now.Add(-24 * time.Hour)
-			builds, err := buildbot.GetBuildsFromDateRange(start, now)
-			if err != nil {
-				glog.Error(err)
-				continue
-			}
-			buildsByBuilder := map[string][]*buildbot.Build{}
-			buildsBySlave := map[string][]*buildbot.Build{}
-			for _, b := range builds {
-				if _, ok := buildsByBuilder[b.Builder]; !ok {
-					buildsByBuilder[b.Builder] = []*buildbot.Build{}
-				}
-				buildsByBuilder[b.Builder] = append(buildsByBuilder[b.Builder], b)
-				if _, ok := buildsBySlave[b.BuildSlave]; !ok {
-					buildsBySlave[b.BuildSlave] = []*buildbot.Build{}
-				}
-				buildsBySlave[b.BuildSlave] = append(buildsBySlave[b.BuildSlave], b)
-			}
-			failuresByBuilder := map[string]int{}
-			for builder, builds := range buildsByBuilder {
-				failures := 0
-				for _, b := range builds {
-					if b.Results == 0 || b.Results == 1 || b.Results == 3 {
-						// Success | Warnings | Skipped
-					} else {
-						// Failure | Exception | Retry
-						failures++
-					}
-				}
-				failuresByBuilder[builder] = failures
-			}
-			for slave, b := range buildsBySlave {
-				if util.In(slave, buildslaveBlacklist) {
-					glog.Warningf("Skipping blacklisted buildslave %s", slave)
-					continue
-				}
-
-				// We can assume there's at least one build for the slave, and
-				// we can assume that the slave only connects to one master.
-				master := b[0].Master
-
-				// Loop through the builds:
-				// 1. Calculate the failure rate for this slave.
-				// 2. Calculate a mean failure rate: the combined
-				//    failure rate of all builders that this slave ran.
-				builders := map[string]bool{}
-				failed := 0
-				for _, build := range b {
-					if build.Results != 0 {
-						failed++
-					}
-					builders[build.Builder] = true
-				}
-				failureRate := float64(failed) / float64(len(b))
-				if failureRate == 0 {
-					continue
-				}
-				failedOnAllBuilders := 0
-				ranOnAllBuilders := 0
-				for builder, _ := range builders {
-					ranOnAllBuilders += len(buildsByBuilder[builder])
-					failedOnAllBuilders += failuresByBuilder[builder]
-				}
-				meanFailureRate := float64(failedOnAllBuilders) / float64(ranOnAllBuilders)
-
-				// Calculate the standard deviation.
-				sumSquares := float64(0.0)
-				// (val - mean)^2 for failures.
-				f := float64(1.0) - meanFailureRate
-				f = f * f
-				// (val - mean)^2 for successes.
-				s := float64(0.0) - meanFailureRate
-				s = s * s
-				for builder, _ := range builders {
-					sumSquares += f * float64(failuresByBuilder[builder])
-					sumSquares += s * float64(len(buildsByBuilder[builder])-failuresByBuilder[builder])
-				}
-				stddev := math.Sqrt(sumSquares / float64(ranOnAllBuilders))
-
-				threshold := meanFailureRate + sigStdDevs*stddev
-				if failureRate > threshold {
-					if err := am.AddAlert(&alerting.Alert{
-						Name:        fmt.Sprintf("Buildslave %s failure rate is too high", slave),
-						Category:    alerting.INFRA_ALERT,
-						Message:     fmt.Sprintf("Buildslave %s failure rate (%f) is significantly higher than the average failure rate of the builders it runs. Mean: %f StdDev: %f .Significance defined as %f standard deviations for a threshold of %f. https://uberchromegw.corp.google.com/i/%s/buildslaves/%s", slave, failureRate, meanFailureRate, stddev, sigStdDevs, threshold, master, slave),
-						Nag:         int64(3 * time.Hour),
-						AutoDismiss: int64(2 * tickInterval),
-						Actions:     actions,
-					}); err != nil {
-						glog.Error(err)
 					}
 				}
 			}
