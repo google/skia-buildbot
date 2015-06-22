@@ -260,11 +260,17 @@ this.sk = this.sk || function() {
    * Returns a human-readable format of the given duration in seconds.
    *
    * For example, 'strDuration(123)' would return "2m 3s".
+   *
+   * Negative seconds is treated the same as positive seconds.
    */
   sk.human.strDuration = function(seconds) {
+    if (seconds < 0) {
+      seconds = -seconds;
+    }
+    if (seconds == 0) { return '  0s'; }
     var rv = "";
     for (var i=0; i<DELTAS.length; i++) {
-      if (DELTAS[i].delta < seconds) {
+      if (DELTAS[i].delta <= seconds) {
         var s = Math.floor(seconds/DELTAS[i].delta)+DELTAS[i].units;
         while (s.length < 4) {
           s = ' ' + s;
@@ -291,16 +297,16 @@ this.sk = this.sk || function() {
     if (diff < 0) {
       diff = -1.0 * diff;
     }
-    for (var i=0; i<DELTAS.length; i++) {
-      if (DELTAS[i].delta < diff) {
-        var s = Math.round(diff/DELTAS[i].delta)+DELTAS[i].units;
-        while (s.length < 4) {
-          s = ' ' + s;
-        }
-        return s;
+    for (var i=0; i<DELTAS.length-1; i++) {
+      // If diff would round to '60s', return '1m' instead.
+      var nextDeltaRounded =
+          Math.round(diff/DELTAS[i+1].delta)*DELTAS[i+1].delta;
+      if (nextDeltaRounded/DELTAS[i].delta >= 1) {
+        return Math.round(diff/DELTAS[i].delta)+DELTAS[i].units;
       }
     }
-    return diff + "s";
+    var i = DELTAS.length-1;
+    return Math.round(diff/DELTAS[i].delta)+DELTAS[i].units;
   }
 
   // Namespace for utilities for working with arrays.
