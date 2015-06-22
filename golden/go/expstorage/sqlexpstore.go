@@ -243,6 +243,16 @@ func (m *SQLExpectationsStore) QueryLog(offset, size int, details bool) ([]*Tria
 	return result, total, nil
 }
 
+// See ExpectationsStore interface.
+func (s *SQLExpectationsStore) CanonicalTraceIDs(testNames []string) (map[string]string, error) {
+	return nil, nil
+}
+
+// See ExpectationsStore interface.
+func (s *SQLExpectationsStore) SetCanonicalTraceIDs(traceIDs map[string]string) error {
+	return nil
+}
+
 // Wraps around an ExpectationsStore and caches the expectations using
 // MemExpecationsStore.
 type CachingExpectationStore struct {
@@ -312,4 +322,16 @@ func (c *CachingExpectationStore) RemoveChange(changedDigests map[string][]strin
 // See ExpectationsStore interface.
 func (c *CachingExpectationStore) QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error) {
 	return c.store.QueryLog(offset, size, details)
+}
+
+// See ExpectationsStore interface.
+// TODO(stephana): Implement once API is defined.
+func (c *CachingExpectationStore) CanonicalTraceIDs(testNames []string) (map[string]string, error) {
+	return nil, nil
+}
+
+// See ExpectationsStore interface.
+// TODO(stephana): Implement once API is defined.
+func (c *CachingExpectationStore) SetCanonicalTraceIDs(traceIDs map[string]string) error {
+	return nil
 }

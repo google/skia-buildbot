@@ -131,6 +131,14 @@ type ExpectationsStore interface {
 	// If details is true the result will include a list of triage operations
 	// that were part a change.
 	QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error)
+
+	// CanonicalTraceIDs returns the cannonical trace IDs for the given list
+	// of test names.
+	CanonicalTraceIDs(testNames []string) (map[string]string, error)
+
+	// CanonicalTraceIDs sets the cannonical trace IDs for the mapping of
+	// test names to trace IDs.
+	SetCanonicalTraceIDs(traceIDs map[string]string) error
 }
 
 // TriageDetails represents one changed digest and the label that was
@@ -228,4 +236,16 @@ func (m *MemExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error) {
 	glog.Fatal("MemExpectation store does not support querying the logs.")
 	return nil, 0, nil
+}
+
+// See ExpectationsStore interface.
+// TODO(stephana): Implement once API is defined.
+func (m *MemExpectationsStore) CanonicalTraceIDs(testNames []string) (map[string]string, error) {
+	return nil, nil
+}
+
+// See ExpectationsStore interface.
+// TODO(stephana): Implement once API is defined.
+func (m *MemExpectationsStore) SetCanonicalTraceIDs(traceIDs map[string]string) error {
+	return nil
 }

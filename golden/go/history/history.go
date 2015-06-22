@@ -24,6 +24,15 @@ func Init(storages *storage.Storage, nTilesToBackfill int) error {
 	return err
 }
 
+// CanonicalDigests returns the cannonical digests for a list of test names.
+// The canonical digest is the last labeled digest in the current tile that
+// is in the canonical trace. If no canonical trace is defined or the
+// current tile has only untriaged digests an empty string is returned.
+func CanonicalDigests(testNames []string) (map[string]string, error) {
+	// TODO(stephana): Implement once the API is defined.
+	return nil, nil
+}
+
 // historian runs background processes to update information about digests,
 // i.e. recording when we encounter a digests for the first and the last time.
 type historian struct {
