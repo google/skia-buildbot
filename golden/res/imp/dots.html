@@ -6,8 +6,7 @@
 
 
   Attributes:
-    withblame - Boolean attribute that controls whether to show blame
-      information, defaults to false.
+    None.
 
   Events:
     commit-selected - Event generated when a dot is clicked.
@@ -46,6 +45,10 @@
       after the first 7 unique digests are represented by
       this code.
 
+    highlight(index, b) - Highlight all digests at the given index
+      if b is true, else remove the highlight at that index.
+
+
     setCommits(commits) - Where commits is an array of commits:
 
       [
@@ -56,8 +59,9 @@
         },
         ...
       ]
+
 -->
-<polymer-element name="dots-sk" attributes="withblame">
+<polymer-element name="dots-sk">
   <template>
     <style type="text/css" media="screen">
       g:hover circle {
@@ -69,34 +73,42 @@
         fill:   #000000;
         stroke: #000000;
       }
+
       circle.status1 {
         fill:   #ffffff;
         stroke: #1B9E77;
       }
+
       circle.status2 {
         fill:   #ffffff;
         stroke: #D95F02;
       }
+
       circle.status3 {
         fill:   #ffffff;
         stroke: #7570B3;
       }
+
       circle.status4 {
         fill:   #ffffff;
         stroke: #E7298A;
       }
+
       circle.status5 {
         fill:   #ffffff;
         stroke: #66A61E;
       }
+
       circle.status6 {
         fill:   #ffffff;
         stroke: #E6AB02;
       }
+
       circle.status7 {
         fill:   #ffffff;
         stroke: #A6761D;
       }
+
       circle.status8 {
         fill:   #ffffff;
         stroke: #999999;
@@ -106,29 +118,6 @@
         fill: #E7298A !important;
         stroke: #E7298A !important;
       }
-
-      div.commitEntry:hover {
-        color: #E7298A;
-      }
-
-      div.commitEntry {
-        padding-left: 2em;
-      }
-
-      .blameHeader {
-        font-weight: bold;
-        padding-top: 1em;
-      }
-
-      .blameContainer {
-        padding-top: 1em;
-        padding-bottom: 1em;
-      }
-
-      .footNote {
-        padding-top: 1em;
-      }
-
     </style>
     <svg id=dots
       width="{{(value.tileSize)*10+20}}"
@@ -150,36 +139,9 @@
       </template>
     </svg>
 
-    <template if="{{withblame && value.blame.freq.length > 0}}">
-      <div class="blameContainer">
-        <div class="blameHeader">Blame</div>
-        <template repeat="{{b in value.blame.freq}}">
-            <div class="commitEntry" data-idx="{{b}}" on-mouseover="{{hoverCommits}}" on-mouseout="{{hoverCommits}}">
-              {{commits[b].commit_time | humanDiffDate}} - {{commits[b].author}}
-            </div>
-        </template>
-        <template if="{{value.blame.old}}">
-          <div class="footNote">
-            * Digest appeared before current range. Blame might be incorrect.
-          </div>
-        </template>
-      </div>
-    </template>
-    <template if="{{withblame && !(value.blame.freq.length > 0)}}">
-      <div class="blameContainer">
-        No blames available - Digest too old !
-      </div>
-    </template>
   </template>
   <script>
     Polymer({
-      publish: {
-        withblame: {
-          value: false,
-          reflect: true
-        }
-      },
-
       ready: function() {
         // Keep track of the last element hovered over to reduce the number of
         // events we generate.
@@ -188,14 +150,12 @@
         this.value = {};
         this.commits = [];
 
-        var that = this;
-
         this.$.dots.addEventListener('mouseover', function(e) {
-          if (e.target.nodeName == "circle" && that.hoverElement != e.target) {
-            that.hoverElement = e.target;
-            that.dispatchEvent(new CustomEvent('hover', {detail: e.target.parentElement.dataset.id}));
+          if (e.target.nodeName == "circle" && this.hoverElement != e.target) {
+            this.hoverElement = e.target;
+            this.dispatchEvent(new CustomEvent('hover', {detail: e.target.parentElement.dataset.id}));
           }
-        });
+        }.bind(this));
 
         this.$.dots.addEventListener('click', function(e) {
           if (e.target.nodeName == "circle") {
@@ -206,7 +166,7 @@
 
             // Look backwards in the trace for the previous commit with data.
             var firstCommit = 0;
-            var trace = that.value.traces[y];
+            var trace = this.value.traces[y];
             for (var i=trace.data.length-1; i>=0; i--) {
               if (trace.data[i].x == x) {
                 if (i>0) {
@@ -216,11 +176,11 @@
               }
             }
 
-            var commitinfo = that.value.commits.slice(firstCommit, x+1);
+            var commitinfo = this.value.commits.slice(firstCommit, x+1);
             commitinfo.reverse();
-            that.dispatchEvent(new CustomEvent('commit-selected', {detail: commitinfo, "bubbles": true}));
+            this.dispatchEvent(new CustomEvent('commit-selected', {detail: commitinfo, bubbles: true}));
           }
-        });
+        }.bind(this));
       },
 
       setValue: function(value) {
@@ -231,32 +191,16 @@
         this.commits = commits;
       },
 
-      hoverCommits: function(e) {
-        var commitIdx = parseInt(e.target.attributes['data-idx'].value);
-        var targetNodes = [];
+      highlight: function(index, b) {
         for(var i=0, iLen=this.value.traces.length; i < iLen; i++) {
           for(var j=0, jLen=this.value.traces[i].data.length; j < jLen; j++) {
-            if (this.value.traces[i].data[j].x >= commitIdx) {
-              targetNodes.push(this.shadowRoot.querySelector('#circ-' + i + '-' + j));
+            if (this.value.traces[i].data[j].x >= index) {
+              $$$('#circ-' + i + '-' + j, this.shadowRoot).classList.toggle('circHoverCommit', b);
               break;
             }
           }
         }
-
-        if (e.type == 'mouseover') {
-          targetNodes.forEach(function(ele) {
-            ele.classList.add('circHoverCommit');
-          });
-        } else {
-          targetNodes.forEach(function(ele) {
-            ele.classList.remove('circHoverCommit');
-          });
-        }
       },
-
-      humanDiffDate: function(s) {
-        return sk.human.diffDate(s*1000);
-      }
     });
   </script>
 </polymer-element>

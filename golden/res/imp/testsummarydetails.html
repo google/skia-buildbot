@@ -200,7 +200,8 @@
       </template>
       <div vertical layout>
         <a href="detail?test={{test}}&digest={{digest}}">{{digest}}</a>
-        <dots-sk id="dots" withblame></dots-sk>
+        <dots-sk id=dots></dots-sk>
+        <blame-sk id=blame></blame-sk>
         <template if="{{isTruncated}}">
           <div class=more><a href="detail?test={{test}}&digest={{digest}}">(more)</a></div>
         </template>
@@ -306,7 +307,7 @@
         }
       },
 
-      // Force the template expansion to be in the Light DOM.
+      //, Force the template expansion to be in the Light DOM.
       parseDeclaration: function(elementElement) {
         var template = this.fetchTemplate(elementElement);
         if (template != null) {
@@ -360,6 +361,12 @@
         this.$.zoomButton.addEventListener('click', function() {
           that.dispatchEvent(new CustomEvent('zoom-clicked', {detail: that, bubbles: true}));
         });
+
+        // Hook up the hover event on the blame-sk element to the highlight action
+        // on the dots-sk element.
+        this.$.blame.addEventListener('hover-blame', function(e) {
+          this.$.dots.highlight(e.detail.index, e.detail.b);
+        }.bind(this));
       },
 
       // Remove the hover class from all of the paramset values.
@@ -408,6 +415,8 @@
           that.details = json;
           that.$.dots.setValue(that.details);
           that.$.dots.setCommits(that.details.commits);
+          that.$.blame.value = that.details.blame;
+          that.$.blame.commits = that.details.commits;
 
           if (that.triage) {
             if (json.closest.digest != "") {
@@ -470,7 +479,7 @@
         } else {
           return ""
         }
-      }
+      },
 
     });
   </script>

@@ -1,0 +1,96 @@
+<!-- The <blame-sk> custom element declaration.
+
+  The blame-sk element displays a blame list.
+
+  Attributes:
+    value - A serialized blame.BlameDistribution.
+    commits - A serialized slice of types.Commit.
+
+  Events:
+    hover-blame - An event is generated when the mouse hovers over a blame
+      name. The detail contains the commit index of the blame and a boolean
+      b that is true if the mouse is over the blame, otherwise it is false
+      if the mouse is leaving the hover. For example, when the mouse starts
+      hovering over a blame for commit index 3, the event will have the
+      following detail:
+
+        {
+          index: 3,
+          b: true,
+        }
+
+  Methods:
+    None.
+-->
+<polymer-element name="blame-sk">
+  <template>
+    <style type="text/css" media="screen">
+      .header {
+        font-weight: bold;
+        padding-top: 1em;
+      }
+
+      .container {
+        padding-top: 1em;
+        padding-bottom: 1em;
+      }
+
+      .footNote {
+        padding-top: 1em;
+      }
+
+      div.commitEntry:hover {
+        color: #E7298A;
+      }
+
+      div.commitEntry {
+        padding-left: 2em;
+      }
+    </style>
+    <div class="container">
+      <template if="{{value.freq.length > 0}}">
+        <div class="header">Blame</div>
+        <template repeat="{{b in value.freq}}">
+          <div class="commitEntry" data-idx="{{b}}" on-mouseover="{{hoverAction}}" on-mouseout="{{hoverAction}}">
+            {{commits[b].commit_time | humanDiffDate}} - {{commits[b].author}}
+          </div>
+        </template>
+        <template if="{{value.old}}">
+          <div class="footNote">
+            * Digest appeared before current range. Blame might be incorrect.
+          </div>
+        </template>
+      </template>
+      <template if="{{!(value.freq.length > 0)}}">
+        No blames available - Digest too old !
+      </template>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        value: {
+          value: {},
+          reflect: false,
+        },
+        commits: {
+          value: [],
+          reflect: false,
+        },
+      },
+
+      hoverAction: function(e) {
+        var detail = {
+          index: parseInt(e.target.attributes['data-idx'].value),
+          b: e.type == 'mouseover',
+        };
+
+        this.dispatchEvent(new CustomEvent('hover-blame', {detail: detail, bubbles: true}));
+      },
+
+      humanDiffDate: function(s) {
+        return sk.human.diffDate(s*1000);
+      },
+    });
+  </script>
+</polymer-element>
