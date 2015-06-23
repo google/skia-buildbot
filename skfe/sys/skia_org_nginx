@@ -365,6 +365,30 @@ server {
     rewrite ^ https://skia-tree-status.appspot.com/skia-telemetry/chromium_try redirect;
 }
 
+#####   ct-staging.skia.org   ###########################
+server {
+    listen      443;
+    server_name ct-staging.skia.org;
+
+    access_log /var/log/nginx/ct-staging.access.log;
+    error_log /var/log/nginx/ct-staging.error.log error;
+
+    ssl on;
+
+    if ( $host != 'ct-staging.skia.org' ) {
+        rewrite ^/(.*)$ https://ct-staging.skia.org/$1 permanent;
+    }
+
+    location / {
+        proxy_pass http://skia-ctfe:8002;
+    }
+}
+server {
+    listen      80;
+    server_name ct-staging.skia.org;
+    return 301 https://ct-staging.skia.org$request_uri;
+}
+
 #####   skbug.com (REDIRECT)   ###########################
 server {
     listen 80;
@@ -445,3 +469,4 @@ server {
     server_name bugchomper.skia.org;
     return 301 https://bugchomper.skia.org$request_uri;
 }
+
