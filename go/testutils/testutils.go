@@ -120,7 +120,7 @@ func MustReadJsonFile(filename string, dest interface{}) {
 // The file will be downloaded and stored at provided target
 // path (regardless of what the original name is).
 // If the the uri ends with '.gz' it will be transparently unzipped.
-func DownloadTestDataFile(t T, uriPath, targetPath string) error {
+func DownloadTestDataFile(t assert.TestingT, uriPath, targetPath string) error {
 	dir, _ := filepath.Split(targetPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
@@ -153,7 +153,7 @@ func DownloadTestDataFile(t T, uriPath, targetPath string) error {
 // DownloadTestDataArchive downloads testfiles that are stored in
 // a gz compressed tar archive and decompresses them into the provided
 // target directory.
-func DownloadTestDataArchive(t T, uriPath, targetDir string) error {
+func DownloadTestDataArchive(t assert.TestingT, uriPath, targetDir string) error {
 	if !strings.HasSuffix(uriPath, ".tar.gz") {
 		return fmt.Errorf("Expected .tar.gz file. But got:%s", uriPath)
 	}
@@ -227,41 +227,24 @@ func openUri(uriPath string) (*http.Response, error) {
 	return resp, nil
 }
 
-// T is an interface which shares the common methods of testing.T and testing.B.
-type T interface {
-	Error(...interface{})
-	Errorf(string, ...interface{})
-	Fail()
-	FailNow()
-	Failed() bool
-	Fatal(...interface{})
-	Fatalf(string, ...interface{})
-	Log(...interface{})
-	Logf(string, ...interface{})
-	Skip(...interface{})
-	SkipNow()
-	Skipf(string, ...interface{})
-	Skipped() bool
-}
-
 // CloseInTest takes an ioutil.Closer and Closes it, reporting any error.
-func CloseInTest(t T, c io.Closer) {
+func CloseInTest(t assert.TestingT, c io.Closer) {
 	if err := c.Close(); err != nil {
 		t.Errorf("Failed to Close(): %v", err)
 	}
 }
 
 // AssertCloses takes an ioutil.Closer and asserts that it closes.
-func AssertCloses(t T, c io.Closer) {
+func AssertCloses(t assert.TestingT, c io.Closer) {
 	assert.Nil(t, c.Close())
 }
 
 // Remove attempts to remove the given file and asserts that no error is returned.
-func Remove(t T, fp string) {
+func Remove(t assert.TestingT, fp string) {
 	assert.Nil(t, os.Remove(fp))
 }
 
 // RemoveAll attempts to remove the given directory and asserts that no error is returned.
-func RemoveAll(t T, fp string) {
+func RemoveAll(t assert.TestingT, fp string) {
 	assert.Nil(t, os.RemoveAll(fp))
 }

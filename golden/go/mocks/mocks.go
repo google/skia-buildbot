@@ -5,7 +5,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
@@ -57,7 +56,7 @@ func NewMockDiffStore() diff.DiffStore {
 }
 
 // Mock the tilestore for GoldenTraces
-func NewMockTileStore(t *testing.T, digests [][]string, params []map[string]string, commits []*ptypes.Commit) ptypes.TileStore {
+func NewMockTileStore(t assert.TestingT, digests [][]string, params []map[string]string, commits []*ptypes.Commit) ptypes.TileStore {
 	// Build the tile from the digests, params and commits.
 	traces := map[string]ptypes.Trace{}
 
@@ -91,7 +90,7 @@ func TraceKey(params map[string]string) string {
 
 // NewMockTileStoreFromJson reads a tile that has been serialized to JSON
 // and wraps an instance of MockTileStore around it.
-func NewMockTileStoreFromJson(t *testing.T, fname string) ptypes.TileStore {
+func NewMockTileStoreFromJson(t assert.TestingT, fname string) ptypes.TileStore {
 	f, err := os.Open(fname)
 	assert.Nil(t, err)
 
@@ -105,7 +104,7 @@ func NewMockTileStoreFromJson(t *testing.T, fname string) ptypes.TileStore {
 }
 
 type MockTileStore struct {
-	t    *testing.T
+	t    assert.TestingT
 	tile *ptypes.Tile
 }
 
