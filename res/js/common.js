@@ -342,7 +342,7 @@ this.sk = this.sk || function() {
     if (linksInNewWindow) {
       sub = '<a href="$&" target="_blank">$&</a>';
     }
-    s = s.replace(/https?:\/\/[^ \t\n<]*/g, sub).replace(/(?:\n|\r|\r\n)/g, '<br/>');
+    s = s.replace(/https?:\/\/[^ \t\n<]*/g, sub).replace(/(?:\r\n|\n|\r)/g, '<br/>');
     return sk.linkifyBugs(s);
   }
 
