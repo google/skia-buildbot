@@ -19,6 +19,7 @@ import (
 var (
 	committedIssueRegexp []string = []string{
 		"Committed patchset #[0-9]+ \\((id:)?[0-9]+\\) as [0-9a-f]{2,40}",
+		"Committed patchset #[0-9]+ \\((id:)?[0-9]+\\)",
 		"Committed patchset #[0-9]+",
 		"Change committed as [0-9]+",
 	}
