@@ -11,7 +11,7 @@ import (
 
 const (
 	// Default database parameters.
-	PROD_DB_HOST = "173.194.226.161"
+	PROD_DB_HOST = "173.194.82.129"
 	PROD_DB_PORT = 3306
 	PROD_DB_NAME = "ctfe"
 

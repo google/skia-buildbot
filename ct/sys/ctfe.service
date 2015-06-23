@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/ctfe --log_dir=/var/log/logserver --resources_dir=/usr/local/share/ctfe/ --oauth=false --log_dir=/var/log/logserver
+ExecStart=/usr/local/bin/ctfe --log_dir=/var/log/logserver --resources_dir=/usr/local/share/ctfe/ --port=:80
 Restart=always
 User=default
 Group=default
