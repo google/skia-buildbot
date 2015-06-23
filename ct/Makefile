@@ -20,6 +20,10 @@ ctfe_migratedb:
 ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion ctfe_migratedb
 	go install -v ./go/ctfe
 
+.PHONY: ctfe_release
+ctfe_release: ctfe
+	./build_ctfe_release "$(MESSAGE)"
+
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
