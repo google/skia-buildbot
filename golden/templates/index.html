@@ -28,10 +28,6 @@
       .headToggle paper-toggle-button {
         margin-right: 2em;
       }
-      #commitdialog {
-        right: 1em;
-        bottom: 1em;
-      }
       #core {
         margin-top: 2em;
       }
@@ -99,10 +95,7 @@
         <div id="summaries"></div>
         <paper-spinner active></paper-spinner>
         <error-toast-sk></error-toast-sk>
-        <paper-action-dialog id=commitdialog core-transition-bottom heading="Commit(s)" autoCloseDisabled layered=false>
-          <commits-sk id=commitinfo></commits-sk>
-          <paper-button affirmative>Close</paper-button>
-        </paper-action-dialog>
+        <commits-sk></commits-sk>
         <zoom-sk id=zoomer llabel="Closest Triaged" rlabel="Untriaged"></zoom-sk>
       </div>
 
@@ -267,11 +260,6 @@
          $$$('#details').addEventListener('change', function() {
            page.state.details = $$$('#details').checked;
            displaySummaries();
-         });
-
-         $$$('#summaries').addEventListener('commit-selected', function(e) {
-           $$$('#commitinfo').setCommitInfo(e.detail);
-           $$$('#commitdialog').open();
          });
 
          $$$('#summaries').addEventListener('triage', function(e) {

@@ -202,7 +202,6 @@ attribute is false.
                 <dots-sk id=dots></dots-sk>
                 <dot-legend-sk id=dotlegend test="{{test}}"></dot-legend-sk>
               </div>
-              <commits-sk id=commits></commits-sk>
             </div>
           </td>
           <td class=both></td>
@@ -270,12 +269,6 @@ attribute is false.
   </template>
   <script>
     (function(){
-      // removeSecurityHeader drops the first 4 chars from JSON returned from
-      // the gitiles server to make it into valid JSON.
-      function removeSecurityHeader(s) {
-        return s.slice(4, s.length);
-      }
-
       Polymer({
         publish: {
           top: {
@@ -344,10 +337,6 @@ attribute is false.
             this.$.dots.addEventListener('hover', function(e) {
               that.$.tracename.value = e.detail;
             });
-
-            this.$.dots.addEventListener('commit-selected', function(e) {
-              that.$.commits.setCommitInfo(e.detail);
-            });
           }
         },
 
@@ -366,18 +355,6 @@ attribute is false.
               that.$.dots.setCommits(json.commits);
             }
             that.$.dotlegend.digests = json.otherDigests;
-
-            if (json.commits) {
-              // Now populate the commit messages.
-              var lastHash = json.commits[json.commits.length-1].hash;
-              var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + json.commits.length + ".." + lastHash + "?format=json";
-              sk.get(url).then(removeSecurityHeader).then(JSON.parse).then(function(json) {
-                var len = that.details.commits.length;
-                for (var i=0; i<json.log.length; i++) {
-                  that.details.commits[len-i-1].message = json.log[i].message.slice(0, 40);
-                }
-              });
-            }
           });
         },
 

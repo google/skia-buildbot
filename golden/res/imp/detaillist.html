@@ -11,19 +11,9 @@
 -->
 <polymer-element name="detail-list-sk">
   <template>
-    <style type="text/css" media="screen">
-      #commitdialog {
-        right: 1em;
-        bottom: 1em;
-      }
-    </style>
     <content></content>
     <zoom-sk id=zoomer llabel="Closest Triaged" rlabel="Untriaged"></zoom-sk>
     <error-toast-sk></error-toast-sk>
-    <paper-action-dialog id=commitdialog core-transition-bottom heading="Commit(s)" autoCloseDisabled layered=false>
-      <commits-sk id=commitinfo></commits-sk>
-      <paper-button affirmative>Close</paper-button>
-    </paper-action-dialog>
   </template>
   <script>
     Polymer({
@@ -41,12 +31,6 @@
         this.addEventListener('triage', function(e) {
           sk.post('_/triage', JSON.stringify(e.detail)).catch(sk.errorMessage);
         });
-
-        this.addEventListener('commit-selected', function(e) {
-          this.$.commitinfo.setCommitInfo(e.detail);
-          this.$.commitdialog.open();
-        }.bind(this));
-
 
         document.body.addEventListener('keydown', function(e){
           if (this.zooming) {

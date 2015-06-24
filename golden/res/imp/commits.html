@@ -2,6 +2,10 @@
 
   An element to display information on one or more commits.
 
+  Listens for 'commit-selected' events on document body and then displays
+  the info it receives in each event. Relies upon e.detail containing a
+  serialized slice of types.Commit that could have made up that dot.
+
   Attributes:
     None.
 
@@ -20,37 +24,46 @@
 -->
 <polymer-element name="commits-sk">
   <template>
-    <table>
-      <template repeat="{{c in commitinfo}}">
-        <tr>
-          <td>{{c.author}}</td>
-          <td>{{c.commit_time | humanize}}</td>
-          <td><a
-              href="https://skia.googlesource.com/skia/+/{{c.hash}}">{{c.hash | trunc}}</a></td>
-          <td>{{c.message}}</td>
-        </tr>
-      </template>
-    </table>
+    <style type="text/css" media="screen">
+      #dialog {
+        right: 1em;
+        bottom: 1em;
+      }
+    </style>
+    <paper-action-dialog id=dialog core-transition-bottom heading="Commit(s)" autoCloseDisabled layered=false>
+      <table>
+        <template repeat="{{c in commitinfo}}">
+          <tr>
+            <td>{{c.author}}</td>
+            <td>{{c.commit_time | humanize}}</td>
+            <td><a href="https://skia.googlesource.com/skia/+/{{c.hash}}">{{c.hash | trunc}}</a></td>
+            <td>{{c.message}}</td>
+          </tr>
+        </template>
+      </table>
+      <paper-button affirmative>Close</paper-button>
+    </paper-action-dialog>
   </template>
   <script>
     Polymer({
       ready: function() {
+        document.body.addEventListener('commit-selected', function(e) {
+          this.commitinfo = e.detail;
+          this.$.dialog.open();
+          this.populateCommitMessage();
+        }.bind(this));
       },
 
-      setCommitInfo: function(commitinfo) {
-        this.commitinfo = commitinfo;
-
-        // Populate the commit messages if they aren't already present.
-        if (commitinfo && commitinfo[0].message == undefined) {
-          var that = this;
-          var lastHash = commitinfo[0].hash;
-          var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + commitinfo.length + ".." + lastHash + "?format=json";
+      populateCommitMessage: function() {
+        if (this.commitinfo && this.commitinfo[0].message == undefined) {
+          var lastHash = this.commitinfo[0].hash;
+          var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + this.commitinfo.length + ".." + lastHash + "?format=json";
           sk.get(url).then(this.removeSecurityHeader).then(JSON.parse).then(function(json) {
-            var len = that.commitinfo.length;
+            var len = this.commitinfo.length;
             for (var i=0; i<json.log.length; i++) {
-              that.commitinfo[i].message = json.log[i].message.slice(0, 60);
+              this.commitinfo[i].message = json.log[i].message.slice(0, 60);
             }
-          });
+          }.bind(this));
         }
       },
 
