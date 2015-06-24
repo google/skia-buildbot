@@ -34,6 +34,13 @@ type GMail struct {
 	service *gmail.Service
 }
 
+// Message represents a single email message.
+type Message struct {
+	To      []string
+	Subject string
+	Body    string
+}
+
 // NewGMail returns a new GMail object which is authorized to send email.
 func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 	config := oauth.Config{
@@ -83,4 +90,9 @@ func (a *GMail) Send(to []string, subject string, body string) error {
 
 	_, err := a.service.Users.Messages.Send(user, &msg).Do()
 	return err
+}
+
+// SendMessage sends the given Message.
+func (a *GMail) SendMessage(msg *Message) error {
+	return a.Send(msg.To, msg.Subject, msg.Body)
 }

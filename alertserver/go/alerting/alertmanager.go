@@ -309,7 +309,7 @@ func MakeAlertManager(tickInterval time.Duration, e *email.GMail) (*AlertManager
 	if Manager != nil {
 		return nil, fmt.Errorf("An AlertManager instance already exists!")
 	}
-	emailAuth = e
+	initEmail(e)
 	Manager = &AlertManager{
 		interrupt:    make(chan bool),
 		tickInterval: tickInterval,
