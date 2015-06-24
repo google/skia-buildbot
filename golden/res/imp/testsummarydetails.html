@@ -16,6 +16,11 @@
       sorted order, so they can be used in /img/diffs/ URLs.
     images - A boolean, if true the images are displayed.
     failed - A boolean, true if the request to the server for details failed.
+    mailbox - An sk.Mailbox address to subscribe for the data to populate
+      this test-summary-details-sk. If this isn't set then the element will
+      request that data from the server. The data in the mailbox must be a
+      serialized PolyDetailsGUI, which is also the form of the data that's
+      returned from the server.
 
   Events:
     triage - A triage event is generated when the triage button is pressed. The e.detail
@@ -218,6 +223,10 @@
         failed: {
           value: false,
           reflect: true,
+        },
+        mailbox: {
+          value: "",
+          reflect: true,
         }
       },
 
@@ -316,42 +325,48 @@
         this.reloadParams.limit = this.limit;
 
         var that = this;
-        var q = '?test=' + this.test + '&top=' + this.digest+ '&left=' + this.digest + '&graphs=true&closest=' + this.triage;
-        sk.get('_/details'+q).then(JSON.parse).then(function(json) {
-          if (that.limit && that.limit < json.traces.length) {
-            json.traces = json.traces.slice(0, that.limit);
-            that.isTruncated = true;
-          }
-          if (that.triage) {
-            json.closest = json.posClosest.diff < json.negClosest.diff ? json.posClosest : json.negClosest;
-            that.negIsClosest = json.negClosest.diff < json.posClosest.diff;
-          }
-          that.details = json;
-          that.$.dots.setValue(that.details);
-          that.$.dots.setCommits(that.details.commits);
-          that.$.blame.value = that.details.blame;
-          that.$.blame.commits = that.details.commits;
-          that.$.dotlegend.digests = that.details.otherDigests;
+        if (this.mailbox) {
+          sk.Mailbox.subscribe(this.mailbox, this.dataAvailable.bind(this))
+        } else {
+          var q = '?test=' + this.test + '&top=' + this.digest+ '&left=' + this.digest + '&graphs=true&closest=' + this.triage;
+          sk.get('_/details'+q).then(JSON.parse).then(this.dataAvailable.bind(this)).catch(function() {
+            that.failed = true;
+            that.dispatchEvent(new CustomEvent('details-loaded', {detail: that, bubbles: true}));
+          });
+        }
+      },
 
-          if (that.triage) {
-            if (json.closest.digest != "") {
-              that.dataset.diff = json.closest.diff;
-              that.dataset.closest = json.closest.digest;
-              if (json.closest.digest < that.digest) {
-                that.diffDigests = json.closest.digest + "-" + that.digest;
-              } else {
-                that.diffDigests = that.digest + "-" + json.closest.digest;
-              }
-              that.dataset.diffdigests = that.diffDigests;
+      dataAvailable: function(json) {
+        if (this.limit && this.limit < json.traces.length) {
+          json.traces = json.traces.slice(0, this.limit);
+          this.isTruncated = true;
+        }
+        if (this.triage) {
+          json.closest = json.posClosest.diff < json.negClosest.diff ? json.posClosest : json.negClosest;
+          this.negIsClosest = json.negClosest.diff < json.posClosest.diff;
+        }
+        this.details = json;
+        this.$.dots.setValue(this.details);
+        this.$.dots.setCommits(this.details.commits);
+        this.$.blame.value = this.details.blame;
+        this.$.blame.commits = this.details.commits;
+        this.$.dotlegend.digests = this.details.otherDigests;
+
+        if (this.triage) {
+          if (json.closest.digest != "") {
+            this.dataset.diff = json.closest.diff;
+            this.dataset.closest = json.closest.digest;
+            if (json.closest.digest < this.digest) {
+              this.diffDigests = json.closest.digest + "-" + this.digest;
             } else {
-              that.dataset.diff = Infinity;
+              this.diffDigests = this.digest + "-" + json.closest.digest;
             }
+            this.dataset.diffdigests = this.diffDigests;
+          } else {
+            this.dataset.diff = Infinity;
           }
-          that.dispatchEvent(new CustomEvent('details-loaded', {detail: that, bubbles: true}));
-        }).catch(function() {
-          that.failed = true;
-          that.dispatchEvent(new CustomEvent('details-loaded', {detail: that, bubbles: true}));
-        });
+        }
+        this.dispatchEvent(new CustomEvent('details-loaded', {detail: this, bubbles: true}));
       },
 
       testChanged: function() {

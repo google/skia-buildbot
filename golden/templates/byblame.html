@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Skia Correctness Server | By Blame</title>
+    {%template "header.html" .%}
+    <style type="text/css" media="screen">
+      commits-panel-sk {
+        margin: 1em;
+        display: block;
+      }
+
+      .group {
+        background: white;
+        margin: 2em;
+        border: solid 1px gray;
+        padding: 1em;
+        box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
+      }
+    </style>
+  </head>
+  <body>
+    <scaffold-sk responsiveWidth="700px">
+      {%template "titlebar.html" .%}
+        {%$byblame := .ByBlame%}
+
+        {%range .Keys%}
+          <div class=group>
+            <a target=_blank href="/blamelist?groupid={%.%}">{%len (index $byblame .)%} digests need triaging.</a>
+
+            {%$key := .%}
+
+            {%if (gt (len (index (index $byblame .) 0).CommitIndices) 0)%}
+              <h3>Blame</h3>
+              <div>
+                <commits-panel-sk mailbox="{%$key%}"></commits-panel-sk>
+              </div>
+            {%else%}
+              <h3>No blamelist.</h3>
+            {%end%}
+
+            {%if (lt (len (index $byblame .)) 10)%}
+            <h3>Digests</h3>
+            {%else%}
+            <h3>Some digests</h3>
+            {%end%}
+              <ol>
+                {%range $index, $element := (index $byblame .)%}
+                  {%if (lt $index 10)%}
+                    <li><a target=_blank href="/detail?test={%$element.Test%}&digest={%$element.Digest%}">{%$element.Test%}</a></li>
+                  {%end%}
+                {%end%}
+              </ol>
+          </div>
+        {%end%}
+    </scaffold-sk>
+    <script type="text/javascript" charset="utf-8">
+      (function() {
+        var commits = {%.CommitsJS%};
+
+        Object.keys(commits).forEach(function(key) {
+          sk.Mailbox.send(key, commits[key]);
+        });
+      })();
+    </script>
+  </body>
+</html>

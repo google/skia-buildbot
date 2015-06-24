@@ -1,0 +1,77 @@
+<!-- The <commits-panel-sk> custom element declaration.
+
+  An element to display information on one or more commits.
+
+  Attributes:
+    mailbox - The sk.Mailbox name to listen for the data to populate
+      the element. The mailbox data needs to be a serialized slice
+      of []*types.Commit.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+
+-->
+<polymer-element name="commits-panel-sk">
+  <template>
+    <table>
+      <template repeat="{{c in commitinfo}}">
+        <tr>
+          <td>{{c.author}}</td>
+          <td>{{c.commit_time | humanize}}</td>
+          <td><a href="https://skia.googlesource.com/skia/+/{{c.hash}}">{{c.hash | trunc}}</a></td>
+          <td>{{c.message}}</td>
+        </tr>
+      </template>
+    </table>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        mailbox: {
+          value: "",
+          reflect: true,
+        },
+      },
+
+      ready: function() {
+        sk.Mailbox.subscribe(this.mailbox, function(info) {
+          this.commitinfo = info;
+          this.populateCommitMessage();
+        }.bind(this));
+      },
+
+      populateCommitMessage: function() {
+        if (this.commitinfo && this.commitinfo.length && this.commitinfo[0].message == undefined) {
+          var lastHash = this.commitinfo[0].hash;
+          var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + this.commitinfo.length + ".." + lastHash + "?format=json";
+          sk.get(url).then(this.removeSecurityHeader).then(JSON.parse).then(function(json) {
+            var len = this.commitinfo.length;
+            for (var i=0; i<json.log.length; i++) {
+              this.commitinfo[i].message = json.log[i].message.slice(0, 60);
+            }
+          }.bind(this));
+        }
+      },
+
+      // removeSecurityHeader strips the first 4 chars from the input. Needed
+      // since googlesource.com prefixes all JSON responses with )]}' as an
+      // XSS defense.
+      removeSecurityHeader: function(s) {
+        return s.slice(4, s.length);
+      },
+
+      humanize: function(s) {
+        return sk.human.diffDate(s*1000);
+      },
+
+      trunc: function(s) {
+        return s.slice(0, 7);
+      }
+
+    });
+  </script>
+</polymer-element>

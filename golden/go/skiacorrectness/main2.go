@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -10,7 +11,7 @@ import (
 	"runtime"
 	"sort"
 	"strconv"
-	"text/template"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -44,6 +45,8 @@ var (
 
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
+		filepath.Join(*resourcesDir, "templates/blamelist.html"),
+		filepath.Join(*resourcesDir, "templates/byblame.html"),
 		filepath.Join(*resourcesDir, "templates/index.html"),
 		filepath.Join(*resourcesDir, "templates/ignores.html"),
 		filepath.Join(*resourcesDir, "templates/compare.html"),
@@ -855,13 +858,24 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, fmt.Errorf("Missing the test query parameter."), "No test name specified.")
 		return
 	}
+
 	exp, err := storages.ExpectationsStore.Get()
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load expectations.")
 		return
 	}
 
-	ret := PolyDetailsGUI{
+	ret := buildDetailsGUI(tile, exp, test, top, left, r.Form.Get("graphs") == "true", r.Form.Get("closest") == "true")
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ret); err != nil {
+		glog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
+func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test string, top string, left string, graphs bool, closest bool) *PolyDetailsGUI {
+	ret := &PolyDetailsGUI{
 		TopStatus:  exp.Classification(test, top).String(),
 		LeftStatus: exp.Classification(test, left).String(),
 		Params:     []*PerParamCompare{},
@@ -902,23 +916,19 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Now build the trace data.
-	if r.Form.Get("graphs") == "true" {
+	if graphs {
 		ret.Traces, ret.OtherDigests = buildTraceData(top, traceNames, tile, tally, exp)
 		ret.Commits = tile.Commits
 		ret.Blame = blamer.GetBlame(test, top, ret.Commits)
 	}
 
 	// Now find the closest positive and negative digests.
-	if r.Form.Get("closest") == "true" {
+	if closest {
 		ret.PosClosest = digesttools.ClosestDigest(test, top, exp, storages.DiffStore, types.POSITIVE)
 		ret.NegClosest = digesttools.ClosestDigest(test, top, exp, storages.DiffStore, types.NEGATIVE)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	if err := enc.Encode(ret); err != nil {
-		glog.Errorf("Failed to write or encode result: %s", err)
-	}
+	return ret
 }
 
 // digestIndex returns the index of the digest d in digestInfo, or -1 if not found.
@@ -1043,6 +1053,213 @@ func polyAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 // HEAD.
 func polyStatusHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, statusWatcher.GetStatus())
+}
+
+// allUntriagedSummaries returns a tile and summaries for all untriaged GMs.
+//
+// TODO(jcgregorio) Make source_type selectable.
+func allUntriagedSummaries() (*ptypes.Tile, map[string]*summary.Summary, error) {
+	tile, err := storages.GetLastTileTrimmed(true)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Couldn't load tile: %s", err)
+	}
+	// Get a list of all untriaged images by test.
+	sum, err := summaries.CalcSummaries([]string{}, "source_type=gm", false, true)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Couldn't load summaries: %s", err)
+	}
+	return tile, sum, nil
+}
+
+// ByBlame describes a single digest and it's blames.
+type ByBlame struct {
+	Test          string                   `json:"test"`
+	Digest        string                   `json:"digest"`
+	Blame         *blame.BlameDistribution `json:"blame"`
+	CommitIndices []int                    `json:"commit_indices"`
+	Key           string
+}
+
+// lookUpCommits returns the commit hashes for the commit indices in 'freq'.
+func lookUpCommits(freq []int, commits []*ptypes.Commit) []string {
+	ret := []string{}
+	for _, index := range freq {
+		ret = append(ret, commits[index].Hash)
+	}
+	return ret
+}
+
+// byBlameHandler returns a page with the digests to be triaged grouped by blamelist.
+func byBlameHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	tile, sum, err := allUntriagedSummaries()
+	commits := tile.Commits
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load summaries.")
+		return
+	}
+
+	// This is a very simple grouping of digests, for every digest we look up the
+	// blame list for that digest and then use the concatenated git hashes as a
+	// group id. All of the digests are then grouped by their group id.
+
+	// Collects a ByBlame for each untriaged digest, keyed by group id.
+	grouped := map[string][]*ByBlame{}
+
+	// The Commit info for each group id.
+	commitinfo := map[string][]*ptypes.Commit{}
+	for test, s := range sum {
+		for _, d := range s.UntHashes {
+			dist := blamer.GetBlame(test, d, commits)
+			groupid := strings.Join(lookUpCommits(dist.Freq, commits), ":")
+			// Only fill in commitinfo for each groupid only once.
+			if _, ok := commitinfo[groupid]; !ok {
+				ci := []*ptypes.Commit{}
+				for _, index := range dist.Freq {
+					ci = append(ci, commits[index])
+				}
+				commitinfo[groupid] = ci
+			}
+			// Construct a ByBlame and add it to grouped.
+			value := &ByBlame{
+				Test:          test,
+				Digest:        d,
+				Blame:         dist,
+				CommitIndices: dist.Freq,
+			}
+			if _, ok := grouped[groupid]; !ok {
+				grouped[groupid] = []*ByBlame{value}
+			} else {
+				grouped[groupid] = append(grouped[groupid], value)
+			}
+		}
+	}
+
+	// The Commit info needs to be accessed via Javascript, so serialize it into
+	// JSON here.
+	commitinfojs, err := json.MarshalIndent(commitinfo, "", "  ")
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to encode response data.")
+		return
+	}
+
+	keys := []string{}
+	for groupid, _ := range grouped {
+		keys = append(keys, groupid)
+	}
+	sort.Strings(keys)
+
+	if err := templates.ExecuteTemplate(w, "byblame.html",
+		struct {
+			Keys      []string
+			ByBlame   map[string][]*ByBlame
+			CommitsJS template.JS
+		}{
+			Keys:      keys,
+			ByBlame:   grouped,
+			CommitsJS: template.JS(string(commitinfojs)),
+		}); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+func minFloat32(a, b float32) float32 {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+// BlameListDigest holds a PolyDetailsGUI and some other info needed to render
+// a test-summary-details-sk.
+type BlameListDigest struct {
+	Test   string          `json:"test"`
+	Digest string          `json:"digest"`
+	Diff   float32         `json:"diff"` // The smaller of the Pos and Neg diff.
+	Detail *PolyDetailsGUI `json:"detail"`
+}
+
+// BlameListDigestSlice enables sorting BlameListDigest by the Diff score, with
+// largest Diff's first.
+type BlameListDigestSlice []*BlameListDigest
+
+func (p BlameListDigestSlice) Len() int           { return len(p) }
+func (p BlameListDigestSlice) Less(i, j int) bool { return p[i].Diff > p[j].Diff }
+func (p BlameListDigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// blameListHandler returns a page for triaging all digests that match the give blame group id.
+//
+// Links to this page come from the byBlameHandler page.
+//
+// Request URLs query parameters:
+//   groupid - The blame list group id, which is just the list of git hashes
+//      that are in the blame concatenated with ':'s.
+func blameListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	tile, sum, err := allUntriagedSummaries()
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load summaries.")
+		return
+	}
+	commits := tile.Commits
+	exp, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load expectations.")
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		util.ReportError(w, r, err, "Failed to parse form data.")
+		return
+	}
+	groupid := r.Form.Get("groupid")
+
+	// Populate a slice of BlameListDigest's that match the given blame list.
+	list := []*BlameListDigest{}
+	for test, s := range sum {
+		for _, d := range s.UntHashes {
+			dist := blamer.GetBlame(test, d, commits)
+			key := strings.Join(lookUpCommits(dist.Freq, commits), ":")
+			if key == groupid {
+				detail := buildDetailsGUI(tile, exp, test, d, d, true, true)
+
+				list = append(list, &BlameListDigest{
+					Test:   test,
+					Digest: d,
+					Diff:   minFloat32(detail.NegClosest.Diff, detail.PosClosest.Diff),
+					Detail: detail,
+				})
+			}
+		}
+	}
+
+	sort.Sort(BlameListDigestSlice(list))
+
+	// The list needs to be available both via golang templates and also
+	// in Javascript, so we need to encode the list to JSON so it can
+	// appear in JS.
+	js, err := json.MarshalIndent(list, "", "  ")
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to encode response data.")
+		return
+	}
+
+	context := struct {
+		Summaries []*BlameListDigest
+		JS        template.JS
+	}{
+		Summaries: list,
+		JS:        template.JS(string(js)),
+	}
+
+	if err := templates.ExecuteTemplate(w, "blamelist.html", context); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
 }
 
 // sendJsonResponse serializes resp to JSON. If an error occurs

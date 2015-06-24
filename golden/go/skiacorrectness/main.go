@@ -469,6 +469,8 @@ func main() {
 	router.HandleFunc("/_/test", polyTestHandler).Methods("POST")
 	router.HandleFunc("/_/triage", polyTriageHandler).Methods("POST")
 	router.HandleFunc("/_/triagelog", polyTriageLogHandler).Methods("GET")
+	router.HandleFunc("/byblame", byBlameHandler).Methods("GET")
+	router.HandleFunc("/blamelist", blameListHandler).Methods("GET")
 	router.HandleFunc("/cmp/{test}", templateHandler("compare.html")).Methods("GET")
 	router.HandleFunc("/detail", templateHandler("single.html")).Methods("GET")
 	router.HandleFunc("/diff", templateHandler("diff.html")).Methods("GET")
