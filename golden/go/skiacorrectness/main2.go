@@ -937,8 +937,19 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 	ret := []*Trace{}
 	last := tile.LastCommitIndex()
 	y := 0
+
 	// Keep track of the first 7 non-matching digests we encounter so we can color them differently.
 	otherDigests := []*DigestStatus{}
+	// Populate otherDigests with all the digests, including the one we are comparing against.
+	if len(traceNames) > 0 {
+		// Find the test name so we can look up the triage status.
+		trace := tile.Traces[traceNames[0]].(*ptypes.GoldenTrace)
+		test := trace.Params()[types.PRIMARY_KEY_FIELD]
+		otherDigests = append(otherDigests, &DigestStatus{
+			Digest: digest,
+			Status: exp.Classification(test, digest).String(),
+		})
+	}
 	for _, id := range traceNames {
 		traceTally, ok := tally[id]
 		if !ok {
@@ -961,7 +972,7 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 			s := 0
 			if trace.Values[i] != digest {
 				if index := digestIndex(trace.Values[i], otherDigests); index != -1 {
-					s = index + 1
+					s = index
 				} else {
 					if len(otherDigests) < 8 {
 						d := trace.Values[i]
@@ -970,7 +981,7 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 							Digest: d,
 							Status: exp.Classification(test, d).String(),
 						})
-						s = len(otherDigests)
+						s = len(otherDigests) - 1
 					} else {
 						s = 8
 					}

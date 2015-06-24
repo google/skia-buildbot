@@ -1,0 +1,79 @@
+<!-- The <dot-legend-sk> custom element declaration.
+
+  A legend for the dots-sk element.
+
+  Attributes:
+    test - The name of the test.
+
+    digests - A serialized slice of DigestStatus.
+      The 0th digest is considered special, and all other
+      legend entries will have a diff link between that digest
+      and the 0th digest.
+
+      [
+        {
+          digest: "b84cb8597a425e73344ffe47befd26eb",
+          status: "positive",
+        },
+        ...
+      ]
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+-->
+<polymer-element name="dot-legend-sk">
+  <template>
+    <link rel="stylesheet" href="dots.css">
+    <table>
+      <template repeat="{{di, i in digests}}">
+        <tr>
+          <td>
+            <svg width=10 height=10 viewBox="-1 -1 2 2">
+              <circle cx=0 cy=0 r="0.3" class="status{{i}}"/>
+            </svg>
+          </td>
+          <td>
+            <template if="{{i<7}}">
+              <code><a target=_blank  href="detail?test={{test}}&digest={{di.digest}}">{{di.digest}}</a></code>
+            </template>
+            <template if="{{i==7}}">
+              One of many other digests.
+            </template>
+          </td>
+          <td>
+            <template if="{{i<7}}">
+              <tricon-sk value="{{di.status}}"></tricon-sk>
+            </template>
+          </td>
+          <td>
+            <template if="{{i>0 && i<7}}">
+              <a target=_blank href="diff?test={{test}}&left={{di.digest}}&top={{digests[0].digest}}">diff</a>
+            </template>
+          </td>
+        </tr>
+      </template>
+    </table>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        test: {
+          value: "",
+          reflect: true,
+        },
+        digest: {
+          value: "",
+          reflect: true,
+        },
+        digests: {
+          value: {},
+          reflect: false,
+        },
+      },
+    });
+  </script>
+</polymer-element>

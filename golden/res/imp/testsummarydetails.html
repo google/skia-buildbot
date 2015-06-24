@@ -41,47 +41,11 @@
 <polymer-element name="test-summary-details-sk">
   <template>
     <style type="text/css" media="screen">
-      g:hover circle {
-        fill:   #44aa99;
-        stroke: #44aa99;
-      }
       circle.status0 {
         fill:   #000000;
         stroke: #000000;
       }
-      circle.status1 {
-        fill:   #ffffff;
-        stroke: #1B9E77;
-      }
-      circle.status2 {
-        fill:   #ffffff;
-        stroke: #D95F02;
-      }
-      circle.status3 {
-        fill:   #ffffff;
-        stroke: #7570B3;
-      }
-      circle.status4 {
-        fill:   #ffffff;
-        stroke: #E7298A;
-      }
-      circle.status5 {
-        fill:   #ffffff;
-        stroke: #66A61E;
-      }
-      circle.status6 {
-        fill:   #ffffff;
-        stroke: #E6AB02;
-      }
-      circle.status7 {
-        fill:   #ffffff;
-        stroke: #A6761D;
-      }
-      circle.status8 {
-        fill:   #ffffff;
-        stroke: #999999;
-      }
-      #legend {
+      dot-legend-sk {
         margin-left: 5em;
         margin-bottom: 2em;
       }
@@ -161,16 +125,14 @@
       <div vertical layout>
         <div horizontal layout id=images>
           <template if="{{triage && details.closest.digest}}">
-            <div vertical layout class=untriagedImage>
+            <div vertical layout center class=untriagedImage>
               <div horizontal layout>
                 <div class=preview>
                   <img src="{{images | digestUrl(details.closest.digest)}}" />
                 </div>
                 <a href="/img/images/{{details.closest.digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
               </div>
-              <svg width=10 height=10 viewBox="-1 -1 2 2">
-                <rect x="-0.8" y="-0.8  " width="1.5" height="1.5" class="status0"/>
-              </svg>
+              <a target=_blank href="detail?test={{test}}&digest={{details.closest.digest}}">{{negIsClosest ? 'Negative' : 'Positive'}}</a>
             </div>
             <div class=preview>
               <img src="{{images | diffUrl(diffDigests)}}" />
@@ -199,60 +161,12 @@
         </div>
       </template>
       <div vertical layout>
-        <a href="detail?test={{test}}&digest={{digest}}">{{digest}}</a>
         <dots-sk id=dots></dots-sk>
+        <dot-legend-sk id=dotlegend test="{{test}}"></dot-legend-sk>
         <blame-sk id=blame></blame-sk>
         <template if="{{isTruncated}}">
           <div class=more><a href="detail?test={{test}}&digest={{digest}}">(more)</a></div>
         </template>
-        <table id="legend">
-          <template repeat="{{digestInfo, i in details.otherDigests}}">
-            <tr>
-              <td>
-                <svg width=10 height=10 viewBox="-1 -1 2 2">
-                  <circle cx=0 cy=0 r="0.3" class="status{{i+1}}"/>
-                </svg>
-              </td>
-              <td>
-                <template if="{{i<7}}">
-                  <code><a href="detail?test={{test}}&digest={{digestInfo.digest}}">{{digestInfo.digest}}</a></code>
-                </template>
-                <template if="{{i==7}}">
-                  One of many other digests.
-                </template>
-              </td>
-              <td>
-                <template if="{{i<7}}">
-                  <tricon-sk value="{{digestInfo.status}}"></tricon-sk>
-                </template>
-              </td>
-              <td>
-                <template if="{{i<7}}">
-                  <a href="diff?test={{test}}&left={{digestInfo.digest}}&top={{digest}}">diff</a>
-                </template>
-              </td>
-            </tr>
-          </template>
-          <template if="{{triage && details.closest.digest}}">
-            <tr>
-              <td>
-                <svg width=10 height=10 viewBox="-1 -1 2 2">
-                  <rect x="-0.8" y="-0.8  " width="1.5" height="1.5" class="status0"/>
-                </svg>
-              </td>
-              <td>
-                  <code><a href="detail?test={{test}}&digest={{details.closest.digest}}">{{details.closest.digest}}</a></code>
-              </td>
-              <td>
-                  <tricon-sk value="{{negIsClosest ? 'negative' : 'positive'}}"></tricon-sk>
-              </td>
-              <td>
-                  <a href="diff?test={{test}}&left={{details.closest.digest}}&top={{digest}}">diff</a>
-              </td>
-            </tr>
-
-          </template>
-        </table>
       </div>
       <div vertical layout id=paramset>
         <table>
@@ -417,6 +331,7 @@
           that.$.dots.setCommits(that.details.commits);
           that.$.blame.value = that.details.blame;
           that.$.blame.commits = that.details.commits;
+          that.$.dotlegend.digests = that.details.otherDigests;
 
           if (that.triage) {
             if (json.closest.digest != "") {
