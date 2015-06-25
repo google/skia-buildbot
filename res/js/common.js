@@ -110,14 +110,8 @@ this.sk = this.sk || function() {
   //   y: MMM,
   // }
   sk.elePos = function(ele) {
-    var x = 0;
-    var y = 0;
-    while (ele) {
-      x += (ele.offsetLeft - ele.scrollLeft + ele.clientLeft);
-      y += (ele.offsetTop - ele.scrollTop + ele.clientTop);
-      ele = ele.offsetParent;
-    }
-    return {x: x, y: y};
+    var bounds = ele.getBoundingClientRect();
+    return {x: bounds.left, y: bounds.top};
   }
 
   // Returns a Promise that uses XMLHttpRequest to make a request with the given
