@@ -22,6 +22,8 @@ module.exports = function(config) {
     files: [
       '../res/js/common.js',
       'tests/*.js',
+      // Make import.html accessible, but don't include it using a <script> tag.
+      {pattern: 'tests/import.html', included: false}
     ],
 
 
