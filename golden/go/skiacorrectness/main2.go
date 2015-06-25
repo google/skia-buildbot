@@ -1089,6 +1089,12 @@ func lookUpCommits(freq []int, commits []*ptypes.Commit) []string {
 	return ret
 }
 
+type TestRollup struct {
+	Test         string `json:"test"`
+	Num          int    `json:"num"`
+	SampleDigest string `json:"sample_digest"`
+}
+
 // byBlameHandler returns a page with the digests to be triaged grouped by blamelist.
 func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
@@ -1111,6 +1117,9 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 
 	// The Commit info for each group id.
 	commitinfo := map[string][]*ptypes.Commit{}
+	// map [groupid] [test] TestRollup
+	rollups := map[string]map[string]*TestRollup{}
+
 	for test, s := range sum {
 		for _, d := range s.UntHashes {
 			dist := blamer.GetBlame(test, d, commits)
@@ -1135,6 +1144,18 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 			} else {
 				grouped[groupid] = append(grouped[groupid], value)
 			}
+			if _, ok := rollups[groupid]; !ok {
+				rollups[groupid] = map[string]*TestRollup{}
+			}
+			// Calculate the rollups.
+			if _, ok := rollups[groupid][test]; !ok {
+				rollups[groupid][test] = &TestRollup{
+					Test:         test,
+					Num:          0,
+					SampleDigest: d,
+				}
+			}
+			rollups[groupid][test].Num += 1
 		}
 	}
 
@@ -1157,10 +1178,14 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 			Keys      []string
 			ByBlame   map[string][]*ByBlame
 			CommitsJS template.JS
+
+			// map [groupid] [testname]
+			TestRollups map[string]map[string]*TestRollup
 		}{
-			Keys:      keys,
-			ByBlame:   grouped,
-			CommitsJS: template.JS(string(commitinfojs)),
+			Keys:        keys,
+			ByBlame:     grouped,
+			CommitsJS:   template.JS(string(commitinfojs)),
+			TestRollups: rollups,
 		}); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}

@@ -4,7 +4,8 @@
     <title>Skia Correctness Server | By Blame</title>
     {%template "header.html" .%}
     <style type="text/css" media="screen">
-      commits-panel-sk {
+      commits-panel-sk,
+      table {
         margin: 1em;
         display: block;
       }
@@ -16,12 +17,21 @@
         padding: 1em;
         box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
       }
+
+      td, th {
+        padding: 0.3em;
+      }
+
+      th {
+        text-align: left;
+      }
     </style>
   </head>
   <body>
     <scaffold-sk responsiveWidth="700px">
       {%template "titlebar.html" .%}
         {%$byblame := .ByBlame%}
+        {%$rollups := .TestRollups%}
 
         {%if (eq (len .Keys) 0)%}
           <div>
@@ -31,31 +41,32 @@
 
         {%range .Keys%}
           <div class=group>
-            <a target=_blank href="/blamelist?groupid={%.%}">{%len (index $byblame .)%} digest(s) need triaging.</a>
+            <a target=_blank href="/blamelist?groupid={%.%}">{%len (index $byblame .)%} digest(s) need triaging</a>
 
-            {%$key := .%}
+            {%$groupid := .%}
 
-            {%if (gt (len (index (index $byblame .) 0).CommitIndices) 0)%}
+            {%if (gt (len (index (index $byblame $groupid) 0).CommitIndices) 0)%}
               <h3>Blame</h3>
               <div>
-                <commits-panel-sk mailbox="{%$key%}"></commits-panel-sk>
+                <commits-panel-sk mailbox="{%$groupid%}"></commits-panel-sk>
               </div>
             {%else%}
               <h3>No blamelist.</h3>
             {%end%}
 
-            {%if (lt (len (index $byblame .)) 10)%}
-            <h3>Digests</h3>
-            {%else%}
-            <h3>Some digests</h3>
-            {%end%}
-              <ol>
-                {%range $index, $element := (index $byblame .)%}
-                  {%if (lt $index 10)%}
-                    <li><a target=_blank href="/detail?test={%$element.Test%}&digest={%$element.Digest%}">{%$element.Test%}</a></li>
-                  {%end%}
+            <h3>Tests Affected</h3>
+            {%if (lt (len (index $rollups $groupid)) 10)%}
+              <table>
+                <tr><th>Test</th><th>Num Digests</th><th>Example</th></tr>
+                {%range (index $rollups $groupid)%}
+                <tr><td>{%.Test%}</td><td>{%.Num%}</td><td><a target=_blank href="/detail?test={%.Test%}&digest={%.SampleDigest%}">{%.SampleDigest%}</a></td></tr>
                 {%end%}
-              </ol>
+              </table>
+            {%else%}
+              <div>
+                {%len (index $rollups $groupid)%} tests affected.
+              </div>
+            {%end%}
           </div>
         {%end%}
     </scaffold-sk>
