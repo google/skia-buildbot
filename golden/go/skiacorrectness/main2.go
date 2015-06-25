@@ -957,7 +957,7 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 				if index := digestIndex(trace.Values[i], otherDigests); index != -1 {
 					s = index
 				} else {
-					if len(otherDigests) < 8 {
+					if len(otherDigests) < 9 {
 						d := trace.Values[i]
 						test := trace.Params()[types.PRIMARY_KEY_FIELD]
 						otherDigests = append(otherDigests, &DigestStatus{

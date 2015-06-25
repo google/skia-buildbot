@@ -37,20 +37,20 @@
             </svg>
           </td>
           <td>
-            <template if="{{i<7}}">
+            <template if="{{i<8}}">
               <code><a target=_blank  href="detail?test={{test}}&digest={{di.digest}}">{{di.digest}}</a></code>
             </template>
-            <template if="{{i==7}}">
+            <template if="{{i==8}}">
               One of many other digests.
             </template>
           </td>
           <td>
-            <template if="{{i<7}}">
+            <template if="{{i<8}}">
               <tricon-sk value="{{di.status}}"></tricon-sk>
             </template>
           </td>
           <td>
-            <template if="{{i>0 && i<7}}">
+            <template if="{{i>0 && i<8}}">
               <a target=_blank href="diff?test={{test}}&left={{di.digest}}&top={{digests[0].digest}}">diff</a>
             </template>
           </td>
