@@ -23,9 +23,15 @@
       {%template "titlebar.html" .%}
         {%$byblame := .ByBlame%}
 
+        {%if (eq (len .Keys) 0)%}
+          <div>
+            No untriaged digests.
+          </div>
+        {%end%}
+
         {%range .Keys%}
           <div class=group>
-            <a target=_blank href="/blamelist?groupid={%.%}">{%len (index $byblame .)%} digests need triaging.</a>
+            <a target=_blank href="/blamelist?groupid={%.%}">{%len (index $byblame .)%} digest(s) need triaging.</a>
 
             {%$key := .%}
 
