@@ -1,6 +1,7 @@
 <!-- The <commits-panel-sk> custom element declaration.
 
-  An element to display information on one or more commits.
+  An element to display information on one or more commits.  Note that the
+  hashes need to be in order, but not necessarily contiguous.
 
   Attributes:
     mailbox - The sk.Mailbox name to listen for the data to populate
@@ -47,11 +48,20 @@
       populateCommitMessage: function() {
         if (this.commitinfo && this.commitinfo.length && this.commitinfo[0].message == undefined) {
           var lastHash = this.commitinfo[0].hash;
-          var url = "https://skia.googlesource.com/skia/+log/" + lastHash + "~" + this.commitinfo.length + ".." + lastHash + "?format=json";
+          var firstHash = this.commitinfo[this.commitinfo.length-1].hash;
+          var url = "https://skia.googlesource.com/skia/+log/" + firstHash + "~" + 1 + ".." + lastHash + "?format=json";
+          // The git hashes are in time order, but not contiguous, so request
+          // the log range and them populate messages by matching git hashes.
           sk.get(url).then(this.removeSecurityHeader).then(JSON.parse).then(function(json) {
             var len = this.commitinfo.length;
             for (var i=0; i<json.log.length; i++) {
-              this.commitinfo[i].message = json.log[i].message.slice(0, 60);
+              var commit = json.log[i].commit;  // The git hash of this log meesage.
+              for (var j=0; j<len; j++) {
+                if (this.commitinfo[j].hash == commit) {
+                  this.commitinfo[j].message = json.log[i].message.slice(0, 60);
+                  break;
+                }
+              }
             }
           }.bind(this));
         }

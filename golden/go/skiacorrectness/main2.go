@@ -1089,6 +1089,13 @@ func lookUpCommits(freq []int, commits []*ptypes.Commit) []string {
 	return ret
 }
 
+// CommitSlice is a utility type simple for sorting Commit slices so earliest commits come first.
+type CommitSlice []*ptypes.Commit
+
+func (p CommitSlice) Len() int           { return len(p) }
+func (p CommitSlice) Less(i, j int) bool { return p[i].CommitTime > p[j].CommitTime }
+func (p CommitSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 type TestRollup struct {
 	Test         string `json:"test"`
 	Num          int    `json:"num"`
@@ -1130,6 +1137,7 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 				for _, index := range dist.Freq {
 					ci = append(ci, commits[index])
 				}
+				sort.Sort(CommitSlice(ci))
 				commitinfo[groupid] = ci
 			}
 			// Construct a ByBlame and add it to grouped.
