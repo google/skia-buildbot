@@ -28,22 +28,6 @@ ${INSTALL}     --mode=644 ./res/js/core.js                     ${ROOT}/usr/local
 
 ${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/res/vul
 ${INSTALL}     --mode=644 ./res/vul/elements.html              ${ROOT}/usr/local/share/skiacorrectness/res/vul/elements.html
-
-${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/app
-${INSTALL}     --mode=644 -T ./app/index.html                  ${ROOT}/usr/local/share/skiacorrectness/app/index.html
-${INSTALL}     --mode=644 ./app/css/generated.css              ${ROOT}/usr/local/share/skiacorrectness/app/css/generated.css
-${INSTALL}     --mode=644 ./app/js/generated.js                ${ROOT}/usr/local/share/skiacorrectness/app/js/generated.js
-${INSTALL}     --mode=644 ./app/js/logic.js                    ${ROOT}/usr/local/share/skiacorrectness/app/js/logic.js
-${INSTALL}     --mode=644 ./app/js/app.js                      ${ROOT}/usr/local/share/skiacorrectness/app/js/app.js
-
-${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/app/partials
-${INSTALL}     --mode=644 ./app/partials/*                     ${ROOT}/usr/local/share/skiacorrectness/app/partials
-
-${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/app/templates
-${INSTALL}     --mode=644 ./app/templates/*                    ${ROOT}/usr/local/share/skiacorrectness/app/templates
-
-${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/app/fonts
-${INSTALL}     --mode=644 ./app/fonts/*                        ${ROOT}/usr/local/share/skiacorrectness/app/fonts
 }
 
 source ../bash/release.sh

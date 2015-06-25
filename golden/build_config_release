@@ -14,7 +14,7 @@ case "$INSTANCE_ID" in
 	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness"
 	INGEST_DATABASE_NAME="skia"
   REDIRECT_URL="https://gold.skia.org/oauth2callback/"
-  ADD_FLAGS="--backfill_tiles=2 --start_analyzer=false"
+  ADD_FLAGS="--backfill_tiles=2"
 	;;
 
   # stage instance
@@ -23,7 +23,7 @@ case "$INSTANCE_ID" in
 	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_stage"
 	INGEST_DATABASE_NAME="skiacorr_ingest_stage"
   REDIRECT_URL="https://gold-staging.skia.org/oauth2callback/"
-  ADD_FLAGS="--backfill_tiles=2 --start_analyzer=false"
+  ADD_FLAGS="--backfill_tiles=2"
   ;;
 
   # experimental android instance: uses the staging database server for now.

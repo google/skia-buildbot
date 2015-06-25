@@ -14,10 +14,6 @@
     "tests"
   ],
   "dependencies": {
-    "angular": "1.2.x",
-    "angular-route": "1.2.x",
-    "angular-bootstrap": "0.11.x",
-    "bootstrap": "3.1.x",
     "jquery": "~2.1.1",
     "polymer": "Polymer/polymer#~0.5.4",
     "core-elements": "Polymer/core-elements#~0.5.4",

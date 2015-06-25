@@ -165,11 +165,7 @@ func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 	ignores := []*ignore.IgnoreRule{}
 	var err error
-	if *startAnalyzer {
-		ignores, err = analyzer.ListIgnoreRules()
-	} else {
-		ignores, err = storages.IgnoreStore.List()
-	}
+	ignores, err = storages.IgnoreStore.List()
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to retrieve ignored traces.")
 	}
@@ -213,12 +209,7 @@ func polyIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	ignoreRule.ID = int(id)
 
-	if *startAnalyzer {
-		err = analyzer.UpdateIgnoreRule(int(id), ignoreRule)
-	} else {
-		err = storages.IgnoreStore.Update(int(id), ignoreRule)
-	}
-
+	err = storages.IgnoreStore.Update(int(id), ignoreRule)
 	if err != nil {
 		util.ReportError(w, r, err, "Unable to update ignore rule.")
 	} else {
@@ -239,13 +230,7 @@ func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *startAnalyzer {
-		err = analyzer.DeleteIgnoreRule(int(id), user)
-	} else {
-		_, err = storages.IgnoreStore.Delete(int(id), user)
-	}
-
-	if err != nil {
+	if _, err = storages.IgnoreStore.Delete(int(id), user); err != nil {
 		util.ReportError(w, r, err, "Unable to delete ignore rule.")
 	} else {
 		// If delete worked just list the current ignores and return them.
@@ -288,12 +273,7 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *startAnalyzer {
-		err = analyzer.AddIgnoreRule(ignoreRule)
-	} else {
-		err = storages.IgnoreStore.Create(ignoreRule)
-	}
-	if err != nil {
+	if err = storages.IgnoreStore.Create(ignoreRule); err != nil {
 		util.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
 	}
@@ -727,20 +707,13 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 	tc := map[string]types.TestClassification{
 		req.Test: labelledDigests,
 	}
-	// If the analyzer is running then use that to update the expectations.
-	if *startAnalyzer {
-		_, err := analyzer.SetDigestLabels(tc, user)
-		if err != nil {
-			util.ReportError(w, r, err, "Failed to set the expectations.")
-			return
-		}
-	} else {
-		// Otherwise update the expectations directly.
-		if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
-			util.ReportError(w, r, err, "Failed to store the updated expectations.")
-			return
-		}
+
+	// Otherwise update the expectations directly.
+	if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
+		util.ReportError(w, r, err, "Failed to store the updated expectations.")
+		return
 	}
+
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(map[string]string{}); err != nil {

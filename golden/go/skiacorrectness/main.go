@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/analysis"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/digeststore"
@@ -35,7 +34,6 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
-	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 	pconfig "go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/filetilestore"
@@ -43,28 +41,26 @@ import (
 
 // Command line flags.
 var (
-	graphiteServer    = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	port              = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	staticDir         = flag.String("static_dir", "./app", "Directory with static content to serve")
-	tileStoreDir      = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
-	imageDir          = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
-	gsBucketName      = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
-	doOauth           = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	oauthCacheFile    = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
-	memProfile        = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
-	nCommits          = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
-	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-	redirectURL       = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-	redisHost         = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
-	redisDB           = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
-	startAnalyzer     = flag.Bool("start_analyzer", true, "Create an instance of the analyzer and start it running.")
-	startExperimental = flag.Bool("start_experimental", true, "Start experimental features.")
-	cpuProfile        = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
-	forceLogin        = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
-	authWhiteList     = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
-	nTilesToBackfill  = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
-	storageDir        = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
+	graphiteServer   = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	port             = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	staticDir        = flag.String("static_dir", "./app", "Directory with static content to serve")
+	tileStoreDir     = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
+	imageDir         = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+	gsBucketName     = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
+	doOauth          = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	oauthCacheFile   = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
+	memProfile       = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	nCommits         = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+	resourcesDir     = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+	redirectURL      = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+	redisHost        = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
+	redisDB          = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
+	cpuProfile       = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
+	forceLogin       = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
+	authWhiteList    = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+	nTilesToBackfill = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
+	storageDir       = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
 )
 
 const (
@@ -74,7 +70,7 @@ const (
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
-// TODO(stephana): Once the analyzer related code is removed, simplify
+// TODO(stephana): Simplify
 // the ResponseEnvelope and use it solely to wrap JSON arrays.
 // Remove sendResponse and sendErrorResponse in favor of sendJsonResponse
 // and util.ReportError.
@@ -88,91 +84,17 @@ type ResponseEnvelope struct {
 	Pagination *util.ResponsePagination `json:"pagination"`
 }
 
-var (
-	analyzer *analysis.Analyzer = nil
+type PathToURLConverter func(string) string
 
+var (
 	// Module level variables that need to be accessible to main2.go.
 	storages           *storage.Storage
-	pathToURLConverter analysis.PathToURLConverter
+	pathToURLConverter PathToURLConverter
 	tallies            *tally.Tallies
 	summaries          *summary.Summaries
 	statusWatcher      *status.StatusWatcher
 	blamer             *blame.Blamer
 )
-
-func listTestDetailsHandler(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	result, err := analyzer.ListTestDetails(query)
-	if err != nil {
-		sendErrorResponse(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	sendResponse(w, result, http.StatusOK, nil)
-}
-
-// testDetailsHandler returns sufficient information about the given
-// testName to triage digests.
-func testDetailsHandler(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	testName := mux.Vars(r)["testname"]
-	result, err := analyzer.GetTestDetails(testName, query)
-	if err != nil {
-		sendErrorResponse(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	sendResponse(w, result, http.StatusOK, nil)
-}
-
-// triageDigestsHandler handles triaging digests. It requires the user
-// to be logged in and upon success returns the the test details in the
-// same format as testDetailsHandler. That way it can be used by the
-// frontend to incrementally triage digests for a specific test
-// (or set of tests.)
-// TODO (stephana): This is not finished and WIP.
-func triageDigestsHandler(w http.ResponseWriter, r *http.Request) {
-	// Make sure the user is authenticated.
-	userId := login.LoggedInAs(r)
-	if userId == "" {
-		sendErrorResponse(w, "You must be logged in triage digests.", http.StatusForbidden)
-		return
-	}
-
-	// Parse input data in the body.
-	var tc map[string]types.TestClassification
-	if err := parseJson(r, &tc); err != nil {
-		sendErrorResponse(w, "Unable to parse JSON. Error: "+err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Update the labeling of the given tests and digests.
-	result, err := analyzer.SetDigestLabels(tc, userId)
-	if err != nil {
-		sendErrorResponse(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	sendResponse(w, result, http.StatusOK, nil)
-}
-
-// blameHandler returns the blame list for the given test.
-func blameHandler(w http.ResponseWriter, r *http.Request) {
-	testName := mux.Vars(r)["testname"]
-	result := analyzer.GetBlameList(testName)
-	sendResponse(w, result, http.StatusOK, nil)
-}
-
-// statusHandler returns the current status with respect to HEAD.
-func statusHandler(w http.ResponseWriter, r *http.Request) {
-	result := analyzer.GetStatus()
-	sendResponse(w, result, http.StatusOK, nil)
-}
-
-// sendErrorResponse wraps an error in a response envelope and sends it to
-// the client.
-func sendErrorResponse(w http.ResponseWriter, errorMsg string, status int) {
-	resp := ResponseEnvelope{nil, &errorMsg, status, nil}
-	sendJson(w, &resp, status)
-}
 
 // sendResponse wraps the data of a succesful response in a response envelope
 // and sends it to the client.
@@ -402,29 +324,24 @@ func main() {
 	}
 
 	// Enable the experimental features.
-	if *startExperimental {
-		tallies, err = tally.New(storages)
-		if err != nil {
-			glog.Fatalf("Failed to build tallies: %s", err)
-		}
+	tallies, err = tally.New(storages)
+	if err != nil {
+		glog.Fatalf("Failed to build tallies: %s", err)
+	}
 
-		summaries, err = summary.New(storages, tallies, blamer)
-		if err != nil {
-			glog.Fatalf("Failed to build summary: %s", err)
-		}
+	summaries, err = summary.New(storages, tallies, blamer)
+	if err != nil {
+		glog.Fatalf("Failed to build summary: %s", err)
+	}
 
-		statusWatcher, err = status.New(storages)
-		if err != nil {
-			glog.Fatalf("Failed to initialize status watcher: %s", err)
-		}
+	statusWatcher, err = status.New(storages)
+	if err != nil {
+		glog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
 
 	// Initialize the Analyzer
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
 	pathToURLConverter = imgFS.GetURL
-	if *startAnalyzer {
-		analyzer = analysis.NewAnalyzer(storages, imgFS.GetURL, cacheFactory, 5*time.Minute)
-	}
 
 	if err := warmer.Init(storages, summaries); err != nil {
 		glog.Fatalf("Failed to initialize the warmer: %s", err)
@@ -432,18 +349,6 @@ func main() {
 	t.Stop()
 
 	router := mux.NewRouter()
-
-	// Wire up the resources. We use the 'rest' prefix to avoid any name
-	// clashes witht the static files being served.
-	if *startAnalyzer {
-		router.HandleFunc("/rest/triage", listTestDetailsHandler).Methods("GET")
-		router.HandleFunc("/rest/triage/{testname}", testDetailsHandler).Methods("GET")
-		router.HandleFunc("/rest/triage", triageDigestsHandler).Methods("POST")
-		router.HandleFunc("/rest/status", util.CorsHandler(statusHandler)).Methods("GET")
-		router.HandleFunc("/rest/blame/{testname}", blameHandler).Methods("GET")
-		router.HandleFunc("/rest/logout", login.LogoutHandler)
-		router.HandleFunc("/rest/loginstatus", login.StatusHandler)
-	}
 
 	// Set up the resource to serve the image files.
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)
