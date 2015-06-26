@@ -26,6 +26,11 @@ Build: https://uberchromegw.corp.google.com/i/%s/builders/%s/builds/%d
 
 Host info: https://status.skia.org/hosts?filter=%s`
 	AUTOROLL_ALERT_NAME = "AutoRoll Failed"
+	BUILDSLAVE_OFFLINE  = `Buildslave %s is not connected to https://uberchromegw.corp.google.com/i/%s/buildslaves/%s
+
+Dashboard: https://status.skia.org/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%%5E%s%%24&tab=builds
+Host info: https://status.skia.org/hosts?filter=%s
+`
 )
 
 type BuildSlice []*buildbot.Build
@@ -73,7 +78,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 						if err := am.AddAlert(&alerting.Alert{
 							Name:        fmt.Sprintf("Buildslave %s offline", s.Name),
 							Category:    alerting.INFRA_ALERT,
-							Message:     fmt.Sprintf("Buildslave %s is not connected to https://uberchromegw.corp.google.com/i/%s/buildslaves/%s", s.Name, masterName, s.Name),
+							Message:     fmt.Sprintf(BUILDSLAVE_OFFLINE, s.Name, masterName, s.Name, s.Name, s.Name),
 							Nag:         int64(time.Hour),
 							AutoDismiss: int64(2 * tickInterval),
 							Actions:     actions,
