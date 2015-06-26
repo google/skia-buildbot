@@ -34,6 +34,9 @@
       {%template "titlebar.html" .%}
 
       <div id=missing>No digests match your query.</div>
+      <h3>
+        {%len .Summaries%} Digests.
+      </h3>
 
       <detail-list-sk>
         {%range .Summaries%}
