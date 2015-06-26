@@ -564,6 +564,34 @@ class AdminTasksPage(BasePage):
     self.DisplayTemplate('admin_tasks.html', template_values)
 
 
+def _AddLuaTask(request, username):
+  requested_time = datetime.datetime.now()
+  lua_script = db.Text(request.get('lua_script'))
+  lua_aggregator = db.Text(request.get('lua_aggregator'))
+  description = request.get('description')
+  pagesets_type, chromium_rev, skia_rev = request.get(
+      'pagesets_type_and_chromium_build').split('-')
+  if not description:
+    description = 'None'
+
+  LuaTasks(
+      username=username,
+      lua_script=lua_script,
+      lua_aggregator=lua_aggregator,
+      pagesets_type=pagesets_type,
+      chromium_rev=chromium_rev,
+      skia_rev=skia_rev,
+      requested_time=requested_time,
+      description=description).put()
+
+
+class AddLuaTask(BasePage):
+  """Adds the specified lua task."""
+  @utils.admin_only
+  def post(self):
+    _AddLuaTask(self.request, self.request.get('username'))
+
+
 class LuaScriptPage(BasePage):
   """Displays the lua script page."""
 
@@ -581,24 +609,7 @@ class LuaScriptPage(BasePage):
       return
 
     # It is an add lua task request.
-    requested_time = datetime.datetime.now()
-    lua_script = db.Text(self.request.get('lua_script'))
-    lua_aggregator = db.Text(self.request.get('lua_aggregator'))
-    description = self.request.get('description')
-    pagesets_type, chromium_rev, skia_rev = self.request.get(
-        'pagesets_type_and_chromium_build').split('-')
-    if not description:
-      description = 'None'
-
-    LuaTasks(
-        username=self.user.email(),
-        lua_script=lua_script,
-        lua_aggregator=lua_aggregator,
-        pagesets_type=pagesets_type,
-        chromium_rev=chromium_rev,
-        skia_rev=skia_rev,
-        requested_time=requested_time,
-        description=description).put()
+    _AddLuaTask(self.request, self.user.email())
     self.redirect('lua_script')
 
   def _handle(self):

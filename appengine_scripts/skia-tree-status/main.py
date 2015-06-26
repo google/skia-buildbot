@@ -58,6 +58,7 @@ URLS = [
   ('/sheriff/?', sheriff.SheriffPage),
   ('/skia-telemetry/?', skia_telemetry.LandingPage),
   ('/skia-telemetry/add_chromium_try?', skia_telemetry.AddChromiumTryTask),
+  ('/skia-telemetry/add_lua_task?', skia_telemetry.AddLuaTask),
   ('/skia-telemetry/admin_tasks?', skia_telemetry.AdminTasksPage),
   ('/skia-telemetry/all_tasks?', skia_telemetry.AllTasks),
   ('/skia-telemetry/chromium_builds?', skia_telemetry.ChromiumBuildsPage),
