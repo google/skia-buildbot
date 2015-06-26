@@ -1,0 +1,16 @@
+#!/bin/bash
+# Builds and uploads a debian package for grandcentral.
+APPNAME=grandcentral
+DESCRIPTION="Central message passing app for Skia Infra"
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=755 -T ${GOPATH}/bin/grandcentral ${ROOT}/usr/local/bin/grandcentral
+${INSTALL} --mode=644 -T ./sys/monit               ${ROOT}/etc/monit/conf.d/grandcentral
+${INSTALL} --mode=755 -T ./sys/init                ${ROOT}/etc/init.d/grandcentral
+}
+
+source ../bash/release.sh
