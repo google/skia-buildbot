@@ -5,6 +5,7 @@
 """Skia Telemetry pages."""
 
 
+import base64
 import datetime
 import json
 import urllib2
@@ -564,10 +565,10 @@ class AdminTasksPage(BasePage):
     self.DisplayTemplate('admin_tasks.html', template_values)
 
 
-def _AddLuaTask(request, username):
+def _AddLuaTask(request, username, lua_script, lua_aggregator):
   requested_time = datetime.datetime.now()
-  lua_script = db.Text(request.get('lua_script'))
-  lua_aggregator = db.Text(request.get('lua_aggregator'))
+  lua_script = db.Text(lua_script)
+  lua_aggregator = db.Text(lua_aggregator)
   description = request.get('description')
   pagesets_type, chromium_rev, skia_rev = request.get(
       'pagesets_type_and_chromium_build').split('-')
@@ -589,7 +590,12 @@ class AddLuaTask(BasePage):
   """Adds the specified lua task."""
   @utils.admin_only
   def post(self):
-    _AddLuaTask(self.request, self.request.get('username'))
+    username = self.request.get('username')
+    lua_script = urllib2.unquote(base64.b64decode(
+        self.request.get('lua_script')))
+    lua_aggregator = urllib2.unquote(base64.b64decode(
+        self.request.get('lua_aggregator')))
+    _AddLuaTask(self.request, username, lua_script, lua_aggregator)
 
 
 class LuaScriptPage(BasePage):
@@ -609,7 +615,9 @@ class LuaScriptPage(BasePage):
       return
 
     # It is an add lua task request.
-    _AddLuaTask(self.request, self.user.email())
+    lua_script = self.request.get('lua_script')
+    lua_aggregator = self.request.get('lua_aggregator')
+    _AddLuaTask(self.request, self.user.email(), lua_script, lua_aggregator)
     self.redirect('lua_script')
 
   def _handle(self):
