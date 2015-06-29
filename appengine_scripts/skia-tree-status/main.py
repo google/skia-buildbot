@@ -65,6 +65,7 @@ URLS = [
   ('/skia-telemetry/chromium_try?', skia_telemetry.ChromiumTryPage),
   ('/skia-telemetry/get_oldest_pending_task?',
    skia_telemetry.GetClusterTelemetryTasksPage),
+  ('/skia-telemetry/get_skp_repos?', skia_telemetry.GetSKPRepos),
   ('/skia-telemetry/lua_script?', skia_telemetry.LuaScriptPage),
   ('/skia-telemetry/pending_tasks?', skia_telemetry.PendingTasksPage),
   ('/skia-telemetry/skia_telemetry_info_page?',

@@ -6,6 +6,7 @@
 
 
 import base64
+import collections
 import datetime
 import json
 import urllib2
@@ -633,6 +634,18 @@ class LuaScriptPage(BasePage):
     template_values['pagesets_to_builds'] = get_skp_pagesets_to_builds()
 
     self.DisplayTemplate('lua_script.html', template_values)
+
+
+class GetSKPRepos(BasePage):
+  """Returns the recently-created SKP repositories in JSON format."""
+  def get(self):
+    self.response.headers['Content-Type'] = 'application/json'
+    repos = get_skp_pagesets_to_builds()
+    rv = collections.defaultdict(list)
+    for pageset, builds in repos.iteritems():
+      for chrome_rev, skia_rev, dt in builds:
+        rv[pageset].append((chrome_rev, skia_rev, dt.__str__()))
+    json.dump(rv, self.response.out)
 
 
 class ChromiumBuildsPage(BasePage):
