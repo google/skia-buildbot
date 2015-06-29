@@ -77,7 +77,7 @@ func initEmail(auth *email.GMail) {
 				for _, recipient := range m.To {
 					recipients[recipient] = true
 				}
-				body += fmt.Sprintf("%s\n\n%s\n\n%s\n\n", m.Subject, m.Body, msgSep)
+				body += fmt.Sprintf("%s<br/><br/>%s<br/><br/>%s<br/><br/>", m.Subject, m.Body, msgSep)
 			}
 			to := make([]string, 0, len(recipients))
 			for r, _ := range recipients {
