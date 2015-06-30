@@ -50,7 +50,7 @@ class RepaintCTPages(_Repaint):
     if not args.page_set_base_dir:
       parser.error('Please specify --page-set-base-dir')
 
-  def CreatePageSet(self, options):
+  def CreateStorySet(self, options):
     page_set_class = skpicture_printer._MatchPageSetName(
         options.page_set_name, options.page_set_base_dir)
     return page_set_class()
