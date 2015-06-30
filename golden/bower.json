@@ -20,5 +20,8 @@
     "paper-elements": "Polymer/paper-elements#~0.5.4",
     "webcomponentsjs": "Polymer/webcomponentsjs#^0.5.4",
     "flot": "~0.8.3"
+  },
+  "resolutions": {
+    "webcomponentsjs": "^0.6.0"
   }
 }

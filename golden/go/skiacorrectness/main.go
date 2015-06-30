@@ -30,6 +30,7 @@ import (
 	"go.skia.org/infra/golden/go/filediffstore"
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
@@ -94,6 +95,7 @@ var (
 	summaries          *summary.Summaries
 	statusWatcher      *status.StatusWatcher
 	blamer             *blame.Blamer
+	paramsetSum        *paramsets.Summary
 )
 
 // sendResponse wraps the data of a succesful response in a response envelope
@@ -329,6 +331,8 @@ func main() {
 		glog.Fatalf("Failed to build tallies: %s", err)
 	}
 
+	paramsetSum = paramsets.New(tallies, storages)
+
 	summaries, err = summary.New(storages, tallies, blamer)
 	if err != nil {
 		glog.Fatalf("Failed to build summary: %s", err)
@@ -339,7 +343,6 @@ func main() {
 		glog.Fatalf("Failed to initialize status watcher: %s", err)
 	}
 
-	// Initialize the Analyzer
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
 	pathToURLConverter = imgFS.GetURL
 

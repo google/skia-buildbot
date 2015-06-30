@@ -838,7 +838,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret := buildDetailsGUI(tile, exp, test, top, left, r.Form.Get("graphs") == "true", r.Form.Get("closest") == "true")
+	ret := buildDetailsGUI(tile, exp, test, top, left, r.Form.Get("graphs") == "true", r.Form.Get("closest") == "true", true)
 
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
@@ -847,7 +847,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test string, top string, left string, graphs bool, closest bool) *PolyDetailsGUI {
+func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test string, top string, left string, graphs bool, closest bool, include bool) *PolyDetailsGUI {
 	ret := &PolyDetailsGUI{
 		TopStatus:  exp.Classification(test, top).String(),
 		LeftStatus: exp.Classification(test, left).String(),
@@ -856,24 +856,14 @@ func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test strin
 		TileSize:   len(tile.Commits),
 	}
 
-	topParamSet := map[string][]string{}
-	leftParamSet := map[string][]string{}
+	topParamSet := paramsetSum.Get(test, top, include)
+	leftParamSet := paramsetSum.Get(test, left, include)
 
 	// Now build out the ParamSet for each digest.
 	tally := tallies.ByTrace()
 	traceNames := []string{}
 	for id, tr := range tile.Traces {
-		traceTally, ok := tally[id]
-		if !ok {
-			continue
-		}
 		if tr.Params()[types.PRIMARY_KEY_FIELD] == test {
-			if _, ok := (*traceTally)[top]; ok {
-				topParamSet = util.AddParamsToParamSet(topParamSet, tr.Params())
-			}
-			if _, ok := (*traceTally)[left]; ok {
-				leftParamSet = util.AddParamsToParamSet(leftParamSet, tr.Params())
-			}
 			traceNames = append(traceNames, id)
 		}
 	}
@@ -1232,7 +1222,7 @@ func blameListHandler(w http.ResponseWriter, r *http.Request) {
 			dist := blamer.GetBlame(test, d, commits)
 			key := strings.Join(lookUpCommits(dist.Freq, commits), ":")
 			if key == groupid {
-				detail := buildDetailsGUI(tile, exp, test, d, d, true, true)
+				detail := buildDetailsGUI(tile, exp, test, d, d, true, true, false)
 
 				list = append(list, &BlameListDigest{
 					Test:   test,
