@@ -106,21 +106,24 @@ if '__main__' == __name__:
       'alexa%s-%s.json' % (options.start_number, options.end_number))
 
   page_set_content = """
-# Copyright 2014 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 # pylint: disable=W0401,W0614
 
+from telemetry import story
 from telemetry.page import page as page_module
-from telemetry.page import page_set as page_set_module
+from telemetry.page import shared_page_state
 from page_sets import repaint_helpers
 
 
 class TypicalAlexaPage(page_module.Page):
 
   def __init__(self, url, page_set):
-    super(TypicalAlexaPage, self).__init__(url=url, page_set=page_set)
-    self.user_agent_type = '%(user_agent)s'
+    super(TypicalAlexaPage, self).__init__(
+        url=url,
+        page_set=page_set,
+        shared_page_state_class=shared_page_state.Shared%(user_agent)sPageState)
     self.archive_data_file = '%(archive_data_file)s'
 
   def RunNavigateSteps(self, action_runner):
@@ -131,19 +134,18 @@ class TypicalAlexaPage(page_module.Page):
     repaint_helpers.Repaint(action_runner)
 
 
-class Alexa%(start)s_%(end)sPageSet(page_set_module.PageSet):
+class Alexa%(start)s_%(end)sPageSet(story.StorySet):
 
   def __init__(self):
     super(Alexa%(start)s_%(end)sPageSet, self).__init__(
-      user_agent_type='%(user_agent)s',
       archive_data_file='%(archive_data_file)s')
 
     urls_list = %(urls_list)s
 
     for url in urls_list:
-      self.AddUserStory(TypicalAlexaPage(url, self))
+      self.AddStory(TypicalAlexaPage(url, self))
 """ % {
-      "user_agent": options.useragent_type,
+      "user_agent": options.useragent_type.capitalize(),
       "archive_data_file": archive_data_file,
       "start": options.start_number,
       "end": options.end_number,
