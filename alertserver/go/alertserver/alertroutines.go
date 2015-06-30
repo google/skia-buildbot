@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/util"
 )
 
 /*
@@ -23,14 +24,19 @@ const (
 	ANDROID_DISCONNECT = `The Android device for %s appears to be disconnected.
 
 Build: https://uberchromegw.corp.google.com/i/%s/builders/%s/builds/%d
-
+Dashboard: https://status.skia.org/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%%5E%s%%24&tab=builds
 Host info: https://status.skia.org/hosts?filter=%s`
 	AUTOROLL_ALERT_NAME = "AutoRoll Failed"
 	BUILDSLAVE_OFFLINE  = `Buildslave %s is not connected to https://uberchromegw.corp.google.com/i/%s/buildslaves/%s
 
 Dashboard: https://status.skia.org/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%%5E%s%%24&tab=builds
-Host info: https://status.skia.org/hosts?filter=%s
-`
+Host info: https://status.skia.org/hosts?filter=%s`
+	HUNG_BUILDSLAVE = `Possibly hung buildslave (%s)
+
+A step has been running for over %s:
+https://uberchromegw.corp.google.com/i/%s/builders/%s/builds/%d
+Dashboard: https://status.skia.org/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%%5E%s%%24&tab=builds
+Host info: https://status.skia.org/hosts?filter=%s`
 )
 
 type BuildSlice []*buildbot.Build
@@ -127,16 +133,29 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		}
 	}()
 
-	// Android device disconnects.
+	// Android device disconnects, hung buildslaves.
 	go func() {
+		// These builders are frequently slow. Ignore them when looking for hung buildslaves.
+		hungSlavesIgnore := []string{
+			"Housekeeper-Nightly-RecreateSKPs_Canary",
+			"Housekeeper-Weekly-RecreateSKPs",
+			"Linux Builder",
+			"Mac Builder",
+			"Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Valgrind",
+			"Test-Ubuntu-GCC-ShuttleA-GPU-GTX550Ti-x86_64-Release-Valgrind",
+			"Win Builder",
+		}
+		hangTimePeriod := time.Hour
 		for _ = range time.Tick(tickInterval) {
-			glog.Infof("Searching for disconnected Android devices.")
+			glog.Infof("Searching for hung buildslaves and disconnected Android devices.")
 			builds, err := buildbot.GetUnfinishedBuilds()
 			if err != nil {
 				glog.Error(err)
 				continue
 			}
 			for _, b := range builds {
+				// Disconnected Android device?
+				disconnectedAndroid := false
 				if strings.Contains(b.Builder, "Android") && !strings.Contains(b.Builder, "Build") {
 					for _, s := range b.Steps {
 						if strings.Contains(s.Name, "wait for device") {
@@ -145,12 +164,31 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 								if err := am.AddAlert(&alerting.Alert{
 									Name:     fmt.Sprintf("Android device disconnected (%s)", b.BuildSlave),
 									Category: alerting.INFRA_ALERT,
-									Message:  fmt.Sprintf(ANDROID_DISCONNECT, b.BuildSlave, b.Master, b.Builder, b.Number, b.BuildSlave),
+									Message:  fmt.Sprintf(ANDROID_DISCONNECT, b.BuildSlave, b.Master, b.Builder, b.Number, b.BuildSlave, b.BuildSlave),
 									Nag:      int64(3 * time.Hour),
 									Actions:  actions,
 								}); err != nil {
 									glog.Error(err)
 								}
+								disconnectedAndroid = true
+							}
+						}
+					}
+				}
+				if !disconnectedAndroid && !util.In(b.Builder, hungSlavesIgnore) {
+					// Hung buildslave?
+					for _, s := range b.Steps {
+						// If the step has been running for over an hour, it's probably hung.
+						if s.Finished == 0 && time.Since(time.Unix(int64(s.Started), 0)) > hangTimePeriod {
+							if err := am.AddAlert(&alerting.Alert{
+								Name:        fmt.Sprintf("Possibly hung buildslave (%s)", b.BuildSlave),
+								Category:    alerting.INFRA_ALERT,
+								Message:     fmt.Sprintf(HUNG_BUILDSLAVE, b.BuildSlave, hangTimePeriod.String(), b.Master, b.Builder, b.Number, b.BuildSlave, b.BuildSlave),
+								Nag:         int64(time.Hour),
+								Actions:     actions,
+								AutoDismiss: int64(10 * tickInterval),
+							}); err != nil {
+								glog.Error(err)
 							}
 						}
 					}
