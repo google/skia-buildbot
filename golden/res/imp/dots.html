@@ -127,7 +127,7 @@
               }
             }
 
-            var commitinfo = this.value.commits.slice(firstCommit, x+1);
+            var commitinfo = this.commits.slice(firstCommit, x+1);
             commitinfo.reverse();
             this.dispatchEvent(new CustomEvent('commit-selected', {detail: commitinfo, bubbles: true}));
           }

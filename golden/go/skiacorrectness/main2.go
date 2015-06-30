@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
@@ -55,6 +56,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/triagelog.html"),
 		filepath.Join(*resourcesDir, "templates/search.html"),
+		filepath.Join(*resourcesDir, "templates/search2.html"),
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -847,7 +849,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test string, top string, left string, graphs bool, closest bool, include bool) *PolyDetailsGUI {
+func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test string, top string, left string, graphs bool, closest bool, includeIgnores bool) *PolyDetailsGUI {
 	ret := &PolyDetailsGUI{
 		TopStatus:  exp.Classification(test, top).String(),
 		LeftStatus: exp.Classification(test, left).String(),
@@ -856,12 +858,11 @@ func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test strin
 		TileSize:   len(tile.Commits),
 	}
 
-	topParamSet := paramsetSum.Get(test, top, include)
-	leftParamSet := paramsetSum.Get(test, left, include)
+	topParamSet := paramsetSum.Get(test, top, includeIgnores)
+	leftParamSet := paramsetSum.Get(test, left, includeIgnores)
 
-	// Now build out the ParamSet for each digest.
-	tally := tallies.ByTrace()
 	traceNames := []string{}
+	tally := tallies.ByTrace()
 	for id, tr := range tile.Traces {
 		if tr.Params()[types.PRIMARY_KEY_FIELD] == test {
 			traceNames = append(traceNames, id)
@@ -1220,8 +1221,7 @@ func blameListHandler(w http.ResponseWriter, r *http.Request) {
 	for test, s := range sum {
 		for _, d := range s.UntHashes {
 			dist := blamer.GetBlame(test, d, commits)
-			key := strings.Join(lookUpCommits(dist.Freq, commits), ":")
-			if key == groupid {
+			if groupid == strings.Join(lookUpCommits(dist.Freq, commits), ":") {
 				detail := buildDetailsGUI(tile, exp, test, d, d, true, true, false)
 
 				list = append(list, &BlameListDigest{
@@ -1233,6 +1233,9 @@ func blameListHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
+	// Now that we have list, take a single pass over the tile and populate the
+	// paramset and tracenames for all the list members in one pass.
 
 	sort.Sort(BlameListDigestSlice(list))
 
@@ -1255,6 +1258,53 @@ func blameListHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := templates.ExecuteTemplate(w, "blamelist.html", context); err != nil {
 		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+func search2Handler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	digests, commits, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	if err != nil {
+		util.ReportError(w, r, err, "Search for digests failed.")
+	}
+	js, err := json.MarshalIndent(digests, "", "  ")
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to encode response data.")
+		return
+	}
+	commitsjs, err := json.MarshalIndent(commits, "", "  ")
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to encode commits.")
+		return
+	}
+
+	context := struct {
+		Digests   []*search.Digest
+		JS        template.JS
+		CommitsJS template.JS
+	}{
+		Digests:   digests,
+		JS:        template.JS(string(js)),
+		CommitsJS: template.JS(string(commitsjs)),
+	}
+
+	if err := templates.ExecuteTemplate(w, "search2.html", context); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+func queryFromRequest(r *http.Request) *search.Query {
+	return &search.Query{
+		BlameGroupID:   r.FormValue("blame"),
+		Pos:            r.FormValue("pos") == "true",
+		Neg:            r.FormValue("neg") == "true",
+		Unt:            r.FormValue("unt") == "true",
+		Head:           r.FormValue("head") == "true",
+		IncludeIgnores: r.FormValue("include") == "true",
+		Query:          r.FormValue("query"),
 	}
 }
 

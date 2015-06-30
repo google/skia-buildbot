@@ -1,0 +1,393 @@
+<!-- The <digest-details-sk> custom element declaration.
+
+  Displays the details about a digest.
+
+  Attributes:
+    test - The name of the test.
+    digest - The digest we are interested in.
+    limit - The maximum number of digests to display.
+    triage - A boolean, if true, then display the triage controls.
+    data-diff - A read-only attribute that is the size of the difference between
+        this digest and the closest positive digest. Will be set before the
+        'loaded' event. May be set to Infinity if there are no positive digests.
+    data-closest - A read-only attribute that is the digest of the closest image.
+    data-diffdigests - A read-only attribute of the digest and the closest positive
+      image digest, separated by a dash, ala "abbab-12131". The digests are in
+      sorted order, so they can be used in /img/diffs/ URLs.
+    images - A boolean, if true the images are displayed.
+    failed - A boolean, true if the request to the server for details failed.
+    mailbox - An sk.Mailbox address to subscribe for the data to populate
+      this digest-details-sk. The data in the mailbox must be a serialized
+      search.Digest.
+
+  Events:
+    triage - A triage event is generated when the triage button is pressed. The e.detail
+       of the event looks like:
+
+       {
+         digest: ["ba636123..."],
+         status: "positive",
+         test: "blurs"
+       }
+
+    details-loaded - A loaded event is generated when the control has finished loading data
+      from the server and the data-diff attribute has been set. The digest-details-sk
+      element is returned in e.detail. This event will be triggered even if the HTTP
+      request failed, listeners can check the 'failed' attribute to see if that's the case.
+
+    zoom-clicked - This event is triggered when the user clicks on the 'zoom'
+      button. The 'detail' in the event is the digest-details-sk object.
+
+  Methods:
+    triggerTriage(status) - Set the triage status of the digest, triggering the triage event.
+-->
+<polymer-element name="digest-details-sk">
+  <template>
+    <style type="text/css" media="screen">
+      circle.status0 {
+        fill:   #000000;
+        stroke: #000000;
+      }
+      dot-legend-sk {
+        margin-left: 5em;
+        margin-bottom: 2em;
+      }
+      dots-sk {
+        display: block;
+      }
+      .more {
+        margin-left: 3em;
+      }
+      .preview {
+        margin: 5px;
+        border: solid 2px lightgray;
+        display: block;
+        width: 132px;
+        height: 132px;
+      }
+      .preview img {
+        display: block;
+        max-width: 128px;
+        max-height: 128px;
+        width: auto;
+        height: auto;
+
+      }
+      .hidden * {
+        display: none;
+      }
+      .triageInfo,
+      .triageInfo div {
+        padding: 0.5em;
+      }
+      .untriagedImage svg {
+        margin: auto;
+      }
+      #images {
+        margin-right: 1.5em;
+      }
+      #warning {
+        font-weight: bold;
+        width: 5em;
+        padding: 1em;
+        color: #E7298A;
+      }
+
+      #paramset {
+        max-width: 20em;
+      }
+
+      #paramset th {
+        text-align: right;
+        padding-right: 0.5em;
+      }
+
+      #paramset span {
+        margin-right: 0.2em;
+      }
+
+      #paramset .hover {
+        color: #E7298A;
+        font-weight: bold;
+      }
+      .noCompare {
+        padding-right: 1em;
+      }
+    </style>
+    <div horizontal layout>
+      <template if="{{failed}}">
+        <div vertical layout id=warning>
+          Failed to load results.
+        </div>
+      </template>
+      <template if="{{triage && negIsClosest}}">
+        <div vertical layout id=warning>
+          Closest Image Is Negative!
+        </div>
+      </template>
+      <div vertical layout>
+        <div horizontal layout id=images>
+          <template if="{{triage && closest.closest.digest}}">
+            <div vertical layout center class=untriagedImage>
+              <div horizontal layout>
+                <div class=preview>
+                  <img src="{{images | digestUrl(closest.closest.digest)}}" />
+                </div>
+                <a href="/img/images/{{closest.closest.digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+              </div>
+              <a target=_blank href="detail?test={{test}}&digest={{closest.closest.digest}}">{{negIsClosest ? 'Negative' : 'Positive'}}</a>
+            </div>
+            <div class=preview>
+              <img src="{{images | diffUrl(diffDigests)}}" />
+            </div>
+            <a href="/img/diffs/{{diffDigests}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+          </template>
+          <template if="{{triage}}">
+            <div vertical layout class=untriagedImage>
+              <div horizontal layout>
+                <div class=preview>
+                  <img src="{{images | digestUrl(digest)}}" />
+                </div>
+                <a href="/img/images/{{digest}}.png" target=_blank><core-icon icon="open-in-new"></core-icon></a>
+              </div>
+              <svg width=10 height=10 viewBox="-1 -1 2 2">
+                <circle cx=0 cy=0 r="0.3" class="status0"/>
+              </svg>
+            </div>
+          </template>
+        </div>
+        <paper-button id=zoomButton>Zoom</paper-button>
+      </div>
+      <template if="{{triage && !closest.closest.digest}}">
+        <div class=noCompare>
+          <strong>No Positive or Negative Digests Found.</strong>
+        </div>
+      </template>
+      <div vertical layout>
+        <dots-sk id=dots></dots-sk>
+        <dot-legend-sk id=dotlegend test="{{test}}"></dot-legend-sk>
+        <blame-sk id=blame></blame-sk>
+        <template if="{{isTruncated}}">
+          <div class=more><a href="detail?test={{test}}&digest={{digest}}">(more)</a></div>
+        </template>
+      </div>
+      <div vertical layout id=paramset>
+        <table>
+          <template repeat="{{key in details.traces.paramset | keysOf}}">
+            <tr>
+              <th>{{key}}</th>
+              <td>
+                <template repeat="{{v in details.traces.paramset[key]}}">
+                  <span id="param_{{key}}_{{v | asId}}">{{v}}</span>
+                </template>
+              </td>
+            </tr>
+          </template>
+        </table>
+      </div>
+      <div vertical layout class="{{triage ? 'triageInfo' : 'hidden'}}">
+        <template if="{{closest.closest.digest}}">
+          <div><a href="diff?test={{test}}&left={{digest}}&top={{closest.closest.digest}}">Details</a></div>
+          <div>Diff: {{closest.closest.diff | fixedPercent }}%</div>
+          <div>Max RGBA: [{{closest.closest.maxRGBA}}]</div>
+        </template>
+        <tri-sk data-digest="{{digest}}" data-test="{{test}}" value="{{details.status}}" id=triage></tri-sk>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        test: {
+          value: "",
+          reflect: true,
+        },
+        digest: {
+          value: "",
+          reflect: true,
+        },
+        limit: {
+          value: 0,
+          reflect: true,
+        },
+        triage: {
+          value: false,
+          reflect: true,
+        },
+        images: {
+          value: true,
+          reflect: true,
+        },
+        failed: {
+          value: false,
+          reflect: true,
+        },
+        mailbox: {
+          value: "",
+          reflect: true,
+        }
+      },
+
+      //, Force the template expansion to be in the Light DOM.
+      parseDeclaration: function(elementElement) {
+        var template = this.fetchTemplate(elementElement);
+        if (template != null) {
+          this.lightFromTemplate(template);
+        };
+      },
+
+      ready: function() {
+        // The parameters that were in play the last time data was loaded
+        // from the server.
+        this.reloadParams = {
+          test: "",
+          digest: "",
+          limit: 0,
+        };
+        this.details = {};
+        this.isTruncated = false;
+        this.negIsClosest = false;
+        this.diffDigests = "";
+        var that = this;
+        this.$.triage.addEventListener('change', function(e) {
+          // Convert the change event from the triage button into a more detailed triage event.
+          var detail = {
+            "test": e.target.dataset.test,
+            "digest": [e.target.dataset.digest],
+            "status": e.target.value,
+          };
+          that.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
+        });
+
+        this.$.dots.addEventListener('hover', function(e) {
+          var id = e.detail;
+          var params = {};
+          // Find the matching trace in details.traces.
+          for (var i=0; i<that.details.traces.traces.length; i++) {
+            if (that.details.traces.traces[i].label == id) {
+              params = that.details.traces.traces[i].params;
+              break;
+            }
+          }
+          that.clearParamHighlights();
+          Object.keys(params).forEach(function(k) {
+            var id = '#param_'+k+'_'+that.asId(params[k]);
+            $$$(id, that.$.paramset).classList.add('hover');
+          });
+        });
+
+        this.$.dots.addEventListener('mouseleave', function() {
+          that.clearParamHighlights();
+        });
+
+        this.$.zoomButton.addEventListener('click', function() {
+          that.dispatchEvent(new CustomEvent('zoom-clicked', {detail: that, bubbles: true}));
+        });
+
+        // Hook up the hover event on the blame-sk element to the highlight action
+        // on the dots-sk element.
+        this.$.blame.addEventListener('hover-blame', function(e) {
+          this.$.dots.highlight(e.detail.index, e.detail.b);
+        }.bind(this));
+      },
+
+      // Remove the hover class from all of the paramset values.
+      clearParamHighlights: function() {
+        $$('[class=hover]', this.$.paramset).forEach(function(ele) {
+          ele.classList.remove('hover');
+        });
+      },
+
+      // asId strips out non-alphanum characters, which makes them into
+      // strings that can be easily used by querySelector as an id.
+      asId: function(s) {
+        return s.replace(/[^a-zA-Z0-9]/gi, '');
+      },
+
+      triggerTriage: function(status) {
+        this.$.triage.value = status;
+        var detail = {
+          "test": this.$.triage.dataset.test,
+          "digest": [this.$.triage.dataset.digest],
+          "status": status,
+        };
+        this.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
+      },
+
+      dataAvailable: function(json) {
+        if (!json) {
+          return
+        }
+        if (this.triage) {
+          this.closest = json.diff.pos.closest.diff < json.diff.neg.closest.diff ?  json.diff.pos : json.diff.neg;
+          this.negIsClosest = json.diff.neg.closest.diff < json.diff.pos.closest.diff;
+        }
+        this.details = json;
+
+        this.$.blame.value = this.details.diff.blame;
+        this.$.dots.setValue(this.details.traces);
+        this.$.dotlegend.digests = this.details.traces.digests;
+
+        sk.Mailbox.subscribe('commits', function(commits) {
+          this.$.blame.commits = commits;
+          this.$.dots.setCommits(commits);
+        }.bind(this));
+
+        if (this.triage) {
+          if (this.closest) {
+            this.dataset.diff = json.diff.diff;
+            this.dataset.closest = this.closest.closest.digest;
+            if (this.closest.closest.digest < this.digest) {
+              this.diffDigests = this.closest.closest.digest + "-" + this.digest;
+            } else {
+              this.diffDigests = this.digest + "-" + this.closest.closest.digest;
+            }
+            this.dataset.diffdigests = this.diffDigests;
+          } else {
+            this.dataset.diff = Infinity;
+          }
+        }
+        this.dispatchEvent(new CustomEvent('details-loaded', {detail: this, bubbles: true}));
+      },
+
+      mailboxChanged: function() {
+        sk.Mailbox.subscribe(this.mailbox, this.dataAvailable.bind(this))
+      },
+
+      fixedPercent: function(i) {
+        if (i) {
+          return i.toFixed(2);
+        } else {
+          return '';
+        }
+      },
+
+      digestUrl: function(showImages, digest) {
+        if (showImages) {
+          return "/img/images/"+digest+".png"
+        } else {
+          return ""
+        }
+      },
+
+      diffUrl: function(showImages, digest) {
+        if (showImages) {
+          return "/img/diffs/"+digest+".png"
+        } else {
+          return ""
+        }
+      },
+
+      keysOf: function(o) {
+        if (o) {
+          var keys = Object.keys(o);
+          keys.sort();
+          return keys;
+        } else {
+          return [];
+        }
+      },
+
+    });
+  </script>
+</polymer-element>
