@@ -521,6 +521,69 @@ func hostsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// buildProgressHandler returns the number of finished builds at the given
+// commit, compared to that of an older commit.
+func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
+	defer timer.New("buildProgressHandler").Stop()
+	w.Header().Set("Content-Type", "application/json")
+
+	// Get the commit cache.
+	cache, err := getCommitCache(w, r)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to get the commit cache."))
+		return
+	}
+
+	// Get the number of finished builds for the requested commit.
+	hash := r.FormValue("commit")
+	buildsAtNewCommit, err := cache.GetBuildsForCommit(hash)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
+		return
+	}
+	finishedAtNewCommit := 0
+	for _, b := range buildsAtNewCommit {
+		if b.Finished {
+			finishedAtNewCommit++
+		}
+	}
+
+	// Find an older commit for which we'll assume that all builds have completed.
+	oldCommit, err := cache.Get(cache.NumCommits() - DEFAULT_COMMITS_TO_LOAD)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to get an old commit from the cache."))
+		return
+	}
+	buildsAtOldCommit, err := cache.GetBuildsForCommit(oldCommit.Hash)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
+		return
+	}
+	finishedAtOldCommit := 0
+	for _, b := range buildsAtOldCommit {
+		if b.Finished {
+			finishedAtOldCommit++
+		}
+	}
+	res := struct {
+		OldCommit           string  `json:"oldCommit"`
+		FinishedAtOldCommit int     `json:"finishedAtOldCommit"`
+		NewCommit           string  `json:"newCommit"`
+		FinishedAtNewCommit int     `json:"finishedAtNewCommit"`
+		FinishedProportion  float64 `json:"finishedProportion"`
+	}{
+		OldCommit:           oldCommit.Hash,
+		FinishedAtOldCommit: finishedAtOldCommit,
+		NewCommit:           hash,
+		FinishedAtNewCommit: finishedAtNewCommit,
+		FinishedProportion:  float64(finishedAtNewCommit) / float64(finishedAtOldCommit),
+	}
+	if err := json.NewEncoder(w).Encode(res); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON."))
+		return
+	}
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", commitsHandler)
@@ -533,6 +596,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
 	r.HandleFunc("/json/slaveHosts", slaveHostsJsonHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

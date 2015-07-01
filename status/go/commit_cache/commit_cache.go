@@ -280,3 +280,16 @@ func (c *CommitCache) AddBuilderComment(builder string, comment *buildbot.Builde
 func (c *CommitCache) DeleteBuilderComment(builder string, id int) error {
 	return c.buildCache.DeleteBuilderComment(builder, id)
 }
+
+// GetBuildsForCommit returns the builds which ran at the given commit.
+func (c *CommitCache) GetBuildsForCommit(hash string) ([]*buildbot.BuildSummary, error) {
+	builds, _, err := c.buildCache.GetBuildsForCommits([]string{hash})
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get build data for commit: %v", err)
+	}
+	rv := make([]*buildbot.BuildSummary, 0, len(builds[hash]))
+	for _, b := range builds[hash] {
+		rv = append(rv, b)
+	}
+	return rv, nil
+}
