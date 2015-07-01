@@ -41,7 +41,7 @@
 
         {%range .Keys%}
           <div class=group>
-            <a target=_blank href="/blamelist?groupid={%.%}">{%len (index $byblame .)%} digest(s) need triaging</a>
+            <a target=_blank href="/search2?blame={%.%}&unt=true&head=true">{%len (index $byblame .)%} digest(s) need triaging</a>
 
             {%$groupid := .%}
 

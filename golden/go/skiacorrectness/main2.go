@@ -46,7 +46,6 @@ var (
 
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
-		filepath.Join(*resourcesDir, "templates/blamelist.html"),
 		filepath.Join(*resourcesDir, "templates/byblame.html"),
 		filepath.Join(*resourcesDir, "templates/index.html"),
 		filepath.Join(*resourcesDir, "templates/ignores.html"),
@@ -1159,104 +1158,6 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 			CommitsJS:   template.JS(string(commitinfojs)),
 			TestRollups: rollups,
 		}); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
-func minFloat32(a, b float32) float32 {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-// BlameListDigest holds a PolyDetailsGUI and some other info needed to render
-// a test-summary-details-sk.
-type BlameListDigest struct {
-	Test   string          `json:"test"`
-	Digest string          `json:"digest"`
-	Diff   float32         `json:"diff"` // The smaller of the Pos and Neg diff.
-	Detail *PolyDetailsGUI `json:"detail"`
-}
-
-// BlameListDigestSlice enables sorting BlameListDigest by the Diff score, with
-// largest Diff's first.
-type BlameListDigestSlice []*BlameListDigest
-
-func (p BlameListDigestSlice) Len() int           { return len(p) }
-func (p BlameListDigestSlice) Less(i, j int) bool { return p[i].Diff > p[j].Diff }
-func (p BlameListDigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
-// blameListHandler returns a page for triaging all digests that match the give blame group id.
-//
-// Links to this page come from the byBlameHandler page.
-//
-// Request URLs query parameters:
-//   groupid - The blame list group id, which is just the list of git hashes
-//      that are in the blame concatenated with ':'s.
-func blameListHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-	if *local {
-		loadTemplates()
-	}
-	tile, sum, err := allUntriagedSummaries()
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to load summaries.")
-		return
-	}
-	commits := tile.Commits
-	exp, err := storages.ExpectationsStore.Get()
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to load expectations.")
-		return
-	}
-	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse form data.")
-		return
-	}
-	groupid := r.Form.Get("groupid")
-
-	// Populate a slice of BlameListDigest's that match the given blame list.
-	list := []*BlameListDigest{}
-	for test, s := range sum {
-		for _, d := range s.UntHashes {
-			dist := blamer.GetBlame(test, d, commits)
-			if groupid == strings.Join(lookUpCommits(dist.Freq, commits), ":") {
-				detail := buildDetailsGUI(tile, exp, test, d, d, true, true, false)
-
-				list = append(list, &BlameListDigest{
-					Test:   test,
-					Digest: d,
-					Diff:   minFloat32(detail.NegClosest.Diff, detail.PosClosest.Diff),
-					Detail: detail,
-				})
-			}
-		}
-	}
-
-	// Now that we have list, take a single pass over the tile and populate the
-	// paramset and tracenames for all the list members in one pass.
-
-	sort.Sort(BlameListDigestSlice(list))
-
-	// The list needs to be available both via golang templates and also
-	// in Javascript, so we need to encode the list to JSON so it can
-	// appear in JS.
-	js, err := json.MarshalIndent(list, "", "  ")
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to encode response data.")
-		return
-	}
-
-	context := struct {
-		Summaries []*BlameListDigest
-		JS        template.JS
-	}{
-		Summaries: list,
-		JS:        template.JS(string(js)),
-	}
-
-	if err := templates.ExecuteTemplate(w, "blamelist.html", context); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }

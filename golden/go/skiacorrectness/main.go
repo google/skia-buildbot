@@ -378,7 +378,6 @@ func main() {
 	router.HandleFunc("/_/triage", polyTriageHandler).Methods("POST")
 	router.HandleFunc("/_/triagelog", polyTriageLogHandler).Methods("GET")
 	router.HandleFunc("/byblame", byBlameHandler).Methods("GET")
-	router.HandleFunc("/blamelist", blameListHandler).Methods("GET")
 	router.HandleFunc("/search2", search2Handler).Methods("GET") // search2 is currently unused, will replace /search soon.
 	router.HandleFunc("/cmp/{test}", templateHandler("compare.html")).Methods("GET")
 	router.HandleFunc("/detail", templateHandler("single.html")).Methods("GET")
