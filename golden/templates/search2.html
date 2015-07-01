@@ -56,7 +56,6 @@
 
        details.forEach(function(detail) {
          var id = detail.test + ":" + detail.digest;
-         console.log("send: ", id);
          sk.Mailbox.send(id, detail);
        });
 
