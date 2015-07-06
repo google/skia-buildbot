@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/golden/go/blame"
-	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
@@ -26,16 +25,6 @@ func (m MockTileStore) GetModifiable(scale, index int) (*types.Tile, error) { re
 func (m MockTileStore) Get(scale, index int) (*types.Tile, error) {
 	return m.Tile, nil
 }
-
-type MockDiffStore struct{}
-
-func (m MockDiffStore) Get(dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
-	return map[string]*diff.DiffMetrics{}, nil
-}
-func (m MockDiffStore) AbsPath(digest []string) map[string]string      { return map[string]string{} }
-func (m MockDiffStore) ThumbAbsPath(digest []string) map[string]string { return map[string]string{} }
-func (m MockDiffStore) UnavailableDigests() map[string]bool            { return map[string]bool{} }
-func (m MockDiffStore) CalculateDiffs([]string)                        {}
 
 /**
   Conditions to test.
@@ -158,7 +147,7 @@ func TestCalcSummaries(t *testing.T) {
 
 	eventBus := eventbus.New()
 	storages := &storage.Storage{
-		DiffStore:         MockDiffStore{},
+		DiffStore:         mocks.MockDiffStore{},
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		IgnoreStore:       ignore.NewMemIgnoreStore(),
 		TileStore:         MockTileStore{Tile: tile},

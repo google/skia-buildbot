@@ -80,9 +80,11 @@ type DiffStore interface {
 	// be ignored. The return value is considered to be read only.
 	UnavailableDigests() map[string]bool
 
-	// CalculateDiffs calculates all diffs between the digests provided in the
-	// argument and stores them in cache for later retrieval.
-	CalculateDiffs([]string)
+	// SetDigestSets sets the sets of digests we want to compare grouped by
+	// names (usually test names). This sets the digests we are currently
+	// interested in and removes digests (and their diffs) that we are no
+	// longer interested in.
+	SetDigestSets(namedDigestSets map[string]map[string]bool)
 }
 
 // OpenImage is a utility function that opens the specified file and returns an
@@ -159,8 +161,8 @@ func recode(img image.Image) *image.NRGBA {
 	return ret
 }
 
-// getNRGBA converts the image to an *image.NRGBA in an efficent manner.
-func getNRGBA(img image.Image) *image.NRGBA {
+// GetNRGBA converts the image to an *image.NRGBA in an efficent manner.
+func GetNRGBA(img image.Image) *image.NRGBA {
 	switch t := img.(type) {
 	case *image.NRGBA:
 		return t
@@ -209,8 +211,8 @@ func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 	maxRGBADiffs := make([]int, 4)
 
 	// Pix is a []uint8 rotating through R, G, B, A, R, G, B, A, ...
-	p1 := getNRGBA(img1).Pix
-	p2 := getNRGBA(img2).Pix
+	p1 := GetNRGBA(img1).Pix
+	p2 := GetNRGBA(img2).Pix
 	// Compare the bounds, if they are the same then use this fast path.
 	// We pun to uint64 to compare 2 pixels at a time, so we also require
 	// an even number of pixels here.  If that's a big deal, we can easily

@@ -417,23 +417,10 @@ func (fs *FileDiffStore) UnavailableDigests() map[string]bool {
 	return result
 }
 
-// CalculateDiffs is part of the diff.DiffStore interface. See details there.
-func (fs *FileDiffStore) CalculateDiffs(digests []string) {
-	var wg sync.WaitGroup
-
-	for i := 0; i < len(digests)-1; i++ {
-		wg.Add(1)
-		go func(i int) {
-			_, err := fs.Get(digests[i], digests[i+1:])
-			if err != nil {
-				glog.Errorf("Error retrieving diff metric: %s", err)
-			}
-			wg.Done()
-		}(i)
-	}
-
-	wg.Wait()
-}
+// TODO(stephana): SetDigestSets is here to satisfy the requirement for the
+// DiffStore interface. To be implemented in the next verion of the
+// FileDiffStore.
+func (fs *FileDiffStore) SetDigestSets(namedDigestSets map[string]map[string]bool) {}
 
 func openDiffMetrics(filepath string) (*diff.DiffMetrics, error) {
 	f, err := ioutil.ReadFile(filepath)

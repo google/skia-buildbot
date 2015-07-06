@@ -12,9 +12,9 @@ import (
 
 type MockDiffStore struct{}
 
-func (m MockDiffStore) AbsPath(digest []string) map[string]string { return nil }
-func (m MockDiffStore) UnavailableDigests() map[string]bool       { return nil }
-func (m MockDiffStore) CalculateDiffs([]string)                   {}
+func (m MockDiffStore) AbsPath(digest []string) map[string]string                { return nil }
+func (m MockDiffStore) UnavailableDigests() map[string]bool                      { return nil }
+func (m MockDiffStore) SetDigestSets(namedDigestSets map[string]map[string]bool) {}
 
 // Get always finds that digest "eee" is closest to dMain.
 func (m MockDiffStore) Get(dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {

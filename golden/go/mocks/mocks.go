@@ -49,7 +49,7 @@ func (m MockDiffStore) UnavailableDigests() map[string]bool {
 	return nil
 }
 
-func (m MockDiffStore) CalculateDiffs([]string) {}
+func (m MockDiffStore) SetDigestSets(namedDigestSets map[string]map[string]bool) {}
 
 func NewMockDiffStore() diff.DiffStore {
 	return MockDiffStore{}
