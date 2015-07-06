@@ -262,10 +262,16 @@ Where:
 
         mouseAction: function(e) {
           // Move up the DOM until yo find the 'img' element.
-          var target = e.target;
-          while (target != null && target.localName != 'img') {
-            target = target.parentElement;
+          var target = sk.findParent(e.target, 'img');
+          // If not found, look for it in the children.
+          if (!target) {
+            target = $$$('img', e.target)
           }
+          if (target && e.type == 'dblclick') {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+
           if (target != null && target.dataset['top']) {
             // Look through the value.grid for the matching infomation.
             for (var i = 0, len = this.value.grid.length; i < len; i++) {
