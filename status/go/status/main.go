@@ -526,6 +526,7 @@ func hostsHandler(w http.ResponseWriter, r *http.Request) {
 func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("buildProgressHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
 	// Get the commit cache.
 	cache, err := getCommitCache(w, r)
