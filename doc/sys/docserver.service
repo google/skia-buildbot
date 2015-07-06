@@ -1,0 +1,14 @@
+[Unit]
+Description=Skia documentation server.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/docserver --work_dir=/var/docserver/repo --log_dir=/var/log/logserver --resources_dir=/usr/local/share/skiadocserver/
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

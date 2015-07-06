@@ -1,6 +1,7 @@
 #!/bin/bash
 # Builds and uploads a debian package for docserver.
 APPNAME=docserver
+SYSTEMD=${APPNAME}.service
 DESCRIPTION="Serves Markdown documents."
 
 DEPENDS=git
@@ -10,9 +11,8 @@ copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service  ${ROOT}/etc/systemd/system/${APPNAME}.service
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/docserver   ${ROOT}/usr/local/bin/docserver
-${INSTALL} --mode=644 -T ./sys/monit               ${ROOT}/etc/monit/conf.d/docserver
-${INSTALL} --mode=755 -T ./sys/init                ${ROOT}/etc/init.d/docserver
 ${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/skiadocserver/res/js/core.js
 ${INSTALL} --mode=644 -T ./res/img/logo.png        ${ROOT}/usr/local/share/skiadocserver/res/img/logo.png
 ${INSTALL} --mode=644 -T ./res/css/docs.css        ${ROOT}/usr/local/share/skiadocserver/res/css/docs.css

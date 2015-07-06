@@ -9,7 +9,7 @@ source vm_config.sh
 # Create a boot disk from the pushable base snapshot.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
   --zone $ZONE \
-  --source-snapshot skia-pushable-base \
+  --source-snapshot skia-systemd-pushable-base \
   --type "pd-standard"
 
 gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
