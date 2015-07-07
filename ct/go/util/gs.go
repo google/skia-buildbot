@@ -315,7 +315,12 @@ func (gs *GsUtil) UploadWorkerArtifacts(dirName, pagesetType string, workerNum i
 		return nil
 	}
 	glog.Infof("Timestamps between %s and %s are different. Uploading to Google Storage", localDir, gsDir)
-	return gs.UploadDir(localDir, gsDir, true)
+	// TODO(rmistry): Remove this hack once the 1M webpage archives have been captured.
+	if dirName == WEB_ARCHIVES_DIR_NAME {
+		return gs.UploadDir(localDir, gsDir, false)
+	} else {
+		return gs.UploadDir(localDir, gsDir, true)
+	}
 }
 
 // UploadDir uploads the specified local dir into the specified Google Storage dir.
