@@ -201,7 +201,7 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GsUtil) 
 		}
 		defer util.Rename(objTmpDir, objDir)
 	}
-	return gs.UploadDir(localUploadDir, gsDir)
+	return gs.UploadDir(localUploadDir, gsDir, true)
 }
 
 func buildChromium(chromiumDir, targetPlatform string) error {

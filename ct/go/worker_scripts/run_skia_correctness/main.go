@@ -201,9 +201,9 @@ func main() {
 		}
 		// Copy the diffs and whitediffs to Google Storage.
 		skutil.LogErr(
-			gs.UploadDir(filepath.Join(localOutputDir, "diffs"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "diffs")))
+			gs.UploadDir(filepath.Join(localOutputDir, "diffs"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "diffs"), true))
 		skutil.LogErr(
-			gs.UploadDir(filepath.Join(localOutputDir, "whitediffs"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "whitediffs")))
+			gs.UploadDir(filepath.Join(localOutputDir, "whitediffs"), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "whitediffs"), true))
 	}
 	// Upload the summary file.
 	skutil.LogErr(

@@ -270,7 +270,7 @@ func main() {
 	}
 
 	// Copy the HTML files to Google Storage.
-	if err := gs.UploadDir(htmlOutputDir, htmlRemoteDir); err != nil {
+	if err := gs.UploadDir(htmlOutputDir, htmlRemoteDir, true); err != nil {
 		glog.Errorf("Could not upload %s to %s: %s", htmlOutputDir, htmlRemoteDir, err)
 		return
 	}
