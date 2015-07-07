@@ -1,0 +1,32 @@
+<!-- The <error-toast-sk> custom element declaration.
+
+  Listens for 'error-sk' events that bubble up to the document
+  and displays them.
+
+  The 'error-sk' event should have 'detail' of the form:
+
+    {
+      message: "The error message to display goes here.",
+    }
+
+  Attributes:
+  Events:
+  Methods:
+-->
+<dom-module id="error-toast-sk">
+  <template>
+    <paper-toast id=toast duration=10000></paper-toast>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "error-toast-sk",
+    ready: function() {
+      document.addEventListener('error-sk', function(e) {
+         this.$.toast.text = e.detail.message;
+         this.$.toast.show();
+      }.bind(this));
+    },
+  });
+</script>

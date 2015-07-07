@@ -1,0 +1,76 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <chromium-build-selector-sk>
+
+  This file is imported by elements.html, so any page that imports
+  elements.html need not import it again. Otherwise, to use this file,
+  import it:
+
+    <link href="/res/imp/chromium-build-selector-sk.html" rel="import" />
+
+  Usage:
+
+    <chromium-build-selector-sk id="chromium_build"
+                                chromiumBuilds="{{chromiumBuilds}}"
+                                selected="{{selectedBuild}}">
+    </chromium-build-selector-sk>
+    ...
+    properties: {
+      chromiumBuilds: Array,
+      selectedBuild: String,
+    },
+
+    ready: function() {
+      chromiumBuild.getBuilds().then(function (builds) {
+        this.chromiumBuilds = builds;
+        this.$.chromium_build.selectFirst();
+      }.bind(this));
+    }
+
+  Properties:
+    chromiumBuilds: array of objects as obtained via chromiumBuild.getBuilds.
+    selected: key for the selected build.
+-->
+
+<dom-module id="chromium-build-selector-sk">
+  <style>
+    .iron-selected {
+      background-color: #D6ECF2;
+    }
+
+    iron-selector.medium-field > div {
+      width: 20em;
+    }
+  </style>
+  <template>
+    <iron-selector attr-for-selected="id" selected="{{selected}}" class="medium-field">
+      <template is="dom-repeat" items="{{chromiumBuilds}}">
+        <div id="{{getKey(item)}}">{{getDescription(item)}}</div>
+      </template>
+    </iron-selector>
+  </template>
+</dom-module>
+
+<script>
+   Polymer({
+     is: "chromium-build-selector-sk",
+     properties: {
+       chromiumBuilds: Array,
+       selected: {
+         type: String,
+         notify: true,
+       },
+     },
+
+     selectFirst: function() {
+       if (this.chromiumBuilds.length > 0) {
+         this.selected = chromiumBuild.getKey(this.chromiumBuilds[0]);
+       }
+     },
+
+     getKey: chromiumBuild.getKey,
+     getDescription: chromiumBuild.getDescription,
+   });
+</script>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Admin Tasks</title>
+    {{template "header.html" .}}
+  </head>
+  <body>
+
+    <paper-header-panel class="fit">
+
+      {{template "titlebar.html" .}}
+
+      <div class="content">
+        <paper-drawer-panel>
+          <div drawer>
+            {{template "drawer.html" .}}
+          </div>
+          <div main>
+            <section class="left_padded">
+              <h2>Run Admin Tasks</h2>
+              <p>
+                <span style="text-align: center;">
+                  Must be admin to trigger below admin tasks (contact rmistry@).
+                </span>
+              </p>
+              <br/><br/>
+              <admin-tasks-sk></admin-tasks-sk>
+            </section>
+          </div>
+        </paper-drawer-panel>
+      </div>
+
+      <error-toast-sk></error-toast-sk>
+    </paper-header-panel>
+
+    <script type="text/javascript" charset="utf-8">
+       (function() {
+         sk.post('/_/page_sets/').then(JSON.parse).then(function(json) {
+           $$$('admin-tasks-sk').pageSetsToDesc = json;
+         }).catch(sk.errorMessage);
+         chromiumBuild.getBuilds().then(function (builds) {
+           $$$('admin-tasks-sk').chromiumBuilds = builds;
+         }).catch(sk.errorMessage);
+       })();
+    </script>
+
+  </body>
+</html>

@@ -1,0 +1,211 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <admin-tasks-sk>
+
+  This file is imported by elements.html, so any page that imports
+  elements.html need not import it again. Otherwise, to use this file,
+  import it:
+
+    <link href="/res/imp/admin-tasks-sk.html" rel="import" />
+
+  Usage:
+
+    <admin-tasks-sk></admin-tasks-sk>
+    <script>
+      $$$('admin-tasks-sk').pageSetsToDesc = ...;
+      $$$('admin-tasks-sk').chromiumBuilds = ...;
+    </script>
+
+  Properties:
+
+    pageSetsToDesc: Map of page sets to their descriptions.
+    chromiumBuilds: List of all supported Chromium builds, as accepted by
+      chromium-build-selector-sk property chromiumBuilds.
+-->
+
+<dom-module id="admin-tasks-sk">
+  <style>
+    paper-tabs {
+      background-color: #D6ECF2;
+    }
+
+    .iron-selected {
+      background-color: #D6ECF2;
+    }
+
+    iron-selector.medium-field > div {
+      width: 20em;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    table.options td {
+      padding: 1em 2em;
+    }
+
+    td.center {
+      text-align:center;
+      padding-top:2em;
+    }
+  </style>
+  <template>
+
+    <paper-dialog heading="Confirmation" id="confirm_dialog">
+      <div>Proceed with queueing task?</div>
+      <paper-button id="task_dismiss">Cancel</paper-button>
+      <paper-button id="task_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
+
+    <paper-tabs id="tabs" attr-for-selected="id" selected="{{selectedTab}}" noink>
+      <paper-tab id="pagesets">Recreate Pagesets</paper-tab>
+      <paper-tab id="archives">Recreate Webpage Archives</paper-tab>
+    </paper-tabs>
+
+    <table class="options">
+      <tr>
+        <td>PageSets Type</td>
+        <td>
+          <iron-selector attr-for-selected="id" id="page_sets" selected="10k"
+                         class="medium-field">
+            <template is="dom-repeat" items="{{pageSets}}">
+              <div id="{{item.key}}">{{item.description}}</div>
+            </template>
+          </iron-selector>
+        </td>
+      </tr>
+
+      <tr id="chromium_build_row" class="hidden">
+        <td>Chromium Build</td>
+        <td>
+          <chromium-build-selector-sk id="chromium_build" class="medium-field"
+                                      chromium-builds="{{chromiumBuilds}}">
+          </chromium-build-selector-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2" class="center">
+          <paper-button raised id="submit_task">Queue Task</paper-button>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="center">
+          <paper-button raised id="view_history">View runs history</paper-button>
+        </td>
+      </tr>
+    </table>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "admin-tasks-sk",
+    properties: {
+      selectedTab: {
+        type: String,
+        value: "pagesets",
+        observer: "tabChanged",
+      },
+      pageSetsToDesc: Object,
+      pageSets: {
+        type: Array,
+        computed: "getPageSetsArray(pageSetsToDesc)",
+      },
+      chromiumBuilds: {
+        type: Array,
+        observer: "chromiumBuildsChanged"
+      }
+    },
+
+    ready: function() {
+      this.$.tabs.selected = "pagesets";
+      var that = this;
+      this.$.submit_task.addEventListener('click', function(e) {
+        that.validateTask();
+      });
+      this.$.task_dismiss.addEventListener('click', function(e) {
+        that.dismissTask();
+      });
+      this.$.task_confirm.addEventListener('click', function(e) {
+        that.queueTask();
+      });
+      this.$.view_history.addEventListener('click', function(e) {
+        that.gotoRunsHistory();
+      });
+    },
+
+    tabChanged: function() {
+      this.$.chromium_build_row.classList
+        .toggle("hidden", this.selectedTab != "archives");
+    },
+
+    getPageSetsArray: function(pageSetsToDesc) {
+      var pageSetsArray = [];
+      for (key in pageSetsToDesc) {
+        pageSetsArray.push({key: key, description: pageSetsToDesc[key]});
+      }
+      return pageSetsArray;
+    },
+
+    chromiumBuildsChanged: function(newValue, oldValue) {
+      if (!oldValue || oldValue.length == 0) {
+        this.$.chromium_build.selectFirst();
+      }
+    },
+
+    validateTask: function() {
+      if (this.selectedTab == "archives") {
+        if (!this.$.chromium_build.selected) {
+          sk.errorMessage("Please select a Chromium build");
+          this.$.chromium_build.focus();
+          return;
+        }
+      }
+      this.$.confirm_dialog.open()
+    },
+
+    dismissTask: function() {
+      sk.errorMessage("Did not queue");
+      this.$.confirm_dialog.close()
+    },
+
+    queueTask: function() {
+      if (this.selectedTab == "pagesets") {
+        this.queuePagesetsTask();
+      } else if (this.selectedTab == "archives") {
+        this.queueArchivesTask();
+      } else {
+        sk.errorMessage(new Error("Unknown selectedTab: " + this.selectedTab));
+      }
+    },
+
+    queuePagesetsTask: function() {
+      var params = {};
+      params["page_sets"] = this.$.page_sets.selected;
+
+      sk.post("/_/add_recreate_page_sets_task", JSON.stringify(params))
+        .then(function(resp) {
+          this.gotoRunsHistory();
+        }.bind(this)).catch(sk.errorMessage);
+    },
+
+    queueArchivesTask: function() {
+      var params = {};
+      params["page_sets"] = this.$.page_sets.selected;
+      params["chromium_build"] = this.$.chromium_build.selected;
+
+      sk.post("/_/add_recreate_webpage_archives_task", JSON.stringify(params))
+        .then(function(resp) {
+          this.gotoRunsHistory();
+        }.bind(this)).catch(sk.errorMessage);
+    },
+
+    gotoRunsHistory: function() {
+      window.location.href = "/admin_task_runs/";
+    },
+  });
+</script>

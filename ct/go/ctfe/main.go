@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
-	"go.skia.org/infra/go/timer"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -46,6 +45,7 @@ var (
 
 	chromiumPerfTemplate            *template.Template = nil
 	chromiumPerfRunsHistoryTemplate *template.Template = nil
+	adminTasksTemplate              *template.Template = nil
 	runsHistoryTemplate             *template.Template = nil
 	pendingTasksTemplate            *template.Template = nil
 
@@ -142,6 +142,13 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 
+	adminTasksTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/admin_tasks.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
+	))
+
 	runsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -179,7 +186,6 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 }
 
 func chromiumPerfView(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("chromiumPerfView").Stop()
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in local mode.
@@ -194,7 +200,6 @@ func chromiumPerfView(w http.ResponseWriter, r *http.Request) {
 }
 
 func chromiumPerfHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("chromiumPerfHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
 
 	data := map[string]interface{}{
@@ -208,7 +213,6 @@ func chromiumPerfHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("pageSetsHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
 
 	pageSetsToDesc := map[string]string{}
@@ -223,7 +227,6 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("addChromiumPerfTaskHandler").Stop()
 	if !userHasEditRights(r) {
 		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to add tasks"), "")
 		return
@@ -262,7 +265,6 @@ func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("getChromiumPerfTasksHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
 
 	chromiumPerfTasks := []ChromiumPerfDBTask{}
@@ -321,7 +323,6 @@ func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func chromiumPerfRunsHistoryView(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("chromiumPerfRunsHistoryView").Stop()
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in local mode.
@@ -335,8 +336,40 @@ func chromiumPerfRunsHistoryView(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func adminTasksView(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in local mode.
+	if *local {
+		reloadTemplates()
+	}
+
+	if err := adminTasksTemplate.Execute(w, struct{}{}); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		return
+	}
+}
+
+func chromiumBuildsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// TODO(benjaminwagner): load real data
+	resp := []struct {
+		Key         string `json:"key"`
+		Description string `json:"description"`
+	}{
+		{Key: "abc", Description: "first build"},
+		{Key: "def", Description: "second build"},
+		{Key: "ghi", Description: "third build"},
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("runsHistoryView").Stop()
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in local mode.
@@ -368,7 +401,6 @@ func getAllPendingTasks() ([]Task, error) {
 }
 
 func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("getOldestPendingTaskHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
 
 	tasks, err := getAllPendingTasks()
@@ -397,7 +429,6 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func pendingTasksView(w http.ResponseWriter, r *http.Request) {
-	defer timer.New("pendingTasksView").Stop()
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in local mode.
@@ -428,6 +459,9 @@ func runServer(serverURL string) {
 	r.HandleFunc("/_/add_chromium_perf_task", addChromiumPerfTaskHandler).Methods("POST")
 	r.HandleFunc("/_/get_chromium_perf_tasks", getChromiumPerfTasksHandler).Methods("POST")
 
+	// Admin Tasks handlers.
+	r.HandleFunc("/admin_tasks/", adminTasksView).Methods("GET")
+
 	// Runs history handlers.
 	r.HandleFunc("/history/", runsHistoryView).Methods("GET")
 
@@ -437,6 +471,7 @@ func runServer(serverURL string) {
 
 	// Common handlers used by different pages.
 	r.HandleFunc("/_/page_sets/", pageSetsHandler).Methods("POST")
+	r.HandleFunc("/_/chromium_builds/", chromiumBuildsHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/login/", loginHandler)
