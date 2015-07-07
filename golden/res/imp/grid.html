@@ -175,9 +175,12 @@ Where:
           this.value = {};
 
           var that = this;
-          this.$.container.addEventListener('mouseover', this.mouseAction.bind(this));
           this.$.container.addEventListener('click', this.mouseAction.bind(this));
-          this.$.container.addEventListener('dblclick', this.mouseAction.bind(this));
+
+          // TODO(stephana): For some reason these stopped working as before.
+          // Figure out out.
+          // this.$.container.addEventListener('mouseover', this.mouseAction.bind(this));
+          // this.$.container.addEventListener('dblclick', this.mouseAction.bind(this));
 
           this.$.moreTop.addEventListener('click', function() {
               that.dispatchEvent(new CustomEvent('more-top'));
