@@ -84,7 +84,7 @@ func main() {
 		return
 	}
 	// TODO(rmistry): Remove this hack once the 1M webpage archives have been captured.
-	fileInfos = fileInfos[2999:4000]
+	fileInfos = fileInfos[2999:3500]
 	for _, fileInfo := range fileInfos {
 		pagesetBaseName := filepath.Base(fileInfo.Name())
 		if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
