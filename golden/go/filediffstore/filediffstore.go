@@ -658,6 +658,7 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer util.Close(f)
 
 	encoder := png.Encoder{CompressionLevel: png.BestSpeed}
 	if err := encoder.Encode(f, resultImg); err != nil {
