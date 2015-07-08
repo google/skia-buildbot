@@ -95,6 +95,7 @@ type Query struct {
 	IncludeIgnores bool
 	Query          string
 	CommitRange    CommitRange
+	Limit          int // Only return this many items.
 }
 
 // intermediate is the intermediate representation of the results coming from Search.
@@ -134,22 +135,23 @@ func (p DigestSlice) Len() int           { return len(p) }
 func (p DigestSlice) Less(i, j int) bool { return p[i].Diff.Diff > p[j].Diff.Diff }
 func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-// Search returns a slice of Digests that match the input query. It also returns a slice of Commits that were used in the calculations.
-func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer, paramset *paramsets.Summary) ([]*Digest, []*types.Commit, error) {
+// Search returns a slice of Digests that match the input query, and the total number of Digests
+// that matched the query. It also returns a slice of Commits that were used in the calculations.
+func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer, paramset *paramsets.Summary) ([]*Digest, int, []*types.Commit, error) {
 	tile, err := storages.GetLastTileTrimmed(q.IncludeIgnores)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
+		return nil, 0, nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
 
 	// TODO Use CommitRange to create a trimmed tile.
 
 	parsedQuery, err := url.ParseQuery(q.Query)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
+		return nil, 0, nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
 	}
 	e, err := storages.ExpectationsStore.Get()
 	if err != nil {
-		return nil, nil, fmt.Errorf("Couldn't get expectations: %s", err)
+		return nil, 0, nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}
 	traceTally := tallies.ByTrace()
 	lastCommitIndex := tile.LastCommitIndex()
@@ -205,7 +207,12 @@ func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer 
 
 	sort.Sort(DigestSlice(ret))
 
-	return ret, tile.Commits, nil
+	fullLength := len(ret)
+	if fullLength > q.Limit {
+		ret = ret[0:q.Limit]
+	}
+
+	return ret, fullLength, tile.Commits, nil
 }
 
 func digestFromIntermediate(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *types.Tile, tallies *tally.Tallies, blamer *blame.Blamer, diffStore diff.DiffStore, paramset *paramsets.Summary, includeIgnores bool) *Digest {
