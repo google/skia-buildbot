@@ -1167,7 +1167,7 @@ func search2Handler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	digests, commits, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	digests, numMatches, commits, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
 	if err != nil {
 		util.ReportError(w, r, err, "Search for digests failed.")
 	}
@@ -1183,13 +1183,15 @@ func search2Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	context := struct {
-		Digests   []*search.Digest
-		JS        template.JS
-		CommitsJS template.JS
+		Digests    []*search.Digest
+		JS         template.JS
+		CommitsJS  template.JS
+		NumMatches int
 	}{
-		Digests:   digests,
-		JS:        template.JS(string(js)),
-		CommitsJS: template.JS(string(commitsjs)),
+		Digests:    digests,
+		JS:         template.JS(string(js)),
+		CommitsJS:  template.JS(string(commitsjs)),
+		NumMatches: numMatches,
 	}
 
 	if err := templates.ExecuteTemplate(w, "search2.html", context); err != nil {
@@ -1198,6 +1200,14 @@ func search2Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func queryFromRequest(r *http.Request) *search.Query {
+	Limit := 50
+	if l := r.FormValue("limit"); l != "" {
+		if li, err := strconv.Atoi(l); err != nil {
+			glog.Errorf("Unable to parse a limit of: %s", l)
+		} else {
+			Limit = li
+		}
+	}
 	return &search.Query{
 		BlameGroupID:   r.FormValue("blame"),
 		Pos:            r.FormValue("pos") == "true",
@@ -1206,6 +1216,7 @@ func queryFromRequest(r *http.Request) *search.Query {
 		Head:           r.FormValue("head") == "true",
 		IncludeIgnores: r.FormValue("include") == "true",
 		Query:          r.FormValue("query"),
+		Limit:          Limit,
 	}
 }
 
