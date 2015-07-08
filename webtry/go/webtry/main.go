@@ -583,7 +583,7 @@ func recentHandler(w http.ResponseWriter, r *http.Request) {
 			glog.Errorf("failed to fetch from database: %q", err)
 			continue
 		}
-		recent = append(recent, Try{Hash: hash, CreateTS: create_ts.Format("2006-02-01")})
+		recent = append(recent, Try{Hash: hash, CreateTS: create_ts.Format("2006-01-02")})
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if err := recentTemplate.Execute(w, Recent{Tries: recent, Titlebar: Titlebar{GitHash: gitHash, GitInfo: gitInfo}}); err != nil {
