@@ -25,3 +25,6 @@ done
 
 # Upload flattened SKPs to Google Storage.
 gsutil -m cp $flattened_skps_location/*.skp $gsutil_destination/
+
+# Give google.com read access to the SKPs.
+gsutil -m acl ch -R -g google.com:R $flattened_skps_location/*.skp
