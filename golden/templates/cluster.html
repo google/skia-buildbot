@@ -38,7 +38,8 @@
 
       <div id=body horizontal layout>
         <cluster-sk flex></cluster-sk>
-        <div flex>
+        <div vertical layout flex>
+          <h2><a id=difflink target=_blank href="" class=hidden>Diff</a></h2>
           <detail-table-sk top="" left="" test="" bothcolumns=false class=hidden></detail-table-sk>
         </div>
       </div>
@@ -56,6 +57,8 @@
             if (selected.length > 2) {
               selected.shift();
             }
+            $$$('#difflink').classList.toggle('hidden', selected.length != 2 || (selected[0] == selected[1]) );
+            $$$('#difflink').href = "/diff?test="+params.name[0]+"&left="+selected[0]+"&top="+selected[1];
             $$$('detail-table-sk').classList.toggle('hidden', selected.length == 0);
             $$$('detail-table-sk').left = selected[0];
             $$$('detail-table-sk').top = selected[selected.length-1];
