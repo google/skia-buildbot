@@ -319,7 +319,7 @@ attribute is false.
               digest: [that.top],
               status: e.detail,
             };
-            that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
+            that.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
           });
           this.$.leftDetail.addEventListener('change', function(e) {
             e.stopPropagation();
@@ -328,7 +328,7 @@ attribute is false.
               digest: [that.left],
               status: e.detail,
             };
-            that.dispatchEvent(new CustomEvent('triage', {detail: detail}));
+            that.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
           });
 
           this.hoverElement = null;

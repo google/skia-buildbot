@@ -47,6 +47,7 @@ var (
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "templates/byblame.html"),
+		filepath.Join(*resourcesDir, "templates/cluster.html"),
 		filepath.Join(*resourcesDir, "templates/index.html"),
 		filepath.Join(*resourcesDir, "templates/ignores.html"),
 		filepath.Join(*resourcesDir, "templates/compare.html"),
@@ -1218,6 +1219,85 @@ func queryFromRequest(r *http.Request) *search.Query {
 		Query:          r.FormValue("query"),
 		Limit:          Limit,
 	}
+}
+
+// Node represents a single node in a d3 diagram. Used in D3.
+type Node struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+// Link represents a link between d3 nodes, used in D3.
+type Link struct {
+	Source int     `json:"source"`
+	Target int     `json:"target"`
+	Value  float32 `json:"value"`
+}
+
+// D3 represents the data structure to pass to a d3 force layout object.
+type D3 struct {
+	Nodes []Node `json:"nodes"`
+	Links []Link `json:"links"`
+
+	// map [digest] paramset
+	Paramsets map[string]map[string][]string `json:"paramsets"`
+}
+
+// nxnJSONHandler calculates the NxN diffs of all the digests that match
+// the incoming query and returns the data in a format appropriate for
+// handling in d3.
+func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	test := r.FormValue("test")
+
+	e, err := storages.ExpectationsStore.Get()
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to get expectations.")
+	}
+
+	var t *tally.Tally
+	var ok bool
+	if t, ok = tallies.ByTest()[test]; !ok {
+		util.ReportError(w, r, fmt.Errorf("Not a valid test name: %s", test), "Not a valid test name.")
+	}
+
+	digests := []string{}
+	for digest, _ := range *t {
+		digests = append(digests, digest)
+	}
+
+	digestIndex := map[string]int{}
+	for i, d := range digests {
+		digestIndex[d] = i
+	}
+
+	d3 := D3{
+		Nodes:     []Node{},
+		Links:     []Link{},
+		Paramsets: map[string]map[string][]string{},
+	}
+	for i, d := range digests {
+		d3.Nodes = append(d3.Nodes, Node{
+			Name:   d,
+			Status: e.Classification(test, d).String(),
+		})
+		remaining := digests[i:len(digests)]
+		diffs, err := storages.DiffStore.Get(d, remaining)
+		if err != nil {
+			glog.Errorf("Failed to calculate differences: %s", err)
+			continue
+		}
+		for otherDigest, diff := range diffs {
+			d3.Links = append(d3.Links, Link{
+				Source: digestIndex[d],
+				Target: digestIndex[otherDigest],
+				Value:  diff.PixelDiffPercent,
+			})
+		}
+		d3.Paramsets[d] = paramsetSum.Get(test, d, false)
+	}
+
+	sendJsonResponse(w, d3)
 }
 
 // sendJsonResponse serializes resp to JSON. If an error occurs

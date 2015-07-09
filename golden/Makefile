@@ -5,6 +5,7 @@
 BOWER_DIR=third_party/bower_components
 CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
           $(BOWER_DIR)/webcomponentsjs/webcomponents.min.js \
+          $(BOWER_DIR)/d3/d3.js \
           ../res/js/common.js
 
 .PHONY: all

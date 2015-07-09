@@ -1,0 +1,215 @@
+<!-- The <cluster-sk> custom element declaration.
+
+  Displays digests in a force layout, i.e. as svg circles as if they were
+  attached via springs that were proportional to the distance between the
+  digest images.
+
+  Attributes:
+    None.
+
+  Events:
+    digest-select - Event generated when a digest is selected. The event
+      detail is the digest.
+
+  Methods:
+    setData(data) - Data describing digests in a d3 compatible format.
+
+    {
+      "nodes": [
+        {"name":"a3801be6d11aa0c9316daaa0b22ca3ac"},
+        {"name":"0ae9d1ee00a9f6149a61dd1c2c372fc3"}
+      ],
+      "links":[
+          {"source":0, "target":0, "value":0},
+          {"source":0, "target":1, "value":5.0775},
+          {"source":0, "target":2, "value":5.0725},
+      ]
+    }
+
+    newTriageStatus(digests, status) - Set the new triage status for the array
+      of given digests.
+-->
+<polymer-element name="cluster-sk">
+  <template>
+    <style type="text/css" media="screen">
+      .link {
+        stroke: #ccc;
+      }
+
+      .node {
+        cursor: move;
+        fill: #ccc;
+        stroke: #000;
+        stroke-width: 1.5px;
+      }
+
+      .node.positive {
+        fill: #1B9E77;
+      }
+
+      .node.negative {
+        fill: #E7298A;
+      }
+
+      .node.untriaged {
+        fill: #A6761D;
+      }
+
+      :host {
+        display: block;
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+
+      svg {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        data: {
+          value: {},
+          reflect: false,
+        },
+      },
+
+      // Force everything into the light DOM.
+      parseDeclaration: function(elementElement) {
+        var template = this.fetchTemplate(elementElement);
+        if (template != null) {
+          this.lightFromTemplate(template);
+        };
+      },
+
+      ready: function() {
+        // Controls the link distance multiplier between nodes.
+        this.scale = 10;
+
+        // Controls the electrostatic charge between nodes, used in the
+        // Barnes-Hut layout.
+        this.charge = -100;
+
+        this.width = 960;
+        this.height = 500;
+
+        // d3 force layout object.
+        this.force = null;
+
+        this.svg = d3.select(this).append("svg")
+          .attr("width", this.width)
+          .attr("height", this.height);
+
+        document.body.addEventListener('keydown', this.keyboard.bind(this));
+        window.setInterval(this.resizeWatcher.bind(this), 300);
+      },
+
+      keyboard: function(e) {
+        var c = String.fromCharCode(e.keyCode);
+        switch (c) {
+          case "A":
+            this.scale = this.scale*2;
+            this.force.start();
+            break;
+          case "Z":
+            this.scale = this.scale/2;
+            this.force.start();
+            break;
+          case "S":
+            this.charge = this.charge*2;
+            this.force.start();
+            break;
+          case "X":
+            this.charge = this.charge/2;
+            this.force.start();
+            break;
+        }
+        console.log(this.charge);
+      },
+
+      dataChanged: function() {
+        this.reloadSVG();
+      },
+
+      dragstart:  function(d) {
+        this.dispatchEvent(new CustomEvent('digest-select', {detail: d.name, bubbles: true}));
+      },
+
+      reloadSVG: function() {
+        this.svg.selectAll(".link,.node").remove();
+
+        this.force = d3.layout.force()
+          .gravity(.05)
+          .linkDistance(function(d) { return d.value*this.scale; }.bind(this))
+          .charge(function() { return this.charge; }.bind(this))
+          .size([this.width, this.height])
+          .nodes(this.data.nodes)
+          .links(this.data.links)
+          .start();
+
+        this.force.drag().on("dragstart", this.dragstart.bind(this));
+
+        var link = this.svg.selectAll(".link")
+          .data(this.data.links)
+          .enter().append("line")
+          .attr("class", "link");
+
+        var node = this.svg.selectAll(".node")
+          .data(this.data.nodes)
+          .enter()
+          .append("circle")
+          .attr("class", function(d) { return "node " + d.status })
+          .attr("r", 12)
+          .attr("data-name", function(d) { return d.name })
+          .attr("id", function(d) { return "x" + d.name })
+          .call(this.force.drag);
+
+        this.force.on("tick", function() {
+          link
+            .attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+
+          node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+        });
+      },
+
+      // Watch the size of the svg parents element and when it changes then
+      // then resize the svg element to match.
+      resizeWatcher: function() {
+        if (!this.force) {
+          return
+        }
+        var w = +window.getComputedStyle(this, null).getPropertyValue('width').slice(0, -2);
+        var h = +window.getComputedStyle(this, null).getPropertyValue('height').slice(0, -2);
+        if (w != this.width || h != this.height) {
+          this.width = w;
+          this.height = h;
+          this.svg.attr("width", this.width)
+            .attr("height", this.height);
+          this.force.size([w, h]).start();
+        }
+      },
+
+      newTriageStatus: function(digests, status) {
+        digests.forEach(function(digest) {
+          $$$("#x"+digest).setAttribute("class", "node " + status);
+        }.bind(this));
+
+        /*
+        this.data.nodes.forEach(function(e) {
+          if (digests.indexOf(e.name) != -1) {
+            e.status = status;
+          }
+        }.bind(this));
+        */
+      },
+
+    });
+  </script>
+</polymer-element>

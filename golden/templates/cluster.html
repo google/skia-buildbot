@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Skia Correctness Server</title>
+
+    {%template "header.html" .%}
+    <style>
+      .link {
+        stroke: #ccc;
+      }
+
+      .node {
+        cursor: move;
+        fill: #ccc;
+        stroke: #000;
+        stroke-width: 1.5px;
+      }
+
+      cluster-sk {
+        display: block;
+        position: relative;
+        width: 100%;
+        height: 90vh;
+      }
+
+      #body {
+        min-height: 80vh;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <scaffold-sk responsiveWidth="700px">
+      {%template "titlebar.html" .%}
+
+      <div id=body horizontal layout>
+        <cluster-sk flex></cluster-sk>
+        <div flex>
+          <detail-table-sk top="" left="" test="" bothcolumns=false class=hidden></detail-table-sk>
+        </div>
+      </div>
+      <commits-sk></commits-sk>
+      <error-toast-sk></error-toast-sk>
+
+      <script type="text/javascript" charset="utf-8">
+        (function() {
+          var selected = [];
+          var params = sk.query.toParamSet(document.location.search.slice(1));
+
+          $$$('#body').addEventListener('digest-select', function(e){
+            selected.push(e.detail);
+            if (selected.length > 2) {
+              selected.shift();
+            }
+            $$$('detail-table-sk').classList.toggle('hidden', selected.length == 0);
+            $$$('detail-table-sk').left = selected[0];
+            $$$('detail-table-sk').top = selected[selected.length-1];
+            $$$('detail-table-sk').bothcolumns= selected.length > 1;
+          });
+
+          function loadData() {
+            sk.get("/_/nxn?test="+ params.test).then(JSON.parse).then(function(json) {
+              $$$('cluster-sk').data = json;
+            }).catch(sk.errorMessage);
+          }
+
+          document.body.addEventListener('triage', function(e) {
+            sk.post('_/triage', JSON.stringify(e.detail)).then(function() {
+              $$$('cluster-sk').newTriageStatus(e.detail.digest, e.detail.status);
+            }).catch(function(e) {
+              sk.errorMessage(e);
+            });
+          });
+
+          sk.WebComponentsReady.then(function() {
+            $$$('detail-table-sk').test= params.test[0];
+            loadData();
+          });
+        })();
+      </script>
+    </scaffold-sk>
+  </body>
+</html>
