@@ -1248,22 +1248,15 @@ type D3 struct {
 // handling in d3.
 func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	test := r.FormValue("test")
 
-	e, err := storages.ExpectationsStore.Get()
+	digestsInfo, _, _, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to get expectations.")
-	}
-
-	var t *tally.Tally
-	var ok bool
-	if t, ok = tallies.ByTest()[test]; !ok {
-		util.ReportError(w, r, fmt.Errorf("Not a valid test name: %s", test), "Not a valid test name.")
+		util.ReportError(w, r, err, "Search for digests failed.")
 	}
 
 	digests := []string{}
-	for digest, _ := range *t {
-		digests = append(digests, digest)
+	for _, digest := range digestsInfo {
+		digests = append(digests, digest.Digest)
 	}
 
 	digestIndex := map[string]int{}
@@ -1276,25 +1269,25 @@ func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 		Links:     []Link{},
 		Paramsets: map[string]map[string][]string{},
 	}
-	for i, d := range digests {
+	for i, d := range digestsInfo {
 		d3.Nodes = append(d3.Nodes, Node{
-			Name:   d,
-			Status: e.Classification(test, d).String(),
+			Name:   d.Digest,
+			Status: d.Status,
 		})
 		remaining := digests[i:len(digests)]
-		diffs, err := storages.DiffStore.Get(d, remaining)
+		diffs, err := storages.DiffStore.Get(d.Digest, remaining)
 		if err != nil {
 			glog.Errorf("Failed to calculate differences: %s", err)
 			continue
 		}
 		for otherDigest, diff := range diffs {
 			d3.Links = append(d3.Links, Link{
-				Source: digestIndex[d],
+				Source: digestIndex[d.Digest],
 				Target: digestIndex[otherDigest],
 				Value:  diff.PixelDiffPercent,
 			})
 		}
-		d3.Paramsets[d] = paramsetSum.Get(test, d, false)
+		d3.Paramsets[d.Digest] = paramsetSum.Get(d.Test, d.Digest, false)
 	}
 
 	sendJsonResponse(w, d3)
