@@ -15,7 +15,9 @@ const (
 	PROD_DB_PORT = 3306
 	PROD_DB_NAME = "ctfe"
 
-	TABLE_CHROMIUM_PERF_TASKS = "ChromiumPerfTasks"
+	TABLE_CHROMIUM_PERF_TASKS             = "ChromiumPerfTasks"
+	TABLE_RECREATE_PAGE_SETS_TASKS        = "RecreatePageSetsTasks"
+	TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS = "RecreateWebpageArchivesTasks"
 )
 
 var (
@@ -73,6 +75,33 @@ var v1_down = []string{
 	`DROP TABLE IF EXISTS ChromiumPerfTasks`,
 }
 
+var v2_up = []string{
+	`CREATE TABLE IF NOT EXISTS RecreatePageSetsTasks (
+		id                     INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		username               VARCHAR(255) NOT NULL,
+		page_sets              VARCHAR(100) NOT NULL,
+		ts_added               BIGINT       NOT NULL,
+		ts_started             BIGINT,
+		ts_completed           BIGINT,
+		failure                TINYINT(1)
+	)`,
+	`CREATE TABLE IF NOT EXISTS RecreateWebpageArchivesTasks (
+		id                     INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		username               VARCHAR(255) NOT NULL,
+		page_sets              VARCHAR(100) NOT NULL,
+		chromium_build         VARCHAR(100) NOT NULL,
+		ts_added               BIGINT       NOT NULL,
+		ts_started             BIGINT,
+		ts_completed           BIGINT,
+		failure                TINYINT(1)
+	)`,
+}
+
+var v2_down = []string{
+	`DROP TABLE IF EXISTS RecreatePageSetsTasks`,
+	`DROP TABLE IF EXISTS RecreateWebpageArchivesTasks`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -81,6 +110,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v1_up,
 		MySQLDown: v1_down,
+	},
+	// version 2. Create admin task tables.
+	{
+		MySQLUp:   v2_up,
+		MySQLDown: v2_down,
 	},
 }
 

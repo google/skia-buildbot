@@ -82,11 +82,10 @@ type ChromiumPerfVars struct {
 }
 
 type CommonCols struct {
-	Id          int64          `db:"id"`
-	TsAdded     sql.NullInt64  `db:"ts_added"`
-	TsStarted   sql.NullInt64  `db:"ts_started"`
-	TsCompleted sql.NullInt64  `db:"ts_completed"`
-	Results     sql.NullString `db:"results"`
+	Id          int64         `db:"id"`
+	TsAdded     sql.NullInt64 `db:"ts_added"`
+	TsStarted   sql.NullInt64 `db:"ts_started"`
+	TsCompleted sql.NullInt64 `db:"ts_completed"`
 }
 
 type Task interface {
@@ -110,6 +109,7 @@ type ChromiumPerfDBTask struct {
 	BlinkPatch           string         `db:"blink_patch"`
 	SkiaPatch            string         `db:"skia_patch"`
 	Failure              sql.NullBool   `db:"failure"`
+	Results              sql.NullString `db:"results"`
 	NoPatchRawOutput     sql.NullString `db:"nopatch_raw_output"`
 	WithPatchRawOutput   sql.NullString `db:"withpatch_raw_output"`
 }
@@ -170,6 +170,22 @@ func Init() {
 
 func userHasEditRights(r *http.Request) bool {
 	return strings.HasSuffix(login.LoggedInAs(r), "@google.com") || strings.HasSuffix(login.LoggedInAs(r), "@chromium.org")
+}
+
+func userHasAdminRights(r *http.Request) bool {
+	// TODO(benjaminwagner): Add this list to GCE project level metadata and retrieve from there.
+	admins := map[string]bool{
+		"benjaminwagner@google.com": true,
+		"borenet@google.com":        true,
+		"jcgregorio@google.com":     true,
+		"rmistry@google.com":        true,
+		"stephana@google.com":       true,
+	}
+	return userHasEditRights(r) && admins[login.LoggedInAs(r)]
+}
+
+func getCurrentTs() string {
+	return time.Now().UTC().Format("20060102150405")
 }
 
 func getIntParam(name string, r *http.Request) (*int, error) {
@@ -240,7 +256,7 @@ func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
 	defer skutil.Close(r.Body)
 
 	chromiumPerfVars.Username = login.LoggedInAs(r)
-	chromiumPerfVars.TsAdded = time.Now().UTC().Format("20060102150405")
+	chromiumPerfVars.TsAdded = getCurrentTs()
 
 	_, err := db.DB.Exec(
 		fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);",
@@ -348,6 +364,90 @@ func adminTasksView(w http.ResponseWriter, r *http.Request) {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 		return
 	}
+}
+
+// Data included in all admin tasks; set by addAdminTaskHandler.
+type AdminTaskCommonVars struct {
+	Username string
+	TsAdded  string
+}
+
+type AdminTaskVars interface {
+	GetAdminTaskCommonVars() *AdminTaskCommonVars
+	GetInsertQueryAndBinds() (string, []interface{})
+}
+
+func addAdminTaskHandler(w http.ResponseWriter, r *http.Request, task AdminTaskVars) {
+	if !userHasAdminRights(r) {
+		skutil.ReportError(w, r, fmt.Errorf("Must be admin to add admin tasks; contact rmistry@"), "")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add admin task: %v", err))
+		return
+	}
+	defer skutil.Close(r.Body)
+
+	task.GetAdminTaskCommonVars().Username = login.LoggedInAs(r)
+	task.GetAdminTaskCommonVars().TsAdded = getCurrentTs()
+
+	query, binds := task.GetInsertQueryAndBinds()
+	_, err := db.DB.Exec(query, binds...)
+	if err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert admin task: %v", err))
+		return
+	}
+}
+
+// Represents the parameters sent as JSON to the add_recreate_page_sets_task handler.
+type RecreatePageSetsTaskHandlerVars struct {
+	AdminTaskCommonVars
+	PageSets string `json:"page_sets"`
+}
+
+func (task *RecreatePageSetsTaskHandlerVars) GetAdminTaskCommonVars() *AdminTaskCommonVars {
+	return &task.AdminTaskCommonVars
+}
+
+func (task *RecreatePageSetsTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}) {
+	return fmt.Sprintf("INSERT INTO %s (username,page_sets,ts_added) VALUES (?,?,?);",
+			db.TABLE_RECREATE_PAGE_SETS_TASKS),
+		[]interface{}{
+			task.Username,
+			task.PageSets,
+			task.TsAdded,
+		}
+}
+
+func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
+	addAdminTaskHandler(w, r, &RecreatePageSetsTaskHandlerVars{})
+}
+
+// Represents the parameters sent as JSON to the add_recreate_webpage_archives_task handler.
+type RecreateWebpageArchivesTaskHandlerVars struct {
+	AdminTaskCommonVars
+	PageSets      string `json:"page_sets"`
+	ChromiumBuild string `json:"chromium_build"`
+}
+
+func (task *RecreateWebpageArchivesTaskHandlerVars) GetAdminTaskCommonVars() *AdminTaskCommonVars {
+	return &task.AdminTaskCommonVars
+}
+
+func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}) {
+	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_build,ts_added) VALUES (?,?,?,?);",
+			db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS),
+		[]interface{}{
+			task.Username,
+			task.PageSets,
+			task.ChromiumBuild,
+			task.TsAdded,
+		}
+}
+
+func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
+	addAdminTaskHandler(w, r, &RecreateWebpageArchivesTaskHandlerVars{})
 }
 
 func chromiumBuildsHandler(w http.ResponseWriter, r *http.Request) {
@@ -461,6 +561,8 @@ func runServer(serverURL string) {
 
 	// Admin Tasks handlers.
 	r.HandleFunc("/admin_tasks/", adminTasksView).Methods("GET")
+	r.HandleFunc("/_/add_recreate_page_sets_task", addRecreatePageSetsTaskHandler).Methods("POST")
+	r.HandleFunc("/_/add_recreate_webpage_archives_task", addRecreateWebpageArchivesTaskHandler).Methods("POST")
 
 	// Runs history handlers.
 	r.HandleFunc("/history/", runsHistoryView).Methods("GET")
