@@ -16,7 +16,7 @@
         <diff-detail-sk flex></diff-detail-sk>
       </div>
 
-      <paper-toast></paper-toast>
+      <error-toast-sk></error-toast-sk>
     </scaffold-sk>
 
     <script type="text/javascript" charset="utf-8">
@@ -25,15 +25,12 @@
          var q = sk.query.toObject(window.location.search.slice(1));
          sk.get('_/diff'+window.location.search).then(JSON.parse).then(function(json) {
            $$$('diff-detail-sk').value = json;
-         });
+         }).catch(sk.errorMessage);
        });
 
        $$$('diff-detail-sk').addEventListener('triage', function(e) {
          sk.post('_/triage', JSON.stringify(e.detail)).then(function(){
-         }).catch(function(e) {
-           $$$('paper-toast').text = e;
-           $$$('paper-toast').show();
-         });
+         }).catch(sk.errorMessage);
        });
      })();
     </script>

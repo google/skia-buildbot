@@ -304,7 +304,12 @@ func polyDiffJSONDigestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	full := storages.DiffStore.AbsPath([]string{top, left})
-	d := diffs[top]
+	d, ok := diffs[top]
+	if !ok {
+		util.ReportError(w, r, fmt.Errorf("Failed to calculate diff."), "Failed to calculate diff.")
+		return
+	}
+
 	ret := PolyTestDiffInfo{
 		Test:             test,
 		TopDigest:        top,
