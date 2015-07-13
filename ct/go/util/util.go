@@ -20,6 +20,10 @@ import (
 	"github.com/skia-dev/glog"
 )
 
+const (
+	MAX_SYNC_TRIES = 3
+)
+
 // GetCTWorkers returns an array of all CT workers.
 func GetCTWorkers() []string {
 	workers := make([]string, NUM_WORKERS)
@@ -146,13 +150,37 @@ func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout
 
 // SyncDir runs "git pull" and "gclient sync" on the specified directory.
 func SyncDir(dir string) error {
-	if err := os.Chdir(dir); err != nil {
+	err := os.Chdir(dir)
+	if err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
 	}
-	if err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, 10*time.Minute, nil, nil); err != nil {
-		return fmt.Errorf("Error running git pull on %s: %s", dir, err)
+
+	for i := 0; i < MAX_SYNC_TRIES; i++ {
+		if i > 0 {
+			glog.Warningf("%d. retry for syncing %s", i, dir)
+		}
+
+		err = syncDirStep()
+		if err == nil {
+			break
+		}
+		glog.Errorf("Error syncing %s", dir)
 	}
-	return ExecuteCmd(BINARY_GCLIENT, []string{"sync"}, []string{}, 15*time.Minute, nil, nil)
+
+	if err != nil {
+		glog.Errorf("Failed to sync %s after %d attempts", dir, MAX_SYNC_TRIES)
+	}
+	return err
+}
+
+func syncDirStep() error {
+	if err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, 10*time.Minute, nil, nil); err != nil {
+		return fmt.Errorf("Error running git pull: %s", err)
+	}
+	if err := ExecuteCmd(BINARY_GCLIENT, []string{"sync"}, []string{}, 15*time.Minute, nil, nil); err != nil {
+		return fmt.Errorf("Error running gclient sync: %s", err)
+	}
+	return nil
 }
 
 // BuildSkiaTools builds "tools" in the Skia trunk directory.
