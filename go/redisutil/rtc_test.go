@@ -7,6 +7,8 @@ import (
 	"sync"
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	assert "github.com/stretchr/testify/require"
 )
 
@@ -17,6 +19,8 @@ const (
 )
 
 func TestReadThroughCache(t *testing.T) {
+	testutils.SkipIfShort(t)
+
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1)
 
 	rp := NewRedisPool(REDIS_SERVER_ADDRESS, REDIS_DB_RTCACHE)

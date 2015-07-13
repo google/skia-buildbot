@@ -214,6 +214,8 @@ type testStruct struct {
 }
 
 func TestRedisPrimitives(t *testing.T) {
+	testutils.SkipIfShort(t)
+
 	rp := NewRedisPool(REDIS_SERVER_ADDRESS, REDIS_DB_PRIMITIVE_TESTS)
 	assert.Nil(t, rp.FlushDB())
 
