@@ -68,6 +68,9 @@
       },
 
       paramsetChanged: function() {
+        if (!this.paramset) {
+          return
+        }
         this.sortedKeys = Object.keys(this.paramset);
         this.sortedKeys.sort();
       },
