@@ -30,7 +30,7 @@ type RedisLRUCache struct {
 	indexSetKey string
 	keyPrefix   string
 	codec       util.LRUCodec
-	pool        *redis.Pool
+	pool        *RedisPool
 }
 
 // NewRedisLRUCache returns a new Redis backed cache that complies with the
@@ -42,23 +42,7 @@ func NewRedisLRUCache(serverAddr string, db int, id string, codec util.LRUCodec)
 		keyPrefix:   id + ":",
 		indexSetKey: id + ":idx",
 		codec:       codec,
-		pool: &redis.Pool{
-			MaxIdle:     1000,
-			MaxActive:   0,
-			IdleTimeout: time.Minute * 20,
-			Dial: func() (redis.Conn, error) {
-				c, err := redis.Dial("tcp", serverAddr)
-				if err != nil {
-					return nil, err
-				}
-				_, err = c.Do("SELECT", db)
-				if err != nil {
-					return nil, err
-				}
-
-				return c, err
-			},
-		},
+		pool:        NewRedisPool(serverAddr, db),
 	}
 }
 
@@ -232,4 +216,171 @@ func (c *RedisLRUCache) encodeKey(key interface{}) (string, string, error) {
 
 func (c *RedisLRUCache) decodeKey(key []byte) interface{} {
 	return string(key)
+}
+
+// RedisPool embeds an instance of redis.Pool and provides utility functions
+// to deal with common tasks when talking to Redis.
+type RedisPool struct {
+	redis.Pool
+	db int
+}
+
+// NewRedisPool returns a new instance of RedisPool that connects to the given
+// server and database.
+func NewRedisPool(serverAddr string, db int) *RedisPool {
+	dial := func() (redis.Conn, error) {
+		c, err := redis.Dial("tcp", serverAddr)
+		if err != nil {
+			return nil, err
+		}
+		_, err = c.Do("SELECT", db)
+		if err != nil {
+			return nil, err
+		}
+
+		return c, err
+	}
+
+	return &RedisPool{
+		Pool: redis.Pool{
+			MaxIdle:     1000,
+			MaxActive:   1000,
+			Wait:        true,
+			IdleTimeout: time.Minute * 20,
+			Dial:        dial,
+		},
+		db: db,
+	}
+}
+
+// FlushDB clears the database that is used by this RedisPool instance.
+func (r *RedisPool) FlushDB() error {
+	c := r.Get()
+	defer util.Close(c)
+
+	_, err := c.Do("FLUSHDB")
+	return err
+}
+
+// subscribeToChannel is a utility function that converts a Redis PubSub channel
+// into a Go channel. Upon sucessful subscription it will send an empty string
+// to the channel. This is also done if it needs to reconnect to the channel.
+// This call will block until either an error has occured or the subcription
+// was succesful.
+func (r *RedisPool) subscribeToChannel(channel string) (<-chan []byte, error) {
+	psc := redis.PubSubConn{Conn: r.Get()}
+	if err := psc.Subscribe(channel); err != nil {
+		return nil, err
+	}
+
+	ret := make(chan []byte)
+	readyCh := make(chan bool)
+	go func() {
+		for {
+		Loop:
+			for {
+				switch v := psc.Receive().(type) {
+				case redis.Message:
+					ret <- v.Data
+				case redis.Subscription:
+					readyCh <- true
+					ret <- []byte("")
+				case error:
+					glog.Errorf("Error while waiting for PUBSUB messages. ")
+					break Loop
+
+				}
+			}
+			util.Close(psc)
+			// Keep trying to reconnect. An error here should be the exception.
+			for {
+				psc := redis.PubSubConn{Conn: r.Get()}
+				if err := psc.Subscribe(channel); err != nil {
+					glog.Errorf("Error connecting to pubsub channel: %s", channel)
+					// This should be the rare exception and will mostly mean that
+					// Redis or the network connection is down.
+					time.Sleep(5 * time.Second)
+				} else {
+					break
+				}
+			}
+		}
+	}()
+	<-readyCh
+
+	return ret, nil
+}
+
+// List returns a channel that sends the elements of a Redis list
+// as they are arrive. This is the complement to the AddToList function.
+func (r *RedisPool) List(listKey string) <-chan []byte {
+	ret := make(chan []byte)
+
+	go func() {
+		for {
+			c := r.Get()
+			for {
+				reply, err := redis.Values(c.Do("BLPOP", listKey, 0))
+				if err != nil {
+					glog.Errorf("Error retrieving list. Reconnecting.: %s", err)
+					break
+				}
+				// The returned err cannot be different from nil. We are passing nil
+				// as the err argument and any other error is already captured above.
+				data, _ := redis.Bytes(reply[1], nil)
+				ret <- data
+			}
+			util.Close(c)
+		}
+	}()
+
+	return ret
+}
+
+// AppendList adds to the end of a Redis list.
+func (r *RedisPool) AppendList(listKey string, data []byte) error {
+	c := r.Get()
+	defer util.Close(c)
+
+	_, err := c.Do("RPUSH", listKey, data)
+	return err
+}
+
+// SaveHash saves 'data' in a Redis hash. It's assumed that data is an instance
+// of a struct.
+func (r *RedisPool) SaveHash(hashKey string, data interface{}) error {
+	c := r.Get()
+	defer util.Close(c)
+
+	_, err := c.Do("HMSET", redis.Args{}.Add(hashKey).AddFlat(data)...)
+	return err
+}
+
+// LoadHashToStruct loads a Redis hash into the provided target structure.
+func (r *RedisPool) LoadHashToStruct(hashKey string, targetStruct interface{}) (bool, error) {
+	c := r.Get()
+	defer util.Close(c)
+
+	vals, err := redis.Values(c.Do("HGETALL", hashKey))
+	if err != nil {
+		return false, err
+	}
+
+	if len(vals) == 0 {
+		return false, nil
+	}
+
+	if err := redis.ScanStruct(vals, targetStruct); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+// DeleteKey deletes the given key from the Redis database.
+func (r *RedisPool) DeleteKey(key string) error {
+	c := r.Get()
+	defer util.Close(c)
+
+	_, err := c.Do("DEL", key)
+	return err
 }
