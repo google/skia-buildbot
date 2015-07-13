@@ -30,6 +30,20 @@
       .hidden {
         display: none;
       }
+
+      paper-tabs {
+        background-color: transparent;
+        color: #D95F02;
+        box-shadow: none;
+      }
+
+      paper-tabs::shadow #selectionBar {
+        background-color: #D95F02;
+      }
+
+      paper-tabs paper-tab::shadow #ink {
+        color: #D95F02 #1f78b4;
+      }
     </style>
   </head>
   <body>
@@ -38,9 +52,20 @@
 
       <div id=body horizontal layout>
         <cluster-sk flex></cluster-sk>
-        <div vertical layout flex>
-          <h2><a id=difflink target=_blank href="" class=hidden>Diff</a></h2>
-          <detail-table-sk top="" left="" test="" bothcolumns=false class=hidden></detail-table-sk>
+        <div flex>
+          <paper-tabs id=tabs selected=0>
+            <paper-tab>Parameters</paper-tab>
+            <paper-tab>Details</paper-tab>
+          </paper-tabs>
+          <core-pages id=pages selected=0>
+            <div>
+              <paramset-sk></paramset-sk>
+            </div>
+            <div vertical layout>
+              <h2><a id=difflink target=_blank href="" class=hidden>Diff</a></h2>
+              <detail-table-sk top="" left="" test="" bothcolumns=false class=hidden></detail-table-sk>
+            </div>
+          </core-pages>
         </div>
       </div>
       <commits-sk></commits-sk>
@@ -51,6 +76,31 @@
           var selected = [];
           var query = sk.query.toParamSet(document.location.search.slice(1));
           var params = sk.query.toParamSet(query.query[0]);
+          var data = {};
+
+          $$$('#body').addEventListener('paramset-key-click', function(e){
+            // text maps digests to the strings to display by that digest.
+            var text = {};
+            Object.keys(data.paramsets).forEach(function(digest) {
+              var value = data.paramsets[digest][e.detail.key];
+              if (value) {
+                text[digest] = value.join(", ");
+              }
+            });
+            $$$('cluster-sk').setTextNodes(text);
+          });
+
+          $$$('#body').addEventListener('paramset-key-value-click', function(e){
+            // text maps digests to the strings to display by that digest.
+            var text = {};
+            Object.keys(data.paramsets).forEach(function(digest) {
+              var paramset = data.paramsets[digest];
+              if (paramset[e.detail.key] && (paramset[e.detail.key].indexOf(e.detail.value) != -1)) {
+                text[digest] = e.detail.value;
+              }
+            });
+            $$$('cluster-sk').setTextNodes(text);
+          });
 
           $$$('#body').addEventListener('digest-select', function(e){
             selected.push(e.detail);
@@ -63,11 +113,19 @@
             $$$('detail-table-sk').left = selected[0];
             $$$('detail-table-sk').top = selected[selected.length-1];
             $$$('detail-table-sk').bothcolumns= selected.length > 1;
+            $$$('#pages').selected = 1;
+            $$$('#tabs').selected = 1;
+          });
+
+          $$$('#tabs').addEventListener('core-select', function(e) {
+            $$$('#pages').selected = e.target.selected;
           });
 
           function loadData() {
             sk.get("/_/nxn"+document.location.search).then(JSON.parse).then(function(json) {
+              data = json;
               $$$('cluster-sk').data = json;
+              $$$('paramset-sk').paramset = json.paramset;
             }).catch(sk.errorMessage);
           }
 

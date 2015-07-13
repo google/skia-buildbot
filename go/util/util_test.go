@@ -138,3 +138,53 @@ func TestAddParamsToParamSet(t *testing.T) {
 		}
 	}
 }
+
+func TestAddParamSetToParamSet(t *testing.T) {
+	testCases := []struct {
+		a       map[string][]string
+		b       map[string][]string
+		wantFoo []string
+	}{
+		{
+			a: map[string][]string{
+				"foo": []string{"a", "b"},
+			},
+			b: map[string][]string{
+				"foo": []string{"c"},
+			},
+			wantFoo: []string{"a", "b", "c"},
+		},
+		{
+			a: map[string][]string{
+				"foo": []string{},
+			},
+			b: map[string][]string{
+				"foo": []string{"c"},
+			},
+			wantFoo: []string{"c"},
+		},
+		{
+			a: map[string][]string{
+				"foo": []string{"c"},
+			},
+			b: map[string][]string{
+				"foo": []string{},
+			},
+			wantFoo: []string{"c"},
+		},
+		{
+			a: map[string][]string{
+				"foo": []string{"c"},
+			},
+			b: map[string][]string{
+				"bar": []string{"b"},
+			},
+			wantFoo: []string{"c"},
+		},
+	}
+	for _, tc := range testCases {
+		if got, want := AddParamSetToParamSet(tc.a, tc.b)["foo"], tc.wantFoo; !SSliceEqual(got, want) {
+			t.Errorf("Merge failed: Got %v Want %v", got, want)
+		}
+	}
+}

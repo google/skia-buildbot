@@ -37,21 +37,21 @@
       }
 
       .node {
-        cursor: move;
+        cursor: pointer;
         fill: #ccc;
         stroke: #000;
         stroke-width: 1.5px;
       }
 
-      .node.positive {
+      .node.positive circle {
         fill: #1B9E77;
       }
 
-      .node.negative {
+      .node.negative circle {
         fill: #E7298A;
       }
 
-      .node.untriaged {
+      .node.untriaged circle {
         fill: #A6761D;
       }
 
@@ -161,12 +161,14 @@
         var node = this.svg.selectAll(".node")
           .data(this.data.nodes)
           .enter()
-          .append("circle")
+          .append("g")
           .attr("class", function(d) { return "node " + d.status })
-          .attr("r", 12)
           .attr("data-name", function(d) { return d.name })
           .attr("id", function(d) { return "x" + d.name })
           .call(this.force.drag);
+
+       node.append("circle")
+          .attr("r", 12)
 
         this.force.on("tick", function() {
           link
@@ -201,13 +203,26 @@
           $$$("#x"+digest).setAttribute("class", "node " + status);
         }.bind(this));
 
-        /*
         this.data.nodes.forEach(function(e) {
           if (digests.indexOf(e.name) != -1) {
             e.status = status;
           }
         }.bind(this));
-        */
+      },
+
+      // Takes a map from digests to the text to display next to the digest node.
+      setTextNodes: function(text) {
+        this.clearTextNodes();
+        node = this.svg.selectAll(".node")
+          .append("text")
+          .attr("dx", 14)
+          .attr("dy", 14)
+          .text(function(d) { return text[d.name] });
+      },
+
+      // Removes all the text on the digest nodes.
+      clearTextNodes: function() {
+        var node = this.svg.selectAll(".node text").remove();
       },
 
     });

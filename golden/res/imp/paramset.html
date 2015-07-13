@@ -1,0 +1,99 @@
+<!-- The <paramset-sk> custom element declaration.
+
+  The paramset-sk element displays a paramset and generates events
+  as the params and labels are clicked.
+
+  Attributes:
+    paramset - A serialized map[string][]string.
+
+  Events:
+    paramset-key-click - Generated when the key for a paramset is clicked.
+       The name of the key will be sent in e.detail.key.
+
+    paramset-key-value-click - Generated when one value for a paramset is clicked.
+       The name of the key will be sent in e.detail.key, the value in
+       e.detail.value.
+
+  Methods:
+    None.
+-->
+<polymer-element name="paramset-sk">
+  <template>
+    <style type="text/css" media="screen">
+      td,
+      th {
+        padding: 0.4em;
+      }
+
+      div {
+        display: inline-block;
+        padding: 0.4em;
+      }
+
+      th,
+      div {
+        cursor: pointer;
+        color: #1f78b4;
+      }
+
+      th:hover,
+      div:hover {
+        text-decoration: underline;
+      }
+    </style>
+    <table id=table>
+      <template repeat="{{key in sortedKeys}}">
+        <tr><th data-key="{{key}}">{{key}}</th>
+          <td>
+            <template repeat="{{value in paramset[key]}}">
+              <div data-key="{{key}}" data-value="{{value}}">{{value}}</div>
+            </template>
+          </td>
+        </tr>
+      </template>
+    </table>
+  </template>
+  <script>
+    Polymer({
+      publish: {
+        paramset: {
+          value: {},
+          reflect: true,
+        },
+      },
+
+      ready: function() {
+        this.sortedKeys = [];
+        this.$.table.addEventListener('click', this.clickHandler.bind(this));
+      },
+
+      paramsetChanged: function() {
+        this.sortedKeys = Object.keys(this.paramset);
+        this.sortedKeys.sort();
+      },
+
+      clickHandler: function(e) {
+        var t = e.target;
+        if (t.nodeName == "TH") {
+          var detail = {
+            key: t.dataset.key
+          };
+          this.dispatchEvent(new CustomEvent('paramset-key-click', {
+            detail: detail,
+            bubbles: true,
+          }));
+        } else if (t.nodeName == "DIV") {
+          var detail = {
+            key: t.dataset.key,
+            value: t.dataset.value,
+          };
+          this.dispatchEvent(new CustomEvent('paramset-key-value-click', {
+            detail: detail,
+            bubbles: true,
+          }));
+        }
+      },
+
+    });
+  </script>
+</polymer-element>

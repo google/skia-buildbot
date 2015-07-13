@@ -1246,6 +1246,7 @@ type D3 struct {
 
 	// map [digest] paramset
 	Paramsets map[string]map[string][]string `json:"paramsets"`
+	Paramset  map[string][]string            `json:"paramset"`
 }
 
 // nxnJSONHandler calculates the NxN diffs of all the digests that match
@@ -1273,6 +1274,7 @@ func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 		Nodes:     []Node{},
 		Links:     []Link{},
 		Paramsets: map[string]map[string][]string{},
+		Paramset:  map[string][]string{},
 	}
 	for i, d := range digestsInfo {
 		d3.Nodes = append(d3.Nodes, Node{
@@ -1293,6 +1295,14 @@ func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 		d3.Paramsets[d.Digest] = paramsetSum.Get(d.Test, d.Digest, false)
+		for _, p := range d3.Paramsets[d.Digest] {
+			sort.Strings(p)
+		}
+		d3.Paramset = util.AddParamSetToParamSet(d3.Paramset, d3.Paramsets[d.Digest])
+	}
+
+	for _, p := range d3.Paramset {
+		sort.Strings(p)
 	}
 
 	sendJsonResponse(w, d3)

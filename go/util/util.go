@@ -278,6 +278,19 @@ func AddParamsToParamSet(a map[string][]string, b map[string]string) map[string]
 	return a
 }
 
+func AddParamSetToParamSet(a map[string][]string, b map[string][]string) map[string][]string {
+	for k, arr := range b {
+		for _, v := range arr {
+			if _, ok := a[k]; !ok {
+				a[k] = []string{v}
+			} else if !In(v, a[k]) {
+				a[k] = append(a[k], v)
+			}
+		}
+	}
+	return a
+}
+
 // KeysOfParamSet returns the keys of a param set.
 func KeysOfParamSet(set map[string][]string) []string {
 	ret := make([]string, 0, len(set))
