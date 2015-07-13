@@ -50,6 +50,16 @@ func In(s string, a []string) bool {
 	return false
 }
 
+// ContainsAny returns true if |s| contains any element of |a|.
+func ContainsAny(s string, a []string) bool {
+	for _, x := range a {
+		if strings.Contains(s, x) {
+			return true
+		}
+	}
+	return false
+}
+
 // Index returns the index of |s| *in* |a| slice, and -1 if not found.
 func Index(s string, a []string) int {
 	for i, x := range a {

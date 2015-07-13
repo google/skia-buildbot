@@ -175,7 +175,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 						}
 					}
 				}
-				if !disconnectedAndroid && !util.In(b.Builder, hungSlavesIgnore) {
+				if !disconnectedAndroid && !util.ContainsAny(b.Builder, hungSlavesIgnore) {
 					// Hung buildslave?
 					for _, s := range b.Steps {
 						// If the step has been running for over an hour, it's probably hung.
