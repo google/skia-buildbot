@@ -41,13 +41,17 @@ const (
 var (
 	taskTables = []string{
 		db.TABLE_CHROMIUM_PERF_TASKS,
+		db.TABLE_RECREATE_PAGE_SETS_TASKS,
+		db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS,
 	}
 
-	chromiumPerfTemplate            *template.Template = nil
-	chromiumPerfRunsHistoryTemplate *template.Template = nil
-	adminTasksTemplate              *template.Template = nil
-	runsHistoryTemplate             *template.Template = nil
-	pendingTasksTemplate            *template.Template = nil
+	chromiumPerfTemplate                       *template.Template = nil
+	chromiumPerfRunsHistoryTemplate            *template.Template = nil
+	adminTasksTemplate                         *template.Template = nil
+	recreatePageSetsRunsHistoryTemplate        *template.Template = nil
+	recreateWebpageArchivesRunsHistoryTemplate *template.Template = nil
+	runsHistoryTemplate                        *template.Template = nil
+	pendingTasksTemplate                       *template.Template = nil
 
 	dbClient *influxdb.Client = nil
 )
@@ -91,6 +95,13 @@ type CommonCols struct {
 type Task interface {
 	GetAddedTimestamp() int64
 	GetTaskName() string
+	TableName() string
+	// Returns a slice of the struct type.
+	Select(query string, args ...interface{}) (interface{}, error)
+}
+
+func (dbrow *CommonCols) GetAddedTimestamp() int64 {
+	return dbrow.TsAdded.Int64
 }
 
 type ChromiumPerfDBTask struct {
@@ -114,12 +125,66 @@ type ChromiumPerfDBTask struct {
 	WithPatchRawOutput   sql.NullString `db:"withpatch_raw_output"`
 }
 
-func (task ChromiumPerfDBTask) GetAddedTimestamp() int64 {
-	return task.CommonCols.TsAdded.Int64
-}
-
 func (task ChromiumPerfDBTask) GetTaskName() string {
 	return "ChromiumPerf"
+}
+
+func (task ChromiumPerfDBTask) TableName() string {
+	return db.TABLE_CHROMIUM_PERF_TASKS
+}
+
+func (task ChromiumPerfDBTask) Select(query string, args ...interface{}) (interface{}, error) {
+	result := []ChromiumPerfDBTask{}
+	err := db.DB.Select(&result, query, args...)
+	return result, err
+}
+
+type AdminDBTask struct {
+	CommonCols
+
+	Username string       `db:"username"`
+	Failure  sql.NullBool `db:"failure"`
+}
+
+type RecreatePageSetsDBTask struct {
+	AdminDBTask
+
+	PageSets string `db:"page_sets"`
+}
+
+func (task RecreatePageSetsDBTask) GetTaskName() string {
+	return "RecreatePageSets"
+}
+
+func (task RecreatePageSetsDBTask) TableName() string {
+	return db.TABLE_RECREATE_PAGE_SETS_TASKS
+}
+
+func (task RecreatePageSetsDBTask) Select(query string, args ...interface{}) (interface{}, error) {
+	result := []RecreatePageSetsDBTask{}
+	err := db.DB.Select(&result, query, args...)
+	return result, err
+}
+
+type RecreateWebpageArchivesDBTask struct {
+	AdminDBTask
+
+	PageSets      string `db:"page_sets"`
+	ChromiumBuild string `db:"chromium_build"`
+}
+
+func (task RecreateWebpageArchivesDBTask) GetTaskName() string {
+	return "RecreateWebpageArchives"
+}
+
+func (task RecreateWebpageArchivesDBTask) TableName() string {
+	return db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS
+}
+
+func (task RecreateWebpageArchivesDBTask) Select(query string, args ...interface{}) (interface{}, error) {
+	result := []RecreateWebpageArchivesDBTask{}
+	err := db.DB.Select(&result, query, args...)
+	return result, err
 }
 
 func reloadTemplates() {
@@ -144,6 +209,18 @@ func reloadTemplates() {
 
 	adminTasksTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/admin_tasks.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
+	))
+	recreatePageSetsRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/recreate_page_sets_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
+	))
+	recreateWebpageArchivesRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/recreate_webpage_archives_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/drawer.html"),
@@ -280,10 +357,30 @@ func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func dbTaskQuery(prototype Task, username string, includeCompleted bool, countQuery bool, offset int, size int) (string, []interface{}) {
+	args := []interface{}{}
+	query := "SELECT "
+	if countQuery {
+		query += "COUNT(*)"
+	} else {
+		query += "*"
+	}
+	query += fmt.Sprintf(" FROM %s", prototype.TableName())
+	if username != "" {
+		query += " WHERE username=?"
+		args = append(args, username)
+	} else if !includeCompleted {
+		query += " WHERE ts_completed IS NULL"
+	}
+	if !countQuery {
+		query += " ORDER BY id DESC LIMIT ?,?"
+		args = append(args, offset, size)
+	}
+	return query, args
+}
 
-	chromiumPerfTasks := []ChromiumPerfDBTask{}
+func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 
 	// Filter by either username or not started yet.
 	username := r.FormValue("username")
@@ -293,33 +390,20 @@ func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to get pagination params: %v", err))
 		return
 	}
-	args := []interface{}{}
-	query := fmt.Sprintf("SELECT * FROM %s", db.TABLE_CHROMIUM_PERF_TASKS)
-	if username != "" {
-		query += " WHERE username=?"
-		args = append(args, username)
-	} else if notCompleted != "" {
-		query += " WHERE ts_completed IS NULL"
-	}
-	query += " ORDER BY id DESC LIMIT ?,?"
-	args = append(args, offset, size)
+	query, args := dbTaskQuery(prototype, username, notCompleted == "", false, offset, size)
 	glog.Infof("Running %s", query)
-	if err := db.DB.Select(&chromiumPerfTasks, query, args...); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query chromium perf tasks: %v", err))
+	data, err := prototype.Select(query, args...)
+	if err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks: %v", prototype.GetTaskName(), err))
 		return
 	}
 
+	query, args = dbTaskQuery(prototype, username, notCompleted == "", true, 0, 0)
 	// Get the total count.
-	countArgs := []interface{}{}
-	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s", db.TABLE_CHROMIUM_PERF_TASKS)
-	if username != "" {
-		countQuery += " WHERE username=?"
-		countArgs = append(countArgs, username)
-	}
-	glog.Infof("Running %s", countQuery)
+	glog.Infof("Running %s", query)
 	countVal := []int{}
-	if err := db.DB.Select(&countVal, countQuery, countArgs...); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query chromium perf tasks: %v", err))
+	if err := db.DB.Select(&countVal, query, args...); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks: %v", prototype.GetTaskName(), err))
 		return
 	}
 
@@ -329,13 +413,17 @@ func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
 		Total:  countVal[0],
 	}
 	jsonResponse := map[string]interface{}{
-		"data":       chromiumPerfTasks,
+		"data":       data,
 		"pagination": pagination,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
 	}
+}
+
+func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
+	getTasksHandler(&ChromiumPerfDBTask{}, w, r)
 }
 
 func chromiumPerfRunsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -450,6 +538,42 @@ func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Reques
 	addAdminTaskHandler(w, r, &RecreateWebpageArchivesTaskHandlerVars{})
 }
 
+func recreatePageSetsRunsHistoryView(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in local mode.
+	if *local {
+		reloadTemplates()
+	}
+
+	if err := recreatePageSetsRunsHistoryTemplate.Execute(w, struct{}{}); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		return
+	}
+}
+
+func recreateWebpageArchivesRunsHistoryView(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in local mode.
+	if *local {
+		reloadTemplates()
+	}
+
+	if err := recreateWebpageArchivesRunsHistoryTemplate.Execute(w, struct{}{}); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		return
+	}
+}
+
+func getRecreatePageSetsTasksHandler(w http.ResponseWriter, r *http.Request) {
+	getTasksHandler(&RecreatePageSetsDBTask{}, w, r)
+}
+
+func getRecreateWebpageArchivesTasksHandler(w http.ResponseWriter, r *http.Request) {
+	getTasksHandler(&RecreateWebpageArchivesDBTask{}, w, r)
+}
+
 func chromiumBuildsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -488,11 +612,18 @@ func getAllPendingTasks() ([]Task, error) {
 	for _, tableName := range taskTables {
 		var task Task
 		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_completed IS NULL ORDER BY ts_added LIMIT 1;", tableName)
-		if tableName == db.TABLE_CHROMIUM_PERF_TASKS {
+		switch tableName {
+		case db.TABLE_CHROMIUM_PERF_TASKS:
 			task = &ChromiumPerfDBTask{}
+		case db.TABLE_RECREATE_PAGE_SETS_TASKS:
+			task = &RecreatePageSetsDBTask{}
+		case db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS:
+			task = &RecreateWebpageArchivesDBTask{}
+		default:
+			panic("Unknown table " + tableName)
 		}
 
-		if err := db.DB.Get(task, query); err != nil {
+		if err := db.DB.Get(task, query); err != nil && err != sql.ErrNoRows {
 			return nil, fmt.Errorf("Failed to query DB: %v", err)
 		}
 		tasks = append(tasks, task)
@@ -561,8 +692,12 @@ func runServer(serverURL string) {
 
 	// Admin Tasks handlers.
 	r.HandleFunc("/admin_tasks/", adminTasksView).Methods("GET")
+	r.HandleFunc("/recreate_page_sets_runs/", recreatePageSetsRunsHistoryView).Methods("GET")
+	r.HandleFunc("/recreate_webpage_archives_runs/", recreateWebpageArchivesRunsHistoryView).Methods("GET")
 	r.HandleFunc("/_/add_recreate_page_sets_task", addRecreatePageSetsTaskHandler).Methods("POST")
 	r.HandleFunc("/_/add_recreate_webpage_archives_task", addRecreateWebpageArchivesTaskHandler).Methods("POST")
+	r.HandleFunc("/_/get_recreate_page_sets_tasks", getRecreatePageSetsTasksHandler).Methods("POST")
+	r.HandleFunc("/_/get_recreate_webpage_archives_tasks", getRecreateWebpageArchivesTasksHandler).Methods("POST")
 
 	// Runs history handlers.
 	r.HandleFunc("/history/", runsHistoryView).Methods("GET")

@@ -279,8 +279,7 @@
 
      validateTask: function() {
        if (! this.$.desc.value) {
-         $$$('paper-toast').text = "Please specify a description";
-         $$$('paper-toast').show();
+         sk.errorMessage("Please specify a description");
          this.$.desc.focus();
          return;
        }
@@ -288,8 +287,7 @@
      },
 
      dismissTask: function() {
-       $$$('paper-toast').text = "Did not queue";
-       $$$('paper-toast').show();
+       sk.errorMessage("Did not queue");
        this.$.confirm_dialog.close()
      },
 
@@ -310,10 +308,7 @@
        var that = this;
        sk.post("/_/add_chromium_perf_task", JSON.stringify(params)).then(function(resp) {
          that.gotoRunsHistory();
-       }).catch(function(err) {
-         $$$('paper-toast').text = err;
-         $$$('paper-toast').show();
-       });
+       }).catch(sk.errorMessage);
      },
 
      gotoRunsHistory: function() {

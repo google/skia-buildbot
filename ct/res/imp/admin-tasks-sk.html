@@ -205,7 +205,13 @@
     },
 
     gotoRunsHistory: function() {
-      window.location.href = "/admin_task_runs/";
+      if (this.selectedTab == "pagesets") {
+        window.location.href = "/recreate_page_sets_runs/";
+      } else if (this.selectedTab == "archives") {
+        window.location.href = "/recreate_webpage_archives_runs/";
+      } else {
+        sk.errorMessage(new Error("Unknown selectedTab: " + this.selectedTab));
+      }
     },
   });
 </script>

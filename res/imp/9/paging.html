@@ -40,10 +40,10 @@ Attributes:
               <paper-button on-click="toPageClicked"
                             disabled$="{{n.disabled}}" data-page$="{{n.num}}">{{ increment(n.num) }}</paper-button>
           </template>
-          <paper-button on-click="toPageClicked" disabled$="{{ isLastPage(page) }}" data-page$="{{ increment(page) }}">
+          <paper-button on-click="toPageClicked" disabled$="{{ isLastPage(page, allPages) }}" data-page$="{{ increment(page) }}">
                <iron-icon icon="image:navigate-next"></iron-icon>
           </paper-button>
-          <paper-button on-click="toPageClicked" disabled$="{{ isLastPage(page) }}"  data-page$="{{ decrement(allPages) }}">
+          <paper-button on-click="toPageClicked" disabled$="{{ isLastPage(page, allPages) }}"  data-page$="{{ decrement(allPages) }}">
                Last
           </paper-button>
           <paper-button disabled>{{ getPageCountsText(page, allPages) }}</paper-button>
@@ -109,8 +109,8 @@ Attributes:
           this.fire('pagechange', {});
         },
 
-        isLastPage: function(n) {
-          return (n == (this.allPages-1));
+        isLastPage: function(n, allPages) {
+          return (n == (allPages-1));
         },
 
         isFirstPage: function(n) {

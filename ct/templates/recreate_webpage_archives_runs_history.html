@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Chromium Perf Runs</title>
+    <title>Recreate Webpage Archives Task Runs</title>
     {{template "header.html" .}}
     </style>
   </head>
@@ -17,8 +17,10 @@
             {{template "drawer.html" .}}
           </div>
           <div main class="scrollable">
-            <section id=chromium_perf_runs_history class="left_padded">
-              <chromium-perf-runs-sk id="chromium_perf_runs"></chromium-perf-runs-sk>
+            <section class="left_padded">
+              <admin-task-runs-sk url="/_/get_recreate_webpage_archives_tasks"
+                                  task-type="RecreateWebpageArchives">
+              </admin-task-runs-sk>
             </section>
           </div>
         </paper-drawer-panel>

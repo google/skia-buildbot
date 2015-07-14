@@ -15,6 +15,9 @@
 
 <dom-module id="pending-tasks-sk">
   <style>
+    paper-dialog {
+      min-width: 200px;
+    }
     table.queue {
       border-spacing: 0px;
       padding-top: 2em;
@@ -35,6 +38,15 @@
   <template>
 
     <h2>Tasks in the Queue</h2>
+
+    <!-- Section for popups. -->
+    <template is="dom-repeat" items="{{pendingTasks}}" as="pendingTask" index-as="index">
+      <paper-dialog heading="Task Details" id="{{ getTaskDetailsId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{ formatTask(pendingTask) }}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+    </template>
 
     <table class="queue" id="queue">
       <tr class="headers">
@@ -62,11 +74,6 @@
           <!-- Request col -->
           <td class="nowrap">
             <a href="javascript:void(0);" data-id$="{{index}}">Task Details</a>
-            <paper-dialog heading="Task Details" id="{{ getTaskDetailsId(index) }}">
-              <paper-dialog-scrollable>
-                <pre>{{ formatTask(pendingTask) }}</pre>
-              </paper-dialog-scrollable>
-            </paper-dialog>
           </td>
         </tr>
       </template>
@@ -94,10 +101,13 @@
        var that = this;
        sk.post('/_/get_chromium_perf_tasks' + queryStr).then(JSON.parse).then(function(json) {
          that.updatePendingTasks(json.data, "ChromiumPerfTask");
-       }).catch(function(err) {
-         $$$('paper-toast').text = err;
-         $$$('paper-toast').show();
-       });
+       }).catch(sk.errorMessage);
+       sk.post('/_/get_recreate_page_sets_tasks' + queryStr).then(JSON.parse).then(function(json) {
+         that.updatePendingTasks(json.data, "RecreatePageSets");
+       }).catch(sk.errorMessage);
+       sk.post('/_/get_recreate_webpage_archives_tasks' + queryStr).then(JSON.parse).then(function(json) {
+         that.updatePendingTasks(json.data, "RecreateWebpageArchives");
+       }).catch(sk.errorMessage);
 
        this.$.queue.addEventListener('click', function(e) {
          var anchor = sk.findParent(e.target, "A");

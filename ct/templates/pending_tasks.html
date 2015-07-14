@@ -15,7 +15,7 @@
           <div drawer>
             {{template "drawer.html" .}}
           </div>
-          <div main id="scrollable">
+          <div main class="scrollable">
             <section id=pending_tasks class="left_padded">
               <pending-tasks-sk></pending-tasks-sk>
             </section>
@@ -23,7 +23,7 @@
         </paper-drawer-panel>
       </div>
 
-      <paper-toast duration=10000></paper-toast>
+      <error-toast-sk></error-toast-sk>
     </paper-header-panel>
 
   </body>

@@ -285,10 +285,7 @@
        sk.post('/_/get_chromium_perf_tasks' + chromiumPerfQueryStr).then(JSON.parse).then(function(json) {
          that.chromiumPerfTasks = json.data;
          that.pagination = json.pagination;
-       }).catch(function(err) {
-         $$$('paper-toast').text = err;
-         $$$('paper-toast').show();
-       });
+       }).catch(sk.errorMessage);
      },
 
      getBenchmarkArgsId: function(index) {
