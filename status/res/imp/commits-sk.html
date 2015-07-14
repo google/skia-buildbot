@@ -439,6 +439,7 @@
       this.hash = commitInfo.hash;
       this.author = commitInfo.author;
       this.subject = commitInfo.subject;
+      this.timestamp = new Date(commitInfo.timestamp);
       this.row = row;
       this.column = -1;
       this.label = [];
@@ -488,27 +489,97 @@
       };
 
       // Draw a line connecting this commit to one of its parents.
-      this.drawConnection = function(ctx, parent) {
+      this.drawConnection = function(ctx, parent, allCommits) {
         var center = this.dotCenter();
         var to = parent.dotCenter();
         ctx.beginPath();
         ctx.moveTo(center.x, center.y);
-        if (center.x == to.x) {
+        if (this.column == parent.column) {
           // Draw a straight line.
           ctx.lineTo(to.x, to.y);
         } else {
-          // Draw a connector composed of four segments:
-          // an arc, a horizontal line, another arc, and a vertical line.
+          // Draw a connector composed of five segments: a vertical line, an
+          // arc, a horizontal line, another arc, and another vertical line.
+          // One or more of the lines may have zero length.
           var arcRadius = commitY / 2;
-          var d = center.x - to.x > 0 ? 1 : -1;
-          var a1 = new Point(center.x - d * arcRadius, to.y - commitY);
-          var a2 = new Point(to.x + d * arcRadius, to.y);
-          ctx.beginPath();
-          ctx.moveTo(center.x, center.y);
+          // The direction in which to draw the arc.
+          var d = center.x > to.x ? 1 : -1;
+
+          // We'll reuse these values, so pre-compute them.
           var halfPI = 0.5 * Math.PI;
           var oneAndHalfPI = 1.5 * Math.PI;
-          ctx.arc(a1.x, a1.y, arcRadius, halfPI - d * halfPI, halfPI, d < 0);
-          ctx.arc(a2.x, a2.y, arcRadius, oneAndHalfPI, oneAndHalfPI - d * halfPI, d > 0);
+
+          // If there is at least one commit in the current commit's column
+          // between the current commit and this parent, the first arc must
+          // begin at the current commit: the first vertical line has zero
+          // length. Otherwise, the length of the first vertical line is
+          // flexible.
+          var v1_flex = true;
+          for (var i = 0; i < this.parents.length; i++) {
+            var c = allCommits[this.parents[i]];
+            if (this.timestamp > c.timestamp && c.timestamp > parent.timestamp) {
+              if (this.column == c.column) {
+                v1_flex = false;
+                break;
+              }
+            }
+          }
+
+          // If there is at least one commit in the parent's column between the
+          // current commit and this parent, the secon arc must end at the
+          // parent commit: the second vertical line has zero length.
+          // Otherwise, the length of the second vertical line is flexible.
+          var v2_flex = true;
+          for (var i = 0; i < parent.children.length; i++) {
+            var c = allCommits[parent.children[i]];
+            if (this.timestamp > c.timestamp && c.timestamp > parent.timestamp) {
+              if (parent.column == c.column) {
+                v2_flex = false;
+                break;
+              }
+            }
+          }
+
+          // Arc information..
+          var a1 = new Point(center.x - d * arcRadius, to.y - commitY);
+          var a2 = new Point(to.x + d * arcRadius, to.y);
+
+          // If both vertical lines are flexible, arbitrarily choose where to
+          // put the arcs and horizontal line (eg. next to the parent).
+          if (v1_flex && v2_flex) {
+            a1.y = to.y - commitY;
+            a2.y = to.y;
+          }
+          // If exactly one vertical line is flexible, put the arcs and
+          // horizontal line where they must go.
+          else if (v1_flex && !v2_flex) {
+            a1.y = to.y - commitY;
+            a2.y = to.y;
+          } else if (!v1_flex && v2_flex) {
+            a1.y = center.y;
+            a2.y = center.y + commitY;
+          }
+          // If neither vertical line is flexible, then we have to place arcs
+          // at both commits and the "horizontal" line becomes diagonal.
+          else {
+            a1.y = center.y;
+            a2.y = to.y;
+          }
+
+          // Distance between the two arc centers.
+          var dist = Math.sqrt(Math.pow(a2.x - a1.x, 2) + Math.pow(a2.y - a1.y, 2));
+          // Length of the arc to draw.
+          var arcLength = Math.PI - Math.acos(2*arcRadius / dist) - Math.acos((Math.abs(to.x - center.x) - 2*arcRadius) / dist);
+          var a1_start = halfPI - d * halfPI;
+          var a2_start = oneAndHalfPI - d * (halfPI - arcLength);
+
+          // Draw the connector: vertical line, arc, horizontal line, arc,
+          // vertical line.
+          ctx.lineTo(a1.x + d*arcRadius, a1.y);
+          ctx.arc(a1.x, a1.y, arcRadius, a1_start, a1_start + d*arcLength, d < 0);
+          // The middle line doesn't need to be explicitly drawn.
+          ctx.arc(a2.x, a2.y, arcRadius, a2_start, a2_start - d*arcLength, d > 0);
+          ctx.lineTo(to.x, to.y);
         }
         ctx.strokeStyle = this.color();
         ctx.stroke();
@@ -537,7 +608,7 @@
         // Connect the dots.
         for (var p = 0; p < this.parents.length; p++) {
           var parent = displayCommits[this.parents[p]];
-          this.drawConnection(ctx, parent);
+          this.drawConnection(ctx, parent, displayCommits);
         }
 
         // Draw a dot.
@@ -618,6 +689,19 @@
       for (var hash in remaining) {
         if (traceCommits(displayCommits, commits, remaining, hash, column)) {
           column++;
+        }
+      }
+
+      // Point all parents at their children, for convenience.
+      for (var hash in displayCommits) {
+        displayCommits[hash].children = [];
+      }
+      for (var hash in displayCommits) {
+        var c = displayCommits[hash];
+        if (c.parents) {
+          for (var i = 0; i < c.parents.length; i++) {
+            displayCommits[c.parents[i]].children.push(c.hash);
+          }
         }
       }
 
