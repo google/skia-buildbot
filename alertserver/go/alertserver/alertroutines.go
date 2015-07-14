@@ -37,6 +37,11 @@ A step has been running for over %s:
 https://uberchromegw.corp.google.com/i/%s/builders/%s/builds/%d
 Dashboard: https://status.skia.org/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%%5E%s%%24&tab=builds
 Host info: https://status.skia.org/hosts?filter=%s`
+	UPDATE_SCRIPTS = `update_scripts failed on %s
+
+Build: https://uberchromegw.corp.google.com/i/%s/builders/%s/builds/%d
+Dashboard: https://status.skia.org/buildbots?botGrouping=builder&filterBy=builder&include=%%5E%s%%24&tab=builds
+Host info: https://status.skia.org/hosts?filter=%s`
 )
 
 type BuildSlice []*buildbot.Build
@@ -197,4 +202,35 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		}
 	}()
 
+	// Failed update_scripts.
+	go func() {
+		lastSearch := time.Now()
+		for _ = range time.Tick(tickInterval) {
+			glog.Infof("Searching for builds which failed update_scripts.")
+			currentSearch := time.Now()
+			builds, err := buildbot.GetBuildsFromDateRange(lastSearch, currentSearch)
+			lastSearch = currentSearch
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			for _, b := range builds {
+				for _, s := range b.Steps {
+					if s.Name == "update_scripts" {
+						if s.Results != 0 {
+							if err := am.AddAlert(&alerting.Alert{
+								Name:     "update_scripts failed",
+								Category: alerting.INFRA_ALERT,
+								Message:  fmt.Sprintf(UPDATE_SCRIPTS, b.Builder, b.Master, b.Builder, b.Number, b.Builder, b.BuildSlave),
+								Actions:  actions,
+							}); err != nil {
+								glog.Error(err)
+							}
+						}
+						break
+					}
+				}
+			}
+		}
+	}()
 }
