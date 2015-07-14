@@ -145,7 +145,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 			"Test-Ubuntu-GCC-ShuttleA-GPU-GTX550Ti-x86_64-Release-Valgrind",
 			"Win Builder",
 		}
-		hangTimePeriod := time.Hour
+		hangTimePeriod := 2 * time.Hour
 		for _ = range time.Tick(tickInterval) {
 			glog.Infof("Searching for hung buildslaves and disconnected Android devices.")
 			builds, err := buildbot.GetUnfinishedBuilds()
