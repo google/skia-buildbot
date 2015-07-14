@@ -71,6 +71,14 @@
         width: 100%;
         height: 100%;
       }
+
+      .selectionRect {
+        stroke-width: 1px;
+        stroke-dasharray: 5px;
+        stroke: black;
+        stroke-opacity: 0.7;
+        fill: transparent;
+      }
     </style>
   </template>
   <script>
@@ -107,12 +115,103 @@
         // d3 force layout object.
         this.force = null;
 
+        this.dragging = false;
+
         this.svg = d3.select(this).append("svg")
           .attr("width", this.width)
-          .attr("height", this.height);
+          .attr("height", this.height)
+          .on("mousedown", this.mouseDown.bind(this))
+          .on("mousemove", this.mouseMove.bind(this))
+          .on("mouseup", this.mouseUp.bind(this));
 
         document.body.addEventListener('keydown', this.keyboard.bind(this));
         window.setInterval(this.resizeWatcher.bind(this), 300);
+      },
+
+      mouseDown: function() {
+        if (this.dragging) {
+          return
+        }
+
+        var p = d3.mouse(this);
+
+        this.svg.append("rect")
+          .attr({
+            rx    : 6,
+            ry    : 6,
+            class : "selectionRect",
+            x     : p[0],
+            y     : p[1],
+            width : 0,
+            height: 0,
+          });
+      },
+
+      mouseMove: function() {
+        if (this.dragging) {
+          return
+        }
+
+        var s = this.svg.select(".selectionRect");
+
+        if (s.empty()) {
+          return
+        }
+
+        var p = d3.mouse(this);
+        var d = {
+          x     : parseInt(s.attr("x"), 10),
+          y     : parseInt(s.attr("y"), 10),
+          width : parseInt(s.attr("width"), 10),
+          height: parseInt(s.attr("height"), 10)
+        };
+        var dx = p[0] - d.x;
+        var dy = p[1] - d.y;
+
+        if (dx < 1) {
+          d.x = p[0];
+          d.width -= dx;
+        } else {
+          d.width = dx;
+        }
+
+        if (dy < 1) {
+          d.y = p[1];
+          d.height -= dy;
+        } else {
+          d.height = dy;
+        }
+
+        s.attr(d);
+      },
+
+      mouseUp: function() {
+        if (this.dragging) {
+          return
+        }
+
+        // Clear all old selections.
+        $$(".node.selected").forEach(function(ele) {
+          ele.classList.toggle('selected', false);
+        });
+
+        // Build the list of selected nodes.
+        this.selected = [];
+        var r = $$$(".selectionRect");
+        var hits = $$$('svg').getIntersectionList(r.getBBox(), null);
+        for (var i=0; i<hits.length; i++) {
+          var ele = hits.item(i);
+          if (ele.nodeName == "circle") {
+            var p = ele.parentElement;
+            p.classList.toggle('selected', true);
+            this.selected.push(p.dataset.name);
+          }
+        }
+
+        this.dispatchEvent(new CustomEvent('digest-select', {detail: this.selected, bubbles: true}));
+
+        // Remove the selectionRect.
+        this.svg.select(".selectionRect").remove();
       },
 
       keyboard: function(e) {
@@ -143,6 +242,7 @@
       },
 
       dragstart:  function(d) {
+        this.dragging = true;
         var e = d3.event.sourceEvent;
         if (e.ctrlKey || e.shiftKey) {
           // Ctrl or Shift means to toggle the selected state of a digest.
@@ -163,6 +263,10 @@
         this.dispatchEvent(new CustomEvent('digest-select', {detail: this.selected, bubbles: true}));
       },
 
+      dragend: function(d) {
+        this.dragging = false;
+      },
+
       reloadSVG: function() {
         this.svg.selectAll(".link,.node").remove();
 
@@ -175,7 +279,9 @@
           .links(this.data.links)
           .start();
 
-        this.force.drag().on("dragstart", this.dragstart.bind(this));
+        this.force.drag()
+          .on("dragstart", this.dragstart.bind(this))
+          .on("dragend", this.dragend.bind(this));
 
         var link = this.svg.selectAll(".link")
           .data(this.data.links)
