@@ -55,6 +55,10 @@
         fill: #A6761D;
       }
 
+      .node.selected circle {
+        stroke-width: 5px;
+      }
+
       :host {
         display: block;
         position: relative;
@@ -87,6 +91,9 @@
       },
 
       ready: function() {
+        // The list of selected digests.
+        this.selected = [];
+
         // Controls the link distance multiplier between nodes.
         this.scale = 10;
 
@@ -136,7 +143,24 @@
       },
 
       dragstart:  function(d) {
-        this.dispatchEvent(new CustomEvent('digest-select', {detail: d.name, bubbles: true}));
+        var e = d3.event.sourceEvent;
+        if (e.ctrlKey || e.shiftKey) {
+          // Ctrl or Shift means to toggle the selected state of a digest.
+          var index = this.selected.indexOf(d.name);
+          $$$("#x"+d.name).classList.toggle('selected', index == -1);
+          if (index == -1) {
+            this.selected.push(d.name);
+          } else {
+            this.selected.splice(index, 1);
+          }
+        } else {
+          this.selected = [d.name];
+          $$(".node.selected").forEach(function(ele) {
+            ele.classList.toggle('selected', false);
+          });
+          $$$("#x"+d.name).classList.toggle('selected', true);
+        }
+        this.dispatchEvent(new CustomEvent('digest-select', {detail: this.selected, bubbles: true}));
       },
 
       reloadSVG: function() {
@@ -200,7 +224,10 @@
 
       newTriageStatus: function(digests, status) {
         digests.forEach(function(digest) {
-          $$$("#x"+digest).setAttribute("class", "node " + status);
+          var ele = $$$("#x"+digest);
+          var selected = ele.classList.contains('selected');
+          ele.setAttribute("class", "node " + status);
+          ele.classList.toggle('selected', selected);
         }.bind(this));
 
         this.data.nodes.forEach(function(e) {

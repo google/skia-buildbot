@@ -27,10 +27,6 @@
         min-height: 80vh;
       }
 
-      .hidden {
-        display: none;
-      }
-
       paper-tabs {
         background-color: transparent;
         color: #D95F02;
@@ -43,6 +39,9 @@
 
       paper-tabs paper-tab::shadow #ink {
         color: #D95F02 #1f78b4;
+      }
+      diff-detail-sk {
+        display: block;
       }
     </style>
   </head>
@@ -59,12 +58,16 @@
           </paper-tabs>
           <core-pages id=pages selected=0>
             <div>
-              <paramset-sk></paramset-sk>
+              <paramset-sk id=parameters></paramset-sk>
             </div>
-            <div vertical layout>
-              <h2><a id=difflink target=_blank href="" class=hidden>Diff</a></h2>
-              <detail-table-sk top="" left="" test="" bothcolumns=false class=hidden></detail-table-sk>
-            </div>
+            <core-pages id=selectedDetails selected=0>
+              <div>
+                There are no selected digests.
+              </div>
+              <detail-table-sk bothcolumns=false></detail-table-sk>
+              <diff-detail-sk></diff-detail-sk>
+              <paramset-sk id=selectedParameters></paramset-sk>
+            </core-pages>
           </core-pages>
         </div>
       </div>
@@ -103,16 +106,53 @@
           });
 
           $$$('#body').addEventListener('digest-select', function(e){
-            selected.push(e.detail);
-            if (selected.length > 2) {
-              selected.shift();
+            selected = e.detail;
+
+            // The page we display under details depends on the number of digests selected.
+            var detailsPage = 0;
+            if (selected.length == 0) {
+              detailsPage = 0;
+            } else if (selected.length == 1) {
+              $$$('detail-table-sk').left = selected[0];
+              $$$('detail-table-sk').top = selected[0];
+              detailsPage = 1;
+            } else if (selected.length == 2) {
+              var q = {
+                test: params.name[0],
+                top: selected[selected.length-1],
+                left: selected[0],
+              };
+              sk.get('_/diff?'+sk.query.fromObject(q)).then(JSON.parse).then(function(json) {
+                $$$('diff-detail-sk').value = json;
+              }).catch(sk.errorMessage);
+              detailsPage = 2;
+            } else {
+              // For 3 or more selected digests just create a rolled up paramset of
+              // the selected digests.
+              var paramset = {};
+              selected.forEach(function(d) {
+                var p = data.paramsets[d];
+                Object.keys(p).forEach(function(key) {
+                  var existingValues = paramset[key] || [];
+                  var newValues = p[key];
+                  newValues.forEach(function(value) {
+                    if (existingValues.indexOf(value) == -1) {
+                      existingValues.push(value);
+                    }
+                  });
+                  paramset[key] = existingValues;
+                });
+              });
+              // Sort the param values.
+              Object.keys(paramset).forEach(function(key) {
+                paramset[key].sort();
+              });
+
+              $$$('#selectedParameters').paramset = paramset;
+              detailsPage = 3;
             }
-            $$$('#difflink').classList.toggle('hidden', selected.length != 2 || (selected[0] == selected[1]) );
-            $$$('#difflink').href = "/diff?test="+params.name[0]+"&left="+selected[0]+"&top="+selected[1];
-            $$$('detail-table-sk').classList.toggle('hidden', selected.length == 0);
-            $$$('detail-table-sk').left = selected[0];
-            $$$('detail-table-sk').top = selected[selected.length-1];
-            $$$('detail-table-sk').bothcolumns= selected.length > 1;
+
+            $$$('#selectedDetails').selected = detailsPage;
             $$$('#pages').selected = 1;
             $$$('#tabs').selected = 1;
           });
@@ -138,7 +178,7 @@
           });
 
           sk.WebComponentsReady.then(function() {
-            $$$('detail-table-sk').test= params.name[0];
+            $$$('detail-table-sk').test = params.name[0];
             loadData();
           });
         })();
