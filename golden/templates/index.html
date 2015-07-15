@@ -41,32 +41,11 @@
         text-transform: uppercase;
       }
 
-      #help {
-        position: absolute;
-        top: 9px;
-        right: 10px;
-      }
-
-      #help.hidden {
-        display: none;
-      }
-
     </style>
   </head>
   <body>
     <scaffold-sk responsiveWidth="700px">
       {%template "titlebar.html" .%}
-      <div id=help class=hidden>
-        <table>
-          <tr><th colspan=2>Keyboard Shortcuts</th></tr>
-          <tr><th>J</th><td>Next</td></tr>
-          <tr><th>K</th><td>Prev</td></tr>
-          <tr><th>W</th><td>Zoom</td></tr>
-          <tr><th>A</th><td>Postive</td></tr>
-          <tr><th>S</th><td>Negative</td></tr>
-          <tr><th>D</th><td>Untriaged</td></tr>
-        </table>
-      </div>
       <div vertical layout id=core>
         <div horizontal layout center>
           <paper-button id=search>
@@ -273,8 +252,6 @@
          $$$('#summaries').addEventListener('zoom-clicked', function(e) {
            zoom(e.detail);
          });
-
-         $$$('#help').classList.toggle('hidden', !page.state.triage);
        });
      })();
     </script>

@@ -33,6 +33,19 @@
     <scaffold-sk responsiveWidth="700px">
       {%template "titlebar.html" .%}
 
+      <help-sk>
+        <table>
+          <tr><th colspan=2>Keyboard Shortcuts</th></tr>
+          <tr><th>J</th><td>Next</td></tr>
+          <tr><th>K</th><td>Prev</td></tr>
+          <tr><th>W</th><td>Zoom</td></tr>
+          <tr><th>A</th><td>Postive</td></tr>
+          <tr><th>S</th><td>Negative</td></tr>
+          <tr><th>D</th><td>Untriaged</td></tr>
+          <tr><th>?</th><td>Help</td></tr>
+        </table>
+      </help-sk>
+
       <div id=missing>No digests match your query.</div>
       <h3>
         Displaying {%len .Digests%} of {%.NumMatches%} Digests that matched your query.

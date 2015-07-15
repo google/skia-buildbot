@@ -48,6 +48,16 @@
     <scaffold-sk responsiveWidth="700px">
       {%template "titlebar.html" .%}
 
+      <help-sk>
+        <table>
+          <tr><th>A</th><td>Increase spring size</td></tr>
+          <tr><th>Z</th><td>Descrease spring size</td></tr>
+          <tr><th>S</th><td>Descrease node overlap</td></tr>
+          <tr><th>X</th><td>Increase node overlap</td></tr>
+          <tr><th>?</th><td>Help</td></tr>
+          <tr><th>Ctrl+Click</th><td>Add to selection</td></tr>
+        </table>
+      </help-sk>
       <div id=body horizontal layout>
         <cluster-sk flex></cluster-sk>
         <div flex>

@@ -1,0 +1,46 @@
+<!-- The <help-sk> custom element declaration.
+
+  Presents as a help icon. When you click on the icon, or press the '?' key
+  then the content of the element are displayed as a dialog.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+-->
+<polymer-element name="help-sk">
+  <template>
+    <style type="text/css" media="screen">
+      core-icon {
+        color: #1f78b4;
+      }
+    </style>
+    <core-icon icon=help on-click="{{helpClick}}"></core-icon>
+    <paper-action-dialog id=dialog>
+      <div>
+        <content></content>
+      </div>
+      <paper-button affirmative>Close</paper-button>
+    </paper-action-dialog>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+         document.body.addEventListener('keypress', function(e){
+           if ("?" == String.fromCharCode(e.keyCode)) {
+             this.helpClick();
+           }
+         }.bind(this));
+      },
+
+      helpClick: function() {
+        this.$.dialog.open();
+      },
+    });
+  </script>
+</polymer-element>
