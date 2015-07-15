@@ -376,6 +376,21 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// The response to either a GET or a POST is an up to date ServersUI.
+	servers := serversFromAllInstalled(allInstalled)
+	enc := json.NewEncoder(w)
+	err := enc.Encode(AllUI{
+		Servers:  servers,
+		Packages: allAvailable,
+		IP:       ip.Get(),
+		Status:   serviceStatus(servers),
+	})
+	if err != nil {
+		glog.Errorf("Failed to write or encode output: %s", err)
+		return
+	}
+}
+
+func serversFromAllInstalled(allInstalled map[string]*packages.Installed) ServersUI {
 	servers := ServersUI{}
 	names := make([]string, 0, len(allInstalled))
 	for name, _ := range allInstalled {
@@ -389,13 +404,16 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	return servers
+}
+
+// statusHandler handles the GET of the JSON for each service's status.
+func statusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	servers := serversFromAllInstalled(packageInfo.AllInstalled())
 	enc := json.NewEncoder(w)
-	err := enc.Encode(AllUI{
-		Servers:  servers,
-		Packages: allAvailable,
-		IP:       ip.Get(),
-		Status:   serviceStatus(servers),
-	})
+	err := enc.Encode(serviceStatus(servers))
 	if err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
 		return
@@ -474,6 +492,7 @@ func main() {
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/change", changeHandler)
 	r.HandleFunc("/_/state", stateHandler)
+	r.HandleFunc("/_/status", statusHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

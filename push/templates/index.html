@@ -56,38 +56,48 @@
 
       <push-server-sk></push-server-sk>
       <paper-toast></paper-toast>
+      <error-toast-sk></error-toast-sk>
     </paper-header-panel>
 
     <script type="text/javascript" charset="utf-8">
-      sk.get("/_/state").then(JSON.parse).then(function(json) {
-        $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip);
-        Object.keys(json.status).forEach(function(service) {
-          sk.Mailbox.send(service, json.status[service]);
-        });
-      });
-
-      $$$('push-server-sk').addEventListener('change-package', function(e) {
-        var body = {
-          Name: e.detail.name,
-          Server: e.detail.server
-        };
-        sk.post("/_/state", JSON.stringify(body)).then(JSON.parse).then(function(json) {
+      (function(){
+        sk.get("/_/state").then(JSON.parse).then(function(json) {
           $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip);
-        }).catch(function(e){
-          $$$('paper-toast').text = e;
-          $$$('paper-toast').show();
-        });
-      });
+          Object.keys(json.status).forEach(function(service) {
+            sk.Mailbox.send(service, json.status[service]);
+          });
+        }).catch(sk.errorMessage);
 
-      $$$('push-server-sk').addEventListener('unit-action', function(e) {
-        sk.post("/_/change?" + sk.query.fromObject(e.detail), "").then(JSON.parse).then(function(json) {
-          $$$('paper-toast').text = json.result;
-          $$$('paper-toast').show();
-        }).catch(function(e) {
-          $$$('paper-toast').text = e;
-          $$$('paper-toast').show();
+        function updateStatus() {
+          sk.get("/_/status").then(JSON.parse).then(function(json) {
+            Object.keys(json).forEach(function(service) {
+              sk.Mailbox.send(service, json[service]);
+            });
+            window.setTimeout(updateStatus, 2000);
+          }).catch(function(err) {
+            sk.errorMessage(err);
+            window.setTimeout(updateStatus, 2000);
+          });
+        };
+        window.setTimeout(updateStatus, 2000);
+
+        $$$('push-server-sk').addEventListener('change-package', function(e) {
+          var body = {
+            Name: e.detail.name,
+            Server: e.detail.server
+          };
+          sk.post("/_/state", JSON.stringify(body)).then(JSON.parse).then(function(json) {
+            $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip);
+          }).catch(sk.errorMessage);
         });
-      });
+
+        $$$('push-server-sk').addEventListener('unit-action', function(e) {
+          sk.post("/_/change?" + sk.query.fromObject(e.detail), "").then(JSON.parse).then(function(json) {
+            $$$('paper-toast').text = json.result;
+            $$$('paper-toast').show();
+          }).catch(sk.errorMessage);
+        });
+      })();
     </script>
   </body>
 </html>
