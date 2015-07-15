@@ -236,13 +236,17 @@ func buildDiff(test, digest string, inter *intermediate, e *expstorage.Expectati
 		Blame: blamer.GetBlame(test, digest, tile.Commits),
 	}
 
+	t := testTally[test]
+	if t == nil {
+		t = &tally.Tally{}
+	}
 	ret.Pos = &DiffDigest{
-		Closest: digesttools.ClosestDigest(test, digest, e, diffStore, gtypes.POSITIVE),
+		Closest: digesttools.ClosestDigest(test, digest, e, *t, diffStore, gtypes.POSITIVE),
 	}
 	ret.Pos.ParamSet = paramset.Get(test, ret.Pos.Closest.Digest, includeIgnores)
 
 	ret.Neg = &DiffDigest{
-		Closest: digesttools.ClosestDigest(test, digest, e, diffStore, gtypes.NEGATIVE),
+		Closest: digesttools.ClosestDigest(test, digest, e, *t, diffStore, gtypes.NEGATIVE),
 	}
 	ret.Neg.ParamSet = paramset.Get(test, ret.Neg.Closest.Digest, includeIgnores)
 

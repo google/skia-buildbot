@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -42,24 +43,32 @@ func TestClosestDigest(t *testing.T) {
 				"ccc": types.UNTRIAGED,
 				"ddd": types.UNTRIAGED,
 				"eee": types.POSITIVE,
+				"ggg": types.POSITIVE,
 			},
 		},
 	}
+	tallies := tally.Tally{
+		"aaa": 2,
+		"bbb": 2,
+		"ccc": 2,
+		"ddd": 2,
+		"eee": 2,
+	}
 
 	// First test against a test that has positive digests.
-	c := ClosestDigest("foo", "fff", exp, diffStore, types.POSITIVE)
+	c := ClosestDigest("foo", "fff", exp, tallies, diffStore, types.POSITIVE)
 	assert.InDelta(t, 0.0372, float64(c.Diff), 0.01)
 	assert.Equal(t, "eee", c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)
 
 	// Now test against a test with no positive digests.
-	c = ClosestDigest("bar", "fff", exp, diffStore, types.POSITIVE)
+	c = ClosestDigest("bar", "fff", exp, tallies, diffStore, types.POSITIVE)
 	assert.Equal(t, float32(math.MaxFloat32), c.Diff)
 	assert.Equal(t, "", c.Digest)
 	assert.Equal(t, []int{}, c.MaxRGBA)
 
 	// Now test against negative digests.
-	c = ClosestDigest("foo", "fff", exp, diffStore, types.NEGATIVE)
+	c = ClosestDigest("foo", "fff", exp, tallies, diffStore, types.NEGATIVE)
 	assert.InDelta(t, 0.166, float64(c.Diff), 0.01)
 	assert.Equal(t, "bbb", c.Digest)
 	assert.Equal(t, []int{5, 3, 4, 0}, c.MaxRGBA)

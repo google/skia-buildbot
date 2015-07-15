@@ -13,11 +13,12 @@ import (
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
+	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 	ptypes "go.skia.org/infra/perf/go/types"
 )
 
-func Init(storages *storage.Storage, summaries *summary.Summaries) error {
+func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tally.Tallies) error {
 	exp, err := storages.ExpectationsStore.Get()
 	if err != nil {
 		return err
@@ -27,9 +28,12 @@ func Init(storages *storage.Storage, summaries *summary.Summaries) error {
 			t := timer.New("warmer one loop")
 			for test, sum := range summaries.Get() {
 				for _, digest := range sum.UntHashes {
-					// Calculate the closest digest for the side effect of filling in the filediffstore cache.
-					digesttools.ClosestDigest(test, digest, exp, storages.DiffStore, types.POSITIVE)
-					digesttools.ClosestDigest(test, digest, exp, storages.DiffStore, types.NEGATIVE)
+					t := tallies.ByTest()[test]
+					if t != nil {
+						// Calculate the closest digest for the side effect of filling in the filediffstore cache.
+						digesttools.ClosestDigest(test, digest, exp, *t, storages.DiffStore, types.POSITIVE)
+						digesttools.ClosestDigest(test, digest, exp, *t, storages.DiffStore, types.NEGATIVE)
+					}
 				}
 			}
 			t.Stop()

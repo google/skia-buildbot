@@ -892,9 +892,10 @@ func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test strin
 	}
 
 	// Now find the closest positive and negative digests.
-	if closest {
-		ret.PosClosest = digesttools.ClosestDigest(test, top, exp, storages.DiffStore, types.POSITIVE)
-		ret.NegClosest = digesttools.ClosestDigest(test, top, exp, storages.DiffStore, types.NEGATIVE)
+	t := tallies.ByTest()[test]
+	if closest && t != nil {
+		ret.PosClosest = digesttools.ClosestDigest(test, top, exp, *t, storages.DiffStore, types.POSITIVE)
+		ret.NegClosest = digesttools.ClosestDigest(test, top, exp, *t, storages.DiffStore, types.NEGATIVE)
 	}
 
 	return ret

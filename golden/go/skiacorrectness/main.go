@@ -346,7 +346,7 @@ func main() {
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
 	pathToURLConverter = imgFS.GetURL
 
-	if err := warmer.Init(storages, summaries); err != nil {
+	if err := warmer.Init(storages, summaries, tallies); err != nil {
 		glog.Fatalf("Failed to initialize the warmer: %s", err)
 	}
 	t.Stop()

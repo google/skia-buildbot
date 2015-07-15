@@ -7,6 +7,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -29,7 +30,7 @@ func newClosest() *Closest {
 // ClosestDigest returns the closest digest of type 'label' to 'digest', or "" if there aren't any positive digests.
 //
 // If no digest of type 'label' is found then Closest.Digest is the empty string.
-func ClosestDigest(test string, digest string, exp *expstorage.Expectations, diffStore diff.DiffStore, label types.Label) *Closest {
+func ClosestDigest(test string, digest string, exp *expstorage.Expectations, tallies tally.Tally, diffStore diff.DiffStore, label types.Label) *Closest {
 	ret := newClosest()
 	unavailableDigests := diffStore.UnavailableDigests()
 
@@ -38,11 +39,9 @@ func ClosestDigest(test string, digest string, exp *expstorage.Expectations, dif
 	}
 
 	selected := []string{}
-	if e, ok := exp.Tests[test]; ok {
-		for d, l := range e {
-			if !unavailableDigests[d] && (l == label) {
-				selected = append(selected, d)
-			}
+	for d, _ := range tallies {
+		if !unavailableDigests[d] && (exp.Classification(test, d) == label) {
+			selected = append(selected, d)
 		}
 	}
 
