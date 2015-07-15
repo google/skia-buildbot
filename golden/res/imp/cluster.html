@@ -344,12 +344,32 @@
       },
 
       // Takes a map from digests to the text to display next to the digest node.
-      setTextNodes: function(text) {
-        this.clearTextNodes();
+      //
+      // additive - If true then just add the text to nodes in addition to
+      //            existing text, else remove all existing text first.
+      setTextNodes: function(text, additive) {
+        if (!additive) {
+          this.clearTextNodes();
+        }
+        // Use a data attribute 'data-count' to store the number of non-empty
+        // text strings attached to a node.
         node = this.svg.selectAll(".node")
+          .attr("data-count", function(d) {
+            if (!additive) {
+              return 1;
+            }
+            var count =  +d3.select(this).attr("data-count") || 0;
+            if (text[d.name]) {
+              return count+1;
+            } else {
+              return count;
+            }
+            })
           .append("text")
           .attr("dx", 14)
-          .attr("dy", 14)
+          .attr("dy", function(d) {
+            return d3.select(this.parentElement).attr("data-count")*20;
+          })
           .text(function(d) { return text[d.name] });
       },
 

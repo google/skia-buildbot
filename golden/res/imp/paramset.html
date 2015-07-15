@@ -8,11 +8,25 @@
 
   Events:
     paramset-key-click - Generated when the key for a paramset is clicked.
-       The name of the key will be sent in e.detail.key.
+       The name of the key will be sent in e.detail.key. The value of
+       e.detail.ctrl is true if the control key was pressed when clicking.
+
+       {
+         key: "arch",
+         ctrl: false,
+       }
 
     paramset-key-value-click - Generated when one value for a paramset is clicked.
        The name of the key will be sent in e.detail.key, the value in
-       e.detail.value.
+       e.detail.value. The value of e.detail.ctrl is true if the control key
+       was pressed when clicking.
+
+       {
+         key: "arch",
+         value: "x86",
+         ctrl: false,
+       }
+
 
   Methods:
     None.
@@ -79,7 +93,8 @@
         var t = e.target;
         if (t.nodeName == "TH") {
           var detail = {
-            key: t.dataset.key
+            key: t.dataset.key,
+            ctrl: e.ctrlKey,
           };
           this.dispatchEvent(new CustomEvent('paramset-key-click', {
             detail: detail,
@@ -89,6 +104,7 @@
           var detail = {
             key: t.dataset.key,
             value: t.dataset.value,
+            ctrl: e.ctrlKey,
           };
           this.dispatchEvent(new CustomEvent('paramset-key-value-click', {
             detail: detail,

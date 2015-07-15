@@ -55,7 +55,9 @@
           <tr><th>S</th><td>Descrease node overlap</td></tr>
           <tr><th>X</th><td>Increase node overlap</td></tr>
           <tr><th>?</th><td>Help</td></tr>
-          <tr><th>Ctrl+Click</th><td>Add to selection</td></tr>
+          <tr><th>Ctrl+Click</th><td>Add to selection, works on both nodes and
+              parameters.
+          </td></tr>
         </table>
       </help-sk>
       <div id=body horizontal layout>
@@ -99,7 +101,7 @@
                 text[digest] = value.join(", ");
               }
             });
-            $$$('cluster-sk').setTextNodes(text);
+            $$$('cluster-sk').setTextNodes(text, e.detail.ctrl);
           });
 
           $$$('#body').addEventListener('paramset-key-value-click', function(e){
@@ -111,7 +113,7 @@
                 text[digest] = e.detail.value;
               }
             });
-            $$$('cluster-sk').setTextNodes(text);
+            $$$('cluster-sk').setTextNodes(text, e.detail.ctrl);
           });
 
           $$$('#body').addEventListener('digest-select', function(e){
