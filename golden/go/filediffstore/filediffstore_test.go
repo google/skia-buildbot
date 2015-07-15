@@ -16,7 +16,7 @@ import (
 
 const (
 	TESTDATA_DIR         = "testdata"
-	MASSIVE_TESTDATA_DIR = "concur-testdata"
+	MASSIVE_TESTDATA_DIR = "concur-testata"
 	TEST_DIGEST1         = "11069776588985027208"
 	TEST_DIGEST2         = "5024150605949408692"
 	TEST_DIGEST3         = "10552995703607727960"
@@ -123,7 +123,7 @@ func TestGetDiffMetricFromDir(t *testing.T) {
 
 func TestCacheImageFromGS(t *testing.T) {
 	fds := getTestFileDiffStore(t, TESTDATA_DIR, true)
-	imgFilePath := filepath.Join(fds.localImgDir, fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
+	imgFilePath := filepath.Join(fds.localImgDir, TEST_DIGEST3[0:2], TEST_DIGEST3[2:4], fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
 	defer testutils.Remove(t, imgFilePath)
 
 	err := fds.cacheImageFromGS(TEST_DIGEST3)
@@ -146,7 +146,7 @@ func TestCacheImageFromGS(t *testing.T) {
 
 func TestDiff(t *testing.T) {
 	fds := getTestFileDiffStore(t, "", true)
-	diffFilePath := filepath.Join(fds.localDiffDir, fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION))
+	diffFilePath := filepath.Join(fds.localDiffDir, TEST_DIGEST1[0:2], TEST_DIGEST1[2:4], fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION))
 	defer testutils.Remove(t, diffFilePath)
 	diffMetrics, err := fds.diff(TEST_DIGEST1, TEST_DIGEST2)
 	if err != nil {
@@ -249,8 +249,8 @@ func TestGet_e2e(t *testing.T) {
 	// 2 files that exist locally but diffmetrics does not exist.
 	fds2 := getTestFileDiffStore(t, TESTDATA_DIR, false)
 	diffBasename := fmt.Sprintf("%s-%s", TEST_DIGEST1, TEST_DIGEST2)
-	diffFilePath := filepath.Join(fds2.localDiffDir, fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
-	diffMetricsFilePath := filepath.Join(fds2.localDiffMetricsDir, fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
+	diffFilePath := filepath.Join(fds2.localDiffDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
+	diffMetricsFilePath := filepath.Join(fds2.localDiffMetricsDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
 	diffMetricsMap2, err := fds2.Get(TEST_DIGEST1, []string{TEST_DIGEST2})
 	if err != nil {
 		t.Error("Unexpected error: ", err)
@@ -270,10 +270,10 @@ func TestGet_e2e(t *testing.T) {
 	// 1 file that exists locally, 1 file that exists in Google Storage, 1
 	// file that does not exist.
 	fds3 := getTestFileDiffStore(t, TESTDATA_DIR, false)
-	newImageFilePath := filepath.Join(fds3.localImgDir, fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
+	newImageFilePath := filepath.Join(fds3.localImgDir, TEST_DIGEST3[0:2], TEST_DIGEST3[2:4], fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
 	diffBasename = fmt.Sprintf("%s-%s", TEST_DIGEST3, TEST_DIGEST1)
-	diffFilePath = filepath.Join(fds3.localDiffDir, fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
-	diffMetricsFilePath = filepath.Join(fds3.localDiffMetricsDir, fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
+	diffFilePath = filepath.Join(fds3.localDiffDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
+	diffMetricsFilePath = filepath.Join(fds3.localDiffMetricsDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
 	diffMetricsMap3, err := fds3.Get(TEST_DIGEST1, []string{TEST_DIGEST3, MISSING_DIGEST})
 	if err != nil {
 		t.Error("Unexpected error: ", err)
@@ -293,10 +293,10 @@ func TestGet_e2e(t *testing.T) {
 
 	// Call Get with multiple digests.
 	fds5 := getTestFileDiffStore(t, TESTDATA_DIR, false)
-	newImageFilePath = filepath.Join(fds5.localImgDir, fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
+	newImageFilePath = filepath.Join(fds5.localImgDir, TEST_DIGEST3[0:2], TEST_DIGEST3[2:4], fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
 	diffBasename = fmt.Sprintf("%s-%s", TEST_DIGEST3, TEST_DIGEST1)
-	diffFilePath = filepath.Join(fds5.localDiffDir, fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
-	diffMetricsFilePath = filepath.Join(fds5.localDiffMetricsDir, fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
+	diffFilePath = filepath.Join(fds5.localDiffDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
+	diffMetricsFilePath = filepath.Join(fds5.localDiffMetricsDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
 	diffMetricsMap5, err := fds5.Get(TEST_DIGEST1, []string{TEST_DIGEST2, TEST_DIGEST3, MISSING_DIGEST})
 	if err != nil {
 		t.Error("Unexpected error: ", err)

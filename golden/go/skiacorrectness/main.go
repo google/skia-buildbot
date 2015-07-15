@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/redisutil"
@@ -146,6 +147,11 @@ func NewURLAwareFileServer(baseDir, baseUrl string) *URLAwareFileServer {
 
 	fileHandler := http.StripPrefix(baseUrl, http.FileServer(http.Dir(absPath)))
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// TODO(stephana): Expose a handler in the diff store so we don't have
+		// to mangle the URL from the outside.
+		r.URL.Path = fileutil.TwoLevelRadixPath(r.URL.Path)
+
 		// Cache images for 12 hours.
 		w.Header().Set("Cache-control", "public, max-age=43200")
 		fileHandler.ServeHTTP(w, r)

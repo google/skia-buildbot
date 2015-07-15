@@ -3,6 +3,7 @@ package fileutil
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/skia-dev/glog"
 )
@@ -38,4 +39,20 @@ func FileExists(path string) bool {
 		return false
 	}
 	return true
+}
+
+// TwoLevelRadixPath expands a path (defined by one or more path segments) by
+// adding two additional directories based on the filename in the last segment.
+// i.e.   TwoLevelRadixPath("/some", "path", "to", "abcdefgh.txt") will
+// return "/some/path/to/ab/cd/abcdefgh.txt".
+// If the filename does not have at least four characters before a period the
+// return values is equivalent to filepath.Join(pathSegments...).
+func TwoLevelRadixPath(pathSegments ...string) string {
+	lastSeg := pathSegments[len(pathSegments)-1]
+	dirName, fileName := filepath.Split(lastSeg)
+	dotIdx := strings.Index(fileName, ".")
+	if ((dotIdx < 4) && (dotIdx >= 0)) || ((dotIdx == -1) && (len(fileName) < 4)) {
+		return filepath.Join(pathSegments...)
+	}
+	return filepath.Join(filepath.Join(pathSegments[:len(pathSegments)-1]...), filepath.Join(dirName, fileName[0:2], fileName[2:4], fileName))
 }

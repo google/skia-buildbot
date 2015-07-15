@@ -296,7 +296,7 @@ func (fs *FileDiffStore) absPathOne(digest string) interface{} {
 		return nil
 	}
 	// 2. Find and return the absolute path to the digest.
-	return fs.getDigestImagePath(digest)
+	return fs.getDigestImageLogicalPath(digest)
 }
 
 // Get documentation is found in the diff.DiffStore interface.
@@ -440,7 +440,10 @@ func (fs *FileDiffStore) writeDiffMetricsToFileCache(baseName string, diffMetric
 	defer fs.diffDirLock.Unlock()
 
 	// Make paths relative. This has to be reversed in getDiffMetricsFromFileCache.
-	fName := fs.getDiffMetricPath(baseName)
+	fName, err := fs.createDiffMetricPath(baseName)
+	if err != nil {
+		return err
+	}
 
 	f, err := os.Create(fName)
 	if err != nil {
@@ -593,7 +596,12 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 			}
 
 			// Rename the file after we acquired a lock
-			outputFile := filepath.Join(fs.localImgDir, fmt.Sprintf("%s.png", d))
+			outputBaseName := fs.getImageBaseName(d)
+			outputFile, err := fs.createRadixPath(fs.localImgDir, outputBaseName)
+			if err != nil {
+				return fmt.Errorf("Error creating output file: %s", err)
+			}
+
 			fs.digestDirLock.Lock()
 			defer fs.digestDirLock.Unlock()
 			if err := os.Rename(tempOut.Name(), outputFile); err != nil {
@@ -652,21 +660,36 @@ func (fs *FileDiffStore) diff(d1, d2 string) (*diff.DiffMetrics, error) {
 
 	baseName := getDiffBasename(d1, d2)
 
-	// Write the diff image to disk.
-	diffFilename := fmt.Sprintf("%s.%s", baseName, IMG_EXTENSION)
-	f, err := os.Create(filepath.Join(fs.localDiffDir, diffFilename))
+	// Write the diff image to a temporary file.
+	tempOut, err := ioutil.TempFile(fs.localTempFileDir, fmt.Sprintf("tempfile-%s", baseName))
+	if err != nil {
+		return nil, fmt.Errorf("Unable to create temp file: %s", err)
+	}
+
+	encoder := png.Encoder{CompressionLevel: png.BestSpeed}
+	if err := encoder.Encode(tempOut, resultImg); err != nil {
+		return nil, err
+	}
+
+	err = tempOut.Close()
+	if err != nil {
+		return nil, fmt.Errorf("Error closing temp file: %s", err)
+	}
+
+	diffImageFilename := fmt.Sprintf("%s.%s", baseName, IMG_EXTENSION)
+	outputFileName, err := fs.createRadixPath(fs.localDiffDir, diffImageFilename)
 	if err != nil {
 		return nil, err
 	}
-	defer util.Close(f)
 
-	encoder := png.Encoder{CompressionLevel: png.BestSpeed}
-	if err := encoder.Encode(f, resultImg); err != nil {
-		return nil, err
+	fs.diffDirLock.Lock()
+	defer fs.diffDirLock.Unlock()
+	if err := os.Rename(tempOut.Name(), outputFileName); err != nil {
+		return nil, fmt.Errorf("Unable to move file: %s", err)
 	}
 
-	// Set the filenames of the images in the diff metric.
-	dm.PixelDiffFilePath = diffFilename
+	// This sets a logical path for this file.
+	dm.PixelDiffFilePath = diffImageFilename
 	return dm, nil
 }
 
@@ -694,12 +717,35 @@ func (fs *FileDiffStore) getDigestImage(d string) (image.Image, error) {
 // getDigestPath returns the filepath where the image corresponding to the
 // give digests should be stored.
 func (fs *FileDiffStore) getDigestImagePath(digest string) string {
+	return fileutil.TwoLevelRadixPath(fs.localImgDir, fmt.Sprintf("%s.%s", digest, IMG_EXTENSION))
+}
+
+// getDigestImageLogicalPath returns the images in a flat directory. As expected
+// by the front-end.
+func (fs *FileDiffStore) getDigestImageLogicalPath(digest string) string {
 	return filepath.Join(fs.localImgDir, fmt.Sprintf("%s.%s", digest, IMG_EXTENSION))
 }
 
 // getDiffMetricPath returns the filename where the diffmetric should be
 // cached.
 func (fs *FileDiffStore) getDiffMetricPath(baseName string) string {
-	fName := fmt.Sprintf("%s.%s", baseName, DIFFMETRICS_EXTENSION)
-	return filepath.Join(fs.localDiffMetricsDir, fName)
+	return fileutil.TwoLevelRadixPath(fs.localDiffMetricsDir, fmt.Sprintf("%s.%s", baseName, DIFFMETRICS_EXTENSION))
+}
+
+func (fs *FileDiffStore) createDiffMetricPath(baseName string) (string, error) {
+	return fs.createRadixPath(fs.localDiffMetricsDir, fmt.Sprintf("%s.%s", baseName, DIFFMETRICS_EXTENSION))
+}
+
+func (fs *FileDiffStore) getImageBaseName(digest string) string {
+	return fmt.Sprintf("%s.%s", digest, IMG_EXTENSION)
+}
+
+func (fs *FileDiffStore) createRadixPath(baseDir, fileName string) (string, error) {
+	targetPath := fileutil.TwoLevelRadixPath(baseDir, fileName)
+	radixDir, _ := filepath.Split(targetPath)
+	if err := os.MkdirAll(radixDir, 0700); err != nil {
+		return "", err
+	}
+
+	return targetPath, nil
 }
