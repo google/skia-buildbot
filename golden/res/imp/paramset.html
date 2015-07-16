@@ -54,6 +54,10 @@
       div:hover {
         text-decoration: underline;
       }
+
+      :host {
+        display: block;
+      }
     </style>
     <table id=table>
       <template repeat="{{key in sortedKeys}}">
@@ -111,6 +115,14 @@
             bubbles: true,
           }));
         }
+      },
+
+      // We can't be in Shadow DOM.
+      parseDeclaration: function(elementElement) {
+        var template = this.fetchTemplate(elementElement);
+        if (template != null) {
+          this.lightFromTemplate(template);
+        };
       },
 
     });

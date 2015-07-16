@@ -39,7 +39,13 @@
       paper-tabs paper-tab::shadow #ink {
         color: #D95F02 #1f78b4;
       }
+
       diff-detail-sk {
+        display: block;
+      }
+
+      paramset-sk {
+        background: white;
         display: block;
       }
     </style>
@@ -170,6 +176,9 @@
 
           $$$('#tabs').addEventListener('core-select', function(e) {
             $$$('#pages').selected = e.target.selected;
+            if (e.target.selected == 0) {
+              $$$('#selectedDetails').selected = 0;
+            }
           });
 
           function loadData() {
