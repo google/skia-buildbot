@@ -206,7 +206,7 @@ attribute is false.
           </td>
           <td class=both></td>
         </tr>
-        <template if="{{details.topStatus!='positive'}}">
+        <template if="{{details.topStatus !== 'positive' && details.posClosest.digest !== ''}}">
           <tr><th colspan=2 class=sectionHeader>Closest Postive Digest</th></tr>
           <tr>
             <td colspan=2>
@@ -235,7 +235,7 @@ attribute is false.
             </td>
           </tr>
         </template>
-        <template if="{{details.topStatus!='negative'}}">
+        <template if="{{details.topStatus !== 'negative' && details.negClosest.digest !== ''}}">
           <tr><th colspan=2 class=sectionHeader>Closest Negative Digest</th></tr>
           <tr>
             <td colspan=2>
