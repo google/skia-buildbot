@@ -126,13 +126,11 @@
             selected = e.detail;
 
             // The page we display under details depends on the number of digests selected.
-            var detailsPage = 0;
             if (selected.length == 0) {
-              detailsPage = 0;
+              // Do nothing.
             } else if (selected.length == 1) {
               $$$('detail-table-sk').left = selected[0];
               $$$('detail-table-sk').top = selected[0];
-              detailsPage = 1;
             } else if (selected.length == 2) {
               var q = {
                 test: params.name[0],
@@ -142,7 +140,6 @@
               sk.get('_/diff?'+sk.query.fromObject(q)).then(JSON.parse).then(function(json) {
                 $$$('diff-detail-sk').value = json;
               }).catch(sk.errorMessage);
-              detailsPage = 2;
             } else {
               // For 3 or more selected digests just create a rolled up paramset of
               // the selected digests.
@@ -166,10 +163,9 @@
               });
 
               $$$('#selectedParameters').paramset = paramset;
-              detailsPage = 3;
             }
 
-            $$$('#selectedDetails').selected = detailsPage;
+            $$$('#selectedDetails').selected = detailsPage();
             $$$('#pages').selected = 1;
             $$$('#tabs').selected = 1;
           });
@@ -178,8 +174,19 @@
             $$$('#pages').selected = e.target.selected;
             if (e.target.selected == 0) {
               $$$('#selectedDetails').selected = 0;
+            } else {
+              $$$('#selectedDetails').selected = detailsPage();
             }
           });
+
+          // Returns the details page to display based on the number of
+          // digests selected.
+          function detailsPage() {
+            if (selected.length > 3) {
+              return 3;
+            }
+            return selected.length;
+          }
 
           function loadData() {
             sk.get("/_/nxn"+document.location.search).then(JSON.parse).then(function(json) {
