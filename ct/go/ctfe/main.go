@@ -66,30 +66,13 @@ var (
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
-// ChromiumPerfVars is the type used by the Chromium Perf pages.
-type ChromiumPerfVars struct {
-	Benchmark            string `json:"benchmark"`
-	Platform             string `json:"platform"`
-	PageSets             string `json:"page_sets"`
-	RepeatRuns           string `json:"repeat_runs"`
-	BenchmarkArgs        string `json:"benchmark_args"`
-	BrowserArgsNoPatch   string `json:"browser_args_nopatch"`
-	BrowserArgsWithPatch string `json:"browser_args_withpatch"`
-	Description          string `json:"desc"`
-	ChromiumPatch        string `json:"chromium_patch"`
-	BlinkPatch           string `json:"blink_patch"`
-	SkiaPatch            string `json:"skia_patch"`
-	// Username does not have a JSON directive because it is calculated using the login module.
-	Username string
-	// TsAdded does not have a JSON directive because the current time is used.
-	TsAdded string
-}
-
 type CommonCols struct {
 	Id          int64         `db:"id"`
 	TsAdded     sql.NullInt64 `db:"ts_added"`
 	TsStarted   sql.NullInt64 `db:"ts_started"`
 	TsCompleted sql.NullInt64 `db:"ts_completed"`
+	Username    string        `db:"username"`
+	Failure     sql.NullBool  `db:"failure"`
 }
 
 type Task interface {
@@ -107,7 +90,6 @@ func (dbrow *CommonCols) GetAddedTimestamp() int64 {
 type ChromiumPerfDBTask struct {
 	CommonCols
 
-	Username             string         `db:"username"`
 	Benchmark            string         `db:"benchmark"`
 	Platform             string         `db:"platform"`
 	PageSets             string         `db:"page_sets"`
@@ -119,7 +101,6 @@ type ChromiumPerfDBTask struct {
 	ChromiumPatch        string         `db:"chromium_patch"`
 	BlinkPatch           string         `db:"blink_patch"`
 	SkiaPatch            string         `db:"skia_patch"`
-	Failure              sql.NullBool   `db:"failure"`
 	Results              sql.NullString `db:"results"`
 	NoPatchRawOutput     sql.NullString `db:"nopatch_raw_output"`
 	WithPatchRawOutput   sql.NullString `db:"withpatch_raw_output"`
@@ -139,15 +120,8 @@ func (task ChromiumPerfDBTask) Select(query string, args ...interface{}) (interf
 	return result, err
 }
 
-type AdminDBTask struct {
-	CommonCols
-
-	Username string       `db:"username"`
-	Failure  sql.NullBool `db:"failure"`
-}
-
 type RecreatePageSetsDBTask struct {
-	AdminDBTask
+	CommonCols
 
 	PageSets string `db:"page_sets"`
 }
@@ -167,7 +141,7 @@ func (task RecreatePageSetsDBTask) Select(query string, args ...interface{}) (in
 }
 
 type RecreateWebpageArchivesDBTask struct {
-	AdminDBTask
+	CommonCols
 
 	PageSets      string `db:"page_sets"`
 	ChromiumBuild string `db:"chromium_build"`
@@ -278,7 +252,7 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 	return &v32, nil
 }
 
-func chromiumPerfView(w http.ResponseWriter, r *http.Request) {
+func executeSimpleTemplate(template *template.Template, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in local mode.
@@ -286,10 +260,61 @@ func chromiumPerfView(w http.ResponseWriter, r *http.Request) {
 		reloadTemplates()
 	}
 
-	if err := chromiumPerfTemplate.Execute(w, struct{}{}); err != nil {
+	if err := template.Execute(w, struct{}{}); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 		return
 	}
+}
+
+// Data included in all tasks; set by addTaskHandler.
+type AddTaskCommonVars struct {
+	Username string
+	TsAdded  string
+}
+
+type AddTaskVars interface {
+	GetAddTaskCommonVars() *AddTaskCommonVars
+	IsAdminTask() bool
+	GetInsertQueryAndBinds() (string, []interface{})
+}
+
+func (vars *AddTaskCommonVars) GetAddTaskCommonVars() *AddTaskCommonVars {
+	return vars
+}
+
+func (vars *AddTaskCommonVars) IsAdminTask() bool {
+	return false
+}
+
+func addTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
+	if !userHasEditRights(r) {
+		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to add tasks"), "")
+		return
+	}
+	if task.IsAdminTask() && !userHasAdminRights(r) {
+		skutil.ReportError(w, r, fmt.Errorf("Must be admin to add admin tasks; contact rmistry@"), "")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add %v task: %v", task, err))
+		return
+	}
+	defer skutil.Close(r.Body)
+
+	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
+	task.GetAddTaskCommonVars().TsAdded = getCurrentTs()
+
+	query, binds := task.GetInsertQueryAndBinds()
+	_, err := db.DB.Exec(query, binds...)
+	if err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %v task: %v", task, err))
+		return
+	}
+}
+
+func chromiumPerfView(w http.ResponseWriter, r *http.Request) {
+	executeSimpleTemplate(chromiumPerfTemplate, w, r)
 }
 
 func chromiumPerfHandler(w http.ResponseWriter, r *http.Request) {
@@ -319,42 +344,45 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
-	if !userHasEditRights(r) {
-		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to add tasks"), "")
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	chromiumPerfVars := &ChromiumPerfVars{}
-	if err := json.NewDecoder(r.Body).Decode(&chromiumPerfVars); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add chromium perf task: %v", err))
-		return
-	}
-	defer skutil.Close(r.Body)
+// ChromiumPerfVars is the type used by the Chromium Perf pages.
+type ChromiumPerfVars struct {
+	AddTaskCommonVars
 
-	chromiumPerfVars.Username = login.LoggedInAs(r)
-	chromiumPerfVars.TsAdded = getCurrentTs()
+	Benchmark            string `json:"benchmark"`
+	Platform             string `json:"platform"`
+	PageSets             string `json:"page_sets"`
+	RepeatRuns           string `json:"repeat_runs"`
+	BenchmarkArgs        string `json:"benchmark_args"`
+	BrowserArgsNoPatch   string `json:"browser_args_nopatch"`
+	BrowserArgsWithPatch string `json:"browser_args_withpatch"`
+	Description          string `json:"desc"`
+	ChromiumPatch        string `json:"chromium_patch"`
+	BlinkPatch           string `json:"blink_patch"`
+	SkiaPatch            string `json:"skia_patch"`
+}
 
-	_, err := db.DB.Exec(
-		fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);",
+func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}) {
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_PERF_TASKS),
-		chromiumPerfVars.Username,
-		chromiumPerfVars.Benchmark,
-		chromiumPerfVars.Platform,
-		chromiumPerfVars.PageSets,
-		chromiumPerfVars.RepeatRuns,
-		chromiumPerfVars.BenchmarkArgs,
-		chromiumPerfVars.BrowserArgsNoPatch,
-		chromiumPerfVars.BrowserArgsWithPatch,
-		chromiumPerfVars.Description,
-		chromiumPerfVars.ChromiumPatch,
-		chromiumPerfVars.BlinkPatch,
-		chromiumPerfVars.SkiaPatch,
-		chromiumPerfVars.TsAdded)
-	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert chromium perf task: %v", err))
-		return
-	}
+		[]interface{}{
+			task.Username,
+			task.Benchmark,
+			task.Platform,
+			task.PageSets,
+			task.RepeatRuns,
+			task.BenchmarkArgs,
+			task.BrowserArgsNoPatch,
+			task.BrowserArgsWithPatch,
+			task.Description,
+			task.ChromiumPatch,
+			task.BlinkPatch,
+			task.SkiaPatch,
+			task.TsAdded,
+		}
+}
+
+func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
+	addTaskHandler(w, r, &ChromiumPerfVars{})
 }
 
 func dbTaskQuery(prototype Task, username string, includeCompleted bool, countQuery bool, offset int, size int) (string, []interface{}) {
@@ -427,75 +455,25 @@ func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func chromiumPerfRunsHistoryView(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in local mode.
-	if *local {
-		reloadTemplates()
-	}
-
-	if err := chromiumPerfRunsHistoryTemplate.Execute(w, struct{}{}); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
-		return
-	}
+	executeSimpleTemplate(chromiumPerfRunsHistoryTemplate, w, r)
 }
 
 func adminTasksView(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in local mode.
-	if *local {
-		reloadTemplates()
-	}
-
-	if err := adminTasksTemplate.Execute(w, struct{}{}); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
-		return
-	}
+	executeSimpleTemplate(adminTasksTemplate, w, r)
 }
 
-// Data included in all admin tasks; set by addAdminTaskHandler.
-type AdminTaskCommonVars struct {
-	Username string
-	TsAdded  string
+type AdminTaskVars struct {
+	AddTaskCommonVars
 }
 
-type AdminTaskVars interface {
-	GetAdminTaskCommonVars() *AdminTaskCommonVars
-	GetInsertQueryAndBinds() (string, []interface{})
-}
-
-func addAdminTaskHandler(w http.ResponseWriter, r *http.Request, task AdminTaskVars) {
-	if !userHasAdminRights(r) {
-		skutil.ReportError(w, r, fmt.Errorf("Must be admin to add admin tasks; contact rmistry@"), "")
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add admin task: %v", err))
-		return
-	}
-	defer skutil.Close(r.Body)
-
-	task.GetAdminTaskCommonVars().Username = login.LoggedInAs(r)
-	task.GetAdminTaskCommonVars().TsAdded = getCurrentTs()
-
-	query, binds := task.GetInsertQueryAndBinds()
-	_, err := db.DB.Exec(query, binds...)
-	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert admin task: %v", err))
-		return
-	}
+func (vars *AdminTaskVars) IsAdminTask() bool {
+	return true
 }
 
 // Represents the parameters sent as JSON to the add_recreate_page_sets_task handler.
 type RecreatePageSetsTaskHandlerVars struct {
-	AdminTaskCommonVars
+	AdminTaskVars
 	PageSets string `json:"page_sets"`
-}
-
-func (task *RecreatePageSetsTaskHandlerVars) GetAdminTaskCommonVars() *AdminTaskCommonVars {
-	return &task.AdminTaskCommonVars
 }
 
 func (task *RecreatePageSetsTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}) {
@@ -509,18 +487,14 @@ func (task *RecreatePageSetsTaskHandlerVars) GetInsertQueryAndBinds() (string, [
 }
 
 func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addAdminTaskHandler(w, r, &RecreatePageSetsTaskHandlerVars{})
+	addTaskHandler(w, r, &RecreatePageSetsTaskHandlerVars{})
 }
 
 // Represents the parameters sent as JSON to the add_recreate_webpage_archives_task handler.
 type RecreateWebpageArchivesTaskHandlerVars struct {
-	AdminTaskCommonVars
+	AdminTaskVars
 	PageSets      string `json:"page_sets"`
 	ChromiumBuild string `json:"chromium_build"`
-}
-
-func (task *RecreateWebpageArchivesTaskHandlerVars) GetAdminTaskCommonVars() *AdminTaskCommonVars {
-	return &task.AdminTaskCommonVars
 }
 
 func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}) {
@@ -535,35 +509,15 @@ func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (st
 }
 
 func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addAdminTaskHandler(w, r, &RecreateWebpageArchivesTaskHandlerVars{})
+	addTaskHandler(w, r, &RecreateWebpageArchivesTaskHandlerVars{})
 }
 
 func recreatePageSetsRunsHistoryView(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in local mode.
-	if *local {
-		reloadTemplates()
-	}
-
-	if err := recreatePageSetsRunsHistoryTemplate.Execute(w, struct{}{}); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
-		return
-	}
+	executeSimpleTemplate(recreatePageSetsRunsHistoryTemplate, w, r)
 }
 
 func recreateWebpageArchivesRunsHistoryView(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in local mode.
-	if *local {
-		reloadTemplates()
-	}
-
-	if err := recreateWebpageArchivesRunsHistoryTemplate.Execute(w, struct{}{}); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
-		return
-	}
+	executeSimpleTemplate(recreateWebpageArchivesRunsHistoryTemplate, w, r)
 }
 
 func getRecreatePageSetsTasksHandler(w http.ResponseWriter, r *http.Request) {
@@ -594,17 +548,7 @@ func chromiumBuildsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in local mode.
-	if *local {
-		reloadTemplates()
-	}
-
-	if err := runsHistoryTemplate.Execute(w, struct{}{}); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
-		return
-	}
+	executeSimpleTemplate(runsHistoryTemplate, w, r)
 }
 
 func getAllPendingTasks() ([]Task, error) {
@@ -660,17 +604,7 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func pendingTasksView(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
-
-	// Don't use cached templates in local mode.
-	if *local {
-		reloadTemplates()
-	}
-
-	if err := pendingTasksTemplate.Execute(w, struct{}{}); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
-		return
-	}
+	executeSimpleTemplate(pendingTasksTemplate, w, r)
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
