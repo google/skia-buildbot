@@ -254,23 +254,6 @@ server {
     return 301 https://fiddle.skia.org$request_uri;
 }
 
-server {
-    listen      443;
-    server_name skfiddle.com;
-
-    ssl on;
-    ssl_certificate         /etc/nginx/ssl/skfiddle_com.pem;
-    ssl_certificate_key     /etc/nginx/ssl/skfiddle_com.key;
-
-    return 301 https://fiddle.skia.org$request_uri;
-}
-
-server {
-    listen      80;
-    server_name skfiddle.com;
-    return 301 https://fiddle.skia.org$request_uri;
-}
-
 #####   fiddle-staging.skia.org   ###########################
 server {
     listen      443;
