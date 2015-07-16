@@ -132,6 +132,12 @@ type ExpectationsStore interface {
 	// that were part a change.
 	QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error)
 
+	// UndoChange reverts a change by setting all testname/digest pairs of the
+	// original change to the label they had before the change was applied.
+	// A new entry is added to the log with a reference to the change that was
+	// undone.
+	UndoChange(changeID int, userID string) (map[string]types.TestClassification, error)
+
 	// CanonicalTraceIDs returns the cannonical trace IDs for the given list
 	// of test names.
 	CanonicalTraceIDs(testNames []string) (map[string]string, error)
@@ -151,10 +157,12 @@ type TriageDetail struct {
 
 // TriageLogEntry represents one change in the expectation store.
 type TriageLogEntry struct {
-	Name        string          `json:"name"`
-	TS          int64           `json:"ts"`
-	ChangeCount int             `json:"changeCount"`
-	Details     []*TriageDetail `json:"details"`
+	ID           int             `json:"id"`
+	Name         string          `json:"name"`
+	TS           int64           `json:"ts"`
+	ChangeCount  int             `json:"changeCount"`
+	Details      []*TriageDetail `json:"details"`
+	UndoChangeID int             `json:"undoChangeId"`
 }
 
 // Implements ExpectationsStore in memory for prototyping and testing.
@@ -236,6 +244,12 @@ func (m *MemExpectationsStore) RemoveChange(changedDigests map[string][]string) 
 func (m *MemExpectationsStore) QueryLog(offset, size int, details bool) ([]*TriageLogEntry, int, error) {
 	glog.Fatal("MemExpectation store does not support querying the logs.")
 	return nil, 0, nil
+}
+
+// See  ExpectationsStore interface.
+func (m *MemExpectationsStore) UndoChange(changeID int, userID string) (map[string]types.TestClassification, error) {
+	glog.Fatal("MemExpectation store does not support undo.")
+	return nil, nil
 }
 
 // See ExpectationsStore interface.

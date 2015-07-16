@@ -107,6 +107,17 @@ var migrationSteps = []database.MigrationStep{
 		MySQLDown: []string{},
 	},
 
+	// Add the undo field
+	// version 6
+	{
+		MySQLUp: []string{
+			`ALTER TABLE exp_change ADD undo_changeid INT NOT NULL DEFAULT 0`,
+		},
+		MySQLDown: []string{
+			`ALTER TABLE exp_change DROP undo_changeid`,
+		},
+	},
+
 	// Use this is a template for more migration steps.
 	// version x
 	// {
