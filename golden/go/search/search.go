@@ -228,7 +228,7 @@ func digestFromIntermediate(test, digest string, inter *intermediate, e *expstor
 }
 
 // buildDiff creates a Diff for the given intermediate.
-func buildDiff(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *types.Tile, testTally tally.TestTally, blamer *blame.Blamer, diffStore diff.DiffStore, paramset *paramsets.Summary, includeIgnores bool) Diff {
+func buildDiff(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *types.Tile, testTally map[string]tally.Tally, blamer *blame.Blamer, diffStore diff.DiffStore, paramset *paramsets.Summary, includeIgnores bool) Diff {
 	ret := Diff{
 		Diff:  math.MaxFloat32,
 		Pos:   nil,
@@ -238,15 +238,15 @@ func buildDiff(test, digest string, inter *intermediate, e *expstorage.Expectati
 
 	t := testTally[test]
 	if t == nil {
-		t = &tally.Tally{}
+		t = tally.Tally{}
 	}
 	ret.Pos = &DiffDigest{
-		Closest: digesttools.ClosestDigest(test, digest, e, *t, diffStore, gtypes.POSITIVE),
+		Closest: digesttools.ClosestDigest(test, digest, e, t, diffStore, gtypes.POSITIVE),
 	}
 	ret.Pos.ParamSet = paramset.Get(test, ret.Pos.Closest.Digest, includeIgnores)
 
 	ret.Neg = &DiffDigest{
-		Closest: digesttools.ClosestDigest(test, digest, e, *t, diffStore, gtypes.NEGATIVE),
+		Closest: digesttools.ClosestDigest(test, digest, e, t, diffStore, gtypes.NEGATIVE),
 	}
 	ret.Neg.ParamSet = paramset.Get(test, ret.Neg.Closest.Digest, includeIgnores)
 
@@ -260,7 +260,7 @@ func buildDiff(test, digest string, inter *intermediate, e *expstorage.Expectati
 }
 
 // buildTraces returns a Trace for the given intermediate.
-func buildTraces(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *types.Tile, traceTally tally.TraceTally, paramset *paramsets.Summary, includeIgnores bool) Traces {
+func buildTraces(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *types.Tile, traceTally map[string]tally.Tally, paramset *paramsets.Summary, includeIgnores bool) Traces {
 	traceNames := make([]string, 0, len(inter.Traces))
 	for id, _ := range inter.Traces {
 		traceNames = append(traceNames, id)
@@ -288,7 +288,7 @@ func buildTraces(test, digest string, inter *intermediate, e *expstorage.Expecta
 		if !ok {
 			continue
 		}
-		if count, ok := (*t)[digest]; !ok || count == 0 {
+		if count, ok := t[digest]; !ok || count == 0 {
 			continue
 		}
 		trace := inter.Traces[id].(*types.GoldenTrace)
@@ -357,7 +357,7 @@ func blameGroupID(b *blame.BlameDistribution, commits []*types.Commit) string {
 // digestsFromTrace returns all the digests in the given trace, controlled by
 // 'head', and being robust to tallies not having been calculated for the
 // trace.
-func digestsFromTrace(id string, tr types.Trace, head bool, lastCommitIndex int, traceTally map[string]*tally.Tally) []string {
+func digestsFromTrace(id string, tr types.Trace, head bool, lastCommitIndex int, traceTally map[string]tally.Tally) []string {
 	digests := map[string]bool{}
 	if head {
 		// Find the last non-missing value in the trace.
@@ -372,7 +372,7 @@ func digestsFromTrace(id string, tr types.Trace, head bool, lastCommitIndex int,
 	} else {
 		// Use the traceTally if available, otherwise just inspect the trace.
 		if t, ok := traceTally[id]; ok {
-			for k, _ := range *t {
+			for k, _ := range t {
 				digests[k] = true
 			}
 		} else {

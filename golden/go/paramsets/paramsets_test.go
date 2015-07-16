@@ -36,17 +36,17 @@ func TestParamset(t *testing.T) {
 		},
 	}
 
-	tallies := tally.TraceTally{
-		"a": &tally.Tally{
+	tallies := map[string]tally.Tally{
+		"a": tally.Tally{
 			"aaa": 1,
 			"bbb": 1,
 		},
-		"b": &tally.Tally{
+		"b": tally.Tally{
 			"ccc": 1,
 			"ddd": 1,
 			"aaa": 1,
 		},
-		"unknown": &tally.Tally{
+		"unknown": tally.Tally{
 			"ccc": 1,
 			"ddd": 1,
 			"aaa": 1,

@@ -19,18 +19,12 @@ type OnChangeCallback func()
 // Tally maps a digest to a count.
 type Tally map[string]int
 
-// TraceTally maps each trace id to its Tally.
-type TraceTally map[string]*Tally
-
-// TestTally maps each test name to its Tally.
-type TestTally map[string]*Tally
-
 // Tallies allows querying for digest counts in different ways.
 type Tallies struct {
 	mutex      sync.Mutex
 	storages   *storage.Storage
-	traceTally TraceTally
-	testTally  TestTally
+	traceTally map[string]Tally
+	testTally  map[string]Tally
 	callbacks  []OnChangeCallback
 }
 
@@ -73,13 +67,13 @@ func (t *Tallies) OnChange(f OnChangeCallback) {
 	t.callbacks = append(t.callbacks, f)
 }
 
-func (t *Tallies) ByTest() TestTally {
+func (t *Tallies) ByTest() map[string]Tally {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	return t.testTally
 }
 
-func (t *Tallies) ByTrace() TraceTally {
+func (t *Tallies) ByTrace() map[string]Tally {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	return t.traceTally
@@ -96,14 +90,14 @@ func (t *Tallies) ByQuery(query url.Values, includeIgnores bool) (Tally, error) 
 }
 
 // tallyBy does the actual work of ByQuery.
-func tallyBy(tile *types.Tile, traceTally TraceTally, query url.Values) Tally {
+func tallyBy(tile *types.Tile, traceTally map[string]Tally, query url.Values) Tally {
 	ret := Tally{}
 	for k, tr := range tile.Traces {
 		if types.Matches(tr, query) {
 			if _, ok := traceTally[k]; !ok {
 				continue
 			}
-			for digest, n := range *traceTally[k] {
+			for digest, n := range traceTally[k] {
 				if _, ok := ret[digest]; ok {
 					ret[digest] += n
 				} else {
@@ -115,11 +109,11 @@ func tallyBy(tile *types.Tile, traceTally TraceTally, query url.Values) Tally {
 	return ret
 }
 
-// tallyTile computes a TraceTally and TestTally from the given Tile.
-func tallyTile(tile *types.Tile) (TraceTally, TestTally) {
+// tallyTile computes a map[tracename]Tally and map[testname]Tally from the given Tile.
+func tallyTile(tile *types.Tile) (map[string]Tally, map[string]Tally) {
 	defer timer.New("tally").Stop()
-	traceTally := TraceTally{}
-	testTally := TestTally{}
+	traceTally := map[string]Tally{}
+	testTally := map[string]Tally{}
 	for k, tr := range tile.Traces {
 		gtr := tr.(*types.GoldenTrace)
 		tally := Tally{}
@@ -133,14 +127,14 @@ func tallyTile(tile *types.Tile) (TraceTally, TestTally) {
 				tally[s] = 1
 			}
 		}
-		traceTally[k] = &tally
+		traceTally[k] = tally
 		testName := tr.Params()[gtypes.PRIMARY_KEY_FIELD]
 		if t, ok := testTally[testName]; ok {
 			for digest, n := range tally {
-				if _, ok := (*t)[digest]; ok {
-					(*t)[digest] += n
+				if _, ok := t[digest]; ok {
+					t[digest] += n
 				} else {
-					(*t)[digest] = n
+					t[digest] = n
 				}
 			}
 		} else {
@@ -148,7 +142,7 @@ func tallyTile(tile *types.Tile) (TraceTally, TestTally) {
 			for k, v := range tally {
 				cp[k] = v
 			}
-			testTally[testName] = &cp
+			testTally[testName] = cp
 		}
 	}
 	return traceTally, testTally

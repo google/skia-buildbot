@@ -894,8 +894,8 @@ func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test strin
 	// Now find the closest positive and negative digests.
 	t := tallies.ByTest()[test]
 	if closest && t != nil {
-		ret.PosClosest = digesttools.ClosestDigest(test, top, exp, *t, storages.DiffStore, types.POSITIVE)
-		ret.NegClosest = digesttools.ClosestDigest(test, top, exp, *t, storages.DiffStore, types.NEGATIVE)
+		ret.PosClosest = digesttools.ClosestDigest(test, top, exp, t, storages.DiffStore, types.POSITIVE)
+		ret.NegClosest = digesttools.ClosestDigest(test, top, exp, t, storages.DiffStore, types.NEGATIVE)
 	}
 
 	return ret
@@ -912,7 +912,7 @@ func digestIndex(d string, digestInfo []*DigestStatus) int {
 }
 
 // buildTraceData returns a populated []*Trace for all the traces that contain 'digest'.
-func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally tally.TraceTally, exp *expstorage.Expectations) ([]*Trace, []*DigestStatus) {
+func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, traceTally map[string]tally.Tally, exp *expstorage.Expectations) ([]*Trace, []*DigestStatus) {
 	sort.Strings(traceNames)
 	ret := []*Trace{}
 	last := tile.LastCommitIndex()
@@ -931,11 +931,11 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, tally
 		})
 	}
 	for _, id := range traceNames {
-		traceTally, ok := tally[id]
+		t, ok := traceTally[id]
 		if !ok {
 			continue
 		}
-		if count, ok := (*traceTally)[digest]; !ok || count == 0 {
+		if count, ok := t[digest]; !ok || count == 0 {
 			continue
 		}
 		trace := tile.Traces[id].(*ptypes.GoldenTrace)
@@ -1001,7 +1001,7 @@ func polyAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	byTest := tallies.ByTest()
 	hashes := map[string]bool{}
 	for _, test := range byTest {
-		for k, _ := range *test {
+		for k, _ := range test {
 			hashes[k] = true
 		}
 	}

@@ -178,7 +178,7 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 			} else {
 				// Use the traceTally if available, otherwise just inspect the trace.
 				if t, ok := traceTally[trid.id]; ok {
-					for k, _ := range *t {
+					for k, _ := range t {
 						digests[k] = true
 					}
 				} else {
@@ -256,7 +256,7 @@ func (s *Summaries) Search(query string, includeIgnores bool, head bool, pos boo
 			}
 		} else {
 			if t, ok := traceTally[id]; ok {
-				for d, _ := range *t {
+				for d, _ := range t {
 					matches[test+":"+d] = true
 				}
 			}

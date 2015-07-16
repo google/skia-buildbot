@@ -31,20 +31,20 @@ func TestTallyBasic(t *testing.T) {
 	if got, want := len(trace), 2; got != want {
 		t.Errorf("Wrong trace count: Got %v Want %v", got, want)
 	}
-	if got, want := (*trace["foo:x86"])["aaa"], 2; got != want {
+	if got, want := (trace["foo:x86"])["aaa"], 2; got != want {
 		t.Errorf("Miscount: Got %v Want %v", got, want)
 	}
 
 	if got, want := len(test), 1; got != want {
 		t.Errorf("Wrong trace count: Got %v Want %v", got, want)
 	}
-	if got, want := (*test["foo"])["aaa"], 3; got != want {
+	if got, want := (test["foo"])["aaa"], 3; got != want {
 		t.Errorf("Miscount: Got %v Want %v", got, want)
 	}
-	if got, want := (*test["foo"])["bbb"], 1; got != want {
+	if got, want := (test["foo"])["bbb"], 1; got != want {
 		t.Errorf("Miscount: Got %v Want %v", got, want)
 	}
-	if got, want := (*test["foo"])["ccc"], 1; got != want {
+	if got, want := (test["foo"])["ccc"], 1; got != want {
 		t.Errorf("Miscount: Got %v Want %v", got, want)
 	}
 

@@ -31,8 +31,8 @@ func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tall
 					t := tallies.ByTest()[test]
 					if t != nil {
 						// Calculate the closest digest for the side effect of filling in the filediffstore cache.
-						digesttools.ClosestDigest(test, digest, exp, *t, storages.DiffStore, types.POSITIVE)
-						digesttools.ClosestDigest(test, digest, exp, *t, storages.DiffStore, types.NEGATIVE)
+						digesttools.ClosestDigest(test, digest, exp, t, storages.DiffStore, types.POSITIVE)
+						digesttools.ClosestDigest(test, digest, exp, t, storages.DiffStore, types.NEGATIVE)
 					}
 				}
 			}

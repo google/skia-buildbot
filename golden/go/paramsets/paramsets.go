@@ -24,13 +24,13 @@ type Summary struct {
 }
 
 // byTraceForTile calculates all the paramsets from the given tile and tallies.
-func byTraceForTile(tile *ptypes.Tile, tallies tally.TraceTally) map[string]map[string][]string {
+func byTraceForTile(tile *ptypes.Tile, traceTally map[string]tally.Tally) map[string]map[string][]string {
 	ret := map[string]map[string][]string{}
 
-	for id, t := range tallies {
+	for id, t := range traceTally {
 		if tr, ok := tile.Traces[id]; ok {
 			test := tr.Params()[types.PRIMARY_KEY_FIELD]
-			for digest, _ := range *t {
+			for digest, _ := range t {
 				key := test + ":" + digest
 				if _, ok := ret[key]; !ok {
 					ret[key] = map[string][]string{}
