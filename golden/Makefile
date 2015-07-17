@@ -21,6 +21,10 @@ skiacorrectness: skiaversion
 correctness_migratedb: skiaversion
 	go install -v ./go/correctness_migratedb
 
+.PHONY: imagediff
+imagediff:
+	go install -v ./go/imagediff
+
 .PHONY: packages
 packages:
 	go build -v ./go/...
@@ -59,6 +63,6 @@ release: all
 	./build_release "$(MESSAGE)"
 
 .PHONY: allgo
-allgo: skiacorrectness correctness_migratedb
+allgo: skiacorrectness correctness_migratedb imagediff
 
 include ../webtools/webtools.mk
