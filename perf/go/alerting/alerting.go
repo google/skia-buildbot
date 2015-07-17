@@ -241,9 +241,14 @@ func apiKeyFromFlag(apiKeyFlag string) string {
 // updateBugs will find all the bugs the reference the alerting cluster will
 // write them into the ClusterSummary and save it back to the store.
 func updateBugs(c *types.ClusterSummary, issueTracker issues.IssueTracker) error {
-	bugs, err := issueTracker.GetIssues(c.ID)
+	issueSlice, err := issueTracker.FromQuery(fmt.Sprintf(TRACKED_ITEM_URL_TEMPLATE, c.ID))
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to retrieve issue list: %s", err)
+	}
+
+	bugs := make([]int64, 0, len(issueSlice))
+	for _, issue := range issueSlice {
+		bugs = append(bugs, issue.ID)
 	}
 
 	if !util.Int64Equal(bugs, c.Bugs) {
@@ -362,7 +367,7 @@ func Start(ts types.TileStore, apiKeyFlag string) {
 	apiKey := apiKeyFromFlag(apiKeyFlag)
 	var issueTracker issues.IssueTracker = nil
 	if apiKey != "" {
-		issueTracker = issues.NewIssueTracker(apiKey, TRACKED_ITEM_URL_TEMPLATE)
+		issueTracker = issues.NewIssueTracker(apiKey)
 	}
 
 	tileStore = ts

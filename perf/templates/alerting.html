@@ -5,13 +5,11 @@
 
     {{template "header.html" .}}
 
-      <link href="/res/common/imp/sort.html" rel="import" />
-
-      <style type="text/css" media="screen">
-        sort-sk {
-          display: block;
-        }
-      </style>
+    <style type="text/css" media="screen">
+      sort-sk {
+        display: block;
+      }
+    </style>
     <link href="/res/imp/cluster.html" rel="import" />
 </head>
 <body>
@@ -31,6 +29,7 @@
       <form action="/alert_reset/" method="POST" accept-charset="utf-8">
         <button type="submit">Delete all non-Bug alerts. (Dangerous!)</button>
       </form>
+      <error-toast-sk></error-toast-sk>
     </div>
 
   </scaffold-sk>
@@ -55,11 +54,12 @@
           }
           document.body.style.cursor = 'auto';
         }).catch(function(e){
+          sk.errorMessage(e);
           document.body.style.cursor = 'auto';
         });
       };
 
-      sk.DomReady.then(onLoad);
+      sk.WebComponentsReady.then(onLoad);
 
     })();
   </script>
