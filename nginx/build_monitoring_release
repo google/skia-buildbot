@@ -11,7 +11,6 @@ copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
-SOFTLINK="sudo ln -s"
 
 ${INSTALL} --mode=644 -T ./sys/certpoller_monit     ${ROOT}/etc/monit/conf.d/certpoller
 ${INSTALL} --mode=755 -T ./sys/certpoller_init      ${ROOT}/etc/init.d/certpoller
