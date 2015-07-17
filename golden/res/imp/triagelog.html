@@ -89,6 +89,7 @@ chronological order.
           <div class="dateTimeValue">{{entry.ts | toLocalDate}}</div>
           <div class="nameValue">{{entry.name}}</div>
           <div class="changesValue">{{entry.changeCount}}</div>
+          <div class="undo"><paper-button on-click="{{undoHandler}}" data-entryid="{{entry.id}}">Undo</paper-button></div>
         </div>
           <template repeat="{{detail in entry.details}}">
             <div class="tableRow">
@@ -101,9 +102,7 @@ chronological order.
         </template>
       </template>
     </div>
-    <paper-toast id="toast" duration="15000">
-      <div on-tap="{{reload}}">Reload</div>
-    </paper-toast>
+    <error-toast-sk></error-toast-sk>
   </template>
 
   <script>
@@ -123,7 +122,6 @@ chronological order.
 
       // Load or reload the listing.
       reload: function() {
-        var that = this;
         var URL = '_/triagelog?'+sk.query.fromObject(this.page.state);
 
         if (this.pagination !== null) {
@@ -133,14 +131,14 @@ chronological order.
           });
         }
 
-        sk.get(URL).then(JSON.parse).then(function(json) {
-          that.logEntries = json.data;
-          that.pagination = json.pagination;
-        }).catch(function(errorMessage) {
-          var t = that.$.toast;
-          t.text = json.err;
-          t.show();
-        });
+        this.handleServerResponse(sk.get(URL));
+      },
+
+      handleServerResponse: function(promise) {
+        promise.then(JSON.parse).then(function(json) {
+          this.logEntries = json.data;
+          this.pagination = json.pagination;
+        }.bind(this)).catch(sk.errorMessage);
       },
 
       toLocalDate: function(timeStampMS) {
@@ -150,8 +148,12 @@ chronological order.
       detailsToggleChanged: function(event, detail, sender) {
         this.page.state.details = sender.checked;
         this.reload();
+      },
+
+      undoHandler: function(event) {
+          var q = sk.query.fromObject({id: event.target.dataset.entryid});
+          this.handleServerResponse(sk.post('_/triagelog/undo?'+q));
       }
     });
   </script>
 </polymer-element>
-

@@ -365,6 +365,11 @@ func main() {
 	// New Polymer based UI endpoints.
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 
+	// TODO(stephana): Remove the 'poly' prefix from all the handlers and clean
+	// up main2.go by either merging it it into main.go or making it clearer that
+	// it contains all the handlers. Make it clearer what variables are shared
+	// between the different file.
+
 	// All the handlers will be prefixed with poly to differentiate it from the
 	// angular code until the angular code is removed.
 	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
@@ -384,6 +389,7 @@ func main() {
 	router.HandleFunc("/_/test", polyTestHandler).Methods("POST")
 	router.HandleFunc("/_/triage", polyTriageHandler).Methods("POST")
 	router.HandleFunc("/_/triagelog", polyTriageLogHandler).Methods("GET")
+	router.HandleFunc("/_/triagelog/undo", triageUndoHandler).Methods("POST")
 	router.HandleFunc("/byblame", byBlameHandler).Methods("GET")
 	router.HandleFunc("/cluster", templateHandler("cluster.html")).Methods("GET")
 	router.HandleFunc("/search2", search2Handler).Methods("GET") // search2 is currently unused, will replace /search soon.

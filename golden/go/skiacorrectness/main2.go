@@ -374,6 +374,38 @@ func polyTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, logEntries, http.StatusOK, pagination)
 }
 
+// triageUndoHandler performs an "undo" for a given change id.
+// The change id's are returned in the result of polyTriageLogHandler.
+// It accepts one query parameter 'id' which is the id if the change
+// that should be reversed.
+// If successful it retunrs the same result as a call to polyTriageLogHandler
+// to reflect the changed triagelog.
+func triageUndoHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the user and make sure they are logged in.
+	user := login.LoggedInAs(r)
+	if user == "" {
+		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change expectations.")
+		return
+	}
+
+	// Extract the id to undo.
+	changeID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		util.ReportError(w, r, err, "Invalid change id.")
+		return
+	}
+
+	// Do the undo procedure.
+	_, err = storages.ExpectationsStore.UndoChange(changeID, user)
+	if err != nil {
+		util.ReportError(w, r, err, "Unable to undo.")
+		return
+	}
+
+	// Send the same response as a query for the first page.
+	polyTriageLogHandler(w, r)
+}
+
 // PolyTestRequest is the POST'd request body handled by polyTestHandler.
 type PolyTestRequest struct {
 	Test               string `json:"test"`
