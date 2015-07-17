@@ -30,7 +30,9 @@ function setup_symlinks {
   echo "Setup Symlinks"
    $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
      "sudo ln -s -f /usr/bin/clang-3.6 /usr/bin/clang && " \
-     "sudo ln -s -f /usr/bin/clang++-3.6 /usr/bin/clang++" \
+     "sudo ln -s -f /usr/bin/clang++-3.6 /usr/bin/clang++ && " \
+     "sudo ln -s -f /usr/bin/llvm-cov-3.6 /usr/bin/llvm-cov && " \
+     "sudo ln -s -f /usr/bin/llvm-profdata-3.6 /usr/bin/llvm-profdata" \
      || FAILED="$FAILED InstallPackages"
   echo
 }
