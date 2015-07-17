@@ -83,7 +83,12 @@
               </div>
               <detail-table-sk bothcolumns=false></detail-table-sk>
               <diff-detail-sk></diff-detail-sk>
-              <paramset-sk id=selectedParameters></paramset-sk>
+              <div>
+                <h3>Bulk Triage</h3>
+                <tri-sk id=bulk value=""></tri-sk>
+                <h3>Param Set of Selected Digests</h3>
+                <paramset-sk id=selectedParameters></paramset-sk>
+              </div>
             </core-pages>
           </core-pages>
         </div>
@@ -96,6 +101,7 @@
           var selected = [];
           var query = sk.query.toParamSet(document.location.search.slice(1));
           var params = sk.query.toParamSet(query.query[0]);
+          var test = params.name[0];
           var data = {};
 
           $$$('#body').addEventListener('paramset-key-click', function(e){
@@ -122,6 +128,16 @@
             $$$('cluster-sk').setTextNodes(text, e.detail.ctrl);
           });
 
+          $$$('#bulk').addEventListener('change', function(e) {
+            e.stopPropagation();
+            var detail = {
+              test: test,
+              digest: selected,
+              status: e.detail,
+            };
+            this.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
+          });
+
           $$$('#body').addEventListener('digest-select', function(e){
             selected = e.detail;
 
@@ -133,7 +149,7 @@
               $$$('detail-table-sk').top = selected[0];
             } else if (selected.length == 2) {
               var q = {
-                test: params.name[0],
+                test: test,
                 top: selected[selected.length-1],
                 left: selected[0],
               };
@@ -205,7 +221,7 @@
           });
 
           sk.WebComponentsReady.then(function() {
-            $$$('detail-table-sk').test = params.name[0];
+            $$$('detail-table-sk').test = test;
             loadData();
           });
         })();
