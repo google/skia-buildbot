@@ -14,7 +14,7 @@ function install_packages {
     "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password tmp_pass' && " \
     "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password tmp_pass' && " \
     "sudo apt-get -y install mercurial mysql-client mysql-server valgrind libosmesa-dev npm " \
-    "  nodejs-legacy libexpat1-dev:i386 && " \
+    "  nodejs-legacy libexpat1-dev:i386 clang-3.6 && " \
     "mysql -uroot -ptmp_pass -e \"SET PASSWORD = PASSWORD('');\" && " \
     "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && " \
     "mkdir -p ~/.config/google-chrome && touch ~/.config/google-chrome/First\ Run && " \
@@ -28,9 +28,10 @@ function setup_symlinks {
   # Add new symlinks that are not yet part of the image below.
   echo
   echo "Setup Symlinks"
-  # $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-  #   "sudo ln -s -f /usr/bin/ccache /usr/local/bin/cc" \
-  #   || FAILED="$FAILED InstallPackages"
+   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+     "sudo ln -s -f /usr/bin/clang-3.6 /usr/bin/clang && " \
+     "sudo ln -s -f /usr/bin/clang++-3.6 /usr/bin/clang++" \
+     || FAILED="$FAILED InstallPackages"
   echo
 }
 
