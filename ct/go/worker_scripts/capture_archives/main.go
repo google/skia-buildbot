@@ -85,7 +85,7 @@ func main() {
 	}
 	// TODO(rmistry): Remove this hack once the 1M webpage archives have been captured.
 	glog.Infof("The length of fileInfos is: %s", len(fileInfos))
-	fileInfos = fileInfos[17500:18500]
+	fileInfos = fileInfos[18500:20000]
 	glog.Infof("The fileInfos are: %s", fileInfos)
 	for _, fileInfo := range fileInfos {
 		pagesetBaseName := filepath.Base(fileInfo.Name())
