@@ -1,0 +1,14 @@
+[Unit]
+Description=GrandCentral event server.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/grandcentral -use_metadata=true -host=grandcentral.skia.org --log_dir=/var/log/logserver
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

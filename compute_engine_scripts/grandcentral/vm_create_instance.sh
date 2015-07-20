@@ -7,7 +7,7 @@ set -x
 source vm_config.sh
 
 GRANDCENTRAL_MACHINE_TYPE=n1-highmem-16
-GRANDCENTRAL_SOURCE_SNAPSHOT=skia-pushable-base
+GRANDCENTRAL_SOURCE_SNAPSHOT=skia-systemd-pushable-base
 GRANDCENTRAL_SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
 GRANDCENTRAL_IP_ADDRESS=104.154.112.109
 
