@@ -14,6 +14,7 @@ import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 import time
 
 
@@ -37,6 +38,9 @@ PID_FILE = os.path.join('build', 'slave', 'twistd.pid')
 # is launched.  If PID_FILE is not written by then, we assume an error occurred.
 PID_TIMEOUT = 60.0
 
+# Cronjob entry that triggers the update of the Android toolkit. This will
+# be expanded with the path of the run_daily.sh script.
+CRON_ENTRY_TMPL = "00 3 * * * %s"
 
 logger = None
 
@@ -257,6 +261,36 @@ python launch_slaves.py
   return CollectedArgs()
 
 
+def setup_cronjob():
+  # We only support Mac and Linux and assume the sdk is installed in HOME.
+  if sys.platform.startswith('linux'):
+    sdk_dir = "android-sdk-linux"
+  elif sys.platform.startswith('darwin'):
+    sdk_dir = "android-sdk-macosx"
+  else:
+    return
+
+  android_path = os.path.join(os.environ["HOME"], sdk_dir)
+  if not os.path.exists(android_path):
+    raise Exception('Android SDK not installed at %s' % android_path)
+
+  try:
+    crontab_file = ""
+    c_file = tempfile.NamedTemporaryFile(delete=False)
+    script_path = os.path.join(buildbot_path,"scripts", "run_daily.sh")
+    c_file.write((CRON_ENTRY_TMPL % script_path) + "\n")
+    c_file.close()
+    crontab_file = c_file.name
+    subprocess.call(["crontab", "-r"])
+    subprocess.call(["crontab", crontab_file])
+  finally:
+    try:
+      os.remove(crontab_file)
+    except OSError as e:
+      if e.errno != errno.EEXIST:
+        raise
+
+
 def main():
   """ Launch local build slave instances """
   # Gather command-line arguments.
@@ -284,6 +318,9 @@ def main():
   # Launch the build slaves
   for slavename, slave_num, is_internal in slaves:
     RunSlave(slavename, slave_num, is_internal)
+
+  # Set up cron jobs.
+  setup_cronjob()
 
 
 if '__main__' == __name__:
