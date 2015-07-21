@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Chromium Perf Runs</title>
+    <title>Chromium Builds Runs</title>
     {{template "header.html" .}}
   </head>
   <body>
@@ -16,8 +16,8 @@
             {{template "drawer.html" .}}
           </div>
           <div main class="scrollable">
-            <section id=chromium_perf_runs_history class="left_padded">
-              <chromium-perf-runs-sk id="chromium_perf_runs"></chromium-perf-runs-sk>
+            <section class="left_padded">
+              <chromium-build-runs-sk></chromium-build-runs-sk>
             </section>
           </div>
         </paper-drawer-panel>

@@ -21,24 +21,42 @@ this.chromiumBuild = this.chromiumBuild || function() {
   var chromiumBuild = {};
 
   /**
-   * Returns a Promise that resolves to an array of builds.
+   * Returns a Promise that resolves to an array of completed builds.
    **/
   chromiumBuild.getBuilds = function() {
-    return sk.post('/_/chromium_builds/').then(JSON.parse);
+    var queryParams = {
+      "size": 20,
+      "successful": true,
+    }
+    var queryStr = "?" + sk.query.fromObject(queryParams);
+    return sk.post("/_/get_chromium_build_tasks" + queryStr)
+        .then(JSON.parse)
+        .then(function (json) {
+          return json.data;
+        });
   }
 
   /**
    * Returns an identifier for the given build.
    **/
-  chromiumBuild.getKey = function(chromiumBuild) {
-    return chromiumBuild.key;
+  chromiumBuild.getKey = function(build) {
+    return build.ChromiumRev + "-" + build.SkiaRev;
+  }
+
+  /**
+   * Returns a more human-readable GIT commit hash.
+   */
+  chromiumBuild.shortHash = function(commitHash) {
+    return commitHash.substr(0, 7);
   }
 
   /**
    * Returns a short description for the given build.
    **/
-  chromiumBuild.getDescription = function(chromiumBuild) {
-    return chromiumBuild.description;
+  chromiumBuild.getDescription = function(build) {
+    return chromiumBuild.shortHash(build.ChromiumRev) + "-" +
+        chromiumBuild.shortHash(build.SkiaRev) + " (Chromium rev created on " +
+        getFormattedTimestamp(build.ChromiumRevTs.Int64) + ")";
   }
 
   return chromiumBuild;

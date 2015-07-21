@@ -1,28 +1,18 @@
 <!--
-  This in an HTML Import-able file that contains the definition
-  of the following elements:
+  The <admin-tasks-sk> custom element declaration. Displays a form that allows the user to queue
+  either a recreate page sets task or recreate webpage archives task.
 
-    <admin-tasks-sk>
+  Attributes:
+    selectedTab: One of "pagesets" or "archives" to control which tab to display initially, default "pagesets".
+    pageSetsToDesc: Map of page sets to their descriptions. Must be set.
+    chromiumBuilds: List of all supported Chromium builds, as accepted by chromium-build-selector-sk
+      attribute chromiumBuilds. Must be set.
 
-  This file is imported by elements.html, so any page that imports
-  elements.html need not import it again. Otherwise, to use this file,
-  import it:
+  Events:
+    None.
 
-    <link href="/res/imp/admin-tasks-sk.html" rel="import" />
-
-  Usage:
-
-    <admin-tasks-sk></admin-tasks-sk>
-    <script>
-      $$$('admin-tasks-sk').pageSetsToDesc = ...;
-      $$$('admin-tasks-sk').chromiumBuilds = ...;
-    </script>
-
-  Properties:
-
-    pageSetsToDesc: Map of page sets to their descriptions.
-    chromiumBuilds: List of all supported Chromium builds, as accepted by
-      chromium-build-selector-sk property chromiumBuilds.
+  Methods:
+    None.
 -->
 
 <dom-module id="admin-tasks-sk">
@@ -43,6 +33,10 @@
       display: none;
     }
 
+    table.options {
+      margin: auto
+    }
+
     table.options td {
       padding: 1em 2em;
     }
@@ -50,6 +44,11 @@
     td.center {
       text-align:center;
       padding-top:2em;
+    }
+
+    .panel {
+      @apply(--shadow-elevation-2dp);
+      margin-right: 10px
     }
   </style>
   <template>
@@ -60,44 +59,46 @@
       <paper-button id="task_confirm" autofocus>OK</paper-button>
     </paper-dialog>
 
-    <paper-tabs id="tabs" attr-for-selected="id" selected="{{selectedTab}}" noink>
-      <paper-tab id="pagesets">Recreate Pagesets</paper-tab>
-      <paper-tab id="archives">Recreate Webpage Archives</paper-tab>
-    </paper-tabs>
+    <div class="panel">
+      <paper-tabs id="tabs" attr-for-selected="id" selected="{{selectedTab}}" noink>
+        <paper-tab id="pagesets">Recreate Pagesets</paper-tab>
+        <paper-tab id="archives">Recreate Webpage Archives</paper-tab>
+      </paper-tabs>
 
-    <table class="options">
-      <tr>
-        <td>PageSets Type</td>
-        <td>
-          <iron-selector attr-for-selected="id" id="page_sets" selected="10k"
-                         class="medium-field">
-            <template is="dom-repeat" items="{{pageSets}}">
-              <div id="{{item.key}}">{{item.description}}</div>
-            </template>
-          </iron-selector>
-        </td>
-      </tr>
+      <table class="options">
+        <tr>
+          <td>PageSets Type</td>
+          <td>
+            <iron-selector attr-for-selected="id" id="page_sets" selected="10k"
+                           class="medium-field">
+              <template is="dom-repeat" items="{{pageSets}}">
+                <div id="{{item.key}}">{{item.description}}</div>
+              </template>
+            </iron-selector>
+          </td>
+        </tr>
 
-      <tr id="chromium_build_row" class="hidden">
-        <td>Chromium Build</td>
-        <td>
-          <chromium-build-selector-sk id="chromium_build" class="medium-field"
-                                      chromium-builds="{{chromiumBuilds}}">
-          </chromium-build-selector-sk>
-        </td>
-      </tr>
+        <tr id="chromium_build_row" class="hidden">
+          <td>Chromium Build</td>
+          <td>
+            <chromium-build-selector-sk id="chromium_build"
+                                        chromium-builds="{{chromiumBuilds}}">
+            </chromium-build-selector-sk>
+          </td>
+        </tr>
 
-      <tr>
-        <td colspan="2" class="center">
-          <paper-button raised id="submit_task">Queue Task</paper-button>
-        </td>
-      </tr>
-      <tr>
-        <td colspan="2" class="center">
-          <paper-button raised id="view_history">View runs history</paper-button>
-        </td>
-      </tr>
-    </table>
+        <tr>
+          <td colspan="2" class="center">
+            <paper-button raised id="submit_task">Queue Task</paper-button>
+          </td>
+        </tr>
+        <tr>
+          <td colspan="2" class="center">
+            <paper-button raised id="view_history">View runs history</paper-button>
+          </td>
+        </tr>
+      </table>
+    </div>
   </template>
 </dom-module>
 

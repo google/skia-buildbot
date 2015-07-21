@@ -1,0 +1,166 @@
+<!--
+  The <chromium-build-runs-sk> custom element declaration. Displays a table with details about each
+  completed and pending Chromium build task.
+
+  Attributes:
+    defaultSize: The number of Chromium build runs to show per page, default 5.
+
+  Events:
+    None.
+
+  Methods:
+    reload: queries for updated information on Chromium build runs.
+-->
+
+<dom-module id="chromium-build-runs-sk">
+  <style>
+    paper-dialog {
+      min-width: 200px;
+    }
+    table.runshistory {
+      border-spacing: 0px;
+    }
+    tr.headers {
+      background-color: #CCCCFF;
+      text-align: center;
+    }
+    td.nowrap {
+      white-space: nowrap;
+    }
+    table.runshistory > tbody > tr > td {
+      padding: 10px;
+      border: solid black 1px;
+    }
+  </style>
+  <template>
+
+    <h2>Chromium Builds</h2>
+    <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
+    <br/>
+
+    <table class="runshistory" id="runshistory" cellpadding="5" border="1">
+      <tr class="headers">
+        <td>Id</td>
+        <td>Chromium Commit Hash</td>
+        <td>Submitted On</td>
+        <td>Skia Commit Hash</td>
+        <td>User</td>
+        <td>Timestamps</td>
+        <td>Results</td>
+      </tr>
+
+      <template is="dom-repeat" items="{{chromiumBuilds}}" as="chromiumBuild" index-as="index">
+        <tr style="border: 1px solid black;">
+          <!-- Id col -->
+          <td>{{chromiumBuild.Id}}</td>
+
+          <!-- Chromium Commit Hash col -->
+          <td><a href="{{chromiumCommitUrl(chromiumBuild.ChromiumRev)}}">{{shortHash(chromiumBuild.ChromiumRev)}}</a></td>
+
+          <!-- Submitted On col -->
+          <td class="nowrap">{{ formatTimestamp(chromiumBuild.ChromiumRevTs.Int64) }}</td>
+
+          <!-- Skia Commit Hash col -->
+          <td><a href="{{skiaCommitUrl(chromiumBuild.SkiaRev)}}">{{shortHash(chromiumBuild.SkiaRev)}}</a></td>
+
+          <!-- User col -->
+          <td>{{chromiumBuild.Username}}</td>
+
+          <!-- Timestamps col -->
+          <td>
+            <table>
+              <tr>
+                <td>Requested:</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumBuild.TsAdded.Int64) }}</td>
+              </tr>
+              <tr>
+                <td>Started:</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumBuild.TsStarted.Int64) }}</td>
+              </tr>
+              <tr>
+                <td>Completed:</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumBuild.TsCompleted.Int64) }}</td>
+              </tr>
+            </table>
+          </td>
+
+          <!-- Results col -->
+          <td class="nowrap">
+            <template is="dom-if" if="{{chromiumBuild.Failure.Bool}}">
+              <div style="color:red;">Failed</div>
+            </template>
+            <template is="dom-if" if="{{!chromiumBuild.TsCompleted.Int64}}">
+              <div style="color:green;">Waiting</div>
+            </template>
+            <template is="dom-if"
+                      if="{{isDone(chromiumBuild.Failure.Bool, chromiumBuild.TsCompleted.Int64)}}">
+              Done
+            </template>
+            <template is="dom-if" if="{{chromiumBuild.Log.String}}">
+              <a href="{{chromiumBuild.Log.String}}" target="_blank">log</a>
+            </template>
+          </td>
+
+        </tr>
+      </template>
+    </table>
+
+  </template>
+</dom-module>
+
+<script>
+   Polymer({
+     is: "chromium-build-runs-sk",
+     properties: {
+       chromiumBuilds: {
+         type: Array,
+         value: function() { return []; },
+       },
+       defaultSize: {
+         type: Number,
+         value: 5,
+       },
+       pagination: {
+         type: Object,
+         value: function() { return {}; },
+       },
+       pageChangedHandler: {
+         type: Object,
+         value: function() { return null; },
+       },
+     },
+
+     ready: function() {
+       this.pagination = {"offset": 0, "size": this.defaultSize};
+       this.pageChangedHandler = this.reload.bind(this);
+       this.reload();
+     },
+
+     reload: function() {
+       var queryParams = {
+         "offset": this.pagination.offset,
+         "size": this.pagination.size,
+       }
+       var queryStr = "?" + sk.query.fromObject(queryParams);
+       sk.post("/_/get_chromium_build_tasks" + queryStr).then(JSON.parse).then(function(json) {
+         this.pagination = json.pagination;
+         this.chromiumBuilds = json.data;
+       }.bind(this)).catch(sk.errorMessage);
+     },
+
+     chromiumCommitUrl: function(rev) {
+       return "https://chromium.googlesource.com/chromium/src.git/+/" + rev;
+     },
+
+     skiaCommitUrl: function(rev) {
+       return "https://skia.googlesource.com/skia/+/" + rev;
+     },
+
+     shortHash: chromiumBuild.shortHash,
+     formatTimestamp: getFormattedTimestamp,
+
+     isDone: function(failure, tsCompleted) {
+       return !failure && tsCompleted;
+     },
+  });
+</script>

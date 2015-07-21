@@ -1,24 +1,19 @@
 <!--
-  This in an HTML Import-able file that contains the definition
-  of the following elements:
+  The <chromium-perf-sk> custom element declaration. Displays a form that allows the user to queue a
+  task to test Chromium/Skia performance.
 
-    <chromium-perf-sk>
+  Attributes:
+    benchmarks: Which benchmarks to show. Must be set.
+    platformsToDesc: Map of platforms to their descriptions. Must be set.
+    platforms: List of all supported platforms. Must be set.
+    pageSetsToDesc: Map of page sets to their descriptions. Must be set.
+    pageSets: List of all supported page sets. Must be set.
 
-  To use this file import it:
+  Events:
+    None.
 
-    <link href="/res/imp/chromium-perf-sk.html" rel="import" />
-
-  Usage:
-
-    <chromium-perf-sk></chromium-perf-sk>
-
-  Properties:
-
-    benchmarks: Which benchmarks to show.
-    platformsToDesc: Map of platforms to their descriptions.
-    platforms: List of all supported platforms.
-    pageSetsToDesc: Map of page sets to their descriptions.
-    pageSets: List of all supported page sets.
+  Methods:
+    None.
 -->
 
 <dom-module id="chromium-perf-sk">
@@ -61,16 +56,20 @@
       text-align:center;
       padding-top:2em;
     }
+
+    .panel {
+      @apply(--shadow-elevation-2dp);
+    }
   </style>
   <template>
 
-  <paper-dialog heading="Confirmation" id="confirm_dialog">
-    <div>Proceed with queueing task?</div>
-    <paper-button id="task_dismiss">Cancel</paper-button>
-    <paper-button id="task_confirm" autofocus>OK</paper-button>
-  </paper-dialog>
+    <paper-dialog heading="Confirmation" id="confirm_dialog">
+      <div>Proceed with queueing task?</div>
+      <paper-button id="task_dismiss">Cancel</paper-button>
+      <paper-button id="task_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
 
-    <table class="options">
+    <table class="options panel">
       <tr>
         <td>Benchmark Name</td>
         <td>

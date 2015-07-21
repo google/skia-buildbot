@@ -5,12 +5,18 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -36,24 +42,37 @@ const (
 
 	// Maximum page size used for pagination.
 	MAX_PAGE_SIZE = 100
+
+	// URL returning the GIT commit hash of the last known good release of Chromium.
+	CHROMIUM_LKGR_URL = "http://chromium-status.appspot.com/git-lkgr"
+	// Base URL of the Chromium GIT repository, to be followed by commit hash.
+	CHROMIUM_GIT_REPO_URL = "https://chromium.googlesource.com/chromium/src.git/+/"
+	// URL of a base64-encoded file that includes the GIT commit hash last known good release of Skia.
+	CHROMIUM_DEPS_FILE = "https://chromium.googlesource.com/chromium/src/+/master/DEPS?format=TEXT"
+	// Base URL of the Skia GIT repository, to be followed by commit hash.
+	SKIA_GIT_REPO_URL = "https://skia.googlesource.com/skia/+/"
 )
 
 var (
 	taskTables = []string{
 		db.TABLE_CHROMIUM_PERF_TASKS,
+		db.TABLE_CHROMIUM_BUILD_TASKS,
 		db.TABLE_RECREATE_PAGE_SETS_TASKS,
 		db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS,
 	}
 
 	chromiumPerfTemplate                       *template.Template = nil
 	chromiumPerfRunsHistoryTemplate            *template.Template = nil
+	chromiumBuildsTemplate                     *template.Template = nil
+	chromiumBuildRunsHistoryTemplate           *template.Template = nil
 	adminTasksTemplate                         *template.Template = nil
 	recreatePageSetsRunsHistoryTemplate        *template.Template = nil
 	recreateWebpageArchivesRunsHistoryTemplate *template.Template = nil
 	runsHistoryTemplate                        *template.Template = nil
 	pendingTasksTemplate                       *template.Template = nil
 
-	dbClient *influxdb.Client = nil
+	dbClient   *influxdb.Client = nil
+	httpClient                  = skutil.NewTimeoutClient()
 )
 
 // flags
@@ -120,6 +139,28 @@ func (task ChromiumPerfDBTask) Select(query string, args ...interface{}) (interf
 	return result, err
 }
 
+type ChromiumBuildDBTask struct {
+	CommonCols
+
+	ChromiumRev   string        `db:"chromium_rev"`
+	ChromiumRevTs sql.NullInt64 `db:"chromium_rev_ts"`
+	SkiaRev       string        `db:"skia_rev"`
+}
+
+func (task ChromiumBuildDBTask) GetTaskName() string {
+	return "ChromiumBuild"
+}
+
+func (task ChromiumBuildDBTask) TableName() string {
+	return db.TABLE_CHROMIUM_BUILD_TASKS
+}
+
+func (task ChromiumBuildDBTask) Select(query string, args ...interface{}) (interface{}, error) {
+	result := []ChromiumBuildDBTask{}
+	err := db.DB.Select(&result, query, args...)
+	return result, err
+}
+
 type RecreatePageSetsDBTask struct {
 	CommonCols
 
@@ -176,6 +217,19 @@ func reloadTemplates() {
 	))
 	chromiumPerfRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/chromium_perf_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
+	))
+
+	chromiumBuildsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/chromium_builds.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
+	))
+	chromiumBuildRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/chromium_build_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/drawer.html"),
@@ -275,7 +329,7 @@ type AddTaskCommonVars struct {
 type AddTaskVars interface {
 	GetAddTaskCommonVars() *AddTaskCommonVars
 	IsAdminTask() bool
-	GetInsertQueryAndBinds() (string, []interface{})
+	GetInsertQueryAndBinds() (string, []interface{}, error)
 }
 
 func (vars *AddTaskCommonVars) GetAddTaskCommonVars() *AddTaskCommonVars {
@@ -297,7 +351,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add %v task: %v", task, err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add %T task: %v", task, err))
 		return
 	}
 	defer skutil.Close(r.Body)
@@ -305,10 +359,14 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
 	task.GetAddTaskCommonVars().TsAdded = getCurrentTs()
 
-	query, binds := task.GetInsertQueryAndBinds()
-	_, err := db.DB.Exec(query, binds...)
+	query, binds, err := task.GetInsertQueryAndBinds()
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %v task: %v", task, err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshall %T task: %v", task, err))
+		return
+	}
+	_, err = db.DB.Exec(query, binds...)
+	if err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task: %v", task, err))
 		return
 	}
 }
@@ -361,7 +419,14 @@ type ChromiumPerfVars struct {
 	SkiaPatch            string `json:"skia_patch"`
 }
 
-func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}) {
+func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+	if task.Benchmark == "" ||
+		task.Platform == "" ||
+		task.PageSets == "" ||
+		task.RepeatRuns == "" ||
+		task.Description == "" {
+		return "", nil, fmt.Errorf("Invalid parameters")
+	}
 	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_PERF_TASKS),
 		[]interface{}{
@@ -378,14 +443,26 @@ func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}) {
 			task.BlinkPatch,
 			task.SkiaPatch,
 			task.TsAdded,
-		}
+		},
+		nil
 }
 
 func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
 	addTaskHandler(w, r, &ChromiumPerfVars{})
 }
 
-func dbTaskQuery(prototype Task, username string, includeCompleted bool, countQuery bool, offset int, size int) (string, []interface{}) {
+// Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
+func parseBoolFormValue(string string) bool {
+	if string == "" {
+		return false
+	} else if val, err := strconv.ParseBool(string); val == false && err == nil {
+		return false
+	} else {
+		return true
+	}
+}
+
+func dbTaskQuery(prototype Task, username string, successful bool, includeCompleted bool, countQuery bool, offset int, size int) (string, []interface{}) {
 	args := []interface{}{}
 	query := "SELECT "
 	if countQuery {
@@ -394,11 +471,20 @@ func dbTaskQuery(prototype Task, username string, includeCompleted bool, countQu
 		query += "*"
 	}
 	query += fmt.Sprintf(" FROM %s", prototype.TableName())
+	clauses := []string{}
 	if username != "" {
-		query += " WHERE username=?"
+		clauses = append(clauses, "username=?")
 		args = append(args, username)
-	} else if !includeCompleted {
-		query += " WHERE ts_completed IS NULL"
+	}
+	if successful {
+		clauses = append(clauses, "(ts_completed IS NOT NULL AND failure = 0)")
+	}
+	if !includeCompleted {
+		clauses = append(clauses, "ts_completed IS NULL")
+	}
+	if len(clauses) > 0 {
+		query += " WHERE "
+		query += strings.Join(clauses, " AND ")
 	}
 	if !countQuery {
 		query += " ORDER BY id DESC LIMIT ?,?"
@@ -412,13 +498,18 @@ func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 
 	// Filter by either username or not started yet.
 	username := r.FormValue("username")
-	notCompleted := r.FormValue("not_completed")
+	successful := parseBoolFormValue(r.FormValue("successful"))
+	includeCompleted := !parseBoolFormValue(r.FormValue("not_completed"))
+	if successful && !includeCompleted {
+		skutil.ReportError(w, r, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "")
+		return
+	}
 	offset, size, err := skutil.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to get pagination params: %v", err))
 		return
 	}
-	query, args := dbTaskQuery(prototype, username, notCompleted == "", false, offset, size)
+	query, args := dbTaskQuery(prototype, username, successful, includeCompleted, false, offset, size)
 	glog.Infof("Running %s", query)
 	data, err := prototype.Select(query, args...)
 	if err != nil {
@@ -426,7 +517,7 @@ func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query, args = dbTaskQuery(prototype, username, notCompleted == "", true, 0, 0)
+	query, args = dbTaskQuery(prototype, username, successful, includeCompleted, true, 0, 0)
 	// Get the total count.
 	glog.Infof("Running %s", query)
 	countVal := []int{}
@@ -458,6 +549,146 @@ func chromiumPerfRunsHistoryView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(chromiumPerfRunsHistoryTemplate, w, r)
 }
 
+func chromiumBuildsView(w http.ResponseWriter, r *http.Request) {
+	executeSimpleTemplate(chromiumBuildsTemplate, w, r)
+}
+
+type AddChromiumBuildTaskVars struct {
+	AddTaskCommonVars
+
+	ChromiumRev   string `json:"chromium_rev"`
+	ChromiumRevTs string `json:"chromium_rev_ts"`
+	SkiaRev       string `json:"skia_rev"`
+}
+
+func (task *AddChromiumBuildTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+	if task.ChromiumRev == "" ||
+		task.SkiaRev == "" ||
+		task.ChromiumRevTs == "" {
+		return "", nil, fmt.Errorf("Invalid parameters")
+	}
+	// Example timestamp format: "Wed Jul 15 13:42:19 2015"
+	parsedTs, err := time.Parse(time.ANSIC, task.ChromiumRevTs)
+	if err != nil {
+		return "", nil, err
+	}
+	chromiumRevTs := parsedTs.UTC().Format("20060102150405")
+	return fmt.Sprintf("INSERT INTO %s (username,chromium_rev,chromium_rev_ts,skia_rev,ts_added) VALUES (?,?,?,?,?);",
+			db.TABLE_CHROMIUM_BUILD_TASKS),
+		[]interface{}{
+			task.Username,
+			task.ChromiumRev,
+			chromiumRevTs,
+			task.SkiaRev,
+			task.TsAdded,
+		},
+		nil
+}
+
+func addChromiumBuildTaskHandler(w http.ResponseWriter, r *http.Request) {
+	addTaskHandler(w, r, &AddChromiumBuildTaskVars{})
+}
+
+func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	revString := r.FormValue("rev")
+	if revString == "" {
+		skutil.ReportError(w, r, fmt.Errorf("No revision specified"), "")
+		return
+	}
+
+	if strings.EqualFold(revString, "LKGR") {
+		lkgr, err := getLkgr()
+		if err != nil {
+			skutil.ReportError(w, r, fmt.Errorf("Unable to retrieve LKGR revision"), "")
+		}
+		glog.Infof("Retrieved LKGR commit hash: %s", lkgr)
+		revString = lkgr
+	}
+	commitUrl := gitRepoUrl + revString + "?format=JSON"
+	glog.Infof("Reading revision detail from %s", commitUrl)
+	resp, err := httpClient.Get(commitUrl)
+	if err != nil {
+		skutil.ReportError(w, r, err, "Unable to retrieve revision detail")
+		return
+	}
+	defer skutil.Close(resp.Body)
+	if resp.StatusCode == 404 {
+		// Return successful empty response, since the user could be typing.
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
+			skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+			return
+		}
+		return
+	}
+	if resp.StatusCode != 200 {
+		skutil.ReportError(w, r, fmt.Errorf("Unable to retrieve revision detail"), "")
+		return
+	}
+	// Remove junk in the first line. https://code.google.com/p/gitiles/issues/detail?id=31
+	bufBody := bufio.NewReader(resp.Body)
+	if _, err = bufBody.ReadString('\n'); err != nil {
+		skutil.ReportError(w, r, err, "Unable to retrieve revision detail")
+		return
+	}
+	if _, err = io.Copy(w, bufBody); err != nil {
+		skutil.ReportError(w, r, err, "Unable to retrieve revision detail")
+		return
+	}
+}
+
+func getChromiumLkgr() (string, error) {
+	glog.Infof("Reading Chromium LKGR from %s", CHROMIUM_LKGR_URL)
+	resp, err := httpClient.Get(CHROMIUM_LKGR_URL)
+	if err != nil {
+		return "", err
+	}
+	defer skutil.Close(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return bytes.NewBuffer(body).String(), nil
+}
+
+func getChromiumRevDataHandler(w http.ResponseWriter, r *http.Request) {
+	getRevDataHandler(getChromiumLkgr, CHROMIUM_GIT_REPO_URL, w, r)
+}
+
+var skiaRevisionRegexp = regexp.MustCompile("'skia_revision': '([0-9a-fA-F]{2,40})'")
+
+// Copied from https://github.com/google/skia-buildbot/blob/016cce36f0cd487c9586b013979705e49dd76f8e/appengine_scripts/skia-tree-status/status.py#L178
+// to work around 403 error.
+func getSkiaLkgr() (string, error) {
+	glog.Infof("Reading Skia LKGR from %s", CHROMIUM_DEPS_FILE)
+	resp, err := httpClient.Get(CHROMIUM_DEPS_FILE)
+	if err != nil {
+		return "", err
+	}
+	defer skutil.Close(resp.Body)
+	decodedBody, err := ioutil.ReadAll(base64.NewDecoder(base64.StdEncoding, resp.Body))
+	if err != nil {
+		return "", err
+	}
+	regexpMatches := skiaRevisionRegexp.FindSubmatch(decodedBody)
+	if regexpMatches == nil || len(regexpMatches) < 2 || len(regexpMatches[1]) == 0 {
+		return "", fmt.Errorf("Could not find skia_revision in %s", CHROMIUM_DEPS_FILE)
+	}
+	return bytes.NewBuffer(regexpMatches[1]).String(), nil
+}
+
+func getSkiaRevDataHandler(w http.ResponseWriter, r *http.Request) {
+	getRevDataHandler(getSkiaLkgr, SKIA_GIT_REPO_URL, w, r)
+}
+
+func chromiumBuildRunsHistoryView(w http.ResponseWriter, r *http.Request) {
+	executeSimpleTemplate(chromiumBuildRunsHistoryTemplate, w, r)
+}
+
+func getChromiumBuildTasksHandler(w http.ResponseWriter, r *http.Request) {
+	getTasksHandler(&ChromiumBuildDBTask{}, w, r)
+}
+
 func adminTasksView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(adminTasksTemplate, w, r)
 }
@@ -476,14 +707,18 @@ type RecreatePageSetsTaskHandlerVars struct {
 	PageSets string `json:"page_sets"`
 }
 
-func (task *RecreatePageSetsTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}) {
+func (task *RecreatePageSetsTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+	if task.PageSets == "" {
+		return "", nil, fmt.Errorf("Invalid parameters")
+	}
 	return fmt.Sprintf("INSERT INTO %s (username,page_sets,ts_added) VALUES (?,?,?);",
 			db.TABLE_RECREATE_PAGE_SETS_TASKS),
 		[]interface{}{
 			task.Username,
 			task.PageSets,
 			task.TsAdded,
-		}
+		},
+		nil
 }
 
 func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -497,7 +732,11 @@ type RecreateWebpageArchivesTaskHandlerVars struct {
 	ChromiumBuild string `json:"chromium_build"`
 }
 
-func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}) {
+func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+	if task.PageSets == "" ||
+		task.ChromiumBuild == "" {
+		return "", nil, fmt.Errorf("Invalid parameters")
+	}
 	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_build,ts_added) VALUES (?,?,?,?);",
 			db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS),
 		[]interface{}{
@@ -505,7 +744,8 @@ func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (st
 			task.PageSets,
 			task.ChromiumBuild,
 			task.TsAdded,
-		}
+		},
+		nil
 }
 
 func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -528,25 +768,6 @@ func getRecreateWebpageArchivesTasksHandler(w http.ResponseWriter, r *http.Reque
 	getTasksHandler(&RecreateWebpageArchivesDBTask{}, w, r)
 }
 
-func chromiumBuildsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	// TODO(benjaminwagner): load real data
-	resp := []struct {
-		Key         string `json:"key"`
-		Description string `json:"description"`
-	}{
-		{Key: "abc", Description: "first build"},
-		{Key: "def", Description: "second build"},
-		{Key: "ghi", Description: "third build"},
-	}
-
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
-		return
-	}
-}
-
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(runsHistoryTemplate, w, r)
 }
@@ -559,6 +780,8 @@ func getAllPendingTasks() ([]Task, error) {
 		switch tableName {
 		case db.TABLE_CHROMIUM_PERF_TASKS:
 			task = &ChromiumPerfDBTask{}
+		case db.TABLE_CHROMIUM_BUILD_TASKS:
+			task = &ChromiumBuildDBTask{}
 		case db.TABLE_RECREATE_PAGE_SETS_TASKS:
 			task = &RecreatePageSetsDBTask{}
 		case db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS:
@@ -624,6 +847,15 @@ func runServer(serverURL string) {
 	r.HandleFunc("/_/add_chromium_perf_task", addChromiumPerfTaskHandler).Methods("POST")
 	r.HandleFunc("/_/get_chromium_perf_tasks", getChromiumPerfTasksHandler).Methods("POST")
 
+	// Chromium Build handlers.
+	r.HandleFunc("/chromium_builds/", chromiumBuildsView).Methods("GET")
+	r.HandleFunc("/chromium_builds_runs/", chromiumBuildRunsHistoryView).Methods("GET")
+	r.HandleFunc("/_/chromium_rev_data", getChromiumRevDataHandler).Methods("POST")
+	r.HandleFunc("/_/skia_rev_data", getSkiaRevDataHandler).Methods("POST")
+	r.HandleFunc("/_/chromium_builds", getChromiumBuildTasksHandler).Methods("POST")
+	r.HandleFunc("/_/add_chromium_build_task", addChromiumBuildTaskHandler).Methods("POST")
+	r.HandleFunc("/_/get_chromium_build_tasks", getChromiumBuildTasksHandler).Methods("POST")
+
 	// Admin Tasks handlers.
 	r.HandleFunc("/admin_tasks/", adminTasksView).Methods("GET")
 	r.HandleFunc("/recreate_page_sets_runs/", recreatePageSetsRunsHistoryView).Methods("GET")
@@ -642,7 +874,6 @@ func runServer(serverURL string) {
 
 	// Common handlers used by different pages.
 	r.HandleFunc("/_/page_sets/", pageSetsHandler).Methods("POST")
-	r.HandleFunc("/_/chromium_builds/", chromiumBuildsHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/login/", loginHandler)
