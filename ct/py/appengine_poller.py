@@ -268,7 +268,7 @@ def process_telemetry_task(task):
   print 'Updating local checkout'
   update_local_checkout()
   cmd = [
-      'run_capture_skps_on_workers',
+      'capture_skps_on_workers',
       '--emails=' + str(username),
       '--gae_task_id=' + str(task_key),
       '--pageset_type=' + str(pagesets_type),
