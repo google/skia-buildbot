@@ -1,31 +1,31 @@
 /**
  * Utility javascript functions used across the different CT FE pages.
- *
  */
+this.ctfe = this.ctfe || function() {
+  "use strict";
 
-// TODO(benjaminwagner): Add ctfe namespace.
+  var ctfe = {};
 
-/**
- * Converts the timestamp used in CTFE DB into a user friendly string.
- **/
-function getFormattedTimestamp(timestamp) {
-  if (timestamp == 0) {
-    return "<pending>";
+  /**
+   * Converts the timestamp used in CTFE DB into a user friendly string.
+   **/
+  ctfe.getFormattedTimestamp = function(timestamp) {
+    if (timestamp == 0) {
+      return "<pending>";
+    }
+    var pattern = /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
+    return new Date(String(timestamp).replace(pattern,'$1-$2-$3T$4:$5:$6')).toLocaleString();
   }
-  var pattern = /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-  return new Date(String(timestamp).replace(pattern,'$1-$2-$3T$4:$5:$6')).toLocaleString();
-}
 
-/**
- * Functions to work with information about page sets.
- */
-this.pageSets = this.pageSets || function() {
-  var pageSets = {};
+  /**
+   * Functions to work with information about page sets.
+   */
+  ctfe.pageSets = {};
 
   /**
    * Returns a Promise that resolves to an array of defined page sets.
    **/
-  pageSets.getPageSets = function() {
+  ctfe.pageSets.getPageSets = function() {
     return sk.post("/_/page_sets/")
         .then(JSON.parse);
   }
@@ -33,30 +33,26 @@ this.pageSets = this.pageSets || function() {
   /**
    * Returns an identifier for the given page set.
    **/
-  pageSets.getKey = function(pageSet) {
+  ctfe.pageSets.getKey = function(pageSet) {
     return pageSet.key;
   }
 
   /**
    * Returns a short description for the given page set.
    **/
-  pageSets.getDescription = function(pageSet) {
+  ctfe.pageSets.getDescription = function(pageSet) {
     return pageSet.description;
   }
 
-  return pageSets;
-}();
-
-/**
- * Functions to work with information about Chromium builds.
- */
-this.chromiumBuild = this.chromiumBuild || function() {
-  var chromiumBuild = {};
+  /**
+   * Functions to work with information about Chromium builds.
+   */
+  ctfe.chromiumBuild = {};
 
   /**
    * Returns a Promise that resolves to an array of completed builds.
    **/
-  chromiumBuild.getBuilds = function() {
+  ctfe.chromiumBuild.getBuilds = function() {
     var queryParams = {
       "size": 20,
       "successful": true,
@@ -72,25 +68,25 @@ this.chromiumBuild = this.chromiumBuild || function() {
   /**
    * Returns an identifier for the given build.
    **/
-  chromiumBuild.getKey = function(build) {
+  ctfe.chromiumBuild.getKey = function(build) {
     return build.ChromiumRev + "-" + build.SkiaRev;
   }
 
   /**
    * Returns a more human-readable GIT commit hash.
    */
-  chromiumBuild.shortHash = function(commitHash) {
+  ctfe.chromiumBuild.shortHash = function(commitHash) {
     return commitHash.substr(0, 7);
   }
 
   /**
    * Returns a short description for the given build.
    **/
-  chromiumBuild.getDescription = function(build) {
-    return chromiumBuild.shortHash(build.ChromiumRev) + "-" +
-        chromiumBuild.shortHash(build.SkiaRev) + " (Chromium rev created on " +
-        getFormattedTimestamp(build.ChromiumRevTs.Int64) + ")";
+  ctfe.chromiumBuild.getDescription = function(build) {
+    return ctfe.chromiumBuild.shortHash(build.ChromiumRev) + "-" +
+        ctfe.chromiumBuild.shortHash(build.SkiaRev) + " (Chromium rev created on " +
+        ctfe.getFormattedTimestamp(build.ChromiumRevTs.Int64) + ")";
   }
 
-  return chromiumBuild;
+  return ctfe;
 }();

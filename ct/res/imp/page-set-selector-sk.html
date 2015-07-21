@@ -3,8 +3,8 @@
   to choose among the defined page set types.
 
   Attributes:
-    pageSets: array of objects as obtained via pageSets.getPageSets. Must be set.
-    selected: pageSets.getKey for the currently selected page set. Notifies.
+    pageSets: array of objects as obtained via ctfe.pageSets.getPageSets. Must be set.
+    selected: ctfe.pageSets.getKey for the currently selected page set. Notifies.
 
   Events:
     None.
@@ -45,11 +45,8 @@
 
      selectFirst: function() {
        if (this.pageSets.length > 0) {
-         this.selected = pageSets.getKey(this.pageSets[0]);
+         this.selected = ctfe.pageSets.getKey(this.pageSets[0]);
        }
      },
-
-     getKey: pageSets.getKey,
-     getDescription: pageSets.getDescription,
    });
 </script>

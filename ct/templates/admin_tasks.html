@@ -35,10 +35,10 @@
 
     <script type="text/javascript" charset="utf-8">
        (function() {
-         pageSets.getPageSets().then(function(pageSets) {
+         ctfe.pageSets.getPageSets().then(function(pageSets) {
            $$$('admin-tasks-sk').pageSets = pageSets;
          }).catch(sk.errorMessage);
-         chromiumBuild.getBuilds().then(function (builds) {
+         ctfe.chromiumBuild.getBuilds().then(function (builds) {
            $$$('admin-tasks-sk').chromiumBuilds = builds;
          }).catch(sk.errorMessage);
        })();

@@ -243,7 +243,7 @@
      pageSetsChanged: function(newValue, oldValue) {
        // CT's chromium perf does not support 1M.
        for (var i=0; i<this.pageSets.length; i++) {
-         if (pageSets.getKey(this.pageSets[i]) == "All") {
+         if (ctfe.pageSets.getKey(this.pageSets[i]) == "All") {
            this.pageSets.splice(i, 1);
            break;
          }

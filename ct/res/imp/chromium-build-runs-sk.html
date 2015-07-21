@@ -156,8 +156,8 @@
        return "https://skia.googlesource.com/skia/+/" + rev;
      },
 
-     shortHash: chromiumBuild.shortHash,
-     formatTimestamp: getFormattedTimestamp,
+     shortHash: ctfe.chromiumBuild.shortHash,
+     formatTimestamp: ctfe.getFormattedTimestamp,
 
      isDone: function(failure, tsCompleted) {
        return !failure && tsCompleted;

@@ -3,8 +3,8 @@
   the user to choose among the available Chromium builds.
 
   Attributes:
-    chromiumBuilds: array of objects as obtained via chromiumBuild.getBuilds. Must be set.
-    selected: chromiumBuild.getKey for the currently selected build. Notifies.
+    chromiumBuilds: array of objects as obtained via ctfe.chromiumBuild.getBuilds. Must be set.
+    selected: ctfe.chromiumBuild.getKey for the currently selected build. Notifies.
 
   Events:
     None.
@@ -45,11 +45,11 @@
 
      selectFirst: function() {
        if (this.chromiumBuilds.length > 0) {
-         this.selected = chromiumBuild.getKey(this.chromiumBuilds[0]);
+         this.selected = ctfe.chromiumBuild.getKey(this.chromiumBuilds[0]);
        }
      },
 
-     getKey: chromiumBuild.getKey,
-     getDescription: chromiumBuild.getDescription,
+     getKey: ctfe.chromiumBuild.getKey,
+     getDescription: ctfe.chromiumBuild.getDescription,
    });
 </script>

@@ -334,8 +334,6 @@
        Polymer.dom(this.root).querySelector('#' + id).toggle();
      },
 
-     formatTimestamp: function(timestamp) {
-       return getFormattedTimestamp(timestamp);
-     },
+     formatTimestamp: ctfe.getFormattedTimestamp,
   });
 </script>
