@@ -108,6 +108,9 @@
        sk.post('/_/get_recreate_webpage_archives_tasks' + queryStr).then(JSON.parse).then(function(json) {
          that.updatePendingTasks(json.data, "RecreateWebpageArchives");
        }).catch(sk.errorMessage);
+       sk.post('/_/get_chromium_build_tasks' + queryStr).then(JSON.parse).then(function(json) {
+         that.updatePendingTasks(json.data, "ChromiumBuild");
+       }).catch(sk.errorMessage);
 
        this.$.queue.addEventListener('click', function(e) {
          var anchor = sk.findParent(e.target, "A");
