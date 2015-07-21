@@ -258,10 +258,6 @@ def process_telemetry_task(task):
     print '%s is already being processed' % task_key
     return
   TELEMETRY_ENCOUNTERED_KEYS[task_key] = 1
-  benchmark_name = task['benchmark_name']
-  benchmark_arguments = task['benchmark_arguments']
-  # Escape any quotes in benchmark arguments.
-  benchmark_arguments = benchmark_arguments.replace('"', r'\"')
   pagesets_type = task['pagesets_type']
   chromium_build_dir = get_chromium_build_dir(task['chromium_rev'],
                                               task['skia_rev'])
@@ -272,19 +268,13 @@ def process_telemetry_task(task):
   print 'Updating local checkout'
   update_local_checkout()
   cmd = [
-      'run_benchmark_on_workers',
+      'run_capture_skps_on_workers',
       '--emails=' + str(username),
       '--gae_task_id=' + str(task_key),
       '--pageset_type=' + str(pagesets_type),
       '--chromium_build=' + str(chromium_build_dir),
-      '--benchmark_name=' + str(benchmark_name),
-      '--benchmark_extra_args=' + str(benchmark_arguments),
-      '--browser_extra_args=--disable-setuid-sandbox ' +
-      '--enable-threaded-compositing --enable-impl-side-painting',
-      '--repeat_benchmark=1',
       '--target_platform=Linux',
       '--run_id=' + str(run_id),
-      '--tryserver_run=false',
       '--log_dir=/b/storage/glog',
   ]
   print 'Running telemetry cmd: ' + ' '.join(cmd)

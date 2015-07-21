@@ -34,7 +34,7 @@ const (
 	// Activity constants.
 	ACTIVITY_CREATING_PAGESETS        = "CREATING_PAGESETS"
 	ACTIVITY_CAPTURING_ARCHIVES       = "CAPTURING_ARCHIVES"
-	ACTIVITY_RUNNING_BENCHMARKS       = "RUNNING_BENCHMARKS"
+	ACTIVITY_CAPTURING_SKPS           = "CAPTURING_SKPS"
 	ACTIVITY_RUNNING_LUA_SCRIPTS      = "RUNNING_LUA_SCRIPTS"
 	ACTIVITY_RUNNING_CHROMIUM_PERF    = "RUNNING_CHROMIUM_PERF"
 	ACTIVITY_RUNNING_SKIA_CORRECTNESS = "RUNNING_SKIA_CORRECTNESS"
@@ -76,6 +76,9 @@ const (
 	// Logserver links. These are only accessible from Google corp.
 	MASTER_LOGSERVER_LINK  = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
 	WORKERS_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/all_logs"
+
+	// Default browser args when running benchmarks.
+	DEFAULT_BROWSER_ARGS = "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting"
 )
 
 type PagesetTypeInfo struct {
@@ -128,8 +131,8 @@ var (
 	UpdateAdminTasksWebapp           = WEBAPP_ROOT + "update_admin_task"
 	LuaTasksWebapp                   = WEBAPP_ROOT + "lua_script"
 	UpdateLuaTasksWebapp             = WEBAPP_ROOT + "update_lua_task"
-	BenchmarkTasksWebapp             = WEBAPP_ROOT
-	UpdateBenchmarkTasksWebapp       = WEBAPP_ROOT + "update_telemetry_task"
+	CaptureSKPsTasksWebapp           = WEBAPP_ROOT
+	UpdateCaptureSKPsTasksWebapp     = WEBAPP_ROOT + "update_telemetry_task"
 	ChromiumPerfTasksWebapp          = WEBAPP_ROOT + "chromium_try"
 	UpdateChromiumPerfTasksWebapp    = WEBAPP_ROOT + "update_chromium_try_tasks"
 	SkiaCorrectnessTasksWebapp       = WEBAPP_ROOT + "skia_try"

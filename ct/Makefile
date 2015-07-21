@@ -55,9 +55,9 @@ capture_archives_on_workers:
 run_lua_on_workers:
 	go install -v ./go/master_scripts/run_lua_on_workers/
 
-.PHONY: run_benchmark_on_workers
-run_benchmark_on_workers:
-	go install -v ./go/master_scripts/run_benchmark_on_workers/
+.PHONY: capture_skps_on_workers
+capture_skps_on_workers:
+	go install -v ./go/master_scripts/capture_skps_on_workers/
 
 .PHONY: run_chromium_perf_on_workers
 run_chromium_perf_on_workers:
@@ -88,9 +88,9 @@ capture_archives:
 run_lua:
 	go install -v ./go/worker_scripts/run_lua/
 
-.PHONY: run_benchmark
-run_benchmark:
-	go install -v ./go/worker_scripts/run_benchmark/
+.PHONY: capture_skps
+capture_skps:
+	go install -v ./go/worker_scripts/capture_skps/
 
 .PHONY: run_chromium_perf
 run_chromium_perf:
@@ -114,10 +114,10 @@ test:
 	go test ./go/...
 
 .PHONY: master_scripts
-master_scripts: run_command check_workers_health build_chromium create_pagesets_on_workers capture_archives_on_workers run_lua_on_workers run_benchmark_on_workers run_chromium_perf_on_workers run_skia_correctness_on_workers fix_archives_on_workers logserver_proxy
+master_scripts: run_command check_workers_health build_chromium create_pagesets_on_workers capture_archives_on_workers run_lua_on_workers capture_skps_on_workers run_chromium_perf_on_workers run_skia_correctness_on_workers fix_archives_on_workers logserver_proxy
 
 .PHONY: worker_scripts
-worker_scripts: create_pagesets capture_archives run_lua run_benchmark run_chromium_perf run_skia_correctness fix_archives
+worker_scripts: create_pagesets capture_archives run_lua capture_skps run_chromium_perf run_skia_correctness fix_archives
 
 .PHONY: all
 all: master_scripts worker_scripts testgo
@@ -139,7 +139,7 @@ e2e_tests:
 	@echo
 
 	@echo "Running skpicture_printer"
-	go run go/worker_scripts/run_benchmark/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --benchmark_name=skpicture_printer --browser_extra_args="--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting" --repeat_benchmark=2 --target_platform=Linux
+	go run go/worker_scripts/capture_skps/main.go --worker_num=1 --pageset_type=Dummy1k --chromium_build=38517cc-d7e49ce -logtostderr --run_id=rmistry123 --target_platform=Linux
 	@echo "Completed skpicture_printer. Sleeping for 15 seconds and continuing."
 	sleep 15
 	@echo
