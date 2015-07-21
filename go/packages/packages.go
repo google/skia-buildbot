@@ -271,10 +271,10 @@ func InstalledForServer(client *http.Client, store *storage.Service, serverName 
 	if err != nil {
 		return ret, fmt.Errorf("Failed to retrieve packages file: %s", err)
 	}
+	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
 		return ret, fmt.Errorf("Wrong status code: %#v", *resp)
 	}
-	defer util.Close(resp.Body)
 	dec := json.NewDecoder(resp.Body)
 
 	value := []string{}

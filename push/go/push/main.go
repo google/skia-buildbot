@@ -228,12 +228,16 @@ type PushNewPackage struct {
 // push managed service, and nil if the information wasn't able to be retrieved.
 func getStatus(server string) []*systemd.UnitStatus {
 	resp, err := client.Get(fmt.Sprintf("http://%s:10114/_/list", ip.Resolve(server)))
-	if err != nil || resp.StatusCode > 400 {
+	if err != nil {
 		glog.Infof("Failed to get status of: %s", server)
 		return nil
 	}
-	dec := json.NewDecoder(resp.Body)
 	defer util.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		glog.Infof("Bad status code: %d %s", resp.StatusCode, server)
+		return nil
+	}
+	dec := json.NewDecoder(resp.Body)
 
 	ret := []*systemd.UnitStatus{}
 	if err := dec.Decode(&ret); err != nil {
@@ -371,6 +375,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 			if err != nil || resp == nil {
 				glog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)
 			}
+			util.Close(resp.Body)
 			allInstalled[push.Server].Names = newInstalled
 		}
 	}
@@ -438,11 +443,15 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	machine := ip.Resolve(r.Form.Get("machine"))
 	url := fmt.Sprintf("http://%s:10114/_/change?name=%s&action=%s", machine, name, action)
 	resp, err := client.Post(url, "", nil)
-	if err != nil || resp.StatusCode > 400 {
+	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
 		return
 	}
 	defer util.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := io.Copy(w, resp.Body); err != nil {
 		glog.Errorf("Failed to copy JSON error out: %s", err)
