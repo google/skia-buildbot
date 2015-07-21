@@ -3,6 +3,8 @@
  *
  */
 
+// TODO(benjaminwagner): Add ctfe namespace.
+
 /**
  * Converts the timestamp used in CTFE DB into a user friendly string.
  **/
@@ -13,6 +15,37 @@ function getFormattedTimestamp(timestamp) {
   var pattern = /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
   return new Date(String(timestamp).replace(pattern,'$1-$2-$3T$4:$5:$6')).toLocaleString();
 }
+
+/**
+ * Functions to work with information about page sets.
+ */
+this.pageSets = this.pageSets || function() {
+  var pageSets = {};
+
+  /**
+   * Returns a Promise that resolves to an array of defined page sets.
+   **/
+  pageSets.getPageSets = function() {
+    return sk.post("/_/page_sets/")
+        .then(JSON.parse);
+  }
+
+  /**
+   * Returns an identifier for the given page set.
+   **/
+  pageSets.getKey = function(pageSet) {
+    return pageSet.key;
+  }
+
+  /**
+   * Returns a short description for the given page set.
+   **/
+  pageSets.getDescription = function(pageSet) {
+    return pageSet.description;
+  }
+
+  return pageSets;
+}();
 
 /**
  * Functions to work with information about Chromium builds.

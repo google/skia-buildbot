@@ -1,0 +1,55 @@
+<!--
+  The <page-set-selector-sk> custom element declaration. Displays an iron-selector allowing the user
+  to choose among the defined page set types.
+
+  Attributes:
+    pageSets: array of objects as obtained via pageSets.getPageSets. Must be set.
+    selected: pageSets.getKey for the currently selected page set. Notifies.
+
+  Events:
+    None.
+
+  Methods:
+    selectFirst: Causes the first page set in pageSets to be selected.
+-->
+
+<dom-module id="page-set-selector-sk">
+  <style>
+    .iron-selected {
+      background-color: #D6ECF2;
+    }
+
+    iron-selector.medium-field > div {
+      width: 20em;
+    }
+  </style>
+  <template>
+    <iron-selector attr-for-selected="id" selected="{{selected}}" class="medium-field">
+      <template is="dom-repeat" items="{{pageSets}}">
+        <div id="{{item.key}}">{{item.description}}</div>
+      </template>
+    </iron-selector>
+  </template>
+</dom-module>
+
+<script>
+   Polymer({
+     is: "page-set-selector-sk",
+     properties: {
+       pageSets: Array,
+       selected: {
+         type: String,
+         notify: true,
+       },
+     },
+
+     selectFirst: function() {
+       if (this.pageSets.length > 0) {
+         this.selected = pageSets.getKey(this.pageSets[0]);
+       }
+     },
+
+     getKey: pageSets.getKey,
+     getDescription: pageSets.getDescription,
+   });
+</script>

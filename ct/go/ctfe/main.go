@@ -391,12 +391,16 @@ func chromiumPerfHandler(w http.ResponseWriter, r *http.Request) {
 func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	pageSetsToDesc := map[string]string{}
+	pageSets := []map[string]string{}
 	for pageSet := range util.PagesetTypeToInfo {
-		pageSetsToDesc[pageSet] = util.PagesetTypeToInfo[pageSet].Description
+		pageSetObj := map[string]string{
+			"key":         pageSet,
+			"description": util.PagesetTypeToInfo[pageSet].Description,
+		}
+		pageSets = append(pageSets, pageSetObj)
 	}
 
-	if err := json.NewEncoder(w).Encode(pageSetsToDesc); err != nil {
+	if err := json.NewEncoder(w).Encode(pageSets); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
 	}

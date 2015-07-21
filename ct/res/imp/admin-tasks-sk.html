@@ -3,8 +3,10 @@
   either a recreate page sets task or recreate webpage archives task.
 
   Attributes:
-    selectedTab: One of "pagesets" or "archives" to control which tab to display initially, default "pagesets".
-    pageSetsToDesc: Map of page sets to their descriptions. Must be set.
+    selectedTab: One of "pagesets" or "archives" to control which tab to display initially, default
+      "pagesets".
+    pageSets: List of all defined page sets, as accepted by page-set-selector-sk property
+      pageSets. Must be set.
     chromiumBuilds: List of all supported Chromium builds, as accepted by chromium-build-selector-sk
       attribute chromiumBuilds. Must be set.
 
@@ -69,12 +71,7 @@
         <tr>
           <td>PageSets Type</td>
           <td>
-            <iron-selector attr-for-selected="id" id="page_sets" selected="10k"
-                           class="medium-field">
-              <template is="dom-repeat" items="{{pageSets}}">
-                <div id="{{item.key}}">{{item.description}}</div>
-              </template>
-            </iron-selector>
+            <page-set-selector-sk id="page_sets" page-sets="{{pageSets}}"></page-set-selector-sk>
           </td>
         </tr>
 
@@ -111,14 +108,13 @@
         value: "pagesets",
         observer: "tabChanged",
       },
-      pageSetsToDesc: Object,
       pageSets: {
         type: Array,
-        computed: "getPageSetsArray(pageSetsToDesc)",
+        observer: "pageSetsChanged",
       },
       chromiumBuilds: {
         type: Array,
-        observer: "chromiumBuildsChanged"
+        observer: "chromiumBuildsChanged",
       }
     },
 
@@ -144,12 +140,10 @@
         .toggle("hidden", this.selectedTab != "archives");
     },
 
-    getPageSetsArray: function(pageSetsToDesc) {
-      var pageSetsArray = [];
-      for (key in pageSetsToDesc) {
-        pageSetsArray.push({key: key, description: pageSetsToDesc[key]});
+    pageSetsChanged: function(newValue, oldValue) {
+      if (!oldValue || oldValue.length == 0) {
+        this.$.page_sets.selectFirst();
       }
-      return pageSetsArray;
     },
 
     chromiumBuildsChanged: function(newValue, oldValue) {

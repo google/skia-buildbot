@@ -35,8 +35,8 @@
 
     <script type="text/javascript" charset="utf-8">
        (function() {
-         sk.post('/_/page_sets/').then(JSON.parse).then(function(json) {
-           $$$('admin-tasks-sk').pageSetsToDesc = json;
+         pageSets.getPageSets().then(function(pageSets) {
+           $$$('admin-tasks-sk').pageSets = pageSets;
          }).catch(sk.errorMessage);
          chromiumBuild.getBuilds().then(function (builds) {
            $$$('admin-tasks-sk').chromiumBuilds = builds;

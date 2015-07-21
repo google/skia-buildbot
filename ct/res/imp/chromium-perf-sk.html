@@ -6,8 +6,8 @@
     benchmarks: Which benchmarks to show. Must be set.
     platformsToDesc: Map of platforms to their descriptions. Must be set.
     platforms: List of all supported platforms. Must be set.
-    pageSetsToDesc: Map of page sets to their descriptions. Must be set.
-    pageSets: List of all supported page sets. Must be set.
+    pageSets: List of all supported page sets, as accepted by page-set-selector-sk property
+      pageSets. Must be set.
 
   Events:
     None.
@@ -95,11 +95,7 @@
       <tr>
         <td>PageSets Type</td>
         <td>
-          <iron-selector attr-for-selected="id" id="page_sets" selected="10k" class="medium-field">
-            <template is="dom-repeat" items="{{pageSets}}">
-              <div id="{{item}}">{{getPageSetsDesc(item)}}</div>
-            </template>
-          </iron-selector>
+          <page-set-selector-sk id="page_sets" page-sets="{{pageSets}}"></page-set-selector-sk>
         </td>
       </tr>
 
@@ -210,12 +206,7 @@
        },
        pageSets: {
          type: Array,
-         value: [],
          observer: 'pageSetsChanged',
-       },
-       pageSetsToDesc: {
-         type: Object,
-         value: {},
        },
        defaultLinuxBrowserArgs: {
          type: String,
@@ -249,18 +240,16 @@
        }
      },
 
-     getPageSetsDesc: function(pageSet) {
-       if (this.pageSetsToDesc) {
-         return this.pageSetsToDesc[pageSet];
-       }
-     },
-
-     pageSetsChanged: function() {
+     pageSetsChanged: function(newValue, oldValue) {
        // CT's chromium perf does not support 1M.
        for (var i=0; i<this.pageSets.length; i++) {
-         if (this.pageSets[i] == "All") {
+         if (pageSets.getKey(this.pageSets[i]) == "All") {
            this.pageSets.splice(i, 1);
+           break;
          }
+       }
+       if (!oldValue || oldValue.length == 0) {
+         this.$.page_sets.selectFirst();
        }
      },
 
