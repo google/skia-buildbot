@@ -55,7 +55,7 @@ func updateWebappTask() {
 	extraData := map[string]string{
 		"output_link": outputRemoteLink,
 	}
-	if err := util.UpdateWebappTask(*gaeTaskID, util.CaptureSKPsTasksWebapp, extraData); err != nil {
+	if err := util.UpdateWebappTask(*gaeTaskID, util.UpdateCaptureSKPsTasksWebapp, extraData); err != nil {
 		glog.Errorf("Error while updating webapp task: %s", err)
 		return
 	}
