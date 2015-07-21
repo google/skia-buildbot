@@ -90,7 +90,7 @@
       border-color: #FFFFFF;
     }
     tr.builder {
-      height: 24px;
+      height: 28px;
     }
     tr.commit {
       font-size: 10px;
@@ -128,10 +128,10 @@
       max-width: {{commentIndicatorWidth}}px;
       min-width: {{commentIndicatorWidth}}px;
     }
-    td.revertIndicator {
-      width: {{revertIndicatorWidth}}px;
-      max-width: {{revertIndicatorWidth}}px;
-      min-width: {{revertIndicatorWidth}}px;
+    td.revertIndicator, td.relandIndicator {
+      width: {{revertRelandIndicatorWidth}}px;
+      max-width: {{revertRelandIndicatorWidth}}px;
+      min-width: {{revertRelandIndicatorWidth}}px;
     }
     a {
       color: inherit;
@@ -188,7 +188,10 @@
       height: 12px;
     }
     core-icon[icon="undo"] {
-      color: #D95F02;
+      color: {{revertBackgroundColor}};
+    }
+    core-icon[icon="redo"] {
+      color: {{relandBackgroundColor}};
     }
     #buildbotSelector > paper-radio-button {
       padding-right: 12px;
@@ -253,7 +256,7 @@
           <table class="commitList">
             <thead>
               <tr>
-                <th class="header" colspan="3">
+                <th class="header" colspan="4">
                   <paper-radio-group id="commitLabelSelector" selected="{{commitLabel}}">
                     <template repeat="{{label in validCommitLabels}}">
                       <paper-radio-button name="{{label}}" label="{{commitLabels[label]}}"></paper-radio-button><br/>
@@ -277,11 +280,12 @@
               </tr>
               <template if="{{numBuilders > 0}}">
                 <tr>
-                  <td colspan="3" rowspan="3" style="font-size: 10px;">
+                  <td colspan="4" rowspan="3" style="font-size: 10px;">
                     <core-icon class="tiny" icon="communication:chat"></core-icon> comment<br/>
                     <core-icon class="tiny" icon="image:texture"></core-icon> flaky<br/>
                     <core-icon class="tiny" icon="block"></core-icon> ignore failure<br/>
                     <core-icon class="tiny" icon="undo"></core-icon> reverted<br/>
+                    <core-icon class="tiny" icon="redo"></core-icon> relanded<br/>
                   </td>
                   <template repeat="{{c in builderCategoryList}}">
                     <th class="category" colspan="{{builderCategories[c].colspan}}" style="width: {{builderCategories[c].colspan * builderWidth}}px; max-width: {{builderCategories[c].colspan * builderWidth}}px; min-width: {{builderCategories[c].colspan * builderWidth}}px;">{{c}}</th>
@@ -346,8 +350,15 @@
                   </td>
                   <td class="revertIndicator">
                     <template if="{{revertedHashToReverter[commit.hash]}}">
-                      <a id="{{commit.hash}}" href="#" class="author" onClick="return false;" on-click="{{toggleReverter}}">
+                      <a id="{{commit.hash}}" href="#" class="author" onClick="return false;" on-click="{{toggleReverter}}" on-mouseover="{{toggleReverter}}" on-mouseout="{{toggleReverter}}">
                         <core-icon class="tiny" icon="undo" alt="This commit has been reverted."></core-icon>
+                      </a>
+                    </template>
+                  </td>
+                  <td class="relandIndicator">
+                    <template if="{{relandedHashToRelander[commit.hash]}}">
+                      <a id="{{commit.hash}}" href="#" class="author" onClick="return false;" on-click="{{toggleRelander}}" on-mouseover="{{toggleRelander}}" on-mouseout="{{toggleRelander}}">
+                        <core-icon class="tiny" icon="redo" alt="This commit has relanded."></core-icon>
                       </a>
                     </template>
                   </td>
@@ -750,7 +761,10 @@
         this.numBuilders = 0;
         this.minCanvasWidth = 120;
         this.revertedHashToReverter = {};
-        this.revertIndicatorWidth = 14;
+        this.relandedHashToRelander = {};
+        this.revertRelandIndicatorWidth = 14;
+        this.revertBackgroundColor = "#D95F02";
+        this.relandBackgroundColor = "#66a61e";
         this.showSubject = false;
         this.timeout = null;
         this.windowHeight = 0;
@@ -1050,13 +1064,35 @@
           return;
         }
         var elem = this.shadowRoot.getElementById(reverterHash + "-author-td");
-        elem.style.backgroundColor = "#D95F02";
-        this.openCommitPopup(e, d, elem.children[0]);
-        this.$.infoDialog.addEventListener("core-overlay-close-completed", function(event) {
-            // Remove the highlight when the dialog closes.
+        elem.style.backgroundColor = this.revertBackgroundColor; 
+
+        this.handleRevertRelandEvents(e, d, elem);
+      },
+
+      // Toggle the highlighting of the relanding commit.
+      toggleRelander: function(e, d, s) {
+        var relanderHash = this.relandedHashToRelander[s.id];
+        if (!relanderHash) {
+          // Could not determine who the reverter was.
+          return;
+        }
+        var elem = this.shadowRoot.getElementById(relanderHash + "-author-td");
+        elem.style.backgroundColor = this.relandBackgroundColor;
+
+        this.handleRevertRelandEvents(e, d, elem);
+      },
+
+      // Handle mouse events for the reverting or relanding commit.
+      handleRevertRelandEvents: function(e, d, elem) {
+        if (e.type == "click") {
+            this.openCommitPopup(e, d, elem.children[0]);
+            this.$.infoDialog.addEventListener("core-overlay-close-completed", function(event) {
+                 elem.style.backgroundColor = "";
+                 event.target.removeEventListener(event.type, arguments.callee);
+            });
+        } else if (e.type == "mouseout") {
             elem.style.backgroundColor = "";
-            event.target.removeEventListener(event.type, arguments.callee);
-        });
+        }
       },
 
       // Find and return the codereview issue number.
@@ -1072,19 +1108,26 @@
       // Return whether this commit reverted another commit.
       isRevert: function(commit) {
         // Check to see if this is a revert CL. The subject of the CL needs to start with
-        // "Revert ".
-        var re = /^Revert /g;
-        var tokens = re.exec(commit.subject);
-        if (tokens) {
-          return true;
-        }
-        return false;
+        // "Revert " or "Reland " (relands are reverts of the original revert).
+        return (/^Revert /g.test(commit.subject) || /^Reland /g.test(commit.subject))
       },
 
-      // Find and return the hash of the reverted commit.
-      findRevertedHash: function(commit) {
-        var re = /(.|[\r\n])*\> Committed\: https\:\/\/skia\.googlesource\.com\/skia\/\+\/([a-z0-9]*)/g;
-        var tokens = re.exec(commit.body);
+      // Return whether this commit relanded another commit.
+      isReland: function(commit) {
+        // Check to see if this is a reland CL. The subject of the CL needs to start with
+        // "Reland ".
+        return /^Reland /g.test(commit.subject)
+      },
+
+      // Find and return the hash of the reverted commit that is the specified number of levels
+      // deep.
+      findRevertedHash: function(commit, levelsDeep) {
+        var levelsDeepStr = "";
+        for (i=0; i<levelsDeep; i++) {
+          levelsDeepStr += "\\> ";
+        }
+        var patt = new RegExp("(.|[\\r\\n])*" + levelsDeepStr + "Committed\\: https://skia\.googlesource\.com/skia/\\+/([a-z0-9]*)", "g");
+        var tokens = patt.exec(commit.body);
         if (tokens) {
           return tokens[tokens.length - 1];
         }
@@ -1127,7 +1170,11 @@
             commit.issue = that.findIssueNumber(commit);
             commit.isRevert = that.isRevert(commit);
             if (commit.isRevert) {
-                that.revertedHashToReverter[that.findRevertedHash(commit)] = commit.hash;
+                that.revertedHashToReverter[that.findRevertedHash(commit, 1)] = commit.hash;
+            }
+            commit.isReland = that.isReland(commit);
+            if (commit.isReland) {
+                that.relandedHashToRelander[that.findRevertedHash(commit, 2)] = commit.hash;
             }
             commit.displayClass = {};
             for (var builder in buildDetails[commit.hash]) {
@@ -1278,7 +1325,7 @@
         // Get the build table width.
         this.windowWidth = this.$.container.offsetWidth;
         this.windowHeight = this.$.container.offsetHeight;
-        this.buildTableWidth = this.windowWidth - this.canvasWidth - this.authorWidth - this.commentIndicatorWidth - this.revertIndicatorWidth - 4;
+        this.buildTableWidth = this.windowWidth - this.canvasWidth - this.authorWidth - this.commentIndicatorWidth - this.revertRelandIndicatorWidth - this.revertRelandIndicatorWidth - 4;
         console.timeEnd("draw");
       },
 
