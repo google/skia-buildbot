@@ -67,10 +67,6 @@ run_chromium_perf_on_workers:
 run_skia_correctness_on_workers:
 	go install -v ./go/master_scripts/run_skia_correctness_on_workers/
 
-.PHONY: fix_archives_on_workers
-fix_archives_on_workers:
-	go install -v ./go/master_scripts/fix_archives_on_workers/
-
 .PHONY: logserver_proxy
 logserver_proxy:
 	go install -v ./go/master_scripts/logserver_proxy/
@@ -100,10 +96,6 @@ run_chromium_perf:
 run_skia_correctness:
 	go install -v ./go/worker_scripts/run_skia_correctness/
 
-.PHONY: fix_archives
-fix_archives:
-	go install -v ./go/worker_scripts/fix_archives/
-
 # This is the quick version triggered by the presubmit script.
 .PHONY: testgo
 testgo:
@@ -114,10 +106,10 @@ test:
 	go test ./go/...
 
 .PHONY: master_scripts
-master_scripts: run_command check_workers_health build_chromium create_pagesets_on_workers capture_archives_on_workers run_lua_on_workers capture_skps_on_workers run_chromium_perf_on_workers run_skia_correctness_on_workers fix_archives_on_workers logserver_proxy
+master_scripts: run_command check_workers_health build_chromium create_pagesets_on_workers capture_archives_on_workers run_lua_on_workers capture_skps_on_workers run_chromium_perf_on_workers run_skia_correctness_on_workers logserver_proxy
 
 .PHONY: worker_scripts
-worker_scripts: create_pagesets capture_archives run_lua capture_skps run_chromium_perf run_skia_correctness fix_archives
+worker_scripts: create_pagesets capture_archives run_lua capture_skps run_chromium_perf run_skia_correctness
 
 .PHONY: all
 all: master_scripts worker_scripts testgo
