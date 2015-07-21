@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -18,6 +19,11 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
+)
+
+const (
+	// The number of goroutines that will run in parallel to capture SKPs.
+	WORKER_POOL_SIZE = 15
 )
 
 var (
@@ -118,52 +124,67 @@ func main() {
 		filepath.Dir((filepath.Dir(filepath.Dir(filepath.Dir(currentFile))))),
 		"py")
 
-	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunBenchmarksTimeoutSecs
+	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
 		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 		return
 	}
-	// Loop through all pagesets.
-	for _, fileInfo := range fileInfos {
-		pagesetBaseName := filepath.Base(fileInfo.Name())
-		if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
-			// Ignore timestamp files and .pyc files.
-			continue
-		}
 
-		// Convert the filename into a format consumable by the run_benchmarks
-		// binary.
-		pagesetName := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
-		pagesetPath := filepath.Join(pathToPagesets, fileInfo.Name())
+	// Create channel that contains all pageset file names. This channel will
+	// be consumed by the worker pool.
+	pagesetRequests := getClosedChannelOfPagesets(fileInfos)
 
-		glog.Infof("===== Processing %s =====", pagesetPath)
+	var wg sync.WaitGroup
+	// Loop through workers in the worker pool.
+	for i := 0; i < WORKER_POOL_SIZE; i++ {
+		// Increment the WaitGroup counter.
+		wg.Add(1)
 
-		skutil.LogErr(os.Chdir(pathToPyFiles))
-		args := []string{
-			util.BINARY_RUN_BENCHMARK,
-			fmt.Sprintf("%s.%s", util.BENCHMARK_SKPICTURE_PRINTER, util.BenchmarksToPagesetName[util.BENCHMARK_SKPICTURE_PRINTER]),
-			"--page-set-name=" + pagesetName,
-			"--page-set-base-dir=" + pathToPagesets,
-			"--also-run-disabled-tests",
-			"--page-repeat=1", // Only need one run for SKPs.
-			"--skp-outdir=" + pathToSkps,
-			"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
-		}
-		// Figure out which browser should be used.
-		if *targetPlatform == util.PLATFORM_ANDROID {
-			args = append(args, "--browser=android-chrome-shell")
-		} else {
-			args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
-		}
-		// Set the PYTHONPATH to the pagesets and the telemetry dirs.
-		env := []string{
-			fmt.Sprintf("PYTHONPATH=%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir),
-			"DISPLAY=:0",
-		}
-		skutil.LogErr(
-			util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
+		// Create and run a goroutine closure that captures SKPs.
+		go func() {
+			// Decrement the WaitGroup counter when the goroutine completes.
+			defer wg.Done()
+
+			for pagesetName := range pagesetRequests {
+				pagesetBaseName := filepath.Base(pagesetName)
+				// Convert the filename into a format consumable by the run_benchmarks
+				// binary.
+				pagesetNameNoExt := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
+				pagesetPath := filepath.Join(pathToPagesets, pagesetName)
+
+				glog.Infof("===== Processing %s =====", pagesetPath)
+
+				skutil.LogErr(os.Chdir(pathToPyFiles))
+				args := []string{
+					util.BINARY_RUN_BENCHMARK,
+					fmt.Sprintf("%s.%s", util.BENCHMARK_SKPICTURE_PRINTER, util.BenchmarksToPagesetName[util.BENCHMARK_SKPICTURE_PRINTER]),
+					"--page-set-name=" + pagesetNameNoExt,
+					"--page-set-base-dir=" + pathToPagesets,
+					"--also-run-disabled-tests",
+					"--page-repeat=1", // Only need one run for SKPs.
+					"--skp-outdir=" + pathToSkps,
+					"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
+				}
+				// Figure out which browser should be used.
+				if *targetPlatform == util.PLATFORM_ANDROID {
+					args = append(args, "--browser=android-chrome-shell")
+				} else {
+					args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
+				}
+				// Set the PYTHONPATH to the pagesets and the telemetry dirs.
+				env := []string{
+					fmt.Sprintf("PYTHONPATH=%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir),
+					"DISPLAY=:0",
+				}
+				skutil.LogErr(
+					util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
+			}
+		}()
 	}
+
+	// Wait for all spawned goroutines to complete.
+	wg.Wait()
 
 	// Move, validate and upload all SKP files.
 	// List all directories in pathToSkps and copy out the skps.
@@ -217,7 +238,7 @@ func main() {
 		"--skp_dir=" + pathToSkps,
 		"--path_to_skpinfo=" + pathToSKPInfo,
 	}
-	skutil.LogErr(util.ExecuteCmd("python", args, []string{}, 10*time.Minute, nil, nil))
+	skutil.LogErr(util.ExecuteCmd("python", args, []string{}, 1*time.Hour, nil, nil))
 
 	// Write timestamp to the SKPs dir.
 	skutil.LogErr(util.CreateTimestampFile(pathToSkps))
@@ -227,6 +248,21 @@ func main() {
 		glog.Error(err)
 		return
 	}
+}
+
+func getClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
+	pagesetsChannel := make(chan string, len(fileInfos))
+	for i := 0; i < len(fileInfos); i++ {
+		pagesetName := fileInfos[i].Name()
+		pagesetBaseName := filepath.Base(pagesetName)
+		if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
+			// Ignore timestamp files and .pyc files.
+			continue
+		}
+		pagesetsChannel <- pagesetName
+	}
+	close(pagesetsChannel)
+	return pagesetsChannel
 }
 
 func getRowsFromCSV(csvPath string) ([]string, []string, error) {

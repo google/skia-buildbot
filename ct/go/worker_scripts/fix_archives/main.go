@@ -112,7 +112,7 @@ func main() {
 		filepath.Dir((filepath.Dir(filepath.Dir(filepath.Dir(currentFile))))),
 		"py")
 
-	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunBenchmarksTimeoutSecs
+	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunChromiumPerfTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
 		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)

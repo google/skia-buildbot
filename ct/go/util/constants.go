@@ -87,7 +87,7 @@ type PagesetTypeInfo struct {
 	UserAgent                  string
 	CaptureArchivesTimeoutSecs int
 	CreatePagesetsTimeoutSecs  int
-	RunBenchmarksTimeoutSecs   int
+	CaptureSKPsTimeoutSecs     int
 	RunChromiumPerfTimeoutSecs int
 	Description                string
 }
@@ -157,7 +157,7 @@ var (
 			UserAgent:                  "desktop",
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
-			RunBenchmarksTimeoutSecs:   300,
+			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 150,
 			Description:                "Top 1M (with desktop user-agent)",
 		},
@@ -167,7 +167,7 @@ var (
 			UserAgent:                  "desktop",
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
-			RunBenchmarksTimeoutSecs:   300,
+			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 150,
 			Description:                "Top 10K (with desktop user-agent)",
 		},
@@ -177,7 +177,7 @@ var (
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
-			RunBenchmarksTimeoutSecs:   300,
+			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 150,
 			Description:                "Top 10K (with mobile user-agent)",
 		},
@@ -187,7 +187,7 @@ var (
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
-			RunBenchmarksTimeoutSecs:   300,
+			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 150,
 			Description:                "Top 1K (used for testing)",
 		},
