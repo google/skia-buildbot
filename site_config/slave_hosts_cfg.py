@@ -22,10 +22,6 @@ NO_IP_ADDR = '(no static IP)'
 # Files to copy into buildslave checkouts.
 CHROMEBUILD_COPIES = [
   {
-    "source": ".boto",
-    "destination": "build/site_config",
-  },
-  {
     "source": ".bot_password",
     "destination": "build/site_config",
   },

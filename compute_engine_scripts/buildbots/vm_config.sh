@@ -18,17 +18,17 @@ fi
 
 # TODO(rmistry): Investigate moving the below constants to compute_engine_cfg.py
 CHROME_MASTER_HOST=/tmp/chrome_master_host
-REQUIRED_FILES_FOR_LINUX_BOTS=(/tmp/.boto \
-                               /tmp/.bot_password \
+REQUIRED_FILES_FOR_LINUX_BOTS=(/tmp/.bot_password \
                                /tmp/.netrc \
+                               /tmp/chromium-skia-gm.boto \
                                $CHROME_MASTER_HOST)
 # Use a different chrome-bot password for windows due to the issue mentioned
 # here: https://buganizer.corp.google.com/u/0/issues/18817374#comment29
 # The password is available in valentine (win-chrome-bot).
 REQUIRED_FILES_FOR_WIN_BOTS=(/tmp/win-chrome-bot.txt \
-                             /tmp/.boto \
                              /tmp/.bot_password \
                              /tmp/.netrc \
+                             /tmp/chromium-skia-gm.boto \
                              $CHROME_MASTER_HOST)
 
 GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
