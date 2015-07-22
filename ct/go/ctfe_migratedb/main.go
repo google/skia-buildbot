@@ -15,6 +15,7 @@ import (
 var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	promptPassword = flag.Bool("password", false, "Prompt for root password.")
+	targetVersion  = flag.Int("target_version", -1, "Migration target version. Defaults to latest defined version.")
 )
 
 func main() {
@@ -34,23 +35,30 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	// Get the current database version
-	maxDBVersion := vdb.MaxDBVersion()
-	glog.Infof("Latest database version: %d", maxDBVersion)
+	if *targetVersion < 0 {
+		// Get the current database version
+		maxDBVersion := vdb.MaxDBVersion()
+		glog.Infof("Latest database version: %d", maxDBVersion)
 
-	dbVersion, err := vdb.DBVersion()
-	if err != nil {
-		glog.Fatalf("Unable to retrieve database version. Error: %s", err)
-	}
-	glog.Infof("Current database version: %d", dbVersion)
+		dbVersion, err := vdb.DBVersion()
+		if err != nil {
+			glog.Fatalf("Unable to retrieve database version. Error: %s", err)
+		}
+		glog.Infof("Current database version: %d", dbVersion)
 
-	if dbVersion < maxDBVersion {
-		glog.Infof("Migrating to version: %d", maxDBVersion)
-		err = vdb.Migrate(maxDBVersion)
+		if dbVersion < maxDBVersion {
+			glog.Infof("Migrating to version: %d", maxDBVersion)
+			err = vdb.Migrate(maxDBVersion)
+			if err != nil {
+				glog.Fatalf("Unable to retrieve database version. Error: %s", err)
+			}
+		}
+	} else {
+		glog.Infof("Migrating to version: %d", *targetVersion)
+		err = vdb.Migrate(*targetVersion)
 		if err != nil {
 			glog.Fatalf("Unable to retrieve database version. Error: %s", err)
 		}
 	}
-
 	glog.Infoln("Database migration finished.")
 }
