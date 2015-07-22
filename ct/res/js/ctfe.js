@@ -66,13 +66,6 @@ this.ctfe = this.ctfe || function() {
   }
 
   /**
-   * Returns an identifier for the given build.
-   **/
-  ctfe.chromiumBuild.getKey = function(build) {
-    return build.ChromiumRev + "-" + build.SkiaRev;
-  }
-
-  /**
    * Returns a more human-readable GIT commit hash.
    */
   ctfe.chromiumBuild.shortHash = function(commitHash) {
@@ -86,6 +79,20 @@ this.ctfe = this.ctfe || function() {
     return ctfe.chromiumBuild.shortHash(build.ChromiumRev) + "-" +
         ctfe.chromiumBuild.shortHash(build.SkiaRev) + " (Chromium rev created on " +
         ctfe.getFormattedTimestamp(build.ChromiumRevTs.Int64) + ")";
+  }
+
+  /**
+   * Returns a URL with details about the given Chromium commit hash.
+   **/
+  ctfe.chromiumBuild.chromiumCommitUrl = function(commitHash) {
+    return "https://chromium.googlesource.com/chromium/src.git/+/" + commitHash;
+  }
+
+  /**
+   * Returns a URL with details about the given Skia commit hash.
+   **/
+  ctfe.chromiumBuild.skiaCommitUrl = function(commitHash) {
+    return "https://skia.googlesource.com/skia/+/" + commitHash;
   }
 
   return ctfe;

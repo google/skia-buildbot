@@ -148,14 +148,8 @@
        }.bind(this)).catch(sk.errorMessage);
      },
 
-     chromiumCommitUrl: function(rev) {
-       return "https://chromium.googlesource.com/chromium/src.git/+/" + rev;
-     },
-
-     skiaCommitUrl: function(rev) {
-       return "https://skia.googlesource.com/skia/+/" + rev;
-     },
-
+     chromiumCommitUrl: ctfe.chromiumBuild.chromiumCommitUrl,
+     skiaCommitUrl: ctfe.chromiumBuild.skiaCommitUrl,
      shortHash: ctfe.chromiumBuild.shortHash,
      formatTimestamp: ctfe.getFormattedTimestamp,
 

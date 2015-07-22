@@ -121,6 +121,35 @@ var v3_down = []string{
 	`DROP TABLE IF EXISTS ChromiumBuildTasks`,
 }
 
+var v4_up = []string{
+	// Note: chromium_rev and skia_rev select a build from ChromiumBuildTasks; however, there is
+	// no foreign-key constraint to allow flexibility in purging old Chromium builds indendently
+	// of admin tasks.
+	`ALTER TABLE RecreateWebpageArchivesTasks ADD (
+		chromium_rev           VARCHAR(100),
+		skia_rev               VARCHAR(100)
+	)`,
+	`UPDATE RecreateWebpageArchivesTasks SET
+		chromium_rev = SUBSTRING_INDEX(chromium_build, '-', 1),
+                skia_rev = SUBSTRING_INDEX(chromium_build, '-', -1)`,
+	`ALTER TABLE RecreateWebpageArchivesTasks
+		MODIFY chromium_rev	VARCHAR(100) NOT NULL,
+		MODIFY skia_rev		VARCHAR(100) NOT NULL,
+		DROP chromium_build`,
+}
+
+var v4_down = []string{
+	`ALTER TABLE RecreateWebpageArchivesTasks ADD (
+		chromium_build	VARCHAR(100)
+	)`,
+	`UPDATE RecreateWebpageArchivesTasks SET
+		chromium_build = CONCAT(chromium_rev, '-', skia_rev)`,
+	`ALTER TABLE RecreateWebpageArchivesTasks
+		MODIFY chromium_build	VARCHAR(100) NOT NULL,
+		DROP chromium_rev,
+		DROP skia_rev`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -135,10 +164,15 @@ var migrationSteps = []database.MigrationStep{
 		MySQLUp:   v2_up,
 		MySQLDown: v2_down,
 	},
-	// version 2. Create chromium build table.
+	// version 3. Create chromium build table.
 	{
 		MySQLUp:   v3_up,
 		MySQLDown: v3_down,
+	},
+	// version 4. Modify chromium build columns.
+	{
+		MySQLUp:   v4_up,
+		MySQLDown: v4_down,
 	},
 }
 

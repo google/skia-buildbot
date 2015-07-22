@@ -4,7 +4,7 @@
 
   Attributes:
     chromiumBuilds: array of objects as obtained via ctfe.chromiumBuild.getBuilds. Must be set.
-    selected: ctfe.chromiumBuild.getKey for the currently selected build. Notifies.
+    selected: Item of chromiumBuilds that is currently selected. Notifies.
 
   Events:
     None.
@@ -24,9 +24,9 @@
     }
   </style>
   <template>
-    <iron-selector attr-for-selected="id" selected="{{selected}}" class="long-field">
+    <iron-selector selected="{{selectedIndex}}" class="long-field">
       <template is="dom-repeat" items="{{chromiumBuilds}}">
-        <div id="{{getKey(item)}}">{{getDescription(item)}}</div>
+        <div>{{getDescription(item)}}</div>
       </template>
     </iron-selector>
   </template>
@@ -37,19 +37,26 @@
      is: "chromium-build-selector-sk",
      properties: {
        chromiumBuilds: Array,
-       selected: {
+       selectedIndex: {
          type: String,
-         notify: true,
        },
+       selected: {
+         type: Object,
+         notify: true,
+         computed: "getBuild(chromiumBuilds, selectedIndex)",
+       },
+     },
+
+     getBuild: function(chromiumBuilds, selectedIndex) {
+       return chromiumBuilds[selectedIndex];
      },
 
      selectFirst: function() {
        if (this.chromiumBuilds.length > 0) {
-         this.selected = ctfe.chromiumBuild.getKey(this.chromiumBuilds[0]);
+         this.selectedIndex = "0";
        }
      },
 
-     getKey: ctfe.chromiumBuild.getKey,
      getDescription: ctfe.chromiumBuild.getDescription,
    });
 </script>

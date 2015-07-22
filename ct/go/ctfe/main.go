@@ -184,8 +184,9 @@ func (task RecreatePageSetsDBTask) Select(query string, args ...interface{}) (in
 type RecreateWebpageArchivesDBTask struct {
 	CommonCols
 
-	PageSets      string `db:"page_sets"`
-	ChromiumBuild string `db:"chromium_build"`
+	PageSets    string `db:"page_sets"`
+	ChromiumRev string `db:"chromium_rev"`
+	SkiaRev     string `db:"skia_rev"`
 }
 
 func (task RecreateWebpageArchivesDBTask) GetTaskName() string {
@@ -693,6 +694,17 @@ func getChromiumBuildTasksHandler(w http.ResponseWriter, r *http.Request) {
 	getTasksHandler(&ChromiumBuildDBTask{}, w, r)
 }
 
+// Validate that the given chromiumBuild exists in the DB.
+func validateChromiumBuild(chromiumBuild ChromiumBuildDBTask) error {
+	buildCount := []int{}
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE chromium_rev = ? AND skia_rev = ?", db.TABLE_CHROMIUM_BUILD_TASKS)
+	if err := db.DB.Select(&buildCount, query, chromiumBuild.ChromiumRev, chromiumBuild.SkiaRev); err != nil || len(buildCount) < 1 || buildCount[0] == 0 {
+		glog.Info(err)
+		return fmt.Errorf("Unable to validate chromium_build parameter %v", chromiumBuild)
+	}
+	return nil
+}
+
 func adminTasksView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(adminTasksTemplate, w, r)
 }
@@ -732,21 +744,26 @@ func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
 // Represents the parameters sent as JSON to the add_recreate_webpage_archives_task handler.
 type RecreateWebpageArchivesTaskHandlerVars struct {
 	AdminTaskVars
-	PageSets      string `json:"page_sets"`
-	ChromiumBuild string `json:"chromium_build"`
+	PageSets      string              `json:"page_sets"`
+	ChromiumBuild ChromiumBuildDBTask `json:"chromium_build"`
 }
 
 func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.PageSets == "" ||
-		task.ChromiumBuild == "" {
+		task.ChromiumBuild.ChromiumRev == "" ||
+		task.ChromiumBuild.SkiaRev == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_build,ts_added) VALUES (?,?,?,?);",
+	if err := validateChromiumBuild(task.ChromiumBuild); err != nil {
+		return "", nil, err
+	}
+	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,ts_added) VALUES (?,?,?,?,?);",
 			db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS),
 		[]interface{}{
 			task.Username,
 			task.PageSets,
-			task.ChromiumBuild,
+			task.ChromiumBuild.ChromiumRev,
+			task.ChromiumBuild.SkiaRev,
 			task.TsAdded,
 		},
 		nil

@@ -92,7 +92,9 @@
               <template is="dom-if" if="{{isRecreateWebpageArchivesTask()}}">
                 <tr>
                   <td>ChromiumBuild:</td>
-                  <td>{{adminTask.ChromiumBuild}}</td>
+                  <td class="nowrap">
+                    <a href="{{chromiumCommitUrl(adminTask.ChromiumRev)}}">{{shortHash(adminTask.ChromiumRev)}}</a>-<a href="{{skiaCommitUrl(adminTask.SkiaRev)}}">{{shortHash(adminTask.SkiaRev)}}</a>
+                  </td>
                 </tr>
               </template>
             </table>
@@ -204,6 +206,9 @@
      },
 
      formatTimestamp: ctfe.getFormattedTimestamp,
+     chromiumCommitUrl: ctfe.chromiumBuild.chromiumCommitUrl,
+     skiaCommitUrl: ctfe.chromiumBuild.skiaCommitUrl,
+     shortHash: ctfe.chromiumBuild.shortHash,
 
      isRecreateWebpageArchivesTask: function() {
        return this.taskType == "RecreateWebpageArchives";
