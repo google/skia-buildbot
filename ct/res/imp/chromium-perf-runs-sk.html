@@ -95,106 +95,105 @@
       </tr>
 
       <template is="dom-repeat" items="{{chromiumPerfTasks}}" as="chromiumPerfTask" index-as="index">
-      <tr style="border: 1px solid black;">
-        <!-- Id col --> 
-        <td>{{chromiumPerfTask.Id}}</td>
+        <tr style="border: 1px solid black;">
+          <!-- Id col -->
+          <td>{{chromiumPerfTask.Id}}</td>
 
-        <!-- User col --> 
-        <td>{{chromiumPerfTask.Username}}</td>
+          <!-- User col -->
+          <td>{{chromiumPerfTask.Username}}</td>
 
-        <!-- Timestamps col --> 
-        <td>
-          <table>
-            <tr>
-              <td>Added:</td>
-              <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsAdded.Int64) }}</td>
-            </tr>
-            <tr>
-              <td>Started:</td>
-              <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsStarted.Int64) }}</td>
-            </tr>
-            <tr>
-              <td>Completed:</td>
-              <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsCompleted.Int64) }}</td>
-            </tr>
-          </table>
-        </td>
+          <!-- Timestamps col -->
+          <td>
+            <table>
+              <tr>
+                <td>Added:</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsAdded.Int64) }}</td>
+              </tr>
+              <tr>
+                <td>Started:</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsStarted.Int64) }}</td>
+              </tr>
+              <tr>
+                <td>Completed:</td>
+                <td class="nowrap">{{ formatTimestamp(chromiumPerfTask.TsCompleted.Int64) }}</td>
+              </tr>
+            </table>
+          </td>
 
-        <!-- Task Config col --> 
-        <td>
-          <table>
-            <tr>
-              <td>Benchmark:</td>
-              <td>{{chromiumPerfTask.Benchmark}}</td>
-            </tr>
-            <tr>
-              <td>Platform:</td>
-              <td>{{chromiumPerfTask.Platform}}</td>
-            </tr>
-            <tr>
-              <td>PageSet:</td>
-              <td>{{chromiumPerfTask.PageSets}}</td>
-            </tr>
-            <tr>
-              <td>Repeats:</td>
-              <td>{{chromiumPerfTask.RepeatRuns}}</td>
-            </tr>
-          </table>
-        </td>
+          <!-- Task Config col -->
+          <td>
+            <table>
+              <tr>
+                <td>Benchmark:</td>
+                <td>{{chromiumPerfTask.Benchmark}}</td>
+              </tr>
+              <tr>
+                <td>Platform:</td>
+                <td>{{chromiumPerfTask.Platform}}</td>
+              </tr>
+              <tr>
+                <td>PageSet:</td>
+                <td>{{chromiumPerfTask.PageSets}}</td>
+              </tr>
+              <tr>
+                <td>Repeats:</td>
+                <td>{{chromiumPerfTask.RepeatRuns}}</td>
+              </tr>
+            </table>
+          </td>
 
-        <!-- Description col --> 
-        <td>{{chromiumPerfTask.Description}}</td>
+          <!-- Description col -->
+          <td>{{chromiumPerfTask.Description}}</td>
 
-        <!-- Results col --> 
-        <td class="nowrap">
-          <template is="dom-if" if="{{chromiumPerfTask.Failure.Bool}}">
-            <div style="color:red;">Failed</div>
-          </template>
-          <template is="dom-if" if="{{!chromiumPerfTask.TsCompleted.Int64}}">
-            <div style="color:green;">Waiting</div>
-          </template>
-          <template is="dom-if" if="{{chromiumPerfTask.Results.String}}">
-            <a href="{{chromiumPerfTask.Results.String}}" target="_blank">Overall Result</a>
-            <br/>
-            <a href="{{chromiumPerfTask.NoPatchRawOutput.String}}" target="_blank">NoPatch Raw Output</a>
-            <br/>
-            <a href="{{chromiumPerfTask.WithPatchRawOutput.String}}" target="_blank">WithPatch Raw Output</a>
-          </template>
-        </td>
+          <!-- Results col -->
+          <td class="nowrap">
+            <template is="dom-if" if="{{chromiumPerfTask.Failure.Bool}}">
+              <div style="color:red;">Failed</div>
+            </template>
+            <template is="dom-if" if="{{!chromiumPerfTask.TsCompleted.Int64}}">
+              <div style="color:green;">Waiting</div>
+            </template>
+            <template is="dom-if" if="{{chromiumPerfTask.Results.String}}">
+              <a href="{{chromiumPerfTask.Results.String}}" target="_blank">Overall Result</a>
+              <br/>
+              <a href="{{chromiumPerfTask.NoPatchRawOutput.String}}" target="_blank">NoPatch Raw Output</a>
+              <br/>
+              <a href="{{chromiumPerfTask.WithPatchRawOutput.String}}" target="_blank">WithPatch Raw Output</a>
+            </template>
+          </td>
 
-        <!-- Arguments --> 
-        <td class="nowrap">
-          <template is="dom-if" if="{{chromiumPerfTask.BenchmarkArgs}}">
-            <a href="javascript:void(0);" data-index$="{{index}}" data-type="benchmarkArgs">Benchmark Args</a>
-            <br/>
-          </template>
-          <template is="dom-if" if="{{chromiumPerfTask.BrowserArgsNoPatch}}">
-            <a href="javascript:void(0);" data-index$="{{index}}" data-type="nopatchBrowserArgs">NoPatch Browser Args</a>
-            <br/>
-          </template>
-          <template is="dom-if" if="{{chromiumPerfTask.BrowserArgsWithPatch}}">
-            <a href="javascript:void(0);" data-index$="{{index}}" data-type="withpatchBrowserArgs">WithPatch Browser Args</a>
-            <br/>
-          </template>
-        </td>
+          <!-- Arguments -->
+          <td class="nowrap">
+            <template is="dom-if" if="{{chromiumPerfTask.BenchmarkArgs}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="benchmarkArgs">Benchmark Args</a>
+              <br/>
+            </template>
+            <template is="dom-if" if="{{chromiumPerfTask.BrowserArgsNoPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="nopatchBrowserArgs">NoPatch Browser Args</a>
+              <br/>
+            </template>
+            <template is="dom-if" if="{{chromiumPerfTask.BrowserArgsWithPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="withpatchBrowserArgs">WithPatch Browser Args</a>
+              <br/>
+            </template>
+          </td>
 
-        <!-- Patches -->
-        <td>
-          <template is="dom-if" if="{{chromiumPerfTask.ChromiumPatch}}">
-            <a href="javascript:void(0);" data-index$="{{index}}" data-type="chromiumPatch">Chromium</a>
-            <br/>
-          </template>
-          <template is="dom-if" if="{{chromiumPerfTask.BlinkPatch}}">
-            <a href="javascript:void(0);" data-index$="{{index}}" data-type="blinkPatch">Blink</a>
-            <br/>
-          </template>
-          <template is="dom-if" if="{{chromiumPerfTask.SkiaPatch}}">
-            <a href="javascript:void(0);" data-index$="{{index}}" data-type="skiaPatch">Skia</a>
-          </template>
-        </td>
-      </tr>
-    </tr>
-    </template>
+          <!-- Patches -->
+          <td>
+            <template is="dom-if" if="{{chromiumPerfTask.ChromiumPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="chromiumPatch">Chromium</a>
+              <br/>
+            </template>
+            <template is="dom-if" if="{{chromiumPerfTask.BlinkPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="blinkPatch">Blink</a>
+              <br/>
+            </template>
+            <template is="dom-if" if="{{chromiumPerfTask.SkiaPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="skiaPatch">Skia</a>
+            </template>
+          </td>
+        </tr>
+      </template>
     </table>
 
   </template>
@@ -237,7 +236,6 @@
          type: Object,
          value: function() { return null; },
        },
-      
      },
 
      ready: function() {
