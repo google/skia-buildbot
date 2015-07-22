@@ -1,0 +1,14 @@
+[Unit]
+Description=NSQ-realtime distributed messaging platform
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/nsqd --data-path=/mnt/pd0/nsq-data
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

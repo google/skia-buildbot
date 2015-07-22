@@ -374,8 +374,9 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 			resp, err := client.Get(fmt.Sprintf("http://%s:10114/pullpullpull", push.Server))
 			if err != nil || resp == nil {
 				glog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)
+			} else {
+				util.Close(resp.Body)
 			}
-			util.Close(resp.Body)
 			allInstalled[push.Server].Names = newInstalled
 		}
 	}
