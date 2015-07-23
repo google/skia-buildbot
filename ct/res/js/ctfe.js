@@ -95,5 +95,35 @@ this.ctfe = this.ctfe || function() {
     return "https://skia.googlesource.com/skia/+/" + commitHash;
   }
 
+  /**
+   * Functions to work with information about SKP repositories.
+   */
+  ctfe.skpRepositories = {};
+
+  /**
+   * Returns a Promise that resolves to an array of defined SKP repositories.
+   **/
+  ctfe.skpRepositories.getRepositories = function() {
+    var queryParams = {
+      "size": 20,
+      "successful": true,
+    }
+    var queryStr = "?" + sk.query.fromObject(queryParams);
+    return sk.post("/_/get_capture_skp_tasks" + queryStr)
+        .then(JSON.parse)
+        .then(function (json) {
+          return json.data;
+        });
+  }
+
+  /**
+   * Returns a short description for the given SKP repository.
+   **/
+  ctfe.skpRepositories.getDescription = function(repository) {
+    return repository.PageSets + " captured with " +
+        ctfe.chromiumBuild.shortHash(repository.ChromiumRev) + "-" +
+        ctfe.chromiumBuild.shortHash(repository.SkiaRev);
+  }
+
   return ctfe;
 }();

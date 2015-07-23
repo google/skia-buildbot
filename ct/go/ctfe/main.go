@@ -57,6 +57,7 @@ var (
 	taskTables = []string{
 		db.TABLE_CHROMIUM_PERF_TASKS,
 		db.TABLE_CAPTURE_SKPS_TASKS,
+		db.TABLE_LUA_SCRIPT_TASKS,
 		db.TABLE_CHROMIUM_BUILD_TASKS,
 		db.TABLE_RECREATE_PAGE_SETS_TASKS,
 		db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS,
@@ -66,6 +67,8 @@ var (
 	chromiumPerfRunsHistoryTemplate            *template.Template = nil
 	captureSkpsTemplate                        *template.Template = nil
 	captureSkpRunsHistoryTemplate              *template.Template = nil
+	luaScriptsTemplate                         *template.Template = nil
+	luaScriptRunsHistoryTemplate               *template.Template = nil
 	chromiumBuildsTemplate                     *template.Template = nil
 	chromiumBuildRunsHistoryTemplate           *template.Template = nil
 	adminTasksTemplate                         *template.Template = nil
@@ -165,6 +168,33 @@ func (task CaptureSkpsDBTask) Select(query string, args ...interface{}) (interfa
 	return result, err
 }
 
+type LuaScriptDBTask struct {
+	CommonCols
+
+	PageSets            string         `db:"page_sets"`
+	ChromiumRev         string         `db:"chromium_rev"`
+	SkiaRev             string         `db:"skia_rev"`
+	LuaScript           string         `db:"lua_script"`
+	LuaAggregatorScript string         `db:"lua_aggregator_script"`
+	Description         string         `db:"description"`
+	ScriptOutput        sql.NullString `db:"script_output"`
+	AggregatedOutput    sql.NullString `db:"aggregated_output"`
+}
+
+func (task LuaScriptDBTask) GetTaskName() string {
+	return "LuaScript"
+}
+
+func (task LuaScriptDBTask) TableName() string {
+	return db.TABLE_LUA_SCRIPT_TASKS
+}
+
+func (task LuaScriptDBTask) Select(query string, args ...interface{}) (interface{}, error) {
+	result := []LuaScriptDBTask{}
+	err := db.DB.Select(&result, query, args...)
+	return result, err
+}
+
 type ChromiumBuildDBTask struct {
 	CommonCols
 
@@ -257,6 +287,19 @@ func reloadTemplates() {
 	))
 	captureSkpRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/capture_skp_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
+	))
+
+	luaScriptsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/lua_scripts.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
+	))
+	luaScriptRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/lua_script_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/drawer.html"),
@@ -636,8 +679,70 @@ func getCaptureSkpTasksHandler(w http.ResponseWriter, r *http.Request) {
 	getTasksHandler(&CaptureSkpsDBTask{}, w, r)
 }
 
+// Validate that the given skpRepository exists in the DB.
+func validateSkpRepository(skpRepository CaptureSkpsDBTask) error {
+	rowCount := []int{}
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE page_sets = ? AND chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CAPTURE_SKPS_TASKS)
+	if err := db.DB.Select(&rowCount, query, skpRepository.PageSets, skpRepository.ChromiumRev, skpRepository.SkiaRev); err != nil || len(rowCount) < 1 || rowCount[0] == 0 {
+		glog.Info(err)
+		return fmt.Errorf("Unable to validate skp_repository parameter %v", skpRepository)
+	}
+	return nil
+}
+
 func captureSkpRunsHistoryView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(captureSkpRunsHistoryTemplate, w, r)
+}
+
+func luaScriptsView(w http.ResponseWriter, r *http.Request) {
+	executeSimpleTemplate(luaScriptsTemplate, w, r)
+}
+
+type AddLuaScriptTaskVars struct {
+	AddTaskCommonVars
+
+	SkpRepository       CaptureSkpsDBTask `json:"skp_repository"`
+	LuaScript           string            `json:"lua_script"`
+	LuaAggregatorScript string            `json:"lua_aggregator_script"`
+	Description         string            `json:"desc"`
+}
+
+func (task *AddLuaScriptTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+	if task.SkpRepository.PageSets == "" ||
+		task.SkpRepository.ChromiumRev == "" ||
+		task.SkpRepository.SkiaRev == "" ||
+		task.LuaScript == "" ||
+		task.Description == "" {
+		return "", nil, fmt.Errorf("Invalid parameters")
+	}
+	if err := validateSkpRepository(task.SkpRepository); err != nil {
+		return "", nil, err
+	}
+	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,lua_script,lua_aggregator_script,description,ts_added) VALUES (?,?,?,?,?,?,?,?);",
+			db.TABLE_LUA_SCRIPT_TASKS),
+		[]interface{}{
+			task.Username,
+			task.SkpRepository.PageSets,
+			task.SkpRepository.ChromiumRev,
+			task.SkpRepository.SkiaRev,
+			task.LuaScript,
+			task.LuaAggregatorScript,
+			task.Description,
+			task.TsAdded,
+		},
+		nil
+}
+
+func addLuaScriptTaskHandler(w http.ResponseWriter, r *http.Request) {
+	addTaskHandler(w, r, &AddLuaScriptTaskVars{})
+}
+
+func getLuaScriptTasksHandler(w http.ResponseWriter, r *http.Request) {
+	getTasksHandler(&LuaScriptDBTask{}, w, r)
+}
+
+func luaScriptRunsHistoryView(w http.ResponseWriter, r *http.Request) {
+	executeSimpleTemplate(luaScriptRunsHistoryTemplate, w, r)
 }
 
 func chromiumBuildsView(w http.ResponseWriter, r *http.Request) {
@@ -783,7 +888,7 @@ func getChromiumBuildTasksHandler(w http.ResponseWriter, r *http.Request) {
 // Validate that the given chromiumBuild exists in the DB.
 func validateChromiumBuild(chromiumBuild ChromiumBuildDBTask) error {
 	buildCount := []int{}
-	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE chromium_rev = ? AND skia_rev = ?", db.TABLE_CHROMIUM_BUILD_TASKS)
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CHROMIUM_BUILD_TASKS)
 	if err := db.DB.Select(&buildCount, query, chromiumBuild.ChromiumRev, chromiumBuild.SkiaRev); err != nil || len(buildCount) < 1 || buildCount[0] == 0 {
 		glog.Info(err)
 		return fmt.Errorf("Unable to validate chromium_build parameter %v", chromiumBuild)
@@ -889,6 +994,8 @@ func getAllPendingTasks() ([]Task, error) {
 			task = &ChromiumPerfDBTask{}
 		case db.TABLE_CAPTURE_SKPS_TASKS:
 			task = &CaptureSkpsDBTask{}
+		case db.TABLE_LUA_SCRIPT_TASKS:
+			task = &LuaScriptDBTask{}
 		case db.TABLE_CHROMIUM_BUILD_TASKS:
 			task = &ChromiumBuildDBTask{}
 		case db.TABLE_RECREATE_PAGE_SETS_TASKS:
@@ -961,6 +1068,12 @@ func runServer(serverURL string) {
 	r.HandleFunc("/capture_skp_runs/", captureSkpRunsHistoryView).Methods("GET")
 	r.HandleFunc("/_/add_capture_skps_task", addCaptureSkpsTaskHandler).Methods("POST")
 	r.HandleFunc("/_/get_capture_skp_tasks", getCaptureSkpTasksHandler).Methods("POST")
+
+	// Lua Script handlers.
+	r.HandleFunc("/lua_script/", luaScriptsView).Methods("GET")
+	r.HandleFunc("/lua_script_runs/", luaScriptRunsHistoryView).Methods("GET")
+	r.HandleFunc("/_/add_lua_script_task", addLuaScriptTaskHandler).Methods("POST")
+	r.HandleFunc("/_/get_lua_script_tasks", getLuaScriptTasksHandler).Methods("POST")
 
 	// Chromium Build handlers.
 	r.HandleFunc("/chromium_builds/", chromiumBuildsView).Methods("GET")

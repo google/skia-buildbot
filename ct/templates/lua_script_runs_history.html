@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lua Script Runs</title>
+    {{template "header.html" .}}
+  </head>
+  <body>
+
+    <paper-header-panel class="fit">
+
+      {{template "titlebar.html" .}}
+
+      <div class="content">
+        <paper-drawer-panel>
+          <div drawer>
+            {{template "drawer.html" .}}
+          </div>
+          <div main class="scrollable">
+            <section class="left_padded">
+              <lua-script-runs-sk></lua-script-runs-sk>
+            </section>
+          </div>
+        </paper-drawer-panel>
+      </div>
+
+      <error-toast-sk></error-toast-sk>
+    </paper-header-panel>
+
+  </body>
+</html>

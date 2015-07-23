@@ -17,6 +17,7 @@ const (
 
 	TABLE_CHROMIUM_PERF_TASKS             = "ChromiumPerfTasks"
 	TABLE_CAPTURE_SKPS_TASKS              = "CaptureSkpsTasks"
+	TABLE_LUA_SCRIPT_TASKS                = "LuaScriptTasks"
 	TABLE_CHROMIUM_BUILD_TASKS            = "ChromiumBuildTasks"
 	TABLE_RECREATE_PAGE_SETS_TASKS        = "RecreatePageSetsTasks"
 	TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS = "RecreateWebpageArchivesTasks"
@@ -172,6 +173,32 @@ var v5_down = []string{
 	`DROP TABLE IF EXISTS CaptureSkpsTasks`,
 }
 
+var v6_up = []string{
+	// Note: similar to above, page_sets, chromium_rev, skia_rev select a SKP repository from
+	// CaptureSkpsTasks; however, there is no foreign-key constraint to allow flexibility in
+	// purging rows from CaptureSkpsTasks indendently of LuaScriptTasks.
+	`CREATE TABLE IF NOT EXISTS LuaScriptTasks (
+		id                     INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		username               VARCHAR(255) NOT NULL,
+		page_sets              VARCHAR(100) NOT NULL,
+		chromium_rev           VARCHAR(100) NOT NULL,
+		skia_rev               VARCHAR(100) NOT NULL,
+		lua_script             TEXT NOT NULL,
+		lua_aggregator_script  TEXT,
+		description            VARCHAR(255) NOT NULL,
+		ts_added               BIGINT       NOT NULL,
+		ts_started             BIGINT,
+		ts_completed           BIGINT,
+		failure                TINYINT(1),
+		script_output          VARCHAR(255),
+                aggregated_output      VARCHAR(255)
+	)`,
+}
+
+var v6_down = []string{
+	`DROP TABLE IF EXISTS LuaScriptTasks`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -200,6 +227,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v5_up,
 		MySQLDown: v5_down,
+	},
+	// version 6. Create Lua Scripts table.
+	{
+		MySQLUp:   v6_up,
+		MySQLDown: v6_down,
 	},
 }
 

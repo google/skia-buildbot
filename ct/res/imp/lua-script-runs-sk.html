@@ -1,0 +1,272 @@
+<!--
+  The <lua-script-runs-sk> custom element declaration. Displays a table with details about each
+  completed and pending Lua script task.
+
+  Attributes:
+    defaultSize: The number of tasks to show per page, default 5.
+    constrainByUser: Whether to show only tasks created by the logged-in user initially, default
+      false.
+    myRunsConstrainText: Button text for enabling constraining, default "View only my runs".
+    allRunsConstrainText: Button text for disabling constraining, default "View all runs".
+
+  Events:
+    None.
+
+  Methods:
+    reload: queries for updated information on tasks.
+    resetPagination: Moves to the first page of tasks.
+    constrainRuns: Toggles constrainByUser and reloads the appropriate data.
+-->
+
+<dom-module id="lua-script-runs-sk">
+  <style>
+    paper-dialog {
+      min-width: 200px;
+    }
+    table.runshistory {
+      border-spacing: 0px;
+    }
+    tr.headers {
+      background-color: #CCCCFF;
+      text-align: center;
+    }
+    td.nowrap {
+      white-space: nowrap;
+    }
+    table.runshistory > tbody > tr > td {
+      padding: 10px;
+      border: solid black 1px;
+    }
+  </style>
+  <template>
+
+    <h2><template is="dom-if" if="{{constrainByUser}}">My </template>Lua Script Runs</h2>
+    <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
+    <br/>
+    <paper-button raised id="constrain_runs" on-click="constrainRuns">{{constrainButtonText}}</paper-button>
+
+    <br/>
+    <br/>
+
+    <!-- Section for popups. -->
+    <template is="dom-repeat" items="{{luaScriptTasks}}" as="luaScriptTask" index-as="index">
+      <paper-dialog heading="Lua Script" id="{{ getLuaScriptId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{luaScriptTask.LuaScript}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
+      <paper-dialog heading="Lua Aggregator Script" id="{{ getLuaAggregatorScriptId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{luaScriptTask.LuaAggregatorScript}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+    </template>
+
+    <table class="runshistory" id="runshistory" cellpadding="5" border="1">
+      <tr class="headers">
+        <td>Id</td>
+        <td>User</td>
+        <td>Timestamps</td>
+        <td>SKP Repository</td>
+        <td>Description</td>
+        <td>Scripts</td>
+        <td>Results</td>
+      </tr>
+
+      <template is="dom-repeat" items="{{luaScriptTasks}}" as="luaScriptTask" index-as="index">
+        <tr style="border: 1px solid black;">
+          <!-- Id col -->
+          <td>{{luaScriptTask.Id}}</td>
+
+          <!-- User col -->
+          <td>{{luaScriptTask.Username}}</td>
+
+          <!-- Timestamps col -->
+          <td>
+            <table>
+              <tr>
+                <td>Added:</td>
+                <td class="nowrap">{{ formatTimestamp(luaScriptTask.TsAdded.Int64) }}</td>
+              </tr>
+              <tr>
+                <td>Started:</td>
+                <td class="nowrap">{{ formatTimestamp(luaScriptTask.TsStarted.Int64) }}</td>
+              </tr>
+              <tr>
+                <td>Completed:</td>
+                <td class="nowrap">{{ formatTimestamp(luaScriptTask.TsCompleted.Int64) }}</td>
+              </tr>
+            </table>
+          </td>
+
+          <!-- SKP Repository col -->
+          <td>
+            <table>
+              <tr>
+                <td>PageSet:</td>
+                <td>{{luaScriptTask.PageSets}}</td>
+              </tr>
+              <tr>
+                <td>ChromiumBuild:</td>
+                <td class="nowrap">
+                  <a href="{{chromiumCommitUrl(luaScriptTask.ChromiumRev)}}">{{shortHash(luaScriptTask.ChromiumRev)}}</a>-<a href="{{skiaCommitUrl(luaScriptTask.SkiaRev)}}">{{shortHash(luaScriptTask.SkiaRev)}}</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+
+          <!-- Description col -->
+          <td>{{luaScriptTask.Description}}</td>
+
+          <!-- Scripts -->
+          <td class="nowrap">
+            <a href="javascript:void(0);" data-index$="{{index}}" data-type="luaScript">Script</a>
+            <template is="dom-if" if="{{luaScriptTask.LuaAggregatorScript}}">
+              <br/>
+              <a href="javascript:void(0);" data-index$="{{index}}"
+                 data-type="luaAggregatorScript">Aggregator Script</a>
+            </template>
+          </td>
+
+          <!-- Results col -->
+          <td class="nowrap">
+            <template is="dom-if" if="{{luaScriptTask.Failure.Bool}}">
+              <div style="color:red;">Failed</div>
+            </template>
+            <template is="dom-if" if="{{!luaScriptTask.TsCompleted.Int64}}">
+              <div style="color:green;">Waiting</div>
+            </template>
+            <template is="dom-if" if="{{luaScriptTask.ScriptOutput.String}}">
+              <a href="{{luaScriptTask.ScriptOutput.String}}" target="_blank">Script Output</a>
+            </template>
+            <template is="dom-if" if="{{luaScriptTask.AggregatedOutput.String}}">
+              <br/>
+              <a href="{{luaScriptTask.AggregatedOutput.String}}"
+                 target="_blank">Aggregated Output</a>
+            </template>
+          </td>
+
+        </tr>
+      </template>
+    </table>
+
+  </template>
+</dom-module>
+
+<script>
+   Polymer({
+     is: "lua-script-runs-sk",
+     properties: {
+       luaScriptTasks: {
+         type: Array,
+         value: function() { return []; },
+       },
+       defaultSize: {
+         type: Number,
+         value: 5,
+       },
+       constrainByUser: {
+         type: Boolean,
+         value: false,
+         observer: 'constrainByUserChanged',
+       },
+       myRunsConstrainText: {
+         type: String,
+         value: "View only my runs",
+       },
+       allRunsConstrainText: {
+         type: String,
+         value: "View all runs",
+       },
+       constrainButtonText: {
+         type: String,
+         value: "",
+       },
+       pagination: {
+         type: Object,
+         value: function() { return {}; },
+       },
+       pageChangedHandler: {
+         type: Object,
+         value: function() { return null; },
+       },
+
+     },
+
+     ready: function() {
+       this.constrainButtonText = this.myRunsConstrainText;
+       this.pagination = {"offset": 0, "size": this.defaultSize};
+       this.pageChangedHandler = this.reload.bind(this);
+       this.reload();
+
+       var that = this;
+       this.$.runshistory.addEventListener('click', function(e) {
+         var anchor = sk.findParent(e.target, "A");
+         if (anchor != null) {
+           var id = anchor.dataset.index;
+           if (anchor.dataset.type == "luaScript") {
+             that.toggleDialog(that.getLuaScriptId(id));
+           } else if (anchor.dataset.type == "luaAggregatorScript") {
+             that.toggleDialog(that.getLuaAggregatorScriptId(id));
+           }
+         }
+       });
+     },
+
+     reload: function() {
+       var queryParams = {
+         "offset": this.pagination.offset,
+         "size": this.pagination.size,
+       }
+       if (this.constrainByUser) {
+         var username = $$$("login-sk").email;
+         if (!username) {
+           window.open("/login/", "_self");
+         }
+         queryParams["username"] = username;
+       }
+       var luaScriptRunsQueryStr = "?" + sk.query.fromObject(queryParams);
+       var that = this;
+       sk.post('/_/get_lua_script_tasks' + luaScriptRunsQueryStr).then(JSON.parse).then(function(json) {
+         that.luaScriptTasks = json.data;
+         that.pagination = json.pagination;
+       }).catch(sk.errorMessage);
+     },
+
+     getLuaScriptId: function(index) {
+       return "lua_script" + index;
+     },
+
+     getLuaAggregatorScriptId: function(index) {
+       return "lua_aggregator_script" + index;
+     },
+
+     resetPagination: function() {
+       this.pagination.offset = 0;
+       this.pagination.size = this.defaultSize;
+     },
+
+     constrainRuns: function() {
+       this.constrainByUser = !this.constrainByUser;
+       this.resetPagination();
+       this.reload();
+     },
+
+     constrainByUserChanged: function() {
+       this.constrainButtonText = this.myRunsConstrainText;
+       if (this.constrainByUser) {
+         this.constrainButtonText = this.allRunsConstrainText;
+       }
+     },
+
+     toggleDialog: function(id) {
+       Polymer.dom(this.root).querySelector('#' + id).toggle();
+     },
+
+     chromiumCommitUrl: ctfe.chromiumBuild.chromiumCommitUrl,
+     skiaCommitUrl: ctfe.chromiumBuild.skiaCommitUrl,
+     shortHash: ctfe.chromiumBuild.shortHash,
+     formatTimestamp: ctfe.getFormattedTimestamp,
+  });
+</script>
