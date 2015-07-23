@@ -1,16 +1,15 @@
 <!--
-  This in an HTML Import-able file that contains the definition
-  of the following elements:
+  The <pending-tasks-sk> custom element declaration. Displays a table of tasks that are not yet
+  completed, including popups with detailed information.
 
-    <pending-tasks-sk>
+  Attributes:
+    None.
 
-  To use this file import it:
+  Events:
+    None.
 
-    <link href="/res/imp/pending-tasks-sk.html" rel="import" />
-
-  Usage:
-
-    <pending-tasks-sk></pending-tasks-sk>
+  Methods:
+    None.
 -->
 
 <dom-module id="pending-tasks-sk">
@@ -81,7 +80,6 @@
   </template>
 </dom-module>
 
-
 <script>
    Polymer({
      is: "pending-tasks-sk",
@@ -90,6 +88,17 @@
          type: Array,
          value: [],
        },
+       taskDescriptors: {
+         type: Array,
+         value: function() {
+           return [{type: "ChromiumPerf", url: "/_/get_chromium_perf_tasks"},
+                   {type: "CaptureSkps", url: "/_/get_capture_skp_tasks"},
+                   {type: "ChromiumBuild", url: "/_/get_chromium_build_tasks"},
+                   {type: "RecreatePageSets", url: "/_/get_recreate_page_sets_tasks"},
+                   {type: "RecreateWebpageArchives", url: "/_/get_recreate_webpage_archives_tasks"},
+                  ];
+         }
+       }
      },
 
      ready: function() {
@@ -99,19 +108,11 @@
        }
        var queryStr = "?" + sk.query.fromObject(queryParams);
        var that = this;
-       sk.post('/_/get_chromium_perf_tasks' + queryStr).then(JSON.parse).then(function(json) {
-         that.updatePendingTasks(json.data, "ChromiumPerfTask");
-       }).catch(sk.errorMessage);
-       sk.post('/_/get_recreate_page_sets_tasks' + queryStr).then(JSON.parse).then(function(json) {
-         that.updatePendingTasks(json.data, "RecreatePageSets");
-       }).catch(sk.errorMessage);
-       sk.post('/_/get_recreate_webpage_archives_tasks' + queryStr).then(JSON.parse).then(function(json) {
-         that.updatePendingTasks(json.data, "RecreateWebpageArchives");
-       }).catch(sk.errorMessage);
-       sk.post('/_/get_chromium_build_tasks' + queryStr).then(JSON.parse).then(function(json) {
-         that.updatePendingTasks(json.data, "ChromiumBuild");
-       }).catch(sk.errorMessage);
-
+       this.taskDescriptors.forEach(function(obj) {
+         sk.post(obj.url + queryStr).then(JSON.parse).then(function(json) {
+           that.updatePendingTasks(json.data, obj.type);
+         }).catch(sk.errorMessage);
+       });
        this.$.queue.addEventListener('click', function(e) {
          var anchor = sk.findParent(e.target, "A");
          if (anchor != null) {

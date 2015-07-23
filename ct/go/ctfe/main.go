@@ -56,6 +56,7 @@ const (
 var (
 	taskTables = []string{
 		db.TABLE_CHROMIUM_PERF_TASKS,
+		db.TABLE_CAPTURE_SKPS_TASKS,
 		db.TABLE_CHROMIUM_BUILD_TASKS,
 		db.TABLE_RECREATE_PAGE_SETS_TASKS,
 		db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS,
@@ -63,6 +64,8 @@ var (
 
 	chromiumPerfTemplate                       *template.Template = nil
 	chromiumPerfRunsHistoryTemplate            *template.Template = nil
+	captureSkpsTemplate                        *template.Template = nil
+	captureSkpRunsHistoryTemplate              *template.Template = nil
 	chromiumBuildsTemplate                     *template.Template = nil
 	chromiumBuildRunsHistoryTemplate           *template.Template = nil
 	adminTasksTemplate                         *template.Template = nil
@@ -135,6 +138,29 @@ func (task ChromiumPerfDBTask) TableName() string {
 
 func (task ChromiumPerfDBTask) Select(query string, args ...interface{}) (interface{}, error) {
 	result := []ChromiumPerfDBTask{}
+	err := db.DB.Select(&result, query, args...)
+	return result, err
+}
+
+type CaptureSkpsDBTask struct {
+	CommonCols
+
+	PageSets    string `db:"page_sets"`
+	ChromiumRev string `db:"chromium_rev"`
+	SkiaRev     string `db:"skia_rev"`
+	Description string `db:"description"`
+}
+
+func (task CaptureSkpsDBTask) GetTaskName() string {
+	return "CaptureSkps"
+}
+
+func (task CaptureSkpsDBTask) TableName() string {
+	return db.TABLE_CAPTURE_SKPS_TASKS
+}
+
+func (task CaptureSkpsDBTask) Select(query string, args ...interface{}) (interface{}, error) {
+	result := []CaptureSkpsDBTask{}
 	err := db.DB.Select(&result, query, args...)
 	return result, err
 }
@@ -218,6 +244,19 @@ func reloadTemplates() {
 	))
 	chromiumPerfRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/chromium_perf_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
+	))
+
+	captureSkpsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/capture_skps.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(*resourcesDir, "templates/drawer.html"),
+	))
+	captureSkpRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/capture_skp_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/drawer.html"),
@@ -554,6 +593,53 @@ func chromiumPerfRunsHistoryView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(chromiumPerfRunsHistoryTemplate, w, r)
 }
 
+func captureSkpsView(w http.ResponseWriter, r *http.Request) {
+	executeSimpleTemplate(captureSkpsTemplate, w, r)
+}
+
+type AddCaptureSkpsTaskVars struct {
+	AddTaskCommonVars
+
+	PageSets      string              `json:"page_sets"`
+	ChromiumBuild ChromiumBuildDBTask `json:"chromium_build"`
+	Description   string              `json:"desc"`
+}
+
+func (task *AddCaptureSkpsTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+	if task.PageSets == "" ||
+		task.ChromiumBuild.ChromiumRev == "" ||
+		task.ChromiumBuild.SkiaRev == "" ||
+		task.Description == "" {
+		return "", nil, fmt.Errorf("Invalid parameters")
+	}
+	if err := validateChromiumBuild(task.ChromiumBuild); err != nil {
+		return "", nil, err
+	}
+	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,description,ts_added) VALUES (?,?,?,?,?,?);",
+			db.TABLE_CAPTURE_SKPS_TASKS),
+		[]interface{}{
+			task.Username,
+			task.PageSets,
+			task.ChromiumBuild.ChromiumRev,
+			task.ChromiumBuild.SkiaRev,
+			task.Description,
+			task.TsAdded,
+		},
+		nil
+}
+
+func addCaptureSkpsTaskHandler(w http.ResponseWriter, r *http.Request) {
+	addTaskHandler(w, r, &AddCaptureSkpsTaskVars{})
+}
+
+func getCaptureSkpTasksHandler(w http.ResponseWriter, r *http.Request) {
+	getTasksHandler(&CaptureSkpsDBTask{}, w, r)
+}
+
+func captureSkpRunsHistoryView(w http.ResponseWriter, r *http.Request) {
+	executeSimpleTemplate(captureSkpRunsHistoryTemplate, w, r)
+}
+
 func chromiumBuildsView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(chromiumBuildsTemplate, w, r)
 }
@@ -801,6 +887,8 @@ func getAllPendingTasks() ([]Task, error) {
 		switch tableName {
 		case db.TABLE_CHROMIUM_PERF_TASKS:
 			task = &ChromiumPerfDBTask{}
+		case db.TABLE_CAPTURE_SKPS_TASKS:
+			task = &CaptureSkpsDBTask{}
 		case db.TABLE_CHROMIUM_BUILD_TASKS:
 			task = &ChromiumBuildDBTask{}
 		case db.TABLE_RECREATE_PAGE_SETS_TASKS:
@@ -867,6 +955,12 @@ func runServer(serverURL string) {
 	r.HandleFunc("/_/chromium_perf/", chromiumPerfHandler).Methods("POST")
 	r.HandleFunc("/_/add_chromium_perf_task", addChromiumPerfTaskHandler).Methods("POST")
 	r.HandleFunc("/_/get_chromium_perf_tasks", getChromiumPerfTasksHandler).Methods("POST")
+
+	// Capture SKPs handlers.
+	r.HandleFunc("/capture_skps/", captureSkpsView).Methods("GET")
+	r.HandleFunc("/capture_skp_runs/", captureSkpRunsHistoryView).Methods("GET")
+	r.HandleFunc("/_/add_capture_skps_task", addCaptureSkpsTaskHandler).Methods("POST")
+	r.HandleFunc("/_/get_capture_skp_tasks", getCaptureSkpTasksHandler).Methods("POST")
 
 	// Chromium Build handlers.
 	r.HandleFunc("/chromium_builds/", chromiumBuildsView).Methods("GET")

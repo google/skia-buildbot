@@ -1,23 +1,24 @@
 <!--
-  This in an HTML Import-able file that contains the definition
-  of the following elements:
+  The <capture-skp-runs-sk> custom element declaration. Displays a table with details about each
+  completed and pending capture SKPs task.
 
-    <admin-task-runs-sk>
+  Attributes:
+    defaultSize: The number of tasks to show per page, default 5.
+    constrainByUser: Whether to show only tasks created by the logged-in user initially, default
+      false.
+    myRunsConstrainText: Button text for enabling constraining, default "View only my runs".
+    allRunsConstrainText: Button text for disabling constraining, default "View all runs".
 
-  This file is imported by elements.html, so any page that imports
-  elements.html need not import it again. Otherwise, to use this file,
-  import it:
+  Events:
+    None.
 
-    <link href="/res/imp/admin-task-runs-sk.html" rel="import" />
-
-  Usage:
-
-    <admin-task-runs-sk url="/_/get_recreate_page_sets_tasks"
-                        task-type="RecreatePageSets">
-    </admin-task-runs-sk>
+  Methods:
+    reload: queries for updated information on tasks.
+    resetPagination: Moves to the first page of tasks.
+    constrainRuns: Toggles constrainByUser and reloads the appropriate data.
 -->
 
-<dom-module id="admin-task-runs-sk">
+<dom-module id="capture-skp-runs-sk">
   <style>
     paper-dialog {
       min-width: 200px;
@@ -39,7 +40,7 @@
   </style>
   <template>
 
-    <h2><template is="dom-if" if="{{constrainByUser}}">My </template><span>{{taskType}}</span> Task Runs</h2>
+    <h2><template is="dom-if" if="{{constrainByUser}}">My </template>Capture SkPicture Runs</h2>
     <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
     <br/>
     <paper-button raised id="constrain_runs" on-click="constrainRuns">{{constrainButtonText}}</paper-button>
@@ -53,31 +54,32 @@
         <td>User</td>
         <td>Timestamps</td>
         <td>Task Config</td>
+        <td>Description</td>
         <td>Results</td>
       </tr>
 
-      <template is="dom-repeat" items="{{adminTasks}}" as="adminTask" index-as="index">
+      <template is="dom-repeat" items="{{captureSkpsTasks}}" as="captureSkpsTask" index-as="index">
         <tr style="border: 1px solid black;">
           <!-- Id col -->
-          <td>{{adminTask.Id}}</td>
+          <td>{{captureSkpsTask.Id}}</td>
 
           <!-- User col -->
-          <td>{{adminTask.Username}}</td>
+          <td>{{captureSkpsTask.Username}}</td>
 
           <!-- Timestamps col -->
           <td>
             <table>
               <tr>
                 <td>Added:</td>
-                <td class="nowrap">{{ formatTimestamp(adminTask.TsAdded.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsAdded.Int64) }}</td>
               </tr>
               <tr>
                 <td>Started:</td>
-                <td class="nowrap">{{ formatTimestamp(adminTask.TsStarted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsStarted.Int64) }}</td>
               </tr>
               <tr>
                 <td>Completed:</td>
-                <td class="nowrap">{{ formatTimestamp(adminTask.TsCompleted.Int64) }}</td>
+                <td class="nowrap">{{ formatTimestamp(captureSkpsTask.TsCompleted.Int64) }}</td>
               </tr>
             </table>
           </td>
@@ -87,32 +89,32 @@
             <table>
               <tr>
                 <td>PageSet:</td>
-                <td>{{adminTask.PageSets}}</td>
+                <td>{{captureSkpsTask.PageSets}}</td>
               </tr>
-              <template is="dom-if" if="{{isRecreateWebpageArchivesTask()}}">
-                <tr>
-                  <td>ChromiumBuild:</td>
-                  <td class="nowrap">
-                    <a href="{{chromiumCommitUrl(adminTask.ChromiumRev)}}">{{shortHash(adminTask.ChromiumRev)}}</a>-<a href="{{skiaCommitUrl(adminTask.SkiaRev)}}">{{shortHash(adminTask.SkiaRev)}}</a>
-                  </td>
-                </tr>
-              </template>
+              <tr>
+                <td>ChromiumBuild:</td>
+                <td class="nowrap">
+                  <a href="{{chromiumCommitUrl(captureSkpsTask.ChromiumRev)}}">{{shortHash(captureSkpsTask.ChromiumRev)}}</a>-<a href="{{skiaCommitUrl(captureSkpsTask.SkiaRev)}}">{{shortHash(captureSkpsTask.SkiaRev)}}</a>
+                </td>
+              </tr>
             </table>
           </td>
 
+          <!-- Description col -->
+          <td>{{captureSkpsTask.Description}}</td>
+
           <!-- Results col -->
           <td class="nowrap">
-            <template is="dom-if" if="{{adminTask.Failure.Bool}}">
+            <template is="dom-if" if="{{captureSkpsTask.Failure.Bool}}">
               <div style="color:red;">Failed</div>
             </template>
-            <template is="dom-if" if="{{!adminTask.TsCompleted.Int64}}">
+            <template is="dom-if" if="{{!captureSkpsTask.TsCompleted.Int64}}">
               <div style="color:green;">Waiting</div>
             </template>
-            <template is="dom-if" if="{{isDone(adminTask.Failure.Bool, adminTask.TsCompleted.Int64)}}">
+            <template is="dom-if" if="{{isDone(captureSkpsTask.Failure.Bool, captureSkpsTask.TsCompleted.Int64)}}">
               Done
             </template>
           </td>
-
         </tr>
       </template>
     </table>
@@ -122,11 +124,9 @@
 
 <script>
    Polymer({
-     is: "admin-task-runs-sk",
+     is: "capture-skp-runs-sk",
      properties: {
-       url: String,
-       taskType: String,
-       adminTasks: {
+       captureSkpsTasks: {
          type: Array,
          value: function() { return []; },
        },
@@ -181,10 +181,11 @@
          queryParams["username"] = username;
        }
        var queryStr = "?" + sk.query.fromObject(queryParams);
-       sk.post(this.url + queryStr).then(JSON.parse).then(function(json) {
-         this.pagination = json.pagination;
-         this.adminTasks = json.data;
-       }.bind(this)).catch(sk.errorMessage);
+       var that = this;
+       sk.post('/_/get_capture_skp_tasks' + queryStr).then(JSON.parse).then(function(json) {
+         that.captureSkpsTasks = json.data;
+         that.pagination = json.pagination;
+       }).catch(sk.errorMessage);
      },
 
      resetPagination: function() {
@@ -205,14 +206,10 @@
        }
      },
 
-     formatTimestamp: ctfe.getFormattedTimestamp,
      chromiumCommitUrl: ctfe.chromiumBuild.chromiumCommitUrl,
      skiaCommitUrl: ctfe.chromiumBuild.skiaCommitUrl,
      shortHash: ctfe.chromiumBuild.shortHash,
-
-     isRecreateWebpageArchivesTask: function() {
-       return this.taskType == "RecreateWebpageArchives";
-     },
+     formatTimestamp: ctfe.getFormattedTimestamp,
 
      isDone: function(failure, tsCompleted) {
        return !failure && tsCompleted;

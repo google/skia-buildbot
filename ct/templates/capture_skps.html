@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Capture SkPictures</title>
+    {{template "header.html" .}}
+  </head>
+  <body>
+
+    <paper-header-panel class="fit">
+
+      {{template "titlebar.html" .}}
+
+      <div class="content">
+        <paper-drawer-panel>
+          <div drawer>
+            {{template "drawer.html" .}}
+          </div>
+          <div main class="scrollable">
+            <section class="left_padded">
+              <h2>Capture SKPs</h2>
+              <capture-skps-sk></capture-skps-sk>
+            </section>
+          </div>
+        </paper-drawer-panel>
+      </div>
+
+      <error-toast-sk></error-toast-sk>
+    </paper-header-panel>
+
+    <script type="text/javascript" charset="utf-8">
+       (function() {
+         ctfe.pageSets.getPageSets().then(function(pageSets) {
+           $$$('capture-skps-sk').pageSets = pageSets;
+         }).catch(sk.errorMessage);
+         ctfe.chromiumBuild.getBuilds().then(function (builds) {
+           $$$('capture-skps-sk').chromiumBuilds = builds;
+         }).catch(sk.errorMessage);
+       })();
+    </script>
+
+  </body>
+</html>

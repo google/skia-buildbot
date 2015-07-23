@@ -197,6 +197,10 @@ func (vdb *VersionedDB) Migrate(targetVersion int) (rv error) {
 		return err
 	}
 
+	if currentVersion > vdb.MaxDBVersion() {
+		glog.Fatalf("Version table is out of date with current DB version.")
+	}
+
 	if targetVersion == currentVersion {
 		return nil
 	}

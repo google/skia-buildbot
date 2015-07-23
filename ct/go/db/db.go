@@ -16,6 +16,7 @@ const (
 	PROD_DB_NAME = "ctfe"
 
 	TABLE_CHROMIUM_PERF_TASKS             = "ChromiumPerfTasks"
+	TABLE_CAPTURE_SKPS_TASKS              = "CaptureSkpsTasks"
 	TABLE_CHROMIUM_BUILD_TASKS            = "ChromiumBuildTasks"
 	TABLE_RECREATE_PAGE_SETS_TASKS        = "RecreatePageSetsTasks"
 	TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS = "RecreateWebpageArchivesTasks"
@@ -150,6 +151,27 @@ var v4_down = []string{
 		DROP skia_rev`,
 }
 
+var v5_up = []string{
+	// Note: similar to above, there is no foreign-key constraint on chromium_rev and skia_rev
+	// to allow flexibility in purging old Chromium builds indendently of SKP repositories.
+	`CREATE TABLE IF NOT EXISTS CaptureSkpsTasks (
+		id                     INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		username               VARCHAR(255) NOT NULL,
+		page_sets              VARCHAR(100) NOT NULL,
+		chromium_rev           VARCHAR(100) NOT NULL,
+		skia_rev               VARCHAR(100) NOT NULL,
+		description            VARCHAR(255) NOT NULL,
+		ts_added               BIGINT       NOT NULL,
+		ts_started             BIGINT,
+		ts_completed           BIGINT,
+		failure                TINYINT(1)
+	)`,
+}
+
+var v5_down = []string{
+	`DROP TABLE IF EXISTS CaptureSkpsTasks`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -173,6 +195,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v4_up,
 		MySQLDown: v4_down,
+	},
+	// version 5. Create Capture SKPs table.
+	{
+		MySQLUp:   v5_up,
+		MySQLDown: v5_down,
 	},
 }
 
