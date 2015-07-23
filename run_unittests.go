@@ -207,6 +207,7 @@ func main() {
 
 	// Run the tests.
 	glog.Infof("Found %d tests.", len(tests))
+	var mutex sync.Mutex
 	errors := map[string]error{}
 	var wg sync.WaitGroup
 	for _, t := range tests {
@@ -214,7 +215,9 @@ func main() {
 		go func(t *test) {
 			defer wg.Done()
 			if err := t.Run(); err != nil {
+				mutex.Lock()
 				errors[t.Name] = err
+				mutex.Unlock()
 			}
 		}(t)
 	}
