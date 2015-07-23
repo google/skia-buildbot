@@ -11,6 +11,7 @@ set -e -x
 APPNAME="nsqd"
 SYSTEMD=${APPNAME}.service
 DESCRIPTION="NSQ - a realtime distributed messaging platform."
+INIT_SCRIPT=${APPNAME}
 
 DISTRIBUTION_TAR="nsq-0.3.5.linux-amd64.go1.4.2.tar.gz"
 DISTRIBUTION_URL="gs://skia-binaries/nsq/$DISTRIBUTION_TAR"
@@ -25,8 +26,9 @@ tar xzvf  $DISTRIBUTION_TAR --strip-component=2 -C $TEMP_DIR
 copy_release_files()
 {
   INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-  ${INSTALL}     --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
-  ${INSTALL}     --mode=755 -T ${TEMP_DIR}/${APPNAME}   ${ROOT}/usr/local/bin/${APPNAME}
+  ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
+  ${INSTALL} --mode=755 -T ${TEMP_DIR}/${APPNAME}   ${ROOT}/usr/local/bin/${APPNAME}
+  ${INSTALL} --mode=755 -T ./sys/${APPNAME}_init    ${ROOT}/etc/init.d/${APPNAME}
 }
 
 source ../bash/release.sh

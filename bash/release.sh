@@ -75,17 +75,22 @@ cat <<-EOF > ${ROOT}/DEBIAN/control
 	Description: ${DESCRIPTION}
 EOF
 
-if [ -v SYSTEMD ]
-then
 cat <<-EOF > ${ROOT}/DEBIAN/postinst
 #!/bin/sh
+INIT_SCRIPT="${INIT_SCRIPT}"
 set -e
-/bin/systemctl daemon-reload
-/bin/systemctl enable ${SYSTEMD}
-/bin/systemctl restart ${SYSTEMD}
+if [ -e /bin/systemctl ]
+then
+  /bin/systemctl daemon-reload
+  /bin/systemctl enable ${SYSTEMD}
+  /bin/systemctl restart ${SYSTEMD}
+elif [ -z \$INIT_SCRIPT ]
+then
+  update-rc.d \$INIT_SCRIPT enable
+  service $INIT_SCRIPT start
+fi
 EOF
 chmod 755 ${ROOT}/DEBIAN/postinst
-fi
 
 copy_release_files
 
