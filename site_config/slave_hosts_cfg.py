@@ -730,9 +730,9 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'build5-a3': {
+  'vm255-m3': {
     'slaves': [
-      ('build5-a3', '0', False),
+      ('vm255-m3', '0', False),
     ],
     'copies': None,
     'ip': NO_IP_ADDR,
