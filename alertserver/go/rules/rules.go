@@ -2,6 +2,7 @@ package rules
 
 import (
 	"fmt"
+	"go/token"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -103,7 +104,7 @@ func (r *Rule) evaluate(d float64) (bool, error) {
 	pkg := types.NewPackage("evaluateme", "evaluateme")
 	v := exact.MakeFloat64(d)
 	pkg.Scope().Insert(types.NewConst(0, pkg, "x", types.Typ[types.Float64], v))
-	tv, err := types.Eval(r.Condition, pkg, pkg.Scope())
+	tv, err := types.Eval(token.NewFileSet(), pkg, token.NoPos, r.Condition)
 	if err != nil {
 		return false, fmt.Errorf("Failed to evaluate condition %q: %s", r.Condition, err)
 	}

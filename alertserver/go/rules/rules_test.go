@@ -316,7 +316,7 @@ condition = "x > y"
 actions = ["Print"]
 auto-dismiss = false
 `,
-			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x > y\": 1:1: undeclared name: y"),
+			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x > y\": -: undeclared name: y"),
 		},
 		parseCase{
 			Name: "NoMessage",
