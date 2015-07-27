@@ -20,6 +20,10 @@ func main() {
 	offlineMachines := []string{}
 	offlineDevices := []string{}
 	missingDevices := []string{}
+	nonResponsiveDevices := []string{}
+	// Also collect healthy machines for additional checks.
+	healthyMachines := []string{}
+
 	deviceOfflineOutputs, err := util.SSH("adb devices", util.Slaves, 30*time.Minute)
 	if err != nil {
 		glog.Fatalf("Error while sshing into workers: %s", err)
@@ -39,11 +43,32 @@ func main() {
 			// without any devices listed below it.
 			missingDevices = append(missingDevices, hostname)
 			glog.Warningf("%s has missing devices", hostname)
+		} else {
+			// Everything seems fine so far, add this machine as a healthyMachine.
+			healthyMachines = append(healthyMachines, hostname)
+		}
+	}
+
+	// Populate nonResponsiveDevices.
+	responsivenessOutputs, err := util.SSH("adb shell uptime", healthyMachines, 30*time.Minute)
+	if err != nil {
+		glog.Fatalf("Error while sshing into workers: %s", err)
+		return
+	}
+	// Clear and repopulate the healthy machines slice.
+	healthyMachines = nil
+	for hostname, out := range responsivenessOutputs {
+		if out == "" {
+			nonResponsiveDevices = append(nonResponsiveDevices, hostname)
+			glog.Warningf("%s has non-responsive devices.")
+		} else {
+			// Everything seems fine so far, add this machine as a healthyMachine.
+			healthyMachines = append(healthyMachines, hostname)
 		}
 	}
 
 	// Email admins if there are any unhealthy machines.
-	if len(offlineMachines) != 0 || len(offlineDevices) != 0 || len(missingDevices) != 0 {
+	if len(offlineMachines) != 0 || len(offlineDevices) != 0 || len(missingDevices) != 0 || len(nonResponsiveDevices) != 0 {
 		emailSubject := "There are unhealthy Cluster telemetry machines"
 		emailBody := "Please file a ticket to chrome-golo-tech-ticket@ (for offline devices) and chrome-labs-tech-ticket@ (for offline machines) using https://docs.google.com/spreadsheets/d/1whlE4nDJB0XFBemJliupOORepdXf_vXyAfFgsprTAxY/edit#gid=0 for-<br/><br/>"
 		if len(offlineMachines) != 0 {
@@ -54,6 +79,9 @@ func main() {
 		}
 		if len(missingDevices) != 0 {
 			emailBody += fmt.Sprintf("The following machines have missing devices: %s<br/>", strings.Join(missingDevices, ","))
+		}
+		if len(nonResponsiveDevices) != 0 {
+			emailBody += fmt.Sprintf("The following machines have non-responsive devices: %s<br/>", strings.Join(nonResponsiveDevices, ","))
 		}
 		if err := util.SendEmail(util.CtAdmins, emailSubject, emailBody); err != nil {
 			glog.Errorf("Error while sending email: %s", err)
