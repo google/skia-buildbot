@@ -270,85 +270,72 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/chromium_perf.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 	chromiumPerfRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/chromium_perf_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 
 	captureSkpsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/capture_skps.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 	captureSkpRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/capture_skp_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 
 	luaScriptsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/lua_scripts.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 	luaScriptRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/lua_script_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 
 	chromiumBuildsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/chromium_builds.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 	chromiumBuildRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/chromium_build_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 
 	adminTasksTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/admin_tasks.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 	recreatePageSetsRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/recreate_page_sets_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 	recreateWebpageArchivesRunsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/recreate_webpage_archives_runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 
 	runsHistoryTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/runs_history.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 
 	pendingTasksTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/pending_tasks.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/drawer.html"),
 	))
 }
 

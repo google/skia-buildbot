@@ -1,0 +1,119 @@
+<!--
+  The <drawer-sk> custom element declaration. Displays a menu of the CT pages.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+
+<dom-module id="drawer-sk">
+  <style>
+    paper-menu {
+      padding: 15px 0px 0px 10px;
+    }
+    paper-item {
+      cursor: pointer;
+    }
+  </style>
+  <template>
+
+    <paper-menu id="menu" theme="core-light-theme" selected="{{selected}}">
+
+      <paper-item data-href="/chromium_perf/">
+        <iron-icon icon="trending-up" class="right_padded"></iron-icon>
+        Performance
+      </paper-item>
+
+      <paper-item data-href="/capture_skps/">
+        <iron-icon icon="image:photo-camera" class="right_padded"></iron-icon>
+        SkPictures
+      </paper-item>
+
+      <paper-item data-href="/lua_script/">
+        <iron-icon icon="cloud" class="right_padded"></iron-icon>
+        Lua Scripts
+      </paper-item>
+
+      <paper-item data-href="/chromium_builds/">
+        <iron-icon icon="shopping-cart" class="right_padded"></iron-icon>
+        Builds
+      </paper-item>
+
+      <paper-item data-href="/admin_tasks/">
+        <iron-icon icon="social:person" class="right_padded"></iron-icon>
+        Admin Tasks
+      </paper-item>
+
+      <paper-item data-href="/queue/">
+        <iron-icon icon="reorder" class="right_padded"></iron-icon>
+        View Queue
+      </paper-item>
+
+      <paper-item data-href="/history/">
+        <iron-icon icon="history" class="right_padded"></iron-icon>
+        Runs History
+      </paper-item>
+
+      <paper-item data-href="https://github.com/google/skia-buildbot/tree/master/ct">
+        <iron-icon icon="folder" class="right_padded"></iron-icon>
+        Code
+      </paper-item>
+
+      <paper-item data-href="/docs/">
+        <iron-icon icon="help" class="right_padded"></iron-icon>
+        Docs
+      </paper-item>
+
+    </paper-menu>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "drawer-sk",
+    properties: {
+      selected: {
+        type: String,
+        value: "",
+        observer: "selectedChanged",
+      },
+    },
+
+    ready: function() {
+      this.initSelected();
+    },
+
+    initSelected: function() {
+      var items = $$("paper-item", this.$.menu);
+      var historyIdx;
+      for (var i = 0; i < items.length; i++) {
+        var ele = items[i];
+        if (window.location.href.endsWith(ele.dataset["href"])) {
+          this.selected = String(i);
+          return;
+        }
+        if (ele.dataset["href"] == "/history/") {
+          historyIdx = i;
+        }
+      }
+      // Special cases.
+      if (historyIdx && window.location.href.endsWith("_runs/")) {
+        this.selected = String(historyIdx);
+        return;
+      }
+      this.selected = "0";
+    },
+
+    selectedChanged: function(newValue, oldValue) {
+      if (!oldValue || oldValue == "") {
+        return;
+      }
+      window.location.href = this.$.menu.focusedItem.dataset["href"];
+    },
+  });
+</script>
