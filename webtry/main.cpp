@@ -49,7 +49,7 @@ static void drawAndDump(SkSurface* surface, SkWStream* stream) {
 
 static void drawRaster(SkWStream* stream, SkImageInfo info) {
     SkAutoTUnref<SkSurface> surface;
-    surface.reset(SkSurface::NewRaster(info)); 
+    surface.reset(SkSurface::NewRaster(info));
     drawAndDump(surface, stream);
 }
 
@@ -123,8 +123,7 @@ int main(int argc, char** argv) {
 
     // need to set up the GPU context before we install system call restrictions
     if (FLAGS_gpu) {
-    
-        GrContext::Options grContextOpts;
+        GrContextOptions grContextOpts;
         grFactory = new GrContextFactory(grContextOpts);
         gr = grFactory->get(GrContextFactory::kMESA_GLContextType);
     }
