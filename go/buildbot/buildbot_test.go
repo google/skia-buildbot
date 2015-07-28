@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -19,7 +20,15 @@ import (
 
 var (
 	// testJsonInput is raw JSON data as returned from the build master.
-	testJsonInput = testutils.MustReadFile("default_build.json")
+	defaultBuild  = testutils.MustReadFile("default_build.json")
+	testJsonInput = strings.Replace(strings.Replace(defaultBuild, "%(buildnumber)d", "721", -1), "%(gotRevision)s", "051955c355eb742550ddde4eccc3e90b6dc5b887", -1)
+	ubuntu0       = strings.Replace(strings.Replace(defaultBuild, "%(buildnumber)d", "0", -1), "%(gotRevision)s", "4b822ebb7cedd90acbac6a45b897438746973a87", -1)
+	ubuntu1       = strings.Replace(strings.Replace(defaultBuild, "%(buildnumber)d", "1", -1), "%(gotRevision)s", "6d4811eddfa637fac0852c3a0801b773be1f260d", -1)
+	ubuntu2       = strings.Replace(strings.Replace(defaultBuild, "%(buildnumber)d", "2", -1), "%(gotRevision)s", "8d2d1247ef5d2b8a8d3394543df6c12a85881296", -1)
+	ubuntu3       = strings.Replace(strings.Replace(defaultBuild, "%(buildnumber)d", "3", -1), "%(gotRevision)s", "ecb424466a4f3b040586a062c15ed58356f6590e", -1)
+	ubuntu4       = strings.Replace(strings.Replace(defaultBuild, "%(buildnumber)d", "4", -1), "%(gotRevision)s", "06eb2a58139d3ff764f10232d5c8f9362d55e20f", -1)
+	ubuntu5       = strings.Replace(strings.Replace(defaultBuild, "%(buildnumber)d", "5", -1), "%(gotRevision)s", "", -1)
+	ubuntu6       = strings.Replace(strings.Replace(defaultBuild, "%(buildnumber)d", "6", -1), "%(gotRevision)s", "d74dfd42a48325ab2f3d4a97278fc283036e0ea4", -1)
 
 	// testIncompleteBuild is JSON data for a not-yet-finished build.
 	testIncompleteBuild = testutils.MustReadFile("unfinished_build.json")
@@ -41,6 +50,13 @@ var (
 		"http://build.chromium.org/p/client.skia.android/json/builders":                                                            []byte(buildersAndroid),
 		"http://build.chromium.org/p/client.skia.compile/json/builders":                                                            []byte(buildersCompile),
 		"http://build.chromium.org/p/client.skia.fyi/json/builders":                                                                []byte(buildersFYI),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/0":                 []byte(ubuntu0),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/1":                 []byte(ubuntu1),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/2":                 []byte(ubuntu2),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/3":                 []byte(ubuntu3),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/4":                 []byte(ubuntu4),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/5":                 []byte(ubuntu5),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/6":                 []byte(ubuntu6),
 		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721":               []byte(testJsonInput),
 		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind/builds/152": []byte(testIncompleteBuild),
 		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464":         []byte(venue464),
@@ -69,7 +85,7 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 
 // testGetBuildFromMaster is a helper function which pretends to load JSON data
 // from a build master and decodes it into a Build object.
-func testGetBuildFromMaster(repos *repoMap) (*Build, error) {
+func testGetBuildFromMaster(repos *repoMap) (*Build, int, []string, error) {
 	httpClient = testHttpClient
 	return getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX660-x86-Release", 721, repos)
 }
@@ -95,10 +111,12 @@ func TestGetBuildFromMaster(t *testing.T) {
 	}
 
 	// Default, complete build.
-	_, err = testGetBuildFromMaster(repos)
+	_, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	// Incomplete build.
-	_, err = getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
+	_, _, _, err = getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
 	assert.Nil(t, err)
 }
 
@@ -122,8 +140,10 @@ func TestBuildJsonSerialization(t *testing.T) {
 		workdir: tr.Dir,
 	}
 
-	b1, err := testGetBuildFromMaster(repos)
+	b1, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	bytes, err := json.Marshal(b1)
 	assert.Nil(t, err)
 	b2 := &Build{}
@@ -135,6 +155,7 @@ func TestBuildJsonSerialization(t *testing.T) {
 // the list of commits which were newly built in a given build.
 func TestFindCommitsForBuild(t *testing.T) {
 	testutils.SkipIfShort(t)
+	httpClient = testHttpClient
 	d := clearDB(t)
 	defer d.Close(t)
 
@@ -160,7 +181,7 @@ func TestFindCommitsForBuild(t *testing.T) {
 	// | * 8d2d1247ef5d2b8a8d3394543df6c12a85881296 G (Build #2)
 	// * | 67635e7015d74b06c00154f7061987f426349d9f E
 	// * | 6d4811eddfa637fac0852c3a0801b773be1f260d D (Build #1)
-	// * | d74dfd42a48325ab2f3d4a97278fc283036e0ea4 C
+	// * | d74dfd42a48325ab2f3d4a97278fc283036e0ea4 C (Build #6)
 	// |/
 	// *   4b822ebb7cedd90acbac6a45b897438746973a87 B (Build #0)
 	// *   051955c355eb742550ddde4eccc3e90b6dc5b887 A
@@ -181,49 +202,72 @@ func TestFindCommitsForBuild(t *testing.T) {
 	testCases := []struct {
 		GotRevision string
 		Expected    []string
+		StoleFrom   int
+		Stolen      []string
 	}{
 		// 0. The first build.
 		{
 			GotRevision: hashes['B'],
 			Expected:    []string{hashes['B'], hashes['A']},
+			StoleFrom:   -1,
+			Stolen:      []string{},
 		},
 		// 1. On a linear set of commits, with at least one previous build.
 		{
 			GotRevision: hashes['D'],
 			Expected:    []string{hashes['D'], hashes['C']},
+			StoleFrom:   -1,
+			Stolen:      []string{},
 		},
 		// 2. The first build on a new branch.
 		{
 			GotRevision: hashes['G'],
 			Expected:    []string{hashes['G']},
+			StoleFrom:   -1,
+			Stolen:      []string{},
 		},
 		// 3. After a merge.
 		{
 			GotRevision: hashes['F'],
 			Expected:    []string{hashes['F'], hashes['E'], hashes['H']},
+			StoleFrom:   -1,
+			Stolen:      []string{},
 		},
 		// 4. One last "normal" build.
 		{
 			GotRevision: hashes['I'],
 			Expected:    []string{hashes['I']},
+			StoleFrom:   -1,
+			Stolen:      []string{},
 		},
 		// 5. No GotRevision.
 		{
 			GotRevision: "",
 			Expected:    []string{},
+			StoleFrom:   -1,
+			Stolen:      []string{},
+		},
+		// 6. Steal commits from a previously-ingested build.
+		{
+			GotRevision: hashes['C'],
+			Expected:    []string{hashes['C']},
+			StoleFrom:   1,
+			Stolen:      []string{hashes['C']},
 		},
 	}
+	master := "client.skia"
+	builder := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
 	for buildNum, tc := range testCases {
-		b, err := testGetBuildFromMaster(repos)
+		assert.Nil(t, IngestBuild(master, builder, buildNum, repos))
+		ingested, err := GetBuildFromDB(builder, master, buildNum)
 		assert.Nil(t, err)
-		b.GotRevision = tc.GotRevision
-		b.Number = buildNum
-		c, err := findCommitsForBuild(b, repo)
-		assert.Nil(t, err)
-		assert.True(t, util.SSliceEqual(c, tc.Expected), fmt.Sprintf("Commits for build do not match expectation.\nGot:  %v\nWant: %v", c, tc.Expected))
-		b.Commits = c
-		assert.Nil(t, b.ReplaceIntoDB())
+		assert.True(t, util.SSliceEqual(ingested.Commits, tc.Expected), fmt.Sprintf("Commits for build do not match expectation.\nGot:  %v\nWant: %v", ingested.Commits, tc.Expected))
 	}
+
+	// Extra: ensure that build #6 really stole the commit from #1.
+	b, err := GetBuildFromDB(builder, master, 1)
+	assert.Nil(t, err)
+	assert.False(t, util.In(hashes['C'], b.Commits), fmt.Sprintf("Expected not to find %s in %v", hashes['C'], b.Commits))
 }
 
 // dbSerializeAndCompare is a helper function used by TestDbBuild which takes
@@ -279,8 +323,10 @@ func testBuildDbSerialization(t *testing.T) {
 	}
 
 	// Test case: a completely filled-out build.
-	buildFromFullJson, err := testGetBuildFromMaster(repos)
+	buildFromFullJson, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 
 	testCases := []*Build{emptyBuild, buildFromFullJson}
 	for _, b := range testCases {
@@ -307,8 +353,10 @@ func testBuildDbIdConsistency(t *testing.T) {
 	}
 
 	// Retrieve a full build.
-	b, err := testGetBuildFromMaster(repos)
+	b, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 
 	// Assert that all IDs are zero, since we haven't yet inserted the build.
 	assert.Equal(t, 0, b.Id)
@@ -401,8 +449,10 @@ func testUnfinishedBuild(t *testing.T) {
 
 	// Obtain and insert an unfinished build.
 	httpClient = testHttpClient
-	b, err := getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
+	b, stoleFrom, stolen, err := getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	assert.False(t, b.IsFinished(), fmt.Errorf("Unfinished build thinks it's finished!"))
 	dbSerializeAndCompare(t, b, true)
 
@@ -469,8 +519,10 @@ func testLastProcessedBuilds(t *testing.T) {
 		workdir: tr.Dir,
 	}
 
-	build, err := testGetBuildFromMaster(repos)
+	build, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 
 	// Ensure that we get the right number for not-yet-processed
 	// builder/master pair.
@@ -493,8 +545,10 @@ func testLastProcessedBuilds(t *testing.T) {
 	}
 
 	// Ensure that we get the correct result for multiple builders.
-	build2, err := testGetBuildFromMaster(repos)
+	build2, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	build2.Builder = "Other-Builder"
 	build2.Number = build.Number + 10
 	assert.Nil(t, build2.ReplaceIntoDB())
@@ -521,8 +575,10 @@ func testLastProcessedBuilds(t *testing.T) {
 	assert.True(t, compareBuildLists([]*Build{build, build2}, builds), fmt.Sprintf("getLastProcessedBuilds returned incorrect results: %v", builds))
 
 	// Add "older" build, ensure that only the newer ones are returned.
-	build3, err := testGetBuildFromMaster(repos)
+	build3, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	build3.Number -= 10
 	assert.Nil(t, build3.ReplaceIntoDB())
 	builds, err = getLastProcessedBuilds()
@@ -570,8 +626,10 @@ func testGetUningestedBuilds(t *testing.T) {
 	}
 
 	// This builder is no longer found on the master.
-	b1, err := testGetBuildFromMaster(repos)
+	b1, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	b1.Master = "client.skia.compile"
 	b1.Builder = "My-Builder"
 	b1.Number = 115
@@ -579,8 +637,10 @@ func testGetUningestedBuilds(t *testing.T) {
 	assert.Nil(t, b1.ReplaceIntoDB())
 
 	// This builder needs to load a few builds.
-	b2, err := testGetBuildFromMaster(repos)
+	b2, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	b2.Master = "client.skia.android"
 	b2.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b2.Number = 463
@@ -588,8 +648,10 @@ func testGetUningestedBuilds(t *testing.T) {
 	assert.Nil(t, b2.ReplaceIntoDB())
 
 	// This builder is already up-to-date.
-	b3, err := testGetBuildFromMaster(repos)
+	b3, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	b3.Master = "client.skia.fyi"
 	b3.Builder = "Housekeeper-PerCommit"
 	b3.Number = 1035
@@ -597,8 +659,10 @@ func testGetUningestedBuilds(t *testing.T) {
 	assert.Nil(t, b3.ReplaceIntoDB())
 
 	// This builder is already up-to-date.
-	b4, err := testGetBuildFromMaster(repos)
+	b4, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	b4.Master = "client.skia.android"
 	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532
@@ -646,8 +710,10 @@ func testIngestNewBuilds(t *testing.T) {
 	}
 
 	// This builder needs to load a few builds.
-	b1, err := testGetBuildFromMaster(repos)
+	b1, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	b1.Master = "client.skia.android"
 	b1.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b1.Number = 463
@@ -656,8 +722,10 @@ func testIngestNewBuilds(t *testing.T) {
 
 	// This builder has no new builds, but the last one wasn't finished
 	// at its time of ingestion.
-	b2, err := testGetBuildFromMaster(repos)
+	b2, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	b2.Master = "client.skia.fyi"
 	b2.Builder = "Housekeeper-PerCommit"
 	b2.Number = 1035
@@ -666,16 +734,20 @@ func testIngestNewBuilds(t *testing.T) {
 	assert.Nil(t, b2.ReplaceIntoDB())
 
 	// Subsequent builders are already up-to-date.
-	b3, err := testGetBuildFromMaster(repos)
+	b3, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	b3.Master = "client.skia.fyi"
 	b3.Builder = "Housekeeper-Nightly-RecreateSKPs"
 	b3.Number = 58
 	b3.Steps = []*BuildStep{}
 	assert.Nil(t, b3.ReplaceIntoDB())
 
-	b4, err := testGetBuildFromMaster(repos)
+	b4, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
+	assert.Equal(t, -1, stoleFrom)
+	assert.Equal(t, 0, len(stolen))
 	b4.Master = "client.skia.android"
 	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532

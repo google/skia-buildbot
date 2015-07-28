@@ -39,23 +39,37 @@ func get(url string, rv interface{}) error {
 // findCommitsRecursive is a recursive function called by findCommitsForBuild.
 // It traces the history to find builds which were first included in the given
 // build.
-func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo) error {
+func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
 	// Shortcut for empty hashes. This can happen when a commit has no
 	// parents (initial commit) or when a Build has no GotRevision.
 	if hash == "" {
-		return nil
+		return commits, stealFrom, stolen, nil
 	}
 
 	// Determine whether any build already includes this commit.
 	n, err := GetBuildForCommit(b.Builder, b.Master, hash)
 	if err != nil {
-		return fmt.Errorf("Could not find build for commit %s: %v", hash, err)
+		return commits, stealFrom, stolen, fmt.Errorf("Could not find build for commit %s: %v", hash, err)
 	}
-	// If so, stop. If the build we found is the current build, keep going,
-	// since we may have already ingested data for this build but still
-	// need to find accurate revision data.
-	if n >= 0 && n != b.Number {
-		return nil
+	// If so, we have to make a decision.
+	if n >= 0 {
+		// If the build we found is the current build, keep going,
+		// since we may have already ingested data for this build but still
+		// need to find accurate revision data.
+		if n != b.Number {
+			// If this Build's GotRevision is already included in a different
+			// Build, then we're "inserting" this one in between two already-ingested
+			// Builds. In that case, this build is providing "better" information
+			// on the already-claimed commits, so we steal them from the other Build.
+			if hash == b.GotRevision {
+				stealFrom = n
+			}
+			if stealFrom == n {
+				stolen = append(stolen, hash)
+			} else {
+				return commits, stealFrom, stolen, nil
+			}
+		}
 	}
 
 	// Add the commit.
@@ -70,49 +84,51 @@ func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *
 		// skip the commit.
 		glog.Errorf("Failed to obtain details for %s: %v", hash, err)
 		delete(commits, hash)
-		return nil
+		return commits, stealFrom, stolen, nil
 	}
 	for _, p := range c.Parents {
 		// If we've already seen this parent commit, don't revisit it.
 		if _, ok := commits[p]; ok {
 			continue
 		}
-		if err := findCommitsRecursive(commits, b, p, repo); err != nil {
-			return err
+		commits, stealFrom, stolen, err = findCommitsRecursive(commits, b, p, repo, stealFrom, stolen)
+		if err != nil {
+			return commits, stealFrom, stolen, err
 		}
 	}
-	return nil
+	return commits, stealFrom, stolen, nil
 }
 
 // findCommitsForBuild determines which commits were first included in the
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
-func findCommitsForBuild(b *Build, repo *gitinfo.GitInfo) ([]string, error) {
+func findCommitsForBuild(b *Build, repo *gitinfo.GitInfo) ([]string, int, []string, error) {
 	// Shortcut for the first build for a given builder: this build must be
 	// the first inclusion for all revisions prior to b.GotRevision.
 	if b.Number == 0 && b.GotRevision != "" {
-		return repo.RevList(b.GotRevision)
+		revlist, err := repo.RevList(b.GotRevision)
+		return revlist, -1, []string{}, err
 	}
 	// Start tracing commits back in time until we hit a previous build.
-	commitMap := map[string]bool{}
-	if err := findCommitsRecursive(commitMap, b, b.GotRevision, repo); err != nil {
-		return nil, err
+	commitMap, stealFrom, stolen, err := findCommitsRecursive(map[string]bool{}, b, b.GotRevision, repo, -1, []string{})
+	if err != nil {
+		return nil, -1, nil, err
 	}
 	commits := make([]string, 0, len(commitMap))
 	for c, _ := range commitMap {
 		commits = append(commits, c)
 	}
-	return commits, nil
+	return commits, stealFrom, stolen, nil
 }
 
 // getBuildFromMaster retrieves the given build from the build master's JSON
 // interface as specified by the master, builder, and build number.
-func getBuildFromMaster(master, builder string, buildNumber int, repos *repoMap) (*Build, error) {
+func getBuildFromMaster(master, builder string, buildNumber int, repos *repoMap) (*Build, int, []string, error) {
 	var build Build
 	url := fmt.Sprintf("%s%s/json/builders/%s/builds/%d", BUILDBOT_URL, master, builder, buildNumber)
 	err := get(url, &build)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve build #%v for %v: %v", buildNumber, builder, err)
+		return nil, -1, nil, fmt.Errorf("Failed to retrieve build #%v for %v: %v", buildNumber, builder, err)
 	}
 	build.Branch = build.branch()
 	build.GotRevision = build.gotRevision()
@@ -126,7 +142,7 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *repoMap)
 	build.Finished = build.Times[1]
 	propBytes, err := json.Marshal(&build.Properties)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to convert build properties to JSON: %v", err)
+		return nil, -1, nil, fmt.Errorf("Unable to convert build properties to JSON: %v", err)
 	}
 	build.PropertiesStr = string(propBytes)
 	build.Repository = build.repository()
@@ -146,43 +162,49 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *repoMap)
 	}
 
 	// Find the commits for this build.
+	var commits []string
+	// We might steal some commits from a different build.
+	stoleFrom := -1
+	var stolen []string
 	if build.Repository != "" {
 		repo, err := repos.Repo(build.Repository)
 		if err != nil {
-			return nil, fmt.Errorf("Could not find commits for build: %v", err)
+			return nil, -1, nil, fmt.Errorf("Could not find commits for build: %v", err)
 		}
-		commits, err := findCommitsForBuild(&build, repo)
+		commits, stoleFrom, stolen, err = findCommitsForBuild(&build, repo)
 		if err != nil {
-			return nil, fmt.Errorf("Could not find commits for build: %v", err)
+			return nil, -1, nil, fmt.Errorf("Could not find commits for build: %v", err)
 		}
-		build.Commits = commits
 	} else {
-		build.Commits = []string{}
+		commits = []string{}
 	}
+	build.Commits = commits
 
-	return &build, nil
+	return &build, stoleFrom, stolen, nil
 }
 
 // retryGetBuildFromMaster retrieves the given build from the build master's JSON
 // interface as specified by the master, builder, and build number. Makes
 // multiple attempts in case the master fails to respond.
-func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *repoMap) (*Build, error) {
+func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *repoMap) (*Build, int, []string, error) {
 	var b *Build
 	var err error
+	var stoleFrom int
+	var stolen []string
 	for attempt := 0; attempt < 3; attempt++ {
-		b, err = getBuildFromMaster(master, builder, buildNumber, repos)
+		b, stoleFrom, stolen, err = getBuildFromMaster(master, builder, buildNumber, repos)
 		if err == nil {
 			break
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
-	return b, err
+	return b, stoleFrom, stolen, err
 }
 
 // IngestBuild retrieves the given build from the build master's JSON interface
 // and pushes it into the database.
 func IngestBuild(master, builder string, buildNumber int, repos *repoMap) error {
-	b, err := retryGetBuildFromMaster(master, builder, buildNumber, repos)
+	b, stoleFrom, stolen, err := retryGetBuildFromMaster(master, builder, buildNumber, repos)
 	if err != nil {
 		return fmt.Errorf("Failed to load build from master: %v", err)
 	}
@@ -196,7 +218,32 @@ func IngestBuild(master, builder string, buildNumber int, repos *repoMap) error 
 	if err == nil {
 		b.Id = existingBuildID
 	}
-	return b.ReplaceIntoDB()
+
+	// Insert the build.
+	if stoleFrom >= 0 && stolen != nil && len(stolen) > 0 {
+		// Remove the commits we stole from the previous owner.
+		oldBuild, err := GetBuildFromDB(b.Builder, b.Master, stoleFrom)
+		if err != nil {
+			return err
+		}
+		newCommits := make([]string, 0, len(oldBuild.Commits))
+		for _, c := range oldBuild.Commits {
+			keep := true
+			for _, s := range stolen {
+				if c == s {
+					keep = false
+					break
+				}
+			}
+			if keep {
+				newCommits = append(newCommits, c)
+			}
+		}
+		oldBuild.Commits = newCommits
+		return ReplaceMultipleBuildsIntoDB([]*Build{b, oldBuild})
+	} else {
+		return b.ReplaceIntoDB()
+	}
 }
 
 // getLatestBuilds returns a map whose keys are master names and values are

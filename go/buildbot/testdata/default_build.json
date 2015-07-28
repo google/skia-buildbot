@@ -8,218 +8,218 @@
   "logs": [
     [
       "preamble",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/steps\/logs\/preamble"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/steps\/logs\/preamble"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/steps\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/steps\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/update_scripts\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/update_scripts\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/setup_build\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/setup_build\/logs\/stdio"
     ],
     [
       "run_recipe",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/setup_build\/logs\/run_recipe"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/setup_build\/logs\/run_recipe"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20setup\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gclient%20setup\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20sync\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gclient%20sync\/logs\/stdio"
     ],
     [
       "json.output",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20sync\/logs\/json.output"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gclient%20sync\/logs\/json.output"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/get%20CHROME_PATH\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/get%20CHROME_PATH\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/get%20CHROME_PATH\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/get%20CHROME_PATH\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/build%20most\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/build%20most\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gm\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gm\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Compare%20GMs\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/Compare%20GMs\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Upload%20GM%20Results\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/Upload%20GM%20Results\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/dm\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/dm\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Upload%20DM%20Results\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/Upload%20DM%20Results\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/read%20...%2Fskia%2FSKP_VERSION\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/read%20...%2Fskia%2FSKP_VERSION\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/read%20...%2Fskps%2FSKP_VERSION\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/read%20...%2Fskps%2FSKP_VERSION\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/render_pdfs\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/render_pdfs\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20download%20skimage%20files\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gsutil%20download%20skimage%20files\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/skimage\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/skimage\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20upload%20skimage%20actual%20images\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gsutil%20upload%20skimage%20actual%20images\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20upload%20skimage%20actual%20summary\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gsutil%20upload%20skimage%20actual%20summary\/logs\/stdio"
     ],
     [
       "stdio",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/assert%20skimage%20expectations\/logs\/stdio"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/assert%20skimage%20expectations\/logs\/stdio"
     ],
     [
       "python.inline",
-      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/assert%20skimage%20expectations\/logs\/python.inline"
+      "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/assert%20skimage%20expectations\/logs\/python.inline"
     ]
   ],
-  "number": 721,
+  "number": %(buildnumber)d,
   "properties": [
     [
       "blamelist",
@@ -245,17 +245,17 @@
     ],
     [
       "buildnumber",
-      721,
+      %(buildnumber)d,
       "Build"
     ],
     [
       "git_revision",
-      "051955c355eb742550ddde4eccc3e90b6dc5b887",
+      "%(gotRevision)s",
       "Change"
     ],
     [
       "got_revision",
-      "051955c355eb742550ddde4eccc3e90b6dc5b887",
+      "%(gotRevision)s",
       "Annotation(gclient sync)"
     ],
     [
@@ -275,7 +275,7 @@
     ],
     [
       "revision",
-      "051955c355eb742550ddde4eccc3e90b6dc5b887",
+      "%(gotRevision)s",
       "Build"
     ],
     [
@@ -316,14 +316,14 @@
         "properties": [
           [
             "git_revision",
-            "051955c355eb742550ddde4eccc3e90b6dc5b887",
+            "%(gotRevision)s",
             "Change"
           ]
         ],
         "repository": "https:\/\/skia.googlesource.com\/skia.git",
-        "rev": "051955c355eb742550ddde4eccc3e90b6dc5b887",
-        "revision": "051955c355eb742550ddde4eccc3e90b6dc5b887",
-        "revlink": "https:\/\/skia.googlesource.com\/skia\/+\/051955c355eb742550ddde4eccc3e90b6dc5b887",
+        "rev": "%(gotRevision)s",
+        "revision": "%(gotRevision)s",
+        "revlink": "https:\/\/skia.googlesource.com\/skia\/+\/%(gotRevision)s",
         "when": 1417616292,
         "who": "kkinnunen@nvidia.com"
       }
@@ -331,7 +331,7 @@
     "hasPatch": false,
     "project": "skia",
     "repository": "https:\/\/skia.googlesource.com\/skia.git",
-    "revision": "051955c355eb742550ddde4eccc3e90b6dc5b887"
+    "revision": "%(gotRevision)s"
   },
   "steps": [
     {
@@ -349,11 +349,11 @@
       "logs": [
         [
           "preamble",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/steps\/logs\/preamble"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/steps\/logs\/preamble"
         ],
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/steps\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/steps\/logs\/stdio"
         ]
       ],
       "name": "steps",
@@ -389,7 +389,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/update_scripts\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/update_scripts\/logs\/stdio"
         ]
       ],
       "name": "update_scripts",
@@ -425,11 +425,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/setup_build\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/setup_build\/logs\/stdio"
         ],
         [
           "run_recipe",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/setup_build\/logs\/run_recipe"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/setup_build\/logs\/run_recipe"
         ]
       ],
       "name": "setup_build",
@@ -466,7 +466,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20setup\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gclient%20setup\/logs\/stdio"
         ]
       ],
       "name": "gclient setup",
@@ -502,11 +502,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20sync\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gclient%20sync\/logs\/stdio"
         ],
         [
           "json.output",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gclient%20sync\/logs\/json.output"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gclient%20sync\/logs\/json.output"
         ]
       ],
       "name": "gclient sync",
@@ -542,11 +542,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/get%20CHROME_PATH\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/get%20CHROME_PATH\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/get%20CHROME_PATH\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/get%20CHROME_PATH\/logs\/python.inline"
         ]
       ],
       "name": "get CHROME_PATH",
@@ -582,7 +582,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/build%20most\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/build%20most\/logs\/stdio"
         ]
       ],
       "name": "build most",
@@ -618,11 +618,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fgm%2Factual\/logs\/python.inline"
         ]
       ],
       "name": "rmtree ...\/gm\/actual",
@@ -658,11 +658,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fgm%2Factual\/logs\/python.inline"
         ]
       ],
       "name": "makedirs ...\/gm\/actual",
@@ -698,11 +698,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Factual%2FBUILDER\/logs\/python.inline"
         ]
       ],
       "name": "rmtree ...\/actual\/BUILDER",
@@ -738,11 +738,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Factual%2FBUILDER\/logs\/python.inline"
         ]
       ],
       "name": "makedirs ...\/actual\/BUILDER",
@@ -778,7 +778,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gm\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gm\/logs\/stdio"
         ]
       ],
       "name": "gm",
@@ -814,7 +814,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Compare%20GMs\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/Compare%20GMs\/logs\/stdio"
         ]
       ],
       "name": "Compare GMs",
@@ -850,7 +850,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Upload%20GM%20Results\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/Upload%20GM%20Results\/logs\/stdio"
         ]
       ],
       "name": "Upload GM Results",
@@ -886,11 +886,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fdm\/logs\/python.inline"
         ]
       ],
       "name": "rmtree ...\/build\/dm",
@@ -926,11 +926,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fdm\/logs\/python.inline"
         ]
       ],
       "name": "makedirs ...\/build\/dm",
@@ -966,7 +966,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/dm\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/dm\/logs\/stdio"
         ]
       ],
       "name": "dm",
@@ -1002,7 +1002,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/Upload%20DM%20Results\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/Upload%20DM%20Results\/logs\/stdio"
         ]
       ],
       "name": "Upload DM Results",
@@ -1038,7 +1038,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/read%20...%2Fskia%2FSKP_VERSION\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/read%20...%2Fskia%2FSKP_VERSION\/logs\/stdio"
         ]
       ],
       "name": "read ...\/skia\/SKP_VERSION",
@@ -1074,7 +1074,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/read%20...%2Fskps%2FSKP_VERSION\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/read%20...%2Fskps%2FSKP_VERSION\/logs\/stdio"
         ]
       ],
       "name": "read ...\/skps\/SKP_VERSION",
@@ -1110,7 +1110,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/render_pdfs\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/render_pdfs\/logs\/stdio"
         ]
       ],
       "name": "render_pdfs",
@@ -1146,11 +1146,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
         ]
       ],
       "name": "rmtree ...\/build\/skimage_in",
@@ -1186,11 +1186,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fskimage_in\/logs\/python.inline"
         ]
       ],
       "name": "makedirs ...\/build\/skimage_in",
@@ -1226,7 +1226,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20download%20skimage%20files\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gsutil%20download%20skimage%20files\/logs\/stdio"
         ]
       ],
       "name": "gsutil download skimage files",
@@ -1262,11 +1262,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
         ]
       ],
       "name": "rmtree ...\/build\/skimage_out",
@@ -1302,11 +1302,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fbuild%2Fskimage_out\/logs\/python.inline"
         ]
       ],
       "name": "makedirs ...\/build\/skimage_out",
@@ -1342,11 +1342,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
         ]
       ],
       "name": "rmtree ...\/skimage_out\/images",
@@ -1382,11 +1382,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fskimage_out%2Fimages\/logs\/python.inline"
         ]
       ],
       "name": "makedirs ...\/skimage_out\/images",
@@ -1422,11 +1422,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/rmtree%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
         ]
       ],
       "name": "rmtree ...\/skimage_out\/BUILDER",
@@ -1462,11 +1462,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/makedirs%20...%2Fskimage_out%2FBUILDER\/logs\/python.inline"
         ]
       ],
       "name": "makedirs ...\/skimage_out\/BUILDER",
@@ -1502,7 +1502,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/skimage\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/skimage\/logs\/stdio"
         ]
       ],
       "name": "skimage",
@@ -1538,7 +1538,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20upload%20skimage%20actual%20images\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gsutil%20upload%20skimage%20actual%20images\/logs\/stdio"
         ]
       ],
       "name": "gsutil upload skimage actual images",
@@ -1574,7 +1574,7 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/gsutil%20upload%20skimage%20actual%20summary\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/gsutil%20upload%20skimage%20actual%20summary\/logs\/stdio"
         ]
       ],
       "name": "gsutil upload skimage actual summary",
@@ -1610,11 +1610,11 @@
       "logs": [
         [
           "stdio",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/assert%20skimage%20expectations\/logs\/stdio"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/assert%20skimage%20expectations\/logs\/stdio"
         ],
         [
           "python.inline",
-          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/721\/steps\/assert%20skimage%20expectations\/logs\/python.inline"
+          "http:\/\/build.chromium.org\/p\/client.skia\/builders\/Test-Ubuntu12-ShuttleA-GTX660-x86-Release\/builds\/%(buildnumber)d\/steps\/assert%20skimage%20expectations\/logs\/python.inline"
         ]
       ],
       "name": "assert skimage expectations",

@@ -642,20 +642,48 @@ func replaceCommentsIntoDB(tx *sqlx.Tx, comments []*BuildComment, newBuildID int
 
 // replaceIntoDB inserts or updates the Build in the database.
 func (b *Build) replaceIntoDB() (rv error) {
-	// Insert the build itself.
 	tx, err := DB.Beginx()
 	if err != nil {
 		return fmt.Errorf("Unable to push build into database - Could not begin transaction: %v", err)
 	}
 
+	// Defer committing/rolling back the transaction.
+	defer func() {
+		rv = database.CommitOrRollback(tx, rv)
+	}()
+
+	// Insert the build.
+	return b.replaceIntoDBTx(tx)
+}
+
+func ReplaceMultipleBuildsIntoDB(builds []*Build) (rv error) {
+	tx, err := DB.Beginx()
+	if err != nil {
+		return fmt.Errorf("Unable to push builds into database - Could not begin transaction: %v", err)
+	}
+
+	// Defer committing/rolling back the transaction.
+	defer func() {
+		rv = database.CommitOrRollback(tx, rv)
+	}()
+
+	// Insert the builds.
+	for _, b := range builds {
+		if err := b.replaceIntoDBTx(tx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (b *Build) replaceIntoDBTx(tx *sqlx.Tx) (rv error) {
+	// Insert the build itself.
 	buildID := b.Id
 	var stepIDMap map[*BuildStep]int
 	var commentIDMap map[*BuildComment]int
 
-	// Defer committing/rolling back the transaction. If successful,
-	// update the Build with new IDs.
+	// If successful, update the build with new IDs.
 	defer func() {
-		rv = database.CommitOrRollback(tx, rv)
 		if rv == nil {
 			// Update the build with any new IDs.
 			b.Id = buildID
@@ -690,7 +718,7 @@ func (b *Build) replaceIntoDB() (rv error) {
 	}
 
 	// Build steps.
-	stepIDMap, err = replaceStepsIntoDB(tx, b.Steps, buildID)
+	stepIDMap, err := replaceStepsIntoDB(tx, b.Steps, buildID)
 	if err != nil {
 		return err
 	}
