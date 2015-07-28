@@ -128,6 +128,10 @@ function copy_files {
       $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
         $REQUIRED_FILE /home/$PROJECT_USER/storage/skia-repo/
     done
+    # TODO(rmistry): This was added because ~/.boto is part of the disk image.
+    # It won't be next time the buildbot image is captured, so remove this line
+    # at that time.
+    $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME "rm -f .boto"
   echo
 }
 
