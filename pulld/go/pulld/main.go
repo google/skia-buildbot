@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/coreos/go-systemd/dbus"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"github.com/skia-dev/go-systemd/dbus"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/systemd"
