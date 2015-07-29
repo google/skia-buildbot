@@ -76,7 +76,7 @@ cat <<-EOF > ${ROOT}/DEBIAN/control
 EOF
 
 cat <<-EOF > ${ROOT}/DEBIAN/postinst
-#!/bin/sh
+#!/bin/bash
 INIT_SCRIPT="${INIT_SCRIPT}"
 set -e
 if [ -e /bin/systemctl ]
@@ -84,7 +84,7 @@ then
   /bin/systemctl daemon-reload
   /bin/systemctl enable ${SYSTEMD}
   /bin/systemctl restart ${SYSTEMD}
-elif [ -z \$INIT_SCRIPT ]
+elif [ ! -z "\$INIT_SCRIPT" ]
 then
   update-rc.d \$INIT_SCRIPT enable
   service $INIT_SCRIPT start
