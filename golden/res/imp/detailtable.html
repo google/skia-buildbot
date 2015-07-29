@@ -205,6 +205,9 @@ attribute is false.
             <th></th><td>No issues.</td>
           </tr>
         </template>
+        <tr>
+          <th></th><td><a href="{{issueTrackerLink(test, top)}}">New Issue</a></td>
+        </tr>
 
         <tr><th colspan=2 class=sectionHeader>Graphs</th></tr>
         <tr>
@@ -402,6 +405,19 @@ attribute is false.
         leftChanged: function() {
           this.changeImpl_();
         },
+
+        issueTrackerLink: function(test, top) {
+          var backlink = "https://gold.skia.org/detail?test=" + test + "&digest=" + top;
+          var msg = "This issue was reported through Skia Gold.\n\n"+
+            "Visit this URL to see the details of the digest:\n\n"+
+            "    " + backlink + "\n\n";
+          var q = {
+            labels:  "FromSkiaGold",
+            comment: msg,
+          }
+          return "https://code.google.com/p/skia/issues/entry?" + sk.query.fromObject(q);
+        },
+
       });
     })();
   </script>
