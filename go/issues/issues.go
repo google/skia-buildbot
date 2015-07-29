@@ -10,8 +10,7 @@ import (
 )
 
 const (
-	API_QUERY_TEMPLATE = "%s.&fields=items/id,items/state,items/title&key=%s"
-	API_URL_TEMPLATE   = "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?q=%s"
+	URL_TEMPLATE = "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?q=%s&fields=items/id,items/state,items/title&key=%s"
 )
 
 // IssueTracker is a genric interface to an issue tracker that allows us
@@ -48,8 +47,7 @@ type IssueResponse struct {
 
 // FromQuery is part of the IssueTracker interface. See documentation there.
 func (c *CodesiteIssueTracker) FromQuery(q string) ([]Issue, error) {
-	qStr := fmt.Sprintf(API_QUERY_TEMPLATE, q, c.apiKey)
-	url := fmt.Sprintf(API_URL_TEMPLATE, url.QueryEscape(qStr))
+	url := fmt.Sprintf(URL_TEMPLATE, url.QueryEscape(q), c.apiKey)
 
 	//  This will return a JSON response of the form:
 	//
@@ -63,8 +61,8 @@ func (c *CodesiteIssueTracker) FromQuery(q string) ([]Issue, error) {
 	//   ]
 	//  }
 	resp, err := c.client.Get(url)
-	if err != nil {
-		return nil, err
+	if err != nil || resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Failed to retrieve issue tracker response: %s Status Code: %d", err, resp.StatusCode)
 	}
 	defer util.Close(resp.Body)
 

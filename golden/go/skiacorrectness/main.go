@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/redisutil"
@@ -63,6 +64,7 @@ var (
 	authWhiteList    = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	nTilesToBackfill = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
 	storageDir       = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
+	issueTrackerKey  = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
 )
 
 const (
@@ -97,6 +99,7 @@ var (
 	statusWatcher      *status.StatusWatcher
 	blamer             *blame.Blamer
 	paramsetSum        *paramsets.Summary
+	issueTracker       issues.IssueTracker
 )
 
 // sendResponse wraps the data of a succesful response in a response envelope
@@ -338,6 +341,12 @@ func main() {
 	}
 
 	paramsetSum = paramsets.New(tallies, storages)
+
+	if !*local {
+		*issueTrackerKey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
+	}
+
+	issueTracker = issues.NewIssueTracker(*issueTrackerKey)
 
 	summaries, err = summary.New(storages, tallies, blamer)
 	if err != nil {

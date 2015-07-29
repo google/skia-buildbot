@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -33,11 +34,14 @@ import (
 )
 
 const (
-	// Default page size used for pagination.
+	// DEFAULT_PAGE_SIZE is the default page size used for pagination.
 	DEFAULT_PAGE_SIZE = 20
 
-	// Maximum page size used for pagination.
+	// MAX_PAGE_SIZE is the maximum page size used for pagination.
 	MAX_PAGE_SIZE = 100
+
+	// ISSUE_TRACKER_SEARCH_TEMPLATE formats a test and digest for use in searching the issue tracker.
+	ISSUE_TRACKER_SEARCH_TEMPLATE = "gold.skia.org/detail?test?%s+AND+%s"
 )
 
 var (
@@ -815,6 +819,9 @@ type PolyDetailsGUI struct {
 	PosClosest   *digesttools.Closest     `json:"posClosest"`
 	NegClosest   *digesttools.Closest     `json:"negClosest"`
 	Blame        *blame.BlameDistribution `json:"blame"`
+
+	// Issues is only populated if this is a query for a single digest, i.e. top==left.
+	Issues []issues.Issue `json:"issues"`
 }
 
 // polyDetailsHandler handles requests about individual digests in a test.
@@ -928,6 +935,14 @@ func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test strin
 	if closest && t != nil {
 		ret.PosClosest = digesttools.ClosestDigest(test, top, exp, t, storages.DiffStore, types.POSITIVE)
 		ret.NegClosest = digesttools.ClosestDigest(test, top, exp, t, storages.DiffStore, types.NEGATIVE)
+	}
+
+	if top == left {
+		var err error
+		ret.Issues, err = issueTracker.FromQuery(fmt.Sprintf(ISSUE_TRACKER_SEARCH_TEMPLATE, test, top))
+		if err != nil {
+			glog.Errorf("Failed to load issues for [%s, %s]: %s", test, top, err)
+		}
 	}
 
 	return ret

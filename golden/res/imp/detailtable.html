@@ -192,6 +192,20 @@ attribute is false.
       </template>
 
       <template if="{{!bothcolumns}}">
+
+        <tr><th colspan=2 class=sectionHeader>Issues</th></tr>
+        <template repeat="{{issue in details.issues}}">
+          <tr>
+            <th></th>
+            <td><a href="https://bug.skia.org/{{issue.id}}">{{issue.id}}  ({{issue.state}}) - {{issue.title}}</a></td>
+          </tr>
+        </template>
+        <template if="{{details.issues.length == 0}}">
+          <tr>
+            <th></th><td>No issues.</td>
+          </tr>
+        </template>
+
         <tr><th colspan=2 class=sectionHeader>Graphs</th></tr>
         <tr>
           <th>Per Trace</th>
