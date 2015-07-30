@@ -47,6 +47,7 @@
         <td>User</td>
         <td>Timestamps</td>
         <td>Results</td>
+        <td>Task Repeats</td>
       </tr>
 
       <template is="dom-repeat" items="{{chromiumBuilds}}" as="chromiumBuild" index-as="index">
@@ -101,6 +102,9 @@
             </template>
           </td>
 
+          <!-- Task Repeats -->
+          <td>{{ formatRepeatAfterDays(chromiumBuild.RepeatAfterDays.Int64) }}</td>
+
         </tr>
       </template>
     </table>
@@ -152,6 +156,7 @@
      skiaCommitUrl: ctfe.chromiumBuild.skiaCommitUrl,
      shortHash: ctfe.chromiumBuild.shortHash,
      formatTimestamp: ctfe.getFormattedTimestamp,
+     formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
 
      isDone: function(failure, tsCompleted) {
        return !failure && tsCompleted;

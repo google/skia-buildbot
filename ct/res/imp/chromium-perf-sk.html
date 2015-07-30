@@ -165,6 +165,13 @@
       </tr>
 
       <tr>
+        <td>Repeat this task</td>
+        <td>
+          <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
+        </td>
+      </tr>
+
+      <tr>
         <td>Description</td>
         <td>
           <paper-input value="" id="desc" label="Description is required"></paper-input>
@@ -292,6 +299,7 @@
        params["chromium_patch"] = this.$.chromium_patch.textarea.value;
        params["blink_patch"] = this.$.blink_patch.textarea.value;
        params["skia_patch"] = this.$.skia_patch.textarea.value;
+       params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
        var that = this;
        sk.post("/_/add_chromium_perf_task", JSON.stringify(params)).then(function(resp) {

@@ -13,8 +13,44 @@ this.ctfe = this.ctfe || function() {
     if (timestamp == 0) {
       return "<pending>";
     }
+    return ctfe.getTimestamp(timestamp).toLocaleString();
+  }
+
+  /**
+   * Converts the timestamp used in CTFE DB into a Javascript timestamp.
+   */
+  ctfe.getTimestamp = function(timestamp) {
+    if (timestamp == 0) {
+      return timestamp;
+    }
     var pattern = /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/;
-    return new Date(String(timestamp).replace(pattern,'$1-$2-$3T$4:$5:$6')).toLocaleString();
+    return new Date(String(timestamp).replace(pattern,'$1-$2-$3T$4:$5:$6'));
+  }
+
+  /**
+   * Convert from Javascript timestamp to one recognized by CTFE DB.
+   */
+  ctfe.getCtDbTimestamp = function(dbTimestamp) {
+    var d = new Date(dbTimestamp);
+    var timestamp = String(d.getUTCFullYear()) + sk.human.pad(d.getUTCMonth()+1, 2) +
+                    sk.human.pad(d.getUTCDate(), 2) + sk.human.pad(d.getUTCHours(), 2) +
+                    sk.human.pad(d.getUTCMinutes(), 2) + sk.human.pad(d.getUTCSeconds(), 2);
+    return timestamp
+  }
+
+  /**
+   * Get user friendly string for repeat after days.
+   */
+  ctfe.formatRepeatAfterDays = function(num) {
+    if (num == 0) {
+      return "N/A";
+    } else if (num == 1) {
+      return "Daily";
+    } else if (num == 7) {
+      return "Weekly";
+    } else {
+      return "Every " + num + " days";
+    }
   }
 
   /**

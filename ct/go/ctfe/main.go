@@ -92,12 +92,13 @@ var (
 )
 
 type CommonCols struct {
-	Id          int64         `db:"id"`
-	TsAdded     sql.NullInt64 `db:"ts_added"`
-	TsStarted   sql.NullInt64 `db:"ts_started"`
-	TsCompleted sql.NullInt64 `db:"ts_completed"`
-	Username    string        `db:"username"`
-	Failure     sql.NullBool  `db:"failure"`
+	Id              int64         `db:"id"`
+	TsAdded         sql.NullInt64 `db:"ts_added"`
+	TsStarted       sql.NullInt64 `db:"ts_started"`
+	TsCompleted     sql.NullInt64 `db:"ts_completed"`
+	Username        string        `db:"username"`
+	Failure         sql.NullBool  `db:"failure"`
+	RepeatAfterDays sql.NullInt64 `db:"repeat_after_days"`
 }
 
 type Task interface {
@@ -392,8 +393,9 @@ func executeSimpleTemplate(template *template.Template, w http.ResponseWriter, r
 
 // Data included in all tasks; set by addTaskHandler.
 type AddTaskCommonVars struct {
-	Username string
-	TsAdded  string
+	Username        string
+	TsAdded         string
+	RepeatAfterDays string `json:"repeat_after_days"`
 }
 
 type AddTaskVars interface {
@@ -434,8 +436,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshall %T task: %v", task, err))
 		return
 	}
-	_, err = db.DB.Exec(query, binds...)
-	if err != nil {
+	if _, err = db.DB.Exec(query, binds...); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task: %v", task, err))
 		return
 	}
@@ -501,7 +502,7 @@ func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}, e
 		task.Description == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_PERF_TASKS),
 		[]interface{}{
 			task.Username,
@@ -517,6 +518,7 @@ func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}, e
 			task.BlinkPatch,
 			task.SkiaPatch,
 			task.TsAdded,
+			task.RepeatAfterDays,
 		},
 		nil
 }
@@ -536,7 +538,7 @@ func parseBoolFormValue(string string) bool {
 	}
 }
 
-func dbTaskQuery(prototype Task, username string, successful bool, includeCompleted bool, countQuery bool, offset int, size int) (string, []interface{}) {
+func dbTaskQuery(prototype Task, username string, successful bool, includeCompleted bool, includeFutureRuns bool, countQuery bool, offset int, size int) (string, []interface{}) {
 	args := []interface{}{}
 	query := "SELECT "
 	if countQuery {
@@ -556,6 +558,9 @@ func dbTaskQuery(prototype Task, username string, successful bool, includeComple
 	if !includeCompleted {
 		clauses = append(clauses, "ts_completed IS NULL")
 	}
+	if includeFutureRuns {
+		clauses = append(clauses, "(repeat_after_days != 0 AND ts_completed IS NOT NULL)")
+	}
 	if len(clauses) > 0 {
 		query += " WHERE "
 		query += strings.Join(clauses, " AND ")
@@ -574,6 +579,7 @@ func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	successful := parseBoolFormValue(r.FormValue("successful"))
 	includeCompleted := !parseBoolFormValue(r.FormValue("not_completed"))
+	includeFutureRuns := parseBoolFormValue(r.FormValue("include_future_runs"))
 	if successful && !includeCompleted {
 		skutil.ReportError(w, r, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "")
 		return
@@ -583,7 +589,7 @@ func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to get pagination params: %v", err))
 		return
 	}
-	query, args := dbTaskQuery(prototype, username, successful, includeCompleted, false, offset, size)
+	query, args := dbTaskQuery(prototype, username, successful, includeCompleted, includeFutureRuns, false, offset, size)
 	glog.Infof("Running %s", query)
 	data, err := prototype.Select(query, args...)
 	if err != nil {
@@ -591,7 +597,7 @@ func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query, args = dbTaskQuery(prototype, username, successful, includeCompleted, true, 0, 0)
+	query, args = dbTaskQuery(prototype, username, successful, includeCompleted, includeFutureRuns, true, 0, 0)
 	// Get the total count.
 	glog.Infof("Running %s", query)
 	countVal := []int{}
@@ -645,7 +651,7 @@ func (task *AddCaptureSkpsTaskVars) GetInsertQueryAndBinds() (string, []interfac
 	if err := validateChromiumBuild(task.ChromiumBuild); err != nil {
 		return "", nil, err
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,description,ts_added) VALUES (?,?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,description,ts_added, repeat_after_days) VALUES (?,?,?,?,?,?,?);",
 			db.TABLE_CAPTURE_SKPS_TASKS),
 		[]interface{}{
 			task.Username,
@@ -654,6 +660,7 @@ func (task *AddCaptureSkpsTaskVars) GetInsertQueryAndBinds() (string, []interfac
 			task.ChromiumBuild.SkiaRev,
 			task.Description,
 			task.TsAdded,
+			task.RepeatAfterDays,
 		},
 		nil
 }
@@ -705,7 +712,7 @@ func (task *AddLuaScriptTaskVars) GetInsertQueryAndBinds() (string, []interface{
 	if err := validateSkpRepository(task.SkpRepository); err != nil {
 		return "", nil, err
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,lua_script,lua_aggregator_script,description,ts_added) VALUES (?,?,?,?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,lua_script,lua_aggregator_script,description,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?);",
 			db.TABLE_LUA_SCRIPT_TASKS),
 		[]interface{}{
 			task.Username,
@@ -716,6 +723,7 @@ func (task *AddLuaScriptTaskVars) GetInsertQueryAndBinds() (string, []interface{
 			task.LuaAggregatorScript,
 			task.Description,
 			task.TsAdded,
+			task.RepeatAfterDays,
 		},
 		nil
 }
@@ -756,7 +764,7 @@ func (task *AddChromiumBuildTaskVars) GetInsertQueryAndBinds() (string, []interf
 		return "", nil, err
 	}
 	chromiumRevTs := parsedTs.UTC().Format("20060102150405")
-	return fmt.Sprintf("INSERT INTO %s (username,chromium_rev,chromium_rev_ts,skia_rev,ts_added) VALUES (?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,chromium_rev,chromium_rev_ts,skia_rev,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_BUILD_TASKS),
 		[]interface{}{
 			task.Username,
@@ -764,6 +772,7 @@ func (task *AddChromiumBuildTaskVars) GetInsertQueryAndBinds() (string, []interf
 			chromiumRevTs,
 			task.SkiaRev,
 			task.TsAdded,
+			task.RepeatAfterDays,
 		},
 		nil
 }
@@ -905,12 +914,13 @@ func (task *RecreatePageSetsTaskHandlerVars) GetInsertQueryAndBinds() (string, [
 	if task.PageSets == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,ts_added) VALUES (?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,page_sets,ts_added,repeat_after_days) VALUES (?,?,?,?);",
 			db.TABLE_RECREATE_PAGE_SETS_TASKS),
 		[]interface{}{
 			task.Username,
 			task.PageSets,
 			task.TsAdded,
+			task.RepeatAfterDays,
 		},
 		nil
 }
@@ -935,7 +945,7 @@ func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (st
 	if err := validateChromiumBuild(task.ChromiumBuild); err != nil {
 		return "", nil, err
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,ts_added) VALUES (?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?);",
 			db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS),
 		[]interface{}{
 			task.Username,
@@ -943,6 +953,7 @@ func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (st
 			task.ChromiumBuild.ChromiumRev,
 			task.ChromiumBuild.SkiaRev,
 			task.TsAdded,
+			task.RepeatAfterDays,
 		},
 		nil
 }
@@ -1099,6 +1110,22 @@ func runServer(serverURL string) {
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
+// repeatedTasksScheduler looks for all tasks that contain repeat_after_days
+// set to > 0 and schedules them when the specified time comes.
+func repeatedTasksScheduler() {
+	for _ = range time.Tick(5 * time.Minute) {
+		glog.Info("Checking for repeated tasks that need to be scheduled..")
+
+		// TODO(rmistry): Complete this implementation.
+		// This function needs to do the following:
+		// 1. Look for tasks that need to be scheduled in the next 5 minutes.
+		// 2. Loop over these tasks.
+		//   2.1 Update the task and set repeat_after_days to 0.
+		//   2.2 Schedule the task again and set repeat_after_days to what it
+		//       originally was.
+	}
+}
+
 func main() {
 	// Setup flags.
 	dbConf := db.DBConfigFromFlags()
@@ -1146,6 +1173,9 @@ func main() {
 	if err := dbConf.InitDB(); err != nil {
 		glog.Fatal(err)
 	}
+
+	// Start the repeated tasks scheduler.
+	go repeatedTasksScheduler()
 
 	runServer(serverURL)
 }

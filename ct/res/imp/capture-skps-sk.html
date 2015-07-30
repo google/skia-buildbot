@@ -60,6 +60,13 @@
       </tr>
 
       <tr>
+        <td>Repeat this task</td>
+        <td>
+          <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
+        </td>
+      </tr>
+
+      <tr>
         <td>Description</td>
         <td>
           <paper-input value="" id="desc"
@@ -152,6 +159,7 @@
       params["page_sets"] = this.$.page_sets.selected;
       params["chromium_build"] = this.$.chromium_build.selected;
       params["desc"] = this.$.desc.value;
+      params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
       sk.post("/_/add_capture_skps_task", JSON.stringify(params))
         .then(function(resp) {

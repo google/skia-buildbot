@@ -62,7 +62,12 @@
           <td>{{ incrementOne(index) }}</td>
 
           <!-- Added col --> 
-          <td>{{ formatTimestamp(pendingTask.TsAdded.Int64) }}</td>
+          <td>{{ formatTimestamp(pendingTask.TsAdded.Int64) }}
+            <template is="dom-if" if="{{ pendingTask.FutureDate }}">
+              <br/>
+              <div style="color:red;">(scheduled in the future)</div>
+            </template>
+          </td>
 
           <!-- Task Type col --> 
           <td>{{pendingTask.TaskType}}</td>
@@ -99,7 +104,7 @@
                    {type: "RecreateWebpageArchives", url: "/_/get_recreate_webpage_archives_tasks"},
                   ];
          }
-       }
+       },
      },
 
      ready: function() {
@@ -114,6 +119,16 @@
            that.updatePendingTasks(json.data, obj.type);
          }).catch(sk.errorMessage);
        });
+
+       // Find all tasks scheduled in the future.
+       var queryParams = {"include_future_runs": true,}
+       var queryStr = "?" + sk.query.fromObject(queryParams);
+       this.taskDescriptors.forEach(function(obj) {
+         sk.post(obj.url + queryStr).then(JSON.parse).then(function(json) {
+           that.updatePendingTasks(json.data, obj.type);
+         }).catch(sk.errorMessage);
+       });
+      
        this.$.queue.addEventListener('click', function(e) {
          var anchor = sk.findParent(e.target, "A");
          if (anchor != null) {
@@ -137,7 +152,16 @@
 
      updatePendingTasks: function(tasks, tasksType) {
        for (index in tasks) {
-         tasks[index]["TaskType"] = tasksType;
+         var task = tasks[index];
+         task["TaskType"] = tasksType;
+         // Check if this is a completed task set to repeat.
+         if (task["RepeatAfterDays"]["Int64"] != 0 && task["TsCompleted"]["Int64"]) {
+           // Calculate the future date.
+           var timestamp = ctfe.getTimestamp(task["TsAdded"]["Int64"]);
+           timestamp.setDate(timestamp.getDate() + task["RepeatAfterDays"]["Int64"]);
+           task["FutureDate"] = true;
+           task["TsAdded"]["Int64"] = ctfe.getCtDbTimestamp(timestamp);
+         }
        }
        this.pendingTasks = this.pendingTasks.concat(tasks)
        // Sort pending tasks according to TsAdded.

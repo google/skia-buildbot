@@ -199,26 +199,44 @@ var v6_down = []string{
 	`DROP TABLE IF EXISTS LuaScriptTasks`,
 }
 
+var v7_up = []string{
+	`ALTER TABLE CaptureSkpsTasks ADD repeat_after_days BIGINT NOT NULL DEFAULT 0`,
+	`ALTER TABLE ChromiumPerfTasks ADD repeat_after_days BIGINT NOT NULL DEFAULT 0`,
+	`ALTER TABLE ChromiumBuildTasks ADD repeat_after_days BIGINT NOT NULL DEFAULT 0`,
+	`ALTER TABLE LuaScriptTasks ADD repeat_after_days BIGINT NOT NULL DEFAULT 0`,
+	`ALTER TABLE RecreatePageSetsTasks ADD repeat_after_days BIGINT NOT NULL DEFAULT 0`,
+	`ALTER TABLE RecreateWebpageArchivesTasks ADD repeat_after_days BIGINT NOT NULL DEFAULT 0`,
+}
+
+var v7_down = []string{
+	`ALTER TABLE CaptureSkpsTasks DROP repeat_after_days`,
+	`ALTER TABLE ChromiumPerfTasks DROP repeat_after_days`,
+	`ALTER TABLE ChromiumBuildTasks DROP repeat_after_days`,
+	`ALTER TABLE LuaScriptTasks DROP repeat_after_days`,
+	`ALTER TABLE RecreatePageSetsTasks DROP repeat_after_days`,
+	`ALTER TABLE RecreateWebpageArchivesTasks DROP repeat_after_days`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
 var migrationSteps = []database.MigrationStep{
-	// version 1. Create tables.
+	// version 1. Create Chromium Perf tables.
 	{
 		MySQLUp:   v1_up,
 		MySQLDown: v1_down,
 	},
-	// version 2. Create admin task tables.
+	// version 2. Create Admin Task tables.
 	{
 		MySQLUp:   v2_up,
 		MySQLDown: v2_down,
 	},
-	// version 3. Create chromium build table.
+	// version 3. Create Chromium Build table.
 	{
 		MySQLUp:   v3_up,
 		MySQLDown: v3_down,
 	},
-	// version 4. Modify chromium build columns.
+	// version 4. Modify Chromium Build columns.
 	{
 		MySQLUp:   v4_up,
 		MySQLDown: v4_down,
@@ -232,6 +250,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v6_up,
 		MySQLDown: v6_down,
+	},
+	// version 7: Add repeat_after_days column to all tables.
+	{
+		MySQLUp:   v7_up,
+		MySQLDown: v7_down,
 	},
 }
 

@@ -54,6 +54,7 @@
         <td>Timestamps</td>
         <td>Task Config</td>
         <td>Results</td>
+        <td>Task Repeats</td>
       </tr>
 
       <template is="dom-repeat" items="{{adminTasks}}" as="adminTask" index-as="index">
@@ -112,6 +113,9 @@
               Done
             </template>
           </td>
+
+          <!-- Repeat Every -->
+          <td>{{ formatRepeatAfterDays(adminTask.RepeatAfterDays.Int64) }}</td>
 
         </tr>
       </template>
@@ -209,6 +213,7 @@
      chromiumCommitUrl: ctfe.chromiumBuild.chromiumCommitUrl,
      skiaCommitUrl: ctfe.chromiumBuild.skiaCommitUrl,
      shortHash: ctfe.chromiumBuild.shortHash,
+     formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
 
      isRecreateWebpageArchivesTask: function() {
        return this.taskType == "RecreateWebpageArchives";

@@ -81,6 +81,13 @@
         </tr>
 
         <tr>
+          <td>Repeat this task</td>
+          <td>
+            <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
+          </td>
+        </tr>
+
+        <tr>
           <td colspan="2" class="center">
             <paper-button raised id="submit_task">Queue Task</paper-button>
           </td>
@@ -177,6 +184,7 @@
     queuePagesetsTask: function() {
       var params = {};
       params["page_sets"] = this.$.page_sets.selected;
+      params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
       sk.post("/_/add_recreate_page_sets_task", JSON.stringify(params))
         .then(function(resp) {
@@ -188,6 +196,7 @@
       var params = {};
       params["page_sets"] = this.$.page_sets.selected;
       params["chromium_build"] = this.$.chromium_build.selected;
+      params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
       sk.post("/_/add_recreate_webpage_archives_task", JSON.stringify(params))
         .then(function(resp) {

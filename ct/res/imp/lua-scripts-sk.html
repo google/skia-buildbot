@@ -74,6 +74,13 @@
       </tr>
 
       <tr>
+        <td>Repeat this task</td>
+        <td>
+          <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
+        </td>
+      </tr>
+
+      <tr>
         <td>Description</td>
         <td>
           <paper-input value="" id="desc" label="Description is required"></paper-input>
@@ -159,6 +166,7 @@
        params["lua_script"] = this.$.lua_script.textarea.value;
        params["lua_aggregator_script"] = this.$.lua_aggregator_script.textarea.value;
        params["desc"] = this.$.desc.value;
+       params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
        var that = this;
        sk.post("/_/add_lua_script_task", JSON.stringify(params)).then(function(resp) {

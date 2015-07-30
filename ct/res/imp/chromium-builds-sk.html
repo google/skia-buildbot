@@ -95,6 +95,13 @@
       </tr>
 
       <tr>
+        <td>Repeat this task</td>
+        <td>
+          <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
+        </td>
+      </tr>
+
+      <tr>
         <td colspan="3" class="center">
           <paper-button raised id="submit_task">Queue Task</paper-button>
         </td>
@@ -248,6 +255,7 @@
       params["chromium_rev"] = this.chromiumRevData.commit;
       params["chromium_rev_ts"] = this.chromiumRevData.committer.time;
       params["skia_rev"] = this.skiaRevData.commit;
+      params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
       sk.post("/_/add_chromium_build_task", JSON.stringify(params))
         .then(function(resp) {

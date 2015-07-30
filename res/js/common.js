@@ -251,6 +251,15 @@ this.sk = this.sk || function() {
   ];
 
   /**
+   * Pad zeros in front of the specified number.
+   */
+  sk.human.pad = function(num, size) {
+    var str = num + "";
+    while (str.length < size) str = "0" + str;
+    return str;
+  }
+
+  /**
    * Returns a human-readable format of the given duration in seconds.
    *
    * For example, 'strDuration(123)' would return "2m 3s".

@@ -92,6 +92,7 @@
         <td>Results</td>
         <td>Arguments</td>
         <td>Patches</td>
+        <td>Task Repeats</td>
       </tr>
 
       <template is="dom-repeat" items="{{chromiumPerfTasks}}" as="chromiumPerfTask" index-as="index">
@@ -192,6 +193,10 @@
               <a href="javascript:void(0);" data-index$="{{index}}" data-type="skiaPatch">Skia</a>
             </template>
           </td>
+
+          <!-- Task Repeats -->
+          <td>{{ formatRepeatAfterDays(chromiumPerfTask.RepeatAfterDays.Int64) }}</td>
+
         </tr>
       </template>
     </table>
@@ -333,5 +338,6 @@
      },
 
      formatTimestamp: ctfe.getFormattedTimestamp,
+     formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
   });
 </script>

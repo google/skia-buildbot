@@ -4,6 +4,23 @@ describe('The sk.human functions',
 
     afterEach(function () { if (clock) { clock.restore(); } });
 
+    function testPad() {
+      var testCases = [
+        [       0, 0, "0"],
+        [       1, 1, "1"],
+        [      10, 1, "10"],
+        [      10, 2, "10"],
+        [      10, 3, "010"],
+        [31558150, 8, "31558150"],
+        [31558150, 9, "031558150"],
+      ];
+      for (var testCase of testCases) {
+        assert.equal(sk.human.pad(testCase[0], testCase[1]), testCase[2]);
+      }
+    }
+
+    it('should return padded integers from pad', testPad);
+
     function testStrDuration() {
       var testCases = [
         [       0, "  0s"],

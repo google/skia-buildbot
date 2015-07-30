@@ -56,6 +56,7 @@
         <td>Task Config</td>
         <td>Description</td>
         <td>Results</td>
+        <td>Task Repeats</td>
       </tr>
 
       <template is="dom-repeat" items="{{captureSkpsTasks}}" as="captureSkpsTask" index-as="index">
@@ -115,6 +116,10 @@
               Done
             </template>
           </td>
+
+          <!-- Task Repeats -->
+          <td>{{ formatRepeatAfterDays(captureSkpsTask.RepeatAfterDays.Int64) }}</td>
+
         </tr>
       </template>
     </table>
@@ -210,6 +215,7 @@
      skiaCommitUrl: ctfe.chromiumBuild.skiaCommitUrl,
      shortHash: ctfe.chromiumBuild.shortHash,
      formatTimestamp: ctfe.getFormattedTimestamp,
+     formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
 
      isDone: function(failure, tsCompleted) {
        return !failure && tsCompleted;

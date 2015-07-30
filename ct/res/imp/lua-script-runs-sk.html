@@ -72,6 +72,7 @@
         <td>Description</td>
         <td>Scripts</td>
         <td>Results</td>
+        <td>Task Repeats</td>
       </tr>
 
       <template is="dom-repeat" items="{{luaScriptTasks}}" as="luaScriptTask" index-as="index">
@@ -146,6 +147,9 @@
                  target="_blank">Aggregated Output</a>
             </template>
           </td>
+
+          <!-- Task Repeats -->
+          <td>{{ formatRepeatAfterDays(luaScriptTask.RepeatAfterDays.Int64) }}</td>
 
         </tr>
       </template>
@@ -268,5 +272,6 @@
      skiaCommitUrl: ctfe.chromiumBuild.skiaCommitUrl,
      shortHash: ctfe.chromiumBuild.shortHash,
      formatTimestamp: ctfe.getFormattedTimestamp,
+     formatRepeatAfterDays: ctfe.formatRepeatAfterDays,
   });
 </script>
