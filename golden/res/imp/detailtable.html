@@ -206,7 +206,7 @@ attribute is false.
           </tr>
         </template>
         <tr>
-          <th></th><td><a href="{{issueTrackerLink(test, top)}}">New Issue</a></td>
+          <th></th><td><a href="{{issueTrackerLink(test, top)}}" target=_blank>New Issue</a></td>
         </tr>
 
         <tr><th colspan=2 class=sectionHeader>Graphs</th></tr>
@@ -407,7 +407,7 @@ attribute is false.
         },
 
         issueTrackerLink: function(test, top) {
-          var backlink = "https://gold.skia.org/detail?test=" + test + "&digest=" + top;
+          var backlink = window.location.origin + "/detail?test=" + test + "&digest=" + top;
           var msg = "This issue was reported through Skia Gold.\n\n"+
             "Visit this URL to see the details of the digest:\n\n"+
             "    " + backlink + "\n\n";

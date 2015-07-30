@@ -41,7 +41,7 @@ const (
 	MAX_PAGE_SIZE = 100
 
 	// ISSUE_TRACKER_SEARCH_TEMPLATE formats a test and digest for use in searching the issue tracker.
-	ISSUE_TRACKER_SEARCH_TEMPLATE = "gold.skia.org/detail?test?%s+AND+%s"
+	ISSUE_TRACKER_SEARCH_TEMPLATE = "%s+AND+%s"
 )
 
 var (
