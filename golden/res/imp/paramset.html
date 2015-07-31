@@ -35,6 +35,10 @@
     setParamSets([p1, p2, ...], [title1, title2, ...]) - p1 and p2 are param sets.
       title1 and title2 are strings to use as the title of the columns.
       The titles are optional and no title will be displayed if they are not supplied.
+
+    setHighlight(params) - Highlights all the values that match the given params.
+
+    clearHighlight() - Removes any highlighting.
 -->
 <polymer-element name="paramset-sk">
   <template>
@@ -44,9 +48,13 @@
         padding: 0.4em;
       }
 
+      th {
+        text-align: left;
+      }
+
       div {
         display: inline-block;
-        padding: 0.4em;
+        padding: 0.2em;
       }
 
       .clickable th,
@@ -62,6 +70,11 @@
 
       :host {
         display: block;
+      }
+
+      .hover {
+        color: #E7298A;
+        font-weight: bold;
       }
     </style>
     <table id=table class="{{clickable ? 'clickable' : ''}}">
@@ -150,6 +163,19 @@
             bubbles: true,
           }));
         }
+      },
+
+      setHighlight: function(params) {
+        $$('div', this).forEach(function(ele) {
+          var key = ele.dataset.key;
+          ele.classList.toggle('hover', key && params[key] == ele.dataset.value);
+        });
+      },
+
+      clearHighlight: function() {
+        $$('div', this).forEach(function(ele) {
+            ele.classList.remove('hover');
+        });
       },
 
       // We can't be in Shadow DOM.

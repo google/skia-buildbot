@@ -94,22 +94,9 @@
       }
 
       #paramset {
-        max-width: 20em;
+        max-width: 40em;
       }
 
-      #paramset th {
-        text-align: right;
-        padding-right: 0.5em;
-      }
-
-      #paramset span {
-        margin-right: 0.2em;
-      }
-
-      #paramset .hover {
-        color: #E7298A;
-        font-weight: bold;
-      }
       .noCompare {
         padding-right: 1em;
       }
@@ -172,18 +159,7 @@
         </template>
       </div>
       <div vertical layout id=paramset>
-        <table>
-          <template repeat="{{key in details.traces.paramset | keysOf}}">
-            <tr>
-              <th>{{key}}</th>
-              <td>
-                <template repeat="{{v in details.traces.paramset[key]}}">
-                  <span id="param_{{key}}_{{v | asId}}">{{v}}</span>
-                </template>
-              </td>
-            </tr>
-          </template>
-        </table>
+        <paramset-sk id=paramsets clickable=false></paramset-sk>
       </div>
       <div vertical layout class="{{triage ? 'triageInfo' : 'hidden'}}">
         <template if="{{closest.closest.digest}}">
@@ -269,15 +245,11 @@
               break;
             }
           }
-          that.clearParamHighlights();
-          Object.keys(params).forEach(function(k) {
-            var id = '#param_'+k+'_'+that.asId(params[k]);
-            $$$(id, that.$.paramset).classList.add('hover');
-          });
+          that.$.paramsets.setHighlight(params);
         });
 
         this.$.dots.addEventListener('mouseleave', function() {
-          that.clearParamHighlights();
+          that.$.paramsets.clearHighlight()
         });
 
         this.$.zoomButton.addEventListener('click', function() {
@@ -289,13 +261,6 @@
         this.$.blame.addEventListener('hover-blame', function(e) {
           this.$.dots.highlight(e.detail.index, e.detail.b);
         }.bind(this));
-      },
-
-      // Remove the hover class from all of the paramset values.
-      clearParamHighlights: function() {
-        $$('[class=hover]', this.$.paramset).forEach(function(ele) {
-          ele.classList.remove('hover');
-        });
       },
 
       // asId strips out non-alphanum characters, which makes them into
@@ -343,7 +308,17 @@
               this.diffDigests = this.digest + "-" + this.closest.closest.digest;
             }
             this.dataset.diffdigests = this.diffDigests;
+            var closestLabel = "";
+            if (this.closest.closest.digest) {
+              closestLabel = this.negIsClosest ? "Closest Negative" : "Closest Positive"
+            }
+            this.$.paramsets.setParamSets(
+              [ this.details.traces.paramset, this.closest.paramset ],
+              [ "",                           closestLabel ]
+            );
+
           } else {
+            this.$.paramsets.setParamSets([this.details.traces.paramset]);
             this.dataset.diff = Infinity;
           }
         }
