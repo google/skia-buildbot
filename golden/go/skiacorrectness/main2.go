@@ -39,9 +39,6 @@ const (
 
 	// MAX_PAGE_SIZE is the maximum page size used for pagination.
 	MAX_PAGE_SIZE = 100
-
-	// ISSUE_TRACKER_SEARCH_TEMPLATE formats a test and digest for use in searching the issue tracker.
-	ISSUE_TRACKER_SEARCH_TEMPLATE = "%s+AND+%s"
 )
 
 var (
@@ -939,7 +936,11 @@ func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test strin
 
 	if top == left {
 		var err error
-		ret.Issues, err = issueTracker.FromQuery(fmt.Sprintf(ISSUE_TRACKER_SEARCH_TEMPLATE, test, top))
+		// Search is only done on the digest. Codesite can't seem to extract the
+		// name of the test reliably from the URL in comment text, yet can get the
+		// digest just fine. This issue should be revisited once we switch to
+		// Monorail.
+		ret.Issues, err = issueTracker.FromQuery(top)
 		if err != nil {
 			glog.Errorf("Failed to load issues for [%s, %s]: %s", test, top, err)
 		}
