@@ -1,0 +1,18 @@
+[Unit]
+Description=Ingestion for skiacorrectness
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/ingest  \
+    --config_filename=/etc/skiacorrectness/gold-ingest.toml  \
+    --log_dir=/var/log/logserver  \
+    --db_host=<<REPLACE_DATABASE_HOST>>   \
+    --db_name=<<REPLACE_DATABASE_NAME>>
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

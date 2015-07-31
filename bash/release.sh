@@ -44,6 +44,14 @@
 # /etc/systemd/system/*.service in your copy_release_files() function. A
 # post-installation script will be run that enables and runs all such
 # services.
+#
+# SYSTEMD_TIMER
+# -------------
+# If defined it is assumed to contain a systemd timer that will trigger a
+# delayed setup and restart of the services. In this case the services
+# identified in SYSTEMD are enabled, but not restarted.
+# This is useful if a service needs to install a package via apt-get.
+# With this delay a systemd unit is triggered after the package is installed.
 
 set -x -e
 
@@ -75,6 +83,13 @@ cat <<-EOF > ${ROOT}/DEBIAN/control
 	Description: ${DESCRIPTION}
 EOF
 
+# Either restart SYSTEMD or SYSTEMD_TIMER.
+RESTART_TARGET="$SYSTEMD"
+if [ !-z "$SYSTEMD_TIMER"]; then
+  RESTART_TARGET=${SYSTEMD_TIMER}
+fi
+
+# Generate the post-install file that wires up the services.
 cat <<-EOF > ${ROOT}/DEBIAN/postinst
 #!/bin/bash
 INIT_SCRIPT="${INIT_SCRIPT}"
@@ -83,7 +98,7 @@ if [ -e /bin/systemctl ]
 then
   /bin/systemctl daemon-reload
   /bin/systemctl enable ${SYSTEMD}
-  /bin/systemctl restart ${SYSTEMD}
+  /bin/systemctl restart ${RESTART_TARGET}
 elif [ ! -z "\$INIT_SCRIPT" ]
 then
   update-rc.d \$INIT_SCRIPT enable
@@ -124,7 +139,7 @@ then
     -h x-goog-meta-datetime:${DATETIME} \
     -h x-goog-meta-dirty:${DIRTY} \
     -h "x-goog-meta-note:$1" \
-    -h "x-goog-meta-services:${SYSTEMD}" \
+    -h "x-goog-meta-services:$SYSTEMD" \
     cp ${OUT}/${APPNAME}.deb \
     gs://skia-push/debs/${APPNAME}/${APPNAME}:${USERID}:${DATETIME}:${HASH}.deb
 else

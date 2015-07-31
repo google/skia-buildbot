@@ -47,7 +47,6 @@ var (
 	graphiteServer   = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	port             = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
 	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	staticDir        = flag.String("static_dir", "./app", "Directory with static content to serve")
 	tileStoreDir     = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
 	imageDir         = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	gsBucketName     = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")

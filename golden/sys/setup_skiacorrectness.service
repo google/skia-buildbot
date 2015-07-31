@@ -1,0 +1,9 @@
+[Unit]
+Description=Install and configure Redis server
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/setup_skiacorrectness.sh
+Restart=on-failure

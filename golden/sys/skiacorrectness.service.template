@@ -1,0 +1,32 @@
+[Unit]
+Description=Web server for Skia correctness monitoring.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Environment=DATA_DIR=/mnt/pd0/data  \
+  RESOURCE_DIR=/usr/local/share/skiacorrectness  \
+
+ExecStart=/usr/local/bin/skiacorrectness  \
+    --port=:8001  \
+    --log_dir=/var/log/logserver  \
+    --tile_store_dir=${DATA_DIR}/tileStore3  \
+    --image_dir=${DATA_DIR}/imageStore  \
+    --storage_dir=${DATA_DIR}/datastore  \
+    --redis_host=localhost:6379  \
+    --oauth_cache_file=${DATA_DIR}/correctness-google_storage_token.data  \
+    --resources_dir=${RESOURCE_DIR}  \
+    --db_host=<<REPLACE_DATABASE_HOST>>  \
+    --db_name=<<REPLACE_DATABASE_NAME>>  \
+    --redirect_url=<<REPLACE_REDIRECT_URL>>  \
+    --gs_bucket=<<REPLACE_GS_BUCKET>>   \
+    --n_commits=<<REPLACE_N_COMMITS>>   \
+    <<REPLACE_ADD_FLAGS>>
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
