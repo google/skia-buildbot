@@ -6,8 +6,7 @@ import (
 
 	// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 	"github.com/golang/groupcache/lru"
-
-	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/go/tiling"
 )
 
 type key struct {
@@ -20,23 +19,23 @@ type key struct {
 //
 // The results are cached since merging is a time consuming operation.
 type MergedTiles struct {
-	store types.TileStore
+	store tiling.TileStore
 	cache *lru.Cache
 	mutex sync.Mutex
 }
 
 // getFromCache returns a merged tile from the cache, or nil on a miss.
-func (m *MergedTiles) getFromCache(key key) *types.Tile {
+func (m *MergedTiles) getFromCache(key key) *tiling.Tile {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
 	if val, ok := m.cache.Get(key); ok {
-		return val.(*types.Tile)
+		return val.(*tiling.Tile)
 	}
 	return nil
 }
 
-func (m *MergedTiles) addToCache(key key, tile *types.Tile) {
+func (m *MergedTiles) addToCache(key key, tile *tiling.Tile) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 
@@ -45,7 +44,7 @@ func (m *MergedTiles) addToCache(key key, tile *types.Tile) {
 
 // Get returns a tile that is the merged tiles from startIndex to endIndex
 // inclusive.
-func (m *MergedTiles) Get(scale, startIndex, endIndex int) (*types.Tile, error) {
+func (m *MergedTiles) Get(scale, startIndex, endIndex int) (*tiling.Tile, error) {
 	k := key{
 		scale:      scale,
 		startIndex: startIndex,
@@ -71,7 +70,7 @@ func (m *MergedTiles) Get(scale, startIndex, endIndex int) (*types.Tile, error) 
 			endIndex:   endIndex,
 		}
 		if rTile := m.getFromCache(rKey); rTile != nil {
-			tile = types.Merge(tile, rTile)
+			tile = tiling.Merge(tile, rTile)
 			break
 		}
 
@@ -80,7 +79,7 @@ func (m *MergedTiles) Get(scale, startIndex, endIndex int) (*types.Tile, error) 
 		if err != nil || tile2 == nil {
 			return nil, fmt.Errorf("Failed retrieving tile to merge: %s.", err)
 		}
-		tile = types.Merge(tile, tile2)
+		tile = tiling.Merge(tile, tile2)
 	}
 
 	m.addToCache(k, tile)
@@ -89,7 +88,7 @@ func (m *MergedTiles) Get(scale, startIndex, endIndex int) (*types.Tile, error) 
 }
 
 // NewMergedTileCache creates a new MergedTileCache.
-func NewMergedTiles(tilestore types.TileStore, maxEntries int) *MergedTiles {
+func NewMergedTiles(tilestore tiling.TileStore, maxEntries int) *MergedTiles {
 	return &MergedTiles{
 		store: tilestore,
 		cache: lru.New(maxEntries),

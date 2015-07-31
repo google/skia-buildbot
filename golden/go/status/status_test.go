@@ -8,15 +8,15 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/filetilestore"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
-	pconfig "go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/filetilestore"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 var (
@@ -46,7 +46,7 @@ func BenchmarkStatusWatcher(b *testing.B) {
 	// tile to read.
 	tileDir := os.Getenv("TEST_TILE_DIR")
 	assert.NotEqual(b, "", tileDir, "Please define the TEST_TILE_DIR environment variable to point to a live tile store.")
-	tileStore := filetilestore.NewFileTileStore(tileDir, pconfig.DATASET_GOLD, 2*time.Minute)
+	tileStore := filetilestore.NewFileTileStore(tileDir, config.DATASET_GOLD, 2*time.Minute)
 
 	storages := &storage.Storage{
 		TileStore: tileStore,
@@ -60,7 +60,7 @@ func BenchmarkStatusWatcher(b *testing.B) {
 	testStatusWatcher(b, tileStore)
 }
 
-func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
+func testStatusWatcher(t assert.TestingT, tileStore tiling.TileStore) {
 	eventBus := eventbus.New()
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
@@ -88,7 +88,7 @@ func testStatusWatcher(t assert.TestingT, tileStore ptypes.TileStore) {
 		posOrNeg := []types.Label{types.POSITIVE, types.NEGATIVE}
 		for _, trace := range tile.Traces {
 			if trace.Params()[types.CORPUS_FIELD] == corpStatus.Name {
-				gTrace := trace.(*ptypes.GoldenTrace)
+				gTrace := trace.(*types.GoldenTrace)
 				testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 				for _, digest := range gTrace.Values {
 					if _, ok := changes[testName]; !ok {

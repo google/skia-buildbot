@@ -8,11 +8,12 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/filetilestore"
+	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
-	pconfig "go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/filetilestore"
-	ptypes "go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Mock the url generator function.
@@ -56,18 +57,18 @@ func NewMockDiffStore() diff.DiffStore {
 }
 
 // Mock the tilestore for GoldenTraces
-func NewMockTileStore(t assert.TestingT, digests [][]string, params []map[string]string, commits []*ptypes.Commit) ptypes.TileStore {
+func NewMockTileStore(t assert.TestingT, digests [][]string, params []map[string]string, commits []*tiling.Commit) tiling.TileStore {
 	// Build the tile from the digests, params and commits.
-	traces := map[string]ptypes.Trace{}
+	traces := map[string]tiling.Trace{}
 
 	for idx, traceDigests := range digests {
-		traces[TraceKey(params[idx])] = &ptypes.GoldenTrace{
+		traces[TraceKey(params[idx])] = &types.GoldenTrace{
 			Params_: params[idx],
 			Values:  traceDigests,
 		}
 	}
 
-	tile := ptypes.NewTile()
+	tile := tiling.NewTile()
 	tile.Traces = traces
 	tile.Commits = commits
 
@@ -90,11 +91,11 @@ func TraceKey(params map[string]string) string {
 
 // NewMockTileStoreFromJson reads a tile that has been serialized to JSON
 // and wraps an instance of MockTileStore around it.
-func NewMockTileStoreFromJson(t assert.TestingT, fname string) ptypes.TileStore {
+func NewMockTileStoreFromJson(t assert.TestingT, fname string) tiling.TileStore {
 	f, err := os.Open(fname)
 	assert.Nil(t, err)
 
-	tile, err := ptypes.TileFromJson(f, &ptypes.GoldenTrace{})
+	tile, err := types.TileFromJson(f, &types.GoldenTrace{})
 	assert.Nil(t, err)
 
 	return &MockTileStore{
@@ -105,19 +106,19 @@ func NewMockTileStoreFromJson(t assert.TestingT, fname string) ptypes.TileStore 
 
 type MockTileStore struct {
 	t    assert.TestingT
-	tile *ptypes.Tile
+	tile *tiling.Tile
 }
 
-func (m *MockTileStore) Get(scale, index int) (*ptypes.Tile, error) {
+func (m *MockTileStore) Get(scale, index int) (*tiling.Tile, error) {
 	return m.tile, nil
 }
 
-func (m *MockTileStore) Put(scale, index int, tile *ptypes.Tile) error {
+func (m *MockTileStore) Put(scale, index int, tile *tiling.Tile) error {
 	assert.FailNow(m.t, "Should not be called.")
 	return nil
 }
 
-func (m *MockTileStore) GetModifiable(scale, index int) (*ptypes.Tile, error) {
+func (m *MockTileStore) GetModifiable(scale, index int) (*tiling.Tile, error) {
 	return m.Get(scale, index)
 }
 
@@ -143,10 +144,10 @@ func (m *MockDigestStore) Update([]*digeststore.DigestInfo) error {
 // GetTileStoreFromEnv looks at the TEST_TILE_DIR environement variable for the
 // name of directory that contains tiles. If it's defined it will return a
 // TileStore instance. If the not the calling test will fail.
-func GetTileStoreFromEnv(t assert.TestingT) ptypes.TileStore {
+func GetTileStoreFromEnv(t assert.TestingT) tiling.TileStore {
 	// Get the TEST_TILE environment variable that points to the
 	// tile to read.
 	tileDir := os.Getenv("TEST_TILE_DIR")
 	assert.NotEqual(t, "", tileDir, "Please define the TEST_TILE_DIR environment variable to point to a live tile store.")
-	return filetilestore.NewFileTileStore(tileDir, pconfig.DATASET_GOLD, 2*time.Minute)
+	return filetilestore.NewFileTileStore(tileDir, config.DATASET_GOLD, 2*time.Minute)
 }

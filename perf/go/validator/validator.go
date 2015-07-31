@@ -4,16 +4,16 @@ package validator
 import (
 	"fmt"
 	"time"
-)
 
-import "go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/go/tiling"
+)
 
 // validateTile validates a tile by confirming that all the commits are in
 // ascending order.
 //
 // Also checks that none of the commits overlap with the following tile by
 // making sure each commit appears before oldestTS.
-func validateTile(tile *types.Tile, oldestTS int64, verbose, echoHashes bool) error {
+func validateTile(tile *tiling.Tile, oldestTS int64, verbose, echoHashes bool) error {
 	var lastTS int64 = 0
 	lastHash := ""
 	if verbose {
@@ -52,7 +52,7 @@ func validateTile(tile *types.Tile, oldestTS int64, verbose, echoHashes bool) er
 }
 
 // ValidateDataset validates all the tiles stored in a TileStore.
-func ValidateDataset(store types.TileStore, verbose, echoHashes bool) bool {
+func ValidateDataset(store tiling.TileStore, verbose, echoHashes bool) bool {
 	index := -1
 	isValid := true
 	// If tilebuilding were instantaneous this might cause a false negative, but it's not.

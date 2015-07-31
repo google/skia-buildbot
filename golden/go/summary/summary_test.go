@@ -6,23 +6,23 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
-	gtypes "go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/golden/go/types"
 )
 
 type MockTileStore struct {
-	Tile *types.Tile
+	Tile *tiling.Tile
 }
 
-func (m MockTileStore) Put(scale, index int, tile *types.Tile) error        { return nil }
-func (m MockTileStore) GetModifiable(scale, index int) (*types.Tile, error) { return nil, nil }
-func (m MockTileStore) Get(scale, index int) (*types.Tile, error) {
+func (m MockTileStore) Put(scale, index int, tile *tiling.Tile) error        { return nil }
+func (m MockTileStore) GetModifiable(scale, index int) (*tiling.Tile, error) { return nil, nil }
+func (m MockTileStore) Get(scale, index int) (*tiling.Tile, error) {
 	return m.Tile, nil
 }
 
@@ -91,8 +91,8 @@ func (m MockTileStore) Get(scale, index int) (*types.Tile, error) {
 
 */
 func TestCalcSummaries(t *testing.T) {
-	tile := &types.Tile{
-		Traces: map[string]types.Trace{
+	tile := &tiling.Tile{
+		Traces: map[string]tiling.Trace{
 			"a": &types.GoldenTrace{
 				Values: []string{"aaa", "bbb"},
 				Params_: map[string]string{
@@ -129,13 +129,13 @@ func TestCalcSummaries(t *testing.T) {
 					"source_type": "image"},
 			},
 		},
-		Commits: []*types.Commit{
-			&types.Commit{
+		Commits: []*tiling.Commit{
+			&tiling.Commit{
 				CommitTime: 42,
 				Hash:       "ffffffffffffffffffffffffffffffffffffffff",
 				Author:     "test@test.cz",
 			},
-			&types.Commit{
+			&tiling.Commit{
 				CommitTime: 45,
 				Hash:       "gggggggggggggggggggggggggggggggggggggggg",
 				Author:     "test@test.cz",
@@ -156,16 +156,16 @@ func TestCalcSummaries(t *testing.T) {
 		DigestStore:       &mocks.MockDigestStore{FirstSeen: time.Now().Unix() + 1000, OkValue: true},
 	}
 
-	assert.Nil(t, storages.ExpectationsStore.AddChange(map[string]gtypes.TestClassification{
-		"foo": map[string]gtypes.Label{
-			"aaa": gtypes.POSITIVE,
-			"bbb": gtypes.NEGATIVE,
-			"ccc": gtypes.UNTRIAGED,
-			"ddd": gtypes.UNTRIAGED,
-			"eee": gtypes.POSITIVE,
+	assert.Nil(t, storages.ExpectationsStore.AddChange(map[string]types.TestClassification{
+		"foo": map[string]types.Label{
+			"aaa": types.POSITIVE,
+			"bbb": types.NEGATIVE,
+			"ccc": types.UNTRIAGED,
+			"ddd": types.UNTRIAGED,
+			"eee": types.POSITIVE,
 		},
-		"bar": map[string]gtypes.Label{
-			"fff": gtypes.NEGATIVE,
+		"bar": map[string]types.Label{
+			"fff": types.NEGATIVE,
 		},
 	}, "foo@example.com"))
 

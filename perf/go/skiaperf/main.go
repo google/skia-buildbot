@@ -18,10 +18,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/filetilestore"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/ingester"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alerting"
@@ -29,7 +32,6 @@ import (
 	"go.skia.org/infra/perf/go/clustering"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/db"
-	"go.skia.org/infra/perf/go/filetilestore"
 	"go.skia.org/infra/perf/go/parser"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stats"
@@ -91,7 +93,7 @@ var (
 )
 
 var (
-	nanoTileStore types.TileStore
+	nanoTileStore tiling.TileStore
 )
 
 func Init() {
@@ -432,7 +434,7 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 				return false
 			}
 		}
-		return types.Matches(tr, r.Form)
+		return tiling.Matches(tr, r.Form)
 	}
 
 	if issue != "" {
@@ -450,7 +452,7 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // getTile retrieves a tile from the disk
-func getTile(tileScale, tileNumber int) (*types.Tile, error) {
+func getTile(tileScale, tileNumber int) (*tiling.Tile, error) {
 	start := time.Now()
 	tile, err := nanoTileStore.Get(int(tileScale), int(tileNumber))
 	glog.Infoln("Time for tile load: ", time.Since(start).Nanoseconds())
@@ -517,7 +519,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guiTile := types.NewTileGUI(tile.Scale, tile.TileIndex)
+	guiTile := tiling.NewTileGUI(tile.Scale, tile.TileIndex)
 	guiTile.Commits = tile.Commits
 	guiTile.ParamSet = tile.ParamSet
 	// SkpCommits goes out to the git repo, add caching if this turns out to be
@@ -554,8 +556,8 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 
 // QueryResponse is for formatting the JSON output from queryHandler.
 type QueryResponse struct {
-	Traces []*types.TraceGUI `json:"traces"`
-	Hash   string            `json:"hash"`
+	Traces []*tiling.TraceGUI `json:"traces"`
+	Hash   string             `json:"hash"`
 }
 
 // FlatQueryResponse is for formatting the JSON output from calcHandler when the user
@@ -657,14 +659,14 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	ret := &QueryResponse{
-		Traces: []*types.TraceGUI{},
+		Traces: []*tiling.TraceGUI{},
 		Hash:   "",
 	}
 	if match[3] == "" {
 		// We only want the count.
 		total := 0
 		for _, tr := range tile.Traces {
-			if types.Matches(tr, r.Form) {
+			if tiling.Matches(tr, r.Form) {
 				total++
 			}
 		}
@@ -696,9 +698,9 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 					if tg != nil {
 						ret.Traces = append(ret.Traces, tg)
 					}
-				} else if types.IsFormulaID(k) {
+				} else if tiling.IsFormulaID(k) {
 					// Re-evaluate the formula and add all the results to the response.
-					formula := types.FormulaFromID(k)
+					formula := tiling.FormulaFromID(k)
 					if err := addCalculatedTraces(ret, tile, formula); err != nil {
 						glog.Errorf("Failed evaluating formula (%q) while processing shortcut %s: %s", formula, shortcutID, err)
 					}
@@ -708,7 +710,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		} else {
 			for key, tr := range tile.Traces {
-				if types.Matches(tr, r.Form) {
+				if tiling.Matches(tr, r.Form) {
 					tg := traceGuiFromTrace(tr.(*types.PerfTrace), key, tile)
 					if tg != nil {
 						ret.Traces = append(ret.Traces, tg)
@@ -766,7 +768,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	hash := match[1]
 
-	tileNum, idx, err := git.TileAddressFromHash(hash, time.Time(config.BEGINNING_OF_TIME))
+	tileNum, idx, err := git.TileAddressFromHash(hash, time.Time(ingester.BEGINNING_OF_TIME))
 	if err != nil {
 		glog.Infof("Did not find hash '%s', use latest: %q.\n", hash, err)
 		tileNum = -1
@@ -789,7 +791,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 		Hash:   tile.Commits[idx].Hash,
 	}
 	for _, tr := range tile.Traces {
-		if types.Matches(tr, r.Form) {
+		if tiling.Matches(tr, r.Form) {
 			v, err := vec.FillAt(tr.(*types.PerfTrace).Values, idx)
 			if err != nil {
 				util.ReportError(w, r, err, "Error while getting value at slice index.")
@@ -811,7 +813,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // traceGuiFromTrace returns a populated TraceGUI from the given trace.
-func traceGuiFromTrace(trace *types.PerfTrace, key string, tile *types.Tile) *types.TraceGUI {
+func traceGuiFromTrace(trace *types.PerfTrace, key string, tile *tiling.Tile) *tiling.TraceGUI {
 	newTraceData := make([][2]float64, 0)
 	for i, v := range trace.Values {
 		if v != config.MISSING_DATA_SENTINEL && tile.Commits[i] != nil && tile.Commits[i].CommitTime > 0 {
@@ -820,7 +822,7 @@ func traceGuiFromTrace(trace *types.PerfTrace, key string, tile *types.Tile) *ty
 		}
 	}
 	if len(newTraceData) >= 0 {
-		return &types.TraceGUI{
+		return &tiling.TraceGUI{
 			Data:   newTraceData,
 			Label:  key,
 			Params: trace.Params(),
@@ -832,7 +834,7 @@ func traceGuiFromTrace(trace *types.PerfTrace, key string, tile *types.Tile) *ty
 
 // addCalculatedTraces adds the traces returned from evaluating the given
 // formula over the given tile to the QueryResponse.
-func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) error {
+func addCalculatedTraces(qr *QueryResponse, tile *tiling.Tile, formula string) error {
 	ctx := parser.NewContext(tile)
 	traces, err := ctx.Eval(formula)
 	if err != nil {
@@ -840,7 +842,7 @@ func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) er
 	}
 	hasFormula := false
 	for _, tr := range traces {
-		if types.IsFormulaID(tr.Params()["id"]) {
+		if tiling.IsFormulaID(tr.Params()["id"]) {
 			hasFormula = true
 		}
 		tg := traceGuiFromTrace(tr, tr.Params()["id"], tile)
@@ -849,7 +851,7 @@ func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) er
 	if !hasFormula {
 		// If we haven't added the formula trace to the response yet, add it in now.
 		f := types.NewPerfTraceN(len(tile.Commits))
-		tg := traceGuiFromTrace(f, types.AsFormulaID(formula), tile)
+		tg := traceGuiFromTrace(f, tiling.AsFormulaID(formula), tile)
 		qr.Traces = append(qr.Traces, tg)
 	}
 	return nil
@@ -858,7 +860,7 @@ func addCalculatedTraces(qr *QueryResponse, tile *types.Tile, formula string) er
 // addFlatCalculatedTraces adds the traces returned from evaluating the given
 // formula over the given tile to the FlatQueryResponse. Doesn't include an empty
 // formula trace. Useful for pulling data into IPython.
-func addFlatCalculatedTraces(qr *FlatQueryResponse, tile *types.Tile, formula string) error {
+func addFlatCalculatedTraces(qr *FlatQueryResponse, tile *tiling.Tile, formula string) error {
 	ctx := parser.NewContext(tile)
 	traces, err := ctx.Eval(formula)
 	if err != nil {
@@ -899,7 +901,7 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 		data = resp
 	} else {
 		resp := &QueryResponse{
-			Traces: []*types.TraceGUI{},
+			Traces: []*tiling.TraceGUI{},
 			Hash:   "",
 		}
 		if err := addCalculatedTraces(resp, tile, formula); err != nil {

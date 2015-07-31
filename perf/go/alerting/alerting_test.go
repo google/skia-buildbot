@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -128,7 +129,7 @@ func TestCombineClusters(t *testing.T) {
 }
 
 func TestTrimTileFunc(t *testing.T) {
-	t1 := types.NewTile()
+	t1 := tiling.NewTile()
 	t1.Scale = 1
 	t1.TileIndex = 1
 	now := time.Now().Unix()

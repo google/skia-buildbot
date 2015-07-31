@@ -11,26 +11,32 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-)
 
-import (
 	storage "code.google.com/p/google-api-go-client/storage/v1"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/opt"
-
+	"go.skia.org/infra/go/filetilestore"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/filetilestore"
-	"go.skia.org/infra/perf/go/types"
+)
+
+const (
+	// Limit the number of times the ingester tries to get a file before giving up.
+	MAX_URI_GET_TRIES = 4
 )
 
 var (
 	client *http.Client
+)
+
+var (
+	// TODO(jcgregorio) Make into a flag.
+	BEGINNING_OF_TIME = QuerySince(time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC))
 )
 
 var (
@@ -49,6 +55,25 @@ func Init(cl *http.Client) {
 			Transport: util.NewBackOffTransport(),
 		}
 	}
+}
+
+// QuerySince holds the start time we have data since.
+// Don't consider data before this time. May be due to schema changes, etc.
+// Note that the limit is exclusive, this date does not contain good data.
+type QuerySince time.Time
+
+// Date returns QuerySince in the YearMonDay format.
+func (b QuerySince) Date() string {
+	return time.Time(b).Format("20060102")
+}
+
+// Unix returns the unix timestamp.
+func (b QuerySince) Unix() int64 {
+	return time.Time(b).Unix()
+}
+
+func NewQuerySince(t time.Time) QuerySince {
+	return QuerySince(t)
 }
 
 // constructor records the constructor function for each known ingester.
@@ -112,7 +137,7 @@ type ResultIngester interface {
 // in that it runs a goroutine internally to drive ingestion.
 type Ingester struct {
 	git            *gitinfo.GitInfo
-	tileStore      types.TileStore
+	tileStore      tiling.TileStore
 	storage        *storage.Service
 	hashToNumber   map[string]int
 	lastIngestTime time.Time
@@ -187,7 +212,7 @@ func NewIngester(git *gitinfo.GitInfo, tileStoreDir string, datasetName string, 
 }
 
 // lastCommitTimeInTile looks backward in the list of Commits and finds the most recent.
-func (i *Ingester) lastCommitTimeInTile(tile *types.Tile) time.Time {
+func (i *Ingester) lastCommitTimeInTile(tile *tiling.Tile) time.Time {
 	t := tile.Commits[0].CommitTime
 	for i := (len(tile.Commits) - 1); i >= 0; i-- {
 		if tile.Commits[i].CommitTime != 0 {
@@ -195,8 +220,8 @@ func (i *Ingester) lastCommitTimeInTile(tile *types.Tile) time.Time {
 			break
 		}
 	}
-	if time.Unix(t, 0).Before(time.Time(config.BEGINNING_OF_TIME)) {
-		t = config.BEGINNING_OF_TIME.Unix()
+	if time.Unix(t, 0).Before(time.Time(BEGINNING_OF_TIME)) {
+		t = BEGINNING_OF_TIME.Unix()
 	}
 	return time.Unix(t, 0)
 }
@@ -206,12 +231,12 @@ func (i *Ingester) lastCommitTimeInTile(tile *types.Tile) time.Time {
 // Tiles if they don't exist.
 type TileTracker struct {
 	lastTileNum  int
-	currentTile  *types.Tile
-	tileStore    types.TileStore
+	currentTile  *tiling.Tile
+	tileStore    tiling.TileStore
 	hashToNumber map[string]int
 }
 
-func NewTileTracker(tileStore types.TileStore, hashToNumber map[string]int) *TileTracker {
+func NewTileTracker(tileStore tiling.TileStore, hashToNumber map[string]int) *TileTracker {
 	return &TileTracker{
 		lastTileNum:  -1,
 		currentTile:  nil,
@@ -226,7 +251,7 @@ func (tt *TileTracker) Move(hash string) error {
 		return fmt.Errorf("Commit does not exist in table: %s", hash)
 	}
 	hashNumber := tt.hashToNumber[hash]
-	tileNum := hashNumber / config.TILE_SIZE
+	tileNum := hashNumber / tiling.TILE_SIZE
 	if tileNum != tt.lastTileNum {
 		glog.Infof("Moving from tile %d to %d", tt.lastTileNum, tileNum)
 		if tt.lastTileNum != -1 {
@@ -241,7 +266,7 @@ func (tt *TileTracker) Move(hash string) error {
 			return fmt.Errorf("UpdateCommitInfo: Failed to get modifiable tile %d: %s", tileNum, err)
 		}
 		if tt.currentTile == nil {
-			tt.currentTile = types.NewTile()
+			tt.currentTile = tiling.NewTile()
 			tt.currentTile.Scale = 0
 			tt.currentTile.TileIndex = tileNum
 		}
@@ -262,14 +287,17 @@ func (tt TileTracker) Flush() {
 }
 
 // Tile returns the current Tile.
-func (tt TileTracker) Tile() *types.Tile {
+func (tt TileTracker) Tile() *tiling.Tile {
 	return tt.currentTile
 }
 
 // Offset returns the Value offset of a commit in a Trace.
 func (tt TileTracker) Offset(hash string) int {
-	return tt.hashToNumber[hash] % config.TILE_SIZE
+	return tt.hashToNumber[hash] % tiling.TILE_SIZE
 }
+
+// LastTileNum is solely used for testing. See the perfingester package.
+func (tt TileTracker) LastTileNum() int { return tt.lastTileNum }
 
 // UpdateCommitInfo finds all the new commits since the last time we ran and
 // adds them to the tiles, creating new tiles if necessary.
@@ -280,7 +308,7 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 	}
 
 	// Compute Git CL number for each Git hash.
-	allHashes := i.git.From(time.Time(config.BEGINNING_OF_TIME))
+	allHashes := i.git.From(time.Time(BEGINNING_OF_TIME))
 	hashToNumber := map[string]int{}
 	for i, h := range allHashes {
 		hashToNumber[h] = i
@@ -288,13 +316,13 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 	i.hashToNumber = hashToNumber
 
 	// Find the time of the last Commit seen.
-	ts := time.Time(config.BEGINNING_OF_TIME)
+	ts := time.Time(BEGINNING_OF_TIME)
 	lastTile, err := i.tileStore.Get(0, -1)
 	if err == nil && lastTile != nil {
 		ts = i.lastCommitTimeInTile(lastTile)
 	} else {
 		// Boundary condition; just started making Tiles and none exist.
-		newTile := types.NewTile()
+		newTile := tiling.NewTile()
 		newTile.Scale = 0
 		newTile.TileIndex = 0
 		if err := i.tileStore.Put(0, 0, newTile); err != nil {
@@ -320,7 +348,7 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 			glog.Errorf("Failed to get details for hash: %s: %s", hash, err)
 			continue
 		}
-		tt.Tile().Commits[tt.Offset(hash)] = &types.Commit{
+		tt.Tile().Commits[tt.Offset(hash)] = &tiling.Commit{
 			CommitTime: details.Timestamp.Unix(),
 			Hash:       hash,
 			Author:     details.Author,
@@ -502,6 +530,9 @@ Loop:
 	return startCommitTS, now.Unix(), nil
 }
 
+// HashToNumber is solely implemented for testing. See the perfingester package.
+func (i *Ingester) HashToNumber() map[string]int { return i.hashToNumber }
+
 // ResultsFileLocation is the URI of a single JSON file with results in it.
 type ResultsFileLocation struct {
 	URI     string // Absolute URI used to fetch the file.
@@ -524,7 +555,7 @@ func (b ResultsFileLocation) Fetch() (io.ReadCloser, error) {
 	if strings.HasPrefix(b.URI, "file://") {
 		return os.Open(b.URI[6:])
 	} else {
-		for i := 0; i < config.MAX_URI_GET_TRIES; i++ {
+		for i := 0; i < MAX_URI_GET_TRIES; i++ {
 			glog.Infof("Fetching: %s", b.Name)
 			request, err := gs.RequestForStorageURL(b.URI)
 			if err != nil {
@@ -542,7 +573,7 @@ func (b ResultsFileLocation) Fetch() (io.ReadCloser, error) {
 			glog.Infof("GS FETCH %s", b.URI)
 			return resp.Body, nil
 		}
-		return nil, fmt.Errorf("Failed fetching JSON after %d attempts", config.MAX_URI_GET_TRIES)
+		return nil, fmt.Errorf("Failed fetching JSON after %d attempts", MAX_URI_GET_TRIES)
 	}
 }
 

@@ -11,17 +11,18 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"time"
-
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/filetilestore"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	gtypes "go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/filetilestore"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/validator"
 )
@@ -39,10 +40,10 @@ var (
 	tileDir    = flag.String("tile_dir", "/tmp/tileStore", "What directory to look for tiles in.")
 	verbose    = flag.Bool("verbose", false, "Verbose.")
 	echoHashes = flag.Bool("echo_hashes", false, "Echo Git hashes during validation.")
-	dataset    = flag.String("dataset", config.DATASET_NANO, fmt.Sprintf("Choose from the valid datasets: %v", config.VALID_DATASETS))
+	dataset    = flag.String("dataset", config.DATASET_NANO, "")
 )
 
-func dumpCommits(store types.TileStore, n int) {
+func dumpCommits(store tiling.TileStore, n int) {
 	tile, err := store.Get(0, -1)
 	if err != nil {
 		glog.Fatal("Could not read tile: " + err.Error())
@@ -88,7 +89,7 @@ func getBytes(key interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func dumpTileToJSON(store types.TileStore, nCommits int, nTraces int, fname string) {
+func dumpTileToJSON(store tiling.TileStore, nCommits int, nTraces int, fname string) {
 	tile, err := store.Get(0, -1)
 	if err != nil {
 		glog.Fatal("Could not read tile: " + err.Error())
@@ -107,7 +108,7 @@ func dumpTileToJSON(store types.TileStore, nCommits int, nTraces int, fname stri
 
 		commitLen := util.MinInt(nCommits, lastIdx+1)
 		startCommit := lastIdx + 1 - commitLen
-		newTraces := map[string]types.Trace{}
+		newTraces := map[string]tiling.Trace{}
 		for key, trace := range tile.Traces {
 			for i := startCommit; i <= lastIdx; i++ {
 				if !trace.IsMissing(i) {
@@ -122,9 +123,9 @@ func dumpTileToJSON(store types.TileStore, nCommits int, nTraces int, fname stri
 
 		newCommits := tile.Commits[startCommit:]
 		newParamSet := map[string][]string{}
-		types.GetParamSet(newTraces, newParamSet)
+		tiling.GetParamSet(newTraces, newParamSet)
 
-		newTile = &types.Tile{
+		newTile = &tiling.Tile{
 			Traces:    newTraces,
 			ParamSet:  newParamSet,
 			Commits:   newCommits,
@@ -147,7 +148,7 @@ func dumpTileToJSON(store types.TileStore, nCommits int, nTraces int, fname stri
 	fmt.Printf("Traces included:  %d\n", len(newTile.Traces))
 }
 
-func md5Commits(store types.TileStore, targetHash string, nCommits int) {
+func md5Commits(store tiling.TileStore, targetHash string, nCommits int) {
 	tile, err := store.Get(0, -1)
 	if err != nil {
 		glog.Fatal("Could not read tile: " + err.Error())
@@ -185,7 +186,7 @@ func md5Commits(store types.TileStore, targetHash string, nCommits int) {
 	result := make([][]string, len(traceKeys))
 	for i, k := range traceKeys {
 		switch trace := tile.Traces[k].(type) {
-		case *types.GoldenTrace:
+		case *gtypes.GoldenTrace:
 			result[i] = trace.Values[startIdx:endIdx]
 		case *types.PerfTrace:
 			result[i] = asStringSlice(trace.Values[startIdx:endIdx])
@@ -252,10 +253,6 @@ func checkArgs(args []string, command string, requiredArgs int) {
 func main() {
 	flag.Usage = printUsage
 	common.Init()
-	if !util.In(*dataset, config.VALID_DATASETS) {
-		glog.Fatalf("Not a valid dataset: %s", *dataset)
-	}
-
 	args := flag.Args()
 	if len(args) == 0 {
 		printUsage()

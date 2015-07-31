@@ -17,11 +17,12 @@ import (
 	"go.skia.org/infra/go/common"
 	cconfig "go.skia.org/infra/go/config"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/ingester"
 	"go.skia.org/infra/go/util"
-	pconfig "go.skia.org/infra/perf/go/config"
+	gconfig "go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/goldingester"
 	"go.skia.org/infra/perf/go/db"
-	"go.skia.org/infra/perf/go/goldingester"
-	"go.skia.org/infra/perf/go/ingester"
+	_ "go.skia.org/infra/perf/go/perfingester"
 	_ "go.skia.org/infra/perf/go/trybot"
 )
 
@@ -109,7 +110,7 @@ func main() {
 	// ingesters.
 	scopes := []string{storage.CloudPlatformScope}
 	for _, ingesterConfig := range config.Ingesters {
-		if ingesterConfig.ConstructorName == pconfig.CONSTRUCTOR_ANDROID_GOLD {
+		if ingesterConfig.ConstructorName == gconfig.CONSTRUCTOR_ANDROID_GOLD {
 			scopes = append(scopes, androidbuildinternal.AndroidbuildInternalScope)
 		}
 	}

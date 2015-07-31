@@ -12,6 +12,7 @@ import (
 
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/clustering"
 	"go.skia.org/infra/perf/go/config"
@@ -41,7 +42,7 @@ var (
 	alertingLatency = metrics.NewRegisteredTimer("alerting.latency", metrics.DefaultRegistry)
 
 	// tileStore is the TileStore we are alerting on.
-	tileStore types.TileStore
+	tileStore tiling.TileStore
 )
 
 // CombineClusters combines freshly found clusters with existing clusters.
@@ -262,7 +263,7 @@ func updateBugs(c *types.ClusterSummary, issueTracker issues.IssueTracker) error
 
 // trimTime trims the Tile down to at most the last config.MAX_CLUSTER_COMMITS
 // commits, less if there aren't that many commits in the Tile.
-func trimTile(tile *types.Tile) (*types.Tile, error) {
+func trimTile(tile *tiling.Tile) (*tiling.Tile, error) {
 	end := tile.LastCommitIndex() + 1
 	begin := end - config.MAX_CLUSTER_COMMITS
 	if begin < 0 {
@@ -272,7 +273,7 @@ func trimTile(tile *types.Tile) (*types.Tile, error) {
 }
 
 // singleStep does a single round of alerting.
-func singleStep(tileStore types.TileStore, issueTracker issues.IssueTracker) {
+func singleStep(tileStore tiling.TileStore, issueTracker issues.IssueTracker) {
 	latencyBegin := time.Now()
 	tile, err := tileStore.Get(0, -1)
 	if err != nil {
@@ -363,7 +364,7 @@ func calcNewClusters() {
 }
 
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
-func Start(ts types.TileStore, apiKeyFlag string) {
+func Start(ts tiling.TileStore, apiKeyFlag string) {
 	apiKey := apiKeyFromFlag(apiKeyFlag)
 	var issueTracker issues.IssueTracker = nil
 	if apiKey != "" {

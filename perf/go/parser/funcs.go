@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/vec"
@@ -31,9 +32,9 @@ func (FilterFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
 	}
 	traces := []*types.PerfTrace{}
 	for id, tr := range ctx.Tile.Traces {
-		if types.Matches(tr.(*types.PerfTrace), query) {
+		if tiling.Matches(tr.(*types.PerfTrace), query) {
 			cp := tr.DeepCopy()
-			cp.Params()["id"] = types.AsCalculatedID(id)
+			cp.Params()["id"] = tiling.AsCalculatedID(id)
 			traces = append(traces, cp.(*types.PerfTrace))
 		}
 	}
@@ -154,7 +155,7 @@ func (AveFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
 	}
 
 	ret := types.NewPerfTraceN(len(traces[0].Values))
-	ret.Params()["id"] = types.AsFormulaID(ctx.formula)
+	ret.Params()["id"] = tiling.AsFormulaID(ctx.formula)
 	for i, _ := range ret.Values {
 		sum := 0.0
 		count := 0
@@ -236,7 +237,7 @@ func (CountFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
 	}
 
 	ret := types.NewPerfTraceN(len(traces[0].Values))
-	ret.Params()["id"] = types.AsFormulaID(ctx.formula)
+	ret.Params()["id"] = tiling.AsFormulaID(ctx.formula)
 	for i, _ := range ret.Values {
 		count := 0
 		for _, tr := range traces {
@@ -280,7 +281,7 @@ func (SumFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
 	}
 
 	ret := types.NewPerfTraceN(len(traces[0].Values))
-	ret.Params()["id"] = types.AsFormulaID(ctx.formula)
+	ret.Params()["id"] = tiling.AsFormulaID(ctx.formula)
 	for i, _ := range ret.Values {
 		sum := 0.0
 		count := 0
@@ -328,7 +329,7 @@ func (GeoFunc) Eval(ctx *Context, node *Node) ([]*types.PerfTrace, error) {
 	}
 
 	ret := types.NewPerfTraceN(len(traces[0].Values))
-	ret.Params()["id"] = types.AsFormulaID(ctx.formula)
+	ret.Params()["id"] = tiling.AsFormulaID(ctx.formula)
 	for i, _ := range ret.Values {
 		// We're accumulating a product, but in log-space to avoid large N overflow.
 		sumLog := 0.0

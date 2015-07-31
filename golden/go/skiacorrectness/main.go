@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/filetilestore"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
@@ -26,6 +27,7 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -38,8 +40,6 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/warmer"
-	pconfig "go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/filetilestore"
 )
 
 // Command line flags.
@@ -316,7 +316,7 @@ func main() {
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), eventBus),
 		IgnoreStore:       ignore.NewSQLIgnoreStore(vdb),
-		TileStore:         filetilestore.NewFileTileStore(*tileStoreDir, pconfig.DATASET_GOLD, 2*time.Minute),
+		TileStore:         filetilestore.NewFileTileStore(*tileStoreDir, config.DATASET_GOLD, 2*time.Minute),
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          eventBus,

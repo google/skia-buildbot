@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tally.Tallies) error {
@@ -54,9 +53,9 @@ func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tall
 			tileLen := tile.LastCommitIndex() + 1
 			traceDigests := make(map[string]bool, tileLen)
 			for _, trace := range tile.Traces {
-				gTrace := trace.(*ptypes.GoldenTrace)
+				gTrace := trace.(*types.GoldenTrace)
 				for _, digest := range gTrace.Values {
-					if digest != ptypes.MISSING_DIGEST {
+					if digest != types.MISSING_DIGEST {
 						traceDigests[digest] = true
 					}
 				}

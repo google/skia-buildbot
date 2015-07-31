@@ -18,8 +18,8 @@ import (
 	// TODO(stephana): Replace with github.com/hashicorp/golang-lru
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 
 // CacheEntry stores a single tile with the data describing it.
 type CacheEntry struct {
-	tile         *types.Tile
+	tile         *tiling.Tile
 	lastModified time.Time
 }
 
@@ -84,7 +84,7 @@ func (store *FileTileStore) fileTileTemp(scale, index int) (*os.File, error) {
 
 // Put writes a tile to the drive, and also updates the cache entry for it
 // if one exists. It uses the mutex to ensure thread safety.
-func (store *FileTileStore) Put(scale, index int, tile *types.Tile) error {
+func (store *FileTileStore) Put(scale, index int, tile *tiling.Tile) error {
 	glog.Info("Put()")
 	// Make sure the scale and tile index are correct.
 	if tile.Scale != scale || tile.TileIndex != index {
@@ -144,7 +144,7 @@ func (store *FileTileStore) Put(scale, index int, tile *types.Tile) error {
 
 // getLastTile gets a copy of the last tile for the given scale from disk. Its
 // thread safety comes from not using the tile store cache at all.
-func (store *FileTileStore) getLastTile(scale int) (*types.Tile, error) {
+func (store *FileTileStore) getLastTile(scale int) (*tiling.Tile, error) {
 	tilePath := path.Join(store.dir, store.datasetName, fmt.Sprintf("%d/*.gob", scale))
 	matches, _ := filepath.Glob(tilePath)
 	if matches == nil {
@@ -177,20 +177,20 @@ func (store *FileTileStore) getLastTile(scale int) (*types.Tile, error) {
 		if err != nil {
 			return nil, fmt.Errorf("Unable to open prev tile file %s", prevFilename)
 		}
-		tileData = types.Merge(prevTile, tileData)
+		tileData = tiling.Merge(prevTile, tileData)
 	}
 
 	return tileData, nil
 }
 
 // openTile opens the tile file passed in and returns the decoded contents.
-func openTile(filename string) (*types.Tile, error) {
+func openTile(filename string) (*tiling.Tile, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open tile %s for reading: %s", filename, err)
 	}
 	defer util.Close(f)
-	t := types.NewTile()
+	t := tiling.NewTile()
 	dec := gob.NewDecoder(f)
 	if err := dec.Decode(t); err != nil {
 		return nil, fmt.Errorf("Failed to decode tile %s: %s", filename, err)
@@ -202,7 +202,7 @@ func openTile(filename string) (*types.Tile, error) {
 // not already there. It is threadsafe because it locks the tile store's mutex
 // before accessing the cache.
 // NOTE: Assumes the caller does not modify the copy it returns
-func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
+func (store *FileTileStore) Get(scale, index int) (*tiling.Tile, error) {
 	store.lock.Lock()
 	defer store.lock.Unlock()
 
@@ -212,7 +212,7 @@ func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
 	}
 
 	// Retrieve the tile, if any, from the cache.
-	var tile *types.Tile
+	var tile *tiling.Tile
 	var cacheLastModified time.Time
 	if val, ok := store.cache.Get(key); ok {
 		cacheEntry := val.(*CacheEntry)
@@ -262,7 +262,7 @@ func (store *FileTileStore) Get(scale, index int) (*types.Tile, error) {
 // GetModifiable returns a tile from disk.
 // This ensures the tile can be modified without affecting the cache.
 // NOTE: Currently relies on getLastTile returning a new copy in all cases.
-func (store *FileTileStore) GetModifiable(scale, index int) (*types.Tile, error) {
+func (store *FileTileStore) GetModifiable(scale, index int) (*tiling.Tile, error) {
 	store.lock.Lock()
 	defer store.lock.Unlock()
 	// -1 means find the last tile for the given scale.
@@ -279,7 +279,7 @@ func (store *FileTileStore) GetModifiable(scale, index int) (*types.Tile, error)
 		if !os.IsNotExist(err) {
 			return nil, fmt.Errorf("Tile %d,%d retrieval caused error : %s.", scale, index, err)
 		} else {
-			newTile := types.NewTile()
+			newTile := tiling.NewTile()
 			newTile.Scale = scale
 			newTile.TileIndex = index
 			return newTile, nil
@@ -318,7 +318,7 @@ func (store *FileTileStore) refreshLastTiles() {
 // where dir is the directory name and datasetName is the name of the dataset.
 // checkEvery sets how often the cache for the last tile should be updated,
 // with a zero or negative duration meaning to never update the last tile entry.
-func NewFileTileStore(dir, datasetName string, checkEvery time.Duration) types.TileStore {
+func NewFileTileStore(dir, datasetName string, checkEvery time.Duration) tiling.TileStore {
 	store := &FileTileStore{
 		dir:         dir,
 		datasetName: datasetName,

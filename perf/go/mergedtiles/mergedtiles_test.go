@@ -10,12 +10,13 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/filetilestore"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/perf/go/filetilestore"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/perf/go/types"
 )
 
-func makeFakeTile(t *testing.T, filename string, tile *types.Tile) {
+func makeFakeTile(t *testing.T, filename string, tile *tiling.Tile) {
 	f, err := os.Create(filename)
 	assert.Nil(t, err, fmt.Sprintf("File creation failed before test start: %s", err))
 	defer testutils.AssertCloses(t, f)
@@ -40,8 +41,8 @@ func TestMerging(t *testing.T) {
 	}
 
 	fileName := filepath.Join(randomFullPath, "0000.gob")
-	makeFakeTile(t, fileName, &types.Tile{
-		Traces: map[string]types.Trace{
+	makeFakeTile(t, fileName, &tiling.Tile{
+		Traces: map[string]tiling.Trace{
 			"test": &types.PerfTrace{
 				Values:  []float64{0.0, 1.4, -2},
 				Params_: map[string]string{"test": "parameter"},
@@ -50,18 +51,18 @@ func TestMerging(t *testing.T) {
 		ParamSet: map[string][]string{
 			"test": []string{"parameter"},
 		},
-		Commits: []*types.Commit{
-			&types.Commit{
+		Commits: []*tiling.Commit{
+			&tiling.Commit{
 				CommitTime: 42,
 				Hash:       "ffffffffffffffffffffffffffffffffffffffff",
 				Author:     "test@test.cz",
 			},
-			&types.Commit{
+			&tiling.Commit{
 				CommitTime: 43,
 				Hash:       "eeeeeeeeeee",
 				Author:     "test@test.cz",
 			},
-			&types.Commit{
+			&tiling.Commit{
 				CommitTime: 44,
 				Hash:       "aaaaaaaaaaa",
 				Author:     "test@test.cz",
@@ -80,13 +81,13 @@ func TestMerging(t *testing.T) {
 	}
 
 	fileName = filepath.Join(randomFullPath, "0001.gob")
-	makeFakeTile(t, fileName, &types.Tile{
-		Traces: map[string]types.Trace{},
+	makeFakeTile(t, fileName, &tiling.Tile{
+		Traces: map[string]tiling.Trace{},
 		ParamSet: map[string][]string{
 			"test": []string{"parameter"},
 		},
-		Commits: []*types.Commit{
-			&types.Commit{
+		Commits: []*tiling.Commit{
+			&tiling.Commit{
 				CommitTime: 45,
 				Hash:       "0000000000000000000000000000000000000000",
 				Author:     "test@test.cz",

@@ -10,11 +10,11 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 var (
@@ -30,12 +30,12 @@ var (
 
 func TestBlamerWithSyntheticData(t *testing.T) {
 	start := time.Now().Unix()
-	commits := []*ptypes.Commit{
-		&ptypes.Commit{CommitTime: start + 10, Hash: "h1", Author: "John Doe 1"},
-		&ptypes.Commit{CommitTime: start + 20, Hash: "h2", Author: "John Doe 2"},
-		&ptypes.Commit{CommitTime: start + 30, Hash: "h3", Author: "John Doe 3"},
-		&ptypes.Commit{CommitTime: start + 40, Hash: "h4", Author: "John Doe 4"},
-		&ptypes.Commit{CommitTime: start + 50, Hash: "h5", Author: "John Doe 5"},
+	commits := []*tiling.Commit{
+		&tiling.Commit{CommitTime: start + 10, Hash: "h1", Author: "John Doe 1"},
+		&tiling.Commit{CommitTime: start + 20, Hash: "h2", Author: "John Doe 2"},
+		&tiling.Commit{CommitTime: start + 30, Hash: "h3", Author: "John Doe 3"},
+		&tiling.Commit{CommitTime: start + 40, Hash: "h4", Author: "John Doe 4"},
+		&tiling.Commit{CommitTime: start + 50, Hash: "h5", Author: "John Doe 5"},
 	}
 
 	params := []map[string]string{
@@ -52,7 +52,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	DI_1, DI_2, DI_3 := "digest1", "digest2", "digest3"
 	DI_4, DI_5, DI_6 := "digest4", "digest5", "digest6"
 	DI_7, DI_8, DI_9 := "digest7", "digest8", "digest9"
-	MISS := ptypes.MISSING_DIGEST
+	MISS := types.MISSING_DIGEST
 
 	digests := [][]string{
 		[]string{MISS, MISS, DI_1, MISS, MISS},
@@ -129,7 +129,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Get the trace for the last parameters and set a value.
-	gTrace := tile.Traces[mocks.TraceKey(params[5])].(*ptypes.GoldenTrace)
+	gTrace := tile.Traces[mocks.TraceKey(params[5])].(*types.GoldenTrace)
 	gTrace.Values[2] = DI_9
 
 	assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
@@ -179,7 +179,7 @@ func TestBlamerWithLiveData(t *testing.T) {
 	testBlamerWithLiveData(t, tileStore)
 }
 
-func testBlamerWithLiveData(t assert.TestingT, tileStore ptypes.TileStore) {
+func testBlamerWithLiveData(t assert.TestingT, tileStore tiling.TileStore) {
 	eventBus := eventbus.New()
 	storage := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
@@ -274,7 +274,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileStore ptypes.TileStore) {
 	// Verify that the results are plausible.
 	forEachTestTraceDo(tile, func(testName string, values []string) {
 		for idx, digest := range values {
-			if digest != ptypes.MISSING_DIGEST {
+			if digest != types.MISSING_DIGEST {
 				label := expecations.Classification(testName, digest)
 				if label == types.UNTRIAGED {
 					bl := blameLists[testName][digest]
@@ -299,22 +299,22 @@ func waitForChange(blamer *Blamer, oldBlameLists map[string]map[string]*BlameDis
 	}
 }
 
-func forEachTestDigestDo(tile *ptypes.Tile, fn func(string, string)) {
+func forEachTestDigestDo(tile *tiling.Tile, fn func(string, string)) {
 	for _, trace := range tile.Traces {
-		gTrace := trace.(*ptypes.GoldenTrace)
+		gTrace := trace.(*types.GoldenTrace)
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 		for _, digest := range gTrace.Values {
-			if digest != ptypes.MISSING_DIGEST {
+			if digest != types.MISSING_DIGEST {
 				fn(testName, digest)
 			}
 		}
 	}
 }
 
-func forEachTestTraceDo(tile *ptypes.Tile, fn func(string, []string)) {
+func forEachTestTraceDo(tile *tiling.Tile, fn func(string, []string)) {
 	tileLen := tile.LastCommitIndex() + 1
 	for _, trace := range tile.Traces {
-		gTrace := trace.(*ptypes.GoldenTrace)
+		gTrace := trace.(*types.GoldenTrace)
 		testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]
 		fn(testName, gTrace.Values[:tileLen])
 	}

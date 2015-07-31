@@ -9,12 +9,12 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	imetrics "go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -43,7 +43,7 @@ type GUIStatus struct {
 	OK bool `json:"ok"`
 
 	// Last commit currently know.
-	LastCommit *ptypes.Commit `json:"lastCommit"`
+	LastCommit *tiling.Commit `json:"lastCommit"`
 
 	// Status per corpus.
 	CorpStatus []*GUICorpusStatus `json:"corpStatus"`
@@ -141,7 +141,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 	return nil
 }
 
-func (s *StatusWatcher) calcStatus(tile *ptypes.Tile) error {
+func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 	defer timer.New("Calc status timer:").Stop()
 
 	minCommitId := map[string]int{}
@@ -158,10 +158,10 @@ func (s *StatusWatcher) calcStatus(tile *ptypes.Tile) error {
 	// Iterate over the current traces
 	tileLen := tile.LastCommitIndex() + 1
 	for _, trace := range tile.Traces {
-		gTrace := trace.(*ptypes.GoldenTrace)
+		gTrace := trace.(*types.GoldenTrace)
 
 		idx := tileLen - 1
-		for (idx >= 0) && (gTrace.Values[idx] == ptypes.MISSING_DIGEST) {
+		for (idx >= 0) && (gTrace.Values[idx] == types.MISSING_DIGEST) {
 			idx--
 		}
 

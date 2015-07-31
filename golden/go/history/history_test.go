@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 const TEST_DATA_DIR = "testdata"
@@ -51,9 +50,9 @@ func BenchmarkHistory(b *testing.B) {
 	tileLen := tile.LastCommitIndex() + 1
 	for _, trace := range tile.Traces {
 		testName := trace.Params()[types.PRIMARY_KEY_FIELD]
-		gTrace := trace.(*ptypes.GoldenTrace)
+		gTrace := trace.(*types.GoldenTrace)
 		for _, digest := range gTrace.Values[:tileLen] {
-			if digest != ptypes.MISSING_DIGEST {
+			if digest != types.MISSING_DIGEST {
 				found, err := timeIt(testName, digest)
 				assert.Nil(b, err)
 				assert.True(b, found)

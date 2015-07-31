@@ -24,7 +24,7 @@ import (
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/pdf"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/goldingester"
+	"go.skia.org/infra/golden/go/goldingester"
 	"google.golang.org/api/storage/v1"
 )
 

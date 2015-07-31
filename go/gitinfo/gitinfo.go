@@ -13,11 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/types"
-
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
 )
 
 // commitLineRe matches one line of commit log and captures hash, author and
@@ -397,7 +395,7 @@ func readCommitsFromGitAllBranches(dir string) ([]string, map[string]time.Time, 
 }
 
 // SkpCommits returns the indices for all the commits that contain SKP updates.
-func (g *GitInfo) SkpCommits(tile *types.Tile) ([]int, error) {
+func (g *GitInfo) SkpCommits(tile *tiling.Tile) ([]int, error) {
 	// Executes a git log command that looks like:
 	//
 	//   git log --format=format:%H  32956400b4d8f33394e2cdef9b66e8369ba2a0f3..e7416bfc9858bde8fc6eb5f3bfc942bc3350953a SKP_VERSION
@@ -456,7 +454,7 @@ func (g *GitInfo) TileAddressFromHash(hash string, start time.Time) (num, offset
 			continue
 		}
 		if h == hash {
-			return i / config.TILE_SIZE, i % config.TILE_SIZE, nil
+			return i / tiling.TILE_SIZE, i % tiling.TILE_SIZE, nil
 		}
 		i++
 	}

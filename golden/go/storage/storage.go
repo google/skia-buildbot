@@ -7,12 +7,12 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 // Storage is a container struct for the various storage objects we are using.
@@ -21,7 +21,7 @@ type Storage struct {
 	DiffStore         diff.DiffStore
 	ExpectationsStore expstorage.ExpectationsStore
 	IgnoreStore       ignore.IgnoreStore
-	TileStore         ptypes.TileStore
+	TileStore         tiling.TileStore
 	DigestStore       digeststore.DigestStore
 	EventBus          *eventbus.EventBus
 
@@ -30,9 +30,9 @@ type Storage struct {
 	NCommits int
 
 	// Internal variables used to cache trimmed tiles.
-	lastTrimmedTile        *ptypes.Tile
-	lastTrimmedIgnoredTile *ptypes.Tile
-	lastBaseTile           *ptypes.Tile
+	lastTrimmedTile        *tiling.Tile
+	lastTrimmedIgnoredTile *tiling.Tile
+	lastBaseTile           *tiling.Tile
 	lastIgnoreRev          int64
 	mutex                  sync.Mutex
 }
@@ -43,11 +43,11 @@ type Storage struct {
 // Should the call to read a new tile fail it will send that last
 // successfully read tile. Thus it guarantees to send a tile in the provided
 // interval, assuming at least one tile could be read.
-func (s *Storage) GetTileStreamNow(interval time.Duration, includeIgnores bool) <-chan *ptypes.Tile {
-	retCh := make(chan *ptypes.Tile)
+func (s *Storage) GetTileStreamNow(interval time.Duration, includeIgnores bool) <-chan *tiling.Tile {
+	retCh := make(chan *tiling.Tile)
 
 	go func() {
-		var lastTile *ptypes.Tile = nil
+		var lastTile *tiling.Tile = nil
 
 		readOneTile := func() {
 			if tile, err := s.GetLastTileTrimmed(includeIgnores); err != nil {
@@ -89,7 +89,7 @@ Loop:
 // do not change.
 //
 // includeIgnores - If true then include ignored digests in the returned tile.
-func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*ptypes.Tile, error) {
+func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*tiling.Tile, error) {
 	// Get the last (potentially cached) tile.
 	tile, err := s.TileStore.Get(0, -1)
 	if err != nil {
@@ -138,7 +138,7 @@ func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*ptypes.Tile, error) 
 	}
 	for id, tr := range retIgnoredTile.Traces {
 		for _, q := range ignoreQueries {
-			if ptypes.Matches(tr, q) {
+			if tiling.Matches(tr, q) {
 				delete(retIgnoredTile.Traces, id)
 				continue
 			}
@@ -162,7 +162,7 @@ func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*ptypes.Tile, error) 
 // GetOrUpdateDigestInfo is a helper function that retrieves the DigestInfo for
 // the given test name/digest pair or updates the underlying info if it is not
 // in the digest store yet.
-func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *ptypes.Commit) (*digeststore.DigestInfo, error) {
+func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.Commit) (*digeststore.DigestInfo, error) {
 	digestInfo, ok, err := s.DigestStore.Get(testName, digest)
 	if err != nil {
 		return nil, err

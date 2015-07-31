@@ -10,10 +10,11 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/androidbuild"
+	"go.skia.org/infra/go/ingester"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/ingester"
-	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/golden/go/config"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Init registers the GoldIngester and the Android specific GoldIngester.
@@ -140,7 +141,7 @@ func idAndParams(dm *DMResults, r *Result) (string, map[string]string) {
 }
 
 // addResultToTile adds the Digests from the DMResults to the tile at the given offset.
-func addResultToTile(res *DMResults, tile *types.Tile, offset int, counter metrics.Counter) {
+func addResultToTile(res *DMResults, tile *tiling.Tile, offset int, counter metrics.Counter) {
 	for _, r := range res.Results {
 		if ext, ok := r.Options["ext"]; !ok || ext != "png" {
 			continue // Temporarily skip non-PNG results until we know how to ingest them.

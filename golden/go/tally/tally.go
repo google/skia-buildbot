@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/golden/go/storage"
-	gtypes "go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/golden/go/types"
 )
 
 type OnChangeCallback func()
@@ -90,10 +90,10 @@ func (t *Tallies) ByQuery(query url.Values, includeIgnores bool) (Tally, error) 
 }
 
 // tallyBy does the actual work of ByQuery.
-func tallyBy(tile *types.Tile, traceTally map[string]Tally, query url.Values) Tally {
+func tallyBy(tile *tiling.Tile, traceTally map[string]Tally, query url.Values) Tally {
 	ret := Tally{}
 	for k, tr := range tile.Traces {
-		if types.Matches(tr, query) {
+		if tiling.Matches(tr, query) {
 			if _, ok := traceTally[k]; !ok {
 				continue
 			}
@@ -110,7 +110,7 @@ func tallyBy(tile *types.Tile, traceTally map[string]Tally, query url.Values) Ta
 }
 
 // tallyTile computes a map[tracename]Tally and map[testname]Tally from the given Tile.
-func tallyTile(tile *types.Tile) (map[string]Tally, map[string]Tally) {
+func tallyTile(tile *tiling.Tile) (map[string]Tally, map[string]Tally) {
 	defer timer.New("tally").Stop()
 	traceTally := map[string]Tally{}
 	testTally := map[string]Tally{}
@@ -128,7 +128,7 @@ func tallyTile(tile *types.Tile) (map[string]Tally, map[string]Tally) {
 			}
 		}
 		traceTally[k] = tally
-		testName := tr.Params()[gtypes.PRIMARY_KEY_FIELD]
+		testName := tr.Params()[types.PRIMARY_KEY_FIELD]
 		if t, ok := testTally[testName]; ok {
 			for digest, n := range tally {
 				if _, ok := t[digest]; ok {

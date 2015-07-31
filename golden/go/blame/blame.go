@@ -6,19 +6,19 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 // Blamer calculates blame lists by continously loading tiles
 // and changed expectations.
 type Blamer struct {
 	// commits are the commits corresponding to the current blamelists.
-	commits []*ptypes.Commit
+	commits []*tiling.Commit
 
 	// testBlameLists are the blamelists keyed by testName and digest.
 	testBlameLists map[string]map[string]*BlameDistribution
@@ -104,7 +104,7 @@ func (b *Blamer) processTileStream() error {
 	return nil
 }
 
-func (b *Blamer) GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*ptypes.Commit) {
+func (b *Blamer) GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*tiling.Commit) {
 	b.mutex.Lock()
 	blameLists, commits := b.testBlameLists, b.commits
 	b.mutex.Unlock()
@@ -145,7 +145,7 @@ func (b *Blamer) GetBlamesForTest(testName string) []*WeightedBlame {
 // caused the given test name/digest pair. If the result is empty we are not
 // able to determine blame, because the test name/digest appeared prior
 // to the current tile.
-func (b *Blamer) GetBlame(testName string, digest string, commits []*ptypes.Commit) *BlameDistribution {
+func (b *Blamer) GetBlame(testName string, digest string, commits []*tiling.Commit) *BlameDistribution {
 	blameLists, blameCommits := b.GetAllBlameLists()
 	commitIndices, maxCount := b.getBlame(blameLists[testName][digest], blameCommits, commits)
 	return &BlameDistribution{
@@ -154,7 +154,7 @@ func (b *Blamer) GetBlame(testName string, digest string, commits []*ptypes.Comm
 	}
 }
 
-func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, commits []*ptypes.Commit) ([]int, int) {
+func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, commits []*tiling.Commit) ([]int, int) {
 	if (blameDistribution == nil) || (len(blameDistribution.Freq) == 0) {
 		return []int{}, 0
 	}
@@ -183,7 +183,7 @@ func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, co
 
 // updateBlame reads from the provided tileStream and updates the current
 // blame lists.
-func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
+func (b *Blamer) updateBlame(tile *tiling.Tile) error {
 	exp, err := b.storages.ExpectationsStore.Get()
 	if err != nil {
 		return err
@@ -203,7 +203,7 @@ func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
 	ret := map[string]map[string]*BlameDistribution{}
 
 	for _, trace := range tile.Traces {
-		gtr := trace.(*ptypes.GoldenTrace)
+		gtr := trace.(*types.GoldenTrace)
 		testName := gtr.Params()[types.PRIMARY_KEY_FIELD]
 
 		// lastIdx tracks the index of the last digest that is definitely
@@ -211,7 +211,7 @@ func (b *Blamer) updateBlame(tile *ptypes.Tile) error {
 		lastIdx := -1
 		found := map[string]bool{}
 		for idx, digest := range gtr.Values[:tileLen] {
-			if digest == ptypes.MISSING_DIGEST {
+			if digest == types.MISSING_DIGEST {
 				continue
 			}
 

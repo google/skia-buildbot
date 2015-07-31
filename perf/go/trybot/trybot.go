@@ -33,15 +33,15 @@ import (
 	"sort"
 	"time"
 
+	storage "code.google.com/p/google-api-go-client/storage/v1"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-
-	storage "code.google.com/p/google-api-go-client/storage/v1"
-
+	"go.skia.org/infra/go/ingester"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/db"
-	"go.skia.org/infra/perf/go/ingester"
+	"go.skia.org/infra/perf/go/perfingester"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -108,7 +108,7 @@ func List(n int) ([]string, error) {
 // TileWithTryData will add all the trybot data for the given issue to the
 // given Tile. A new Tile that is a copy of the original Tile will be returned,
 // so we aren't modifying the underlying Tile.
-func TileWithTryData(tile *types.Tile, issue string) (*types.Tile, error) {
+func TileWithTryData(tile *tiling.Tile, issue string) (*tiling.Tile, error) {
 	ret := tile.Copy()
 	lastCommitIndex := tile.LastCommitIndex()
 	// The way we handle Tiles there is always empty space at the end of the
@@ -138,7 +138,7 @@ func addTryData(res *types.TryBotResults, opener ingester.Opener, counter metric
 		glog.Errorf("Error opening input reader: %s", err)
 	}
 
-	benchData, err := ingester.ParseBenchDataFromReader(r)
+	benchData, err := perfingester.ParseBenchDataFromReader(r)
 	if err != nil {
 		// Don't fall over for a single corrupt file.
 		glog.Errorf("Unable to parse trybot data: %s", err)

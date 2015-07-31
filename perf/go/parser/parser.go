@@ -3,6 +3,7 @@ package parser
 import (
 	"fmt"
 
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -56,13 +57,13 @@ type Func interface {
 //
 // A Context is not safe to call from multiple go routines.
 type Context struct {
-	Tile    *types.Tile
+	Tile    *tiling.Tile
 	Funcs   map[string]Func
 	formula string // The current formula being evaluated.
 }
 
 // NewContext create a new parsing context that includes the basic functions.
-func NewContext(tile *types.Tile) *Context {
+func NewContext(tile *tiling.Tile) *Context {
 	return &Context{
 		Tile: tile,
 		Funcs: map[string]Func{

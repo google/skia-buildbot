@@ -5,13 +5,13 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 // Init initializes the history module and starts background processes to
@@ -98,7 +98,7 @@ func (h *historian) start() error {
 	return nil
 }
 
-func (h *historian) updateDigestInfo(tile *ptypes.Tile) error {
+func (h *historian) updateDigestInfo(tile *tiling.Tile) error {
 	return h.processTile(tile)
 }
 
@@ -112,7 +112,7 @@ func (h *historian) backFillDigestInfo(tilesToBackfill int) {
 			return
 		}
 
-		var tile *ptypes.Tile
+		var tile *tiling.Tile
 		firstTileIndex := util.MaxInt(lastTile.TileIndex-tilesToBackfill+1, 0)
 		for idx := firstTileIndex; idx <= lastTile.TileIndex; idx++ {
 			if tile, err = h.storages.TileStore.Get(0, idx); err != nil {
@@ -135,7 +135,7 @@ func (h *historian) backFillDigestInfo(tilesToBackfill int) {
 	}()
 }
 
-func (h *historian) processTile(tile *ptypes.Tile) error {
+func (h *historian) processTile(tile *tiling.Tile) error {
 	dStore := h.storages.DigestStore
 	tileLen := tile.LastCommitIndex() + 1
 
@@ -144,10 +144,10 @@ func (h *historian) processTile(tile *ptypes.Tile) error {
 	counter := 0
 	minMaxTimes := map[string]map[string]*digeststore.DigestInfo{}
 	for _, trace := range tile.Traces {
-		gTrace := trace.(*ptypes.GoldenTrace)
+		gTrace := trace.(*types.GoldenTrace)
 		testName := trace.Params()[types.PRIMARY_KEY_FIELD]
 		for idx, digest := range gTrace.Values[:tileLen] {
-			if digest != ptypes.MISSING_DIGEST {
+			if digest != types.MISSING_DIGEST {
 				timeStamp := tile.Commits[idx].CommitTime
 				if digestInfo, ok = minMaxTimes[testName][digest]; !ok {
 					digestInfo = &digeststore.DigestInfo{

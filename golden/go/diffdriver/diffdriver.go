@@ -5,7 +5,6 @@ import (
 
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 // Init starts a back ground process that feeds test and digest information
@@ -24,10 +23,10 @@ func Init(storages *storage.Storage) {
 			// digestSets is a map [testname] map [diget] bool.
 			digestSets := map[string]map[string]bool{}
 			for _, trace := range tile.Traces {
-				gTrace := trace.(*ptypes.GoldenTrace)
+				gTrace := trace.(*types.GoldenTrace)
 				testName := trace.Params()[types.PRIMARY_KEY_FIELD]
 				for _, digest := range gTrace.Values[:tileLen] {
-					if digest != ptypes.MISSING_DIGEST {
+					if digest != types.MISSING_DIGEST {
 						if _, ok := digestSets[testName]; !ok {
 							digestSets[testName] = map[string]bool{}
 						}

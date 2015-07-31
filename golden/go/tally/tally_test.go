@@ -4,25 +4,25 @@ import (
 	"net/url"
 	"testing"
 
-	gtypes "go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestTallyBasic(t *testing.T) {
 	// Create a tile to test against.
-	tile := types.NewTile()
+	tile := tiling.NewTile()
 	trace1 := types.NewGoldenTrace()
 	trace1.Values[0] = "aaa"
 	trace1.Values[1] = "aaa"
 	trace1.Values[2] = "bbb"
-	trace1.Params_[gtypes.PRIMARY_KEY_FIELD] = "foo"
+	trace1.Params_[types.PRIMARY_KEY_FIELD] = "foo"
 	trace1.Params_["corpus"] = "gm"
 	tile.Traces["foo:x86"] = trace1
 
 	trace2 := types.NewGoldenTrace()
 	trace2.Values[0] = "ccc"
 	trace2.Values[1] = "aaa"
-	trace2.Params_[gtypes.PRIMARY_KEY_FIELD] = "foo"
+	trace2.Params_[types.PRIMARY_KEY_FIELD] = "foo"
 	trace2.Params_["corpus"] = "image"
 	tile.Traces["foo:x86_64"] = trace2
 

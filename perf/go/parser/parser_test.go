@@ -4,12 +4,13 @@ import (
 	"math"
 	"testing"
 
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
 )
 
 func newTestContext() *Context {
-	tile := types.NewTile()
+	tile := tiling.NewTile()
 	t1 := types.NewPerfTraceN(3)
 	t1.Params_["os"] = "Ubuntu12"
 	t1.Params_["config"] = "8888"

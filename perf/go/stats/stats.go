@@ -3,18 +3,17 @@ package stats
 import (
 	"time"
 
-	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/perf/go/types"
-
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/tiling"
 )
 
 // Start calculating and reporting statistics on the repo and tiles.
 //
 // We presume the git.Update(true) is called somewhere else, usually this is done
 // in the ingester, so the repo is always as good as the ingested tiles.
-func Start(tileStore types.TileStore, git *gitinfo.GitInfo) {
+func Start(tileStore tiling.TileStore, git *gitinfo.GitInfo) {
 	coverage := metrics.NewRegisteredGaugeFloat64("stats.tests.bench_runs_per_changelist", metrics.DefaultRegistry)
 	skpLatency := metrics.NewRegisteredTimer("stats.skp.update_latency", metrics.DefaultRegistry)
 	commits := metrics.NewRegisteredGauge("stats.commits.total", metrics.DefaultRegistry)

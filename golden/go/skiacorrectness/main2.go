@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -30,7 +31,6 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 const (
@@ -505,12 +505,12 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 		}
 		lastCommitIndex := tile.LastCommitIndex()
 		for _, tr := range tile.Traces {
-			if ptypes.Matches(tr, query) {
+			if tiling.Matches(tr, query) {
 				for i := lastCommitIndex; i >= 0; i-- {
 					if tr.IsMissing(i) {
 						continue
 					} else {
-						digests[tr.(*ptypes.GoldenTrace).Values[i]] = 1
+						digests[tr.(*types.GoldenTrace).Values[i]] = 1
 						break
 					}
 				}
@@ -810,7 +810,7 @@ type PolyDetailsGUI struct {
 	LeftStatus   string                   `json:"leftStatus"`
 	Params       []*PerParamCompare       `json:"params"`
 	Traces       []*Trace                 `json:"traces"`
-	Commits      []*ptypes.Commit         `json:"commits"`
+	Commits      []*tiling.Commit         `json:"commits"`
 	OtherDigests []*DigestStatus          `json:"otherDigests"`
 	TileSize     int                      `json:"tileSize"`
 	PosClosest   *digesttools.Closest     `json:"posClosest"`
@@ -890,7 +890,7 @@ func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func buildDetailsGUI(tile *ptypes.Tile, exp *expstorage.Expectations, test string, top string, left string, graphs bool, closest bool, includeIgnores bool) *PolyDetailsGUI {
+func buildDetailsGUI(tile *tiling.Tile, exp *expstorage.Expectations, test string, top string, left string, graphs bool, closest bool, includeIgnores bool) *PolyDetailsGUI {
 	ret := &PolyDetailsGUI{
 		TopStatus:  exp.Classification(test, top).String(),
 		LeftStatus: exp.Classification(test, left).String(),
@@ -960,7 +960,7 @@ func digestIndex(d string, digestInfo []*DigestStatus) int {
 }
 
 // buildTraceData returns a populated []*Trace for all the traces that contain 'digest'.
-func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, traceTally map[string]tally.Tally, exp *expstorage.Expectations) ([]*Trace, []*DigestStatus) {
+func buildTraceData(digest string, traceNames []string, tile *tiling.Tile, traceTally map[string]tally.Tally, exp *expstorage.Expectations) ([]*Trace, []*DigestStatus) {
 	sort.Strings(traceNames)
 	ret := []*Trace{}
 	last := tile.LastCommitIndex()
@@ -971,7 +971,7 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, trace
 	// Populate otherDigests with all the digests, including the one we are comparing against.
 	if len(traceNames) > 0 {
 		// Find the test name so we can look up the triage status.
-		trace := tile.Traces[traceNames[0]].(*ptypes.GoldenTrace)
+		trace := tile.Traces[traceNames[0]].(*types.GoldenTrace)
 		test := trace.Params()[types.PRIMARY_KEY_FIELD]
 		otherDigests = append(otherDigests, &DigestStatus{
 			Digest: digest,
@@ -986,7 +986,7 @@ func buildTraceData(digest string, traceNames []string, tile *ptypes.Tile, trace
 		if count, ok := t[digest]; !ok || count == 0 {
 			continue
 		}
-		trace := tile.Traces[id].(*ptypes.GoldenTrace)
+		trace := tile.Traces[id].(*types.GoldenTrace)
 		p := &Trace{
 			Data:   []Point{},
 			Label:  id,
@@ -1076,7 +1076,7 @@ func polyStatusHandler(w http.ResponseWriter, r *http.Request) {
 // allUntriagedSummaries returns a tile and summaries for all untriaged GMs.
 //
 // TODO(jcgregorio) Make source_type selectable.
-func allUntriagedSummaries() (*ptypes.Tile, map[string]*summary.Summary, error) {
+func allUntriagedSummaries() (*tiling.Tile, map[string]*summary.Summary, error) {
 	tile, err := storages.GetLastTileTrimmed(true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Couldn't load tile: %s", err)
@@ -1099,7 +1099,7 @@ type ByBlame struct {
 }
 
 // lookUpCommits returns the commit hashes for the commit indices in 'freq'.
-func lookUpCommits(freq []int, commits []*ptypes.Commit) []string {
+func lookUpCommits(freq []int, commits []*tiling.Commit) []string {
 	ret := []string{}
 	for _, index := range freq {
 		ret = append(ret, commits[index].Hash)
@@ -1108,7 +1108,7 @@ func lookUpCommits(freq []int, commits []*ptypes.Commit) []string {
 }
 
 // CommitSlice is a utility type simple for sorting Commit slices so earliest commits come first.
-type CommitSlice []*ptypes.Commit
+type CommitSlice []*tiling.Commit
 
 func (p CommitSlice) Len() int           { return len(p) }
 func (p CommitSlice) Less(i, j int) bool { return p[i].CommitTime > p[j].CommitTime }
@@ -1141,7 +1141,7 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 	grouped := map[string][]*ByBlame{}
 
 	// The Commit info for each group id.
-	commitinfo := map[string][]*ptypes.Commit{}
+	commitinfo := map[string][]*tiling.Commit{}
 	// map [groupid] [test] TestRollup
 	rollups := map[string]map[string]*TestRollup{}
 
@@ -1151,7 +1151,7 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 			groupid := strings.Join(lookUpCommits(dist.Freq, commits), ":")
 			// Only fill in commitinfo for each groupid only once.
 			if _, ok := commitinfo[groupid]; !ok {
-				ci := []*ptypes.Commit{}
+				ci := []*tiling.Commit{}
 				for _, index := range dist.Freq {
 					ci = append(ci, commits[index])
 				}

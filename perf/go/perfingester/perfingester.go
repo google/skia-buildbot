@@ -77,7 +77,7 @@ For example, in the case of nanobench data the file format looks like this:
 
      "sub_result": ("min_ms"|"median_ms")
 */
-package ingester
+package perfingester
 
 import (
 	"encoding/json"
@@ -86,7 +86,10 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/ingester"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
 
 	metrics "github.com/rcrowley/go-metrics"
@@ -216,7 +219,7 @@ func ParseBenchDataFromReader(r io.ReadCloser) (*BenchData, error) {
 // addBenchDataToTile adds BenchData to a Tile.
 //
 // See the description at the top of this file for how the mapping works.
-func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int, counter metrics.Counter) {
+func addBenchDataToTile(benchData *BenchData, tile *tiling.Tile, offset int, counter metrics.Counter) {
 
 	// cb is the anonymous closure we'll pass over all the trace values found in benchData.
 	cb := func(key string, value float64, params map[string]string) {
@@ -257,16 +260,16 @@ func addBenchDataToTile(benchData *BenchData, tile *types.Tile, offset int, coun
 // NanoBenchIngester implements the ingester.ResultIngester interface.
 type NanoBenchIngester struct{}
 
-func NewNanoBenchIngester() ResultIngester {
+func NewNanoBenchIngester() ingester.ResultIngester {
 	return NanoBenchIngester{}
 }
 
 func init() {
-	Register("nano", NewNanoBenchIngester)
+	ingester.Register(config.CONSTRUCTOR_NANO, NewNanoBenchIngester)
 }
 
 // See the ingester.ResultIngester interface.
-func (i NanoBenchIngester) Ingest(tt *TileTracker, opener Opener, fname string, counter metrics.Counter) error {
+func (i NanoBenchIngester) Ingest(tt *ingester.TileTracker, opener ingester.Opener, fname string, counter metrics.Counter) error {
 	r, err := opener()
 	if err != nil {
 		return err

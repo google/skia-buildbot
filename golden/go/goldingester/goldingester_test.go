@@ -7,7 +7,8 @@ import (
 
 	metrics "github.com/rcrowley/go-metrics"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func loadDMResults(t *testing.T) *DMResults {
@@ -42,7 +43,7 @@ func TestJSONToDMResults(t *testing.T) {
 }
 
 func TestParsing(t *testing.T) {
-	tile := types.NewTile()
+	tile := tiling.NewTile()
 	offset := 1
 	dm := loadDMResults(t)
 

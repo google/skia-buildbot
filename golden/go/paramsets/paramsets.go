@@ -6,12 +6,12 @@ import (
 	"sync"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/types"
-	ptypes "go.skia.org/infra/perf/go/types"
 )
 
 // Summary keep precalculated paramsets for each test, digest pair.
@@ -24,7 +24,7 @@ type Summary struct {
 }
 
 // byTraceForTile calculates all the paramsets from the given tile and tallies.
-func byTraceForTile(tile *ptypes.Tile, traceTally map[string]tally.Tally) map[string]map[string][]string {
+func byTraceForTile(tile *tiling.Tile, traceTally map[string]tally.Tally) map[string]map[string][]string {
 	ret := map[string]map[string][]string{}
 
 	for id, t := range traceTally {

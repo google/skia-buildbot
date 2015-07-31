@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/golden/go/tally"
-	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/golden/go/types"
 )
 
 func TestParamset(t *testing.T) {
-	tile := &types.Tile{
-		Traces: map[string]types.Trace{
+	tile := &tiling.Tile{
+		Traces: map[string]tiling.Trace{
 			"a": &types.GoldenTrace{
 				Values: []string{"aaa", "bbb"},
 				Params_: map[string]string{

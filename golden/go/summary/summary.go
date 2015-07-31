@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -16,8 +17,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
-	gtypes "go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Summary contains rolled up metrics for one test.
@@ -98,7 +98,7 @@ func (s *Summaries) Get() map[string]*Summary {
 // TraceID is used to hold traces, along with their ids.
 type TraceID struct {
 	id string
-	tr types.Trace
+	tr tiling.Trace
 }
 
 // CalcSummaries returns a Summary for each test that matches the given input filters.
@@ -141,11 +141,11 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 	filtered := map[string][]*TraceID{}
 	t = timer.New("Filter Traces")
 	for id, tr := range tile.Traces {
-		name := tr.Params()[gtypes.PRIMARY_KEY_FIELD]
+		name := tr.Params()[types.PRIMARY_KEY_FIELD]
 		if len(testNames) > 0 && !util.In(name, testNames) {
 			continue
 		}
-		if types.Matches(tr, q) {
+		if tiling.Matches(tr, q) {
 			if slice, ok := filtered[name]; ok {
 				filtered[name] = append(slice, &TraceID{tr: tr, id: id})
 			} else {
@@ -227,10 +227,10 @@ func (s *Summaries) Search(query string, includeIgnores bool, head bool, pos boo
 	}
 
 	// Filter down to just the traces we are interested in, based on query.
-	filtered := map[string]types.Trace{}
+	filtered := map[string]tiling.Trace{}
 	t = timer.New("Filter Traces")
 	for id, tr := range tile.Traces {
-		if types.Matches(tr, q) {
+		if tiling.Matches(tr, q) {
 			filtered[id] = tr
 		}
 	}
@@ -243,7 +243,7 @@ func (s *Summaries) Search(query string, includeIgnores bool, head bool, pos boo
 	t = timer.New("Tally up the filtered traces")
 	lastCommitIndex := tile.LastCommitIndex()
 	for id, trace := range filtered {
-		test := trace.Params()[gtypes.PRIMARY_KEY_FIELD]
+		test := trace.Params()[types.PRIMARY_KEY_FIELD]
 		if head {
 			// Find the last non-missing value in the trace.
 			for i := lastCommitIndex; i >= 0; i-- {
@@ -277,11 +277,11 @@ func (s *Summaries) Search(query string, includeIgnores bool, head bool, pos boo
 		digest := testDigest[1]
 		class := e.Classification(test, digest)
 		switch {
-		case class == gtypes.NEGATIVE && !neg:
+		case class == types.NEGATIVE && !neg:
 			continue
-		case class == gtypes.POSITIVE && !pos:
+		case class == types.POSITIVE && !pos:
 			continue
-		case class == gtypes.UNTRIAGED && !unt:
+		case class == types.UNTRIAGED && !unt:
 			continue
 		}
 		ret = append(ret, DigestInfo{
@@ -304,13 +304,13 @@ func (s *Summaries) makeSummary(name string, e *expstorage.Expectations, diffSto
 		for _, digest := range digests {
 			if dtype, ok := expectations[digest]; ok {
 				switch dtype {
-				case gtypes.UNTRIAGED:
+				case types.UNTRIAGED:
 					unt += 1
 					diamDigests = append(diamDigests, digest)
 					untHashes = append(untHashes, digest)
-				case gtypes.NEGATIVE:
+				case types.NEGATIVE:
 					neg += 1
-				case gtypes.POSITIVE:
+				case types.POSITIVE:
 					pos += 1
 					diamDigests = append(diamDigests, digest)
 				}

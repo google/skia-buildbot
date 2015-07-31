@@ -4,16 +4,16 @@ import (
 	"net/url"
 	"testing"
 
-	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/go/tiling"
 )
 
 func TestMerge(t *testing.T) {
-	t1 := NewTile()
+	t1 := tiling.NewTile()
 	t1.Scale = 1
 	t1.TileIndex = 20
 	t1.Commits[1].Hash = "hash1"
 
-	t2 := NewTile()
+	t2 := tiling.NewTile()
 	t2.Scale = 1
 	t2.TileIndex = 21
 	t2.Commits[1].Hash = "hash33"
@@ -47,8 +47,8 @@ func TestMerge(t *testing.T) {
 	t2.Traces["bar"] = tr
 
 	// Merge the two tiles.
-	merged := Merge(t1, t2)
-	if got, want := len(merged.Traces["foo"].(*PerfTrace).Values), 2*config.TILE_SIZE; got != want {
+	merged := tiling.Merge(t1, t2)
+	if got, want := len(merged.Traces["foo"].(*PerfTrace).Values), 2*tiling.TILE_SIZE; got != want {
 		t.Errorf("Wrong config.TILE_SIZE: Got %v Want %v", got, want)
 	}
 
@@ -61,7 +61,7 @@ func TestMerge(t *testing.T) {
 	if got, want := len(merged.Traces), 2; got != want {
 		t.Errorf("Number of traces: Got %v Want %v", got, want)
 	}
-	if got, want := len(merged.Traces["foo"].(*PerfTrace).Values), 2*config.TILE_SIZE; got != want {
+	if got, want := len(merged.Traces["foo"].(*PerfTrace).Values), 2*tiling.TILE_SIZE; got != want {
 		t.Errorf("Number of values: Got %v Want %v", got, want)
 	}
 	if got, want := len(merged.ParamSet), 4; got != want {
@@ -153,14 +153,14 @@ func TestPerfTrace(t *testing.T) {
 	// Test Grow.
 	g = NewPerfTraceN(N)
 	g.Values[0] = 3.1
-	g.Grow(2*N, FILL_BEFORE)
+	g.Grow(2*N, tiling.FILL_BEFORE)
 	if got, want := g.Values[N], 3.1; got != want {
 		t.Errorf("Grow didn't FILL_BEFORE correctly: Got %v Want %v", got, want)
 	}
 
 	g = NewPerfTraceN(N)
 	g.Values[0] = 1.3
-	g.Grow(2*N, FILL_AFTER)
+	g.Grow(2*N, tiling.FILL_AFTER)
 	if got, want := g.Values[0], 1.3; got != want {
 		t.Errorf("Grow didn't FILL_AFTER correctly: Got %v Want %v", got, want)
 	}
@@ -196,89 +196,8 @@ func TestPerfTrace(t *testing.T) {
 	}
 }
 
-func TestGoldenTrace(t *testing.T) {
-	N := 5
-	// Test NewGoldenTrace.
-	g := NewGoldenTraceN(N)
-	if got, want := g.Len(), N; got != want {
-		t.Errorf("Wrong Values Size: Got %v Want %v", got, want)
-	}
-	if got, want := len(g.Params_), 0; got != want {
-		t.Errorf("Wrong Params_ initial size: Got %v Want %v", got, want)
-	}
-
-	g.Values[0] = "a digest"
-
-	if got, want := g.IsMissing(1), true; got != want {
-		t.Errorf("All values should start as missing: Got %v Want %v", got, want)
-	}
-	if got, want := g.IsMissing(0), false; got != want {
-		t.Errorf("Set values shouldn't be missing: Got %v Want %v", got, want)
-	}
-
-	// Test Merge.
-	M := 7
-	gm := NewGoldenTraceN(M)
-	gm.Values[1] = "another digest"
-	g2 := g.Merge(gm)
-	if got, want := g2.Len(), N+M; got != want {
-		t.Errorf("Merge length wrong: Got %v Want %v", got, want)
-	}
-	if got, want := g2.(*GoldenTrace).Values[0], "a digest"; got != want {
-		t.Errorf("Digest not copied correctly: Got %v Want %v", got, want)
-	}
-	if got, want := g2.(*GoldenTrace).Values[6], "another digest"; got != want {
-		t.Errorf("Digest not copied correctly: Got %v Want %v", got, want)
-	}
-
-	// Test Grow.
-	g = NewGoldenTraceN(N)
-	g.Values[0] = "foo"
-	g.Grow(2*N, FILL_BEFORE)
-	if got, want := g.Values[N], "foo"; got != want {
-		t.Errorf("Grow didn't FILL_BEFORE correctly: Got %v Want %v", got, want)
-	}
-
-	g = NewGoldenTraceN(N)
-	g.Values[0] = "foo"
-	g.Grow(2*N, FILL_AFTER)
-	if got, want := g.Values[0], "foo"; got != want {
-		t.Errorf("Grow didn't FILL_AFTER correctly: Got %v Want %v", got, want)
-	}
-
-	// Test Trim
-	g = NewGoldenTraceN(N)
-	g.Values[1] = "foo"
-	if err := g.Trim(1, 3); err != nil {
-		t.Fatalf("Trim Failed: %s", err)
-	}
-	if got, want := g.Values[0], "foo"; got != want {
-		t.Errorf("Trim didn't copy correctly: Got %v Want %v", got, want)
-	}
-	if got, want := g.Len(), 2; got != want {
-		t.Errorf("Trim wrong length: Got %v Want %v", got, want)
-	}
-
-	if err := g.Trim(-1, 1); err == nil {
-		t.Error("Trim failed to error.")
-	}
-	if err := g.Trim(1, 3); err == nil {
-		t.Error("Trim failed to error.")
-	}
-	if err := g.Trim(2, 1); err == nil {
-		t.Error("Trim failed to error.")
-	}
-
-	if err := g.Trim(1, 1); err != nil {
-		t.Fatalf("Trim Failed: %s", err)
-	}
-	if got, want := g.Len(), 0; got != want {
-		t.Errorf("Trim wrong length: Got %v Want %v", got, want)
-	}
-}
-
 func TestTileTrim(t *testing.T) {
-	t1 := NewTile()
+	t1 := tiling.NewTile()
 	t1.Scale = 1
 	t1.TileIndex = 1
 	t1.Commits[len(t1.Commits)-2].Hash = "hash0"
@@ -321,7 +240,7 @@ func TestTileTrim(t *testing.T) {
 	if err == nil {
 		t.Errorf("Failed to raise error on Trim(-1, 1).")
 	}
-	t2, err = t1.Trim(0, config.TILE_SIZE+1)
+	t2, err = t1.Trim(0, tiling.TILE_SIZE+1)
 	if err == nil {
 		t.Errorf("Failed to raise error on Trim(0, config.TILE_SIZE+1).")
 	}
@@ -386,7 +305,7 @@ func TestMatchesWithIgnore(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		if got, want := MatchesWithIgnores(tr, tc.q, tc.ignore...), tc.want; got != want {
+		if got, want := tiling.MatchesWithIgnores(tr, tc.q, tc.ignore...), tc.want; got != want {
 			t.Errorf("MatchesWithIgnores(%v, %v, %v): Got %v Want %v", tr, tc.q, tc.ignore, got, want)
 		}
 	}

@@ -4,13 +4,10 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-
 	"sort"
-)
 
-import "github.com/skia-dev/glog"
-
-import (
+	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/ctrace"
 	"go.skia.org/infra/perf/go/kmeans"
@@ -208,7 +205,7 @@ func (p SortableClusterSummarySlice) Less(i, j int) bool {
 func (p SortableClusterSummarySlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // GetClusterSummaries returns a summaries for each cluster.
-func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits []*types.Commit) *ClusterSummaries {
+func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits []*tiling.Commit) *ClusterSummaries {
 	ret := &ClusterSummaries{
 		Clusters: make([]*types.ClusterSummary, len(centroids)),
 	}
@@ -259,7 +256,7 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits [
 type Filter func(key string, tr *types.PerfTrace) bool
 
 // CalculateClusterSummaries runs k-means clustering over the trace shapes.
-func CalculateClusterSummaries(tile *types.Tile, k int, stddevThreshhold float64, filter Filter) (*ClusterSummaries, error) {
+func CalculateClusterSummaries(tile *tiling.Tile, k int, stddevThreshhold float64, filter Filter) (*ClusterSummaries, error) {
 	lastCommitIndex := tile.LastCommitIndex()
 	observations := make([]kmeans.Clusterable, 0, len(tile.Traces))
 	for key, trace := range tile.Traces {
