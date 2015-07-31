@@ -22,11 +22,12 @@ a {
   padding: 1em;
   padding-left: 2em;
   overflow-y: auto;
-  max-width: 70em;
+  max-width: 90em;
 }
 
 #content {
-  padding-bottom: 2em;
+  padding: 2em;
+  margin-left: 280px;
 }
 
 pre {
@@ -51,6 +52,11 @@ h1, h2, h3, h4 {
   min-width: 250px;
   background: #fafafa;
   padding: 10px;
+  overflow-y: scroll;
+  height: 98vh;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 img {
@@ -124,5 +130,9 @@ div#___gcse_0 {
 
   #drawer.opened {
     left: 0%;
+  }
+
+  #content {
+    margin-left: 10px;
   }
 }
