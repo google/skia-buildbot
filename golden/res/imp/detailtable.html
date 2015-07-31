@@ -371,8 +371,10 @@ attribute is false.
               that.$.dots.setValue(json);
               that.$.dots.setCommits(json.commits);
             }
-            that.$.dotlegend.digests = json.otherDigests;
-          });
+            if (!that.bothcolumns) {
+              that.$.dotlegend.digests = json.otherDigests;
+            }
+          }).catch(sk.errorMessage);
         },
 
         // diffTo is a template filter that returns "d1-d2", where d1 and d2
