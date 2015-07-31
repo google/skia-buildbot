@@ -354,52 +354,55 @@ the two images.
               }
             }
           }, 500);
+        },
 
-          // Allow keyboard navigation for moving around the zoomed image.
-          document.body.addEventListener('keydown', function(e){
-            if (!that.displayed) {
-              return
-            }
-            if (e.keyCode == 27) {
-              that.close();
-            }
-            var c = String.fromCharCode(e.keyCode);
-            switch (c) {
-              case "J":
-                that.y = that.y+1;
-                break;
-              case "K":
-                that.y = that.y-1;
-                break;
-              case "H":
-                that.x = that.x-1;
-                break;
-              case "L":
-                that.x = that.x+1;
-                break;
-              case "A":
-                that.PIXELS = Math.max(that.PIXELS/2, 8);
-                that.recalcPixelDims();
-                break;
-              case "Z":
-                that.PIXELS = Math.min(that.PIXELS*2, that.ctx.canvas.width/2);
-                that.recalcPixelDims();
-                break;
-              case "U":
-                that.moveToLargestDiff();
-                break;
-              case "M":
-                that.manualToggle();
-                break;
-            }
-            if ("HJKLAZU".indexOf(c) != -1 ) {
-              that.drawZoom();
-              $$('crosshair-sk', that.$.smallImages).forEach(function(ele) {
-                ele.x = that.x;
-                ele.y = that.y;
-              });
-            }
-          });
+        // Allow keyboard navigation for moving around the zoomed image.
+        keyDownHandler: function(e) {
+          if (!this.displayed) {
+            return
+          }
+          if (e.keyCode == 27) {
+            this.close();
+          }
+          var c = String.fromCharCode(e.keyCode);
+          switch (c) {
+            case "J":
+              this.y = this.y+1;
+              break;
+            case "K":
+              this.y = this.y-1;
+              break;
+            case "H":
+              this.x = this.x-1;
+              break;
+            case "L":
+              this.x = this.x+1;
+              break;
+            case "A":
+              this.PIXELS = Math.max(this.PIXELS/2, 8);
+              this.recalcPixelDims();
+              break;
+            case "Z":
+              this.PIXELS = Math.min(this.PIXELS*2, this.ctx.canvas.width/2);
+              this.recalcPixelDims();
+              break;
+            case "U":
+              this.moveToLargestDiff();
+              break;
+            case "M":
+              this.manualToggle();
+              break;
+          }
+          if ("JKHLAZU".indexOf(c) != -1 ) {
+            this.drawZoom();
+            $$('crosshair-sk', this.$.smallImages).forEach(function(ele) {
+              ele.x = this.x;
+              ele.y = this.y;
+            }.bind(this));
+          }
+          if ("JKHLAZUM".indexOf(c) != -1 ) {
+            e.stopPropagation();
+          }
         },
 
         drawZoom: function() {
@@ -526,17 +529,22 @@ the two images.
 
         // Make the dialog visible.
         open: function() {
-          this.$.dialog.classList.add('display');
+          if (this.displayed) {
+            return;
+          }
           this.displayed = true;
+          this.$.dialog.classList.add('display');
           this.recalcPixelDims();
+          document.body.addEventListener('keydown', this.keyDownHandler.bind(this), true);
         },
 
 
         // Closes the dialog.
         close: function() {
+          this.displayed = false;
           this.$.dialog.classList.remove('display');
-          this.displayed = true;
           this.dispatchEvent(new CustomEvent('zoom-closed', {bubbles: true}));
+          document.body.removeEventListener('keydown', this.keyDownHandler.bind(this), true);
         },
 
         // Sizes the canvas to display the desired number of zoom pixels
