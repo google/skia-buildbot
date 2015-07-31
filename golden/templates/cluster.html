@@ -178,7 +178,7 @@
                 paramset[key].sort();
               });
 
-              $$$('#selectedParameters').paramset = paramset;
+              $$$('#selectedParameters').setParamSets([paramset]);
             }
 
             $$$('#selectedDetails').selected = detailsPage();
@@ -208,7 +208,7 @@
             sk.get("/_/nxn"+document.location.search).then(JSON.parse).then(function(json) {
               data = json;
               $$$('cluster-sk').data = json;
-              $$$('paramset-sk').paramset = json.paramset;
+              $$$('#parameters').setParamSets([json.paramset]);
             }).catch(sk.errorMessage);
           }
 

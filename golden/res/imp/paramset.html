@@ -4,12 +4,15 @@
   as the params and labels are clicked.
 
   Attributes:
-    paramset - A serialized map[string][]string.
+    clickable - If true then keys and values look like they are clickable
+      i.e. via color, text-decoration, and cursor. If clickable is false
+      then this element won't generate the events listed below, and the
+      keys and values are not styled to look clickable.
 
   Events:
     paramset-key-click - Generated when the key for a paramset is clicked.
-       The name of the key will be sent in e.detail.key. The value of
-       e.detail.ctrl is true if the control key was pressed when clicking.
+      The name of the key will be sent in e.detail.key. The value of
+      e.detail.ctrl is true if the control key was pressed when clicking.
 
        {
          key: "arch",
@@ -17,9 +20,9 @@
        }
 
     paramset-key-value-click - Generated when one value for a paramset is clicked.
-       The name of the key will be sent in e.detail.key, the value in
-       e.detail.value. The value of e.detail.ctrl is true if the control key
-       was pressed when clicking.
+      The name of the key will be sent in e.detail.key, the value in
+      e.detail.value. The value of e.detail.ctrl is true if the control key
+      was pressed when clicking.
 
        {
          key: "arch",
@@ -29,7 +32,9 @@
 
 
   Methods:
-    None.
+    setParamSets([p1, p2, ...], [title1, title2, ...]) - p1 and p2 are param sets.
+      title1 and title2 are strings to use as the title of the columns.
+      The titles are optional and no title will be displayed if they are not supplied.
 -->
 <polymer-element name="paramset-sk">
   <template>
@@ -44,14 +49,14 @@
         padding: 0.4em;
       }
 
-      th,
-      div {
+      .clickable th,
+      .clickable div {
         cursor: pointer;
         color: #1f78b4;
       }
 
-      th:hover,
-      div:hover {
+      .clickable th:hover,
+      .clickable div:hover {
         text-decoration: underline;
       }
 
@@ -59,14 +64,23 @@
         display: block;
       }
     </style>
-    <table id=table>
+    <table id=table class="{{clickable ? 'clickable' : ''}}">
+      <tr>
+        <th></th>
+        <template repeat="{{t in titles}}">
+          <th>{{t}}</th>
+        </template>
+      </tr>
       <template repeat="{{key in sortedKeys}}">
-        <tr><th data-key="{{key}}">{{key}}</th>
-          <td>
-            <template repeat="{{value in paramset[key]}}">
-              <div data-key="{{key}}" data-value="{{value}}">{{value}}</div>
-            </template>
-          </td>
+        <tr>
+          <th data-key="{{key}}">{{key}}</th>
+          <template repeat="{{paramset in paramsets}}">
+            <td>
+              <template repeat="{{value in paramset[key]}}">
+                <div data-key="{{key}}" data-value="{{value}}">{{value}}</div>
+              </template>
+            </td>
+          </template>
         </tr>
       </template>
     </table>
@@ -74,26 +88,47 @@
   <script>
     Polymer({
       publish: {
-        paramset: {
-          value: {},
+        clickable: {
+          value: true,
           reflect: true,
         },
       },
 
       ready: function() {
+        this.titles = [];
+        this.paramsets = [];
         this.sortedKeys = [];
         this.$.table.addEventListener('click', this.clickHandler.bind(this));
       },
 
-      paramsetChanged: function() {
-        if (!this.paramset) {
-          return
+      setParamSets: function(paramsets, titles) {
+        this.paramsets = paramsets;
+
+        // Fix up titles if missing.
+        if (!titles) {
+          titles = [];
+          for (var i=paramsets.length -1; i>=0; i--) {
+            titles.push("");
+          }
         }
-        this.sortedKeys = Object.keys(this.paramset);
+        this.titles = titles;
+
+        // Compute a rolled up set of all parameter keys across all paramsets.
+        var allKeys = {};
+        paramsets.forEach(function(p) {
+          var keys =  Object.keys(p);
+          keys.forEach(function(key) {
+            allKeys[key] = true;
+          });
+        });
+        this.sortedKeys = Object.keys(allKeys);
         this.sortedKeys.sort();
       },
 
       clickHandler: function(e) {
+        if (!this.clickable) {
+          return;
+        }
         var t = e.target;
         if (t.nodeName == "TH") {
           var detail = {
