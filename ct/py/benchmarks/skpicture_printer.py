@@ -10,12 +10,12 @@
 from measurements import skpicture_printer
 from telemetry import benchmark
 from telemetry import story
-from telemetry.util import classes_util
+from telemetry.core import discover
 
 
 def _MatchPageSetName(story_set_name, story_set_base_dir):
-  story_sets = classes_util.DiscoverClasses(
-      story_set_base_dir, story_set_base_dir, story.StorySet)
+  story_sets = discover.DiscoverClasses(story_set_base_dir, story_set_base_dir,
+                                        story.StorySet).values()
   for s in story_sets:
     if story_set_name == s.Name():
       return s
