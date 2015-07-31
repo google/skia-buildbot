@@ -1,0 +1,50 @@
+This directory contains scripts to automate the creation and deletion of
+Skia Gold instances
+
+How to create new instances
+===========================
+
+Ensure gcutil is available on your PATH by running `gcutil --help` and following
+instructions if you do not get a help message.
+
+Every command takes an instance name as an argument. If no instance name is
+provided, it will output the available instance names and exit.
+The number and name of instances that can be created is fixed. To add a new
+instance edit the vm_config.sh script.
+
+To create a GCE instance it is necessary for a persistent disk to already exist.
+This happens either by re-using the disk of a deleted instance or creating a new
+persistent dist.
+
+Here are the commands available:
+
+- vm_create_disk.sh  instancename
+Creates a persistent disks for use with the specified instance. This assumes
+that the disk does not currently exist.
+
+- vm_delete_disk.sh instancename
+Deletes the disk for the given instance. This will only succeed if the disk
+is currently not attached to the running instance.
+
+- vm_create_instance.sh instancename
+Creates a new instance. This assumes that the instance does not currently exist
+and that the persistent disk exists and is not attached to any other instance.
+This will also create a boot disk for the instance.
+
+- vm_delete_instance.sh instancename
+Shutdown and delete the specified instance.
+This will only delete the boot disk, but not any persistent disk attached to
+the instance.
+
+Examples:
+
+These commands will create the 'prod' instance from scratch:
+
+   $ ./vm_create_disk prod
+   $ ./vm_create_instance prod
+
+These commands will re-create the existing 'prod' instance, but keep the
+persistent disk:
+
+   $ ./vm_delete_instance prod
+   $ ./vm_create_instance prod
