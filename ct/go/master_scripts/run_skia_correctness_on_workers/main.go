@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -24,7 +25,7 @@ import (
 
 var (
 	emails             = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	gaeTaskID          = flag.Int("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	gaeTaskID          = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType        = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild      = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
 	renderPicturesArgs = flag.String("render_pictures_args", "", "The arguments to pass to render_pictures binary.")
@@ -55,7 +56,7 @@ func sendEmail(recipients []string) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, htmlOutputLink, skiaPatchLink, util.SkiaCorrectnessTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, htmlOutputLink, skiaPatchLink, frontend.SkiaCorrectnessTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -68,7 +69,7 @@ func updateWebappTask() {
 		"slave1_output_link": util.WORKERS_LOGSERVER_LINK,
 		"html_output_link":   htmlOutputLink,
 	}
-	if err := util.UpdateWebappTask(*gaeTaskID, util.UpdateSkiaCorrectnessTasksWebapp, extraData); err != nil {
+	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateSkiaCorrectnessTasksWebapp, extraData); err != nil {
 		glog.Errorf("Error while updating webapp task: %s", err)
 		return
 	}

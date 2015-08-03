@@ -5,6 +5,7 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"flag"
 	"fmt"
 	"io"
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -23,7 +25,7 @@ import (
 
 var (
 	emails        = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	gaeTaskID     = flag.Int("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	gaeTaskID     = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType   = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
 	runID         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
@@ -51,7 +53,7 @@ func sendEmail(recipients []string) {
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, luaOutputRemoteLink, luaAggregatorOutputRemoteLink, util.LuaTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, luaOutputRemoteLink, luaAggregatorOutputRemoteLink, frontend.LuaTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -59,6 +61,17 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
+	if frontend.CTFE_V2 {
+		vars := frontend.LuaScriptUpdateVars{}
+		vars.Id = *gaeTaskID
+		vars.SetCompleted(taskCompletedSuccessfully)
+		vars.ScriptOutput = sql.NullString{String: luaOutputRemoteLink, Valid: true}
+		if luaAggregatorOutputRemoteLink != "" {
+			vars.AggregatedOutput = sql.NullString{String: luaAggregatorOutputRemoteLink, Valid: true}
+		}
+		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+		return
+	}
 	outputLink := luaOutputRemoteLink
 	if luaAggregatorOutputRemoteLink != "" {
 		// Use the aggregated output if it exists.
@@ -69,7 +82,7 @@ func updateWebappTask() {
 		"lua_aggregator_link": luaAggregatorRemoteLink,
 		"lua_output_link":     outputLink,
 	}
-	if err := util.UpdateWebappTask(*gaeTaskID, util.UpdateLuaTasksWebapp, extraData); err != nil {
+	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateLuaTasksWebapp, extraData); err != nil {
 		glog.Errorf("Error while updating webapp task: %s", err)
 		return
 	}
@@ -85,6 +98,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&frontend.LuaScriptUpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Lua script"))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()

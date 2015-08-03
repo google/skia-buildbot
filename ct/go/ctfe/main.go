@@ -27,6 +27,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/ct/go/db"
+	api "go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/influxdb"
@@ -360,10 +361,6 @@ func userHasAdminRights(r *http.Request) bool {
 	return userHasEditRights(r) && admins[login.LoggedInAs(r)]
 }
 
-func getCurrentTs() string {
-	return time.Now().UTC().Format("20060102150405")
-}
-
 func getIntParam(name string, r *http.Request) (*int, error) {
 	raw, ok := r.URL.Query()[name]
 	if !ok {
@@ -429,102 +426,17 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	defer skutil.Close(r.Body)
 
 	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
-	task.GetAddTaskCommonVars().TsAdded = getCurrentTs()
+	task.GetAddTaskCommonVars().TsAdded = api.GetCurrentTs()
 
 	query, binds, err := task.GetInsertQueryAndBinds()
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshall %T task: %v", task, err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshal %T task: %v", task, err))
 		return
 	}
 	if _, err = db.DB.Exec(query, binds...); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task: %v", task, err))
 		return
 	}
-}
-
-func chromiumPerfView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(chromiumPerfTemplate, w, r)
-}
-
-func chromiumPerfHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	data := map[string]interface{}{
-		"benchmarks": util.SupportedBenchmarks,
-		"platforms":  util.SupportedPlatformsToDesc,
-	}
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
-		return
-	}
-}
-
-func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	pageSets := []map[string]string{}
-	for pageSet := range util.PagesetTypeToInfo {
-		pageSetObj := map[string]string{
-			"key":         pageSet,
-			"description": util.PagesetTypeToInfo[pageSet].Description,
-		}
-		pageSets = append(pageSets, pageSetObj)
-	}
-
-	if err := json.NewEncoder(w).Encode(pageSets); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
-		return
-	}
-}
-
-// ChromiumPerfVars is the type used by the Chromium Perf pages.
-type ChromiumPerfVars struct {
-	AddTaskCommonVars
-
-	Benchmark            string `json:"benchmark"`
-	Platform             string `json:"platform"`
-	PageSets             string `json:"page_sets"`
-	RepeatRuns           string `json:"repeat_runs"`
-	BenchmarkArgs        string `json:"benchmark_args"`
-	BrowserArgsNoPatch   string `json:"browser_args_nopatch"`
-	BrowserArgsWithPatch string `json:"browser_args_withpatch"`
-	Description          string `json:"desc"`
-	ChromiumPatch        string `json:"chromium_patch"`
-	BlinkPatch           string `json:"blink_patch"`
-	SkiaPatch            string `json:"skia_patch"`
-}
-
-func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
-	if task.Benchmark == "" ||
-		task.Platform == "" ||
-		task.PageSets == "" ||
-		task.RepeatRuns == "" ||
-		task.Description == "" {
-		return "", nil, fmt.Errorf("Invalid parameters")
-	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
-			db.TABLE_CHROMIUM_PERF_TASKS),
-		[]interface{}{
-			task.Username,
-			task.Benchmark,
-			task.Platform,
-			task.PageSets,
-			task.RepeatRuns,
-			task.BenchmarkArgs,
-			task.BrowserArgsNoPatch,
-			task.BrowserArgsWithPatch,
-			task.Description,
-			task.ChromiumPatch,
-			task.BlinkPatch,
-			task.SkiaPatch,
-			task.TsAdded,
-			task.RepeatAfterDays,
-		},
-		nil
-}
-
-func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addTaskHandler(w, r, &ChromiumPerfVars{})
 }
 
 // Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
@@ -621,8 +533,182 @@ func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Add methods for working with the database to api.UpdateTaskVars.
+type UpdateTaskVars interface {
+	api.UpdateTaskVars
+	// Produces SQL query clauses and binds for fields not in api.UpdateTaskCommonVars. First return
+	// value is a slice of strings like "results = ?". Second return value contains a value for
+	// each "?" bind.
+	GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error)
+}
+
+func getUpdateQueryAndBinds(vars UpdateTaskVars, tableName string) (string, []interface{}, error) {
+	common := vars.GetUpdateTaskCommonVars()
+	query := fmt.Sprintf("UPDATE %s SET ", tableName)
+	clauses := []string{}
+	args := []interface{}{}
+	if common.TsStarted.Valid {
+		clauses = append(clauses, "ts_started = ?")
+		args = append(args, common.TsStarted.String)
+	}
+	if common.TsCompleted.Valid {
+		clauses = append(clauses, "ts_completed = ?")
+		args = append(args, common.TsCompleted.String)
+	}
+	if common.Failure.Valid {
+		clauses = append(clauses, "failure = ?")
+		args = append(args, common.Failure.Bool)
+	}
+	additionalClauses, additionalArgs, err := vars.GetUpdateExtraClausesAndBinds()
+	if err != nil {
+		return "", nil, err
+	}
+	clauses = append(clauses, additionalClauses...)
+	args = append(args, additionalArgs...)
+	if len(clauses) == 0 {
+		return "", nil, fmt.Errorf("Invalid parameters")
+	}
+	query += strings.Join(clauses, ", ")
+	query += " WHERE id = ?"
+	args = append(args, common.Id)
+	return query, args, nil
+}
+
+func updateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWriter, r *http.Request) {
+	// TODO(benjaminwagner): authenticate
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to parse %T update: %v", vars, err))
+		return
+	}
+	defer skutil.Close(r.Body)
+
+	query, binds, err := getUpdateQueryAndBinds(vars, tableName)
+	if err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshal %T update: %v", vars, err))
+		return
+	}
+	_, err = db.DB.Exec(query, binds...)
+	if err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to update using %T: %v", vars, err))
+		return
+	}
+}
+
+func chromiumPerfView(w http.ResponseWriter, r *http.Request) {
+	executeSimpleTemplate(chromiumPerfTemplate, w, r)
+}
+
+func chromiumPerfHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	data := map[string]interface{}{
+		"benchmarks": util.SupportedBenchmarks,
+		"platforms":  util.SupportedPlatformsToDesc,
+	}
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
+func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	pageSets := []map[string]string{}
+	for pageSet := range util.PagesetTypeToInfo {
+		pageSetObj := map[string]string{
+			"key":         pageSet,
+			"description": util.PagesetTypeToInfo[pageSet].Description,
+		}
+		pageSets = append(pageSets, pageSetObj)
+	}
+
+	if err := json.NewEncoder(w).Encode(pageSets); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		return
+	}
+}
+
+// ChromiumPerfVars is the type used by the Chromium Perf pages.
+type ChromiumPerfVars struct {
+	AddTaskCommonVars
+
+	Benchmark            string `json:"benchmark"`
+	Platform             string `json:"platform"`
+	PageSets             string `json:"page_sets"`
+	RepeatRuns           string `json:"repeat_runs"`
+	BenchmarkArgs        string `json:"benchmark_args"`
+	BrowserArgsNoPatch   string `json:"browser_args_nopatch"`
+	BrowserArgsWithPatch string `json:"browser_args_withpatch"`
+	Description          string `json:"desc"`
+	ChromiumPatch        string `json:"chromium_patch"`
+	BlinkPatch           string `json:"blink_patch"`
+	SkiaPatch            string `json:"skia_patch"`
+}
+
+func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+	if task.Benchmark == "" ||
+		task.Platform == "" ||
+		task.PageSets == "" ||
+		task.RepeatRuns == "" ||
+		task.Description == "" {
+		return "", nil, fmt.Errorf("Invalid parameters")
+	}
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+			db.TABLE_CHROMIUM_PERF_TASKS),
+		[]interface{}{
+			task.Username,
+			task.Benchmark,
+			task.Platform,
+			task.PageSets,
+			task.RepeatRuns,
+			task.BenchmarkArgs,
+			task.BrowserArgsNoPatch,
+			task.BrowserArgsWithPatch,
+			task.Description,
+			task.ChromiumPatch,
+			task.BlinkPatch,
+			task.SkiaPatch,
+			task.TsAdded,
+			task.RepeatAfterDays,
+		},
+		nil
+}
+
+func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
+	addTaskHandler(w, r, &ChromiumPerfVars{})
+}
+
 func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
 	getTasksHandler(&ChromiumPerfDBTask{}, w, r)
+}
+
+// Define api.ChromiumPerfUpdateVars in this package so we can add methods.
+type ChromiumPerfUpdateVars struct {
+	api.ChromiumPerfUpdateVars
+}
+
+func (task *ChromiumPerfUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
+	clauses := []string{}
+	args := []interface{}{}
+	if task.Results.Valid {
+		clauses = append(clauses, "results = ?")
+		args = append(args, task.Results.String)
+	}
+	if task.NoPatchRawOutput.Valid {
+		clauses = append(clauses, "nopatch_raw_output = ?")
+		args = append(args, task.NoPatchRawOutput.String)
+	}
+	if task.WithPatchRawOutput.Valid {
+		clauses = append(clauses, "withpatch_raw_output = ?")
+		args = append(args, task.WithPatchRawOutput.String)
+	}
+	return clauses, args, nil
+}
+
+func updateChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
+	updateTaskHandler(&ChromiumPerfUpdateVars{}, db.TABLE_CHROMIUM_PERF_TASKS, w, r)
 }
 
 func chromiumPerfRunsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -684,6 +770,19 @@ func validateSkpRepository(skpRepository CaptureSkpsDBTask) error {
 	return nil
 }
 
+// Define api.CaptureSkpsUpdateVars in this package so we can add methods.
+type CaptureSkpsUpdateVars struct {
+	api.CaptureSkpsUpdateVars
+}
+
+func (task *CaptureSkpsUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
+	return nil, nil, nil
+}
+
+func updateCaptureSkpsTaskHandler(w http.ResponseWriter, r *http.Request) {
+	updateTaskHandler(&CaptureSkpsUpdateVars{}, db.TABLE_CAPTURE_SKPS_TASKS, w, r)
+}
+
 func captureSkpRunsHistoryView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(captureSkpRunsHistoryTemplate, w, r)
 }
@@ -734,6 +833,29 @@ func addLuaScriptTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 func getLuaScriptTasksHandler(w http.ResponseWriter, r *http.Request) {
 	getTasksHandler(&LuaScriptDBTask{}, w, r)
+}
+
+// Define api.LuaScriptUpdateVars in this package so we can add methods.
+type LuaScriptUpdateVars struct {
+	api.LuaScriptUpdateVars
+}
+
+func (task *LuaScriptUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
+	clauses := []string{}
+	args := []interface{}{}
+	if task.ScriptOutput.Valid {
+		clauses = append(clauses, "script_output = ?")
+		args = append(args, task.ScriptOutput.String)
+	}
+	if task.AggregatedOutput.Valid {
+		clauses = append(clauses, "aggregated_output = ?")
+		args = append(args, task.AggregatedOutput.String)
+	}
+	return clauses, args, nil
+}
+
+func updateLuaScriptTaskHandler(w http.ResponseWriter, r *http.Request) {
+	updateTaskHandler(&LuaScriptUpdateVars{}, db.TABLE_LUA_SCRIPT_TASKS, w, r)
 }
 
 func luaScriptRunsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -873,6 +995,19 @@ func getSkiaRevDataHandler(w http.ResponseWriter, r *http.Request) {
 	getRevDataHandler(getSkiaLkgr, SKIA_GIT_REPO_URL, w, r)
 }
 
+// Define api.ChromiumBuildUpdateVars in this package so we can add methods.
+type ChromiumBuildUpdateVars struct {
+	api.ChromiumBuildUpdateVars
+}
+
+func (task *ChromiumBuildUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
+	return nil, nil, nil
+}
+
+func updateChromiumBuildTaskHandler(w http.ResponseWriter, r *http.Request) {
+	updateTaskHandler(&ChromiumBuildUpdateVars{}, db.TABLE_CHROMIUM_BUILD_TASKS, w, r)
+}
+
 func chromiumBuildRunsHistoryView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(chromiumBuildRunsHistoryTemplate, w, r)
 }
@@ -905,12 +1040,12 @@ func (vars *AdminTaskVars) IsAdminTask() bool {
 }
 
 // Represents the parameters sent as JSON to the add_recreate_page_sets_task handler.
-type RecreatePageSetsTaskHandlerVars struct {
+type AddRecreatePageSetsTaskVars struct {
 	AdminTaskVars
 	PageSets string `json:"page_sets"`
 }
 
-func (task *RecreatePageSetsTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddRecreatePageSetsTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.PageSets == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
@@ -926,17 +1061,17 @@ func (task *RecreatePageSetsTaskHandlerVars) GetInsertQueryAndBinds() (string, [
 }
 
 func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addTaskHandler(w, r, &RecreatePageSetsTaskHandlerVars{})
+	addTaskHandler(w, r, &AddRecreatePageSetsTaskVars{})
 }
 
 // Represents the parameters sent as JSON to the add_recreate_webpage_archives_task handler.
-type RecreateWebpageArchivesTaskHandlerVars struct {
+type AddRecreateWebpageArchivesTaskVars struct {
 	AdminTaskVars
 	PageSets      string              `json:"page_sets"`
 	ChromiumBuild ChromiumBuildDBTask `json:"chromium_build"`
 }
 
-func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddRecreateWebpageArchivesTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.PageSets == "" ||
 		task.ChromiumBuild.ChromiumRev == "" ||
 		task.ChromiumBuild.SkiaRev == "" {
@@ -959,7 +1094,33 @@ func (task *RecreateWebpageArchivesTaskHandlerVars) GetInsertQueryAndBinds() (st
 }
 
 func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addTaskHandler(w, r, &RecreateWebpageArchivesTaskHandlerVars{})
+	addTaskHandler(w, r, &AddRecreateWebpageArchivesTaskVars{})
+}
+
+// Define api.RecreatePageSetsUpdateVars in this package so we can add methods.
+type RecreatePageSetsUpdateVars struct {
+	api.RecreatePageSetsUpdateVars
+}
+
+func (task *RecreatePageSetsUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
+	return nil, nil, nil
+}
+
+func updateRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
+	updateTaskHandler(&RecreatePageSetsUpdateVars{}, db.TABLE_RECREATE_PAGE_SETS_TASKS, w, r)
+}
+
+// Define api.RecreateWebpageArchivesUpdateVars in this package so we can add methods.
+type RecreateWebpageArchivesUpdateVars struct {
+	api.RecreateWebpageArchivesUpdateVars
+}
+
+func (task *RecreateWebpageArchivesUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
+	return nil, nil, nil
+}
+
+func updateRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
+	updateTaskHandler(&RecreateWebpageArchivesUpdateVars{}, db.TABLE_RECREATE_PAGE_SETS_TASKS, w, r)
 }
 
 func recreatePageSetsRunsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -1055,51 +1216,56 @@ func runServer(serverURL string) {
 
 	// Chromium Perf handlers.
 	r.HandleFunc("/", chromiumPerfView).Methods("GET")
-	r.HandleFunc("/chromium_perf/", chromiumPerfView).Methods("GET")
-	r.HandleFunc("/chromium_perf_runs/", chromiumPerfRunsHistoryView).Methods("GET")
-	r.HandleFunc("/_/chromium_perf/", chromiumPerfHandler).Methods("POST")
-	r.HandleFunc("/_/add_chromium_perf_task", addChromiumPerfTaskHandler).Methods("POST")
-	r.HandleFunc("/_/get_chromium_perf_tasks", getChromiumPerfTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.CHROMIUM_PERF_URI, chromiumPerfView).Methods("GET")
+	r.HandleFunc("/"+api.CHROMIUM_PERF_RUNS_URI, chromiumPerfRunsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.CHROMIUM_PERF_PARAMETERS_POST_URI, chromiumPerfHandler).Methods("POST")
+	r.HandleFunc("/"+api.ADD_CHROMIUM_PERF_TASK_POST_URI, addChromiumPerfTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_CHROMIUM_PERF_TASKS_POST_URI, getChromiumPerfTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateChromiumPerfTaskHandler).Methods("POST")
 
 	// Capture SKPs handlers.
-	r.HandleFunc("/capture_skps/", captureSkpsView).Methods("GET")
-	r.HandleFunc("/capture_skp_runs/", captureSkpRunsHistoryView).Methods("GET")
-	r.HandleFunc("/_/add_capture_skps_task", addCaptureSkpsTaskHandler).Methods("POST")
-	r.HandleFunc("/_/get_capture_skp_tasks", getCaptureSkpTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.CAPTURE_SKPS_URI, captureSkpsView).Methods("GET")
+	r.HandleFunc("/"+api.CAPTURE_SKPS_RUNS_URI, captureSkpRunsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.ADD_CAPTURE_SKPS_TASK_POST_URI, addCaptureSkpsTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_CAPTURE_SKPS_TASKS_POST_URI, getCaptureSkpTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_CAPTURE_SKPS_TASK_POST_URI, updateCaptureSkpsTaskHandler).Methods("POST")
 
 	// Lua Script handlers.
-	r.HandleFunc("/lua_script/", luaScriptsView).Methods("GET")
-	r.HandleFunc("/lua_script_runs/", luaScriptRunsHistoryView).Methods("GET")
-	r.HandleFunc("/_/add_lua_script_task", addLuaScriptTaskHandler).Methods("POST")
-	r.HandleFunc("/_/get_lua_script_tasks", getLuaScriptTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.LUA_SCRIPT_URI, luaScriptsView).Methods("GET")
+	r.HandleFunc("/"+api.LUA_SCRIPT_RUNS_URI, luaScriptRunsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.ADD_LUA_SCRIPT_TASK_POST_URI, addLuaScriptTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_LUA_SCRIPT_TASKS_POST_URI, getLuaScriptTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_LUA_SCRIPT_TASK_POST_URI, updateLuaScriptTaskHandler).Methods("POST")
 
 	// Chromium Build handlers.
-	r.HandleFunc("/chromium_builds/", chromiumBuildsView).Methods("GET")
-	r.HandleFunc("/chromium_builds_runs/", chromiumBuildRunsHistoryView).Methods("GET")
-	r.HandleFunc("/_/chromium_rev_data", getChromiumRevDataHandler).Methods("POST")
-	r.HandleFunc("/_/skia_rev_data", getSkiaRevDataHandler).Methods("POST")
-	r.HandleFunc("/_/chromium_builds", getChromiumBuildTasksHandler).Methods("POST")
-	r.HandleFunc("/_/add_chromium_build_task", addChromiumBuildTaskHandler).Methods("POST")
-	r.HandleFunc("/_/get_chromium_build_tasks", getChromiumBuildTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.CHROMIUM_BUILD_URI, chromiumBuildsView).Methods("GET")
+	r.HandleFunc("/"+api.CHROMIUM_BUILD_RUNS_URI, chromiumBuildRunsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.CHROMIUM_REV_DATA_POST_URI, getChromiumRevDataHandler).Methods("POST")
+	r.HandleFunc("/"+api.SKIA_REV_DATA_POST_URI, getSkiaRevDataHandler).Methods("POST")
+	r.HandleFunc("/"+api.ADD_CHROMIUM_BUILD_TASK_POST_URI, addChromiumBuildTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_CHROMIUM_BUILD_TASKS_POST_URI, getChromiumBuildTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_CHROMIUM_BUILD_TASK_POST_URI, updateChromiumBuildTaskHandler).Methods("POST")
 
 	// Admin Tasks handlers.
-	r.HandleFunc("/admin_tasks/", adminTasksView).Methods("GET")
-	r.HandleFunc("/recreate_page_sets_runs/", recreatePageSetsRunsHistoryView).Methods("GET")
-	r.HandleFunc("/recreate_webpage_archives_runs/", recreateWebpageArchivesRunsHistoryView).Methods("GET")
-	r.HandleFunc("/_/add_recreate_page_sets_task", addRecreatePageSetsTaskHandler).Methods("POST")
-	r.HandleFunc("/_/add_recreate_webpage_archives_task", addRecreateWebpageArchivesTaskHandler).Methods("POST")
-	r.HandleFunc("/_/get_recreate_page_sets_tasks", getRecreatePageSetsTasksHandler).Methods("POST")
-	r.HandleFunc("/_/get_recreate_webpage_archives_tasks", getRecreateWebpageArchivesTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.ADMIN_TASK_URI, adminTasksView).Methods("GET")
+	r.HandleFunc("/"+api.RECREATE_PAGE_SETS_RUNS_URI, recreatePageSetsRunsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.RECREATE_WEBPAGE_ARCHIVES_RUNS_URI, recreateWebpageArchivesRunsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.ADD_RECREATE_PAGE_SETS_TASK_POST_URI, addRecreatePageSetsTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.ADD_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, addRecreateWebpageArchivesTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_RECREATE_PAGE_SETS_TASKS_POST_URI, getRecreatePageSetsTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_RECREATE_WEBPAGE_ARCHIVES_TASKS_POST_URI, getRecreateWebpageArchivesTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI, updateRecreatePageSetsTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, updateRecreateWebpageArchivesTaskHandler).Methods("POST")
 
 	// Runs history handlers.
-	r.HandleFunc("/history/", runsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
 
 	// Task Queue handlers.
-	r.HandleFunc("/queue/", pendingTasksView).Methods("GET")
-	r.HandleFunc("/_/get_oldest_pending_task", getOldestPendingTaskHandler).Methods("GET")
+	r.HandleFunc("/"+api.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
+	r.HandleFunc("/"+api.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
 
 	// Common handlers used by different pages.
-	r.HandleFunc("/_/page_sets/", pageSetsHandler).Methods("POST")
+	r.HandleFunc("/"+api.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/login/", loginHandler)

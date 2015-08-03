@@ -3,11 +3,8 @@ package util
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -218,35 +215,6 @@ func ApplyPatch(patch, dir string) error {
 	//      --ignore-space-change ${PATCH_FILE}"
 	args := []string{"apply", "--index", "-p1", "--verbose", "--ignore-whitespace", "--ignore-space-change", patch}
 	return ExecuteCmd(BINARY_GIT, args, []string{}, 5*time.Minute, nil, nil)
-}
-
-func UpdateWebappTask(gaeTaskID int, webappURL string, extraData map[string]string) error {
-	glog.Infof("Updating %s on %s with %s", gaeTaskID, webappURL, extraData)
-	pwdBytes, err := ioutil.ReadFile(WebappPasswordPath)
-	if err != nil {
-		return fmt.Errorf("Could not read the webapp password file: %s", err)
-	}
-	pwd := strings.TrimSpace(string(pwdBytes))
-	postData := url.Values{}
-	postData.Set("key", strconv.Itoa(gaeTaskID))
-	postData.Add("password", pwd)
-	for k, v := range extraData {
-		postData.Add(k, v)
-	}
-	req, err := http.NewRequest("POST", webappURL, bytes.NewBufferString(postData.Encode()))
-	if err != nil {
-		return fmt.Errorf("Could not create HTTP request: %s", err)
-	}
-	client := util.NewTimeoutClient()
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("Could not update webapp task: %s", err)
-	}
-	defer util.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Could not update webapp task, response status code was %d: %s", resp.StatusCode, err)
-	}
-	return nil
 }
 
 // CleanTmpDir deletes all tmp files from the caller because telemetry tends to

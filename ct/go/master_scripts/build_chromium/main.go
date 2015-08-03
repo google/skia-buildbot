@@ -12,6 +12,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -19,7 +20,7 @@ import (
 
 var (
 	emails         = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	gaeTaskID      = flag.Int("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	gaeTaskID      = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	targetPlatform = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
 	applyPatches   = flag.Bool("apply_patches", false, "If true looks for Chromium/Blink/Skia patches in temp dir and runs once with the patches and once without.")
@@ -43,7 +44,7 @@ func sendEmail(recipients []string) {
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, failureHtml, util.ChromiumBuildTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, failureHtml, frontend.ChromiumBuildTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -51,11 +52,18 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
+	if frontend.CTFE_V2 {
+		vars := frontend.ChromiumBuildUpdateVars{}
+		vars.Id = *gaeTaskID
+		vars.SetCompleted(taskCompletedSuccessfully)
+		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+		return
+	}
 	extraData := map[string]string{
 		"chromium_rev_date": chromiumBuildTimestamp,
 		"build_log_link":    util.MASTER_LOGSERVER_LINK,
 	}
-	if err := util.UpdateWebappTask(*gaeTaskID, util.UpdateChromiumBuildTasksWebapp, extraData); err != nil {
+	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateChromiumBuildTasksWebapp, extraData); err != nil {
 		glog.Errorf("Error while updating webapp task: %s", err)
 		return
 	}
@@ -71,6 +79,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&frontend.ChromiumBuildUpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Build chromium"))
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -19,7 +20,7 @@ import (
 
 var (
 	emails         = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	gaeTaskID      = flag.Int("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	gaeTaskID      = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType    = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild  = flag.String("chromium_build", "", "The chromium build to use for this capture SKPs run.")
 	targetPlatform = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
@@ -44,7 +45,7 @@ func sendEmail(recipients []string) {
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, outputRemoteLink, util.CaptureSKPsTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, outputRemoteLink, frontend.CaptureSKPsTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -52,10 +53,17 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
+	if frontend.CTFE_V2 {
+		vars := frontend.CaptureSkpsUpdateVars{}
+		vars.Id = *gaeTaskID
+		vars.SetCompleted(taskCompletedSuccessfully)
+		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+		return
+	}
 	extraData := map[string]string{
 		"output_link": outputRemoteLink,
 	}
-	if err := util.UpdateWebappTask(*gaeTaskID, util.UpdateCaptureSKPsTasksWebapp, extraData); err != nil {
+	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateCaptureSKPsTasksWebapp, extraData); err != nil {
 		glog.Errorf("Error while updating webapp task: %s", err)
 		return
 	}
@@ -71,6 +79,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&frontend.CaptureSkpsUpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Capture SKPs"))
 	// Ensure webapp is updated and completion email is sent even if task
 	// fails.

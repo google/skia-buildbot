@@ -70,9 +70,6 @@ const (
 	BENCHMARK_REPAINT           = "repaint"
 	BENCHMARK_SMOOTHNESS        = "smoothness"
 
-	// Webapp constants.
-	WEBAPP_ROOT = "https://skia-tree-status.appspot.com/skia-telemetry/"
-
 	// Logserver links. These are only accessible from Google corp.
 	MASTER_LOGSERVER_LINK  = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
 	WORKERS_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/all_logs"
@@ -125,20 +122,6 @@ var (
 	SkiaCorrectnessRunsDir = filepath.Join(TASKS_DIR_NAME, SKIA_CORRECTNESS_TASKS_DIR_NAME)
 	ChromiumPerfRunsDir    = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
 	FixArchivesRunsDir     = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
-
-	// Webapp subparts.
-	AdminTasksWebapp                 = WEBAPP_ROOT + "admin_tasks"
-	UpdateAdminTasksWebapp           = WEBAPP_ROOT + "update_admin_task"
-	LuaTasksWebapp                   = WEBAPP_ROOT + "lua_script"
-	UpdateLuaTasksWebapp             = WEBAPP_ROOT + "update_lua_task"
-	CaptureSKPsTasksWebapp           = WEBAPP_ROOT
-	UpdateCaptureSKPsTasksWebapp     = WEBAPP_ROOT + "update_telemetry_task"
-	ChromiumPerfTasksWebapp          = WEBAPP_ROOT + "chromium_try"
-	UpdateChromiumPerfTasksWebapp    = WEBAPP_ROOT + "update_chromium_try_tasks"
-	SkiaCorrectnessTasksWebapp       = WEBAPP_ROOT + "skia_try"
-	UpdateSkiaCorrectnessTasksWebapp = WEBAPP_ROOT + "update_skia_try_task"
-	ChromiumBuildTasksWebapp         = WEBAPP_ROOT + "chromium_builds"
-	UpdateChromiumBuildTasksWebapp   = WEBAPP_ROOT + "update_chromium_build_tasks"
 
 	// Information about the different CT benchmarks.
 	BenchmarksToPagesetName = map[string]string{

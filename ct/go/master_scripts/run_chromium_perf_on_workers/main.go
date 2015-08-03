@@ -5,6 +5,7 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"flag"
 	"fmt"
 	"html/template"
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -24,7 +26,7 @@ import (
 
 var (
 	emails                    = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	gaeTaskID                 = flag.Int("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	gaeTaskID                 = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType               = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	benchmarkName             = flag.String("benchmark_name", "", "The telemetry benchmark to run on the workers.")
 	benchmarkExtraArgs        = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
@@ -65,7 +67,7 @@ func sendEmail(recipients []string) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, failureHtml, htmlOutputLink, chromiumPatchLink, blinkPatchLink, skiaPatchLink, util.ChromiumPerfTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, failureHtml, htmlOutputLink, chromiumPatchLink, blinkPatchLink, skiaPatchLink, frontend.ChromiumPerfTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -73,6 +75,16 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
+	if frontend.CTFE_V2 {
+		vars := frontend.ChromiumPerfUpdateVars{}
+		vars.Id = *gaeTaskID
+		vars.SetCompleted(taskCompletedSuccessfully)
+		vars.Results = sql.NullString{String: htmlOutputLink, Valid: true}
+		vars.NoPatchRawOutput = sql.NullString{String: noPatchOutputLink, Valid: true}
+		vars.WithPatchRawOutput = sql.NullString{String: withPatchOutputLink, Valid: true}
+		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+		return
+	}
 	// TODO(rmistry): Add ability to update the webapp without providing links.
 	extraData := map[string]string{
 		"skia_patch_link":              skiaPatchLink,
@@ -83,7 +95,7 @@ func updateWebappTask() {
 		"html_output_link":             htmlOutputLink,
 		"build_log_link":               util.MASTER_LOGSERVER_LINK,
 	}
-	if err := util.UpdateWebappTask(*gaeTaskID, util.UpdateChromiumPerfTasksWebapp, extraData); err != nil {
+	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateChromiumPerfTasksWebapp, extraData); err != nil {
 		glog.Errorf("Error while updating webapp task: %s", err)
 		return
 	}
@@ -99,6 +111,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&frontend.ChromiumPerfUpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf"))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
