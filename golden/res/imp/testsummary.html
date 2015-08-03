@@ -16,6 +16,7 @@
     query - paramset in URL query string format.
     include - boolean, include ignores.
     head - boolean, only use digests at head.
+    untonly - boolean, only show untriaged digests.
     details - boolean, if true display the details about the untriaged digests.
     limit - The maximum number of traces and digests to show when displaying details.
     triage - If true display the image, its closest match, and the triage controls.
@@ -79,7 +80,7 @@
       <div horizontal layout>
         <span>
           <b>
-            <a href="/search2?query={{query | filterNames}}%26name%3D{{summary.name}}&include={{include}}&head={{head}}&unt=true&limit=100">
+            <a href="/search2?query={{query | filterNames}}%26name%3D{{summary.name}}&include={{include}}&head={{head}}&unt=true&pos={{!untonly}}&neg={{!untonly}}&limit=100">
               {{summary.name}}
             </a>
           </b>
@@ -139,6 +140,10 @@
           reflect: true,
         },
         head: {
+          value: true,
+          reflect: true,
+        },
+        untonly: {
           value: true,
           reflect: true,
         },
