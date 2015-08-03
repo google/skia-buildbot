@@ -2,39 +2,37 @@
   The <trace-details-sk> custom element declaration, which is used on the home
   page on the right hand side to display details about an individual trace.
 
-    Events
-    ======
-    only  - Fired when "Only" button is pressed.
-          - Details:
+    Properties:
+      None.
 
-            detail.id: key of the trace.
+    Methods:
+      blank() - Hide the contents of the trace-details-sk element.
 
-    remove - Fired when the "Remove" button is pressed.
-           - Details:
+      displayRange(begin, end) - Display the commit history from begin
+          commit to end commit. The value of end can be undefined.
 
-             detail.id: key of the trace.
+      setParams(id, params) - Set the trace id and the parameter set of the
+          trace to be highlighted.
 
-    group  - Fired when the "Group" button is pressed.
-             Details:
+    Events:
+      only  - Fired when "Only" button is pressed.
 
-             detail.id: key of the trace.
+              detail.id: key of the trace.
 
-    highlightGroup - Fired when a group of traces is highlighted by
-             clicking on a parameter value.
+      remove - Fired when the "Remove" button is pressed.
 
-             Details:
-             detail.key:   key of the parameter.
-             detail.value: value of the parameter.
+               detail.id: key of the trace.
 
-    Methods
-    =======
-    blank() - Hide the contents of the trace-details-sk element.
+      group  - Fired when the "Group" button is pressed.
 
-    displayRange(begin, end) - Display the commit history from begin
-        commit to end commit. The value of end can be undefined.
+               detail.id: key of the trace.
 
-    setParams(id, params) - Set the trace id and the parameter set of the
-        trace to be highlighted.
+      highlightGroup - Fired when a group of traces is highlighted by
+               clicking on a parameter value.
+
+               detail.key:   key of the parameter.
+               detail.value: value of the parameter.
+
 -->
 <polymer-element name="trace-details-sk">
   <template class="blank">

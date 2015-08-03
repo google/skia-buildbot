@@ -1,18 +1,8 @@
 <!-- The <plot-sk> custom element declaration.
 
-  Events:
-    selected - A point on a trace has been clicked on.
-      detail.begin,
-      detail.end    - The indices of the point clicked and
-         the index of the previous data point, useful for looking
-         up the commits that correspond to the data points. Note that
-         detail.end can be undefined if there is no previous data point.
-      detail.id     - The key of the trace clicked on.
-      detail.params -  The params for the selected trace.
-
-    highlighted - The mouse is hovering over a trace.
-      detail.id     - The key of the trace clicked on.
-      detail.value  - The value of the point we are near.
+  Attributes:
+    stepIndex - If set, this is the index into the commits at which to
+       draw a line indicating a specific commit.
 
   Methods:
     addTraces(traces) - Adds the given traces to the plot.
@@ -33,8 +23,20 @@
 
     getKeys() - Return the keys of all the traces being displayed.
 
-  Attributes:
-    - stepIndex
+  Events:
+    selected - A point on a trace has been clicked on.
+      detail.begin,
+      detail.end    - The indices of the point clicked and
+         the index of the previous data point, useful for looking
+         up the commits that correspond to the data points. Note that
+         detail.end can be undefined if there is no previous data point.
+      detail.id     - The key of the trace clicked on.
+      detail.params -  The params for the selected trace.
+
+    highlighted - The mouse is hovering over a trace.
+      detail.id     - The key of the trace clicked on.
+      detail.value  - The value of the point we are near.
+
 -->
 <polymer-element name="plot-sk">
   <template>
