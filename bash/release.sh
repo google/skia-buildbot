@@ -97,8 +97,17 @@ set -e
 if [ -e /bin/systemctl ]
 then
   /bin/systemctl daemon-reload
+EOF
+
+# Only restart if there is a target defined.
+if [ ! -z "$RESTART_TARGET" ]; then
+  cat <<-EOF >> ${ROOT}/DEBIAN/postinst
   /bin/systemctl enable ${SYSTEMD}
   /bin/systemctl restart ${RESTART_TARGET}
+EOF
+fi
+
+cat <<-EOF >> ${ROOT}/DEBIAN/postinst
 elif [ ! -z "\$INIT_SCRIPT" ]
 then
   update-rc.d \$INIT_SCRIPT enable
