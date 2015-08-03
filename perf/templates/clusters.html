@@ -6,7 +6,6 @@
     {{template "header.html" .}}
 
     <link href="/res/imp/cluster.html" rel="import" />
-    <link href="/res/imp/commit-selector.html" rel="import" />
 
     <style type="text/css" media="screen">
       #clSorting {
@@ -21,13 +20,6 @@
       sort-sk {
         display: block;
       }
-      .floatingLabel {
-        display: block;
-        margin-top: 1em;
-        margin-bottom: 0.5em;
-        font-size: 0.75em;
-        color: #757575;
-      }
     </style>
 </head>
 <body>
@@ -41,10 +33,6 @@
         </p>
         <p>
           <paper-input value="50" id="_k" label="Number Of Clusters" floatingLabel></paper-input>
-        </p>
-        <p>
-          <span class="floatingLabel">Commit to cluster around (currently non-functional)</span>
-          <commit-selector-sk></commit-selector-sk>
         </p>
         <p class=issue>
           <label for="_issue">Issue:</label>
