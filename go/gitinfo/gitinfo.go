@@ -467,3 +467,51 @@ func (g *GitInfo) NumCommits() int {
 	defer g.mutex.Unlock()
 	return len(g.hashes)
 }
+
+// RepoMap is a struct used for managing multiple Git repositories.
+type RepoMap struct {
+	repos   map[string]*GitInfo
+	mutex   sync.RWMutex
+	workdir string
+}
+
+// NewRepoMap creates and returns a RepoMap which operates within the given
+// workdir.
+func NewRepoMap(workdir string) *RepoMap {
+	return &RepoMap{
+		repos:   map[string]*GitInfo{},
+		workdir: workdir,
+	}
+}
+
+// Repo retrieves a pointer to a GitInfo for the requested repo URL. If the
+// repo does not yet exist in the repoMap, it is cloned and added before it is
+// returned.
+func (m *RepoMap) Repo(r string) (*GitInfo, error) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	repo, ok := m.repos[r]
+	if !ok {
+		var err error
+		split := strings.Split(r, "/")
+		repoPath := path.Join(m.workdir, split[len(split)-1])
+		repo, err = CloneOrUpdate(r, repoPath, true)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to check out %s: %v", r, err)
+		}
+		m.repos[r] = repo
+	}
+	return repo, nil
+}
+
+// Update causes all of the repos in the RepoMap to be updated.
+func (m *RepoMap) Update() error {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	for _, r := range m.repos {
+		if err := r.Update(true, true); err != nil {
+			return err
+		}
+	}
+	return nil
+}

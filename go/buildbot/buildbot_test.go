@@ -3,7 +3,6 @@ package buildbot
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -85,7 +84,7 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 
 // testGetBuildFromMaster is a helper function which pretends to load JSON data
 // from a build master and decodes it into a Build object.
-func testGetBuildFromMaster(repos *repoMap) (*Build, int, []string, error) {
+func testGetBuildFromMaster(repos *gitinfo.RepoMap) (*Build, error) {
 	httpClient = testHttpClient
 	return getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX660-x86-Release", 721, repos)
 }
@@ -100,23 +99,14 @@ func TestGetBuildFromMaster(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
-	assert.Nil(t, err)
 
-	repos := &repoMap{
-		repos: map[string]*gitinfo.GitInfo{
-			"https://skia.googlesource.com/skia.git": repo,
-		},
-		workdir: tr.Dir,
-	}
+	repos := gitinfo.NewRepoMap(tr.Dir)
 
 	// Default, complete build.
-	_, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	_, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	// Incomplete build.
-	_, _, _, err = getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
+	_, err = getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
 	assert.Nil(t, err)
 }
 
@@ -130,20 +120,11 @@ func TestBuildJsonSerialization(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
-	assert.Nil(t, err)
 
-	repos := &repoMap{
-		repos: map[string]*gitinfo.GitInfo{
-			"https://skia.googlesource.com/skia.git": repo,
-		},
-		workdir: tr.Dir,
-	}
+	repos := gitinfo.NewRepoMap(tr.Dir)
 
-	b1, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b1, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	bytes, err := json.Marshal(b1)
 	assert.Nil(t, err)
 	b2 := &Build{}
@@ -162,15 +143,8 @@ func TestFindCommitsForBuild(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
-	assert.Nil(t, err)
 
-	repos := &repoMap{
-		repos: map[string]*gitinfo.GitInfo{
-			"https://skia.googlesource.com/skia.git": repo,
-		},
-		workdir: tr.Dir,
-	}
+	repos := gitinfo.NewRepoMap(tr.Dir)
 
 	// The test repo is laid out like this:
 	//
@@ -258,7 +232,9 @@ func TestFindCommitsForBuild(t *testing.T) {
 	master := "client.skia"
 	builder := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
 	for buildNum, tc := range testCases {
-		assert.Nil(t, IngestBuild(master, builder, buildNum, repos))
+		build, err := getBuildFromMaster(master, builder, buildNum, repos)
+		assert.Nil(t, err)
+		assert.Nil(t, IngestBuild(build, repos))
 		ingested, err := GetBuildFromDB(builder, master, buildNum)
 		assert.Nil(t, err)
 		assert.True(t, util.SSliceEqual(ingested.Commits, tc.Expected), fmt.Sprintf("Commits for build do not match expectation.\nGot:  %v\nWant: %v", ingested.Commits, tc.Expected))
@@ -304,15 +280,8 @@ func testBuildDbSerialization(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
-	assert.Nil(t, err)
 
-	repos := &repoMap{
-		repos: map[string]*gitinfo.GitInfo{
-			"https://skia.googlesource.com/skia.git": repo,
-		},
-		workdir: tr.Dir,
-	}
+	repos := gitinfo.NewRepoMap(tr.Dir)
 
 	// Test case: an empty build. Tests null and empty values.
 	emptyTime := 0.0
@@ -323,10 +292,8 @@ func testBuildDbSerialization(t *testing.T) {
 	}
 
 	// Test case: a completely filled-out build.
-	buildFromFullJson, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	buildFromFullJson, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 
 	testCases := []*Build{emptyBuild, buildFromFullJson}
 	for _, b := range testCases {
@@ -342,21 +309,12 @@ func testBuildDbIdConsistency(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
-	assert.Nil(t, err)
 
-	repos := &repoMap{
-		repos: map[string]*gitinfo.GitInfo{
-			"https://skia.googlesource.com/skia.git": repo,
-		},
-		workdir: tr.Dir,
-	}
+	repos := gitinfo.NewRepoMap(tr.Dir)
 
 	// Retrieve a full build.
-	b, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 
 	// Assert that all IDs are zero, since we haven't yet inserted the build.
 	assert.Equal(t, 0, b.Id)
@@ -437,22 +395,13 @@ func testUnfinishedBuild(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
-	assert.Nil(t, err)
 
-	repos := &repoMap{
-		repos: map[string]*gitinfo.GitInfo{
-			"https://skia.googlesource.com/skia.git": repo,
-		},
-		workdir: tr.Dir,
-	}
+	repos := gitinfo.NewRepoMap(tr.Dir)
 
 	// Obtain and insert an unfinished build.
 	httpClient = testHttpClient
-	b, stoleFrom, stolen, err := getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
+	b, err := getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	assert.False(t, b.IsFinished(), fmt.Errorf("Unfinished build thinks it's finished!"))
 	dbSerializeAndCompare(t, b, true)
 
@@ -509,20 +458,11 @@ func testLastProcessedBuilds(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
-	assert.Nil(t, err)
 
-	repos := &repoMap{
-		repos: map[string]*gitinfo.GitInfo{
-			"https://skia.googlesource.com/skia.git": repo,
-		},
-		workdir: tr.Dir,
-	}
+	repos := gitinfo.NewRepoMap(tr.Dir)
 
-	build, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	build, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 
 	// Ensure that we get the right number for not-yet-processed
 	// builder/master pair.
@@ -545,10 +485,8 @@ func testLastProcessedBuilds(t *testing.T) {
 	}
 
 	// Ensure that we get the correct result for multiple builders.
-	build2, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	build2, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	build2.Builder = "Other-Builder"
 	build2.Number = build.Number + 10
 	assert.Nil(t, build2.ReplaceIntoDB())
@@ -575,10 +513,8 @@ func testLastProcessedBuilds(t *testing.T) {
 	assert.True(t, compareBuildLists([]*Build{build, build2}, builds), fmt.Sprintf("getLastProcessedBuilds returned incorrect results: %v", builds))
 
 	// Add "older" build, ensure that only the newer ones are returned.
-	build3, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	build3, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	build3.Number -= 10
 	assert.Nil(t, build3.ReplaceIntoDB())
 	builds, err = getLastProcessedBuilds()
@@ -615,21 +551,12 @@ func testGetUningestedBuilds(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
-	assert.Nil(t, err)
 
-	repos := &repoMap{
-		repos: map[string]*gitinfo.GitInfo{
-			"https://skia.googlesource.com/skia.git": repo,
-		},
-		workdir: tr.Dir,
-	}
+	repos := gitinfo.NewRepoMap(tr.Dir)
 
 	// This builder is no longer found on the master.
-	b1, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b1, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	b1.Master = "client.skia.compile"
 	b1.Builder = "My-Builder"
 	b1.Number = 115
@@ -637,10 +564,8 @@ func testGetUningestedBuilds(t *testing.T) {
 	assert.Nil(t, b1.ReplaceIntoDB())
 
 	// This builder needs to load a few builds.
-	b2, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b2, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	b2.Master = "client.skia.android"
 	b2.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b2.Number = 463
@@ -648,10 +573,8 @@ func testGetUningestedBuilds(t *testing.T) {
 	assert.Nil(t, b2.ReplaceIntoDB())
 
 	// This builder is already up-to-date.
-	b3, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b3, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	b3.Master = "client.skia.fyi"
 	b3.Builder = "Housekeeper-PerCommit"
 	b3.Number = 1035
@@ -659,10 +582,8 @@ func testGetUningestedBuilds(t *testing.T) {
 	assert.Nil(t, b3.ReplaceIntoDB())
 
 	// This builder is already up-to-date.
-	b4, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b4, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	b4.Master = "client.skia.android"
 	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532
@@ -699,21 +620,12 @@ func testIngestNewBuilds(t *testing.T) {
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
-	repo, err := gitinfo.NewGitInfo(filepath.Join(tr.Dir, "skia.git"), false, true)
-	assert.Nil(t, err)
 
-	repos := &repoMap{
-		repos: map[string]*gitinfo.GitInfo{
-			"https://skia.googlesource.com/skia.git": repo,
-		},
-		workdir: tr.Dir,
-	}
+	repos := gitinfo.NewRepoMap(tr.Dir)
 
 	// This builder needs to load a few builds.
-	b1, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b1, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	b1.Master = "client.skia.android"
 	b1.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b1.Number = 463
@@ -722,10 +634,8 @@ func testIngestNewBuilds(t *testing.T) {
 
 	// This builder has no new builds, but the last one wasn't finished
 	// at its time of ingestion.
-	b2, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b2, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	b2.Master = "client.skia.fyi"
 	b2.Builder = "Housekeeper-PerCommit"
 	b2.Number = 1035
@@ -734,20 +644,16 @@ func testIngestNewBuilds(t *testing.T) {
 	assert.Nil(t, b2.ReplaceIntoDB())
 
 	// Subsequent builders are already up-to-date.
-	b3, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b3, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	b3.Master = "client.skia.fyi"
 	b3.Builder = "Housekeeper-Nightly-RecreateSKPs"
 	b3.Number = 58
 	b3.Steps = []*BuildStep{}
 	assert.Nil(t, b3.ReplaceIntoDB())
 
-	b4, stoleFrom, stolen, err := testGetBuildFromMaster(repos)
+	b4, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
-	assert.Equal(t, -1, stoleFrom)
-	assert.Equal(t, 0, len(stolen))
 	b4.Master = "client.skia.android"
 	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532

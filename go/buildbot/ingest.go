@@ -3,7 +3,6 @@ package buildbot
 import (
 	"encoding/json"
 	"fmt"
-	"path"
 	"strings"
 	"sync"
 	"time"
@@ -102,7 +101,15 @@ func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *
 // findCommitsForBuild determines which commits were first included in the
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
-func findCommitsForBuild(b *Build, repo *gitinfo.GitInfo) ([]string, int, []string, error) {
+func findCommitsForBuild(b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
+	if b.Repository == "" {
+		return []string{}, 0, []string{}, nil
+	}
+	repo, err := repos.Repo(b.Repository)
+	if err != nil {
+		return nil, -1, nil, fmt.Errorf("Could not find commits for build: %v", err)
+	}
+
 	// Shortcut for the first build for a given builder: this build must be
 	// the first inclusion for all revisions prior to b.GotRevision.
 	if b.Number == 0 && b.GotRevision != "" {
@@ -123,12 +130,12 @@ func findCommitsForBuild(b *Build, repo *gitinfo.GitInfo) ([]string, int, []stri
 
 // getBuildFromMaster retrieves the given build from the build master's JSON
 // interface as specified by the master, builder, and build number.
-func getBuildFromMaster(master, builder string, buildNumber int, repos *repoMap) (*Build, int, []string, error) {
+func getBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.RepoMap) (*Build, error) {
 	var build Build
 	url := fmt.Sprintf("%s%s/json/builders/%s/builds/%d", BUILDBOT_URL, master, builder, buildNumber)
 	err := get(url, &build)
 	if err != nil {
-		return nil, -1, nil, fmt.Errorf("Failed to retrieve build #%v for %v: %v", buildNumber, builder, err)
+		return nil, fmt.Errorf("Failed to retrieve build #%v for %v: %v", buildNumber, builder, err)
 	}
 	build.Branch = build.branch()
 	build.GotRevision = build.gotRevision()
@@ -142,7 +149,7 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *repoMap)
 	build.Finished = build.Times[1]
 	propBytes, err := json.Marshal(&build.Properties)
 	if err != nil {
-		return nil, -1, nil, fmt.Errorf("Unable to convert build properties to JSON: %v", err)
+		return nil, fmt.Errorf("Unable to convert build properties to JSON: %v", err)
 	}
 	build.PropertiesStr = string(propBytes)
 	build.Repository = build.repository()
@@ -161,60 +168,42 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *repoMap)
 		s.Finished = s.Times[1]
 	}
 
-	// Find the commits for this build.
-	var commits []string
-	// We might steal some commits from a different build.
-	stoleFrom := -1
-	var stolen []string
-	if build.Repository != "" {
-		repo, err := repos.Repo(build.Repository)
-		if err != nil {
-			return nil, -1, nil, fmt.Errorf("Could not find commits for build: %v", err)
-		}
-		commits, stoleFrom, stolen, err = findCommitsForBuild(&build, repo)
-		if err != nil {
-			return nil, -1, nil, fmt.Errorf("Could not find commits for build: %v", err)
-		}
-	} else {
-		commits = []string{}
-	}
-	build.Commits = commits
-
-	return &build, stoleFrom, stolen, nil
+	return &build, nil
 }
 
 // retryGetBuildFromMaster retrieves the given build from the build master's JSON
 // interface as specified by the master, builder, and build number. Makes
 // multiple attempts in case the master fails to respond.
-func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *repoMap) (*Build, int, []string, error) {
+func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.RepoMap) (*Build, error) {
 	var b *Build
 	var err error
-	var stoleFrom int
-	var stolen []string
 	for attempt := 0; attempt < 3; attempt++ {
-		b, stoleFrom, stolen, err = getBuildFromMaster(master, builder, buildNumber, repos)
+		b, err = getBuildFromMaster(master, builder, buildNumber, repos)
 		if err == nil {
 			break
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
-	return b, stoleFrom, stolen, err
+	return b, err
 }
 
 // IngestBuild retrieves the given build from the build master's JSON interface
 // and pushes it into the database.
-func IngestBuild(master, builder string, buildNumber int, repos *repoMap) error {
-	b, stoleFrom, stolen, err := retryGetBuildFromMaster(master, builder, buildNumber, repos)
+func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
+	// Find the commits for this build.
+	commits, stoleFrom, stolen, err := findCommitsForBuild(b, repos)
 	if err != nil {
-		return fmt.Errorf("Failed to load build from master: %v", err)
+		return err
 	}
+	b.Commits = commits
+
 	// Log the case where we found no revisions for the build.
 	if !(strings.HasSuffix(b.Builder, "-Trybot") || strings.Contains(b.Builder, "Housekeeper")) && len(b.Commits) == 0 {
 		glog.Infof("Got build with 0 revs: %s #%d GotRev=%s", b.Builder, b.Number, b.GotRevision)
 	}
 	// Determine whether we've already ingested this build. If so, fix up the ID
 	// so that we update it rather than insert a new copy.
-	existingBuildID, err := GetBuildIDFromDB(builder, master, buildNumber)
+	existingBuildID, err := GetBuildIDFromDB(b.Builder, b.Master, b.Number)
 	if err == nil {
 		b.Id = existingBuildID
 	}
@@ -372,57 +361,8 @@ func getUningestedBuilds() (map[string]map[string][]int, error) {
 	return unprocessed, nil
 }
 
-// repoMap is a struct used for managing source code checkouts while ingesting
-// build data.
-type repoMap struct {
-	repos   map[string]*gitinfo.GitInfo
-	mutex   sync.RWMutex
-	workdir string
-}
-
-// newRepoMap creates and returns a repoMap which operates within the given
-// workdir.
-func newRepoMap(workdir string) *repoMap {
-	return &repoMap{
-		repos:   map[string]*gitinfo.GitInfo{},
-		workdir: workdir,
-	}
-}
-
-// Repo retrieves a pointer to a GitInfo for the requested repo URL. If the
-// repo does not yet exist in the repoMap, it is cloned and added before it is
-// returned.
-func (m *repoMap) Repo(r string) (*gitinfo.GitInfo, error) {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	repo, ok := m.repos[r]
-	if !ok {
-		var err error
-		split := strings.Split(r, "/")
-		repoPath := path.Join(m.workdir, split[len(split)-1])
-		repo, err = gitinfo.CloneOrUpdate(r, repoPath, true)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to check out %s: %v", r, err)
-		}
-		m.repos[r] = repo
-	}
-	return repo, nil
-}
-
-// Update causes all of the repos in the repoMap to be updated.
-func (m *repoMap) Update() error {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	for _, r := range m.repos {
-		if err := r.Update(true, true); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 // ingestNewBuilds finds the set of uningested builds and ingests them.
-func ingestNewBuilds(repos *repoMap) error {
+func ingestNewBuilds(repos *gitinfo.RepoMap) error {
 	// TODO(borenet): Investigate the use of channels here. We should be
 	// able to start ingesting builds as the data becomes available rather
 	// than waiting until the end.
@@ -460,7 +400,14 @@ func ingestNewBuilds(repos *repoMap) error {
 			for b, w := range buildsToProcessForMaster {
 				for _, n := range w {
 					glog.Infof("Ingesting build: %s, %s, %d", master, b, n)
-					if err := IngestBuild(master, b, n, repos); err != nil {
+					build, err := retryGetBuildFromMaster(master, b, n, repos)
+					if err != nil {
+						err := fmt.Errorf("Failed to ingest build: %v", err)
+						glog.Error(err)
+						errors[master] = err
+						return
+					}
+					if err := IngestBuild(build, repos); err != nil {
 						err := fmt.Errorf("Failed to ingest build: %v", err)
 						glog.Error(err)
 						errors[master] = err
@@ -495,7 +442,7 @@ func NumTotalBuilds() (int, error) {
 // IngestNewBuildsLoop continually ingests new builds.
 func IngestNewBuildsLoop(workdir string) {
 	lv := metrics.NewLiveness("buildbot-ingest")
-	repos := newRepoMap(workdir)
+	repos := gitinfo.NewRepoMap(workdir)
 	for _ = range time.Tick(30 * time.Second) {
 		glog.Info("Ingesting builds.")
 		if err := ingestNewBuilds(repos); err != nil {
