@@ -11,7 +11,7 @@ if [ ! -e $FIRST_BOOT_FILE ]; then
   sudo chmod 777 "$DATADISK_ROOT"
 
   # Add the disk to fstab for automatic mounting on boot.
-  echo "/dev/disk/by-id/google-skia-gold-testinstance-data /mnt/pd0 ext4 defaults 1 1" | sudo tee --append /etc/fstab
+  echo "/dev/disk/by-id/google-GOLD_DATA_DISK_NAME /mnt/pd0 ext4 defaults 1 1" | sudo tee --append /etc/fstab
 
   if [ ! -d "$DATADISK_ROOT/data" ]; then
     mkdir -p "$DATADISK_ROOT/data"
