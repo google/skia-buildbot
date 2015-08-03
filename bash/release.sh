@@ -53,7 +53,7 @@
 # This is useful if a service needs to install a package via apt-get.
 # With this delay a systemd unit is triggered after the package is installed.
 
-set -x -e
+set -x
 
 ROOT=`mktemp -d`
 OUT=`mktemp -d`
@@ -85,7 +85,7 @@ EOF
 
 # Either restart SYSTEMD or SYSTEMD_TIMER.
 RESTART_TARGET="$SYSTEMD"
-if [ ! -z "$SYSTEMD_TIMER"]; then
+if [ ! -z "$SYSTEMD_TIMER" ]; then
   RESTART_TARGET=${SYSTEMD_TIMER}
 fi
 
