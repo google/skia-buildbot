@@ -104,32 +104,6 @@ var (
 	// paintDeclRE is the regex that matches paint declarations so we can set up fonts for it
 	paintDeclRE = regexp.MustCompile("^\\s+SkPaint\\s+(\\S+)\\s*;")
 
-	// workspaceNameAdj is a list of adjectives for building workspace names.
-	workspaceNameAdj = []string{
-		"autumn", "hidden", "bitter", "misty", "silent", "empty", "dry", "dark",
-		"summer", "icy", "delicate", "quiet", "white", "cool", "spring", "winter",
-		"patient", "twilight", "dawn", "crimson", "wispy", "weathered", "blue",
-		"billowing", "broken", "cold", "damp", "falling", "frosty", "green",
-		"long", "late", "lingering", "bold", "little", "morning", "muddy", "old",
-		"red", "rough", "still", "small", "sparkling", "throbbing", "shy",
-		"wandering", "withered", "wild", "black", "young", "holy", "solitary",
-		"fragrant", "aged", "snowy", "proud", "floral", "restless", "divine",
-		"polished", "ancient", "purple", "lively", "nameless",
-	}
-
-	// workspaceNameNoun is a list of nouns for building workspace names.
-	workspaceNameNoun = []string{
-		"waterfall", "river", "breeze", "moon", "rain", "wind", "sea", "morning",
-		"snow", "lake", "sunset", "pine", "shadow", "leaf", "dawn", "glitter",
-		"forest", "hill", "cloud", "meadow", "sun", "glade", "bird", "brook",
-		"butterfly", "bush", "dew", "dust", "field", "fire", "flower", "firefly",
-		"feather", "grass", "haze", "mountain", "night", "pond", "darkness",
-		"snowflake", "silence", "sound", "sky", "shape", "surf", "thunder",
-		"violet", "water", "wildflower", "wave", "water", "resonance", "sun",
-		"wood", "dream", "cherry", "tree", "fog", "frost", "voice", "paper",
-		"frog", "smoke", "star",
-	}
-
 	gitHash = ""
 	gitInfo = ""
 
@@ -614,10 +588,7 @@ type userCode struct {
 // newWorkspace generates a new random workspace name and stores it in the database.
 func newWorkspace() (string, error) {
 	for i := 0; i < 10; i++ {
-		adj := workspaceNameAdj[rand.Intn(len(workspaceNameAdj))]
-		noun := workspaceNameNoun[rand.Intn(len(workspaceNameNoun))]
-		suffix := rand.Intn(1000)
-		name := fmt.Sprintf("%s-%s-%d", adj, noun, suffix)
+		name := util.RandomName()
 		if _, err := db.Exec("INSERT INTO workspace (name) VALUES(?)", name); err == nil {
 			return name, nil
 		} else {

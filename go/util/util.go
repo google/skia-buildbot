@@ -2,8 +2,10 @@ package util
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
 	"io"
+	mathrand "math/rand"
 	"os"
 	"runtime"
 	"sort"
@@ -20,6 +22,34 @@ const (
 	GB
 	TB
 	PB
+)
+
+var (
+	// randomNameAdj is a list of adjectives for building random names.
+	randomNameAdj = []string{
+		"autumn", "hidden", "bitter", "misty", "silent", "empty", "dry", "dark",
+		"summer", "icy", "delicate", "quiet", "white", "cool", "spring", "winter",
+		"patient", "twilight", "dawn", "crimson", "wispy", "weathered", "blue",
+		"billowing", "broken", "cold", "damp", "falling", "frosty", "green",
+		"long", "late", "lingering", "bold", "little", "morning", "muddy", "old",
+		"red", "rough", "still", "small", "sparkling", "throbbing", "shy",
+		"wandering", "withered", "wild", "black", "young", "holy", "solitary",
+		"fragrant", "aged", "snowy", "proud", "floral", "restless", "divine",
+		"polished", "ancient", "purple", "lively", "nameless",
+	}
+
+	// randomNameNoun is a list of nouns for building random names.
+	randomNameNoun = []string{
+		"waterfall", "river", "breeze", "moon", "rain", "wind", "sea", "morning",
+		"snow", "lake", "sunset", "pine", "shadow", "leaf", "dawn", "glitter",
+		"forest", "hill", "cloud", "meadow", "sun", "glade", "bird", "brook",
+		"butterfly", "bush", "dew", "dust", "field", "fire", "flower", "firefly",
+		"feather", "grass", "haze", "mountain", "night", "pond", "darkness",
+		"snowflake", "silence", "sound", "sky", "shape", "surf", "thunder",
+		"violet", "water", "wildflower", "wave", "water", "resonance", "sun",
+		"wood", "dream", "cherry", "tree", "fog", "frost", "voice", "paper",
+		"frog", "smoke", "star",
+	}
 )
 
 // GetFormattedByteSize returns a formatted pretty string representation of the
@@ -361,4 +391,35 @@ func GetStackTrace() string {
 	buf := make([]byte, 1<<16)
 	runtime.Stack(buf, true)
 	return string(buf)
+}
+
+// RandomName returns a randomly-generated name of the form, "adjective-noun-number",
+// using the default generator from the math/rand package.
+func RandomName() string {
+	return RandomNameR(nil)
+}
+
+// RandomNameR returns a randomly-generated name of the form, "adjective-noun-number",
+// using the given math/rand.Rand instance.
+func RandomNameR(r *mathrand.Rand) string {
+	a := 0
+	n := 0
+	if r == nil {
+		a = mathrand.Intn(len(randomNameAdj))
+		n = mathrand.Intn(len(randomNameNoun))
+	} else {
+		a = r.Intn(len(randomNameAdj))
+		n = r.Intn(len(randomNameNoun))
+	}
+	suffix := r.Intn(1000000)
+	return fmt.Sprintf("%s-%s-%d", randomNameAdj[a], randomNameNoun[n], suffix)
+}
+
+// StringToCodeName returns a name generated from the source string. The string
+// is hashed and used as the seed for a random number generator.
+func StringToCodeName(s string) string {
+	sum := sha256.Sum256([]byte(s))
+	seed := int64(sum[0])<<56 | int64(sum[1])<<48 | int64(sum[2])<<40 | int64(sum[3])<<32 | int64(sum[4])<<24 | int64(sum[5])<<16 | int64(sum[6])<<8 | int64(sum[7])
+	r := mathrand.New(mathrand.NewSource(seed))
+	return RandomNameR(r)
 }
