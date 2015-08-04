@@ -32,18 +32,21 @@ const (
 	ADD_CHROMIUM_PERF_TASK_POST_URI    = "_/add_chromium_perf_task"
 	GET_CHROMIUM_PERF_TASKS_POST_URI   = "_/get_chromium_perf_tasks"
 	UPDATE_CHROMIUM_PERF_TASK_POST_URI = "_/update_chromium_perf_task"
+	DELETE_CHROMIUM_PERF_TASK_POST_URI = "_/delete_chromium_perf_task"
 
 	CAPTURE_SKPS_URI                  = "capture_skps/"
 	CAPTURE_SKPS_RUNS_URI             = "capture_skp_runs/"
 	ADD_CAPTURE_SKPS_TASK_POST_URI    = "_/add_capture_skps_task"
 	GET_CAPTURE_SKPS_TASKS_POST_URI   = "_/get_capture_skp_tasks"
 	UPDATE_CAPTURE_SKPS_TASK_POST_URI = "_/update_capture_skps_task"
+	DELETE_CAPTURE_SKPS_TASK_POST_URI = "_/delete_capture_skps_task"
 
 	LUA_SCRIPT_URI                  = "lua_script/"
 	LUA_SCRIPT_RUNS_URI             = "lua_script_runs/"
 	ADD_LUA_SCRIPT_TASK_POST_URI    = "_/add_lua_script_task"
 	GET_LUA_SCRIPT_TASKS_POST_URI   = "_/get_lua_script_tasks"
 	UPDATE_LUA_SCRIPT_TASK_POST_URI = "_/update_lua_script_task"
+	DELETE_LUA_SCRIPT_TASK_POST_URI = "_/delete_lua_script_task"
 
 	CHROMIUM_BUILD_URI                  = "chromium_builds/"
 	CHROMIUM_BUILD_RUNS_URI             = "chromium_builds_runs/"
@@ -52,6 +55,7 @@ const (
 	ADD_CHROMIUM_BUILD_TASK_POST_URI    = "_/add_chromium_build_task"
 	GET_CHROMIUM_BUILD_TASKS_POST_URI   = "_/get_chromium_build_tasks"
 	UPDATE_CHROMIUM_BUILD_TASK_POST_URI = "_/update_chromium_build_task"
+	DELETE_CHROMIUM_BUILD_TASK_POST_URI = "_/delete_chromium_build_task"
 
 	ADMIN_TASK_URI = "admin_tasks/"
 
@@ -59,11 +63,13 @@ const (
 	ADD_RECREATE_PAGE_SETS_TASK_POST_URI    = "_/add_recreate_page_sets_task"
 	GET_RECREATE_PAGE_SETS_TASKS_POST_URI   = "_/get_recreate_page_sets_tasks"
 	UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI = "_/update_recreate_page_sets_task"
+	DELETE_RECREATE_PAGE_SETS_TASK_POST_URI = "_/delete_recreate_page_sets_task"
 
 	RECREATE_WEBPAGE_ARCHIVES_RUNS_URI             = "recreate_webpage_archives_runs/"
 	ADD_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI    = "_/add_recreate_webpage_archives_task"
 	GET_RECREATE_WEBPAGE_ARCHIVES_TASKS_POST_URI   = "_/get_recreate_webpage_archives_tasks"
 	UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI = "_/update_recreate_webpage_archives_task"
+	DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI = "_/delete_recreate_webpage_archives_task"
 
 	RUNS_HISTORY_URI = "history/"
 

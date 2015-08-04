@@ -16,6 +16,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"runtime"
 	"strconv"
@@ -103,15 +104,26 @@ type CommonCols struct {
 }
 
 type Task interface {
-	GetAddedTimestamp() int64
+	GetCommonCols() *CommonCols
 	GetTaskName() string
 	TableName() string
 	// Returns a slice of the struct type.
 	Select(query string, args ...interface{}) (interface{}, error)
 }
 
-func (dbrow *CommonCols) GetAddedTimestamp() int64 {
-	return dbrow.TsAdded.Int64
+func (dbrow *CommonCols) GetCommonCols() *CommonCols {
+	return dbrow
+}
+
+// Takes the result of Task.Select and returns a slice of Tasks containing the same objects.
+func asTaskSlice(selectResult interface{}) []Task {
+	sliceValue := reflect.ValueOf(selectResult)
+	len := sliceValue.Len()
+	result := make([]Task, len)
+	for i := 0; i < len; i++ {
+		result[i] = sliceValue.Index(i).Addr().Interface().(Task)
+	}
+	return result
 }
 
 type ChromiumPerfDBTask struct {
@@ -420,7 +432,7 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add %T task: %v", task, err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add %T task", task))
 		return
 	}
 	defer skutil.Close(r.Body)
@@ -430,11 +442,11 @@ func addTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 
 	query, binds, err := task.GetInsertQueryAndBinds()
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshal %T task: %v", task, err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshal %T task", task))
 		return
 	}
 	if _, err = db.DB.Exec(query, binds...); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task: %v", task, err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
 		return
 	}
 }
@@ -523,9 +535,19 @@ func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		Size:   size,
 		Total:  countVal[0],
 	}
+	type Permissions struct {
+		DeleteAllowed bool
+	}
+	tasks := asTaskSlice(data)
+	permissions := make([]Permissions, len(tasks))
+	for i := 0; i < len(tasks); i++ {
+		deleteAllowed, _ := canDeleteTask(tasks[i], r)
+		permissions[i] = Permissions{DeleteAllowed: deleteAllowed}
+	}
 	jsonResponse := map[string]interface{}{
-		"data":       data,
-		"pagination": pagination,
+		"data":        data,
+		"permissions": permissions,
+		"pagination":  pagination,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
@@ -578,19 +600,90 @@ func updateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWri
 	// TODO(benjaminwagner): authenticate
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to parse %T update: %v", vars, err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to parse %T update", vars))
 		return
 	}
 	defer skutil.Close(r.Body)
 
 	query, binds, err := getUpdateQueryAndBinds(vars, tableName)
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshal %T update: %v", vars, err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshal %T update", vars))
 		return
 	}
-	_, err = db.DB.Exec(query, binds...)
+	result, err := db.DB.Exec(query, binds...)
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to update using %T: %v", vars, err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to update using %T", vars))
+		return
+	}
+	if rowsUpdated, _ := result.RowsAffected(); rowsUpdated != 1 {
+		skutil.ReportError(w, r, fmt.Errorf("No rows updated. Likely invalid parameters."), "")
+		return
+	}
+}
+
+// Returns true if the given task can be deleted by the logged-in user; otherwise false and an error
+// describing the problem.
+func canDeleteTask(task Task, r *http.Request) (bool, error) {
+	if !userHasAdminRights(r) {
+		username := login.LoggedInAs(r)
+		taskUser := task.GetCommonCols().Username
+		if taskUser != username {
+			return false, fmt.Errorf("Task is owned by %s but you are logged in as %s", taskUser, username)
+		}
+	}
+	if task.GetCommonCols().TsStarted.Valid && !task.GetCommonCols().TsCompleted.Valid {
+		return false, fmt.Errorf("Cannot delete currently running tasks.")
+	}
+	return true, nil
+}
+
+func deleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
+	if !userHasEditRights(r) {
+		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to delete tasks"), "")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	vars := struct{ Id int64 }{}
+	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
+		skutil.ReportError(w, r, err, "Failed to parse delete request")
+		return
+	}
+	defer skutil.Close(r.Body)
+	requireUsernameMatch := !userHasAdminRights(r)
+	username := login.LoggedInAs(r)
+	// Put all conditions in delete request; only if the delete fails, do a select to determine the cause.
+	deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE id = ? AND (ts_started IS NULL OR ts_completed IS NOT NULL)", prototype.TableName())
+	binds := []interface{}{vars.Id}
+	if requireUsernameMatch {
+		deleteQuery += " AND username = ?"
+		binds = append(binds, username)
+	}
+	result, err := db.DB.Exec(deleteQuery, binds...)
+	if err != nil {
+		skutil.ReportError(w, r, err, "Failed to delete")
+		return
+	}
+	// Check result to ensure that the row was deleted.
+	if rowsDeleted, _ := result.RowsAffected(); rowsDeleted == 1 {
+		glog.Infof("%s task with ID %d deleted by %s", prototype.GetTaskName(), vars.Id, username)
+		return
+	}
+	// The code below determines the reason that no rows were deleted.
+	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", prototype.TableName())
+	data, err := prototype.Select(rowQuery, vars.Id)
+	if err != nil {
+		skutil.ReportError(w, r, err, "Unable to validate request.")
+		return
+	}
+	tasks := asTaskSlice(data)
+	if len(tasks) != 1 {
+		// Row already deleted; return success.
+		return
+	}
+	if ok, err := canDeleteTask(tasks[0], r); !ok {
+		skutil.ReportError(w, r, err, "")
+	} else {
+		skutil.ReportError(w, r, fmt.Errorf("Failed to delete; reason unknown"), "")
 		return
 	}
 }
@@ -630,8 +723,7 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// ChromiumPerfVars is the type used by the Chromium Perf pages.
-type ChromiumPerfVars struct {
+type AddChromiumPerfTaskVars struct {
 	AddTaskCommonVars
 
 	Benchmark            string `json:"benchmark"`
@@ -647,7 +739,7 @@ type ChromiumPerfVars struct {
 	SkiaPatch            string `json:"skia_patch"`
 }
 
-func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddChromiumPerfTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.Benchmark == "" ||
 		task.Platform == "" ||
 		task.PageSets == "" ||
@@ -677,7 +769,7 @@ func (task *ChromiumPerfVars) GetInsertQueryAndBinds() (string, []interface{}, e
 }
 
 func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addTaskHandler(w, r, &ChromiumPerfVars{})
+	addTaskHandler(w, r, &AddChromiumPerfTaskVars{})
 }
 
 func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
@@ -709,6 +801,10 @@ func (task *ChromiumPerfUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, [
 
 func updateChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
 	updateTaskHandler(&ChromiumPerfUpdateVars{}, db.TABLE_CHROMIUM_PERF_TASKS, w, r)
+}
+
+func deleteChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
+	deleteTaskHandler(&ChromiumPerfDBTask{}, w, r)
 }
 
 func chromiumPerfRunsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -781,6 +877,10 @@ func (task *CaptureSkpsUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []
 
 func updateCaptureSkpsTaskHandler(w http.ResponseWriter, r *http.Request) {
 	updateTaskHandler(&CaptureSkpsUpdateVars{}, db.TABLE_CAPTURE_SKPS_TASKS, w, r)
+}
+
+func deleteCaptureSkpsTaskHandler(w http.ResponseWriter, r *http.Request) {
+	deleteTaskHandler(&CaptureSkpsDBTask{}, w, r)
 }
 
 func captureSkpRunsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -856,6 +956,10 @@ func (task *LuaScriptUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []in
 
 func updateLuaScriptTaskHandler(w http.ResponseWriter, r *http.Request) {
 	updateTaskHandler(&LuaScriptUpdateVars{}, db.TABLE_LUA_SCRIPT_TASKS, w, r)
+}
+
+func deleteLuaScriptTaskHandler(w http.ResponseWriter, r *http.Request) {
+	deleteTaskHandler(&LuaScriptDBTask{}, w, r)
 }
 
 func luaScriptRunsHistoryView(w http.ResponseWriter, r *http.Request) {
@@ -1008,6 +1112,10 @@ func updateChromiumBuildTaskHandler(w http.ResponseWriter, r *http.Request) {
 	updateTaskHandler(&ChromiumBuildUpdateVars{}, db.TABLE_CHROMIUM_BUILD_TASKS, w, r)
 }
 
+func deleteChromiumBuildTaskHandler(w http.ResponseWriter, r *http.Request) {
+	deleteTaskHandler(&ChromiumBuildDBTask{}, w, r)
+}
+
 func chromiumBuildRunsHistoryView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(chromiumBuildRunsHistoryTemplate, w, r)
 }
@@ -1123,6 +1231,14 @@ func updateRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Req
 	updateTaskHandler(&RecreateWebpageArchivesUpdateVars{}, db.TABLE_RECREATE_PAGE_SETS_TASKS, w, r)
 }
 
+func deleteRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
+	deleteTaskHandler(&RecreatePageSetsDBTask{}, w, r)
+}
+
+func deleteRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
+	deleteTaskHandler(&RecreateWebpageArchivesDBTask{}, w, r)
+}
+
 func recreatePageSetsRunsHistoryView(w http.ResponseWriter, r *http.Request) {
 	executeSimpleTemplate(recreatePageSetsRunsHistoryTemplate, w, r)
 }
@@ -1186,7 +1302,8 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 	for _, task := range tasks {
 		if oldestTask == nil {
 			oldestTask = task
-		} else if oldestTask.GetAddedTimestamp() < task.GetAddedTimestamp() {
+		} else if oldestTask.GetCommonCols().TsAdded.Int64 <
+			task.GetCommonCols().TsAdded.Int64 {
 			oldestTask = task
 		}
 	}
@@ -1222,6 +1339,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/"+api.ADD_CHROMIUM_PERF_TASK_POST_URI, addChromiumPerfTaskHandler).Methods("POST")
 	r.HandleFunc("/"+api.GET_CHROMIUM_PERF_TASKS_POST_URI, getChromiumPerfTasksHandler).Methods("POST")
 	r.HandleFunc("/"+api.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateChromiumPerfTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_CHROMIUM_PERF_TASK_POST_URI, deleteChromiumPerfTaskHandler).Methods("POST")
 
 	// Capture SKPs handlers.
 	r.HandleFunc("/"+api.CAPTURE_SKPS_URI, captureSkpsView).Methods("GET")
@@ -1229,6 +1347,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/"+api.ADD_CAPTURE_SKPS_TASK_POST_URI, addCaptureSkpsTaskHandler).Methods("POST")
 	r.HandleFunc("/"+api.GET_CAPTURE_SKPS_TASKS_POST_URI, getCaptureSkpTasksHandler).Methods("POST")
 	r.HandleFunc("/"+api.UPDATE_CAPTURE_SKPS_TASK_POST_URI, updateCaptureSkpsTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_CAPTURE_SKPS_TASK_POST_URI, deleteCaptureSkpsTaskHandler).Methods("POST")
 
 	// Lua Script handlers.
 	r.HandleFunc("/"+api.LUA_SCRIPT_URI, luaScriptsView).Methods("GET")
@@ -1236,6 +1355,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/"+api.ADD_LUA_SCRIPT_TASK_POST_URI, addLuaScriptTaskHandler).Methods("POST")
 	r.HandleFunc("/"+api.GET_LUA_SCRIPT_TASKS_POST_URI, getLuaScriptTasksHandler).Methods("POST")
 	r.HandleFunc("/"+api.UPDATE_LUA_SCRIPT_TASK_POST_URI, updateLuaScriptTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_LUA_SCRIPT_TASK_POST_URI, deleteLuaScriptTaskHandler).Methods("POST")
 
 	// Chromium Build handlers.
 	r.HandleFunc("/"+api.CHROMIUM_BUILD_URI, chromiumBuildsView).Methods("GET")
@@ -1245,6 +1365,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/"+api.ADD_CHROMIUM_BUILD_TASK_POST_URI, addChromiumBuildTaskHandler).Methods("POST")
 	r.HandleFunc("/"+api.GET_CHROMIUM_BUILD_TASKS_POST_URI, getChromiumBuildTasksHandler).Methods("POST")
 	r.HandleFunc("/"+api.UPDATE_CHROMIUM_BUILD_TASK_POST_URI, updateChromiumBuildTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_CHROMIUM_BUILD_TASK_POST_URI, deleteChromiumBuildTaskHandler).Methods("POST")
 
 	// Admin Tasks handlers.
 	r.HandleFunc("/"+api.ADMIN_TASK_URI, adminTasksView).Methods("GET")
@@ -1256,6 +1377,8 @@ func runServer(serverURL string) {
 	r.HandleFunc("/"+api.GET_RECREATE_WEBPAGE_ARCHIVES_TASKS_POST_URI, getRecreateWebpageArchivesTasksHandler).Methods("POST")
 	r.HandleFunc("/"+api.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI, updateRecreatePageSetsTaskHandler).Methods("POST")
 	r.HandleFunc("/"+api.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, updateRecreateWebpageArchivesTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_RECREATE_PAGE_SETS_TASK_POST_URI, deleteRecreatePageSetsTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, deleteRecreateWebpageArchivesTaskHandler).Methods("POST")
 
 	// Runs history handlers.
 	r.HandleFunc("/"+api.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")

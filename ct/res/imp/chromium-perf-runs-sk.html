@@ -1,16 +1,21 @@
 <!--
-  This in an HTML Import-able file that contains the definition
-  of the following elements:
+  The <chromium-perf-runs-sk> custom element declaration. Displays a table with details about each
+  completed and pending Chromium Perf task.
 
-    <chromium-perf-runs-sk>
+  Attributes:
+    defaultSize: The number of tasks to show per page, default 5.
+    constrainByUser: Whether to show only tasks created by the logged-in user initially, default
+      false.
+    myRunsConstrainText: Button text for enabling constraining, default "View only my runs".
+    allRunsConstrainText: Button text for disabling constraining, default "View all runs".
 
-  To use this file import it:
+  Events:
+    None.
 
-    <link href="/res/imp/chromium-perf-runs-sk.html" rel="import" />
-
-  Usage:
-
-    <chromium-perf-runs-sk></chromium-perf-runs-sk>
+  Methods:
+    reload: queries for updated information on tasks.
+    resetPagination: Moves to the first page of tasks.
+    constrainRuns: Toggles constrainByUser and reloads the appropriate data.
 -->
 
 <dom-module id="chromium-perf-runs-sk">
@@ -32,8 +37,19 @@
       padding: 10px;
       border: solid black 1px;
     }
+    .delete-button {
+      --paper-icon-button-disabled: {
+        display: none;
+      }
+    }
   </style>
   <template>
+
+    <paper-dialog heading="Confirmation" id="confirm_dialog">
+      <div>Proceed with deleting task?</div>
+      <paper-button id="delete_dismiss">Cancel</paper-button>
+      <paper-button id="delete_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
 
     <h2><template is="dom-if" if="{{constrainByUser}}">My </template>Chromium Perf Runs</h2>
     <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
@@ -98,7 +114,16 @@
       <template is="dom-repeat" items="{{chromiumPerfTasks}}" as="chromiumPerfTask" index-as="index">
         <tr style="border: 1px solid black;">
           <!-- Id col -->
-          <td>{{chromiumPerfTask.Id}}</td>
+          <td class="nowrap">
+            <span>{{chromiumPerfTask.Id}}</span>
+            <paper-icon-button icon="delete" mini
+                               class="delete-button"
+                               disabled="{{!chromiumPerfTask.canDelete}}"
+                               alt="Delete"
+                               data-index$="{{index}}"
+                               data-type="delete">
+            </paper-icon-button>
+          </td>
 
           <!-- User col -->
           <td>{{chromiumPerfTask.Username}}</td>
@@ -241,6 +266,10 @@
          type: Object,
          value: function() { return null; },
        },
+       deleteIndex: {
+         type: Number,
+         value: -1,
+       },
      },
 
      ready: function() {
@@ -268,6 +297,18 @@
              that.toggleDialog(that.getSkiaPatchId(id));
            }
          }
+         var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
+         if (button != null && button.dataset.type == "delete") {
+           that.deleteIndex = button.dataset.index;
+           that.$.confirm_dialog.open();
+         }
+       });
+       this.$.delete_dismiss.addEventListener('click', function(e) {
+         that.deleteIndex = -1;
+         that.$.confirm_dialog.close();
+       });
+       this.$.delete_confirm.addEventListener('click', function(e) {
+         that.deleteTask();
        });
      },
 
@@ -286,8 +327,12 @@
        var queryStr = "?" + sk.query.fromObject(queryParams);
        var that = this;
        sk.post('/_/get_chromium_perf_tasks' + queryStr).then(JSON.parse).then(function(json) {
+         that.deleteIndex = -1;
          that.chromiumPerfTasks = json.data;
          that.pagination = json.pagination;
+         for (var i = 0; i < that.chromiumPerfTasks.length; i++) {
+           that.chromiumPerfTasks[i].canDelete = json.permissions[i].DeleteAllowed;
+         }
        }).catch(sk.errorMessage);
      },
 
@@ -335,6 +380,18 @@
 
      toggleDialog: function(id) {
        Polymer.dom(this.root).querySelector('#' + id).toggle();
+     },
+
+     deleteTask: function() {
+       var params = {};
+       params["id"] = this.chromiumPerfTasks[this.deleteIndex].Id;;
+       sk.post("/_/delete_chromium_perf_task", JSON.stringify(params)).then(function() {
+         $$$("#confirm_toast").text = "Deleted task " + params["id"];
+         $$$("#confirm_toast").show();
+       }.bind(this)).catch(sk.errorMessage).then(function() {
+         this.reload();
+         this.$.confirm_dialog.close();
+       }.bind(this));
      },
 
      formatTimestamp: ctfe.getFormattedTimestamp,

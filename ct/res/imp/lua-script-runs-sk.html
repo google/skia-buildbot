@@ -37,8 +37,19 @@
       padding: 10px;
       border: solid black 1px;
     }
+    .delete-button {
+      --paper-icon-button-disabled: {
+        display: none;
+      }
+    }
   </style>
   <template>
+
+    <paper-dialog heading="Confirmation" id="confirm_dialog">
+      <div>Proceed with deleting task?</div>
+      <paper-button id="delete_dismiss">Cancel</paper-button>
+      <paper-button id="delete_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
 
     <h2><template is="dom-if" if="{{constrainByUser}}">My </template>Lua Script Runs</h2>
     <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
@@ -78,7 +89,16 @@
       <template is="dom-repeat" items="{{luaScriptTasks}}" as="luaScriptTask" index-as="index">
         <tr style="border: 1px solid black;">
           <!-- Id col -->
-          <td>{{luaScriptTask.Id}}</td>
+          <td class="nowrap">
+            <span>{{luaScriptTask.Id}}</span>
+            <paper-icon-button icon="delete" mini
+                               class="delete-button"
+                               disabled="{{!luaScriptTask.canDelete}}"
+                               alt="Delete"
+                               data-index$="{{index}}"
+                               data-type="delete">
+            </paper-icon-button>
+          </td>
 
           <!-- User col -->
           <td>{{luaScriptTask.Username}}</td>
@@ -195,7 +215,10 @@
          type: Object,
          value: function() { return null; },
        },
-
+       deleteIndex: {
+         type: Number,
+         value: -1,
+       },
      },
 
      ready: function() {
@@ -215,6 +238,18 @@
              that.toggleDialog(that.getLuaAggregatorScriptId(id));
            }
          }
+         var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
+         if (button != null && button.dataset.type == "delete") {
+           that.deleteIndex = button.dataset.index;
+           that.$.confirm_dialog.open();
+         }
+       });
+       this.$.delete_dismiss.addEventListener('click', function(e) {
+         that.deleteIndex = -1;
+         that.$.confirm_dialog.close();
+       });
+       this.$.delete_confirm.addEventListener('click', function(e) {
+         that.deleteTask();
        });
      },
 
@@ -233,8 +268,12 @@
        var luaScriptRunsQueryStr = "?" + sk.query.fromObject(queryParams);
        var that = this;
        sk.post('/_/get_lua_script_tasks' + luaScriptRunsQueryStr).then(JSON.parse).then(function(json) {
+         that.deleteIndex = -1;
          that.luaScriptTasks = json.data;
          that.pagination = json.pagination;
+         for (var i = 0; i < that.luaScriptTasks.length; i++) {
+           that.luaScriptTasks[i].canDelete = json.permissions[i].DeleteAllowed;
+         }
        }).catch(sk.errorMessage);
      },
 
@@ -266,6 +305,18 @@
 
      toggleDialog: function(id) {
        Polymer.dom(this.root).querySelector('#' + id).toggle();
+     },
+
+     deleteTask: function() {
+       var params = {};
+       params["id"] = this.luaScriptTasks[this.deleteIndex].Id;;
+       sk.post("/_/delete_lua_script_task", JSON.stringify(params)).then(function() {
+         $$$("#confirm_toast").text = "Deleted task " + params["id"];
+         $$$("#confirm_toast").show();
+       }.bind(this)).catch(sk.errorMessage).then(function() {
+         this.reload();
+         this.$.confirm_dialog.close();
+       }.bind(this));
      },
 
      chromiumCommitUrl: ctfe.chromiumBuild.chromiumCommitUrl,

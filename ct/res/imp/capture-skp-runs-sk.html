@@ -37,8 +37,20 @@
       padding: 10px;
       border: solid black 1px;
     }
+    .delete-button {
+      --paper-icon-button-disabled: {
+        display: none;
+      }
+    }
   </style>
   <template>
+
+    <paper-dialog heading="Confirmation" id="confirm_dialog">
+      <div>Proceed with deleting task?</div>
+      <div>{{deleteNote(captureSkpsTasks, deleteIndex)}}</div>
+      <paper-button id="delete_dismiss">Cancel</paper-button>
+      <paper-button id="delete_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
 
     <h2><template is="dom-if" if="{{constrainByUser}}">My </template>Capture SkPicture Runs</h2>
     <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
@@ -62,7 +74,16 @@
       <template is="dom-repeat" items="{{captureSkpsTasks}}" as="captureSkpsTask" index-as="index">
         <tr style="border: 1px solid black;">
           <!-- Id col -->
-          <td>{{captureSkpsTask.Id}}</td>
+          <td class="nowrap">
+            <span>{{captureSkpsTask.Id}}</span>
+            <paper-icon-button icon="delete" mini
+                               class="delete-button"
+                               disabled="{{!captureSkpsTask.canDelete}}"
+                               alt="Delete"
+                               data-index$="{{index}}"
+                               data-type="delete">
+            </paper-icon-button>
+          </td>
 
           <!-- User col -->
           <td>{{captureSkpsTask.Username}}</td>
@@ -164,12 +185,31 @@
          type: Object,
          value: function() { return null; },
        },
+       deleteIndex: {
+         type: Number,
+         value: -1,
+       },
      },
 
      ready: function() {
        this.constrainButtonText = this.myRunsConstrainText;
        this.pagination = {"offset": 0, "size": this.defaultSize};
        this.pageChangedHandler = this.reload.bind(this);
+       var that = this;
+       this.$.runshistory.addEventListener('click', function(e) {
+         var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
+         if (button != null && button.dataset.type == "delete") {
+           that.deleteIndex = button.dataset.index;
+           that.$.confirm_dialog.open();
+         }
+       });
+       this.$.delete_dismiss.addEventListener('click', function(e) {
+         that.deleteIndex = -1;
+         that.$.confirm_dialog.close();
+       });
+       this.$.delete_confirm.addEventListener('click', function(e) {
+         that.deleteTask();
+       });
        this.reload();
      },
 
@@ -188,8 +228,12 @@
        var queryStr = "?" + sk.query.fromObject(queryParams);
        var that = this;
        sk.post('/_/get_capture_skp_tasks' + queryStr).then(JSON.parse).then(function(json) {
+         that.deleteIndex = -1;
          that.captureSkpsTasks = json.data;
          that.pagination = json.pagination;
+         for (var i = 0; i < that.captureSkpsTasks.length; i++) {
+           that.captureSkpsTasks[i].canDelete = json.permissions[i].DeleteAllowed;
+         }
        }).catch(sk.errorMessage);
      },
 
@@ -209,6 +253,28 @@
        if (this.constrainByUser) {
          this.constrainButtonText = this.allRunsConstrainText;
        }
+     },
+
+     deleteNote: function(captureSkpsTasks, deleteIndex) {
+       if (deleteIndex >= 0 &&
+           captureSkpsTasks[deleteIndex].TsCompleted.Valid &&
+           !captureSkpsTasks[deleteIndex].Failure.Bool) {
+         return "Note: This SKP repository will no longer be available for running Lua Scripts.";
+       } else {
+         return "";
+       }
+     },
+
+     deleteTask: function() {
+       var params = {};
+       params["id"] = this.captureSkpsTasks[this.deleteIndex].Id;
+       sk.post("/_/delete_capture_skps_task", JSON.stringify(params)).then(function() {
+         $$$("#confirm_toast").text = "Deleted task " + params["id"];
+         $$$("#confirm_toast").show();
+       }.bind(this)).catch(sk.errorMessage).then(function() {
+         this.reload();
+         this.$.confirm_dialog.close();
+       }.bind(this));
      },
 
      chromiumCommitUrl: ctfe.chromiumBuild.chromiumCommitUrl,
