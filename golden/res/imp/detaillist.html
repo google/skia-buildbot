@@ -12,15 +12,13 @@
 <polymer-element name="detail-list-sk">
   <template>
     <content></content>
-    <zoom-sk id=zoomer llabel="Closest Triaged" rlabel="Untriaged"></zoom-sk>
-    <error-toast-sk></error-toast-sk>
   </template>
   <script>
     Polymer({
       ready: function() {
         this.zooming = false;
 
-        this.$.zoomer.addEventListener('zoom-closed', function() {
+        document.addEventListener('zoom-closed', function() {
           this.zooming = false;
         }.bind(this));
 
@@ -71,13 +69,12 @@
           this.focusSet(ele);
         }
 
-        details = {
+        detail = {
           topImgUrl:  "/img/images/" + ele.digest + ".png",
           leftImgUrl: "/img/images/" + ele.dataset.closest + ".png",
           diffImgUrl: "/img/diffs/" + ele.dataset.diffdigests + ".png",
         };
-        this.$.zoomer.setDetails(details);
-        this.$.zoomer.open();
+        this.dispatchEvent(new CustomEvent('zoom-open', {detail: detail, bubbles: true}));
         this.zooming = true;
       },
 

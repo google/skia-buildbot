@@ -61,10 +61,6 @@ between two images.
         margin-left: 5em;
       }
 
-      #zoom {
-        display: inline-block;
-      }
-
       img.small {
         display: inline-block;
         border: solid 1px lightgray;
@@ -101,7 +97,6 @@ between two images.
       </table>
       <detail-table-sk id=detailtable top="{{value.topDigest}}" left="{{value.leftDigest}}" test="{{value.test}}" bothcolumns></detail-table-sk>
     </div>
-    <zoom-sk id=zoomer></zoom-sk>
   </template>
   <script>
     Polymer({
@@ -113,11 +108,7 @@ between two images.
       },
 
       ready: function() {
-        var that = this;
-        this.$.zoom.addEventListener('click', function() {
-          that.$.zoomer.setDetails(that.value);
-          that.$.zoomer.open();
-        });
+        this.$.zoom.addEventListener('click',  this.doZoom.bind(this));
       },
 
       valueChanged: function() {
@@ -131,8 +122,7 @@ between two images.
       },
 
       doZoom: function() {
-        this.$.zoomer.setDetails(this.value);
-        this.$.zoomer.open();
+        this.dispatchEvent(new CustomEvent('zoom-open', {detail: this.value, bubbles: true}));
       },
     });
   </script>

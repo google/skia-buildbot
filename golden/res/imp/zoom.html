@@ -35,11 +35,11 @@ the two images.
   <template>
     <style type="text/css" media="screen">
       #dialog {
-        position: fixed;
+        position: absolute;
         top: 2em;
         right: 2em;
-        height: 70%;
-        min-width: 70em;
+        height: 80%;
+        width: 70%;
         display: none;
         background: white;
         margin: 2%;
@@ -327,6 +327,13 @@ the two images.
             that.trackY = e.clientY;
           });
 
+          document.addEventListener('zoom-open', function(e) {
+            this.setDetails(e.detail);
+            this.open();
+          }.bind(this));
+
+          document.body.addEventListener('keydown', this.keyDownHandler.bind(this), true);
+
           // Toggle the display among all the selected images.
           var t = 0;
           setInterval(function(){
@@ -486,7 +493,6 @@ the two images.
         //    diffImgUrl: "...",
         //  }
         setDetails: function(details) {
-          console.log(details);
           var that=this;
 
           // Load each image and when finished loading create a copy of the
@@ -529,13 +535,19 @@ the two images.
 
         // Make the dialog visible.
         open: function() {
+          var d = this.$.dialog;
           if (this.displayed) {
+            window.setTimeout(function() {
+              d.style.top = (+(d.style.top.slice(0, -2)) - d.getBoundingClientRect().top + 80) + "px"
+            }, 100);
             return;
           }
           this.displayed = true;
           this.$.dialog.classList.add('display');
+          window.setTimeout(function() {
+            d.style.top = (+(d.style.top.slice(0, -2)) - d.getBoundingClientRect().top + 80) + "px"
+          }, 1);
           this.recalcPixelDims();
-          document.body.addEventListener('keydown', this.keyDownHandler.bind(this), true);
         },
 
 
@@ -544,7 +556,6 @@ the two images.
           this.displayed = false;
           this.$.dialog.classList.remove('display');
           this.dispatchEvent(new CustomEvent('zoom-closed', {bubbles: true}));
-          document.body.removeEventListener('keydown', this.keyDownHandler.bind(this), true);
         },
 
         // Sizes the canvas to display the desired number of zoom pixels
