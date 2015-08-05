@@ -105,6 +105,8 @@
           if (e.target.nodeName == "circle" && this.hoverElement != e.target) {
             this.hoverElement = e.target;
             this.dispatchEvent(new CustomEvent('hover', {detail: e.target.parentElement.dataset.id}));
+          } else {
+            this.hoverElement = null;
           }
         }.bind(this));
 
