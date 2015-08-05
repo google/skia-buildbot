@@ -2,7 +2,7 @@
 	Handlers and types specific to Chromium builds.
 */
 
-package main
+package chromium_builds
 
 import (
 	"bufio"
@@ -20,8 +20,11 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/ct/go/ctfe/task_common"
+	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	api "go.skia.org/infra/ct/go/frontend"
 	skutil "go.skia.org/infra/go/util"
@@ -39,60 +42,60 @@ const (
 )
 
 var (
-	chromiumBuildsTemplate           *template.Template = nil
-	chromiumBuildRunsHistoryTemplate *template.Template = nil
+	addTaskTemplate     *template.Template = nil
+	runsHistoryTemplate *template.Template = nil
 
 	httpClient = skutil.NewTimeoutClient()
 )
 
-func reloadChromiumBuildTemplates() {
-	chromiumBuildsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/chromium_builds.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+func ReloadTemplates(resourcesDir string) {
+	addTaskTemplate = template.Must(template.ParseFiles(
+		filepath.Join(resourcesDir, "templates/chromium_builds.html"),
+		filepath.Join(resourcesDir, "templates/header.html"),
+		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
-	chromiumBuildRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/chromium_build_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	runsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(resourcesDir, "templates/chromium_build_runs_history.html"),
+		filepath.Join(resourcesDir, "templates/header.html"),
+		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
 }
 
-type ChromiumBuildDBTask struct {
-	CommonCols
+type DBTask struct {
+	task_common.CommonCols
 
 	ChromiumRev   string        `db:"chromium_rev"`
 	ChromiumRevTs sql.NullInt64 `db:"chromium_rev_ts"`
 	SkiaRev       string        `db:"skia_rev"`
 }
 
-func (task ChromiumBuildDBTask) GetTaskName() string {
+func (task DBTask) GetTaskName() string {
 	return "ChromiumBuild"
 }
 
-func (task ChromiumBuildDBTask) TableName() string {
+func (task DBTask) TableName() string {
 	return db.TABLE_CHROMIUM_BUILD_TASKS
 }
 
-func (task ChromiumBuildDBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []ChromiumBuildDBTask{}
+func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
+	result := []DBTask{}
 	err := db.DB.Select(&result, query, args...)
 	return result, err
 }
 
-func chromiumBuildsView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(chromiumBuildsTemplate, w, r)
+func addTaskView(w http.ResponseWriter, r *http.Request) {
+	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
-type AddChromiumBuildTaskVars struct {
-	AddTaskCommonVars
+type AddTaskVars struct {
+	task_common.AddTaskCommonVars
 
 	ChromiumRev   string `json:"chromium_rev"`
 	ChromiumRevTs string `json:"chromium_rev_ts"`
 	SkiaRev       string `json:"skia_rev"`
 }
 
-func (task *AddChromiumBuildTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.ChromiumRev == "" ||
 		task.SkiaRev == "" ||
 		task.ChromiumRevTs == "" {
@@ -117,8 +120,8 @@ func (task *AddChromiumBuildTaskVars) GetInsertQueryAndBinds() (string, []interf
 		nil
 }
 
-func addChromiumBuildTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addTaskHandler(w, r, &AddChromiumBuildTaskVars{})
+func addTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
 
 func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http.ResponseWriter, r *http.Request) {
@@ -214,32 +217,32 @@ func getSkiaRevDataHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Define api.ChromiumBuildUpdateVars in this package so we can add methods.
-type ChromiumBuildUpdateVars struct {
+type UpdateVars struct {
 	api.ChromiumBuildUpdateVars
 }
 
-func (task *ChromiumBuildUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
+func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
 	return nil, nil, nil
 }
 
-func updateChromiumBuildTaskHandler(w http.ResponseWriter, r *http.Request) {
-	updateTaskHandler(&ChromiumBuildUpdateVars{}, db.TABLE_CHROMIUM_BUILD_TASKS, w, r)
+func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CHROMIUM_BUILD_TASKS, w, r)
 }
 
-func deleteChromiumBuildTaskHandler(w http.ResponseWriter, r *http.Request) {
-	deleteTaskHandler(&ChromiumBuildDBTask{}, w, r)
+func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.DeleteTaskHandler(&DBTask{}, w, r)
 }
 
-func chromiumBuildRunsHistoryView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(chromiumBuildRunsHistoryTemplate, w, r)
+func runsHistoryView(w http.ResponseWriter, r *http.Request) {
+	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
 
-func getChromiumBuildTasksHandler(w http.ResponseWriter, r *http.Request) {
-	getTasksHandler(&ChromiumBuildDBTask{}, w, r)
+func getTasksHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.GetTasksHandler(&DBTask{}, w, r)
 }
 
 // Validate that the given chromiumBuild exists in the DB.
-func validateChromiumBuild(chromiumBuild ChromiumBuildDBTask) error {
+func Validate(chromiumBuild DBTask) error {
 	buildCount := []int{}
 	query := fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE chromium_rev = ? AND skia_rev = ? AND ts_completed IS NOT NULL AND failure = 0", db.TABLE_CHROMIUM_BUILD_TASKS)
 	if err := db.DB.Select(&buildCount, query, chromiumBuild.ChromiumRev, chromiumBuild.SkiaRev); err != nil || len(buildCount) < 1 || buildCount[0] == 0 {
@@ -247,4 +250,15 @@ func validateChromiumBuild(chromiumBuild ChromiumBuildDBTask) error {
 		return fmt.Errorf("Unable to validate chromium_build parameter %v", chromiumBuild)
 	}
 	return nil
+}
+
+func AddHandlers(r *mux.Router) {
+	r.HandleFunc("/"+api.CHROMIUM_BUILD_URI, addTaskView).Methods("GET")
+	r.HandleFunc("/"+api.CHROMIUM_BUILD_RUNS_URI, runsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.CHROMIUM_REV_DATA_POST_URI, getChromiumRevDataHandler).Methods("POST")
+	r.HandleFunc("/"+api.SKIA_REV_DATA_POST_URI, getSkiaRevDataHandler).Methods("POST")
+	r.HandleFunc("/"+api.ADD_CHROMIUM_BUILD_TASK_POST_URI, addTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_CHROMIUM_BUILD_TASKS_POST_URI, getTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_CHROMIUM_BUILD_TASK_POST_URI, updateTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_CHROMIUM_BUILD_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 }

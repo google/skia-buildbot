@@ -3,7 +3,7 @@
 	recreating webpage archives.
 */
 
-package main
+package admin_tasks
 
 import (
 	"fmt"
@@ -11,36 +11,41 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/gorilla/mux"
+
+	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
+	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	api "go.skia.org/infra/ct/go/frontend"
 )
 
 var (
-	adminTasksTemplate                         *template.Template = nil
+	addTaskTemplate                            *template.Template = nil
 	recreatePageSetsRunsHistoryTemplate        *template.Template = nil
 	recreateWebpageArchivesRunsHistoryTemplate *template.Template = nil
 )
 
-func reloadAdminTaskTemplates() {
-	adminTasksTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/admin_tasks.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+func ReloadTemplates(resourcesDir string) {
+	addTaskTemplate = template.Must(template.ParseFiles(
+		filepath.Join(resourcesDir, "templates/admin_tasks.html"),
+		filepath.Join(resourcesDir, "templates/header.html"),
+		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
 	recreatePageSetsRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/recreate_page_sets_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(resourcesDir, "templates/recreate_page_sets_runs_history.html"),
+		filepath.Join(resourcesDir, "templates/header.html"),
+		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
 	recreateWebpageArchivesRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/recreate_webpage_archives_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+		filepath.Join(resourcesDir, "templates/recreate_webpage_archives_runs_history.html"),
+		filepath.Join(resourcesDir, "templates/header.html"),
+		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
 }
 
 type RecreatePageSetsDBTask struct {
-	CommonCols
+	task_common.CommonCols
 
 	PageSets string `db:"page_sets"`
 }
@@ -60,7 +65,7 @@ func (task RecreatePageSetsDBTask) Select(query string, args ...interface{}) (in
 }
 
 type RecreateWebpageArchivesDBTask struct {
-	CommonCols
+	task_common.CommonCols
 
 	PageSets    string `db:"page_sets"`
 	ChromiumRev string `db:"chromium_rev"`
@@ -81,21 +86,21 @@ func (task RecreateWebpageArchivesDBTask) Select(query string, args ...interface
 	return result, err
 }
 
-func adminTasksView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(adminTasksTemplate, w, r)
+func addTaskView(w http.ResponseWriter, r *http.Request) {
+	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
-type AdminTaskVars struct {
-	AddTaskCommonVars
+type AddTaskVars struct {
+	task_common.AddTaskCommonVars
 }
 
-func (vars *AdminTaskVars) IsAdminTask() bool {
+func (vars *AddTaskVars) IsAdminTask() bool {
 	return true
 }
 
 // Represents the parameters sent as JSON to the add_recreate_page_sets_task handler.
 type AddRecreatePageSetsTaskVars struct {
-	AdminTaskVars
+	AddTaskVars
 	PageSets string `json:"page_sets"`
 }
 
@@ -115,14 +120,14 @@ func (task *AddRecreatePageSetsTaskVars) GetInsertQueryAndBinds() (string, []int
 }
 
 func addRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addTaskHandler(w, r, &AddRecreatePageSetsTaskVars{})
+	task_common.AddTaskHandler(w, r, &AddRecreatePageSetsTaskVars{})
 }
 
 // Represents the parameters sent as JSON to the add_recreate_webpage_archives_task handler.
 type AddRecreateWebpageArchivesTaskVars struct {
-	AdminTaskVars
-	PageSets      string              `json:"page_sets"`
-	ChromiumBuild ChromiumBuildDBTask `json:"chromium_build"`
+	AddTaskVars
+	PageSets      string                 `json:"page_sets"`
+	ChromiumBuild chromium_builds.DBTask `json:"chromium_build"`
 }
 
 func (task *AddRecreateWebpageArchivesTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
@@ -131,7 +136,7 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetInsertQueryAndBinds() (string
 		task.ChromiumBuild.SkiaRev == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
-	if err := validateChromiumBuild(task.ChromiumBuild); err != nil {
+	if err := chromium_builds.Validate(task.ChromiumBuild); err != nil {
 		return "", nil, err
 	}
 	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?);",
@@ -148,7 +153,7 @@ func (task *AddRecreateWebpageArchivesTaskVars) GetInsertQueryAndBinds() (string
 }
 
 func addRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addTaskHandler(w, r, &AddRecreateWebpageArchivesTaskVars{})
+	task_common.AddTaskHandler(w, r, &AddRecreateWebpageArchivesTaskVars{})
 }
 
 // Define api.RecreatePageSetsUpdateVars in this package so we can add methods.
@@ -161,7 +166,7 @@ func (task *RecreatePageSetsUpdateVars) GetUpdateExtraClausesAndBinds() ([]strin
 }
 
 func updateRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
-	updateTaskHandler(&RecreatePageSetsUpdateVars{}, db.TABLE_RECREATE_PAGE_SETS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&RecreatePageSetsUpdateVars{}, db.TABLE_RECREATE_PAGE_SETS_TASKS, w, r)
 }
 
 // Define api.RecreateWebpageArchivesUpdateVars in this package so we can add methods.
@@ -174,29 +179,43 @@ func (task *RecreateWebpageArchivesUpdateVars) GetUpdateExtraClausesAndBinds() (
 }
 
 func updateRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	updateTaskHandler(&RecreateWebpageArchivesUpdateVars{}, db.TABLE_RECREATE_PAGE_SETS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&RecreateWebpageArchivesUpdateVars{}, db.TABLE_RECREATE_PAGE_SETS_TASKS, w, r)
 }
 
 func deleteRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
-	deleteTaskHandler(&RecreatePageSetsDBTask{}, w, r)
+	task_common.DeleteTaskHandler(&RecreatePageSetsDBTask{}, w, r)
 }
 
 func deleteRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	deleteTaskHandler(&RecreateWebpageArchivesDBTask{}, w, r)
+	task_common.DeleteTaskHandler(&RecreateWebpageArchivesDBTask{}, w, r)
 }
 
 func recreatePageSetsRunsHistoryView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(recreatePageSetsRunsHistoryTemplate, w, r)
+	ctfeutil.ExecuteSimpleTemplate(recreatePageSetsRunsHistoryTemplate, w, r)
 }
 
 func recreateWebpageArchivesRunsHistoryView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(recreateWebpageArchivesRunsHistoryTemplate, w, r)
+	ctfeutil.ExecuteSimpleTemplate(recreateWebpageArchivesRunsHistoryTemplate, w, r)
 }
 
 func getRecreatePageSetsTasksHandler(w http.ResponseWriter, r *http.Request) {
-	getTasksHandler(&RecreatePageSetsDBTask{}, w, r)
+	task_common.GetTasksHandler(&RecreatePageSetsDBTask{}, w, r)
 }
 
 func getRecreateWebpageArchivesTasksHandler(w http.ResponseWriter, r *http.Request) {
-	getTasksHandler(&RecreateWebpageArchivesDBTask{}, w, r)
+	task_common.GetTasksHandler(&RecreateWebpageArchivesDBTask{}, w, r)
+}
+
+func AddHandlers(r *mux.Router) {
+	r.HandleFunc("/"+api.ADMIN_TASK_URI, addTaskView).Methods("GET")
+	r.HandleFunc("/"+api.RECREATE_PAGE_SETS_RUNS_URI, recreatePageSetsRunsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.RECREATE_WEBPAGE_ARCHIVES_RUNS_URI, recreateWebpageArchivesRunsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.ADD_RECREATE_PAGE_SETS_TASK_POST_URI, addRecreatePageSetsTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.ADD_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, addRecreateWebpageArchivesTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_RECREATE_PAGE_SETS_TASKS_POST_URI, getRecreatePageSetsTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_RECREATE_WEBPAGE_ARCHIVES_TASKS_POST_URI, getRecreateWebpageArchivesTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI, updateRecreatePageSetsTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, updateRecreateWebpageArchivesTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_RECREATE_PAGE_SETS_TASK_POST_URI, deleteRecreatePageSetsTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, deleteRecreateWebpageArchivesTaskHandler).Methods("POST")
 }

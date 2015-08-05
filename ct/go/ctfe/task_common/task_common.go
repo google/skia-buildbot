@@ -2,24 +2,24 @@
 	Handlers, types, and functions common to all types of tasks.
 */
 
-package main
+package task_common
 
 import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
-	"text/template"
 
+	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 
+	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	api "go.skia.org/infra/ct/go/frontend"
-	"go.skia.org/infra/ct/go/util"
+	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/login"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -31,34 +31,6 @@ const (
 	// Maximum page size used for pagination.
 	MAX_PAGE_SIZE = 100
 )
-
-var (
-	taskTables = []string{
-		db.TABLE_CHROMIUM_PERF_TASKS,
-		db.TABLE_CAPTURE_SKPS_TASKS,
-		db.TABLE_LUA_SCRIPT_TASKS,
-		db.TABLE_CHROMIUM_BUILD_TASKS,
-		db.TABLE_RECREATE_PAGE_SETS_TASKS,
-		db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS,
-	}
-
-	runsHistoryTemplate  *template.Template = nil
-	pendingTasksTemplate *template.Template = nil
-)
-
-func reloadTaskCommonTemplates() {
-	runsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-
-	pendingTasksTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/pending_tasks.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-}
 
 type CommonCols struct {
 	Id              int64         `db:"id"`
@@ -83,7 +55,7 @@ func (dbrow *CommonCols) GetCommonCols() *CommonCols {
 }
 
 // Takes the result of Task.Select and returns a slice of Tasks containing the same objects.
-func asTaskSlice(selectResult interface{}) []Task {
+func AsTaskSlice(selectResult interface{}) []Task {
 	sliceValue := reflect.ValueOf(selectResult)
 	len := sliceValue.Len()
 	result := make([]Task, len)
@@ -93,7 +65,7 @@ func asTaskSlice(selectResult interface{}) []Task {
 	return result
 }
 
-// Data included in all tasks; set by addTaskHandler.
+// Data included in all tasks; set by AddTaskHandler.
 type AddTaskCommonVars struct {
 	Username        string
 	TsAdded         string
@@ -114,12 +86,12 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 	return false
 }
 
-func addTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
-	if !userHasEditRights(r) {
+func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
+	if !ctfeutil.UserHasEditRights(r) {
 		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to add tasks"), "")
 		return
 	}
-	if task.IsAdminTask() && !userHasAdminRights(r) {
+	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
 		skutil.ReportError(w, r, fmt.Errorf("Must be admin to add admin tasks; contact rmistry@"), "")
 		return
 	}
@@ -189,7 +161,7 @@ func dbTaskQuery(prototype Task, username string, successful bool, includeComple
 	return query, args
 }
 
-func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
+func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// Filter by either username or not started yet.
@@ -231,7 +203,7 @@ func getTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	type Permissions struct {
 		DeleteAllowed bool
 	}
-	tasks := asTaskSlice(data)
+	tasks := AsTaskSlice(data)
 	permissions := make([]Permissions, len(tasks))
 	for i := 0; i < len(tasks); i++ {
 		deleteAllowed, _ := canDeleteTask(tasks[i], r)
@@ -289,7 +261,7 @@ func getUpdateQueryAndBinds(vars UpdateTaskVars, tableName string) (string, []in
 	return query, args, nil
 }
 
-func updateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWriter, r *http.Request) {
+func UpdateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWriter, r *http.Request) {
 	// TODO(benjaminwagner): authenticate
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
@@ -317,7 +289,7 @@ func updateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWri
 // Returns true if the given task can be deleted by the logged-in user; otherwise false and an error
 // describing the problem.
 func canDeleteTask(task Task, r *http.Request) (bool, error) {
-	if !userHasAdminRights(r) {
+	if !ctfeutil.UserHasAdminRights(r) {
 		username := login.LoggedInAs(r)
 		taskUser := task.GetCommonCols().Username
 		if taskUser != username {
@@ -330,8 +302,8 @@ func canDeleteTask(task Task, r *http.Request) (bool, error) {
 	return true, nil
 }
 
-func deleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
-	if !userHasEditRights(r) {
+func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
+	if !ctfeutil.UserHasEditRights(r) {
 		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to delete tasks"), "")
 		return
 	}
@@ -342,7 +314,7 @@ func deleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer skutil.Close(r.Body)
-	requireUsernameMatch := !userHasAdminRights(r)
+	requireUsernameMatch := !ctfeutil.UserHasAdminRights(r)
 	username := login.LoggedInAs(r)
 	// Put all conditions in delete request; only if the delete fails, do a select to determine the cause.
 	deleteQuery := fmt.Sprintf("DELETE FROM %s WHERE id = ? AND (ts_started IS NULL OR ts_completed IS NOT NULL)", prototype.TableName())
@@ -368,7 +340,7 @@ func deleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		skutil.ReportError(w, r, err, "Unable to validate request.")
 		return
 	}
-	tasks := asTaskSlice(data)
+	tasks := AsTaskSlice(data)
 	if len(tasks) != 1 {
 		// Row already deleted; return success.
 		return
@@ -385,10 +357,10 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	pageSets := []map[string]string{}
-	for pageSet := range util.PagesetTypeToInfo {
+	for pageSet := range ctutil.PagesetTypeToInfo {
 		pageSetObj := map[string]string{
 			"key":         pageSet,
-			"description": util.PagesetTypeToInfo[pageSet].Description,
+			"description": ctutil.PagesetTypeToInfo[pageSet].Description,
 		}
 		pageSets = append(pageSets, pageSetObj)
 	}
@@ -399,69 +371,6 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runsHistoryView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(runsHistoryTemplate, w, r)
-}
-
-func getAllPendingTasks() ([]Task, error) {
-	tasks := []Task{}
-	for _, tableName := range taskTables {
-		var task Task
-		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_completed IS NULL ORDER BY ts_added LIMIT 1;", tableName)
-		switch tableName {
-		case db.TABLE_CHROMIUM_PERF_TASKS:
-			task = &ChromiumPerfDBTask{}
-		case db.TABLE_CAPTURE_SKPS_TASKS:
-			task = &CaptureSkpsDBTask{}
-		case db.TABLE_LUA_SCRIPT_TASKS:
-			task = &LuaScriptDBTask{}
-		case db.TABLE_CHROMIUM_BUILD_TASKS:
-			task = &ChromiumBuildDBTask{}
-		case db.TABLE_RECREATE_PAGE_SETS_TASKS:
-			task = &RecreatePageSetsDBTask{}
-		case db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS:
-			task = &RecreateWebpageArchivesDBTask{}
-		default:
-			panic("Unknown table " + tableName)
-		}
-
-		if err := db.DB.Get(task, query); err != nil && err != sql.ErrNoRows {
-			return nil, fmt.Errorf("Failed to query DB: %v", err)
-		}
-		tasks = append(tasks, task)
-	}
-	return tasks, nil
-}
-
-func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-
-	tasks, err := getAllPendingTasks()
-	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to get all pending tasks: %v", err))
-		return
-	}
-
-	var oldestTask Task
-	for _, task := range tasks {
-		if oldestTask == nil {
-			oldestTask = task
-		} else if oldestTask.GetCommonCols().TsAdded.Int64 <
-			task.GetCommonCols().TsAdded.Int64 {
-			oldestTask = task
-		}
-	}
-
-	oldestTaskJsonRepr := map[string]Task{}
-	if oldestTask != nil {
-		oldestTaskJsonRepr[oldestTask.GetTaskName()] = oldestTask
-	}
-	if err := json.NewEncoder(w).Encode(oldestTaskJsonRepr); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
-		return
-	}
-}
-
-func pendingTasksView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(pendingTasksTemplate, w, r)
+func AddHandlers(r *mux.Router) {
+	r.HandleFunc("/"+api.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
 }

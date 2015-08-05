@@ -2,7 +2,7 @@
 	Handlers and types specific to Chromium perf tasks.
 */
 
-package main
+package chromium_perf
 
 import (
 	"database/sql"
@@ -12,32 +12,36 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/gorilla/mux"
+
+	"go.skia.org/infra/ct/go/ctfe/task_common"
+	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	api "go.skia.org/infra/ct/go/frontend"
-	"go.skia.org/infra/ct/go/util"
+	ctutil "go.skia.org/infra/ct/go/util"
 	skutil "go.skia.org/infra/go/util"
 )
 
 var (
-	chromiumPerfTemplate            *template.Template = nil
-	chromiumPerfRunsHistoryTemplate *template.Template = nil
+	addTaskTemplate     *template.Template = nil
+	runsHistoryTemplate *template.Template = nil
 )
 
-func reloadChromiumPerfTemplates() {
-	chromiumPerfTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/chromium_perf.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+func ReloadTemplates(resourcesDir string) {
+	addTaskTemplate = template.Must(template.ParseFiles(
+		filepath.Join(resourcesDir, "templates/chromium_perf.html"),
+		filepath.Join(resourcesDir, "templates/header.html"),
+		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
-	chromiumPerfRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/chromium_perf_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	runsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(resourcesDir, "templates/chromium_perf_runs_history.html"),
+		filepath.Join(resourcesDir, "templates/header.html"),
+		filepath.Join(resourcesDir, "templates/titlebar.html"),
 	))
 }
 
-type ChromiumPerfDBTask struct {
-	CommonCols
+type DBTask struct {
+	task_common.CommonCols
 
 	Benchmark            string         `db:"benchmark"`
 	Platform             string         `db:"platform"`
@@ -55,30 +59,30 @@ type ChromiumPerfDBTask struct {
 	WithPatchRawOutput   sql.NullString `db:"withpatch_raw_output"`
 }
 
-func (task ChromiumPerfDBTask) GetTaskName() string {
+func (task DBTask) GetTaskName() string {
 	return "ChromiumPerf"
 }
 
-func (task ChromiumPerfDBTask) TableName() string {
+func (task DBTask) TableName() string {
 	return db.TABLE_CHROMIUM_PERF_TASKS
 }
 
-func (task ChromiumPerfDBTask) Select(query string, args ...interface{}) (interface{}, error) {
-	result := []ChromiumPerfDBTask{}
+func (task DBTask) Select(query string, args ...interface{}) (interface{}, error) {
+	result := []DBTask{}
 	err := db.DB.Select(&result, query, args...)
 	return result, err
 }
 
-func chromiumPerfView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(chromiumPerfTemplate, w, r)
+func addTaskView(w http.ResponseWriter, r *http.Request) {
+	ctfeutil.ExecuteSimpleTemplate(addTaskTemplate, w, r)
 }
 
-func chromiumPerfHandler(w http.ResponseWriter, r *http.Request) {
+func parametersHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	data := map[string]interface{}{
-		"benchmarks": util.SupportedBenchmarks,
-		"platforms":  util.SupportedPlatformsToDesc,
+		"benchmarks": ctutil.SupportedBenchmarks,
+		"platforms":  ctutil.SupportedPlatformsToDesc,
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
@@ -86,8 +90,8 @@ func chromiumPerfHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type AddChromiumPerfTaskVars struct {
-	AddTaskCommonVars
+type AddTaskVars struct {
+	task_common.AddTaskCommonVars
 
 	Benchmark            string `json:"benchmark"`
 	Platform             string `json:"platform"`
@@ -102,7 +106,7 @@ type AddChromiumPerfTaskVars struct {
 	SkiaPatch            string `json:"skia_patch"`
 }
 
-func (task *AddChromiumPerfTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
+func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
 	if task.Benchmark == "" ||
 		task.Platform == "" ||
 		task.PageSets == "" ||
@@ -131,20 +135,20 @@ func (task *AddChromiumPerfTaskVars) GetInsertQueryAndBinds() (string, []interfa
 		nil
 }
 
-func addChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
-	addTaskHandler(w, r, &AddChromiumPerfTaskVars{})
+func addTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.AddTaskHandler(w, r, &AddTaskVars{})
 }
 
-func getChromiumPerfTasksHandler(w http.ResponseWriter, r *http.Request) {
-	getTasksHandler(&ChromiumPerfDBTask{}, w, r)
+func getTasksHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.GetTasksHandler(&DBTask{}, w, r)
 }
 
 // Define api.ChromiumPerfUpdateVars in this package so we can add methods.
-type ChromiumPerfUpdateVars struct {
+type UpdateVars struct {
 	api.ChromiumPerfUpdateVars
 }
 
-func (task *ChromiumPerfUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
+func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
 	clauses := []string{}
 	args := []interface{}{}
 	if task.Results.Valid {
@@ -162,14 +166,25 @@ func (task *ChromiumPerfUpdateVars) GetUpdateExtraClausesAndBinds() ([]string, [
 	return clauses, args, nil
 }
 
-func updateChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
-	updateTaskHandler(&ChromiumPerfUpdateVars{}, db.TABLE_CHROMIUM_PERF_TASKS, w, r)
+func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CHROMIUM_PERF_TASKS, w, r)
 }
 
-func deleteChromiumPerfTaskHandler(w http.ResponseWriter, r *http.Request) {
-	deleteTaskHandler(&ChromiumPerfDBTask{}, w, r)
+func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.DeleteTaskHandler(&DBTask{}, w, r)
 }
 
-func chromiumPerfRunsHistoryView(w http.ResponseWriter, r *http.Request) {
-	executeSimpleTemplate(chromiumPerfRunsHistoryTemplate, w, r)
+func runsHistoryView(w http.ResponseWriter, r *http.Request) {
+	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
+}
+
+func AddHandlers(r *mux.Router) {
+	r.HandleFunc("/", addTaskView).Methods("GET")
+	r.HandleFunc("/"+api.CHROMIUM_PERF_URI, addTaskView).Methods("GET")
+	r.HandleFunc("/"+api.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
+	r.HandleFunc("/"+api.CHROMIUM_PERF_PARAMETERS_POST_URI, parametersHandler).Methods("POST")
+	r.HandleFunc("/"+api.ADD_CHROMIUM_PERF_TASK_POST_URI, addTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
+	r.HandleFunc("/"+api.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.DELETE_CHROMIUM_PERF_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 }
