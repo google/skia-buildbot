@@ -68,6 +68,9 @@ doc/third_party
 alertserver/third_party
 status/third_party
 webtry/templates/template.cpp
+res/imp/9/res
+res/imp/9/res/js
+res/imp/9/bower_components
 # Ignore all SQLite databases, because tests will create their own unique ones.
 *.db
 # Logfiles from launched buildslaves.
