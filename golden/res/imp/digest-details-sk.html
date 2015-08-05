@@ -101,17 +101,30 @@
         padding-right: 1em;
       }
     </style>
-    <div horizontal layout>
+    <div horizontal layout wrap>
       <template if="{{failed}}">
         <div vertical layout id=warning>
           Failed to load results.
         </div>
       </template>
+
       <template if="{{triage && negIsClosest}}">
         <div vertical layout id=warning>
           Closest Image Is Negative!
         </div>
       </template>
+
+      <!-- Triage Controls -->
+      <div vertical layout class="{{triage ? 'triageInfo' : 'hidden'}}">
+        <template if="{{closest.closest.digest}}">
+          <div><a href="diff?test={{test}}&left={{digest}}&top={{closest.closest.digest}}">Details</a></div>
+          <div>Diff: {{closest.closest.diff | fixedPercent }}%</div>
+          <div>Max RGBA: [{{closest.closest.maxRGBA}}]</div>
+        </template>
+        <tri-sk data-digest="{{digest}}" data-test="{{test}}" value="{{details.status}}" id=triage></tri-sk>
+      </div>
+
+      <!-- Images -->
       <div vertical layout>
         <div horizontal layout id=images>
           <template if="{{triage && closest.closest.digest}}">
@@ -150,6 +163,13 @@
           <strong>No Positive or Negative Digests Found.</strong>
         </div>
       </template>
+
+      <!-- ParamSet -->
+      <div vertical layout id=paramset>
+        <paramset-sk id=paramsets clickable=false></paramset-sk>
+      </div>
+
+      <!-- Dots -->
       <div vertical layout>
         <dots-sk id=dots></dots-sk>
         <dot-legend-sk id=dotlegend test="{{test}}"></dot-legend-sk>
@@ -157,17 +177,6 @@
         <template if="{{isTruncated}}">
           <div class=more><a href="detail?test={{test}}&digest={{digest}}">(more)</a></div>
         </template>
-      </div>
-      <div vertical layout id=paramset>
-        <paramset-sk id=paramsets clickable=false></paramset-sk>
-      </div>
-      <div vertical layout class="{{triage ? 'triageInfo' : 'hidden'}}">
-        <template if="{{closest.closest.digest}}">
-          <div><a href="diff?test={{test}}&left={{digest}}&top={{closest.closest.digest}}">Details</a></div>
-          <div>Diff: {{closest.closest.diff | fixedPercent }}%</div>
-          <div>Max RGBA: [{{closest.closest.maxRGBA}}]</div>
-        </template>
-        <tri-sk data-digest="{{digest}}" data-test="{{test}}" value="{{details.status}}" id=triage></tri-sk>
       </div>
     </div>
   </template>
