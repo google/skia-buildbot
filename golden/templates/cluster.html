@@ -93,140 +93,140 @@
           </core-pages>
         </div>
       </div>
-      <commits-sk></commits-sk>
-      <error-toast-sk></error-toast-sk>
-      <zoom-sk></zoom-sk>
-
-      <script type="text/javascript" charset="utf-8">
-        (function() {
-          var selected = [];
-          var query = sk.query.toParamSet(document.location.search.slice(1));
-          var params = sk.query.toParamSet(query.query[0]);
-          var test = params.name[0];
-          var data = {};
-
-          $$$('#body').addEventListener('paramset-key-click', function(e){
-            // text maps digests to the strings to display by that digest.
-            var text = {};
-            Object.keys(data.paramsets).forEach(function(digest) {
-              var value = data.paramsets[digest][e.detail.key];
-              if (value) {
-                text[digest] = value.join(", ");
-              }
-            });
-            $$$('cluster-sk').setTextNodes(text, e.detail.ctrl);
-          });
-
-          $$$('#body').addEventListener('paramset-key-value-click', function(e){
-            // text maps digests to the strings to display by that digest.
-            var text = {};
-            Object.keys(data.paramsets).forEach(function(digest) {
-              var paramset = data.paramsets[digest];
-              if (paramset[e.detail.key] && (paramset[e.detail.key].indexOf(e.detail.value) != -1)) {
-                text[digest] = e.detail.value;
-              }
-            });
-            $$$('cluster-sk').setTextNodes(text, e.detail.ctrl);
-          });
-
-          $$$('#bulk').addEventListener('change', function(e) {
-            e.stopPropagation();
-            var detail = {
-              test: test,
-              digest: selected,
-              status: e.detail,
-            };
-            this.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
-          });
-
-          $$$('#body').addEventListener('digest-select', function(e){
-            selected = e.detail;
-
-            // The page we display under details depends on the number of digests selected.
-            if (selected.length == 0) {
-              // Do nothing.
-            } else if (selected.length == 1) {
-              $$$('detail-table-sk').left = selected[0];
-              $$$('detail-table-sk').top = selected[0];
-            } else if (selected.length == 2) {
-              var q = {
-                test: test,
-                top: selected[selected.length-1],
-                left: selected[0],
-              };
-              sk.get('_/diff?'+sk.query.fromObject(q)).then(JSON.parse).then(function(json) {
-                $$$('diff-detail-sk').value = json;
-              }).catch(sk.errorMessage);
-            } else {
-              // For 3 or more selected digests just create a rolled up paramset of
-              // the selected digests.
-              var paramset = {};
-              selected.forEach(function(d) {
-                var p = data.paramsets[d];
-                Object.keys(p).forEach(function(key) {
-                  var existingValues = paramset[key] || [];
-                  var newValues = p[key];
-                  newValues.forEach(function(value) {
-                    if (existingValues.indexOf(value) == -1) {
-                      existingValues.push(value);
-                    }
-                  });
-                  paramset[key] = existingValues;
-                });
-              });
-              // Sort the param values.
-              Object.keys(paramset).forEach(function(key) {
-                paramset[key].sort();
-              });
-
-              $$$('#selectedParameters').setParamSets([paramset]);
-            }
-
-            $$$('#selectedDetails').selected = detailsPage();
-            $$$('#pages').selected = 1;
-            $$$('#tabs').selected = 1;
-          });
-
-          $$$('#tabs').addEventListener('core-select', function(e) {
-            $$$('#pages').selected = e.target.selected;
-            if (e.target.selected == 0) {
-              $$$('#selectedDetails').selected = 0;
-            } else {
-              $$$('#selectedDetails').selected = detailsPage();
-            }
-          });
-
-          // Returns the details page to display based on the number of
-          // digests selected.
-          function detailsPage() {
-            if (selected.length > 3) {
-              return 3;
-            }
-            return selected.length;
-          }
-
-          function loadData() {
-            sk.get("/_/nxn"+document.location.search).then(JSON.parse).then(function(json) {
-              data = json;
-              $$$('cluster-sk').data = json;
-              $$$('#parameters').setParamSets([json.paramset]);
-            }).catch(sk.errorMessage);
-          }
-
-          document.body.addEventListener('triage', function(e) {
-            sk.post('_/triage', JSON.stringify(e.detail)).then(function() {
-              $$$('cluster-sk').newTriageStatus(e.detail.digest, e.detail.status);
-            }).catch(function(e) {
-              sk.errorMessage(e);
-            });
-          });
-
-          sk.WebComponentsReady.then(function() {
-            $$$('detail-table-sk').test = test;
-            loadData();
-          });
-        })();
-      </script>
     </scaffold-sk>
+    <commits-sk></commits-sk>
+    <error-toast-sk></error-toast-sk>
+    <zoom-sk></zoom-sk>
+
+    <script type="text/javascript" charset="utf-8">
+      (function() {
+        var selected = [];
+        var query = sk.query.toParamSet(document.location.search.slice(1));
+        var params = sk.query.toParamSet(query.query[0]);
+        var test = params.name[0];
+        var data = {};
+
+        $$$('#body').addEventListener('paramset-key-click', function(e){
+          // text maps digests to the strings to display by that digest.
+          var text = {};
+          Object.keys(data.paramsets).forEach(function(digest) {
+            var value = data.paramsets[digest][e.detail.key];
+            if (value) {
+              text[digest] = value.join(", ");
+            }
+          });
+          $$$('cluster-sk').setTextNodes(text, e.detail.ctrl);
+        });
+
+        $$$('#body').addEventListener('paramset-key-value-click', function(e){
+          // text maps digests to the strings to display by that digest.
+          var text = {};
+          Object.keys(data.paramsets).forEach(function(digest) {
+            var paramset = data.paramsets[digest];
+            if (paramset[e.detail.key] && (paramset[e.detail.key].indexOf(e.detail.value) != -1)) {
+              text[digest] = e.detail.value;
+            }
+          });
+          $$$('cluster-sk').setTextNodes(text, e.detail.ctrl);
+        });
+
+        $$$('#bulk').addEventListener('change', function(e) {
+          e.stopPropagation();
+          var detail = {
+            test: test,
+            digest: selected,
+            status: e.detail,
+          };
+          this.dispatchEvent(new CustomEvent('triage', {detail: detail, bubbles: true}));
+        });
+
+        $$$('#body').addEventListener('digest-select', function(e){
+          selected = e.detail;
+
+          // The page we display under details depends on the number of digests selected.
+          if (selected.length == 0) {
+            // Do nothing.
+          } else if (selected.length == 1) {
+            $$$('detail-table-sk').left = selected[0];
+            $$$('detail-table-sk').top = selected[0];
+          } else if (selected.length == 2) {
+            var q = {
+              test: test,
+              top: selected[selected.length-1],
+              left: selected[0],
+            };
+            sk.get('_/diff?'+sk.query.fromObject(q)).then(JSON.parse).then(function(json) {
+              $$$('diff-detail-sk').value = json;
+            }).catch(sk.errorMessage);
+          } else {
+            // For 3 or more selected digests just create a rolled up paramset of
+            // the selected digests.
+            var paramset = {};
+            selected.forEach(function(d) {
+              var p = data.paramsets[d];
+              Object.keys(p).forEach(function(key) {
+                var existingValues = paramset[key] || [];
+                var newValues = p[key];
+                newValues.forEach(function(value) {
+                  if (existingValues.indexOf(value) == -1) {
+                    existingValues.push(value);
+                  }
+                });
+                paramset[key] = existingValues;
+              });
+            });
+            // Sort the param values.
+            Object.keys(paramset).forEach(function(key) {
+              paramset[key].sort();
+            });
+
+            $$$('#selectedParameters').setParamSets([paramset]);
+          }
+
+          $$$('#selectedDetails').selected = detailsPage();
+          $$$('#pages').selected = 1;
+          $$$('#tabs').selected = 1;
+        });
+
+        $$$('#tabs').addEventListener('core-select', function(e) {
+          $$$('#pages').selected = e.target.selected;
+          if (e.target.selected == 0) {
+            $$$('#selectedDetails').selected = 0;
+          } else {
+            $$$('#selectedDetails').selected = detailsPage();
+          }
+        });
+
+        // Returns the details page to display based on the number of
+        // digests selected.
+        function detailsPage() {
+          if (selected.length > 3) {
+            return 3;
+          }
+          return selected.length;
+        }
+
+        function loadData() {
+          sk.get("/_/nxn"+document.location.search).then(JSON.parse).then(function(json) {
+            data = json;
+            $$$('cluster-sk').data = json;
+            $$$('#parameters').setParamSets([json.paramset]);
+          }).catch(sk.errorMessage);
+        }
+
+        document.body.addEventListener('triage', function(e) {
+          sk.post('_/triage', JSON.stringify(e.detail)).then(function() {
+            $$$('cluster-sk').newTriageStatus(e.detail.digest, e.detail.status);
+          }).catch(function(e) {
+            sk.errorMessage(e);
+          });
+        });
+
+        sk.WebComponentsReady.then(function() {
+          $$$('detail-table-sk').test = test;
+          loadData();
+        });
+      })();
+    </script>
   </body>
 </html>

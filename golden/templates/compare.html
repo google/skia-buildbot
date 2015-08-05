@@ -135,13 +135,12 @@
         <diff-detail-sk flex></diff-detail-sk>
 
       </div>
-      <paper-toast></paper-toast>
-
-      <query-dialog-sk id=queryTopDialog src="_/paramset"></query-dialog-sk>
-      <query-dialog-sk id=queryLeftDialog src="_/paramset"></query-dialog-sk>
-      <group-triage-dialog-sk></group-triage-dialog-sk>
-      <zoom-sk></zoom-sk>
     </scaffold-sk>
+    <error-toast-sk></error-toast-sk>
+    <query-dialog-sk id=queryTopDialog src="_/paramset"></query-dialog-sk>
+    <query-dialog-sk id=queryLeftDialog src="_/paramset"></query-dialog-sk>
+    <group-triage-dialog-sk></group-triage-dialog-sk>
+    <zoom-sk></zoom-sk>
 
     <script type="text/javascript" charset="utf-8">
      (function() {
@@ -331,13 +330,9 @@
            $$$('diff-detail-sk').hide();
            updateSortButtons();
            if (json.message != "") {
-             $$$('paper-toast').text = json.message;
-             $$$('paper-toast').show();
+             sk.errorMessage(json.message);
            }
-         }).catch(function(e) {
-           $$$('paper-toast').text = e;
-           $$$('paper-toast').show();
-         });
+         }).catch(sk.errorMessage);
          $$$('#refresh').classList.remove('display');
        }
 
@@ -355,10 +350,7 @@
            $$$('grid-sk').markChanged(e.detail.digest);
            $$$('#refresh').classList.add('display');
            $$$('test-status-sk').kick();
-         }).catch(function(e) {
-           $$$('paper-toast').text = e;
-           $$$('paper-toast').show();
-         });
+         }).catch(sk.errorMessage);
        });
 
        $$$('grid-sk').addEventListener('digest-checked', function(e) {
@@ -406,10 +398,7 @@
                $$$('grid-sk').markChanged(request.digest);
                $$$('#refresh').classList.add('display');
              }
-           }).catch(function(e) {
-             $$$('paper-toast').text = e;
-             $$$('paper-toast').show();
-           });
+           }).catch(sk.errorMessage);
          }
          $$$('grid-sk').clearChecks();
          updateSortButtons();
