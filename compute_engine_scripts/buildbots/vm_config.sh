@@ -19,6 +19,7 @@ fi
 # TODO(rmistry): Investigate moving the below constants to compute_engine_cfg.py
 CHROME_MASTER_HOST=/tmp/chrome_master_host
 REQUIRED_FILES_FOR_LINUX_BOTS=(/tmp/.bot_password \
+                               /tmp/.gitconfig \
                                /tmp/.netrc \
                                /tmp/chromium-skia-gm.boto \
                                $CHROME_MASTER_HOST)
@@ -27,6 +28,7 @@ REQUIRED_FILES_FOR_LINUX_BOTS=(/tmp/.bot_password \
 # The password is available in valentine (win-chrome-bot).
 REQUIRED_FILES_FOR_WIN_BOTS=(/tmp/win-chrome-bot.txt \
                              /tmp/.bot_password \
+                             /tmp/.gitconfig \
                              /tmp/.netrc \
                              /tmp/chromium-skia-gm.boto \
                              $CHROME_MASTER_HOST)

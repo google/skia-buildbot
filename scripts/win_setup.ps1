@@ -102,6 +102,12 @@ INSERTFILE(~/.bot_password)
 "@
 Set-Content C:\.bot_password $bot_password
 
+banner "Create .gitconfig"
+$gitconfig_contents = @"
+INSERTFILE(~/.gitconfig)
+"@
+Set-Content $userDir\depot_tools\.gitconfig $gitconfig_contents
+
 banner "Update hosts file."
 $additional_hosts = @"
 `n
