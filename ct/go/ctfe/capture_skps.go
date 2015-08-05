@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"text/template"
 
 	"github.com/skia-dev/glog"
@@ -19,6 +20,19 @@ var (
 	captureSkpsTemplate           *template.Template = nil
 	captureSkpRunsHistoryTemplate *template.Template = nil
 )
+
+func reloadCaptureSkpsTemplates() {
+	captureSkpsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/capture_skps.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+	captureSkpRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/capture_skp_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+}
 
 type CaptureSkpsDBTask struct {
 	CommonCols

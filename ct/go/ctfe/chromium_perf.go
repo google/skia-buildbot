@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"text/template"
 
 	"go.skia.org/infra/ct/go/db"
@@ -21,6 +22,19 @@ var (
 	chromiumPerfTemplate            *template.Template = nil
 	chromiumPerfRunsHistoryTemplate *template.Template = nil
 )
+
+func reloadChromiumPerfTemplates() {
+	chromiumPerfTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/chromium_perf.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+	chromiumPerfRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/chromium_perf_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+}
 
 type ChromiumPerfDBTask struct {
 	CommonCols

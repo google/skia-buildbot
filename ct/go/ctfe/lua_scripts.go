@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"text/template"
 
 	"go.skia.org/infra/ct/go/db"
@@ -18,6 +19,19 @@ var (
 	luaScriptsTemplate           *template.Template = nil
 	luaScriptRunsHistoryTemplate *template.Template = nil
 )
+
+func reloadLuaScriptTemplates() {
+	luaScriptsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/lua_scripts.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+	luaScriptRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/lua_script_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+}
 
 type LuaScriptDBTask struct {
 	CommonCols

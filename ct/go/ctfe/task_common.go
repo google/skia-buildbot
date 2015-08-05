@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -44,6 +45,20 @@ var (
 	runsHistoryTemplate  *template.Template = nil
 	pendingTasksTemplate *template.Template = nil
 )
+
+func reloadTaskCommonTemplates() {
+	runsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+
+	pendingTasksTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/pending_tasks.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+}
 
 type CommonCols struct {
 	Id              int64         `db:"id"`

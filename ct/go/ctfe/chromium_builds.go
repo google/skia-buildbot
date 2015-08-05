@@ -14,6 +14,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -43,6 +44,19 @@ var (
 
 	httpClient = skutil.NewTimeoutClient()
 )
+
+func reloadChromiumBuildTemplates() {
+	chromiumBuildsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/chromium_builds.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+	chromiumBuildRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/chromium_build_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+}
 
 type ChromiumBuildDBTask struct {
 	CommonCols

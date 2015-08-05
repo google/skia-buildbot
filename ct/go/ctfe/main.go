@@ -42,7 +42,6 @@ var (
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 )
 
-// TODO(benjaminwagner): Split this function by task type.
 func reloadTemplates() {
 	if *resourcesDir == "" {
 		// If resourcesDir is not specified then consider the directory two directories up from this
@@ -50,77 +49,12 @@ func reloadTemplates() {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
-	chromiumPerfTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/chromium_perf.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-	chromiumPerfRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/chromium_perf_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-
-	captureSkpsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/capture_skps.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-	captureSkpRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/capture_skp_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-
-	luaScriptsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/lua_scripts.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-	luaScriptRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/lua_script_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-
-	chromiumBuildsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/chromium_builds.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-	chromiumBuildRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/chromium_build_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-
-	adminTasksTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/admin_tasks.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-	recreatePageSetsRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/recreate_page_sets_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-	recreateWebpageArchivesRunsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/recreate_webpage_archives_runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-
-	runsHistoryTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/runs_history.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
-
-	pendingTasksTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/pending_tasks.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-	))
+	reloadChromiumPerfTemplates()
+	reloadCaptureSkpsTemplates()
+	reloadLuaScriptTemplates()
+	reloadChromiumBuildTemplates()
+	reloadAdminTaskTemplates()
+	reloadTaskCommonTemplates()
 }
 
 func Init() {

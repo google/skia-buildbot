@@ -8,6 +8,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"text/template"
 
 	"go.skia.org/infra/ct/go/db"
@@ -19,6 +20,24 @@ var (
 	recreatePageSetsRunsHistoryTemplate        *template.Template = nil
 	recreateWebpageArchivesRunsHistoryTemplate *template.Template = nil
 )
+
+func reloadAdminTaskTemplates() {
+	adminTasksTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/admin_tasks.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+	recreatePageSetsRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/recreate_page_sets_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+	recreateWebpageArchivesRunsHistoryTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/recreate_webpage_archives_runs_history.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/titlebar.html"),
+	))
+}
 
 type RecreatePageSetsDBTask struct {
 	CommonCols
