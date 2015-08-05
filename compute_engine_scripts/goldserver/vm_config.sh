@@ -16,7 +16,7 @@ fi
 
 # Shared scope that is inherited from compute_engine_cfg.py.
 GOLD_SCOPES="$SCOPES"
-GOLD_SOURCE_IMAGE="skia-pushable-baseimage"
+GOLD_SOURCE_IMAGE="skia-systemd-pushable-base"
 
 case "$1" in
   prod)
@@ -30,7 +30,6 @@ case "$1" in
     GOLD_MACHINE_TYPE=n1-highmem-16
     GOLD_IP_ADDRESS=104.154.112.105
     GOLD_DATA_DISK_SIZE="500GB"
-    GOLD_SOURCE_IMAGE="skia-systemd-pushable-base"
     ;;
 
   android)
@@ -38,14 +37,12 @@ case "$1" in
     GOLD_IP_ADDRESS=104.154.112.106
     GOLD_DATA_DISK_SIZE="500GB"
     GOLD_SCOPES="$GOLD_SCOPES,https://www.googleapis.com/auth/androidbuild.internal"
-    GOLD_SOURCE_IMAGE="skia-systemd-pushable-base"
     ;;
 
   blink)
     GOLD_MACHINE_TYPE=n1-highmem-16
     GOLD_IP_ADDRESS=104.154.112.107
     GOLD_DATA_DISK_SIZE="500GB"
-    GOLD_SOURCE_IMAGE="skia-systemd-pushable-base"
     ;;
 
   # For testing only. Destroy after creation.
@@ -53,7 +50,6 @@ case "$1" in
     GOLD_MACHINE_TYPE=n1-highmem-16
     GOLD_IP_ADDRESS=104.154.112.111
     GOLD_DATA_DISK_SIZE="500GB"
-    GOLD_SOURCE_IMAGE="skia-systemd-pushable-base"
     GOLD_SCOPES="$GOLD_SCOPES,https://www.googleapis.com/auth/androidbuild.internal"
     ;;
 
