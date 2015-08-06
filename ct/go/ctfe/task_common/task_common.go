@@ -56,8 +56,8 @@ type Task interface {
 	GetPopulatedAddTaskVars() AddTaskVars
 }
 
-func (dbrow CommonCols) GetCommonCols() *CommonCols {
-	return &dbrow
+func (dbrow *CommonCols) GetCommonCols() *CommonCols {
+	return dbrow
 }
 
 // Takes the result of Task.Select and returns a slice of Tasks containing the same objects.
