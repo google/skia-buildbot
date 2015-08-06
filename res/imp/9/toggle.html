@@ -53,7 +53,7 @@
 
 <dom-module id="toggle-display-sk">
   <template>
-    <button class=action>
+    <button>
       <content></content>
     </button>
   </template>
@@ -80,19 +80,19 @@
       this.addEventListener('click', this.toggle.bind(this));
     },
 
-    targetElements_: function () {
+    _targetElements: function () {
       return this.target ? $$(this.target) : [this.nextElementSibling];
     },
 
     toggle: function (e) {
-      var targets = this.targetElements_();
+      var targets = this._targetElements();
       for (var i=targets.length - 1; i >= 0; i--) {
         targets[i].classList.toggle(this.classname);
       }
     },
 
     open: function () {
-      var targets = this.targetElements_();
+      var targets = this._targetElements();
       for (var i=targets.length - 1; i >= 0; i--) {
         targets[i].classList.toggle(this.classname, false);
       }

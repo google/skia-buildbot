@@ -1,22 +1,22 @@
 <!-- The <sort-sk> custom element declaration.
 
-  Allows sorting the members of the indicated element by
-  the values of the data attributes.
+  Allows sorting the members of the indicated element by the values of the
+  data attributes.
 
-  Add children to <sort-sk> that generate click events and that
-    have child content, such as button or paper-button elements.
-    Add a data-key attribute to each child element that indicates
-    which data-* attribute the children should be sorted on.
+  Add children to <sort-sk> that generate click events and that have child
+  content, such as button or paper-button elements.  Add a data-key
+  attribute to each child element that indicates which data-* attribute the
+  children should be sorted on.
 
-    Note that all sorting is done numerically, unless a data-alpha attribute is
-    present, in which case the sorting is done alphabetically.
+  Note that all sorting is done numerically, unless a data-alpha attribute is
+  present, in which case the sorting is done alphabetically.
 
-    Additionally a single child element can have a data-default attribute
-    with a value of "up" or "down" to indicate the default sorting
-    that already exists in the data.
+  Additionally a single child element can have a data-default attribute with a
+  value of "up" or "down" to indicate the default sorting that already exists
+  in the data.
 
-    An example usage, that will present two buttons to sort
-    the contents of div#stuffToBeSorted.
+  An example usage, that will present two buttons to sort the contents of
+  div#stuffToBeSorted.
 
     <sort-sk target=stuffToBeSorted>
       <paper-button data-key="clustersize"
@@ -29,7 +29,6 @@
       <div data-clustersize=50 data-stepsize=1.2></div>
       ...
     </div>
-
 
   Attributes:
     target - The id of the container element whose children are to be sorted.
@@ -70,15 +69,13 @@
       },
 
       ready: function () {
-        var that = this;
-
         // Start by appending a iron-icon to each clickable child and
         // registering for the click event.
         $$('[data-key]', this).forEach(function (ele) {
           var ico = document.createElement('iron-icon');
           ele.appendChild(ico);
-          ele.addEventListener('click', that.clickHandler.bind(that));
-        });
+          ele.addEventListener('click', this.clickHandler.bind(this));
+        }.bind(this));
 
         // Handle a default value if one has been set.
         var def = $$$('[data-default]', this);

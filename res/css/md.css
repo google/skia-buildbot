@@ -59,9 +59,11 @@ select,
 option {
   padding: 0.4em 1.2em;
   background-color: white;
-  overflow: auto;
   border: none;
   line-height: 20px;
   vertical-align: middle;
 }
 
+select {
+  overflow-y: auto;
+}
