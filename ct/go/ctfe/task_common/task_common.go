@@ -39,7 +39,7 @@ type CommonCols struct {
 	TsCompleted     sql.NullInt64 `db:"ts_completed"`
 	Username        string        `db:"username"`
 	Failure         sql.NullBool  `db:"failure"`
-	RepeatAfterDays sql.NullInt64 `db:"repeat_after_days"`
+	RepeatAfterDays int64         `db:"repeat_after_days"`
 }
 
 type Task interface {
@@ -48,18 +48,24 @@ type Task interface {
 	TableName() string
 	// Returns a slice of the struct type.
 	Select(query string, args ...interface{}) (interface{}, error)
+	// Returns the corresponding UpdateTaskVars instance of this Task. The
+	// returned instance is not populated.
+	GetUpdateTaskVars() UpdateTaskVars
+	// Returns the corresponding AddTaskVars instance of this Task. The returned
+	// instance is populated.
+	GetPopulatedAddTaskVars() AddTaskVars
 }
 
-func (dbrow *CommonCols) GetCommonCols() *CommonCols {
-	return dbrow
+func (dbrow CommonCols) GetCommonCols() *CommonCols {
+	return &dbrow
 }
 
 // Takes the result of Task.Select and returns a slice of Tasks containing the same objects.
 func AsTaskSlice(selectResult interface{}) []Task {
 	sliceValue := reflect.ValueOf(selectResult)
-	len := sliceValue.Len()
-	result := make([]Task, len)
-	for i := 0; i < len; i++ {
+	sliceLen := sliceValue.Len()
+	result := make([]Task, sliceLen)
+	for i := 0; i < sliceLen; i++ {
 		result[i] = sliceValue.Index(i).Addr().Interface().(Task)
 	}
 	return result
@@ -105,15 +111,21 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
 	task.GetAddTaskCommonVars().TsAdded = api.GetCurrentTs()
 
-	query, binds, err := task.GetInsertQueryAndBinds()
-	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshal %T task", task))
-		return
-	}
-	if _, err = db.DB.Exec(query, binds...); err != nil {
+	if err := AddTask(task); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
 		return
 	}
+}
+
+func AddTask(task AddTaskVars) error {
+	query, binds, err := task.GetInsertQueryAndBinds()
+	if err != nil {
+		return fmt.Errorf("Failed to marshal %T task: %v", task, err)
+	}
+	if _, err = db.DB.Exec(query, binds...); err != nil {
+		return fmt.Errorf("Failed to insert %T task: %v", task, err)
+	}
+	return nil
 }
 
 // Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
@@ -127,7 +139,8 @@ func parseBoolFormValue(string string) bool {
 	}
 }
 
-func dbTaskQuery(prototype Task, username string, successful bool, includeCompleted bool, includeFutureRuns bool, countQuery bool, offset int, size int) (string, []interface{}) {
+// TODO(benjaminwagner): Make call sites readable.
+func DBTaskQuery(prototype Task, username string, successful bool, includeCompleted bool, includeFutureRuns bool, countQuery bool, offset int, size int) (string, []interface{}) {
 	args := []interface{}{}
 	query := "SELECT "
 	if countQuery {
@@ -178,7 +191,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to get pagination params: %v", err))
 		return
 	}
-	query, args := dbTaskQuery(prototype, username, successful, includeCompleted, includeFutureRuns, false, offset, size)
+	query, args := DBTaskQuery(prototype, username, successful, includeCompleted, includeFutureRuns, false, offset, size)
 	glog.Infof("Running %s", query)
 	data, err := prototype.Select(query, args...)
 	if err != nil {
@@ -186,7 +199,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	query, args = dbTaskQuery(prototype, username, successful, includeCompleted, includeFutureRuns, true, 0, 0)
+	query, args = DBTaskQuery(prototype, username, successful, includeCompleted, includeFutureRuns, true, 0, 0)
 	// Get the total count.
 	glog.Infof("Running %s", query)
 	countVal := []int{}
@@ -246,6 +259,10 @@ func getUpdateQueryAndBinds(vars UpdateTaskVars, tableName string) (string, []in
 		clauses = append(clauses, "failure = ?")
 		args = append(args, common.Failure.Bool)
 	}
+	if common.RepeatAfterDays.Valid {
+		clauses = append(clauses, "repeat_after_days = ?")
+		args = append(args, common.RepeatAfterDays)
+	}
 	additionalClauses, additionalArgs, err := vars.GetUpdateExtraClausesAndBinds()
 	if err != nil {
 		return "", nil, err
@@ -270,20 +287,25 @@ func UpdateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWri
 	}
 	defer skutil.Close(r.Body)
 
+	if err := UpdateTask(vars, tableName); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to update %T task", vars))
+		return
+	}
+}
+
+func UpdateTask(vars UpdateTaskVars, tableName string) error {
 	query, binds, err := getUpdateQueryAndBinds(vars, tableName)
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to marshal %T update", vars))
-		return
+		return fmt.Errorf("Failed to marshal %T update: %v", vars, err)
 	}
 	result, err := db.DB.Exec(query, binds...)
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to update using %T", vars))
-		return
+		return fmt.Errorf("Failed to update using %T: %v", vars, err)
 	}
 	if rowsUpdated, _ := result.RowsAffected(); rowsUpdated != 1 {
-		skutil.ReportError(w, r, fmt.Errorf("No rows updated. Likely invalid parameters."), "")
-		return
+		return fmt.Errorf("No rows updated. Likely invalid parameters.")
 	}
+	return nil
 }
 
 // Returns true if the given task can be deleted by the logged-in user; otherwise false and an error

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -49,6 +50,22 @@ type DBTask struct {
 
 func (task DBTask) GetTaskName() string {
 	return "CaptureSkps"
+}
+
+func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+	taskVars := &AddTaskVars{}
+	taskVars.Username = dbTask.Username
+	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
+	taskVars.PageSets = dbTask.PageSets
+	taskVars.ChromiumBuild.ChromiumRev = dbTask.ChromiumRev
+	taskVars.ChromiumBuild.SkiaRev = dbTask.SkiaRev
+	taskVars.Description = dbTask.Description
+	return taskVars
+}
+
+func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+	return &UpdateVars{}
 }
 
 func (task DBTask) TableName() string {

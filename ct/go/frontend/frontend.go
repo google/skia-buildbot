@@ -77,6 +77,8 @@ const (
 	GET_OLDEST_PENDING_TASK_URI = "_/get_oldest_pending_task"
 
 	PAGE_SETS_PARAMETERS_POST_URI = "_/page_sets/"
+
+	TS_FORMAT = "20060102150405"
 )
 
 var (
@@ -145,16 +147,22 @@ func UpdateWebappTask(gaeTaskID int64, webappURL string, extraData map[string]st
 	return nil
 }
 
+func GetTimeFromTs(formattedTime string) time.Time {
+	t, _ := time.Parse(TS_FORMAT, formattedTime)
+	return t
+}
+
 func GetCurrentTs() string {
-	return time.Now().UTC().Format("20060102150405")
+	return time.Now().UTC().Format(TS_FORMAT)
 }
 
 // Data included in all update requests.
 type UpdateTaskCommonVars struct {
-	Id          int64
-	TsStarted   sql.NullString
-	TsCompleted sql.NullString
-	Failure     sql.NullBool
+	Id              int64
+	TsStarted       sql.NullString
+	TsCompleted     sql.NullString
+	Failure         sql.NullBool
+	RepeatAfterDays sql.NullInt64
 }
 
 func (vars *UpdateTaskCommonVars) SetStarted() {
@@ -164,6 +172,10 @@ func (vars *UpdateTaskCommonVars) SetStarted() {
 func (vars *UpdateTaskCommonVars) SetCompleted(success bool) {
 	vars.TsCompleted = sql.NullString{String: GetCurrentTs(), Valid: true}
 	vars.Failure = sql.NullBool{Bool: !success, Valid: true}
+}
+
+func (vars *UpdateTaskCommonVars) ClearRepeatAfterDays() {
+	vars.RepeatAfterDays = sql.NullInt64{Int64: 0, Valid: true}
 }
 
 type UpdateTaskVars interface {

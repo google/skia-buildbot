@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -53,6 +54,26 @@ type DBTask struct {
 
 func (task DBTask) GetTaskName() string {
 	return "LuaScript"
+}
+
+func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+	taskVars := &AddTaskVars{}
+	taskVars.Username = dbTask.Username
+	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
+
+	taskVars.SkpRepository.ChromiumRev = dbTask.ChromiumRev
+	taskVars.SkpRepository.SkiaRev = dbTask.SkiaRev
+	taskVars.SkpRepository.PageSets = dbTask.PageSets
+
+	taskVars.LuaScript = dbTask.LuaScript
+	taskVars.LuaAggregatorScript = dbTask.LuaAggregatorScript
+	taskVars.Description = dbTask.Description
+	return taskVars
+}
+
+func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+	return &UpdateVars{}
 }
 
 func (task DBTask) TableName() string {

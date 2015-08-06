@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -73,6 +74,22 @@ func (task DBTask) GetTaskName() string {
 	return "ChromiumBuild"
 }
 
+func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+	taskVars := &AddTaskVars{}
+	taskVars.Username = dbTask.Username
+	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
+
+	taskVars.ChromiumRev = dbTask.ChromiumRev
+	taskVars.ChromiumRevTs = strconv.FormatInt(dbTask.ChromiumRevTs.Int64, 10)
+	taskVars.SkiaRev = dbTask.SkiaRev
+	return taskVars
+}
+
+func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+	return &UpdateVars{}
+}
+
 func (task DBTask) TableName() string {
 	return db.TABLE_CHROMIUM_BUILD_TASKS
 }
@@ -102,11 +119,13 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
 	// Example timestamp format: "Wed Jul 15 13:42:19 2015"
-	parsedTs, err := time.Parse(time.ANSIC, task.ChromiumRevTs)
-	if err != nil {
-		return "", nil, err
+	var chromiumRevTs string
+	if parsedTs, err := time.Parse(time.ANSIC, task.ChromiumRevTs); err != nil {
+		// ChromiumRevTs is likely already in the expected format.
+		chromiumRevTs = task.ChromiumRevTs
+	} else {
+		chromiumRevTs = parsedTs.UTC().Format("20060102150405")
 	}
-	chromiumRevTs := parsedTs.UTC().Format("20060102150405")
 	return fmt.Sprintf("INSERT INTO %s (username,chromium_rev,chromium_rev_ts,skia_rev,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_BUILD_TASKS),
 		[]interface{}{

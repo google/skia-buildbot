@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -61,6 +62,29 @@ type DBTask struct {
 
 func (task DBTask) GetTaskName() string {
 	return "ChromiumPerf"
+}
+
+func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+	taskVars := &AddTaskVars{}
+	taskVars.Username = dbTask.Username
+	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
+	taskVars.Benchmark = dbTask.Benchmark
+	taskVars.Platform = dbTask.Platform
+	taskVars.PageSets = dbTask.PageSets
+	taskVars.RepeatRuns = strconv.FormatInt(dbTask.RepeatRuns, 10)
+	taskVars.BenchmarkArgs = dbTask.BenchmarkArgs
+	taskVars.BrowserArgsNoPatch = dbTask.BrowserArgsNoPatch
+	taskVars.BrowserArgsWithPatch = dbTask.BrowserArgsWithPatch
+	taskVars.Description = dbTask.Description
+	taskVars.ChromiumPatch = dbTask.ChromiumPatch
+	taskVars.BlinkPatch = dbTask.BlinkPatch
+	taskVars.SkiaPatch = dbTask.SkiaPatch
+	return taskVars
+}
+
+func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+	return &UpdateVars{}
 }
 
 func (task DBTask) TableName() string {

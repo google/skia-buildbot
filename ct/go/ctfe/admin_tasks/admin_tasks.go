@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"text/template"
 
 	"github.com/gorilla/mux"
@@ -54,6 +55,20 @@ func (task RecreatePageSetsDBTask) GetTaskName() string {
 	return "RecreatePageSets"
 }
 
+func (dbTask RecreatePageSetsDBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+	taskVars := &AddRecreatePageSetsTaskVars{}
+	taskVars.Username = dbTask.Username
+	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
+
+	taskVars.PageSets = dbTask.PageSets
+	return taskVars
+}
+
+func (task RecreatePageSetsDBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+	return &RecreatePageSetsUpdateVars{}
+}
+
 func (task RecreatePageSetsDBTask) TableName() string {
 	return db.TABLE_RECREATE_PAGE_SETS_TASKS
 }
@@ -74,6 +89,22 @@ type RecreateWebpageArchivesDBTask struct {
 
 func (task RecreateWebpageArchivesDBTask) GetTaskName() string {
 	return "RecreateWebpageArchives"
+}
+
+func (dbTask RecreateWebpageArchivesDBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
+	taskVars := &AddRecreateWebpageArchivesTaskVars{}
+	taskVars.Username = dbTask.Username
+	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
+
+	taskVars.PageSets = dbTask.PageSets
+	taskVars.ChromiumBuild.ChromiumRev = dbTask.ChromiumRev
+	taskVars.ChromiumBuild.SkiaRev = dbTask.SkiaRev
+	return taskVars
+}
+
+func (task RecreateWebpageArchivesDBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
+	return &RecreateWebpageArchivesUpdateVars{}
 }
 
 func (task RecreateWebpageArchivesDBTask) TableName() string {
