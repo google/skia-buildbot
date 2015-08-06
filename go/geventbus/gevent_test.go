@@ -1,6 +1,7 @@
 package geventbus
 
 import (
+	"encoding/json"
 	"sort"
 	"sync"
 	"testing"
@@ -12,9 +13,8 @@ import (
 func TestEventBus(t *testing.T) {
 	testutils.SkipIfShort(t)
 
-	eventBus, err := NewGlobalEventBus("127.0.0.1:4150")
+	eventBus, err := NewNSQEventBus("127.0.0.1:4150")
 	assert.Nil(t, err)
-	defer eventBus.Close()
 
 	ch := make(chan string, 100)
 	var wg sync.WaitGroup
@@ -43,4 +43,33 @@ func TestEventBus(t *testing.T) {
 
 	sort.Strings(vals)
 	assert.Equal(t, []string{"0", "msg-01", "msg-01"}, vals)
+
+	assert.Nil(t, eventBus.Close())
+}
+
+func TestJSONHelper(t *testing.T) {
+	type myTestType struct {
+		A int
+		B string
+	}
+
+	testInstance := &myTestType{5, "hello"}
+	f := JSONCallback(&myTestType{}, func(data interface{}, err error) {
+		assert.Nil(t, err)
+		assert.IsType(t, &myTestType{}, data)
+		assert.Equal(t, testInstance, data)
+	})
+	jsonBytes, err := json.Marshal(testInstance)
+	assert.Nil(t, err)
+	f(jsonBytes)
+
+	testArr := []*myTestType{&myTestType{1, "1"}, &myTestType{2, "2"}}
+	f = JSONCallback([]*myTestType{}, func(data interface{}, err error) {
+		assert.Nil(t, err)
+		assert.IsType(t, []*myTestType{}, data)
+		assert.Equal(t, testArr, data)
+	})
+	jsonBytes, err = json.Marshal(testArr)
+	assert.Nil(t, err)
+	f(jsonBytes)
 }

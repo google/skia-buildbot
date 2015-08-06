@@ -1,6 +1,8 @@
 package util
 
 import (
+	"encoding/json"
+	"reflect"
 	"sync"
 
 	"github.com/golang/groupcache/lru"
@@ -66,4 +68,43 @@ func (m *MemLRUCache) Len() int {
 func (m *MemLRUCache) Remove(key interface{}) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+}
+
+type jsonCodec struct {
+	targetType reflect.Type
+	isSlice    bool
+}
+
+// JSONCodec implements the LRUCodec interface by serializing and
+// deserializing instances of the underlying type of 'instance'.
+// Generally it's assumed that 'instance' is a struct, a pointer to
+// a struct or a slice.
+func JSONCodec(instance interface{}) LRUCodec {
+	targetType := reflect.TypeOf(instance)
+	if targetType.Kind() == reflect.Ptr {
+		targetType = targetType.Elem()
+	}
+	isSlice := targetType.Kind() == reflect.Slice
+	return &jsonCodec{
+		targetType: targetType,
+		isSlice:    isSlice,
+	}
+}
+
+// See LRUCodec interface.
+func (j *jsonCodec) Encode(data interface{}) ([]byte, error) {
+	return json.Marshal(data)
+}
+
+// See LRUCodec interface.
+func (j *jsonCodec) Decode(byteData []byte) (interface{}, error) {
+	ret := reflect.New(j.targetType).Interface()
+	err := json.Unmarshal(byteData, ret)
+	if err != nil {
+		return nil, err
+	} else if j.isSlice {
+		return reflect.ValueOf(ret).Elem().Interface(), nil
+	}
+
+	return ret, nil
 }
