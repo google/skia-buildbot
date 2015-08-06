@@ -35,7 +35,7 @@ var (
 var (
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	graphiteServer = flag.String("graphite_server", "", "Where is Graphite metrics ingestion server running.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	workDir        = flag.String("work_dir", "/tmp", "The directory to check out the doc repo into.")
 	docRepo        = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The directory to check out the doc repo into.")
