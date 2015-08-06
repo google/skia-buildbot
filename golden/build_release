@@ -1,6 +1,65 @@
 #!/bin/bash
-# Builds and uploads a debian package for docserver.
-APPNAME=skiacorrectness
+
+INSTANCE_ID=$2
+
+# Default values.
+GS_BUCKET="chromium-skia-gm"
+N_COMMITS="50"
+ADD_FLAGS=""
+
+case "$INSTANCE_ID" in
+  # prod instance
+  prod)
+	DATABASE_HOST="173.194.104.24"
+	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness"
+	INGEST_DATABASE_NAME="skia"
+  REDIRECT_URL="https://gold.skia.org/oauth2callback/"
+  ADD_FLAGS="--backfill_tiles=2"
+	;;
+
+  # stage instance
+  stage)
+	DATABASE_HOST="173.194.254.28"
+	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_stage"
+	INGEST_DATABASE_NAME="skiacorr_ingest_stage"
+  REDIRECT_URL="https://gold-staging.skia.org/oauth2callback/"
+  ADD_FLAGS="--backfill_tiles=2"
+  ;;
+
+  # experimental android instance: uses the staging database server for now.
+  android)
+  DATABASE_HOST="173.194.254.28"
+  SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_android"
+  INGEST_DATABASE_NAME="skiacorr_ingest_android"
+  REDIRECT_URL="https://gold-android.skia.org/oauth2callback/"
+  GS_BUCKET="skia-android-dm"
+  N_COMMITS="200"
+  ADD_FLAGS="--force_login --auth_whitelist=google.com"
+  ;;
+
+  # experimental blink instance: uses the staging database server for now.
+  blink)
+  DATABASE_HOST="173.194.254.28"
+  SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_blink"
+  INGEST_DATABASE_NAME="skiacorr_ingest_blink"
+  REDIRECT_URL="https://gold-blink.skia.org/oauth2callback/"
+  ;;
+
+  *)
+    echo "Usage: $0 MESSAGE INSTANCE_ID"
+    echo "     MESSAGE     is the message to be included in the release package."
+    echo "     INSTANCE_ID is the id of the instance targeted by this package."
+    exit 1
+	;;
+esac
+
+# Builds and uploads a debian package for skiacorrectness.
+APPNAME=skiacorrectness-$2
+CORRECTNESS_APPNAME="skiacorrectness"
+INGEST_APPNAME="ingest"
+SETUP_APPNAME="setup_skiacorrectness"
+SYSTEMD="${CORRECTNESS_APPNAME}.service ${INGEST_APPNAME}.service"
+SYSTEMD_TIMER="${SETUP_APPNAME}.timer"
 DESCRIPTION="Manages baseline images."
 
 DEPENDS=git
@@ -8,26 +67,52 @@ DEPENDS=git
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
+set -e
+
+CORR_SED="s#<<REPLACE_DATABASE_HOST>>#$DATABASE_HOST#g"
+CORR_SED="$CORR_SED;s#<<REPLACE_DATABASE_NAME>>#$SKIACORRECTNESS_DATABASE_NAME#g"
+CORR_SED="$CORR_SED;s#<<REPLACE_REDIRECT_URL>>#$REDIRECT_URL#g"
+CORR_SED="$CORR_SED;s#<<REPLACE_GS_BUCKET>>#$GS_BUCKET#g"
+CORR_SED="$CORR_SED;s#<<REPLACE_N_COMMITS>>#$N_COMMITS#g"
+CORR_SED="$CORR_SED;s#<<REPLACE_ADD_FLAGS>>#$ADD_FLAGS#g"
+
+# Generate the init file for ingest and skiacorrectness.
+sed "$CORR_SED" \
+    ./sys/skiacorrectness.service.template > ./sys/skiacorrectness.service
+
+sed "s/<<REPLACE_DATABASE_HOST>>/$DATABASE_HOST/g;s/<<REPLACE_DATABASE_NAME>>/$INGEST_DATABASE_NAME/g" \
+    ./sys/ingest.service.template > ./sys/ingest.service
+
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 
-${INSTALL} --mode=755 -T ${GOPATH}/bin/correctness_migratedb   ${ROOT}/usr/local/bin/correctness_migratedb
-${INSTALL} --mode=755 -T ${GOPATH}/bin/skiacorrectness         ${ROOT}/usr/local/bin/skiacorrectness
-${INSTALL} --mode=755 -T ${GOPATH}/bin/ingest                  ${ROOT}/usr/local/bin/ingest
-${INSTALL} --mode=755 -T ${GOPATH}/bin/tiletool                ${ROOT}/usr/local/bin/tiletool
-${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb          ${ROOT}/usr/local/bin/perf_migratedb
+${INSTALL} --mode=755 -T ${GOPATH}/bin/correctness_migratedb    ${ROOT}/usr/local/bin/correctness_migratedb
+${INSTALL} --mode=755 -T ${GOPATH}/bin/skiacorrectness          ${ROOT}/usr/local/bin/skiacorrectness
+${INSTALL} --mode=755 -T ${GOPATH}/bin/ingest                   ${ROOT}/usr/local/bin/ingest
+${INSTALL} --mode=755 -T ${GOPATH}/bin/tiletool                 ${ROOT}/usr/local/bin/tiletool
+${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb           ${ROOT}/usr/local/bin/perf_migratedb
 
-${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/templates
-${INSTALL}     --mode=644 ./templates/*                        ${ROOT}/usr/local/share/skiacorrectness/templates
+${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/templates
+${INSTALL}     --mode=644 ./templates/*                         ${ROOT}/usr/local/share/skiacorrectness/templates
 
-${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/res/css
-${INSTALL}     --mode=644 ./res/css/core.css                   ${ROOT}/usr/local/share/skiacorrectness/res/css/core.css
+${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/res/css
+${INSTALL}     --mode=644 ./res/css/core.css                    ${ROOT}/usr/local/share/skiacorrectness/res/css/core.css
 
-${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/res/js
-${INSTALL}     --mode=644 ./res/js/core.js                     ${ROOT}/usr/local/share/skiacorrectness/res/js/core.js
+${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/res/js
+${INSTALL}     --mode=644 ./res/js/core.js                      ${ROOT}/usr/local/share/skiacorrectness/res/js/core.js
 
-${INSTALL_DIR} --mode=755                                      ${ROOT}/usr/local/share/skiacorrectness/res/vul
-${INSTALL}     --mode=644 ./res/vul/elements.html              ${ROOT}/usr/local/share/skiacorrectness/res/vul/elements.html
+${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/res/vul
+${INSTALL}     --mode=644 ./res/vul/elements.html               ${ROOT}/usr/local/share/skiacorrectness/res/vul/elements.html
+
+${INSTALL} --mode=644 -T ./sys/${SETUP_APPNAME}.timer           ${ROOT}/etc/systemd/system/${SETUP_APPNAME}.timer
+${INSTALL} --mode=644 -T ./sys/${SETUP_APPNAME}.service         ${ROOT}/etc/systemd/system/${SETUP_APPNAME}.service
+${INSTALL} --mode=755 -T ./sys/${SETUP_APPNAME}.sh              ${ROOT}/usr/local/bin/${SETUP_APPNAME}.sh
+
+${INSTALL} --mode=644 -T ./sys/${CORRECTNESS_APPNAME}.service   ${ROOT}/etc/systemd/system/${CORRECTNESS_APPNAME}.service
+${INSTALL} --mode=644 -T ./sys/${INGEST_APPNAME}.service        ${ROOT}/etc/systemd/system/${INGEST_APPNAME}.service
+${INSTALL} --mode=644 -T ./sys/${INSTANCE_ID}-gold-ingest.toml  ${ROOT}/etc/skiacorrectness/gold-ingest.toml
 }
 
+# Strip the second argument to keep this compatible with the shared build script.
+set -- "$1"
 source ../bash/release.sh
