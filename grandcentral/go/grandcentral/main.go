@@ -8,18 +8,17 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-)
 
-import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
-)
-
-import (
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/geventbus"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/grandcentral/go/event"
 )
 
 // flags
@@ -30,7 +29,10 @@ var (
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
+	nsqdAddress    = flag.String("nsqd", "", "Address and port of nsqd instance.")
 )
+
+var eventBus *eventbus.EventBus
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte(`
@@ -45,30 +47,22 @@ Hello World
 }
 
 func googleStorageChangeHandler(w http.ResponseWriter, r *http.Request) {
-	defer util.Close(r.Body)
-	var n struct {
-		Kind           string            `json:"kind"`
-		Id             string            `json:""`
-		SelfLink       string            `json:"selfLink"`
-		Name           string            `json:"name"`
-		Bucket         string            `json:"bucket"`
-		Generation     string            `json:"generation"`
-		Metageneration string            `json:"metageneration"`
-		ContentType    string            `json:"contentType"`
-		Updated        string            `json:"updated"`
-		TimeDeleted    string            `json:"timeDeleted"`
-		StorageClass   string            `json:"storageClass"`
-		Size           string            `json:"size"`
-		Md5Hash        string            `json:"md5hash"`
-		MediaLink      string            `json:"mediaLink"`
-		Owner          map[string]string `json:"owner"`
-		Crc32C         string            `json:"crc32c"`
-		ETag           string            `json:"etag"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&n); err != nil {
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to read response body: %v", err))
+		return
 	}
-	glog.Infof("Google Storage notification from bucket \"%s\": %s", n.Bucket, n.Name)
+
+	defer util.Close(r.Body)
+	var data event.GoogleStorageEventData
+	if err := json.Unmarshal(buf, &data); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to decode response body: %v", err))
+		return
+	}
+
+	// Log the result and fire an event.
+	glog.Infof("Google Storage notification from bucket \"%s\": %s", data.Bucket, data.Name)
+	eventBus.Publish(event.GLOBAL_GOOGLE_STORAGE, data)
 }
 
 func runServer(serverURL string) {
@@ -88,6 +82,15 @@ func main() {
 		glog.Fatal(err)
 	}
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+
+	if *nsqdAddress == "" {
+		glog.Fatal("Missing address of nsqd server.")
+	}
+	globalEventBus, err := geventbus.NewNSQEventBus(*nsqdAddress)
+	if err != nil {
+		glog.Fatalf("Unable to connect to NSQ server: %s", err)
+	}
+	eventBus = eventbus.New(globalEventBus)
 
 	if *testing {
 		*useMetadata = false

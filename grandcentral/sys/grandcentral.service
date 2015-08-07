@@ -4,7 +4,11 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/grandcentral -use_metadata=true -host=grandcentral.skia.org --log_dir=/var/log/logserver
+ExecStart=/usr/local/bin/grandcentral \
+    --use_metadata=true \
+    --host=grandcentral.skia.org \
+    --log_dir=/var/log/logserver \
+    --nsqd=skia-grandcentral:4150
 Restart=always
 User=default
 Group=default
