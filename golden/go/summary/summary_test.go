@@ -145,7 +145,7 @@ func TestCalcSummaries(t *testing.T) {
 		TileIndex: 0,
 	}
 
-	eventBus := eventbus.New()
+	eventBus := eventbus.New(nil)
 	storages := &storage.Storage{
 		DiffStore:         mocks.MockDiffStore{},
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),

@@ -310,7 +310,7 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	eventBus := eventbus.New()
+	eventBus := eventbus.New(nil)
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), eventBus),

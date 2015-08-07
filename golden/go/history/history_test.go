@@ -29,7 +29,7 @@ func BenchmarkHistory(b *testing.B) {
 	storages := &storage.Storage{
 		TileStore:   tileStore,
 		DigestStore: digestStore,
-		EventBus:    eventbus.New(),
+		EventBus:    eventbus.New(nil),
 	}
 
 	tile, err := tileStore.Get(0, -1)

@@ -69,7 +69,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, len(commits), len(digests[0]))
 	assert.Equal(t, len(digests), len(params))
 
-	eventBus := eventbus.New()
+	eventBus := eventbus.New(nil)
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		TileStore:         mocks.NewMockTileStore(t, digests, params, commits),
@@ -180,7 +180,7 @@ func TestBlamerWithLiveData(t *testing.T) {
 }
 
 func testBlamerWithLiveData(t assert.TestingT, tileStore tiling.TileStore) {
-	eventBus := eventbus.New()
+	eventBus := eventbus.New(nil)
 	storage := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		TileStore:         tileStore,
