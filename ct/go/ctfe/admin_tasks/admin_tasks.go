@@ -210,7 +210,7 @@ func (task *RecreateWebpageArchivesUpdateVars) GetUpdateExtraClausesAndBinds() (
 }
 
 func updateRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
-	task_common.UpdateTaskHandler(&RecreateWebpageArchivesUpdateVars{}, db.TABLE_RECREATE_PAGE_SETS_TASKS, w, r)
+	task_common.UpdateTaskHandler(&RecreateWebpageArchivesUpdateVars{}, db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS, w, r)
 }
 
 func deleteRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {

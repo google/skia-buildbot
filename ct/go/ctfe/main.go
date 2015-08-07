@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	skutil "go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -210,6 +211,12 @@ func main() {
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, *local)
+
+	if *local {
+		webhook.InitRequestSaltForTesting()
+	} else {
+		webhook.MustInitRequestSaltFromMetadata()
+	}
 
 	glog.Info("CloneOrUpdate complete")
 

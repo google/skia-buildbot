@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -103,6 +104,7 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
+	webhook.MustInitRequestSaltFromFile(util.WebhookRequestSaltPath)
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)

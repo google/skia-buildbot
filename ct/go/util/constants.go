@@ -108,13 +108,15 @@ var (
 	GSTokenPath          = filepath.Join(StorageDir, "google_storage_token.data")
 	EmailTokenPath       = filepath.Join(StorageDir, "email.data")
 	WebappPasswordPath   = filepath.Join(StorageDir, "webapp.data")
-	PagesetsDir          = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
-	WebArchivesDir       = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
-	SkpsDir              = filepath.Join(StorageDir, SKPS_DIR_NAME)
-	GLogDir              = filepath.Join(StorageDir, "glog")
-	ApkName              = "ChromeShell.apk"
-	SkiaTreeDir          = filepath.Join(RepoDir, "trunk")
-	CtTreeDir            = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
+	// Salt used to authenticate webhook requests, base64-encoded.
+	WebhookRequestSaltPath = filepath.Join(StorageDir, "webhook_salt.data")
+	PagesetsDir            = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
+	WebArchivesDir         = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
+	SkpsDir                = filepath.Join(StorageDir, SKPS_DIR_NAME)
+	GLogDir                = filepath.Join(StorageDir, "glog")
+	ApkName                = "ChromeShell.apk"
+	SkiaTreeDir            = filepath.Join(RepoDir, "trunk")
+	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
 	// Names of remote directories and files.
 	LuaRunsDir             = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)

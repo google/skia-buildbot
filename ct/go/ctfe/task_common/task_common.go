@@ -22,6 +22,7 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/login"
 	skutil "go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/webhook"
 )
 
 const (
@@ -279,9 +280,19 @@ func getUpdateQueryAndBinds(vars UpdateTaskVars, tableName string) (string, []in
 }
 
 func UpdateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWriter, r *http.Request) {
-	// TODO(benjaminwagner): authenticate
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		if data == nil {
+			skutil.ReportError(w, r, err, "Failed to read update request")
+			return
+		}
+		if !ctfeutil.UserHasAdminRights(r) {
+			skutil.ReportError(w, r, err, "Failed authentication")
+			return
+		}
+	}
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
+	if err := json.Unmarshal(data, &vars); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to parse %T update", vars))
 		return
 	}

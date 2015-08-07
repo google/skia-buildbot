@@ -37,6 +37,10 @@ const (
 	// AUTH_WHITE_LIST is the comma or whitespace separated list of domains
 	// and email address that are allowed to log into an app.
 	AUTH_WHITE_LIST = "auth_white_list"
+
+	// WEBHOOK_REQUEST_SALT is used to authenticate webhook requests. The value stored in
+	// Metadata is base64-encoded.
+	WEBHOOK_REQUEST_SALT = "webhook_request_salt"
 )
 
 // get retrieves the named value from the Metadata server. See

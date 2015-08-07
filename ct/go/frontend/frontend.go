@@ -16,6 +16,7 @@ import (
 	"github.com/skia-dev/glog"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/webhook"
 )
 
 const (
@@ -252,6 +253,11 @@ func UpdateWebappTaskV2(vars UpdateTaskVars) error {
 	if err != nil {
 		return fmt.Errorf("Could not create HTTP request: %s", err)
 	}
+	hash, err := webhook.ComputeAuthHashBase64(json)
+	if err != nil {
+		return fmt.Errorf("Could not compute authentication hash: %s", err)
+	}
+	req.Header.Set(webhook.REQUEST_AUTH_HASH_HEADER, hash)
 	client := util.NewTimeoutClient()
 	resp, err := client.Do(req)
 	if err != nil {
@@ -259,7 +265,8 @@ func UpdateWebappTaskV2(vars UpdateTaskVars) error {
 	}
 	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Could not update webapp task, response status code was %d: %s", resp.StatusCode, err)
+		response, _ := ioutil.ReadAll(resp.Body)
+		return fmt.Errorf("Could not update webapp task, response status code was %d: %s", resp.StatusCode, response)
 	}
 	return nil
 }
