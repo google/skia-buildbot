@@ -269,7 +269,7 @@ func init() {
 }
 
 // See the ingester.ResultIngester interface.
-func (i NanoBenchIngester) Ingest(tt *ingester.TileTracker, opener ingester.Opener, fname string, counter metrics.Counter) error {
+func (i NanoBenchIngester) Ingest(tt *ingester.TileTracker, opener ingester.Opener, fileInfo *ingester.ResultsFileLocation, counter metrics.Counter) error {
 	r, err := opener()
 	if err != nil {
 		return err

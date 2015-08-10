@@ -191,8 +191,8 @@ func NewTrybotResultIngester() ingester.ResultIngester {
 }
 
 // See the ingester.ResultIngester interface.
-func (i *TrybotResultIngester) Ingest(_ *ingester.TileTracker, opener ingester.Opener, fname string, counter metrics.Counter) error {
-	match := nameRegex.FindStringSubmatch(fname)
+func (i *TrybotResultIngester) Ingest(_ *ingester.TileTracker, opener ingester.Opener, fileInfo *ingester.ResultsFileLocation, counter metrics.Counter) error {
+	match := nameRegex.FindStringSubmatch(fileInfo.Name)
 	if match != nil {
 		issue := match[1]
 		i.benchFilesByIssue = append(i.benchFilesByIssue, &BenchByIssue{

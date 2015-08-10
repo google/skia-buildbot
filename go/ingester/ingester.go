@@ -118,7 +118,7 @@ type ResultIngester interface {
 	// The provided opener allows to open an input stream, parse it and add it
 	// to the tile. The ingestion can also be done when BatchFinished is
 	// called. In that case the openers should be cached and opened then.
-	Ingest(tt *TileTracker, opener Opener, fname string, counter metrics.Counter) error
+	Ingest(tt *TileTracker, opener Opener, fileInfo *ResultsFileLocation, counter metrics.Counter) error
 
 	// BatchFinished is called when the current batch is finished. This is
 	// to cover the case when ingestion is better done for the whole batch or
@@ -432,7 +432,7 @@ func (i *Ingester) UpdateTiles() error {
 				return r, nil
 			}
 
-			if err := i.resultIngester.Ingest(tt, opener, resultLocation.Name, i.metricsProcessed); err != nil {
+			if err := i.resultIngester.Ingest(tt, opener, resultLocation, i.metricsProcessed); err != nil {
 				glog.Errorf("Failed to ingest %s: %s", resultLocation.Name, err)
 				continue
 			}
@@ -535,16 +535,18 @@ func (i *Ingester) HashToNumber() map[string]int { return i.hashToNumber }
 
 // ResultsFileLocation is the URI of a single JSON file with results in it.
 type ResultsFileLocation struct {
-	URI     string // Absolute URI used to fetch the file.
-	Name    string // Complete path, w/o the gs:// prefix.
-	MD5Hash string // MD5 hash of the content.
+	URI         string // Absolute URI used to fetch the file.
+	Name        string // Complete path, w/o the gs:// prefix.
+	LastUpdated int64  // Timestamp when this was last updated.
+	MD5Hash     string // MD5 hash of the content.
 }
 
-func NewResultsFileLocation(uri, name string, md5Hash string) *ResultsFileLocation {
+func NewResultsFileLocation(uri, name string, lastUpdated int64, md5Hash string) *ResultsFileLocation {
 	return &ResultsFileLocation{
-		URI:     uri,
-		Name:    name,
-		MD5Hash: md5Hash,
+		URI:         uri,
+		Name:        name,
+		LastUpdated: lastUpdated,
+		MD5Hash:     md5Hash,
 	}
 }
 
@@ -597,7 +599,7 @@ func getFilesFromGSDir(bucket, dir string, earliestTimestamp int64, storage *sto
 				if err != nil {
 					glog.Errorf("Unable to decode base64-encoded MD5: %s", err)
 				}
-				results = append(results, NewResultsFileLocation(result.MediaLink, result.Name, hex.EncodeToString(md5Bytes)))
+				results = append(results, NewResultsFileLocation(result.MediaLink, result.Name, updateTimestamp, hex.EncodeToString(md5Bytes)))
 			}
 		}
 		if len(resp.NextPageToken) > 0 {
@@ -660,7 +662,7 @@ func getFilesFromLocalDir(dir string, earliestTimestamp int64) ([]*ResultsFileLo
 			if err != nil {
 				return fmt.Errorf("Couldn't compute MD5 hash of %s: %v", path, err)
 			}
-			results = append(results, NewResultsFileLocation(fmt.Sprintf("file://%s", path), info.Name(), hash))
+			results = append(results, NewResultsFileLocation(fmt.Sprintf("file://%s", path), info.Name(), updateTimestamp, hash))
 		}
 		return nil
 	}

@@ -3,6 +3,7 @@ package goldingester
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sort"
 	"strings"
@@ -71,6 +72,8 @@ type DMResults struct {
 	BuildNumber string            `json:"build_number"`
 	GitHash     string            `json:"gitHash"`
 	Key         map[string]string `json:"key"`
+	Issue       string            `json:"issue"`
+	Patchset    string            `json:"patchset"`
 	Results     []*Result         `json:"results"`
 }
 
@@ -112,11 +115,36 @@ func NewDMResults() *DMResults {
 	}
 }
 
+// ParseBenchDataFromReader parses the stream out of the io.ReadCloser
+// into BenchData and closes the reader.
+func ParseDMResultsFromReader(r io.ReadCloser) (*DMResults, error) {
+	defer util.Close(r)
+
+	dec := json.NewDecoder(r)
+	dmResults := &DMResults{}
+	if err := dec.Decode(dmResults); err != nil {
+		return nil, fmt.Errorf("Failed to decode JSON: %s", err)
+	}
+	return dmResults, nil
+}
+
+// Iter defines a callback function for ForEach.
+type Iter func(traceID, value string, params map[string]string)
+
+// ForEach iterates over the results and calls the iterFn function for each result.
+func (d *DMResults) ForEach(iterFn Iter) {
+	for _, result := range d.Results {
+		key, params := d.idAndParams(result)
+		iterFn(key, result.Digest, params)
+	}
+}
+
 // idAndParams constructs the Trace ID and the Trace params from the keys and options.
-func idAndParams(dm *DMResults, r *Result) (string, map[string]string) {
-	traceIdParts := map[string]string{}
-	params := map[string]string{}
-	for k, v := range dm.Key {
+func (d *DMResults) idAndParams(r *Result) (string, map[string]string) {
+	combinedLen := len(d.Key) + len(r.Key)
+	traceIdParts := make(map[string]string, combinedLen)
+	params := make(map[string]string, combinedLen)
+	for k, v := range d.Key {
 		traceIdParts[k] = v
 		params[k] = v
 	}
@@ -142,12 +170,10 @@ func idAndParams(dm *DMResults, r *Result) (string, map[string]string) {
 
 // addResultToTile adds the Digests from the DMResults to the tile at the given offset.
 func addResultToTile(res *DMResults, tile *tiling.Tile, offset int, counter metrics.Counter) {
-	for _, r := range res.Results {
-		if ext, ok := r.Options["ext"]; !ok || ext != "png" {
-			continue // Temporarily skip non-PNG results until we know how to ingest them.
+	res.ForEach(func(traceID, digest string, params map[string]string) {
+		if ext, ok := params["ext"]; !ok || ext != "png" {
+			return // Skip non-PNG results they are be converted to PNG by a separate process.
 		}
-
-		traceID, params := idAndParams(res, r)
 
 		var trace *types.GoldenTrace
 		var ok bool
@@ -174,9 +200,9 @@ func addResultToTile(res *DMResults, tile *tiling.Tile, offset int, counter metr
 				}
 			}
 		}
-		trace.Values[offset] = r.Digest
+		trace.Values[offset] = digest
 		counter.Inc(1)
-	}
+	})
 }
 
 // GoldIngester implements the ingester.ResultIngester interface.
@@ -191,17 +217,16 @@ func NewGoldIngester(hook PreIngestionHook) ingester.ResultIngester {
 }
 
 // See the ingester.ResultIngester interface.
-func (i GoldIngester) Ingest(tt *ingester.TileTracker, opener ingester.Opener, fname string, counter metrics.Counter) error {
+func (i GoldIngester) Ingest(tt *ingester.TileTracker, opener ingester.Opener, fileInfo *ingester.ResultsFileLocation, counter metrics.Counter) error {
 	r, err := opener()
 	if err != nil {
 		return err
 	}
 	defer util.Close(r)
 
-	dec := json.NewDecoder(r)
-	res := NewDMResults()
-	if err := dec.Decode(res); err != nil {
-		return fmt.Errorf("Failed to decode DM result: %s", err)
+	res, err := ParseDMResultsFromReader(r)
+	if err != nil {
+		return err
 	}
 
 	// Run the pre-ingestion hook.

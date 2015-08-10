@@ -33,7 +33,7 @@ func TestJSONToDMResults(t *testing.T) {
 	if got, want := dm.Results[0].Digest, "445aa63b2200baaba9b37fd5f80c0447"; got != want {
 		t.Errorf("Digest wrong: Got %v Want %v", got, want)
 	}
-	id, params := idAndParams(dm, dm.Results[0])
+	id, params := dm.idAndParams(dm.Results[0])
 	if got, want := id, "x86_64:565:Debug:HD7770:ShuttleA:varied_text_clipped_no_lcd:Win8"; got != want {
 		t.Errorf("Key generation wrong: Got %v Want %v", got, want)
 	}
