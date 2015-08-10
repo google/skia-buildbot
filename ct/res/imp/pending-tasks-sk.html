@@ -33,8 +33,19 @@
       padding: 15px;
       border: solid black 1px;
     }
+    .delete-button {
+      --paper-icon-button-disabled: {
+        display: none;
+      }
+    }
   </style>
   <template>
+
+    <paper-dialog heading="Confirmation" id="confirm_dialog">
+      <div>Proceed with deleting task?</div>
+      <paper-button id="delete_dismiss">Cancel</paper-button>
+      <paper-button id="delete_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
 
     <h2>Tasks in the Queue</h2>
 
@@ -59,7 +70,16 @@
       <template is="dom-repeat" items="{{pendingTasks}}" as="pendingTask" index-as="index">
         <tr>
           <!-- Queue Position col --> 
-          <td>{{ incrementOne(index) }}</td>
+          <td class="nowrap">
+            <span>{{ incrementOne(index) }}</span>
+            <paper-icon-button icon="delete" mini
+                               class="delete-button"
+                               disabled="{{!pendingTask.canDelete}}"
+                               alt="Delete"
+                               data-index$="{{index}}"
+                               data-type="delete">
+            </paper-icon-button>
+          </td>
 
           <!-- Added col --> 
           <td>{{ formatTimestamp(pendingTask.TsAdded.Int64) }}
@@ -96,46 +116,81 @@
        taskDescriptors: {
          type: Array,
          value: function() {
-           return [{type: "ChromiumPerf", url: "/_/get_chromium_perf_tasks"},
-                   {type: "CaptureSkps", url: "/_/get_capture_skp_tasks"},
-                   {type: "LuaScript", url: "/_/get_lua_script_tasks"},
-                   {type: "ChromiumBuild", url: "/_/get_chromium_build_tasks"},
-                   {type: "RecreatePageSets", url: "/_/get_recreate_page_sets_tasks"},
-                   {type: "RecreateWebpageArchives", url: "/_/get_recreate_webpage_archives_tasks"},
+           return [{type: "ChromiumPerf",
+                    get_url: "/_/get_chromium_perf_tasks",
+                    delete_url: "/_/delete_chromium_perf_task"},
+                   {type: "CaptureSkps",
+                    get_url: "/_/get_capture_skp_tasks",
+                    delete_url: "/_/delete_capture_skps_task"},
+                   {type: "LuaScript",
+                    get_url: "/_/get_lua_script_tasks",
+                    delete_url: "/_/delete_lua_script_task"},
+                   {type: "ChromiumBuild",
+                    get_url: "/_/get_chromium_build_tasks",
+                    delete_url: "/_/delete_chromium_build_task"},
+                   {type: "RecreatePageSets",
+                    get_url: "/_/get_recreate_page_sets_tasks",
+                    delete_url: "/_/delete_recreate_page_sets_task"},
+                   {type: "RecreateWebpageArchives",
+                    get_url: "/_/get_recreate_webpage_archives_tasks",
+                    delete_url: "/_/delete_recreate_webpage_archives_task"},
                   ];
          }
+       },
+       deleteIndex: {
+         type: Number,
+         value: -1,
        },
      },
 
      ready: function() {
-       var queryParams = {
-         "size": 100,
-         "not_completed": true,
-       }
-       var queryStr = "?" + sk.query.fromObject(queryParams);
-       var that = this;
-       this.taskDescriptors.forEach(function(obj) {
-         sk.post(obj.url + queryStr).then(JSON.parse).then(function(json) {
-           that.updatePendingTasks(json.data, obj.type);
-         }).catch(sk.errorMessage);
-       });
-
-       // Find all tasks scheduled in the future.
-       var queryParams = {"include_future_runs": true,}
-       var queryStr = "?" + sk.query.fromObject(queryParams);
-       this.taskDescriptors.forEach(function(obj) {
-         sk.post(obj.url + queryStr).then(JSON.parse).then(function(json) {
-           that.updatePendingTasks(json.data, obj.type);
-         }).catch(sk.errorMessage);
-       });
+       this.reload();
       
        this.$.queue.addEventListener('click', function(e) {
          var anchor = sk.findParent(e.target, "A");
          if (anchor != null) {
            var index = anchor.dataset.id;
-           that.toggleDialog(that.getTaskDetailsId(index));
+           this.toggleDialog(this.getTaskDetailsId(index));
          }
-       });
+       }.bind(this));
+
+       this.$.queue.addEventListener('click', function(e) {
+         var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
+         if (button != null && button.dataset.type == "delete") {
+           this.deleteIndex = button.dataset.index;
+           this.$.confirm_dialog.open();
+         }
+       }.bind(this));
+       this.$.delete_dismiss.addEventListener('click', function(e) {
+         this.deleteIndex = -1;
+         this.$.confirm_dialog.close();
+       }.bind(this));
+       this.$.delete_confirm.addEventListener('click', function(e) {
+         this.deleteTask();
+       }.bind(this));
+     },
+
+     reload: function() {
+       this.pendingTasks = []
+       var queryParams = {
+         "size": 100,
+         "not_completed": true,
+       }
+       var queryStr = "?" + sk.query.fromObject(queryParams);
+       this.taskDescriptors.forEach(function(obj) {
+         sk.post(obj.get_url + queryStr).then(JSON.parse).then(function(json) {
+           this.updatePendingTasks(json, obj);
+         }.bind(this)).catch(sk.errorMessage);
+       }.bind(this));
+
+       // Find all tasks scheduled in the future.
+       var queryParams = {"include_future_runs": true,}
+       var queryStr = "?" + sk.query.fromObject(queryParams);
+       this.taskDescriptors.forEach(function(obj) {
+         sk.post(obj.get_url + queryStr).then(JSON.parse).then(function(json) {
+           this.updatePendingTasks(json, obj);
+         }.bind(this)).catch(sk.errorMessage);
+       }.bind(this));
      },
 
      incrementOne: function(index) {
@@ -150,15 +205,19 @@
        return JSON.stringify(task, null, 4);
      },
 
-     updatePendingTasks: function(tasks, tasksType) {
+     updatePendingTasks: function(json, taskDescriptor) {
+       var tasks = json.data
        for (index in tasks) {
          var task = tasks[index];
-         task["TaskType"] = tasksType;
+         task["canDelete"] = json.permissions[index].DeleteAllowed;
+         task["TaskType"] = taskDescriptor.type;
+         task["GetURL"] = taskDescriptor.get_url;
+         task["DeleteURL"] = taskDescriptor.delete_url;
          // Check if this is a completed task set to repeat.
-         if (task["RepeatAfterDays"]["Int64"] != 0 && task["TsCompleted"]["Int64"]) {
+         if (task["RepeatAfterDays"] != 0 && task["TsCompleted"]["Int64"]) {
            // Calculate the future date.
            var timestamp = ctfe.getTimestamp(task["TsAdded"]["Int64"]);
-           timestamp.setDate(timestamp.getDate() + task["RepeatAfterDays"]["Int64"]);
+           timestamp.setDate(timestamp.getDate() + task["RepeatAfterDays"]);
            task["FutureDate"] = true;
            task["TsAdded"]["Int64"] = ctfe.getCtDbTimestamp(timestamp);
          }
@@ -166,6 +225,19 @@
        this.pendingTasks = this.pendingTasks.concat(tasks)
        // Sort pending tasks according to TsAdded.
        this.pendingTasks.sort(function(a, b){return a["TsAdded"]["Int64"] - b["TsAdded"]["Int64"]});
+     },
+
+     deleteTask: function() {
+       var pendingTask = this.pendingTasks[this.deleteIndex];
+       var params = {};
+       params["id"] = pendingTask.Id;
+       sk.post(pendingTask.DeleteURL, JSON.stringify(params)).then(function() {
+         $$$("#confirm_toast").text = "Deleted " + pendingTask.TaskType + " task " + pendingTask.Id;
+         $$$("#confirm_toast").show();
+       }.bind(this)).catch(sk.errorMessage).then(function() {
+         this.reload();
+         this.$.confirm_dialog.close();
+       }.bind(this));
      },
 
      toggleDialog: function(id) {
