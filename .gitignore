@@ -46,6 +46,8 @@ golden/google_oauth_token.data
 golden/app/css/generated.css
 golden/app/fonts/
 golden/app/js/generated.js
+golden/sys/ingest.service
+golden/sys/skiacorrectness.service
 fuzzer/res/css/fuzzer.css
 fuzzer/third_party
 perf/bqtoken.data

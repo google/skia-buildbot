@@ -60,7 +60,7 @@ touch_elements:
 
 .PHONY: release
 release: all
-	./build_release "$(MESSAGE)"
+	./build_release "$(MESSAGE)" "$(INSTANCE_ID)"
 
 .PHONY: allgo
 allgo: skiacorrectness correctness_migratedb imagediff
