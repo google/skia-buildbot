@@ -115,7 +115,8 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
         revisions=revisions,
         jobs=1,
         no_hooks=True,
-        force=True)
+        force=True,
+        gyp_defines=os.environ.get('GYP_DEFINES'))
   except shell_utils.CommandFailedException as e:
     # We frequently see sync failures because a lock file wasn't deleted. In
     # that case, delete the lock file and try again.
@@ -134,7 +135,8 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
         revisions=revisions,
         jobs=1,
         no_hooks=True,
-        force=True)
+        force=True,
+        gyp_defines=os.environ.get('GYP_DEFINES'))
 
   # Find the actually-obtained Chrome revision.
   os.chdir('src')
