@@ -217,14 +217,14 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 		buildTarget = "chrome_shell_apk"
 	}
 
-	// Run "GYP_GENERATORS='ninja' build/gyp_chromium".
+	// Run "GYP_GENERATORS='ninja' build/gyp_chromium -Duse_goma=1".
 	env := []string{"GYP_GENERATORS=ninja"}
-	if err := ExecuteCmd(filepath.Join("build", "gyp_chromium"), []string{}, env, 30*time.Minute, nil, nil); err != nil {
+	if err := ExecuteCmd(filepath.Join("build", "gyp_chromium", "-Duse_goma=1"), []string{}, env, 30*time.Minute, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gyp_chromium: %s", err)
 	}
-	// Run "ninja -C out/Release ${build_target}".
+	// Run "ninja -C out/Release -j100 ${build_target}".
 	// Use the full system env while building chromium.
-	args := []string{"-C", "out/Release", buildTarget}
+	args := []string{"-C", "out/Release", "-j100", buildTarget}
 	return ExecuteCmd("ninja", args, os.Environ(), 2*time.Hour, nil, nil)
 }
 
