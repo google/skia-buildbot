@@ -136,6 +136,9 @@ func GetBuildIDsForCommits(commits []string) (map[string][]int, error) {
 // GetBuildsForCommits retrieves all builds which first included each of the
 // given commits.
 func GetBuildsForCommits(commits []string, ignore map[int]bool) (map[string][]*Build, error) {
+	if len(commits) == 0 {
+		return map[string][]*Build{}, nil
+	}
 	// Get the set of build IDs by commit hash.
 	idsByCommit, err := GetBuildIDsForCommits(commits)
 	if err != nil {

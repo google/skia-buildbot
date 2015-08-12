@@ -35,7 +35,7 @@ func get(url string, rv interface{}) error {
 	return nil
 }
 
-// findCommitsRecursive is a recursive function called by findCommitsForBuild.
+// findCommitsRecursive is a recursive function called by FindCommitsForBuild.
 // It traces the history to find builds which were first included in the given
 // build.
 func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
@@ -98,10 +98,10 @@ func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *
 	return commits, stealFrom, stolen, nil
 }
 
-// findCommitsForBuild determines which commits were first included in the
+// FindCommitsForBuild determines which commits were first included in the
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
-func findCommitsForBuild(b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
+func FindCommitsForBuild(b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
 	if b.Repository == "" {
 		return []string{}, 0, []string{}, nil
 	}
@@ -191,7 +191,7 @@ func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *git
 // and pushes it into the database.
 func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 	// Find the commits for this build.
-	commits, stoleFrom, stolen, err := findCommitsForBuild(b, repos)
+	commits, stoleFrom, stolen, err := FindCommitsForBuild(b, repos)
 	if err != nil {
 		return err
 	}
