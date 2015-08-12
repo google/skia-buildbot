@@ -135,7 +135,12 @@ func repeatedTasksScheduler() {
 		// Loop over all tasks to find tasks which need to be scheduled.
 		for _, prototype := range supportedTasks {
 
-			query, args := task_common.DBTaskQuery(prototype, "", false, true, true, false, 0, task_common.MAX_PAGE_SIZE)
+			query, args := task_common.DBTaskQuery(prototype,
+				task_common.QueryParams{
+					FutureRunsOnly: true,
+					Offset:         0,
+					Size:           task_common.MAX_PAGE_SIZE,
+				})
 			glog.Infof("Running %s", query)
 			data, err := prototype.Select(query, args...)
 			if err != nil {

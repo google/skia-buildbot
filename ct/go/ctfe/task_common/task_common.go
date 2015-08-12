@@ -140,37 +140,53 @@ func parseBoolFormValue(string string) bool {
 	}
 }
 
-// TODO(benjaminwagner): Make call sites readable.
-func DBTaskQuery(prototype Task, username string, successful bool, includeCompleted bool, includeFutureRuns bool, countQuery bool, offset int, size int) (string, []interface{}) {
+type QueryParams struct {
+	// If non-empty, limits to only tasks with the given username.
+	Username string
+	// Include only tasks that have completed successfully.
+	SuccessfulOnly bool
+	// Include only tasks that are not yet completed.
+	PendingOnly bool
+	// Include only completed tasks that are scheduled to repeat.
+	FutureRunsOnly bool
+	// If true, SELECT COUNT(*). If false, SELECT * and include ORDER BY and LIMIT clauses.
+	CountQuery bool
+	// First term of LIMIT clause; ignored if countQuery is true.
+	Offset int
+	// Second term of LIMIT clause; ignored if countQuery is true.
+	Size int
+}
+
+func DBTaskQuery(prototype Task, params QueryParams) (string, []interface{}) {
 	args := []interface{}{}
 	query := "SELECT "
-	if countQuery {
+	if params.CountQuery {
 		query += "COUNT(*)"
 	} else {
 		query += "*"
 	}
 	query += fmt.Sprintf(" FROM %s", prototype.TableName())
 	clauses := []string{}
-	if username != "" {
+	if params.Username != "" {
 		clauses = append(clauses, "username=?")
-		args = append(args, username)
+		args = append(args, params.Username)
 	}
-	if successful {
+	if params.SuccessfulOnly {
 		clauses = append(clauses, "(ts_completed IS NOT NULL AND failure = 0)")
 	}
-	if !includeCompleted {
+	if params.PendingOnly {
 		clauses = append(clauses, "ts_completed IS NULL")
 	}
-	if includeFutureRuns {
+	if params.FutureRunsOnly {
 		clauses = append(clauses, "(repeat_after_days != 0 AND ts_completed IS NOT NULL)")
 	}
 	if len(clauses) > 0 {
 		query += " WHERE "
 		query += strings.Join(clauses, " AND ")
 	}
-	if !countQuery {
+	if !params.CountQuery {
 		query += " ORDER BY id DESC LIMIT ?,?"
-		args = append(args, offset, size)
+		args = append(args, params.Offset, params.Size)
 	}
 	return query, args
 }
@@ -178,34 +194,38 @@ func DBTaskQuery(prototype Task, username string, successful bool, includeComple
 func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Filter by either username or not started yet.
-	username := r.FormValue("username")
-	successful := parseBoolFormValue(r.FormValue("successful"))
-	includeCompleted := !parseBoolFormValue(r.FormValue("not_completed"))
-	includeFutureRuns := parseBoolFormValue(r.FormValue("include_future_runs"))
-	if successful && !includeCompleted {
+	params := QueryParams{}
+	params.Username = r.FormValue("username")
+	params.SuccessfulOnly = parseBoolFormValue(r.FormValue("successful"))
+	params.PendingOnly = parseBoolFormValue(r.FormValue("not_completed"))
+	params.FutureRunsOnly = parseBoolFormValue(r.FormValue("include_future_runs"))
+	if params.SuccessfulOnly && params.PendingOnly {
 		skutil.ReportError(w, r, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "")
 		return
 	}
 	offset, size, err := skutil.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
-	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to get pagination params: %v", err))
+	if err == nil {
+		params.Offset, params.Size = offset, size
+	} else {
+		skutil.ReportError(w, r, err, "Failed to get pagination params")
 		return
 	}
-	query, args := DBTaskQuery(prototype, username, successful, includeCompleted, includeFutureRuns, false, offset, size)
+	params.CountQuery = false
+	query, args := DBTaskQuery(prototype, params)
 	glog.Infof("Running %s", query)
 	data, err := prototype.Select(query, args...)
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks: %v", prototype.GetTaskName(), err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
 		return
 	}
 
-	query, args = DBTaskQuery(prototype, username, successful, includeCompleted, includeFutureRuns, true, 0, 0)
+	params.CountQuery = true
+	query, args = DBTaskQuery(prototype, params)
 	// Get the total count.
 	glog.Infof("Running %s", query)
 	countVal := []int{}
 	if err := db.DB.Select(&countVal, query, args...); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks: %v", prototype.GetTaskName(), err))
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
 		return
 	}
 
@@ -229,7 +249,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		"pagination":  pagination,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		skutil.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
 }
