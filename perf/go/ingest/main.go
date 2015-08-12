@@ -16,11 +16,14 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	cconfig "go.skia.org/infra/go/config"
+	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/ingester"
 	"go.skia.org/infra/go/util"
 	gconfig "go.skia.org/infra/golden/go/config"
+	golddb "go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/goldingester"
+	goldtrybot "go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/perf/go/db"
 	_ "go.skia.org/infra/perf/go/perfingester"
 	_ "go.skia.org/infra/perf/go/trybot"
@@ -38,8 +41,10 @@ type IngesterConfig struct {
 	StatusDir       string               // Path where the ingest process keeps its status between restarts.
 	MetricName      string               // What to call this ingester's data when imported to Graphite
 	ExtraParams     map[string]string    // Any additional needed parameters (ingester specific)
-	ConstructorName string               // Named constructor for this ingester; must have been registered.
-	//    If not provided, ConstructorName will default to the dataset name
+	ConstructorName string               // Named constructor for this ingester (defaults to the dataset name).
+	DBHost          string               // Hostname of the MySQL database server used by this ingester.
+	DBName          string               // Name of the MySQL database used by this ingester.
+	DBPort          int                  // Port number of the MySQL database used by this ingester.
 }
 
 type IngestConfig struct {
@@ -137,10 +142,34 @@ func main() {
 
 	// Initialize the ingester and gold ingester.
 	ingester.Init(client)
-	if _, ok := config.Ingesters["gold"]; ok {
+	if _, ok := config.Ingesters[gconfig.CONSTRUCTOR_GOLD]; ok {
 		if err := goldingester.Init(client, filepath.Join(config.Ingesters["gold"].StatusDir, "android-build-info")); err != nil {
 			glog.Fatalf("Unable to initialize GoldIngester: %s", err)
 		}
+	}
+
+	// TODO(stephana): Cleanup the way trybots are instantiated so that each trybot has it's own
+	// database connection and they are all instantiated the same way instead of the
+	// one-off approaches.
+	if ingesterConf, ok := config.Ingesters[gconfig.CONSTRUCTOR_GOLD_TRYBOT]; ok {
+		dbConf := &database.DatabaseConfig{
+			Host:           ingesterConf.DBHost,
+			Port:           ingesterConf.DBPort,
+			User:           database.USER_RW,
+			Name:           ingesterConf.DBName,
+			MigrationSteps: golddb.MigrationSteps(),
+		}
+
+		if !config.Common.Local {
+			if err := dbConf.GetPasswordFromMetadata(); err != nil {
+				glog.Fatal(err)
+			}
+		}
+		vdb, err := dbConf.NewVersionedDB()
+		if err != nil {
+			glog.Fatalf("Unable to open db connection: %s", err)
+		}
+		goldtrybot.Init(vdb)
 	}
 
 	git, err := gitinfo.NewGitInfo(config.Common.GitRepoDir, true, false)

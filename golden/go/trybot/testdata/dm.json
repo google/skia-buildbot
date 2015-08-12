@@ -1,0 +1,63 @@
+{
+   "build_number" : "2500",
+   "gitHash" : "2a5ca89ea1a5093b5d143740619ca162a74fe0e7",
+   "issue" : "1279303002",
+   "key" : {
+      "arch" : "x86_64",
+      "compiler" : "GCC",
+      "configuration" : "Release",
+      "cpu_or_gpu" : "CPU",
+      "cpu_or_gpu_value" : "AVX2",
+      "extra_config" : "Shared",
+      "model" : "GCE",
+      "os" : "Ubuntu"
+   },
+   "max_rss_MB" : 1991,
+   "patchset" : "20001",
+   "results" : [
+      {
+         "key" : {
+            "config" : "pipe-8888",
+            "name" : "bigmatrix",
+            "source_type" : "gm"
+         },
+         "md5" : "c0c1907f57bbd25c5e1e6e3853a0a48f",
+         "options" : {
+            "ext" : "png"
+         }
+      },
+      {
+         "key" : {
+            "config" : "pipe-8888",
+            "name" : "badpaint",
+            "source_type" : "gm"
+         },
+         "md5" : "859d7ec4a35cb329a7ccf97ff8715b55",
+         "options" : {
+            "ext" : "png"
+         }
+      },
+      {
+         "key" : {
+            "config" : "pipe-8888",
+            "name" : "bitmapshaders",
+            "source_type" : "gm"
+         },
+         "md5" : "c6aaf68f7dd29ac57e898db90fb19e78",
+         "options" : {
+            "ext" : "png"
+         }
+      },
+      {
+         "key" : {
+            "config" : "pipe-8888",
+            "name" : "aaclip",
+            "source_type" : "gm"
+         },
+         "md5" : "fa3c371d201d6f88f7a47b41862e2e85",
+         "options" : {
+            "ext" : "png"
+         }
+      }
+   ]
+}

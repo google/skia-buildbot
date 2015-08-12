@@ -118,6 +118,22 @@ var migrationSteps = []database.MigrationStep{
 		},
 	},
 
+	// Add a table to store trybot results.
+	// version 7
+	{
+		MySQLUp: []string{
+			`CREATE TABLE IF NOT EXISTS tries (
+				issue        VARCHAR(255) NOT NULL PRIMARY KEY,
+				last_updated BIGINT       NOT NULL,
+				results      LONGTEXT     NOT NULL,
+				INDEX tries_lastupdated_idx (last_updated)
+			)`,
+		},
+		MySQLDown: []string{
+			`DROP TABLE IF EXISTS tries`,
+		},
+	},
+
 	// Use this is a template for more migration steps.
 	// version x
 	// {

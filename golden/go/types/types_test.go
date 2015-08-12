@@ -2,7 +2,9 @@ package types
 
 import (
 	"testing"
+	"time"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/tiling"
 )
 
@@ -85,4 +87,26 @@ func TestGoldenTrace(t *testing.T) {
 	if got, want := g.Len(), 0; got != want {
 		t.Errorf("Trim wrong length: Got %v Want %v", got, want)
 	}
+}
+
+func TestTryBotResults(t *testing.T) {
+	K_1, K_2, K_3 := "key1", "key2", "key3"
+	V_1, V_2, V_3 := "val1", "val2", "val3"
+
+	tbResult := NewTryBotResults()
+	now := time.Now().Unix()
+	tbResult.Update(K_1, V_1, now)
+	tbResult.Update(K_2, V_2, now)
+	tbResult.Update(K_3, V_3, now)
+
+	assert.Equal(t, &TBResult{Digest: V_1, TS: now}, tbResult[K_1])
+	assert.Equal(t, &TBResult{Digest: V_2, TS: now}, tbResult[K_2])
+	assert.Equal(t, &TBResult{Digest: V_3, TS: now}, tbResult[K_3])
+
+	time.Sleep(time.Second)
+	newNow := time.Now().Unix()
+	tbResult.Update(K_3, V_2, newNow)
+	assert.Equal(t, &TBResult{Digest: V_1, TS: now}, tbResult[K_1])
+	assert.Equal(t, &TBResult{Digest: V_2, TS: now}, tbResult[K_2])
+	assert.Equal(t, &TBResult{Digest: V_2, TS: newNow}, tbResult[K_3])
 }

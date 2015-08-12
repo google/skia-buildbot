@@ -9,4 +9,5 @@ const (
 	// to the gold dataset.
 	CONSTRUCTOR_GOLD         = DATASET_GOLD
 	CONSTRUCTOR_ANDROID_GOLD = "android-gold"
+	CONSTRUCTOR_GOLD_TRYBOT  = "gold-trybot"
 )

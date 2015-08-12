@@ -230,3 +230,27 @@ func TileFromJson(r io.Reader, traceExample tiling.Trace) (*tiling.Tile, error) 
 		TileIndex: rawTile.Scale,
 	}, nil
 }
+
+// TBResult stores a digest and the time when occurred..
+type TBResult struct {
+	Digest string
+	TS     int64
+}
+
+// TryBotResults maps trace ids to trybot results.
+type TryBotResults map[string]*TBResult
+
+func NewTryBotResults() TryBotResults {
+	return TryBotResults(map[string]*TBResult{})
+}
+
+func (t TryBotResults) Update(key string, digest string, timeStamp int64) {
+	if current, ok := t[key]; ok {
+		if current.TS < timeStamp {
+			current.Digest = digest
+			current.TS = timeStamp
+		}
+	} else {
+		t[key] = &TBResult{Digest: digest, TS: timeStamp}
+	}
+}
