@@ -1,0 +1,17 @@
+#!/bin/bash
+# Builds and uploads a debian package for build_scheduler.
+APPNAME=build_scheduler
+SYSTEMD=${APPNAME}.service
+DESCRIPTION="Buildbot scheduler for Skia."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME} ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL_DIR} --mode=777                         ${ROOT}/mnt/pd0/build_scheduler_workdir
+}
+
+source ../bash/release.sh

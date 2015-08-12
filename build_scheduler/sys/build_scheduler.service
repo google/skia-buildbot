@@ -1,0 +1,16 @@
+[Unit]
+Description=Buildbot Scheduler for Skia
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/build_scheduler \
+    --log_dir=/var/log/logserver \
+    --workdir=/mnt/pd0/build_scheduler_workdir
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
