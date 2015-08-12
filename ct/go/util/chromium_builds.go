@@ -65,7 +65,6 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 	pathToPyFiles := filepath.Join(
 		filepath.Dir((filepath.Dir(filepath.Dir(currentFile)))),
 		"py")
-	syncEnv := []string{"GYP_DEFINES=use_goma=1"}
 	syncArgs := []string{
 		filepath.Join(pathToPyFiles, "sync_skia_in_chrome.py"),
 		"--destination=" + chromiumBuildDir,
@@ -73,7 +72,7 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 		"--chrome_revision=" + chromiumHash,
 		"--skia_revision=" + skiaHash,
 	}
-	if err := ExecuteCmd("python", syncArgs, syncEnv, 2*time.Hour, nil, nil); err != nil {
+	if err := ExecuteCmd("python", syncArgs, []string{}, 2*time.Hour, nil, nil); err != nil {
 		glog.Warning("There was an error. Deleting base directory and trying again.")
 		util.RemoveAll(chromiumBuildDir)
 		util.MkdirAll(chromiumBuildDir, 0700)
@@ -218,8 +217,8 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 		buildTarget = "chrome_shell_apk"
 	}
 
-	// Run "GYP_GENERATORS='ninja' build/gyp_chromium -Duse_goma=1".
-	env := []string{"GYP_GENERATORS=ninja"}
+	// Run "GYP_DEFINES='gomadir=/b/build/goma' GYP_GENERATORS='ninja' build/gyp_chromium -Duse_goma=1".
+	env := []string{fmt.Sprintf("GYP_DEFINES=gomadir=%s", GomaDir), "GYP_GENERATORS=ninja"}
 	if err := ExecuteCmd(filepath.Join("build", "gyp_chromium"), []string{"-Duse_goma=1"}, env, 30*time.Minute, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gyp_chromium: %s", err)
 	}
