@@ -16,7 +16,6 @@ import (
 	"image/png"
 	"io/ioutil"
 	"math/rand"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -113,6 +112,7 @@ var (
 // Command line flags.
 var (
 	configFilename = flag.String("config", "webtry.toml", "Configuration filename")
+	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 )
 
 // lineNumbers adds #line numbering to the user's code.
@@ -269,14 +269,7 @@ func Init() {
 		}
 	}()
 
-	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
-	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, 1*time.Minute)
-
-	// Start reporting metrics.
-	// TODO(jcgregorio) We need a centrialized config server for storing things
-	// like the IP address of the Graphite monitor.
-	addr, _ := net.ResolveTCPAddr("tcp", "skia-monitoring-b:2003")
-	go metrics.Graphite(metrics.DefaultRegistry, 1*time.Minute, "webtry", addr)
+	common.InitWithMetrics("webtry", graphiteServer)
 
 	writeOutAllSourceImages()
 }

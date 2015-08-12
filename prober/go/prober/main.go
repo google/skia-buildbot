@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cyberdelia/go-metrics-graphite"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
@@ -189,7 +190,7 @@ func monitorIssueTracker() {
 		glog.Fatalln("Failed to resolve the Graphite server: ", err)
 	}
 	issueRegistry := metrics.NewRegistry()
-	go metrics.Graphite(issueRegistry, common.SAMPLE_PERIOD, "issues", addr)
+	go graphite.Graphite(issueRegistry, common.SAMPLE_PERIOD, "issues", addr)
 
 	// IssueStatus has all the info we need to capture and record a single issue status. I.e. capture
 	// the count of all issues with a status of "New".

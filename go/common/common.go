@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/cyberdelia/go-metrics-graphite"
 	"github.com/davecgh/go-spew/spew"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
@@ -34,7 +35,7 @@ func Init() {
 // Runs normal Init functions as well as tracking runtime metrics.
 // Sets up Graphite push for go-metrics' DefaultRegistry. Users of
 // both InitWithMetrics and metrics.DefaultRegistry will not need to
-// run metrics.Graphite(metrics.DefaultRegistry, ...) separately.
+// run graphite.Graphite(metrics.DefaultRegistry, ...) separately.
 func InitWithMetrics(appName string, graphiteServer *string) {
 	Init()
 
@@ -74,7 +75,7 @@ func startMetrics(appName, graphiteServer string) {
 	// Runtime metrics.
 	metrics.RegisterRuntimeMemStats(metrics.DefaultRegistry)
 	go metrics.CaptureRuntimeMemStats(metrics.DefaultRegistry, SAMPLE_PERIOD)
-	go metrics.Graphite(metrics.DefaultRegistry, SAMPLE_PERIOD, appPrefix, addr)
+	go graphite.Graphite(metrics.DefaultRegistry, SAMPLE_PERIOD, appPrefix, addr)
 
 	// Uptime.
 	uptimeGuage := metrics.GetOrRegisterGaugeFloat64("uptime", metrics.DefaultRegistry)
