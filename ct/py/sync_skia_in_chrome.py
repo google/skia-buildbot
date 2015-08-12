@@ -148,7 +148,9 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
                                       log_in_real_time=False).rstrip()
 
   # Run gclient hooks
-  gclient_utils.RunHooks(gyp_defines=gyp_defines, gyp_generators=gyp_generators)
+  run_hooks_gyp_defines = gyp_defines or os.environ.get('GYP_DEFINES')
+  gclient_utils.RunHooks(gyp_defines=run_hooks_gyp_defines,
+                         gyp_generators=gyp_generators)
 
   # Fix the submodules so that they don't show up in "git status"
   # This fails on Windows...
