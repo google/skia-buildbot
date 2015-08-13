@@ -217,6 +217,11 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 		buildTarget = "chrome_shell_apk"
 	}
 
+	// Restart Goma's compiler proxy right before building the checkout.
+	if err := ExecuteCmd("python", []string{filepath.Join(GomaDir, "goma_ctl.py"), "restart"}, os.Environ(), 10*time.Minute, nil, nil); err != nil {
+		return fmt.Errorf("Error while restarting goma compiler proxy: %s", err)
+	}
+
 	// Run "GYP_DEFINES='gomadir=/b/build/goma' GYP_GENERATORS='ninja' build/gyp_chromium -Duse_goma=1".
 	env := []string{fmt.Sprintf("GYP_DEFINES=gomadir=%s", GomaDir), "GYP_GENERATORS=ninja"}
 	if err := ExecuteCmd(filepath.Join("build", "gyp_chromium"), []string{"-Duse_goma=1"}, env, 30*time.Minute, nil, nil); err != nil {
