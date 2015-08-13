@@ -37,7 +37,7 @@
       padding: 10px;
       border: solid black 1px;
     }
-    .delete-button {
+    .delete-button, .redo-button {
       --paper-icon-button-disabled: {
         display: none;
       }
@@ -45,11 +45,17 @@
   </style>
   <template>
 
-    <paper-dialog heading="Confirmation" id="confirm_dialog">
+    <paper-dialog heading="Confirmation" id="delete_dialog">
       <div>Proceed with deleting task?</div>
       <div>{{deleteNote(captureSkpsTasks, deleteIndex)}}</div>
       <paper-button id="delete_dismiss">Cancel</paper-button>
       <paper-button id="delete_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
+
+    <paper-dialog heading="Confirmation" id="redo_dialog">
+      <div>Reschedule this task?</div>
+      <paper-button id="redo_dismiss">Cancel</paper-button>
+      <paper-button id="redo_confirm" autofocus>OK</paper-button>
     </paper-dialog>
 
     <h2><template is="dom-if" if="{{constrainByUser}}">My </template>Capture SkPicture Runs</h2>
@@ -82,6 +88,13 @@
                                alt="Delete"
                                data-index$="{{index}}"
                                data-type="delete">
+            </paper-icon-button>
+            <paper-icon-button icon="redo" mini
+                               class="redo-button"
+                               disabled="{{!captureSkpsTask.canRedo}}"
+                               alt="Redo"
+                               data-index$="{{index}}"
+                               data-type="redo">
             </paper-icon-button>
           </td>
 
@@ -189,6 +202,10 @@
          type: Number,
          value: -1,
        },
+       redoIndex: {
+         type: Number,
+         value: -1,
+       },
      },
 
      ready: function() {
@@ -198,17 +215,29 @@
        var that = this;
        this.$.runshistory.addEventListener('click', function(e) {
          var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
-         if (button != null && button.dataset.type == "delete") {
-           that.deleteIndex = button.dataset.index;
-           that.$.confirm_dialog.open();
+         if (button != null) {
+           if (button.dataset.type == "delete") {
+             that.deleteIndex = button.dataset.index;
+             that.$.delete_dialog.open();
+           } else if (button.dataset.type == "redo") {
+             that.redoIndex = button.dataset.index;
+             that.$.redo_dialog.open();
+           }
          }
        });
        this.$.delete_dismiss.addEventListener('click', function(e) {
          that.deleteIndex = -1;
-         that.$.confirm_dialog.close();
+         that.$.delete_dialog.close();
        });
        this.$.delete_confirm.addEventListener('click', function(e) {
          that.deleteTask();
+       });
+       this.$.redo_dismiss.addEventListener('click', function(e) {
+         that.redoIndex = -1;
+         that.$.redo_dialog.close();
+       });
+       this.$.redo_confirm.addEventListener('click', function(e) {
+         that.redoTask();
        });
        this.reload();
      },
@@ -233,6 +262,7 @@
          that.pagination = json.pagination;
          for (var i = 0; i < that.captureSkpsTasks.length; i++) {
            that.captureSkpsTasks[i].canDelete = json.permissions[i].DeleteAllowed;
+           that.captureSkpsTasks[i].canRedo = json.permissions[i].RedoAllowed;
          }
        }).catch(sk.errorMessage);
      },
@@ -273,7 +303,19 @@
          $$$("#confirm_toast").show();
        }.bind(this)).catch(sk.errorMessage).then(function() {
          this.reload();
-         this.$.confirm_dialog.close();
+         this.$.delete_dialog.close();
+       }.bind(this));
+     },
+
+     redoTask: function() {
+       var params = {};
+       params["id"] = this.captureSkpsTasks[this.redoIndex].Id;
+       sk.post("/_/redo_capture_skps_task", JSON.stringify(params)).then(function() {
+         $$$("#confirm_toast").text = "Resubmitted task " + params["id"];
+         $$$("#confirm_toast").show();
+       }.bind(this)).catch(sk.errorMessage).then(function() {
+         this.reload();
+         this.$.redo_dialog.close();
        }.bind(this));
      },
 

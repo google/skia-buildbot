@@ -221,6 +221,14 @@ func deleteRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Req
 	task_common.DeleteTaskHandler(&RecreateWebpageArchivesDBTask{}, w, r)
 }
 
+func redoRecreatePageSetsTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.RedoTaskHandler(&RecreatePageSetsDBTask{}, w, r)
+}
+
+func redoRecreateWebpageArchivesTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.RedoTaskHandler(&RecreateWebpageArchivesDBTask{}, w, r)
+}
+
 func recreatePageSetsRunsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(recreatePageSetsRunsHistoryTemplate, w, r)
 }
@@ -249,4 +257,6 @@ func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/"+api.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, updateRecreateWebpageArchivesTaskHandler).Methods("POST")
 	r.HandleFunc("/"+api.DELETE_RECREATE_PAGE_SETS_TASK_POST_URI, deleteRecreatePageSetsTaskHandler).Methods("POST")
 	r.HandleFunc("/"+api.DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, deleteRecreateWebpageArchivesTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.REDO_RECREATE_PAGE_SETS_TASK_POST_URI, redoRecreatePageSetsTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.REDO_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI, redoRecreateWebpageArchivesTaskHandler).Methods("POST")
 }

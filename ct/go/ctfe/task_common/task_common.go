@@ -236,12 +236,14 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	}
 	type Permissions struct {
 		DeleteAllowed bool
+		RedoAllowed   bool
 	}
 	tasks := AsTaskSlice(data)
 	permissions := make([]Permissions, len(tasks))
 	for i := 0; i < len(tasks); i++ {
 		deleteAllowed, _ := canDeleteTask(tasks[i], r)
-		permissions[i] = Permissions{DeleteAllowed: deleteAllowed}
+		redoAllowed, _ := canRedoTask(tasks[i], r)
+		permissions[i] = Permissions{DeleteAllowed: deleteAllowed, RedoAllowed: redoAllowed}
 	}
 	jsonResponse := map[string]interface{}{
 		"data":        data,
@@ -355,6 +357,15 @@ func canDeleteTask(task Task, r *http.Request) (bool, error) {
 	return true, nil
 }
 
+// Returns true if the given task can be re-added by the logged-in user; otherwise false and an
+// error describing the problem.
+func canRedoTask(task Task, r *http.Request) (bool, error) {
+	if !task.GetCommonCols().TsCompleted.Valid {
+		return false, fmt.Errorf("Cannot redo pending tasks.")
+	}
+	return true, nil
+}
+
 func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
 		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to delete tasks"), "")
@@ -402,6 +413,41 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		skutil.ReportError(w, r, err, "")
 	} else {
 		skutil.ReportError(w, r, fmt.Errorf("Failed to delete; reason unknown"), "")
+		return
+	}
+}
+
+func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
+	if !ctfeutil.UserHasEditRights(r) {
+		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to redo tasks"), "")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	vars := struct{ Id int64 }{}
+	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
+		skutil.ReportError(w, r, err, "Failed to parse redo request")
+		return
+	}
+	defer skutil.Close(r.Body)
+
+	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ? AND ts_completed IS NOT NULL", prototype.TableName())
+	binds := []interface{}{vars.Id}
+	data, err := prototype.Select(rowQuery, binds...)
+	if err != nil {
+		skutil.ReportError(w, r, err, "Unable to find requested task.")
+		return
+	}
+	tasks := AsTaskSlice(data)
+	if len(tasks) != 1 {
+		skutil.ReportError(w, r, err, "Unable to find requested task.")
+		return
+	}
+
+	addTaskVars := tasks[0].GetPopulatedAddTaskVars()
+	// Replace the username with the new requester.
+	addTaskVars.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
+	if err := AddTask(addTaskVars); err != nil {
+		skutil.ReportError(w, r, err, "Could not redo the task.")
 		return
 	}
 }

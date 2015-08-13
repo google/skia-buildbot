@@ -150,6 +150,10 @@ func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.DeleteTaskHandler(&DBTask{}, w, r)
 }
 
+func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.RedoTaskHandler(&DBTask{}, w, r)
+}
+
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
@@ -161,4 +165,5 @@ func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/"+api.GET_CAPTURE_SKPS_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	r.HandleFunc("/"+api.UPDATE_CAPTURE_SKPS_TASK_POST_URI, updateTaskHandler).Methods("POST")
 	r.HandleFunc("/"+api.DELETE_CAPTURE_SKPS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.REDO_CAPTURE_SKPS_TASK_POST_URI, redoTaskHandler).Methods("POST")
 }

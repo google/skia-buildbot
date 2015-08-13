@@ -252,6 +252,10 @@ func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.DeleteTaskHandler(&DBTask{}, w, r)
 }
 
+func redoTaskHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.RedoTaskHandler(&DBTask{}, w, r)
+}
+
 func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
@@ -280,4 +284,5 @@ func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/"+api.GET_CHROMIUM_BUILD_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	r.HandleFunc("/"+api.UPDATE_CHROMIUM_BUILD_TASK_POST_URI, updateTaskHandler).Methods("POST")
 	r.HandleFunc("/"+api.DELETE_CHROMIUM_BUILD_TASK_POST_URI, deleteTaskHandler).Methods("POST")
+	r.HandleFunc("/"+api.REDO_CHROMIUM_BUILD_TASK_POST_URI, redoTaskHandler).Methods("POST")
 }
