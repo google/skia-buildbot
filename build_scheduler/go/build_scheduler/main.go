@@ -34,6 +34,7 @@ var (
 
 	// BOT_WHITELIST indicates which bots we can schedule.
 	BOT_WHITELIST = []string{
+		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release-BuildBucket",
 		"Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-BuildBucket",
 	}
 
