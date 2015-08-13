@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"go.skia.org/infra/go/util"
@@ -116,7 +117,12 @@ func (c *Client) RequestBuild(builder, master, commit, repo, author string) (*Bu
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Response code is %s", resp.Status)
+		defer util.Close(resp.Body)
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to schedule build (code %s); couldn't read response body: %v", resp.Status, err)
+		}
+		return nil, fmt.Errorf("Response code is %s. Response body:\n%s", resp.Status, string(b))
 	}
 	defer util.Close(resp.Body)
 	var res buildBucketResponse

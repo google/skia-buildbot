@@ -8,7 +8,7 @@ source vm_config.sh
 
 BUILD_SCHEDULER_MACHINE_TYPE=n1-highmem-16
 BUILD_SCHEDULER_SOURCE_SNAPSHOT=skia-systemd-pushable-base
-BUILD_SCHEDULER_SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
+BUILD_SCHEDULER_SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
 BUILD_SCHEDULER_IP_ADDRESS=104.154.112.112
 
 # Create a boot disk from the pushable base snapshot.
