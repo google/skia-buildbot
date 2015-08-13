@@ -20,6 +20,10 @@ const (
 	// backfill builds for all commits except for those at which we've already built.
 	DEFAULT_SCORE_THRESHOLD = 0.0001
 
+	// Don't bisect builds with greater than this many commits. This
+	// prevents spending lots of time computing giant blamelists.
+	NO_BISECT_COMMIT_LIMIT = 100
+
 	// If this time period used, include commits from the beginning of time.
 	PERIOD_FOREVER = 0
 )
@@ -252,6 +256,17 @@ func (q *BuildQueue) updateRepo(repoUrl string, repo *gitinfo.GitInfo, now time.
 	for _, commit := range recentCommits {
 		scoreIncrease[commit] = map[string]float64{}
 		for _, builder := range allBots {
+			// Shortcut: Don't bisect builds with a huge number
+			// of commits.  This saves lots of time and only affects
+			// the first successful build for a bot.
+			if _, ok := builds[commit][builder]; ok {
+				if len(builds[commit][builder].Commits) > NO_BISECT_COMMIT_LIMIT {
+					glog.Warningf("Skipping %s on %s; previous build has too many commits.", commit[0:7], builder)
+					scoreIncrease[commit][builder] = 0.0
+					continue
+				}
+			}
+
 			newScores := map[string]float64{}
 			// Pretend to create a new Build at the given commit.
 			newBuild := buildbot.Build{
@@ -365,13 +380,25 @@ func (q *BuildQueue) Pop(builder string) (*BuildCandidate, error) {
 		// We don't yet know about this builder. In other words, it hasn't
 		// built any commits. Therefore, the highest-priority commit to
 		// build is tip-of-tree. Unfortunately, we don't know which repo
-		// the bot uses, so we can only say "origin/master", with no repo
-		// or author values.
+		// the bot uses, so we can only say "origin/master" and use the Skia
+		// repo as a default.
+		r, err := q.repos.Repo(REPOS[0])
+		if err != nil {
+			return nil, err
+		}
+		h, err := r.FullHash("origin/master")
+		if err != nil {
+			return nil, err
+		}
+		details, err := r.Details(h)
+		if err != nil {
+			return nil, err
+		}
 		return &BuildCandidate{
-			Author:  "???",
+			Author:  details.Author,
 			Builder: builder,
-			Commit:  "origin/master",
-			Repo:    "???",
+			Commit:  h,
+			Repo:    REPOS[0],
 			Score:   math.MaxFloat64,
 		}, nil
 	}

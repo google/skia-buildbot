@@ -15,6 +15,16 @@ import (
 )
 
 var (
+	// BUILD_BLACKLIST is a set of builds which, for one reason or another,
+	// we want to skip during ingestion. Typically this means that there is
+	// something wrong with the build which prevents it from being ingested
+	// properly.
+	BUILD_BLACKLIST = map[string]map[int]bool{
+		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release-BuildBucket": map[int]bool{
+			1: true, // Cannot be ingested because its repo is "???"
+		},
+	}
+
 	// TODO(borenet): Avoid hard-coding this list. Instead, obtain it from
 	// checked-in code or the set of masters which are actually running.
 	MASTER_NAMES = []string{"client.skia", "client.skia.android", "client.skia.compile", "client.skia.fyi"}
@@ -399,6 +409,10 @@ func ingestNewBuilds(repos *gitinfo.RepoMap) error {
 			defer wg.Done()
 			for b, w := range buildsToProcessForMaster {
 				for _, n := range w {
+					if BUILD_BLACKLIST[b][n] {
+						glog.Warningf("Skipping blacklisted build: %s # %d", b, n)
+						continue
+					}
 					glog.Infof("Ingesting build: %s, %s, %d", master, b, n)
 					build, err := retryGetBuildFromMaster(master, b, n, repos)
 					if err != nil {
