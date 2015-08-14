@@ -1,0 +1,546 @@
+<!-- The <plot-simple-sk> custom element declaration.
+
+  A custom element for plotting x,y graphs.
+
+  Attributes:
+    width - The width of the element in px.
+    height - The height of the element in px.
+
+  Events:
+    trace_selected - Event produced when the user clicks on a line.
+      The e.detail contains the id of the line and the index of the
+      point in the line closest to the mouse.
+
+        e.detail = {
+          id: "id of trace",
+          index: 3,
+        }
+
+    trace_focused - Event produced when the user moves the mouse close
+      to a line. The e.detail contains the id of the line and the index of the
+      point in the line closest to the mouse.
+
+        e.detail = {
+          id: "id of trace",
+          index: 3,
+        }
+
+  Methods:
+    addLines(lines) - Add lines to the plot, where lines is an object that
+      maps the line id to an array of [x, y] points. For example:
+
+        var lines = {
+          foo: [
+            [0.1, 3.7],
+            [0.2, 3.8],
+            [0.4, 3.0],
+          ],
+          bar: [
+            [0.0, 2.5],
+            [0.2, 4.2],
+            [0.5, 3.9],
+          ],
+        };
+        plot.addLines(lines);
+
+    deleteLine(id) - Removes the line with the given id from the plot.
+      If no line with that id exists then the function returns without
+      any action.
+
+    removeAll() - Removes all lines from the plot.
+
+    setHighlight(ids) - Highlights all the lines that have an id that
+       appears in the array 'ids'.
+
+         plot.setHighlight(["foo", "bar"])
+
+    clearHighlight() - Removes highlighting from all lines.
+
+    setXBar(x) - Places a distinct vertical bar at the given location
+      on the x-axis. There can be at most only one xbar placed at any
+      one time.
+
+    clearXBar() - Removes the vertical bar placed by setXBar().
+
+    setBanding(bands) - Set a background highlight for the given x ranges
+      given in 'bands'.
+
+        var bands = [
+          [0.0, 0.1],
+          [0.5, 1.2],
+        ];
+        plot.setBanding(bands);
+
+    setTicks(ticks) - Sets the tick mark locations and values. If not called
+      then uniformly spaces tick marks in the x axis units are displayed.
+      The value of ticks is an object that maps x axis values to their display
+      value.
+
+        var ticks = {
+           1: "5th",
+          10: "6th",
+          25: "7th",
+        };
+
+    resetAxes() - Resets the axes back after the user has zoomed.
+
+-->
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<script src="/res/imp/bower_components/d3/d3.min.js"></script>
+
+<!--
+Styles for the svg elements used in plot-simple-sk are kept in a separate
+CSS file since we are using d3 to manage those elements and not the
+Polymer.dom() functions, so the whole magic CSS scoping stuff doesn't
+work, so we just prefix every rule with plot-simple-sk.
+-->
+<link rel="stylesheet" href="plot-simple.css">
+
+<dom-module id="plot-simple-sk">
+  <template>
+    <svg id="svg" width$="{{width}}" height$="{{height}}">
+      <defs>
+        <clipPath id="clip">
+          <rect x="0" y="0" width="1000" height="500" />
+        </clipPath>
+      </defs>
+    </svg>
+  </template>
+</dom-module>
+
+<script>
+  (function () {
+    var colors = [
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E",
+      "#E6AB02",
+      "#A6761D",
+      "#666666",
+    ];
+
+    var margins = {
+      top: 20,
+      right: 10,
+      bottom: 20,
+      left: 50
+    };
+
+    Polymer({
+      is: "plot-simple-sk",
+
+      properties: {
+        width: {
+          type: Number,
+          value: 1000,
+          reflectToAttribute: true,
+        },
+        height: {
+          type: Number,
+          value: 500,
+          reflectToAttribute: true,
+        },
+      },
+
+      ready: function() {
+        // The last reported position of the mouse, in plot and native
+        // coordinates.
+        this._mouse = {
+          x: 0,
+          y: 0,
+          x_native: 0,
+          y_native: 0,
+        };
+
+        // The closes line to the mouse, calculated after every mouse move
+        // event.
+        this._closest = {
+          d: 1e20,
+          trace: -1,
+          index: -1,
+        };
+
+        // The location of the XBar. See setXBar().
+        this._xbarx = 0;
+
+        // The locations of the background bands. See setBanding().
+        this._bands = [];
+
+        // The values of the custom x-axis tick marks, if set. See setTicks().
+        this._ticks = {};
+
+        this._lineData = [ ];
+        this._initialSetup();
+        this.resetAxes();
+        this._plot();
+      },
+
+      // lines is a map to the line data.
+      addLines: function(lines) {
+        Object.keys(lines).forEach(function(id) {
+          var line = lines[id];
+          line._id = id;
+          line._hash = sk.hashString(id);
+          this._lineData.push(line);
+        }.bind(this));
+        this.resetAxes();
+        this._plot();
+      },
+
+      deleteLine: function(id) {
+        for (var i = this._lineData.length - 1; i >= 0; i--) {
+          if (this._lineData[i]._id == id) {
+            this._lineData.splice(i, 1);
+            break;
+          }
+        }
+        this._plot();
+      },
+
+      removeAll: function() {
+        this._lineData = [];
+        this._plot();
+      },
+
+      setHighlight: function(ids) {
+        $$('.trace').forEach(function(ele) {
+          if (ids.indexOf(ele.dataset.id) != -1) {
+            ele.classList.add('highlight');
+          }
+        });
+      },
+
+      clearHighlight: function() {
+        this._svg.selectAll(".trace")
+          .classed('highlight', false);
+      },
+
+      setXBar: function(x) {
+        this._xbarx = x;
+        this._xbar
+          .attr('x1', this._xRange(x))
+          .attr('x2', this._xRange(x))
+          .classed('displayed', true);
+      },
+
+      clearXBar: function(x) {
+        this._xbar
+          .classed('displayed', false);
+      },
+
+      setBanding: function(bands) {
+        this._bands = bands;
+        this._plot();
+      },
+
+      setTicks: function(ticks) {
+        var values = Object.keys(ticks).sort();
+        this._ticks = ticks;
+
+        this._xAxis
+          .tickValues(values)
+          .tickFormat(function(d) { return this._ticks[d]; }.bind(this));
+
+        this._plot();
+      },
+
+      resetAxes:  function() {
+        xMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[0]; }) });
+        xMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[0]; }) });
+        yMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[1]; }) });
+        yMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[1]; }) });
+        this._xRange.domain([xMin, xMax]);
+        this._yRange.domain([yMin, yMax]);
+        this._plot();
+      },
+
+      // Create an event from this._closest of the given name.
+      _eventFromClosest: function(name) {
+        var detail = {
+          id: this._lineData[this._closest.trace]._id,
+          index: this._closest.index,
+        }
+        this.dispatchEvent(new CustomEvent(name, {detail: detail, bubbles: true}));
+      },
+
+      _click: function() {
+        if (this._closest.trace == -1) {
+          return
+        }
+        this._eventFromClosest("trace_selected");
+      },
+
+      _move: function(p) {
+        this._mouse.x_native = p[0] - margins.left;
+        this._mouse.y_native = p[1] - margins.top;
+
+        // Only do the minimal work in _move, schedule the rest of the work
+        // to be done later in _mouseMoveWork.
+        window.setTimeout(this._mouseMoveWork.bind(this), 1);
+      },
+
+      // Calculates new this._closest value based on the mouse position.
+      // Also updates the 'focused' status of lines and dots.
+      _mouseMoveWork: function() {
+        this._mouse.x = this._xRange.invert(this._mouse.x_native);
+        this._mouse.y = this._yRange.invert(this._mouse.y_native);
+
+        this._vhair.attr('x1', this._mouse.x_native);
+        this._vhair.attr('x2', this._mouse.x_native);
+        this._hhair.attr('y1', this._mouse.y_native);
+        this._hhair.attr('y2', this._mouse.y_native);
+
+        var oldTrace = this._closest.trace;
+        var oldCommit = this._closest.index;
+
+        this._closest = {
+          d: 1e20,
+          trace: -1,
+          index: -1,
+        };
+        for (var i = this._lineData.length - 1; i >= 0; i--) {
+          var atrace = this._lineData[i];
+          for (var j = atrace.length - 1; j >= 0; j--) {
+            var pt = atrace[j];
+            var d = (pt[0] - this._mouse.x)*(pt[0] - this._mouse.x) +  (pt[1] - this._mouse.y)*(pt[1] - this._mouse.y);
+            if (d < this._closest.d) {
+              this._closest.d = d;
+              this._closest.trace = i;
+              this._closest.index= j;
+              this._closest.value= atrace[j][1];
+            }
+          }
+        }
+        if (oldTrace != this._closest.trace || oldCommit != this._closest.index) {
+          this._svg.selectAll(".trace")
+            .classed('focused', false);
+          this._svg.selectAll(".dot")
+            .classed('focused', false);
+          if (this._closest.trace >= 0) {
+            this._svg.select("#trace_"+this._closest.trace)
+              .classed('focused', true);
+            this._svg.select("#trace_"+this._closest.trace + " .c"+this._closest.index)
+              .classed('focused', true);
+          }
+
+          if (this._closest.trace != -1) {
+            this._eventFromClosest("trace_focused");
+          }
+        }
+      },
+
+      // Creates the initial set of SVG elements.
+      _initialSetup: function() {
+        var ele = this.$.svg;
+        this._outerWidth = ele.width.baseVal.value;
+        this._outerHeight = ele.height.baseVal.value;
+        this._width = this._outerWidth - margins.left - margins.right;
+        this._height = this._outerHeight - margins.top - margins.bottom;
+        d3.select(ele).select('#clip rect')
+          .attr('width', this._width)
+          .attr('height', this._height);
+        var xMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[0]; }) });
+        var xMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[0]; }) });
+        var yMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[1]; }) });
+        var yMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[1]; }) });
+
+        this._xRange = d3.scale
+          .linear()
+          .range([0, this._width])
+          .domain([xMin, xMax]);
+
+        this._yRange = d3.scale
+          .linear()
+          .range([this._height, 0])
+          .domain([yMin, yMax]);
+
+        this._lineFunc = d3.svg.line()
+          .x(function (d) { return this._xRange(d[0]); }.bind(this))
+          .y(function (d) { return this._yRange(d[1]); }.bind(this))
+          .interpolate('linear');
+
+        this._svg = d3.select(ele)
+          .append("g")
+          .attr("class", "top")
+          .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
+
+        d3.select(ele)
+          .on("click", this._click.bind(this))
+          .on("mousedown", this._mouseDown.bind(this))
+          .on("mousemove", this._mouseMove.bind(this))
+          .on("mouseup", this._mouseUp.bind(this));
+
+        this._xAxis = d3.svg.axis()
+          .scale(this._xRange)
+          .tickSize(5)
+          .tickSubdivide(true);
+
+        this._yAxis = d3.svg.axis()
+          .scale(this._yRange)
+          .tickSize(5)
+          .orient("left")
+          .tickSubdivide(true);
+
+        this._svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + this._height + ")")
+          .call(this._xAxis);
+
+        this._svg.append("g")
+          .attr("class", "y axis")
+          .call(this._yAxis);
+
+        // Add the crosshair.
+        this._hhair = this._svg.append("line")
+          .attr('x1', 0)
+          .attr('y1', 0)
+          .attr('x2', this._width)
+          .attr('y2', 0)
+          .attr('class', 'xhair');
+
+        this._vhair = this._svg.append("line")
+          .attr('x1', 0)
+          .attr('y1', 0)
+          .attr('x2', 0)
+          .attr('y2', this._height)
+          .attr('class', 'xhair');
+
+        this._xbar = this._svg.append("line")
+          .attr('x1', 0)
+          .attr('y1', 0)
+          .attr('x2', 0)
+          .attr('y2', this._height)
+          .attr('class', 'xbar');
+
+        this._vis = this._svg.append("g");
+      },
+
+
+      // Update the date displayed on the plot.
+      _plot: function() {
+        var trace = this._vis.selectAll(".trace")
+          .data(this._lineData);
+
+        trace.enter().append("g")
+          .attr("class", "trace")
+          .attr("clip-path", "url(#clip)")
+          .attr("stroke", function(d) { return colors[d._hash % 8]; })
+          .attr("id", function(d, i) { return "trace_" + i; })
+          .attr("data-id", function(d) { return d._id; })
+          .append("path")
+          .attr("stroke-width", 2)
+          .attr("fill", "none");
+
+        trace.exit().remove();
+
+        trace.selectAll("path")
+          .attr("d", function(d) { return this._lineFunc(d); }.bind(this));
+
+        var dots = trace.selectAll(".dot")
+          .data(function(d) { return d; });
+
+        dots.enter().append("circle")
+          .attr("class", function(d, i) { return "c" + i + " dot"; } )
+          .attr("r", 3.5);
+
+        dots
+          .attr("cx", this._lineFunc.x())
+          .attr("cy", this._lineFunc.y());
+
+
+        var bands = this._vis.selectAll(".band")
+          .data(this._bands);
+
+        bands.enter().append("rect")
+          .attr("class", "band")
+
+        bands.exit().remove();
+
+        bands
+          .attr("x", function(d) { return this._xRange(d[0]); }.bind(this))
+          .attr("y", 0)
+          .attr("width", function(d) { return this._xRange(d[1]) - this._xRange(d[0]); }.bind(this))
+          .attr("height", function() { return this._height; }.bind(this))
+
+        this._xbar
+          .attr('x1', this._xRange(this._xbarx))
+          .attr('x2', this._xRange(this._xbarx))
+
+        this._svg.select(".x.axis").call(this._xAxis);
+        this._svg.select(".y.axis").call(this._yAxis);
+      },
+
+      _mouseDown: function() {
+        var p = d3.mouse(this.$.svg);
+
+        this._svg.append("rect")
+          .attr({
+            rx    : 6,
+            ry    : 6,
+            class : "selectionrect",
+            x     : p[0] - margins.left,
+            y     : p[1] - margins.top,
+            width : 0,
+            height: 0,
+          });
+      },
+
+      _mouseMove: function() {
+        var s = this._svg.select(".selectionrect");
+
+        if (s.empty()) {
+          this._move(d3.mouse(this.$.svg));
+          return
+        }
+
+        var p = d3.mouse(this.$.svg);
+        p[0] = p[0] - margins.left;
+        p[1] = p[1] - margins.top;
+        var d = {
+          x     : parseInt(s.attr("x"), 10),
+          y     : parseInt(s.attr("y"), 10),
+          width : parseInt(s.attr("width"), 10),
+          height: parseInt(s.attr("height"), 10)
+        };
+        var dx = p[0] - d.x;
+        var dy = p[1]- d.y;
+
+        if (dx < 1) {
+          d.x = p[0];
+          d.width -= dx;
+        } else {
+          d.width = dx;
+        }
+
+        if (dy < 1) {
+          d.y = p[1];
+          d.height -= dy;
+        } else {
+          d.height = dy;
+        }
+
+        s.attr(d);
+      },
+
+      _mouseUp: function() {
+        var r = $$$(".selectionRect");
+        var xMin = this._xRange.invert(r.x.baseVal.value);
+        var xMax = this._xRange.invert(r.x.baseVal.value + r.width.baseVal.value);
+        var yMax = this._yRange.invert(r.y.baseVal.value);
+        var yMin = this._yRange.invert(r.y.baseVal.value + r.height.baseVal.value);
+        this._svg.selectAll(".selectionrect").remove();
+
+        if (r.width.baseVal.value == 0 || r.height.baseVal.value == 0) {
+          return
+        }
+
+        this._xRange.domain([xMin, xMax]);
+        this._yRange.domain([yMin, yMax]);
+        this._plot();
+      },
+
+    });
+  })();
+</script>

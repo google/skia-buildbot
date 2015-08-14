@@ -634,7 +634,17 @@ this.sk = this.sk || function() {
     });
   }
 
-  // Polyfill for String.startsWith from 
+  // Return a 32 bit hash for the given string.
+  sk.hashString = function(s) {
+    var hash = 0;
+    for (var i = s.length - 1; i >= 0; i--) {
+      hash = ((hash << 5) - hash) + s.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  }
+
+  // Polyfill for String.startsWith from
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith#Polyfill
   // returns true iff the string starts with the given prefix
   if (!String.prototype.startsWith) {

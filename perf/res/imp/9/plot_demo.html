@@ -1,0 +1,114 @@
+<html>
+<head>
+  <title>plot-simple-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="stylesheet" href="/res/common/css/md.css">
+  <link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
+  <link rel="import" href="plot-simple.html">
+  <style type="text/css" media="screen">
+    button {
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Plot</h1>
+  <div>
+    <button class=action id=reset>Reset</button>
+    <button class=action id=add>Add</button>
+    <button class=action id=clear>Clear</button>
+    <button class=action id=high>Highlight</button>
+    <button class=action id=clearhigh>Clear Highlight</button>
+    <button class=action id=xbar>X Bar</button>
+    <button class=action id=clearxbar>Clear X Bar</button>
+    <button class=action id=bands>Bands</button>
+    <button class=action id=ticks>Ticks</button>
+  </div>
+
+  <plot-simple-sk width=800 height=600 id=plot></plot-simple-sk>
+
+  <table>
+    <tr><th>Selected</th><td id=selected></td></tr>
+    <tr><th>Focused</th><td id=focused></td></tr>
+  </table>
+
+  <script type="text/javascript" charset="utf-8">
+    (function () {
+      var ele = $$$('#plot');
+      var ids = [];
+      var n = 0;
+
+      function add() {
+        var traces = {};
+        for (var j = 10 - 1; j >= 0; j--) {
+          var trace = [];
+          for (var i = 0; i < 50; i++) {
+            trace.push([i, 0.8 + Math.sin(i/10) + j + Math.random()*0.5]);
+          }
+          var id = "trace" + (10-j+n);
+          traces[id] = trace;
+          ids.push(id);
+        }
+        n += 10;
+        ele.addLines(traces);
+      }
+
+      add();
+
+      $$$('#add').addEventListener('click', function() {
+        add();
+      });
+
+      $$$('#clear').addEventListener('click', function() {
+        ele.removeAll();
+      });
+
+      $$$('#reset').addEventListener('click', function() {
+        ele.resetAxes();
+      });
+
+      $$$('#high').addEventListener('click', function(e) {
+        ele.setHighlight(["trace" + n, "trace" + (n-1)]);
+      });
+
+      $$$('#clearhigh').addEventListener('click', function(e) {
+        ele.clearHighlight();
+      });
+
+      $$$('#xbar').addEventListener('click', function(e) {
+        ele.setXBar(3);
+      });
+
+      $$$('#clearxbar').addEventListener('click', function(e) {
+        ele.clearXBar();
+      });
+
+      $$$('#plot').addEventListener('trace_selected', function(e) {
+        $$$('#selected').textContent = JSON.stringify(e);
+      });
+
+      $$$('#plot').addEventListener('trace_focused', function(e) {
+        $$$('#focused').textContent = JSON.stringify(e);
+      });
+
+      $$$('#bands').addEventListener('click', function(e) {
+        ele.setBanding([[1, 4], [20, 30]]);
+      });
+
+      $$$('#ticks').addEventListener('click', function(e) {
+        ele.setTicks({
+          1: "5th",
+          10: "6th",
+          25: "7th"
+        });
+      });
+
+    })();
+  </script>
+
+</body>
+</html>
