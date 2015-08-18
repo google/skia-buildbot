@@ -20,10 +20,21 @@ $ cd $GOPATH/src/go.skia.org/infra/
 ```
 
 This fetches the repository into your $GOPATH directory along with all the
-needed dependencies.
+Go dependencies.
 Note: go.skia.org is a custom import path and will only work if used like the examples
 [here](http://golang.org/cmd/go/#hdr-Remote_import_paths).
 
+Install [depot_tools](http://www.chromium.org/developers/how-tos/install-depot-tools). You can learn
+more about using depot_tools from the
+[tutorial](http://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html).
+Then run:
+
+```
+$ gclient config --name . --unmanaged https://skia.googlesource.com/buildbot
+$ gclient sync
+```
+
+This fetches additional dependencies specified by the DEPS file.
 
 Database Setup for Testing
 ==========================
@@ -49,10 +60,6 @@ $ ./setup_test_db
 Running unit tests
 ==================
 
-Install [depot_tools](http://www.chromium.org/developers/how-tos/install-depot-tools). You can learn
-more about using depot_tools from the
-[tutorial](http://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html).
-
 Install [Cloud SDK](https://cloud.google.com/sdk/).
 
 Install other dependencies:
@@ -71,5 +78,5 @@ make all
 Use this command to run the presubmit tests:
 
 ```
-$ git cl presubmit
+$ ./run_unittests --short
 ```
