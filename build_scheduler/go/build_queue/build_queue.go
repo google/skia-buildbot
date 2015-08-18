@@ -62,7 +62,7 @@ func (s BuildCandidateSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 // BuildQueue is a struct which contains a priority queue for builders and
 // commits.
 type BuildQueue struct {
-	botWhitelist   []string
+	botBlacklist   []string
 	lock           sync.RWMutex
 	period         time.Duration
 	scoreThreshold float64
@@ -96,12 +96,12 @@ type BuildQueue struct {
 // timeDecay24Hr equal to 0.5 causes the score for a build candidate with value
 // 1.0 to be 0.5 if the commit is 24 hours old. At 48 hours with a value of 1.0
 // the build candidate would receive a score of 0.25.
-func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold, timeDecay24Hr float64, botWhitelist []string) (*BuildQueue, error) {
+func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold, timeDecay24Hr float64, botBlacklist []string) (*BuildQueue, error) {
 	if timeDecay24Hr <= 0.0 || timeDecay24Hr > 1.0 {
 		return nil, fmt.Errorf("Time penalty must be 0 < p <= 1")
 	}
 	q := &BuildQueue{
-		botWhitelist:   botWhitelist,
+		botBlacklist:   botBlacklist,
 		lock:           sync.RWMutex{},
 		period:         period,
 		scoreThreshold: scoreThreshold,
@@ -223,7 +223,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	buildFinders := map[string]*buildFinder{}
 	for _, buildsForCommit := range buildsByCommit {
 		for _, build := range buildsForCommit {
-			if !util.In(build.Builder, q.botWhitelist) {
+			if util.In(build.Builder, q.botBlacklist) {
 				continue
 			}
 			if _, ok := buildFinders[build.Builder]; !ok {

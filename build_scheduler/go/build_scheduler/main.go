@@ -38,10 +38,13 @@ const (
 var (
 	// "Constants"
 
-	// BOT_WHITELIST indicates which bots we can schedule.
-	BOT_WHITELIST = []string{
-		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release-BuildBucket",
-		"Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-BuildBucket",
+	// BOT_BLACKLIST indicates which bots we cannot schedule.
+	BOT_BLACKLIST = []string{
+		"Housekeeper-Periodic-AutoRoll",
+		"Housekeeper-Nightly-RecreateSKPs_Canary",
+		"Housekeeper-Weekly-RecreateSKPs",
+		"Infra-PerCommit",
+		"skia_presubmit-Trybot",
 	}
 
 	// MASTERS determines which masters we poll for builders.
@@ -209,7 +212,7 @@ func getFreeBuildslaves() ([]*buildslave, error) {
 	for _, b := range builders {
 		// Only include builders in the whitelist, and those only if
 		// there are no already-pending builds.
-		if util.In(b.Name, BOT_WHITELIST) && b.PendingBuilds == 0 {
+		if !util.In(b.Name, BOT_BLACKLIST) && b.PendingBuilds == 0 {
 			for _, slave := range b.Slaves {
 				buildslaves[slave].Builders = append(buildslaves[slave].Builders, b.Name)
 			}
@@ -327,7 +330,7 @@ func main() {
 			glog.Fatal(err)
 		}
 	}
-	q, err := build_queue.NewBuildQueue(period, repos, *scoreThreshold, *scoreDecay24Hr, BOT_WHITELIST)
+	q, err := build_queue.NewBuildQueue(period, repos, *scoreThreshold, *scoreDecay24Hr, BOT_BLACKLIST)
 	if err != nil {
 		glog.Fatal(err)
 	}
