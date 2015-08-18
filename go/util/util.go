@@ -423,3 +423,14 @@ func StringToCodeName(s string) string {
 	r := mathrand.New(mathrand.NewSource(seed))
 	return RandomNameR(r)
 }
+
+// Float64StableSum returns the sum of the elements of the given []float64
+// in a relatively stable manner.
+func Float64StableSum(s []float64) float64 {
+	sort.Sort(sort.Float64Slice(s))
+	sum := 0.0
+	for _, elem := range s {
+		sum += elem
+	}
+	return sum
+}

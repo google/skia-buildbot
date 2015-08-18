@@ -45,10 +45,25 @@ func get(url string, rv interface{}) error {
 	return nil
 }
 
+// BuildFinder is an interface used to inject a layer between the ingestion
+// functions and the database, allowing for users to pretend to insert builds
+// into the database without actually modifying it.
+type BuildFinder interface {
+	GetBuildForCommit(string, string, string) (int, error)
+}
+
+type dbBuildFinder struct{}
+
+func (bf *dbBuildFinder) GetBuildForCommit(builder, master, hash string) (int, error) {
+	return GetBuildForCommit(builder, master, hash)
+}
+
+var bf dbBuildFinder
+
 // findCommitsRecursive is a recursive function called by FindCommitsForBuild.
 // It traces the history to find builds which were first included in the given
 // build.
-func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
+func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
 	// Shortcut for empty hashes. This can happen when a commit has no
 	// parents (initial commit) or when a Build has no GotRevision.
 	if hash == "" {
@@ -56,7 +71,7 @@ func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *
 	}
 
 	// Determine whether any build already includes this commit.
-	n, err := GetBuildForCommit(b.Builder, b.Master, hash)
+	n, err := bf.GetBuildForCommit(b.Builder, b.Master, hash)
 	if err != nil {
 		return commits, stealFrom, stolen, fmt.Errorf("Could not find build for commit %s: %v", hash, err)
 	}
@@ -100,7 +115,7 @@ func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *
 		if _, ok := commits[p]; ok {
 			continue
 		}
-		commits, stealFrom, stolen, err = findCommitsRecursive(commits, b, p, repo, stealFrom, stolen)
+		commits, stealFrom, stolen, err = findCommitsRecursive(bf, commits, b, p, repo, stealFrom, stolen)
 		if err != nil {
 			return commits, stealFrom, stolen, err
 		}
@@ -111,7 +126,7 @@ func findCommitsRecursive(commits map[string]bool, b *Build, hash string, repo *
 // FindCommitsForBuild determines which commits were first included in the
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
-func FindCommitsForBuild(b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
+func FindCommitsForBuild(bf BuildFinder, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
 	if b.Repository == "" {
 		return []string{}, 0, []string{}, nil
 	}
@@ -127,7 +142,7 @@ func FindCommitsForBuild(b *Build, repos *gitinfo.RepoMap) ([]string, int, []str
 		return revlist, -1, []string{}, err
 	}
 	// Start tracing commits back in time until we hit a previous build.
-	commitMap, stealFrom, stolen, err := findCommitsRecursive(map[string]bool{}, b, b.GotRevision, repo, -1, []string{})
+	commitMap, stealFrom, stolen, err := findCommitsRecursive(bf, map[string]bool{}, b, b.GotRevision, repo, -1, []string{})
 	if err != nil {
 		return nil, -1, nil, err
 	}
@@ -201,7 +216,7 @@ func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *git
 // and pushes it into the database.
 func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 	// Find the commits for this build.
-	commits, stoleFrom, stolen, err := FindCommitsForBuild(b, repos)
+	commits, stoleFrom, stolen, err := FindCommitsForBuild(&bf, b, repos)
 	if err != nil {
 		return err
 	}
@@ -224,6 +239,9 @@ func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 		oldBuild, err := GetBuildFromDB(b.Builder, b.Master, stoleFrom)
 		if err != nil {
 			return err
+		}
+		if oldBuild == nil {
+			return fmt.Errorf("Attempted to retrieve %s #%d, but got a nil build from the DB.", b.Builder, stoleFrom)
 		}
 		newCommits := make([]string, 0, len(oldBuild.Commits))
 		for _, c := range oldBuild.Commits {

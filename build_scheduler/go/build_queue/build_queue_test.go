@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/database/testutil"
@@ -96,7 +97,7 @@ func TestBuildScoring(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	repo, err := repos.Repo("/skia.git")
+	repo, err := repos.Repo(TEST_REPO)
 	assert.Nil(t, err)
 	assert.Nil(t, repos.Update())
 
@@ -236,7 +237,7 @@ type buildQueueExpect struct {
 	err error
 }
 
-func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQueueExpect) {
+func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQueueExpect, testInsert bool) {
 	testutils.SkipIfShort(t)
 
 	// Initialize the buildbot database.
@@ -247,12 +248,12 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	repo, err := repos.Repo("/skia.git")
+	repo, err := repos.Repo(TEST_REPO)
 	assert.Nil(t, err)
 	assert.Nil(t, repos.Update())
 
 	// Create the BuildQueue.
-	q, err := NewBuildQueue(PERIOD_FOREVER, tr.Dir, DEFAULT_SCORE_THRESHOLD, timeDecay24Hr, []string{TEST_BUILDER})
+	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, timeDecay24Hr, []string{TEST_BUILDER})
 	assert.Nil(t, err)
 
 	// Fake time.Now()
@@ -260,252 +261,267 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	assert.Nil(t, err)
 	now := details.Timestamp.Add(1 * time.Hour)
 
+	// Update the queue.
+	assert.Nil(t, q.update(now))
+
 	// Ensure that we get the expected BuildCandidate at each step. Insert
 	// each BuildCandidate into the buildbot database to simulate actually
 	// running builds.
 	buildNum := 0
 	for _, expected := range expectations {
-		assert.Nil(t, q.update(now))
-
-		bc, err := q.Pop(TEST_BUILDER)
+		bc, err := q.Pop([]string{TEST_BUILDER})
 		assert.Equal(t, expected.err, err)
 		if err != nil {
 			break
 		}
-		hash, err := repo.FullHash(bc.Commit)
-		assert.Nil(t, err)
-		bc.Commit = hash
+		glog.Infof("\n%v\n%v", expected.bc, bc)
 		assert.True(t, reflect.DeepEqual(expected.bc, bc))
-		b := &buildbot.Build{
-			Builder:     bc.Builder,
-			Master:      "fake",
-			Number:      buildNum,
-			BuildSlave:  "fake",
-			Branch:      "master",
-			GotRevision: bc.Commit,
-			Repository:  TEST_REPO,
+		if testInsert || buildNum == 0 {
+			// Actually insert a build, as if we're really using the scheduler.
+			// Do this even if we're not testing insertion, because if we don't,
+			// the queue won't know about this builder.
+			b := &buildbot.Build{
+				Builder:     bc.Builder,
+				Master:      "fake",
+				Number:      buildNum,
+				BuildSlave:  "fake",
+				Branch:      "master",
+				GotRevision: bc.Commit,
+				Repository:  TEST_REPO,
+			}
+			assert.Nil(t, buildbot.IngestBuild(b, repos))
+			buildNum++
+			assert.Nil(t, q.update(now))
 		}
-		assert.Nil(t, buildbot.IngestBuild(b, repos))
-		buildNum++
 	}
 }
 
-func TestBuildQueue(t *testing.T) {
-	expectations := []*buildQueueExpect{
-		// First round: a single build at origin/master.
-		{
-			&BuildCandidate{
-				Author:  "???",
-				Commit:  hashes['I'],
-				Builder: TEST_BUILDER,
-				Score:   math.MaxFloat64,
-				Repo:    "???",
-			},
-			nil,
+var zeroLambdaExpectations = []*buildQueueExpect{
+	// First round: a single build at origin/master.
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['I'],
+			Builder: TEST_BUILDER,
+			Score:   math.MaxFloat64,
+			Repo:    TEST_REPO,
 		},
-		// Second round: bisect 9 -> 4 + 5
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['H'],
-				Builder: TEST_BUILDER,
-				Score:   1.6611111111111108,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Second round: bisect 9 -> 4 + 5
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['H'],
+			Builder: TEST_BUILDER,
+			Score:   1.6611111111111108,
+			Repo:    TEST_REPO,
 		},
-		// Third round: bisect 4 + 5 -> 4 + 3 + 2
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['D'],
-				Builder: TEST_BUILDER,
-				Score:   1.3666666666666665,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Third round: bisect 4 + 5 -> 4 + 3 + 2
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['D'],
+			Builder: TEST_BUILDER,
+			Score:   1.3666666666666665,
+			Repo:    TEST_REPO,
 		},
-		// Fourth round: bisect 4 + 3 + 2 -> 3 + 2 + 2 + 2
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['B'],
-				Builder: TEST_BUILDER,
-				Score:   1.25,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Fourth round: bisect 4 + 3 + 2 -> 3 + 2 + 2 + 2
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['B'],
+			Builder: TEST_BUILDER,
+			Score:   1.25,
+			Repo:    TEST_REPO,
 		},
-		// Fifth round: bisect 3 + 2 + 2 + 2 -> 2 + 2 + 2 + 2 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['F'],
-				Builder: TEST_BUILDER,
-				Score:   0.8333333333333335,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Fifth round: bisect 3 + 2 + 2 + 2 -> 2 + 2 + 2 + 2 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['F'],
+			Builder: TEST_BUILDER,
+			Score:   0.8333333333333335,
+			Repo:    TEST_REPO,
 		},
-		// Sixth round: bisect 2 + 2 + 2 + 2 + 1 -> 2 + 2 + 2 + 1 + 1 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['C'],
-				Builder: TEST_BUILDER,
-				Score:   0.5,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Sixth round: bisect 2 + 2 + 2 + 2 + 1 -> 2 + 2 + 2 + 1 + 1 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['C'],
+			Builder: TEST_BUILDER,
+			Score:   0.5,
+			Repo:    TEST_REPO,
 		},
-		// Seventh round: bisect 2 + 2 + 2 + 1 + 1 + 1 -> 2 + 2 + 1 + 1 + 1 + 1 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['G'],
-				Builder: TEST_BUILDER,
-				Score:   0.5,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Seventh round: bisect 2 + 2 + 2 + 1 + 1 + 1 -> 2 + 2 + 1 + 1 + 1 + 1 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['G'],
+			Builder: TEST_BUILDER,
+			Score:   0.5,
+			Repo:    TEST_REPO,
 		},
-		// Eighth round: bisect 2 + 2 + 1 + 1 + 1 + 1 + 1 -> 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['E'],
-				Builder: TEST_BUILDER,
-				Score:   0.5,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Eighth round: bisect 2 + 2 + 1 + 1 + 1 + 1 + 1 -> 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['E'],
+			Builder: TEST_BUILDER,
+			Score:   0.5,
+			Repo:    TEST_REPO,
 		},
-		// Ninth round: bisect 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 -> 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['A'],
-				Builder: TEST_BUILDER,
-				Score:   0.5,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Ninth round: bisect 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 -> 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['A'],
+			Builder: TEST_BUILDER,
+			Score:   0.5,
+			Repo:    TEST_REPO,
 		},
-		// Tenth round: All commits individually tested; Score is 0.
-		{
-			nil,
-			ERR_EMPTY_QUEUE,
-		},
-	}
-	testBuildQueue(t, 1.0, expectations)
+		nil,
+	},
+	// Tenth round: All commits individually tested; Score is 0.
+	{
+		nil,
+		ERR_EMPTY_QUEUE,
+	},
 }
 
-func TestBuildQueueLambda(t *testing.T) {
-	expectations := []*buildQueueExpect{
-		// First round: a single build at origin/master.
-		{
-			&BuildCandidate{
-				Author:  "???",
-				Commit:  hashes['I'],
-				Builder: TEST_BUILDER,
-				Score:   math.MaxFloat64,
-				Repo:    "???",
-			},
-			nil,
+func TestBuildQueueZeroLambdaNoInsert(t *testing.T) {
+	testBuildQueue(t, 1.0, zeroLambdaExpectations, false)
+}
+
+func TestBuildQueueZeroLambdaInsert(t *testing.T) {
+	testBuildQueue(t, 1.0, zeroLambdaExpectations, true)
+}
+
+var lambdaExpectations = []*buildQueueExpect{
+	// First round: a single build at origin/master.
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['I'],
+			Builder: TEST_BUILDER,
+			Score:   math.MaxFloat64,
+			Repo:    TEST_REPO,
 		},
-		// Second round: bisect 9 -> 4 + 5
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['H'],
-				Builder: TEST_BUILDER,
-				Score:   1.5443883824098559,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Second round: bisect 9 -> 4 + 5
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['H'],
+			Builder: TEST_BUILDER,
+			Score:   1.5443883824098559,
+			Repo:    TEST_REPO,
 		},
-		// Third round: bisect 4 + 5 -> 4 + 3 + 2
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['E'],
-				Builder: TEST_BUILDER,
-				Score:   1.271875846535702,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Third round: bisect 4 + 5 -> 4 + 3 + 2
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['E'],
+			Builder: TEST_BUILDER,
+			Score:   1.271875846535702,
+			Repo:    TEST_REPO,
 		},
-		// Fourth round: bisect 4 + 3 + 2 -> 3 + 2 + 2 + 2
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['B'],
-				Builder: TEST_BUILDER,
-				Score:   1.1555140209176449,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Fourth round: bisect 4 + 3 + 2 -> 3 + 2 + 2 + 2
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['B'],
+			Builder: TEST_BUILDER,
+			Score:   1.1555140209176449,
+			Repo:    TEST_REPO,
 		},
-		// Fifth round: bisect 3 + 2 + 2 + 2 -> 2 + 2 + 2 + 2 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['D'],
-				Builder: TEST_BUILDER,
-				Score:   0.7746079616627588,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Fifth round: bisect 3 + 2 + 2 + 2 -> 2 + 2 + 2 + 2 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['D'],
+			Builder: TEST_BUILDER,
+			Score:   0.7746079616627588,
+			Repo:    TEST_REPO,
 		},
-		// Sixth round: bisect 2 + 2 + 2 + 2 + 1 -> 2 + 2 + 2 + 1 + 1 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['F'],
-				Builder: TEST_BUILDER,
-				Score:   0.46716910846026205,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Sixth round: bisect 2 + 2 + 2 + 2 + 1 -> 2 + 2 + 2 + 1 + 1 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['F'],
+			Builder: TEST_BUILDER,
+			Score:   0.46716910846026205,
+			Repo:    TEST_REPO,
 		},
-		// Seventh round: bisect 2 + 2 + 2 + 1 + 1 + 1 -> 2 + 2 + 1 + 1 + 1 + 1 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['G'],
-				Builder: TEST_BUILDER,
-				Score:   0.46518052365376716,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Seventh round: bisect 2 + 2 + 2 + 1 + 1 + 1 -> 2 + 2 + 1 + 1 + 1 + 1 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['G'],
+			Builder: TEST_BUILDER,
+			Score:   0.46518052365376716,
+			Repo:    TEST_REPO,
 		},
-		// Eighth round: bisect 2 + 2 + 1 + 1 + 1 + 1 + 1 -> 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['C'],
-				Builder: TEST_BUILDER,
-				Score:   0.464730147870253,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Eighth round: bisect 2 + 2 + 1 + 1 + 1 + 1 + 1 -> 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['C'],
+			Builder: TEST_BUILDER,
+			Score:   0.464730147870253,
+			Repo:    TEST_REPO,
 		},
-		// Ninth round: bisect 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 -> 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
-		{
-			&BuildCandidate{
-				Author:  TEST_AUTHOR,
-				Commit:  hashes['A'],
-				Builder: TEST_BUILDER,
-				Score:   0.4535775776740314,
-				Repo:    TEST_REPO,
-			},
-			nil,
+		nil,
+	},
+	// Ninth round: bisect 2 + 1 + 1 + 1 + 1 + 1 + 1 + 1 -> 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1
+	{
+		&BuildCandidate{
+			Author:  TEST_AUTHOR,
+			Commit:  hashes['A'],
+			Builder: TEST_BUILDER,
+			Score:   0.4535775776740314,
+			Repo:    TEST_REPO,
 		},
-		// Tenth round: All commits individually tested; Score is 0.
-		{
-			nil,
-			ERR_EMPTY_QUEUE,
-		},
-	}
-	testBuildQueue(t, 0.2, expectations)
+		nil,
+	},
+	// Tenth round: All commits individually tested; Score is 0.
+	{
+		nil,
+		ERR_EMPTY_QUEUE,
+	},
+}
+
+func TestBuildQueueLambdaNoInsert(t *testing.T) {
+	testBuildQueue(t, 0.2, lambdaExpectations, false)
+}
+
+func TestBuildQueueLambdaInsert(t *testing.T) {
+	testBuildQueue(t, 0.2, lambdaExpectations, true)
 }

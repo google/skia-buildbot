@@ -197,6 +197,9 @@ func GetBuildFromDB(builder, master string, buildNumber int) (*Build, error) {
 	// Get the build itself.
 	b := buildFromDB{}
 	if err := DB.Get(&b, fmt.Sprintf("SELECT * FROM %s WHERE builder = ? AND master = ? AND number = ?", TABLE_BUILDS), builder, master, buildNumber); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("Unable to retrieve build from database: %v", err)
 	}
 	build := b.toBuild()
@@ -940,4 +943,14 @@ func GetBuildsFromDateRange(start, end time.Time) ([]*Build, error) {
 		rv = append(rv, b)
 	}
 	return rv, nil
+}
+
+// GetMaxBuildNumber returns the highest known build number for the given builder.
+func GetMaxBuildNumber(builder string) (int, error) {
+	stmt := fmt.Sprintf("SELECT MAX(number) FROM %s WHERE builder = ?;", TABLE_BUILDS)
+	var num int
+	if err := DB.Get(&num, stmt, builder); err != nil {
+		return -1, err
+	}
+	return num, nil
 }

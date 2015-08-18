@@ -237,12 +237,14 @@ func TestFindCommitsForBuild(t *testing.T) {
 		assert.Nil(t, IngestBuild(build, repos))
 		ingested, err := GetBuildFromDB(builder, master, buildNum)
 		assert.Nil(t, err)
+		assert.NotNil(t, ingested)
 		assert.True(t, util.SSliceEqual(ingested.Commits, tc.Expected), fmt.Sprintf("Commits for build do not match expectation.\nGot:  %v\nWant: %v", ingested.Commits, tc.Expected))
 	}
 
 	// Extra: ensure that build #6 really stole the commit from #1.
 	b, err := GetBuildFromDB(builder, master, 1)
 	assert.Nil(t, err)
+	assert.NotNil(t, b)
 	assert.False(t, util.In(hashes['C'], b.Commits), fmt.Sprintf("Expected not to find %s in %v", hashes['C'], b.Commits))
 }
 
@@ -253,6 +255,7 @@ func dbSerializeAndCompare(t *testing.T, b1 *Build, ignoreIds bool) {
 	assert.Nil(t, b1.ReplaceIntoDB())
 	b2, err := GetBuildFromDB(b1.Builder, b1.Master, b1.Number)
 	assert.Nil(t, err)
+	assert.NotNil(t, b2)
 
 	// Force the IDs to be equal, since the DB assigns ID, and we
 	// don't care to try to predict them.
@@ -690,6 +693,7 @@ func testIngestNewBuilds(t *testing.T) {
 	for _, e := range expected {
 		a, err := GetBuildFromDB(e.Builder, e.Master, e.Number)
 		assert.Nil(t, err)
+		assert.NotNil(t, a)
 		if !(a.Master == e.Master && a.Builder == e.Builder && a.Number == e.Number) {
 			t.Fatalf("Incorrect build was inserted!\n  %s == %s\n  %s == %s\n  %d == %d", a.Master, e.Master, a.Builder, e.Builder, a.Number, e.Number)
 		}
