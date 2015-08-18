@@ -4,6 +4,7 @@
 
   Attributes:
     width - The width of the element in px.
+
     height - The height of the element in px.
 
   Events:
@@ -56,6 +57,8 @@
 
     clearHighlight() - Removes highlighting from all lines.
 
+    highlighted() - Returns the ids of all the lines that are highlighted.
+
     setXBar(x) - Places a distinct vertical bar at the given location
       on the x-axis. There can be at most only one xbar placed at any
       one time.
@@ -83,7 +86,6 @@
         };
 
     resetAxes() - Resets the axes back after the user has zoomed.
-
 -->
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <script src="/res/imp/bower_components/d3/d3.min.js"></script>
@@ -160,6 +162,7 @@ work, so we just prefix every rule with plot-simple-sk.
           d: 1e20,
           trace: -1,
           index: -1,
+          value: 0,
         };
 
         // The location of the XBar. See setXBar().
@@ -190,6 +193,11 @@ work, so we just prefix every rule with plot-simple-sk.
       },
 
       deleteLine: function(id) {
+        // First clear all the lines, but backup _lineData for later use.
+        var backup = this._lineData;
+        this.removeAll();
+        this._lineData = backup;
+        // Then re-add all the lines except the one we want deleted.
         for (var i = this._lineData.length - 1; i >= 0; i--) {
           if (this._lineData[i]._id == id) {
             this._lineData.splice(i, 1);
@@ -210,6 +218,14 @@ work, so we just prefix every rule with plot-simple-sk.
             ele.classList.add('highlight');
           }
         });
+      },
+
+      highlighted: function() {
+        var ids = [];
+        $$('.trace.highlight').forEach(function(ele) {
+          ids.push(ele.dataset.id);
+        });
+        return ids;
       },
 
       clearHighlight: function() {
@@ -261,6 +277,7 @@ work, so we just prefix every rule with plot-simple-sk.
         var detail = {
           id: this._lineData[this._closest.trace]._id,
           index: this._closest.index,
+          value: this._closest.value,
         }
         this.dispatchEvent(new CustomEvent(name, {detail: detail, bubbles: true}));
       },
@@ -299,6 +316,7 @@ work, so we just prefix every rule with plot-simple-sk.
           d: 1e20,
           trace: -1,
           index: -1,
+          value: 0,
         };
         for (var i = this._lineData.length - 1; i >= 0; i--) {
           var atrace = this._lineData[i];
@@ -444,6 +462,8 @@ work, so we just prefix every rule with plot-simple-sk.
         dots.enter().append("circle")
           .attr("class", function(d, i) { return "c" + i + " dot"; } )
           .attr("r", 3.5);
+
+        dots.exit().remove();
 
         dots
           .attr("cx", this._lineFunc.x())

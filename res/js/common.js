@@ -635,6 +635,10 @@ this.sk = this.sk || function() {
   }
 
   // Return a 32 bit hash for the given string.
+  //
+  // This is a super simple hash (h = h * 31 + x_i) currently used
+  // for things like assigning colors to graphs based on trace ids. It
+  // shouldn't be used for anything more serious than that.
   sk.hashString = function(s) {
     var hash = 0;
     for (var i = s.length - 1; i >= 0; i--) {
