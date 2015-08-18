@@ -30,6 +30,10 @@ a {
   margin-left: 280px;
 }
 
+#content ul {
+  margin-top: 0.2em;
+}
+
 pre {
   margin-left: 1em;
   padding: 1em;
@@ -46,6 +50,11 @@ code {
 
 h1, h2, h3, h4 {
   font-weight: normal;
+}
+
+h2 {
+  margin-top: 1em;
+  margin-bottom: 0.2em;
 }
 
 #drawer {
