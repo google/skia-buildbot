@@ -1,0 +1,58 @@
+<!--
+    The <highlightbar-sk> custom element declaration.
+
+    Attributes:
+      key -  The key of the highlighted trace.
+
+      value - The value of the highlighted point on the trace.
+
+    Methods:
+      None.
+
+    Events:
+      None.
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+
+<dom-module id="highlightbar-sk">
+  <style>
+    .bar {
+      @apply(--layout-horizontal);
+    }
+
+    .key {
+      @apply(--layout-flex);
+    }
+
+    .value {
+      width: 6em;
+      margin-left: 0.6em;
+    }
+  </style>
+  <template>
+    <div class=bar>
+      <paper-input class=key value="{{key}}" label="Highlighted Trace ID" id="name"></paper-input>
+      <paper-input class=value value="{{value}}" label="Value" id="value"> </paper-input>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'highlightbar-sk',
+
+      properties: {
+        key: {
+          type: String,
+          value: "",
+          reflectToAttribute: false,
+        },
+        value: {
+          type: String,
+          value: "",
+          reflectToAttribute: false,
+        },
+      },
+    });
+  </script>
+</dom-module>
