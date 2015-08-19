@@ -207,7 +207,7 @@ func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 	// Loop through all points and compare. We start assuming all pixels are
 	// wrong. This takes care of the case where the images have different sizes
 	// and there is an area not inspected by the loop.
-	numDiffPixels := resultWidth * resultHeight
+	numDiffPixels := totalPixels
 	maxRGBADiffs := make([]int, 4)
 
 	// Pix is a []uint8 rotating through R, G, B, A, R, G, B, A, ...
@@ -252,6 +252,11 @@ func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 			}
 		}
 	} else {
+		// Fill the entire image with maximum diff color.
+		maxDiffColor := uint8ToColor(PixelDiffColor[deltaOffset(1024)])
+		draw.Draw(resultImg, resultImg.Bounds(), &image.Uniform{maxDiffColor}, image.ZP, draw.Src)
+		maxRGBADiffs = []int{255, 255, 255, 0}
+
 		for x := 0; x < cmpWidth; x++ {
 			for y := 0; y < cmpHeight; y++ {
 				color1 := img1.At(x, y)

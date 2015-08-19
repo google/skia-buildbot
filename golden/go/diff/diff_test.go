@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/skia-dev/glog"
+	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/golden/go/image/text"
 )
 
@@ -128,6 +129,11 @@ const SRC4 = `! SKTEXTSIMPLE
 0xffffffff
 0xffffffff`
 
+// SRC2 is different in each pixel from SRC1 by one in each channel.
+const SRC5 = `! SKTEXTSIMPLE
+5 1
+0x01000000 0x02000000 0x00020000 0x00000200 0x00000002`
+
 // EXPECTED_1_2 Should have all the pixels as the pixel diff color with an
 // offset of 1, except the last pixel which is only different in the alpha by
 // an offset of 1.
@@ -169,6 +175,14 @@ const EXPECTED_NO_DIFF = `! SKTEXTSIMPLE
 0x00000000
 0x00000000
 0x00000000`
+
+const EXPECTED_2_5 = `! SKTEXTSIMPLE
+5 5
+0x00000000 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff
+0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff
+0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff
+0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff
+0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff 0x7f2704ff`
 
 // imageFromString decodes the SKTEXT image from the string.
 func imageFromString(t *testing.T, s string) *image.NRGBA {
@@ -218,10 +232,14 @@ func assertImagesEqual(t *testing.T, got, want *image.NRGBA) {
 // src1 and src2.
 //
 // Note that all images are in sktext format as strings.
-func assertDiffMatch(t *testing.T, expected, src1, src2 string) {
-	_, got := Diff(imageFromString(t, src1), imageFromString(t, src2))
+func assertDiffMatch(t *testing.T, expected, src1, src2 string, expectedDiffMetrics ...*DiffMetrics) {
+	dm, got := Diff(imageFromString(t, src1), imageFromString(t, src2))
 	want := imageFromString(t, expected)
 	assertImagesEqual(t, got, want)
+
+	for _, expDM := range expectedDiffMetrics {
+		assert.Equal(t, expDM, dm)
+	}
 }
 
 // TestDiffImages tests that the diff images produced are correct.
@@ -234,6 +252,13 @@ func TestDiffImages(t *testing.T) {
 	assertDiffMatch(t, EXPECTED_1_3, SRC1, SRC3)
 	assertDiffMatch(t, EXPECTED_1_4, SRC1, SRC4)
 	assertDiffMatch(t, EXPECTED_1_4, SRC4, SRC1)
+	assertDiffMatch(t, EXPECTED_2_5, SRC2, SRC5, &DiffMetrics{
+		NumDiffPixels:     24,
+		PixelDiffPercent:  (24.0 / 25.0) * 100,
+		PixelDiffFilePath: "",
+		MaxRGBADiffs:      []int{255, 255, 255, 0},
+		DimDiffer:         true,
+	})
 }
 
 // assertDiffs asserts that the DiffMetrics reported by Diffing the two images
