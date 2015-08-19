@@ -4,14 +4,14 @@ package util
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
-	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/util"
 
 	"github.com/skia-dev/glog"
@@ -86,21 +86,63 @@ func TimeTrack(start time.Time, name string) {
 	glog.Infof("===== %s took %s =====", name, elapsed)
 }
 
-// ExecuteCmd executes the specified binary with the specified args and env. Stdout and Stderr are
-// written to stdout and stderr respectively if specified. If not specified then Stdout and Stderr
-// will be outputted only to glog.
-func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout, stderr io.Writer) error {
-	return exec.Run(&exec.Command{
-		Name:        binary,
-		Args:        args,
-		Env:         env,
-		InheritPath: true,
-		Timeout:     timeout,
-		LogStdout:   true,
-		Stdout:      stdout,
-		LogStderr:   true,
-		Stderr:      stderr,
-	})
+// WriteLog implements the io.Writer interface and writes to glog and an output
+// file (if specified).
+type WriteLog struct {
+	LogFunc    func(format string, args ...interface{})
+	OutputFile *os.File
+}
+
+func (wl WriteLog) Write(p []byte) (n int, err error) {
+	wl.LogFunc("%s", string(p))
+	// Write to file if specified.
+	if wl.OutputFile != nil {
+		if n, err := wl.OutputFile.WriteString(string(p)); err != nil {
+			glog.Errorf("Could not write to %s: %s", wl.OutputFile.Name(), err)
+			return n, err
+		}
+	}
+	return len(p), nil
+}
+
+// ExecuteCmd executes the specified binary with the specified args and env.
+// Stdout and Stderr are written to stdoutFile and stderrFile respectively if
+// specified. If not specified then stdout and stderr will be outputted only to
+// glog. Note: It is the responsibility of the caller to close stdoutFile and
+// stderrFile.
+func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdoutFile, stderrFile *os.File) error {
+	// Add the current PATH to the env.
+	env = append(env, "PATH="+os.Getenv("PATH"))
+
+	// Create the cmd obj.
+	cmd := exec.Command(binary, args...)
+	cmd.Env = env
+
+	// Attach WriteLog to command.
+	cmd.Stdout = WriteLog{LogFunc: glog.Infof, OutputFile: stdoutFile}
+	cmd.Stderr = WriteLog{LogFunc: glog.Errorf, OutputFile: stderrFile}
+
+	// Execute cmd.
+	glog.Infof("Executing %s %s", strings.Join(cmd.Env, " "), strings.Join(cmd.Args, " "))
+	util.LogErr(cmd.Start())
+	done := make(chan error)
+	go func() {
+		done <- cmd.Wait()
+	}()
+	select {
+	case <-time.After(timeout):
+		if err := cmd.Process.Kill(); err != nil {
+			return fmt.Errorf("Failed to kill timed out process: %s", err)
+		}
+		<-done // allow goroutine to exit
+		glog.Errorf("Command killed since it took longer than %f secs", timeout.Seconds())
+		return fmt.Errorf("Command killed since it took longer than %f secs", timeout.Seconds())
+	case err := <-done:
+		if err != nil {
+			return fmt.Errorf("Process done with error: %s", err)
+		}
+	}
+	return nil
 }
 
 // SyncDir runs "git pull" and "gclient sync" on the specified directory.

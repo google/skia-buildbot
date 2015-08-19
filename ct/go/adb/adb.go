@@ -6,8 +6,9 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/ct/go/util"
-	skexec "go.skia.org/infra/go/exec"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -26,7 +27,7 @@ func VerifyLocalDevice() error {
 	devicesCmd := exec.Command(util.BINARY_ADB, "devices")
 	offlineCmd := exec.Command("grep", "offline")
 	offlineCmd.Stdin, _ = devicesCmd.StdoutPipe()
-	offlineCmd.Stdout = skexec.WriteInfoLog
+	offlineCmd.Stdout = util.WriteLog{LogFunc: glog.Infof, OutputFile: nil}
 	skutil.LogErr(offlineCmd.Start())
 	skutil.LogErr(devicesCmd.Run())
 	if err := offlineCmd.Wait(); err == nil {
@@ -39,7 +40,7 @@ func VerifyLocalDevice() error {
 	devicesCmd = exec.Command(util.BINARY_ADB, "devices")
 	missingCmd := exec.Command("grep", "device$")
 	missingCmd.Stdin, _ = devicesCmd.StdoutPipe()
-	missingCmd.Stdout = skexec.WriteInfoLog
+	missingCmd.Stdout = util.WriteLog{LogFunc: glog.Infof, OutputFile: nil}
 	skutil.LogErr(missingCmd.Start())
 	skutil.LogErr(devicesCmd.Run())
 	if err := missingCmd.Wait(); err != nil {
