@@ -1,0 +1,171 @@
+<!-- The <commits-panel-sk> custom element declaration.
+
+  An element to display information on one or more commits.
+
+  Attributes:
+    mailbox - The sk.Mailbox name to listen for the data to populate
+      the element. The mailbox data needs to be a serialized slice
+      of []*types.Commit. If not set then the data must be supplied
+      by the setCommitInfo method.
+
+        [
+          {
+            commit_time: 1439649751,
+            author: "reed (reed@chromium.org)",
+            hash: "bb886749feb444edfd8fbf053a9ea815e3605f8a",
+          },
+          {
+            author: "reed (reed@chromium.org)",
+            commit_time: 1439648914,
+            hash: "e02716908fe82c7c4ae9b415793277620a22bcd6",
+          },
+        ]
+
+      Note that the hashes need to be in order, but not necessarily
+      contiguous. Note that they also need to be supplied in time ascending
+      order, that is, the commit at index 0 needs to be the oldest commit, and
+      the last commit in the array needs to be the newest commit.
+
+    progress - Boolean, if true then display the percent complete
+      for the first hash.
+
+  Methods:
+    setCommitInfo - Sets the commit info, an array of *types.Commit. See the
+      description for the mailbox attribute for more details.
+
+  Events:
+    None.
+
+-->
+<dom-module id="commits-panel-sk">
+  <style type="text/css" media="screen">
+      div {
+        margin-bottom: 0.5em;
+      }
+    </style>
+  <template>
+    <template is="dom-if" if="{{progress}}">
+      <div>
+        <a target="_blank" href$="{{_statusHref(_firstHash)}}">Buildbot Percent Complete: <span>{{_commitPercent(_percent)}}</span>%</a>
+      </div>
+    </template>
+    <table>
+      <template is="dom-repeat" items="{{_commitinfo}}" as="c">
+        <tr>
+          <td>{{c.author}}</td>
+          <td>{{_humanize(c.commit_time)}}</td>
+          <td><a href$="{{_commitHref(c)}}">{{_trunc(c.hash)}}</a></td>
+          <td>{{c.message}}</td>
+        </tr>
+      </template>
+    </table>
+  </template>
+  <script>
+    Polymer({
+      is: 'commits-panel-sk',
+
+      properties: {
+        mailbox: {
+          type: String,
+          value: "",
+          reflectToAttribute: true,
+          observer: "_mailboxChanged",
+        },
+        progress: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true,
+        },
+      },
+
+      ready: function () {
+        this._percent = -1.0;
+        this._firstHash = '';
+      },
+
+      setCommitInfo: function(commitinfo) {
+        this._commitinfo = commitinfo;
+        this._processCommitInfo();
+      },
+
+      _mailboxChanged: function(newValue, oldValue) {
+        if (newValue) {
+          sk.Mailbox.subscribe(this.mailbox, this.setCommitInfo.bind(this));
+        }
+        if (oldValue) {
+          sk.Mailbox.unsubscribe(oldValue, this.setCommitInfo.bind(this));
+        }
+      },
+
+      _processCommitInfo: function () {
+        if (this._commitinfo && this._commitinfo.length) {
+          var lastHash = this._commitinfo[0].hash;
+          this._firstHash = this._commitinfo[this._commitinfo.length - 1].hash;
+          if (this._commitinfo[0].message == "") {
+            var url = 'https://skia.googlesource.com/skia/+log/' + this._firstHash + '~' + 1 + '..' + lastHash + '?format=json';
+            // The git hashes are in time order, but not contiguous, so request
+            // the log range and them populate messages by matching git hashes.
+            sk.get(url).then(this._removeSecurityHeader).then(JSON.parse).then(function (json) {
+              var len = this._commitinfo.length;
+              for (var i = 0; i < json.log.length; i++) {
+                var commit = json.log[i].commit;
+                // The git hash of this log meesage.
+                for (var j = 0; j < len; j++) {
+                  if (this._commitinfo[j].hash == commit) {
+                    this.set('_commitinfo.'+j+'.message', json.log[i].message.slice(0, 60));
+                    break;
+                  }
+                }
+              }
+            }.bind(this)).catch(sk.errorMessage);
+          }
+          if (this.progress) {
+            var url = 'https://status.skia.org/json/skia/buildProgress?commit=' + this._firstHash;
+            // The status server returns JSON of the form:
+            //
+            // {
+            //   "oldCommit": "884200ef76bbd25ab31e061a24cc8c8268dacca0",
+            //   "finishedAtOldCommit": 143,
+            //   "newCommit": "e9e3ee33f30c14c31afd5fc3fe4dda7f15783c75",
+            //   "finishedAtNewCommit": 111,
+            //   "finishedProportion": 0.7762237762237763
+            // }
+            sk.get(url).then(JSON.parse).then(function (json) {
+              this._percent = json.finishedProportion;
+            }.bind(this)).catch(sk.errorMessage);
+          }
+        }
+      },
+
+      // _removeSecurityHeader strips the first 4 chars from the input. Needed
+      // since googlesource.com prefixes all JSON responses with )]}' as an
+      // XSS defense.
+      _removeSecurityHeader: function (s) {
+        return s.slice(4, s.length);
+      },
+
+      _humanize: function (s) {
+        return sk.human.diffDate(s * 1000);
+      },
+
+      _trunc: function (s) {
+        return s.slice(0, 7);
+      },
+
+      _commitPercent: function (p) {
+        if (p == -1.0) {
+          return "[calculating]";
+        }
+        return Math.round(p * 100);
+      },
+
+      _statusHref: function (hash) {
+        return 'https://status.skia.org/?commit=' + hash + '&commitLabel=author&filter=all';
+      },
+
+      _commitHref: function (c) {
+        return 'https://skia.googlesource.com/skia/+/' + c.hash;
+      }
+    });
+  </script>
+</dom-module>
