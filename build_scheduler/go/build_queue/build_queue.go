@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -223,7 +224,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	buildFinders := map[string]*buildFinder{}
 	for _, buildsForCommit := range buildsByCommit {
 		for _, build := range buildsForCommit {
-			if util.In(build.Builder, q.botBlacklist) {
+			if util.In(build.Builder, q.botBlacklist) || strings.HasSuffix(build.Builder, "-Trybot") {
 				continue
 			}
 			if _, ok := buildFinders[build.Builder]; !ok {

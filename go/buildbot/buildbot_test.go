@@ -409,7 +409,7 @@ func testUnfinishedBuild(t *testing.T) {
 	dbSerializeAndCompare(t, b, true)
 
 	// Ensure that the build is found by getUnfinishedBuilds.
-	unfinished, err := getUnfinishedBuilds()
+	unfinished, err := getUnfinishedBuilds(b.Master)
 	assert.Nil(t, err)
 	found := false
 	for _, u := range unfinished {
@@ -440,7 +440,7 @@ func testUnfinishedBuild(t *testing.T) {
 	dbSerializeAndCompare(t, b, true)
 
 	// Ensure that the finished build is NOT found by getUnfinishedBuilds.
-	unfinished, err = getUnfinishedBuilds()
+	unfinished, err = getUnfinishedBuilds(b.Master)
 	assert.Nil(t, err)
 	found = false
 	for _, u := range unfinished {
@@ -469,7 +469,7 @@ func testLastProcessedBuilds(t *testing.T) {
 
 	// Ensure that we get the right number for not-yet-processed
 	// builder/master pair.
-	builds, err := getLastProcessedBuilds()
+	builds, err := getLastProcessedBuilds(build.Master)
 	assert.Nil(t, err)
 	if builds == nil || len(builds) != 0 {
 		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned an unacceptable value for no builds: %v", builds))
@@ -478,7 +478,7 @@ func testLastProcessedBuilds(t *testing.T) {
 	// Ensure that we get the right number for a single already-processed
 	// builder/master pair.
 	assert.Nil(t, build.ReplaceIntoDB())
-	builds, err = getLastProcessedBuilds()
+	builds, err = getLastProcessedBuilds(build.Master)
 	assert.Nil(t, err)
 	if builds == nil || len(builds) != 1 {
 		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned incorrect number of results: %v", builds))
@@ -493,7 +493,7 @@ func testLastProcessedBuilds(t *testing.T) {
 	build2.Builder = "Other-Builder"
 	build2.Number = build.Number + 10
 	assert.Nil(t, build2.ReplaceIntoDB())
-	builds, err = getLastProcessedBuilds()
+	builds, err = getLastProcessedBuilds(build.Master)
 	assert.Nil(t, err)
 	compareBuildLists := func(expected []*Build, actual []*BuildID) bool {
 		if len(expected) != len(actual) {
@@ -520,7 +520,7 @@ func testLastProcessedBuilds(t *testing.T) {
 	assert.Nil(t, err)
 	build3.Number -= 10
 	assert.Nil(t, build3.ReplaceIntoDB())
-	builds, err = getLastProcessedBuilds()
+	builds, err = getLastProcessedBuilds(build.Master)
 	assert.Nil(t, err)
 	assert.True(t, compareBuildLists([]*Build{build, build2}, builds), fmt.Sprintf("getLastProcessedBuilds returned incorrect results: %v", builds))
 }
@@ -541,9 +541,11 @@ func TestGetLatestBuilds(t *testing.T) {
 	}
 
 	httpClient = testHttpClient
-	actual, err := getLatestBuilds()
-	assert.Nil(t, err)
-	testutils.AssertDeepEqual(t, expected, actual)
+	for m, e := range expected {
+		actual, err := getLatestBuilds(m)
+		assert.Nil(t, err)
+		testutils.AssertDeepEqual(t, e, actual)
+	}
 }
 
 // testGetUningestedBuilds verifies that getUningestedBuilds works as expected.
@@ -608,9 +610,11 @@ func testGetUningestedBuilds(t *testing.T) {
 		},
 	}
 	httpClient = testHttpClient
-	actual, err := getUningestedBuilds()
-	assert.Nil(t, err)
-	testutils.AssertDeepEqual(t, expected, actual)
+	for m, e := range expected {
+		actual, err := getUningestedBuilds(m)
+		assert.Nil(t, err)
+		testutils.AssertDeepEqual(t, e, actual)
+	}
 }
 
 // testIngestNewBuilds verifies that we can successfully query the masters and
@@ -665,7 +669,9 @@ func testIngestNewBuilds(t *testing.T) {
 
 	// IngestNewBuilds should process the above Venue8 Perf bot's builds
 	// 464-466 as well as Housekeeper-PerCommit's unfinished build #1035.
-	assert.Nil(t, ingestNewBuilds(repos))
+	for _, m := range MASTER_NAMES {
+		assert.Nil(t, ingestNewBuilds(m, repos))
+	}
 
 	// Verify that the expected builds are now in the database.
 	expected := []Build{

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"path"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -212,7 +213,7 @@ func getFreeBuildslaves() ([]*buildslave, error) {
 	for _, b := range builders {
 		// Only include builders in the whitelist, and those only if
 		// there are no already-pending builds.
-		if !util.In(b.Name, BOT_BLACKLIST) && b.PendingBuilds == 0 {
+		if !util.In(b.Name, BOT_BLACKLIST) && !strings.HasSuffix(b.Name, "-Trybot") && b.PendingBuilds == 0 {
 			for _, slave := range b.Slaves {
 				buildslaves[slave].Builders = append(buildslaves[slave].Builders, b.Name)
 			}

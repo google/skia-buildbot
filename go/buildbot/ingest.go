@@ -127,8 +127,12 @@ func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, has
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
 func FindCommitsForBuild(bf BuildFinder, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
+	// Shortcut: Don't bother computing commit blamelists for trybots.
+	if strings.HasSuffix(b.Builder, "-Trybot") {
+		return []string{}, -1, []string{}, nil
+	}
 	if b.Repository == "" {
-		return []string{}, 0, []string{}, nil
+		return []string{}, -1, []string{}, nil
 	}
 	repo, err := repos.Repo(b.Repository)
 	if err != nil {
@@ -266,37 +270,19 @@ func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 // getLatestBuilds returns a map whose keys are master names and values are
 // sub-maps whose keys are builder names and values are build numbers
 // representing the newest build for each builder/master pair.
-func getLatestBuilds() (map[string]map[string]int, error) {
-	res := map[string]map[string]int{}
-	errs := map[string]error{}
+func getLatestBuilds(m string) (map[string]int, error) {
 	type builder struct {
 		CachedBuilds []int
 	}
-	var wg sync.WaitGroup
-	for _, master := range MASTER_NAMES {
-		wg.Add(1)
-		go func(m string) {
-			defer wg.Done()
-			builders := map[string]*builder{}
-			err := get(BUILDBOT_URL+m+"/json/builders", &builders)
-			if err != nil {
-				errs[m] = fmt.Errorf("Failed to retrieve builders for %v: %v", m, err)
-				return
-			}
-			myMap := map[string]int{}
-			for name, b := range builders {
-				if len(b.CachedBuilds) > 0 {
-					myMap[name] = b.CachedBuilds[len(b.CachedBuilds)-1]
-				}
-			}
-			if len(myMap) > 0 {
-				res[m] = myMap
-			}
-		}(master)
+	builders := map[string]*builder{}
+	if err := get(BUILDBOT_URL+m+"/json/builders", &builders); err != nil {
+		return nil, fmt.Errorf("Failed to retrieve builders for %v: %v", m, err)
 	}
-	wg.Wait()
-	if len(errs) != 0 {
-		return nil, fmt.Errorf("Encountered errors while loading builder data from masters: %v", errs)
+	res := map[string]int{}
+	for name, b := range builders {
+		if len(b.CachedBuilds) > 0 {
+			res[name] = b.CachedBuilds[len(b.CachedBuilds)-1]
+		}
 	}
 	return res, nil
 }
@@ -329,13 +315,13 @@ func GetBuildSlaves() (map[string]map[string]*BuildSlave, error) {
 // getUningestedBuilds returns a map whose keys are master names and values are
 // sub-maps whose keys are builder names and values are slices of ints
 // representing the numbers of builds which have not yet been ingested.
-func getUningestedBuilds() (map[string]map[string][]int, error) {
+func getUningestedBuilds(m string) (map[string][]int, error) {
 	// Get the latest and last-processed builds for all builders.
-	latest, err := getLatestBuilds()
+	latest, err := getLatestBuilds(m)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get latest builds: %v", err)
 	}
-	lastProcessed, err := getLastProcessedBuilds()
+	lastProcessed, err := getLastProcessedBuilds(m)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get last-processed builds: %v", err)
 	}
@@ -344,128 +330,103 @@ func getUningestedBuilds() (map[string]map[string][]int, error) {
 		Start int // The last-ingested build number.
 		End   int // The latest build number.
 	}
-	ranges := map[string]map[string]*numRange{}
+	ranges := map[string]*numRange{}
 	for _, b := range lastProcessed {
-		if _, ok := ranges[b.Master]; !ok {
-			ranges[b.Master] = map[string]*numRange{}
-		}
-		ranges[b.Master][b.Builder] = &numRange{
+		ranges[b.Builder] = &numRange{
 			Start: b.Number,
 			End:   b.Number,
 		}
 	}
-	for m, v := range latest {
-		if _, ok := ranges[m]; !ok {
-			ranges[m] = map[string]*numRange{}
-		}
-		for b, n := range v {
-			if _, ok := ranges[m][b]; !ok {
-				ranges[m][b] = &numRange{
-					Start: -1,
-					End:   n,
-				}
-			} else {
-				ranges[m][b].End = n
+	for b, n := range latest {
+		if _, ok := ranges[b]; !ok {
+			ranges[b] = &numRange{
+				Start: -1,
+				End:   n,
 			}
+		} else {
+			ranges[b].End = n
 		}
 	}
 	// Create a slice of build numbers for the uningested builds.
-	unprocessed := map[string]map[string][]int{}
-	for m, v := range ranges {
-		masterMap := map[string][]int{}
-		for b, r := range v {
-			builds := make([]int, r.End-r.Start)
-			for i := r.Start + 1; i <= r.End; i++ {
-				builds[i-r.Start-1] = i
-			}
-			if len(builds) > 0 {
-				masterMap[b] = builds
-			}
+	unprocessed := map[string][]int{}
+	for b, r := range ranges {
+		builds := make([]int, r.End-r.Start)
+		for i := r.Start + 1; i <= r.End; i++ {
+			builds[i-r.Start-1] = i
 		}
-		if len(masterMap) > 0 {
-			unprocessed[m] = masterMap
+		if len(builds) > 0 {
+			unprocessed[b] = builds
 		}
 	}
 	return unprocessed, nil
 }
 
 // ingestNewBuilds finds the set of uningested builds and ingests them.
-func ingestNewBuilds(repos *gitinfo.RepoMap) error {
+func ingestNewBuilds(m string, repos *gitinfo.RepoMap) error {
+	glog.Infof("Ingesting builds for %s", m)
 	// TODO(borenet): Investigate the use of channels here. We should be
 	// able to start ingesting builds as the data becomes available rather
 	// than waiting until the end.
-	buildsToProcess, err := getUningestedBuilds()
+	buildsToProcess, err := getUningestedBuilds(m)
 	if err != nil {
 		return fmt.Errorf("Failed to obtain the set of uningested builds: %v", err)
 	}
-	unfinished, err := getUnfinishedBuilds()
+	unfinished, err := getUnfinishedBuilds(m)
 	if err != nil {
 		return fmt.Errorf("Failed to obtain the set of unfinished builds: %v", err)
 	}
 	for _, b := range unfinished {
-		if _, ok := buildsToProcess[b.Master]; !ok {
-			buildsToProcess[b.Master] = map[string][]int{}
-		}
 		if _, ok := buildsToProcess[b.Builder]; !ok {
-			buildsToProcess[b.Master][b.Builder] = []int{}
+			buildsToProcess[b.Builder] = []int{}
 		}
-		buildsToProcess[b.Master][b.Builder] = append(buildsToProcess[b.Master][b.Builder], b.Number)
+		buildsToProcess[b.Builder] = append(buildsToProcess[b.Builder], b.Number)
 	}
 
 	if err := repos.Update(); err != nil {
 		return err
 	}
 
-	// TODO(borenet): Figure out how much of this is safe to parallelize.
-	// We can definitely do different masters in parallel, and maybe we can
-	// ingest different builders in parallel as well.
-	var wg sync.WaitGroup
-	errors := map[string]error{}
-	for m, v := range buildsToProcess {
-		wg.Add(1)
-		go func(master string, buildsToProcessForMaster map[string][]int) {
-			defer wg.Done()
-			for b, w := range buildsToProcessForMaster {
-				for _, n := range w {
-					if BUILD_BLACKLIST[b][n] {
-						glog.Warningf("Skipping blacklisted build: %s # %d", b, n)
-						continue
-					}
-					glog.Infof("Ingesting build: %s, %s, %d", master, b, n)
-					build, err := retryGetBuildFromMaster(master, b, n, repos)
-					if err != nil {
-						err := fmt.Errorf("Failed to ingest build: %v", err)
-						glog.Error(err)
-						errors[master] = err
-						return
-					}
-					if err := IngestBuild(build, repos); err != nil {
-						err := fmt.Errorf("Failed to ingest build: %v", err)
-						glog.Error(err)
-						errors[master] = err
-						return
-					}
-				}
+	// TODO(borenet): Can we ingest builders in parallel?
+	errs := map[string]error{}
+	for b, w := range buildsToProcess {
+		for _, n := range w {
+			if BUILD_BLACKLIST[b][n] {
+				glog.Warningf("Skipping blacklisted build: %s # %d", b, n)
+				continue
 			}
-		}(m, v)
+			glog.Infof("Ingesting build: %s, %s, %d", m, b, n)
+			build, err := retryGetBuildFromMaster(m, b, n, repos)
+			if err != nil {
+				errs[b] = fmt.Errorf("Failed to ingest build: %v", err)
+				break
+			}
+			if err := IngestBuild(build, repos); err != nil {
+				errs[b] = fmt.Errorf("Failed to ingest build: %v", err)
+				break
+			}
+		}
 	}
-	wg.Wait()
-	if len(errors) > 0 {
-		return fmt.Errorf("Errors: %v", errors)
+	if len(errs) > 0 {
+		msg := fmt.Sprintf("Encountered errors ingesting builds for %s:", m)
+		for b, err := range errs {
+			msg += fmt.Sprintf("\n%s: %v", b, err)
+		}
+		return fmt.Errorf(msg)
 	}
+	glog.Infof("Done ingesting builds for %s", m)
 	return nil
 }
 
 // NumTotalBuilds finds the total number of builds which have ever run.
 func NumTotalBuilds() (int, error) {
-	latest, err := getLatestBuilds()
-	if err != nil {
-		return 0, fmt.Errorf("Failed to get latest builds: %v", err)
-	}
 	total := 0
-	for _, m := range latest {
-		for _, b := range m {
-			total += b + 1 // Include build #0.
+	for _, m := range MASTER_NAMES {
+		latest, err := getLatestBuilds(m)
+		if err != nil {
+			return 0, fmt.Errorf("Failed to get latest builds: %v", err)
+		}
+		for _, n := range latest {
+			total += n + 1 // Include build #0.
 		}
 	}
 	return total, nil
@@ -473,14 +434,20 @@ func NumTotalBuilds() (int, error) {
 
 // IngestNewBuildsLoop continually ingests new builds.
 func IngestNewBuildsLoop(workdir string) {
-	lv := metrics.NewLiveness("buildbot-ingest")
 	repos := gitinfo.NewRepoMap(workdir)
-	for _ = range time.Tick(30 * time.Second) {
-		glog.Info("Ingesting builds.")
-		if err := ingestNewBuilds(repos); err != nil {
-			glog.Errorf("Failed to ingest new builds: %v", err)
-		} else {
-			lv.Update()
-		}
+	var wg sync.WaitGroup
+	for _, m := range MASTER_NAMES {
+		go func(master string) {
+			defer wg.Done()
+			lv := metrics.NewLiveness(fmt.Sprintf("buildbot-ingest-%s", master))
+			for _ = range time.Tick(30 * time.Second) {
+				if err := ingestNewBuilds(master, repos); err != nil {
+					glog.Errorf("Failed to ingest new builds: %v", err)
+				} else {
+					lv.Update()
+				}
+			}
+		}(m)
 	}
+	wg.Wait()
 }

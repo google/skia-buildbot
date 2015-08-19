@@ -745,10 +745,10 @@ func (b *Build) replaceIntoDBTx(tx *sqlx.Tx) (rv error) {
 }
 
 // getLastProcessedBuilds returns a slice of BuildIDs where each build
-// is the one with the greatest build number for its builder/master pair.
-func getLastProcessedBuilds() ([]*BuildID, error) {
+// is the one with the greatest build number for its builder.
+func getLastProcessedBuilds(m string) ([]*BuildID, error) {
 	buildIds := []*BuildID{}
-	if err := DB.Select(&buildIds, fmt.Sprintf("SELECT master, builder, MAX(number) as number FROM %s GROUP BY builder, master;", TABLE_BUILDS)); err != nil {
+	if err := DB.Select(&buildIds, fmt.Sprintf("SELECT master, builder, MAX(number) as number FROM %s WHERE MASTER = ? GROUP BY builder, master;", TABLE_BUILDS), m); err != nil {
 		return nil, fmt.Errorf("Unable to retrieve last-processed builds: %v", err)
 	}
 	return buildIds, nil
@@ -757,9 +757,9 @@ func getLastProcessedBuilds() ([]*BuildID, error) {
 // getUnfinishedBuilds returns a slice of BuildIDs for the builds already
 // entered into the database which were not finished at the time of their
 // insertion.
-func getUnfinishedBuilds() ([]*BuildID, error) {
+func getUnfinishedBuilds(m string) ([]*BuildID, error) {
 	b := []*BuildID{}
-	if err := DB.Select(&b, fmt.Sprintf("SELECT builder,master,number FROM %s WHERE finished = 0;", TABLE_BUILDS)); err != nil {
+	if err := DB.Select(&b, fmt.Sprintf("SELECT builder,master,number FROM %s WHERE finished = 0 AND master = ?;", TABLE_BUILDS), m); err != nil {
 		return nil, fmt.Errorf("Unable to retrieve unfinished builds: %v", err)
 	}
 	return b, nil
