@@ -211,7 +211,9 @@
         this.dispatchEvent(new CustomEvent('digest-select', {detail: this.selected, bubbles: true}));
 
         // Remove the selectionRect.
-        this.svg.select(".selectionRect").remove();
+        $$('.selectionRect', this.$.svg).forEach(function(ele) {
+          ele.parentElement.removeChild(ele);
+        });
       },
 
       keyboard: function(e) {
@@ -234,7 +236,6 @@
             this.force.start();
             break;
         }
-        console.log(this.charge);
       },
 
       dataChanged: function() {
