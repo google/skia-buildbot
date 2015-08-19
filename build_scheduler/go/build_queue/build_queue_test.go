@@ -3,6 +3,7 @@ package build_queue
 import (
 	"math"
 	"reflect"
+	"regexp"
 	"testing"
 	"time"
 
@@ -253,7 +254,7 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	assert.Nil(t, repos.Update())
 
 	// Create the BuildQueue.
-	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, timeDecay24Hr, []string{TEST_BUILDER})
+	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, timeDecay24Hr, []*regexp.Regexp{})
 	assert.Nil(t, err)
 
 	// Fake time.Now()

@@ -9,6 +9,7 @@ import (
 
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 )
 
 /*
@@ -21,16 +22,6 @@ var (
 		regexp.MustCompile(".*-Trybot"),
 	}
 )
-
-// skipBot determines whether the given bot should be skipped.
-func skipBot(b string) bool {
-	for _, r := range BOT_BLACKLIST {
-		if r.MatchString(b) {
-			return true
-		}
-	}
-	return false
-}
 
 // BuildCache is a struct used for caching build data.
 type BuildCache struct {
@@ -54,7 +45,7 @@ func LoadData(commits []string) (map[int]*buildbot.Build, map[string]map[string]
 		byBuilder := map[string]*buildbot.BuildSummary{}
 		for _, b := range buildList {
 			byId[b.Id] = b
-			if !skipBot(b.Builder) {
+			if !util.AnyMatch(BOT_BLACKLIST, b.Builder) {
 				byBuilder[b.Builder] = b.GetSummary()
 				builders[b.Builder] = true
 			}

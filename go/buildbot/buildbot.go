@@ -1,5 +1,7 @@
 package buildbot
 
+import "regexp"
+
 /*
 	Tools for loading data from Buildbot's JSON interface.
 */
@@ -7,6 +9,10 @@ package buildbot
 const (
 	BUILDBOT_URL  = "http://build.chromium.org/p/"
 	LOAD_ATTEMPTS = 3
+)
+
+var (
+	TRYBOT_REGEXP = regexp.MustCompile(".*-Trybot$")
 )
 
 // BuildID contains the minimum amount of information to identify a Build.
@@ -87,6 +93,11 @@ type CommitComment struct {
 	User      string  `db:"user"      json:"user"`
 	Timestamp float64 `db:"timestamp" json:"time"`
 	Message   string  `db:"message"   json:"message"`
+}
+
+// IsTrybot determines whether the given builder is a trybot.
+func IsTrybot(b string) bool {
+	return TRYBOT_REGEXP.MatchString(b)
 }
 
 // GetProperty returns the key/value pair for a build property, if it exists,

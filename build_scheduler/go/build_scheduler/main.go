@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"path"
+	"regexp"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -40,12 +40,15 @@ var (
 	// "Constants"
 
 	// BOT_BLACKLIST indicates which bots we cannot schedule.
-	BOT_BLACKLIST = []string{
-		"Housekeeper-Periodic-AutoRoll",
-		"Housekeeper-Nightly-RecreateSKPs_Canary",
-		"Housekeeper-Weekly-RecreateSKPs",
-		"Infra-PerCommit",
-		"skia_presubmit-Trybot",
+	BOT_BLACKLIST = []*regexp.Regexp{
+		regexp.MustCompile("^Housekeeper-Periodic-AutoRoll$"),
+		regexp.MustCompile("^Housekeeper-Nightly-RecreateSKPs_Canary$"),
+		regexp.MustCompile("^Housekeeper-Weekly-RecreateSKPs$"),
+		regexp.MustCompile("^Infra-PerCommit$"),
+		regexp.MustCompile("^Linux Tests$"),
+		regexp.MustCompile("^Mac10\\.9 Tests$"),
+		regexp.MustCompile("^Win7 Tests \\(1\\)"),
+		buildbot.TRYBOT_REGEXP,
 	}
 
 	// MASTERS determines which masters we poll for builders.
@@ -213,7 +216,7 @@ func getFreeBuildslaves() ([]*buildslave, error) {
 	for _, b := range builders {
 		// Only include builders in the whitelist, and those only if
 		// there are no already-pending builds.
-		if !util.In(b.Name, BOT_BLACKLIST) && !strings.HasSuffix(b.Name, "-Trybot") && b.PendingBuilds == 0 {
+		if !util.AnyMatch(BOT_BLACKLIST, b.Name) && b.PendingBuilds == 0 {
 			for _, slave := range b.Slaves {
 				buildslaves[slave].Builders = append(buildslaves[slave].Builders, b.Name)
 			}

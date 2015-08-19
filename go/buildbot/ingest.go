@@ -128,7 +128,7 @@ func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, has
 // are already in the database.
 func FindCommitsForBuild(bf BuildFinder, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
 	// Shortcut: Don't bother computing commit blamelists for trybots.
-	if strings.HasSuffix(b.Builder, "-Trybot") {
+	if IsTrybot(b.Builder) {
 		return []string{}, -1, []string{}, nil
 	}
 	if b.Repository == "" {
@@ -227,7 +227,7 @@ func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 	b.Commits = commits
 
 	// Log the case where we found no revisions for the build.
-	if !(strings.HasSuffix(b.Builder, "-Trybot") || strings.Contains(b.Builder, "Housekeeper")) && len(b.Commits) == 0 {
+	if !(IsTrybot(b.Builder) || strings.Contains(b.Builder, "Housekeeper")) && len(b.Commits) == 0 {
 		glog.Infof("Got build with 0 revs: %s #%d GotRev=%s", b.Builder, b.Number, b.GotRevision)
 	}
 	// Determine whether we've already ingested this build. If so, fix up the ID

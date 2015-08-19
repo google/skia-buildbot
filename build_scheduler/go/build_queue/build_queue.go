@@ -3,8 +3,8 @@ package build_queue
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"sort"
-	"strings"
 	"sync"
 	"time"
 
@@ -63,7 +63,7 @@ func (s BuildCandidateSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 // BuildQueue is a struct which contains a priority queue for builders and
 // commits.
 type BuildQueue struct {
-	botBlacklist   []string
+	botBlacklist   []*regexp.Regexp
 	lock           sync.RWMutex
 	period         time.Duration
 	scoreThreshold float64
@@ -97,7 +97,7 @@ type BuildQueue struct {
 // timeDecay24Hr equal to 0.5 causes the score for a build candidate with value
 // 1.0 to be 0.5 if the commit is 24 hours old. At 48 hours with a value of 1.0
 // the build candidate would receive a score of 0.25.
-func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold, timeDecay24Hr float64, botBlacklist []string) (*BuildQueue, error) {
+func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold, timeDecay24Hr float64, botBlacklist []*regexp.Regexp) (*BuildQueue, error) {
 	if timeDecay24Hr <= 0.0 || timeDecay24Hr > 1.0 {
 		return nil, fmt.Errorf("Time penalty must be 0 < p <= 1")
 	}
@@ -205,13 +205,11 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 		from = time.Unix(0, 0)
 	}
 	recentCommits := repo.From(from)
-	commitDetails := map[string]*gitinfo.LongCommit{}
+	// Pre-load commit details.
 	for _, c := range recentCommits {
-		details, err := repo.Details(c)
-		if err != nil {
+		if _, err := repo.Details(c); err != nil {
 			return nil, fmt.Errorf(errMsg, err)
 		}
-		commitDetails[c] = details
 	}
 
 	// Get all builds associated with the recent commits.
@@ -224,7 +222,8 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	buildFinders := map[string]*buildFinder{}
 	for _, buildsForCommit := range buildsByCommit {
 		for _, build := range buildsForCommit {
-			if util.In(build.Builder, q.botBlacklist) || strings.HasSuffix(build.Builder, "-Trybot") {
+			if util.AnyMatch(q.botBlacklist, build.Builder) {
+				glog.Infof("Skipping blacklisted builder %s", build.Builder)
 				continue
 			}
 			if _, ok := buildFinders[build.Builder]; !ok {
@@ -246,7 +245,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 		wg.Add(1)
 		go func(b string, bf *buildFinder) {
 			defer wg.Done()
-			c, err := q.getCandidatesForBuilder(bf, recentCommits, commitDetails, now)
+			c, err := q.getCandidatesForBuilder(bf, recentCommits, now)
 			if err != nil {
 				errs[b] = err
 				return
@@ -266,16 +265,24 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 }
 
 // getCandidatesForBuilder finds all BuildCandidates for the given builder, in order.
-func (q *BuildQueue) getCandidatesForBuilder(bf *buildFinder, recentCommits []string, commitDetails map[string]*gitinfo.LongCommit, now time.Time) ([]*BuildCandidate, error) {
-	defer timer.New("getCandidatesForBuilder()").Stop()
+func (q *BuildQueue) getCandidatesForBuilder(bf *buildFinder, recentCommits []string, now time.Time) ([]*BuildCandidate, error) {
+	defer timer.New(fmt.Sprintf("getCandidatesForBuilder(%s)", bf.Builder)).Stop()
+	repo, err := q.repos.Repo(bf.Repo)
+	if err != nil {
+		return nil, err
+	}
 	candidates := []*BuildCandidate{}
 	for {
-		score, newBuild, stoleFrom, err := q.getBestCandidate(bf, recentCommits, commitDetails, now)
+		score, newBuild, stoleFrom, err := q.getBestCandidate(bf, recentCommits, now)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get build candidates for %s: %v", bf.Builder, err)
 		}
 		if score < q.scoreThreshold {
 			break
+		}
+		d, err := repo.Details(newBuild.GotRevision)
+		if err != nil {
+			return nil, err
 		}
 		// "insert" the new build.
 		bf.add(newBuild)
@@ -283,7 +290,7 @@ func (q *BuildQueue) getCandidatesForBuilder(bf *buildFinder, recentCommits []st
 			bf.add(stoleFrom)
 		}
 		candidates = append(candidates, &BuildCandidate{
-			Author:  commitDetails[newBuild.GotRevision].Author,
+			Author:  d.Author,
 			Builder: newBuild.Builder,
 			Commit:  newBuild.GotRevision,
 			Score:   score,
@@ -294,9 +301,12 @@ func (q *BuildQueue) getCandidatesForBuilder(bf *buildFinder, recentCommits []st
 }
 
 // getBestCandidate finds the best BuildCandidate for the given builder.
-func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, commitDetails map[string]*gitinfo.LongCommit, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
-	defer timer.New("getBestCandidate()").Stop()
+func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
 	errMsg := fmt.Sprintf("Failed to get best candidate for %s: %%v", bf.Builder)
+	repo, err := q.repos.Repo(bf.Repo)
+	if err != nil {
+		return 0.0, nil, nil, fmt.Errorf(errMsg, err)
+	}
 	// Find the current scores for each commit.
 	currentScores := map[string]float64{}
 	for _, commit := range recentCommits {
@@ -304,7 +314,11 @@ func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, c
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
-		currentScores[commit] = scoreBuild(commitDetails[commit], currentBuild, now, q.timeLambda)
+		d, err := repo.Details(commit)
+		if err != nil {
+			return 0.0, nil, nil, err
+		}
+		currentScores[commit] = scoreBuild(d, currentBuild, now, q.timeLambda)
 	}
 
 	// For each commit/builder pair, determine the score increase obtained
@@ -341,13 +355,13 @@ func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, c
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
-		repo, err := q.repos.Repo(bf.Repo)
-		if err != nil {
-			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
-		}
 		// Re-score all commits in the new build.
 		newBuild.Commits = commits
 		for _, c := range commits {
+			d, err := repo.Details(c)
+			if err != nil {
+				return 0.0, nil, nil, fmt.Errorf(errMsg, err)
+			}
 			if _, ok := currentScores[c]; !ok {
 				// If this build has commits which are outside of our window,
 				// insert them into currentScores to account for them.
@@ -355,17 +369,10 @@ func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, c
 				if err != nil {
 					return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 				}
-				score := scoreBuild(commitDetails[commit], b, now, q.timeLambda)
+				score := scoreBuild(d, b, now, q.timeLambda)
 				currentScores[c] = score
 			}
-			if _, ok := commitDetails[c]; !ok {
-				d, err := repo.Details(c)
-				if err != nil {
-					return 0.0, nil, nil, fmt.Errorf(errMsg, err)
-				}
-				commitDetails[c] = d
-			}
-			newScores[c] = scoreBuild(commitDetails[c], &newBuild, now, q.timeLambda)
+			newScores[c] = scoreBuild(d, &newBuild, now, q.timeLambda)
 		}
 		newBuildsByCommit[commit] = &newBuild
 		// If the new build includes commits previously included in
@@ -395,7 +402,11 @@ func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, c
 			}
 			stoleFromBuild.Commits = newCommits
 			for _, c := range stoleFromBuild.Commits {
-				newScores[c] = scoreBuild(commitDetails[c], &stoleFromBuild, now, q.timeLambda)
+				d, err := repo.Details(c)
+				if err != nil {
+					return 0.0, nil, nil, err
+				}
+				newScores[c] = scoreBuild(d, &stoleFromBuild, now, q.timeLambda)
 			}
 			stoleFromByCommit[commit] = &stoleFromBuild
 		}

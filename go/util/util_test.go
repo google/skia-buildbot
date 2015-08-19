@@ -1,6 +1,7 @@
 package util
 
 import (
+	"regexp"
 	"sort"
 	"testing"
 
@@ -186,5 +187,27 @@ func TestAddParamSetToParamSet(t *testing.T) {
 		if got, want := AddParamSetToParamSet(tc.a, tc.b)["foo"], tc.wantFoo; !SSliceEqual(got, want) {
 			t.Errorf("Merge failed: Got %v Want %v", got, want)
 		}
+	}
+}
+
+func TestAnyMatch(t *testing.T) {
+	slice := []*regexp.Regexp{
+		regexp.MustCompile("somestring"),
+		regexp.MustCompile("^abcdefg$"),
+		regexp.MustCompile("^defg123"),
+		regexp.MustCompile("abc\\.xyz"),
+	}
+	tc := map[string]bool{
+		"somestring":      true,
+		"somestringother": true,
+		"abcdefg":         true,
+		"abcdefgh":        false,
+		"defg1234":        true,
+		"cdefg123":        false,
+		"abc.xyz":         true,
+		"abcqxyz":         false,
+	}
+	for s, e := range tc {
+		assert.Equal(t, e, AnyMatch(slice, s))
 	}
 }

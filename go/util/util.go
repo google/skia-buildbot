@@ -7,6 +7,7 @@ import (
 	"io"
 	mathrand "math/rand"
 	"os"
+	"regexp"
 	"runtime"
 	"sort"
 	"strings"
@@ -433,4 +434,14 @@ func Float64StableSum(s []float64) float64 {
 		sum += elem
 	}
 	return sum
+}
+
+// AnyMatch returns true iff the given string matches any regexp in the slice.
+func AnyMatch(re []*regexp.Regexp, s string) bool {
+	for _, r := range re {
+		if r.MatchString(s) {
+			return true
+		}
+	}
+	return false
 }
