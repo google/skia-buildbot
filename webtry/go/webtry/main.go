@@ -532,11 +532,11 @@ type Recent struct {
 	Titlebar Titlebar
 }
 
-// recentHandler shows the last 20 tries.
+// recentHandler shows the last 50 tries.
 func recentHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Recent Handler: %q\n", r.URL.Path)
 
-	rows, err := db.Query("SELECT create_ts, hash FROM webtry ORDER BY create_ts DESC LIMIT 20")
+	rows, err := db.Query("SELECT create_ts, hash FROM webtry ORDER BY create_ts DESC LIMIT 50")
 	if err != nil {
 		http.NotFound(w, r)
 		return
