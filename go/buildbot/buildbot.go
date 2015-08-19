@@ -171,6 +171,7 @@ func (b *Build) GetSummary() *BuildSummary {
 		Number:      b.Number,
 		Results:     b.Results,
 		Comments:    b.Comments,
+		Commits:     b.Commits,
 	}
 }
 
@@ -186,4 +187,5 @@ type BuildSummary struct {
 	Number      int             `json:"number"`
 	Results     int             `json:"results"`
 	Comments    []*BuildComment `json:"comments"`
+	Commits     []string        `json:"commits"`
 }

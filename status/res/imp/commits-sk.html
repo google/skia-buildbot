@@ -326,13 +326,13 @@
             <tbody>
               <template repeat="{{commit, i in commits}}">
                 <tr class="commit alt">
-                  <td class="author" id="{{commit.hash}}-author-td" title="{{commit.subject|shortSubject}}">
+                  <td class="author" id="{{commit.hash}}-author-td" title="{{commit.shortSubject}}">
                     <a id="opencommit|{{i}}" href="#" class="author" onClick="return false;" on-click="{{openCommitPopup}}">
                       <span class="authorText" style="display: {{commitLabel == 'author' ? 'block' : 'none'}}">
-                        {{commit.author|shortAuthor}}
+                        {{commit.shortAuthor}}
                       </span>
                       <span class="authorText" style="display: {{commitLabel == 'author' ? 'none' : 'block'}}">
-                        {{commit.subject|shortSubject}}
+                        {{commit.shortSubject}}
                       </span>
                     </a>
                     <span style="position: relative; display: block;">
@@ -445,11 +445,39 @@
       return str
     }
 
+    // shortCommit returns the first 7 characters of a commit hash.
+    function shortCommit(commit) {
+      return commit.substring(0, 7);
+    }
+
+    // shortAuthor shortens the commit author field by returning the
+    // parenthesized email address if it exists. If it does not exist, the
+    // entire author field is used.
+    function shortAuthor(author) {
+      var re = /.*\((.+)\)/;
+      var match = re.exec(author);
+      var res = author;
+      if (match) {
+        res = match[1];
+      }
+      return res.split("@")[0];
+    }
+
+    // shortSubject truncates a commit subject line to 72 characters if needed.
+    // If the text was shortened, the last three characters are replaced by
+    // ellipsis.
+    function shortSubject(subject) {
+      return truncate(subject, 72);
+    }
+
     // Object representing a commit used for creating layout and drawing.
     function Commit(commitInfo, row) {
       this.hash = commitInfo.hash;
+      this.shortHash = commitInfo.shortHash;
       this.author = commitInfo.author;
+      this.shortAuthor = commitInfo.shortAuthor;
       this.subject = commitInfo.subject;
+      this.shortSubject = commitInfo.shortSubject;
       this.timestamp = new Date(commitInfo.timestamp);
       this.row = row;
       this.column = -1;
@@ -829,31 +857,6 @@
         this.draw();
       },
 
-      // shortCommit returns the first 12 characters of a commit hash.
-      shortCommit: function(commit) {
-        return commit.substring(0, 12);
-      },
-
-      // shortAuthor shortens the commit author field by returning the
-      // parenthesized email address if it exists. If it does not exist, the
-      // entire author field is used.
-      shortAuthor: function(author) {
-        var re = /.*\((.+)\)/;
-        var match = re.exec(author);
-        var res = author;
-        if (match) {
-          res = match[1];
-        }
-        return res.split("@")[0];
-      },
-
-      // shortSubject truncates a commit subject line to 72 characters if needed.
-      // If the text was shortened, the last three characters are replaced by
-      // ellipsis.
-      shortSubject: function(subject) {
-        return truncate(subject, 72);
-      },
-
       reloadChanged: function() {
         this.resetTimeout();
       },
@@ -1015,6 +1018,8 @@
           buildInfo.build = build;
           buildInfo.buildbotUrlPrefix = this.buildbotUrlPrefix;
           buildInfo.repo = this.repo;
+          buildInfo.commitDetails = this.displayCommits;
+          buildInfo.parent = this;
           this.openDialog(buildInfo);
         }
       },
@@ -1167,6 +1172,9 @@
 
           for (var i = 0; i < commits.length; i++) {
             var commit = commits[i];
+            commit.shortAuthor = shortAuthor(commit.author);
+            commit.shortHash = shortCommit(commit.hash);
+            commit.shortSubject = shortSubject(commit.subject);
             commit.issue = that.findIssueNumber(commit);
             commit.isRevert = that.isRevert(commit);
             if (commit.isRevert) {

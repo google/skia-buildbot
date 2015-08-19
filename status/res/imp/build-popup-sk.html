@@ -75,6 +75,17 @@
       </tr>
     </table>
     <hr/>
+    <h3>Blamelist</h3>
+    <table>
+      <template repeat="{{c in build.commits}}">
+        <tr>
+          <td><a href="https://skia.googlesource.com/{{repo}}/+/{{c}}">{{commitDetails[c].shortHash}}</a></td>
+          <td>{{commitDetails[c].shortAuthor}}</td>
+          <td>{{commitDetails[c].shortSubject}}</td>
+        </tr>
+      </template>
+    </table>
+    <hr/>
     <comments-sk comments="{{build.comments}}" addCommentUrl="/json/{{repo}}/builds/{{build.id}}/comments" on-submit="{{commentAdded}}" allowDelete></comments-sk>
   </template>
   <script>
@@ -86,6 +97,10 @@
         },
         buildbotUrlPrefix: {
           value: "https://build.chromium.org/p",
+          reflect: true,
+        },
+        commitDetails: {
+          value: {},
           reflect: true,
         },
         repo: {
