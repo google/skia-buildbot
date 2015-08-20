@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -156,10 +157,15 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 	return resp, nil
 }
 
+// TODO(stephana): Remove 'r' from the argument list since it's not used. It would
+// be also useful if we could specify a return status explicitly.
+
 // ReportError formats an HTTP error response and also logs the detailed error message.
 func ReportError(w http.ResponseWriter, r *http.Request, err error, message string) {
 	glog.Errorln(message, err)
-	http.Error(w, fmt.Sprintf("%s %s", message, err), 500)
+	if err != io.ErrClosedPipe {
+		http.Error(w, fmt.Sprintf("%s %s", message, err), 500)
+	}
 }
 
 // responseProxy implements http.ResponseWriter and records the status codes.

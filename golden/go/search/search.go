@@ -94,6 +94,7 @@ type Query struct {
 	Head           bool
 	IncludeIgnores bool
 	Query          string
+	Issue          string
 	CommitRange    CommitRange
 	Limit          int // Only return this many items.
 }

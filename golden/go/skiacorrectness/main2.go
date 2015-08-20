@@ -117,6 +117,7 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	q, err := url.ParseQuery(r.FormValue("query"))
 	if err != nil {
 		util.ReportError(w, r, err, "Invalid query in request.")
+		return
 	}
 	_, hasSourceType := q["source_type"]
 	sumSlice := []*summary.Summary{}
@@ -133,6 +134,7 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		sumMap, err := summaries.CalcSummaries(nil, r.FormValue("query"), r.FormValue("include") == "true", r.FormValue("head") == "true")
 		if err != nil {
 			util.ReportError(w, r, err, "Failed to calculate summaries.")
+			return
 		}
 		for _, s := range sumMap {
 			sumSlice = append(sumSlice, s)
@@ -1254,6 +1256,29 @@ func search2Handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// SearchResult encapsulates the results of a search request.
+type SearchResult struct {
+	Digests    []*search.Digest `json:"digests"`
+	Commits    []*tiling.Commit `json:"digests"`
+	NumMatches int
+}
+
+// TODO(stephan): Replace all other search handlers with  search3JSONHandler.
+func search3JSONHandler(w http.ResponseWriter, r *http.Request) {
+	digests, numMatches, commits, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	if err != nil {
+		util.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+
+	result := SearchResult{
+		Digests:    digests,
+		Commits:    commits,
+		NumMatches: numMatches,
+	}
+	sendJsonResponse(w, &result)
+}
+
 func queryFromRequest(r *http.Request) *search.Query {
 	Limit := 50
 	if l := r.FormValue("limit"); l != "" {
@@ -1271,6 +1296,7 @@ func queryFromRequest(r *http.Request) *search.Query {
 		Head:           r.FormValue("head") == "true",
 		IncludeIgnores: r.FormValue("include") == "true",
 		Query:          r.FormValue("query"),
+		Issue:          r.FormValue("issue"),
 		Limit:          Limit,
 	}
 }
@@ -1362,7 +1388,7 @@ func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		glog.Errorf("Failed to write or encode result: %s", err)
+		util.ReportError(w, nil, err, "Failed to encode JSON response.")
 	}
 }
 

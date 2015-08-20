@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/paramsets"
+	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
@@ -64,6 +65,7 @@ var (
 	nTilesToBackfill = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
 	storageDir       = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
 	issueTrackerKey  = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
+	selfTest         = flag.Bool("self_test", false, "Run test agains live data, used debugging only.")
 )
 
 const (
@@ -202,7 +204,7 @@ func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
 func main() {
 	var err error
 
-	t := timer.New("main init")
+	mainTimer := timer.New("main init")
 	// Setup DB flags.
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
 
@@ -363,7 +365,12 @@ func main() {
 	if err := warmer.Init(storages, summaries, tallies); err != nil {
 		glog.Fatalf("Failed to initialize the warmer: %s", err)
 	}
-	t.Stop()
+	mainTimer.Stop()
+
+	// Everything is wired up at this point. Run the self tests if requested.
+	if *selfTest {
+		search.SelfTest(storages, tallies, blamer, paramsetSum)
+	}
 
 	router := mux.NewRouter()
 
@@ -392,7 +399,12 @@ func main() {
 	router.HandleFunc("/_/list", polyListTestsHandler).Methods("GET")
 	router.HandleFunc("/_/paramset", polyParamsHandler).Methods("GET")
 	router.HandleFunc("/_/nxn", nxnJSONHandler).Methods("GET")
+
+	// TODO(stephana): Once /_/search3 is stable it will replace /_/search and the
+	// /search*.html pages will be consolidated into one.
 	router.HandleFunc("/_/search", polySearchJSONHandler).Methods("GET")
+	router.HandleFunc("/_/search3", search3JSONHandler).Methods("GET")
+
 	router.HandleFunc("/_/status/{test}", polyTestStatusHandler).Methods("GET")
 	router.HandleFunc("/_/test", polyTestHandler).Methods("POST")
 	router.HandleFunc("/_/triage", polyTriageHandler).Methods("POST")
@@ -400,7 +412,7 @@ func main() {
 	router.HandleFunc("/_/triagelog/undo", triageUndoHandler).Methods("POST")
 	router.HandleFunc("/byblame", byBlameHandler).Methods("GET")
 	router.HandleFunc("/cluster", templateHandler("cluster.html")).Methods("GET")
-	router.HandleFunc("/search2", search2Handler).Methods("GET") // search2 is currently unused, will replace /search soon.
+	router.HandleFunc("/search2", search2Handler).Methods("GET")
 	router.HandleFunc("/cmp/{test}", templateHandler("compare.html")).Methods("GET")
 	router.HandleFunc("/detail", templateHandler("single.html")).Methods("GET")
 	router.HandleFunc("/diff", templateHandler("diff.html")).Methods("GET")
