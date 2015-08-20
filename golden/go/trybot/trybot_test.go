@@ -38,19 +38,20 @@ func TestTrybotIngester(t *testing.T) {
 	assert.Nil(t, err)
 
 	Init(vdb)
+	resultStore := NewTrybotResultStorage(vdb)
 
 	// Get the constructor and create an instance of gold-trybot ingester.
 	tbIngester := ingester.Constructor(config.CONSTRUCTOR_GOLD_TRYBOT)()
 	_ = ingestFile(t, tbIngester, TEST_FILE)
 
-	tries, err := Get(vdb, TEST_ISSUE)
+	tries, err := resultStore.Get(TEST_ISSUE)
 	assert.Nil(t, err)
 	assert.Equal(t, len(TEST_DIGESTS), len(tries))
 	for _, entry := range tries {
 		assert.True(t, TEST_DIGESTS[entry.Digest])
 	}
 
-	allIssues, err := List(vdb, 10)
+	allIssues, err := resultStore.List(10)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(allIssues))
 	assert.Equal(t, TEST_ISSUE, allIssues[0])
@@ -58,7 +59,7 @@ func TestTrybotIngester(t *testing.T) {
 	time.Sleep(time.Second)
 
 	_ = ingestFile(t, tbIngester, TEST_FILE_2)
-	tries, err = Get(vdb, TEST_ISSUE)
+	tries, err = resultStore.Get(TEST_ISSUE)
 	assert.Nil(t, err)
 	assert.Equal(t, len(TEST_DIGESTS), len(tries))
 	for _, entry := range tries {

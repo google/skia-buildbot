@@ -40,6 +40,7 @@ import (
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
+	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/warmer"
 )
 
@@ -321,6 +322,7 @@ func main() {
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          eventBus,
+		TrybotResults:     trybot.NewTrybotResultStorage(vdb),
 	}
 
 	if err := history.Init(storages, *nTilesToBackfill); err != nil {

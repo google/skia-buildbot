@@ -21,13 +21,23 @@ import (
 // trybot results are stored.
 func Init(vdb *database.VersionedDB) {
 	ingester.Register(config.CONSTRUCTOR_GOLD_TRYBOT, func() ingester.ResultIngester {
-		return NewTrybotResultIngester(vdb)
+		return NewTrybotResultIngester(NewTrybotResultStorage(vdb))
 	})
+}
+
+type TrybotResultStorage struct {
+	vdb *database.VersionedDB
+}
+
+func NewTrybotResultStorage(vdb *database.VersionedDB) *TrybotResultStorage {
+	return &TrybotResultStorage{
+		vdb: vdb,
+	}
 }
 
 // Write writes trybot results to the SQL database connected to vdb that was the
 // the argument to Init(..).
-func Write(vdb *database.VersionedDB, issue string, trybotResults types.TryBotResults) error {
+func (t *TrybotResultStorage) Write(issue string, trybotResults types.TryBotResults) error {
 	b, err := json.Marshal(trybotResults)
 	if err != nil {
 		return fmt.Errorf("Failed to encode to JSON: %s", err)
@@ -41,7 +51,7 @@ func Write(vdb *database.VersionedDB, issue string, trybotResults types.TryBotRe
 		}
 	}
 
-	_, err = vdb.DB.Exec("REPLACE INTO tries (issue, results, last_updated) VALUES (?, ?, ?)", issue, b, timeStamp)
+	_, err = t.vdb.DB.Exec("REPLACE INTO tries (issue, results, last_updated) VALUES (?, ?, ?)", issue, b, timeStamp)
 	if err != nil {
 		return fmt.Errorf("Failed to write trybot data to database: %s", err)
 	}
@@ -49,9 +59,9 @@ func Write(vdb *database.VersionedDB, issue string, trybotResults types.TryBotRe
 }
 
 // Get returns the trybot results for the given issue from the datastore.
-func Get(vdb *database.VersionedDB, issue string) (types.TryBotResults, error) {
+func (t *TrybotResultStorage) Get(issue string) (types.TryBotResults, error) {
 	var results string
-	err := vdb.DB.QueryRow("SELECT results FROM tries WHERE issue=?", issue).Scan(&results)
+	err := t.vdb.DB.QueryRow("SELECT results FROM tries WHERE issue=?", issue).Scan(&results)
 	if err == sql.ErrNoRows {
 		return types.NewTryBotResults(), nil
 	}
@@ -67,8 +77,8 @@ func Get(vdb *database.VersionedDB, issue string) (types.TryBotResults, error) {
 }
 
 // List returns the last N Rietveld issue IDs that have been ingested.
-func List(vdb *database.VersionedDB, n int) ([]string, error) {
-	rows, err := vdb.DB.Query("SELECT issue FROM tries ORDER BY last_updated DESC LIMIT ?", n)
+func (t *TrybotResultStorage) List(n int) ([]string, error) {
+	rows, err := t.vdb.DB.Query("SELECT issue FROM tries ORDER BY last_updated DESC LIMIT ?", n)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read try data from database: %s", err)
 	}
@@ -88,13 +98,13 @@ func List(vdb *database.VersionedDB, n int) ([]string, error) {
 
 // TrybotResultIngester implements the ingester.ResultIngester interface.
 type TrybotResultIngester struct {
-	vdb            *database.VersionedDB
+	tbrStorage     *TrybotResultStorage
 	resultsByIssue map[string]types.TryBotResults
 }
 
-func NewTrybotResultIngester(vdb *database.VersionedDB) ingester.ResultIngester {
+func NewTrybotResultIngester(tbrStorage *TrybotResultStorage) ingester.ResultIngester {
 	return &TrybotResultIngester{
-		vdb:            vdb,
+		tbrStorage:     tbrStorage,
 		resultsByIssue: map[string]types.TryBotResults{},
 	}
 }
@@ -114,7 +124,7 @@ func (t *TrybotResultIngester) Ingest(_ *ingester.TileTracker, opener ingester.O
 		if _, ok := t.resultsByIssue[dmResults.Issue]; !ok {
 			t.resultsByIssue[dmResults.Issue] = types.NewTryBotResults()
 		}
-		t.resultsByIssue[dmResults.Issue].Update(key, value, fileInfo.LastUpdated)
+		t.resultsByIssue[dmResults.Issue].Update(key, params[types.PRIMARY_KEY_FIELD], value, params, fileInfo.LastUpdated)
 	})
 
 	counter.Inc(1)
@@ -131,7 +141,7 @@ func (t *TrybotResultIngester) BatchFinished(_ metrics.Counter) error {
 
 	for issue, tries := range t.resultsByIssue {
 		// Get the current results.
-		pastTries, err := Get(t.vdb, issue)
+		pastTries, err := t.tbrStorage.Get(issue)
 		if err != nil {
 			return err
 		}
@@ -146,7 +156,7 @@ func (t *TrybotResultIngester) BatchFinished(_ metrics.Counter) error {
 		}
 
 		if needsUpdating {
-			if err := Write(t.vdb, issue, pastTries); err != nil {
+			if err := t.tbrStorage.Write(issue, pastTries); err != nil {
 				return err
 			}
 		}

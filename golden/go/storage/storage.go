@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/trybot"
 )
 
 // Storage is a container struct for the various storage objects we are using.
@@ -24,6 +25,7 @@ type Storage struct {
 	TileStore         tiling.TileStore
 	DigestStore       digeststore.DigestStore
 	EventBus          *eventbus.EventBus
+	TrybotResults     *trybot.TrybotResultStorage
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
