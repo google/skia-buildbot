@@ -23,15 +23,16 @@ import (
 
 const (
 	// The number of goroutines that will run in parallel to capture SKPs.
-	WORKER_POOL_SIZE = 15
+	WORKER_POOL_SIZE = 10
 )
 
 var (
-	workerNum      = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
-	pagesetType    = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create SKPs from. Eg: 10k, Mobile10k, All.")
-	chromiumBuild  = flag.String("chromium_build", "", "The chromium build that will be used to create the SKPs.")
-	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
-	targetPlatform = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
+	workerNum          = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
+	pagesetType        = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create SKPs from. Eg: 10k, Mobile10k, All.")
+	chromiumBuild      = flag.String("chromium_build", "", "The chromium build that will be used to create the SKPs.")
+	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	targetPlatform     = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
+	chromeCleanerTimer = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
 
 func main() {
@@ -136,6 +137,11 @@ func main() {
 	pagesetRequests := getClosedChannelOfPagesets(fileInfos)
 
 	var wg sync.WaitGroup
+	// Use a RWMutex for the chromeProcessesCleaner goroutine to communicate to
+	// the workers (acting as "readers") when it wants to be the "writer" and
+	// kill all zombie chrome processes.
+	var mutex sync.RWMutex
+
 	// Loop through workers in the worker pool.
 	for i := 0; i < WORKER_POOL_SIZE; i++ {
 		// Increment the WaitGroup counter.
@@ -147,6 +153,9 @@ func main() {
 			defer wg.Done()
 
 			for pagesetName := range pagesetRequests {
+
+				mutex.RLock()
+
 				pagesetBaseName := filepath.Base(pagesetName)
 				// Convert the filename into a format consumable by the run_benchmarks
 				// binary.
@@ -179,9 +188,15 @@ func main() {
 				}
 				skutil.LogErr(
 					util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
+
+				mutex.RUnlock()
+
 			}
 		}()
 	}
+
+	// Start the cleaner.
+	go chromeProcessesCleaner(&mutex)
 
 	// Wait for all spawned goroutines to complete.
 	wg.Wait()
@@ -247,6 +262,20 @@ func main() {
 	if err := gs.UploadWorkerArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild), *workerNum); err != nil {
 		glog.Error(err)
 		return
+	}
+}
+
+// SKPs are captured in parallel leading to multiple chrome instances coming up
+// at the same time, when there are crashes chrome processes stick around which
+// can severely impact the machine's performance. To stop this from
+// happening chrome zombie processes are periodically killed.
+func chromeProcessesCleaner(mutex *sync.RWMutex) {
+	for _ = range time.Tick(*chromeCleanerTimer) {
+		glog.Info("The chromeProcessesCleaner goroutine has started")
+		glog.Info("Waiting for all existing tasks to complete before killing zombie chrome processes")
+		mutex.Lock()
+		skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, 5*time.Minute, nil, nil))
+		mutex.Unlock()
 	}
 }
 
