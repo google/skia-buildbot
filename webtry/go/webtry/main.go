@@ -34,6 +34,7 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/webtry/go/config"
@@ -179,7 +180,7 @@ func Init() {
 	//
 	//   f672cead70404080a991ebfb86c38316a4589b23 2014-04-27 19:21:51 +0000
 	//
-	logOutput, err := util.DoCmd(`git log --format=%H%x20%ai HEAD^..HEAD`)
+	logOutput, err := exec.RunSimple(`git log --format=%H%x20%ai HEAD^..HEAD`)
 	if err != nil {
 		panic(err)
 	}
@@ -1052,7 +1053,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			cmd += fmt.Sprintf(" --source image-%d.png", request.Source)
 		}
 
-		message, err := util.DoCmd(cmd)
+		message, err := exec.RunSimple(cmd)
 
 		buildAndRunOutput := strings.SplitN(message, "-=-=-=-=-=-=-", 2)
 

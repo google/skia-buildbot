@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/generator"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/util"
 )
 
@@ -176,7 +177,7 @@ func runFuzz(hash string) error {
 	glog.Infof("Running gyp for %s...", hash)
 
 	cmd := fmt.Sprintf("./gyp_skia gyp/%s.gyp gyp/most.gyp -Dskia_mesa=1", hash)
-	message, err := util.DoCmd(cmd)
+	message, err := exec.RunSimple(cmd)
 	if err != nil {
 		glog.Fatalf("Couldn't run gyp: %s", err)
 	}
@@ -184,13 +185,13 @@ func runFuzz(hash string) error {
 	glog.Infof("Running ninja for %s...", hash)
 
 	cmd = fmt.Sprintf("ninja -C %s/out/Release_Developer %s", skiaDir, hash)
-	message, err = util.DoCmd(cmd)
+	message, err = exec.RunSimple(cmd)
 	if err != nil {
 		glog.Fatalf("Couldn't run ninja: %s", err)
 	}
 
 	cmd = fmt.Sprintf("%s/out/Release_Developer/%s --out %s/%s", skiaDir, hash, cacheDir, hash)
-	message, err = util.DoCmd(cmd)
+	message, err = exec.RunSimple(cmd)
 
 	glog.Infof(message)
 

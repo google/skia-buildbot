@@ -7,6 +7,7 @@ import (
 	"io"
 	mathrand "math/rand"
 	"os"
+	"reflect"
 	"regexp"
 	"runtime"
 	"sort"
@@ -444,4 +445,33 @@ func AnyMatch(re []*regexp.Regexp, s string) bool {
 		}
 	}
 	return false
+}
+
+// Returns true if i is nil or is an interface containing a nil or invalid value.
+func IsNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+	v := reflect.ValueOf(i)
+	if !v.IsValid() {
+		return true
+	}
+	switch v.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Map, reflect.Slice:
+		return v.IsNil()
+	case reflect.Interface, reflect.Ptr:
+		if v.IsNil() {
+			return true
+		}
+		inner := v.Elem()
+		if !inner.IsValid() {
+			return true
+		}
+		if inner.CanInterface() {
+			return IsNil(inner.Interface())
+		}
+		return false
+	default:
+		return false
+	}
 }

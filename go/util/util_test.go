@@ -1,6 +1,8 @@
 package util
 
 import (
+	"bytes"
+	"io"
 	"regexp"
 	"sort"
 	"testing"
@@ -210,4 +212,43 @@ func TestAnyMatch(t *testing.T) {
 	for s, e := range tc {
 		assert.Equal(t, e, AnyMatch(slice, s))
 	}
+}
+
+func TestIsNil(t *testing.T) {
+	assert.True(t, IsNil(nil))
+	assert.False(t, IsNil(false))
+	assert.False(t, IsNil(0))
+	assert.False(t, IsNil(""))
+	assert.False(t, IsNil([0]int{}))
+	type Empty struct{}
+	assert.False(t, IsNil(Empty{}))
+	assert.True(t, IsNil(chan interface{}(nil)))
+	assert.False(t, IsNil(make(chan interface{})))
+	var f func()
+	assert.True(t, IsNil(f))
+	assert.False(t, IsNil(func() {}))
+	assert.True(t, IsNil(map[bool]bool(nil)))
+	assert.False(t, IsNil(make(map[bool]bool)))
+	assert.True(t, IsNil([]int(nil)))
+	assert.False(t, IsNil([][]int{nil}))
+	assert.True(t, IsNil((*int)(nil)))
+	var i int
+	assert.False(t, IsNil(&i))
+	var pi *int
+	assert.True(t, IsNil(pi))
+	assert.True(t, IsNil(&pi))
+	var ppi **int
+	assert.True(t, IsNil(&ppi))
+	var c chan interface{}
+	assert.True(t, IsNil(&c))
+	var w io.Writer
+	assert.True(t, IsNil(w))
+	w = (*bytes.Buffer)(nil)
+	assert.True(t, IsNil(w))
+	w = &bytes.Buffer{}
+	assert.False(t, IsNil(w))
+	assert.False(t, IsNil(&w))
+	var ii interface{}
+	ii = &pi
+	assert.True(t, IsNil(ii))
 }
