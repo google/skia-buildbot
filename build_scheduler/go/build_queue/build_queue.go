@@ -205,15 +205,21 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 		from = time.Unix(0, 0)
 	}
 	recentCommits := repo.From(from)
-	// Pre-load commit details.
-	for _, c := range recentCommits {
+
+	// Pre-load commit details, from a larger window than we actually care about.
+	fromPreload := now.Add(time.Duration(int64(-1.5 * float64(q.period))))
+	if q.period == PERIOD_FOREVER {
+		fromPreload = time.Unix(0, 0)
+	}
+	recentCommitsPreload := repo.From(fromPreload)
+	for _, c := range recentCommitsPreload {
 		if _, err := repo.Details(c); err != nil {
 			return nil, fmt.Errorf(errMsg, err)
 		}
 	}
 
 	// Get all builds associated with the recent commits.
-	buildsByCommit, err := buildbot.GetBuildsForCommits(recentCommits, map[int]bool{})
+	buildsByCommit, err := buildbot.GetBuildsForCommits(recentCommitsPreload, map[int]bool{})
 	if err != nil {
 		return nil, fmt.Errorf(errMsg, err)
 	}

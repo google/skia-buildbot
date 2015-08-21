@@ -399,6 +399,9 @@ func ingestNewBuilds(m string, repos *gitinfo.RepoMap) error {
 				glog.Warningf("Skipping blacklisted build: %s # %d", b, n)
 				continue
 			}
+			if IsTrybot(b) {
+				continue
+			}
 			glog.Infof("Ingesting build: %s, %s, %d", m, b, n)
 			build, err := retryGetBuildFromMaster(m, b, n, repos)
 			if err != nil {
