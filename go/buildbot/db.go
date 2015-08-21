@@ -9,6 +9,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 )
@@ -418,6 +419,7 @@ func GetBuildsFromDB(ids []int) (map[int]*Build, error) {
 
 // ReplaceIntoDB inserts or updates the Build in the database.
 func (b *Build) ReplaceIntoDB() error {
+	defer metrics.NewTimer("buildbot.ReplaceIntoDB").Stop()
 	var err error
 	for attempt := 0; attempt < 5; attempt++ {
 		if err = b.replaceIntoDB(); err == nil {
@@ -663,6 +665,7 @@ func (b *Build) replaceIntoDB() (rv error) {
 }
 
 func ReplaceMultipleBuildsIntoDB(builds []*Build) (rv error) {
+	defer metrics.NewTimer("buildbot.ReplaceMultipleBuildsIntoDB").Stop()
 	tx, err := DB.Beginx()
 	if err != nil {
 		return fmt.Errorf("Unable to push builds into database - Could not begin transaction: %v", err)

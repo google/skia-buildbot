@@ -38,3 +38,27 @@ func NewLiveness(name string) *Liveness {
 	}()
 	return l
 }
+
+// Timer is a timer which reports its result to go-metrics.
+//
+// The standard way to use Timer is at the top of the func you
+// want to measure:
+//
+//    defer metrics.NewTimer("myapp.myFunction").Stop()
+//
+type Timer struct {
+	Begin  time.Time
+	Metric string
+}
+
+func NewTimer(metric string) *Timer {
+	return &Timer{
+		Begin:  time.Now(),
+		Metric: metric,
+	}
+}
+
+func (t Timer) Stop() {
+	v := int64(time.Now().Sub(t.Begin))
+	metrics.GetOrRegisterHistogram(t.Metric, metrics.DefaultRegistry, metrics.NewUniformSample(100)).Update(v)
+}

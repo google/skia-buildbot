@@ -127,6 +127,7 @@ func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, has
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
 func FindCommitsForBuild(bf BuildFinder, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
+	defer metrics.NewTimer("buildbot.FindCommitsForBuild").Stop()
 	// Shortcut: Don't bother computing commit blamelists for trybots.
 	if IsTrybot(b.Builder) {
 		return []string{}, -1, []string{}, nil
@@ -204,6 +205,7 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.
 // interface as specified by the master, builder, and build number. Makes
 // multiple attempts in case the master fails to respond.
 func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.RepoMap) (*Build, error) {
+	defer metrics.NewTimer("buildbot.retryGetBuildFromMaster").Stop()
 	var b *Build
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
@@ -219,6 +221,7 @@ func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *git
 // IngestBuild retrieves the given build from the build master's JSON interface
 // and pushes it into the database.
 func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
+	defer metrics.NewTimer("buildbot.IngestBuild").Stop()
 	// Find the commits for this build.
 	commits, stoleFrom, stolen, err := FindCommitsForBuild(&bf, b, repos)
 	if err != nil {
@@ -316,6 +319,7 @@ func GetBuildSlaves() (map[string]map[string]*BuildSlave, error) {
 // sub-maps whose keys are builder names and values are slices of ints
 // representing the numbers of builds which have not yet been ingested.
 func getUningestedBuilds(m string) (map[string][]int, error) {
+	defer metrics.NewTimer("buildbot.getUningestedBuilds").Stop()
 	// Get the latest and last-processed builds for all builders.
 	latest, err := getLatestBuilds(m)
 	if err != nil {
@@ -363,6 +367,7 @@ func getUningestedBuilds(m string) (map[string][]int, error) {
 
 // ingestNewBuilds finds the set of uningested builds and ingests them.
 func ingestNewBuilds(m string, repos *gitinfo.RepoMap) error {
+	defer metrics.NewTimer("buildbot.ingestNewBuilds").Stop()
 	glog.Infof("Ingesting builds for %s", m)
 	// TODO(borenet): Investigate the use of channels here. We should be
 	// able to start ingesting builds as the data becomes available rather
