@@ -22,10 +22,20 @@
     value to populate the element. The mailbox value is expected to be a
     systemd.UnitStatus.
 -->
+
+<link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all" />
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html"/>
+
 <dom-module id="systemd-unit-status-sk">
   <style>
     div div {
       font-family: monospace;
+      margin: 0.6em;
+      margin-right: 2em;
+      padding: 0.4em 1.2em;
+    }
+    #machine {
+      width: 15em;
     }
     #service {
       width: 15em;
@@ -51,22 +61,20 @@
     .exited {
       color: #666666;
     }
-    paper-button:hover {
-      background: #eee;
-    }
     .top {
       @apply(--layout-horizontal);
+      @apply(--layout-wrap);
     }
   </style>
   <template>
     <div class=top>
-      <div>[[machine]]</div>
+      <div id=machine>[[machine]]</div>
       <div id=service>[[service]]</div>
       <div id=uptime>[[uptimeOf(value.props.ExecMainStartTimestamp)]]</div>
       <div id=state class$="[[value.status.SubState]]">[[value.status.SubState]]</div>
-      <paper-button raised data-action="start"   data-name$="[[service]]">Start  </paper-button>
-      <paper-button raised data-action="stop"    data-name$="[[service]]">Stop   </paper-button>
-      <paper-button raised data-action="restart" data-name$="[[service]]">Restart</paper-button>
+      <button raised data-action="start"   data-name$="[[service]]">Start  </button>
+      <button raised data-action="stop"    data-name$="[[service]]">Stop   </button>
+      <button raised data-action="restart" data-name$="[[service]]">Restart</button>
     </div>
   </template>
 </dom-module>
@@ -98,7 +106,7 @@
     },
 
     tapHandler: function(e) {
-      var ele = sk.findParent(e.target, "PAPER-BUTTON");
+      var ele = sk.findParent(e.target, "BUTTON");
       if (ele) {
         var detail = {
           machine: this.machine,

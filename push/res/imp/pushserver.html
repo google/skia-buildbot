@@ -68,6 +68,7 @@ Displays the server configurations, along with the ability to modify application
   <style type="text/css" media="screen">
     table {
       margin-left: 3em;
+      border-spacing: 0;
     }
 
     h2 {
@@ -79,6 +80,7 @@ Displays the server configurations, along with the ability to modify application
 
     .appName {
       padding-right: 2em;
+      width: 15em;
     }
 
     td iron-icon {
@@ -105,6 +107,10 @@ Displays the server configurations, along with the ability to modify application
     .uptime {
       font-family: monospace;
     }
+
+    tr:nth-child(2n+1) {
+      background: #eee;
+    }
   </style>
   <template>
     <div on-tap="editClicked">
@@ -120,7 +126,7 @@ Displays the server configurations, along with the ability to modify application
                   <paper-button class=application
                     data-server$="{{server.Name}}" data-name$="{{installed}}" data-app$="{{prefixOf(installed)}}"><iron-icon icon="create" title="Edit which package is installed."></iron-icon></paper-button>
                 </td>
-                <td><span class=appName>{{prefixOf(installed)}}</span></td>
+                <td><div class=appName>{{prefixOf(installed)}}</div></td>
                 <td><span class=appName><a href$="https://github.com/google/skia-buildbot/compare/{{fullHash(installed)}}...HEAD">{{short(installed)}}</a></span></td>
                 <td><iron-icon icon$="{{alarmIfNotLatest(installed)}}" title="Out of date."></iron-icon></td>
                 <td><iron-icon icon$="{{warnIfDirty(installed)}}" title="Uncommited changes when the package was built."></iron-icon></td>
