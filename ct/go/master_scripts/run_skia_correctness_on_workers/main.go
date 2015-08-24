@@ -128,7 +128,7 @@ func main() {
 	skiaPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, patchRemoteDir, patchName)
 
 	// Run the run_skia_correctness script on all workers.
-	runSkiaCorrCmdTemplate := "DISPLAY=:0 run_skia_correctness --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} " +
+	runSkiaCorrCmdTemplate := "DISPLAY=:0 run_skia_correctness --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} " +
 		"--pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} " +
 		"--render_pictures_args=\"{{.RenderPicturesArgs}}\" --gpu_nopatch_run={{.GpuNoPatchRun}} " +
 		"--gpu_withpatch_run={{.GpuWithPatchRun}};"

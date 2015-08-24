@@ -108,7 +108,7 @@ func main() {
 	}
 
 	// Run the capture_skps script on all workers.
-	captureSKPsCmdTemplate := "DISPLAY=:0 capture_skps --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} " +
+	captureSKPsCmdTemplate := "DISPLAY=:0 capture_skps --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} " +
 		"--pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} " +
 		"--target_platform={{.TargetPlatform}};"
 	captureSKPsTemplateParsed := template.Must(template.New("capture_skps_cmd").Parse(captureSKPsCmdTemplate))

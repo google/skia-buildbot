@@ -142,7 +142,7 @@ func main() {
 	}
 
 	// Run the run_lua script on all workers.
-	runLuaCmdTemplate := "DISPLAY=:0 run_lua --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}};"
+	runLuaCmdTemplate := "DISPLAY=:0 run_lua --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} --pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}};"
 	runLuaTemplateParsed := template.Must(template.New("run_lua_cmd").Parse(runLuaCmdTemplate))
 	luaCmdBytes := new(bytes.Buffer)
 	if err := runLuaTemplateParsed.Execute(luaCmdBytes, struct {

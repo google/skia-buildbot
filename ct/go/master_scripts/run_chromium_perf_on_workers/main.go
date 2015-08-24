@@ -178,7 +178,7 @@ func main() {
 	chromiumBuildNoPatch := fmt.Sprintf("try-%s-%s-%s", chromiumHash, skiaHash, runIDNoPatch)
 	chromiumBuildWithPatch := fmt.Sprintf("try-%s-%s-%s", chromiumHash, skiaHash, runIDWithPatch)
 	runChromiumPerfCmdTemplate := "DISPLAY=:0 run_chromium_perf " +
-		"--worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --pageset_type={{.PagesetType}} " +
+		"--worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} --pageset_type={{.PagesetType}} " +
 		"--chromium_build_nopatch={{.ChromiumBuildNoPatch}} --chromium_build_withpatch={{.ChromiumBuildWithPatch}} " +
 		"--run_id_nopatch={{.RunIDNoPatch}} --run_id_withpatch={{.RunIDWithPatch}} " +
 		"--benchmark_name={{.BenchmarkName}} --benchmark_extra_args=\"{{.BenchmarkExtraArgs}}\" " +
@@ -192,6 +192,7 @@ func main() {
 		PagesetType               string
 		ChromiumBuildNoPatch      string
 		ChromiumBuildWithPatch    string
+		RunID                     string
 		RunIDNoPatch              string
 		RunIDWithPatch            string
 		BenchmarkName             string
@@ -201,11 +202,12 @@ func main() {
 		RepeatBenchmark           int
 		TargetPlatform            string
 	}{
-		WorkerNum:                 util.WORKER_NUM_KEYWORD,
-		LogDir:                    util.GLogDir,
-		PagesetType:               *pagesetType,
-		ChromiumBuildNoPatch:      chromiumBuildNoPatch,
-		ChromiumBuildWithPatch:    chromiumBuildWithPatch,
+		WorkerNum:              util.WORKER_NUM_KEYWORD,
+		LogDir:                 util.GLogDir,
+		PagesetType:            *pagesetType,
+		ChromiumBuildNoPatch:   chromiumBuildNoPatch,
+		ChromiumBuildWithPatch: chromiumBuildWithPatch,
+		RunID:                     *runID,
 		RunIDNoPatch:              runIDNoPatch,
 		RunIDWithPatch:            runIDWithPatch,
 		BenchmarkName:             *benchmarkName,

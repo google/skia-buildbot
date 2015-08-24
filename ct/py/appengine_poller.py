@@ -109,6 +109,7 @@ def process_chromium_build_task(task):
       '--chromium_hash=' + str(chromium_rev),
       '--skia_hash=' + str(skia_rev),
       '--log_dir=/b/storage/glog',
+      '--log_id=' + str(run_id),
   ]
   print 'Running chromium build cmd: ' + ' '.join(cmd)
   subprocess.Popen(cmd)
@@ -161,6 +162,7 @@ def process_skia_try_task(task):
       '--gpu_withpatch_run=' + str(gpu_withpatch_run),
       '--run_id=' + str(run_id),
       '--log_dir=/b/storage/glog',
+      '--log_id=' + str(run_id),
   ]
   print 'Running skia try cmd: ' + ' '.join(skia_try_cmd)
   subprocess.Popen(skia_try_cmd)
@@ -209,6 +211,7 @@ def process_chromium_try_task(task):
       '--variance_threshold=' + str(variance_threshold),
       '--discard_outliers=' + str(discard_outliers),
       '--log_dir=/b/storage/glog',
+      '--log_id=' + str(run_id),
   ]
   print 'Running chromium try cmd: ' + ' '.join(cmd)
   subprocess.Popen(cmd)
@@ -247,6 +250,7 @@ def process_lua_task(task):
       '--chromium_build=' + str(chromium_build_dir),
       '--run_id=' + str(run_id),
       '--log_dir=/b/storage/glog',
+      '--log_id=' + str(run_id),
   ]
   print 'Running lua script cmd: ' + ' '.join(cmd)
   subprocess.Popen(cmd)
@@ -276,6 +280,7 @@ def process_telemetry_task(task):
       '--target_platform=Linux',
       '--run_id=' + str(run_id),
       '--log_dir=/b/storage/glog',
+      '--log_id=' + str(run_id),
   ]
   print 'Running telemetry cmd: ' + ' '.join(cmd)
   subprocess.Popen(cmd)
