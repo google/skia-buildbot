@@ -9,6 +9,7 @@
 #
 # For more details see ../../push/DESIGN.md.
 sudo apt-get update
+sudo apt-get --assume-yes install git
 # Running "sudo apt-get --assume-yes upgrade" may upgrade the package
 # gce-startup-scripts, which would cause systemd to restart gce-startup-scripts,
 # which would kill this script because it is a child process of

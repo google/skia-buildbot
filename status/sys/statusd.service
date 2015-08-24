@@ -1,0 +1,20 @@
+[Unit]
+Description=Status page for Skia
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/status \
+    --log_dir=/var/log/logserver \
+    --workdir=/mnt/pd0/status_workdir \
+    --use_metadata=true \
+    --host=status.skia.org \
+    --influxdb_host=skia-monitoring:10117 \
+    --graphite_server=skia-monitoring:2003
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
