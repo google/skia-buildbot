@@ -18,7 +18,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
-	api "go.skia.org/infra/ct/go/frontend"
+	ctutil "go.skia.org/infra/ct/go/util"
 )
 
 var (
@@ -55,7 +55,7 @@ func (task DBTask) GetTaskName() string {
 func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username
-	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
 	taskVars.PageSets = dbTask.PageSets
 	taskVars.ChromiumBuild.ChromiumRev = dbTask.ChromiumRev
@@ -133,9 +133,12 @@ func Validate(skpRepository DBTask) error {
 	return nil
 }
 
-// Define api.CaptureSkpsUpdateVars in this package so we can add methods.
 type UpdateVars struct {
-	api.CaptureSkpsUpdateVars
+	task_common.UpdateTaskCommonVars
+}
+
+func (vars *UpdateVars) UriPath() string {
+	return ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
 }
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
@@ -159,11 +162,11 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/"+api.CAPTURE_SKPS_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+api.CAPTURE_SKPS_RUNS_URI, runsHistoryView).Methods("GET")
-	r.HandleFunc("/"+api.ADD_CAPTURE_SKPS_TASK_POST_URI, addTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.GET_CAPTURE_SKPS_TASKS_POST_URI, getTasksHandler).Methods("POST")
-	r.HandleFunc("/"+api.UPDATE_CAPTURE_SKPS_TASK_POST_URI, updateTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.DELETE_CAPTURE_SKPS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.REDO_CAPTURE_SKPS_TASK_POST_URI, redoTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.CAPTURE_SKPS_URI, addTaskView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.CAPTURE_SKPS_RUNS_URI, runsHistoryView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.ADD_CAPTURE_SKPS_TASK_POST_URI, addTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.GET_CAPTURE_SKPS_TASKS_POST_URI, getTasksHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI, updateTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.DELETE_CAPTURE_SKPS_TASK_POST_URI, deleteTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.REDO_CAPTURE_SKPS_TASK_POST_URI, redoTaskHandler).Methods("POST")
 }

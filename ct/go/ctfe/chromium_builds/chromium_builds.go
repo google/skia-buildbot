@@ -27,7 +27,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
-	api "go.skia.org/infra/ct/go/frontend"
+	ctutil "go.skia.org/infra/ct/go/util"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -77,7 +77,7 @@ func (task DBTask) GetTaskName() string {
 func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username
-	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
 
 	taskVars.ChromiumRev = dbTask.ChromiumRev
@@ -235,9 +235,12 @@ func getSkiaRevDataHandler(w http.ResponseWriter, r *http.Request) {
 	getRevDataHandler(getSkiaLkgr, SKIA_GIT_REPO_URL, w, r)
 }
 
-// Define api.ChromiumBuildUpdateVars in this package so we can add methods.
 type UpdateVars struct {
-	api.ChromiumBuildUpdateVars
+	task_common.UpdateTaskCommonVars
+}
+
+func (vars UpdateVars) UriPath() string {
+	return ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
 }
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
@@ -276,13 +279,13 @@ func Validate(chromiumBuild DBTask) error {
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/"+api.CHROMIUM_BUILD_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+api.CHROMIUM_BUILD_RUNS_URI, runsHistoryView).Methods("GET")
-	r.HandleFunc("/"+api.CHROMIUM_REV_DATA_POST_URI, getChromiumRevDataHandler).Methods("POST")
-	r.HandleFunc("/"+api.SKIA_REV_DATA_POST_URI, getSkiaRevDataHandler).Methods("POST")
-	r.HandleFunc("/"+api.ADD_CHROMIUM_BUILD_TASK_POST_URI, addTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.GET_CHROMIUM_BUILD_TASKS_POST_URI, getTasksHandler).Methods("POST")
-	r.HandleFunc("/"+api.UPDATE_CHROMIUM_BUILD_TASK_POST_URI, updateTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.DELETE_CHROMIUM_BUILD_TASK_POST_URI, deleteTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.REDO_CHROMIUM_BUILD_TASK_POST_URI, redoTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_URI, addTaskView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.CHROMIUM_BUILD_RUNS_URI, runsHistoryView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.CHROMIUM_REV_DATA_POST_URI, getChromiumRevDataHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.SKIA_REV_DATA_POST_URI, getSkiaRevDataHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_BUILD_TASK_POST_URI, addTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_BUILD_TASKS_POST_URI, getTasksHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI, updateTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_BUILD_TASK_POST_URI, deleteTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_BUILD_TASK_POST_URI, redoTaskHandler).Methods("POST")
 }

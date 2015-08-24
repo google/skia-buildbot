@@ -19,6 +19,8 @@ import (
 
 const (
 	MAX_SYNC_TRIES = 3
+
+	TS_FORMAT = "20060102150405"
 )
 
 // GetCTWorkers returns an array of all CT workers.
@@ -182,4 +184,13 @@ func CleanTmpDir() {
 	for _, f := range files {
 		util.RemoveAll(filepath.Join(os.TempDir(), f.Name()))
 	}
+}
+
+func GetTimeFromTs(formattedTime string) time.Time {
+	t, _ := time.Parse(TS_FORMAT, formattedTime)
+	return t
+}
+
+func GetCurrentTs() string {
+	return time.Now().UTC().Format(TS_FORMAT)
 }

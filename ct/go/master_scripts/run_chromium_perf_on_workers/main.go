@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
@@ -77,7 +78,7 @@ func sendEmail(recipients []string) {
 
 func updateWebappTask() {
 	if frontend.CTFE_V2 {
-		vars := frontend.ChromiumPerfUpdateVars{}
+		vars := chromium_perf.UpdateVars{}
 		vars.Id = *gaeTaskID
 		vars.SetCompleted(taskCompletedSuccessfully)
 		vars.Results = sql.NullString{String: htmlOutputLink, Valid: true}
@@ -113,7 +114,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&frontend.ChromiumPerfUpdateVars{}, *gaeTaskID))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_perf.UpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf"))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()

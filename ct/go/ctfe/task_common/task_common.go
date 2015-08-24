@@ -18,7 +18,6 @@ import (
 
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
-	api "go.skia.org/infra/ct/go/frontend"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/login"
 	skutil "go.skia.org/infra/go/util"
@@ -110,7 +109,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	defer skutil.Close(r.Body)
 
 	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
-	task.GetAddTaskCommonVars().TsAdded = api.GetCurrentTs()
+	task.GetAddTaskCommonVars().TsAdded = ctutil.GetCurrentTs()
 
 	if err := AddTask(task); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
@@ -256,10 +255,36 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// Add methods for working with the database to api.UpdateTaskVars.
+// Data included in all update requests.
+type UpdateTaskCommonVars struct {
+	Id              int64
+	TsStarted       sql.NullString
+	TsCompleted     sql.NullString
+	Failure         sql.NullBool
+	RepeatAfterDays sql.NullInt64
+}
+
+func (vars *UpdateTaskCommonVars) SetStarted() {
+	vars.TsStarted = sql.NullString{String: ctutil.GetCurrentTs(), Valid: true}
+}
+
+func (vars *UpdateTaskCommonVars) SetCompleted(success bool) {
+	vars.TsCompleted = sql.NullString{String: ctutil.GetCurrentTs(), Valid: true}
+	vars.Failure = sql.NullBool{Bool: !success, Valid: true}
+}
+
+func (vars *UpdateTaskCommonVars) ClearRepeatAfterDays() {
+	vars.RepeatAfterDays = sql.NullInt64{Int64: 0, Valid: true}
+}
+
+func (vars *UpdateTaskCommonVars) GetUpdateTaskCommonVars() *UpdateTaskCommonVars {
+	return vars
+}
+
 type UpdateTaskVars interface {
-	api.UpdateTaskVars
-	// Produces SQL query clauses and binds for fields not in api.UpdateTaskCommonVars. First return
+	GetUpdateTaskCommonVars() *UpdateTaskCommonVars
+	UriPath() string
+	// Produces SQL query clauses and binds for fields not in UpdateTaskCommonVars. First return
 	// value is a slice of strings like "results = ?". Second return value contains a value for
 	// each "?" bind.
 	GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error)
@@ -471,5 +496,5 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/"+api.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
 }

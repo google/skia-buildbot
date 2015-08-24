@@ -3,7 +3,6 @@ package frontend
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -11,9 +10,10 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/ctfe/task_common"
+	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
@@ -23,69 +23,6 @@ const (
 	CTFE_V2        = false
 	WEBAPP_ROOT    = "https://skia-tree-status.appspot.com/skia-telemetry/"
 	WEBAPP_ROOT_V2 = "https://ct-staging.skia.org/"
-)
-
-// URIs for frontend handlers.
-const (
-	CHROMIUM_PERF_URI                  = "chromium_perf/"
-	CHROMIUM_PERF_RUNS_URI             = "chromium_perf_runs/"
-	CHROMIUM_PERF_PARAMETERS_POST_URI  = "_/chromium_perf/"
-	ADD_CHROMIUM_PERF_TASK_POST_URI    = "_/add_chromium_perf_task"
-	GET_CHROMIUM_PERF_TASKS_POST_URI   = "_/get_chromium_perf_tasks"
-	UPDATE_CHROMIUM_PERF_TASK_POST_URI = "_/update_chromium_perf_task"
-	DELETE_CHROMIUM_PERF_TASK_POST_URI = "_/delete_chromium_perf_task"
-	REDO_CHROMIUM_PERF_TASK_POST_URI   = "_/redo_chromium_perf_task"
-
-	CAPTURE_SKPS_URI                  = "capture_skps/"
-	CAPTURE_SKPS_RUNS_URI             = "capture_skp_runs/"
-	ADD_CAPTURE_SKPS_TASK_POST_URI    = "_/add_capture_skps_task"
-	GET_CAPTURE_SKPS_TASKS_POST_URI   = "_/get_capture_skp_tasks"
-	UPDATE_CAPTURE_SKPS_TASK_POST_URI = "_/update_capture_skps_task"
-	DELETE_CAPTURE_SKPS_TASK_POST_URI = "_/delete_capture_skps_task"
-	REDO_CAPTURE_SKPS_TASK_POST_URI   = "_/redo_capture_skps_task"
-
-	LUA_SCRIPT_URI                  = "lua_script/"
-	LUA_SCRIPT_RUNS_URI             = "lua_script_runs/"
-	ADD_LUA_SCRIPT_TASK_POST_URI    = "_/add_lua_script_task"
-	GET_LUA_SCRIPT_TASKS_POST_URI   = "_/get_lua_script_tasks"
-	UPDATE_LUA_SCRIPT_TASK_POST_URI = "_/update_lua_script_task"
-	DELETE_LUA_SCRIPT_TASK_POST_URI = "_/delete_lua_script_task"
-	REDO_LUA_SCRIPT_TASK_POST_URI   = "_/redo_lua_script_task"
-
-	CHROMIUM_BUILD_URI                  = "chromium_builds/"
-	CHROMIUM_BUILD_RUNS_URI             = "chromium_builds_runs/"
-	CHROMIUM_REV_DATA_POST_URI          = "_/chromium_rev_data"
-	SKIA_REV_DATA_POST_URI              = "_/skia_rev_data"
-	ADD_CHROMIUM_BUILD_TASK_POST_URI    = "_/add_chromium_build_task"
-	GET_CHROMIUM_BUILD_TASKS_POST_URI   = "_/get_chromium_build_tasks"
-	UPDATE_CHROMIUM_BUILD_TASK_POST_URI = "_/update_chromium_build_task"
-	DELETE_CHROMIUM_BUILD_TASK_POST_URI = "_/delete_chromium_build_task"
-	REDO_CHROMIUM_BUILD_TASK_POST_URI   = "_/redo_chromium_build_task"
-
-	ADMIN_TASK_URI = "admin_tasks/"
-
-	RECREATE_PAGE_SETS_RUNS_URI             = "recreate_page_sets_runs/"
-	ADD_RECREATE_PAGE_SETS_TASK_POST_URI    = "_/add_recreate_page_sets_task"
-	GET_RECREATE_PAGE_SETS_TASKS_POST_URI   = "_/get_recreate_page_sets_tasks"
-	UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI = "_/update_recreate_page_sets_task"
-	DELETE_RECREATE_PAGE_SETS_TASK_POST_URI = "_/delete_recreate_page_sets_task"
-	REDO_RECREATE_PAGE_SETS_TASK_POST_URI   = "_/redo_recreate_page_sets_task"
-
-	RECREATE_WEBPAGE_ARCHIVES_RUNS_URI             = "recreate_webpage_archives_runs/"
-	ADD_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI    = "_/add_recreate_webpage_archives_task"
-	GET_RECREATE_WEBPAGE_ARCHIVES_TASKS_POST_URI   = "_/get_recreate_webpage_archives_tasks"
-	UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI = "_/update_recreate_webpage_archives_task"
-	DELETE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI = "_/delete_recreate_webpage_archives_task"
-	REDO_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI   = "_/redo_recreate_webpage_archives_task"
-
-	RUNS_HISTORY_URI = "history/"
-
-	PENDING_TASKS_URI           = "queue/"
-	GET_OLDEST_PENDING_TASK_URI = "_/get_oldest_pending_task"
-
-	PAGE_SETS_PARAMETERS_POST_URI = "_/page_sets/"
-
-	TS_FORMAT = "20060102150405"
 )
 
 var (
@@ -108,20 +45,20 @@ var (
 
 func init() {
 	if CTFE_V2 {
-		AdminTasksWebapp = WEBAPP_ROOT_V2 + ADMIN_TASK_URI
+		AdminTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.ADMIN_TASK_URI
 		UpdateAdminTasksWebapp = ""
-		UpdateRecreatePageSetsTasksWebapp = WEBAPP_ROOT_V2 + UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI
-		UpdateRecreateWebpageArchivesTasksWebapp = WEBAPP_ROOT_V2 + UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI
-		LuaTasksWebapp = WEBAPP_ROOT_V2 + LUA_SCRIPT_URI
-		UpdateLuaTasksWebapp = WEBAPP_ROOT_V2 + UPDATE_LUA_SCRIPT_TASK_POST_URI
-		CaptureSKPsTasksWebapp = WEBAPP_ROOT_V2 + CAPTURE_SKPS_URI
-		UpdateCaptureSKPsTasksWebapp = WEBAPP_ROOT_V2 + UPDATE_CAPTURE_SKPS_TASK_POST_URI
-		ChromiumPerfTasksWebapp = WEBAPP_ROOT_V2 + CHROMIUM_PERF_URI
-		UpdateChromiumPerfTasksWebapp = WEBAPP_ROOT_V2 + UPDATE_CHROMIUM_PERF_TASK_POST_URI
+		UpdateRecreatePageSetsTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI
+		UpdateRecreateWebpageArchivesTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI
+		LuaTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.LUA_SCRIPT_URI
+		UpdateLuaTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI
+		CaptureSKPsTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.CAPTURE_SKPS_URI
+		UpdateCaptureSKPsTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
+		ChromiumPerfTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.CHROMIUM_PERF_URI
+		UpdateChromiumPerfTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
 		SkiaCorrectnessTasksWebapp = ""
 		UpdateSkiaCorrectnessTasksWebapp = ""
-		ChromiumBuildTasksWebapp = WEBAPP_ROOT_V2 + CHROMIUM_BUILD_URI
-		UpdateChromiumBuildTasksWebapp = WEBAPP_ROOT_V2 + UPDATE_CHROMIUM_BUILD_TASK_POST_URI
+		ChromiumBuildTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.CHROMIUM_BUILD_URI
+		UpdateChromiumBuildTasksWebapp = WEBAPP_ROOT_V2 + ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
 	}
 }
 
@@ -154,108 +91,15 @@ func UpdateWebappTask(gaeTaskID int64, webappURL string, extraData map[string]st
 	return nil
 }
 
-func GetTimeFromTs(formattedTime string) time.Time {
-	t, _ := time.Parse(TS_FORMAT, formattedTime)
-	return t
-}
-
-func GetCurrentTs() string {
-	return time.Now().UTC().Format(TS_FORMAT)
-}
-
-// Data included in all update requests.
-type UpdateTaskCommonVars struct {
-	Id              int64
-	TsStarted       sql.NullString
-	TsCompleted     sql.NullString
-	Failure         sql.NullBool
-	RepeatAfterDays sql.NullInt64
-}
-
-func (vars *UpdateTaskCommonVars) SetStarted() {
-	vars.TsStarted = sql.NullString{String: GetCurrentTs(), Valid: true}
-}
-
-func (vars *UpdateTaskCommonVars) SetCompleted(success bool) {
-	vars.TsCompleted = sql.NullString{String: GetCurrentTs(), Valid: true}
-	vars.Failure = sql.NullBool{Bool: !success, Valid: true}
-}
-
-func (vars *UpdateTaskCommonVars) ClearRepeatAfterDays() {
-	vars.RepeatAfterDays = sql.NullInt64{Int64: 0, Valid: true}
-}
-
-type UpdateTaskVars interface {
-	GetUpdateTaskCommonVars() *UpdateTaskCommonVars
-	Uri() string
-}
-
-func (vars *UpdateTaskCommonVars) GetUpdateTaskCommonVars() *UpdateTaskCommonVars {
-	return vars
-}
-
-type ChromiumPerfUpdateVars struct {
-	UpdateTaskCommonVars
-
-	Results            sql.NullString
-	NoPatchRawOutput   sql.NullString
-	WithPatchRawOutput sql.NullString
-}
-
-func (vars *ChromiumPerfUpdateVars) Uri() string {
-	return UpdateChromiumPerfTasksWebapp
-}
-
-type CaptureSkpsUpdateVars struct {
-	UpdateTaskCommonVars
-}
-
-func (vars *CaptureSkpsUpdateVars) Uri() string {
-	return UpdateCaptureSKPsTasksWebapp
-}
-
-type LuaScriptUpdateVars struct {
-	UpdateTaskCommonVars
-	ScriptOutput     sql.NullString `db:"script_output"`
-	AggregatedOutput sql.NullString `db:"aggregated_output"`
-}
-
-func (vars *LuaScriptUpdateVars) Uri() string {
-	return UpdateLuaTasksWebapp
-}
-
-type ChromiumBuildUpdateVars struct {
-	UpdateTaskCommonVars
-}
-
-func (vars *ChromiumBuildUpdateVars) Uri() string {
-	return UpdateChromiumBuildTasksWebapp
-}
-
-type RecreatePageSetsUpdateVars struct {
-	UpdateTaskCommonVars
-}
-
-func (vars *RecreatePageSetsUpdateVars) Uri() string {
-	return UpdateRecreatePageSetsTasksWebapp
-}
-
-type RecreateWebpageArchivesUpdateVars struct {
-	UpdateTaskCommonVars
-}
-
-func (vars *RecreateWebpageArchivesUpdateVars) Uri() string {
-	return UpdateRecreateWebpageArchivesTasksWebapp
-}
-
-func UpdateWebappTaskV2(vars UpdateTaskVars) error {
-	glog.Infof("Updating %v on %s", vars, vars.Uri())
+func UpdateWebappTaskV2(vars task_common.UpdateTaskVars) error {
+	postUrl := WEBAPP_ROOT_V2 + vars.UriPath()
+	glog.Infof("Updating %v on %s", vars, postUrl)
 
 	json, err := json.Marshal(vars)
 	if err != nil {
 		return fmt.Errorf("Failed to marshal %v: %s", vars, err)
 	}
-	req, err := http.NewRequest("POST", vars.Uri(), bytes.NewReader(json))
+	req, err := http.NewRequest("POST", postUrl, bytes.NewReader(json))
 	if err != nil {
 		return fmt.Errorf("Could not create HTTP request: %s", err)
 	}
@@ -277,7 +121,7 @@ func UpdateWebappTaskV2(vars UpdateTaskVars) error {
 	return nil
 }
 
-func UpdateWebappTaskSetStarted(vars UpdateTaskVars, id int64) error {
+func UpdateWebappTaskSetStarted(vars task_common.UpdateTaskVars, id int64) error {
 	if !CTFE_V2 {
 		return nil
 	}

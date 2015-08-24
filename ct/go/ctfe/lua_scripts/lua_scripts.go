@@ -18,7 +18,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
-	api "go.skia.org/infra/ct/go/frontend"
+	ctutil "go.skia.org/infra/ct/go/util"
 )
 
 var (
@@ -59,7 +59,7 @@ func (task DBTask) GetTaskName() string {
 func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username
-	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
 
 	taskVars.SkpRepository.ChromiumRev = dbTask.ChromiumRev
@@ -134,9 +134,14 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.GetTasksHandler(&DBTask{}, w, r)
 }
 
-// Define api.LuaScriptUpdateVars in this package so we can add methods.
 type UpdateVars struct {
-	api.LuaScriptUpdateVars
+	task_common.UpdateTaskCommonVars
+	ScriptOutput     sql.NullString `db:"script_output"`
+	AggregatedOutput sql.NullString `db:"aggregated_output"`
+}
+
+func (vars *UpdateVars) UriPath() string {
+	return ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI
 }
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
@@ -170,11 +175,11 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 }
 
 func AddHandlers(r *mux.Router) {
-	r.HandleFunc("/"+api.LUA_SCRIPT_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+api.LUA_SCRIPT_RUNS_URI, runsHistoryView).Methods("GET")
-	r.HandleFunc("/"+api.ADD_LUA_SCRIPT_TASK_POST_URI, addTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.GET_LUA_SCRIPT_TASKS_POST_URI, getTasksHandler).Methods("POST")
-	r.HandleFunc("/"+api.UPDATE_LUA_SCRIPT_TASK_POST_URI, updateTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.DELETE_LUA_SCRIPT_TASK_POST_URI, deleteTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.REDO_LUA_SCRIPT_TASK_POST_URI, redoTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.LUA_SCRIPT_URI, addTaskView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.LUA_SCRIPT_RUNS_URI, runsHistoryView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.ADD_LUA_SCRIPT_TASK_POST_URI, addTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.GET_LUA_SCRIPT_TASKS_POST_URI, getTasksHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI, updateTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.DELETE_LUA_SCRIPT_TASK_POST_URI, deleteTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.REDO_LUA_SCRIPT_TASK_POST_URI, redoTaskHandler).Methods("POST")
 }

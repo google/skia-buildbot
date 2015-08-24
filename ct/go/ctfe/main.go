@@ -25,7 +25,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
-	"go.skia.org/infra/ct/go/frontend"
+	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
@@ -150,7 +150,7 @@ func repeatedTasksScheduler() {
 
 			tasks := task_common.AsTaskSlice(data)
 			for _, task := range tasks {
-				addedTime := frontend.GetTimeFromTs(strconv.FormatInt(task.GetCommonCols().TsAdded.Int64, 10))
+				addedTime := ctutil.GetTimeFromTs(strconv.FormatInt(task.GetCommonCols().TsAdded.Int64, 10))
 				scheduledTime := addedTime.Add(time.Duration(task.GetCommonCols().RepeatAfterDays) * time.Hour * 24)
 
 				cutOffTime := time.Now().UTC().Add(*tasksSchedulerWaitTime)

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
@@ -55,7 +56,7 @@ func sendEmail(recipients []string) {
 
 func updateWebappTask() {
 	if frontend.CTFE_V2 {
-		vars := frontend.CaptureSkpsUpdateVars{}
+		vars := capture_skps.UpdateVars{}
 		vars.Id = *gaeTaskID
 		vars.SetCompleted(taskCompletedSuccessfully)
 		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
@@ -81,7 +82,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&frontend.CaptureSkpsUpdateVars{}, *gaeTaskID))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&capture_skps.UpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Capture SKPs"))
 	// Ensure webapp is updated and completion email is sent even if task
 	// fails.

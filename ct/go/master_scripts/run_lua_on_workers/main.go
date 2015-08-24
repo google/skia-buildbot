@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
@@ -63,7 +64,7 @@ func sendEmail(recipients []string) {
 
 func updateWebappTask() {
 	if frontend.CTFE_V2 {
-		vars := frontend.LuaScriptUpdateVars{}
+		vars := lua_scripts.UpdateVars{}
 		vars.Id = *gaeTaskID
 		vars.SetCompleted(taskCompletedSuccessfully)
 		vars.ScriptOutput = sql.NullString{String: luaOutputRemoteLink, Valid: true}
@@ -100,7 +101,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&frontend.LuaScriptUpdateVars{}, *gaeTaskID))
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Lua script"))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()

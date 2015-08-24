@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
-	api "go.skia.org/infra/ct/go/frontend"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -123,9 +122,9 @@ func pendingTasksView(w http.ResponseWriter, r *http.Request) {
 
 func AddHandlers(r *mux.Router) {
 	// Runs history handlers.
-	r.HandleFunc("/"+api.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.RUNS_HISTORY_URI, runsHistoryView).Methods("GET")
 
 	// Task Queue handlers.
-	r.HandleFunc("/"+api.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
-	r.HandleFunc("/"+api.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.PENDING_TASKS_URI, pendingTasksView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.GET_OLDEST_PENDING_TASK_URI, getOldestPendingTaskHandler).Methods("GET")
 }

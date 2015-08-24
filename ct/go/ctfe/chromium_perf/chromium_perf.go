@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
-	api "go.skia.org/infra/ct/go/frontend"
 	ctutil "go.skia.org/infra/ct/go/util"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -67,7 +66,7 @@ func (task DBTask) GetTaskName() string {
 func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username
-	taskVars.TsAdded = api.GetCurrentTs()
+	taskVars.TsAdded = ctutil.GetCurrentTs()
 	taskVars.RepeatAfterDays = strconv.FormatInt(dbTask.RepeatAfterDays, 10)
 	taskVars.Benchmark = dbTask.Benchmark
 	taskVars.Platform = dbTask.Platform
@@ -167,9 +166,16 @@ func getTasksHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.GetTasksHandler(&DBTask{}, w, r)
 }
 
-// Define api.ChromiumPerfUpdateVars in this package so we can add methods.
 type UpdateVars struct {
-	api.ChromiumPerfUpdateVars
+	task_common.UpdateTaskCommonVars
+
+	Results            sql.NullString
+	NoPatchRawOutput   sql.NullString
+	WithPatchRawOutput sql.NullString
+}
+
+func (vars *UpdateVars) UriPath() string {
+	return ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
 }
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
@@ -208,12 +214,12 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 
 func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", addTaskView).Methods("GET")
-	r.HandleFunc("/"+api.CHROMIUM_PERF_URI, addTaskView).Methods("GET")
-	r.HandleFunc("/"+api.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
-	r.HandleFunc("/"+api.CHROMIUM_PERF_PARAMETERS_POST_URI, parametersHandler).Methods("POST")
-	r.HandleFunc("/"+api.ADD_CHROMIUM_PERF_TASK_POST_URI, addTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
-	r.HandleFunc("/"+api.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.DELETE_CHROMIUM_PERF_TASK_POST_URI, deleteTaskHandler).Methods("POST")
-	r.HandleFunc("/"+api.REDO_CHROMIUM_PERF_TASK_POST_URI, redoTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_URI, addTaskView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_PARAMETERS_POST_URI, parametersHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_PERF_TASK_POST_URI, addTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_PERF_TASK_POST_URI, deleteTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_PERF_TASK_POST_URI, redoTaskHandler).Methods("POST")
 }
