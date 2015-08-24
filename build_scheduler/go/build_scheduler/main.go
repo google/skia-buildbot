@@ -71,7 +71,7 @@ var (
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Build candidate scores are penalized using exponential time decay, starting at 1.0. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
 	scoreThreshold = flag.Float64("scoreThreshold", build_queue.DEFAULT_SCORE_THRESHOLD, "Don't schedule builds with scores below this threshold.")
-	timePeriod     = flag.String("timePeriod", "2d", "Time period to use.")
+	timePeriod     = flag.String("timePeriod", "4d", "Time period to use.")
 	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
 )
 
