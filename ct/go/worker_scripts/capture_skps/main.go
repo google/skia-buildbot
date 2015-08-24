@@ -253,7 +253,7 @@ func main() {
 		"--skp_dir=" + pathToSkps,
 		"--path_to_skpinfo=" + pathToSKPInfo,
 	}
-	skutil.LogErr(util.ExecuteCmd("python", args, []string{}, 1*time.Hour, nil, nil))
+	skutil.LogErr(util.ExecuteCmd("python", args, []string{}, 3*time.Hour, nil, nil))
 
 	// Write timestamp to the SKPs dir.
 	skutil.LogErr(util.CreateTimestampFile(pathToSkps))
