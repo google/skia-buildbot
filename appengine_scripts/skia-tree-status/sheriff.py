@@ -40,6 +40,10 @@ class GpuSheriffs(BaseSheriffs):
   """Contains the list of GPU Sheriffs."""
   pass
 
+class Troopers(BaseSheriffs):
+  """Contains the list of Infra Troopers."""
+  pass
+
 
 class BaseSheriffSchedules(db.Model):
   """A single sheriff oncall rotation (one person, one time interval)."""
@@ -94,6 +98,10 @@ class SheriffSchedules(BaseSheriffSchedules):
 
 class GpuSheriffSchedules(BaseSheriffSchedules):
   """A single GPU sheriff oncall rotation (one person, one time interval)."""
+  pass
+
+class TrooperSchedules(BaseSheriffSchedules):
+  """A single trooper oncall rotation (one person, one time interval)."""
   pass
 
 
@@ -153,6 +161,13 @@ class CurrentGpuSheriffPage(BaseCurrentSheriffPage):
     return GpuSheriffSchedules
 
 
+class CurrentTrooperPage(BaseCurrentSheriffPage):
+  """Displays the current trooper and schedule in JSON."""
+  @property
+  def sheriff_schedules_class(self):
+    return TrooperSchedules
+
+
 class BaseNextSheriffPage(BasePage):
   """BasePage to display the next sheriff and schedule in JSON."""
   @property
@@ -186,6 +201,13 @@ class NextGpuSheriffPage(BaseNextSheriffPage):
   @property
   def sheriff_schedules_class(self):
     return GpuSheriffSchedules
+
+
+class NextTrooperPage(BaseNextSheriffPage):
+  """Displays the next Infra trooper and schedule in JSON."""
+  @property
+  def sheriff_schedules_class(self):
+    return TrooperSchedules
 
 
 class BaseSheriffPage(BasePage):
@@ -269,6 +291,26 @@ class GpuSheriffPage(BaseSheriffPage):
     return 'wrangler.jpg'
 
 
+class TrooperPage(BaseSheriffPage):
+  """Displays the list and rotation schedule of all Infra troopers."""
+  @property
+  def sheriff_schedules_class(self):
+    return TrooperSchedules
+
+  @property
+  def sheriff_doc(self):
+    # TODO(rmistry): Update me!
+    return 'https://skia.org/dev/sheriffing/gpu'
+
+  @property
+  def sheriff_type(self):
+    return 'Infra Trooper'
+
+  @property
+  def sheriff_image(self):
+    return 'trooper.jpg'
+
+
 class BaseUpdateSheriffsSchedulePage(BasePage):
   """BasePage to set the sheriff schedule."""
   @property
@@ -347,14 +389,32 @@ class UpdateGpuSheriffsSchedule(BaseUpdateSheriffsSchedulePage):
     return GpuSheriffs
 
 
+class UpdateTroopersSchedule(BaseUpdateSheriffsSchedulePage):
+  """Sets the Infra trooper schedule.
+
+  Usage:
+    update_troopers_schedules?schedule_start=3/11/2013&weeks=10
+  The above will populate the schedule for 10 weeks starting on March 11th using
+  all the sheriffs in a round robin manner from the Troopers table.
+  """
+  @property
+  def sheriff_schedules_class(self):
+    return TrooperSchedules
+
+  @property
+  def sheriff_class(self):
+    return Troopers
+
+
 def bootstrap():
   # Guarantee that at least one instance exists.
-  for sheriff_class in (Sheriffs, GpuSheriffs):
+  for sheriff_class in (Sheriffs, GpuSheriffs, Troopers):
     if db.GqlQuery(
         'SELECT __key__ FROM ' + sheriff_class.__name__).get() is None:
       sheriff_class(username='None').put()
 
-  for sheriff_schedules_class in (SheriffSchedules, GpuSheriffSchedules):
+  for sheriff_schedules_class in (SheriffSchedules, GpuSheriffSchedules,
+                                  TrooperSchedules):
     if db.GqlQuery(
         'SELECT __key__ FROM ' +
         sheriff_schedules_class.__name__).get() is None:

@@ -49,13 +49,16 @@ URLS = [
   ('/cq/([^/]+)/(\d+)/(\d+)/?', commit_queue.Issue),
   ('/current-gpu-sheriff/?', sheriff.CurrentGpuSheriffPage),
   ('/current-sheriff/?', sheriff.CurrentSheriffPage),
+  ('/current-trooper/?', sheriff.CurrentTrooperPage),
   ('/lkgr?', status.LkgrPage),
   ('/next-gpu-sheriff/?', sheriff.NextGpuSheriffPage),
   ('/next-sheriff/?', sheriff.NextSheriffPage),
+  ('/next-trooper/?', sheriff.NextTrooperPage),
   ('/query-sheriff/?', sheriff.QuerySheriffPage),
   ('/redirect/(.*)$', master_redirect.GenericRedirectionPage),
   ('/gpu-sheriff/?', sheriff.GpuSheriffPage),
   ('/sheriff/?', sheriff.SheriffPage),
+  ('/trooper/?', sheriff.TrooperPage),
   ('/skia-telemetry/?', skia_telemetry.LandingPage),
   ('/skia-telemetry/add_chromium_try?', skia_telemetry.AddChromiumTryTask),
   ('/skia-telemetry/add_lua_task?', skia_telemetry.AddLuaTask),
@@ -84,6 +87,7 @@ URLS = [
   ('/skia-telemetry/update_telemetry_info?', skia_telemetry.UpdateInfoPage),
   ('/update_gpu_sheriffs_schedule', sheriff.UpdateGpuSheriffsSchedule),
   ('/update_sheriffs_schedule', sheriff.UpdateSheriffsSchedule),
+  ('/update_troopers_schedule', sheriff.UpdateTroopersSchedule),
 ]
 APPLICATION = webapp.WSGIApplication(URLS, debug=True)
 
