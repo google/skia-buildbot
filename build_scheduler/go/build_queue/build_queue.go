@@ -152,12 +152,15 @@ func (q *BuildQueue) update(now time.Time) error {
 	defer timer.New("BuildQueue.update()").Stop()
 	queue := map[string][]*BuildCandidate{}
 	errs := map[string]error{}
+	mutex := sync.Mutex{}
 	var wg sync.WaitGroup
 	for _, repoUrl := range q.repos.Repos() {
 		wg.Add(1)
 		go func(repoUrl string) {
 			defer wg.Done()
 			candidates, err := q.updateRepo(repoUrl, now)
+			mutex.Lock()
+			defer mutex.Unlock()
 			if err != nil {
 				errs[repoUrl] = err
 				return
@@ -246,12 +249,15 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	// Find candidates for each builder.
 	candidates := map[string][]*BuildCandidate{}
 	errs := map[string]error{}
+	mutex := sync.Mutex{}
 	var wg sync.WaitGroup
 	for builder, finder := range buildFinders {
 		wg.Add(1)
 		go func(b string, bf *buildFinder) {
 			defer wg.Done()
 			c, err := q.getCandidatesForBuilder(bf, recentCommits, now)
+			mutex.Lock()
+			defer mutex.Unlock()
 			if err != nil {
 				errs[b] = err
 				return

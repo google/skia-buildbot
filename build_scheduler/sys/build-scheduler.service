@@ -6,7 +6,8 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/build_scheduler \
     --log_dir=/var/log/logserver \
-    --workdir=/mnt/pd0/build_scheduler_workdir
+    --workdir=/mnt/pd0/build_scheduler_workdir \
+    --graphite_server=skia-monitoring:2003
 Restart=always
 User=default
 Group=default
