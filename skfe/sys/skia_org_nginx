@@ -172,7 +172,7 @@ server {
     }
 
     location / {
-        proxy_pass http://skia-monitoring:8001;
+        proxy_pass http://skia-alerts:8001;
     }
 }
 server {
@@ -304,7 +304,7 @@ server {
     }
 
     location / {
-        proxy_pass http://skia-monitoring:8002;
+        proxy_pass http://skia-status:8002;
     }
 }
 server {
@@ -444,7 +444,7 @@ server {
     }
 
     location / {
-        proxy_pass http://skia-monitoring:8050;
+        proxy_pass http://skia-bugchomper:8050;
     }
 }
 server {
