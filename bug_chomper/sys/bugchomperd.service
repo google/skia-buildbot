@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/bugchomper \
+ExecStart=/usr/local/bin/bug_chomper \
     --use_metadata=true \
     --log_dir=/var/log/logserver \
     --host=bugchomper.skia.org \

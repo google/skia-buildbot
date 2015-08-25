@@ -5,11 +5,10 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/datahopper \
-    --use_metadata=true \
     --influxdb_host=skia-monitoring:10117 \
     --influxdb_database=graphite \
     --log_dir=/var/log/logserver \
-    --graphite_server=skia-monitoring:10117 \
+    --graphite_server=skia-monitoring:2003 \
     --workdir=/mnt/pd0/datahopper_workdir
 Restart=always
 User=default
