@@ -1,0 +1,23 @@
+[Unit]
+Description=Alerts Server for Skia
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/alertserver \
+    --use_metadata=true \
+    --influxdb_host=skia-monitoring:10117 \
+    --influxdb_database=graphite \
+    --alerts_file=/etc/skiaalertserver/alerts.cfg \
+    --host=alerts.skia.org \
+    --log_dir=/var/log/logserver \
+    --alert_poll_interval=10s \
+    --workdir=/mnt/pd0/alertserver_workdir \
+    --resources_dir=/usr/local/share/skiaalertserver/
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

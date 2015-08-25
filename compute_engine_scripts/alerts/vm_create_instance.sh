@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Creates the compute instance for skia-status
+# Creates the compute instance for skia-alerts
 #
 set -x
 
@@ -9,7 +9,7 @@ source vm_config.sh
 MACHINE_TYPE=n1-highmem-16
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
 SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
-IP_ADDRESS=104.154.112.113
+IP_ADDRESS=104.154.112.114
 
 # Create a boot disk from the pushable base snapshot.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
@@ -19,7 +19,7 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
 
 # Create a large data disk.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
-  --size "1000" \
+  --size "10" \
   --zone $ZONE \
   --type "pd-standard"
 
