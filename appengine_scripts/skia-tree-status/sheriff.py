@@ -299,8 +299,7 @@ class TrooperPage(BaseSheriffPage):
 
   @property
   def sheriff_doc(self):
-    # TODO(rmistry): Update me!
-    return 'https://skia.org/dev/sheriffing/gpu'
+    return 'https://skia.org/dev/sheriffing/trooper'
 
   @property
   def sheriff_type(self):
