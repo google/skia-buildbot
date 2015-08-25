@@ -1,0 +1,19 @@
+[Unit]
+Description=BugChomper
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/bugchomper \
+    --use_metadata=true \
+    --log_dir=/var/log/logserver \
+    --host=bugchomper.skia.org \
+    --port=:8050 \
+    --resources_dir=/usr/local/share/bug_chomper/
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
