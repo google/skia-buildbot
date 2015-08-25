@@ -1048,11 +1048,15 @@ func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
 //
 // Endpoint used by the Android buildbots to avoid transferring already known images.
 func polyAllHashesHandler(w http.ResponseWriter, r *http.Request) {
+	unavailableDigests := storages.DiffStore.UnavailableDigests()
+
 	byTest := tallies.ByTest()
 	hashes := map[string]bool{}
 	for _, test := range byTest {
 		for k, _ := range test {
-			hashes[k] = true
+			if !unavailableDigests[k] {
+				hashes[k] = true
+			}
 		}
 	}
 
