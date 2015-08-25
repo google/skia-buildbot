@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -77,7 +76,7 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CTFE_V2 {
+	if frontend.CtfeV2 {
 		vars := chromium_perf.UpdateVars{}
 		vars.Id = *gaeTaskID
 		vars.SetCompleted(taskCompletedSuccessfully)
@@ -105,7 +104,7 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
-	webhook.MustInitRequestSaltFromFile(util.WebhookRequestSaltPath)
+	frontend.MustInit()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -228,9 +227,8 @@ func main() {
 		// The main command that runs run_chromium_perf on all workers.
 		runChromiumPerfCmdBytes.String(),
 	}
-	// Setting a 1 day timeout since it may take a while run benchmarks with many
-	// repeats.
-	if _, err := util.SSH(strings.Join(cmd, " "), util.Slaves, 1*24*time.Hour); err != nil {
+	_, err = util.SSH(strings.Join(cmd, " "), util.Slaves, util.RUN_CHROMIUM_PERF_TIMEOUT)
+	if err != nil {
 		glog.Errorf("Error while running cmd %s: %s", cmd, err)
 		return
 	}
@@ -282,7 +280,8 @@ func main() {
 		"--chromium_hash=" + chromiumHash,
 		"--skia_hash=" + skiaHash,
 	}
-	if err := util.ExecuteCmd("python", args, []string{}, 2*time.Hour, nil, nil); err != nil {
+	err = util.ExecuteCmd("python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
+	if err != nil {
 		glog.Errorf("Error running csv_comparer.py: %s", err)
 		return
 	}
@@ -335,7 +334,8 @@ func mergeUploadCSVFiles(runID string, gs *util.GsUtil) error {
 		"--csv_dir=" + localOutputDir,
 		"--output_csv_name=" + filepath.Join(localOutputDir, outputFileName),
 	}
-	if err := util.ExecuteCmd("python", args, []string{}, 1*time.Hour, nil, nil); err != nil {
+	err := util.ExecuteCmd("python", args, []string{}, util.CSV_MERGER_TIMEOUT, nil, nil)
+	if err != nil {
 		return fmt.Errorf("Error running csv_merger.py: %s", err)
 	}
 	// Copy the output file to Google Storage.

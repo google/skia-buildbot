@@ -5,7 +5,6 @@ package main
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/util"
@@ -24,7 +23,7 @@ func main() {
 	// Also collect healthy machines for additional checks.
 	healthyMachines := []string{}
 
-	deviceOfflineOutputs, err := util.SSH("adb devices", util.Slaves, 30*time.Minute)
+	deviceOfflineOutputs, err := util.SSH("adb devices", util.Slaves, util.ADB_DEVICES_TIMEOUT)
 	if err != nil {
 		glog.Fatalf("Error while sshing into workers: %s", err)
 		return
@@ -50,7 +49,8 @@ func main() {
 	}
 
 	// Populate nonResponsiveDevices.
-	responsivenessOutputs, err := util.SSH("adb shell uptime", healthyMachines, 30*time.Minute)
+	responsivenessOutputs, err :=
+		util.SSH("adb shell uptime", healthyMachines, util.ADB_SHELL_UPTIME_TIMEOUT)
 	if err != nil {
 		glog.Fatalf("Error while sshing into workers: %s", err)
 		return

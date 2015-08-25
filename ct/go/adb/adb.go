@@ -4,7 +4,6 @@ package adb
 import (
 	"fmt"
 	"os/exec"
-	"time"
 
 	"go.skia.org/infra/ct/go/util"
 	skexec "go.skia.org/infra/go/exec"
@@ -17,7 +16,9 @@ import (
 func VerifyLocalDevice() error {
 	// Run "adb version".
 	// Command should return without an error.
-	if err := util.ExecuteCmd(util.BINARY_ADB, []string{"version"}, []string{}, 5*time.Minute, nil, nil); err != nil {
+	err := util.ExecuteCmd(util.BINARY_ADB, []string{"version"}, []string{},
+		util.ADB_VERSION_TIMEOUT, nil, nil)
+	if err != nil {
 		return fmt.Errorf("adb not installed or not found: %s", err)
 	}
 

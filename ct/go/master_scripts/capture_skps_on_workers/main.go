@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -55,7 +54,7 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CTFE_V2 {
+	if frontend.CtfeV2 {
 		vars := capture_skps.UpdateVars{}
 		vars.Id = *gaeTaskID
 		vars.SetCompleted(taskCompletedSuccessfully)
@@ -73,7 +72,7 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
-	webhook.MustInitRequestSaltFromFile(util.WebhookRequestSaltPath)
+	frontend.MustInit()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -139,8 +138,9 @@ func main() {
 		// The main command that runs capture_skps on all workers.
 		captureSKPsCmdBytes.String(),
 	}
-	// Setting a 2 day timeout since it may take a while to capture 1M SKPs.
-	if _, err := util.SSH(strings.Join(cmd, " "), util.Slaves, 2*24*time.Hour); err != nil {
+
+	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CAPTURE_SKPS_TIMEOUT)
+	if err != nil {
 		glog.Errorf("Error while running cmd %s: %s", cmd, err)
 		return
 	}

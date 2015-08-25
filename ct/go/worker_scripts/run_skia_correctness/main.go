@@ -48,7 +48,10 @@ func runRenderPictures(localSkpsDir, localOutputDir, remoteOutputDir string, run
 	for _, picturesArg := range strings.Split(picturesArgs, " ") {
 		args = append(args, picturesArg)
 	}
-	if err := util.ExecuteCmd(filepath.Join(util.SkiaTreeDir, "out", "Release", util.BINARY_RENDER_PICTURES), args, []string{"DISPLAY=:0"}, 15*time.Minute, nil, nil); err != nil {
+	err := util.ExecuteCmd(
+		filepath.Join(util.SkiaTreeDir, "out", "Release", util.BINARY_RENDER_PICTURES),
+		args, []string{"DISPLAY=:0"}, util.RENDER_PICTURES_TIMEOUT, nil, nil)
+	if err != nil {
 		return fmt.Errorf("Failure when running render_pictures: %s", err)
 	}
 	return nil
@@ -175,7 +178,9 @@ func main() {
 		"--gs_skp_dir=gs://" + filepath.Join(util.GS_BUCKET_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild, fmt.Sprintf("slave%d", *workerNum)),
 		"--slave_num=" + strconv.Itoa(*workerNum),
 	}
-	if err := util.ExecuteCmd("python", summaryArgs, []string{}, 15*time.Minute, nil, nil); err != nil {
+	err = util.ExecuteCmd("python", summaryArgs, []string{}, util.WRITE_JSON_SUMMARY_TIMEOUT,
+		nil, nil)
+	if err != nil {
 		glog.Error(err)
 		return
 	}

@@ -87,8 +87,8 @@ func main() {
 			return
 		}
 		// Make sure adb shell is running as root.
-		skutil.LogErr(
-			util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{}, 5*time.Minute, nil, nil))
+		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{},
+			util.ADB_ROOT_TIMEOUT, nil, nil))
 	}
 
 	// Instantiate GsUtil object.
@@ -203,7 +203,7 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	args = append(args, "--output-dir="+outputDirArgValue)
 	// Figure out which browser should be used.
 	if *targetPlatform == util.PLATFORM_ANDROID {
-		if err := installChromeAPK(chromiumBuildName); err != nil {
+		if err := util.InstallChromeAPK(chromiumBuildName); err != nil {
 			return fmt.Errorf("Error while installing APK: %s", err)
 		}
 		args = append(args, "--browser=android-chrome-shell")
@@ -231,7 +231,8 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	if err := util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
 		glog.Errorf("Run benchmark command failed with: %s", err)
 		glog.Errorf("Killing all running chrome processes in case there is a non-recoverable error.")
-		skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, 5*time.Minute, nil, nil))
+		skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{},
+			util.PKILL_TIMEOUT, nil, nil))
 	}
 	return nil
 }
@@ -279,23 +280,15 @@ func mergeUploadCSVFiles(localOutputDir, pathToPyFiles, runID, remoteDir string,
 		"--csv_dir=" + localOutputDir,
 		"--output_csv_name=" + filepath.Join(localOutputDir, outputFileName),
 	}
-	if err := util.ExecuteCmd("python", args, []string{}, 10*time.Minute, nil, nil); err != nil {
+	err = util.ExecuteCmd("python", args, []string{}, util.CSV_PIVOT_TABLE_MERGER_TIMEOUT, nil,
+		nil)
+	if err != nil {
 		return fmt.Errorf("Error running csv_pivot_table_merger.py: %s", err)
 	}
 	// Copy the output file to Google Storage.
 	remoteOutputDir := filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "outputs")
 	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
 		return fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
-	}
-	return nil
-}
-
-func installChromeAPK(chromiumBuildName string) error {
-	// Install the APK on the Android device.
-	chromiumApk := filepath.Join(util.ChromiumBuildsDir, chromiumBuildName, util.ApkName)
-	glog.Infof("Installing the APK at %s", chromiumApk)
-	if err := util.ExecuteCmd(util.BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{}, 15*time.Minute, nil, nil); err != nil {
-		return fmt.Errorf("Could not install the chromium APK at %s: %s", chromiumBuildName, err)
 	}
 	return nil
 }

@@ -10,13 +10,28 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
-	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
 
 	"strings"
 )
+
+// Construct the name of a directory to store a chromium build. For generic clean builds, runID
+// should be empty.
+func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
+	if runID == "" {
+		// Do not include the runID in the dir name if it is not specified.
+		return fmt.Sprintf("%s-%s",
+			getTruncatedHash(chromiumHash),
+			getTruncatedHash(skiaHash))
+	} else {
+		return fmt.Sprintf("%s-%s-%s",
+			getTruncatedHash(chromiumHash),
+			getTruncatedHash(skiaHash),
+			runID)
+	}
+}
 
 // CreateChromiumBuild creates a chromium build using the specified arguments.
 
@@ -72,11 +87,14 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 		"--chrome_revision=" + chromiumHash,
 		"--skia_revision=" + skiaHash,
 	}
-	if err := ExecuteCmd("python", syncArgs, []string{}, 2*time.Hour, nil, nil); err != nil {
+	err = ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil, nil)
+	if err != nil {
 		glog.Warning("There was an error. Deleting base directory and trying again.")
 		util.RemoveAll(chromiumBuildDir)
 		util.MkdirAll(chromiumBuildDir, 0700)
-		if err := ExecuteCmd("python", syncArgs, []string{}, 2*time.Hour, nil, nil); err != nil {
+		err := ExecuteCmd("python", syncArgs, []string{}, SYNC_SKIA_IN_CHROME_TIMEOUT, nil,
+			nil)
+		if err != nil {
 			return "", "", fmt.Errorf("There was an error checking out chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 		}
 	}
@@ -85,11 +103,7 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 	if err := resetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
 		return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 	}
-	googleStorageDirName := fmt.Sprintf("%s-%s-%s", getTruncatedHash(chromiumHash), getTruncatedHash(skiaHash), runID)
-	if runID == "" {
-		// Do not include the runID in the dir name if it is not specified.
-		googleStorageDirName = fmt.Sprintf("%s-%s", getTruncatedHash(chromiumHash), getTruncatedHash(skiaHash))
-	}
+	googleStorageDirName := ChromiumBuildDir(chromiumHash, skiaHash, runID)
 	if applyPatches {
 		if err := applyRepoPatches(filepath.Join(chromiumBuildDir, "src"), runID); err != nil {
 			return "", "", fmt.Errorf("Could not apply patches in the chromium checkout in %s: %s", chromiumBuildDir, err)
@@ -143,7 +157,8 @@ func getChromiumHash() (string, error) {
 		return "", fmt.Errorf("Could not create %s: %s", stdoutFilePath, err)
 	}
 	totArgs := []string{"ls-remote", "https://chromium.googlesource.com/chromium/src.git", "--verify", "refs/heads/master"}
-	if err := ExecuteCmd(BINARY_GIT, totArgs, []string{}, time.Minute*5, stdoutFile, nil); err != nil {
+	err = ExecuteCmd(BINARY_GIT, totArgs, []string{}, GIT_LS_REMOTE_TIMEOUT, stdoutFile, nil)
+	if err != nil {
 		return "", fmt.Errorf("Error while finding Chromium's ToT: %s", err)
 	}
 	output, err := ioutil.ReadFile(stdoutFilePath)
@@ -218,19 +233,23 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 	}
 
 	// Restart Goma's compiler proxy right before building the checkout.
-	if err := ExecuteCmd("python", []string{filepath.Join(GomaDir, "goma_ctl.py"), "restart"}, os.Environ(), 10*time.Minute, nil, nil); err != nil {
+	err := ExecuteCmd("python", []string{filepath.Join(GomaDir, "goma_ctl.py"), "restart"},
+		os.Environ(), GOMA_CTL_RESTART_TIMEOUT, nil, nil)
+	if err != nil {
 		return fmt.Errorf("Error while restarting goma compiler proxy: %s", err)
 	}
 
 	// Run "GYP_DEFINES='gomadir=/b/build/goma' GYP_GENERATORS='ninja' build/gyp_chromium -Duse_goma=1".
 	env := []string{fmt.Sprintf("GYP_DEFINES=gomadir=%s", GomaDir), "GYP_GENERATORS=ninja"}
-	if err := ExecuteCmd(filepath.Join("build", "gyp_chromium"), []string{"-Duse_goma=1"}, env, 30*time.Minute, nil, nil); err != nil {
+	err = ExecuteCmd(filepath.Join("build", "gyp_chromium"), []string{"-Duse_goma=1"}, env,
+		GYP_CHROMIUM_TIMEOUT, nil, nil)
+	if err != nil {
 		return fmt.Errorf("Error while running gyp_chromium: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 ${build_target}".
 	// Use the full system env while building chromium.
 	args := []string{"-C", "out/Release", "-j100", buildTarget}
-	return ExecuteCmd("ninja", args, os.Environ(), 2*time.Hour, nil, nil)
+	return ExecuteCmd("ninja", args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 func getTruncatedHash(commitHash string) string {
@@ -284,6 +303,18 @@ func applyRepoPatches(chromiumSrcDir, runID string) error {
 		if err := ApplyPatch(chromiumPatch, chromiumSrcDir); err != nil {
 			return fmt.Errorf("Could not apply Chromium's patch in %s: %s", chromiumSrcDir, err)
 		}
+	}
+	return nil
+}
+
+func InstallChromeAPK(chromiumBuildName string) error {
+	// Install the APK on the Android device.
+	chromiumApk := filepath.Join(ChromiumBuildsDir, chromiumBuildName, ApkName)
+	glog.Infof("Installing the APK at %s", chromiumApk)
+	err := ExecuteCmd(BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{},
+		ADB_INSTALL_TIMEOUT, nil, nil)
+	if err != nil {
+		return fmt.Errorf("Could not install the chromium APK at %s: %s", chromiumBuildName, err)
 	}
 	return nil
 }

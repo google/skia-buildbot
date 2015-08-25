@@ -191,6 +191,7 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 	}
 }
 
+// TODO(benjaminwagner): Seems to duplicate code in ct/go/util/chromium_builds.go.
 func getChromiumLkgr() (string, error) {
 	glog.Infof("Reading Chromium LKGR from %s", CHROMIUM_LKGR_URL)
 	resp, err := httpClient.Get(CHROMIUM_LKGR_URL)
@@ -211,6 +212,7 @@ func getChromiumRevDataHandler(w http.ResponseWriter, r *http.Request) {
 
 var skiaRevisionRegexp = regexp.MustCompile("'skia_revision': '([0-9a-fA-F]{2,40})'")
 
+// TODO(benjaminwagner): Seems to duplicate code in ct/go/util/chromium_builds.go.
 // Copied from https://github.com/google/skia-buildbot/blob/016cce36f0cd487c9586b013979705e49dd76f8e/appengine_scripts/skia-tree-status/status.py#L178
 // to work around 403 error.
 func getSkiaLkgr() (string, error) {

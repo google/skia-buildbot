@@ -129,6 +129,21 @@ func squashWriters(writers ...io.Writer) io.Writer {
 	}
 }
 
+// Returns the Env, Name, and Args of command joined with spaces. Does not perform any quoting.
+func DebugString(command *Command) string {
+	result := ""
+	result += strings.Join(command.Env, " ")
+	if len(command.Env) != 0 {
+		result += " "
+	}
+	result += command.Name
+	if len(command.Args) != 0 {
+		result += " "
+	}
+	result += strings.Join(command.Args, " ")
+	return result
+}
+
 func createCmd(command *Command) *osexec.Cmd {
 	cmd := osexec.Command(command.Name, command.Args...)
 	if len(command.Env) != 0 {
@@ -152,31 +167,31 @@ func createCmd(command *Command) *osexec.Cmd {
 	return cmd
 }
 
-func start(cmd *osexec.Cmd) error {
-	if len(cmd.Env) == 0 {
-		glog.Infof("Executing %s", strings.Join(cmd.Args, " "))
-	} else {
-		glog.Infof("Executing %s with env %s",
-			strings.Join(cmd.Args, " "), strings.Join(cmd.Env, " "))
+func start(command *Command, cmd *osexec.Cmd) error {
+	dirMsg := ""
+	if cmd.Dir != "" {
+		dirMsg = " with CWD " + cmd.Dir
 	}
+	glog.Infof("Executing '%s' (where %s is %s)%s",
+		DebugString(command), command.Name, cmd.Path, dirMsg)
 	err := cmd.Start()
 	if err != nil {
-		glog.Errorf("Unable to start command %s: %s", strings.Join(cmd.Args, " "), err)
+		glog.Errorf("Unable to start command %s: %s", DebugString(command), err)
 	}
 	return err
 }
 
-func waitSimple(cmd *osexec.Cmd) error {
+func waitSimple(command *Command, cmd *osexec.Cmd) error {
 	err := cmd.Wait()
 	if err != nil {
-		glog.Errorf("Command exited with %s: %s", err, strings.Join(cmd.Args, " "))
+		glog.Errorf("Command exited with %s: %s", err, DebugString(command))
 	}
 	return err
 }
 
 func wait(command *Command, cmd *osexec.Cmd) error {
 	if command.Timeout == 0 {
-		return waitSimple(cmd)
+		return waitSimple(command, cmd)
 	}
 	done := make(chan error)
 	go func() {
@@ -192,7 +207,7 @@ func wait(command *Command, cmd *osexec.Cmd) error {
 		return fmt.Errorf("Command killed since it took longer than %f secs", command.Timeout.Seconds())
 	case err := <-done:
 		if err != nil {
-			glog.Errorf("Command exited with %s: %s", err, strings.Join(cmd.Args, " "))
+			glog.Errorf("Command exited with %s: %s", err, DebugString(command))
 		}
 		return err
 	}
@@ -201,7 +216,7 @@ func wait(command *Command, cmd *osexec.Cmd) error {
 // Default value of Run.
 func DefaultRun(command *Command) error {
 	cmd := createCmd(command)
-	if err := start(cmd); err != nil {
+	if err := start(command, cmd); err != nil {
 		return err
 	}
 	return wait(command, cmd)

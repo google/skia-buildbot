@@ -40,6 +40,8 @@ const (
 
 	// WEBHOOK_REQUEST_SALT is used to authenticate webhook requests. The value stored in
 	// Metadata is base64-encoded.
+	// Value created 2015-08-10 with
+	// dd if=/dev/random iflag=fullblock bs=64 count=1 | base64 -w 0
 	WEBHOOK_REQUEST_SALT = "webhook_request_salt"
 )
 

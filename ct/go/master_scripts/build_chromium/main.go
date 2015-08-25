@@ -17,7 +17,6 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -54,7 +53,7 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CTFE_V2 {
+	if frontend.CtfeV2 {
 		vars := chromium_builds.UpdateVars{}
 		vars.Id = *gaeTaskID
 		vars.SetCompleted(taskCompletedSuccessfully)
@@ -73,7 +72,7 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
-	webhook.MustInitRequestSaltFromFile(util.WebhookRequestSaltPath)
+	frontend.MustInit()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -128,7 +127,9 @@ func main() {
 		return
 	}
 	// Run git log --pretty=format="%at" -1
-	if err := util.ExecuteCmd(util.BINARY_GIT, []string{"log", "--pretty=format:%at", "-1"}, []string{}, 5*time.Minute, stdoutFile, nil); err != nil {
+	err = util.ExecuteCmd(util.BINARY_GIT, []string{"log", "--pretty=format:%at", "-1"},
+		[]string{}, util.GIT_LOG_TIMEOUT, stdoutFile, nil)
+	if err != nil {
 		glog.Errorf("Could not run git log cmd: %s", err)
 		return
 	}

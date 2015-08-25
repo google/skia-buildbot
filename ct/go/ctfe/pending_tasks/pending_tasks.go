@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"path/filepath"
 	"text/template"
@@ -79,12 +80,77 @@ func getAllPendingTasks() ([]task_common.Task, error) {
 			panic("Unknown table " + tableName)
 		}
 
-		if err := db.DB.Get(task, query); err != nil && err != sql.ErrNoRows {
+		if err := db.DB.Get(task, query); err == sql.ErrNoRows {
+			continue
+		} else if err != nil {
 			return nil, fmt.Errorf("Failed to query DB: %v", err)
 		}
 		tasks = append(tasks, task)
 	}
 	return tasks, nil
+}
+
+// Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
+// should be non-nil when serialized as JSON.
+type oldestPendingTask struct {
+	ChromiumPerf            *chromium_perf.DBTask
+	CaptureSkps             *capture_skps.DBTask
+	LuaScript               *lua_scripts.DBTask
+	ChromiumBuild           *chromium_builds.DBTask
+	RecreatePageSets        *admin_tasks.RecreatePageSetsDBTask
+	RecreateWebpageArchives *admin_tasks.RecreateWebpageArchivesDBTask
+}
+
+// Writes JSON representation of oldestTask to taskJson. Returns an error if oldestTask's type is
+// unknown, if there was an error encoding to JSON, or there is an error writing to taskJson. Does
+// not close taskJson.
+func EncodeTask(taskJson io.Writer, oldestTask task_common.Task) error {
+	oldestTaskJsonRepr := oldestPendingTask{}
+	switch task := oldestTask.(type) {
+	case nil:
+		// No fields set.
+	case *chromium_perf.DBTask:
+		oldestTaskJsonRepr.ChromiumPerf = task
+	case *capture_skps.DBTask:
+		oldestTaskJsonRepr.CaptureSkps = task
+	case *lua_scripts.DBTask:
+		oldestTaskJsonRepr.LuaScript = task
+	case *chromium_builds.DBTask:
+		oldestTaskJsonRepr.ChromiumBuild = task
+	case *admin_tasks.RecreatePageSetsDBTask:
+		oldestTaskJsonRepr.RecreatePageSets = task
+	case *admin_tasks.RecreateWebpageArchivesDBTask:
+		oldestTaskJsonRepr.RecreateWebpageArchives = task
+	default:
+		return fmt.Errorf("Missing case for %T", oldestTask)
+	}
+	return json.NewEncoder(taskJson).Encode(oldestTaskJsonRepr)
+}
+
+// Reads JSON response from ctfeutil.GET_OLDEST_PENDING_TASK_URI and returns either the Task decoded
+// from the response or nil if there are no pending tasks. Returns an error if there is a problem
+// decoding the JSON. Does not close taskJson.
+func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
+	pending := oldestPendingTask{}
+	if err := json.NewDecoder(taskJson).Decode(&pending); err != nil {
+		return nil, err
+	}
+	switch {
+	case pending.ChromiumPerf != nil:
+		return pending.ChromiumPerf, nil
+	case pending.CaptureSkps != nil:
+		return pending.CaptureSkps, nil
+	case pending.LuaScript != nil:
+		return pending.LuaScript, nil
+	case pending.ChromiumBuild != nil:
+		return pending.ChromiumBuild, nil
+	case pending.RecreatePageSets != nil:
+		return pending.RecreatePageSets, nil
+	case pending.RecreateWebpageArchives != nil:
+		return pending.RecreateWebpageArchives, nil
+	default:
+		return nil, nil
+	}
 }
 
 func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
@@ -100,18 +166,15 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 	for _, task := range tasks {
 		if oldestTask == nil {
 			oldestTask = task
-		} else if oldestTask.GetCommonCols().TsAdded.Int64 <
+		} else if oldestTask.GetCommonCols().TsAdded.Int64 >
 			task.GetCommonCols().TsAdded.Int64 {
 			oldestTask = task
 		}
 	}
 
-	oldestTaskJsonRepr := map[string]task_common.Task{}
-	if oldestTask != nil {
-		oldestTaskJsonRepr[oldestTask.GetTaskName()] = oldestTask
-	}
-	if err := json.NewEncoder(w).Encode(oldestTaskJsonRepr); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+	if err := EncodeTask(w, oldestTask); err != nil {
+		skutil.ReportError(w, r, err,
+			fmt.Sprintf("Failed to encode JSON for %#v", oldestTask))
 		return
 	}
 }

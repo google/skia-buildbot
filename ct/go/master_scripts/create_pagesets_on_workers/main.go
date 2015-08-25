@@ -15,13 +15,13 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 var (
 	emails      = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
 	gaeTaskID   = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType = flag.String("pageset_type", "", "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
+	runID       = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully = new(bool)
 )
@@ -48,7 +48,7 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CTFE_V2 {
+	if frontend.CtfeV2 {
 		vars := admin_tasks.RecreatePageSetsUpdateVars{}
 		vars.Id = *gaeTaskID
 		vars.SetCompleted(*taskCompletedSuccessfully)
@@ -63,7 +63,7 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
-	webhook.MustInitRequestSaltFromFile(util.WebhookRequestSaltPath)
+	frontend.MustInit()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -93,12 +93,13 @@ func main() {
 		"git pull;",
 		"make all;",
 		// The main command that runs create_pagesets on all workers.
-		fmt.Sprintf("create_pagesets --worker_num=%s --log_dir=%s --pageset_type=%s;", util.WORKER_NUM_KEYWORD, util.GLogDir, *pagesetType),
+		fmt.Sprintf(
+			"create_pagesets --worker_num=%s --log_dir=%s --log_id=%s --pageset_type=%s;",
+			util.WORKER_NUM_KEYWORD, util.GLogDir, *runID, *pagesetType),
 	}
 
-	// Setting a 4 hour timeout since it may take a while to upload page sets to
-	// Google Storage when doing 10k page sets per worker.
-	if _, err := util.SSH(strings.Join(cmd, " "), util.Slaves, 4*time.Hour); err != nil {
+	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CREATE_PAGESETS_TIMEOUT)
+	if err != nil {
 		glog.Errorf("Error while running cmd %s: %s", cmd, err)
 		return
 	}

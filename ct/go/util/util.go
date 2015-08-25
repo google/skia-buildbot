@@ -131,10 +131,13 @@ func SyncDir(dir string) error {
 }
 
 func syncDirStep() error {
-	if err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, 10*time.Minute, nil, nil); err != nil {
+	err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
+	if err != nil {
 		return fmt.Errorf("Error running git pull: %s", err)
 	}
-	if err := ExecuteCmd(BINARY_GCLIENT, []string{"sync"}, []string{}, 15*time.Minute, nil, nil); err != nil {
+	err = ExecuteCmd(BINARY_GCLIENT, []string{"sync"}, []string{}, GCLIENT_SYNC_TIMEOUT, nil,
+		nil)
+	if err != nil {
 		return fmt.Errorf("Error running gclient sync: %s", err)
 	}
 	return nil
@@ -146,9 +149,11 @@ func BuildSkiaTools() error {
 		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
 	}
 	// Run "make clean".
-	util.LogErr(ExecuteCmd(BINARY_MAKE, []string{"clean"}, []string{}, 5*time.Minute, nil, nil))
+	util.LogErr(ExecuteCmd(BINARY_MAKE, []string{"clean"}, []string{}, MAKE_CLEAN_TIMEOUT, nil,
+		nil))
 	// Build tools.
-	return ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"}, []string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, 5*time.Minute, nil, nil)
+	return ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"},
+		[]string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, MAKE_TOOLS_TIMEOUT, nil, nil)
 }
 
 // ResetCheckout resets the specified Git checkout.
@@ -158,10 +163,10 @@ func ResetCheckout(dir string) error {
 	}
 	// Run "git reset --hard HEAD"
 	resetArgs := []string{"reset", "--hard", "HEAD"}
-	util.LogErr(ExecuteCmd(BINARY_GIT, resetArgs, []string{}, 5*time.Minute, nil, nil))
+	util.LogErr(ExecuteCmd(BINARY_GIT, resetArgs, []string{}, GIT_RESET_TIMEOUT, nil, nil))
 	// Run "git clean -f -d"
 	cleanArgs := []string{"clean", "-f", "-d"}
-	util.LogErr(ExecuteCmd(BINARY_GIT, cleanArgs, []string{}, 5*time.Minute, nil, nil))
+	util.LogErr(ExecuteCmd(BINARY_GIT, cleanArgs, []string{}, GIT_CLEAN_TIMEOUT, nil, nil))
 
 	return nil
 }
@@ -174,7 +179,7 @@ func ApplyPatch(patch, dir string) error {
 	// Run "git apply --index -p1 --verbose --ignore-whitespace
 	//      --ignore-space-change ${PATCH_FILE}"
 	args := []string{"apply", "--index", "-p1", "--verbose", "--ignore-whitespace", "--ignore-space-change", patch}
-	return ExecuteCmd(BINARY_GIT, args, []string{}, 5*time.Minute, nil, nil)
+	return ExecuteCmd(BINARY_GIT, args, []string{}, GIT_APPLY_TIMEOUT, nil, nil)
 }
 
 // CleanTmpDir deletes all tmp files from the caller because telemetry tends to

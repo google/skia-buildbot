@@ -87,8 +87,7 @@ func main() {
 	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		// Install the APK on the Android device.
-		chromiumApk := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.ApkName)
-		if err := util.ExecuteCmd(util.BINARY_ADB, []string{"install", "-r", chromiumApk}, []string{}, 5*time.Minute, nil, nil); err != nil {
+		if err := util.InstallChromeAPK(*chromiumBuild); err != nil {
 			glog.Errorf("Could not install the chromium APK: %s", err)
 			return
 		}
@@ -253,7 +252,8 @@ func main() {
 		"--skp_dir=" + pathToSkps,
 		"--path_to_skpinfo=" + pathToSKPInfo,
 	}
-	skutil.LogErr(util.ExecuteCmd("python", args, []string{}, 3*time.Hour, nil, nil))
+	skutil.LogErr(util.ExecuteCmd("python", args, []string{}, util.REMOVE_INVALID_SKPS_TIMEOUT,
+		nil, nil))
 
 	// Write timestamp to the SKPs dir.
 	skutil.LogErr(util.CreateTimestampFile(pathToSkps))
@@ -274,7 +274,8 @@ func chromeProcessesCleaner(mutex *sync.RWMutex) {
 		glog.Info("The chromeProcessesCleaner goroutine has started")
 		glog.Info("Waiting for all existing tasks to complete before killing zombie chrome processes")
 		mutex.Lock()
-		skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, 5*time.Minute, nil, nil))
+		skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{},
+			util.PKILL_TIMEOUT, nil, nil))
 		mutex.Unlock()
 	}
 }

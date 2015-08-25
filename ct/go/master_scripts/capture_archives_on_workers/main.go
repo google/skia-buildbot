@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -23,6 +22,7 @@ var (
 	gaeTaskID     = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType   = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
+	runID         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully = new(bool)
 )
@@ -49,7 +49,7 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CTFE_V2 {
+	if frontend.CtfeV2 {
 		vars := admin_tasks.RecreateWebpageArchivesUpdateVars{}
 		vars.Id = *gaeTaskID
 		vars.SetCompleted(*taskCompletedSuccessfully)
@@ -64,7 +64,7 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
-	webhook.MustInitRequestSaltFromFile(util.WebhookRequestSaltPath)
+	frontend.MustInit()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -98,11 +98,11 @@ func main() {
 		"git pull;",
 		"make all;",
 		// The main command that runs capture_archives on all workers.
-		fmt.Sprintf("DISPLAY=:0 capture_archives --worker_num=%s --log_dir=%s --pageset_type=%s --chromium_build=%s;", util.WORKER_NUM_KEYWORD, util.GLogDir, *pagesetType, *chromiumBuild),
+		fmt.Sprintf("DISPLAY=:0 capture_archives --worker_num=%s --log_dir=%s --log_id=%s --pageset_type=%s --chromium_build=%s;", util.WORKER_NUM_KEYWORD, util.GLogDir, *runID, *pagesetType, *chromiumBuild),
 	}
 
-	// Setting a 5 day timeout since it may take a while to capture 1M archives.
-	if _, err := util.SSH(strings.Join(cmd, " "), util.Slaves, 5*24*time.Hour); err != nil {
+	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CAPTURE_ARCHIVES_TIMEOUT)
+	if err != nil {
 		glog.Errorf("Error while running cmd %s: %s", cmd, err)
 		return
 	}

@@ -21,7 +21,6 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -78,7 +77,7 @@ func updateWebappTask() {
 
 func main() {
 	common.Init()
-	webhook.MustInitRequestSaltFromFile(util.WebhookRequestSaltPath)
+	frontend.MustInit()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -163,7 +162,8 @@ func main() {
 		// The main command that runs run_skia_correctness on all workers.
 		runSkiaCorrCmdBytes.String(),
 	}
-	if _, err := util.SSH(strings.Join(cmd, " "), util.Slaves, 4*time.Hour); err != nil {
+	_, err = util.SSH(strings.Join(cmd, " "), util.Slaves, util.RUN_SKIA_CORRECTNESS_TIMEOUT)
+	if err != nil {
 		glog.Errorf("Error while running cmd %s: %s", cmd, err)
 		return
 	}
@@ -219,7 +219,9 @@ func main() {
 		"--nopatch_gpu=" + strconv.FormatBool(*gpuNoPatchRun),
 		"--withpatch_gpu=" + strconv.FormatBool(*gpuWithPatchRun),
 	}
-	if err := util.ExecuteCmd("python", args, []string{}, 1*time.Hour, nil, nil); err != nil {
+	err = util.ExecuteCmd("python", args, []string{}, util.JSON_SUMMARY_COMBINER_TIMEOUT, nil,
+		nil)
+	if err != nil {
 		glog.Errorf("Error running json_summary_combiner.py: %s", err)
 		return
 	}

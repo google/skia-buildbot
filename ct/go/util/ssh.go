@@ -127,7 +127,7 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 
 // RebootWorkers reboots all CT workers and waits for few mins before returning.
 func RebootWorkers() {
-	if _, err := SSH("sudo reboot", Slaves, 5*time.Minute); err != nil {
+	if _, err := SSH("sudo reboot", Slaves, REBOOT_TIMEOUT); err != nil {
 		glog.Errorf("Got error while rebooting workers: %v", err)
 	}
 	waitTime := 15 * time.Minute
