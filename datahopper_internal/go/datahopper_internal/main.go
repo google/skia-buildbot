@@ -231,10 +231,6 @@ func step(targets []string, buildService *androidbuildinternal.Service, repos *g
 
 // indexHandler handles the GET of the main page.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	if login.LoggedInAs(r) == "" {
-		util.ReportError(w, r, fmt.Errorf("You must be logged in."), "")
-		return
-	}
 	w.Header().Set("Content-Type", "text/plain")
 	if _, err := w.Write([]byte("Nothing to see here.")); err != nil {
 		glog.Errorf("Failed to write response: %s", err)

@@ -149,5 +149,26 @@
      "expected": [401],
      "body": "",
      "mimetype": ""
+   },
+   "internal_logs": {
+     "url": "http://skia-internal:10115",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "internal_pulld": {
+     "url": "http://skia-internal:10114",
+     "method": "GET",
+     "expected": [401],
+     "body": "",
+     "mimetype": ""
+   },
+   "internal_main": {
+     "url": "http://skia-internal:8000",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
    }
 }
