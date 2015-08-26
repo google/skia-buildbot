@@ -4,7 +4,11 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/ctfe --log_dir=/var/log/logserver --resources_dir=/usr/local/share/ctfe/ --host=ct-staging.skia.org
+ExecStart=/usr/local/bin/ctfe \
+  --log_dir=/var/log/logserver \
+  --resources_dir=/usr/local/share/ctfe/ \
+  --host=ct-staging.skia.org \
+  --graphite_server=skia-monitoring:2003
 Restart=always
 User=default
 Group=default

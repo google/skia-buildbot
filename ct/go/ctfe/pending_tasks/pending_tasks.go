@@ -21,21 +21,13 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
+	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	skutil "go.skia.org/infra/go/util"
 )
 
 var (
-	taskTables = []string{
-		db.TABLE_CHROMIUM_PERF_TASKS,
-		db.TABLE_CAPTURE_SKPS_TASKS,
-		db.TABLE_LUA_SCRIPT_TASKS,
-		db.TABLE_CHROMIUM_BUILD_TASKS,
-		db.TABLE_RECREATE_PAGE_SETS_TASKS,
-		db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS,
-	}
-
 	runsHistoryTemplate  *template.Template = nil
 	pendingTasksTemplate *template.Template = nil
 )
@@ -58,36 +50,23 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 	ctfeutil.ExecuteSimpleTemplate(runsHistoryTemplate, w, r)
 }
 
-func getAllPendingTasks() ([]task_common.Task, error) {
-	tasks := []task_common.Task{}
-	for _, tableName := range taskTables {
-		var task task_common.Task
-		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_completed IS NULL ORDER BY ts_added LIMIT 1;", tableName)
-		switch tableName {
-		case db.TABLE_CHROMIUM_PERF_TASKS:
-			task = &chromium_perf.DBTask{}
-		case db.TABLE_CAPTURE_SKPS_TASKS:
-			task = &capture_skps.DBTask{}
-		case db.TABLE_LUA_SCRIPT_TASKS:
-			task = &lua_scripts.DBTask{}
-		case db.TABLE_CHROMIUM_BUILD_TASKS:
-			task = &chromium_builds.DBTask{}
-		case db.TABLE_RECREATE_PAGE_SETS_TASKS:
-			task = &admin_tasks.RecreatePageSetsDBTask{}
-		case db.TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS:
-			task = &admin_tasks.RecreateWebpageArchivesDBTask{}
-		default:
-			panic("Unknown table " + tableName)
-		}
-
+// GetOldestPendingTask returns the oldest pending task of any type.
+func GetOldestPendingTask() (task_common.Task, error) {
+	var oldestTask task_common.Task
+	for _, task := range task_types.Prototypes() {
+		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_completed IS NULL ORDER BY ts_added LIMIT 1;", task.TableName())
 		if err := db.DB.Get(task, query); err == sql.ErrNoRows {
 			continue
 		} else if err != nil {
 			return nil, fmt.Errorf("Failed to query DB: %v", err)
 		}
-		tasks = append(tasks, task)
+		if oldestTask == nil {
+			oldestTask = task
+		} else if oldestTask.GetCommonCols().TsAdded.Int64 > task.GetCommonCols().TsAdded.Int64 {
+			oldestTask = task
+		}
 	}
-	return tasks, nil
+	return oldestTask, nil
 }
 
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
@@ -156,20 +135,10 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	tasks, err := getAllPendingTasks()
+	oldestTask, err := GetOldestPendingTask()
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to get all pending tasks: %v", err))
+		skutil.ReportError(w, r, err, "Failed to get oldest pending task")
 		return
-	}
-
-	var oldestTask task_common.Task
-	for _, task := range tasks {
-		if oldestTask == nil {
-			oldestTask = task
-		} else if oldestTask.GetCommonCols().TsAdded.Int64 >
-			task.GetCommonCols().TsAdded.Int64 {
-			oldestTask = task
-		}
 	}
 
 	if err := EncodeTask(w, oldestTask); err != nil {
@@ -177,6 +146,25 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("Failed to encode JSON for %#v", oldestTask))
 		return
 	}
+}
+
+// GetPendingTaskCount returns the total number of pending tasks of all types. On error, the first
+// return value will be -1 and the second return value will be non-nil.
+func GetPendingTaskCount() (int64, error) {
+	var result int64 = 0
+	params := task_common.QueryParams{
+		PendingOnly: true,
+		CountQuery:  true,
+	}
+	for _, prototype := range task_types.Prototypes() {
+		query, args := task_common.DBTaskQuery(prototype, params)
+		var countVal int64 = 0
+		if err := db.DB.Get(&countVal, query, args...); err != nil {
+			return -1, err
+		}
+		result += countVal
+	}
+	return result, nil
 }
 
 func pendingTasksView(w http.ResponseWriter, r *http.Request) {

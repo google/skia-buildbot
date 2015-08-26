@@ -56,7 +56,7 @@ func InitWithMetricsCB(appName string, getGraphiteServer func() string) {
 
 func startMetrics(appName, graphiteServer string) {
 	if graphiteServer == "" {
-		glog.Warningf("No metrics server speicifed.")
+		glog.Warningf("No metrics server specified.")
 		return
 	}
 

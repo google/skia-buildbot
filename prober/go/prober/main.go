@@ -34,10 +34,14 @@ var (
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
 	bodyTesters = map[string]BodyTester{
-		"buildbotJSON":     testBuildbotJSON,
-		"skfiddleJSONGood": skfiddleJSONGood,
-		"skfiddleJSONBad":  skfiddleJSONBad,
-		"validJSON":        validJSON,
+		"buildbotJSON":                   testBuildbotJSON,
+		"ctfeChromiumPerfParametersJSON": ctfeChromiumPerfParametersJSON,
+		"ctfeGetTasksJSON":               ctfeGetTasksJSON,
+		"ctfeGetTasksNonEmptyJSON":       ctfeGetTasksNonEmptyJSON,
+		"ctfeRevDataJSON":                ctfeRevDataJSON,
+		"skfiddleJSONGood":               skfiddleJSONGood,
+		"skfiddleJSONBad":                skfiddleJSONBad,
+		"validJSON":                      validJSON,
 	}
 )
 
@@ -169,6 +173,77 @@ func skfiddleJSONGood(r io.Reader) bool {
 // skfiddleJSONBad tests that the compile completed w/error.
 func skfiddleJSONBad(r io.Reader) bool {
 	return !skfiddleJSONGood(r)
+}
+
+// decodeJSONObject reads a JSON object from r and returns the resulting object. Returns nil if the
+// JSON is invalid or can't be decoded to a map[string]interface{}.
+func decodeJSONObject(r io.Reader) map[string]interface{} {
+	var obj map[string]interface{}
+	if json.NewDecoder(r).Decode(&obj) != nil {
+		return nil
+	}
+	return obj
+}
+
+// hasKeys tests that the given decoded JSON object has at least the provided keys. If obj is nil,
+// returns false.
+func hasKeys(obj map[string]interface{}, keys []string) bool {
+	if obj == nil {
+		return false
+	}
+	for _, key := range keys {
+		if _, ok := obj[key]; !ok {
+			return false
+		}
+	}
+	return true
+}
+
+// ctfeChromiumPerfParametersJSON tests that the response contains valid JSON with the keys
+// expected by ct/templates/chromium_perf.html.
+func ctfeChromiumPerfParametersJSON(r io.Reader) bool {
+	return hasKeys(decodeJSONObject(r), []string{"benchmarks", "platforms"})
+}
+
+// ctfeGetTasksJSONObject tests that obj has the attributes expected by
+// ct/res/imp/pending-tasks-sk.html and ct/res/imp/*-runs-sk.html. Returns false if obj is nil.
+func ctfeGetTasksJSONObject(obj map[string]interface{}) bool {
+	if !hasKeys(obj, []string{"data", "permissions", "pagination"}) {
+		return false
+	}
+	data, dataOk := obj["data"].([]interface{})
+	permissions, permissionsOk := obj["permissions"].([]interface{})
+	if !dataOk || !permissionsOk || len(data) != len(permissions) {
+		return false
+	}
+	// TODO(benjaminwagner): Other checks required?
+	return true
+}
+
+// ctfeGetTasksJSON tests that the response contains valid JSON and satisfies
+// ctfeGetTasksJSONObject.
+func ctfeGetTasksJSON(r io.Reader) bool {
+	return ctfeGetTasksJSONObject(decodeJSONObject(r))
+}
+
+// ctfeGetTasksNonEmptyJSON tests the same as ctfeGetTasksJSON and also checks that there is at
+// least one task present.
+func ctfeGetTasksNonEmptyJSON(r io.Reader) bool {
+	obj := decodeJSONObject(r)
+	if !ctfeGetTasksJSONObject(obj) {
+		return false
+	}
+	data := obj["data"].([]interface{})
+	if len(data) < 1 {
+		return false
+	}
+	return true
+}
+
+// ctfeRevDataJSON tests that the response contains valid JSON with the keys expected by
+// ct/res/imp/chromium-builds-sk.html.
+func ctfeRevDataJSON(r io.Reader) bool {
+	return hasKeys(decodeJSONObject(r), []string{"commit", "author", "committer"})
 }
 
 // monitorIssueTracker reads the counts for all the types of issues in the skia
