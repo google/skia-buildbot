@@ -4,6 +4,8 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
+ExecStartPre=/usr/local/bin/ctfe_migratedb \
+  --log_dir=/var/log/logserver
 ExecStart=/usr/local/bin/ctfe \
   --log_dir=/var/log/logserver \
   --resources_dir=/usr/local/share/ctfe/ \
