@@ -950,7 +950,7 @@ func GetBuildsFromDateRange(start, end time.Time) ([]*Build, error) {
 
 // GetMaxBuildNumber returns the highest known build number for the given builder.
 func GetMaxBuildNumber(builder string) (int, error) {
-	stmt := fmt.Sprintf("SELECT MAX(number) FROM %s WHERE builder = ?;", TABLE_BUILDS)
+	stmt := fmt.Sprintf("SELECT ifnull(MAX(number), -1) FROM %s WHERE builder = ?;", TABLE_BUILDS)
 	var num int
 	if err := DB.Get(&num, stmt, builder); err != nil {
 		return -1, err

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Builds and uploads a debian package for datahopper_internal.
+APPNAME=datahopper_internal
+SYSTEMD=${APPNAME}.service
+DESCRIPTION="Program which ingests internal build data into the buildbot database."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL}     --mode=644 -T ./sys/${APPNAME}.service          ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/datahopper_internal ${ROOT}/usr/local/bin/datahopper_internal
+${INSTALL_DIR} --mode=777                                      ${ROOT}/mnt/pd0/datahopper_internal_workdir
+}
+
+source ../bash/release.sh

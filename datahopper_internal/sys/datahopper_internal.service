@@ -1,0 +1,18 @@
+[Unit]
+Description=Datahopper Internal
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/datahopper_internal \
+    --log_dir=/var/log/logserver \
+    --graphite_server=skia-monitoring:2003 \
+    --workdir=/mnt/pd0/datahopper_internal_workdir \
+    --codename_db_dir=/mnt/pd0/datahopper_internal_workdir/codenames
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

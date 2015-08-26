@@ -40,6 +40,7 @@ pdfium/build
 bug_chomper/res/imp/bower_components
 bug_chomper/node_modules
 bug_chomper/third_party
+datahopper_internal/google_storage_token.dat
 golden/app/third_party
 golden/res/css/core.css
 golden/google_oauth_token.data

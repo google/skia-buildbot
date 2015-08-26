@@ -35,6 +35,13 @@ type BuildStep struct {
 	Finished   float64       `db:"finished"`
 }
 
+// Build.Results code descriptions, see http://docs.buildbot.net/current/developer/results.html.
+const (
+	BUILDBOT_SUCCESS = 0
+	BUILDBOT_WARNING = 1
+	BUILDBOT_FAILURE = 2
+)
+
 // Build contains information about a single build.
 type Build struct {
 	Id            int    `db:"id"`

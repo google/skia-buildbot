@@ -102,7 +102,7 @@ func (a *androidCommits) findCommitsPage(branch, target, endBuildID string, ret 
 		}
 
 		for _, build := range resp.Builds {
-			for _, change := range commitsFromChanges(build.Changes) {
+			for _, change := range CommitsFromChanges(build.Changes) {
 				ret[build.BuildId] = change
 			}
 		}
@@ -111,7 +111,7 @@ func (a *androidCommits) findCommitsPage(branch, target, endBuildID string, ret 
 	return "", fmt.Errorf("No valid responses from API after %d requests.", NUM_RETRIES)
 }
 
-func commitsFromChanges(changes []*androidbuildinternal.Change) []*gitinfo.ShortCommit {
+func CommitsFromChanges(changes []*androidbuildinternal.Change) []*gitinfo.ShortCommit {
 	ret := []*gitinfo.ShortCommit{}
 	automated_commit_message := ""
 	for _, changes := range changes {
@@ -139,7 +139,7 @@ func (a *androidCommits) Get(branch, target, buildID string) (*gitinfo.ShortComm
 		return nil, err
 	}
 	if len(build.Changes) > 1 {
-		changes := commitsFromChanges(build.Changes)
+		changes := CommitsFromChanges(build.Changes)
 		if len(changes) > 1 {
 			return changes[0], nil
 		}

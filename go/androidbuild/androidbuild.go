@@ -184,7 +184,7 @@ func (i *info) single_poll() {
 		// Query for commits from latest to lastBuildID.
 		builds, err := i.commits.List(branch, target, lastBuildID)
 		if err != nil {
-			glog.Errorf("Failed to get commist for %s %s %s: %s", branch, target, lastBuildID, err)
+			glog.Errorf("Failed to get commits for %s %s %s: %s", branch, target, lastBuildID, err)
 			continue
 		}
 		// Save each buildID we found.
