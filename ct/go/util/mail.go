@@ -42,7 +42,7 @@ func SendEmail(recipients []string, subject, body string) error {
 	return nil
 }
 
-func SendTaskStartEmail(recipients []string, taskName string) error {
+func SendTaskStartEmail(recipients []string, taskName, masterLogLink string) error {
 	emailSubject := taskName + " cluster telemetry task has started"
 
 	bodyTemplate := `
@@ -51,7 +51,7 @@ func SendTaskStartEmail(recipients []string, taskName string) error {
 	<b>Note:</b> Must be on Google corp to access the above logs.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, taskName, MASTER_LOGSERVER_LINK, WORKERS_LOGSERVER_LINK)
+	emailBody := fmt.Sprintf(bodyTemplate, taskName, masterLogLink, WORKERS_LOGSERVER_LINK)
 	if err := SendEmail(recipients, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending task start email: %s", err)
 	}

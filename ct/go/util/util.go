@@ -191,6 +191,12 @@ func CleanTmpDir() {
 	}
 }
 
+// Get a direct link to the log of this task on the master's logserver.
+func GetMasterLogLink(runID string) string {
+	programName := filepath.Base(os.Args[0])
+	return fmt.Sprintf("%s/%s.%s.%s.log.INFO.%s", MASTER_LOGSERVER_LINK, programName, MASTER_NAME, CT_USER, runID)
+}
+
 func GetTimeFromTs(formattedTime string) time.Time {
 	t, _ := time.Parse(TS_FORMAT, formattedTime)
 	return t

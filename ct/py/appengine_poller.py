@@ -57,11 +57,13 @@ def process_admin_task(task):
   task_name = task['task_name']
   username = task['username']
   pagesets_type = task['pagesets_type']
+  run_id = '%s-%s' % (username.split('@')[0], time.time())
 
   cmd = []
   if task_name == appengine_constants.PAGESETS_ADMIN_TASK_NAME:
     cmd = [
         'create_pagesets_on_workers',
+        '--run_id=' + str(run_id),
         '--emails=' + str(username),
         '--gae_task_id=' + str(task_key),
         '--pageset_type=' + str(pagesets_type),
@@ -72,6 +74,7 @@ def process_admin_task(task):
                                                 task['skia_rev'])
     cmd = [
         'capture_archives_on_workers',
+        '--run_id=' + str(run_id),
         '--emails=' + str(username),
         '--gae_task_id=' + str(task_key),
         '--pageset_type=' + str(pagesets_type),

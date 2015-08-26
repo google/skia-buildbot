@@ -9,6 +9,7 @@ import (
 const (
 	CT_USER                  = "chrome-bot"
 	NUM_WORKERS          int = 100
+	MASTER_NAME              = "build101-m5"
 	WORKER_NAME_TEMPLATE     = "build%d-m5"
 	GS_BUCKET_NAME           = "cluster-telemetry"
 	GS_HTTP_LINK             = "https://storage.cloud.google.com/"

@@ -49,6 +49,12 @@ func TestTaskFileUtils(t *testing.T) {
 	}
 }
 
+func TestGetMasterLogLink(t *testing.T) {
+	expectedLink := fmt.Sprintf("%s/util.test.%s.%s.log.INFO.rmistry-1440425450.02", MASTER_LOGSERVER_LINK, MASTER_NAME, CT_USER)
+	actualLink := GetMasterLogLink("rmistry-1440425450.02")
+	assert.Equal(t, expectedLink, actualLink)
+}
+
 func TestCreateTimestampFile(t *testing.T) {
 	realDir := filepath.Join(os.TempDir(), "util_test")
 	util.Mkdir(realDir, 0755)

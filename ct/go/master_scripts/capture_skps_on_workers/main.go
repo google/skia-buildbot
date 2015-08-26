@@ -82,7 +82,7 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&capture_skps.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Capture SKPs"))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Capture SKPs", util.GetMasterLogLink(*runID)))
 	// Ensure webapp is updated and completion email is sent even if task
 	// fails.
 	defer updateWebappTask()
