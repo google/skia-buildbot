@@ -48,6 +48,10 @@
           value: "",
           reflect: false,
         },
+        trooper: {
+          value: "",
+          reflect: false,
+        },
         author: {
           value: "",
           reflect: false,
@@ -72,18 +76,24 @@
           value: null,
           reflect: false,
         },
+        trooperTimeout: {
+          value: null,
+          reflect: false,
+        },
       },
 
       ready: function() {
         this.reloadStatus();
         this.reloadSheriffStatus();
         this.reloadGpuSheriffStatus();
+        this.reloadTrooperStatus();
       },
 
       reloadChanged: function() {
         this.resetTimeout();
         this.resetSheriffTimeout();
         this.resetGpuSheriffTimeout();
+        this.resetTrooperTimeout();
       },
 
       resetTimeout: function() {
@@ -116,15 +126,27 @@
         }
       },
 
-      updateStatus: function(newSheriff, newGpuSheriff, newMessage, newBinaryStatus, newAuthor, newTimeSince) {
+      resetTrooperTimeout: function() {
+        if (this.trooperTimeout) {
+          window.clearTimeout(this.trooperTimeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this.trooperTimeout = window.setTimeout(function() { that.reloadTrooperStatus(); }, this.reload * 1000);
+        }
+      },
+
+      updateStatus: function(newSheriff, newGpuSheriff, newTrooper, newMessage, newBinaryStatus, newAuthor, newTimeSince) {
         if ((this.sheriff != newSheriff) ||
             (this.gpuSheriff != newGpuSheriff) ||
+            (this.trooper != newTrooper) ||
             (this.message != newMessage) ||
             (this.binaryStatus != newBinaryStatus) ||
             (this.author != newAuthor) ||
             (this.timeSince != newTimeSince)) {
           this.sheriff = newSheriff;
           this.gpuSheriff = newGpuSheriff;
+          this.trooper = newTrooper;
           this.message = newMessage;
           this.binaryStatus = newBinaryStatus;
           this.author = newAuthor;
@@ -133,6 +155,7 @@
             detail: {
               sheriff: this.sheriff,
               gpuSheriff: this.gpuSheriff,
+              trooper: this.trooper,
               message: this.message,
               open: this.binaryStatus,
               author: this.author,
@@ -145,7 +168,7 @@
       reloadStatus: function() {
         var that = this;
         sk.get("https://skia-tree-status.appspot.com/banner-status?format=json").then(JSON.parse).then(function(json) {
-          that.updateStatus(that.sheriff, that.gpuSheriff, json.message, json.general_state == "open", json.username.split("@")[0], sk.human.diffDate(json.date + " UTC"));
+          that.updateStatus(that.sheriff, that.gpuSheriff, that.trooper, json.message, json.general_state == "open", json.username.split("@")[0], sk.human.diffDate(json.date + " UTC"));
           that.resetTimeout();
         }).catch(function() {
           that.resetTimeout();
@@ -155,7 +178,7 @@
       reloadSheriffStatus: function() {
         var that = this;
         sk.get("https://skia-tree-status.appspot.com/current-sheriff?format=json").then(JSON.parse).then(function(json) {
-          that.updateStatus(json.username.split("@")[0], that.gpuSheriff, that.message, that.binaryStatus, that.author, that.timeSince);
+          that.updateStatus(json.username.split("@")[0], that.gpuSheriff, that.trooper, that.message, that.binaryStatus, that.author, that.timeSince);
           that.resetSheriffTimeout();
         }).catch(function() {
           that.resetSheriffTimeout();
@@ -165,10 +188,20 @@
       reloadGpuSheriffStatus: function() {
         var that = this;
         sk.get("https://skia-tree-status.appspot.com/current-gpu-sheriff?format=json").then(JSON.parse).then(function(json) {
-          that.updateStatus(that.sheriff, json.username.split("@")[0], that.message, that.binaryStatus, that.author, that.timeSince);
+          that.updateStatus(that.sheriff, json.username.split("@")[0], that.trooper, that.message, that.binaryStatus, that.author, that.timeSince);
           that.resetGpuSheriffTimeout();
         }).catch(function() {
           that.resetGpuSheriffTimeout();
+        });
+      },
+
+      reloadTrooperStatus: function() {
+        var that = this;
+        sk.get("https://skia-tree-status.appspot.com/current-trooper?format=json").then(JSON.parse).then(function(json) {
+          that.updateStatus(that.sheriff, that.trooper, json.username.split("@")[0], that.message, that.binaryStatus, that.author, that.timeSince);
+          that.resetTrooperTimeout();
+        }).catch(function() {
+          that.resetTrooperTimeout();
         });
       },
     });

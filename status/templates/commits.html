@@ -32,7 +32,7 @@
     tree-status-sk {
       font-size: 1em;
     }
-    #sheriff-button, #gpu-sheriff-button {
+    #sheriff-button, #gpu-sheriff-button, #trooper-button {
       min-width: 200px;
       max-width: 200px;
       width: 200px;
@@ -40,7 +40,7 @@
       text-align: left;
       margin: 0px;
     }
-    #sheriff-email, #gpu-sheriff-email {
+    #sheriff-email, #gpu-sheriff-email, #trooper-email {
       display: inline;
     }
     perf-status-sk {
@@ -89,6 +89,14 @@
             GPU:<div id="gpu-sheriff-email"></div>
           </core-icon-button>
         </a>
+        <a href="http://skia-tree-status.appspot.com/trooper" target="_blank" class="inherit">
+          <core-icon-button
+              id="trooper-button"
+              title="The current Infra trooper"
+              icon="hardware:sim-card">
+            Trooper:<div id="trooper-email"></div>
+          </core-icon-button>
+        </a>
         <div flex></div>
         <perf-status-sk title="Active Perf alerts"></perf-status-sk>
         <gold-status-sk title="Skia Gold: Untriaged image count"></gold-status-sk>
@@ -101,6 +109,7 @@
         $$$("tree-status-sk").addEventListener("change", function(e) {
           $$$('#sheriff-email').innerHTML = e.detail.sheriff;
           $$$('#gpu-sheriff-email').innerHTML = e.detail.gpuSheriff;
+          $$$('#trooper-email').innerHTML = e.detail.trooper;
           var tb  = $$("html /deep/ core-toolbar");
           for (var i = 0; i < tb.length; i++) {
             if (e.detail.open == tb[i].classList.contains("closed")) {
