@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
@@ -42,10 +43,9 @@ type DigestStatus struct {
 
 // Traces is info about a group of traces. Used in Digest.
 type Traces struct {
-	TileSize int                 `json:"tileSize"`
-	Traces   []Trace             `json:"traces"`   // The traces where this digest appears.
-	Digests  []DigestStatus      `json:"digests"`  // The other digests that appear in Traces.
-	ParamSet map[string][]string `json:"paramset"` // The unified params of all the traces where this digest appears.
+	TileSize int            `json:"tileSize"`
+	Traces   []Trace        `json:"traces"`  // The traces where this digest appears.
+	Digests  []DigestStatus `json:"digests"` // The other digests that appear in Traces.
 }
 
 // DiffDigest is information about a digest different from the one in Digest.
@@ -70,11 +70,12 @@ type Diff struct {
 
 // Digest's are returned from Search, one for each match to Query.
 type Digest struct {
-	Test   string `json:"test"`
-	Digest string `json:"digest"`
-	Status string `json:"status"`
-	Traces Traces `json:"traces"`
-	Diff   Diff   `json:"diff"`
+	Test     string              `json:"test"`
+	Digest   string              `json:"digest"`
+	Status   string              `json:"status"`
+	ParamSet map[string][]string `json:"paramset"`
+	Traces   *Traces             `json:"traces"`
+	Diff     *Diff               `json:"diff"`
 }
 
 // CommitRange is a range of commits, starting at the git hash Begin and ending at End, inclusive.
@@ -99,31 +100,34 @@ type Query struct {
 	Limit          int // Only return this many items.
 }
 
+// excludeClassification returns true if the given label/status for a digest
+// should be excluded based on the values in the query.
+func (q *Query) excludeClassification(cl types.Label) bool {
+	return ((cl == types.NEGATIVE) && !q.Neg) ||
+		((cl == types.POSITIVE) && !q.Pos) ||
+		((cl == types.UNTRIAGED) && !q.Unt)
+}
+
 // intermediate is the intermediate representation of the results coming from Search.
 //
 // To avoid filtering through the tile more than once we first take a pass
 // through the tile and collect all info for the current Query, then we
 // transform each intermediate into a Digest.
 type intermediate struct {
-	Test           string
-	Digest         string
-	Traces         map[string]tiling.Trace
-	SiblingDigests map[string]bool
+	Test   string
+	Digest string
+	Traces map[string]tiling.Trace
 }
 
 func (i *intermediate) addTrace(id string, tr tiling.Trace, digests []string) {
 	i.Traces[id] = tr
-	for _, d := range digests {
-		i.SiblingDigests[d] = true
-	}
 }
 
 func newIntermediate(test, digest, id string, tr tiling.Trace, digests []string) *intermediate {
 	ret := &intermediate{
-		Test:           test,
-		Digest:         digest,
-		Traces:         map[string]tiling.Trace{},
-		SiblingDigests: map[string]bool{},
+		Test:   test,
+		Digest: digest,
+		Traces: map[string]tiling.Trace{},
 	}
 	ret.addTrace(id, tr, digests)
 	return ret
@@ -139,21 +143,122 @@ func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // Search returns a slice of Digests that match the input query, and the total number of Digests
 // that matched the query. It also returns a slice of Commits that were used in the calculations.
 func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer, paramset *paramsets.Summary) ([]*Digest, int, []*tiling.Commit, error) {
+	parsedQuery, err := url.ParseQuery(q.Query)
+	if err != nil {
+		return nil, 0, nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
+	}
+
 	tile, err := storages.GetLastTileTrimmed(q.IncludeIgnores)
 	if err != nil {
 		return nil, 0, nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
 
-	// TODO Use CommitRange to create a trimmed tile.
-
-	parsedQuery, err := url.ParseQuery(q.Query)
-	if err != nil {
-		return nil, 0, nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
-	}
 	e, err := storages.ExpectationsStore.Get()
 	if err != nil {
 		return nil, 0, nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}
+
+	var ret []*Digest
+	var commits []*tiling.Commit = nil
+	if q.Issue != "" {
+		ret, err = searchByIssue(q.Issue, q, e, parsedQuery, storages, tile, tallies, paramset)
+	} else {
+		ret, commits, err = searchTile(q, e, parsedQuery, storages, tile, tallies, blamer, paramset)
+	}
+
+	if err != nil {
+		return nil, 0, nil, err
+	}
+
+	sort.Sort(DigestSlice(ret))
+	fullLength := len(ret)
+	if fullLength > q.Limit {
+		ret = ret[0:q.Limit]
+	}
+
+	return ret, fullLength, commits, nil
+}
+
+// issueIntermediate is a utility struct for searchByIssue.
+type issueIntermediate struct {
+	test     string
+	digest   string
+	status   types.Label
+	paramSet map[string][]string
+}
+
+// newIssueIntermediate creates a new instance of issueIntermediate.
+func newIssueIntermediate(tbr *types.TBResult, status types.Label) *issueIntermediate {
+	ret := &issueIntermediate{
+		test:     tbr.Test,
+		digest:   tbr.Digest,
+		status:   status,
+		paramSet: map[string][]string{},
+	}
+	ret.add(tbr)
+	return ret
+}
+
+// add adds to an existing intermediate value.
+func (i *issueIntermediate) add(tbr *types.TBResult) {
+	util.AddParamsToParamSet(i.paramSet, tbr.Params)
+}
+
+// searchByIssue searches across the given issue.
+func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tile *tiling.Tile, tallies *tally.Tallies, tileParamSet *paramsets.Summary) ([]*Digest, error) {
+	trybotResults, err := storages.TrybotResults.Get(issue)
+	if err != nil {
+		return nil, err
+	}
+
+	if !q.IncludeIgnores {
+		matcher, err := storages.IgnoreStore.BuildRuleMatcher()
+		if err != nil {
+			return nil, fmt.Errorf("Unable to build rules matcher: %s", err)
+		}
+		for k, v := range trybotResults {
+			if _, ok := matcher(v.Params); ok {
+				delete(trybotResults, k)
+			}
+		}
+	}
+
+	rule := ignore.NewQueryRule(parsedQuery)
+
+	// Aggregate the results into an intermediate representation to avoid
+	// passing over the dataset twice.
+	inter := map[string]*issueIntermediate{}
+	for _, tbr := range trybotResults {
+		if rule.IsMatch(tbr.Params) {
+			key := tbr.Test + ":" + tbr.Digest
+			if found, ok := inter[key]; ok {
+				found.add(tbr)
+			} else if cl := exp.Classification(tbr.Test, tbr.Digest); !q.excludeClassification(cl) {
+				inter[key] = newIssueIntermediate(tbr, cl)
+			}
+		}
+	}
+
+	// Build the output.
+	talliesByTest := tallies.ByTest()
+	ret := make([]*Digest, 0, len(inter))
+	for _, i := range inter {
+		ret = append(ret, &Digest{
+			Test:     i.test,
+			Digest:   i.digest,
+			Status:   i.status.String(),
+			ParamSet: i.paramSet,
+			Diff:     buildDiff(i.test, i.digest, exp, tile, talliesByTest, nil, storages.DiffStore, tileParamSet, q.IncludeIgnores),
+		})
+	}
+
+	return ret, nil
+}
+
+// searchTile queries across a tile.
+func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tile *tiling.Tile, tallies *tally.Tallies, blamer *blame.Blamer, paramset *paramsets.Summary) ([]*Digest, []*tiling.Commit, error) {
+	// TODO Use CommitRange to create a trimmed tile.
+
 	traceTally := tallies.ByTrace()
 	lastCommitIndex := tile.LastCommitIndex()
 
@@ -171,14 +276,10 @@ func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer 
 			digests := digestsFromTrace(id, tr, q.Head, lastCommitIndex, traceTally)
 			for _, digest := range digests {
 				cl := e.Classification(test, digest)
-				switch {
-				case cl == types.NEGATIVE && !q.Neg:
-					continue
-				case cl == types.POSITIVE && !q.Pos:
-					continue
-				case cl == types.UNTRIAGED && !q.Unt:
+				if q.excludeClassification(cl) {
 					continue
 				}
+
 				// Fix blamer to make this easier.
 				if q.BlameGroupID != "" {
 					if cl == types.UNTRIAGED {
@@ -205,36 +306,32 @@ func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer 
 		parts := strings.Split(key, ":")
 		ret = append(ret, digestFromIntermediate(parts[0], parts[1], i, e, tile, tallies, blamer, storages.DiffStore, paramset, q.IncludeIgnores))
 	}
-
-	sort.Sort(DigestSlice(ret))
-
-	fullLength := len(ret)
-	if fullLength > q.Limit {
-		ret = ret[0:q.Limit]
-	}
-
-	return ret, fullLength, tile.Commits, nil
+	return ret, tile.Commits, nil
 }
 
 func digestFromIntermediate(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, tallies *tally.Tallies, blamer *blame.Blamer, diffStore diff.DiffStore, paramset *paramsets.Summary, includeIgnores bool) *Digest {
 	traceTally := tallies.ByTrace()
 	ret := &Digest{
-		Test:   test,
-		Digest: digest,
-		Status: e.Classification(test, digest).String(),
-		Traces: buildTraces(test, digest, inter, e, tile, traceTally, paramset, includeIgnores),
-		Diff:   buildDiff(test, digest, inter, e, tile, tallies.ByTest(), blamer, diffStore, paramset, includeIgnores),
+		Test:     test,
+		Digest:   digest,
+		Status:   e.Classification(test, digest).String(),
+		ParamSet: paramset.Get(test, digest, includeIgnores),
+		Traces:   buildTraces(test, digest, inter, e, tile, traceTally),
+		Diff:     buildDiff(test, digest, e, tile, tallies.ByTest(), blamer, diffStore, paramset, includeIgnores),
 	}
 	return ret
 }
 
 // buildDiff creates a Diff for the given intermediate.
-func buildDiff(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, testTally map[string]tally.Tally, blamer *blame.Blamer, diffStore diff.DiffStore, paramset *paramsets.Summary, includeIgnores bool) Diff {
-	ret := Diff{
-		Diff:  math.MaxFloat32,
-		Pos:   nil,
-		Neg:   nil,
-		Blame: blamer.GetBlame(test, digest, tile.Commits),
+func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Tile, testTally map[string]tally.Tally, blamer *blame.Blamer, diffStore diff.DiffStore, paramset *paramsets.Summary, includeIgnores bool) *Diff {
+	ret := &Diff{
+		Diff: math.MaxFloat32,
+		Pos:  nil,
+		Neg:  nil,
+	}
+
+	if blamer != nil {
+		ret.Blame = blamer.GetBlame(test, digest, tile.Commits)
 	}
 
 	t := testTally[test]
@@ -261,17 +358,16 @@ func buildDiff(test, digest string, inter *intermediate, e *expstorage.Expectati
 }
 
 // buildTraces returns a Trace for the given intermediate.
-func buildTraces(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, traceTally map[string]tally.Tally, paramset *paramsets.Summary, includeIgnores bool) Traces {
+func buildTraces(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, traceTally map[string]tally.Tally) *Traces {
 	traceNames := make([]string, 0, len(inter.Traces))
 	for id, _ := range inter.Traces {
 		traceNames = append(traceNames, id)
 	}
 
-	ret := Traces{
+	ret := &Traces{
 		TileSize: len(tile.Commits),
 		Traces:   []Trace{},
 		Digests:  []DigestStatus{},
-		ParamSet: paramset.Get(test, digest, includeIgnores),
 	}
 
 	sort.Strings(traceNames)

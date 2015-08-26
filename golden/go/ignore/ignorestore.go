@@ -164,12 +164,14 @@ func (m *MemIgnoreStore) BuildRuleMatcher() (RuleMatcher, error) {
 	return buildRuleMatcher(m)
 }
 
-func compileRule(query string) (map[string]map[string]bool, error) {
-	v, err := url.ParseQuery(query)
-	if err != nil {
-		return nil, err
-	}
+// TODO(stephana): Factor out QueryRule into the shared library and consolidate
+// with the Matches function in the ./go/tiling package.
 
+// QueryRule wraps around a web query and allows matching of
+// parameter sets against it.
+type QueryRule map[string]map[string]bool
+
+func NewQueryRule(v url.Values) QueryRule {
 	ret := make(map[string]map[string]bool, len(v))
 	for k, paramValues := range v {
 		ret[k] = make(map[string]bool, len(paramValues))
@@ -177,7 +179,22 @@ func compileRule(query string) (map[string]map[string]bool, error) {
 			ret[k][oneVal] = true
 		}
 	}
-	return ret, nil
+	return ret
+}
+
+// IsMatch returns true if the set of parameters in params matches this query.
+func (q QueryRule) IsMatch(params map[string]string) bool {
+	if len(q) > len(params) {
+		return false
+	}
+
+	for ruleKey, ruleValues := range q {
+		paramVal, ok := params[ruleKey]
+		if !(ok && ruleValues[paramVal]) {
+			return false
+		}
+	}
+	return true
 }
 
 func noopRuleMatcher(p map[string]string) ([]*IgnoreRule, bool) {

@@ -322,12 +322,12 @@
               closestLabel = this.negIsClosest ? "Closest Negative" : "Closest Positive"
             }
             this.$.paramsets.setParamSets(
-              [ this.details.traces.paramset, this.closest.paramset ],
+              [ this.details.paramset, this.closest.paramset ],
               [ "",                           closestLabel ]
             );
 
           } else {
-            this.$.paramsets.setParamSets([this.details.traces.paramset]);
+            this.$.paramsets.setParamSets([this.details.paramset]);
             this.dataset.diff = Infinity;
           }
         }

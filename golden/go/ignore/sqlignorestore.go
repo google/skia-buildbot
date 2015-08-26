@@ -2,6 +2,7 @@ package ignore
 
 import (
 	"fmt"
+	"net/url"
 	"sync"
 	"time"
 
@@ -123,35 +124,22 @@ func buildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
 		return noopRuleMatcher, err
 	}
 
-	ignoreRules := make([]map[string]map[string]bool, len(rulesList))
+	ignoreRules := make([]QueryRule, len(rulesList))
 	for idx, rawRule := range rulesList {
-		ignoreRules[idx], err = compileRule(rawRule.Query)
+		parsedQuery, err := url.ParseQuery(rawRule.Query)
 		if err != nil {
 			return noopRuleMatcher, err
 		}
+		ignoreRules[idx] = NewQueryRule(parsedQuery)
 	}
 
 	return func(params map[string]string) ([]*IgnoreRule, bool) {
 		result := []*IgnoreRule{}
 
-	Loop:
 		for ruleIdx, rule := range ignoreRules {
-			// All elements in the rules are AND connected. If the list is
-			// longer than available parameters the result will be false.
-			if len(rule) > len(params) {
-				continue
+			if rule.IsMatch(params) {
+				result = append(result, rulesList[ruleIdx])
 			}
-
-			// Check if the parameters match the rule.
-			for ruleKey, ruleValues := range rule {
-				if _, ok := params[ruleKey]; !ok {
-					continue Loop
-				}
-				if !ruleValues[params[ruleKey]] {
-					continue Loop
-				}
-			}
-			result = append(result, rulesList[ruleIdx])
 		}
 
 		return result, len(result) > 0
