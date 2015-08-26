@@ -95,7 +95,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	a := &types.Activity{
 		UserID: login.LoggedInAs(r),
 		Action: "Perf Alert: " + req.Status,
-		URL:    fmt.Sprintf("https://skiaperf.com/cl/%d", req.Id),
+		URL:    fmt.Sprintf("https://perf.skia.org/cl/%d", req.Id),
 	}
 	if err := activitylog.Write(a); err != nil {
 		util.ReportError(w, r, err, "Failed to save activity.")

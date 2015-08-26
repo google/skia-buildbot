@@ -19,7 +19,7 @@ func loginInit() {
 func TestMissingLogin(t *testing.T) {
 	once.Do(loginInit)
 	w := httptest.NewRecorder()
-	r, err := http.NewRequest("POST", "http://skiaperf.com/annotate", nil)
+	r, err := http.NewRequest("POST", "https://perf.skia.org/annotate", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestMissingLogin(t *testing.T) {
 func TestGoodLogin(t *testing.T) {
 	once.Do(loginInit)
 	w := httptest.NewRecorder()
-	r, err := http.NewRequest("POST", "http://skiaperf.com/annotate", nil)
+	r, err := http.NewRequest("POST", "https://perf.skia.org/annotate", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
