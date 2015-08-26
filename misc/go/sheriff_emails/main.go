@@ -55,7 +55,8 @@ var (
 	emailTokenPath   = flag.String("email_token_path", "", "The file where the email token can be found.")
 	skiaSheriffShift = &ShiftType{shiftName: "Skia Sheriff", schedulesLink: "http://skia-tree-status.appspot.com/sheriff", documentationLink: "https://skia.org/dev/sheriffing", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-sheriff"}
 	gpuWranglerShift = &ShiftType{shiftName: "GPU Wrangler", schedulesLink: "http://skia-tree-status.appspot.com/gpu-sheriff", documentationLink: "https://skia.org/dev/sheriffing/gpu", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-gpu-sheriff"}
-	allShiftTypes    = []*ShiftType{skiaSheriffShift, gpuWranglerShift}
+	trooperShift     = &ShiftType{shiftName: "Infra Trooper", schedulesLink: "http://skia-tree-status.appspot.com/trooper", documentationLink: "https://skia.org/dev/sheriffing/trooper", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-trooper"}
+	allShiftTypes    = []*ShiftType{skiaSheriffShift, gpuWranglerShift, trooperShift}
 )
 
 // sendEmail sends an email with the specified header and body to the recipients.
