@@ -102,17 +102,6 @@
         User name  - expires in - query - and the delete button will appear here.
       </div>
 
-      <paper-fab icon="add"></paper-fab>
-      <div id=dialog vertical layout>
-        <paper-input id=duration label="Duration (1s, 5m, 2h, 3d, 5w)" value=2d floatingLabel></paper-input>
-        <paper-input id=note label="Note" floatingLabel></paper-input>
-        <query-sk whiteList='["source_type", "config"]' hideCount noClear fast></query-sk>
-        <div horizontal layout>
-          <paper-button id=add disabled>Add</paper-button>
-          <paper-button id=save disabled>Save</paper-button>
-          <paper-button id=cancel>Cancel</paper-button>
-        </div>
-      </div>
 
       <paper-action-dialog id=confirm heading="Confirm Delete">
         <p>Are you sure you want to delete this rule?</p>
@@ -122,6 +111,19 @@
 
       <paper-toast></paper-toast>
     </scaffold-sk>
+
+    <paper-fab icon="add"></paper-fab>
+
+    <div id=dialog vertical layout>
+      <paper-input id=duration label="Duration (1s, 5m, 2h, 3d, 5w)" value=2d floatingLabel></paper-input>
+      <paper-input id=note label="Note" floatingLabel></paper-input>
+      <query-sk whiteList='["source_type", "config"]' hideCount noClear fast></query-sk>
+      <div horizontal layout>
+        <paper-button id=add disabled>Add</paper-button>
+        <paper-button id=save disabled>Save</paper-button>
+        <paper-button id=cancel>Cancel</paper-button>
+      </div>
+    </div>
 
     <script type="text/javascript" charset="utf-8">
      sk.WebComponentsReady.then(function() {
