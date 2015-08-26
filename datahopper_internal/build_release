@@ -1,6 +1,6 @@
 #!/bin/bash
 # Builds and uploads a debian package for datahopper_internal.
-APPNAME=datahopper_internal
+APPNAME=datahopper_internald
 SYSTEMD=${APPNAME}.service
 DESCRIPTION="Program which ingests internal build data into the buildbot database."
 
