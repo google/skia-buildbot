@@ -1387,6 +1387,29 @@ func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, d3)
 }
 
+// FailureList contains the list of the digests that could not be processed
+// the count value is for convenience to make it easier to inspect the JSON
+// output and might be removed in the future.
+type FailureList struct {
+	Count   int      `json:"count"`
+	Digests []string `json:"digests"`
+}
+
+// failureListJSONHandler returns the digests that have failed to load.
+func failureListJSONHandler(w http.ResponseWriter, r *http.Request) {
+	unavailable := storages.DiffStore.UnavailableDigests()
+	ret := FailureList{
+		Digests: make([]string, 0, len(unavailable)),
+		Count:   len(unavailable),
+	}
+
+	for digest := range unavailable {
+		ret.Digests = append(ret.Digests, digest)
+	}
+
+	sendJsonResponse(w, &ret)
+}
+
 // sendJsonResponse serializes resp to JSON. If an error occurs
 // a text based error code is send to the client.
 func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
