@@ -30,6 +30,11 @@ func main() {
 			glog.Fatal(err)
 		}
 	}
+	if !*local {
+		if err := dbConf.GetPasswordFromMetadata(); err != nil {
+			glog.Fatal(err)
+		}
+	}
 	vdb, err := dbConf.NewVersionedDB()
 	if err != nil {
 		glog.Fatal(err)
