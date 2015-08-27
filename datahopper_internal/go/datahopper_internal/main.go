@@ -249,6 +249,17 @@ const (
   </body>
 </html>
 `
+
+	BUILDER_REDIRECT_TEMPLATE = `<!DOCTYPE html>
+<html>
+  <head><title>Redirect</title></head>
+  <body>
+  <p>You are being redirected to Launch Control. The un-obfuscated target name for <b>%s</b> is <b>%s</b>.</p>
+  <p><a href='https://android-build-uber.corp.google.com/builds.html?branch=git_master-skia'>master-skia:%s</a></p>
+  <p><a href='https://android-build-uber.corp.google.com/builds.html?branch=git_master'>master:%s</a></p>
+  </body>
+</html>
+`
 )
 
 // redirectHandler handles redirecting to the correct tradefed page.
@@ -282,6 +293,26 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if _, err := w.Write([]byte(fmt.Sprintf(REDIRECT_TEMPLATE, codename, target, id, id, target, id, id, target))); err != nil {
+		glog.Errorf("Failed to write response: %s", err)
+	}
+}
+
+// builderRedirectHandler handles redirecting to the correct tradefed page.
+func builderRedirectHandler(w http.ResponseWriter, r *http.Request) {
+	if login.LoggedInAs(r) == "" {
+		r.Header.Set("Referer", r.URL.String())
+		http.Redirect(w, r, login.LoginURL(w, r), 302)
+		return
+	}
+	vars := mux.Vars(r)
+	codename := vars["codename"]
+	target, err := codenameDB.Get([]byte(codename), nil)
+	if err != nil {
+		util.ReportError(w, r, err, "Not a valid target codename.")
+		return
+	}
+	w.Header().Set("Content-Type", "text/html")
+	if _, err := w.Write([]byte(fmt.Sprintf(BUILDER_REDIRECT_TEMPLATE, codename, target, target, target))); err != nil {
 		glog.Errorf("Failed to write response: %s", err)
 	}
 }
@@ -374,7 +405,8 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
-	r.HandleFunc("/builders/{codename}/builds/{buildNumber}/", redirectHandler)
+	r.HandleFunc("/builders/{codename}/builds/{buildNumber}", redirectHandler)
+	r.HandleFunc("/builders/{codename}", builderRedirectHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
