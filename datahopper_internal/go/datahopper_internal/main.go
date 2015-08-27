@@ -372,7 +372,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
-	r.HandleFunc("/{codename}/builds/{buildNumber}/", redirectHandler)
+	r.HandleFunc("/builders/{codename}/builds/{buildNumber}/", redirectHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
