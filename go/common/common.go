@@ -88,6 +88,15 @@ func startMetrics(appName, graphiteServer string) {
 	}()
 }
 
+// Defer from main() to log any panics and flush the log. Defer this function before any other
+// defers.
+func LogPanic() {
+	if r := recover(); r != nil {
+		glog.Fatal(r)
+	}
+	glog.Flush()
+}
+
 func DecodeTomlFile(filename string, configuration interface{}) {
 	if _, err := toml.DecodeFile(filename, configuration); err != nil {
 		glog.Fatalf("Failed to decode config file %s: %s", filename, err)
