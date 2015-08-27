@@ -17,6 +17,7 @@ var (
 )
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 
 	v, err := skiaversion.GetVersion()

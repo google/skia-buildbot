@@ -218,6 +218,7 @@ func runServer(serverURL string) {
 
 // Run the BugChomper server.
 func main() {
+	defer common.LogPanic()
 	common.InitWithMetrics("bug_chomper", graphiteServer)
 
 	v, err := skiaversion.GetVersion()

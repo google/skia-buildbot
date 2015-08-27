@@ -39,6 +39,7 @@ func fixName(s string) string {
 }
 
 func main() {
+	defer common.LogPanic()
 	// Setup flags.
 	dbConf := buildbot.DBConfigFromFlags()
 	influxdb.SetupFlags()

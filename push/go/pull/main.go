@@ -52,6 +52,7 @@ func containsPull(packages []string) bool {
 }
 
 func main() {
+	defer common.LogPanic()
 	if *hostname == "" {
 		var err error
 		*hostname, err = os.Hostname()

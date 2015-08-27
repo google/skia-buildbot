@@ -62,6 +62,7 @@ func updateWebappTask() {
 }
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 	frontend.MustInit()
 

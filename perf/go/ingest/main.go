@@ -90,6 +90,7 @@ func NewIngestionProcess(git *gitinfo.GitInfo, tileDir, datasetName string, ri i
 }
 
 func main() {
+	defer common.LogPanic()
 	// Setup DB flags.
 	dbConf := db.DBConfigFromFlags()
 

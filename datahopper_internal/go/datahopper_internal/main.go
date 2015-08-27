@@ -287,6 +287,8 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	defer common.LogPanic()
+
 	var err error
 	// Setup flags.
 	dbConf := buildbot.DBConfigFromFlags() // Global init to initialize glog and parse arguments.

@@ -203,6 +203,7 @@ func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
 }
 
 func main() {
+	defer common.LogPanic()
 	var err error
 
 	mainTimer := timer.New("main init")

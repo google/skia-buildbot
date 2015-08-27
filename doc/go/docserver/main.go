@@ -170,6 +170,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
+	defer common.LogPanic()
 	common.InitWithMetrics("docserver", graphiteServer)
 	Init()
 

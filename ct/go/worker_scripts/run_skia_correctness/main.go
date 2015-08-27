@@ -58,6 +58,7 @@ func runRenderPictures(localSkpsDir, localOutputDir, remoteOutputDir string, run
 }
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 	defer util.TimeTrack(time.Now(), "Running Skia Correctness")
 	defer glog.Flush()

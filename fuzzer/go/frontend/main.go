@@ -45,6 +45,8 @@ const (
 )
 
 func Init() {
+	defer common.LogPanic()
+
 	rand.Seed(time.Now().UnixNano())
 
 	common.InitWithMetricsCB("fuzzer", func() string {

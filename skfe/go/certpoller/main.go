@@ -121,6 +121,7 @@ func get(client *http.Client, cert *cert) error {
 }
 
 func main() {
+	defer common.LogPanic()
 	common.InitWithMetrics("certpoller", graphiteServer)
 	client := util.NewTimeoutClient()
 	certs := []*cert{}

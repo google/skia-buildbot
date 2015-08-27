@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 	defer glog.Flush()
 

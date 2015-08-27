@@ -618,6 +618,7 @@ func runServer(serverURL string) {
 }
 
 func main() {
+	defer common.LogPanic()
 	// Setup flags.
 	dbConf := buildbot.DBConfigFromFlags()
 	influxdb.SetupFlags()

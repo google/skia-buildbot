@@ -128,6 +128,7 @@ func LineNumbers(c string) string {
 }
 
 func Init() {
+	defer common.LogPanic()
 	rand.Seed(time.Now().UnixNano())
 
 	config.Fiddle.UseChroot = false

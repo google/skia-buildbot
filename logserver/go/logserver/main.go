@@ -542,6 +542,7 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToStat
 }
 
 func main() {
+	defer common.LogPanic()
 	hostname, err := os.Hostname()
 	if err != nil {
 		glog.Fatalf("Failed to get Hostname: %s", err)

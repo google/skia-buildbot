@@ -1050,6 +1050,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
+	defer common.LogPanic()
 	// Setup DB flags.
 	dbConf := db.DBConfigFromFlags()
 

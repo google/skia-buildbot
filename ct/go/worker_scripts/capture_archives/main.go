@@ -25,6 +25,7 @@ var (
 )
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 	defer util.TimeTrack(time.Now(), "Capturing Archives")
 	defer glog.Flush()

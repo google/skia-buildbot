@@ -75,6 +75,7 @@ func sendEmail(recipients []string, subject, body string) error {
 }
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 
 	if *emailTokenPath == "" {

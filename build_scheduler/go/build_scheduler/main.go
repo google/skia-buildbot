@@ -298,6 +298,7 @@ func scheduleBuilds(q *build_queue.BuildQueue, bb *buildbucket.Client) error {
 }
 
 func main() {
+	defer common.LogPanic()
 	// Setup flags.
 	dbConf := buildbot.DBConfigFromFlags()
 

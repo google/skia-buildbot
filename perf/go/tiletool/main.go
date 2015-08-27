@@ -251,6 +251,7 @@ func checkArgs(args []string, command string, requiredArgs int) {
 }
 
 func main() {
+	defer common.LogPanic()
 	flag.Usage = printUsage
 	common.Init()
 	args := flag.Args()

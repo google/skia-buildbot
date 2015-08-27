@@ -356,6 +356,7 @@ func pollAndExecOnce() {
 }
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 
 	if logDirFlag := flag.Lookup("log_dir"); logDirFlag != nil {

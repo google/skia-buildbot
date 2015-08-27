@@ -352,6 +352,7 @@ func runServer(serverURL string) {
 }
 
 func main() {
+	defer common.LogPanic()
 	alertDBConf := alerting.DBConfigFromFlags()
 	buildbotDBConf := buildbot.DBConfigFromFlags()
 	common.InitWithMetrics("alertserver", graphiteServer)

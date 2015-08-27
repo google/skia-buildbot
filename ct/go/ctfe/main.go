@@ -202,6 +202,7 @@ func repeatedTasksScheduler() {
 }
 
 func main() {
+	defer common.LogPanic()
 	// Setup flags.
 	dbConf := db.DBConfigFromFlags()
 	influxdb.SetupFlags()

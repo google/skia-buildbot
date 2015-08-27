@@ -281,6 +281,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	defer common.LogPanic()
 	common.InitWithMetrics("pulld", graphiteServer)
 	Init()
 	pullInit()

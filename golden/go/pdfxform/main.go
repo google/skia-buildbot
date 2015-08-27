@@ -455,6 +455,7 @@ func (xformer *pdfXformer) uploadErrorImage(path string) error {
 }
 
 func main() {
+	defer common.LogPanic()
 	flag.Parse()
 	common.InitWithMetrics("pdfxform", graphiteServer)
 

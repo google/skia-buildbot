@@ -18,6 +18,7 @@ var (
 )
 
 func main() {
+	defer common.LogPanic()
 	// Set up flags.
 	dbConf := database.ConfigFromFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_ROOT, buildbot.PROD_DB_NAME, buildbot.MigrationSteps())
 

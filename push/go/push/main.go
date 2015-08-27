@@ -481,6 +481,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func main() {
+	defer common.LogPanic()
 	common.InitWithMetrics("push", graphiteServer)
 	Init()
 

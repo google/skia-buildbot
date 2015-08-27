@@ -76,6 +76,7 @@ func runServer(serverURL string) {
 }
 
 func main() {
+	defer common.LogPanic()
 	common.InitWithMetrics("grandcentral", graphiteServer)
 	v, err := skiaversion.GetVersion()
 	if err != nil {

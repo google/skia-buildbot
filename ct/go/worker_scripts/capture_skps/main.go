@@ -36,6 +36,7 @@ var (
 )
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 	defer util.CleanTmpDir()
 	defer util.TimeTrack(time.Now(), "Capturing SKPs")

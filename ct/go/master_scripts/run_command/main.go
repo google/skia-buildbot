@@ -20,6 +20,7 @@ var (
 )
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 	out, err := util.SSH(*cmd, util.Slaves, *timeout)
 	if err != nil {

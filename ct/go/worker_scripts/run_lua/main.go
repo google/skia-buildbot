@@ -24,6 +24,7 @@ var (
 )
 
 func main() {
+	defer common.LogPanic()
 	common.Init()
 	defer util.TimeTrack(time.Now(), "Running Lua Scripts")
 	defer glog.Flush()

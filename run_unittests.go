@@ -128,6 +128,7 @@ func (t test) Run() error {
 
 // Find and run tests.
 func main() {
+	defer common.LogPanic()
 	common.Init()
 
 	defer timer.New("Finished").Stop()

@@ -356,6 +356,7 @@ func probeOneRound(cfg Probes, c *http.Client) {
 }
 
 func main() {
+	defer common.LogPanic()
 	common.InitWithMetrics("probeserver", graphiteServer)
 	go monitorIssueTracker()
 	glog.Infoln("Looking for Graphite server.")
