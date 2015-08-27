@@ -178,194 +178,194 @@
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging": {
-     "url": "https://ct-staging.skia.org",
+   "ctfe": {
+     "url": "https://ct.skia.org",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_chromium_perf": {
-     "url": "https://ct-staging.skia.org/chromium_perf/",
+   "ctfe_chromium_perf": {
+     "url": "https://ct.skia.org/chromium_perf/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_capture_skps": {
-     "url": "https://ct-staging.skia.org/capture_skps/",
+   "ctfe_capture_skps": {
+     "url": "https://ct.skia.org/capture_skps/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_lua_script": {
-     "url": "https://ct-staging.skia.org/lua_script/",
+   "ctfe_lua_script": {
+     "url": "https://ct.skia.org/lua_script/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_chromium_builds": {
-     "url": "https://ct-staging.skia.org/chromium_builds/",
+   "ctfe_chromium_builds": {
+     "url": "https://ct.skia.org/chromium_builds/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_admin_tasks": {
-     "url": "https://ct-staging.skia.org/admin_tasks/",
+   "ctfe_admin_tasks": {
+     "url": "https://ct.skia.org/admin_tasks/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_queue": {
-     "url": "https://ct-staging.skia.org/queue/",
+   "ctfe_queue": {
+     "url": "https://ct.skia.org/queue/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_history": {
-     "url": "https://ct-staging.skia.org/history/",
+   "ctfe_history": {
+     "url": "https://ct.skia.org/history/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_chromium_perf_runs": {
-     "url": "https://ct-staging.skia.org/chromium_perf_runs/",
+   "ctfe_chromium_perf_runs": {
+     "url": "https://ct.skia.org/chromium_perf_runs/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_capture_skp_runs": {
-     "url": "https://ct-staging.skia.org/capture_skp_runs/",
+   "ctfe_capture_skp_runs": {
+     "url": "https://ct.skia.org/capture_skp_runs/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_lua_script_runs": {
-     "url": "https://ct-staging.skia.org/lua_script_runs/",
+   "ctfe_lua_script_runs": {
+     "url": "https://ct.skia.org/lua_script_runs/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_chromium_builds_runs": {
-     "url": "https://ct-staging.skia.org/chromium_builds_runs/",
+   "ctfe_chromium_builds_runs": {
+     "url": "https://ct.skia.org/chromium_builds_runs/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_recreate_page_sets_runs": {
-     "url": "https://ct-staging.skia.org/recreate_page_sets_runs/",
+   "ctfe_recreate_page_sets_runs": {
+     "url": "https://ct.skia.org/recreate_page_sets_runs/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_recreate_webpage_archives_runs": {
-     "url": "https://ct-staging.skia.org/recreate_webpage_archives_runs/",
+   "ctfe_recreate_webpage_archives_runs": {
+     "url": "https://ct.skia.org/recreate_webpage_archives_runs/",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": ""
    },
-   "ctfe_staging_chromium_perf_parameters": {
-     "url": "https://ct-staging.skia.org/_/chromium_perf/",
+   "ctfe_chromium_perf_parameters": {
+     "url": "https://ct.skia.org/_/chromium_perf/",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeChromiumPerfParametersJSON"
    },
-   "ctfe_staging_chromium_rev_data": {
-     "url": "https://ct-staging.skia.org/_/chromium_rev_data?rev=LKGR",
+   "ctfe_chromium_rev_data": {
+     "url": "https://ct.skia.org/_/chromium_rev_data?rev=LKGR",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeRevDataJSON"
    },
-   "ctfe_staging_skia_rev_data": {
-     "url": "https://ct-staging.skia.org/_/skia_rev_data?rev=LKGR",
+   "ctfe_skia_rev_data": {
+     "url": "https://ct.skia.org/_/skia_rev_data?rev=LKGR",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeRevDataJSON"
    },
-   "ctfe_staging_get_chromium_perf_tasks": {
-     "url": "https://ct-staging.skia.org/_/get_chromium_perf_tasks?size=2",
+   "ctfe_get_chromium_perf_tasks": {
+     "url": "https://ct.skia.org/_/get_chromium_perf_tasks?size=2",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeGetTasksJSON"
    },
-   "ctfe_staging_get_capture_skp_tasks": {
-     "url": "https://ct-staging.skia.org/_/get_capture_skp_tasks?size=2",
+   "ctfe_get_capture_skp_tasks": {
+     "url": "https://ct.skia.org/_/get_capture_skp_tasks?size=2",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeGetTasksJSON"
    },
-   "ctfe_staging_get_lua_script_tasks": {
-     "url": "https://ct-staging.skia.org/_/get_lua_script_tasks?size=2",
+   "ctfe_get_lua_script_tasks": {
+     "url": "https://ct.skia.org/_/get_lua_script_tasks?size=2",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeGetTasksJSON"
    },
-   "ctfe_staging_get_chromium_build_tasks": {
-     "url": "https://ct-staging.skia.org/_/get_chromium_build_tasks?size=2",
+   "ctfe_get_chromium_build_tasks": {
+     "url": "https://ct.skia.org/_/get_chromium_build_tasks?size=2",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeGetTasksJSON"
    },
-   "ctfe_staging_get_recreate_page_sets_tasks": {
-     "url": "https://ct-staging.skia.org/_/get_recreate_page_sets_tasks?size=2",
+   "ctfe_get_recreate_page_sets_tasks": {
+     "url": "https://ct.skia.org/_/get_recreate_page_sets_tasks?size=2",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeGetTasksJSON"
    },
-   "ctfe_staging_get_recreate_webpage_archives_tasks": {
-     "url": "https://ct-staging.skia.org/_/get_recreate_webpage_archives_tasks?size=2",
+   "ctfe_get_recreate_webpage_archives_tasks": {
+     "url": "https://ct.skia.org/_/get_recreate_webpage_archives_tasks?size=2",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeGetTasksJSON"
    },
-   "ctfe_staging_get_oldest_pending_task": {
-     "url": "https://ct-staging.skia.org/_/get_oldest_pending_task",
+   "ctfe_get_oldest_pending_task": {
+     "url": "https://ct.skia.org/_/get_oldest_pending_task",
      "method": "GET",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "validJSON"
    },
-   "ctfe_staging_any_skp_repository_available": {
-     "url": "https://ct-staging.skia.org/_/get_capture_skp_tasks?size=1&successful=true",
+   "ctfe_any_skp_repository_available": {
+     "url": "https://ct.skia.org/_/get_capture_skp_tasks?size=1&successful=true",
      "method": "POST",
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
      "bodytest": "ctfeGetTasksNonEmptyJSON"
    },
-   "ctfe_staging_any_chromium_builds_available": {
-     "url": "https://ct-staging.skia.org/_/get_chromium_build_tasks?size=1&successful=true",
+   "ctfe_any_chromium_builds_available": {
+     "url": "https://ct.skia.org/_/get_chromium_build_tasks?size=1&successful=true",
      "method": "POST",
      "expected": [200],
      "body": "",
