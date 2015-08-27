@@ -254,6 +254,7 @@ const (
 // redirectHandler handles redirecting to the correct tradefed page.
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	if login.LoggedInAs(r) == "" {
+		r.Header.Set("Referer", r.URL.String())
 		http.Redirect(w, r, login.LoginURL(w, r), 302)
 		return
 	}

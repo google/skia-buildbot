@@ -19,18 +19,20 @@ func TestLoginURL(t *testing.T) {
 	once.Do(loginInit)
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest("GET", "http://example.com/", nil)
+	r.Header.Set("Referer", "https://foo.org")
 	if err != nil {
 		t.Fatal(err)
 	}
-	LoginURL(w, r)
+	url := LoginURL(w, r)
 	assert.Contains(t, w.HeaderMap.Get("Set-Cookie"), SESSION_COOKIE_NAME, "Session cookie should be set.")
 	cookie := &http.Cookie{
 		Name:  SESSION_COOKIE_NAME,
 		Value: "some-random-state",
 	}
+	assert.Contains(t, url, "%3Ahttps%3A%2F%2Ffoo.org")
 	r.AddCookie(cookie)
 	w = httptest.NewRecorder()
-	url := LoginURL(w, r)
+	url = LoginURL(w, r)
 	assert.NotContains(t, w.HeaderMap.Get("Set-Cookie"), SESSION_COOKIE_NAME, "Session cookie should be set.")
 	assert.Contains(t, url, "some-random-state", "Pass state in Login URL.")
 }

@@ -27,6 +27,7 @@ package login
 // N.B. The cookiesaltkey metadata value must be set on the GCE instance.
 
 import (
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -90,8 +91,9 @@ type Session struct {
 // The Client ID, Client Secret, and Redirect URL are listed in the Google
 // Developers Console. The authWhiteList is the space separated list of domains
 // and email addresses that are allowed to log in.
-func Init(clientId, clientSecret, redirectURL, cookieSalt, scope string, authWhiteList string, local bool) {
-	secureCookie = securecookie.New([]byte(cookieSalt), nil)
+func Init(clientId, clientSecret, redirectURL, salt, scope string, authWhiteList string, local bool) {
+	cookieSalt = salt
+	secureCookie = securecookie.New([]byte(salt), nil)
 	oauthConfig.ClientId = clientId
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
@@ -133,6 +135,26 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	} else {
 		state = session.Value
 	}
+
+	redirect := r.Referer()
+	if redirect == "" {
+		redirect = "/"
+	}
+	// Append the current URL to the state, in a way that's safe from tampering,
+	// so that we can use it on the rebound. So the state we pass in has the
+	// form:
+	//
+	//   <sessionid>:<hash(salt + original url)>:<original url>
+	//
+	// Note that the sessionid and the hash are hex values and so won't contain
+	// any colons.  To break this up when returned from the server just use
+	// strings.SplitN(s, ":", 3) which will ignore any colons found in the
+	// Referral URL.
+	//
+	// On the receiving side we need to recompute the hash and compare against
+	// the hash passed in, and only if they match should the redirect URL be
+	// trusted.
+	state = fmt.Sprintf("%s:%x:%s", state, sha256.Sum256([]byte(cookieSalt+redirect)), redirect)
 
 	return oauthConfig.AuthCodeURL(state)
 }
@@ -224,7 +246,24 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid session state.", 500)
 		return
 	}
+
 	state := r.FormValue("state")
+	stateParts := strings.SplitN(state, ":", 3)
+	redirect := "/"
+	// If the state contains a redirect URL.
+	if len(stateParts) == 3 {
+		// state has this form:   <sessionid>:<hash(salt + original url)>:<original url>
+		// See LoginURL for more details.
+		state = stateParts[0]
+		hash := stateParts[1]
+		url := stateParts[2]
+		expectedHash := fmt.Sprintf("%x", sha256.Sum256([]byte(cookieSalt+url)))
+		if hash == expectedHash {
+			redirect = url
+		} else {
+			glog.Warning("Got an invalid redirect: %s != %s", hash, expectedHash)
+		}
+	}
 	if state != cookie.Value {
 		http.Error(w, "Session state doesn't match callback state.", 500)
 		return
@@ -291,7 +330,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		Token:     token,
 	}
 	setSkIDCookieValue(w, &s)
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, redirect, 302)
 }
 
 // StatusHandler returns the login status of the user as JSON that looks like:
