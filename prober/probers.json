@@ -160,12 +160,19 @@
    "internal_pulld": {
      "url": "http://skia-internal:10114",
      "method": "GET",
-     "expected": [401],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "internal_main": {
      "url": "http://skia-internal:8000",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "internal_public": {
+     "url": "https://internal.skia.org",
      "method": "GET",
      "expected": [200],
      "body": "",
