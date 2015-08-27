@@ -6,7 +6,7 @@ set -x
 
 source vm_config.sh
 
-MACHINE_TYPE=n1-highmem-16
+MACHINE_TYPE=n1-standard-2
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
 SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/androidbuild.internal'
 IP_ADDRESS=104.154.112.118
