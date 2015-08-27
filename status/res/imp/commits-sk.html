@@ -795,6 +795,7 @@
         this.relandBackgroundColor = "#66a61e";
         this.showSubject = false;
         this.timeout = null;
+        this.validBuilderCategories = ["Build", "Housekeeper", "Perf", "Test"];
         this.windowHeight = 0;
         this.windowWidth = 0;
 
@@ -1210,9 +1211,9 @@
                     "ignoreFailure": false,
                 };
                 var split = builder.split("-");
-                if (split.length > 2) {
-                  builderDetails.category = split[0];
-                  builderDetails.subcategory = split[1];
+                if (split.length > 2 && that.validBuilderCategories.indexOf(split[0]) != -1) {
+                    builderDetails.category = split[0];
+                    builderDetails.subcategory = split[1];
                 }
                 if (builderDetails.comments.length > 0) {
                   builderDetails.flaky = !!builderDetails.comments[builderDetails.comments.length-1].flaky;
