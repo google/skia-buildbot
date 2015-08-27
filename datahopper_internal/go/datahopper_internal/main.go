@@ -97,6 +97,7 @@ func buildFromCommit(build *androidbuildinternal.Build, commit *gitinfo.ShortCom
 		GotRevision: commit.Hash,
 		Properties: [][]interface{}{
 			[]interface{}{"androidinternal_buildid", build.BuildId, "tradefed"},
+			[]interface{}{"buildbotURL", "https://internal.skia.org/", "tradefed"},
 		},
 		PropertiesStr: "",
 		Results:       buildbot.BUILDBOT_FAILURE,
@@ -370,7 +371,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", indexHandler)
-	r.HandleFunc("/t/{codename}/{buildNumber}/", redirectHandler)
+	r.HandleFunc("/{codename}/builds/{buildNumber}/", redirectHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
