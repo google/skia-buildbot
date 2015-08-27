@@ -447,6 +447,29 @@ server {
         proxy_pass http://skia-bugchomper:8050;
     }
 }
+
+#####   internal.skia.org   ###########################
+server {
+    listen      443;
+    server_name internal.skia.org;
+
+    access_log /var/log/nginx/internal.access.log;
+    error_log /var/log/nginx/internal.error.log error;
+
+    ssl on;
+
+    location / {
+        proxy_pass http://skia-internal:8000;
+    }
+}
+
+server {
+    listen      80;
+    server_name internal.skia.org;
+    return 301 https://internal.skia.org$request_uri;
+}
+
+
 server {
     listen      80;
     server_name bugchomper.skia.org;
