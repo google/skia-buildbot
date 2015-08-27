@@ -177,21 +177,23 @@ func step(targets []string, buildService *androidbuildinternal.Service, repos *g
 						glog.Errorf("Failed to write codename to data store: %s", err)
 					}
 
-					buildNumber, err := buildbot.GetBuildForCommit(build.Builder, FAKE_MASTER, c.Hash)
+					buildNumber, err := buildbot.GetBuildForCommit(build.Builder, build.Master, c.Hash)
 					if err != nil {
 						glog.Errorf("Failed to find the build in the database: %s", err)
 						continue
 					}
-					cachedBuild, err = buildbot.GetBuildFromDB(build.Builder, FAKE_MASTER, buildNumber)
-					if err != nil {
-						glog.Errorf("Failed to retrieve build from database: %s", err)
-						continue
+					glog.Infof("GetBuildForCommit at hash: %s returned %d", c.Hash, buildNumber)
+					if buildNumber != -1 {
+						cachedBuild, err = buildbot.GetBuildFromDB(build.Builder, build.Master, buildNumber)
+						if err != nil {
+							glog.Errorf("Failed to retrieve build from database: %s", err)
+							continue
+						}
 					}
 					if cachedBuild == nil {
 						// This is a new build we've never seen before, so add it to the buildbot database.
 
 						// First calculate a new unique build.Number.
-
 						number, err := buildbot.GetMaxBuildNumber(build.Builder)
 						if err != nil {
 							glog.Infof("Failed to find next build number: %s", err)
@@ -217,8 +219,10 @@ func step(targets []string, buildService *androidbuildinternal.Service, repos *g
 					if build.Results == buildbot.BUILDBOT_FAILURE && brokenOnMaster(buildService, target, b.BuildId) {
 						build.Results = buildbot.BUILDBOT_WARNING
 					}
-					glog.Infof("Writing updated build to the database: %s %d", build.Builder, build.Number)
-					if err := buildbot.IngestBuild(build, repos); err != nil {
+					cachedBuild.Results = build.Results
+					cachedBuild.Finished = build.Finished
+					glog.Infof("Writing updated build to the database: %s %d", cachedBuild.Builder, cachedBuild.Number)
+					if err := buildbot.IngestBuild(cachedBuild, repos); err != nil {
 						glog.Errorf("Failed to ingest build: %s", err)
 					} else {
 						cache[key] = build
