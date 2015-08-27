@@ -198,7 +198,7 @@
       reloadTrooperStatus: function() {
         var that = this;
         sk.get("https://skia-tree-status.appspot.com/current-trooper?format=json").then(JSON.parse).then(function(json) {
-          that.updateStatus(that.sheriff, that.trooper, json.username.split("@")[0], that.message, that.binaryStatus, that.author, that.timeSince);
+          that.updateStatus(that.sheriff, that.gpuSheriff, json.username.split("@")[0], that.message, that.binaryStatus, that.author, that.timeSince);
           that.resetTrooperTimeout();
         }).catch(function() {
           that.resetTrooperTimeout();
