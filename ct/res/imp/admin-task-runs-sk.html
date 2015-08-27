@@ -45,6 +45,9 @@
         display: none;
       }
     }
+    .oldruns {
+      margin-left: 20px;
+    }
   </style>
   <template>
 
@@ -64,6 +67,10 @@
     <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
     <br/>
     <paper-button raised id="constrain_runs" on-click="constrainRuns">{{constrainButtonText}}</paper-button>
+    <span class="oldruns"><i>Looking for runs before 27 August 2015?</i>
+      <a href="https://skia-tree-status.appspot.com/skia-telemetry/all_tasks#admin">
+        See all runs here.</a>
+    </span>
 
     <br/>
     <br/>

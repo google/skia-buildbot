@@ -36,6 +36,9 @@
         display: none;
       }
     }
+    .oldruns {
+      margin-left: 20px;
+    }
   </style>
   <template>
 
@@ -55,6 +58,10 @@
     <h2>Chromium Builds</h2>
     <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
     <br/>
+    <span class="oldruns"><i>Looking for runs before 27 August 2015?</i>
+      <a href="https://skia-tree-status.appspot.com/skia-telemetry/chromium_builds">
+        See all runs here.</a>
+    </span>
 
     <table class="runshistory" id="runshistory" cellpadding="5" border="1">
       <tr class="headers">
