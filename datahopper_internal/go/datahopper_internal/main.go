@@ -253,7 +253,7 @@ const (
 // redirectHandler handles redirecting to the correct tradefed page.
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	if login.LoggedInAs(r) == "" {
-		util.ReportError(w, r, fmt.Errorf("You must be logged in."), "")
+		http.Redirect(w, r, login.LoginURL(w, r), 302)
 		return
 	}
 	vars := mux.Vars(r)
