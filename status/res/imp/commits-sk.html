@@ -769,7 +769,8 @@
         this.autorollCurrent = null;
         this.autorollLast = null;
         this.branchHeads = [];
-        this.buildbotUrlPrefix = "https://build.chromium.org/p";
+        this.buildbotUrlPrefixInternal = "https://uberchromegw.corp.google.com/i";
+        this.buildbotUrlPrefixExternal = "http://build.chromium.org/p";
         this.builderCategories = {};
         this.builderCategoryList = [];
         this.builderSearchChangedTimeout = null;
@@ -785,6 +786,7 @@
         this.commits = [];
         this.displayCommits = {};
         this.highlightedCommits = params["commit"] || [];
+        this.internalView = false;
         this.lastLoaded = "(not yet loaded)";
         this.numBuilders = 0;
         this.minCanvasWidth = 120;
@@ -826,7 +828,7 @@
           var email = status['Email'];
           var validEmail = "@google.com"
           if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
-            that.buildbotUrlPrefix = "https://uberchromegw.corp.google.com/i";
+            that.internalView = true;
           }
         });
         window.addEventListener("resize", function() {
@@ -1002,6 +1004,21 @@
         this.$.infoDialog.toggle();
       },
 
+      // Retrieve the buildbot URL prefix for the build.
+      getBuildbotUrlPrefix: function(build) {
+        var buildbotUrlPrefix = this.buildbotUrlPrefixExternal + build.master;
+        for (var i = 0; i < build.properties.length; i++) {
+          if (build.properties[i][0] == "buildbotURL") {
+            buildbotUrlPrefix = build.properties[i][1];
+            break;
+          }
+        }
+        if (this.internalView) {
+          buildbotUrlPrefix = buildbotUrlPrefix.replace(this.buildbotUrlPrefixExternal, this.buildbotUrlPrefixInternal);
+        }
+        return buildbotUrlPrefix;
+      },
+
       // Open the build popup.
       openBuildPopup: function(e, d, s) {
         if (this.infoPopupOpen()) {
@@ -1017,7 +1034,7 @@
         if (build) {
           var buildInfo = document.createElement("build-popup-sk");
           buildInfo.build = build;
-          buildInfo.buildbotUrlPrefix = this.buildbotUrlPrefix;
+          buildInfo.buildbotUrlPrefix = this.getBuildbotUrlPrefix(build);
           buildInfo.repo = this.repo;
           buildInfo.commitDetails = this.displayCommits;
           buildInfo.parent = this;
@@ -1038,7 +1055,11 @@
         if (builder) {
           var builderInfo = document.createElement("builder-popup-sk");
           builderInfo.builder = this.allBuilders[builder];
-          builderInfo.buildbotUrlPrefix = this.buildbotUrlPrefix;
+          builderInfo.buildbotUrlPrefix = this.buildbotUrlPrefixExternal;
+          for (var buildNum in this.builds[builder]) {
+            builderInfo.buildbotUrlPrefix = this.getBuildbotUrlPrefix(this.builds[builder][buildNum]);
+            break;
+          }
           builderInfo.repo = this.repo;
           this.openDialog(builderInfo);
         }

@@ -176,6 +176,7 @@ func (b *Build) GetSummary() *BuildSummary {
 		Id:          b.Id,
 		Master:      b.Master,
 		Number:      b.Number,
+		Properties:  b.Properties,
 		Results:     b.Results,
 		Comments:    b.Comments,
 		Commits:     b.Commits,
@@ -192,6 +193,7 @@ type BuildSummary struct {
 	Id          int             `json:"id"`
 	Master      string          `json:"master"`
 	Number      int             `json:"number"`
+	Properties  [][]interface{} `json:"properties"`
 	Results     int             `json:"results"`
 	Comments    []*BuildComment `json:"comments"`
 	Commits     []string        `json:"commits"`

@@ -30,7 +30,7 @@
     }
     </style>
     <h3>
-      <a href="{{buildbotUrlPrefix}}/{{build.master}}/builders/{{build.builder}}/builds/{{build.number}}" target="_blank">
+      <a href="{{buildbotUrlPrefix}}builders/{{build.builder}}/builds/{{build.number}}" target="_blank">
         {{build.builder}} #{{build.number}} <core-icon icon="launch"></core-icon>
       </a>
     </h3>
@@ -107,10 +107,6 @@
           value: "skia",
           reflect: true,
         },
-      },
-
-      ready: function() {
-        console.log(this.build);
       },
 
       commentAdded: function() {
