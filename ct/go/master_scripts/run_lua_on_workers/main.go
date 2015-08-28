@@ -34,8 +34,8 @@ var (
 	taskCompletedSuccessfully     = false
 	luaScriptRemoteLink           = util.MASTER_LOGSERVER_LINK
 	luaAggregatorRemoteLink       = util.MASTER_LOGSERVER_LINK
-	luaOutputRemoteLink           = util.MASTER_LOGSERVER_LINK
-	luaAggregatorOutputRemoteLink = util.MASTER_LOGSERVER_LINK
+	luaOutputRemoteLink           = ""
+	luaAggregatorOutputRemoteLink = ""
 )
 
 func sendEmail(recipients []string) {
@@ -46,15 +46,23 @@ func sendEmail(recipients []string) {
 		emailSubject += " with failures"
 		failureHtml = util.GetFailureEmailHtml(*runID)
 	}
+	scriptOutputHtml := ""
+	if luaOutputRemoteLink != "" {
+		scriptOutputHtml = fmt.Sprintf("The output of your script is available <a href='%s'>here</a>.<br/>\n", luaOutputRemoteLink)
+	}
+	aggregatorOutputHtml := ""
+	if luaAggregatorOutputRemoteLink != "" {
+		aggregatorOutputHtml = fmt.Sprintf("The aggregated output of your script is available <a href='%s'>here</a>.<br/>\n", luaAggregatorOutputRemoteLink)
+	}
 	bodyTemplate := `
 	The Cluster telemetry queued task to run lua script on %s pageset has completed.<br/>
 	%s
-	The output of your script is available <a href='%s'>here</a>.<br/>
-	The aggregated output of your script (if specified) is available <a href='%s'>here</a>.<br/>
+	%s
+	%s
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, luaOutputRemoteLink, luaAggregatorOutputRemoteLink, frontend.LuaTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, scriptOutputHtml, aggregatorOutputHtml, frontend.LuaTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -66,7 +74,9 @@ func updateWebappTask() {
 		vars := lua_scripts.UpdateVars{}
 		vars.Id = *gaeTaskID
 		vars.SetCompleted(taskCompletedSuccessfully)
-		vars.ScriptOutput = sql.NullString{String: luaOutputRemoteLink, Valid: true}
+		if luaOutputRemoteLink != "" {
+			vars.ScriptOutput = sql.NullString{String: luaOutputRemoteLink, Valid: true}
+		}
 		if luaAggregatorOutputRemoteLink != "" {
 			vars.AggregatedOutput = sql.NullString{String: luaAggregatorOutputRemoteLink, Valid: true}
 		}
