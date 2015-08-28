@@ -96,6 +96,7 @@ $shell.NameSpace($userDir).copyhere("c:\chromium-skia-gm.boto", 0x14)
 
 banner "Copy _netrc file"
 $shell.NameSpace($userDir).copyhere("c:\_netrc", 0x14)
+$shell.NameSpace($depotToolsPath).copyhere("c:\_netrc", 0x14)
 
 banner "Copy .bot_password file"
 $shell.NameSpace($userDir).copyhere("c:\.bot_password", 0x14)
