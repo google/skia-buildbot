@@ -23,12 +23,12 @@ import (
 
 const (
 	WEBAPP_ROOT    = "https://skia-tree-status.appspot.com/skia-telemetry/"
-	WEBAPP_ROOT_V2 = "https://ct-staging.skia.org/"
+	WEBAPP_ROOT_V2 = "https://ct.skia.org/"
 )
 
 var (
 	// Allow tests to set CtfeV2 and WebappRoot to test V2 code with a mock server.
-	CtfeV2     = false
+	CtfeV2     = true
 	WebappRoot string
 	// Webapp subparts.
 	AdminTasksWebapp                         string

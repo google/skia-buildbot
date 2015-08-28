@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"sync"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
@@ -112,14 +111,10 @@ func (ms *MockServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Creates an httptest.Server using h as its handler and calls Init to ensure
-// GetOldestPendingTaskV2 and UpdateWebappTaskV2 use the test server. Also enables CtfeV2 and calls
+// GetOldestPendingTaskV2 and UpdateWebappTaskV2 use the test server. Also calls
 // InitForTesting. Can be used as "defer CloseTestServer(InitTestServer(h))".
 func InitTestServer(h http.Handler) *httptest.Server {
 	ts := httptest.NewServer(h)
-	if CtfeV2 {
-		glog.Fatal("If CtfeV2 is default, please fix InitTestServer and CloseTestServer.")
-	}
-	CtfeV2 = true
 	InitForTesting(ts.URL + "/")
 	return ts
 }
@@ -128,6 +123,5 @@ func InitTestServer(h http.Handler) *httptest.Server {
 // UpdateWebappTaskV2. Can be used as "defer CloseTestServer(InitTestServer(h))".
 func CloseTestServer(ts *httptest.Server) {
 	ts.Close()
-	CtfeV2 = false
-	InitForTesting(WEBAPP_ROOT)
+	InitForTesting(WEBAPP_ROOT_V2)
 }
