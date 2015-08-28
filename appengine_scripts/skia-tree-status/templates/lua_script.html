@@ -5,7 +5,10 @@
 <center>
 {% if info_msg %}<font color="red"><b>{{ info_msg }}</b></font><br/><br/>{% endif %}
 <h2>Run Lua Scripts</h2>
+<h3><a href="https://ct.skia.org/lua_script/">Submit new lua script tasks here!</a></h3>
+
 <br/>
+
 {% if not is_google_chromium_user %}Must have a google or chromium account to trigger benchmarks (contact rmistry@)<br/><br/>{% endif %}
 <form name="luaForm" action="lua_script" method="post">
   Paste your Lua script here:<br/>
@@ -29,7 +32,8 @@
   </select><br/><br/>
   Enter a description:<br/>
   <input type="text" name="description" size="35" {% if not is_google_chromium_user %}disabled{% endif %}><br/><br/>
-  <input type="submit" value="Queue Lua Task" {% if not is_google_chromium_user %}disabled{% endif %}>
+  <input type="submit" value="Queue Lua Task" disabled>
+<h3><a href="https://ct.skia.org/lua_script/">Submit new lua script tasks here!</a></h3>
 </form>
 <hr/>
 

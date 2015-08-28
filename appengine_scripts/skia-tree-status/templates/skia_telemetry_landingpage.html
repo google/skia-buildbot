@@ -4,6 +4,8 @@
   <center>
   <h2>Run Telemetry Benchmarks</h2>
 
+  <h3><a href="https://ct.skia.org/capture_skps/">Submit new SKP tasks here!</a></h3>
+
   {% if not is_google_chromium_user %}
     <br/>Must have a google or chromium account to trigger benchmarks (contact rmistry@)<br/><br/>
   {% else %}
@@ -43,9 +45,10 @@
         <td><input type="text" name="description" size="35"></td>
       </tr>
       <tr>
-        <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task"></td>
+        <td colspan="2" align="center"><input type="submit" value="Queue Telemetry Task" disabled></td>
       </tr>
     </table>
+  <h3><a href="https://ct.skia.org/capture_skps/">Submit new SKP tasks here!</a></h3>
   </form>
   {% endif %}
   <hr/>

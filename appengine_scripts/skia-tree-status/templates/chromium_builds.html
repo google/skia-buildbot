@@ -5,6 +5,8 @@
 <center>
 {% if info_msg %}<font color="red"><b>{{ info_msg }}</b></font><br/><br/>{% endif %}
 <h2>Add a new Chromium Build</h2>
+<h3><a href="https://ct.skia.org/chromium_builds/">Submit new build tasks here!</a></h3>
+
 <br/>
 
 {% if not is_google_chromium_user %}
@@ -30,7 +32,8 @@
       </tr>
     </table>
     <br/>
-    <input type="submit" value="Add">
+    <input type="submit" value="Add" disabled>
+<h3><a href="https://ct.skia.org/chromium_builds/">Submit new build tasks here!</a></h3>
     <br/>
   </form>
 {% endif %}

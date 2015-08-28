@@ -5,6 +5,8 @@
 <center>
 {% if info_msg %}<font color="red"><b>{{ info_msg }}</b></font><br/><br/>{% endif %}
 <h2>Run Admin Tasks</h2>
+<h3><a href="https://ct.skia.org/admin_tasks/">Submit new admin tasks here!</a></h3>
+
 <br/>
 
 {% if not admin %}<br/>Must be admin to trigger below admin tasks (contact rmistry@)<br/><br/>{% endif %}
@@ -20,7 +22,7 @@
         </select>
       </td>
       <td align="center">
-        <input type="submit" value="Recreate Pagesets" name="admin_task" {% if not admin %}disabled{% endif %}>
+        <input type="submit" value="Recreate Pagesets" name="admin_task" disabled>
       </td>
       <td align="center">
         <select name="chromium_build">
@@ -29,7 +31,7 @@
           {% endfor %}
         </select>
         <br/>
-        <input type="submit" value="Recreate Webpage Archives" name="admin_task" {% if not admin %}disabled{% endif %}>
+        <input type="submit" value="Recreate Webpage Archives" name="admin_task" disabled>
       </td>
     </tr>
   </table>
