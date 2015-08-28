@@ -45,7 +45,7 @@ func sendEmail(recipients []string) {
 	failureHtml := ""
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"
-		failureHtml = util.FailureEmailHtml
+		failureHtml = util.GetFailureEmailHtml(*runID)
 	}
 	bodyTemplate := `
 	The skia correctness task on %s pageset has completed.<br/>

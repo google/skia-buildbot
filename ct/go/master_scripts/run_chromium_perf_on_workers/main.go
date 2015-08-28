@@ -55,7 +55,7 @@ func sendEmail(recipients []string) {
 	failureHtml := ""
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"
-		failureHtml = util.FailureEmailHtml
+		failureHtml = util.GetFailureEmailHtml(*runID)
 	}
 	bodyTemplate := `
 	The chromium perf %s benchmark task on %s pageset has completed.<br/>

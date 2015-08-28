@@ -32,7 +32,7 @@ func sendEmail(recipients []string) {
 	failureHtml := ""
 	if !*taskCompletedSuccessfully {
 		emailSubject += " with failures"
-		failureHtml = util.FailureEmailHtml
+		failureHtml = util.GetFailureEmailHtml(*runID)
 	}
 	bodyTemplate := `
 	The Cluster telemetry queued task to create %s pagesets has completed.<br/>

@@ -37,7 +37,7 @@ func sendEmail(recipients []string) {
 	failureHtml := ""
 	if !taskCompletedSuccessfully {
 		emailSubject += " with failures"
-		failureHtml = util.FailureEmailHtml
+		failureHtml = util.GetFailureEmailHtml(*runID)
 	}
 	bodyTemplate := `
 	The Cluster telemetry queued task to create a new chromium build has completed.<br/>

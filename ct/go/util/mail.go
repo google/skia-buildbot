@@ -8,14 +8,6 @@ import (
 	"go.skia.org/infra/go/email"
 )
 
-var (
-	FailureEmailHtml = fmt.Sprintf(
-		"<br/>There were <b>failures</b> in the run. "+
-			"Please check the master log <a href='%s'>here</a> and the workers log <a href='%s'>here</a>."+
-			"<br/>Contact the admins %s for assistance.<br/><br/>",
-		MASTER_LOGSERVER_LINK, WORKERS_LOGSERVER_LINK, CtAdmins)
-)
-
 // ParseEmails returns an array containing emails from the provided comma
 // separated emails string.
 func ParseEmails(emails string) []string {
@@ -40,6 +32,14 @@ func SendEmail(recipients []string, subject, body string) error {
 	}
 
 	return nil
+}
+
+func GetFailureEmailHtml(runID string) string {
+	return fmt.Sprintf(
+		"<br/>There were <b>failures</b> in the run. "+
+			"Please check the master log <a href='%s'>here</a> and the workers log <a href='%s'>here</a>."+
+			"<br/>Contact the admins %s for assistance.<br/><br/>",
+		GetMasterLogLink(runID), WORKERS_LOGSERVER_LINK, CtAdmins)
 }
 
 func SendTaskStartEmail(recipients []string, taskName, masterLogLink string) error {
