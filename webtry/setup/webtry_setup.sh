@@ -3,6 +3,8 @@
 # Script to setup a GCE instance to run the webtry server.
 # For full instructions see the README file.
 
+cd "$(dirname "$0")"
+
 function banner {
 	echo ""
 	echo "******************************************"
@@ -60,17 +62,20 @@ rm pull.deb
 # inside the jail.
 
 banner "Installing and updating software on the chroot jail"
+
+sudo cp \
+    ../seccomp_bpf.h \
+    ../fiddle_secwrap.cpp \
+    ../fiddle_secwrap.gyp \
+    ../main.cpp \
+    ${CHROOT_JAIL}/skia_build/fiddle_main/
+
 sudo cp continue_install_jail.sh ${CHROOT_JAIL}/bin/continue_install_jail.sh
 sudo chmod 755 ${CHROOT_JAIL}/bin/continue_install_jail.sh
 sudo chroot ${CHROOT_JAIL} /bin/continue_install_jail.sh
 sudo chown -R webtry:webtry ${CHROOT_JAIL}/skia_build/skia
 
-sudo cp ../main.cpp ${CHROOT_JAIL}/skia_build/fiddle_main/
-sudo cp ../seccomp_bpf.h ${CHROOT_JAIL}/skia_build/fiddle_main/
-sudo cp ../fiddle_secwrap.cpp ${CHROOT_JAIL}/skia_build/fiddle_main/
-sudo cp ../scripts/* ${CHROOT_JAIL}/skia_build/scripts/
-sudo cp ../safec ${CHROOT_JAIL}/skia_build/scripts/
-sudo cp ../safec++ ${CHROOT_JAIL}/skia_build/scripts/
+sudo cp ../scripts/* ../safec ../safec++ ${CHROOT_JAIL}/skia_build/scripts/
 
 # The continue_install script will fetch the latest versions of
 # skia and depot_tools.  We split up the installation process into
