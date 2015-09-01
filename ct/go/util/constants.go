@@ -16,19 +16,18 @@ const (
 	LOGS_LINK_PREFIX         = "http://uberchromegw.corp.google.com/i/skia-ct-worker"
 
 	// File names and dir names.
-	TIMESTAMP_FILE_NAME             = "TIMESTAMP"
-	CHROMIUM_BUILDS_DIR_NAME        = "chromium_builds"
-	PAGESETS_DIR_NAME               = "page_sets"
-	WEB_ARCHIVES_DIR_NAME           = "webpage_archives"
-	SKPS_DIR_NAME                   = "skps"
-	STORAGE_DIR_NAME                = "storage"
-	REPO_DIR_NAME                   = "skia-repo"
-	TASKS_DIR_NAME                  = "tasks"
-	LUA_TASKS_DIR_NAME              = "lua_runs"
-	BENCHMARK_TASKS_DIR_NAME        = "benchmark_runs"
-	SKIA_CORRECTNESS_TASKS_DIR_NAME = "skia_correctness_runs"
-	CHROMIUM_PERF_TASKS_DIR_NAME    = "chromium_perf_runs"
-	FIX_ARCHIVE_TASKS_DIR_NAME      = "fix_archive_runs"
+	TIMESTAMP_FILE_NAME          = "TIMESTAMP"
+	CHROMIUM_BUILDS_DIR_NAME     = "chromium_builds"
+	PAGESETS_DIR_NAME            = "page_sets"
+	WEB_ARCHIVES_DIR_NAME        = "webpage_archives"
+	SKPS_DIR_NAME                = "skps"
+	STORAGE_DIR_NAME             = "storage"
+	REPO_DIR_NAME                = "skia-repo"
+	TASKS_DIR_NAME               = "tasks"
+	LUA_TASKS_DIR_NAME           = "lua_runs"
+	BENCHMARK_TASKS_DIR_NAME     = "benchmark_runs"
+	CHROMIUM_PERF_TASKS_DIR_NAME = "chromium_perf_runs"
+	FIX_ARCHIVE_TASKS_DIR_NAME   = "fix_archive_runs"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
@@ -170,12 +169,6 @@ const (
 	MASTER_SCRIPT_RUN_LUA_TIMEOUT = RUN_LUA_TIMEOUT + LUA_AGGREGATOR_TIMEOUT +
 		MASTER_SCRIPT_TIMEOUT_PADDING
 
-	// Run Skia Correctness
-	RENDER_PICTURES_TIMEOUT       = 15 * time.Minute
-	RUN_SKIA_CORRECTNESS_TIMEOUT  = 4 * time.Hour
-	JSON_SUMMARY_COMBINER_TIMEOUT = 1 * time.Hour
-	WRITE_JSON_SUMMARY_TIMEOUT    = 15 * time.Minute
-
 	// Poller
 	MAKE_ALL_TIMEOUT = 15 * time.Minute
 
@@ -224,11 +217,10 @@ var (
 	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
 	// Names of remote directories and files.
-	LuaRunsDir             = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
-	BenchmarkRunsDir       = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
-	SkiaCorrectnessRunsDir = filepath.Join(TASKS_DIR_NAME, SKIA_CORRECTNESS_TASKS_DIR_NAME)
-	ChromiumPerfRunsDir    = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
-	FixArchivesRunsDir     = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
+	LuaRunsDir          = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
+	BenchmarkRunsDir    = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
+	ChromiumPerfRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
+	FixArchivesRunsDir  = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
 
 	// Information about the different CT benchmarks.
 	BenchmarksToPagesetName = map[string]string{
