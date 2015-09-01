@@ -87,6 +87,22 @@ func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, has
 			// on the already-claimed commits, so we steal them from the other Build.
 			if hash == b.GotRevision {
 				stealFrom = n
+				// Another shortcut: If our GotRevision is the same as the
+				// GotRevision of the Build we're stealing commits from,
+				// ie. both builds ran at the same commit, just take all of
+				// its commits without doing any more work.
+				stealFromBuild, err := GetBuildFromDB(b.Builder, b.Master, stealFrom)
+				if err != nil {
+					return commits, stealFrom, stolen, fmt.Errorf("Could not retrieve build: %v", err)
+				}
+				if stealFromBuild.GotRevision == b.GotRevision {
+					glog.Infof("Build numbers %d and %d for %s have a GotRevision of %s; stealing all %d commits.", b.Number, stealFrom, b.Builder, b.GotRevision, len(stealFromBuild.Commits))
+					commits = map[string]bool{}
+					for _, c := range stealFromBuild.Commits {
+						commits[c] = true
+					}
+					return commits, stealFrom, stealFromBuild.Commits, nil
+				}
 			}
 			if stealFrom == n {
 				stolen = append(stolen, hash)
