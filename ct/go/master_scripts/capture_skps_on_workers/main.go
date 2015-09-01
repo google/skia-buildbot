@@ -21,6 +21,7 @@ import (
 
 var (
 	emails         = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
+	description    = flag.String("description", "", "The description of the run as entered by the requester.")
 	gaeTaskID      = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType    = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild  = flag.String("chromium_build", "", "The chromium build to use for this capture SKPs run.")
@@ -41,12 +42,13 @@ func sendEmail(recipients []string) {
 	}
 	bodyTemplate := `
 	The Capture SKPs task on %s pageset has completed.<br/>
+	Run description: %s<br/>
 	%s
 	The output of your script is available <a href='%s'>here</a>.<br/><br/>
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, outputRemoteLink, frontend.CaptureSKPsTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, *description, failureHtml, outputRemoteLink, frontend.CaptureSKPsTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -83,7 +85,7 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&capture_skps.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Capture SKPs", util.GetMasterLogLink(*runID)))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Capture SKPs", util.GetMasterLogLink(*runID), *description))
 	// Ensure webapp is updated and completion email is sent even if task
 	// fails.
 	defer updateWebappTask()

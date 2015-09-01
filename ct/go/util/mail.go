@@ -42,16 +42,20 @@ func GetFailureEmailHtml(runID string) string {
 		GetMasterLogLink(runID), WORKERS_LOGSERVER_LINK, CtAdmins)
 }
 
-func SendTaskStartEmail(recipients []string, taskName, masterLogLink string) error {
+func SendTaskStartEmail(recipients []string, taskName, masterLogLink, description string) error {
 	emailSubject := taskName + " cluster telemetry task has started"
-
+	descriptionHtml := ""
+	if description != "" {
+		descriptionHtml = fmt.Sprintf("Run description: %s<br/><br/>", description)
+	}
 	bodyTemplate := `
 	The %s queued task has started.<br/>
+	%s
 	You can watch the logs of the master <a href="%s">here</a> and the logs of all workers <a href="%s">here</a>.<br/>
 	<b>Note:</b> Must be on Google corp to access the above logs.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, taskName, masterLogLink, WORKERS_LOGSERVER_LINK)
+	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, masterLogLink, WORKERS_LOGSERVER_LINK)
 	if err := SendEmail(recipients, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending task start email: %s", err)
 	}

@@ -71,6 +71,7 @@ class TestCsvComparer(unittest.TestCase):
         pageset_type='Mobile10k',
         chromium_hash='abcdefg1234567',
         skia_hash='tuvwxyz1234567',
+        description='E2EComparerWithDiscardOutliers',
     )
     comparer.Compare()
     self._AssertHTMLFiles('discard_outliers')
@@ -99,6 +100,7 @@ class TestCsvComparer(unittest.TestCase):
         pageset_type='10k',
         chromium_hash='abcdefg1234567',
         skia_hash='tuvwxyz1234567',
+        description='E2EComparerWithNoDiscardOutliers',
     )
     comparer.Compare()
     self._AssertHTMLFiles('keep_outliers',

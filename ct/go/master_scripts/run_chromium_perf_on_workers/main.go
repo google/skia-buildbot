@@ -27,6 +27,7 @@ import (
 
 var (
 	emails                    = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
+	description               = flag.String("description", "", "The description of the run as entered by the requester.")
 	gaeTaskID                 = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType               = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	benchmarkName             = flag.String("benchmark_name", "", "The telemetry benchmark to run on the workers.")
@@ -59,6 +60,7 @@ func sendEmail(recipients []string) {
 	}
 	bodyTemplate := `
 	The chromium perf %s benchmark task on %s pageset has completed.<br/>
+	Run description: %s<br/>
 	%s
 	The HTML output with differences between the base run and the patch run is <a href='%s'>here</a>.<br/>
 	The patch(es) you specified are here:
@@ -68,7 +70,7 @@ func sendEmail(recipients []string) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, failureHtml, htmlOutputLink, chromiumPatchLink, blinkPatchLink, skiaPatchLink, frontend.ChromiumPerfTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, htmlOutputLink, chromiumPatchLink, blinkPatchLink, skiaPatchLink, frontend.ChromiumPerfTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -86,7 +88,6 @@ func updateWebappTask() {
 		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 		return
 	}
-	// TODO(rmistry): Add ability to update the webapp without providing links.
 	extraData := map[string]string{
 		"skia_patch_link":              skiaPatchLink,
 		"blink_patch_link":             blinkPatchLink,
@@ -115,7 +116,7 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_perf.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", util.GetMasterLogLink(*runID)))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", util.GetMasterLogLink(*runID), *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
@@ -271,6 +272,7 @@ func main() {
 		"--skia_patch_link=" + skiaPatchLink,
 		"--blink_patch_link=" + blinkPatchLink,
 		"--chromium_patch_link=" + chromiumPatchLink,
+		"--description=" + *description,
 		"--raw_csv_nopatch=" + noPatchOutputLink,
 		"--raw_csv_withpatch=" + withPatchOutputLink,
 		"--num_repeated=" + strconv.Itoa(*repeatBenchmark),
@@ -307,9 +309,6 @@ func mergeUploadCSVFiles(runID string, gs *util.GsUtil) error {
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
 			glog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
-			// TODO(rmistry): Should we instead return here? We can only return
-			// here if all 100 slaves reliably run without any failures which they
-			// really should.
 			continue
 		}
 		defer skutil.Close(respBody)

@@ -87,7 +87,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Skia correctness", util.GetMasterLogLink(*runID)))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Skia correctness", util.GetMasterLogLink(*runID), ""))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)

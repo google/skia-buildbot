@@ -74,7 +74,7 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&admin_tasks.RecreatePageSetsUpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Creating pagesets", util.GetMasterLogLink(*runID)))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Creating pagesets", util.GetMasterLogLink(*runID), ""))
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)

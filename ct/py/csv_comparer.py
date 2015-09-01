@@ -68,7 +68,7 @@ class CsvComparer(object):
                discard_outliers, raw_csv_nopatch, raw_csv_withpatch,
                num_repeated, target_platform, crashed_instances,
                missing_devices, browser_args_nopatch, browser_args_withpatch,
-               pageset_type, chromium_hash, skia_hash):
+               pageset_type, chromium_hash, skia_hash, description):
     """Constructs a CsvComparer instance."""
     self._csv_file1 = csv_file1
     self._csv_file2 = csv_file2
@@ -92,6 +92,7 @@ class CsvComparer(object):
     self._pageset_type = pageset_type
     self._chromium_hash = chromium_hash
     self._skia_hash = skia_hash
+    self._description = description
 
   def _IsPercDiffSameOrAboveThreshold(self, perc_diff):
     """Compares the specified diff to the variance threshold.
@@ -307,6 +308,7 @@ class CsvComparer(object):
          'html_report_date': html_report_date,
          'chromium_hash': self._chromium_hash,
          'skia_hash': self._skia_hash,
+         'description': self._description,
         })
     index_html = open(os.path.join(self._output_html_dir, 'index.html'), 'w')
     index_html.write(rendered)
@@ -409,6 +411,9 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--skia_hash',
       help='The skia git hash that was used for this run.')
+  option_parser.add_option(
+      '', '--description',
+      help='The description of the run as entered by the requester.')
 
   options, unused_args = option_parser.parse_args()
   if not (options.csv_file1 and options.csv_file2 and options.output_html_dir
@@ -417,11 +422,12 @@ if '__main__' == __name__:
           and options.skia_patch_link and options.raw_csv_nopatch
           and options.raw_csv_withpatch and options.num_repeated
           and options.target_platform and options.pageset_type
-          and options.chromium_hash and options.skia_hash):
+          and options.chromium_hash and options.skia_hash
+          and options.description):
     option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
                         'variance_threshold, requester_email, '
                         'chromium_patch_link, blink_patch_link, '
-                        'skia_patch_link, raw_csv_nopatch, '
+                        'skia_patch_link, raw_csv_nopatch, description, '
                         'raw_csv_withpatch, num_repeated, pageset_type, '
                         'chromium_hash, skia_hash and target_platform')
 
@@ -435,5 +441,6 @@ if '__main__' == __name__:
       options.num_repeated, options.target_platform,
       options.crashed_instances, options.missing_devices,
       options.browser_args_nopatch, options.browser_args_withpatch,
-      options.pageset_type, options.chromium_hash, options.skia_hash).Compare())
+      options.pageset_type, options.chromium_hash, options.skia_hash,
+      options.description).Compare())
 

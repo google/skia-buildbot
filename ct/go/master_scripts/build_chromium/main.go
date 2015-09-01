@@ -83,7 +83,7 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_builds.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Build chromium", util.GetMasterLogLink(*runID)))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Build chromium", util.GetMasterLogLink(*runID), ""))
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)

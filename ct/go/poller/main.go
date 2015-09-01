@@ -127,6 +127,7 @@ func (task *ChromiumPerfTask) Execute() error {
 		Name: "run_chromium_perf_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
+			"--description=" + task.Description,
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
 			"--pageset_type=" + task.PageSets,
 			"--benchmark_name=" + task.Benchmark,
@@ -155,6 +156,7 @@ func (task *CaptureSkpsTask) Execute() error {
 		Name: "capture_skps_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
+			"--description=" + task.Description,
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
 			"--pageset_type=" + task.PageSets,
 			"--chromium_build=" + chromiumBuildDir,
@@ -196,6 +198,7 @@ func (task *LuaScriptTask) Execute() error {
 		Name: "run_lua_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
+			"--description=" + task.Description,
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
 			"--pageset_type=" + task.PageSets,
 			"--chromium_build=" + chromiumBuildDir,

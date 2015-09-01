@@ -97,6 +97,7 @@ func TestChromiumPerfExecute(t *testing.T) {
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "run_chromium_perf_on_workers", cmd.Name)
 	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--benchmark_name=benchmark")
 	expect.Contains(t, cmd.Args, "--target_platform=Linux")
@@ -133,6 +134,7 @@ func TestCaptureSkpsExecute(t *testing.T) {
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "capture_skps_on_workers", cmd.Name)
 	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	expect.Contains(t, cmd.Args, "--chromium_build=c14d891-586101c")
@@ -174,6 +176,7 @@ func TestLuaScriptExecuteWithAggregator(t *testing.T) {
 	cmd := mockRun.Commands()[0]
 	expect.Equal(t, "run_lua_on_workers", cmd.Name)
 	expect.Contains(t, cmd.Args, "--gae_task_id=42")
+	expect.Contains(t, cmd.Args, "--description=description")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
 	expect.Contains(t, cmd.Args, "--chromium_build=c14d891-586101c")

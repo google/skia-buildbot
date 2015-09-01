@@ -26,6 +26,7 @@ import (
 
 var (
 	emails        = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
+	description   = flag.String("description", "", "The description of the run as entered by the requester.")
 	gaeTaskID     = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	pagesetType   = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
 	chromiumBuild = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
@@ -56,13 +57,14 @@ func sendEmail(recipients []string) {
 	}
 	bodyTemplate := `
 	The Cluster telemetry queued task to run lua script on %s pageset has completed.<br/>
+	Run description: %s<br/>
 	%s
 	%s
 	%s
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, failureHtml, scriptOutputHtml, aggregatorOutputHtml, frontend.LuaTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, *description, failureHtml, scriptOutputHtml, aggregatorOutputHtml, frontend.LuaTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -112,7 +114,7 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Lua script", util.GetMasterLogLink(*runID)))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Lua script", util.GetMasterLogLink(*runID), *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
@@ -198,9 +200,6 @@ func main() {
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
 			glog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
-			// TODO(rmistry): Should we instead return here? We can only return
-			// here if all 100 slaves reliably run without any failures which they
-			// really should.
 			continue
 		}
 		defer skutil.Close(respBody)
