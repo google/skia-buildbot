@@ -29,7 +29,6 @@ var (
 	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully = false
-	outputRemoteLink          = util.MASTER_LOGSERVER_LINK
 )
 
 func sendEmail(recipients []string) {
@@ -44,11 +43,10 @@ func sendEmail(recipients []string) {
 	The Capture SKPs task on %s pageset has completed.<br/>
 	Run description: %s<br/>
 	%s
-	The output of your script is available <a href='%s'>here</a>.<br/><br/>
 	You can schedule more runs <a href="%s">here</a>.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, *description, failureHtml, outputRemoteLink, frontend.CaptureSKPsTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *pagesetType, *description, failureHtml, frontend.CaptureSKPsTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -56,20 +54,10 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CtfeV2 {
-		vars := capture_skps.UpdateVars{}
-		vars.Id = *gaeTaskID
-		vars.SetCompleted(taskCompletedSuccessfully)
-		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
-		return
-	}
-	extraData := map[string]string{
-		"output_link": outputRemoteLink,
-	}
-	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateCaptureSKPsTasksWebapp, extraData); err != nil {
-		glog.Errorf("Error while updating webapp task: %s", err)
-		return
-	}
+	vars := capture_skps.UpdateVars{}
+	vars.Id = *gaeTaskID
+	vars.SetCompleted(taskCompletedSuccessfully)
+	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
 func main() {

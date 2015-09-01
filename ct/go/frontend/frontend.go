@@ -27,8 +27,6 @@ const (
 )
 
 var (
-	// Allow tests to set CtfeV2 and WebappRoot to test V2 code with a mock server.
-	CtfeV2     = true
 	WebappRoot string
 	// Webapp subparts.
 	AdminTasksWebapp                         string
@@ -41,8 +39,6 @@ var (
 	UpdateCaptureSKPsTasksWebapp             string
 	ChromiumPerfTasksWebapp                  string
 	UpdateChromiumPerfTasksWebapp            string
-	SkiaCorrectnessTasksWebapp               string
-	UpdateSkiaCorrectnessTasksWebapp         string
 	ChromiumBuildTasksWebapp                 string
 	UpdateChromiumBuildTasksWebapp           string
 	GetOldestPendingTaskWebapp               string
@@ -52,16 +48,12 @@ var httpClient = skutil.NewTimeoutClient()
 
 // Initializes *Webapp URLs above and sets up authentication credentials for UpdateWebappTaskV2.
 func MustInit() {
-	if CtfeV2 {
-		err := webhook.InitRequestSaltFromFile(ctutil.WebhookRequestSaltPath)
-		if err != nil {
-			glog.Fatalf("Could not read salt from %s. %s Error was: %v",
-				ctutil.WebhookRequestSaltPath, ctutil.WEBHOOK_SALT_MSG, err)
-		}
-		initUrls(WEBAPP_ROOT_V2)
-	} else {
-		initUrls(WEBAPP_ROOT)
+	err := webhook.InitRequestSaltFromFile(ctutil.WebhookRequestSaltPath)
+	if err != nil {
+		glog.Fatalf("Could not read salt from %s. %s Error was: %v",
+			ctutil.WebhookRequestSaltPath, ctutil.WEBHOOK_SALT_MSG, err)
 	}
+	initUrls(WEBAPP_ROOT_V2)
 }
 
 // Initializes *Webapp URLs above using webapp_root as the base URL (e.g. "http://localhost:8000/")
@@ -73,39 +65,19 @@ func InitForTesting(webapp_root string) {
 
 func initUrls(webapp_root string) {
 	WebappRoot = webapp_root
-	if CtfeV2 {
-		AdminTasksWebapp = webapp_root + ctfeutil.ADMIN_TASK_URI
-		UpdateAdminTasksWebapp = ""
-		UpdateRecreatePageSetsTasksWebapp = webapp_root + ctfeutil.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI
-		UpdateRecreateWebpageArchivesTasksWebapp = webapp_root + ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI
-		LuaTasksWebapp = webapp_root + ctfeutil.LUA_SCRIPT_URI
-		UpdateLuaTasksWebapp = webapp_root + ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI
-		CaptureSKPsTasksWebapp = webapp_root + ctfeutil.CAPTURE_SKPS_URI
-		UpdateCaptureSKPsTasksWebapp = webapp_root + ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
-		ChromiumPerfTasksWebapp = webapp_root + ctfeutil.CHROMIUM_PERF_URI
-		UpdateChromiumPerfTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
-		SkiaCorrectnessTasksWebapp = ""
-		UpdateSkiaCorrectnessTasksWebapp = ""
-		ChromiumBuildTasksWebapp = webapp_root + ctfeutil.CHROMIUM_BUILD_URI
-		UpdateChromiumBuildTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
-		GetOldestPendingTaskWebapp = webapp_root + ctfeutil.GET_OLDEST_PENDING_TASK_URI
-	} else {
-		AdminTasksWebapp = webapp_root + "admin_tasks"
-		UpdateAdminTasksWebapp = webapp_root + "update_admin_task"
-		UpdateRecreatePageSetsTasksWebapp = ""
-		UpdateRecreateWebpageArchivesTasksWebapp = ""
-		LuaTasksWebapp = webapp_root + "lua_script"
-		UpdateLuaTasksWebapp = webapp_root + "update_lua_task"
-		CaptureSKPsTasksWebapp = webapp_root
-		UpdateCaptureSKPsTasksWebapp = webapp_root + "update_telemetry_task"
-		ChromiumPerfTasksWebapp = webapp_root + "chromium_try"
-		UpdateChromiumPerfTasksWebapp = webapp_root + "update_chromium_try_tasks"
-		SkiaCorrectnessTasksWebapp = webapp_root + "skia_try"
-		UpdateSkiaCorrectnessTasksWebapp = webapp_root + "update_skia_try_task"
-		ChromiumBuildTasksWebapp = webapp_root + "chromium_builds"
-		UpdateChromiumBuildTasksWebapp = webapp_root + "update_chromium_build_tasks"
-		GetOldestPendingTaskWebapp = webapp_root + "get_oldest_pending_task"
-	}
+	AdminTasksWebapp = webapp_root + ctfeutil.ADMIN_TASK_URI
+	UpdateAdminTasksWebapp = ""
+	UpdateRecreatePageSetsTasksWebapp = webapp_root + ctfeutil.UPDATE_RECREATE_PAGE_SETS_TASK_POST_URI
+	UpdateRecreateWebpageArchivesTasksWebapp = webapp_root + ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI
+	LuaTasksWebapp = webapp_root + ctfeutil.LUA_SCRIPT_URI
+	UpdateLuaTasksWebapp = webapp_root + ctfeutil.UPDATE_LUA_SCRIPT_TASK_POST_URI
+	CaptureSKPsTasksWebapp = webapp_root + ctfeutil.CAPTURE_SKPS_URI
+	UpdateCaptureSKPsTasksWebapp = webapp_root + ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
+	ChromiumPerfTasksWebapp = webapp_root + ctfeutil.CHROMIUM_PERF_URI
+	UpdateChromiumPerfTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
+	ChromiumBuildTasksWebapp = webapp_root + ctfeutil.CHROMIUM_BUILD_URI
+	UpdateChromiumBuildTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
+	GetOldestPendingTaskWebapp = webapp_root + ctfeutil.GET_OLDEST_PENDING_TASK_URI
 }
 
 func UpdateWebappTask(gaeTaskID int64, webappURL string, extraData map[string]string) error {
@@ -183,9 +155,6 @@ func UpdateWebappTaskV2(vars task_common.UpdateTaskVars) error {
 }
 
 func UpdateWebappTaskSetStarted(vars task_common.UpdateTaskVars, id int64) error {
-	if !CtfeV2 {
-		return nil
-	}
 	vars.GetUpdateTaskCommonVars().Id = id
 	vars.GetUpdateTaskCommonVars().SetStarted()
 	return UpdateWebappTaskV2(vars)

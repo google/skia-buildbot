@@ -34,8 +34,7 @@ var (
 	// TODO(benjaminwagner): There are a lot of changes needed to make --local=true do something
 	// useful:
 	//  - ctutil.CtTreeDir must be set to the current working copy.
-	//  - Each of these programs must add a --local flag that allows running locally and a
-	//    --ctfe_v2 flag to set frontend.CtfeV2:
+	//  - Each of these programs must add a --local flag that allows running locally:
 	//    - run_chromium_perf_on_workers
 	//    - capture_skps_on_workers
 	//    - run_lua_on_workers
@@ -366,13 +365,6 @@ func main() {
 		logDir = logDirFlag.Value.String()
 	}
 
-	if !frontend.CtfeV2 {
-		if *local && *dryRun {
-			frontend.CtfeV2 = true
-		} else {
-			glog.Fatal("Go version of CTFE poller requires CTFE V2.")
-		}
-	}
 	if *dryRun {
 		exec.SetRunForTesting(func(command *exec.Command) error {
 			glog.Infof("dry_run: %s", exec.DebugString(command))

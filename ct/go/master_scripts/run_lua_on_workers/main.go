@@ -33,8 +33,6 @@ var (
 	runID         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully     = false
-	luaScriptRemoteLink           = util.MASTER_LOGSERVER_LINK
-	luaAggregatorRemoteLink       = util.MASTER_LOGSERVER_LINK
 	luaOutputRemoteLink           = ""
 	luaAggregatorOutputRemoteLink = ""
 )
@@ -72,33 +70,16 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CtfeV2 {
-		vars := lua_scripts.UpdateVars{}
-		vars.Id = *gaeTaskID
-		vars.SetCompleted(taskCompletedSuccessfully)
-		if luaOutputRemoteLink != "" {
-			vars.ScriptOutput = sql.NullString{String: luaOutputRemoteLink, Valid: true}
-		}
-		if luaAggregatorOutputRemoteLink != "" {
-			vars.AggregatedOutput = sql.NullString{String: luaAggregatorOutputRemoteLink, Valid: true}
-		}
-		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
-		return
+	vars := lua_scripts.UpdateVars{}
+	vars.Id = *gaeTaskID
+	vars.SetCompleted(taskCompletedSuccessfully)
+	if luaOutputRemoteLink != "" {
+		vars.ScriptOutput = sql.NullString{String: luaOutputRemoteLink, Valid: true}
 	}
-	outputLink := luaOutputRemoteLink
 	if luaAggregatorOutputRemoteLink != "" {
-		// Use the aggregated output if it exists.
-		outputLink = luaAggregatorOutputRemoteLink
+		vars.AggregatedOutput = sql.NullString{String: luaAggregatorOutputRemoteLink, Valid: true}
 	}
-	extraData := map[string]string{
-		"lua_script_link":     luaScriptRemoteLink,
-		"lua_aggregator_link": luaAggregatorRemoteLink,
-		"lua_output_link":     outputLink,
-	}
-	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateLuaTasksWebapp, extraData); err != nil {
-		glog.Errorf("Error while updating webapp task: %s", err)
-		return
-	}
+	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
 func main() {
@@ -148,7 +129,6 @@ func main() {
 	luaScriptName := *runID + ".lua"
 	defer skutil.Remove(filepath.Join(os.TempDir(), luaScriptName))
 	luaScriptRemoteDir := filepath.Join(util.LuaRunsDir, *runID, "scripts")
-	luaScriptRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, luaScriptRemoteDir, luaScriptName)
 	if err := gs.UploadFile(luaScriptName, os.TempDir(), luaScriptRemoteDir); err != nil {
 		glog.Errorf("Could not upload %s to %s: %s", luaScriptName, luaScriptRemoteDir, err)
 		return
@@ -227,7 +207,6 @@ func main() {
 	luaAggregatorName := *runID + ".aggregator"
 	luaAggregatorPath := filepath.Join(os.TempDir(), luaAggregatorName)
 	defer skutil.Remove(luaAggregatorPath)
-	luaAggregatorRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, luaScriptRemoteDir, luaAggregatorName)
 	luaAggregatorFileInfo, err := os.Stat(luaAggregatorPath)
 	if !os.IsNotExist(err) && luaAggregatorFileInfo.Size() > 10 {
 		if err := gs.UploadFile(luaAggregatorName, os.TempDir(), luaScriptRemoteDir); err != nil {

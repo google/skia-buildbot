@@ -48,17 +48,10 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CtfeV2 {
-		vars := admin_tasks.RecreatePageSetsUpdateVars{}
-		vars.Id = *gaeTaskID
-		vars.SetCompleted(*taskCompletedSuccessfully)
-		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
-		return
-	}
-	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateAdminTasksWebapp, map[string]string{}); err != nil {
-		glog.Errorf("Error while updating webapp task: %s", err)
-		return
-	}
+	vars := admin_tasks.RecreatePageSetsUpdateVars{}
+	vars.Id = *gaeTaskID
+	vars.SetCompleted(*taskCompletedSuccessfully)
+	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
 func main() {

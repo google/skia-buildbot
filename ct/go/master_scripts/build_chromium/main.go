@@ -5,9 +5,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -53,21 +50,10 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CtfeV2 {
-		vars := chromium_builds.UpdateVars{}
-		vars.Id = *gaeTaskID
-		vars.SetCompleted(taskCompletedSuccessfully)
-		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
-		return
-	}
-	extraData := map[string]string{
-		"chromium_rev_date": chromiumBuildTimestamp,
-		"build_log_link":    util.MASTER_LOGSERVER_LINK,
-	}
-	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateChromiumBuildTasksWebapp, extraData); err != nil {
-		glog.Errorf("Error while updating webapp task: %s", err)
-		return
-	}
+	vars := chromium_builds.UpdateVars{}
+	vars.Id = *gaeTaskID
+	vars.SetCompleted(taskCompletedSuccessfully)
+	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
 func main() {
@@ -106,40 +92,6 @@ func main() {
 		glog.Errorf("Error while creating the Chromium build: %s", err)
 		return
 	}
-
-	// Find when the requested Chromium revision was submitted.
-	stdoutFileName := *runID + ".out"
-	stdoutFilePath := filepath.Join(os.TempDir(), stdoutFileName)
-	stdoutFile, err := os.Create(stdoutFilePath)
-	defer skutil.Close(stdoutFile)
-	defer skutil.Remove(stdoutFilePath)
-	if err != nil {
-		glog.Errorf("Could not create %s: %s", stdoutFilePath, err)
-		return
-	}
-	var chromiumBuildDir string
-	if *targetPlatform == "Android" {
-		chromiumBuildDir = filepath.Join(util.ChromiumBuildsDir, "android_base")
-	} else if *targetPlatform == "Linux" {
-		chromiumBuildDir = filepath.Join(util.ChromiumBuildsDir, "linux_base")
-	}
-	if err := os.Chdir(filepath.Join(chromiumBuildDir, "src")); err != nil {
-		glog.Errorf("Could not chdir to %s: %s", chromiumBuildDir, err)
-		return
-	}
-	// Run git log --pretty=format="%at" -1
-	err = util.ExecuteCmd(util.BINARY_GIT, []string{"log", "--pretty=format:%at", "-1"},
-		[]string{}, util.GIT_LOG_TIMEOUT, stdoutFile, nil)
-	if err != nil {
-		glog.Errorf("Could not run git log cmd: %s", err)
-		return
-	}
-	content, err := ioutil.ReadFile(stdoutFilePath)
-	if err != nil {
-		glog.Errorf("Could not read %s: %s", stdoutFilePath, err)
-		return
-	}
-	chromiumBuildTimestamp = string(content)
 
 	taskCompletedSuccessfully = true
 }

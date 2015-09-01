@@ -78,29 +78,13 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	if frontend.CtfeV2 {
-		vars := chromium_perf.UpdateVars{}
-		vars.Id = *gaeTaskID
-		vars.SetCompleted(taskCompletedSuccessfully)
-		vars.Results = sql.NullString{String: htmlOutputLink, Valid: true}
-		vars.NoPatchRawOutput = sql.NullString{String: noPatchOutputLink, Valid: true}
-		vars.WithPatchRawOutput = sql.NullString{String: withPatchOutputLink, Valid: true}
-		skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
-		return
-	}
-	extraData := map[string]string{
-		"skia_patch_link":              skiaPatchLink,
-		"blink_patch_link":             blinkPatchLink,
-		"chromium_patch_link":          chromiumPatchLink,
-		"telemetry_nopatch_log_link":   noPatchOutputLink,
-		"telemetry_withpatch_log_link": withPatchOutputLink,
-		"html_output_link":             htmlOutputLink,
-		"build_log_link":               util.MASTER_LOGSERVER_LINK,
-	}
-	if err := frontend.UpdateWebappTask(*gaeTaskID, frontend.UpdateChromiumPerfTasksWebapp, extraData); err != nil {
-		glog.Errorf("Error while updating webapp task: %s", err)
-		return
-	}
+	vars := chromium_perf.UpdateVars{}
+	vars.Id = *gaeTaskID
+	vars.SetCompleted(taskCompletedSuccessfully)
+	vars.Results = sql.NullString{String: htmlOutputLink, Valid: true}
+	vars.NoPatchRawOutput = sql.NullString{String: noPatchOutputLink, Valid: true}
+	vars.WithPatchRawOutput = sql.NullString{String: withPatchOutputLink, Valid: true}
+	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
 func main() {
