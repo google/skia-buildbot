@@ -112,7 +112,7 @@ int do_child(int argc, char **argv) {
         return -1;
     }
 
-    int ret = execvp(args[0], args);
+    (void)execvp(args[0], args);
     // if execvp returns, we couldn't run the child.  Probably
     // because the compile failed.  Let's kill ourselves so the
     // parent sees the signal and exits appropriately.
