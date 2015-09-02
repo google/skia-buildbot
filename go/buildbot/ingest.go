@@ -23,6 +23,9 @@ var (
 		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release-BuildBucket": map[int]bool{
 			1: true, // Cannot be ingested because its repo is "???"
 		},
+		"Linux Tests": map[int]bool{
+			2872: true, // This build doesn't exist on the server?
+		},
 	}
 
 	// TODO(borenet): Avoid hard-coding this list. Instead, obtain it from
