@@ -44,6 +44,12 @@ Dashboard: https://status.skia.org/buildbots?botGrouping=builder&filterBy=builde
 Host info: https://status.skia.org/hosts?filter=%s`
 )
 
+var BUILDSLAVE_OFFLINE_BLACKLIST = []string{
+	"build3-a3",
+	"build4-a3",
+	"vm255-m3",
+}
+
 type BuildSlice []*buildbot.Build
 
 func (s BuildSlice) Len() int {
@@ -78,6 +84,9 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 			}
 			for masterName, m := range slaves {
 				for _, s := range m {
+					if util.In(s.Name, BUILDSLAVE_OFFLINE_BLACKLIST) {
+						continue
+					}
 					v := int64(0)
 					if s.Connected {
 						v = int64(1)
