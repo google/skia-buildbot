@@ -7,6 +7,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"path"
 	"regexp"
 	"time"
 
@@ -14,12 +15,14 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	SKIA_REPO = "https://skia.googlesource.com/skia"
+	SKIA_REPO  = "https://skia.googlesource.com/skia.git"
+	INFRA_REPO = "https://skia.googlesource.com/buildbot.git"
 )
 
 // flags
@@ -56,6 +59,26 @@ func main() {
 	if err := dbConf.InitDB(); err != nil {
 		glog.Fatal(err)
 	}
+
+	// Shared repo objects.
+	skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "datahopper_skia"), true)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	infraRepo, err := gitinfo.CloneOrUpdate(INFRA_REPO, path.Join(*workdir, "datahopper_infra"), true)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	go func() {
+		for _ = range time.Tick(5 * time.Minute) {
+			if err := skiaRepo.Update(true, true); err != nil {
+				glog.Errorf("Failed to sync Skia repo: %v", err)
+			}
+			if err := infraRepo.Update(true, true); err != nil {
+				glog.Errorf("Failed to sync Infra repo: %v", err)
+			}
+		}
+	}()
 
 	// Data generation goroutines.
 
@@ -164,6 +187,16 @@ func main() {
 				metric := fmt.Sprintf("buildbot.buildstepsbybuilder.%s.%s.duration", fixName(s.Builder), fixName(s.StepName))
 				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
 			}
+		}
+	}()
+
+	// Number of commits in the repo.
+	go func() {
+		skiaGauge := metrics.GetOrRegisterGauge("repo.skia.commits", metrics.DefaultRegistry)
+		infraGauge := metrics.GetOrRegisterGauge("repo.infra.commits", metrics.DefaultRegistry)
+		for _ = range time.Tick(5 * time.Minute) {
+			skiaGauge.Update(int64(skiaRepo.NumCommits()))
+			infraGauge.Update(int64(infraRepo.NumCommits()))
 		}
 	}()
 
