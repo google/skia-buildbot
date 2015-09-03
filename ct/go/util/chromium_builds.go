@@ -229,7 +229,7 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 	if targetPlatform == "Android" {
 		util.LogErr(
 			ioutil.WriteFile(filepath.Join(chromiumDir, "chromium.gyp_env"), []byte("{ 'GYP_DEFINES': 'OS=android', }\n"), 0777))
-		buildTarget = "chrome_shell_apk"
+		buildTarget = "chrome_public_apk"
 	}
 
 	// Restart Goma's compiler proxy right before building the checkout.

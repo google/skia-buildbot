@@ -177,7 +177,7 @@ func main() {
 				}
 				// Figure out which browser should be used.
 				if *targetPlatform == util.PLATFORM_ANDROID {
-					args = append(args, "--browser=android-chrome-shell")
+					args = append(args, "--browser=android-chromium")
 				} else {
 					args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
 				}

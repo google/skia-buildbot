@@ -207,7 +207,7 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		if err := util.InstallChromeAPK(chromiumBuildName); err != nil {
 			return fmt.Errorf("Error while installing APK: %s", err)
 		}
-		args = append(args, "--browser=android-chrome-shell")
+		args = append(args, "--browser=android-chromium")
 	} else {
 		args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
 	}
