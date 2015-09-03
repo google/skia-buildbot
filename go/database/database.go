@@ -297,7 +297,7 @@ func (vdb *VersionedDB) ensureVersionTable() (rv error) {
 	defer func() { rv = CommitOrRollback(txn, rv) }()
 
 	if err != nil {
-		fmt.Errorf("Unable to start database transaction. %s", err)
+		return fmt.Errorf("Unable to start database transaction. %s", err)
 	}
 
 	stmt := `CREATE TABLE IF NOT EXISTS sk_db_version (

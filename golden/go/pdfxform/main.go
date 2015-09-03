@@ -365,7 +365,7 @@ func (xformer *pdfXformer) processJsonFile(jsonFileObject *storage.Object) {
 	// Change the date; leave most of the rest of the path components.
 	jsonPathComponents := strings.Split(jsonFileObject.Name, "/") // []string
 	if len(jsonPathComponents) < 4 {
-		fmt.Errorf("unexpected number of path components %q", jsonPathComponents)
+		glog.Errorf("unexpected number of path components %q", jsonPathComponents)
 		return
 	}
 	jsonPathComponents = jsonPathComponents[len(jsonPathComponents)-4:]
