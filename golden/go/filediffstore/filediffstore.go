@@ -15,7 +15,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/hashicorp/golang-lru"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
+	storage "google.golang.org/api/storage/v1"
 )
 
 const (

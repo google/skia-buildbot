@@ -15,10 +15,10 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
+	storage "google.golang.org/api/storage/v1"
 )
 
 const (

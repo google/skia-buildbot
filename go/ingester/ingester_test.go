@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	storage "code.google.com/p/google-api-go-client/storage/v1"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/testutils"
+	storage "google.golang.org/api/storage/v1"
 )
 
 func init() {

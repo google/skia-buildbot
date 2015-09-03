@@ -15,10 +15,10 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/storage/v1"
 )
 
 // Package represents a single Debian package uploaded to Google Storage.

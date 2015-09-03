@@ -14,7 +14,6 @@ import (
 	"sort"
 	"text/template"
 
-	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/generator"
@@ -22,6 +21,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/storage/v1"
 )
 
 import (
@@ -286,7 +286,7 @@ func main() {
 	common.DecodeTomlFile(*configFilename, &config.Config)
 
 	var err error
-	if client, err = auth.NewClient(config.Config.Common.DoOAuth, config.Config.Common.OAuthCacheFile, storage.DevstorageFull_controlScope); err != nil {
+	if client, err = auth.NewClient(config.Config.Common.DoOAuth, config.Config.Common.OAuthCacheFile, storage.DevstorageFullControlScope); err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 

@@ -10,8 +10,8 @@ import (
 )
 
 import (
-	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/skia-dev/glog"
+	storage "google.golang.org/api/storage/v1"
 )
 
 var (

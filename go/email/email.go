@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"code.google.com/p/goauth2/oauth"
-	gmail "code.google.com/p/google-api-go-client/gmail/v1"
 	"go.skia.org/infra/go/auth"
+	gmail "google.golang.org/api/gmail/v1"
 )
 
 var (

@@ -12,7 +12,6 @@ import (
 	"runtime"
 	"time"
 
-	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/gorilla/mux"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
@@ -22,6 +21,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/storage/v1"
 )
 
 var (
@@ -74,7 +74,7 @@ func Init() {
 		filepath.Join(path, "templates/footer.html"),
 	))
 
-	if client, err = auth.NewClient(config.Config.Common.DoOAuth, config.Config.Common.OAuthCacheFile, storage.DevstorageFull_controlScope); err != nil {
+	if client, err = auth.NewClient(config.Config.Common.DoOAuth, config.Config.Common.OAuthCacheFile, storage.DevstorageFullControlScope); err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 

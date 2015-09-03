@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"time"
 
-	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/skia-dev/glog"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
@@ -27,6 +26,7 @@ import (
 	"go.skia.org/infra/perf/go/db"
 	_ "go.skia.org/infra/perf/go/perfingester"
 	_ "go.skia.org/infra/perf/go/trybot"
+	storage "google.golang.org/api/storage/v1"
 )
 
 var (

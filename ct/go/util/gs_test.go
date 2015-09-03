@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/util"
+	storage "google.golang.org/api/storage/v1"
 )
 
 // Will need a local valid google_storage_token.data file with read write access

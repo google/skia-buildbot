@@ -33,7 +33,6 @@ import (
 	"sort"
 	"time"
 
-	storage "code.google.com/p/google-api-go-client/storage/v1"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/ingester"
@@ -43,6 +42,7 @@ import (
 	"go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/perfingester"
 	"go.skia.org/infra/perf/go/types"
+	storage "google.golang.org/api/storage/v1"
 )
 
 var (

@@ -10,13 +10,13 @@ import (
 	"os"
 	"time"
 
-	storage "code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/androidbuild"
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/util"
+	storage "google.golang.org/api/storage/v1"
 )
 
 // TODO(stephana): Factor to take the target information (builID etc.)

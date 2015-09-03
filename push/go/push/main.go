@@ -15,8 +15,6 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/google-api-go-client/compute/v1"
-	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/BurntSushi/toml"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
@@ -27,6 +25,8 @@ import (
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/storage/v1"
 )
 
 // Server is used in PushConfig.

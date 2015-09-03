@@ -10,13 +10,13 @@ import (
 	"strings"
 	"time"
 
-	"code.google.com/p/google-api-go-client/compute/v1"
-	"code.google.com/p/google-api-go-client/storage/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/util"
+	"google.golang.org/api/compute/v1"
+	"google.golang.org/api/storage/v1"
 )
 
 var (
@@ -65,7 +65,7 @@ func main() {
 	glog.Infof("Running with hostname: %s", *hostname)
 
 	client, err := auth.NewClient(*doOauth, *oauthCacheFile,
-		storage.DevstorageFull_controlScope,
+		storage.DevstorageFullControlScope,
 		compute.ComputeReadonlyScope)
 
 	if err != nil {

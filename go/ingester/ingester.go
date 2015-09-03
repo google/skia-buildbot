@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	storage "code.google.com/p/google-api-go-client/storage/v1"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -23,6 +22,7 @@ import (
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	storage "google.golang.org/api/storage/v1"
 )
 
 const (
