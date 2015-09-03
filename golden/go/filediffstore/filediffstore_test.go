@@ -228,6 +228,22 @@ func MassiveTestAbsPath_45Digests(t *testing.T) {
 	assert.Equal(t, 45, len(digestsToPaths))
 }
 
+// Diff metrics are written in a goroutine, so wait for the goroutine to finish.
+func awaitDiffMetricsGoroutine(diffMetricsFilePath string, timeout time.Duration) bool {
+	timeoutCh := time.After(timeout)
+	for {
+		if _, err := os.Stat(diffMetricsFilePath); err == nil {
+			return true
+		}
+		select {
+		case <-timeoutCh:
+			return false
+		default:
+			runtime.Gosched()
+		}
+	}
+}
+
 func TestGet_e2e(t *testing.T) {
 	// Empty digests to compare too.
 	fdsEmpty := getTestFileDiffStore(t, TESTDATA_DIR, true)
@@ -259,6 +275,7 @@ func TestGet_e2e(t *testing.T) {
 	defer testutils.Remove(t, diffFilePath)
 	defer testutils.Remove(t, diffMetricsFilePath)
 
+	awaitDiffMetricsGoroutine(diffMetricsFilePath, 3*time.Second)
 	// Verify that the diff and the diffmetrics files were created.
 	assertFileExists(diffFilePath, t)
 	assertFileExists(diffMetricsFilePath, t)
@@ -281,6 +298,7 @@ func TestGet_e2e(t *testing.T) {
 
 	defer testutils.Remove(t, newImageFilePath)
 
+	awaitDiffMetricsGoroutine(diffMetricsFilePath, 3*time.Second)
 	// Verify that the image was downloaded successfully from Google Storage and
 	// that the diff and diffmetrics files were created.
 	assertFileExists(newImageFilePath, t)
@@ -302,6 +320,7 @@ func TestGet_e2e(t *testing.T) {
 		t.Error("Unexpected error: ", err)
 	}
 
+	awaitDiffMetricsGoroutine(diffMetricsFilePath, 3*time.Second)
 	// Verify that the image was downloaded successfully from Google Storage and
 	// that the diff and diffmetrics files were created.
 	assertFileExists(newImageFilePath, t)
