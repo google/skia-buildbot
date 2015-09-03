@@ -25,6 +25,7 @@ var (
 		},
 		"Linux Tests": map[int]bool{
 			2872: true, // This build doesn't exist on the server?
+			2920: true, // This build doesn't exist on the server?
 		},
 		"Win7 Tests (1)": map[int]bool{
 			1797: true, // This build doesn't exist on the server?
