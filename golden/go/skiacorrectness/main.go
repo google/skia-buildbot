@@ -391,7 +391,8 @@ func main() {
 	// All the handlers will be prefixed with poly to differentiate it from the
 	// angular code until the angular code is removed.
 	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
-	router.HandleFunc("/", templateHandler("index.html")).Methods("GET")
+	router.HandleFunc("/", byBlameHandler).Methods("GET")
+	router.HandleFunc("/list", templateHandler("list.html")).Methods("GET")
 	router.HandleFunc("/_/details", polyDetailsHandler).Methods("GET")
 	router.HandleFunc("/_/diff", polyDiffJSONDigestHandler).Methods("GET")
 	router.HandleFunc("/_/hashes", polyAllHashesHandler).Methods("GET")

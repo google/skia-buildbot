@@ -49,7 +49,7 @@ func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "templates/byblame.html"),
 		filepath.Join(*resourcesDir, "templates/cluster.html"),
-		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/list.html"),
 		filepath.Join(*resourcesDir, "templates/ignores.html"),
 		filepath.Join(*resourcesDir, "templates/compare.html"),
 		filepath.Join(*resourcesDir, "templates/single.html"),
