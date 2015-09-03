@@ -38,7 +38,6 @@
        (function() {
          sk.post('/_/chromium_perf/').then(JSON.parse).then(function(json) {
            $$$('chromium-perf-sk').benchmarks = json["benchmarks"];
-           delete json["platforms"]["Android"]
            $$$('chromium-perf-sk').platformsToDesc = json["platforms"];
            $$$('chromium-perf-sk').platforms = Object.keys(json["platforms"]);
          }).catch(sk.errorMessage);
