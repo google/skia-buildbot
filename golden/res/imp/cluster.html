@@ -204,7 +204,9 @@
           if (ele.nodeName == "circle") {
             var p = ele.parentElement;
             p.classList.toggle('selected', true);
-            this.selected.push(p.dataset.name);
+            // Note that we use getAttribute because SVG doesn't support
+            // ele.dataset.* type access.
+            this.selected.push(p.getAttribute('data-name'));
           }
         }
 
