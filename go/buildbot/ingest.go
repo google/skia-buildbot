@@ -29,6 +29,9 @@ var (
 			2920: true,
 			2995: true,
 		},
+		"Mac10.9 Tests": map[int]bool{
+			1727: true, // This build doesn't exist on the server.
+		},
 		"Win7 Tests (1)": map[int]bool{
 			1797: true, // This build doesn't exist on the server?
 		},
