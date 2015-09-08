@@ -7,6 +7,8 @@
 
     height - The height of the element in px.
 
+    nocrosshair - If true then the mouse following croshair is hidden.
+
   Events:
     trace_selected - Event produced when the user clicks on a line.
       The e.detail contains the id of the line and the index of the
@@ -86,6 +88,7 @@
         };
 
     resetAxes() - Resets the axes back after the user has zoomed.
+
 -->
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <script src="/res/imp/bower_components/d3/d3.min.js"></script>
@@ -100,7 +103,8 @@ work, so we just prefix every rule with plot-simple-sk.
 
 <dom-module id="plot-simple-sk">
   <template>
-    <svg id="svg" width$="{{width}}" height$="{{height}}">
+    <svg id="svg" width$="{{width}}" height$="{{height}}"
+      class$="{{noCrosshair(nocrosshair)}}">
       <defs>
         <clipPath id="clip">
           <rect x="0" y="0" width="1000" height="500" />
@@ -142,6 +146,11 @@ work, so we just prefix every rule with plot-simple-sk.
         height: {
           type: Number,
           value: 500,
+          reflectToAttribute: true,
+        },
+        nocrosshair: {
+          type: Boolean,
+          value: false,
           reflectToAttribute: true,
         },
       },
@@ -214,7 +223,7 @@ work, so we just prefix every rule with plot-simple-sk.
 
       setHighlight: function(ids) {
         $$('.trace').forEach(function(ele) {
-          if (ids.indexOf(ele.dataset.id) != -1) {
+          if (ids.indexOf(ele.getAttribute('data-id')) != -1) {
             ele.classList.add('highlight');
           }
         });
@@ -223,7 +232,7 @@ work, so we just prefix every rule with plot-simple-sk.
       highlighted: function() {
         var ids = [];
         $$('.trace.highlight').forEach(function(ele) {
-          ids.push(ele.dataset.id);
+          ids.push(ele.getAttribute('data-id'));
         });
         return ids;
       },
@@ -267,8 +276,10 @@ work, so we just prefix every rule with plot-simple-sk.
         xMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[0]; }) });
         yMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[1]; }) });
         yMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[1]; }) });
-        this._xRange.domain([xMin, xMax]);
-        this._yRange.domain([yMin, yMax]);
+        var xMargin = Math.abs(xMax - xMin)*0.02;
+        var yMargin = Math.abs(yMax - yMin)*0.02;
+        this._xRange.domain([xMin-xMargin, xMax+xMargin]);
+        this._yRange.domain([yMin-yMargin, yMax+yMargin]);
         this._plot();
       },
 
@@ -559,6 +570,10 @@ work, so we just prefix every rule with plot-simple-sk.
         this._xRange.domain([xMin, xMax]);
         this._yRange.domain([yMin, yMax]);
         this._plot();
+      },
+
+      noCrosshair: function(nocrosshair) {
+        return nocrosshair ? 'nocrosshair' : '';
       },
 
     });

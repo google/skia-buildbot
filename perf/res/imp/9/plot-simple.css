@@ -60,6 +60,10 @@ plot-simple-sk .xhair {
   stroke: red;
 }
 
+plot-simple-sk svg.nocrosshair .xhair {
+  display: none;
+}
+
 plot-simple-sk .xbar {
   stroke-width: 5px;
   stroke: red;
