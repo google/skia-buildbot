@@ -235,8 +235,6 @@ func TestFindCommitsForBuild(t *testing.T) {
 		build, err := getBuildFromMaster(master, builder, buildNum, repos)
 		assert.Nil(t, err)
 		assert.Nil(t, IngestBuild(build, repos))
-		// Wait for the build to be inserted.
-		time.Sleep(1500 * time.Millisecond)
 		ingested, err := GetBuildFromDB(builder, master, buildNum)
 		assert.Nil(t, err)
 		assert.NotNil(t, ingested)
@@ -674,8 +672,6 @@ func testIngestNewBuilds(t *testing.T) {
 	for _, m := range MASTER_NAMES {
 		assert.Nil(t, ingestNewBuilds(m, repos))
 	}
-	// Wait for the builds to be inserted.
-	time.Sleep(1500 * time.Millisecond)
 
 	// Verify that the expected builds are now in the database.
 	expected := []Build{

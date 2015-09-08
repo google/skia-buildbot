@@ -6,12 +6,12 @@ import (
 	"go.skia.org/infra/go/buildbot"
 )
 
-// buildCache is a struct used as an intermediary between the buildbot
-// ingestion code and the database (see the BuildCache interface in
+// buildFinder is a struct used as an intermediary between the buildbot
+// ingestion code and the database (see the BuildFinder interface in
 // go.skia.org/infra/go/buildbot package). It allows the BuildQueue to
 // pretend to insert builds so that it can select the best build
 // candidate at every step.
-type buildCache struct {
+type buildFinder struct {
 	buildsByCommit map[string]*buildbot.Build
 	buildsByNumber map[int]*buildbot.Build
 	Builder        string
@@ -23,8 +23,8 @@ type buildCache struct {
 // GetBuildForCommit returns the build number of the build which included the
 // given commit, or -1 if no such build exists. It is used by the buildbot
 // package's FindCommitsForBuild function.
-func (bc *buildCache) GetBuildForCommit(builder, master, hash string) (int, error) {
-	if b, ok := bc.buildsByCommit[hash]; ok {
+func (bf *buildFinder) GetBuildForCommit(builder, master, hash string) (int, error) {
+	if b, ok := bf.buildsByCommit[hash]; ok {
 		return b.Number, nil
 	}
 	// Fall back on getting the build from the database.
@@ -37,75 +37,57 @@ func (bc *buildCache) GetBuildForCommit(builder, master, hash string) (int, erro
 
 // getBuildForCommit returns a buildbot.Build instance for the build which
 // included the given commit, or nil if no such build exists.
-func (bc *buildCache) getBuildForCommit(hash string) (*buildbot.Build, error) {
-	num, err := bc.GetBuildForCommit(bc.Builder, bc.Master, hash)
+func (bf *buildFinder) getBuildForCommit(hash string) (*buildbot.Build, error) {
+	num, err := bf.GetBuildForCommit(bf.Builder, bf.Master, hash)
 	if err != nil {
 		return nil, err
 	}
-	b, err := bc.getByNumber(num)
+	b, err := bf.getByNumber(num)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get build for %s at %s: %v", bc.Builder, hash[0:7], err)
+		return nil, fmt.Errorf("Failed to get build for %s at %s: %v", bf.Builder, hash[0:7], err)
 	}
 	return b, nil
 }
 
 // getByNumber returns a buildbot.Build instance for the build with the
 // given number.
-func (bc *buildCache) getByNumber(number int) (*buildbot.Build, error) {
-	b, ok := bc.buildsByNumber[number]
+func (bf *buildFinder) getByNumber(number int) (*buildbot.Build, error) {
+	b, ok := bf.buildsByNumber[number]
 	if !ok {
-		b, err := buildbot.GetBuildFromDB(bc.Builder, bc.Master, number)
+		b, err := buildbot.GetBuildFromDB(bf.Builder, bf.Master, number)
 		if err != nil {
 			return nil, err
 		}
 		if b != nil {
-			if err := bc.Put(b); err != nil {
-				return nil, err
-			}
+			bf.add(b)
 		}
 		return b, nil
 	}
 	return b, nil
 }
 
-// GetBuildFromDB returns the given Build.
-func (bc *buildCache) GetBuildFromDB(builder, master string, number int) (*buildbot.Build, error) {
-	return bc.getByNumber(number)
-}
-
-// Put inserts the given build into the buildCache so that it will be found
+// add inserts the given build into the buildFinder so that it will be found
 // when any of the getter functions are called. It does not insert the build
 // into the database.
-func (bc *buildCache) Put(b *buildbot.Build) error {
+func (bf *buildFinder) add(b *buildbot.Build) {
 	build := &(*b) // Copy the build.
 	for _, c := range b.Commits {
-		bc.buildsByCommit[c] = build
+		bf.buildsByCommit[c] = build
 	}
-	bc.buildsByNumber[b.Number] = build
-	if build.Number > bc.MaxBuildNum {
-		bc.MaxBuildNum = build.Number
+	bf.buildsByNumber[b.Number] = build
+	if build.Number > bf.MaxBuildNum {
+		bf.MaxBuildNum = build.Number
 	}
-	return nil
 }
 
-// PutMulti inserts all of the given builds into the buildCache.
-func (bc *buildCache) PutMulti(builds []*buildbot.Build) error {
-	for _, b := range builds {
-		if err := bc.Put(b); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// newBuildCache returns a buildCache instance for the given
+// newBuildFinder returns a buildFinder instance for the given
 // builder/master/repo combination.
-func newBuildCache(builder, master, repo string) (*buildCache, error) {
+func newBuildFinder(builder, master, repo string) (*buildFinder, error) {
 	maxBuild, err := buildbot.GetMaxBuildNumber(builder)
 	if err != nil {
 		return nil, err
 	}
-	return &buildCache{
+	return &buildFinder{
 		buildsByCommit: map[string]*buildbot.Build{},
 		buildsByNumber: map[int]*buildbot.Build{},
 		Builder:        builder,

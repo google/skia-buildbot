@@ -3,7 +3,6 @@ package buildbot
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -55,210 +54,25 @@ func get(url string, rv interface{}) error {
 	return nil
 }
 
-// Sort builds by builder, then number.
-type BuildSlice []*Build
-
-func (s BuildSlice) Len() int { return len(s) }
-func (s BuildSlice) Less(i, j int) bool {
-	if s[i].Builder == s[j].Builder {
-		return s[i].Number < s[j].Number
-	}
-	return s[i].Builder < s[j].Builder
-}
-func (s BuildSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-
-// BuildCache is an interface used to inject a layer between the ingestion
-// functions and the database, allowing caching of builds or for users to
-// pretend to insert builds into the database without actually modifying it.
-type BuildCache interface {
+// BuildFinder is an interface used to inject a layer between the ingestion
+// functions and the database, allowing for users to pretend to insert builds
+// into the database without actually modifying it.
+type BuildFinder interface {
 	GetBuildForCommit(string, string, string) (int, error)
-	GetBuildFromDB(string, string, int) (*Build, error)
-	Put(*Build) error
-	PutMulti([]*Build) error
 }
 
-type builderCache struct {
-	Builder  string
-	Master   string
-	ByNumber map[int]*Build
-	ByCommit map[string]*Build
-	parent   *buildCache
+type dbBuildFinder struct{}
+
+func (bf *dbBuildFinder) GetBuildForCommit(builder, master, hash string) (int, error) {
+	return GetBuildForCommit(builder, master, hash)
 }
 
-func (c *builderCache) addBuild(b *Build) {
-	c.ByNumber[b.Number] = b
-	for _, commit := range b.Commits {
-		c.ByCommit[commit] = b
-	}
-}
-
-func (c *builderCache) Put(b *Build) error {
-	c.parent.ingestQueue <- b
-	c.addBuild(b)
-	return nil
-}
-
-func (c *builderCache) GetByNumber(n int) (*Build, error) {
-	if _, ok := c.ByNumber[n]; !ok {
-		b, err := GetBuildFromDB(c.Builder, c.Master, n)
-		if err != nil {
-			return nil, err
-		}
-		if b != nil {
-			c.addBuild(b)
-		}
-	}
-	return c.ByNumber[n], nil
-}
-
-func (c *builderCache) GetByCommit(commit string) (*Build, error) {
-	if _, ok := c.ByCommit[commit]; !ok {
-		n, err := GetBuildForCommit(c.Builder, c.Master, commit)
-		if err != nil {
-			return nil, err
-		}
-		b, err := GetBuildFromDB(c.Builder, c.Master, n)
-		if err != nil {
-			return nil, err
-		}
-		if b == nil {
-			return b, nil
-		}
-		c.addBuild(b)
-	}
-	return c.ByCommit[commit], nil
-}
-
-type buildCache struct {
-	Builders    map[string]*builderCache
-	ingestQueue chan *Build
-}
-
-func (c *buildCache) get(builder, master string) *builderCache {
-	if _, ok := c.Builders[builder]; !ok {
-		c.Builders[builder] = &builderCache{
-			Builder:  builder,
-			Master:   master,
-			ByNumber: map[int]*Build{},
-			ByCommit: map[string]*Build{},
-			parent:   c,
-		}
-	}
-	return c.Builders[builder]
-}
-
-func (c *buildCache) Put(b *Build) error {
-	return c.get(b.Builder, b.Master).Put(b)
-}
-
-func (c *buildCache) PutMulti(builds []*Build) error {
-	for _, b := range builds {
-		if err := c.get(b.Builder, b.Master).Put(b); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (c *buildCache) GetBuildFromDB(builder, master string, number int) (*Build, error) {
-	return c.get(builder, master).GetByNumber(number)
-}
-
-func (c *buildCache) GetBuildIDFromDB(builder, master string, number int) (int, error) {
-	b, err := c.get(builder, master).GetByNumber(number)
-	if err != nil {
-		return -1, err
-	}
-	if b == nil {
-		// This function returns an error if no such build exists.
-		return -1, fmt.Errorf("No such build!")
-	}
-	return b.Id, nil
-}
-
-func (c *buildCache) GetBuildForCommit(builder, master, commit string) (int, error) {
-	b, err := c.get(builder, master).GetByCommit(commit)
-	if err != nil {
-		return -1, err
-	}
-	if b == nil {
-		return -1, nil
-	}
-	return b.Number, nil
-}
-
-func (c *buildCache) ingest(builds []*Build) {
-	defer metrics.NewTimer("buildbot.buildCache.ingest()").Stop()
-	for {
-		// De-dupe the builds.
-		m := map[string]map[int]*Build{}
-		for _, b := range builds {
-			if _, ok := m[b.Builder]; !ok {
-				m[b.Builder] = map[int]*Build{}
-			}
-			m[b.Builder][b.Number] = b
-		}
-
-		// Make a new slice of builds to insert.
-		toInsert := make([]*Build, 0, len(builds))
-		for _, v := range m {
-			for _, b := range v {
-				toInsert = append(toInsert, b)
-			}
-		}
-
-		// Sort the builds by builder and number.
-		sort.Sort(BuildSlice(toInsert))
-
-		// Insert the builds.
-		glog.Infof("Inserting %d builds...", len(toInsert))
-		if err := ReplaceMultipleBuildsIntoDB(toInsert); err != nil {
-			glog.Errorf("Failed to insert builds, retrying: %v", err)
-			time.Sleep(100 * time.Millisecond)
-		} else {
-			break
-		}
-	}
-}
-
-func (c *buildCache) ingestLoop() {
-	go func() {
-		builds := []*Build{}
-		for {
-			select {
-			case b := <-c.ingestQueue:
-				builds = append(builds, b)
-				if len(c.ingestQueue) == cap(c.ingestQueue) {
-					c.ingest(builds)
-					builds = []*Build{}
-				}
-			default:
-				if len(builds) > 0 {
-					c.ingest(builds)
-					builds = []*Build{}
-				} else {
-					time.Sleep(1000 * time.Millisecond)
-				}
-			}
-		}
-	}()
-}
-
-func newBuildCache() *buildCache {
-	bc := &buildCache{
-		Builders:    map[string]*builderCache{},
-		ingestQueue: make(chan *Build, 100),
-	}
-	bc.ingestLoop()
-	return bc
-}
-
-var bc = newBuildCache()
+var bf dbBuildFinder
 
 // findCommitsRecursive is a recursive function called by FindCommitsForBuild.
 // It traces the history to find builds which were first included in the given
 // build.
-func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
+func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
 	// Shortcut for empty hashes. This can happen when a commit has no
 	// parents (initial commit) or when a Build has no GotRevision.
 	if hash == "" {
@@ -266,7 +80,7 @@ func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash
 	}
 
 	// Determine whether any build already includes this commit.
-	n, err := bc.GetBuildForCommit(b.Builder, b.Master, hash)
+	n, err := bf.GetBuildForCommit(b.Builder, b.Master, hash)
 	if err != nil {
 		return commits, stealFrom, stolen, fmt.Errorf("Could not find build for commit %s: %v", hash, err)
 	}
@@ -286,11 +100,12 @@ func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash
 				// GotRevision of the Build we're stealing commits from,
 				// ie. both builds ran at the same commit, just take all of
 				// its commits without doing any more work.
-				stealFromBuild, err := bc.GetBuildFromDB(b.Builder, b.Master, stealFrom)
+				stealFromBuild, err := GetBuildFromDB(b.Builder, b.Master, stealFrom)
 				if err != nil {
 					return commits, stealFrom, stolen, fmt.Errorf("Could not retrieve build: %v", err)
 				}
-				if stealFromBuild.GotRevision == b.GotRevision && stealFromBuild.Number < b.Number {
+				if stealFromBuild.GotRevision == b.GotRevision {
+					glog.Infof("Build numbers %d and %d for %s have a GotRevision of %s; stealing all %d commits.", b.Number, stealFrom, b.Builder, b.GotRevision, len(stealFromBuild.Commits))
 					commits = map[string]bool{}
 					for _, c := range stealFromBuild.Commits {
 						commits[c] = true
@@ -325,7 +140,7 @@ func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash
 		if _, ok := commits[p]; ok {
 			continue
 		}
-		commits, stealFrom, stolen, err = findCommitsRecursive(bc, commits, b, p, repo, stealFrom, stolen)
+		commits, stealFrom, stolen, err = findCommitsRecursive(bf, commits, b, p, repo, stealFrom, stolen)
 		if err != nil {
 			return commits, stealFrom, stolen, err
 		}
@@ -336,7 +151,7 @@ func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash
 // FindCommitsForBuild determines which commits were first included in the
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
-func FindCommitsForBuild(bc BuildCache, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
+func FindCommitsForBuild(bf BuildFinder, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
 	defer metrics.NewTimer("buildbot.FindCommitsForBuild").Stop()
 	// Shortcut: Don't bother computing commit blamelists for trybots.
 	if IsTrybot(b.Builder) {
@@ -350,15 +165,6 @@ func FindCommitsForBuild(bc BuildCache, b *Build, repos *gitinfo.RepoMap) ([]str
 		return nil, -1, nil, fmt.Errorf("Could not find commits for build: %v", err)
 	}
 
-	// Update (git pull) on demand.
-	if b.GotRevision != "" {
-		if _, err := repo.Details(b.GotRevision); err != nil {
-			if err := repo.Update(true, true); err != nil {
-				return nil, -1, nil, fmt.Errorf("Could not find commits for build: failed to update repo: %v", err)
-			}
-		}
-	}
-
 	// Shortcut for the first build for a given builder: this build must be
 	// the first inclusion for all revisions prior to b.GotRevision.
 	if b.Number == 0 && b.GotRevision != "" {
@@ -366,7 +172,7 @@ func FindCommitsForBuild(bc BuildCache, b *Build, repos *gitinfo.RepoMap) ([]str
 		return revlist, -1, []string{}, err
 	}
 	// Start tracing commits back in time until we hit a previous build.
-	commitMap, stealFrom, stolen, err := findCommitsRecursive(bc, map[string]bool{}, b, b.GotRevision, repo, -1, []string{})
+	commitMap, stealFrom, stolen, err := findCommitsRecursive(bf, map[string]bool{}, b, b.GotRevision, repo, -1, []string{})
 	if err != nil {
 		return nil, -1, nil, err
 	}
@@ -442,7 +248,7 @@ func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *git
 func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 	defer metrics.NewTimer("buildbot.IngestBuild").Stop()
 	// Find the commits for this build.
-	commits, stoleFrom, stolen, err := FindCommitsForBuild(bc, b, repos)
+	commits, stoleFrom, stolen, err := FindCommitsForBuild(&bf, b, repos)
 	if err != nil {
 		return err
 	}
@@ -454,7 +260,7 @@ func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 	}
 	// Determine whether we've already ingested this build. If so, fix up the ID
 	// so that we update it rather than insert a new copy.
-	existingBuildID, err := bc.GetBuildIDFromDB(b.Builder, b.Master, b.Number)
+	existingBuildID, err := GetBuildIDFromDB(b.Builder, b.Master, b.Number)
 	if err == nil {
 		b.Id = existingBuildID
 	}
@@ -462,7 +268,7 @@ func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 	// Insert the build.
 	if stoleFrom >= 0 && stolen != nil && len(stolen) > 0 {
 		// Remove the commits we stole from the previous owner.
-		oldBuild, err := bc.GetBuildFromDB(b.Builder, b.Master, stoleFrom)
+		oldBuild, err := GetBuildFromDB(b.Builder, b.Master, stoleFrom)
 		if err != nil {
 			return err
 		}
@@ -483,9 +289,9 @@ func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 			}
 		}
 		oldBuild.Commits = newCommits
-		return bc.PutMulti([]*Build{b, oldBuild})
+		return ReplaceMultipleBuildsIntoDB([]*Build{b, oldBuild})
 	} else {
-		return bc.Put(b)
+		return b.ReplaceIntoDB()
 	}
 }
 
@@ -604,6 +410,10 @@ func ingestNewBuilds(m string, repos *gitinfo.RepoMap) error {
 			buildsToProcess[b.Builder] = []int{}
 		}
 		buildsToProcess[b.Builder] = append(buildsToProcess[b.Builder], b.Number)
+	}
+
+	if err := repos.Update(); err != nil {
+		return err
 	}
 
 	// TODO(borenet): Can we ingest builders in parallel?
