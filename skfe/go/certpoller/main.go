@@ -18,17 +18,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"os/exec"
 	"strings"
-	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/util"
-)
-
-var (
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 )
 
 // cert contains information about one SSL certificate file.
@@ -122,9 +118,10 @@ func get(client *http.Client, cert *cert) error {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("certpoller", graphiteServer)
+	common.Init()
 	client := util.NewTimeoutClient()
-	certs := []*cert{}
+	retVal := 255
+
 	// Populate certs based on cmd-line args.
 	for _, metadata := range flag.Args() {
 		c := &cert{
@@ -136,14 +133,8 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Failed to retrieve the cert %s: %s", c, err)
 		}
-		certs = append(certs, c)
+		retVal = 0
 	}
 
-	for _ = range time.Tick(30 * time.Minute) {
-		for _, c := range certs {
-			if err := get(client, c); err != nil {
-				glog.Errorf("Failed to update cert %s: %s", c.metadata, err)
-			}
-		}
-	}
+	os.Exit(retVal)
 }

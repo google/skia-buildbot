@@ -1,7 +1,5 @@
 
-ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
 ssl_ciphers 'AES128+EECDH:AES128+EDH';
-ssl_prefer_server_ciphers on;
 ssl_session_cache shared:SSL:10m;
 
 ssl_certificate         /etc/nginx/ssl/skia_org.pem;

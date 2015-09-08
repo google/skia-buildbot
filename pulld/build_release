@@ -2,6 +2,7 @@
 # Builds and uploads a debian package for pulld .
 APPNAME=pulld
 SYSTEMD=${APPNAME}.service
+SYSTEMD_TIMER=""
 DESCRIPTION="Application to pull push-controlled applications. Also allows viewing those applications status."
 
 # Copy files into the right locations in ${ROOT}.

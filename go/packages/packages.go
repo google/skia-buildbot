@@ -2,6 +2,7 @@
 package packages
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	iexec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
 	"google.golang.org/api/storage/v1"
@@ -349,6 +351,11 @@ func Install(client *http.Client, store *storage.Service, name string) error {
 	if copyErr != nil {
 		return fmt.Errorf("Failed to download file: %s", copyErr)
 	}
+
+	if err := installDependencies(f.Name()); err != nil {
+		return fmt.Errorf("Error installing dependencies: %s", err)
+	}
+
 	cmd := exec.Command("sudo", "dpkg", "-i", f.Name())
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -357,5 +364,50 @@ func Install(client *http.Client, store *storage.Service, name string) error {
 		return fmt.Errorf("Failed to install package: %s", err)
 	}
 	glog.Infof("Install package stdout: %s", out.String())
+	return nil
+}
+
+// getDependencies returns the value of the 'Depends' field in the control
+// file of the given package.
+func getDependencies(packageName string) (string, error) {
+	const DEPENDS_PREFIX = "Depends:"
+
+	output, err := iexec.RunSimple(fmt.Sprintf("dpkg -I %s", packageName))
+	if err != nil {
+		return "", err
+	}
+	glog.Infof("Got output for %s :\n\n%s", packageName, output)
+
+	buf := bytes.NewBuffer([]byte(output))
+	scanner := bufio.NewScanner(buf)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, DEPENDS_PREFIX) {
+			return strings.TrimSpace(strings.TrimPrefix(line, DEPENDS_PREFIX)), nil
+		}
+	}
+	return "", nil
+}
+
+// installDependencies installs all dependencies that are named in the
+// 'Depends' field of the control file via apt-get.
+func installDependencies(packageFileName string) error {
+	dependencies, err := getDependencies(packageFileName)
+	if err != nil {
+		return fmt.Errorf("Error getting dependencies for %s: %s", packageFileName, err)
+	}
+
+	if dependencies != "" {
+		if output, err := iexec.RunSimple("sudo apt-get update"); err != nil {
+			return fmt.Errorf("Unable to update package cache Got error  %s\n\n and output: %s\n\n", err, output)
+		}
+
+		glog.Infof("Installing via apt-get: %s", dependencies)
+		if output, err := iexec.RunSimple(fmt.Sprintf("sudo apt-get -y install %s", dependencies)); err != nil {
+			return fmt.Errorf("Unable to install dependencies for %s. Got error: \n %s \n\n and output:\n\n%s", packageFileName, err, output)
+		}
+	} else {
+		glog.Infof("No deps found.")
+	}
 	return nil
 }

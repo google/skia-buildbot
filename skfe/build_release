@@ -1,9 +1,13 @@
 #!/bin/bash
 # Builds and uploads a debian package with configuration files for nginx.
 APPNAME=skfe-config
+SETUP_APPNAME="setup-${APPNAME}"
+CERTPOLLER_APPNAME="certpoller"
+SYSTEMD="nginx.service"
+SYSTEMD_TIMER="${SETUP_APPNAME}.service"
 DESCRIPTION="The local config files for nginx serving *.skia.org"
 
-# This package depends upon nginx being installed.
+# nginx is installed by the setup script.
 DEPENDS=nginx
 
 # Copy files into the right locations in ${ROOT}.
@@ -13,17 +17,13 @@ INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 SOFTLINK="sudo ln -s"
 # Configs for the sites we are hosting.
-${INSTALL} --mode=644 -T ./sys/skia_org_nginx      ${ROOT}/etc/nginx/sites-available/skia_org
-sudo mkdir                                         ${ROOT}/etc/nginx/sites-enabled
-${SOFTLINK} ../sites-available/skia_org            ${ROOT}/etc/nginx/sites-enabled/skia_org
-
-${INSTALL} --mode=644 -T ./sys/certpoller_monit    ${ROOT}/etc/monit/conf.d/certpoller
-${INSTALL} --mode=755 -T ./sys/certpoller_init     ${ROOT}/etc/init.d/certpoller
-${INSTALL} --mode=755 -T ${GOPATH}/bin/certpoller  ${ROOT}/usr/local/bin/certpoller
-
-# Monitoring.
-${INSTALL}     --mode=644 -T ./sys/nginx_monit     ${ROOT}/etc/monit/conf.d/nginx
-${INSTALL_DIR} --mode=700                          ${ROOT}/etc/nginx/ssl
+${INSTALL} --mode=644 -T ./sys/skia_org_nginx                   ${ROOT}/etc/nginx/sites-available/skia_org
+sudo mkdir                                                      ${ROOT}/etc/nginx/sites-enabled
+${SOFTLINK} ../sites-available/skia_org                         ${ROOT}/etc/nginx/sites-enabled/skia_org
+${INSTALL_DIR} --mode=700                                       ${ROOT}/etc/nginx/ssl
+${INSTALL} --mode=644 -T ./sys/${SETUP_APPNAME}.service         ${ROOT}/etc/systemd/system/${SETUP_APPNAME}.service
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${CERTPOLLER_APPNAME}    ${ROOT}/usr/local/bin/${CERTPOLLER_APPNAME}
+${INSTALL} --mode=755 -T ./sys/${SETUP_APPNAME}.sh              ${ROOT}/usr/local/bin/${SETUP_APPNAME}.sh
 }
 
 source ../bash/release.sh

@@ -75,7 +75,27 @@ func step(client *http.Client, store *storage.Service, hostname string) {
 			}
 			continue
 		}
+
+		// The pull application is special in that it's not restarted by the
+		// the postinstall script of the debian package, because that might kill
+		// pullg while it was updating itself. Instead pulld will just exit when
+		// it notices that it has been updated and count on systemd to restart it.
+		if containsPulld(newPackages) {
+			glog.Info("The pulld package has been updated, exiting to allow a restart.")
+			glog.Flush()
+			os.Exit(0)
+		}
 	}
+}
+
+// containsPull returns true if the list of installed packages contains the 'pull' package.
+func containsPulld(packages []string) bool {
+	for _, s := range packages {
+		if strings.Split(s, "/")[0] == "pulld" {
+			return true
+		}
+	}
+	return false
 }
 
 // pullHandler triggers a pull when /pullpullpull is requested.
