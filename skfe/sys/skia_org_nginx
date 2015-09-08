@@ -45,10 +45,6 @@ server {
 
     ssl on;
 
-    if ( $host != 'perf.skia.org' ) {
-        rewrite ^/(.*)$ https://perf.skia.org/$1 permanent;
-    }
-
     location / {
         proxy_pass http://skia-perf:8000;
     }
@@ -68,10 +64,6 @@ server {
     error_log /var/log/nginx/gold.error.log error;
 
     ssl on;
-
-    if ( $host != 'gold.skia.org' ) {
-        rewrite ^/(.*)$ https://gold.skia.org/$1 permanent;
-    }
 
     location / {
         proxy_pass http://skia-gold-prod:8001;
@@ -93,10 +85,6 @@ server {
 
     ssl on;
 
-    if ( $host != 'gold-staging.skia.org' ) {
-        rewrite ^/(.*)$ https://gold-staging.skia.org/$1 permanent;
-    }
-
     location / {
         proxy_pass http://skia-gold-stage:8001;
     }
@@ -116,10 +104,6 @@ server {
 
     access_log /var/log/nginx/gold-android.access.log;
     error_log /var/log/nginx/gold-android.error.log error;
-
-    if ( $host != 'gold-android.skia.org' ) {
-        rewrite ^/(.*)$ https://gold-android.skia.org/$1 permanent;
-    }
 
     location / {
         proxy_pass http://skia-gold-android:8001;
@@ -141,10 +125,6 @@ server {
     access_log /var/log/nginx/gold-blink.access.log;
     error_log /var/log/nginx/gold-blink.error.log error;
 
-    if ( $host != 'gold-blink.skia.org' ) {
-        rewrite ^/(.*)$ https://gold-blink.skia.org/$1 permanent;
-    }
-
     location / {
         proxy_pass http://skia-gold-blink:8001;
     }
@@ -165,10 +145,6 @@ server {
     access_log /var/log/nginx/alerts.access.log;
     error_log /var/log/nginx/alerts.error.log error;
 
-    if ( $host != 'alerts.skia.org' ) {
-        rewrite ^/(.*)$ https://alerts.skia.org/$1 permanent;
-    }
-
     location / {
         proxy_pass http://skia-alerts:8001;
     }
@@ -188,10 +164,6 @@ server {
 
     access_log /var/log/nginx/mon.access.log;
     error_log /var/log/nginx/mon.error.log error;
-
-    if ( $host != 'mon.skia.org' ) {
-        rewrite ^/(.*)$ https://mon.skia.org/$1 permanent;
-    }
 
     location / {
         proxy_pass http://skia-monitoring:8000;
@@ -214,10 +186,6 @@ server {
     access_log /var/log/nginx/mon-staging.access.log;
     error_log /var/log/nginx/mon-staging.error.log error;
 
-    if ( $host != 'mon-staging.skia.org' ) {
-        rewrite ^/(.*)$ https://mon-staging.skia.org/$1 permanent;
-    }
-
     location / {
         proxy_pass http://skia-monitoring-staging:8000;
     }
@@ -239,10 +207,6 @@ server {
     access_log /var/log/nginx/push.access.log;
     error_log /var/log/nginx/push.error.log error;
 
-    if ( $host != 'push.skia.org' ) {
-        rewrite ^/(.*)$ https://push.skia.org/$1 permanent;
-    }
-
     location / {
         proxy_pass http://skia-push:8000;
     }
@@ -262,10 +226,6 @@ server {
 
     access_log /var/log/nginx/fiddle.access.log;
     error_log /var/log/nginx/fiddle.error.log error;
-
-    if ( $host != 'fiddle.skia.org' ) {
-        rewrite ^/(.*)$ https://fiddle.skia.org/$1 permanent;
-    }
 
     location / {
         proxy_pass http://skia-webtry:8000;
@@ -322,10 +282,6 @@ server {
     access_log /var/log/nginx/status.access.log;
     error_log /var/log/nginx/status.error.log error;
 
-    if ( $host != 'status.skia.org' ) {
-        rewrite ^/(.*)$ https://status.skia.org/$1 permanent;
-    }
-
     location / {
         proxy_pass http://skia-status:8002;
     }
@@ -361,10 +317,6 @@ server {
     error_log /var/log/nginx/ct.error.log error;
 
     ssl on;
-
-    if ( $host != 'ct.skia.org' ) {
-        rewrite ^/(.*)$ https://ct.skia.org/$1 permanent;
-    }
 
     location / {
         proxy_pass http://skia-ctfe:8002;
@@ -419,10 +371,6 @@ server {
     access_log /var/log/nginx/grand-central.access.log;
     error_log /var/log/nginx/grand-central.error.log error;
 
-    if ( $host != 'grandcentral.skia.org' ) {
-        rewrite ^/(.*)$ https://grandcentral.skia.org/$1 permanent;
-    }
-
     location / {
         proxy_pass http://skia-grandcentral:8002;
     }
@@ -442,10 +390,6 @@ server {
 
     access_log /var/log/nginx/bugchomper.access.log;
     error_log /var/log/nginx/bugchomper.error.log error;
-
-    if ( $host != 'bugchomper.skia.org' ) {
-        rewrite ^/(.*)$ https://bugchomper.skia.org/$1 permanent;
-    }
 
     location / {
         proxy_pass http://skia-bugchomper:8050;
@@ -479,4 +423,3 @@ server {
     server_name bugchomper.skia.org;
     return 301 https://bugchomper.skia.org$request_uri;
 }
-
