@@ -11,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"code.google.com/p/go.crypto/ssh"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
