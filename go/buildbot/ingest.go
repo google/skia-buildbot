@@ -24,8 +24,10 @@ var (
 			1: true, // Cannot be ingested because its repo is "???"
 		},
 		"Linux Tests": map[int]bool{
-			2872: true, // This build doesn't exist on the server?
-			2920: true, // This build doesn't exist on the server?
+			// For some reason, these builds don't exist on the server.
+			2872: true,
+			2920: true,
+			2995: true,
 		},
 		"Win7 Tests (1)": map[int]bool{
 			1797: true, // This build doesn't exist on the server?
