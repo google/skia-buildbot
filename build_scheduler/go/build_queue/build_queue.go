@@ -227,22 +227,24 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 		return nil, fmt.Errorf(errMsg, err)
 	}
 
-	// Create buildFinders for each builder.
-	buildFinders := map[string]*buildFinder{}
+	// Create buildCaches for each builder.
+	buildCaches := map[string]*buildCache{}
 	for _, buildsForCommit := range buildsByCommit {
 		for _, build := range buildsForCommit {
 			if util.AnyMatch(q.botBlacklist, build.Builder) {
 				glog.Infof("Skipping blacklisted builder %s", build.Builder)
 				continue
 			}
-			if _, ok := buildFinders[build.Builder]; !ok {
-				bf, err := newBuildFinder(build.Builder, build.Master, build.Repository)
+			if _, ok := buildCaches[build.Builder]; !ok {
+				bc, err := newBuildCache(build.Builder, build.Master, build.Repository)
 				if err != nil {
 					return nil, fmt.Errorf(errMsg, err)
 				}
-				buildFinders[build.Builder] = bf
+				buildCaches[build.Builder] = bc
 			}
-			buildFinders[build.Builder].add(build)
+			if err := buildCaches[build.Builder].Put(build); err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -251,11 +253,11 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	errs := map[string]error{}
 	mutex := sync.Mutex{}
 	var wg sync.WaitGroup
-	for builder, finder := range buildFinders {
+	for builder, finder := range buildCaches {
 		wg.Add(1)
-		go func(b string, bf *buildFinder) {
+		go func(b string, bc *buildCache) {
 			defer wg.Done()
-			c, err := q.getCandidatesForBuilder(bf, recentCommits, now)
+			c, err := q.getCandidatesForBuilder(bc, recentCommits, now)
 			mutex.Lock()
 			defer mutex.Unlock()
 			if err != nil {
@@ -277,17 +279,17 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 }
 
 // getCandidatesForBuilder finds all BuildCandidates for the given builder, in order.
-func (q *BuildQueue) getCandidatesForBuilder(bf *buildFinder, recentCommits []string, now time.Time) ([]*BuildCandidate, error) {
-	defer timer.New(fmt.Sprintf("getCandidatesForBuilder(%s)", bf.Builder)).Stop()
-	repo, err := q.repos.Repo(bf.Repo)
+func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []string, now time.Time) ([]*BuildCandidate, error) {
+	defer timer.New(fmt.Sprintf("getCandidatesForBuilder(%s)", bc.Builder)).Stop()
+	repo, err := q.repos.Repo(bc.Repo)
 	if err != nil {
 		return nil, err
 	}
 	candidates := []*BuildCandidate{}
 	for {
-		score, newBuild, stoleFrom, err := q.getBestCandidate(bf, recentCommits, now)
+		score, newBuild, stoleFrom, err := q.getBestCandidate(bc, recentCommits, now)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to get build candidates for %s: %v", bf.Builder, err)
+			return nil, fmt.Errorf("Failed to get build candidates for %s: %v", bc.Builder, err)
 		}
 		if score < q.scoreThreshold {
 			break
@@ -297,32 +299,36 @@ func (q *BuildQueue) getCandidatesForBuilder(bf *buildFinder, recentCommits []st
 			return nil, err
 		}
 		// "insert" the new build.
-		bf.add(newBuild)
+		if err := bc.Put(newBuild); err != nil {
+			return nil, err
+		}
 		if stoleFrom != nil {
-			bf.add(stoleFrom)
+			if err := bc.Put(stoleFrom); err != nil {
+				return nil, err
+			}
 		}
 		candidates = append(candidates, &BuildCandidate{
 			Author:  d.Author,
 			Builder: newBuild.Builder,
 			Commit:  newBuild.GotRevision,
 			Score:   score,
-			Repo:    bf.Repo,
+			Repo:    bc.Repo,
 		})
 	}
 	return candidates, nil
 }
 
 // getBestCandidate finds the best BuildCandidate for the given builder.
-func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
-	errMsg := fmt.Sprintf("Failed to get best candidate for %s: %%v", bf.Builder)
-	repo, err := q.repos.Repo(bf.Repo)
+func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
+	errMsg := fmt.Sprintf("Failed to get best candidate for %s: %%v", bc.Builder)
+	repo, err := q.repos.Repo(bc.Repo)
 	if err != nil {
 		return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 	}
 	// Find the current scores for each commit.
 	currentScores := map[string]float64{}
 	for _, commit := range recentCommits {
-		currentBuild, err := bf.getBuildForCommit(commit)
+		currentBuild, err := bc.getBuildForCommit(commit)
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
@@ -342,7 +348,7 @@ func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, n
 		// Shortcut: Don't bisect builds with a huge number
 		// of commits.  This saves lots of time and only affects
 		// the first successful build for a bot.
-		b, err := bf.getBuildForCommit(commit)
+		b, err := bc.getBuildForCommit(commit)
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
@@ -357,13 +363,13 @@ func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, n
 		newScores := map[string]float64{}
 		// Pretend to create a new Build at the given commit.
 		newBuild := buildbot.Build{
-			Builder:     bf.Builder,
-			Master:      bf.Master,
-			Number:      bf.MaxBuildNum + 1,
+			Builder:     bc.Builder,
+			Master:      bc.Master,
+			Number:      bc.MaxBuildNum + 1,
 			GotRevision: commit,
-			Repository:  bf.Repo,
+			Repository:  bc.Repo,
 		}
-		commits, stealFrom, stolen, err := buildbot.FindCommitsForBuild(bf, &newBuild, q.repos)
+		commits, stealFrom, stolen, err := buildbot.FindCommitsForBuild(bc, &newBuild, q.repos)
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
@@ -377,7 +383,7 @@ func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, n
 			if _, ok := currentScores[c]; !ok {
 				// If this build has commits which are outside of our window,
 				// insert them into currentScores to account for them.
-				b, err := bf.getBuildForCommit(c)
+				b, err := bc.getBuildForCommit(c)
 				if err != nil {
 					return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 				}
@@ -391,17 +397,19 @@ func (q *BuildQueue) getBestCandidate(bf *buildFinder, recentCommits []string, n
 		// another build, update scores for commits in the build we stole
 		// them from.
 		if stealFrom != -1 {
-			stoleFromOrig, err := bf.getByNumber(stealFrom)
+			stoleFromOrig, err := bc.getByNumber(stealFrom)
 			if err != nil {
 				return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 			}
 			if stoleFromOrig == nil {
 				// The build may not be cached. Fall back on getting it from the DB.
-				stoleFromOrig, err = buildbot.GetBuildFromDB(bf.Builder, bf.Master, stealFrom)
+				stoleFromOrig, err = buildbot.GetBuildFromDB(bc.Builder, bc.Master, stealFrom)
 				if err != nil {
 					return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 				}
-				bf.add(stoleFromOrig)
+				if err := bc.Put(stoleFromOrig); err != nil {
+					return 0.0, nil, nil, err
+				}
 			}
 			// "copy" the build so that we can assign new commits to it
 			// without modifying the cached build.

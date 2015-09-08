@@ -677,6 +677,7 @@ func ReplaceMultipleBuildsIntoDB(builds []*Build) (rv error) {
 	}()
 
 	// Insert the builds.
+	// TODO(borenet): Insert/update all of the builds at once.
 	for _, b := range builds {
 		if err := b.replaceIntoDBTx(tx); err != nil {
 			return err
