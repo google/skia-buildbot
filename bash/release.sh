@@ -85,7 +85,7 @@ EOF
 
 # Either restart SYSTEMD or SYSTEMD_TIMER.
 RESTART_TARGET="$SYSTEMD"
-if [ ! -v "$SYSTEMD_TIMER" ]; then
+if [ -v SYSTEMD_TIMER ]; then
   RESTART_TARGET=${SYSTEMD_TIMER}
 fi
 
