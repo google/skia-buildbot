@@ -178,6 +178,12 @@
           <div class=more><a href="detail?test={{test}}&digest={{digest}}">(more)</a></div>
         </template>
       </div>
+
+      <!-- Links to Grid and Cluster. -->
+      <div id=links>
+        <span><a href="cmp/{{test}}"><core-icon icon=apps></core-icon></a></span>
+        <span><a href="cluster?query=name%3D{{test}}&head=true&pos=true&neg=true&unt=true&limit=200"><core-icon icon="radio-button-off"></core-icon></a></span>
+      </div>
     </div>
   </template>
   <script>
