@@ -204,6 +204,31 @@ server {
     return 301 https://mon.skia.org$request_uri;
 }
 
+#####   mon-staging.skia.org   ###########################
+server {
+    listen      443;
+    server_name mon-staging.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/mon-staging.access.log;
+    error_log /var/log/nginx/mon-staging.error.log error;
+
+    if ( $host != 'mon-staging.skia.org' ) {
+        rewrite ^/(.*)$ https://mon-staging.skia.org/$1 permanent;
+    }
+
+    location / {
+        proxy_pass http://skia-monitoring-staging:8000;
+    }
+}
+
+server {
+    listen      80;
+    server_name mon-staging.skia.org;
+    return 301 https://mon-staging.skia.org$request_uri;
+}
+
 #####   push.skia.org   ###########################
 server {
     listen      443;
