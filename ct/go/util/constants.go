@@ -240,7 +240,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			RunChromiumPerfTimeoutSecs: 150,
+			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1M (with desktop user-agent)",
 		},
 		PAGESET_TYPE_10k: &PagesetTypeInfo{
@@ -250,7 +250,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			RunChromiumPerfTimeoutSecs: 150,
+			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with desktop user-agent)",
 		},
 		PAGESET_TYPE_MOBILE_10k: &PagesetTypeInfo{
@@ -260,7 +260,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			RunChromiumPerfTimeoutSecs: 150,
+			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 10K (with mobile user-agent)",
 		},
 		PAGESET_TYPE_DUMMY_1k: &PagesetTypeInfo{
@@ -270,7 +270,7 @@ var (
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
-			RunChromiumPerfTimeoutSecs: 150,
+			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing)",
 		},
 	}
