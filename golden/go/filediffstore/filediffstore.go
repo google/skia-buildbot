@@ -311,6 +311,10 @@ func (fs *FileDiffStore) absPathOne(digest string) interface{} {
 // 5. Return map of digests to DiffMetrics once all requests have been
 //     processed by the workers.
 func (fs *FileDiffStore) Get(dMain string, dRest []string) (map[string]*diff.DiffMetrics, error) {
+	if dMain == "" {
+		return nil, fmt.Errorf("Received empty dMain digest.")
+	}
+
 	// 1. Look for main digest in local cache else download from GS.
 	if err := fs.ensureDigestInCache(dMain); err != nil {
 		// We cannot compute any DiffMetrics without the main digest.
@@ -332,12 +336,16 @@ func (fs *FileDiffStore) Get(dMain string, dRest []string) (map[string]*diff.Dif
 
 	// 3. Create the channel where responses from workers will be received in.
 	respCh := make(chan *WorkerResp, len(dRest))
+
 	// 4. Send requests to the request channel.
-	for dIndex := range dRest {
-		dOther := dRest[dIndex]
-		fs.getCh <- &WorkerReq{id: GetId{dMain: dMain, dOther: dOther}, respCh: respCh}
-	}
 	digestErrors := 0
+	for _, dOther := range dRest {
+		if dOther != "" {
+			fs.getCh <- &WorkerReq{id: GetId{dMain: dMain, dOther: dOther}, respCh: respCh}
+		} else {
+			digestErrors++
+		}
+	}
 	for {
 		select {
 		case resp := <-respCh:
