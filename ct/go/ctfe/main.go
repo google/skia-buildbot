@@ -29,16 +29,11 @@ import (
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
-)
-
-var (
-	dbClient *influxdb.Client = nil
 )
 
 // flags
@@ -205,7 +200,6 @@ func main() {
 	defer common.LogPanic()
 	// Setup flags.
 	dbConf := db.DBConfigFromFlags()
-	influxdb.SetupFlags()
 
 	ctfeutil.PreExecuteTemplateHook = func() {
 		// Don't use cached templates in local mode.
@@ -225,12 +219,6 @@ func main() {
 	serverURL := "https://" + *host
 	if *local {
 		serverURL = "http://" + *host + *port
-	}
-
-	// Setup InfluxDB client.
-	dbClient, err = influxdb.NewClientFromFlagsAndMetadata(*local)
-	if err != nil {
-		glog.Fatal(err)
 	}
 
 	// By default use a set of credentials setup for localhost access.
