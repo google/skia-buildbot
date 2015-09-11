@@ -60,12 +60,10 @@ var (
 	oauthCacheFile = flag.String("oauth_cache_file", "", "Path to the OAuth credential cache file.")
 	targetList     = flag.String("targets", "", "The targets to monitor, a space separated list.")
 	codenameDbDir  = flag.String("codename_db_dir", "codenames", "The location of the leveldb database that holds the mappings between targets and their codenames.")
+	period         = flag.Duration("period", 5*time.Minute, "The time between ingestion runs.")
 )
 
 var (
-	// cache is an in-memory cache of buildbot.Build's we've seen.
-	cache = map[string]*buildbot.Build{}
-
 	// terminal_build_status are the tradefed build status's that mean the build is done.
 	terminal_build_status = []string{"complete", "error"}
 
@@ -147,6 +145,10 @@ func brokenOnMaster(buildService *androidbuildinternal.Service, target, buildID 
 func step(targets []string, buildService *androidbuildinternal.Service, repos *gitinfo.RepoMap) {
 	glog.Errorf("step: Begin")
 
+	if err := repos.Update(); err != nil {
+		glog.Errorf("Failed to update repos: %s", err)
+		return
+	}
 	// Loop over every target and look for skia commits in the builds.
 	for _, target := range targets {
 		r, err := buildService.Build.List().Branch(SKIA_BRANCH).BuildType("submitted").Target(target).ExtraFields("changeInfo").MaxResults(40).Do()
@@ -161,56 +163,49 @@ func step(targets []string, buildService *androidbuildinternal.Service, repos *g
 			commits := androidbuild.CommitsFromChanges(b.Changes)
 			glog.Infof("Commits: %#v", commits)
 			if len(commits) > 0 {
-				var cachedBuild *buildbot.Build
+				var cachedBuild *buildbot.Build = nil
 				// Only look at the first commit in the list. The commits always appear in reverse chronological order, so
 				// the 0th entry is the most recent commit.
 				c := commits[0]
 				// Create a buildbot.Build from the build info.
 				key, build := buildFromCommit(b, c)
 				glog.Infof("Key: %s Hash: %s", key, c.Hash)
-				cachedBuild = nil
-				// Look for the build in the in-memory cache and fill in the cache if it's not there.
-				var ok bool
-				if cachedBuild, ok = cache[key]; !ok {
-					// Store build.Builder (the codename) with its pair build.Target.Name in a local leveldb to serve redirects.
-					if err := codenameDB.Put([]byte(build.Builder), []byte(b.Target.Name), nil); err != nil {
-						glog.Errorf("Failed to write codename to data store: %s", err)
-					}
 
-					buildNumber, err := buildbot.GetBuildForCommit(build.Builder, build.Master, c.Hash)
+				// Store build.Builder (the codename) with its pair build.Target.Name in a local leveldb to serve redirects.
+				if err := codenameDB.Put([]byte(build.Builder), []byte(b.Target.Name), nil); err != nil {
+					glog.Errorf("Failed to write codename to data store: %s", err)
+				}
+
+				buildNumber, err := buildbot.GetBuildForCommit(build.Builder, build.Master, c.Hash)
+				if err != nil {
+					glog.Errorf("Failed to find the build in the database: %s", err)
+					continue
+				}
+				glog.Infof("GetBuildForCommit at hash: %s returned %d", c.Hash, buildNumber)
+				if buildNumber != -1 {
+					cachedBuild, err = buildbot.GetBuildFromDB(build.Builder, build.Master, buildNumber)
 					if err != nil {
-						glog.Errorf("Failed to find the build in the database: %s", err)
+						glog.Errorf("Failed to retrieve build from database: %s", err)
 						continue
 					}
-					glog.Infof("GetBuildForCommit at hash: %s returned %d", c.Hash, buildNumber)
-					if buildNumber != -1 {
-						cachedBuild, err = buildbot.GetBuildFromDB(build.Builder, build.Master, buildNumber)
-						if err != nil {
-							glog.Errorf("Failed to retrieve build from database: %s", err)
-							continue
-						}
-					}
-					if cachedBuild == nil {
-						// This is a new build we've never seen before, so add it to the buildbot database.
-
-						// First calculate a new unique build.Number.
-						number, err := buildbot.GetMaxBuildNumber(build.Builder)
-						if err != nil {
-							glog.Infof("Failed to find next build number: %s", err)
-							continue
-						}
-						build.Number = number + 1
-						if err := buildbot.IngestBuild(build, repos); err != nil {
-							glog.Errorf("Failed to ingest build: %s", err)
-							continue
-						}
-						cache[key] = build
-						cachedBuild = build
-					} else {
-						glog.Infof("Repopulating the cache from db: %s %d", cachedBuild.Builder, cachedBuild.Number)
-						cache[key] = cachedBuild
-					}
 				}
+				if cachedBuild == nil {
+					// This is a new build we've never seen before, so add it to the buildbot database.
+
+					// First calculate a new unique build.Number.
+					number, err := buildbot.GetMaxBuildNumber(build.Builder)
+					if err != nil {
+						glog.Infof("Failed to find next build number: %s", err)
+						continue
+					}
+					build.Number = number + 1
+					if err := buildbot.IngestBuild(build, repos); err != nil {
+						glog.Errorf("Failed to ingest build: %s", err)
+						continue
+					}
+					cachedBuild = build
+				}
+
 				// If the state of the build has changed then write it to the buildbot database.
 				if buildsDiffer(build, cachedBuild) {
 					// If this was a failure then we need to check that there is a mirror
@@ -224,8 +219,6 @@ func step(targets []string, buildService *androidbuildinternal.Service, repos *g
 					glog.Infof("Writing updated build to the database: %s %d", cachedBuild.Builder, cachedBuild.Number)
 					if err := buildbot.IngestBuild(cachedBuild, repos); err != nil {
 						glog.Errorf("Failed to ingest build: %s", err)
-					} else {
-						cache[key] = build
 					}
 				}
 			}
@@ -402,7 +395,7 @@ func main() {
 		}
 		glog.Infof("Ready to start loop.")
 		step(targets, buildService, repos)
-		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+		for _ = range time.Tick(*period) {
 			step(targets, buildService, repos)
 		}
 	}()
