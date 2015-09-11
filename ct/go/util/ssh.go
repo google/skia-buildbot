@@ -93,6 +93,8 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 	}
 
 	var wg sync.WaitGroup
+	// m protects workersWithOutputs and remainingWorkers
+	var m sync.Mutex
 	// Will be populated and returned by this function.
 	workersWithOutputs := map[string]string{}
 	// Keeps track of which workers are still pending.
@@ -101,7 +103,9 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 	// Kick off a goroutine on all workers.
 	for i, hostname := range workers {
 		wg.Add(1)
+		m.Lock()
 		remainingWorkers[hostname] = 1
+		m.Unlock()
 		go func(index int, hostname string) {
 			defer wg.Done()
 			updatedCmd := strings.Replace(cmd, WORKER_NUM_KEYWORD, strconv.Itoa(index+1), -1)
@@ -109,6 +113,8 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 			if err != nil {
 				glog.Errorf("Could not execute ssh cmd: %s", err)
 			}
+			m.Lock()
+			defer m.Unlock()
 			workersWithOutputs[hostname] = output
 			delete(remainingWorkers, hostname)
 			glog.Infoln()
@@ -122,6 +128,8 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 	glog.Infof("Finished running \"%s\" on all %d workers", cmd, NUM_WORKERS)
 	glog.Info("========================================")
 
+	m.Lock()
+	defer m.Unlock()
 	return workersWithOutputs, nil
 }
 
