@@ -1,0 +1,95 @@
+<!-- The <perf-scaffold-sk> custom element declaration.
+
+  Contains the title bar and drawer-panel for all the Perf pages. The
+  rest of every Perf page should be a child of this element.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+
+<link rel=import href="/res/imp/bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel=import href="/res/imp/bower_components/paper-header-panel/paper-header-panel.html">
+<link rel=import href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
+<link rel=import href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
+<link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel=import href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel=import href="/res/common/imp/9/login.html">
+
+<dom-module id="perf-scaffold-sk">
+  <style>
+    * {
+      font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    }
+
+    #nav a[href] {
+      color: black;
+      text-decoration: none;
+    }
+
+    #nav a[href]:hover {
+      text-decoration: underline;
+    }
+
+    #nav a span {
+      vertical-align: middle;
+    }
+
+    #nav div {
+      margin: 1em;
+    }
+
+    #nav iron-icon {
+      margin-right: 0.3em;
+    }
+
+    :root {
+      --paper-toolbar-background: #1f78b4;
+      --login-sk-color: white;
+    }
+
+    login-sk {
+      margin-left: auto;
+      display: block;
+      color: white;
+    }
+  </style>
+  <template>
+    <paper-drawer-panel>
+      <paper-header-panel drawer>
+        <paper-toolbar>
+          <div>Perf</div>
+        </paper-toolbar>
+        <div id=nav>
+          <div><a href="/"><iron-icon icon="home"></iron-icon><span>Home</span></a></div>
+          <div><a href="/clusters/"><iron-icon icon="sort"></iron-icon><span>Clustering<span></a></div>
+          <div><a href="/alerts/"><iron-icon icon="trending-up"></iron-icon><span>Alerts</span></a></div>
+          <div><a href="/compare/"><iron-icon icon="view-module"></iron-icon><span>Compare</span></a></div>
+          <div><a href="/activitylog/"><iron-icon icon="event"></iron-icon><span>Activities</span></a></div>
+          <div><a href="/help/"><iron-icon icon="help"></iron-icon><span>Help</span></a></div>
+          <div><a href="https://github.com/google/skia-buildbot/tree/master/perf"><iron-icon icon="folder"></iron-icon><span>Code</span></a></div>
+        </div>
+      </paper-header-panel>
+      <paper-header-panel main>
+        <paper-toolbar>
+          <paper-icon-button icon="menu" paper-drawer-toggle></paper-icon-button>
+          <login-sk></login-sk>
+        </paper-toolbar>
+
+        <content></content>
+
+      </paper-header-panel>
+    </paper-drawer-panel>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "perf-scaffold-sk",
+  });
+</script>

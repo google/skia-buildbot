@@ -36,6 +36,9 @@
 
   Uses sk.Login promise to display the current login status and provides
   login/logout links.
+
+  The color of the text in the login-sk element can be controlled by
+  the --login-sk-color custom CSS attribute.
 -->
 
 <dom-module id="login-sk">
@@ -45,12 +48,19 @@
         display: none;
       }
     }
+
     #logInOut {
       margin-left: 10px;
     }
+
     #email,
     #logInOut {
       font-size: 15px;
+    }
+
+    span,
+    a[href] {
+      color: var(--login-sk-color, lightgray)
     }
   </style>
   <template>
