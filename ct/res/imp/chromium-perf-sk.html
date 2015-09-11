@@ -60,6 +60,38 @@
     .panel {
       @apply(--shadow-elevation-2dp);
     }
+
+    .cl-detail-container {
+      position: relative;
+      text-align: center;
+      height: 100px;
+      min-width: 200px;
+      max-width: 300px;
+    }
+
+    .loading-cl-spinner {
+      margin: auto;
+      vertical-align: middle;
+    }
+
+    .cl-detail {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      text-align: start;
+    }
+
+    .cl-error {
+      color: red;
+    }
+
+    .patches-expander {
+      
+    }
+
+    td.container {
+      padding: 0em;
+    }
   </style>
   <template>
 
@@ -133,34 +165,74 @@
 
       <tr>
         <td>
-          Chromium Git patch (optional)<br/>
-          Applied to Chromium ToT
+          CL
         </td>
-        <td>
-          <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 id="chromium_patch">
-          </iron-autogrow-textarea>
+        <td style="padding: 0em;">
+          <table>
+            <tr>
+              <td><paper-input value="{{cl}}"></paper-input></td>
+              <td>
+                <div class="cl-detail-container">
+                  <div class="loading-cl-spinner">
+                    <paper-spinner active="{{loadingClDetail}}"
+                                   alt="Loading CL details"></paper-spinner>
+                  </div>
+                  <div class="cl-detail">
+                    <a href="{{clUrl(clData)}}" target="_blank">{{formatClData(clData)}}</a>
+                    <span class="cl-error">{{formatClError(clData)}}</span>
+                  </div>
+              </td>
+            </tr>
+          </table>
         </td>
       </tr>
 
       <tr>
-        <td>
-          Blink Git patch (optional)<br/>
-          Applied to Blink Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
-        </td>
-        <td>
-          <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 id="blink_patch">
-          </iron-autogrow-textarea>
+        <td colspan="2">
+          <a href="javascript:void(0);" id="patches_expander">
+            <iron-icon icon="{{patchesExpanderIcon(patchesOpened)}}"></iron-icon>
+            Specify patch manually</button>
         </td>
       </tr>
 
       <tr>
-        <td>
-          Skia Git patch (optional)<br/>
-          Applied to Skia Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
-        </td>
-        <td>
-          <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 id="skia_patch">
-          </iron-autogrow-textarea>
+        <td style="padding: 0em;" colspan="2">
+          <iron-collapse id="patches_collapse" opened="{{patchesOpened}}">
+            <table>
+              <tr>
+                <td>
+                  Chromium Git patch (optional)<br/>
+                  Applied to Chromium ToT
+                </td>
+                <td>
+                  <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 id="chromium_patch">
+                  </iron-autogrow-textarea>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  Blink Git patch (optional)<br/>
+                  Applied to Blink Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
+                </td>
+                <td>
+                  <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 id="blink_patch">
+                  </iron-autogrow-textarea>
+                </td>
+              </tr>
+
+              <tr>
+                <td>
+                  Skia Git patch (optional)<br/>
+                  Applied to Skia Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
+                </td>
+                <td>
+                  <iron-autogrow-textarea class="long-field" rows=5 max-rows=20 id="skia_patch">
+                  </iron-autogrow-textarea>
+                </td>
+              </tr>
+            </table>
+          </iron-collapse>
         </td>
       </tr>
 
@@ -219,26 +291,47 @@
          type: String,
          value: "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting",
        },
+       cl: {
+         type: String,
+         value: "",
+         observer: "clChanged",
+       },
+       clData: Object,
+       loadingClDetail: {
+         type: Boolean,
+         value: false,
+       },
+       clDetail: {
+         type: String,
+         computed: "",
+       },
+       patchesOpened: {
+         type: Boolean,
+         value: false,
+       },
      },
 
      ready: function() {
-      var that = this;
-      this.$.target_platform.addEventListener('click', function(e) {
-        that.platformChanged();
-      });
-      this.$.submit_task.addEventListener('click', function(e) {
-        that.validateTask();
-      });
-      this.$.task_dismiss.addEventListener('click', function(e) {
-        that.dismissTask();
-      });
-      this.$.task_confirm.addEventListener('click', function(e) {
-        that.queueTask();
-      });
-      this.$.view_history.addEventListener('click', function(e) {
-        that.gotoRunsHistory();
-      });
-      this.platformChanged();
+       var that = this;
+       this.$.target_platform.addEventListener('click', function(e) {
+         that.platformChanged();
+       });
+       this.$.patches_expander.addEventListener('click', function(e) {
+         that.$.patches_collapse.toggle();
+       });
+       this.$.submit_task.addEventListener('click', function(e) {
+         that.validateTask();
+       });
+       this.$.task_dismiss.addEventListener('click', function(e) {
+         that.dismissTask();
+       });
+       this.$.task_confirm.addEventListener('click', function(e) {
+         that.queueTask();
+       });
+       this.$.view_history.addEventListener('click', function(e) {
+         that.gotoRunsHistory();
+       });
+       this.platformChanged();
      },
 
      getPlatformDesc: function(platform) {
@@ -272,7 +365,79 @@
        }
      },
 
+     clChanged: function(newValue) {
+       if (!newValue || newValue.length < 3) {
+         this.clData = null;
+         this.loadingClDetail = false;
+         return;
+       }
+       this.loadingClDetail = true;
+       var params = {cl: newValue};
+       var that = this;
+       sk.post("/_/cl_data?" + sk.query.fromObject(params)).then(JSON.parse).then(function (json) {
+         if (that.cl == newValue) {
+           if (json.cl) {
+             that.clData = json;
+             that.$.chromium_patch.textarea.value = that.clData.chromium_patch;
+             that.$.blink_patch.textarea.value = that.clData.blink_patch;
+             that.$.skia_patch.textarea.value = that.clData.skia_patch;
+             that.$.desc.value = "Testing " + that.clUrl(that.clData) +
+                 " (" + that.clData.subject + ")";
+           } else {
+             that.clData = null;
+           }
+           that.loadingClDetail = false;
+         }
+       }).catch(function (err) {
+         if (that.cl == newValue) {
+           that.clData = {error: err};
+           that.loadingClDetail = false;
+         }
+       });
+     },
+
+     clUrl: function(clData) {
+       if (clData && !clData.error) {
+         return "https://codereview.chromium.org/" + clData.cl + "/#ps" + clData.patchset;
+       }
+       return "javascript:void(0);"
+     },
+
+     formatClData: function(clData) {
+       if (clData && !clData.error) {
+         return clData.subject +
+             " (modified " + ctfe.getFormattedTimestamp(clData.modified) + ")";
+       }
+       return "";
+     },
+
+     formatClError: function(clData) {
+       if (clData && clData.error) {
+         return clData.error
+       }
+       return "";
+     },
+
+     patchesExpanderIcon: function(patchesOpened) {
+       if (patchesOpened) {
+         return "expand-less";
+       } else {
+         return "expand-more";
+       }
+     },
+
      validateTask: function() {
+       if (this.cl && !this.clData) {
+         sk.errorMessage("Unable to load CL " + this.cl + ". Please specify patches manually.");
+         return;
+       }
+       if (this.cl &&
+           !this.$.chromium_patch.textarea.value &&
+           !this.$.blink_patch.textarea.value &&
+           !this.$.skia_patch.textarea.value) {
+         sk.errorMessage("Unable to fetch patch from CL. Please specify patches manually.");
+         return;
+       }
        if (! this.$.desc.value) {
          sk.errorMessage("Please specify a description");
          this.$.desc.focus();

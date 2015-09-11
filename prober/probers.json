@@ -284,6 +284,14 @@
      "mimetype": "application/json",
      "bodytest": "ctfeChromiumPerfParametersJSON"
    },
+   "ctfe_cl_data": {
+     "url": "https://ct.skia.org/_/cl_data?cl=1330473002",
+     "method": "POST",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "bodytest": "ctfeCLDataJSON"
+   },
    "ctfe_chromium_rev_data": {
      "url": "https://ct.skia.org/_/chromium_rev_data?rev=LKGR",
      "method": "POST",

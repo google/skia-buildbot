@@ -36,6 +36,7 @@ var (
 	bodyTesters = map[string]BodyTester{
 		"buildbotJSON":                   testBuildbotJSON,
 		"ctfeChromiumPerfParametersJSON": ctfeChromiumPerfParametersJSON,
+		"ctfeCLDataJSON":                 ctfeCLDataJSON,
 		"ctfeGetTasksJSON":               ctfeGetTasksJSON,
 		"ctfeGetTasksNonEmptyJSON":       ctfeGetTasksNonEmptyJSON,
 		"ctfeRevDataJSON":                ctfeRevDataJSON,
@@ -203,6 +204,12 @@ func hasKeys(obj map[string]interface{}, keys []string) bool {
 // expected by ct/templates/chromium_perf.html.
 func ctfeChromiumPerfParametersJSON(r io.Reader) bool {
 	return hasKeys(decodeJSONObject(r), []string{"benchmarks", "platforms"})
+}
+
+// ctfeCLDataJSON tests that the response contains valid JSON with the keys expected by
+// ct/res/imp/chromium-perf-sk.html.
+func ctfeCLDataJSON(r io.Reader) bool {
+	return hasKeys(decodeJSONObject(r), []string{"cl", "patchset", "subject", "modified", "chromium_patch", "blink_patch", "skia_patch"})
 }
 
 // ctfeGetTasksJSONObject tests that obj has the attributes expected by

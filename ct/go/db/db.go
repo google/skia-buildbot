@@ -21,6 +21,9 @@ const (
 	TABLE_CHROMIUM_BUILD_TASKS            = "ChromiumBuildTasks"
 	TABLE_RECREATE_PAGE_SETS_TASKS        = "RecreatePageSetsTasks"
 	TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS = "RecreateWebpageArchivesTasks"
+
+	// From https://dev.mysql.com/doc/refman/5.0/en/storage-requirements.html
+	TEXT_MAX_LENGTH = 1<<16 - 1
 )
 
 var (

@@ -110,6 +110,13 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	if err := capture_skps.Validate(task.SkpRepository); err != nil {
 		return "", nil, err
 	}
+	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
+		{"lua_script", task.LuaScript, db.TEXT_MAX_LENGTH},
+		{"lua_aggregator_script", task.LuaAggregatorScript, db.TEXT_MAX_LENGTH},
+		{"description", task.Description, 255},
+	}); err != nil {
+		return "", nil, err
+	}
 	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,lua_script,lua_aggregator_script,description,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?);",
 			db.TABLE_LUA_SCRIPT_TASKS),
 		[]interface{}{
@@ -145,6 +152,12 @@ func (vars *UpdateVars) UriPath() string {
 }
 
 func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}, error) {
+	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
+		{"ScriptOutput", task.ScriptOutput.String, 255},
+		{"AggregatedOutput", task.AggregatedOutput.String, 255},
+	}); err != nil {
+		return nil, nil, err
+	}
 	clauses := []string{}
 	args := []interface{}{}
 	if task.ScriptOutput.Valid {

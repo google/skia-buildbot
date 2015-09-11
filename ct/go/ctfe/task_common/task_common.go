@@ -110,6 +110,10 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 
 	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
 	task.GetAddTaskCommonVars().TsAdded = ctutil.GetCurrentTs()
+	if len(task.GetAddTaskCommonVars().Username) > 255 {
+		skutil.ReportError(w, r, fmt.Errorf("Username is too long, limit 255 bytes"), "")
+		return
+	}
 
 	if err := AddTask(task); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))

@@ -100,6 +100,12 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	if err := chromium_builds.Validate(task.ChromiumBuild); err != nil {
 		return "", nil, err
 	}
+	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
+		{"page_sets", task.PageSets, 100},
+		{"desc", task.Description, 255},
+	}); err != nil {
+		return "", nil, err
+	}
 	return fmt.Sprintf("INSERT INTO %s (username,page_sets,chromium_rev,skia_rev,description,ts_added, repeat_after_days) VALUES (?,?,?,?,?,?,?);",
 			db.TABLE_CAPTURE_SKPS_TASKS),
 		[]interface{}{

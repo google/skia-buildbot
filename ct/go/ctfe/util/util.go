@@ -19,6 +19,7 @@ const (
 	CHROMIUM_PERF_URI                  = "chromium_perf/"
 	CHROMIUM_PERF_RUNS_URI             = "chromium_perf_runs/"
 	CHROMIUM_PERF_PARAMETERS_POST_URI  = "_/chromium_perf/"
+	CHROMIUM_PERF_CL_DATA_POST_URI     = "_/cl_data"
 	ADD_CHROMIUM_PERF_TASK_POST_URI    = "_/add_chromium_perf_task"
 	GET_CHROMIUM_PERF_TASKS_POST_URI   = "_/get_chromium_perf_tasks"
 	UPDATE_CHROMIUM_PERF_TASK_POST_URI = "_/update_chromium_perf_task"
@@ -102,4 +103,19 @@ func ExecuteSimpleTemplate(template *template.Template, w http.ResponseWriter, r
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 		return
 	}
+}
+
+type LengthCheck struct {
+	Name  string
+	Value string
+	Limit int
+}
+
+func CheckLengths(checks []LengthCheck) error {
+	for _, check := range checks {
+		if len(check.Value) > check.Limit {
+			return fmt.Errorf("Value of %s is too long; limit %d bytes", check.Name, check.Limit)
+		}
+	}
+	return nil
 }

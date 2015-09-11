@@ -126,6 +126,12 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	} else {
 		chromiumRevTs = parsedTs.UTC().Format("20060102150405")
 	}
+	if err := ctfeutil.CheckLengths([]ctfeutil.LengthCheck{
+		{"chromium_rev", task.ChromiumRev, 100},
+		{"skia_rev", task.SkiaRev, 100},
+	}); err != nil {
+		return "", nil, err
+	}
 	return fmt.Sprintf("INSERT INTO %s (username,chromium_rev,chromium_rev_ts,skia_rev,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_BUILD_TASKS),
 		[]interface{}{
