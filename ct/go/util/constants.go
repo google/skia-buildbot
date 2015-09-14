@@ -169,6 +169,10 @@ const (
 	MASTER_SCRIPT_RUN_LUA_TIMEOUT = RUN_LUA_TIMEOUT + LUA_AGGREGATOR_TIMEOUT +
 		MASTER_SCRIPT_TIMEOUT_PADDING
 
+	// Fix Archives
+	// Setting a 1 day timeout since it may take a while to validate archives.
+	FIX_ARCHIVES_TIMEOUT = 1 * 24 * time.Hour
+
 	// Poller
 	MAKE_ALL_TIMEOUT = 15 * time.Minute
 
