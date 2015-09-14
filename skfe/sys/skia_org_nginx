@@ -423,3 +423,25 @@ server {
     server_name bugchomper.skia.org;
     return 301 https://bugchomper.skia.org$request_uri;
 }
+
+#####   cs.skia.org (REDIRECT)   ###########################
+server {
+    listen 443;
+
+    ssl on;
+
+    access_log /var/log/nginx/cs.access.log;
+    error_log /var/log/nginx/cs.error.log error;
+
+    server_name cs.skia.org;
+    rewrite ^/(.*)$ https://code.google.com/p/chromium/codesearch#search/&q=$1%20file:%5Esrc/third_party/skia/ redirect;
+    rewrite ^ https://code.google.com/p/chromium/codesearch#chromium/src/third_party/skia/ redirect;
+}
+
+server {
+    listen 80;
+    server_name cs.skia.org;
+    rewrite ^/(.*)$ https://code.google.com/p/chromium/codesearch#search/&q=$1%20file:%5Esrc/third_party/skia/ redirect;
+    rewrite ^ https://code.google.com/p/chromium/codesearch#chromium/src/third_party/skia/ redirect;
+}
+
