@@ -178,6 +178,20 @@
      "body": "",
      "mimetype": ""
    },
+   "skia_ctfe_logs": {
+     "url": "http://skia-ctfe:10115",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skia_ctfe_pulld": {
+     "url": "http://skia-ctfe:10114",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
    "ctfe": {
      "url": "https://ct.skia.org",
      "method": "GET",
