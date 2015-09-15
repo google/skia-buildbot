@@ -20,6 +20,7 @@
 <link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel=import href="/res/imp/bower_components/iron-icon/iron-icon.html">
 <link rel=import href="/res/common/imp/9/login.html">
+<link rel=import href="/res/common/imp/9/error-toast-sk.html">
 
 <dom-module id="perf-scaffold-sk">
   <style>
@@ -60,7 +61,7 @@
     }
   </style>
   <template>
-    <paper-drawer-panel>
+    <paper-drawer-panel id=drawer>
       <paper-header-panel drawer>
         <paper-toolbar>
           <div>Perf</div>
@@ -85,11 +86,16 @@
 
       </paper-header-panel>
     </paper-drawer-panel>
+    <error-toast-sk></error-toast-sk>
   </template>
 </dom-module>
 
 <script>
   Polymer({
     is: "perf-scaffold-sk",
+
+    ready: function() {
+      this.$.drawer.drawerWidth = "150px";
+    },
   });
 </script>
