@@ -29,6 +29,8 @@
 
     only(id)   - Remove all traces but the one with the given id.
 
+    removeHighlighted() - Remove all traces currently highlighted.
+
     removeUnHighlighted() - Remove all traces currently unhighlighted.
 
     setBackgroundInfo(ticks, skps, lastCommitIndex) - Sets the tick marks,
@@ -36,6 +38,8 @@
 
     highlightGroup(key, value) - Highlight all traces that have params
         that match the given key and value.
+
+    clearHighlight - Remove all highlighting.
 
     getKeys() - Return the keys of all the traces being displayed.
 
@@ -147,6 +151,19 @@
       this.$.plot.resetAxes();
     },
 
+    removeHighlighted: function () {
+      var ids = this.$.plot.highlighted();
+      var toadd = [];
+      Object.keys(this._traces).forEach(function(key) {
+        var t = this._traces[key];
+        if (ids.indexOf(t.label) == -1) {
+          toadd.push(t);
+        }
+      }.bind(this));
+      this.clear();
+      this.addTraces(toadd);
+    },
+
     removeUnHighlighted: function () {
       var ids = this.$.plot.highlighted();
       var toadd = [];
@@ -167,21 +184,24 @@
 
     only: function (id) {
       var trace = this._traces[id];
-      console.log(trace);
       if (trace) {
         this.clear();
         this.addTraces([trace]);
       }
     },
 
+    clearHighlight: function() {
+      this.$.plot.clearHighlight();
+    },
+
     highlightGroup: function (key, value) {
+      this.$.plot.clearHighlight();
       var ids = [];
       Object.keys(this._traces).forEach(function(id) {
         if (this._traces[id]._params[key] && this._traces[id]._params[key] == value) {
           ids.push(id);
         }
       }.bind(this));
-      console.log(ids);
       this.$.plot.setHighlight(ids);
     },
 

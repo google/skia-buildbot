@@ -142,11 +142,13 @@ work, so we just prefix every rule with plot-simple-sk.
           type: Number,
           value: 1000,
           reflectToAttribute: true,
+          observer: "_calcSize",
         },
         height: {
           type: Number,
           value: 500,
           reflectToAttribute: true,
+          observer: "_calcSize",
         },
         nocrosshair: {
           type: Boolean,
@@ -272,6 +274,9 @@ work, so we just prefix every rule with plot-simple-sk.
       },
 
       resetAxes:  function() {
+        if (!this._lineData || !this._xRange) {
+          return
+        }
         xMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[0]; }) });
         xMax = d3.max(this._lineData, function (d) { return d3.max(d, function (d) { return d[0]; }) });
         yMin = d3.min(this._lineData, function (d) { return d3.min(d, function (d) { return d[1]; }) });
@@ -360,8 +365,10 @@ work, so we just prefix every rule with plot-simple-sk.
         }
       },
 
-      // Creates the initial set of SVG elements.
-      _initialSetup: function() {
+      _calcSize: function() {
+        if (!this.height || !this.width || !this._lineData) {
+          return;
+        }
         var ele = this.$.svg;
         this._outerWidth = ele.width.baseVal.value;
         this._outerHeight = ele.height.baseVal.value;
@@ -390,17 +397,6 @@ work, so we just prefix every rule with plot-simple-sk.
           .y(function (d) { return this._yRange(d[1]); }.bind(this))
           .interpolate('linear');
 
-        this._svg = d3.select(ele)
-          .append("g")
-          .attr("class", "top")
-          .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
-
-        d3.select(ele)
-          .on("click", this._click.bind(this))
-          .on("mousedown", this._mouseDown.bind(this))
-          .on("mousemove", this._mouseMove.bind(this))
-          .on("mouseup", this._mouseUp.bind(this));
-
         this._xAxis = d3.svg.axis()
           .scale(this._xRange)
           .tickSize(5)
@@ -411,6 +407,27 @@ work, so we just prefix every rule with plot-simple-sk.
           .tickSize(5)
           .orient("left")
           .tickSubdivide(true);
+
+        this.setTicks(this._ticks);
+
+        this.resetAxes();
+      },
+
+      // Creates the initial set of SVG elements.
+      _initialSetup: function() {
+        var ele = this.$.svg;
+        this._calcSize();
+
+        this._svg = d3.select(ele)
+          .append("g")
+          .attr("class", "top")
+          .attr("transform", "translate(" + margins.left + "," + margins.top + ")");
+
+        d3.select(ele)
+          .on("click", this._click.bind(this))
+          .on("mousedown", this._mouseDown.bind(this))
+          .on("mousemove", this._mouseMove.bind(this))
+          .on("mouseup", this._mouseUp.bind(this));
 
         this._svg.append("g")
           .attr("class", "x axis")
@@ -449,6 +466,9 @@ work, so we just prefix every rule with plot-simple-sk.
 
       // Update the date displayed on the plot.
       _plot: function() {
+        if (!this._vis) {
+          return
+        }
         var trace = this._vis.selectAll(".trace")
           .data(this._lineData);
 
@@ -516,6 +536,7 @@ work, so we just prefix every rule with plot-simple-sk.
             width : 0,
             height: 0,
           });
+        this._click();
       },
 
       _mouseMove: function() {
@@ -556,7 +577,10 @@ work, so we just prefix every rule with plot-simple-sk.
       },
 
       _mouseUp: function() {
-        var r = $$$(".selectionRect");
+        var r = this._svg.select(".selectionrect")[0][0];
+        if (!r) {
+          return
+        }
         var xMin = this._xRange.invert(r.x.baseVal.value);
         var xMax = this._xRange.invert(r.x.baseVal.value + r.width.baseVal.value);
         var yMax = this._yRange.invert(r.y.baseVal.value);

@@ -43,12 +43,8 @@ plot-simple-sk .trace path {
   stroke-width: 1px;
 }
 
-plot-simple-sk .trace.focused path {
-  stroke-width: 5px;
-}
-
 plot-simple-sk .trace.highlight path {
-  stroke-width: 3px;
+  stroke-width: 5px;
 }
 
 plot-simple-sk .trace.focused .dot {
