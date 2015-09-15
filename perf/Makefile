@@ -2,29 +2,19 @@
 # minified. These files should be either present in the project, brought
 # into third_party/bower_components via bower, or in node_modules.
 CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-          third_party/bower_components/webcomponentsjs/webcomponents.min.js \
-          ../res/js/common.js \
-          third_party/bower_components/jquery/dist/jquery.min.js \
-          third_party/bower_components/flot/jquery.flot.js \
-          third_party/bower_components/flot/jquery.flot.crosshair.js \
-          third_party/bower_components/flot/jquery.flot.navigate.js  \
-          third_party/bower_components/flot/jquery.flot.selection.js
+					third_party/bower_components/webcomponentsjs/webcomponents-lite.min.js\
+          ../res/js/common.js
 
 BOWER_DIR=third_party/bower_components
 
+VULCANIZE1=true
+
 .PHONY: build
-build: res/css/perf.css core_js elements_html
+build: elements_html
 	go install -v ./go/skiaperf
 
-.PHONY: ver
-ver:    H=$(shell echo `git log -n 1 --format=format:%H`)
-ver:
-	S=$(shell echo $H | cut -c1-5); \
-	sed --in-place "s/\(<span id=\"version\">\)\(.*\)\(<\/span>\)/\1<a href=\"https:\/\/skia.googlesource.com\/buildbot\/+\/$H\" target=\"_blank\">Ver:$$S<\/a>\3/" templates/titlebar.html
-	git update-index --assume-unchanged templates/titlebar.html
-
 .PHONY: release
-release: ver build
+release: build
 	echo
 
 .PHONY: test
@@ -50,10 +40,6 @@ tool:
 .PHONY: perf_migratedb
 perf_migratedb:
 	go install -v ./go/perf_migratedb
-
-# Build serving CSS from input CSS.
-res/css/perf.css: node_modules/lastupdate res/css/main.css
-	./node_modules/.bin/autoprefixer res/css/main.css -o res/css/perf.css
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug

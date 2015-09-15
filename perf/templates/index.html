@@ -4,50 +4,256 @@
     <title>Skia Performance Monitoring</title>
 
     {{template "header.html" .}}
-    <link href="/res/imp/trace_details.html" rel="import" />
 
-    <script src="/res/js/index.js"></script>
-    <style type="text/css" media="screen">
-      #pageWrapper {
-        background: white;
+    <style is="custom-style" type="text/css" media="screen">
+      .vertical {
+        @apply(--layout-vertical);
+        padding: 1em 0.5em;
       }
-      .col {
-        padding: 0.5em;
+
+      .horizontal_center {
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
+      }
+
+      .horizontal {
+        @apply(--layout-horizontal);
+      }
+
+      .formula_area {
+        margin: 0.8em;
+      }
+
+      trace-details-sk {
+        padding: 1em 0.5em;
       }
     </style>
   </head>
   <body>
-    <scaffold-sk responsiveWidth="700px">
-
-      {{template "titlebar.html" .}}
-
-        <div id="pageWrapper" horizontal layout>
-          <div id="plotAndQueryWrapper" flex two vertical layout class="col">
-
-            <div horizontal layout center>
-              <paper-button id=shortcut title="Create shortcut."> <core-icon icon="link"></core-icon></paper-button>
-              <highlightbar-sk flex></highlightbar-sk>
-            </div>
-            <plot-sk></plot-sk>
-            <div horizontal layout>
-              <paper-button raised id="nuke-plot">Remove all traces</paper-button>
-              <paper-button raised id="reset-axes">Reset axes</paper-button>
-              <paper-button raised id="add-lines">Add traces</paper-button>
-            </div>
-            <div horizontal layout center>
-
-             <paper-input-decorator floatingLabel label="Formula" flex>
-               <textarea id="formula" rows=3 cols=80></textarea>
-             </paper-input-decorator>
-
-              <paper-button id="add-calculated">Add</paper-button> <a href="/help/" target=_blank><core-icon icon="help"></core-icon></a>
-            </div>
-            <query-sk fast></query-sk>
+    <perf-scaffold-sk>
+      <div class=horizontal>
+        <div class=vertical>
+          <div class=horizontal_center>
+            <button id=shortcut title="Create shortcut."><iron-icon icon="link"></iron-icon></button>
+            <highlightbar-sk flex></highlightbar-sk>
           </div>
-
-          <trace-details-sk flex two class=col> </trace-details-sk>
-
+          <plot-sk width=1200 height=400></plot-sk>
+          <div class=horizontal>
+            <button class=raised id="nuke-plot">Remove all traces</button>
+            <button class=raised id="reset-axes">Reset axes</button>
+            <button class=raised id="add-lines">Add traces</button>
+          </div>
+          <div class="horizontal_center formula_area">
+            <paper-input-decorator floatingLabel label="Formula" flex>
+              <textarea id="formula" rows=3 cols=80></textarea>
+            </paper-input-decorator>
+            <button id="add-calculated">Add</button> <a href="/help/" target=_blank><iron-icon icon="help"></iron-icon></a>
+          </div>
+          <query-sk fast></query-sk>
         </div>
-    </scaffold-sk>
+        <trace-details-sk> </trace-details-sk>
+      </div>
+    </perf-scaffold-sk>
+
+    <script type="text/javascript" charset="utf-8">
+      (function () {
+        /**
+         * Navigation coordinates the <plot-sk>, <query-sk>, and <trace-details-sk>
+         * elements on that main page of skiaperf.
+         */
+        function Navigation() {
+          // Keep tracking if we are still loading the page the first time.
+          this.loading_ = true;
+
+          this.commitData_ = [];
+        };
+
+        /**
+         * commitData_ may have a trailing set of commits with a commit_time of 0,
+         * which means there's no commit, it is just extra space from the Tile.
+         */
+        Navigation.prototype.lastCommitIndex = function() {
+          for (var i = this.commitData_.length - 1; i >= 0; i--) {
+            if (this.commitData_[i].commit_time != 0) {
+              return i;
+            }
+          }
+          // We shouldn't get here.
+          return this.commitData_.length-1;
+        }
+
+        /**
+         * Adds Traces that match the given query params.
+         *
+         * q is a URL query to be appended to /query/<scale>/<tiles>/traces/.
+         * The matching traces are returned and added to the plot.
+         */
+        Navigation.prototype.addTraces = function(q) {
+          var that = this;
+          sk.get("/query/0/-1/traces/?" + q).then(JSON.parse).then(function(json){
+            for (var i = json.traces.length - 1; i >= 0; i--) {
+              json.traces[i]._params["id"] = json.traces[i].label;
+            }
+            $$$('plot-sk').addTraces(json.traces);
+            if (json["hash"]) {
+              var index = -1;
+              for (var i = 0, len = that.commitData_.length; i < len; i++) {
+                if (that.commitData_[i].hash == json["hash"]) {
+                  index = i;
+                  break;
+                }
+              }
+              $$$('plot-sk').setStepIndex(index);
+            }
+          }).then(function(){
+            that.loading_ = false;
+          }).catch(sk.errorMessage);
+        };
+
+        Navigation.prototype.addCalculatedTrace = function(formula) {
+          var navigation = this;
+          sk.get("/calc/?formula=" + encodeURIComponent(formula)).then(JSON.parse).then(function(json){
+            $$$('plot-sk').addTraces(json.traces);
+          }).then(function(){
+            navigation.loading_ = false;
+          }).catch(sk.errorMessage);
+        };
+
+        Navigation.prototype.clearShortcut = function() {
+          if (this.loading_ == false) {
+            window.history.pushState(null, "", "#");
+          }
+        }
+
+        /**
+         * Wires up all the callbacks to the controls that Navigation uses.
+         */
+        Navigation.prototype.attach = function() {
+          var that = this;
+
+          var oldWidth = $$$('plot-sk').width;
+          window.setInterval(function() {
+            var newWidth = (window.innerWidth - 150)/2;
+            if (newWidth != oldWidth) {
+              $$$('plot-sk').width = oldWidth = newWidth;
+            }
+          }, 500);
+
+          $$$('#add-lines').addEventListener('click', function() {
+            that.clearShortcut();
+            that.addTraces($$$('query-sk').currentquery);
+          });
+
+          $$$('#add-calculated').addEventListener('click', function() {
+            that.clearShortcut();
+            that.addCalculatedTrace($$$('#formula').value);
+          });
+
+          // Update the formula when the query changes.
+          $$$('query-sk').addEventListener('query-change', function(e) {
+            var formula = $$$('#formula').value;
+            var query = e.detail;
+            if (formula == "") {
+              $$$('#formula').value = 'filter("' + query + '")';
+            } else if (2 == (formula.match(/\"/g) || []).length) {
+              // Only update the filter query if there's one string in the formula.
+              $$$('#formula').value = formula.replace(/".*"/, '"' + query + '"');
+          }
+          });
+
+          $$$('#shortcut').addEventListener('click', function() {
+            // Package up the current state and stuff it into the database.
+            var state = {
+              scale: 0,
+              tiles: [-1],
+              keys: $$$('plot-sk').getKeys()
+            };
+            if (state.keys.length > 0) {
+              sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json) {
+                // Set the shortcut in the hash.
+                window.history.pushState(null, "", "#" + json.id);
+              });
+            } else {
+              sk.errorMessage("Nothing to shortcut.");
+            }
+          });
+
+          $$$('#nuke-plot').addEventListener('click', function(e) {
+            $$$('plot-sk').clear();
+          });
+
+          $$$('plot-sk').addEventListener('selected', function(e) {
+            // Convert the commit index to actual git hash.
+            var beginHash = that.commitData_[e.detail.begin].hash;
+            var endHash = undefined;
+            if (e.detail.end) {
+              endHash = that.commitData_[e.detail.end].hash;
+            }
+            $$$('plot-sk').highlightGroup("id", e.detail.id);
+            $$$('trace-details-sk').displayRange(beginHash, endHash);
+            $$$('trace-details-sk').setParams(e.detail.id, e.detail.params);
+          });
+
+          $$$('plot-sk').addEventListener('highlighted', function(e) {
+            $$$('highlightbar-sk').key = e.detail.id;
+            $$$('highlightbar-sk').value = e.detail.value.toPrecision(5);
+          });
+
+          $$$('trace-details-sk').addEventListener('highlightGroup', function(e) {
+            $$$('plot-sk').highlightGroup(e.detail.key, e.detail.value);
+          });
+
+          $$$('trace-details-sk').addEventListener('only', function(e) {
+            that.clearShortcut();
+            $$$('plot-sk').removeUnHighlighted();
+            $$$('plot-sk').resetAxes();
+          });
+
+          $$$('trace-details-sk').addEventListener('clear', function(e) {
+            $$$('plot-sk').clearHighlight();
+          });
+
+          $$$('trace-details-sk').addEventListener('group', function() {
+            that.clearShortcut();
+            $$$('plot-sk').removeHighlighted();
+            $$$('plot-sk').resetAxes();
+          });
+
+          $$$('trace-details-sk').addEventListener('remove', function(e) {
+            that.clearShortcut();
+            $$$('plot-sk').removeHighlighted();
+            $$$('plot-sk').resetAxes();
+          });
+
+          $$$('#reset-axes').addEventListener('click', function(e) {
+            $$$('plot-sk').resetAxes();
+          });
+
+          // Load the commit data and set up the plot.
+          sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
+            this.commitData_ = json.commits;
+            $$$('query-sk').setParamSet(json.paramset);
+            if (window.location.hash.length >= 2) {
+              this.addTraces("__shortcut=" + window.location.hash.substr(1))
+            }
+
+            var skps = [0].concat(json.skps, [this.commitData_.length-1]);
+            var tickmap = {};
+            for (var i = json.ticks.length - 1; i >= 0; i--) {
+              var t = json.ticks[i];
+              tickmap[t[0]] = t[1];
+            }
+            $$$('plot-sk').setBackgroundInfo(tickmap, skps, this.lastCommitIndex());
+          }.bind(this));
+
+        };
+
+        sk.DomReady.then(function() {
+          var navigation = new Navigation();
+          navigation.attach();
+        });
+      })();
+
+    </script>
   </body>
 </html>

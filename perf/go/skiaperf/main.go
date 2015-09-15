@@ -94,7 +94,35 @@ var (
 
 var (
 	nanoTileStore tiling.TileStore
+
+	templates *template.Template
 )
+
+func loadTemplates() {
+	templates = template.Must(template.New("").ParseFiles(
+		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/clusters.html"),
+		filepath.Join(*resourcesDir, "templates/alerting.html"),
+		filepath.Join(*resourcesDir, "templates/cl.html"),
+		filepath.Join(*resourcesDir, "templates/activitylog.html"),
+		filepath.Join(*resourcesDir, "templates/compare.html"),
+		filepath.Join(*resourcesDir, "templates/help.html"),
+		// Sub templates used by other templates.
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+}
+
+func templateHandler(name string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		if *local {
+			loadTemplates()
+		}
+		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
+			glog.Errorln("Failed to expand template:", err)
+		}
+	}
+}
 
 func Init() {
 	rand.Seed(time.Now().UnixNano())
@@ -103,41 +131,7 @@ func Init() {
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
 
-	indexTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	clusterTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/clusters.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	alertsTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/alerting.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	clTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/cl.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	activityTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/activitylog.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	compareTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/compare.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	helpTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/help.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
+	loadTemplates()
 
 	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, config.DATASET_NANO, 2*time.Minute)
 
@@ -209,17 +203,6 @@ func trybotHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// alertsHandler serves the HTML for the /alerts/ page.
-//
-// See alertingHandler for the JSON it uses.
-func alertsHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Alerts Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "text/html")
-	if err := alertsTemplate.Execute(w, nil); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
 // alertingHandler returns the currently untriaged clusters.
 //
 // The return format is the same as clusteringHandler.
@@ -269,6 +252,9 @@ func alertResetHandler(w http.ResponseWriter, r *http.Request) {
 //
 func clHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
 
 	match := clHandlerPath.FindStringSubmatch(r.URL.Path)
 	if r.Method != "GET" || match == nil || len(match) != 2 {
@@ -285,7 +271,7 @@ func clHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to find cluster with that ID.")
 		return
 	}
-	if err := clTemplate.Execute(w, cl); err != nil {
+	if err := templates.ExecuteTemplate(w, "cl.html", cl); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -297,6 +283,9 @@ func clHandler(w http.ResponseWriter, r *http.Request) {
 //
 func activityHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
 
 	match := activityHandlerPath.FindStringSubmatch(r.URL.Path)
 	if r.Method != "GET" || match == nil || len(match) != 2 {
@@ -317,25 +306,7 @@ func activityHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to retrieve activity.")
 		return
 	}
-	if err := activityTemplate.Execute(w, a); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
-// compareHandler handles the GET of the compare page.
-func compareHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Compare Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "text/html")
-	if err := compareTemplate.Execute(w, nil); err != nil {
-		glog.Errorln("Failed to expand template:", err)
-	}
-}
-
-// clustersHandler handles the GET of the clusters page.
-func clustersHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Cluster Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "text/html")
-	if err := clusterTemplate.Execute(w, nil); err != nil {
+	if err := templates.ExecuteTemplate(w, "activitylog.html", a); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -1018,24 +989,16 @@ func shortCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// mainHandler handles the GET of the main page.
-func mainHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Main Handler: %q\n", r.URL.Path)
-	if r.Method == "GET" {
-		w.Header().Set("Content-Type", "text/html")
-		if err := indexTemplate.Execute(w, struct{}{}); err != nil {
-			glog.Errorln("Failed to expand template:", err)
-		}
-	}
-}
-
 // helpHandler handles the GET of the main page.
 func helpHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Help Handler: %q\n", r.URL.Path)
+	if *local {
+		loadTemplates()
+	}
 	if r.Method == "GET" {
 		w.Header().Set("Content-Type", "text/html")
 		ctx := parser.NewContext(nil)
-		if err := helpTemplate.Execute(w, ctx); err != nil {
+		if err := templates.ExecuteTemplate(w, "help.html", ctx); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
 	}
@@ -1087,7 +1050,7 @@ func main() {
 
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 
-	router.HandleFunc("/", mainHandler)
+	router.HandleFunc("/", templateHandler("index.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
 	router.PathPrefix("/tiles/").HandlerFunc(tileHandler)
 	router.PathPrefix("/single/").HandlerFunc(singleHandler)
@@ -1095,15 +1058,15 @@ func main() {
 	router.HandleFunc("/commits/", commitsHandler)
 	router.HandleFunc("/shortcommits/", shortCommitsHandler)
 	router.HandleFunc("/trybots/", trybotHandler)
-	router.HandleFunc("/clusters/", clustersHandler)
+	router.HandleFunc("/clusters/", templateHandler("clusters.html"))
 	router.HandleFunc("/clustering/", clusteringHandler)
 	router.PathPrefix("/cl/").HandlerFunc(clHandler)
 	router.PathPrefix("/activitylog/").HandlerFunc(activityHandler)
-	router.HandleFunc("/alerts/", alertsHandler)
+	router.HandleFunc("/alerts/", templateHandler("alerting.html"))
 	router.HandleFunc("/alerting/", alertingHandler)
 	router.HandleFunc("/alert_reset/", alertResetHandler)
 	router.HandleFunc("/annotate/", annotate.Handler)
-	router.HandleFunc("/compare/", compareHandler)
+	router.HandleFunc("/compare/", templateHandler("compare.html"))
 	router.HandleFunc("/calc/", calcHandler)
 	router.HandleFunc("/help/", helpHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

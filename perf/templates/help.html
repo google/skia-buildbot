@@ -19,10 +19,7 @@ h2 {
     </style>
 </head>
 <body>
-    <scaffold-sk responsiveWidth="700px">
-
-      {{template "titlebar.html" .}}
-
+    <perf-scaffold-sk responsiveWidth="700px">
       <div id="container">
         <section>
         {{range $k, $v := .Funcs}}
@@ -44,6 +41,6 @@ h2 {
           <p>Plot the normalized version of all the traces for 'desk_linkedin.skp_1_1000_1000'.</p>
         </section>
       </div>
-    </scaffold-sk>
+    </perf-scaffold-sk>
 </body>
 </html>

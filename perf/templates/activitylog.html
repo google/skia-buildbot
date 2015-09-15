@@ -5,15 +5,26 @@
 
     {{template "header.html" .}}
 
+    <style type="text/css" media="screen">
+      table {
+        margin: 2em;
+      }
+
+      td {
+        padding: 0.5em 1em;
+      }
+    </style>
 </head>
 <body>
-  <scaffold-sk responsiveWidth="700px">
-    {{template "titlebar.html" .}}
+  <perf-scaffold-sk responsiveWidth="700px">
     <div id=container>
+      <table>
+      <tr><th>ID</th><th>Date</th><th>User</th><th>Action</th><th>Link</th></tr>
       {{range .}}
-        {{.ID}}: {{.Date}} {{.UserID}} {{.Action}} <a href="{{.URL}}">{{.URL}}</a><br>
+      <tr><td>{{.ID}}</td><td>{{.Date}}</td><td>{{.UserID}}</td><td>{{.Action}}</td><td><a href="{{.URL}}">{{.URL}}</a></tr>
       {{end}}
+      </table>
     </div>
-  </scaffold-sk>
+  </perf-scaffold-sk>
 </body>
 </html>

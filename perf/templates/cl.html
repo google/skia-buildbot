@@ -5,20 +5,17 @@
 
     {{template "header.html" .}}
 
-    <link href="/res/imp/cluster.html" rel="import" />
 </head>
 <body>
-    <scaffold-sk responsiveWidth="700px">
-
-      {{template "titlebar.html" .}}
+    <perf-scaffold-sk responsiveWidth="700px">
       <div id="container">
         <cluster-summary-sk></cluster-summary-sk>
       </div>
       <script type="text/javascript" charset="utf-8">
         window.addEventListener('load', function() {
-         $$$('cluster-summary-sk').summary = {{.}};
+         $$$('cluster-summary-sk').setSummary({{.}});
         });
       </script>
-    </scaffold-sk>
+    </perf-scaffold-sk>
 </body>
 </html>

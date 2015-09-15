@@ -5,26 +5,23 @@
 
     {{template "header.html" .}}
 
-    <link href="/res/imp/cluster.html" rel="import" />
-
     <style type="text/css" media="screen">
-      #clSorting {
-        padding: 1em 0;
-      }
-      #start {
-        margin: 0.3em;
-      }
-      .issue {
-        margin: 1em 0;
-      }
       sort-sk {
         display: block;
+        padding: 1em;
       }
+
+      cluster-summary-sk {
+        border: solid lightgray 1px;
+        display: block;
+        margin: 1em;
+        padding: 1em;
+      }
+
     </style>
 </head>
 <body>
-  <scaffold-sk responsiveWidth="700px">
-    {{template "titlebar.html" .}}
+  <perf-scaffold-sk responsiveWidth="700px">
     <div id="container">
       <section id=clustering>
         <h2>Trace Clustering</h2>
@@ -42,21 +39,20 @@
         </p>
         <query-sk fast></query-sk>
         <br/>
-        <paper-button raised id="start">Calculate</paper-button>
-
+        <button class=raised id="start">Calculate</button>
 
         <sort-sk target=clResults>
-          <paper-button data-key="clustersize">Cluster Size </paper-button>
-          <paper-button data-key="stepregression" data-default=up>Regression </paper-button>
-          <paper-button data-key="stepsize">Step Size </paper-button>
-          <paper-button data-key="steplse">Least Squares</paper-button>
-          <paper-button data-key="timestamp">Step Time</paper-button>
+          <button data-key="clustersize">Cluster Size </button>
+          <button data-key="stepregression" data-default=up>Regression </button>
+          <button data-key="stepsize">Step Size </button>
+          <button data-key="steplse">Least Squares</button>
+          <button data-key="timestamp">Step Time</button>
         </sort-sk>
         <div id="clResults">
         </div>
       </section>
     </div>
-  </scaffold-sk>
+  </perf-scaffold-sk>
   <script type="text/javascript" charset="utf-8">
     (function() {
 
@@ -74,14 +70,14 @@
           json.Clusters.forEach(function(c){
             var sum = document.createElement('cluster-summary-sk');
             container.appendChild(sum);
-            sum.summary = c;
+            sum.setSummary(c);
           });
           document.body.style.cursor = 'auto';
         }).catch(function(e){
-          alert(e);
+          sk.errorMessage(e);
           document.body.style.cursor = 'auto';
         });
-      };
+      }
 
       function onLoad() {
         sk.get('/trybots/').then(JSON.parse).then(function(json){
@@ -92,11 +88,11 @@
             op.innerText = issue;
             select.appendChild(op);
           });
-        });
+        }).catch(sk.errorMessage);
 
         $$$('#start').addEventListener('click', function(){
           beginClustering(
-              $$$('#_k').value, $$$('#_stddev').value, $$$('#_issue').value, $$$('query-sk').currentQuery);
+              $$$('#_k').value, $$$('#_stddev').value, $$$('#_issue').value, $$$('query-sk').currentquery);
         });
 
         $$('input[name="sort"]').forEach(function(ele) {

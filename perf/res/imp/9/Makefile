@@ -8,4 +8,4 @@ default:
 
 # Run a local HTTP server for the demo pages.
 run:
-	../../../node_modules/.bin/http-server
+	http-server

@@ -5,63 +5,60 @@
 
     {{template "header.html" .}}
 
-    <style type="text/css" media="screen">
-      sort-sk {
+    <style type="text/css">
+      sort-sk,
+      form {
         display: block;
+        padding: 1em;
       }
+
+      cluster-summary-sk {
+        border: solid lightgray 1px;
+        display: block;
+        margin: 1em;
+        padding: 1em;
+      }
+
     </style>
-    <link href="/res/imp/cluster.html" rel="import" />
 </head>
 <body>
-  <scaffold-sk responsiveWidth="700px">
-    {{template "titlebar.html" .}}
+  <perf-scaffold-sk responsiveWidth="700px">
+    <sort-sk target=alerts>
+      <button data-key="clustersize">Cluster Size </button>
+      <button data-key="stepregression">Regression </button>
+      <button data-key="stepsize">Step Size </button>
+      <button data-key="steplse">Least Squares</button>
+      <button data-key="timestamp">Step Time</button>
+    </sort-sk>
 
-    <div id="container">
-      <sort-sk target=alerts>
-         <paper-button data-key="clustersize">Cluster Size </paper-button>
-         <paper-button data-key="stepregression">Regression </paper-button>
-         <paper-button data-key="stepsize">Step Size </paper-button>
-         <paper-button data-key="steplse">Least Squares</paper-button>
-         <paper-button data-key="timestamp">Step Time</paper-button>
-       </sort-sk>
-
-      <section id=alerts> </section>
-      <form action="/alert_reset/" method="POST" accept-charset="utf-8">
-        <button type="submit">Delete all non-Bug alerts. (Dangerous!)</button>
-      </form>
-      <error-toast-sk></error-toast-sk>
-    </div>
-
-  </scaffold-sk>
+    <section id=alerts> </section>
+    <form action="/alert_reset/" method="POST" accept-charset="utf-8">
+      <button type="submit">Delete all non-Bug alerts. (Dangerous!)</button>
+    </form>
+  </perf-scaffold-sk>
 
   <script type="text/javascript" charset="utf-8">
-    (function() {
-
-      function onLoad() {
-        document.body.style.cursor = 'wait';
-        sk.get('/alerting/').then(JSON.parse).then(function(json) {
-          var container = $$$('#alerts');
-          sk.clearChildren(container);
-          if (json.Clusters.length == 0) {
-            container.innerHTML = "No active clusters exist.";
-          } else {
-            json.Clusters.forEach(function(c){
-              var sum = document.createElement('cluster-summary-sk');
-              container.appendChild(sum);
-              sum.summary = c;
-              sum.fade = true;
-            });
-          }
-          document.body.style.cursor = 'auto';
-        }).catch(function(e){
-          sk.errorMessage(e);
-          document.body.style.cursor = 'auto';
-        });
-      };
-
-      sk.WebComponentsReady.then(onLoad);
-
-    })();
+    sk.DomReady.then(function() {
+      document.body.style.cursor = 'wait';
+      sk.get('/alerting/').then(JSON.parse).then(function(json) {
+        var container = $$$('#alerts');
+        sk.clearChildren(container);
+        if (json.Clusters.length == 0) {
+          container.innerHTML = "No active clusters exist.";
+        } else {
+          json.Clusters.forEach(function(c){
+            var sum = document.createElement('cluster-summary-sk');
+            container.appendChild(sum);
+            sum.setSummary(c);
+            sum.fade = true;
+          });
+        }
+        document.body.style.cursor = 'auto';
+      }).catch(function(e){
+        sk.errorMessage(e);
+        document.body.style.cursor = 'auto';
+      });
+    });
   </script>
 </body>
 </html>

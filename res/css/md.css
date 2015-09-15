@@ -5,11 +5,12 @@
 button {
   min-width: 5.14em;
   background-color: #fff;
+  color: #1f78b4;
   text-align: center;
   text-transform: uppercase;
   outline: none;
   border-radius: 3px;
-  padding: 0.4em 1.2em;
+  padding: 0.6em 1.2em;
   border: solid lightgray 1px;
   margin: 0.6em;
 }
