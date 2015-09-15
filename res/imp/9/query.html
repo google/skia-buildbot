@@ -102,12 +102,12 @@
       <paper-input id="fast" label="Filter"></paper-input>
     </div>
     <div id="inputs">
-      <template is="dom-repeat" items="{{_primary}}" as="sel">
+      <template is="dom-repeat" items="[[_primary]]" as="sel">
         <div class="node">
-          <h4>{{sel.name}}</h4>
-          <select size=9 data-name$="{{sel.name}}" multiple=true>
-            <template is="dom-repeat" items="{{sel.values}}" as="o">
-              <option label="{{o}}">{{o}}</option>
+          <h4>[[sel.name]]</h4>
+          <select size=9 data-name$="[[sel.name]]" multiple=true>
+            <template is="dom-repeat" items="[[sel.values]]" as="o">
+              <option label="[[o]]">[[o]]</option>
             </template>
           </select>
         </div>
@@ -116,12 +116,12 @@
     <toggle-display-sk id=toggle classname=hide>More...</toggle-display-sk>
     <div class=hide>
       <div id="more">
-        <template is="dom-repeat" items="{{_secondary}}" as="sel">
+        <template is="dom-repeat" items="[[_secondary]]" as="sel">
           <div class="node">
-            <h4>{{sel.name}}</h4>
-            <select size=9 data-name$="{{sel.name}}" multiple=true>
-              <template is="dom-repeat" items="{{sel.values}}" as="o">
-                <option label="{{o}}">{{o}}</option>
+            <h4>[[sel.name]]</h4>
+            <select size=9 data-name$="[[sel.name]]" multiple=true>
+              <template is="dom-repeat" items="[[sel.values]]" as="o">
+                <option label="[[o]]">[[o]]</option>
               </template>
             </select>
           </div>
