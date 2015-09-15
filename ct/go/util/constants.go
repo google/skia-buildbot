@@ -207,6 +207,7 @@ var (
 	TelemetryBinariesDir = filepath.Join(ChromiumSrcDir, "tools", "perf")
 	TelemetrySrcDir      = filepath.Join(ChromiumSrcDir, "tools", "telemetry")
 	TaskFileDir          = filepath.Join(StorageDir, "current_task")
+	ClientSecretPath     = filepath.Join(StorageDir, "client_secret.json")
 	GSTokenPath          = filepath.Join(StorageDir, "google_storage_token.data")
 	EmailTokenPath       = filepath.Join(StorageDir, "email.data")
 	WebappPasswordPath   = filepath.Join(StorageDir, "webapp.data")
