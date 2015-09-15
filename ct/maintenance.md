@@ -203,9 +203,19 @@ link from [push](https://push.skia.org/).
 The poller and master scripts run on build101-m5 in the Chrome Golo. See below
 for how to access the Golo.
 
-There is a script named setup_cluster_telemetry_machine.sh on build101-m5 that
+There is a script named `setup_cluster_telemetry_machine.sh` on build101-m5 that
 will set up the machine for running the poller and master scripts. It's unlikely
-that you will need to run this script now that the machine is set up.
+that you will need to run this script now that the machine is set up. There are
+a few files that the script does not create automatically:
+
+- /b/storage/webhook_salt.data: Set this file to the value of
+  [GCE metadata key webhook_request_salt](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
+- /b/storage/email.data and /b/storage/google_storage_token.data: Sign in to
+  `skia.buildbots@gmail.com` in your browser using the password stored in
+  [Valentine](https://valentine.corp.google.com/) as
+  "skia.buildbots@gmail.com". Then run one of the master scripts,
+  e.g. `build_chromium`. Follow the prompts in the output, once to authenticate
+  for email and once to authenticate to Google Storage.
 
 There are several aliases in .bashrc on build101-m5 that are useful for
 maintenance. If the poller is not running (check using `ps x | grep poller`),
