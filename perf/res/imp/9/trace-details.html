@@ -6,18 +6,15 @@
       None.
 
     Events:
-      only  - Fired when "Only" button is pressed.
+      only  - Fired when "Highlighted Only" button is pressed.
 
               detail.id: key of the trace.
 
-      remove - Fired when the "Remove" button is pressed.
+      remove - Fired when the "Remove Highlighted" button is pressed.
 
                detail.id: key of the trace.
 
-      group  - Fired when the "Group" button is pressed.
-
-               detail.id: key of the trace.
-               detail.group: The {key:, value:} being selected.
+      clear - Fired when the "Clear Highlights" button is pressed.
 
       highlightGroup - Fired when a group of traces is highlighted by
                clicking on a parameter value.
@@ -52,9 +49,9 @@
     </style>
   <template>
     <div id=outer class=blank>
-      <button class=raised id=remove>Remove</button>
-      <button class=raised id=only>Only</button>
-      <button class="raised hidden" disabled id=group>Group</button>
+      <button class=raised id=remove>Remove Highlighted</button>
+      <button class=raised id=only>Highlighted Only</button>
+      <button class=raised id=clear>Clear Highlights</button>
       <hr>
       <paramset-sk clickable-values id=params></paramset-sk>
       <hr>
@@ -84,7 +81,7 @@
         var boundOnButtonClick = this._onButtonClick.bind(this);
         this.$.remove.addEventListener('click', boundOnButtonClick);
         this.$.only.addEventListener('click', boundOnButtonClick);
-        this.$.group.addEventListener('click', boundOnButtonClick);
+        this.$.clear.addEventListener('click', boundOnButtonClick);
       },
 
       // Handles the remove, only, and group button clicks.
@@ -98,7 +95,6 @@
 
       // Handles clicking on a parameter value.
       _onParamClick: function (e) {
-        this.$.group.disabled = false;
         this._group = e.detail;
         this.dispatchEvent(new CustomEvent('highlightGroup', { detail: e.detail }));
         e.preventDefault();
@@ -109,13 +105,11 @@
         this._id = '';
         this._group = {};
         this.$.outer.classList.add('blank');
-        this.$.group.disabled = true;
       },
 
       // setParams set the current trace key (id) and the params for that
       // trace.
       setParams: function (id, params) {
-        this.$.group.disabled = true;
         this.$.outer.classList.remove('blank');
         this._id = id;
         this._group = {};
