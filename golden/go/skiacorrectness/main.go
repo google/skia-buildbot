@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/redisutil"
+	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -66,6 +67,7 @@ var (
 	nTilesToBackfill = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
 	storageDir       = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
 	issueTrackerKey  = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
+	rietveldURL      = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
 	selfTest         = flag.Bool("self_test", false, "Run test agains live data, used debugging only.")
 )
 
@@ -324,6 +326,7 @@ func main() {
 		NCommits:          *nCommits,
 		EventBus:          eventBus,
 		TrybotResults:     trybot.NewTrybotResultStorage(vdb),
+		RietveldAPI:       rietveld.Rietveld{Url: *rietveldURL},
 	}
 
 	if err := history.Init(storages, *nTilesToBackfill); err != nil {
@@ -415,6 +418,7 @@ func main() {
 	router.HandleFunc("/_/triagelog", polyTriageLogHandler).Methods("GET")
 	router.HandleFunc("/_/triagelog/undo", triageUndoHandler).Methods("POST")
 	router.HandleFunc("/_/failure", failureListJSONHandler).Methods("GET")
+	router.HandleFunc("/_/trybot", listTrybotsJSONHandler).Methods("GET")
 
 	router.HandleFunc("/byblame", byBlameHandler).Methods("GET")
 	router.HandleFunc("/cluster", templateHandler("cluster.html")).Methods("GET")
@@ -428,6 +432,7 @@ func main() {
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/search", templateHandler("search.html")).Methods("GET")
 	router.HandleFunc("/triagelog", templateHandler("triagelog.html")).Methods("GET")
+	router.HandleFunc("/trybot", templateHandler("trybot.html")).Methods("GET")
 
 	// Add the necessary middleware and have the router handle all requests.
 	// By structuring the middleware this way we only log requests that are

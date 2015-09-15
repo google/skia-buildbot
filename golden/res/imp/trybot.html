@@ -1,0 +1,106 @@
+<!-- The <trybots-list-sk> custom element declaration.
+
+  Renders a list of Rietveld issues that have trybot runs associated with them.
+
+  Attributes: None
+
+  Events: None
+
+  Methods: None
+
+-->
+<polymer-element name="trybots-list-sk">
+  <template>
+    <style type="text/css" media="screen">
+      .nameHeader,
+      .issueHeader,
+      .dateTimeHeader,
+      .subjectHeader {
+        font-weight: bold;
+      }
+
+      .nameHeader,
+      .nameValue {
+        width: 8em;
+      }
+
+      .dateTimeHeader,
+      .dateTimeValue {
+        width: 12em;
+      }
+
+      .subjectHeader,
+      .subjectValue {
+        width: 40em;
+      }
+
+      .issueHeader,
+      .issueValue {
+        width: 6em;
+      }
+
+      .headerContainer {
+        padding-top: 2em;
+      }
+    </style>
+    <paging-sk pagination="{{pagination}}" on-pagechange="{{pageChangedHandler}}"></paging-sk>
+      <table class="headerContainer">
+        <thead>
+          <tr>
+            <td class="issueHeader">Issue</td>
+            <td class="nameHeader">Owner</td>
+            <td class="dateTimeHeader">Updated</td>
+            <td class="subjectHeader">Subject</td>
+          </tr>
+          <tr template repeat="{{entry in trybotEntries}}">
+            <td class="issueValue"><a href="{{entry.url}}" target="_blank">{{entry.id}}</a></td>
+            <td class="nameValue">{{entry.owner}}</td>
+            <td class="dateTimeValue">{{entry.updated | _toLocalDate}}</td>
+            <td class="subjectValue"><a href="/search2?issue={{entry.id}}">{{entry.subject}}</a></td>
+          </tr>
+      </table>
+      <error-toast-sk></error-toast-sk>
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        this.pagination = null;
+        this.page = {
+          state: {}
+        };
+
+        // Note: This forces and immediate trigger of reload.
+        sk.stateReflector(this.page, this._reload.bind(this));
+
+        // Set up the paging change handler and load the data.
+        this.pageChangedHandler = this._reload.bind(this);
+      },
+
+      // Load or reload the listing.
+      _reload: function() {
+        var URL = '_/trybot?'+sk.query.fromObject(this.page.state);
+
+        if (this.pagination !== null) {
+          URL += '&' + sk.query.fromObject({
+            offset: this.pagination.offset,
+            size: this.pagination.size
+          });
+        }
+
+        this._handleServerResponse(sk.get(URL));
+      },
+
+      _handleServerResponse: function(promise) {
+        promise.then(JSON.parse).then(function(json) {
+          this.trybotEntries = json.data;
+          this.pagination = json.pagination;
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      _toLocalDate: function(timeStampSec) {
+        return (new Date(timeStampSec * 1000)).toLocaleString();
+      }
+    });
+
+  </script>
+</polymer-element>

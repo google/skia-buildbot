@@ -8,6 +8,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -148,6 +151,8 @@ func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer 
 		return nil, 0, nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
 	}
 
+	glog.Infof("\n\n\nGot query: %s\n\n\n", spew.Sdump(parsedQuery))
+
 	tile, err := storages.GetLastTileTrimmed(q.IncludeIgnores)
 	if err != nil {
 		return nil, 0, nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
@@ -211,25 +216,28 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 		return nil, err
 	}
 
-	if !q.IncludeIgnores {
-		matcher, err := storages.IgnoreStore.BuildRuleMatcher()
-		if err != nil {
-			return nil, fmt.Errorf("Unable to build rules matcher: %s", err)
-		}
-		for k, v := range trybotResults {
-			if _, ok := matcher(v.Params); ok {
-				delete(trybotResults, k)
-			}
-		}
-	}
+	// if !q.IncludeIgnores {
+	// 	matcher, err := storages.IgnoreStore.BuildRuleMatcher()
+	// 	if err != nil {
+	// 		return nil, fmt.Errorf("Unable to build rules matcher: %s", err)
+	// 	}
+	// 	for k, v := range trybotResults {
+	// 		if _, ok := matcher(v.Params); ok {
+	// 			delete(trybotResults, k)
+	// 		}
+	// 	}
+	// }
 
-	rule := ignore.NewQueryRule(parsedQuery)
+	var rule ignore.QueryRule = nil
+	if len(parsedQuery) > 0 {
+		rule = ignore.NewQueryRule(parsedQuery)
+	}
 
 	// Aggregate the results into an intermediate representation to avoid
 	// passing over the dataset twice.
 	inter := map[string]*issueIntermediate{}
 	for _, tbr := range trybotResults {
-		if rule.IsMatch(tbr.Params) {
+		if (rule == nil) || rule.IsMatch(tbr.Params) {
 			key := tbr.Test + ":" + tbr.Digest
 			if found, ok := inter[key]; ok {
 				found.add(tbr)
@@ -238,6 +246,8 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 			}
 		}
 	}
+
+	glog.Infof("Intermediate values: %d    %d", len(trybotResults), len(inter))
 
 	// Build the output.
 	talliesByTest := tallies.ByTest()
@@ -251,6 +261,8 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 			Diff:     buildDiff(i.test, i.digest, exp, tile, talliesByTest, nil, storages.DiffStore, tileParamSet, q.IncludeIgnores),
 		})
 	}
+
+	glog.Infof("Result: %d ", len(ret))
 
 	return ret, nil
 }

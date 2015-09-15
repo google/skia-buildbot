@@ -56,6 +56,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/diff.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/triagelog.html"),
+		filepath.Join(*resourcesDir, "templates/trybot.html"),
 		filepath.Join(*resourcesDir, "templates/search.html"),
 		filepath.Join(*resourcesDir, "templates/search2.html"),
 		// Sub templates used by other templates.
@@ -1408,6 +1409,24 @@ func failureListJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendJsonResponse(w, &ret)
+}
+
+// listTrybotsJSONHandler returns a list of issues (Rietveld) that have
+// trybot results associated with them.
+func listTrybotsJSONHandler(w http.ResponseWriter, r *http.Request) {
+	ret, err := search.ListTrybotIssues(storages)
+	if err != nil {
+		util.ReportError(w, r, err, "Retrieving trybot results failed.")
+		return
+	}
+
+	pagination := &util.ResponsePagination{
+		Offset: 0,
+		Size:   30,
+		Total:  200,
+	}
+
+	sendResponse(w, ret, 200, pagination)
 }
 
 // sendJsonResponse serializes resp to JSON. If an error occurs

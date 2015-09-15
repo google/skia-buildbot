@@ -558,7 +558,7 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 	res, err := storage.Objects.Get(fs.gsBucketName, objLocation).Do()
 	if err != nil {
 		downloadFailureCount.Inc(1)
-		return err
+		return fmt.Errorf("Unable to retrieve: %s/%s:  %s", fs.gsBucketName, objLocation, err)
 	}
 
 	for i := 0; i < MAX_URI_GET_TRIES; i++ {

@@ -41,6 +41,7 @@ type Issue struct {
 	Project        string
 	Reviewers      []string
 	Subject        string
+	Patchsets      []int
 }
 
 // IssueMessage contains information about a comment on an issue.
@@ -135,30 +136,11 @@ func (r Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 			break
 		}
 		for _, issue := range data.Results {
-			fullIssue, err := r.getIssueProperties(issue.Issue, true)
+			fullIssue, err := r.GetIssueProperties(issue.Issue, true)
 			if err != nil {
 				glog.Error(err)
 			} else {
-				fullIssue.Created = parseTime(fullIssue.CreatedString)
-				fullIssue.Modified = parseTime(fullIssue.ModifiedString)
-				for _, msg := range fullIssue.Messages {
-					committed := false
-					for _, r := range committedIssueRegexp {
-						committed, err = regexp.MatchString(r, msg.Text)
-						if committed {
-							break
-						}
-					}
-					msg.Date = parseTime(msg.DateString)
-					if err != nil {
-						glog.Error(err)
-						continue
-					}
-					if committed {
-						fullIssue.Committed = true
-					}
-				}
-				issues = append(issues, &fullIssue)
+				issues = append(issues, fullIssue)
 			}
 		}
 		if len(issues) >= limit {
@@ -172,17 +154,37 @@ func (r Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 
 // getIssueProperties returns a fully filled-in Issue object, as opposed to
 // the partial data returned by Rietveld's search endpoint.
-func (r Rietveld) getIssueProperties(issue int, messages bool) (Issue, error) {
+func (r Rietveld) GetIssueProperties(issue int, messages bool) (*Issue, error) {
 	url := fmt.Sprintf("/api/%v", issue)
 	if messages {
 		url += "?messages=true"
 	}
-	var res Issue
-	err := r.get(url, &res)
+	fullIssue := &Issue{}
+	err := r.get(url, fullIssue)
 	if err != nil {
-		return Issue{}, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
+		return nil, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
 	}
-	return res, nil
+
+	fullIssue.Created = parseTime(fullIssue.CreatedString)
+	fullIssue.Modified = parseTime(fullIssue.ModifiedString)
+	for _, msg := range fullIssue.Messages {
+		committed := false
+		for _, r := range committedIssueRegexp {
+			committed, err = regexp.MatchString(r, msg.Text)
+			if committed {
+				break
+			}
+		}
+		msg.Date = parseTime(msg.DateString)
+		if err != nil {
+			return nil, err
+		}
+		if committed {
+			fullIssue.Committed = true
+		}
+	}
+
+	return fullIssue, nil
 }
 
 // New returns a new Rietveld instance.

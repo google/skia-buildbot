@@ -7,6 +7,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
@@ -26,6 +27,7 @@ type Storage struct {
 	DigestStore       digeststore.DigestStore
 	EventBus          *eventbus.EventBus
 	TrybotResults     *trybot.TrybotResultStorage
+	RietveldAPI       rietveld.Rietveld
 
 	// NCommits is the number of commits we should consider. If NCommits is
 	// 0 or smaller all commits in the last tile will be considered.
