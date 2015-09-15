@@ -18,16 +18,15 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --network "default" \
   --maintenance-policy "MIGRATE" \
   --scopes $CTFE_SCOPES \
-  --tags "http-server" "https-server" \
-  --disk "name=skia-ctfe" "device-name=skia-ctfe" "mode=rw" "boot=yes" "auto-delete=yes" \
+  --tags "http-server,https-server" \
+  --disk "name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes" \
   --address $CTFE_IP_ADDRESS
 
-WAIT_TIME_AFTER_CREATION_SECS=600
-echo
-echo "===== Wait $WAIT_TIME_AFTER_CREATION_SECS secs for instance to" \
-  "complete startup script. ====="
-echo
-sleep $WAIT_TIME_AFTER_CREATION_SECS
+# Wait until the instance is up.
+until nc -w 1 -z $CTFE_IP_ADDRESS 22; do
+    echo "Waiting for VM to come up."
+    sleep 2
+done
 
 # The instance believes it is skia-systemd-snapshot-maker until it is rebooted.
 echo
