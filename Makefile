@@ -56,3 +56,7 @@ all: golden perf sharedgo alertserver datahopper logserver ct ctfe tags status
 tags:
 	-rm tags
 	find . -name "*.go" -print -or -name "*.js" -or -name "*.html" | xargs ctags --append
+
+.PHONY: buildall
+buildall:
+	go build ./...

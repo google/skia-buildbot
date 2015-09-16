@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/util"
 	storage "google.golang.org/api/storage/v1"
 )
@@ -16,7 +17,12 @@ import (
 // to run the below test.
 func Auth_TestDownloadWorkerArtifacts(t *testing.T) {
 	testPagesetsDirName := filepath.Join("unit-tests", "util", "page_sets")
-	client, _ := GetOAuthClient()
+
+	client, err := auth.NewDefaultClient(true, auth.SCOPE_FULL_CONTROL)
+	if err != nil {
+		t.Errorf("Failed to authenticate: %s", err)
+	}
+
 	gs, err := NewGsUtil(client)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
@@ -44,7 +50,11 @@ func Auth_TestDownloadWorkerArtifacts(t *testing.T) {
 // Will need a local valid google_storage_token.data file with read write access
 // to run the below test.
 func Auth_TestUploadWorkerArtifacts(t *testing.T) {
-	client, _ := GetOAuthClient()
+	client, err := auth.NewDefaultClient(true, auth.SCOPE_FULL_CONTROL)
+	if err != nil {
+		t.Errorf("Failed to authenticate: %s", err)
+	}
+
 	gs, err := NewGsUtil(client)
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)

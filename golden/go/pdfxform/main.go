@@ -92,25 +92,15 @@ type storageClient struct {
 	storageService *storage.Service
 }
 
-// getClient returns an authorized storage.Service and the
-// corresponding http.Client; if anything goes wrong, it logs a fatal
-// error.
+// getClient returns an authorized storage.Service
 func getClient() (storageClient, error) {
-	var client *http.Client
-	var err error
-	if *local {
-		client, err = auth.RunFlow(auth.OAuthConfig(*oauthCacheFile, auth.SCOPE_FULL_CONTROL))
-		// TODO(stephana): Replace auth.RunFlow with auth.NewClient
-		// client, err = auth.NewClient(true, *oauthCacheFile, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE)
-	} else {
-		client = auth.GCEServiceAccountClient(&http.Transport{Dial: util.DialTimeout})
-	}
+	client, err := auth.NewClient(*local, *oauthCacheFile, auth.SCOPE_FULL_CONTROL)
 	if err != nil {
-		return storageClient{}, err
+		return storageClient{}, fmt.Errorf("Failed to create an authorized client: %s", err)
 	}
 	gsService, err := storage.New(client)
 	if err != nil {
-		return storageClient{}, err
+		return storageClient{}, fmt.Errorf("Failed to create a Google Storage API client: %s", err)
 	}
 	return storageClient{httpClient: client, storageService: gsService}, nil
 }

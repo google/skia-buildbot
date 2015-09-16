@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
@@ -33,26 +32,20 @@ type GsUtil struct {
 }
 
 // NewGsUtil initializes and returns a utility for CT interations with Google
-// Storage. If client is nil then auth.RunFlow is invoked. if client is nil then
-// the client from GetOAuthClient is used.
+// Storage. If client is nil then auth.NewClient is invoked.
 func NewGsUtil(client *http.Client) (*GsUtil, error) {
 	if client == nil {
-		oauthClient, err := GetOAuthClient()
+		var err error
+		client, err = auth.NewClientWithTransport(true, GSTokenPath, ClientSecretPath, nil, auth.SCOPE_FULL_CONTROL)
 		if err != nil {
 			return nil, err
 		}
-		client = oauthClient
 	}
 	service, err := storage.New(client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create interface to Google Storage: %s", err)
 	}
 	return &GsUtil{client: client, service: service}, nil
-}
-
-func GetOAuthClient() (*http.Client, error) {
-	config := auth.OAuthConfig(GSTokenPath, auth.SCOPE_FULL_CONTROL)
-	return auth.RunFlowWithTransport(config, util.NewBackOffTransport())
 }
 
 // Returns the response body of the specified GS object. Tries MAX_URI_GET_TRIES

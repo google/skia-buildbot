@@ -6,9 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"time"
 
-	"code.google.com/p/goauth2/oauth"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
@@ -16,23 +14,86 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-// NewClient returns an authenticated http client that can be subsequently
-// used to connect to the services passed in via 'scopes'
-func NewClient(doOAuth bool, oauthCacheFile string, scopes ...string) (*http.Client, error) {
-	var client *http.Client
-	var err error
+// NewDefaultClient creates a new OAuth 2.0 authorized client with all the
+// defaults for the given scopes. If local is true then a 3-legged flow is
+// initiated, otherwise the GCE Service Account is used.
+//
+// The default OAuth config filename is "client_secret.json".
+// The default OAuth token store filename is "google_storage_token.data".
+func NewDefaultClient(local bool, scopes ...string) (*http.Client, error) {
+	return NewClient(local, "", scopes...)
+}
 
-	transport := &http.Transport{
-		Dial: util.DialTimeout,
+// NewClient creates a new OAuth 2.0 authorized client with all the defaults
+// for the given scopes, and the given token store filename. If local is true
+// then a 3-legged flow is initiated, otherwise the GCE Service Account is
+// used.
+//
+// The default OAuth config filename is "client_secret.json".
+func NewClient(local bool, oauthCacheFile string, scopes ...string) (*http.Client, error) {
+	return NewClientWithTransport(local, oauthCacheFile, "", nil, scopes...)
+}
+
+// NewClientFromIdAndSecret creates a new OAuth 2.0 authorized client with all the defaults
+// for the given scopes, and the given token store filename.
+func NewClientFromIdAndSecret(clientId, clientSecret, oauthCacheFile string, scopes ...string) (*http.Client, error) {
+	config := &oauth2.Config{
+		ClientID:     clientId,
+		ClientSecret: clientSecret,
+		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
+		Endpoint:     google.Endpoint,
+	}
+	return NewClientFromConfigAndTransport(true, config, oauthCacheFile, nil)
+}
+
+// NewClientWithTransport creates a new OAuth 2.0 authorized client. If local
+// is true then a 3-legged flow is initiated, otherwise the GCE Service Account
+// is used.
+//
+// The OAuth tokens will be stored in oauthCacheFile.
+// The OAuth config will come from oauthConfigFile.
+// The transport will be used. If nil then util.NewBackOffTransport() is used.
+func NewClientWithTransport(local bool, oauthCacheFile string, oauthConfigFile string, transport http.RoundTripper, scopes ...string) (*http.Client, error) {
+	if oauthConfigFile == "" {
+		oauthConfigFile = "client_secret.json"
+	}
+	body, err := ioutil.ReadFile(oauthConfigFile)
+	if err != nil {
+		return nil, err
+	}
+	config, err := google.ConfigFromJSON(body, scopes...)
+	if err != nil {
+		return nil, err
+	}
+	return NewClientFromConfigAndTransport(local, config, oauthCacheFile, transport)
+}
+
+// NewClientFromConfigAndTransport creates an new OAuth 2.0 authorized client
+// for the given config and transport.
+//
+// If the transport is nil then util.NewBackOffTransport() is used.
+// If local is true then a 3-legged flow is initiated, otherwise the GCE
+// Service Account is used.
+func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCacheFile string, transport http.RoundTripper) (*http.Client, error) {
+	if oauthCacheFile == "" {
+		oauthCacheFile = "google_storage_token.data"
+	}
+	if transport == nil {
+		transport = util.NewBackOffTransport()
 	}
 
-	if doOAuth {
-		// Use a local client secret file to load data.
-		client, err = InstalledAppClient(oauthCacheFile, "client_secret.json",
-			transport,
-			scopes...)
+	var client *http.Client
+	if local {
+		tokenSource, err := newCachingTokenSource(oauthCacheFile, oauth2.NoContext, config)
 		if err != nil {
-			glog.Fatalf("Unable to create installed app oauth client:%s", err)
+			return nil, fmt.Errorf("NewClientFromConfigAndTransport: Unable to create token source: %s", err)
+		}
+		client = &http.Client{
+			Transport: &oauth2.Transport{
+				Source: tokenSource,
+				Base:   transport,
+			},
+			Timeout: util.REQUEST_TIMEOUT,
 		}
 	} else {
 		// Use compute engine service account.
@@ -42,12 +103,7 @@ func NewClient(doOAuth bool, oauthCacheFile string, scopes ...string) (*http.Cli
 	return client, nil
 }
 
-// TODO(stephana): Remove the goauth2 dependency and convert everything to
-// using the newer golang.org/x/oauth2 package.
-
 const (
-	// TIMEOUT is the http timeout when making Google Storage requests.
-	TIMEOUT = time.Duration(time.Minute)
 	// Supported Cloud storage API OAuth scopes.
 	SCOPE_READ_ONLY    = "https://www.googleapis.com/auth/devstorage.read_only"
 	SCOPE_READ_WRITE   = "https://www.googleapis.com/auth/devstorage.read_write"
@@ -57,9 +113,9 @@ const (
 
 // GCEServiceAccountClient creates an oauth client that is uses the auth token
 // attached to an instance in GCE. This requires that the necessary scopes are
-// attached to the instance upon creation.
-// See details here: https://cloud.google.com/compute/docs/authentication
-// If transport is nil, the default transport will be used.
+// attached to the instance upon creation.  See details here:
+// https://cloud.google.com/compute/docs/authentication If transport is nil,
+// the default transport will be used.
 func GCEServiceAccountClient(transport http.RoundTripper) *http.Client {
 	return &http.Client{
 		Transport: &oauth2.Transport{
@@ -68,41 +124,6 @@ func GCEServiceAccountClient(transport http.RoundTripper) *http.Client {
 		},
 		Timeout: util.REQUEST_TIMEOUT,
 	}
-}
-
-// InstalledAppClient creates an oauth authenticated client for an installed
-// app based on the credentials from the developer console from an
-// account labeled 'Client ID for native application'.
-// cacheFilePath is the path to where the token should be cached,
-// configFilePath is the path to the config file downloaded from GCE and
-// scopes is the list of desired oauth2 scopes.
-// If transport is nil, the default transport will be used.
-// If the cache file does not contain a token the oauth2 flow will be trigger.
-func InstalledAppClient(cacheFilePath, configFilePath string, transport http.RoundTripper, scopes ...string) (*http.Client, error) {
-	jsonKey, err := ioutil.ReadFile(configFilePath)
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := google.ConfigFromJSON(jsonKey, scopes...)
-	if err != nil {
-		return nil, err
-	}
-
-	tokenSource, err := newCachingTokenSource(cacheFilePath, oauth2.NoContext, config)
-	if err != nil {
-		return nil, err
-	}
-
-	client := &http.Client{
-		Transport: &oauth2.Transport{
-			Source: tokenSource,
-			Base:   transport,
-		},
-		Timeout: util.REQUEST_TIMEOUT,
-	}
-
-	return client, nil
 }
 
 // cachingTokenSource implments the oauth2.TokenSource interface and
@@ -115,9 +136,8 @@ type cachingTokenSource struct {
 
 // newCachingTokenSource creates a new instance of CachingTokenSource that
 // caches the token in cacheFilePath. ctx and config are used to create and
-// retrieve the token in the first place.
-// If no token is available it will run though the oauth flow for an
-// installed app.
+// retrieve the token in the first place.  If no token is available it will run
+// though the oauth flow for an installed app.
 func newCachingTokenSource(cacheFilePath string, ctx context.Context, config *oauth2.Config) (oauth2.TokenSource, error) {
 	var tok *oauth2.Token = nil
 	var err error
@@ -203,62 +223,4 @@ func saveToken(cacheFilePath string, tok *oauth2.Token) error {
 		}
 	}
 	return nil
-}
-
-// DefaultOAuthConfig returns the default configuration for oauth.
-// If the given path for the cachefile is empty a default value is
-// used.
-func DefaultOAuthConfig(cacheFilePath string) *oauth.Config {
-	return OAuthConfig(cacheFilePath, SCOPE_READ_ONLY)
-}
-
-// OAuthConfig returns a configuration for oauth with the specified scope.
-// If the given path for the cachefile is empty a default value is used.
-func OAuthConfig(cacheFilePath, scope string) *oauth.Config {
-	if cacheFilePath == "" {
-		cacheFilePath = "google_storage_token.data"
-	}
-	return &oauth.Config{
-		ClientId:     "470362608618-nlbqngfl87f4b3mhqqe9ojgaoe11vrld.apps.googleusercontent.com",
-		ClientSecret: "J4YCkfMXFJISGyuBuVEiH60T",
-		Scope:        scope,
-		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
-		TokenURL:     "https://accounts.google.com/o/oauth2/token",
-		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
-		TokenCache:   oauth.CacheFile(cacheFilePath),
-	}
-}
-
-// RunFlowWithTransport runs through a 3LO OAuth 2.0 flow to get credentials for
-// Google Storage using the specified HTTP transport.
-func RunFlowWithTransport(config *oauth.Config, transport http.RoundTripper) (*http.Client, error) {
-	if config == nil {
-		config = DefaultOAuthConfig("")
-	}
-	oauthTransport := &oauth.Transport{
-		Config:    config,
-		Transport: transport,
-	}
-	if _, err := config.TokenCache.Token(); err != nil {
-		url := config.AuthCodeURL("")
-		fmt.Printf(`Your browser has been opened to visit:
-
-  %s
-
-Enter the verification code:`, url)
-		var code string
-		fmt.Scan(&code)
-		if _, err := oauthTransport.Exchange(code); err != nil {
-			return nil, fmt.Errorf("Failed exchange: %s", err)
-		}
-	}
-
-	return oauthTransport.Client(), nil
-}
-
-// runFlow runs through a 3LO OAuth 2.0 flow to get credentials for Google Storage.
-// Uses an HTTP transport with a dial timeout. Use RunFlowWithTransport to specify
-// your own HTTP transport.
-func RunFlow(config *oauth.Config) (*http.Client, error) {
-	return RunFlowWithTransport(config, &http.Transport{Dial: util.DialTimeout})
 }

@@ -47,28 +47,29 @@ import (
 
 // Command line flags.
 var (
-	graphiteServer   = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	port             = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	tileStoreDir     = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
-	imageDir         = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
-	gsBucketName     = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
+	authWhiteList    = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+	clientSecretFile = flag.String("client_secrets", "client_secret.json", "The file name for the client_secret.json file.")
+	cpuProfile       = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 	doOauth          = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	oauthCacheFile   = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
+	forceLogin       = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
+	graphiteServer   = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	gsBucketName     = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
+	imageDir         = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+	issueTrackerKey  = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
+	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	memProfile       = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
 	nCommits         = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
-	resourcesDir     = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-	redirectURL      = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-	redisHost        = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
-	redisDB          = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
-	cpuProfile       = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
-	forceLogin       = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
-	authWhiteList    = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	nTilesToBackfill = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
-	storageDir       = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
-	issueTrackerKey  = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
+	oauthCacheFile   = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
+	port             = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	redirectURL      = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+	redisDB          = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
+	redisHost        = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
+	resourcesDir     = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 	rietveldURL      = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
 	selfTest         = flag.Bool("self_test", false, "Run test agains live data, used debugging only.")
+	storageDir       = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
+	tileStoreDir     = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
 )
 
 const (
@@ -190,18 +191,31 @@ func (ug *URLAwareFileServer) GetURL(path string) string {
 	return ret
 }
 
-// getOAuthClient returns an oauth client (either from cached credentials or
-// via an authentication flow) or nil depending on whether doOauth is false.
-func getOAuthClient(doOauth bool, cacheFilePath string) *http.Client {
-	if doOauth {
-		config := auth.DefaultOAuthConfig(cacheFilePath)
-		client, err := auth.RunFlow(config)
-		if err != nil {
-			glog.Fatalf("Failed to auth: %s", err)
+// getOAuthClient returns an oauth client.
+func getOAuthClient(cacheFilePath string) *http.Client {
+	var client *http.Client
+	var err error
+	if *doOauth || *local {
+		if *local {
+			// Load client secrets file.  The client_secret.json file must come from
+			// project id: 470362608618, which is whitelisted for access to
+			// gs://chromium-skia-gm.
+
+			client, err = auth.NewClientWithTransport(true, cacheFilePath, *clientSecretFile, nil, auth.SCOPE_READ_ONLY)
+			if err != nil {
+				glog.Fatalf("Failed to auth: (Did you download the client_secret.json file from the project with ID: google.com:chrome-skia #470362608618 ?) %s", err)
+			}
+		} else {
+			// Load client id and secret from metadata.
+			clientId := metadata.Must(metadata.ProjectGet(metadata.CHROMIUM_SKIA_GM_CLIENT_ID))
+			clientSecret := metadata.Must(metadata.ProjectGet(metadata.CHROMIUM_SKIA_GM_CLIENT_SECRET))
+			client, err = auth.NewClientFromIdAndSecret(clientId, clientSecret, cacheFilePath, auth.SCOPE_READ_ONLY)
+			if err != nil {
+				glog.Fatalf("Failed to auth: %s", err)
+			}
 		}
-		return client
 	}
-	return nil
+	return client
 }
 
 func main() {
@@ -281,7 +295,7 @@ func main() {
 	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE, *authWhiteList, *local)
 
 	// get the Oauthclient if necessary.
-	client := getOAuthClient(*doOauth, *oauthCacheFile)
+	client := getOAuthClient(*oauthCacheFile)
 
 	// Set up the cache implementation to use.
 	cacheFactory := filediffstore.MemCacheFactory

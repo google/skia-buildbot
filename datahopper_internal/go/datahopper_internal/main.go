@@ -364,29 +364,12 @@ func main() {
 		glog.Infof("Starting.")
 		repos := gitinfo.NewRepoMap(*workdir)
 
-		// Set up the oauth client.
-		var client *http.Client
-		var err error
-
 		// In this case we don't want a backoff transport since the Apiary backend
-		// seems to fail a lot, so we basically want to fail fast and try again on
-		// the next poll.
-		transport := &http.Transport{
-			Dial: util.DialTimeout,
-		}
-
-		if *local {
-			// Use a local client secret file to load data.
-			client, err = auth.InstalledAppClient(*oauthCacheFile, "client_secret.json",
-				transport,
-				androidbuildinternal.AndroidbuildInternalScope,
-				storage.CloudPlatformScope)
-			if err != nil {
-				glog.Fatalf("Unable to create installed app oauth client:%s", err)
-			}
-		} else {
-			// Use compute engine service account.
-			client = auth.GCEServiceAccountClient(transport)
+		// seems to fail a lot, so we basically want to fall back to polling if a
+		// call fails.
+		client, err := auth.NewClientWithTransport(*local, *oauthCacheFile, "", &http.Transport{Dial: util.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
+		if err != nil {
+			glog.Fatalf("Unable to create installed app oauth client:%s", err)
 		}
 
 		buildService, err := androidbuildinternal.New(client)

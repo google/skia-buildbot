@@ -129,13 +129,13 @@ type FileDiffStore struct {
 
 // NewFileDiffStore intializes and returns a file based implementation of
 // DiffStore. The optional http.Client is used to make HTTP requests to Google
-// Storage. If nil is supplied then a default client is used. The baseDir is the
-// local base directory where the DEFAULT_IMG_DIR_NAME, DEFAULT_DIFF_DIR_NAME and
-// the DEFAULT_DIFFMETRICS_DIR_NAME directories exist. gsBucketName is the bucket
-// images will be downloaded from. storageBaseDir is the directory in the
-// bucket (if empty DEFAULT_GS_IMG_DIR_NAME is used).
-// workerPoolSize is the max number of simultaneous goroutines that will be
-// created when running Get or AbsPath.
+// Storage. If nil is supplied then a default client is used. The baseDir is
+// the local base directory where the DEFAULT_IMG_DIR_NAME,
+// DEFAULT_DIFF_DIR_NAME and the DEFAULT_DIFFMETRICS_DIR_NAME directories
+// exist. gsBucketName is the bucket images will be downloaded from.
+// storageBaseDir is the directory in the bucket (if empty
+// DEFAULT_GS_IMG_DIR_NAME is used).  workerPoolSize is the max number of
+// simultaneous goroutines that will be created when running Get or AbsPath.
 // Use RECOMMENDED_WORKER_POOL_SIZE if unsure what this value should be.
 func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storageBaseDir string, cacheFactory CacheFactory, workerPoolSize int) (diff.DiffStore, error) {
 	if client == nil {

@@ -48,29 +48,12 @@ func main() {
 	buildID := args[2]
 	glog.Infof("Branch, target, buildID: %s, %s, %s", branch, target, buildID)
 
-	// Set up the oauth client.
-	var client *http.Client
-	var err error
-
 	// In this case we don't want a backoff transport since the Apiary backend
 	// seems to fail a lot, so we basically want to fall back to polling if a
 	// call fails.
-	transport := &http.Transport{
-		Dial: util.DialTimeout,
-	}
-
-	if *local {
-		// Use a local client secret file to load data.
-		client, err = auth.InstalledAppClient(OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH,
-			transport,
-			androidbuildinternal.AndroidbuildInternalScope,
-			storage.CloudPlatformScope)
-		if err != nil {
-			glog.Fatalf("Unable to create installed app oauth client:%s", err)
-		}
-	} else {
-		// Use compute engine service account.
-		client = auth.GCEServiceAccountClient(transport)
+	client, err := auth.NewClientWithTransport(*local, OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, &http.Transport{Dial: util.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
+	if err != nil {
+		glog.Fatalf("Unable to create installed app oauth client:%s", err)
 	}
 
 	f, err := androidbuild.New("/tmp/android-gold-ingest", client)

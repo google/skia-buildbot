@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"strings"
 
-	"code.google.com/p/goauth2/oauth"
 	"go.skia.org/infra/go/auth"
 	gmail "google.golang.org/api/gmail/v1"
 )
@@ -43,17 +42,7 @@ type Message struct {
 
 // NewGMail returns a new GMail object which is authorized to send email.
 func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
-	config := oauth.Config{
-		ClientId:     clientId,
-		ClientSecret: clientSecret,
-		Scope:        gmail.GmailComposeScope,
-		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
-		TokenURL:     "https://accounts.google.com/o/oauth2/token",
-		TokenCache:   oauth.CacheFile(tokenCacheFile),
-		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
-		AccessType:   "offline",
-	}
-	client, err := auth.RunFlow(&config)
+	client, err := auth.NewClientFromIdAndSecret(clientId, clientSecret, tokenCacheFile, gmail.GmailComposeScope)
 	if err != nil {
 		return nil, err
 	}

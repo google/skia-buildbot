@@ -18,7 +18,6 @@ import (
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/ingester"
-	"go.skia.org/infra/go/util"
 	gconfig "go.skia.org/infra/golden/go/config"
 	golddb "go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/goldingester"
@@ -109,36 +108,20 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	// Get a backoff transport.
-	transport := util.NewBackOffTransport()
-
-	// Determine the oauth scopes we are going to use. Storage is used by all
-	// ingesters.
+	// Determine the oauth scopes we are going to use. Storage is used by all ingesters.
 	scopes := []string{storage.CloudPlatformScope}
 	for _, ingesterConfig := range config.Ingesters {
 		if ingesterConfig.ConstructorName == gconfig.CONSTRUCTOR_ANDROID_GOLD {
 			scopes = append(scopes, androidbuildinternal.AndroidbuildInternalScope)
 		}
 	}
-
-	// Initialize the oauth client that is used to access all scopes.
-	var client *http.Client
-	var err error
-	if config.Common.Local {
-		if config.Common.DoOAuth {
-			client, err = auth.InstalledAppClient(config.Common.OAuthCacheFile,
-				config.Common.OAuthClientSecretFile,
-				transport, scopes...)
-			if err != nil {
-				glog.Fatalf("Failed to auth: %s", err)
-			}
-		} else {
-			client = nil
-			// Add back service account access here when it's fixed.
+	var client *http.Client = nil
+	if config.Common.DoOAuth || config.Common.Local {
+		var err error
+		client, err = auth.NewClientWithTransport(config.Common.Local, config.Common.OAuthCacheFile, config.Common.OAuthClientSecretFile, nil, scopes...)
+		if err != nil {
+			glog.Fatalf("Failed to auth: %s", err)
 		}
-	} else {
-		// Assume we are on a GCE instance.
-		client = auth.GCEServiceAccountClient(transport)
 	}
 
 	// Initialize the ingester and gold ingester.

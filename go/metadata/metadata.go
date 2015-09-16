@@ -25,6 +25,11 @@ const (
 	GMAIL_CLIENT_ID     = "gmail_clientid"
 	GMAIL_CLIENT_SECRET = "gmail_clientsecret"
 
+	// CHROMIUM_SKIA_GM_CLIENT_ID and CHROMIUM_SKIA_GM_CLIENT_SECRET are for accessing
+	// files in the gs://chromium-skia-gm/ bucket.
+	CHROMIUM_SKIA_GM_CLIENT_ID     = "chromium_skia_gm_clientid"
+	CHROMIUM_SKIA_GM_CLIENT_SECRET = "chromium_skia_gm_clientsecret"
+
 	// INFLUXDB_NAME and INFLUXDB_PASSWORD are used for accessing InfluxDB.
 	INFLUXDB_NAME     = "influxdb_name"
 	INFLUXDB_PASSWORD = "influxdb_password"
