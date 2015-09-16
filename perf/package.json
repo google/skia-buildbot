@@ -10,12 +10,12 @@
   "author": "",
   "license": "BSD",
   "devDependencies": {
-    "cssmin": "",
     "autoprefixer": "~6.0.2",
     "bower": "~1.5.2",
-    "uglify-js": "",
+    "cssmin": "",
     "native-promise-only": "",
-    "vulcanize": "~1.10.4",
-    "postcss-cli": "~2.1.0"
+    "postcss-cli": "~2.1.0",
+    "uglify-js": "",
+    "vulcanize": "^1.10.4"
   }
 }

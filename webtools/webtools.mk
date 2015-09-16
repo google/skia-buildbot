@@ -58,7 +58,7 @@ res/common:
 
 # The elements_html target builds a vulcanized res/vul/elements.html from
 # elements.html.
-elements_html: res/vul/elements.html
+elements_html: core_js res/vul/elements.html
 
 # The debug_elements_html target just copies elements.html into res/vul/elements.html.
 debug_elements_html:
