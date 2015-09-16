@@ -158,7 +158,8 @@ this.ctfe = this.ctfe || function() {
   ctfe.skpRepositories.getDescription = function(repository) {
     return repository.PageSets + " captured with " +
         ctfe.chromiumBuild.shortHash(repository.ChromiumRev) + "-" +
-        ctfe.chromiumBuild.shortHash(repository.SkiaRev);
+        ctfe.chromiumBuild.shortHash(repository.SkiaRev) + " (Desc: " +
+        repository.Description + ")";
   }
 
   return ctfe;
