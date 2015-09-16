@@ -478,8 +478,9 @@ func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]interface{}{
-		"gm":    goldGMStatus,
-		"skp":   goldSKPStatus,
+		"gm": goldGMStatus,
+		// Uncomment once we track SKP's again.
+		// "skp":   goldSKPStatus,
 		"image": goldImageStatus,
 	}); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
