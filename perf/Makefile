@@ -10,7 +10,7 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: elements_html
+build: elements_html core_js
 	go install -v ./go/skiaperf
 
 .PHONY: release
