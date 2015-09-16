@@ -70,14 +70,20 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 	// If two cluster summaries have the same hash and same Regression direction
 	// then they are the same, merge them together.
 	for _, fresh := range freshSummaries {
+		found := false
 		for _, old := range oldSummaries {
 			if fresh.Hash == old.Hash && math.Signbit(fresh.StepFit.Regression) == math.Signbit(old.StepFit.Regression) {
 				old.Merge(fresh)
+				glog.Infof("Updating Traces for: %d", old.ID)
+				old.Traces = fresh.Traces
 				ret = append(ret, old)
+				found = true
 				break
 			}
 		}
-		stillFresh = append(stillFresh, fresh)
+		if !found {
+			stillFresh = append(stillFresh, fresh)
+		}
 	}
 
 	// Even if a summary has a different hash it might still be the same event if
@@ -103,6 +109,7 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 			freshHasBetterFit := math.Abs(fresh.StepFit.Regression) > math.Abs(bestMatch.StepFit.Regression)
 			freshHasMoreKeys := len(fresh.Keys) > len(bestMatch.Keys)
 			if freshHasMoreKeys || (keysLengthEqual && regressionInSameDirection && freshHasBetterFit) {
+				fresh.Merge(bestMatch)
 				fresh.Status = bestMatch.Status
 				fresh.Message = bestMatch.Message
 				fresh.ID = bestMatch.ID
@@ -115,6 +122,9 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 						break
 					}
 				}
+			} else {
+				bestMatch.Traces = fresh.Traces
+				ret = append(ret, bestMatch)
 			}
 		} else {
 			ret = append(ret, fresh)
@@ -261,29 +271,12 @@ func updateBugs(c *types.ClusterSummary, issueTracker issues.IssueTracker) error
 	return nil
 }
 
-// trimTime trims the Tile down to at most the last config.MAX_CLUSTER_COMMITS
-// commits, less if there aren't that many commits in the Tile.
-func trimTile(tile *tiling.Tile) (*tiling.Tile, error) {
-	end := tile.LastCommitIndex() + 1
-	begin := end - config.MAX_CLUSTER_COMMITS
-	if begin < 0 {
-		begin = 0
-	}
-	return tile.Trim(begin, end)
-}
-
 // singleStep does a single round of alerting.
 func singleStep(tileStore tiling.TileStore, issueTracker issues.IssueTracker) {
 	latencyBegin := time.Now()
 	tile, err := tileStore.Get(0, -1)
 	if err != nil {
 		glog.Errorf("Alerting: Failed to get tile: %s", err)
-		return
-	}
-
-	tile, err = trimTile(tile)
-	if err != nil {
-		glog.Errorf("Alerting: Failed to Trim tile down to size: %s", err)
 		return
 	}
 
@@ -306,6 +299,8 @@ func singleStep(tileStore tiling.TileStore, issueTracker issues.IssueTracker) {
 	glog.Infof("Found %d old", len(old))
 	glog.Infof("Found %d fresh", len(fresh))
 	updated := CombineClusters(fresh, old)
+	glog.Infof("Found %d to update", len(updated))
+
 	for _, c := range updated {
 		if c.Status == "" {
 			c.Status = "New"

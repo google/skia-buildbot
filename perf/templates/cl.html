@@ -12,8 +12,12 @@
         <cluster-summary-sk></cluster-summary-sk>
       </div>
       <script type="text/javascript" charset="utf-8">
-        window.addEventListener('load', function() {
-         $$$('cluster-summary-sk').setSummary({{.}});
+        sk.DomReady.then(function() {
+          $$$('cluster-summary-sk').setSummary({{.}});
+
+          sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json) {
+            sk.Mailbox.send("tileinfo", json);
+          }).catch(sk.errorMessage);
         });
       </script>
     </perf-scaffold-sk>

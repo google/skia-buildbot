@@ -6,6 +6,8 @@
 
   Properties:
     fade - A boolean, fade out an issue if its status isn't New.
+    mailbox - The name of the sk.Mailbox that contains a serialized
+      tiling.TileGUI.
 
   Methods:
     setSummary() - A serialized types.ClusterSummary.
@@ -25,7 +27,7 @@
 <link rel="import" href="/res/common/imp/9/login.html">
 <link rel="import" href="/res/common/imp/9/toggle.html">
 <link rel="import" href="/res/common/imp/9/word-cloud.html">
-<link rel="import" href="plot-simple.html">
+<link rel="import" href="plot.html">
 
 <dom-module id="cluster-summary-sk">
   <style type="text/css" media="screen">
@@ -113,7 +115,7 @@
   </style>
   <template>
     <div id=container class$="{{faded(fade, summary.Status)}}">
-      <plot-simple-sk nocrosshair id=graph width=300 height=150> </plot-simple-sk>
+      <plot-sk id=graph width=400 height=150></plot-sk>
       <div class="clDetails highlight">
         <p class$="{{statusClass(summary.StepFit.Status)}}">
           Regression: <span class="clRegression">{{trunc(summary.StepFit.Regression)}}</span>
@@ -160,16 +162,65 @@
           type: Boolean,
           value: false,
         },
+        mailbox: {
+          type: String,
+          value: "tileinfo",
+        },
       },
 
       ready: function () {
         this.summary = {};
+        this.tileinfo = {};
         this.$.update.addEventListener('click', this.updateClick.bind(this));
         this.$.shortcut.addEventListener('click', this.openShortcut.bind(this));
         this.cachedStatus = this.summary.Status || 'New';
+
         sk.Login.then(function(status) {
           this.$.status.classList.toggle('disabled', status['Email'] == '');
         }.bind(this)).catch(sk.errorMessage);
+
+        sk.Mailbox.subscribe(this.mailbox, function(tileinfo) {
+          if (!tileinfo) {
+            return
+          }
+          this.tileinfo = tileinfo;
+          this.setGraphInfo();
+
+        }.bind(this));
+      },
+
+      setGraphInfo: function() {
+        if (!this.summary["Hash"] || !this.tileinfo["commits"]) {
+          return
+        }
+        // this.$.graph.setBackgroundInfo();
+        // this.$.graph.setStepIndex(); uses this.summary.Hash.
+        var skps = [0].concat(this.tileinfo.skps, [this.tileinfo.commits.length-1]);
+        var tickmap = {};
+        for (var i = this.tileinfo.ticks.length - 1; i >= 0; i--) {
+          var t = this.tileinfo.ticks[i];
+          tickmap[t[0]] = t[1];
+        }
+        this.$.graph.setBackgroundInfo(tickmap, skps, this.lastCommitIndex(this.tileinfo.commits));
+
+        var index = -1;
+        for (var i = 0, len = this.tileinfo.commits.length; i < len; i++) {
+          if (this.tileinfo.commits[i].hash == this.summary.Hash) {
+            index = i;
+            break;
+          }
+        }
+        this.$.graph.setStepIndex(index);
+      },
+
+      lastCommitIndex: function(commits) {
+        for (var i = commits.length - 1; i >= 0; i--) {
+          if (commits[i].commit_time != 0) {
+            return i;
+          }
+        }
+        // We shouldn't get here.
+        return commits.length-1;
       },
 
       setSummary: function (summary) {
@@ -189,8 +240,21 @@
           return b[0].Weight - a[0].Weight;
         });
         this.$.wordcloud.setItems(summary.ParamSummaries);
-        this.$.graph.addLines({"0": this.summary.Traces[0]});
-        this.$.graph.setHighlight(["0"]);
+        // We take in a ClusterSummary, but need to transform all that data
+        // into a format that plot-sk can handle.
+
+        // Covert this.summary.Traces[0] into a traces that plot-sk wants.
+        var traces = [
+          {
+            data: this.summary.Traces[0],
+            label: "0",
+            _params: {"id": "0"},
+          },
+        ];
+
+        this.$.graph.addTraces(traces);
+        this.$.graph.highlightGroup("id", "0");
+        this.setGraphInfo();
       },
 
       updateClick: function () {

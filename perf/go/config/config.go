@@ -18,7 +18,7 @@ const (
 	// ClusterSummary.
 	MAX_SAMPLE_TRACES_PER_CLUSTER = 1
 
-	RECLUSTER_DURATION = 15 * time.Minute
+	RECLUSTER_DURATION = 5 * time.Minute
 
 	// CLUSTER_COMMITS is the number of commits to use when clustering.
 	MAX_CLUSTER_COMMITS = tiling.TILE_SIZE

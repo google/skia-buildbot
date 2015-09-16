@@ -99,9 +99,10 @@
           ele.addEventListener('click', sort);
         });
 
-        sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json){
+        sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json) {
+          sk.Mailbox.send("tileinfo", json);
           $$$('query-sk').setParamSet(json.paramset);
-        });
+        }).catch(sk.errorMessage);
 
       };
 

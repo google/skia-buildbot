@@ -2,10 +2,7 @@ package alerting
 
 import (
 	"testing"
-	"time"
 
-	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -20,11 +17,11 @@ func newCluster(keys []string, regression float64, hash string) *types.ClusterSu
 }
 
 func TestCombineClusters(t *testing.T) {
-	// Let's say we have three existing clusters with the following trace ids:
+	// Let's say we have existing clusters with the following trace ids:
 	//
 	//    C[1], C[2], C[3], C[8,9] C[10,11]
 	//
-	// And we run clustering and get the following four new clusters:
+	// And we run clustering and get the following new clusters:
 	//
 	//    N[1], N[2], N[3,4], N[5], N[8], N[10, 11]
 	//
@@ -39,10 +36,15 @@ func TestCombineClusters(t *testing.T) {
 	//
 	// and CombineClusters should return the clusters that need to be written:
 	//
+	//  C[1]
 	//  N[2]
 	//  N[3, 4]
 	//  N[5]
+	//  C[8]
 	//  N[10, 11]
+	//  N[20, 21, 22]
+	//  N[33, 34]
+	//  C[40]
 	//
 	// Similarly, if we have clusters with the same hashes and Regression direction
 	// then they should be merged:
@@ -55,11 +57,13 @@ func TestCombineClusters(t *testing.T) {
 	// C[30, 31] and N[33, 34] -> N[33, 34]
 	//
 	// And finally, clusters with the same traces, same hash, and opposite Regression
-	// are ignored.
+	// are unchanged, but will be rewritten to update the centroid.
 	//
-	// C[40] and N[40] -> nil
+	// C[40] and N[40] -> C[40]
 	//
 	// Given the Regression values for each cluster given below:
+
+	// C is the existing clusters.
 	C := []*types.ClusterSummary{
 		newCluster([]string{"1"}, 250, "aaa"),
 		newCluster([]string{"2"}, 300, "bbb"),
@@ -70,6 +74,7 @@ func TestCombineClusters(t *testing.T) {
 		newCluster([]string{"30", "31"}, 700, "opposite"),
 		newCluster([]string{"40"}, 700, "nonsense"),
 	}
+	// N is the new clusters.
 	N := []*types.ClusterSummary{
 		newCluster([]string{"1"}, 200, "fff"),
 		newCluster([]string{"2"}, 350, "ggg"),
@@ -81,6 +86,7 @@ func TestCombineClusters(t *testing.T) {
 		newCluster([]string{"33", "34"}, -700, "opposite"),
 		newCluster([]string{"40"}, -700, "nonsense"),
 	}
+
 	R := CombineClusters(N, C)
 
 	expected := []struct {
@@ -90,6 +96,10 @@ func TestCombineClusters(t *testing.T) {
 		{
 			Key:        "20",
 			Regression: 700,
+		},
+		{
+			Key:        "1",
+			Regression: 250,
 		},
 		{
 			Key:        "2",
@@ -104,12 +114,20 @@ func TestCombineClusters(t *testing.T) {
 			Regression: 150,
 		},
 		{
+			Key:        "8",
+			Regression: 400,
+		},
+		{
 			Key:        "10",
 			Regression: 450,
 		},
 		{
 			Key:        "33",
 			Regression: -700,
+		},
+		{
+			Key:        "40",
+			Regression: 700,
 		},
 	}
 	if got, want := len(R), len(expected); got != want {
@@ -125,46 +143,5 @@ func TestCombineClusters(t *testing.T) {
 	}
 	if got, want := len(R[0].Keys), 3; got != want {
 		t.Errorf("Incorrect merge: Got %v Want %v", got, want)
-	}
-}
-
-func TestTrimTileFunc(t *testing.T) {
-	t1 := tiling.NewTile()
-	t1.Scale = 1
-	t1.TileIndex = 1
-	now := time.Now().Unix()
-	// Pretend this is a full tile by setting non-zero CommitTime's for all commits.
-	for i, _ := range t1.Commits {
-		t1.Commits[i].CommitTime = now
-	}
-	tr := types.NewPerfTrace()
-	tr.Values[len(t1.Commits)-1] = 0.7
-	t1.Traces["bar"] = tr
-
-	var err error
-	t1, err = trimTile(t1)
-	if err != nil {
-		t.Errorf("Failed to trim Tile: %s", err)
-	}
-
-	if got, want := len(t1.Commits), config.MAX_CLUSTER_COMMITS; got != want {
-		t.Errorf("Failed to trim Tile correctly: Got %v Want %v", got, want)
-	}
-	if got, want := t1.Traces["bar"].Len(), config.MAX_CLUSTER_COMMITS; got != want {
-		t.Errorf("Failed to trim Tile Values correctly: Got %v Want %v", got, want)
-	}
-
-	// Now test trimming a Tile with less than config.MAX_CLUSTER_COMMITS commits.
-	const N = 20
-	t1, err = t1.Trim(0, N)
-	if err != nil {
-		t.Errorf("Failed to trim Tile a second time: %s", err)
-	}
-	t1, err = trimTile(t1)
-	if got, want := len(t1.Commits), N; got != want {
-		t.Errorf("Failed to trim Tile correctly: Got %v Want %v", got, want)
-	}
-	if got, want := t1.Traces["bar"].Len(), N; got != want {
-		t.Errorf("Failed to trim Tile Values correctly: Got %v Want %v", got, want)
 	}
 }
