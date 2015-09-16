@@ -383,7 +383,7 @@ func getDependencies(packageName string) (string, error) {
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, DEPENDS_PREFIX) {
-			return strings.TrimSpace(strings.TrimPrefix(line, DEPENDS_PREFIX)), nil
+			return strings.Replace(strings.TrimSpace(strings.TrimPrefix(line, DEPENDS_PREFIX)), ",", " ", -1), nil
 		}
 	}
 	return "", nil
