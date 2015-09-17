@@ -112,8 +112,14 @@ mkdir -p /b/storage/glog
 echo -n "notverysecret" | base64 -w 0 > /b/storage/webhook_salt.data
 ```
 
-To run the master poller in dry-run mode (not very useful), run `make poller &&
-poller --local=true --alsologtostderr --dry_run --log_dir=/b/storage/glog`.
+To run the master poller in dry-run mode (not very useful), run
+```
+make poller && poller --local=true \
+  --alsologtostderr \
+  --dry_run \
+  --log_dir=/b/storage/glog \
+  --graphite_server='localhost:2003'
+```
 
 Code modifications to enable running locally without dry-run mode:
 
@@ -162,7 +168,13 @@ no modifications.
 
 TODO(benjaminwagner): Make it easier to run master scripts locally.
 
-Then you can run the poller as `make poller && poller --local=true --alsologtostderr --log_dir=/b/storage/glog`
+Then you can run the poller as
+```
+make poller && poller --local=true \
+  --alsologtostderr \
+  --log_dir=/b/storage/glog \
+  --graphite_server='localhost:2003'
+```
 
 ### Workers
 

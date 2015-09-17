@@ -38,7 +38,7 @@ import (
 
 // flags
 var (
-	graphiteServer         = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
+	graphiteServer         = flag.String("graphite_server", "localhost:2003", "Location of the Graphite metrics ingestion server.")
 	host                   = flag.String("host", "localhost", "HTTP service host")
 	port                   = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
