@@ -51,7 +51,7 @@ func TestTrybotIngester(t *testing.T) {
 		assert.True(t, TEST_DIGESTS[entry.Digest])
 	}
 
-	allIssues, err := resultStore.List(10)
+	allIssues, _, err := resultStore.List(0, 10)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(allIssues))
 	assert.Equal(t, TEST_ISSUE, allIssues[0])
