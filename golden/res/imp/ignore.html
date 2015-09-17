@@ -56,7 +56,7 @@ Displays a summary of an ignore rule.
 
     <div id=name>{{value.name}}</div>
     <div id=expires>{{value.expires | humanDiffDate}}</div>
-    <pre id=query><a href="/?include=true&query={{value.query | encoded}}">{{value.query | splitAmp }}</a></pre>
+    <pre id=query><a href="/list?include=true&query={{value.query | encoded}}">{{value.query | splitAmp }}</a></pre>
     <pre id=note>{{value.note}}</pre>
     <div id=count>{{value.count}}</div>
     <paper-button id=edit title="Edit"><core-icon icon=create><core-icon></paper-button>
