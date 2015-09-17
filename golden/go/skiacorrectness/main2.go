@@ -1414,19 +1414,25 @@ func failureListJSONHandler(w http.ResponseWriter, r *http.Request) {
 // listTrybotsJSONHandler returns a list of issues (Rietveld) that have
 // trybot results associated with them.
 func listTrybotsJSONHandler(w http.ResponseWriter, r *http.Request) {
-	ret, err := search.ListTrybotIssues(storages)
+	var trybotRuns []*search.TrybotIssue
+	var total int
+
+	offset, size, err := util.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	if err == nil {
+		trybotRuns, total, err = search.ListTrybotIssues(storages, offset, size)
+	}
+
 	if err != nil {
 		util.ReportError(w, r, err, "Retrieving trybot results failed.")
 		return
 	}
 
 	pagination := &util.ResponsePagination{
-		Offset: 0,
-		Size:   30,
-		Total:  200,
+		Offset: offset,
+		Size:   size,
+		Total:  total,
 	}
-
-	sendResponse(w, ret, 200, pagination)
+	sendResponse(w, trybotRuns, 200, pagination)
 }
 
 // sendJsonResponse serializes resp to JSON. If an error occurs

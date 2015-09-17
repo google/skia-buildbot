@@ -6,9 +6,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/skia-dev/glog"
-
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/golden/go/storage"
 )
 
@@ -22,19 +19,24 @@ type TrybotIssue struct {
 	URL     string `json:"url"`
 }
 
-// ListTrybotIssues returns the most recently updated trybot issues.
-func ListTrybotIssues(storages *storage.Storage) ([]*TrybotIssue, error) {
-	issueIds, err := storages.TrybotResults.List(30)
+// ListTrybotIssues returns the most recently updated trybot issues in reverse
+// chronological order. offset and size determine the page and size of the
+// returned list. The second return value is the total number of items
+// available to facilitate pagination.
+func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIssue, int, error) {
+	issueIds, total, err := storages.TrybotResults.List(offset, size)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	if len(issueIds) == 0 {
-		return []*TrybotIssue{}, nil
+		return []*TrybotIssue{}, 0, nil
 	}
 
-	ch := make(chan interface{}, len(issueIds))
+	ch := make(chan error, len(issueIds))
 	var wg sync.WaitGroup
+	retMap := map[string]*TrybotIssue{}
+	var mutex sync.Mutex
 
 	for _, issueId := range issueIds {
 		wg.Add(1)
@@ -46,33 +48,37 @@ func ListTrybotIssues(storages *storage.Storage) ([]*TrybotIssue, error) {
 				ch <- fmt.Errorf("Unable to parse issue id %s. Got error: %s", issueId, err)
 				return
 			}
-			issue, err := storages.RietveldAPI.GetIssueProperties(intIssueId, false)
+			result, err := storages.RietveldAPI.GetIssueProperties(intIssueId, false)
 			if err != nil {
 				ch <- fmt.Errorf("Error retrieving rietveld informaton for issue: %s: %s", issueId, err)
 				return
 			}
-			ch <- issue
-		}(issueId)
-	}
-	wg.Wait()
-	close(ch)
 
-	ret := make([]*TrybotIssue, 0, len(issueIds))
-	for result := range ch {
-		switch result := result.(type) {
-		case *rietveld.Issue:
-			glog.Infof("MODIFIED: %v", result.Modified)
-			ret = append(ret, &TrybotIssue{
+			ret := &TrybotIssue{
 				ID:      result.Issue,
 				Owner:   result.Owner,
 				Subject: result.Subject,
 				Updated: result.Modified.Unix(),
 				URL:     strings.TrimSuffix(storages.RietveldAPI.Url, "/") + "/" + strconv.Itoa(result.Issue),
-			})
-		case error:
-			return nil, err
-		}
+			}
+
+			mutex.Lock()
+			retMap[issueId] = ret
+			mutex.Unlock()
+
+		}(issueId)
+	}
+	wg.Wait()
+	close(ch)
+
+	for err := range ch {
+		return nil, 0, err
 	}
 
-	return ret, nil
+	ret := make([]*TrybotIssue, 0, len(retMap))
+	for _, issueId := range issueIds {
+		ret = append(ret, retMap[issueId])
+	}
+
+	return ret, total, nil
 }

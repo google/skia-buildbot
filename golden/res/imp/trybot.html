@@ -56,7 +56,7 @@
             <td class="issueValue"><a href="{{entry.url}}" target="_blank">{{entry.id}}</a></td>
             <td class="nameValue">{{entry.owner}}</td>
             <td class="dateTimeValue">{{entry.updated | _toLocalDate}}</td>
-            <td class="subjectValue"><a href="/search2?issue={{entry.id}}">{{entry.subject}}</a></td>
+            <td class="subjectValue"><a href="/search2?issue={{entry.id}}&unt=true">{{entry.subject}}</a></td>
           </tr>
       </table>
       <error-toast-sk></error-toast-sk>

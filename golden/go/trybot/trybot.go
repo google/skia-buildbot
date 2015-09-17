@@ -77,23 +77,32 @@ func (t *TrybotResultStorage) Get(issue string) (types.TryBotResults, error) {
 }
 
 // List returns the last N Rietveld issue IDs that have been ingested.
-func (t *TrybotResultStorage) List(n int) ([]string, error) {
-	rows, err := t.vdb.DB.Query("SELECT issue FROM tries ORDER BY last_updated DESC LIMIT ?", n)
+func (t *TrybotResultStorage) List(offset, size int) ([]string, int, error) {
+	var total int
+	if err := t.vdb.DB.QueryRow("SELECT count(*) FROM tries").Scan(&total); err != nil {
+		return nil, 0, err
+	}
+
+	if total == 0 {
+		return []string{}, 0, nil
+	}
+
+	rows, err := t.vdb.DB.Query("SELECT issue FROM tries ORDER BY last_updated DESC LIMIT ?,?", offset, size)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read try data from database: %s", err)
+		return nil, 0, fmt.Errorf("Failed to read try data from database: %s", err)
 	}
 	defer util.Close(rows)
 
-	ret := make([]string, 0, n)
+	ret := make([]string, 0, size)
 	for rows.Next() {
 		var issue string
 		if err := rows.Scan(&issue); err != nil {
-			return nil, fmt.Errorf("List: Failed to read issus from row: %s", err)
+			return nil, 0, fmt.Errorf("List: Failed to read issus from row: %s", err)
 		}
 		ret = append(ret, issue)
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(ret)))
-	return ret, nil
+	return ret, total, nil
 }
 
 // TrybotResultIngester implements the ingester.ResultIngester interface.
