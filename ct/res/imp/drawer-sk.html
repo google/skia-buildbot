@@ -51,7 +51,7 @@
 
       <paper-item data-href="/queue/">
         <iron-icon icon="reorder" class="right_padded"></iron-icon>
-        View Queue
+        View Queue (<b>{{sizeOfQueue}}</b>)
       </paper-item>
 
       <paper-item data-href="/history/">
@@ -82,10 +82,46 @@
         value: "",
         observer: "selectedChanged",
       },
+      sizeOfQueue: {
+        type: Number,
+        value: 0,
+      },
+      taskDescriptors: {
+         type: Array,
+         value: function() {
+           return [{type: "ChromiumPerf",
+                    get_url: "/_/get_chromium_perf_tasks"},
+                   {type: "CaptureSkps",
+                    get_url: "/_/get_capture_skp_tasks"},
+                   {type: "LuaScript",
+                    get_url: "/_/get_lua_script_tasks"},
+                   {type: "ChromiumBuild",
+                    get_url: "/_/get_chromium_build_tasks"},
+                   {type: "RecreatePageSets",
+                    get_url: "/_/get_recreate_page_sets_tasks"},
+                   {type: "RecreateWebpageArchives",
+                    get_url: "/_/get_recreate_webpage_archives_tasks"},
+                  ];
+         }
+       },
     },
 
     ready: function() {
       this.initSelected();
+      this.initSizeOfQueue();
+    },
+
+    initSizeOfQueue: function() {
+      var queryParams = {
+         "size": 1,
+         "not_completed": true,
+      }
+      var queryStr = "?" + sk.query.fromObject(queryParams);
+      this.taskDescriptors.forEach(function(obj) {
+         sk.post(obj.get_url + queryStr).then(JSON.parse).then(function(json) {
+           this.sizeOfQueue += json.pagination.total;
+         }.bind(this)).catch(sk.errorMessage);
+       }.bind(this));
     },
 
     initSelected: function() {
