@@ -51,6 +51,12 @@ type ShiftType struct {
 	nextSheriffEndpoint string
 }
 
+const (
+	// This placeholder is used to signify that nobody will be sheriffing that
+	// week.
+	NO_SHERIFF = "nobody"
+)
+
 var (
 	emailTokenPath   = flag.String("email_token_path", "", "The file where the email token can be found.")
 	skiaSheriffShift = &ShiftType{shiftName: "Skia Sheriff", schedulesLink: "http://skia-tree-status.appspot.com/sheriff", documentationLink: "https://skia.org/dev/sheriffing", nextSheriffEndpoint: "http://skia-tree-status.appspot.com/next-sheriff"}
@@ -98,6 +104,10 @@ func main() {
 			glog.Fatalf("Could not unmarshal JSON: %s", err)
 		}
 		sheriffEmail, _ := jsonType["username"].(string)
+		if sheriffEmail == NO_SHERIFF {
+			glog.Infof("Skipping emailing %s because %s was specified", shiftType.shiftName, NO_SHERIFF)
+			continue
+		}
 		sheriffUsername := strings.Split(string(sheriffEmail), "@")[0]
 
 		emailTemplateParsed := template.Must(template.New("sheriff_email").Parse(EMAIL_TEMPLATE))
