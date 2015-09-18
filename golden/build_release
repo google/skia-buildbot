@@ -117,6 +117,9 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/res/css
   ${INSTALL}     --mode=644 ./res/css/core.css                    ${ROOT}/usr/local/share/skiacorrectness/res/css/core.css
 
+  ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/res/img
+  ${INSTALL}     --mode=644 ./res/img/favicon.ico                 ${ROOT}/usr/local/share/skiacorrectness/res/img/favicon.ico
+
   ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/res/js
   ${INSTALL}     --mode=644 ./res/js/core.js                      ${ROOT}/usr/local/share/skiacorrectness/res/js/core.js
 
