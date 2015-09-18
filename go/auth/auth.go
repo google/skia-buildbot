@@ -42,6 +42,7 @@ func NewClientFromIdAndSecret(clientId, clientSecret, oauthCacheFile string, sco
 		ClientSecret: clientSecret,
 		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
 		Endpoint:     google.Endpoint,
+		Scopes:       scopes,
 	}
 	return NewClientFromConfigAndTransport(true, config, oauthCacheFile, nil)
 }
@@ -54,17 +55,22 @@ func NewClientFromIdAndSecret(clientId, clientSecret, oauthCacheFile string, sco
 // The OAuth config will come from oauthConfigFile.
 // The transport will be used. If nil then util.NewBackOffTransport() is used.
 func NewClientWithTransport(local bool, oauthCacheFile string, oauthConfigFile string, transport http.RoundTripper, scopes ...string) (*http.Client, error) {
-	if oauthConfigFile == "" {
-		oauthConfigFile = "client_secret.json"
+	// If this is running locally we need to load the oauth configuration.
+	var config *oauth2.Config = nil
+	if local {
+		if oauthConfigFile == "" {
+			oauthConfigFile = "client_secret.json"
+		}
+		body, err := ioutil.ReadFile(oauthConfigFile)
+		if err != nil {
+			return nil, err
+		}
+		config, err = google.ConfigFromJSON(body, scopes...)
+		if err != nil {
+			return nil, err
+		}
 	}
-	body, err := ioutil.ReadFile(oauthConfigFile)
-	if err != nil {
-		return nil, err
-	}
-	config, err := google.ConfigFromJSON(body, scopes...)
-	if err != nil {
-		return nil, err
-	}
+
 	return NewClientFromConfigAndTransport(local, config, oauthCacheFile, transport)
 }
 
