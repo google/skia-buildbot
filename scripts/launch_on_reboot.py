@@ -133,6 +133,18 @@ def _setup_launch_on_reboot_win32(launch_script, skia_repo_dir):
   bat_path = os.path.join(WINDOWS_STARTUP_PATH, 'launch_on_boot.bat')
   with open(bat_path, 'w') as f:
     f.write(bat_contents)
+  # Some machines still have manually-added scripts in the startup directory.
+  # Remove them.
+  try:
+    os.remove(os.path.join(WINDOWS_STARTUP_PATH,
+                           'skiabot-slave-start-on-boot.bat'))
+  except OSError:
+    pass
+  try:
+    os.remove(os.path.join(WINDOWS_STARTUP_PATH,
+                           'skiabot-slave-start-on-boot.lnk'))
+  except OSError:
+    pass
 
 
 def setup_launch_on_reboot():
