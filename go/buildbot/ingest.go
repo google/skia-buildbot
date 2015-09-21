@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/gitinfo"
@@ -305,6 +306,7 @@ func insertBuilds(builds []*Build) {
 		}
 	}
 	glog.Infof("Finished inserting %d builds.", len(builds))
+	go_metrics.GetOrRegisterCounter("buildbot.NumInsertedBuilds", go_metrics.DefaultRegistry).Inc(int64(len(builds)))
 }
 
 // findCommitsRecursive is a recursive function called by FindCommitsForBuild.
@@ -493,6 +495,7 @@ func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *git
 // and pushes it into the database.
 func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 	defer metrics.NewTimer("buildbot.IngestBuild").Stop()
+	defer go_metrics.GetOrRegisterCounter("buildbot.NumIngestedBuilds", go_metrics.DefaultRegistry).Inc(1)
 	// Find the commits for this build.
 	commits, stoleFrom, stolen, err := FindCommitsForBuild(bc, b, repos)
 	if err != nil {
