@@ -29,6 +29,10 @@
     progress - Boolean, if true then display the percent complete
       for the first hash.
 
+    selection - Boolean, if true then selections are displayed.
+
+    selector - The iron-selector element that wraps the commits.
+
   Methods:
     setCommitInfo - Sets the commit info, an array of *types.Commit. See the
       description for the mailbox attribute for more details.
@@ -37,10 +41,23 @@
     None.
 
 -->
+<link rel="stylesheet" href="/res/common/css/md.css">
+<link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
+
 <dom-module id="commits-panel-sk">
   <style type="text/css" media="screen">
       div {
         margin-bottom: 0.5em;
+      }
+
+      pre {
+        font-size: 14px;
+        margin: 0.2em 0;
+        padding: 0.3em;
+      }
+
+      .iron-selected {
+        background: #eee;
       }
     </style>
   <template>
@@ -49,15 +66,11 @@
         <a target="_blank" href$="{{_statusHref(_firstHash)}}">Buildbot Percent Complete: <span>{{_commitPercent(_percent)}}</span>%</a>
       </div>
     </template>
-    <table>
+    <iron-selector id=selector>
       <template is="dom-repeat" items="{{_commitinfo}}" as="c">
-        <tr>
-          <td>{{c.author}}</td>
-          <td>{{_humanize(c.commit_time)}}</td>
-          <td><a href$="{{_commitHref(c)}}">{{_trunc(c.hash)}}</a></td>
-          <td>{{c.message}}</td>
-        </tr>
+        <pre><span>{{_trimPad(c.author)}}</span> <span>{{_humanize(c.commit_time)}}</span> <span><a href$="{{_commitHref(c)}}">{{_trunc(c.hash)}}</a></span> <span>{{_trimNewline(c.message)}}</span></pre>
       </template>
+    </iron-selector>
     </table>
   </template>
   <script>
@@ -76,16 +89,39 @@
           value: false,
           reflectToAttribute: true,
         },
+        selection: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true,
+          observer: "_selectionChanged",
+        },
       },
 
       ready: function () {
         this._percent = -1.0;
         this._firstHash = '';
+        this.selector = this.$.selector;
       },
 
       setCommitInfo: function(commitinfo) {
         this._commitinfo = commitinfo;
         this._processCommitInfo();
+      },
+
+      _trimPad: function(s) {
+        s = s.slice(0, 30);
+        while (s.length < 30) {
+          s = s + " ";
+        }
+        return s;
+      },
+
+      _trimNewline: function(s) {
+        return this._trimPad(s.split("\n")[0]);
+      },
+
+      _selectionChanged: function() {
+        this.$.selector.selectedClass = this.selection ? "iron-selected" : "no-matching-class";
       },
 
       _mailboxChanged: function(newValue, oldValue) {
