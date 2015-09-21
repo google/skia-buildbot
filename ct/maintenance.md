@@ -59,7 +59,7 @@ flag to achieve this.
 
 To start a local server, run:
 ```
-make ctfe && ctfe --local=true \
+make ctfe_debug && ctfe --local=true \
   --logtostderr \
   --ctfe_db_host=localhost \
   --port=:8000 \
