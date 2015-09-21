@@ -183,10 +183,24 @@ func GetBuildsForCommits(commits []string, ignore map[int]bool) (map[string][]*B
 
 // GetBuildIDFromDB retrieves the ID for the given build from the database
 // as specified by the given master, builder, and build number.
-func GetBuildIDFromDB(builder, master string, buildNumber int) (int, error) {
+func GetBuildIDFromDB(builder, master string, buildNumber int) (rvid int, rverr error) {
+	tx, err := DB.Beginx()
+	if err != nil {
+		return -1, err
+	}
+	// Defer committing/rolling back the transaction.
+	defer func() {
+		rverr = database.CommitOrRollback(tx, rverr)
+	}()
+	return GetBuildIDFromDBTx(builder, master, buildNumber, tx)
+}
+
+// GetBuildIDFromDBTx retrieves the ID for the given build from the database
+// as specified by the given master, builder, and build number.
+func GetBuildIDFromDBTx(builder, master string, buildNumber int, tx *sqlx.Tx) (int, error) {
 	var id int
 	stmt := fmt.Sprintf("SELECT id FROM %s WHERE builder = ? AND master = ? AND number = ?", TABLE_BUILDS)
-	if err := DB.Get(&id, stmt, builder, master, buildNumber); err != nil {
+	if err := tx.Get(&id, stmt, builder, master, buildNumber); err != nil {
 		return -1, fmt.Errorf("Unable to retrieve build ID from database: %v", err)
 	}
 	return id, nil
@@ -485,7 +499,7 @@ func replaceStepsIntoDB(tx *sqlx.Tx, steps []*BuildStep, newBuildID int) (map[*B
 		stmt := fmt.Sprintf("INSERT INTO %s (buildId,name,results,number,started,finished) VALUES (?,?,?,?,?,?);", TABLE_BUILD_STEPS)
 		res, err := tx.Exec(stmt, newBuildID, s.Name, s.Results, s.Number, s.Started, s.Finished)
 		if err != nil {
-			return nil, fmt.Errorf("Unable to push buildsteps into database: %v", err)
+			return nil, fmt.Errorf("Unable to push buildsteps into database: %v\nStep: %v\nNew Build ID: %d", err, s, newBuildID)
 		}
 		id, err := res.LastInsertId()
 		if err != nil {
@@ -677,6 +691,7 @@ func ReplaceMultipleBuildsIntoDB(builds []*Build) (rv error) {
 	}()
 
 	// Insert the builds.
+	// TODO(borenet): Insert/update all of the builds at once.
 	for _, b := range builds {
 		if err := b.replaceIntoDBTx(tx); err != nil {
 			return err
@@ -686,8 +701,14 @@ func ReplaceMultipleBuildsIntoDB(builds []*Build) (rv error) {
 }
 
 func (b *Build) replaceIntoDBTx(tx *sqlx.Tx) (rv error) {
-	// Insert the build itself.
+	// Determine whether we've already ingested this build. If so, fix up the ID
+	// so that we update it rather than insert a new copy.
+	existingBuildID, err := GetBuildIDFromDBTx(b.Builder, b.Master, b.Number, tx)
+	if err == nil && existingBuildID >= 0 {
+		b.Id = existingBuildID
+	}
 	buildID := b.Id
+
 	var stepIDMap map[*BuildStep]int
 	var commentIDMap map[*BuildComment]int
 
@@ -727,13 +748,13 @@ func (b *Build) replaceIntoDBTx(tx *sqlx.Tx) (rv error) {
 	}
 
 	// Build steps.
-	stepIDMap, err := replaceStepsIntoDB(tx, b.Steps, buildID)
+	stepIDMap, err = replaceStepsIntoDB(tx, b.Steps, buildID)
 	if err != nil {
 		return err
 	}
 
 	// Commits.
-	if err := replaceCommitsIntoDB(tx, b.Commits, buildID); err != nil {
+	if err = replaceCommitsIntoDB(tx, b.Commits, buildID); err != nil {
 		return err
 	}
 

@@ -60,25 +60,257 @@ func get(url string, rv interface{}) error {
 	return nil
 }
 
-// BuildFinder is an interface used to inject a layer between the ingestion
-// functions and the database, allowing for users to pretend to insert builds
-// into the database without actually modifying it.
-type BuildFinder interface {
+// BuildCache is an interface used to inject a layer between the ingestion
+// functions and the database, allowing caching of builds or for users to
+// pretend to insert builds into the database without actually modifying it.
+type BuildCache interface {
 	GetBuildForCommit(string, string, string) (int, error)
+	GetBuildFromDB(string, string, int) (*Build, error)
+	Put(*Build) error
+	PutMulti([]*Build) error
 }
 
-type dbBuildFinder struct{}
-
-func (bf *dbBuildFinder) GetBuildForCommit(builder, master, hash string) (int, error) {
-	return GetBuildForCommit(builder, master, hash)
+// buildCache is a local implementation of BuildCache used for quick retrieval
+// of already-ingested builds.  This speeds up expensive computations like
+// FindCommitsForBuild.
+type buildCache struct {
+	builderLock map[string]*sync.Mutex
+	byNumber    map[string]map[int]*Build
+	byCommit    map[string]map[string]*Build
+	ingestQueue *ingestQueue
+	mtx         sync.Mutex
 }
 
-var bf dbBuildFinder
+// newBuildCache returns a new buildCache instance.
+func newBuildCache() *buildCache {
+	bc := &buildCache{
+		builderLock: map[string]*sync.Mutex{},
+		byNumber:    map[string]map[int]*Build{},
+		byCommit:    map[string]map[string]*Build{},
+		ingestQueue: newIngestQueue(),
+	}
+	return bc
+}
+
+// bc is a global instance of buildCache used for all build ingestion.
+var bc = newBuildCache()
+
+// Return the per-builder lock for the given builder, creating one if it
+// doesn't exist.
+func (c *buildCache) getOrCreateLock(builder string) *sync.Mutex {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	if _, ok := c.builderLock[builder]; !ok {
+		c.builderLock[builder] = &sync.Mutex{}
+	}
+	return c.builderLock[builder]
+}
+
+// obtainLock obtains a lock on the given builder, returning the mutex object
+// so that the caller can unlock it.
+func (c *buildCache) obtainLock(builder string) *sync.Mutex {
+	getOrCreateLock := func(builder string) *sync.Mutex {
+		c.mtx.Lock()
+		defer c.mtx.Unlock()
+		if _, ok := c.builderLock[builder]; !ok {
+			c.builderLock[builder] = &sync.Mutex{}
+		}
+		return c.builderLock[builder]
+	}
+	l := getOrCreateLock(builder)
+	l.Lock()
+	return l
+}
+
+// putLocked inserts the build into the cache. It assumes that the caller holds
+// a lock on the associated builder.
+func (c *buildCache) putLocked(b *Build) {
+	if _, ok := c.byNumber[b.Builder]; !ok {
+		c.byNumber[b.Builder] = map[int]*Build{}
+	}
+	if _, ok := c.byCommit[b.Builder]; !ok {
+		c.byCommit[b.Builder] = map[string]*Build{}
+	}
+	c.byNumber[b.Builder][b.Number] = b
+	for _, commit := range b.Commits {
+		c.byCommit[b.Builder][commit] = b
+	}
+	// Queue the build for ingestion.
+	c.ingestQueue.Put(b)
+}
+
+// Put inserts the build into the cache.
+func (c *buildCache) Put(b *Build) error {
+	defer c.obtainLock(b.Builder).Unlock()
+	c.putLocked(b)
+	return nil
+}
+
+// PutMulti is a convenience function for inserting multiple builds into the cache.
+func (c *buildCache) PutMulti(builds []*Build) error {
+	for _, b := range builds {
+		if err := c.Put(b); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// GetBuildFromDB returns the build identified by the given builder, master,
+// and build number. If the build does not exist in the cache, a database
+// search for the build is performed, and, if it is found, the build is added
+// to the cache.
+func (c *buildCache) GetBuildFromDB(builder, master string, number int) (*Build, error) {
+	defer c.obtainLock(builder).Unlock()
+	if _, ok := c.byNumber[builder]; !ok {
+		c.byNumber[builder] = map[int]*Build{}
+	}
+	if _, ok := c.byNumber[builder][number]; !ok {
+		b, err := GetBuildFromDB(builder, master, number)
+		if err != nil {
+			return nil, err
+		}
+		if b == nil {
+			return nil, nil
+		}
+		c.putLocked(b)
+	}
+	b := c.byNumber[builder][number]
+	if b == nil {
+		return nil, nil
+	}
+	return b, nil
+}
+
+// GetBuildIDFromDB returns the ID of the build identified by the given
+// builder, master, and build number. If the build does not exist in the cache,
+// a database search for the build is performed, and, if it is found, the build
+// is added to the cache.
+func (c *buildCache) GetBuildIDFromDB(builder, master string, number int) (int, error) {
+	b, err := c.GetBuildFromDB(builder, master, number)
+	if err != nil {
+		return -1, err
+	}
+	if b == nil {
+		return -1, nil
+	}
+	return b.Id, nil
+}
+
+// GetBuildForCommit returns the build for the given builder which ran the
+// given commit. If the build does not exist in the cache, a database search
+// for the build is performed, and, if it is found, the build is added to the
+// cache.
+func (c *buildCache) GetBuildForCommit(builder, master, commit string) (int, error) {
+	defer c.obtainLock(builder).Unlock()
+	if _, ok := c.byCommit[builder]; !ok {
+		c.byCommit[builder] = map[string]*Build{}
+	}
+	if _, ok := c.byCommit[builder][commit]; !ok {
+		n, err := GetBuildForCommit(builder, master, commit)
+		if err != nil || n < 0 {
+			return -1, err
+		}
+		b, err := GetBuildFromDB(builder, master, n)
+		if err != nil {
+			return -1, err
+		}
+		if b == nil {
+			return -1, nil
+		}
+		c.putLocked(b)
+	}
+	b := c.byCommit[builder][commit]
+	if b == nil {
+		return -1, nil
+	}
+	return b.Number, nil
+}
+
+// ingestQueue is a struct used for batching builds for insertion into the
+// database. The ingestQueue works by storing two maps containing builds to
+// insert into the queue. Builds are placed into one map using the Put method
+// while builds from the other map are inserted into the database. When database
+// insertion finishes, that map is emptied and the maps are swapped.
+type ingestQueue struct {
+	queue [2]map[string]map[int]*Build
+	idx   int
+	mtx   sync.Mutex
+}
+
+// newIngestQueue returns a new ingestQueue instance.
+func newIngestQueue() *ingestQueue {
+	q := &ingestQueue{
+		queue: [2]map[string]map[int]*Build{
+			map[string]map[int]*Build{},
+			map[string]map[int]*Build{},
+		},
+		idx: 0,
+	}
+	q.ingestLoop()
+	return q
+}
+
+// Put inserts the build into the ingestQueue.
+func (q *ingestQueue) Put(b *Build) {
+	q.mtx.Lock()
+	defer q.mtx.Unlock()
+	if _, ok := q.queue[q.idx][b.Builder]; !ok {
+		q.queue[q.idx][b.Builder] = map[int]*Build{}
+	}
+	q.queue[q.idx][b.Builder][b.Number] = b
+}
+
+// ingestLoop repeatedly inserts pending builds from the queue into the
+// database.
+func (q *ingestQueue) ingestLoop() {
+	incIdx := func() int {
+		q.mtx.Lock()
+		defer q.mtx.Unlock()
+		rv := q.idx
+		q.idx = (q.idx + 1) % len(q.queue)
+		return rv
+	}
+	go func() {
+		for {
+			oldIdx := incIdx()
+			queue := q.queue[oldIdx]
+			if len(queue) > 0 {
+				builds := make([]*Build, 0, len(queue))
+				for _, nums := range queue {
+					for _, b := range nums {
+						builds = append(builds, b)
+					}
+				}
+				insertBuilds(builds)
+				q.queue[oldIdx] = map[string]map[int]*Build{}
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
+}
+
+// insertBuilds inserts a batch of builds into the database. In the case of
+// failure, it continually retries until it succeeds.
+func insertBuilds(builds []*Build) {
+	defer metrics.NewTimer("buildbot.insertBuilds").Stop()
+	for {
+		// Insert the builds.
+		glog.Infof("Inserting %d builds.", len(builds))
+		if err := ReplaceMultipleBuildsIntoDB(builds); err != nil {
+			glog.Errorf("Failed to insert builds, retrying: %v", err)
+			time.Sleep(100 * time.Millisecond)
+		} else {
+			break
+		}
+	}
+	glog.Infof("Finished inserting %d builds.", len(builds))
+}
 
 // findCommitsRecursive is a recursive function called by FindCommitsForBuild.
 // It traces the history to find builds which were first included in the given
 // build.
-func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
+func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash string, repo *gitinfo.GitInfo, stealFrom int, stolen []string) (map[string]bool, int, []string, error) {
 	// Shortcut for empty hashes. This can happen when a commit has no
 	// parents (initial commit) or when a Build has no GotRevision.
 	if hash == "" {
@@ -86,7 +318,7 @@ func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, has
 	}
 
 	// Determine whether any build already includes this commit.
-	n, err := bf.GetBuildForCommit(b.Builder, b.Master, hash)
+	n, err := bc.GetBuildForCommit(b.Builder, b.Master, hash)
 	if err != nil {
 		return commits, stealFrom, stolen, fmt.Errorf("Could not find build for commit %s: %v", hash, err)
 	}
@@ -106,12 +338,11 @@ func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, has
 				// GotRevision of the Build we're stealing commits from,
 				// ie. both builds ran at the same commit, just take all of
 				// its commits without doing any more work.
-				stealFromBuild, err := GetBuildFromDB(b.Builder, b.Master, stealFrom)
+				stealFromBuild, err := bc.GetBuildFromDB(b.Builder, b.Master, stealFrom)
 				if err != nil {
 					return commits, stealFrom, stolen, fmt.Errorf("Could not retrieve build: %v", err)
 				}
-				if stealFromBuild.GotRevision == b.GotRevision {
-					glog.Infof("Build numbers %d and %d for %s have a GotRevision of %s; stealing all %d commits.", b.Number, stealFrom, b.Builder, b.GotRevision, len(stealFromBuild.Commits))
+				if stealFromBuild.GotRevision == b.GotRevision && stealFromBuild.Number < b.Number {
 					commits = map[string]bool{}
 					for _, c := range stealFromBuild.Commits {
 						commits[c] = true
@@ -146,7 +377,7 @@ func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, has
 		if _, ok := commits[p]; ok {
 			continue
 		}
-		commits, stealFrom, stolen, err = findCommitsRecursive(bf, commits, b, p, repo, stealFrom, stolen)
+		commits, stealFrom, stolen, err = findCommitsRecursive(bc, commits, b, p, repo, stealFrom, stolen)
 		if err != nil {
 			return commits, stealFrom, stolen, err
 		}
@@ -157,7 +388,7 @@ func findCommitsRecursive(bf BuildFinder, commits map[string]bool, b *Build, has
 // FindCommitsForBuild determines which commits were first included in the
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
-func FindCommitsForBuild(bf BuildFinder, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
+func FindCommitsForBuild(bc BuildCache, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
 	defer metrics.NewTimer("buildbot.FindCommitsForBuild").Stop()
 	// Shortcut: Don't bother computing commit blamelists for trybots.
 	if IsTrybot(b.Builder) {
@@ -171,6 +402,15 @@ func FindCommitsForBuild(bf BuildFinder, b *Build, repos *gitinfo.RepoMap) ([]st
 		return nil, -1, nil, fmt.Errorf("Could not find commits for build: %v", err)
 	}
 
+	// Update (git pull) on demand.
+	if b.GotRevision != "" {
+		if _, err := repo.Details(b.GotRevision); err != nil {
+			if err := repo.Update(true, true); err != nil {
+				return nil, -1, nil, fmt.Errorf("Could not find commits for build: failed to update repo: %v", err)
+			}
+		}
+	}
+
 	// Shortcut for the first build for a given builder: this build must be
 	// the first inclusion for all revisions prior to b.GotRevision.
 	if b.Number == 0 && b.GotRevision != "" {
@@ -178,7 +418,7 @@ func FindCommitsForBuild(bf BuildFinder, b *Build, repos *gitinfo.RepoMap) ([]st
 		return revlist, -1, []string{}, err
 	}
 	// Start tracing commits back in time until we hit a previous build.
-	commitMap, stealFrom, stolen, err := findCommitsRecursive(bf, map[string]bool{}, b, b.GotRevision, repo, -1, []string{})
+	commitMap, stealFrom, stolen, err := findCommitsRecursive(bc, map[string]bool{}, b, b.GotRevision, repo, -1, []string{})
 	if err != nil {
 		return nil, -1, nil, err
 	}
@@ -254,7 +494,7 @@ func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *git
 func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 	defer metrics.NewTimer("buildbot.IngestBuild").Stop()
 	// Find the commits for this build.
-	commits, stoleFrom, stolen, err := FindCommitsForBuild(&bf, b, repos)
+	commits, stoleFrom, stolen, err := FindCommitsForBuild(bc, b, repos)
 	if err != nil {
 		return err
 	}
@@ -264,17 +504,11 @@ func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 	if !(IsTrybot(b.Builder) || strings.Contains(b.Builder, "Housekeeper")) && len(b.Commits) == 0 {
 		glog.Infof("Got build with 0 revs: %s #%d GotRev=%s", b.Builder, b.Number, b.GotRevision)
 	}
-	// Determine whether we've already ingested this build. If so, fix up the ID
-	// so that we update it rather than insert a new copy.
-	existingBuildID, err := GetBuildIDFromDB(b.Builder, b.Master, b.Number)
-	if err == nil {
-		b.Id = existingBuildID
-	}
 
 	// Insert the build.
 	if stoleFrom >= 0 && stolen != nil && len(stolen) > 0 {
 		// Remove the commits we stole from the previous owner.
-		oldBuild, err := GetBuildFromDB(b.Builder, b.Master, stoleFrom)
+		oldBuild, err := bc.GetBuildFromDB(b.Builder, b.Master, stoleFrom)
 		if err != nil {
 			return err
 		}
@@ -295,9 +529,9 @@ func IngestBuild(b *Build, repos *gitinfo.RepoMap) error {
 			}
 		}
 		oldBuild.Commits = newCommits
-		return ReplaceMultipleBuildsIntoDB([]*Build{b, oldBuild})
+		return bc.PutMulti([]*Build{b, oldBuild})
 	} else {
-		return b.ReplaceIntoDB()
+		return bc.Put(b)
 	}
 }
 
@@ -418,10 +652,6 @@ func ingestNewBuilds(m string, repos *gitinfo.RepoMap) error {
 		buildsToProcess[b.Builder] = append(buildsToProcess[b.Builder], b.Number)
 	}
 
-	if err := repos.Update(); err != nil {
-		return err
-	}
-
 	// TODO(borenet): Can we ingest builders in parallel?
 	errs := map[string]error{}
 	for b, w := range buildsToProcess {
@@ -479,7 +709,7 @@ func IngestNewBuildsLoop(workdir string) {
 		go func(master string) {
 			defer wg.Done()
 			lv := metrics.NewLiveness(fmt.Sprintf("buildbot-ingest-%s", master))
-			for _ = range time.Tick(30 * time.Second) {
+			for _ = range time.Tick(10 * time.Second) {
 				if err := ingestNewBuilds(master, repos); err != nil {
 					glog.Errorf("Failed to ingest new builds: %v", err)
 				} else {
