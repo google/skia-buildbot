@@ -90,7 +90,12 @@ func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCac
 
 	var client *http.Client
 	if local {
-		tokenSource, err := newCachingTokenSource(oauthCacheFile, oauth2.NoContext, config)
+		tokenClient := &http.Client{
+			Transport: transport,
+			Timeout:   util.REQUEST_TIMEOUT,
+		}
+		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
+		tokenSource, err := newCachingTokenSource(oauthCacheFile, ctx, config)
 		if err != nil {
 			return nil, fmt.Errorf("NewClientFromConfigAndTransport: Unable to create token source: %s", err)
 		}
