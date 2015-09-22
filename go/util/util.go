@@ -475,3 +475,10 @@ func IsNil(i interface{}) bool {
 		return false
 	}
 }
+
+// UnixFloatToTime takes a float64 representing a Unix timestamp and returns a time.Time.
+func UnixFloatToTime(t float64) time.Time {
+	secs := int64(t)
+	nanos := int64(1000000000 * (t - float64(secs)))
+	return time.Unix(secs, nanos)
+}

@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"sort"
 	"testing"
+	"time"
 
 	assert "github.com/stretchr/testify/require"
 )
@@ -251,4 +252,19 @@ func TestIsNil(t *testing.T) {
 	var ii interface{}
 	ii = &pi
 	assert.True(t, IsNil(ii))
+}
+
+func TestUnixFloatToTime(t *testing.T) {
+	cases := []struct {
+		in  float64
+		out time.Time
+	}{
+		{
+			in:  1414703190.292151927,
+			out: time.Unix(1414703190, 292151927),
+		},
+	}
+	for _, tc := range cases {
+		assert.Equal(t, tc.out, UnixFloatToTime(tc.in))
+	}
 }

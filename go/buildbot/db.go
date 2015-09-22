@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	go_metrics "github.com/rcrowley/go-metrics"
+
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/timer"
@@ -715,6 +717,11 @@ func (b *Build) replaceIntoDBTx(tx *sqlx.Tx) (rv error) {
 	// If successful, update the build with new IDs.
 	defer func() {
 		if rv == nil {
+			// Measure the time between build start and first DB insertion.
+			if b.Id == 0 {
+				t := int64(time.Now().Sub(util.UnixFloatToTime(b.Started)))
+				go_metrics.GetOrRegisterHistogram("buildbot.startToIngestLatency", go_metrics.DefaultRegistry, go_metrics.NewUniformSample(100)).Update(t)
+			}
 			// Update the build with any new IDs.
 			b.Id = buildID
 			for _, s := range b.Steps {
