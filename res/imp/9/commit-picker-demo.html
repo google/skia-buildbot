@@ -1,39 +1,28 @@
 <html>
 <head>
-  <title>commits-panel-sk demo</title>
+  <title>commits-picker-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel=import href="/res/imp/bower_components/polymer/polymer.html">
-  <link rel=import href="commit-panel.html">
+  <link rel=import href="commit-picker.html">
   <link rel=import href="error-toast-sk.html">
   <style type="text/css" media="screen">
     body {
       font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
     }
 
-    commits-panel-sk {
-      margin-top: 3em;
-      display: block;
-    }
-
-    a {
-      color: #FF7F00;
-      font-weight: bold;
-    }
   </style>
 </head>
 <body>
   <h1>Commits</h1>
 
-  <commits-panel-sk></commits-panel-sk>
+  <commit-picker-sk id=picker></commit-picker-sk>
 
-  <commits-panel-sk progress id=panel2></commits-panel-sk>
-
-  <h2>Allow selections</h2>
-  <commits-panel-sk mailbox=foo selection id=panel3></commits-panel-sk>
+  <h3>Event</h3>
+  <div id=event></div>
 
   <script type="text/javascript" charset="utf-8">
     var commitinfo = [
@@ -51,7 +40,9 @@
       },
     ]
     sk.Mailbox.send("commits", commitinfo);
-    $$$('#panel2').setCommitInfo(commitinfo);
+    $$$('#picker').addEventListener('commit-selected', function(e) {
+      $$$('#event').textContent = JSON.stringify(e.detail);
+    });
   </script>
 
   <error-toast-sk></error-toast-sk>

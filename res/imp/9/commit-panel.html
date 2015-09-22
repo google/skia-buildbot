@@ -3,7 +3,29 @@
   An element to display information on one or more commits.
 
   Attributes:
-    mailbox - The sk.Mailbox name to listen for the data to populate
+    progress - Boolean, if true then display the percent complete
+      for the first hash.
+
+    selection - Boolean, if true then selections are displayed, i.e. the user
+      click on a commit and select it.
+
+    selector - The iron-selector element that wraps the commits.
+
+  Methods:
+    setCommitInfo - Sets the commit info, an array of *types.Commit. See the
+      description for the commits Mailbox for more details.
+
+  Events:
+    commit-selected - Event produced when a commit is selected. The event
+      detail contains:
+
+      {
+        description: "fixed lengh string descripting the commit",
+        hash: "1213982193 (the commit hash)",
+      }
+
+  Mailboxes:
+    commits - The sk.Mailbox name to listen for the data to populate
       the element. The mailbox data needs to be a serialized slice
       of []*types.Commit. If not set then the data must be supplied
       by the setCommitInfo method.
@@ -26,28 +48,19 @@
       order, that is, the commit at index 0 needs to be the oldest commit, and
       the last commit in the array needs to be the newest commit.
 
-    progress - Boolean, if true then display the percent complete
-      for the first hash.
-
-    selection - Boolean, if true then selections are displayed.
-
-    selector - The iron-selector element that wraps the commits.
-
-  Methods:
-    setCommitInfo - Sets the commit info, an array of *types.Commit. See the
-      description for the mailbox attribute for more details.
-
-  Events:
-    None.
-
 -->
 <link rel="stylesheet" href="/res/common/css/md.css">
 <link rel="import" href="/res/imp/bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="commit.html">
 
 <dom-module id="commits-panel-sk">
   <style type="text/css" media="screen">
       div {
         margin-bottom: 0.5em;
+      }
+
+      commit-sk {
+        display: block;
       }
 
       pre {
@@ -59,6 +72,10 @@
       .iron-selected {
         background: #eee;
       }
+
+      :host {
+        display: block;
+      }
     </style>
   <template>
     <template is="dom-if" if="{{progress}}">
@@ -68,7 +85,7 @@
     </template>
     <iron-selector id=selector>
       <template is="dom-repeat" items="{{_commitinfo}}" as="c">
-        <pre><span>{{_trimPad(c.author)}}</span> <span>{{_humanize(c.commit_time)}}</span> <span><a href$="{{_commitHref(c)}}">{{_trunc(c.hash)}}</a></span> <span>{{_trimNewline(c.message)}}</span></pre>
+        <commit-sk data-hash$="{{c.hash}}" hash="{{c.hash}}"></commit-sk>
       </template>
     </iron-selector>
     </table>
@@ -78,12 +95,6 @@
       is: 'commits-panel-sk',
 
       properties: {
-        mailbox: {
-          type: String,
-          value: "",
-          reflectToAttribute: true,
-          observer: "_mailboxChanged",
-        },
         progress: {
           type: Boolean,
           value: false,
@@ -97,10 +108,15 @@
         },
       },
 
+      listeners: {
+        "selector.iron-select": "_selectorTap",
+      },
+
       ready: function () {
         this._percent = -1.0;
         this._firstHash = '';
         this.selector = this.$.selector;
+        sk.Mailbox.subscribe('commits', this.setCommitInfo.bind(this));
       },
 
       setCommitInfo: function(commitinfo) {
@@ -108,29 +124,16 @@
         this._processCommitInfo();
       },
 
-      _trimPad: function(s) {
-        s = s.slice(0, 30);
-        while (s.length < 30) {
-          s = s + " ";
-        }
-        return s;
-      },
-
-      _trimNewline: function(s) {
-        return this._trimPad(s.split("\n")[0]);
+      _selectorTap: function(e) {
+        var detail = {
+          description: e.detail.item.asString(),
+          commit: e.detail.item.commit,
+        };
+        this.dispatchEvent(new CustomEvent('commit-selected', { detail: detail, bubbles: true }));
       },
 
       _selectionChanged: function() {
         this.$.selector.selectedClass = this.selection ? "iron-selected" : "no-matching-class";
-      },
-
-      _mailboxChanged: function(newValue, oldValue) {
-        if (newValue) {
-          sk.Mailbox.subscribe(this.mailbox, this.setCommitInfo.bind(this));
-        }
-        if (oldValue) {
-          sk.Mailbox.unsubscribe(oldValue, this.setCommitInfo.bind(this));
-        }
       },
 
       _processCommitInfo: function () {
@@ -153,6 +156,10 @@
                   }
                 }
               }
+              // This can go away once we start filling in the message on the server side.
+              $$('commit-sk', this).forEach(function(ele) {
+                ele.refresh();
+              });
             }.bind(this)).catch(sk.errorMessage);
           }
           if (this.progress) {
@@ -180,14 +187,6 @@
         return s.slice(4, s.length);
       },
 
-      _humanize: function (s) {
-        return sk.human.diffDate(s * 1000);
-      },
-
-      _trunc: function (s) {
-        return s.slice(0, 7);
-      },
-
       _commitPercent: function (p) {
         if (p == -1.0) {
           return "[calculating]";
@@ -198,10 +197,6 @@
       _statusHref: function (hash) {
         return 'https://status.skia.org/?commit=' + hash + '&commitLabel=author&filter=all';
       },
-
-      _commitHref: function (c) {
-        return 'https://skia.googlesource.com/skia/+/' + c.hash;
-      }
     });
   </script>
 </dom-module>

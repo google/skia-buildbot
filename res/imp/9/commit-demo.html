@@ -7,8 +7,7 @@
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel=import href="/res/imp/bower_components/polymer/polymer.html">
-  <link rel=import href="commit-panel.html">
-  <link rel=import href="error-toast-sk.html">
+  <link rel=import href="commit.html">
   <style type="text/css" media="screen">
     body {
       font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
@@ -28,12 +27,14 @@
 <body>
   <h1>Commits</h1>
 
-  <commits-panel-sk></commits-panel-sk>
+  <h2>Working with a good commit hash.</h2>
+  <commit-sk id=good hash=bb886749feb444edfd8fbf053a9ea815e3605f8a></commit-sk>
 
-  <commits-panel-sk progress id=panel2></commits-panel-sk>
+  <h2>Bad commit hash</h2>
+  <commit-sk hash="some unknown git hash"></commit-sk>
 
-  <h2>Allow selections</h2>
-  <commits-panel-sk mailbox=foo selection id=panel3></commits-panel-sk>
+  <h2>The asString() value.</h2>
+  <div id=text></div>
 
   <script type="text/javascript" charset="utf-8">
     var commitinfo = [
@@ -41,19 +42,17 @@
         commit_time: 1439649751,
         author: "reed (reed@chromium.org)",
         hash: "bb886749feb444edfd8fbf053a9ea815e3605f8a",
-        message: "",
+        message: "A description",
       },
       {
         author: "reed (reed@chromium.org)",
         commit_time: 1439648914,
         hash: "e02716908fe82c7c4ae9b415793277620a22bcd6",
-        message: "",
+        message: "Another description.",
       },
     ]
     sk.Mailbox.send("commits", commitinfo);
-    $$$('#panel2').setCommitInfo(commitinfo);
+    $$$('#text').textContent = $$$('#good').asString();
   </script>
-
-  <error-toast-sk></error-toast-sk>
 </body>
 </html>
