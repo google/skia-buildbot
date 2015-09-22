@@ -401,6 +401,8 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Shrink the builds.
+	// TODO(borenet): Can we share build-shrinking code with the main status
+	// page?
 
 	// TinyBuildStep is a struct containing a small subset of a BuildStep's fields.
 	type TinyBuildStep struct {
@@ -416,6 +418,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		BuildSlave string
 		Master     string
 		Number     int
+		Properties [][]interface{} `json:"properties"`
 		Started    float64
 		Finished   float64
 		Results    int
@@ -438,6 +441,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 			BuildSlave: b.BuildSlave,
 			Master:     b.Master,
 			Number:     b.Number,
+			Properties: b.Properties,
 			Started:    b.Started,
 			Finished:   b.Finished,
 			Results:    b.Results,

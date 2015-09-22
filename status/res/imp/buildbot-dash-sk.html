@@ -176,7 +176,7 @@
                           <td class="builder" rowspan="{{(byBuilder ? buildslavesByBuilder[b1] : buildersByBuildslave[b1]).length}}">
                             <a class="plain"
                                target="_blank"
-                               href="https://uberchromegw.corp.google.com/i/{{masterLookup[b1]}}/{{byBuilder ? 'builders' : 'buildslaves'}}/{{b1}}">
+                               href="{{urlLookup[byBuilder ? b1 : b2]}}{{byBuilder ? 'builders' : 'buildslaves'}}/{{b1}}">
                               {{b1}}
                             </a>
                           </td>
@@ -184,7 +184,7 @@
                         <td>
                           <a class="plain"
                              target="_blank"
-                             href="https://uberchromegw.corp.google.com/i/{{masterLookup[b2]}}/{{byBuilder ? 'buildslaves' : 'builders'}}/{{b2}}">
+                             href="{{urlLookup[byBuilder ? b1 : b2]}}{{byBuilder ? 'buildslaves' : 'builders'}}/{{b2}}">
                             {{b2}}
                           </a>
                         </td>
@@ -193,7 +193,7 @@
                             <template if="{{byBuilder ? (build.BuildSlave == b2) : (build.Builder == b2)}}">
                               <a class="plain build {{build.Finished == 0 ? 'inprogress' : build.Results == 0 || build.Results == 1 || build.Results == 3 ? 'success' : build.Results == 2 ? 'failure' : build.Results == 4 || build.Results == 5 ? 'exception' : 'unknown'}}"
                                 target="_blank"
-                                href="https://uberchromegw.corp.google.com/i/{{build.Master}}/builders/{{build.Builder}}/builds/{{build.Number}}">
+                                href="{{urlLookup[byBuilder ? b1 : b2]}}builders/{{build.Builder}}/builds/{{build.Number}}">
                                 {{build.Number}}
                              </a>
                            </template>
@@ -237,7 +237,6 @@
 
         this.byBuilder = true;
         this.includedBuilds = [];
-        this.masterLookup = {};
         this.stepDurations = {};
         this.buildResults = {};
         this.stepResults = {};
@@ -249,6 +248,7 @@
           "2w":  336,
           "4w":  672,
         };
+        this.urlLookup = {};
         this.validTimePeriods = Object.keys(this.timePeriods);
         this.selectedTimePeriod = this.validTimePeriods[0];
 
@@ -404,6 +404,9 @@
               this.stepResults[step.Name].push(step.Results == 0 ? 0 : 1);
             }
           }
+
+          // URL lookup.
+          this.urlLookup[build.Builder] = status_utils.getBuildbotUrlPrefix(build, true);
         }
 
         // Build durations by builder.
@@ -427,19 +430,16 @@
           this.buildslavesByBuilder[builder] = Object.keys(buildslavesByBuilder[builder]);
         }
 
-        // Sort the builds by builder/buildslave, create master lookup.
-        this.masterLookup = {};
+        // Sort the builds by builder/buildslave.
         for (var builder in this.buildsByBuilder) {
           this.buildsByBuilder[builder].sort(function(a, b) {
             return b.Started - a.Started;
           });
-          this.masterLookup[builder] = this.buildsByBuilder[builder][0].Master;
         }
         for (var buildslave in this.buildsByBuildslave) {
           this.buildsByBuildslave[buildslave].sort(function(a, b) {
             return b.Started - a.Started;
           });
-          this.masterLookup[buildslave] = this.buildsByBuildslave[buildslave][0].Master;
         }
 
         // All builders.
