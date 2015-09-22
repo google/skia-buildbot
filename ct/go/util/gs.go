@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cenkalti/backoff"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gs"
@@ -131,22 +130,9 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	chStorageObjects := make(chan filePathToStorageObject, MAX_CHANNEL_SIZE)
 	req := gs.service.Objects.List(GS_BUCKET_NAME).Prefix(gsDir + "/")
 	for req != nil {
-		// TODO(benjaminwagner): Using backoff here as a temporary workaround for
-		// https://code.google.com/p/skia/issues/detail?id=4358 in which refreshing the
-		// oauth token times out due to 100 concurrent requests. The longer-term solution is
-		// to use a backoff transport to refresh the token, but we would need to make that
-		// fix in golang.org/x/oauth2/oauth2.go.
-		var resp *storage.Objects = nil
-		reqDoOp := func() error {
-			var err error
-			resp, err = req.Do()
-			return err
-		}
-		notifyFunc := func(err error, wait time.Duration) {
-			glog.Warningf("Got error while listing %s: %s. Retrying GS request after sleeping for %s", gsDir, err, wait)
-		}
-		if err := backoff.RetryNotify(reqDoOp, backoff.NewExponentialBackOff(), notifyFunc); err != nil {
-			return fmt.Errorf("Despite exponential backoff, error occured while listing %s: %s", gsDir, err)
+		resp, err := req.Do()
+		if err != nil {
+			return fmt.Errorf("Error occured while listing %s: %s", gsDir, err)
 		}
 		for _, result := range resp.Items {
 			fileName := filepath.Base(result.Name)
