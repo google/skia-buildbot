@@ -15,6 +15,8 @@
     setCommitInfo - Sets the commit info, an array of *types.Commit. See the
       description for the commits Mailbox for more details.
 
+    selectHash - Forces the selection of the given hash.
+
   Events:
     commit-selected - Event produced when a commit is selected. The event
       detail contains:
@@ -123,6 +125,14 @@
       setCommitInfo: function(commitinfo) {
         this._commitinfo = commitinfo;
         this._processCommitInfo();
+      },
+
+      selectHash: function(hash) {
+        $$('commit-sk', this).forEach(function(ele) {
+          if (ele.dataset.hash == hash) {
+            this.selector.select(this.selector.indexOf(ele));
+          }
+        }.bind(this));
       },
 
       _selectorTap: function(e) {

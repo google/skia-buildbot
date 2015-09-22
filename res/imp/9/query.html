@@ -217,7 +217,7 @@
       // Only fire if we see a real change in the state.
       if (q != this.currentquery) {
         this.currentquery = q;
-        this.dispatchEvent(new CustomEvent('query-change', { detail: q }));
+        this.dispatchEvent(new CustomEvent('query-change', { detail: q, bubbles: true }));
         var countEle = this.$.count;
         if (this.matches) {
           sk.get(this.matches + "?" + q).then(JSON.parse).then(function (json) {

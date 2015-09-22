@@ -14,7 +14,7 @@
       }
 
   Methods:
-    None.
+    selectHash - Forces the selection of the given hash.
 
   Mailboxes:
     commits - The sk.Mailbox name to listen for the data to populate
@@ -75,6 +75,11 @@
     listeners: {
       "select.tap": "_selectTap",
       "panel.commit-selected": "_panelSelect",
+    },
+
+
+    selectHash: function(hash) {
+      this.$.panel.selectHash(hash);
     },
 
     _selectTap: function() {

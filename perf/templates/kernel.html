@@ -11,9 +11,15 @@
         display: block;
       }
 
+      paper-spinner {
+        margin: 3em;
+        display: block;
+      }
+
       h3 {
         margin-bottom: 0;
       }
+
     </style>
 </head>
 <body>
@@ -25,10 +31,28 @@
     <commit-picker-sk id=commit1></commit-picker-sk>
     <commit-picker-sk id=commit2></commit-picker-sk>
     <button class=action id=start>Start</button>
+    <paper-spinner active id=spinner></paper-spinner>
   </perf-scaffold-sk>
   <script type="text/javascript" charset="utf-8">
     (function() {
       function onLoad() {
+
+        var page = {};
+
+        // The current state of the page.
+        page.state = {
+          query:   "",
+          commit1: "",
+          commit2: "",
+        }
+
+        function newState() {
+          $$$('#query').query.setSelections(page.state.query);
+          $$$('#commit1').selectHash(page.state.commit1);
+          $$$('#commit2').selectHash(page.state.commit2);
+          $$$('#spinner').active = false;
+        }
+
         sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json) {
           var commits = json.commits;
           // trim commits to just the valid ones.
@@ -43,10 +67,25 @@
           commits.reverse();
           sk.Mailbox.send("commits", json.commits);
           $$$('query-sk').setParamSet(json.paramset);
+
+          // Only map state to/from the URL after commits and params are loaded, which means
+          // also waiting until after templates have been expanded.
+          window.setTimeout(function() {
+            sk.stateReflector(page, newState);
+          }, 10);
         }).catch(sk.errorMessage);
 
         $$$('#start').addEventListener('click', function(e) {
           alert('TBD');
+        });
+        $$$('#commit1').addEventListener('commit-selected', function(e) {
+          page.state.commit1 = e.detail.commit.hash;
+        });
+        $$$('#commit2').addEventListener('commit-selected', function(e) {
+          page.state.commit2 = e.detail.commit.hash;
+        });
+        $$$('#query').addEventListener('query-change', function(e) {
+          page.state.query = e.detail;
         });
       };
 

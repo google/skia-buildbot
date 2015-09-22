@@ -571,7 +571,15 @@ this.sk = this.sk || function() {
     }
 
     // When we are loaded we should update the state from the URL.
-    sk.WebComponentsReady.then(stateFromURL);
+    //
+    // We check to see if we are running Polymer 0.5, in which case
+    // we need to wait for Polymer to finish initializing, otherwise
+    // we can just wait for DomReady.
+    if (window["Polymer"] && Polymer.version[0] == "0") {
+      sk.WebComponentsReady.then(stateFromURL);
+    } else {
+      sk.DomReady.then(stateFromURL);
+    }
 
     // Every popstate event should also update the state.
     window.addEventListener('popstate', stateFromURL);
