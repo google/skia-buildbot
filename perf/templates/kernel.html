@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skia Performance Monitoring | Kernel Density Estimator</title>
+
+    {{template "header.html" .}}
+
+    <style type="text/css" media="screen">
+      query-sk,
+      commit-picker-sk {
+        display: block;
+      }
+
+      h3 {
+        margin-bottom: 0;
+      }
+    </style>
+</head>
+<body>
+  <perf-scaffold-sk>
+    <div>
+      <h3>Filters</h3>
+      <query-chooser-sk id=query></query-chooser-sk>
+    </div>
+    <commit-picker-sk id=commit1></commit-picker-sk>
+    <commit-picker-sk id=commit2></commit-picker-sk>
+    <button class=action id=start>Start</button>
+  </perf-scaffold-sk>
+  <script type="text/javascript" charset="utf-8">
+    (function() {
+      function onLoad() {
+        sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json) {
+          var commits = json.commits;
+          // trim commits to just the valid ones.
+          var lastIndex = commits.length - 1;
+          for (var i = commits.length - 1; i >= 0; i--) {
+            if (commits[i].hash != "") {
+              break
+            }
+            lastIndex = i
+          }
+          commits.splice(lastIndex, commits.length - 1 - i);
+          commits.reverse();
+          sk.Mailbox.send("commits", json.commits);
+          $$$('query-sk').setParamSet(json.paramset);
+        }).catch(sk.errorMessage);
+
+        $$$('#start').addEventListener('click', function(e) {
+          alert('TBD');
+        });
+      };
+
+      sk.DomReady.then(onLoad);
+    })();
+  </script>
+</body>
+</html>

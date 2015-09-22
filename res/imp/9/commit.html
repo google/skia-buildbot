@@ -112,7 +112,7 @@
     },
 
     _trimNewline: function(s) {
-      if (!this.commit) {
+      if (!s) {
         return "";
       }
       return this._trimPad(s.split("\n")[0]);

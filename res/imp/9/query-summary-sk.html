@@ -51,6 +51,8 @@
       var re = new RegExp('&', 'g');
       if (s) {
         return s.replace(re, '\n');
+      } else {
+        return "[No filters applied]";
       }
     },
   });

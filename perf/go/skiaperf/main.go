@@ -107,6 +107,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/activitylog.html"),
 		filepath.Join(*resourcesDir, "templates/compare.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
+		filepath.Join(*resourcesDir, "templates/kernel.html"),
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -1067,6 +1068,7 @@ func main() {
 	router.HandleFunc("/alert_reset/", alertResetHandler)
 	router.HandleFunc("/annotate/", annotate.Handler)
 	router.HandleFunc("/compare/", templateHandler("compare.html"))
+	router.HandleFunc("/kernel/", templateHandler("kernel.html"))
 	router.HandleFunc("/calc/", calcHandler)
 	router.HandleFunc("/help/", helpHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

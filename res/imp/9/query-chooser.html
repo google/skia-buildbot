@@ -60,9 +60,21 @@
 
     properties: {
       whitelist: {
-        type: String,
-        value: "",
-        reflectToAttribute: true,
+        type: Array,
+        value: function() {
+          return [
+            'name',
+            'bench_type',
+            'os',
+            'source_type',
+            'scale',
+            'extra_config',
+            'config',
+            'arch',
+            'sub_result'
+          ];
+        },
+        reflectToAttribute: true
       },
     },
 

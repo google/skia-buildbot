@@ -61,6 +61,7 @@
 
       commit-sk {
         display: block;
+        padding-right: 2em;
       }
 
       pre {
@@ -140,7 +141,7 @@
         if (this._commitinfo && this._commitinfo.length) {
           var lastHash = this._commitinfo[0].hash;
           this._firstHash = this._commitinfo[this._commitinfo.length - 1].hash;
-          if (this._commitinfo[0].message == "") {
+          if (!this._commitinfo[0].message) {
             var url = 'https://skia.googlesource.com/skia/+log/' + this._firstHash + '~' + 1 + '..' + lastHash + '?format=json';
             // The git hashes are in time order, but not contiguous, so request
             // the log range and them populate messages by matching git hashes.
