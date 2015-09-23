@@ -39,6 +39,10 @@ var (
 		"Win7 Tests (1)": map[int]bool{
 			1797: true, // This build doesn't exist on the server?
 		},
+		// Something went haywire with this, don't know what. -dogben
+		"Build-Ubuntu-GCC-x86-Release": map[int]bool{
+			2586: true,
+		},
 	}
 
 	// TODO(borenet): Avoid hard-coding this list. Instead, obtain it from
