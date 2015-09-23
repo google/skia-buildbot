@@ -8,6 +8,7 @@ import (
 	"html/template"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -317,6 +318,95 @@ func writeClusterSummaries(summary *clustering.ClusterSummaries, w http.Response
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(summary); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
+// kernelJSONHandler returns the data needed for displaying Kernel Density Estimates.
+//
+// The return format is JSON of the form:
+//
+// {
+//   "commit1": {
+//     "key1": 1.234,
+//     "key2": 1.235,
+//     "key3": 1.230,
+//     "key4": 1.239,
+//     ...
+//   },
+//   "commit2": {
+//     "key1": 1.434,
+//     "key2": 1.834,
+//     "key3": 1.234,
+//     "key4": 1.134,
+//     ...
+//   },
+//   missing: 5, // Number of missing values.
+// }
+//
+// Takes the following query parameters:
+//
+//   commit1 - The hash for the first commit.
+//   commit2 - The hash for the second commit.
+//   query   - A paramset in URI query format used to filter the results at each commit.
+//
+func kernelJSONHandler(w http.ResponseWriter, r *http.Request) {
+	// TODO(jcgregorio) Determine the tile(s) to load based on the commit hashes,
+	// possibly loading two different tiles, one for each hash.
+	tile, err := nanoTileStore.Get(0, -1)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to load tile."))
+		return
+	}
+	commit1 := r.FormValue("commit1")
+	commit2 := r.FormValue("commit1")
+
+	// Calulate the indices where the commit falls in the tile.
+	commit1Index := -1
+	commit2Index := -1
+
+	// Confirm that the two commits appear in the tile.
+	for i, c := range tile.Commits {
+		if c.Hash == commit1 {
+			commit1Index = i
+		}
+		if c.Hash == commit2 {
+			commit2Index = i
+		}
+	}
+	if commit1Index == -1 || commit2Index == -1 {
+		glog.Warningf("Commits %s[%d] %s[%d]", commit1, commit1Index, commit2, commit2Index)
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to find commits in tile."))
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	query := r.FormValue("query")
+	q, err := url.ParseQuery(query)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to parse query parameters."))
+		return
+	}
+	ret := struct {
+		Commit1 map[string]float64 `json:"commit1"`
+		Commit2 map[string]float64 `json:"commit2"`
+		Missing int32              `json:"missing"`
+	}{
+		Commit1: map[string]float64{},
+		Commit2: map[string]float64{},
+	}
+	for key, tr := range tile.Traces {
+		if tiling.Matches(tr, q) {
+			if tr.IsMissing(commit1Index) || tr.IsMissing(commit2Index) {
+				ret.Missing += 1
+				continue
+			}
+			ret.Commit1[key] = tr.(*types.PerfTrace).Values[commit1Index]
+			ret.Commit2[key] = tr.(*types.PerfTrace).Values[commit2Index]
+		}
+	}
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ret); err != nil {
+		glog.Errorf("Failed to write or encode output: %s", err)
+		return
 	}
 }
 
@@ -1069,6 +1159,7 @@ func main() {
 	router.HandleFunc("/annotate/", annotate.Handler)
 	router.HandleFunc("/compare/", templateHandler("compare.html"))
 	router.HandleFunc("/kernel/", templateHandler("kernel.html"))
+	router.HandleFunc("/_/kernel/", kernelJSONHandler)
 	router.HandleFunc("/calc/", calcHandler)
 	router.HandleFunc("/help/", helpHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

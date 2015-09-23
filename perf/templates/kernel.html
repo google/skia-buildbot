@@ -16,10 +16,21 @@
         display: block;
       }
 
+      paper-spinner.hide {
+        display: none;
+      }
+
       h3 {
         margin-bottom: 0;
       }
 
+      #results {
+        margin: 1em;
+      }
+
+      #results.hide {
+        display: none;
+      }
     </style>
 </head>
 <body>
@@ -32,6 +43,12 @@
     <commit-picker-sk id=commit2></commit-picker-sk>
     <button class=action id=start>Start</button>
     <paper-spinner active id=spinner></paper-spinner>
+    <div id=results class=hide>
+      <table>
+        <tr><th>Matches</th><td id=length></td></tr>
+        <tr><th>Missing</th><td id=missing></td></tr>
+      </table>
+    </div>
   </perf-scaffold-sk>
   <script type="text/javascript" charset="utf-8">
     (function() {
@@ -51,6 +68,7 @@
           $$$('#commit1').selectHash(page.state.commit1);
           $$$('#commit2').selectHash(page.state.commit2);
           $$$('#spinner').active = false;
+          $$$('#spinner').classList.add('hide');
         }
 
         sk.get('/tiles/0/-1/').then(JSON.parse).then(function(json) {
@@ -76,7 +94,11 @@
         }).catch(sk.errorMessage);
 
         $$$('#start').addEventListener('click', function(e) {
-          alert('TBD');
+          sk.get('/_/kernel/?' + sk.query.fromObject(page.state)).then(JSON.parse).then(function(json) {
+            $$$('#length').textContent = "" + Object.keys(json.commit1).length;
+            $$$('#missing').textContent = "" + json.missing;
+            $$$('#results').classList.remove('hide');
+          });
         });
         $$$('#commit1').addEventListener('commit-selected', function(e) {
           page.state.commit1 = e.detail.commit.hash;
