@@ -19,12 +19,12 @@
       background-color: #D6ECF2;
     }
 
-    iron-selector.medium-field > div {
-      width: 20em;
+    iron-selector.long-field > div {
+      width: 40em;
     }
   </style>
   <template>
-    <iron-selector attr-for-selected="id" selected="{{selected}}" class="medium-field">
+    <iron-selector attr-for-selected="id" selected="{{selected}}" class="long-field">
       <template is="dom-repeat" items="{{pageSets}}">
         <div id="{{item.key}}">{{item.description}}</div>
       </template>

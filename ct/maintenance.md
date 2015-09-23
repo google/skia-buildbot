@@ -55,7 +55,7 @@ Prober config is in ../prober/probers.json. Alerts config is in
 To set up or upgrade the CTFE DB, run `make ctfe && ctfe_migratedb
 --ctfe_db_host=localhost --logtostderr --ctfe_db_user=root`. Occasionally you
 may find it useful to downgrade the local DB; specify the `--target_version`
-flag to achieve this.
+flag to achieve this. Run `mysql -u root -D ctfe` to access the DB using SQL.
 
 To start a local server, run:
 ```

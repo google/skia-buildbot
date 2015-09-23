@@ -276,7 +276,7 @@ var (
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
-			Description:                "Top 1K (used for testing)",
+			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
 		},
 	}
 

@@ -26,7 +26,7 @@ import (
 
 const (
 	// Default page size used for pagination.
-	DEFAULT_PAGE_SIZE = 5
+	DEFAULT_PAGE_SIZE = 10
 
 	// Maximum page size used for pagination.
 	MAX_PAGE_SIZE = 100
@@ -152,6 +152,8 @@ type QueryParams struct {
 	PendingOnly bool
 	// Include only completed tasks that are scheduled to repeat.
 	FutureRunsOnly bool
+	// Exclude tasks where page_sets is PAGESET_TYPE_DUMMY_1k.
+	ExcludeDummyPageSets bool
 	// If true, SELECT COUNT(*). If false, SELECT * and include ORDER BY and LIMIT clauses.
 	CountQuery bool
 	// First term of LIMIT clause; ignored if countQuery is true.
@@ -183,6 +185,9 @@ func DBTaskQuery(prototype Task, params QueryParams) (string, []interface{}) {
 	if params.FutureRunsOnly {
 		clauses = append(clauses, "(repeat_after_days != 0 AND ts_completed IS NOT NULL)")
 	}
+	if params.ExcludeDummyPageSets {
+		clauses = append(clauses, fmt.Sprintf("page_sets != '%s'", ctutil.PAGESET_TYPE_DUMMY_1k))
+	}
 	if len(clauses) > 0 {
 		query += " WHERE "
 		query += strings.Join(clauses, " AND ")
@@ -194,6 +199,21 @@ func DBTaskQuery(prototype Task, params QueryParams) (string, []interface{}) {
 	return query, args
 }
 
+func HasPageSetsColumn(prototype Task) bool {
+	v := reflect.Indirect(reflect.ValueOf(prototype))
+	if v.Kind() != reflect.Struct {
+		return false
+	}
+	t := v.Type()
+	for i := 0; i < t.NumField(); i++ {
+		f := t.Field(i)
+		if strings.Contains(string(f.Tag), `db:"page_sets"`) {
+			return true
+		}
+	}
+	return false
+}
+
 func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -202,8 +222,13 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	params.SuccessfulOnly = parseBoolFormValue(r.FormValue("successful"))
 	params.PendingOnly = parseBoolFormValue(r.FormValue("not_completed"))
 	params.FutureRunsOnly = parseBoolFormValue(r.FormValue("include_future_runs"))
+	params.ExcludeDummyPageSets = parseBoolFormValue(r.FormValue("exclude_dummy_page_sets"))
 	if params.SuccessfulOnly && params.PendingOnly {
 		skutil.ReportError(w, r, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "")
+		return
+	}
+	if params.ExcludeDummyPageSets && !HasPageSetsColumn(prototype) {
+		skutil.ReportError(w, r, fmt.Errorf("Task %s does not use page sets and thus cannot exclude dummy page sets.", prototype.GetTaskName()), "")
 		return
 	}
 	offset, size, err := skutil.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)

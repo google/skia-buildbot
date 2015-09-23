@@ -7,11 +7,18 @@
     deleteUrl: POST URI to delete a task, e.g. "/_/delete_recreate_page_sets_task". Must be set.
     redoUrl: POST URI to redo a task, e.g. "/_/redo_recreate_page_sets_task". Must be set.
     taskType: Type of task, e.g. "RecreatePageSets". Must be set.
-    defaultSize: The number of tasks to show per page, default 5.
+    defaultSize: The number of tasks to show per page, default 10.
     constrainByUser: Whether to show only tasks created by the logged-in user initially, default
       false.
-    myRunsConstrainText: Button text for enabling constraining, default "View only my runs".
-    allRunsConstrainText: Button text for disabling constraining, default "View all runs".
+    myRunsConstrainText: Button text to constrain by user, default "View only my runs".
+    everyonesRunsConstrainText: Button text to disable constraining by user, default "View
+      everyone's runs".
+    constrainByTestRun: Whether to show only non-test tasks, default true. Test tasks are those that
+      use the "Dummy1k" page sets.
+    nonTestRunsConstrainText: Button text to constrain to non-test tasks, default "Exclude test
+      runs".
+    testRunsConstrainText: Button text to disable constraining by test tasks, default "Include test
+      runs".
 
   Events:
     None.
@@ -19,7 +26,8 @@
   Methods:
     reload: queries for updated information on tasks.
     resetPagination: Moves to the first page of tasks.
-    constrainRuns: Toggles constrainByUser and reloads the appropriate data.
+    constrainRunsByUser: Toggles constrainByUser and reloads the appropriate data.
+    constrainTestRuns: Toggles constrainByTestRun and reloads the appropriate data.
 -->
 <dom-module id="admin-task-runs-sk">
   <style>
@@ -66,7 +74,12 @@
     <h2><template is="dom-if" if="{{constrainByUser}}">My </template><span>{{taskType}}</span> Task Runs</h2>
     <paging-sk pagination="{{pagination}}" on-pagechange="pageChangedHandler"></paging-sk>
     <br/>
-    <paper-button raised id="constrain_runs" on-click="constrainRuns">{{constrainButtonText}}</paper-button>
+    <paper-button raised on-click="constrainRunsByUser">{{
+      constrainButtonText(constrainByUser, myRunsConstrainText, everyonesRunsConstrainText)
+      }}</paper-button>
+    <paper-button raised on-click="constrainTestRuns">{{
+      constrainButtonText(constrainByTestRun, nonTestRunsConstrainText, testRunsConstrainText)
+      }}</paper-button>
     <span class="oldruns"><i>Looking for runs before 27 August 2015?</i>
       <a href="https://skia-tree-status.appspot.com/skia-telemetry/all_tasks#admin">
         See all runs here.</a>
@@ -182,24 +195,31 @@
        },
        defaultSize: {
          type: Number,
-         value: 5,
+         value: 10,
        },
        constrainByUser: {
          type: Boolean,
          value: false,
-         observer: 'constrainByUserChanged',
        },
        myRunsConstrainText: {
          type: String,
          value: "View only my runs",
        },
-       allRunsConstrainText: {
+       everyonesRunsConstrainText: {
          type: String,
-         value: "View all runs",
+         value: "View everyone's runs",
        },
-       constrainButtonText: {
+       constrainByTestRun: {
+         type: Boolean,
+         value: true,
+       },
+       nonTestRunsConstrainText: {
          type: String,
-         value: "",
+         value: "Exclude test runs",
+       },
+       testRunsConstrainText: {
+         type: String,
+         value: "Include test runs",
        },
        pagination: {
          type: Object,
@@ -220,7 +240,6 @@
      },
 
      ready: function() {
-       this.constrainButtonText = this.myRunsConstrainText;
        this.pagination = {"offset": 0, "size": this.defaultSize};
        this.pageChangedHandler = this.reload.bind(this);
        var that = this;
@@ -265,6 +284,9 @@
          }
          queryParams["username"] = username;
        }
+       if (this.constrainByTestRun) {
+         queryParams["exclude_dummy_page_sets"] = true;
+       }
        var queryStr = "?" + sk.query.fromObject(queryParams);
        sk.post(this.url + queryStr).then(JSON.parse).then(function(json) {
          this.deleteIndex = -1;
@@ -282,16 +304,23 @@
        this.pagination.size = this.defaultSize;
      },
 
-     constrainRuns: function() {
+     constrainRunsByUser: function() {
        this.constrainByUser = !this.constrainByUser;
        this.resetPagination();
        this.reload();
      },
 
-     constrainByUserChanged: function() {
-       this.constrainButtonText = this.myRunsConstrainText;
-       if (this.constrainByUser) {
-         this.constrainButtonText = this.allRunsConstrainText;
+     constrainTestRuns: function() {
+       this.constrainByTestRun = !this.constrainByTestRun;
+       this.resetPagination();
+       this.reload();
+     },
+
+     constrainButtonText: function(constrained, constrainText, unconstrainText) {
+       if (constrained) {
+         return unconstrainText;
+       } else {
+         return constrainText;
        }
      },
 
