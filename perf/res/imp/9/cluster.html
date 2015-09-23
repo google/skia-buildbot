@@ -258,14 +258,14 @@
       },
 
       updateClick: function () {
-        var status = this.$.status.selected;
+        var status = this.$.choices.selected;
         var state = {
           Id: this.summary.ID,
           Status: status,
           Message: this.$.message.value
         };
         sk.post('/annotate/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
-          this.summary.Status = status;
+          this.set("summary.Status", status);
           if (json.Bug) {
             // Open the bug reporting page in a new window.
             window.open(json.Bug, '_blank');
