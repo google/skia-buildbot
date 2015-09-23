@@ -358,7 +358,7 @@ func kernelJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	commit1 := r.FormValue("commit1")
-	commit2 := r.FormValue("commit1")
+	commit2 := r.FormValue("commit2")
 
 	// Calulate the indices where the commit falls in the tile.
 	commit1Index := -1

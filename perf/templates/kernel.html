@@ -31,6 +31,37 @@
       #results.hide {
         display: none;
       }
+
+      th {
+        text-align: right;
+      }
+
+      svg {
+        display: block;
+        margin: 1em;
+      }
+
+      .bar {
+        fill: #bbb;
+        shape-rendering: crispEdges;
+      }
+
+      .line {
+        fill: none;
+        stroke: #000;
+        stroke-width: 1.5px;
+      }
+
+      .axis path,
+      .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+      }
+
+      .y.axis path {
+        display: none;
+      }
     </style>
 </head>
 <body>
@@ -39,30 +70,135 @@
       <h3>Filters</h3>
       <query-chooser-sk id=query></query-chooser-sk>
     </div>
-    <commit-picker-sk id=commit1></commit-picker-sk>
-    <commit-picker-sk id=commit2></commit-picker-sk>
+    <h3>Commits</h3>
+    <ol>
+      <li><commit-picker-sk id=commit1></commit-picker-sk></li>
+      <li><commit-picker-sk id=commit2></commit-picker-sk></li>
+    </ol>
     <button class=action id=start>Start</button>
     <paper-spinner active id=spinner></paper-spinner>
     <div id=results class=hide>
       <table>
         <tr><th>Matches</th><td id=length></td></tr>
         <tr><th>Missing</th><td id=missing></td></tr>
+        <tr><th>Mean</th><td id=mean></td></tr>
+        <tr><th>Median</th><td id=median></td></tr>
       </table>
+      <h3>Plot of commit #1 - commit #2.</h3>
+      <svg width=1024 height=800 id=svg></svg>
     </div>
   </perf-scaffold-sk>
   <script type="text/javascript" charset="utf-8">
     (function() {
       function onLoad() {
 
-        var page = {};
+        // plot uses d3 to plot a histogram and KDE in the #svg element.
+        //
+        // Every time plot is called it starts by clearing out all the
+        // children of #svg.
+        //
+        // commit - This is an array of floats to plot.
+        function plot(commit) {
+          var margin = {top: 20, right: 30, bottom: 30, left: 40},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+          xMin = d3.min(commit);
+          xMax = d3.max(commit);
+
+          var x = d3.scale.linear()
+            .domain([xMin-1, xMax+1])
+            .range([0, width]);
+
+          var numticks = Math.min(Math.max(commit.length/10, 10), 100);
+
+          var histogram = d3.layout.histogram()
+            .frequency(false)
+            .bins(x.ticks(numticks));
+
+          var data = histogram(commit);
+
+          var y = d3.scale.linear()
+            .domain([0, d3.max(data, function(d) { return d.y; })])
+            .range([height, 0]);
+
+          var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom");
+
+          var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left");
+
+          var line = d3.svg.line()
+            .x(function(d) { return x(d[0]); })
+            .y(function(d) { return y(d[1]); });
+
+          var ele = $$$('#svg');
+          d3.select(ele).html("");
+
+          var svg = d3.select(ele)
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+          svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis)
+            .append("text")
+            .attr("class", "label")
+            .attr("x", width)
+            .attr("y", -6)
+            .style("text-anchor", "end");
+
+          svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+
+
+          kde = kernelDensityEstimator(kernel((xMax-xMin)/5), x.ticks(100));
+
+          svg.selectAll(".bar")
+            .data(data)
+            .enter().insert("rect", ".axis")
+            .attr("class", "bar")
+            .attr("x", function(d) { return x(d.x) + 1; })
+            .attr("y", function(d) { return y(d.y); })
+            .attr("width", x(data[0].dx + data[0].x) - x(data[0].x) - 1)
+            .attr("height", function(d) { return height - y(d.y); });
+
+          svg.append("path")
+            .datum(kde(commit))
+            .attr("class", "line")
+            .attr("d", line);
+        }
+
+        function kernelDensityEstimator(kernel, x) {
+          return function(sample) {
+            return x.map(function(x) {
+              return [x, d3.mean(sample, function(v) { return kernel(x - v); })];
+            });
+          };
+        }
+
+        function kernel(scale) {
+          return function(u) {
+            return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
+          };
+        }
 
         // The current state of the page.
+        var page = {};
+
         page.state = {
           query:   "",
           commit1: "",
           commit2: "",
         }
 
+        // newState is called when page.state changes.
         function newState() {
           $$$('#query').query.setSelections(page.state.query);
           $$$('#commit1').selectHash(page.state.commit1);
@@ -94,10 +230,25 @@
         }).catch(sk.errorMessage);
 
         $$$('#start').addEventListener('click', function(e) {
+          // Load the data for the given selections.
           sk.get('/_/kernel/?' + sk.query.fromObject(page.state)).then(JSON.parse).then(function(json) {
-            $$$('#length').textContent = "" + Object.keys(json.commit1).length;
+            // Calculate some simple point statistics and then call plot with the data.
+            var keys = Object.keys(json.commit1);
+            var data = [];
+            var total = 0;
+            for (var i = keys.length - 1; i >= 0; i--) {
+              var d = json.commit1[keys[i]] - json.commit2[keys[i]];
+              data.push(d);
+              total += d;
+            }
+            data.sort();
+            $$$('#mean').textContent = (total/keys.length).toPrecision(5);
+            $$$('#median').textContent = data[Math.floor(keys.length/2)].toPrecision(5);
+            $$$('#length').textContent = "" + keys.length;
             $$$('#missing').textContent = "" + json.missing;
             $$$('#results').classList.remove('hide');
+
+            plot(data);
           });
         });
         $$$('#commit1').addEventListener('commit-selected', function(e) {
