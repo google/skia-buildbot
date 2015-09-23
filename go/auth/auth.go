@@ -187,7 +187,7 @@ func newCachingTokenSource(cacheFilePath string, ctx context.Context, config *oa
 		if err = saveToken(cacheFilePath, tok); err != nil {
 			return nil, err
 		}
-		glog.Infof("token: %v", tok)
+		glog.Infof("Token saved to %s", cacheFilePath)
 	}
 
 	// We have a token at this point.
