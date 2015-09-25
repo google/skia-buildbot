@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"net"
 	"net/http"
 	"path/filepath"
 	"runtime"
@@ -60,6 +61,9 @@ var (
 	// client is an HTTP client authorized to read and write gs://skia-push.
 	client *http.Client
 
+	// fastClient is an HTTP client that is unauthorized and fails quickly.
+	fastClient *http.Client
+
 	// store is an Google Storage API client authorized to read and write gs://skia-push.
 	store *storage.Service
 
@@ -90,6 +94,22 @@ func loadTemplates() {
 	))
 }
 
+// FastDialTimeout is a dialer that sets a timeout.
+func FastDialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, 10*time.Second)
+}
+
+// NewTimeoutClient creates a new http.Client with both a dial timeout and a
+// request timeout.
+func NewFastTimeoutClient() *http.Client {
+	return &http.Client{
+		Transport: &http.Transport{
+			Dial: FastDialTimeout,
+		},
+		Timeout: 10 * time.Second,
+	}
+}
+
 func Init() {
 	if *resourcesDir == "" {
 		_, filename, _, _ := runtime.Caller(0)
@@ -111,6 +131,8 @@ func Init() {
 	if client, err = auth.NewClient(*doOauth, *oauthCacheFile, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
+
+	fastClient = NewFastTimeoutClient()
 
 	if store, err = storage.New(client); err != nil {
 		glog.Fatalf("Failed to create storage service client: %s", err)
@@ -227,7 +249,7 @@ type PushNewPackage struct {
 // getStatus returns a populated []*systemd.UnitStatus for the given server, one for each
 // push managed service, and nil if the information wasn't able to be retrieved.
 func getStatus(server string) []*systemd.UnitStatus {
-	resp, err := client.Get(fmt.Sprintf("http://%s:10114/_/list", ip.Resolve(server)))
+	resp, err := fastClient.Get(fmt.Sprintf("http://%s:10114/_/list", ip.Resolve(server)))
 	if err != nil {
 		glog.Infof("Failed to get status of: %s", server)
 		return nil
@@ -371,7 +393,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 				util.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
-			resp, err := client.Get(fmt.Sprintf("http://%s:10114/pullpullpull", push.Server))
+			resp, err := fastClient.Get(fmt.Sprintf("http://%s:10114/pullpullpull", push.Server))
 			if err != nil || resp == nil {
 				glog.Infof("Failed to trigger an instant pull for server %s: %v %v", push.Server, err, resp)
 			} else {
@@ -443,7 +465,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.Form.Get("name")
 	machine := ip.Resolve(r.Form.Get("machine"))
 	url := fmt.Sprintf("http://%s:10114/_/change?name=%s&action=%s", machine, name, action)
-	resp, err := client.Post(url, "", nil)
+	resp, err := fastClient.Post(url, "", nil)
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
 		return
