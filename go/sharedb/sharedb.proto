@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package sharedb;
+
+service ShareDB {
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc Put(PutRequest) returns (PutResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+  rpc Databases(DatabasesRequest) returns (DatabasesResponse) {}
+  rpc Buckets(BucketsRequest) returns (BucketsResponse) {}
+  rpc Keys(KeysRequest) returns (KeysResponse) {}
+}
+
+message GetRequest {
+  string database = 1;
+  string bucket = 2;
+  string key = 3;
+}
+
+message GetResponse {
+  bytes value = 1;
+}
+
+message PutRequest {
+  string database = 1;
+  string bucket = 2;
+  string key = 3;
+  bytes value = 4;
+}
+
+message PutResponse {
+  bool ok = 1;
+}
+
+message DeleteRequest {
+  string database = 1;
+  string bucket = 2;
+  string key = 3;
+}
+
+message DeleteResponse {
+  bool ok = 1;
+}
+
+message DatabasesRequest {}
+
+message DatabasesResponse {
+  repeated string values = 1;
+}
+
+message BucketsRequest {
+  string database = 1;
+}
+
+message BucketsResponse {
+  repeated string values = 1;
+}
+
+message KeysRequest {
+  string database = 1;
+  string bucket = 2;
+}
+
+message KeysResponse {
+  repeated string values = 1;
+}
