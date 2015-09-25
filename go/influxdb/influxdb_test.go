@@ -1,101 +1,217 @@
 package influxdb
 
 import (
-	"reflect"
+	"encoding/json"
+	"fmt"
 	"testing"
+
+	"github.com/influxdb/influxdb/client"
+	"github.com/influxdb/influxdb/influxql"
+	assert "github.com/stretchr/testify/require"
 )
 
-type singleInt struct {
-	Value int `influxdb:"value"`
+type dummyClient struct {
+	queryFn func(client.Query) (*client.Response, error)
 }
 
-type singleInt8 struct {
-	Value int8 `influxdb:"value"`
+func (c dummyClient) Query(q client.Query) (*client.Response, error) {
+	return c.queryFn(q)
 }
 
-type singleInt16 struct {
-	Value int16 `influxdb:"value"`
-}
-
-type singleInt32 struct {
-	Value int32 `influxdb:"value"`
-}
-
-type singleInt64 struct {
-	Value int64 `influxdb:"value"`
-}
-
-type singleBool struct {
-	Value bool `influxdb:"value"`
-}
-
-type singleFloat32 struct {
-	Value float32 `influxdb:"value"`
-}
-
-type singleFloat64 struct {
-	Value float64 `influxdb:"value"`
-}
-
-type singleString struct {
-	Value string `influxdb:"value"`
-}
-
-type singleUint struct {
-	Value uint `influxdb:"value"`
-}
-
-type singleUint8 struct {
-	Value uint8 `influxdb:"value"`
-}
-
-type singleUint16 struct {
-	Value uint16 `influxdb:"value"`
-}
-
-type singleUint32 struct {
-	Value uint32 `influxdb:"value"`
-}
-
-type singleUint64 struct {
-	Value uint64 `influxdb:"value"`
-}
-
-type singleRune struct {
-	Value rune `influxdb:"value"`
-}
-
-func TestEncodeDecode(t *testing.T) {
-	testCases := []struct {
-		test   interface{}
-		result interface{}
-	}{
-		{&singleInt{Value: 42}, &singleInt{}},
-		{&singleInt8{Value: 42}, &singleInt8{}},
-		{&singleInt16{Value: 42}, &singleInt16{}},
-		{&singleInt32{Value: 42}, &singleInt32{}},
-		{&singleInt64{Value: 42}, &singleInt64{}},
-		{&singleBool{Value: true}, &singleBool{}},
-		{&singleFloat32{Value: 3.14159}, &singleFloat32{}},
-		{&singleFloat64{Value: 3.14159}, &singleFloat64{}},
-		{&singleString{Value: "blahblah"}, &singleString{}},
-		{&singleUint{Value: 42}, &singleUint{}},
-		{&singleUint8{Value: 42}, &singleUint8{}},
-		{&singleUint16{Value: 42}, &singleUint16{}},
-		{&singleUint32{Value: 42}, &singleUint32{}},
-		{&singleUint64{Value: 42}, &singleUint64{}},
-		{&singleRune{Value: 'r'}, &singleRune{}},
+func TestQuerySingle(t *testing.T) {
+	type queryCase struct {
+		Name        string
+		QueryFunc   func(client.Query) (*client.Response, error)
+		ExpectedVal float64
+		ExpectedErr error
 	}
-	for _, tc := range testCases {
-		s, err := structToSeries(tc.test, "dummyseries")
+	cases := []queryCase{
+		queryCase{
+			Name: "QueryFailed",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return nil, fmt.Errorf("<dummy error>")
+			},
+			ExpectedVal: 0.0,
+			ExpectedErr: fmt.Errorf("Failed to query InfluxDB with query \"<dummy query>\": <dummy error>"),
+		},
+		queryCase{
+			Name: "EmptyResults",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return &client.Response{}, nil
+			},
+			ExpectedVal: 0.0,
+			ExpectedErr: fmt.Errorf("Query returned no data: \"<dummy query>\""),
+		},
+		queryCase{
+			Name: "NoSeries",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return &client.Response{
+					Results: []client.Result{
+						client.Result{
+							Series: []influxql.Row{},
+						},
+					},
+					Err: nil,
+				}, nil
+			},
+			ExpectedVal: 0.0,
+			ExpectedErr: fmt.Errorf("Query returned no series: \"<dummy query>\""),
+		},
+		queryCase{
+			Name: "TooManySeries",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return &client.Response{
+					Results: []client.Result{
+						client.Result{
+							Series: []influxql.Row{
+								influxql.Row{},
+								influxql.Row{},
+							},
+						},
+					},
+					Err: nil,
+				}, nil
+			},
+			ExpectedVal: 0.0,
+			ExpectedErr: fmt.Errorf("Query returned more than one series: \"<dummy query>\""),
+		},
+		queryCase{
+			Name: "NotEnoughCols",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return &client.Response{
+					Results: []client.Result{
+						client.Result{
+							Series: []influxql.Row{
+								influxql.Row{
+									Columns: []string{"value"},
+									Values: [][]interface{}{
+										[]interface{}{
+											interface{}(12345),
+											interface{}(1.004),
+										},
+									},
+								},
+							},
+						},
+					},
+					Err: nil,
+				}, nil
+			},
+			ExpectedVal: 0.0,
+			ExpectedErr: fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec:\nCols:\n[value]\nVals:\n[12345 1.004]"),
+		},
+		queryCase{
+			Name: "TooManyCols",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return &client.Response{
+					Results: []client.Result{
+						client.Result{
+							Series: []influxql.Row{
+								influxql.Row{
+									Columns: []string{"time", "label", "value"},
+									Values: [][]interface{}{
+										[]interface{}{
+											interface{}(12345),
+											interface{}(1.004),
+										},
+									},
+								},
+							},
+						},
+					},
+					Err: nil,
+				}, nil
+			},
+			ExpectedVal: 0.0,
+			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns: \"<dummy query>\" [time label value]"),
+		},
+		queryCase{
+			Name: "NoPoints",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return &client.Response{
+					Results: []client.Result{
+						client.Result{
+							Series: []influxql.Row{
+								influxql.Row{
+									Columns: []string{"time", "value"},
+									Values:  [][]interface{}{},
+								},
+							},
+						},
+					},
+					Err: nil,
+				}, nil
+			},
+			ExpectedVal: 0.0,
+			ExpectedErr: fmt.Errorf("Query returned no points: \"<dummy query>\""),
+		},
+		queryCase{
+			Name: "GoodData",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return &client.Response{
+					Results: []client.Result{
+						client.Result{
+							Series: []influxql.Row{
+								influxql.Row{
+									Columns: []string{"time", "value"},
+									Values: [][]interface{}{
+										[]interface{}{
+											interface{}(12345),
+											interface{}(json.Number("1.5")),
+										},
+									},
+								},
+							},
+						},
+					},
+					Err: nil,
+				}, nil
+			},
+			ExpectedVal: 1.5,
+			ExpectedErr: nil,
+		},
+		queryCase{
+			Name: "GoodWithSequenceNumber",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return &client.Response{
+					Results: []client.Result{
+						client.Result{
+							Series: []influxql.Row{
+								influxql.Row{
+									Columns: []string{"time", "sequence_number", "value"},
+									Values: [][]interface{}{
+										[]interface{}{
+											interface{}(12345),
+											interface{}(10001),
+											interface{}(json.Number("1.5")),
+										},
+									},
+								},
+							},
+						},
+					},
+					Err: nil,
+				}, nil
+			},
+			ExpectedVal: 1.5,
+			ExpectedErr: nil,
+		},
+	}
+
+	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
+	for _, c := range cases {
+		client := Client{
+			database: "nodatabase",
+			dbClient: dummyClient{c.QueryFunc},
+		}
+		val, err := client.QuerySingle("<dummy query>")
+		assert.Equal(t, c.ExpectedErr, err, fmt.Sprintf(errorStr, c.Name, c.ExpectedErr, err))
 		if err != nil {
-			t.Fatal(err)
+			continue
 		}
-		if err := seriesToStruct(tc.result, s); err != nil {
-			t.Fatal(err)
-		}
-		if !reflect.DeepEqual(tc.test, tc.result) {
-			t.Fatalf("Expected: \n%v\nGot: \n%v", tc.test, tc.result)
-		}
+		v, err := val.Float64()
+		assert.Nil(t, err, fmt.Sprintf(errorStr, c.Name, nil, err))
+		assert.Equal(t, c.ExpectedVal, v, fmt.Sprintf(errorStr, c.Name, c.ExpectedVal, v))
 	}
+
 }

@@ -7,8 +7,8 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/skia-dev/glog"
-	"github.com/skia-dev/influxdb/client"
 	"go.skia.org/infra/alertserver/go/alerting"
+	"go.skia.org/infra/go/influxdb"
 	"golang.org/x/tools/go/exact"
 	"golang.org/x/tools/go/types"
 )
@@ -116,7 +116,7 @@ func (r *Rule) evaluate(d float64) (bool, error) {
 
 type parsedRule map[string]interface{}
 
-func newRule(r parsedRule, client *client.Client, testing bool, tickInterval time.Duration) (*Rule, error) {
+func newRule(r parsedRule, client *influxdb.Client, testing bool, tickInterval time.Duration) (*Rule, error) {
 	errString := "Alert rule missing field %q"
 	name, ok := r["name"].(string)
 	if !ok {
@@ -194,7 +194,7 @@ func parseAlertRules(cfgFile string) ([]parsedRule, error) {
 	return cfg.Rule, nil
 }
 
-func MakeRules(cfgFile string, dbClient *client.Client, tickInterval time.Duration, am *alerting.AlertManager, testing bool) ([]*Rule, error) {
+func MakeRules(cfgFile string, dbClient *influxdb.Client, tickInterval time.Duration, am *alerting.AlertManager, testing bool) ([]*Rule, error) {
 	parsedRules, err := parseAlertRules(cfgFile)
 	if err != nil {
 		return nil, err
@@ -231,37 +231,9 @@ func MakeRules(cfgFile string, dbClient *client.Client, tickInterval time.Durati
 }
 
 type queryable interface {
-	Query(string, ...client.TimePrecision) ([]*client.Series, error)
+	QuerySingleFloat64(string) (float64, error)
 }
 
 func executeQuery(c queryable, q string) (float64, error) {
-	results, err := c.Query(q)
-	if err != nil {
-		return 0.0, fmt.Errorf("Failed to query InfluxDB with query %q: %s", q, err)
-	}
-	if len(results) < 1 {
-		return 0.0, fmt.Errorf("Query returned no data: %q", q)
-	}
-	points := results[0].Points
-	if len(points) < 1 {
-		return 0.0, fmt.Errorf("Query returned no points: %q", q)
-	}
-	if len(points) > 1 {
-		return 0.0, fmt.Errorf("Query returned more than one point: %q", q)
-	}
-	valueColumn := 0
-	for _, label := range results[0].Columns {
-		if label == "time" || label == "sequence_number" {
-			valueColumn++
-		} else {
-			break
-		}
-	}
-	if len(results[0].Columns) != valueColumn+1 {
-		return 0.0, fmt.Errorf("Query returned an incorrect set of columns: %q %v", q, results[0].Columns)
-	}
-	if len(results[0].Columns) != len(points[0]) {
-		return 0.0, fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec.")
-	}
-	return points[0][valueColumn].(float64), nil
+	return c.QuerySingleFloat64(q)
 }

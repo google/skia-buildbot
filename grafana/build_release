@@ -1,7 +1,7 @@
 #!/bin/bash
-# Builds and uploads a debian package for InfluxDB.
-APPNAME=influxdbd
-DESCRIPTION="A local cache of the influxdb debian package."
+# Builds and uploads a debian package for Grafana.
+APPNAME=grafanad
+DESCRIPTION="A local cache of the Grafana debian package."
 
 # Don't run the step where we generate an .deb file, we are actually
 # copying in the .deb file to be managed.
@@ -10,7 +10,7 @@ BYPASS_GENERATION=true
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-wget https://s3.amazonaws.com/influxdb/influxdb_0.9.4.1_amd64.deb -O ${ROOT}/${APPNAME}.deb
+wget http://grafanarel.s3.amazonaws.com/builds/grafana_2.1.3_amd64.deb -O ${ROOT}/${APPNAME}.deb
 }
 
 source ../bash/release.sh

@@ -8,9 +8,11 @@ import (
 
 func makePollFn(query string, dbClient *Client) func(interface{}) error {
 	return func(value interface{}) error {
-		if err := dbClient.Query(&value, query); err != nil {
+		v, err := dbClient.QuerySingle(query)
+		if err != nil {
 			return err
 		}
+		value = v
 		return nil
 	}
 }

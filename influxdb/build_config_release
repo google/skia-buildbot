@@ -1,14 +1,15 @@
 #!/bin/bash
 # Builds and uploads a debian package with configuration files for InfluxDB.
-APPNAME=influxdb-config
+APPNAME=influxdb-configd
 DESCRIPTION="The local config files for the push managed install of influxdb."
+SYSTEMD=influxdb-server.service
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-${INSTALL}     --mode=644 -T ./influxdb-config.toml ${ROOT}/opt/influxdb/shared/config.toml
-${INSTALL}     --mode=644 -T ./sys/monit            ${ROOT}/etc/monit/conf.d/influxdb
+${INSTALL} --mode=644 -T ./influxdb-config.toml  ${ROOT}/opt/influxdb/shared/config.toml
+${INSTALL} --mode=644 -T ./sys/influxdb-server.service ${ROOT}/etc/systemd/system/influxdb-server.service
 }
 
 source ../bash/release.sh

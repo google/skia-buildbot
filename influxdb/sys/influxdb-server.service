@@ -1,0 +1,16 @@
+[Unit]
+Description=InfluxDB Instance for Skia
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/opt/influxdb/influxd \
+    -pidfile /var/run/influxdb/influxd.pid \
+    -config /opt/influxdb/shared/config.toml
+Restart=always
+User=influxdb
+Group=influxdb
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

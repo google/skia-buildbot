@@ -9,36 +9,26 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/jmoiron/sqlx"
-	"github.com/skia-dev/influxdb/client"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/testutils"
 )
 
-type mockClient struct {
-	mockQuery func(string) ([]*client.Series, error)
-}
+type mockClient struct{}
 
-func (c mockClient) Query(query string, precision ...client.TimePrecision) ([]*client.Series, error) {
-	return c.mockQuery(query)
+func (c mockClient) QuerySingleFloat64(query string) (float64, error) {
+	return 1.0, nil
 }
 
 func getRule() *Rule {
 	r := &Rule{
-		Name:      "TestRule",
-		Query:     "DummyQuery",
-		Category:  "testing",
-		Message:   "Dummy query meets dummy condition!",
-		Condition: "x > 0",
-		client: &mockClient{func(string) ([]*client.Series, error) {
-			s := client.Series{
-				Name:    "Results",
-				Columns: []string{"time", "value"},
-				Points:  [][]interface{}{[]interface{}{1234567, 1.0}},
-			}
-			return []*client.Series{&s}, nil
-		}},
+		Name:        "TestRule",
+		Query:       "DummyQuery",
+		Category:    "testing",
+		Message:     "Dummy query meets dummy condition!",
+		Condition:   "x > 0",
+		client:      &mockClient{},
 		AutoDismiss: int64(time.Second),
 		Actions:     []string{"Print"},
 	}
@@ -98,143 +88,6 @@ func TestRuleTriggeringE2E(t *testing.T) {
 
 	// Stop the AlertManager.
 	am.Stop()
-}
-
-func TestExecuteQuery(t *testing.T) {
-	type queryCase struct {
-		Name        string
-		QueryFunc   func(string) ([]*client.Series, error)
-		ExpectedVal float64
-		ExpectedErr error
-	}
-	cases := []queryCase{
-		queryCase{
-			Name: "QueryFailed",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				return nil, fmt.Errorf("<dummy error>")
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Failed to query InfluxDB with query \"<dummy query>\": <dummy error>"),
-		},
-		queryCase{
-			Name: "EmptyResults",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				return []*client.Series{}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned no data: \"<dummy query>\""),
-		},
-		queryCase{
-			Name: "EmptySeries",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "Empty",
-					Columns: []string{},
-					Points:  [][]interface{}{},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned no points: \"<dummy query>\""),
-		},
-		queryCase{
-			Name: "TooManyPoints",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "TooMany",
-					Columns: []string{"time", "value"},
-					Points:  [][]interface{}{[]interface{}{}, []interface{}{}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned more than one point: \"<dummy query>\""),
-		},
-		queryCase{
-			Name: "NotEnoughCols",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "NotEnoughCols",
-					Columns: []string{"time"},
-					Points:  [][]interface{}{[]interface{}{}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns: \"<dummy query>\" [time]"),
-		},
-		queryCase{
-			Name: "TooManyCols",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "NotEnoughCols",
-					Columns: []string{"time", "value", "extraCol"},
-					Points:  [][]interface{}{[]interface{}{}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns: \"<dummy query>\" [time value extraCol]"),
-		},
-		queryCase{
-			Name: "ColsPointsMismatch",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "BadData",
-					Columns: []string{"time", "value"},
-					Points:  [][]interface{}{[]interface{}{}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec."),
-		},
-		queryCase{
-			Name: "GoodData",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "GoodData",
-					Columns: []string{"time", "value"},
-					Points:  [][]interface{}{[]interface{}{"mean", 1.5}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 1.5,
-			ExpectedErr: nil,
-		},
-		queryCase{
-			Name: "GoodWithSequenceNumber",
-			QueryFunc: func(q string) ([]*client.Series, error) {
-				s := client.Series{
-					Name:    "GoodData",
-					Columns: []string{"time", "sequence_number", "value"},
-					Points:  [][]interface{}{[]interface{}{1234567, 10, 1.5}},
-				}
-				return []*client.Series{&s}, nil
-			},
-			ExpectedVal: 1.5,
-			ExpectedErr: nil,
-		},
-	}
-	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
-	for _, c := range cases {
-		client := mockClient{c.QueryFunc}
-		actualErrStr := "nil"
-		expectedErrStr := "nil"
-		if c.ExpectedErr != nil {
-			expectedErrStr = c.ExpectedErr.Error()
-		}
-		val, err := executeQuery(client, "<dummy query>")
-		if err != nil {
-			actualErrStr = err.Error()
-		}
-		if expectedErrStr != actualErrStr {
-			t.Errorf(errorStr, c.Name, expectedErrStr, actualErrStr)
-		}
-		if val != c.ExpectedVal {
-			t.Errorf(errorStr, c.Name, c.ExpectedVal, val)
-		}
-	}
 }
 
 func TestRuleParsing(t *testing.T) {

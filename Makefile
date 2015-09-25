@@ -37,10 +37,6 @@ ct:
 ctfe:
 	cd ct && $(MAKE) ctfe
 
-.PHONY: grains
-grains:
-	cd grains && $(MAKE) default
-
 .PHONY: push
 push:
 	cd push && $(MAKE) default

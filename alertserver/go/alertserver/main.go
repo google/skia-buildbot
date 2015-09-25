@@ -24,7 +24,6 @@ import (
 import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
-	"github.com/skia-dev/influxdb/client"
 )
 
 import (
@@ -33,6 +32,7 @@ import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
@@ -59,10 +59,6 @@ var (
 	host                  = flag.String("host", "localhost", "HTTP service host")
 	port                  = flag.String("port", ":8001", "HTTP service port (e.g., ':8001')")
 	useMetadata           = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	influxDbHost          = flag.String("influxdb_host", "localhost:8086", "The InfluxDB hostname.")
-	influxDbName          = flag.String("influxdb_name", "root", "The InfluxDB username.")
-	influxDbPassword      = flag.String("influxdb_password", "root", "The InfluxDB password.")
-	influxDbDatabase      = flag.String("influxdb_database", "", "The InfluxDB database.")
 	emailClientIdFlag     = flag.String("email_clientid", "", "OAuth Client ID for sending email.")
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	alertPollInterval     = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
@@ -355,6 +351,7 @@ func main() {
 	defer common.LogPanic()
 	alertDBConf := alerting.DBConfigFromFlags()
 	buildbotDBConf := buildbot.DBConfigFromFlags()
+	influxdb.SetupFlags()
 	common.InitWithMetrics("alertserver", graphiteServer)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
@@ -377,19 +374,7 @@ func main() {
 	if *testing {
 		*useMetadata = false
 	}
-	if *useMetadata {
-		*influxDbName = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_NAME))
-		*influxDbPassword = metadata.Must(metadata.ProjectGet(metadata.INFLUXDB_PASSWORD))
-	}
-	dbClient, err := client.New(&client.ClientConfig{
-		Host:       *influxDbHost,
-		Username:   *influxDbName,
-		Password:   *influxDbPassword,
-		Database:   *influxDbDatabase,
-		HttpClient: nil,
-		IsSecure:   false,
-		IsUDP:      false,
-	})
+	dbClient, err := influxdb.NewClientFromFlagsAndMetadata(*testing)
 	if err != nil {
 		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}

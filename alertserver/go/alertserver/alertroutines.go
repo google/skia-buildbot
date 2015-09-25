@@ -8,10 +8,10 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"github.com/skia-dev/influxdb/client"
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/util"
 )
 
@@ -64,7 +64,7 @@ func (s BuildSlice) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c *client.Client) {
+func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c *influxdb.Client) {
 	emailAction, err := alerting.ParseAction("Email(infra-alerts@skia.org)")
 	if err != nil {
 		glog.Fatal(err)

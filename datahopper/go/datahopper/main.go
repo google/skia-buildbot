@@ -16,7 +16,6 @@ import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/util"
 )
 
@@ -45,7 +44,6 @@ func main() {
 	defer common.LogPanic()
 	// Setup flags.
 	dbConf := buildbot.DBConfigFromFlags()
-	influxdb.SetupFlags()
 
 	// Global init to initialize glog and parse arguments.
 	common.InitWithMetrics("datahopper", graphiteServer)
