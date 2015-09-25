@@ -8,8 +8,11 @@ SYSTEMD=influxdb-server.service
 copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=644 -T ./influxdb-config.toml  ${ROOT}/opt/influxdb/shared/config.toml
-${INSTALL} --mode=644 -T ./sys/influxdb-server.service ${ROOT}/etc/systemd/system/influxdb-server.service
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=influxdb --owner=influxdb"
+${INSTALL}     --mode=644 -T ./influxdb-config.toml        ${ROOT}/opt/influxdb/shared/config.toml
+${INSTALL}     --mode=644 -T ./sys/influxdb-server.service ${ROOT}/etc/systemd/system/influxdb-server.service
+${INSTALL_DIR}                                             ${ROOT}/mnt/pd0/influxdb
+${INSTALL_DIR}                                             ${ROOT}/var/run/influxdb
 }
 
 source ../bash/release.sh

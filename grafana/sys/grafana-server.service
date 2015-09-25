@@ -10,10 +10,11 @@ User=grafana
 Group=grafana
 Type=simple
 WorkingDirectory=/usr/share/grafana
+ExecStartPre=chmod 777 /etc/grafana
 ExecStartPre=/usr/bin/curl -o /etc/grafana/custom.ini   \
                -H "Metadata-Flavor: Google" \
                http://metadata/computeMetadata/v1/project/attributes/grafana_config
-ExecStartPre=chown grafna:grafana /etc/grafana/custom.ini
+ExecStartPre=chown grafana:grafana /etc/grafana/custom.ini
 ExecStart=/usr/sbin/grafana-server                                \
                             --config=/etc/grafana/custom.ini      \
                             --pidfile=${PID_FILE}                 \
