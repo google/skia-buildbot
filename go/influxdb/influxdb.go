@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/influxdb/influxdb/client"
+	"github.com/skia-dev/influxdb/client"
 	"go.skia.org/infra/go/metadata"
 )
 

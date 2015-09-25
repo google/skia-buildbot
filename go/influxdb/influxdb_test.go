@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/influxdb/influxdb/client"
-	"github.com/influxdb/influxdb/influxql"
+	"github.com/skia-dev/influxdb/client"
+	"github.com/skia-dev/influxdb/influxql"
 	assert "github.com/stretchr/testify/require"
 )
 
