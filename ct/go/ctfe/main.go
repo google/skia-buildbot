@@ -178,7 +178,7 @@ func repeatedTasksScheduler() {
 				cutOffTime := time.Now().UTC().Add(*tasksSchedulerWaitTime)
 				if scheduledTime.Before(cutOffTime) {
 					addTaskVars := task.GetPopulatedAddTaskVars()
-					if err := task_common.AddTask(addTaskVars); err != nil {
+					if _, err := task_common.AddTask(addTaskVars); err != nil {
 						glog.Errorf("Failed to add task %v: %v", task, err)
 						continue
 					}

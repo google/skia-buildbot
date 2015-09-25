@@ -115,21 +115,23 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 		return
 	}
 
-	if err := AddTask(task); err != nil {
+	if _, err := AddTask(task); err != nil {
 		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
 		return
 	}
 }
 
-func AddTask(task AddTaskVars) error {
+// Returns the ID of the inserted task if the operation was successful.
+func AddTask(task AddTaskVars) (int64, error) {
 	query, binds, err := task.GetInsertQueryAndBinds()
 	if err != nil {
-		return fmt.Errorf("Failed to marshal %T task: %v", task, err)
+		return -1, fmt.Errorf("Failed to marshal %T task: %v", task, err)
 	}
-	if _, err = db.DB.Exec(query, binds...); err != nil {
-		return fmt.Errorf("Failed to insert %T task: %v", task, err)
+	result, err := db.DB.Exec(query, binds...)
+	if err != nil {
+		return -1, fmt.Errorf("Failed to insert %T task: %v", task, err)
 	}
-	return nil
+	return result.LastInsertId()
 }
 
 // Returns true if the string is non-empty, unless strconv.ParseBool parses the string as false.
@@ -197,6 +199,46 @@ func DBTaskQuery(prototype Task, params QueryParams) (string, []interface{}) {
 		args = append(args, params.Offset, params.Size)
 	}
 	return query, args
+}
+
+func GetTaskStatusHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
+	taskID := r.FormValue("task_id")
+	if taskID == "" {
+		skutil.ReportError(w, r, fmt.Errorf("Missing required parameter task_id"), "")
+		return
+	}
+
+	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", prototype.TableName())
+	data, err := prototype.Select(rowQuery, taskID)
+	if err != nil {
+		skutil.ReportError(w, r, fmt.Errorf("Could not find %s task with ID %s", prototype.GetTaskName(), taskID), "")
+		return
+	}
+	tasks := AsTaskSlice(data)
+	if len(tasks) == 0 {
+		skutil.ReportError(w, r, fmt.Errorf("Could not find %s task with ID %s", prototype.GetTaskName(), taskID), "")
+		return
+	}
+
+	status := "Pending"
+	if tasks[0].GetCommonCols().TsCompleted.Valid {
+		status = "Completed"
+		if tasks[0].GetCommonCols().Failure.Valid && tasks[0].GetCommonCols().Failure.Bool {
+			status += " with failures"
+		}
+	} else if tasks[0].GetCommonCols().TsStarted.Valid {
+		status = "Started"
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse := map[string]interface{}{
+		"taskID": taskID,
+		"status": status,
+	}
+	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
+		skutil.ReportError(w, r, err, "Failed to encode JSON")
+		return
+	}
 }
 
 func HasPageSetsColumn(prototype Task) bool {
@@ -500,7 +542,7 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	addTaskVars := tasks[0].GetPopulatedAddTaskVars()
 	// Replace the username with the new requester.
 	addTaskVars.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
-	if err := AddTask(addTaskVars); err != nil {
+	if _, err := AddTask(addTaskVars); err != nil {
 		skutil.ReportError(w, r, err, "Could not redo the task.")
 		return
 	}

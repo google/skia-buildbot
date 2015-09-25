@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
 	skutil "go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/webhook"
 )
 
 var (
@@ -159,12 +160,15 @@ func getCLDetail(clURLString string) (clDetail, error) {
 	return detail, err
 }
 
-func getCLPatch(detail clDetail) (string, error) {
+func getCLPatch(detail clDetail, patchsetID int) (string, error) {
 	if len(detail.Patchsets) == 0 {
 		return "", fmt.Errorf("CL has no patchsets")
 	}
-	finalPatchset := detail.Patchsets[len(detail.Patchsets)-1]
-	patchUrl := fmt.Sprintf("https://codereview.chromium.org/download/issue%d_%d.diff", detail.Issue, finalPatchset)
+	if patchsetID <= 0 {
+		// If no valid patchsetID has been specified then use the last patchset.
+		patchsetID = detail.Patchsets[len(detail.Patchsets)-1]
+	}
+	patchUrl := fmt.Sprintf("https://codereview.chromium.org/download/issue%d_%d.diff", detail.Issue, patchsetID)
 	glog.Infof("Downloading CL patch from %s", patchUrl)
 	patchResp, err := httpClient.Get(patchUrl)
 	if err != nil {
@@ -188,7 +192,7 @@ func getCLPatch(detail clDetail) (string, error) {
 	return string(patchBytes), nil
 }
 
-func encodeCLData(w http.ResponseWriter, detail clDetail, patch string) error {
+func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 	clData := map[string]string{}
 	clData["cl"] = strconv.Itoa(detail.Issue)
 	clData["patchset"] = strconv.Itoa(detail.Patchsets[len(detail.Patchsets)-1])
@@ -211,9 +215,9 @@ func encodeCLData(w http.ResponseWriter, detail clDetail, patch string) error {
 	case "skia":
 		clData["skia_patch"] = patch
 	default:
-		return fmt.Errorf("CL project is %s; only chromium, blink, and skia are supported.", detail.Project)
+		return nil, fmt.Errorf("CL project is %s; only chromium, blink, and skia are supported.", detail.Project)
 	}
-	return json.NewEncoder(w).Encode(clData)
+	return clData, nil
 }
 
 func getCLHandler(w http.ResponseWriter, r *http.Request) {
@@ -230,12 +234,17 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	patch, err := getCLPatch(detail)
+	patch, err := getCLPatch(detail, 0)
 	if err != nil {
 		skutil.ReportError(w, r, err, "")
 		return
 	}
-	if err = encodeCLData(w, detail, patch); err != nil {
+	clData, err := gatherCLData(detail, patch)
+	if err != nil {
+		skutil.ReportError(w, r, err, "")
+		return
+	}
+	if err = json.NewEncoder(w).Encode(clData); err != nil {
 		skutil.ReportError(w, r, err, "")
 		return
 	}
@@ -345,6 +354,84 @@ func (task *UpdateVars) GetUpdateExtraClausesAndBinds() ([]string, []interface{}
 	return clauses, args, nil
 }
 
+type TrybotTask struct {
+	Issue      string      `json:"issue"`
+	PatchsetID string      `json:"patchset"`
+	TaskVars   AddTaskVars `json:"task"`
+}
+
+func addTrybotTaskHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		if data == nil {
+			skutil.ReportError(w, r, err, "Failed to read add request")
+			return
+		}
+		if !ctfeutil.UserHasAdminRights(r) {
+			skutil.ReportError(w, r, err, "Failed authentication")
+			return
+		}
+	}
+
+	trybotTask := TrybotTask{}
+	if err := json.Unmarshal(data, &trybotTask); err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add %v trybot task", trybotTask))
+		return
+	}
+
+	task := &trybotTask.TaskVars
+	// Add patch data to the task.
+	detail, err := getCLDetail(trybotTask.Issue)
+	if err != nil {
+		skutil.ReportError(w, r, err, "")
+		return
+	}
+	patchsetID, err := strconv.Atoi(trybotTask.PatchsetID)
+	if err != nil {
+		skutil.ReportError(w, r, err, "")
+		return
+	}
+	patch, err := getCLPatch(detail, patchsetID)
+	if err != nil {
+		skutil.ReportError(w, r, err, "")
+		return
+	}
+	clData, err := gatherCLData(detail, patch)
+	if err != nil {
+		skutil.ReportError(w, r, err, "")
+		return
+	}
+
+	task.Description = fmt.Sprintf("Trybot run for http://codereview.chromium.org/%s#ps%s", clData["cl"], clData["patchset"])
+	if val, ok := clData["chromium_patch"]; ok {
+		task.ChromiumPatch = val
+	}
+	if val, ok := clData["skia_patch"]; ok {
+		task.SkiaPatch = val
+	}
+
+	task.GetAddTaskCommonVars().TsAdded = ctutil.GetCurrentTs()
+
+	taskID, err := task_common.AddTask(task)
+	if err != nil {
+		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	jsonResponse := map[string]interface{}{
+		"taskID": taskID,
+	}
+	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
+		skutil.ReportError(w, r, err, "Failed to encode JSON")
+		return
+	}
+}
+
+func getTaskStatusHandler(w http.ResponseWriter, r *http.Request) {
+	task_common.GetTaskStatusHandler(&DBTask{}, w, r)
+}
+
 func updateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task_common.UpdateTaskHandler(&UpdateVars{}, db.TABLE_CHROMIUM_PERF_TASKS, w, r)
 }
@@ -365,11 +452,13 @@ func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/", addTaskView).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_URI, addTaskView).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
+	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_RUN_STATUS_URI, getTaskStatusHandler).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_PARAMETERS_POST_URI, parametersHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_CL_DATA_POST_URI, getCLHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_PERF_TASK_POST_URI, addTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.WEBHOOK_ADD_CHROMIUM_PERF_TASK_POST_URI, addTrybotTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.DELETE_CHROMIUM_PERF_TASK_POST_URI, deleteTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.REDO_CHROMIUM_PERF_TASK_POST_URI, redoTaskHandler).Methods("POST")
 }
