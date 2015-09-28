@@ -158,6 +158,9 @@ func (c *Client) QuerySingle(q string) (json.Number, error) {
 	if len(series[0].Columns) != len(point) {
 		return "", fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec:\nCols:\n%v\nVals:\n%v", series[0].Columns, point)
 	}
+	if point[valueColumn] == nil {
+		return "", fmt.Errorf("Query returned nil value: %q", q)
+	}
 	return point[valueColumn].(json.Number), nil
 }
 
