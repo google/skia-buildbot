@@ -1,0 +1,14 @@
+{
+  "name": "polydemo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Polymer 1.0 Demo pages",
+  "main": "index.js",
+  "scripts": {
+  },
+  "author": "",
+  "license": "BSD",
+  "devDependencies": {
+    "http-server": "^0.8.5"
+  }
+}
