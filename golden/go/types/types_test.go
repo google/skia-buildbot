@@ -114,3 +114,30 @@ func TestTryBotResults(t *testing.T) {
 	assert.Equal(t, &TBResult{Test: T_2, Digest: V_2, Params: PARAMS_2, TS: now}, tbResult[K_2])
 	assert.Equal(t, &TBResult{Test: T_3, Digest: V_2, Params: PARAMS_3, TS: newNow}, tbResult[K_3])
 }
+
+func TestSetAt(t *testing.T) {
+	testCases := []struct {
+		want string
+	}{
+		{
+			want: "",
+		},
+		{
+			want: "abcd",
+		},
+		{
+			want: MISSING_DIGEST,
+		},
+	}
+	tr := NewGoldenTraceN(len(testCases))
+	for i, tc := range testCases {
+		if err := tr.SetAt(i, []byte(tc.want)); err != nil {
+			t.Fatalf("SetAt(%d, %#v) failed: %s", i, []byte(tc.want), err)
+		}
+	}
+	for i, tc := range testCases {
+		if got, want := tr.Values[i], tc.want; got != want {
+			t.Errorf("SetAt(%d, %#v)failed: Got %s Want %s", i, []byte(tc.want), got, want)
+		}
+	}
+}

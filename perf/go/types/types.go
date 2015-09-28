@@ -1,8 +1,10 @@
 package types
 
 import (
+	"encoding/binary"
 	"encoding/gob"
 	"fmt"
+	"math"
 	"time"
 
 	"go.skia.org/infra/go/tiling"
@@ -96,6 +98,23 @@ func (g *PerfTrace) Trim(begin, end int) error {
 	return nil
 }
 
+func (g *PerfTrace) SetAt(index int, value []byte) error {
+	if len(value) != 8 {
+		return fmt.Errorf("Invalid length for value: %d", len(value))
+	}
+	if index < 0 || index > len(g.Values) {
+		return fmt.Errorf("Invalid index: %d", index)
+	}
+	g.Values[index] = math.Float64frombits(binary.LittleEndian.Uint64(value))
+	return nil
+}
+
+func BytesFromFloat64(f float64) []byte {
+	ret := make([]byte, 8, 8)
+	binary.LittleEndian.PutUint64(ret, math.Float64bits(f))
+	return ret
+}
+
 // NewPerfTrace allocates a new Trace set up for the given number of samples.
 //
 // The Trace Values are pre-filled in with the missing data sentinel since not
@@ -117,6 +136,10 @@ func NewPerfTraceN(n int) *PerfTrace {
 		t.Values[i] = config.MISSING_DATA_SENTINEL
 	}
 	return t
+}
+
+func PerfTraceBuilder(n int) tiling.Trace {
+	return NewPerfTraceN(n)
 }
 
 func init() {

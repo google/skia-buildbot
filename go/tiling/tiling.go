@@ -54,7 +54,16 @@ type Trace interface {
 	// Just like a Go [:] slice this is inclusive of begin and exclusive of end.
 	// The length on the Trace will then become end-begin.
 	Trim(begin, end int) error
+
+	// Sets the value of the measurement at index.
+	//
+	// Each specialization will convert []byte to the correct type.
+	SetAt(index int, value []byte) error
 }
+
+// TraceBuilder builds an empty trace of the correct kind, either a PerfTrace
+// or a GoldenTrace.
+type TraceBuilder func(n int) Trace
 
 // Matches returns true if the given Trace matches the given query.
 func Matches(tr Trace, query url.Values) bool {

@@ -161,6 +161,14 @@ func (g *GoldenTrace) Trim(begin, end int) error {
 	return nil
 }
 
+func (g *GoldenTrace) SetAt(index int, value []byte) error {
+	if index < 0 || index > len(g.Values) {
+		return fmt.Errorf("Invalid index: %d", index)
+	}
+	g.Values[index] = string(value)
+	return nil
+}
+
 // NewGoldenTrace allocates a new Trace set up for the given number of samples.
 //
 // The Trace Values are pre-filled in with the missing data sentinel since not
@@ -182,6 +190,10 @@ func NewGoldenTraceN(n int) *GoldenTrace {
 		g.Values[i] = MISSING_DIGEST
 	}
 	return g
+}
+
+func GoldenTraceBuilder(n int) tiling.Trace {
+	return NewGoldenTraceN(n)
 }
 
 // Same as Tile but instead of Traces we preserve the raw JSON. This is a

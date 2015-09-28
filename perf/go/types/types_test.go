@@ -1,10 +1,12 @@
 package types
 
 import (
+	"math"
 	"net/url"
 	"testing"
 
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/perf/go/config"
 )
 
 func TestMerge(t *testing.T) {
@@ -307,6 +309,36 @@ func TestMatchesWithIgnore(t *testing.T) {
 	for _, tc := range testCases {
 		if got, want := tiling.MatchesWithIgnores(tr, tc.q, tc.ignore...), tc.want; got != want {
 			t.Errorf("MatchesWithIgnores(%v, %v, %v): Got %v Want %v", tr, tc.q, tc.ignore, got, want)
+		}
+	}
+}
+
+func TestSetAt(t *testing.T) {
+	testCases := []struct {
+		want float64
+	}{
+		{
+			want: 1.0,
+		},
+		{
+			want: config.MISSING_DATA_SENTINEL,
+		},
+		{
+			want: math.MaxFloat64,
+		},
+		{
+			want: math.SmallestNonzeroFloat64,
+		},
+	}
+	tr := NewPerfTraceN(len(testCases))
+	for i, tc := range testCases {
+		if err := tr.SetAt(i, BytesFromFloat64(tc.want)); err != nil {
+			t.Fatalf("SetAt(%d, %#v) failed: %s", i, BytesFromFloat64(tc.want), err)
+		}
+	}
+	for i, tc := range testCases {
+		if got, want := tr.Values[i], tc.want; got != want {
+			t.Errorf("SetAt(%d, %#v)failed: Got %f Want %f", i, BytesFromFloat64(tc.want), got, want)
 		}
 	}
 }
