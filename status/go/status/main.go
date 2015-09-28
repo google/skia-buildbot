@@ -713,10 +713,6 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
 	}
-	goldSKPStatus, err = influxdb.NewIntPollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "skp"), dbClient)
-	if err != nil {
-		glog.Fatalf("Failed to create polling Gold status: %v", err)
-	}
 	goldImageStatus, err = influxdb.NewIntPollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), dbClient)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
