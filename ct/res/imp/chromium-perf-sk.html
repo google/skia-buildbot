@@ -140,21 +140,8 @@
 
       <tr>
         <td>
-          Blink Git patch (optional)<br/>
-          Applied to Blink Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
-        </td>
-        <td>
-          <patch-sk id="blink_patch"
-                    patch-type="blink"
-                    cl-description="{{blinkClDescription}}">
-          </patch-sk>
-        </td>
-      </tr>
-
-      <tr>
-        <td>
           Skia Git patch (optional)<br/>
-          Applied to Skia Rev in <a href="http://src.chromium.org/viewvc/chrome/trunk/src/DEPS">DEPS</a>
+          Applied to Skia Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a>
         </td>
         <td>
           <patch-sk id="skia_patch"
@@ -220,12 +207,11 @@
          value: "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting",
        },
        chromiumClDescription: String,
-       blinkClDescription: String,
        skiaClDescription: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, blinkClDescription, skiaClDescription)"
+       "clDescriptionChanged(chromiumClDescription, skiaClDescription)"
      ],
 
      ready: function() {
@@ -279,21 +265,14 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDescription, blinkClDescription, skiaClDescription) {
-       if (!chromiumClDescription && !blinkClDescription && !skiaClDescription) {
+     clDescriptionChanged: function(chromiumClDescription, skiaClDescription) {
+       if (!chromiumClDescription && !skiaClDescription) {
          this.$.desc.value = "";
        } else {
          var str = "Testing ";
          var prev = false;
          if (chromiumClDescription) {
            str += chromiumClDescription;
-           prev = true;
-         }
-         if (blinkClDescription) {
-           if (prev) {
-             str += " and ";
-           }
-           str += blinkClDescription;
            prev = true;
          }
          if (skiaClDescription) {
@@ -309,7 +288,6 @@
 
      validateTask: function() {
        if (!this.$.chromium_patch.validate() ||
-           !this.$.blink_patch.validate() ||
            !this.$.skia_patch.validate()) {
          return;
        }
@@ -337,7 +315,6 @@
        params["browser_args_withpatch"] = this.$.browser_args_withpatch.value;
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
-       params["blink_patch"] = this.$.blink_patch.patch;
        params["skia_patch"] = this.$.skia_patch.patch;
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
