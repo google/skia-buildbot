@@ -1,9 +1,9 @@
 .PHONY: android_hashlookup
-android_hashlookup: protobuf
+android_hashlookup:
 	go install -v ./android_hashlookup
 
 .PHONY: packages
-packages: protobuf
+packages:
 	go install -v ./...
 
 .PHONY: testgo
