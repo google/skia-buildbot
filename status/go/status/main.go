@@ -43,7 +43,7 @@ const (
 	DEFAULT_COMMITS_TO_LOAD = 50
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
-	GOLD_STATUS_QUERY_TMPL  = "select value from /skiacorrectness.skia-gold-prod.status.untriaged.by_corpus.%s.value/ limit 1"
+	GOLD_STATUS_QUERY_TMPL  = "select value from /skiacorrectness.skia-gold-prod.status.untriaged.by_corpus.%s.value/ order by time desc limit 1"
 )
 
 var (
@@ -705,7 +705,7 @@ func main() {
 	var perfRes struct {
 		Value int `json:"alerts" influxdb:"value"`
 	}
-	perfStatus, err = influxdb.NewPollingStatus(&perfRes, "select value from /skiaperf.skia-perf.alerting.new.value/ limit 1", dbClient)
+	perfStatus, err = influxdb.NewPollingStatus(&perfRes, "select value from /skiaperf.skia-perf.alerting.new.value/ order by time desc limit 1", dbClient)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Perf status: %v", err)
 	}
