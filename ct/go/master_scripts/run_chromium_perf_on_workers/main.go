@@ -158,6 +158,11 @@ func main() {
 	// Reboot all workers to start from a clean slate.
 	util.RebootWorkers()
 
+	if *targetPlatform == util.PLATFORM_ANDROID {
+		// Reboot all Android devices to start from a clean slate.
+		util.RebootAndroidDevices()
+	}
+
 	// Run the run_chromium_perf script on all workers.
 	runIDNoPatch := *runID + "-nopatch"
 	runIDWithPatch := *runID + "-withpatch"

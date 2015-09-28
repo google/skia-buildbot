@@ -142,3 +142,14 @@ func RebootWorkers() {
 	glog.Infof("Waiting for %s till all workers come back from reboot", waitTime)
 	time.Sleep(waitTime)
 }
+
+// RebootAndroidDevices reboots the Android device on all CT workers and waits
+// for few mins before returning.
+func RebootAndroidDevices() {
+	if _, err := SSH("adb reboot", Slaves, REBOOT_TIMEOUT); err != nil {
+		glog.Errorf("Got error while rebooting devices: %v", err)
+	}
+	waitTime := 5 * time.Minute
+	glog.Infof("Waiting for %s till all Android devices come back from reboot", waitTime)
+	time.Sleep(waitTime)
+}
