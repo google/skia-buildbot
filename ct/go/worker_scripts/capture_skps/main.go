@@ -137,7 +137,7 @@ func main() {
 
 	// Create channel that contains all pageset file names. This channel will
 	// be consumed by the worker pool.
-	pagesetRequests := getClosedChannelOfPagesets(fileInfos)
+	pagesetRequests := util.GetClosedChannelOfPagesets(fileInfos)
 
 	var wg sync.WaitGroup
 	// Use a RWMutex for the chromeProcessesCleaner goroutine to communicate to
@@ -198,8 +198,10 @@ func main() {
 		}()
 	}
 
-	// Start the cleaner.
-	go chromeProcessesCleaner(&mutex)
+	if !*worker_common.Local {
+		// Start the cleaner.
+		go util.ChromeProcessesCleaner(&mutex, *chromeCleanerTimer)
+	}
 
 	// Wait for all spawned goroutines to complete.
 	wg.Wait()
@@ -267,36 +269,6 @@ func main() {
 		glog.Error(err)
 		return
 	}
-}
-
-// SKPs are captured in parallel leading to multiple chrome instances coming up
-// at the same time, when there are crashes chrome processes stick around which
-// can severely impact the machine's performance. To stop this from
-// happening chrome zombie processes are periodically killed.
-func chromeProcessesCleaner(mutex *sync.RWMutex) {
-	for _ = range time.Tick(*chromeCleanerTimer) {
-		glog.Info("The chromeProcessesCleaner goroutine has started")
-		glog.Info("Waiting for all existing tasks to complete before killing zombie chrome processes")
-		mutex.Lock()
-		skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{},
-			util.PKILL_TIMEOUT, nil, nil))
-		mutex.Unlock()
-	}
-}
-
-func getClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
-	pagesetsChannel := make(chan string, len(fileInfos))
-	for i := 0; i < len(fileInfos); i++ {
-		pagesetName := fileInfos[i].Name()
-		pagesetBaseName := filepath.Base(pagesetName)
-		if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
-			// Ignore timestamp files and .pyc files.
-			continue
-		}
-		pagesetsChannel <- pagesetName
-	}
-	close(pagesetsChannel)
-	return pagesetsChannel
 }
 
 func getRowsFromCSV(csvPath string) ([]string, []string, error) {

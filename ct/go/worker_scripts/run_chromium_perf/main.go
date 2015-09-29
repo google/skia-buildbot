@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -21,6 +22,11 @@ import (
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
+)
+
+const (
+	// The number of goroutines that will run in parallel to run benchmarks.
+	WORKER_POOL_SIZE = 10
 )
 
 var (
@@ -36,6 +42,7 @@ var (
 	browserExtraArgsWithPatch = flag.String("browser_extra_args_withpatch", "", "The extra arguments that are passed to the browser while running the benchmark during the withpatch run.")
 	repeatBenchmark           = flag.Int("repeat_benchmark", 3, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
 	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
+	chromeCleanerTimer        = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
 
 func main() {
@@ -153,18 +160,62 @@ func main() {
 		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 		return
 	}
-	// Loop through all pagesets and run once without the patch and once with the
-	// patch.
-	for _, fileInfo := range fileInfos {
-		if err := runBenchmark(fileInfo.Name(), pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, *runIDNoPatch, *browserExtraArgsNoPatch); err != nil {
-			glog.Errorf("Error while running nopatch benchmark: %s", err)
-			return
-		}
-		if err := runBenchmark(fileInfo.Name(), pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, *runIDWithPatch, *browserExtraArgsWithPatch); err != nil {
-			glog.Errorf("Error while running withpatch benchmark: %s", err)
-			return
-		}
+
+	numWorkers := WORKER_POOL_SIZE
+	if *targetPlatform == util.PLATFORM_ANDROID {
+		// Do not run page sets in parallel if the target platform is Android.
+		// This is because the nopatch/withpatch APK needs to be installed prior to
+		// each run and this will interfere with the parallel runs. Instead of trying
+		// to find a complicated solution to this, it makes sense for Android to
+		// continue to be serial because it will help guard against
+		// crashes/flakiness/inconsistencies which are more prevalent in mobile runs.
+		numWorkers = 1
 	}
+
+	// Create channel that contains all pageset file names. This channel will
+	// be consumed by the worker pool.
+	pagesetRequests := util.GetClosedChannelOfPagesets(fileInfos)
+
+	var wg sync.WaitGroup
+	// Use a RWMutex for the chromeProcessesCleaner goroutine to communicate to
+	// the workers (acting as "readers") when it wants to be the "writer" and
+	// kill all zombie chrome processes.
+	var mutex sync.RWMutex
+
+	// Loop through workers in the worker pool.
+	for i := 0; i < numWorkers; i++ {
+		// Increment the WaitGroup counter.
+		wg.Add(1)
+
+		// Create and run a goroutine closure that captures SKPs.
+		go func() {
+			// Decrement the WaitGroup counter when the goroutine completes.
+			defer wg.Done()
+
+			for pagesetName := range pagesetRequests {
+
+				mutex.RLock()
+
+				if err := runBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, *runIDNoPatch, *browserExtraArgsNoPatch); err != nil {
+					glog.Errorf("Error while running nopatch benchmark: %s", err)
+					return
+				}
+				if err := runBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, *runIDWithPatch, *browserExtraArgsWithPatch); err != nil {
+					glog.Errorf("Error while running withpatch benchmark: %s", err)
+					return
+				}
+				mutex.RUnlock()
+			}
+		}()
+	}
+
+	if !*worker_common.Local {
+		// Start the cleaner.
+		go util.ChromeProcessesCleaner(&mutex, *chromeCleanerTimer)
+	}
+
+	// Wait for all spawned goroutines to complete.
+	wg.Wait()
 
 	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
@@ -234,10 +285,6 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunChromiumPerfTimeoutSecs
 	if err := util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
 		glog.Errorf("Run benchmark command failed with: %s", err)
-		if !*worker_common.Local {
-			glog.Errorf("Killing all running chrome processes in case there is a non-recoverable error.")
-			skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, util.PKILL_TIMEOUT, nil, nil))
-		}
 	}
 	return nil
 }

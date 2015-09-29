@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	"go.skia.org/infra/go/exec"
@@ -204,4 +205,35 @@ func GetTimeFromTs(formattedTime string) time.Time {
 
 func GetCurrentTs() string {
 	return time.Now().UTC().Format(TS_FORMAT)
+}
+
+// Returns channel that contains all pageset file names without the timestamp
+// file and pyc files.
+func GetClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
+	pagesetsChannel := make(chan string, len(fileInfos))
+	for _, fileInfo := range fileInfos {
+		pagesetName := fileInfo.Name()
+		pagesetBaseName := filepath.Base(pagesetName)
+		if pagesetBaseName == TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
+			// Ignore timestamp files and .pyc files.
+			continue
+		}
+		pagesetsChannel <- pagesetName
+	}
+	close(pagesetsChannel)
+	return pagesetsChannel
+}
+
+// Running benchmarks in parallel leads to multiple chrome instances coming up
+// at the same time, when there are crashes chrome processes stick around which
+// can severely impact the machine's performance. To stop this from
+// happening chrome zombie processes are periodically killed.
+func ChromeProcessesCleaner(locker sync.Locker, chromeCleanerTimer time.Duration) {
+	for _ = range time.Tick(chromeCleanerTimer) {
+		glog.Info("The chromeProcessesCleaner goroutine has started")
+		glog.Info("Waiting for all existing tasks to complete before killing zombie chrome processes")
+		locker.Lock()
+		util.LogErr(ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, PKILL_TIMEOUT, nil, nil))
+		locker.Unlock()
+	}
 }
