@@ -4,6 +4,7 @@ package sharedb
 //go:generate protoc --go_out=plugins=grpc:. sharedb.proto
 
 import (
+	"bytes"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -174,6 +175,20 @@ func (r *rpcServer) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, 
 		return result, nil
 	}
 
+	// continueScan is set depending if we have a prefix scan or a
+	// minPrefix - maxPrefix range scan.
+	continueScan := func(k []byte) bool { return true }
+	minKey := []byte(req.Prefix)
+	switch {
+	case req.MaxPrefix != "":
+		continueScan = func(k []byte) bool { return bytes.Compare(k, []byte(req.MaxPrefix)) <= 0 }
+		fallthrough
+	case req.MinPrefix != "":
+		minKey = []byte(req.MinPrefix)
+	case req.Prefix != "":
+		continueScan = func(k []byte) bool { return bytes.HasPrefix(k, []byte(req.Prefix)) }
+	}
+
 	return result, db.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(req.Bucket))
 		if bucket == nil {
@@ -181,7 +196,7 @@ func (r *rpcServer) Keys(ctx context.Context, req *KeysRequest) (*KeysResponse, 
 		}
 
 		cursor := bucket.Cursor()
-		for k, _ := cursor.First(); k != nil; k, _ = cursor.Next() {
+		for k, _ := cursor.Seek(minKey); (k != nil) && continueScan(k); k, _ = cursor.Next() {
 			result.Values = append(result.Values, string(k))
 		}
 		return nil

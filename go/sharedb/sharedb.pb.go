@@ -125,8 +125,11 @@ func (m *BucketsResponse) String() string { return proto.CompactTextString(m) }
 func (*BucketsResponse) ProtoMessage()    {}
 
 type KeysRequest struct {
-	Database string `protobuf:"bytes,1,opt,name=database" json:"database,omitempty"`
-	Bucket   string `protobuf:"bytes,2,opt,name=bucket" json:"bucket,omitempty"`
+	Database  string `protobuf:"bytes,1,opt,name=database" json:"database,omitempty"`
+	Bucket    string `protobuf:"bytes,2,opt,name=bucket" json:"bucket,omitempty"`
+	Prefix    string `protobuf:"bytes,3,opt,name=prefix" json:"prefix,omitempty"`
+	MinPrefix string `protobuf:"bytes,4,opt,name=minPrefix" json:"minPrefix,omitempty"`
+	MaxPrefix string `protobuf:"bytes,5,opt,name=maxPrefix" json:"maxPrefix,omitempty"`
 }
 
 func (m *KeysRequest) Reset()         { *m = KeysRequest{} }

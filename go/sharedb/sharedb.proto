@@ -59,6 +59,9 @@ message BucketsResponse {
 message KeysRequest {
   string database = 1;
   string bucket = 2;
+  string prefix = 3;
+  string minPrefix = 4;
+  string maxPrefix = 5;
 }
 
 message KeysResponse {

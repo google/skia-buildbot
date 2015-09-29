@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-const MAX_KEYS = 20
+const MAX_KEYS = 200
 const DATA_DIR = "./data_dir"
 const SERVER_ADDRESS = "127.0.0.1:9999"
 
@@ -32,8 +32,8 @@ func TestShareDB(t *testing.T) {
 
 	allKeys := []string{}
 	for k := 0; k < MAX_KEYS; k++ {
-		key := fmt.Sprintf("key_%4d", k)
-		value := fmt.Sprintf("val_%4d", k)
+		key := fmt.Sprintf("key_%04d", k)
+		value := fmt.Sprintf("val_%04d", k)
 
 		ack, err := client.Put(ctx, &PutRequest{dbName, bucketName, key, []byte(value)})
 		assert.Nil(t, err)
@@ -54,14 +54,36 @@ func TestShareDB(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []string{bucketName}, foundBuckets.Values)
 
-	foundKeys, err := client.Keys(ctx, &KeysRequest{dbName, bucketName})
+	foundKeys, err := client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "", ""})
 	assert.Nil(t, err)
 
 	sort.Strings(foundKeys.Values)
 	sort.Strings(allKeys)
 	assert.Equal(t, allKeys, foundKeys.Values)
 
-	for _, k := range foundKeys.Values {
+	// Test a min-max range scan.
+	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "key_0010", "key_0015"})
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"key_0010", "key_0011", "key_0012", "key_0013", "key_0014", "key_0015"}, foundKeys.Values)
+
+	// Test a min to end range scan.
+	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "key_0015", ""})
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"key_0015", "key_0016", "key_0017", "key_0018", "key_0019"}, foundKeys.Values[0:5])
+
+	// Test a start to max range scan.
+	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "", "key_0004"})
+	assert.Nil(t, err)
+	assert.Equal(t, []string{"key_0000", "key_0001", "key_0002", "key_0003", "key_0004"}, foundKeys.Values)
+
+	// Test a prefix scan.
+	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "key_000", "", ""})
+	assert.Nil(t, err)
+	exp := []string{"key_0000", "key_0001", "key_0002", "key_0003", "key_0004",
+		"key_0005", "key_0006", "key_0007", "key_0008", "key_0009"}
+	assert.Equal(t, exp, foundKeys.Values)
+
+	for _, k := range allKeys {
 		ack, err := client.Delete(ctx, &DeleteRequest{dbName, bucketName, k})
 		assert.Nil(t, err)
 		assert.True(t, ack.Ok)
@@ -71,7 +93,7 @@ func TestShareDB(t *testing.T) {
 		assert.Nil(t, foundVal.Value)
 	}
 
-	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName})
+	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "", ""})
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(foundKeys.Values))
 }
