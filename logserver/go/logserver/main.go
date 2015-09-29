@@ -42,7 +42,7 @@ const (
 				var req = new XMLHttpRequest();
 				req.withCredentials = true
 				req.onload = function(){
-					document.getElementById('file_content').innerHTML = this.responseText;
+					%s
 					if ( window.location.href.indexOf('page_y') != -1 ) {
 						var match = window.location.href.split('?')[1].split("&")[0].split("=");
 						var page_y;
@@ -59,6 +59,9 @@ const (
 			}
 		</script>
 `
+	ADD_RESPONSE_TEXT_PLAIN = `var logNode = document.createTextNode(this.responseText);
+					document.getElementById('file_content').appendChild(logNode);`
+	ADD_RESPONSE_TEXT_HTML = `document.getElementById('file_content').innerHTML = this.responseText;`
 )
 
 var (
@@ -90,7 +93,15 @@ func FileServerWrapperHandler(w http.ResponseWriter, r *http.Request) {
 	if *allowOrigin != "" {
 		w.Header().Set("Access-Control-Allow-Origin", *allowOrigin)
 	}
-	fmt.Fprintf(w, fmt.Sprintf(JS_TEMPLATE, (*reloadDuration).Seconds()*1000, endpoint))
+	// The file_server path could be either plain text or HTML. Regular files are served as
+	// plain text, but directories are served as HTML. In the case that the file is plain text,
+	// we must escape any HTML special characters.
+	addResponseText := ADD_RESPONSE_TEXT_PLAIN
+	if strings.HasSuffix(endpoint, "/") {
+		// Allow raw HTML for directories.
+		addResponseText = ADD_RESPONSE_TEXT_HTML
+	}
+	fmt.Fprintf(w, fmt.Sprintf(JS_TEMPLATE, (*reloadDuration).Seconds()*1000, addResponseText, endpoint))
 	fmt.Fprintf(w, "<pre>")
 	fmt.Fprintf(w, "<div id='file_content'></div>")
 	fmt.Fprintf(w, "</pre>")
