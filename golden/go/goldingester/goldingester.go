@@ -87,6 +87,15 @@ type Result struct {
 	Digest  string            `json:"md5"`
 }
 
+// IgnoreResult returns true if this result should be ignored. Some results are
+// preprocessed by a separate process and the output of that process is then
+// ingested as a png.
+func IgnoreResult(params map[string]string) bool {
+	// Ignore anything that is not a png.
+	ext, ok := params["ext"]
+	return !ok || (ext != "png")
+}
+
 // ResultAlias is a type alias to avoid recursive calls to UnmarshalJSON.
 type ResultAlias Result
 
@@ -171,8 +180,8 @@ func (d *DMResults) idAndParams(r *Result) (string, map[string]string) {
 // addResultToTile adds the Digests from the DMResults to the tile at the given offset.
 func addResultToTile(res *DMResults, tile *tiling.Tile, offset int, counter metrics.Counter) {
 	res.ForEach(func(traceID, digest string, params map[string]string) {
-		if ext, ok := params["ext"]; !ok || ext != "png" {
-			return // Skip non-PNG results they are be converted to PNG by a separate process.
+		if IgnoreResult(params) {
+			return
 		}
 
 		var trace *types.GoldenTrace

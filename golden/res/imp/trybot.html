@@ -56,7 +56,7 @@
             <td class="issueValue"><a href="{{entry.url}}" target="_blank">{{entry.id}}</a></td>
             <td class="nameValue">{{entry.owner}}</td>
             <td class="dateTimeValue">{{entry.updated | _toLocalDate}}</td>
-            <td class="subjectValue"><a href="/search2?issue={{entry.id}}&unt=true">{{entry.subject}}</a></td>
+            <td class="subjectValue"><a href="/search2?issue={{entry.id}}&unt=true&query={{ page.query | queryStr }}">{{entry.subject}}</a></td>
           </tr>
       </table>
       <error-toast-sk></error-toast-sk>
@@ -66,7 +66,10 @@
       ready: function() {
         this.pagination = null;
         this.page = {
-          state: {}
+          state: {},
+          query: {
+              "source_type": "gm"
+          }
         };
 
         // Note: This forces and immediate trigger of reload.
@@ -78,7 +81,7 @@
 
       // Load or reload the listing.
       _reload: function() {
-        var URL = '_/trybot?'+sk.query.fromObject(this.page.state);
+        var URL = '_/trybot?query='+ this.queryStr(this.page.query);
 
         if (this.pagination !== null) {
           URL += '&' + sk.query.fromObject({
@@ -88,6 +91,10 @@
         }
 
         this._handleServerResponse(sk.get(URL));
+      },
+
+      queryStr: function(q) {
+        return encodeURIComponent(sk.query.fromObject(q));
       },
 
       _handleServerResponse: function(promise) {

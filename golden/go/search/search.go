@@ -193,20 +193,20 @@ type issueIntermediate struct {
 }
 
 // newIssueIntermediate creates a new instance of issueIntermediate.
-func newIssueIntermediate(tbr *types.TBResult, status types.Label) *issueIntermediate {
+func newIssueIntermediate(params map[string]string, digest string, status types.Label) *issueIntermediate {
 	ret := &issueIntermediate{
-		test:     tbr.Test,
-		digest:   tbr.Digest,
+		test:     params[types.PRIMARY_KEY_FIELD],
+		digest:   digest,
 		status:   status,
 		paramSet: map[string][]string{},
 	}
-	ret.add(tbr)
+	ret.add(params)
 	return ret
 }
 
 // add adds to an existing intermediate value.
-func (i *issueIntermediate) add(tbr *types.TBResult) {
-	util.AddParamsToParamSet(i.paramSet, tbr.Params)
+func (i *issueIntermediate) add(params map[string]string) {
+	util.AddParamsToParamSet(i.paramSet, params)
 }
 
 // searchByIssue searches across the given issue.
@@ -236,18 +236,24 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 	// Aggregate the results into an intermediate representation to avoid
 	// passing over the dataset twice.
 	inter := map[string]*issueIntermediate{}
-	for _, tbr := range trybotResults {
-		if (rule == nil) || rule.IsMatch(tbr.Params) {
-			key := tbr.Test + ":" + tbr.Digest
-			if found, ok := inter[key]; ok {
-				found.add(tbr)
-			} else if cl := exp.Classification(tbr.Test, tbr.Digest); !q.excludeClassification(cl) {
-				inter[key] = newIssueIntermediate(tbr, cl)
+	for _, bot := range trybotResults.Bots {
+		for _, result := range bot.TestResults {
+			expandedParams := util.CopyStringMap(bot.BotParams)
+			util.AddParams(expandedParams, result.Params)
+			if (rule == nil) || rule.IsMatch(expandedParams) {
+				testName := expandedParams[types.PRIMARY_KEY_FIELD]
+				digest := trybotResults.Digests[result.DigestIdx]
+				key := testName + ":" + digest
+				if found, ok := inter[key]; ok {
+					found.add(expandedParams)
+				} else if cl := exp.Classification(testName, digest); !q.excludeClassification(cl) {
+					inter[key] = newIssueIntermediate(expandedParams, digest, cl)
+				}
 			}
 		}
 	}
 
-	glog.Infof("Intermediate values: %d    %d", len(trybotResults), len(inter))
+	glog.Infof("Intermediate values: %d    %d", len(trybotResults.Bots), len(inter))
 
 	// Build the output.
 	talliesByTest := tallies.ByTest()

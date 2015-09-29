@@ -46,9 +46,15 @@ func TestTrybotIngester(t *testing.T) {
 
 	tries, err := resultStore.Get(TEST_ISSUE)
 	assert.Nil(t, err)
-	assert.Equal(t, len(TEST_DIGESTS), len(tries))
-	for _, entry := range tries {
-		assert.True(t, TEST_DIGESTS[entry.Digest])
+	assert.Equal(t, 1, len(tries.Bots))
+	var targetBot *BotResults
+	for _, v := range tries.Bots {
+		assert.Equal(t, len(TEST_DIGESTS), len(v.TestResults))
+		targetBot = v
+	}
+
+	for _, entry := range targetBot.TestResults {
+		assert.True(t, TEST_DIGESTS[tries.Digests[entry.DigestIdx]])
 	}
 
 	allIssues, _, err := resultStore.List(0, 10)
@@ -61,9 +67,15 @@ func TestTrybotIngester(t *testing.T) {
 	_ = ingestFile(t, tbIngester, TEST_FILE_2)
 	tries, err = resultStore.Get(TEST_ISSUE)
 	assert.Nil(t, err)
-	assert.Equal(t, len(TEST_DIGESTS), len(tries))
-	for _, entry := range tries {
-		assert.Equal(t, MODIFIED_DIGEST, entry.Digest)
+	assert.Equal(t, 1, len(tries.Bots))
+	assert.Equal(t, 1, len(tries.Digests))
+	assert.Equal(t, MODIFIED_DIGEST, tries.Digests[0])
+
+	for _, bot := range tries.Bots {
+		for _, result := range bot.TestResults {
+			assert.Equal(t, MODIFIED_DIGEST, result.digest)
+			assert.Equal(t, 0, result.DigestIdx)
+		}
 	}
 }
 

@@ -268,3 +268,24 @@ func TestUnixFloatToTime(t *testing.T) {
 		assert.Equal(t, tc.out, UnixFloatToTime(tc.in))
 	}
 }
+
+func TestMD5Hash(t *testing.T) {
+	m_1 := map[string]string{"key1": "val1"}
+	m_2 := map[string]string{}
+	var m_3 map[string]string = nil
+
+	h_1, err := MD5Params(m_1)
+	assert.Nil(t, err)
+
+	h_2, err := MD5Params(m_2)
+	assert.Nil(t, err)
+
+	h_3, err := MD5Params(m_3)
+	assert.Nil(t, err)
+	assert.Equal(t, 32, len(h_1))
+	assert.Equal(t, 32, len(h_2))
+	assert.Equal(t, 32, len(h_3))
+	assert.NotEqual(t, h_1, h_2)
+	assert.NotEqual(t, h_1, h_3)
+	assert.Equal(t, h_2, h_3)
+}

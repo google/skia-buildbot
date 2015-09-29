@@ -1,6 +1,7 @@
 package util
 
 import (
+	"crypto/md5"
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"github.com/zeebo/bencode"
 )
 
 const (
@@ -323,6 +325,27 @@ func AddParamSetToParamSet(a map[string][]string, b map[string][]string) map[str
 	return a
 }
 
+// AddParams adds the second instance of map[string]string to the first and
+// returns the first map.
+func AddParams(a map[string]string, b map[string]string) map[string]string {
+	if a == nil {
+		a = make(map[string]string, len(b))
+	}
+	for k, v := range b {
+		a[k] = v
+	}
+	return a
+}
+
+// CopyStringMap returns a copy of the provided map[string]string.
+func CopyStringMap(m map[string]string) map[string]string {
+	ret := make(map[string]string, len(m))
+	for k, v := range m {
+		ret[k] = v
+	}
+	return ret
+}
+
 // KeysOfParamSet returns the keys of a param set.
 func KeysOfParamSet(set map[string][]string) []string {
 	ret := make([]string, 0, len(set))
@@ -474,6 +497,18 @@ func IsNil(i interface{}) bool {
 	default:
 		return false
 	}
+}
+
+// MD5Params returns the MD5 hash of the provided map[string]string.
+// This could easily be extended to support hashing any datatype supported
+// by bencode.
+func MD5Params(val map[string]string) (string, error) {
+	md5Writer := md5.New()
+	enc := bencode.NewEncoder(md5Writer)
+	if err := enc.Encode(val); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", md5Writer.Sum(nil)), nil
 }
 
 // UnixFloatToTime takes a float64 representing a Unix timestamp and returns a time.Time.
