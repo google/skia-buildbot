@@ -52,6 +52,10 @@ func (task DBTask) GetTaskName() string {
 	return "CaptureSkps"
 }
 
+func (task DBTask) GetResultsLink() string {
+	return ""
+}
+
 func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username

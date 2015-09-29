@@ -56,6 +56,15 @@ func (task DBTask) GetTaskName() string {
 	return "LuaScript"
 }
 
+func (task DBTask) GetResultsLink() string {
+	if task.AggregatedOutput.Valid && task.AggregatedOutput.String != "" {
+		return task.AggregatedOutput.String
+	} else if task.ScriptOutput.Valid {
+		return task.ScriptOutput.String
+	}
+	return ""
+}
+
 func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars := &AddTaskVars{}
 	taskVars.Username = dbTask.Username

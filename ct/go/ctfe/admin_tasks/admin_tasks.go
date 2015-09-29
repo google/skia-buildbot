@@ -73,6 +73,10 @@ func (task RecreatePageSetsDBTask) TableName() string {
 	return db.TABLE_RECREATE_PAGE_SETS_TASKS
 }
 
+func (task RecreatePageSetsDBTask) GetResultsLink() string {
+	return ""
+}
+
 func (task RecreatePageSetsDBTask) Select(query string, args ...interface{}) (interface{}, error) {
 	result := []RecreatePageSetsDBTask{}
 	err := db.DB.Select(&result, query, args...)
@@ -89,6 +93,10 @@ type RecreateWebpageArchivesDBTask struct {
 
 func (task RecreateWebpageArchivesDBTask) GetTaskName() string {
 	return "RecreateWebpageArchives"
+}
+
+func (task RecreateWebpageArchivesDBTask) GetResultsLink() string {
+	return ""
 }
 
 func (dbTask RecreateWebpageArchivesDBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {

@@ -89,6 +89,14 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	return taskVars
 }
 
+func (task DBTask) GetResultsLink() string {
+	if task.Results.Valid {
+		return task.Results.String
+	} else {
+		return ""
+	}
+}
+
 func (task DBTask) GetUpdateTaskVars() task_common.UpdateTaskVars {
 	return &UpdateVars{}
 }

@@ -54,6 +54,9 @@ type Task interface {
 	// Returns the corresponding AddTaskVars instance of this Task. The returned
 	// instance is populated.
 	GetPopulatedAddTaskVars() AddTaskVars
+	// Returns the results link for this task if it completed successfully and if
+	// the task supports results links.
+	GetResultsLink() string
 }
 
 func (dbrow *CommonCols) GetCommonCols() *CommonCols {
@@ -221,6 +224,7 @@ func GetTaskStatusHandler(prototype Task, w http.ResponseWriter, r *http.Request
 	}
 
 	status := "Pending"
+	resultsLink := tasks[0].GetResultsLink()
 	if tasks[0].GetCommonCols().TsCompleted.Valid {
 		status = "Completed"
 		if tasks[0].GetCommonCols().Failure.Valid && tasks[0].GetCommonCols().Failure.Bool {
@@ -232,8 +236,9 @@ func GetTaskStatusHandler(prototype Task, w http.ResponseWriter, r *http.Request
 
 	w.Header().Set("Content-Type", "application/json")
 	jsonResponse := map[string]interface{}{
-		"taskID": taskID,
-		"status": status,
+		"taskID":      taskID,
+		"status":      status,
+		"resultsLink": resultsLink,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
 		skutil.ReportError(w, r, err, "Failed to encode JSON")
