@@ -12,6 +12,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -25,7 +26,7 @@ var (
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
+	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Running Lua Scripts")
 	defer glog.Flush()
 

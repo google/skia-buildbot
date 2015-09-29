@@ -12,6 +12,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/frontend"
+	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -56,8 +57,7 @@ func updateWebappTask() {
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
-	frontend.MustInit()
+	master_common.Init()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -71,8 +71,10 @@ func main() {
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
-	// Cleanup tmp files after the run.
-	defer util.CleanTmpDir()
+	if !*master_common.Local {
+		// Cleanup tmp files after the run.
+		defer util.CleanTmpDir()
+	}
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Creating Pagesets on Workers")
 	defer glog.Flush()
@@ -82,15 +84,11 @@ func main() {
 		return
 	}
 
-	cmd := []string{
-		fmt.Sprintf("cd %s;", util.CtTreeDir),
-		"git pull;",
-		"make all;",
+	cmd := append(master_common.WorkerSetupCmds(),
 		// The main command that runs create_pagesets on all workers.
 		fmt.Sprintf(
-			"create_pagesets --worker_num=%s --log_dir=%s --log_id=%s --pageset_type=%s;",
-			util.WORKER_NUM_KEYWORD, util.GLogDir, *runID, *pagesetType),
-	}
+			"create_pagesets --worker_num=%s --log_dir=%s --log_id=%s --pageset_type=%s --local=%t;",
+			util.WORKER_NUM_KEYWORD, util.GLogDir, *runID, *pagesetType, *master_common.Local))
 
 	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CREATE_PAGESETS_TIMEOUT)
 	if err != nil {

@@ -77,6 +77,7 @@ func getKeyFile() (key ssh.Signer, err error) {
 // of the worker for the WORKER_NUM_KEYWORD since it is a common use case.
 func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string, error) {
 	glog.Infof("Running \"%s\" on %s with timeout of %s", cmd, workers, timeout)
+	numWorkers := len(workers)
 
 	// Ensure that the key file exists.
 	key, err := getKeyFile()
@@ -86,7 +87,7 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 
 	// Initialize the structure with the configuration for ssh.
 	config := &ssh.ClientConfig{
-		User: CT_USER,
+		User: CtUser,
 		Auth: []ssh.AuthMethod{
 			ssh.PublicKeys(key),
 		},
@@ -118,14 +119,14 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 			workersWithOutputs[hostname] = output
 			delete(remainingWorkers, hostname)
 			glog.Infoln()
-			glog.Infof("[%d/%d] Worker %s has completed execution", NUM_WORKERS-len(remainingWorkers), NUM_WORKERS, hostname)
+			glog.Infof("[%d/%d] Worker %s has completed execution", numWorkers-len(remainingWorkers), numWorkers, hostname)
 			glog.Infof("Remaining workers: %v", remainingWorkers)
 		}(i, hostname)
 	}
 
 	wg.Wait()
 	glog.Infoln()
-	glog.Infof("Finished running \"%s\" on all %d workers", cmd, NUM_WORKERS)
+	glog.Infof("Finished running \"%s\" on all %d workers", cmd, numWorkers)
 	glog.Info("========================================")
 
 	m.Lock()

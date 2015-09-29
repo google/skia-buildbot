@@ -14,6 +14,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/frontend"
+	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -62,8 +63,7 @@ func updateWebappTask() {
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
-	frontend.MustInit()
+	master_common.Init()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -79,8 +79,10 @@ func main() {
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
 
-	// Cleanup tmp files after the run.
-	defer util.CleanTmpDir()
+	if !*master_common.Local {
+		// Cleanup tmp files after the run.
+		defer util.CleanTmpDir()
+	}
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running capture skps task on workers")
 	defer glog.Flush()
@@ -101,7 +103,7 @@ func main() {
 	// Run the capture_skps script on all workers.
 	captureSKPsCmdTemplate := "DISPLAY=:0 capture_skps --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} " +
 		"--pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} " +
-		"--target_platform={{.TargetPlatform}};"
+		"--target_platform={{.TargetPlatform}} --local={{.Local}};"
 	captureSKPsTemplateParsed := template.Must(template.New("capture_skps_cmd").Parse(captureSKPsCmdTemplate))
 	captureSKPsCmdBytes := new(bytes.Buffer)
 	if err := captureSKPsTemplateParsed.Execute(captureSKPsCmdBytes, struct {
@@ -111,6 +113,7 @@ func main() {
 		ChromiumBuild  string
 		RunID          string
 		TargetPlatform string
+		Local          bool
 	}{
 		WorkerNum:      util.WORKER_NUM_KEYWORD,
 		LogDir:         util.GLogDir,
@@ -118,17 +121,14 @@ func main() {
 		ChromiumBuild:  *chromiumBuild,
 		RunID:          *runID,
 		TargetPlatform: *targetPlatform,
+		Local:          *master_common.Local,
 	}); err != nil {
 		glog.Errorf("Failed to execute template: %s", err)
 		return
 	}
-	cmd := []string{
-		fmt.Sprintf("cd %s;", util.CtTreeDir),
-		"git pull;",
-		"make all;",
+	cmd := append(master_common.WorkerSetupCmds(),
 		// The main command that runs capture_skps on all workers.
-		captureSKPsCmdBytes.String(),
-	}
+		captureSKPsCmdBytes.String())
 
 	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CAPTURE_SKPS_TIMEOUT)
 	if err != nil {

@@ -20,9 +20,9 @@ const (
 	GS_TEST_TIMESTAMP_VALUE = "123"
 )
 
-func TestGetCTWorkers(t *testing.T) {
-	workers := GetCTWorkers()
-	for i := 0; i < NUM_WORKERS; i++ {
+func TestGetCTWorkersProd(t *testing.T) {
+	workers := GetCTWorkersProd()
+	for i := 0; i < NUM_WORKERS_PROD; i++ {
 		assert.Equal(t, fmt.Sprintf(WORKER_NAME_TEMPLATE, i+1), workers[i])
 	}
 }
@@ -50,7 +50,7 @@ func TestTaskFileUtils(t *testing.T) {
 }
 
 func TestGetMasterLogLink(t *testing.T) {
-	expectedLink := fmt.Sprintf("%s/util.test.%s.%s.log.INFO.rmistry-1440425450.02", MASTER_LOGSERVER_LINK, MASTER_NAME, CT_USER)
+	expectedLink := fmt.Sprintf("%s/util.test.%s.%s.log.INFO.rmistry-1440425450.02", MASTER_LOGSERVER_LINK, MASTER_NAME, CtUser)
 	actualLink := GetMasterLogLink("rmistry-1440425450.02")
 	assert.Equal(t, expectedLink, actualLink)
 }

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -26,7 +27,7 @@ var (
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
+	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Capturing Archives")
 	defer glog.Flush()
 
@@ -84,10 +85,7 @@ func main() {
 		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 		return
 	}
-	// TODO(rmistry): Remove this hack once the 1M webpage archives have been captured.
-	glog.Infof("The length of fileInfos is: %s", len(fileInfos))
-	fileInfos = fileInfos[18500:20000]
-	glog.Infof("The fileInfos are: %s", fileInfos)
+	glog.Infof("The %s fileInfos are: %s", len(fileInfos), fileInfos)
 	for _, fileInfo := range fileInfos {
 		pagesetBaseName := filepath.Base(fileInfo.Name())
 		if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {

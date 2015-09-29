@@ -78,7 +78,7 @@ func getRespBody(res *storage.Object, client *http.Client) (io.ReadCloser, error
 // Returns the response body of the specified GS file. Client must close the
 // response body when finished with it.
 func (gs *GsUtil) GetRemoteFileContents(filePath string) (io.ReadCloser, error) {
-	res, err := gs.service.Objects.Get(GS_BUCKET_NAME, filePath).Do()
+	res, err := gs.service.Objects.Get(GSBucketName, filePath).Do()
 	if err != nil {
 		return nil, fmt.Errorf("Could not get %s from GS: %s", filePath, err)
 	}
@@ -128,7 +128,7 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	util.MkdirAll(localDir, 0700)
 	// The channel where the storage objects to be deleted will be sent to.
 	chStorageObjects := make(chan filePathToStorageObject, MAX_CHANNEL_SIZE)
-	req := gs.service.Objects.List(GS_BUCKET_NAME).Prefix(gsDir + "/")
+	req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
 	for req != nil {
 		resp, err := req.Do()
 		if err != nil {
@@ -183,7 +183,7 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 					glog.Error(err)
 					return
 				}
-				glog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GS_BUCKET_NAME, result.Name, outputFile, goroutineNum)
+				glog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GSBucketName, result.Name, outputFile, goroutineNum)
 				// Sleep for a second after downloading file to avoid bombarding Cloud
 				// storage.
 				time.Sleep(time.Second)
@@ -230,7 +230,7 @@ func (gs *GsUtil) DownloadWorkerArtifacts(dirName, pagesetType string, workerNum
 func (gs *GsUtil) deleteRemoteDir(gsDir string) error {
 	// The channel where the GS filepaths to be deleted will be sent to.
 	chFilePaths := make(chan string, MAX_CHANNEL_SIZE)
-	req := gs.service.Objects.List(GS_BUCKET_NAME).Prefix(gsDir + "/")
+	req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
 	for req != nil {
 		resp, err := req.Do()
 		if err != nil {
@@ -254,11 +254,11 @@ func (gs *GsUtil) deleteRemoteDir(gsDir string) error {
 		go func(goroutineNum int) {
 			defer wg.Done()
 			for filePath := range chFilePaths {
-				if err := gs.service.Objects.Delete(GS_BUCKET_NAME, filePath).Do(); err != nil {
+				if err := gs.service.Objects.Delete(GSBucketName, filePath).Do(); err != nil {
 					glog.Errorf("Goroutine#%d could not delete %s: %s", goroutineNum, filePath, err)
 					return
 				}
-				glog.Infof("Deleted gs://%s/%s with goroutine#%d", GS_BUCKET_NAME, filePath, goroutineNum)
+				glog.Infof("Deleted gs://%s/%s with goroutine#%d", GSBucketName, filePath, goroutineNum)
 				// Sleep for a second after deleting file to avoid bombarding Cloud
 				// storage.
 				time.Sleep(time.Second)
@@ -280,20 +280,20 @@ func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 		return fmt.Errorf("Error opening %s: %s", localFile, err)
 	}
 	defer util.Close(f)
-	if _, err := gs.service.Objects.Insert(GS_BUCKET_NAME, object).Media(f).Do(); err != nil {
+	if _, err := gs.service.Objects.Insert(GSBucketName, object).Media(f).Do(); err != nil {
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}
-	glog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GS_BUCKET_NAME, gsFile))
+	glog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
 
 	// All objects uploaded to CT's bucket via this util must be readable by
 	// the google.com domain. This will be fine tuned later if required.
 	objectAcl := &storage.ObjectAccessControl{
-		Bucket: GS_BUCKET_NAME, Entity: "domain-google.com", Object: gsFile, Role: "READER",
+		Bucket: GSBucketName, Entity: "domain-google.com", Object: gsFile, Role: "READER",
 	}
-	if _, err := gs.service.ObjectAccessControls.Insert(GS_BUCKET_NAME, gsFile, objectAcl).Do(); err != nil {
+	if _, err := gs.service.ObjectAccessControls.Insert(GSBucketName, gsFile, objectAcl).Do(); err != nil {
 		return fmt.Errorf("Could not update ACL of %s: %s", object.Name, err)
 	}
-	glog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", GS_BUCKET_NAME, gsFile))
+	glog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
 
 	return nil
 }
@@ -308,12 +308,7 @@ func (gs *GsUtil) UploadWorkerArtifacts(dirName, pagesetType string, workerNum i
 		return nil
 	}
 	glog.Infof("Timestamps between %s and %s are different. Uploading to Google Storage", localDir, gsDir)
-	// TODO(rmistry): Remove this hack once the 1M webpage archives have been captured.
-	if dirName == WEB_ARCHIVES_DIR_NAME {
-		return gs.UploadDir(localDir, gsDir, false)
-	} else {
-		return gs.UploadDir(localDir, gsDir, true)
-	}
+	return gs.UploadDir(localDir, gsDir, true)
 }
 
 // UploadDir uploads the specified local dir into the specified Google Storage dir.

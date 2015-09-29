@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -55,8 +56,8 @@ func sendEmail(recipients []string) {
 }
 
 func main() {
-	common.Init()
 	defer common.LogPanic()
+	master_common.Init()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -69,8 +70,10 @@ func main() {
 	// Ensure completion email is sent even if task fails.
 	defer sendEmail(emailsArr)
 
-	// Cleanup tmp files after the run.
-	defer util.CleanTmpDir()
+	if !*master_common.Local {
+		// Cleanup tmp files after the run.
+		defer util.CleanTmpDir()
+	}
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running fix archives task on workers")
 	defer glog.Flush()
@@ -93,7 +96,8 @@ func main() {
 		"--pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} " +
 		"--repeat_benchmark={{.RepeatBenchmark}} --benchmark_name={{.BenchmarkName}} " +
 		"--benchmark_header_to_check=\"{{.BenchmarkHeaderToCheck}}\" --delete_pageset={{.DeletePageset}} " +
-		"--perc_change_threshold={{.PercentageChangeThreshold}} --res_missing_count_threshold={{.ResourceMissingCountThreshold}};"
+		"--perc_change_threshold={{.PercentageChangeThreshold}} --res_missing_count_threshold={{.ResourceMissingCountThreshold}} " +
+		"--local={{.Local}};"
 	fixArchivesTemplateParsed := template.Must(template.New("fix_archives_cmd").Parse(fixArchivesCmdTemplate))
 	fixArchivesCmdBytes := new(bytes.Buffer)
 	if err := fixArchivesTemplateParsed.Execute(fixArchivesCmdBytes, struct {
@@ -108,6 +112,7 @@ func main() {
 		DeletePageset                 bool
 		PercentageChangeThreshold     float64
 		ResourceMissingCountThreshold int
+		Local                         bool
 	}{
 		WorkerNum:                     util.WORKER_NUM_KEYWORD,
 		LogDir:                        util.GLogDir,
@@ -120,17 +125,14 @@ func main() {
 		DeletePageset:                 *deletePageset,
 		PercentageChangeThreshold:     *percentageChangeThreshold,
 		ResourceMissingCountThreshold: *resourceMissingCountThreshold,
+		Local: *master_common.Local,
 	}); err != nil {
 		glog.Errorf("Failed to execute template: %s", err)
 		return
 	}
-	cmd := []string{
-		fmt.Sprintf("cd %s;", util.CtTreeDir),
-		"git pull;",
-		"make all;",
+	cmd := append(master_common.WorkerSetupCmds(),
 		// The main command that runs fix_archives on all workers.
-		fixArchivesCmdBytes.String(),
-	}
+		fixArchivesCmdBytes.String())
 	if _, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.FIX_ARCHIVES_TIMEOUT); err != nil {
 		glog.Errorf("Error while running cmd %s: %s", cmd, err)
 		return

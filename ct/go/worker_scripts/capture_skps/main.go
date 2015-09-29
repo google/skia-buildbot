@@ -17,6 +17,7 @@ import (
 	"strings"
 
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -37,8 +38,10 @@ var (
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
-	defer util.CleanTmpDir()
+	worker_common.Init()
+	if !*worker_common.Local {
+		defer util.CleanTmpDir()
+	}
 	defer util.TimeTrack(time.Now(), "Capturing SKPs")
 	defer glog.Flush()
 

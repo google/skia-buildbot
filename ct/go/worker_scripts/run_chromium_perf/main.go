@@ -18,6 +18,7 @@ import (
 
 	"go.skia.org/infra/ct/go/adb"
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -39,8 +40,10 @@ var (
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
-	defer util.CleanTmpDir()
+	worker_common.Init()
+	if !*worker_common.Local {
+		defer util.CleanTmpDir()
+	}
 	defer util.TimeTrack(time.Now(), "Running Chromium Perf")
 	defer glog.Flush()
 
@@ -231,9 +234,10 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].RunChromiumPerfTimeoutSecs
 	if err := util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
 		glog.Errorf("Run benchmark command failed with: %s", err)
-		glog.Errorf("Killing all running chrome processes in case there is a non-recoverable error.")
-		skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{},
-			util.PKILL_TIMEOUT, nil, nil))
+		if !*worker_common.Local {
+			glog.Errorf("Killing all running chrome processes in case there is a non-recoverable error.")
+			skutil.LogErr(util.ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, util.PKILL_TIMEOUT, nil, nil))
+		}
 	}
 	return nil
 }

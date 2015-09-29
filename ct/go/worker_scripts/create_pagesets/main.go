@@ -15,6 +15,7 @@ import (
 	"strconv"
 
 	"go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -26,7 +27,7 @@ var (
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
+	worker_common.Init()
 	defer util.TimeTrack(time.Now(), "Creating Pagesets")
 	defer glog.Flush()
 	// Create the task file so that the master knows this worker is still busy.
@@ -70,7 +71,11 @@ func main() {
 	}
 
 	// Figure out which pagesets this worker should generate.
-	numPagesPerSlave := numPages / util.NUM_WORKERS
+	numPagesPerSlave := numPages / util.NumWorkers()
+	if *worker_common.Local {
+		// When running locally, just do 10 pagesets to make things fast.
+		numPagesPerSlave = 10
+	}
 	startNum := (*workerNum-1)*numPagesPerSlave + 1
 	endNum := *workerNum * numPagesPerSlave
 

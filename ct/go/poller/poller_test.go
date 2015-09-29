@@ -393,7 +393,7 @@ func TestDoWorkerHealthCheck(t *testing.T) {
 	assert.Len(t, commands, 3)
 	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
 	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "check_workers_health --log_dir=/b/storage/glog",
+	expect.Equal(t, "check_workers_health --log_dir=/b/storage/glog --local=false",
 		exec.DebugString(commands[2]))
 }
 
@@ -412,7 +412,7 @@ func TestDoWorkerHealthCheckError(t *testing.T) {
 	assert.Len(t, commands, 3)
 	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
 	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "check_workers_health --log_dir=/b/storage/glog",
+	expect.Equal(t, "check_workers_health --log_dir=/b/storage/glog --local=false",
 		exec.DebugString(commands[2]))
 }
 

@@ -19,6 +19,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/frontend"
+	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -84,8 +85,7 @@ func updateWebappTask() {
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
-	frontend.MustInit()
+	master_common.Init()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -100,7 +100,9 @@ func main() {
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
 	// Cleanup tmp files after the run.
-	defer util.CleanTmpDir()
+	if !*master_common.Local {
+		defer util.CleanTmpDir()
+	}
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running Lua script on workers")
 	defer glog.Flush()
@@ -135,7 +137,7 @@ func main() {
 	}
 
 	// Run the run_lua script on all workers.
-	runLuaCmdTemplate := "DISPLAY=:0 run_lua --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} --pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}};"
+	runLuaCmdTemplate := "DISPLAY=:0 run_lua --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} --pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} --local={{.Local}};"
 	runLuaTemplateParsed := template.Must(template.New("run_lua_cmd").Parse(runLuaCmdTemplate))
 	luaCmdBytes := new(bytes.Buffer)
 	if err := runLuaTemplateParsed.Execute(luaCmdBytes, struct {
@@ -144,23 +146,21 @@ func main() {
 		PagesetType   string
 		ChromiumBuild string
 		RunID         string
+		Local         bool
 	}{
 		WorkerNum:     util.WORKER_NUM_KEYWORD,
 		LogDir:        util.GLogDir,
 		PagesetType:   *pagesetType,
 		ChromiumBuild: *chromiumBuild,
 		RunID:         *runID,
+		Local:         *master_common.Local,
 	}); err != nil {
 		glog.Errorf("Failed to execute template: %s", err)
 		return
 	}
-	cmd := []string{
-		fmt.Sprintf("cd %s;", util.CtTreeDir),
-		"git pull;",
-		"make all;",
+	cmd := append(master_common.WorkerSetupCmds(),
 		// The main command that runs run_lua on all workers.
-		luaCmdBytes.String(),
-	}
+		luaCmdBytes.String())
 	_, err = util.SSH(strings.Join(cmd, " "), util.Slaves, util.RUN_LUA_TIMEOUT)
 	if err != nil {
 		glog.Errorf("Error while running cmd %s: %s", cmd, err)
@@ -170,11 +170,12 @@ func main() {
 	// Copy outputs from all slaves locally and combine it into one file.
 	consolidatedFileName := "lua-output"
 	consolidatedLuaOutput := filepath.Join(os.TempDir(), consolidatedFileName)
+	defer skutil.Remove(consolidatedLuaOutput)
 	if err := ioutil.WriteFile(consolidatedLuaOutput, []byte{}, 0660); err != nil {
 		glog.Errorf("Could not create %s: %s", consolidatedLuaOutput, err)
 		return
 	}
-	for i := 0; i < util.NUM_WORKERS; i++ {
+	for i := 0; i < util.NumWorkers(); i++ {
 		workerNum := i + 1
 		workerRemoteOutputPath := filepath.Join(util.LuaRunsDir, *runID, fmt.Sprintf("slave%d", workerNum), "outputs", *runID+".output")
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
@@ -189,7 +190,6 @@ func main() {
 			return
 		}
 		defer skutil.Close(out)
-		defer skutil.Remove(consolidatedLuaOutput)
 		if _, err = io.Copy(out, respBody); err != nil {
 			glog.Errorf("Unable to write out %s to %s: %s", workerRemoteOutputPath, consolidatedLuaOutput, err)
 			return
@@ -197,7 +197,7 @@ func main() {
 	}
 	// Copy the consolidated file into Google Storage.
 	consolidatedOutputRemoteDir := filepath.Join(util.LuaRunsDir, *runID, "consolidated_outputs")
-	luaOutputRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, consolidatedOutputRemoteDir, consolidatedFileName)
+	luaOutputRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, consolidatedOutputRemoteDir, consolidatedFileName)
 	if err := gs.UploadFile(consolidatedFileName, os.TempDir(), consolidatedOutputRemoteDir); err != nil {
 		glog.Errorf("Unable to upload %s to %s: %s", consolidatedLuaOutput, consolidatedOutputRemoteDir, err)
 		return
@@ -230,7 +230,7 @@ func main() {
 			return
 		}
 		// Copy the aggregator output into Google Storage.
-		luaAggregatorOutputRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GS_BUCKET_NAME, consolidatedOutputRemoteDir, luaAggregatorOutputFileName)
+		luaAggregatorOutputRemoteLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, consolidatedOutputRemoteDir, luaAggregatorOutputFileName)
 		if err := gs.UploadFile(luaAggregatorOutputFileName, os.TempDir(), consolidatedOutputRemoteDir); err != nil {
 			glog.Errorf("Unable to upload %s to %s: %s", luaAggregatorOutputFileName, consolidatedOutputRemoteDir, err)
 			return

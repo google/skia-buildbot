@@ -65,14 +65,18 @@ make ctfe_debug && ctfe --local=true \
   --port=:8000 \
   --ctfe_db_user=readwrite \
   --graphite_server='localhost:2003'
+  --host=<your hostname>.cnc.corp.google.com
 ```
-You can then access the server at [localhost:8000](http://localhost:8000/).
+You can then access the server at [localhost:8000](http://localhost:8000/) or
+<your hostname\>.cnc.corp.google.com:8000.
 
 The `graphite_server` argument is only needed when testing metrics gathering;
 you will need to install InfluxDB locally and configure it as a graphite
-server using the configuration in ../influxdb/influxdb-config.toml. Also
-optionally specify the `host` argument to generate metrics based on a different
-host name.
+server using the configuration in ../influxdb/influxdb-config.toml.
+
+The `host` argument is optional and allows others to log in to your
+server. Initially you will get an error when logging in; follow the instructions
+on the error page. The `host` argument will also be included in metrics names.
 
 To test prober config changes, edit the config in ../prober/probers.json to
 point to localhost:8000, then run `make && prober --alsologtostderr
@@ -101,16 +105,10 @@ To test alert config changes:
 
 ### Master
 
-Setup /b:
-TODO(benjaminwagner): Make this easier to set up.
-```
-sudo mkdir /b
-sudo chmod a+rwx /b
-mkdir /b/skia-repo
-ln -s $GOPATH /b/skia-repo/go
-mkdir -p /b/storage/glog
-echo -n "notverysecret" | base64 -w 0 > /b/storage/webhook_salt.data
-```
+The master poller and master scripts require a /b directory containing various
+repos and files. To create and set up this directory, run
+`./tools/setup_local.sh` and follow the instructions at the end. (The
+`setup_local.sh` script assumes you are a Googler running Goobuntu.)
 
 To run the master poller in dry-run mode (not very useful), run
 ```
@@ -121,21 +119,8 @@ make poller && poller --local=true \
   --graphite_server='localhost:2003'
 ```
 
-Code modifications to enable running locally without dry-run mode:
-
-- Change `WEBAPP_ROOT_V2` in go/frontend/frontend.go to
-  `http://localhost:8000/`.
-- In go/util/constants.go:
-
-    - Change `CT_USER` to your username.
-    - Change `NUM-WORKERS` to 1.
-    - Change `Slaves` to `[]string{"<your hostname>.cnc.corp.google.com"}`
-    - Change `CtAdmins` to `[]string{"<your username>@google.com"}`
-    - If you did not put your /b directory at /b, change `StorageDir` and
-      `RepoDir`.
-
-- You may want to modify the various master scripts to skip steps or exit
-  early, e.g.:
+To run master scripts locally, you may want to modify the code to skip steps or
+exit early, e.g.:
 ```
 diff --git a/ct/go/master_scripts/build_chromium/main.go b/ct/go/master_scripts/build_chromium/main.go
 index 1c5c273..34ceb3a 100644
@@ -158,17 +143,7 @@ index 1c5c273..34ceb3a 100644
   `capture_skps_on_workers`, `create_pagesets_on_workers`,
   `run_chromium_perf_on_workers`, and `run_lua_on_workers`.
 
-If you do not comment out the call to `util.SSH` in the master scripts, then you
-should ensure that `ssh <your hostname>.cnc.corp.google.com` does not ask for a
-password. If it does, run `prodaccess` or
-[get help from techstop](https://support.google.com/techstop/answer/2751249?vid=1-635774997406462418-204471957).
-
-TODO(benjaminwagner): Verify that master scripts work as expected locally with
-no modifications.
-
-TODO(benjaminwagner): Make it easier to run master scripts locally.
-
-Then you can run the poller as
+You can run the poller as:
 ```
 make poller && poller --local=true \
   --alsologtostderr \
@@ -215,10 +190,12 @@ link from [push](https://push.skia.org/).
 The poller and master scripts run on build101-m5 in the Chrome Golo. See below
 for how to access the Golo.
 
-There is a script named `setup_cluster_telemetry_machine.sh` on build101-m5 that
-will set up the machine for running the poller and master scripts. It's unlikely
-that you will need to run this script now that the machine is set up. There are
-a few files that the script does not create automatically:
+There is a script named `setup_cluster_telemetry_machine.sh` on build101-m5 (and
+checked into git in the tools directory) that will set up the machine for
+running the poller and master scripts. It's unlikely that you will need to run
+this script now that the machine is set up, and the script is currently
+out-of-date. There are a few files that the script does not create
+automatically:
 
 - /b/storage/webhook_salt.data: Set this file to the value of
   [GCE metadata key webhook_request_salt](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
@@ -232,7 +209,18 @@ a few files that the script does not create automatically:
 There are several aliases in .bashrc on build101-m5 that are useful for
 maintenance. If the poller is not running (check using `ps x | grep poller`),
 run `start_poller` to update the code from the infra Git repo and start the
-poller.
+poller. The definition of `start_poller` is currently:
+```
+start_poller () {
+  cd /b/skia-repo/go/src/go.skia.org/infra/ct/
+  git pull
+  make all
+  nohup poller --log_dir=/b/storage/glog --graphite_server=<IP address>:2003 &
+}
+```
+where `<IP address>` is the external IP address for the skia-monitoring
+instance, available
+[here](https://pantheon.corp.google.com/project/31977622648/compute/instancesDetail/zones/us-central1-c/instances/skia-monitoring?graph=GCE_CPU&duration=PT1H).
 
 To stop the poller safely, check that the CTFE task queue is empty and check
 with `pstree <PID of poller>` to verify that there are no master scripts or
@@ -258,6 +246,11 @@ run_command --cmd 'echo "Hello World!"' --logtostderr=true --timeout=60m
 You will likely want to follow the procedure above to stop the poller before
 performing maintenance on the workers.
 
+## Other maintenance
+
+### Updating pagesets
+
+TODO(rmistry): Where do CSV files come from, where to put in GS.
 
 ## Access to Golo
 

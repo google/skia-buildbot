@@ -72,14 +72,14 @@ func Auth_TestUploadWorkerArtifacts(t *testing.T) {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	gsDir := filepath.Join(testDir, testPagesetType, "slave1")
-	resp, err := service.Objects.List(GS_BUCKET_NAME).Prefix(gsDir + "/").Do()
+	resp, err := service.Objects.List(GSBucketName).Prefix(gsDir + "/").Do()
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}
 	assert.Equal(t, 3, len(resp.Items))
 	for index, fileName := range []string{"TIMESTAMP", "alexa1-1.py", "alexa2-2.py"} {
 		filePath := fmt.Sprintf("%s/%s", gsDir, fileName)
-		defer util.LogErr(service.Objects.Delete(GS_BUCKET_NAME, filePath).Do())
+		defer util.LogErr(service.Objects.Delete(GSBucketName, filePath).Do())
 		assert.Equal(t, filePath, resp.Items[index].Name)
 	}
 }

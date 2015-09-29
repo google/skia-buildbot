@@ -26,6 +26,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	"go.skia.org/infra/ct/go/frontend"
+	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -34,21 +35,7 @@ import (
 
 // flags
 var (
-	graphiteServer = flag.String("graphite_server", "localhost:2003", "Location of the Graphite metrics ingestion server.")
-	// TODO(benjaminwagner): There are a lot of changes needed to make --local=true do something
-	// useful:
-	//  - ctutil.CtTreeDir must be set to the current working copy.
-	//  - Each of these programs must add a --local flag that allows running locally:
-	//    - run_chromium_perf_on_workers
-	//    - capture_skps_on_workers
-	//    - run_lua_on_workers
-	//    - build_chromium
-	//    - create_pagesets_on_workers
-	//    - capture_archives_on_workers
-	//    - check_workers_health
-	//  - The Execute methods must add the --local flag and any other required flags.
-	//  - May want to add a port option to allow running CTFE on a port other than 8000.
-	local                     = flag.Bool("local", false, "Running locally if true. As opposed to in production. This option is not fully implemented.")
+	graphiteServer            = flag.String("graphite_server", "localhost:2003", "Location of the Graphite metrics ingestion server.")
 	dryRun                    = flag.Bool("dry_run", false, "If true, just log the commands that would be executed; don't actually execute the commands. Still polls CTFE for pending tasks, but does not post updates.")
 	pollInterval              = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
 	workerHealthCheckInterval = flag.Duration("worker_health_check_interval", 30*time.Minute, "How often to check worker health.")
@@ -353,6 +340,7 @@ func (task *ChromiumPerfTask) Execute() error {
 			"--run_id=" + runId,
 			"--log_dir=" + logDir,
 			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 		Timeout: ctutil.MASTER_SCRIPT_RUN_CHROMIUM_PERF_TIMEOUT,
 	})
@@ -381,6 +369,7 @@ func (task *CaptureSkpsTask) Execute() error {
 			"--run_id=" + runId,
 			"--log_dir=" + logDir,
 			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 		Timeout: ctutil.MASTER_SCRIPT_CAPTURE_SKPS_TIMEOUT,
 	})
@@ -425,6 +414,7 @@ func (task *LuaScriptTask) Execute() error {
 			"--run_id=" + runId,
 			"--log_dir=" + logDir,
 			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 		Timeout: ctutil.MASTER_SCRIPT_RUN_LUA_TIMEOUT,
 	})
@@ -452,6 +442,7 @@ func (task *ChromiumBuildTask) Execute() error {
 			"--skia_hash=" + task.SkiaRev,
 			"--log_dir=" + logDir,
 			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 		Timeout: ctutil.MASTER_SCRIPT_BUILD_CHROMIUM_TIMEOUT,
 	})
@@ -476,6 +467,7 @@ func (task *RecreatePageSetsTask) Execute() error {
 			"--pageset_type=" + task.PageSets,
 			"--log_dir=" + logDir,
 			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 		Timeout: ctutil.MASTER_SCRIPT_CREATE_PAGESETS_TIMEOUT,
 	})
@@ -502,6 +494,7 @@ func (task *RecreateWebpageArchivesTask) Execute() error {
 			"--chromium_build=" + chromiumBuildDir,
 			"--log_dir=" + logDir,
 			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
 		Timeout: ctutil.MASTER_SCRIPT_CAPTURE_ARCHIVES_TIMEOUT,
 	})
@@ -544,8 +537,11 @@ func updateWebappTaskSetFailed(task Task) error {
 func checkWorkerHealth() error {
 	token := statusTracker.StartTask(CHECK_WORKER_HEALTH)
 	err := exec.Run(&exec.Command{
-		Name:    "check_workers_health",
-		Args:    []string{"--log_dir=" + logDir},
+		Name: "check_workers_health",
+		Args: []string{
+			"--log_dir=" + logDir,
+			fmt.Sprintf("--local=%t", *master_common.Local),
+		},
 		Timeout: ctutil.CHECK_WORKERS_HEALTH_TIMEOUT,
 	})
 	statusTracker.FinishTask(token, err)
@@ -553,14 +549,16 @@ func checkWorkerHealth() error {
 }
 
 func doWorkerHealthCheck() {
+	glog.Infof("Preparing for worker health check")
 	if err := updateAndBuild(); err != nil {
-		glog.Error(err)
+		glog.Errorf("Worker health check failed: %v", err)
 		return
 	}
 	if err := checkWorkerHealth(); err != nil {
-		glog.Error(err)
+		glog.Errorf("Worker health check failed: %v", err)
 		return
 	}
+	glog.Infof("Completed worker health check")
 }
 
 func pollAndExecOnce() {
@@ -596,7 +594,7 @@ func pollAndExecOnce() {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("ct-poller", graphiteServer)
+	master_common.InitWithMetrics("ct-poller", graphiteServer)
 
 	if logDirFlag := flag.Lookup("log_dir"); logDirFlag != nil {
 		logDir = logDirFlag.Value.String()
@@ -607,11 +605,6 @@ func main() {
 			glog.Infof("dry_run: %s", exec.DebugString(command))
 			return nil
 		})
-	}
-	if *local {
-		frontend.InitForTesting("http://localhost:8000/")
-	} else {
-		frontend.MustInit()
 	}
 
 	statusTracker.(*heartbeatStatusTracker).StartMetrics()

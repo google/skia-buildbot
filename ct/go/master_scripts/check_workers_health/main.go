@@ -7,13 +7,14 @@ import (
 	"strings"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 )
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
+	master_common.Init()
 	defer glog.Flush()
 
 	// Collect unhealthy machines

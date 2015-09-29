@@ -23,10 +23,10 @@ const (
 	TS_FORMAT = "20060102150405"
 )
 
-// GetCTWorkers returns an array of all CT workers.
-func GetCTWorkers() []string {
-	workers := make([]string, NUM_WORKERS)
-	for i := 0; i < NUM_WORKERS; i++ {
+// GetCTWorkersProd returns an array of all CT workers in the Cluster Telemetry Golo.
+func GetCTWorkersProd() []string {
+	workers := make([]string, NUM_WORKERS_PROD)
+	for i := 0; i < NUM_WORKERS_PROD; i++ {
 		workers[i] = fmt.Sprintf(WORKER_NAME_TEMPLATE, i+1)
 	}
 	return workers
@@ -194,7 +194,7 @@ func CleanTmpDir() {
 // Get a direct link to the log of this task on the master's logserver.
 func GetMasterLogLink(runID string) string {
 	programName := filepath.Base(os.Args[0])
-	return fmt.Sprintf("%s/%s.%s.%s.log.INFO.%s", MASTER_LOGSERVER_LINK, programName, MASTER_NAME, CT_USER, runID)
+	return fmt.Sprintf("%s/%s.%s.%s.log.INFO.%s", MASTER_LOGSERVER_LINK, programName, MASTER_NAME, CtUser, runID)
 }
 
 func GetTimeFromTs(formattedTime string) time.Time {

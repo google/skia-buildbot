@@ -11,6 +11,7 @@ import (
 
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/frontend"
+	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
@@ -58,8 +59,7 @@ func updateWebappTask() {
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
-	frontend.MustInit()
+	master_common.Init()
 
 	// Send start email.
 	emailsArr := util.ParseEmails(*emails)
@@ -73,8 +73,10 @@ func main() {
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
-	// Cleanup tmp files after the run.
-	defer util.CleanTmpDir()
+	if !*master_common.Local {
+		// Cleanup tmp files after the run.
+		defer util.CleanTmpDir()
+	}
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running build chromium")
 	defer glog.Flush()
