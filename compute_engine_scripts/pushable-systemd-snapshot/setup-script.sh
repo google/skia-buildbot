@@ -14,8 +14,12 @@ sudo apt-get --assume-yes install git
 # gce-startup-scripts, which would cause systemd to restart gce-startup-scripts,
 # which would kill this script because it is a child process of
 # gce-startup-scripts.
+#
+# IMPORTANT: We are using a public Ubuntu image which has automatic updates
+# enabled by default. Thus we are not running any commands to update packages.
+
 sudo apt-get --assume-yes -o Dpkg::Options::="--force-confold" install collectd
-gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2015-05-22T18:21:00Z:bc431998188dfb34b619eb7049d2cd384fe434d9.deb pulld.deb
+gsutil cp gs://skia-push/debs/pulld/pulld:stephana@stephana2.cnc.corp.google.com:2015-09-16T14:41:21Z:a2a216c62a5b280fc444a2766b4ff3d61918915f.deb pulld.deb
 sudo dpkg -i pulld.deb
 sudo apt-get --assume-yes install --fix-broken
 

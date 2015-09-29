@@ -18,5 +18,5 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 # The name of instance where skia docs is running on.
 INSTANCE_NAME=${VM_NAME_BASE}-systemd-snapshot-maker
 MACHINE_TYPE=n1-standard-4
-IMAGE_TYPE="https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/ubuntu-1504-vivid-v20150422"
+IMAGE_TYPE="ubuntu-15-04"
 IP_ADDRESS=104.154.112.111
