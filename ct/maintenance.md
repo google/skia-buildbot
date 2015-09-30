@@ -246,6 +246,22 @@ run_command --cmd 'echo "Hello World!"' --logtostderr=true --timeout=60m
 You will likely want to follow the procedure above to stop the poller before
 performing maintenance on the workers.
 
+### Logserver
+
+In order to serve
+[the master and worker logs](https://uberchromegw.corp.google.com/i/skia-ct-master/all_logs),
+each CT machine runs logserver and logserver_proxy. There are entries in the
+crontab for each machine to start logserver and logserver_proxy every 5 minutes
+(no-op if already running). The code for logserver is under ../logserver and the
+code for logserver_proxy is under go/master_scripts/logserver_proxy.
+
+You can update logserver by doing something like:
+```
+ssh build101-m5.golo
+cd /b/skia-repo/go/src/go.skia.org/infra/logserver; go get -u ./...; make; killall logserver
+run_command --cmd 'cd /b/skia-repo/go/src/go.skia.org/infra/logserver; go get -u ./...; make; killall logserver' --logtostderr=true --timeout=60m
+```
+
 ## Other maintenance
 
 ### Updating pagesets
