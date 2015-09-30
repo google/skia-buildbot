@@ -156,11 +156,13 @@ func RebootWorkers() {
 				glog.Errorf("Got error while checking workers: %v", err)
 				return
 			}
-			if len(output) == NUM_WORKERS_PROD {
+			for k, v := range output {
+				if v == "" {
+					glog.Infof("%s is not back yet. Continuing to wait.", k)
+					break
+				}
 				glog.Infof("All workers are back.")
 				return
-			} else {
-				glog.Infof("Got replies from %d/%d slaves. Continuing to wait.", len(output), NUM_WORKERS_PROD)
 			}
 		case <-deadlineTicker.C:
 			fmt.Println("Deadline surpassed so we are done waiting for slaves.")
