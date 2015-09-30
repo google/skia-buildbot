@@ -8,7 +8,7 @@
 import os
 import sys
 PARENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(PARENT_DIR, os.pardir, os.pardir, "common"))
+sys.path.append(os.path.join('/b', 'skia-repo', 'trunk', 'common'))
 sys.path.append(os.path.join(PARENT_DIR, os.pardir, os.pardir, "site_config"))
 
 from optparse import OptionParser
