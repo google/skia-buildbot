@@ -54,6 +54,7 @@ type DBTask struct {
 	Platform             string         `db:"platform"`
 	PageSets             string         `db:"page_sets"`
 	RepeatRuns           int64          `db:"repeat_runs"`
+	RunInParallel        bool           `db:"run_in_parallel"`
 	BenchmarkArgs        string         `db:"benchmark_args"`
 	BrowserArgsNoPatch   string         `db:"browser_args_nopatch"`
 	BrowserArgsWithPatch string         `db:"browser_args_withpatch"`
@@ -79,6 +80,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.Platform = dbTask.Platform
 	taskVars.PageSets = dbTask.PageSets
 	taskVars.RepeatRuns = strconv.FormatInt(dbTask.RepeatRuns, 10)
+	taskVars.RunInParallel = strconv.FormatBool(dbTask.RunInParallel)
 	taskVars.BenchmarkArgs = dbTask.BenchmarkArgs
 	taskVars.BrowserArgsNoPatch = dbTask.BrowserArgsNoPatch
 	taskVars.BrowserArgsWithPatch = dbTask.BrowserArgsWithPatch
@@ -265,6 +267,7 @@ type AddTaskVars struct {
 	Platform             string `json:"platform"`
 	PageSets             string `json:"page_sets"`
 	RepeatRuns           string `json:"repeat_runs"`
+	RunInParallel        string `json:"run_in_parallel"`
 	BenchmarkArgs        string `json:"benchmark_args"`
 	BrowserArgsNoPatch   string `json:"browser_args_nopatch"`
 	BrowserArgsWithPatch string `json:"browser_args_withpatch"`
@@ -279,6 +282,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		task.Platform == "" ||
 		task.PageSets == "" ||
 		task.RepeatRuns == "" ||
+		task.RunInParallel == "" ||
 		task.Description == "" {
 		return "", nil, fmt.Errorf("Invalid parameters")
 	}
@@ -296,7 +300,11 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	}); err != nil {
 		return "", nil, err
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+	runInParallel := 0
+	if task.RunInParallel == "True" {
+		runInParallel = 1
+	}
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,run_in_parallel, benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_PERF_TASKS),
 		[]interface{}{
 			task.Username,
@@ -304,6 +312,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 			task.Platform,
 			task.PageSets,
 			task.RepeatRuns,
+			runInParallel,
 			task.BenchmarkArgs,
 			task.BrowserArgsNoPatch,
 			task.BrowserArgsWithPatch,

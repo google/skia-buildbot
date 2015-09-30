@@ -336,6 +336,7 @@ func (task *ChromiumPerfTask) Execute() error {
 			"--browser_extra_args_nopatch=" + task.BrowserArgsNoPatch,
 			"--browser_extra_args_withpatch=" + task.BrowserArgsWithPatch,
 			"--repeat_benchmark=" + strconv.FormatInt(task.RepeatRuns, 10),
+			"--run_in_parallel=" + strconv.FormatBool(task.RunInParallel),
 			"--target_platform=" + task.Platform,
 			"--run_id=" + runId,
 			"--log_dir=" + logDir,

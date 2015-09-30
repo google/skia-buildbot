@@ -36,6 +36,7 @@ var (
 	browserExtraArgsNoPatch   = flag.String("browser_extra_args_nopatch", "", "The extra arguments that are passed to the browser while running the benchmark for the nopatch case.")
 	browserExtraArgsWithPatch = flag.String("browser_extra_args_withpatch", "", "The extra arguments that are passed to the browser while running the benchmark for the withpatch case.")
 	repeatBenchmark           = flag.Int("repeat_benchmark", 1, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
+	runInParallel             = flag.Bool("run_in_parallel", false, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
 	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	varianceThreshold         = flag.Float64("variance_threshold", 0.0, "The variance threshold to use when comparing the resultant CSV files.")
@@ -178,7 +179,7 @@ func main() {
 		"--run_id_nopatch={{.RunIDNoPatch}} --run_id_withpatch={{.RunIDWithPatch}} " +
 		"--benchmark_name={{.BenchmarkName}} --benchmark_extra_args=\"{{.BenchmarkExtraArgs}}\" " +
 		"--browser_extra_args_nopatch=\"{{.BrowserExtraArgsNoPatch}}\" --browser_extra_args_withpatch=\"{{.BrowserExtraArgsWithPatch}}\" " +
-		"--repeat_benchmark={{.RepeatBenchmark}} --target_platform={{.TargetPlatform}} " +
+		"--repeat_benchmark={{.RepeatBenchmark}} --run_in_parallel={{.RunInParallel}} --target_platform={{.TargetPlatform}} " +
 		"--local={{.Local}};"
 	runChromiumPerfTemplateParsed := template.Must(template.New("run_chromium_perf_cmd").Parse(runChromiumPerfCmdTemplate))
 	runChromiumPerfCmdBytes := new(bytes.Buffer)
@@ -196,6 +197,7 @@ func main() {
 		BrowserExtraArgsNoPatch   string
 		BrowserExtraArgsWithPatch string
 		RepeatBenchmark           int
+		RunInParallel             bool
 		TargetPlatform            string
 		Local                     bool
 	}{
@@ -212,6 +214,7 @@ func main() {
 		BrowserExtraArgsNoPatch:   *browserExtraArgsNoPatch,
 		BrowserExtraArgsWithPatch: *browserExtraArgsWithPatch,
 		RepeatBenchmark:           *repeatBenchmark,
+		RunInParallel:             *runInParallel,
 		TargetPlatform:            *targetPlatform,
 		Local:                     *master_common.Local,
 	}); err != nil {

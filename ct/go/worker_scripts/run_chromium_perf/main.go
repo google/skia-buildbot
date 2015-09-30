@@ -41,6 +41,7 @@ var (
 	browserExtraArgsNoPatch   = flag.String("browser_extra_args_nopatch", "", "The extra arguments that are passed to the browser while running the benchmark during the nopatch run.")
 	browserExtraArgsWithPatch = flag.String("browser_extra_args_withpatch", "", "The extra arguments that are passed to the browser while running the benchmark during the withpatch run.")
 	repeatBenchmark           = flag.Int("repeat_benchmark", 3, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
+	runInParallel             = flag.Bool("run_in_parallel", false, "Run the benchmark by bringing up multiple chrome instances in parallel.")
 	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
 	chromeCleanerTimer        = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
@@ -162,7 +163,7 @@ func main() {
 	}
 
 	numWorkers := WORKER_POOL_SIZE
-	if *targetPlatform == util.PLATFORM_ANDROID {
+	if *targetPlatform == util.PLATFORM_ANDROID || !*runInParallel {
 		// Do not run page sets in parallel if the target platform is Android.
 		// This is because the nopatch/withpatch APK needs to be installed prior to
 		// each run and this will interfere with the parallel runs. Instead of trying
@@ -170,6 +171,9 @@ func main() {
 		// continue to be serial because it will help guard against
 		// crashes/flakiness/inconsistencies which are more prevalent in mobile runs.
 		numWorkers = 1
+		glog.Infoln("===== Going to run the task serially =====")
+	} else {
+		glog.Infoln("===== Going to run the task with parallel chrome processes =====")
 	}
 
 	// Create channel that contains all pageset file names. This channel will

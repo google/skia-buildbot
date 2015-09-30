@@ -220,6 +220,14 @@ var v7_down = []string{
 	`ALTER TABLE RecreateWebpageArchivesTasks DROP repeat_after_days`,
 }
 
+var v8_up = []string{
+	`ALTER TABLE ChromiumPerfTasks ADD run_in_parallel BOOLEAN NOT NULL DEFAULT False`,
+}
+
+var v8_down = []string{
+	`ALTER TABLE ChromiumPerfTasks DROP run_in_parallel`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -258,6 +266,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v7_up,
 		MySQLDown: v7_down,
+	},
+	// version 8: Add run_in_parallel column to ChromiumPerfTasks table.
+	{
+		MySQLUp:   v8_up,
+		MySQLDown: v8_down,
 	},
 }
 
