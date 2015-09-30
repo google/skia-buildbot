@@ -42,5 +42,11 @@
          notify: true,
        },
      },
+
+     selectFirst: function() {
+       if (this.pageSets.length > 0) {
+         this.selected = ctfe.pageSets.getKey(this.pageSets[0]);
+       }
+     },
    });
 </script>
