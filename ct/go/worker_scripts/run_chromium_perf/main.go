@@ -26,7 +26,7 @@ import (
 
 const (
 	// The number of goroutines that will run in parallel to run benchmarks.
-	WORKER_POOL_SIZE = 1
+	WORKER_POOL_SIZE = 5
 )
 
 var (
@@ -42,7 +42,7 @@ var (
 	browserExtraArgsWithPatch = flag.String("browser_extra_args_withpatch", "", "The extra arguments that are passed to the browser while running the benchmark during the withpatch run.")
 	repeatBenchmark           = flag.Int("repeat_benchmark", 3, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
 	targetPlatform            = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
-	chromeCleanerTimer        = flag.Duration("cleaner_timer", 30*time.Minute, "How often all chrome processes will be killed on this slave.")
+	chromeCleanerTimer        = flag.Duration("cleaner_timer", 15*time.Minute, "How often all chrome processes will be killed on this slave.")
 )
 
 func main() {
