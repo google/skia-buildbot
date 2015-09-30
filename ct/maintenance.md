@@ -35,15 +35,16 @@ Master code lives in:
 - py/...
 
 To build the master binaries, use `make master_scripts`. The poller
-automatically runs `git pull` and `make all` to update the master scripts before
-running any tasks, so changes will be live as soon as they are committed; the
-next task to start will run the updated code. The poller itself must be updated
-manually; see below.
+automatically runs `go get -u ./...` and `make all` to update the master scripts
+before running any tasks, so changes will be live as soon as they are committed;
+the next task to start will run the updated code. The poller itself must be
+updated manually; see below.
 
 Worker code lives in go/worker_scripts/...
 
 To build the worker binaries, use `make worker_scripts`. Master scripts
-run `git pull` and `make all` on all slaves before starting the worker scripts.
+run `go get -u ./...` and `make all` on all slaves before starting the worker
+scripts.
 
 Prober config is in ../prober/probers.json. Alerts config is in
 ../alertserver/alerts.cfg.

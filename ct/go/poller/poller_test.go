@@ -388,10 +388,11 @@ func TestDoWorkerHealthCheck(t *testing.T) {
 	exec.SetRunForTesting(mockExec.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 	doWorkerHealthCheck()
-	// Expect three commands: git pull; make all; check_workers_health --log_dir=/b/storage/glog
+	// Expect three commands: go get -u ./...; make all;
+	// check_workers_health --log_dir=/b/storage/glog
 	commands := mockExec.Commands()
 	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
+	expect.Equal(t, "go get -u ./...", exec.DebugString(commands[0]))
 	expect.Equal(t, "make all", exec.DebugString(commands[1]))
 	expect.Equal(t, "check_workers_health --log_dir=/b/storage/glog --local=false",
 		exec.DebugString(commands[2]))
@@ -407,10 +408,11 @@ func TestDoWorkerHealthCheckError(t *testing.T) {
 	mockRun.AddRule("check_workers_health", fmt.Errorf("I'm not a doctor."))
 	// Expect error to be logged and ignored.
 	doWorkerHealthCheck()
-	// Expect three commands: git pull; make all; check_workers_health --log_dir=/b/storage/glog
+	// Expect three commands: go get -u ./...; make all;
+	// check_workers_health --log_dir=/b/storage/glog
 	commands := commandCollector.Commands()
 	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
+	expect.Equal(t, "go get -u ./...", exec.DebugString(commands[0]))
 	expect.Equal(t, "make all", exec.DebugString(commands[1]))
 	expect.Equal(t, "check_workers_health --log_dir=/b/storage/glog --local=false",
 		exec.DebugString(commands[2]))
@@ -427,10 +429,10 @@ func TestPollAndExecOnce(t *testing.T) {
 	pollAndExecOnce()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
-	// Expect three commands: git pull; make all; capture_archives_on_workers ...
+	// Expect three commands: go get -u ./...; make all; capture_archives_on_workers ...
 	commands := mockExec.Commands()
 	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
+	expect.Equal(t, "go get -u ./...", exec.DebugString(commands[0]))
 	expect.Equal(t, "make all", exec.DebugString(commands[1]))
 	expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
 	// No updates expected. (capture_archives_on_workers would send updates if it were
@@ -456,14 +458,14 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 
 	// Expect two pending task requests.
 	expect.Equal(t, 2, mockServer.OldestPendingTaskReqCount())
-	// Expect six commands: git pull; make all; capture_archives_on_workers ...; git pull;
-	// make all; run_chromium_perf_on_workers ...
+	// Expect six commands: go get -u ./...; make all; capture_archives_on_workers ...;
+	// go get -u ./...; make all; run_chromium_perf_on_workers ...
 	commands := mockExec.Commands()
 	assert.Len(t, commands, 6)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
+	expect.Equal(t, "go get -u ./...", exec.DebugString(commands[0]))
 	expect.Equal(t, "make all", exec.DebugString(commands[1]))
 	expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
-	expect.Equal(t, "git pull", exec.DebugString(commands[3]))
+	expect.Equal(t, "go get -u ./...", exec.DebugString(commands[3]))
 	expect.Equal(t, "make all", exec.DebugString(commands[4]))
 	expect.Equal(t, "run_chromium_perf_on_workers", commands[5].Name)
 	// No updates expected when commands succeed.
@@ -484,10 +486,10 @@ func TestPollAndExecOnceError(t *testing.T) {
 	pollAndExecOnce()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
-	// Expect three commands: git pull; make all; capture_archives_on_workers ...
+	// Expect three commands: go get -u ./...; make all; capture_archives_on_workers ...
 	commands := commandCollector.Commands()
 	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
+	expect.Equal(t, "go get -u ./...", exec.DebugString(commands[0]))
 	expect.Equal(t, "make all", exec.DebugString(commands[1]))
 	expect.Equal(t, "capture_archives_on_workers", commands[2].Name)
 	// Expect an update marking task failed when command fails to execute.

@@ -47,7 +47,7 @@ func WorkerSetupCmds() []string {
 	} else {
 		return []string{
 			fmt.Sprintf("cd %s;", util.CtTreeDir),
-			"git pull;",
+			"go get -u ./...;",
 			"make all;",
 		}
 	}
