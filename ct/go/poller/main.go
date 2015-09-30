@@ -249,14 +249,15 @@ func (h *heartbeatStatusTracker) StartMetrics() {
 
 var statusTracker StatusTracker = NewHeartbeatStatusTracker()
 
-// Runs "go get -u ./...; make all".
+// Runs "git pull; make all".
 func updateAndBuild() error {
 	token := statusTracker.StartTask(UPDATE_AND_BUILD)
 	makefilePath := ctutil.CtTreeDir
 
+	// TODO(benjaminwagner): Should this also do 'go get -u ...' and/or 'gclient sync'?
 	err := exec.Run(&exec.Command{
-		Name:      "go",
-		Args:      []string{"get", "-u", "./..."},
+		Name:      "git",
+		Args:      []string{"pull"},
 		Dir:       makefilePath,
 		Timeout:   ctutil.GIT_PULL_TIMEOUT,
 		LogStdout: true,
