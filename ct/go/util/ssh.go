@@ -134,14 +134,39 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 	return workersWithOutputs, nil
 }
 
-// RebootWorkers reboots all CT workers and waits for few mins before returning.
+// RebootWorkers reboots all CT workers and waits for them to return.
 func RebootWorkers() {
 	if _, err := SSH("sudo reboot", Slaves, REBOOT_TIMEOUT); err != nil {
 		glog.Errorf("Got error while rebooting workers: %v", err)
+		return
 	}
-	waitTime := 15 * time.Minute
+	waitTime := 5 * time.Minute
 	glog.Infof("Waiting for %s till all workers come back from reboot", waitTime)
-	time.Sleep(waitTime)
+
+	// Check every 2 mins and timeout after 10 mins.
+	ticker := time.NewTicker(2 * time.Minute)
+	deadlineTicker := time.NewTicker(10 * time.Minute)
+	defer ticker.Stop()
+	defer deadlineTicker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			output, err := SSH("uptime", Slaves, REBOOT_TIMEOUT)
+			if err != nil {
+				glog.Errorf("Got error while checking workers: %v", err)
+				return
+			}
+			if len(output) == NUM_WORKERS_PROD {
+				glog.Infof("All workers are back.")
+				return
+			} else {
+				glog.Infof("Got replies from %d/%d slaves. Continuing to wait.", len(output), NUM_WORKERS_PROD)
+			}
+		case <-deadlineTicker.C:
+			fmt.Println("Deadline surpassed so we are done waiting for slaves.")
+			return
+		}
+	}
 }
 
 // RebootAndroidDevices reboots the Android device on all CT workers and waits
