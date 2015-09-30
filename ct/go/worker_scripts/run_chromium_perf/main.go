@@ -26,7 +26,7 @@ import (
 
 const (
 	// The number of goroutines that will run in parallel to run benchmarks.
-	WORKER_POOL_SIZE = 5
+	WORKER_POOL_SIZE = 10
 )
 
 var (
