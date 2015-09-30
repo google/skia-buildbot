@@ -115,7 +115,7 @@
         </td>
         <td>
           <iron-selector attr-for-selected="id" id="run_in_parallel" selected="False" class="long-field">
-            <div id="True">True (works only for Linux runs)</div>
+            <div id="True">True (Works only for Linux rasterize_and_record_micro runs)</div>
             <div id="False">False</div>
           </iron-selector>
         </td>
@@ -233,8 +233,12 @@
 
      ready: function() {
        var that = this;
+       this.$.benchmark_name.addEventListener('click', function(e) {
+         that.setRunInParallel();
+       });
        this.$.target_platform.addEventListener('click', function(e) {
          that.platformChanged();
+         that.setRunInParallel();
        });
        this.$.submit_task.addEventListener('click', function(e) {
          that.validateTask();
@@ -249,6 +253,7 @@
          that.gotoRunsHistory();
        });
        this.platformChanged();
+       this.setRunInParallel();
      },
 
      getPlatformDesc: function(platform) {
@@ -267,16 +272,22 @@
        }
      },
 
+     setRunInParallel: function() {
+       if (this.$.benchmark_name.selected == "rasterize_and_record_micro" &&
+           this.$.target_platform.selected == "Linux") {
+         this.$.run_in_parallel.selected = "True"
+       } else {
+         this.$.run_in_parallel.selected = "False"
+       }
+     },
+
      platformChanged: function() {
        if (this.$.target_platform.selected == "Linux") {
          this.$.page_sets.selected = "10k";
-         // Change to True by default after investigation in skbug.com/4395 is done.
-         this.$.run_in_parallel.selected = "False";
          this.$.browser_args_nopatch.value = this.defaultLinuxBrowserArgs;
          this.$.browser_args_withpatch.value = this.defaultLinuxBrowserArgs;
        } else {
          this.$.page_sets.selected = "Mobile10k";
-         this.$.run_in_parallel.selected = "False";
          this.$.browser_args_nopatch.value = "";
          this.$.browser_args_withpatch.value = "";
        }
