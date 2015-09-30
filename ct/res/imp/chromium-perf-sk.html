@@ -34,6 +34,10 @@
       width: 5em;
     }
 
+    iron-selector.long-field > div {
+      width: 40em;
+    }
+
     iron-selector.medium-field > div {
       width: 20em;
     }
@@ -100,6 +104,19 @@
             <div id="3">3</div>
             <div id="2">2</div>
             <div id="1">1</div>
+          </iron-selector>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+           Run in Parallel<br/>
+           Read about the trade-offs <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.xz46aihphb8z">here</a>
+        </td>
+        <td>
+          <iron-selector attr-for-selected="id" id="run_in_parallel" selected="False" class="long-field">
+            <div id="True">True (works only for Linux runs)</div>
+            <div id="False">False</div>
           </iron-selector>
         </td>
       </tr>
@@ -240,7 +257,7 @@
        }
      },
 
-     pageSetsChanged: function(newValue, oldValue) {
+     pageSetsChanged: function() {
        // CT's chromium perf does not support 1M.
        for (var i=0; i<this.pageSets.length; i++) {
          if (ctfe.pageSets.getKey(this.pageSets[i]) == "All") {
@@ -248,18 +265,18 @@
            break;
          }
        }
-       if (!oldValue || oldValue.length == 0) {
-         this.$.page_sets.selectFirst();
-       }
      },
 
      platformChanged: function() {
        if (this.$.target_platform.selected == "Linux") {
          this.$.page_sets.selected = "10k";
+         // Change to True by default after investigation in skbug.com/4395 is done.
+         this.$.run_in_parallel.selected = "False";
          this.$.browser_args_nopatch.value = this.defaultLinuxBrowserArgs;
          this.$.browser_args_withpatch.value = this.defaultLinuxBrowserArgs;
        } else {
          this.$.page_sets.selected = "Mobile10k";
+         this.$.run_in_parallel.selected = "False";
          this.$.browser_args_nopatch.value = "";
          this.$.browser_args_withpatch.value = "";
        }
@@ -310,6 +327,7 @@
        params["platform"] = this.$.target_platform.selected;
        params["page_sets"] = this.$.page_sets.selected;
        params["repeat_runs"] = this.$.repeat_runs.selected;
+       params["run_in_parallel"] = this.$.run_in_parallel.selected;
        params["benchmark_args"] = this.$.benchmark_args.value;
        params["browser_args_nopatch"] = this.$.browser_args_nopatch.value;
        params["browser_args_withpatch"] = this.$.browser_args_withpatch.value;
