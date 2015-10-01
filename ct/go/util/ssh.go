@@ -140,7 +140,7 @@ func RebootWorkers() {
 		glog.Errorf("Got error while rebooting workers: %v", err)
 		return
 	}
-	waitTime := 5 * time.Minute
+	waitTime := 3 * time.Minute
 	glog.Infof("Waiting for %s till all workers come back from reboot", waitTime)
 	time.Sleep(waitTime)
 
