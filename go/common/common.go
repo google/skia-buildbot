@@ -28,6 +28,11 @@ func Init() {
 		glog.Infof("Flags: --%s=%v", f.Name, f.Value)
 	})
 
+	// See skbug.com/4386 for details on why the below section exists.
+	glog.Info("Initializing logserver for log level INFO.")
+	glog.Warning("Initializing logserver for log level WARNING.")
+	glog.Error("Initializing logserver for log level ERROR.")
+
 	// Use all cores.
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
