@@ -142,6 +142,7 @@ func RebootWorkers() {
 	}
 	waitTime := 5 * time.Minute
 	glog.Infof("Waiting for %s till all workers come back from reboot", waitTime)
+	time.Sleep(waitTime)
 
 	// Check every 2 mins and timeout after 10 mins.
 	ticker := time.NewTicker(2 * time.Minute)
