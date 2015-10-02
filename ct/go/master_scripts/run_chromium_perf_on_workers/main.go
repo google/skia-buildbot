@@ -280,7 +280,6 @@ func main() {
 		"--skia_hash=" + skiaHash,
 		"--missing_output_slaves=" + strings.Join(noOutputSlaves, " "),
 		"--logs_link_prefix=" + util.LOGS_LINK_PREFIX,
-		// rmistry
 	}
 	err = util.ExecuteCmd("python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
@@ -309,7 +308,6 @@ func mergeUploadCSVFiles(runID string, gs *util.GsUtil) ([]string, error) {
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
 			glog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
-			// rmistry gather the list here!!!
 			noOutputSlaves = append(noOutputSlaves, fmt.Sprintf(util.WORKER_NAME_TEMPLATE, (workerNum)))
 			continue
 		}
