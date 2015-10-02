@@ -68,7 +68,8 @@ class CsvComparer(object):
                discard_outliers, raw_csv_nopatch, raw_csv_withpatch,
                num_repeated, target_platform, crashed_instances,
                missing_devices, browser_args_nopatch, browser_args_withpatch,
-               pageset_type, chromium_hash, skia_hash, description):
+               pageset_type, chromium_hash, skia_hash, missing_output_slaves,
+               logs_link_prefix, description):
     """Constructs a CsvComparer instance."""
     self._csv_file1 = csv_file1
     self._csv_file2 = csv_file2
@@ -92,6 +93,8 @@ class CsvComparer(object):
     self._pageset_type = pageset_type
     self._chromium_hash = chromium_hash
     self._skia_hash = skia_hash
+    self._missing_output_slaves = missing_output_slaves
+    self._logs_link_prefix = logs_link_prefix
     self._description = description
 
   def _IsPercDiffSameOrAboveThreshold(self, perc_diff):
@@ -285,6 +288,9 @@ class CsvComparer(object):
     sorted_fieldnames_totals_items = sorted(
         fieldnames_to_totals.items(), key=lambda tuple: tuple[1].perc_diff,
         reverse=True)
+    missing_output_slaves_list = []
+    if self._missing_output_slaves:
+      missing_output_slaves_list = self._missing_output_slaves.split(' ')
     rendered = loader.render_to_string(
         'csv_totals.html',
         {'sorted_fieldnames_totals_items': sorted_fieldnames_totals_items,
@@ -308,6 +314,8 @@ class CsvComparer(object):
          'html_report_date': html_report_date,
          'chromium_hash': self._chromium_hash,
          'skia_hash': self._skia_hash,
+         'missing_output_slaves': missing_output_slaves_list,
+         'logs_link_prefix': self._logs_link_prefix,
          'description': self._description,
         })
     index_html = open(os.path.join(self._output_html_dir, 'index.html'), 'w')
@@ -395,7 +403,7 @@ if '__main__' == __name__:
       help='Text that lists all instances with missing Android devices.')
   option_parser.add_option(
       '', '--target_platform',
-      help='The platform telemetry benchmarks/measuremetns were run on.')
+      help='The platform telemetry benchmarks/measurements were run on.')
   option_parser.add_option(
       '', '--browser_args_nopatch',
       help='The browser args that were used for the nopatch run.')
@@ -411,6 +419,12 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--skia_hash',
       help='The skia git hash that was used for this run.')
+  option_parser.add_option(
+      '', '--missing_output_slaves',
+      help='Slaves which had no output for this run.')
+  option_parser.add_option(
+      '', '--logs_link_prefix',
+      help='Prefix link to the logs of the slaves.')
   option_parser.add_option(
       '', '--description',
       help='The description of the run as entered by the requester.')
@@ -442,5 +456,6 @@ if '__main__' == __name__:
       options.crashed_instances, options.missing_devices,
       options.browser_args_nopatch, options.browser_args_withpatch,
       options.pageset_type, options.chromium_hash, options.skia_hash,
+      options.missing_output_slaves, options.logs_link_prefix,
       options.description).Compare())
 

@@ -231,9 +231,10 @@ func main() {
 	}
 
 	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
+	noOutputSlaves := []string{}
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
 		for _, runID := range []string{runIDNoPatch, runIDWithPatch} {
-			if err := mergeUploadCSVFiles(runID, gs); err != nil {
+			if noOutputSlaves, err = mergeUploadCSVFiles(runID, gs); err != nil {
 				glog.Errorf("Unable to merge and upload CSV files for %s: %s", runID, err)
 			}
 		}
@@ -277,6 +278,9 @@ func main() {
 		"--pageset_type=" + *pagesetType,
 		"--chromium_hash=" + chromiumHash,
 		"--skia_hash=" + skiaHash,
+		"--missing_output_slaves=" + strings.Join(noOutputSlaves, " "),
+		"--logs_link_prefix=" + util.LOGS_LINK_PREFIX,
+		// rmistry
 	}
 	err = util.ExecuteCmd("python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
@@ -293,9 +297,10 @@ func main() {
 	taskCompletedSuccessfully = true
 }
 
-func mergeUploadCSVFiles(runID string, gs *util.GsUtil) error {
+func mergeUploadCSVFiles(runID string, gs *util.GsUtil) ([]string, error) {
 	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runID)
 	skutil.MkdirAll(localOutputDir, 0700)
+	noOutputSlaves := []string{}
 	// Copy outputs from all slaves locally.
 	for i := 0; i < util.NumWorkers(); i++ {
 		workerNum := i + 1
@@ -304,17 +309,19 @@ func mergeUploadCSVFiles(runID string, gs *util.GsUtil) error {
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
 			glog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
+			// rmistry gather the list here!!!
+			noOutputSlaves = append(noOutputSlaves, fmt.Sprintf(util.WORKER_NAME_TEMPLATE, (workerNum)))
 			continue
 		}
 		defer skutil.Close(respBody)
 		out, err := os.Create(workerLocalOutputPath)
 		if err != nil {
-			return fmt.Errorf("Unable to create file %s: %s", workerLocalOutputPath, err)
+			return noOutputSlaves, fmt.Errorf("Unable to create file %s: %s", workerLocalOutputPath, err)
 		}
 		defer skutil.Close(out)
 		defer skutil.Remove(workerLocalOutputPath)
 		if _, err = io.Copy(out, respBody); err != nil {
-			return fmt.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
+			return noOutputSlaves, fmt.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
 		}
 	}
 	// Call csv_merger.py to merge all results into a single results CSV.
@@ -331,12 +338,12 @@ func mergeUploadCSVFiles(runID string, gs *util.GsUtil) error {
 	}
 	err := util.ExecuteCmd("python", args, []string{}, util.CSV_MERGER_TIMEOUT, nil, nil)
 	if err != nil {
-		return fmt.Errorf("Error running csv_merger.py: %s", err)
+		return noOutputSlaves, fmt.Errorf("Error running csv_merger.py: %s", err)
 	}
 	// Copy the output file to Google Storage.
 	remoteOutputDir := filepath.Join(util.BenchmarkRunsDir, runID, "consolidated_outputs")
 	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
-		return fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
+		return noOutputSlaves, fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
 	}
-	return nil
+	return noOutputSlaves, nil
 }

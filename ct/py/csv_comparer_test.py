@@ -71,6 +71,8 @@ class TestCsvComparer(unittest.TestCase):
         pageset_type='Mobile10k',
         chromium_hash='abcdefg1234567',
         skia_hash='tuvwxyz1234567',
+        missing_output_slaves='build1-m5 build3-m5 build100-m5',
+        logs_link_prefix='http://uberchromegw.corp.google.com/i/skia-ct-worker',
         description='E2EComparerWithDiscardOutliers',
     )
     comparer.Compare()
@@ -100,6 +102,8 @@ class TestCsvComparer(unittest.TestCase):
         pageset_type='10k',
         chromium_hash='abcdefg1234567',
         skia_hash='tuvwxyz1234567',
+        missing_output_slaves='',
+        logs_link_prefix='',
         description='E2EComparerWithNoDiscardOutliers',
     )
     comparer.Compare()
