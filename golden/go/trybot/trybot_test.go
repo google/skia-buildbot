@@ -60,7 +60,7 @@ func TestTrybotIngester(t *testing.T) {
 	allIssues, _, err := resultStore.List(0, 10)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(allIssues))
-	assert.Equal(t, TEST_ISSUE, allIssues[0])
+	assert.Equal(t, TEST_ISSUE, allIssues[0].Issue)
 
 	time.Sleep(time.Second)
 

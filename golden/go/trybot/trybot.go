@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"sort"
 
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
@@ -26,6 +25,13 @@ func Init(vdb *database.VersionedDB) {
 
 type TrybotResultStorage struct {
 	vdb *database.VersionedDB
+}
+
+// IssueListItem is returned by List containing the issue ids and when they
+// were last updated in GS.
+type IssueListItem struct {
+	Issue       string
+	LastUpdated int64
 }
 
 func NewTrybotResultStorage(vdb *database.VersionedDB) *TrybotResultStorage {
@@ -52,7 +58,7 @@ func (t *TrybotResultStorage) Write(issue string, trybotResults *TryBotResults) 
 		}
 	}
 
-	_, err = t.vdb.DB.Exec("REPLACE INTO tries (issue, results, last_updated) VALUES (?, ?, ?)", issue, b, timeStamp)
+	_, err = t.vdb.DB.Exec("REPLACE INTO tries (issue, results, last_updated) VALUES (?, ?, ?)", issue, string(b), timeStamp)
 	if err != nil {
 		return fmt.Errorf("Failed to write trybot data to database: %s", err)
 	}
@@ -80,31 +86,30 @@ func (t *TrybotResultStorage) Get(issue string) (*TryBotResults, error) {
 }
 
 // List returns the last N Rietveld issue IDs that have been ingested.
-func (t *TrybotResultStorage) List(offset, size int) ([]string, int, error) {
+func (t *TrybotResultStorage) List(offset, size int) ([]*IssueListItem, int, error) {
 	var total int
 	if err := t.vdb.DB.QueryRow("SELECT count(*) FROM tries").Scan(&total); err != nil {
 		return nil, 0, err
 	}
 
 	if total == 0 {
-		return []string{}, 0, nil
+		return []*IssueListItem{}, 0, nil
 	}
 
-	rows, err := t.vdb.DB.Query("SELECT issue FROM tries ORDER BY last_updated DESC LIMIT ?,?", offset, size)
+	rows, err := t.vdb.DB.Query("SELECT issue,last_updated FROM tries ORDER BY last_updated DESC LIMIT ?,?", offset, size)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Failed to read try data from database: %s", err)
 	}
 	defer util.Close(rows)
 
-	ret := make([]string, 0, size)
+	ret := make([]*IssueListItem, 0, size)
 	for rows.Next() {
-		var issue string
-		if err := rows.Scan(&issue); err != nil {
-			return nil, 0, fmt.Errorf("List: Failed to read issus from row: %s", err)
+		listItem := &IssueListItem{}
+		if err := rows.Scan(&listItem.Issue, &listItem.LastUpdated); err != nil {
+			return nil, 0, fmt.Errorf("List: Failed to read issue from row: %s", err)
 		}
-		ret = append(ret, issue)
+		ret = append(ret, listItem)
 	}
-	sort.Sort(sort.Reverse(sort.StringSlice(ret)))
 	return ret, total, nil
 }
 

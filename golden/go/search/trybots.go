@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"go.skia.org/infra/golden/go/storage"
+	"go.skia.org/infra/golden/go/trybot"
 )
 
 // TrybotIssue is the output structure for a Rietveld issue that has
@@ -24,33 +25,33 @@ type TrybotIssue struct {
 // returned list. The second return value is the total number of items
 // available to facilitate pagination.
 func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIssue, int, error) {
-	issueIds, total, err := storages.TrybotResults.List(offset, size)
+	issueInfos, total, err := storages.TrybotResults.List(offset, size)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	if len(issueIds) == 0 {
+	if len(issueInfos) == 0 {
 		return []*TrybotIssue{}, 0, nil
 	}
 
-	ch := make(chan error, len(issueIds))
+	ch := make(chan error, len(issueInfos))
 	var wg sync.WaitGroup
 	retMap := map[string]*TrybotIssue{}
 	var mutex sync.Mutex
 
-	for _, issueId := range issueIds {
+	for _, issueInfo := range issueInfos {
 		wg.Add(1)
-		go func(issueId string) {
+		go func(issueInfo *trybot.IssueListItem) {
 			defer wg.Done()
 
-			intIssueId, err := strconv.Atoi(issueId)
+			intIssueId, err := strconv.Atoi(issueInfo.Issue)
 			if err != nil {
-				ch <- fmt.Errorf("Unable to parse issue id %s. Got error: %s", issueId, err)
+				ch <- fmt.Errorf("Unable to parse issue id %s. Got error: %s", issueInfo.Issue, err)
 				return
 			}
 			result, err := storages.RietveldAPI.GetIssueProperties(intIssueId, false)
 			if err != nil {
-				ch <- fmt.Errorf("Error retrieving rietveld informaton for issue: %s: %s", issueId, err)
+				ch <- fmt.Errorf("Error retrieving rietveld informaton for issue: %s: %s", issueInfo.Issue, err)
 				return
 			}
 
@@ -63,10 +64,10 @@ func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIss
 			}
 
 			mutex.Lock()
-			retMap[issueId] = ret
+			retMap[issueInfo.Issue] = ret
 			mutex.Unlock()
 
-		}(issueId)
+		}(issueInfo)
 	}
 	wg.Wait()
 	close(ch)
@@ -76,8 +77,8 @@ func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIss
 	}
 
 	ret := make([]*TrybotIssue, 0, len(retMap))
-	for _, issueId := range issueIds {
-		ret = append(ret, retMap[issueId])
+	for _, issueInfo := range issueInfos {
+		ret = append(ret, retMap[issueInfo.Issue])
 	}
 
 	return ret, total, nil

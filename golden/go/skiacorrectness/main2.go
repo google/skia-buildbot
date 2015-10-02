@@ -1303,6 +1303,7 @@ func queryFromRequest(r *http.Request) *search.Query {
 		Query:          r.FormValue("query"),
 		Issue:          r.FormValue("issue"),
 		Limit:          Limit,
+		IncludeMaster:  r.FormValue("master") == "true",
 	}
 }
 

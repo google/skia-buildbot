@@ -8,9 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-	"github.com/skia-dev/glog"
-
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
@@ -100,7 +97,8 @@ type Query struct {
 	Query          string
 	Issue          string
 	CommitRange    CommitRange
-	Limit          int // Only return this many items.
+	Limit          int  // Only return this many items.
+	IncludeMaster  bool // Include digests from master when searching Rietveld issues.
 }
 
 // excludeClassification returns true if the given label/status for a digest
@@ -150,8 +148,6 @@ func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer 
 	if err != nil {
 		return nil, 0, nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
 	}
-
-	glog.Infof("\n\n\nGot query: %s\n\n\n", spew.Sdump(parsedQuery))
 
 	tile, err := storages.GetLastTileTrimmed(q.IncludeIgnores)
 	if err != nil {
@@ -216,34 +212,46 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 		return nil, err
 	}
 
-	// if !q.IncludeIgnores {
-	// 	matcher, err := storages.IgnoreStore.BuildRuleMatcher()
-	// 	if err != nil {
-	// 		return nil, fmt.Errorf("Unable to build rules matcher: %s", err)
-	// 	}
-	// 	for k, v := range trybotResults {
-	// 		if _, ok := matcher(v.Params); ok {
-	// 			delete(trybotResults, k)
-	// 		}
-	// 	}
-	// }
+	// Get a matcher for the ignore rules if we filter ignores.
+	var ignoreMatcher ignore.RuleMatcher = nil
+	if !q.IncludeIgnores {
+		ignoreMatcher, err = storages.IgnoreStore.BuildRuleMatcher()
+		if err != nil {
+			return nil, fmt.Errorf("Unable to build rules matcher: %s", err)
+		}
+	}
 
-	var rule ignore.QueryRule = nil
+	// Set up a rule to match the query.
+	var queryRule ignore.QueryRule = nil
 	if len(parsedQuery) > 0 {
-		rule = ignore.NewQueryRule(parsedQuery)
+		queryRule = ignore.NewQueryRule(parsedQuery)
 	}
 
 	// Aggregate the results into an intermediate representation to avoid
 	// passing over the dataset twice.
 	inter := map[string]*issueIntermediate{}
+	talliesByTest := tallies.ByTest()
+
 	for _, bot := range trybotResults.Bots {
 		for _, result := range bot.TestResults {
 			expandedParams := util.CopyStringMap(bot.BotParams)
 			util.AddParams(expandedParams, result.Params)
-			if (rule == nil) || rule.IsMatch(expandedParams) {
+
+			if ignoreMatcher != nil {
+				if _, ok := ignoreMatcher(expandedParams); ok {
+					continue
+				}
+			}
+
+			if (queryRule == nil) || queryRule.IsMatch(expandedParams) {
 				testName := expandedParams[types.PRIMARY_KEY_FIELD]
 				digest := trybotResults.Digests[result.DigestIdx]
 				key := testName + ":" + digest
+				if !q.IncludeMaster {
+					if _, ok := talliesByTest[testName][digest]; ok {
+						continue
+					}
+				}
 				if found, ok := inter[key]; ok {
 					found.add(expandedParams)
 				} else if cl := exp.Classification(testName, digest); !q.excludeClassification(cl) {
@@ -253,11 +261,9 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 		}
 	}
 
-	glog.Infof("Intermediate values: %d    %d", len(trybotResults.Bots), len(inter))
-
 	// Build the output.
-	talliesByTest := tallies.ByTest()
 	ret := make([]*Digest, 0, len(inter))
+	emptyTraces := &Traces{}
 	for _, i := range inter {
 		ret = append(ret, &Digest{
 			Test:     i.test,
@@ -265,11 +271,9 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 			Status:   i.status.String(),
 			ParamSet: i.paramSet,
 			Diff:     buildDiff(i.test, i.digest, exp, tile, talliesByTest, nil, storages.DiffStore, tileParamSet, q.IncludeIgnores),
+			Traces:   emptyTraces,
 		})
 	}
-
-	glog.Infof("Result: %d ", len(ret))
-
 	return ret, nil
 }
 
@@ -356,6 +360,7 @@ func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Til
 	if t == nil {
 		t = tally.Tally{}
 	}
+
 	ret.Pos = &DiffDigest{
 		Closest: digesttools.ClosestDigest(test, digest, e, t, diffStore, types.POSITIVE),
 	}
