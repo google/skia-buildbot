@@ -1,0 +1,179 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <alert-controls-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/alert-controls-sk.html" rel="import" />
+
+  Usage:
+
+    <alert-controls-sk></alert-controls-sk>
+
+  Properties:
+    alert_url - URL associated with this alert.
+
+    extra_params - Any extra parameters to submit with POST requests.
+
+    show_snooze - Whether or not to show the "snooze" button.
+
+    show_unsnooze - Whether or not to show the "unsnooze" button.
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<link rel="stylesheet" href="/res/common/css/md.css">
+<link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/communication-icons.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<dom-module id="alert-controls-sk">
+  <template>
+    <div class="flex horizontal layout">
+      <paper-input value="{{_commentText}}" label="Comment" class="flex"></paper-input>
+      <template is="dom-if" if="{{show_snooze}}">
+        <paper-icon-button icon="icons:alarm" on-click="_snoozeDialog" title="Snooze and add comment"></paper-icon-button>
+      </template>
+      <template is="dom-if" if="{{show_unsnooze}}">
+        <paper-icon-button icon="icons:alarm-off" on-click="_unsnoozeAlert" title="Unsnooze and add comment"></paper-icon-button>
+      </template>
+      <paper-icon-button icon="icons:highlight-off" on-click="_dismissAlert" title="Dismiss and add comment"></paper-icon-button>
+      <paper-icon-button icon="communication:comment" on-click="_addComment" title="Add comment">
+    </paper-icon-button></div>
+    <paper-dialog id="snoozeDialog" heading="How long?" transition="paper-dialog-transition-center">
+      <div>
+        <paper-input type="number" label="Days" value="{{_snoozeDays}}" always-float-label></paper-input>
+        <paper-input type="number" label="Hours" value="{{_snoozeHours}}" always-float-label></paper-input>
+        <paper-input type="number" label="Minutes" value="{{_snoozeMins}}" always-float-label></paper-input>
+        <button on-click="_snoozeAlert" affirmative>Ok</button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: "alert-controls-sk",
+
+      properties: {
+
+        /**
+         * URL associated with this alert.
+         */
+        alert_url: {
+          type: String,
+          value: "",
+        },
+
+        /**
+         * Any extra parameters to submit with POST requests.
+         */
+        extra_params: {
+          type: Array,
+          value: function() { return []; },
+        },
+
+        /**
+         * Whether or not to show the "snooze" button.
+         */
+        show_snooze: {
+          type: Boolean,
+          value: false,
+        },
+
+        /**
+         * Whether or not to show the "unsnooze" button.
+         */
+        show_unsnooze: {
+          type: Boolean,
+          value: false,
+        },
+
+        _commentText: {
+          type: String,
+          value: "",
+        },
+
+        _snoozeDays: {
+          type: Number,
+          value: 0,
+        },
+
+        _snoozeHours: {
+          type: Number,
+          value: 0,
+        },
+
+        _snoozeMins: {
+          type: Number,
+          value: 0,
+        },
+
+      },
+
+      _resetInputs: function() {
+        this._commentText = "";
+        this._snoozeDays = 0;
+        this._snoozeHours = 0;
+        this._snoozeMins = 0;
+        this.$.snoozeDialog.close();
+      },
+
+      _post: function(u, params) {
+        var postParams = {};
+        for (var p in params) {
+          postParams[p] = params[p];
+        }
+        for (var p in this.extra_params) {
+          postParams[p] = this.extra_params[p];
+        }
+        sk.post(this.alert_url + u, JSON.stringify(postParams)).then(function (resp) {
+          this._resetInputs();
+          this.dispatchEvent(new CustomEvent("submit", null));
+        }.bind(this), function (err) {
+          sk.errorMessage("Action failed: " + err);
+        });
+      },
+
+      _dismissAlert: function() {
+        this._post("/dismiss", {"comment": this._commentText });
+      },
+
+      _snoozeAlert: function () {
+        var until = new Date();
+        until.setDate(until.getDate() + parseInt(this._snoozeDays));
+        until.setHours(until.getHours() + parseInt(this._snoozeHours));
+        until.setMinutes(until.getMinutes() + parseInt(this._snoozeMins));
+        var params = {
+          "comment": this._commentText,
+          "until": Math.round(until.getTime() / 1000)
+        };
+        this._post("/snooze", params);
+      },
+
+      _snoozeDialog: function() {
+        this.$.snoozeDialog.toggle();
+      },
+
+      _unsnoozeAlert: function() {
+        this._post("/unsnooze", {"comment": this._commentText});
+      },
+
+      _addComment: function() {
+        if (this._commentText == "") {
+          sk.errorMessage("Empty comments are not allowed.");
+          return;
+        }
+        this._post("/addcomment", {"comment": this._commentText});
+      },
+    });
+  </script>
+</dom-module>
