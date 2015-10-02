@@ -236,9 +236,9 @@ func RegisterShareDBServer(s *grpc.Server, srv ShareDBServer) {
 	s.RegisterService(&_ShareDB_serviceDesc, srv)
 }
 
-func _ShareDB_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _ShareDB_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(GetRequest)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ShareDBServer).Get(ctx, in)
@@ -248,9 +248,9 @@ func _ShareDB_Get_Handler(srv interface{}, ctx context.Context, codec grpc.Codec
 	return out, nil
 }
 
-func _ShareDB_Put_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _ShareDB_Put_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(PutRequest)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ShareDBServer).Put(ctx, in)
@@ -260,9 +260,9 @@ func _ShareDB_Put_Handler(srv interface{}, ctx context.Context, codec grpc.Codec
 	return out, nil
 }
 
-func _ShareDB_Delete_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _ShareDB_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(DeleteRequest)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ShareDBServer).Delete(ctx, in)
@@ -272,9 +272,9 @@ func _ShareDB_Delete_Handler(srv interface{}, ctx context.Context, codec grpc.Co
 	return out, nil
 }
 
-func _ShareDB_Databases_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _ShareDB_Databases_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(DatabasesRequest)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ShareDBServer).Databases(ctx, in)
@@ -284,9 +284,9 @@ func _ShareDB_Databases_Handler(srv interface{}, ctx context.Context, codec grpc
 	return out, nil
 }
 
-func _ShareDB_Buckets_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _ShareDB_Buckets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(BucketsRequest)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ShareDBServer).Buckets(ctx, in)
@@ -296,9 +296,9 @@ func _ShareDB_Buckets_Handler(srv interface{}, ctx context.Context, codec grpc.C
 	return out, nil
 }
 
-func _ShareDB_Keys_Handler(srv interface{}, ctx context.Context, codec grpc.Codec, buf []byte) (interface{}, error) {
+func _ShareDB_Keys_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(KeysRequest)
-	if err := codec.Unmarshal(buf, in); err != nil {
+	if err := dec(in); err != nil {
 		return nil, err
 	}
 	out, err := srv.(ShareDBServer).Keys(ctx, in)
