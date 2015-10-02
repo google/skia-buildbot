@@ -98,6 +98,9 @@ func main() {
 			glog.Errorf("Could not find Android device: %s", err)
 			return
 		}
+		// Kill adb server to make sure we start from a clean slate.
+		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"kill-server"}, []string{},
+			util.ADB_ROOT_TIMEOUT, nil, nil))
 		// Make sure adb shell is running as root.
 		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"root"}, []string{},
 			util.ADB_ROOT_TIMEOUT, nil, nil))
