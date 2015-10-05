@@ -1,0 +1,171 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <alert-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/alert-sk.html" rel="import" />
+
+  Usage:
+
+    <alert-sk></alert-sk>
+
+  Properties:
+    alert - The alert object. Expected to have the following attributes:
+        id: Number
+        message: String
+        comments: Array of comment objects.
+        selected: Boolean
+        snoozedUntil: Number
+
+    allow_edit - Whether or not to allow edits for users with edit rights.
+
+    compact - If true, minimal information about alerts is displayed.
+
+  Methods:
+    None
+
+  Events:
+    submit - Fired when the alert is changed by the user through the alert
+        controls.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="/res/common/imp/9/alert-controls-sk.html">
+<link rel="import" href="/res/common/imp/9/comments-sk.html">
+<link rel="import" href="/res/common/imp/9/human-date-sk.html">
+<link rel="import" href="/res/common/imp/9/linkify-sk.html">
+<dom-module id="alert-sk">
+  <template>
+    <style>
+      #wrapper {
+        padding: 20px;
+        margin: 10px;
+        border-radius: 10px;
+        background-color: #F5F5F5;
+        color: #000000;
+      }
+      div.message {
+        overflow-wrap: word-break;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      div.message[disabled] {
+        color: #AAAAAA;
+      }
+      #commentContainer {
+        margin-top: 15px;
+      }
+      paper-checkbox {
+        margin-right: 10px;
+      }
+    </style>
+    <div id="wrapper" class="vertical horizontal center">
+      <div class="horizontal layout start">
+        <template is="dom-if" if="{{_editRights}}">
+          <paper-checkbox id="checkbox" on-change="_selectedChanged" checked="{{alert.selected}}">
+          </paper-checkbox>
+        </template>
+        <div class="message flex"><linkify-sk text="{{alert.message}}"></linkify-sk></div>
+          <template is="dom-if" if="{{_isSnoozed(alert)}}">
+            <div class="message">Snoozed for <human-date-sk date="{{alert.snoozedUntil}}" diff seconds></human-date-sk></div>
+          </template>
+        </div>
+        <template is="dom-if" if="{{!compact}}">
+          <div id="commentContainer">
+            <comments-sk comments="{{alert.comments}}">
+            </comments-sk>
+            <template is="dom-if" if="{{_editRights}}">
+              <alert-controls-sk
+                  id="controls"
+                  alert_url="{{_getAlertUrl(alert)}}"
+                  show_snooze$="{{!_isSnoozed(alert)}}"
+                  show_unsnooze$="{{_isSnoozed(alert)}}"
+                  on-submit="_submit">
+              </alert-controls-sk>
+            </div>
+          </template>
+        </template>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: "alert-sk",
+
+      properties: {
+        /**
+         * The alert object. Expected to have the following attributes:
+         *     id: Number
+         *     message: String
+         *     comments: Array of comment objects.
+         *     selected: Boolean
+         *     snoozedUntil: Number
+         */
+        alert: {
+          type: Object,
+          value: function() { return {}; },
+        },
+
+        /**
+         * Whether or not to allow edits for users with edit rights.
+         */
+        allow_edit: {
+          type: Boolean,
+          value: false,
+        },
+
+        /**
+         * If true, minimal information about alerts is displayed.
+         */
+        compact: {
+          type: Boolean,
+          value: false,
+        },
+
+        _editRights: {
+          type: Boolean,
+          value: false,
+        },
+      },
+
+      ready: function() {
+        if (this.allow_edit) {
+          var that = this;
+          sk.Login.then(function (status) {
+            var email = status["Email"];
+            var validEmail = "@google.com";
+            if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
+              that._editRights = true;
+            }
+          });
+        } else {
+          this._editRights = false;
+        }
+      },
+
+      _selectedChanged: function() {
+        this.fire("select-changed", {
+          id: this.alert.id,
+          selected: this.alert.selected
+        });
+      },
+
+      _isSnoozed: function(alert) {
+        return alert.snoozedUntil > 0;
+      },
+
+      _getAlertUrl: function(alert) {
+        return "/json/alerts/" + alert.id;
+      },
+
+      _submit: function(e) {
+        this.dispatchEvent(new CustomEvent("submit", e));
+      },
+    });
+  </script>
+</dom-module>

@@ -51,6 +51,7 @@
         the comments from the database.
 -->
 <link rel="stylesheet" href="/res/common/css/md.css">
+<link rel="import" href="human-date-sk.html">
 <link rel="import" href="linkify-sk.html">
 <link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
@@ -81,14 +82,16 @@
   </style>
   <template>
     <table>
-      <tr>
-        <th>Time</th>
-        <th>User</th>
-        <th>Message</th>
-        <template is="dom-repeat" items="{{extra_fields}}" as="field">
-          <th>{{field.label}}</th>
-        </template>
-      </tr>
+      <template is="dom-if" if="{{_showHeader(comments)}}">
+        <tr>
+          <th>Time</th>
+          <th>User</th>
+          <th>Message</th>
+          <template is="dom-repeat" items="{{extra_fields}}" as="field">
+            <th>{{field.label}}</th>
+          </template>
+        </tr>
+      </template>
       <template is="dom-if" if="{{_canCollapse}}">
         <template is="dom-if" if="{{_collapsed}}">
           <td colspan="3" class="viewlink">
@@ -104,7 +107,7 @@
       <template is="dom-repeat" items="{{comments}}" as="comment" index-as="index">
         <template is="dom-if" if="{{_showThisComment(collapse_threshold, _collapsed, comments, index)}}">
           <tr class="comment">
-            <td>{{_parseCommentDate(comment)}}</td>
+            <td><human-date-sk date="{{comment.time}}" diff seconds></human-date-sk> ago</td>
             <td>{{comment.user}}</td>
             <td class="commentMessage"><linkify-sk text="{{comment.message}}"></linkify-sk></td>
             <template is="dom-repeat" items="{{extra_fields}}" as="field">
@@ -283,11 +286,6 @@
         this._wantCollapsed = false;
       },
 
-      _parseDate: function(v) {
-        var d = new Date(v * 1000);
-        return d.toLocaleDateString() + ", " + d.toLocaleTimeString();
-      },
-
       _addComment: function() {
         if (!this.allow_empty_comments && this._commentText == "") {
           sk.errorMessage("Empty comments are not allowed.");
@@ -346,6 +344,10 @@
         return editRights && allow_add_comment;
       },
 
+      _showHeader: function(comments) {
+        return comments.length > 0;
+      },
+
       _showThisComment: function(collapse_threshold, collapsed, comments, index) {
         if (index >= comments.length) {
           // For some reason, this happens when elements are deleted.
@@ -382,12 +384,8 @@
         return comments.length - collapse_threshold;
       },
 
-      _parseCommentDate: function(comment) {
-        return this._parseDate(comment.time);
-      },
     });
 
   })();
   </script>
 </dom-module>
-</body></html>

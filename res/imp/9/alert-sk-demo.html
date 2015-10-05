@@ -1,0 +1,69 @@
+<html>
+<head>
+  <title>alert-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    // Mock out sk.get() to return the login info.
+    sk.get = function(url) {
+      return new Promise(function (resolve, reject) {
+        resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
+      });
+    };
+
+    // Mock out sk.post() so we don't display errors.
+    sk.post = function(url) {
+      return new Promise(function (resolve, reject) {
+        resolve('');
+      });
+    };
+  </script>
+  <link rel=import href="alert-sk.html">
+  <link rel=import href="login.html">
+</head>
+<body>
+  <h1>alert-sk demo</h1>
+  <login-sk style="display:none"></login-sk>
+  <div>
+    <h2>Default</h2>
+    <alert-sk
+        alert='{"id":0,"message":"Alert! Watch out! Everything is broken!","comments":[{"id":0,"user":"user@google.com","time":15000000,"message":"Hi! Check this out: http://www.google.com skia:4253"},{"id":1,"user":"me@google.com","time":140000,"message":"Helloworld"}],"selected":false,"snoozedUntil":0}'
+        >
+    </alert-sk>
+  </div>
+  <div>
+    <h2>Allow Edits</h2>
+    <alert-sk
+        allow_edit
+        alert='{"id":0,"message":"Alert! Watch out! Everything is broken!","comments":[{"id":0,"user":"user@google.com","time":15000000,"message":"Hi! Check this out: http://www.google.com skia:4253"},{"id":1,"user":"me@google.com","time":140000,"message":"Helloworld"}],"selected":false,"snoozedUntil":0}'
+        >
+    </alert-sk>
+  </div>
+  <div>
+    <h2>Snoozed</h2>
+    <alert-sk
+        allow_edit
+        alert='{"id":0,"message":"Alert! Watch out! Everything is broken!","comments":[{"id":0,"user":"user@google.com","time":15000000,"message":"Hi! Check this out: http://www.google.com skia:4253"},{"id":1,"user":"me@google.com","time":140000,"message":"Helloworld"}],"selected":false,"snoozedUntil":9999999999}'
+        >
+    </alert-sk>
+  </div>
+  <div>
+    <h2>No Comments</h2>
+    <alert-sk
+        allow_edit
+        alert='{"id":0,"message":"Alert! Watch out! Everything is broken!","comments":[],"selected":false,"snoozedUntil":9999999999}'
+        >
+    </alert-sk>
+  </div>
+  <div>
+    <h2>Compact (controls and comments hidden)</h2>
+    <alert-sk
+        alert='{"id":0,"message":"Alert! Watch out! Everything is broken!","comments":[{"id":0,"user":"user@google.com","time":15000000,"message":"Hi! Check this out: http://www.google.com skia:4253"},{"id":1,"user":"me@google.com","time":140000,"message":"Helloworld"}],"selected":false,"snoozedUntil":9999999999}'
+        compact>
+    </alert-sk>
+  </div>
+</body>
+</html>

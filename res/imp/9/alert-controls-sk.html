@@ -127,7 +127,7 @@
         this.$.snoozeDialog.close();
       },
 
-      _post: function(u, params) {
+      _post: function(action, params) {
         var postParams = {};
         for (var p in params) {
           postParams[p] = params[p];
@@ -135,9 +135,9 @@
         for (var p in this.extra_params) {
           postParams[p] = this.extra_params[p];
         }
-        sk.post(this.alert_url + u, JSON.stringify(postParams)).then(function (resp) {
+        sk.post(this.alert_url + "/" + action, JSON.stringify(postParams)).then(function (resp) {
           this._resetInputs();
-          this.dispatchEvent(new CustomEvent("submit", null));
+          this.dispatchEvent(new CustomEvent("submit", {"alertUrl": this.alert_url, "action": action}));
         }.bind(this), function (err) {
           sk.errorMessage("Action failed: " + err);
         });
