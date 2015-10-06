@@ -23,7 +23,7 @@ const (
 
 	// The number of samples per trace in a tile, i.e. the number of git hashes that have data
 	// in a single tile.
-	TILE_SIZE = 128
+	TILE_SIZE = 50
 )
 
 // Trace represents a single series of measurements. The actual values it

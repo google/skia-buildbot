@@ -21,6 +21,12 @@ func TestMerge(t *testing.T) {
 	t2.Commits[1].Hash = "hash33"
 	t2.Commits[2].Hash = "hash34"
 
+	t3 := tiling.NewTile()
+	t2.Scale = 1
+	t2.TileIndex = 22
+	t2.Commits[1].Hash = "hash43"
+	t2.Commits[2].Hash = "hash44"
+
 	// Create a Trace that exists in both tile1 and tile2.
 	tr := NewPerfTrace()
 	tr.Params_["p1"] = "v1"
@@ -49,8 +55,8 @@ func TestMerge(t *testing.T) {
 	t2.Traces["bar"] = tr
 
 	// Merge the two tiles.
-	merged := tiling.Merge(t1, t2)
-	if got, want := len(merged.Traces["foo"].(*PerfTrace).Values), 2*tiling.TILE_SIZE; got != want {
+	merged := tiling.Merge(tiling.Merge(t1, t2), t3)
+	if got, want := len(merged.Traces["foo"].(*PerfTrace).Values), 3*tiling.TILE_SIZE; got != want {
 		t.Errorf("Wrong config.TILE_SIZE: Got %v Want %v", got, want)
 	}
 
@@ -63,7 +69,7 @@ func TestMerge(t *testing.T) {
 	if got, want := len(merged.Traces), 2; got != want {
 		t.Errorf("Number of traces: Got %v Want %v", got, want)
 	}
-	if got, want := len(merged.Traces["foo"].(*PerfTrace).Values), 2*tiling.TILE_SIZE; got != want {
+	if got, want := len(merged.Traces["foo"].(*PerfTrace).Values), 3*tiling.TILE_SIZE; got != want {
 		t.Errorf("Number of values: Got %v Want %v", got, want)
 	}
 	if got, want := len(merged.ParamSet), 4; got != want {
@@ -80,8 +86,8 @@ func TestMerge(t *testing.T) {
 		V float64
 	}{
 		{127, 1e100},
-		{128, 0.3},
-		{129, 0.4},
+		{50, 0.3},
+		{51, 0.4},
 		{130, 1e100},
 		{0, 0.1},
 		{1, 0.2},
@@ -103,8 +109,8 @@ func TestMerge(t *testing.T) {
 		V float64
 	}{
 		{127, 1e100},
-		{128, 0.5},
-		{129, 0.6},
+		{50, 0.5},
+		{51, 0.6},
 		{130, 1e100},
 	}
 	for _, tc := range testCases {

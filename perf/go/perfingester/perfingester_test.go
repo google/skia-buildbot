@@ -64,14 +64,14 @@ func TestIngestCommits(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got, want := tt.LastTileNum(), 1; got != want {
+	if got, want := tt.LastTileNum(), 2; got != want {
 		t.Errorf("Move failed, wrong tile: Got %d Want %d", got, want)
 	}
 	err = tt.Move("87709bc360f35de52c2f2bc2fc70962fb234db2d")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got, want := tt.LastTileNum(), 0; got != want {
+	if got, want := tt.LastTileNum(), 2; got != want {
 		t.Errorf("Move failed, wrong tile: Got %d Want %d", got, want)
 	}
 }
