@@ -15,10 +15,10 @@ server {
     listen      443 default_server;
     server_name skia.org www.skia.org;
 
+    ssl on;
+
     access_log /var/log/nginx/skia.access.log;
     error_log /var/log/nginx/skia.error.log error;
-
-    ssl on;
 
     if ( $host != 'skia.org' ) {
         rewrite ^/(.*)$ https://skia.org/$1 permanent;
@@ -40,10 +40,10 @@ server {
     listen      443;
     server_name perf.skia.org;
 
+    ssl on;
+
     access_log /var/log/nginx/perf.access.log;
     error_log /var/log/nginx/perf.error.log error;
-
-    ssl on;
 
     location / {
         proxy_pass http://skia-perf:8000;
@@ -60,10 +60,10 @@ server {
     listen      443;
     server_name gold.skia.org;
 
+    ssl on;
+
     access_log /var/log/nginx/gold.access.log;
     error_log /var/log/nginx/gold.error.log error;
-
-    ssl on;
 
     location / {
         proxy_pass http://skia-gold-prod:8001;
@@ -80,10 +80,10 @@ server {
     listen      443;
     server_name gold-staging.skia.org;
 
+    ssl on;
+
     access_log /var/log/nginx/gold-stage.access.log;
     error_log /var/log/nginx/gold-stage.error.log error;
-
-    ssl on;
 
     location / {
         proxy_pass http://skia-gold-stage:8001;
@@ -313,10 +313,10 @@ server {
     listen      443;
     server_name ct.skia.org;
 
+    ssl on;
+
     access_log /var/log/nginx/ct.access.log;
     error_log /var/log/nginx/ct.error.log error;
-
-    ssl on;
 
     location / {
         proxy_pass http://skia-ctfe:8002;
@@ -343,13 +343,13 @@ server {
 #####   bug.skia.org (REDIRECT)   ###########################
 server {
     listen 443;
+    server_name bug.skia.org;
 
     ssl on;
 
     access_log /var/log/nginx/bug.access.log;
     error_log /var/log/nginx/bug.error.log error;
 
-    server_name bug.skia.org;
     rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
     rewrite ^ https://code.google.com/p/skia/issues/list redirect;
 }
@@ -395,16 +395,21 @@ server {
         proxy_pass http://skia-bugchomper:8050;
     }
 }
+server {
+    listen      80;
+    server_name bugchomper.skia.org;
+    return 301 https://bugchomper.skia.org$request_uri;
+}
 
 #####   internal.skia.org   ###########################
 server {
     listen      443;
     server_name internal.skia.org;
 
+    ssl on;
+
     access_log /var/log/nginx/internal.access.log;
     error_log /var/log/nginx/internal.error.log error;
-
-    ssl on;
 
     location / {
         proxy_pass http://skia-internal:8000;
@@ -417,31 +422,22 @@ server {
     return 301 https://internal.skia.org$request_uri;
 }
 
-
-server {
-    listen      80;
-    server_name bugchomper.skia.org;
-    return 301 https://bugchomper.skia.org$request_uri;
-}
-
 #####   cs.skia.org (REDIRECT)   ###########################
 server {
     listen 443;
+    server_name cs.skia.org;
 
     ssl on;
 
     access_log /var/log/nginx/cs.access.log;
     error_log /var/log/nginx/cs.error.log error;
 
-    server_name cs.skia.org;
     rewrite ^/(.+)$ https://code.google.com/p/chromium/codesearch#search/&q=$1%20file:%5Esrc/third_party/skia/ redirect;
     rewrite ^ https://code.google.com/p/chromium/codesearch#chromium/src/third_party/skia/ redirect;
 }
-
 server {
     listen 80;
     server_name cs.skia.org;
     rewrite ^/(.+)$ https://code.google.com/p/chromium/codesearch#search/&q=$1%20file:%5Esrc/third_party/skia/ redirect;
     rewrite ^ https://code.google.com/p/chromium/codesearch#chromium/src/third_party/skia/ redirect;
 }
-
