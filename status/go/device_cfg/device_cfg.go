@@ -81,14 +81,8 @@ func GetAndroidDeviceCfg(workdir string) (map[string]*AndroidDeviceCfg, error) {
 // AndroidDeviceCfgPoller periodically reads the android_devices.py file from
 // the repo using Gitiles.
 func AndroidDeviceCfgPoller(workdir string) (*util.PollingStatus, error) {
-	var v map[string]*AndroidDeviceCfg
-	return util.NewPollingStatus(&v, func(value interface{}) error {
-		cfg, err := GetAndroidDeviceCfg(workdir)
-		if err != nil {
-			return err
-		}
-		*value.(*map[string]*AndroidDeviceCfg) = cfg
-		return nil
+	return util.NewPollingStatus(func() (interface{}, error) {
+		return GetAndroidDeviceCfg(workdir)
 	}, 5*time.Minute)
 }
 
@@ -138,13 +132,7 @@ func GetSSHDeviceCfg(workdir string) (map[string]*SSHDeviceCfg, error) {
 // SSHDeviceCfgPoller periodically reads the android_devices.py file from
 // the repo using Gitiles.
 func SSHDeviceCfgPoller(workdir string) (*util.PollingStatus, error) {
-	var v map[string]*SSHDeviceCfg
-	return util.NewPollingStatus(&v, func(value interface{}) error {
-		cfg, err := GetSSHDeviceCfg(workdir)
-		if err != nil {
-			return err
-		}
-		*value.(*map[string]*SSHDeviceCfg) = cfg
-		return nil
+	return util.NewPollingStatus(func() (interface{}, error) {
+		return GetSSHDeviceCfg(workdir)
 	}, 5*time.Minute)
 }

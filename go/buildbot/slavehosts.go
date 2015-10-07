@@ -84,13 +84,7 @@ func GetSlaveHostsCfg(workdir string) (map[string]*SlaveHost, error) {
 // repo. It does NOT update the repository; it is assumed that the caller takes
 // care of that.
 func SlaveHostsCfgPoller(workdir string) (*util.PollingStatus, error) {
-	var v map[string]*SlaveHost
-	return util.NewPollingStatus(&v, func(value interface{}) error {
-		cfg, err := GetSlaveHostsCfg(workdir)
-		if err != nil {
-			return err
-		}
-		*value.(*map[string]*SlaveHost) = cfg
-		return nil
+	return util.NewPollingStatus(func() (interface{}, error) {
+		return GetSlaveHostsCfg(workdir)
 	}, 5*time.Minute)
 }

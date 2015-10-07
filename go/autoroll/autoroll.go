@@ -66,13 +66,7 @@ func GetLastNRolls(n int) ([]*AutoRollIssue, error) {
 }
 
 func AutoRollStatusPoller() (*util.PollingStatus, error) {
-	var v []*AutoRollIssue
-	return util.NewPollingStatus(&v, func(value interface{}) error {
-		res, err := GetLastNRolls(POLLER_ROLLS_LIMIT)
-		if err != nil {
-			return err
-		}
-		*value.(*[]*AutoRollIssue) = res
-		return nil
+	return util.NewPollingStatus(func() (interface{}, error) {
+		return GetLastNRolls(POLLER_ROLLS_LIMIT)
 	}, 1*time.Minute)
 }

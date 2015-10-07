@@ -53,9 +53,9 @@ var (
 	hostsTemplate        *template.Template                   = nil
 	infraTemplate        *template.Template                   = nil
 	dbClient             *influxdb.Client                     = nil
-	goldGMStatus         *util.IntPollingStatus               = nil
-	goldSKPStatus        *util.IntPollingStatus               = nil
-	goldImageStatus      *util.IntPollingStatus               = nil
+	goldGMStatus         *util.PollingStatus                  = nil
+	goldSKPStatus        *util.PollingStatus                  = nil
+	goldImageStatus      *util.PollingStatus                  = nil
 	perfStatus           *util.PollingStatus                  = nil
 	rollStatus           *util.PollingStatus                  = nil
 	slaveHosts           *util.PollingStatus                  = nil
@@ -473,7 +473,7 @@ func buildbotDashHandler(w http.ResponseWriter, r *http.Request) {
 
 func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(perfStatus); err != nil {
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{"alerts": perfStatus}); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to report Perf status: %v", err))
 		return
 	}
@@ -702,18 +702,15 @@ func main() {
 	glog.Info("commit_cache complete")
 
 	// Load Perf and Gold data in a loop.
-	var perfRes struct {
-		Value int `json:"alerts" influxdb:"value"`
-	}
-	perfStatus, err = influxdb.NewPollingStatus(&perfRes, "select value from /skiaperf.skia-perf.alerting.new.value/ order by time desc limit 1", dbClient)
+	perfStatus, err = dbClient.Int64PollingStatus("select value from /skiaperf.skia-perf.alerting.new.value/ order by time desc limit 1", time.Minute)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Perf status: %v", err)
 	}
-	goldGMStatus, err = influxdb.NewIntPollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), dbClient)
+	goldGMStatus, err = dbClient.Int64PollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
 	}
-	goldImageStatus, err = influxdb.NewIntPollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), dbClient)
+	goldImageStatus, err = dbClient.Int64PollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
 	}

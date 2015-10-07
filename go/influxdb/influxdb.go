@@ -13,6 +13,7 @@ import (
 
 	"github.com/skia-dev/influxdb/client"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -110,10 +111,10 @@ func (c *Client) Query(q string) ([]client.Result, error) {
 	return response.Results, nil
 }
 
-// QuerySingle issues a query to the InfluxDB instance and returns a single
+// QueryNumber issues a query to the InfluxDB instance and returns a single
 // point value. The query must return a single series with a single point,
-// otherwise QuerySingle returns an error.
-func (c *Client) QuerySingle(q string) (json.Number, error) {
+// otherwise QueryNumber returns an error.
+func (c *Client) QueryNumber(q string) (json.Number, error) {
 	results, err := c.Query(q)
 	if err != nil {
 		return "", err
@@ -164,24 +165,32 @@ func (c *Client) QuerySingle(q string) (json.Number, error) {
 	return point[valueColumn].(json.Number), nil
 }
 
-// QuerySingleFloat64 issues a query to the InfluxDB instance and returns a
+// QueryFloat64 issues a query to the InfluxDB instance and returns a
 // single float64 point value. The query must return a single series with a
-// single point, otherwise QuerySingleFloat64 returns an error.
-func (c *Client) QuerySingleFloat64(q string) (float64, error) {
-	n, err := c.QuerySingle(q)
+// single point, otherwise QueryFloat64 returns an error.
+func (c *Client) QueryFloat64(q string) (float64, error) {
+	n, err := c.QueryNumber(q)
 	if err != nil {
 		return 0.0, err
 	}
 	return n.Float64()
 }
 
-// QuerySingleInt64 issues a query to the InfluxDB instance and returns a
+// QueryInt64 issues a query to the InfluxDB instance and returns a
 // single int64 point value. The query must return a single series with a
-// single point, otherwise QuerySingleInt64 returns an error.
-func (c *Client) QuerySingleInt64(q string) (int64, error) {
-	n, err := c.QuerySingle(q)
+// single point, otherwise QueryInt64 returns an error.
+func (c *Client) QueryInt64(q string) (int64, error) {
+	n, err := c.QueryNumber(q)
 	if err != nil {
 		return 0.0, err
 	}
 	return n.Int64()
+}
+
+// PollingStatus returns a util.PollingStatus which runs the given
+// query at the given interval.
+func (c *Client) Int64PollingStatus(query string, interval time.Duration) (*util.PollingStatus, error) {
+	return util.NewPollingStatus(func() (interface{}, error) {
+		return c.QueryInt64(query)
+	}, interval)
 }

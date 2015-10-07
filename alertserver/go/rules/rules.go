@@ -231,9 +231,9 @@ func MakeRules(cfgFile string, dbClient *influxdb.Client, tickInterval time.Dura
 }
 
 type queryable interface {
-	QuerySingleFloat64(string) (float64, error)
+	QueryFloat64(string) (float64, error)
 }
 
 func executeQuery(c queryable, q string) (float64, error) {
-	return c.QuerySingleFloat64(q)
+	return c.QueryFloat64(q)
 }

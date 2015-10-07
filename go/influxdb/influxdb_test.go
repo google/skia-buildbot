@@ -18,7 +18,7 @@ func (c dummyClient) Query(q client.Query) (*client.Response, error) {
 	return c.queryFn(q)
 }
 
-func TestQuerySingle(t *testing.T) {
+func TestQueryNumber(t *testing.T) {
 	type queryCase struct {
 		Name        string
 		QueryFunc   func(client.Query) (*client.Response, error)
@@ -204,7 +204,7 @@ func TestQuerySingle(t *testing.T) {
 			database: "nodatabase",
 			dbClient: dummyClient{c.QueryFunc},
 		}
-		val, err := client.QuerySingle("<dummy query>")
+		val, err := client.QueryNumber("<dummy query>")
 		assert.Equal(t, c.ExpectedErr, err, fmt.Sprintf(errorStr, c.Name, c.ExpectedErr, err))
 		if err != nil {
 			continue

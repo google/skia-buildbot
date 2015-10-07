@@ -17,7 +17,7 @@ import (
 
 type mockClient struct{}
 
-func (c mockClient) QuerySingleFloat64(query string) (float64, error) {
+func (c mockClient) QueryFloat64(query string) (float64, error) {
 	return 1.0, nil
 }
 
