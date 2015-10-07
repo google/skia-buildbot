@@ -554,12 +554,7 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToStat
 
 func main() {
 	defer common.LogPanic()
-	hostname, err := os.Hostname()
-	if err != nil {
-		glog.Fatalf("Failed to get Hostname: %s", err)
-	}
-	appName := "logserver." + hostname
-	common.InitWithMetrics(appName, graphiteServer)
+	common.InitWithMetrics("logserver", graphiteServer)
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {
 		glog.Fatalf("Failed to create dir for log files: %s", err)
