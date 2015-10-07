@@ -53,6 +53,14 @@ func containsPull(packages []string) bool {
 
 func main() {
 	defer common.LogPanic()
+	if *hostname == "" {
+		var err error
+		*hostname, err = os.Hostname()
+		if err != nil {
+			// Never call glog before common.Init*.
+			os.Exit(1)
+		}
+	}
 	common.InitWithMetrics("pull", graphiteServer)
 	glog.Infof("Running with hostname: %s", *hostname)
 

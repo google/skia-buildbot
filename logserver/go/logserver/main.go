@@ -442,7 +442,7 @@ func dirWatcher(duration time.Duration, dir string) {
 				if _, ok := appLogLevelToMetric[appLogLevel]; !ok {
 					// First time encountered this app and log level combination.
 					// Create a counter metric.
-					appLogLevelToMetric[appLogLevel] = metrics.NewRegisteredGauge("logserver."+appLogLevel, metrics.DefaultRegistry)
+					appLogLevelToMetric[appLogLevel] = metrics.NewRegisteredGauge(appLogLevel, metrics.DefaultRegistry)
 				}
 
 				// Calculate how many new lines and new disk space usage there is.
