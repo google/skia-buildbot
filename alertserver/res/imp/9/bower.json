@@ -1,0 +1,23 @@
+{
+  "name": "9",
+  "version": "0.0.0",
+  "authors": [
+  ],
+  "description": "Common Polymer 1.0 Elements",
+  "license": "https://github.com/google/skia/blob/master/LICENSE",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "iron-elements": "PolymerElements/iron-elements#~1.0.0",
+    "paper-elements": "PolymerElements/paper-elements#~1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^1.0.0"
+  }
+}
