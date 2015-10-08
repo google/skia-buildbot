@@ -2,10 +2,11 @@
 #
 # Deletes the compute instance for skiagold.
 # It does NOT delete the data disk which is deleted explicitly via
-# vm_delete_disk.sh. 
+# vm_delete_disk.sh.
 #
 set -x
 
+VM_ID=$1
 source ./vm_config.sh
 
 gcloud compute instances delete \

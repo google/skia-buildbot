@@ -18,7 +18,7 @@ fi
 GOLD_SCOPES="$SCOPES"
 GOLD_SOURCE_IMAGE="skia-systemd-pushable-base"
 
-case "$1" in
+case "$VM_ID" in
   prod)
     GOLD_MACHINE_TYPE=n1-highmem-16
     GOLD_IP_ADDRESS=104.154.112.104
@@ -66,7 +66,7 @@ esac
 VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # The name of instance where gold is running on.
-INSTANCE_NAME=${VM_NAME_BASE}-gold-$1
+INSTANCE_NAME=${VM_NAME_BASE}-gold-$VM_ID
 GOLD_DATA_DISK_NAME="$INSTANCE_NAME-data"
 
 # Remove the startup script and generate a new one with the right disk name.

@@ -4,6 +4,7 @@
 #
 set -x
 
+VM_ID=$1
 source vm_config.sh
 
 # # Create a large data disk.

@@ -6,6 +6,7 @@
 #
 set -x
 
+VM_ID=$1
 source vm_config.sh
 
 # Create a boot disk from the pushable base snapshot.

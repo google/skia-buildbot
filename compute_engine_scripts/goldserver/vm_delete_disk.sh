@@ -4,6 +4,7 @@
 #
 set -x
 
+VM_ID=$1
 source ./vm_config.sh
 
 gcloud compute disks delete $GOLD_DATA_DISK_NAME \
