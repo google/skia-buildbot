@@ -1,0 +1,59 @@
+<html>
+<head>
+  <title>app-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript">
+    sk.get = function(url) {
+      return new Promise(function (resolve, reject) {
+        if (url == "/json/version") {
+          resolve('{"commit":"abc123","date":"2015-09-28T10:15:48-04:00"}');
+        } else if (url == "/loginstatus/") {
+          resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
+        } else {
+          reject("no such URL: " + url);
+        }
+      });
+    };
+  </script>
+  <style>
+    body {
+      margin: 0px;
+    }
+  </style>
+  <link rel=import href="app-sk.html">
+</head>
+<body>
+  <!-- The CSS mixins below must be defined within a dom-module. -->
+  <dom-module id="x-myapp">
+    <style>
+    app-sk {
+      --app-sk-drawer: {
+        background-color: #CDCDCD;
+      };
+      --app-sk-main: {
+        background-color: #AAAAAA;
+      };
+      --app-sk-toolbar: {
+        background-color: #AB1234;
+      };
+    }
+    </style>
+    <template>
+      <app-sk mode="standard" responsive_width="600px" drawer_width="230px">
+        <h1 header>Title goes here</h1>
+        <div navigation>Nav goes here</div>
+        <div>Content goes here</div>
+      </app-sk>
+    </template>
+    <script>
+      Polymer({is: "x-myapp"});
+    </script>
+  </dom-module>
+
+  <x-myapp></x-myapp>
+</body>
+</html>

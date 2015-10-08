@@ -26,9 +26,13 @@
 <dom-module id="version-sk">
   <template>
     <style>
+    :host {
+      font-size: 15px;
+      color: var(--version-sk-color, #000000);
+    }
     paper-icon-button {
-      --iron-icon-height: 1em;
-      --iron-icon-width: 1em;
+      --iron-icon-height: 15px;
+      --iron-icon-width: 15px;
       padding: 0px;
     }
     .hidden {
