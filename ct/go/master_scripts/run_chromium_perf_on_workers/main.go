@@ -304,7 +304,7 @@ func mergeUploadCSVFiles(runID string, gs *util.GsUtil) ([]string, error) {
 		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
 		if err != nil {
 			glog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
-			noOutputSlaves = append(noOutputSlaves, fmt.Sprintf(util.WORKER_NAME_TEMPLATE, (workerNum)))
+			noOutputSlaves = append(noOutputSlaves, fmt.Sprintf(util.WORKER_NAME_TEMPLATE, workerNum))
 			continue
 		}
 		defer skutil.Close(respBody)
