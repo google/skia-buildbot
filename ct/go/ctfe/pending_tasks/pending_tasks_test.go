@@ -44,7 +44,6 @@ func TestEncodeTaskDecodeTaskRoundTrip(t *testing.T) {
 		BrowserArgsWithPatch: "bawp",
 		Description:          "description",
 		ChromiumPatch:        "chromiumpatch",
-		BlinkPatch:           "blinkpatch",
 		SkiaPatch:            "skiapatch",
 	})
 	test(&capture_skps.DBTask{

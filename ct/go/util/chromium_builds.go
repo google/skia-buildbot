@@ -41,7 +41,7 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 // Chromium's Tot hash is used.
 // skiaHash is the hash the checkout should be synced to. If not specified then
 // Skia's LKGR hash is used (the hash in Chromium's DEPS file).
-// applyPatches if true looks for Chromium/Blink/Skia patches in the temp dir and
+// applyPatches if true looks for Chromium/Skia patches in the temp dir and
 // runs once with the patch applied and once without the patch applied.
 func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, applyPatches bool) (string, string, error) {
 	// Determine which build dir and fetch target to use.
@@ -262,11 +262,6 @@ func resetChromiumCheckout(chromiumSrcDir string) error {
 	if err := ResetCheckout(skiaDir); err != nil {
 		return fmt.Errorf("Could not reset Skia's checkout in %s: %s", skiaDir, err)
 	}
-	// Reset Blink.
-	blinkDir := filepath.Join(chromiumSrcDir, "third_party", "WebKit")
-	if err := ResetCheckout(blinkDir); err != nil {
-		return fmt.Errorf("Could not reset Blink's checkout in %s: %s", blinkDir, err)
-	}
 	// Reset Chromium.
 	if err := ResetCheckout(chromiumSrcDir); err != nil {
 		return fmt.Errorf("Could not reset Chromium's checkout in %s: %s", chromiumSrcDir, err)
@@ -283,16 +278,6 @@ func applyRepoPatches(chromiumSrcDir, runID string) error {
 	if skiaPatchFileInfo.Size() > 10 {
 		if err := ApplyPatch(skiaPatch, skiaDir); err != nil {
 			return fmt.Errorf("Could not apply Skia's patch in %s: %s", skiaDir, err)
-		}
-	}
-	// Apply Blink patch.
-	blinkDir := filepath.Join(chromiumSrcDir, "third_party", "WebKit")
-	blinkPatch := filepath.Join(os.TempDir(), runID+".blink.patch")
-	blinkPatchFile, _ := os.Open(blinkPatch)
-	blinkPatchFileInfo, _ := blinkPatchFile.Stat()
-	if blinkPatchFileInfo.Size() > 10 {
-		if err := ApplyPatch(blinkPatch, blinkDir); err != nil {
-			return fmt.Errorf("Could not apply Blink's patch in %s: %s", blinkDir, err)
 		}
 	}
 	// Apply Chromium patch.

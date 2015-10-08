@@ -46,7 +46,6 @@ var (
 
 	htmlOutputLink      = util.MASTER_LOGSERVER_LINK
 	skiaPatchLink       = util.MASTER_LOGSERVER_LINK
-	blinkPatchLink      = util.MASTER_LOGSERVER_LINK
 	chromiumPatchLink   = util.MASTER_LOGSERVER_LINK
 	noPatchOutputLink   = util.MASTER_LOGSERVER_LINK
 	withPatchOutputLink = util.MASTER_LOGSERVER_LINK
@@ -66,13 +65,13 @@ func sendEmail(recipients []string) {
 	%s
 	The HTML output with differences between the base run and the patch run is <a href='%s'>here</a>.<br/>
 	The patch(es) you specified are here:
-	<a href='%s'>chromium</a>/<a href='%s'>blink</a>/<a href='%s'>skia</a>
+	<a href='%s'>chromium</a>/<a href='%s'>skia</a>
 	<br/><br/>
 	You can schedule more runs <a href='%s'>here</a>.
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, htmlOutputLink, chromiumPatchLink, blinkPatchLink, skiaPatchLink, frontend.ChromiumPerfTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, frontend.ChromiumPerfTasksWebapp)
 	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -139,16 +138,14 @@ func main() {
 
 	// Copy the patches to Google Storage.
 	skiaPatchName := *runID + ".skia.patch"
-	blinkPatchName := *runID + ".blink.patch"
 	chromiumPatchName := *runID + ".chromium.patch"
-	for _, patchName := range []string{skiaPatchName, blinkPatchName, chromiumPatchName} {
+	for _, patchName := range []string{skiaPatchName, chromiumPatchName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			glog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
 		}
 	}
 	skiaPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, skiaPatchName)
-	blinkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, blinkPatchName)
 	chromiumPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, chromiumPatchName)
 
 	// Create the two required chromium builds (with patch and without the patch).
@@ -266,7 +263,6 @@ func main() {
 		"--absolute_url=" + htmlOutputLinkBase,
 		"--requester_email=" + *emails,
 		"--skia_patch_link=" + skiaPatchLink,
-		"--blink_patch_link=" + blinkPatchLink,
 		"--chromium_patch_link=" + chromiumPatchLink,
 		"--description=" + *description,
 		"--raw_csv_nopatch=" + noPatchOutputLink,

@@ -70,7 +70,6 @@ func pendingChromiumPerfTask() ChromiumPerfTask {
 			BrowserArgsWithPatch: "bawp",
 			Description:          "description",
 			ChromiumPatch:        "chromiumpatch",
-			BlinkPatch:           "blinkpatch",
 			SkiaPatch:            "skiapatch",
 		},
 	}
@@ -85,8 +84,6 @@ func TestChromiumPerfExecute(t *testing.T) {
 		runId := getRunId(t, cmd)
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".chromium.patch"),
 			"chromiumpatch\n")
-		assertFileContents(t, filepath.Join(os.TempDir(), runId+".blink.patch"),
-			"blinkpatch\n")
 		assertFileContents(t, filepath.Join(os.TempDir(), runId+".skia.patch"),
 			"skiapatch\n")
 		return nil

@@ -215,17 +215,14 @@ func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
 		clData["modified"] = modifiedTime.UTC().Format(ctutil.TS_FORMAT)
 	}
 	clData["chromium_patch"] = ""
-	clData["blink_patch"] = ""
 	clData["skia_patch"] = ""
 	switch detail.Project {
 	case "chromium":
 		clData["chromium_patch"] = patch
-	case "blink":
-		clData["blink_patch"] = patch
 	case "skia":
 		clData["skia_patch"] = patch
 	default:
-		return nil, fmt.Errorf("CL project is %s; only chromium, blink, and skia are supported.", detail.Project)
+		return nil, fmt.Errorf("CL project is %s; only chromium and skia are supported.", detail.Project)
 	}
 	return clData, nil
 }
