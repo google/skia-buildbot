@@ -14,7 +14,9 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
+	"github.com/boltdb/bolt"
 	"github.com/hashicorp/golang-lru"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
@@ -31,6 +33,9 @@ const (
 	DEFAULT_DIFFMETRICS_DIR_NAME = "diffmetrics"
 	DEFAULT_GS_IMG_DIR_NAME      = "dm-images-v1"
 	DEFAULT_TEMPFILE_DIR_NAME    = "__temp"
+	DEFAULT_STATUS_DIR_NAME      = "status"
+	FAILUREDB_NAME               = "failures.db"
+	FAILURE_BUCKET               = "failures"
 	IMG_EXTENSION                = "png"
 	DIFF_EXTENSION               = "png"
 	DIFFMETRICS_EXTENSION        = "json"
@@ -113,11 +118,11 @@ type FileDiffStore struct {
 	absPathCh chan *WorkerReq
 	getCh     chan *WorkerReq
 
-	// unavailableDigests contains the digests that should be ignored.
-	unavailableDigests map[string]bool
+	// unavailableDigests contains the digests that could not be processed.
+	unavailableDigests map[string]*diff.DigestFailure
 
 	// unavailableChan is a channel to add to unavailableDigests.
-	unavailableChan chan string
+	unavailableChan chan *diff.DigestFailure
 
 	// unavailableMutex protects unavailableDigests
 	unavailableMutex sync.Mutex
@@ -125,6 +130,9 @@ type FileDiffStore struct {
 	// Mutexes for ensuring safe access to the different local caches.
 	diffDirLock   sync.Mutex
 	digestDirLock sync.Mutex
+
+	// failureDB stores the digests that have failed to load.
+	failureDB *bolt.DB
 }
 
 // NewFileDiffStore intializes and returns a file based implementation of
@@ -152,7 +160,13 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storage
 	}
 
 	diffCache := cacheFactory("di", DiffMetricsCodec(0))
-	unavailableChan := make(chan string, 10)
+	unavailableChan := make(chan *diff.DigestFailure, 10)
+
+	statusDir := fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_STATUS_DIR_NAME)))
+	failureDB, err := bolt.Open(filepath.Join(statusDir, FAILUREDB_NAME), 0600, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to open failuredb: %s", err)
+	}
 
 	fs := &FileDiffStore{
 		client:              client,
@@ -164,28 +178,74 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storage
 		storageBaseDir:      storageBaseDir,
 		imageCache:          imageCache,
 		diffCache:           diffCache,
-		unavailableDigests:  map[string]bool{},
+		unavailableDigests:  map[string]*diff.DigestFailure{},
 		unavailableChan:     unavailableChan,
+		failureDB:           failureDB,
 	}
 
-	// TODO(stephana): Clean this up and store digests to ignore in the
-	// database and expose them on the front-end.
-	// This is the hash of the empty, we should ignore this right away.
-	unavailableChan <- "d41d8cd98f00b204e9800998ecf8427e"
+	if err := fs.loadDigestFailures(); err != nil {
+		return nil, err
+	}
 	go func() {
-		var ignoreDigest string
 		for {
-			ignoreDigest = <-unavailableChan
-			func() {
-				fs.unavailableMutex.Lock()
-				defer fs.unavailableMutex.Unlock()
-				fs.unavailableDigests[ignoreDigest] = true
-			}()
+			digestFailure := <-unavailableChan
+			if err := fs.addDigestFailure(digestFailure); err != nil {
+				glog.Errorf("Unable to store digest failure: %s", err)
+			} else if err = fs.loadDigestFailures(); err != nil {
+				glog.Errorf("Unable to load failures: %s", err)
+			}
 		}
 	}()
 
 	fs.activateWorkers(workerPoolSize)
 	return fs, nil
+}
+
+// addDigestFailure adds a digest failure to the database.
+func (f *FileDiffStore) addDigestFailure(failure *diff.DigestFailure) error {
+	jsonData, err := json.Marshal(failure)
+	if err != nil {
+		return err
+	}
+
+	return f.failureDB.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists([]byte(FAILURE_BUCKET))
+		if err != nil {
+			return err
+		}
+		return bucket.Put([]byte(failure.Digest), jsonData)
+	})
+}
+
+// loadDigestFailures loads all digest failures to
+func (f *FileDiffStore) loadDigestFailures() error {
+	newFailures := make(map[string]*diff.DigestFailure, len(f.unavailableDigests))
+	err := f.failureDB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(FAILURE_BUCKET))
+		if bucket == nil {
+			return nil
+		}
+
+		cursor := bucket.Cursor()
+		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+			dFailure := &diff.DigestFailure{}
+			if err := json.Unmarshal(v, dFailure); err != nil {
+				return err
+			}
+			newFailures[string(k)] = dFailure
+		}
+		return nil
+	})
+	if err == nil {
+		f.unavailableMutex.Lock()
+		f.unavailableDigests = newFailures
+		f.unavailableMutex.Unlock()
+	}
+	return err
+}
+
+func (f *FileDiffStore) PurgeDigests(digests []string, purgeGS bool) {
+	// TODO (stephana): To be implemented in next CL.
 }
 
 type WorkerReq struct {
@@ -415,14 +475,10 @@ func (fs *FileDiffStore) AbsPath(digests []string) map[string]string {
 }
 
 // UnavailableDigests is part of the diff.DiffStore interface. See details there.
-func (fs *FileDiffStore) UnavailableDigests() map[string]bool {
+func (fs *FileDiffStore) UnavailableDigests() map[string]*diff.DigestFailure {
 	fs.unavailableMutex.Lock()
 	defer fs.unavailableMutex.Unlock()
-	result := make(map[string]bool, len(fs.unavailableDigests))
-	for k, v := range fs.unavailableDigests {
-		result[k] = v
-	}
-	return result
+	return fs.unavailableDigests
 }
 
 // TODO(stephana): SetDigestSets is here to satisfy the requirement for the
@@ -517,6 +573,13 @@ func (fs *FileDiffStore) ensureDigestInCache(d string) error {
 	if !exists {
 		// Digest does not exist locally, get it from Google Storage.
 		if err := fs.cacheImageFromGS(d); err != nil {
+			fs.unavailableChan <- &diff.DigestFailure{
+				Digest: d,
+				Reason: diff.HTTP,
+				TS:     time.Now().Unix(),
+				Error:  err.Error(),
+			}
+
 			return err
 		}
 	}
@@ -717,7 +780,12 @@ func (fs *FileDiffStore) getDigestImage(d string) (image.Image, error) {
 	}
 
 	// Mark the image as unavailable since we were not able to decode it.
-	fs.unavailableChan <- d
+	fs.unavailableChan <- &diff.DigestFailure{
+		Digest: d,
+		Reason: diff.CORRUPTED,
+		TS:     time.Now().Unix(),
+		Error:  err.Error(),
+	}
 
 	return nil, fmt.Errorf("Unable to read image for %s: %s", d, err)
 }

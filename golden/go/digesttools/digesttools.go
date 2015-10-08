@@ -34,13 +34,13 @@ func ClosestDigest(test string, digest string, exp *expstorage.Expectations, tal
 	ret := newClosest()
 	unavailableDigests := diffStore.UnavailableDigests()
 
-	if unavailableDigests[digest] {
+	if _, ok := unavailableDigests[digest]; ok {
 		return ret
 	}
 
 	selected := []string{}
 	for d, _ := range tallies {
-		if !unavailableDigests[d] && (exp.Classification(test, d) == label) {
+		if _, ok := unavailableDigests[d]; !ok && (exp.Classification(test, d) == label) {
 			selected = append(selected, d)
 		}
 	}

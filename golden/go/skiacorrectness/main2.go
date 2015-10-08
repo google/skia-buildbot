@@ -57,6 +57,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/triagelog.html"),
 		filepath.Join(*resourcesDir, "templates/trybot.html"),
+		filepath.Join(*resourcesDir, "templates/failures.html"),
 		filepath.Join(*resourcesDir, "templates/search.html"),
 		filepath.Join(*resourcesDir, "templates/search2.html"),
 		// Sub templates used by other templates.
@@ -1055,7 +1056,7 @@ func polyAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	hashes := map[string]bool{}
 	for _, test := range byTest {
 		for k, _ := range test {
-			if !unavailableDigests[k] {
+			if _, ok := unavailableDigests[k]; !ok {
 				hashes[k] = true
 			}
 		}
@@ -1393,20 +1394,20 @@ func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 // the count value is for convenience to make it easier to inspect the JSON
 // output and might be removed in the future.
 type FailureList struct {
-	Count   int      `json:"count"`
-	Digests []string `json:"digests"`
+	Count          int                   `json:"count"`
+	DigestFailures []*diff.DigestFailure `json:"failures"`
 }
 
 // failureListJSONHandler returns the digests that have failed to load.
 func failureListJSONHandler(w http.ResponseWriter, r *http.Request) {
 	unavailable := storages.DiffStore.UnavailableDigests()
 	ret := FailureList{
-		Digests: make([]string, 0, len(unavailable)),
-		Count:   len(unavailable),
+		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
+		Count:          len(unavailable),
 	}
 
-	for digest := range unavailable {
-		ret.Digests = append(ret.Digests, digest)
+	for _, failure := range unavailable {
+		ret.DigestFailures = append(ret.DigestFailures, failure)
 	}
 
 	sendJsonResponse(w, &ret)

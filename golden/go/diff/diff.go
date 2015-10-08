@@ -66,6 +66,28 @@ type DiffMetrics struct {
 	DimDiffer bool
 }
 
+// Diff error to indicate different error conditions during diffing.
+type DiffErr string
+
+const (
+	// Http related error occured.
+	HTTP DiffErr = "http_error"
+
+	// Image is corrupted and cannot be decoded.
+	CORRUPTED DiffErr = "corrupted"
+
+	// Arbitrary error.
+	OTHER DiffErr = "other"
+)
+
+// DigestFailure captures the details of a digest error that occured.
+type DigestFailure struct {
+	Digest string  `json:"digest"`
+	Reason DiffErr `json:"reason"`
+	TS     int64   `json:"ts"`
+	Error  string  `json:"error"`
+}
+
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
@@ -75,10 +97,16 @@ type DiffStore interface {
 	// image digests.
 	AbsPath(digest []string) map[string]string
 
-	// UnavailableDigests returns the set of digests that cannot be downloaded or
-	// processed (e.g. because the PNG is corrupted) and should therefore be
-	// be ignored. The return value is considered to be read only.
-	UnavailableDigests() map[string]bool
+	// UnavailableDigests returns map[digest]*DigestFailure which can be used
+	// to check whether a digest could not be processed and to provide details
+	// about failures.
+	UnavailableDigests() map[string]*DigestFailure
+
+	// PurgeDigests removes all information related to the indicated digests
+	// (image, diffmetric) from local caches. If purgeGS is true it will also
+	// purge the digests image from Google storage, forcing that the digest
+	// be re-uploaded by the build bots.
+	PurgeDigests(digests []string, purgeGS bool)
 
 	// SetDigestSets sets the sets of digests we want to compare grouped by
 	// names (usually test names). This sets the digests we are currently

@@ -1,0 +1,95 @@
+<!-- The <failures-list-sk> custom element declaration.
+
+  The failures-list-sk custom element renders the list of digests that could
+  not be downloaded or decoded.
+
+  Attributes: None
+
+  Events: None
+
+  Methods: None
+
+-->
+<polymer-element name="failures-sk">
+  <template>
+    <style type="text/css" media="screen">
+      .digestHeader,
+      .dateTimeHeader,
+      .reasonHeader {
+        font-weight: bold;
+      }
+
+      .digestHeader,
+      .digestValue {
+        width: 20em;
+      }
+
+      .dateTimeHeader,
+      .dateTimeValue {
+        width: 15em;
+      }
+
+      .reasonHeader,
+      .reasonValue {
+        width: 12em;
+      }
+
+      .headerContainer {
+        padding-top: 2em;
+      }
+    </style>
+    <h2>Digest Failures</h2>
+    <table class="headerContainer">
+      <thead>
+        <tr>
+          <td class="dateTimeHeader">Date/Time</td>
+          <td class="digestHeader">Digest</td>
+          <td class="reasonHeader">Reason</td>
+          <td>&nbsp;</td>
+          <td>&nbsp;</td>
+        </tr>
+
+        <template repeat="{{entry in failureEntries}}">
+          <tr>
+            <td class="dateTimeValue">{{entry.ts | _toLocalDate}}</td>
+            <td class="digestValue"><a href="/img/images/{{entry.digest}}.png" target="_blank">{{entry.digest}}</a></td>
+            <td class="reasonValue">{{entry.reason}}</td>
+            <td><paper-button on-click="{{clearHandler}}" data-entryid="{{entry.id}}" title="Remove from server cache">Clear</paper-button></td>
+            <td><paper-button on-click="{{purgeHandler}}" data-entryid="{{entry.id}}" title="Remove from cache and Google storage">Purge</paper-button></td>
+          </tr>
+        </template>
+    </table>
+    <error-toast-sk></error-toast-sk>
+    <!-- TODO(stephana): Add paper-spinner element while content loads -->
+
+  </template>
+  <script>
+    Polymer({
+      ready: function() {
+        this.page = {};
+
+        // Set up the paging change handler and load the data.
+        this._reload();
+      },
+
+      // Load or reload the listing.
+      // TODO(stephana): _reload will be called after a clear/purge to refresh
+      // the list of failures. 
+      _reload: function() {
+        var URL = '_/failure';
+        this._handleServerResponse(sk.get(URL));
+      },
+
+      _handleServerResponse: function(promise) {
+        promise.then(JSON.parse).then(function(json) {
+          this.failureEntries = json.failures;
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      _toLocalDate: function(timeStampSec) {
+        return (new Date(timeStampSec * 1000)).toLocaleString();
+      }
+    });
+
+  </script>
+</polymer-element>

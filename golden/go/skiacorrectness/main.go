@@ -447,6 +447,7 @@ func main() {
 	router.HandleFunc("/search", templateHandler("search.html")).Methods("GET")
 	router.HandleFunc("/triagelog", templateHandler("triagelog.html")).Methods("GET")
 	router.HandleFunc("/trybot", templateHandler("trybot.html")).Methods("GET")
+	router.HandleFunc("/failures", templateHandler("failures.html")).Methods("GET")
 
 	// Add the necessary middleware and have the router handle all requests.
 	// By structuring the middleware this way we only log requests that are
