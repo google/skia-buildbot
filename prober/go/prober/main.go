@@ -209,7 +209,7 @@ func ctfeChromiumPerfParametersJSON(r io.Reader) bool {
 // ctfeCLDataJSON tests that the response contains valid JSON with the keys expected by
 // ct/res/imp/chromium-perf-sk.html.
 func ctfeCLDataJSON(r io.Reader) bool {
-	return hasKeys(decodeJSONObject(r), []string{"cl", "patchset", "subject", "modified", "chromium_patch", "blink_patch", "skia_patch"})
+	return hasKeys(decodeJSONObject(r), []string{"cl", "patchset", "subject", "modified", "chromium_patch", "skia_patch"})
 }
 
 // ctfeGetTasksJSONObject tests that obj has the attributes expected by
