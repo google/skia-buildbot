@@ -161,13 +161,49 @@ reporting-disabled = false
   ##         "device": "cpu0"
   ##     }
   ## }
+
   templates = [
+    # Rule for probers.
+    #
+    # These metrics look like:
+    #
+    #    prober.probename.<failure|latency>.value
+    #
+    "prober.* measurement.probename.type.",
+
+    # Rule for issues.
+    #
+    # These metrics look like:
+    #
+    #    issues.closed.value
+    #
+    "issues.* measurement.type.",
+
     # Rule for go-metrics runtime values.
     #
     # These metrics look like:
     #
     #    bug_chomper.skia-bugchomper.runtime.ReadMemStats.fifteen-minute
+    #    bug_chomper.skia-bugchomper.skia-bugchomper.runtime.ReadMemStats.fifteen-minute
     "*.*.runtime app.host.runtime.measurement*",
+    "*.*.*.runtime app.host.host2.runtime.measurement*",
+
+    # Rules for buildbot measurements.
+    #
+    # buildbot.builds.Test_Ubuntu_GCC_Golo_GPU_GT610_x86_64_Debug_ASAN.duration.value
+    "datahopper.skia-datahopper.buildbot.builds.* source.source2.measurement.category.builder.measurement*",
+    "datahopper.skia-datahopper.buildbot.buildsteps.* source.source2.measurement.category.builder.measurement*",
+    # buildbot.buildstepsbybuilder.Build_Ubuntu_GCC_x86_Release_Android.steps.duration.value
+    # buildbot.buildstepsbybuilder.Test_Android_GCC_NexusPlayer_GPU_PowerVR_x86_Debug.push_uninteresting_hashes_txt.duration.value
+    "datahopper.skia-datahopper.buildbot.buildstepsbybuilder.* source.source2.measurement.category.builder.step.measurement*",
+
+    # Rule for logserver metrics.
+    #
+    # These look like:
+    #
+    #     logserver.skia-perf.skiaperf.ERROR.value
+    #
+    "logserver.* .host.app.measurement.value",
 
     # Rule for collectd metrics.
     #
@@ -177,17 +213,10 @@ reporting-disabled = false
     #
     "collectd.* .host.resource.measurement*",
 
-    # General rule.
-    #
-    # These look like:
-    #
-    #    pulld.skia-gold-prod.uptime.value
-    #
+    # Catchall rule.
     "app.host.measurement*",
-
-    # catchall
-    "measurement*",
   ]
+
 
   ## If set to true, when the input metric name has more fields than `name-schema` specified,
   ## the extra fields will be ignored.
