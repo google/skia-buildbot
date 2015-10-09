@@ -162,7 +162,30 @@ reporting-disabled = false
   ##     }
   ## }
   templates = [
-    # TODO(borenet): Something like: "app.host.category.subcategory.measurement*",
+    # Rule for go-metrics runtime values.
+    #
+    # These metrics look like:
+    #
+    #    bug_chomper.skia-bugchomper.runtime.ReadMemStats.fifteen-minute
+    "*.*.runtime app.host.runtime.measurement*",
+
+    # Rule for collectd metrics.
+    #
+    # These look like:
+    #
+    #     collectd.skia-alerts.cpu-11.cpu-idle
+    #
+    "collectd.* .host.resource.measurement*",
+
+    # General rule.
+    #
+    # These look like:
+    #
+    #    pulld.skia-gold-prod.uptime.value
+    #
+    "app.host.measurement*",
+
+    # catchall
     "measurement*",
   ]
 
