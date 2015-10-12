@@ -14,11 +14,11 @@
 
     <comments-sk
         comments="{{myComments}}"
-        add-comment-url="/json/comments">
+        add_comment_url="/json/comments">
     </comments-sk>
 
   Properties:
-    addCommentUrl - Where to send POST and DELETE requests for adding and
+    add_comment_url - Where to send POST and DELETE requests for adding and
         deleting comments.
 
     allow_add_comment - Whether or not to allow the addition of comments.
@@ -170,7 +170,7 @@
          * Where to send POST and DELETE requests for adding and
          * deleting comments.
          */
-        addCommentUrl: {
+        add_comment_url: {
           type: String,
           value: "",
         },
@@ -305,7 +305,7 @@
         }
         params["comment"] = this._commentText;
         var that = this;
-        sk.post(this.addCommentUrl, JSON.stringify(params)).then(function (resp) {
+        sk.post(this.add_comment_url, JSON.stringify(params)).then(function (resp) {
           that._commentText = "";
           for (var i = 0; i < that.extra_fields.length; i++) {
             var field = that.extra_fields[i];
@@ -325,7 +325,7 @@
       _deleteComment: function(e, d, t) {
         var commentId = e.model.__data__.comment.id;
         var that = this;
-        sk.delete(this.addCommentUrl + "/" + commentId).then(function (resp) {
+        sk.delete(this.add_comment_url + "/" + commentId).then(function (resp) {
           that.dispatchEvent(new CustomEvent("submit", null));
         }, function (err) {
           sk.errorMessage(err);
@@ -340,7 +340,7 @@
         return collapsible && comments.length > collapse_threshold;
       },
 
-      _computeCanAddComment: function(allow_add_comment, editRights) {
+      _computeCanAddComment: function(editRights, allow_add_comment) {
         return editRights && allow_add_comment;
       },
 

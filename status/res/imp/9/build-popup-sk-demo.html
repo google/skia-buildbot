@@ -1,0 +1,43 @@
+<html>
+<head>
+  <title>build-popup-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript">
+    // Mock out sk.get so we can fake a response from the server.
+    sk.get = function(url) {
+      return new Promise(function (resolve, reject) {
+        if (url == "/loginstatus/") {
+          resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
+        } else {
+          reject("Unknown url " + url);
+        }
+      });
+    };
+
+    // Mock out sk.post() to pretend to support adding comments.
+    sk.post = function(url, body) {
+      return new Promise(function (resolve, reject) {
+        resolve("Added the comment.");
+      });
+    }
+  </script>
+  <link rel=import href="build-popup-sk.html">
+  <link rel=import href="/res/common/imp/9/error-toast-sk.html">
+  <link rel=import href="/res/common/imp/9/login.html">
+</head>
+<body>
+  <login-sk style="display:none"></login-sk>
+  <h1>build-popup-sk demo</h1>
+  <build-popup-sk
+      buildbot_url_prefix="https://uberchromegw.corp.google.com/i/client.skia/"
+      build='{"builder":"Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Shared","number":2858,"buildslave":"skiabot-linux-tester-001","commits":["33366974d43eae80e22284a2e445225c343859da"],"comments":[],"failedSteps":["dm"],"color":"red","id":1234,"finished":true,"results":2}'
+      commit_details='{"33366974d43eae80e22284a2e445225c343859da":{"shortHash":"3336697","shortAuthor":"reed@google.com","shortSubject":"remove internalDrawBitmap, as it is no longer shared with any other c..."}}'
+      repo="skia">
+  </build-popup-sk>
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>

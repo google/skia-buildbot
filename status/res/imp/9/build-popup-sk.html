@@ -1,0 +1,192 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <build-popup-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/build-popup-sk.html" rel="import" />
+
+  Usage:
+
+    <build-popup-sk></build-popup-sk>
+
+  Properties:
+    build - Object representing the details for a build. Expect these attributes:
+        builder:     String, name of the builder which ran this build.
+        buildslave:  String, name of the buildslave.
+        color:       String, color to be used for build result display.
+        comments:    Array of comment objects.
+        commits:     Array of strings indicating which commits were part of the build.
+        failedSteps: Array of strings indicating which steps failed.
+        finished:    Number indicating the timestamp when the build finished, or zero if it is still running.
+        id:          Number indicating the unique ID of the build.
+        number:      Number indicating the build number of this build.
+        results:     Number indicating the result status code of the build.
+
+    buildbot_url_prefix: Prefix of the buildbot URL.
+
+    commit_details: Object whose keys are commit hashes and values are objects with the following attributes:
+        shortAuthor:  String, shortened version of the commit author.
+        shortHash:    String, shortened version of the commit hash.
+        shortSubject: String, shortened version of the commit subject.
+
+    repo: The name (not the URL) of the repository of the commit.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/common/imp/9/comments-sk.html">
+<dom-module id="build-popup-sk">
+  <style>
+    a {
+      color: inherit;
+    }
+    h3 {
+      white-space: nowrap;
+    }
+  </style>
+  <template>
+    <h3>
+      <a target="_blank" href="{{_makeBuildURL(build, buildbot_url_prefix)}}">
+        <span>{{build.builder}}</span> #<span>{{build.number}}</span> <iron-icon icon="launch"></iron-icon>
+      </a>
+    </h3>
+    <table>
+      <tr>
+        <td>Status:</td>
+        <td style$="{{_buildResultStyle(build)}}">{{_buildResultString(build)}}</td>
+      </tr>
+      <template is="dom-if" if="{{_hasFailedSteps(build)}}">
+        <tr>
+          <td>Failed steps:</td>
+          <td>
+            <template is="dom-repeat" items="{{build.failedSteps}}" as="step">
+              <a target="_blank" href="{{_makeBuildStepLogURL(build, buildbot_url_prefix, step)}}">{{step}}</a><br>
+            </template>
+          </td>
+        </tr>
+      </template>
+      <tr>
+        <td>Builder</td>
+        <td>
+          <a target="_blank" href="{{_makeDashboardBuilderURL(build)}}">
+            <span>{{build.builder}}</span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>Buildslave</td>
+        <td>
+          <a target="_blank" href="{{_makeDashboardSlaveURL(build)}}">
+            <span>{{build.buildslave}}</span>
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>Host machine</td>
+        <td>
+          <a target="_blank" href="{{_makeSlaveHostURL(build)}}">
+            Lookup
+          </a>
+        </td>
+      </tr>
+    </table>
+    <hr/>
+    <h3>Blamelist</h3>
+    <table>
+      <template is="dom-repeat" items="{{build.commits}}" as="c">
+        <tr>
+          <td><a href="{{_makeCommitURL(c, repo)}}">{{_commitHash(c, commit_details)}}</a></td>
+          <td>{{_commitAuthor(c, commit_details)}}</td>
+          <td>{{_commitSubject(c, commit_details)}}</td>
+        </tr>
+      </template>
+    </table>
+    <hr/>
+    <comments-sk
+        comments="{{build.comments}}"
+        add_comment_url="{{_makeAddCommentURL(build, repo)}}"
+        on-submit="_commentAdded"
+        allow_add_comment
+        allow_delete_comment
+        collapsible>
+    </comments-sk>
+  </template>
+  <script>
+    Polymer({
+      is: 'build-popup-sk',
+
+      properties: {
+        build: {
+          type: Object,
+          value: function() { return {}; },
+        },
+
+        buildbot_url_prefix: {
+          type: String,
+          value: "",
+        },
+
+        commit_details: {
+          type: Object,
+          value: function() { return {}; },
+        },
+
+        repo: {
+          type: String,
+          value: "",
+        },
+      },
+
+      _commentAdded: function () {
+        window.location.href = window.location.href;
+      },
+      _makeBuildURL: function (build, buildbot_url_prefix) {
+        return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number;
+      },
+      _buildResultStyle: function (build) {
+        return 'color: ' + build.color;
+      },
+      _hasFailedSteps: function (build) {
+        return build.failedSteps && build.failedSteps.length > 0;
+      },
+      _makeDashboardBuilderURL: function (build) {
+        return '/buildbots?botGrouping=builder&filterBy=builder&include=%5E' + build.builder + '%24&tab=builds';
+      },
+      _makeDashboardSlaveURL: function (build) {
+        return '/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%5E' + build.buildslave + '%24&tab=builds';
+      },
+      _makeSlaveHostURL: function (build) {
+        return '/hosts?filter=%5E' + build.buildslave + '%24';
+      },
+      _makeAddCommentURL: function (build, repo) {
+        return '/json/' + repo + '/builds/' + build.id + '/comments';
+      },
+      _makeBuildStepLogURL: function (build, buildbot_url_prefix, step) {
+        return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number + '/steps/' + step + '/logs/stdio';
+      },
+      _makeCommitURL: function (c, repo) {
+        return 'https://skia.googlesource.com/' + repo + '/+/' + c;
+      },
+      _buildResultString: function (build) {
+        return build.finished ? build.results == 0 ? 'success' : build.results == 1 ? 'success' : build.results == 3 ? 'success' : build.results == 2 ? 'failed' : build.results == 4 ? 'exception' : 'exception' : 'running';
+      },
+      _commitHash: function (c, commit_details) {
+        return commit_details[c] ? commit_details[c].shortHash : "";
+      },
+      _commitAuthor: function (c, commit_details) {
+        return commit_details[c] ? commit_details[c].shortAuthor : "";
+      },
+      _commitSubject: function (c, commit_details) {
+        return commit_details[c] ? commit_details[c].shortSubject : "";
+      }
+    });
+  </script>
+</dom-module>
