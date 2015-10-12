@@ -24,7 +24,7 @@ DESC="NSQ - a realtime distributed messaging platform."
 NAME=nsqd
 DATA_DIR="/var/lib/nsq-data"
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS="--data-path=$DATA_DIR"
+DAEMON_ARGS="--data-path=$DATA_DIR --mem-queue-size=1000000"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 

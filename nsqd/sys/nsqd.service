@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/nsqd --data-path=/mnt/pd0/nsq-data
+ExecStart=/usr/local/bin/nsqd --data-path=/mnt/pd0/nsq-data --mem-queue-size=1000000
 Restart=always
 User=default
 Group=default

@@ -45,9 +45,7 @@ func TestEventBus(t *testing.T) {
 	assert.Equal(t, []int{1, 2, 3}, vals)
 }
 
-// TODO(stephana): TestEventBusGlobally is temporarilly disabled because it is
-// flaky. To be re-enable once fixed.
-func xTestEventBusGlobally(t *testing.T) {
+func TestEventBusGlobally(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	globalEventBus, err := geventbus.NewNSQEventBus(NSQD_ADDR)

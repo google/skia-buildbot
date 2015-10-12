@@ -28,7 +28,23 @@ type GlobalEventBus interface {
 	Close() error
 }
 
-// NSQEventBus implements the GlobalEventBus interface.
+/*
+	NSQEventBus implements the GlobalEventBus interface.
+	It uses NSQ for message transport (see http://nsq.io/).
+	NSQ allows to publish to an arbitary number of topcis. Each topic can have
+	an arbitrary number of channels.
+
+	In our use case we publish to a topic (identified by a string) and each
+	client creates a unique channel, which ensures the topic messages are
+	distributed to all clients (as opposed to being load balanced accross a single
+  channel).
+
+	By appending '#ephemeral' to the channel id we ensure that a channel
+	will never be buffered on disk. We could relax this requiremnt in the
+	future if we have constant channel ids that are guaranteed to
+	connect to the channel continously and retrieve buffered messages.
+
+*/
 type NSQEventBus struct {
 	// Unique id identifying this client.
 	clientID string
@@ -115,7 +131,7 @@ func (g *NSQEventBus) SubscribeAsync(topic string, callback CallbackFn) error {
 
 	ccb, ok := g.consumerCallbacks[topic]
 	if !ok {
-		consumer, err := nsq.NewConsumer(topic, g.clientID, g.config)
+		consumer, err := nsq.NewConsumer(topic, g.clientID+"#ephemeral", g.config)
 		if err != nil {
 			return err
 		}
@@ -158,6 +174,7 @@ func (g *NSQEventBus) Close() error {
 
 	for _, ccb := range g.consumerCallbacks {
 		ccb.consumer.Stop()
+		<-ccb.consumer.StopChan
 	}
 	g.consumerCallbacks = nil
 	g.producer.Stop()
