@@ -23,7 +23,8 @@ const (
 	TABLE_RECREATE_WEBPAGE_ARCHIVES_TASKS = "RecreateWebpageArchivesTasks"
 
 	// From https://dev.mysql.com/doc/refman/5.0/en/storage-requirements.html
-	TEXT_MAX_LENGTH = 1<<16 - 1
+	TEXT_MAX_LENGTH      = 1<<16 - 1
+	LONG_TEXT_MAX_LENGTH = int64(1<<32) - 1
 )
 
 var (
@@ -228,6 +229,18 @@ var v8_down = []string{
 	`ALTER TABLE ChromiumPerfTasks DROP run_in_parallel`,
 }
 
+var v9_up = []string{
+	`ALTER TABLE ChromiumPerfTasks MODIFY COLUMN chromium_patch longtext`,
+	`ALTER TABLE ChromiumPerfTasks MODIFY COLUMN blink_patch longtext`,
+	`ALTER TABLE ChromiumPerfTasks MODIFY COLUMN skia_patch longtext`,
+}
+
+var v9_down = []string{
+	`ALTER TABLE ChromiumPerfTasks MODIFY COLUMN chromium_patch text`,
+	`ALTER TABLE ChromiumPerfTasks MODIFY COLUMN blink_patch text`,
+	`ALTER TABLE ChromiumPerfTasks MODIFY COLUMN skia_patch text`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -271,6 +284,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v8_up,
 		MySQLDown: v8_down,
+	},
+	// version 9: Change chromium_patch, blink_patch and skia_patch to longtext in ChromiumPerfTasks table.
+	{
+		MySQLUp:   v9_up,
+		MySQLDown: v9_down,
 	},
 }
 

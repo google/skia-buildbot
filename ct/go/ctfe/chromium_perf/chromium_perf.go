@@ -188,7 +188,7 @@ func getCLPatch(detail clDetail, patchsetID int) (string, error) {
 	if patchResp.StatusCode != 200 {
 		return "", fmt.Errorf("Unable to retrieve CL patch; status code %d", patchResp.StatusCode)
 	}
-	if patchResp.ContentLength > db.TEXT_MAX_LENGTH {
+	if int64(patchResp.ContentLength) > db.LONG_TEXT_MAX_LENGTH {
 		return "", fmt.Errorf("Patch is too large; length is %d bytes.", patchResp.ContentLength)
 	}
 	patchBytes, err := ioutil.ReadAll(patchResp.Body)
@@ -196,7 +196,7 @@ func getCLPatch(detail clDetail, patchsetID int) (string, error) {
 		return "", fmt.Errorf("Unable to retrieve CL patch: %v", err)
 	}
 	// Double-check length in case ContentLength was -1.
-	if len(patchBytes) > db.TEXT_MAX_LENGTH {
+	if int64(len(patchBytes)) > db.LONG_TEXT_MAX_LENGTH {
 		return "", fmt.Errorf("Patch is too large; length is %d bytes.", len(patchBytes))
 	}
 	return string(patchBytes), nil
@@ -291,9 +291,9 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		{"browser_args_nopatch", task.BrowserArgsNoPatch, 255},
 		{"browser_args_withpatch", task.BrowserArgsWithPatch, 255},
 		{"desc", task.Description, 255},
-		{"chromium_patch", task.ChromiumPatch, db.TEXT_MAX_LENGTH},
-		{"blink_patch", task.BlinkPatch, db.TEXT_MAX_LENGTH},
-		{"skia_patch", task.SkiaPatch, db.TEXT_MAX_LENGTH},
+		{"chromium_patch", task.ChromiumPatch, db.LONG_TEXT_MAX_LENGTH},
+		{"blink_patch", task.BlinkPatch, db.LONG_TEXT_MAX_LENGTH},
+		{"skia_patch", task.SkiaPatch, db.LONG_TEXT_MAX_LENGTH},
 	}); err != nil {
 		return "", nil, err
 	}

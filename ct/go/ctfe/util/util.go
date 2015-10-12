@@ -110,12 +110,12 @@ func ExecuteSimpleTemplate(template *template.Template, w http.ResponseWriter, r
 type LengthCheck struct {
 	Name  string
 	Value string
-	Limit int
+	Limit int64
 }
 
 func CheckLengths(checks []LengthCheck) error {
 	for _, check := range checks {
-		if len(check.Value) > check.Limit {
+		if int64(len(check.Value)) > check.Limit {
 			return fmt.Errorf("Value of %s is too long; limit %d bytes", check.Name, check.Limit)
 		}
 	}
