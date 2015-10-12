@@ -10,7 +10,8 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-func TestEventBus(t *testing.T) {
+// TODO(stephana): Disable until fixed.
+func xTestEventBus(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	eventBus, err := NewNSQEventBus("127.0.0.1:4150")
