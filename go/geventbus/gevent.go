@@ -40,7 +40,7 @@ type GlobalEventBus interface {
   channel).
 
 	By appending '#ephemeral' to the channel id we ensure that a channel
-	will never be buffered on disk. We could relax this requiremnt in the
+	will never be buffered on disk. We could relax this requirement in the
 	future if we have constant channel ids that are guaranteed to
 	connect to the channel continously and retrieve buffered messages.
 
