@@ -1,0 +1,247 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <alerts-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/alerts-sk.html" rel="import" />
+
+  Usage:
+
+    <alerts-sk></alerts-sk>
+
+  Properties:
+    alerts - The set of active alerts.
+
+    categories - Which alert categories to include.
+
+    compact - If true, minimal information about alerts is displayed.
+
+    exclude_categories - Which alert categories to ignore.
+
+    reload - How often (in seconds) to reload alert data.
+
+  Methods:
+    None.
+
+  Events:
+    change - Fired when the set of alerts changes.
+-->
+<link rel="import" href="/res/common/imp/9/alert-sk.html">
+<link rel="import" href="/res/common/imp/9/alert-controls-sk.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<dom-module id="alerts-sk">
+  <style>
+    #loadstatus {
+      font-size: 0.8em;
+      padding: 0px 15px;
+    }
+    div.alertSection {
+      border: 1px solid #AAAAAA;
+      border-radius: 10px;
+      margin: 5px;
+      padding: 5px;
+    }
+    div.alertSection > h3 {
+      margin-left: 20px;
+    }
+  </style>
+  <template>
+    <div class="horizontal layout center" id="loadstatus">
+      <paper-input type="number" value="{{reload}}" label="Reload (s)" prevent-invalid-input></paper-input>
+      <div class="flex"></div>
+      <div>Last loaded at <span>{{_lastLoaded}}</span></div>
+    </div>
+    <div class="horizontal layout center" style$="{{_multiControlsStyle(_showMultiControls)}}">
+      <div style="padding: 5px">Selected:</div>
+      <alert-controls-sk
+          class="flex"
+          alert_url="/json/alerts/multi"
+          extra_params="{{_multiAlertParams}}"
+          show_snooze
+          show_unsnooze
+          on-submit="_alertSubmitted">
+      </alert-controls-sk>
+    </div>
+    <div class="alertSection">
+      <h3>Active</h3>
+      <template is="dom-repeat" items="{{alerts}}" as="a">
+        <template is="dom-if" if="{{_isSnoozed(a)}}">
+          <alert-sk
+              alert="{{a}}"
+              allow_edit
+              compact$="{{_isCompact(compact, _showMultiControls)}}"
+              on-select-changed="_alertSelectChanged"
+              on-submit="_alertSubmitted">
+          </alert-sk>
+        </template>
+      </template>
+    </div>
+    <div class="alertSection">
+      <h3>Snoozed</h3>
+      <template is="dom-repeat" items="{{alerts}}" as="a">
+        <template is="dom-if" if="{{!_isSnoozed(a)}}">
+          <alert-sk
+              alert="{{a}}"
+              allow_edit
+              compact$="{{_isCompact(compact, _showMultiControls)}}"
+              on-select-changed="_alertSelectChanged">
+          </alert-sk>
+        </template>
+      </template>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'alerts-sk',
+      properties: {
+        alerts: {
+          type: Array,
+          value: function() { return []; },
+        },
+        categories: {
+          type: Array,
+          value: function() { return []; },
+        },
+        compact: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: true,
+        },
+        exclude_categories: {
+          type: Array,
+          value: function() { return []; },
+        },
+        reload: {
+          type: Number,
+          observer: "_reloadChanged",
+          value: 60,
+        },
+        _lastLoaded: {
+          type: String,
+          value: "not yet loaded",
+        },
+        _multiAlertParams: {
+          type: Object,
+          value: function() { return {"alerts": []}; },
+        },
+        _showMultiControls: {
+          type: Boolean,
+          value: false,
+        },
+        _timeout: {
+          type: Object,
+          value: null,
+        },
+      },
+
+      ready: function() {
+        var params = sk.query.toParamSet(window.location.search.substring(1));
+        if (params.compact && params.compact.length > 0 && params.compact[0] == "true") {
+          this.compact = true;
+        }
+
+        this._reloadAlerts();
+      },
+
+      _alertSubmitted: function() {
+        // Deselect all alerts.
+        for (var i = 0; i < this.alerts.length; i++) {
+          this.alerts[i].selected = false;
+        }
+        this._alertSelectChanged();
+        this._reloadAlerts();
+      },
+
+      _reloadChanged: function() {
+        this._resetTimeout();
+      },
+
+      _resetTimeout: function() {
+        if (this._timeout) {
+          window.clearTimeout(this._timeout);
+        }
+        if (this.reload > 0) {
+          this._timeout = window.setTimeout(function () {
+            this._reloadAlerts();
+          }.bind(this), this.reload * 1000);
+        }
+      },
+
+      _reloadAlerts: function() {
+        var url = "/json/alerts/";
+        var params = [];
+        for (var i = 0; i < this.categories.length; i++) {
+          params.push("category=" + this.categories[i]);
+        }
+        for (var i = 0; i < this.exclude_categories.length; i++) {
+          params.push("excludeCategory=" + this.exclude_categories[i]);
+        }
+        if (params.length > 0) {
+          url += "?" + params.join("&");
+        }
+        console.log("Loading alerts from " + url);
+
+        // Maintain the set of selected alerts across reloads.
+        var selected = {};
+        if (this.alerts) {
+          for (var i = 0; i < this.alerts.length; i++) {
+            if (this.alerts[i].selected) {
+              selected[this.alerts[i].id] = true;
+            }
+          }
+        }
+
+        sk.get(url).then(JSON.parse).then(function(json) {
+          this.alerts = json;
+
+          // Select alerts that were selected before.
+          for (var i = 0; i < this.alerts.length; i++) {
+            if (selected[this.alerts[i].id]) {
+              this.alerts[i].selected = true;
+            } else {
+              this.alerts[i].selected = false;
+            }
+          }
+          this._alertSelectChanged();
+
+          this._lastLoaded = new Date().toLocaleTimeString();
+          this._resetTimeout();
+          this.dispatchEvent(new CustomEvent("change", { detail: { alerts: this.alerts } }))
+          console.log("Done loading alerts.");
+        }.bind(this)).catch(function() {
+          this._resetTimeout();
+        }.bind(this));
+      },
+
+      _alertSelectChanged: function() {
+        this._showMultiControls = false;
+        var selectedIds = [];
+        for (var i = 0; i < this.alerts.length; i++) {
+          if (this.alerts[i].selected) {
+            this._showMultiControls = true;
+            selectedIds.push(this.alerts[i].id);
+          }
+        }
+        this._multiAlertParams["alerts"] = selectedIds;
+      },
+
+      _multiControlsStyle: function (_showMultiControls) {
+        return _showMultiControls ? '' : 'display: none;';
+      },
+
+      _isSnoozed: function (a) {
+        return a.snoozedUntil == 0;
+      },
+
+      _isCompact: function (compact, _showMultiControls) {
+        return compact || _showMultiControls;
+      },
+    });
+  </script>
+</dom-module>

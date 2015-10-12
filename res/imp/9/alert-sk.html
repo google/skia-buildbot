@@ -18,6 +18,7 @@
     alert - The alert object. Expected to have the following attributes:
         id: Number
         message: String
+        name: String
         comments: Array of comment objects.
         selected: Boolean
         snoozedUntil: Number
@@ -57,6 +58,9 @@
       div.message[disabled] {
         color: #AAAAAA;
       }
+      h3 {
+        margin-top: 0px;
+      }
       #commentContainer {
         margin-top: 15px;
       }
@@ -67,30 +71,30 @@
     <div id="wrapper" class="vertical horizontal center">
       <div class="horizontal layout start">
         <template is="dom-if" if="{{_editRights}}">
-          <paper-checkbox id="checkbox" on-change="_selectedChanged" checked="{{alert.selected}}">
-          </paper-checkbox>
+          <paper-checkbox id="checkbox" on-change="_selectedChanged" checked="{{alert.selected}}"></paper-checkbox>
         </template>
-        <div class="message flex"><linkify-sk text="{{alert.message}}"></linkify-sk></div>
-          <template is="dom-if" if="{{_isSnoozed(alert)}}">
-            <div class="message">Snoozed for <human-date-sk date="{{alert.snoozedUntil}}" diff seconds></human-date-sk></div>
-          </template>
+        <div class="message flex">
+          <h3>{{alert.name}}</h3>
+          <linkify-sk text="{{alert.message}}"></linkify-sk>
         </div>
-        <template is="dom-if" if="{{!compact}}">
-          <div id="commentContainer">
-            <comments-sk comments="{{alert.comments}}">
-            </comments-sk>
-            <template is="dom-if" if="{{_editRights}}">
-              <alert-controls-sk
-                  id="controls"
-                  alert_url="{{_getAlertUrl(alert)}}"
-                  show_snooze$="{{!_isSnoozed(alert)}}"
-                  show_unsnooze$="{{_isSnoozed(alert)}}"
-                  on-submit="_submit">
-              </alert-controls-sk>
-            </div>
-          </template>
+        <template is="dom-if" if="{{_isSnoozed(alert)}}">
+          <div class="message">Snoozed for <human-date-sk date="{{alert.snoozedUntil}}" diff seconds></human-date-sk></div>
         </template>
       </div>
+      <template is="dom-if" if="{{!compact}}">
+        <div id="commentContainer">
+          <comments-sk comments="{{alert.comments}}"></comments-sk>
+          <template is="dom-if" if="{{_editRights}}">
+            <alert-controls-sk
+                id="controls"
+                alert_url="{{_getAlertUrl(alert)}}"
+                show_snooze$="{{!_isSnoozed(alert)}}"
+                show_unsnooze$="{{_isSnoozed(alert)}}"
+                on-submit="_submit">
+            </alert-controls-sk>
+          </template>
+        </div>
+      </template>
     </div>
   </template>
   <script>
@@ -102,6 +106,7 @@
          * The alert object. Expected to have the following attributes:
          *     id: Number
          *     message: String
+         *     name: String
          *     comments: Array of comment objects.
          *     selected: Boolean
          *     snoozedUntil: Number
@@ -129,23 +134,27 @@
 
         _editRights: {
           type: Boolean,
+          computed: "_canEdit(allow_edit, _loggedInUser)",
+        },
+
+        _loggedInUser: {
+          type: Boolean,
           value: false,
         },
       },
 
       ready: function() {
-        if (this.allow_edit) {
-          var that = this;
-          sk.Login.then(function (status) {
-            var email = status["Email"];
-            var validEmail = "@google.com";
-            if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
-              that._editRights = true;
-            }
-          });
-        } else {
-          this._editRights = false;
-        }
+        sk.Login.then(function (status) {
+          var email = status["Email"];
+          var validEmail = "@google.com";
+          if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
+            this._loggedInUser = true;
+          }
+        }.bind(this));
+      },
+
+      _canEdit: function(allow_edit, _loggedInUser) {
+        return allow_edit && _loggedInUser;
       },
 
       _selectedChanged: function() {

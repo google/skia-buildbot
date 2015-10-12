@@ -24,7 +24,7 @@
     show_unsnooze - Whether or not to show the "unsnooze" button.
 
   Events:
-    None
+    submit - Fired when a POST request which modifies an alert completes.
 
   Methods:
     None
@@ -38,8 +38,14 @@
 <link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <dom-module id="alert-controls-sk">
+  <style>
+    paper-icon-button {
+      width: 24px;
+      height: 24px;
+    }
+  </style>
   <template>
-    <div class="flex horizontal layout">
+    <div class="horizontal layout">
       <paper-input value="{{_commentText}}" label="Comment" class="flex"></paper-input>
       <template is="dom-if" if="{{show_snooze}}">
         <paper-icon-button icon="icons:alarm" on-click="_snoozeDialog" title="Snooze and add comment"></paper-icon-button>
@@ -48,8 +54,8 @@
         <paper-icon-button icon="icons:alarm-off" on-click="_unsnoozeAlert" title="Unsnooze and add comment"></paper-icon-button>
       </template>
       <paper-icon-button icon="icons:highlight-off" on-click="_dismissAlert" title="Dismiss and add comment"></paper-icon-button>
-      <paper-icon-button icon="communication:comment" on-click="_addComment" title="Add comment">
-    </paper-icon-button></div>
+      <paper-icon-button icon="communication:comment" on-click="_addComment" title="Add comment"></paper-icon-button>
+    </div>
     <paper-dialog id="snoozeDialog" heading="How long?" transition="paper-dialog-transition-center">
       <div>
         <paper-input type="number" label="Days" value="{{_snoozeDays}}" always-float-label></paper-input>
@@ -144,7 +150,7 @@
       },
 
       _dismissAlert: function() {
-        this._post("/dismiss", {"comment": this._commentText });
+        this._post("dismiss", {"comment": this._commentText });
       },
 
       _snoozeAlert: function () {
@@ -156,7 +162,7 @@
           "comment": this._commentText,
           "until": Math.round(until.getTime() / 1000)
         };
-        this._post("/snooze", params);
+        this._post("snooze", params);
       },
 
       _snoozeDialog: function() {
@@ -164,7 +170,7 @@
       },
 
       _unsnoozeAlert: function() {
-        this._post("/unsnooze", {"comment": this._commentText});
+        this._post("unsnooze", {"comment": this._commentText});
       },
 
       _addComment: function() {
@@ -172,7 +178,7 @@
           sk.errorMessage("Empty comments are not allowed.");
           return;
         }
-        this._post("/addcomment", {"comment": this._commentText});
+        this._post("addcomment", {"comment": this._commentText});
       },
     });
   </script>

@@ -1,0 +1,43 @@
+<html>
+<head>
+  <title>alerts-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript">
+    var fakeAlerts = [{"id":3635,"name":"Gold Alert (GM)","category":"Gold","triggered":1443822224,"snoozedUntil":0,"dismissedAt":0,"message":"At least one untriaged GM has been found. Please visit https://gold.skia.org/ to triage.","nag":86400000000000,"autoDismiss":100000000000,"lastFired":1444152860,"comments":[{"user":"AlertServer","time":1443908633,"message":"This alert has been active for 24h0m0s since the last update. Please verify that it is still valid and either fix the issue or dismiss/snooze the alert."},{"user":"AlertServer","time":1443995033,"message":"This alert has been active for 24h0m0s since the last update. Please verify that it is still valid and either fix the issue or dismiss/snooze the alert."},{"user":"AlertServer","time":1444081433,"message":"This alert has been active for 24h0m0s since the last update. Please verify that it is still valid and either fix the issue or dismiss/snooze the alert."}],"actions":["Email(alerts@skia.org)","Print"]},{"id":3719,"name":"datahopper_internal liveness","category":"infra","triggered":1444141780,"snoozedUntil":1444231612,"dismissedAt":0,"message":"Too long between successful ingestions.","nag":3600000000000,"autoDismiss":100000000000,"lastFired":1444152860,"comments":[{"user":"rmistry@google.com","time":1444145212,"message":"Snoozed until 2015-10-07 15:26:52 +0000 UTC: Discussed with stephana@ snoozing for a day."}],"actions":["Email(infra-alerts@skia.org)","Print"]},{"id":3720,"name":"Perf Alerts","category":"Perf","triggered":1444144230,"snoozedUntil":0,"dismissedAt":0,"message":"At least one perf alert has been found. Please visit https://perf.skia.org/alerts/ to triage.","nag":86400000000000,"autoDismiss":100000000000,"lastFired":1444152861,"comments":[],"actions":["Email(alerts@skia.org)","Print"]},{"id":3726,"name":"Buildslave skiabot-ipad4-000 offline","category":"infra","triggered":1444152270,"snoozedUntil":0,"dismissedAt":0,"message":"Buildslave skiabot-ipad4-000 is not connected to https://uberchromegw.corp.google.com/i/client.skia/buildslaves/skiabot-ipad4-000\n\nDashboard: https://status.skia.org/buildbots?botGrouping=buildslave\u0026filterBy=buildslave\u0026include=%5Eskiabot-ipad4-000%24\u0026tab=builds\nHost info: https://status.skia.org/hosts?filter=skiabot-ipad4-000","nag":3600000000000,"autoDismiss":200000000000,"lastFired":1444152771,"comments":[],"actions":["Email(infra-alerts@skia.org)","Print"]}];
+
+    // Mock out sk.get so we can fake a response from the server.
+    sk.get = function(url) {
+      return new Promise(function (resolve, reject) {
+        if (url == "/json/alerts/") {
+          resolve(JSON.stringify(fakeAlerts));
+        } else if (url == "/loginstatus/") {
+          resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
+        } else {
+          reject("Unknown url " + url);
+        }
+      });
+    };
+
+    // Mock out sk.post() so we don't display errors.
+    sk.post = function(url, params) {
+      return new Promise(function (resolve, reject) {
+        sk.errorMessage("Request: " + url + " Params: " + params);
+        resolve('');
+      });
+    };
+  </script>
+  <link rel=import href="alerts-sk.html">
+  <link rel=import href="/res/common/imp/9/error-toast-sk.html">
+  <link rel=import href="/res/common/imp/9/login.html">
+</head>
+<body>
+  <login-sk style="display:none"></login-sk>
+  <h1>alerts-sk demo</h1>
+  <alerts-sk></alerts-sk>
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>
