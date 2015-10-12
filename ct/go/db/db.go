@@ -241,6 +241,14 @@ var v9_down = []string{
 	`ALTER TABLE ChromiumPerfTasks MODIFY COLUMN skia_patch text`,
 }
 
+var v10_up = []string{
+	`ALTER TABLE ChromiumPerfTasks CONVERT TO CHARACTER SET utf32`,
+}
+
+var v10_down = []string{
+	`ALTER TABLE ChromiumPerfTasks CONVERT TO CHARACTER SET utf32`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -289,6 +297,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v9_up,
 		MySQLDown: v9_down,
+	},
+	// version 10: Convert character set in ChromiumPerfTasks from utf8 to utf32.
+	{
+		MySQLUp:   v10_up,
+		MySQLDown: v10_down,
 	},
 }
 
