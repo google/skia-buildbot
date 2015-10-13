@@ -1,0 +1,34 @@
+<html>
+<head>
+  <title>rules-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript">
+    var fakeRules = {"rules":[{"name":"Ingestion Failure (Gold)","query":"select mean(value) from /^ingest.skia-gold-prod.ingester.gold-ingest.gauge.time-since-last-successful-update.value$/ where time \u003e now() - 10m","category":"infra","condition":"x \u003e= 750","message":"At least two rounds of gold ingestion have failed back to back.","nag":3600000000000,"autoDismiss":100000000000,"Actions":["Email(infra-alerts@skia.org)"]},{"name":"Datahopper Buildbot Ingestion Stalled (client.skia.compile)","query":"select mean(value) from /^datahopper.skia-datahopper.buildbot-ingest-client.skia.compile.time-since-last-successful-update.value$/ where time \u003e now() - 5m","category":"infra","condition":"x \u003e= 150","message":"Buildbot Ingestion in Datahopper has failed to run in at least 5 minutes for client.skia.compile.","nag":3600000000000,"autoDismiss":100000000000,"Actions":["Email(infra-alerts@skia.org)"]},{"name":"CTFE Prober (chromium_builds_runs)","query":"select mean(value) from /^prober.ctfe_chromium_builds_runs.failure.value$/ where time \u003e now() - 10m;","category":"infra","condition":"x \u003e= 1","message":"The page at https://ct.skia.org/chromium_builds_runs/ is unavailable.","nag":3600000000000,"autoDismiss":100000000000,"Actions":["Email(infra-alerts@skia.org)"]}]};
+
+    // Mock out sk.get so we can fake a response from the server.
+    sk.get = function(url) {
+      return new Promise(function (resolve, reject) {
+        if (url == "/json/rules") {
+          resolve(JSON.stringify(fakeRules));
+        } else if (url == "/loginstatus/") {
+          resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/"}');
+        } else {
+          reject("Unknown url " + url);
+        }
+      });
+    };
+  </script>
+  <link rel=import href="rules-sk.html">
+  <link rel=import href="/res/common/imp/9/error-toast-sk.html">
+  <link rel=import href="/res/common/imp/9/login.html">
+</head>
+<body>
+  <h1>rules-sk demo</h1>
+  <rules-sk></rules-sk>
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>

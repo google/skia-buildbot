@@ -103,6 +103,7 @@
         alerts: {
           type: Array,
           value: function() { return []; },
+          readOnly: true,
         },
         categories: {
           type: Array,
@@ -198,7 +199,7 @@
         }
 
         sk.get(url).then(JSON.parse).then(function(json) {
-          this.alerts = json;
+          this._setAlerts(json);
 
           // Select alerts that were selected before.
           for (var i = 0; i < this.alerts.length; i++) {

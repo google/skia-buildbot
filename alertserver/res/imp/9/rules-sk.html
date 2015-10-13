@@ -1,0 +1,135 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <rules-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/rules-sk.html" rel="import" />
+
+  Usage:
+
+    <rules-sk></rules-sk>
+
+  Properties:
+    rules - The set of alert rules.
+
+    reload - How often (in seconds) to reload rules.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<dom-module id="rules-sk">
+  <style>
+    #loadstatus {
+      font-size: 0.8em;
+      padding: 0px 15px;
+    }
+    div.rule {
+      padding: 20px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: #F5F5F5;
+      width: 93%;
+    }
+    div.table {
+      display: table;
+    }
+    div.row {
+      display: table-row;
+    }
+    div.cell {
+      display: table-cell;
+      padding: 5px;
+      width: 10px;
+      white-space: nowrap;
+    }
+    div.wide {
+      width: 100%;
+    }
+    </style>
+  <template>
+    <div class="vertical layout">
+      <div class="horizontal layout center" id="loadstatus">
+        <paper-input type="number" value="{{reload}}" label="Reload (s)" prevent-invalid-input></paper-input>
+        <div class="flex"></div>
+        <div>Last loaded at <span>{{_lastLoaded}}</span></div>
+      </div>
+      <template is="dom-repeat" items="{{rules}}" as="r">
+        <div class="rule table">
+          <div class="row"><div class="cell">Name</div><div class="cell wide">{{r.name}}</div></div>
+          <div class="row"><div class="cell">Query</div><div class="cell wide">{{r.query}}</div></div>
+          <div class="row"><div class="cell">Condition</div><div class="cell wide">{{r.condition}}</div></div>
+          <div class="row"><div class="cell">Message</div><div class="cell wide">{{r.message}}</div></div>
+          <div class="row"><div class="cell">Nag</div><div class="cell wide">{{r.nag}}</div></div>
+          <div class="row"><div class="cell">Auto-Dismiss</div><div class="cell wide">{{r.autoDismiss}}</div></div>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'rules-sk',
+      properties: {
+        reload: {
+          observer: "_reloadChanged",
+          value: 60,
+        },
+        _timeout: {
+          type: Object,
+          value: null,
+        },
+        _lastLoaded: {
+          type: String,
+          value: "(not yet loaded)",
+        },
+        rules: {
+          type: Array,
+          value: function() { return []; },
+          readOnly: true,
+        },
+      },
+
+      ready: function() {
+        this._reloadRules();
+      },
+
+      _reloadChanged: function() {
+        this._resetTimeout();
+      },
+
+      _resetTimeout: function() {
+        if (this._timeout) {
+          window.clearTimeout(this._timeout);
+        }
+        if (this.reload > 0) {
+          var that = this;
+          this._timeout = window.setTimeout(function() {
+            that._reloadRules();
+          }, this.reload * 1000);
+        }
+      },
+
+      _reloadRules: function() {
+        console.log("Loading rules.");
+        sk.get("/json/rules").then(JSON.parse).then(function(json) {
+          this._setRules(json.rules);
+          this._lastLoaded = new Date().toLocaleTimeString();
+          this._resetTimeout();
+          console.log("Done loading rules.");
+        }.bind(this)).catch(function(e) {
+          this._resetTimeout();
+          sk.errorMessage(e);
+        }.bind(this));
+      },
+    });
+  </script>
+</dom-module>
