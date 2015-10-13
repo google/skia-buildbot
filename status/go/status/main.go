@@ -43,7 +43,7 @@ const (
 	DEFAULT_COMMITS_TO_LOAD = 50
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
-	GOLD_STATUS_QUERY_TMPL  = "select value from /skiacorrectness.skia-gold-prod.status.untriaged.by_corpus.%s.value/ order by time desc limit 1"
+	GOLD_STATUS_QUERY_TMPL  = "select value from \"status.untriaged.by_corpus.%s.value\" where app='skiacorrectness' and host='skia-gold-prod' order by time desc limit 1"
 )
 
 var (
@@ -702,7 +702,7 @@ func main() {
 	glog.Info("commit_cache complete")
 
 	// Load Perf and Gold data in a loop.
-	perfStatus, err = dbClient.Int64PollingStatus("select value from /skiaperf.skia-perf.alerting.new.value/ order by time desc limit 1", time.Minute)
+	perfStatus, err = dbClient.Int64PollingStatus("select value from \"alerting.new.value\" where app='skiaperf' and host='skia-perf' order by time desc limit 1", time.Minute)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Perf status: %v", err)
 	}
