@@ -246,7 +246,7 @@ var v10_up = []string{
 }
 
 var v10_down = []string{
-	`ALTER TABLE ChromiumPerfTasks CONVERT TO CHARACTER SET utf32`,
+	`ALTER TABLE ChromiumPerfTasks CONVERT TO CHARACTER SET utf8`,
 }
 
 // Define the migration steps.
