@@ -1,7 +1,9 @@
 package eventbus
 
 import (
+	"fmt"
 	"sort"
+	"sync"
 	"testing"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 
 const GLOBAL_TOPIC = "global-topic"
 const LOCAL_TOPIC = "local-topic"
+const SYNC_MSG = -1
 
 const NSQD_ADDR = "127.0.0.1:4150"
 
@@ -45,9 +48,15 @@ func TestEventBus(t *testing.T) {
 	assert.Equal(t, []int{1, 2, 3}, vals)
 }
 
-// TODO(stephana): Disable until fixed.
-func xTestEventBusGlobally(t *testing.T) {
+func TestEventBusGlobally(t *testing.T) {
 	testutils.SkipIfShort(t)
+
+	messages := []*testType{
+		&testType{0, "message-1"},
+		&testType{1, "message-2"},
+		&testType{2, "message-3"},
+		&testType{3, "message-4"},
+	}
 
 	globalEventBus, err := geventbus.NewNSQEventBus(NSQD_ADDR)
 	assert.Nil(t, err)
@@ -55,39 +64,90 @@ func xTestEventBusGlobally(t *testing.T) {
 	secondGlobalBus, err := geventbus.NewNSQEventBus(NSQD_ADDR)
 	assert.Nil(t, err)
 
-	eventBus := New(globalEventBus)
-	ch := make(chan interface{}, 100)
-	eventBus.SubscribeAsync(GLOBAL_TOPIC, func(e interface{}) { ch <- e })
+	// Use atomic ints to sync the callback functions.
+	firstMap := newAtomicMap()
+	firstEventBus := New(globalEventBus)
+	firstEventBus.SubscribeAsync(GLOBAL_TOPIC, func(e interface{}) {
+		data := e.(*testType)
+		if data.ID == SYNC_MSG {
+			firstMap.setReady()
+			return
+		}
+		firstMap.Add(data.ID, data)
+	})
 
-	secondCh := make(chan interface{}, 100)
+	secondMap := newAtomicMap()
 	errCh := make(chan error, 100)
 	assert.Nil(t, secondGlobalBus.SubscribeAsync(GLOBAL_TOPIC, geventbus.JSONCallback(&testType{}, func(data interface{}, err error) {
 		if err != nil {
 			errCh <- err
-		} else {
-			secondCh <- data
+			return
 		}
+
+		if data.(*testType).ID == SYNC_MSG {
+			secondMap.setReady()
+			return
+		}
+
+		d := data.(*testType)
+		secondMap.Add(d.ID, d)
 	})))
 
-	eventBus.Publish(GLOBAL_TOPIC, &testType{0, "message-1"})
-	eventBus.Publish(GLOBAL_TOPIC, &testType{1, "message-2"})
-	eventBus.Publish(GLOBAL_TOPIC, &testType{2, "message-3"})
-	eventBus.Publish(GLOBAL_TOPIC, &testType{3, "message-4"})
-	time.Sleep(5 * time.Second)
-	assert.Equal(t, 4, len(ch))
-	assert.Equal(t, 4, len(secondCh))
-	close(ch)
-	close(secondCh)
-
-	found := map[int]bool{}
-	for m := range ch {
-		assert.IsType(t, &testType{}, m)
-		temp := m.(*testType)
-		assert.False(t, found[temp.ID])
-		found[temp.ID] = true
+	for !firstMap.isReady() && !secondMap.isReady() {
+		firstEventBus.Publish(GLOBAL_TOPIC, &testType{SYNC_MSG, "ignore"})
 	}
 
-	for m := range secondCh {
-		assert.IsType(t, &testType{}, m)
+	for _, m := range messages {
+		firstEventBus.Publish(GLOBAL_TOPIC, m)
 	}
+
+	lmsg := len(messages)
+	for ((firstMap.Len() < lmsg) || (secondMap.Len() < lmsg)) && (len(errCh) == 0) {
+		time.Sleep(time.Millisecond * 10)
+	}
+
+	if len(errCh) > 0 {
+		close(errCh)
+		for err = range errCh {
+			fmt.Printf("Error: %s\n", err)
+		}
+		assert.FailNow(t, "Received too many error messages.")
+	}
+}
+
+type atomicMap struct {
+	m     map[int]*testType
+	mutex sync.Mutex
+	ready bool
+}
+
+func newAtomicMap() *atomicMap {
+	return &atomicMap{
+		m:     map[int]*testType{},
+		ready: false,
+	}
+}
+
+func (a *atomicMap) Add(k int, v *testType) {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	a.m[k] = v
+}
+
+func (a *atomicMap) Len() int {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	return len(a.m)
+}
+
+func (a *atomicMap) setReady() {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	a.ready = true
+}
+
+func (a *atomicMap) isReady() bool {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	return a.ready
 }
