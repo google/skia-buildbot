@@ -70,13 +70,18 @@ func parseTime(t string) time.Time {
 
 // Rietveld is an object used for interacting with the issue tracker.
 type Rietveld struct {
-	Url string
+	client *http.Client
+	url    string
 }
 
-func (r Rietveld) get(suburl string, rv interface{}) error {
-	resp, err := http.Get(r.Url + suburl)
+func (r *Rietveld) Url() string {
+	return r.url
+}
+
+func (r *Rietveld) get(suburl string, rv interface{}) error {
+	resp, err := r.client.Get(r.url + suburl)
 	if err != nil {
-		return fmt.Errorf("Failed to GET %s: %v", r.Url+suburl, err)
+		return fmt.Errorf("Failed to GET %s: %v", r.url+suburl, err)
 	}
 	defer util.Close(resp.Body)
 	dec := json.NewDecoder(resp.Body)
@@ -118,7 +123,7 @@ func SearchOpen(open bool) *SearchTerm {
 }
 
 // Search returns a slice of Issues which fit the given criteria.
-func (r Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
+func (r *Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 	searchUrl := fmt.Sprintf("/search?format=json&limit=%d", limit)
 	for _, term := range terms {
 		searchUrl += fmt.Sprintf("&%s=%s", term.Key, term.Value)
@@ -154,7 +159,7 @@ func (r Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 
 // getIssueProperties returns a fully filled-in Issue object, as opposed to
 // the partial data returned by Rietveld's search endpoint.
-func (r Rietveld) GetIssueProperties(issue int, messages bool) (*Issue, error) {
+func (r *Rietveld) GetIssueProperties(issue int, messages bool) (*Issue, error) {
 	url := fmt.Sprintf("/api/%v", issue)
 	if messages {
 		url += "?messages=true"
@@ -187,8 +192,15 @@ func (r Rietveld) GetIssueProperties(issue int, messages bool) (*Issue, error) {
 	return fullIssue, nil
 }
 
-// New returns a new Rietveld instance.
-func New(url string) Rietveld {
-	url = strings.TrimRight(url, "/")
-	return Rietveld{url}
+// New returns a new Rietveld instance. If client is nil, the default
+// http.Client will be used for anonymous access. In this case, some
+// functionality will be unavailable, eg. modifying issues.
+func New(url string, client *http.Client) *Rietveld {
+	if client == nil {
+		client = http.DefaultClient
+	}
+	return &Rietveld{
+		url:    strings.TrimRight(url, "/"),
+		client: client,
+	}
 }

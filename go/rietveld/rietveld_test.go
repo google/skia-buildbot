@@ -12,7 +12,7 @@ import (
 func TestRietveld(t *testing.T) {
 	testutils.SkipIfShort(t)
 
-	api := Rietveld{"https://codereview.chromium.org"}
+	api := New("https://codereview.chromium.org", nil)
 	t_delta := time.Now().Add(-10 * 24 * time.Hour)
 	issues, err := api.Search(1, SearchModifiedAfter(t_delta))
 	assert.Nil(t, err)

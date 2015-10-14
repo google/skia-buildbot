@@ -340,7 +340,7 @@ func main() {
 		NCommits:          *nCommits,
 		EventBus:          eventBus,
 		TrybotResults:     trybot.NewTrybotResultStorage(vdb),
-		RietveldAPI:       rietveld.Rietveld{Url: *rietveldURL},
+		RietveldAPI:       rietveld.New(*rietveldURL, nil),
 	}
 
 	if err := history.Init(storages, *nTilesToBackfill); err != nil {

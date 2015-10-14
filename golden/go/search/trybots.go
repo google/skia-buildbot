@@ -60,7 +60,7 @@ func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIss
 				Owner:   result.Owner,
 				Subject: result.Subject,
 				Updated: result.Modified.Unix(),
-				URL:     strings.TrimSuffix(storages.RietveldAPI.Url, "/") + "/" + strconv.Itoa(result.Issue),
+				URL:     strings.TrimSuffix(storages.RietveldAPI.Url(), "/") + "/" + strconv.Itoa(result.Issue),
 			}
 
 			mutex.Lock()

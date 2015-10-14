@@ -18,9 +18,7 @@ const (
 	RIETVELD_URL       = "https://codereview.chromium.org"
 )
 
-var r = rietveld.Rietveld{
-	Url: RIETVELD_URL,
-}
+var r = rietveld.New(RIETVELD_URL, nil)
 
 // AutoRollIssue is a trimmed-down rietveld.Issue containing just the
 // fields we care about for AutoRoll CLs.
