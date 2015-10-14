@@ -27,33 +27,24 @@
   <link rel=import href="app-sk.html">
 </head>
 <body>
-  <!-- The CSS mixins below must be defined within a dom-module. -->
-  <dom-module id="x-myapp">
-    <style>
-    app-sk {
-      --app-sk-drawer: {
-        background-color: #CDCDCD;
-      };
-      --app-sk-main: {
-        background-color: #AAAAAA;
-      };
-      --app-sk-toolbar: {
-        background-color: #AB1234;
-      };
-    }
-    </style>
-    <template>
-      <app-sk mode="standard" responsive_width="600px" drawer_width="230px">
-        <h1 header>Title goes here</h1>
-        <div navigation>Nav goes here</div>
-        <div>Content goes here</div>
-      </app-sk>
-    </template>
-    <script>
-      Polymer({is: "x-myapp"});
-    </script>
-  </dom-module>
+  <style is="custom-style">
+  app-sk {
+    --app-sk-drawer: {
+      background-color: #CDCDCD;
+    };
+    --app-sk-main: {
+      background-color: #AAAAAA;
+    };
+    --app-sk-toolbar: {
+      background-color: #AB1234;
+    };
+  }
+  </style>
+  <app-sk mode="standard" responsive_width="600px" drawer_width="230px">
+    <h1 header>Title goes here</h1>
+    <div navigation>Nav goes here</div>
+    <div>Content goes here</div>
+  </app-sk>
 
-  <x-myapp></x-myapp>
 </body>
 </html>

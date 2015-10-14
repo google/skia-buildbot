@@ -54,6 +54,9 @@ func (a *Alert) MarshalJSON() ([]byte, error) {
 		Comments:     a.Comments,
 		Actions:      actions,
 	}
+	if fields.Comments == nil {
+		fields.Comments = []*Comment{}
+	}
 	return json.Marshal(fields)
 }
 

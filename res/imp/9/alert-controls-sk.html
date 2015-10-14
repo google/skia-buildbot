@@ -45,8 +45,8 @@
     }
   </style>
   <template>
-    <div class="horizontal layout">
-      <paper-input value="{{_commentText}}" label="Comment" class="flex"></paper-input>
+    <div class="flex horizontal layout">
+      <paper-input value="{{_commentText}}" label="Comment" class="flex" on-change="_preventBubble"></paper-input>
       <template is="dom-if" if="{{show_snooze}}">
         <paper-icon-button icon="icons:alarm" on-click="_snoozeDialog" title="Snooze and add comment"></paper-icon-button>
       </template>
@@ -58,9 +58,9 @@
     </div>
     <paper-dialog id="snoozeDialog" heading="How long?" transition="paper-dialog-transition-center">
       <div>
-        <paper-input type="number" label="Days" value="{{_snoozeDays}}" always-float-label></paper-input>
-        <paper-input type="number" label="Hours" value="{{_snoozeHours}}" always-float-label></paper-input>
-        <paper-input type="number" label="Minutes" value="{{_snoozeMins}}" always-float-label></paper-input>
+        <paper-input type="number" label="Days" value="{{_snoozeDays}}" on-change="_preventBubble" always-float-label></paper-input>
+        <paper-input type="number" label="Hours" value="{{_snoozeHours}}" on-change="_preventBubble" always-float-label></paper-input>
+        <paper-input type="number" label="Minutes" value="{{_snoozeMins}}" on-change="_preventBubble" always-float-label></paper-input>
         <button on-click="_snoozeAlert" affirmative>Ok</button>
       </div>
     </paper-dialog>
@@ -179,6 +179,11 @@
           return;
         }
         this._post("addcomment", {"comment": this._commentText});
+      },
+
+      _preventBubble: function(e) {
+        e.stopPropagation();
+        return true;
       },
     });
   </script>

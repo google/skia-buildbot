@@ -48,6 +48,9 @@ Events:
 <link rel="import" href="version-sk.html">
 <dom-module id="app-sk">
   <style>
+  #drawer {
+    box-shadow: 1px 0 1px rgba(0, 0, 0, 0.1);
+  }
   #mainContent {
     overflow: scroll;
   }
@@ -78,7 +81,7 @@ Events:
         <login-sk></login-sk>
       </paper-toolbar>
       <paper-drawer-panel id="drawerPanel" drawer-width$="{{drawer_width}}"  responsive-width$="{{responsive_width}}" force-narrow$="{{force_narrow}}">
-        <div drawer class="vertical layout">
+        <div drawer id="drawer" class="vertical layout">
           <content select="[navigation], nav, [drawer], drawer"></content>
           <div class="flex"></div>
           <version-sk></version-sk>

@@ -5,23 +5,28 @@
 
     <title>Skia Alert Rules</title>
 
-    <style>
-    html /deep/ core-header-panel {
-      background: white;
-      font-family: sans-serif;
-    }
-    html /deep/ core-toolbar {
-      background-color: #88CCEE;
-      color: #FFFFFF;
-      text-align: center;
-      font-size: 15px;
+  </head>
+  <body class="fullbleed vertical layout unresolved">
+    <style is="custom-style">
+    app-sk {
+      --app-sk-main: {
+        background-color: #FFFFFF;
+        font-family: sans-serif;
+      };
+      --app-sk-toolbar: {
+        background-color: #88CCEE;
+        color: #FFFFFF;
+        font-size: 15px;
+        font-family: sans-serif;
+        text-align: center;
+      };
     }
     </style>
-  </head>
-  <body fullbleed vertical layout unresolved>
-    <app-sk fit appName="Alert Rules" drawerWidth="230px">
-      <alerts-menu-section-sk navigation></alerts-menu-section-sk>
+    <app-sk class="fit">
+      <h1 toolbar>Skia Alert Rules</h1>
+      <alerts-menu-sk navigation></alerts-menu-sk>
       <rules-sk reload=60></rules-sk>
     </app-sk>
+
   </body>
 </html>

@@ -157,11 +157,13 @@
         return allow_edit && _loggedInUser;
       },
 
-      _selectedChanged: function() {
+      _selectedChanged: function(e) {
+        e.stopPropagation();
         this.fire("select-changed", {
           id: this.alert.id,
           selected: this.alert.selected
         });
+        return true;
       },
 
       _isSnoozed: function(alert) {

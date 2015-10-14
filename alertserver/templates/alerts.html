@@ -5,92 +5,112 @@
 
     <title>{{.Title}}</title>
 
-    <style>
-    html /deep/ core-header-panel {
-      background: white;
-      font-family: sans-serif;
+  </head>
+  <body class="fullbleed vertical layout unresolved">
+    <style is="custom-style">
+    app-sk {
+      --app-sk-main: {
+        background-color: #FFFFFF;
+        font-family: sans-serif;
+      };
+      --app-sk-toolbar: {
+        background-color: #88CCEE;
+        color: #FFFFFF;
+        font-size: 15px;
+        font-family: sans-serif;
+        text-align: center;
+      };
     }
-    html /deep/ core-toolbar {
-      background-color: #88CCEE;
-      color: #FFFFFF;
-      text-align: center;
-      font-size: 15px;
-    }
-    html /deep/ core-toolbar.alerting {
-      background-color: #CC6677;
+    app-sk.alerting {
+      --app-sk-toolbar: {
+        background-color: #CC6677;
+        color: #FFFFFF;
+        font-size: 15px;
+        font-family: sans-serif;
+        text-align: center;
+      };
     }
     </style>
-  </head>
-  <body fullbleed vertical layout unresolved>
-    <app-sk fit appName="{{.Title}}" drawerWidth="230px">
-      <alerts-menu-section-sk navigation></alerts-menu-section-sk>
-      <alerts-sk reload=60 categories='{{.Categories}}' excludeCategories='{{.ExcludeCategories}}'></alerts-sk>
+    <app-sk id="app" class="fit">
+      <h1 toolbar>{{.Title}}</h1>
+      <alerts-menu-sk navigation></alerts-menu-sk>
+      <alerts-sk
+          reload=60
+          categories='{{.Categories}}'
+          exclude_categories='{{.ExcludeCategories}}'>
+      </alerts-sk>
     </app-sk>
     <script type="text/javascript" charset="utf-8">
-    (function() {
-      sk.WebComponentsReady.then(function() {
-        $$$("alerts-sk").addEventListener("change", function(e) {
-          // Change the banner color depending on whether any alerts are active.
-          var anyAlerting = false;
-          for (var i = 0; i < e.detail.alerts.length; i++) {
-            anyAlerting = anyAlerting || e.detail.alerts[i].snoozedUntil == 0;
+
+      function alertsChanged() {
+        var alerts = $$$("alerts-sk").alerts;
+        // Change the banner color depending on whether any alerts are active.
+        var numAlerting = 0;
+        for (var i = 0; i < alerts.length; i++) {
+          if (alerts[i].snoozedUntil == 0) {
+            numAlerting++;
           }
-          var tb  = $$("html /deep/ core-toolbar");
-          for (var i = 0; i < tb.length; i++) {
-            if (anyAlerting != tb[i].classList.contains("alerting")) {
-              tb[i].classList.toggle("alerting");
-            }
-          }
+        }
+        var app = $$$("app-sk");
+        if ((numAlerting == 0) == app.classList.contains("alerting")) {
+          app.classList.toggle("alerting");
+          app.updateStyles();
+        }
 
-          // Dynamically generate a favicon with the number of active alerts.
-          var canvas = document.createElement("canvas");
-          var s = 32.0;
-          canvas.width = s;
-          canvas.height = s;
-          var ctx = canvas.getContext("2d");
+        // Dynamically generate a favicon with the number of active alerts.
+        var canvas = document.createElement("canvas");
+        var s = 32.0;
+        canvas.width = s;
+        canvas.height = s;
+        var ctx = canvas.getContext("2d");
 
-          // Clear the icon.
-          ctx.clearRect(0, 0, s, s);
+        // Clear the icon.
+        ctx.clearRect(0, 0, s, s);
 
-          // Draw the icon. Original is 24x24, with some whitespace around
-          // the borders. Scale and translate to fill 32x32.
-          var o = 24.0;
-          var bTop = 2;
-          var bRight = 2;
-          var bBottom = 1;
-          var bLeft = 4;
-          var scaleX = s / (o - bLeft - bRight);
-          var scaleY = s / (o - bTop - bBottom);
-          // This path is copied from Polymer core-icons (social:notifications).
-          var path = new Path2D("M11.5 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6v-5.5c0-3.07-2.13-5.64-5-6.32V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5v.68c-2.87.68-5 3.25-5 6.32V16l-2 2v1h17v-1l-2-2z");
-          ctx.transform(scaleX, 0, 0, scaleY, -bLeft, -bTop);
-          ctx.stroke(path);
-          ctx.fillStyle = e.detail.alerts.length > 0 ? "#CC6677" : "#88CCEE";
-          ctx.fill(path);
-          ctx.setTransform(1, 0, 0, 1, 0, 0);
+        // Draw the icon. Original is 24x24, with some whitespace around
+        // the borders. Scale and translate to fill 32x32.
+        var o = 24.0;
+        var bTop = 2;
+        var bRight = 2;
+        var bBottom = 1;
+        var bLeft = 4;
+        var scaleX = s / (o - bLeft - bRight);
+        var scaleY = s / (o - bTop - bBottom);
+        // This path is copied from Polymer iron-icons (social:notifications).
+        var path = new Path2D("M11.5 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6.5-6v-5.5c0-3.07-2.13-5.64-5-6.32V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5v.68c-2.87.68-5 3.25-5 6.32V16l-2 2v1h17v-1l-2-2z");
+        ctx.transform(scaleX, 0, 0, scaleY, -bLeft, -bTop);
+        ctx.stroke(path);
+        ctx.fillStyle = numAlerting > 0 ? "#CC6677" : "#88CCEE";
+        ctx.fill(path);
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-          // Draw the number of active alerts.
-          ctx.fillStyle = "#000000"
-          ctx.font = "16px Arial"
-          var text = "" + e.detail.alerts.length;
-          var w = ctx.measureText(text).width;
-          var left = Math.ceil((s - w) / 2);
-          ctx.fillText(text, left, 22);
+        // Draw the number of active alerts.
+        ctx.fillStyle = "#000000"
+        ctx.font = "16px Arial"
+        var text = "" + numAlerting;
+        var w = ctx.measureText(text).width;
+        var left = Math.ceil((s - w) / 2);
+        ctx.fillText(text, left, 22);
 
-          // Set the favicon.
-          var link = document.createElement("link");
-          link.id = "dynamicFavicon";
-          link.rel = "shortcut icon";
-          link.href = canvas.toDataURL("image/png");
-          var head = document.getElementsByTagName("head")[0];
-          var oldIcon = document.getElementById(link.id);
-          if (oldIcon) {
-            head.removeChild(oldIcon);
-          }
-          head.appendChild(link);
-        })
-      })
-    })();
+        // Set the favicon.
+        var link = document.createElement("link");
+        link.id = "dynamicFavicon";
+        link.rel = "shortcut icon";
+        link.href = canvas.toDataURL("image/png");
+        var head = document.getElementsByTagName("head")[0];
+        var oldIcon = document.getElementById(link.id);
+        if (oldIcon) {
+          head.removeChild(oldIcon);
+        }
+        head.appendChild(link);
+      }
+
+    window.addEventListener("WebComponentsReady", function() {
+      alertsChanged();
+      $$$("alerts-sk").addEventListener("change", function() {
+        alertsChanged();
+      });
+    });
     </script>
   </body>
 </html>
