@@ -50,8 +50,8 @@ type TestStruct struct {
 
 func TestRedisLRUCache(t *testing.T) {
 	testutils.SkipIfShort(t)
-	cache := NewRedisLRUCache("localhost:6379", 1, "test-di", TestStructCodec(0))
-	testLRUCache(t, cache)
+	cache := NewRedisLRUCache("localhost:6379", 1, "test-di", util.UnitTestCodec())
+	util.UnitTestLRUCache(t, cache)
 }
 
 func BenchmarkBigDataset(b *testing.B) {
@@ -145,57 +145,6 @@ func (t TestStructCodec) Decode(data []byte) (interface{}, error) {
 	var v TestStruct
 	err := json.Unmarshal(data, &v)
 	return &v, err
-}
-
-func testLRUCache(t *testing.T, cache util.LRUCache) {
-	rlruCache := cache.(*RedisLRUCache)
-	rlruCache.Purge()
-	N := 256
-	for i := 0; i < N; i++ {
-		cache.Add(strconv.Itoa(i), i)
-	}
-
-	// Make sure out keys are correct
-	assert.Equal(t, N, cache.Len())
-	assert.Equal(t, N, len(rlruCache.Keys()))
-	for _, k := range rlruCache.Keys() {
-		assert.IsType(t, "", k)
-		v, ok := cache.Get(k)
-		assert.True(t, ok)
-		assert.IsType(t, 0, v)
-		assert.Equal(t, k, strconv.Itoa(v.(int)))
-	}
-
-	for i := 0; i < N; i++ {
-		found, ok := cache.Get(strconv.Itoa(i))
-		assert.True(t, ok)
-		assert.IsType(t, 0, found)
-		assert.Equal(t, found.(int), i)
-	}
-
-	for i := 0; i < N; i++ {
-		_, ok := cache.Get(strconv.Itoa(i))
-		assert.True(t, ok)
-		oldLen := cache.Len()
-		cache.Remove(strconv.Itoa(i))
-		assert.Equal(t, oldLen-1, cache.Len())
-	}
-	assert.Equal(t, 0, cache.Len())
-
-	// Add some TestStructs to make sure the codec works.
-	for i := 0; i < N; i++ {
-		strKey := "structkey-" + strconv.Itoa(i)
-		ts := &TestStruct{
-			PixelDiffFilePath: "somesting-" + strconv.Itoa(i),
-			MaxRGBADiffs:      []int{i * 4, i*4 + 1, i*4 + 2, i*4 + 3},
-		}
-		cache.Add(strKey, ts)
-		assert.Equal(t, i+1, cache.Len())
-		foundTS, ok := cache.Get(strKey)
-		assert.True(t, ok)
-		assert.IsType(t, &TestStruct{}, foundTS)
-		assert.Equal(t, ts, foundTS)
-	}
 }
 
 type StringCodec struct{}

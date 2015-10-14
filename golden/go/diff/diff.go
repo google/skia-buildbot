@@ -88,6 +88,13 @@ type DigestFailure struct {
 	Error  string  `json:"error"`
 }
 
+// Implement sort.Interface for a slice of DigestFailure
+type DigestFailureSlice []*DigestFailure
+
+func (d DigestFailureSlice) Len() int           { return len(d) }
+func (d DigestFailureSlice) Less(i, j int) bool { return d[i].TS < d[j].TS }
+func (d DigestFailureSlice) Swap(i, j int)      { d[i], d[j] = d[j], d[i] }
+
 type DiffStore interface {
 	// Get returns the DiffMetrics of the provided dMain digest vs all digests
 	// specified in dRest.
@@ -106,7 +113,7 @@ type DiffStore interface {
 	// (image, diffmetric) from local caches. If purgeGS is true it will also
 	// purge the digests image from Google storage, forcing that the digest
 	// be re-uploaded by the build bots.
-	PurgeDigests(digests []string, purgeGS bool)
+	PurgeDigests(digests []string, purgeGS bool) error
 
 	// SetDigestSets sets the sets of digests we want to compare grouped by
 	// names (usually test names). This sets the digests we are currently

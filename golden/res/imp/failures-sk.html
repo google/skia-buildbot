@@ -54,8 +54,8 @@
             <td class="dateTimeValue">{{entry.ts | _toLocalDate}}</td>
             <td class="digestValue"><a href="/img/images/{{entry.digest}}.png" target="_blank">{{entry.digest}}</a></td>
             <td class="reasonValue">{{entry.reason}}</td>
-            <td><paper-button on-click="{{clearHandler}}" data-entryid="{{entry.id}}" title="Remove from server cache">Clear</paper-button></td>
-            <td><paper-button on-click="{{purgeHandler}}" data-entryid="{{entry.id}}" title="Remove from cache and Google storage">Purge</paper-button></td>
+            <td><paper-button on-click="{{clearHandler}}" data-digestid="{{entry.digest}}" title="Remove from server cache">Clear</paper-button></td>
+            <td><paper-button on-click="{{purgeHandler}}" data-digestid="{{entry.digest}}" title="Remove from cache and Google storage">Purge</paper-button></td>
           </tr>
         </template>
     </table>
@@ -74,11 +74,23 @@
 
       // Load or reload the listing.
       // TODO(stephana): _reload will be called after a clear/purge to refresh
-      // the list of failures. 
+      // the list of failures.
       _reload: function() {
         var URL = '_/failure';
         this._handleServerResponse(sk.get(URL));
       },
+
+      _clear: function(event, gsPurge) {
+        var URL = '_/failure/clear';
+        if (gsPurge) {
+          URL += "?purge=true"
+        }
+        var digests = [ event.target.dataset.digestid ];
+        this._handleServerResponse(sk.post(URL, JSON.stringify(digests)));
+      },
+
+      clearHandler: function(event) { this._clear(event, false); },
+      purgeHandler: function(event) { this._clear(event, true); },
 
       _handleServerResponse: function(promise) {
         promise.then(JSON.parse).then(function(json) {

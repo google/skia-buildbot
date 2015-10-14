@@ -47,7 +47,7 @@ func (m MockDiffStore) AbsPath(digest []string) map[string]string {
 }
 
 func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure       { return nil }
-func (m MockDiffStore) PurgeDigests(digests []string, purgeGS bool)              {}
+func (m MockDiffStore) PurgeDigests(digests []string, purgeGS bool) error        { return nil }
 func (m MockDiffStore) SetDigestSets(namedDigestSets map[string]map[string]bool) {}
 
 func NewMockDiffStore() diff.DiffStore {

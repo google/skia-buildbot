@@ -15,7 +15,7 @@ type MockDiffStore struct{}
 
 func (m MockDiffStore) AbsPath(digest []string) map[string]string                { return nil }
 func (m MockDiffStore) UnavailableDigests() map[string]*diff.DigestFailure       { return nil }
-func (m MockDiffStore) PurgeDigests(digests []string, purgeGS bool)              {}
+func (m MockDiffStore) PurgeDigests(digests []string, purgeGS bool) error        { return nil }
 func (m MockDiffStore) SetDigestSets(namedDigestSets map[string]map[string]bool) {}
 
 // Get always finds that digest "eee" is closest to dMain.

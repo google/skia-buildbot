@@ -22,6 +22,9 @@ type LRUCache interface {
 
 	// Remove removes a key value pair from the cache.
 	Remove(key interface{})
+
+	// Keys returns all the keys in the LRUCache.
+	Keys() []interface{}
 }
 
 // LRUCodec converts serializes/deserializes an instance of a type to/from
@@ -37,19 +40,41 @@ type LRUCodec interface {
 
 type MemLRUCache struct {
 	cache *lru.Cache
+	keys  map[string]bool
 	mutex sync.RWMutex
 }
 
 func NewMemLRUCache(maxEntries int) *MemLRUCache {
-	return &MemLRUCache{
+	ret := &MemLRUCache{
 		cache: lru.New(maxEntries),
+		keys:  map[string]bool{},
 	}
+
+	ret.cache.OnEvicted = func(key lru.Key, value interface{}) {
+		delete(ret.keys, getStringKey(key))
+	}
+
+	return ret
+}
+
+func getStringKey(key interface{}) string {
+	k := ""
+	switch key := key.(type) {
+	case string:
+		k = key
+	case []byte:
+		if key != nil {
+			k = string(key)
+		}
+	}
+	return k
 }
 
 func (m *MemLRUCache) Add(key, value interface{}) bool {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	m.cache.Add(key, value)
+	m.keys[getStringKey(key)] = true
 	return true
 }
 
@@ -68,6 +93,18 @@ func (m *MemLRUCache) Len() int {
 func (m *MemLRUCache) Remove(key interface{}) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
+	m.cache.Remove(key)
+	delete(m.keys, getStringKey(key))
+}
+
+func (m *MemLRUCache) Keys() []interface{} {
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+	ret := make([]interface{}, 0, len(m.keys))
+	for k := range m.keys {
+		ret = append(ret, k)
+	}
+	return ret
 }
 
 type jsonCodec struct {

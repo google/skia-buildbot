@@ -10,6 +10,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/golden/go/diff"
 )
@@ -165,6 +166,12 @@ func assertFileExists(filePath string, t *testing.T) {
 		_, _, line, _ := runtime.Caller(1)
 		t.Fatalf("File %s does not exist: Called from line: %d", filePath, line)
 	}
+}
+
+func assertFileNotExists(filePath string, t *testing.T) {
+	_, err := os.Stat(filePath)
+	assert.NotNil(t, err)
+	assert.True(t, os.IsNotExist(err))
 }
 
 func TestAbsPath(t *testing.T) {
@@ -353,4 +360,44 @@ func TestReuseSameInstance(t *testing.T) {
 	assert.Equal(t, 2, len(digestToPaths))
 	assert.Equal(t, filepath.Join(fds.localImgDir, fmt.Sprintf("%s.%s", TEST_DIGEST1, IMG_EXTENSION)), digestToPaths[TEST_DIGEST1])
 	assert.Equal(t, filepath.Join(fds.localImgDir, fmt.Sprintf("%s.%s", TEST_DIGEST2, IMG_EXTENSION)), digestToPaths[TEST_DIGEST2])
+}
+
+func TestPurgeDigests(t *testing.T) {
+	fds := getTestFileDiffStore(t, TESTDATA_DIR, true)
+	_, err := fds.Get(TEST_DIGEST1, []string{TEST_DIGEST2, TEST_DIGEST3})
+	assert.Nil(t, err)
+	_, err = fds.Get(TEST_DIGEST2, []string{TEST_DIGEST1, TEST_DIGEST3})
+	assert.Nil(t, err)
+
+	d_12 := getDiffBasename(TEST_DIGEST1, TEST_DIGEST2)
+	d_13 := getDiffBasename(TEST_DIGEST1, TEST_DIGEST3)
+	d_23 := getDiffBasename(TEST_DIGEST2, TEST_DIGEST3)
+	assertFileExists(fds.getDiffMetricPath(d_12), t)
+	assertFileExists(fds.getDiffMetricPath(d_13), t)
+	assertFileExists(fds.getDiffMetricPath(d_23), t)
+
+	assert.Nil(t, fds.PurgeDigests([]string{TEST_DIGEST1}, false))
+	// Removed from image cache
+	assertFileNotExists(fileutil.TwoLevelRadixPath(fds.localImgDir, fds.getImageBaseName(TEST_DIGEST1)), t)
+	assertFileExists(fileutil.TwoLevelRadixPath(fds.localImgDir, fds.getImageBaseName(TEST_DIGEST2)), t)
+	assertFileExists(fileutil.TwoLevelRadixPath(fds.localImgDir, fds.getImageBaseName(TEST_DIGEST3)), t)
+
+	// Removed from diffMetrics caches
+	assertFileNotExists(fds.getDiffMetricPath(d_12), t)
+	assertFileNotExists(fds.getDiffMetricPath(d_13), t)
+	assertFileExists(fds.getDiffMetricPath(d_23), t)
+	_, ok := fds.diffCache.Get(d_12)
+	assert.False(t, ok)
+	_, ok = fds.diffCache.Get(d_13)
+	assert.False(t, ok)
+	_, ok = fds.diffCache.Get(d_23)
+	assert.True(t, ok)
+
+	// Removed from cache
+	_, ok = fds.imageCache.Get(TEST_DIGEST1)
+	assert.False(t, ok)
+	_, ok = fds.imageCache.Get(TEST_DIGEST2)
+	assert.True(t, ok)
+	_, ok = fds.imageCache.Get(TEST_DIGEST3)
+	assert.True(t, ok)
 }

@@ -1410,7 +1410,30 @@ func failureListJSONHandler(w http.ResponseWriter, r *http.Request) {
 		ret.DigestFailures = append(ret.DigestFailures, failure)
 	}
 
+	sort.Sort(sort.Reverse(diff.DigestFailureSlice(ret.DigestFailures)))
 	sendJsonResponse(w, &ret)
+}
+
+// failureClearJSONHandler removes digests from the local cache.
+func failureClearJSONHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.")
+		return
+	}
+
+	digests := []string{}
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&digests); err != nil {
+		util.ReportError(w, r, err, "Unable to decode digest list.")
+		return
+	}
+	purgeGS := r.URL.Query().Get("purge") == "true"
+
+	if err := storages.DiffStore.PurgeDigests(digests, purgeGS); err != nil {
+		util.ReportError(w, r, err, "Unable to clear digests.")
+	}
+	failureListJSONHandler(w, r)
 }
 
 // listTrybotsJSONHandler returns a list of issues (Rietveld) that have

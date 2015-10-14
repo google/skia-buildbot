@@ -432,6 +432,7 @@ func main() {
 	router.HandleFunc("/_/triagelog", polyTriageLogHandler).Methods("GET")
 	router.HandleFunc("/_/triagelog/undo", triageUndoHandler).Methods("POST")
 	router.HandleFunc("/_/failure", failureListJSONHandler).Methods("GET")
+	router.HandleFunc("/_/failure/clear", failureClearJSONHandler).Methods("POST")
 	router.HandleFunc("/_/trybot", listTrybotsJSONHandler).Methods("GET")
 
 	router.HandleFunc("/byblame", byBlameHandler).Methods("GET")

@@ -7,11 +7,6 @@ import (
 )
 
 func TestJSONCodec(t *testing.T) {
-	type myTestType struct {
-		A int
-		B string
-	}
-
 	itemCodec := JSONCodec(&myTestType{})
 	testInstance := &myTestType{5, "hello"}
 	jsonBytes, err := itemCodec.Encode(testInstance)
@@ -31,4 +26,9 @@ func TestJSONCodec(t *testing.T) {
 	assert.Nil(t, err)
 	assert.IsType(t, []*myTestType{}, decodedArr)
 	assert.Equal(t, testArr, decodedArr)
+}
+
+func TestMemLRUCache(t *testing.T) {
+	cache := NewMemLRUCache(0)
+	UnitTestLRUCache(t, cache)
 }

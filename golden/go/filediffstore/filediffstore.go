@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -217,6 +218,32 @@ func (f *FileDiffStore) addDigestFailure(failure *diff.DigestFailure) error {
 	})
 }
 
+func (f *FileDiffStore) purgeDigestFailures(digests []string) error {
+	updated := false
+	err := f.failureDB.Update(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(FAILURE_BUCKET))
+		if bucket == nil {
+			return nil
+		}
+
+		for _, d := range digests {
+			if bucket.Get([]byte(d)) != nil {
+				updated = true
+				if err := bucket.Delete([]byte(d)); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	})
+
+	if (err == nil) && updated {
+		return f.loadDigestFailures()
+	}
+	return err
+}
+
 // loadDigestFailures loads all digest failures to
 func (f *FileDiffStore) loadDigestFailures() error {
 	newFailures := make(map[string]*diff.DigestFailure, len(f.unavailableDigests))
@@ -244,8 +271,42 @@ func (f *FileDiffStore) loadDigestFailures() error {
 	return err
 }
 
-func (f *FileDiffStore) PurgeDigests(digests []string, purgeGS bool) {
-	// TODO (stephana): To be implemented in next CL.
+func (f *FileDiffStore) PurgeDigests(digests []string, purgeGS bool) error {
+	// Remove from GS if requested.
+	if purgeGS {
+		for _, d := range digests {
+			if err := f.removeImageFromGS(d); err != nil {
+				return err
+			}
+		}
+	}
+
+	for _, d := range digests {
+		if err := f.removeImageFromCache(d); err != nil {
+			return err
+		}
+	}
+
+	// Remove from image cache.
+	for _, d := range digests {
+		f.imageCache.Remove(d)
+	}
+
+	// Remove all metrics from disk cache.
+	if err := f.removeDiffMetricsFromFileCache(digests); err != nil {
+		return err
+	}
+
+	// Remove all diff metrics from LRU cache.
+	for _, ki := range f.diffCache.Keys() {
+		k := ki.(string)
+		for _, d := range digests {
+			if strings.Contains(k, d) {
+				f.diffCache.Remove(ki)
+			}
+		}
+	}
+	return f.purgeDigestFailures(digests)
 }
 
 type WorkerReq struct {
@@ -525,6 +586,25 @@ func (fs *FileDiffStore) writeDiffMetricsToFileCache(baseName string, diffMetric
 	return nil
 }
 
+func (fs *FileDiffStore) removeDiffMetricsFromFileCache(digests []string) error {
+	fs.diffDirLock.Lock()
+	defer fs.diffDirLock.Unlock()
+
+	// Walk the entire cache and remove all files are contained in the list of digests.
+	return filepath.Walk(fs.localDiffMetricsDir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			for _, d := range digests {
+				if (len(d) > 0) && strings.Contains(info.Name(), d) {
+					if err := os.Remove(path); err != nil {
+						return err
+					}
+				}
+			}
+		}
+		return nil
+	})
+}
+
 // Returns the file basename to use for the specified digests.
 // Eg: Returns 111-222 since 111 < 222 when 111 and 222 are specified as inputs
 // regardless of the order.
@@ -694,6 +774,29 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 		downloadFailureCount.Inc(1)
 	}
 	return err
+}
+
+func (fs *FileDiffStore) removeImageFromGS(d string) error {
+	storage, err := storage.New(fs.client)
+	if err != nil {
+		return fmt.Errorf("Failed to create interface to Google Storage: %s\n", err)
+	}
+
+	objLocation := filepath.Join(fs.storageBaseDir, fmt.Sprintf("%s.%s", d, IMG_EXTENSION))
+	if err := storage.Objects.Delete(fs.gsBucketName, objLocation).Do(); err != nil {
+		return fmt.Errorf("Unable to delete %s/%s:  %s", fs.gsBucketName, objLocation, err)
+	}
+	return nil
+}
+
+func (fs *FileDiffStore) removeImageFromCache(d string) error {
+	fs.digestDirLock.Lock()
+	defer fs.digestDirLock.Unlock()
+	path := fs.getDigestImagePath(d)
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return nil
+	}
+	return os.Remove(path)
 }
 
 // Returns the response body of the specified GS object. Tries MAX_URI_GET_TRIES
