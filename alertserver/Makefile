@@ -1,3 +1,5 @@
+VULCANIZE1=true
+
 # The list of files we want to go into core.js, which is concat'd and
 # minified. These files should be either present in the project, brought
 # into third_party/bower_compoents via bower, or in node_modules.
