@@ -244,20 +244,22 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 		return nil
 	}
 
-	// Convert the filename into a format consumable by the run_benchmarks
-	// binary.
+	// Read the pageset.
 	pagesetName := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
 	pagesetPath := filepath.Join(pathToPagesets, fileInfoName)
+	decodedPageset, err := util.ReadPageset(pagesetPath)
+	if err != nil {
+		return fmt.Errorf("Could not read %s: %s", pagesetPath, err)
+	}
 
 	glog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
-
-	skutil.LogErr(os.Chdir(pathToPyFiles))
 	args := []string{
-		util.BINARY_RUN_BENCHMARK,
-		fmt.Sprintf("%s.%s", *benchmarkName, util.BenchmarksToPagesetName[*benchmarkName]),
-		"--page-set-name=" + pagesetName,
-		"--page-set-base-dir=" + pathToPagesets,
+		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
+		util.BenchmarksToPagesetName[*benchmarkName],
 		"--also-run-disabled-tests",
+		"--user-agent=" + decodedPageset.UserAgent,
+		"--urls-list=" + decodedPageset.UrlsList,
+		"--archive-data-file=" + decodedPageset.ArchiveDataFile,
 	}
 
 	// Need to capture output for all benchmarks.

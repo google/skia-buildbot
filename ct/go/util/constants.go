@@ -48,7 +48,7 @@ const (
 	// Names of binaries executed by CT.
 	BINARY_CHROME          = "chrome"
 	BINARY_RECORD_WPR      = "record_wpr"
-	BINARY_RUN_BENCHMARK   = "ct_run_benchmark"
+	BINARY_RUN_BENCHMARK   = "run_benchmark"
 	BINARY_GCLIENT         = "gclient"
 	BINARY_MAKE            = "make"
 	BINARY_LUA_PICTURES    = "lua_pictures"
@@ -121,6 +121,7 @@ const (
 
 	// Capture Archives
 	// Setting a 5 day timeout since it may take a while to capture 1M archives.
+	CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK  = "rasterize_and_record_micro_ct"
 	CAPTURE_ARCHIVES_TIMEOUT               = 5 * 24 * time.Hour
 	MASTER_SCRIPT_CAPTURE_ARCHIVES_TIMEOUT = CAPTURE_ARCHIVES_TIMEOUT +
 		MASTER_SCRIPT_TIMEOUT_PADDING
@@ -228,10 +229,9 @@ var (
 
 	// Information about the different CT benchmarks.
 	BenchmarksToPagesetName = map[string]string{
-		BENCHMARK_SKPICTURE_PRINTER: "SkpicturePrinter",
-		BENCHMARK_RR:                "RasterizeAndRecordMicroCTPages",
-		BENCHMARK_REPAINT:           "RepaintCTPages",
-		BENCHMARK_SMOOTHNESS:        "SmoothnessCTPages",
+		BENCHMARK_SKPICTURE_PRINTER: "skpicture_printer_ct",
+		BENCHMARK_RR:                "rasterize_and_record_micro_ct",
+		BENCHMARK_REPAINT:           "repaint_ct",
 	}
 
 	// Information about the different CT pageset types.

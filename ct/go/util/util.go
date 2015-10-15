@@ -3,6 +3,7 @@ package util
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -236,4 +237,26 @@ func ChromeProcessesCleaner(locker sync.Locker, chromeCleanerTimer time.Duration
 		util.LogErr(ExecuteCmd("pkill", []string{"-9", "chrome"}, []string{}, PKILL_TIMEOUT, nil, nil))
 		locker.Unlock()
 	}
+}
+
+// Contains the data included in CT pagesets.
+type PagesetVars struct {
+	// A comma separated list of URLs.
+	UrlsList string `json:"urls_list"`
+	// Will be either "mobile" or "desktop".
+	UserAgent string `json:"user_agent"`
+	// The location of the web page's WPR data file.
+	ArchiveDataFile string `json:"archive_data_file"`
+}
+
+func ReadPageset(pagesetPath string) (PagesetVars, error) {
+	decodedPageset := PagesetVars{}
+	pagesetContent, err := os.Open(pagesetPath)
+	if err != nil {
+		return decodedPageset, fmt.Errorf("Could not read %s: %s", pagesetPath, err)
+	}
+	if err := json.NewDecoder(pagesetContent).Decode(&decodedPageset); err != nil {
+		return decodedPageset, fmt.Errorf("Could not JSON decode %s: %s", pagesetPath, err)
+	}
+	return decodedPageset, nil
 }

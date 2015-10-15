@@ -14,8 +14,6 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"strings"
-
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
@@ -159,24 +157,27 @@ func main() {
 
 				mutex.RLock()
 
-				pagesetBaseName := filepath.Base(pagesetName)
-				// Convert the filename into a format consumable by the run_benchmarks
-				// binary.
-				pagesetNameNoExt := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
+				// Read the pageset.
 				pagesetPath := filepath.Join(pathToPagesets, pagesetName)
+				decodedPageset, err := util.ReadPageset(pagesetPath)
+				if err != nil {
+					glog.Errorf("Could not read %s: %s", pagesetPath, err)
+					continue
+				}
 
 				glog.Infof("===== Processing %s =====", pagesetPath)
 
 				skutil.LogErr(os.Chdir(pathToPyFiles))
 				args := []string{
-					util.BINARY_RUN_BENCHMARK,
-					fmt.Sprintf("%s.%s", util.BENCHMARK_SKPICTURE_PRINTER, util.BenchmarksToPagesetName[util.BENCHMARK_SKPICTURE_PRINTER]),
-					"--page-set-name=" + pagesetNameNoExt,
-					"--page-set-base-dir=" + pathToPagesets,
+					filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
+					util.BenchmarksToPagesetName[util.BENCHMARK_SKPICTURE_PRINTER],
 					"--also-run-disabled-tests",
 					"--page-repeat=1", // Only need one run for SKPs.
 					"--skp-outdir=" + pathToSkps,
 					"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
+					"--user-agent=" + decodedPageset.UserAgent,
+					"--urls-list=" + decodedPageset.UrlsList,
+					"--archive-data-file=" + decodedPageset.ArchiveDataFile,
 				}
 				// Figure out which browser should be used.
 				if *targetPlatform == util.PLATFORM_ANDROID {

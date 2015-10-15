@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"time"
 
 	"github.com/skia-dev/glog"
-
-	"strings"
-	"time"
 
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
@@ -93,17 +91,23 @@ func main() {
 			continue
 		}
 
-		// Convert the filename into a format consumable by the record_wpr binary.
-		pagesetArchiveName := strings.TrimSuffix(pagesetBaseName, filepath.Ext(pagesetBaseName))
+		// Read the pageset.
 		pagesetPath := filepath.Join(pathToPagesets, fileInfo.Name())
+		decodedPageset, err := util.ReadPageset(pagesetPath)
+		if err != nil {
+			glog.Errorf("Could not read %s: %s", pagesetPath, err)
+			return
+		}
 
 		glog.Infof("===== Processing %s =====", pagesetPath)
 		args := []string{
+			util.CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK,
 			"--extra-browser-args=--disable-setuid-sandbox",
 			"--browser=exact",
 			"--browser-executable=" + chromiumBinary,
-			fmt.Sprintf("%s_page_set", pagesetArchiveName),
-			"--page-set-base-dir=" + pathToPagesets,
+			"--user-agent=" + decodedPageset.UserAgent,
+			"--urls-list=" + decodedPageset.UrlsList,
+			"--archive-data-file=" + decodedPageset.ArchiveDataFile,
 		}
 		env := []string{
 			fmt.Sprintf("PYTHONPATH=%s:$PYTHONPATH", pathToPagesets),

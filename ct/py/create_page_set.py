@@ -19,6 +19,7 @@ Running the above command will create 10000 different page sets.
 
 __author__ = 'Ravi Mistry'
 
+import json
 import optparse
 import os
 import urllib
@@ -105,56 +106,14 @@ if '__main__' == __name__:
       options.pagesets_type,
       'alexa%s-%s.json' % (options.start_number, options.end_number))
 
-  page_set_content = """
-# Copyright 2015 The Chromium Authors. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
-# pylint: disable=W0401,W0614
-
-from telemetry import story
-from telemetry.page import page as page_module
-from telemetry.page import shared_page_state
-from page_sets import repaint_helpers
-
-
-class TypicalAlexaPage(page_module.Page):
-
-  def __init__(self, url, page_set):
-    super(TypicalAlexaPage, self).__init__(
-        url=url,
-        page_set=page_set,
-        shared_page_state_class=shared_page_state.Shared%(user_agent)sPageState)
-    self.archive_data_file = '%(archive_data_file)s'
-
-  def RunNavigateSteps(self, action_runner):
-    action_runner.Navigate(self.url)
-    action_runner.Wait(2)
-
-  def RunPageInteractions(self, action_runner):
-    repaint_helpers.Repaint(action_runner)
-
-
-class Alexa%(start)s_%(end)sPageSet(story.StorySet):
-
-  def __init__(self):
-    super(Alexa%(start)s_%(end)sPageSet, self).__init__(
-      archive_data_file='%(archive_data_file)s')
-
-    urls_list = %(urls_list)s
-
-    for url in urls_list:
-      self.AddStory(TypicalAlexaPage(url, self))
-""" % {
-      "user_agent": options.useragent_type.capitalize(),
-      "archive_data_file": archive_data_file,
-      "start": options.start_number,
-      "end": options.end_number,
-      "urls_list": str(websites),
+  page_set_content = {
+    'user_agent': options.useragent_type,
+    'archive_data_file': archive_data_file,
+    'urls_list': ','.join(websites),
   }
 
   # Output the pageset to a file.
   with open(os.path.join(options.pagesets_output_dir, 'alexa%s_%s.py' % (
                 options.start_number, options.end_number)),
             'w') as outfile:
-    outfile.write(page_set_content)
-
+    json.dump(page_set_content, outfile)
