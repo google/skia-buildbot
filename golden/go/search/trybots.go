@@ -13,7 +13,7 @@ import (
 // TrybotIssue is the output structure for a Rietveld issue that has
 // trybot runs assoicated with it.
 type TrybotIssue struct {
-	ID      int    `json:"id"`
+	ID      int64  `json:"id"`
 	Subject string `json:"subject"`
 	Owner   string `json:"owner"`
 	Updated int64  `json:"updated"`
@@ -49,7 +49,7 @@ func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIss
 				ch <- fmt.Errorf("Unable to parse issue id %s. Got error: %s", issueInfo.Issue, err)
 				return
 			}
-			result, err := storages.RietveldAPI.GetIssueProperties(intIssueId, false)
+			result, err := storages.RietveldAPI.GetIssueProperties(int64(intIssueId), false)
 			if err != nil {
 				ch <- fmt.Errorf("Error retrieving rietveld informaton for issue: %s: %s", issueInfo.Issue, err)
 				return
@@ -60,7 +60,7 @@ func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIss
 				Owner:   result.Owner,
 				Subject: result.Subject,
 				Updated: result.Modified.Unix(),
-				URL:     strings.TrimSuffix(storages.RietveldAPI.Url(), "/") + "/" + strconv.Itoa(result.Issue),
+				URL:     strings.TrimSuffix(storages.RietveldAPI.Url(), "/") + fmt.Sprintf("/%d", result.Issue),
 			}
 
 			mutex.Lock()

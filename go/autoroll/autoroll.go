@@ -25,7 +25,7 @@ var r = rietveld.New(RIETVELD_URL, nil)
 type AutoRollIssue struct {
 	Closed    bool
 	Committed bool
-	Issue     int
+	Issue     int64
 	Modified  time.Time
 }
 

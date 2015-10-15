@@ -3,25 +3,27 @@ package rietveld
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
 	"sort"
 	"strings"
 	"time"
-)
 
-import (
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	CLIENT_ID     = "446450136466-2hr92jrq8e6i4tnsa56b52vacp7t3936.apps.googleusercontent.com"
+	CLIENT_SECRET = "uBfbay2KCy9t4QveJ-dOqHtp"
+
+	COMMITTED_ISSUE_REGEXP = "(?m:^Committed: .+$)"
+)
+
 var (
-	committedIssueRegexp []string = []string{
-		"Committed patchset #[0-9]+ \\((id:)?[0-9]+\\) as [0-9a-f]{2,40}",
-		"Committed patchset #[0-9]+ \\((id:)?[0-9]+\\)",
-		"Committed patchset #[0-9]+",
-		"Change committed as [0-9]+",
+	OAUTH_SCOPES = []string{
+		"https://www.googleapis.com/auth/userinfo.email",
 	}
 )
 
@@ -33,7 +35,7 @@ type Issue struct {
 	Created        time.Time
 	CreatedString  string `json:"created"`
 	Description    string
-	Issue          int
+	Issue          int64
 	Messages       []IssueMessage
 	Modified       time.Time
 	ModifiedString string `json:"modified"`
@@ -41,7 +43,7 @@ type Issue struct {
 	Project        string
 	Reviewers      []string
 	Subject        string
-	Patchsets      []int
+	Patchsets      []int64
 }
 
 // IssueMessage contains information about a comment on an issue.
@@ -52,15 +54,31 @@ type IssueMessage struct {
 	Text       string
 }
 
-type issueListSortable []*Issue
+// Rietveld is an object used for interacting with the issue tracker.
+type Rietveld struct {
+	client        *http.Client
+	url           string
+	xsrfToken     string
+	xsrfTokenTime time.Time
+}
 
-func (p issueListSortable) Len() int           { return len(p) }
-func (p issueListSortable) Less(i, j int) bool { return p[i].Created.Before(p[j].Created) }
-func (p issueListSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+// New returns a new Rietveld instance. If client is nil, the default
+// http.Client will be used for anonymous access. In this case, some
+// functionality will be unavailable, eg. modifying issues.
+func New(url string, client *http.Client) *Rietveld {
+	url = strings.TrimRight(url, "/")
+	if client == nil {
+		client = http.DefaultClient
+	}
+	return &Rietveld{
+		url:    url,
+		client: client,
+	}
+}
 
-type rietveldResults struct {
-	Results []*Issue
-	Cursor  string
+// Url returns the URL of the server for this Rietveld instance.
+func (r *Rietveld) Url() string {
+	return r.url
 }
 
 func parseTime(t string) time.Time {
@@ -68,28 +86,116 @@ func parseTime(t string) time.Time {
 	return parsed
 }
 
-// Rietveld is an object used for interacting with the issue tracker.
-type Rietveld struct {
-	client *http.Client
-	url    string
+// getIssueProperties returns a fully filled-in Issue object, as opposed to
+// the partial data returned by Rietveld's search endpoint.
+func (r *Rietveld) GetIssueProperties(issue int64, messages bool) (*Issue, error) {
+	url := fmt.Sprintf("/api/%v", issue)
+	if messages {
+		url += "?messages=true"
+	}
+	fullIssue := &Issue{}
+	if err := r.get(url, fullIssue); err != nil {
+		return nil, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
+	}
+
+	committed, err := regexp.MatchString(COMMITTED_ISSUE_REGEXP, fullIssue.Description)
+	if err != nil {
+		return nil, err
+	}
+	fullIssue.Committed = committed
+
+	fullIssue.Created = parseTime(fullIssue.CreatedString)
+	fullIssue.Modified = parseTime(fullIssue.ModifiedString)
+	if messages {
+		for _, msg := range fullIssue.Messages {
+			msg.Date = parseTime(msg.DateString)
+		}
+	}
+	return fullIssue, nil
 }
 
-func (r *Rietveld) Url() string {
-	return r.url
+// AddComment adds a comment to the given CL.
+func (r *Rietveld) AddComment(issue int64, message string) error {
+	data := url.Values{}
+	data.Add("message", message)
+	data.Add("message_only", "True")
+	data.Add("add_as_reviewer", "False")
+	data.Add("send_mail", "True")
+	data.Add("no_redirect", "True")
+	return r.post(fmt.Sprintf("/%d/publish", issue), data)
+}
+
+// Close closes the issue with the given message.
+func (r *Rietveld) Close(issue int64, message string) error {
+	if err := r.AddComment(issue, message); err != nil {
+		return err
+	}
+	return r.post(fmt.Sprintf("/%d/close", issue), nil)
+}
+
+func (r *Rietveld) refreshXSRFToken() error {
+	req, err := http.NewRequest("GET", r.url+"/xsrf_token", nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("X-Requesting-XSRF-Token", "1")
+	resp, err := r.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer util.Close(resp.Body)
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	r.xsrfToken = string(data)
+	r.xsrfTokenTime = time.Now()
+	return nil
+}
+
+func (r *Rietveld) refreshXSRFTokenIfNeeded() error {
+	if time.Now().Sub(r.xsrfTokenTime) > 30*time.Minute {
+		return r.refreshXSRFToken()
+	}
+	return nil
 }
 
 func (r *Rietveld) get(suburl string, rv interface{}) error {
 	resp, err := r.client.Get(r.url + suburl)
 	if err != nil {
-		return fmt.Errorf("Failed to GET %s: %v", r.url+suburl, err)
+		return fmt.Errorf("Failed to GET %s: %s", r.url+suburl, err)
 	}
 	defer util.Close(resp.Body)
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(rv); err != nil {
-		return fmt.Errorf("Failed to decode JSON: %v", err)
+		return fmt.Errorf("Failed to decode JSON: %s", err)
 	}
 	return nil
 }
+
+func (r *Rietveld) post(suburl string, data url.Values) error {
+	if err := r.refreshXSRFTokenIfNeeded(); err != nil {
+		return err
+	}
+	if data == nil {
+		data = url.Values{}
+	}
+	data.Add("xsrf_token", r.xsrfToken)
+	resp, err := r.client.PostForm(r.url+suburl, data)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Got status %s", resp.Status)
+	}
+	return nil
+}
+
+type issueListSortable []*Issue
+
+func (p issueListSortable) Len() int           { return len(p) }
+func (p issueListSortable) Less(i, j int) bool { return p[i].Created.Before(p[j].Created) }
+func (p issueListSortable) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // SearchTerm is a wrapper for search terms to pass into the Search method.
 type SearchTerm struct {
@@ -97,6 +203,7 @@ type SearchTerm struct {
 	Value string
 }
 
+// SearchOwner is a SearchTerm used for filtering by issue owner.
 func SearchOwner(name string) *SearchTerm {
 	return &SearchTerm{
 		Key:   "owner",
@@ -104,6 +211,8 @@ func SearchOwner(name string) *SearchTerm {
 	}
 }
 
+// SearchModifiedAfter is a SearchTerm used for finding issues modified after
+// a particular time.Time.
 func SearchModifiedAfter(after time.Time) *SearchTerm {
 	return &SearchTerm{
 		Key:   "modified_after",
@@ -111,6 +220,7 @@ func SearchModifiedAfter(after time.Time) *SearchTerm {
 	}
 }
 
+// SearchOpen is a SearchTerm used for filtering issues by open/closed status.
 func SearchOpen(open bool) *SearchTerm {
 	value := "2"
 	if open {
@@ -132,7 +242,10 @@ func (r *Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 	var issues issueListSortable
 	cursor := ""
 	for {
-		var data rietveldResults
+		var data struct {
+			Results []*Issue
+			Cursor  string
+		}
 		err := r.get(searchUrl+cursor, &data)
 		if err != nil {
 			return nil, fmt.Errorf("Rietveld search failed: %v", err)
@@ -141,9 +254,9 @@ func (r *Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 			break
 		}
 		for _, issue := range data.Results {
-			fullIssue, err := r.GetIssueProperties(issue.Issue, true)
+			fullIssue, err := r.GetIssueProperties(issue.Issue, false)
 			if err != nil {
-				glog.Error(err)
+				return nil, err
 			} else {
 				issues = append(issues, fullIssue)
 			}
@@ -155,52 +268,4 @@ func (r *Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 	}
 	sort.Sort(issues)
 	return issues, nil
-}
-
-// getIssueProperties returns a fully filled-in Issue object, as opposed to
-// the partial data returned by Rietveld's search endpoint.
-func (r *Rietveld) GetIssueProperties(issue int, messages bool) (*Issue, error) {
-	url := fmt.Sprintf("/api/%v", issue)
-	if messages {
-		url += "?messages=true"
-	}
-	fullIssue := &Issue{}
-	err := r.get(url, fullIssue)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
-	}
-
-	fullIssue.Created = parseTime(fullIssue.CreatedString)
-	fullIssue.Modified = parseTime(fullIssue.ModifiedString)
-	for _, msg := range fullIssue.Messages {
-		committed := false
-		for _, r := range committedIssueRegexp {
-			committed, err = regexp.MatchString(r, msg.Text)
-			if committed {
-				break
-			}
-		}
-		msg.Date = parseTime(msg.DateString)
-		if err != nil {
-			return nil, err
-		}
-		if committed {
-			fullIssue.Committed = true
-		}
-	}
-
-	return fullIssue, nil
-}
-
-// New returns a new Rietveld instance. If client is nil, the default
-// http.Client will be used for anonymous access. In this case, some
-// functionality will be unavailable, eg. modifying issues.
-func New(url string, client *http.Client) *Rietveld {
-	if client == nil {
-		client = http.DefaultClient
-	}
-	return &Rietveld{
-		url:    strings.TrimRight(url, "/"),
-		client: client,
-	}
 }
