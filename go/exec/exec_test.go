@@ -300,6 +300,12 @@ func TestRunSimple(t *testing.T) {
 	expect.Equal(t, "\"Hello Go!\"\n", output)
 }
 
+func TestRunCwd(t *testing.T) {
+	output, err := RunCwd("/", "pwd")
+	assert.NoError(t, err)
+	expect.Equal(t, "/\n", output)
+}
+
 func TestCommandCollector(t *testing.T) {
 	mock := CommandCollector{}
 	SetRunForTesting(mock.Run)

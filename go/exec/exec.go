@@ -237,15 +237,33 @@ func (command *Command) Run() error {
 	return Run(command)
 }
 
+// runSimpleCommand executes the given command.  Returns the combined stdout and stderr. May also
+// return an error if the command exited with a non-zero status or there is any other error.
+func runSimpleCommand(command *Command) (string, error) {
+	output := bytes.Buffer{}
+	command.CombinedOutput = &output
+	err := Run(command)
+	result := string(output.Bytes())
+	glog.Infof("StdOut + StdErr: %s\n", result)
+	return result, err
+}
+
 // RunSimple executes the given command line string; the command being run is expected to not care
 // what its current working directory is. Returns the combined stdout and stderr. May also return
 // an error if the command exited with a non-zero status or there is any other error.
 func RunSimple(commandLine string) (string, error) {
-	command := ParseCommand(commandLine)
-	output := bytes.Buffer{}
-	command.CombinedOutput = &output
-	err := Run(&command)
-	result := string(output.Bytes())
-	glog.Infof("StdOut + StdErr: %s\n", result)
-	return result, err
+	cmd := ParseCommand(commandLine)
+	return runSimpleCommand(&cmd)
+}
+
+// RunCwd executes the given command in the given directory. Returns the combined stdout and
+// stderr. May also return an error if the command exited with a non-zero status or there is any
+// other error.
+func RunCwd(cwd string, args ...string) (string, error) {
+	command := &Command{
+		Name: args[0],
+		Args: args[1:],
+		Dir:  cwd,
+	}
+	return runSimpleCommand(command)
 }

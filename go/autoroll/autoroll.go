@@ -12,7 +12,9 @@ import (
 )
 
 const (
-	OWNER              = "skia-deps-roller@chromium.org"
+	// TODO(borenet): Change this to "skia-deps-roller@chromium.org" once
+	// the server is working end-to-end.
+	ROLL_AUTHOR        = "borenet@google.com"
 	POLLER_ROLLS_LIMIT = 10
 	RECENT_ROLLS_LIMIT = 200
 	RIETVELD_URL       = "https://codereview.chromium.org"
@@ -30,7 +32,7 @@ type AutoRollIssue struct {
 }
 
 func search(limit int, terms ...*rietveld.SearchTerm) ([]*AutoRollIssue, error) {
-	terms = append(terms, rietveld.SearchOwner(OWNER))
+	terms = append(terms, rietveld.SearchOwner(ROLL_AUTHOR))
 	res, err := r.Search(limit, terms...)
 	if err != nil {
 		return nil, err

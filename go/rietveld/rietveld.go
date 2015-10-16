@@ -29,21 +29,23 @@ var (
 
 // Issue contains information about a Rietveld issue.
 type Issue struct {
-	CC             []string
-	Closed         bool
-	Committed      bool
-	Created        time.Time
-	CreatedString  string `json:"created"`
-	Description    string
-	Issue          int64
-	Messages       []IssueMessage
-	Modified       time.Time
-	ModifiedString string `json:"modified"`
-	Owner          string
-	Project        string
-	Reviewers      []string
-	Subject        string
-	Patchsets      []int64
+	CC                []string
+	Closed            bool
+	Committed         bool
+	CommitQueue       bool `json:"commit"`
+	CommitQueueDryRun bool `json:"cq_dry_run"`
+	Created           time.Time
+	CreatedString     string `json:"created"`
+	Description       string
+	Issue             int64
+	Messages          []IssueMessage
+	Modified          time.Time
+	ModifiedString    string `json:"modified"`
+	Owner             string
+	Project           string
+	Reviewers         []string
+	Subject           string
+	Patchsets         []int64
 }
 
 // IssueMessage contains information about a comment on an issue.
