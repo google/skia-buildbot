@@ -144,7 +144,7 @@
      "mimetype": ""
    },
    "skiawebtrylogs": {
-     "url": "http://skia-webtry:10114",
+     "url": "http://skia-webtry:10115",
      "method": "GET",
      "expected": [401],
      "body": "",
