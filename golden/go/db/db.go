@@ -135,6 +135,13 @@ var migrationSteps = []database.MigrationStep{
 	},
 
 	// Use this is a template for more migration steps.
+	// version 8
+	{
+		MySQLUp:   []string{`ALTER TABLE tries ADD max_patchset INT NOT NULL DEFAULT 0`},
+		MySQLDown: []string{`ALTER TABLE tries DROP max_patchset`},
+	},
+
+	// Use this is a template for more migration steps.
 	// version x
 	// {
 	// 	MySQLUp: ,

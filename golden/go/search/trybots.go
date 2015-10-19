@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -13,11 +14,12 @@ import (
 // TrybotIssue is the output structure for a Rietveld issue that has
 // trybot runs assoicated with it.
 type TrybotIssue struct {
-	ID      int64  `json:"id"`
-	Subject string `json:"subject"`
-	Owner   string `json:"owner"`
-	Updated int64  `json:"updated"`
-	URL     string `json:"url"`
+	ID              int64  `json:"id"`
+	Subject         string `json:"subject"`
+	Owner           string `json:"owner"`
+	Updated         int64  `json:"updated"`
+	URL             string `json:"url"`
+	CurrentPatchset int    `json:"currentPatchset"`
 }
 
 // ListTrybotIssues returns the most recently updated trybot issues in reverse
@@ -44,7 +46,7 @@ func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIss
 		go func(issueInfo *trybot.IssueListItem) {
 			defer wg.Done()
 
-			intIssueId, err := strconv.Atoi(issueInfo.Issue)
+			intIssueId, err := strconv.ParseInt(issueInfo.Issue, 10, 64)
 			if err != nil {
 				ch <- fmt.Errorf("Unable to parse issue id %s. Got error: %s", issueInfo.Issue, err)
 				return
@@ -55,12 +57,24 @@ func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIss
 				return
 			}
 
+			// Retrieve the owner via the patchset via Rietveld.
+			owner := result.Owner
+			if len(result.Patchsets) > 0 {
+				ps, err := storages.RietveldAPI.GetPatchset(intIssueId, result.Patchsets[0])
+				if err != nil {
+					ch <- fmt.Errorf("Error retrieving patchset %d for issue %s: %s", result.Patchsets[0], issueInfo.Issue, err)
+					return
+				}
+				owner = ps.OwnerEmail
+			}
+
 			ret := &TrybotIssue{
-				ID:      result.Issue,
-				Owner:   result.Owner,
-				Subject: result.Subject,
-				Updated: result.Modified.Unix(),
-				URL:     strings.TrimSuffix(storages.RietveldAPI.Url(), "/") + fmt.Sprintf("/%d", result.Issue),
+				ID:              result.Issue,
+				Owner:           owner,
+				Subject:         result.Subject,
+				Updated:         result.Modified.Unix(),
+				URL:             strings.TrimSuffix(storages.RietveldAPI.Url(), "/") + fmt.Sprintf("/%d", result.Issue),
+				CurrentPatchset: sort.Search(len(result.Patchsets), func(i int) bool { return result.Patchsets[i] >= issueInfo.MaxPatchset }) + 1,
 			}
 
 			mutex.Lock()

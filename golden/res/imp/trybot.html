@@ -15,7 +15,8 @@
       .nameHeader,
       .issueHeader,
       .dateTimeHeader,
-      .subjectHeader {
+      .subjectHeader,
+      .patchsetHeader {
         font-weight: bold;
       }
 
@@ -31,7 +32,8 @@
 
       .subjectHeader,
       .subjectValue {
-        width: 40em;
+        min-width: 15em;
+        max-width: 35em;
       }
 
       .issueHeader,
@@ -39,24 +41,33 @@
         width: 6em;
       }
 
+      .patchsetHeader,
+      .patchsetValue {
+        width: 7em;
+      }
+
       .headerContainer {
         padding-top: 2em;
       }
+
+      tr.rowEntry:hover td {background:#DDDDDD}
     </style>
     <paging-sk pagination="{{pagination}}" on-pagechange="{{pageChangedHandler}}"></paging-sk>
       <table class="headerContainer">
         <thead>
           <tr>
             <td class="issueHeader">Issue</td>
+            <td class="patchsetHeader">Results<br>Up To</td>
             <td class="nameHeader">Owner</td>
             <td class="dateTimeHeader">Updated</td>
             <td class="subjectHeader">Subject</td>
           </tr>
-          <tr template repeat="{{entry in trybotEntries}}">
-            <td class="issueValue"><a href="{{entry.url}}" target="_blank">{{entry.id}}</a></td>
+          <tr template repeat="{{entry in trybotEntries}}" class="rowEntry">
+            <td class="issueValue"><a href="{{entry.url}}" target="_blank" title="See codereview in a new window">{{entry.id}}</a></td>
+            <td class="patchsetValue"><a href="/search2?issue={{entry.id}}&unt=true&query={{ page.query | queryStr }}&master=false" title="Results up to Patchset {{entry.currentPatchset}}">Patchset {{entry.currentPatchset}}</a></td>
             <td class="nameValue">{{entry.owner}}</td>
             <td class="dateTimeValue">{{entry.updated | _toLocalDate}}</td>
-            <td class="subjectValue"><a href="/search2?issue={{entry.id}}&unt=true&query={{ page.query | queryStr }}&master=false">{{entry.subject}}</a></td>
+            <td class="subjectValue">{{entry.subject}}</td>
           </tr>
       </table>
       <error-toast-sk></error-toast-sk>

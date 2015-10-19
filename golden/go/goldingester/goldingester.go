@@ -73,7 +73,7 @@ type DMResults struct {
 	GitHash     string            `json:"gitHash"`
 	Key         map[string]string `json:"key"`
 	Issue       string            `json:"issue"`
-	Patchset    string            `json:"patchset"`
+	Patchset    int64             `json:"patchset,string"`
 	Results     []*Result         `json:"results"`
 }
 

@@ -83,6 +83,19 @@ func (r *Rietveld) Url() string {
 	return r.url
 }
 
+// Patchset contains the information about one patchset.
+// Currently we ommit fields that we don't need.
+type Patchset struct {
+	Patchset    int64  `json:"patchset"`
+	Issue       int64  `json:"issue"`
+	Owner       string `json:"owner"`
+	OwnerEmail  string `json:"owner_email"`
+	Created     time.Time
+	CreatedStr  string `json:"created"`
+	Modified    time.Time
+	ModifiedStr string `json:"modified"`
+}
+
 func parseTime(t string) time.Time {
 	parsed, _ := time.Parse("2006-01-02 15:04:05.999999", t)
 	return parsed
@@ -270,4 +283,16 @@ func (r *Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 	}
 	sort.Sort(issues)
 	return issues, nil
+}
+
+func (r Rietveld) GetPatchset(issueID int64, patchsetID int64) (*Patchset, error) {
+	url := fmt.Sprintf("/api/%d/%d", issueID, patchsetID)
+	patchset := &Patchset{}
+	if err := r.get(url, patchset); err != nil {
+		return nil, err
+	}
+
+	patchset.Created = parseTime(patchset.CreatedStr)
+	patchset.Modified = parseTime(patchset.ModifiedStr)
+	return patchset, nil
 }

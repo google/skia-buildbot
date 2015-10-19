@@ -32,6 +32,7 @@ type TrybotResultStorage struct {
 type IssueListItem struct {
 	Issue       string
 	LastUpdated int64
+	MaxPatchset int64
 }
 
 func NewTrybotResultStorage(vdb *database.VersionedDB) *TrybotResultStorage {
@@ -42,7 +43,7 @@ func NewTrybotResultStorage(vdb *database.VersionedDB) *TrybotResultStorage {
 
 // Write writes trybot results to the SQL database connected to vdb that was the
 // the argument to Init(..).
-func (t *TrybotResultStorage) Write(issue string, trybotResults *TryBotResults) error {
+func (t *TrybotResultStorage) Write(issue string, maxPatchset int64, trybotResults *TryBotResults) error {
 	trybotResults.indexDigests()
 
 	b, err := json.Marshal(trybotResults)
@@ -58,7 +59,7 @@ func (t *TrybotResultStorage) Write(issue string, trybotResults *TryBotResults) 
 		}
 	}
 
-	_, err = t.vdb.DB.Exec("REPLACE INTO tries (issue, results, last_updated) VALUES (?, ?, ?)", issue, string(b), timeStamp)
+	_, err = t.vdb.DB.Exec("REPLACE INTO tries (issue, max_patchset, results, last_updated) VALUES (?, ?, ?, ?)", issue, maxPatchset, string(b), timeStamp)
 	if err != nil {
 		return fmt.Errorf("Failed to write trybot data to database: %s", err)
 	}
@@ -96,7 +97,7 @@ func (t *TrybotResultStorage) List(offset, size int) ([]*IssueListItem, int, err
 		return []*IssueListItem{}, 0, nil
 	}
 
-	rows, err := t.vdb.DB.Query("SELECT issue,last_updated FROM tries ORDER BY last_updated DESC LIMIT ?,?", offset, size)
+	rows, err := t.vdb.DB.Query("SELECT issue, max_patchset, last_updated FROM tries ORDER BY last_updated DESC LIMIT ?,?", offset, size)
 	if err != nil {
 		return nil, 0, fmt.Errorf("Failed to read try data from database: %s", err)
 	}
@@ -105,7 +106,7 @@ func (t *TrybotResultStorage) List(offset, size int) ([]*IssueListItem, int, err
 	ret := make([]*IssueListItem, 0, size)
 	for rows.Next() {
 		listItem := &IssueListItem{}
-		if err := rows.Scan(&listItem.Issue, &listItem.LastUpdated); err != nil {
+		if err := rows.Scan(&listItem.Issue, &listItem.MaxPatchset, &listItem.LastUpdated); err != nil {
 			return nil, 0, fmt.Errorf("List: Failed to read issue from row: %s", err)
 		}
 		ret = append(ret, listItem)
@@ -142,7 +143,7 @@ func (t *TrybotResultIngester) Ingest(_ *ingester.TileTracker, opener ingester.O
 	}
 
 	// Add the entire file to our current knowledge about this issue.
-	t.resultsByIssue[dmResults.Issue].update(dmResults.Key, dmResults.Results, fileInfo.LastUpdated)
+	t.resultsByIssue[dmResults.Issue].update(dmResults.Key, dmResults.Patchset, dmResults.Results, fileInfo.LastUpdated)
 	counter.Inc(1)
 	glog.Infof("Finished processing file %s.", fileInfo.Name)
 	return nil
@@ -162,9 +163,9 @@ func (t *TrybotResultIngester) BatchFinished(_ metrics.Counter) error {
 			return err
 		}
 
-		needsUpdating := pastTries.updateIfNewer(tries)
+		needsUpdating, maxPatchset := pastTries.updateIfNewer(tries)
 		if needsUpdating {
-			if err := t.tbrStorage.Write(issue, pastTries); err != nil {
+			if err := t.tbrStorage.Write(issue, maxPatchset, pastTries); err != nil {
 				return err
 			}
 		}
@@ -186,6 +187,7 @@ type TryBotResults struct {
 // BotResults contains the results of one bot run.
 type BotResults struct {
 	BotParams   map[string]string
+	Patchset    int64
 	TestResults []*TestResult
 	TS          int64
 }
@@ -207,7 +209,7 @@ func NewTryBotResults() *TryBotResults {
 
 // update incorporates the given restuls into the current results for this
 // issue.
-func (t *TryBotResults) update(botParams map[string]string, testResults []*goldingester.Result, timeStamp int64) {
+func (t *TryBotResults) update(botParams map[string]string, patchset int64, testResults []*goldingester.Result, timeStamp int64) {
 	botId, err := util.MD5Params(botParams)
 	if err != nil {
 		glog.Errorf("Unable to hash bot parameters \n\n%v\n\n. Error: %s", botParams, err)
@@ -219,6 +221,7 @@ func (t *TryBotResults) update(botParams map[string]string, testResults []*goldi
 		// Replace the current entry for this bot.
 		current = &BotResults{
 			BotParams: botParams,
+			Patchset:  patchset,
 		}
 
 		botTestResults := []*TestResult{}
@@ -240,16 +243,18 @@ func (t *TryBotResults) update(botParams map[string]string, testResults []*goldi
 
 // updateIfNewer incorporates the results of trybot runs into this results
 // if they are newer.
-func (t *TryBotResults) updateIfNewer(tries *TryBotResults) bool {
+func (t *TryBotResults) updateIfNewer(tries *TryBotResults) (bool, int64) {
 	updated := false
+	var latestPatchset int64 = 0
 	for key, entry := range tries.Bots {
 		found, ok := t.Bots[key]
 		if !ok || (found.TS < entry.TS) {
+			latestPatchset = util.MaxInt64(latestPatchset, entry.Patchset)
 			t.Bots[key] = entry
 			updated = true
 		}
 	}
-	return updated
+	return updated, latestPatchset
 }
 
 func (t *TryBotResults) indexDigests() {

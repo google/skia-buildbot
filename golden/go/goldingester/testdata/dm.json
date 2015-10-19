@@ -1,6 +1,8 @@
 {
    "build_number" : "1727",
    "gitHash" : "0e9770515cab45decb56a5926d1741b71854fb4c",
+   "issue": "1940459404",
+   "patchset": "12345",
    "key" : {
       "arch" : "x86_64",
       "configuration" : "Debug",

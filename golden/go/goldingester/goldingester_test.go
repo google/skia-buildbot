@@ -40,6 +40,8 @@ func TestJSONToDMResults(t *testing.T) {
 	if got, want := len(params), 9; got != want {
 		t.Errorf("Params wrong size: Got %v Want %v", got, want)
 	}
+
+	assert.Equal(t, int64(12345), dm.Patchset)
 }
 
 func TestParsing(t *testing.T) {
