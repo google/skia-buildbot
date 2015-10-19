@@ -3,7 +3,6 @@ package autoroll
 import (
 	"fmt"
 	"path"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -21,18 +20,16 @@ const (
 
 	MODE_RUNNING = "running"
 	MODE_STOPPED = "stopped"
-	MODE_DRY_RUN = "dry_run"
+	MODE_DRY_RUN = "dry run"
 
 	STATUS_IDLE        = "idle"
-	STATUS_IN_PROGRESS = "in_progress"
+	STATUS_IN_PROGRESS = "in progress"
 	STATUS_STOPPED     = "stopped"
 
 	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
 )
 
 var (
-	ROLL_REV_REGEX = regexp.MustCompile("Roll .+ [0-9a-zA-Z]+\\.\\.([0-9a-zA-Z]+) \\(\\d+ commit.*\\)\\.")
-
 	VALID_MODES = []string{
 		MODE_RUNNING,
 		MODE_STOPPED,
@@ -57,11 +54,12 @@ type AutoRoller struct {
 	chromiumDir       string
 	chromiumParentDir string
 	cqExtraTrybots    []string
-	currentRoll       *rietveld.Issue
+	currentRoll       *AutoRollIssue
 	emails            []string
 	includeCommitLog  bool
 	mode              Mode
 	mtx               sync.RWMutex
+	recent            []*AutoRollIssue
 	rietveld          *rietveld.Rietveld
 	skiaDir           string
 	status            Status
@@ -69,8 +67,14 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, frequency time.Duration) *AutoRoller {
+func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, frequency time.Duration) (*AutoRoller, error) {
 	chromiumParentDir := path.Join(workdir, "chromium")
+	// TODO(borenet): Do this in a smarter way; rather than contually loading
+	// the last N rolls, update the "recent" list as we upload/close CLs.
+	recent, err := GetLastNRolls(POLLER_ROLLS_LIMIT)
+	if err != nil {
+		return nil, err
+	}
 	arb := &AutoRoller{
 		chromiumDir:       path.Join(chromiumParentDir, "src"),
 		chromiumParentDir: chromiumParentDir,
@@ -78,6 +82,7 @@ func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *ri
 		emails:            emails,
 		includeCommitLog:  true,
 		mode:              MODE_RUNNING,
+		recent:            recent,
 		rietveld:          rietveld,
 		skiaDir:           path.Join(workdir, "skia"),
 		status:            STATUS_IDLE,
@@ -91,7 +96,7 @@ func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *ri
 		}
 	}()
 
-	return arb
+	return arb, nil
 }
 
 // SetMode sets the desired mode of the bot. This has no effect on the
@@ -121,7 +126,7 @@ func (r *AutoRoller) isMode(s Mode) bool {
 }
 
 // setStatus sets the current reporting status of the bot.
-func (r *AutoRoller) setStatus(s Status, currentRoll *rietveld.Issue) error {
+func (r *AutoRoller) setStatus(s Status, currentRoll *AutoRollIssue) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	if !util.In(string(s), VALID_STATUSES) {
@@ -154,7 +159,7 @@ func (r *AutoRoller) GetStatus() Status {
 
 // GetCurrentRoll returns the currently active DEPS roll, if one exists, and
 // nil if no such roll exists.
-func (r *AutoRoller) GetCurrentRoll() *rietveld.Issue {
+func (r *AutoRoller) GetCurrentRoll() *AutoRollIssue {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.currentRoll
@@ -190,26 +195,30 @@ func (r *AutoRoller) SetEmails(e []string) {
 	r.emails = e
 }
 
+// GetRecentRolls retrieves the list of recent DEPS rolls.
+func (r *AutoRoller) GetRecentRolls() []*AutoRollIssue {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.recent
+}
+
+// setRecentRolls sets the list of recent DEPS rolls.
+func (r *AutoRoller) setRecentRolls(recent []*AutoRollIssue) {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	r.recent = recent
+}
+
 // closeIssue closes the given issue with the given message.
-func (r *AutoRoller) closeIssue(issue *rietveld.Issue, msg string) error {
+func (r *AutoRoller) closeIssue(issue *AutoRollIssue, msg string) error {
 	glog.Infof("Closing issue %d with message: %s", issue.Issue, msg)
 	return r.rietveld.Close(issue.Issue, msg)
 }
 
 // findActiveRolls retrieves a slice of Issues which fit the criteria to be
 // considered DEPS rolls.
-func (r *AutoRoller) findActiveRolls() ([]*rietveld.Issue, error) {
-	issues, err := r.rietveld.Search(100, rietveld.SearchOwner(ROLL_AUTHOR), rietveld.SearchOpen(true))
-	if err != nil {
-		return nil, err
-	}
-	rv := make([]*rietveld.Issue, 0, len(issues))
-	for _, i := range issues {
-		if ROLL_REV_REGEX.FindString(i.Subject) != "" {
-			rv = append(rv, i)
-		}
-	}
-	return rv, nil
+func (r *AutoRoller) findActiveRolls() ([]*AutoRollIssue, error) {
+	return search(r.rietveld, 100, rietveld.SearchOpen(true))
 }
 
 // getCurrentRollRev parses an abbreviated commit hash from the given issue
@@ -245,7 +254,7 @@ func (r *AutoRoller) getLastRollRev() (string, error) {
 // should be closed in favor of a new one. Returns a boolean indicating whether
 // the current roll should be closed, a message to be used with the roll
 // closure, if applicable, or an error.
-func (r *AutoRoller) shouldCloseCurrentRoll(currentRoll *rietveld.Issue, skiaRepo *gitinfo.GitInfo, lastRollRev string) (bool, string, error) {
+func (r *AutoRoller) shouldCloseCurrentRoll(currentRoll *AutoRollIssue, skiaRepo *gitinfo.GitInfo, lastRollRev string) (bool, string, error) {
 	glog.Infof("Found current roll: https://codereview.chromium.org/%d", currentRoll.Issue)
 	// If we're stopped, close the issue.
 	if r.isMode(MODE_STOPPED) {
@@ -287,7 +296,7 @@ func (r *AutoRoller) shouldCloseCurrentRoll(currentRoll *rietveld.Issue, skiaRep
 
 // createNewRoll creates and uploads a new DEPS roll from the given commit to
 // a new commit. It returns the uploaded issue or any error.
-func (r *AutoRoller) createNewRoll(from, to string) (*rietveld.Issue, error) {
+func (r *AutoRoller) createNewRoll(from, to string) (*AutoRollIssue, error) {
 	// Clean the checkout, get onto a fresh branch.
 	rollBranch := "skia_roll"
 	if _, err := exec.RunCwd(r.chromiumDir, "git", "clean", "-d", "-f"); err != nil {
@@ -356,6 +365,21 @@ func (r *AutoRoller) createNewRoll(from, to string) (*rietveld.Issue, error) {
 // updates checkouts, manages active roll CLs, and uploads new rolls. It sets
 // the status of the bot which may be read by users.
 func (r *AutoRoller) doAutoRoll() error {
+	err1 := r.doAutoRollInner()
+	// TODO(borenet): Do this in a smarter way; rather than contually loading
+	// the last N rolls, update the "recent" list as we upload/close CLs.
+	recent, err2 := GetLastNRolls(POLLER_ROLLS_LIMIT)
+	if err2 == nil {
+		r.recent = recent
+	}
+	if err1 != nil {
+		return err1
+	}
+	return err2
+}
+
+// doAutoRollInner is the main workhorse for doAutoRoll.
+func (r *AutoRoller) doAutoRollInner() error {
 	// Sync the projects.
 	skiaRepo, err := gitinfo.CloneOrUpdate(REPO_SKIA, r.skiaDir, true)
 	if err != nil {
@@ -380,7 +404,7 @@ func (r *AutoRoller) doAutoRoll() error {
 		return err
 	}
 	// Close any extra rolls.
-	var currentRoll *rietveld.Issue
+	var currentRoll *AutoRollIssue
 	for len(activeRolls) > 1 {
 		if err := r.rietveld.Close(activeRolls[0].Issue, "Multiple DEPS rolls found; closing all but the newest."); err != nil {
 			return err
