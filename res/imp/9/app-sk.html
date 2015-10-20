@@ -28,6 +28,8 @@ Properties:
 
   narrow - Whether or not the paper-drawer-panel is currently in narrow mode.
 
+  no_drawer - If true, no drawer panel is displayed at all.
+
   responsive_width - Screen width at which the paper-drawer-panel switches into
       narrow mode.
 
@@ -44,6 +46,7 @@ Events:
 <link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="app-menu-sk.html">
+<link rel="import" href="error-toast-sk.html">
 <link rel="import" href="login.html">
 <link rel="import" href="version-sk.html">
 <dom-module id="app-sk">
@@ -72,7 +75,7 @@ Events:
   <template>
     <paper-header-panel id="headerPanel" mode="{{mode}}" tallClass="{{tall_class}}">
       <paper-toolbar>
-        <template is="dom-if" if="{{narrow}}">
+        <template is="dom-if" if="{{_showMenuButton}}">
           <paper-icon-button id="menuButton" icon="icons:menu" on-tap="_togglePanel"></paper-icon-button>
         </template>
         <content select="[header], header, [toolbar], toolbar"></content>
@@ -80,17 +83,29 @@ Events:
         <app-menu-sk></app-menu-sk>
         <login-sk></login-sk>
       </paper-toolbar>
-      <paper-drawer-panel id="drawerPanel" drawer-width$="{{drawer_width}}"  responsive-width$="{{responsive_width}}" force-narrow$="{{force_narrow}}">
-        <div drawer id="drawer" class="vertical layout">
-          <content select="[navigation], nav, [drawer], drawer"></content>
-          <div class="flex"></div>
-          <version-sk></version-sk>
-        </div>
-        <div main id="mainContent" class="layout vertical">
+      <template is="dom-if" if="{{no_drawer}}">
+        <div main id="maincontent" class="layout vertical">
           <content select="*"></content>
+          <div class="layout horizontal">
+            <div class="flex"></div>
+            <version-sk></version-sk>
+          </div>
         </div>
-      </paper-drawer-panel>
+      </template>
+      <template is="dom-if" if="{{!no_drawer}}">
+        <paper-drawer-panel id="drawerPanel" drawer-width$="{{drawer_width}}"  responsive-width$="{{responsive_width}}" force-narrow$="{{force_narrow}}">
+          <div drawer id="drawer" class="vertical layout">
+            <content id="navContent" select="[navigation], nav, [drawer], drawer"></content>
+            <div class="flex"></div>
+            <version-sk></version-sk>
+          </div>
+          <div main id="mainContent" class="layout vertical">
+            <content select="*"></content>
+          </div>
+        </paper-drawer-panel>
+      </template>
     </paper-header-panel>
+    <error-toast-sk></error-toast-sk>
   </template>
   <script>
   (function() {
@@ -119,17 +134,37 @@ Events:
           notify: true,
           readOnly: true,
         },
+        no_drawer: {
+          type: Boolean,
+          value: false,
+        },
         responsive_width: {
           type: String,
           value: "800px",
         },
+        _showMenuButton: {
+          type: Boolean,
+          computed: "_computeShowMenuButton(narrow, no_drawer)",
+        },
       },
 
       ready: function() {
-        this._setNarrow(this.$.drawerPanel.narrow);
-        this.$.drawerPanel.addEventListener("narrow-changed", function() {
-          this._setNarrow(this.$.drawerPanel.narrow);
+        window.addEventListener("WebComponentsReady", function() {
+          if (!this.no_drawer) {
+            var drawerPanel = this.$$("#drawerPanel");
+            this._setNarrow(drawerPanel.narrow);
+            drawerPanel.addEventListener("narrow-changed", function() {
+              this._setNarrow(this.$$("#drawerPanel").narrow);
+            }.bind(this));
+          }
         }.bind(this));
+      },
+
+      _computeShowMenuButton: function(narrow, no_drawer) {
+        if (no_drawer) {
+          return false;
+        }
+        return narrow;
       },
 
       _togglePanel: function() {

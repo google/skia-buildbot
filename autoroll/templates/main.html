@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {{template "header.html" .}}
+
+    <title>Skia AutoRoll Bot</title>
+
+  </head>
+  <body class="fullbleed vertical layout unresolved">
+    <style is="custom-style">
+    app-sk {
+      --app-sk-main: {
+        background-color: #FFFFFF;
+        font-family: sans-serif;
+      };
+      --app-sk-toolbar: {
+        background-color: #1F78B4;
+        color: #FFFFFF;
+        font-size: 15px;
+        font-family: sans-serif;
+        text-align: center;
+      };
+    }
+    </style>
+    <app-sk id="app" class="fit" no_drawer>
+      <h1 toolbar>Skia AutoRoll Bot</h1>
+      <arb-status-sk></arb-status-sk>
+    </app-sk>
+  </body>
+</html>

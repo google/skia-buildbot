@@ -1,0 +1,20 @@
+[Unit]
+Description=Skia AutoRoll Bot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/autoroll \
+    --use_metadata=true \
+    --graphite_server=skia-monitoring:2003 \
+    --host=autoroll.skia.org \
+    --log_dir=/var/log/logserver \
+    --workdir=/mnt/pd0/autoroll_workdir \
+    --resources_dir=/usr/local/share/skiaautoroll/
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

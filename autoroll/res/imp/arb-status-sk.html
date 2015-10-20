@@ -114,7 +114,7 @@
               </div>
               <template is="dom-repeat" items="{{recent}}">
                 <div class="tr">
-                  <div class="td"><a href="">{{item.subject}}</a></div>
+                  <div class="td"><a href="{{_issueURL(item)}}" target="_blank">{{item.subject}}</a></div>
                   <div class="td"><human-date-sk date="{{item.modified}}" diff></human-date-sk> ago</div>
                   <div class="td"><span class$="{{_rollClass(item)}}">{{_rollResult(item)}}</span></div>
                 </div>
@@ -215,8 +215,9 @@
         if (mode == this.mode) {
           return;
         }
-        var modeIdx = this.validModes.indexOf(mode);
-        sk.post("/setMode", JSON.stringify({"mode": modeIdx})).then(JSON.parse).then(function (json) {
+        var url = "/json/mode";
+        var body = JSON.stringify({"mode": mode});
+        sk.post(url, body).then(JSON.parse).then(function (json) {
           this._update(json);
         }.bind(this), function(err) {
           sk.errorMessage("Action failed: " + err);
