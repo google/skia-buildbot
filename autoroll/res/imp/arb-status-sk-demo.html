@@ -1,0 +1,48 @@
+<html>
+<head>
+  <title>arb-status-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript">
+    var fakeStatus = {"mode":"running","status":"in progress","currentRoll":{"closed":false,"committed":false,"commitQueue":true,"issue":1410133002,"modified":"2015-10-16T20:39:54.14135Z","subject":"Roll src/third_party/skia/ 80803ff61..fcffaf22d (4 commits)."},"recent":[{"closed":false,"committed":false,"commitQueue":true,"issue":1410133002,"modified":"2015-10-16T20:39:54.14135Z","subject":"Roll src/third_party/skia/ 80803ff61..fcffaf22d (4 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1409173003,"modified":"2015-10-16T20:39:03.98968Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1404383003,"modified":"2015-10-16T20:12:12.40001Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1413743002,"modified":"2015-10-16T20:08:46.42458Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1410123002,"modified":"2015-10-16T20:05:04.4565Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1413533005,"modified":"2015-10-16T20:03:53.06531Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1413733002,"modified":"2015-10-16T20:01:52.58953Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1410833003,"modified":"2015-10-16T20:00:03.67792Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1407143004,"modified":"2015-10-16T19:55:25.82746Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."}],"validModes":["running","stopped","dry run"]};
+
+    // Mock out sk.get and sk.post so we can fake a response from the server.
+    sk.get = function(url) {
+      return new Promise(function (resolve, reject) {
+        if (url == "/json/status") {
+          resolve(JSON.stringify(fakeStatus));
+        } else if (url == "/loginstatus/") {
+          resolve('{"Email":"user@google.com","LoginURL":"https://accounts.google.com/","IsAGoogler":true}');
+        } else {
+          reject("Unknown url " + url);
+        }
+      });
+    };
+
+    sk.post = function(url, body) {
+      return new Promise(function(resolve, reject) {
+        var res = JSON.parse(body);
+        var newMode = fakeStatus["validModes"][res.mode];
+        if (newMode) {
+          fakeStatus["mode"] = newMode;
+          resolve(JSON.stringify(fakeStatus));
+        } else {
+          reject("Invalid mode: " + res);
+        }
+      });
+    };
+  </script>
+  <link rel=import href="arb-status-sk.html">
+  <link rel=import href="/res/common/imp/9/error-toast-sk.html">
+  <link rel=import href="/res/common/imp/9/login.html">
+</head>
+<body>
+  <login-sk style="display:none"></login-sk>
+  <h1>arb-status-sk demo</h1>
+  <arb-status-sk></arb-status-sk>
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>

@@ -184,6 +184,11 @@ func LoggedInAs(r *http.Request) string {
 	return s.Email
 }
 
+// IsAGoogler determines whether the user is logged in with an @google.com account.
+func IsAGoogler(r *http.Request) bool {
+	return strings.HasSuffix(LoggedInAs(r), "@google.com")
+}
+
 // A JSON Web Token can contain much info, such as 'iss' and 'sub'. We don't care about
 // that, we only want one field which is 'email'.
 //
@@ -344,9 +349,14 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("StatusHandler\n")
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	body := map[string]string{
-		"Email":    LoggedInAs(r),
-		"LoginURL": LoginURL(w, r),
+	body := struct {
+		Email      string
+		LoginURL   string
+		IsAGoogler bool
+	}{
+		Email:      LoggedInAs(r),
+		LoginURL:   LoginURL(w, r),
+		IsAGoogler: IsAGoogler(r),
 	}
 	if err := enc.Encode(body); err != nil {
 		glog.Errorf("Failed to encode Login status to JSON: %s", err)

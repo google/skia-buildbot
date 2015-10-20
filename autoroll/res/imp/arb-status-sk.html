@@ -1,0 +1,291 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <arb-status-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/arb-status-sk.html" rel="import" />
+
+  Usage:
+
+    <arb-status-sk></arb-status-sk>
+
+  Properties:
+    reload - How often (in seconds) to reload data.
+
+  Methods:
+    None.
+
+  Events:
+    None
+-->
+<link rel="import" href="/res/common/imp/9/human-date-sk.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="stylesheet" href="/res/common/css/md.css">
+<dom-module id="arb-status-sk">
+  <style is="custom-style">
+    :host {
+      font-family: sans-serif;
+    }
+    #loadstatus {
+      font-size: 0.8em;
+      padding: 0px 15px;
+    }
+    a,a.visited {
+      color: #1f78b4;
+    }
+    .table {
+      border-collapse: collapse;
+      display: table;
+    }
+    .tr {
+      border-bottom: 1px solid #EEEEEE;
+      display: table-row;
+    }
+    .tr:hover {
+      background-color: #F5F5F5;
+    }
+    .td,.th {
+      display: table-cell;
+      padding: 10px;
+    }
+    .td {
+      color: #212121;
+      font-size: 0.813em;
+    }
+    .th {
+      color: #767676;
+      font-size: 0.75em;
+    }
+    .success {
+      color: #D1E4BC;
+    }
+    .failure {
+      color: #D95F02;
+    }
+    .inprogress {
+      color: #666666;
+    }
+  </style>
+  <template>
+    <div class="horizontal layout center" id="loadstatus">
+      <paper-input type="number" value="{{reload}}" label="Reload (s)" prevent-invalid-input></paper-input>
+      <div class="flex"></div>
+      <div>Last loaded at <span>{{_lastLoaded}}</span></div>
+    </div>
+    <div id="statusDisplay">
+      <div class="table">
+        <div class="tr">
+          <div class="td">Mode:</div>
+          <div class="td">
+            <template is="dom-repeat" items="{{modeButtons}}">
+              <button class$="{{_buttonClass(item)}}" on-tap="_buttonPressed">{{item.label}}</button>
+            </template>
+          </div>
+        </div>
+        <div class="tr">
+          <div class="td">Status:</div>
+          <div class="td">{{status}}</div>
+        </div>
+        <div class="tr">
+          <div class="td">Current Roll:</div>
+          <div class="td">
+            <template is="dom-if" if="{{!_isNull(currentRoll)}}">
+              <a href="{{_issueURL(currentRoll)}}" target="_blank">{{currentRoll.subject}}</a>
+            </template>
+            <template is="dom-if" if="{{_isNull(currentRoll)}}">
+              <span>(none)</span>
+            </template>
+          </div>
+        </div>
+        <div class="tr">
+          <div class="td">Recent:</div>
+          <div class="td">
+            <div class="table">
+              <div class="tr">
+                <div class="th">Roll</div>
+                <div class="th">Last Modified</div>
+                <div class="th">Result</div>
+              </div>
+              <template is="dom-repeat" items="{{recent}}">
+                <div class="tr">
+                  <div class="td"><a href="">{{item.subject}}</a></div>
+                  <div class="td"><human-date-sk date="{{item.modified}}" diff></human-date-sk> ago</div>
+                  <div class="td"><span class$="{{_rollClass(item)}}">{{_rollResult(item)}}</span></div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+        <div class="tr">
+          <div class="td">Full History:</div>
+          <div class="td">
+            <a href="https://codereview.chromium.org/user/skia-deps-roller" target="_blank">
+              https://codereview.chromium.org/user/skia-deps-roller
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'arb-status-sk',
+      properties: {
+        mode: {
+          type: String,
+          value: "(not yet loaded)",
+          readOnly: true,
+        },
+        status: {
+          type: String,
+          value: "(not yet loaded)",
+          readOnly: true,
+        },
+        currentRoll: {
+          type: Object,
+          value: null,
+          readOnly: true,
+        },
+        recent: {
+          type: Array,
+          value: function() { return []; },
+          readOnly: true,
+        },
+        reload: {
+          type: Number,
+          observer: "_reloadChanged",
+          value: 60,
+        },
+        initialSelectedMode: {
+          type: Number,
+          value: 0,
+          readOnly: true,
+        },
+        modeButtons: {
+          type: Array,
+          value: function() { return []; },
+          readOnly: true,
+        },
+        validModes: {
+          type: Array,
+          value: function() { return []; },
+          readOnly: true,
+        },
+        _editRights: {
+          type: Boolean,
+          value: false,
+        },
+        _lastLoaded: {
+          type: String,
+          value: "not yet loaded",
+        },
+        _timeout: {
+          type: Object,
+          value: null,
+        },
+      },
+
+      ready: function() {
+        sk.Login.then(function(status) {
+          this._editRights = status.IsAGoogler;
+        }.bind(this));
+        this._reload();
+      },
+
+      _buttonClass: function(mode) {
+        return mode.class;
+      },
+
+      _buttonLabel: function(mode) {
+        return mode.label;
+      },
+
+      _buttonPressed: function(e) {
+        if (!this._editRights) {
+          sk.errorMessage("You must be logged in with an @google.com account to set the ARB mode.");
+          return
+        }
+        var mode = e.srcElement.innerHTML;
+        if (mode == this.mode) {
+          return;
+        }
+        var modeIdx = this.validModes.indexOf(mode);
+        sk.post("/setMode", JSON.stringify({"mode": modeIdx})).then(JSON.parse).then(function (json) {
+          this._update(json);
+        }.bind(this), function(err) {
+          sk.errorMessage("Action failed: " + err);
+        });
+      },
+
+      _issueURL: function(issue) {
+        if (issue) {
+          return "https://codereview.chromium.org/" + issue.issue;
+        }
+      },
+
+      _isNull: function(obj) {
+        return obj == null;
+      },
+
+      _reloadChanged: function() {
+        this._resetTimeout();
+      },
+
+      _resetTimeout: function() {
+        if (this._timeout) {
+          window.clearTimeout(this._timeout);
+        }
+        if (this.reload > 0) {
+          this._timeout = window.setTimeout(function () {
+            this._reload();
+          }.bind(this), this.reload * 1000);
+        }
+      },
+
+      _reload: function() {
+        var url = "/json/status";
+        console.log("Loading status from " + url);
+
+        sk.get(url).then(JSON.parse).then(function(json) {
+          this._update(json);
+        }.bind(this)).catch(function(err) {
+          sk.errorMessage(err);
+          this._resetTimeout();
+        }.bind(this));
+      },
+
+      _rollClass: function(roll) {
+        return roll.closed ? (roll.committed ? 'success' : 'failure') : 'inprogress';
+      },
+
+      _rollResult: function(roll) {
+        return roll.closed ? (roll.committed ? 'success' : 'failure') : 'in progress';
+      },
+
+      _update: function(json) {
+        this._setCurrentRoll(json.currentRoll);
+        this._setMode(json.mode);
+        this._setRecent(json.recent);
+        this._setInitialSelectedMode(json.validModes.indexOf(json.mode).toString());
+        this._setStatus(json.status);
+        this._setValidModes(json.validModes);
+        var modeButtons = [];
+        for (var i = 0; i < this.validModes.length; i++) {
+          var m = this.validModes[i];
+          modeButtons.push({"label": m, "class": m == this.mode ? "action" : ""});
+        }
+        this._setModeButtons(modeButtons);
+
+        this._lastLoaded = new Date().toLocaleTimeString();
+        this._resetTimeout();
+        console.log("Reloaded status.");
+      },
+    });
+  </script>
+</dom-module>
