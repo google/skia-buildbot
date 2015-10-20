@@ -276,8 +276,9 @@ type TraceServiceClient interface {
 	GetValues(ctx context.Context, in *GetValuesRequest, opts ...grpc.CallOption) (*GetValuesResponse, error)
 	// GetParams returns the Params for all of the given traces.
 	GetParams(ctx context.Context, in *GetParamsRequest, opts ...grpc.CallOption) (*GetParamsResponse, error)
-	// Ping returns the Params for all of the given traces.
-	Ping(ctx context.Context, in *GetParamsRequest, opts ...grpc.CallOption) (*Empty, error)
+	// Ping should always succeed. Used to test if the service is up and
+	// running.
+	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type traceServiceClient struct {
@@ -351,7 +352,7 @@ func (c *traceServiceClient) GetParams(ctx context.Context, in *GetParamsRequest
 	return out, nil
 }
 
-func (c *traceServiceClient) Ping(ctx context.Context, in *GetParamsRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *traceServiceClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := grpc.Invoke(ctx, "/traceservice.TraceService/Ping", in, out, c.cc, opts...)
 	if err != nil {
@@ -377,8 +378,9 @@ type TraceServiceServer interface {
 	GetValues(context.Context, *GetValuesRequest) (*GetValuesResponse, error)
 	// GetParams returns the Params for all of the given traces.
 	GetParams(context.Context, *GetParamsRequest) (*GetParamsResponse, error)
-	// Ping returns the Params for all of the given traces.
-	Ping(context.Context, *GetParamsRequest) (*Empty, error)
+	// Ping should always succeed. Used to test if the service is up and
+	// running.
+	Ping(context.Context, *Empty) (*Empty, error)
 }
 
 func RegisterTraceServiceServer(s *grpc.Server, srv TraceServiceServer) {
@@ -470,7 +472,7 @@ func _TraceService_GetParams_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _TraceService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
-	in := new(GetParamsRequest)
+	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}

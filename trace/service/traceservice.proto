@@ -28,7 +28,7 @@ service TraceService {
 
   // Ping should always succeed. Used to test if the service is up and
   // running.
-  rpc Ping (GetParamsRequest) returns (Empty) {}
+  rpc Ping (Empty) returns (Empty) {}
 }
 
 message Empty {
