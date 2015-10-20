@@ -300,7 +300,7 @@ func (ts *TraceServiceImpl) MissingParams(ctx context.Context, in *MissingParams
 	return resp, nil
 }
 
-func (ts *TraceServiceImpl) AddParams(ctx context.Context, in *AddParamsRequest) (*EmptyResponse, error) {
+func (ts *TraceServiceImpl) AddParams(ctx context.Context, in *AddParamsRequest) (*Empty, error) {
 	// Serialize the Params for each trace as a proto and collect the traceids.
 	// We do this outside the add func so there's less work taking place in the
 	// Update transaction.
@@ -329,10 +329,10 @@ func (ts *TraceServiceImpl) AddParams(ctx context.Context, in *AddParamsRequest)
 	if err := ts.db.Update(add); err != nil {
 		return nil, fmt.Errorf("Failed to add values to tracedb: %s", err)
 	}
-	return &EmptyResponse{}, nil
+	return &Empty{}, nil
 }
 
-func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*EmptyResponse, error) {
+func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, error) {
 	glog.Info("Add() begin.")
 	if in == nil {
 		return nil, fmt.Errorf("Received nil request.")
@@ -386,10 +386,10 @@ func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*EmptyResp
 	if err := ts.db.Update(add); err != nil {
 		return nil, fmt.Errorf("Failed to add values to tracedb: %s", err)
 	}
-	return &EmptyResponse{}, nil
+	return &Empty{}, nil
 }
 
-func (ts *TraceServiceImpl) Remove(ctx context.Context, in *RemoveRequest) (*EmptyResponse, error) {
+func (ts *TraceServiceImpl) Remove(ctx context.Context, in *RemoveRequest) (*Empty, error) {
 	if in == nil {
 		return nil, fmt.Errorf("Received nil request.")
 	}
@@ -404,7 +404,7 @@ func (ts *TraceServiceImpl) Remove(ctx context.Context, in *RemoveRequest) (*Emp
 	if err := ts.db.Update(remove); err != nil {
 		return nil, fmt.Errorf("Failed to remove values from tracedb: %s", err)
 	}
-	ret := &EmptyResponse{}
+	ret := &Empty{}
 	return ret, nil
 }
 
@@ -515,6 +515,10 @@ func (ts *TraceServiceImpl) GetParams(ctx context.Context, getParamsRequest *Get
 	}
 
 	return ret, nil
+}
+
+func (ts *TraceServiceImpl) Ping(ctx context.Context, empty *Empty) (*Empty, error) {
+	return &Empty{}, nil
 }
 
 // Close closes the underlying datastore and it not part of the TraceServiceServer interface.

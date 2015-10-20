@@ -9,13 +9,13 @@ service TraceService {
   rpc MissingParams(MissingParamsRequest) returns (MissingParamsResponse) {}
 
   // Adds Params for a set of traceids.
-  rpc AddParams(AddParamsRequest) returns (EmptyResponse) {}
+  rpc AddParams(AddParamsRequest) returns (Empty) {}
 
   // Adds data for a set of traces for a particular commitid.
-  rpc Add(AddRequest) returns (EmptyResponse) {}
+  rpc Add(AddRequest) returns (Empty) {}
 
   // Removes data for a particular commitid.
-  rpc Remove(RemoveRequest) returns (EmptyResponse) {}
+  rpc Remove(RemoveRequest) returns (Empty) {}
 
   // List returns all the CommitIDs that exist in the given time range.
   rpc List(ListRequest) returns (ListResponse) {}
@@ -25,9 +25,13 @@ service TraceService {
 
   // GetParams returns the Params for all of the given traces.
   rpc GetParams(GetParamsRequest) returns (GetParamsResponse) {}
+
+  // Ping should always succeed. Used to test if the service is up and
+  // running.
+  rpc Ping (GetParamsRequest) returns (Empty) {}
 }
 
-message EmptyResponse {
+message Empty {
 }
 
 // CommitID identifies one commit, or trybot try.

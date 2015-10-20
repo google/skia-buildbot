@@ -9,7 +9,7 @@ It is generated from these files:
 	traceservice.proto
 
 It has these top-level messages:
-	EmptyResponse
+	Empty
 	CommitID
 	Params
 	MissingParamsRequest
@@ -41,12 +41,12 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
-type EmptyResponse struct {
+type Empty struct {
 }
 
-func (m *EmptyResponse) Reset()         { *m = EmptyResponse{} }
-func (m *EmptyResponse) String() string { return proto.CompactTextString(m) }
-func (*EmptyResponse) ProtoMessage()    {}
+func (m *Empty) Reset()         { *m = Empty{} }
+func (m *Empty) String() string { return proto.CompactTextString(m) }
+func (*Empty) ProtoMessage()    {}
 
 // CommitID identifies one commit, or trybot try.
 type CommitID struct {
@@ -265,17 +265,19 @@ type TraceServiceClient interface {
 	// Returns a list of traceids that don't have Params stored in the datastore.
 	MissingParams(ctx context.Context, in *MissingParamsRequest, opts ...grpc.CallOption) (*MissingParamsResponse, error)
 	// Adds Params for a set of traceids.
-	AddParams(ctx context.Context, in *AddParamsRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	AddParams(ctx context.Context, in *AddParamsRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Adds data for a set of traces for a particular commitid.
-	Add(ctx context.Context, in *AddRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	Add(ctx context.Context, in *AddRequest, opts ...grpc.CallOption) (*Empty, error)
 	// Removes data for a particular commitid.
-	Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*Empty, error)
 	// List returns all the CommitIDs that exist in the given time range.
 	List(ctx context.Context, in *ListRequest, opts ...grpc.CallOption) (*ListResponse, error)
 	// GetValues returns all the trace values stored for the given CommitID.
 	GetValues(ctx context.Context, in *GetValuesRequest, opts ...grpc.CallOption) (*GetValuesResponse, error)
 	// GetParams returns the Params for all of the given traces.
 	GetParams(ctx context.Context, in *GetParamsRequest, opts ...grpc.CallOption) (*GetParamsResponse, error)
+	// Ping returns the Params for all of the given traces.
+	Ping(ctx context.Context, in *GetParamsRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type traceServiceClient struct {
@@ -295,8 +297,8 @@ func (c *traceServiceClient) MissingParams(ctx context.Context, in *MissingParam
 	return out, nil
 }
 
-func (c *traceServiceClient) AddParams(ctx context.Context, in *AddParamsRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
-	out := new(EmptyResponse)
+func (c *traceServiceClient) AddParams(ctx context.Context, in *AddParamsRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := grpc.Invoke(ctx, "/traceservice.TraceService/AddParams", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -304,8 +306,8 @@ func (c *traceServiceClient) AddParams(ctx context.Context, in *AddParamsRequest
 	return out, nil
 }
 
-func (c *traceServiceClient) Add(ctx context.Context, in *AddRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
-	out := new(EmptyResponse)
+func (c *traceServiceClient) Add(ctx context.Context, in *AddRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := grpc.Invoke(ctx, "/traceservice.TraceService/Add", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -313,8 +315,8 @@ func (c *traceServiceClient) Add(ctx context.Context, in *AddRequest, opts ...gr
 	return out, nil
 }
 
-func (c *traceServiceClient) Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
-	out := new(EmptyResponse)
+func (c *traceServiceClient) Remove(ctx context.Context, in *RemoveRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
 	err := grpc.Invoke(ctx, "/traceservice.TraceService/Remove", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
@@ -349,23 +351,34 @@ func (c *traceServiceClient) GetParams(ctx context.Context, in *GetParamsRequest
 	return out, nil
 }
 
+func (c *traceServiceClient) Ping(ctx context.Context, in *GetParamsRequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := grpc.Invoke(ctx, "/traceservice.TraceService/Ping", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for TraceService service
 
 type TraceServiceServer interface {
 	// Returns a list of traceids that don't have Params stored in the datastore.
 	MissingParams(context.Context, *MissingParamsRequest) (*MissingParamsResponse, error)
 	// Adds Params for a set of traceids.
-	AddParams(context.Context, *AddParamsRequest) (*EmptyResponse, error)
+	AddParams(context.Context, *AddParamsRequest) (*Empty, error)
 	// Adds data for a set of traces for a particular commitid.
-	Add(context.Context, *AddRequest) (*EmptyResponse, error)
+	Add(context.Context, *AddRequest) (*Empty, error)
 	// Removes data for a particular commitid.
-	Remove(context.Context, *RemoveRequest) (*EmptyResponse, error)
+	Remove(context.Context, *RemoveRequest) (*Empty, error)
 	// List returns all the CommitIDs that exist in the given time range.
 	List(context.Context, *ListRequest) (*ListResponse, error)
 	// GetValues returns all the trace values stored for the given CommitID.
 	GetValues(context.Context, *GetValuesRequest) (*GetValuesResponse, error)
 	// GetParams returns the Params for all of the given traces.
 	GetParams(context.Context, *GetParamsRequest) (*GetParamsResponse, error)
+	// Ping returns the Params for all of the given traces.
+	Ping(context.Context, *GetParamsRequest) (*Empty, error)
 }
 
 func RegisterTraceServiceServer(s *grpc.Server, srv TraceServiceServer) {
@@ -456,6 +469,18 @@ func _TraceService_GetParams_Handler(srv interface{}, ctx context.Context, dec f
 	return out, nil
 }
 
+func _TraceService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(GetParamsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(TraceServiceServer).Ping(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 var _TraceService_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "traceservice.TraceService",
 	HandlerType: (*TraceServiceServer)(nil),
@@ -487,6 +512,10 @@ var _TraceService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetParams",
 			Handler:    _TraceService_GetParams_Handler,
+		},
+		{
+			MethodName: "Ping",
+			Handler:    _TraceService_Ping_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{},

@@ -108,6 +108,10 @@ func TestImpl(t *testing.T) {
 
 	ctx := context.Background()
 
+	// First confirm that Ping() works.
+	_, err = ts.Ping(ctx, &Empty{})
+	assert.Nil(t, err)
+
 	// Confirm that these traceids don't have Params stored in the db yet.
 	missingRequest := &MissingParamsRequest{
 		Traceids: []string{"key:8888:android", "key:gpu:win8"},
