@@ -1,0 +1,117 @@
+syntax = "proto3";
+
+package traceservice;
+
+// TraceService stores trace information for both Gold and Perf.
+service TraceService {
+
+  // Returns a list of traceids that don't have Params stored in the datastore.
+  rpc MissingParams(MissingParamsRequest) returns (MissingParamsResponse) {}
+
+  // Adds Params for a set of traceids.
+  rpc AddParams(AddParamsRequest) returns (EmptyResponse) {}
+
+  // Adds data for a set of traces for a particular commitid.
+  rpc Add(AddRequest) returns (EmptyResponse) {}
+
+  // Removes data for a particular commitid.
+  rpc Remove(RemoveRequest) returns (EmptyResponse) {}
+
+  // List returns all the CommitIDs that exist in the given time range.
+  rpc List(ListRequest) returns (ListResponse) {}
+
+  // GetValues returns all the trace values stored for the given CommitID.
+  rpc GetValues(GetValuesRequest) returns (GetValuesResponse) {}
+
+  // GetParams returns the Params for all of the given traces.
+  rpc GetParams(GetParamsRequest) returns (GetParamsResponse) {}
+}
+
+message EmptyResponse {
+}
+
+// CommitID identifies one commit, or trybot try.
+message CommitID {
+  // The id of a commit, either a git hash, or a Reitveld patch id.
+  string id = 1;
+
+  // The source of the commit, either a git branch name, or a Reitveld issue id.
+  string source = 2;
+
+  // The timestamp of the commit or trybot patch.
+  int64 timestamp  = 3;
+}
+
+// Params are the key-value pairs for a single trace.
+//
+// All of the key-value parameters should be present, the ones used to
+// construct the traceid, along with optional parameters.
+message Params {
+  map<string, string> params = 1;
+}
+
+message MissingParamsRequest {
+  repeated string traceids = 1;
+}
+
+message MissingParamsResponse {
+  repeated string traceids = 1;
+}
+
+message AddParamsRequest {
+  // maps traceid to the Params for that trace.
+  map<string, Params> params = 1;
+}
+
+// StoredEntry is used to serialize the Params to be stored in the BoltBD.
+message StoredEntry {
+  // The parameters for the trace.
+  Params params = 2;
+}
+
+message AddRequest {
+  // The id of the commit/trybot we are adding data about.
+  CommitID commitid = 1;
+
+  // A map of traceid to Entry.
+  map<string, bytes> entries = 2;
+}
+
+message RemoveRequest {
+  // The id of the commit/trybot we are removing.
+  CommitID commitid = 1;
+}
+
+message ListRequest {
+  // begin is the unix timestamp to start searching from.
+  int64 begin = 1;
+
+  // end is the unix timestamp to search to (inclusive).
+  int64 end = 2;
+}
+
+message ListResponse {
+  // A list of CommitIDs that fall between the given timestamps in
+  // ListRequest.
+  repeated CommitID commitids = 3;
+}
+
+message GetValuesRequest {
+  CommitID commitid = 1;
+}
+
+message GetValuesResponse {
+  // Maps traceid's to their []byte serialized values.
+  map<string, bytes> values = 3;
+}
+
+message GetParamsRequest {
+  // A list of traceids.
+  repeated string traceids = 1;
+}
+
+message GetParamsResponse {
+  // Maps traceids to their Params.
+  map<string, Params> params = 3;
+}
+
