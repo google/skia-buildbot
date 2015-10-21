@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
+	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/service"
 	"golang.org/x/net/context"
@@ -91,12 +92,23 @@ type TsDB struct {
 // NewTraceServiceDB creates a new DB that stores the data in the BoltDB backed
 // gRPC accessible traceservice.
 func NewTraceServiceDB(conn *grpc.ClientConn, traceBuilder tiling.TraceBuilder) (*TsDB, error) {
-	return &TsDB{
+	ret := &TsDB{
 		conn:         conn,
 		traceService: traceservice.NewTraceServiceClient(conn),
 		traceBuilder: traceBuilder,
 		cache:        lru.New(MAX_ID_CACHED),
-	}, nil
+	}
+	go func() {
+		ctx := context.Background()
+		empty := &traceservice.Empty{}
+		liveness := metrics.NewLiveness("tracedb-ping")
+		for _ = range time.Tick(time.Minute) {
+			if _, err := ret.traceService.Ping(ctx, empty); err == nil {
+				liveness.Update()
+			}
+		}
+	}()
+	return ret, nil
 }
 
 // addChunk adds a set of entries to the datastore at the given CommitID.

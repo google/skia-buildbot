@@ -14,7 +14,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/golang/groupcache/lru"
 	"github.com/golang/protobuf/proto"
-	"github.com/skia-dev/glog"
+	"github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
 
@@ -26,6 +26,18 @@ const (
 
 	// How many items to keep in the in-memory LRU cache.
 	MAX_INT64_ID_CACHED = 1024 * 1024
+)
+
+var (
+	missingParamsCalls = metrics.NewRegisteredCounter("missing-params-calls", metrics.DefaultRegistry)
+	addParamsCalls     = metrics.NewRegisteredCounter("add-params-calls", metrics.DefaultRegistry)
+	addCalls           = metrics.NewRegisteredCounter("add-calls", metrics.DefaultRegistry)
+	addCount           = metrics.NewRegisteredCounter("added-count", metrics.DefaultRegistry)
+	removeCalls        = metrics.NewRegisteredCounter("remove-calls", metrics.DefaultRegistry)
+	listCalls          = metrics.NewRegisteredCounter("list-calls", metrics.DefaultRegistry)
+	getParamsCalls     = metrics.NewRegisteredCounter("get-params-calls", metrics.DefaultRegistry)
+	getValuesCalls     = metrics.NewRegisteredCounter("get-values-calls", metrics.DefaultRegistry)
+	pingCalls          = metrics.NewRegisteredCounter("ping-calls", metrics.DefaultRegistry)
 )
 
 // bytesFromUint64 converts a uint64 to a []byte.
@@ -280,6 +292,7 @@ func (c *commitinfo) ToBytes() []byte {
 }
 
 func (ts *TraceServiceImpl) MissingParams(ctx context.Context, in *MissingParamsRequest) (*MissingParamsResponse, error) {
+	missingParamsCalls.Inc(1)
 	resp := &MissingParamsResponse{
 		Traceids: []string{},
 	}
@@ -301,6 +314,7 @@ func (ts *TraceServiceImpl) MissingParams(ctx context.Context, in *MissingParams
 }
 
 func (ts *TraceServiceImpl) AddParams(ctx context.Context, in *AddParamsRequest) (*Empty, error) {
+	addParamsCalls.Inc(1)
 	// Serialize the Params for each trace as a proto and collect the traceids.
 	// We do this outside the add func so there's less work taking place in the
 	// Update transaction.
@@ -333,7 +347,7 @@ func (ts *TraceServiceImpl) AddParams(ctx context.Context, in *AddParamsRequest)
 }
 
 func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, error) {
-	glog.Info("Add() begin.")
+	addCalls.Inc(1)
 	if in == nil {
 		return nil, fmt.Errorf("Received nil request.")
 	}
@@ -343,6 +357,7 @@ func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, er
 	if in.Entries == nil {
 		return nil, fmt.Errorf("Received nil Entries")
 	}
+	addCount.Inc(int64(len(in.Entries)))
 
 	// Get the trace64ids for each traceid.
 	keys := []string{}
@@ -351,7 +366,6 @@ func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, er
 	}
 
 	trace64ids, err := ts.atomize(keys)
-	glog.Infof("atomized %d keys", len(trace64ids))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create short trace ids: %s", err)
 	}
@@ -390,6 +404,7 @@ func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, er
 }
 
 func (ts *TraceServiceImpl) Remove(ctx context.Context, in *RemoveRequest) (*Empty, error) {
+	removeCalls.Inc(1)
 	if in == nil {
 		return nil, fmt.Errorf("Received nil request.")
 	}
@@ -409,6 +424,7 @@ func (ts *TraceServiceImpl) Remove(ctx context.Context, in *RemoveRequest) (*Emp
 }
 
 func (ts *TraceServiceImpl) List(ctx context.Context, listRequest *ListRequest) (*ListResponse, error) {
+	listCalls.Inc(1)
 	if listRequest == nil {
 		return nil, fmt.Errorf("Received nil request.")
 	}
@@ -442,6 +458,7 @@ func (ts *TraceServiceImpl) List(ctx context.Context, listRequest *ListRequest) 
 }
 
 func (ts *TraceServiceImpl) GetValues(ctx context.Context, getValuesRequest *GetValuesRequest) (*GetValuesResponse, error) {
+	getValuesCalls.Inc(1)
 	if getValuesRequest == nil {
 		return nil, fmt.Errorf("Received nil request.")
 	}
@@ -491,6 +508,7 @@ func (ts *TraceServiceImpl) GetValues(ctx context.Context, getValuesRequest *Get
 }
 
 func (ts *TraceServiceImpl) GetParams(ctx context.Context, getParamsRequest *GetParamsRequest) (*GetParamsResponse, error) {
+	getParamsCalls.Inc(1)
 	if getParamsRequest == nil {
 		return nil, fmt.Errorf("Received nil request.")
 	}
@@ -518,6 +536,8 @@ func (ts *TraceServiceImpl) GetParams(ctx context.Context, getParamsRequest *Get
 }
 
 func (ts *TraceServiceImpl) Ping(ctx context.Context, empty *Empty) (*Empty, error) {
+	pingCalls.Inc(1)
+
 	return &Empty{}, nil
 }
 
