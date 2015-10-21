@@ -7,7 +7,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/trace/service"
+	"go.skia.org/infra/go/trace/service"
 	"google.golang.org/grpc"
 )
 
