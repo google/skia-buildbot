@@ -311,8 +311,9 @@ func (task *ChromiumPerfTask) Execute() error {
 	// upload to Google Storage, eventually we should move the upload step here to avoid writing
 	// to disk.
 	for fileSuffix, patch := range map[string]string{
-		".chromium.patch": task.ChromiumPatch,
-		".skia.patch":     task.SkiaPatch,
+		".chromium.patch":  task.ChromiumPatch,
+		".skia.patch":      task.SkiaPatch,
+		".benchmark.patch": task.BenchmarkPatch,
 	} {
 		// Add an extra newline at the end because git sometimes rejects patches due to
 		// missing newlines.

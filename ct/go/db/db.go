@@ -249,6 +249,14 @@ var v10_down = []string{
 	`ALTER TABLE ChromiumPerfTasks CONVERT TO CHARACTER SET utf8`,
 }
 
+var v11_up = []string{
+	`ALTER TABLE ChromiumPerfTasks ADD benchmark_patch longtext NOT NULL DEFAULT ""`,
+}
+
+var v11_down = []string{
+	`ALTER TABLE ChromiumPerfTasks DROP benchmark_patch`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -302,6 +310,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v10_up,
 		MySQLDown: v10_down,
+	},
+	// version 11: Add benchmark_patch column to ChromiumPerfTasks.
+	{
+		MySQLUp:   v11_up,
+		MySQLDown: v11_down,
 	},
 }
 

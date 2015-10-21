@@ -123,6 +123,13 @@
           <pre>{{chromiumPerfTask.SkiaPatch}}</pre>
         </paper-dialog-scrollable>
       </paper-dialog>
+
+      <paper-dialog heading="Telemetry Patch" id="{{ getBenchmarkPatchId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{chromiumPerfTask.BenchmarkPatch}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
     </template>
 
     <table class="runshistory" id="runshistory" cellpadding="5" border="1">
@@ -255,6 +262,9 @@
             <template is="dom-if" if="{{chromiumPerfTask.SkiaPatch}}">
               <a href="javascript:void(0);" data-index$="{{index}}" data-type="skiaPatch">Skia</a>
             </template>
+            <template is="dom-if" if="{{chromiumPerfTask.BenchmarkPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}" data-type="benchmarkPatch">Telemetry</a>
+            </template>
           </td>
 
           <!-- Task Repeats -->
@@ -343,6 +353,8 @@
              that.toggleDialog(that.getBlinkPatchId(id));
            } else if (anchor.dataset.type == "skiaPatch") {
              that.toggleDialog(that.getSkiaPatchId(id));
+           } else if (anchor.dataset.type == "benchmarkPatch") {
+             that.toggleDialog(that.getBenchmarkPatchId(id));
            }
          }
          var button = sk.findParent(e.target, "PAPER-ICON-BUTTON");
@@ -422,6 +434,10 @@
 
      getSkiaPatchId: function(index) {
        return "skia_patch" + index;
+     },
+
+     getBenchmarkPatchId: function(index) {
+       return "benchmark_patch" + index;
      },
 
      resetPagination: function() {

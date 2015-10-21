@@ -62,6 +62,7 @@ type DBTask struct {
 	ChromiumPatch        string         `db:"chromium_patch"`
 	BlinkPatch           string         `db:"blink_patch"`
 	SkiaPatch            string         `db:"skia_patch"`
+	BenchmarkPatch       string         `db:"benchmark_patch"`
 	Results              sql.NullString `db:"results"`
 	NoPatchRawOutput     sql.NullString `db:"nopatch_raw_output"`
 	WithPatchRawOutput   sql.NullString `db:"withpatch_raw_output"`
@@ -88,6 +89,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.ChromiumPatch = dbTask.ChromiumPatch
 	taskVars.BlinkPatch = dbTask.BlinkPatch
 	taskVars.SkiaPatch = dbTask.SkiaPatch
+	taskVars.BenchmarkPatch = dbTask.BenchmarkPatch
 	return taskVars
 }
 
@@ -272,6 +274,7 @@ type AddTaskVars struct {
 	ChromiumPatch        string `json:"chromium_patch"`
 	BlinkPatch           string `json:"blink_patch"`
 	SkiaPatch            string `json:"skia_patch"`
+	BenchmarkPatch       string `json:"benchmark_patch"`
 }
 
 func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error) {
@@ -294,6 +297,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		{"chromium_patch", task.ChromiumPatch, db.LONG_TEXT_MAX_LENGTH},
 		{"blink_patch", task.BlinkPatch, db.LONG_TEXT_MAX_LENGTH},
 		{"skia_patch", task.SkiaPatch, db.LONG_TEXT_MAX_LENGTH},
+		{"benchmark_patch", task.BenchmarkPatch, db.LONG_TEXT_MAX_LENGTH},
 	}); err != nil {
 		return "", nil, err
 	}
@@ -301,7 +305,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 	if task.RunInParallel == "True" {
 		runInParallel = 1
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,run_in_parallel, benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,run_in_parallel, benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,benchmark_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_PERF_TASKS),
 		[]interface{}{
 			task.Username,
@@ -317,6 +321,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 			task.ChromiumPatch,
 			task.BlinkPatch,
 			task.SkiaPatch,
+			task.BenchmarkPatch,
 			task.TsAdded,
 			task.RepeatAfterDays,
 		},

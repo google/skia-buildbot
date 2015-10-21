@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/csv"
 	"flag"
 	"fmt"
@@ -34,6 +35,7 @@ var (
 	pagesetType               = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
 	chromiumBuildNoPatch      = flag.String("chromium_build_nopatch", "", "The chromium build to use for the nopatch run.")
 	chromiumBuildWithPatch    = flag.String("chromium_build_withpatch", "", "The chromium build to use for the withpatch run.")
+	runID                     = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	runIDNoPatch              = flag.String("run_id_nopatch", "", "The unique run id (typically requester + timestamp) for the nopatch run.")
 	runIDWithPatch            = flag.String("run_id_withpatch", "", "The unique run id (typically requester + timestamp) for the withpatch run.")
 	benchmarkName             = flag.String("benchmark_name", "", "The telemetry benchmark to run on this worker.")
@@ -62,6 +64,10 @@ func main() {
 	}
 	if *chromiumBuildWithPatch == "" {
 		glog.Error("Must specify --chromium_build_withpatch")
+		return
+	}
+	if *runID == "" {
+		glog.Error("Must specify --run_id")
 		return
 	}
 	if *runIDNoPatch == "" {
@@ -111,6 +117,35 @@ func main() {
 	if err != nil {
 		glog.Error(err)
 		return
+	}
+
+	// Download the benchmark patch for this run from Google storage.
+	benchmarkPatchName := *runID + ".benchmark.patch"
+	benchmarkPatchLocalPath := filepath.Join(os.TempDir(), benchmarkPatchName)
+	remoteDir := filepath.Join(util.ChromiumPerfRunsDir, *runID)
+	benchmarkPatchRemotePath := filepath.Join(remoteDir, benchmarkPatchName)
+	respBody, err := gs.GetRemoteFileContents(benchmarkPatchRemotePath)
+	if err != nil {
+		glog.Errorf("Could not fetch %s: %s", benchmarkPatchRemotePath, err)
+		return
+	}
+	defer skutil.Close(respBody)
+	buf := new(bytes.Buffer)
+	if _, err := buf.ReadFrom(respBody); err != nil {
+		glog.Errorf("Could not read from %s: %s", benchmarkPatchRemotePath, err)
+		return
+	}
+	if err := ioutil.WriteFile(benchmarkPatchLocalPath, buf.Bytes(), 0666); err != nil {
+		glog.Errorf("Unable to create file %s: %s", benchmarkPatchLocalPath, err)
+		return
+	}
+	defer skutil.Remove(benchmarkPatchLocalPath)
+	// Apply benchmark patch to the local chromium checkout.
+	if buf.Len() > 10 {
+		if err := util.ApplyPatch(benchmarkPatchLocalPath, util.ChromiumSrcDir); err != nil {
+			glog.Errorf("Could not apply Telemetry's patch in %s: %s", util.ChromiumSrcDir, err)
+			return
+		}
 	}
 
 	// Download the specified chromium builds.
@@ -253,9 +288,14 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	}
 
 	glog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
+	pagesetName, present := util.BenchmarksToPagesetName[*benchmarkName]
+	if !present {
+		// If it is custom benchmark use the entered benchmark name.
+		pagesetName = *benchmarkName
+	}
 	args := []string{
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
-		util.BenchmarksToPagesetName[*benchmarkName],
+		pagesetName,
 		"--also-run-disabled-tests",
 		"--user-agent=" + decodedPageset.UserAgent,
 		"--urls-list=" + decodedPageset.UrlsList,

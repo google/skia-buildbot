@@ -47,6 +47,7 @@ var (
 	htmlOutputLink      = util.MASTER_LOGSERVER_LINK
 	skiaPatchLink       = util.MASTER_LOGSERVER_LINK
 	chromiumPatchLink   = util.MASTER_LOGSERVER_LINK
+	benchmarkPatchLink  = util.MASTER_LOGSERVER_LINK
 	noPatchOutputLink   = util.MASTER_LOGSERVER_LINK
 	withPatchOutputLink = util.MASTER_LOGSERVER_LINK
 )
@@ -139,7 +140,8 @@ func main() {
 	// Copy the patches to Google Storage.
 	skiaPatchName := *runID + ".skia.patch"
 	chromiumPatchName := *runID + ".chromium.patch"
-	for _, patchName := range []string{skiaPatchName, chromiumPatchName} {
+	benchmarkPatchName := *runID + ".benchmark.patch"
+	for _, patchName := range []string{skiaPatchName, chromiumPatchName, benchmarkPatchName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			glog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
@@ -147,6 +149,7 @@ func main() {
 	}
 	skiaPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, skiaPatchName)
 	chromiumPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, chromiumPatchName)
+	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
 
 	// Create the two required chromium builds (with patch and without the patch).
 	chromiumHash, skiaHash, err := util.CreateChromiumBuild(*runID, *targetPlatform, "", "", true)
@@ -173,7 +176,7 @@ func main() {
 	runChromiumPerfCmdTemplate := "DISPLAY=:0 run_chromium_perf " +
 		"--worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} --pageset_type={{.PagesetType}} " +
 		"--chromium_build_nopatch={{.ChromiumBuildNoPatch}} --chromium_build_withpatch={{.ChromiumBuildWithPatch}} " +
-		"--run_id_nopatch={{.RunIDNoPatch}} --run_id_withpatch={{.RunIDWithPatch}} " +
+		"--run_id={{.RunID}} --run_id_nopatch={{.RunIDNoPatch}} --run_id_withpatch={{.RunIDWithPatch}} " +
 		"--benchmark_name={{.BenchmarkName}} --benchmark_extra_args=\"{{.BenchmarkExtraArgs}}\" " +
 		"--browser_extra_args_nopatch=\"{{.BrowserExtraArgsNoPatch}}\" --browser_extra_args_withpatch=\"{{.BrowserExtraArgsWithPatch}}\" " +
 		"--repeat_benchmark={{.RepeatBenchmark}} --run_in_parallel={{.RunInParallel}} --target_platform={{.TargetPlatform}} " +
@@ -264,6 +267,7 @@ func main() {
 		"--requester_email=" + *emails,
 		"--skia_patch_link=" + skiaPatchLink,
 		"--chromium_patch_link=" + chromiumPatchLink,
+		"--benchmark_patch_link=" + benchmarkPatchLink,
 		"--description=" + *description,
 		"--raw_csv_nopatch=" + noPatchOutputLink,
 		"--raw_csv_withpatch=" + withPatchOutputLink,

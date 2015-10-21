@@ -63,7 +63,7 @@ class CsvComparer(object):
   """Class that compares two telemetry CSV files and outputs HTML results."""
 
   def __init__(self, csv_file1, csv_file2, output_html_dir, requester_email,
-               chromium_patch_link, skia_patch_link,
+               chromium_patch_link, skia_patch_link, benchmark_patch_link,
                variance_threshold, absolute_url, min_pages_in_each_field,
                discard_outliers, raw_csv_nopatch, raw_csv_withpatch,
                num_repeated, target_platform, crashed_instances,
@@ -77,6 +77,7 @@ class CsvComparer(object):
     self._requester_email = requester_email
     self._chromium_patch_link = chromium_patch_link
     self._skia_patch_link = skia_patch_link
+    self._benchmark_patch_link = benchmark_patch_link
     self._variance_threshold = float(variance_threshold)
     self._absolute_url = absolute_url
     self._min_pages_in_each_field = min_pages_in_each_field
@@ -296,6 +297,7 @@ class CsvComparer(object):
          'requester_email': self._requester_email,
          'chromium_patch_link': self._chromium_patch_link,
          'skia_patch_link': self._skia_patch_link,
+         'benchmark_patch_link': self._benchmark_patch_link,
          'raw_csv_nopatch': self._raw_csv_nopatch,
          'raw_csv_withpatch': self._raw_csv_withpatch,
          'threshold': self._variance_threshold,
@@ -359,6 +361,9 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--skia_patch_link',
       help='Link to the Skia patch used for this run.')
+  option_parser.add_option(
+      '', '--benchmark_patch_link',
+      help='Link to the Telemetry patch used for this run.')
   option_parser.add_option(
       '', '--variance_threshold',
       help='The allowable variance in percentage between total values for each '
@@ -427,7 +432,7 @@ if '__main__' == __name__:
   options, unused_args = option_parser.parse_args()
   if not (options.csv_file1 and options.csv_file2 and options.output_html_dir
           and options.variance_threshold and options.requester_email
-          and options.chromium_patch_link
+          and options.chromium_patch_link and options.benchmark_patch_link
           and options.skia_patch_link and options.raw_csv_nopatch
           and options.raw_csv_withpatch and options.num_repeated
           and options.target_platform and options.pageset_type
@@ -435,7 +440,7 @@ if '__main__' == __name__:
           and options.description):
     option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
                         'variance_threshold, requester_email, '
-                        'chromium_patch_link, '
+                        'chromium_patch_link, benchmark_patch_link, '
                         'skia_patch_link, raw_csv_nopatch, description, '
                         'raw_csv_withpatch, num_repeated, pageset_type, '
                         'chromium_hash, skia_hash and target_platform')
@@ -443,7 +448,7 @@ if '__main__' == __name__:
   sys.exit(CsvComparer(
       options.csv_file1, options.csv_file2, options.output_html_dir,
       options.requester_email, options.chromium_patch_link,
-      options.skia_patch_link,
+      options.skia_patch_link, options.benchmark_patch_link,
       options.variance_threshold, options.absolute_url,
       options.min_pages_in_each_field, options.discard_outliers,
       options.raw_csv_nopatch, options.raw_csv_withpatch,

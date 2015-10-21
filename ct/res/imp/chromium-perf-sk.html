@@ -30,6 +30,10 @@
       width: 40em;
     }
 
+    .hidden {
+      display: none;
+    }
+
     .short-field {
       width: 5em;
     }
@@ -75,7 +79,9 @@
             <template is="dom-repeat" items="{{benchmarks}}">
               <div id="{{item}}">{{item}}</div>
             </template>
+            <div id="custom">custom</div>
           </iron-selector>
+          <paper-input value="" id="custom_benchmark_name" class="hidden" label="Enter name of your custom benchmark"></paper-input>
         </td>
       </tr>
 
@@ -169,6 +175,20 @@
       </tr>
 
       <tr>
+        <td>
+          Telemetry Git patch (optional)<br/>
+          Applied to Chromium ToT<br/>
+          Documentation is <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.d3d1e25u2mzy">here</a>
+        </td>
+        <td>
+          <patch-sk id="benchmark_patch"
+                    patch-type="chromium"
+                    cl-description="{{benchmarkClDescription}}">
+          </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
         <td>Repeat this task</td>
         <td>
           <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
@@ -225,16 +245,18 @@
        },
        chromiumClDescription: String,
        skiaClDescription: String,
+       benchmarkClDescription: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, skiaClDescription)"
+       "clDescriptionChanged(chromiumClDescription, skiaClDescription, benchmarkClDescription)"
      ],
 
      ready: function() {
        var that = this;
        this.$.benchmark_name.addEventListener('click', function(e) {
          that.setRunInParallel();
+         that.$.custom_benchmark_name.classList.toggle("hidden", that.$.benchmark_name.selected != "custom");
        });
        this.$.target_platform.addEventListener('click', function(e) {
          that.platformChanged();
@@ -293,8 +315,8 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDescription, skiaClDescription) {
-       if (!chromiumClDescription && !skiaClDescription) {
+     clDescriptionChanged: function(chromiumClDescription, skiaClDescription, benchmarkClDescription) {
+       if (!chromiumClDescription && !skiaClDescription && !benchmarkClDescription) {
          this.$.desc.value = "";
        } else {
          var str = "Testing ";
@@ -310,18 +332,31 @@
            str += skiaClDescription;
            prev = true;
          }
+         if (benchmarkClDescription) {
+           if (prev) {
+             str += " with ";
+           }
+           str += benchmarkClDescription;
+           prev = true;
+         }
          this.$.desc.value = str;
        }
      },
 
      validateTask: function() {
        if (!this.$.chromium_patch.validate() ||
-           !this.$.skia_patch.validate()) {
+           !this.$.skia_patch.validate() ||
+           !this.$.benchmark_patch.validate()) {
          return;
        }
        if (! this.$.desc.value) {
          sk.errorMessage("Please specify a description");
          this.$.desc.focus();
+         return;
+       }
+       if (! this.getBenchmarkName()) {
+         sk.errorMessage("Please specify a benchmark");
+         this.$.custom_benchmark_name.focus();
          return;
        }
        this.$.confirm_dialog.open()
@@ -332,9 +367,16 @@
        this.$.confirm_dialog.close()
      },
 
+     getBenchmarkName: function() {
+       if (this.$.benchmark_name.selected == "custom") {
+         return this.$.custom_benchmark_name.value;
+       }
+       return this.$.benchmark_name.selected;
+     },
+
      queueTask: function() {
        var params = {};
-       params["benchmark"] = this.$.benchmark_name.selected;
+       params["benchmark"] = this.getBenchmarkName();
        params["platform"] = this.$.target_platform.selected;
        params["page_sets"] = this.$.page_sets.selected;
        params["repeat_runs"] = this.$.repeat_runs.selected;
@@ -345,6 +387,7 @@
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
        params["skia_patch"] = this.$.skia_patch.patch;
+       params["benchmark_patch"] = this.$.benchmark_patch.patch;
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
        var that = this;
