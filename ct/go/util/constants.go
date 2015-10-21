@@ -227,8 +227,8 @@ var (
 	ChromiumPerfRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
 	FixArchivesRunsDir  = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
 
-	// Information about the different CT benchmarks.
-	BenchmarksToPagesetName = map[string]string{
+	// Map CT benchmarks to the names recognized by Telemetry.
+	BenchmarksToTelemetryName = map[string]string{
 		BENCHMARK_SKPICTURE_PRINTER: "skpicture_printer_ct",
 		BENCHMARK_RR:                "rasterize_and_record_micro_ct",
 		BENCHMARK_REPAINT:           "repaint_ct",

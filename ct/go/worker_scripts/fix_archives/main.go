@@ -151,7 +151,7 @@ func main() {
 			skutil.LogErr(os.Chdir(pathToPyFiles))
 			args := []string{
 				util.BINARY_RUN_BENCHMARK,
-				fmt.Sprintf("%s.%s", *benchmarkName, util.BenchmarksToPagesetName[*benchmarkName]),
+				fmt.Sprintf("%s.%s", *benchmarkName, util.BenchmarksToTelemetryName[*benchmarkName]),
 				"--page-set-name=" + pagesetName,
 				"--page-set-base-dir=" + pathToPagesets,
 				"--also-run-disabled-tests",

@@ -288,14 +288,14 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	}
 
 	glog.Infof("===== Processing %s for %s =====", pagesetPath, runID)
-	pagesetName, present := util.BenchmarksToPagesetName[*benchmarkName]
+	benchmark, present := util.BenchmarksToTelemetryName[*benchmarkName]
 	if !present {
 		// If it is custom benchmark use the entered benchmark name.
-		pagesetName = *benchmarkName
+		benchmark = *benchmarkName
 	}
 	args := []string{
 		filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
-		pagesetName,
+		benchmark,
 		"--also-run-disabled-tests",
 		"--user-agent=" + decodedPageset.UserAgent,
 		"--urls-list=" + decodedPageset.UrlsList,

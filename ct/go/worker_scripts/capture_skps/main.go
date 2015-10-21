@@ -170,7 +170,7 @@ func main() {
 				skutil.LogErr(os.Chdir(pathToPyFiles))
 				args := []string{
 					filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
-					util.BenchmarksToPagesetName[util.BENCHMARK_SKPICTURE_PRINTER],
+					util.BenchmarksToTelemetryName[util.BENCHMARK_SKPICTURE_PRINTER],
 					"--also-run-disabled-tests",
 					"--page-repeat=1", // Only need one run for SKPs.
 					"--skp-outdir=" + pathToSkps,
