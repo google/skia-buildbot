@@ -392,7 +392,14 @@ server {
     error_log /var/log/nginx/grand-central.error.log error;
 
     location / {
+        # Return 200 if the backend is down so we avoid Google Storage to
+        # keep sending undelivered events.
+        error_page 502 504 =200 @empty;
         proxy_pass http://skia-grandcentral:8002;
+    }
+
+    location @empty {
+        return 200 '';
     }
 }
 server {

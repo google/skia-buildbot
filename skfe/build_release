@@ -2,9 +2,10 @@
 # Builds and uploads a debian package with configuration files for nginx.
 APPNAME=skfe-config
 SETUP_APPNAME="setup-${APPNAME}"
+LOGROTATE_APPNAME="rotate_nginx_logs"
 CERTPOLLER_APPNAME="certpoller"
 SYSTEMD="nginx.service"
-SYSTEMD_TIMER="${SETUP_APPNAME}.service"
+SYSTEMD_TIMER="${SETUP_APPNAME}.service ${LOGROTATE_APPNAME}.timer"
 DESCRIPTION="The local config files for nginx serving *.skia.org"
 
 # nginx is installed by the setup script.
@@ -22,8 +23,11 @@ sudo mkdir                                                      ${ROOT}/etc/ngin
 ${SOFTLINK} ../sites-available/skia_org                         ${ROOT}/etc/nginx/sites-enabled/skia_org
 ${INSTALL_DIR} --mode=700                                       ${ROOT}/etc/nginx/ssl
 ${INSTALL} --mode=644 -T ./sys/${SETUP_APPNAME}.service         ${ROOT}/etc/systemd/system/${SETUP_APPNAME}.service
+${INSTALL} --mode=644 -T ./sys/${LOGROTATE_APPNAME}.service     ${ROOT}/etc/systemd/system/${LOGROTATE_APPNAME}.service
+${INSTALL} --mode=644 -T ./sys/${LOGROTATE_APPNAME}.timer       ${ROOT}/etc/systemd/system/${LOGROTATE_APPNAME}.timer
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/${CERTPOLLER_APPNAME}    ${ROOT}/usr/local/bin/${CERTPOLLER_APPNAME}
 ${INSTALL} --mode=755 -T ./sys/${SETUP_APPNAME}.sh              ${ROOT}/usr/local/bin/${SETUP_APPNAME}.sh
+${INSTALL} --mode=755 -T ./sys/${LOGROTATE_APPNAME}.sh          ${ROOT}/usr/local/bin/${LOGROTATE_APPNAME}.sh
 }
 
 source ../bash/release.sh
