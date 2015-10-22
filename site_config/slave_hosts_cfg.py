@@ -646,9 +646,9 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
-  'win8-gtx660-001': {
+  'win10-gtx660-001': {
     'slaves': [
-      ('skiabot-shuttle-win8-gtx660-bench', '0', False),
+      ('skiabot-shuttle-win10-gtx660-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': '192.168.1.133',
