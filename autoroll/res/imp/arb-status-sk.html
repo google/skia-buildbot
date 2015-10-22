@@ -26,6 +26,7 @@
 <link rel="import" href="/res/common/imp/9/human-date-sk.html">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="stylesheet" href="/res/common/css/md.css">
 <dom-module id="arb-status-sk">
   <style is="custom-style">
@@ -63,13 +64,19 @@
       font-size: 0.75em;
     }
     .success {
-      color: #D1E4BC;
+      color: #66A61E;
     }
     .failure {
       color: #D95F02;
     }
-    .inprogress {
+    .unknown {
       color: #666666;
+    }
+    .big {
+      font-size: 1.3em;
+    }
+    .small {
+      font-size: 0.8em;
     }
   </style>
   <template>
@@ -84,14 +91,23 @@
           <div class="td">Mode:</div>
           <div class="td">
             <template is="dom-repeat" items="{{modeButtons}}">
-              <button class$="{{_buttonClass(item)}}" on-tap="_buttonPressed">{{item.label}}</button>
+              <button class$="{{_buttonClass(item)}}" on-tap="_buttonPressed" disabled$="{{_modeChangePending}}">{{item.label}}</button>
             </template>
+            <paper-spinner active$="{{_modeChangePending}}"></paper-spinner>
           </div>
         </div>
         <div class="tr">
           <div class="td">Status:</div>
-          <div class="td">{{status}}</div>
+          <div class="td">
+            <span class$="{{_statusClass(status)}}"><span class="big">{{status}}</span></span>
+          </div>
         </div>
+        <template is="dom-if" if="{{_computeShowError(_editRights,error)}}">
+          <div class="tr">
+            <div class="td">Error:</div>
+            <div class="td"><pre>{{error}}</pre></div>
+          </div>
+        </template>
         <div class="tr">
           <div class="td">Current Roll:</div>
           <div class="td">
@@ -103,8 +119,17 @@
             </template>
           </div>
         </div>
+        <template is="dom-if" if="{{!_isNull(lastRoll)}}">
+          <div class="tr">
+            <div class="td">Previous roll result:</div>
+            <div class="td">
+              <span class$="{{_rollClass(lastRoll)}}">{{_rollResult(lastRoll)}}</span>
+              <a href="{{_issueURL(lastRoll)}}" target="_blank" class="small">(detail)</a>
+            </div>
+          </div>
+        </template>
         <div class="tr">
-          <div class="td">Recent:</div>
+          <div class="td">History:</div>
           <div class="td">
             <div class="table">
               <div class="tr">
@@ -152,6 +177,16 @@
           value: null,
           readOnly: true,
         },
+        error: {
+          type: String,
+          value: null,
+          readOnly: true,
+        },
+        lastRoll: {
+          type: Object,
+          value: null,
+          readOnly: true,
+        },
         recent: {
           type: Array,
           value: function() { return []; },
@@ -185,6 +220,10 @@
           type: String,
           value: "not yet loaded",
         },
+        _modeChangePending: {
+          type: Boolean,
+          value: false,
+        },
         _timeout: {
           type: Object,
           value: null,
@@ -217,11 +256,20 @@
         }
         var url = "/json/mode";
         var body = JSON.stringify({"mode": mode});
+        sk.errorMessage("Mode change in progress. This may take some time.");
+        this._modeChangePending = true;
         sk.post(url, body).then(JSON.parse).then(function (json) {
           this._update(json);
+          this._modeChangePending = false;
+          sk.errorMessage("Success!");
         }.bind(this), function(err) {
-          sk.errorMessage("Action failed: " + err);
+          this._modeChangePending = false;
+          sk.errorMessage("Failed to change the mode: " + err);
         });
+      },
+
+      _computeShowError: function(editRights, error) {
+        return editRights && error;
       },
 
       _issueURL: function(issue) {
@@ -262,15 +310,32 @@
       },
 
       _rollClass: function(roll) {
-        return roll.closed ? (roll.committed ? 'success' : 'failure') : 'inprogress';
+        if (!roll) {
+          return "unknown";
+        }
+        return roll.closed ? (roll.committed ? "success" : "failure") : "unknown";
       },
 
       _rollResult: function(roll) {
-        return roll.closed ? (roll.committed ? 'success' : 'failure') : 'in progress';
+        if (!roll) {
+          return "unknown";
+        }
+        return roll.closed ? (roll.committed ? "success" : "failure") : "in progress";
+      },
+
+      _statusClass: function(status) {
+        return {
+          "error": "failure",
+          "in progress": "unknown",
+          "stopped": "failure",
+          "up to date": "success",
+        }[status] || "";
       },
 
       _update: function(json) {
         this._setCurrentRoll(json.currentRoll);
+        this._setError(json.error);
+        this._setLastRoll(json.lastRoll);
         this._setMode(json.mode);
         this._setRecent(json.recent);
         this._setInitialSelectedMode(json.validModes.indexOf(json.mode).toString());

@@ -118,14 +118,21 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 		Mode        string                    `json:"mode"`
 		Status      string                    `json:"status"`
 		CurrentRoll *autoroll.AutoRollIssue   `json:"currentRoll"`
+		Error       error                     `json:"error"`
+		LastRoll    *autoroll.AutoRollIssue   `json:"lastRoll"`
 		Recent      []*autoroll.AutoRollIssue `json:"recent"`
 		ValidModes  []string                  `json:"validModes"`
 	}{
 		Mode:        string(arb.GetMode()),
 		Status:      string(arb.GetStatus()),
 		CurrentRoll: arb.GetCurrentRoll(),
+		LastRoll:    arb.GetLastRoll(),
 		Recent:      arb.GetRecentRolls(),
 		ValidModes:  autoroll.VALID_MODES,
+	}
+	// Only display error messages if the user is a logged-in Googler.
+	if login.IsAGoogler(r) {
+		status.Error = arb.GetError()
 	}
 	if err := json.NewEncoder(w).Encode(&status); err != nil {
 		glog.Error(err)
@@ -194,7 +201,7 @@ func main() {
 	}
 
 	// Start the autoroller.
-	arb, err = autoroll.NewAutoRoller(*workdir, cqExtraTrybots, emails, r, time.Minute)
+	arb, err = autoroll.NewAutoRoller(*workdir, cqExtraTrybots, emails, r, 15*time.Minute)
 	if err != nil {
 		glog.Fatal(err)
 	}

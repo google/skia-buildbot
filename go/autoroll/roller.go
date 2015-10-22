@@ -2,14 +2,10 @@ package autoroll
 
 import (
 	"fmt"
-	"path"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/util"
 )
@@ -22,9 +18,10 @@ const (
 	MODE_STOPPED = "stopped"
 	MODE_DRY_RUN = "dry run"
 
-	STATUS_IDLE        = "idle"
+	STATUS_ERROR       = "error"
 	STATUS_IN_PROGRESS = "in progress"
 	STATUS_STOPPED     = "stopped"
+	STATUS_UP_TO_DATE  = "up to date"
 
 	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
 )
@@ -37,9 +34,10 @@ var (
 	}
 
 	VALID_STATUSES = []string{
-		STATUS_IDLE,
+		STATUS_ERROR,
 		STATUS_IN_PROGRESS,
 		STATUS_STOPPED,
+		STATUS_UP_TO_DATE,
 	}
 )
 
@@ -51,46 +49,41 @@ type Status string
 
 // AutoRoller is a struct used for managing DEPS rolls.
 type AutoRoller struct {
-	chromiumDir       string
-	chromiumParentDir string
-	cqExtraTrybots    []string
-	currentRoll       *AutoRollIssue
-	emails            []string
-	includeCommitLog  bool
-	mode              Mode
-	mtx               sync.RWMutex
-	recent            []*AutoRollIssue
-	rietveld          *rietveld.Rietveld
-	skiaDir           string
-	status            Status
-	workdir           string
+	cqExtraTrybots   []string
+	currentRoll      *AutoRollIssue
+	emails           []string
+	includeCommitLog bool
+	lastError        error
+	lastRoll         *AutoRollIssue
+	mode             Mode
+	mtx              sync.RWMutex
+	recent           []*AutoRollIssue
+	rm               *repoManager
+	rietveld         *rietveld.Rietveld
+	runningMtx       sync.Mutex
+	status           Status
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
 func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, frequency time.Duration) (*AutoRoller, error) {
-	chromiumParentDir := path.Join(workdir, "chromium")
-	// TODO(borenet): Do this in a smarter way; rather than contually loading
-	// the last N rolls, update the "recent" list as we upload/close CLs.
-	recent, err := GetLastNRolls(POLLER_ROLLS_LIMIT)
+	rm, err := newRepoManager(workdir, cqExtraTrybots, emails, frequency)
 	if err != nil {
 		return nil, err
 	}
 	arb := &AutoRoller{
-		chromiumDir:       path.Join(chromiumParentDir, "src"),
-		chromiumParentDir: chromiumParentDir,
-		cqExtraTrybots:    cqExtraTrybots,
-		emails:            emails,
-		includeCommitLog:  true,
-		mode:              MODE_RUNNING,
-		recent:            recent,
-		rietveld:          rietveld,
-		skiaDir:           path.Join(workdir, "skia"),
-		status:            STATUS_IDLE,
-		workdir:           workdir,
+		includeCommitLog: true,
+		mode:             MODE_RUNNING,
+		rm:               rm,
+		rietveld:         rietveld,
+		status:           STATUS_ERROR,
+	}
+
+	// Cycle once to fill out the current status.
+	if err := arb.doAutoRoll(); err != nil {
+		return nil, err
 	}
 
 	go func() {
-		util.LogErr(arb.doAutoRoll())
 		for _ = range time.Tick(frequency) {
 			util.LogErr(arb.doAutoRoll())
 		}
@@ -99,16 +92,16 @@ func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *ri
 	return arb, nil
 }
 
-// SetMode sets the desired mode of the bot. This has no effect on the
-// behavior of the bot until its next cycle.
+// SetMode sets the desired mode of the bot. This forces the bot to run and
+// blocks until it finishes.
 func (r *AutoRoller) SetMode(m Mode) error {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
 	if !util.In(string(m), VALID_MODES) {
 		return fmt.Errorf("Invalid mode: %s", m)
 	}
+	r.mtx.Lock()
 	r.mode = m
-	return nil
+	r.mtx.Unlock()
+	return r.doAutoRoll()
 }
 
 // GetMode returns the user-controlled desired mode of the bot.
@@ -126,17 +119,20 @@ func (r *AutoRoller) isMode(s Mode) bool {
 }
 
 // setStatus sets the current reporting status of the bot.
-func (r *AutoRoller) setStatus(s Status, currentRoll *AutoRollIssue) error {
+func (r *AutoRoller) setStatus(s Status, currentRoll *AutoRollIssue, lastError error) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	if !util.In(string(s), VALID_STATUSES) {
 		return fmt.Errorf("Invalid status: %s", s)
 	}
-	if s == STATUS_IDLE {
-		if currentRoll != nil {
-			return fmt.Errorf("Cannot be in idle status with an active roll.")
+	if s == STATUS_ERROR {
+		if lastError == nil {
+			return fmt.Errorf("Cannot set error status without an error!")
 		}
-	} else if s == STATUS_STOPPED {
+	} else if lastError != nil {
+		return fmt.Errorf("Cannot be in any status other than error when an error occurred.")
+	}
+	if s == STATUS_STOPPED {
 		if currentRoll != nil {
 			return fmt.Errorf("Cannot be in stopped status with an active roll.")
 		}
@@ -147,6 +143,7 @@ func (r *AutoRoller) setStatus(s Status, currentRoll *AutoRollIssue) error {
 	}
 	r.status = s
 	r.currentRoll = currentRoll
+	r.lastError = lastError
 	return nil
 }
 
@@ -165,34 +162,39 @@ func (r *AutoRoller) GetCurrentRoll() *AutoRollIssue {
 	return r.currentRoll
 }
 
+// GetLastRoll returns the last-completed DEPS roll.
+func (r *AutoRoller) GetLastRoll() *AutoRollIssue {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.lastRoll
+}
+
+// GetError returns the error encountered on the last cycle of the roller, if
+// applicable.
+func (r *AutoRoller) GetError() error {
+	return r.lastError
+}
+
 // GetCQExtraTrybots returns the list of trybots which are added to the commit
 // queue in addition to the default set.
 func (r *AutoRoller) GetCQExtraTrybots() []string {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
-	return r.cqExtraTrybots
+	return r.rm.GetCQExtraTrybots()
 }
 
 // SetCQExtraTrybots sets the list of trybots which are added to the commit
 // queue in addition to the default set.
 func (r *AutoRoller) SetCQExtraTrybots(c []string) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-	r.cqExtraTrybots = c
+	r.rm.SetCQExtraTrybots(c)
 }
 
 // GetEmails returns the list of email addresses which are copied on DEPS rolls.
 func (r *AutoRoller) GetEmails() []string {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
-	return r.emails
+	return r.rm.GetEmails()
 }
 
 // SetEmails sets the list of email addresses which are copied on DEPS rolls.
 func (r *AutoRoller) SetEmails(e []string) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-	r.emails = e
+	r.rm.SetEmails(e)
 }
 
 // GetRecentRolls retrieves the list of recent DEPS rolls.
@@ -207,6 +209,12 @@ func (r *AutoRoller) setRecentRolls(recent []*AutoRollIssue) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	r.recent = recent
+	for _, roll := range recent {
+		if roll.Closed {
+			r.lastRoll = roll
+			break
+		}
+	}
 }
 
 // closeIssue closes the given issue with the given message.
@@ -223,38 +231,19 @@ func (r *AutoRoller) findActiveRolls() ([]*AutoRollIssue, error) {
 
 // getCurrentRollRev parses an abbreviated commit hash from the given issue
 // subject and returns the full hash.
-func (r *AutoRoller) getCurrentRollRev(subject string, skiaRepo *gitinfo.GitInfo) (string, error) {
+func (r *AutoRoller) getCurrentRollRev(subject string) (string, error) {
 	matches := ROLL_REV_REGEX.FindStringSubmatch(subject)
 	if matches == nil {
 		return "", fmt.Errorf("No roll revision found in %q", subject)
 	}
-	return skiaRepo.FullHash(matches[1])
-}
-
-// getLastRollRev returns the commit hash of the last-completed DEPS roll.
-func (r *AutoRoller) getLastRollRev() (string, error) {
-	output, err := exec.RunCwd(r.chromiumDir, "gclient", "revinfo")
-	if err != nil {
-		return "", err
-	}
-	split := strings.Split(output, "\n")
-	for _, s := range split {
-		if strings.HasPrefix(s, "src/third_party/skia") {
-			subs := strings.Split(s, "@")
-			if len(subs) != 2 {
-				return "", fmt.Errorf("Failed to parse output of `gclient revinfo`")
-			}
-			return subs[1], nil
-		}
-	}
-	return "", fmt.Errorf("Failed to parse output of `gclient revinfo`")
+	return r.rm.FullSkiaHash(matches[1])
 }
 
 // shouldCloseCurrentRoll determines whether the currently-active DEPS roll
 // should be closed in favor of a new one. Returns a boolean indicating whether
 // the current roll should be closed, a message to be used with the roll
 // closure, if applicable, or an error.
-func (r *AutoRoller) shouldCloseCurrentRoll(currentRoll *AutoRollIssue, skiaRepo *gitinfo.GitInfo, lastRollRev string) (bool, string, error) {
+func (r *AutoRoller) shouldCloseCurrentRoll(currentRoll *AutoRollIssue) (bool, string, error) {
 	glog.Infof("Found current roll: https://codereview.chromium.org/%d", currentRoll.Issue)
 	// If we're stopped, close the issue.
 	if r.isMode(MODE_STOPPED) {
@@ -274,19 +263,11 @@ func (r *AutoRoller) shouldCloseCurrentRoll(currentRoll *AutoRollIssue, skiaRepo
 	}
 
 	// If we've already rolled past the target revision, close the issue.
-	rollingTo, err := r.getCurrentRollRev(currentRoll.Subject, skiaRepo)
+	rollingTo, err := r.getCurrentRollRev(currentRoll.Subject)
 	if err != nil {
 		return false, "", err
 	}
-	lastDetails, err := skiaRepo.Details(lastRollRev)
-	if err != nil {
-		return false, "", err
-	}
-	rollingToDetails, err := skiaRepo.Details(rollingTo)
-	if err != nil {
-		return false, "", err
-	}
-	if lastDetails.Timestamp.After(rollingToDetails.Timestamp) {
+	if r.rm.RolledPast(rollingTo) {
 		return true, fmt.Sprintf("Already rolled past %s; closing this roll.", rollingTo), nil
 	}
 
@@ -294,120 +275,39 @@ func (r *AutoRoller) shouldCloseCurrentRoll(currentRoll *AutoRollIssue, skiaRepo
 	return false, "", nil
 }
 
-// createNewRoll creates and uploads a new DEPS roll from the given commit to
-// a new commit. It returns the uploaded issue or any error.
-func (r *AutoRoller) createNewRoll(from, to string) (*AutoRollIssue, error) {
-	// Clean the checkout, get onto a fresh branch.
-	rollBranch := "skia_roll"
-	if _, err := exec.RunCwd(r.chromiumDir, "git", "clean", "-d", "-f"); err != nil {
-		return nil, err
-	}
-	_, _ = exec.RunCwd(r.chromiumDir, "git", "rebase", "--abort")
-	_, _ = exec.RunCwd(r.chromiumDir, "git", "branch", "-D", rollBranch)
-	if _, err := exec.RunCwd(r.chromiumDir, "git", "checkout", "origin/master", "-f"); err != nil {
-		return nil, err
-	}
-	if _, err := exec.RunCwd(r.chromiumDir, "git", "checkout", "-b", rollBranch, "-t", "origin/master", "-f"); err != nil {
-		return nil, err
-	}
-
-	// Defer some more cleanup.
-	defer func() {
-		_, _ = exec.RunCwd(r.chromiumDir, "git", "checkout", "origin/master", "-f")
-		_, _ = exec.RunCwd(r.chromiumDir, "git", "branch", "-D", rollBranch)
-	}()
-
-	// Create the roll CL.
-	if _, err := exec.RunCwd(r.chromiumDir, "roll-dep", "src/third_party/skia", to); err != nil {
-		return nil, err
-	}
-	// Build the commit message, starting with the message provided by roll-dep.
-	commitMsg, err := exec.RunCwd(r.chromiumDir, "git", "log", "-n1", "--format=%B", "HEAD")
-	if err != nil {
-		return nil, err
-	}
-	cqExtraTrybots := r.GetCQExtraTrybots()
-	if cqExtraTrybots != nil && len(cqExtraTrybots) > 0 {
-		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, strings.Join(cqExtraTrybots, ","))
-	}
-	uploadCmd := []string{"git", "cl", "upload", "--bypass-hooks", "-f"}
-	if r.isMode(MODE_DRY_RUN) {
-		uploadCmd = append(uploadCmd, "--cq-dry-run")
-	} else {
-		uploadCmd = append(uploadCmd, "--use-commit-queue")
-	}
-	tbr := "\nTBR="
-	emails := r.GetEmails()
-	if emails != nil && len(emails) > 0 {
-		emailStr := strings.Join(emails, ",")
-		tbr += emailStr
-		uploadCmd = append(uploadCmd, "--send-mail", "--cc", emailStr)
-	}
-	commitMsg += tbr
-	uploadCmd = append(uploadCmd, "-m", commitMsg)
-
-	// Upload the CL.
-	if _, err := exec.RunCwd(r.chromiumDir, uploadCmd...); err != nil {
-		return nil, err
-	}
-
-	issues, err := r.findActiveRolls()
-	if err != nil {
-		return nil, err
-	}
-	if len(issues) != 1 {
-		return nil, fmt.Errorf("Found too many open rolls during upload.")
-	}
-	return issues[0], nil
-}
-
 // doAutoRoll is the primary method of the AutoRoll Bot. It runs on a timer,
 // updates checkouts, manages active roll CLs, and uploads new rolls. It sets
 // the status of the bot which may be read by users.
 func (r *AutoRoller) doAutoRoll() error {
-	err1 := r.doAutoRollInner()
-	// TODO(borenet): Do this in a smarter way; rather than contually loading
-	// the last N rolls, update the "recent" list as we upload/close CLs.
-	recent, err2 := GetLastNRolls(POLLER_ROLLS_LIMIT)
-	if err2 == nil {
-		r.recent = recent
+	status, currentRoll, lastError := r.doAutoRollInner()
+	if err := r.setStatus(status, currentRoll, lastError); err != nil {
+		return err
 	}
-	if err1 != nil {
-		return err1
+	// Load the list of recent rolls.
+	recent, err := GetLastNRolls(POLLER_ROLLS_LIMIT)
+	if err != nil {
+		return err
 	}
-	return err2
+	r.setRecentRolls(recent)
+
+	return lastError
 }
 
-// doAutoRollInner is the main workhorse for doAutoRoll.
-func (r *AutoRoller) doAutoRollInner() error {
-	// Sync the projects.
-	skiaRepo, err := gitinfo.CloneOrUpdate(REPO_SKIA, r.skiaDir, true)
-	if err != nil {
-		return err
-	}
-	if _, err := exec.RunCwd(r.chromiumParentDir, "gclient", "config", REPO_CHROMIUM); err != nil {
-		return err
-	}
-	if _, err := exec.RunCwd(r.chromiumParentDir, "gclient", "sync", "--nohooks"); err != nil {
-		return err
-	}
-
-	// Get the last roll revision.
-	lastRollRev, err := r.getLastRollRev()
-	if err != nil {
-		return err
-	}
+// doAutoRollInner does the actual work of the AutoRoll.
+func (r *AutoRoller) doAutoRollInner() (Status, *AutoRollIssue, error) {
+	r.runningMtx.Lock()
+	defer r.runningMtx.Unlock()
 
 	// Find the active roll, if it exists.
 	activeRolls, err := r.findActiveRolls()
 	if err != nil {
-		return err
+		return STATUS_ERROR, nil, err
 	}
 	// Close any extra rolls.
 	var currentRoll *AutoRollIssue
 	for len(activeRolls) > 1 {
 		if err := r.rietveld.Close(activeRolls[0].Issue, "Multiple DEPS rolls found; closing all but the newest."); err != nil {
-			return err
+			return STATUS_ERROR, nil, err
 		}
 		activeRolls = activeRolls[1:]
 	}
@@ -418,53 +318,55 @@ func (r *AutoRoller) doAutoRollInner() error {
 	// There's a currently-active roll. Determine whether or not it's still good.
 	// If so, leave it open and exit. If not, close it so that we can open another.
 	if currentRoll != nil {
-		shouldClose, msg, err := r.shouldCloseCurrentRoll(currentRoll, skiaRepo, lastRollRev)
+		shouldClose, msg, err := r.shouldCloseCurrentRoll(currentRoll)
 		if err != nil {
-			return err
+			return STATUS_ERROR, nil, err
 		}
 		if shouldClose {
 			if err := r.closeIssue(currentRoll, msg); err != nil {
-				return err
+				return STATUS_ERROR, nil, err
 			}
 		} else {
 			// Current roll is still good. Exit.
-			if err := r.setStatus(STATUS_IN_PROGRESS, currentRoll); err != nil {
-				return err
-			}
 			glog.Infof("Roll is still active (%d): %s", currentRoll.Issue, currentRoll.Subject)
-			return nil
+			return STATUS_IN_PROGRESS, currentRoll, nil
 		}
-	}
-	if err := r.setStatus(STATUS_IDLE, nil); err != nil {
-		return err
 	}
 
 	// If we're stopped, exit.
 	if r.isMode(MODE_STOPPED) {
-		if err := r.setStatus(STATUS_STOPPED, nil); err != nil {
-			return err
-		}
 		glog.Infof("Roller is stopped; not opening new rolls.")
-		return nil
+		return STATUS_STOPPED, nil, nil
 	}
 
 	// If we're up-to-date, exit.
-	skiaHead, err := skiaRepo.FullHash("origin/master")
-	if err != nil {
-		return err
-	}
-	if lastRollRev == skiaHead {
+	if r.rm.LastRollRev() == r.rm.SkiaHead() {
 		glog.Infof("Skia is up-to-date.")
-		return nil
+		return STATUS_UP_TO_DATE, nil, nil
 	}
 
 	// Create a new roll.
-	newRoll, err := r.createNewRoll(lastRollRev, skiaHead)
+	if err := r.rm.CreateNewRoll(r.isMode(MODE_DRY_RUN)); err != nil {
+		return STATUS_ERROR, nil, err
+	}
+
+	// Find the roll we uploaded, update the "recent rolls" list.
+	recent, err := GetLastNRolls(POLLER_ROLLS_LIMIT)
 	if err != nil {
-		return err
+		return STATUS_ERROR, nil, err
 	}
-	if err := r.setStatus(STATUS_IN_PROGRESS, newRoll); err != nil {
-		return err
+	r.setRecentRolls(recent)
+
+	// Assume that any open roll is the one we just uploaded.
+	var newRoll *AutoRollIssue
+	for _, roll := range recent {
+		if !roll.Closed {
+			newRoll = roll
+			break
+		}
 	}
-	return nil
+	if newRoll == nil {
+		return STATUS_ERROR, nil, fmt.Errorf("Could not find newly-uploaded DEPS roll!")
+	}
+	return STATUS_IN_PROGRESS, newRoll, nil
 }
