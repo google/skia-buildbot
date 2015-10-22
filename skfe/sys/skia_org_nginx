@@ -155,6 +155,26 @@ server {
     return 301 https://alerts.skia.org$request_uri;
 }
 
+#####   autoroll.skia.org   ###########################
+server {
+    listen      443;
+    server_name autoroll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/autoroll.access.log;
+    error_log /var/log/nginx/autoroll.error.log error;
+
+    location / {
+        proxy_pass http://skia-autoroll:8000;
+    }
+}
+server {
+    listen      80;
+    server_name autoroll.skia.org;
+    return 301 https://autoroll.skia.org$request_uri;
+}
+
 #####   mon.skia.org   ###########################
 server {
     listen      443;

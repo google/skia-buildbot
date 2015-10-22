@@ -72,6 +72,21 @@
      "mimetype": "application/json",
      "bodytest": "validJSON"
    },
+   "skiaautoroll": {
+     "url": "https://autoroll.skia.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "skiaautoroll_json": {
+     "url": "https://autoroll.skia.org/json/status",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "bodytest": "validJSON"
+   },
    "skiastatus": {
      "url": "https://status.skia.org",
      "method": "GET",
