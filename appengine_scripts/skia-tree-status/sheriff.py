@@ -20,6 +20,7 @@ HEADER_CONTENT_TYPE = 'Content-Type'
 HEADER_ACCESS_CONTROL_ALLOW_ORIGIN = 'Access-Control-Allow-Origin'
 
 JSON_CONTENT_TYPE = 'application/json'
+TEXT_CONTENT_TYPE = 'text/plain'
 
 
 class BaseSheriffs(db.Model):
@@ -403,6 +404,15 @@ class UpdateTroopersSchedule(BaseUpdateSheriffsSchedulePage):
   @property
   def sheriff_class(self):
     return Troopers
+
+
+class ListSheriffsPage(BasePage):
+  """Lists all Skia Sheriffs."""
+  def get(self):
+    self.response.headers[HEADER_CONTENT_TYPE] = TEXT_CONTENT_TYPE
+    self.response.headers[HEADER_ACCESS_CONTROL_ALLOW_ORIGIN] = '*'
+    for sheriff in Sheriffs.get_all_sheriffs():
+      self.response.out.write(sheriff.username + '\n')
 
 
 def bootstrap():

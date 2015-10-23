@@ -58,6 +58,7 @@ URLS = [
   ('/redirect/(.*)$', master_redirect.GenericRedirectionPage),
   ('/gpu-sheriff/?', sheriff.GpuSheriffPage),
   ('/sheriff/?', sheriff.SheriffPage),
+  ('/sheriffs-list/?', sheriff.ListSheriffsPage),
   ('/trooper/?', sheriff.TrooperPage),
   ('/skia-telemetry/?', skia_telemetry.LandingPage),
   ('/skia-telemetry/add_chromium_try?', skia_telemetry.AddChromiumTryTask),
