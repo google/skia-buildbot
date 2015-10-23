@@ -48,11 +48,21 @@
         height: 100%;
       }
 
+      #refresh,
+      #spinner {
+        display: inline-block;
+      }
+
     </style>
   </head>
   <body class="fullbleed layout vertical">
     <paper-header-panel mode=scroll>
       {{template "titlebar.html" .}}
+
+      <div>
+        <button id=refresh on-tap="refreshPackages">Refresh Packages</button>
+        <paper-spinner id=spinner></paper-spinner>
+      </div>
 
       <push-server-sk></push-server-sk>
       <paper-toast></paper-toast>
@@ -96,6 +106,20 @@
             $$$('paper-toast').text = json.result;
             $$$('paper-toast').show();
           }).catch(sk.errorMessage);
+        });
+
+        $$$('#refresh').addEventListener('click', function() {
+          $$$('#spinner').active = true;
+          sk.get("/_/state?refresh=true").then(JSON.parse).then(function(json) {
+            $$$('push-server-sk').setConfig(json.servers, json.packages, json.ip);
+            Object.keys(json.status).forEach(function(service) {
+              sk.Mailbox.send(service, json.status[service]);
+            });
+            $$$('#spinner').active = false;
+          }).catch(function(msg) {
+            sk.errorMessage(msg);
+            $$$('#spinner').active = false;
+          });
         });
       })();
     </script>

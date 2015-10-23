@@ -106,7 +106,7 @@ func NewFastTimeoutClient() *http.Client {
 		Transport: &http.Transport{
 			Dial: FastDialTimeout,
 		},
-		Timeout: 10 * time.Second,
+		Timeout: 2 * time.Second,
 	}
 }
 
@@ -326,6 +326,11 @@ type AllUI struct {
 func stateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	if r.FormValue("refresh") == "true" {
+		if err := packageInfo.ForceRefresh(); err != nil {
+			util.ReportError(w, r, err, "Failed to refresh.")
+		}
+	}
 	allAvailable := packageInfo.AllAvailable()
 	allInstalled := packageInfo.AllInstalled()
 

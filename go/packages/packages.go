@@ -74,6 +74,10 @@ func NewAllInfo(client *http.Client, store *storage.Service, serverNames []strin
 	return a, nil
 }
 
+func (a *AllInfo) ForceRefresh() error {
+	return a.step()
+}
+
 func (a *AllInfo) step() error {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
