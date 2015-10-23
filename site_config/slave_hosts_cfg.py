@@ -646,7 +646,7 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
-  'win10-gtx660-001': {
+  'win10-gtx660-00': {
     'slaves': [
       ('skiabot-shuttle-win10-gtx660-000', '0', False),
     ],
