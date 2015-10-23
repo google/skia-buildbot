@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/golang/groupcache/lru"
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/service"
@@ -70,7 +71,7 @@ const (
 
 	// CHUNK_SIZE is the maximum number of values that are added to the datastore
 	// in any one gRPC call.
-	CHUNK_SIZE = 100000
+	CHUNK_SIZE = 10000
 )
 
 // TsDB is an implementation of DB that stores traces in traceservice.
@@ -115,20 +116,24 @@ func NewTraceServiceDB(conn *grpc.ClientConn, traceBuilder tiling.TraceBuilder) 
 func (ts *TsDB) addChunk(ctx context.Context, cid *traceservice.CommitID, chunk map[string]*Entry) error {
 	addReq := &traceservice.AddRequest{
 		Commitid: cid,
-		Entries:  map[string][]byte{},
+		Values:   []*traceservice.ValuePair{},
 	}
 	addParamsRequest := &traceservice.AddParamsRequest{
-		Params: map[string]*traceservice.Params{},
+		Params: []*traceservice.ParamsPair{},
 	}
 	for traceid, entry := range chunk {
 		// Check that all the traceids have their Params.
 		if _, ok := ts.cache.Get(traceid); !ok {
-			addParamsRequest.Params[traceid] = &traceservice.Params{
+			addParamsRequest.Params = append(addParamsRequest.Params, &traceservice.ParamsPair{
+				Key:    traceid,
 				Params: entry.Params,
-			}
+			})
 			ts.cache.Add(traceid, true)
 		}
-		addReq.Entries[traceid] = entry.Value
+		addReq.Values = append(addReq.Values, &traceservice.ValuePair{
+			Key:   traceid,
+			Value: entry.Value,
+		})
 	}
 	if len(addParamsRequest.Params) > 0 {
 		_, err := ts.traceService.AddParams(ctx, addParamsRequest)
@@ -255,15 +260,15 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 				errCh <- fmt.Errorf("Failed to get values for %d %#v: %s", i, *cid, err)
 				return
 			}
-			for k, v := range getValuesResponse.Values {
-				tr, ok := tile.Traces[k]
+			for _, pair := range getValuesResponse.Values {
+				tr, ok := tile.Traces[pair.Key]
 				if !ok {
 					tileMutex.Lock()
-					tile.Traces[k] = ts.traceBuilder(n)
+					tile.Traces[pair.Key] = ts.traceBuilder(n)
 					tileMutex.Unlock()
-					tr = tile.Traces[k]
+					tr = tile.Traces[pair.Key]
 				}
-				if err := tr.SetAt(i, v); err != nil {
+				if err := tr.SetAt(i, pair.Value); err != nil {
 					errCh <- fmt.Errorf("Unable to convert trace value %d %#v: %s", i, *cid, err)
 					return
 				}
@@ -281,34 +286,59 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 	default:
 	}
 
+	glog.Infof("Finished loading values. Starting to load Params.")
+
 	// Now load the params for the traces.
 	traceids := []string{}
 	for k, _ := range tile.Traces {
 		traceids = append(traceids, k)
 	}
-	// Request the params in CHUNK_SIZE slices of traceids.
+
+	tracechunks := [][]string{}
 	for len(traceids) > 0 {
-		req := &traceservice.GetParamsRequest{}
 		if len(traceids) > CHUNK_SIZE {
-			req.Traceids = traceids[:CHUNK_SIZE]
+			tracechunks = append(tracechunks, traceids[:CHUNK_SIZE])
 			traceids = traceids[CHUNK_SIZE:]
 		} else {
-			req.Traceids = traceids
+			tracechunks = append(tracechunks, traceids)
 			traceids = []string{}
-		}
-		resp, err := ts.traceService.GetParams(ctx, req)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to load params: %s", err)
-		}
-		for traceid, params := range resp.Params {
-			dst := tile.Traces[traceid].Params()
-			for k, v := range params.Params {
-				dst[k] = v
-			}
 		}
 	}
 
+	errCh = make(chan error, len(tracechunks))
+	for _, chunk := range tracechunks {
+		wg.Add(1)
+		go func(chunk []string) {
+			defer wg.Done()
+			req := &traceservice.GetParamsRequest{
+				Traceids: chunk,
+			}
+			resp, err := ts.traceService.GetParams(ctx, req)
+			if err != nil {
+				errCh <- fmt.Errorf("Failed to load params: %s", err)
+				return
+			}
+			for _, param := range resp.Params {
+				dst := tile.Traces[param.Key].Params()
+				for k, v := range param.Params {
+					dst[k] = v
+				}
+			}
+		}(chunk)
+	}
+
+	wg.Wait()
+	// See if any Go routine generated an error.
+	select {
+	case err, ok := <-errCh:
+		if ok {
+			return nil, fmt.Errorf("Failed to load params: %s", err)
+		}
+	default:
+	}
+
 	// Rebuild the ParamSet.
+	glog.Infof("Finished loading params. Starting to rebuild ParamSet.")
 	tiling.GetParamSet(tile.Traces, tile.ParamSet)
 	return tile, nil
 }

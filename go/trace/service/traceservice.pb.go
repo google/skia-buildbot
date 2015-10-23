@@ -14,8 +14,10 @@ It has these top-level messages:
 	Params
 	MissingParamsRequest
 	MissingParamsResponse
+	ParamsPair
 	AddParamsRequest
 	StoredEntry
+	ValuePair
 	AddRequest
 	RemoveRequest
 	ListRequest
@@ -97,16 +99,31 @@ func (m *MissingParamsResponse) Reset()         { *m = MissingParamsResponse{} }
 func (m *MissingParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*MissingParamsResponse) ProtoMessage()    {}
 
+type ParamsPair struct {
+	Key    string            `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
+	Params map[string]string `protobuf:"bytes,2,rep,name=params" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+}
+
+func (m *ParamsPair) Reset()         { *m = ParamsPair{} }
+func (m *ParamsPair) String() string { return proto.CompactTextString(m) }
+func (*ParamsPair) ProtoMessage()    {}
+
+func (m *ParamsPair) GetParams() map[string]string {
+	if m != nil {
+		return m.Params
+	}
+	return nil
+}
+
 type AddParamsRequest struct {
-	// maps traceid to the Params for that trace.
-	Params map[string]*Params `protobuf:"bytes,1,rep,name=params" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Params []*ParamsPair `protobuf:"bytes,4,rep,name=params" json:"params,omitempty"`
 }
 
 func (m *AddParamsRequest) Reset()         { *m = AddParamsRequest{} }
 func (m *AddParamsRequest) String() string { return proto.CompactTextString(m) }
 func (*AddParamsRequest) ProtoMessage()    {}
 
-func (m *AddParamsRequest) GetParams() map[string]*Params {
+func (m *AddParamsRequest) GetParams() []*ParamsPair {
 	if m != nil {
 		return m.Params
 	}
@@ -130,11 +147,19 @@ func (m *StoredEntry) GetParams() *Params {
 	return nil
 }
 
+type ValuePair struct {
+	Key   string `protobuf:"bytes,1,opt,name=key" json:"key,omitempty"`
+	Value []byte `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (m *ValuePair) Reset()         { *m = ValuePair{} }
+func (m *ValuePair) String() string { return proto.CompactTextString(m) }
+func (*ValuePair) ProtoMessage()    {}
+
 type AddRequest struct {
 	// The id of the commit/trybot we are adding data about.
-	Commitid *CommitID `protobuf:"bytes,1,opt,name=commitid" json:"commitid,omitempty"`
-	// A map of traceid to Entry.
-	Entries map[string][]byte `protobuf:"bytes,2,rep,name=entries" json:"entries,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Commitid *CommitID    `protobuf:"bytes,1,opt,name=commitid" json:"commitid,omitempty"`
+	Values   []*ValuePair `protobuf:"bytes,3,rep,name=values" json:"values,omitempty"`
 }
 
 func (m *AddRequest) Reset()         { *m = AddRequest{} }
@@ -148,9 +173,9 @@ func (m *AddRequest) GetCommitid() *CommitID {
 	return nil
 }
 
-func (m *AddRequest) GetEntries() map[string][]byte {
+func (m *AddRequest) GetValues() []*ValuePair {
 	if m != nil {
-		return m.Entries
+		return m.Values
 	}
 	return nil
 }
@@ -215,15 +240,14 @@ func (m *GetValuesRequest) GetCommitid() *CommitID {
 }
 
 type GetValuesResponse struct {
-	// Maps traceid's to their []byte serialized values.
-	Values map[string][]byte `protobuf:"bytes,3,rep,name=values" json:"values,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Values []*ValuePair `protobuf:"bytes,4,rep,name=values" json:"values,omitempty"`
 }
 
 func (m *GetValuesResponse) Reset()         { *m = GetValuesResponse{} }
 func (m *GetValuesResponse) String() string { return proto.CompactTextString(m) }
 func (*GetValuesResponse) ProtoMessage()    {}
 
-func (m *GetValuesResponse) GetValues() map[string][]byte {
+func (m *GetValuesResponse) GetValues() []*ValuePair {
 	if m != nil {
 		return m.Values
 	}
@@ -240,15 +264,14 @@ func (m *GetParamsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetParamsRequest) ProtoMessage()    {}
 
 type GetParamsResponse struct {
-	// Maps traceids to their Params.
-	Params map[string]*Params `protobuf:"bytes,3,rep,name=params" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Params []*ParamsPair `protobuf:"bytes,4,rep,name=params" json:"params,omitempty"`
 }
 
 func (m *GetParamsResponse) Reset()         { *m = GetParamsResponse{} }
 func (m *GetParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*GetParamsResponse) ProtoMessage()    {}
 
-func (m *GetParamsResponse) GetParams() map[string]*Params {
+func (m *GetParamsResponse) GetParams() []*ParamsPair {
 	if m != nil {
 		return m.Params
 	}

@@ -51,14 +51,15 @@ func _main(tile *tiling.Tile, ts db.DB) {
 					}
 				}
 			}
+			glog.Infof("Adding: %d", i)
 			if err := ts.Add(cid, values); err != nil {
 				glog.Errorf("Failed to add data: %s", err)
 			}
 		}
 	}
 	begin := time.Now()
-	if len(commits) > 30 {
-		commits = commits[:30]
+	if len(commits) > 50 {
+		commits = commits[:50]
 	}
 	_, err := ts.TileFromCommits(commits)
 	if err != nil {
@@ -77,7 +78,14 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to load tile: %s", err)
 	}
+	// Trim to the last 50 commits.
+	begin := 0
+	end := tile.LastCommitIndex()
+	if end >= 49 {
+		begin = end - 49
+	}
 	glog.Infof("Loaded Tile")
+	tile, err = tile.Trim(begin, end)
 
 	// Set up a connection to the server.
 	conn, err := grpc.Dial(*address, grpc.WithInsecure())

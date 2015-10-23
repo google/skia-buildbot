@@ -88,15 +88,17 @@ func TestImpl(t *testing.T) {
 	}
 
 	params := &AddParamsRequest{
-		Params: map[string]*Params{
-			"key:8888:android": &Params{
+		Params: []*ParamsPair{
+			&ParamsPair{
+				Key: "key:8888:android",
 				Params: map[string]string{
 					"config":   "8888",
 					"platform": "android",
 					"type":     "skp",
 				},
 			},
-			"key:gpu:win8": &Params{
+			&ParamsPair{
+				Key: "key:gpu:win8",
 				Params: map[string]string{
 					"config":   "gpu",
 					"platform": "win8",
@@ -130,9 +132,15 @@ func TestImpl(t *testing.T) {
 
 	addReq := &AddRequest{
 		Commitid: commitIDs[0],
-		Entries: map[string][]byte{
-			"key:gpu:win8":     types.BytesFromFloat64(1.234),
-			"key:8888:android": types.BytesFromFloat64(0.01),
+		Values: []*ValuePair{
+			&ValuePair{
+				Key:   "key:gpu:win8",
+				Value: types.BytesFromFloat64(1.234),
+			},
+			&ValuePair{
+				Key:   "key:8888:android",
+				Value: types.BytesFromFloat64(0.01),
+			},
 		},
 	}
 
@@ -156,16 +164,16 @@ func TestImpl(t *testing.T) {
 	valuesResp, err := ts.GetValues(ctx, valuesReq)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(valuesResp.Values))
-	assert.Equal(t, 0.01, math.Float64frombits(binary.LittleEndian.Uint64(valuesResp.Values["key:8888:android"])))
-	assert.Equal(t, 1.234, math.Float64frombits(binary.LittleEndian.Uint64(valuesResp.Values["key:gpu:win8"])))
+	assert.Equal(t, 1.234, math.Float64frombits(binary.LittleEndian.Uint64(valuesResp.Values[0].Value)))
+	assert.Equal(t, 0.01, math.Float64frombits(binary.LittleEndian.Uint64(valuesResp.Values[1].Value)))
 
 	paramsReq := &GetParamsRequest{
 		Traceids: []string{"key:8888:android", "key:gpu:win8"},
 	}
 	paramsResp, err := ts.GetParams(ctx, paramsReq)
 	assert.NoError(t, err)
-	assert.Equal(t, "8888", paramsResp.Params["key:8888:android"].Params["config"])
-	assert.Equal(t, "win8", paramsResp.Params["key:gpu:win8"].Params["platform"])
+	assert.Equal(t, "8888", paramsResp.Params[0].Params["config"])
+	assert.Equal(t, "win8", paramsResp.Params[1].Params["platform"])
 
 	// Remove the commit.
 	removeRequest := &RemoveRequest{

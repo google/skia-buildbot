@@ -320,11 +320,13 @@ func (ts *TraceServiceImpl) AddParams(ctx context.Context, in *AddParamsRequest)
 	// Update transaction.
 	params := map[string][]byte{}
 	var err error
-	for key, value := range in.Params {
+	for _, p := range in.Params {
 		ti := &StoredEntry{
-			Params: value,
+			Params: &Params{
+				Params: p.Params,
+			},
 		}
-		params[key], err = proto.Marshal(ti)
+		params[p.Key], err = proto.Marshal(ti)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to serialize the Params: %s", err)
 		}
@@ -333,9 +335,9 @@ func (ts *TraceServiceImpl) AddParams(ctx context.Context, in *AddParamsRequest)
 	// Add the Params for each traceid to the bucket.
 	add := func(tx *bolt.Tx) error {
 		t := tx.Bucket([]byte(TRACE_BUCKET_NAME))
-		for traceid, _ := range in.Params {
-			if err := t.Put([]byte(traceid), params[traceid]); err != nil {
-				return fmt.Errorf("Failed to write the trace info for %s: %s", traceid, err)
+		for _, p := range in.Params {
+			if err := t.Put([]byte(p.Key), params[p.Key]); err != nil {
+				return fmt.Errorf("Failed to write the trace info for %s: %s", p.Key, err)
 			}
 		}
 		return nil
@@ -354,15 +356,15 @@ func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, er
 	if in.Commitid == nil {
 		return nil, fmt.Errorf("Received nil CommitID")
 	}
-	if in.Entries == nil {
-		return nil, fmt.Errorf("Received nil Entries")
+	if in.Values == nil {
+		return nil, fmt.Errorf("Received nil Values")
 	}
-	addCount.Inc(int64(len(in.Entries)))
+	addCount.Inc(int64(len(in.Values)))
 
 	// Get the trace64ids for each traceid.
 	keys := []string{}
-	for key, _ := range in.Entries {
-		keys = append(keys, key)
+	for _, entry := range in.Values {
+		keys = append(keys, entry.Key)
 	}
 
 	trace64ids, err := ts.atomize(keys)
@@ -386,8 +388,8 @@ func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, er
 		}
 
 		// Add our new data points.
-		for key, entry := range in.Entries {
-			data.Values[trace64ids[key]] = entry
+		for _, entry := range in.Values {
+			data.Values[trace64ids[entry.Key]] = entry.Value
 		}
 
 		// Write to the datastore.
@@ -464,7 +466,7 @@ func (ts *TraceServiceImpl) GetValues(ctx context.Context, getValuesRequest *Get
 	}
 
 	ret := &GetValuesResponse{
-		Values: map[string][]byte{},
+		Values: []*ValuePair{},
 	}
 
 	// Load the values from the datastore.
@@ -476,6 +478,7 @@ func (ts *TraceServiceImpl) GetValues(ctx context.Context, getValuesRequest *Get
 		if err != nil {
 			return err
 		}
+
 		// Load the raw data and convert it into a commitInfo.
 		data, err := newCommitInfo(c.Get(key))
 		if err != nil {
@@ -485,19 +488,17 @@ func (ts *TraceServiceImpl) GetValues(ctx context.Context, getValuesRequest *Get
 		for id64, value := range data.Values {
 			// Look up the traceid from the trace64id, first from the in-memory
 			// cache, and then from within the BoltDB if not found.
-			ts.mutex.Lock()
-			cached, ok := ts.cache.Get(id64)
-			ts.mutex.Unlock()
-			if ok {
-				ret.Values[cached.(string)] = value
+
+			if b := tid.Get(bytesFromUint64(id64)); b == nil {
+				return fmt.Errorf("Failed to get traceid for trace64id %d", id64)
 			} else {
-				if b := tid.Get(bytesFromUint64(id64)); b == nil {
-					return fmt.Errorf("Failed to get traceid for trace64id %d", id64)
-				} else {
-					ret.Values[string(b)] = value
-				}
+				ret.Values = append(ret.Values, &ValuePair{
+					Key:   string(b),
+					Value: value,
+				})
 			}
 		}
+
 		return nil
 	}
 	if err := ts.db.View(load); err != nil {
@@ -514,7 +515,7 @@ func (ts *TraceServiceImpl) GetParams(ctx context.Context, getParamsRequest *Get
 	}
 
 	ret := &GetParamsResponse{
-		Params: map[string]*Params{},
+		Params: []*ParamsPair{},
 	}
 	load := func(tx *bolt.Tx) error {
 		t := tx.Bucket([]byte(TRACE_BUCKET_NAME))
@@ -523,7 +524,11 @@ func (ts *TraceServiceImpl) GetParams(ctx context.Context, getParamsRequest *Get
 			if err := proto.Unmarshal(t.Get([]byte(traceid)), entry); err != nil {
 				return fmt.Errorf("Failed to unmarshal StoredEntry proto for %s: %s", traceid, err)
 			}
-			ret.Params[traceid] = entry.Params
+
+			ret.Params = append(ret.Params, &ParamsPair{
+				Key:    traceid,
+				Params: entry.Params.Params,
+			})
 		}
 
 		return nil
@@ -541,7 +546,7 @@ func (ts *TraceServiceImpl) Ping(ctx context.Context, empty *Empty) (*Empty, err
 	return &Empty{}, nil
 }
 
-// Close closes the underlying datastore and it not part of the TraceServiceServer interface.
+// Close closes the underlying datastore. Not part of the TraceServiceServer interface.
 func (ts *TraceServiceImpl) Close() error {
 	return ts.db.Close()
 }
