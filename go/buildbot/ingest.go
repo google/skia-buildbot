@@ -21,8 +21,24 @@ var (
 	// something wrong with the build which prevents it from being ingested
 	// properly.
 	BUILD_BLACKLIST = map[string]map[int]bool{
+		"Build-Mac10.9-Clang-x86_64-Debug": map[int]bool{
+			5222: true, // This build doesn't exist on the server.
+		},
+		"Build-Mac10.9-Clang-x86_64-Release": map[int]bool{
+			5207: true, // This build doesn't exist on the server.
+		},
+		"Build-Mac10.9-Clang-x86_64-Release-CMake": map[int]bool{
+			891: true, // This build doesn't exist on the server.
+		},
+		// Something went haywire with this, don't know what. -dogben
+		"Build-Ubuntu-GCC-x86-Release": map[int]bool{
+			2586: true,
+		},
 		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release-BuildBucket": map[int]bool{
 			1: true, // Cannot be ingested because its repo is "???"
+		},
+		"Perf-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-ANGLE": map[int]bool{
+			350: true, // This bot was removed before this build finished ingesting.
 		},
 		"Linux Tests": map[int]bool{
 			// For some reason, these builds don't exist on the server.
@@ -38,10 +54,6 @@ var (
 		},
 		"Win7 Tests (1)": map[int]bool{
 			1797: true, // This build doesn't exist on the server?
-		},
-		// Something went haywire with this, don't know what. -dogben
-		"Build-Ubuntu-GCC-x86-Release": map[int]bool{
-			2586: true,
 		},
 	}
 
