@@ -299,9 +299,14 @@
           return
         }
         if (this.triage) {
-          this.closest = json.diff.pos.closest.diff < json.diff.neg.closest.diff ?  json.diff.pos : json.diff.neg;
-          this.negIsClosest = json.diff.neg.closest.diff < json.diff.pos.closest.diff;
+          this.negIsClosest = false;
+          this.closest = json.diff.pos;
+          if (json.diff.neg && (!this.closest || (json.diff.neg.closest.diff < this.closest.diff))) {
+              this.closest = json.diff.neg;
+              this.negIsClosest = true;
+          }
         }
+
         this.details = json;
 
         this.$.blame.value = this.details.diff.blame;
@@ -327,9 +332,10 @@
             if (this.closest.closest.digest) {
               closestLabel = this.negIsClosest ? "Closest Negative" : "Closest Positive"
             }
+
             this.$.paramsets.setParamSets(
               [ this.details.paramset, this.closest.paramset ],
-              [ "",                           closestLabel ]
+              [ "",                    closestLabel ]
             );
 
           } else {

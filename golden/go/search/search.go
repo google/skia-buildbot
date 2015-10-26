@@ -261,7 +261,8 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 		}
 	}
 
-	// Build the output.
+	// Build the output and make sure the digest are cached on disk.
+	digests := make([]string, 0, len(inter))
 	ret := make([]*Digest, 0, len(inter))
 	emptyTraces := &Traces{}
 	for _, i := range inter {
@@ -273,7 +274,11 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 			Diff:     buildDiff(i.test, i.digest, exp, tile, talliesByTest, nil, storages.DiffStore, tileParamSet, q.IncludeIgnores),
 			Traces:   emptyTraces,
 		})
+		digests = append(digests, i.digest)
 	}
+
+	// This ensures that all digests are cached on disk.
+	storages.DiffStore.AbsPath(digests)
 	return ret, nil
 }
 
@@ -361,22 +366,26 @@ func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Til
 		t = tally.Tally{}
 	}
 
-	ret.Pos = &DiffDigest{
-		Closest: digesttools.ClosestDigest(test, digest, e, t, diffStore, types.POSITIVE),
-	}
-	ret.Pos.ParamSet = paramset.Get(test, ret.Pos.Closest.Digest, includeIgnores)
-
-	ret.Neg = &DiffDigest{
-		Closest: digesttools.ClosestDigest(test, digest, e, t, diffStore, types.NEGATIVE),
-	}
-	ret.Neg.ParamSet = paramset.Get(test, ret.Neg.Closest.Digest, includeIgnores)
-
-	if pos, neg := ret.Pos.Closest.Diff, ret.Neg.Closest.Diff; pos < neg {
-		ret.Diff = pos
-	} else {
-		ret.Diff = neg
+	var diffVal float32 = 0
+	if closest := digesttools.ClosestDigest(test, digest, e, t, diffStore, types.POSITIVE); closest.Digest != "" {
+		ret.Pos = &DiffDigest{
+			Closest: closest,
+		}
+		ret.Pos.ParamSet = paramset.Get(test, ret.Pos.Closest.Digest, includeIgnores)
+		diffVal = closest.Diff
 	}
 
+	if closest := digesttools.ClosestDigest(test, digest, e, t, diffStore, types.NEGATIVE); closest.Digest != "" {
+		ret.Neg = &DiffDigest{
+			Closest: closest,
+		}
+		ret.Neg.ParamSet = paramset.Get(test, ret.Neg.Closest.Digest, includeIgnores)
+		if (ret.Pos == nil) || (closest.Diff < diffVal) {
+			diffVal = closest.Diff
+		}
+	}
+
+	ret.Diff = diffVal
 	return ret
 }
 
