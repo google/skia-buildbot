@@ -334,11 +334,16 @@ work, so we just prefix every rule with plot-simple-sk.
           index: -1,
           value: 0,
         };
+        // We are going to calculate the distance between all the points and
+        // the mouse. For that to work we'll normalize all the x and y deltas
+        // so they scale from 0 to 1.0.
+        var scalex = Math.pow(xMax - xMin, 2);
+        var scaley = Math.pow(yMax - yMin, 2);
         for (var i = this._lineData.length - 1; i >= 0; i--) {
           var atrace = this._lineData[i];
           for (var j = atrace.length - 1; j >= 0; j--) {
             var pt = atrace[j];
-            var d = (pt[0] - this._mouse.x)*(pt[0] - this._mouse.x) +  (pt[1] - this._mouse.y)*(pt[1] - this._mouse.y);
+            var d = Math.pow((pt[0] - this._mouse.x)/scalex, 2)  + Math.pow((pt[1] - this._mouse.y)/scaley, 2);
             if (d < this._closest.d) {
               this._closest.d = d;
               this._closest.trace = i;
