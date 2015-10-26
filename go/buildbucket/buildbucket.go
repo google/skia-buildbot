@@ -147,8 +147,60 @@ func (c *Client) GetBuild(buildId string) (*Build, error) {
 		Etag  string `json:"etag"`
 		Kind  string `json:"kind"`
 	}
+	defer util.Close(resp.Body)
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
 	return result.Build, nil
+}
+
+// getOnePage retrieves one page of search results.
+func (c *Client) getOnePage(url string) ([]*Build, string, error) {
+	resp, err := c.Get(url)
+	if err != nil {
+		return nil, "", err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, "", fmt.Errorf("Request got response %s", resp.Status)
+	}
+	var result struct {
+		Builds     []*Build `json:"builds"`
+		Etag       string   `json:"etag"`
+		Kind       string   `json:"kind"`
+		NextCursor string   `json:"next_cursor"`
+	}
+	defer util.Close(resp.Body)
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, "", err
+	}
+	return result.Builds, result.NextCursor, nil
+}
+
+// Search retrieves results based on the given criteria.
+func (c *Client) Search(url string) ([]*Build, error) {
+	rv := []*Build{}
+	cursor := ""
+	for {
+		newUrl := url
+		if cursor != "" {
+			newUrl += fmt.Sprintf("&start_cursor=%s", cursor)
+		}
+		var builds []*Build
+		var err error
+		builds, cursor, err = c.getOnePage(newUrl)
+		if err != nil {
+			return nil, err
+		}
+		rv = append(rv, builds...)
+		if cursor == "" {
+			break
+		}
+	}
+	return rv, nil
+}
+
+// GetTrybotsForCL retrieves trybot results for the given CL.
+func (c *Client) GetTrybotsForCL(issueID int64, patchsetID int64) ([]*Build, error) {
+	url := fmt.Sprintf("%s/search?tag=buildset%%3Apatch%%2Frietveld%%2Fcodereview.chromium.org%%2F%d%%2F%d", apiUrl, issueID, patchsetID)
+	return c.Search(url)
 }

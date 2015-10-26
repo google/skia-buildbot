@@ -181,7 +181,7 @@ func (r *repoManager) SkiaHead() string {
 
 // cleanChromium forces the Chromium checkout into a clean state.
 func (r *repoManager) cleanChromium() error {
-	if _, err := exec.RunCwd(r.chromiumDir, "git", "clean", "-d", "-f"); err != nil {
+	if _, err := exec.RunCwd(r.chromiumDir, "git", "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
 	_, _ = exec.RunCwd(r.chromiumDir, "git", "rebase", "--abort")
@@ -189,6 +189,9 @@ func (r *repoManager) cleanChromium() error {
 		return err
 	}
 	_, _ = exec.RunCwd(r.chromiumDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
+	if _, err := exec.RunCwd(r.chromiumDir, "gclient", "revert", "--nohooks"); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -78,6 +78,12 @@
     .small {
       font-size: 0.8em;
     }
+    .nowrap {
+      white-space: nowrap;
+    }
+    .trybot {
+      margin: 5px;
+    }
   </style>
   <template>
     <div class="horizontal layout center" id="loadstatus">
@@ -88,8 +94,8 @@
     <div id="statusDisplay">
       <div class="table">
         <div class="tr">
-          <div class="td">Mode:</div>
-          <div class="td">
+          <div class="td nowrap">Mode:</div>
+          <div class="td nowrap">
             <template is="dom-repeat" items="{{modeButtons}}">
               <button class$="{{_buttonClass(item)}}" on-tap="_buttonPressed" disabled$="{{_modeChangePending}}">{{item.label}}</button>
             </template>
@@ -97,31 +103,45 @@
           </div>
         </div>
         <div class="tr">
-          <div class="td">Status:</div>
-          <div class="td">
+          <div class="td nowrap">Status:</div>
+          <div class="td nowrap">
             <span class$="{{_statusClass(status)}}"><span class="big">{{status}}</span></span>
           </div>
         </div>
         <template is="dom-if" if="{{_computeShowError(_editRights,error)}}">
           <div class="tr">
-            <div class="td">Error:</div>
+            <div class="td nowrap">Error:</div>
             <div class="td"><pre>{{error}}</pre></div>
           </div>
         </template>
         <div class="tr">
-          <div class="td">Current Roll:</div>
+          <div class="td nowrap">Current Roll:</div>
           <div class="td">
-            <template is="dom-if" if="{{!_isNull(currentRoll)}}">
-              <a href="{{_issueURL(currentRoll)}}" target="_blank">{{currentRoll.subject}}</a>
-            </template>
-            <template is="dom-if" if="{{_isNull(currentRoll)}}">
-              <span>(none)</span>
-            </template>
+            <div>
+              <template is="dom-if" if="{{_exists(currentRoll)}}">
+                <a href="{{_issueURL(currentRoll)}}" class="big" target="_blank">{{currentRoll.subject}}</a>
+              </template>
+              <template is="dom-if" if="{{!_exists(currentRoll)}}">
+                <span>(none)</span>
+              </template>
+            </div>
+            <div>
+              <template is="dom-repeat" items="{{currentRoll.tryResults}}">
+                <div class="trybot">
+                  <template is="dom-if" if="{{_exists(item.url)}}">
+                    <a href="{{item.url}}" class$="{{_trybotClass(item)}}" target="_blank">{{item.builder}}</a>
+                  </template>
+                  <template is="dom-if" if="{{!_exists(item.url)}}">
+                    <span class="nowrap" class$="{{_trybotClass(item)}}">{{item.builder}}</span>
+                  </template>
+                </div>
+              </template>
+            </div>
           </div>
         </div>
-        <template is="dom-if" if="{{!_isNull(lastRoll)}}">
+        <template is="dom-if" if="{{_exists(lastRoll)}}">
           <div class="tr">
-            <div class="td">Previous roll result:</div>
+            <div class="td nowrap">Previous roll result:</div>
             <div class="td">
               <span class$="{{_rollClass(lastRoll)}}">{{_rollResult(lastRoll)}}</span>
               <a href="{{_issueURL(lastRoll)}}" target="_blank" class="small">(detail)</a>
@@ -129,7 +149,7 @@
           </div>
         </template>
         <div class="tr">
-          <div class="td">History:</div>
+          <div class="td nowrap">History:</div>
           <div class="td">
             <div class="table">
               <div class="tr">
@@ -148,7 +168,7 @@
           </div>
         </div>
         <div class="tr">
-          <div class="td">Full History:</div>
+          <div class="td nowrap">Full History:</div>
           <div class="td">
             <a href="https://codereview.chromium.org/user/skia-deps-roller" target="_blank">
               https://codereview.chromium.org/user/skia-deps-roller
@@ -278,8 +298,8 @@
         }
       },
 
-      _isNull: function(obj) {
-        return obj == null;
+      _exists: function(obj) {
+        return !!obj;
       },
 
       _reloadChanged: function() {
@@ -330,6 +350,20 @@
           "stopped": "failure",
           "up to date": "success",
         }[status] || "";
+      },
+
+      _trybotClass: function(trybot) {
+        if (trybot.status == "STARTED") {
+          return "unknown";
+        } else if (trybot.status == "COMPLETED") {
+          return {
+            "CANCELED": "failure",
+            "FAILURE": "failure",
+            "SUCCESS": "success",
+          }[trybot.result] || "";
+        } else {
+          return "unknown";
+        }
       },
 
       _update: function(json) {

@@ -7,14 +7,188 @@
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script type="text/javascript">
-    var errorStatus = {"mode":"running","status":"error","currentRoll":{"closed":false,"committed":false,"commitQueue":true,"issue":1410133002,"modified":"2015-10-16T20:39:54.14135Z","subject":"Roll src/third_party/skia/ 80803ff61..fcffaf22d (4 commits)."},"recent":[{"closed":false,"committed":false,"commitQueue":true,"issue":1410133002,"modified":"2015-10-16T20:39:54.14135Z","subject":"Roll src/third_party/skia/ 80803ff61..fcffaf22d (4 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1409173003,"modified":"2015-10-16T20:39:03.98968Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1404383003,"modified":"2015-10-16T20:12:12.40001Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1413743002,"modified":"2015-10-16T20:08:46.42458Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1410123002,"modified":"2015-10-16T20:05:04.4565Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1413533005,"modified":"2015-10-16T20:03:53.06531Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1413733002,"modified":"2015-10-16T20:01:52.58953Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1410833003,"modified":"2015-10-16T20:00:03.67792Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1407143004,"modified":"2015-10-16T19:55:25.82746Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."}],"validModes":["running","stopped","dry run"],"lastRoll":{"closed":true,"committed":false,"commitQueue":false,"issue":1409173003,"modified":"2015-10-16T20:39:03.98968Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},"error":"Error message goes here!"};
+    var fakeStatus = {
+        "currentRoll": {
+            "closed": false,
+            "commitQueue": true,
+            "committed": false,
+            "issue": 1415573003,
+            "modified": "2015-10-23T15:05:33.06468Z",
+            "patchSets": [
+                1
+            ],
+            "result": "in progress",
+            "subject": "Roll src/third_party/skia/ 38a88e4c0..450ee8f26 (4 commits).",
+            "tryResults": [
+                {
+                    "builder": "trybot_name",
+                    "master": "try_master",
+                    "number": 0,
+                    "result": "FAILED",
+                    "status": "STARTED"
+                }
+            ]
+        },
+        "error": null,
+        "lastRoll": {
+            "closed": true,
+            "commitQueue": false,
+            "committed": false,
+            "issue": 1422543007,
+            "modified": "2015-10-23T15:05:05.47221Z",
+            "patchSets": [
+                1
+            ],
+            "result": "failed",
+            "subject": "Roll src/third_party/skia/ 5a06df468..450ee8f26 (5 commits).",
+            "tryResults": []
+        },
+        "mode": "running",
+        "recent": [
+            {
+                "closed": false,
+                "commitQueue": true,
+                "committed": false,
+                "issue": 1415573003,
+                "modified": "2015-10-23T15:05:33.06468Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "in progress",
+                "subject": "Roll src/third_party/skia/ 38a88e4c0..450ee8f26 (4 commits).",
+                "tryResults": []
+            },
+            {
+                "closed": true,
+                "commitQueue": false,
+                "committed": false,
+                "issue": 1422543007,
+                "modified": "2015-10-23T15:05:05.47221Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "failed",
+                "subject": "Roll src/third_party/skia/ 5a06df468..450ee8f26 (5 commits).",
+                "tryResults": []
+            },
+            {
+                "closed": true,
+                "commitQueue": false,
+                "committed": false,
+                "issue": 1419183003,
+                "modified": "2015-10-23T15:03:40.4796Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "failed",
+                "subject": "Roll src/third_party/skia/ 5a06df468..450ee8f26 (5 commits).",
+                "tryResults": []
+            },
+            {
+                "closed": true,
+                "commitQueue": false,
+                "committed": false,
+                "issue": 1412803005,
+                "modified": "2015-10-23T15:01:40.51842Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "failed",
+                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "tryResults": []
+            },
+            {
+                "closed": true,
+                "commitQueue": false,
+                "committed": false,
+                "issue": 1420233003,
+                "modified": "2015-10-23T14:59:56.61024Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "failed",
+                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "tryResults": []
+            },
+            {
+                "closed": true,
+                "commitQueue": false,
+                "committed": false,
+                "issue": 1418133006,
+                "modified": "2015-10-23T14:58:29.50867Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "failed",
+                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "tryResults": []
+            },
+            {
+                "closed": true,
+                "commitQueue": false,
+                "committed": false,
+                "issue": 1411073004,
+                "modified": "2015-10-23T14:55:28.90072Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "failed",
+                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "tryResults": []
+            },
+            {
+                "closed": true,
+                "commitQueue": false,
+                "committed": false,
+                "issue": 1418133005,
+                "modified": "2015-10-23T14:51:29.32814Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "failed",
+                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "tryResults": []
+            },
+            {
+                "closed": true,
+                "commitQueue": false,
+                "committed": false,
+                "issue": 1405023009,
+                "modified": "2015-10-23T14:41:21.06715Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "failed",
+                "subject": "Roll src/third_party/skia/ 5a06df468..ccdbc1d06 (4 commits).",
+                "tryResults": []
+            },
+            {
+                "closed": true,
+                "commitQueue": false,
+                "committed": false,
+                "issue": 1419013003,
+                "modified": "2015-10-23T14:26:59.94732Z",
+                "patchSets": [
+                    1
+                ],
+                "result": "failed",
+                "subject": "Roll src/third_party/skia/ 5a06df468..33eefcd58 (3 commits).",
+                "tryResults": []
+            }
+        ],
+        "status": "in progress",
+        "validModes": [
+            "running",
+            "stopped",
+            "dry run"
+        ]
+    };
 
-    var inProgressStatus = {"mode":"running","status":"in progress","currentRoll":{"closed":false,"committed":false,"commitQueue":true,"issue":1410133002,"modified":"2015-10-16T20:39:54.14135Z","subject":"Roll src/third_party/skia/ 80803ff61..fcffaf22d (4 commits)."},"recent":[{"closed":false,"committed":false,"commitQueue":true,"issue":1410133002,"modified":"2015-10-16T20:39:54.14135Z","subject":"Roll src/third_party/skia/ 80803ff61..fcffaf22d (4 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1409173003,"modified":"2015-10-16T20:39:03.98968Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1404383003,"modified":"2015-10-16T20:12:12.40001Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1413743002,"modified":"2015-10-16T20:08:46.42458Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1410123002,"modified":"2015-10-16T20:05:04.4565Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1413533005,"modified":"2015-10-16T20:03:53.06531Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1413733002,"modified":"2015-10-16T20:01:52.58953Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1410833003,"modified":"2015-10-16T20:00:03.67792Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},{"closed":true,"committed":false,"commitQueue":false,"issue":1407143004,"modified":"2015-10-16T19:55:25.82746Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."}],"validModes":["running","stopped","dry run"],"lastRoll":{"closed":false,"committed":false,"commitQueue":true,"issue":1410133002,"modified":"2015-10-16T20:39:54.14135Z","subject":"Roll src/third_party/skia/ 80803ff61..fcffaf22d (4 commits)."},"lastRoll":{"closed":true,"committed":false,"commitQueue":false,"issue":1409173003,"modified":"2015-10-16T20:39:03.98968Z","subject":"Roll src/third_party/skia/ 80803ff61..466c2c48b (3 commits)."},"error":null};
 
     var params = sk.query.toParamSet(window.location.search.substring(1));
-    var fakeStatus = inProgressStatus;
     if (params.status == "error") {
-      fakeStatus = errorStatus;
+      fakeStatus["status"] = "error";
+      fakeStatus["error"] = "Error message goes here!";
     }
 
     // Mock out sk.get and sk.post so we can fake a response from the server.

@@ -201,7 +201,7 @@ func main() {
 	}
 
 	// Start the autoroller.
-	arb, err = autoroll.NewAutoRoller(*workdir, cqExtraTrybots, emails, r, 15*time.Minute)
+	arb, err = autoroll.NewAutoRoller(*workdir, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute)
 	if err != nil {
 		glog.Fatal(err)
 	}

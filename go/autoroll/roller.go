@@ -1,7 +1,9 @@
 package autoroll
 
 import (
+	"encoding/json"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -17,6 +19,10 @@ const (
 	MODE_RUNNING = "running"
 	MODE_STOPPED = "stopped"
 	MODE_DRY_RUN = "dry run"
+
+	ROLL_RESULT_IN_PROGRESS = "in progress"
+	ROLL_RESULT_SUCCESS     = "succeeded"
+	ROLL_RESULT_FAILURE     = "failed"
 
 	STATUS_ERROR       = "error"
 	STATUS_IN_PROGRESS = "in progress"
@@ -65,8 +71,8 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, frequency time.Duration) (*AutoRoller, error) {
-	rm, err := newRepoManager(workdir, cqExtraTrybots, emails, frequency)
+func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, tickFrequency, repoFrequency time.Duration) (*AutoRoller, error) {
+	rm, err := newRepoManager(workdir, cqExtraTrybots, emails, repoFrequency)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +90,7 @@ func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *ri
 	}
 
 	go func() {
-		for _ = range time.Tick(frequency) {
+		for _ = range time.Tick(tickFrequency) {
 			util.LogErr(arb.doAutoRoll())
 		}
 	}()
@@ -119,7 +125,7 @@ func (r *AutoRoller) isMode(s Mode) bool {
 }
 
 // setStatus sets the current reporting status of the bot.
-func (r *AutoRoller) setStatus(s Status, currentRoll *AutoRollIssue, lastError error) error {
+func (r *AutoRoller) setStatus(s Status, lastError error) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	if !util.In(string(s), VALID_STATUSES) {
@@ -132,17 +138,7 @@ func (r *AutoRoller) setStatus(s Status, currentRoll *AutoRollIssue, lastError e
 	} else if lastError != nil {
 		return fmt.Errorf("Cannot be in any status other than error when an error occurred.")
 	}
-	if s == STATUS_STOPPED {
-		if currentRoll != nil {
-			return fmt.Errorf("Cannot be in stopped status with an active roll.")
-		}
-	} else if s == STATUS_IN_PROGRESS {
-		if currentRoll == nil {
-			return fmt.Errorf("Cannot be in in-progress status with no active roll.")
-		}
-	}
 	r.status = s
-	r.currentRoll = currentRoll
 	r.lastError = lastError
 	return nil
 }
@@ -204,17 +200,79 @@ func (r *AutoRoller) GetRecentRolls() []*AutoRollIssue {
 	return r.recent
 }
 
-// setRecentRolls sets the list of recent DEPS rolls.
-func (r *AutoRoller) setRecentRolls(recent []*AutoRollIssue) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-	r.recent = recent
+// updateRecentRolls sets the list of recent DEPS rolls.
+func (r *AutoRoller) updateRecentRolls() error {
+	// Load the last N rolls.
+	recent, err := GetLastNRolls(POLLER_ROLLS_LIMIT)
+	if err != nil {
+		return err
+	}
+
+	// Find the current and last rolls.
+	var currentRoll *AutoRollIssue
+	var lastRoll *AutoRollIssue
 	for _, roll := range recent {
-		if roll.Closed {
-			r.lastRoll = roll
+		// Any open issue is the current roll.
+		if currentRoll == nil && !roll.Closed {
+			currentRoll = roll
+		}
+		// The first closed issue is the last roll.
+		if lastRoll == nil && roll.Closed {
+			lastRoll = roll
+		}
+		// Shortcut.
+		if currentRoll != nil && lastRoll != nil {
 			break
 		}
 	}
+
+	// Retrieve try results for the current and last rolls.
+	if currentRoll != nil {
+		tries, err := r.getTryResults(currentRoll)
+		if err != nil {
+			return err
+		}
+		currentRoll.TryResults = tries
+	}
+	if lastRoll != nil {
+		tries, err := r.getTryResults(lastRoll)
+		if err != nil {
+			return err
+		}
+		lastRoll.TryResults = tries
+	}
+
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	r.recent = recent
+	r.currentRoll = currentRoll
+	r.lastRoll = lastRoll
+	return nil
+}
+
+// getTryResults returns trybot results for the given roll.
+func (r *AutoRoller) getTryResults(roll *AutoRollIssue) ([]*TryResult, error) {
+	tries, err := r.rietveld.GetTrybotResults(roll.Issue, roll.Patchsets[len(roll.Patchsets)-1])
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*TryResult, 0, len(tries))
+	for _, t := range tries {
+		var params struct {
+			Builder string `json:"builder_name"`
+		}
+		if err := json.Unmarshal([]byte(t.ParametersJson), &params); err != nil {
+			return nil, err
+		}
+		res = append(res, &TryResult{
+			Builder: params.Builder,
+			Result:  t.Result,
+			Status:  t.Status,
+			Url:     t.Url,
+		})
+	}
+	sort.Sort(tryResultSlice(res))
+	return res, nil
 }
 
 // closeIssue closes the given issue with the given message.
@@ -279,35 +337,34 @@ func (r *AutoRoller) shouldCloseCurrentRoll(currentRoll *AutoRollIssue) (bool, s
 // updates checkouts, manages active roll CLs, and uploads new rolls. It sets
 // the status of the bot which may be read by users.
 func (r *AutoRoller) doAutoRoll() error {
-	status, currentRoll, lastError := r.doAutoRollInner()
-	if err := r.setStatus(status, currentRoll, lastError); err != nil {
+	status, lastError := r.doAutoRollInner()
+
+	if err := r.updateRecentRolls(); err != nil {
 		return err
 	}
-	// Load the list of recent rolls.
-	recent, err := GetLastNRolls(POLLER_ROLLS_LIMIT)
-	if err != nil {
+
+	if err := r.setStatus(status, lastError); err != nil {
 		return err
 	}
-	r.setRecentRolls(recent)
 
 	return lastError
 }
 
 // doAutoRollInner does the actual work of the AutoRoll.
-func (r *AutoRoller) doAutoRollInner() (Status, *AutoRollIssue, error) {
+func (r *AutoRoller) doAutoRollInner() (Status, error) {
 	r.runningMtx.Lock()
 	defer r.runningMtx.Unlock()
 
 	// Find the active roll, if it exists.
 	activeRolls, err := r.findActiveRolls()
 	if err != nil {
-		return STATUS_ERROR, nil, err
+		return STATUS_ERROR, err
 	}
 	// Close any extra rolls.
 	var currentRoll *AutoRollIssue
 	for len(activeRolls) > 1 {
 		if err := r.rietveld.Close(activeRolls[0].Issue, "Multiple DEPS rolls found; closing all but the newest."); err != nil {
-			return STATUS_ERROR, nil, err
+			return STATUS_ERROR, err
 		}
 		activeRolls = activeRolls[1:]
 	}
@@ -320,53 +377,35 @@ func (r *AutoRoller) doAutoRollInner() (Status, *AutoRollIssue, error) {
 	if currentRoll != nil {
 		shouldClose, msg, err := r.shouldCloseCurrentRoll(currentRoll)
 		if err != nil {
-			return STATUS_ERROR, nil, err
+			return STATUS_ERROR, err
 		}
 		if shouldClose {
 			if err := r.closeIssue(currentRoll, msg); err != nil {
-				return STATUS_ERROR, nil, err
+				return STATUS_ERROR, err
 			}
 		} else {
 			// Current roll is still good. Exit.
 			glog.Infof("Roll is still active (%d): %s", currentRoll.Issue, currentRoll.Subject)
-			return STATUS_IN_PROGRESS, currentRoll, nil
+			return STATUS_IN_PROGRESS, nil
 		}
 	}
 
 	// If we're stopped, exit.
 	if r.isMode(MODE_STOPPED) {
 		glog.Infof("Roller is stopped; not opening new rolls.")
-		return STATUS_STOPPED, nil, nil
+		return STATUS_STOPPED, nil
 	}
 
 	// If we're up-to-date, exit.
 	if r.rm.LastRollRev() == r.rm.SkiaHead() {
 		glog.Infof("Skia is up-to-date.")
-		return STATUS_UP_TO_DATE, nil, nil
+		return STATUS_UP_TO_DATE, nil
 	}
 
 	// Create a new roll.
 	if err := r.rm.CreateNewRoll(r.isMode(MODE_DRY_RUN)); err != nil {
-		return STATUS_ERROR, nil, err
+		return STATUS_ERROR, err
 	}
 
-	// Find the roll we uploaded, update the "recent rolls" list.
-	recent, err := GetLastNRolls(POLLER_ROLLS_LIMIT)
-	if err != nil {
-		return STATUS_ERROR, nil, err
-	}
-	r.setRecentRolls(recent)
-
-	// Assume that any open roll is the one we just uploaded.
-	var newRoll *AutoRollIssue
-	for _, roll := range recent {
-		if !roll.Closed {
-			newRoll = roll
-			break
-		}
-	}
-	if newRoll == nil {
-		return STATUS_ERROR, nil, fmt.Errorf("Could not find newly-uploaded DEPS roll!")
-	}
-	return STATUS_IN_PROGRESS, newRoll, nil
+	return STATUS_IN_PROGRESS, nil
 }

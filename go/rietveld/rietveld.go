@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/util"
 )
 
@@ -285,6 +286,7 @@ func (r *Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 	return issues, nil
 }
 
+// GetPatchset returns information about the given patchset.
 func (r Rietveld) GetPatchset(issueID int64, patchsetID int64) (*Patchset, error) {
 	url := fmt.Sprintf("/api/%d/%d", issueID, patchsetID)
 	patchset := &Patchset{}
@@ -295,4 +297,9 @@ func (r Rietveld) GetPatchset(issueID int64, patchsetID int64) (*Patchset, error
 	patchset.Created = parseTime(patchset.CreatedStr)
 	patchset.Modified = parseTime(patchset.ModifiedStr)
 	return patchset, nil
+}
+
+// GetTrybotResults returns trybot results for the given Issue and Patchset.
+func (r *Rietveld) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
+	return buildbucket.NewClient(r.client).GetTrybotsForCL(issueID, patchsetID)
 }
