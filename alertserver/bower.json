@@ -14,14 +14,8 @@
     "tests"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.0.0",
-    "iron-elements": "PolymerElements/iron-elements#~1.0.0",
-    "paper-elements": "PolymerElements/paper-elements#~1.0.0"
-  },
-  "resolutions": {
-    "polymer": "^1.1.0",
-    "marked-element": "^1.0.0",
-    "web-animations-js": "2.1.2",
-    "webcomponentsjs": "^0.7.2"
+    "polymer": "Polymer/polymer#^1.1.0",
+    "iron-elements": "PolymerElements/iron-elements#^1.0.0",
+    "paper-elements": "PolymerElements/paper-elements#^1.0.0"
   }
 }
