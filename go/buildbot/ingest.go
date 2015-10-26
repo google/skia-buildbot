@@ -685,8 +685,11 @@ func ingestNewBuilds(m string, repos *gitinfo.RepoMap) error {
 			glog.Infof("Ingesting build: %s, %s, %d", m, b, n)
 			build, err := retryGetBuildFromMaster(m, b, n, repos)
 			if err != nil {
-				errs[b] = fmt.Errorf("Failed to ingest build: %v", err)
-				break
+				// If we couldn't get the build from the master after multiple
+				// tries, assume that the build has somehow disappeared and
+				// skip it.
+				glog.Errorf("Failed to retrieve build from master; skipping: %v", err)
+				continue
 			}
 			if err := IngestBuild(build, repos); err != nil {
 				errs[b] = fmt.Errorf("Failed to ingest build: %v", err)
