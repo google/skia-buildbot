@@ -2,9 +2,14 @@
 package main
 
 import (
+	"encoding/binary"
 	"flag"
 	"fmt"
+	"math"
+	"math/rand"
 	"os"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -21,6 +26,11 @@ var (
 	address = flag.String("address", "localhost:9090", "The address of the traceservice gRPC endpoint.")
 	begin   = flag.String("begin", "1w", "Select the commit ids for the range beginning this long ago.")
 	end     = flag.String("end", "0s", "Select the commit ids for the range ending this long ago.")
+	id      = flag.String("id", "", "Selects the CommitID with an ID that begins with id.")
+	gold    = flag.Bool("gold", true, "If true then the values are considered digests, otherwise they're treated as float64.")
+	regex   = flag.String("regex", "", "A regular expression to match against traceids.")
+	verbose = flag.Bool("verbose", false, "Verbose output.")
+	only    = flag.Bool("only", false, "If true then only print values, otherwise print keys and values.")
 )
 
 var Usage = func() {
@@ -38,6 +48,12 @@ Commands:
             Flags: --begin --end
 
   ping      Call the Ping service method every 1s.
+
+  sample    Get a sampling of values for the given ID.
+            Flags: --begin --end --id --gold --regex --only
+
+            The first commitid with an ID that begins with the value of --id
+            will be loaded and a sampling of 10 values will be displayed.
 
 
 Examples:
@@ -70,7 +86,9 @@ func _list(client traceservice.TraceServiceClient) (*traceservice.ListResponse, 
 
 	req.Begin = now.Add(-b).Unix()
 	req.End = now.Add(-e).Unix()
-	fmt.Printf("Requesting from %s to %s\n", now.Add(-b), now.Add(-e))
+	if *verbose {
+		fmt.Printf("Requesting from %s to %s\n", now.Add(-b), now.Add(-e))
+	}
 	return client.List(context.Background(), req)
 }
 
@@ -80,8 +98,10 @@ func count(client traceservice.TraceServiceClient) {
 		fmt.Printf("Failed to retrieve the list: %s\n", err)
 		return
 	}
-	fmt.Printf("Found %d commits.\n", len(listResp.Commitids))
 	for _, cid := range listResp.Commitids {
+		if *id != "" && !strings.HasPrefix(cid.Id, *id) {
+			continue
+		}
 		req := &traceservice.GetValuesRequest{
 			Commitid: cid,
 		}
@@ -101,6 +121,9 @@ func list(client traceservice.TraceServiceClient) {
 		return
 	}
 	for _, cid := range resp.Commitids {
+		if *id != "" && !strings.HasPrefix(cid.Id, *id) {
+			continue
+		}
 		fmt.Printf("%s  %s  %s\n", cid.Id, cid.Source, time.Unix(cid.Timestamp, 0))
 	}
 }
@@ -125,7 +148,78 @@ func ping(client traceservice.TraceServiceClient) {
 	}
 }
 
+// converter is a func that will convert the raw byte slice returned into the correct type.
+type converter func([]byte) interface{}
+
+// perfConverter in an implementation of converter for float64 types.
+func perfConverter(b []byte) interface{} {
+	return math.Float64frombits(binary.LittleEndian.Uint64(b))
+}
+
+// goldConverter in an implementation of converter for digests (strings).
+func goldConverter(b []byte) interface{} {
+	return string(b)
+}
+
+func sample(client traceservice.TraceServiceClient) {
+	// Get all the CommitIDs in the given time range.
+	listResp, err := _list(client)
+	if err != nil {
+		fmt.Printf("Failed to retrieve the list: %s\n", err)
+		return
+	}
+	// Choose the right value converter.
+	var conv converter = perfConverter
+	if *gold {
+		conv = goldConverter
+	}
+
+	for _, cid := range listResp.Commitids {
+		if *id != "" && !strings.HasPrefix(cid.Id, *id) {
+			continue
+		}
+		req := &traceservice.GetValuesRequest{
+			Commitid: cid,
+		}
+		resp, err := client.GetValues(context.Background(), req)
+		if err != nil {
+			fmt.Printf("Failed to retrieve values: %s", err)
+			return
+		}
+		if *regex == "" {
+			// Dump a sample of at most 10 values along with their traceids.
+			N := 10
+			if len(resp.Values) < N {
+				N = len(resp.Values)
+			}
+			for i := 0; i < N; i++ {
+				pair := resp.Values[rand.Intn(len(resp.Values))]
+				if *only {
+					fmt.Printf("%v\n", conv(pair.Value))
+				} else {
+					fmt.Printf("%110s  -  %v\n", pair.Key, conv(pair.Value))
+				}
+			}
+		} else {
+			r, err := regexp.Compile(*regex)
+			if err != nil {
+				fmt.Printf("Invalid value for regex %q: %s\n", *regex, err)
+			}
+			for _, pair := range resp.Values {
+				if r.MatchString(pair.Key) {
+					if *only {
+						fmt.Printf("%v\n", conv(pair.Value))
+					} else {
+						fmt.Printf("%110s  -  %v\n", pair.Key, conv(pair.Value))
+					}
+				}
+			}
+		}
+	}
+}
+
 func main() {
+	rand.Seed(time.Now().Unix())
 	// Grab the first argument off of os.Args, the command, before we call flag.Parse.
 	if len(os.Args) < 2 {
 		Usage()
@@ -152,6 +246,8 @@ func main() {
 		ping(client)
 	case "count":
 		count(client)
+	case "sample":
+		sample(client)
 	default:
 		fmt.Printf("Unknown command: %s\n", cmd)
 		Usage()
