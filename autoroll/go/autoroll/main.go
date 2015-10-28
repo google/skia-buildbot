@@ -103,7 +103,7 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := arb.SetMode(autoroll.Mode(mode.Mode)); err != nil {
+	if err := arb.SetMode(autoroll.Mode(mode.Mode), login.LoggedInAs(r), "[Placeholder Message]"); err != nil {
 		util.ReportError(w, r, err, "Failed to set AutoRoll mode.")
 		return
 	}
@@ -114,26 +114,9 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	status := struct {
-		Mode        string                    `json:"mode"`
-		Status      string                    `json:"status"`
-		CurrentRoll *autoroll.AutoRollIssue   `json:"currentRoll"`
-		Error       error                     `json:"error"`
-		LastRoll    *autoroll.AutoRollIssue   `json:"lastRoll"`
-		Recent      []*autoroll.AutoRollIssue `json:"recent"`
-		ValidModes  []string                  `json:"validModes"`
-	}{
-		Mode:        string(arb.GetMode()),
-		Status:      string(arb.GetStatus()),
-		CurrentRoll: arb.GetCurrentRoll(),
-		LastRoll:    arb.GetLastRoll(),
-		Recent:      arb.GetRecentRolls(),
-		ValidModes:  autoroll.VALID_MODES,
-	}
-	// Only display error messages if the user is a logged-in Googler.
-	if login.IsAGoogler(r) {
-		status.Error = arb.GetError()
-	}
+	// Obtain the status info. Only display error messages if the user
+	// is a logged-in Googler.
+	status := arb.GetStatus(login.IsAGoogler(r))
 	if err := json.NewEncoder(w).Encode(&status); err != nil {
 		glog.Error(err)
 	}

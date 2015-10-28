@@ -39,6 +39,34 @@ type AutoRollIssue struct {
 	TryResults  []*TryResult `json:"tryResults"`
 }
 
+// autoRollIssue returns an AutoRollIssue instance based on the given
+// rietveld.Issue.
+func autoRollIssue(i *rietveld.Issue) *AutoRollIssue {
+	roll := &AutoRollIssue{
+		Closed:      i.Closed,
+		Committed:   i.Committed,
+		CommitQueue: i.CommitQueue,
+		Issue:       i.Issue,
+		Modified:    i.Modified,
+		Patchsets:   i.Patchsets,
+		Subject:     i.Subject,
+	}
+	roll.Result = rollResult(roll)
+	return roll
+}
+
+// rollResult derives a result string for the roll.
+func rollResult(roll *AutoRollIssue) string {
+	if roll.Closed {
+		if roll.Committed {
+			return ROLL_RESULT_SUCCESS
+		} else {
+			return ROLL_RESULT_FAILURE
+		}
+	}
+	return ROLL_RESULT_IN_PROGRESS
+}
+
 // TryResult is a struct which contains trybot result details.
 type TryResult struct {
 	Builder string `json:"builder"`
@@ -59,6 +87,7 @@ func (s tryResultSlice) Len() int           { return len(s) }
 func (s tryResultSlice) Less(i, j int) bool { return s[i].Builder < s[j].Builder }
 func (s tryResultSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
+// search queries Rietveld for issues matching the known DEPS roll format.
 func search(r *rietveld.Rietveld, limit int, terms ...*rietveld.SearchTerm) ([]*AutoRollIssue, error) {
 	terms = append(terms, rietveld.SearchOwner(ROLL_AUTHOR))
 	res, err := r.Search(limit, terms...)
@@ -68,24 +97,7 @@ func search(r *rietveld.Rietveld, limit int, terms ...*rietveld.SearchTerm) ([]*
 	rv := make([]*AutoRollIssue, 0, len(res))
 	for _, i := range res {
 		if ROLL_REV_REGEX.FindString(i.Subject) != "" {
-			roll := &AutoRollIssue{
-				Closed:      i.Closed,
-				Committed:   i.Committed,
-				CommitQueue: i.CommitQueue,
-				Issue:       i.Issue,
-				Modified:    i.Modified,
-				Patchsets:   i.Patchsets,
-				Subject:     i.Subject,
-			}
-			roll.Result = ROLL_RESULT_IN_PROGRESS
-			if roll.Closed {
-				if roll.Committed {
-					roll.Result = ROLL_RESULT_SUCCESS
-				} else {
-					roll.Result = ROLL_RESULT_FAILURE
-				}
-			}
-			rv = append(rv, roll)
+			rv = append(rv, autoRollIssue(i))
 		}
 	}
 	sort.Sort(autoRollIssueSlice(rv))

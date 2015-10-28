@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +17,10 @@ import (
 
 const (
 	DEPS_ROLL_BRANCH = "skia_roll"
+)
+
+var (
+	ISSUE_CREATED_REGEX = regexp.MustCompile(fmt.Sprintf("Issue created. URL: %s/(\\d+)", RIETVELD_URL))
 )
 
 // repoManager is a struct used by AutoRoller for managing checkouts.
@@ -196,15 +202,16 @@ func (r *repoManager) cleanChromium() error {
 }
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
-func (r *repoManager) CreateNewRoll(dryRun bool) error {
+// Returns the issue number of the uploaded roll.
+func (r *repoManager) CreateNewRoll(dryRun bool) (int64, error) {
 	to := r.SkiaHead()
 
 	// Clean the checkout, get onto a fresh branch.
 	if err := r.cleanChromium(); err != nil {
-		return err
+		return 0, err
 	}
 	if _, err := exec.RunCwd(r.chromiumDir, "git", "checkout", "-b", DEPS_ROLL_BRANCH, "-t", "origin/master", "-f"); err != nil {
-		return err
+		return 0, err
 	}
 
 	// Defer some more cleanup.
@@ -214,12 +221,12 @@ func (r *repoManager) CreateNewRoll(dryRun bool) error {
 
 	// Create the roll CL.
 	if _, err := exec.RunCwd(r.chromiumDir, "roll-dep", "src/third_party/skia", to); err != nil {
-		return err
+		return 0, err
 	}
 	// Build the commit message, starting with the message provided by roll-dep.
 	commitMsg, err := exec.RunCwd(r.chromiumDir, "git", "log", "-n1", "--format=%B", "HEAD")
 	if err != nil {
-		return err
+		return 0, err
 	}
 	cqExtraTrybots := r.GetCQExtraTrybots()
 	if cqExtraTrybots != nil && len(cqExtraTrybots) > 0 {
@@ -242,8 +249,13 @@ func (r *repoManager) CreateNewRoll(dryRun bool) error {
 	uploadCmd = append(uploadCmd, "-m", commitMsg)
 
 	// Upload the CL.
-	if _, err := exec.RunCwd(r.chromiumDir, uploadCmd...); err != nil {
-		return err
+	uploadOutput, err := exec.RunCwd(r.chromiumDir, uploadCmd...)
+	if err != nil {
+		return 0, err
 	}
-	return nil
+	issues := ISSUE_CREATED_REGEX.FindStringSubmatch(uploadOutput)
+	if len(issues) != 2 {
+		return 0, fmt.Errorf("Failed to find newly-uploaded issue number!")
+	}
+	return strconv.ParseInt(issues[1], 10, 64)
 }
