@@ -46,8 +46,12 @@ func _main(tile *tiling.Tile, ts db.DB) {
 			for traceid, tr := range tile.Traces {
 				if !tr.IsMissing(i) {
 					values[traceid] = &db.Entry{
-						Value:  []byte(tr.(*types.GoldenTrace).Values[i]),
 						Params: tr.Params(),
+					}
+					if *gold {
+						values[traceid].Value = []byte(tr.(*types.GoldenTrace).Values[i])
+					} else {
+						values[traceid].Value = ptypes.BytesFromFloat64(tr.(*ptypes.PerfTrace).Values[i])
 					}
 				}
 			}

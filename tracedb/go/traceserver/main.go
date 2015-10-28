@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/pprof"
 	"syscall"
 
@@ -25,7 +26,7 @@ var (
 )
 
 func main() {
-	common.InitWithMetrics("traceserver", graphiteServer)
+	common.InitWithMetrics(filepath.Base(os.Args[0]), graphiteServer)
 	ts, err := traceservice.NewTraceServiceServer(*db_file)
 	if err != nil {
 		glog.Fatalf("Failed to initialize the tracestore server: %s", err)

@@ -1,0 +1,18 @@
+[Unit]
+Description=Gold traceserver
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/gold_traceserver \
+    --db_file=/mnt/pd0/traceserver/goldtraces.db \
+    --graphite_server=skia-monitoring:2003 \
+    --port=:10000 \
+    --log_dir=/var/log/logserver
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

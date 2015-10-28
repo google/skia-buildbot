@@ -1,0 +1,20 @@
+#!/bin/bash
+# Builds and uploads a debian package for traceserver.
+APPNAME="traceserverd"
+SYSTEMD="gold-traceserver.service perf-traceserver.service"
+DESCRIPTION="Traceserver datastores for Perf and Gold traces."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL}     --mode=644 -T ./sys/perf-traceserver.service ${ROOT}/etc/systemd/system/perf-traceserver.service
+${INSTALL}     --mode=644 -T ./sys/gold-traceserver.service ${ROOT}/etc/systemd/system/gold-traceserver.service
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/traceserver      ${ROOT}/usr/local/bin/gold_traceserver
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/traceserver      ${ROOT}/usr/local/bin/perf_traceserver
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/tracetool        ${ROOT}/usr/local/bin/tracetool
+${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/traceserver
+}
+
+source ../bash/release.sh
