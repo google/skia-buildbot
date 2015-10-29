@@ -1,6 +1,7 @@
 package recent_rolls
 
 import (
+	"fmt"
 	"sync"
 
 	"go.skia.org/infra/go/autoroll"
@@ -37,8 +38,23 @@ func (r *RecentRolls) Close() error {
 
 // Add adds a DEPS roll to the recent rolls list.
 func (r *RecentRolls) Add(roll *autoroll.AutoRollIssue) error {
+	if err := roll.Validate(); err != nil {
+		return err
+	}
+
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
+
+	// Refuse to insert more rolls if we already have an active roll.
+	if r.currentRoll() != nil {
+		return fmt.Errorf("There is already an active roll. Cannot add another.")
+	}
+
+	// Validate the new roll.
+	if roll.Closed {
+		return fmt.Errorf("Cannot insert a new roll which is already closed.")
+	}
+
 	if err := r.db.InsertRoll(roll); err != nil {
 		return err
 	}
@@ -47,6 +63,10 @@ func (r *RecentRolls) Add(roll *autoroll.AutoRollIssue) error {
 
 // Update updates the given DEPS roll in the recent rolls list.
 func (r *RecentRolls) Update(roll *autoroll.AutoRollIssue) error {
+	if err := roll.Validate(); err != nil {
+		return err
+	}
+
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	if err := r.db.UpdateRoll(roll); err != nil {
@@ -66,18 +86,28 @@ func (r *RecentRolls) GetRecentRolls() []*autoroll.AutoRollIssue {
 	return recent
 }
 
-// CurrentRoll returns a copy of the currently-active DEPS roll, or nil if none
-// exists.
-func (r *RecentRolls) CurrentRoll() *autoroll.AutoRollIssue {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
+// currentRoll returns the currently-active DEPS roll, or nil if none exists.
+// Does not copy the roll. Expects that the caller holds a lock.
+func (r *RecentRolls) currentRoll() *autoroll.AutoRollIssue {
 	if len(r.recent) == 0 {
 		return nil
 	}
 	if r.recent[0].Closed {
 		return nil
 	}
-	return &(*r.recent[0])
+	return r.recent[0]
+}
+
+// CurrentRoll returns a copy of the currently-active DEPS roll, or nil if none
+// exists.
+func (r *RecentRolls) CurrentRoll() *autoroll.AutoRollIssue {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	current := r.currentRoll()
+	if current != nil {
+		return &(*current)
+	}
+	return nil
 }
 
 // LastRoll returns a copy of the last DEPS roll, if one exists, and nil

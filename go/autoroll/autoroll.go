@@ -6,6 +6,8 @@ package autoroll
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"regexp"
 	"sort"
 	"time"
@@ -42,6 +44,26 @@ type AutoRollIssue struct {
 	Result      string       `json:"result"`
 	Subject     string       `json:"subject"`
 	TryResults  []*TryResult `json:"tryResults"`
+}
+
+// Validate returns an error iff there is some problem with the issue.
+func (i *AutoRollIssue) Validate() error {
+	if i.Closed {
+		if i.Result == ROLL_RESULT_IN_PROGRESS {
+			return fmt.Errorf("AutoRollIssue cannot have a Result of %q if it is Closed.", ROLL_RESULT_IN_PROGRESS)
+		}
+		if i.CommitQueue {
+			return errors.New("AutoRollIssue cannot be marked CommitQueue if it is Closed.")
+		}
+	} else {
+		if i.Committed {
+			return errors.New("AutoRollIssue cannot be Committed without being Closed.")
+		}
+		if i.Result != ROLL_RESULT_IN_PROGRESS {
+			return fmt.Errorf("AutoRollIssue must have a Result of %q if it is not Closed.", ROLL_RESULT_IN_PROGRESS)
+		}
+	}
+	return nil
 }
 
 // FromRietveldIssue returns an AutoRollIssue instance based on the given

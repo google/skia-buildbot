@@ -61,8 +61,8 @@ func (mh *ModeHistory) Close() error {
 }
 
 // Add inserts a new ModeChange.
-func (mh *ModeHistory) Add(m string, user, message string) error {
-	if !util.In(string(m), VALID_MODES) {
+func (mh *ModeHistory) Add(m, user, message string) error {
+	if !util.In(m, VALID_MODES) {
 		return fmt.Errorf("Invalid mode: %s", m)
 	}
 
@@ -92,6 +92,17 @@ func (mh *ModeHistory) CurrentMode() string {
 		glog.Errorf("Mode history is empty even after initialization!")
 		return MODE_STOPPED
 	}
+}
+
+// GetHistory returns a slice of the most recent ModeChanges, most recent first.
+func (mh *ModeHistory) GetHistory() []*ModeChange {
+	mh.mtx.RLock()
+	defer mh.mtx.RUnlock()
+	rv := make([]*ModeChange, 0, len(mh.history))
+	for _, m := range mh.history {
+		rv = append(rv, &(*m))
+	}
+	return rv
 }
 
 // refreshHistory refreshes the mode history from the database. Assumes that the

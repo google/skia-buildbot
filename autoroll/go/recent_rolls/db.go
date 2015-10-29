@@ -66,7 +66,7 @@ func rollKey(a *autoroll.AutoRollIssue) []byte {
 
 // timeToKey returns a BoltDB key for the given time.Time.
 func timeToKey(t time.Time) []byte {
-	return []byte(t.Format(time.RFC3339))
+	return []byte(t.Format(time.RFC3339Nano))
 }
 
 // timeKey returns a BoltDB key for the given AutoRollIssue based on its
