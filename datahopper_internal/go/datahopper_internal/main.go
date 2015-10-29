@@ -37,6 +37,7 @@ import (
 	"go.skia.org/infra/go/metadata"
 	skmetics "go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"google.golang.org/api/storage/v1"
 )
 
@@ -82,7 +83,7 @@ func isFinished(b *androidbuildinternal.Build) bool {
 // buildFromCommit builds a buildbot.Build from the commit and the info
 // returned from the Apiary API.  It also returns a key that uniqely identifies
 // this build.
-func buildFromCommit(build *androidbuildinternal.Build, commit *gitinfo.ShortCommit) (string, *buildbot.Build) {
+func buildFromCommit(build *androidbuildinternal.Build, commit *vcsinfo.ShortCommit) (string, *buildbot.Build) {
 	codename := util.StringToCodeName(build.Target.Name)
 	key := build.Branch + ":" + build.Target.Name + ":" + build.BuildId
 	b := &buildbot.Build{

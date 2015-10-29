@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/status/go/build_cache"
 )
 
@@ -33,7 +34,7 @@ type CommitCache struct {
 	BranchHeads []*gitinfo.GitBranch
 	buildCache  *build_cache.BuildCache
 	cacheFile   string
-	Commits     []*gitinfo.LongCommit
+	Commits     []*vcsinfo.LongCommit
 	mutex       sync.RWMutex
 	repo        *gitinfo.GitInfo
 	requestSize int
@@ -110,7 +111,7 @@ func (c *CommitCache) NumCommits() int {
 }
 
 // Get returns the commit at the given index.
-func (c *CommitCache) Get(idx int) (*gitinfo.LongCommit, error) {
+func (c *CommitCache) Get(idx int) (*vcsinfo.LongCommit, error) {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
 	if idx < 0 || idx >= len(c.Commits) {
@@ -120,7 +121,7 @@ func (c *CommitCache) Get(idx int) (*gitinfo.LongCommit, error) {
 }
 
 // Slice returns a slice of LongCommits from the cache.
-func (c *CommitCache) Slice(startIdx, endIdx int) ([]*gitinfo.LongCommit, error) {
+func (c *CommitCache) Slice(startIdx, endIdx int) ([]*vcsinfo.LongCommit, error) {
 	c.mutex.RLock()
 	c.mutex.RUnlock()
 	if startIdx < 0 || startIdx > endIdx || endIdx > len(c.Commits) {
@@ -147,7 +148,7 @@ func (c *CommitCache) update() (rv error) {
 	}
 	newCommitHashes := c.repo.From(from)
 	glog.Infof("Processing %d new commits.", len(newCommitHashes))
-	newCommits := make([]*gitinfo.LongCommit, len(newCommitHashes))
+	newCommits := make([]*vcsinfo.LongCommit, len(newCommitHashes))
 	if len(newCommitHashes) > 0 {
 		for i, h := range newCommitHashes {
 			d, err := c.repo.Details(h)
@@ -212,7 +213,7 @@ func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
 
 	data := struct {
 		Comments    map[string][]*buildbot.CommitComment         `json:"comments"`
-		Commits     []*gitinfo.LongCommit                        `json:"commits"`
+		Commits     []*vcsinfo.LongCommit                        `json:"commits"`
 		BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
 		Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
 		Builders    map[string][]*buildbot.BuilderComment        `json:"builders"`

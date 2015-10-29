@@ -16,8 +16,8 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	lutil "github.com/syndtr/goleveldb/leveldb/util"
-	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -34,7 +34,7 @@ const (
 
 // Info is an inferface for querying for commit info from an Android branch, target, and buildID.
 type Info interface {
-	Get(branch, target, buildID string) (*gitinfo.ShortCommit, error)
+	Get(branch, target, buildID string) (*vcsinfo.ShortCommit, error)
 }
 
 // info implements Info.
@@ -82,7 +82,7 @@ func New(dir string, client *http.Client) (Info, error) {
 }
 
 // Get returns the ShortCommit info for the given branch, target, and buildID.
-func (i *info) Get(branch, target, buildID string) (*gitinfo.ShortCommit, error) {
+func (i *info) Get(branch, target, buildID string) (*vcsinfo.ShortCommit, error) {
 	// Get the list of targets and confirm that this target is in it, otherwise add it to the list of targets.
 	branchtargets := i.branchtargets()
 	branchtarget := fmt.Sprintf("%s:%s", branch, target)
@@ -107,7 +107,7 @@ func (i *info) Get(branch, target, buildID string) (*gitinfo.ShortCommit, error)
 		iter := i.db.NewIterator(lutil.BytesPrefix([]byte(toPrefix(branch, target))), nil)
 		defer iter.Release()
 		if found := iter.Seek([]byte(key)); found {
-			value := &gitinfo.ShortCommit{}
+			value := &vcsinfo.ShortCommit{}
 			if err := json.Unmarshal(iter.Value(), value); err != nil {
 				return nil, fmt.Errorf("Unable to deserialize value: %s", err)
 			}
@@ -120,7 +120,7 @@ func (i *info) Get(branch, target, buildID string) (*gitinfo.ShortCommit, error)
 
 // single_get uses i.commits to attempt to retrieve a single commit, storing the results
 // in the leveldb if successful.
-func (i *info) single_get(branch, target, buildID string) (*gitinfo.ShortCommit, error) {
+func (i *info) single_get(branch, target, buildID string) (*vcsinfo.ShortCommit, error) {
 	c, err := i.commits.Get(branch, target, buildID)
 	if err != nil {
 		return nil, err
@@ -147,7 +147,7 @@ func (i *info) branchtargets() []string {
 }
 
 // store the given commit in the leveldb.
-func (i *info) store(branch, target, buildID string, commit *gitinfo.ShortCommit) {
+func (i *info) store(branch, target, buildID string, commit *vcsinfo.ShortCommit) {
 	key, err := toKey(branch, target, buildID)
 	if err != nil {
 		glog.Errorf("store: invalid build ID %s: %s", key, err)

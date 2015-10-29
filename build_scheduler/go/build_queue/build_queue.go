@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -126,7 +127,7 @@ func timeFactor(now, t time.Time, lambda float64) float64 {
 
 // scoreBuild returns the current score for the given commit/builder pair. The
 // details on how scoring works are described in the doc for NewBuildQueue.
-func scoreBuild(commit *gitinfo.LongCommit, build *buildbot.Build, now time.Time, timeLambda float64) float64 {
+func scoreBuild(commit *vcsinfo.LongCommit, build *buildbot.Build, now time.Time, timeLambda float64) float64 {
 	s := -1.0
 	if build != nil {
 		if build.GotRevision == commit.Hash {

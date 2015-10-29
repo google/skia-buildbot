@@ -16,33 +16,19 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 // commitLineRe matches one line of commit log and captures hash, author and
 // subject groups.
 var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
 
-// ShortCommit stores the hash, author, and subject of a git commit.
-type ShortCommit struct {
-	Hash    string `json:"hash"`
-	Author  string `json:"author"`
-	Subject string `json:"subject"`
-}
-
-// LongCommit gives more detailed information about a commit.
-type LongCommit struct {
-	*ShortCommit
-	Parents   []string  `json:"parent"`
-	Body      string    `json:"body"`
-	Timestamp time.Time `json:"timestamp"`
-}
-
 // GitInfo allows querying a Git repo.
 type GitInfo struct {
 	dir          string
 	hashes       []string
 	timestamps   map[string]time.Time // Key is the hash.
-	detailsCache map[string]*LongCommit
+	detailsCache map[string]*vcsinfo.LongCommit
 
 	// Any access to hashes or timestamps must be protected.
 	mutex sync.Mutex
@@ -55,7 +41,7 @@ func NewGitInfo(dir string, pull, allBranches bool) (*GitInfo, error) {
 	g := &GitInfo{
 		dir:          dir,
 		hashes:       []string{},
-		detailsCache: map[string]*LongCommit{},
+		detailsCache: map[string]*vcsinfo.LongCommit{},
 	}
 	return g, g.Update(pull, allBranches)
 }
@@ -117,7 +103,7 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 }
 
 // Details returns more information than ShortCommit about a given commit.
-func (g *GitInfo) Details(hash string) (*LongCommit, error) {
+func (g *GitInfo) Details(hash string) (*vcsinfo.LongCommit, error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	if c, ok := g.detailsCache[hash]; ok {
@@ -133,8 +119,8 @@ func (g *GitInfo) Details(hash string) (*LongCommit, error) {
 	if len(lines) != 5 {
 		return nil, fmt.Errorf("Failed to parse output of 'git log'.")
 	}
-	c := LongCommit{
-		ShortCommit: &ShortCommit{
+	c := vcsinfo.LongCommit{
+		ShortCommit: &vcsinfo.ShortCommit{
 			Hash:    lines[0],
 			Author:  lines[2],
 			Subject: lines[3],
@@ -252,7 +238,7 @@ func (g *GitInfo) GetBranches() ([]*GitBranch, error) {
 
 // ShortCommits stores a slice of ShortCommit struct.
 type ShortCommits struct {
-	Commits []*ShortCommit
+	Commits []*vcsinfo.ShortCommit
 }
 
 // ShortList returns a slice of ShortCommit for every commit in (begin, end].
@@ -265,7 +251,7 @@ func (g *GitInfo) ShortList(begin, end string) (*ShortCommits, error) {
 		return nil, err
 	}
 	ret := &ShortCommits{
-		Commits: []*ShortCommit{},
+		Commits: []*vcsinfo.ShortCommit{},
 	}
 	for _, line := range strings.Split(string(b), "\n") {
 		match := commitLineRe.FindStringSubmatch(line)
@@ -273,7 +259,7 @@ func (g *GitInfo) ShortList(begin, end string) (*ShortCommits, error) {
 			// This could happen if the subject has new line, in which case we truncate it and ignore the remainder.
 			continue
 		}
-		commit := &ShortCommit{
+		commit := &vcsinfo.ShortCommit{
 			Hash:    match[1],
 			Author:  match[2],
 			Subject: match[3],

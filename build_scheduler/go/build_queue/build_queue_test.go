@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -102,7 +103,7 @@ func TestBuildScoring(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, repos.Update())
 
-	details := map[string]*gitinfo.LongCommit{}
+	details := map[string]*vcsinfo.LongCommit{}
 	for _, h := range hashes {
 		d, err := repo.Details(h)
 		assert.Nil(t, err)
@@ -115,7 +116,7 @@ func TestBuildScoring(t *testing.T) {
 		Commits:     []string{hashes['A'], hashes['B'], hashes['C']},
 	}
 	cases := []struct {
-		commit        *gitinfo.LongCommit
+		commit        *vcsinfo.LongCommit
 		build         *buildbot.Build
 		expectedScore float64
 		lambda        float64

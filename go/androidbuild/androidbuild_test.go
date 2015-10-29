@@ -8,8 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/syndtr/goleveldb/leveldb"
-	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestToFromKey(t *testing.T) {
@@ -50,18 +50,18 @@ func TestToFromKey(t *testing.T) {
 type mockCommits struct {
 }
 
-func (m mockCommits) Get(branch, target, endBuildID string) (*gitinfo.ShortCommit, error) {
+func (m mockCommits) Get(branch, target, endBuildID string) (*vcsinfo.ShortCommit, error) {
 	return nil, fmt.Errorf("always an error")
 }
 
-func (m mockCommits) List(branch, target, endBuildID string) (map[string]*gitinfo.ShortCommit, error) {
-	return map[string]*gitinfo.ShortCommit{
-		"100": &gitinfo.ShortCommit{
+func (m mockCommits) List(branch, target, endBuildID string) (map[string]*vcsinfo.ShortCommit, error) {
+	return map[string]*vcsinfo.ShortCommit{
+		"100": &vcsinfo.ShortCommit{
 			Hash:    "1234567890",
 			Author:  "fred@example.com",
 			Subject: "A commit",
 		},
-		"102": &gitinfo.ShortCommit{
+		"102": &vcsinfo.ShortCommit{
 			Hash:    "987654321",
 			Author:  "barney@example.com",
 			Subject: "Another commit",

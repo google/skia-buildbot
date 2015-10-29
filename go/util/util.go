@@ -517,3 +517,21 @@ func UnixFloatToTime(t float64) time.Time {
 	nanos := int64(1000000000 * (t - float64(secs)))
 	return time.Unix(secs, nanos)
 }
+
+// Repeat calls the provided function 'fn' immediately and then in intervals
+// defined by 'interval'. If anything it sent on the provided stop channel,
+// the iteration stops.
+func Repeat(interval time.Duration, stopCh <-chan bool, fn func()) {
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	fn()
+MainLoop:
+	for {
+		select {
+		case <-ticker.C:
+			fn()
+		case <-stopCh:
+			break MainLoop
+		}
+	}
+}

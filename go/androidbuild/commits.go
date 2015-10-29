@@ -8,16 +8,16 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 // commits is an interface for querying for commits, it is used in Info.
 type commits interface {
 	// List returns a list of ShortCommit's that match the branch, target and are in a build that is newer than endBuildID.
-	List(branch, target, endBuildID string) (map[string]*gitinfo.ShortCommit, error)
+	List(branch, target, endBuildID string) (map[string]*vcsinfo.ShortCommit, error)
 
 	// Get returns a single ShortCommit for the specified branch, target and buildID.
-	Get(branch, target, buildID string) (*gitinfo.ShortCommit, error)
+	Get(branch, target, buildID string) (*vcsinfo.ShortCommit, error)
 }
 
 // androidCommits implements commits.
@@ -39,10 +39,10 @@ func newAndroidCommits(client *http.Client) (commits, error) {
 
 // Find all buildIDs with Skia commits from latest build back to endBuildID.
 // Pass in the empty string for endBuildID if you just want a range of IDs.
-func (a *androidCommits) List(branch, target, endBuildID string) (map[string]*gitinfo.ShortCommit, error) {
+func (a *androidCommits) List(branch, target, endBuildID string) (map[string]*vcsinfo.ShortCommit, error) {
 	pageToken := ""
 	var err error
-	ret := map[string]*gitinfo.ShortCommit{}
+	ret := map[string]*vcsinfo.ShortCommit{}
 	for {
 		pageToken, err = a.findCommitsPage(branch, target, endBuildID, ret, pageToken)
 		if err != nil {
@@ -67,7 +67,7 @@ func (a *androidCommits) List(branch, target, endBuildID string) (map[string]*gi
 //
 // A page token is returned along with an error. If there are no more pages of data
 // then the page token is the empty string.
-func (a *androidCommits) findCommitsPage(branch, target, endBuildID string, ret map[string]*gitinfo.ShortCommit, pageToken string) (string, error) {
+func (a *androidCommits) findCommitsPage(branch, target, endBuildID string, ret map[string]*vcsinfo.ShortCommit, pageToken string) (string, error) {
 	// We explicitly don't use exponential backoff since that increases the
 	// likelihood of getting a bad response.
 	for i := 0; i < NUM_RETRIES; i++ {
@@ -111,8 +111,8 @@ func (a *androidCommits) findCommitsPage(branch, target, endBuildID string, ret 
 	return "", fmt.Errorf("No valid responses from API after %d requests.", NUM_RETRIES)
 }
 
-func CommitsFromChanges(changes []*androidbuildinternal.Change) []*gitinfo.ShortCommit {
-	ret := []*gitinfo.ShortCommit{}
+func CommitsFromChanges(changes []*androidbuildinternal.Change) []*vcsinfo.ShortCommit {
+	ret := []*vcsinfo.ShortCommit{}
 	automated_commit_message := ""
 	for _, changes := range changes {
 		if changes.Project == "platform/external/skia" {
@@ -121,7 +121,7 @@ func CommitsFromChanges(changes []*androidbuildinternal.Change) []*gitinfo.Short
 				if authorName == "Skia_Android Canary Bot" {
 					automated_commit_message = revision.Commit.CommitMessage
 				} else if strings.Contains(automated_commit_message, revision.GitRevision) {
-					ret = append(ret, &gitinfo.ShortCommit{
+					ret = append(ret, &vcsinfo.ShortCommit{
 						Hash:    revision.GitRevision,
 						Author:  authorName,
 						Subject: revision.Commit.Subject,
@@ -133,7 +133,7 @@ func CommitsFromChanges(changes []*androidbuildinternal.Change) []*gitinfo.Short
 	return ret
 }
 
-func (a *androidCommits) Get(branch, target, buildID string) (*gitinfo.ShortCommit, error) {
+func (a *androidCommits) Get(branch, target, buildID string) (*vcsinfo.ShortCommit, error) {
 	build, err := a.service.Build.Get(buildID, target).ExtraFields("changeInfo").Do()
 	if err != nil {
 		return nil, err

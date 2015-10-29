@@ -1,0 +1,54 @@
+[Common]
+GitRepoDir     = "./skia"              # Directory location for the Skia repo.
+GraphiteServer = "localhost:2003"      # Where is Graphite metrics ingestion server running.
+DoOauth        = true                  # Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.
+OAuthCacheFile = "/usr/local/google/home/stephana/ingesters/gold_ingest_oauth_token.cache"
+OAuthClientSecretFile = "/usr/local/google/home/stephana/ingesters/client_secret.json"
+Local          = true                  # Running locally if true. As opposed to in production.
+
+[Ingesters]
+	### Gold ingester ############################################################
+	[Ingesters.gold]
+	RunEvery       = "15m"                        # How often the ingester should pull data from Google Storage.
+	NCommits       = 100                          # Minimum number of commits that should be ingested.
+	MinDays        = 21                           # Minimum number of days that should be covered by the ingested commits.
+	StatusDir      = "./ingest_status"            # Path where the ingest process keeps its status between restarts.
+	MetricName     = "gold-ingest"         # Graphite metric name to use for this ingester
+
+		[[Ingesters.gold.Sources]]
+		Bucket         = "chromium-skia-gm"
+		Dir            = "dm-json-v1"
+
+		[[Ingesters.gold.Sources]]
+		Bucket         = "skia-infra-gm"
+		Dir            = "dm-json-v1"
+
+	### Gold trybot ingester #####################################################
+	[Ingesters.gold-trybot]
+	RunEvery       = "15m"                        # How often the ingester should pull data from Google Storage.
+	NCommits       = 100                          # Minimum number of commits that should be ingested.
+	MinDays        = 21                           # Minimum number of days that should be covered by the ingested commits.
+	StatusDir      = "./ingest_status"            # Path where the ingest process keeps its status between restarts.
+	MetricName     = "gold-ingest-trybot"         # Graphite metric name to use for this ingester
+	DBHost         = "localhost"                  # Hostname of the MySQL database server used by this ingester.
+	DBName         = "gold_skiacorrectness"       # Name of the MySQL database used by this ingester.
+	DBPort         = 3306                         # Port number of the MySQL database used by this ingester.
+
+		[[Ingesters.gold-trybot.Sources]]
+		Dir            = "dm-json-v1"
+
+	### PDF raster ingester ############################################################
+	[Ingesters.pdfraster]
+	RunEvery       = "15m"                        # How often the ingester should pull data from Google Storage.
+	NCommits       = 100                          # Minimum number of commits that should be ingested.
+	MinDays        = 21                           # Minimum number of days that should be covered by the ingested commits.
+	StatusDir      = "./ingest_status"     # Path where the ingest process keeps its status between restarts.
+	MetricName     = "pdf-raster"         # Graphite metric name to use for this ingester
+
+		[[Ingesters.pdfraster.Sources]]
+		Bucket         = "chromium-skia-gm"
+		Dir            = "dm-json-v1"
+
+		[Ingesters.pdfraster.ExtraParams]
+		OutputBucket   = "chromium-skia-gm"
+		OutputDir      = "dm-json-v1"
