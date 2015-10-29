@@ -87,6 +87,43 @@ func TestFrom(t *testing.T) {
 	}
 }
 
+func TestLastN(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testCases := []struct {
+		n      int
+		values []string
+	}{
+		{
+			n:      0,
+			values: []string{},
+		},
+		{
+			n:      1,
+			values: []string{"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18"},
+		},
+		{
+			n:      2,
+			values: []string{"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18"},
+		},
+		{
+			n:      5,
+			values: []string{"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18"},
+		},
+	}
+	for _, tc := range testCases {
+		if got, want := r.LastN(tc.n), tc.values; !util.SSliceEqual(got, want) {
+			t.Errorf("For N: %d Hashes returned is wrong: Got %#v Want %#v", tc.n, got, want)
+		}
+	}
+}
+
 func TestLog(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()

@@ -163,6 +163,24 @@ func (g *GitInfo) From(start time.Time) []string {
 	return ret
 }
 
+// LastN returns the last N commits.
+func (g *GitInfo) LastN(N int) []string {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	if len(g.hashes) < N {
+		return g.hashes[0:len(g.hashes)]
+	} else {
+		return g.hashes[len(g.hashes)-N:]
+	}
+}
+
+// Timestamp returns the timestamp for the given hash.
+func (g *GitInfo) Timestamp(hash string) time.Time {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	return g.timestamps[hash]
+}
+
 // Log returns a --name-only short log for every commit in (begin, end].
 //
 // If end is "" then it returns just the short log for the single commit at
