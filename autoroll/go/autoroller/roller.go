@@ -1,47 +1,28 @@
-package autoroll
+package autoroller
 
 import (
-	"encoding/json"
 	"fmt"
 	"path"
-	"sort"
 	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/autoroll/go/autoroll_modes"
+	"go.skia.org/infra/autoroll/go/recent_rolls"
+	"go.skia.org/infra/autoroll/go/repo_manager"
+	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	DB_FILENAME = "autoroll.db"
-
-	REPO_CHROMIUM = "https://chromium.googlesource.com/chromium/src.git"
-	REPO_SKIA     = "https://skia.googlesource.com/skia.git"
-
-	MODE_RUNNING = "running"
-	MODE_STOPPED = "stopped"
-	MODE_DRY_RUN = "dry run"
-
-	ROLL_RESULT_IN_PROGRESS = "in progress"
-	ROLL_RESULT_SUCCESS     = "succeeded"
-	ROLL_RESULT_FAILURE     = "failed"
-
 	STATUS_ERROR       = "error"
 	STATUS_IN_PROGRESS = "in progress"
 	STATUS_STOPPED     = "stopped"
 	STATUS_UP_TO_DATE  = "up to date"
-
-	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
 )
 
 var (
-	VALID_MODES = []string{
-		MODE_RUNNING,
-		MODE_STOPPED,
-		MODE_DRY_RUN,
-	}
-
 	VALID_STATUSES = []string{
 		STATUS_ERROR,
 		STATUS_IN_PROGRESS,
@@ -50,51 +31,39 @@ var (
 	}
 )
 
-// Mode indicates the user-controlled running mode of the AutoRoll Bot.
-type Mode string
-
-// Status indicates the last activity of the bot.
-type Status string
-
 // AutoRoller is a struct used for managing DEPS rolls.
 type AutoRoller struct {
 	cqExtraTrybots   []string
-	db               *db
 	emails           []string
 	includeCommitLog bool
 	lastError        error
-	modeHistory      *modeHistory
+	modeHistory      *autoroll_modes.ModeHistory
 	mtx              sync.RWMutex
-	recent           *RecentRolls
-	rm               *repoManager
+	recent           *recent_rolls.RecentRolls
+	rm               *repo_manager.RepoManager
 	rietveld         *rietveld.Rietveld
 	runningMtx       sync.Mutex
-	status           Status
+	status           string
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
 func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, tickFrequency, repoFrequency time.Duration) (*AutoRoller, error) {
-	rm, err := newRepoManager(workdir, cqExtraTrybots, emails, repoFrequency)
-	if err != nil {
-		return nil, err
-	}
-	db, err := openDB(path.Join(workdir, DB_FILENAME))
+	rm, err := repo_manager.NewRepoManager(workdir, cqExtraTrybots, emails, repoFrequency)
 	if err != nil {
 		return nil, err
 	}
 
-	recent, err := newRecentRolls(db)
+	recent, err := recent_rolls.NewRecentRolls(path.Join(workdir, "recent_rolls.db"))
 	if err != nil {
 		return nil, err
 	}
 
-	mh, err := newModeHistory(db)
+	mh, err := autoroll_modes.NewModeHistory(path.Join(workdir, "autoroll_modes.db"))
 	if err != nil {
 		return nil, err
 	}
 
 	arb := &AutoRoller{
-		db:               db,
 		includeCommitLog: true,
 		modeHistory:      mh,
 		recent:           recent,
@@ -117,14 +86,29 @@ func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *ri
 	return arb, nil
 }
 
+// Close closes all sub-structs of the AutoRoller.
+func (r *AutoRoller) Close() error {
+	err1 := r.recent.Close()
+	err2 := r.modeHistory.Close()
+	if err1 != nil {
+		return err1
+	}
+	if err2 != nil {
+		return err2
+	}
+	return nil
+}
+
+// AutoRollStatus is a struct which provides roll-up status information about
+// the AutoRoll Bot.
 type AutoRollStatus struct {
-	CurrentRoll *AutoRollIssue   `json:"currentRoll"`
-	Error       error            `json:"error"`
-	LastRoll    *AutoRollIssue   `json:"lastRoll"`
-	Mode        string           `json:"mode"`
-	Recent      []*AutoRollIssue `json:"recent"`
-	Status      string           `json:"status"`
-	ValidModes  []string         `json:"validModes"`
+	CurrentRoll *autoroll.AutoRollIssue   `json:"currentRoll"`
+	Error       error                     `json:"error"`
+	LastRoll    *autoroll.AutoRollIssue   `json:"lastRoll"`
+	Mode        string                    `json:"mode"`
+	Recent      []*autoroll.AutoRollIssue `json:"recent"`
+	Status      string                    `json:"status"`
+	ValidModes  []string                  `json:"validModes"`
 }
 
 // GetStatus returns the roll-up status of the bot.
@@ -142,10 +126,10 @@ func (r *AutoRoller) GetStatus(includeError bool) AutoRollStatus {
 	s := AutoRollStatus{
 		CurrentRoll: current,
 		LastRoll:    r.recent.LastRoll(),
-		Mode:        string(r.modeHistory.CurrentMode()),
+		Mode:        r.modeHistory.CurrentMode(),
 		Recent:      recent,
-		Status:      string(r.status),
-		ValidModes:  VALID_MODES,
+		Status:      r.status,
+		ValidModes:  autoroll_modes.VALID_MODES,
 	}
 	if includeError {
 		s.Error = r.lastError
@@ -155,29 +139,20 @@ func (r *AutoRoller) GetStatus(includeError bool) AutoRollStatus {
 
 // SetMode sets the desired mode of the bot. This forces the bot to run and
 // blocks until it finishes.
-func (r *AutoRoller) SetMode(m Mode, user string, message string) error {
-	if !util.In(string(m), VALID_MODES) {
-		return fmt.Errorf("Invalid mode: %s", m)
-	}
-	modeChange := &ModeChange{
-		Message: message,
-		Mode:    m,
-		Time:    time.Now(),
-		User:    user,
-	}
-	if err := r.modeHistory.Add(modeChange); err != nil {
+func (r *AutoRoller) SetMode(m, user, message string) error {
+	if err := r.modeHistory.Add(m, user, message); err != nil {
 		return err
 	}
 	return r.doAutoRoll()
 }
 
 // isMode determines whether the bot is in the given mode.
-func (r *AutoRoller) isMode(s Mode) bool {
+func (r *AutoRoller) isMode(s string) bool {
 	return r.modeHistory.CurrentMode() == s
 }
 
 // setStatus sets the current reporting status of the bot.
-func (r *AutoRoller) setStatus(s Status, lastError error) error {
+func (r *AutoRoller) setStatus(s string, lastError error) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	if !util.In(string(s), VALID_STATUSES) {
@@ -200,33 +175,8 @@ func (r *AutoRoller) SetEmails(e []string) {
 	r.rm.SetEmails(e)
 }
 
-// getTryResults returns trybot results for the given roll.
-func (r *AutoRoller) getTryResults(roll *AutoRollIssue) ([]*TryResult, error) {
-	tries, err := r.rietveld.GetTrybotResults(roll.Issue, roll.Patchsets[len(roll.Patchsets)-1])
-	if err != nil {
-		return nil, err
-	}
-	res := make([]*TryResult, 0, len(tries))
-	for _, t := range tries {
-		var params struct {
-			Builder string `json:"builder_name"`
-		}
-		if err := json.Unmarshal([]byte(t.ParametersJson), &params); err != nil {
-			return nil, err
-		}
-		res = append(res, &TryResult{
-			Builder: params.Builder,
-			Result:  t.Result,
-			Status:  t.Status,
-			Url:     t.Url,
-		})
-	}
-	sort.Sort(tryResultSlice(res))
-	return res, nil
-}
-
 // closeIssue closes the given issue with the given message.
-func (r *AutoRoller) closeIssue(issue *AutoRollIssue, result, msg string) error {
+func (r *AutoRoller) closeIssue(issue *autoroll.AutoRollIssue, result, msg string) error {
 	glog.Infof("Closing issue %d with message: %s", issue.Issue, msg)
 	if err := r.rietveld.Close(issue.Issue, msg); err != nil {
 		return err
@@ -239,7 +189,7 @@ func (r *AutoRoller) closeIssue(issue *AutoRollIssue, result, msg string) error 
 // getRollRev parses an abbreviated commit hash from the given issue
 // subject and returns the full hash.
 func (r *AutoRoller) getRollRev(subject string) (string, error) {
-	matches := ROLL_REV_REGEX.FindStringSubmatch(subject)
+	matches := autoroll.ROLL_REV_REGEX.FindStringSubmatch(subject)
 	if matches == nil {
 		return "", fmt.Errorf("No roll revision found in %q", subject)
 	}
@@ -265,18 +215,17 @@ func (r *AutoRoller) updateCurrentRoll() error {
 }
 
 // retrieveRoll obtains the given DEPS roll from Rietveld.
-func (r *AutoRoller) retrieveRoll(issueNum int64) (*AutoRollIssue, error) {
+func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, error) {
 	issue, err := r.rietveld.GetIssueProperties(issueNum, true)
 	if err != nil {
 		return nil, err
 	}
-	a := autoRollIssue(issue)
-	tryResults, err := r.getTryResults(a)
+	a := autoroll.FromRietveldIssue(issue)
+	tryResults, err := autoroll.GetTryResults(a)
 	if err != nil {
 		return nil, err
 	}
 	a.TryResults = tryResults
-	a.Result = rollResult(a)
 	return a, nil
 }
 
@@ -294,7 +243,7 @@ func (r *AutoRoller) doAutoRoll() error {
 }
 
 // doAutoRollInner does the actual work of the AutoRoll.
-func (r *AutoRoller) doAutoRollInner() (Status, error) {
+func (r *AutoRoller) doAutoRollInner() (string, error) {
 	r.runningMtx.Lock()
 	defer r.runningMtx.Unlock()
 
@@ -314,24 +263,24 @@ func (r *AutoRoller) doAutoRollInner() (Status, error) {
 			return STATUS_ERROR, err
 		}
 
-		if r.isMode(MODE_STOPPED) {
+		if r.isMode(autoroll_modes.MODE_STOPPED) {
 			// If we're stopped, close the issue.
-			if err := r.closeIssue(currentRoll, ROLL_RESULT_FAILURE, "AutoRoller is stopped; closing the active roll."); err != nil {
+			if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "AutoRoller is stopped; closing the active roll."); err != nil {
 				return STATUS_ERROR, err
 			}
 		} else if !currentRoll.CommitQueue {
 			// If the CQ failed, close the issue.
-			if err := r.closeIssue(currentRoll, ROLL_RESULT_FAILURE, "Commit queue failed; closing this roll."); err != nil {
+			if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Commit queue failed; closing this roll."); err != nil {
 				return STATUS_ERROR, err
 			}
 		} else if time.Since(currentRoll.Modified) > 24*time.Hour {
 			// If the roll has been open too long, close the issue.
-			if err := r.closeIssue(currentRoll, ROLL_RESULT_FAILURE, "Roll has been open for over 24 hours; closing."); err != nil {
+			if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Roll has been open for over 24 hours; closing."); err != nil {
 				return STATUS_ERROR, err
 			}
 		} else if r.rm.RolledPast(rollingTo) {
 			// If we've already rolled past the target revision, close the issue
-			if err := r.closeIssue(currentRoll, ROLL_RESULT_FAILURE, fmt.Sprintf("Already rolled past %s; closing this roll.", rollingTo)); err != nil {
+			if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Already rolled past %s; closing this roll.", rollingTo)); err != nil {
 				return STATUS_ERROR, err
 			}
 		} else {
@@ -342,7 +291,7 @@ func (r *AutoRoller) doAutoRollInner() (Status, error) {
 	}
 
 	// If we're stopped, exit.
-	if r.isMode(MODE_STOPPED) {
+	if r.isMode(autoroll_modes.MODE_STOPPED) {
 		glog.Infof("Roller is stopped; not opening new rolls.")
 		return STATUS_STOPPED, nil
 	}
@@ -354,7 +303,7 @@ func (r *AutoRoller) doAutoRollInner() (Status, error) {
 	}
 
 	// Create a new roll.
-	uploadedNum, err := r.rm.CreateNewRoll(r.isMode(MODE_DRY_RUN))
+	uploadedNum, err := r.rm.CreateNewRoll(r.isMode(autoroll_modes.MODE_DRY_RUN))
 	if err != nil {
 		return STATUS_ERROR, err
 	}

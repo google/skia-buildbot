@@ -1,18 +1,26 @@
-package autoroll
+package recent_rolls
 
-import "sync"
+import (
+	"sync"
+
+	"go.skia.org/infra/go/autoroll"
+)
 
 const RECENT_ROLLS_LENGTH = 10
 
 // RecentRolls is a struct used for storing and retrieving recent DEPS rolls.
 type RecentRolls struct {
 	db     *db
-	recent []*AutoRollIssue
+	recent []*autoroll.AutoRollIssue
 	mtx    sync.RWMutex
 }
 
-// newRecentRolls returns a new RecentRolls instance.
-func newRecentRolls(d *db) (*RecentRolls, error) {
+// NewRecentRolls returns a new RecentRolls instance.
+func NewRecentRolls(dbFile string) (*RecentRolls, error) {
+	d, err := openDB(dbFile)
+	if err != nil {
+		return nil, err
+	}
 	recentRolls := &RecentRolls{
 		db: d,
 	}
@@ -22,8 +30,13 @@ func newRecentRolls(d *db) (*RecentRolls, error) {
 	return recentRolls, nil
 }
 
+// Close closes the database held by the RecentRolls.
+func (r *RecentRolls) Close() error {
+	return r.db.Close()
+}
+
 // Add adds a DEPS roll to the recent rolls list.
-func (r *RecentRolls) Add(roll *AutoRollIssue) error {
+func (r *RecentRolls) Add(roll *autoroll.AutoRollIssue) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	if err := r.db.InsertRoll(roll); err != nil {
@@ -33,7 +46,7 @@ func (r *RecentRolls) Add(roll *AutoRollIssue) error {
 }
 
 // Update updates the given DEPS roll in the recent rolls list.
-func (r *RecentRolls) Update(roll *AutoRollIssue) error {
+func (r *RecentRolls) Update(roll *autoroll.AutoRollIssue) error {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	if err := r.db.UpdateRoll(roll); err != nil {
@@ -43,10 +56,10 @@ func (r *RecentRolls) Update(roll *AutoRollIssue) error {
 }
 
 // GetRecentRolls returns a copy of the recent rolls list.
-func (r *RecentRolls) GetRecentRolls() []*AutoRollIssue {
+func (r *RecentRolls) GetRecentRolls() []*autoroll.AutoRollIssue {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
-	recent := make([]*AutoRollIssue, 0, len(r.recent))
+	recent := make([]*autoroll.AutoRollIssue, 0, len(r.recent))
 	for _, r := range r.recent {
 		recent = append(recent, &(*r))
 	}
@@ -55,7 +68,7 @@ func (r *RecentRolls) GetRecentRolls() []*AutoRollIssue {
 
 // CurrentRoll returns a copy of the currently-active DEPS roll, or nil if none
 // exists.
-func (r *RecentRolls) CurrentRoll() *AutoRollIssue {
+func (r *RecentRolls) CurrentRoll() *autoroll.AutoRollIssue {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	if len(r.recent) == 0 {
@@ -69,7 +82,7 @@ func (r *RecentRolls) CurrentRoll() *AutoRollIssue {
 
 // LastRoll returns a copy of the last DEPS roll, if one exists, and nil
 // otherwise.
-func (r *RecentRolls) LastRoll() *AutoRollIssue {
+func (r *RecentRolls) LastRoll() *autoroll.AutoRollIssue {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	if len(r.recent) > 0 && r.recent[0].Closed {

@@ -1,4 +1,4 @@
-package autoroll
+package repo_manager
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/util"
@@ -17,14 +18,19 @@ import (
 
 const (
 	DEPS_ROLL_BRANCH = "skia_roll"
+
+	REPO_CHROMIUM = "https://chromium.googlesource.com/chromium/src.git"
+	REPO_SKIA     = "https://skia.googlesource.com/skia.git"
+
+	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
 )
 
 var (
-	ISSUE_CREATED_REGEX = regexp.MustCompile(fmt.Sprintf("Issue created. URL: %s/(\\d+)", RIETVELD_URL))
+	ISSUE_CREATED_REGEX = regexp.MustCompile(fmt.Sprintf("Issue created. URL: %s/(\\d+)", autoroll.RIETVELD_URL))
 )
 
-// repoManager is a struct used by AutoRoller for managing checkouts.
-type repoManager struct {
+// RepoManager is a struct used by AutoRoller for managing checkouts.
+type RepoManager struct {
 	chromiumDir       string
 	chromiumParentDir string
 	cqExtraTrybots    []string
@@ -36,18 +42,18 @@ type repoManager struct {
 	skiaRepo          *gitinfo.GitInfo
 }
 
-// newRepoManager returns a repoManager instance which operates in the given
+// NewRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency. The cqExtraTrybots and
 // emails lists are used when uploading roll CLs and may be changed through
 // their respective setters.
-func newRepoManager(workdir string, cqExtraTrybots, emails []string, frequency time.Duration) (*repoManager, error) {
+func NewRepoManager(workdir string, cqExtraTrybots, emails []string, frequency time.Duration) (*RepoManager, error) {
 	chromiumParentDir := path.Join(workdir, "chromium")
 	skiaDir := path.Join(workdir, "skia")
 	skiaRepo, err := gitinfo.CloneOrUpdate(REPO_SKIA, skiaDir, true)
 	if err != nil {
 		return nil, err
 	}
-	r := &repoManager{
+	r := &RepoManager{
 		chromiumDir:       path.Join(chromiumParentDir, "src"),
 		chromiumParentDir: chromiumParentDir,
 		cqExtraTrybots:    cqExtraTrybots,
@@ -67,7 +73,7 @@ func newRepoManager(workdir string, cqExtraTrybots, emails []string, frequency t
 }
 
 // update syncs code in the relevant repositories.
-func (r *repoManager) update() error {
+func (r *RepoManager) update() error {
 	// Sync the projects.
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
@@ -105,7 +111,7 @@ func (r *repoManager) update() error {
 }
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
-func (r *repoManager) getLastRollRev() (string, error) {
+func (r *RepoManager) getLastRollRev() (string, error) {
 	output, err := exec.RunCwd(r.chromiumDir, "gclient", "revinfo")
 	if err != nil {
 		return "", err
@@ -125,7 +131,7 @@ func (r *repoManager) getLastRollRev() (string, error) {
 
 // GetCQExtraTrybots returns the list of trybots which are added to the commit
 // queue in addition to the default set.
-func (r *repoManager) GetCQExtraTrybots() []string {
+func (r *RepoManager) GetCQExtraTrybots() []string {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.cqExtraTrybots
@@ -133,21 +139,21 @@ func (r *repoManager) GetCQExtraTrybots() []string {
 
 // SetCQExtraTrybots sets the list of trybots which are added to the commit
 // queue in addition to the default set.
-func (r *repoManager) SetCQExtraTrybots(c []string) {
+func (r *RepoManager) SetCQExtraTrybots(c []string) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	r.cqExtraTrybots = c
 }
 
 // GetEmails returns the list of email addresses which are copied on DEPS rolls.
-func (r *repoManager) GetEmails() []string {
+func (r *RepoManager) GetEmails() []string {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.emails
 }
 
 // SetEmails sets the list of email addresses which are copied on DEPS rolls.
-func (r *repoManager) SetEmails(e []string) {
+func (r *RepoManager) SetEmails(e []string) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 	r.emails = e
@@ -155,21 +161,21 @@ func (r *repoManager) SetEmails(e []string) {
 
 // FullSkiaHash returns the full hash of the given short hash or ref in the
 // Skia repo.
-func (r *repoManager) FullSkiaHash(shortHash string) (string, error) {
+func (r *RepoManager) FullSkiaHash(shortHash string) (string, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.skiaRepo.FullHash(shortHash)
 }
 
 // LastRollRev returns the last-rolled Skia commit.
-func (r *repoManager) LastRollRev() string {
+func (r *RepoManager) LastRollRev() string {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.lastRollRev
 }
 
 // RolledPast determines whether DEPS has rolled past the given commit.
-func (r *repoManager) RolledPast(hash string) bool {
+func (r *RepoManager) RolledPast(hash string) bool {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	if _, err := exec.RunCwd(r.skiaDir, "git", "merge-base", "--is-ancestor", hash, r.lastRollRev); err != nil {
@@ -179,14 +185,14 @@ func (r *repoManager) RolledPast(hash string) bool {
 }
 
 // SkiaHead returns the current Skia origin/master branch head.
-func (r *repoManager) SkiaHead() string {
+func (r *RepoManager) SkiaHead() string {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.skiaHead
 }
 
 // cleanChromium forces the Chromium checkout into a clean state.
-func (r *repoManager) cleanChromium() error {
+func (r *RepoManager) cleanChromium() error {
 	if _, err := exec.RunCwd(r.chromiumDir, "git", "clean", "-d", "-f", "-f"); err != nil {
 		return err
 	}
@@ -203,7 +209,7 @@ func (r *repoManager) cleanChromium() error {
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
-func (r *repoManager) CreateNewRoll(dryRun bool) (int64, error) {
+func (r *RepoManager) CreateNewRoll(dryRun bool) (int64, error) {
 	to := r.SkiaHead()
 
 	// Clean the checkout, get onto a fresh branch.

@@ -18,8 +18,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -33,7 +33,7 @@ const (
 )
 
 var (
-	arb *autoroll.AutoRoller = nil
+	arb *autoroller.AutoRoller = nil
 
 	mainTemplate *template.Template = nil
 )
@@ -103,7 +103,7 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := arb.SetMode(autoroll.Mode(mode.Mode), login.LoggedInAs(r), "[Placeholder Message]"); err != nil {
+	if err := arb.SetMode(mode.Mode, login.LoggedInAs(r), "[Placeholder Message]"); err != nil {
 		util.ReportError(w, r, err, "Failed to set AutoRoll mode.")
 		return
 	}
@@ -184,7 +184,7 @@ func main() {
 	}
 
 	// Start the autoroller.
-	arb, err = autoroll.NewAutoRoller(*workdir, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute)
+	arb, err = autoroller.NewAutoRoller(*workdir, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute)
 	if err != nil {
 		glog.Fatal(err)
 	}

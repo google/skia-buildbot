@@ -5,6 +5,7 @@ package autoroll
 */
 
 import (
+	"encoding/json"
 	"regexp"
 	"sort"
 	"time"
@@ -18,6 +19,10 @@ const (
 	POLLER_ROLLS_LIMIT = 10
 	RECENT_ROLLS_LIMIT = 200
 	RIETVELD_URL       = "https://codereview.chromium.org"
+
+	ROLL_RESULT_IN_PROGRESS = "in progress"
+	ROLL_RESULT_SUCCESS     = "succeeded"
+	ROLL_RESULT_FAILURE     = "failed"
 )
 
 var (
@@ -39,9 +44,9 @@ type AutoRollIssue struct {
 	TryResults  []*TryResult `json:"tryResults"`
 }
 
-// autoRollIssue returns an AutoRollIssue instance based on the given
+// FromRietveldIssue returns an AutoRollIssue instance based on the given
 // rietveld.Issue.
-func autoRollIssue(i *rietveld.Issue) *AutoRollIssue {
+func FromRietveldIssue(i *rietveld.Issue) *AutoRollIssue {
 	roll := &AutoRollIssue{
 		Closed:      i.Closed,
 		Committed:   i.Committed,
@@ -97,7 +102,7 @@ func search(r *rietveld.Rietveld, limit int, terms ...*rietveld.SearchTerm) ([]*
 	rv := make([]*AutoRollIssue, 0, len(res))
 	for _, i := range res {
 		if ROLL_REV_REGEX.FindString(i.Subject) != "" {
-			rv = append(rv, autoRollIssue(i))
+			rv = append(rv, FromRietveldIssue(i))
 		}
 	}
 	sort.Sort(autoRollIssueSlice(rv))
@@ -132,4 +137,29 @@ func AutoRollStatusPoller() (*util.PollingStatus, error) {
 	return util.NewPollingStatus(func() (interface{}, error) {
 		return GetLastNRolls(POLLER_ROLLS_LIMIT)
 	}, 1*time.Minute)
+}
+
+// GetTryResults returns trybot results for the given roll.
+func GetTryResults(roll *AutoRollIssue) ([]*TryResult, error) {
+	tries, err := r.GetTrybotResults(roll.Issue, roll.Patchsets[len(roll.Patchsets)-1])
+	if err != nil {
+		return nil, err
+	}
+	res := make([]*TryResult, 0, len(tries))
+	for _, t := range tries {
+		var params struct {
+			Builder string `json:"builder_name"`
+		}
+		if err := json.Unmarshal([]byte(t.ParametersJson), &params); err != nil {
+			return nil, err
+		}
+		res = append(res, &TryResult{
+			Builder: params.Builder,
+			Result:  t.Result,
+			Status:  t.Status,
+			Url:     t.Url,
+		})
+	}
+	sort.Sort(tryResultSlice(res))
+	return res, nil
 }

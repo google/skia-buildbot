@@ -1,4 +1,4 @@
-package autoroll
+package recent_rolls
 
 import (
 	"io/ioutil"
@@ -8,6 +8,7 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -43,16 +44,16 @@ func TestRolls(t *testing.T) {
 	d := newTestDB(t)
 	defer d.cleanup(t)
 
-	roll1 := &AutoRollIssue{
+	roll1 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
 		Issue:       101101101,
 		Modified:    time.Now().UTC(),
 		Patchsets:   []int64{1},
-		Result:      ROLL_RESULT_IN_PROGRESS,
+		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "Roll asdfdasf",
-		TryResults:  []*TryResult{},
+		TryResults:  []*autoroll.TryResult{},
 	}
 
 	// Insert.
@@ -68,7 +69,7 @@ func TestRolls(t *testing.T) {
 	// Update.
 	roll1.Closed = true
 	roll1.Committed = true
-	roll1.Result = ROLL_RESULT_SUCCESS
+	roll1.Result = autoroll.ROLL_RESULT_SUCCESS
 
 	assert.Nil(t, d.db.UpdateRoll(roll1))
 	test1, err = d.db.GetRoll(roll1.Issue)
@@ -89,45 +90,45 @@ func TestRolls(t *testing.T) {
 	assert.Equal(t, 0, len(recent))
 
 	// Multiple rolls.
-	roll2 := &AutoRollIssue{
+	roll2 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
 		Issue:       101101102,
 		Modified:    time.Now().UTC().Add(time.Minute),
 		Patchsets:   []int64{1},
-		Result:      ROLL_RESULT_IN_PROGRESS,
+		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "Roll #2",
-		TryResults:  []*TryResult{},
+		TryResults:  []*autoroll.TryResult{},
 	}
-	roll3 := &AutoRollIssue{
+	roll3 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
 		Issue:       101101103,
 		Modified:    time.Now().UTC().Add(30 * time.Minute),
 		Patchsets:   []int64{1},
-		Result:      ROLL_RESULT_IN_PROGRESS,
+		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "Roll #3",
-		TryResults:  []*TryResult{},
+		TryResults:  []*autoroll.TryResult{},
 	}
-	roll4 := &AutoRollIssue{
+	roll4 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
 		Issue:       1001101, // Lower issue number, verify that we order correctly by date.
 		Modified:    time.Now().UTC().Add(10 * time.Minute),
 		Patchsets:   []int64{1},
-		Result:      ROLL_RESULT_IN_PROGRESS,
+		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "Roll #4",
-		TryResults:  []*TryResult{},
+		TryResults:  []*autoroll.TryResult{},
 	}
-	for _, roll := range []*AutoRollIssue{roll1, roll2, roll3, roll4} {
+	for _, roll := range []*autoroll.AutoRollIssue{roll1, roll2, roll3, roll4} {
 		assert.Nil(t, d.db.InsertRoll(roll))
 	}
 
 	// Ensure that we get the rolls back most recent first.
-	expect := []*AutoRollIssue{roll3, roll4, roll2, roll1}
+	expect := []*autoroll.AutoRollIssue{roll3, roll4, roll2, roll1}
 	recent, err = d.db.GetRecentRolls(10)
 	assert.Nil(t, err)
 	testutils.AssertDeepEqual(t, recent, expect)
@@ -136,64 +137,4 @@ func TestRolls(t *testing.T) {
 	recent, err = d.db.GetRecentRolls(3)
 	assert.Nil(t, err)
 	testutils.AssertDeepEqual(t, recent, expect[:3])
-}
-
-// TestGetModeHistory verifies that we correctly track mode history.
-func TestGetModeHistory(t *testing.T) {
-	testutils.SkipIfShort(t)
-	d := newTestDB(t)
-	defer d.cleanup(t)
-
-	// Single mode.
-	m1 := &ModeChange{
-		Message: "Starting!",
-		Mode:    MODE_RUNNING,
-		Time:    time.Now().UTC(),
-		User:    "me@google.com",
-	}
-	assert.Nil(t, d.db.SetMode(m1))
-	history, err := d.db.GetModeHistory(10)
-	assert.Nil(t, err)
-	assert.Equal(t, 1, len(history))
-	testutils.AssertDeepEqual(t, m1, history[0])
-
-	// Add more modes, ensuring that we retrieve them consistently.
-	m2 := &ModeChange{
-		Message: "Stoppit",
-		Mode:    MODE_STOPPED,
-		Time:    time.Now().UTC().Add(time.Minute),
-		User:    "me@google.com",
-	}
-	m3 := &ModeChange{
-		Message: "Dry run",
-		Mode:    MODE_DRY_RUN,
-		Time:    time.Now().UTC().Add(2 * time.Minute),
-		User:    "me@google.com",
-	}
-	m4 := &ModeChange{
-		Message: "Dry run",
-		Mode:    MODE_DRY_RUN,
-		Time:    time.Now().UTC().Add(3 * time.Minute),
-		User:    "me@google.com",
-	}
-
-	assert.Nil(t, d.db.SetMode(m2))
-	history, err = d.db.GetModeHistory(10)
-	assert.Nil(t, err)
-	testutils.AssertDeepEqual(t, []*ModeChange{m2, m1}, history)
-
-	assert.Nil(t, d.db.SetMode(m3))
-	history, err = d.db.GetModeHistory(10)
-	assert.Nil(t, err)
-	testutils.AssertDeepEqual(t, []*ModeChange{m3, m2, m1}, history)
-
-	assert.Nil(t, d.db.SetMode(m4))
-	history, err = d.db.GetModeHistory(10)
-	assert.Nil(t, err)
-	testutils.AssertDeepEqual(t, []*ModeChange{m4, m3, m2, m1}, history)
-
-	// Only three changes?
-	history, err = d.db.GetModeHistory(3)
-	assert.Nil(t, err)
-	testutils.AssertDeepEqual(t, []*ModeChange{m4, m3, m2}, history)
 }

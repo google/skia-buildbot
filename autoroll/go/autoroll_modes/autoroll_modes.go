@@ -1,32 +1,52 @@
-package autoroll
+package autoroll_modes
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
 )
 
-const MODE_HISTORY_LENGTH = 25
+const (
+	MODE_HISTORY_LENGTH = 25
+
+	MODE_RUNNING = "running"
+	MODE_STOPPED = "stopped"
+	MODE_DRY_RUN = "dry run"
+)
+
+var (
+	VALID_MODES = []string{
+		MODE_RUNNING,
+		MODE_STOPPED,
+		MODE_DRY_RUN,
+	}
+)
 
 // ModeChange is a struct used for describing a change in the AutoRoll mode.
 type ModeChange struct {
 	Message string    `json:"message"`
-	Mode    Mode      `json:"mode"`
+	Mode    string    `json:"mode"`
 	Time    time.Time `json:"time"`
 	User    string    `json:"user"`
 }
 
-// modeHistory is a struct used for storing and retrieving mode change history.
-type modeHistory struct {
+// ModeHistory is a struct used for storing and retrieving mode change history.
+type ModeHistory struct {
 	db      *db
 	history []*ModeChange
 	mtx     sync.RWMutex
 }
 
-// newModeHistory returns a modeHistory instance.
-func newModeHistory(d *db) (*modeHistory, error) {
-	mh := &modeHistory{
+// NewModeHistory returns a ModeHistory instance.
+func NewModeHistory(dbFile string) (*ModeHistory, error) {
+	d, err := openDB(dbFile)
+	if err != nil {
+		return nil, err
+	}
+	mh := &ModeHistory{
 		db: d,
 	}
 	if err := mh.refreshHistory(); err != nil {
@@ -35,11 +55,27 @@ func newModeHistory(d *db) (*modeHistory, error) {
 	return mh, nil
 }
 
+// Close closes the database held by the ModeHistory.
+func (mh *ModeHistory) Close() error {
+	return mh.db.Close()
+}
+
 // Add inserts a new ModeChange.
-func (mh *modeHistory) Add(m *ModeChange) error {
+func (mh *ModeHistory) Add(m string, user, message string) error {
+	if !util.In(string(m), VALID_MODES) {
+		return fmt.Errorf("Invalid mode: %s", m)
+	}
+
+	modeChange := &ModeChange{
+		Message: message,
+		Mode:    m,
+		Time:    time.Now(),
+		User:    user,
+	}
+
 	mh.mtx.Lock()
 	defer mh.mtx.Unlock()
-	if err := mh.db.SetMode(m); err != nil {
+	if err := mh.db.SetMode(modeChange); err != nil {
 		return err
 	}
 	return mh.refreshHistory()
@@ -47,7 +83,7 @@ func (mh *modeHistory) Add(m *ModeChange) error {
 
 // CurrentMode returns the current mode, which is the most recently added
 // ModeChange.
-func (mh *modeHistory) CurrentMode() Mode {
+func (mh *ModeHistory) CurrentMode() string {
 	mh.mtx.RLock()
 	defer mh.mtx.RUnlock()
 	if len(mh.history) > 0 {
@@ -60,7 +96,7 @@ func (mh *modeHistory) CurrentMode() Mode {
 
 // refreshHistory refreshes the mode history from the database. Assumes that the
 // caller holds a write lock.
-func (mh *modeHistory) refreshHistory() error {
+func (mh *ModeHistory) refreshHistory() error {
 	history, err := mh.db.GetModeHistory(MODE_HISTORY_LENGTH)
 	if err != nil {
 		return err
