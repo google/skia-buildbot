@@ -164,8 +164,13 @@ func TestImpl(t *testing.T) {
 	valuesResp, err := ts.GetValues(ctx, valuesReq)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(valuesResp.Values))
-	assert.Equal(t, 1.234, math.Float64frombits(binary.LittleEndian.Uint64(valuesResp.Values[0].Value)))
-	assert.Equal(t, 0.01, math.Float64frombits(binary.LittleEndian.Uint64(valuesResp.Values[1].Value)))
+	expected := map[string]float64{
+		"key:gpu:win8":     1.234,
+		"key:8888:android": 0.01,
+	}
+	for _, v := range valuesResp.Values {
+		assert.Equal(t, expected[v.Key], math.Float64frombits(binary.LittleEndian.Uint64(v.Value)))
+	}
 
 	paramsReq := &GetParamsRequest{
 		Traceids: []string{"key:8888:android", "key:gpu:win8"},
