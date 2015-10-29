@@ -132,7 +132,6 @@ func (m *AddParamsRequest) GetParams() []*ParamsPair {
 
 // StoredEntry is used to serialize the Params to be stored in the BoltBD.
 type StoredEntry struct {
-	// The parameters for the trace.
 	Params *Params `protobuf:"bytes,2,opt,name=params" json:"params,omitempty"`
 }
 

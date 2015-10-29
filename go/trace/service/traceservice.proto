@@ -73,7 +73,7 @@ message AddParamsRequest {
 
 // StoredEntry is used to serialize the Params to be stored in the BoltBD.
 message StoredEntry {
-  Params params = 1;
+  Params params = 2;
 }
 
 message ValuePair {
