@@ -262,7 +262,7 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 	}
 
 	// Build the output and make sure the digest are cached on disk.
-	digests := make([]string, 0, len(inter))
+	digests := make(map[string]bool, len(inter))
 	ret := make([]*Digest, 0, len(inter))
 	emptyTraces := &Traces{}
 	for _, i := range inter {
@@ -274,11 +274,11 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 			Diff:     buildDiff(i.test, i.digest, exp, tile, talliesByTest, nil, storages.DiffStore, tileParamSet, q.IncludeIgnores),
 			Traces:   emptyTraces,
 		})
-		digests = append(digests, i.digest)
+		digests[i.digest] = true
 	}
 
 	// This ensures that all digests are cached on disk.
-	storages.DiffStore.AbsPath(digests)
+	storages.DiffStore.AbsPath(util.KeysOfStringSet(digests))
 	return ret, nil
 }
 
