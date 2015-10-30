@@ -11,9 +11,6 @@ const (
 	// to signal missing data that also has a compact JSON representation.
 	MISSING_DATA_SENTINEL = 1e100
 
-	// Limit the number of commits we hold in memory and do bulk analysis on.
-	MAX_COMMITS_IN_MEMORY = 32
-
 	// MAX_SAMPLE_TRACES_PER_CLUSTER  is the maximum number of traces stored in a
 	// ClusterSummary.
 	MAX_SAMPLE_TRACES_PER_CLUSTER = 1
@@ -30,6 +27,9 @@ const (
 	// MIN_STDDEV is the smallest standard deviation we will normalize, smaller
 	// than this and we presume it's a standard deviation of zero.
 	MIN_STDDEV = 0.001
+
+	// INITIAL_TILE_SIZE is the initial size of Tiles.
+	INITIAL_TILE_SIZE = 50
 )
 
 const (
