@@ -83,7 +83,7 @@
       </div>
       <template is="dom-if" if="{{!compact}}">
         <div id="commentContainer">
-          <comments-sk comments="{{alert.comments}}"></comments-sk>
+          <comments-sk comments="{{alert.comments}}" collapsible></comments-sk>
           <template is="dom-if" if="{{_editRights}}">
             <alert-controls-sk
                 id="controls"
