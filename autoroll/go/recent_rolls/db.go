@@ -72,7 +72,7 @@ func timeToKey(t time.Time) []byte {
 // timeKey returns a BoltDB key for the given AutoRollIssue based on its
 // last-modified time.
 func timeKey(a *autoroll.AutoRollIssue) []byte {
-	return timeToKey(a.Modified)
+	return timeToKey(a.Created)
 }
 
 // insertRoll inserts the given AutoRollIssue into the database within the
@@ -98,7 +98,7 @@ func deleteRoll(tx *bolt.Tx, a *autoroll.AutoRollIssue) error {
 	rolls := tx.Bucket(BUCKET_ROLLS)
 	rollsByDate := tx.Bucket(BUCKET_ROLLS_BY_DATE)
 
-	// The Modified time may have changed, so use the one we already have in the DB.
+	// Don't trust the created time of the passed-in roll; use the one we already have in the DB.
 	serialized := rolls.Get(rollKey(a))
 	if serialized == nil {
 		return fmt.Errorf("The given issue (%d) does not exist in %s", a.Issue, string(BUCKET_ROLLS))
@@ -160,6 +160,7 @@ func (d *db) GetRoll(issue int64) (*autoroll.AutoRollIssue, error) {
 		if err := json.Unmarshal(serialized, a); err != nil {
 			return err
 		}
+		a.Created = a.Created.UTC()
 		a.Modified = a.Modified.UTC()
 		return nil
 	}); err != nil {
@@ -192,6 +193,7 @@ func (d *db) GetRecentRolls(N int) ([]*autoroll.AutoRollIssue, error) {
 			if err := json.Unmarshal(serialized, &a); err != nil {
 				return err
 			}
+			a.Created = a.Created.UTC()
 			a.Modified = a.Modified.UTC()
 			rv = append(rv, &a)
 		}

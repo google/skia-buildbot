@@ -44,12 +44,14 @@ func TestRolls(t *testing.T) {
 	d := newTestDB(t)
 	defer d.cleanup(t)
 
+	now := time.Now().UTC()
 	roll1 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
+		Created:     now,
 		Issue:       101101101,
-		Modified:    time.Now().UTC(),
+		Modified:    now,
 		Patchsets:   []int64{1},
 		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "Roll asdfdasf",
@@ -90,34 +92,40 @@ func TestRolls(t *testing.T) {
 	assert.Equal(t, 0, len(recent))
 
 	// Multiple rolls.
+	now = time.Now().UTC().Add(time.Minute)
 	roll2 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
+		Created:     now,
 		Issue:       101101102,
-		Modified:    time.Now().UTC().Add(time.Minute),
+		Modified:    now,
 		Patchsets:   []int64{1},
 		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "Roll #2",
 		TryResults:  []*autoroll.TryResult{},
 	}
+	now = time.Now().UTC().Add(30 * time.Minute)
 	roll3 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
+		Created:     now,
 		Issue:       101101103,
-		Modified:    time.Now().UTC().Add(30 * time.Minute),
+		Modified:    now,
 		Patchsets:   []int64{1},
 		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "Roll #3",
 		TryResults:  []*autoroll.TryResult{},
 	}
+	now = time.Now().UTC().Add(10 * time.Minute)
 	roll4 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
+		Created:     now,
 		Issue:       1001101, // Lower issue number, verify that we order correctly by date.
-		Modified:    time.Now().UTC().Add(10 * time.Minute),
+		Modified:    now,
 		Patchsets:   []int64{1},
 		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "Roll #4",

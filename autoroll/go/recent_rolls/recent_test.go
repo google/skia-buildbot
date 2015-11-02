@@ -2,6 +2,7 @@ package recent_rolls
 
 import (
 	"io/ioutil"
+	"os"
 	"path"
 	"testing"
 	"time"
@@ -18,6 +19,9 @@ func TestRecentRolls(t *testing.T) {
 	// Create the RecentRolls.
 	tmpDir, err := ioutil.TempDir("", "test_autoroll_recent_")
 	assert.Nil(t, err)
+	defer func() {
+		assert.Nil(t, os.RemoveAll(tmpDir))
+	}()
 	r, err := NewRecentRolls(path.Join(tmpDir, "test.db"))
 	assert.Nil(t, err)
 	defer func() {
@@ -32,12 +36,14 @@ func TestRecentRolls(t *testing.T) {
 	}
 
 	// Add one issue.
+	now := time.Now().UTC()
 	ari1 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
+		Created:     now,
 		Issue:       1010101,
-		Modified:    time.Now().UTC(),
+		Modified:    now,
 		Patchsets:   []int64{1},
 		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "FAKE DEPS ROLL 1",
@@ -62,12 +68,14 @@ func TestRecentRolls(t *testing.T) {
 
 	// Add another issue. Ensure that it's the current roll with the
 	// previously-added roll as the last roll.
+	now = time.Now().UTC()
 	ari2 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
+		Created:     now,
 		Issue:       1010102,
-		Modified:    time.Now().UTC(),
+		Modified:    now,
 		Patchsets:   []int64{1},
 		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "FAKE DEPS ROLL 2",
@@ -78,12 +86,14 @@ func TestRecentRolls(t *testing.T) {
 	check(ari2, ari1, expect)
 
 	// Try to add another active issue. Ensure that the RecentRolls complains.
+	now = time.Now().UTC()
 	bad1 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
+		Created:     now,
 		Issue:       1010103,
-		Modified:    time.Now().UTC(),
+		Modified:    now,
 		Patchsets:   []int64{1},
 		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "FAKE DEPS ROLL 3",
@@ -101,12 +111,14 @@ func TestRecentRolls(t *testing.T) {
 	check(nil, ari2, expect)
 
 	// Try to add a bogus issue.
+	now = time.Now().UTC()
 	bad2 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   true,
 		CommitQueue: true,
+		Created:     now,
 		Issue:       1010104,
-		Modified:    time.Now().UTC(),
+		Modified:    now,
 		Patchsets:   []int64{1},
 		Result:      autoroll.ROLL_RESULT_FAILURE,
 		Subject:     "FAKE DEPS ROLL 4",
@@ -115,12 +127,14 @@ func TestRecentRolls(t *testing.T) {
 	assert.Error(t, r.Add(bad2))
 
 	// Add one more roll. Ensure that it's the current roll.
+	now = time.Now().UTC()
 	ari3 := &autoroll.AutoRollIssue{
 		Closed:      false,
 		Committed:   false,
 		CommitQueue: true,
+		Created:     now,
 		Issue:       1010105,
-		Modified:    time.Now().UTC(),
+		Modified:    now,
 		Patchsets:   []int64{1},
 		Result:      autoroll.ROLL_RESULT_IN_PROGRESS,
 		Subject:     "FAKE DEPS ROLL 5",

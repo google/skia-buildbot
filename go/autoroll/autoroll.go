@@ -38,6 +38,7 @@ type AutoRollIssue struct {
 	Closed      bool         `json:"closed"`
 	Committed   bool         `json:"committed"`
 	CommitQueue bool         `json:"commitQueue"`
+	Created     time.Time    `json:"created"`
 	Issue       int64        `json:"issue"`
 	Modified    time.Time    `json:"modified"`
 	Patchsets   []int64      `json:"patchSets"`
@@ -73,6 +74,7 @@ func FromRietveldIssue(i *rietveld.Issue) *AutoRollIssue {
 		Closed:      i.Closed,
 		Committed:   i.Committed,
 		CommitQueue: i.CommitQueue,
+		Created:     i.Created,
 		Issue:       i.Issue,
 		Modified:    i.Modified,
 		Patchsets:   i.Patchsets,

@@ -16,6 +16,7 @@ func TestModeHistory(t *testing.T) {
 	// Create the ModeHistory.
 	tmpDir, err := ioutil.TempDir("", "test_autoroll_mode_")
 	assert.Nil(t, err)
+	defer testutils.RemoveAll(t, tmpDir)
 	mh, err := NewModeHistory(path.Join(tmpDir, "test.db"))
 	assert.Nil(t, err)
 	defer func() {
