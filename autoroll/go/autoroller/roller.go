@@ -48,7 +48,7 @@ type AutoRoller struct {
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
 func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, tickFrequency, repoFrequency time.Duration) (*AutoRoller, error) {
-	rm, err := repo_manager.NewRepoManager(workdir, cqExtraTrybots, emails, repoFrequency)
+	rm, err := repo_manager.NewRepoManager(workdir, repoFrequency)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +64,8 @@ func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *ri
 	}
 
 	arb := &AutoRoller{
+		cqExtraTrybots:   cqExtraTrybots,
+		emails:           emails,
 		includeCommitLog: true,
 		modeHistory:      mh,
 		recent:           recent,
@@ -123,9 +125,14 @@ func (r *AutoRoller) GetStatus(includeError bool) AutoRollStatus {
 		current = &(*current)
 	}
 
+	last := r.recent.LastRoll()
+	if last != nil {
+		last = &(*last)
+	}
+
 	s := AutoRollStatus{
 		CurrentRoll: current,
-		LastRoll:    r.recent.LastRoll(),
+		LastRoll:    last,
 		Mode:        r.modeHistory.CurrentMode(),
 		Recent:      recent,
 		Status:      r.status,
@@ -170,9 +177,18 @@ func (r *AutoRoller) setStatus(s string, lastError error) error {
 	return nil
 }
 
+// GetEmails returns the list of email addresses which are copied on DEPS rolls.
+func (r *AutoRoller) GetEmails() []string {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.emails
+}
+
 // SetEmails sets the list of email addresses which are copied on DEPS rolls.
 func (r *AutoRoller) SetEmails(e []string) {
-	r.rm.SetEmails(e)
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	r.emails = e
 }
 
 // closeIssue closes the given issue with the given message.
@@ -303,7 +319,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	}
 
 	// Create a new roll.
-	uploadedNum, err := r.rm.CreateNewRoll(r.isMode(autoroll_modes.MODE_DRY_RUN))
+	uploadedNum, err := r.rm.CreateNewRoll(r.GetEmails(), r.cqExtraTrybots, r.isMode(autoroll_modes.MODE_DRY_RUN))
 	if err != nil {
 		return STATUS_ERROR, err
 	}
@@ -314,6 +330,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	if err := r.recent.Add(uploaded); err != nil {
 		return STATUS_ERROR, err
 	}
+	glog.Infof("Uploaded new DEPS roll: %s/%d", autoroll.RIETVELD_URL, uploadedNum)
 
 	return STATUS_IN_PROGRESS, nil
 }

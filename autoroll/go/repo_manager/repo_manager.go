@@ -33,8 +33,6 @@ var (
 type RepoManager struct {
 	chromiumDir       string
 	chromiumParentDir string
-	cqExtraTrybots    []string
-	emails            []string
 	lastRollRev       string
 	mtx               sync.RWMutex
 	skiaDir           string
@@ -46,7 +44,7 @@ type RepoManager struct {
 // working directory and updates at the given frequency. The cqExtraTrybots and
 // emails lists are used when uploading roll CLs and may be changed through
 // their respective setters.
-func NewRepoManager(workdir string, cqExtraTrybots, emails []string, frequency time.Duration) (*RepoManager, error) {
+func NewRepoManager(workdir string, frequency time.Duration) (*RepoManager, error) {
 	chromiumParentDir := path.Join(workdir, "chromium")
 	skiaDir := path.Join(workdir, "skia")
 	skiaRepo, err := gitinfo.CloneOrUpdate(REPO_SKIA, skiaDir, true)
@@ -56,8 +54,6 @@ func NewRepoManager(workdir string, cqExtraTrybots, emails []string, frequency t
 	r := &RepoManager{
 		chromiumDir:       path.Join(chromiumParentDir, "src"),
 		chromiumParentDir: chromiumParentDir,
-		cqExtraTrybots:    cqExtraTrybots,
-		emails:            emails,
 		skiaDir:           skiaDir,
 		skiaRepo:          skiaRepo,
 	}
@@ -129,36 +125,6 @@ func (r *RepoManager) getLastRollRev() (string, error) {
 	return "", fmt.Errorf("Failed to parse output of `gclient revinfo`")
 }
 
-// GetCQExtraTrybots returns the list of trybots which are added to the commit
-// queue in addition to the default set.
-func (r *RepoManager) GetCQExtraTrybots() []string {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
-	return r.cqExtraTrybots
-}
-
-// SetCQExtraTrybots sets the list of trybots which are added to the commit
-// queue in addition to the default set.
-func (r *RepoManager) SetCQExtraTrybots(c []string) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-	r.cqExtraTrybots = c
-}
-
-// GetEmails returns the list of email addresses which are copied on DEPS rolls.
-func (r *RepoManager) GetEmails() []string {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
-	return r.emails
-}
-
-// SetEmails sets the list of email addresses which are copied on DEPS rolls.
-func (r *RepoManager) SetEmails(e []string) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-	r.emails = e
-}
-
 // FullSkiaHash returns the full hash of the given short hash or ref in the
 // Skia repo.
 func (r *RepoManager) FullSkiaHash(shortHash string) (string, error) {
@@ -209,7 +175,7 @@ func (r *RepoManager) cleanChromium() error {
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
-func (r *RepoManager) CreateNewRoll(dryRun bool) (int64, error) {
+func (r *RepoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool) (int64, error) {
 	to := r.SkiaHead()
 
 	// Clean the checkout, get onto a fresh branch.
@@ -234,7 +200,6 @@ func (r *RepoManager) CreateNewRoll(dryRun bool) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	cqExtraTrybots := r.GetCQExtraTrybots()
 	if cqExtraTrybots != nil && len(cqExtraTrybots) > 0 {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, strings.Join(cqExtraTrybots, ","))
 	}
@@ -245,7 +210,6 @@ func (r *RepoManager) CreateNewRoll(dryRun bool) (int64, error) {
 		uploadCmd = append(uploadCmd, "--use-commit-queue")
 	}
 	tbr := "\nTBR="
-	emails := r.GetEmails()
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
 		tbr += emailStr
