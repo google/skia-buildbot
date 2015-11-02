@@ -40,7 +40,7 @@ type AutoRoller struct {
 	modeHistory      *autoroll_modes.ModeHistory
 	mtx              sync.RWMutex
 	recent           *recent_rolls.RecentRolls
-	rm               *repo_manager.RepoManager
+	rm               repo_manager.RepoManager
 	rietveld         *rietveld.Rietveld
 	runningMtx       sync.Mutex
 	status           string
