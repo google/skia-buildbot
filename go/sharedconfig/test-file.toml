@@ -1,10 +1,4 @@
-[Common]
 GitRepoDir     = "./skia"              # Directory location for the Skia repo.
-GraphiteServer = "localhost:2003"      # Where is Graphite metrics ingestion server running.
-DoOauth        = true                  # Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.
-OAuthCacheFile = "/usr/local/google/home/stephana/ingesters/gold_ingest_oauth_token.cache"
-OAuthClientSecretFile = "/usr/local/google/home/stephana/ingesters/client_secret.json"
-Local          = true                  # Running locally if true. As opposed to in production.
 
 [Ingesters]
 	### Gold ingester ############################################################

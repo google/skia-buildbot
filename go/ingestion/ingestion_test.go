@@ -99,9 +99,9 @@ type mockRFLocation struct {
 	md5  string
 }
 
-func (m *mockRFLocation) Open() io.ReadCloser { return nil }
-func (m *mockRFLocation) Name() string        { return m.path }
-func (m *mockRFLocation) MD5() string         { return m.md5 }
+func (m *mockRFLocation) Open() (io.ReadCloser, error) { return nil, nil }
+func (m *mockRFLocation) Name() string                 { return m.path }
+func (m *mockRFLocation) MD5() string                  { return m.md5 }
 
 func rfLocation(t time.Time, fname string) ResultFileLocation {
 	path := fmt.Sprintf("root/%d/%d/%d/%d/%d/%s", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), fname)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -38,7 +37,7 @@ type Source interface {
 // contains results that need to be ingested.
 type ResultFileLocation interface {
 	// Open returns a reader that allows to read the content of the file.
-	Open() io.ReadCloser
+	Open() (io.ReadCloser, error)
 
 	// Name returns the full path of the file. The last segment is usually the
 	// the file name.
@@ -60,23 +59,6 @@ type Processor interface {
 	// to cover the case when ingestion is better done for the whole batch
 	// This should reset the internal state of the Processor instance.
 	BatchFinished() error
-}
-
-// Constructor is the signature that has to be implemented to register a
-// Processor implementation to be instantiated by name from a config struct.
-type Constructor func(config *sharedconfig.IngesterConfig) (Processor, error)
-
-// stores the constructors that register for instantiation from a config struct.
-var constructors = map[string]Constructor{}
-
-// used to synchronize constructor registration and instantiation.
-var registrationMutex sync.Mutex
-
-// Register registers the given constructor to create an instance of a Processor.
-func Register(name string, constructor Constructor) {
-	registrationMutex.Lock()
-	defer registrationMutex.Unlock()
-	constructors[name] = constructor
 }
 
 // Ingester is the main type that drives ingestion for a single type.

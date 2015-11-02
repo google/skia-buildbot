@@ -10,9 +10,7 @@ func TestIngesterConfig(t *testing.T) {
 	conf, err := ConfigFromTomlFile("./test-file.toml")
 	assert.Nil(t, err)
 
-	assert.Equal(t, "./skia", conf.Common.GitRepoDir)
-	assert.Equal(t, true, conf.Common.Local)
-
+	assert.Equal(t, "./skia", conf.GitRepoDir)
 	assert.Equal(t, 3, len(conf.Ingesters))
 	assert.Equal(t, 100, conf.Ingesters["gold"].NCommits)
 	assert.Equal(t, []*DataSource{&DataSource{"chromium-skia-gm", "dm-json-v1"},
