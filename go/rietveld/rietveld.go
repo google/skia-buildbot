@@ -20,6 +20,8 @@ const (
 	CLIENT_SECRET = "uBfbay2KCy9t4QveJ-dOqHtp"
 
 	COMMITTED_ISSUE_REGEXP = "(?m:^Committed: .+$)"
+
+	TIME_FORMAT = "2006-01-02 15:04:05.999999"
 )
 
 var (
@@ -98,7 +100,7 @@ type Patchset struct {
 }
 
 func parseTime(t string) time.Time {
-	parsed, _ := time.Parse("2006-01-02 15:04:05.999999", t)
+	parsed, _ := time.Parse(TIME_FORMAT, t)
 	return parsed
 }
 
@@ -202,7 +204,7 @@ func (r *Rietveld) post(suburl string, data url.Values) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("Got status %s", resp.Status)
+		return fmt.Errorf("Got status %s (%d)", resp.Status, resp.StatusCode)
 	}
 	return nil
 }

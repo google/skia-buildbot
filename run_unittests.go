@@ -51,6 +51,7 @@ var (
 	GO_DIRS = []string{
 		".",
 		"alertserver",
+		"autoroll",
 		"ct",
 		"datahopper",
 		"golden",

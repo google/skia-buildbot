@@ -33,6 +33,7 @@ var (
 	NewRepoManager func(string, time.Duration) (RepoManager, error) = NewDefaultRepoManager
 )
 
+// RepoManager is used by AutoRoller for managing checkouts.
 type RepoManager interface {
 	FullSkiaHash(string) (string, error)
 	LastRollRev() string
@@ -53,9 +54,7 @@ type repoManager struct {
 }
 
 // NewDefaultRepoManager returns a RepoManager instance which operates in the given
-// working directory and updates at the given frequency. The cqExtraTrybots and
-// emails lists are used when uploading roll CLs and may be changed through
-// their respective setters.
+// working directory and updates at the given frequency.
 func NewDefaultRepoManager(workdir string, frequency time.Duration) (RepoManager, error) {
 	chromiumParentDir := path.Join(workdir, "chromium")
 	skiaDir := path.Join(workdir, "skia")
