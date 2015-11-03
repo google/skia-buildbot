@@ -372,6 +372,10 @@ func TestPurgeDigests(t *testing.T) {
 	d_12 := getDiffBasename(TEST_DIGEST1, TEST_DIGEST2)
 	d_13 := getDiffBasename(TEST_DIGEST1, TEST_DIGEST3)
 	d_23 := getDiffBasename(TEST_DIGEST2, TEST_DIGEST3)
+
+	awaitDiffMetricsGoroutine(fds.getDiffMetricPath(d_12), 3*time.Second)
+	awaitDiffMetricsGoroutine(fds.getDiffMetricPath(d_13), 3*time.Second)
+	awaitDiffMetricsGoroutine(fds.getDiffMetricPath(d_23), 3*time.Second)
 	assertFileExists(fds.getDiffMetricPath(d_12), t)
 	assertFileExists(fds.getDiffMetricPath(d_13), t)
 	assertFileExists(fds.getDiffMetricPath(d_23), t)
