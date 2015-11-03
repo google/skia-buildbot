@@ -497,22 +497,26 @@ func (fs *FileDiffStore) Get(dMain string, dRest []string) (map[string]*diff.Dif
 // 4. Return map of digests to paths once all requests have been processed
 //    by the workers.
 func (fs *FileDiffStore) AbsPath(digests []string) map[string]string {
-	// 1. Create map of digests to their paths. This map will be populated
-	//    and returned.
-	digestsToPaths := make(map[string]string, len(digests))
-
 	// If the input is empty then we are done.
 	if len(digests) == 0 {
-		return digestsToPaths
+		return map[string]string{}
 	}
+
+	//  Create map of digests to their paths. This map will be populated
+	//   and returned.
+	digestsToPaths := make(map[string]string, len(digests))
 
 	// 2. Create the channel where responses from workers will be received
 	//    in.
 	respCh := make(chan *WorkerResp, len(digests))
+	uniques := make(map[string]bool, len(digests))
+
 	// 3. Send requests to the request channel.
-	for dIndex := range digests {
-		digest := digests[dIndex]
-		fs.absPathCh <- &WorkerReq{id: digest, respCh: respCh}
+	for _, digest := range digests {
+		if !uniques[digest] {
+			fs.absPathCh <- &WorkerReq{id: digest, respCh: respCh}
+			uniques[digest] = true
+		}
 	}
 	digestErrors := 0
 	for {
