@@ -30,7 +30,8 @@ more about using depot_tools from the
 Then run:
 
 ```
-$ gclient config --name . --unmanaged https://skia.googlesource.com/buildbot
+$ cd ..
+$ gclient config --name infra --unmanaged https://skia.googlesource.com/buildbot
 $ gclient sync
 ```
 
@@ -53,7 +54,7 @@ Leave the root password blank.
 
 Then, to set up local versions of the production databases:
 ```
-$ cd go/database
+$ cd $GOPATH/src/go.skia.org/infra/go/database
 $ ./setup_test_db
 ```
 
