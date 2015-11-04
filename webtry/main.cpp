@@ -107,13 +107,13 @@ int main(int argc, char** argv) {
     SkDynamicMemoryWStream* streams[3] = {NULL, NULL, NULL};
 
     if (FLAGS_raster) {
-        streams[0] = SkNEW(SkDynamicMemoryWStream);
+        streams[0] = new SkDynamicMemoryWStream;
     }
     if (FLAGS_gpu) {
-        streams[1] = SkNEW(SkDynamicMemoryWStream);
+        streams[1] = new SkDynamicMemoryWStream;
     }
     if (FLAGS_pdf) {
-        streams[2] = SkNEW(SkDynamicMemoryWStream);
+        streams[2] = new SkDynamicMemoryWStream;
     }
 
     SkImageInfo info = SkImageInfo::MakeN32(FLAGS_width, FLAGS_height, kPremul_SkAlphaType);
