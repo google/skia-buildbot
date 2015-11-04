@@ -110,6 +110,7 @@ func TestNewTraceDBBuilder(t *testing.T) {
 	assert.Equal(t, 50, len(tile.Commits))
 	assert.Equal(t, 2, len(tile.Traces))
 	assert.Equal(t, commitID.ID, tile.Commits[1].Hash)
+	assert.Equal(t, "Joe Gregorio (jcgregorio@google.com)", tile.Commits[1].Author)
 
 	ptrace := tile.Traces["key:8888:android"].(*types.PerfTrace)
 	assert.Equal(t, 0.01, ptrace.Values[1])

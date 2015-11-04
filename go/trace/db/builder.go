@@ -86,8 +86,18 @@ func (t *Builder) LoadTile() error {
 			Timestamp: t.git.Timestamp(h),
 		})
 	}
+
 	// Build a Tile from those CommitIDs.
 	tile, err := t.DB.TileFromCommits(commitIDs)
+
+	// Now populate the author for each commit.
+	for _, c := range tile.Commits {
+		details, err := t.git.Details(c.Hash)
+		if err != nil {
+			return fmt.Errorf("Couldn't fill in author info in tile for commit %s: %s", c.Hash, err)
+		}
+		c.Author = details.Author
+	}
 	if err != nil {
 		return fmt.Errorf("Failed to load initial tile: %s", err)
 	}
