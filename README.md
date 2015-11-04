@@ -72,8 +72,8 @@ $ go get golang.org/x/tools/cmd/goimports
 
 Build from GOPATH:
 ```
-cd $GOPATH/src/go.skia.org/infra/
-make all
+$ cd $GOPATH/src/go.skia.org/infra/
+$ make all
 ```
 
 Use this command to run the presubmit tests:
