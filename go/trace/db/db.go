@@ -88,6 +88,9 @@ type TsDB struct {
 
 	// cache is an LRU cache recording is a given trace has its params stored.
 	cache *lru.Cache
+
+	// ctx is the gRPC context.
+	ctx context.Context
 }
 
 // NewTraceServiceDB creates a new DB that stores the data in the BoltDB backed
@@ -98,18 +101,29 @@ func NewTraceServiceDB(conn *grpc.ClientConn, traceBuilder tiling.TraceBuilder) 
 		traceService: traceservice.NewTraceServiceClient(conn),
 		traceBuilder: traceBuilder,
 		cache:        lru.New(MAX_ID_CACHED),
+		ctx:          context.Background(),
 	}
+
+	// This ping causes the client to try and reach the backend. If the backend
+	// is down, it will keep trying until it's up.
+	if err := ret.ping(); err != nil {
+		return nil, err
+	}
+
 	go func() {
-		ctx := context.Background()
-		empty := &traceservice.Empty{}
 		liveness := metrics.NewLiveness("tracedb-ping")
 		for _ = range time.Tick(time.Minute) {
-			if _, err := ret.traceService.Ping(ctx, empty); err == nil {
+			if ret.ping() == nil {
 				liveness.Update()
 			}
 		}
 	}()
 	return ret, nil
+}
+
+func (ts *TsDB) ping() error {
+	_, err := ts.traceService.Ping(ts.ctx, &traceservice.Empty{})
+	return err
 }
 
 // addChunk adds a set of entries to the datastore at the given CommitID.

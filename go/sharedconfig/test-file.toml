@@ -17,6 +17,10 @@ GitRepoDir     = "./skia"              # Directory location for the Skia repo.
 		Bucket         = "skia-infra-gm"
 		Dir            = "dm-json-v1"
 
+		[Ingesters.gold.ExtraParams]
+		TraceService   = "localhost:9091"
+
+
 	### Gold trybot ingester #####################################################
 	[Ingesters.gold-trybot]
 	RunEvery       = "15m"                        # How often the ingester should pull data from Google Storage.
@@ -24,12 +28,29 @@ GitRepoDir     = "./skia"              # Directory location for the Skia repo.
 	MinDays        = 21                           # Minimum number of days that should be covered by the ingested commits.
 	StatusDir      = "./ingest_status"            # Path where the ingest process keeps its status between restarts.
 	MetricName     = "gold-ingest-trybot"         # Graphite metric name to use for this ingester
-	DBHost         = "localhost"                  # Hostname of the MySQL database server used by this ingester.
-	DBName         = "gold_skiacorrectness"       # Name of the MySQL database used by this ingester.
-	DBPort         = 3306                         # Port number of the MySQL database used by this ingester.
 
 		[[Ingesters.gold-trybot.Sources]]
 		Dir            = "dm-json-v1"
+
+		[Ingesters.gold-trybot.ExtraParams]
+		TraceService   = "localhost:9091"
+
+
+	### Nano bench ingester ############################################################
+	[Ingesters.nano]
+	RunEvery       = "15m"
+	NCommits       = 100
+	MinDays        = 21
+	StatusDir      = "./ingest_status"
+	MetricName     = "nano-ingest"
+
+		[[Ingesters.nano.Sources]]
+		Bucket         = "chromium-skia-gm"
+		Dir            = "nano-json-v1"
+
+		[Ingesters.nano.ExtraParams]
+		TraceService   = "localhost:9090"
+
 
 	### PDF raster ingester ############################################################
 	[Ingesters.pdfraster]

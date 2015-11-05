@@ -29,7 +29,7 @@ const MAX_URI_GET_TRIES = 4
 
 // Constructor is the signature that has to be implemented to register a
 // Processor implementation to be instantiated by name from a config struct.
-type Constructor func(config *sharedconfig.IngesterConfig) (Processor, error)
+type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -46,7 +46,7 @@ func Register(name string, constructor Constructor) {
 
 // IngestersFromConfig creates a list of ingesters from a config struct.
 // Usually the struct is created from parsing a config file.
-func IngestersFromConfig(config sharedconfig.Config, client *http.Client) ([]*Ingester, error) {
+func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*Ingester, error) {
 	ret := []*Ingester{}
 
 	// Set up the gitinfo object.
@@ -81,7 +81,7 @@ func IngestersFromConfig(config sharedconfig.Config, client *http.Client) ([]*In
 		}
 
 		// instantiate the processor
-		processor, err := processorConstructor(ingesterConf)
+		processor, err := processorConstructor(vcs, ingesterConf)
 		if err != nil {
 			return nil, err
 		}
@@ -224,6 +224,7 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 		if resp.StatusCode != 200 {
 			glog.Errorf("Failed to retrieve %s. Error: %d  %s", g.uri, resp.StatusCode, resp.Status)
 		}
+		glog.Infof("GSFILE READ %s", g.name)
 		return resp.Body, nil
 	}
 	return nil, fmt.Errorf("Failed fetching %s after %d attempts", g.uri, MAX_URI_GET_TRIES)
@@ -276,7 +277,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 
 				updateTimestamp := info.ModTime().Unix()
 				if updateTimestamp > startTime {
-					rf, err := newFSResultFileLocation(path)
+					rf, err := FileSystemResult(path)
 					if err != nil {
 						glog.Errorf("Unable to create file system result: %s", err)
 						return nil
@@ -317,7 +318,7 @@ type fsResultFileLocation struct {
 	md5  string
 }
 
-func newFSResultFileLocation(path string) (ResultFileLocation, error) {
+func FileSystemResult(path string) (ResultFileLocation, error) {
 	// Read file into buffer and calculate the md5 in the process.
 	file, err := os.Open(path)
 	if err != nil {

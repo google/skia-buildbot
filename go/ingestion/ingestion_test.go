@@ -25,7 +25,7 @@ func TestIngester(t *testing.T) {
 	const totalCommits = 100
 
 	// Instantiate mock VCS and the source.
-	vcs := MockVCS(beginningOfTime, now.Unix(), totalCommits)
+	vcs := getVCS(beginningOfTime, now.Unix(), totalCommits)
 	hashes := vcs.From(time.Unix(0, 0))
 	assert.Equal(t, totalCommits, len(hashes))
 	for _, h := range hashes {
@@ -142,15 +142,13 @@ func (m mockSource) ID() string {
 	return "test-source"
 }
 
-// mockVCS
-type mockVCS []*vcsinfo.LongCommit
-
-func MockVCS(start, end int64, nCommits int) vcsinfo.VCS {
-	ret := make([]*vcsinfo.LongCommit, 0, nCommits)
+// return a mock vcs
+func getVCS(start, end int64, nCommits int) vcsinfo.VCS {
+	commits := make([]*vcsinfo.LongCommit, 0, nCommits)
 	inc := (end - start - 3600) / int64(nCommits)
 	t := start
 	for i := 0; i < nCommits; i++ {
-		ret = append(ret, &vcsinfo.LongCommit{
+		commits = append(commits, &vcsinfo.LongCommit{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    fmt.Sprintf("hash-%d", i),
 				Subject: fmt.Sprintf("Commit #%d", i),
@@ -159,25 +157,5 @@ func MockVCS(start, end int64, nCommits int) vcsinfo.VCS {
 		})
 		t += inc
 	}
-	return mockVCS(ret)
-}
-
-func (m mockVCS) Update(pull, allBranches bool) error { return nil }
-func (m mockVCS) From(start time.Time) []string {
-	idx := sort.Search(len(m), func(i int) bool { return m[i].Timestamp.Unix() >= start.Unix() })
-
-	ret := make([]string, 0, len(m)-idx)
-	for _, commit := range m[idx:len(m)] {
-		ret = append(ret, commit.Hash)
-	}
-	return ret
-}
-
-func (m mockVCS) Details(hash string) (*vcsinfo.LongCommit, error) {
-	for _, commit := range m {
-		if commit.Hash == hash {
-			return commit, nil
-		}
-	}
-	return nil, fmt.Errorf("Unable to find commit")
+	return MockVCS(commits)
 }
