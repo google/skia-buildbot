@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
+	_ "go.skia.org/infra/golden/go/goldingestion"
 	_ "go.skia.org/infra/perf/go/perfingestion"
 	storage "google.golang.org/api/storage/v1"
 )
