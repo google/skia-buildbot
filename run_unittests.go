@@ -47,16 +47,17 @@ var (
 	// Error message shown when a required executable is not installed.
 	ERR_NEED_INSTALL = "%s failed to run! Is it installed? Error: %v"
 
-	// Directories in which to run "go test"
-	GO_DIRS = []string{
-		".",
-		"alertserver",
-		"autoroll",
-		"ct",
-		"datahopper",
-		"golden",
-		"perf",
-		"status",
+	// Directories in which to run "go test" and whether or not to invoke
+	// with --alsologtostderr.
+	GO_TEST_DIRS_AND_VERBOSITY = map[string]bool{
+		".":           false,
+		"alertserver": false,
+		"autoroll":    true,
+		"ct":          false,
+		"datahopper":  false,
+		"golden":      false,
+		"perf":        false,
+		"status":      false,
 	}
 
 	// Directories with these names are skipped when searching for tests.
@@ -96,8 +97,11 @@ func cmdTest(cmd []string, cwd, name string) *test {
 }
 
 // goTest returns a test which runs `go test` in the given cwd.
-func goTest(cwd string) *test {
+func goTest(cwd string, extraLog bool) *test {
 	cmd := []string{"go", "test", "-v", "./go/...", "-parallel", "1"}
+	if extraLog {
+		cmd = append(cmd, "--alsologtostderr")
+	}
 	if *short {
 		cmd = append(cmd, "-test.short")
 	}
@@ -177,8 +181,8 @@ func main() {
 	}
 
 	// Go tests.
-	for _, go_dir := range GO_DIRS {
-		tests = append(tests, goTest(go_dir))
+	for goDir, extraLog := range GO_TEST_DIRS_AND_VERBOSITY {
+		tests = append(tests, goTest(goDir, extraLog))
 	}
 
 	// Other tests.
