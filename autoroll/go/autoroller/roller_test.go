@@ -96,7 +96,7 @@ blah blah
 TBR=some-sheriff
 `, from[:12], to[:12])
 	subject := strings.Split(description, "\n")[0]
-	r.MockIssueNumber = nextIssueNum()
+	r.MockIssueNumber = rv.nextIssueNum()
 	roll := &rietveld.Issue{
 		CC:                emails,
 		CommitQueue:       true,
@@ -120,9 +120,10 @@ TBR=some-sheriff
 
 // mockRietveld is a struct used for faking responses from Rietveld.
 type mockRietveld struct {
-	r       *rietveld.Rietveld
-	t       *testing.T
-	urlMock *mockhttpclient.URLMock
+	fakeIssueNum int64
+	r            *rietveld.Rietveld
+	t            *testing.T
+	urlMock      *mockhttpclient.URLMock
 }
 
 // assertMocksEmpty asserts that all of the URLs in the URLMock have been used.
@@ -227,12 +228,10 @@ func (r *mockRietveld) pretendRollLanded(rm *mockRepoManager, issue *rietveld.Is
 	r.modify(issue, tryResults)
 }
 
-// fakeIssueNum and nextIssueNum() provide auto-incrementing issue numbers.
-var fakeIssueNum = int64(100001)
-
-func nextIssueNum() int64 {
-	n := fakeIssueNum
-	fakeIssueNum++
+// nextIssueNum provides auto-incrementing fake issue numbers.
+func (r *mockRietveld) nextIssueNum() int64 {
+	n := r.fakeIssueNum
+	r.fakeIssueNum++
 	return n
 }
 
@@ -285,9 +284,10 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	urlMock := mockhttpclient.NewURLMock()
 	urlMock.Mock(fmt.Sprintf("%s/xsrf_token", autoroll.RIETVELD_URL), []byte("abc123"))
 	rv := &mockRietveld{
-		r:       rietveld.New(autoroll.RIETVELD_URL, urlMock.Client()),
-		t:       t,
-		urlMock: urlMock,
+		fakeIssueNum: 10001,
+		r:            rietveld.New(autoroll.RIETVELD_URL, urlMock.Client()),
+		t:            t,
+		urlMock:      urlMock,
 	}
 
 	rm := &mockRepoManager{t: t}
