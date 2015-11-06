@@ -1,0 +1,256 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <fuzzer-collapse-details-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/fuzzer-collapse-details-sk.html" rel="import" />
+
+  Usage:
+
+    <fuzzer-collapse-details-sk></fuzzer-collapse-details-sk>
+
+  Properties:
+    details - The details object.  Expected to have the following attributes:
+      lineNumber: Number,
+      apiCount: Number,
+      binaryCount: Number,
+      binaryReports: [optional] Array of Reports. If supplied,
+        an expandable details panel will be created containing representations of the reports.
+        If omitted, just the summary will be shown.
+        Reports are objects and have the following attributes:
+        - binaryName: String, The name of the binary, likely an md5 hash
+        - binaryType: String, The type of the binary
+        - flags: Array of String, The flags associated with the run (e.g. DebugDumped)
+        - debugStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
+        - releaseStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
+
+  Methods:
+    setDetails(details) - Programmatically set the details object.
+    showMore() - Programmatically show up to 6 more details panels.
+    showFewer() - Programmatically show up to 6 fewer details panels.
+    toggleDetails() - Programmticaly hide/show the details panels.
+
+  Events:
+    None.
+  -->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="fuzzer-stacktrace-sk.html">
+<dom-module id="fuzzer-collapse-details-sk">
+  <template>
+    <style>
+    #wrapper {
+      padding: 16px;
+      border-radius: 8px;
+      background-color: #DEDEDE;
+      color: #000000;
+    }
+
+    #indicator {
+      cursor: pointer;
+      margin: 1px 6px 1px 1px;
+      /*Make the indicator icon a bit smaller than normal*/
+      --iron-icon-height: 20px;
+      --iron-icon-width: 20px;
+    }
+
+    #indicator.toggled {
+      transform: rotate(.25turn);
+    }
+
+    .panel-container {
+      @apply(--layout-horizontal);
+      @apply(--layout-wrap);
+      @apply(--layout-start);
+    }
+
+    .panel-container .title {
+      display: inline-block;
+      margin-top: .5em;
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .panel {
+      min-width: 100px;
+      max-width: 600px;
+      background-color: lightblue;
+      border-radius: 6px;
+      margin: 4px;
+      padding: 5px;
+    }
+
+    .raw {
+      font-size: 0.7em;
+      display: inline-block;
+    }
+
+    .show-more-less-bar {
+      @apply(--layout-horizontal);
+      width: 100%;
+      background-color: white;
+      border-radius: 8px;
+    }
+
+    .show-more-less-bar .status {
+      @apply(--layout-horizontal);
+      @apply(--layout-flex);
+    }
+
+    .center {
+      margin: auto;
+    }
+    </style>
+    <div id="wrapper">
+      <template is="dom-if" if="{{!_hasDetails(details)}}">
+        <li>line {{details.lineNumber}} -- {{totalCount}} outstanding fuzzes: {{details.binaryCount}} binary and {{details.apiCount}} api</li>
+      </template>
+      <template is="dom-if" if="{{_hasDetails(details)}}">
+        <li>
+          <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleDetails" title="Click to toggle line number view"></iron-icon>
+          <span>line {{details.lineNumber}} -- {{totalCount}} outstanding fuzzes: {{details.binaryCount}} binary and {{details.apiCount}} api</span>
+        </li>
+        <iron-collapse id="detailsPanel">
+          <div class="panel-container">
+            <template is="dom-repeat" items="{{reports}}" as="report">
+              <div class="panel">
+                <span class="title">File: <a href$="{{_getDownloadLink(report)}}">{{report.binaryName}}.{{report.binaryType}}</a></span>
+                <span class="raw">
+                <a href$="{{_getErrLink(report,'debug')}}">debug_err</a>
+                <a href$="{{_getErrLink(report,'release')}}">release_err</a>
+                <a href$="{{_getDumpLink(report,'debug')}}">debug_dump</a>
+                <a href$="{{_getDumpLink(report,'release')}}">release_dump</a>
+              </span>
+                <div>{{_getFlags(report)}}</div>
+                <h4>Debug Stack Trace</h4>
+                <fuzzer-stacktrace-sk trace="{{report.debugStackTrace}}"></fuzzer-stacktrace-sk>
+                <h4>Release Stack Trace</h4>
+                <fuzzer-stacktrace-sk trace="{{report.releaseStackTrace}}"></fuzzer-stacktrace-sk>
+              </div>
+            </template>
+            <div class="show-more-less-bar">
+              <paper-button disabled$="{{!hasFewer}}" on-click="showFewer">Show Fewer</paper-button>
+              <span class="status">
+                <span class="center">Showing {{toShow}}/{{totalCount}}</span>
+              </span>
+              <paper-button disabled$="{{!hasMore}}" on-click="showMore">Show More</paper-button>
+            </div>
+            <div>
+        </iron-collapse>
+      </template>
+      </div>
+  </template>
+  <script>
+  Polymer({
+    is: 'fuzzer-collapse-details-sk',
+
+    properties: {
+      details: { //expected to be provided
+        type: Object,
+        value: function() {
+          return {};
+        }
+      },
+      // Returns the total count of fuzzes represented here.
+      totalCount: {
+        type: Number,
+        computed: "_getTotalCount(details)",
+      },
+      // The number of detail panels to show
+      toShow: {
+        type: Number,
+        value: 0,
+        readOnly: true,
+      },
+      // Returns true if there are more detail panels to show
+      hasMore: {
+        type: Boolean,
+        computed: "_hasMore(details, toShow)"
+      },
+      // Returns true if there are not 0 detail panels currently displayed.
+      hasFewer: {
+        type: Boolean,
+        computed: "_hasFewer(toShow)"
+      },
+      // Returns the amount of detail panels equal to 'toShow'
+      reports: {
+        type: Array,
+        computed: "_getSomeReports(details, toShow)",
+      }
+    },
+
+    ready: function() {
+      if (this.details.binaryReports) {
+        this._setToShow(Math.min(6, this.details.binaryReports.length));
+      }
+    },
+
+    setDetails: function(details) {
+      this.details = details;
+      this._setToShow(Math.min(6, this.details.binaryReports.length));
+    },
+
+    _getTotalCount: function(details) {
+      return details.binaryCount + details.apiCount;
+    },
+
+    _hasDetails: function(details) {
+      return this.details.binaryReports && this.details.binaryReports.length > 0;
+    },
+
+    _getFlags: function(report) {
+      return report.flags.join(" | ");
+    },
+
+    showMore: function() {
+      this._setToShow(Math.min(this.toShow + 6, this.details.binaryReports.length));
+    },
+
+    showFewer: function() {
+      this._setToShow(Math.max(this.toShow - 6, 0));
+    },
+
+    _hasMore: function(details, toShow) {
+      return details.binaryReports && toShow < details.binaryReports.length;
+    },
+
+    _hasFewer: function(toShow) {
+      return toShow > 0;
+    },
+
+    // _getSomeReports returns up to {{toShow}} reports from details
+    _getSomeReports: function(details, toShow) {
+      if (!details.binaryReports) {
+        return [];
+      }
+      if (toShow > details.binaryReports.length) {
+        return details.binaryReports;
+      }
+      return details.binaryReports.slice(0, toShow);
+    },
+
+    _getDownloadLink: function(report) {
+      return "/fuzz/binary/" + report.binaryType + "/" + report.binaryName;
+    },
+
+    _getErrLink: function(report, type) {
+      return "/err/" + type + "/" + report.binaryName;
+    },
+
+    _getDumpLink: function(report, type) {
+      return "/dump/" + type + "/" + report.binaryName;
+    },
+
+    toggleDetails: function() {
+      this.$$("#detailsPanel").toggle();
+      this.$$("#indicator").toggleClass("toggled");
+    }
+  });
+  </script>
+</dom-module>
