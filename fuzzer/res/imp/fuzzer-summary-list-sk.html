@@ -1,0 +1,54 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <fuzzer-summary-list-sk>
+
+  This element will request once from /json/fuzz-list for the fuzz contents to display, which will be an array of FileDetails.
+  See fuzzer-collapse-file-sk.html for more information.
+
+  To use this file import it:
+
+    <link href="/res/imp/fuzzer-summary-list-sk.html" rel="import" />
+
+  Usage:
+
+    <fuzzer-summary-list-sk></fuzzer-summary-list-sk>
+
+  Properties:
+    None.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<dom-module id="fuzzer-summary-list-sk">
+  <template>
+    <template is="dom-repeat" items="{{fileDetails}}" as="file">
+      <fuzzer-collapse-file-sk file="{{file}}"></fuzzer-collapse-file-sk>
+    </template>
+  </template>
+  <script>
+  Polymer({
+    is: 'fuzzer-summary-list-sk',
+
+    properties: {
+      fileDetails: {
+        type: Array,
+        value: function() {
+          return [];
+        },
+        readOnly: true, //generates _setFileDetails
+      },
+    },
+
+    ready: function() {
+      sk.get("/json/fuzz-list").then(JSON.parse).then(this._setFileDetails.bind(this));
+    }
+  });
+  </script>
+</dom-module>

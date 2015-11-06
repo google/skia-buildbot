@@ -1,0 +1,123 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <fuzzer-collapse-file-sk>
+
+  This element will poll /json/list
+
+  To use this file import it:
+
+    <link href="/res/imp/fuzzer-collapse-file-sk.html" rel="import" />
+
+  Usage:
+
+    <fuzzer-collapse-file-sk></fuzzer-collapse-file-sk>
+
+  Properties:
+    file - The FileDetails object.  Expected to have the following attributes:
+      fileName: String,
+      apiCount: Number,
+      binaryCount: Number,
+      byFunction: Array of FunctionDetail objects.  See fuzzer-collapse-function-sk.html for schema.
+
+    expand: String, which should be "true" if the element and any children should start expanded.
+  Methods:
+    setFile(file) - Programmatically set the FileDetails object.
+    toggleLineNumbers() - Programmtically expand/collapse the function details.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="fuzzer-collapse-function-sk.html" />
+<dom-module id="fuzzer-collapse-file-sk">
+  <template>
+    <style>
+    #wrapper {
+      padding: 20px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: #F5F5F5;
+      color: #000000;
+    }
+
+    div.message {
+      overflow-wrap: word-break;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    h3 {
+      margin-top: 0px;
+    }
+
+    #indicator {
+      cursor: pointer;
+      margin: 1px 6px 1px 1px;
+    }
+
+    #indicator.toggled {
+      transform: rotate(.25turn);
+    }
+    </style>
+    <div id="wrapper">
+      <div class="message">
+        <h3>
+          <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleFunctions" title="Click to toggle function view"></iron-icon>
+          {{file.fileName}} -- {{totalCount}} outstanding fuzzes: {{file.binaryCount}} binary and {{file.apiCount}} api
+        </h3>
+      </div>
+      <iron-collapse id="functions">
+        <template is="dom-repeat" items="{{file.byFunction}}" as="function">
+          <fuzzer-collapse-function-sk func="{{function}}" expand="{{expand}}"></fuzzer-collapse-function-sk>
+        </template>
+      </iron-collapse>
+    </div>
+  </template>
+  <script>
+  Polymer({
+    is: 'fuzzer-collapse-file-sk',
+
+    properties: {
+      file: { //expected to be provided
+        type: Object,
+        value: function() {
+          return {};
+        }
+      },
+      totalCount: {
+        type: Number,
+        computed: "_getTotalCount(file)"
+      },
+      expand: {
+        type: String,
+        value: ""
+      },
+    },
+
+    ready: function() {
+      if (this.expand) {
+        this.$.functions.show();
+        this.$.indicator.toggleClass("toggled");
+      }
+    },
+
+    setFile: function(file) {
+      this.file = file;
+    },
+
+    _getTotalCount: function(file) {
+      return file.binaryCount + file.apiCount;
+    },
+
+    toggleFunctions: function() {
+      this.$.functions.toggle();
+      this.$.indicator.toggleClass("toggled");
+    }
+  });
+  </script>
+</dom-module>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>fuzzer-summary-list-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+
+  <script type="text/javascript" charset="utf-8">
+    sk.get = function(url) {
+      var data = [{"fileName":"foo.h","binaryCount":30,"apiCount":0,"byFunction":[{"functionName":"frizzle()","binaryCount":18,"apiCount":0,"byLineNumber":[{"lineNumber":64,"binaryCount":17,"apiCount":0,"binaryReports":[]},{"lineNumber":69,"binaryCount":1,"apiCount":0,"binaryReports":[]}]},{"functionName":"zizzle()","binaryCount":12,"apiCount":0,"byLineNumber":[{"lineNumber":123,"binaryCount":12,"apiCount":0,"binaryReports":[]}]}]},{"fileName":"bar.h","binaryCount":15,"apiCount":3,"byFunction":[{"functionName":"frizzle()","binaryCount":15,"apiCount":3,"byLineNumber":[{"lineNumber":566,"binaryCount":15,"apiCount":2,"binaryReports":[]},{"lineNumber":568,"binaryCount":0,"apiCount":1,"binaryReports":[]}]}]}];
+
+      return new Promise(function (resolve, reject) {
+        resolve(JSON.stringify(data));
+      });
+    };
+  </script>
+
+  <link rel="import" href="fuzzer-collapse-file-sk.html">
+  <link rel="import" href="fuzzer-collapse-function-sk.html">
+  <link rel="import" href="fuzzer-collapse-details-sk.html">
+  <link rel="import" href="fuzzer-summary-list-sk.html">
+
+</head>
+
+<body>
+  <h1>fuzzer-summary-list-sk demo</h1>
+
+  <fuzzer-summary-list-sk></fuzzer-summary-list-sk>
+
+</body>
+
+</html>
