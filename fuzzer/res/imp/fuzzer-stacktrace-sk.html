@@ -1,0 +1,132 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <fuzzer-stacktrace-sk>
+
+  <fuzzer-stacktrace-sk> displays a strack trace showing the first 8 frames and can be expanded with a click.
+
+  To use this file import it:
+
+    <link href="/res/imp/fuzzer-stacktrace-sk.html" rel="import" />
+
+  Usage:
+
+    <fuzzer-stacktrace-sk></fuzzer-stacktrace-sk>
+
+  Properties:
+    trace - The stack trace object.  Expected to be provided. Expected to have the following attributes:
+      - frames: An array of elements with the following attributes:
+        - packageName : String
+        - fileName : String
+        - lineNumber : Number
+        - functionName [optional]
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
+<dom-module id="fuzzer-stacktrace-sk">
+  <template>
+    <style>
+      .stacktrace{
+        padding:4px 8px;
+        display:table;
+      }
+      .frame {
+        display:table-row;
+      }
+      .frame:nth-child(odd) {
+        background-color:#EEE;
+      }
+      .frame:nth-child(even) {
+        background-color:#FFF;
+      }
+      /*<tr> cells cannot have rounded corners.  Neither can cells with display:table-row;
+      A workaround is to use display:table, table-row, table-cell and put
+      a border radius on the left parts of the left-most cell and a border radius on
+      the right parts of the right most cell. Also note that the table-row's padding
+      and such is determined by its children's styles.*/
+      .line {
+        display:table-cell;
+        padding:4px 8px;
+        border-radius: 8px 0 0 8px;
+      }
+      .function-name {
+        display:table-cell;
+        padding:4px 8px 4px 50px;
+        border-radius: 0 8px 8px 0;
+      }
+      #expand{
+        cursor:pointer;
+        /*Make this a bit bigger than normal (24px) */
+        --iron-icon-height: 30px;
+        --iron-icon-width: 30px;
+      }
+      .hidden{
+        display:none;
+      }
+    </style>
+    <div class="stacktrace">
+      <template is="dom-repeat" items="{{frames}}" as="frame">
+          <div class="frame" >
+            <span class="line">{{frame.packageName}}{{frame.fileName}}:{{frame.lineNumber}}</span>
+            <span class="function-name">
+              <template is="dom-if" if="{{frame.functionName}}">
+                <span>{{frame.functionName}}</span>
+              </template>
+            </span>
+          </div>
+      </template>
+
+    <paper-icon-button id="expand" icon="icons:more-horiz" on-click="showMore" title="expand stacktrace"></paper-icon-button>
+
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'fuzzer-stacktrace-sk',
+
+      properties: {
+        trace: {
+          type: Object,
+          value: function() { return {}; },
+        },
+        expanded: {
+          type: Boolean,
+          value: false
+        },
+        frames: {
+          type: Array,
+          computed: "_getStackFrames(trace, expanded)"
+        }
+      },
+
+      setStackTrace: function(trace) {
+        this.trace = trace;
+      },
+
+      _getStackFrames: function(trace, expanded) {
+        if (!trace.frames) {
+          return [];
+        }
+        if (expanded || trace.frames.length < 8) {
+          return trace.frames;
+        }
+        return trace.frames.slice(0, 8);
+      },
+
+      showMore: function() {
+        this.expanded = true;
+        this.$.expand.toggleClass("hidden");
+      }
+    });
+  </script
+</dom-module id="fuzzer-stacktrace-sk">
