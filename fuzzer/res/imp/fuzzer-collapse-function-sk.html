@@ -1,0 +1,124 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <fuzzer-collapse-function-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/fuzzer-collapse-function-sk.html" rel="import" />
+
+  Usage:
+
+    <fuzzer-collapse-function-sk></fuzzer-collapse-function-sk>
+
+  Properties:
+    func - The FunctionDetails object.  Expected to have the following attributes:
+      functionName: String,
+      apiCount: Number,
+      binaryCount: Number,
+      byLineNumber: Array of Detail objects.  See fuzzer-collapse-details-sk.html for schema.
+
+    expand: String, which should be "true" if the gui should start expanded
+
+  Methods:
+    setFunc(func) - Programmatically set the FunctionDetails object.
+    toggleLineNumbers() - Programmtically expand/collapse the line number details.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="fuzzer-collapse-details-sk.html">
+<dom-module id="fuzzer-collapse-function-sk">
+  <template>
+    <style>
+    #wrapper {
+      padding: 20px;
+      border-radius: 10px;
+      background-color: #E5E5E5;
+      color: #000000;
+    }
+
+    #wrapper div {
+      margin-top: 0px;
+    }
+
+    #indicator {
+      cursor: pointer;
+      margin: 1px 6px 1px 1px;
+      /*Make the indicator icon a bit smaller than normal*/
+      --iron-icon-height: 20px;
+      --iron-icon-width: 20px;
+    }
+
+    #indicator.toggled {
+      transform: rotate(.25turn);
+    }
+
+    ul {
+      list-style-type: none;
+    }
+    </style>
+    <div id="wrapper">
+      <div>
+        <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleLineNumbers" title="Click to toggle line number view"></iron-icon>
+        <span>
+              Function {{func.functionName}} -- {{totalCount}} outstanding fuzzes:
+              {{func.binaryCount}} binary and {{func.apiCount}} api
+        </span>
+      </div>
+      <iron-collapse id="lineNumbers">
+        <ul>
+          <template is="dom-repeat" items="{{func.byLineNumber}}" as="lineNumber">
+            <fuzzer-collapse-details-sk details="{{lineNumber}}"></fuzzer-collapse-details-sk>
+          </template>
+        </ul>
+      </iron-collapse>
+    </div>
+  </template>
+  <script>
+  Polymer({
+    is: 'fuzzer-collapse-function-sk',
+
+    properties: {
+      func: { //expected to be provided
+        type: Object,
+        value: function() {
+          return {};
+        }
+      },
+      totalCount: {
+        type: Number,
+        computed: "_getTotalCount(func)",
+      },
+      expand: {
+        type: String,
+        value: ""
+      },
+    },
+
+    ready: function() {
+      if (this.expand) {
+        this.$.lineNumbers.show();
+        this.$.indicator.toggleClass("toggled");
+      }
+    },
+
+    setFunc: function(func){
+      this.func = func;
+    },
+
+    _getTotalCount: function(func) {
+      return func.binaryCount + func.apiCount;
+    },
+
+    toggleLineNumbers: function() {
+      this.$.lineNumbers.toggle();
+      this.$.indicator.toggleClass("toggled");
+    }
+  });
+  </script>
+</dom-module>

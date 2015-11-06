@@ -19,9 +19,9 @@
       lineNumber: Number,
       apiCount: Number,
       binaryCount: Number,
-      binaryReports: [optional] Array of Reports. If supplied,
+      binaryReports: Array of Reports. If non-empty,
         an expandable details panel will be created containing representations of the reports.
-        If omitted, just the summary will be shown.
+        If empty, just the summary will be shown.
         Reports are objects and have the following attributes:
         - binaryName: String, The name of the binary, likely an md5 hash
         - binaryType: String, The type of the binary
