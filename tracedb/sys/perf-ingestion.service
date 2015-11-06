@@ -1,0 +1,18 @@
+[Unit]
+Description=Perf ingester
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/perf_ingestion \
+    --oauth=false \
+    --graphite_server=skia-monitoring:2003 \
+    --config_filename=/etc/perf_ingestion/config.toml \
+    --log_dir=/var/log/logserver
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

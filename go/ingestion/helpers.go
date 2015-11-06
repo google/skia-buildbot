@@ -52,7 +52,7 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 	// Set up the gitinfo object.
 	var vcs vcsinfo.VCS
 	var err error
-	if vcs, err = gitinfo.NewGitInfo(config.GitRepoDir, true, false); err != nil {
+	if vcs, err = gitinfo.CloneOrUpdate(config.GitRepoURL, config.GitRepoDir, true); err != nil {
 		return nil, err
 	}
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 # Builds and uploads a debian package for traceserver.
 APPNAME="traceserverd"
-SYSTEMD="gold-traceserver.service perf-traceserver.service"
-DESCRIPTION="Traceserver datastores for Perf and Gold traces."
+SYSTEMD="gold-traceserver.service perf-traceserver.service perf-ingestion.service"
+DESCRIPTION="Traceserver datastores for Perf and Gold traces and does ingestion."
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
@@ -15,6 +15,11 @@ ${INSTALL}     --mode=755 -T ${GOPATH}/bin/traceserver      ${ROOT}/usr/local/bi
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/traceserver      ${ROOT}/usr/local/bin/perf_traceserver
 ${INSTALL}     --mode=755 -T ${GOPATH}/bin/tracetool        ${ROOT}/usr/local/bin/tracetool
 ${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/traceserver
+
+${INSTALL}     --mode=644 -T ./sys/perf-ingestion.service   ${ROOT}/etc/systemd/system/perf-ingestion.service
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/skia_ingestion   ${ROOT}/usr/local/bin/perf_ingestion
+${INSTALL_DIR} --mode=777                                   ${ROOT}/mnt/pd0/skiarepo
+${INSTALL}     --mode=644 -T ./perf.toml                    ${ROOT}/etc/perf_ingestion/config.toml
 }
 
 source ../bash/release.sh

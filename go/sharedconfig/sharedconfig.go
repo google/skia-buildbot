@@ -38,6 +38,7 @@ type IngesterConfig struct {
 // Config is a struct to configure multiple ingesters.
 type Config struct {
 	GitRepoDir string // Directory location for the repo.
+	GitRepoURL string // Git URL of the repo.
 	Ingesters  map[string]*IngesterConfig
 }
 

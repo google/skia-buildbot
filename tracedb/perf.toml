@@ -1,0 +1,19 @@
+GitRepoDir     = "/mnt/pd0/skiarepo"                   # Directory location for the Skia repo.
+GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the repo.
+
+[Ingesters]
+
+	### Nano bench ingester ############################################################
+	[Ingesters.nano]
+	RunEvery       = "5m"
+	NCommits       = 10
+	MinDays        = 2
+	StatusDir      = "/mnt/pd0/perf_ingest_status"
+	MetricName     = "nano-ingest"
+
+		[[Ingesters.nano.Sources]]
+		Bucket         = "chromium-skia-gm"
+		Dir            = "nano-json-v1"
+
+		[Ingesters.nano.ExtraParams]
+		TraceService   = "localhost:9000"
