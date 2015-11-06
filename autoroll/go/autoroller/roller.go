@@ -16,14 +16,20 @@ import (
 )
 
 const (
-	STATUS_ERROR       = "error"
-	STATUS_IN_PROGRESS = "in progress"
-	STATUS_STOPPED     = "stopped"
-	STATUS_UP_TO_DATE  = "up to date"
+	STATUS_DRY_RUN_FAILURE     = "dry run failed"
+	STATUS_DRY_RUN_IN_PROGRESS = "dry run in progress"
+	STATUS_DRY_RUN_SUCCESS     = "dry run succeeded"
+	STATUS_ERROR               = "error"
+	STATUS_IN_PROGRESS         = "in progress"
+	STATUS_STOPPED             = "stopped"
+	STATUS_UP_TO_DATE          = "up to date"
 )
 
 var (
 	VALID_STATUSES = []string{
+		STATUS_DRY_RUN_FAILURE,
+		STATUS_DRY_RUN_IN_PROGRESS,
+		STATUS_DRY_RUN_SUCCESS,
 		STATUS_ERROR,
 		STATUS_IN_PROGRESS,
 		STATUS_STOPPED,
@@ -193,13 +199,57 @@ func (r *AutoRoller) SetEmails(e []string) {
 
 // closeIssue closes the given issue with the given message.
 func (r *AutoRoller) closeIssue(issue *autoroll.AutoRollIssue, result, msg string) error {
-	glog.Infof("Closing issue %d with message: %s", issue.Issue, msg)
+	glog.Infof("Closing issue %d (result %q) with message: %s", issue.Issue, result, msg)
 	if err := r.rietveld.Close(issue.Issue, msg); err != nil {
 		return err
 	}
 	issue.Result = result
 	issue.Closed = true
+	issue.CommitQueue = false
+	issue.CommitQueueDryRun = false
 	return r.recent.Update(issue)
+}
+
+// addIssueComment adds a comment to the given issue.
+func (r *AutoRoller) addIssueComment(issue *autoroll.AutoRollIssue, msg string) error {
+	glog.Infof("Adding comment to issue: %q", msg)
+	if err := r.rietveld.AddComment(issue.Issue, msg); err != nil {
+		return err
+	}
+	updated, err := r.retrieveRoll(issue.Issue)
+	if err != nil {
+		return err
+	}
+	return r.recent.Update(updated)
+}
+
+// setDryRun sets the CQ dry run bit on the issue.
+func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error {
+	// Unset the CQ and dry-run bits.
+	props := map[string]string{
+		"cq_dry_run":   "0",
+		"commit_queue": "0",
+	}
+	patchset := issue.Patchsets[len(issue.Patchsets)-1]
+	if err := r.rietveld.SetProperties(issue.Issue, patchset, props); err != nil {
+		return err
+	}
+
+	// Set the CQ and, if desired, the CQ dry run bit.
+	props = map[string]string{
+		"commit_queue": "1",
+	}
+	if dryRun {
+		props["cq_dry_run"] = "1"
+	}
+	if err := r.rietveld.SetProperties(issue.Issue, patchset, props); err != nil {
+		return err
+	}
+	updated, err := r.retrieveRoll(issue.Issue)
+	if err != nil {
+		return err
+	}
+	return r.recent.Update(updated)
 }
 
 // getRollRev parses an abbreviated commit hash from the given issue
@@ -221,10 +271,16 @@ func (r *AutoRoller) updateCurrentRoll() error {
 	if currentRoll == nil {
 		return nil
 	}
+	currentResult := currentRoll.Result
 
 	updated, err := r.retrieveRoll(currentRoll.Issue)
 	if err != nil {
 		return err
+	}
+
+	// We have to rely on data we store for the dry run case.
+	if !updated.Closed && util.In(currentResult, autoroll.DRY_RUN_RESULTS) {
+		updated.Result = currentResult
 	}
 
 	return r.recent.Update(updated)
@@ -237,7 +293,7 @@ func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, erro
 		return nil, err
 	}
 	a := autoroll.FromRietveldIssue(issue)
-	tryResults, err := autoroll.GetTryResults(a)
+	tryResults, err := autoroll.GetTryResults(r.rietveld, a)
 	if err != nil {
 		return nil, err
 	}
@@ -279,30 +335,80 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 			return STATUS_ERROR, err
 		}
 
-		if r.isMode(autoroll_modes.MODE_STOPPED) {
-			// If we're stopped, close the issue.
-			if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "AutoRoller is stopped; closing the active roll."); err != nil {
-				return STATUS_ERROR, err
-			}
-		} else if !currentRoll.CommitQueue {
-			// If the CQ failed, close the issue.
-			if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Commit queue failed; closing this roll."); err != nil {
-				return STATUS_ERROR, err
-			}
-		} else if time.Since(currentRoll.Modified) > 24*time.Hour {
-			// If the roll has been open too long, close the issue.
-			if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Roll has been open for over 24 hours; closing."); err != nil {
-				return STATUS_ERROR, err
-			}
-		} else if r.rm.RolledPast(rollingTo) {
-			// If we've already rolled past the target revision, close the issue
-			if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Already rolled past %s; closing this roll.", rollingTo)); err != nil {
-				return STATUS_ERROR, err
+		if r.isMode(autoroll_modes.MODE_DRY_RUN) {
+			if currentRoll.AllTrybotsFinished() {
+				result := autoroll.ROLL_RESULT_DRY_RUN_FAILURE
+				status := STATUS_DRY_RUN_FAILURE
+				if currentRoll.AllTrybotsSucceeded() {
+					result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
+					status = STATUS_DRY_RUN_SUCCESS
+				}
+				if rollingTo != r.rm.SkiaHead() {
+					if err := r.closeIssue(currentRoll, result, fmt.Sprintf("Skia has passed %s; will open a new dry run.", rollingTo)); err != nil {
+						return STATUS_ERROR, err
+					}
+				} else if currentRoll.Result != result {
+					// The dry run just finished. Set its result.
+					if result == autoroll.ROLL_RESULT_DRY_RUN_FAILURE {
+						if err := r.closeIssue(currentRoll, result, "Dry run failed. Closing, will open another."); err != nil {
+							return STATUS_ERROR, err
+						}
+					} else {
+						if err := r.addIssueComment(currentRoll, "Dry run finished successfully; leaving open in case we want to land"); err != nil {
+							return STATUS_ERROR, err
+						}
+						currentRoll.Result = result
+						if err := r.recent.Update(currentRoll); err != nil {
+							return STATUS_ERROR, err
+						}
+						return status, nil
+					}
+				} else {
+					// The dry run is finished but still good. Leave it open.
+					return status, nil
+				}
+			} else {
+				if !currentRoll.CommitQueueDryRun {
+					// Set it to dry-run only.
+					glog.Infof("Setting dry-run bit on https://codereview.chromium.org/%d", currentRoll.Issue)
+					if err := r.setDryRun(currentRoll, true); err != nil {
+						return STATUS_ERROR, err
+					}
+				}
+				return STATUS_DRY_RUN_IN_PROGRESS, nil
 			}
 		} else {
-			// Current roll is still good. Exit.
-			glog.Infof("Roll is still active (%d): %s", currentRoll.Issue, currentRoll.Subject)
-			return STATUS_IN_PROGRESS, nil
+			if currentRoll.CommitQueueDryRun {
+				glog.Infof("Unsetting dry run bit on https://codereview.chromium.org/%d", currentRoll.Issue)
+				if err := r.setDryRun(currentRoll, false); err != nil {
+					return STATUS_ERROR, err
+				}
+			}
+			if r.isMode(autoroll_modes.MODE_STOPPED) {
+				// If we're stopped, close the issue.
+				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "AutoRoller is stopped; closing the active roll."); err != nil {
+					return STATUS_ERROR, err
+				}
+			} else if !currentRoll.CommitQueue {
+				// If the CQ failed, close the issue.
+				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Commit queue failed; closing this roll."); err != nil {
+					return STATUS_ERROR, err
+				}
+			} else if time.Since(currentRoll.Modified) > 24*time.Hour {
+				// If the roll has been open too long, close the issue.
+				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Roll has been open for over 24 hours; closing."); err != nil {
+					return STATUS_ERROR, err
+				}
+			} else if r.rm.RolledPast(rollingTo) {
+				// If we've already rolled past the target revision, close the issue
+				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Already rolled past %s; closing this roll.", rollingTo)); err != nil {
+					return STATUS_ERROR, err
+				}
+			} else {
+				// Current roll is still good.
+				glog.Infof("Roll is still active (%d): %s", currentRoll.Issue, currentRoll.Subject)
+				return STATUS_IN_PROGRESS, nil
+			}
 		}
 	}
 
@@ -332,5 +438,8 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	}
 	glog.Infof("Uploaded new DEPS roll: %s/%d", autoroll.RIETVELD_URL, uploadedNum)
 
+	if r.isMode(autoroll_modes.MODE_DRY_RUN) {
+		return STATUS_DRY_RUN_IN_PROGRESS, nil
+	}
 	return STATUS_IN_PROGRESS, nil
 }

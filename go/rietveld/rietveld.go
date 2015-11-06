@@ -143,6 +143,16 @@ func (r *Rietveld) AddComment(issue int64, message string) error {
 	return r.post(fmt.Sprintf("/%d/publish", issue), data)
 }
 
+// SetProperties sets the given properties on the issue with the given value.
+func (r *Rietveld) SetProperties(issue, lastPatchset int64, props map[string]string) error {
+	data := url.Values{}
+	for k, v := range props {
+		data.Add(k, v)
+	}
+	data.Add("last_patchset", fmt.Sprintf("%d", lastPatchset))
+	return r.post(fmt.Sprintf("/%d/edit_flags", issue), data)
+}
+
 // Close closes the issue with the given message.
 func (r *Rietveld) Close(issue int64, message string) error {
 	if err := r.AddComment(issue, message); err != nil {

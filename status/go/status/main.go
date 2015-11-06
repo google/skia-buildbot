@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -730,7 +731,7 @@ func main() {
 	}
 
 	// Load AutoRoll data in a loop.
-	rollStatus, err = autoroll.AutoRollStatusPoller()
+	rollStatus, err = autoroll.AutoRollStatusPoller(rietveld.New(autoroll.RIETVELD_URL, nil))
 	if err != nil {
 		glog.Fatal(err)
 	}

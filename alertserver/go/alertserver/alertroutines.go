@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/util"
 )
 
@@ -116,7 +117,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		lastSearch := time.Now()
 		for now := range time.Tick(time.Minute) {
 			glog.Infof("Searching for DEPS rolls.")
-			results, err := autoroll.GetRecentRolls(lastSearch)
+			results, err := autoroll.GetRecentRolls(rietveld.New(autoroll.RIETVELD_URL, nil), lastSearch)
 			if err != nil {
 				glog.Errorf("Failed to search for DEPS rolls: %v", err)
 				continue

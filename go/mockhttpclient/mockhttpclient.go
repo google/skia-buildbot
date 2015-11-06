@@ -93,6 +93,17 @@ func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 	}, nil
 }
 
+// Empty returns true iff all of the URLs registered via MockOnce() have been
+// used.
+func (m *URLMock) Empty() bool {
+	for _, resps := range m.mockOnce {
+		if resps != nil && len(resps) > 0 {
+			return false
+		}
+	}
+	return true
+}
+
 // respBodyCloser is a wrapper which lets us pretend to implement io.ReadCloser
 // by wrapping a bytes.Reader.
 type respBodyCloser struct {
