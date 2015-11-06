@@ -361,3 +361,19 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 func (ts *TsDB) Close() error {
 	return ts.conn.Close()
 }
+
+// NewTraceServiceDBFromAddress is given the address of the traceService
+// implementation and returns an instance of the trace.DB
+// (the higher level wrapper on top of trace service).
+func NewTraceServiceDBFromAddress(traceServiceAddr string, traceBuilder tiling.TraceBuilder) (DB, error) {
+	if traceServiceAddr == "" {
+		return nil, fmt.Errorf("Did not get address for trace services.")
+	}
+
+	conn, err := grpc.Dial(traceServiceAddr, grpc.WithInsecure())
+	if err != nil {
+		return nil, fmt.Errorf("Unable to connnect to trace service at %s. Got error: %s", traceServiceAddr, err)
+	}
+
+	return NewTraceServiceDB(conn, traceBuilder)
+}

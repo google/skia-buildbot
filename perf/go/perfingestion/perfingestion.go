@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
 	"go.skia.org/infra/perf/go/types"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -130,7 +129,7 @@ type perfProcessor struct {
 
 // implements the ingestion.Constructor signature.
 func newPerfProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig) (ingestion.Processor, error) {
-	traceDB, err := getTraceDB(config.ExtraParams[CONFIG_TRACESERVICE])
+	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.PerfTraceBuilder)
 	if err != nil {
 		return nil, err
 	}
@@ -170,22 +169,6 @@ func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 
 // See ingestion.Processor interface.
 func (p *perfProcessor) BatchFinished() error { return nil }
-
-// getTraceDB is given the address of the traceService implementation and
-// returns an instance of the traceDB (the higher level wrapper on top of
-// trace service).
-func getTraceDB(traceServiceAddr string) (tracedb.DB, error) {
-	if traceServiceAddr == "" {
-		return nil, fmt.Errorf("No value for '%s' specified in config.", CONFIG_TRACESERVICE)
-	}
-
-	conn, err := grpc.Dial(traceServiceAddr, grpc.WithInsecure())
-	if err != nil {
-		return nil, fmt.Errorf("Unable to connnect to trace service at %s. Got error: %s", traceServiceAddr, err)
-	}
-
-	return tracedb.NewTraceServiceDB(conn, types.PerfTraceBuilder)
-}
 
 // parseBenchDataFromReader parses the stream out of the io.ReadCloser
 // into BenchData and closes the reader.
