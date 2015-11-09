@@ -77,7 +77,7 @@
     <hr/>
     <h3>Blamelist</h3>
     <table>
-      <template repeat="{{c in build.commits}}">
+      <template repeat="{{c in commits}}">
         <tr>
           <td><a href="https://skia.googlesource.com/{{repo}}/+/{{c}}">{{commitDetails[c].shortHash}}</a></td>
           <td>{{commitDetails[c].shortAuthor}}</td>
@@ -99,14 +99,31 @@
           value: "https://build.chromium.org/p",
           reflect: true,
         },
+        commits: {
+          value: function() { return []; },
+          reflect: true,
+        },
         commitDetails: {
-          value: {},
+          value: function() { return {}; },
           reflect: true,
         },
         repo: {
           value: "skia",
           reflect: true,
         },
+      },
+
+      buildChanged: function() {
+        var commits = [];
+        for (var i = 0; i < this.build.commits.length; i++) {
+          commits.push(this.build.commits[i]);
+        }
+        commits.sort(function(a, b) {
+          var t1 = new Date(this.commitDetails[a].timestamp).getTime();
+          var t2 = new Date(this.commitDetails[b].timestamp).getTime();
+          return t2 - t1;
+        }.bind(this));
+        this.commits = commits;
       },
 
       commentAdded: function() {
