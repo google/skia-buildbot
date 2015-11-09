@@ -93,6 +93,12 @@ func main() {
 	}
 	eventBus = eventbus.New(globalEventBus)
 
+	// Add a subscription for the storage events. This prevents the messages
+	// to queue up if there are no other clients connected.
+	eventBus.SubscribeAsync(event.GLOBAL_GOOGLE_STORAGE, func(evData interface{}) {
+		// Ignore the messages.
+	})
+
 	if *testing {
 		*useMetadata = false
 	}

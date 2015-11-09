@@ -9,7 +9,10 @@
 set -e -x
 
 APPNAME="nsqd"
-SYSTEMD=${APPNAME}.service
+APPNAME_NSQ_LOOKUPD="nsqlookupd"
+APPNAME_NSQ_ADMIN="nsqadmin"
+
+SYSTEMD="${APPNAME}.service ${APPNAME_NSQ_LOOKUPD}.service ${APPNAME_NSQ_ADMIN}.service"
 DESCRIPTION="NSQ - a realtime distributed messaging platform."
 INIT_SCRIPT=${APPNAME}
 
@@ -26,9 +29,13 @@ tar xzvf  $DISTRIBUTION_TAR --strip-component=2 -C $TEMP_DIR
 copy_release_files()
 {
   INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-  ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
-  ${INSTALL} --mode=755 -T ${TEMP_DIR}/${APPNAME}   ${ROOT}/usr/local/bin/${APPNAME}
-  ${INSTALL} --mode=755 -T ./sys/${APPNAME}_init    ${ROOT}/etc/init.d/${APPNAME}
+  ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service             ${ROOT}/etc/systemd/system/${APPNAME}.service
+  ${INSTALL} --mode=644 -T ./sys/${APPNAME_NSQ_LOOKUPD}.service ${ROOT}/etc/systemd/system/${APPNAME_NSQ_LOOKUPD}.service
+  ${INSTALL} --mode=644 -T ./sys/${APPNAME_NSQ_ADMIN}.service   ${ROOT}/etc/systemd/system/${APPNAME_NSQ_ADMIN}.service
+  ${INSTALL} --mode=755 -T ${TEMP_DIR}/${APPNAME}               ${ROOT}/usr/local/bin/${APPNAME}
+  ${INSTALL} --mode=755 -T ${TEMP_DIR}/${APPNAME_NSQ_LOOKUPD}   ${ROOT}/usr/local/bin/${APPNAME_NSQ_LOOKUPD}
+  ${INSTALL} --mode=755 -T ${TEMP_DIR}/${APPNAME_NSQ_ADMIN}     ${ROOT}/usr/local/bin/${APPNAME_NSQ_ADMIN}
+  ${INSTALL} --mode=755 -T ./sys/${APPNAME}_init                ${ROOT}/etc/init.d/${APPNAME}
 }
 
 source ../bash/release.sh
