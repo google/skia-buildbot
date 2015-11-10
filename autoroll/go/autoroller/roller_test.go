@@ -291,7 +291,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	}
 
 	rm := &mockRepoManager{t: t}
-	repo_manager.NewRepoManager = func(workdir string, frequency time.Duration) (repo_manager.RepoManager, error) {
+	repo_manager.NewRepoManager = func(workdir string, frequency time.Duration, depot_tools string) (repo_manager.RepoManager, error) {
 		return rm, nil
 	}
 
@@ -307,7 +307,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	roll1 := rm.rollerWillUpload(rv, rm.MockLastRollRev, rm.MockSkiaHead, noTrybots, false)
 
 	// Create the roller.
-	roller, err := NewAutoRoller(workdir, []string{}, []string{}, rv.r, time.Hour, time.Hour)
+	roller, err := NewAutoRoller(workdir, []string{}, []string{}, rv.r, time.Hour, time.Hour, "depot_tools")
 	assert.Nil(t, err)
 
 	// Verify that the bot ran successfully.
@@ -458,6 +458,23 @@ func TestAutoRollDryRun(t *testing.T) {
 	checkStatus(t, roller, rv, STATUS_DRY_RUN_IN_PROGRESS, roll3, trybots3, true, roll2, trybots2, true)
 
 	// Ensure that we switch back to normal running mode as expected.
+	rv.rollerWillSwitchDryRun(roll3, trybots3, false)
+	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Normal mode."))
+	checkStatus(t, roller, rv, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
+
+	// Switch back to dry run.
+	rv.rollerWillSwitchDryRun(roll3, trybots3, true)
+	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_DRY_RUN, u, "Dry run again."))
+	checkStatus(t, roller, rv, STATUS_DRY_RUN_IN_PROGRESS, roll3, trybots3, true, roll2, trybots2, true)
+
+	// Dry run succeeded.
+	rv.pretendDryRunFinished(roll3, trybots3, true)
+	assert.Nil(t, roller.doAutoRoll())
+	checkStatus(t, roller, rv, STATUS_DRY_RUN_SUCCESS, roll3, trybots3, true, roll2, trybots2, true)
+
+	// The successful dry run will not have the commit bit set. Make sure
+	// that, when we switch back into normal mode, we re-set the commit bit
+	// instead of closing the roll and opening a new one.
 	rv.rollerWillSwitchDryRun(roll3, trybots3, false)
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Normal mode."))
 	checkStatus(t, roller, rv, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)

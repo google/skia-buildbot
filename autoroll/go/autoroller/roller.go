@@ -53,8 +53,8 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, tickFrequency, repoFrequency time.Duration) (*AutoRoller, error) {
-	rm, err := repo_manager.NewRepoManager(workdir, repoFrequency)
+func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, tickFrequency, repoFrequency time.Duration, depot_tools string) (*AutoRoller, error) {
+	rm, err := repo_manager.NewRepoManager(workdir, repoFrequency, depot_tools)
 	if err != nil {
 		return nil, err
 	}
@@ -227,8 +227,8 @@ func (r *AutoRoller) addIssueComment(issue *autoroll.AutoRollIssue, msg string) 
 func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error {
 	// Unset the CQ and dry-run bits.
 	props := map[string]string{
-		"cq_dry_run":   "0",
-		"commit_queue": "0",
+		"cq_dry_run": "0",
+		"commit":     "0",
 	}
 	patchset := issue.Patchsets[len(issue.Patchsets)-1]
 	if err := r.rietveld.SetProperties(issue.Issue, patchset, props); err != nil {
@@ -237,7 +237,7 @@ func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error
 
 	// Set the CQ and, if desired, the CQ dry run bit.
 	props = map[string]string{
-		"commit_queue": "1",
+		"commit": "1",
 	}
 	if dryRun {
 		props["cq_dry_run"] = "1"
@@ -314,6 +314,19 @@ func (r *AutoRoller) doAutoRoll() error {
 	return lastError
 }
 
+// makeRollResult determines what the result of a roll should be, given that
+// it is going to be closed.
+func (r *AutoRoller) makeRollResult(roll *autoroll.AutoRollIssue) string {
+	if util.In(roll.Result, autoroll.DRY_RUN_RESULTS) {
+		if roll.Result == autoroll.ROLL_RESULT_DRY_RUN_IN_PROGRESS {
+			return autoroll.ROLL_RESULT_DRY_RUN_FAILURE
+		} else {
+			return roll.Result
+		}
+	}
+	return autoroll.ROLL_RESULT_FAILURE
+}
+
 // doAutoRollInner does the actual work of the AutoRoll.
 func (r *AutoRoller) doAutoRollInner() (string, error) {
 	r.runningMtx.Lock()
@@ -336,7 +349,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 		}
 
 		if r.isMode(autoroll_modes.MODE_DRY_RUN) {
-			if currentRoll.AllTrybotsFinished() {
+			if len(currentRoll.TryResults) > 0 && currentRoll.AllTrybotsFinished() {
 				result := autoroll.ROLL_RESULT_DRY_RUN_FAILURE
 				status := STATUS_DRY_RUN_FAILURE
 				if currentRoll.AllTrybotsSucceeded() {
@@ -365,6 +378,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 					}
 				} else {
 					// The dry run is finished but still good. Leave it open.
+					glog.Infof("Dry run is finished and still good.")
 					return status, nil
 				}
 			} else {
@@ -375,6 +389,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 						return STATUS_ERROR, err
 					}
 				}
+				glog.Infof("Dry run still in progress.")
 				return STATUS_DRY_RUN_IN_PROGRESS, nil
 			}
 		} else {
@@ -386,13 +401,23 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 			}
 			if r.isMode(autoroll_modes.MODE_STOPPED) {
 				// If we're stopped, close the issue.
-				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "AutoRoller is stopped; closing the active roll."); err != nil {
+				// Respect the previous result of the roll.
+				if err := r.closeIssue(currentRoll, r.makeRollResult(currentRoll), "AutoRoller is stopped; closing the active roll."); err != nil {
 					return STATUS_ERROR, err
 				}
 			} else if !currentRoll.CommitQueue {
 				// If the CQ failed, close the issue.
-				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Commit queue failed; closing this roll."); err != nil {
-					return STATUS_ERROR, err
+				// Special case: if the current roll was a dry run which succeeded, land it.
+				if currentRoll.Result == autoroll.ROLL_RESULT_DRY_RUN_SUCCESS {
+					glog.Infof("Dry run succeeded. Attempting to land.")
+					if err := r.setDryRun(currentRoll, false); err != nil {
+						return STATUS_ERROR, nil
+					}
+					return STATUS_IN_PROGRESS, nil
+				} else {
+					if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Commit queue failed; closing this roll."); err != nil {
+						return STATUS_ERROR, err
+					}
 				}
 			} else if time.Since(currentRoll.Modified) > 24*time.Hour {
 				// If the roll has been open too long, close the issue.

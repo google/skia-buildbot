@@ -333,14 +333,21 @@
         if (!roll) {
           return "unknown";
         }
-        return roll.closed ? (roll.committed ? "success" : "failure") : "unknown";
+        return {
+          "succeeded": "success",
+          "failed": "failure",
+          "in progress": "unknown",
+          "dry run succeeded": "success",
+          "dry run failed": "failure",
+          "dry run in progress": "unknown",
+        }[roll.result] || "unknown";
       },
 
       _rollResult: function(roll) {
         if (!roll) {
           return "unknown";
         }
-        return roll.closed ? (roll.committed ? "success" : "failure") : "in progress";
+        return roll.result;
       },
 
       _statusClass: function(status) {
@@ -349,6 +356,9 @@
           "in progress": "unknown",
           "stopped": "failure",
           "up to date": "success",
+          "dry run failed": "failure",
+          "dry run succeeded": "success",
+          "dry run in progress": "unknown",
         }[status] || "";
       },
 

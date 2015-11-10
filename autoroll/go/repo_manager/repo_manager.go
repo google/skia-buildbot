@@ -19,6 +19,9 @@ import (
 const (
 	DEPS_ROLL_BRANCH = "skia_roll"
 
+	GCLIENT  = "gclient"
+	ROLL_DEP = "roll-dep"
+
 	REPO_CHROMIUM = "https://chromium.googlesource.com/chromium/src.git"
 	REPO_SKIA     = "https://skia.googlesource.com/skia.git"
 
@@ -30,7 +33,7 @@ var (
 
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewRepoManager func(string, time.Duration) (RepoManager, error) = NewDefaultRepoManager
+	NewRepoManager func(string, time.Duration, string) (RepoManager, error) = NewDefaultRepoManager
 )
 
 // RepoManager is used by AutoRoller for managing checkouts.
@@ -46,8 +49,11 @@ type RepoManager interface {
 type repoManager struct {
 	chromiumDir       string
 	chromiumParentDir string
+	depot_tools       string
+	gclient           string
 	lastRollRev       string
 	mtx               sync.RWMutex
+	rollDep           string
 	skiaDir           string
 	skiaHead          string
 	skiaRepo          *gitinfo.GitInfo
@@ -55,16 +61,26 @@ type repoManager struct {
 
 // NewDefaultRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func NewDefaultRepoManager(workdir string, frequency time.Duration) (RepoManager, error) {
+func NewDefaultRepoManager(workdir string, frequency time.Duration, depot_tools string) (RepoManager, error) {
 	chromiumParentDir := path.Join(workdir, "chromium")
 	skiaDir := path.Join(workdir, "skia")
 	skiaRepo, err := gitinfo.CloneOrUpdate(REPO_SKIA, skiaDir, true)
 	if err != nil {
 		return nil, err
 	}
+	gclient := GCLIENT
+	rollDep := ROLL_DEP
+	if depot_tools != "" {
+		gclient = path.Join(depot_tools, gclient)
+		rollDep = path.Join(depot_tools, rollDep)
+	}
+
 	r := &repoManager{
 		chromiumDir:       path.Join(chromiumParentDir, "src"),
 		chromiumParentDir: chromiumParentDir,
+		depot_tools:       depot_tools,
+		gclient:           gclient,
+		rollDep:           rollDep,
 		skiaDir:           skiaDir,
 		skiaRepo:          skiaRepo,
 	}
@@ -88,16 +104,33 @@ func (r *repoManager) update() error {
 		return err
 	}
 
+	// Create the chromium parent directory if needed.
+	if _, err := os.Stat(r.chromiumParentDir); err != nil {
+		if err := os.MkdirAll(r.chromiumParentDir, 0755); err != nil {
+			return err
+		}
+	}
+
 	if _, err := os.Stat(path.Join(r.chromiumDir, ".git")); err == nil {
 		if err := r.cleanChromium(); err != nil {
 			return err
 		}
 	}
 
-	if _, err := exec.RunCwd(r.chromiumParentDir, "gclient", "config", REPO_CHROMIUM); err != nil {
+	if _, err := exec.RunCommand(&exec.Command{
+		Dir:  r.chromiumParentDir,
+		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Name: r.gclient,
+		Args: []string{"config", REPO_CHROMIUM},
+	}); err != nil {
 		return err
 	}
-	if _, err := exec.RunCwd(r.chromiumParentDir, "gclient", "sync", "--nohooks"); err != nil {
+	if _, err := exec.RunCommand(&exec.Command{
+		Dir:  r.chromiumParentDir,
+		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Name: r.gclient,
+		Args: []string{"sync", "--nohooks"},
+	}); err != nil {
 		return err
 	}
 
@@ -119,7 +152,7 @@ func (r *repoManager) update() error {
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.
 func (r *repoManager) getLastRollRev() (string, error) {
-	output, err := exec.RunCwd(r.chromiumDir, "gclient", "revinfo")
+	output, err := exec.RunCwd(r.chromiumDir, r.gclient, "revinfo")
 	if err != nil {
 		return "", err
 	}
@@ -178,7 +211,12 @@ func (r *repoManager) cleanChromium() error {
 		return err
 	}
 	_, _ = exec.RunCwd(r.chromiumDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
-	if _, err := exec.RunCwd(r.chromiumDir, "gclient", "revert", "--nohooks"); err != nil {
+	if _, err := exec.RunCommand(&exec.Command{
+		Dir:  r.chromiumDir,
+		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Name: r.gclient,
+		Args: []string{"revert", "--nohooks"},
+	}); err != nil {
 		return err
 	}
 	return nil
@@ -203,7 +241,18 @@ func (r *repoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool
 	}()
 
 	// Create the roll CL.
-	if _, err := exec.RunCwd(r.chromiumDir, "roll-dep", "src/third_party/skia", to); err != nil {
+	if _, err := exec.RunCwd(r.chromiumDir, "git", "config", "user.name", autoroll.ROLL_AUTHOR); err != nil {
+		return 0, err
+	}
+	if _, err := exec.RunCwd(r.chromiumDir, "git", "config", "user.email", autoroll.ROLL_AUTHOR); err != nil {
+		return 0, err
+	}
+	if _, err := exec.RunCommand(&exec.Command{
+		Dir:  r.chromiumDir,
+		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Name: r.rollDep,
+		Args: []string{"src/third_party/skia", to},
+	}); err != nil {
 		return 0, err
 	}
 	// Build the commit message, starting with the message provided by roll-dep.
@@ -214,23 +263,28 @@ func (r *repoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool
 	if cqExtraTrybots != nil && len(cqExtraTrybots) > 0 {
 		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, strings.Join(cqExtraTrybots, ","))
 	}
-	uploadCmd := []string{"git", "cl", "upload", "--bypass-hooks", "-f"}
+	uploadCmd := &exec.Command{
+		Dir:  r.chromiumDir,
+		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Name: "git",
+		Args: []string{"cl", "upload", "--bypass-hooks", "-f"},
+	}
 	if dryRun {
-		uploadCmd = append(uploadCmd, "--cq-dry-run")
+		uploadCmd.Args = append(uploadCmd.Args, "--cq-dry-run")
 	} else {
-		uploadCmd = append(uploadCmd, "--use-commit-queue")
+		uploadCmd.Args = append(uploadCmd.Args, "--use-commit-queue")
 	}
 	tbr := "\nTBR="
 	if emails != nil && len(emails) > 0 {
 		emailStr := strings.Join(emails, ",")
 		tbr += emailStr
-		uploadCmd = append(uploadCmd, "--send-mail", "--cc", emailStr)
+		uploadCmd.Args = append(uploadCmd.Args, "--send-mail", "--cc", emailStr)
 	}
 	commitMsg += tbr
-	uploadCmd = append(uploadCmd, "-m", commitMsg)
+	uploadCmd.Args = append(uploadCmd.Args, "-m", commitMsg)
 
 	// Upload the CL.
-	uploadOutput, err := exec.RunCwd(r.chromiumDir, uploadCmd...)
+	uploadOutput, err := exec.RunCommand(uploadCmd)
 	if err != nil {
 		return 0, err
 	}

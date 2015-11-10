@@ -256,6 +256,12 @@ func RunSimple(commandLine string) (string, error) {
 	return runSimpleCommand(&cmd)
 }
 
+// RunCommand executes the given command and returns the combined stdout and stderr. May also
+// return an error if the command exited with a non-zero status or there is any other error.
+func RunCommand(command *Command) (string, error) {
+	return runSimpleCommand(command)
+}
+
 // RunCwd executes the given command in the given directory. Returns the combined stdout and
 // stderr. May also return an error if the command exited with a non-zero status or there is any
 // other error.

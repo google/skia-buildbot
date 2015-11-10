@@ -42,11 +42,12 @@ var (
 var (
 	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8003", "HTTP service port (e.g., ':8003')")
+	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
 )
 
 func getSheriff() ([]string, error) {
@@ -61,9 +62,7 @@ func getSheriff() ([]string, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&sheriff); err != nil {
 		return nil, err
 	}
-	// TODO(borenet): Use the real sheriff when ready to land.
-	glog.Infof("Faking the sheriff to avoid spam. Real sheriff is %s", sheriff.Username)
-	return []string{"borenet@google.com" /*sheriff.Username*/}, nil
+	return []string{sheriff.Username}, nil
 }
 
 func getCQExtraTrybots() ([]string, error) {
@@ -153,6 +152,8 @@ func runServer(serverURL string) {
 func main() {
 	defer common.LogPanic()
 	common.InitWithMetrics("autoroll", graphiteServer)
+	Init()
+
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		glog.Fatal(err)
@@ -184,7 +185,7 @@ func main() {
 	}
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute)
+	arb, err = autoroller.NewAutoRoller(*workdir, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute, *depot_tools)
 	if err != nil {
 		glog.Fatal(err)
 	}
