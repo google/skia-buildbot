@@ -76,7 +76,7 @@
       viewBox="-1 -1 {{value.tileSize+1}} {{value.traces.length+1}}">
 
       <template repeat="{{trace, i in value.traces}}">
-        <g data-id="{{trace.label}}" stroke="#999" fill="#999" stroke-width="0.2">
+        <g traceid="{{trace.label}}" stroke="#999" fill="#999" stroke-width="0.2">
           <line
           x1="{{trace.data[0].x}}"
           y1="{{trace.data[0].y}}"
@@ -104,7 +104,7 @@
         this.$.dots.addEventListener('mouseover', function(e) {
           if (e.target.nodeName == "circle" && this.hoverElement != e.target) {
             this.hoverElement = e.target;
-            this.dispatchEvent(new CustomEvent('hover', {detail: e.target.parentElement.dataset.id}));
+            this.dispatchEvent(new CustomEvent('hover', {detail: e.target.parentElement.attributes.getNamedItem('traceid').value}));
           } else {
             this.hoverElement = null;
           }
