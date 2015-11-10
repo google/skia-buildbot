@@ -2,8 +2,9 @@
 default:
 	bower install
 	npm install http-server
+	rm -rf res/imp
 	mkdir --parents res/imp
-	ln -sf ../third_party/bower_components res/imp/bower_components
+	ln -sf ../../third_party/bower_components res/imp/bower_components
 	ln -sf ../../../../res res/common
 
 # Run a local HTTP server for the demo pages.

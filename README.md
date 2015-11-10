@@ -68,6 +68,7 @@ Install other dependencies:
 $ sudo apt-get install npm nodejs-legacy python-django redis-server
 $ go get github.com/kisielk/errcheck
 $ go get golang.org/x/tools/cmd/goimports
+# sudo npm install -g polylint
 ```
 
 Build from GOPATH:

@@ -54,7 +54,7 @@
   </style>
   <template>
     <h3>
-      <a target="_blank" href="{{_makeBuildURL(build, buildbot_url_prefix)}}">
+      <a target="_blank" href$="{{_makeBuildURL(build, buildbot_url_prefix)}}">
         <span>{{build.builder}}</span> #<span>{{build.number}}</span> <iron-icon icon="launch"></iron-icon>
       </a>
     </h3>
@@ -68,7 +68,7 @@
           <td>Failed steps:</td>
           <td>
             <template is="dom-repeat" items="{{build.failedSteps}}" as="step">
-              <a target="_blank" href="{{_makeBuildStepLogURL(build, buildbot_url_prefix, step)}}">{{step}}</a><br>
+              <a target="_blank" href$="{{_makeBuildStepLogURL(build, buildbot_url_prefix, step)}}">{{step}}</a><br>
             </template>
           </td>
         </tr>
@@ -76,7 +76,7 @@
       <tr>
         <td>Builder</td>
         <td>
-          <a target="_blank" href="{{_makeDashboardBuilderURL(build)}}">
+          <a target="_blank" href$="{{_makeDashboardBuilderURL(build)}}">
             <span>{{build.builder}}</span>
           </a>
         </td>
@@ -84,7 +84,7 @@
       <tr>
         <td>Buildslave</td>
         <td>
-          <a target="_blank" href="{{_makeDashboardSlaveURL(build)}}">
+          <a target="_blank" href$="{{_makeDashboardSlaveURL(build)}}">
             <span>{{build.buildslave}}</span>
           </a>
         </td>
@@ -92,7 +92,7 @@
       <tr>
         <td>Host machine</td>
         <td>
-          <a target="_blank" href="{{_makeSlaveHostURL(build)}}">
+          <a target="_blank" href$="{{_makeSlaveHostURL(build)}}">
             Lookup
           </a>
         </td>
@@ -103,7 +103,7 @@
     <table>
       <template is="dom-repeat" items="{{build.commits}}" as="c">
         <tr>
-          <td><a href="{{_makeCommitURL(c, repo)}}">{{_commitHash(c, commit_details)}}</a></td>
+          <td><a href$="{{_makeCommitURL(c, repo)}}">{{_commitHash(c, commit_details)}}</a></td>
           <td>{{_commitAuthor(c, commit_details)}}</td>
           <td>{{_commitSubject(c, commit_details)}}</td>
         </tr>

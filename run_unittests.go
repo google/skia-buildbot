@@ -5,6 +5,8 @@ package main
 */
 
 import (
+	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"os"
@@ -17,6 +19,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/timer"
 )
 
@@ -73,6 +76,14 @@ var (
 	NO_CRAWL_REL_PATHS = []string{
 		"common",
 	}
+
+	POLYMER_PATHS = []string{
+		"res/imp/9",
+		"alertserver/res/imp/9",
+		"autoroll/res/imp",
+		"fuzzer/res/imp",
+		"status/res/imp/9",
+	}
 )
 
 // cmdTest returns a test which runs a command and fails if the command fails.
@@ -94,6 +105,91 @@ func cmdTest(cmd []string, cwd, name string) *test {
 			return err, string(output)
 		},
 	}
+}
+
+func polylintTest(cwd, fileName string) *test {
+	cmd := []string{"polylint", "--no-recursion", "--root", cwd, "--input", fileName}
+	return &test{
+		Name: fmt.Sprintf("polylint in %s", filepath.Join(cwd, fileName)),
+		Cmd:  strings.Join(cmd, " "),
+		run: func() (error, string) {
+			command := exec.Command(cmd[0], cmd[1:]...)
+			outputBytes, err := command.Output()
+			if err != nil {
+				if _, err2 := exec.LookPath(cmd[0]); err2 != nil {
+					return fmt.Errorf(ERR_NEED_INSTALL, cmd[0], err), string(outputBytes)
+				}
+				return err, string(outputBytes)
+			}
+
+			unresolvedProblems := ""
+			count := 0
+
+			for s := bufio.NewScanner(bytes.NewBuffer(outputBytes)); s.Scan(); {
+				badFileLine := s.Text()
+				if !s.Scan() {
+					return fmt.Errorf("Unexpected end of polylint output after %q:\n%s", badFileLine, string(outputBytes)), string(outputBytes)
+				}
+				problemLine := s.Text()
+				if !strings.Contains(unresolvedProblems, badFileLine) {
+					unresolvedProblems = fmt.Sprintf("%s\n%s\n%s", unresolvedProblems, badFileLine, problemLine)
+					count++
+				}
+			}
+
+			if unresolvedProblems == "" {
+				return nil, ""
+			}
+			return fmt.Errorf("%d unresolved polylint problems:\n%s\n", count, unresolvedProblems), ""
+		},
+	}
+}
+
+// buildPolymerFolder runs the Makefile in the given folder.  This sets up the symbolic links so dependencies can be located for polylint.
+func buildPolymerFolder(cwd string) error {
+	cmd := cmdTest([]string{"make"}, cwd, fmt.Sprintf("Polymer build in %s", cwd))
+	return cmd.Run()
+}
+
+// polylintTestsForDir builds the folder once and then returns a list of tests for each Polymer file in the directory.  If the build fails, a dummy test is returned that prints an error message.
+func polylintTestsForDir(cwd string, fileNames ...string) []*test {
+	if err := buildPolymerFolder(cwd); err != nil {
+		return []*test{
+			&test{
+				Name: filepath.Join(cwd, "make"),
+				Cmd:  filepath.Join(cwd, "make"),
+				run: func() (error, string) {
+					return fmt.Errorf("Could not build Polymer files in %s: %s", cwd, err), ""
+				},
+			},
+		}
+	}
+	tests := make([]*test, 0, len(fileNames))
+	for _, name := range fileNames {
+		tests = append(tests, polylintTest(cwd, name))
+	}
+	return tests
+}
+
+// findPolymerFiles returns all files that probably contain polymer content (i.e. end with sk.html) in a given directory.
+func findPolymerFiles(dirPath string) []string {
+	dir := fileutil.MustOpen(dirPath)
+	files := make([]string, 0)
+	for _, info := range fileutil.MustReaddir(dir) {
+		if n := info.Name(); strings.HasSuffix(info.Name(), "sk.html") {
+			files = append(files, n)
+		}
+	}
+	return files
+}
+
+//polylintTests creates a list of *test from all directories in POLYMER_PATHS
+func polylintTests() []*test {
+	tests := make([]*test, 0)
+	for _, path := range POLYMER_PATHS {
+		tests = append(tests, polylintTestsForDir(path, findPolymerFiles(path)...)...)
+	}
+	return tests
 }
 
 // goTest returns a test which runs `go test` in the given cwd.
@@ -188,6 +284,8 @@ func main() {
 	// Other tests.
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet"))
 	tests = append(tests, cmdTest([]string{"errcheck", "go.skia.org/infra/..."}, ".", "errcheck"))
+	tests = append(tests, polylintTests()...)
+
 	goimportsCmd := []string{"goimports", "-l", "."}
 	tests = append(tests, &test{
 		Name: "goimports",

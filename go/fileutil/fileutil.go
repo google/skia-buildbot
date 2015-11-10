@@ -29,6 +29,24 @@ func Must(s string, err error) string {
 	return s
 }
 
+// MustOpen opens the file of the given name, returning an *os.File on success, or causing the program to stop with the error message.
+func MustOpen(name string) *os.File {
+	f, err := os.Open(name)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	return f
+}
+
+// MustReaddir returns a slice of os.FileInfo for every file in the given dir.  This is equivilent to calling dir.Readdir(-1), except this call will stop the program on an error
+func MustReaddir(dir *os.File) []os.FileInfo {
+	fi, err := dir.Readdir(-1)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	return fi
+}
+
 // FileExists returns true if the given path exists and false otherwise.
 // If there is an error it will return false and log the error message.
 func FileExists(path string) bool {
