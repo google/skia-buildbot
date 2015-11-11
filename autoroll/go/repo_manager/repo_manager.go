@@ -38,6 +38,7 @@ var (
 
 // RepoManager is used by AutoRoller for managing checkouts.
 type RepoManager interface {
+	ForceUpdate() error
 	FullSkiaHash(string) (string, error)
 	LastRollRev() string
 	RolledPast(string) bool
@@ -148,6 +149,11 @@ func (r *repoManager) update() error {
 	}
 	r.skiaHead = skiaHead
 	return nil
+}
+
+// ForceUpdate forces the repoManager to update.
+func (r *repoManager) ForceUpdate() error {
+	return r.update()
 }
 
 // getLastRollRev returns the commit hash of the last-completed DEPS roll.

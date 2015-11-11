@@ -283,6 +283,13 @@ func (r *AutoRoller) updateCurrentRoll() error {
 		updated.Result = currentResult
 	}
 
+	// If the current roll was closed, it either succeeded or was closed by
+	// some other entity. Update the repo.
+	if updated.Closed {
+		if err := r.rm.ForceUpdate(); err != nil {
+			return err
+		}
+	}
 	return r.recent.Update(updated)
 }
 

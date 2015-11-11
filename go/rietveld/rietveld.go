@@ -20,6 +20,7 @@ const (
 	CLIENT_SECRET = "uBfbay2KCy9t4QveJ-dOqHtp"
 
 	COMMITTED_ISSUE_REGEXP = "(?m:^Committed: .+$)"
+	CQ_STATUS_URL          = "https://chromium-cq-status.appspot.com/patch-summary/%d/%d"
 
 	TIME_FORMAT = "2006-01-02 15:04:05.999999"
 )
@@ -104,6 +105,34 @@ func parseTime(t string) time.Time {
 	return parsed
 }
 
+// isCommitted returns true iff the issue has been committed.
+func (r *Rietveld) isCommitted(i *Issue) (bool, error) {
+	committed, err := regexp.MatchString(COMMITTED_ISSUE_REGEXP, i.Description)
+	if err != nil {
+		return false, err
+	}
+	if committed {
+		return true, nil
+	}
+
+	// The description sometimes doesn't get updated in time. Check the
+	// commit queue status for its result.
+	url := fmt.Sprintf(CQ_STATUS_URL, i.Issue, i.Patchsets[len(i.Patchsets)-1])
+	resp, err := r.client.Get(url)
+	if err != nil {
+		return false, fmt.Errorf("Failed to GET %s: %s", url, err)
+	}
+	defer util.Close(resp.Body)
+	dec := json.NewDecoder(resp.Body)
+	var rv struct {
+		Success bool `json:"success"`
+	}
+	if err := dec.Decode(&rv); err != nil {
+		return false, fmt.Errorf("Failed to decode JSON: %s", err)
+	}
+	return rv.Success, nil
+}
+
 // getIssueProperties returns a fully filled-in Issue object, as opposed to
 // the partial data returned by Rietveld's search endpoint.
 func (r *Rietveld) GetIssueProperties(issue int64, messages bool) (*Issue, error) {
@@ -116,7 +145,7 @@ func (r *Rietveld) GetIssueProperties(issue int64, messages bool) (*Issue, error
 		return nil, fmt.Errorf("Failed to load details for issue %d: %v", issue, err)
 	}
 
-	committed, err := regexp.MatchString(COMMITTED_ISSUE_REGEXP, fullIssue.Description)
+	committed, err := r.isCommitted(fullIssue)
 	if err != nil {
 		return nil, err
 	}

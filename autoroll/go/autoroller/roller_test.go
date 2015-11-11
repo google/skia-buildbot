@@ -19,6 +19,8 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
+const COMMITTED_STR = "Committed: https://chromium.googlesource.com/chromium/src/+/fd01dc2938"
+
 var noTrybots = []*buildbucket.Build{}
 
 // mockRepoManager is a struct used for mocking out the AutoRoller's
@@ -30,6 +32,11 @@ type mockRepoManager struct {
 	MockRolledPast     map[string]bool
 	MockSkiaHead       string
 	t                  *testing.T
+}
+
+// ForceUpdate pretends to force the mockRepoManager to update.
+func (r *mockRepoManager) ForceUpdate() error {
+	return nil
 }
 
 // FullSkiaHash returns the full hash of the given short hash or ref in the
@@ -150,6 +157,13 @@ func (r *mockRietveld) updateIssue(issue *rietveld.Issue, tryResults []*buildbuc
 	assert.Nil(r.t, err)
 	r.urlMock.MockOnce(url, serialized)
 	r.mockTrybotResults(issue, tryResults)
+
+	// If necessary, fake the CQ status URL. This is used whenever the rietveld package
+	// cannot find the "Committed: ..." string within the CL description.
+	if !strings.Contains(issue.Description, COMMITTED_STR) {
+		cqUrl := fmt.Sprintf(rietveld.CQ_STATUS_URL, issue.Issue, issue.Patchsets[len(issue.Patchsets)-1])
+		r.urlMock.MockOnce(cqUrl, []byte(fmt.Sprintf("{\"success\":%v}", false)))
+	}
 }
 
 // modify changes the last-modified timestamp of the roll and updates it in the
@@ -224,7 +238,7 @@ func (r *mockRietveld) pretendRollLanded(rm *mockRepoManager, issue *rietveld.Is
 	issue.Committed = true
 	issue.CommitQueue = false
 	issue.CommitQueueDryRun = false
-	issue.Description += "\nCommitted: https://chromium.googlesource.com/chromium/src/+/fd01dc2938"
+	issue.Description += "\n" + COMMITTED_STR
 	r.modify(issue, tryResults)
 }
 
@@ -478,4 +492,59 @@ func TestAutoRollDryRun(t *testing.T) {
 	rv.rollerWillSwitchDryRun(roll3, trybots3, false)
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Normal mode."))
 	checkStatus(t, roller, rv, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
+}
+
+// TestAutoRollCommitRace ensures that we correctly handle the case in which
+// a roll CL lands but is not yet updated with the "Committed: ..." string in
+// the CL description when the roller sees it next. In this case, we expect the
+// roller to query the commit queue directly to determine whether it landed the
+// CL.
+func TestAutoRollCommitRace(t *testing.T) {
+	workdir, roller, rm, rv, roll1 := setup(t)
+	defer func() {
+		assert.Nil(t, roller.Close())
+		assert.Nil(t, os.RemoveAll(workdir))
+	}()
+
+	trybot := &buildbucket.Build{
+		Status:         autoroll.TRYBOT_STATUS_COMPLETED,
+		Result:         autoroll.TRYBOT_RESULT_SUCCESS,
+		ParametersJson: "{\"builder_name\":\"fake-builder\"}",
+	}
+	trybots := []*buildbucket.Build{trybot}
+
+	// Pretend that the roll landed BUT the CL description was not updated.
+
+	// Determine what revision we rolled to.
+	m := autoroll.ROLL_REV_REGEX.FindStringSubmatch(roll1.Subject)
+	assert.NotNil(t, m)
+	assert.Equal(t, 2, len(m))
+	rolledTo, ok := rm.MockFullSkiaHashes[m[1]]
+	assert.True(t, ok)
+	rm.MockRolledPast[rolledTo] = true
+	rm.MockLastRollRev = rolledTo
+
+	// Fake the roll in Rietveld.
+	roll1.Closed = true
+	roll1.CommitQueue = false
+	roll1.CommitQueueDryRun = false
+	now := time.Now().UTC().Round(time.Millisecond)
+	roll1.Modified = now
+	roll1.ModifiedString = now.Format(rietveld.TIME_FORMAT)
+	url := fmt.Sprintf("%s/api/%d?messages=true", autoroll.RIETVELD_URL, roll1.Issue)
+	serialized, err := json.Marshal(roll1)
+	assert.Nil(t, err)
+	rv.urlMock.MockOnce(url, serialized)
+	rv.mockTrybotResults(roll1, trybots)
+
+	// Fake the CQ status URL.
+	cqUrl := fmt.Sprintf(rietveld.CQ_STATUS_URL, roll1.Issue, roll1.Patchsets[len(roll1.Patchsets)-1])
+	rv.urlMock.MockOnce(cqUrl, []byte(fmt.Sprintf("{\"success\":%v}", true)))
+
+	// Run the roller.
+	assert.Nil(t, roller.doAutoRoll())
+
+	// Verify that the roller correctly determined that the CL landed.
+	roll1.Committed = true
+	checkStatus(t, roller, rv, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
 }
