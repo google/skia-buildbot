@@ -4,7 +4,7 @@ default:
 	npm install http-server
 	mkdir --parents res/imp
 	ln -sf ../../third_party/bower_components res/imp/bower_components
-	ln -sf ../../../res/common res/common
+	ln -sf ../../../../res res/common
 
 # Run a local HTTP server for the demo pages.
 run:

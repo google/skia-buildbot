@@ -1,3 +1,5 @@
+#Use Vulcanize 1.0
+VULCANIZE1=true
 # The list of files we want to go into core.js, which is concat'd and
 # minified. These files should be either present in the project, brought
 # into third_party/bower_compoents via bower, or in node_modules.
@@ -35,14 +37,6 @@ testjs:
 .PHONY: frontend
 frontend:
 	go install -v ./go/frontend
-
-.PHONY: aggregator
-aggregator:
-	go install -v ./go/aggregator
-
-.PHONY: sanitizer
-sanitizer:
-	go install -v ./go/sanitizer
 
 .PHONY: fuzzer
 fuzzer:

@@ -1,0 +1,51 @@
+<!-- The <fuzzer-status-sk> element displays the status of the fuzzer
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<dom-module id="fuzzer-status-sk">
+  <template>
+    <span>
+      <a href$="{{_getLink(lastcommit.hash)}}" target="_blank">Last Commit In Fuzz: {{lastcommit.shortHash}} - {{lastcommit.author}}</a>
+    </span>
+  </template>
+  <script>
+  Polymer({
+    is: "fuzzer-status-sk",
+
+    properties: {
+      lastcommit: {
+        type: Object,
+        value: function() {
+            // TODO(kjlubick): Fetch this from somewhere
+          var orig = {
+            hash: "bbadbeefalksjdflkjsadifsdnfolsdf",
+            author: "nobody (Nobody Smith)"
+          };
+
+          return {
+            hash: orig.hash,
+            shortHash: orig.hash.substr(0, 7),
+            author: this._extractAuthor(orig.author)
+          };
+        }
+      }
+    },
+
+    _extractAuthor: function(authorString) {
+      var idx = authorString.indexOf('(');
+      return authorString.substring(0, (idx === -1) ? authorString.length : idx);
+    },
+
+    _getLink:function(hash) {
+      return "https://skia.googlesource.com/skia/+/" + hash;
+    }
+  });
+  </script>
+</dom-module>

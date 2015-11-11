@@ -1,6 +1,6 @@
 <!--
 `app-sk` provides general application layout, introducing a
-responsive scaffold containing a header, toolbar, menu, title and
+responsive scaffold containing a header, toolbar, rtoolbar, title and
 areas for application content, as well as automatic inclusion of
 common menu items, login status, and version tag.
 
@@ -8,6 +8,7 @@ Example:
 
     <app-sk mode="standard" responsive_width="600px" drawer_width="230px">
       <h1 header>Title goes here</h1>
+      <foo-status-sk rtoolbar></foo-status-sk> <!-to be right aligned, on the top bar->
       <div navigation>Nav goes here</div>
       <div>Content goes here</div>
     </app-sk>
@@ -80,6 +81,7 @@ Events:
         </template>
         <content select="[header], header, [toolbar], toolbar"></content>
         <div class="flex"></div>
+        <content select="[rtoolbar], rtoolbar"></content>
         <app-menu-sk></app-menu-sk>
         <login-sk></login-sk>
       </paper-toolbar>

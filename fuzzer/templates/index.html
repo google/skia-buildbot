@@ -4,53 +4,30 @@
     <title>Skia Fuzzer</title>
     {{template "header.html" .}}
 </head>
-<body>
-	<scaffold-sk responsiveWidth="700px">
-      {{template "titlebar.html" .}}
-      <div id="fuzzes"></div>
-	</scaffold-sk>
+<body class="fullbleed vertical layout unresolved">
+    <style is="custom-style">
+    app-sk {
+      --app-sk-main: {
+        background-color: #FFFFFF;
+        font-family: sans-serif;
+      };
+      --app-sk-toolbar: {
+        background-color: #8be1b8;
+      };
+      login-sk{
+      	--login-sk-color: white;
+      };
+    }
+    </style>
+	<app-sk class="fit" flex>
+		<img header id="logo" src="/res/img/skia_fuzz.png">
+		<fuzzer-status-sk rtoolbar></fuzzer-status-sk>
+		<fuzzer-menu-sk navigation></fuzzer-menu-sk>
 
-<script type="text/javascript" charset="utf-8">
-(function() {
-	sk.WebComponentsReady.then(function() {
-		var page = {};
-		var fuzzes = [];
+		<h2>Failing Fuzzes</h2>
 
-		page.state = {
-			failed: true,
-			passed: false
-		};
+		<fuzzer-summary-list-sk></fuzzer-summary-list-sk>
+	</app-sk>
 
-		function displayFuzzes() {
-			var container = $$$("#fuzzes");
-			sk.clearChildren(container);
-
-			fuzzes.forEach(function(c, i) {
-				var s = document.createElement('fuzz-summary-sk');
-				s.hash = c;
-
-				container.appendChild(s);
-			})
-		}
-
-		function loadFuzzes() {
-			sk.get("{{.LoadFuzzListURL}}?"+sk.query.fromObject(page.state)).then(JSON.parse).then(function(data) {
-				fuzzes = data;
-				displayFuzzes();
-			});
-		}
-
-		path = document.location.pathname;
-		if (path.startsWith("/passed")) {
-			page.state.failed = false;
-			page.state.passed = true;
-		}
-
-		sk.stateReflector(page, loadFuzzes);
-	});
-})();
-</script>
-
-  {{template "footer.html" .}}
 </body>
 </html>

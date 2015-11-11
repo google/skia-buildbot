@@ -1,0 +1,38 @@
+<!--
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <fuzzer-menu-sk>
+
+  This is the side navigation menu for the Skia Fuzzer
+
+  To use this file import it:
+
+    <link href="fuzzer-menu-sk.html" rel="import" />
+
+  Usage:
+
+    <fuzzer-menu-sk></fuzzer-menu-sk>
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<link rel="import" href="/res/common/imp/9/menu-item-sk.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<dom-module id="fuzzer-menu-sk">
+  <template>
+    <menu-item-sk label="Home" url="/" icon="icons:home"></menu-item-sk>
+    <menu-item-sk label="Help" url="https://github.com/google/skia-buildbot/tree/master/fuzzer" icon="icons:help"></menu-item-sk>
+    <menu-item-sk label="Code" url="/rules" icon="icons:folder"></menu-item-sk>
+  </template>
+  <script>
+    Polymer({is: "fuzzer-menu-sk"});
+  </script>
+</dom-module>

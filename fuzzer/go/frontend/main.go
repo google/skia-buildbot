@@ -4,39 +4,19 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	htemplate "html/template"
-	"math/rand"
+	"html/template"
 	"net/http"
-	"os"
 	"path/filepath"
-	"runtime"
-	"time"
 
 	"github.com/gorilla/mux"
-	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/fuzzer/go/config"
-	"go.skia.org/infra/go/auth"
+
+	"go.skia.org/infra/fuzzer/go/fuzz"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/api/storage/v1"
-)
-
-var (
-	// indexTemplate is the main index.html page we serve.
-	indexTemplate *htemplate.Template = nil
-
-	requestsCounter                  = metrics.NewRegisteredCounter("requests", metrics.DefaultRegistry)
-	router          *mux.Router      = mux.NewRouter()
-	client          *http.Client     = nil
-	store           *storage.Service = nil
-)
-
-// Command line flags.
-var (
-	configFilename = flag.String("config", "fuzzer.toml", "Configuration filename")
 )
 
 const (
@@ -44,173 +24,154 @@ const (
 	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
+var (
+	// indexTemplate is the main index.html page we serve.
+	indexTemplate *template.Template = nil
+	// detailsTemplate is used for /details, which actually displays the stacktraces and fuzzes
+	detailsTemplate *template.Template = nil
+)
+
+// Command line flags.
+var (
+	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
+	host           = flag.String("host", "localhost", "HTTP service host")
+	port           = flag.String("port", ":80", "HTTP service port (e.g., ':8002')")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+
+	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+	redirectURL   = flag.String("redirect_url", "https://fuzzer.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+)
+
 func Init() {
-	defer common.LogPanic()
+	reloadTemplates()
+}
 
-	rand.Seed(time.Now().UnixNano())
-
-	common.InitWithMetricsCB("fuzzer", func() string {
-		common.DecodeTomlFile(*configFilename, &config.Config)
-		return config.Config.FrontEnd.GraphiteServer
-	})
-
-	if config.Config.Common.ResourcePath == "" {
-		_, filename, _, _ := runtime.Caller(0)
-		config.Config.Common.ResourcePath = filepath.Join(filepath.Dir(filename), "../..")
-	}
-
-	path, err := filepath.Abs(config.Config.Common.ResourcePath)
-	if err != nil {
-		glog.Fatalf("Couldn't get absolute path to fuzzer resources: %s", err)
-	}
-	if err := os.Chdir(path); err != nil {
-		glog.Fatal(err)
-	}
-
-	indexTemplate = htemplate.Must(htemplate.ParseFiles(
-		filepath.Join(path, "templates/index.html"),
-		filepath.Join(path, "templates/header.html"),
-		filepath.Join(path, "templates/titlebar.html"),
-		filepath.Join(path, "templates/footer.html"),
+func reloadTemplates() {
+	indexTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
-
-	if client, err = auth.NewClient(config.Config.Common.DoOAuth, config.Config.Common.OAuthCacheFile, storage.DevstorageFullControlScope); err != nil {
-		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
-	}
-
-	if store, err = storage.New(client); err != nil {
-		glog.Fatalf("Failed to create storage service client: %s", err)
-	}
-}
-
-type IndexContext struct {
-	LoadFuzzListURL string
-}
-
-func getURL(router *mux.Router, name string, pairs ...string) string {
-	route := router.Get(name)
-	if route == nil {
-		glog.Fatalf("Couldn't find any route named %s", name)
-	}
-
-	routeURL, err := route.URL(pairs...)
-	if err != nil {
-		glog.Fatalf("Couldn't resolve route %s into a URL", routeURL)
-	}
-
-	return routeURL.String()
-}
-
-func mainHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Main Handler: %q\n", r.URL.Path)
-	requestsCounter.Inc(1)
-	if r.Method == "GET" {
-		// Expand the template.
-		w.Header().Set("Content-Type", "text/html")
-		fuzzListURL := getURL(router, "fuzzListHandler")
-		context := IndexContext{
-			fuzzListURL,
-		}
-		if err := indexTemplate.Execute(w, context); err != nil {
-			glog.Errorf("Failed to expand template: %q\n", err)
-		}
-	}
-}
-
-// makeResourceHandler creates a static file handler that sets a caching policy.
-func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(config.Config.Common.ResourcePath))
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", string(300))
-		fileServer.ServeHTTP(w, r)
-	}
-}
-
-func getFuzzes(baseDir string) []string {
-	results := []string{}
-	glog.Infof("Opening bucket/directory: %s/%s", config.Config.Common.FuzzOutputGSBucket, baseDir)
-
-	req := store.Objects.List(config.Config.Common.FuzzOutputGSBucket).Prefix(baseDir + "/").Delimiter("/")
-	for req != nil {
-		resp, err := req.Do()
-		if err != nil {
-			return results
-		}
-		for _, result := range resp.Prefixes {
-			results = append(results, result[len(baseDir)+1:len(result)-1])
-		}
-		if len(resp.NextPageToken) > 0 {
-			req.PageToken(resp.NextPageToken)
-		} else {
-			req = nil
-		}
-	}
-	return results
-}
-
-func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse form data.")
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-
-	fuzzes := []string{}
-
-	failed := r.FormValue("failed")
-	passed := r.FormValue("passed")
-
-	if failed == "true" {
-		fuzzes = append(fuzzes, getFuzzes("failed")...)
-	}
-	if passed == "true" {
-		fuzzes = append(fuzzes, getFuzzes("working")...)
-	}
-
-	if err := enc.Encode(fuzzes); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
-	}
 }
 
 func main() {
-	flag.Parse()
+	defer common.LogPanic()
+	// Calls flag.Parse()
+	common.InitWithMetrics("fuzzer", graphiteServer)
+
 	Init()
 
-	// Set up login
+	setupOAuth()
+
+	runServer()
+}
+
+func setupOAuth() {
 	var cookieSalt = "notverysecret"
+	// This clientID and clientSecret are only used for setting up a local server.
+	// Production id and secrets are in metadata and will be loaded from there.
 	var clientID = "31977622648-ubjke2f3staq6ouas64r31h8f8tcbiqp.apps.googleusercontent.com"
 	var clientSecret = "rK-kRY71CXmcg0v9I9KIgWci"
-	var useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", config.Config.FrontEnd.Port)
-	if !config.Config.Common.Local {
+	var useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	if !*local {
 		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
 		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
-		useRedirectURL = config.Config.FrontEnd.RedirectURL
+		useRedirectURL = *redirectURL
+	}
+	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE, *authWhiteList, *local)
+}
+
+func runServer() {
+	serverURL := "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
 	}
 
-	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, config.Config.Common.Local)
+	r := mux.NewRouter()
+	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 
-	// Set up the login related resources.
-	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
-	router.HandleFunc("/loginstatus/", login.StatusHandler)
-	router.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
+	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/details", detailHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.HandleFunc("/json/fuzz-list", fuzzListHandler)
 
-	router.HandleFunc("/", mainHandler)
-	router.HandleFunc("/failed", mainHandler)
-	router.HandleFunc("/passed", mainHandler)
-	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
-
-	jsonRouter := router.PathPrefix("/_").Subrouter()
-	jsonRouter.HandleFunc("/list", fuzzListHandler).Name("fuzzListHandler")
-
-	rootHandler := util.LoggingGzipRequestResponse(router)
-	if config.Config.FrontEnd.ForceLogin {
-		rootHandler = login.ForceAuth(rootHandler, OAUTH2_CALLBACK_PATH)
-	}
+	rootHandler := login.ForceAuth(util.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
 
 	http.Handle("/", rootHandler)
+	glog.Infof("Ready to serve on %s", serverURL)
+	glog.Fatal(http.ListenAndServe(*port, nil))
+}
 
-	glog.Fatal(http.ListenAndServe(config.Config.FrontEnd.Port, nil))
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		reloadTemplates()
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+
+	if err := indexTemplate.Execute(w, nil); err != nil {
+		glog.Errorf("Failed to expand template: %v", err)
+	}
+}
+
+func detailHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		reloadTemplates()
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+
+	if err := detailsTemplate.Execute(w, nil); err != nil {
+		glog.Errorf("Failed to expand template: %v", err)
+	}
+}
+
+func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// TODO(kjlubick): fill this in with real data.
+	mockFuzzes := fuzz.FuzzReport{
+		{
+			"foo.h", 30, 0, []fuzz.FuzzReportFunction{
+				{
+					"frizzle()", 18, 0, []fuzz.FuzzReportLineNumber{
+						{
+							64, 17, 0, []fuzz.FuzzReportBinary{},
+						},
+						{
+							69, 1, 0, []fuzz.FuzzReportBinary{},
+						},
+					},
+				}, {
+					"zizzle()", 12, 0, []fuzz.FuzzReportLineNumber{
+						{
+							123, 12, 0, []fuzz.FuzzReportBinary{},
+						},
+					},
+				},
+			},
+		}, {
+			"bar.h", 15, 3, []fuzz.FuzzReportFunction{
+				{
+					"frizzle()", 15, 3, []fuzz.FuzzReportLineNumber{
+						{
+							566, 15, 2, []fuzz.FuzzReportBinary{},
+						},
+						{
+							568, 0, 1, []fuzz.FuzzReportBinary{},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	if err := json.NewEncoder(w).Encode(mockFuzzes); err != nil {
+		glog.Errorf("Failed to write or encode output: %v", err)
+		return
+	}
 }
