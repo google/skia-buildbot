@@ -15,8 +15,8 @@ function install_packages {
     "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password tmp_pass' && " \
     "sudo apt-get -y install mercurial mysql-client mysql-server valgrind libosmesa-dev npm " \
     "  nodejs-legacy libexpat1-dev:i386 clang-3.6 && " \
-    "sudo npm install -g bower && " \
-    "sudo npm install -g polylint && " \
+    "sudo npm install -g bower@1.6.5 && " \
+    "sudo npm install -g polylint@2.4.3 && " \
     "mysql -uroot -ptmp_pass -e \"SET PASSWORD = PASSWORD('');\" && " \
     "wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && " \
     "mkdir -p ~/.config/google-chrome && touch ~/.config/google-chrome/First\ Run && " \
