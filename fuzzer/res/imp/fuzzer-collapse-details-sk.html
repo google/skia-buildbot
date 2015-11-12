@@ -1,5 +1,5 @@
 <!--
-  The common.js file must be included before this file.
+  The fuzzer/res/fuzzer.js file must be included before this file.
 
   This in an HTML Import-able file that contains the definition
   of the following elements:
@@ -28,6 +28,7 @@
         - flags: Array of String, The flags associated with the run (e.g. DebugDumped)
         - debugStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
         - releaseStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
+    detailsBase: String, the base url for details (should include file and function name)
 
   Methods:
     setDetails(details) - Programmatically set the details object.
@@ -110,12 +111,20 @@
     </style>
     <div id="wrapper">
       <template is="dom-if" if="{{!_hasDetails(details)}}">
-        <li>line {{details.lineNumber}} -- {{totalCount}} outstanding fuzzes: {{details.binaryCount}} binary and {{details.apiCount}} api</li>
+        <li>line {{details.lineNumber}} -- {{totalCount}} crash-causing fuzzes: {{details.binaryCount}}
+        <a href$="{{_getDetailsLink(detailsBase, details, 'binary')}}">binary</a>
+        and {{details.apiCount}}
+        <a href$="{{_getDetailsLink(detailsBase, details, 'api')}}">api</a>
+        </li>
       </template>
       <template is="dom-if" if="{{_hasDetails(details)}}">
         <li>
           <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleDetails" title="Click to toggle line number view"></iron-icon>
-          <span>line {{details.lineNumber}} -- {{totalCount}} outstanding fuzzes: {{details.binaryCount}} binary and {{details.apiCount}} api</span>
+          <span>line {{details.lineNumber}} -- {{totalCount}} crash-causing fuzzes: {{details.binaryCount}}
+          <a href$="{{_getDetailsLink(detailsBase, details, 'binary')}}">binary</a>
+          and {{details.apiCount}}
+          <a href$="{{_getDetailsLink(detailsBase, details, 'api')}}">api</a>
+          </span>
         </li>
         <iron-collapse id="detailsPanel">
           <div class="panel-container">
@@ -152,11 +161,18 @@
     is: 'fuzzer-collapse-details-sk',
 
     properties: {
-      details: { //expected to be provided
+      details: { // expected to be provided
         type: Object,
         value: function() {
           return {};
         }
+      },
+      // detailsBase is the base url to the details page for the parent element.
+      // In this case, it is /details?file=foo.h&func=fizz() where the file and function names are provided.
+      // We will append &line=16 for whatever the line number is.
+      detailsBase: { // expected to be provided
+        type: String,
+        value: ""
       },
       // Returns the total count of fuzzes represented here.
       totalCount: {
@@ -183,7 +199,7 @@
       reports: {
         type: Array,
         computed: "_getSomeReports(details, toShow)",
-      }
+      },
     },
 
     ready: function() {
@@ -246,6 +262,10 @@
 
     _getDumpLink: function(report, type) {
       return "/dump/" + type + "/" + report.binaryName;
+    },
+
+    _getDetailsLink: function(detailsBase, details, fuzzType) {
+      return fuzzer.getLinkToDetails(detailsBase, fuzzType, 'line', details.lineNumber);
     },
 
     toggleDetails: function() {

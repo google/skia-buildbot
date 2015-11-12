@@ -1,5 +1,5 @@
 <!--
-  The common.js file must be included before this file.
+  The fuzzer/res/fuzzer.js file must be included before this file.
 
   This in an HTML Import-able file that contains the definition
   of the following elements:
@@ -68,12 +68,15 @@
       <div class="message">
         <h3>
           <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleFunctions" title="Click to toggle function view"></iron-icon>
-          {{file.fileName}} -- {{totalCount}} outstanding fuzzes: {{file.binaryCount}} binary and {{file.apiCount}} api
+          {{file.fileName}} -- {{totalCount}} crash-causing fuzzes: {{file.binaryCount}}
+          <a href$="{{_getDetailsLink(file, 'binary')}}">binary</a>
+          and {{file.apiCount}}
+          <a href$="{{_getDetailsLink(file, 'api')}}">api</a>
         </h3>
       </div>
       <iron-collapse id="functions">
         <template is="dom-repeat" items="{{file.byFunction}}" as="function">
-          <fuzzer-collapse-function-sk func="{{function}}" expand="{{expand}}"></fuzzer-collapse-function-sk>
+          <fuzzer-collapse-function-sk func="{{function}}" expand="{{expand}}" details-base="{{_getLink(file)}}"></fuzzer-collapse-function-sk>
         </template>
       </iron-collapse>
     </div>
@@ -112,6 +115,10 @@
 
     _getTotalCount: function(file) {
       return file.binaryCount + file.apiCount;
+    },
+
+    _getDetailsLink: function(file, fuzzType) {
+      return fuzzer.getLinkToDetails("/details?", fuzzType, 'file', file.fileName);
     },
 
     toggleFunctions: function() {

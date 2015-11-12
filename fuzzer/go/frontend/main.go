@@ -27,7 +27,7 @@ const (
 var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
-	// detailsTemplate is used for /details, which actually displays the stacktraces and fuzzes
+	// detailsTemplate is used for /details, which actually displays the stacktraces and fuzzes.
 	detailsTemplate *template.Template = nil
 )
 
@@ -50,6 +50,10 @@ func Init() {
 func reloadTemplates() {
 	indexTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
+	detailsTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/details.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
@@ -98,6 +102,7 @@ func runServer() {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/fuzz-list", fuzzListHandler)
+	r.HandleFunc("/json/details", detailsHandler)
 
 	rootHandler := login.ForceAuth(util.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
 
@@ -172,6 +177,74 @@ func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(mockFuzzes); err != nil {
 		glog.Errorf("Failed to write or encode output: %v", err)
+		return
+	}
+}
+
+func detailsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	// TODO(kjlubick): fill this in with real data.
+	mockBinaryFuzz := fuzz.FuzzReportBinary{
+		DebugStackTrace: fuzz.StackTrace{
+			Frames: []fuzz.StackTraceFrame{
+				fuzz.BasicStackFrame("src/core/", "SkReadBuffer.cpp", 344),
+				fuzz.BasicStackFrame("src/core/", "SkReadBuffer.h", 130),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 498),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 424),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 580),
+				fuzz.BasicStackFrame("src/core/", "SkPicture.cpp", 153),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 392),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 580),
+				fuzz.BasicStackFrame("src/core/", "SkPicture.cpp", 153),
+				fuzz.BasicStackFrame("fuzzer_cache/src/", "parseskp.cpp", 41),
+			},
+		},
+		ReleaseStackTrace: fuzz.StackTrace{
+			Frames: []fuzz.StackTraceFrame{
+				fuzz.BasicStackFrame("src/core/", "SkReadBuffer.h", 130),
+				fuzz.BasicStackFrame("src/core/", "SkReadBuffer.h", 136),
+				fuzz.BasicStackFrame("src/core/", "SkPaint.cpp", 1971),
+				fuzz.BasicStackFrame("src/core/", "SkReadBuffer.h", 126),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 498),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 424),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 580),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 553),
+				fuzz.BasicStackFrame("src/core/", "SkPicture.cpp", 153),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 392),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 580),
+				fuzz.BasicStackFrame("src/core/", "SkPictureData.cpp", 553),
+				fuzz.BasicStackFrame("src/core/", "SkPicture.cpp", 153),
+				fuzz.BasicStackFrame("src/core/", "SkPicture.cpp", 142),
+				fuzz.BasicStackFrame("fuzzer_cache/src/", "parseskp.cpp", 41),
+				fuzz.BasicStackFrame("fuzzer_cache/src/", "parseskp.cpp", 71),
+			},
+		},
+		HumanReadableFlags: []string{"DebugDumped", "DebugAssertion", "ReleaseTimedOut"},
+		BadBinaryName:      "badbeef",
+		BinaryType:         "skp",
+	}
+
+	mockFuzzes := fuzz.FuzzReportFile{
+		FileName:    "foo.h",
+		BinaryCount: 9,
+		ApiCount:    0,
+		Functions: []fuzz.FuzzReportFunction{
+			{
+				"frizzle()", 9, 0, []fuzz.FuzzReportLineNumber{
+					{
+						64, 8, 0, []fuzz.FuzzReportBinary{mockBinaryFuzz, mockBinaryFuzz, mockBinaryFuzz, mockBinaryFuzz, mockBinaryFuzz, mockBinaryFuzz, mockBinaryFuzz, mockBinaryFuzz},
+					},
+					{
+						69, 1, 0, []fuzz.FuzzReportBinary{mockBinaryFuzz},
+					},
+				},
+			},
+		},
+	}
+
+	if err := json.NewEncoder(w).Encode(mockFuzzes); err != nil {
+		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }

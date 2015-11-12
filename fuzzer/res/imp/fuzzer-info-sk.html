@@ -1,0 +1,53 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <fuzzer-info-sk>
+
+  This element will query /json/details for all of the detailed fuzz reports of a given file (passed in by query params) and displayed.
+  This may be further scoped by function, line number and fuzz-type (either binary or api)
+
+  To use this file import it:
+
+    <link href="/res/imp/fuzzer-info-sk.html" rel="import" />
+
+  Usage:
+
+    <fuzzer-info-sk></fuzzer-info-sk>
+
+  Properties:
+    None.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="fuzzer-collapse-file-sk.html">
+<dom-module id="fuzzer-info-sk">
+  <template>
+      <fuzzer-collapse-file-sk file="{{fuzzFileDetails}}" expand="true"></fuzzer-collapse-file-sk>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'fuzzer-info-sk',
+
+      properties: {
+        fuzzFileDetails: {
+          type: Array,
+          value: function() { return [];
+          },
+          readOnly: true, //generates _setFuzzFileDetails
+        },
+      },
+      ready: function() {
+        sk.get("/json/details?" + window.location.search.substring(1)).then(JSON.parse).then(this._setFuzzFileDetails.bind(this));
+      }
+    });
+  </script>
+</dom-module>

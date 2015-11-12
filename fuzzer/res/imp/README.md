@@ -14,8 +14,11 @@ Uses fuzzer-collapse-details-sk.
 **fuzzer-collapse-file-sk:** Shows how many fuzzes broke at various functions in a given file.
 Uses fuzzer-collapse-function-sk.
 
-**fuzzer-summary-list-sk:** Loads fuzz details from server and
-shows how many broke at various files.  Uses fuzzer-collapse-file-sk.
+**fuzzer-summary-list-sk:** Loads fuzz summary statistics from server and
+shows how many broke at various files/functions/lines.  Uses fuzzer-collapse-file-sk.
+
+**fuzzer-info-sk:** Loads detailed fuzz reports from server and
+shows how many broke at various files/functions/lines.  Uses fuzzer-collapse-file-sk.
 
 
 ## Viewing the Demos:

@@ -6,6 +6,7 @@ default:
 	mkdir --parents res/imp
 	ln -sf ../../third_party/bower_components res/imp/bower_components
 	ln -sf ../../../../res res/common
+	ln -sf ../../../res/js res/js
 
 # Run a local HTTP server for the demo pages.
 run:

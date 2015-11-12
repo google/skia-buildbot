@@ -1,5 +1,5 @@
 <!--
-  The common.js file must be included before this file.
+  The fuzzer/res/fuzzer.js file must be included before this file.
 
   This in an HTML Import-able file that contains the definition
   of the following elements:
@@ -21,6 +21,7 @@
       binaryCount: Number,
       byLineNumber: Array of Detail objects.  See fuzzer-collapse-details-sk.html for schema.
 
+    detailsBase: String, the base url for details (should include file name)
     expand: String, which should be "true" if the gui should start expanded
 
   Methods:
@@ -67,14 +68,17 @@
       <div>
         <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleLineNumbers" title="Click to toggle line number view"></iron-icon>
         <span>
-              Function {{func.functionName}} -- {{totalCount}} outstanding fuzzes:
-              {{func.binaryCount}} binary and {{func.apiCount}} api
+              Function {{func.functionName}} -- {{totalCount}} crash-causing fuzzes:
+              {{func.binaryCount}}
+              <a href$="{{_getDetailsLink(detailsBase, func, 'binary')}}">binary</a>
+              and {{func.apiCount}}
+              <a href$="{{_getDetailsLink(detailsBase, func, 'api')}}">api</a>
         </span>
       </div>
       <iron-collapse id="lineNumbers">
         <ul>
           <template is="dom-repeat" items="{{func.byLineNumber}}" as="lineNumber">
-            <fuzzer-collapse-details-sk details="{{lineNumber}}"></fuzzer-collapse-details-sk>
+            <fuzzer-collapse-details-sk details="{{lineNumber}}" details-base="{{_getLink(detailsBase, func)}}"></fuzzer-collapse-details-sk>
           </template>
         </ul>
       </iron-collapse>
@@ -85,11 +89,18 @@
     is: 'fuzzer-collapse-function-sk',
 
     properties: {
-      func: { //expected to be provided
+      func: { // expected to be provided
         type: Object,
         value: function() {
           return {};
         }
+      },
+      // detailsBase is the base url to the details page for the parent element.
+      // In this case, it is /details?file=foo.h where the file name is provided.
+      // We will append &func=fizz() for whatever the function name is.
+      detailsBase: { // expected to be provided
+        type: String,
+        value: ""
       },
       totalCount: {
         type: Number,
@@ -114,6 +125,10 @@
 
     _getTotalCount: function(func) {
       return func.binaryCount + func.apiCount;
+    },
+
+    _getDetailsLink: function(detailsBase, func, fuzzType) {
+      return fuzzer.getLinkToDetails(detailsBase, fuzzType, 'func', func.functionName);
     },
 
     toggleLineNumbers: function() {

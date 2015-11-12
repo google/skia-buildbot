@@ -7,6 +7,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
+  <script src="/res/js/fuzzer.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="fuzzer-collapse-function-sk.html">
 </head>
@@ -15,10 +16,10 @@
   <h1>fuzzer-collapse-function-sk demo</h1>
 
   <h2>Collapsed</h2>
-  <fuzzer-collapse-function-sk id="func"></fuzzer-collapse-function-sk>
+  <fuzzer-collapse-function-sk id="func" details-base="/details?file=foo"></fuzzer-collapse-function-sk>
 
   <h2>Expanded</h2>
-  <fuzzer-collapse-function-sk id="expanded" expand="true"></fuzzer-collapse-function-sk>
+  <fuzzer-collapse-function-sk id="expanded" expand="true" details-base="/details?file=foo"></fuzzer-collapse-function-sk>
 
   <script type="text/javascript" charset="utf-8">
   var data = {
