@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -26,69 +27,138 @@ var noTrybots = []*buildbucket.Build{}
 // mockRepoManager is a struct used for mocking out the AutoRoller's
 // interactions with a RepoManager.
 type mockRepoManager struct {
-	MockIssueNumber    int64
-	MockFullSkiaHashes map[string]string
-	MockLastRollRev    string
-	MockRolledPast     map[string]bool
-	MockSkiaHead       string
+	forceUpdateCount   int
+	mockIssueNumber    int64
+	mockFullSkiaHashes map[string]string
+	lastRollRev        string
+	rolledPast         map[string]bool
+	skiaHead           string
+	mtx                sync.RWMutex
 	t                  *testing.T
 }
 
 // ForceUpdate pretends to force the mockRepoManager to update.
 func (r *mockRepoManager) ForceUpdate() error {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	if r.forceUpdateCount == 0 {
+		return fmt.Errorf("forceUpdateCount == 0!")
+	}
+	r.forceUpdateCount--
 	return nil
+}
+
+// mockForceUpdate increments the expected ForceUpdate call count.
+func (r *mockRepoManager) mockForceUpdate() {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	r.forceUpdateCount++
+}
+
+// assertForceUpdate asserts that the ForceUpdate call count is zero.
+func (r *mockRepoManager) assertForceUpdate() {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	assert.Equal(r.t, 0, r.forceUpdateCount)
+}
+
+// getForceUpdateCount returns the remaining ForceUpdate call count.
+func (r *mockRepoManager) getForceUpdateCount() int {
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.forceUpdateCount
 }
 
 // FullSkiaHash returns the full hash of the given short hash or ref in the
 // mocked Skia repo.
 func (r *mockRepoManager) FullSkiaHash(shortHash string) (string, error) {
-	h, ok := r.MockFullSkiaHashes[shortHash]
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	h, ok := r.mockFullSkiaHashes[shortHash]
 	if !ok {
 		return "", fmt.Errorf("Unknown short hash: %s", shortHash)
 	}
 	return h, nil
 }
 
+// mockFullSkiaHash adds the given mock hash.
+func (r *mockRepoManager) mockFullSkiaHash(short, long string) {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	r.mockFullSkiaHashes[short] = long
+}
+
 // LastRollRev returns the last-rolled Skia commit in the mocked repo.
 func (r *mockRepoManager) LastRollRev() string {
-	return r.MockLastRollRev
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.lastRollRev
+}
+
+// mockLastRollRev fakes the last roll revision.
+func (r *mockRepoManager) mockLastRollRev(last string) {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	r.lastRollRev = last
 }
 
 // RolledPast determines whether DEPS has rolled past the given commit in the
 // mocked repo.
 func (r *mockRepoManager) RolledPast(hash string) bool {
-	rv, ok := r.MockRolledPast[hash]
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	rv, ok := r.rolledPast[hash]
 	if !ok {
 		r.t.Fatal(fmt.Sprintf("Unknown hash: %s", hash))
 	}
 	return rv
 }
 
+// mockRolledPast pretends that the DEPS has rolled past the given commit.
+func (r *mockRepoManager) mockRolledPast(hash string, rolled bool) {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	r.rolledPast[hash] = rolled
+}
+
 // SkiaHead returns the current Skia origin/master branch head in the mocked
 // repo.
 func (r *mockRepoManager) SkiaHead() string {
-	return r.MockSkiaHead
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.skiaHead
+}
+
+// mockSkiaHead sets the fake Skia origin/master branch head.
+func (r *mockRepoManager) mockSkiaHead(hash string) {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	r.skiaHead = hash
 }
 
 // CreateNewRoll pretends to create a new DEPS roll from the mocked repo,
 // returning the fake issue number set by the test.
 func (r *mockRepoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool) (int64, error) {
-	return r.MockIssueNumber, nil
+	r.mtx.RLock()
+	defer r.mtx.RUnlock()
+	return r.mockIssueNumber, nil
 }
 
-// skiaCommit pretends that a Skia commit has landed.
-func (r *mockRepoManager) skiaCommit(hash string) {
-	if r.MockFullSkiaHashes == nil {
-		r.MockFullSkiaHashes = map[string]string{}
+// mockSkiaCommit pretends that a Skia commit has landed.
+func (r *mockRepoManager) mockSkiaCommit(hash string) {
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
+	if r.mockFullSkiaHashes == nil {
+		r.mockFullSkiaHashes = map[string]string{}
 	}
-	if r.MockRolledPast == nil {
-		r.MockRolledPast = map[string]bool{}
+	if r.rolledPast == nil {
+		r.rolledPast = map[string]bool{}
 	}
 	assert.Equal(r.t, 40, len(hash))
 	shortHash := hash[:12]
-	r.MockSkiaHead = hash
-	r.MockFullSkiaHashes[shortHash] = hash
-	r.MockRolledPast[hash] = false
+	r.skiaHead = hash
+	r.mockFullSkiaHashes[shortHash] = hash
+	r.rolledPast[hash] = false
 }
 
 // rollerWillUpload sets up expectations for the roller to upload a CL. Returns
@@ -103,7 +173,7 @@ blah blah
 TBR=some-sheriff
 `, from[:12], to[:12])
 	subject := strings.Split(description, "\n")[0]
-	r.MockIssueNumber = rv.nextIssueNum()
+	r.mockIssueNumber = rv.nextIssueNum()
 	roll := &rietveld.Issue{
 		CC:                emails,
 		CommitQueue:       true,
@@ -111,7 +181,7 @@ TBR=some-sheriff
 		Created:           now,
 		CreatedString:     now.Format(rietveld.TIME_FORMAT),
 		Description:       description,
-		Issue:             r.MockIssueNumber,
+		Issue:             r.mockIssueNumber,
 		Messages:          []rietveld.IssueMessage{},
 		Modified:          now,
 		ModifiedString:    now.Format(rietveld.TIME_FORMAT),
@@ -229,10 +299,11 @@ func (r *mockRietveld) pretendRollLanded(rm *mockRepoManager, issue *rietveld.Is
 	m := autoroll.ROLL_REV_REGEX.FindStringSubmatch(issue.Subject)
 	assert.NotNil(r.t, m)
 	assert.Equal(r.t, 3, len(m))
-	rolledTo, ok := rm.MockFullSkiaHashes[m[2]]
-	assert.True(r.t, ok)
-	rm.MockRolledPast[rolledTo] = true
-	rm.MockLastRollRev = rolledTo
+	rolledTo, err := rm.FullSkiaHash(m[2])
+	assert.Nil(r.t, err)
+	rm.mockRolledPast(rolledTo, true)
+	rm.mockLastRollRev(rolledTo)
+	rm.mockForceUpdate()
 
 	issue.Closed = true
 	issue.Committed = true
@@ -252,6 +323,7 @@ func (r *mockRietveld) nextIssueNum() int64 {
 // checkStatus verifies that we get the expected status from the roller.
 func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, rm *mockRepoManager, expectedStatus string, current *rietveld.Issue, currentTrybots []*buildbucket.Build, currentDryRun bool, last *rietveld.Issue, lastTrybots []*buildbucket.Build, lastDryRun bool) {
 	rv.assertMocksEmpty()
+	rm.assertForceUpdate()
 	s := r.GetStatus(true)
 	assert.Equal(t, expectedStatus, s.Status)
 	assert.Equal(t, s.Error, "")
@@ -315,11 +387,11 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 
 	// Set up more test data.
 	initialCommit := "abc1231010101010101010101010101010101010"
-	rm.skiaCommit(initialCommit)
-	rm.skiaCommit("def4561010101010101010101010101010101010")
-	rm.MockLastRollRev = initialCommit
-	rm.MockRolledPast[initialCommit] = true
-	roll1 := rm.rollerWillUpload(rv, rm.MockLastRollRev, rm.MockSkiaHead, noTrybots, false)
+	rm.mockSkiaCommit(initialCommit)
+	rm.mockSkiaCommit("def4561010101010101010101010101010101010")
+	rm.mockLastRollRev(initialCommit)
+	rm.mockRolledPast(initialCommit, true)
+	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.SkiaHead(), noTrybots, false)
 
 	// Create the roller.
 	roller, err := NewAutoRoller(workdir, []string{}, []string{}, rv.r, time.Hour, time.Hour, "depot_tools")
@@ -349,7 +421,7 @@ func TestAutoRollBasic(t *testing.T) {
 	// The roll failed. Verify that we close it and upload another one.
 	rv.pretendRollFailed(roll1, noTrybots)
 	rv.rollerWillCloseIssue(roll1)
-	roll2 := rm.rollerWillUpload(rv, rm.MockLastRollRev, rm.MockSkiaHead, noTrybots, false)
+	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.SkiaHead(), noTrybots, false)
 	assert.Nil(t, roller.doAutoRoll())
 	roll1.Closed = true // The roller should have closed this CL.
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
@@ -395,7 +467,7 @@ func TestAutoRollStop(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll1, noTrybots, false)
 
 	// Resume the bot. Ensure that we upload a new CL.
-	roll2 := rm.rollerWillUpload(rv, rm.MockLastRollRev, rm.MockSkiaHead, noTrybots, false)
+	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.SkiaHead(), noTrybots, false)
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Resume!"))
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
 
@@ -405,7 +477,7 @@ func TestAutoRollStop(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
 
 	// Stop the roller again.
-	rm.skiaCommit("adbcdf1010101010101010101010101010101010")
+	rm.mockSkiaCommit("adbcdf1010101010101010101010101010101010")
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_STOPPED, u, "Stop!"))
 	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll2, noTrybots, false)
 
@@ -445,7 +517,7 @@ func TestAutoRollDryRun(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_SUCCESS, roll1, trybots, true, nil, nil, false)
 
 	// New Skia commit: verify that we close the existing dry run and open another.
-	rm.skiaCommit("adbcdf1010101010101010101010101010101010")
+	rm.mockSkiaCommit("adbcdf1010101010101010101010101010101010")
 	rv.updateIssue(roll1, trybots)
 	rv.rollerWillCloseIssue(roll1)
 	trybot2 := &buildbucket.Build{
@@ -453,7 +525,7 @@ func TestAutoRollDryRun(t *testing.T) {
 		ParametersJson: "{\"builder_name\":\"fake-builder\"}",
 	}
 	trybots2 := []*buildbucket.Build{trybot2}
-	roll2 := rm.rollerWillUpload(rv, rm.MockLastRollRev, rm.MockSkiaHead, trybots2, true)
+	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.SkiaHead(), trybots2, true)
 	roll2.CommitQueueDryRun = true
 	assert.Nil(t, roller.doAutoRoll())
 	roll1.Closed = true // Roller should have closed this issue.
@@ -467,7 +539,7 @@ func TestAutoRollDryRun(t *testing.T) {
 		ParametersJson: "{\"builder_name\":\"fake-builder\"}",
 	}
 	trybots3 := []*buildbucket.Build{trybot3}
-	roll3 := rm.rollerWillUpload(rv, rm.MockLastRollRev, rm.MockSkiaHead, trybots3, true)
+	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.SkiaHead(), trybots3, true)
 	assert.Nil(t, roller.doAutoRoll())
 	roll2.Closed = true // Roller should have closed this issue.
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll3, trybots3, true, roll2, trybots2, true)
@@ -495,12 +567,12 @@ func TestAutoRollDryRun(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
 }
 
-// TestAutoRollCommitRace ensures that we correctly handle the case in which
+// TestAutoRollCommitDescRace ensures that we correctly handle the case in which
 // a roll CL lands but is not yet updated with the "Committed: ..." string in
 // the CL description when the roller sees it next. In this case, we expect the
 // roller to query the commit queue directly to determine whether it landed the
 // CL.
-func TestAutoRollCommitRace(t *testing.T) {
+func TestAutoRollCommitDescRace(t *testing.T) {
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
 		assert.Nil(t, roller.Close())
@@ -520,10 +592,11 @@ func TestAutoRollCommitRace(t *testing.T) {
 	m := autoroll.ROLL_REV_REGEX.FindStringSubmatch(roll1.Subject)
 	assert.NotNil(t, m)
 	assert.Equal(t, 3, len(m))
-	rolledTo, ok := rm.MockFullSkiaHashes[m[2]]
-	assert.True(t, ok)
-	rm.MockRolledPast[rolledTo] = true
-	rm.MockLastRollRev = rolledTo
+	rolledTo, err := rm.FullSkiaHash(m[2])
+	assert.Nil(t, err)
+	rm.mockRolledPast(rolledTo, true)
+	rm.mockLastRollRev(rolledTo)
+	rm.mockForceUpdate()
 
 	// Fake the roll in Rietveld.
 	roll1.Closed = true
@@ -547,5 +620,59 @@ func TestAutoRollCommitRace(t *testing.T) {
 
 	// Verify that the roller correctly determined that the CL landed.
 	roll1.Committed = true
+	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
+}
+
+// TestAutoRollCommitLandRace ensures that we correctly handle the case in which
+// a roll CL succeeds, is closed by the CQ, but does not show up in the repo by
+// the time we check for it. In this case, we expect the roller to repeatedly
+// sync the code, waiting for the commit to show up.
+func TestAutoRollCommitLandRace(t *testing.T) {
+	workdir, roller, rm, rv, roll1 := setup(t)
+	defer func() {
+		assert.Nil(t, roller.Close())
+		assert.Nil(t, os.RemoveAll(workdir))
+	}()
+
+	// Pretend the roll landed but has not yet showed up in the repo.
+	trybot := &buildbucket.Build{
+		Status:         autoroll.TRYBOT_STATUS_COMPLETED,
+		Result:         autoroll.TRYBOT_RESULT_SUCCESS,
+		ParametersJson: "{\"builder_name\":\"fake-builder\"}",
+	}
+	trybots := []*buildbucket.Build{trybot}
+
+	roll1.Closed = true
+	roll1.Committed = true
+	roll1.CommitQueue = false
+	roll1.CommitQueueDryRun = false
+	roll1.Description += "\n" + COMMITTED_STR
+	rv.modify(roll1, trybots)
+
+	// The repo will have to force update multiple times.
+	rm.mockForceUpdate()
+	rm.mockForceUpdate()
+	rm.mockForceUpdate()
+	// This goroutine will cause the CL to "land" after a couple of tries.
+	go func() {
+		for {
+			if rm.getForceUpdateCount() == 0 {
+				m := autoroll.ROLL_REV_REGEX.FindStringSubmatch(roll1.Subject)
+				assert.NotNil(t, m)
+				assert.Equal(t, 3, len(m))
+				rolledTo, err := rm.FullSkiaHash(m[2])
+				assert.Nil(t, err)
+				rm.mockRolledPast(rolledTo, true)
+				rm.mockLastRollRev(rolledTo)
+				rm.mockForceUpdate()
+				return
+
+			}
+			time.Sleep(time.Second)
+		}
+	}()
+
+	// Run the roller.
+	assert.Nil(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
 }

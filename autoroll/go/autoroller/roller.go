@@ -275,11 +275,20 @@ func (r *AutoRoller) updateCurrentRoll() error {
 		updated.Result = currentResult
 	}
 
-	// If the current roll was closed, it either succeeded or was closed by
-	// some other entity. Update the repo.
-	if updated.Closed {
-		if err := r.rm.ForceUpdate(); err != nil {
-			return err
+	// If the current roll succeeded, we need to make sure we update the
+	// repo so that we see the roll commit. This can take some time, so
+	// we have to repeatedly update until we see the commit.
+	if updated.Committed {
+		glog.Infof("Roll succeeded (%d); syncing the repo until it lands.", currentRoll.Issue)
+		for {
+			glog.Info("Syncing...")
+			if err := r.rm.ForceUpdate(); err != nil {
+				return err
+			}
+			if r.rm.RolledPast(currentRoll.RollingTo) {
+				break
+			}
+			time.Sleep(10 * time.Second)
 		}
 	}
 	return r.recent.Update(updated)
