@@ -111,7 +111,7 @@ func (r *AutoRoller) Close() error {
 // the AutoRoll Bot.
 type AutoRollStatus struct {
 	CurrentRoll *autoroll.AutoRollIssue   `json:"currentRoll"`
-	Error       error                     `json:"error"`
+	Error       string                    `json:"error"`
 	LastRoll    *autoroll.AutoRollIssue   `json:"lastRoll"`
 	Mode        string                    `json:"mode"`
 	Recent      []*autoroll.AutoRollIssue `json:"recent"`
@@ -144,8 +144,8 @@ func (r *AutoRoller) GetStatus(includeError bool) AutoRollStatus {
 		Status:      r.status,
 		ValidModes:  autoroll_modes.VALID_MODES,
 	}
-	if includeError {
-		s.Error = r.lastError
+	if includeError && r.lastError != nil {
+		s.Error = r.lastError.Error()
 	}
 	return s
 }

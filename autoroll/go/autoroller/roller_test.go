@@ -254,7 +254,7 @@ func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, expectedStatus s
 	rv.assertMocksEmpty()
 	s := r.GetStatus(true)
 	assert.Equal(t, expectedStatus, s.Status)
-	assert.Nil(t, s.Error)
+	assert.Equal(t, s.Error, "")
 	checkRoll := func(t *testing.T, expect *rietveld.Issue, actual *autoroll.AutoRollIssue, expectTrybots []*buildbucket.Build, dryRun bool) {
 		if expect != nil {
 			assert.NotNil(t, actual)
