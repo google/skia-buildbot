@@ -64,82 +64,13 @@
       background-color: #FFFF00;
     }
     </style>
-    <core-icon-button
-        id="statusIndicator"
-        on-tap="{{toggle}}"
-        class="{{status.status}}"
-        icon="{{status.status == 'In progress' ? 'autorenew' : (status.status == 'Stopped' ? 'error' : 'check-circle')}}">
-      Roll: {{status.status}}
-    </core-icon-button>
-    <paper-dropdown>
-      <paper-shadow z="2">
-        <table id="rolldetails">
-          <tr><td>Status:</td><td>{{status.status}}</td></tr>
-          <tr>
-            <td>Current Roll:</td>
-            <td>
-              <template if="{{status.deps_roll_link}}">
-                <a href="{{status.deps_roll_link}}"
-                   target="_blank"
-                >{{status.deps_roll_link}}</a>(<a
-                    href="https://skia.googlesource.com/skia/+log/{{status.last_roll_rev}}..{{status.curr_roll_rev}}"
-                    target="_blank"
-                >{{status.last_roll_rev|shortCommit}} to {{status.curr_roll_rev|shortCommit}}</a>)
-              </template>
-              <template if="{{!status.deps_roll_link}}">(none)</template>
-            </td>
-          </tr>
-          <tr>
-            <td>Control:</td>
-            <td>
-              <a href="https://skia-tree-status.appspot.com/set_arb_action?is_stopped=true"
-                 target="_blank">
-                <core-icon-button
-                    icon="av:stop"
-                    disabled?="{{status.status == 'Stopped'}}"
-                    on-tap="{{stopRoller}}">
-                </core-icon-button>
-              </a>
-              <a href="https://skia-tree-status.appspot.com/set_arb_action?is_stopped=false"
-                 target="_blank">
-                <core-icon-button
-                    icon="av:play-arrow"
-                    disabled?="{{status.status != 'Stopped'}}"
-                    on-tap="{{startRoller}}">
-                </core-icon-button>
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td>Recent:</td>
-            <td>
-              <table class="rollHistory">
-                <tr>
-                  <th>Roll</th>
-                  <th>Status</th>
-                  <th>Last Modified</th>
-                </tr>
-                <template repeat="{{roll in recent}}">
-                  <tr class="{{roll.Closed ? (roll.Committed ? 'success' : 'failure') : 'inprogress'}}">
-                    <td><a href="https://codereview.chromium.org/{{roll.Issue}}" target="_blank">{{roll.Issue}}</a></td>
-                    <td>{{roll.Closed ? (roll.Committed ? 'Succeeded' : 'Failed') : 'In progress'}}</td>
-                    <td>{{roll.Modified|readableDate}}</td>
-                  </tr>
-                </template>
-              </table>
-            </td>
-          </tr>
-          <tr>
-            <td>Full History:</td>
-            <td>
-              <a href="https://codereview.chromium.org/user/skia-deps-roller" target="_blank">
-                https://codereview.chromium.org/user/skia-deps-roller
-              </a>
-            </td>
-          </tr>
-        </table>
-      </paper-shadow>
-    </paper-dropdown>
+    <a href="https://autoroll.skia.org" target="_blank" class="inherit">
+      <core-icon-button
+          id="statusIndicator"
+          icon="{{status.status == 'in progress' ? 'autorenew' : (status.status == 'stopped' ? 'error' : 'check-circle')}}">
+        Roll: {{status.status}}
+      </core-icon-button>
+    </a>
   </template>
   <script>
     Polymer({
@@ -151,59 +82,32 @@
       },
 
       created: function() {
-        this.recent = null;
-        this.recentTimeout = null;
+        this.timeout = null;
         this.status = null;
-        this.statusTimeout = null;
       },
 
       ready: function() {
         this.reloadStatus();
-        this.reloadRecent();
-      },
-
-      toggle: function() {
-        var dropdown = this.shadowRoot.querySelector("paper-dropdown");
-        if (dropdown) {
-          dropdown.toggle();
-        }
       },
 
       reloadChanged: function() {
-        this.resetRecentTimeout();
-        this.resetStatusTimeout();
+        this.resetTimeout();
       },
 
-      resetRecentTimeout: function() {
-        if (this.recentTimeout) {
-          window.clearTimeout(this.recentTimeout);
+      resetTimeout: function() {
+        if (this.timeout) {
+          window.clearTimeout(this.timeout);
         }
         if (this.reload > 0) {
-          var that = this;
-          this.recentTimeout = window.setTimeout(function() { that.reloadRecent(); }, this.reload * 1000);
+          this.timeout = window.setTimeout(function() { this.reloadStatus(); }.bind(this), this.reload * 1000);
         }
       },
 
-      resetStatusTimeout: function() {
-        if (this.statusTimeout) {
-          window.clearTimeout(this.statusTimeout);
+      update: function(status) {
+        // If present, update the information about the current roll.
+        if (status.currentRoll) {
+          status.currentRollRev = status.currentRoll.rollingTo;
         }
-        if (this.reload > 0) {
-          var that = this;
-          this.statusTimeout = window.setTimeout(function() { that.reloadStatus(); }, this.reload * 1000);
-        }
-      },
-
-      updateRecent: function(recent) {
-        this.recent = recent;
-        this.dispatchEvent(new CustomEvent("change", {
-          detail: {
-            recent: this.recent,
-          }
-        }));
-      },
-
-      updateStatus: function(status) {
         this.status = status;
         this.dispatchEvent(new CustomEvent("change", {
           detail: {
@@ -212,36 +116,14 @@
         }));
       },
 
-      reloadRecent: function() {
-        var that = this;
-        sk.get("/json/autoRoll").then(JSON.parse).then(function(json) {
-          that.updateRecent(json.reverse());
-          that.resetRecentTimeout();
-        }).catch(function() {
-          that.resetRecentTimeout();
-        });
-      },
-
       reloadStatus: function() {
         var that = this;
-        sk.get("https://skia-tree-status.appspot.com/get_arb_status").then(JSON.parse).then(function(json) {
-          that.updateStatus(json);
-          that.resetStatusTimeout();
+        sk.get("https://autoroll.skia.org/json/status").then(JSON.parse).then(function(json) {
+          that.update(json);
+          that.resetTimeout();
         }).catch(function() {
-          that.resetStatusTimeout();
+          that.resetTimeout();
         });
-      },
-
-      shortCommit: function(commit) {
-        if (commit) {
-          return commit.substring(0, 7);
-        }
-        return commit;
-      },
-
-      readableDate: function(d) {
-        var rv = new Date(d);
-        return rv.toLocaleDateString() + ", " + rv.toLocaleTimeString();
       },
     });
   </script>

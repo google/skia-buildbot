@@ -25,14 +25,12 @@ import (
 )
 
 import (
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -58,7 +56,6 @@ var (
 	goldSKPStatus        *util.PollingStatus                  = nil
 	goldImageStatus      *util.PollingStatus                  = nil
 	perfStatus           *util.PollingStatus                  = nil
-	rollStatus           *util.PollingStatus                  = nil
 	slaveHosts           *util.PollingStatus                  = nil
 	androidDevices       *util.PollingStatus                  = nil
 	sshDevices           *util.PollingStatus                  = nil
@@ -493,14 +490,6 @@ func goldJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func autoRollJsonHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(rollStatus); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to report AutoRoll status: %v", err))
-		return
-	}
-}
-
 func slaveHostsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]interface{}{
@@ -597,7 +586,6 @@ func runServer(serverURL string) {
 	r.HandleFunc("/buildbots", buildbotDashHandler)
 	r.HandleFunc("/hosts", hostsHandler)
 	r.HandleFunc("/infra", infraHandler)
-	r.HandleFunc("/json/autoRoll", autoRollJsonHandler)
 	r.HandleFunc("/json/builds", buildsJsonHandler)
 	r.HandleFunc("/json/goldStatus", goldJsonHandler)
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
@@ -726,12 +714,6 @@ func main() {
 		glog.Fatal(err)
 	}
 	sshDevices, err = device_cfg.SSHDeviceCfgPoller(*workdir)
-	if err != nil {
-		glog.Fatal(err)
-	}
-
-	// Load AutoRoll data in a loop.
-	rollStatus, err = autoroll.AutoRollStatusPoller(rietveld.New(autoroll.RIETVELD_URL, nil))
 	if err != nil {
 		glog.Fatal(err)
 	}

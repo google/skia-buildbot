@@ -40,7 +40,7 @@ const (
 )
 
 var (
-	ROLL_REV_REGEX = regexp.MustCompile("Roll .+ [0-9a-zA-Z]+\\.\\.([0-9a-zA-Z]+) \\(\\d+ commit.*\\)\\.")
+	ROLL_REV_REGEX = regexp.MustCompile("Roll .+ ([0-9a-zA-Z]+)\\.\\.([0-9a-zA-Z]+) \\(\\d+ commit.*\\)\\.")
 
 	OPEN_ROLL_VALID_RESULTS = []string{
 		ROLL_RESULT_DRY_RUN_FAILURE,
@@ -68,6 +68,8 @@ type AutoRollIssue struct {
 	Modified          time.Time    `json:"modified"`
 	Patchsets         []int64      `json:"patchSets"`
 	Result            string       `json:"result"`
+	RollingFrom       string       `json:"rollingFrom"`
+	RollingTo         string       `json:"rollingTo"`
 	Subject           string       `json:"subject"`
 	TryResults        []*TryResult `json:"tryResults"`
 }
@@ -94,7 +96,7 @@ func (i *AutoRollIssue) Validate() error {
 
 // FromRietveldIssue returns an AutoRollIssue instance based on the given
 // rietveld.Issue.
-func FromRietveldIssue(i *rietveld.Issue) *AutoRollIssue {
+func FromRietveldIssue(i *rietveld.Issue, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
 	roll := &AutoRollIssue{
 		Closed:            i.Closed,
 		Committed:         i.Committed,
@@ -107,7 +109,13 @@ func FromRietveldIssue(i *rietveld.Issue) *AutoRollIssue {
 		Subject:           i.Subject,
 	}
 	roll.Result = rollResult(roll)
-	return roll
+	from, to, err := rollRev(roll.Subject, fullHashFn)
+	if err != nil {
+		return nil, err
+	}
+	roll.RollingFrom = from
+	roll.RollingTo = to
+	return roll, nil
 }
 
 // rollResult derives a result string for the roll.
@@ -120,6 +128,29 @@ func rollResult(roll *AutoRollIssue) string {
 		}
 	}
 	return ROLL_RESULT_IN_PROGRESS
+}
+
+// rollRev returns the commit the given roll is rolling from and to.
+func rollRev(subject string, fullHashFn func(string) (string, error)) (string, string, error) {
+	matches := ROLL_REV_REGEX.FindStringSubmatch(subject)
+	if matches == nil {
+		return "", "", fmt.Errorf("No roll revision found in %q", subject)
+	}
+	if len(matches) != 3 {
+		return "", "", fmt.Errorf("Unable to parse revisions from issue subject: %q", subject)
+	}
+	if fullHashFn == nil {
+		return matches[1], matches[2], nil
+	}
+	from, err := fullHashFn(matches[1])
+	if err != nil {
+		return "", "", err
+	}
+	to, err := fullHashFn(matches[2])
+	if err != nil {
+		return "", "", err
+	}
+	return from, to, nil
 }
 
 // AllTrybotsFinished returns true iff all known trybots have finished for the
@@ -191,7 +222,7 @@ func (s tryResultSlice) Less(i, j int) bool { return s[i].Builder < s[j].Builder
 func (s tryResultSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 // search queries Rietveld for issues matching the known DEPS roll format.
-func search(r *rietveld.Rietveld, limit int, terms ...*rietveld.SearchTerm) ([]*AutoRollIssue, error) {
+func search(r *rietveld.Rietveld, limit int, fullHashFn func(string) (string, error), terms ...*rietveld.SearchTerm) ([]*AutoRollIssue, error) {
 	terms = append(terms, rietveld.SearchOwner(ROLL_AUTHOR))
 	res, err := r.Search(limit, terms...)
 	if err != nil {
@@ -200,7 +231,11 @@ func search(r *rietveld.Rietveld, limit int, terms ...*rietveld.SearchTerm) ([]*
 	rv := make([]*AutoRollIssue, 0, len(res))
 	for _, i := range res {
 		if ROLL_REV_REGEX.FindString(i.Subject) != "" {
-			rv = append(rv, FromRietveldIssue(i))
+			ari, err := FromRietveldIssue(i, fullHashFn)
+			if err != nil {
+				return nil, err
+			}
+			rv = append(rv, ari)
 		}
 	}
 	sort.Sort(autoRollIssueSlice(rv))
@@ -209,32 +244,12 @@ func search(r *rietveld.Rietveld, limit int, terms ...*rietveld.SearchTerm) ([]*
 
 // GetRecentRolls returns any DEPS rolls modified after the given Time, with a
 // limit of RECENT_ROLLS_LIMIT.
-func GetRecentRolls(r *rietveld.Rietveld, modifiedAfter time.Time) ([]*AutoRollIssue, error) {
-	issues, err := search(r, RECENT_ROLLS_LIMIT, rietveld.SearchModifiedAfter(modifiedAfter))
+func GetRecentRolls(r *rietveld.Rietveld, modifiedAfter time.Time, fullHashFn func(string) (string, error)) ([]*AutoRollIssue, error) {
+	issues, err := search(r, RECENT_ROLLS_LIMIT, fullHashFn, rietveld.SearchModifiedAfter(modifiedAfter))
 	if err != nil {
 		return nil, err
 	}
 	return issues, nil
-}
-
-// GetLastNRolls returns the last N DEPS rolls.
-func GetLastNRolls(r *rietveld.Rietveld, n int) ([]*AutoRollIssue, error) {
-	issues, err := search(r, n)
-	if err != nil {
-		return nil, err
-	}
-	if len(issues) <= n {
-		return issues, nil
-	}
-	return issues[:n], nil
-}
-
-// AutoRollStatusPoller is a PollingStatus which periodically loads the recent
-// DEPS rolls.
-func AutoRollStatusPoller(r *rietveld.Rietveld) (*util.PollingStatus, error) {
-	return util.NewPollingStatus(func() (interface{}, error) {
-		return GetLastNRolls(r, POLLER_ROLLS_LIMIT)
-	}, 1*time.Minute)
 }
 
 // GetTryResults returns trybot results for the given roll.

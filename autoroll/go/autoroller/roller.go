@@ -113,6 +113,7 @@ type AutoRollStatus struct {
 	CurrentRoll *autoroll.AutoRollIssue   `json:"currentRoll"`
 	Error       string                    `json:"error"`
 	LastRoll    *autoroll.AutoRollIssue   `json:"lastRoll"`
+	LastRollRev string                    `json:"lastRollRev"`
 	Mode        string                    `json:"mode"`
 	Recent      []*autoroll.AutoRollIssue `json:"recent"`
 	Status      string                    `json:"status"`
@@ -139,6 +140,7 @@ func (r *AutoRoller) GetStatus(includeError bool) AutoRollStatus {
 	s := AutoRollStatus{
 		CurrentRoll: current,
 		LastRoll:    last,
+		LastRollRev: r.rm.LastRollRev(),
 		Mode:        r.modeHistory.CurrentMode(),
 		Recent:      recent,
 		Status:      r.status,
@@ -252,16 +254,6 @@ func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error
 	return r.recent.Update(updated)
 }
 
-// getRollRev parses an abbreviated commit hash from the given issue
-// subject and returns the full hash.
-func (r *AutoRoller) getRollRev(subject string) (string, error) {
-	matches := autoroll.ROLL_REV_REGEX.FindStringSubmatch(subject)
-	if matches == nil {
-		return "", fmt.Errorf("No roll revision found in %q", subject)
-	}
-	return r.rm.FullSkiaHash(matches[1])
-}
-
 // updateCurrentRoll retrieves updated information about the current DEPS roll.
 func (r *AutoRoller) updateCurrentRoll() error {
 	r.mtx.Lock()
@@ -299,7 +291,10 @@ func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, erro
 	if err != nil {
 		return nil, err
 	}
-	a := autoroll.FromRietveldIssue(issue)
+	a, err := autoroll.FromRietveldIssue(issue, r.rm.FullSkiaHash)
+	if err != nil {
+		return nil, err
+	}
 	tryResults, err := autoroll.GetTryResults(r.rietveld, a)
 	if err != nil {
 		return nil, err
@@ -350,11 +345,6 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	if currentRoll != nil {
 		glog.Infof("Found current roll: https://codereview.chromium.org/%d", currentRoll.Issue)
 
-		rollingTo, err := r.getRollRev(currentRoll.Subject)
-		if err != nil {
-			return STATUS_ERROR, err
-		}
-
 		if r.isMode(autoroll_modes.MODE_DRY_RUN) {
 			if len(currentRoll.TryResults) > 0 && currentRoll.AllTrybotsFinished() {
 				result := autoroll.ROLL_RESULT_DRY_RUN_FAILURE
@@ -363,8 +353,8 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 					result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
 					status = STATUS_DRY_RUN_SUCCESS
 				}
-				if rollingTo != r.rm.SkiaHead() {
-					if err := r.closeIssue(currentRoll, result, fmt.Sprintf("Skia has passed %s; will open a new dry run.", rollingTo)); err != nil {
+				if currentRoll.RollingTo != r.rm.SkiaHead() {
+					if err := r.closeIssue(currentRoll, result, fmt.Sprintf("Skia has passed %s; will open a new dry run.", currentRoll.RollingTo)); err != nil {
 						return STATUS_ERROR, err
 					}
 				} else if currentRoll.Result != result {
@@ -431,9 +421,9 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, "Roll has been open for over 24 hours; closing."); err != nil {
 					return STATUS_ERROR, err
 				}
-			} else if r.rm.RolledPast(rollingTo) {
+			} else if r.rm.RolledPast(currentRoll.RollingTo) {
 				// If we've already rolled past the target revision, close the issue
-				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Already rolled past %s; closing this roll.", rollingTo)); err != nil {
+				if err := r.closeIssue(currentRoll, autoroll.ROLL_RESULT_FAILURE, fmt.Sprintf("Already rolled past %s; closing this roll.", currentRoll.RollingTo)); err != nil {
 					return STATUS_ERROR, err
 				}
 			} else {

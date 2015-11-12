@@ -139,7 +139,7 @@ func runServer(serverURL string) {
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/json/mode", modeJsonHandler).Methods("POST")
-	r.HandleFunc("/json/status", statusJsonHandler)
+	r.HandleFunc("/json/status", util.CorsHandler(statusJsonHandler))
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)

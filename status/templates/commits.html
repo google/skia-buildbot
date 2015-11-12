@@ -119,7 +119,7 @@
         })
         $$$("autoroll-widget-sk").addEventListener("change", function(e) {
           if (e.detail.status) {
-            $$$("commits-sk").setAutoRollStatus(e.detail.status.curr_roll_rev, e.detail.status.last_roll_rev);
+            $$$("commits-sk").setAutoRollStatus(e.detail.status.currentRollRev, e.detail.status.lastRollRev);
           }
         })
       })

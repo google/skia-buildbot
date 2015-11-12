@@ -114,10 +114,15 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 
 	// AutoRoll failure.
 	go func() {
+		// For alerts we don't care if we have only the short hash for DEPS rolls.
+		noFullHash := func(shortHash string) (string, error) {
+			return shortHash, nil
+		}
+
 		lastSearch := time.Now()
 		for now := range time.Tick(time.Minute) {
 			glog.Infof("Searching for DEPS rolls.")
-			results, err := autoroll.GetRecentRolls(rietveld.New(autoroll.RIETVELD_URL, nil), lastSearch)
+			results, err := autoroll.GetRecentRolls(rietveld.New(autoroll.RIETVELD_URL, nil), lastSearch, noFullHash)
 			if err != nil {
 				glog.Errorf("Failed to search for DEPS rolls: %v", err)
 				continue

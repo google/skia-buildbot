@@ -228,8 +228,8 @@ func (r *mockRietveld) pretendRollLanded(rm *mockRepoManager, issue *rietveld.Is
 	// Determine what revision we rolled to.
 	m := autoroll.ROLL_REV_REGEX.FindStringSubmatch(issue.Subject)
 	assert.NotNil(r.t, m)
-	assert.Equal(r.t, 2, len(m))
-	rolledTo, ok := rm.MockFullSkiaHashes[m[1]]
+	assert.Equal(r.t, 3, len(m))
+	rolledTo, ok := rm.MockFullSkiaHashes[m[2]]
 	assert.True(r.t, ok)
 	rm.MockRolledPast[rolledTo] = true
 	rm.MockLastRollRev = rolledTo
@@ -250,7 +250,7 @@ func (r *mockRietveld) nextIssueNum() int64 {
 }
 
 // checkStatus verifies that we get the expected status from the roller.
-func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, expectedStatus string, current *rietveld.Issue, currentTrybots []*buildbucket.Build, currentDryRun bool, last *rietveld.Issue, lastTrybots []*buildbucket.Build, lastDryRun bool) {
+func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, rm *mockRepoManager, expectedStatus string, current *rietveld.Issue, currentTrybots []*buildbucket.Build, currentDryRun bool, last *rietveld.Issue, lastTrybots []*buildbucket.Build, lastDryRun bool) {
 	rv.assertMocksEmpty()
 	s := r.GetStatus(true)
 	assert.Equal(t, expectedStatus, s.Status)
@@ -258,7 +258,8 @@ func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, expectedStatus s
 	checkRoll := func(t *testing.T, expect *rietveld.Issue, actual *autoroll.AutoRollIssue, expectTrybots []*buildbucket.Build, dryRun bool) {
 		if expect != nil {
 			assert.NotNil(t, actual)
-			ari := autoroll.FromRietveldIssue(expect)
+			ari, err := autoroll.FromRietveldIssue(expect, rm.FullSkiaHash)
+			assert.Nil(t, err)
 			tryResults := make([]*autoroll.TryResult, 0, len(expectTrybots))
 			for _, b := range expectTrybots {
 				tryResult, err := autoroll.TryResultFromBuildbucket(b)
@@ -325,7 +326,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	assert.Nil(t, err)
 
 	// Verify that the bot ran successfully.
-	checkStatus(t, roller, rv, STATUS_IN_PROGRESS, roll1, noTrybots, false, nil, nil, false)
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll1, noTrybots, false, nil, nil, false)
 
 	return workdir, roller, rm, rv, roll1
 }
@@ -343,7 +344,7 @@ func TestAutoRollBasic(t *testing.T) {
 	// Run again. Verify that we let the currently-running roll keep going.
 	rv.updateIssue(roll1, noTrybots)
 	assert.Nil(t, roller.doAutoRoll())
-	checkStatus(t, roller, rv, STATUS_IN_PROGRESS, roll1, noTrybots, false, nil, nil, false)
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll1, noTrybots, false, nil, nil, false)
 
 	// The roll failed. Verify that we close it and upload another one.
 	rv.pretendRollFailed(roll1, noTrybots)
@@ -351,16 +352,16 @@ func TestAutoRollBasic(t *testing.T) {
 	roll2 := rm.rollerWillUpload(rv, rm.MockLastRollRev, rm.MockSkiaHead, noTrybots, false)
 	assert.Nil(t, roller.doAutoRoll())
 	roll1.Closed = true // The roller should have closed this CL.
-	checkStatus(t, roller, rv, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
 
 	// The second roll succeeded. Verify that we're up-to-date.
 	rv.pretendRollLanded(rm, roll2, noTrybots)
 	assert.Nil(t, roller.doAutoRoll())
-	checkStatus(t, roller, rv, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
 
 	// Verify that we remain idle.
 	assert.Nil(t, roller.doAutoRoll())
-	checkStatus(t, roller, rv, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
 }
 
 // TestAutoRollStop ensures that we can properly stop and restart the
@@ -387,30 +388,30 @@ func TestAutoRollStop(t *testing.T) {
 	roll1.Closed = true
 	roll1.CommitQueue = false
 	roll1.CommitQueueDryRun = false
-	checkStatus(t, roller, rv, STATUS_STOPPED, nil, nil, false, roll1, noTrybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll1, noTrybots, false)
 
 	// Ensure that we don't upload another CL now that we're stopped.
 	assert.Nil(t, roller.doAutoRoll())
-	checkStatus(t, roller, rv, STATUS_STOPPED, nil, nil, false, roll1, noTrybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll1, noTrybots, false)
 
 	// Resume the bot. Ensure that we upload a new CL.
 	roll2 := rm.rollerWillUpload(rv, rm.MockLastRollRev, rm.MockSkiaHead, noTrybots, false)
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Resume!"))
-	checkStatus(t, roller, rv, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
 
 	// Pretend the roll landed.
 	rv.pretendRollLanded(rm, roll2, noTrybots)
 	assert.Nil(t, roller.doAutoRoll())
-	checkStatus(t, roller, rv, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
 
 	// Stop the roller again.
 	rm.skiaCommit("adbcdf1010101010101010101010101010101010")
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_STOPPED, u, "Stop!"))
-	checkStatus(t, roller, rv, STATUS_STOPPED, nil, nil, false, roll2, noTrybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll2, noTrybots, false)
 
 	// Ensure that we don't upload another CL now that we're stopped.
 	assert.Nil(t, roller.doAutoRoll())
-	checkStatus(t, roller, rv, STATUS_STOPPED, nil, nil, false, roll2, noTrybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll2, noTrybots, false)
 }
 
 // TestAutoRollDryRun ensures that the Dry Run functionalify works as expected.
@@ -431,17 +432,17 @@ func TestAutoRollDryRun(t *testing.T) {
 	trybots := []*buildbucket.Build{trybot}
 	rv.rollerWillSwitchDryRun(roll1, trybots, true)
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_DRY_RUN, u, "Dry run."))
-	checkStatus(t, roller, rv, STATUS_DRY_RUN_IN_PROGRESS, roll1, trybots, true, nil, nil, false)
+	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll1, trybots, true, nil, nil, false)
 
 	// Dry run succeeded.
 	rv.pretendDryRunFinished(roll1, trybots, true)
 	assert.Nil(t, roller.doAutoRoll())
-	checkStatus(t, roller, rv, STATUS_DRY_RUN_SUCCESS, roll1, trybots, true, nil, nil, false)
+	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_SUCCESS, roll1, trybots, true, nil, nil, false)
 
 	// Run again. Ensure that we don't do anything crazy.
 	rv.updateIssue(roll1, trybots)
 	assert.Nil(t, roller.doAutoRoll())
-	checkStatus(t, roller, rv, STATUS_DRY_RUN_SUCCESS, roll1, trybots, true, nil, nil, false)
+	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_SUCCESS, roll1, trybots, true, nil, nil, false)
 
 	// New Skia commit: verify that we close the existing dry run and open another.
 	rm.skiaCommit("adbcdf1010101010101010101010101010101010")
@@ -456,7 +457,7 @@ func TestAutoRollDryRun(t *testing.T) {
 	roll2.CommitQueueDryRun = true
 	assert.Nil(t, roller.doAutoRoll())
 	roll1.Closed = true // Roller should have closed this issue.
-	checkStatus(t, roller, rv, STATUS_DRY_RUN_IN_PROGRESS, roll2, trybots2, true, roll1, trybots, true)
+	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll2, trybots2, true, roll1, trybots, true)
 
 	// Dry run failed. Ensure that we close the roll and open another, same
 	// as in non-dry-run mode.
@@ -469,29 +470,29 @@ func TestAutoRollDryRun(t *testing.T) {
 	roll3 := rm.rollerWillUpload(rv, rm.MockLastRollRev, rm.MockSkiaHead, trybots3, true)
 	assert.Nil(t, roller.doAutoRoll())
 	roll2.Closed = true // Roller should have closed this issue.
-	checkStatus(t, roller, rv, STATUS_DRY_RUN_IN_PROGRESS, roll3, trybots3, true, roll2, trybots2, true)
+	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll3, trybots3, true, roll2, trybots2, true)
 
 	// Ensure that we switch back to normal running mode as expected.
 	rv.rollerWillSwitchDryRun(roll3, trybots3, false)
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Normal mode."))
-	checkStatus(t, roller, rv, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
 
 	// Switch back to dry run.
 	rv.rollerWillSwitchDryRun(roll3, trybots3, true)
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_DRY_RUN, u, "Dry run again."))
-	checkStatus(t, roller, rv, STATUS_DRY_RUN_IN_PROGRESS, roll3, trybots3, true, roll2, trybots2, true)
+	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll3, trybots3, true, roll2, trybots2, true)
 
 	// Dry run succeeded.
 	rv.pretendDryRunFinished(roll3, trybots3, true)
 	assert.Nil(t, roller.doAutoRoll())
-	checkStatus(t, roller, rv, STATUS_DRY_RUN_SUCCESS, roll3, trybots3, true, roll2, trybots2, true)
+	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_SUCCESS, roll3, trybots3, true, roll2, trybots2, true)
 
 	// The successful dry run will not have the commit bit set. Make sure
 	// that, when we switch back into normal mode, we re-set the commit bit
 	// instead of closing the roll and opening a new one.
 	rv.rollerWillSwitchDryRun(roll3, trybots3, false)
 	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Normal mode."))
-	checkStatus(t, roller, rv, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
+	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
 }
 
 // TestAutoRollCommitRace ensures that we correctly handle the case in which
@@ -518,8 +519,8 @@ func TestAutoRollCommitRace(t *testing.T) {
 	// Determine what revision we rolled to.
 	m := autoroll.ROLL_REV_REGEX.FindStringSubmatch(roll1.Subject)
 	assert.NotNil(t, m)
-	assert.Equal(t, 2, len(m))
-	rolledTo, ok := rm.MockFullSkiaHashes[m[1]]
+	assert.Equal(t, 3, len(m))
+	rolledTo, ok := rm.MockFullSkiaHashes[m[2]]
 	assert.True(t, ok)
 	rm.MockRolledPast[rolledTo] = true
 	rm.MockLastRollRev = rolledTo
@@ -546,5 +547,5 @@ func TestAutoRollCommitRace(t *testing.T) {
 
 	// Verify that the roller correctly determined that the CL landed.
 	roll1.Committed = true
-	checkStatus(t, roller, rv, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
+	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
 }
