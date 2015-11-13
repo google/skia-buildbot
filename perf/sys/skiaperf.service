@@ -1,0 +1,21 @@
+[Unit]
+Description=Web server for Skia correctness monitoring.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Environment=DATA_DIR=/mnt/pd0/data
+
+ExecStart=/usr/local/bin/skia_perf  \
+    --resources_dir=/usr/local/share/skiaperf/  \
+    --git_repo_dir=$DATA_DIR/skia  \
+    --log_dir=/var/log/logserver  \
+    --tile_store_dir=$DATA_DIR/tileStore3
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
