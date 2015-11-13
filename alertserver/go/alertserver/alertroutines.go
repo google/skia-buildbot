@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -9,10 +11,10 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/alertserver/go/alerting"
+	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/util"
 )
 
@@ -114,38 +116,46 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 
 	// AutoRoll failure.
 	go func() {
-		// For alerts we don't care if we have only the short hash for DEPS rolls.
-		noFullHash := func(shortHash string) (string, error) {
-			return shortHash, nil
+		getDepsRollStatus := func() (*autoroller.AutoRollStatus, error) {
+			resp, err := http.Get(autoroll.AUTOROLL_STATUS_URL)
+			if err != nil {
+				return nil, err
+			}
+
+			defer util.Close(resp.Body)
+			var status autoroller.AutoRollStatus
+			if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
+				return nil, err
+			}
+			return &status, nil
 		}
 
-		lastSearch := time.Now()
-		for now := range time.Tick(time.Minute) {
+		for _ = range time.Tick(time.Minute) {
 			glog.Infof("Searching for DEPS rolls.")
-			results, err := autoroll.GetRecentRolls(rietveld.New(autoroll.RIETVELD_URL, nil), lastSearch, noFullHash)
+			status, err := getDepsRollStatus()
 			if err != nil {
-				glog.Errorf("Failed to search for DEPS rolls: %v", err)
+				util.LogErr(fmt.Errorf("Failed to search for DEPS rolls: %v", err))
 				continue
 			}
-			lastSearch = now
+
 			activeAlert := am.ActiveAlert(AUTOROLL_ALERT_NAME)
-			for _, issue := range results {
-				if issue.Closed {
-					if issue.Succeeded() {
+			if status.LastRoll != nil {
+				if status.LastRoll.Closed {
+					if status.LastRoll.Succeeded() {
 						if activeAlert != 0 {
-							msg := fmt.Sprintf("Subsequent roll succeeded: %s/%d", autoroll.RIETVELD_URL, issue.Issue)
+							msg := fmt.Sprintf("Subsequent roll succeeded: %s/%d", autoroll.RIETVELD_URL, status.LastRoll.Issue)
 							if err := am.Dismiss(activeAlert, alerting.USER_ALERTSERVER, msg); err != nil {
-								glog.Error(err)
+								util.LogErr(err)
 							}
 						}
-					} else if issue.Failed() {
+					} else if status.LastRoll.Failed() {
 						if err := am.AddAlert(&alerting.Alert{
 							Name:    AUTOROLL_ALERT_NAME,
-							Message: fmt.Sprintf("DEPS roll failed: %s/%d", autoroll.RIETVELD_URL, issue.Issue),
+							Message: fmt.Sprintf("DEPS roll failed: %s/%d", autoroll.RIETVELD_URL, status.LastRoll.Issue),
 							Nag:     int64(3 * time.Hour),
 							Actions: actions,
 						}); err != nil {
-							glog.Error(err)
+							util.LogErr(err)
 						}
 					}
 				}
