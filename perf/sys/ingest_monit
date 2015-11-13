@@ -1,0 +1,13 @@
+check process ingest with pidfile /var/run/ingest.pid
+   start program = "/etc/init.d/ingest start"
+   stop program = "/etc/init.d/ingest stop"
+   depends on ingest_init
+   depends on ingest_exe
+
+check file ingest_init
+  with path /etc/init.d/ingest
+  if changed timestamp then restart
+
+check file ingest_exe
+  with path /usr/local/bin/ingest
+  if changed timestamp then restart
