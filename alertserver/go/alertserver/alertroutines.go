@@ -131,14 +131,14 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 			activeAlert := am.ActiveAlert(AUTOROLL_ALERT_NAME)
 			for _, issue := range results {
 				if issue.Closed {
-					if issue.Committed {
+					if issue.Succeeded() {
 						if activeAlert != 0 {
 							msg := fmt.Sprintf("Subsequent roll succeeded: %s/%d", autoroll.RIETVELD_URL, issue.Issue)
 							if err := am.Dismiss(activeAlert, alerting.USER_ALERTSERVER, msg); err != nil {
 								glog.Error(err)
 							}
 						}
-					} else {
+					} else if issue.Failed() {
 						if err := am.AddAlert(&alerting.Alert{
 							Name:    AUTOROLL_ALERT_NAME,
 							Message: fmt.Sprintf("DEPS roll failed: %s/%d", autoroll.RIETVELD_URL, issue.Issue),

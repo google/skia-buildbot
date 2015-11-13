@@ -54,6 +54,16 @@ var (
 		ROLL_RESULT_DRY_RUN_IN_PROGRESS,
 		ROLL_RESULT_DRY_RUN_SUCCESS,
 	}
+
+	FAILURE_RESULTS = []string{
+		ROLL_RESULT_DRY_RUN_FAILURE,
+		ROLL_RESULT_FAILURE,
+	}
+
+	SUCCESS_RESULTS = []string{
+		ROLL_RESULT_DRY_RUN_SUCCESS,
+		ROLL_RESULT_SUCCESS,
+	}
 )
 
 // AutoRollIssue is a trimmed-down rietveld.Issue containing just the
@@ -173,6 +183,16 @@ func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
 		}
 	}
 	return true
+}
+
+// Failed returns true iff the roll failed (including dry run failure).
+func (a *AutoRollIssue) Failed() bool {
+	return util.In(a.Result, FAILURE_RESULTS)
+}
+
+// Succeeded returns true iff the roll succeeded (including dry run success).
+func (a *AutoRollIssue) Succeeded() bool {
+	return util.In(a.Result, SUCCESS_RESULTS)
 }
 
 // TryResult is a struct which contains trybot result details.
