@@ -325,7 +325,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !activeDomainWhiteList[parts[1]] && !activeEmailWhiteList[email] {
+	if len(activeDomainWhiteList) > 0 && !activeDomainWhiteList[parts[1]] && !activeEmailWhiteList[email] {
 		http.Error(w, "Accounts from your domain are not allowed or your email address is not white listed.", 500)
 		return
 	}
