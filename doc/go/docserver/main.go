@@ -7,6 +7,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"mime"
 	"net/http"
 	"path/filepath"
@@ -99,7 +100,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if cl != "" {
 		issue, err := strconv.ParseInt(cl, 10, 64)
 		if err != nil {
-			util.ReportError(w, r, err, "The CL given is not valid.")
+			util.ReportError(w, r, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.")
 			return
 		}
 		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), filepath.Join(*workDir, "primary"), issue)
