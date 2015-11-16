@@ -231,7 +231,8 @@ func (r *repoManager) cleanChromium() error {
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
 func (r *repoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool) (int64, error) {
-	to := r.SkiaHead()
+	r.mtx.Lock()
+	defer r.mtx.Unlock()
 
 	// Clean the checkout, get onto a fresh branch.
 	if err := r.cleanChromium(); err != nil {
@@ -257,7 +258,7 @@ func (r *repoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool
 		Dir:  r.chromiumDir,
 		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
 		Name: r.rollDep,
-		Args: []string{"src/third_party/skia", to},
+		Args: []string{"src/third_party/skia", r.skiaHead},
 	}); err != nil {
 		return 0, err
 	}
