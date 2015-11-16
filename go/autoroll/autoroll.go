@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strconv"
 	"time"
 
 	"go.skia.org/infra/go/buildbucket"
@@ -176,9 +177,17 @@ func (a *AutoRollIssue) AllTrybotsFinished() bool {
 }
 
 // AllTrybotsSucceeded returns true iff all known trybots have succeeded for the
-// given issue.
+// given issue. Note that some trybots may fail and be retried, in which case a
+// successful retry counts as a success.
 func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
+	// For each trybot, find the most recent result.
+	bots := map[string]*TryResult{}
 	for _, t := range a.TryResults {
+		if prev, ok := bots[t.Builder]; !ok || prev.Created.Before(t.Created) {
+			bots[t.Builder] = t
+		}
+	}
+	for _, t := range bots {
 		if !t.Succeeded() {
 			return false
 		}
@@ -198,10 +207,11 @@ func (a *AutoRollIssue) Succeeded() bool {
 
 // TryResult is a struct which contains trybot result details.
 type TryResult struct {
-	Builder string `json:"builder"`
-	Result  string `json:"result"`
-	Status  string `json:"status"`
-	Url     string `json:"url"`
+	Builder string    `json:"builder"`
+	Created time.Time `json:"created_ts"`
+	Result  string    `json:"result"`
+	Status  string    `json:"status"`
+	Url     string    `json:"url"`
 }
 
 // TryResultFromBuildbucket returns a new TryResult based on a buildbucket.Build.
@@ -212,8 +222,13 @@ func TryResultFromBuildbucket(b *buildbucket.Build) (*TryResult, error) {
 	if err := json.Unmarshal([]byte(b.ParametersJson), &params); err != nil {
 		return nil, err
 	}
+	created, err := strconv.ParseInt(b.CreatedTimestamp, 10, 64)
+	if err != nil {
+		return nil, err
+	}
 	return &TryResult{
 		Builder: params.Builder,
+		Created: util.UnixMillisToTime(created),
 		Result:  b.Result,
 		Status:  b.Status,
 		Url:     b.Url,

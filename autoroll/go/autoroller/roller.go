@@ -362,6 +362,7 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 					result = autoroll.ROLL_RESULT_DRY_RUN_SUCCESS
 					status = STATUS_DRY_RUN_SUCCESS
 				}
+				glog.Infof("Dry run is finished: %v", currentRoll)
 				if currentRoll.RollingTo != r.rm.SkiaHead() {
 					if err := r.closeIssue(currentRoll, result, fmt.Sprintf("Skia has passed %s; will open a new dry run.", currentRoll.RollingTo)); err != nil {
 						return STATUS_ERROR, err

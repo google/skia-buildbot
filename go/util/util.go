@@ -26,6 +26,8 @@ const (
 	GB
 	TB
 	PB
+
+	MILLIS_TO_NANOS = int64(time.Millisecond / time.Nanosecond)
 )
 
 var (
@@ -516,6 +518,12 @@ func UnixFloatToTime(t float64) time.Time {
 	secs := int64(t)
 	nanos := int64(1000000000 * (t - float64(secs)))
 	return time.Unix(secs, nanos)
+}
+
+// UnixMillisToTime takes an int64 representing a Unix timestamp in milliseconds
+// and returns a time.Time.
+func UnixMillisToTime(t int64) time.Time {
+	return time.Unix(0, t*MILLIS_TO_NANOS).UTC()
 }
 
 // Repeat calls the provided function 'fn' immediately and then in intervals

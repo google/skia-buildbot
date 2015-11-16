@@ -245,6 +245,9 @@ func runSimpleCommand(command *Command) (string, error) {
 	err := Run(command)
 	result := string(output.Bytes())
 	glog.Infof("StdOut + StdErr: %s\n", result)
+	if err != nil {
+		err = fmt.Errorf("%s; Stdout+Stderr:\n%s", err.Error(), result)
+	}
 	return result, err
 }
 
