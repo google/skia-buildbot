@@ -234,7 +234,6 @@ _slave_host_dicts = {
   'skia-vm-007': {
     'slaves': [
       ('skiabot-linux-compile-006', '0', False),
-      ('skiabot-linux-housekeeper-000', '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
