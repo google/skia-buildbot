@@ -3,7 +3,6 @@ package util
 import (
 	"fmt"
 	"strconv"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +16,7 @@ func UnitTestCodec() LRUCodec {
 	return JSONCodec(&myTestType{})
 }
 
-func UnitTestLRUCache(t *testing.T, cache LRUCache) {
+func UnitTestLRUCache(t assert.TestingT, cache LRUCache) {
 	purge(t, cache)
 	N := 256
 	for i := 0; i < N; i++ {
@@ -69,7 +68,7 @@ func UnitTestLRUCache(t *testing.T, cache LRUCache) {
 	}
 }
 
-func purge(t *testing.T, cache LRUCache) {
+func purge(t assert.TestingT, cache LRUCache) {
 	for _, k := range cache.Keys() {
 		cache.Remove(k)
 	}
