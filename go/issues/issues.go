@@ -10,7 +10,10 @@ import (
 )
 
 const (
-	URL_TEMPLATE = "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?q=%s&fields=items/id,items/state,items/title&key=%s"
+	CODESITE_BASE_URL = "https://www.googleapis.com/projecthosting/v2/projects/skia/issues"
+	// Switch to this once monorail goes to prod for Skia.
+	// MONORAIL_BASE_URL= "https://monorail-prod.appspot.com/_ah/api/monorail/v1/projects/skia/issues"
+	MONORAIL_BASE_URL = "https://monorail-staging.appspot.com/_ah/api/monorail/v1/projects/skia/issues"
 )
 
 // IssueTracker is a genric interface to an issue tracker that allows us
@@ -47,22 +50,36 @@ type IssueResponse struct {
 
 // FromQuery is part of the IssueTracker interface. See documentation there.
 func (c *CodesiteIssueTracker) FromQuery(q string) ([]Issue, error) {
-	url := fmt.Sprintf(URL_TEMPLATE, url.QueryEscape(q), c.apiKey)
+	query := url.Values{}
+	query.Add("q", q)
+	query.Add("key", c.apiKey)
+	query.Add("fields", "items/id,items/state,items/title")
+	return get(c.client, CODESITE_BASE_URL+"?"+query.Encode())
+}
 
-	//  This will return a JSON response of the form:
-	//
-	//  {
-	//   "items": [
-	//    {
-	//     "id": 2874,
-	//     "title": "this is a bug with..."
-	//     "state": "open"
-	//    }
-	//   ]
-	//  }
-	resp, err := c.client.Get(url)
-	if err != nil || resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Failed to retrieve issue tracker response: %s Status Code: %d", err, resp.StatusCode)
+// MonorailIssueTracker implements IssueTracker.
+type MonorailIssueTracker struct {
+	client *http.Client
+}
+
+func NewMonorailIssueTracker(client *http.Client) IssueTracker {
+	return &MonorailIssueTracker{
+		client: client,
+	}
+}
+
+// FromQuery is part of the IssueTracker interface. See documentation there.
+func (m *MonorailIssueTracker) FromQuery(q string) ([]Issue, error) {
+	query := url.Values{}
+	query.Add("q", q)
+	query.Add("fields", "items/id,items/state,items/title")
+	return get(m.client, MONORAIL_BASE_URL+"?"+query.Encode())
+}
+
+func get(client *http.Client, url string) ([]Issue, error) {
+	resp, err := client.Get(url)
+	if err != nil || resp == nil || resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Failed to retrieve issue tracker response: %s", err)
 	}
 	defer util.Close(resp.Body)
 
@@ -73,5 +90,5 @@ func (c *CodesiteIssueTracker) FromQuery(q string) ([]Issue, error) {
 		return nil, err
 	}
 
-	return issueResponse.Items, err
+	return issueResponse.Items, nil
 }
