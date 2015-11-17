@@ -30,46 +30,30 @@
     a:hover {
       text-decoration: underline;
     }
-    #statusIndicator /deep/ core-icon{
+    core-icon{
       color: #E6AB02;
     }
-    paper-dropdown {
-      top: 50px;
+    paper-button {
+      text-transform: none;
     }
-    #rolldetails {
-      color: #000000;
+    #textContainer {
+      margin-left: 8px;
       text-align: left;
-      padding: 10px;
-    }
-    table.rollHistory {
-      border-collapse: collapse;
-    }
-    table.rollHistory /deep/ td {
-      padding: 5px;
-    }
-    table.rollHistory /deep/ th {
-      background-color: #EEEEEE;
-      font-weight: normal;
-      font-size: 1.1em;
-      padding: 8px;
-      text-align:center;
-    }
-    tr.success {
-      background-color: #D1E4BC;
-    }
-    tr.failure {
-      background-color: #D95F02;
-    }
-    tr.inprogress {
-      background-color: #FFFF00;
     }
     </style>
     <a href="https://autoroll.skia.org" target="_blank" class="inherit">
-      <core-icon-button
-          id="statusIndicator"
-          icon="{{status.status == 'in progress' ? 'autorenew' : (status.status == 'stopped' ? 'error' : 'check-circle')}}">
-        Roll: {{status.status}}
-      </core-icon-button>
+      <paper-button>
+        <div horizontal layout center>
+          <core-icon
+              id="statusIndicator"
+              icon="{{status.status == 'in progress' ? 'autorenew' : (status.status == 'stopped' ? 'error' : 'check-circle')}}">
+          </core-icon>
+          <div id="textContainer">
+            Roll: {{status.status}}<br/>
+            Last: {{status.lastRoll.result}}
+          </div>
+        </div>
+      </paper-button>
     </a>
   </template>
   <script>
