@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/gold_traceserver \
-    --db_file=/mnt/pd0/traceserver/goldtraces.db \
+    --db_file=/mnt/pd0/gold/traceserver/goldtraces.db \
     --graphite_server=skia-monitoring:2003 \
     --port=:10000 \
     --log_dir=/var/log/logserver
