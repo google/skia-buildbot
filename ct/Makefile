@@ -97,6 +97,10 @@ capture_skps:
 run_chromium_perf:
 	go install -v ./go/worker_scripts/run_chromium_perf/
 
+.PHONY: run_chromium_perf_swarming
+run_chromium_perf_swarming:
+	go install -v ./go/worker_scripts/run_chromium_perf_swarming/
+
 .PHONY: poller
 poller:
 	go install -v ./go/poller/
@@ -123,7 +127,7 @@ master_scripts: run_command check_workers_health build_chromium \
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua capture_skps \
-                run_chromium_perf fix_archives
+                run_chromium_perf run_chromium_perf_swarming fix_archives
 
 .PHONY: all
 all: master_scripts worker_scripts testgo
