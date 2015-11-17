@@ -123,7 +123,7 @@ func getIntParam(name string, r *http.Request) (*int, error) {
 	}
 	v64, err := strconv.ParseInt(raw[0], 10, 32)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid value for parameter %q: %s -- %v", name, raw, err)
+		return nil, fmt.Errorf("Invalid integer value for parameter %q", name)
 	}
 	v32 := int(v64)
 	return &v32, nil
