@@ -259,7 +259,7 @@ func getPositiveInt(query url.Values, param string, defaultVal int) (int, error)
 	} else {
 		val, err = strconv.Atoi(valStr)
 		if err != nil {
-			return 0, err
+			return 0, fmt.Errorf("Not a valid integer value.")
 		}
 	}
 	if val < 0 {
