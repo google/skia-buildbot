@@ -27,6 +27,17 @@
       trace-details-sk {
         padding: 1em 0.5em;
       }
+
+      #embed {
+        display: none;
+        width: 45em;
+        margin: 0.5em;
+        margin-left: 1em;
+      }
+
+      #embed.visible {
+        display: inline-block;
+      }
     </style>
   </head>
   <body>
@@ -42,6 +53,7 @@
             <button class=raised id="nuke-plot">Remove all traces</button>
             <button class=raised id="reset-axes">Reset axes</button>
             <button class=raised id="add-lines">Add traces</button>
+            <paper-input label="embed" id=embed><paper-input>
           </div>
           <div class="horizontal_center formula_area">
             <paper-input-decorator floatingLabel label="Formula" flex>
@@ -122,7 +134,18 @@
         Navigation.prototype.clearShortcut = function() {
           if (this.loading_ == false) {
             window.history.pushState(null, "", "#");
+            this.hideEmbed();
           }
+        }
+
+        Navigation.prototype.displayEmbed = function(id) {
+          var code = "<iframe src='https://perf.skia.org/frame/#" + id + "' width=500 height=300 frameborder=0></iframe>";
+          $$$('#embed').value = code;
+          $$$('#embed').classList.add('visible');
+        }
+
+        Navigation.prototype.hideEmbed = function() {
+          $$$('#embed').classList.remove('visible');
         }
 
         /**
@@ -172,11 +195,12 @@
               sk.post("/shortcuts/", JSON.stringify(state)).then(JSON.parse).then(function(json) {
                 // Set the shortcut in the hash.
                 window.history.pushState(null, "", "#" + json.id);
-              });
+                this.displayEmbed(json.id);
+              }.bind(this));
             } else {
               sk.errorMessage("Nothing to shortcut.");
             }
-          });
+          }.bind(this));
 
           $$$('#nuke-plot').addEventListener('click', function(e) {
             $$$('plot-sk').clear();
@@ -234,7 +258,9 @@
             this.commitData_ = json.commits;
             $$$('query-sk').setParamSet(json.paramset);
             if (window.location.hash.length >= 2) {
-              this.addTraces("__shortcut=" + window.location.hash.substr(1))
+              var id = window.location.hash.substr(1);
+              this.addTraces("__shortcut=" + id)
+              this.displayEmbed(id);
             }
 
             var skps = [0].concat(json.skps, [this.commitData_.length-1]);
