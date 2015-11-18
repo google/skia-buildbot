@@ -356,8 +356,8 @@ server {
     access_log /var/log/nginx/sk-bug.access.log;
     error_log /var/log/nginx/sk-bug.error.log error;
 
-    rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
-    rewrite ^ https://code.google.com/p/skia/issues/list redirect;
+    rewrite ^/([0-9]+)$ https://bugs.chromium.org/p/skia/issues/detail?id=$1 redirect;
+    rewrite ^ https://bugs.chromium.org/p/skia/issues/list redirect;
 }
 
 #####   bug.skia.org (REDIRECT)   ###########################
@@ -370,15 +370,15 @@ server {
     access_log /var/log/nginx/bug.access.log;
     error_log /var/log/nginx/bug.error.log error;
 
-    rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
-    rewrite ^ https://code.google.com/p/skia/issues/list redirect;
+    rewrite ^/([0-9]+)$ https://bugs.chromium.org/p/skia/issues/detail?id=$1 redirect;
+    rewrite ^ https://bugs.chromium.org/p/skia/issues/list redirect;
 }
 
 server {
     listen 80;
     server_name bug.skia.org;
-    rewrite ^/([0-9]+)$ https://code.google.com/p/skia/issues/detail?id=$1 redirect;
-    rewrite ^ https://code.google.com/p/skia/issues/list redirect;
+    rewrite ^/([0-9]+)$ https://bugs.chromium.org/p/skia/issues/detail?id=$1 redirect;
+    rewrite ^ https://bugs.chromium.org/p/skia/issues/list redirect;
 }
 
 #####   grandcentral.skia.org   ###########################
