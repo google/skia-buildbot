@@ -67,12 +67,12 @@ var (
 func get(url string, rv interface{}) error {
 	resp, err := httpClient.Get(url)
 	if err != nil {
-		return fmt.Errorf("Failed to GET %s: %v", url, err)
+		return fmt.Errorf("Failed to GET %s: %s", url, err)
 	}
 	defer util.Close(resp.Body)
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(rv); err != nil {
-		return fmt.Errorf("Failed to decode JSON: %v", err)
+		return fmt.Errorf("Failed to decode JSON: %s", err)
 	}
 	return nil
 }
@@ -315,7 +315,7 @@ func insertBuilds(builds []*Build) {
 		// Insert the builds.
 		glog.Infof("Inserting %d builds.", len(builds))
 		if err := ReplaceMultipleBuildsIntoDB(builds); err != nil {
-			glog.Errorf("Failed to insert builds, retrying: %v", err)
+			glog.Errorf("Failed to insert builds, retrying: %s", err)
 			time.Sleep(100 * time.Millisecond)
 		} else {
 			break
@@ -338,7 +338,7 @@ func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash
 	// Determine whether any build already includes this commit.
 	n, err := bc.GetBuildForCommit(b.Builder, b.Master, hash)
 	if err != nil {
-		return commits, stealFrom, stolen, fmt.Errorf("Could not find build for commit %s: %v", hash, err)
+		return commits, stealFrom, stolen, fmt.Errorf("Could not find build for commit %s: %s", hash, err)
 	}
 	// If so, we have to make a decision.
 	if n >= 0 {
@@ -358,7 +358,7 @@ func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash
 				// its commits without doing any more work.
 				stealFromBuild, err := bc.GetBuildFromDB(b.Builder, b.Master, stealFrom)
 				if err != nil {
-					return commits, stealFrom, stolen, fmt.Errorf("Could not retrieve build: %v", err)
+					return commits, stealFrom, stolen, fmt.Errorf("Could not retrieve build: %s", err)
 				}
 				if stealFromBuild.GotRevision == b.GotRevision && stealFromBuild.Number < b.Number {
 					commits = map[string]bool{}
@@ -386,7 +386,7 @@ func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash
 		// after they're picked up by the buildbots but before they're
 		// ingested here. If we can't find a commit, log an error and
 		// skip the commit.
-		glog.Errorf("Failed to obtain details for %s: %v", hash, err)
+		glog.Errorf("Failed to obtain details for %s: %s", hash, err)
 		delete(commits, hash)
 		return commits, stealFrom, stolen, nil
 	}
@@ -417,14 +417,14 @@ func FindCommitsForBuild(bc BuildCache, b *Build, repos *gitinfo.RepoMap) ([]str
 	}
 	repo, err := repos.Repo(b.Repository)
 	if err != nil {
-		return nil, -1, nil, fmt.Errorf("Could not find commits for build: %v", err)
+		return nil, -1, nil, fmt.Errorf("Could not find commits for build: %s", err)
 	}
 
 	// Update (git pull) on demand.
 	if b.GotRevision != "" {
 		if _, err := repo.Details(b.GotRevision); err != nil {
 			if err := repo.Update(true, true); err != nil {
-				return nil, -1, nil, fmt.Errorf("Could not find commits for build: failed to update repo: %v", err)
+				return nil, -1, nil, fmt.Errorf("Could not find commits for build: failed to update repo: %s", err)
 			}
 		}
 	}
@@ -454,7 +454,7 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.
 	url := fmt.Sprintf("%s%s/json/builders/%s/builds/%d", BUILDBOT_URL, master, builder, buildNumber)
 	err := get(url, &build)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve build #%v for %v: %v", buildNumber, builder, err)
+		return nil, fmt.Errorf("Failed to retrieve build #%d for %s: %s", buildNumber, builder, err)
 	}
 	build.Branch = build.branch()
 	build.GotRevision = build.gotRevision()
@@ -468,10 +468,21 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.
 	build.Finished = build.Times[1]
 	propBytes, err := json.Marshal(&build.Properties)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to convert build properties to JSON: %v", err)
+		return nil, fmt.Errorf("Unable to convert build properties to JSON: %s", err)
 	}
 	build.PropertiesStr = string(propBytes)
 	build.Repository = build.repository()
+	if build.Repository == "" {
+		// Attempt to determine the repository.
+		glog.Infof("No repository set for %s #%d; attempting to find it.", build.Builder, build.Number)
+		r, err := repos.RepoForCommit(build.GotRevision)
+		if err == nil {
+			glog.Infof("Found %s for %s", r, build.GotRevision)
+			build.Repository = r
+		} else {
+			glog.Warningf("Encountered error determining repo for %s: %s", build.GotRevision, err)
+		}
+	}
 
 	// Fixup each step.
 	for _, s := range build.Steps {
@@ -563,7 +574,7 @@ func getLatestBuilds(m string) (map[string]int, error) {
 	}
 	builders := map[string]*builder{}
 	if err := get(BUILDBOT_URL+m+"/json/builders", &builders); err != nil {
-		return nil, fmt.Errorf("Failed to retrieve builders for %v: %v", m, err)
+		return nil, fmt.Errorf("Failed to retrieve builders for %s: %s", m, err)
 	}
 	res := map[string]int{}
 	for name, b := range builders {
@@ -586,7 +597,7 @@ func GetBuildSlaves() (map[string]map[string]*BuildSlave, error) {
 			defer wg.Done()
 			slaves := map[string]*BuildSlave{}
 			if err := get(BUILDBOT_URL+m+"/json/slaves", &slaves); err != nil {
-				errs[m] = fmt.Errorf("Failed to retrieve buildslaves for %s: %v", m, err)
+				errs[m] = fmt.Errorf("Failed to retrieve buildslaves for %s: %s", m, err)
 				return
 			}
 			res[m] = slaves
@@ -607,11 +618,11 @@ func getUningestedBuilds(m string) (map[string][]int, error) {
 	// Get the latest and last-processed builds for all builders.
 	latest, err := getLatestBuilds(m)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get latest builds: %v", err)
+		return nil, fmt.Errorf("Failed to get latest builds: %s", err)
 	}
 	lastProcessed, err := getLastProcessedBuilds(m)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to get last-processed builds: %v", err)
+		return nil, fmt.Errorf("Failed to get last-processed builds: %s", err)
 	}
 	// Find the range of uningested builds for each builder.
 	type numRange struct {
@@ -658,11 +669,11 @@ func ingestNewBuilds(m string, repos *gitinfo.RepoMap) error {
 	// than waiting until the end.
 	buildsToProcess, err := getUningestedBuilds(m)
 	if err != nil {
-		return fmt.Errorf("Failed to obtain the set of uningested builds: %v", err)
+		return fmt.Errorf("Failed to obtain the set of uningested builds: %s", err)
 	}
 	unfinished, err := getUnfinishedBuilds(m)
 	if err != nil {
-		return fmt.Errorf("Failed to obtain the set of unfinished builds: %v", err)
+		return fmt.Errorf("Failed to obtain the set of unfinished builds: %s", err)
 	}
 	for _, b := range unfinished {
 		if _, ok := buildsToProcess[b.Builder]; !ok {
@@ -688,11 +699,11 @@ func ingestNewBuilds(m string, repos *gitinfo.RepoMap) error {
 				// If we couldn't get the build from the master after multiple
 				// tries, assume that the build has somehow disappeared and
 				// skip it.
-				glog.Errorf("Failed to retrieve build from master; skipping: %v", err)
+				glog.Errorf("Failed to retrieve build from master; skipping: %s", err)
 				continue
 			}
 			if err := IngestBuild(build, repos); err != nil {
-				errs[b] = fmt.Errorf("Failed to ingest build: %v", err)
+				errs[b] = fmt.Errorf("Failed to ingest build: %s", err)
 				break
 			}
 		}
@@ -700,7 +711,7 @@ func ingestNewBuilds(m string, repos *gitinfo.RepoMap) error {
 	if len(errs) > 0 {
 		msg := fmt.Sprintf("Encountered errors ingesting builds for %s:", m)
 		for b, err := range errs {
-			msg += fmt.Sprintf("\n%s: %v", b, err)
+			msg += fmt.Sprintf("\n%s: %s", b, err)
 		}
 		return fmt.Errorf(msg)
 	}
@@ -714,7 +725,7 @@ func NumTotalBuilds() (int, error) {
 	for _, m := range MASTER_NAMES {
 		latest, err := getLatestBuilds(m)
 		if err != nil {
-			return 0, fmt.Errorf("Failed to get latest builds: %v", err)
+			return 0, fmt.Errorf("Failed to get latest builds: %s", err)
 		}
 		for _, n := range latest {
 			total += n + 1 // Include build #0.
@@ -733,7 +744,7 @@ func IngestNewBuildsLoop(workdir string) {
 			lv := metrics.NewLiveness(fmt.Sprintf("buildbot-ingest-%s", master))
 			for _ = range time.Tick(10 * time.Second) {
 				if err := ingestNewBuilds(master, repos); err != nil {
-					glog.Errorf("Failed to ingest new builds: %v", err)
+					glog.Errorf("Failed to ingest new builds: %s", err)
 				} else {
 					lv.Update()
 				}

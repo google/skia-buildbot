@@ -218,7 +218,7 @@ func (g *GitInfo) Log(begin, end string) (string, error) {
 
 // FullHash gives the full commit hash for the given ref.
 func (g *GitInfo) FullHash(ref string) (string, error) {
-	cmd := exec.Command("git", "rev-parse", ref)
+	cmd := exec.Command("git", "rev-parse", fmt.Sprintf("%s^{commit}", ref))
 	cmd.Dir = g.dir
 	b, err := cmd.Output()
 	if err != nil {
@@ -506,6 +506,22 @@ func (m *RepoMap) Repo(r string) (*GitInfo, error) {
 		m.repos[r] = repo
 	}
 	return repo, nil
+}
+
+// RepoForCommit attempts to determine which repository the given commit hash
+// belongs to and returns the associated repo URL if found. This is fragile,
+// because it's possible, though very unlikely, that there may be collisions
+// of commit hashes between repositories.
+func (m *RepoMap) RepoForCommit(hash string) (string, error) {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
+	for url, r := range m.repos {
+		if _, err := r.FullHash(hash); err == nil {
+			return url, nil
+		}
+	}
+	return "", fmt.Errorf("Could not find commit %s in any repo!", hash)
 }
 
 // Update causes all of the repos in the RepoMap to be updated.
