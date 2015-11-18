@@ -208,7 +208,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	if q.period == PERIOD_FOREVER {
 		from = time.Unix(0, 0)
 	}
-	recentCommits := repo.From(from)
+	recentCommits := util.Reverse(repo.From(from))
 
 	// Pre-load commit details, from a larger window than we actually care about.
 	fromPreload := now.Add(time.Duration(int64(-1.5 * float64(q.period))))
@@ -357,7 +357,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 			if len(b.Commits) > NO_BISECT_COMMIT_LIMIT {
 				glog.Warningf("Skipping %s on %s; previous build has too many commits (#%d)", commit[0:7], b.Builder, b.Number)
 				scoreIncrease[commit] = 0.0
-				continue
+				break // Don't bother looking at previous commits either, since these will be out of range.
 			}
 		}
 

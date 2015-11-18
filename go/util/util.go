@@ -134,6 +134,15 @@ func SSliceEqual(a, b []string) bool {
 	return true
 }
 
+// Reverse returns the given slice of strings in reverse order.
+func Reverse(s []string) []string {
+	r := make([]string, 0, len(s))
+	for i := len(s) - 1; i >= 0; i-- {
+		r = append(r, s[i])
+	}
+	return r
+}
+
 type Int64Slice []int64
 
 func (p Int64Slice) Len() int           { return len(p) }
