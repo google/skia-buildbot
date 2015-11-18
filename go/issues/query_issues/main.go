@@ -4,24 +4,34 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/issues"
 )
 
+var (
+	local = flag.Bool("local", true, "Running locally if true. As opposed to in production.")
+)
+
 func main() {
-	client, err := auth.NewDefaultClient(true, "https://www.googleapis.com/auth/userinfo.email")
+	if len(os.Args) < 2 {
+		fmt.Printf("Usage: query_issues <query> [OPTIONS]")
+		return
+	}
+	query := os.Args[1]
+	os.Args = append([]string{os.Args[0]}, os.Args[2:]...)
+	common.Init()
+	client, err := auth.NewDefaultClient(*local, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		glog.Fatalf("Unable to create installed app oauth client:%s", err)
 	}
 	tracker := issues.NewMonorailIssueTracker(client)
-	if len(os.Args) != 2 {
-		glog.Fatalf("query_issues takes a single argument which is the query to perform.")
-	}
-	iss, err := tracker.FromQuery(os.Args[1])
+	iss, err := tracker.FromQuery(query)
 	if err != nil {
 		fmt.Printf("Failed to retrieve issues: %s", err)
 		return

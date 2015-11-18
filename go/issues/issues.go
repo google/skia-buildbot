@@ -11,9 +11,7 @@ import (
 
 const (
 	CODESITE_BASE_URL = "https://www.googleapis.com/projecthosting/v2/projects/skia/issues"
-	// Switch to this once monorail goes to prod for Skia.
-	// MONORAIL_BASE_URL= "https://monorail-prod.appspot.com/_ah/api/monorail/v1/projects/skia/issues"
-	MONORAIL_BASE_URL = "https://monorail-staging.appspot.com/_ah/api/monorail/v1/projects/skia/issues"
+	MONORAIL_BASE_URL = "https://monorail-prod.appspot.com/_ah/api/monorail/v1/projects/skia/issues"
 )
 
 // IssueTracker is a genric interface to an issue tracker that allows us
