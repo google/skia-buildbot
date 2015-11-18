@@ -1331,6 +1331,20 @@ type D3 struct {
 	Paramset  map[string][]string            `json:"paramset"`
 }
 
+// SearchDigestSlice is for sorting search.Digest's in the order of digest status.
+type SearchDigestSlice []*search.Digest
+
+func (p SearchDigestSlice) Len() int { return len(p) }
+func (p SearchDigestSlice) Less(i, j int) bool {
+	if p[i].Status == p[j].Status {
+		return p[i].Digest < p[j].Digest
+	} else {
+		// Alphabetical order, so neg, pos, unt.
+		return p[i].Status < p[j].Status
+	}
+}
+func (p SearchDigestSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
 // nxnJSONHandler calculates the NxN diffs of all the digests that match
 // the incoming query and returns the data in a format appropriate for
 // handling in d3.
@@ -1341,6 +1355,9 @@ func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		util.ReportError(w, r, err, "Search for digests failed.")
 	}
+	// Sort the digests so they are displayed with untriaged last, which means
+	// they will be displayed 'on top', because in SVG document order is z-order.
+	sort.Sort(SearchDigestSlice(digestsInfo))
 
 	digests := []string{}
 	for _, digest := range digestsInfo {
