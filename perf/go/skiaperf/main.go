@@ -109,6 +109,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/compare.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/kernel.html"),
+		filepath.Join(*resourcesDir, "templates/frame.html"),
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -1142,6 +1143,7 @@ func main() {
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 
 	router.HandleFunc("/", templateHandler("index.html"))
+	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
 	router.PathPrefix("/tiles/").HandlerFunc(tileHandler)
 	router.PathPrefix("/single/").HandlerFunc(singleHandler)
