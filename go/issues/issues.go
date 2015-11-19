@@ -56,6 +56,11 @@ func (c *CodesiteIssueTracker) FromQuery(q string) ([]Issue, error) {
 }
 
 // MonorailIssueTracker implements IssueTracker.
+//
+// Note that to use a MonorailIssueTracker from GCE that client id of the
+// project needs to be whitelisted in Monorail, which is already done for Skia
+// Infra. Also note that the instance running needs to have the
+// https://www.googleapis.com/auth/userinfo.email scope added to it.
 type MonorailIssueTracker struct {
 	client *http.Client
 }
