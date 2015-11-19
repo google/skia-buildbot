@@ -63,6 +63,7 @@ var (
 				Subject: "Really big code change",
 			},
 			Timestamp: now.Add(-time.Second * 10).Add(-time.Nanosecond * time.Duration(now.Nanosecond())),
+			Branches:  map[string]bool{"master": true},
 		},
 	}
 )

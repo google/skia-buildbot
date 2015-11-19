@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/util"
 )
 
@@ -325,4 +326,59 @@ func TestRevList(t *testing.T) {
 			t.Fatalf("Failed test for: git rev-list %s\nGot:  %v\nWant: %v", strings.Join(tc.Input, " "), actual, tc.Expected)
 		}
 	}
+}
+
+func TestBranchInfo(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	branches, err := r.GetBranches()
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(branches))
+
+	// Make sure commits across all branches show up.
+	commits := []string{
+		"7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
+		"8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+		"3f5a807d432ac232a952bbf223bc6952e4b49b2c",
+	}
+	found := r.From(time.Unix(1406721641, 0))
+	assert.Equal(t, commits, found)
+
+	// The timestamps of the three commits commits in the entire repository start
+	// at timestamp 1406721642.
+	testCases := []struct {
+		commitHash string
+		branchName string
+		nBranches  int
+	}{
+		{
+			commitHash: "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+			branchName: "master",
+			nBranches:  2,
+		},
+		{
+			commitHash: "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
+			branchName: "master",
+			nBranches:  2,
+		},
+		{
+			commitHash: "3f5a807d432ac232a952bbf223bc6952e4b49b2c",
+			branchName: "test-branch-1",
+			nBranches:  1,
+		},
+	}
+
+	for _, tc := range testCases {
+		details, err := r.Details(tc.commitHash)
+		assert.Nil(t, err)
+		assert.True(t, details.Branches[tc.branchName])
+		assert.Equal(t, tc.nBranches, len(details.Branches))
+	}
+
 }

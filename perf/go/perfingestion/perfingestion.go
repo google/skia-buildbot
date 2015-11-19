@@ -157,6 +157,10 @@ func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
+	if !commit.Branches["master"] {
+		return fmt.Errorf("Commit %s is not in master branch.", commit.Hash)
+	}
+
 	cid := &tracedb.CommitID{
 		Timestamp: commit.Timestamp,
 		ID:        commit.Hash,

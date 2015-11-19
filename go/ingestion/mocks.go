@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"sort"
-	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
@@ -47,7 +46,7 @@ func (m mockVCS) Details(hash string) (*vcsinfo.LongCommit, error) {
 // listening as the second return value.
 // Upon completion the calling test should call the Stop() function of the
 // returned server object.
-func StartTraceDBTestServer(t *testing.T, fileName string) (*grpc.Server, string) {
+func StartTraceDBTestServer(t assert.TestingT, fileName string) (*grpc.Server, string) {
 	traceDBServer, err := traceservice.NewTraceServiceServer(fileName)
 	assert.Nil(t, err)
 

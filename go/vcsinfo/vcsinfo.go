@@ -12,9 +12,10 @@ type ShortCommit struct {
 // LongCommit gives more detailed information about a commit.
 type LongCommit struct {
 	*ShortCommit
-	Parents   []string  `json:"parent"`
-	Body      string    `json:"body"`
-	Timestamp time.Time `json:"timestamp"`
+	Parents   []string        `json:"parent"`
+	Body      string          `json:"body"`
+	Timestamp time.Time       `json:"timestamp"`
+	Branches  map[string]bool `json:"-"`
 }
 
 // VCS is a generic interface to the information contained in a version

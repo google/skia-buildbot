@@ -119,6 +119,11 @@ func (g *GitInfo) Details(hash string) (*vcsinfo.LongCommit, error) {
 	if len(lines) != 5 {
 		return nil, fmt.Errorf("Failed to parse output of 'git log'.")
 	}
+	branches, err := g.getBranchesForCommit(hash)
+	if err != nil {
+		return nil, err
+	}
+
 	c := vcsinfo.LongCommit{
 		ShortCommit: &vcsinfo.ShortCommit{
 			Hash:    lines[0],
@@ -128,9 +133,33 @@ func (g *GitInfo) Details(hash string) (*vcsinfo.LongCommit, error) {
 		Parents:   strings.Split(lines[1], " "),
 		Body:      lines[4],
 		Timestamp: g.timestamps[hash],
+		Branches:  branches,
 	}
 	g.detailsCache[hash] = &c
 	return &c, nil
+}
+
+// getBranchesForCommit returns a string set with all the branches that can reach
+// the commit with the given hash.
+func (g *GitInfo) getBranchesForCommit(hash string) (map[string]bool, error) {
+	cmd := exec.Command("git", "branch", "--list", "--contains", hash)
+	cmd.Dir = g.dir
+	outText, err := cmd.Output()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get branches for commit %s: %s", hash, err)
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(outText)), "\n")
+	ret := map[string]bool{}
+	for _, line := range lines {
+		l := strings.TrimSpace(line)
+		if l != "" {
+			// Splitting the line to filter out the '*' that marks the active branch.
+			parts := strings.Split(l, " ")
+			ret[parts[len(parts)-1]] = true
+		}
+	}
+	return ret, nil
 }
 
 // RevList returns the results of "git rev-list".
@@ -306,6 +335,13 @@ type GitBranch struct {
 	Head string `json:"head"`
 }
 
+// includeBranchPrefixes is the list of branch prefixes that we should consider in the
+// output of the 'git show-ref' command issued in GetBranches below.
+var includeBranchPrefixes = []string{
+	"refs/remotes/",
+	"refs/heads/",
+}
+
 // GetBranches returns the list of branch heads in a Git repository.
 // In order to separate local working branches from published branches, only
 // remote branches in 'origin' are returned.
@@ -316,23 +352,25 @@ func GetBranches(dir string) ([]*GitBranch, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get branch list: %v", err)
 	}
-	branchPrefix := "refs/remotes/origin/"
 	branches := []*GitBranch{}
 	lines := strings.Split(string(b), "\n")
 	for _, line := range lines {
 		if line == "" {
 			continue
 		}
-		glog.Info(line)
 		parts := strings.SplitN(line, " ", 2)
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("Could not parse output of 'git show-ref'.")
 		}
-		if strings.HasPrefix(parts[1], branchPrefix) {
-			branches = append(branches, &GitBranch{
-				Name: parts[1][len(branchPrefix):],
-				Head: parts[0],
-			})
+
+		for _, prefix := range includeBranchPrefixes {
+			if strings.HasPrefix(parts[1], prefix) {
+				name := parts[1][len(prefix):]
+				branches = append(branches, &GitBranch{
+					Name: name,
+					Head: parts[0],
+				})
+			}
 		}
 	}
 	return branches, nil
@@ -376,7 +414,7 @@ func readCommitsFromGitAllBranches(dir string) ([]string, map[string]time.Time, 
 	}
 	timestamps := map[string]time.Time{}
 	for _, b := range branches {
-		_, ts, err := readCommitsFromGit(dir, "origin/"+b.Name)
+		_, ts, err := readCommitsFromGit(dir, b.Name)
 		if err != nil {
 			return nil, nil, err
 		}
