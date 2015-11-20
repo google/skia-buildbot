@@ -11,6 +11,7 @@ ExecStart=/usr/local/bin/alertserver \
     --alerts_file=/etc/skiaalertserver/alerts.cfg \
     --host=alerts.skia.org \
     --log_dir=/var/log/logserver \
+    --log_max_size=10485760 \
     --alert_poll_interval=10s \
     --workdir=/mnt/pd0/alertserver_workdir \
     --resources_dir=/usr/local/share/skiaalertserver/

@@ -6,6 +6,7 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/datahopper \
     --log_dir=/var/log/logserver \
+    --log_max_size=10485760 \
     --graphite_server=skia-monitoring:2003 \
     --workdir=/mnt/pd0/datahopper_workdir
 Restart=always

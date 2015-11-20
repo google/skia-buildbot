@@ -7,6 +7,7 @@ After=network-online.target
 ExecStart=/usr/local/bin/bug_chomper \
     --use_metadata=true \
     --log_dir=/var/log/logserver \
+    --log_max_size=10485760 \
     --host=bugchomper.skia.org \
     --port=:8050 \
     --resources_dir=/usr/local/share/bug_chomper/

@@ -9,6 +9,7 @@ ExecStart=/usr/local/bin/autoroll \
     --graphite_server=skia-monitoring:2003 \
     --host=autoroll.skia.org \
     --log_dir=/var/log/logserver \
+    --log_max_size=10485760 \
     --workdir=/mnt/pd0/autoroll_workdir \
     --resources_dir=/usr/local/share/skiaautoroll/ \
     --depot_tools=/home/default/depot_tools
