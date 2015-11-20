@@ -17,3 +17,18 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 
 		[Ingesters.nano.ExtraParams]
 		TraceService   = "localhost:9000"
+
+	### Nanobench Trybot ingester ############################################################
+	[Ingesters.nano-trybot]
+	RunEvery       = "5m"
+	NCommits       = 10
+	MinDays        = 2
+	StatusDir      = "/mnt/pd0/perf/trybot_ingest_status"
+	MetricName     = "nano-trybot-ingest"
+
+    [[Ingesters.nano-trybot.Sources]]
+    Bucket         = "chromium-skia-gm"
+    Dir            = "trybot/nano-json-v1"
+
+    [Ingesters.nano-trybot.ExtraParams]
+    TraceService   = "localhost:9090"
