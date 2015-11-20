@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -18,7 +19,9 @@ import (
 	"github.com/cyberdelia/go-metrics-graphite"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metadata"
 	imetrics "go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
@@ -31,6 +34,7 @@ var (
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	apikey         = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
 	runEvery       = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
 	bodyTesters = map[string]BodyTester{
@@ -253,15 +257,9 @@ func ctfeRevDataJSON(r io.Reader) bool {
 	return hasKeys(decodeJSONObject(r), []string{"commit", "author", "committer"})
 }
 
-// monitorIssueTracker reads the counts for all the types of issues in the skia
-// issue tracker (code.google.com/p/skia) and stuffs the counts into Graphite.
-func monitorIssueTracker() {
-	c := &http.Client{
-		Transport: &http.Transport{
-			Dial: dialTimeout,
-		},
-	}
-
+// monitorIssueTracker reads the counts for all the types of issues in the Skia
+// issue tracker (bugs.chromium.org/p/skia) and stuffs the counts into Graphite.
+func monitorIssueTracker(c *http.Client) {
 	if *useMetadata {
 		*apikey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
 	}
@@ -288,10 +286,13 @@ func monitorIssueTracker() {
 
 	issueStatus := []*IssueStatus{}
 	for _, issueName := range allIssueStatusLabels {
+		q := url.Values{}
+		q.Set("fields", "totalResults")
+		q.Set("status", issueName)
 		issueStatus = append(issueStatus, &IssueStatus{
 			Name:   issueName,
 			Metric: metrics.NewRegisteredGauge(strings.ToLower(issueName), issueRegistry),
-			URL:    "https://www.googleapis.com/projecthosting/v2/projects/skia/issues?fields=totalResults&key=" + *apikey + "&status=" + issueName,
+			URL:    issues.MONORAIL_BASE_URL + "?" + q.Encode(),
 		})
 	}
 
@@ -365,7 +366,12 @@ func probeOneRound(cfg Probes, c *http.Client) {
 func main() {
 	defer common.LogPanic()
 	common.InitWithMetrics("probeserver", graphiteServer)
-	go monitorIssueTracker()
+
+	client, err := auth.NewDefaultClient(*local, "https://www.googleapis.com/auth/userinfo.email")
+	if err != nil {
+		glog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
+	}
+	go monitorIssueTracker(client)
 	glog.Infoln("Looking for Graphite server.")
 	addr, err := net.ResolveTCPAddr("tcp", *graphiteServer)
 	if err != nil {
@@ -378,7 +384,7 @@ func main() {
 	// We have two sets of metrics, one for the probes and one for the probe
 	// server itself. The server's metrics are handled by common.Init()
 	probeRegistry := metrics.NewRegistry()
-	go metrics.Graphite(probeRegistry, common.SAMPLE_PERIOD, *prefix, addr)
+	go graphite.Graphite(probeRegistry, common.SAMPLE_PERIOD, *prefix, addr)
 
 	// TODO(jcgregorio) Monitor config file and reload if it changes.
 	cfg, err := readConfigFiles(*config)
