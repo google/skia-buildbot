@@ -459,16 +459,16 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	// Create a new roll.
 	uploadedNum, err := r.rm.CreateNewRoll(r.GetEmails(), r.cqExtraTrybots, r.isMode(autoroll_modes.MODE_DRY_RUN))
 	if err != nil {
-		return STATUS_ERROR, err
-	}
-	uploaded, err := r.retrieveRoll(uploadedNum)
-	if err != nil {
-		return STATUS_ERROR, err
-	}
-	if err := r.recent.Add(uploaded); err != nil {
-		return STATUS_ERROR, err
+		return STATUS_ERROR, fmt.Errorf("Failed to upload a new roll: %s", err)
 	}
 	glog.Infof("Uploaded new DEPS roll: %s/%d", autoroll.RIETVELD_URL, uploadedNum)
+	uploaded, err := r.retrieveRoll(uploadedNum)
+	if err != nil {
+		return STATUS_ERROR, fmt.Errorf("Failed to retrieve uploaded roll: %s", err)
+	}
+	if err := r.recent.Add(uploaded); err != nil {
+		return STATUS_ERROR, fmt.Errorf("Failed to insert uploaded roll into database: %s", err)
+	}
 
 	if r.isMode(autoroll_modes.MODE_DRY_RUN) {
 		return STATUS_DRY_RUN_IN_PROGRESS, nil
