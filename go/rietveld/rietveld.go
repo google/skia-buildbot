@@ -87,8 +87,8 @@ func (r *Rietveld) Url() string {
 	return r.url
 }
 
-// Patchset contains the information about one patchset.
-// Currently we ommit fields that we don't need.
+// Patchset contains the information about one patchset. Currently we omit
+// fields that we don't need.
 type Patchset struct {
 	Patchset    int64  `json:"patchset"`
 	Issue       int64  `json:"issue"`
