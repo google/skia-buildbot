@@ -349,8 +349,10 @@ server {
     access_log /var/log/nginx/bug.access.log;
     error_log /var/log/nginx/bug.error.log error;
 
-    rewrite ^/p/skia/issues/detail(/?)$ https://bugs.chromium.org/p/skia/issues/detail?id=$arg_id redirect;
-    rewrite ^/p/skia(.*) https://skia.org redirect;
+    # Note: nginx automatically appends the incoming query parameters to the redirect URL. 
+    rewrite ^/p/skia/issues/detail(/?)$ https://bugs.chromium.org/p/skia/issues/detail redirect;
+    rewrite ^/p/skia/issues/list(/?)$ https://bugs.chromium.org/p/skia/issues/list redirect;
+    rewrite ^/p/skia(.*) https://skia.org? redirect;
     rewrite ^/([0-9]+)$ https://bugs.chromium.org/p/skia/issues/detail?id=$1 redirect;
     rewrite ^ https://bugs.chromium.org/p/skia/issues/list redirect;
 }
