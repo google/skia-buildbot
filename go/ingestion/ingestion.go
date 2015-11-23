@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
+	smetrics "go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -72,6 +74,21 @@ type Ingester struct {
 	processor    Processor
 	stopChannels []chan<- bool
 	statusDB     *bolt.DB
+
+	// srcMetrics capture a set of metrics for each input source.
+	srcMetrics []*sourceMetrics
+
+	// pollProcessMetrics capture metrics from processing polled result files.
+	pollProcessMetrics *processMetrics
+
+	// eventProcessMetrics capture metrics from processing result files delivered by events from sources.
+	eventProcessMetrics *processMetrics
+
+	// processTimer measure the overall time it takes to process a set of files.
+	processTimer metrics.Timer
+
+	// processFileTimer measures how long it takes to process an individual file.
+	processFileTimer metrics.Timer
 }
 
 // NewIngester creates a new ingester with the given id and configuration around
@@ -94,8 +111,17 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		processor:   processor,
 		statusDB:    statusDB,
 	}
-
+	ret.setupMetrics()
 	return ret, nil
+}
+
+// setupMetrics instantiates and registers the metrics instances used by the Ingester.
+func (i *Ingester) setupMetrics() {
+	i.pollProcessMetrics = newProcessMetrics(i.id, "poll")
+	i.eventProcessMetrics = newProcessMetrics(i.id, "event")
+	i.srcMetrics = newSourceMetrics(i.id, i.sources)
+	i.processTimer = metrics.NewRegisteredTimer(fmt.Sprintf("%s.process", i.id), metrics.DefaultRegistry)
+	i.processFileTimer = metrics.NewRegisteredTimer(fmt.Sprintf("%s.process-file", i.id), metrics.DefaultRegistry)
 }
 
 // Start starts the ingester in a new goroutine.
@@ -106,19 +132,19 @@ func (i *Ingester) Start() {
 
 	go func(stopCh <-chan bool) {
 		var resultFiles []ResultFileLocation = nil
-		var fromPolling bool
+		var useMetrics *processMetrics
 
 	MainLoop:
 		for {
 			select {
 			case resultFiles = <-pollChan:
-				fromPolling = true
+				useMetrics = i.pollProcessMetrics
 			case resultFiles = <-eventChan:
-				fromPolling = false
+				useMetrics = i.eventProcessMetrics
 			case <-stopCh:
 				break MainLoop
 			}
-			i.processResults(resultFiles, fromPolling)
+			i.processResults(resultFiles, useMetrics)
 		}
 	}(stopCh)
 }
@@ -136,9 +162,9 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 	eventChan := make(chan []ResultFileLocation)
 	i.stopChannels = make([]chan<- bool, 0, len(i.sources))
 
-	for _, source := range i.sources {
+	for idx, source := range i.sources {
 		stopCh := make(chan bool)
-		go func(source Source, stopCh <-chan bool) {
+		go func(source Source, srcMetrics *sourceMetrics, stopCh <-chan bool) {
 			util.Repeat(i.runEvery, stopCh, func() {
 				var startTime, endTime int64 = 0, 0
 				startTime, endTime, err := i.getCommitRangeOfInterest()
@@ -147,14 +173,23 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 					return
 				}
 
+				// measure how long the polling takes.
+				pollStart := time.Now()
 				resultFiles, err := source.Poll(startTime, endTime)
+				srcMetrics.pollTimer.UpdateSince(pollStart)
 				if err != nil {
+					// Indicate that there was an error in polling the source.
+					srcMetrics.pollError.Update(1)
 					glog.Errorf("Error polling data source '%s': %s", source.ID(), err)
 					return
 				}
+
+				// Indicate that the polling was successful.
+				srcMetrics.pollError.Update(0)
 				pollChan <- resultFiles
+				srcMetrics.liveness.Update()
 			})
-		}(source, stopCh)
+		}(source, i.srcMetrics[idx], stopCh)
 		i.stopChannels = append(i.stopChannels, stopCh)
 
 		if ch := source.EventChan(); ch != nil {
@@ -175,6 +210,8 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 	return pollChan, eventChan
 }
 
+// inProcessedFiles returns true if the given md5 hash is in the list of
+// already processed files.
 func (i *Ingester) inProcessedFiles(md5 string) bool {
 	ret := false
 	getFn := func(tx *bolt.Tx) error {
@@ -193,6 +230,8 @@ func (i *Ingester) inProcessedFiles(md5 string) bool {
 	return ret
 }
 
+// addToProcessedFiles adds the given list of md5 hashes to the list of
+// file that have been already processed.
 func (i *Ingester) addToProcessedFiles(md5s []string) {
 	updateFn := func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists([]byte(PROCESSED_FILES_BUCKET))
@@ -213,26 +252,43 @@ func (i *Ingester) addToProcessedFiles(md5s []string) {
 	}
 }
 
-// processFiles ingests a set of result files.
-func (i *Ingester) processResults(resultFiles []ResultFileLocation, fromPolling bool) {
+// processResults ingests a set of result files.
+func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetrics *processMetrics) {
 	glog.Infof("Start ingester: %s", i.id)
 
 	processedMD5s := make([]string, 0, len(resultFiles))
+	processedCounter, ignoredCounter, errorCounter := 0, 0, 0
+
+	// time how long the overall process takes.
+	processStart := time.Now()
 	for _, resultLocation := range resultFiles {
 		if !i.inProcessedFiles(resultLocation.MD5()) {
-			if err := i.processor.Process(resultLocation); err != nil {
+			// time how long it takes to process a file.
+			processFileStart := time.Now()
+			err := i.processor.Process(resultLocation)
+			i.processFileTimer.UpdateSince(processFileStart)
+
+			if err != nil {
+				errorCounter++
 				glog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
 				continue
 			}
 
 			// Gather all successfully processed MD5s
+			processedCounter++
 			processedMD5s = append(processedMD5s, resultLocation.MD5())
+		} else {
+			ignoredCounter++
 		}
-		// TODO(stephana): Add a metrics to capture how often we skip files
-		// because we have processed them already. Including a metric to capture
-		// the percent of processed files that come from polling vs events.
-
 	}
+
+	// Update the timer and the gauges that measure how the ingestion works
+	// for the input type.
+	i.processTimer.UpdateSince(processStart)
+	targetMetrics.totalFilesGauge.Update(int64(len(resultFiles)))
+	targetMetrics.processedGauge.Update(int64(processedCounter))
+	targetMetrics.ignoredGauge.Update(int64(ignoredCounter))
+	targetMetrics.errorGauge.Update(int64(errorCounter))
 
 	// Notify the ingester that the batch has finished and cause it to reset its
 	// state and do any pending ingestion.
@@ -282,4 +338,49 @@ func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
 	}
 
 	return detail.Timestamp.Unix(), time.Now().Unix(), nil
+}
+
+// processMetrics contains the metrics we are interested for processing results.
+// We have one instance for polled result files and one for files that were
+// delievered via events.
+type processMetrics struct {
+	totalFilesGauge metrics.Gauge
+	processedGauge  metrics.Gauge
+	ignoredGauge    metrics.Gauge
+	errorGauge      metrics.Gauge
+}
+
+// newProcessMetrics instantiates the metrics to track processing and registers them
+// with the metrics package.
+func newProcessMetrics(id, subtype string) *processMetrics {
+	prefix := fmt.Sprintf("%s.%s", id, subtype)
+	return &processMetrics{
+		totalFilesGauge: metrics.NewRegisteredGauge(prefix+".total", metrics.DefaultRegistry),
+		processedGauge:  metrics.NewRegisteredGauge(prefix+".processed", metrics.DefaultRegistry),
+		ignoredGauge:    metrics.NewRegisteredGauge(prefix+".ignored", metrics.DefaultRegistry),
+		errorGauge:      metrics.NewRegisteredGauge(prefix+".errors", metrics.DefaultRegistry),
+	}
+}
+
+// sourceMetrics tracks metrics for one input source.
+type sourceMetrics struct {
+	liveness       *smetrics.Liveness
+	pollTimer      metrics.Timer
+	pollError      metrics.Gauge
+	eventsReceived metrics.Meter
+}
+
+// newSourceMetrics instantiates a set of metrics for an input source.
+func newSourceMetrics(id string, sources []Source) []*sourceMetrics {
+	ret := make([]*sourceMetrics, len(sources))
+	for idx, source := range sources {
+		prefix := fmt.Sprintf("%s.%s", id, source.ID())
+		ret[idx] = &sourceMetrics{
+			liveness:       smetrics.NewLiveness(prefix + ".poll-liveness"),
+			pollTimer:      metrics.NewRegisteredTimer(prefix+".poll-timer", metrics.DefaultRegistry),
+			pollError:      metrics.NewRegisteredGauge(prefix+".poll-error", metrics.DefaultRegistry),
+			eventsReceived: metrics.NewRegisteredMeter(prefix+".events-received", metrics.DefaultRegistry),
+		}
+	}
+	return ret
 }
