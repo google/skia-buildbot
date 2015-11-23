@@ -61,7 +61,7 @@ JSONKEY_EXPECTEDRESULTS = 'expected-results'
 JSONKEY_EXPECTEDRESULTS_ALLOWEDDIGESTS = 'allowed-digests'
 
 # Optional: one or more integers listing Skia bugs (under
-# https://code.google.com/p/skia/issues/list ) that pertain to this expectation.
+# https://bugs.chromium.org/p/skia/issues/list ) that pertain to this expectation.
 JSONKEY_EXPECTEDRESULTS_BUGS = 'bugs'
 
 # If IGNOREFAILURE is set to True, a failure of this test will be reported
@@ -187,7 +187,7 @@ def WriteToFile(json_dict, file_path):
   """Writes the JSON summary in json_dict out to file_path.
 
   The file is written Unix-style (each line ends with just LF, not CRLF);
-  see https://code.google.com/p/skia/issues/detail?id=1815 for reasons."""
+  see https://bugs.chromium.org/p/skia/issues/detail?id=1815 for reasons."""
   with io.open(file_path, mode='w', newline='', encoding='utf-8') as outfile:
     outfile.write(unicode(json.dumps(json_dict, outfile, sort_keys=True,
                                      indent=2)))
