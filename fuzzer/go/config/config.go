@@ -1,36 +1,23 @@
 package config
 
-type Common struct {
-	ResourcePath          string
-	FuzzOutputGSBucket    string
-	DoOAuth               bool
-	OAuthCacheFile        string
-	OAuthClientSecretFile string
-	Local                 bool
+import "time"
+
+type generatorConfig struct {
+	SkiaRoot          string
+	AflRoot           string
+	AflOutputPath     string
+	ClangPath         string
+	ClangPlusPlusPath string
+	NumFuzzProcesses  int
 }
 
-type FrontEnd struct {
-	Port           string
-	GraphiteServer string
-	RedirectURL    string
-	ForceLogin     bool
+type aggregatorConfig struct {
+	BinaryFuzzPath          string
+	ExecutablePath          string
+	NumAggregationProcesses int
+	RescanPeriod            time.Duration
+	AnalysisTimeout         time.Duration
 }
 
-type Fuzzer struct {
-	CachePath     string
-	Indentation   int
-	SkiaSourceDir string
-}
-
-type Generator struct {
-	Weight      int
-	Debug       bool
-	ExtraParams map[string]string
-}
-
-var Config struct {
-	Common     Common
-	FrontEnd   FrontEnd
-	Fuzzer     Fuzzer
-	Generators map[string]Generator
-}
+var Generator = generatorConfig{}
+var Aggregator = aggregatorConfig{}

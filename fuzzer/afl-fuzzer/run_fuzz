@@ -1,0 +1,80 @@
+#!/bin/bash
+# Setup multithreaded fuzzing on 30+ cores
+# TODO(kjlubick): migrate this to a go program
+#
+# Before running this script, you may need to log in as root (sudo su) and run:
+# echo core >/proc/sys/kernel/core_pattern
+#
+# For restarting tasks
+# $AFL_ROOT/afl-fuzz -i - -o $AFL_OUTPUT -m 1000 -t 4000 -S fuzzer27 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+#
+# To kill everything spawned by this, run pkill -f dm
+#
+#
+
+[ -z $SKIA_ROOT ] && SKIA_ROOT="$HOME/skia"
+[ -z $AFL_ROOT ] && AFL_ROOT="/opt/afl/afl-1.94b"
+[ -z $AFL_OUTPUT ] && AFL_OUTPUT="$HOME/afl-out"
+[ -z $BINARY_DIR] && BINARY_DIR="$HOME/afl-binary"
+[ -z $FUZZ_SAMPLES ] && FUZZ_SAMPLES="$HOME/SKP/minimized2"
+
+./build_afl_skia Release
+
+# Make a copy of the exectuable to avoid problems if something else is built
+cp $SKIA_ROOT/out/Release/dm $BINARY_DIR/dm
+
+# Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
+export AFL_SKIP_CPUFREQ=true
+
+# The master's output does not go to devnull
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -M fuzzer0 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888
+
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer1 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer2 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer3 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer4 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer5 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer6 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer7 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer8 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer9 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer10 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer11 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer12 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer13 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer14 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer15 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer16 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer17 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer18 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer19 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer8 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer21 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer22 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer23 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer24 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer25 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer26 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer27 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer28 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer29 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+$AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer30 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer31 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer32 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer33 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer34 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer35 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer36 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer37 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer38 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer39 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+# $AFL_ROOT/afl-fuzz -i $FUZZ_SAMPLES -o $AFL_OUTPUT -m 1000 -t 3000 -S fuzzer40 -- $BINARY_DIR/dm --src skp --skps @@ --config 8888 > /dev/null &
+
+

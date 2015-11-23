@@ -9,7 +9,7 @@ CORE_SOURCE_FILES = third_party/bower_components/webcomponentsjs/webcomponents.m
 BOWER_DIR=third_party/bower_components
 
 .PHONY: all
-all: res/css/fuzzer.css core_js elements_html frontend fuzzer
+all: res/css/fuzzer.css core_js elements_html frontend backend
 
 .PHONY: ver
 ver:    H=$(shell echo `git log -n 1 --format=format:%H`)
@@ -36,11 +36,11 @@ testjs:
 
 .PHONY: frontend
 frontend:
-	go install -v ./go/frontend
+	go install -v ./go/fuzzer-fe
 
-.PHONY: fuzzer
-fuzzer:
-	go install -v ./go/fuzzer
+.PHONY: backend
+backend:
+	go install -v ./go/fuzzer-be
 
 # Build serving CSS from input CSS.
 res/css/fuzzer.css: node_modules/lastupdate res/css/main.css
