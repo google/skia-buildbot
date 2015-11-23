@@ -48,6 +48,9 @@ const (
 	// Value created 2015-08-10 with
 	// dd if=/dev/random iflag=fullblock bs=64 count=1 | base64 -w 0
 	WEBHOOK_REQUEST_SALT = "webhook_request_salt"
+
+	// JWT_SERVICE_ACCOUNT is the JSON formatted service account.
+	JWT_SERVICE_ACCOUNT = "jwt_service_account"
 )
 
 // get retrieves the named value from the Metadata server. See

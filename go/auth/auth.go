@@ -8,10 +8,16 @@ import (
 	"os"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+)
+
+const (
+	DEFAULT_JWT_FILENAME           = "service-account.json"
+	DEFAULT_CLIENT_SECRET_FILENAME = "client_secret.json"
 )
 
 // NewDefaultClient creates a new OAuth 2.0 authorized client with all the
@@ -59,7 +65,7 @@ func NewClientWithTransport(local bool, oauthCacheFile string, oauthConfigFile s
 	var config *oauth2.Config = nil
 	if local {
 		if oauthConfigFile == "" {
-			oauthConfigFile = "client_secret.json"
+			oauthConfigFile = DEFAULT_CLIENT_SECRET_FILENAME
 		}
 		body, err := ioutil.ReadFile(oauthConfigFile)
 		if err != nil {
@@ -234,4 +240,57 @@ func saveToken(cacheFilePath string, tok *oauth2.Token) error {
 		}
 	}
 	return nil
+}
+
+// NewDefaultServiceAccountClient Looks for the JWT JSON in metadata, falls
+// back to a local file names "service-account.json" if metadata isn't
+// available.
+func NewDefaultJWTServiceAccountClient(scopes ...string) (*http.Client, error) {
+	return NewJWTServiceAccountClient("", "", nil, scopes...)
+}
+
+// NewJWTServiceAccountClient creates a new http.Client that is loaded by first
+// attempting to load the JWT JSON Service Account data from GCE Project Level
+// metadata, and if that fails falls back to loading the data from a local
+// file.
+//
+//   metadataname - The name of the GCE project level metadata key that holds the JWT JSON. If empty a default is used.
+//   filename - The name of the local file that holds the JWT JSON. If empty a default is used.
+//   transport - A transport. If nil then a default is used.
+func NewJWTServiceAccountClient(metadataname, filename string, transport http.RoundTripper, scopes ...string) (*http.Client, error) {
+	if metadataname == "" {
+		metadataname = metadata.JWT_SERVICE_ACCOUNT
+	}
+	if filename == "" {
+		filename = DEFAULT_JWT_FILENAME
+	}
+	var body []byte
+	jwt, err := metadata.ProjectGet(metadataname)
+	if err != nil {
+		body, err = ioutil.ReadFile(filename)
+		if err != nil {
+			return nil, fmt.Errorf("Couldn't find JWT via metadata or in a local file.")
+		}
+	} else {
+		body = []byte(jwt)
+	}
+	if transport == nil {
+		transport = util.NewBackOffTransport()
+	}
+	jwtConfig, err := google.JWTConfigFromJSON(body, scopes...)
+	if err != nil {
+		return nil, err
+	}
+	tokenClient := &http.Client{
+		Transport: transport,
+		Timeout:   util.REQUEST_TIMEOUT,
+	}
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
+	return &http.Client{
+		Transport: &oauth2.Transport{
+			Source: jwtConfig.TokenSource(ctx),
+			Base:   transport,
+		},
+		Timeout: util.REQUEST_TIMEOUT,
+	}, nil
 }
