@@ -655,18 +655,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
-  'win8-gtx960-001': {
-    'slaves': [
-      ('skiabot-shuttle-win8-gtx960-001', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.108',
-    'kvm_switch': KVM_SWITCH_DOOR,
-    'kvm_num': 'G',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
   'win8-gtx960-002': {
     'slaves': [
       ('skiabot-shuttle-win8-gtx960-002', '0', False),
