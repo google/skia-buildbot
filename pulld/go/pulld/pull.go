@@ -114,10 +114,7 @@ func pullInit() {
 	common.InitWithMetrics("pulld."+hostname, graphiteServer)
 	glog.Infof("Running with hostname: %s", hostname)
 
-	client, err := auth.NewClient(*doOauth, *oauthCacheFile,
-		storage.DevstorageFullControlScope,
-
-		compute.ComputeReadonlyScope)
+	client, err := auth.NewDefaultJWTServiceAccountClient(storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)
 	if err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
