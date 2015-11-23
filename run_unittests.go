@@ -58,6 +58,7 @@ var (
 		"autoroll":    true,
 		"ct":          false,
 		"datahopper":  false,
+		"fuzzer":      false,
 		"golden":      false,
 		"perf":        false,
 		"status":      false,

@@ -1,0 +1,2 @@
+SkRegion::Op error
+../../src/core/SkClipStack.cpp:483: failed assertion "0"
