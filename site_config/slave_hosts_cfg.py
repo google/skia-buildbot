@@ -741,9 +741,9 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'build32-a3': {
+  'build19-m3': {
     'slaves': [
-      ('build32-a3', '0', False),
+      ('build19-m3', '0', False),
     ],
     'copies': None,
     'ip': NO_IP_ADDR,
@@ -753,9 +753,9 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'build33-a3': {
+  'build20-m3': {
     'slaves': [
-      ('build33-a3', '0', False),
+      ('build20-m3', '0', False),
     ],
     'copies': None,
     'ip': NO_IP_ADDR,
