@@ -20,15 +20,15 @@ const (
 
   {
     "commonInstanceMetadata": {
-      "fingerprint": "uc24G2qc3nM=",
+      "fingerprint": "uc...=",
       "items": [
       {
         "key": "apikey",
-        "value": "AIzaSyChGRfHX5mFejdRQf7Jc-WSQjab3Bpihoc"
+        "value": "AI..."
       },
       {
         "key": "appurify_key",
-        "value": "094fdcfdc426491c91c9adfeb453c6ca"
+        "value": "094..."
       },
 
     The following types are for parsing the output.
