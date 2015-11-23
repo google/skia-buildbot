@@ -11,16 +11,19 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
-
+	"go.skia.org/infra/fuzzer/go/frontend"
 	"go.skia.org/infra/fuzzer/go/fuzz"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
+	storage "google.golang.org/api/storage/v1"
 )
 
 const (
@@ -33,6 +36,8 @@ var (
 	indexTemplate *template.Template = nil
 	// detailsTemplate is used for /details, which actually displays the stacktraces and fuzzes.
 	detailsTemplate *template.Template = nil
+
+	storageService *storage.Service = nil
 )
 
 // Command line flags.
@@ -71,6 +76,15 @@ func main() {
 
 	setupOAuth()
 
+	// TODO(kjlubick): Implement this using Skia Source
+	mockLookup := func(packageName string, fileName string, lineNumber int) string {
+		return "TODO"
+	}
+
+	if err := frontend.LoadFromGoogleStorage(storageService, mockLookup); err != nil {
+		glog.Fatalf("Error loading in data from GCS: %v", err)
+	}
+
 	runServer()
 }
 
@@ -88,6 +102,16 @@ func setupOAuth() {
 		useRedirectURL = *redirectURL
 	}
 	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE, *authWhiteList, *local)
+
+	client, err := auth.NewDefaultClient(true, auth.SCOPE_READ_ONLY)
+	if err != nil {
+		glog.Fatalf("Problem setting up oauth: %v", err)
+	}
+
+	storageService, err = storage.New(client)
+	if err != nil {
+		glog.Fatalf("Problem authenticating: %v", err)
+	}
 }
 
 func runServer() {
@@ -142,8 +166,7 @@ func detailHandler(w http.ResponseWriter, r *http.Request) {
 func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// TODO(kjlubick): fill this in with real data.
-	mockFuzzes := fuzz.MockFuzzReport()
+	mockFuzzes := fuzz.FuzzSummary()
 
 	if err := json.NewEncoder(w).Encode(mockFuzzes); err != nil {
 		glog.Errorf("Failed to write or encode output: %v", err)
@@ -154,8 +177,16 @@ func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
 func detailsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// TODO(kjlubick): fill this in with real data.
-	mockFuzz := fuzz.MockFuzzReportFileWithBinary()
+	i, err := strconv.ParseInt(r.FormValue("line"), 10, 32)
+	if err != nil {
+		i = -1
+	}
+
+	mockFuzz, err := fuzz.FuzzDetails(r.FormValue("file"), r.FormValue("func"), int(i), r.FormValue("fuzz-type") == "binary")
+	if err != nil {
+		util.ReportError(w, r, err, "There was a problem fulfilling the request.")
+		return
+	}
 
 	if err := json.NewEncoder(w).Encode(mockFuzz); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)

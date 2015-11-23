@@ -78,7 +78,7 @@
       <iron-collapse id="lineNumbers">
         <ul>
           <template is="dom-repeat" items="{{func.byLineNumber}}" as="lineNumber">
-            <fuzzer-collapse-details-sk details="{{lineNumber}}" details-base="{{_getLink(detailsBase, func)}}"></fuzzer-collapse-details-sk>
+            <fuzzer-collapse-details-sk details="{{lineNumber}}" details-base="{{_getDetailsLink(detailsBase, func)}}"></fuzzer-collapse-details-sk>
           </template>
         </ul>
       </iron-collapse>

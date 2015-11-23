@@ -3,14 +3,14 @@ package gs
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
-)
 
-import (
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
 	storage "google.golang.org/api/storage/v1"
 )
 
@@ -23,11 +23,6 @@ var (
 
 	trybotDataPath = regexp.MustCompile(`^[a-z]*[/]?([0-9]{4}/[0-9]{2}/[0-9]{2}/[0-9]{2}/[0-9a-zA-Z-]+-Trybot/[0-9]+/[0-9]+)$`)
 )
-
-// GetStorageService returns a Cloud Storage service.
-func GetStorageService() (*storage.Service, error) {
-	return storage.New(http.DefaultClient)
-}
 
 // lastDate takes a year and month, and returns the last day of the month.
 //
@@ -116,4 +111,14 @@ func RequestForStorageURL(url string) (*http.Request, error) {
 	}
 	r.URL.Opaque = url[schemePos+1 : queryPos]
 	return r, nil
+}
+
+// FileContentsFromGS returns the contents of a file in the given bucket or an error.
+func FileContentsFromGS(s *storage.Service, bucketName, fileName string) ([]byte, error) {
+	response, err := s.Objects.Get(bucketName, fileName).Download()
+	if err != nil {
+		return nil, err
+	}
+	defer util.Close(response.Body)
+	return ioutil.ReadAll(response.Body)
 }

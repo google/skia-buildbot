@@ -76,7 +76,7 @@
       </div>
       <iron-collapse id="functions">
         <template is="dom-repeat" items="{{file.byFunction}}" as="function">
-          <fuzzer-collapse-function-sk func="{{function}}" expand="{{expand}}" details-base="{{_getLink(file)}}"></fuzzer-collapse-function-sk>
+          <fuzzer-collapse-function-sk func="{{function}}" expand="{{expand}}" details-base="{{_getDetailsLink(file)}}"></fuzzer-collapse-function-sk>
         </template>
       </iron-collapse>
     </div>
