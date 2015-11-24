@@ -476,7 +476,7 @@ func InitFromMetadataOrJSON(redirectURL, scopes string, authWhiteList string) er
 	// We allow for meta data to not be present.
 	whiteList, err := metadata.Get(metadata.AUTH_WHITE_LIST)
 	if err != nil {
-		glog.Infof("Failed to retrieve auth whitelist from instance meta data: ", err)
+		glog.Infof("Failed to retrieve auth whitelist from instance meta data: %s", err)
 	} else {
 		authWhiteList = whiteList
 	}

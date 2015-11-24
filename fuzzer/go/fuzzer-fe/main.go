@@ -20,7 +20,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
 	storage "google.golang.org/api/storage/v1"
@@ -74,7 +73,9 @@ func main() {
 
 	Init()
 
-	setupOAuth()
+	if err := setupOAuth(); err != nil {
+		glog.Fatal(err)
+	}
 
 	// TODO(kjlubick): Implement this using Skia Source
 	mockLookup := func(packageName string, fileName string, lineNumber int) string {
@@ -88,30 +89,25 @@ func main() {
 	runServer()
 }
 
-func setupOAuth() {
-	var cookieSalt = "notverysecret"
-	// This clientID and clientSecret are only used for setting up a local server.
-	// Production id and secrets are in metadata and will be loaded from there.
-	var clientID = "31977622648-ubjke2f3staq6ouas64r31h8f8tcbiqp.apps.googleusercontent.com"
-	var clientSecret = "rK-kRY71CXmcg0v9I9KIgWci"
+func setupOAuth() error {
 	var useRedirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
-		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
-		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
-		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		useRedirectURL = *redirectURL
 	}
-	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE, *authWhiteList, *local)
+	if err := login.InitFromMetadataOrJSON(useRedirectURL, login.DEFAULT_SCOPE, *authWhiteList); err != nil {
+		return fmt.Errorf("Problem setting up server OAuth: %v", err)
+	}
 
 	client, err := auth.NewDefaultClient(true, auth.SCOPE_READ_ONLY)
 	if err != nil {
-		glog.Fatalf("Problem setting up oauth: %v", err)
+		return fmt.Errorf("Problem setting up client OAuth: %v", err)
 	}
 
 	storageService, err = storage.New(client)
 	if err != nil {
-		glog.Fatalf("Problem authenticating: %v", err)
+		return fmt.Errorf("Problem authenticating: %v", err)
 	}
+	return nil
 }
 
 func runServer() {
