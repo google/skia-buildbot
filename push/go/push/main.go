@@ -84,6 +84,7 @@ var (
 	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
+	bucketName     = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
 )
 
 func loadTemplates() {
@@ -145,6 +146,7 @@ func Init() {
 		glog.Fatalf("Failed to load IP addresses at startup: %s", err)
 	}
 
+	packages.SetBucketName(*bucketName)
 	packageInfo, err = packages.NewAllInfo(client, store, serverNames)
 	if err != nil {
 		glog.Fatalf("Failed to create packages.AllInfo at startup: %s", err)

@@ -41,6 +41,7 @@ var (
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port                  = flag.String("port", ":10114", "HTTP service address (e.g., ':8000')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	bucketName            = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
 )
 
 type UnitStatusSlice []*systemd.UnitStatus
@@ -77,7 +78,7 @@ func Init() {
 	if err != nil {
 		glog.Fatalf("Unable to retrieve hostname: %s", err)
 	}
-
+	packages.SetBucketName(*bucketName)
 	loadResouces()
 }
 

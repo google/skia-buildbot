@@ -23,6 +23,14 @@ import (
 	"google.golang.org/api/storage/v1"
 )
 
+var (
+	bucketName = "skia-push"
+)
+
+func SetBucketName(s string) {
+	bucketName = s
+}
+
 // Package represents a single Debian package uploaded to Google Storage.
 type Package struct {
 	Name     string // The unique name of this release package.
@@ -101,7 +109,7 @@ func (a *AllInfo) AllAvailable() map[string][]*Package {
 }
 
 // AllAvailableByPackageName returns all known packages for all applications
-// uploaded to gs://skia-push/debs/. They are mapped by the package name.
+// uploaded to gs://<bucketName>/debs/. They are mapped by the package name.
 func (a *AllInfo) AllAvailableByPackageName() map[string]*Package {
 	allAvailable := a.AllAvailable()
 	ret := map[string]*Package{}
@@ -120,7 +128,7 @@ func (a *AllInfo) PutInstalled(serverName string, packages []string, generation 
 		return fmt.Errorf("Failed to encode installed packages: %s", err)
 	}
 	buf := bytes.NewBuffer(b)
-	req := a.store.Objects.Insert("skia-push", &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf)
+	req := a.store.Objects.Insert(bucketName, &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf)
 	if generation != -1 {
 		req = req.IfGenerationMatch(generation)
 	}
@@ -198,9 +206,9 @@ func (p PackageSlice) Less(i, j int) bool { return p[i].Built.After(p[j].Built) 
 func (p PackageSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // AllAvailable returns all known packages for all applications uploaded to
-// gs://skia-push/debs/.
+// gs://<bucketName>/debs/.
 func AllAvailable(store *storage.Service) (map[string][]*Package, error) {
-	req := store.Objects.List("skia-push").Prefix("debs")
+	req := store.Objects.List(bucketName).Prefix("debs")
 	ret := map[string][]*Package{}
 	for {
 		objs, err := req.Do()
@@ -239,7 +247,7 @@ func AllAvailable(store *storage.Service) (map[string][]*Package, error) {
 }
 
 // AllAvailableByPackageName returns all known packages for all applications
-// uploaded to gs://skia-push/debs/. They are mapped by the package name.
+// uploaded to gs://<bucketName>/debs/. They are mapped by the package name.
 func AllAvailableByPackageName(store *storage.Service) (map[string]*Package, error) {
 	allAvailable, err := AllAvailable(store)
 	if err != nil {
@@ -263,7 +271,7 @@ func InstalledForServer(client *http.Client, store *storage.Service, serverName 
 	}
 
 	filename := "server/" + serverName + ".json"
-	obj, err := store.Objects.Get("skia-push", filename).Do()
+	obj, err := store.Objects.Get(bucketName, filename).Do()
 	if err != nil {
 		return ret, fmt.Errorf("Failed to retrieve Google Storage metadata about packages file %q: %s", filename, err)
 	}
@@ -331,7 +339,7 @@ func ToLocalFile(packages []string, filename string) error {
 // Install downloads and installs a debian package from Google Storage.
 func Install(client *http.Client, store *storage.Service, name string) error {
 	glog.Infof("Installing: %s", name)
-	obj, err := store.Objects.Get("skia-push", "debs/"+name).Do()
+	obj, err := store.Objects.Get(bucketName, "debs/"+name).Do()
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve Google Storage metadata about debian package: %s", err)
 	}
