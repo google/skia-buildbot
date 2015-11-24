@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
@@ -514,18 +513,13 @@ func main() {
 	common.InitWithMetrics("push", graphiteServer)
 	Init()
 
-	// By default use a set of credentials setup for localhost access.
-	var cookieSalt = "notverysecret"
-	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
-	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
-	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
-		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
-		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
-		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		redirectURL = "https://push.skia.org/oauth2callback/"
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, *local)
+	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+		glog.Fatalf("Failed to initialize the login system: %s", err)
+	}
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))

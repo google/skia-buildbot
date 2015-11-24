@@ -31,6 +31,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -40,12 +41,14 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2/google"
 )
 
 const (
 	COOKIE_NAME         = "sktoken"
 	DEFAULT_SCOPE       = "email"
 	SESSION_COOKIE_NAME = "sksession"
+	DEFAULT_COOKIE_SALT = "notverysecret"
 )
 
 // DEFAULT_DOMAIN_WHITELIST is a white list of domains we use frequently.
@@ -415,4 +418,68 @@ func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
 	}
 
 	return domains, emails
+}
+
+// tryLoadingFromMetadata tries to load the cookie salt, client id, and client
+// secret from GCE project level metadata. If it fails then it returns the salt
+// it was passed and the client id and secret are the empty string.
+//
+// Returns salt, clientID, clientSecret.
+func tryLoadingFromMetadata() (string, string, string) {
+	cookieSalt, err := metadata.ProjectGet(metadata.COOKIESALT)
+	if err != nil {
+		return DEFAULT_COOKIE_SALT, "", ""
+	}
+	clientID, err := metadata.ProjectGet(metadata.CLIENT_ID)
+	if err != nil {
+		return DEFAULT_COOKIE_SALT, "", ""
+	}
+	clientSecret, err := metadata.ProjectGet(metadata.CLIENT_SECRET)
+	if err != nil {
+		return DEFAULT_COOKIE_SALT, "", ""
+	}
+	return cookieSalt, clientID, clientSecret
+}
+
+// InitFromMetadataOrJSON must be called before any other login methods.
+//
+// InitFromMetadataOrJSON will eventually replace all instances of Init, at
+// which point it will be renamed back to Init().
+//
+// The function first tries to load the cookie salt, client id, and client
+// secret from GCE project level metadata. If that fails it looks for a
+// "client_secret.json" file in the current directory to extract the client id
+// and client secret from. If both of those fail then it returns an error.
+//
+// The authWhiteList is the space separated list of domains and email addresses
+// that are allowed to log in. The authWhiteList will be overwritten from
+// GCE instance level metadata if present.
+func InitFromMetadataOrJSON(redirectURL, scopes string, authWhiteList string) error {
+	cookieSalt, clientID, clientSecret := tryLoadingFromMetadata()
+	if clientID == "" {
+		b, err := ioutil.ReadFile("client_secret.json")
+		if err != nil {
+			return fmt.Errorf("Failed to read from metadata and from client_secret.json file: %s", err)
+		}
+		config, err := google.ConfigFromJSON(b)
+		if err != nil {
+			return fmt.Errorf("Failed to read from metadata and decode client_secret.json file: %s", err)
+		}
+		clientID = config.ClientID
+		clientSecret = config.ClientSecret
+	}
+	secureCookie = securecookie.New([]byte(cookieSalt), nil)
+	oauthConfig.ClientId = clientID
+	oauthConfig.ClientSecret = clientSecret
+	oauthConfig.RedirectURL = redirectURL
+	oauthConfig.Scope = scopes
+	// We allow for meta data to not be present.
+	whiteList, err := metadata.Get(metadata.AUTH_WHITE_LIST)
+	if err != nil {
+		glog.Infof("Failed to retrieve auth whitelist from instance meta data: ", err)
+	} else {
+		authWhiteList = whiteList
+	}
+	activeDomainWhiteList, activeEmailWhiteList = splitAuthWhiteList(authWhiteList)
+	return nil
 }
