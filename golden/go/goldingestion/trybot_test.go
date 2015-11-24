@@ -1,7 +1,6 @@
 package goldingestion
 
 import (
-	"os"
 	"testing"
 	"time"
 
@@ -16,15 +15,18 @@ import (
 
 const (
 	// name of the input file containing test data.
-	TEST_INGESTION_FILE = "testdata/dm.json"
+	TRYBOT_INGESTION_FILE = "testdata/trybot-dm.json"
 
 	// temporary file used to store traceDB content.
-	TRACE_DB_FILENAME = "./test_trace.db"
+	TRYBOT_TRACE_DB_FILE = "./trybot_test_trace.db"
+
+	// URL of the code review system.
+	TEST_CODE_REVIEW_URL = "https://codereview.chromium.org"
 )
 
 var (
 	// trace ids and values that are contained in the test file.
-	TEST_ENTRIES = []struct {
+	TRYBOT_TEST_ENTRIES = []struct {
 		key   string
 		value string
 	}{
@@ -32,13 +34,9 @@ var (
 		{key: "x86_64:MSVC:pipe-8888:Debug:CPU:AVX2:ShuttleB:clipcubic:Win8:gm", value: "64e446d96bebba035887dd7dda6db6c4"},
 	}
 
-	// Fix the current point as reference. We remove the nano seconds from
-	// now (below) because commits are only precise down to seconds.
-	now = time.Now()
-
 	// TEST_COMMITS are the commits we are considering. It needs to contain at
 	// least all the commits referenced in the test file.
-	TEST_COMMITS = []*vcsinfo.LongCommit{
+	TRYBOT_TEST_COMMITS = []*vcsinfo.LongCommit{
 		&vcsinfo.LongCommit{
 			ShortCommit: &vcsinfo.ShortCommit{
 				Hash:    "02cb37309c01506e2552e931efa9c04a569ed266",
@@ -50,64 +48,47 @@ var (
 	}
 )
 
-// Tests parsing and processing of a single file.
-func TestDMResults(t *testing.T) {
-	f, err := os.Open(TEST_INGESTION_FILE)
-	assert.Nil(t, err)
-
-	dmResults, err := parseDMResultsFromReader(f)
-	assert.Nil(t, err)
-
-	entries := dmResults.getTraceDBEntries()
-	assert.Equal(t, len(TEST_ENTRIES), len(entries))
-
-	for _, testEntry := range TEST_ENTRIES {
-		found, ok := entries[testEntry.key]
-		assert.True(t, ok)
-		assert.Equal(t, testEntry.value, string(found.Value))
-	}
-}
-
 // Tests the processor in conjunction with the vcs.
-func TestGoldProcessor(t *testing.T) {
-
+func TestTrybotGoldProcessor(t *testing.T) {
 	// Set up mock VCS and run a servcer with the given data directory.
 	vcs := ingestion.MockVCS(TEST_COMMITS)
-	server, serverAddr := ingestion.StartTraceDBTestServer(t, TRACE_DB_FILENAME)
+	server, serverAddr := ingestion.StartTraceDBTestServer(t, TRYBOT_TRACE_DB_FILE)
 	defer server.Stop()
-	defer testutils.Remove(t, TRACE_DB_FILENAME)
+	defer testutils.Remove(t, TRYBOT_TRACE_DB_FILE)
 
 	ingesterConf := &sharedconfig.IngesterConfig{
 		ExtraParams: map[string]string{
-			CONFIG_TRACESERVICE: serverAddr,
+			CONFIG_TRACESERVICE:    serverAddr,
+			CONFIG_CODE_REVIEW_URL: TEST_CODE_REVIEW_URL,
 		},
 	}
 
 	// Set up the processor.
-	processor, err := newGoldProcessor(vcs, ingesterConf)
+	processor, err := newGoldTrybotProcessor(vcs, ingesterConf)
 	assert.Nil(t, err)
 
 	// Load the example file and process it.
-	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE)
+	fsResult, err := ingestion.FileSystemResult(TRYBOT_INGESTION_FILE)
 	assert.Nil(t, err)
 	err = processor.Process(fsResult)
 	assert.Nil(t, err)
 
 	// Steal the traceDB used by the processor to verify the results.
-	traceDB := processor.(*goldProcessor).traceDB
+	traceDB := processor.(*goldTrybotProcessor).traceDB
 
-	startTime := time.Now().Add(-time.Hour * 24 * 10)
+	// The timestamp for the issue/patchset in the testfile is 1443718869.
+	startTime := time.Unix(1443718868, 0)
 	commitIDs, err := traceDB.List(startTime, time.Now())
 	assert.Nil(t, err)
 
-	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, VCS_SRC)))
-	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, TRYBOT_SRC)))
+	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, TRYBOT_SRC)))
+	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, VCS_SRC)))
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
-		Timestamp: TEST_COMMITS[0].Timestamp,
-		ID:        TEST_COMMITS[0].Hash,
-		Source:    string(VCS_SRC) + "master",
+		Timestamp: time.Unix(1443718869, 0),
+		ID:        "1",
+		Source:    string(TRYBOT_SRC) + TEST_CODE_REVIEW_URL + "/1381483003",
 	}, commitIDs[0])
 
 	// Get a tile and make sure we have the right number of traces.
@@ -126,8 +107,9 @@ func TestGoldProcessor(t *testing.T) {
 		assert.Equal(t, testEntry.value, goldTrace.Values[0])
 	}
 
+	// Make sure the prefix is stripped correctly.
 	StripSourcePrefix(commitIDs)
-	assert.Equal(t, "master", commitIDs[0].Source)
+	assert.Equal(t, TEST_CODE_REVIEW_URL+"/1381483003", commitIDs[0].Source)
 
 	assert.Nil(t, traceDB.Close())
 }
