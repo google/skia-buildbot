@@ -25,10 +25,6 @@ test: testgo
 testgo:
 	go test ./go/...
 
-.PHONY: ingest
-ingest:
-	go install -v ./go/ingest
-
 .PHONY: logs
 logs:
 	go install -v ../logserver/go/logserver
@@ -46,7 +42,7 @@ perf_migratedb:
 debug: clean_webtools debug_core_js debug_elements_html
 
 .PHONY: all
-all: build ingest tool logs perf_migratedb
+all: build tool logs perf_migratedb
 
 .PHONY: tags
 tags:

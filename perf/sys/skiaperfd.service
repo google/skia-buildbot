@@ -1,0 +1,19 @@
+[Unit]
+Description=Web server for Skia correctness monitoring.
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/skiaperf  \
+    --resources_dir=/usr/local/share/skiaperf/  \
+    --git_repo_dir=/mnt/pd0/data/skia  \
+    --log_dir=/var/log/logserver  \
+    --trace_service="skia-tracedb:9000"
+
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

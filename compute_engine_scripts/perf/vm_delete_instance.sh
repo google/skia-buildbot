@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Deletes the compute instance for skia-perf.
+# Deletes the compute instance for skia-status.
 #
 set -x
 
@@ -8,7 +8,6 @@ source vm_config.sh
 
 gcloud compute instances delete \
   --project=$PROJECT_ID \
-  --delete-disks "all" \
+  --delete-disks "boot" \
   --zone=$ZONE \
   $INSTANCE_NAME
-
