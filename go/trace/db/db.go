@@ -128,6 +128,9 @@ func (ts *TsDB) ping() error {
 
 // addChunk adds a set of entries to the datastore at the given CommitID.
 func (ts *TsDB) addChunk(ctx context.Context, cid *traceservice.CommitID, chunk map[string]*Entry) error {
+	if len(chunk) == 0 {
+		return nil
+	}
 	addReq := &traceservice.AddRequest{
 		Commitid: cid,
 		Values:   []*traceservice.ValuePair{},
@@ -150,8 +153,7 @@ func (ts *TsDB) addChunk(ctx context.Context, cid *traceservice.CommitID, chunk 
 		})
 	}
 	if len(addParamsRequest.Params) > 0 {
-		_, err := ts.traceService.AddParams(ctx, addParamsRequest)
-		if err != nil {
+		if _, err := ts.traceService.AddParams(ctx, addParamsRequest); err != nil {
 			return fmt.Errorf("Failed to add params: %s", err)
 		}
 	}
@@ -275,6 +277,10 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 				return
 			}
 			for _, pair := range getValuesResponse.Values {
+				if pair == nil {
+					glog.Errorf("Got a nil ValuePair in response: %s", err)
+					continue
+				}
 				tr, ok := tile.Traces[pair.Key]
 				if !ok {
 					tileMutex.Lock()

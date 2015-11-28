@@ -12,7 +12,7 @@ import (
 
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/tiling"
+	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/clustering"
 	"go.skia.org/infra/perf/go/config"
@@ -41,8 +41,8 @@ var (
 	// How long it takes to do a clustering run.
 	alertingLatency = metrics.NewRegisteredTimer("alerting.latency", metrics.DefaultRegistry)
 
-	// tileStore is the TileStore we are alerting on.
-	tileStore tiling.TileStore
+	// tileBuilder is the tracedb.Builder where we load Tiles from.
+	tileBuilder *tracedb.Builder
 )
 
 // CombineClusters combines freshly found clusters with existing clusters.
@@ -272,14 +272,9 @@ func updateBugs(c *types.ClusterSummary, issueTracker issues.IssueTracker) error
 }
 
 // singleStep does a single round of alerting.
-func singleStep(tileStore tiling.TileStore, issueTracker issues.IssueTracker) {
+func singleStep(issueTracker issues.IssueTracker) {
 	latencyBegin := time.Now()
-	tile, err := tileStore.Get(0, -1)
-	if err != nil {
-		glog.Errorf("Alerting: Failed to get tile: %s", err)
-		return
-	}
-
+	tile := tileBuilder.GetTile()
 	summary, err := clustering.CalculateClusterSummaries(tile, CLUSTER_SIZE, CLUSTER_STDDEV, skpOnly)
 	if err != nil {
 		glog.Errorf("Alerting: Failed to calculate clusters: %s", err)
@@ -338,11 +333,7 @@ func singleStep(tileStore tiling.TileStore, issueTracker issues.IssueTracker) {
 // calcNewClusters counts how many clusters are "New" and updates
 // the newClusterGauge metric accordingly.
 func calcNewClusters() {
-	tile, err := tileStore.Get(0, -1)
-	if err != nil {
-		glog.Errorf("Alerting: Failed to get tile: %s", err)
-		return
-	}
+	tile := tileBuilder.GetTile()
 	current, err := ListFrom(tile.Commits[0].CommitTime)
 	if err != nil {
 		glog.Errorf("Alerting: Failed to get existing clusters: %s", err)
@@ -359,17 +350,17 @@ func calcNewClusters() {
 }
 
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
-func Start(ts tiling.TileStore, apiKeyFlag string) {
+func Start(tb *tracedb.Builder, apiKeyFlag string) {
+	tileBuilder = tb
 	apiKey := apiKeyFromFlag(apiKeyFlag)
 	var issueTracker issues.IssueTracker = nil
 	if apiKey != "" {
 		issueTracker = issues.NewIssueTracker(apiKey)
 	}
 
-	tileStore = ts
 	go func() {
 		for _ = range time.Tick(config.RECLUSTER_DURATION) {
-			singleStep(ts, issueTracker)
+			singleStep(issueTracker)
 		}
 	}()
 }

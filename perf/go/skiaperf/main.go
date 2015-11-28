@@ -19,19 +19,19 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/filetilestore"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingester"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alerting"
 	"go.skia.org/infra/perf/go/annotate"
 	"go.skia.org/infra/perf/go/clustering"
 	"go.skia.org/infra/perf/go/config"
-	"go.skia.org/infra/perf/go/db"
+	idb "go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/parser"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stats"
@@ -85,15 +85,15 @@ var (
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	tileStoreDir   = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	apikey         = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
 	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	traceservice   = flag.String("trace_service", "localhost:9090", "The address of the traceservice endpoint.")
 )
 
 var (
-	nanoTileStore tiling.TileStore
+	nanoTileStore *db.Builder
 
 	templates *template.Template
 )
@@ -135,12 +135,14 @@ func Init() {
 
 	loadTemplates()
 
-	nanoTileStore = filetilestore.NewFileTileStore(*tileStoreDir, config.DATASET_NANO, 2*time.Minute)
-
 	var err error
 	git, err = gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
 	if err != nil {
 		glog.Fatal(err)
+	}
+	nanoTileStore, err = db.NewBuilder(git, *traceservice, config.INITIAL_TILE_SIZE, types.PerfTraceBuilder)
+	if err != nil {
+		glog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
 }
 
@@ -211,12 +213,7 @@ func trybotHandler(w http.ResponseWriter, r *http.Request) {
 func alertingHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Alerting Handler: %q\n", r.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
-	tile, err := nanoTileStore.Get(0, -1)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to load tile."))
-		return
-	}
-
+	tile := nanoTileStore.GetTile()
 	alerts, err := alerting.ListFrom(tile.Commits[0].CommitTime)
 	if err != nil {
 		util.ReportError(w, r, err, "Error retrieving cluster summaries.")
@@ -352,11 +349,7 @@ func writeClusterSummaries(summary *clustering.ClusterSummaries, w http.Response
 func kernelJSONHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO(jcgregorio) Determine the tile(s) to load based on the commit hashes,
 	// possibly loading two different tiles, one for each hash.
-	tile, err := nanoTileStore.Get(0, -1)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to load tile."))
-		return
-	}
+	tile := nanoTileStore.GetTile()
 	commit1 := r.FormValue("commit1")
 	commit2 := r.FormValue("commit2")
 
@@ -375,7 +368,7 @@ func kernelJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if commit1Index == -1 || commit2Index == -1 {
 		glog.Warningf("Commits %s[%d] %s[%d]", commit1, commit1Index, commit2, commit2Index)
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to find commits in tile."))
+		util.ReportError(w, r, fmt.Errorf("Failed to find commits in tile."), fmt.Sprintf("Failed to find commits in tile."))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -450,11 +443,7 @@ func kernelJSONHandler(w http.ResponseWriter, r *http.Request) {
 // sk.Query.selectionsAsQuery().
 func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Clustering Handler: %q\n", r.URL.Path)
-	tile, err := nanoTileStore.Get(0, -1)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to load tile."))
-		return
-	}
+	tile := nanoTileStore.GetTile()
 	w.Header().Set("Content-Type", "application/json")
 	// If there are no query parameters just return with an empty set of ClusterSummaries.
 	if r.FormValue("_k") == "" || r.FormValue("_stddev") == "" {
@@ -513,17 +502,6 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 	writeClusterSummaries(summary, w, r)
 }
 
-// getTile retrieves a tile from the disk
-func getTile(tileScale, tileNumber int) (*tiling.Tile, error) {
-	start := time.Now()
-	tile, err := nanoTileStore.Get(int(tileScale), int(tileNumber))
-	glog.Infoln("Time for tile load: ", time.Since(start).Nanoseconds())
-	if err != nil || tile == nil {
-		return nil, fmt.Errorf("Unable to get tile from tilestore: %s", err)
-	}
-	return tile, nil
-}
-
 // tileHandler accepts URIs like /tiles/0/1
 // where the URI format is /tiles/<tile-scale>/<tile-number>
 //
@@ -575,12 +553,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Infof("tile: %d %d", tileScale, tileNumber)
-	tile, err := getTile(int(tileScale), int(tileNumber))
-	if err != nil {
-		util.ReportError(w, r, err, "Failed retrieving tile.")
-		return
-	}
-
+	tile := nanoTileStore.GetTile()
 	guiTile := tiling.NewTileGUI(tile.Scale, tile.TileIndex)
 	guiTile.Commits = tile.Commits
 	guiTile.ParamSet = tile.ParamSet
@@ -714,11 +687,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Infof("tile: %d %d", tileScale, tileNumber)
-	tile, err := getTile(int(tileScale), int(tileNumber))
-	if err != nil {
-		util.ReportError(w, r, err, "Failed retrieving tile.")
-		return
-	}
+	tile := nanoTileStore.GetTile()
 	w.Header().Set("Content-Type", "application/json")
 	ret := &QueryResponse{
 		Traces: []*tiling.TraceGUI{},
@@ -837,11 +806,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 		idx = -1
 	}
 	glog.Infof("Hash: %s tileNum: %d, idx: %d\n", hash, tileNum, idx)
-	tile, err := getTile(0, tileNum)
-	if err != nil {
-		util.ReportError(w, r, err, "Failed retrieving tile.")
-		return
-	}
+	tile := nanoTileStore.GetTile()
 
 	if idx < 0 {
 		idx = len(tile.Commits) - 1 // Defaults to the last slice element.
@@ -944,11 +909,7 @@ func addFlatCalculatedTraces(qr *FlatQueryResponse, tile *tiling.Tile, formula s
 func calcHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Calc Handler: %q\n", r.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
-	tile, err := nanoTileStore.Get(0, -1)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to load tile."))
-		return
-	}
+	tile := nanoTileStore.GetTile()
 	formula := r.FormValue("formula")
 
 	var data interface{} = nil
@@ -1106,7 +1067,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 func main() {
 	defer common.LogPanic()
 	// Setup DB flags.
-	dbConf := db.DBConfigFromFlags()
+	dbConf := idb.DBConfigFromFlags()
 
 	common.InitWithMetrics("skiaperf", graphiteServer)
 	Init()
