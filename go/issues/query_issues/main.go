@@ -26,7 +26,7 @@ func main() {
 	query := os.Args[1]
 	os.Args = append([]string{os.Args[0]}, os.Args[2:]...)
 	common.Init()
-	client, err := auth.NewDefaultClient(*local, "https://www.googleapis.com/auth/userinfo.email")
+	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		glog.Fatalf("Unable to create installed app oauth client:%s", err)
 	}
