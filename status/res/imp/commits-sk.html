@@ -193,9 +193,6 @@
     core-icon[icon="redo"] {
       color: {{relandBackgroundColor}};
     }
-    #buildbotSelector > paper-radio-button {
-      padding-right: 12px;
-    }
     paper-radio-group::shadow ::content > * {
       padding: 2px;
     }
@@ -217,6 +214,14 @@
     .authorText {
       position: relative;
       z-index: 2;
+    }
+    span.tooltip {
+      padding-right: 12px;
+    }
+    .helpicon {
+      width: 12px;
+      height: 12px;
+      vertical-align: top;
     }
     </style>
     <url-param-sk name="commitLabel" value="{{commitLabel}}" valid="{{validCommitLabels}}"></url-param-sk>
@@ -266,7 +271,12 @@
                 <th class="header" colspan="{{numBuilders}}">
                   <paper-radio-group id="buildbotSelector" selected="{{builderFilter}}">
                     <template repeat="{{filter in validFilters}}">
-                    <paper-radio-button name="{{filter}}" label="{{filters[filter]}}"></paper-radio-button>
+                      <paper-radio-button name="{{filter}}" label="{{filters[filter][0]}}"></paper-radio-button>
+                      <template if="{{filter != 'search'}}">
+                        <core-tooltip label="{{filters[filter][1]}}">
+                          <span class="tooltip"><core-icon icon="help" class="helpicon"></core-icon></span>
+                        </core-tooltip>
+                      </template>
                     </template>
                   </paper-radio-group>
                   <paper-input
@@ -275,6 +285,9 @@
                       label="Search"
                       on-change="{{setFilterToSearch}}">
                   </paper-input>
+                  <core-tooltip label="{{filters['search'][1]}}">
+                    <span class="tooltip"><core-icon icon="help" class="helpicon"></core-icon></span>
+                  </core-tooltip>
                 </th>
                 <th class="header"><!-- Commit message --></th>
               </tr>
@@ -803,12 +816,12 @@
 
         // Builder filters.
         this.filters = {
-          "interesting": "Interesting",
-          "failures": "Failures",
-          "comments": "Comments",
-          "nocomment": "Failing w/o comment",
-          "all": "All",
-          "search": " ",
+          "interesting": ["Interesting", "Bots which have both successes and failures within the visible commit window."],
+          "failures": ["Failures", "Bots which have failures within the visible commit window."],
+          "comments": ["Comments", "Bots which have comments."],
+          "nocomment": ["Failing w/o comment", "Bots which have failures within the visible commit window but have no comments."],
+          "all": ["All", "Display all bots."],
+          "search": [" ", "Enter a search string. Substrings and regular expressions may be used, per the Javascript String match() rules."],
         };
         this.validFilters = Object.keys(this.filters);
         this.builderSearch = "";
