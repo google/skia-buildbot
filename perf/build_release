@@ -16,6 +16,8 @@ ${INSTALL} --mode=755 -T ${GOPATH}/bin/skiaperf           ${ROOT}/usr/local/bin/
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb     ${ROOT}/usr/local/bin/perf_migratedb
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service         ${ROOT}/etc/systemd/system/${APPNAME}.service
 
+
+${INSTALL_DIR} --mode=755                                 ${ROOT}/usr/local/share/skiaperf/templates
 ${INSTALL} --mode=644 ./templates/*                       ${ROOT}/usr/local/share/skiaperf/templates
 ${INSTALL} --mode=644 ./res/img/favicon.ico               ${ROOT}/usr/local/share/skiaperf/res/img/favicon.ico
 ${INSTALL} --mode=644 ./res/js/core.js                    ${ROOT}/usr/local/share/skiaperf/res/js/core.js
