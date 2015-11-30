@@ -59,7 +59,7 @@ func TestTrybotPerfIngestion(t *testing.T) {
 	// Steal the traceDB used by the processor to verify the results.
 	traceDB := processor.(*perfTrybotProcessor).traceDB
 
-	startTime := time.Now().Add(-time.Hour * 24 * 10)
+	startTime := time.Time{}
 	commitIDs, err := traceDB.List(startTime, time.Now())
 	assert.Nil(t, err)
 
