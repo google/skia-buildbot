@@ -71,7 +71,8 @@ func getBinaryReportsFromGS(storageService *storage.Service, baseFolder string) 
 			// reset for next one
 			debugDump, debugErr, releaseDump, releaseErr = "", "", "", ""
 
-		} else if strings.HasSuffix(name, "_debug.dump") {
+		}
+		if strings.HasSuffix(name, "_debug.dump") {
 			debugDump = emptyStringOnError(gs.FileContentsFromGS(storageService, "skia-fuzzer", name))
 		} else if strings.HasSuffix(name, "_debug.err") {
 			debugErr = emptyStringOnError(gs.FileContentsFromGS(storageService, "skia-fuzzer", name))

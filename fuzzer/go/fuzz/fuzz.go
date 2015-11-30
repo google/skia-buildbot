@@ -94,7 +94,7 @@ func (r *FuzzResult) computeFlags() {
 
 	if r.ReleaseDump != "" {
 		flags |= ReleaseCrashed
-		if r.DebugStackTrace.IsEmpty() {
+		if r.ReleaseStackTrace.IsEmpty() {
 			flags |= ReleaseNoStackTrace
 		}
 	}
