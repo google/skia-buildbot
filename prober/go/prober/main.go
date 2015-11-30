@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/issues"
-	"go.skia.org/infra/go/metadata"
 	imetrics "go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
 )
@@ -31,10 +30,7 @@ var (
 	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	config         = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
 	prefix         = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Graphite.")
-	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	apikey         = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
 	runEvery       = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
 	bodyTesters = map[string]BodyTester{
@@ -260,10 +256,6 @@ func ctfeRevDataJSON(r io.Reader) bool {
 // monitorIssueTracker reads the counts for all the types of issues in the Skia
 // issue tracker (bugs.chromium.org/p/skia) and stuffs the counts into Graphite.
 func monitorIssueTracker(c *http.Client) {
-	if *useMetadata {
-		*apikey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
-	}
-
 	// Create a new metrics registry for the issue tracker metrics.
 	addr, err := net.ResolveTCPAddr("tcp", *graphiteServer)
 	if err != nil {
@@ -367,7 +359,7 @@ func main() {
 	defer common.LogPanic()
 	common.InitWithMetrics("probeserver", graphiteServer)
 
-	client, err := auth.NewDefaultClient(*local, "https://www.googleapis.com/auth/userinfo.email")
+	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		glog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
 	}
