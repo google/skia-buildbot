@@ -78,8 +78,6 @@ var (
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	doOauth        = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	oauthCacheFile = flag.String("oauth_cache_file", "google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
@@ -128,7 +126,7 @@ func Init() {
 	}
 
 	var err error
-	if client, err = auth.NewClient(*doOauth, *oauthCacheFile, auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
+	if client, err = auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 
