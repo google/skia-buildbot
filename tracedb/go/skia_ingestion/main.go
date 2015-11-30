@@ -5,7 +5,6 @@ package main
 
 import (
 	"flag"
-	"net/http"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
@@ -19,12 +18,10 @@ import (
 
 // Command line flags.
 var (
-	doOauth          = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	graphiteServer   = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	oauthCacheFile   = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
-	configFilename   = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
-	clientSecretFile = flag.String("client_secrets", "client_secret.json", "The file name for the client_secret.json file.")
+	graphiteServer     = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	configFilename     = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
+	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 )
 
 func main() {
@@ -32,13 +29,9 @@ func main() {
 	common.InitWithMetrics("skia-ingestion", graphiteServer)
 
 	// Initialize oauth client and start the ingesters.
-	var client *http.Client = nil
-	if *doOauth || *local {
-		var err error
-		client, err = auth.NewClientWithTransport(*local, *oauthCacheFile, *clientSecretFile, nil, storage.CloudPlatformScope)
-		if err != nil {
-			glog.Fatalf("Failed to auth: %s", err)
-		}
+	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, storage.CloudPlatformScope)
+	if err != nil {
+		glog.Fatalf("Failed to auth: %s", err)
 	}
 
 	// Start the ingesters.
