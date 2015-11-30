@@ -31,4 +31,4 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
     Dir            = "trybot/nano-json-v1"
 
     [Ingesters.nano-trybot.ExtraParams]
-    TraceService   = "localhost:9090"
+    TraceService   = "localhost:9000"
