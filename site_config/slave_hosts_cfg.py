@@ -336,6 +336,7 @@ _slave_host_dicts = {
       ('skiabot-linux-housekeeper-003', '2', False),
       ('skiabot-ct-trybot-000', '3', False),
       ('skiabot-ct-trybot-001', '4', False),
+      ('skiabot-ct-dm-000', '5', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
