@@ -77,6 +77,9 @@ func NewBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder
 // periodically by the Builder to keep the tile fresh.
 func (t *Builder) LoadTile() error {
 	// Build CommitIDs for the last INITIAL_TILE_SIZE commits to the repo.
+	if err := t.git.Update(true, false); err != nil {
+		glog.Errorf("Failed to update Git repo: %s", err)
+	}
 	hashes := t.git.LastN(t.tileSize)
 	commitIDs := make([]*CommitID, 0, len(hashes))
 	for _, h := range hashes {

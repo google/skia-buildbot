@@ -12,7 +12,7 @@ import (
 // Start calculating and reporting statistics on the repo and tiles.
 //
 // We presume the git.Update(true) is called somewhere else, usually this is done
-// in the ingester, so the repo is always as good as the ingested tiles.
+// in the trace/db.Builder, so the repo is always as good as the loaded tiles.
 func Start(nanoTileStore *db.Builder, git *gitinfo.GitInfo) {
 	coverage := metrics.NewRegisteredGaugeFloat64("stats.tests.bench_runs_per_changelist", metrics.DefaultRegistry)
 	skpLatency := metrics.NewRegisteredTimer("stats.skp.update_latency", metrics.DefaultRegistry)
