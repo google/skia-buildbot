@@ -23,6 +23,8 @@ const (
 	CQ_STATUS_URL          = "https://chromium-cq-status.appspot.com/patch-summary/%d/%d"
 
 	TIME_FORMAT = "2006-01-02 15:04:05.999999"
+
+	RIETVELD_SKIA_URL = "https://codereview.chromium.org"
 )
 
 var (

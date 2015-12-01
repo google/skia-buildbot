@@ -24,7 +24,6 @@ import (
 	"go.skia.org/infra/go/ingester"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alerting"
@@ -33,6 +32,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	idb "go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/parser"
+	"go.skia.org/infra/perf/go/perftracedb"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stats"
 	"go.skia.org/infra/perf/go/trybot"
@@ -93,7 +93,7 @@ var (
 )
 
 var (
-	nanoTileStore *db.Builder
+	nanoTileStore *perftracedb.Builder
 
 	templates *template.Template
 )
@@ -140,7 +140,7 @@ func Init() {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	nanoTileStore, err = db.NewBuilder(git, *traceservice, config.INITIAL_TILE_SIZE, types.PerfTraceBuilder)
+	nanoTileStore, err = perftracedb.NewBuilder(git, *traceservice, config.INITIAL_TILE_SIZE, types.PerfTraceBuilder)
 	if err != nil {
 		glog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
@@ -1041,6 +1041,72 @@ func shortCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// commitsJSONHandler returns JSON info of a range of commits.
+//
+// Queries look like:
+//
+//     /_/commits/?begin=h1&dur=h2&source=master
+//
+// Where:
+//  - h1 and h2 are human time values, 2w, 3h, 1d, etc. Defaults
+//    to begin=2w, dur=now(), where dur is the duration, i.e. the size
+//    of the window.
+//  - source is the source of the commits, like "master". Defaults
+//    to "" which means include all sources.
+//
+//
+// Response is JSON of perftrace.CommitIDLong that looks like:
+//
+//   [
+//     {
+//       ts: 14070203,
+//       id: "123abc",
+//       source: "master",
+//       author: "name@example.org",
+//       desc: "Adds short commits."
+//     },
+//     ...
+//   ]
+//
+func commitsJSONHandler(w http.ResponseWriter, r *http.Request) {
+	// Convert query params to time.Times.
+	beginStr := r.FormValue("begin")
+	if beginStr == "" {
+		beginStr = "2w"
+	}
+	begin, err := human.ParseDuration(beginStr)
+	if err != nil {
+		util.ReportError(w, r, fmt.Errorf("Failed to parse duration."), "Invalid value for begin.")
+		return
+	}
+	durStr := r.FormValue("dur")
+	if durStr == "" {
+		durStr = beginStr
+	}
+	dur, err := human.ParseDuration(durStr)
+	if err != nil {
+		util.ReportError(w, r, fmt.Errorf("Failed to parse duration."), "Invalid value for end.")
+		return
+	}
+	if dur > begin {
+		dur = begin
+	}
+
+	beginTime := time.Now().Add(-begin)
+	endTime := beginTime.Add(dur)
+	commits, err := nanoTileStore.ListLong(beginTime, endTime, r.FormValue("source"))
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load commits")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(commits); err != nil {
+		glog.Errorf("Failed to write or encode output: %s", err)
+	}
+}
+
 // helpHandler handles the GET of the main page.
 func helpHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Help Handler: %q\n", r.URL.Path)
@@ -1080,8 +1146,8 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	stats.Start(nanoTileStore, git)
-	alerting.Start(nanoTileStore, *apikey)
+	stats.Start(nanoTileStore.Builder, git)
+	alerting.Start(nanoTileStore.Builder, *apikey)
 
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
@@ -1103,6 +1169,7 @@ func main() {
 	router.PathPrefix("/single/").HandlerFunc(singleHandler)
 	router.PathPrefix("/query/").HandlerFunc(queryHandler)
 	router.HandleFunc("/commits/", commitsHandler)
+	router.HandleFunc("/_/commits/", commitsJSONHandler)
 	router.HandleFunc("/shortcommits/", shortCommitsHandler)
 	router.HandleFunc("/trybots/", trybotHandler)
 	router.HandleFunc("/clusters/", templateHandler("clusters.html"))
