@@ -109,7 +109,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			"labels":  []string{"FromSkiaPerf,Type-Defect,Priority-Medium"},
 			"comment": []string{fmt.Sprintf(ISSUE_COMMENT_TEMPLATE, req.Id)},
 		}
-		retval["Bug"] = "https://code.google.com/p/skia/issues/entry?" + q.Encode()
+		retval["Bug"] = "https://bugs.chromium.org/p/skia/issues/entry?" + q.Encode()
 	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)

@@ -86,7 +86,6 @@ var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	apikey         = flag.String("apikey", "", "The API Key used to make issue tracker requests. Only for local testing.")
 	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	traceservice   = flag.String("trace_service", "localhost:9090", "The address of the traceservice endpoint.")
@@ -1147,7 +1146,7 @@ func main() {
 	}
 
 	stats.Start(nanoTileStore.Builder, git)
-	alerting.Start(nanoTileStore.Builder, *apikey)
+	alerting.Start(nanoTileStore.Builder)
 
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {

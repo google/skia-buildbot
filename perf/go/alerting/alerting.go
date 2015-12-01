@@ -10,8 +10,8 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/issues"
-	"go.skia.org/infra/go/metadata"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/clustering"
@@ -231,24 +231,6 @@ func skpOnly(_ string, tr *types.PerfTrace) bool {
 	return tr.Params()["source_type"] == "skp" && tr.Params()["sub_result"] == "min_ms"
 }
 
-// apiKeyFromFlag returns the key that it was passed if the key isn't empty,
-// otherwise it tries to fetch the key from the metadata server.
-//
-// Returns the API Key, or "" if it failed to fetch the key from the metadata
-// server.
-func apiKeyFromFlag(apiKeyFlag string) string {
-	apiKey := apiKeyFlag
-	// If apiKey isn't passed in then read it from the metadata server.
-	if apiKey == "" {
-		var err error
-		if apiKey, err = metadata.ProjectGet(metadata.APIKEY); err != nil {
-			glog.Errorf("Retrieving API Key failed: %s", err)
-			return ""
-		}
-	}
-	return apiKey
-}
-
 // updateBugs will find all the bugs the reference the alerting cluster will
 // write them into the ClusterSummary and save it back to the store.
 func updateBugs(c *types.ClusterSummary, issueTracker issues.IssueTracker) error {
@@ -350,12 +332,15 @@ func calcNewClusters() {
 }
 
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
-func Start(tb *tracedb.Builder, apiKeyFlag string) {
+func Start(tb *tracedb.Builder) {
 	tileBuilder = tb
-	apiKey := apiKeyFromFlag(apiKeyFlag)
+	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
+	if err != nil {
+		glog.Errorf("Not updating bugs, not able to construct an authenticated client: %s", err)
+	}
 	var issueTracker issues.IssueTracker = nil
-	if apiKey != "" {
-		issueTracker = issues.NewIssueTracker(apiKey)
+	if client != nil {
+		issueTracker = issues.NewMonorailIssueTracker(client)
 	}
 
 	go func() {
