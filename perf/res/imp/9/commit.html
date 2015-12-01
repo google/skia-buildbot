@@ -31,6 +31,12 @@
 -->
 
 <dom-module id="perf-commit-sk">
+  <style type="text/css" media="screen">
+    pre,
+    span {
+      margin: 0;
+    }
+  </style>
   <template>
     <pre><span>{{_trimPad(commit.author)}}</span> <span>{{_humanize(commit.ts)}}</span> <span><a href$="{{_commitHref(commit)}}">{{_name(commit.id, commit.source)}}</a></span> <span>{{_trimNewline(commit.desc)}}</span></pre>
   </template>
