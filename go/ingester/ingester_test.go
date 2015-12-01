@@ -18,7 +18,9 @@ func init() {
 	Init(nil)
 }
 
-func TestGetGSResultFileLocations(t *testing.T) {
+// TODO(stephana): Re-enable this test with an authenticated client
+// so we don't hit request quotas.
+func xTestGetGSResultFileLocations(t *testing.T) {
 	testutils.SkipIfShort(t)
 	storage, err := storage.New(http.DefaultClient)
 	assert.Nil(t, err)
