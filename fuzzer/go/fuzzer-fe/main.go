@@ -56,6 +56,7 @@ var (
 	skiaRoot          = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
 	clangPath         = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
 	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
+	bucket            = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
 )
 
 var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path"}
@@ -113,6 +114,7 @@ func writeFlagsToConfig() error {
 	}
 	config.Generator.ClangPath = *clangPath
 	config.Generator.ClangPlusPlusPath = *clangPlusPlusPath
+	config.Aggregator.Bucket = *bucket
 	return nil
 }
 
@@ -125,7 +127,7 @@ func setupOAuth() error {
 		return fmt.Errorf("Problem setting up server OAuth: %v", err)
 	}
 
-	client, err := auth.NewDefaultClient(true, auth.SCOPE_READ_ONLY)
+	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_ONLY)
 	if err != nil {
 		return fmt.Errorf("Problem setting up client OAuth: %v", err)
 	}

@@ -12,11 +12,14 @@ type generatorConfig struct {
 }
 
 type aggregatorConfig struct {
-	BinaryFuzzPath          string
-	ExecutablePath          string
-	NumAggregationProcesses int
-	RescanPeriod            time.Duration
-	AnalysisTimeout         time.Duration
+	Bucket               string
+	BinaryFuzzPath       string
+	ExecutablePath       string
+	NumAnalysisProcesses int
+	NumUploadProcesses   int
+	RescanPeriod         time.Duration
+	StatusPeriod         time.Duration
+	AnalysisTimeout      time.Duration
 }
 
 var Generator = generatorConfig{}

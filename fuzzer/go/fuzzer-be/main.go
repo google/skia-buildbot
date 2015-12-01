@@ -14,7 +14,9 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/aggregator"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
+	storage "google.golang.org/api/storage/v1"
 )
 
 var (
@@ -26,14 +28,20 @@ var (
 	numFuzzProcesses  = flag.Int("fuzz_processes", 0, `The number of processes to run afl-fuzz.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
 	skipGeneration    = flag.Bool("debug_skip_generation", false, "(debug only) If the generation step should be skipped")
 
-	binaryFuzzPath          = flag.String("fuzz_path", filepath.Join(os.TempDir(), "fuzzes"), "The directory to temporarily store the binary fuzzes during aggregation.")
-	executablePath          = flag.String("executable_path", filepath.Join(os.TempDir(), "executables"), "The directory to store temporary executables that will run the fuzzes during aggregation. Defaults to /tmp/executables.")
-	numAggregationProcesses = flag.Int("aggregation_processes", 0, `The number of processes to aggregate fuzzes.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
-	rescanPeriod            = flag.Duration("rescan_period", 60*time.Second, `The time in which to sleep for every cycle of aggregation. `)
-	analysisTimeout         = flag.Duration("analysis_timeout", 5*time.Second, `The maximum time an analysis should run.`)
+	bucket               = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to store found fuzzes.")
+	binaryFuzzPath       = flag.String("fuzz_path", filepath.Join(os.TempDir(), "fuzzes"), "The directory to temporarily store the binary fuzzes during aggregation.")
+	executablePath       = flag.String("executable_path", filepath.Join(os.TempDir(), "executables"), "The directory to store temporary executables that will run the fuzzes during aggregation. Defaults to /tmp/executables.")
+	numAnalysisProcesses = flag.Int("analysis_processes", 0, `The number of processes to analyze fuzzes.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
+	rescanPeriod         = flag.Duration("rescan_period", 60*time.Second, `The time in which to sleep for every cycle of aggregation. `)
+	numUploadProcesses   = flag.Int("upload_processes", 0, `The number of processes to upload fuzzes. Defaults to 0, which means "Make an intelligent guess"`)
+	statusPeriod         = flag.Duration("status_period", 60*time.Second, `The time period used to report the status of the aggregation/analysis/upload queue. `)
+	analysisTimeout      = flag.Duration("analysis_timeout", 5*time.Second, `The maximum time an analysis should run.`)
 )
 
-var requiredFlags = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root"}
+var (
+	requiredFlags                   = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root"}
+	storageService *storage.Service = nil
+)
 
 func main() {
 	flag.Parse()
@@ -44,8 +52,12 @@ func main() {
 		glog.Infof("Starting generator with configuration %#v", config.Generator)
 		//TODO(kjlubick): Start AFL-fuzz
 	}
+
+	if err := setupOAuth(); err != nil {
+		glog.Fatalf("Problem with OAuth: %s", err)
+	}
 	glog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
-	glog.Fatal(aggregator.StartBinaryAggregator())
+	glog.Fatal(aggregator.StartBinaryAggregator(storageService))
 }
 
 func writeFlagsToConfig() error {
@@ -72,6 +84,7 @@ func writeFlagsToConfig() error {
 	config.Generator.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Generator.NumFuzzProcesses = *numFuzzProcesses
 
+	config.Aggregator.Bucket = *bucket
 	config.Aggregator.BinaryFuzzPath, err = fileutil.EnsureDirExists(*binaryFuzzPath)
 	if err != nil {
 		return err
@@ -80,8 +93,22 @@ func writeFlagsToConfig() error {
 	if err != nil {
 		return err
 	}
-	config.Aggregator.NumAggregationProcesses = *numAggregationProcesses
+	config.Aggregator.NumAnalysisProcesses = *numAnalysisProcesses
+	config.Aggregator.NumUploadProcesses = *numUploadProcesses
+	config.Aggregator.StatusPeriod = *statusPeriod
 	config.Aggregator.RescanPeriod = *rescanPeriod
 	config.Aggregator.AnalysisTimeout = *analysisTimeout
+	return nil
+}
+
+func setupOAuth() error {
+	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
+	if err != nil {
+		return fmt.Errorf("Problem setting up client OAuth: %v", err)
+	}
+
+	if storageService, err = storage.New(client); err != nil {
+		return fmt.Errorf("Problem authenticating: %v", err)
+	}
 	return nil
 }

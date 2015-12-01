@@ -29,7 +29,7 @@ var stackTraceLine = regexp.MustCompile(`(?:\.\./)+((?:\w+/)+)(.+):(\d+)\(`)
 
 // Given the files of a dump file (created through get_stack_trace [which uses catchsegv]), return the stack trace
 func ParseStackTrace(contents string) StackTrace {
-	r := bytes.NewReader([]byte(contents))
+	r := bytes.NewBufferString(contents)
 	scan := bufio.NewScanner(r)
 
 	hasBegun := false

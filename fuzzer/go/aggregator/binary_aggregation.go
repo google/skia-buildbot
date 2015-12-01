@@ -16,11 +16,14 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
+	storage "google.golang.org/api/storage/v1"
 )
 
 const (
 	TEST_HARNESS_NAME = "dm"
 )
+
+var storageService *storage.Service
 
 // AnalysisPackage is a generic holder for the functions needed to analyze
 type AnalysisPackage struct {
@@ -43,7 +46,7 @@ type uploadPackage struct {
 // metadata required for them.
 // It does this by searching in the specified AflOutputPath for new crashes and moves them to a
 // temporary holding folder (specified by BinaryFuzzPath) for parsing, before uploading them to GCS
-func StartBinaryAggregator() error {
+func StartBinaryAggregator(s *storage.Service) error {
 	if _, err := fileutil.EnsureDirExists(config.Aggregator.BinaryFuzzPath); err != nil {
 		return err
 	}
@@ -56,6 +59,7 @@ func StartBinaryAggregator() error {
 	if err := BuildClangDM("Release", true); err != nil {
 		return err
 	}
+	storageService = s
 
 	// For passing the paths of new binaries that should be scanned.
 	forAnalysis := make(chan string, 10000)
@@ -67,26 +71,47 @@ func StartBinaryAggregator() error {
 	terminated := make(chan string)
 	go scanForNewCandidates(forAnalysis, terminated)
 
-	numAggregationProcesses := config.Aggregator.NumAggregationProcesses
-	if numAggregationProcesses <= 0 {
+	numAnalysisProcesses := config.Aggregator.NumAnalysisProcesses
+	if numAnalysisProcesses <= 0 {
 		// TODO(kjlubick): Actually make this smart based on the number of cores
-		numAggregationProcesses = 20
+		numAnalysisProcesses = 20
 	}
 
-	for i := 0; i < numAggregationProcesses; i++ {
+	for i := 0; i < numAnalysisProcesses; i++ {
 		go performAnalysis(i, analyzeSkp, forAnalysis, forUpload, terminated)
 	}
 
+	numUploadProcesses := config.Aggregator.NumUploadProcesses
+	if numUploadProcesses <= 0 {
+		// TODO(kjlubick): Actually make this smart based on the number of cores/number
+		// of aggregation processes
+		numUploadProcesses = 5
+	}
+
+	for i := 0; i < numUploadProcesses; i++ {
+		go waitForUploads(i, forUpload, terminated)
+	}
+
+	t := time.Tick(config.Aggregator.StatusPeriod)
 	for {
 		select {
-		case p := <-forUpload:
-			// TODO(kjlubick): upload the results to GCS
-			glog.Infof("Should upload %s", p.Name)
+		case _ = <-t:
+			// TODO(kjlubick): Keep track of these numbers via metrics so we can use
+			// mon.skia.org and write alerts for it.
+			glog.Infof("There are %d fuzzes waiting for analysis and %d waiting for upload.", len(forAnalysis), len(forUpload))
+			glog.Infof("There are %d aggregation processes alive and %d upload processes alive.", numAnalysisProcesses, numUploadProcesses)
 		case deadService := <-terminated:
+			glog.Errorf("%s died", deadService)
 			if deadService == "scanner" {
-				return fmt.Errorf("Ending Aggregator: The afl-fuzz scanner died.")
-			} else {
-				glog.Errorf("%s died, continuing anyway", deadService)
+				return fmt.Errorf("Ending aggregator: The afl-fuzz scanner died.")
+			} else if strings.HasPrefix(deadService, "analyzer") {
+				if numAnalysisProcesses--; numAnalysisProcesses <= 0 {
+					return fmt.Errorf("Ending aggregator: No more analysis processes alive")
+				}
+			} else if strings.HasPrefix(deadService, "uploader") {
+				if numUploadProcesses--; numUploadProcesses <= 0 {
+					return fmt.Errorf("Ending aggregator: No more upload processes alive")
+				}
 			}
 		}
 
@@ -102,7 +127,7 @@ func scanForNewCandidates(forAnalysis, terminated chan<- string) {
 		glog.Errorf("Scanner terminated due to error: %v", err)
 		terminated <- "scanner"
 	}
-	alreadyFoundBinaries := SortedStringSlice{}
+	alreadyFoundBinaries := &SortedStringSlice{}
 	// time.Tick does not fire immediately, so we fire it manually once.
 	if err := scanHelper(alreadyFoundBinaries, forAnalysis); err != nil {
 		prepareForExit(err)
@@ -120,7 +145,7 @@ func scanForNewCandidates(forAnalysis, terminated chan<- string) {
 }
 
 // scanHelper runs findBadBinaryPaths, logs the output and keeps alreadyFoundBinaries up to date.
-func scanHelper(alreadyFoundBinaries SortedStringSlice, forAnalysis chan<- string) error {
+func scanHelper(alreadyFoundBinaries *SortedStringSlice, forAnalysis chan<- string) error {
 	newlyFound, err := findBadBinaryPaths(alreadyFoundBinaries)
 	if err != nil {
 		return err
@@ -150,7 +175,7 @@ func scanHelper(alreadyFoundBinaries SortedStringSlice, forAnalysis chan<- strin
 //			-fuzzer_stats
 //		-fuzzer1/
 //		...
-func findBadBinaryPaths(alreadyFoundBinaries SortedStringSlice) ([]string, error) {
+func findBadBinaryPaths(alreadyFoundBinaries *SortedStringSlice) ([]string, error) {
 	badBinaryPaths := make([]string, 0)
 
 	aflDir, err := os.Open(config.Generator.AflOutputPath)
@@ -208,11 +233,11 @@ func findBadBinaryPaths(alreadyFoundBinaries SortedStringSlice) ([]string, error
 // performAnalysis waits for files that need to be analyzed (from forAnalysis) and makes a copy of
 // them in config.Aggregator.BinaryFuzzPath with their hash as a file name.
 // It then analyzes it using the supplied AnalysisPackage and then signals the results should be
-// uploaded. If any unrecoverable errors happen, this method terminates
+// uploaded. If any unrecoverable errors happen, this method terminates.
 func performAnalysis(identifier int, analysisPackage AnalysisPackage, forAnalysis <-chan string, forUpload chan<- uploadPackage, terminated chan<- string) {
 	glog.Infof("Spawning analyzer %d", identifier)
 	prepareForExit := func(err error) {
-		glog.Errorf("Analyzer %d Terminated due to error: %v", identifier, err)
+		glog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
 		terminated <- fmt.Sprintf("analyzer%d", identifier)
 	}
 	// our own unique working folder
@@ -270,8 +295,11 @@ var analyzeSkp = AnalysisPackage{
 		return nil
 	},
 	Analyze: func(workingDirPath, skpFileName string) (uploadPackage, error) {
-		upload := uploadPackage{}
-		upload.Name = skpFileName
+		upload := uploadPackage{
+			Name:     skpFileName,
+			Type:     "skp",
+			FilePath: filepath.Join(config.Aggregator.BinaryFuzzPath, skpFileName),
+		}
 
 		if dump, stderr, err := performBinaryAnalysis(workingDirPath, TEST_HARNESS_NAME, skpFileName, true); err != nil {
 			return upload, err
@@ -369,4 +397,67 @@ func (s *SortedStringSlice) Contains(str string) bool {
 func (s *SortedStringSlice) Append(strs []string) {
 	s.strings = append(s.strings, strs...)
 	s.strings.Sort()
+}
+
+// waitForUploads waits for uploadPackages to be sent through the forUpload channel
+// and then uploads them.  If any unrecoverable errors happen, this method terminates.
+func waitForUploads(identifier int, forUpload <-chan uploadPackage, terminated chan<- string) {
+	glog.Infof("Spawning uploader %d", identifier)
+	for {
+		p := <-forUpload
+		if err := upload(p); err != nil {
+			glog.Errorf("Uploader %d terminated due to error: %s", identifier, err)
+			terminated <- fmt.Sprintf("uploader%d", identifier)
+			return
+		}
+	}
+}
+
+// upload breaks apart the uploadPackage into its constituant parts and uploads them to
+// GCS using some helper methods.
+func upload(p uploadPackage) error {
+	glog.Infof("uploading %s with file %s and analysis bytes %d;%d;%d;%d ", p.Name, p.FilePath, len(p.DebugDump), len(p.DebugErr), len(p.ReleaseDump), len(p.ReleaseErr))
+
+	if err := uploadBinaryFromDisk(p.Type, p.Name, p.Name, p.FilePath); err != nil {
+		return err
+	}
+	if err := uploadString(p.Type, p.Name, p.Name+"_debug.dump", p.DebugDump); err != nil {
+		return err
+	}
+	if err := uploadString(p.Type, p.Name, p.Name+"_debug.err", p.DebugErr); err != nil {
+		return err
+	}
+	if err := uploadString(p.Type, p.Name, p.Name+"_release.dump", p.ReleaseDump); err != nil {
+		return err
+	}
+	return uploadString(p.Type, p.Name, p.Name+"_release.err", p.ReleaseErr)
+}
+
+// uploadBinaryFromDisk uploads a binary file on disk to GCS, returning an error if
+// anything goes wrong.
+func uploadBinaryFromDisk(fuzzType, fuzzName, fileName, filePath string) error {
+	name := fmt.Sprintf("binary_fuzzes/bad/%s/%s/%s", fuzzType, fuzzName, fileName)
+	o := &storage.Object{Name: name}
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("There was a problem reading %s for uploading : %s", filePath, err)
+	}
+	// We set the encoding to avoid accidental crashes if Chrome were to try to render
+	// a fuzzed png or svg or something.
+	if _, err := storageService.Objects.Insert(config.Aggregator.Bucket, o).Media(f).ContentEncoding("application/octet-stream").Do(); err != nil {
+		return fmt.Errorf("There was a problem uploading binary %s : %s", name, err)
+	}
+	return nil
+}
+
+// uploadBinaryFromDisk uploads the contents of a string as a file to GCS, returning an error if
+// anything goes wrong.
+func uploadString(fuzzType, fuzzName, fileName, contents string) error {
+	name := fmt.Sprintf("binary_fuzzes/bad/%s/%s/%s", fuzzType, fuzzName, fileName)
+	o := &storage.Object{Name: name}
+	if _, err := storageService.Objects.Insert(config.Aggregator.Bucket, o).Media(bytes.NewBufferString(contents)).ContentEncoding("text/plain").Do(); err != nil {
+		return fmt.Errorf("There was a problem uploading %s : %s", name, err)
+	}
+	return nil
 }
