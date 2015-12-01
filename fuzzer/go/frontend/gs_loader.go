@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/fuzzer/go/functionnamefinder"
 	"go.skia.org/infra/fuzzer/go/fuzz"
 	"go.skia.org/infra/go/gs"
 	storage "google.golang.org/api/storage/v1"
@@ -13,7 +14,7 @@ import (
 // LoadFromGoogleStorage pulls all fuzzes out of GCS and loads them into memory.
 // Upon returning nil error, the results can be accessed via fuzz.FuzzSummary() and
 // fuzz.FuzzDetails().
-func LoadFromGoogleStorage(storageService *storage.Service, nameLookup fuzz.FindFunctionName) error {
+func LoadFromGoogleStorage(storageService *storage.Service, finder functionnamefinder.Finder) error {
 
 	reports, err := getBinaryReportsFromGS(storageService, "binary_fuzzes/bad/")
 	if err != nil {
@@ -21,10 +22,13 @@ func LoadFromGoogleStorage(storageService *storage.Service, nameLookup fuzz.Find
 	}
 
 	for _, report := range reports {
-		// TODO(kjlubick) : make the name lookup work
-		report.DebugStackTrace.LookUpFunctions(nameLookup)
-		report.ReleaseStackTrace.LookUpFunctions(nameLookup)
+		if finder != nil {
+			report.DebugStackTrace.LookUpFunctions(finder)
+			report.ReleaseStackTrace.LookUpFunctions(finder)
+
+		}
 		fuzz.NewBinaryFuzzFound(report)
+
 	}
 
 	return nil

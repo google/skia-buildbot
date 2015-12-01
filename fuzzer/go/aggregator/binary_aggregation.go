@@ -297,7 +297,7 @@ func copyExecutable(fromPath, toPath string) error {
 	if err != nil {
 		return err
 	}
-	if err = ioutil.WriteFile(toPath, data, 0644); err != nil {
+	if err = ioutil.WriteFile(toPath, data, 0755); err != nil {
 		return err
 	}
 	return os.Chmod(toPath, 0755)

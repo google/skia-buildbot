@@ -14,7 +14,7 @@ func TestParseReleaseDump(t *testing.T) {
 	trace := ParseStackTrace(testInput)
 
 	expected := StackTrace{
-		[]StackTraceFrame{
+		Frames: []StackTraceFrame{
 			BasicStackFrame("src/core/", "SkReadBuffer.cpp", 344),
 			BasicStackFrame("src/core/", "SkReadBuffer.h", 130),
 			BasicStackFrame("src/core/", "SkPictureData.cpp", 498),
@@ -40,7 +40,7 @@ func TestParseDebugDump(t *testing.T) {
 	trace := ParseStackTrace(testInput)
 
 	expected := StackTrace{
-		[]StackTraceFrame{
+		Frames: []StackTraceFrame{
 			BasicStackFrame("src/core/", "SkReadBuffer.h", 130),
 			BasicStackFrame("src/core/", "SkReadBuffer.h", 136),
 			BasicStackFrame("src/core/", "SkPaint.cpp", 1971),
@@ -73,25 +73,29 @@ func TestParseEmptyStackTrace(t *testing.T) {
 	}
 }
 
+type mockFunctionNameFinder struct{}
+
+func (f *mockFunctionNameFinder) FunctionName(packageName string, fileName string, lineNumber int) string {
+	if fileName == "SkReadBuffer.h" {
+		return "thisFunction(SkPath path)"
+	}
+	if fileName == "parseskp.cpp" {
+		return "thisOtherFunction()"
+	}
+	return "PROBLEM"
+}
+
 func TestLookUpFunctions(t *testing.T) {
 	testTrace := StackTrace{
-		[]StackTraceFrame{
+		Frames: []StackTraceFrame{
 			BasicStackFrame("src/core/", "SkReadBuffer.h", 130),
 			BasicStackFrame("fuzzer_cache/src/", "parseskp.cpp", 165),
 		},
 	}
 
-	mockFindFunctionName := func(packageName string, fileName string, lineNumber int) string {
-		if fileName == "SkReadBuffer.h" {
-			return "thisFunction(SkPath path)"
-		}
-		if fileName == "parseskp.cpp" {
-			return "thisOtherFunction()"
-		}
-		return "PROBLEM"
-	}
+	mockFinder := &mockFunctionNameFinder{}
 
-	testTrace.LookUpFunctions(mockFindFunctionName)
+	testTrace.LookUpFunctions(mockFinder)
 
 	if testTrace.Frames[0].FunctionName != "thisFunction(SkPath path)" {
 		t.Errorf("Wrong function name for frame 0 -> %s", testTrace.Frames[0].FunctionName)

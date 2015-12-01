@@ -15,10 +15,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend"
+	"go.skia.org/infra/fuzzer/go/functionnamefinder"
 	"go.skia.org/infra/fuzzer/go/fuzz"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
@@ -39,17 +42,23 @@ var (
 	storageService *storage.Service = nil
 )
 
-// Command line flags.
 var (
+	// web server params
 	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	host           = flag.String("host", "localhost", "HTTP service host")
 	port           = flag.String("port", ":80", "HTTP service port (e.g., ':8002')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-
+	// OAUTH params
 	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	redirectURL   = flag.String("redirect_url", "https://fuzzer.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+	// Scanning params
+	skiaRoot          = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
+	clangPath         = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
+	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
 )
+
+var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path"}
 
 func Init() {
 	reloadTemplates()
@@ -71,22 +80,40 @@ func main() {
 	// Calls flag.Parse()
 	common.InitWithMetrics("fuzzer", graphiteServer)
 
+	if err := writeFlagsToConfig(); err != nil {
+		glog.Fatalf("Problem with configuration: %v", err)
+	}
+
 	Init()
 
 	if err := setupOAuth(); err != nil {
 		glog.Fatal(err)
 	}
 
-	// TODO(kjlubick): Implement this using Skia Source
-	mockLookup := func(packageName string, fileName string, lineNumber int) string {
-		return "TODO"
-	}
-
-	if err := frontend.LoadFromGoogleStorage(storageService, mockLookup); err != nil {
-		glog.Fatalf("Error loading in data from GCS: %v", err)
+	if finder, err := functionnamefinder.New(); err != nil {
+		glog.Fatalf("Error loading Skia Source: %s", err)
+	} else if err := frontend.LoadFromGoogleStorage(storageService, finder); err != nil {
+		glog.Fatalf("Error loading in data from GCS: %s", err)
 	}
 
 	runServer()
+}
+
+func writeFlagsToConfig() error {
+	// Check the required ones and terminate if they are not provided
+	for _, f := range requiredFlags {
+		if flag.Lookup(f).Value.String() == "" {
+			return fmt.Errorf("Required flag %s is empty.", f)
+		}
+	}
+	var err error
+	config.Generator.SkiaRoot, err = fileutil.EnsureDirExists(*skiaRoot)
+	if err != nil {
+		return err
+	}
+	config.Generator.ClangPath = *clangPath
+	config.Generator.ClangPlusPlusPath = *clangPlusPlusPath
+	return nil
 }
 
 func setupOAuth() error {

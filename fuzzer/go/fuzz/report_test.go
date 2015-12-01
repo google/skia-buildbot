@@ -3,6 +3,8 @@ package fuzz
 import (
 	"reflect"
 	"testing"
+
+	"go.skia.org/infra/fuzzer/go/common"
 )
 
 func TestAddBinary(t *testing.T) {
@@ -80,12 +82,12 @@ func TestSummary(t *testing.T) {
 
 func makeStacktrace(file, function string, line int) StackTrace {
 	return StackTrace{
-		[]StackTraceFrame{
+		Frames: []StackTraceFrame{
 			{
-				"mock/package/",
-				file,
-				line,
-				function,
+				PackageName:  "mock/package/",
+				FileName:     file,
+				LineNumber:   line,
+				FunctionName: function,
 			},
 		},
 	}
@@ -95,53 +97,53 @@ var mockFlags = []string{"foo", "bar"}
 
 var mockBinaryDetails = map[string]FuzzReportBinary{
 	"aaaa": FuzzReportBinary{
-		makeStacktrace("alpha", "beta", 16),
-		makeStacktrace("alpha", "beta", 16),
-		mockFlags,
-		"aaaa",
-		"skp",
+		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
+		ReleaseStackTrace:  makeStacktrace("alpha", "beta", 16),
+		HumanReadableFlags: mockFlags,
+		BadBinaryName:      "aaaa",
+		BinaryType:         "skp",
 	},
 	"bbbb": FuzzReportBinary{
-		makeStacktrace("alpha", "beta", 16),
-		StackTrace{},
-		mockFlags,
-		"bbbb",
-		"skp",
+		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
+		ReleaseStackTrace:  StackTrace{},
+		HumanReadableFlags: mockFlags,
+		BadBinaryName:      "bbbb",
+		BinaryType:         "skp",
 	},
 	"cccc": FuzzReportBinary{
-		makeStacktrace("alpha", "beta", 16),
-		makeStacktrace("alpha", "gamma", 26),
-		mockFlags,
-		"cccc",
-		"skp",
+		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
+		ReleaseStackTrace:  makeStacktrace("alpha", "gamma", 26),
+		HumanReadableFlags: mockFlags,
+		BadBinaryName:      "cccc",
+		BinaryType:         "skp",
 	},
 	"dddd": FuzzReportBinary{
-		makeStacktrace("alpha", "gamma", 43),
-		makeStacktrace("delta", "epsilon", 125),
-		mockFlags,
-		"dddd",
-		"png",
+		DebugStackTrace:    makeStacktrace("alpha", "gamma", 43),
+		ReleaseStackTrace:  makeStacktrace("delta", "epsilon", 125),
+		HumanReadableFlags: mockFlags,
+		BadBinaryName:      "dddd",
+		BinaryType:         "png",
 	},
 	"eeee": FuzzReportBinary{
-		StackTrace{},
-		StackTrace{},
-		mockFlags,
-		"eeee",
-		"png",
+		DebugStackTrace:    StackTrace{},
+		ReleaseStackTrace:  StackTrace{},
+		HumanReadableFlags: mockFlags,
+		BadBinaryName:      "eeee",
+		BinaryType:         "png",
 	},
 	"ffff": FuzzReportBinary{
-		makeStacktrace("alpha", "beta", 16),
-		makeStacktrace("alpha", "beta", 16),
-		mockFlags,
-		"ffff",
-		"skp",
+		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
+		ReleaseStackTrace:  makeStacktrace("alpha", "beta", 16),
+		HumanReadableFlags: mockFlags,
+		BadBinaryName:      "ffff",
+		BinaryType:         "skp",
 	},
 	"gggg": FuzzReportBinary{
-		makeStacktrace("delta", "epsilon", 122),
-		StackTrace{},
-		mockFlags,
-		"gggg",
-		"png",
+		DebugStackTrace:    makeStacktrace("delta", "epsilon", 122),
+		ReleaseStackTrace:  StackTrace{},
+		HumanReadableFlags: mockFlags,
+		BadBinaryName:      "gggg",
+		BinaryType:         "png",
 	},
 }
 
@@ -178,9 +180,9 @@ var expectedBinaryReport1 = FuzzReport{
 		},
 	},
 	FuzzReportFile{
-		UNKNOWN_FILE, 1, 0, []FuzzReportFunction{
+		common.UNKNOWN_FILE, 1, 0, []FuzzReportFunction{
 			FuzzReportFunction{
-				UNKNOWN_FUNCTION, 1, 0, []FuzzReportLineNumber{
+				common.UNKNOWN_FUNCTION, 1, 0, []FuzzReportLineNumber{
 					FuzzReportLineNumber{
 						-1, 1, 0, []FuzzReportBinary{mockBinaryDetails["eeee"]}, nil,
 					},
@@ -209,9 +211,9 @@ var expectedBinaryReport2 = FuzzReport{
 		},
 	},
 	FuzzReportFile{
-		UNKNOWN_FILE, 1, 1, []FuzzReportFunction{
+		common.UNKNOWN_FILE, 1, 1, []FuzzReportFunction{
 			FuzzReportFunction{
-				UNKNOWN_FUNCTION, 1, 1, []FuzzReportLineNumber{
+				common.UNKNOWN_FUNCTION, 1, 1, []FuzzReportLineNumber{
 					FuzzReportLineNumber{
 						-1, 1, 1, []FuzzReportBinary{mockBinaryDetails["eeee"]}, nil,
 					},
@@ -251,46 +253,46 @@ var expectedBinaryReport2 = FuzzReport{
 
 var mockAPIDetails = map[string]FuzzReportAPI{
 	"mmmm": FuzzReportAPI{
-		makeStacktrace("alpha", "beta", 16),
-		makeStacktrace("alpha", "beta", 16),
-		mockFlags,
-		"mmmm",
+		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
+		ReleaseStackTrace:  makeStacktrace("alpha", "beta", 16),
+		HumanReadableFlags: mockFlags,
+		TestName:           "mmmm",
 	},
 	"nnnn": FuzzReportAPI{
-		makeStacktrace("alpha", "beta", 16),
-		StackTrace{},
-		mockFlags,
-		"nnnn",
+		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
+		ReleaseStackTrace:  StackTrace{},
+		HumanReadableFlags: mockFlags,
+		TestName:           "nnnn",
 	},
 	"oooo": FuzzReportAPI{
-		makeStacktrace("alpha", "beta", 16),
-		makeStacktrace("alpha", "gamma", 26),
-		mockFlags,
-		"oooo",
+		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
+		ReleaseStackTrace:  makeStacktrace("alpha", "gamma", 26),
+		HumanReadableFlags: mockFlags,
+		TestName:           "oooo",
 	},
 	"pppp": FuzzReportAPI{
-		makeStacktrace("alpha", "gamma", 43),
-		makeStacktrace("zeta", "theta", 125),
-		mockFlags,
-		"pppp",
+		DebugStackTrace:    makeStacktrace("alpha", "gamma", 43),
+		ReleaseStackTrace:  makeStacktrace("zeta", "theta", 125),
+		HumanReadableFlags: mockFlags,
+		TestName:           "pppp",
 	},
 	"qqqq": FuzzReportAPI{
-		StackTrace{},
-		StackTrace{},
-		mockFlags,
-		"qqqq",
+		DebugStackTrace:    StackTrace{},
+		ReleaseStackTrace:  StackTrace{},
+		HumanReadableFlags: mockFlags,
+		TestName:           "qqqq",
 	},
 	"rrrr": FuzzReportAPI{
-		makeStacktrace("alpha", "beta", 16),
-		makeStacktrace("alpha", "beta", 16),
-		mockFlags,
-		"rrrr",
+		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
+		ReleaseStackTrace:  makeStacktrace("alpha", "beta", 16),
+		HumanReadableFlags: mockFlags,
+		TestName:           "rrrr",
 	},
 	"ssss": FuzzReportAPI{
-		makeStacktrace("zeta", "theta", 122),
-		StackTrace{},
-		mockFlags,
-		"ssss",
+		DebugStackTrace:    makeStacktrace("zeta", "theta", 122),
+		ReleaseStackTrace:  StackTrace{},
+		HumanReadableFlags: mockFlags,
+		TestName:           "ssss",
 	},
 }
 
@@ -327,9 +329,9 @@ var expectedAPIReport1 = FuzzReport{
 		},
 	},
 	FuzzReportFile{
-		UNKNOWN_FILE, 0, 1, []FuzzReportFunction{
+		common.UNKNOWN_FILE, 0, 1, []FuzzReportFunction{
 			FuzzReportFunction{
-				UNKNOWN_FUNCTION, 0, 1, []FuzzReportLineNumber{
+				common.UNKNOWN_FUNCTION, 0, 1, []FuzzReportLineNumber{
 					FuzzReportLineNumber{
 						-1, 0, 1, nil, []FuzzReportAPI{mockAPIDetails["qqqq"]},
 					},
@@ -358,9 +360,9 @@ var expectedAPIReport2 = FuzzReport{
 		},
 	},
 	FuzzReportFile{
-		UNKNOWN_FILE, 1, 1, []FuzzReportFunction{
+		common.UNKNOWN_FILE, 1, 1, []FuzzReportFunction{
 			FuzzReportFunction{
-				UNKNOWN_FUNCTION, 1, 1, []FuzzReportLineNumber{
+				common.UNKNOWN_FUNCTION, 1, 1, []FuzzReportLineNumber{
 					FuzzReportLineNumber{
 						-1, 1, 1, nil, []FuzzReportAPI{mockAPIDetails["qqqq"]},
 					},
@@ -417,9 +419,9 @@ var expectedSummary = FuzzReport{
 		},
 	},
 	FuzzReportFile{
-		UNKNOWN_FILE, 1, 1, []FuzzReportFunction{
+		common.UNKNOWN_FILE, 1, 1, []FuzzReportFunction{
 			FuzzReportFunction{
-				UNKNOWN_FUNCTION, 1, 1, []FuzzReportLineNumber{
+				common.UNKNOWN_FUNCTION, 1, 1, []FuzzReportLineNumber{
 					FuzzReportLineNumber{
 						-1, 1, 1, nil, nil,
 					},

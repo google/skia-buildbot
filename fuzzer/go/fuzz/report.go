@@ -8,12 +8,7 @@ import (
 	"sync"
 
 	"github.com/skia-dev/glog"
-)
-
-const (
-	UNKNOWN_FUNCTION = "UNKNOWN"
-	UNKNOWN_FILE     = "UNKNOWN"
-	UNKNOWN_LINE     = -1
+	"go.skia.org/infra/fuzzer/go/common"
 )
 
 type FuzzReport []FuzzReportFile
@@ -105,7 +100,7 @@ func FuzzDetails(fileName, functionName string, lineNumber int, useBinary bool) 
 				return file, nil
 			}
 			file.filterByFunctionName(functionName)
-			if lineNumber == UNKNOWN_LINE {
+			if lineNumber == common.UNKNOWN_LINE {
 				return file, nil
 			}
 			file.Functions[0].filterByLineNumber(lineNumber)
@@ -179,7 +174,7 @@ func (r *fuzzReportBuilder) addReportAPI(a FuzzReportAPI) {
 // this tries to read the release stacktrace first, falling back to the debug stacktrace,
 // failling back to Unknown.
 func extractStacktraceInfo(debug, release StackTrace) (reportFileName, reportFunctionName string, reportLineNumber int) {
-	reportFileName, reportFunctionName, reportLineNumber = UNKNOWN_FILE, UNKNOWN_FUNCTION, UNKNOWN_LINE
+	reportFileName, reportFunctionName, reportLineNumber = common.UNKNOWN_FILE, common.UNKNOWN_FUNCTION, common.UNKNOWN_LINE
 
 	stacktrace := release
 	if stacktrace.IsEmpty() {
