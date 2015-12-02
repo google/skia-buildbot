@@ -4,7 +4,6 @@ package gitinfo
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path"
 	"regexp"
 	"sort"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -48,10 +48,8 @@ func NewGitInfo(dir string, pull, allBranches bool) (*GitInfo, error) {
 
 // Clone creates a new GitInfo by running "git clone" in the given directory.
 func Clone(repoUrl, dir string, allBranches bool) (*GitInfo, error) {
-	cmd := exec.Command("git", "clone", repoUrl, dir)
-	_, err := cmd.Output()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to clone %s into %s: %v", repoUrl, dir, err)
+	if _, err := exec.RunSimple(fmt.Sprintf("git clone %s %s", repoUrl, dir)); err != nil {
+		return nil, fmt.Errorf("Failed to clone %s into %s: %s", repoUrl, dir, err)
 	}
 	return NewGitInfo(dir, false, allBranches)
 }
@@ -77,11 +75,8 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 	defer g.mutex.Unlock()
 	glog.Info("Beginning Update.")
 	if pull {
-		cmd := exec.Command("git", "pull")
-		cmd.Dir = g.dir
-		b, err := cmd.Output()
-		if err != nil {
-			return fmt.Errorf("Failed to sync to HEAD: %s - %s", err, string(b))
+		if _, err := exec.RunCwd(g.dir, "git", "pull"); err != nil {
+			return fmt.Errorf("Failed to sync to HEAD: %s", err)
 		}
 	}
 	glog.Info("Finished pull.")
@@ -109,13 +104,11 @@ func (g *GitInfo) Details(hash string) (*vcsinfo.LongCommit, error) {
 	if c, ok := g.detailsCache[hash]; ok {
 		return c, nil
 	}
-	cmd := exec.Command("git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b", hash)
-	cmd.Dir = g.dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(g.dir, "git", "log", "-n", "1", "--format=format:%H%n%P%n%an%x20(%ae)%n%s%n%b", hash)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to execute Git: %s", err)
 	}
-	lines := strings.SplitN(string(b), "\n", 5)
+	lines := strings.SplitN(output, "\n", 5)
 	if len(lines) != 5 {
 		return nil, fmt.Errorf("Failed to parse output of 'git log'.")
 	}
@@ -142,14 +135,12 @@ func (g *GitInfo) Details(hash string) (*vcsinfo.LongCommit, error) {
 // getBranchesForCommit returns a string set with all the branches that can reach
 // the commit with the given hash.
 func (g *GitInfo) getBranchesForCommit(hash string) (map[string]bool, error) {
-	cmd := exec.Command("git", "branch", "--list", "--contains", hash)
-	cmd.Dir = g.dir
-	outText, err := cmd.Output()
+	output, err := exec.RunCwd(g.dir, "git", "branch", "--list", "--contains", hash)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get branches for commit %s: %s", hash, err)
 	}
 
-	lines := strings.Split(strings.TrimSpace(string(outText)), "\n")
+	lines := strings.Split(strings.TrimSpace(output), "\n")
 	ret := map[string]bool{}
 	for _, line := range lines {
 		l := strings.TrimSpace(line)
@@ -166,13 +157,11 @@ func (g *GitInfo) getBranchesForCommit(hash string) (map[string]bool, error) {
 func (g *GitInfo) RevList(args ...string) ([]string, error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
-	cmd := exec.Command("git", append([]string{"rev-list"}, args...)...)
-	cmd.Dir = g.dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(g.dir, append([]string{"git", "rev-list"}, args...)...)
 	if err != nil {
 		return nil, fmt.Errorf("git rev-list failed: %v", err)
 	}
-	res := strings.Trim(string(b), "\n")
+	res := strings.Trim(output, "\n")
 	if res == "" {
 		return []string{}, nil
 	}
@@ -228,7 +217,7 @@ func (g *GitInfo) Timestamp(hash string) time.Time {
 //    perf/res/js/logic.js
 //
 func (g *GitInfo) Log(begin, end string) (string, error) {
-	command := []string{"log", "--name-only"}
+	command := []string{"git", "log", "--name-only"}
 	hashrange := begin
 	if end != "" {
 		hashrange += ".." + end
@@ -236,46 +225,38 @@ func (g *GitInfo) Log(begin, end string) (string, error) {
 	} else {
 		command = append(command, "-n", "1", hashrange)
 	}
-	cmd := exec.Command("git", command...)
-	cmd.Dir = g.dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(g.dir, command...)
 	if err != nil {
 		return "", err
 	}
-	return string(b), nil
+	return output, nil
 }
 
 // FullHash gives the full commit hash for the given ref.
 func (g *GitInfo) FullHash(ref string) (string, error) {
-	cmd := exec.Command("git", "rev-parse", fmt.Sprintf("%s^{commit}", ref))
-	cmd.Dir = g.dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(g.dir, "git", "rev-parse", fmt.Sprintf("%s^{commit}", ref))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Failed to obtain full hash: %s", err)
 	}
-	return strings.Trim(string(b), "\n"), nil
+	return strings.Trim(output, "\n"), nil
 }
 
 // GetFile returns the contents of the given file at the given commit.
 func (g *GitInfo) GetFile(fileName, commit string) (string, error) {
-	cmd := exec.Command("git", "show", commit+":"+fileName)
-	cmd.Dir = g.dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(g.dir, "git", "show", commit+":"+fileName)
 	if err != nil {
 		return "", err
 	}
-	return string(b), nil
+	return output, nil
 }
 
 // InitalCommit returns the hash of the initial commit.
 func (g *GitInfo) InitialCommit() (string, error) {
-	cmd := exec.Command("git", "rev-list", "--max-parents=0", "HEAD")
-	cmd.Dir = g.dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(g.dir, "git", "rev-list", "--max-parents=0", "HEAD")
 	if err != nil {
 		return "", fmt.Errorf("Failed to determine initial commit: %v", err)
 	}
-	return strings.Trim(string(b), "\n"), nil
+	return strings.Trim(output, "\n"), nil
 }
 
 // GetBranches returns a slice of strings naming the branches in the repo.
@@ -290,17 +271,15 @@ type ShortCommits struct {
 
 // ShortList returns a slice of ShortCommit for every commit in (begin, end].
 func (g *GitInfo) ShortList(begin, end string) (*ShortCommits, error) {
-	command := []string{"log", "--pretty='%H,%an,%s", begin + ".." + end}
-	cmd := exec.Command("git", command...)
-	cmd.Dir = g.dir
-	b, err := cmd.Output()
+	command := []string{"git", "log", "--pretty='%H,%an,%s", begin + ".." + end}
+	output, err := exec.RunCwd(g.dir, command...)
 	if err != nil {
 		return nil, err
 	}
 	ret := &ShortCommits{
 		Commits: []*vcsinfo.ShortCommit{},
 	}
-	for _, line := range strings.Split(string(b), "\n") {
+	for _, line := range strings.Split(output, "\n") {
 		match := commitLineRe.FindStringSubmatch(line)
 		if match == nil {
 			// This could happen if the subject has new line, in which case we truncate it and ignore the remainder.
@@ -346,14 +325,12 @@ var includeBranchPrefixes = []string{
 // In order to separate local working branches from published branches, only
 // remote branches in 'origin' are returned.
 func GetBranches(dir string) ([]*GitBranch, error) {
-	cmd := exec.Command("git", "show-ref")
-	cmd.Dir = dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(dir, "git", "show-ref")
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get branch list: %v", err)
 	}
 	branches := []*GitBranch{}
-	lines := strings.Split(string(b), "\n")
+	lines := strings.Split(output, "\n")
 	for _, line := range lines {
 		if line == "" {
 			continue
@@ -378,13 +355,11 @@ func GetBranches(dir string) ([]*GitBranch, error) {
 
 // readCommitsFromGit reads the commit history from a Git repository.
 func readCommitsFromGit(dir, branch string) ([]string, map[string]time.Time, error) {
-	cmd := exec.Command("git", "log", "--format=format:%H%x20%ci", branch)
-	cmd.Dir = dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(dir, "git", "log", "--format=format:%H%x20%ci", branch)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to execute git log: %s - %s", err, string(b))
+		return nil, nil, fmt.Errorf("Failed to execute git log: %s", err)
 	}
-	lines := strings.Split(string(b), "\n")
+	lines := strings.Split(output, "\n")
 	gitHashes := make([]*gitHash, 0, len(lines))
 	timestamps := map[string]time.Time{}
 	for _, line := range lines {
@@ -444,14 +419,11 @@ func (g *GitInfo) SkpCommits(tile *tiling.Tile) ([]int, error) {
 	//
 	// The output should be a \n separated list of hashes that match.
 	first, last := tile.CommitRange()
-	cmd := exec.Command("git", "log", "--format=format:%H", first+".."+last, "SKP_VERSION")
-	cmd.Dir = g.dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(g.dir, "git", "log", "--format=format:%H", first+".."+last, "SKP_VERSION")
 	if err != nil {
-		glog.Error(string(b))
-		return nil, err
+		return nil, fmt.Errorf("SkpCommits: Failed to find git log of SKP_VERSION: %s", err)
 	}
-	hashes := strings.Split(string(b), "\n")
+	hashes := strings.Split(output, "\n")
 
 	ret := []int{}
 	for i, c := range tile.Commits {
@@ -469,17 +441,13 @@ func (g *GitInfo) LastSkpCommit() (time.Time, error) {
 	// git log --format=format:%ct -n 1 SKP_VERSION
 	//
 	// The output should be a single unix timestamp.
-	cmd := exec.Command("git", "log", "--format=format:%ct", "-n", "1", "SKP_VERSION")
-	cmd.Dir = g.dir
-	b, err := cmd.Output()
+	output, err := exec.RunCwd(g.dir, "git", "log", "--format=format:%ct", "-n", "1", "SKP_VERSION")
 	if err != nil {
-		glog.Error("Failed to read git log: ", err)
-		return time.Time{}, err
+		return time.Time{}, fmt.Errorf("LastSkpCommit: Failed to read git log: %s", err)
 	}
-	ts, err := strconv.ParseInt(string(b), 10, 64)
+	ts, err := strconv.ParseInt(output, 10, 64)
 	if err != nil {
-		glog.Error("Failed to parse timestamp: ", string(b), err)
-		return time.Time{}, err
+		return time.Time{}, fmt.Errorf("LastSkpCommit: Failed to parse timestamp: %s", err)
 	}
 	return time.Unix(ts, 0), nil
 }

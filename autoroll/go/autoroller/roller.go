@@ -298,15 +298,15 @@ func (r *AutoRoller) updateCurrentRoll() error {
 func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, error) {
 	issue, err := r.rietveld.GetIssueProperties(issueNum, true)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to get issue properties: %s", err)
 	}
 	a, err := autoroll.FromRietveldIssue(issue, r.rm.FullSkiaHash)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
 	tryResults, err := autoroll.GetTryResults(r.rietveld, a)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to retrieve try results: %s", err)
 	}
 	a.TryResults = tryResults
 	return a, nil
