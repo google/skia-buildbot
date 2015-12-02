@@ -43,7 +43,6 @@ _slave_host_dicts = {
     'slaves': [
       ('skiabot-shuttle-ubuntu12-gtx550ti-001', '0', False),
       ('skiabot-shuttle-ubuntu12-003',          '1', False),
-      ('skiabot-shuttle-ubuntu12-004',          '2', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': '192.168.1.132',
