@@ -14,6 +14,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/aggregator"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/fuzzer/go/generator"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
 	storage "google.golang.org/api/storage/v1"
@@ -21,12 +22,15 @@ import (
 
 var (
 	aflOutputPath     = flag.String("afl_output_path", "", "[REQUIRED] The output folder of afl-fuzz.  This will have N folders named fuzzer0 - fuzzerN.  Should not be in /tmp or afl-fuzz will refuse to run.")
+	generatorWD       = flag.String("generator_working_dir", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
+	fuzzSamples       = flag.String("fuzz_samples", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
 	skiaRoot          = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
 	clangPath         = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
 	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
 	aflRoot           = flag.String("afl_root", "", "[REQUIRED] The install directory of afl-fuzz (v1.94b or later).")
 	numFuzzProcesses  = flag.Int("fuzz_processes", 0, `The number of processes to run afl-fuzz.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
 	skipGeneration    = flag.Bool("debug_skip_generation", false, "(debug only) If the generation step should be skipped")
+	watchAFL          = flag.Bool("watch_afl", false, "(debug only) If the afl master's output should be piped to stdout.")
 
 	bucket               = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to store found fuzzes.")
 	binaryFuzzPath       = flag.String("fuzz_path", filepath.Join(os.TempDir(), "fuzzes"), "The directory to temporarily store the binary fuzzes during aggregation.")
@@ -39,7 +43,7 @@ var (
 )
 
 var (
-	requiredFlags                   = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root"}
+	requiredFlags                   = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir"}
 	storageService *storage.Service = nil
 )
 
@@ -50,7 +54,9 @@ func main() {
 	}
 	if !*skipGeneration {
 		glog.Infof("Starting generator with configuration %#v", config.Generator)
-		//TODO(kjlubick): Start AFL-fuzz
+		if err := generator.StartBinaryGenerator(); err != nil {
+			glog.Fatalf("Problem starting binary generator: %s", err)
+		}
 	}
 
 	if err := setupOAuth(); err != nil {
@@ -80,9 +86,19 @@ func writeFlagsToConfig() error {
 	if err != nil {
 		return err
 	}
+	config.Generator.WorkingPath, err = fileutil.EnsureDirExists(*generatorWD)
+	if err != nil {
+		return err
+	}
+	config.Generator.FuzzSamples, err = fileutil.EnsureDirExists(*fuzzSamples)
+	if err != nil {
+		return err
+	}
+
 	config.Generator.ClangPath = *clangPath
 	config.Generator.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Generator.NumFuzzProcesses = *numFuzzProcesses
+	config.Generator.WatchAFL = *watchAFL
 
 	config.Aggregator.Bucket = *bucket
 	config.Aggregator.BinaryFuzzPath, err = fileutil.EnsureDirExists(*binaryFuzzPath)

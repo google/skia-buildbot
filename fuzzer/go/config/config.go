@@ -5,10 +5,13 @@ import "time"
 type generatorConfig struct {
 	SkiaRoot          string
 	AflRoot           string
+	FuzzSamples       string
 	AflOutputPath     string
+	WorkingPath       string
 	ClangPath         string
 	ClangPlusPlusPath string
 	NumFuzzProcesses  int
+	WatchAFL          bool
 }
 
 type aggregatorConfig struct {

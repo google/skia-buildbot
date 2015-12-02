@@ -12,15 +12,12 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
 	storage "google.golang.org/api/storage/v1"
-)
-
-const (
-	TEST_HARNESS_NAME = "dm"
 )
 
 var storageService *storage.Service
@@ -47,19 +44,19 @@ type uploadPackage struct {
 // It does this by searching in the specified AflOutputPath for new crashes and moves them to a
 // temporary holding folder (specified by BinaryFuzzPath) for parsing, before uploading them to GCS
 func StartBinaryAggregator(s *storage.Service) error {
+	storageService = s
 	if _, err := fileutil.EnsureDirExists(config.Aggregator.BinaryFuzzPath); err != nil {
 		return err
 	}
 	if _, err := fileutil.EnsureDirExists(config.Aggregator.ExecutablePath); err != nil {
 		return err
 	}
-	if err := BuildClangDM("Debug", true); err != nil {
+	if err := common.BuildClangDM("Debug", true); err != nil {
 		return err
 	}
-	if err := BuildClangDM("Release", true); err != nil {
+	if err := common.BuildClangDM("Release", true); err != nil {
 		return err
 	}
-	storageService = s
 
 	// For passing the paths of new binaries that should be scanned.
 	forAnalysis := make(chan string, 10000)
@@ -285,10 +282,10 @@ var analyzeSkp = AnalysisPackage{
 
 		// make a copy of the debug and release executables
 		basePath := filepath.Join(config.Generator.SkiaRoot, "out")
-		if err := copyExecutable(filepath.Join(basePath, "Debug", TEST_HARNESS_NAME), filepath.Join(workingDirPath, TEST_HARNESS_NAME+"_debug")); err != nil {
+		if err := fileutil.CopyExecutable(filepath.Join(basePath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(workingDirPath, common.TEST_HARNESS_NAME+"_debug")); err != nil {
 			return err
 		}
-		if err := copyExecutable(filepath.Join(basePath, "Release", TEST_HARNESS_NAME), filepath.Join(workingDirPath, TEST_HARNESS_NAME+"_release")); err != nil {
+		if err := fileutil.CopyExecutable(filepath.Join(basePath, "Release", common.TEST_HARNESS_NAME), filepath.Join(workingDirPath, common.TEST_HARNESS_NAME+"_release")); err != nil {
 			return err
 		}
 
@@ -301,13 +298,13 @@ var analyzeSkp = AnalysisPackage{
 			FilePath: filepath.Join(config.Aggregator.BinaryFuzzPath, skpFileName),
 		}
 
-		if dump, stderr, err := performBinaryAnalysis(workingDirPath, TEST_HARNESS_NAME, skpFileName, true); err != nil {
+		if dump, stderr, err := performBinaryAnalysis(workingDirPath, common.TEST_HARNESS_NAME, skpFileName, true); err != nil {
 			return upload, err
 		} else {
 			upload.DebugDump = dump
 			upload.DebugErr = stderr
 		}
-		if dump, stderr, err := performBinaryAnalysis(workingDirPath, TEST_HARNESS_NAME, skpFileName, false); err != nil {
+		if dump, stderr, err := performBinaryAnalysis(workingDirPath, common.TEST_HARNESS_NAME, skpFileName, false); err != nil {
 			return upload, err
 		} else {
 			upload.ReleaseDump = dump
@@ -315,20 +312,6 @@ var analyzeSkp = AnalysisPackage{
 		}
 		return upload, nil
 	},
-}
-
-// copyExecutable makes a byte-for-byte copy of the specified input file at the specified output
-// location.
-// It changes the permissions on the create file to be 755 (i.e. executable by all)
-func copyExecutable(fromPath, toPath string) error {
-	data, err := ioutil.ReadFile(fromPath)
-	if err != nil {
-		return err
-	}
-	if err = ioutil.WriteFile(toPath, data, 0755); err != nil {
-		return err
-	}
-	return os.Chmod(toPath, 0755)
 }
 
 // performBinaryAnalysis executes a command like:

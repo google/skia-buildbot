@@ -1,4 +1,4 @@
-package aggregator
+package common
 
 import (
 	"fmt"
@@ -45,30 +45,32 @@ func BuildAflDM(buildType string) error {
 func buildDM(buildType string, isClean bool) error {
 	glog.Infof("Building %s dm", buildType)
 
-	// Change directory to skia folder
-	if err := os.Chdir(config.Generator.SkiaRoot); err != nil {
-		return err
-	}
-
 	// clean previous build if specified
 	buildLocation := filepath.Join("out", buildType)
 	if isClean {
-		if err := os.RemoveAll(buildLocation); err != nil {
-			return err
+		if err := os.RemoveAll(filepath.Join(config.Generator.SkiaRoot, buildLocation)); err != nil {
+			return fmt.Errorf("Could not clear out %s before building: %s", filepath.Join(config.Generator.SkiaRoot, buildLocation), err)
 		}
 	}
 
+	gypCmd := &exec.Command{
+		Name: "./gyp_skia",
+		Dir:  config.Generator.SkiaRoot,
+	}
+
 	// run gyp
-	if message, err := exec.RunSimple("./gyp_skia"); err != nil {
-		glog.Errorf("Failed gyp message: %s", message)
-		return err
+	if err := exec.Run(gypCmd); err != nil {
+		return fmt.Errorf("Failed gyp: %s", err)
+	}
+
+	ninjaCmd := &exec.Command{
+		Name:      "ninja",
+		Args:      []string{"-C", buildLocation, "dm"},
+		LogStdout: false,
+		LogStderr: false,
+		Dir:       config.Generator.SkiaRoot,
 	}
 
 	// run ninja
-	cmd := fmt.Sprintf("ninja -C %s dm", buildLocation)
-	if message, err := exec.RunSimple(cmd); err != nil {
-		glog.Errorf("Failed ninja message: %s", message)
-		return err
-	}
-	return nil
+	return exec.Run(ninjaCmd)
 }

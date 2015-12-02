@@ -1,6 +1,8 @@
 Fuzzer
 ======
 
+AFL-fuzz requires that core dumps be handled normally and not notify external entities.  As such, this may need to be run as root (sudo su):
+`echo core >/proc/sys/kernel/core_pattern`
 
 
 AFL-fuzz notes:

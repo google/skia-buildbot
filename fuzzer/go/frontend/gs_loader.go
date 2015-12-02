@@ -16,7 +16,6 @@ import (
 // Upon returning nil error, the results can be accessed via fuzz.FuzzSummary() and
 // fuzz.FuzzDetails().
 func LoadFromGoogleStorage(storageService *storage.Service, finder functionnamefinder.Finder) error {
-
 	reports, err := getBinaryReportsFromGS(storageService, "binary_fuzzes/bad/")
 	if err != nil {
 		return err
@@ -26,7 +25,6 @@ func LoadFromGoogleStorage(storageService *storage.Service, finder functionnamef
 		if finder != nil {
 			report.DebugStackTrace.LookUpFunctions(finder)
 			report.ReleaseStackTrace.LookUpFunctions(finder)
-
 		}
 		fuzz.NewBinaryFuzzFound(report)
 	}
