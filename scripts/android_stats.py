@@ -66,9 +66,8 @@ def get_temperature(serial):
 
 def get_device_stats(serial):
   """Obtain and return a dictionary of device statistics."""
-  return {
+  return get_device_model(serial), {
     'battery': get_battery_stats(serial),
-    'model': get_device_model(serial),
     'temperature': get_temperature(serial),
   }
 
@@ -77,8 +76,11 @@ def get_all_device_stats():
   """Obtain and return statistics for all attached devices."""
   devices = get_devices()
   stats = {}
-  for device in devices:
-    stats[device] = get_device_stats(device)
+  for serial in devices:
+    model, device_stats = get_device_stats(serial)
+    if not stats.get(model):
+      stats[model] = {}
+    stats[model][serial] = device_stats
   return stats
 
 

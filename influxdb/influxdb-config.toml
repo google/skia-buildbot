@@ -213,6 +213,9 @@ reporting-disabled = false
     #
     "collectd.* .host.resource.measurement*",
 
+    # Android stats.
+    "android_stats.* app.host.measurement.model.serial.measurement*",
+
     # Catchall rule.
     "app.host.measurement*",
   ]
