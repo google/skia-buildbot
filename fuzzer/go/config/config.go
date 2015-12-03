@@ -3,19 +3,16 @@ package config
 import "time"
 
 type generatorConfig struct {
-	SkiaRoot          string
-	AflRoot           string
-	FuzzSamples       string
-	AflOutputPath     string
-	WorkingPath       string
-	ClangPath         string
-	ClangPlusPlusPath string
-	NumFuzzProcesses  int
-	WatchAFL          bool
+	SkiaRoot         string
+	AflRoot          string
+	FuzzSamples      string
+	AflOutputPath    string
+	WorkingPath      string
+	NumFuzzProcesses int
+	WatchAFL         bool
 }
 
 type aggregatorConfig struct {
-	Bucket               string
 	BinaryFuzzPath       string
 	ExecutablePath       string
 	NumAnalysisProcesses int
@@ -25,5 +22,21 @@ type aggregatorConfig struct {
 	AnalysisTimeout      time.Duration
 }
 
+type frontendConfig struct {
+	SkiaRoot string
+}
+
+type gsConfig struct {
+	Bucket string
+}
+
+type commonConfig struct {
+	ClangPath         string
+	ClangPlusPlusPath string
+}
+
 var Generator = generatorConfig{}
 var Aggregator = aggregatorConfig{}
+var GS = gsConfig{}
+var Common = commonConfig{}
+var FrontEnd = frontendConfig{}

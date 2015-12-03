@@ -428,7 +428,7 @@ func uploadBinaryFromDisk(fuzzType, fuzzName, fileName, filePath string) error {
 	}
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render
 	// a fuzzed png or svg or something.
-	if _, err := storageService.Objects.Insert(config.Aggregator.Bucket, o).Media(f).ContentEncoding("application/octet-stream").Do(); err != nil {
+	if _, err := storageService.Objects.Insert(config.GS.Bucket, o).Media(f).ContentEncoding("application/octet-stream").Do(); err != nil {
 		return fmt.Errorf("There was a problem uploading binary %s : %s", name, err)
 	}
 	return nil
@@ -439,7 +439,7 @@ func uploadBinaryFromDisk(fuzzType, fuzzName, fileName, filePath string) error {
 func uploadString(fuzzType, fuzzName, fileName, contents string) error {
 	name := fmt.Sprintf("binary_fuzzes/bad/%s/%s/%s", fuzzType, fuzzName, fileName)
 	o := &storage.Object{Name: name}
-	if _, err := storageService.Objects.Insert(config.Aggregator.Bucket, o).Media(bytes.NewBufferString(contents)).ContentEncoding("text/plain").Do(); err != nil {
+	if _, err := storageService.Objects.Insert(config.GS.Bucket, o).Media(bytes.NewBufferString(contents)).ContentEncoding("text/plain").Do(); err != nil {
 		return fmt.Errorf("There was a problem uploading %s : %s", name, err)
 	}
 	return nil

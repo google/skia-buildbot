@@ -132,6 +132,14 @@ func (g *GitInfo) Details(hash string) (*vcsinfo.LongCommit, error) {
 	return &c, nil
 }
 
+func (g *GitInfo) SetToCommit(hash string) error {
+	_, err := exec.RunCwd(g.dir, "git", "reset", "--hard", hash)
+	if err != nil {
+		return fmt.Errorf("Failed to roll back/forward to commit %s: %s", hash, err)
+	}
+	return nil
+}
+
 // getBranchesForCommit returns a string set with all the branches that can reach
 // the commit with the given hash.
 func (g *GitInfo) getBranchesForCommit(hash string) (map[string]bool, error) {

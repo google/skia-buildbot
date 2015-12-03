@@ -13,6 +13,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/aggregator"
+	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/generator"
 	"go.skia.org/infra/go/auth"
@@ -52,6 +53,13 @@ func main() {
 	if err := writeFlagsToConfig(); err != nil {
 		glog.Fatalf("Problem with configuration: %v", err)
 	}
+	if err := setupOAuth(); err != nil {
+		glog.Fatalf("Problem with OAuth: %s", err)
+	}
+	if err := common.DownloadSkiaVersionForFuzzing(storageService, config.Generator.SkiaRoot); err != nil {
+		glog.Fatalf("Problem downloading Skia: %s", err)
+	}
+	os.Exit(0)
 	if !*skipGeneration {
 		glog.Infof("Starting generator with configuration %#v", config.Generator)
 		if err := generator.StartBinaryGenerator(); err != nil {
@@ -59,9 +67,6 @@ func main() {
 		}
 	}
 
-	if err := setupOAuth(); err != nil {
-		glog.Fatalf("Problem with OAuth: %s", err)
-	}
 	glog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
 	glog.Fatal(aggregator.StartBinaryAggregator(storageService))
 }
@@ -95,12 +100,12 @@ func writeFlagsToConfig() error {
 		return err
 	}
 
-	config.Generator.ClangPath = *clangPath
-	config.Generator.ClangPlusPlusPath = *clangPlusPlusPath
+	config.Common.ClangPath = *clangPath
+	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Generator.NumFuzzProcesses = *numFuzzProcesses
 	config.Generator.WatchAFL = *watchAFL
 
-	config.Aggregator.Bucket = *bucket
+	config.GS.Bucket = *bucket
 	config.Aggregator.BinaryFuzzPath, err = fileutil.EnsureDirExists(*binaryFuzzPath)
 	if err != nil {
 		return err

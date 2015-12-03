@@ -15,6 +15,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend"
 	"go.skia.org/infra/fuzzer/go/functionnamefinder"
@@ -90,6 +91,9 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		glog.Fatal(err)
 	}
+	if err := fcommon.DownloadSkiaVersionForFuzzing(storageService, config.FrontEnd.SkiaRoot); err != nil {
+		glog.Fatalf("Problem downloading Skia: %s", err)
+	}
 
 	if finder, err := functionnamefinder.New(); err != nil {
 		glog.Fatalf("Error loading Skia Source: %s", err)
@@ -108,13 +112,13 @@ func writeFlagsToConfig() error {
 		}
 	}
 	var err error
-	config.Generator.SkiaRoot, err = fileutil.EnsureDirExists(*skiaRoot)
+	config.FrontEnd.SkiaRoot, err = fileutil.EnsureDirExists(*skiaRoot)
 	if err != nil {
 		return err
 	}
-	config.Generator.ClangPath = *clangPath
-	config.Generator.ClangPlusPlusPath = *clangPlusPlusPath
-	config.Aggregator.Bucket = *bucket
+	config.Common.ClangPath = *clangPath
+	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
+	config.GS.Bucket = *bucket
 	return nil
 }
 

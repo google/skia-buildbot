@@ -36,7 +36,7 @@ func LoadFromGoogleStorage(storageService *storage.Service, finder functionnamef
 // groups them by fuzz.  It parses these groups of files into a FuzzReportBinary and returns
 // the slice of all reports generated in this way.
 func getBinaryReportsFromGS(storageService *storage.Service, baseFolder string) ([]fuzz.FuzzReportBinary, error) {
-	contents, err := storageService.Objects.List(config.Aggregator.Bucket).Prefix(baseFolder).Fields("nextPageToken", "items(name,size,timeCreated)").MaxResults(100000).Do()
+	contents, err := storageService.Objects.List(config.GS.Bucket).Prefix(baseFolder).Fields("nextPageToken", "items(name,size,timeCreated)").MaxResults(100000).Do()
 	// Assumption, files are sorted alphabetically and have the structure
 	// [baseFolder]/[filetype]/[fuzzname]/[fuzzname][suffix]
 	// where suffix is one of _debug.dump, _debug.err, _release.dump or _release.err
@@ -44,7 +44,7 @@ func getBinaryReportsFromGS(storageService *storage.Service, baseFolder string) 
 		return nil, fmt.Errorf("Problem reading from Google Storage: %v", err)
 	}
 
-	glog.Infof("Loading %d files from gs://%s/%s", len(contents.Items), config.Aggregator.Bucket, baseFolder)
+	glog.Infof("Loading %d files from gs://%s/%s", len(contents.Items), config.GS.Bucket, baseFolder)
 
 	reports := make([]fuzz.FuzzReportBinary, 0)
 
@@ -75,13 +75,13 @@ func getBinaryReportsFromGS(storageService *storage.Service, baseFolder string) 
 
 		}
 		if strings.HasSuffix(name, "_debug.dump") {
-			debugDump = emptyStringOnError(gs.FileContentsFromGS(storageService, config.Aggregator.Bucket, name))
+			debugDump = emptyStringOnError(gs.FileContentsFromGS(storageService, config.GS.Bucket, name))
 		} else if strings.HasSuffix(name, "_debug.err") {
-			debugErr = emptyStringOnError(gs.FileContentsFromGS(storageService, config.Aggregator.Bucket, name))
+			debugErr = emptyStringOnError(gs.FileContentsFromGS(storageService, config.GS.Bucket, name))
 		} else if strings.HasSuffix(name, "_release.dump") {
-			releaseDump = emptyStringOnError(gs.FileContentsFromGS(storageService, config.Aggregator.Bucket, name))
+			releaseDump = emptyStringOnError(gs.FileContentsFromGS(storageService, config.GS.Bucket, name))
 		} else if strings.HasSuffix(name, "_release.err") {
-			releaseErr = emptyStringOnError(gs.FileContentsFromGS(storageService, config.Aggregator.Bucket, name))
+			releaseErr = emptyStringOnError(gs.FileContentsFromGS(storageService, config.GS.Bucket, name))
 		}
 	}
 

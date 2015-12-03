@@ -12,10 +12,10 @@ import (
 
 // BuildClangDM builds the test harness for parsing skp files using clang.  If any step fails, it returns an error.
 func BuildClangDM(buildType string, isClean bool) error {
-	if err := os.Setenv("CC", config.Generator.ClangPath); err != nil {
+	if err := os.Setenv("CC", config.Common.ClangPath); err != nil {
 		return err
 	}
-	if err := os.Setenv("CXX", config.Generator.ClangPlusPlusPath); err != nil {
+	if err := os.Setenv("CXX", config.Common.ClangPlusPlusPath); err != nil {
 		return err
 	}
 	return buildDM(buildType, isClean)
@@ -56,6 +56,7 @@ func buildDM(buildType string, isClean bool) error {
 	gypCmd := &exec.Command{
 		Name: "./gyp_skia",
 		Dir:  config.Generator.SkiaRoot,
+		Env:  []string{"GYP_DEFINES=skia_clang_build=1"},
 	}
 
 	// run gyp

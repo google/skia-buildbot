@@ -40,22 +40,23 @@ func New() (Finder, error) {
 func buildSkiaAST() ([]byte, error) {
 	// both gyp_skia and ninja need the environment variables set, so it is easier
 	// to just set them with os.Setenv rather than using the Command's Env: variables
-	if err := os.Setenv("CC", config.Generator.ClangPath); err != nil {
+	if err := os.Setenv("CC", config.Common.ClangPath); err != nil {
 		return nil, err
 	}
-	if err := os.Setenv("CXX", config.Generator.ClangPlusPlusPath); err != nil {
+	if err := os.Setenv("CXX", config.Common.ClangPlusPlusPath); err != nil {
 		return nil, err
 	}
 
 	// clean previous build
 	buildLocation := filepath.Join("out", "Release")
-	if err := os.RemoveAll(filepath.Join(config.Generator.SkiaRoot, buildLocation)); err != nil {
+	if err := os.RemoveAll(filepath.Join(config.FrontEnd.SkiaRoot, buildLocation)); err != nil {
 		return nil, err
 	}
 
 	gypCmd := &exec.Command{
 		Name: "./gyp_skia",
-		Dir:  config.Generator.SkiaRoot,
+		Dir:  config.FrontEnd.SkiaRoot,
+		Env:  []string{"GYP_DEFINES=skia_clang_build=1"},
 	}
 
 	// run gyp
@@ -69,7 +70,7 @@ func buildSkiaAST() ([]byte, error) {
 		Args:      []string{"-C", buildLocation},
 		LogStdout: false,
 		LogStderr: false,
-		Dir:       config.Generator.SkiaRoot,
+		Dir:       config.FrontEnd.SkiaRoot,
 	}
 
 	// first build
@@ -102,7 +103,7 @@ func buildSkiaAST() ([]byte, error) {
 		LogStderr: false,
 		Stdout:    &ast,
 		Stderr:    &stdErr,
-		Dir:       config.Generator.SkiaRoot,
+		Dir:       config.FrontEnd.SkiaRoot,
 	}
 
 	if err := exec.Run(ninjaCmd); err != nil {
