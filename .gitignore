@@ -7,7 +7,8 @@
 # gclient files
 .gclient*
 # common code
-common
+/common
+**/res/common
 # TAGS
 *TAGS
 *tags
