@@ -63,12 +63,6 @@ type repoManager struct {
 // NewDefaultRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
 func NewDefaultRepoManager(workdir string, frequency time.Duration, depot_tools string) (RepoManager, error) {
-	chromiumParentDir := path.Join(workdir, "chromium")
-	skiaDir := path.Join(workdir, "skia")
-	skiaRepo, err := gitinfo.CloneOrUpdate(REPO_SKIA, skiaDir, true)
-	if err != nil {
-		return nil, err
-	}
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -76,14 +70,16 @@ func NewDefaultRepoManager(workdir string, frequency time.Duration, depot_tools 
 		rollDep = path.Join(depot_tools, rollDep)
 	}
 
+	chromiumParentDir := path.Join(workdir, "chromium")
+	chromiumDir := path.Join(chromiumParentDir, "src")
 	r := &repoManager{
-		chromiumDir:       path.Join(chromiumParentDir, "src"),
+		chromiumDir:       chromiumDir,
 		chromiumParentDir: chromiumParentDir,
 		depot_tools:       depot_tools,
 		gclient:           gclient,
 		rollDep:           rollDep,
-		skiaDir:           skiaDir,
-		skiaRepo:          skiaRepo,
+		skiaDir:           path.Join(chromiumDir, "third_party", "skia"),
+		skiaRepo:          nil, // This will be filled in on the first update.
 	}
 	if err := r.update(); err != nil {
 		return nil, err
@@ -101,9 +97,6 @@ func (r *repoManager) update() error {
 	// Sync the projects.
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
-	if err := r.skiaRepo.Update(true, true); err != nil {
-		return err
-	}
 
 	// Create the chromium parent directory if needed.
 	if _, err := os.Stat(r.chromiumParentDir); err != nil {
@@ -133,6 +126,15 @@ func (r *repoManager) update() error {
 		Args: []string{"sync", "--nohooks"},
 	}); err != nil {
 		return err
+	}
+
+	// Create the Skia GitInfo if needed.
+	if r.skiaRepo == nil {
+		skiaRepo, err := gitinfo.NewGitInfo(r.skiaDir, false, true)
+		if err != nil {
+			return err
+		}
+		r.skiaRepo = skiaRepo
 	}
 
 	// Get the last roll revision.
