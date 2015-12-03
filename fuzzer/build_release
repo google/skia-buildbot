@@ -1,0 +1,29 @@
+#!/bin/bash
+# Builds and uploads a debian package for the Fuzzer.
+APPNAME=fuzzer
+SYSTEMD="fuzzer-be.service fuzzer-fe.service"
+DESCRIPTION="The Skia Fuzzer constantly fuzzes Skia through binary and api fuzzes.  This package contains both the frontend and the backend running on GCE."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL}     --mode=644 -T ./sys/${APPNAME}-fe.service   ${ROOT}/etc/systemd/system/${APPNAME}-fe.service
+${INSTALL}     --mode=644 -T ./sys/${APPNAME}-be.service   ${ROOT}/etc/systemd/system/${APPNAME}-be.service
+
+
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}-fe   ${ROOT}/usr/local/bin/${APPNAME}-fe
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/${APPNAME}-be   ${ROOT}/usr/local/bin/${APPNAME}-be
+
+
+${INSTALL_DIR} --mode=755                                  ${ROOT}/usr/local/share/${APPNAME}/templates
+${INSTALL}     --mode=644    ./templates/*                 ${ROOT}/usr/local/share/${APPNAME}/templates
+${INSTALL}     --mode=644 -T ./res/css/fuzzer.css          ${ROOT}/usr/local/share/${APPNAME}/res/css/fuzzer.css
+${INSTALL}     --mode=644 -T ./res/img/favicon.ico         ${ROOT}/usr/local/share/${APPNAME}/res/img/favicon.ico
+${INSTALL}     --mode=644 -T ./res/img/skia_fuzz.png       ${ROOT}/usr/local/share/${APPNAME}/res/img/skia_fuzz.png
+${INSTALL}     --mode=644 -T ./res/js/core.js              ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
+${INSTALL}     --mode=644 -T ./res/vul/elements.html       ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
+}
+
+source ../bash/release.sh
