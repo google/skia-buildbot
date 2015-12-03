@@ -59,7 +59,10 @@ func main() {
 	if err := common.DownloadSkiaVersionForFuzzing(storageService, config.Generator.SkiaRoot); err != nil {
 		glog.Fatalf("Problem downloading Skia: %s", err)
 	}
-	os.Exit(0)
+	if err := generator.DownloadBinarySeedFiles(storageService); err != nil {
+		glog.Fatalf("Problem downloading binary seed files: %s", err)
+	}
+
 	if !*skipGeneration {
 		glog.Infof("Starting generator with configuration %#v", config.Generator)
 		if err := generator.StartBinaryGenerator(); err != nil {
