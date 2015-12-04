@@ -299,6 +299,7 @@ _slave_host_dicts = {
 
   'skia-vm-013': {
     'slaves': [
+      ('skiabot-ct-dm-001', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
