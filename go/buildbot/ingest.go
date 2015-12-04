@@ -649,6 +649,10 @@ func getUningestedBuilds(m string) (map[string][]int, error) {
 	// Create a slice of build numbers for the uningested builds.
 	unprocessed := map[string][]int{}
 	for b, r := range ranges {
+		if r.End < r.Start {
+			glog.Warningf("Cannot create slice of builds to ingest for %q; invalid range (%d, %d)", b, r.Start, r.End)
+			continue
+		}
 		builds := make([]int, r.End-r.Start)
 		for i := r.Start + 1; i <= r.End; i++ {
 			builds[i-r.Start-1] = i
