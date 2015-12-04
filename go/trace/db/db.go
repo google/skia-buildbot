@@ -281,12 +281,16 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 					glog.Errorf("Got a nil ValuePair in response: %s", err)
 					continue
 				}
+				tileMutex.Lock()
 				tr, ok := tile.Traces[pair.Key]
-				if !ok {
-					tileMutex.Lock()
+				if !ok || tr == nil {
 					tile.Traces[pair.Key] = ts.traceBuilder(n)
-					tileMutex.Unlock()
 					tr = tile.Traces[pair.Key]
+				}
+				tileMutex.Unlock()
+				if tr == nil {
+					glog.Errorf("Trace was still nil for key: %v", pair.Key)
+					continue
 				}
 				if err := tr.SetAt(i, pair.Value); err != nil {
 					errCh <- fmt.Errorf("Unable to convert trace value %d %#v: %s", i, *cid, err)
