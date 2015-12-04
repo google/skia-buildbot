@@ -172,21 +172,20 @@ func start(command *Command, cmd *osexec.Cmd) error {
 	if cmd.Dir != "" {
 		dirMsg = " with CWD " + cmd.Dir
 	}
-	glog.Infof("Executing '%s' (where %s is %s)%s",
-		DebugString(command), command.Name, cmd.Path, dirMsg)
+	glog.Infof("Executing '%s' (where %s is %s)%s", DebugString(command), command.Name, cmd.Path, dirMsg)
 	err := cmd.Start()
 	if err != nil {
-		glog.Errorf("Unable to start command %s: %s", DebugString(command), err)
+		return fmt.Errorf("Unable to start command %s: %s", DebugString(command), err)
 	}
-	return err
+	return nil
 }
 
 func waitSimple(command *Command, cmd *osexec.Cmd) error {
 	err := cmd.Wait()
 	if err != nil {
-		glog.Errorf("Command exited with %s: %s", err, DebugString(command))
+		return fmt.Errorf("Command exited with %s: %s", err, DebugString(command))
 	}
-	return err
+	return nil
 }
 
 func wait(command *Command, cmd *osexec.Cmd) error {
@@ -203,13 +202,12 @@ func wait(command *Command, cmd *osexec.Cmd) error {
 			return fmt.Errorf("Failed to kill timed out process: %s", err)
 		}
 		<-done // allow goroutine to exit
-		glog.Errorf("Command killed since it took longer than %f secs", command.Timeout.Seconds())
 		return fmt.Errorf("Command killed since it took longer than %f secs", command.Timeout.Seconds())
 	case err := <-done:
 		if err != nil {
-			glog.Errorf("Command exited with %s: %s", err, DebugString(command))
+			return fmt.Errorf("Command exited with %s: %s", err, DebugString(command))
 		}
-		return err
+		return nil
 	}
 }
 
@@ -244,11 +242,10 @@ func runSimpleCommand(command *Command) (string, error) {
 	command.CombinedOutput = &output
 	err := Run(command)
 	result := string(output.Bytes())
-	glog.Infof("StdOut + StdErr: %s\n", result)
 	if err != nil {
-		err = fmt.Errorf("%s; Stdout+Stderr:\n%s", err.Error(), result)
+		return result, fmt.Errorf("%s; Stdout+Stderr:\n%s", err.Error(), result)
 	}
-	return result, err
+	return result, nil
 }
 
 // RunSimple executes the given command line string; the command being run is expected to not care
