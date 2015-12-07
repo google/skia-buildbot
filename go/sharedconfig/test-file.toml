@@ -52,18 +52,25 @@ GitRepoDir     = "./skia"              # Directory location for the Skia repo.
 		TraceService   = "localhost:9090"
 
 
-	### PDF raster ingester ############################################################
-	[Ingesters.pdfraster]
-	RunEvery       = "15m"                        # How often the ingester should pull data from Google Storage.
-	NCommits       = 100                          # Minimum number of commits that should be ingested.
-	MinDays        = 21                           # Minimum number of days that should be covered by the ingested commits.
-	StatusDir      = "./ingest_status"     # Path where the ingest process keeps its status between restarts.
-	MetricName     = "pdf-raster"         # Graphite metric name to use for this ingester
+	### PDF ingester ############################################################
+	[Ingesters.pdf]
+	RunEvery       = "15m"                
+	NCommits       = 100                  
+	MinDays        = 21                   
+	StatusDir      = "./ingest_status"    
+	MetricName     = "pdf-raster"         
 
-		[[Ingesters.pdfraster.Sources]]
+		[[Ingesters.pdf.Sources]]
 		Bucket         = "chromium-skia-gm"
 		Dir            = "dm-json-v1"
 
-		[Ingesters.pdfraster.ExtraParams]
-		OutputBucket   = "chromium-skia-gm"
-		OutputDir      = "dm-json-v1"
+		[Ingesters.pdf.ExtraParams]
+		InputImagesBucket  = "chromium-skia-gm"
+		InputImagesDir     = "dm-images-v1"
+
+		OutputJsonBucket   = "skia-infra-gm"
+		OutputJsonDir      = "dm-json-v1"
+
+		OutputImagesBucket  = "skia-infra-gm"
+		OutputImagesDir     = "dm-images-v1"
+		PdfCacheDir         = "/var/lib/pdfcachedir"

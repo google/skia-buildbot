@@ -2,6 +2,7 @@ package goldingestion
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -30,8 +31,8 @@ type goldTrybotProcessor struct {
 	cache map[string]time.Time
 }
 
-func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig) (ingestion.Processor, error) {
-	processor, err := newGoldProcessor(vcs, config)
+func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
+	processor, err := newGoldProcessor(vcs, config, client)
 	if err != nil {
 		return nil, err
 	}

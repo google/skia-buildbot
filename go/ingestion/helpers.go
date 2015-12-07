@@ -2,7 +2,6 @@ package ingestion
 
 import (
 	"bytes"
-	"crypto/md5"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -29,7 +28,10 @@ const MAX_URI_GET_TRIES = 4
 
 // Constructor is the signature that has to be implemented to register a
 // Processor implementation to be instantiated by name from a config struct.
-type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig) (Processor, error)
+//   vcs is an instance that might be shared across multiple ingesters.
+//   config is ususally parsed from a TOML file.
+//   client can be assumed to be ready to serve the needs of the resulting Processor.
+type Constructor func(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (Processor, error)
 
 // stores the constructors that register for instantiation from a config struct.
 var constructors = map[string]Constructor{}
@@ -46,6 +48,9 @@ func Register(name string, constructor Constructor) {
 
 // IngestersFromConfig creates a list of ingesters from a config struct.
 // Usually the struct is created from parsing a config file.
+// client is assumed to be suitable for the given application. If e.g. the
+// processors of the current application require an authenticated http client,
+// then it is expected that client meets these requirements.
 func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*Ingester, error) {
 	ret := []*Ingester{}
 
@@ -81,7 +86,7 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 		}
 
 		// instantiate the processor
-		processor, err := processorConstructor(vcs, ingesterConf)
+		processor, err := processorConstructor(vcs, ingesterConf, client)
 		if err != nil {
 			return nil, err
 		}
@@ -326,17 +331,16 @@ func FileSystemResult(path string) (ResultFileLocation, error) {
 	}
 	defer util.Close(file)
 
-	hashWriter := md5.New()
 	var buf bytes.Buffer
-	tempOut := io.MultiWriter(&buf, hashWriter)
-	if _, err := io.Copy(tempOut, file); err != nil {
+	md5, err := util.MD5FromReader(file, &buf)
+	if err != nil {
 		return nil, fmt.Errorf("Unable to get MD5 hash of %s: %s", path, err)
 	}
 
 	return &fsResultFileLocation{
 		path: path,
 		buf:  buf.Bytes(),
-		md5:  hex.EncodeToString(hashWriter.Sum(nil)),
+		md5:  hex.EncodeToString(md5),
 	}, nil
 }
 

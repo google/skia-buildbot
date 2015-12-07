@@ -2,6 +2,7 @@ package goldingestion
 
 import (
 	"fmt"
+	"net/http"
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
@@ -31,7 +32,7 @@ type goldProcessor struct {
 type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
 
 // implements the ingestion.Constructor signature.
-func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig) (ingestion.Processor, error) {
+func newGoldProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.GoldenTraceBuilder)
 	if err != nil {
 		return nil, err
@@ -52,7 +53,7 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
-	dmResults, err := parseDMResultsFromReader(r)
+	dmResults, err := ParseDMResultsFromReader(r)
 	if err != nil {
 		return err
 	}

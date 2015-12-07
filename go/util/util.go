@@ -552,3 +552,20 @@ MainLoop:
 		}
 	}
 }
+
+// MD5FromReader returns the MD5 hash of the content in the provided reader.
+// If the writer w is not nil it will also write the content of the reader to w.
+func MD5FromReader(r io.Reader, w io.Writer) ([]byte, error) {
+	hashWriter := md5.New()
+	var tempOut io.Writer
+	if w == nil {
+		tempOut = hashWriter
+	} else {
+		tempOut = io.MultiWriter(w, hashWriter)
+	}
+
+	if _, err := io.Copy(tempOut, r); err != nil {
+		return nil, err
+	}
+	return hashWriter.Sum(nil), nil
+}

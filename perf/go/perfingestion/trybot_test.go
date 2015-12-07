@@ -45,7 +45,7 @@ func TestTrybotPerfIngestion(t *testing.T) {
 			CONFIG_TRACESERVICE: serverAddr,
 		},
 	}
-	processor, err := newPerfTrybotProcessor(nil, ingesterConf)
+	processor, err := newPerfTrybotProcessor(nil, ingesterConf, nil)
 	assert.Nil(t, err)
 
 	processor.(*perfTrybotProcessor).review = rietveld.New("https://codereview.chromium.org", m.Client())

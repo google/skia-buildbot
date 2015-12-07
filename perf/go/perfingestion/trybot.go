@@ -2,6 +2,7 @@ package perfingestion
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -35,7 +36,7 @@ type perfTrybotProcessor struct {
 }
 
 // newPerfTrybotProcessor implements the ingestion.Constructor signature.
-func newPerfTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig) (ingestion.Processor, error) {
+func newPerfTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.PerfTraceBuilder)
 	if err != nil {
 		return nil, err

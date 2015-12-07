@@ -17,3 +17,15 @@ type Rasterizer interface {
 	// Return false if the rasterizer is found.
 	Enabled() bool
 }
+
+// GetEnabledRasterizers returns the list of enabled rasterizers based on
+// the executables installed on the host machine.
+func GetEnabledRasterizers() []Rasterizer {
+	ret := []Rasterizer{}
+	for _, raster := range []Rasterizer{Pdfium{}, Poppler{}} {
+		if raster.Enabled() {
+			ret = append(ret, raster)
+		}
+	}
+	return ret
+}

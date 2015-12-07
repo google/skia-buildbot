@@ -64,7 +64,7 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	}
 
 	// Set up the processor.
-	processor, err := newGoldTrybotProcessor(vcs, ingesterConf)
+	processor, err := newGoldTrybotProcessor(vcs, ingesterConf, nil)
 	assert.Nil(t, err)
 
 	// Load the example file and process it.

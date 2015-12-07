@@ -106,7 +106,7 @@ func TestPerfProcessor(t *testing.T) {
 	}
 
 	// Set up the processor.
-	processor, err := newPerfProcessor(vcs, ingesterConf)
+	processor, err := newPerfProcessor(vcs, ingesterConf, nil)
 	assert.Nil(t, err)
 
 	// Load the example file and process it.

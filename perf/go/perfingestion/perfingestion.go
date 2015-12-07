@@ -2,6 +2,7 @@ package perfingestion
 
 import (
 	"fmt"
+	"net/http"
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
@@ -23,7 +24,7 @@ type perfProcessor struct {
 }
 
 // newPerfProcessor implements the ingestion.Constructor signature.
-func newPerfProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig) (ingestion.Processor, error) {
+func newPerfProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, client *http.Client) (ingestion.Processor, error) {
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(config.ExtraParams[CONFIG_TRACESERVICE], types.PerfTraceBuilder)
 	if err != nil {
 		return nil, err

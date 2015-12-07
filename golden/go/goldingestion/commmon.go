@@ -132,9 +132,9 @@ func (d *DMResults) ignoreResult(params map[string]string) bool {
 	return !ok || (ext != "png")
 }
 
-// parseBenchDataFromReader parses the stream out of the io.ReadCloser
-// into BenchData and closes the reader.
-func parseDMResultsFromReader(r io.ReadCloser) (*DMResults, error) {
+// ParseDMResultsFromReader parses the stream out of the io.ReadCloser
+// into a DMResults instance and closes the reader.
+func ParseDMResultsFromReader(r io.ReadCloser) (*DMResults, error) {
 	defer util.Close(r)
 
 	dec := json.NewDecoder(r)

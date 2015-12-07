@@ -55,7 +55,7 @@ func TestDMResults(t *testing.T) {
 	f, err := os.Open(TEST_INGESTION_FILE)
 	assert.Nil(t, err)
 
-	dmResults, err := parseDMResultsFromReader(f)
+	dmResults, err := ParseDMResultsFromReader(f)
 	assert.Nil(t, err)
 
 	entries := dmResults.getTraceDBEntries()
@@ -84,7 +84,7 @@ func TestGoldProcessor(t *testing.T) {
 	}
 
 	// Set up the processor.
-	processor, err := newGoldProcessor(vcs, ingesterConf)
+	processor, err := newGoldProcessor(vcs, ingesterConf, nil)
 	assert.Nil(t, err)
 
 	// Load the example file and process it.
