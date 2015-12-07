@@ -51,7 +51,7 @@
       <template if="{{value.freq.length > 0}}">
         <div class="header">Blame</div>
         <template repeat="{{b in value.freq}}">
-          <div class="commitEntry" data-idx="{{b}}" on-mouseover="{{hoverAction}}" on-mouseout="{{hoverAction}}">
+          <div class="commitEntry" data-idx="{{b}}" on-mouseover="{{hoverAction}}" on-mouseout="{{hoverAction}}" on-click="{{clickAction}}">
             {{commits[b].commit_time | humanDiffDate}} - {{commits[b].author}}
           </div>
         </template>
@@ -91,6 +91,11 @@
       humanDiffDate: function(s) {
         return sk.human.diffDate(s*1000);
       },
+
+      clickAction: function(e) {
+      	var commitInfo = [this.commits[parseInt(e.target.attributes['data-idx'].value)]];
+      	this.dispatchEvent(new CustomEvent('commit-selected', {detail: commitInfo, bubbles: true}));
+      }
     });
   </script>
 </polymer-element>
