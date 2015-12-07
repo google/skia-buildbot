@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
@@ -73,7 +74,6 @@ func StartBinaryAggregator(s *storage.Service) error {
 		// TODO(kjlubick): Actually make this smart based on the number of cores
 		numAnalysisProcesses = 20
 	}
-
 	for i := 0; i < numAnalysisProcesses; i++ {
 		go performAnalysis(i, analyzeSkp, forAnalysis, forUpload, terminated)
 	}
@@ -84,34 +84,35 @@ func StartBinaryAggregator(s *storage.Service) error {
 		// of aggregation processes
 		numUploadProcesses = 5
 	}
-
 	for i := 0; i < numUploadProcesses; i++ {
 		go waitForUploads(i, forUpload, terminated)
 	}
+
+	analysisProcessCount := go_metrics.NewRegisteredCounter("fuzzer.analysisProcessCount", go_metrics.DefaultRegistry)
+	analysisProcessCount.Inc(int64(numAnalysisProcesses))
+	uploadProcessCount := go_metrics.NewRegisteredCounter("fuzzer.uploadProcessCount", go_metrics.DefaultRegistry)
+	uploadProcessCount.Inc(int64(numUploadProcesses))
 
 	t := time.Tick(config.Aggregator.StatusPeriod)
 	for {
 		select {
 		case _ = <-t:
-			// TODO(kjlubick): Keep track of these numbers via metrics so we can use
-			// mon.skia.org and write alerts for it.
-			glog.Infof("There are %d fuzzes waiting for analysis and %d waiting for upload.", len(forAnalysis), len(forUpload))
-			glog.Infof("There are %d aggregation processes alive and %d upload processes alive.", numAnalysisProcesses, numUploadProcesses)
+			go_metrics.GetOrRegisterGauge("fuzzer.binary.analysisQueueSize", go_metrics.DefaultRegistry).Update(int64(len(forAnalysis)))
+			go_metrics.GetOrRegisterGauge("fuzzer.binary.uploadQueueSize", go_metrics.DefaultRegistry).Update(int64(len(forUpload)))
 		case deadService := <-terminated:
 			glog.Errorf("%s died", deadService)
 			if deadService == "scanner" {
 				return fmt.Errorf("Ending aggregator: The afl-fuzz scanner died.")
 			} else if strings.HasPrefix(deadService, "analyzer") {
-				if numAnalysisProcesses--; numAnalysisProcesses <= 0 {
+				if analysisProcessCount.Dec(1); analysisProcessCount.Count() <= 0 {
 					return fmt.Errorf("Ending aggregator: No more analysis processes alive")
 				}
 			} else if strings.HasPrefix(deadService, "uploader") {
-				if numUploadProcesses--; numUploadProcesses <= 0 {
+				if uploadProcessCount.Dec(1); uploadProcessCount.Count() <= 0 {
 					return fmt.Errorf("Ending aggregator: No more upload processes alive")
 				}
 			}
 		}
-
 	}
 }
 
@@ -154,6 +155,7 @@ func scanHelper(alreadyFoundBinaries *SortedStringSlice, forAnalysis chan<- stri
 	for _, f := range newlyFound {
 		forAnalysis <- f
 	}
+	go_metrics.GetOrRegisterGauge("fuzzer.binary.newlyFoundFuzzes", go_metrics.DefaultRegistry).Update(int64(len(newlyFound)))
 	glog.Infof("%d newly found bad binary fuzzes", len(newlyFound))
 	alreadyFoundBinaries.Append(newlyFound)
 	return nil
