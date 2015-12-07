@@ -292,6 +292,10 @@ func monitorIssueTracker(c *http.Client) {
 	for _ = range time.Tick(ISSUE_TRACKER_PERIOD) {
 		for _, issue := range issueStatus {
 			resp, err := c.Get(issue.URL)
+			if err != nil {
+				glog.Errorf("Failed to retrieve response from %s: %s", issue.URL, err)
+				continue
+			}
 			jsonResp := map[string]int64{}
 			dec := json.NewDecoder(resp.Body)
 			if err := dec.Decode(&jsonResp); err != nil {
