@@ -12,29 +12,21 @@ import (
 
 // BuildClangDM builds the test harness for parsing skp files using clang.  If any step fails, it returns an error.
 func BuildClangDM(buildType string, isClean bool) error {
-	if err := os.Setenv("CC", config.Common.ClangPath); err != nil {
-		return err
+	buildVars := []string{
+		fmt.Sprintf("CC=%s", config.Common.ClangPath),
+		fmt.Sprintf("CXX=%s", config.Common.ClangPlusPlusPath),
 	}
-	if err := os.Setenv("CXX", config.Common.ClangPlusPlusPath); err != nil {
-		return err
-	}
-	return buildDM(buildType, isClean)
+	return buildDM(buildType, isClean, buildVars)
 }
 
 // BuildAflDM builds the test harness for parsing skp files using afl-instrumented clang.  If any step fails, it returns an error.
 func BuildAflDM(buildType string) error {
-	// If clang is /usr/bin/clang-3.6, you may need to run:
-	// sudo ln /usr/bin/clang-3.6 /usr/bin/clang
-	// sudo ln /usr/bin/clang++-3.6 /usr/bin/clang++
-	// on the vm for this to work
-	// TODO(kjlubick): add this to vm setup script
-	if err := os.Setenv("CC", filepath.Join(config.Generator.AflRoot, "afl-clang")); err != nil {
-		return err
+	buildVars := []string{
+		fmt.Sprintf("CC=%s", filepath.Join(config.Generator.AflRoot, "afl-clang")),
+		fmt.Sprintf("CXX=%s", filepath.Join(config.Generator.AflRoot, "afl-clang++")),
 	}
-	if err := os.Setenv("CXX", filepath.Join(config.Generator.AflRoot, "afl-clang++")); err != nil {
-		return err
-	}
-	return buildDM(buildType, true)
+
+	return buildDM(buildType, true, buildVars)
 }
 
 // buildDM builds the test harness for parsing skp (and other) files.
@@ -42,7 +34,7 @@ func BuildAflDM(buildType string) error {
 // Then it activates Skia's gyp command, which creates the build (ninja) files.
 // Finally, it runs those build files.
 // If any step fails in unexpected ways, it returns an error.
-func buildDM(buildType string, isClean bool) error {
+func buildDM(buildType string, isClean bool, buildVars []string) error {
 	glog.Infof("Building %s dm", buildType)
 
 	// clean previous build if specified
@@ -54,9 +46,11 @@ func buildDM(buildType string, isClean bool) error {
 	}
 
 	gypCmd := &exec.Command{
-		Name: "./gyp_skia",
-		Dir:  config.Generator.SkiaRoot,
-		Env:  []string{"GYP_DEFINES=skia_clang_build=1"},
+		Name:      "./gyp_skia",
+		Dir:       config.Generator.SkiaRoot,
+		LogStdout: false,
+		LogStderr: false,
+		Env:       append(buildVars, "GYP_DEFINES=skia_clang_build=1"),
 	}
 
 	// run gyp
@@ -64,12 +58,16 @@ func buildDM(buildType string, isClean bool) error {
 		return fmt.Errorf("Failed gyp: %s", err)
 	}
 
+	ninjaPath := filepath.Join(config.Common.DepotToolsPath, "ninja")
+
 	ninjaCmd := &exec.Command{
-		Name:      "ninja",
-		Args:      []string{"-C", buildLocation, "dm"},
-		LogStdout: false,
-		LogStderr: false,
-		Dir:       config.Generator.SkiaRoot,
+		Name:        ninjaPath,
+		Args:        []string{"-C", buildLocation, "dm"},
+		LogStdout:   true,
+		LogStderr:   true,
+		InheritPath: true,
+		Dir:         config.Generator.SkiaRoot,
+		Env:         buildVars,
 	}
 
 	// run ninja

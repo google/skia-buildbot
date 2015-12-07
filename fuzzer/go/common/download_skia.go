@@ -7,6 +7,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 	storage "google.golang.org/api/storage/v1"
 )
@@ -55,5 +56,18 @@ func downloadSkia(version, path string) error {
 		return fmt.Errorf("Failed cloning Skia: %s", err)
 	}
 
-	return repo.SetToCommit(version)
+	if err = repo.SetToCommit(version); err != nil {
+		return fmt.Errorf("Problem setting Skia to version %s: %s", version, err)
+	}
+
+	syncCmd := &exec.Command{
+		Name: "bin/sync-and-gyp",
+		Dir:  path,
+	}
+
+	if err := exec.Run(syncCmd); err != nil {
+		return fmt.Errorf("Failed syncing and setting up gyp: %s", err)
+	}
+
+	return nil
 }

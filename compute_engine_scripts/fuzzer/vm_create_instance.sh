@@ -36,6 +36,14 @@ until nc -w 1 -z $FUZZER_IP_ADDRESS 22; do
     sleep 2
 done
 
+
+gcloud compute copy-files install.sh $PROJECT_USER@$INSTANCE_NAME:/tmp/install.sh --zone $ZONE
+
+gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME \
+  --zone $ZONE \
+  --command "/tmp/install.sh" \
+  || echo "Installation failure."
+
 # The instance believes it is skia-systemd-snapshot-maker until it is rebooted.
 echo
 echo "===== Rebooting the instance ======"

@@ -47,7 +47,7 @@ var (
 	// web server params
 	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":80", "HTTP service port (e.g., ':8002')")
+	port           = flag.String("port", ":8001", "HTTP service port (e.g., ':8002')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	// OAUTH params
@@ -57,6 +57,7 @@ var (
 	skiaRoot          = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
 	clangPath         = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
 	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
+	depotToolsPath    = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
 	bucket            = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
 )
 
@@ -118,6 +119,7 @@ func writeFlagsToConfig() error {
 	}
 	config.Common.ClangPath = *clangPath
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
+	config.Common.DepotToolsPath = *depotToolsPath
 	config.GS.Bucket = *bucket
 	return nil
 }

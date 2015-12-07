@@ -29,10 +29,12 @@ func StartBinaryGenerator() error {
 	}
 
 	masterCmd := &exec.Command{
-		Name: "./afl-fuzz",
-		Args: []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "3000", "-M", "fuzzer0", "--", executable, "--src", "skp", "--skps", "@@", "--config", "8888"},
-		Dir:  config.Generator.AflRoot,
-		Env:  []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
+		Name:      "./afl-fuzz",
+		Args:      []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "3000", "-M", "fuzzer0", "--", executable, "--src", "skp", "--skps", "@@", "--config", "8888"},
+		Dir:       config.Generator.AflRoot,
+		LogStdout: true,
+		LogStderr: true,
+		Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
 	}
 	if config.Generator.WatchAFL {
 		masterCmd.Stdout = os.Stdout
@@ -51,10 +53,12 @@ func StartBinaryGenerator() error {
 	for i := int32(1); i < numFuzzers; i++ {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
 		slaveCmd := &exec.Command{
-			Name: "./afl-fuzz",
-			Args: []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "3000", "-S", fuzzerName, "--", executable, "--src", "skp", "--skps", "@@", "--config", "8888"},
-			Dir:  config.Generator.AflRoot,
-			Env:  []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
+			Name:      "./afl-fuzz",
+			Args:      []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "3000", "-S", fuzzerName, "--", executable, "--src", "skp", "--skps", "@@", "--config", "8888"},
+			Dir:       config.Generator.AflRoot,
+			LogStdout: true,
+			LogStderr: true,
+			Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
 		}
 		go run(slaveCmd)
 	}

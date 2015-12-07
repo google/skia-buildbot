@@ -33,6 +33,7 @@ type gsConfig struct {
 type commonConfig struct {
 	ClangPath         string
 	ClangPlusPlusPath string
+	DepotToolsPath    string
 }
 
 var Generator = generatorConfig{}

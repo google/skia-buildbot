@@ -20,7 +20,7 @@ ver:
 
 .PHONY: release
 release: ver all
-	echo
+	./build_release "$(MESSAGE)"
 
 .PHONY: test
 test: testgo testjs

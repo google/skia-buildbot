@@ -28,6 +28,7 @@ var (
 	skiaRoot          = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
 	clangPath         = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
 	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
+	depotToolsPath    = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
 	aflRoot           = flag.String("afl_root", "", "[REQUIRED] The install directory of afl-fuzz (v1.94b or later).")
 	numFuzzProcesses  = flag.Int("fuzz_processes", 0, `The number of processes to run afl-fuzz.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
 	skipGeneration    = flag.Bool("debug_skip_generation", false, "(debug only) If the generation step should be skipped")
@@ -105,6 +106,7 @@ func writeFlagsToConfig() error {
 
 	config.Common.ClangPath = *clangPath
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
+	config.Common.DepotToolsPath = *depotToolsPath
 	config.Generator.NumFuzzProcesses = *numFuzzProcesses
 	config.Generator.WatchAFL = *watchAFL
 

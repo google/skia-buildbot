@@ -38,15 +38,7 @@ func New() (Finder, error) {
 // It builds a release version of Skia using Clang, once without the -ast-dump flag
 // and once with.  The output of the latter is returned.
 func buildSkiaAST() ([]byte, error) {
-	// both gyp_skia and ninja need the environment variables set, so it is easier
-	// to just set them with os.Setenv rather than using the Command's Env: variables
-	if err := os.Setenv("CC", config.Common.ClangPath); err != nil {
-		return nil, err
-	}
-	if err := os.Setenv("CXX", config.Common.ClangPlusPlusPath); err != nil {
-		return nil, err
-	}
-
+	// TODO(kjlubick): Refactor this to share functionality with common.BuildClangDM?
 	// clean previous build
 	buildLocation := filepath.Join("out", "Release")
 	if err := os.RemoveAll(filepath.Join(config.FrontEnd.SkiaRoot, buildLocation)); err != nil {
@@ -54,9 +46,15 @@ func buildSkiaAST() ([]byte, error) {
 	}
 
 	gypCmd := &exec.Command{
-		Name: "./gyp_skia",
-		Dir:  config.FrontEnd.SkiaRoot,
-		Env:  []string{"GYP_DEFINES=skia_clang_build=1"},
+		Name:      "./gyp_skia",
+		Dir:       config.FrontEnd.SkiaRoot,
+		LogStdout: false,
+		LogStderr: false,
+		Env: []string{
+			`GYP_DEFINES=skia_clang_build=1`,
+			fmt.Sprintf("CC=%s", config.Common.ClangPath),
+			fmt.Sprintf("CXX=%s", config.Common.ClangPlusPlusPath),
+		},
 	}
 
 	// run gyp
@@ -64,13 +62,19 @@ func buildSkiaAST() ([]byte, error) {
 		glog.Errorf("Failed gyp: %s", err)
 		return nil, err
 	}
+	ninjaPath := filepath.Join(config.Common.DepotToolsPath, "ninja")
 
 	ninjaCmd := &exec.Command{
-		Name:      "ninja",
+		Name:      ninjaPath,
 		Args:      []string{"-C", buildLocation},
-		LogStdout: false,
-		LogStderr: false,
+		LogStdout: true,
+		LogStderr: true,
 		Dir:       config.FrontEnd.SkiaRoot,
+		Env: []string{
+			fmt.Sprintf("CC=%s", config.Common.ClangPath),
+			fmt.Sprintf("CXX=%s", config.Common.ClangPlusPlusPath),
+		},
+		InheritPath: true,
 	}
 
 	// first build
@@ -82,9 +86,9 @@ func buildSkiaAST() ([]byte, error) {
 		return nil, err
 	}
 
-	if err := os.Setenv("CXXFLAGS", "-Xclang -ast-dump -fsyntax-only"); err != nil {
-		return nil, err
-	}
+	// Quotes are NOT needed around the params.  Doing so actually causes
+	// a failure that "-Xclang -ast-dump -fsyntax-only" is an unused argument.
+	gypCmd.Env = append(gypCmd.Env, `CXXFLAGS=-Xclang -ast-dump -fsyntax-only`)
 
 	// run gyp again to remake build files with ast-dump flags
 	if err := exec.Run(gypCmd); err != nil {
@@ -97,19 +101,24 @@ func buildSkiaAST() ([]byte, error) {
 	var stdErr bytes.Buffer
 
 	ninjaCmd = &exec.Command{
-		Name:      "ninja",
+		Name:      ninjaPath,
 		Args:      []string{"-C", buildLocation},
 		LogStdout: false,
 		LogStderr: false,
 		Stdout:    &ast,
 		Stderr:    &stdErr,
 		Dir:       config.FrontEnd.SkiaRoot,
+		Env: []string{
+			fmt.Sprintf("CC=%s", config.Common.ClangPath),
+			fmt.Sprintf("CXX=%s", config.Common.ClangPlusPlusPath),
+		},
+		InheritPath: true,
 	}
 
 	if err := exec.Run(ninjaCmd); err != nil {
 		return nil, fmt.Errorf("Error generating AST %s:\nstderr: %s", err, stdErr.String())
 	}
-	glog.Info("Done parsing ast")
+	glog.Info("Done generating ast")
 
 	return ast.Bytes(), nil
 }

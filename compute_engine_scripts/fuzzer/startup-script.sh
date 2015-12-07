@@ -6,14 +6,6 @@ sudo chmod 777 /mnt/pd0
 
 
 AFL_VERSION="1.95b"
-
-# Install clang/llvm
-wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
-sudo apt-get update
-sudo apt-get install clang-3.6 lldb-3.6 make -y
-# Afl-fuzz can't find the clang-3.6 aliases, so make the standard /usr/bin/clang
-sudo ln /usr/bin/clang-3.6 /usr/bin/clang
-sudo ln /usr/bin/clang++-3.6 /usr/bin/clang++
 # We need clang set as our c++ builder to build afl-clang
 export CC=/usr/bin/clang CXX=/usr/bin/clang++
 
@@ -24,3 +16,9 @@ wget 'https://storage.googleapis.com/skia-fuzzer/afl-mirror/afl-'$AFL_VERSION'.t
 tar -C /mnt/pd0/afl/ -zxf /tmp/afl.tgz --strip=1 "afl-"$AFL_VERSION
 cd /mnt/pd0/afl/
 make
+
+# Download and install depot_tools to /mnt/pd0/depot_tools
+git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git' /mnt/pd0/depot_tools
+
+# Fix afl-fuzz's requirement on core
+sudo sh -c "echo 'core' >/proc/sys/kernel/core_pattern"
