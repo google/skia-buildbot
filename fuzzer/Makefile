@@ -4,7 +4,8 @@ VULCANIZE1=true
 # minified. These files should be either present in the project, brought
 # into third_party/bower_compoents via bower, or in node_modules.
 CORE_SOURCE_FILES = third_party/bower_components/webcomponentsjs/webcomponents.min.js \
-          ../res/js/common.js
+          ../res/js/common.js \
+          res/js/fuzzer.js
 
 BOWER_DIR=third_party/bower_components
 
