@@ -56,13 +56,15 @@
     </style>
   </head>
   <body class="fullbleed layout vertical">
-    <paper-header-panel mode=scroll>
-      {{template "titlebar.html" .}}
-
-      <div>
-        <button id=refresh on-tap="refreshPackages">Refresh Packages</button>
-        <paper-spinner id=spinner></paper-spinner>
-      </div>
+    <paper-header-panel fixed="true">
+      <paper-toolbar>
+        <div>Skia Push</div>
+        <div>
+          <button id="refresh" on-tap="refreshPackages">Refresh Packages</button>
+          <paper-spinner id="spinner"></paper-spinner>
+        </div>
+        <login-sk></login-sk>
+      </paper-toolbar>
 
       <push-server-sk></push-server-sk>
       <paper-toast></paper-toast>
