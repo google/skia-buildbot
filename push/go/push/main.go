@@ -87,7 +87,6 @@ var (
 func loadTemplates() {
 	indexTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/titlebar.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 }
