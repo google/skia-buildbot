@@ -500,7 +500,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Cache-Control", string(300))
+		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
 	}
 }
