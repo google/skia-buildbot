@@ -8,8 +8,8 @@ ExecStart=/opt/influxdb/influxd \
     -pidfile /var/run/influxdb/influxd.pid \
     -config /opt/influxdb/shared/config.toml
 Restart=always
-User=influxdb
-Group=influxdb
+User=root
+Group=root
 LimitNOFILE=10000
 
 [Install]
