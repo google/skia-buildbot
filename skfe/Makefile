@@ -3,3 +3,6 @@ default:
 
 loadtest:
 	go install -v ./go/loadtest
+
+release: default
+	./build_release "$(MESSAGE)"
