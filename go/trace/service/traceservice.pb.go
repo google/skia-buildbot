@@ -26,6 +26,10 @@ It has these top-level messages:
 	GetValuesResponse
 	GetParamsRequest
 	GetParamsResponse
+	GetValuesRawResponse
+	GetTraceIDsRequest
+	TraceIDPair
+	GetTraceIDsResponse
 */
 package traceservice
 
@@ -277,6 +281,47 @@ func (m *GetParamsResponse) GetParams() []*ParamsPair {
 	return nil
 }
 
+type GetValuesRawResponse struct {
+	// Raw byte slice that can be decoded with NewCommitInfo.
+	Value []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+}
+
+func (m *GetValuesRawResponse) Reset()         { *m = GetValuesRawResponse{} }
+func (m *GetValuesRawResponse) String() string { return proto.CompactTextString(m) }
+func (*GetValuesRawResponse) ProtoMessage()    {}
+
+type GetTraceIDsRequest struct {
+	Id []uint64 `protobuf:"varint,1,rep,name=id" json:"id,omitempty"`
+}
+
+func (m *GetTraceIDsRequest) Reset()         { *m = GetTraceIDsRequest{} }
+func (m *GetTraceIDsRequest) String() string { return proto.CompactTextString(m) }
+func (*GetTraceIDsRequest) ProtoMessage()    {}
+
+type TraceIDPair struct {
+	Id64 uint64 `protobuf:"varint,1,opt,name=id64" json:"id64,omitempty"`
+	Id   string `protobuf:"bytes,2,opt,name=id" json:"id,omitempty"`
+}
+
+func (m *TraceIDPair) Reset()         { *m = TraceIDPair{} }
+func (m *TraceIDPair) String() string { return proto.CompactTextString(m) }
+func (*TraceIDPair) ProtoMessage()    {}
+
+type GetTraceIDsResponse struct {
+	Ids []*TraceIDPair `protobuf:"bytes,1,rep,name=ids" json:"ids,omitempty"`
+}
+
+func (m *GetTraceIDsResponse) Reset()         { *m = GetTraceIDsResponse{} }
+func (m *GetTraceIDsResponse) String() string { return proto.CompactTextString(m) }
+func (*GetTraceIDsResponse) ProtoMessage()    {}
+
+func (m *GetTraceIDsResponse) GetIds() []*TraceIDPair {
+	if m != nil {
+		return m.Ids
+	}
+	return nil
+}
+
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
 var _ grpc.ClientConn
@@ -298,6 +343,13 @@ type TraceServiceClient interface {
 	GetValues(ctx context.Context, in *GetValuesRequest, opts ...grpc.CallOption) (*GetValuesResponse, error)
 	// GetParams returns the Params for all of the given traces.
 	GetParams(ctx context.Context, in *GetParamsRequest, opts ...grpc.CallOption) (*GetParamsResponse, error)
+	// GetValuesRaw returns all the trace values stored for the given CommitID in
+	// the raw format stored in BoltDB. The decoding can be done by calling
+	// NewCommitInfo() on the returned byte slice.
+	GetValuesRaw(ctx context.Context, in *GetValuesRequest, opts ...grpc.CallOption) (*GetValuesRawResponse, error)
+	// GetTraceIDs returns the traceids for the given trace64ids. These are used
+	// in decoding the bytes returned from GetValuesRaw.
+	GetTraceIDs(ctx context.Context, in *GetTraceIDsRequest, opts ...grpc.CallOption) (*GetTraceIDsResponse, error)
 	// Ping should always succeed. Used to test if the service is up and
 	// running.
 	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
@@ -374,6 +426,24 @@ func (c *traceServiceClient) GetParams(ctx context.Context, in *GetParamsRequest
 	return out, nil
 }
 
+func (c *traceServiceClient) GetValuesRaw(ctx context.Context, in *GetValuesRequest, opts ...grpc.CallOption) (*GetValuesRawResponse, error) {
+	out := new(GetValuesRawResponse)
+	err := grpc.Invoke(ctx, "/traceservice.TraceService/GetValuesRaw", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *traceServiceClient) GetTraceIDs(ctx context.Context, in *GetTraceIDsRequest, opts ...grpc.CallOption) (*GetTraceIDsResponse, error) {
+	out := new(GetTraceIDsResponse)
+	err := grpc.Invoke(ctx, "/traceservice.TraceService/GetTraceIDs", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *traceServiceClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := grpc.Invoke(ctx, "/traceservice.TraceService/Ping", in, out, c.cc, opts...)
@@ -400,6 +470,13 @@ type TraceServiceServer interface {
 	GetValues(context.Context, *GetValuesRequest) (*GetValuesResponse, error)
 	// GetParams returns the Params for all of the given traces.
 	GetParams(context.Context, *GetParamsRequest) (*GetParamsResponse, error)
+	// GetValuesRaw returns all the trace values stored for the given CommitID in
+	// the raw format stored in BoltDB. The decoding can be done by calling
+	// NewCommitInfo() on the returned byte slice.
+	GetValuesRaw(context.Context, *GetValuesRequest) (*GetValuesRawResponse, error)
+	// GetTraceIDs returns the traceids for the given trace64ids. These are used
+	// in decoding the bytes returned from GetValuesRaw.
+	GetTraceIDs(context.Context, *GetTraceIDsRequest) (*GetTraceIDsResponse, error)
 	// Ping should always succeed. Used to test if the service is up and
 	// running.
 	Ping(context.Context, *Empty) (*Empty, error)
@@ -493,6 +570,30 @@ func _TraceService_GetParams_Handler(srv interface{}, ctx context.Context, dec f
 	return out, nil
 }
 
+func _TraceService_GetValuesRaw_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(GetValuesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(TraceServiceServer).GetValuesRaw(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func _TraceService_GetTraceIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(GetTraceIDsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(TraceServiceServer).GetTraceIDs(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func _TraceService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -536,6 +637,14 @@ var _TraceService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetParams",
 			Handler:    _TraceService_GetParams_Handler,
+		},
+		{
+			MethodName: "GetValuesRaw",
+			Handler:    _TraceService_GetValuesRaw_Handler,
+		},
+		{
+			MethodName: "GetTraceIDs",
+			Handler:    _TraceService_GetTraceIDs_Handler,
 		},
 		{
 			MethodName: "Ping",

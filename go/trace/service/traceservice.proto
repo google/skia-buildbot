@@ -26,6 +26,15 @@ service TraceService {
   // GetParams returns the Params for all of the given traces.
   rpc GetParams(GetParamsRequest) returns (GetParamsResponse) {}
 
+  // GetValuesRaw returns all the trace values stored for the given CommitID in
+  // the raw format stored in BoltDB. The decoding can be done by calling
+  // NewCommitInfo() on the returned byte slice.
+  rpc GetValuesRaw(GetValuesRequest) returns (GetValuesRawResponse) {}
+
+  // GetTraceIDs returns the traceids for the given trace64ids. These are used
+  // in decoding the bytes returned from GetValuesRaw.
+  rpc GetTraceIDs(GetTraceIDsRequest) returns (GetTraceIDsResponse) {}
+
   // Ping should always succeed. Used to test if the service is up and
   // running.
   rpc Ping (Empty) returns (Empty) {}
@@ -122,5 +131,23 @@ message GetParamsRequest {
 
 message GetParamsResponse {
   repeated ParamsPair params = 4;
+}
+
+message GetValuesRawResponse {
+  // Raw byte slice that can be decoded with NewCommitInfo.
+  bytes value = 1;
+}
+
+message GetTraceIDsRequest {
+  repeated uint64 id = 1;
+}
+
+message TraceIDPair {
+  uint64 id64 = 1;
+  string id = 2;
+}
+
+message GetTraceIDsResponse {
+  repeated TraceIDPair ids = 1;
 }
 

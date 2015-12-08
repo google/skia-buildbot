@@ -180,6 +180,33 @@ func TestImpl(t *testing.T) {
 	assert.Equal(t, "8888", paramsResp.Params[0].Params["config"])
 	assert.Equal(t, "win8", paramsResp.Params[1].Params["platform"])
 
+	// Request the raw data for the commit.
+	rawRequest := &GetValuesRequest{
+		Commitid: commitIDs[0],
+	}
+	rawResp, err := ts.GetValuesRaw(ctx, rawRequest)
+	assert.NoError(t, err)
+	assert.Equal(t, 34, len(rawResp.Value))
+	// Confirm that we can decode the info on the client side.
+	ci, err := NewCommitInfo(rawResp.Value)
+	assert.NoError(t, err)
+
+	// The keys are trace64ids, so test that we can convert them to traceids,
+	// i.e. from uint64's to strings.
+	keys64 := []uint64{}
+	for k, _ := range ci.Values {
+		keys64 = append(keys64, k)
+	}
+	assert.Equal(t, 2, len(keys64))
+	traceidsRequest := &GetTraceIDsRequest{
+		Id: keys64,
+	}
+	traceids, err := ts.GetTraceIDs(ctx, traceidsRequest)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(traceids.Ids))
+	assert.True(t, util.In(traceids.Ids[0].Id, paramsReq.Traceids))
+	assert.True(t, util.In(traceids.Ids[1].Id, paramsReq.Traceids))
+
 	// Remove the commit.
 	removeRequest := &RemoveRequest{
 		Commitid: commitIDs[0],
@@ -218,34 +245,34 @@ func TestAtomize(t *testing.T) {
 
 func TestCommitInfo(t *testing.T) {
 	// Test roundtripping through []byte.
-	c := &commitinfo{
+	c := &CommitInfo{
 		Values: map[uint64][]byte{
 			uint64(1):          []byte("foo"),
 			uint64(3):          []byte(""),
 			uint64(0xffffffff): []byte("last"),
 		},
 	}
-	cp, err := newCommitInfo(c.ToBytes())
+	cp, err := NewCommitInfo(c.ToBytes())
 	if err != nil {
-		t.Fatalf("Failed newCommitInfo: %s", err)
+		t.Fatalf("Failed NewCommitInfo: %s", err)
 	}
 	assert.Equal(t, 3, len(cp.Values))
 	assert.Equal(t, "foo", string(cp.Values[uint64(1)]))
 	assert.Equal(t, c, cp)
 
 	// Test error handling.
-	cnil, err := newCommitInfo(nil)
+	cnil, err := NewCommitInfo(nil)
 	if err != nil {
-		t.Fatalf("Failed newCommitInfo: %s", err)
+		t.Fatalf("Failed NewCommitInfo: %s", err)
 	}
 	assert.Equal(t, 0, len(cnil.Values))
 
 	b := c.ToBytes()
 
 	// Test inputs that should fail.
-	_, err = newCommitInfo(b[1:])
+	_, err = NewCommitInfo(b[1:])
 	assert.Error(t, err)
 
-	_, err = newCommitInfo(b[:len(b)-1])
+	_, err = NewCommitInfo(b[:len(b)-1])
 	assert.Error(t, err)
 }

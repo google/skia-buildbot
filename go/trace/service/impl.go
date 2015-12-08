@@ -37,6 +37,8 @@ var (
 	listCalls          = metrics.NewRegisteredCounter("list-calls", metrics.DefaultRegistry)
 	getParamsCalls     = metrics.NewRegisteredCounter("get-params-calls", metrics.DefaultRegistry)
 	getValuesCalls     = metrics.NewRegisteredCounter("get-values-calls", metrics.DefaultRegistry)
+	getValuesRawCalls  = metrics.NewRegisteredCounter("get-values-raw-calls", metrics.DefaultRegistry)
+	getTraceIDsCalls   = metrics.NewRegisteredCounter("get-traceids-calls", metrics.DefaultRegistry)
 	pingCalls          = metrics.NewRegisteredCounter("ping-calls", metrics.DefaultRegistry)
 )
 
@@ -226,14 +228,16 @@ func (ts *TraceServiceImpl) atomize(ids []string) (map[string]uint64, error) {
 	}
 }
 
-// commitinfo is the value stored in the commit bucket.
-type commitinfo struct {
+// CommitInfo is the value stored in the commit bucket.
+type CommitInfo struct {
 	Values map[uint64][]byte
 }
 
-// newCommitInfo returns a commitinfo with data deserialized from the byte slice.
-func newCommitInfo(volatile []byte) (*commitinfo, error) {
-	ret := &commitinfo{
+// NewCommitInfo returns a CommitInfo with data deserialized from the byte slice.
+//
+// The byte slice is in the format returned from GetValuesRaw.
+func NewCommitInfo(volatile []byte) (*CommitInfo, error) {
+	ret := &CommitInfo{
 		Values: map[uint64][]byte{},
 	}
 	if len(volatile) == 0 {
@@ -265,7 +269,7 @@ func newCommitInfo(volatile []byte) (*commitinfo, error) {
 	return ret, nil
 }
 
-// ToBytes serializes the data in the commitinfo into a byte slice. The format is ingestable by FromBytes.
+// ToBytes serializes the data in the CommitInfo into a byte slice. The format is ingestable by FromBytes.
 //
 // The byte slice is structured as a repeating set of three things serialized as bytes.
 //
@@ -277,7 +281,7 @@ func newCommitInfo(volatile []byte) (*commitinfo, error) {
 //
 //   [uint64 (8 bytes)][length of the value (1 byte)][value (0-255 bytes, as determined by previous byte)]
 //
-func (c *commitinfo) ToBytes() []byte {
+func (c *CommitInfo) ToBytes() []byte {
 	size := 0
 	for _, v := range c.Values {
 		size += 9 + len(v)
@@ -375,14 +379,14 @@ func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, er
 	add := func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(COMMIT_BUCKET_NAME))
 
-		// Write the commitinfo.
+		// Write the CommitInfo.
 		key, err := CommitIDToBytes(in.Commitid)
 		if err != nil {
 			return err
 		}
 
 		// First load the existing info.
-		data, err := newCommitInfo(c.Get(key))
+		data, err := NewCommitInfo(c.Get(key))
 		if err != nil {
 			return fmt.Errorf("Unable to decode stored values: %s", err)
 		}
@@ -479,12 +483,12 @@ func (ts *TraceServiceImpl) GetValues(ctx context.Context, getValuesRequest *Get
 			return err
 		}
 
-		// Load the raw data and convert it into a commitInfo.
-		data, err := newCommitInfo(c.Get(key))
+		// Load the raw data and convert it into a CommitInfo.
+		data, err := NewCommitInfo(c.Get(key))
 		if err != nil {
 			return fmt.Errorf("Unable to decode stored values: %s", err)
 		}
-		// Pull data out of commitInfo and put into the GetValuesResponse.
+		// Pull data out of CommitInfo and put into the GetValuesResponse.
 		for id64, value := range data.Values {
 			// Look up the traceid from the trace64id, first from the in-memory
 			// cache, and then from within the BoltDB if not found.
@@ -503,6 +507,59 @@ func (ts *TraceServiceImpl) GetValues(ctx context.Context, getValuesRequest *Get
 	}
 	if err := ts.db.View(load); err != nil {
 		return nil, fmt.Errorf("Failed to load data for commitid: %#v, %s", *(getValuesRequest.Commitid), err)
+	}
+
+	return ret, nil
+}
+
+func (ts *TraceServiceImpl) GetValuesRaw(ctx context.Context, getValuesRequest *GetValuesRequest) (*GetValuesRawResponse, error) {
+	getValuesRawCalls.Inc(1)
+	if getValuesRequest == nil {
+		return nil, fmt.Errorf("Received nil request.")
+	}
+
+	ret := &GetValuesRawResponse{
+		Value: []byte{},
+	}
+
+	// Load the values from the datastore.
+	load := func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte(COMMIT_BUCKET_NAME))
+		key, err := CommitIDToBytes(getValuesRequest.Commitid)
+		if err != nil {
+			return err
+		}
+		ret.Value = c.Get(key)
+		return nil
+	}
+	if err := ts.db.View(load); err != nil {
+		return nil, fmt.Errorf("Failed to load data for commitid: %#v, %s", *(getValuesRequest.Commitid), err)
+	}
+
+	return ret, nil
+}
+
+func (ts *TraceServiceImpl) GetTraceIDs(ctx context.Context, getTraceIDsRequest *GetTraceIDsRequest) (*GetTraceIDsResponse, error) {
+	getTraceIDsCalls.Inc(1)
+	ret := &GetTraceIDsResponse{
+		Ids: []*TraceIDPair{},
+	}
+	load := func(tx *bolt.Tx) error {
+		tid := tx.Bucket([]byte(TRACEID_BUCKET_NAME))
+		for _, trace64id := range getTraceIDsRequest.Id {
+			if b := tid.Get(bytesFromUint64(trace64id)); b == nil {
+				return fmt.Errorf("Failed to get traceid for trace64id %d", trace64id)
+			} else {
+				ret.Ids = append(ret.Ids, &TraceIDPair{
+					Id:   string(b),
+					Id64: trace64id,
+				})
+			}
+		}
+		return nil
+	}
+	if err := ts.db.View(load); err != nil {
+		return nil, fmt.Errorf("Failed to load traceids: %s", err)
 	}
 
 	return ret, nil
