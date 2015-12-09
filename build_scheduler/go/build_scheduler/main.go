@@ -47,6 +47,7 @@ var (
 		regexp.MustCompile("^Infra-PerCommit$"),
 		regexp.MustCompile("^Linux Tests$"),
 		regexp.MustCompile("^Mac10\\.9 Tests$"),
+		regexp.MustCompile("^Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-CT_DM_1m_SKPs$"),
 		regexp.MustCompile("^Win7 Tests \\(1\\)"),
 		buildbot.TRYBOT_REGEXP,
 	}
