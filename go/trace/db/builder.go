@@ -92,6 +92,9 @@ func (t *Builder) LoadTile() error {
 
 	// Build a Tile from those CommitIDs.
 	tile, err := t.DB.TileFromCommits(commitIDs)
+	if err != nil {
+		return fmt.Errorf("Failed to load tile: %s", err)
+	}
 
 	// Now populate the author for each commit.
 	for _, c := range tile.Commits {
