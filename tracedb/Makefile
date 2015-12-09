@@ -3,3 +3,5 @@ default:
 	go install -v ./go/tracetool
 	go install -v ./go/importtile
 	go install -v ./go/skia_ingestion
+	go install -v ./go/difftile
+	

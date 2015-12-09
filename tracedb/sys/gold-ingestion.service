@@ -1,0 +1,17 @@
+[Unit]
+Description=Gold ingester
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/gold_ingestion \
+    --graphite_server=skia-monitoring:2003 \
+    --config_filename=/etc/gold_ingestion/config.toml \
+    --log_dir=/var/log/logserver
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
