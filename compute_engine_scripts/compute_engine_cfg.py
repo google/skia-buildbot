@@ -21,7 +21,7 @@ SKIA_BOT_MACHINE_TYPE = os.environ.get(
 VM_INSTANCE_OS = os.environ.get('VM_INSTANCE_OS', 'Linux')
 IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.112'
 VM_BOT_NAME = 'skia-vm'
-PERSISTENT_DISK_SIZE_GB = 300
+VM_PERSISTENT_DISK_SIZE_GB = os.environ.get('VM_PERSISTENT_DISK_SIZE_GB', 300)
 # If this is true then the VM instances will automatically try to connect to the
 # buildbot master.
 VM_IS_BUILDBOT = os.environ.get('VM_IS_BUILDBOT', True)

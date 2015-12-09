@@ -33,7 +33,7 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   METADATA_ARGS="--metadata=gce-initial-windows-user:chrome-bot \
                  --metadata_from_file=gce-initial-windows-password:/tmp/win-chrome-bot.txt \
                  --metadata_from_file=sysprep-oobe-script-ps1:$MODIFIED_STARTUP_SCRIPT"
-  DISK_ARGS="--boot_disk_size_gb=$PERSISTENT_DISK_SIZE_GB"
+  DISK_ARGS="--boot_disk_size_gb=$VM_PERSISTENT_DISK_SIZE_GB"
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_WIN_BOTS[@]}
   # We have to wait longer for windows because sysprep can take a while to
   # complete.
