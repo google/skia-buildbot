@@ -6,8 +6,8 @@ GitRepoURL     = "https://skia.googlesource.com/skia"
 	RunEvery       = "15m"                
 	NCommits       = 100                  
 	MinDays        = 21                   
-	StatusDir      = "./ingest_status"    
-	MetricName     = "pdf-raster"         
+	StatusDir      = "/mnt/pd0/pdf/ingest_status"
+	MetricName     = "pdf-raster"
 
 		[[Ingesters.pdf.Sources]]
 		Bucket         = "chromium-skia-gm"
