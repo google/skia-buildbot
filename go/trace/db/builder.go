@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/tiling"
@@ -14,6 +15,8 @@ import (
 
 const (
 	TILE_REFRESH_DURATION = 5 * time.Minute
+
+	NEW_TILE_AVAILABLE_EVENT = "new-tile-available-event"
 )
 
 // Builder loads Tiles from a trace/db.DB.
@@ -32,13 +35,16 @@ type Builder struct {
 
 	// git is the Git repo the commits come from.
 	git *gitinfo.GitInfo
+
+	// evt is the eventbus where we announce the availability of new tiles.
+	evt *eventbus.EventBus
 }
 
 // NewBuilder creates a new Builder given the gitinfo, and loads Tiles from the
 // traceserver running at the given address. The tiles contain the last
 // 'tileSize' commits and are built from Traces of the type that traceBuilder
 // returns.
-func NewBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder) (*Builder, error) {
+func NewBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder, evt *eventbus.EventBus) (*Builder, error) {
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
 	if err != nil {
 		return nil, fmt.Errorf("did not connect: %v", err)
@@ -54,10 +60,12 @@ func NewBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder
 		tileSize: tileSize,
 		DB:       tracedb,
 		git:      git,
+		evt:      evt,
 	}
 	if err := ret.LoadTile(); err != nil {
 		return nil, fmt.Errorf("NewTraceStore: Failed to load initial Tile: %s", err)
 	}
+	evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile())
 	go func() {
 		liveness := metrics.NewLiveness("perf-tracedb-tile-refresh")
 		for _ = range time.Tick(TILE_REFRESH_DURATION) {
@@ -65,6 +73,7 @@ func NewBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder
 				glog.Errorf("Failed to refresh tile: %s", err)
 			} else {
 				liveness.Update()
+				evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile())
 			}
 		}
 	}()

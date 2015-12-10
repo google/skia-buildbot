@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/trace/service"
@@ -102,7 +103,8 @@ func TestNewTraceDBBuilder(t *testing.T) {
 		t.Fatalf("Failed to add data to traceservice: %s", err)
 	}
 
-	builder, err := db.NewBuilder(git, port, 50, types.PerfTraceBuilder)
+	evt := eventbus.New(nil)
+	builder, err := db.NewBuilder(git, port, 50, types.PerfTraceBuilder, evt)
 	if err != nil {
 		t.Fatalf("Failed to construct TraceStore: %s", err)
 	}

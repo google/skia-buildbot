@@ -19,6 +19,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingester"
@@ -36,6 +37,7 @@ import (
 	"go.skia.org/infra/perf/go/parser"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stats"
+	"go.skia.org/infra/perf/go/tilestats"
 	"go.skia.org/infra/perf/go/trybot"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/vec"
@@ -93,9 +95,13 @@ var (
 )
 
 var (
+	evt *eventbus.EventBus
+
 	nanoTileStore tiling.TileBuilder
 
 	templates *template.Template
+
+	tileStats *tilestats.TileStats
 )
 
 func loadTemplates() {
@@ -140,7 +146,9 @@ func Init() {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	nanoTileStore, err = tracedb.NewTileBuilder(git, *traceservice, config.INITIAL_TILE_SIZE, types.PerfTraceBuilder, rietveld.RIETVELD_SKIA_URL)
+	evt := eventbus.New(nil)
+	tileStats = tilestats.New(evt)
+	nanoTileStore, err = tracedb.NewTileBuilder(git, *traceservice, config.INITIAL_TILE_SIZE, types.PerfTraceBuilder, rietveld.RIETVELD_SKIA_URL, evt)
 	if err != nil {
 		glog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}

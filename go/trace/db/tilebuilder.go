@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
@@ -29,9 +30,9 @@ type tileBuilder struct {
 	cache map[string]*rietveld.Issue
 }
 
-func NewTileBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder, reviewURL string) (tiling.TileBuilder, error) {
+func NewTileBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder, reviewURL string, evt *eventbus.EventBus) (tiling.TileBuilder, error) {
 	review := rietveld.New(reviewURL, util.NewTimeoutClient())
-	builder, err := NewBuilder(git, address, tileSize, traceBuilder)
+	builder, err := NewBuilder(git, address, tileSize, traceBuilder, evt)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to construct Builder: %s", err)
 	}

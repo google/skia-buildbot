@@ -30,9 +30,7 @@ const (
 
 	// INITIAL_TILE_SIZE is the initial size of Tiles.
 	INITIAL_TILE_SIZE = 50
-)
 
-const (
 	// Different datasets that are stored in tiles.
 	DATASET_NANO = "nano"
 
