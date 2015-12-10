@@ -1,4 +1,4 @@
-package perftracedb
+package db
 
 import (
 	"io/ioutil"
@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/rietveld"
-	"go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -35,20 +34,20 @@ func TestPertTrace(t *testing.T) {
 	}
 	vcs := ingestion.MockVCS(vcsCommits)
 
-	builder := &Builder{
+	builder := &tileBuilder{
 		Builder: nil,
 		vcs:     vcs,
 		review:  review,
 		cache:   map[string]*rietveld.Issue{},
 	}
 
-	commits := []*db.CommitID{
-		&db.CommitID{
+	commits := []*CommitID{
+		&CommitID{
 			Timestamp: time.Now(),
 			ID:        "1",
 			Source:    "https://codereview.chromium.org/1490543002",
 		},
-		&db.CommitID{
+		&CommitID{
 			Timestamp: time.Now(),
 			ID:        "foofoofoo",
 			Source:    "master",
@@ -76,13 +75,13 @@ func TestPertTrace(t *testing.T) {
 	assert.Equal(t, "some commit", long[1].Desc)
 	assert.Equal(t, "bar@example.com", long[1].Author)
 
-	badCommits := []*db.CommitID{
-		&db.CommitID{
+	badCommits := []*CommitID{
+		&CommitID{
 			Timestamp: time.Now(),
 			ID:        "2",
 			Source:    "https://codereview.chromium.org/99999999",
 		},
-		&db.CommitID{
+		&CommitID{
 			Timestamp: time.Now(),
 			ID:        "barbarbar",
 			Source:    "master",
@@ -96,5 +95,4 @@ func TestPertTrace(t *testing.T) {
 	assert.Equal(t, "barbarbar", long[1].ID)
 	assert.Equal(t, "", long[1].Desc)
 	assert.Equal(t, "", long[1].Author)
-
 }

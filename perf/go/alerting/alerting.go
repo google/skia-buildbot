@@ -12,7 +12,7 @@ import (
 
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/issues"
-	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/clustering"
 	"go.skia.org/infra/perf/go/config"
@@ -42,7 +42,7 @@ var (
 	alertingLatency = metrics.NewRegisteredTimer("alerting.latency", metrics.DefaultRegistry)
 
 	// tileBuilder is the tracedb.Builder where we load Tiles from.
-	tileBuilder *tracedb.Builder
+	tileBuilder tiling.TileBuilder
 )
 
 // CombineClusters combines freshly found clusters with existing clusters.
@@ -332,7 +332,7 @@ func calcNewClusters() {
 }
 
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
-func Start(tb *tracedb.Builder) {
+func Start(tb tiling.TileBuilder) {
 	tileBuilder = tb
 	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {

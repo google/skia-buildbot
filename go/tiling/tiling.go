@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"go.skia.org/infra/go/util"
 )
@@ -321,4 +322,27 @@ func Merge(tile1, tile2 *Tile) *Tile {
 	t.TileIndex = tile1.TileIndex
 
 	return t
+}
+
+// CommitIDLong contains more detailed information about each commit,
+// regardless of whether it came from an actual commit or a trybot.
+type CommitIDLong struct {
+	Timestamp int64  `json:"ts"`
+	ID        string `json:"id"`
+	Source    string `json:"source"`
+	Author    string `json:"author"`
+	Desc      string `json:"desc"`
+}
+
+// TileBuilder is a high level interface to build tiles base on a datasource that
+// originated via a version control system or from a code review system via trybot
+// runs.
+type TileBuilder interface {
+	// GetTile returns the most recently loaded Tile.
+	GetTile() *Tile
+
+	// ListLong returns a slice of CommitIDLongs that appear in the given time
+	// range from begin to end, and may be filtered by the 'source' parameter. If
+	// 'source' is the empty string then no filtering is done.
+	ListLong(begin, end time.Time, source string) ([]*CommitIDLong, error)
 }

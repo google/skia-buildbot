@@ -1,6 +1,4 @@
-// Package perftrace provides a higher level wrapper for trace/db.Builder
-// that populates info from Rietveld for non-git based commits.
-package perftracedb
+package db
 
 import (
 	"fmt"
@@ -13,7 +11,6 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -22,9 +19,8 @@ const (
 	MAX_CACHE_SIZE = 1000
 )
 
-// Builder is a db.Builder that also has Rietveld review information.
-type Builder struct {
-	*db.Builder
+type tileBuilder struct {
+	*Builder
 
 	vcs    vcsinfo.VCS
 	review *rietveld.Rietveld
@@ -33,14 +29,14 @@ type Builder struct {
 	cache map[string]*rietveld.Issue
 }
 
-func NewBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder) (*Builder, error) {
-	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, util.NewTimeoutClient())
-	builder, err := db.NewBuilder(git, address, tileSize, traceBuilder)
+func NewTileBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder, reviewURL string) (tiling.TileBuilder, error) {
+	review := rietveld.New(reviewURL, util.NewTimeoutClient())
+	builder, err := NewBuilder(git, address, tileSize, traceBuilder)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to construct Builder: %s", err)
 	}
 
-	return &Builder{
+	return &tileBuilder{
 		Builder: builder,
 		vcs:     git,
 		review:  review,
@@ -48,20 +44,8 @@ func NewBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder
 	}, nil
 }
 
-// CommitIDLong contains more detailed information about each commit,
-// regardless of whether it came from an actual commit or a trybot.
-type CommitIDLong struct {
-	Timestamp int64  `json:"ts"`
-	ID        string `json:"id"`
-	Source    string `json:"source"`
-	Author    string `json:"author"`
-	Desc      string `json:"desc"`
-}
-
-// ListLong returns a slice of CommitIDLongs that appear in the given time
-// range from begin to end, and may be filtered by the 'source' parameter. If
-// 'source' is the empty string then no filtering is done.
-func (b *Builder) ListLong(begin, end time.Time, source string) ([]*CommitIDLong, error) {
+// See the tiling.TileBuilder interface.
+func (b *tileBuilder) ListLong(begin, end time.Time, source string) ([]*tiling.CommitIDLong, error) {
 	commitIDs, err := b.DB.List(begin, end)
 	if err != nil {
 		return nil, fmt.Errorf("Error while looking up commits: %s", err)
@@ -69,12 +53,12 @@ func (b *Builder) ListLong(begin, end time.Time, source string) ([]*CommitIDLong
 	return b.convertToLongCommits(commitIDs, source), nil
 }
 
-// convertToLongCommits converts the db.CommitIDs into CommitIDLong's, after
+// convertToLongCommits converts the CommitIDs into CommitIDLong's, after
 // potentially filtering the slice based on the provided source.
-func (b *Builder) convertToLongCommits(commitIDs []*db.CommitID, source string) []*CommitIDLong {
+func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string) []*tiling.CommitIDLong {
 	// Filter
 	if source != "" {
-		dst := []*db.CommitID{}
+		dst := []*CommitID{}
 		for _, cid := range commitIDs {
 			if cid.Source == source {
 				dst = append(dst, cid)
@@ -84,9 +68,9 @@ func (b *Builder) convertToLongCommits(commitIDs []*db.CommitID, source string) 
 	}
 
 	// Convert to CommitIDLong.
-	results := []*CommitIDLong{}
+	results := []*tiling.CommitIDLong{}
 	for _, cid := range commitIDs {
-		results = append(results, &CommitIDLong{
+		results = append(results, &tiling.CommitIDLong{
 			Timestamp: cid.Timestamp.Unix(),
 			ID:        cid.ID,
 			Source:    cid.Source,
@@ -123,7 +107,7 @@ func (b *Builder) convertToLongCommits(commitIDs []*db.CommitID, source string) 
 // getIssue parses the source, which looks like
 // "https://chromium.codereview.org/1232143243" and returns information about
 // the issue from Rietveld.
-func (b *Builder) getIssue(source string) (*rietveld.Issue, error) {
+func (b *tileBuilder) getIssue(source string) (*rietveld.Issue, error) {
 	u, err := url.Parse(source)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse trybot source: %s", err)

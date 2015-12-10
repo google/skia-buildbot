@@ -6,21 +6,21 @@ import (
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/go/tiling"
 )
 
 // Start calculating and reporting statistics on the repo and tiles.
 //
 // We presume the git.Update(true) is called somewhere else, usually this is done
 // in the trace/db.Builder, so the repo is always as good as the loaded tiles.
-func Start(nanoTileStore *db.Builder, git *gitinfo.GitInfo) {
+func Start(tileBuilder tiling.TileBuilder, git *gitinfo.GitInfo) {
 	coverage := metrics.NewRegisteredGaugeFloat64("stats.tests.bench_runs_per_changelist", metrics.DefaultRegistry)
 	skpLatency := metrics.NewRegisteredTimer("stats.skp.update_latency", metrics.DefaultRegistry)
 	commits := metrics.NewRegisteredGauge("stats.commits.total", metrics.DefaultRegistry)
 
 	go func() {
 		for _ = range time.Tick(2 * time.Minute) {
-			tile := nanoTileStore.GetTile()
+			tile := tileBuilder.GetTile()
 			numCommits := tile.LastCommitIndex() + 1
 			numTraces := len(tile.Traces)
 			total := 0

@@ -114,6 +114,7 @@ func (t *Builder) LoadTile() error {
 }
 
 // GetTile returns the most recently loaded Tile.
+// See the tiling.TileBuilder interface.
 func (t *Builder) GetTile() *tiling.Tile {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()

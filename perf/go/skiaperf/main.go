@@ -23,7 +23,9 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/ingester"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
+	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
 	"go.skia.org/infra/perf/go/alerting"
@@ -32,7 +34,6 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	idb "go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/parser"
-	"go.skia.org/infra/perf/go/perftracedb"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stats"
 	"go.skia.org/infra/perf/go/trybot"
@@ -92,7 +93,7 @@ var (
 )
 
 var (
-	nanoTileStore *perftracedb.Builder
+	nanoTileStore tiling.TileBuilder
 
 	templates *template.Template
 )
@@ -139,7 +140,7 @@ func Init() {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	nanoTileStore, err = perftracedb.NewBuilder(git, *traceservice, config.INITIAL_TILE_SIZE, types.PerfTraceBuilder)
+	nanoTileStore, err = tracedb.NewTileBuilder(git, *traceservice, config.INITIAL_TILE_SIZE, types.PerfTraceBuilder, rietveld.RIETVELD_SKIA_URL)
 	if err != nil {
 		glog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
@@ -1145,8 +1146,8 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	stats.Start(nanoTileStore.Builder, git)
-	alerting.Start(nanoTileStore.Builder)
+	stats.Start(nanoTileStore, git)
+	alerting.Start(nanoTileStore)
 
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
