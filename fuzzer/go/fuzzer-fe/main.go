@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
@@ -23,6 +24,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
@@ -92,16 +94,17 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		glog.Fatal(err)
 	}
-	if err := fcommon.DownloadSkiaVersionForFuzzing(storageService, config.FrontEnd.SkiaRoot); err != nil {
-		glog.Fatalf("Problem downloading Skia: %s", err)
-	}
+	go func() {
+		if err := fcommon.DownloadSkiaVersionForFuzzing(storageService, config.FrontEnd.SkiaRoot); err != nil {
+			glog.Fatalf("Problem downloading Skia: %s", err)
+		}
 
-	if finder, err := functionnamefinder.New(); err != nil {
-		glog.Fatalf("Error loading Skia Source: %s", err)
-	} else if err := frontend.LoadFromGoogleStorage(storageService, finder); err != nil {
-		glog.Fatalf("Error loading in data from GCS: %s", err)
-	}
-
+		if finder, err := functionnamefinder.New(); err != nil {
+			glog.Fatalf("Error loading Skia Source: %s", err)
+		} else if err := frontend.LoadFromGoogleStorage(storageService, finder); err != nil {
+			glog.Fatalf("Error loading in data from GCS: %s", err)
+		}
+	}()
 	runServer()
 }
 
@@ -162,6 +165,8 @@ func runServer() {
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/fuzz-list", fuzzListHandler)
 	r.HandleFunc("/json/details", detailsHandler)
+	r.HandleFunc(`/fuzz/{kind:(binary|api)}/{name:[0-9a-f]+\.(skp)}`, fuzzHandler)
+	r.HandleFunc(`/metadata/{kind:(binary|api)}/{type:(skp)}/{name:[0-9a-f]+_(debug|release)\.(err|dump)}`, metadataHandler)
 
 	rootHandler := login.ForceAuth(util.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
 
@@ -221,6 +226,47 @@ func detailsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(mockFuzz); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
+		return
+	}
+}
+
+func fuzzHandler(w http.ResponseWriter, r *http.Request) {
+	v := mux.Vars(r)
+	kind := v["kind"]
+	name := v["name"]
+	xs := strings.Split(name, ".")
+	hash, ftype := xs[0], xs[1]
+	contents, err := gs.FileContentsFromGS(storageService, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/bad/%s/%s/%s", kind, ftype, hash, hash))
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
+		return
+	}
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", name)
+	n, err := w.Write(contents)
+	if err != nil || n != len(contents) {
+		glog.Errorf("Could only serve %d bytes of fuzz %s, not %d: %s", n, hash, len(contents), err)
+		return
+	}
+}
+
+func metadataHandler(w http.ResponseWriter, r *http.Request) {
+	v := mux.Vars(r)
+	ftype := v["type"]
+	kind := v["kind"]
+	name := v["name"]
+	hash := strings.Split(name, "_")[0]
+
+	contents, err := gs.FileContentsFromGS(storageService, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/bad/%s/%s/%s", kind, ftype, hash, name))
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("Content-Disposition", name)
+	n, err := w.Write(contents)
+	if err != nil || n != len(contents) {
+		glog.Errorf("Could only serve %d bytes of metadata %s, not %d: %s", n, name, len(contents), err)
 		return
 	}
 }

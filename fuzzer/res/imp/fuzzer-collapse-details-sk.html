@@ -132,10 +132,10 @@
               <div class="panel">
                 <span class="title">File: <a href$="{{_getDownloadLink(report)}}">{{report.binaryName}}.{{report.binaryType}}</a></span>
                 <span class="raw">
-                <a href$="{{_getErrLink(report,'debug')}}">debug_err</a>
-                <a href$="{{_getErrLink(report,'release')}}">release_err</a>
-                <a href$="{{_getDumpLink(report,'debug')}}">debug_dump</a>
-                <a href$="{{_getDumpLink(report,'release')}}">release_dump</a>
+                <a href$="{{_getMetaLink(report,'debug','err')}}">debug_err</a>
+                <a href$="{{_getMetaLink(report,'release','err')}}">release_err</a>
+                <a href$="{{_getMetaLink(report,'debug','dump')}}">debug_dump</a>
+                <a href$="{{_getMetaLink(report,'release','dump')}}">release_dump</a>
               </span>
                 <div>{{_getFlags(report)}}</div>
                 <h4>Debug Stack Trace</h4>
@@ -253,15 +253,12 @@
     },
 
     _getDownloadLink: function(report) {
-      return "/fuzz/binary/" + report.binaryType + "/" + report.binaryName;
+      return "/fuzz/binary/" + report.binaryName +"." +report.binaryType;
     },
 
-    _getErrLink: function(report, type) {
-      return "/err/" + type + "/" + report.binaryName;
-    },
-
-    _getDumpLink: function(report, type) {
-      return "/dump/" + type + "/" + report.binaryName;
+    _getMetaLink: function(report, build, extension) {
+      var name = report.binaryName +"_" + build +"." + extension;
+      return "/metadata/binary/" + report.binaryType +"/" + name;
     },
 
     _getDetailsLink: function(detailsBase, details, fuzzType) {
