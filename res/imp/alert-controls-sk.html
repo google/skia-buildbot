@@ -86,7 +86,7 @@
 
       dismissAlert: function() {
         var params = {
-          "comment": this.commentText,
+          "comment": sk.escapeHTML(this.commentText),
         };
         for (var p in this.extraParams) {
           params[p] = this.extraParams[p];
@@ -110,7 +110,7 @@
         this.snoozeMins = 0;
         this.snoozeSecs = 0;
         var params = {
-          "comment": this.commentText,
+          "comment": sk.escapeHTML(this.commentText),
           "until": Math.round(until.getTime() / 1000),
         };
         for (var p in this.extraParams) {
@@ -130,7 +130,7 @@
 
       unsnoozeAlert: function() {
         var params = {
-          "comment": this.commentText,
+          "comment": sk.escapeHTML(this.commentText),
         };
         for (var p in this.extraParams) {
           params[p] = this.extraParams[p];
@@ -149,7 +149,7 @@
           return;
         }
         var params = {
-          "comment": this.commentText,
+          "comment": sk.escapeHTML(this.commentText),
         };
         for (var p in this.extraParams) {
           params[p] = this.extraParams[p];

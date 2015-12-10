@@ -19,6 +19,7 @@
 <dom-module id="linkify-sk">
   <template>
     <span id="linkifiedText"></span>
+    <span id="sanitized" style="display:none">{{text}}</span>
   </template>
   <script>
   (function() {
@@ -33,8 +34,8 @@
         },
       },
 
-      _linkify: function(text) {
-        this.$.linkifiedText.innerHTML = sk.formatHTML(text, true);
+      _linkify: function() {
+        this.$.linkifiedText.innerHTML = sk.formatHTML(this.$.sanitized.innerHTML, true);
       }
     });
   }());

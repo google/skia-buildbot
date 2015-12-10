@@ -303,7 +303,7 @@
           }
           params[field.name] = value;
         }
-        params["comment"] = this._commentText;
+        params["comment"] = sk.escapeHTML(this._commentText);
         var that = this;
         sk.post(this.add_comment_url, JSON.stringify(params)).then(function (resp) {
           that._commentText = "";

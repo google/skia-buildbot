@@ -144,7 +144,7 @@
       },
 
       _dismissAlert: function() {
-        this._post("dismiss", {"comment": this._commentText });
+        this._post("dismiss", {"comment": sk.escapeHTML(this._commentText) });
       },
 
       _snoozeAlert: function () {
@@ -164,7 +164,7 @@
       },
 
       _unsnoozeAlert: function() {
-        this._post("unsnooze", {"comment": this._commentText});
+        this._post("unsnooze", {"comment": sk.escapeHTML(this._commentText)});
       },
 
       _addComment: function() {
@@ -172,7 +172,7 @@
           sk.errorMessage("Empty comments are not allowed.");
           return;
         }
-        this._post("addcomment", {"comment": this._commentText});
+        this._post("addcomment", {"comment": sk.escapeHTML(this._commentText)});
       },
 
       _preventBubble: function(e) {

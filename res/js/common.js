@@ -345,7 +345,7 @@ this.sk = this.sk || function() {
     if (linksInNewWindow) {
       sub = '<a href="$&" target="_blank">$&</a>';
     }
-    s = s.replace(/https?:\/\/[^ \t\n<]*/g, sub).replace(/(?:\r\n|\n|\r)/g, '<br/>');
+    s = s.replace(/https?:(\/\/|&#x2F;&#x2F;)[^ \t\n<]*/g, sub).replace(/(?:\r\n|\n|\r)/g, '<br/>');
     return sk.linkifyBugs(s);
   }
 
@@ -654,6 +654,19 @@ this.sk = this.sk || function() {
       hash |= 0;
     }
     return Math.abs(hash);
+  }
+
+  // Returns the string with all instances of &,<,>,",',/
+  // replaced with their html-safe equivilents.
+  // See OWASP doc https://goto.google.com/hyaql
+  sk.escapeHTML = function(s) {
+    return s.replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;');
+
   }
 
   // Polyfill for String.startsWith from

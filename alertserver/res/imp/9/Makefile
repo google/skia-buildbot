@@ -9,4 +9,4 @@ default:
 
 # Run a local HTTP server for the demo pages.
 run:
-	node_modules/.bin/http-server -p 8080 -a 127.0.0.1
+	../../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1
