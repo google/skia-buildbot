@@ -9,42 +9,55 @@
   Methods:
     None
 -->
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
 <dom-module id="fuzzer-status-sk">
   <template>
     <span>
-      <a href$="{{_getLink(lastcommit.hash)}}" target="_blank">Last Commit In Fuzz: {{lastcommit.shortHash}} - {{lastcommit.author}}</a>
+      <a href$="{{commitLink}}" target="_blank">Last Commit In Fuzz: {{shortHash}}
+      - {{author}}</a>
     </span>
+    <iron-ajax auto url="/status" handle-as="json" last-response="{{_status}}"></iron-ajax>
   </template>
   <script>
   Polymer({
     is: "fuzzer-status-sk",
 
     properties: {
-      lastcommit: {
+      _status: {
         type: Object,
         value: function() {
-            // TODO(kjlubick): Fetch this from somewhere
-          var orig = {
-            hash: "bbadbeefalksjdflkjsadifsdnfolsdf",
-            author: "nobody (Nobody Smith)"
-          };
-
           return {
-            hash: orig.hash,
-            shortHash: orig.hash.substr(0, 7),
-            author: this._extractAuthor(orig.author)
+            hash: "Loading",
+            author: "loading (Loading)"
           };
         }
+      },
+      shortHash: {
+        type: String,
+        computed: "_getShortHash(_status)"
+      },
+      author: {
+        type: String,
+        computed: "_getAuthor(_status)"
+      },
+      commitLink: {
+        type: String,
+        computed: "_getLink(_status)"
       }
     },
 
-    _extractAuthor: function(authorString) {
-      var idx = authorString.indexOf('(');
-      return authorString.substring(0, (idx === -1) ? authorString.length : idx);
+    _getShortHash: function(status) {
+      return status.hash.substr(0, 7);
     },
 
-    _getLink:function(hash) {
-      return "https://skia.googlesource.com/skia/+/" + hash;
+    _getAuthor: function(status) {
+      var a = status.author;
+      var idx = a.indexOf('(');
+      return a.substring(0, (idx === -1) ? a.length : idx);
+    },
+
+    _getLink:function(status) {
+      return "https://skia.googlesource.com/skia/+/" + status.hash;
     }
   });
   </script>

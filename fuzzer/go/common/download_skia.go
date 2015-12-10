@@ -34,6 +34,9 @@ func DownloadSkiaVersionForFuzzing(storageService *storage.Service, path string)
 // that has the version to be used for fuzzing (typically a dep roll).  It returns the version
 // or an error if there was a failure.
 func getSkiaVersionFromGCS(storageService *storage.Service) (string, error) {
+	if storageService == nil {
+		return "", fmt.Errorf("Storage service cannot be nil!")
+	}
 	contents, err := storageService.Objects.List(config.GS.Bucket).Prefix("skia_version").Do()
 	if err != nil {
 		return "", err
@@ -51,7 +54,7 @@ func getSkiaVersionFromGCS(storageService *storage.Service) (string, error) {
 func downloadSkia(version, path string) error {
 	glog.Infof("Cloning Skia version %s to %s", version, path)
 
-	repo, err := gitinfo.Clone("https://skia.googlesource.com/skia", path, false)
+	repo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia", path, false)
 	if err != nil {
 		return fmt.Errorf("Failed cloning Skia: %s", err)
 	}
@@ -67,6 +70,12 @@ func downloadSkia(version, path string) error {
 
 	if err := exec.Run(syncCmd); err != nil {
 		return fmt.Errorf("Failed syncing and setting up gyp: %s", err)
+	}
+
+	if lc, err := repo.Details(version); err != nil {
+		glog.Errorf("Could not get git details for skia version %s: %s", version, err)
+	} else {
+		config.SetSkiaVersion(lc)
 	}
 
 	return nil

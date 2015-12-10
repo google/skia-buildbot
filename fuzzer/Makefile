@@ -11,7 +11,7 @@ BOWER_DIR=third_party/bower_components
 
 default: all
 
-all: core_js elements_html frontend backend
+all: core_js elements_html frontend backend skiaversion
 
 release: all
 	./build_release "$(MESSAGE)"
@@ -30,3 +30,4 @@ backend:
 
 
 include ../webtools/webtools.mk
+include ../go/skiaversion/skiaversion.mk

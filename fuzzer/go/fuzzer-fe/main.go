@@ -159,12 +159,13 @@ func runServer() {
 
 	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.HandleFunc("/", indexHandler)
-	r.HandleFunc("/details", detailHandler)
+	r.HandleFunc("/details", detailsPageHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/json/fuzz-list", fuzzListHandler)
-	r.HandleFunc("/json/details", detailsHandler)
+	r.HandleFunc("/json/details", detailedReportsHandler)
+	r.HandleFunc("/status", statusHandler)
 	r.HandleFunc(`/fuzz/{kind:(binary|api)}/{name:[0-9a-f]+\.(skp)}`, fuzzHandler)
 	r.HandleFunc(`/metadata/{kind:(binary|api)}/{type:(skp)}/{name:[0-9a-f]+_(debug|release)\.(err|dump)}`, metadataHandler)
 
@@ -187,7 +188,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func detailHandler(w http.ResponseWriter, r *http.Request) {
+func detailsPageHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
@@ -210,7 +211,7 @@ func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func detailsHandler(w http.ResponseWriter, r *http.Request) {
+func detailedReportsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	i, err := strconv.ParseInt(r.FormValue("line"), 10, 32)
@@ -256,7 +257,6 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	kind := v["kind"]
 	name := v["name"]
 	hash := strings.Split(name, "_")[0]
-
 	contents, err := gs.FileContentsFromGS(storageService, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/bad/%s/%s/%s", kind, ftype, hash, name))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
@@ -267,6 +267,29 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	n, err := w.Write(contents)
 	if err != nil || n != len(contents) {
 		glog.Errorf("Could only serve %d bytes of metadata %s, not %d: %s", n, name, len(contents), err)
+		return
+	}
+}
+
+type status struct {
+	Hash   string `json:"hash"`
+	Author string `json:"author"`
+}
+
+func statusHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	s := status{
+		Hash:   "loading",
+		Author: "(Loading)",
+	}
+	if version := config.Common.SkiaVersion; version != nil {
+		s.Hash = version.Hash
+		s.Author = version.Author
+	}
+
+	if err := json.NewEncoder(w).Encode(s); err != nil {
+		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
 }
