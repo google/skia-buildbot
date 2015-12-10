@@ -115,7 +115,7 @@
     <paper-fab icon="add"></paper-fab>
 
     <div id=dialog vertical layout>
-      <paper-input id=duration label="Duration (1s, 5m, 2h, 3d, 5w)" value=2d floatingLabel></paper-input>
+      <paper-input id=duration label="Duration (1s, 5m, 2h, 3d, 5w)" value=4h floatingLabel></paper-input>
       <paper-input id=note label="Note" floatingLabel></paper-input>
       <query-sk whiteList='["source_type", "config"]' hideCount noClear fast></query-sk>
       <div horizontal layout>
@@ -225,7 +225,7 @@
 
          $$$('paper-fab').addEventListener('click', function() {
            $$$('#note').value = '';
-           $$$('#duration').value = '2d';
+           $$$('#duration').value = '2h';
            $$$('query-sk').clearSelections();
            $$$('#dialog').classList.add('display');
            $$$('#dialog').classList.remove('save');
