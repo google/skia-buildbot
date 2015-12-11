@@ -383,6 +383,31 @@ server {
     return 301 https://bug.skia.org$request_uri;
 }
 
+#####   bugs.skia.org (REDIRECT)   ##########################
+# (People have trouble remembering if they should type "bug" or "bugs.")
+server {
+    listen 443;
+    server_name bugs.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/bugs.access.log;
+    error_log /var/log/nginx/bugs.error.log error;
+
+    # Note: nginx automatically appends the incoming query parameters to the redirect URL.
+    rewrite ^/p/skia/issues/detail(/?)$ https://bugs.chromium.org/p/skia/issues/detail redirect;
+    rewrite ^/p/skia/issues/list(/?)$ https://bugs.chromium.org/p/skia/issues/list redirect;
+    rewrite ^/p/skia(.*) https://skia.org? redirect;
+    rewrite ^/([0-9]+)$ https://bugs.chromium.org/p/skia/issues/detail?id=$1 redirect;
+    rewrite ^ https://bugs.chromium.org/p/skia/issues/list redirect;
+}
+
+server {
+    listen 80;
+    server_name bugs.skia.org;
+    return 301 https://bugs.skia.org$request_uri;
+}
+
 #####   grandcentral.skia.org   ###########################
 server {
     listen      443;
