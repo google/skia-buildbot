@@ -13,10 +13,11 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/aggregator"
-	"go.skia.org/infra/fuzzer/go/common"
+	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/generator"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud"
@@ -44,6 +45,8 @@ var (
 	numUploadProcesses   = flag.Int("upload_processes", 0, `The number of processes to upload fuzzes. Defaults to 0, which means "Make an intelligent guess"`)
 	statusPeriod         = flag.Duration("status_period", 60*time.Second, `The time period used to report the status of the aggregation/analysis/upload queue. `)
 	analysisTimeout      = flag.Duration("analysis_timeout", 5*time.Second, `The maximum time an analysis should run.`)
+
+	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 )
 
 var (
@@ -52,14 +55,17 @@ var (
 )
 
 func main() {
-	flag.Parse()
+	defer common.LogPanic()
+	// Calls flag.Parse()
+	common.InitWithMetrics("fuzzer-be", graphiteServer)
+
 	if err := writeFlagsToConfig(); err != nil {
 		glog.Fatalf("Problem with configuration: %v", err)
 	}
 	if err := setupOAuth(); err != nil {
 		glog.Fatalf("Problem with OAuth: %s", err)
 	}
-	if err := common.DownloadSkiaVersionForFuzzing(storageClient, config.Generator.SkiaRoot); err != nil {
+	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Generator.SkiaRoot); err != nil {
 		glog.Fatalf("Problem downloading Skia: %s", err)
 	}
 	if err := generator.DownloadBinarySeedFiles(storageClient); err != nil {

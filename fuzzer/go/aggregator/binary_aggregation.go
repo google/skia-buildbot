@@ -90,17 +90,17 @@ func StartBinaryAggregator(s *storage.Client) error {
 		go waitForUploads(i, forUpload, terminated)
 	}
 
-	analysisProcessCount := go_metrics.NewRegisteredCounter("fuzzer.analysisProcessCount", go_metrics.DefaultRegistry)
+	analysisProcessCount := go_metrics.NewRegisteredCounter("analysis_process_count", go_metrics.DefaultRegistry)
 	analysisProcessCount.Inc(int64(numAnalysisProcesses))
-	uploadProcessCount := go_metrics.NewRegisteredCounter("fuzzer.uploadProcessCount", go_metrics.DefaultRegistry)
+	uploadProcessCount := go_metrics.NewRegisteredCounter("upload_process_count", go_metrics.DefaultRegistry)
 	uploadProcessCount.Inc(int64(numUploadProcesses))
 
 	t := time.Tick(config.Aggregator.StatusPeriod)
 	for {
 		select {
 		case _ = <-t:
-			go_metrics.GetOrRegisterGauge("fuzzer.binary.analysisQueueSize", go_metrics.DefaultRegistry).Update(int64(len(forAnalysis)))
-			go_metrics.GetOrRegisterGauge("fuzzer.binary.uploadQueueSize", go_metrics.DefaultRegistry).Update(int64(len(forUpload)))
+			go_metrics.GetOrRegisterGauge("binary_analysis_queue_size", go_metrics.DefaultRegistry).Update(int64(len(forAnalysis)))
+			go_metrics.GetOrRegisterGauge("binary_upload_queue_size", go_metrics.DefaultRegistry).Update(int64(len(forUpload)))
 		case deadService := <-terminated:
 			glog.Errorf("%s died", deadService)
 			if deadService == "scanner" {
@@ -154,11 +154,11 @@ func scanHelper(alreadyFoundBinaries *SortedStringSlice, forAnalysis chan<- stri
 	// we have references to where the crashes will be.
 	// TODO(kjlubick), switch to using flock once afl-fuzz implements that upstream.
 	time.Sleep(time.Second)
+	go_metrics.GetOrRegisterGauge("binary_newly_found_fuzzes", go_metrics.DefaultRegistry).Update(int64(len(newlyFound)))
+	glog.Infof("%d newly found bad binary fuzzes", len(newlyFound))
 	for _, f := range newlyFound {
 		forAnalysis <- f
 	}
-	go_metrics.GetOrRegisterGauge("fuzzer.binary.newlyFoundFuzzes", go_metrics.DefaultRegistry).Update(int64(len(newlyFound)))
-	glog.Infof("%d newly found bad binary fuzzes", len(newlyFound))
 	alreadyFoundBinaries.Append(newlyFound)
 	return nil
 }
@@ -428,7 +428,7 @@ func uploadBinaryFromDisk(fuzzType, fuzzName, fileName, filePath string) error {
 	defer util.Close(w)
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render
 	// a fuzzed png or svg or something.
-	w.Attrs().ContentEncoding = "application/octet-stream"
+	w.ObjectAttrs.ContentEncoding = "application/octet-stream"
 
 	f, err := os.Open(filePath)
 	if err != nil {
@@ -447,7 +447,7 @@ func uploadString(fuzzType, fuzzName, fileName, contents string) error {
 	name := fmt.Sprintf("binary_fuzzes/bad/%s/%s/%s", fuzzType, fuzzName, fileName)
 	w := storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
-	w.Attrs().ContentEncoding = "text/plain"
+	w.ObjectAttrs.ContentEncoding = "text/plain"
 
 	if n, err := w.Write([]byte(contents)); err != nil {
 		return fmt.Errorf("There was a problem uploading %s.  Only uploaded %d bytes: %s", name, n, err)

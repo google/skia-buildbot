@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync/atomic"
 
+	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
@@ -17,7 +17,7 @@ import (
 	"google.golang.org/cloud/storage"
 )
 
-var fuzzCounter int32
+var fuzzProcessCount go_metrics.Counter
 
 // StartBinaryGenerator starts up 1 goroutine running a "master" afl-fuzz and n-1 "slave"
 // afl-fuzz processes, where n is specified by config.Generator.NumFuzzProcesses.
@@ -42,13 +42,14 @@ func StartBinaryGenerator() error {
 
 	go run(masterCmd)
 
-	fuzzCounter := int32(config.Generator.NumFuzzProcesses)
-	if fuzzCounter <= 0 {
+	fuzzCount := config.Generator.NumFuzzProcesses
+	if fuzzCount <= 0 {
 		// TODO(kjlubick): Make this actually an intelligent number based on the number of cores.
-		fuzzCounter = 10
+		fuzzCount = 10
 	}
-
-	for i := int32(1); i < fuzzCounter; i++ {
+	fuzzProcessCount = go_metrics.NewRegisteredCounter("afl_fuzz_process_count", go_metrics.DefaultRegistry)
+	fuzzProcessCount.Inc(int64(fuzzCount))
+	for i := 1; i < fuzzCount; i++ {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
 		slaveCmd := &exec.Command{
 			Name:      "./afl-fuzz",
@@ -100,10 +101,8 @@ func run(command *exec.Command) {
 	if err := exec.Run(command); err != nil {
 		glog.Errorf("Failed afl fuzzer command %#v: %s", command, err)
 	}
-	// TODO(kjlubick): Keep track of this number via metrics so we can use
-	// mon.skia.org and write alerts for it.
-	atomic.AddInt32(&fuzzCounter, -1)
-	glog.Infof("afl fuzzer with args %q ended.  There are %d fuzzers remaining", command.Args, fuzzCounter)
+	fuzzProcessCount.Dec(int64(1))
+	glog.Infof("afl fuzzer with args %q ended.  There are %d fuzzers remaining", command.Args, fuzzProcessCount.Count())
 }
 
 // DownloadBinarySeedFiles downloads the seed skp files stored in Google
