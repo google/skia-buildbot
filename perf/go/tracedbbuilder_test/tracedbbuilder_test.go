@@ -74,7 +74,7 @@ func TestNewTraceDBBuilder(t *testing.T) {
 
 	// Populate the tracedb with some data.
 	commitID := &db.CommitID{
-		Timestamp: git.Timestamp(hashes[1]),
+		Timestamp: git.Timestamp(hashes[1]).Unix(),
 		ID:        hashes[1],
 		Source:    "master",
 	}
@@ -124,7 +124,7 @@ func TestNewTraceDBBuilder(t *testing.T) {
 
 	// Now add more data to the tracestore, trigger LoadTile() and check the results.
 	commitID = &db.CommitID{
-		Timestamp: git.Timestamp(hashes[2]),
+		Timestamp: git.Timestamp(hashes[2]).Unix(),
 		ID:        hashes[2],
 		Source:    "master",
 	}

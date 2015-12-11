@@ -58,7 +58,7 @@ func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	}
 
 	cid := &tracedb.CommitID{
-		Timestamp: commit.Timestamp,
+		Timestamp: commit.Timestamp.Unix(),
 		ID:        commit.Hash,
 		Source:    "master",
 	}

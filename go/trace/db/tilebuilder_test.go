@@ -43,12 +43,12 @@ func TestPertTrace(t *testing.T) {
 
 	commits := []*CommitID{
 		&CommitID{
-			Timestamp: time.Now(),
+			Timestamp: time.Now().Unix(),
 			ID:        "1",
 			Source:    "https://codereview.chromium.org/1490543002",
 		},
 		&CommitID{
-			Timestamp: time.Now(),
+			Timestamp: time.Now().Unix(),
 			ID:        "foofoofoo",
 			Source:    "master",
 		},
@@ -77,12 +77,12 @@ func TestPertTrace(t *testing.T) {
 
 	badCommits := []*CommitID{
 		&CommitID{
-			Timestamp: time.Now(),
+			Timestamp: time.Now().Unix(),
 			ID:        "2",
 			Source:    "https://codereview.chromium.org/99999999",
 		},
 		&CommitID{
-			Timestamp: time.Now(),
+			Timestamp: time.Now().Unix(),
 			ID:        "barbarbar",
 			Source:    "master",
 		},

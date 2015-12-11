@@ -18,9 +18,9 @@ import (
 // CommitID represents the time of a particular commit, where a commit could either be
 // a real commit into the repo, or an event like running a trybot.
 type CommitID struct {
-	Timestamp time.Time
-	ID        string // Normally a git hash, but could also be Rietveld patch id.
-	Source    string // The branch name, e.g. "master", or the Reitveld issue id.
+	Timestamp int64  `json:"ts"`
+	ID        string `json:"id"`     // Normally a git hash, but could also be Rietveld patch id.
+	Source    string `json:"source"` // The branch name, e.g. "master", or the Reitveld issue id.
 }
 
 // Entry holds the params and a value for single measurement.
@@ -204,7 +204,7 @@ func (ts *TsDB) addChunk(ctx context.Context, cid *traceservice.CommitID, chunk 
 // tsCommitID converts a db.CommitID to traceservice.CommitID.
 func tsCommitID(c *CommitID) *traceservice.CommitID {
 	return &traceservice.CommitID{
-		Timestamp: c.Timestamp.Unix(),
+		Timestamp: c.Timestamp,
 		Id:        c.ID,
 		Source:    c.Source,
 	}
@@ -215,7 +215,7 @@ func dbCommitID(c *traceservice.CommitID) *CommitID {
 	return &CommitID{
 		ID:        c.Id,
 		Source:    c.Source,
-		Timestamp: time.Unix(c.Timestamp, 0),
+		Timestamp: c.Timestamp,
 	}
 }
 
@@ -290,7 +290,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 	for i, cid := range commitIDs {
 		tile.Commits[i] = &tiling.Commit{
 			Hash:       cid.ID,
-			CommitTime: cid.Timestamp.Unix(),
+			CommitTime: cid.Timestamp,
 		}
 	}
 

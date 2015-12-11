@@ -85,7 +85,7 @@ func (p *perfTrybotProcessor) Process(resultsFile ingestion.ResultFileLocation) 
 	source := fmt.Sprintf("%s/%d", CODE_REVIEW_URL, issue)
 
 	cid := &tracedb.CommitID{
-		Timestamp: ts,
+		Timestamp: ts.Unix(),
 		ID:        benchData.PatchSet,
 		Source:    source,
 	}

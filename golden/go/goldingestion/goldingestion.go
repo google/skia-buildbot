@@ -82,7 +82,7 @@ func (g *goldProcessor) BatchFinished() error { return nil }
 // getCommitID extracts the commitID from the given commit and dm results.
 func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
 	return &tracedb.CommitID{
-		Timestamp: commit.Timestamp,
+		Timestamp: commit.Timestamp.Unix(),
 		ID:        commit.Hash,
 		Source:    string(VCS_SRC) + "master",
 	}, nil

@@ -61,12 +61,12 @@ func TestAdd(t *testing.T) {
 
 	commitIDs := []*CommitID{
 		&CommitID{
-			Timestamp: now,
+			Timestamp: now.Unix(),
 			ID:        "abc123",
 			Source:    "master",
 		},
 		&CommitID{
-			Timestamp: now.Add(time.Minute),
+			Timestamp: now.Add(time.Minute).Unix(),
 			ID:        "xyz789",
 			Source:    "master",
 		},

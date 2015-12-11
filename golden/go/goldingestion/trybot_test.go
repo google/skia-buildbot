@@ -86,7 +86,7 @@ func TestTrybotGoldProcessor(t *testing.T) {
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
-		Timestamp: time.Unix(1443718869, 0),
+		Timestamp: 1443718869,
 		ID:        "1",
 		Source:    string(TRYBOT_SRC) + TEST_CODE_REVIEW_URL + "/1381483003",
 	}, commitIDs[0])

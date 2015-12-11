@@ -65,7 +65,7 @@ func TestTrybotPerfIngestion(t *testing.T) {
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
-		Timestamp: time.Unix(1448036640, 0),
+		Timestamp: 1448036640,
 		ID:        "1",
 		Source:    "https://codereview.chromium.org/1467533002",
 	}, commitIDs[0])

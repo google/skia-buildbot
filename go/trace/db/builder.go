@@ -95,7 +95,7 @@ func (t *Builder) LoadTile() error {
 		commitIDs = append(commitIDs, &CommitID{
 			ID:        h,
 			Source:    "master",
-			Timestamp: t.git.Timestamp(h),
+			Timestamp: t.git.Timestamp(h).Unix(),
 		})
 	}
 

@@ -97,7 +97,7 @@ var (
 var (
 	evt *eventbus.EventBus
 
-	nanoTileStore tiling.TileBuilder
+	nanoTileStore tracedb.TileBuilder
 
 	templates *template.Template
 

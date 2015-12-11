@@ -124,7 +124,7 @@ func TestPerfProcessor(t *testing.T) {
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
-		Timestamp: TEST_COMMITS[0].Timestamp,
+		Timestamp: TEST_COMMITS[0].Timestamp.Unix(),
 		ID:        TEST_COMMITS[0].Hash,
 		Source:    "master",
 	}, commitIDs[0])

@@ -20,6 +20,27 @@ const (
 	MAX_CACHE_SIZE = 1000
 )
 
+// CommitIDLong contains more detailed information about each commit,
+// regardless of whether it came from an actual commit or a trybot.
+type CommitIDLong struct {
+	*CommitID
+	Author string `json:"author"`
+	Desc   string `json:"desc"`
+}
+
+// TileBuilder is a high level interface to build tiles base on a datasource that
+// originated via a version control system or from a code review system via trybot
+// runs.
+type TileBuilder interface {
+	// GetTile returns the most recently loaded Tile.
+	GetTile() *tiling.Tile
+
+	// ListLong returns a slice of CommitIDLongs that appear in the given time
+	// range from begin to end, and may be filtered by the 'source' parameter. If
+	// 'source' is the empty string then no filtering is done.
+	ListLong(begin, end time.Time, source string) ([]*CommitIDLong, error)
+}
+
 type tileBuilder struct {
 	*Builder
 
@@ -30,7 +51,7 @@ type tileBuilder struct {
 	cache map[string]*rietveld.Issue
 }
 
-func NewTileBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder, reviewURL string, evt *eventbus.EventBus) (tiling.TileBuilder, error) {
+func NewTileBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder, reviewURL string, evt *eventbus.EventBus) (TileBuilder, error) {
 	review := rietveld.New(reviewURL, util.NewTimeoutClient())
 	builder, err := NewBuilder(git, address, tileSize, traceBuilder, evt)
 	if err != nil {
@@ -45,8 +66,8 @@ func NewTileBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBui
 	}, nil
 }
 
-// See the tiling.TileBuilder interface.
-func (b *tileBuilder) ListLong(begin, end time.Time, source string) ([]*tiling.CommitIDLong, error) {
+// See the TileBuilder interface.
+func (b *tileBuilder) ListLong(begin, end time.Time, source string) ([]*CommitIDLong, error) {
 	commitIDs, err := b.DB.List(begin, end)
 	if err != nil {
 		return nil, fmt.Errorf("Error while looking up commits: %s", err)
@@ -56,7 +77,7 @@ func (b *tileBuilder) ListLong(begin, end time.Time, source string) ([]*tiling.C
 
 // convertToLongCommits converts the CommitIDs into CommitIDLong's, after
 // potentially filtering the slice based on the provided source.
-func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string) []*tiling.CommitIDLong {
+func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string) []*CommitIDLong {
 	// Filter
 	if source != "" {
 		dst := []*CommitID{}
@@ -69,12 +90,10 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 	}
 
 	// Convert to CommitIDLong.
-	results := []*tiling.CommitIDLong{}
+	results := []*CommitIDLong{}
 	for _, cid := range commitIDs {
-		results = append(results, &tiling.CommitIDLong{
-			Timestamp: cid.Timestamp.Unix(),
-			ID:        cid.ID,
-			Source:    cid.Source,
+		results = append(results, &CommitIDLong{
+			CommitID: cid,
 		})
 	}
 
