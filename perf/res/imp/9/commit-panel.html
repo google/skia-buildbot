@@ -12,7 +12,7 @@
     selector - The iron-selector element that wraps the commits.
 
   Methods:
-    setCommitInfo - Sets the commit info, an array of *types.Commit. See the
+    setCommitInfo - Sets the commit info, an array of *perftracedb.CommitIDLong. See the
       description for the commits Mailbox for more details.
 
     selectCommitID - Forces the selection of the given id and source.
@@ -46,11 +46,6 @@
                desc: "Adds short commits."
             },
         ]
-
-      Note that the hashes need to be in order, but not necessarily
-      contiguous. Note that they also need to be supplied in time ascending
-      order, that is, the commit at index 0 needs to be the oldest commit, and
-      the last commit in the array needs to be the newest commit.
 
 -->
 <link rel="stylesheet" href="/res/common/css/md.css">
@@ -136,7 +131,7 @@
       },
 
       selectCommitID: function(id, source) {
-        $$('commit-sk', this).forEach(function(ele) {
+        $$('perf-commit-sk', this).forEach(function(ele) {
           if (ele.cid == id && ele.source == source) {
             this.selector.select(this.selector.indexOf(ele));
           }
