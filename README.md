@@ -46,6 +46,7 @@ permissions for sk_testing. The 'setup_test_db' script in 'go/database' is inclu
 in setting up this test database and user.
 
 Go tests require a local installation of MySQL. For a Debian based distro:
+
 ```
 $ sudo apt-get install mysql-client mysql-server
 ```
@@ -53,6 +54,7 @@ $ sudo apt-get install mysql-client mysql-server
 Leave the root password blank.
 
 Then, to set up local versions of the production databases:
+
 ```
 $ cd $GOPATH/src/go.skia.org/infra/go/database
 $ ./setup_test_db
@@ -64,14 +66,16 @@ Running unit tests
 Install [Cloud SDK](https://cloud.google.com/sdk/).
 
 Install other dependencies:
+
 ```
 $ sudo apt-get install npm nodejs-legacy python-django redis-server
 $ go get github.com/kisielk/errcheck
 $ go get golang.org/x/tools/cmd/goimports
-# sudo npm install -g polylint
+$ sudo npm install -g polylint bower
 ```
 
 Build from GOPATH:
+
 ```
 $ cd $GOPATH/src/go.skia.org/infra/
 $ make all
