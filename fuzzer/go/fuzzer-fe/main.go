@@ -63,6 +63,7 @@ var (
 	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
 	depotToolsPath    = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
 	bucket            = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
+	downloadProcesses = flag.Int("download_processes", 4, "The number of download processes to be used by fetching fuzzes.")
 )
 
 var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path"}
@@ -126,6 +127,7 @@ func writeFlagsToConfig() error {
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Common.DepotToolsPath = *depotToolsPath
 	config.GS.Bucket = *bucket
+	config.FrontEnd.NumDownloadProcesses = *downloadProcesses
 	return nil
 }
 

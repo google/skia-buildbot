@@ -17,7 +17,7 @@ import (
 	"google.golang.org/cloud/storage"
 )
 
-var fuzzCounter *int32
+var fuzzCounter int32
 
 // StartBinaryGenerator starts up 1 goroutine running a "master" afl-fuzz and n-1 "slave"
 // afl-fuzz processes, where n is specified by config.Generator.NumFuzzProcesses.
@@ -42,15 +42,13 @@ func StartBinaryGenerator() error {
 
 	go run(masterCmd)
 
-	numFuzzers := int32(config.Generator.NumFuzzProcesses)
-	if numFuzzers <= 0 {
+	fuzzCounter := int32(config.Generator.NumFuzzProcesses)
+	if fuzzCounter <= 0 {
 		// TODO(kjlubick): Make this actually an intelligent number based on the number of cores.
-		numFuzzers = 10
+		fuzzCounter = 10
 	}
 
-	fuzzCounter = &numFuzzers
-
-	for i := int32(1); i < numFuzzers; i++ {
+	for i := int32(1); i < fuzzCounter; i++ {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
 		slaveCmd := &exec.Command{
 			Name:      "./afl-fuzz",
@@ -104,8 +102,8 @@ func run(command *exec.Command) {
 	}
 	// TODO(kjlubick): Keep track of this number via metrics so we can use
 	// mon.skia.org and write alerts for it.
-	atomic.AddInt32(fuzzCounter, -1)
-	glog.Infof("afl fuzzer with args %q ended.  There are %d fuzzers remaining", command.Args, *fuzzCounter)
+	atomic.AddInt32(&fuzzCounter, -1)
+	glog.Infof("afl fuzzer with args %q ended.  There are %d fuzzers remaining", command.Args, fuzzCounter)
 }
 
 // DownloadBinarySeedFiles downloads the seed skp files stored in Google

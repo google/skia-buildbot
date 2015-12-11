@@ -28,7 +28,8 @@ type aggregatorConfig struct {
 }
 
 type frontendConfig struct {
-	SkiaRoot string
+	SkiaRoot             string
+	NumDownloadProcesses int
 }
 
 type gsConfig struct {

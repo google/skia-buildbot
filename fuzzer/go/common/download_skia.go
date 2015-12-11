@@ -2,7 +2,6 @@ package common
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/skia-dev/glog"
@@ -16,13 +15,6 @@ import (
 // DownloadSkiaVersionForFuzzing downloads the version of Skia specified in Google Storage
 // to the given path.  It returns an error on failure.
 func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string) error {
-	if err := os.RemoveAll(path); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("Could not clean Skia Path %s: %s", path, err)
-	}
-	if err := os.MkdirAll(path, 0755); err != nil {
-		return fmt.Errorf("Could not create Skia Path %s: %s", path, err)
-	}
-
 	skiaVersion, err := getSkiaVersionFromGCS(storageClient)
 	if err != nil {
 		return fmt.Errorf("Could not get Skia version from GCS: %s", err)
