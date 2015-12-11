@@ -4,13 +4,12 @@
 
 Your service:
 
-- is checked in to the `go.skia.org/infra` Git repo
-- is an HTTP server written in Go and Polymer
-- will run on GCE
-- will use a `*.skia.org` domain
-- does not handle personal data (additional steps will be required)
-- is not intended to be used by the public at large (additional steps will be
-  required)
+- Is checked in to the `go.skia.org/infra` Git repo.
+- Is an HTTP server written in Go and Polymer.
+- Will run on GCE.
+- Will use a `*.skia.org` domain.
+- Does not handle personal data (additional steps will be required).
+- Is not intended to be used by the public at large (additional steps will be required).
 
 ## Coding
 
@@ -37,13 +36,12 @@ Wrap your `http.Handler` with
 logging of HTTP requests and responses. Use
 `go.skia.org/infra/go/util.NewTimeoutClient` for HTTP clients.
 
-Write your code with security in mind. If you add any critical TODOs while
-you're coding, file a blocking bug for the issue.
+Write your code with security in mind:
 
-If you need to store database passwords or other data that should not be checked
-in to the code, use `go.skia.org/infra/go/metadata` to retrieve the data from
-GCE metadata. Add/modify metadata at
-[Google Developers Console > Compute > Compute Engine > Metadata](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
+- Make sure your service is listed in the [team security scan](http://go/skia-infra-scan).
+- Follow the [team security guidelines](http://go/skia-infra-sec) when developing your applicaation.
+
+If you add any critical TODOs while you're coding, file a blocking bug for the issue.
 
 ## Launching
 
@@ -104,12 +102,3 @@ GCE metadata. Add/modify metadata at
   that alerts are working correctly.
 - Tell people about your new service.
 - Be prepared for bug reports. :-)
-
-## Unresolved Questions
-
-Where does this doc belong?
-
-Should there be some security review?
-
-Set up Lemon to fuzz all infra websites on a schedule (maybe weekly)?
-https://sites.google.com/a/google.com/lemon-help/
