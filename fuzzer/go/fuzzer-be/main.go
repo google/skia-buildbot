@@ -18,7 +18,9 @@ import (
 	"go.skia.org/infra/fuzzer/go/generator"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
-	storage "google.golang.org/api/storage/v1"
+	"golang.org/x/net/context"
+	"google.golang.org/cloud"
+	"google.golang.org/cloud/storage"
 )
 
 var (
@@ -45,8 +47,8 @@ var (
 )
 
 var (
-	requiredFlags                   = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir"}
-	storageService *storage.Service = nil
+	requiredFlags                 = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir"}
+	storageClient *storage.Client = nil
 )
 
 func main() {
@@ -57,10 +59,10 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		glog.Fatalf("Problem with OAuth: %s", err)
 	}
-	if err := common.DownloadSkiaVersionForFuzzing(storageService, config.Generator.SkiaRoot); err != nil {
+	if err := common.DownloadSkiaVersionForFuzzing(storageClient, config.Generator.SkiaRoot); err != nil {
 		glog.Fatalf("Problem downloading Skia: %s", err)
 	}
-	if err := generator.DownloadBinarySeedFiles(storageService); err != nil {
+	if err := generator.DownloadBinarySeedFiles(storageClient); err != nil {
 		glog.Fatalf("Problem downloading binary seed files: %s", err)
 	}
 
@@ -72,7 +74,7 @@ func main() {
 	}
 
 	glog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
-	glog.Fatal(aggregator.StartBinaryAggregator(storageService))
+	glog.Fatal(aggregator.StartBinaryAggregator(storageClient))
 }
 
 func writeFlagsToConfig() error {
@@ -133,7 +135,7 @@ func setupOAuth() error {
 		return fmt.Errorf("Problem setting up client OAuth: %v", err)
 	}
 
-	if storageService, err = storage.New(client); err != nil {
+	if storageClient, err = storage.NewClient(context.Background(), cloud.WithBaseHTTP(client)); err != nil {
 		return fmt.Errorf("Problem authenticating: %v", err)
 	}
 	return nil

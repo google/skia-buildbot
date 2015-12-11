@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,10 +19,11 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
-	storage "google.golang.org/api/storage/v1"
+	"golang.org/x/net/context"
+	"google.golang.org/cloud/storage"
 )
 
-var storageService *storage.Service
+var storageClient *storage.Client
 
 // AnalysisPackage is a generic holder for the functions needed to analyze
 type AnalysisPackage struct {
@@ -44,8 +46,8 @@ type uploadPackage struct {
 // metadata required for them.
 // It does this by searching in the specified AflOutputPath for new crashes and moves them to a
 // temporary holding folder (specified by BinaryFuzzPath) for parsing, before uploading them to GCS
-func StartBinaryAggregator(s *storage.Service) error {
-	storageService = s
+func StartBinaryAggregator(s *storage.Client) error {
+	storageClient = s
 	if _, err := fileutil.EnsureDirExists(config.Aggregator.BinaryFuzzPath); err != nil {
 		return err
 	}
@@ -422,16 +424,19 @@ func upload(p uploadPackage) error {
 // anything goes wrong.
 func uploadBinaryFromDisk(fuzzType, fuzzName, fileName, filePath string) error {
 	name := fmt.Sprintf("binary_fuzzes/bad/%s/%s/%s", fuzzType, fuzzName, fileName)
-	o := &storage.Object{Name: name}
+	w := storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
+	defer util.Close(w)
+	// We set the encoding to avoid accidental crashes if Chrome were to try to render
+	// a fuzzed png or svg or something.
+	w.Attrs().ContentEncoding = "application/octet-stream"
 
 	f, err := os.Open(filePath)
 	if err != nil {
 		return fmt.Errorf("There was a problem reading %s for uploading : %s", filePath, err)
 	}
-	// We set the encoding to avoid accidental crashes if Chrome were to try to render
-	// a fuzzed png or svg or something.
-	if _, err := storageService.Objects.Insert(config.GS.Bucket, o).Media(f).ContentEncoding("application/octet-stream").Do(); err != nil {
-		return fmt.Errorf("There was a problem uploading binary %s : %s", name, err)
+
+	if n, err := io.Copy(w, f); err != nil {
+		return fmt.Errorf("There was a problem uploading binary %s.  Only uploaded %d bytes : %s", name, n, err)
 	}
 	return nil
 }
@@ -440,9 +445,12 @@ func uploadBinaryFromDisk(fuzzType, fuzzName, fileName, filePath string) error {
 // anything goes wrong.
 func uploadString(fuzzType, fuzzName, fileName, contents string) error {
 	name := fmt.Sprintf("binary_fuzzes/bad/%s/%s/%s", fuzzType, fuzzName, fileName)
-	o := &storage.Object{Name: name}
-	if _, err := storageService.Objects.Insert(config.GS.Bucket, o).Media(bytes.NewBufferString(contents)).ContentEncoding("text/plain").Do(); err != nil {
-		return fmt.Errorf("There was a problem uploading %s : %s", name, err)
+	w := storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
+	defer util.Close(w)
+	w.Attrs().ContentEncoding = "text/plain"
+
+	if n, err := w.Write([]byte(contents)); err != nil {
+		return fmt.Errorf("There was a problem uploading %s.  Only uploaded %d bytes: %s", name, n, err)
 	}
 	return nil
 }

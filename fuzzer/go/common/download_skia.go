@@ -9,12 +9,13 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
-	storage "google.golang.org/api/storage/v1"
+	"golang.org/x/net/context"
+	"google.golang.org/cloud/storage"
 )
 
 // DownloadSkiaVersionForFuzzing downloads the version of Skia specified in Google Storage
 // to the given path.  It returns an error on failure.
-func DownloadSkiaVersionForFuzzing(storageService *storage.Service, path string) error {
+func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string) error {
 	if err := os.RemoveAll(path); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("Could not clean Skia Path %s: %s", path, err)
 	}
@@ -22,7 +23,7 @@ func DownloadSkiaVersionForFuzzing(storageService *storage.Service, path string)
 		return fmt.Errorf("Could not create Skia Path %s: %s", path, err)
 	}
 
-	skiaVersion, err := getSkiaVersionFromGCS(storageService)
+	skiaVersion, err := getSkiaVersionFromGCS(storageClient)
 	if err != nil {
 		return fmt.Errorf("Could not get Skia version from GCS: %s", err)
 	}
@@ -33,19 +34,20 @@ func DownloadSkiaVersionForFuzzing(storageService *storage.Service, path string)
 // getSkiaVersionFromGCS checks the skia_version folder in the fuzzer bucket for a single file
 // that has the version to be used for fuzzing (typically a dep roll).  It returns the version
 // or an error if there was a failure.
-func getSkiaVersionFromGCS(storageService *storage.Service) (string, error) {
-	if storageService == nil {
+func getSkiaVersionFromGCS(storageClient *storage.Client) (string, error) {
+	if storageClient == nil {
 		return "", fmt.Errorf("Storage service cannot be nil!")
 	}
-	contents, err := storageService.Objects.List(config.GS.Bucket).Prefix("skia_version").Do()
+	q := &storage.Query{Prefix: "skia_version"}
+	contents, err := storageClient.Bucket(config.GS.Bucket).List(context.Background(), q)
 	if err != nil {
 		return "", err
 	}
-	if len(contents.Items) < 2 {
+	if len(contents.Results) < 2 {
 		return "", fmt.Errorf("version file not found")
 	}
 	// item[0] is the folder skia_version/, the file name of item[1] is the current version to fuzz
-	file := contents.Items[1].Name
+	file := contents.Results[1].Name
 	return strings.TrimLeft(file, "skia_version/"), nil
 }
 

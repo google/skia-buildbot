@@ -11,7 +11,8 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
-	storage "google.golang.org/api/storage/v1"
+	"golang.org/x/net/context"
+	"google.golang.org/cloud/storage"
 )
 
 var (
@@ -114,11 +115,32 @@ func RequestForStorageURL(url string) (*http.Request, error) {
 }
 
 // FileContentsFromGS returns the contents of a file in the given bucket or an error.
-func FileContentsFromGS(s *storage.Service, bucketName, fileName string) ([]byte, error) {
-	response, err := s.Objects.Get(bucketName, fileName).Download()
+func FileContentsFromGS(s *storage.Client, bucketName, fileName string) ([]byte, error) {
+	response, err := s.Bucket(bucketName).Object(fileName).NewReader(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	defer util.Close(response.Body)
-	return ioutil.ReadAll(response.Body)
+	defer util.Close(response)
+	return ioutil.ReadAll(response)
+}
+
+// AllFilesInDir iterates through all the files in a given Google Storage folder.
+// The callback function is called on each item in the order it is in the bucket.
+// It returns an error if the bucket or folder cannot be accessed.
+func AllFilesInDir(s *storage.Client, bucket, folder string, callback func(item *storage.ObjectAttrs)) error {
+	total := 0
+	q := &storage.Query{Prefix: folder, Versions: false}
+	for q != nil {
+		list, err := s.Bucket(bucket).List(context.Background(), q)
+		if err != nil {
+			return fmt.Errorf("Problem reading from Google Storage: %v", err)
+		}
+		total += len(list.Results)
+		glog.Infof("Loading %d more files from gs://%s/%s  Total: %d", len(list.Results), bucket, folder, total)
+		for _, item := range list.Results {
+			callback(item)
+		}
+		q = list.Next
+	}
+	return nil
 }

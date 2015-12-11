@@ -28,7 +28,9 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
-	storage "google.golang.org/api/storage/v1"
+	"golang.org/x/net/context"
+	"google.golang.org/cloud"
+	"google.golang.org/cloud/storage"
 )
 
 const (
@@ -42,7 +44,7 @@ var (
 	// detailsTemplate is used for /details, which actually displays the stacktraces and fuzzes.
 	detailsTemplate *template.Template = nil
 
-	storageService *storage.Service = nil
+	storageClient *storage.Client = nil
 )
 
 var (
@@ -95,13 +97,13 @@ func main() {
 		glog.Fatal(err)
 	}
 	go func() {
-		if err := fcommon.DownloadSkiaVersionForFuzzing(storageService, config.FrontEnd.SkiaRoot); err != nil {
+		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.FrontEnd.SkiaRoot); err != nil {
 			glog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
 		if finder, err := functionnamefinder.New(); err != nil {
 			glog.Fatalf("Error loading Skia Source: %s", err)
-		} else if err := frontend.LoadFromGoogleStorage(storageService, finder); err != nil {
+		} else if err := frontend.LoadFromGoogleStorage(storageClient, finder); err != nil {
 			glog.Fatalf("Error loading in data from GCS: %s", err)
 		}
 	}()
@@ -141,7 +143,7 @@ func setupOAuth() error {
 		return fmt.Errorf("Problem setting up client OAuth: %v", err)
 	}
 
-	storageService, err = storage.New(client)
+	storageClient, err = storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
 	if err != nil {
 		return fmt.Errorf("Problem authenticating: %v", err)
 	}
@@ -237,7 +239,7 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	name := v["name"]
 	xs := strings.Split(name, ".")
 	hash, ftype := xs[0], xs[1]
-	contents, err := gs.FileContentsFromGS(storageService, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/bad/%s/%s/%s", kind, ftype, hash, hash))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/bad/%s/%s/%s", kind, ftype, hash, hash))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
 		return
@@ -257,7 +259,8 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	kind := v["kind"]
 	name := v["name"]
 	hash := strings.Split(name, "_")[0]
-	contents, err := gs.FileContentsFromGS(storageService, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/bad/%s/%s/%s", kind, ftype, hash, name))
+
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/bad/%s/%s/%s", kind, ftype, hash, name))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
 		return

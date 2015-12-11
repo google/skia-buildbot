@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
-	storage "google.golang.org/api/storage/v1"
+	"google.golang.org/cloud/storage"
 )
 
 var fuzzCounter *int32
@@ -112,7 +112,7 @@ func run(command *exec.Command) {
 // Storage to be used by afl-fuzz.  It places them in
 // config.Generator.FuzzSamples after cleaning the folder out.
 // It returns an error on failure.
-func DownloadBinarySeedFiles(storageService *storage.Service) error {
+func DownloadBinarySeedFiles(storageClient *storage.Client) error {
 	if err := os.RemoveAll(config.Generator.FuzzSamples); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("Could not clean binary seed path %s: %s", config.Generator.FuzzSamples, err)
 	}
@@ -120,28 +120,21 @@ func DownloadBinarySeedFiles(storageService *storage.Service) error {
 		return fmt.Errorf("Could not create binary seed path %s: %s", config.Generator.FuzzSamples, err)
 	}
 
-	samples, err := storageService.Objects.List(config.GS.Bucket).Prefix("skp_samples").Do()
-	if err != nil {
-		return fmt.Errorf("Problem reading from Google Storage: %v", err)
-	}
-	glog.Infof("Downloading %d seed skp files from Google Storage", len(samples.Items))
-
-	for _, item := range samples.Items {
+	err := gs.AllFilesInDir(storageClient, config.GS.Bucket, "skp_samples", func(item *storage.ObjectAttrs) {
 		name := item.Name
 		// skip the parent folder
 		if name == "skp_samples/" {
-			continue
+			return
 		}
-		content, err := gs.FileContentsFromGS(storageService, config.GS.Bucket, name)
+		content, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, name)
 		if err != nil {
 			glog.Errorf("Problem downloading %s from Google Storage, continuing anyway", item.Name)
-			continue
+			return
 		}
 		fileName := filepath.Join(config.Generator.FuzzSamples, strings.TrimLeft(name, "skp_samples/"))
 		if err = ioutil.WriteFile(fileName, content, 0644); err != nil {
 			glog.Errorf("Problem creating binary seed file %s, continuing anyway", fileName)
 		}
-	}
-
-	return nil
+	})
+	return err
 }
