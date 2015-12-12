@@ -423,7 +423,7 @@ func upload(p uploadPackage) error {
 // uploadBinaryFromDisk uploads a binary file on disk to GCS, returning an error if
 // anything goes wrong.
 func uploadBinaryFromDisk(fuzzType, fuzzName, fileName, filePath string) error {
-	name := fmt.Sprintf("binary_fuzzes/bad/%s/%s/%s", fuzzType, fuzzName, fileName)
+	name := fmt.Sprintf("binary_fuzzes/%s/bad/%s/%s/%s", config.Common.SkiaVersion.Hash, fuzzType, fuzzName, fileName)
 	w := storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render
@@ -444,7 +444,7 @@ func uploadBinaryFromDisk(fuzzType, fuzzName, fileName, filePath string) error {
 // uploadBinaryFromDisk uploads the contents of a string as a file to GCS, returning an error if
 // anything goes wrong.
 func uploadString(fuzzType, fuzzName, fileName, contents string) error {
-	name := fmt.Sprintf("binary_fuzzes/bad/%s/%s/%s", fuzzType, fuzzName, fileName)
+	name := fmt.Sprintf("binary_fuzzes/%s/bad/%s/%s/%s", config.Common.SkiaVersion.Hash, fuzzType, fuzzName, fileName)
 	w := storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"

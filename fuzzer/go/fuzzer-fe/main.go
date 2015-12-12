@@ -241,7 +241,7 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	name := v["name"]
 	xs := strings.Split(name, ".")
 	hash, ftype := xs[0], xs[1]
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/bad/%s/%s/%s", kind, ftype, hash, hash))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/%s/bad/%s/%s/%s", kind, config.Common.SkiaVersion.Hash, ftype, hash, hash))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
 		return
@@ -262,7 +262,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	name := v["name"]
 	hash := strings.Split(name, "_")[0]
 
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/bad/%s/%s/%s", kind, ftype, hash, name))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/%s/bad/%s/%s/%s", kind, config.Common.SkiaVersion.Hash, ftype, hash, name))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
 		return

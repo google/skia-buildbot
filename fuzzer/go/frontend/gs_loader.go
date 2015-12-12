@@ -1,6 +1,7 @@
 package frontend
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -19,7 +20,7 @@ var completedCounter int32
 // The fuzzes are streamed into memory as they are fetched.  The partial result is available
 // via fuzz.FuzzSummary() and fuzz.FuzzDetails() prior to this function returning.
 func LoadFromGoogleStorage(storageClient *storage.Client, finder functionnamefinder.Finder) error {
-	reports, err := getBinaryReportsFromGS(storageClient, "binary_fuzzes/bad/")
+	reports, err := getBinaryReportsFromGS(storageClient, fmt.Sprintf("binary_fuzzes/%s/bad/", config.Common.SkiaVersion.Hash))
 	if err != nil {
 		return err
 	}
@@ -94,7 +95,7 @@ func fetchFuzzPackages(storageClient *storage.Client, baseFolder string) (fuzzPa
 		// [baseFolder]/[filetype]/[fuzzname]/[fuzzname][suffix]
 		// where suffix is one of _debug.dump, _debug.err, _release.dump or _release.err
 		name := item.Name
-		if name == baseFolder || strings.Count(name, "/") <= 3 {
+		if name == baseFolder || strings.Count(name, "/") <= 4 {
 			return
 		}
 
@@ -113,9 +114,9 @@ func fetchFuzzPackages(storageClient *storage.Client, baseFolder string) (fuzzPa
 			}
 
 			parts := strings.Split(name, "/")
-			currFuzzFolder = strings.Join(parts[0:4], "/")
-			currFuzzType = parts[2]
-			currFuzzName = parts[3]
+			currFuzzFolder = strings.Join(parts[0:5], "/")
+			currFuzzType = parts[3]
+			currFuzzName = parts[4]
 			// reset for next one
 			debugDump, debugErr, releaseDump, releaseErr = "", "", "", ""
 		}
