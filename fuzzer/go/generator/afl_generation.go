@@ -128,7 +128,7 @@ func DownloadBinarySeedFiles(storageClient *storage.Client) error {
 			glog.Errorf("Problem downloading %s from Google Storage, continuing anyway", item.Name)
 			return
 		}
-		fileName := filepath.Join(config.Generator.FuzzSamples, strings.SplitAfter(name, "skp_samples/")[1])
+		fileName := filepath.Join(config.Generator.FuzzSamples, strings.TrimLeft(name, "skp_samples/"))
 		if err = ioutil.WriteFile(fileName, content, 0644); err != nil {
 			glog.Errorf("Problem creating binary seed file %s, continuing anyway", fileName)
 		}

@@ -30,7 +30,7 @@ func getSkiaVersionFromGCS(storageClient *storage.Client) (string, error) {
 	if storageClient == nil {
 		return "", fmt.Errorf("Storage service cannot be nil!")
 	}
-	q := &storage.Query{Prefix: "skia_version/current"}
+	q := &storage.Query{Prefix: "skia_version"}
 	contents, err := storageClient.Bucket(config.GS.Bucket).List(context.Background(), q)
 	if err != nil {
 		return "", err
@@ -40,7 +40,7 @@ func getSkiaVersionFromGCS(storageClient *storage.Client) (string, error) {
 	}
 	// item[0] is the folder skia_version/, the file name of item[1] is the current version to fuzz
 	file := contents.Results[1].Name
-	return strings.SplitAfter(file, "skia_version/current/")[1], nil
+	return strings.TrimLeft(file, "skia_version/"), nil
 }
 
 // downloadSkia uses git to clone Skia from googlesource.com and check it out to the specified version
