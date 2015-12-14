@@ -75,12 +75,16 @@ type fuzzReportBuilder struct {
 	apiDirty     bool
 }
 
-// reportData is the object that holds the cache of fuzz results.  It is used by the frontend.
-var reportData fuzzReportBuilder
+// currentData is the object that holds the cache of fuzz results.  It is used by the frontend.
+var currentData fuzzReportBuilder
+
+// stagingData is the object that processes can write to to queue up new data
+// without disturbing the data shown to users.
+var stagingData fuzzReportBuilder
 
 // FuzzSummary returns the summary of all fuzzes, sorted by total count.
 func FuzzSummary() FuzzReport {
-	return reportData.getSummarySortedByTotal()
+	return currentData.getSummarySortedByTotal()
 }
 
 // FuzzDetails returns the detailed fuzz reports for a file name, function name, and line number.
@@ -89,9 +93,9 @@ func FuzzDetails(fileName, functionName string, lineNumber int, useBinary bool) 
 
 	var report FuzzReport
 	if useBinary {
-		report = reportData.getBinaryReportSortedByTotal()
+		report = currentData.getBinaryReportSortedByTotal()
 	} else {
-		report = reportData.getAPIReportSortedByTotal()
+		report = currentData.getAPIReportSortedByTotal()
 	}
 
 	for _, file := range report {
@@ -129,14 +133,44 @@ func (function *FuzzReportFunction) filterByLineNumber(lineNumber int) {
 	}
 }
 
-// NewBinaryFuzzFound adds a FuzzReportBinary to the in-memory representation.
+// NewBinaryFuzzFound adds a FuzzReportBinary to the in-memory staging representation.
 func NewBinaryFuzzFound(b FuzzReportBinary) {
-	reportData.addReportBinary(b)
+	stagingData.addReportBinary(b)
 }
 
-// NewBinaryFuzzFound adds a FuzzReportAPI to the in-memory representation.
+// NewAPIFuzzFound adds a FuzzReportAPI to the in-memory staging representation.
 func NewAPIFuzzFound(a FuzzReportAPI) {
-	reportData.addReportAPI(a)
+	stagingData.addReportAPI(a)
+}
+
+// ClearStaging clears the staging representation.
+func ClearStaging() {
+	SetStaging([]FuzzReportFile{})
+}
+
+// SetStaging replaces the staging representation with the given FuzzReport.
+func SetStaging(r FuzzReport) {
+	stagingData.dataMutex.Lock()
+	defer stagingData.dataMutex.Unlock()
+	stagingData.data = r
+	stagingData.markDirty()
+}
+
+// StagingToCurrent moves a copy of the staging data to the currentData.
+func StagingToCurrent() {
+	currentData.dataMutex.Lock()
+	defer currentData.dataMutex.Unlock()
+	stagingData.dataMutex.Lock()
+	defer stagingData.dataMutex.Unlock()
+	currentData.data = cloneReport(stagingData.data)
+	currentData.markDirty()
+}
+
+// StagingCopy returns a fully copy of the underlying staging data.
+func StagingCopy() FuzzReport {
+	stagingData.dataMutex.Lock()
+	defer stagingData.dataMutex.Unlock()
+	return cloneReport(stagingData.data)
 }
 
 // addReportBinary adds a FuzzReportBinary to a fuzzReportBuilder's data member

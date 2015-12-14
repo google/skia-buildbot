@@ -13,7 +13,8 @@ import (
 )
 
 // DownloadSkiaVersionForFuzzing downloads the version of Skia specified in Google Storage
-// to the given path.  It returns an error on failure.
+// to the given path. On sucess, the SkiaVersion in config.Common is set to be the current version.
+// It returns an error on failure.
 func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string) error {
 	skiaVersion, err := getSkiaVersionFromGCS(storageClient)
 	if err != nil {
@@ -43,7 +44,9 @@ func getSkiaVersionFromGCS(storageClient *storage.Client) (string, error) {
 	return strings.SplitAfter(file, "skia_version/current/")[1], nil
 }
 
-// downloadSkia uses git to clone Skia from googlesource.com and check it out to the specified version
+// downloadSkia uses git to clone Skia from googlesource.com and check it out to the specified version.
+// Upon sucess, the SkiaVersion in config is set to be the current version and any dependencies
+// needed to compile Skia have been installed (e.g. the latest version of gyp).
 // It returns an error on failure.
 func downloadSkia(version, path string) error {
 	glog.Infof("Cloning Skia version %s to %s", version, path)

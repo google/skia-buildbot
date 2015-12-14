@@ -10,21 +10,39 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/functionnamefinder"
 	"go.skia.org/infra/fuzzer/go/fuzz"
+	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	"go.skia.org/infra/go/gs"
 	"google.golang.org/cloud/storage"
 )
 
+// LoadFromBoltDB loads the fuzz.FuzzReport from FuzzReportCache associated with the given hash.
+// The FuzzReport is first put into the staging fuzz cache, and then into the current.
+// If a cache for the commit does not exist, or there are other problems with the retrieval,
+// an error is returned.
+func LoadFromBoltDB(cache fuzzcache.FuzzReportCache) error {
+	if staging, err := cache.Load(config.Common.SkiaVersion.Hash); err != nil {
+		return fmt.Errorf("Problem decoding existing from bolt db: %s", err)
+	} else {
+		fuzz.SetStaging(*staging)
+		fuzz.StagingToCurrent()
+		glog.Info("Successfully loaded from bolt db cache")
+	}
+	return nil
+}
+
+// completedCounter is the number of fuzzes that have been downloaded from GCS, used for logging.
 var completedCounter int32
 
 // LoadFromGoogleStorage pulls all fuzzes out of GCS and loads them into memory.
 // The fuzzes are streamed into memory as they are fetched.  The partial result is available
 // via fuzz.FuzzSummary() and fuzz.FuzzDetails() prior to this function returning.
-func LoadFromGoogleStorage(storageClient *storage.Client, finder functionnamefinder.Finder) error {
+// Upon completion, the full results are cached to a boltDB instance.
+func LoadFromGoogleStorage(storageClient *storage.Client, finder functionnamefinder.Finder, cache fuzzcache.FuzzReportCache) error {
 	reports, err := getBinaryReportsFromGS(storageClient, fmt.Sprintf("binary_fuzzes/%s/bad/", config.Common.SkiaVersion.Hash))
 	if err != nil {
 		return err
 	}
-
+	fuzz.ClearStaging()
 	for report := range reports {
 		if finder != nil {
 			report.DebugStackTrace.LookUpFunctions(finder)
@@ -33,8 +51,9 @@ func LoadFromGoogleStorage(storageClient *storage.Client, finder functionnamefin
 		fuzz.NewBinaryFuzzFound(report)
 	}
 	glog.Info("All fuzzes loaded from Google Storage")
+	fuzz.StagingToCurrent()
 
-	return nil
+	return cache.Store(fuzz.StagingCopy(), config.Common.SkiaVersion.Hash)
 }
 
 type fuzzPackage struct {
@@ -48,7 +67,8 @@ type fuzzPackage struct {
 
 // getBinaryReportsFromGS pulls all files in baseFolder from the skia-fuzzer bucket and
 // groups them by fuzz.  It parses these groups of files into a FuzzReportBinary and returns
-// the slice of all reports generated in this way.
+// a channel through whcih all reports generated in this way will be streamed.
+// The channel will be closed when all reports are done being sent.
 func getBinaryReportsFromGS(storageClient *storage.Client, baseFolder string) (<-chan fuzz.FuzzReportBinary, error) {
 	reports := make(chan fuzz.FuzzReportBinary, 100)
 

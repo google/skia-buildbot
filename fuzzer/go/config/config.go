@@ -29,6 +29,7 @@ type aggregatorConfig struct {
 
 type frontendConfig struct {
 	SkiaRoot             string
+	BoltDBPath           string
 	NumDownloadProcesses int
 }
 

@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/frontend"
 	"go.skia.org/infra/fuzzer/go/functionnamefinder"
 	"go.skia.org/infra/fuzzer/go/fuzz"
+	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -54,6 +55,7 @@ var (
 	port           = flag.String("port", ":8001", "HTTP service port (e.g., ':8002')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	boltDBPath     = flag.String("bolt_db_path", "fuzzer-db", "The path to the bolt db to be used as a local cache.")
 	// OAUTH params
 	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	redirectURL   = flag.String("redirect_url", "https://fuzzer.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
@@ -66,7 +68,7 @@ var (
 	downloadProcesses = flag.Int("download_processes", 4, "The number of download processes to be used by fetching fuzzes.")
 )
 
-var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path"}
+var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path", "bolt_db_path"}
 
 func Init() {
 	reloadTemplates()
@@ -102,9 +104,19 @@ func main() {
 			glog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
+		cache, err := fuzzcache.New(config.FrontEnd.BoltDBPath)
+		if err != nil {
+			glog.Fatalf("Could not create fuzz report cache at %s: %s", config.FrontEnd.BoltDBPath, err)
+		}
+		defer util.Close(&cache)
+
+		if err := frontend.LoadFromBoltDB(cache); err != nil {
+			glog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
+		}
+
 		if finder, err := functionnamefinder.New(); err != nil {
 			glog.Fatalf("Error loading Skia Source: %s", err)
-		} else if err := frontend.LoadFromGoogleStorage(storageClient, finder); err != nil {
+		} else if err := frontend.LoadFromGoogleStorage(storageClient, finder, cache); err != nil {
 			glog.Fatalf("Error loading in data from GCS: %s", err)
 		}
 	}()
@@ -123,6 +135,7 @@ func writeFlagsToConfig() error {
 	if err != nil {
 		return err
 	}
+	config.FrontEnd.BoltDBPath = *boltDBPath
 	config.Common.ClangPath = *clangPath
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Common.DepotToolsPath = *depotToolsPath

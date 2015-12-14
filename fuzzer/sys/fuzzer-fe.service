@@ -7,6 +7,7 @@ After=network-online.target
 ExecStart=/usr/local/bin/fuzzer-fe \
   --log_dir=/var/log/logserver \
   --resources_dir=/usr/local/share/fuzzer/ \
+  --bolt_db_path=/mnt/pd0/fe-db \
   --host=fuzzer.skia.org \
   --graphite_server=skia-monitoring:2003 \
   --skia_root=/mnt/pd0/skia-fe \
