@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -96,6 +97,14 @@ func TestShareDB(t *testing.T) {
 	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "", ""})
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(foundKeys.Values))
+
+	foundResp, err := client.Get(ctx, &GetRequest{"Does-not-exist-either", bucketName, "does-not-exist"})
+	assert.NotNil(t, err)
+	assert.True(t, strings.Contains(err.Error(), "Does-not-exist-either"))
+
+	foundResp, err = client.Get(ctx, &GetRequest{dbName, bucketName, "does-not-exist"})
+	assert.Nil(t, err)
+	assert.Equal(t, "", string(foundResp.Value))
 }
 
 func startServer(t *testing.T, serverImpl ShareDBServer) (*grpc.Server, ShareDBClient, error) {

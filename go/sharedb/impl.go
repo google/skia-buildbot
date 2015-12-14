@@ -5,6 +5,7 @@ package sharedb
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -219,7 +220,7 @@ func (r *rpcServer) getDB(database string, create bool) (*bolt.DB, error) {
 	// Check if the database exists on disk.
 	databaseFile := filepath.Join(r.dataDir, database+".db")
 	if !create && !fileutil.FileExists(databaseFile) {
-		return nil, nil
+		return nil, fmt.Errorf("Database %s does not exist.", database)
 	}
 
 	db, err := bolt.Open(databaseFile, 0644, nil)
