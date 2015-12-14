@@ -5,19 +5,23 @@ import (
 	"testing"
 )
 
-// myObservation implements Clusterable.
+// myObservation implements Clusterable and Centroid.
 type myObservation struct {
 	x float64
 	y float64
 }
 
-func (m myObservation) Distance(other Clusterable) float64 {
-	o := other.(myObservation)
+func (m myObservation) Distance(c Clusterable) float64 {
+	o := c.(myObservation)
 	return math.Sqrt((m.x-o.x)*(m.x-o.x) + (m.y-o.y)*(m.y-o.y))
 }
 
+func (m myObservation) AsClusterable() Clusterable {
+	return m
+}
+
 // calculateCentroid implements CalculateCentroid.
-func calculateCentroid(members []Clusterable) Clusterable {
+func calculateCentroid(members []Clusterable) Centroid {
 	var sumX = 0.0
 	var sumY = 0.0
 	length := float64(len(members))
@@ -48,7 +52,7 @@ func TestBasicIteration(t *testing.T) {
 		myObservation{3.0, 0.0},
 		myObservation{3.0, 1.0},
 	}
-	centroids := []Clusterable{
+	centroids := []Centroid{
 		myObservation{0.0, 0.0},
 		myObservation{3.0, 0.0},
 	}
@@ -63,7 +67,7 @@ func TestEmptyCentroids(t *testing.T) {
 		myObservation{3.0, 0.0},
 		myObservation{3.0, 1.0},
 	}
-	centroids := []Clusterable{}
+	centroids := []Centroid{}
 	centroids = Do(observations, centroids, calculateCentroid)
 	if got, want := len(centroids), 0; got != want {
 		t.Errorf("Wrong length of centroids returned: Got %d, Want %d", got, want)
@@ -72,7 +76,7 @@ func TestEmptyCentroids(t *testing.T) {
 
 func TestEmptyEverything(t *testing.T) {
 	observations := []Clusterable{}
-	centroids := []Clusterable{}
+	centroids := []Centroid{}
 	centroids = Do(observations, centroids, calculateCentroid)
 	if got, want := len(centroids), 0; got != want {
 		t.Errorf("Wrong length of centroids returned: Got %d, Want %d", got, want)
@@ -84,7 +88,7 @@ func TestLosingCentroids(t *testing.T) {
 		myObservation{0.0, 0.0},
 		myObservation{3.0, 0.0},
 	}
-	centroids := []Clusterable{
+	centroids := []Centroid{
 		myObservation{0.0, 0.0},
 		myObservation{3.0, 0.0},
 		myObservation{3.0, 1.0},
@@ -105,7 +109,7 @@ func TestFullKmeans(t *testing.T) {
 		myObservation{6.0, 6.1},
 		myObservation{6.0, 6.2},
 	}
-	centroids := []Clusterable{
+	centroids := []Centroid{
 		myObservation{0.0, 0.0},
 		myObservation{3.0, 0.0},
 		myObservation{6.0, 6.0},

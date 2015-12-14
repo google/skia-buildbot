@@ -1,7 +1,8 @@
 // kmeans implements a generic k-means clustering algorithm.
 //
-// To use this code create a type that implements Clusterable and also
-// a function that implements CalculateCentroid.
+// To use this code create types that implements Clusterable, Centroid, and
+// also a function that implements CalculateCentroid. In many cases the same
+// type can be used as both a Clusterable and a Centroid.
 //
 // See the unit tests for examples.
 //
@@ -14,19 +15,27 @@ import (
 
 // Clusterable defines the interface that an object must support to do k-means
 // clustering on it.
-type Clusterable interface {
-	Distance(other Clusterable) float64
+type Clusterable interface{}
+
+// Centroid is the interface that Centroids must support to do k-means clustering.
+type Centroid interface {
+	// AsClusterable converts this Centroid to a Clusterable, or returns nil if
+	// the conversion isn't possible.
+	AsClusterable() Clusterable
+
+	// Distance returns the distance from the given Clusterable to this Centroid.
+	Distance(c Clusterable) float64
 }
 
 // CalculateCentroid calculates a new centroid from a list of Clusterables.
-type CalculateCentroid func([]Clusterable) Clusterable
+type CalculateCentroid func([]Clusterable) Centroid
 
 // closestCentroid returns the index of the closest centroid to this observation.
-func closestCentroid(observation Clusterable, centroids []Clusterable) (int, float64) {
+func closestCentroid(observation Clusterable, centroids []Centroid) (int, float64) {
 	var bestDistance float64 = math.MaxFloat64
 	bestIndex := -1
 	for j, c := range centroids {
-		if dist := observation.Distance(c); dist < bestDistance {
+		if dist := c.Distance(observation); dist < bestDistance {
 			bestDistance = dist
 			bestIndex = j
 		}
@@ -42,7 +51,7 @@ func closestCentroid(observation Clusterable, centroids []Clusterable) (int, flo
 //
 //  centroids = Do(observations, centroids, f)
 //
-func Do(observations, centroids []Clusterable, f CalculateCentroid) []Clusterable {
+func Do(observations []Clusterable, centroids []Centroid, f CalculateCentroid) []Centroid {
 	k := len(centroids)
 
 	// cluster is which cluster each observation is currently in.
@@ -53,7 +62,7 @@ func Do(observations, centroids []Clusterable, f CalculateCentroid) []Clusterabl
 		cluster[i], _ = closestCentroid(o, centroids)
 	}
 
-	newCentroids := make([]Clusterable, 0, len(centroids))
+	newCentroids := make([]Centroid, 0, len(centroids))
 	// Calculate new centroids based on each the new cluster members.
 	for i := 0; i < k; i++ {
 		c := make([]Clusterable, 0)
@@ -80,11 +89,16 @@ func (p SortableClusterSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // into.  The return value is sorted by the number of members of the cluster.
 // The very first element of each cluster is the centroid, the remainging
 // members are the observations that are in the cluster.
-func GetClusters(observations, centroids []Clusterable) ([][]Clusterable, float64) {
+func GetClusters(observations []Clusterable, centroids []Centroid) ([][]Clusterable, float64) {
 	r := make([][]Clusterable, len(centroids))
 	for i, _ := range r {
 		// The first trace is always the centroid for the cluster.
-		r[i] = []Clusterable{centroids[i]}
+		cl := centroids[i].AsClusterable()
+		if cl != nil {
+			r[i] = []Clusterable{cl}
+		} else {
+			r[i] = []Clusterable{}
+		}
 	}
 	totalError := 0.0
 	for _, o := range observations {
@@ -100,7 +114,7 @@ func GetClusters(observations, centroids []Clusterable) ([][]Clusterable, float6
 // returns the centroids and clusters.
 //
 // TODO(jcgregorio) Should just iterate until total error stops changing.
-func KMeans(observations, centroids []Clusterable, k, iters int, f CalculateCentroid) ([]Clusterable, [][]Clusterable) {
+func KMeans(observations []Clusterable, centroids []Centroid, k, iters int, f CalculateCentroid) ([]Centroid, [][]Clusterable) {
 	for i := 0; i < iters; i++ {
 		centroids = Do(observations, centroids, f)
 	}
@@ -110,7 +124,7 @@ func KMeans(observations, centroids []Clusterable, k, iters int, f CalculateCent
 
 // TotalError calculates the total error between the centroids and the
 // observations.
-func TotalError(observations, centroids []Clusterable) float64 {
+func TotalError(observations []Clusterable, centroids []Centroid) float64 {
 	_, totalError := GetClusters(observations, centroids)
 
 	return totalError

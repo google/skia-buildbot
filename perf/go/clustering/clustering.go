@@ -51,9 +51,9 @@ func NewClusterSummaries() *ClusterSummaries {
 
 // chooseK chooses a random sample of k observations. Used as the starting
 // point for the k-means clustering.
-func chooseK(observations []kmeans.Clusterable, k int) []kmeans.Clusterable {
+func chooseK(observations []kmeans.Clusterable, k int) []kmeans.Centroid {
 	popN := len(observations)
-	centroids := make([]kmeans.Clusterable, k)
+	centroids := make([]kmeans.Centroid, k)
 	for i := 0; i < k; i++ {
 		o := observations[rand.Intn(popN)].(*ctrace.ClusterableTrace)
 		cp := &ctrace.ClusterableTrace{
@@ -205,7 +205,7 @@ func (p SortableClusterSummarySlice) Less(i, j int) bool {
 func (p SortableClusterSummarySlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 
 // GetClusterSummaries returns a summaries for each cluster.
-func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits []*tiling.Commit) *ClusterSummaries {
+func GetClusterSummaries(observations []kmeans.Clusterable, centroids []kmeans.Centroid, commits []*tiling.Commit) *ClusterSummaries {
 	ret := &ClusterSummaries{
 		Clusters: make([]*types.ClusterSummary, len(centroids)),
 	}
@@ -233,7 +233,10 @@ func GetClusterSummaries(observations, centroids []kmeans.Clusterable, commits [
 		// centroid first.
 		sc := []*SortableClusterable{}
 		for j := 0; j < len(cluster); j++ {
-			sc = append(sc, &SortableClusterable{Cluster: cluster[j], Distance: cluster[j].Distance(cluster[0])})
+			sc = append(sc, &SortableClusterable{
+				Cluster:  cluster[j],
+				Distance: centroids[i].Distance(cluster[j]),
+			})
 		}
 		// Sort, but leave the centroid, the 0th element, unmoved.
 		sort.Sort(SortableClusterableSlice(sc[1:]))
