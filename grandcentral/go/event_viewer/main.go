@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
@@ -16,10 +18,24 @@ var (
 	nsqdAddress = flag.String("nsqd", "", "Address and port of nsqd instance.")
 )
 
+func init() {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s bucket prefix \n", os.Args[0])
+		flag.PrintDefaults()
+	}
+}
+
 func main() {
 	defer common.LogPanic()
 	common.Init()
 
+	args := flag.Args()
+	if len(args) != 2 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	bucket, prefix := args[0], args[1]
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		glog.Fatal(err)
@@ -36,7 +52,7 @@ func main() {
 	}
 
 	eventBus := eventbus.New(globalEventBus)
-	eventBus.SubscribeAsync(event.GLOBAL_GOOGLE_STORAGE, func(evData interface{}) {
+	eventBus.SubscribeAsync(event.StorageEvent(bucket, prefix), func(evData interface{}) {
 		data := evData.(*event.GoogleStorageEventData)
 		glog.Infof("Google Storage notification from bucket\n %s:  %s : %s", data.Updated, data.Bucket, data.Name)
 	})

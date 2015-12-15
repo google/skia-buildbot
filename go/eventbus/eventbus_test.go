@@ -115,6 +115,55 @@ func TestEventBusGlobally(t *testing.T) {
 	}
 }
 
+func TestSubTopics(t *testing.T) {
+	testutils.SkipIfShort(t)
+
+	const N_NUMBERS = 200
+	const ALL_NUMBERS_EVENT = "allNumbers"
+	const EVEN_NUMBERS_EVENT = "evenNumbers"
+
+	RegisterSubTopic(ALL_NUMBERS_EVENT, EVEN_NUMBERS_EVENT, func(data interface{}) bool {
+		i, ok := data.(int)
+		if !ok {
+			return false
+		}
+		return i%2 == 0
+	})
+
+	eventBus := New(nil)
+	allCh := make(chan int, N_NUMBERS*3)
+	evenCh := make(chan int, N_NUMBERS*3)
+	eventBus.SubscribeAsync(ALL_NUMBERS_EVENT, func(e interface{}) { allCh <- e.(int) })
+	eventBus.SubscribeAsync(EVEN_NUMBERS_EVENT, func(e interface{}) { evenCh <- e.(int) })
+
+	allExpected := []int{}
+	evenExpected := []int{}
+	for i := 0; i < N_NUMBERS; i++ {
+		eventBus.Publish(ALL_NUMBERS_EVENT, i)
+		allExpected = append(allExpected, i)
+		if i%2 == 0 {
+			evenExpected = append(evenExpected, i)
+		}
+	}
+
+	eventBus.Wait(ALL_NUMBERS_EVENT)
+	close(allCh)
+	close(evenCh)
+
+	assert.Equal(t, N_NUMBERS, len(allCh))
+	compChan(t, allExpected, allCh)
+	compChan(t, evenExpected, evenCh)
+}
+
+func compChan(t assert.TestingT, exp []int, ch <-chan int) {
+	actual := []int{}
+	for v := range ch {
+		actual = append(actual, v)
+	}
+	sort.Ints(actual)
+	assert.Equal(t, exp, actual)
+}
+
 type atomicMap struct {
 	m     map[int]*testType
 	mutex sync.Mutex

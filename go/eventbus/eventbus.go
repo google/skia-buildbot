@@ -33,16 +33,32 @@ type topicHandler struct {
 	wg        sync.WaitGroup
 }
 
-// GlobalEvents stores a map[topic]LRUCodec of global events that should
-// be available through this eventbus.
-var globalEvents map[string]util.LRUCodec = map[string]util.LRUCodec{}
+// SubTopicFilter is used to accept or reject messages from a topic for inclusion in a sub topic.
+type SubTopicFilter func(eventData interface{}) bool
 
-// globalEventsMutex protects globalEvents.
-var globalEventsMutex sync.Mutex
+// subTopicEntry stores the information to create a topic by filtering a topic.
+type subTopicEntry struct {
+	// topic to be filtered.
+	topic string
 
-// instanceCreated keeps track whether at least one instance of EventBus
-// has been created. If so we don't allow any more subscriptions.
-var instanceCreated = false
+	// filter function that accepts or rejects a message from the underlying topic.
+	filterFn SubTopicFilter
+}
+
+var (
+	// GlobalEvents stores a map[topic]LRUCodec of global events that should
+	// be available through this eventbus.
+	globalEvents map[string]util.LRUCodec = map[string]util.LRUCodec{}
+
+	// globalEventsMutex protects globalEvents.
+	globalEventsMutex sync.Mutex
+
+	// subTopics stores topics that we generate by filtering other topics.
+	subTopics map[string]*subTopicEntry = map[string]*subTopicEntry{}
+
+	// subTopicsMutex protects subTopics.
+	subTopicsMutex sync.Mutex
+)
 
 // RegisterGlobalEvent registers a global event to be handled by
 // instances of EventBus. A global event is identified by a topic(string)
@@ -55,20 +71,26 @@ var instanceCreated = false
 func RegisterGlobalEvent(topic string, codec util.LRUCodec) {
 	globalEventsMutex.Lock()
 	defer globalEventsMutex.Unlock()
-
-	// If a client tries to register an event after an EventBus has been
-	// instantiated we panic, because this constitutes a programming error.
-	if instanceCreated {
-		panic("Trying to register a global event after an instance of EventBus has already been created.")
-	}
 	globalEvents[topic] = codec
+}
+
+// RegisterSubTopic creates an event topic that is derived from an existing topic by
+// applying a filter. In the background it subscribes to 'topic'. If it receives an
+// event for topic it invokes the filter function. If the filter function returns true
+// it will emit an event for the sub topic.
+func RegisterSubTopic(topic, subTopic string, filterFn SubTopicFilter) {
+	subTopicsMutex.Lock()
+	defer subTopicsMutex.Unlock()
+	subTopics[subTopic] = &subTopicEntry{
+		topic:    topic,
+		filterFn: filterFn,
+	}
 }
 
 // New returns a new instance of EventBus
 func New(globalEventBus geventbus.GlobalEventBus) *EventBus {
 	globalEventsMutex.Lock()
 	defer globalEventsMutex.Unlock()
-	instanceCreated = true
 
 	// Make sure the global event bus does not double send what we already dispatched locally.
 	if globalEventBus != nil {
@@ -103,7 +125,10 @@ func (e *EventBus) publishEvent(topic string, arg interface{}, globally bool) {
 	}
 
 	if globally {
-		if eventCodec, ok := globalEvents[topic]; ok {
+		globalEventsMutex.Lock()
+		eventCodec, ok := globalEvents[topic]
+		globalEventsMutex.Unlock()
+		if ok {
 			go func() {
 				byteData, err := eventCodec.Encode(arg)
 				if err != nil {
@@ -125,6 +150,15 @@ func (e *EventBus) publishEvent(topic string, arg interface{}, globally bool) {
 func (e *EventBus) SubscribeAsync(topic string, callback CallbackFn) {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
+
+	if !e.subscribeToSubTopic(topic, callback) {
+		e.subscribeWithLock(topic, callback)
+	}
+}
+
+// subscribeWithLocks registers the given callback for the given topic. It assumes
+// that the subscription process has been locked with e.mutex.
+func (e *EventBus) subscribeWithLock(topic string, callback CallbackFn) {
 	if th, ok := e.handlers[topic]; ok {
 		th.callbacks = append(th.callbacks, callback)
 	} else {
@@ -152,7 +186,9 @@ func (e *EventBus) registerGlobalSubscription(topic string) error {
 	}
 
 	// This is not a global topic nothing to do here.
+	globalEventsMutex.Lock()
 	eventCodec, ok := globalEvents[topic]
+	globalEventsMutex.Unlock()
 	if !ok {
 		return nil
 	}
@@ -175,4 +211,21 @@ func (e *EventBus) registerGlobalSubscription(topic string) error {
 	})
 
 	return err
+}
+
+// subscribeToSubTopic returns true if the given 'subTopic' is indeed a registered sub topic.
+// In that case it will register for the underlying topic to filter events. This results in
+// a recursive call to SubscribeAsync.
+func (e *EventBus) subscribeToSubTopic(subTopic string, callback CallbackFn) bool {
+	subTopicsMutex.Lock()
+	entry, ok := subTopics[subTopic]
+	subTopicsMutex.Unlock()
+	if ok {
+		e.subscribeWithLock(entry.topic, func(data interface{}) {
+			if entry.filterFn(data) {
+				callback(data)
+			}
+		})
+	}
+	return ok
 }

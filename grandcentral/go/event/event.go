@@ -1,6 +1,11 @@
 package event
 
 import (
+	"crypto/md5"
+	"fmt"
+	"strings"
+
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/util"
 )
@@ -12,6 +17,22 @@ const (
 func init() {
 	// GLOBAL_GOOGLE_STORAGE even will be fired with an instance of GoogleStorageEventData
 	eventbus.RegisterGlobalEvent(GLOBAL_GOOGLE_STORAGE, util.JSONCodec(&GoogleStorageEventData{}))
+}
+
+func StorageEvent(bucket, prefix string) string {
+	// Generate a unique topic name. This is also necessary because bucket and prefix values
+	// can contain many more different characters than event names.
+	subTopic := fmt.Sprintf("%s-%x", GLOBAL_GOOGLE_STORAGE, md5.Sum([]byte(bucket+"/"+prefix)))
+	eventbus.RegisterSubTopic(GLOBAL_GOOGLE_STORAGE, subTopic, func(eventData interface{}) bool {
+		gsEvent, ok := eventData.(*GoogleStorageEventData)
+		if !ok {
+			glog.Errorf("Received data that was not an instance of GoogleStorageEventData.")
+			return false
+		}
+
+		return (gsEvent.Bucket == bucket) && strings.HasPrefix(gsEvent.Name, prefix)
+	})
+	return subTopic
 }
 
 type GoogleStorageEventData struct {
