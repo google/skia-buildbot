@@ -21,6 +21,11 @@ var requestSalt []byte = nil
 
 // InitRequestSaltForTesting sets requestSalt to "notverysecret". Should be called once at startup
 // when running in test mode.
+//
+// To test a webhook endpoint using curl, the following commands should work:
+// $ DATA='my post request'
+// $ AUTH="$(echo -n "${DATA}notverysecret" | sha512sum | xxd -r -p - | base64 -w 0)"
+// $ curl -v -H "X-Webhook-Auth-Hash: $AUTH" -d "$DATA" http://localhost:8000/endpoint
 func InitRequestSaltForTesting() {
 	requestSalt = []byte("notverysecret")
 }

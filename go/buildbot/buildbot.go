@@ -1,6 +1,10 @@
 package buildbot
 
-import "regexp"
+import (
+	"fmt"
+	"regexp"
+	"strings"
+)
 
 /*
 	Tools for loading data from Buildbot's JSON interface.
@@ -41,6 +45,20 @@ const (
 	BUILDBOT_WARNING = 1
 	BUILDBOT_FAILURE = 2
 )
+
+// Parse s as one of BUILDBOT_SUCCESS, BUILDBOT_WARNING, or BUILDBOT_FAILURE.
+func ParseResultsString(s string) (int, error) {
+	switch strings.ToLower(s) {
+	case "success":
+		return BUILDBOT_SUCCESS, nil
+	case "warning":
+		return BUILDBOT_WARNING, nil
+	case "failure":
+		return BUILDBOT_FAILURE, nil
+	default:
+		return 0, fmt.Errorf("Invalid buildbot Results code: %s", s)
+	}
+}
 
 // Build contains information about a single build.
 type Build struct {
@@ -107,52 +125,58 @@ func IsTrybot(b string) bool {
 	return TRYBOT_REGEXP.MatchString(b)
 }
 
-// GetProperty returns the key/value pair for a build property, if it exists,
-// and nil otherwise.
-func (b *Build) GetProperty(property string) interface{} {
+// GetProperty returns the value for a build property, if it exists. Otherwise returns an error.
+func (b *Build) GetProperty(property string) (interface{}, error) {
 	for _, propVal := range b.Properties {
-		if propVal[0].(string) == property {
-			return propVal
+		if len(propVal) >= 2 {
+			key, ok := propVal[0].(string)
+			if ok && key == property {
+				return propVal[1], nil
+			}
 		}
 	}
-	return nil
+	return nil, fmt.Errorf("No such property %s", property)
+}
+
+// GetStringProperty returns the value for a build property if it exists and it is a string. Otherwise returns an error.
+func (b *Build) GetStringProperty(property string) (string, error) {
+	val, err := b.GetProperty(property)
+	if err != nil {
+		return "", err
+	}
+	strVal, ok := val.(string)
+	if !ok {
+		return "", fmt.Errorf("Not a string property %s", property)
+	}
+	return strVal, nil
 }
 
 // GotRevision returns the revision to which a build was synced, or the empty
 // string if none.
 func (b *Build) gotRevision() string {
-	gotRevision := b.GetProperty("got_revision")
-	if gotRevision == nil {
+	if gotRevision, err := b.GetStringProperty("got_revision"); err == nil {
+		return gotRevision
+	} else {
 		return ""
 	}
-	if gotRevision.([]interface{})[1] == nil {
-		return ""
-	}
-	return gotRevision.([]interface{})[1].(string)
 }
 
 // Branch returns the branch whose commit(s) triggered this build.
 func (b *Build) branch() string {
-	branch := b.GetProperty("branch")
-	if branch == nil {
+	if branch, err := b.GetStringProperty("branch"); err == nil {
+		return branch
+	} else {
 		return ""
 	}
-	if branch.([]interface{})[1] == nil {
-		return ""
-	}
-	return branch.([]interface{})[1].(string)
 }
 
 // Repository returns the repository whose commit(s) triggered this build.
 func (b *Build) repository() string {
-	repo := b.GetProperty("repository")
-	if repo == nil {
+	if repo, err := b.GetStringProperty("repository"); err == nil {
+		return repo
+	} else {
 		return ""
 	}
-	if repo.([]interface{})[1] == nil {
-		return ""
-	}
-	return repo.([]interface{})[1].(string)
 }
 
 // Finished indicates whether the build has finished.

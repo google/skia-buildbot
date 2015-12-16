@@ -1,16 +1,17 @@
 /*
-	Pulls data from the Android Build APIs and funnels that into the buildbot database.
+	Funnels data from Google-internal sources into the buildbot database.
 
-  Android builds continuously in tradefed at the master branch with the latest roll
-  of Skia. There is also another branch 'git_master-skia' which contains the HEAD
-  of Skia instead of the last roll of Skia. This application continuously ingests
-  builds from git_master-skia and pushes them into the buildbot database so they
-  appear on status.skia.org. Since the target names may contain sensitive informaation
-  they are obfuscated when pushed to the buildbot database.
+  Android builds continuously in tradefed at the master branch with the latest roll of Skia. There
+  is also another branch 'git_master-skia' which contains the HEAD of Skia instead of the last roll
+  of Skia. Using the Android Build APIs, this application continuously ingests builds from
+  git_master-skia and pushes them into the buildbot database so they appear on status.skia.org.
+  Since the target names may contain sensitive information they are obfuscated when pushed to the
+  buildbot database.
 
-  This application also contains a redirector that will take links to the obfuscated
-  target name and build and return a link to the internal tradefed page with the
-  detailed build info.
+  Build info can also be POSTed to this application to directly ingest builds from Google3.
+
+  This application also contains a redirector that will take links to the obfuscated target name and
+  build and return a link to the internal page with the detailed build info.
 */
 package main
 
@@ -19,6 +20,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -38,6 +40,7 @@ import (
 	skmetics "go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/go/webhook"
 	"google.golang.org/api/storage/v1"
 )
 
@@ -50,6 +53,8 @@ const (
 
 	// MASTER is the git master branch we may check builds against.
 	MASTER = "git_master"
+
+	GOOGLE3_AUTOROLLER_TARGET_NAME = "Google3-Autoroller"
 )
 
 // flags
@@ -71,8 +76,16 @@ var (
 	// codenameDB is a leveldb to store codenames and their deobfuscated counterparts.
 	codenameDB *leveldb.DB
 
+	// repos provides information about the Git repositories in workdir.
+	repos *gitinfo.RepoMap
+
 	// liveness is a metric for the time since last successful run through step().
 	liveness = skmetics.NewLiveness("android_internal_ingest")
+
+	// noCodenameTargets is a set of targets that do not need to be obfuscated.
+	noCodenameTargets = map[string]bool{
+		GOOGLE3_AUTOROLLER_TARGET_NAME: true,
+	}
 )
 
 // isFinished returns true if the Build has finished running.
@@ -123,11 +136,6 @@ func buildFromCommit(build *androidbuildinternal.Build, commit *vcsinfo.ShortCom
 	return key, b
 }
 
-// buildsDiffer returns true if the given Build's have different finished or results status.
-func buildsDiffer(a, b *buildbot.Build) bool {
-	return a.IsFinished() != b.IsFinished() || a.Results != b.Results
-}
-
 // brokenOnMaster returns true if recent builds on master near the given buildID are unsuccessful.
 func brokenOnMaster(buildService *androidbuildinternal.Service, target, buildID string) bool {
 	r, err := buildService.Build.List().Branch(MASTER).BuildType("submitted").StartBuildId(buildID).Target(target).MaxResults(4).Do()
@@ -142,8 +150,55 @@ func brokenOnMaster(buildService *androidbuildinternal.Service, target, buildID 
 	return false
 }
 
+// ingestBuild encapsulates many of the steps of ingesting a build:
+//   - Record the mapping between the codename (build.Builder) and the internal target name.
+//   - If no matching build exists, assign a new build number for this build and insert it.
+//   - Otherwise, update the existing build to match the given build.
+func ingestBuild(build *buildbot.Build, commitHash, target string) error {
+	// Store build.Builder (the codename) with its pair build.Target.Name in a local leveldb to serve redirects.
+	if err := codenameDB.Put([]byte(build.Builder), []byte(target), nil); err != nil {
+		glog.Errorf("Failed to write codename to data store: %s", err)
+	}
+
+	buildNumber, err := buildbot.GetBuildForCommit(build.Builder, build.Master, commitHash)
+	if err != nil {
+		return fmt.Errorf("Failed to find the build in the database: %s", err)
+	}
+	glog.Infof("GetBuildForCommit at hash: %s returned %d", commitHash, buildNumber)
+	var cachedBuild *buildbot.Build
+	if buildNumber != -1 {
+		cachedBuild, err = buildbot.GetBuildFromDB(build.Builder, build.Master, buildNumber)
+		if err != nil {
+			return fmt.Errorf("Failed to retrieve build from database: %s", err)
+		}
+	}
+	if cachedBuild == nil {
+		// This is a new build we've never seen before, so add it to the buildbot database.
+
+		// TODO(benjaminwagner): This logic won't work well for concurrent requests. Revisit
+		// after borenet's "giant datahopper change."
+
+		// First calculate a new unique build.Number.
+		number, err := buildbot.GetMaxBuildNumber(build.Builder)
+		if err != nil {
+			return fmt.Errorf("Failed to find next build number: %s", err)
+		}
+		build.Number = number + 1
+		glog.Infof("Writing new build to the database: %s %d", build.Builder, build.Number)
+	} else {
+		// If the state of the build has changed then write it to the buildbot database.
+		build.Id = cachedBuild.Id
+		build.Number = cachedBuild.Number
+		glog.Infof("Writing updated build to the database: %s %d", build.Builder, build.Number)
+	}
+	if err := buildbot.IngestBuild(build, repos); err != nil {
+		return fmt.Errorf("Failed to ingest build: %s", err)
+	}
+	return nil
+}
+
 // step does a single step in ingesting builds from tradefed and pushing the results into the buildbot database.
-func step(targets []string, buildService *androidbuildinternal.Service, repos *gitinfo.RepoMap) {
+func step(targets []string, buildService *androidbuildinternal.Service) {
 	glog.Errorf("step: Begin")
 
 	if err := repos.Update(); err != nil {
@@ -164,7 +219,6 @@ func step(targets []string, buildService *androidbuildinternal.Service, repos *g
 			commits := androidbuild.CommitsFromChanges(b.Changes)
 			glog.Infof("Commits: %#v", commits)
 			if len(commits) > 0 {
-				var cachedBuild *buildbot.Build = nil
 				// Only look at the first commit in the list. The commits always appear in reverse chronological order, so
 				// the 0th entry is the most recent commit.
 				c := commits[0]
@@ -172,55 +226,14 @@ func step(targets []string, buildService *androidbuildinternal.Service, repos *g
 				key, build := buildFromCommit(b, c)
 				glog.Infof("Key: %s Hash: %s", key, c.Hash)
 
-				// Store build.Builder (the codename) with its pair build.Target.Name in a local leveldb to serve redirects.
-				if err := codenameDB.Put([]byte(build.Builder), []byte(b.Target.Name), nil); err != nil {
-					glog.Errorf("Failed to write codename to data store: %s", err)
+				// If this was a failure then we need to check that there is a
+				// mirror failure on the main branch, at which point we will say
+				// that this is a warning.
+				if build.Results == buildbot.BUILDBOT_FAILURE && brokenOnMaster(buildService, target, b.BuildId) {
+					build.Results = buildbot.BUILDBOT_WARNING
 				}
-
-				buildNumber, err := buildbot.GetBuildForCommit(build.Builder, build.Master, c.Hash)
-				if err != nil {
-					glog.Errorf("Failed to find the build in the database: %s", err)
-					continue
-				}
-				glog.Infof("GetBuildForCommit at hash: %s returned %d", c.Hash, buildNumber)
-				if buildNumber != -1 {
-					cachedBuild, err = buildbot.GetBuildFromDB(build.Builder, build.Master, buildNumber)
-					if err != nil {
-						glog.Errorf("Failed to retrieve build from database: %s", err)
-						continue
-					}
-				}
-				if cachedBuild == nil {
-					// This is a new build we've never seen before, so add it to the buildbot database.
-
-					// First calculate a new unique build.Number.
-					number, err := buildbot.GetMaxBuildNumber(build.Builder)
-					if err != nil {
-						glog.Infof("Failed to find next build number: %s", err)
-						continue
-					}
-					build.Number = number + 1
-					if err := buildbot.IngestBuild(build, repos); err != nil {
-						glog.Errorf("Failed to ingest build: %s", err)
-						continue
-					}
-					cachedBuild = build
-				}
-
-				// If the state of the build has changed then write it to the buildbot database.
-				if buildsDiffer(build, cachedBuild) {
-					// If this was a failure then we need to check that there is a mirror
-					// failure on the main branch, at which point we will say that this
-					// is a warning.
-					if build.Results == buildbot.BUILDBOT_FAILURE && brokenOnMaster(buildService, target, b.BuildId) {
-						build.Results = buildbot.BUILDBOT_WARNING
-					}
-					cachedBuild.Results = build.Results
-					cachedBuild.Finished = build.Finished
-					glog.Infof("Writing updated build to the database: %s %d", cachedBuild.Builder, cachedBuild.Number)
-					if err := buildbot.IngestBuild(cachedBuild, repos); err != nil {
-						glog.Errorf("Failed to ingest build: %s", err)
-					}
+				if err := ingestBuild(build, c.Hash, target); err != nil {
+					glog.Error(err)
 				}
 			}
 			liveness.Update()
@@ -237,7 +250,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 const (
-	REDIRECT_TEMPLATE = `<!DOCTYPE html>
+	LAUNCH_CONTROL_BUILD_REDIRECT_TEMPLATE = `<!DOCTYPE html>
 <html>
   <head><title>Redirect</title></head>
   <body>
@@ -248,7 +261,7 @@ const (
 </html>
 `
 
-	BUILDER_REDIRECT_TEMPLATE = `<!DOCTYPE html>
+	LAUNCH_CONTROL_BUILDER_REDIRECT_TEMPLATE = `<!DOCTYPE html>
 <html>
   <head><title>Redirect</title></head>
   <body>
@@ -258,9 +271,29 @@ const (
   </body>
 </html>
 `
+
+	GOOGLE3_AUTOROLLER_BORGCRON_REDIRECT_TEMPLATE = `<!DOCTYPE html>
+<html>
+  <head><title>Redirect</title></head>
+  <body>
+  <p>You are being redirected to the docs for the Google3 Autoroller.</p>
+  <p><a href='https://sites.google.com/a/google.com/skia-infrastructure/docs/google3-autoroller'>Google3 Autoroller</a></p>
+  </body>
+</html>
+`
+
+	TEST_RESULTS_REDIRECT_TEMPLATE = `<!DOCTYPE html>
+<html>
+  <head><title>Redirect</title></head>
+  <body>
+  <p>You are being redirected to the test results for <b>%s</b>.</p>
+  <p><a href='%s'>%s</a></p>
+  </body>
+</html>
+`
 )
 
-// redirectHandler handles redirecting to the correct tradefed page.
+// redirectHandler handles redirecting to the correct internal build page.
 func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	if login.LoggedInAs(r) == "" {
 		r.Header.Set("Referer", r.URL.String())
@@ -284,18 +317,27 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		util.ReportError(w, r, err, "Could not find a matching build.")
 	}
-	id, ok := build.GetProperty("androidinternal_buildid").([]interface{})[1].(string)
-	if !ok {
-		util.ReportError(w, r, fmt.Errorf("Got %#v", id), "Could not find a matching build id.")
+	result := ""
+	if id, err := build.GetStringProperty("androidinternal_buildid"); err == nil {
+		result = fmt.Sprintf(LAUNCH_CONTROL_BUILD_REDIRECT_TEMPLATE, codename, target, id, id, target, id, id, target)
+	} else if link, err := build.GetStringProperty("testResultsLink"); err == nil {
+		result = fmt.Sprintf(TEST_RESULTS_REDIRECT_TEMPLATE, target, link, link)
+	} else if cl, err := build.GetStringProperty("changeListNumber"); err == nil {
+		link = fmt.Sprintf("http://cl/%s", cl)
+		result = fmt.Sprintf(TEST_RESULTS_REDIRECT_TEMPLATE, target, link, link)
+	}
+	if result == "" {
+		glog.Errorf("No redirect for %#v", build)
+		util.ReportError(w, r, fmt.Errorf("No redirect for this build."), "")
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")
-	if _, err := w.Write([]byte(fmt.Sprintf(REDIRECT_TEMPLATE, codename, target, id, id, target, id, id, target))); err != nil {
-		glog.Errorf("Failed to write response: %s", err)
+	if _, err := w.Write([]byte(result)); err != nil {
+		util.ReportError(w, r, err, "Failed to write response")
 	}
 }
 
-// builderRedirectHandler handles redirecting to the correct tradefed page.
+// builderRedirectHandler handles redirecting to the correct internal builder page.
 func builderRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	if login.LoggedInAs(r) == "" {
 		r.Header.Set("Referer", r.URL.String())
@@ -310,8 +352,100 @@ func builderRedirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")
-	if _, err := w.Write([]byte(fmt.Sprintf(BUILDER_REDIRECT_TEMPLATE, codename, target, target, target))); err != nil {
+	response := ""
+	if string(target) == GOOGLE3_AUTOROLLER_TARGET_NAME {
+		response = GOOGLE3_AUTOROLLER_BORGCRON_REDIRECT_TEMPLATE
+	} else {
+		response = fmt.Sprintf(LAUNCH_CONTROL_BUILDER_REDIRECT_TEMPLATE, codename, target, target, target)
+	}
+	if _, err := w.Write([]byte(response)); err != nil {
 		glog.Errorf("Failed to write response: %s", err)
+	}
+}
+
+// ingestBuildHandler parses the JSON body as a build and ingests it. The request must be
+// authenticated via the protocol implemented in the webhook package. The client should retry this
+// request several times, because some errors may be temporary.
+func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
+	data, err := webhook.AuthenticateRequest(r)
+	if err != nil {
+		glog.Errorf("Failed authentication in ingestBuildHandler: %s", err)
+		util.ReportError(w, r, fmt.Errorf("Failed authentication."), "")
+		return
+	}
+	vars := map[string]string{}
+	if err := json.Unmarshal(data, &vars); err != nil {
+		util.ReportError(w, r, err, "Failed to parse request.")
+		return
+	}
+	target := vars["target"]
+	commitHash := vars["commitHash"]
+	status := vars["status"]
+	if target == "" || commitHash == "" || status == "" {
+		util.ReportError(w, r, err, "Invalid parameters.")
+		return
+	}
+	cl := vars["changeListNumber"]
+	link := vars["testResultsLink"]
+	codename := ""
+	if noCodenameTargets[target] {
+		codename = target
+	} else {
+		codename = util.StringToCodeName(target)
+	}
+	buildbotResults, err := buildbot.ParseResultsString(status)
+	if err != nil {
+		util.ReportError(w, r, err, "Invalid parameters.")
+		return
+	}
+	buildbotTime := float64(time.Now().UTC().Unix())
+	b := &buildbot.Build{
+		Builder:       codename,
+		Master:        FAKE_MASTER,
+		Number:        0,
+		BuildSlave:    FAKE_BUILDSLAVE,
+		Branch:        "master",
+		Commits:       nil,
+		GotRevision:   commitHash,
+		PropertiesStr: "",
+		Results:       buildbotResults,
+		Steps:         nil,
+		Times:         nil,
+		Started:       buildbotTime,
+		Finished:      buildbotTime,
+		Comments:      nil,
+		Repository:    "https://skia.googlesource.com/skia.git",
+	}
+	if cl != "" {
+		if clNum, err := strconv.Atoi(cl); err == nil {
+			b.Properties = append(b.Properties, []interface{}{"changeListNumber", strconv.Itoa(clNum), "datahopper_internal"})
+		} else {
+			util.ReportError(w, r, err, "Invalid parameters.")
+			return
+		}
+	}
+	if link != "" {
+		if url, err := url.Parse(link); err == nil {
+			b.Properties = append(b.Properties, []interface{}{"testResultsLink", url.String(), "datahopper_internal"})
+		} else {
+			util.ReportError(w, r, err, "Invalid parameters.")
+			return
+		}
+	}
+	// Fill in PropertiesStr based on Properties.
+	props, err := json.Marshal(b.Properties)
+	if err == nil {
+		b.PropertiesStr = string(props)
+	} else {
+		glog.Errorf("Failed to encode properties: %s", err)
+	}
+	if err := repos.Update(); err != nil {
+		util.ReportError(w, r, err, "Failed to update repos.")
+		return
+	}
+	if err := ingestBuild(b, commitHash, target); err != nil {
+		util.ReportError(w, r, err, "Failed to ingest build.")
+		return
 	}
 }
 
@@ -360,10 +494,17 @@ func main() {
 	}
 	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, *local)
 
+	if *local {
+		webhook.InitRequestSaltForTesting()
+	} else {
+		webhook.MustInitRequestSaltFromMetadata()
+	}
+
+	repos = gitinfo.NewRepoMap(*workdir)
+
 	// Ingest Android framework builds.
 	go func() {
 		glog.Infof("Starting.")
-		repos := gitinfo.NewRepoMap(*workdir)
 
 		// In this case we don't want a backoff transport since the Apiary backend
 		// seems to fail a lot, so we basically want to fall back to polling if a
@@ -378,9 +519,9 @@ func main() {
 			glog.Fatalf("Failed to obtain Android build service: %v", err)
 		}
 		glog.Infof("Ready to start loop.")
-		step(targets, buildService, repos)
+		step(targets, buildService)
 		for _ = range time.Tick(*period) {
-			step(targets, buildService, repos)
+			step(targets, buildService)
 		}
 	}()
 
@@ -388,6 +529,7 @@ func main() {
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/builders/{codename}/builds/{buildNumber}", redirectHandler)
 	r.HandleFunc("/builders/{codename}", builderRedirectHandler)
+	r.HandleFunc("/ingestBuild", ingestBuildHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

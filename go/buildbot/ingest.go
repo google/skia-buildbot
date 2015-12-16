@@ -460,9 +460,8 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.
 	build.GotRevision = build.gotRevision()
 	build.Master = master
 	build.Builder = builder
-	slaveProp := build.GetProperty("slavename").([]interface{})
-	if slaveProp != nil && len(slaveProp) == 3 {
-		build.BuildSlave = slaveProp[1].(string)
+	if slaveProp, err := build.GetStringProperty("slavename"); err == nil {
+		build.BuildSlave = slaveProp
 	}
 	build.Started = build.Times[0]
 	build.Finished = build.Times[1]
