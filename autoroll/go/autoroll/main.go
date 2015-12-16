@@ -46,6 +46,8 @@ var (
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
+	childName      = flag.String("childName", "Skia", "Name of the project to roll.")
+	childPath      = flag.String("childPath", "src/third_party/skia", "Path within Chromium repo of the project to roll.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
 )
@@ -128,8 +130,14 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *testing {
 		reloadTemplates()
 	}
-
-	if err := mainTemplate.Execute(w, struct{}{}); err != nil {
+	mainPage := struct {
+		ProjectName string
+		ProjectUser string
+	}{
+		ProjectName: *childName,
+		ProjectUser: arb.User(),
+	}
+	if err := mainTemplate.Execute(w, mainPage); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -185,7 +193,7 @@ func main() {
 	}
 
 	// Start the autoroller.
-	arb, err = autoroller.NewAutoRoller(*workdir, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute, *depot_tools)
+	arb, err = autoroller.NewAutoRoller(*workdir, *childPath, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute, *depot_tools)
 	if err != nil {
 		glog.Fatal(err)
 	}

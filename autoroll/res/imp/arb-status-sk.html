@@ -16,6 +16,7 @@
 
   Properties:
     reload - How often (in seconds) to reload data.
+    rollUser - User who creates the DEPS rolls.
 
   Methods:
     None.
@@ -170,8 +171,8 @@
         <div class="tr">
           <div class="td nowrap">Full History:</div>
           <div class="td">
-            <a href="https://codereview.chromium.org/user/skia-deps-roller" target="_blank">
-              https://codereview.chromium.org/user/skia-deps-roller
+            <a href$="{{_rollUserURL}}" target="_blank">
+              {{_rollUserURL}}
             </a>
           </div>
         </div>
@@ -216,6 +217,14 @@
           type: Number,
           observer: "_reloadChanged",
           value: 60,
+        },
+        rollUser: {
+          type: String,
+          value: "skia-deps-roller@chromium.org",
+        },
+        _rollUserURL: {
+          type: String,
+          computed: "_computeRollUserURL(rollUser)",
         },
         initialSelectedMode: {
           type: Number,
@@ -286,6 +295,10 @@
           this._modeChangePending = false;
           sk.errorMessage("Failed to change the mode: " + err);
         });
+      },
+
+      _computeRollUserURL: function(rollUser) {
+        return "https://codereview.chromium.org/user/" + rollUser;
       },
 
       _computeShowError: function(editRights, error) {

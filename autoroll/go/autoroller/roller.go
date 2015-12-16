@@ -53,8 +53,8 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, tickFrequency, repoFrequency time.Duration, depot_tools string) (*AutoRoller, error) {
-	rm, err := repo_manager.NewRepoManager(workdir, repoFrequency, depot_tools)
+func NewAutoRoller(workdir, childPath string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, tickFrequency, repoFrequency time.Duration, depot_tools string) (*AutoRoller, error) {
+	rm, err := repo_manager.NewRepoManager(workdir, childPath, repoFrequency, depot_tools)
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +300,7 @@ func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, erro
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get issue properties: %s", err)
 	}
-	a, err := autoroll.FromRietveldIssue(issue, r.rm.FullSkiaHash)
+	a, err := autoroll.FromRietveldIssue(issue, r.rm.FullChildHash)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to convert issue format: %s", err)
 	}
@@ -363,8 +363,8 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 					status = STATUS_DRY_RUN_SUCCESS
 				}
 				glog.Infof("Dry run is finished: %v", currentRoll)
-				if currentRoll.RollingTo != r.rm.SkiaHead() {
-					if err := r.closeIssue(currentRoll, result, fmt.Sprintf("Skia has passed %s; will open a new dry run.", currentRoll.RollingTo)); err != nil {
+				if currentRoll.RollingTo != r.rm.ChildHead() {
+					if err := r.closeIssue(currentRoll, result, fmt.Sprintf("Repo has passed %s; will open a new dry run.", currentRoll.RollingTo)); err != nil {
 						return STATUS_ERROR, err
 					}
 				} else if currentRoll.Result != result {
@@ -451,8 +451,8 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 	}
 
 	// If we're up-to-date, exit.
-	if r.rm.LastRollRev() == r.rm.SkiaHead() {
-		glog.Infof("Skia is up-to-date.")
+	if r.rm.LastRollRev() == r.rm.ChildHead() {
+		glog.Infof("Repo is up-to-date.")
 		return STATUS_UP_TO_DATE, nil
 	}
 
@@ -474,4 +474,8 @@ func (r *AutoRoller) doAutoRollInner() (string, error) {
 		return STATUS_DRY_RUN_IN_PROGRESS, nil
 	}
 	return STATUS_IN_PROGRESS, nil
+}
+
+func (r *AutoRoller) User() string {
+	return r.rm.User()
 }

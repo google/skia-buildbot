@@ -3,7 +3,7 @@
   <head>
     {{template "header.html" .}}
 
-    <title>Skia AutoRoll Bot</title>
+    <title>{{.ProjectName}} AutoRoll Bot</title>
 
   </head>
   <body class="fullbleed vertical layout unresolved">
@@ -23,8 +23,8 @@
     }
     </style>
     <app-sk id="app" class="fit" no_drawer>
-      <h1 toolbar>Skia AutoRoll Bot</h1>
-      <arb-status-sk></arb-status-sk>
+      <h1 toolbar>{{.ProjectName}} AutoRoll Bot</h1>
+      <arb-status-sk roll-user="{{.ProjectUser}}"></arb-status-sk>
     </app-sk>
   </body>
 </html>

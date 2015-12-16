@@ -17,13 +17,12 @@ import (
 )
 
 const (
-	DEPS_ROLL_BRANCH = "skia_roll"
+	DEPS_ROLL_BRANCH = "roll_branch"
 
 	GCLIENT  = "gclient"
 	ROLL_DEP = "roll-dep"
 
 	REPO_CHROMIUM = "https://chromium.googlesource.com/chromium/src.git"
-	REPO_SKIA     = "https://skia.googlesource.com/skia.git"
 
 	TMPL_CQ_INCLUDE_TRYBOTS = "CQ_INCLUDE_TRYBOTS=%s"
 )
@@ -33,17 +32,20 @@ var (
 
 	// Use this function to instantiate a RepoManager. This is able to be
 	// overridden for testing.
-	NewRepoManager func(string, time.Duration, string) (RepoManager, error) = NewDefaultRepoManager
+	NewRepoManager func(string, string, time.Duration, string) (RepoManager, error) = NewDefaultRepoManager
+
+	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as (\\w+).", autoroll.RIETVELD_URL))
 )
 
 // RepoManager is used by AutoRoller for managing checkouts.
 type RepoManager interface {
 	ForceUpdate() error
-	FullSkiaHash(string) (string, error)
+	FullChildHash(string) (string, error)
 	LastRollRev() string
 	RolledPast(string) bool
-	SkiaHead() string
+	ChildHead() string
 	CreateNewRoll([]string, []string, bool) (int64, error)
+	User() string
 }
 
 // repoManager is a struct used by AutoRoller for managing checkouts.
@@ -55,14 +57,33 @@ type repoManager struct {
 	lastRollRev       string
 	mtx               sync.RWMutex
 	rollDep           string
-	skiaDir           string
-	skiaHead          string
-	skiaRepo          *gitinfo.GitInfo
+	childDir          string
+	childHead         string
+	childPath         string
+	childRepo         *gitinfo.GitInfo
+	user              string
+}
+
+// getDepotToolsUser returns the authorized depot tools user.
+func getDepotToolsUser(depotTools string) (string, error) {
+	output, err := exec.RunCommand(&exec.Command{
+		Env:  []string{fmt.Sprintf("PATH=%s:%s", depotTools, os.Getenv("PATH"))},
+		Name: path.Join(depotTools, "depot-tools-auth"),
+		Args: []string{"info", autoroll.RIETVELD_URL},
+	})
+	if err != nil {
+		return "", err
+	}
+	m := DEPOT_TOOLS_AUTH_USER_REGEX.FindStringSubmatch(output)
+	if len(m) != 2 {
+		return "", fmt.Errorf("Unable to parse the output of depot-tools-auth.")
+	}
+	return m[1], nil
 }
 
 // NewDefaultRepoManager returns a RepoManager instance which operates in the given
 // working directory and updates at the given frequency.
-func NewDefaultRepoManager(workdir string, frequency time.Duration, depot_tools string) (RepoManager, error) {
+func NewDefaultRepoManager(workdir, childPath string, frequency time.Duration, depot_tools string) (RepoManager, error) {
 	gclient := GCLIENT
 	rollDep := ROLL_DEP
 	if depot_tools != "" {
@@ -72,14 +93,22 @@ func NewDefaultRepoManager(workdir string, frequency time.Duration, depot_tools 
 
 	chromiumParentDir := path.Join(workdir, "chromium")
 	chromiumDir := path.Join(chromiumParentDir, "src")
+
+	user, err := getDepotToolsUser(depot_tools)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to determine depot tools user: %s", err)
+	}
+
 	r := &repoManager{
 		chromiumDir:       chromiumDir,
 		chromiumParentDir: chromiumParentDir,
 		depot_tools:       depot_tools,
 		gclient:           gclient,
 		rollDep:           rollDep,
-		skiaDir:           path.Join(chromiumDir, "third_party", "skia"),
-		skiaRepo:          nil, // This will be filled in on the first update.
+		childDir:          path.Join(chromiumParentDir, childPath),
+		childPath:         childPath,
+		childRepo:         nil, // This will be filled in on the first update.
+		user:              user,
 	}
 	if err := r.update(); err != nil {
 		return nil, err
@@ -128,13 +157,13 @@ func (r *repoManager) update() error {
 		return err
 	}
 
-	// Create the Skia GitInfo if needed.
-	if r.skiaRepo == nil {
-		skiaRepo, err := gitinfo.NewGitInfo(r.skiaDir, false, true)
+	// Create the child GitInfo if needed.
+	if r.childRepo == nil {
+		childRepo, err := gitinfo.NewGitInfo(r.childDir, false, true)
 		if err != nil {
 			return err
 		}
-		r.skiaRepo = skiaRepo
+		r.childRepo = childRepo
 	}
 
 	// Get the last roll revision.
@@ -144,12 +173,12 @@ func (r *repoManager) update() error {
 	}
 	r.lastRollRev = lastRollRev
 
-	// Record Skia HEAD
-	skiaHead, err := r.skiaRepo.FullHash("origin/master")
+	// Record child HEAD
+	childHead, err := r.childRepo.FullHash("origin/master")
 	if err != nil {
 		return err
 	}
-	r.skiaHead = skiaHead
+	r.childHead = childHead
 	return nil
 }
 
@@ -166,7 +195,7 @@ func (r *repoManager) getLastRollRev() (string, error) {
 	}
 	split := strings.Split(output, "\n")
 	for _, s := range split {
-		if strings.HasPrefix(s, "src/third_party/skia") {
+		if strings.HasPrefix(s, r.childPath) {
 			subs := strings.Split(s, "@")
 			if len(subs) != 2 {
 				return "", fmt.Errorf("Failed to parse output of `gclient revinfo`")
@@ -177,15 +206,15 @@ func (r *repoManager) getLastRollRev() (string, error) {
 	return "", fmt.Errorf("Failed to parse output of `gclient revinfo`")
 }
 
-// FullSkiaHash returns the full hash of the given short hash or ref in the
-// Skia repo.
-func (r *repoManager) FullSkiaHash(shortHash string) (string, error) {
+// FullChildHash returns the full hash of the given short hash or ref in the
+// child repo.
+func (r *repoManager) FullChildHash(shortHash string) (string, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
-	return r.skiaRepo.FullHash(shortHash)
+	return r.childRepo.FullHash(shortHash)
 }
 
-// LastRollRev returns the last-rolled Skia commit.
+// LastRollRev returns the last-rolled child commit.
 func (r *repoManager) LastRollRev() string {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
@@ -196,17 +225,17 @@ func (r *repoManager) LastRollRev() string {
 func (r *repoManager) RolledPast(hash string) bool {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
-	if _, err := exec.RunCwd(r.skiaDir, "git", "merge-base", "--is-ancestor", hash, r.lastRollRev); err != nil {
+	if _, err := exec.RunCwd(r.childDir, "git", "merge-base", "--is-ancestor", hash, r.lastRollRev); err != nil {
 		return false
 	}
 	return true
 }
 
-// SkiaHead returns the current Skia origin/master branch head.
-func (r *repoManager) SkiaHead() string {
+// ChildHead returns the current child origin/master branch head.
+func (r *repoManager) ChildHead() string {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
-	return r.skiaHead
+	return r.childHead
 }
 
 // cleanChromium forces the Chromium checkout into a clean state.
@@ -260,7 +289,7 @@ func (r *repoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool
 		Dir:  r.chromiumDir,
 		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
 		Name: r.rollDep,
-		Args: []string{"src/third_party/skia", r.skiaHead},
+		Args: []string{r.childPath, r.childHead},
 	}); err != nil {
 		return 0, err
 	}
@@ -302,4 +331,8 @@ func (r *repoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool
 		return 0, fmt.Errorf("Failed to find newly-uploaded issue number!")
 	}
 	return strconv.ParseInt(issues[1], 10, 64)
+}
+
+func (r *repoManager) User() string {
+	return r.user
 }
