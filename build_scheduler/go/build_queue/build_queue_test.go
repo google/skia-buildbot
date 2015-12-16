@@ -105,7 +105,7 @@ func TestBuildScoring(t *testing.T) {
 
 	details := map[string]*vcsinfo.LongCommit{}
 	for _, h := range hashes {
-		d, err := repo.Details(h)
+		d, err := repo.Details(h, false)
 		assert.Nil(t, err)
 		details[h] = d
 	}
@@ -259,7 +259,7 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	assert.Nil(t, err)
 
 	// Fake time.Now()
-	details, err := repo.Details(hashes['I'])
+	details, err := repo.Details(hashes['I'], false)
 	assert.Nil(t, err)
 	now := details.Timestamp.Add(1 * time.Hour)
 

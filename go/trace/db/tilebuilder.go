@@ -111,7 +111,7 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 			c.Desc = issueInfo.Subject
 		} else {
 			// vcsinfo
-			details, err := b.vcs.Details(c.ID)
+			details, err := b.vcs.Details(c.ID, true)
 			if err != nil {
 				glog.Errorf("Failed to get details for commit from Git %s: %s", c.ID, err)
 				continue

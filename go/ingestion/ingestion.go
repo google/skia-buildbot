@@ -332,7 +332,7 @@ func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
 	}
 
 	// Get the commit time of the first commit of interest.
-	detail, err := i.vcs.Details(hashes[0])
+	detail, err := i.vcs.Details(hashes[0], true)
 	if err != nil {
 		return 0, 0, err
 	}

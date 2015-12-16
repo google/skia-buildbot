@@ -380,7 +380,7 @@ func findCommitsRecursive(bc BuildCache, commits map[string]bool, b *Build, hash
 	commits[hash] = true
 
 	// Recurse on the commit's parents.
-	c, err := repo.Details(hash)
+	c, err := repo.Details(hash, false)
 	if err != nil {
 		// Special case. Commits can disappear from the repository
 		// after they're picked up by the buildbots but before they're
@@ -422,7 +422,7 @@ func FindCommitsForBuild(bc BuildCache, b *Build, repos *gitinfo.RepoMap) ([]str
 
 	// Update (git pull) on demand.
 	if b.GotRevision != "" {
-		if _, err := repo.Details(b.GotRevision); err != nil {
+		if _, err := repo.Details(b.GotRevision, false); err != nil {
 			if err := repo.Update(true, true); err != nil {
 				return nil, -1, nil, fmt.Errorf("Could not find commits for build: failed to update repo: %s", err)
 			}

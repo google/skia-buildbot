@@ -151,7 +151,7 @@ func (c *CommitCache) update() (rv error) {
 	newCommits := make([]*vcsinfo.LongCommit, len(newCommitHashes))
 	if len(newCommitHashes) > 0 {
 		for i, h := range newCommitHashes {
-			d, err := c.repo.Details(h)
+			d, err := c.repo.Details(h, false)
 			if err != nil {
 				return fmt.Errorf("Failed to obtain commit details for %s: %v", h, err)
 			}

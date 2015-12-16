@@ -28,5 +28,5 @@ type VCS interface {
 	From(start time.Time) []string
 
 	// Details returns the full commit information for the given hash.
-	Details(hash string) (*LongCommit, error)
+	Details(hash string, getBranches bool) (*LongCommit, error)
 }

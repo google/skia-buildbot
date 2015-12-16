@@ -69,7 +69,7 @@ func downloadSkia(version, path string) error {
 		return fmt.Errorf("Failed syncing and setting up gyp: %s", err)
 	}
 
-	if lc, err := repo.Details(version); err != nil {
+	if lc, err := repo.Details(version, true); err != nil {
 		glog.Errorf("Could not get git details for skia version %s: %s", version, err)
 	} else {
 		config.SetSkiaVersion(lc)

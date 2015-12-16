@@ -343,7 +343,7 @@ func (i *Ingester) UpdateCommitInfo(pull bool) error {
 			glog.Errorf("UpdateCommitInfo Move(%s) failed with: %s", hash, err)
 			continue
 		}
-		details, err := i.git.Details(hash)
+		details, err := i.git.Details(hash, true)
 		if err != nil {
 			glog.Errorf("Failed to get details for hash: %s: %s", hash, err)
 			continue

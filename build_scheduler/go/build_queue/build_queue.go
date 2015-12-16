@@ -217,7 +217,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	}
 	recentCommitsPreload := repo.From(fromPreload)
 	for _, c := range recentCommitsPreload {
-		if _, err := repo.Details(c); err != nil {
+		if _, err := repo.Details(c, false); err != nil {
 			return nil, fmt.Errorf(errMsg, err)
 		}
 	}
@@ -295,7 +295,7 @@ func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []str
 		if score < q.scoreThreshold {
 			break
 		}
-		d, err := repo.Details(newBuild.GotRevision)
+		d, err := repo.Details(newBuild.GotRevision, false)
 		if err != nil {
 			return nil, err
 		}
@@ -333,7 +333,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
-		d, err := repo.Details(commit)
+		d, err := repo.Details(commit, false)
 		if err != nil {
 			return 0.0, nil, nil, err
 		}
@@ -377,7 +377,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 		// Re-score all commits in the new build.
 		newBuild.Commits = commits
 		for _, c := range commits {
-			d, err := repo.Details(c)
+			d, err := repo.Details(c, false)
 			if err != nil {
 				return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 			}
@@ -423,7 +423,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 			}
 			stoleFromBuild.Commits = newCommits
 			for _, c := range stoleFromBuild.Commits {
-				d, err := repo.Details(c)
+				d, err := repo.Details(c, false)
 				if err != nil {
 					return 0.0, nil, nil, err
 				}
@@ -479,7 +479,7 @@ func (q *BuildQueue) Pop(builders []string) (*BuildCandidate, error) {
 			if err != nil {
 				return nil, err
 			}
-			details, err := r.Details(h)
+			details, err := r.Details(h, false)
 			if err != nil {
 				return nil, err
 			}

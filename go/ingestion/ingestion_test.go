@@ -119,7 +119,7 @@ func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
 	hashes := vcs.From(time.Unix(0, 0))
 	ret := make([]ResultFileLocation, 0, len(hashes))
 	for _, h := range hashes {
-		detail, err := vcs.Details(h)
+		detail, err := vcs.Details(h, true)
 		assert.Nil(t, err)
 		ret = append(ret, rfLocation(detail.Timestamp, fmt.Sprintf("result-file-%s", h)))
 	}

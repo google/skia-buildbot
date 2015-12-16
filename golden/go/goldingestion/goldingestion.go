@@ -58,7 +58,7 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
-	commit, err := g.vcs.Details(dmResults.GitHash)
+	commit, err := g.vcs.Details(dmResults.GitHash, true)
 	if err != nil {
 		return err
 	}

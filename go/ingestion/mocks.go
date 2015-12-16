@@ -32,7 +32,7 @@ func (m mockVCS) From(start time.Time) []string {
 	return ret
 }
 
-func (m mockVCS) Details(hash string) (*vcsinfo.LongCommit, error) {
+func (m mockVCS) Details(hash string, getBranches bool) (*vcsinfo.LongCommit, error) {
 	for _, commit := range m {
 		if commit.Hash == hash {
 			return commit, nil

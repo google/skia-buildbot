@@ -35,7 +35,7 @@ func TestDisplay(t *testing.T) {
 		},
 	}
 	for _, tc := range testCases {
-		details, err := r.Details(tc.hash)
+		details, err := r.Details(tc.hash, true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -375,7 +375,7 @@ func TestBranchInfo(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		details, err := r.Details(tc.commitHash)
+		details, err := r.Details(tc.commitHash, true)
 		assert.Nil(t, err)
 		assert.True(t, details.Branches[tc.branchName])
 		assert.Equal(t, tc.nBranches, len(details.Branches))

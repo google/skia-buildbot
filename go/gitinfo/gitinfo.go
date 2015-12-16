@@ -98,7 +98,7 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 }
 
 // Details returns more information than ShortCommit about a given commit.
-func (g *GitInfo) Details(hash string) (*vcsinfo.LongCommit, error) {
+func (g *GitInfo) Details(hash string, getBranches bool) (*vcsinfo.LongCommit, error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	if c, ok := g.detailsCache[hash]; ok {
@@ -112,9 +112,12 @@ func (g *GitInfo) Details(hash string) (*vcsinfo.LongCommit, error) {
 	if len(lines) != 5 {
 		return nil, fmt.Errorf("Failed to parse output of 'git log'.")
 	}
-	branches, err := g.getBranchesForCommit(hash)
-	if err != nil {
-		return nil, err
+	branches := map[string]bool{}
+	if getBranches {
+		branches, err = g.getBranchesForCommit(hash)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	c := vcsinfo.LongCommit{

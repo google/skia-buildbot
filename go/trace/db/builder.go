@@ -107,7 +107,7 @@ func (t *Builder) LoadTile() error {
 
 	// Now populate the author for each commit.
 	for _, c := range tile.Commits {
-		details, err := t.git.Details(c.Hash)
+		details, err := t.git.Details(c.Hash, true)
 		if err != nil {
 			return fmt.Errorf("Couldn't fill in author info in tile for commit %s: %s", c.Hash, err)
 		}
