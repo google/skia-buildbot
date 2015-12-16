@@ -34,7 +34,7 @@ var (
 	// overridden for testing.
 	NewRepoManager func(string, string, time.Duration, string) (RepoManager, error) = NewDefaultRepoManager
 
-	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as (\\w+).", autoroll.RIETVELD_URL))
+	DEPOT_TOOLS_AUTH_USER_REGEX = regexp.MustCompile(fmt.Sprintf("Logged in to %s as ([\\w-]+).", autoroll.RIETVELD_URL))
 )
 
 // RepoManager is used by AutoRoller for managing checkouts.
