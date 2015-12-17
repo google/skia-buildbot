@@ -9,9 +9,11 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"text/template"
 	"time"
 
@@ -48,12 +50,25 @@ var (
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
 	childName      = flag.String("childName", "Skia", "Name of the project to roll.")
 	childPath      = flag.String("childPath", "src/third_party/skia", "Path within Chromium repo of the project to roll.")
+	cqExtraTrybots = flag.String("cqExtraTrybots", "", "Comma-separated list of trybots to run.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	sheriff        = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
 	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
 )
 
 func getSheriff() ([]string, error) {
-	resp, err := http.Get("https://skia-tree-status.appspot.com/current-sheriff")
+	// If the passed-in sheriff doesn't look like a URL, it's probably an
+	// email address. Use it directly.
+	if _, err := url.ParseRequestURI(*sheriff); err != nil {
+		if strings.Count(*sheriff, "@") == 1 {
+			return []string{*sheriff}, nil
+		} else {
+			return nil, fmt.Errorf("Sheriff must be an email address or a valid URL; %q doesn't look like either.", *sheriff)
+		}
+	}
+
+	// Hit the URL to get the email address. Expect JSON.
+	resp, err := http.Get(*sheriff)
 	if err != nil {
 		return nil, err
 	}
@@ -67,8 +82,8 @@ func getSheriff() ([]string, error) {
 	return []string{sheriff.Username}, nil
 }
 
-func getCQExtraTrybots() ([]string, error) {
-	return []string{"tryserver.blink:linux_blink_rel"}, nil
+func getCQExtraTrybots() []string {
+	return strings.Split(*cqExtraTrybots, ",")
 }
 
 func reloadTemplates() {
@@ -181,16 +196,15 @@ func main() {
 
 	// Retrieve the list of extra CQ trybots.
 	// TODO(borenet): Make this editable on the web front-end.
-	cqExtraTrybots, err := getCQExtraTrybots()
-	if err != nil {
-		glog.Fatal(err)
-	}
+	cqExtraTrybots := getCQExtraTrybots()
+	glog.Infof("CQ extra trybots: %s", strings.Join(cqExtraTrybots, ", "))
 
 	// Retrieve the initial email list.
 	emails, err := getSheriff()
 	if err != nil {
 		glog.Fatal(err)
 	}
+	glog.Infof("Sheriff: %s", strings.Join(emails, ", "))
 
 	// Start the autoroller.
 	arb, err = autoroller.NewAutoRoller(*workdir, *childPath, cqExtraTrybots, emails, r, time.Minute, 15*time.Minute, *depot_tools)
