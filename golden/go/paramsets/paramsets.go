@@ -102,22 +102,10 @@ func (s *Summary) updateParamSets() {
 // Get returns the paramset for the given digest. If 'include' is true
 // then the paramset is calculated including ignored traces.
 func (s *Summary) Get(test, digest string, include bool) map[string][]string {
-	// TODO(stephana): Fix the bug that forces us to update the param sets if we
-	// cannot find them. This is very slow and ineficient.
-	for i := 0; i < 2; i++ {
-		ret := func() map[string][]string {
-			s.mutex.RLock()
-			defer s.mutex.RUnlock()
-			if include {
-				return s.byTraceIncludeIgnored[test+":"+digest]
-			} else {
-				return s.byTrace[test+":"+digest]
-			}
-		}()
-		if ret != nil {
-			return ret
-		}
-		s.updateParamSets()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+	if include {
+		return s.byTraceIncludeIgnored[test+":"+digest]
 	}
-	return nil
+	return s.byTrace[test+":"+digest]
 }

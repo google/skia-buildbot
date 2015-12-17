@@ -60,7 +60,7 @@ touch_elements:
 
 .PHONY: release
 release: all
-	cd ../perf && $(MAKE) ingest
+	go install ../perf/go/ingest/...
 
 .PHONY: allgo
 allgo: skiacorrectness correctness_migratedb imagediff
