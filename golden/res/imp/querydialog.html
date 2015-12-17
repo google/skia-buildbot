@@ -92,6 +92,7 @@ a query string.
       open: function() {
         this.$.q.setSelections(this.query);
         this.$.dialog.style.display = 'block';
+        this.$.q.$.fast.$.input.focus();
       },
 
       close: function() {
