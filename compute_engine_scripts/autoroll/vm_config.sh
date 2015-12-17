@@ -13,5 +13,32 @@ if [ $? != "0" ]; then
   exit 1
 fi
 
-# The name of instance where skia alerts is running.
-INSTANCE_NAME=skia-autoroll
+VM_ID="$1"
+
+# The name of instance where the autoroller is running.
+case "$VM_ID" in
+  skia)
+    INSTANCE_NAME=skia-autoroll
+    IP_ADDRESS=104.154.112.12
+    ;;
+  catapult)
+    INSTANCE_NAME=catapult-autoroll
+    IP_ADDRESS=104.154.112.121
+    ;;
+  *)
+    # Must provide a target instance id.
+    echo "Usage: $0 {skia | catapult}"
+    echo "   An instance id must be provided as the first argument."
+    exit 1
+    ;;
+
+esac
+
+MACHINE_TYPE=n1-standard-2
+SOURCE_SNAPSHOT=skia-systemd-pushable-base
+SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+
+DATA_DISK_NAME="$INSTANCE_NAME-data"
+
+# Remove the startup script and generate a new one with the right disk name.
+sed "s/DATA_DISK_NAME/${DATA_DISK_NAME}/g" startup-script.sh.template > startup-script.sh

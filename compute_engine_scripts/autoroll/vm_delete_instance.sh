@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Deletes the compute instance for skia-autoroll.
+# Deletes the compute instance.
 #
 set -x
 
