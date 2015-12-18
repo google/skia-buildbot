@@ -12,22 +12,17 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
   --source-snapshot $FUZZER_SOURCE_SNAPSHOT \
   --type "pd-standard"
 
-# Create a large data disk.
-gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
-  --size "1000" \
-  --zone $ZONE \
-  --type "pd-standard"
-
+# local-ssd is 375 GB
 gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --zone $ZONE \
   --machine-type $FUZZER_MACHINE_TYPE \
+  --local-ssd interface=SCSI \
   --network "default" \
   --maintenance-policy "MIGRATE" \
   --scopes $FUZZER_SCOPES \
   --tags "http-server,https-server" \
   --metadata-from-file "startup-script=startup-script.sh" \
   --disk "name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes" \
-  --disk name=${INSTANCE_NAME}-data device-name=${INSTANCE_NAME}-data "mode=rw" "boot=no" \
   --address $FUZZER_IP_ADDRESS
 
 # Wait until the instance is up.
