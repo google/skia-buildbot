@@ -8,13 +8,17 @@ import (
 )
 
 type generatorConfig struct {
-	SkiaRoot         string
-	AflRoot          string
-	FuzzSamples      string
-	AflOutputPath    string
-	WorkingPath      string
-	NumFuzzProcesses int
-	WatchAFL         bool
+	SkiaRoot             string
+	AflRoot              string
+	FuzzSamples          string
+	AflOutputPath        string
+	WorkingPath          string
+	NumFuzzProcesses     int
+	NumDownloadProcesses int
+	WatchAFL             bool
+	VersionCheckPeriod   time.Duration
+	SkiaVersion          *vcsinfo.LongCommit
+	versionMutex         sync.Mutex
 }
 
 type aggregatorConfig struct {
@@ -31,6 +35,8 @@ type frontendConfig struct {
 	SkiaRoot             string
 	BoltDBPath           string
 	NumDownloadProcesses int
+	SkiaVersion          *vcsinfo.LongCommit
+	versionMutex         sync.Mutex
 }
 
 type gsConfig struct {
@@ -41,8 +47,6 @@ type commonConfig struct {
 	ClangPath         string
 	ClangPlusPlusPath string
 	DepotToolsPath    string
-	SkiaVersion       *vcsinfo.LongCommit
-	versionMutex      sync.Mutex
 }
 
 var Generator = generatorConfig{}
@@ -51,9 +55,20 @@ var GS = gsConfig{}
 var Common = commonConfig{}
 var FrontEnd = frontendConfig{}
 
+type VersionSetter interface {
+	SetSkiaVersion(lc *vcsinfo.LongCommit)
+}
+
 // SetSkiaVersion safely stores the LongCommit of the skia version that is being used.
-func SetSkiaVersion(lc *vcsinfo.LongCommit) {
-	Common.versionMutex.Lock()
-	defer Common.versionMutex.Unlock()
-	Common.SkiaVersion = lc
+func (f *frontendConfig) SetSkiaVersion(lc *vcsinfo.LongCommit) {
+	f.versionMutex.Lock()
+	defer f.versionMutex.Unlock()
+	f.SkiaVersion = lc
+}
+
+// SetSkiaVersion safely stores the LongCommit of the skia version that is being used.
+func (g *generatorConfig) SetSkiaVersion(lc *vcsinfo.LongCommit) {
+	g.versionMutex.Lock()
+	defer g.versionMutex.Unlock()
+	g.SkiaVersion = lc
 }

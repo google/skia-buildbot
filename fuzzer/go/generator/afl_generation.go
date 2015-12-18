@@ -18,6 +18,7 @@ import (
 )
 
 var fuzzProcessCount go_metrics.Counter
+var fuzzProcesses []exec.Process
 
 // StartBinaryGenerator starts up 1 goroutine running a "master" afl-fuzz and n-1 "slave"
 // afl-fuzz processes, where n is specified by config.Generator.NumFuzzProcesses.
@@ -40,7 +41,7 @@ func StartBinaryGenerator() error {
 		masterCmd.Stdout = os.Stdout
 	}
 
-	go run(masterCmd)
+	fuzzProcesses = append(fuzzProcesses, run(masterCmd))
 
 	fuzzCount := config.Generator.NumFuzzProcesses
 	if fuzzCount <= 0 {
@@ -59,7 +60,7 @@ func StartBinaryGenerator() error {
 			LogStderr: true,
 			Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
 		}
-		go run(slaveCmd)
+		fuzzProcesses = append(fuzzProcesses, run(slaveCmd))
 	}
 
 	return nil
@@ -96,13 +97,36 @@ func setup() (string, error) {
 	return executable, nil
 }
 
-// run Runs the command and logs any failures.  Meant to be run as a goroutine.
-func run(command *exec.Command) {
-	if err := exec.Run(command); err != nil {
+// run runs the command and logs any failures.  It returns the Process that can be used to
+// manually kill the command.
+func run(command *exec.Command) exec.Process {
+	p, status, err := exec.RunIndefinitely(command)
+	if err != nil {
 		glog.Errorf("Failed afl fuzzer command %#v: %s", command, err)
+		return nil
 	}
-	fuzzProcessCount.Dec(int64(1))
-	glog.Infof("afl fuzzer with args %q ended.  There are %d fuzzers remaining", command.Args, fuzzProcessCount.Count())
+	go func() {
+		err := <-status
+		fuzzProcessCount.Dec(int64(1))
+		glog.Infof(`afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, command.Args, err, fuzzProcessCount.Count())
+	}()
+	return p
+}
+
+// StopBinaryGenerator terminates all afl-fuzz processes that were spawned,
+// logging any errors.
+func StopBinaryGenerator() {
+	glog.Infof("Trying to stop %d fuzz processes", len(fuzzProcesses))
+	for _, p := range fuzzProcesses {
+		if p != nil {
+			if err := p.Kill(); err != nil {
+				glog.Warningf("Error while trying to kill afl process: %s", err)
+			} else {
+				glog.Info("Quietly shutdown fuzz process.")
+			}
+		}
+	}
+	fuzzProcesses = nil
 }
 
 // DownloadBinarySeedFiles downloads the seed skp files stored in Google
@@ -129,7 +153,7 @@ func DownloadBinarySeedFiles(storageClient *storage.Client) error {
 			return
 		}
 		fileName := filepath.Join(config.Generator.FuzzSamples, strings.SplitAfter(name, "skp_samples/")[1])
-		if err = ioutil.WriteFile(fileName, content, 0644); err != nil {
+		if err = ioutil.WriteFile(fileName, content, 0644); err != nil && !os.IsExist(err) {
 			glog.Errorf("Problem creating binary seed file %s, continuing anyway", fileName)
 		}
 	})

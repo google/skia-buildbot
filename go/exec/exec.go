@@ -101,6 +101,10 @@ type Command struct {
 	Timeout time.Duration
 }
 
+type Process interface {
+	Kill() error
+}
+
 // Divides commandLine at spaces; treats the first token as the program name and the other tokens
 // as arguments. Note: don't expect this function to do anything smart with quotes or escaped
 // spaces.
@@ -218,6 +222,23 @@ func DefaultRun(command *Command) error {
 		return err
 	}
 	return wait(command, cmd)
+}
+
+// Starts the command and then returns.  Clients can listen for the command
+// to end on the returned channel or kill the process manually using the
+// Process handle.  The timeout param is ignored if it is set.
+// If starting the command returns an error, that error is returned.
+func RunIndefinitely(command *Command) (Process, <-chan error, error) {
+	cmd := createCmd(command)
+	done := make(chan error)
+	if err := start(command, cmd); err != nil {
+		close(done)
+		return nil, done, err
+	}
+	go func() {
+		done <- cmd.Wait()
+	}()
+	return cmd.Process, done, nil
 }
 
 // Run runs command and waits for it to finish. If any failure, returns non-nil. If a timeout was

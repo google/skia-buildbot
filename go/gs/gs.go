@@ -124,7 +124,7 @@ func FileContentsFromGS(s *storage.Client, bucketName, fileName string) ([]byte,
 	return ioutil.ReadAll(response)
 }
 
-// AllFilesInDir iterates through all the files in a given Google Storage folder.
+// AllFilesInDir synchronously iterates through all the files in a given Google Storage folder.
 // The callback function is called on each item in the order it is in the bucket.
 // It returns an error if the bucket or folder cannot be accessed.
 func AllFilesInDir(s *storage.Client, bucket, folder string, callback func(item *storage.ObjectAttrs)) error {
@@ -143,4 +143,22 @@ func AllFilesInDir(s *storage.Client, bucket, folder string, callback func(item 
 		q = list.Next
 	}
 	return nil
+}
+
+func DeleteAllFilesInDir(s *storage.Client, bucket, folder string) error {
+	var deleteError bool
+	del := func(item *storage.ObjectAttrs) {
+		if err := s.Bucket(bucket).Object(item.Name).Delete(context.Background()); err != nil {
+			glog.Errorf("Problem deleting gs://%s/%s: %s", bucket, item.Name, err)
+			deleteError = true
+		}
+	}
+	if err := AllFilesInDir(s, bucket, folder, del); err != nil {
+		return err
+	}
+	if deleteError {
+		return fmt.Errorf("There were one or more problems when deleting files in folder %q", folder)
+	}
+	return nil
+
 }

@@ -20,7 +20,7 @@ import (
 // If a cache for the commit does not exist, or there are other problems with the retrieval,
 // an error is returned.
 func LoadFromBoltDB(cache fuzzcache.FuzzReportCache) error {
-	if staging, err := cache.Load(config.Common.SkiaVersion.Hash); err != nil {
+	if staging, err := cache.Load(config.FrontEnd.SkiaVersion.Hash); err != nil {
 		return fmt.Errorf("Problem decoding existing from bolt db: %s", err)
 	} else {
 		fuzz.SetStaging(*staging)
@@ -38,7 +38,7 @@ var completedCounter int32
 // via fuzz.FuzzSummary() and fuzz.FuzzDetails() prior to this function returning.
 // Upon completion, the full results are cached to a boltDB instance.
 func LoadFromGoogleStorage(storageClient *storage.Client, finder functionnamefinder.Finder, cache fuzzcache.FuzzReportCache) error {
-	reports, err := getBinaryReportsFromGS(storageClient, fmt.Sprintf("binary_fuzzes/%s/bad/", config.Common.SkiaVersion.Hash))
+	reports, err := getBinaryReportsFromGS(storageClient, fmt.Sprintf("binary_fuzzes/%s/bad/", config.FrontEnd.SkiaVersion.Hash))
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func LoadFromGoogleStorage(storageClient *storage.Client, finder functionnamefin
 	glog.Info("All fuzzes loaded from Google Storage")
 	fuzz.StagingToCurrent()
 
-	return cache.Store(fuzz.StagingCopy(), config.Common.SkiaVersion.Hash)
+	return cache.Store(fuzz.StagingCopy(), config.FrontEnd.SkiaVersion.Hash)
 }
 
 type fuzzPackage struct {

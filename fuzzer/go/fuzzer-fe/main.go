@@ -65,7 +65,7 @@ var (
 	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
 	depotToolsPath    = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
 	bucket            = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
-	downloadProcesses = flag.Int("download_processes", 4, "The number of download processes to be used by fetching fuzzes.")
+	downloadProcesses = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
 )
 
 var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path", "bolt_db_path"}
@@ -91,7 +91,7 @@ func main() {
 	common.InitWithMetrics("fuzzer", graphiteServer)
 
 	if err := writeFlagsToConfig(); err != nil {
-		glog.Fatalf("Problem with configuration: %v", err)
+		glog.Fatalf("Problem with configuration: %s", err)
 	}
 
 	Init()
@@ -100,7 +100,7 @@ func main() {
 		glog.Fatal(err)
 	}
 	go func() {
-		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.FrontEnd.SkiaRoot); err != nil {
+		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.FrontEnd.SkiaRoot, &config.FrontEnd); err != nil {
 			glog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
@@ -150,17 +150,17 @@ func setupOAuth() error {
 		useRedirectURL = *redirectURL
 	}
 	if err := login.InitFromMetadataOrJSON(useRedirectURL, login.DEFAULT_SCOPE, *authWhiteList); err != nil {
-		return fmt.Errorf("Problem setting up server OAuth: %v", err)
+		return fmt.Errorf("Problem setting up server OAuth: %s", err)
 	}
 
 	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_ONLY)
 	if err != nil {
-		return fmt.Errorf("Problem setting up client OAuth: %v", err)
+		return fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
 
 	storageClient, err = storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
 	if err != nil {
-		return fmt.Errorf("Problem authenticating: %v", err)
+		return fmt.Errorf("Problem authenticating: %s", err)
 	}
 	return nil
 }
@@ -254,7 +254,7 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	name := v["name"]
 	xs := strings.Split(name, ".")
 	hash, ftype := xs[0], xs[1]
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/%s/bad/%s/%s/%s", kind, config.Common.SkiaVersion.Hash, ftype, hash, hash))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/%s/bad/%s/%s/%s", kind, config.FrontEnd.SkiaVersion.Hash, ftype, hash, hash))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
 		return
@@ -275,7 +275,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	name := v["name"]
 	hash := strings.Split(name, "_")[0]
 
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/%s/bad/%s/%s/%s", kind, config.Common.SkiaVersion.Hash, ftype, hash, name))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/%s/bad/%s/%s/%s", kind, config.FrontEnd.SkiaVersion.Hash, ftype, hash, name))
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
 		return
@@ -301,7 +301,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 		Hash:   "loading",
 		Author: "(Loading)",
 	}
-	if version := config.Common.SkiaVersion; version != nil {
+	if version := config.FrontEnd.SkiaVersion; version != nil {
 		s.Hash = version.Hash
 		s.Author = version.Author
 	}
