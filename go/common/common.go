@@ -18,7 +18,12 @@ import (
 	"github.com/skia-dev/glog"
 )
 
-const SAMPLE_PERIOD = time.Minute
+const (
+	REPO_SKIA       = "https://skia.googlesource.com/skia.git"
+	REPO_SKIA_INFRA = "https://skia.googlesource.com/buildbot.git"
+
+	SAMPLE_PERIOD = time.Minute
+)
 
 // Runs commonly-used initialization metrics.
 func Init() {

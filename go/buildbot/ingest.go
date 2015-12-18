@@ -40,6 +40,11 @@ var (
 		"Perf-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-ANGLE": map[int]bool{
 			350: true, // This bot was removed before this build finished ingesting.
 		},
+		"Perf-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-VisualBench": map[int]bool{
+			0: true, // Wrong repo.
+			2: true, // Wrong repo.
+			3: true, // Wrong repo.
+		},
 		"Linux Tests": map[int]bool{
 			// For some reason, these builds don't exist on the server.
 			2872: true,

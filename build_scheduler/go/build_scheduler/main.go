@@ -63,8 +63,8 @@ var (
 
 	// REPOS are the repositories to query.
 	REPOS = []string{
-		"https://skia.googlesource.com/skia.git",
-		"https://skia.googlesource.com/buildbot.git",
+		common.REPO_SKIA,
+		common.REPO_SKIA_INFRA,
 	}
 
 	// Flags.

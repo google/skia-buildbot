@@ -10,6 +10,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -471,7 +472,7 @@ func (q *BuildQueue) Pop(builders []string) (*BuildCandidate, error) {
 			// build is tip-of-tree. Unfortunately, we don't know which repo
 			// the bot uses, so we can only say "origin/master" and use the Skia
 			// repo as a default.
-			r, err := q.repos.Repo(q.repos.Repos()[0])
+			r, err := q.repos.Repo(common.REPO_SKIA)
 			if err != nil {
 				return nil, err
 			}
@@ -487,7 +488,7 @@ func (q *BuildQueue) Pop(builders []string) (*BuildCandidate, error) {
 				Author:  details.Author,
 				Builder: builder,
 				Commit:  h,
-				Repo:    q.repos.Repos()[0],
+				Repo:    common.REPO_SKIA,
 				Score:   math.MaxFloat64,
 			}
 			q.queue[builder] = []*BuildCandidate{best}
