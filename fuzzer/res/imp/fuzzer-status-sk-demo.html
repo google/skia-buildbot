@@ -1,0 +1,43 @@
+<html>
+<head>
+  <title>fuzzer-status-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="/res/imp/sinon-server-1.17.2.js"></script>
+  <script>
+    var server = sinon.fakeServer.create();
+    server.autoRespond = true;
+    var responses = [{
+      "current":{
+        "hash": "deadbeef",
+        "author": "youdontknow (John Snow)"
+      }, "pending":{}
+    }, {
+      "current":{
+        "hash": "deadbeef",
+        "author": "youdontknow (John Snow)"
+      },
+      "pending": {
+        "hash": "1234567890abcdef",
+        "author": "winteriscoming (Ned Stark)"
+      }
+    }];
+    var counter = 0;
+
+    server.respondWith("GET", "/status", function(request) {
+        request.respond(200, {"Content-Type":"application/json"},
+          JSON.stringify(responses[counter]));
+        counter++;
+      });
+  </script>
+  <link rel="import" href="fuzzer-status-sk.html">
+</head>
+<body>
+  <h1>fuzzer-status-sk demo</h1>
+  <fuzzer-status-sk></fuzzer-status-sk>
+  <h1>fuzzer-status-sk demo with pending commit</h1>
+  <fuzzer-status-sk></fuzzer-status-sk>
+</body>
+</html>

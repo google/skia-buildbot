@@ -12,10 +12,16 @@
 <link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
 <dom-module id="fuzzer-status-sk">
   <template>
-    <span>
-      <a href$="{{commitLink}}" target="_blank">Last Commit In Fuzz: {{shortHash}}
-      - {{author}}</a>
-    </span>
+    <div>
+      Last Commit In Fuzz: <a href$="{{_getLink(current)}}" target="_blank">{{_getShortHash(current)}}
+      - {{_getAuthor(current)}}</a>
+    </div>
+    <template is="dom-if" if="{{pending}}">
+      <div>
+        Update in progress: <a href$="{{_getLink(pending)}}" target="_blank">{{_getShortHash(pending)}}
+        - {{_getAuthor(pending)}}</a>
+      </div>
+    </template>
     <iron-ajax auto url="/status" handle-as="json" last-response="{{_status}}"></iron-ajax>
   </template>
   <script>
@@ -27,23 +33,34 @@
         type: Object,
         value: function() {
           return {
-            hash: "Loading",
-            author: "loading (Loading)"
+            current: {
+              hash: "Loading",
+              author: "loading (Loading)"
+            },
+            pending: {}
           };
         }
       },
-      shortHash: {
-        type: String,
-        computed: "_getShortHash(_status)"
+      current: {
+        type: Object,
+        computed: "_getCurrent(_status)"
       },
-      author: {
-        type: String,
-        computed: "_getAuthor(_status)"
-      },
-      commitLink: {
-        type: String,
-        computed: "_getLink(_status)"
+      pending: {
+        type: Object,
+        computed: "_getPending(_status)"
       }
+    },
+
+    _getCurrent: function(status){
+      return status.current;
+    },
+
+    _getPending: function(status){
+      // Empty object is not considered falsey, so we check to see if it is empty.
+      if (!status.pending || !status.pending.hash) {
+        return undefined;
+      }
+      return status.pending;
     },
 
     _getShortHash: function(status) {
