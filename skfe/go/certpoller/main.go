@@ -113,6 +113,7 @@ func get(client *http.Client, cert *cert) error {
 			return fmt.Errorf("Failed to mv certfile into place for %s: %s", cert.metadata, err)
 		}
 	}
+	glog.Infof("Successfully wrote %s", cert.file)
 	return nil
 }
 
