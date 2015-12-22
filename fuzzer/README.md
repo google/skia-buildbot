@@ -18,3 +18,7 @@ FUZZ_INPUT="$HOME/SKP/small"
 FUZZ_SAMPLES="$HOME/SKP/minimized"
 ./afl-cmin -i $FUZZ_INPUT -o $FUZZ_SAMPLES -m 1000 -t 1000 -- $SKIA_ROOT/out/Release/dm --src skp --skps @@ --config 8888
 ```
+
+
+When deployed to production, the params in fuzzer-be.service and fuzzer-fe.service can be tuned via
+experimentation for optimal performance.

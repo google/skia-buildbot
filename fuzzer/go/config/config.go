@@ -35,6 +35,7 @@ type frontendConfig struct {
 	SkiaRoot             string
 	BoltDBPath           string
 	NumDownloadProcesses int
+	VersionCheckPeriod   time.Duration
 	SkiaVersion          *vcsinfo.LongCommit
 	versionMutex         sync.Mutex
 }

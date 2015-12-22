@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
@@ -46,6 +47,8 @@ var (
 	detailsTemplate *template.Template = nil
 
 	storageClient *storage.Client = nil
+
+	versionWatcher *fcommon.VersionWatcher = nil
 )
 
 var (
@@ -56,16 +59,19 @@ var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	boltDBPath     = flag.String("bolt_db_path", "fuzzer-db", "The path to the bolt db to be used as a local cache.")
+
 	// OAUTH params
 	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
 	redirectURL   = flag.String("redirect_url", "https://fuzzer.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+
 	// Scanning params
-	skiaRoot          = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
-	clangPath         = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
-	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
-	depotToolsPath    = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
-	bucket            = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
-	downloadProcesses = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
+	skiaRoot           = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
+	clangPath          = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
+	clangPlusPlusPath  = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
+	depotToolsPath     = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
+	bucket             = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
+	downloadProcesses  = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
+	versionCheckPeriod = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
 )
 
 var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path", "bolt_db_path"}
@@ -113,12 +119,21 @@ func main() {
 		if err := frontend.LoadFromBoltDB(cache); err != nil {
 			glog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
 		}
-
-		if finder, err := functionnamefinder.New(); err != nil {
-			glog.Fatalf("Error loading Skia Source: %s", err)
-		} else if err := frontend.LoadFromGoogleStorage(storageClient, finder, cache); err != nil {
+		var finder functionnamefinder.Finder
+		if !*local {
+			if finder, err = functionnamefinder.New(); err != nil {
+				glog.Fatalf("Error loading Skia Source: %s", err)
+			}
+		}
+		if err := frontend.LoadFromGoogleStorage(storageClient, finder, cache); err != nil {
 			glog.Fatalf("Error loading in data from GCS: %s", err)
 		}
+		updater := frontend.NewVersionUpdater(storageClient, cache)
+		versionWatcher = fcommon.NewVersionWatcher(storageClient, config.FrontEnd.VersionCheckPeriod, updater.HandlePendingVersion, updater.HandleCurrentVersion)
+		versionWatcher.Start()
+
+		err = <-versionWatcher.Status
+		glog.Fatal(err)
 	}()
 	runServer()
 }
@@ -136,6 +151,7 @@ func writeFlagsToConfig() error {
 		return err
 	}
 	config.FrontEnd.BoltDBPath = *boltDBPath
+	config.FrontEnd.VersionCheckPeriod = *versionCheckPeriod
 	config.Common.ClangPath = *clangPath
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Common.DepotToolsPath = *depotToolsPath
@@ -289,21 +305,36 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type status struct {
+type commit struct {
 	Hash   string `json:"hash"`
 	Author string `json:"author"`
+}
+
+type status struct {
+	Current commit  `json:"current"`
+	Pending *commit `json:"pending"`
 }
 
 func statusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	s := status{
-		Hash:   "loading",
-		Author: "(Loading)",
+		Current: commit{
+			Hash:   "loading",
+			Author: "(Loading)",
+		},
+		Pending: nil,
 	}
-	if version := config.FrontEnd.SkiaVersion; version != nil {
-		s.Hash = version.Hash
-		s.Author = version.Author
+
+	s.Current.Hash = config.FrontEnd.SkiaVersion.Hash
+	s.Current.Author = config.FrontEnd.SkiaVersion.Author
+	if versionWatcher != nil {
+		if pending := versionWatcher.PendingVersion; pending != nil {
+			s.Pending = &commit{
+				Hash:   pending.Hash,
+				Author: pending.Author,
+			}
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(s); err != nil {

@@ -37,7 +37,7 @@ func GetCurrentSkiaVersionFromGCS(storageClient *storage.Client) (string, error)
 // are returned.
 func GetPendingSkiaVersionFromGCS(storageClient *storage.Client) (string, error) {
 	// We ignore errors about not finding any pending versions
-	if version, err := versionHelper(storageClient, "skia_version/pending/"); strings.HasPrefix(err.Error(), "Could not find specified version") {
+	if version, err := versionHelper(storageClient, "skia_version/pending/"); err == nil || strings.HasPrefix(err.Error(), "Could not find specified version") {
 		return version, nil
 	} else {
 		return version, err

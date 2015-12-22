@@ -85,9 +85,11 @@ func main() {
 	}
 
 	glog.Info("Starting version watcher")
-	status := generator.StartVersionWatcher(storageClient, agg)
+	updater := generator.NewVersionUpdater(storageClient, agg)
+	watcher := fcommon.NewVersionWatcher(storageClient, config.Generator.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
+	watcher.Start()
 
-	err = <-status
+	err = <-watcher.Status
 	glog.Fatal(err)
 }
 
