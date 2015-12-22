@@ -11,6 +11,14 @@ proxy_send_timeout          5m;
 proxy_read_timeout          5m;
 send_timeout                5m;
 
+# Prevent nginx version from being leaked.
+server_tokens off;
+
+# Enforce browser XSS protection
+add_header X-XSS-Protection "1; mode=block";
+# Disable content sniffing on all pages
+add_header X-Content-Type-Options nosniff;
+
 #####   skia.org   ################################
 server {
     listen      443 default_server;
@@ -20,6 +28,9 @@ server {
 
     access_log /var/log/nginx/skia.access.log;
     error_log /var/log/nginx/skia.error.log error;
+
+    # Enable HSTS.
+    add_header Strict-Transport-Security "max-age=31536000; includeSubdomains; preload;";
 
     if ( $host != 'skia.org' ) {
         rewrite ^/(.*)$ https://skia.org/$1 permanent;
