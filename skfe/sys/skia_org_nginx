@@ -14,11 +14,6 @@ send_timeout                5m;
 # Prevent nginx version from being leaked.
 server_tokens off;
 
-# Enforce browser XSS protection
-add_header X-XSS-Protection "1; mode=block";
-# Disable content sniffing on all pages
-add_header X-Content-Type-Options nosniff;
-
 #####   skia.org   ################################
 server {
     listen      443 default_server;
@@ -31,6 +26,10 @@ server {
 
     # Enable HSTS.
     add_header Strict-Transport-Security "max-age=31536000; includeSubdomains; preload;";
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     if ( $host != 'skia.org' ) {
         rewrite ^/(.*)$ https://skia.org/$1 permanent;
@@ -57,6 +56,11 @@ server {
     access_log /var/log/nginx/perf.access.log;
     error_log /var/log/nginx/perf.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         proxy_pass http://skia-perf:8000;
     }
@@ -76,6 +80,11 @@ server {
 
     access_log /var/log/nginx/gold.access.log;
     error_log /var/log/nginx/gold.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     location / {
         proxy_pass http://skia-gold-prod:8001;
@@ -97,6 +106,11 @@ server {
     access_log /var/log/nginx/gold-stage.access.log;
     error_log /var/log/nginx/gold-stage.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         proxy_pass http://skia-gold-stage:8001;
     }
@@ -116,6 +130,11 @@ server {
 
     access_log /var/log/nginx/gold-android.access.log;
     error_log /var/log/nginx/gold-android.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     location / {
         proxy_pass http://skia-gold-android:8001;
@@ -137,6 +156,11 @@ server {
     access_log /var/log/nginx/gold-blink.access.log;
     error_log /var/log/nginx/gold-blink.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         proxy_pass http://skia-gold-blink:8001;
     }
@@ -156,6 +180,11 @@ server {
 
     access_log /var/log/nginx/alerts.access.log;
     error_log /var/log/nginx/alerts.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     location / {
         proxy_pass http://skia-alerts:8001;
@@ -177,6 +206,11 @@ server {
     access_log /var/log/nginx/autoroll.access.log;
     error_log /var/log/nginx/autoroll.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         proxy_pass http://skia-autoroll:8000;
     }
@@ -197,6 +231,11 @@ server {
     access_log /var/log/nginx/catapult-roll.access.log;
     error_log /var/log/nginx/catapult-roll.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         proxy_pass http://catapult-autoroll:8000;
     }
@@ -216,6 +255,11 @@ server {
 
     access_log /var/log/nginx/mon.access.log;
     error_log /var/log/nginx/mon.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     location / {
         proxy_pass http://skia-monitoring:8000;
@@ -238,6 +282,11 @@ server {
     access_log /var/log/nginx/push.access.log;
     error_log /var/log/nginx/push.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         proxy_pass http://skia-push:8000;
     }
@@ -257,6 +306,11 @@ server {
 
     access_log /var/log/nginx/fiddle.access.log;
     error_log /var/log/nginx/fiddle.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     location / {
         proxy_pass http://skia-webtry:8000;
@@ -278,6 +332,11 @@ server {
     access_log /var/log/nginx/fiddle-stage.access.log;
     error_log /var/log/nginx/fiddle-stage.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         proxy_pass http://skia-webtry-experimental:8000;
     }
@@ -297,6 +356,11 @@ server {
 
     access_log /var/log/nginx/fuzzer.access.log;
     error_log /var/log/nginx/fuzzer.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     location / {
         proxy_pass http://skia-fuzzer:8001;
@@ -318,6 +382,11 @@ server {
     access_log /var/log/nginx/health.access.log;
     error_log /var/log/nginx/health.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
       return 200;
     }
@@ -332,6 +401,11 @@ server {
 
     access_log /var/log/nginx/status.access.log;
     error_log /var/log/nginx/status.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     location / {
         proxy_pass http://skia-status:8002;
@@ -353,6 +427,11 @@ server {
     access_log /var/log/nginx/go.access.log;
     error_log /var/log/nginx/go.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         add_header Content-Type text/html;
         return 200 '<meta name="go-import" content="go.skia.org/infra git https://skia.googlesource.com/buildbot">';
@@ -368,6 +447,11 @@ server {
 
     access_log /var/log/nginx/ct.access.log;
     error_log /var/log/nginx/ct.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     location / {
         proxy_pass http://skia-ctfe:8002;
@@ -450,6 +534,11 @@ server {
     access_log /var/log/nginx/grand-central.access.log;
     error_log /var/log/nginx/grand-central.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         # Return 200 if the backend is down so we avoid Google Storage to
         # keep sending undelivered events.
@@ -477,6 +566,11 @@ server {
     access_log /var/log/nginx/bugchomper.access.log;
     error_log /var/log/nginx/bugchomper.error.log error;
 
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
     location / {
         proxy_pass http://skia-bugchomper:8050;
     }
@@ -496,6 +590,11 @@ server {
 
     access_log /var/log/nginx/internal.access.log;
     error_log /var/log/nginx/internal.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
 
     location / {
         proxy_pass http://skia-internal:8000;
