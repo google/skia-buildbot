@@ -20,6 +20,11 @@ shows how many broke at various files/functions/lines.  Uses fuzzer-collapse-fil
 **fuzzer-info-sk:** Loads detailed fuzz reports from server and
 shows how many broke at various files/functions/lines.  Uses fuzzer-collapse-file-sk.
 
+**fuzzer-status-sk:** Shows the current commit the fuzzer is working on and if there
+are any pending fuzzes.
+
+**fuzzer-count-sk:** Shows the count of newly found bad and grey fuzzes and the count
+of total bad/grey fuzzes.
 
 ## Viewing the Demos:
 
@@ -28,3 +33,4 @@ you must find this directory with a terminal/shell and run:
 ```
 make && make run
 ```
+For some of the demos, `sinon-server` is used to supply mock json data.

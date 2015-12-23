@@ -1,0 +1,56 @@
+<!-- The <fuzzer-count-sk> element displays the counts of the bad/grey fuzzes.
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<dom-module id="fuzzer-count-sk">
+  <template>
+    <style>
+      #box {
+        max-width:inherit;
+        border: 1px solid black;
+        padding: 5px;
+        border-radius:8px;
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+      }
+      .count {
+        flex-grow:1;
+      }
+    </style>
+    <div id="box">
+     <span class="count">New Bad Fuzzes: {{_count.thisBadCount}}</span>
+     <span class="count">New Grey Fuzzes: {{_count.thisGreyCount}}</span>
+     <span class="count">Total Bad Fuzzes: {{_count.totalBadCount}}</span>
+     <span class="count">Total Grey Fuzzes: {{_count.totalGreyCount}}</span>
+    </div>
+    <iron-ajax auto url="/fuzz_count" handle-as="json" last-response="{{_count}}"></iron-ajax>
+  </template>
+  <script>
+  Polymer({
+    is: "fuzzer-count-sk",
+
+    properties: {
+      _count: {
+        type: Object,
+        value: function() {
+          return {
+            totalBadCount: 0,
+            totalGreyCount: 0,
+            thisBadCount: 0,
+            thisGreyCount: 0
+          }
+        }
+      }
+    }
+  });
+  </script>
+</dom-module>
