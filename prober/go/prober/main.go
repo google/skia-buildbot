@@ -344,12 +344,12 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 
 		if !In(resp.StatusCode, probe.Expected) {
-			glog.Errorf("Got wrong status code: Got %d Want %v", resp.StatusCode, probe.Expected)
+			glog.Errorf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
 			probe.failure.Update(1)
 			continue
 		}
 		if !bodyTestResults {
-			glog.Errorf("Body test failed. %#v", probe)
+			glog.Errorf("Body test failed: Name: %s %#v", name, probe)
 			probe.failure.Update(1)
 			continue
 		}

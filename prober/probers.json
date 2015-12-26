@@ -50,13 +50,6 @@
      "body": "",
      "mimetype": ""
    },
-   "skiamonitor_config_js": {
-     "url": "https://mon.skia.org/config.js",
-     "method": "GET",
-     "expected": [200],
-     "body": "",
-     "mimetype": ""
-   },
    "skiaalerts": {
      "url": "https://alerts.skia.org",
      "method": "GET",
@@ -133,35 +126,35 @@
    "skiadocslogs": {
      "url": "http://skia-docs:10114",
      "method": "GET",
-     "expected": [401],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiamonitoringlogs": {
      "url": "http://skia-monitoring:10114",
      "method": "GET",
-     "expected": [401],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiaperflogs": {
      "url": "http://skia-perf:10114",
      "method": "GET",
-     "expected": [401],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiapushlogs": {
      "url": "http://skia-push:10114",
      "method": "GET",
-     "expected": [401],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
    "skiawebtrylogs": {
      "url": "http://skia-webtry:10115",
      "method": "GET",
-     "expected": [401],
+     "expected": [200],
      "body": "",
      "mimetype": ""
    },
