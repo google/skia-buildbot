@@ -63,7 +63,6 @@ var (
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	workdir        = flag.String("workdir", ".", "Working directory used by data processors.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	oauthCacheFile = flag.String("oauth_cache_file", "", "Path to the OAuth credential cache file.")
 	targetList     = flag.String("targets", "", "The targets to monitor, a space separated list.")
 	codenameDbDir  = flag.String("codename_db_dir", "codenames", "The location of the leveldb database that holds the mappings between targets and their codenames.")
 	period         = flag.Duration("period", 5*time.Minute, "The time between ingestion runs.")
@@ -482,17 +481,14 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	var cookieSalt = "notverysecret"
-	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
-	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {
-		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
-		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
-		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 		redirectURL = "https://internal.skia.org/oauth2callback/"
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, *local)
+	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+		glog.Fatalf("Failed to initialize login system: %s", err)
+
+	}
 
 	if *local {
 		webhook.InitRequestSaltForTesting()
@@ -509,9 +505,9 @@ func main() {
 		// In this case we don't want a backoff transport since the Apiary backend
 		// seems to fail a lot, so we basically want to fall back to polling if a
 		// call fails.
-		client, err := auth.NewClientWithTransport(*local, *oauthCacheFile, "", &http.Transport{Dial: util.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
+		client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: util.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
 		if err != nil {
-			glog.Fatalf("Unable to create installed app oauth client:%s", err)
+			glog.Fatalf("Unable to create authenticated client: %s", err)
 		}
 
 		buildService, err := androidbuildinternal.New(client)
