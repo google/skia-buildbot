@@ -31,7 +31,7 @@ func TestCombineClusters(t *testing.T) {
 	//  N[2]      from C[2] or N[2]
 	//  N[3, 4]   from C[3] or N[3, 4]
 	//  N[5]      from N[5]
-	//  C[8]      from N[8]
+	//  C[8]      from N[8] or C[8,9]
 	//  N[10, 11] from C[10, 11] or N[10, 11]
 	//
 	// and CombineClusters should return the clusters that need to be written:
@@ -107,7 +107,7 @@ func TestCombineClusters(t *testing.T) {
 		},
 		{
 			Key:        "3",
-			Regression: 300,
+			Regression: 400,
 		},
 		{
 			Key:        "5",
@@ -115,7 +115,7 @@ func TestCombineClusters(t *testing.T) {
 		},
 		{
 			Key:        "8",
-			Regression: 400,
+			Regression: 450,
 		},
 		{
 			Key:        "10",

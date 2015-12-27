@@ -86,9 +86,11 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 		}
 	}
 
-	// Even if a summary has a different hash it might still be the same event if
-	// there is an overlap in the traces each summary contains.
+	// Now process the remaining fresh clusters.
 	for _, fresh := range stillFresh {
+		// Even if a summary has a different hash it might still be the same event if
+		// there is an overlap in the traces each summary contains. Remember that hashes
+		// may move as backfilling occurs.
 		var bestMatch *types.ClusterSummary = nil
 		bestMatchHits := 0
 		for _, old := range oldSummaries {
@@ -103,12 +105,10 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 				bestMatch = old
 			}
 		}
-		if bestMatch != nil {
-			keysLengthEqual := len(fresh.Keys) == len(bestMatch.Keys)
+		if bestMatch != nil { // There is at least one common trace.
 			regressionInSameDirection := math.Signbit(fresh.StepFit.Regression) == math.Signbit(bestMatch.StepFit.Regression)
 			freshHasBetterFit := math.Abs(fresh.StepFit.Regression) > math.Abs(bestMatch.StepFit.Regression)
-			freshHasMoreKeys := len(fresh.Keys) > len(bestMatch.Keys)
-			if freshHasMoreKeys || (keysLengthEqual && regressionInSameDirection && freshHasBetterFit) {
+			if regressionInSameDirection && freshHasBetterFit {
 				fresh.Merge(bestMatch)
 				fresh.Status = bestMatch.Status
 				fresh.Message = bestMatch.Message
@@ -123,7 +123,6 @@ func CombineClusters(freshSummaries, oldSummaries []*types.ClusterSummary) []*ty
 					}
 				}
 			} else {
-				bestMatch.Traces = fresh.Traces
 				ret = append(ret, bestMatch)
 			}
 		} else {
