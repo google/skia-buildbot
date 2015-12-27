@@ -86,6 +86,7 @@ func (r *Reitveld) Issue(issue int64) (*Issue, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to retrieve issue info: %s", err)
 	}
+	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("No such issue %d", issue)
 	}

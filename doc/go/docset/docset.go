@@ -466,7 +466,6 @@ var issueAndPatch = regexp.MustCompile("([0-9]+)-[0-9]+")
 // that has been previewed and removes all the local files for closed issues.
 func StartCleaner(workDir string) {
 	glog.Info("Starting Cleaner")
-	c := reitveld.NewClient()
 	for _ = range time.Tick(config.REFRESH) {
 		matches, err := filepath.Glob(workDir + "/patches/*")
 		glog.Infof("Matches: %v", matches)
@@ -486,7 +485,7 @@ func StartCleaner(workDir string) {
 				glog.Errorf("Failed to parse %q as int: %s", m[1], err)
 				continue
 			}
-			issueInfo, err := c.Issue(issue)
+			issueInfo, err := rc.Issue(issue)
 			if err != nil {
 				glog.Errorf("Failed to retrieve issue status %d: %s", issue, err)
 			}
