@@ -224,10 +224,10 @@ func DefaultRun(command *Command) error {
 	return wait(command, cmd)
 }
 
-// Starts the command and then returns.  Clients can listen for the command
-// to end on the returned channel or kill the process manually using the
-// Process handle.  The timeout param is ignored if it is set.
-// If starting the command returns an error, that error is returned.
+// RunIndefinitely starts the command and then returns. Clients can listen for
+// the command to end on the returned channel or kill the process manually
+// using the Process handle. The timeout param is ignored if it is set.  If
+// starting the command returns an error, that error is returned.
 func RunIndefinitely(command *Command) (Process, <-chan error, error) {
 	cmd := createCmd(command)
 	done := make(chan error)
@@ -239,6 +239,11 @@ func RunIndefinitely(command *Command) (Process, <-chan error, error) {
 		done <- cmd.Wait()
 	}()
 	return cmd.Process, done, nil
+}
+
+// SimpleRun runs the command and doesn't return until the command finishes.
+func SimpleRun(command *Command) error {
+	return createCmd(command).Run()
 }
 
 // Run runs command and waits for it to finish. If any failure, returns non-nil. If a timeout was
@@ -261,7 +266,7 @@ func (command *Command) Run() error {
 func runSimpleCommand(command *Command) (string, error) {
 	output := bytes.Buffer{}
 	command.CombinedOutput = &output
-	err := Run(command)
+	err := SimpleRun(command)
 	result := string(output.Bytes())
 	if err != nil {
 		return result, fmt.Errorf("%s; Stdout+Stderr:\n%s", err.Error(), result)
