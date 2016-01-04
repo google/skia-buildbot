@@ -35,10 +35,11 @@ func TestPertTrace(t *testing.T) {
 	vcs := ingestion.MockVCS(vcsCommits)
 
 	builder := &tileBuilder{
-		Builder: nil,
-		vcs:     vcs,
-		review:  review,
-		cache:   map[string]*rietveld.Issue{},
+		Builder:   nil,
+		vcs:       vcs,
+		review:    review,
+		reviewURL: "https://codereview.chromium.org",
+		cache:     map[string]*rietveld.Issue{},
 	}
 
 	commits := []*CommitID{

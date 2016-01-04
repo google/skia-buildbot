@@ -69,7 +69,7 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 		g.cache[cacheId] = ts
 	}
 
-	source := fmt.Sprintf("%s%s/%d", string(TRYBOT_SRC), g.review.Url(), dmResults.Issue)
+	source := fmt.Sprintf("%s/%d", g.review.Url(), dmResults.Issue)
 	return &tracedb.CommitID{
 		Timestamp: ts.Unix(),
 		ID:        strconv.FormatInt(dmResults.Patchset, 10),

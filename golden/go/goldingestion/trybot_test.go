@@ -81,14 +81,14 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	commitIDs, err := traceDB.List(startTime, time.Now())
 	assert.Nil(t, err)
 
-	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, TRYBOT_SRC)))
-	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, VCS_SRC)))
+	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, TEST_CODE_REVIEW_URL)))
+	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, "master")))
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
 		Timestamp: 1443718869,
 		ID:        "1",
-		Source:    string(TRYBOT_SRC) + TEST_CODE_REVIEW_URL + "/1381483003",
+		Source:    TEST_CODE_REVIEW_URL + "/1381483003",
 	}, commitIDs[0])
 
 	// Get a tile and make sure we have the right number of traces.
@@ -108,8 +108,6 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	}
 
 	// Make sure the prefix is stripped correctly.
-	StripSourcePrefix(commitIDs)
 	assert.Equal(t, TEST_CODE_REVIEW_URL+"/1381483003", commitIDs[0].Source)
-
 	assert.Nil(t, traceDB.Close())
 }

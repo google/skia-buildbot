@@ -84,6 +84,6 @@ func (g *goldProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMRes
 	return &tracedb.CommitID{
 		Timestamp: commit.Timestamp.Unix(),
 		ID:        commit.Hash,
-		Source:    string(VCS_SRC) + "master",
+		Source:    "master",
 	}, nil
 }

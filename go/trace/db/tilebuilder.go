@@ -39,13 +39,17 @@ type TileBuilder interface {
 	// range from begin to end, and may be filtered by the 'source' parameter. If
 	// 'source' is the empty string then no filtering is done.
 	ListLong(begin, end time.Time, source string) ([]*CommitIDLong, error)
+
+	// TileFromCommits returns a tile with given commits.
+	TileFromCommits(commitIDs []*CommitIDLong) (*tiling.Tile, error)
 }
 
 type tileBuilder struct {
 	*Builder
 
-	vcs    vcsinfo.VCS
-	review *rietveld.Rietveld
+	vcs       vcsinfo.VCS
+	review    *rietveld.Rietveld
+	reviewURL string
 	// cache is a cache for rietveld.Issue's. Note that gitinfo has its own cache
 	// for Details(), so we don't need to cache the results.
 	cache map[string]*rietveld.Issue
@@ -59,10 +63,11 @@ func NewTileBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBui
 	}
 
 	return &tileBuilder{
-		Builder: builder,
-		vcs:     git,
-		review:  review,
-		cache:   map[string]*rietveld.Issue{},
+		Builder:   builder,
+		vcs:       git,
+		review:    review,
+		reviewURL: reviewURL,
+		cache:     map[string]*rietveld.Issue{},
 	}, nil
 }
 
@@ -73,6 +78,15 @@ func (b *tileBuilder) ListLong(begin, end time.Time, source string) ([]*CommitID
 		return nil, fmt.Errorf("Error while looking up commits: %s", err)
 	}
 	return b.convertToLongCommits(commitIDs, source), nil
+}
+
+// See the TileBuilder interface.
+func (b *tileBuilder) TileFromCommits(commitIDs []*CommitIDLong) (*tiling.Tile, error) {
+	shortCids := make([]*CommitID, len(commitIDs))
+	for idx, cid := range commitIDs {
+		shortCids[idx] = cid.CommitID
+	}
+	return b.Builder.DB.TileFromCommits(shortCids)
 }
 
 // convertToLongCommits converts the CommitIDs into CommitIDLong's, after
@@ -100,7 +114,7 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 	// Populate Author and Desc from gitinfo or rietveld as appropriate.
 	// Caching Rietveld info as needed.
 	for _, c := range results {
-		if strings.HasPrefix(c.Source, "https://codereview.chromium.org") {
+		if strings.HasPrefix(c.Source, b.reviewURL) {
 			// Rietveld
 			issueInfo, err := b.getIssue(c.Source)
 			if err != nil {

@@ -100,14 +100,14 @@ func TestGoldProcessor(t *testing.T) {
 	commitIDs, err := traceDB.List(startTime, time.Now())
 	assert.Nil(t, err)
 
-	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, VCS_SRC)))
-	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, TRYBOT_SRC)))
+	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, "master")))
+	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, TEST_CODE_REVIEW_URL)))
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
 		Timestamp: TEST_COMMITS[0].Timestamp.Unix(),
 		ID:        TEST_COMMITS[0].Hash,
-		Source:    string(VCS_SRC) + "master",
+		Source:    "master",
 	}, commitIDs[0])
 
 	// Get a tile and make sure we have the right number of traces.
@@ -126,8 +126,6 @@ func TestGoldProcessor(t *testing.T) {
 		assert.Equal(t, testEntry.value, goldTrace.Values[0])
 	}
 
-	StripSourcePrefix(commitIDs)
 	assert.Equal(t, "master", commitIDs[0].Source)
-
 	assert.Nil(t, traceDB.Close())
 }
