@@ -28,8 +28,8 @@ func New(dbPath string) (FuzzReportCache, error) {
 
 // Load returns a *fuzz.fuzz.FuzzReport that corresponds to the passed in hash, or an error
 // if such a Report does not exist.
-func (b *FuzzReportCache) Load(hash string) (*fuzz.FuzzReport, error) {
-	var staging fuzz.FuzzReport
+func (b *FuzzReportCache) Load(hash string) (*fuzz.FuzzReportTree, error) {
+	var staging fuzz.FuzzReportTree
 	loadFunc := func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(hash))
 		if b == nil {
@@ -48,7 +48,7 @@ func (b *FuzzReportCache) Load(hash string) (*fuzz.FuzzReport, error) {
 
 // Store stores a fuzz.fuzz.Fuzz report to the underlying fuzz.FuzzReportCache.  It creates a bucket with the
 // name of the given hash and stores the report as a []byte under a simple key.
-func (b *FuzzReportCache) Store(report fuzz.FuzzReport, hash string) error {
+func (b *FuzzReportCache) Store(report fuzz.FuzzReportTree, hash string) error {
 	storeFunc := func(tx *bolt.Tx) error {
 		bkt, err := tx.CreateBucketIfNotExists([]byte(hash))
 		if err != nil {

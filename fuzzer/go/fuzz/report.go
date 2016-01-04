@@ -11,31 +11,31 @@ import (
 	"go.skia.org/infra/fuzzer/go/common"
 )
 
-type FuzzReport []FuzzReportFile
+type FuzzReportTree []FileFuzzReport
 
-type FuzzReportFile struct {
+type FileFuzzReport struct {
 	FileName    string               `json:"fileName"`
 	BinaryCount int                  `json:"binaryCount"`
 	ApiCount    int                  `json:"apiCount"`
-	Functions   []FuzzReportFunction `json:"byFunction"`
+	Functions   []FunctionFuzzReport `json:"byFunction"`
 }
 
-type FuzzReportFunction struct {
-	FunctionName string                 `json:"functionName"`
-	BinaryCount  int                    `json:"binaryCount"`
-	ApiCount     int                    `json:"apiCount"`
-	LineNumbers  []FuzzReportLineNumber `json:"byLineNumber"`
+type FunctionFuzzReport struct {
+	FunctionName string           `json:"functionName"`
+	BinaryCount  int              `json:"binaryCount"`
+	ApiCount     int              `json:"apiCount"`
+	LineNumbers  []LineFuzzReport `json:"byLineNumber"`
 }
 
-type FuzzReportLineNumber struct {
-	LineNumber    int                `json:"lineNumber"`
-	BinaryCount   int                `json:"binaryCount"`
-	ApiCount      int                `json:"apiCount"`
-	BinaryDetails []FuzzReportBinary `json:"binaryReports"`
-	APIDetails    []FuzzReportAPI    `json:"apiReports"`
+type LineFuzzReport struct {
+	LineNumber    int                     `json:"lineNumber"`
+	BinaryCount   int                     `json:"binaryCount"`
+	ApiCount      int                     `json:"apiCount"`
+	BinaryDetails SortedBinaryFuzzReports `json:"binaryReports"`
+	APIDetails    SortedAPIFuzzReports    `json:"apiReports"`
 }
 
-type FuzzReportBinary struct {
+type BinaryFuzzReport struct {
 	DebugStackTrace    StackTrace `json:"debugStackTrace"`
 	ReleaseStackTrace  StackTrace `json:"releaseStackTrace"`
 	HumanReadableFlags []string   `json:"flags"`
@@ -44,7 +44,7 @@ type FuzzReportBinary struct {
 	BinaryType    string `json:"binaryType"`
 }
 
-type FuzzReportAPI struct {
+type APIFuzzReport struct {
 	DebugStackTrace    StackTrace `json:"debugStackTrace"`
 	ReleaseStackTrace  StackTrace `json:"releaseStackTrace"`
 	HumanReadableFlags []string   `json:"flags"`
@@ -52,23 +52,26 @@ type FuzzReportAPI struct {
 	TestName string `json:"testName"`
 }
 
+type SortedBinaryFuzzReports []BinaryFuzzReport
+type SortedAPIFuzzReports []APIFuzzReport
+
 // ParseBinaryReport creates a binary report given the raw materials passed in.
-func ParseBinaryReport(fuzzType, fuzzName, debugDump, debugErr, releaseDump, releaseErr string) FuzzReportBinary {
+func ParseBinaryReport(fuzzType, fuzzName, debugDump, debugErr, releaseDump, releaseErr string) BinaryFuzzReport {
 	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
-	return FuzzReportBinary{result.DebugStackTrace, result.ReleaseStackTrace, result.Flags.ToHumanReadableFlags(), fuzzName, fuzzType}
+	return BinaryFuzzReport{result.DebugStackTrace, result.ReleaseStackTrace, result.Flags.ToHumanReadableFlags(), fuzzName, fuzzType}
 }
 
-// fuzzReportBuilder is an in-memory structure that allows easy creation of a tree of reports
+// treeReportBuilder is an in-memory structure that allows easy creation of a tree of reports
 // for use on the frontend.  It caches three separate trees, one containing just the binary
 // reports, just the api reports and no reports (binaryReport, apiReport and summaryReport,
 // respectively.
-type fuzzReportBuilder struct {
+type treeReportBuilder struct {
 	dataMutex sync.Mutex
-	data      []FuzzReportFile // The raw data
+	data      []FileFuzzReport // The raw data
 
-	summaryReport FuzzReport // The created, cached report roots
-	binaryReport  FuzzReport
-	apiReport     FuzzReport
+	summaryReport FuzzReportTree // The created, cached report roots
+	binaryReport  FuzzReportTree
+	apiReport     FuzzReportTree
 
 	summaryDirty bool
 	binaryDirty  bool
@@ -76,26 +79,26 @@ type fuzzReportBuilder struct {
 }
 
 // currentData is the object that holds the cache of fuzz results.  It is used by the frontend.
-var currentData fuzzReportBuilder
+var currentData treeReportBuilder
 
 // stagingData is the object that processes can write to to queue up new data
 // without disturbing the data shown to users.
-var stagingData fuzzReportBuilder
+var stagingData treeReportBuilder
 
 // FuzzSummary returns the summary of all fuzzes, sorted by total count.
-func FuzzSummary() FuzzReport {
+func FuzzSummary() FuzzReportTree {
 	return currentData.getSummarySortedByTotal()
 }
 
-// FuzzDetails returns the detailed fuzz reports for a file name, function name, and line number.
+// FindFuzzDetails returns the detailed fuzz reports for a file name, function name, and line number.
 // If functionName is "" or lineNumber is -1, all reports are shown.
-func FuzzDetails(fileName, functionName string, lineNumber int, useBinary bool) (FuzzReportFile, error) {
+func FindFuzzDetails(fileName, functionName string, lineNumber int, useBinary bool) (FileFuzzReport, error) {
 
-	var report FuzzReport
+	var report FuzzReportTree
 	if useBinary {
-		report = currentData.getBinaryReportSortedByTotal()
+		report = currentData.getBinaryTreeSortedByTotal()
 	} else {
-		report = currentData.getAPIReportSortedByTotal()
+		report = currentData.getAPITreeSortedByTotal()
 	}
 
 	for _, file := range report {
@@ -111,45 +114,104 @@ func FuzzDetails(fileName, functionName string, lineNumber int, useBinary bool) 
 			return file, nil
 		}
 	}
-	return FuzzReportFile{}, fmt.Errorf("File %s not found", fileName)
+	return FileFuzzReport{}, fmt.Errorf("File %q not found", fileName)
 }
 
 // filterByFunctionName removes all FuzzReportFunction except that which matches functionName
-func (file *FuzzReportFile) filterByFunctionName(functionName string) {
+func (file *FileFuzzReport) filterByFunctionName(functionName string) {
 	for _, function := range file.Functions {
 		if functionName == function.FunctionName {
-			file.Functions = []FuzzReportFunction{function}
+			file.Functions = []FunctionFuzzReport{function}
 			break
 		}
 	}
 }
 
 // filterByLineNumber removes all FuzzReportLineNumber except that which matches lineNumber
-func (function *FuzzReportFunction) filterByLineNumber(lineNumber int) {
+func (function *FunctionFuzzReport) filterByLineNumber(lineNumber int) {
 	for _, line := range function.LineNumbers {
 		if lineNumber == line.LineNumber {
-			function.LineNumbers = []FuzzReportLineNumber{line}
+			function.LineNumbers = []LineFuzzReport{line}
 		}
 	}
 }
 
+// FindFuzzDetailForFuzz returns a tree containing the single binary or api
+// report with the given name, or an error, it it doesn't exist.
+func FindFuzzDetailForFuzz(name string) (FileFuzzReport, error) {
+	// Look in binary first
+	report := currentData.getBinaryTreeSortedByTotal()
+	for _, file := range report {
+		if file.filterByFuzzName(name) {
+			return file, nil
+		}
+	}
+	report = currentData.getAPITreeSortedByTotal()
+	for _, file := range report {
+		if file.filterByFuzzName(name) {
+			return file, nil
+		}
+	}
+	return FileFuzzReport{}, fmt.Errorf("Fuzz with name %q not found", name)
+}
+
+// filterByFuzzName filters out all functions that do not contain a fuzz with the given
+// name and returns true.  If such a fuzz does not exist, it returns false.
+func (file *FileFuzzReport) filterByFuzzName(name string) bool {
+	for _, function := range file.Functions {
+		if function.filterByFuzzName(name) {
+			file.Functions = []FunctionFuzzReport{function}
+			return true
+		}
+	}
+	return false
+}
+
+// filterByFuzzName filters out all lines that do not contain a fuzz with the given
+// name and returns true.  If such a fuzz does not exist, it returns false.
+func (function *FunctionFuzzReport) filterByFuzzName(name string) bool {
+	for _, line := range function.LineNumbers {
+		if line.filterByFuzzName(name) {
+			function.LineNumbers = []LineFuzzReport{line}
+			return true
+		}
+	}
+	return false
+}
+
+// filterByFuzzName filters out all fuzzes that do not have the given
+// name and returns true.  If such a fuzz does not exist, it returns false.
+func (line *LineFuzzReport) filterByFuzzName(name string) bool {
+	if b, hasIt := line.BinaryDetails.containsName(name); hasIt {
+		line.BinaryDetails = SortedBinaryFuzzReports{b}
+		line.APIDetails = SortedAPIFuzzReports{}
+		return true
+	}
+	if a, hasIt := line.APIDetails.containsName(name); hasIt {
+		line.BinaryDetails = SortedBinaryFuzzReports{}
+		line.APIDetails = SortedAPIFuzzReports{a}
+		return true
+	}
+	return false
+}
+
 // NewBinaryFuzzFound adds a FuzzReportBinary to the in-memory staging representation.
-func NewBinaryFuzzFound(b FuzzReportBinary) {
+func NewBinaryFuzzFound(b BinaryFuzzReport) {
 	stagingData.addReportBinary(b)
 }
 
 // NewAPIFuzzFound adds a FuzzReportAPI to the in-memory staging representation.
-func NewAPIFuzzFound(a FuzzReportAPI) {
+func NewAPIFuzzFound(a APIFuzzReport) {
 	stagingData.addReportAPI(a)
 }
 
 // ClearStaging clears the staging representation.
 func ClearStaging() {
-	SetStaging([]FuzzReportFile{})
+	SetStaging([]FileFuzzReport{})
 }
 
 // SetStaging replaces the staging representation with the given FuzzReport.
-func SetStaging(r FuzzReport) {
+func SetStaging(r FuzzReportTree) {
 	stagingData.dataMutex.Lock()
 	defer stagingData.dataMutex.Unlock()
 	stagingData.data = r
@@ -167,14 +229,14 @@ func StagingToCurrent() {
 }
 
 // StagingCopy returns a fully copy of the underlying staging data.
-func StagingCopy() FuzzReport {
+func StagingCopy() FuzzReportTree {
 	stagingData.dataMutex.Lock()
 	defer stagingData.dataMutex.Unlock()
 	return cloneReport(stagingData.data)
 }
 
-// addReportBinary adds a FuzzReportBinary to a fuzzReportBuilder's data member
-func (r *fuzzReportBuilder) addReportBinary(b FuzzReportBinary) {
+// addReportBinary adds a FuzzReportBinary to a treeReportBuilder's data member
+func (r *treeReportBuilder) addReportBinary(b BinaryFuzzReport) {
 	reportFileName, reportFunctionName, reportLineNumber := extractStacktraceInfo(b.DebugStackTrace, b.ReleaseStackTrace)
 
 	r.dataMutex.Lock()
@@ -183,13 +245,13 @@ func (r *fuzzReportBuilder) addReportBinary(b FuzzReportBinary) {
 	foundFile.BinaryCount++
 	foundFunction.BinaryCount++
 	foundLine.BinaryCount++
-	foundLine.BinaryDetails = append(foundLine.BinaryDetails, b)
+	foundLine.BinaryDetails = foundLine.BinaryDetails.append(b)
 	r.markDirty()
 	r.dataMutex.Unlock()
 }
 
-// addReportBinary adds a FuzzReportAPI to a fuzzReportBuilder's data member
-func (r *fuzzReportBuilder) addReportAPI(a FuzzReportAPI) {
+// addReportBinary adds a FuzzReportAPI to a treeReportBuilder's data member
+func (r *treeReportBuilder) addReportAPI(a APIFuzzReport) {
 	reportFileName, reportFunctionName, reportLineNumber := extractStacktraceInfo(a.DebugStackTrace, a.ReleaseStackTrace)
 
 	r.dataMutex.Lock()
@@ -198,7 +260,7 @@ func (r *fuzzReportBuilder) addReportAPI(a FuzzReportAPI) {
 	foundFile.ApiCount++
 	foundFunction.ApiCount++
 	foundLine.ApiCount++
-	foundLine.APIDetails = append(foundLine.APIDetails, a)
+	foundLine.APIDetails = foundLine.APIDetails.append(a)
 	r.markDirty()
 	r.dataMutex.Unlock()
 }
@@ -224,8 +286,8 @@ func extractStacktraceInfo(debug, release StackTrace) (reportFileName, reportFun
 
 // makeOrFindRecords finds the FuzzReportFile, FuzzReportFunction and FuzzReportLineNumber
 // associated with the inputs, creating the structures if needed.
-func (r *fuzzReportBuilder) makeOrFindRecords(reportFileName, reportFunctionName string, reportLineNumber int) (*FuzzReportFile, *FuzzReportFunction, *FuzzReportLineNumber) {
-	var foundFile *FuzzReportFile
+func (r *treeReportBuilder) makeOrFindRecords(reportFileName, reportFunctionName string, reportLineNumber int) (*FileFuzzReport, *FunctionFuzzReport, *LineFuzzReport) {
+	var foundFile *FileFuzzReport
 	for i, file := range r.data {
 		if file.FileName == reportFileName {
 			foundFile = &r.data[i]
@@ -233,11 +295,11 @@ func (r *fuzzReportBuilder) makeOrFindRecords(reportFileName, reportFunctionName
 		}
 	}
 	if foundFile == nil {
-		r.data = append(r.data, FuzzReportFile{reportFileName, 0, 0, nil})
+		r.data = append(r.data, FileFuzzReport{reportFileName, 0, 0, nil})
 		foundFile = &r.data[len(r.data)-1]
 	}
 
-	var foundFunction *FuzzReportFunction
+	var foundFunction *FunctionFuzzReport
 	for i, function := range foundFile.Functions {
 		if function.FunctionName == reportFunctionName {
 			foundFunction = &foundFile.Functions[i]
@@ -245,18 +307,18 @@ func (r *fuzzReportBuilder) makeOrFindRecords(reportFileName, reportFunctionName
 		}
 	}
 	if foundFunction == nil {
-		foundFile.Functions = append(foundFile.Functions, FuzzReportFunction{reportFunctionName, 0, 0, nil})
+		foundFile.Functions = append(foundFile.Functions, FunctionFuzzReport{reportFunctionName, 0, 0, nil})
 		foundFunction = &foundFile.Functions[len(foundFile.Functions)-1]
 	}
 
-	var foundLine *FuzzReportLineNumber
+	var foundLine *LineFuzzReport
 	for i, line := range foundFunction.LineNumbers {
 		if line.LineNumber == reportLineNumber {
 			foundLine = &foundFunction.LineNumbers[i]
 		}
 	}
 	if foundLine == nil {
-		foundFunction.LineNumbers = append(foundFunction.LineNumbers, FuzzReportLineNumber{reportLineNumber, 0, 0, nil, nil})
+		foundFunction.LineNumbers = append(foundFunction.LineNumbers, LineFuzzReport{reportLineNumber, 0, 0, nil, nil})
 		foundLine = &foundFunction.LineNumbers[len(foundFunction.LineNumbers)-1]
 	}
 	return foundFile, foundFunction, foundLine
@@ -264,16 +326,16 @@ func (r *fuzzReportBuilder) makeOrFindRecords(reportFileName, reportFunctionName
 
 // markDirty marks all the cached components of the builder as dirty, such that they
 // should be recreated on next query.
-func (r *fuzzReportBuilder) markDirty() {
+func (r *treeReportBuilder) markDirty() {
 	r.summaryDirty = true
 	r.binaryDirty = true
 	r.apiDirty = true
 }
 
-// getBinaryReportSortedByTotal gets the detailed binary FuzzReport sorted by total number of fuzzes.
-func (r *fuzzReportBuilder) getBinaryReportSortedByTotal() FuzzReport {
+// getBinaryTreeSortedByTotal gets the detailed binary FuzzReport sorted by total number of fuzzes.
+func (r *treeReportBuilder) getBinaryTreeSortedByTotal() FuzzReportTree {
 	if r.binaryDirty {
-		r.binaryReport = r.getClonedSortedReport(func(line *FuzzReportLineNumber) {
+		r.binaryReport = r.getClonedSortedReport(func(line *LineFuzzReport) {
 			line.APIDetails = nil
 		})
 		r.binaryDirty = false
@@ -281,10 +343,10 @@ func (r *fuzzReportBuilder) getBinaryReportSortedByTotal() FuzzReport {
 	return r.binaryReport
 }
 
-// getAPIReportSortedByTotal gets the detailed API FuzzReport sorted by total number of fuzzes.
-func (r *fuzzReportBuilder) getAPIReportSortedByTotal() FuzzReport {
+// getAPITreeSortedByTotal gets the detailed API FuzzReport sorted by total number of fuzzes.
+func (r *treeReportBuilder) getAPITreeSortedByTotal() FuzzReportTree {
 	if r.apiDirty {
-		r.apiReport = r.getClonedSortedReport(func(line *FuzzReportLineNumber) {
+		r.apiReport = r.getClonedSortedReport(func(line *LineFuzzReport) {
 			line.BinaryDetails = nil
 		})
 		r.apiDirty = false
@@ -292,10 +354,10 @@ func (r *fuzzReportBuilder) getAPIReportSortedByTotal() FuzzReport {
 	return r.apiReport
 }
 
-// getAPIReportSortedByTotal gets the summary FuzzReport sorted by total number of fuzzes.
-func (r *fuzzReportBuilder) getSummarySortedByTotal() FuzzReport {
+// getSummarySortedByTotal gets the summary FuzzReport sorted by total number of fuzzes.
+func (r *treeReportBuilder) getSummarySortedByTotal() FuzzReportTree {
 	if r.summaryDirty {
-		r.summaryReport = r.getClonedSortedReport(func(line *FuzzReportLineNumber) {
+		r.summaryReport = r.getClonedSortedReport(func(line *LineFuzzReport) {
 			line.BinaryDetails = nil
 			line.APIDetails = nil
 		})
@@ -306,7 +368,7 @@ func (r *fuzzReportBuilder) getSummarySortedByTotal() FuzzReport {
 
 // getClonedSortedReport makes a newly allocated FuzzReport after running the passed in function
 // on all FuzzReportLineNumber objects in the report.
-func (r *fuzzReportBuilder) getClonedSortedReport(sanitize func(*FuzzReportLineNumber)) FuzzReport {
+func (r *treeReportBuilder) getClonedSortedReport(sanitize func(*LineFuzzReport)) FuzzReportTree {
 	r.dataMutex.Lock()
 	report := cloneReport(r.data)
 	r.dataMutex.Unlock()
@@ -327,7 +389,7 @@ func (r *fuzzReportBuilder) getClonedSortedReport(sanitize func(*FuzzReportLineN
 }
 
 // cloneReport makes a copy of the input using the gob library.
-func cloneReport(data []FuzzReportFile) FuzzReport {
+func cloneReport(data []FileFuzzReport) FuzzReportTree {
 	var temp bytes.Buffer
 	enc := gob.NewEncoder(&temp)
 	dec := gob.NewDecoder(&temp)
@@ -336,7 +398,7 @@ func cloneReport(data []FuzzReportFile) FuzzReport {
 		// This should never happen, but log it if it does
 		glog.Errorf("Error while cloning report: %v", err)
 	}
-	var clone FuzzReport
+	var clone FuzzReportTree
 	if err := dec.Decode(&clone); err != nil {
 		// This should never happen, but log it if it does
 		glog.Errorf("Error while cloning report: %v", err)
@@ -345,7 +407,7 @@ func cloneReport(data []FuzzReportFile) FuzzReport {
 }
 
 // Total sort methods - sorts files, functions and lines by APICount + BinaryCount
-type filesTotalSort []FuzzReportFile
+type filesTotalSort []FileFuzzReport
 
 func (r filesTotalSort) Len() int      { return len(r) }
 func (r filesTotalSort) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
@@ -360,7 +422,7 @@ func (r filesTotalSort) Less(i, j int) bool {
 	return r[i].FileName < r[j].FileName
 }
 
-type functionsTotalSort []FuzzReportFunction
+type functionsTotalSort []FunctionFuzzReport
 
 func (r functionsTotalSort) Len() int      { return len(r) }
 func (r functionsTotalSort) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
@@ -375,7 +437,7 @@ func (r functionsTotalSort) Less(i, j int) bool {
 	return r[i].FunctionName < r[j].FunctionName
 }
 
-type linesTotalSort []FuzzReportLineNumber
+type linesTotalSort []LineFuzzReport
 
 func (r linesTotalSort) Len() int      { return len(r) }
 func (r linesTotalSort) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
@@ -388,4 +450,60 @@ func (r linesTotalSort) Less(i, j int) bool {
 	}
 	// If they have the same total, sort by line number
 	return r[i].LineNumber < r[j].LineNumber
+}
+
+func (p SortedBinaryFuzzReports) Len() int           { return len(p) }
+func (p SortedBinaryFuzzReports) Less(i, j int) bool { return p[i].BadBinaryName < p[j].BadBinaryName }
+func (p SortedBinaryFuzzReports) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// append adds b to the already sorted caller, and returns the sorted result.
+// Precondition: Caller must be nil or sorted
+func (p SortedBinaryFuzzReports) append(b BinaryFuzzReport) SortedBinaryFuzzReports {
+	s := append(p, b)
+
+	// Google Storage gives us the fuzzes in alphabetical order.  Thus, we can short circuit
+	// if the fuzz goes on the end (which is usually does).
+	// However, we can't always do this because when we load a second batch of fuzzes,
+	// those are in alphabetical order, but starting over from 0.
+	// We want to avoid a,c,x,z,b,d where b,d were added from the second batch.
+	if len(s) <= 1 || s.Less(len(s)-2, len(s)-1) {
+		return s
+	}
+	sort.Sort(s)
+	return s
+}
+
+// containsName returns the Binary report and true if a fuzz with the given name is in the list.
+func (p SortedBinaryFuzzReports) containsName(fuzzName string) (BinaryFuzzReport, bool) {
+	i := sort.Search(len(p), func(i int) bool { return p[i].BadBinaryName >= fuzzName })
+	if i < len(p) && p[i].BadBinaryName == fuzzName {
+		return p[i], true
+	}
+	return BinaryFuzzReport{}, false
+}
+
+func (p SortedAPIFuzzReports) Len() int           { return len(p) }
+func (p SortedAPIFuzzReports) Less(i, j int) bool { return p[i].TestName < p[j].TestName }
+func (p SortedAPIFuzzReports) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+// append adds b to the already sorted caller, and returns the sorted result.
+// Precondition: Caller must be nil or sorted
+func (p SortedAPIFuzzReports) append(a APIFuzzReport) SortedAPIFuzzReports {
+	s := append(p, a)
+
+	// See comment on SortedBinaryFuzzReports.append for rationale about the short circuit here.
+	if len(s) <= 1 || s.Less(len(s)-2, len(s)-1) {
+		return s
+	}
+	sort.Sort(s)
+	return s
+}
+
+// containsName returns the API report and true if a fuzz with the given name is in the list.
+func (p SortedAPIFuzzReports) containsName(fuzzName string) (APIFuzzReport, bool) {
+	i := sort.Search(len(p), func(i int) bool { return p[i].TestName >= fuzzName })
+	if i < len(p) && p[i].TestName == fuzzName {
+		return p[i], true
+	}
+	return APIFuzzReport{}, false
 }

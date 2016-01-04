@@ -70,6 +70,10 @@
       .hidden{
         display:none;
       }
+      /* style the iron-icon inside of the paper-icon-button */
+      #expand ::content > iron-icon:hover {
+        fill: #f09300;
+      }
     </style>
     <div class="stacktrace">
       <template is="dom-repeat" items="{{frames}}" as="frame">
@@ -83,7 +87,7 @@
           </div>
       </template>
 
-    <paper-icon-button id="expand" icon="icons:more-horiz" on-click="showMore" title="expand stacktrace"></paper-icon-button>
+    <paper-icon-button id="expand" icon="icons:more-horiz" on-click="showMore" title="expand stacktrace" class$="{{icon_classes}}"></paper-icon-button>
 
     </div>
   </template>
@@ -104,6 +108,10 @@
         frames: {
           type: Array,
           computed: "_getStackFrames(trace, expanded)"
+        },
+        icon_classes: {
+          type: String,
+          computed: "_getIconClasses(trace, expanded)"
         }
       },
 
@@ -121,9 +129,15 @@
         return trace.frames.slice(0, 8);
       },
 
+      _getIconClasses: function(trace, expanded) {
+        if (expanded || trace.frames.length <= 8) {
+          return "hidden";
+        }
+        return "";
+      },
+
       showMore: function() {
         this.expanded = true;
-        this.$.expand.toggleClass("hidden");
       }
     });
   </script>

@@ -60,6 +60,10 @@
       transform: rotate(.25turn);
     }
 
+    #indicator:hover {
+      fill: #f09300;
+    }
+
     ul {
       list-style-type: none;
     }
@@ -107,8 +111,8 @@
         computed: "_getTotalCount(func)",
       },
       expand: {
-        type: String,
-        value: ""
+        type: Boolean,
+        value: false
       },
     },
 

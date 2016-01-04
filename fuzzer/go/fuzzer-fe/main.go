@@ -236,9 +236,9 @@ func detailsPageHandler(w http.ResponseWriter, r *http.Request) {
 func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	mockFuzzes := fuzz.FuzzSummary()
+	f := fuzz.FuzzSummary()
 
-	if err := json.NewEncoder(w).Encode(mockFuzzes); err != nil {
+	if err := json.NewEncoder(w).Encode(f); err != nil {
 		glog.Errorf("Failed to write or encode output: %v", err)
 		return
 	}
@@ -247,18 +247,25 @@ func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
 func detailedReportsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	i, err := strconv.ParseInt(r.FormValue("line"), 10, 32)
-	if err != nil {
-		i = -1
+	var f fuzz.FileFuzzReport
+	if name := r.FormValue("name"); name != "" {
+		var err error
+		if f, err = fuzz.FindFuzzDetailForFuzz(name); err != nil {
+			util.ReportError(w, r, err, "There was a problem fulfilling the request.")
+		}
+	} else {
+		line, err := strconv.ParseInt(r.FormValue("line"), 10, 32)
+		if err != nil {
+			line = fcommon.UNKNOWN_LINE
+		}
+
+		if f, err = fuzz.FindFuzzDetails(r.FormValue("file"), r.FormValue("func"), int(line), r.FormValue("fuzz-type") == "binary"); err != nil {
+			util.ReportError(w, r, err, "There was a problem fulfilling the request.")
+			return
+		}
 	}
 
-	mockFuzz, err := fuzz.FuzzDetails(r.FormValue("file"), r.FormValue("func"), int(i), r.FormValue("fuzz-type") == "binary")
-	if err != nil {
-		util.ReportError(w, r, err, "There was a problem fulfilling the request.")
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(mockFuzz); err != nil {
+	if err := json.NewEncoder(w).Encode(f); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}

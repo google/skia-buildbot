@@ -64,50 +64,50 @@ func makeStacktrace(file, function string, line int) fuzz.StackTrace {
 
 var mockFlags = []string{"foo", "bar"}
 
-var mockBinaryDetails = map[string]fuzz.FuzzReportBinary{
-	"aaaa": fuzz.FuzzReportBinary{
+var mockBinaryDetails = map[string]fuzz.BinaryFuzzReport{
+	"aaaa": fuzz.BinaryFuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace:  makeStacktrace("alpha", "beta", 16),
 		HumanReadableFlags: mockFlags,
 		BadBinaryName:      "aaaa",
 		BinaryType:         "skp",
 	},
-	"bbbb": fuzz.FuzzReportBinary{
+	"bbbb": fuzz.BinaryFuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace:  fuzz.StackTrace{},
 		HumanReadableFlags: mockFlags,
 		BadBinaryName:      "bbbb",
 		BinaryType:         "skp",
 	},
-	"cccc": fuzz.FuzzReportBinary{
+	"cccc": fuzz.BinaryFuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace:  makeStacktrace("alpha", "gamma", 26),
 		HumanReadableFlags: mockFlags,
 		BadBinaryName:      "cccc",
 		BinaryType:         "skp",
 	},
-	"dddd": fuzz.FuzzReportBinary{
+	"dddd": fuzz.BinaryFuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "gamma", 43),
 		ReleaseStackTrace:  makeStacktrace("delta", "epsilon", 125),
 		HumanReadableFlags: mockFlags,
 		BadBinaryName:      "dddd",
 		BinaryType:         "png",
 	},
-	"eeee": fuzz.FuzzReportBinary{
+	"eeee": fuzz.BinaryFuzzReport{
 		DebugStackTrace:    fuzz.StackTrace{},
 		ReleaseStackTrace:  fuzz.StackTrace{},
 		HumanReadableFlags: mockFlags,
 		BadBinaryName:      "eeee",
 		BinaryType:         "png",
 	},
-	"ffff": fuzz.FuzzReportBinary{
+	"ffff": fuzz.BinaryFuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace:  makeStacktrace("alpha", "beta", 16),
 		HumanReadableFlags: mockFlags,
 		BadBinaryName:      "ffff",
 		BinaryType:         "skp",
 	},
-	"gggg": fuzz.FuzzReportBinary{
+	"gggg": fuzz.BinaryFuzzReport{
 		DebugStackTrace:    makeStacktrace("delta", "epsilon", 122),
 		ReleaseStackTrace:  fuzz.StackTrace{},
 		HumanReadableFlags: mockFlags,
@@ -116,44 +116,44 @@ var mockBinaryDetails = map[string]fuzz.FuzzReportBinary{
 	},
 }
 
-var expectedBinaryReport1 = fuzz.FuzzReport{
-	fuzz.FuzzReportFile{
-		FileName: "mock/package/alpha", BinaryCount: 4, ApiCount: 0, Functions: []fuzz.FuzzReportFunction{
-			fuzz.FuzzReportFunction{
-				FunctionName: "beta", BinaryCount: 3, ApiCount: 0, LineNumbers: []fuzz.FuzzReportLineNumber{
-					fuzz.FuzzReportLineNumber{
-						LineNumber: 16, BinaryCount: 3, ApiCount: 0, BinaryDetails: []fuzz.FuzzReportBinary{mockBinaryDetails["aaaa"], mockBinaryDetails["bbbb"], mockBinaryDetails["ffff"]}, APIDetails: nil,
+var expectedBinaryReport1 = fuzz.FuzzReportTree{
+	fuzz.FileFuzzReport{
+		FileName: "mock/package/alpha", BinaryCount: 4, ApiCount: 0, Functions: []fuzz.FunctionFuzzReport{
+			fuzz.FunctionFuzzReport{
+				FunctionName: "beta", BinaryCount: 3, ApiCount: 0, LineNumbers: []fuzz.LineFuzzReport{
+					fuzz.LineFuzzReport{
+						LineNumber: 16, BinaryCount: 3, ApiCount: 0, BinaryDetails: []fuzz.BinaryFuzzReport{mockBinaryDetails["aaaa"], mockBinaryDetails["bbbb"], mockBinaryDetails["ffff"]}, APIDetails: nil,
 					},
 				},
-			}, fuzz.FuzzReportFunction{
-				FunctionName: "gamma", BinaryCount: 1, ApiCount: 0, LineNumbers: []fuzz.FuzzReportLineNumber{
-					fuzz.FuzzReportLineNumber{
-						LineNumber: 26, BinaryCount: 1, ApiCount: 0, BinaryDetails: []fuzz.FuzzReportBinary{mockBinaryDetails["cccc"]}, APIDetails: nil,
-					},
-				},
-			},
-		},
-	},
-	fuzz.FuzzReportFile{
-		FileName: "mock/package/delta", BinaryCount: 2, ApiCount: 0, Functions: []fuzz.FuzzReportFunction{
-			fuzz.FuzzReportFunction{
-				FunctionName: "epsilon", BinaryCount: 2, ApiCount: 0, LineNumbers: []fuzz.FuzzReportLineNumber{
-					fuzz.FuzzReportLineNumber{
-						LineNumber: 122, BinaryCount: 1, ApiCount: 0, BinaryDetails: []fuzz.FuzzReportBinary{mockBinaryDetails["gggg"]}, APIDetails: nil,
-					},
-					fuzz.FuzzReportLineNumber{
-						LineNumber: 125, BinaryCount: 1, ApiCount: 0, BinaryDetails: []fuzz.FuzzReportBinary{mockBinaryDetails["dddd"]}, APIDetails: nil,
+			}, fuzz.FunctionFuzzReport{
+				FunctionName: "gamma", BinaryCount: 1, ApiCount: 0, LineNumbers: []fuzz.LineFuzzReport{
+					fuzz.LineFuzzReport{
+						LineNumber: 26, BinaryCount: 1, ApiCount: 0, BinaryDetails: []fuzz.BinaryFuzzReport{mockBinaryDetails["cccc"]}, APIDetails: nil,
 					},
 				},
 			},
 		},
 	},
-	fuzz.FuzzReportFile{
-		FileName: common.UNKNOWN_FILE, BinaryCount: 1, ApiCount: 0, Functions: []fuzz.FuzzReportFunction{
-			fuzz.FuzzReportFunction{
-				FunctionName: common.UNKNOWN_FUNCTION, BinaryCount: 1, ApiCount: 0, LineNumbers: []fuzz.FuzzReportLineNumber{
-					fuzz.FuzzReportLineNumber{
-						LineNumber: -1, BinaryCount: 1, ApiCount: 0, BinaryDetails: []fuzz.FuzzReportBinary{mockBinaryDetails["eeee"]}, APIDetails: nil,
+	fuzz.FileFuzzReport{
+		FileName: "mock/package/delta", BinaryCount: 2, ApiCount: 0, Functions: []fuzz.FunctionFuzzReport{
+			fuzz.FunctionFuzzReport{
+				FunctionName: "epsilon", BinaryCount: 2, ApiCount: 0, LineNumbers: []fuzz.LineFuzzReport{
+					fuzz.LineFuzzReport{
+						LineNumber: 122, BinaryCount: 1, ApiCount: 0, BinaryDetails: []fuzz.BinaryFuzzReport{mockBinaryDetails["gggg"]}, APIDetails: nil,
+					},
+					fuzz.LineFuzzReport{
+						LineNumber: 125, BinaryCount: 1, ApiCount: 0, BinaryDetails: []fuzz.BinaryFuzzReport{mockBinaryDetails["dddd"]}, APIDetails: nil,
+					},
+				},
+			},
+		},
+	},
+	fuzz.FileFuzzReport{
+		FileName: common.UNKNOWN_FILE, BinaryCount: 1, ApiCount: 0, Functions: []fuzz.FunctionFuzzReport{
+			fuzz.FunctionFuzzReport{
+				FunctionName: common.UNKNOWN_FUNCTION, BinaryCount: 1, ApiCount: 0, LineNumbers: []fuzz.LineFuzzReport{
+					fuzz.LineFuzzReport{
+						LineNumber: -1, BinaryCount: 1, ApiCount: 0, BinaryDetails: []fuzz.BinaryFuzzReport{mockBinaryDetails["eeee"]}, APIDetails: nil,
 					},
 				},
 			},

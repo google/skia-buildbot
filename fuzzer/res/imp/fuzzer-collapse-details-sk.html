@@ -66,6 +66,10 @@
       transform: rotate(.25turn);
     }
 
+    iron-icon:hover {
+      fill: #f09300;
+    }
+
     .panel-container {
       @apply(--layout-horizontal);
       @apply(--layout-wrap);
@@ -119,24 +123,29 @@
       </template>
       <template is="dom-if" if="{{_hasDetails(details)}}">
         <li>
-          <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleDetails" title="Click to toggle line number view"></iron-icon>
+          <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleDetails" title="Click to toggle line number view" class="toggled"></iron-icon>
           <span>line {{details.lineNumber}} -- {{totalCount}} crash-causing fuzzes: {{details.binaryCount}}
           <a href$="{{_getDetailsLink(detailsBase, details, 'binary')}}">binary</a>
           and {{details.apiCount}}
           <a href$="{{_getDetailsLink(detailsBase, details, 'api')}}">api</a>
           </span>
         </li>
-        <iron-collapse id="detailsPanel">
+        <iron-collapse id="detailsPanel" opened="true">
           <div class="panel-container">
             <template is="dom-repeat" items="{{reports}}" as="report">
               <div class="panel">
-                <span class="title">File: <a href$="{{_getDownloadLink(report)}}">{{report.binaryName}}.{{report.binaryType}}</a></span>
-                <span class="raw">
-                <a href$="{{_getMetaLink(report,'debug','err')}}">debug_err</a>
-                <a href$="{{_getMetaLink(report,'release','err')}}">release_err</a>
-                <a href$="{{_getMetaLink(report,'debug','dump')}}">debug_dump</a>
-                <a href$="{{_getMetaLink(report,'release','dump')}}">release_dump</a>
-              </span>
+                <div class="title">
+                File:
+                <a href$="{{_getDownloadLink(report)}}">{{report.binaryName}}.{{report.binaryType}}</a>
+                &nbsp;
+                <a class="permalink" href$="{{_getPermaLink(report)}}"><iron-icon icon="icons:link" title="permalink"></iron-icon></a>
+                </div>
+                <div class="raw">
+                  <a href$="{{_getMetaLink(report,'debug','err')}}">debug_err</a>
+                  <a href$="{{_getMetaLink(report,'release','err')}}">release_err</a>
+                  <a href$="{{_getMetaLink(report,'debug','dump')}}">debug_dump</a>
+                  <a href$="{{_getMetaLink(report,'release','dump')}}">release_dump</a>
+                </div>
                 <div>{{_getFlags(report)}}</div>
                 <h4>Debug Stack Trace</h4>
                 <fuzzer-stacktrace-sk trace="{{report.debugStackTrace}}"></fuzzer-stacktrace-sk>
@@ -263,6 +272,10 @@
 
     _getDetailsLink: function(detailsBase, details, fuzzType) {
       return fuzzer.getLinkToDetails(detailsBase, fuzzType, 'line', details.lineNumber);
+    },
+
+    _getPermaLink: function(report) {
+      return "/details?name=" + report.binaryName;
     },
 
     toggleDetails: function() {

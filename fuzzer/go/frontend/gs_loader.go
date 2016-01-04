@@ -44,10 +44,8 @@ func LoadFromGoogleStorage(storageClient *storage.Client, finder functionnamefin
 	}
 	fuzz.ClearStaging()
 	for report := range reports {
-		if finder != nil {
-			report.DebugStackTrace.LookUpFunctions(finder)
-			report.ReleaseStackTrace.LookUpFunctions(finder)
-		}
+		report.DebugStackTrace.LookUpFunctions(finder)
+		report.ReleaseStackTrace.LookUpFunctions(finder)
 		fuzz.NewBinaryFuzzFound(report)
 	}
 	glog.Info("All fuzzes loaded from Google Storage")
@@ -69,8 +67,8 @@ type fuzzPackage struct {
 // groups them by fuzz.  It parses these groups of files into a FuzzReportBinary and returns
 // a channel through whcih all reports generated in this way will be streamed.
 // The channel will be closed when all reports are done being sent.
-func getBinaryReportsFromGS(storageClient *storage.Client, baseFolder string) (<-chan fuzz.FuzzReportBinary, error) {
-	reports := make(chan fuzz.FuzzReportBinary, 100)
+func getBinaryReportsFromGS(storageClient *storage.Client, baseFolder string) (<-chan fuzz.BinaryFuzzReport, error) {
+	reports := make(chan fuzz.BinaryFuzzReport, 100)
 
 	fuzzPackages, err := fetchFuzzPackages(storageClient, baseFolder)
 	if err != nil {
@@ -179,7 +177,7 @@ func emptyStringOnError(b []byte, err error) string {
 // the four pieces of the package.  It then parses them into a FuzzReportBinary and sends
 // the binary to the passed in channel.  When there is no more work to be done, this function.
 // returns and writes out true to the done channel.
-func download(storageClient *storage.Client, toDownload <-chan fuzzPackage, reports chan<- fuzz.FuzzReportBinary, wg *sync.WaitGroup) {
+func download(storageClient *storage.Client, toDownload <-chan fuzzPackage, reports chan<- fuzz.BinaryFuzzReport, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for job := range toDownload {
 		debugDump := emptyStringOnError(gs.FileContentsFromGS(storageClient, config.GS.Bucket, job.DebugDumpName))
