@@ -4,12 +4,9 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
 	"path/filepath"
 	"time"
@@ -25,20 +22,16 @@ import (
 )
 
 var (
-	workerNum          = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
-	chromiumBuild      = flag.String("chromium_build", "", "The chromium build dir to use.")
-	benchmarkName      = flag.String("benchmark_name", "", "The telemetry benchmark to run on this worker.")
-	benchmarkExtraArgs = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
-	browserExtraArgs   = flag.String("browser_extra_args", "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting", "The extra arguments that are passed to the browser while running the benchmark.")
-	// TODO(rmistry): Make this 3 instead of 1? runs will take longer.
-	repeatBenchmark      = flag.Int("repeat_benchmark", 1, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
+	workerNum            = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
+	chromiumBuild        = flag.String("chromium_build", "", "The chromium build dir to use.")
+	benchmarkName        = flag.String("benchmark_name", "", "The telemetry benchmark to run on this worker.")
+	benchmarkExtraArgs   = flag.String("benchmark_extra_args", "", "The extra arguments that are passed to the specified benchmark.")
+	browserExtraArgs     = flag.String("browser_extra_args", "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting", "The extra arguments that are passed to the browser while running the benchmark.")
+	repeatBenchmark      = flag.Int("repeat_benchmark", 2, "The number of times the benchmark should be repeated. For skpicture_printer benchmark this value is always 1.")
 	targetPlatform       = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 	telemetryBinariesDir = flag.String("telemetry_binaries_dir", "", "The directory that contains the telemetry binaries.")
 	pageSetsDir          = flag.String("page_sets_dir", "", "The directory that contains the CT page sets.")
-	// Below flags are used to upload data to chromeperf.
-	buildbotMaster  = flag.String("master", "", "The name of the buildbot master the builder is running on.")
-	buildbotBuilder = flag.String("builder", "", "The name of the buildbot builder that triggered this script.")
-	gitHash         = flag.String("git_hash", "", "The git hash the build was triggered at.")
+	outDir               = flag.String("out_dir", "", "The directory to send results to.")
 )
 
 func main() {
@@ -65,16 +58,8 @@ func main() {
 		glog.Error("Must specify --page_sets_dir")
 		return
 	}
-	if *buildbotMaster == "" {
-		glog.Error("Must specify --master")
-		return
-	}
-	if *buildbotBuilder == "" {
-		glog.Error("Must specify --builder")
-		return
-	}
-	if *gitHash == "" {
-		glog.Error("Must specify --git_hash")
+	if *outDir == "" {
+		glog.Error("Must specify --out_dir")
 		return
 	}
 	chromiumBinary := filepath.Join(*chromiumBuild, util.BINARY_CHROME)
@@ -101,7 +86,6 @@ func main() {
 
 	// Convert output to dashboard JSON v1 in order to upload to chromeperf.
 	// More information is in http://www.chromium.org/developers/speed-infra/performance-dashboard/sending-data-to-the-performance-dashboard
-	client := skutil.NewTimeoutClient()
 	outputFileInfos, err := ioutil.ReadDir(localOutputDir)
 	if err != nil {
 		glog.Errorf("Unable to read %s: %s", localOutputDir, err)
@@ -112,8 +96,9 @@ func main() {
 			continue
 		}
 		resultsFile := filepath.Join(localOutputDir, fileInfo.Name(), "results-chart.json")
-		if err := uploadResultsToPerfDashboard(resultsFile, client); err != nil {
-			glog.Errorf("Could not upload to perf dashboard: %s", err)
+		outputFile := filepath.Join(*outDir, fmt.Sprintf("%s-results.json", fileInfo.Name()))
+		if err := os.Rename(resultsFile, outputFile); err != nil {
+			glog.Errorf("Could not rename %s to %s: %s", resultsFile, outputFile, err)
 			continue
 		}
 	}
@@ -186,67 +171,5 @@ func runBenchmark(fileInfoName, pathToPagesets, localOutputDir, chromiumBuildNam
 	if err := util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
 		glog.Errorf("Run benchmark command failed with: %s", err)
 	}
-	return nil
-}
-
-// The master name used for the dashboard is a CamelCase name not the
-// canonical master name with dots.
-func getCamelCaseMasterName(master string) string {
-	// create it from golang playground
-	camelCaseMaster := ""
-	tokens := strings.Split(master, ".")
-	for _, token := range tokens {
-		camelCaseMaster += strings.Title(token)
-	}
-	return camelCaseMaster
-}
-
-// JSON decodes the provided resultsFile and uploads results to chromeperf.appspot.com
-func uploadResultsToPerfDashboard(resultsFile string, client *http.Client) error {
-	jsonFile, err := os.Open(resultsFile)
-	defer skutil.Close(jsonFile)
-	if err != nil {
-		return fmt.Errorf("Could not open %s: %s", resultsFile, err)
-	}
-	// Read the JSON and convert to dashboard JSON v1.
-	var chartData interface{}
-	if err := json.NewDecoder(jsonFile).Decode(&chartData); err != nil {
-		return fmt.Errorf("Could not parse %s: %s", resultsFile, err)
-	}
-	// TODO(rmistry): Populate the below with data that can be monitored.
-	versions := map[string]string{
-		"chromium": *gitHash,
-	}
-	supplemental := map[string]string{}
-	// Create a custom dictionary and convert it to JSON.
-	dashboardFormat := map[string]interface{}{
-		"master":       getCamelCaseMasterName(*buildbotMaster),
-		"bot":          *buildbotBuilder,
-		"chart_data":   chartData,
-		"point_id":     time.Now().Unix(),
-		"versions":     versions,
-		"supplemental": supplemental,
-	}
-	marshalledData, err := json.Marshal(dashboardFormat)
-	if err != nil {
-		return fmt.Errorf("Could not create dashboard JSON for %s: %s", resultsFile, err)
-	}
-
-	// Post the above to https://chromeperf.appspot.com/add_point with one parameter called data.
-	postData := url.Values{}
-	postData.Set("data", string(marshalledData))
-	req, err := http.NewRequest("POST", "https://chromeperf.appspot.com/add_point", strings.NewReader(postData.Encode()))
-	if err != nil {
-		return fmt.Errorf("Could not create HTTP request for %s: %s", resultsFile, err)
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("Could not post to chromeperf for %s: %s", resultsFile, err)
-	}
-	defer skutil.Close(resp.Body)
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Could not post to chromeperf for %s, response status code was %d", resultsFile, resp.StatusCode)
-	}
-	glog.Infof("Successfully uploaded the following to chromeperf: %s", string(marshalledData))
 	return nil
 }
