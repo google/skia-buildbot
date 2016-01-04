@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/testutils"
@@ -59,11 +59,11 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 	failMsg := "Database initialization failed. Do you have the test database set up properly?  Details: %v"
 
 	// Set up the database.
-	testDb := testutil.SetupMySQLTestDatabase(t, buildbot.MigrationSteps())
+	testDb := testutil.SetupMySQLTestDatabase(t, buildbot_deprecated.MigrationSteps())
 
-	conf := testutil.LocalTestDatabaseConfig(buildbot.MigrationSteps())
+	conf := testutil.LocalTestDatabaseConfig(buildbot_deprecated.MigrationSteps())
 	var err error
-	buildbot.DB, err = sqlx.Open("mysql", conf.MySQLString())
+	buildbot_deprecated.DB, err = sqlx.Open("mysql", conf.MySQLString())
 	assert.Nil(t, err, failMsg)
 
 	return testDb
@@ -111,13 +111,13 @@ func TestBuildScoring(t *testing.T) {
 	}
 
 	now := details[hashes['I']].Timestamp.Add(1 * time.Hour)
-	build1 := &buildbot.Build{
+	build1 := &buildbot_deprecated.Build{
 		GotRevision: hashes['A'],
 		Commits:     []string{hashes['A'], hashes['B'], hashes['C']},
 	}
 	cases := []struct {
 		commit        *vcsinfo.LongCommit
-		build         *buildbot.Build
+		build         *buildbot_deprecated.Build
 		expectedScore float64
 		lambda        float64
 	}{
@@ -282,7 +282,7 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 			// Actually insert a build, as if we're really using the scheduler.
 			// Do this even if we're not testing insertion, because if we don't,
 			// the queue won't know about this builder.
-			b := &buildbot.Build{
+			b := &buildbot_deprecated.Build{
 				Builder:     bc.Builder,
 				Master:      "fake",
 				Number:      buildNum,
@@ -291,7 +291,7 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 				GotRevision: bc.Commit,
 				Repository:  TEST_REPO,
 			}
-			assert.Nil(t, buildbot.IngestBuild(b, repos))
+			assert.Nil(t, buildbot_deprecated.IngestBuild(b, repos))
 			buildNum++
 			assert.Nil(t, q.update(now))
 		}

@@ -8,7 +8,7 @@ import (
 	"flag"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
 )
@@ -20,7 +20,7 @@ var (
 func main() {
 	defer common.LogPanic()
 	// Set up flags.
-	dbConf := database.ConfigFromFlags(buildbot.PROD_DB_HOST, buildbot.PROD_DB_PORT, database.USER_ROOT, buildbot.PROD_DB_NAME, buildbot.MigrationSteps())
+	dbConf := database.ConfigFromFlags(buildbot_deprecated.PROD_DB_HOST, buildbot_deprecated.PROD_DB_PORT, database.USER_ROOT, buildbot_deprecated.PROD_DB_NAME, buildbot_deprecated.MigrationSteps())
 
 	// Global init to initialize glog and parse arguments.
 	common.Init()

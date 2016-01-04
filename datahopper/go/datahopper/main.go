@@ -13,7 +13,7 @@ import (
 
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/util"
@@ -43,7 +43,7 @@ func fixName(s string) string {
 func main() {
 	defer common.LogPanic()
 	// Setup flags.
-	dbConf := buildbot.DBConfigFromFlags()
+	dbConf := buildbot_deprecated.DBConfigFromFlags()
 
 	// Global init to initialize glog and parse arguments.
 	common.InitWithMetrics("datahopper", graphiteServer)
@@ -81,19 +81,19 @@ func main() {
 	// Data generation goroutines.
 
 	// Buildbot data ingestion.
-	go buildbot.IngestNewBuildsLoop(*workdir)
+	go buildbot_deprecated.IngestNewBuildsLoop(*workdir)
 
 	// Measure buildbot data ingestion progress.
 	totalGuage := metrics.GetOrRegisterGauge("buildbot.builds.total", metrics.DefaultRegistry)
 	ingestGuage := metrics.GetOrRegisterGauge("buildbot.builds.ingested", metrics.DefaultRegistry)
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
-			totalBuilds, err := buildbot.NumTotalBuilds()
+			totalBuilds, err := buildbot_deprecated.NumTotalBuilds()
 			if err != nil {
 				glog.Error(err)
 				continue
 			}
-			ingestedBuilds, err := buildbot.NumIngestedBuilds()
+			ingestedBuilds, err := buildbot_deprecated.NumIngestedBuilds()
 			if err != nil {
 				glog.Error(err)
 				continue
@@ -110,7 +110,7 @@ func main() {
 			Name     string  `db:"name"`
 			Duration float64 `db:"duration"`
 		}
-		stmt, err := buildbot.DB.Preparex(fmt.Sprintf("SELECT name, AVG(finished-started) AS duration FROM %s WHERE started > ? AND finished > started GROUP BY name ORDER BY duration;", buildbot.TABLE_BUILD_STEPS))
+		stmt, err := buildbot_deprecated.DB.Preparex(fmt.Sprintf("SELECT name, AVG(finished-started) AS duration FROM %s WHERE started > ? AND finished > started GROUP BY name ORDER BY duration;", buildbot_deprecated.TABLE_BUILD_STEPS))
 		if err != nil {
 			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
 		}
@@ -138,7 +138,7 @@ func main() {
 			Builder  string  `db:"builder"`
 			Duration float64 `db:"duration"`
 		}
-		stmt, err := buildbot.DB.Preparex(fmt.Sprintf("SELECT builder, AVG(finished-started) AS duration FROM %s WHERE started > ? AND finished > started GROUP BY builder ORDER BY duration;", buildbot.TABLE_BUILDS))
+		stmt, err := buildbot_deprecated.DB.Preparex(fmt.Sprintf("SELECT builder, AVG(finished-started) AS duration FROM %s WHERE started > ? AND finished > started GROUP BY builder ORDER BY duration;", buildbot_deprecated.TABLE_BUILDS))
 		if err != nil {
 			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
 		}
@@ -167,7 +167,7 @@ func main() {
 			StepName string  `db:"stepName"`
 			Duration float64 `db:"duration"`
 		}
-		stmt, err := buildbot.DB.Preparex(fmt.Sprintf("SELECT b.builder as builder, s.name as stepName, AVG(s.finished-s.started) AS duration FROM %s s INNER JOIN %s b ON (s.buildId = b.id) WHERE s.started > ? AND s.finished > s.started GROUP BY b.builder, s.name ORDER BY b.builder, duration;", buildbot.TABLE_BUILD_STEPS, buildbot.TABLE_BUILDS))
+		stmt, err := buildbot_deprecated.DB.Preparex(fmt.Sprintf("SELECT b.builder as builder, s.name as stepName, AVG(s.finished-s.started) AS duration FROM %s s INNER JOIN %s b ON (s.buildId = b.id) WHERE s.started > ? AND s.finished > s.started GROUP BY b.builder, s.name ORDER BY b.builder, duration;", buildbot_deprecated.TABLE_BUILD_STEPS, buildbot_deprecated.TABLE_BUILDS))
 		if err != nil {
 			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
 		}

@@ -14,7 +14,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/build_queue"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
@@ -49,7 +49,7 @@ var (
 		regexp.MustCompile("^Mac10\\.9 Tests$"),
 		regexp.MustCompile("^Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-CT_DM_1m_SKPs$"),
 		regexp.MustCompile("^Win7 Tests \\(1\\)"),
-		buildbot.TRYBOT_REGEXP,
+		buildbot_deprecated.TRYBOT_REGEXP,
 	}
 
 	// MASTERS determines which masters we poll for builders.
@@ -301,7 +301,7 @@ func scheduleBuilds(q *build_queue.BuildQueue, bb *buildbucket.Client) error {
 func main() {
 	defer common.LogPanic()
 	// Setup flags.
-	dbConf := buildbot.DBConfigFromFlags()
+	dbConf := buildbot_deprecated.DBConfigFromFlags()
 
 	// Global init.
 	common.InitWithMetrics(APP_NAME, graphiteServer)

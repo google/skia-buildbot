@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/util"
 )
@@ -53,7 +53,7 @@ var BUILDSLAVE_OFFLINE_BLACKLIST = []string{
 	"vm255-m3",
 }
 
-type BuildSlice []*buildbot.Build
+type BuildSlice []*buildbot_deprecated.Build
 
 func (s BuildSlice) Len() int {
 	return len(s)
@@ -80,7 +80,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		re := regexp.MustCompile("[^A-Za-z0-9]+")
 		for _ = range time.Tick(tickInterval) {
 			glog.Info("Loading buildslave data.")
-			slaves, err := buildbot.GetBuildSlaves()
+			slaves, err := buildbot_deprecated.GetBuildSlaves()
 			if err != nil {
 				glog.Error(err)
 				continue
@@ -178,7 +178,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		hangTimePeriod := 3 * time.Hour
 		for _ = range time.Tick(tickInterval) {
 			glog.Infof("Searching for hung buildslaves and disconnected Android devices.")
-			builds, err := buildbot.GetUnfinishedBuilds()
+			builds, err := buildbot_deprecated.GetUnfinishedBuilds()
 			if err != nil {
 				glog.Error(err)
 				continue
@@ -236,7 +236,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		for _ = range time.Tick(tickInterval) {
 			glog.Infof("Searching for builds which failed update_scripts.")
 			currentSearch := time.Now()
-			builds, err := buildbot.GetBuildsFromDateRange(lastSearch, currentSearch)
+			builds, err := buildbot_deprecated.GetBuildsFromDateRange(lastSearch, currentSearch)
 			lastSearch = currentSearch
 			if err != nil {
 				glog.Error(err)

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/timer"
@@ -128,7 +128,7 @@ func timeFactor(now, t time.Time, lambda float64) float64 {
 
 // scoreBuild returns the current score for the given commit/builder pair. The
 // details on how scoring works are described in the doc for NewBuildQueue.
-func scoreBuild(commit *vcsinfo.LongCommit, build *buildbot.Build, now time.Time, timeLambda float64) float64 {
+func scoreBuild(commit *vcsinfo.LongCommit, build *buildbot_deprecated.Build, now time.Time, timeLambda float64) float64 {
 	s := -1.0
 	if build != nil {
 		if build.GotRevision == commit.Hash {
@@ -224,7 +224,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	}
 
 	// Get all builds associated with the recent commits.
-	buildsByCommit, err := buildbot.GetBuildsForCommits(recentCommitsPreload, map[int]bool{})
+	buildsByCommit, err := buildbot_deprecated.GetBuildsForCommits(recentCommitsPreload, map[int]bool{})
 	if err != nil {
 		return nil, fmt.Errorf(errMsg, err)
 	}
@@ -321,7 +321,7 @@ func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []str
 }
 
 // getBestCandidate finds the best BuildCandidate for the given builder.
-func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
+func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, now time.Time) (float64, *buildbot_deprecated.Build, *buildbot_deprecated.Build, error) {
 	errMsg := fmt.Sprintf("Failed to get best candidate for %s: %%v", bc.Builder)
 	repo, err := q.repos.Repo(bc.Repo)
 	if err != nil {
@@ -344,8 +344,8 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 	// For each commit/builder pair, determine the score increase obtained
 	// by running a build at that commit.
 	scoreIncrease := map[string]float64{}
-	newBuildsByCommit := map[string]*buildbot.Build{}
-	stoleFromByCommit := map[string]*buildbot.Build{}
+	newBuildsByCommit := map[string]*buildbot_deprecated.Build{}
+	stoleFromByCommit := map[string]*buildbot_deprecated.Build{}
 	for _, commit := range recentCommits {
 		// Shortcut: Don't bisect builds with a huge number
 		// of commits.  This saves lots of time and only affects
@@ -364,14 +364,14 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 
 		newScores := map[string]float64{}
 		// Pretend to create a new Build at the given commit.
-		newBuild := buildbot.Build{
+		newBuild := buildbot_deprecated.Build{
 			Builder:     bc.Builder,
 			Master:      bc.Master,
 			Number:      bc.MaxBuildNum + 1,
 			GotRevision: commit,
 			Repository:  bc.Repo,
 		}
-		commits, stealFrom, stolen, err := buildbot.FindCommitsForBuild(bc, &newBuild, q.repos)
+		commits, stealFrom, stolen, err := buildbot_deprecated.FindCommitsForBuild(bc, &newBuild, q.repos)
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
@@ -405,7 +405,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 			}
 			if stoleFromOrig == nil {
 				// The build may not be cached. Fall back on getting it from the DB.
-				stoleFromOrig, err = buildbot.GetBuildFromDB(bc.Builder, bc.Master, stealFrom)
+				stoleFromOrig, err = buildbot_deprecated.GetBuildFromDB(bc.Builder, bc.Master, stealFrom)
 				if err != nil {
 					return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 				}

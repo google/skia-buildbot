@@ -25,7 +25,7 @@ import (
 )
 
 import (
-	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/influxdb"
@@ -187,7 +187,7 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer util.Close(r.Body)
-	c := buildbot.BuildComment{
+	c := buildbot_deprecated.BuildComment{
 		BuildId:   int(buildId),
 		User:      login.LoggedInAs(r),
 		Timestamp: float64(time.Now().UTC().Unix()),
@@ -250,7 +250,7 @@ func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 
-	c := buildbot.BuilderComment{
+	c := buildbot_deprecated.BuilderComment{
 		Builder:       builder,
 		User:          login.LoggedInAs(r),
 		Timestamp:     float64(time.Now().UTC().Unix()),
@@ -304,7 +304,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 
-	c := buildbot.CommitComment{
+	c := buildbot_deprecated.CommitComment{
 		Commit:    commit,
 		User:      login.LoggedInAs(r),
 		Timestamp: float64(time.Now().UTC().Unix()),
@@ -328,7 +328,7 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := buildbot.DeleteCommitComment(int(commentId)); err != nil {
+	if err := buildbot_deprecated.DeleteCommitComment(int(commentId)); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %v", err))
 		return
 	}
@@ -393,7 +393,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch the builds.
-	builds, err := buildbot.GetBuildsFromDateRange(startTime, endTime)
+	builds, err := buildbot_deprecated.GetBuildsFromDateRange(startTime, endTime)
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
 		return
@@ -614,7 +614,7 @@ func runServer(serverURL string) {
 func main() {
 	defer common.LogPanic()
 	// Setup flags.
-	dbConf := buildbot.DBConfigFromFlags()
+	dbConf := buildbot_deprecated.DBConfigFromFlags()
 	influxdb.SetupFlags()
 
 	common.InitWithMetrics("status", graphiteServer)
@@ -705,7 +705,7 @@ func main() {
 	}
 
 	// Load slave_hosts_cfg and device cfgs in a loop.
-	slaveHosts, err = buildbot.SlaveHostsCfgPoller(infraRepoPath)
+	slaveHosts, err = buildbot_deprecated.SlaveHostsCfgPoller(infraRepoPath)
 	if err != nil {
 		glog.Fatal(err)
 	}

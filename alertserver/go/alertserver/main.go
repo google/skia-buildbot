@@ -29,7 +29,7 @@ import (
 import (
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/alertserver/go/rules"
-	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/influxdb"
@@ -350,7 +350,7 @@ func runServer(serverURL string) {
 func main() {
 	defer common.LogPanic()
 	alertDBConf := alerting.DBConfigFromFlags()
-	buildbotDBConf := buildbot.DBConfigFromFlags()
+	buildbotDBConf := buildbot_deprecated.DBConfigFromFlags()
 	influxdb.SetupFlags()
 	common.InitWithMetrics("alertserver", graphiteServer)
 	v, err := skiaversion.GetVersion()

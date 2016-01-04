@@ -11,7 +11,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -206,19 +206,19 @@ func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
 		return err
 	}
 
-	comments, err := buildbot.GetCommitsComments(hashes)
+	comments, err := buildbot_deprecated.GetCommitsComments(hashes)
 	if err != nil {
 		return err
 	}
 
 	data := struct {
-		Comments    map[string][]*buildbot.CommitComment         `json:"comments"`
-		Commits     []*vcsinfo.LongCommit                        `json:"commits"`
-		BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
-		Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
-		Builders    map[string][]*buildbot.BuilderComment        `json:"builders"`
-		StartIdx    int                                          `json:"startIdx"`
-		EndIdx      int                                          `json:"endIdx"`
+		Comments    map[string][]*buildbot_deprecated.CommitComment         `json:"comments"`
+		Commits     []*vcsinfo.LongCommit                                   `json:"commits"`
+		BranchHeads []*gitinfo.GitBranch                                    `json:"branch_heads"`
+		Builds      map[string]map[string]*buildbot_deprecated.BuildSummary `json:"builds"`
+		Builders    map[string][]*buildbot_deprecated.BuilderComment        `json:"builders"`
+		StartIdx    int                                                     `json:"startIdx"`
+		EndIdx      int                                                     `json:"endIdx"`
 	}{
 		Comments:    comments,
 		Commits:     commits,
@@ -243,7 +243,7 @@ func (c *CommitCache) LastNAsJson(w io.Writer, n int) error {
 }
 
 // AddBuildComment adds the given comment to the given build.
-func (c *CommitCache) AddBuildComment(buildId int, comment *buildbot.BuildComment) error {
+func (c *CommitCache) AddBuildComment(buildId int, comment *buildbot_deprecated.BuildComment) error {
 	b, err := c.buildCache.Get(buildId)
 	if err != nil {
 		return fmt.Errorf("No such build: %v", err)
@@ -273,7 +273,7 @@ func (c *CommitCache) DeleteBuildComment(buildId, commentId int) error {
 }
 
 // AddBuilderComment adds a comment about the given builder.
-func (c *CommitCache) AddBuilderComment(builder string, comment *buildbot.BuilderComment) error {
+func (c *CommitCache) AddBuilderComment(builder string, comment *buildbot_deprecated.BuilderComment) error {
 	return c.buildCache.AddBuilderComment(builder, comment)
 }
 
@@ -283,12 +283,12 @@ func (c *CommitCache) DeleteBuilderComment(builder string, id int) error {
 }
 
 // GetBuildsForCommit returns the builds which ran at the given commit.
-func (c *CommitCache) GetBuildsForCommit(hash string) ([]*buildbot.BuildSummary, error) {
+func (c *CommitCache) GetBuildsForCommit(hash string) ([]*buildbot_deprecated.BuildSummary, error) {
 	builds, _, err := c.buildCache.GetBuildsForCommits([]string{hash})
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get build data for commit: %v", err)
 	}
-	rv := make([]*buildbot.BuildSummary, 0, len(builds[hash]))
+	rv := make([]*buildbot_deprecated.BuildSummary, 0, len(builds[hash]))
 	for _, b := range builds[hash] {
 		rv = append(rv, b)
 	}
