@@ -130,7 +130,7 @@
       },
 
       _getIconClasses: function(trace, expanded) {
-        if (expanded || trace.frames.length <= 8) {
+        if (expanded || !trace.frames || trace.frames.length <= 8) {
           return "hidden";
         }
         return "";

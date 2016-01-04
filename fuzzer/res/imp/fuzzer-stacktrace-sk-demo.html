@@ -13,6 +13,10 @@
   <div style="width:560px">
     <fuzzer-stacktrace-sk id="trace"></fuzzer-stacktrace-sk>
   </div>
+  <h1>Empty stacktrace </h1>
+  <div style="width:560px">
+    <fuzzer-stacktrace-sk id="empty"></fuzzer-stacktrace-sk>
+  </div>
     <script type="text/javascript" charset="utf-8">
     var trace = {
       "frames": [
@@ -79,6 +83,7 @@
       ]
     };
     $$$('#trace').setStackTrace(trace);
+    $$$('#empty').setStackTrace({frames:undefined});
   </script>
 </body>
 </html>
