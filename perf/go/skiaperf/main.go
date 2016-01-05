@@ -92,6 +92,7 @@ var (
 	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	traceservice   = flag.String("trace_service", "localhost:9090", "The address of the traceservice endpoint.")
+	tileSize       = flag.Int("tile_size", 100, "The size of Tiles.")
 )
 
 var (
@@ -148,7 +149,7 @@ func Init() {
 	}
 	evt := eventbus.New(nil)
 	tileStats = tilestats.New(evt)
-	nanoTileStore, err = tracedb.NewTileBuilder(git, *traceservice, config.INITIAL_TILE_SIZE, types.PerfTraceBuilder, rietveld.RIETVELD_SKIA_URL, evt)
+	nanoTileStore, err = tracedb.NewTileBuilder(git, *traceservice, *tileSize, types.PerfTraceBuilder, rietveld.RIETVELD_SKIA_URL, evt)
 	if err != nil {
 		glog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}

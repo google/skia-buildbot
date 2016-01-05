@@ -28,9 +28,6 @@ const (
 	// than this and we presume it's a standard deviation of zero.
 	MIN_STDDEV = 0.001
 
-	// INITIAL_TILE_SIZE is the initial size of Tiles.
-	INITIAL_TILE_SIZE = 100
-
 	// Different datasets that are stored in tiles.
 	DATASET_NANO = "nano"
 
