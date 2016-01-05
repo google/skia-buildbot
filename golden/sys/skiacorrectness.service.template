@@ -10,7 +10,8 @@ Environment=DATA_DIR=/mnt/pd0/data  \
 ExecStart=/usr/local/bin/skiacorrectness  \
     --port=:8001  \
     --log_dir=/var/log/logserver  \
-    --tile_store_dir=${DATA_DIR}/tileStore3  \
+    --trace_service=skia-tracedb:10000 \
+    --git_repo_dir=${DATA_DIR}/gold/skia \
     --image_dir=${DATA_DIR}/imageStore  \
     --storage_dir=${DATA_DIR}/datastore  \
     --redis_host=localhost:6379  \

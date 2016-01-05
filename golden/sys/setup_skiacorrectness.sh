@@ -28,4 +28,6 @@ DATADISK_REDIS_LOG_DIR="/mnt/pd0/redis-log"
 link_redis_dir $REDIS_DATA_DIR $DATADISK_REDIS_DATA_DIR
 link_redis_dir $REDIS_LOG_DIR $DATADISK_REDIS_LOG_DIR
 
+mkdir -p /mnt/pd0/redis-data/gold
+chown default:default /mnt/pd0/redis-data/gold
 sudo systemctl restart skiacorrectness.service ingest.service
