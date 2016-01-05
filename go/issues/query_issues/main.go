@@ -20,7 +20,7 @@ var (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Printf("Usage: query_issues <query> [OPTIONS]")
+		fmt.Println("Usage: query_issues <query> [OPTIONS]")
 		return
 	}
 	query := os.Args[1]
@@ -33,10 +33,10 @@ func main() {
 	tracker := issues.NewMonorailIssueTracker(client)
 	iss, err := tracker.FromQuery(query)
 	if err != nil {
-		fmt.Printf("Failed to retrieve issues: %s", err)
+		fmt.Printf("Failed to retrieve issues: %s\n", err)
 		return
 	}
-	fmt.Printf("Found: %d", len(iss))
+	fmt.Printf("Found: %d\n", len(iss))
 	for _, issue := range iss {
 		fmt.Printf("%20d %10s %s\n", issue.ID, issue.State, issue.Title)
 	}

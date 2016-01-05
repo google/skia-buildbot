@@ -138,7 +138,9 @@
                 File:
                 <a href$="{{_getDownloadLink(report)}}">{{report.binaryName}}.{{report.binaryType}}</a>
                 &nbsp;
-                <a class="permalink" href$="{{_getPermaLink(report)}}"><iron-icon icon="icons:link" title="permalink"></iron-icon></a>
+                <a href$="{{_getPermaLink(report)}}"><iron-icon icon="icons:link" title="permalink"></iron-icon></a>
+                &nbsp;
+                <a href$="{{_getNewBugLink(report)}}" target="_blank"><iron-icon icon="icons:bug-report" title="file a bug about this fuzz"></iron-icon></a>
                 </div>
                 <div class="raw">
                   <a href$="{{_getMetaLink(report,'debug','err')}}">debug_err</a>
@@ -276,6 +278,10 @@
 
     _getPermaLink: function(report) {
       return "/details?name=" + report.binaryName;
+    },
+
+    _getNewBugLink: function(report) {
+      return "/newBug?name=" + report.binaryName;
     },
 
     toggleDetails: function() {

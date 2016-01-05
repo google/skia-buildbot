@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -214,6 +215,7 @@ func runServer() {
 	r.HandleFunc(`/fuzz/{kind:(binary|api)}/{name:[0-9a-f]+\.(skp)}`, fuzzHandler)
 	r.HandleFunc(`/metadata/{kind:(binary|api)}/{type:(skp)}/{name:[0-9a-f]+_(debug|release)\.(err|dump)}`, metadataHandler)
 	r.HandleFunc("/fuzz_count", fuzzCountHandler)
+	r.HandleFunc("/newBug", newBugHandler)
 
 	rootHandler := login.ForceAuth(util.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
 
@@ -377,4 +379,24 @@ func fuzzCountHandler(w http.ResponseWriter, r *http.Request) {
 		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
+}
+
+const newBugTemplate = `# Your bug description here
+
+# tracking metadata below:
+fuzz_commit: %s
+related_fuzz: https://fuzzer.skia.org/details?name=%s
+`
+
+func newBugHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	name := r.FormValue("name")
+	q := url.Values{
+		"labels": []string{"FromSkiaFuzzer,Type-Defect,Priority-Medium,Restrict-View-Googler"},
+	}
+	if name != "" {
+		q.Add("comment", fmt.Sprintf(newBugTemplate, config.FrontEnd.SkiaVersion.Hash, name))
+	}
+	// 303 means "make a GET request to this url"
+	http.Redirect(w, r, "https://bugs.chromium.org/p/skia/issues/entry?"+q.Encode(), 303)
 }
