@@ -11,12 +11,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
+	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot_deprecated"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/metrics"
 )
 
 const (
@@ -84,8 +84,8 @@ func main() {
 	go buildbot_deprecated.IngestNewBuildsLoop(*workdir)
 
 	// Measure buildbot data ingestion progress.
-	totalGuage := metrics.GetOrRegisterGauge("buildbot.builds.total", metrics.DefaultRegistry)
-	ingestGuage := metrics.GetOrRegisterGauge("buildbot.builds.ingested", metrics.DefaultRegistry)
+	totalGuage := go_metrics.GetOrRegisterGauge("buildbot.builds.total", go_metrics.DefaultRegistry)
+	ingestGuage := go_metrics.GetOrRegisterGauge("buildbot.builds.ingested", go_metrics.DefaultRegistry)
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			totalBuilds, err := buildbot_deprecated.NumTotalBuilds()
@@ -103,95 +103,44 @@ func main() {
 		}
 	}()
 
-	// Average duration of buildsteps over a time period.
+	// Average build and step time.
 	go func() {
 		period := 24 * time.Hour
-		type stepData struct {
-			Name     string  `db:"name"`
-			Duration float64 `db:"duration"`
-		}
-		stmt, err := buildbot_deprecated.DB.Preparex(fmt.Sprintf("SELECT name, AVG(finished-started) AS duration FROM %s WHERE started > ? AND finished > started GROUP BY name ORDER BY duration;", buildbot_deprecated.TABLE_BUILD_STEPS))
-		if err != nil {
-			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
-		}
-		defer util.Close(stmt)
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
-			glog.Info("Loading buildstep duration data.")
-			t := time.Now().UTC().Add(-period).Unix()
-			steps := []stepData{}
-			if err := stmt.Select(&steps, t); err != nil {
-				glog.Error(err)
+			glog.Info("Loading build and buildstep duration data.")
+			end := time.Now().UTC()
+			start := end.Add(-period)
+			builds, err := buildbot_deprecated.GetBuildsFromDateRange(start, end)
+			if err != nil {
+				glog.Errorf("Failed to obtain build and buildstep duration data: %s", err)
 				continue
 			}
-			for _, s := range steps {
-				v := int64(s.Duration * float64(time.Millisecond))
-				metric := fmt.Sprintf("buildbot.buildsteps.%s.duration", fixName(s.Name))
-				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
-			}
-		}
-	}()
-
-	// Average duration of builds over a time period.
-	go func() {
-		period := 24 * time.Hour
-		type buildData struct {
-			Builder  string  `db:"builder"`
-			Duration float64 `db:"duration"`
-		}
-		stmt, err := buildbot_deprecated.DB.Preparex(fmt.Sprintf("SELECT builder, AVG(finished-started) AS duration FROM %s WHERE started > ? AND finished > started GROUP BY builder ORDER BY duration;", buildbot_deprecated.TABLE_BUILDS))
-		if err != nil {
-			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
-		}
-		defer util.Close(stmt)
-		for _ = range time.Tick(common.SAMPLE_PERIOD) {
-			glog.Info("Loading build duration data.")
-			t := time.Now().UTC().Add(-period).Unix()
-			builds := []buildData{}
-			if err := stmt.Select(&builds, t); err != nil {
-				glog.Error(err)
-				continue
-			}
-			for _, s := range builds {
-				v := int64(s.Duration * float64(time.Millisecond))
-				metric := fmt.Sprintf("buildbot.builds.%s.duration", fixName(s.Builder))
-				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
-			}
-		}
-	}()
-
-	// Average build step time broken down by builder.
-	go func() {
-		period := 24 * time.Hour
-		type stepData struct {
-			Builder  string  `db:"builder"`
-			StepName string  `db:"stepName"`
-			Duration float64 `db:"duration"`
-		}
-		stmt, err := buildbot_deprecated.DB.Preparex(fmt.Sprintf("SELECT b.builder as builder, s.name as stepName, AVG(s.finished-s.started) AS duration FROM %s s INNER JOIN %s b ON (s.buildId = b.id) WHERE s.started > ? AND s.finished > s.started GROUP BY b.builder, s.name ORDER BY b.builder, duration;", buildbot_deprecated.TABLE_BUILD_STEPS, buildbot_deprecated.TABLE_BUILDS))
-		if err != nil {
-			glog.Fatalf("Failed to prepare buildbot database query: %v", err)
-		}
-		defer util.Close(stmt)
-		for _ = range time.Tick(common.SAMPLE_PERIOD) {
-			glog.Info("Loading per-builder buildstep duration data.")
-			t := time.Now().UTC().Add(-period).Unix()
-			steps := []stepData{}
-			if err := stmt.Select(&steps, t); err != nil {
-				glog.Error(err)
-				continue
-			}
-			for _, s := range steps {
-				v := int64(s.Duration * float64(time.Millisecond))
-				metric := fmt.Sprintf("buildbot.buildstepsbybuilder.%s.%s.duration", fixName(s.Builder), fixName(s.StepName))
-				metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
+			for _, b := range builds {
+				if !b.IsFinished() {
+					continue
+				}
+				// Report build time.
+				// app.host.measurement.measurement.builder.measurement*
+				d := int64(b.Finished - b.Started)
+				metric := fmt.Sprintf("buildbot.builds.%s.duration", fixName(b.Builder))
+				metrics.GetOrRegisterSlidingWindow(metric, metrics.DEFAULT_WINDOW).Update(d)
+				for _, s := range b.Steps {
+					if !s.IsFinished() {
+						continue
+					}
+					// app.host.measurement.measurement.builder.step.measurement*
+					d := int64(s.Finished - s.Started)
+					metric := fmt.Sprintf("buildbot.buildstepsbybuilder.%s.%s.duration", fixName(b.Builder), fixName(s.Name))
+					metrics.GetOrRegisterSlidingWindow(metric, metrics.DEFAULT_WINDOW).Update(d)
+				}
 			}
 		}
 	}()
 
 	// Number of commits in the repo.
 	go func() {
-		skiaGauge := metrics.GetOrRegisterGauge("repo.skia.commits", metrics.DefaultRegistry)
-		infraGauge := metrics.GetOrRegisterGauge("repo.infra.commits", metrics.DefaultRegistry)
+		skiaGauge := go_metrics.GetOrRegisterGauge("repo.skia.commits", go_metrics.DefaultRegistry)
+		infraGauge := go_metrics.GetOrRegisterGauge("repo.infra.commits", go_metrics.DefaultRegistry)
 		for _ = range time.Tick(5 * time.Minute) {
 			skiaGauge.Update(int64(skiaRepo.NumCommits()))
 			infraGauge.Update(int64(infraRepo.NumCommits()))

@@ -39,6 +39,11 @@ type BuildStep struct {
 	Finished   float64       `db:"finished"`
 }
 
+// Finished indicates whether the BuildStep has finished.
+func (s *BuildStep) IsFinished() bool {
+	return s.Finished != 0.0
+}
+
 // Build.Results code descriptions, see http://docs.buildbot.net/current/developer/results.html.
 const (
 	BUILDBOT_SUCCESS = 0
