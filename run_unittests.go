@@ -284,7 +284,7 @@ func main() {
 
 	// Other tests.
 	tests = append(tests, cmdTest([]string{"go", "vet", "./..."}, ".", "go vet"))
-	tests = append(tests, cmdTest([]string{"errcheck", "go.skia.org/infra/..."}, ".", "errcheck"))
+	tests = append(tests, cmdTest([]string{"errcheck", "-ignore", ":Close", "go.skia.org/infra/..."}, ".", "errcheck"))
 	tests = append(tests, polylintTests()...)
 
 	goimportsCmd := []string{"goimports", "-l", "."}
