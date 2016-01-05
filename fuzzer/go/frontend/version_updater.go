@@ -7,28 +7,28 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
+	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"go.skia.org/infra/fuzzer/go/functionnamefinder"
-	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	"go.skia.org/infra/go/vcsinfo"
-	"google.golang.org/cloud/storage"
 )
 
 // VersionUpdater is a struct that will handle the updating from one version to fuzz to another
 // for the frontend.
 // It will handle both a pending change and a current change.
 type VersionUpdater struct {
-	storageClient  *storage.Client
 	finders        map[string]functionnamefinder.Finder
 	finderBuilding sync.Mutex
-	cache          fuzzcache.FuzzReportCache
+	gsLoader       *gsloader.GSLoader
+	syncer         *syncer.FuzzSyncer
 }
 
 // NewVersionUpdater returns a VersionUpdater.
-func NewVersionUpdater(s *storage.Client, c fuzzcache.FuzzReportCache) *VersionUpdater {
+func NewVersionUpdater(g *gsloader.GSLoader, syncer *syncer.FuzzSyncer) *VersionUpdater {
 	return &VersionUpdater{
-		storageClient: s,
-		finders:       make(map[string]functionnamefinder.Finder),
-		cache:         c,
+		finders:  make(map[string]functionnamefinder.Finder),
+		gsLoader: g,
+		syncer:   syncer,
 	}
 }
 
@@ -45,7 +45,7 @@ func (v *versionHolder) SetSkiaVersion(lc *vcsinfo.LongCommit) {
 
 // HandlePendingVersion updates the frontend's copy of Skia to the specified pending version
 // and begins building the AST for the pending version on a background goroutine.
-func (u *VersionUpdater) HandlePendingVersion(pendingHash string) (*vcsinfo.LongCommit, error) {
+func (v *VersionUpdater) HandlePendingVersion(pendingHash string) (*vcsinfo.LongCommit, error) {
 	pending := versionHolder{}
 	if err := common.DownloadSkia(pendingHash, config.FrontEnd.SkiaRoot, &pending); err != nil {
 		return nil, fmt.Errorf("Could not update Skia to pending version %s: %s", pendingHash, err)
@@ -53,14 +53,14 @@ func (u *VersionUpdater) HandlePendingVersion(pendingHash string) (*vcsinfo.Long
 
 	// start generating AST in the background.
 	go func() {
-		u.finderBuilding.Lock()
-		defer u.finderBuilding.Unlock()
-		if finder, err := functionnamefinder.New(); err != nil {
+		v.finderBuilding.Lock()
+		defer v.finderBuilding.Unlock()
+		if finder, err := functionnamefinder.NewSync(); err != nil {
 			glog.Errorf("Error building FunctionNameFinder at version %s: %s", pendingHash, err)
 			return
 		} else {
 			glog.Infof("Successfully rebuilt AST for Skia version %s", pendingHash)
-			u.finders[pendingHash] = finder
+			v.finders[pendingHash] = finder
 		}
 	}()
 
@@ -68,18 +68,20 @@ func (u *VersionUpdater) HandlePendingVersion(pendingHash string) (*vcsinfo.Long
 }
 
 // HandleCurrentVersion sets the current version of Skia to be the specified value and calls
-// LoadFromGoogleStorage.  If there is an ast still being generated, it will block until
+// LoadFreshFromGoogleStorage.  If there is an AST still being generated, it will block until
 // that completes.
-func (u *VersionUpdater) HandleCurrentVersion(currentHash string) (*vcsinfo.LongCommit, error) {
+func (v *VersionUpdater) HandleCurrentVersion(currentHash string) (*vcsinfo.LongCommit, error) {
 	// Make sure skia version is at the proper version.  This also sets config.Frontend.SkiaVersion.
 	if err := common.DownloadSkia(currentHash, config.FrontEnd.SkiaRoot, &config.FrontEnd); err != nil {
 		return nil, fmt.Errorf("Could not update Skia to current version %s: %s", currentHash, err)
 	}
 	// Block until finder is built.
-	u.finderBuilding.Lock()
-	defer u.finderBuilding.Unlock()
-	if err := LoadFromGoogleStorage(u.storageClient, u.finders[currentHash], u.cache); err != nil {
+	v.finderBuilding.Lock()
+	defer v.finderBuilding.Unlock()
+	v.gsLoader.SetFinder(v.finders[currentHash])
+	if err := v.gsLoader.LoadFreshFromGoogleStorage(); err != nil {
 		return nil, fmt.Errorf("Had problems fetching new fuzzes from GCS: %s", err)
 	}
+	v.syncer.Refresh()
 	return config.FrontEnd.SkiaVersion, nil
 }

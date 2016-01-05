@@ -20,6 +20,8 @@ import (
 	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend"
+	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
+	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"go.skia.org/infra/fuzzer/go/functionnamefinder"
 	"go.skia.org/infra/fuzzer/go/fuzz"
 	"go.skia.org/infra/fuzzer/go/fuzzcache"
@@ -49,6 +51,8 @@ var (
 	storageClient *storage.Client = nil
 
 	versionWatcher *fcommon.VersionWatcher = nil
+
+	fuzzSyncer *syncer.FuzzSyncer = nil
 )
 
 var (
@@ -65,13 +69,16 @@ var (
 	redirectURL   = flag.String("redirect_url", "https://fuzzer.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 
 	// Scanning params
-	skiaRoot           = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
-	clangPath          = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
-	clangPlusPlusPath  = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
-	depotToolsPath     = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
-	bucket             = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
-	downloadProcesses  = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
+	skiaRoot          = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
+	clangPath         = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
+	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
+	depotToolsPath    = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
+	bucket            = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
+	downloadProcesses = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
+
+	// Other params
 	versionCheckPeriod = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
+	fuzzSyncPeriod     = flag.Duration("fuzz_sync_period", 2*time.Minute, `The period used to sync bad fuzzes and check the count of grey and bad fuzzes.`)
 )
 
 var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path", "bolt_db_path"}
@@ -105,30 +112,34 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		glog.Fatal(err)
 	}
+
 	go func() {
 		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.FrontEnd.SkiaRoot, &config.FrontEnd); err != nil {
 			glog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
+		fuzzSyncer = syncer.New(storageClient)
+		fuzzSyncer.Start()
+
 		cache, err := fuzzcache.New(config.FrontEnd.BoltDBPath)
 		if err != nil {
 			glog.Fatalf("Could not create fuzz report cache at %s: %s", config.FrontEnd.BoltDBPath, err)
 		}
-		defer util.Close(&cache)
+		defer util.Close(cache)
 
-		if err := frontend.LoadFromBoltDB(cache); err != nil {
+		if err := gsloader.LoadFromBoltDB(cache); err != nil {
 			glog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
 		}
 		var finder functionnamefinder.Finder
 		if !*local {
-			if finder, err = functionnamefinder.New(); err != nil {
-				glog.Fatalf("Error loading Skia Source: %s", err)
-			}
+			finder = functionnamefinder.NewAsync()
 		}
-		if err := frontend.LoadFromGoogleStorage(storageClient, finder, cache); err != nil {
+		gsLoader := gsloader.New(storageClient, finder, cache)
+		if err := gsLoader.LoadFreshFromGoogleStorage(); err != nil {
 			glog.Fatalf("Error loading in data from GCS: %s", err)
 		}
-		updater := frontend.NewVersionUpdater(storageClient, cache)
+		fuzzSyncer.SetGSLoader(gsLoader)
+		updater := frontend.NewVersionUpdater(gsLoader, fuzzSyncer)
 		versionWatcher = fcommon.NewVersionWatcher(storageClient, config.FrontEnd.VersionCheckPeriod, updater.HandlePendingVersion, updater.HandleCurrentVersion)
 		versionWatcher.Start()
 
@@ -157,6 +168,7 @@ func writeFlagsToConfig() error {
 	config.Common.DepotToolsPath = *depotToolsPath
 	config.GS.Bucket = *bucket
 	config.FrontEnd.NumDownloadProcesses = *downloadProcesses
+	config.FrontEnd.FuzzSyncPeriod = *fuzzSyncPeriod
 	return nil
 }
 
@@ -201,6 +213,7 @@ func runServer() {
 	r.HandleFunc("/status", statusHandler)
 	r.HandleFunc(`/fuzz/{kind:(binary|api)}/{name:[0-9a-f]+\.(skp)}`, fuzzHandler)
 	r.HandleFunc(`/metadata/{kind:(binary|api)}/{type:(skp)}/{name:[0-9a-f]+_(debug|release)\.(err|dump)}`, metadataHandler)
+	r.HandleFunc("/fuzz_count", fuzzCountHandler)
 
 	rootHandler := login.ForceAuth(util.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
 
@@ -345,6 +358,22 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(s); err != nil {
+		glog.Errorf("Failed to write or encode output: %s", err)
+		return
+	}
+}
+
+func fuzzCountHandler(w http.ResponseWriter, r *http.Request) {
+	c := syncer.FuzzCount{
+		TotalBad:  -1,
+		TotalGrey: -1,
+		ThisBad:   -1,
+		ThisGrey:  -1,
+	}
+	if fuzzSyncer != nil {
+		c = fuzzSyncer.LastCount
+	}
+	if err := json.NewEncoder(w).Encode(c); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}

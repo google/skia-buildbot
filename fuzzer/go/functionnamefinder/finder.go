@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
@@ -21,13 +22,51 @@ type Finder interface {
 	FunctionName(packageName string, fileName string, lineNumber int) string
 }
 
-// New creates a FunctionNameFinder based on Skia source code.
+// asyncFinder is a wrapper around another Finder that will block until the other
+// finder is loaded.
+type asyncFinder struct {
+	finder Finder
+	lock   sync.Mutex
+}
+
+// FunctionName returns the function name associated with a packageName, fileName, and
+// lineNumber.  If there is no function name found, common.UNKNOWN_FUNCTION is returned.
+// This blocks until the underlying finder has been created.
+func (a *asyncFinder) FunctionName(packageName string, fileName string, lineNumber int) string {
+	a.lock.Lock()
+	defer a.lock.Unlock()
+	// if finder is nil, there was a problem creating the finder.
+	if a.finder == nil {
+		return common.UNKNOWN_FUNCTION
+	}
+	return a.finder.FunctionName(packageName, fileName, lineNumber)
+}
+
+// NewAsync asynchronously creates a FunctionNameFinder based on Skia source code.
+// It first builds Skia using Clang's ast-dump flag and then parses the generated
+// ast for method declarations.  Calls to FunctionName will block until the underlying
+// finder is created.  Any errors creating it will be logged, rather than returned.
+func NewAsync() Finder {
+	m := asyncFinder{}
+	m.lock.Lock()
+	go func() {
+		defer m.lock.Unlock()
+		var err error
+		m.finder, err = NewSync()
+		if err != nil {
+			glog.Errorf("Problem creating finder asynchronously: %s", err)
+		}
+	}()
+	return &m
+}
+
+// NewSync synchronously creates a FunctionNameFinder based on Skia source code.
 // It first builds Skia using Clang's ast-dump flag and then parses the generated
 // ast for method declarations.
-func New() (Finder, error) {
+func NewSync() (Finder, error) {
 	ast, err := buildSkiaAST()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Problem building AST: %s", err)
 	}
 	buf := bufio.NewScanner(bytes.NewBuffer(ast))
 	glog.Infof("Parsing %d bytes", len(ast))
@@ -114,11 +153,12 @@ func buildSkiaAST() ([]byte, error) {
 		},
 		InheritPath: true,
 	}
+	glog.Info("Generating AST")
 
 	if err := exec.Run(ninjaCmd); err != nil {
 		return nil, fmt.Errorf("Error generating AST %s:\nstderr: %s", err, stdErr.String())
 	}
-	glog.Info("Done generating ast")
+	glog.Info("Done generating AST")
 
 	return ast.Bytes(), nil
 }

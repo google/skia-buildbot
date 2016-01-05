@@ -18,16 +18,19 @@ func TestBoltDBStoreAndRetrieve(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not open test db: %s", err)
 	}
-	defer testutils.CloseInTest(t, &db)
-	if err := db.Store(expectedBinaryReport1, "deadbeef"); err != nil {
+	defer testutils.CloseInTest(t, db)
+	if err := db.Store(expectedBinaryReport1, expectedBinaryFuzzNames, "deadbeef"); err != nil {
 		t.Errorf("Could not store to test db:%s ", err)
 	}
-	actual, err := db.Load("deadbeef")
+	report, names, err := db.Load("deadbeef")
 	if err != nil {
-		t.Errorf("Error while loading: %s", err)
+		t.Fatalf("Error while loading: %s", err)
 	}
-	if !reflect.DeepEqual(expectedBinaryReport1, *actual) {
-		t.Errorf("Expected: %#v\n, but was: %#v", expectedBinaryReport1, *actual)
+	if !reflect.DeepEqual(expectedBinaryReport1, *report) {
+		t.Errorf("Expected: %#v\n, but was: %#v", expectedBinaryReport1, *report)
+	}
+	if !reflect.DeepEqual(expectedBinaryFuzzNames, names) {
+		t.Errorf("Expected: %#v\n, but was: %#v", expectedBinaryFuzzNames, names)
 	}
 }
 
@@ -37,8 +40,8 @@ func TestBoltDBDoesNotExist(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Could not open test db: %s", err)
 	}
-	defer testutils.CloseInTest(t, &db)
-	if _, err := db.Load("deadbeef"); err == nil {
+	defer testutils.CloseInTest(t, db)
+	if _, _, err := db.Load("deadbeef"); err == nil {
 		t.Errorf("Should have seen error, but did not")
 	}
 }
@@ -61,6 +64,8 @@ func makeStacktrace(file, function string, line int) fuzz.StackTrace {
 		},
 	}
 }
+
+var expectedBinaryFuzzNames = []string{"aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff", "gggg"}
 
 var mockFlags = []string{"foo", "bar"}
 

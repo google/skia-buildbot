@@ -15,19 +15,39 @@
         background-color: #8be1b8;
       };
       login-sk{
-      	--login-sk-color: white;
+        --login-sk-color: white;
       };
     }
+    .title {
+      padding:2px;
+      margin-top:5px;
+    }
+    .title span {
+      display:inline;
+      font-size: 1.5em;
+      -webkit-margin-before: 0.83em;
+      -webkit-margin-after: 0.83em;
+      -webkit-margin-start: 0px;
+      -webkit-margin-end: 0px;
+      font-weight: bold;
+    }
+    .count {
+      max-width:420px;
+    }
     </style>
-	<app-sk class="fit" flex>
-		<img header id="logo" src="/res/img/skia_fuzz.png">
-		<fuzzer-status-sk rtoolbar></fuzzer-status-sk>
-		<fuzzer-menu-sk navigation></fuzzer-menu-sk>
+  <app-sk class="fit" flex>
+    <img header id="logo" src="/res/img/skia_fuzz.png">
+    <fuzzer-status-sk rtoolbar></fuzzer-status-sk>
+    <fuzzer-menu-sk navigation></fuzzer-menu-sk>
 
-		<h2>Failing Fuzzes</h2>
+    <div class="title horizontal layout">
+      <span>Failing Fuzzes</span>
+      <span style="flex-grow:2"></span>
+      <fuzzer-count-sk class="count"></fuzzer-count-sk>
+    </div>
 
-		<fuzzer-summary-list-sk></fuzzer-summary-list-sk>
-	</app-sk>
+    <fuzzer-summary-list-sk></fuzzer-summary-list-sk>
+  </app-sk>
 
 </body>
 </html>

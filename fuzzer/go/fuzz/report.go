@@ -228,7 +228,17 @@ func StagingToCurrent() {
 	currentData.markDirty()
 }
 
-// StagingCopy returns a fully copy of the underlying staging data.
+// StagingToCurrent moves a copy of the current data to the staging data.
+func StagingFromCurrent() {
+	currentData.dataMutex.Lock()
+	defer currentData.dataMutex.Unlock()
+	stagingData.dataMutex.Lock()
+	defer stagingData.dataMutex.Unlock()
+	stagingData.data = cloneReport(currentData.data)
+	stagingData.markDirty()
+}
+
+// StagingCopy returns a fresh copy of the underlying staging data.
 func StagingCopy() FuzzReportTree {
 	stagingData.dataMutex.Lock()
 	defer stagingData.dataMutex.Unlock()
