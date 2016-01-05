@@ -615,10 +615,9 @@ func (agg *BinaryAggregator) ShutDown() {
 	agg.pipelineWaitGroup.Wait()
 }
 
-// RestartAnalysis gracefully shuts down the aggregator and restarts it.  Anything
-// that was being processed will finish prior to the shutdown.
+// RestartAnalysis restarts the shut down aggregator.  Anything that is in the scanning
+// directory should be cleared out, lest it be rescanned/analyzed.
 func (agg *BinaryAggregator) RestartAnalysis() error {
-	agg.ShutDown()
 	return agg.start()
 }
 

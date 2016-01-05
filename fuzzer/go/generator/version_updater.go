@@ -55,6 +55,11 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) (*vcsinfo.LongCo
 	}
 	glog.Infof("There are %d badFuzzNames and %d greyFuzzNames to rescan.", len(badFuzzNames), len(greyFuzzNames))
 	// This is a soft shutdown, i.e. it waits for aggregator's queues to be empty
+	v.agg.ShutDown()
+	if err := ClearBinaryGenerator(); err != nil {
+		return nil, fmt.Errorf("Could not remove previous afl-fuzz results: %s", err)
+	}
+
 	if err := v.agg.RestartAnalysis(); err != nil {
 		return nil, fmt.Errorf("Had problem restarting analysis/upload chain: %s", err)
 	}

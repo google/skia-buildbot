@@ -69,22 +69,9 @@ func StartBinaryGenerator() error {
 // setup clears out previous fuzzing sessions and builds the executable we need to run afl-fuzz.
 // The binary is then copied to the working directory as "dm_afl_Release".
 func setup() (string, error) {
-	// remove previous binaries
-	if err := os.RemoveAll(config.Generator.WorkingPath); err != nil && !os.IsNotExist(err) {
-		return "", fmt.Errorf("Failed to remove previous binaries: %s", err)
+	if err := ClearBinaryGenerator(); err != nil {
+		return "", err
 	}
-	if err := os.MkdirAll(config.Generator.WorkingPath, 0755); err != nil {
-		return "", fmt.Errorf("Failed to create working directory: %s", err)
-	}
-
-	// remove previous fuzz results
-	if err := os.RemoveAll(config.Generator.AflOutputPath); err != nil && !os.IsNotExist(err) {
-		return "", fmt.Errorf("Failed to remove previous fuzz results: %s", err)
-	}
-	if err := os.MkdirAll(config.Generator.AflOutputPath, 0755); err != nil {
-		return "", fmt.Errorf("Failed to create fuzz results directory: %s", err)
-	}
-
 	// build afl
 	if err := common.BuildAflDM("Release"); err != nil {
 		return "", fmt.Errorf("Failed to build dm using afl-fuzz %s", err)
@@ -95,6 +82,25 @@ func setup() (string, error) {
 		return "", err
 	}
 	return executable, nil
+}
+
+func ClearBinaryGenerator() error {
+	// remove previous binaries
+	if err := os.RemoveAll(config.Generator.WorkingPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Failed to remove previous binaries: %s", err)
+	}
+	if err := os.MkdirAll(config.Generator.WorkingPath, 0755); err != nil {
+		return fmt.Errorf("Failed to create working directory: %s", err)
+	}
+
+	// remove previous fuzz results
+	if err := os.RemoveAll(config.Generator.AflOutputPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Failed to remove previous fuzz results: %s", err)
+	}
+	if err := os.MkdirAll(config.Generator.AflOutputPath, 0755); err != nil {
+		return fmt.Errorf("Failed to create fuzz results directory: %s", err)
+	}
+	return nil
 }
 
 // run runs the command and logs any failures.  It returns the Process that can be used to
