@@ -42,6 +42,9 @@ type BinaryAggregator struct {
 	// Example: Detecting regressions.
 	// TODO(kjlubick): consider making this a function that clients supply so they can decide.
 	MakeBugOnBadFuzz bool
+	// Should be set if we want to upload grey fuzzes.  This should only be true
+	// if we are changing versions.
+	UploadGreyFuzzes bool
 
 	storageClient *storage.Client
 	// For passing the paths of new binaries that should be scanned.
@@ -466,6 +469,10 @@ func (agg *BinaryAggregator) waitForUploads(identifier int) {
 		select {
 		case p := <-agg.forUpload:
 			atomic.AddInt64(&agg.uploadCount, int64(1))
+			if !agg.UploadGreyFuzzes && p.FuzzType == GREY_FUZZ {
+				glog.Infof("Skipping upload of grey fuzz %s", p.Name)
+				continue
+			}
 			if err := agg.upload(p); err != nil {
 				glog.Errorf("Uploader %d terminated due to error: %s", identifier, err)
 				return

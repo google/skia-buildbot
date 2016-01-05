@@ -61,6 +61,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) (*vcsinfo.LongCo
 	// Reanalyze and reupload the fuzzes, making a bug on regressions.
 	glog.Infof("Reanalyzing bad fuzzes")
 	v.agg.MakeBugOnBadFuzz = false
+	v.agg.UploadGreyFuzzes = true
 	for _, name := range badFuzzNames {
 		v.agg.ForceAnalysis(name)
 	}
@@ -72,6 +73,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) (*vcsinfo.LongCo
 	}
 	v.agg.WaitForEmptyQueues()
 	v.agg.MakeBugOnBadFuzz = false
+	v.agg.UploadGreyFuzzes = false
 	glog.Infof("Done reanalyzing")
 
 	// redownload samples (in case any are new)
