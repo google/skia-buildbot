@@ -25,16 +25,14 @@ func BenchmarkHistory(b *testing.B) {
 	digestStore, err := digeststore.New(TEST_DATA_DIR)
 	assert.Nil(b, err)
 
-	tileStore := mocks.GetTileStoreFromEnv(b)
+	tileBuilder := mocks.GetTileBuilderFromEnv(b)
 	storages := &storage.Storage{
-		TileStore:   tileStore,
+		TileBuilder: tileBuilder,
 		DigestStore: digestStore,
 		EventBus:    eventbus.New(nil),
 	}
 
-	tile, err := tileStore.Get(0, -1)
-	assert.Nil(b, err)
-
+	tile := tileBuilder.GetTile()
 	assert.Nil(b, Init(storages, 0))
 
 	// Gather the runtimes of the testname/digest lookup.

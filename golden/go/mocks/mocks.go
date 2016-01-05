@@ -2,15 +2,19 @@ package mocks
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/filetilestore"
+	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/golden/go/config"
+	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/types"
@@ -54,28 +58,6 @@ func NewMockDiffStore() diff.DiffStore {
 	return MockDiffStore{}
 }
 
-// Mock the tilestore for GoldenTraces
-func NewMockTileStore(t assert.TestingT, digests [][]string, params []map[string]string, commits []*tiling.Commit) tiling.TileStore {
-	// Build the tile from the digests, params and commits.
-	traces := map[string]tiling.Trace{}
-
-	for idx, traceDigests := range digests {
-		traces[TraceKey(params[idx])] = &types.GoldenTrace{
-			Params_: params[idx],
-			Values:  traceDigests,
-		}
-	}
-
-	tile := tiling.NewTile()
-	tile.Traces = traces
-	tile.Commits = commits
-
-	return &MockTileStore{
-		t:    t,
-		tile: tile,
-	}
-}
-
 // TraceKey returns the trace key used in MockTileStore generated from the
 // params map.
 func TraceKey(params map[string]string) string {
@@ -85,39 +67,6 @@ func TraceKey(params map[string]string) string {
 	}
 	sort.Strings(traceParts)
 	return strings.Join(traceParts, ":")
-}
-
-// NewMockTileStoreFromJson reads a tile that has been serialized to JSON
-// and wraps an instance of MockTileStore around it.
-func NewMockTileStoreFromJson(t assert.TestingT, fname string) tiling.TileStore {
-	f, err := os.Open(fname)
-	assert.Nil(t, err)
-
-	tile, err := types.TileFromJson(f, &types.GoldenTrace{})
-	assert.Nil(t, err)
-
-	return &MockTileStore{
-		t:    t,
-		tile: tile,
-	}
-}
-
-type MockTileStore struct {
-	t    assert.TestingT
-	tile *tiling.Tile
-}
-
-func (m *MockTileStore) Get(scale, index int) (*tiling.Tile, error) {
-	return m.tile, nil
-}
-
-func (m *MockTileStore) Put(scale, index int, tile *tiling.Tile) error {
-	assert.FailNow(m.t, "Should not be called.")
-	return nil
-}
-
-func (m *MockTileStore) GetModifiable(scale, index int) (*tiling.Tile, error) {
-	return m.Get(scale, index)
 }
 
 type MockDigestStore struct {
@@ -139,13 +88,88 @@ func (m *MockDigestStore) Update([]*digeststore.DigestInfo) error {
 	return nil
 }
 
-// GetTileStoreFromEnv looks at the TEST_TILE_DIR environement variable for the
+type MockTileBuilder struct {
+	t    assert.TestingT
+	tile *tiling.Tile
+}
+
+func (m *MockTileBuilder) GetTile() *tiling.Tile {
+	return m.tile
+}
+
+func (m *MockTileBuilder) ListLong(start, end time.Time, source string) ([]*tracedb.CommitIDLong, error) {
+	return nil, nil
+}
+
+func (m *MockTileBuilder) TileFromCommits(commitIDs []*tracedb.CommitIDLong) (*tiling.Tile, error) {
+	return m.tile, nil
+}
+
+// Mock the tilestore for GoldenTraces
+func NewMockTileBuilderFromTile(t assert.TestingT, tile *tiling.Tile) tracedb.TileBuilder {
+	return &MockTileBuilder{
+		t:    t,
+		tile: tile,
+	}
+}
+
+// GetTileBuilderFromEnv looks at the TEST_TRACEDB_ADDRESS environement variable for the
 // name of directory that contains tiles. If it's defined it will return a
 // TileStore instance. If the not the calling test will fail.
-func GetTileStoreFromEnv(t assert.TestingT) tiling.TileStore {
-	// Get the TEST_TILE environment variable that points to the
-	// tile to read.
-	tileDir := os.Getenv("TEST_TILE_DIR")
-	assert.NotEqual(t, "", tileDir, "Please define the TEST_TILE_DIR environment variable to point to a live tile store.")
-	return filetilestore.NewFileTileStore(tileDir, config.DATASET_GOLD, 2*time.Minute)
+func GetTileBuilderFromEnv(t assert.TestingT) tracedb.TileBuilder {
+	traceDBAddress := os.Getenv("TEST_TRACEDB_ADDRESS")
+	assert.NotEqual(t, "", traceDBAddress, "Please define the TEST_TRACEDB_ADDRESS environment variable to point to the traceDB.")
+
+	gitURL := os.Getenv("TEST_GIT_URL")
+	assert.NotEqual(t, "", traceDBAddress, "Please define the TEST_TRACEDB_ADDRESS environment variable to point to the Git URL.")
+
+	gitRepoDir, err := ioutil.TempDir("", "gitrepo")
+	assert.Nil(t, err)
+
+	git, err := gitinfo.CloneOrUpdate(gitURL, gitRepoDir, false)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
+	eventBus := eventbus.New(nil)
+	tileBuilder, err := tracedb.NewTileBuilder(git, traceDBAddress, 50, types.GoldenTraceBuilder, rietveld.RIETVELD_SKIA_URL, eventBus)
+	assert.Nil(t, err)
+	return tileBuilder
+}
+
+// Mock the tilestore for GoldenTraces
+func NewMockTileBuilder(t assert.TestingT, digests [][]string, params []map[string]string, commits []*tiling.Commit) tracedb.TileBuilder {
+	// Build the tile from the digests, params and commits.
+	traces := map[string]tiling.Trace{}
+
+	for idx, traceDigests := range digests {
+		traces[TraceKey(params[idx])] = &types.GoldenTrace{
+			Params_: params[idx],
+			Values:  traceDigests,
+		}
+	}
+
+	tile := tiling.NewTile()
+	tile.Traces = traces
+	tile.Commits = commits
+
+	return &MockTileBuilder{
+		t:    t,
+		tile: tile,
+	}
+}
+
+// NewMockTileStoreFromJson reads a tile that has been serialized to JSON
+// and wraps an instance of MockTileStore around it.
+func NewMockTileBuilderFromJson(t assert.TestingT, fname string) tracedb.TileBuilder {
+	f, err := os.Open(fname)
+	assert.Nil(t, err)
+
+	tile, err := types.TileFromJson(f, &types.GoldenTrace{})
+	assert.Nil(t, err)
+
+	return &MockTileBuilder{
+		t:    t,
+		tile: tile,
+	}
 }

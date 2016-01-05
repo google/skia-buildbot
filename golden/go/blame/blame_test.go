@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
+	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
 	"go.skia.org/infra/golden/go/storage"
@@ -72,7 +73,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	eventBus := eventbus.New(nil)
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
-		TileStore:         mocks.NewMockTileStore(t, digests, params, commits),
+		TileBuilder:       mocks.NewMockTileBuilder(t, digests, params, commits),
 		DigestStore:       &mocks.MockDigestStore{FirstSeen: start + 1000, OkValue: true},
 		EventBus:          eventBus,
 	}
@@ -125,8 +126,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, &BlameDistribution{Freq: []int{3}}, blamer.GetBlame("baz", DI_8, commits))
 
 	// Change the underlying tile and trigger with another change.
-	tile, err := storages.TileStore.Get(0, -1)
-	assert.Nil(t, err)
+	tile := storages.TileBuilder.GetTile()
 
 	// Get the trace for the last parameters and set a value.
 	gTrace := tile.Traces[mocks.TraceKey(params[5])].(*types.GoldenTrace)
@@ -161,11 +161,12 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 }
 
 func BenchmarkBlamer(b *testing.B) {
-	tileStore := mocks.GetTileStoreFromEnv(b)
-	_, err := tileStore.Get(0, -1)
-	assert.Nil(b, err)
+	tileBuilder := mocks.GetTileBuilderFromEnv(b)
+
+	// Get a tile to make sure it's cached.
+	tileBuilder.GetTile()
 	b.ResetTimer()
-	testBlamerWithLiveData(b, tileStore)
+	testBlamerWithLiveData(b, tileBuilder)
 }
 
 func TestBlamerWithLiveData(t *testing.T) {
@@ -175,15 +176,15 @@ func TestBlamerWithLiveData(t *testing.T) {
 	assert.Nil(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
-	tileStore := mocks.NewMockTileStoreFromJson(t, TEST_DATA_PATH)
+	tileStore := mocks.NewMockTileBuilderFromJson(t, TEST_DATA_PATH)
 	testBlamerWithLiveData(t, tileStore)
 }
 
-func testBlamerWithLiveData(t assert.TestingT, tileStore tiling.TileStore) {
+func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.TileBuilder) {
 	eventBus := eventbus.New(nil)
 	storage := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
-		TileStore:         tileStore,
+		TileBuilder:       tileBuilder,
 		DigestStore: &mocks.MockDigestStore{
 			FirstSeen: time.Now().Unix(),
 			OkValue:   true,
@@ -203,8 +204,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileStore tiling.TileStore) {
 		}
 	}
 
-	tile, err := storage.TileStore.Get(0, -1)
-	assert.Nil(t, err)
+	tile := storage.TileBuilder.GetTile()
 
 	// Since we set the 'First' timestamp of all digest info entries
 	// to Now. We should get a non-empty blamelist of all digests.

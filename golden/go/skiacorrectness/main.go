@@ -17,8 +17,8 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/database"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/filetilestore"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -26,9 +26,9 @@ import (
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
+	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/blame"
-	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -42,6 +42,7 @@ import (
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/trybot"
+	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 )
 
@@ -69,7 +70,9 @@ var (
 	rietveldURL      = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
 	selfTest         = flag.Bool("self_test", false, "Run test agains live data, used debugging only.")
 	storageDir       = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
-	tileStoreDir     = flag.String("tile_store_dir", "/tmp/tileStore", "What directory to look for tiles in.")
+	gitRepoDir       = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+	gitRepoURL       = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+	traceservice     = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
 )
 
 const (
@@ -330,12 +333,22 @@ func main() {
 		glog.Fatal(err)
 	}
 
+	git, err := gitinfo.CloneOrUpdate(*gitRepoURL, *gitRepoDir, false)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	eventBus := eventbus.New(nil)
+	tileBuilder, err := tracedb.NewTileBuilder(git, *traceservice, *nCommits, types.GoldenTraceBuilder, rietveld.RIETVELD_SKIA_URL, eventBus)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), eventBus),
 		IgnoreStore:       ignore.NewSQLIgnoreStore(vdb),
-		TileStore:         filetilestore.NewFileTileStore(*tileStoreDir, config.DATASET_GOLD, 2*time.Minute),
+		TileBuilder:       tileBuilder,
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          eventBus,

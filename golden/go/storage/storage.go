@@ -9,7 +9,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
+	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -23,7 +23,7 @@ type Storage struct {
 	DiffStore         diff.DiffStore
 	ExpectationsStore expstorage.ExpectationsStore
 	IgnoreStore       ignore.IgnoreStore
-	TileStore         tiling.TileStore
+	TileBuilder       tracedb.TileBuilder
 	DigestStore       digeststore.DigestStore
 	EventBus          *eventbus.EventBus
 	TrybotResults     *trybot.TrybotResultStorage
@@ -36,7 +36,6 @@ type Storage struct {
 	// Internal variables used to cache trimmed tiles.
 	lastTrimmedTile        *tiling.Tile
 	lastTrimmedIgnoredTile *tiling.Tile
-	lastBaseTile           *tiling.Tile
 	lastIgnoreRev          int64
 	mutex                  sync.Mutex
 }
@@ -94,23 +93,20 @@ Loop:
 //
 // includeIgnores - If true then include ignored digests in the returned tile.
 func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*tiling.Tile, error) {
-	// Get the last (potentially cached) tile.
-	tile, err := s.TileStore.Get(0, -1)
-	if err != nil {
-		return nil, err
-	}
+	// Retieve the most recent tile.
+	tile := s.TileBuilder.GetTile()
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
 	if s.NCommits <= 0 {
-		return tile, err
+		return tile, nil
 	}
 
 	currentIgnoreRev := s.IgnoreStore.Revision()
 
 	// Check if the tile hasn't changed and the ignores haven't changed.
-	if tile == s.lastBaseTile && s.lastTrimmedTile != nil && s.lastTrimmedIgnoredTile != nil && currentIgnoreRev == s.lastIgnoreRev {
+	if s.lastTrimmedTile != nil && tile == s.lastTrimmedTile && s.lastTrimmedIgnoredTile != nil && currentIgnoreRev == s.lastIgnoreRev {
 		if includeIgnores {
 			return s.lastTrimmedTile, nil
 		} else {
@@ -123,17 +119,8 @@ func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*tiling.Tile, error) 
 		return nil, fmt.Errorf("Failed to get ignores to filter tile: %s", err)
 	}
 
-	// Build a new trimmed tile and a new trimmed tile with all ingoreable traces removed.
-	tileLen := tile.LastCommitIndex() + 1
-
-	// First build the new trimmed tile.
-	retTile, err := tile.Trim(util.MaxInt(0, tileLen-s.NCommits), tileLen)
-	if err != nil {
-		return nil, err
-	}
-
 	// Now copy the tile by value.
-	retIgnoredTile := retTile.Copy()
+	retIgnoredTile := tile.Copy()
 
 	// Then remove traces that should be ignored.
 	ignoreQueries, err := ignore.ToQuery(ignores)
@@ -151,9 +138,8 @@ func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*tiling.Tile, error) 
 
 	// Cache this tile.
 	s.lastIgnoreRev = currentIgnoreRev
-	s.lastTrimmedTile = retTile
+	s.lastTrimmedTile = tile
 	s.lastTrimmedIgnoredTile = retIgnoredTile
-	s.lastBaseTile = tile
 	fmt.Printf("Lengths: %d %d\n", len(s.lastTrimmedTile.Traces), len(s.lastTrimmedIgnoredTile.Traces))
 
 	if includeIgnores {
@@ -187,4 +173,13 @@ func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.
 	}
 
 	return digestInfo, nil
+}
+
+// GetTileFromTimeRange returns a tile that contains the commits in the given time range.
+func (s *Storage) GetTileFromTimeRange(begin, end time.Time) (*tiling.Tile, error) {
+	commitIDs, err := s.TileBuilder.ListLong(begin, end, "master")
+	if err != nil {
+		return nil, fmt.Errorf("Failed retrieving commitIDs in range %s to %s. Got error: %s", begin, end, err)
+	}
+	return s.TileBuilder.TileFromCommits(commitIDs)
 }

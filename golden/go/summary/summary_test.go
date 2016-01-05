@@ -16,16 +16,6 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-type MockTileStore struct {
-	Tile *tiling.Tile
-}
-
-func (m MockTileStore) Put(scale, index int, tile *tiling.Tile) error        { return nil }
-func (m MockTileStore) GetModifiable(scale, index int) (*tiling.Tile, error) { return nil, nil }
-func (m MockTileStore) Get(scale, index int) (*tiling.Tile, error) {
-	return m.Tile, nil
-}
-
 /**
   Conditions to test.
 
@@ -150,7 +140,7 @@ func TestCalcSummaries(t *testing.T) {
 		DiffStore:         mocks.MockDiffStore{},
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		IgnoreStore:       ignore.NewMemIgnoreStore(),
-		TileStore:         MockTileStore{Tile: tile},
+		TileBuilder:       mocks.NewMockTileBuilderFromTile(t, tile),
 		NCommits:          50,
 		EventBus:          eventBus,
 		DigestStore:       &mocks.MockDigestStore{FirstSeen: time.Now().Unix() + 1000, OkValue: true},

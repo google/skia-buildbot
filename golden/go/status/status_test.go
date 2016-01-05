@@ -2,16 +2,13 @@ package status
 
 import (
 	"math/rand"
-	"os"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
-	"go.skia.org/infra/go/filetilestore"
 	"go.skia.org/infra/go/testutils"
-	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/golden/go/config"
+	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/mocks"
@@ -37,19 +34,17 @@ func TestStatusWatcher(t *testing.T) {
 	assert.Nil(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
-	tileStore := mocks.NewMockTileStoreFromJson(t, TEST_DATA_PATH)
-	testStatusWatcher(t, tileStore)
+	tileBuilder := mocks.NewMockTileBuilderFromJson(t, TEST_DATA_PATH)
+	testStatusWatcher(t, tileBuilder)
 }
 
 func BenchmarkStatusWatcher(b *testing.B) {
 	// Get the TEST_TILE environment variable that points to the
 	// tile to read.
-	tileDir := os.Getenv("TEST_TILE_DIR")
-	assert.NotEqual(b, "", tileDir, "Please define the TEST_TILE_DIR environment variable to point to a live tile store.")
-	tileStore := filetilestore.NewFileTileStore(tileDir, config.DATASET_GOLD, 2*time.Minute)
+	tileBuilder := mocks.GetTileBuilderFromEnv(b)
 
 	storages := &storage.Storage{
-		TileStore: tileStore,
+		TileBuilder: tileBuilder,
 	}
 
 	// Load the tile into memory and reset the timer to avoid measuring
@@ -57,14 +52,14 @@ func BenchmarkStatusWatcher(b *testing.B) {
 	_, err := storages.GetLastTileTrimmed(true)
 	assert.Nil(b, err)
 	b.ResetTimer()
-	testStatusWatcher(b, tileStore)
+	testStatusWatcher(b, tileBuilder)
 }
 
-func testStatusWatcher(t assert.TestingT, tileStore tiling.TileStore) {
+func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.TileBuilder) {
 	eventBus := eventbus.New(nil)
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
-		TileStore:         tileStore,
+		TileBuilder:       tileBuilder,
 		DigestStore:       &MockDigestStore{},
 		EventBus:          eventBus,
 	}

@@ -40,7 +40,7 @@ type historian struct {
 }
 
 // Create a new instance of historian.
-func newHistorian(storages *storage.Storage, nTilesToBackfill int) (*historian, error) {
+func newHistorian(storages *storage.Storage, nDaysToBackfill int) (*historian, error) {
 	defer timer.New("historian").Stop()
 
 	ret := &historian{
@@ -52,9 +52,9 @@ func newHistorian(storages *storage.Storage, nTilesToBackfill int) (*historian, 
 		return nil, err
 	}
 
-	// There is at least one tile to backfill digestinfo then start the process.
-	if nTilesToBackfill > 0 {
-		ret.backFillDigestInfo(nTilesToBackfill)
+	// If there is at least one day to backfill then start the process.
+	if nDaysToBackfill > 0 {
+		ret.backFillDigestInfo(nDaysToBackfill)
 	}
 
 	return ret, nil
@@ -102,35 +102,20 @@ func (h *historian) updateDigestInfo(tile *tiling.Tile) error {
 	return h.processTile(tile)
 }
 
-func (h *historian) backFillDigestInfo(tilesToBackfill int) {
+func (h *historian) backFillDigestInfo(nDaysToBackfill int) {
 	go func() {
-		// Get the first tile and determine the tile id of the first tile
-		var err error
-		lastTile, err := h.storages.TileStore.Get(0, -1)
+		startTS := time.Now().Add(time.Hour * 24 * time.Duration(nDaysToBackfill))
+		endTS := time.Now()
+		tile, err := h.storages.GetTileFromTimeRange(startTS, endTS)
 		if err != nil {
-			glog.Errorf("Unable to retrieve last tile. Quiting backfill. Error: %s", err)
+			glog.Errorf("Error retrieving tile for range %s - %s: %s", startTS, endTS, err)
 			return
 		}
 
-		var tile *tiling.Tile
-		firstTileIndex := util.MaxInt(lastTile.TileIndex-tilesToBackfill+1, 0)
-		for idx := firstTileIndex; idx <= lastTile.TileIndex; idx++ {
-			if tile, err = h.storages.TileStore.Get(0, idx); err != nil {
-				glog.Errorf("Unable to read tile %d from tile store. Quiting backfill. Error: %s", idx, err)
-				return
-			}
-
-			// Process the tile, but giving higher priority to digests from the
-			// latest tile.
-			if err = h.processTile(tile); err != nil {
-				glog.Errorf("Error processing tile: %s", err)
-			}
-
-			// Read the last tile, just to make sure it has not changed.
-			if lastTile, err = h.storages.TileStore.Get(0, -1); err != nil {
-				glog.Errorf("Unable to retrieve last tile. Quiting backfill. Error: %s", err)
-				return
-			}
+		// Process the tile, but giving higher priority to digests from the
+		// latest tile.
+		if err = h.processTile(tile); err != nil {
+			glog.Errorf("Error processing tile: %s", err)
 		}
 	}()
 }
