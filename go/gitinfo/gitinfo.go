@@ -98,7 +98,8 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 }
 
 // Details returns more information than ShortCommit about a given commit.
-func (g *GitInfo) Details(hash string, getBranches bool) (*vcsinfo.LongCommit, error) {
+// See the vcsinfo.VCS interface for details.
+func (g *GitInfo) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 	if c, ok := g.detailsCache[hash]; ok {
@@ -113,7 +114,7 @@ func (g *GitInfo) Details(hash string, getBranches bool) (*vcsinfo.LongCommit, e
 		return nil, fmt.Errorf("Failed to parse output of 'git log'.")
 	}
 	branches := map[string]bool{}
-	if getBranches {
+	if includeBranchInfo {
 		branches, err = g.getBranchesForCommit(hash)
 		if err != nil {
 			return nil, err
@@ -145,6 +146,8 @@ func (g *GitInfo) SetToCommit(hash string) error {
 
 // getBranchesForCommit returns a string set with all the branches that can reach
 // the commit with the given hash.
+// TODO(stephana): Speed up this method, there are either better ways to do this
+// in git or the results can be cached.
 func (g *GitInfo) getBranchesForCommit(hash string) (map[string]bool, error) {
 	output, err := exec.RunCwd(g.dir, "git", "branch", "--list", "--contains", hash)
 	if err != nil {

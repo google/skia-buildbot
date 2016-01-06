@@ -48,7 +48,7 @@ func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
-	commit, err := p.vcs.Details(benchData.Hash, false)
+	commit, err := p.vcs.Details(benchData.Hash, true)
 	if err != nil {
 		return err
 	}

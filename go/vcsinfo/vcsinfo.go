@@ -28,5 +28,8 @@ type VCS interface {
 	From(start time.Time) []string
 
 	// Details returns the full commit information for the given hash.
-	Details(hash string, getBranches bool) (*LongCommit, error)
+	// If includeBranchInfo is true the Branches field of the returned
+	// result will contain all branches that contain the given commit,
+	// otherwise Branches will be empty.
+	Details(hash string, includeBranchInfo bool) (*LongCommit, error)
 }
