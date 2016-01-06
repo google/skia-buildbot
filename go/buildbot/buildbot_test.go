@@ -3,14 +3,17 @@ package buildbot
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	assert "github.com/stretchr/testify/require"
 
-	"go.skia.org/infra/go/database/testutil"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
@@ -63,23 +66,75 @@ var (
 		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/466":         []byte(venue466),
 		"http://build.chromium.org/p/client.skia.fyi/json/builders/Housekeeper-PerCommit/builds/1035":                              []byte(housekeeper1035),
 	})
+
+	testPort = findAPort{port: 23234}
 )
 
-// clearDB initializes the database, upgrading it if needed, and removes all
-// data to ensure that the test begins with a clean slate. Returns a MySQLTestDatabase
-// which must be closed after the test finishes.
-func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
-	failMsg := "Database initialization failed. Do you have the test database set up properly?  Details: %v"
+type findAPort struct {
+	port int
+	mtx  sync.Mutex
+}
 
-	// Set up the database.
-	testDb := testutil.SetupMySQLTestDatabase(t, migrationSteps)
+func (p *findAPort) Port() int {
+	p.mtx.Lock()
+	defer p.mtx.Unlock()
+	rv := p.port
+	p.port++
+	return rv
+}
 
-	conf := testutil.LocalTestDatabaseConfig(migrationSteps)
-	var err error
-	DB, err = sqlx.Open("mysql", conf.MySQLString())
-	assert.Nil(t, err, failMsg)
+type testDB interface {
+	DB() DB
+	Close(*testing.T)
+}
 
-	return testDb
+type testLocalDB struct {
+	db  DB
+	dir string
+}
+
+func (d *testLocalDB) DB() DB {
+	return d.db
+}
+
+func (d *testLocalDB) Close(t *testing.T) {
+	assert.Nil(t, d.db.Close())
+	if d.dir != "" {
+		assert.Nil(t, os.RemoveAll(d.dir))
+	}
+}
+
+type testRemoteDB struct {
+	localDB  DB
+	remoteDB DB
+	dir      string
+}
+
+func (d *testRemoteDB) DB() DB {
+	return d.remoteDB
+}
+
+func (d *testRemoteDB) Close(t *testing.T) {
+	assert.Nil(t, d.remoteDB.Close())
+	assert.Nil(t, d.localDB.Close())
+	assert.Nil(t, os.RemoveAll(d.dir))
+}
+
+// clearDB returns a clean testDB instance which must be closed after the test finishes.
+func clearDB(t *testing.T, local bool) testDB {
+	tempDir, err := ioutil.TempDir("", "buildbot_test_")
+	assert.Nil(t, err)
+	localDB, err := InitLocalDB(path.Join(tempDir, "buildbot.db"))
+	assert.Nil(t, err)
+	if local {
+		return &testLocalDB{
+			db:  localDB,
+			dir: tempDir,
+		}
+	} else {
+		t.Fatal("Remote database not yet implemented.")
+		return nil
+	}
 }
 
 // testGetBuildFromMaster is a helper function which pretends to load JSON data
@@ -93,8 +148,6 @@ func testGetBuildFromMaster(repos *gitinfo.RepoMap) (*Build, error) {
 // decode it into a Build object.
 func TestGetBuildFromMaster(t *testing.T) {
 	testutils.SkipIfShort(t)
-	d := clearDB(t)
-	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -114,8 +167,6 @@ func TestGetBuildFromMaster(t *testing.T) {
 // and back without losing or corrupting the data.
 func TestBuildJsonSerialization(t *testing.T) {
 	testutils.SkipIfShort(t)
-	d := clearDB(t)
-	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
@@ -132,12 +183,12 @@ func TestBuildJsonSerialization(t *testing.T) {
 	testutils.AssertDeepEqual(t, b1, b2)
 }
 
-// TestFindCommitsForBuild verifies that findCommitsForBuild correctly obtains
+// testFindCommitsForBuild verifies that findCommitsForBuild correctly obtains
 // the list of commits which were newly built in a given build.
-func TestFindCommitsForBuild(t *testing.T) {
+func testFindCommitsForBuild(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
 	httpClient = testHttpClient
-	d := clearDB(t)
+	d := clearDB(t, local)
 	defer d.Close(t)
 
 	// Load the test repo.
@@ -182,7 +233,7 @@ func TestFindCommitsForBuild(t *testing.T) {
 		// 0. The first build.
 		{
 			GotRevision: hashes['B'],
-			Expected:    []string{hashes['B'], hashes['A']},
+			Expected:    []string{hashes['A'], hashes['B']},
 			StoleFrom:   -1,
 			Stolen:      []string{},
 		},
@@ -203,7 +254,7 @@ func TestFindCommitsForBuild(t *testing.T) {
 		// 3. After a merge.
 		{
 			GotRevision: hashes['F'],
-			Expected:    []string{hashes['F'], hashes['E'], hashes['H']},
+			Expected:    []string{hashes['E'], hashes['H'], hashes['F']},
 			StoleFrom:   -1,
 			Stolen:      []string{},
 		},
@@ -234,17 +285,57 @@ func TestFindCommitsForBuild(t *testing.T) {
 	for buildNum, tc := range testCases {
 		build, err := getBuildFromMaster(master, builder, buildNum, repos)
 		assert.Nil(t, err)
-		assert.Nil(t, IngestBuild(build, repos))
-		// Wait for the build to be inserted.
-		time.Sleep(1500 * time.Millisecond)
-		ingested, err := GetBuildFromDB(builder, master, buildNum)
+		// Sanity check. Make sure we have the GotRevision we expect.
+		assert.Equal(t, tc.GotRevision, build.GotRevision)
+		gotRevProp, err := build.GetStringProperty("got_revision")
+		assert.Nil(t, err)
+		assert.Equal(t, tc.GotRevision, gotRevProp)
+
+		assert.Nil(t, IngestBuild(d.DB(), build, repos))
+
+		ingested, err := d.DB().GetBuildFromDB(master, builder, buildNum)
 		assert.Nil(t, err)
 		assert.NotNil(t, ingested)
-		assert.True(t, util.SSliceEqual(ingested.Commits, tc.Expected), fmt.Sprintf("Commits for build do not match expectation.\nGot:  %v\nWant: %v", ingested.Commits, tc.Expected))
+
+		// Double-check the inserted build's GotRevision.
+		assert.Equal(t, tc.GotRevision, ingested.GotRevision)
+		gotRevProp, err = ingested.GetStringProperty("got_revision")
+		assert.Nil(t, err)
+		assert.Equal(t, tc.GotRevision, gotRevProp)
+
+		// Verify that we got the build (and commits list) we expect.
+		build.Commits = tc.Expected
+		testutils.AssertDeepEqual(t, build, ingested)
+
+		// Ensure that we can search by commit to find the build we inserted.
+		for _, c := range hashes {
+			expectBuild := util.In(c, tc.Expected)
+			builds, err := d.DB().GetBuildsForCommits([]string{c}, nil)
+			assert.Nil(t, err)
+			if expectBuild {
+				// Assert that we get the build we inserted.
+				assert.Equal(t, 1, len(builds))
+				assert.Equal(t, 1, len(builds[c]))
+				testutils.AssertDeepEqual(t, ingested, builds[c][0])
+			} else {
+				// Assert that we didn't get the build we inserted.
+				for _, gotBuild := range builds[c] {
+					assert.NotEqual(t, ingested.Id(), gotBuild.Id())
+				}
+			}
+
+			n, err := d.DB().GetBuildNumberForCommit(build.Master, build.Builder, c)
+			assert.Nil(t, err)
+			if expectBuild {
+				assert.Equal(t, buildNum, n)
+			} else {
+				assert.NotEqual(t, buildNum, n)
+			}
+		}
 	}
 
 	// Extra: ensure that build #6 really stole the commit from #1.
-	b, err := GetBuildFromDB(builder, master, 1)
+	b, err := d.DB().GetBuildFromDB(master, builder, 1)
 	assert.Nil(t, err)
 	assert.NotNil(t, b)
 	assert.False(t, util.In(hashes['C'], b.Commits), fmt.Sprintf("Expected not to find %s in %v", hashes['C'], b.Commits))
@@ -253,33 +344,21 @@ func TestFindCommitsForBuild(t *testing.T) {
 // dbSerializeAndCompare is a helper function used by TestDbBuild which takes
 // a Build object, writes it into the database, reads it back out, and compares
 // the structs. Returns any errors encountered including a comparison failure.
-func dbSerializeAndCompare(t *testing.T, b1 *Build, ignoreIds bool) {
-	assert.Nil(t, b1.ReplaceIntoDB())
-	b2, err := GetBuildFromDB(b1.Builder, b1.Master, b1.Number)
+func dbSerializeAndCompare(t *testing.T, d testDB, b1 *Build, ignoreIds bool) {
+	assert.Nil(t, d.DB().PutBuild(b1))
+	b2, err := d.DB().GetBuildFromDB(b1.Master, b1.Builder, b1.Number)
 	assert.Nil(t, err)
 	assert.NotNil(t, b2)
-
-	// Force the IDs to be equal, since the DB assigns ID, and we
-	// don't care to try to predict them.
-	if ignoreIds {
-		b2.Id = b1.Id
-		assert.Equal(t, len(b1.Steps), len(b2.Steps), "Got incorrect number of steps.")
-		for i, s := range b2.Steps {
-			s.Id = b1.Steps[i].Id
-		}
-		assert.Equal(t, len(b1.Comments), len(b2.Comments), "Got incorrect number of comments.")
-		for i, c := range b2.Comments {
-			c.Id = b1.Comments[i].Id
-		}
-	}
 
 	testutils.AssertDeepEqual(t, b1, b2)
 }
 
 // testBuildDbSerialization verifies that we can write a build to the DB and
 // pull it back out without losing or corrupting the data.
-func testBuildDbSerialization(t *testing.T) {
-	d := clearDB(t)
+func testBuildDbSerialization(t *testing.T, local bool) {
+	testutils.SkipIfShort(t)
+
+	d := clearDB(t, local)
 	defer d.Close(t)
 
 	// Load the test repo.
@@ -289,12 +368,11 @@ func testBuildDbSerialization(t *testing.T) {
 	repos := gitinfo.NewRepoMap(tr.Dir)
 
 	// Test case: an empty build. Tests null and empty values.
-	emptyTime := 0.0
 	emptyBuild := &Build{
 		Steps:   []*BuildStep{},
-		Times:   []float64{emptyTime, emptyTime},
 		Commits: []string{},
 	}
+	emptyBuild.fixup()
 
 	// Test case: a completely filled-out build.
 	buildFromFullJson, err := testGetBuildFromMaster(repos)
@@ -302,99 +380,16 @@ func testBuildDbSerialization(t *testing.T) {
 
 	testCases := []*Build{emptyBuild, buildFromFullJson}
 	for _, b := range testCases {
-		dbSerializeAndCompare(t, b, true)
+		dbSerializeAndCompare(t, d, b, true)
 	}
-}
-
-// testBuildDbIdConsistency verifies that we maintain IDs across build updates.
-func testBuildDbIdConsistency(t *testing.T) {
-	d := clearDB(t)
-	defer d.Close(t)
-
-	// Load the test repo.
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
-
-	repos := gitinfo.NewRepoMap(tr.Dir)
-
-	// Retrieve a full build.
-	b, err := testGetBuildFromMaster(repos)
-	assert.Nil(t, err)
-
-	// Assert that all IDs are zero, since we haven't yet inserted the build.
-	assert.Equal(t, 0, b.Id)
-	for _, s := range b.Steps {
-		assert.Equal(t, 0, s.Id)
-	}
-
-	// Insert the build for the first time.
-	err = b.ReplaceIntoDB()
-	assert.Nil(t, err)
-
-	// Rename a step.
-	b.Steps[2].Name = "differentName"
-	dbSerializeAndCompare(t, b, false)
-
-	// Remove a step.
-	b.Steps = append(b.Steps[:2], b.Steps[3:]...)
-	dbSerializeAndCompare(t, b, false)
-
-	// Keep track of the original IDs, verify that IDs are non-zero.
-	origBuildId := b.Id
-	assert.NotEqual(t, 0, b.Id)
-	origStepIds := make([]int, 0, len(b.Steps))
-	for _, s := range b.Steps {
-		assert.NotEqual(t, 0, s.Id)
-		origStepIds = append(origStepIds, s.Id)
-	}
-
-	// Add some comments.
-	b.Comments = append(b.Comments, &BuildComment{
-		BuildId:   b.Id,
-		User:      "testbot",
-		Timestamp: float64(time.Now().UTC().Unix()),
-		Message:   "Hi.",
-	})
-
-	// Insert the build again.
-	err = b.ReplaceIntoDB()
-	assert.Nil(t, err)
-
-	// Assert that the IDs were maintained.
-	assert.Equal(t, origBuildId, b.Id)
-	for i, s := range b.Steps {
-		assert.Equal(t, origStepIds[i], s.Id)
-	}
-
-	// Assert that our comment was given an ID, record it for posterity.
-	origCommentId := b.Comments[0].Id
-	assert.NotEqual(t, 0, origCommentId)
-
-	// Add another comment.
-	b.Comments = append(b.Comments, &BuildComment{
-		BuildId:   b.Id,
-		User:      "testbot",
-		Timestamp: float64(time.Now().UTC().Unix()),
-		Message:   "Here's another comment",
-	})
-
-	// Insert the build again.
-	err = b.ReplaceIntoDB()
-	assert.Nil(t, err)
-
-	// Assert that the IDs were maintained.
-	assert.Equal(t, origBuildId, b.Id)
-	for i, s := range b.Steps {
-		assert.Equal(t, origStepIds[i], s.Id)
-	}
-	assert.Equal(t, b.Comments[0].Id, origCommentId)
 }
 
 // testUnfinishedBuild verifies that we can write a build which is not yet
 // finished, load the build back from the database, and update it when it
 // finishes.
-func testUnfinishedBuild(t *testing.T) {
-	d := clearDB(t)
+func testUnfinishedBuild(t *testing.T, local bool) {
+	testutils.SkipIfShort(t)
+	d := clearDB(t, local)
 	defer d.Close(t)
 
 	// Load the test repo.
@@ -407,11 +402,11 @@ func testUnfinishedBuild(t *testing.T) {
 	httpClient = testHttpClient
 	b, err := getBuildFromMaster("client.skia", "Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind", 152, repos)
 	assert.Nil(t, err)
-	assert.False(t, b.IsFinished(), fmt.Errorf("Unfinished build thinks it's finished!"))
-	dbSerializeAndCompare(t, b, true)
+	assert.False(t, b.IsFinished(), "Unfinished build thinks it's finished!")
+	dbSerializeAndCompare(t, d, b, true)
 
-	// Ensure that the build is found by getUnfinishedBuilds.
-	unfinished, err := getUnfinishedBuilds(b.Master)
+	// Ensure that the build is found by GetUnfinishedBuilds.
+	unfinished, err := d.DB().GetUnfinishedBuilds(b.Master)
 	assert.Nil(t, err)
 	found := false
 	for _, u := range unfinished {
@@ -424,25 +419,21 @@ func testUnfinishedBuild(t *testing.T) {
 
 	// Add another step to the build to "finish" it, ensure that we can
 	// retrieve it as expected.
-	b.Finished = b.Started + 1000
-	b.Times[1] = b.Finished
-	stepStarted := b.Started + 500
+	b.Finished = b.Started.Add(30 * time.Second)
+	stepStarted := b.Started.Add(500 * time.Millisecond)
 	s := &BuildStep{
-		BuildID:    b.Id,
-		Name:       "LastStep",
-		Times:      []float64{stepStarted, b.Finished},
-		Number:     len(b.Steps),
-		Results:    0,
-		ResultsRaw: []interface{}{0.0, []interface{}{}},
-		Started:    b.Started + 500.0,
-		Finished:   b.Finished,
+		Name:     "LastStep",
+		Number:   len(b.Steps),
+		Results:  0,
+		Started:  stepStarted,
+		Finished: b.Finished,
 	}
 	b.Steps = append(b.Steps, s)
 	assert.True(t, b.IsFinished(), "Finished build thinks it's unfinished!")
-	dbSerializeAndCompare(t, b, true)
+	dbSerializeAndCompare(t, d, b, true)
 
 	// Ensure that the finished build is NOT found by getUnfinishedBuilds.
-	unfinished, err = getUnfinishedBuilds(b.Master)
+	unfinished, err = d.DB().GetUnfinishedBuilds(b.Master)
 	assert.Nil(t, err)
 	found = false
 	for _, u := range unfinished {
@@ -456,8 +447,9 @@ func testUnfinishedBuild(t *testing.T) {
 
 // testLastProcessedBuilds verifies that getLastProcessedBuilds gives us
 // the expected result.
-func testLastProcessedBuilds(t *testing.T) {
-	d := clearDB(t)
+func testLastProcessedBuilds(t *testing.T, local bool) {
+	testutils.SkipIfShort(t)
+	d := clearDB(t, local)
 	defer d.Close(t)
 
 	// Load the test repo.
@@ -471,7 +463,7 @@ func testLastProcessedBuilds(t *testing.T) {
 
 	// Ensure that we get the right number for not-yet-processed
 	// builder/master pair.
-	builds, err := getLastProcessedBuilds(build.Master)
+	builds, err := d.DB().GetLastProcessedBuilds(build.Master)
 	assert.Nil(t, err)
 	if builds == nil || len(builds) != 0 {
 		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned an unacceptable value for no builds: %v", builds))
@@ -479,13 +471,15 @@ func testLastProcessedBuilds(t *testing.T) {
 
 	// Ensure that we get the right number for a single already-processed
 	// builder/master pair.
-	assert.Nil(t, build.ReplaceIntoDB())
-	builds, err = getLastProcessedBuilds(build.Master)
+	assert.Nil(t, d.DB().PutBuild(build))
+	builds, err = d.DB().GetLastProcessedBuilds(build.Master)
 	assert.Nil(t, err)
 	if builds == nil || len(builds) != 1 {
 		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned incorrect number of results: %v", builds))
 	}
-	if builds[0].Master != build.Master || builds[0].Builder != build.Builder || builds[0].Number != build.Number {
+	m, b, n, err := ParseBuildID(builds[0])
+	assert.Nil(t, err)
+	if m != build.Master || b != build.Builder || n != build.Number {
 		t.Fatal(fmt.Errorf("getLastProcessedBuilds returned the wrong build: %v", builds[0]))
 	}
 
@@ -494,17 +488,19 @@ func testLastProcessedBuilds(t *testing.T) {
 	assert.Nil(t, err)
 	build2.Builder = "Other-Builder"
 	build2.Number = build.Number + 10
-	assert.Nil(t, build2.ReplaceIntoDB())
-	builds, err = getLastProcessedBuilds(build.Master)
+	assert.Nil(t, d.DB().PutBuild(build2))
+	builds, err = d.DB().GetLastProcessedBuilds(build.Master)
 	assert.Nil(t, err)
-	compareBuildLists := func(expected []*Build, actual []*BuildID) bool {
+	compareBuildLists := func(expected []*Build, actual []BuildID) bool {
 		if len(expected) != len(actual) {
 			return false
 		}
 		for _, e := range expected {
 			found := false
 			for _, a := range actual {
-				if e.Builder == a.Builder && e.Master == a.Master && e.Number == a.Number {
+				m, b, n, err := ParseBuildID(a)
+				assert.Nil(t, err)
+				if e.Builder == b && e.Master == m && e.Number == n {
 					found = true
 					break
 				}
@@ -521,8 +517,8 @@ func testLastProcessedBuilds(t *testing.T) {
 	build3, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
 	build3.Number -= 10
-	assert.Nil(t, build3.ReplaceIntoDB())
-	builds, err = getLastProcessedBuilds(build.Master)
+	assert.Nil(t, d.DB().PutBuild(build3))
+	builds, err = d.DB().GetLastProcessedBuilds(build.Master)
 	assert.Nil(t, err)
 	assert.True(t, compareBuildLists([]*Build{build, build2}, builds), fmt.Sprintf("getLastProcessedBuilds returned incorrect results: %v", builds))
 }
@@ -551,8 +547,9 @@ func TestGetLatestBuilds(t *testing.T) {
 }
 
 // testGetUningestedBuilds verifies that getUningestedBuilds works as expected.
-func testGetUningestedBuilds(t *testing.T) {
-	d := clearDB(t)
+func testGetUningestedBuilds(t *testing.T, local bool) {
+	testutils.SkipIfShort(t)
+	d := clearDB(t, local)
 	defer d.Close(t)
 
 	// Load the test repo.
@@ -568,7 +565,7 @@ func testGetUningestedBuilds(t *testing.T) {
 	b1.Builder = "My-Builder"
 	b1.Number = 115
 	b1.Steps = []*BuildStep{}
-	assert.Nil(t, b1.ReplaceIntoDB())
+	assert.Nil(t, d.DB().PutBuild(b1))
 
 	// This builder needs to load a few builds.
 	b2, err := testGetBuildFromMaster(repos)
@@ -577,7 +574,7 @@ func testGetUningestedBuilds(t *testing.T) {
 	b2.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b2.Number = 463
 	b2.Steps = []*BuildStep{}
-	assert.Nil(t, b2.ReplaceIntoDB())
+	assert.Nil(t, d.DB().PutBuild(b2))
 
 	// This builder is already up-to-date.
 	b3, err := testGetBuildFromMaster(repos)
@@ -586,7 +583,7 @@ func testGetUningestedBuilds(t *testing.T) {
 	b3.Builder = "Housekeeper-PerCommit"
 	b3.Number = 1035
 	b3.Steps = []*BuildStep{}
-	assert.Nil(t, b3.ReplaceIntoDB())
+	assert.Nil(t, d.DB().PutBuild(b3))
 
 	// This builder is already up-to-date.
 	b4, err := testGetBuildFromMaster(repos)
@@ -595,7 +592,7 @@ func testGetUningestedBuilds(t *testing.T) {
 	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532
 	b4.Steps = []*BuildStep{}
-	assert.Nil(t, b4.ReplaceIntoDB())
+	assert.Nil(t, d.DB().PutBuild(b4))
 
 	// Expectations. If the master or builder has no uningested builds,
 	// we expect it not to be in the results, even with an empty map/slice.
@@ -613,7 +610,7 @@ func testGetUningestedBuilds(t *testing.T) {
 	}
 	httpClient = testHttpClient
 	for m, e := range expected {
-		actual, err := getUningestedBuilds(m)
+		actual, err := getUningestedBuilds(d.DB(), m)
 		assert.Nil(t, err)
 		testutils.AssertDeepEqual(t, e, actual)
 	}
@@ -622,8 +619,9 @@ func testGetUningestedBuilds(t *testing.T) {
 // testIngestNewBuilds verifies that we can successfully query the masters and
 // the database for new and unfinished builds, respectively, and ingest them
 // into the database.
-func testIngestNewBuilds(t *testing.T) {
-	d := clearDB(t)
+func testIngestNewBuilds(t *testing.T, local bool) {
+	testutils.SkipIfShort(t)
+	d := clearDB(t, local)
 	defer d.Close(t)
 
 	// Load the test repo.
@@ -639,7 +637,7 @@ func testIngestNewBuilds(t *testing.T) {
 	b1.Builder = "Perf-Android-Venue8-PowerVR-x86-Release"
 	b1.Number = 463
 	b1.Steps = []*BuildStep{}
-	assert.Nil(t, b1.ReplaceIntoDB())
+	assert.Nil(t, d.DB().PutBuild(b1))
 
 	// This builder has no new builds, but the last one wasn't finished
 	// at its time of ingestion.
@@ -648,9 +646,9 @@ func testIngestNewBuilds(t *testing.T) {
 	b2.Master = "client.skia.fyi"
 	b2.Builder = "Housekeeper-PerCommit"
 	b2.Number = 1035
-	b2.Finished = 0.0
+	b2.Finished = util.TimeUnixZero
 	b2.Steps = []*BuildStep{}
-	assert.Nil(t, b2.ReplaceIntoDB())
+	assert.Nil(t, d.DB().PutBuild(b2))
 
 	// Subsequent builders are already up-to-date.
 	b3, err := testGetBuildFromMaster(repos)
@@ -659,7 +657,7 @@ func testIngestNewBuilds(t *testing.T) {
 	b3.Builder = "Housekeeper-Nightly-RecreateSKPs"
 	b3.Number = 58
 	b3.Steps = []*BuildStep{}
-	assert.Nil(t, b3.ReplaceIntoDB())
+	assert.Nil(t, d.DB().PutBuild(b3))
 
 	b4, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
@@ -667,12 +665,12 @@ func testIngestNewBuilds(t *testing.T) {
 	b4.Builder = "Test-Android-Venue8-PowerVR-x86-Debug"
 	b4.Number = 532
 	b4.Steps = []*BuildStep{}
-	assert.Nil(t, b4.ReplaceIntoDB())
+	assert.Nil(t, d.DB().PutBuild(b4))
 
 	// IngestNewBuilds should process the above Venue8 Perf bot's builds
 	// 464-466 as well as Housekeeper-PerCommit's unfinished build #1035.
 	for _, m := range MASTER_NAMES {
-		assert.Nil(t, ingestNewBuilds(m, repos))
+		assert.Nil(t, ingestNewBuilds(d.DB(), m, repos))
 	}
 	// Wait for the builds to be inserted.
 	time.Sleep(1500 * time.Millisecond)
@@ -701,7 +699,7 @@ func testIngestNewBuilds(t *testing.T) {
 		},
 	}
 	for _, e := range expected {
-		a, err := GetBuildFromDB(e.Builder, e.Master, e.Number)
+		a, err := d.DB().GetBuildFromDB(e.Master, e.Builder, e.Number)
 		assert.Nil(t, err)
 		assert.NotNil(t, a)
 		if !(a.Master == e.Master && a.Builder == e.Builder && a.Number == e.Number) {
@@ -711,32 +709,255 @@ func testIngestNewBuilds(t *testing.T) {
 	}
 }
 
-func TestMySQLBuildDbSerialization(t *testing.T) {
+// testBuildKeyOrdering ensures that we properly sort build keys so that the
+// build numbers are strictly ascending.
+func testBuildKeyOrdering(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
-	testBuildDbSerialization(t)
+	d := clearDB(t, local)
+	defer d.Close(t)
+
+	b := "Test-Builder"
+	m := "test.master"
+	assert.Nil(t, d.DB().PutBuild(&Build{
+		Builder: b,
+		Master:  m,
+		Number:  1,
+	}))
+	assert.Nil(t, d.DB().PutBuild(&Build{
+		Builder: b,
+		Master:  m,
+		Number:  10,
+	}))
+	assert.Nil(t, d.DB().PutBuild(&Build{
+		Builder: b,
+		Master:  m,
+		Number:  2,
+	}))
+	max, err := d.DB().GetMaxBuildNumber(m, b)
+	assert.Nil(t, err)
+	assert.Equal(t, 10, max)
 }
 
-func TestMySQLBuildDbIdConsistency(t *testing.T) {
+// testBuilderComments ensures that we properly handle builder comments.
+func testBuilderComments(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
-	testBuildDbIdConsistency(t)
+	d := clearDB(t, local)
+	defer d.Close(t)
+
+	b := "Perf-Android-Venue8-PowerVR-x86-Release"
+	u := "me@google.com"
+
+	test := func(expect []*BuilderComment) {
+		c, err := d.DB().GetBuilderComments(b)
+		assert.Nil(t, err)
+		testutils.AssertDeepEqual(t, expect, c)
+	}
+
+	// Check empty.
+	test([]*BuilderComment{})
+
+	// Add a comment.
+	c1 := &BuilderComment{
+		Builder:       b,
+		User:          u,
+		Timestamp:     time.Now(),
+		Flaky:         true,
+		IgnoreFailure: true,
+		Message:       "Here's a message!",
+	}
+	assert.Nil(t, d.DB().PutBuilderComment(c1))
+	c1.Id = 1
+	test([]*BuilderComment{c1})
+
+	// Ensure that we can't update a comment that doesn't exist.
+	c2 := &BuilderComment{
+		Id:            30,
+		Builder:       b,
+		User:          u,
+		Timestamp:     time.Now(),
+		Flaky:         false,
+		IgnoreFailure: true,
+		Message:       "This comment doesn't exist, but it has an ID!",
+	}
+	assert.NotNil(t, d.DB().PutBuilderComment(c2))
+	test([]*BuilderComment{c1})
+
+	// Fix the second comment, insert it, and ensure that we get both comments back.
+	c2.Id = 0
+	assert.Nil(t, d.DB().PutBuilderComment(c2))
+	c2.Id = 2
+	test([]*BuilderComment{c1, c2})
+
+	// Ensure that we don't get the two comments for a bot which has the first bot as a prefix.
+	c, err := d.DB().GetBuilderComments("Perf-Android-Venue8-PowerVR-x86-Release-Suffix")
+	assert.Nil(t, err)
+	testutils.AssertDeepEqual(t, []*BuilderComment{}, c)
+
+	// Ensure that we don't get the two comments for a bot which is a prefix of the first bot.
+	c, err = d.DB().GetBuilderComments("Perf-Android-Venue8-PowerVR-x86")
+	assert.Nil(t, err)
+	testutils.AssertDeepEqual(t, []*BuilderComment{}, c)
+
+	// Delete the first comment.
+	assert.Nil(t, d.DB().DeleteBuilderComment(c1.Id))
+	test([]*BuilderComment{c2})
+
+	// Try to re-insert the first comment. Ensure that we can't.
+	assert.NotNil(t, d.DB().PutBuilderComment(c1))
+
+	// Try to delete the no-longer-existing first comment.
+	assert.NotNil(t, d.DB().DeleteBuilderComment(c1.Id))
 }
 
-func TestMySQLUnfinishedBuild(t *testing.T) {
+// testCommitComments ensures that we properly handle builder comments.
+func testCommitComments(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
-	testUnfinishedBuild(t)
+	d := clearDB(t, local)
+	defer d.Close(t)
+
+	c := "3e9eff3518fe26312c0e1f5bd5f49e17cf270d9a"
+	u := "me@google.com"
+
+	test := func(expect []*CommitComment) {
+		comments, err := d.DB().GetCommitComments(c)
+		assert.Nil(t, err)
+		testutils.AssertDeepEqual(t, expect, comments)
+	}
+
+	// Check empty.
+	test([]*CommitComment{})
+
+	// Add a comment.
+	c1 := &CommitComment{
+		Commit:    c,
+		User:      u,
+		Timestamp: time.Now(),
+		Message:   "Here's a message!",
+	}
+	assert.Nil(t, d.DB().PutCommitComment(c1))
+	c1.Id = 1
+	test([]*CommitComment{c1})
+
+	// Ensure that we can't update a comment that doesn't exist.
+	c2 := &CommitComment{
+		Id:        30,
+		Commit:    c,
+		User:      u,
+		Timestamp: time.Now(),
+		Message:   "This comment doesn't exist, but it has an ID!",
+	}
+	assert.NotNil(t, d.DB().PutCommitComment(c2))
+	test([]*CommitComment{c1})
+
+	// Fix the second comment, insert it, and ensure that we get both comments back.
+	c2.Id = 0
+	assert.Nil(t, d.DB().PutCommitComment(c2))
+	c2.Id = 2
+	test([]*CommitComment{c1, c2})
+
+	// Ensure that we don't get the two comments for a commit which has the first commit as a prefix.
+	comments, err := d.DB().GetCommitComments("3e9eff3518fe26312c0e1f5bd5f49e17cf270d9asuffix")
+	assert.Nil(t, err)
+	testutils.AssertDeepEqual(t, []*CommitComment{}, comments)
+
+	// Ensure that we don't get the two comments for a commit which is a prefix of the first commit.
+	comments, err = d.DB().GetCommitComments("3e9eff3518fe26312c0e1f5bd5f49e17cf27")
+	assert.Nil(t, err)
+	testutils.AssertDeepEqual(t, []*CommitComment{}, comments)
+
+	// Delete the first comment.
+	assert.Nil(t, d.DB().DeleteCommitComment(c1.Id))
+	test([]*CommitComment{c2})
+
+	// Try to re-insert the first comment. Ensure that we can't.
+	assert.NotNil(t, d.DB().PutCommitComment(c1))
+
+	// Try to delete the no-longer-existing first comment.
+	assert.NotNil(t, d.DB().DeleteCommitComment(c1.Id))
 }
 
-func TestMySQLLastProcessedBuilds(t *testing.T) {
-	testutils.SkipIfShort(t)
-	testLastProcessedBuilds(t)
+func TestLocalFindCommitsForBuild(t *testing.T) {
+	testFindCommitsForBuild(t, true)
 }
 
-func TestMySQLGetUningestedBuilds(t *testing.T) {
-	testutils.SkipIfShort(t)
-	testGetUningestedBuilds(t)
+func TestLocalBuildDbSerialization(t *testing.T) {
+	testBuildDbSerialization(t, true)
 }
 
-func TestMySQLIngestNewBuilds(t *testing.T) {
-	testutils.SkipIfShort(t)
-	testIngestNewBuilds(t)
+func TestLocalUnfinishedBuild(t *testing.T) {
+	testUnfinishedBuild(t, true)
+}
+
+func TestLocalLastProcessedBuilds(t *testing.T) {
+	testLastProcessedBuilds(t, true)
+}
+
+func TestLocalGetUningestedBuilds(t *testing.T) {
+	testGetUningestedBuilds(t, true)
+}
+
+func TestLocalIngestNewBuilds(t *testing.T) {
+	testIngestNewBuilds(t, true)
+}
+
+func TestLocalBuildKeyOrdering(t *testing.T) {
+	testBuildKeyOrdering(t, true)
+}
+
+func TestLocalBuilderComments(t *testing.T) {
+	testBuilderComments(t, true)
+}
+
+func TestLocalCommitComments(t *testing.T) {
+	testCommitComments(t, true)
+}
+
+func TestInt64Serialization(t *testing.T) {
+	cases := []int64{0, 1, 15, 255, 2047, 4096, 8191, -1}
+	for _, c := range cases {
+		v, err := bytesToIntBigEndian(intToBytesBigEndian(c))
+		assert.Nil(t, err)
+		assert.Equal(t, c, v)
+	}
+	_, err := bytesToIntBigEndian([]byte{1, 2, 3, 4, 5, 6, 7})
+	assert.NotNil(t, err)
+	_, err = bytesToIntBigEndian([]byte{1, 2, 3, 4, 5, 6, 7, 8, 9})
+	assert.NotNil(t, err)
+}
+
+func TestBuildIDs(t *testing.T) {
+	type id struct {
+		Master  string
+		Builder string
+		Number  int
+	}
+	cases := []id{
+		id{
+			Master:  "my.master",
+			Builder: "My-Builder",
+			Number:  0,
+		},
+		id{
+			Master:  "my.master",
+			Builder: "My-Builder",
+			Number:  42,
+		},
+		id{
+			Master:  "my.master",
+			Builder: "My-Builder",
+			Number:  -1,
+		},
+	}
+
+	ids := make([]string, 0, len(cases))
+	for _, c := range cases {
+		i := MakeBuildID(c.Master, c.Builder, c.Number)
+		m, b, n, err := ParseBuildID(i)
+		assert.Nil(t, err)
+		assert.Equal(t, c.Master, m)
+		assert.Equal(t, c.Builder, b)
+		assert.Equal(t, c.Number, n)
+		ids = append(ids, string(i))
+	}
+	assert.True(t, sort.StringsAreSorted(ids))
 }

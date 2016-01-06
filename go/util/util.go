@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"math"
 	mathrand "math/rand"
 	"os"
 	"reflect"
@@ -27,7 +28,8 @@ const (
 	TB
 	PB
 
-	MILLIS_TO_NANOS = int64(time.Millisecond / time.Nanosecond)
+	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
+	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)
 )
 
 var (
@@ -56,6 +58,9 @@ var (
 		"wood", "dream", "cherry", "tree", "fog", "frost", "voice", "paper",
 		"frog", "smoke", "star",
 	}
+
+	TimeZero     = time.Time{}.UTC()
+	TimeUnixZero = time.Unix(0, 0).UTC()
 )
 
 // GetFormattedByteSize returns a formatted pretty string representation of the
@@ -522,17 +527,46 @@ func MD5Params(val map[string]string) (string, error) {
 	return fmt.Sprintf("%x", md5Writer.Sum(nil)), nil
 }
 
-// UnixFloatToTime takes a float64 representing a Unix timestamp and returns a time.Time.
+// Round rounds the given float64 to the nearest whole integer.
+func Round(v float64) float64 {
+	return math.Floor(v + float64(0.5))
+}
+
+// UnixFloatToTime takes a float64 representing a Unix timestamp in seconds and
+// returns a time.Time. Rounds to milliseconds.
 func UnixFloatToTime(t float64) time.Time {
-	secs := int64(t)
-	nanos := int64(1000000000 * (t - float64(secs)))
+	roundMillis := int64(Round(t * float64(SECONDS_TO_MILLIS)))
+	secs := roundMillis / SECONDS_TO_MILLIS
+	millis := roundMillis - (secs * SECONDS_TO_MILLIS)
+	nanos := millis * MILLIS_TO_NANOS
 	return time.Unix(secs, nanos)
+}
+
+// TimeToUnixFloat takes a time.Time and returns a float64 representing a Unix timestamp.
+func TimeToUnixFloat(t time.Time) float64 {
+	if t.IsZero() {
+		return 0.0
+	}
+	return float64(t.UTC().UnixNano()) / float64(SECONDS_TO_MILLIS*MILLIS_TO_NANOS)
 }
 
 // UnixMillisToTime takes an int64 representing a Unix timestamp in milliseconds
 // and returns a time.Time.
 func UnixMillisToTime(t int64) time.Time {
 	return time.Unix(0, t*MILLIS_TO_NANOS).UTC()
+}
+
+// TimeIsZero returns true if the time.Time is a zero-value or corresponds to
+// a zero Unix timestamp.
+func TimeIsZero(t time.Time) bool {
+	utc := t.UTC()
+	if utc == TimeZero {
+		return true
+	}
+	if utc == TimeUnixZero {
+		return true
+	}
+	return false
 }
 
 // Repeat calls the provided function 'fn' immediately and then in intervals

@@ -261,11 +261,38 @@ func TestUnixFloatToTime(t *testing.T) {
 	}{
 		{
 			in:  1414703190.292151927,
-			out: time.Unix(1414703190, 292151927),
+			out: time.Unix(1414703190, 292000000),
 		},
 	}
 	for _, tc := range cases {
 		assert.Equal(t, tc.out, UnixFloatToTime(tc.in))
+	}
+}
+
+func TestTimeToUnixFloat(t *testing.T) {
+	cases := []struct {
+		in  time.Time
+		out float64
+	}{
+		{
+			in:  time.Unix(1414703190, 292000000),
+			out: 1414703190.292000,
+		},
+	}
+	for _, tc := range cases {
+		assert.Equal(t, tc.out, TimeToUnixFloat(tc.in))
+	}
+}
+
+func TestTimeConversion(t *testing.T) {
+	cases := []float64{
+		0.0,
+		1.0,
+		1414703190.0,
+		1414703190.292000,
+	}
+	for _, tc := range cases {
+		assert.Equal(t, tc, TimeToUnixFloat(UnixFloatToTime(tc)))
 	}
 }
 

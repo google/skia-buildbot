@@ -1,9 +1,16 @@
 package buildbot
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
+	"sort"
 	"strings"
+	"time"
+
+	"go.skia.org/infra/go/util"
 )
 
 /*
@@ -19,24 +26,18 @@ var (
 	TRYBOT_REGEXP = regexp.MustCompile(".*-Trybot$")
 )
 
-// BuildID contains the minimum amount of information to identify a Build.
-type BuildID struct {
-	Builder string `db:"builder"`
-	Master  string `db:"master"`
-	Number  int    `db:"number"`
-}
-
 // BuildStep contains information about a build step.
 type BuildStep struct {
-	Id         int    `db:"id"`
-	BuildID    int    `db:"buildId"`
-	Name       string `db:"name"`
-	Times      []float64
-	Number     int           `json:"step_number" db:"number"`
-	Results    int           `db:"results"`
-	ResultsRaw []interface{} `json:"results"`
-	Started    float64       `db:"started"`
-	Finished   float64       `db:"finished"`
+	Name     string
+	Number   int
+	Results  int
+	Started  time.Time
+	Finished time.Time
+}
+
+// IsFinished returns true iff the BuildStep has finished.
+func (bs *BuildStep) IsFinished() bool {
+	return !util.TimeIsZero(bs.Finished)
 }
 
 // Build.Results code descriptions, see http://docs.buildbot.net/current/developer/results.html.
@@ -62,23 +63,173 @@ func ParseResultsString(s string) (int, error) {
 
 // Build contains information about a single build.
 type Build struct {
-	Id            int    `db:"id"`
-	Builder       string `db:"builder"`
-	Master        string `db:"master"`
-	Number        int    `db:"number"`
-	BuildSlave    string `db:"buildslave"`
-	Branch        string `db:"branch"`
+	Builder       string
+	Master        string
+	Number        int
+	BuildSlave    string
+	Branch        string
 	Commits       []string
-	GotRevision   string          `db:"gotRevision"`
-	Properties    [][]interface{} `db:"_"`
-	PropertiesStr string          `db:"properties"`
-	Results       int             `db:"results"`
+	GotRevision   string
+	Properties    [][]interface{}
+	PropertiesStr string
+	Results       int
 	Steps         []*BuildStep
-	Times         []float64
-	Started       float64 `db:"started"`
-	Finished      float64 `db:"finished"`
+	Started       time.Time
+	Finished      time.Time
 	Comments      []*BuildComment
-	Repository    string `db:"repository"`
+	Repository    string
+}
+
+// Id constructs an ID for the given Build.
+func (b *Build) Id() BuildID {
+	return MakeBuildID(b.Master, b.Builder, b.Number)
+}
+
+// jsonBuildStep is a struct used for (de)serializing a BuildStep to JSON.
+type jsonBuildStep struct {
+	Name    string        `json:"name"`
+	Times   []float64     `json:"times"`
+	Number  int           `json:"step_number"`
+	Results []interface{} `json:"results"`
+}
+
+// jsonBuild is a struct used for (de)serializing a Build to JSON.
+type jsonBuild struct {
+	Builder    string           `json:"builderName"`
+	Number     int              `json:"number"`
+	Properties [][]interface{}  `json:"properties"`
+	Results    int              `json:"results"`
+	Steps      []*jsonBuildStep `json:"steps"`
+	Times      []float64        `json:"times"`
+}
+
+// MarshalJSON serializes the Build to JSON.
+func (b *Build) MarshalJSON() ([]byte, error) {
+	build := jsonBuild{
+		Builder: b.Builder,
+		Number:  b.Number,
+		Results: b.Results,
+		Times: []float64{
+			util.TimeToUnixFloat(b.Started),
+			util.TimeToUnixFloat(b.Finished),
+		},
+		Properties: b.Properties,
+	}
+
+	steps := make([]*jsonBuildStep, 0, len(b.Steps))
+	for _, s := range b.Steps {
+		steps = append(steps, &jsonBuildStep{
+			Name:   s.Name,
+			Number: s.Number,
+			Results: []interface{}{
+				s.Results,
+				[]interface{}{},
+			},
+			Times: []float64{
+				util.TimeToUnixFloat(s.Started),
+				util.TimeToUnixFloat(s.Finished),
+			},
+		})
+	}
+
+	build.Steps = steps
+
+	return json.Marshal(&build)
+}
+
+// UnmarshalJSON deserializes the Build from JSON.
+func (b *Build) UnmarshalJSON(data []byte) error {
+	var build jsonBuild
+	if err := json.NewDecoder(bytes.NewBuffer(data)).Decode(&build); err != nil {
+		return err
+	}
+
+	b.Builder = build.Builder
+	b.Number = build.Number
+	b.Properties = build.Properties
+	b.Results = build.Results
+	if len(build.Times) != 2 {
+		return fmt.Errorf("times array must have length 2: %v", build.Times)
+	}
+	b.Started = util.UnixFloatToTime(build.Times[0])
+	b.Finished = util.UnixFloatToTime(build.Times[1])
+
+	// Parse the following from build properties.
+	var err error
+	b.Repository, err = b.GetStringProperty("repository")
+	if err != nil {
+		return err
+	}
+	b.GotRevision, err = b.GetStringProperty("got_revision")
+	if err != nil {
+		return err
+	}
+	b.Branch, err = b.GetStringProperty("branch")
+	if err != nil {
+		return err
+	}
+	b.BuildSlave, err = b.GetStringProperty("slavename")
+	if err != nil {
+		return err
+	}
+	b.Master, err = b.GetStringProperty("mastername")
+	if err != nil {
+		return err
+	}
+
+	b.Steps = make([]*BuildStep, 0, len(build.Steps))
+	for _, s := range build.Steps {
+		if len(s.Times) != 2 {
+			return fmt.Errorf("times array must have length 2 (step): %v", s.Times)
+		}
+
+		results := 0
+		if len(s.Results) > 0 {
+			if s.Results[0] != nil {
+				results = int(s.Results[0].(float64))
+			}
+		}
+
+		b.Steps = append(b.Steps, &BuildStep{
+			Name:     s.Name,
+			Number:   s.Number,
+			Results:  results,
+			Started:  util.UnixFloatToTime(s.Times[0]).UTC(),
+			Finished: util.UnixFloatToTime(s.Times[1]).UTC(),
+		})
+	}
+	b.fixup()
+
+	return nil
+}
+
+// fixup fixes a Build object before/after deserialization.
+func (b *Build) fixup() {
+	// gob considers empty slices and nil slices to be the same. Create
+	// empty slices for any that might be nil.
+	if reflect.ValueOf(b.Comments).IsNil() {
+		b.Comments = []*BuildComment{}
+	}
+	if reflect.ValueOf(b.Commits).IsNil() {
+		b.Commits = []string{}
+	}
+	if reflect.ValueOf(b.Steps).IsNil() {
+		b.Steps = []*BuildStep{}
+	}
+
+	// Ensure that all times are in UTC.
+	b.Started = b.Started.UTC()
+	b.Finished = b.Finished.UTC()
+	for _, s := range b.Steps {
+		s.Started = s.Started.UTC()
+		s.Finished = s.Finished.UTC()
+	}
+	for _, c := range b.Comments {
+		c.Timestamp = c.Timestamp.UTC()
+	}
+
+	// Sort the commits alphabetically, for convenience.
+	sort.Strings(b.Commits)
 }
 
 // BuildSlave contains information about a buildslave.
@@ -93,31 +244,30 @@ type BuildSlave struct {
 
 // BuildComment contains a comment about a build.
 type BuildComment struct {
-	Id        int     `db:"id"        json:"id"`
-	BuildId   int     `db:"buildId"   json:"buildId"`
-	User      string  `db:"user"      json:"user"`
-	Timestamp float64 `db:"timestamp" json:"time"`
-	Message   string  `db:"message"   json:"message"`
+	Id        int64
+	User      string
+	Timestamp time.Time
+	Message   string
 }
 
 // BuilderComment contains a comment about a builder.
 type BuilderComment struct {
-	Id            int     `db:"id"            json:"id"`
-	Builder       string  `db:"builder"       json:"builder"`
-	User          string  `db:"user"          json:"user"`
-	Timestamp     float64 `db:"timestamp"     json:"time"`
-	Flaky         bool    `db:"flaky"         json:"flaky"`
-	IgnoreFailure bool    `db:"ignoreFailure" json:"ignoreFailure"`
-	Message       string  `db:"message"       json:"message"`
+	Id            int64
+	Builder       string
+	User          string
+	Timestamp     time.Time
+	Flaky         bool
+	IgnoreFailure bool
+	Message       string
 }
 
 // CommitComment contains a comment about a commit.
 type CommitComment struct {
-	Id        int     `db:"id"        json:"id"`
-	Commit    string  `db:"commit"    json:"commit"`
-	User      string  `db:"user"      json:"user"`
-	Timestamp float64 `db:"timestamp" json:"time"`
-	Message   string  `db:"message"   json:"message"`
+	Id        int64
+	Commit    string
+	User      string
+	Timestamp time.Time
+	Message   string
 }
 
 // IsTrybot determines whether the given builder is a trybot.
@@ -151,37 +301,18 @@ func (b *Build) GetStringProperty(property string) (string, error) {
 	return strVal, nil
 }
 
-// GotRevision returns the revision to which a build was synced, or the empty
-// string if none.
-func (b *Build) gotRevision() string {
-	if gotRevision, err := b.GetStringProperty("got_revision"); err == nil {
-		return gotRevision
-	} else {
-		return ""
-	}
-}
-
-// Branch returns the branch whose commit(s) triggered this build.
-func (b *Build) branch() string {
-	if branch, err := b.GetStringProperty("branch"); err == nil {
-		return branch
-	} else {
-		return ""
-	}
-}
-
-// Repository returns the repository whose commit(s) triggered this build.
-func (b *Build) repository() string {
-	if repo, err := b.GetStringProperty("repository"); err == nil {
-		return repo
-	} else {
-		return ""
+// getPropertyInterface returns an interface value for the given property.
+func getPropertyInterface(propname string, value interface{}) []interface{} {
+	return []interface{}{
+		propname,
+		value,
+		"fake_source",
 	}
 }
 
 // Finished indicates whether the build has finished.
 func (b *Build) IsFinished() bool {
-	return b.Finished != 0.0
+	return !util.TimeIsZero(b.Finished)
 }
 
 // GetSummary returns a BuildSummary for the given Build.
@@ -197,7 +328,6 @@ func (b *Build) GetSummary() *BuildSummary {
 		BuildSlave:  b.BuildSlave,
 		FailedSteps: steps,
 		Finished:    b.IsFinished(),
-		Id:          b.Id,
 		Master:      b.Master,
 		Number:      b.Number,
 		Properties:  b.Properties,
@@ -214,7 +344,6 @@ type BuildSummary struct {
 	BuildSlave  string          `json:"buildslave"`
 	FailedSteps []string        `json:"failedSteps"`
 	Finished    bool            `json:"finished"`
-	Id          int             `json:"id"`
 	Master      string          `json:"master"`
 	Number      int             `json:"number"`
 	Properties  [][]interface{} `json:"properties"`
