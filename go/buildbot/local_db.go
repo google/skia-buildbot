@@ -90,8 +90,8 @@ type localDB struct {
 	db *bolt.DB
 }
 
-// InitLocalDB returns a local DB instance.
-func InitLocalDB(filename string) (DB, error) {
+// NewLocalDB returns a local DB instance.
+func NewLocalDB(filename string) (DB, error) {
 	d, err := bolt.Open(filename, 0600, nil)
 	if err != nil {
 		return nil, err

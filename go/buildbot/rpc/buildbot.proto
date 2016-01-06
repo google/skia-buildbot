@@ -1,0 +1,140 @@
+syntax = "proto3";
+
+package rpc;
+
+service BuildbotDB {
+  rpc GetBuildsForCommits(GetBuildsForCommitsRequest) returns (GetBuildsForCommitsResponse) {}
+  rpc GetBuild(BuildID) returns (Build) {}
+  rpc GetBuildFromDB(GetBuildFromDBRequest) returns (Build) {}
+  rpc GetBuildsFromDateRange(GetBuildsFromDateRangeRequest) returns (Builds) {}
+  rpc GetBuildNumberForCommit(GetBuildNumberForCommitRequest) returns (Int64) {}
+  rpc GetLastProcessedBuilds(Master) returns (BuildIDs) {}
+  rpc GetMaxBuildNumber(GetMaxBuildNumberRequest) returns (Int64) {}
+  rpc GetUnfinishedBuilds(Master) returns (Builds) {}
+  rpc PutBuild(Build) returns (Empty) {}
+  rpc PutBuilds(PutBuildsRequest) returns (Empty) {}
+  rpc NumIngestedBuilds(Empty) returns (NumIngestedBuildsResponse) {}
+
+  rpc GetBuilderComments(GetBuilderCommentsRequest) returns (GetBuilderCommentsResponse) {}
+  rpc GetBuildersComments(GetBuildersCommentsRequest) returns (GetBuildersCommentsResponse) {}
+  rpc PutBuilderComment(PutBuilderCommentRequest) returns (Empty) {}
+  rpc DeleteBuilderComment(DeleteBuilderCommentRequest) returns (Empty) {}
+
+  rpc GetCommitComments(GetCommitCommentsRequest) returns (GetCommitCommentsResponse) {}
+  rpc GetCommitsComments(GetCommitsCommentsRequest) returns (GetCommitsCommentsResponse) {}
+  rpc PutCommitComment(PutCommitCommentRequest) returns (Empty) {}
+  rpc DeleteCommitComment(DeleteCommitCommentRequest) returns (Empty) {}
+}
+
+message Build {
+  bytes build = 1;
+}
+
+message Builds {
+  repeated Build builds = 1;
+}
+
+message BuildID {
+  bytes id = 1;
+}
+
+message BuildIDs {
+  repeated BuildID ids = 1;
+}
+
+message Empty {}
+
+message Int64 {
+  int64 val = 1;
+}
+
+message Master {
+  string master = 1;
+}
+
+message GetBuildsForCommitsRequest {
+  repeated string commits = 1;
+  repeated string ignore = 2;
+}
+
+message GetBuildsForCommitsResponse {
+  map<string, Builds> builds = 1;
+}
+
+message GetBuildFromDBRequest {
+  string master = 1;
+  string builder = 2;
+  int64 number = 3;
+}
+
+message GetBuildsFromDateRangeRequest {
+  string start = 1;
+  string end = 2;
+}
+
+message GetBuildNumberForCommitRequest {
+  string master = 1;
+  string builder = 2;
+  string commit = 3;
+}
+
+message GetMaxBuildNumberRequest {
+  string master = 1;
+  string builder = 2;
+}
+
+message PutBuildsRequest {
+  repeated Build builds = 1;
+}
+
+message NumIngestedBuildsResponse {
+  int64 ingested = 1;
+}
+
+message GetBuilderCommentsRequest {
+  string builder = 1;
+}
+
+message GetBuilderCommentsResponse {
+  repeated bytes comments = 1;
+}
+
+message GetBuildersCommentsRequest {
+  repeated string builders = 1;
+}
+
+message GetBuildersCommentsResponse {
+  map<string, GetBuilderCommentsResponse> comments = 1;
+}
+
+message PutBuilderCommentRequest {
+  bytes comment = 1;
+}
+
+message DeleteBuilderCommentRequest {
+  int64 id = 1;
+}
+
+message GetCommitCommentsRequest {
+  string commit = 1;
+}
+
+message GetCommitCommentsResponse {
+  repeated bytes comments = 1;
+}
+
+message GetCommitsCommentsRequest {
+  repeated string commits = 1;
+}
+
+message GetCommitsCommentsResponse {
+  map<string, GetCommitCommentsResponse> comments = 1;
+}
+
+message PutCommitCommentRequest {
+  bytes comment = 1;
+}
+
+message DeleteCommitCommentRequest {
+  int64 id = 1;
+}

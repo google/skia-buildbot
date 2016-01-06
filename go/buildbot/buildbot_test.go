@@ -124,7 +124,7 @@ func (d *testRemoteDB) Close(t *testing.T) {
 func clearDB(t *testing.T, local bool) testDB {
 	tempDir, err := ioutil.TempDir("", "buildbot_test_")
 	assert.Nil(t, err)
-	localDB, err := InitLocalDB(path.Join(tempDir, "buildbot.db"))
+	localDB, err := NewLocalDB(path.Join(tempDir, "buildbot.db"))
 	assert.Nil(t, err)
 	if local {
 		return &testLocalDB{
@@ -132,8 +132,16 @@ func clearDB(t *testing.T, local bool) testDB {
 			dir: tempDir,
 		}
 	} else {
-		t.Fatal("Remote database not yet implemented.")
-		return nil
+		port := fmt.Sprintf(":%d", testPort.Port())
+		assert.Nil(t, RunBuildServer(port, localDB))
+
+		remoteDB, err := NewRemoteDB(fmt.Sprintf("localhost%s", port))
+		assert.Nil(t, err)
+		return &testRemoteDB{
+			localDB:  localDB,
+			remoteDB: remoteDB,
+			dir:      tempDir,
+		}
 	}
 }
 
@@ -880,36 +888,72 @@ func TestLocalFindCommitsForBuild(t *testing.T) {
 	testFindCommitsForBuild(t, true)
 }
 
+func TestRemoteFindCommitsForBuild(t *testing.T) {
+	testFindCommitsForBuild(t, false)
+}
+
 func TestLocalBuildDbSerialization(t *testing.T) {
 	testBuildDbSerialization(t, true)
+}
+
+func TestRemoteBuildDbSerialization(t *testing.T) {
+	testBuildDbSerialization(t, false)
 }
 
 func TestLocalUnfinishedBuild(t *testing.T) {
 	testUnfinishedBuild(t, true)
 }
 
+func TestRemoteUnfinishedBuild(t *testing.T) {
+	testUnfinishedBuild(t, false)
+}
+
 func TestLocalLastProcessedBuilds(t *testing.T) {
 	testLastProcessedBuilds(t, true)
+}
+
+func TestRemoteLastProcessedBuilds(t *testing.T) {
+	testLastProcessedBuilds(t, false)
 }
 
 func TestLocalGetUningestedBuilds(t *testing.T) {
 	testGetUningestedBuilds(t, true)
 }
 
+func TestRemoteGetUningestedBuilds(t *testing.T) {
+	testGetUningestedBuilds(t, false)
+}
+
 func TestLocalIngestNewBuilds(t *testing.T) {
 	testIngestNewBuilds(t, true)
+}
+
+func TestRemoteIngestNewBuilds(t *testing.T) {
+	testIngestNewBuilds(t, false)
 }
 
 func TestLocalBuildKeyOrdering(t *testing.T) {
 	testBuildKeyOrdering(t, true)
 }
 
+func TestRemoteBuildKeyOrdering(t *testing.T) {
+	testBuildKeyOrdering(t, false)
+}
+
 func TestLocalBuilderComments(t *testing.T) {
 	testBuilderComments(t, true)
 }
 
+func TestRemoteBuilderComments(t *testing.T) {
+	testBuilderComments(t, false)
+}
+
 func TestLocalCommitComments(t *testing.T) {
 	testCommitComments(t, true)
+}
+
+func TestRemoteCommitComments(t *testing.T) {
+	testCommitComments(t, false)
 }
 
 func TestInt64Serialization(t *testing.T) {
