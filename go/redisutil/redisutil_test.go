@@ -271,7 +271,7 @@ func TestRedisPrimitives(t *testing.T) {
 		select {
 		case <-listCh:
 		case <-tick:
-			assert.FailNow(t, "Timeout in testing list channel")
+			assert.Fail(t, "Timeout in testing list channel")
 		}
 	}
 

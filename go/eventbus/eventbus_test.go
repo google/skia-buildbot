@@ -111,7 +111,7 @@ func TestEventBusGlobally(t *testing.T) {
 		for err = range errCh {
 			fmt.Printf("Error: %s\n", err)
 		}
-		assert.FailNow(t, "Received too many error messages.")
+		assert.Fail(t, "Received too many error messages.")
 	}
 }
 
