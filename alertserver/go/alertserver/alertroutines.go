@@ -29,8 +29,10 @@ const (
 Build: https://uberchromegw.corp.google.com/i/%s/builders/%s/builds/%d
 Dashboard: https://status.skia.org/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%%5E%s%%24&tab=builds
 Host info: https://status.skia.org/hosts?filter=%s`
-	AUTOROLL_ALERT_NAME = "AutoRoll Failed"
-	BUILDSLAVE_OFFLINE  = `Buildslave %s is not connected to https://uberchromegw.corp.google.com/i/%s/buildslaves/%s
+	// Allow up to 30 minutes for the device to charge. If "wait for device" has been running for longer than that, the device is probably offline.
+	ANDROID_DISCONNECT_TIME_LIMIT = 30 * time.Minute
+	AUTOROLL_ALERT_NAME           = "AutoRoll Failed"
+	BUILDSLAVE_OFFLINE            = `Buildslave %s is not connected to https://uberchromegw.corp.google.com/i/%s/buildslaves/%s
 
 Dashboard: https://status.skia.org/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%%5E%s%%24&tab=builds
 Host info: https://status.skia.org/hosts?filter=%s`
@@ -189,8 +191,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 				if strings.Contains(b.Builder, "Android") && !strings.Contains(b.Builder, "Build") {
 					for _, s := range b.Steps {
 						if strings.Contains(s.Name, "wait for device") {
-							// If "wait for device" has been running for 10 minutes, the device is probably offline.
-							if s.Finished == 0 && time.Since(time.Unix(int64(s.Started), 0)) > 10*time.Minute {
+							if s.Finished == 0 && time.Since(time.Unix(int64(s.Started), 0)) > ANDROID_DISCONNECT_TIME_LIMIT {
 								if err := am.AddAlert(&alerting.Alert{
 									Name:     fmt.Sprintf("Android device disconnected (%s)", b.BuildSlave),
 									Category: alerting.INFRA_ALERT,
