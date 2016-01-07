@@ -75,6 +75,12 @@ func (p ValueWeightSliceSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 // Weight.
 type ValueWeightSlice []types.ValueWeight
 
-func (p ValueWeightSlice) Len() int           { return len(p) }
-func (p ValueWeightSlice) Less(i, j int) bool { return p[i].Weight > p[j].Weight }
-func (p ValueWeightSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p ValueWeightSlice) Len() int { return len(p) }
+func (p ValueWeightSlice) Less(i, j int) bool {
+	if p[i].Weight == p[j].Weight {
+		return p[i].Value < p[j].Value
+	} else {
+		return p[i].Weight > p[j].Weight
+	}
+}
+func (p ValueWeightSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }

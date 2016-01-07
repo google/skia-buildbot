@@ -29,8 +29,8 @@ func TestFromParams(t *testing.T) {
 			types.ValueWeight{Value: "arm", Weight: 16},
 		},
 		[]types.ValueWeight{
-			types.ValueWeight{Value: "8888", Weight: 16},
 			types.ValueWeight{Value: "565", Weight: 16},
+			types.ValueWeight{Value: "8888", Weight: 16},
 			types.ValueWeight{Value: "gpu", Weight: 16},
 		},
 	}
