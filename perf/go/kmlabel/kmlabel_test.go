@@ -8,6 +8,32 @@ import (
 	"go.skia.org/infra/perf/go/kmeans"
 )
 
+var (
+	paramset = map[string][]string{
+		"config": []string{"8888", "565", "gpu"},
+		"cpu":    []string{"intel", "arm"},
+	}
+	// A set of observations that should make two nice clusters, with [tr1, tr2,
+	// tr3] being one cluster and [tr4] being the second cluster.
+	traceparams = map[string]map[string]string{
+		"tr1": map[string]string{
+			"config": "8888",
+			"cpu":    "arm",
+		},
+		"tr2": map[string]string{
+			"config": "565",
+			"cpu":    "arm",
+		},
+		"tr3": map[string]string{
+			"config": "565",
+			"cpu":    "intel",
+		},
+		"tr4": map[string]string{
+			"config": "gpu",
+		},
+	}
+)
+
 func TestMeasure(t *testing.T) {
 	m := NewMeasure(2)
 	m.Inc(0)
@@ -53,34 +79,12 @@ func TestCentroid(t *testing.T) {
 }
 
 func TestCentroidsAndTraces(t *testing.T) {
-	paramset := map[string][]string{
-		"config": []string{"8888", "565", "gpu"},
-		"cpu":    []string{"intel", "arm"},
-	}
-	// A set of observations that should make two nice clusters, with [tr1, tr2,
-	// tr3] being one cluster and [tr4] being the second cluster.
-	traceparams := map[string]map[string]string{
-		"tr1": map[string]string{
-			"config": "8888",
-			"cpu":    "arm",
-		},
-		"tr2": map[string]string{
-			"config": "565",
-			"cpu":    "arm",
-		},
-		"tr3": map[string]string{
-			"config": "565",
-			"cpu":    "intel",
-		},
-		"tr4": map[string]string{
-			"config": "gpu",
-		},
-	}
 	centroids, traces, f, reverse := CentroidsAndTraces(paramset, traceparams, 2)
 	assert.Equal(t, 2, len(centroids))
 	assert.Equal(t, 4, len(traces))
 	var tr4 *Trace
-	for _, tr4 = range traces {
+	for _, clusterable := range traces {
+		tr4 = clusterable.(*Trace)
 		if tr4.ID == "tr4" {
 			break
 		}
@@ -92,7 +96,8 @@ func TestCentroidsAndTraces(t *testing.T) {
 	centroid := kmeansCentroid.(*Centroid)
 	assert.Equal(t, 0.0, centroid.Distance(tr4))
 	var tr1 *Trace
-	for _, tr1 = range traces {
+	for _, clusterable := range traces {
+		tr1 = clusterable.(*Trace)
 		if tr1.ID == "tr1" {
 			break
 		}
@@ -125,4 +130,14 @@ func TestCentroidsAndTraces(t *testing.T) {
 	assert.Equal(t, 1, len(kmClusters))
 	assert.Equal(t, 4, len(kmClusters[0]))
 	assert.InDelta(t, 4.42496, kmeans.TotalError(obs, kmCentroids), 0.01)
+}
+
+func TestClusterAndDescribe(t *testing.T) {
+	d := ClusterAndDescribe(paramset, traceparams, 8)
+	assert.Equal(t, 0.5, d.Percent)
+	total := 0
+	for _, c := range d.Centers {
+		total += c.Size
+	}
+	assert.Equal(t, 4, total)
 }

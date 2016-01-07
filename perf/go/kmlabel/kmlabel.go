@@ -57,10 +57,10 @@ order fixed, so our representation becomes:
 
 This compressed representation is what's used in the implementation below.
 
-Note that each param has its own set unit vectors, and therefore the params in
-a trace will map to a set of unit vectors. Also note that we need to know the
-paramset for all the traces so we know all possible values that would appear
-for a param.
+Note that each param has its own set of unit vectors, and therefore the params
+in a trace will map to a set of unit vectors. Also note that we need to know
+the paramset for all the traces so we know all possible values that would
+appear for a param.
 
 */
 
@@ -71,6 +71,8 @@ import (
 	"time"
 
 	"go.skia.org/infra/perf/go/kmeans"
+	"go.skia.org/infra/perf/go/types"
+	"go.skia.org/infra/perf/go/valueweight"
 )
 
 func init() {
@@ -123,61 +125,63 @@ func (m *Measure) Inc(i int) {
 	m.Counts[i] += 1
 }
 
+// Clear resets all the counts to 0.
 func (m *Measure) Clear() {
 	for i, _ := range m.Counts {
 		m.Counts[i] = 0.0
 	}
 }
 
+// Distance returns the distance from the centroid to param value i.
 func (m *Measure) Distance(i int) float64 {
 	return m.Distances[i]
 }
 
+// Calc precalculates the distance metrics for all possible param values.
+//
+// Doing a little bit of algebra up front to simplify the calculations.
+// For each param (i) we want to calculate:
+//
+//   m.Distances[i] = ||ith vector - center||
+//
+// Where the center is the average of the m.Counts vectors.
+//
+// To simplify notation we will denote
+//
+//   m.Counts[0], m.Counts[1], ...
+//
+// As
+//
+//   c_0, c_1, ...
+//
+// m.Counts really represents the sum of the vectors, all of length len(m.Counts)
+// The center vector has a value of:
+//
+//   <c_0/sum, c_1/sum, ...>
+//
+// Each basis vector has a value of
+//
+//   B_j = <0, 0, 1, 0, ...>    i.e. a 1 in the jth spot.
+//
+// The distance between B_j and the center vector is:
+//
+//    c_i/sum - 0                                         for i <> j
+//    c_i/sum - 1 = c_i/sum - sum/sum = (c_i - sum)/sum   for i == j
+//
+// Since everything is divided by sum^2 we can factor that out when
+// calculating the Euclidean distance:
+//
+//    m.Distances[i] = sqrt(c_0^2 + c_1^2 + ... + (c_1 - sum)^2 + ... + c_size^2)/sum
+//
+// If we let:
+//
+//   tss = (c_0^2 + c_1^2 +...+ c_size^2),   i.e. sum of all squares.
+//
+// Then the equation becomes:
+//
+//   m.Distances[i] = sqrt(tss - c_i^2  + (sum-c_i)^2)/sum
+//
 func (m *Measure) Calc() {
-	// Precalculate the distance metrics for all possible param values.
-	//
-	// Doing a little bit of algebra up front to simplify the calculations.
-	// For each param (i) we want to calculate:
-	//
-	//   m.Distances[i] = ||ith vector - center||
-	//
-	// Where the center is the average of the m.Counts vectors.
-	//
-	// To simplify notation we will denote
-	//
-	//   m.Counts[0], m.Counts[1], ...
-	//
-	// As
-	//
-	//   c_0, c_1, ...
-	//
-	// m.Counts really represents the sum of the vectors, all of length len(m.Counts)
-	// The center vector has a value of:
-	//
-	//   <c_0/sum, c_1/sum, ...>
-	//
-	// Each basis vector has a value of
-	//
-	//   B_j = <0, 0, 1, 0, ...>    i.e. a 1 in the jth spot.
-	//
-	// The distance between B_j and the center vector is:
-	//
-	//    c_i/sum - 0                                         for i <> j
-	//    c_i/sum - 1 = c_i/sum - sum/sum = (c_i - sum)/sum   for i == j
-	//
-	// Since everything is divided by sum^2 we can factor that out when
-	// calculating the Euclidean distance:
-	//
-	//    m.Distances[i] = sqrt(c_0^2 + c_1^2 + ... + (c_1 - sum)^2 + ... + c_size^2)/sum
-	//
-	// If we let:
-	//
-	//   tss = (c_0^2 + c_1^2 +...+ c_size^2),   i.e. sum of all squares.
-	//
-	// Then the equation becomes:
-	//
-	//   m.Distances[i] = sqrt(tss - c_i^2  + (sum-c_i)^2)/sum
-	//
 	sum := 0.0
 	for i, _ := range m.Counts {
 		sum += float64(m.Counts[i])
@@ -234,8 +238,8 @@ func NewCentroid(dimSizes []int, initial []int) *Centroid {
 	return c
 }
 
-// kmlabel Centroids can't be turned back into Clusterables.
 func (c *Centroid) AsClusterable() kmeans.Clusterable {
+	// kmlabel Centroids can't be turned back into Clusterables.
 	return nil
 }
 
@@ -252,6 +256,7 @@ func (c *Centroid) Distance(clusterable kmeans.Clusterable) float64 {
 	return math.Sqrt(total)
 }
 
+// Clear resets all the counts for all the Dimensions.
 func (c *Centroid) Clear() {
 	for _, m := range c.Dimensions {
 		m.Clear()
@@ -272,6 +277,7 @@ func (c *Centroid) Finished() {
 	}
 }
 
+// Reverse is a type of func that converts a Trace back into params.
 type Reverse func(t *Trace) map[string]string
 
 // CentroidsAndTraces returns a set of starting Centroids and a set of Traces
@@ -279,9 +285,7 @@ type Reverse func(t *Trace) map[string]string
 //
 // It also returns a closure that implements kmeans.CalculateCentroid and a closure
 // that implements Reverse.
-//
-// TODO Return closure that does reverse mapping, from *Trace to params, i.e. map[string]string.
-func CentroidsAndTraces(paramset map[string][]string, traceparams map[string]map[string]string, K int) ([]*Centroid, []*Trace, kmeans.CalculateCentroid, Reverse) {
+func CentroidsAndTraces(paramset map[string][]string, traceparams map[string]map[string]string, K int) ([]kmeans.Centroid, []kmeans.Clusterable, kmeans.CalculateCentroid, Reverse) {
 	// Sort the paramset keys.
 	keys := []string{}
 	for k, _ := range paramset {
@@ -311,7 +315,7 @@ func CentroidsAndTraces(paramset map[string][]string, traceparams map[string]map
 		paramMap[key] = paramIndices
 	}
 
-	// reverse returns the params of a Trace.
+	// reverse implements Reverse.
 	reverse := func(t *Trace) map[string]string {
 		ret := map[string]string{}
 		for i, p := range t.Params {
@@ -325,7 +329,7 @@ func CentroidsAndTraces(paramset map[string][]string, traceparams map[string]map
 		return ret
 	}
 
-	traces := make([]*Trace, 0, len(traceparams))
+	traces := make([]kmeans.Clusterable, 0, len(traceparams))
 	for id, params := range traceparams {
 		tr := &Trace{
 			ID:     id,
@@ -339,10 +343,11 @@ func CentroidsAndTraces(paramset map[string][]string, traceparams map[string]map
 		traces = append(traces, tr)
 	}
 
-	centroids := make([]*Centroid, K)
+	// Create the centroids from a random subset of traces.
+	centroids := make([]kmeans.Centroid, K)
 	for i, _ := range centroids {
 		// Pick a trace at random.
-		tr := traces[rand.Intn(len(traces))]
+		tr := traces[rand.Intn(len(traces))].(*Trace)
 		centroids[i] = NewCentroid(dimSizes, tr.Params)
 	}
 
@@ -357,4 +362,80 @@ func CentroidsAndTraces(paramset map[string][]string, traceparams map[string]map
 	}
 
 	return centroids, traces, f, reverse
+}
+
+// Description is returned by ClusterAndDescribe.
+type Description struct {
+	// Centers describes each k-means generated cluster.
+	Centers []*Center `json:"centers"`
+
+	// Percent is the percentage of traces we analyzed.
+	Percent float64 `json:"percent"`
+}
+
+// Center describes a single cluster of traces.
+type Center struct {
+	// IDs is a slice of <=20 IDs of traces, the closest 20 to the centroid of
+	// the cluster.
+	IDs []string `json:"ids"`
+
+	// WordCloud is a word cloud of all the parameter values that appear in the
+	// cluster.
+	WordCloud [][]types.ValueWeight `json:"wordcloud"`
+
+	// Size is the number of traces in this cluster.
+	Size int `json:"size"`
+}
+
+// ClusterAndDescribe takes all the params from a set of traces, as passed in
+// via traceparams, and does k-means clustering on the parameters and returns
+// the results of the clustering in a Description.
+//
+// The paramset is needed so we know the total number of values for each
+// parameter.  The value of total is the total number of traces being analyzed,
+// of which traceparams contains a subset.
+func ClusterAndDescribe(paramSet map[string][]string, traceparams map[string]map[string]string, total int) Description {
+	if len(traceparams) == 0 {
+		return Description{
+			Centers: []*Center{},
+			Percent: 0,
+		}
+	}
+
+	// A good guess for k is sqrt(n)/2.
+	k := int(math.Sqrt(float64(len(traceparams))) / 2.0)
+	// But never go below 5 clusters.
+	if k < 5 {
+		k = 5
+	}
+	cent, obs, f, reverse := CentroidsAndTraces(paramSet, traceparams, k)
+	_, clusters := kmeans.KMeans(obs, cent, k, 100, f)
+
+	// Now that clustering is complete build of the slice of Center's for each
+	// cluster found.
+	centers := []*Center{}
+	for _, cl := range clusters {
+		size := len(cl)
+		params := []map[string]string{}
+		for _, tr := range cl {
+			params = append(params, reverse(tr.(*Trace)))
+		}
+		if len(cl) > 20 {
+			cl = cl[:20]
+		}
+		ids := make([]string, len(cl))
+		for i, tr := range cl {
+			ids[i] = tr.(*Trace).ID
+		}
+		centers = append(centers, &Center{
+			IDs:       ids,
+			WordCloud: valueweight.FromParams(params),
+			Size:      size,
+		})
+	}
+
+	return Description{
+		Centers: centers,
+		Percent: float64(len(traceparams)) / float64(total),
+	}
 }
