@@ -37,6 +37,9 @@ type DB interface {
 
 	// Builds.
 
+	// BuildExists returns true if the given build exists in the database, and false otherwise.
+	BuildExists(string, string, int) (bool, error)
+
 	// GetBuildsForCommits retrieves all builds which first included each of the
 	// given commits.
 	GetBuildsForCommits([]string, map[string]bool) (map[string][]*Build, error)

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
+	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
 )
 
@@ -38,6 +39,7 @@ const (
 
 func init() {
 	gob.Register([]interface{}{})
+	gob.Register(map[string]interface{}{})
 }
 
 func intToBytesBigEndian(i int64) []byte {
@@ -150,6 +152,18 @@ func NewLocalDB(filename string) (DB, error) {
 // Close closes the db.
 func (d *localDB) Close() error {
 	return d.db.Close()
+}
+
+// See documentation for DB interface.
+func (d *localDB) BuildExists(master, builder string, number int) (bool, error) {
+	rv := false
+	if err := d.db.View(func(tx *bolt.Tx) error {
+		rv = (tx.Bucket(BUCKET_BUILDS).Get(MakeBuildID(master, builder, number)) != nil)
+		return nil
+	}); err != nil {
+		return false, err
+	}
+	return rv, nil
 }
 
 // See documentation for DB interface.
@@ -361,6 +375,7 @@ func (d *localDB) PutBuild(b *Build) error {
 
 // See documentation for DB interface.
 func (d *localDB) PutBuilds(builds []*Build) error {
+	defer metrics.NewTimer("buildbot.PutBuilds").Stop()
 	return d.db.Update(func(tx *bolt.Tx) error {
 		return putBuilds(tx, builds)
 	})

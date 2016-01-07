@@ -3,6 +3,7 @@ syntax = "proto3";
 package rpc;
 
 service BuildbotDB {
+  rpc BuildExists(GetBuildFromDBRequest) returns (Bool) {}
   rpc GetBuildsForCommits(GetBuildsForCommitsRequest) returns (GetBuildsForCommitsResponse) {}
   rpc GetBuild(BuildID) returns (Build) {}
   rpc GetBuildFromDB(GetBuildFromDBRequest) returns (Build) {}
@@ -24,6 +25,10 @@ service BuildbotDB {
   rpc GetCommitsComments(GetCommitsCommentsRequest) returns (GetCommitsCommentsResponse) {}
   rpc PutCommitComment(PutCommitCommentRequest) returns (Empty) {}
   rpc DeleteCommitComment(DeleteCommitCommentRequest) returns (Empty) {}
+}
+
+message Bool {
+  bool val = 1;
 }
 
 message Build {

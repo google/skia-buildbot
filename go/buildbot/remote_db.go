@@ -35,6 +35,20 @@ func (d *remoteDB) Close() error {
 }
 
 // See documentation for DB interface.
+func (d *remoteDB) BuildExists(master, builder string, number int) (bool, error) {
+	req := &rpc.GetBuildFromDBRequest{
+		Master:  master,
+		Builder: builder,
+		Number:  int64(number),
+	}
+	resp, err := d.client.BuildExists(context.Background(), req)
+	if err != nil {
+		return false, err
+	}
+	return resp.Val, nil
+}
+
+// See documentation for DB interface.
 func (d *remoteDB) GetBuildsForCommits(commits []string, ignore map[string]bool) (map[string][]*Build, error) {
 	ign := make([]string, 0, len(ignore))
 	for i, _ := range ignore {

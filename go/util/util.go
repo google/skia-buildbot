@@ -603,3 +603,16 @@ func MD5FromReader(r io.Reader, w io.Writer) ([]byte, error) {
 	}
 	return hashWriter.Sum(nil), nil
 }
+
+// ChunkIter iterates over a slice in chunks of smaller slices.
+func ChunkIter(s []int, chunkSize int, fn func([]int) error) error {
+	if chunkSize < 1 {
+		return fmt.Errorf("Chunk size may not be less than 1.")
+	}
+	for c, r := s[:MinInt(chunkSize, len(s))], s[MinInt(chunkSize, len(s)):]; len(c) > 0; c, r = r[:MinInt(chunkSize, len(r))], r[MinInt(chunkSize, len(r)):] {
+		if err := fn(c); err != nil {
+			return err
+		}
+	}
+	return nil
+}

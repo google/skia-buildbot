@@ -299,6 +299,7 @@ func GetBuildFromDB(builder, master string, buildNumber int) (*Build, error) {
 
 // GetBuildsFromDB retrieves the given builds from the database.
 func GetBuildsFromDB(ids []int) (map[int]*Build, error) {
+	defer metrics.NewTimer("buildbot_deprecated.GetBuildsFromDB").Stop()
 	if len(ids) == 0 {
 		return map[int]*Build{}, nil
 	}

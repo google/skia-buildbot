@@ -14,11 +14,7 @@ import (
 )
 
 func RunBuildServer(port string, db DB) error {
-	var d *localDB
-	switch db.(type) {
-	case *localDB:
-		d = db.(*localDB)
-	default:
+	if _, ok := db.(*localDB); !ok {
 		return fmt.Errorf("Can only run a build server on a local DB instance.")
 	}
 	lis, err := net.Listen("tcp", port)
@@ -26,7 +22,7 @@ func RunBuildServer(port string, db DB) error {
 		return fmt.Errorf("Failed to create build server: failed to listen on port %q: %s", port, err)
 	}
 	s := grpc.NewServer()
-	rpc.RegisterBuildbotDBServer(s, &rpcServer{db: d})
+	rpc.RegisterBuildbotDBServer(s, &rpcServer{db: db.(*localDB)})
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			glog.Errorf("Failed to run RPC server: %s", err)
@@ -37,6 +33,16 @@ func RunBuildServer(port string, db DB) error {
 
 type rpcServer struct {
 	db *localDB
+}
+
+func (s *rpcServer) BuildExists(ctx context.Context, req *rpc.GetBuildFromDBRequest) (*rpc.Bool, error) {
+	rv, err := s.db.BuildExists(req.Master, req.Builder, int(req.Number))
+	if err != nil {
+		return nil, err
+	}
+	return &rpc.Bool{
+		Val: rv,
+	}, nil
 }
 
 func (s *rpcServer) GetBuildsForCommits(ctx context.Context, req *rpc.GetBuildsForCommitsRequest) (*rpc.GetBuildsForCommitsResponse, error) {
