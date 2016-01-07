@@ -5823,7 +5823,7 @@ func (c *BuildartifactUpdateCall) doRequest(alt string) (*http.Response, error) 
 	}
 	urls += "?" + c.urlParams_.Encode()
 	if c.protocol_ != "resumable" {
-		cancel := googleapi.ConditionallyIncludeMedia(c.media_, &body, &ctype)
+		cancel := gensupport.ConditionallyIncludeMedia(c.media_, &body, &ctype)
 		defer cancel()
 	}
 	req, _ := http.NewRequest("PUT", urls, body)
@@ -5835,7 +5835,7 @@ func (c *BuildartifactUpdateCall) doRequest(alt string) (*http.Response, error) 
 	})
 	if c.protocol_ == "resumable" {
 		if c.mediaType_ == "" {
-			c.mediaType_ = googleapi.DetectMediaType(c.resumable_)
+			c.mediaType_ = gensupport.DetectMediaType(c.resumable_)
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 	}
@@ -9135,7 +9135,7 @@ func (c *DeviceblobUpdateCall) doRequest(alt string) (*http.Response, error) {
 	}
 	urls += "?" + c.urlParams_.Encode()
 	if c.protocol_ != "resumable" {
-		cancel := googleapi.ConditionallyIncludeMedia(c.media_, &body, &ctype)
+		cancel := gensupport.ConditionallyIncludeMedia(c.media_, &body, &ctype)
 		defer cancel()
 	}
 	req, _ := http.NewRequest("PUT", urls, body)
@@ -9146,7 +9146,7 @@ func (c *DeviceblobUpdateCall) doRequest(alt string) (*http.Response, error) {
 	})
 	if c.protocol_ == "resumable" {
 		if c.mediaType_ == "" {
-			c.mediaType_ = googleapi.DetectMediaType(c.resumable_)
+			c.mediaType_ = gensupport.DetectMediaType(c.resumable_)
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 	}
@@ -12743,7 +12743,7 @@ func (c *TestartifactUpdateCall) doRequest(alt string) (*http.Response, error) {
 	}
 	urls += "?" + c.urlParams_.Encode()
 	if c.protocol_ != "resumable" {
-		cancel := googleapi.ConditionallyIncludeMedia(c.media_, &body, &ctype)
+		cancel := gensupport.ConditionallyIncludeMedia(c.media_, &body, &ctype)
 		defer cancel()
 	}
 	req, _ := http.NewRequest("PUT", urls, body)
@@ -12757,7 +12757,7 @@ func (c *TestartifactUpdateCall) doRequest(alt string) (*http.Response, error) {
 	})
 	if c.protocol_ == "resumable" {
 		if c.mediaType_ == "" {
-			c.mediaType_ = googleapi.DetectMediaType(c.resumable_)
+			c.mediaType_ = gensupport.DetectMediaType(c.resumable_)
 		}
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 	}
