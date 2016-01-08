@@ -30,6 +30,9 @@ It has these top-level messages:
 	GetTraceIDsRequest
 	TraceIDPair
 	GetTraceIDsResponse
+	ListMD5Request
+	CommitMD5
+	ListMD5Response
 */
 package traceservice
 
@@ -244,6 +247,7 @@ func (m *GetValuesRequest) GetCommitid() *CommitID {
 
 type GetValuesResponse struct {
 	Values []*ValuePair `protobuf:"bytes,4,rep,name=values" json:"values,omitempty"`
+	Md5    string       `protobuf:"bytes,5,opt,name=md5" json:"md5,omitempty"`
 }
 
 func (m *GetValuesResponse) Reset()         { *m = GetValuesResponse{} }
@@ -284,6 +288,7 @@ func (m *GetParamsResponse) GetParams() []*ParamsPair {
 type GetValuesRawResponse struct {
 	// Raw byte slice that can be decoded with NewCommitInfo.
 	Value []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	Md5   string `protobuf:"bytes,2,opt,name=md5" json:"md5,omitempty"`
 }
 
 func (m *GetValuesRawResponse) Reset()         { *m = GetValuesRawResponse{} }
@@ -322,6 +327,52 @@ func (m *GetTraceIDsResponse) GetIds() []*TraceIDPair {
 	return nil
 }
 
+type ListMD5Request struct {
+	Commitid []*CommitID `protobuf:"bytes,1,rep,name=commitid" json:"commitid,omitempty"`
+}
+
+func (m *ListMD5Request) Reset()         { *m = ListMD5Request{} }
+func (m *ListMD5Request) String() string { return proto.CompactTextString(m) }
+func (*ListMD5Request) ProtoMessage()    {}
+
+func (m *ListMD5Request) GetCommitid() []*CommitID {
+	if m != nil {
+		return m.Commitid
+	}
+	return nil
+}
+
+type CommitMD5 struct {
+	Commitid *CommitID `protobuf:"bytes,1,opt,name=commitid" json:"commitid,omitempty"`
+	Md5      string    `protobuf:"bytes,2,opt,name=md5" json:"md5,omitempty"`
+}
+
+func (m *CommitMD5) Reset()         { *m = CommitMD5{} }
+func (m *CommitMD5) String() string { return proto.CompactTextString(m) }
+func (*CommitMD5) ProtoMessage()    {}
+
+func (m *CommitMD5) GetCommitid() *CommitID {
+	if m != nil {
+		return m.Commitid
+	}
+	return nil
+}
+
+type ListMD5Response struct {
+	Commitmd5 []*CommitMD5 `protobuf:"bytes,1,rep,name=commitmd5" json:"commitmd5,omitempty"`
+}
+
+func (m *ListMD5Response) Reset()         { *m = ListMD5Response{} }
+func (m *ListMD5Response) String() string { return proto.CompactTextString(m) }
+func (*ListMD5Response) ProtoMessage()    {}
+
+func (m *ListMD5Response) GetCommitmd5() []*CommitMD5 {
+	if m != nil {
+		return m.Commitmd5
+	}
+	return nil
+}
+
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
 var _ grpc.ClientConn
@@ -350,6 +401,8 @@ type TraceServiceClient interface {
 	// GetTraceIDs returns the traceids for the given trace64ids. These are used
 	// in decoding the bytes returned from GetValuesRaw.
 	GetTraceIDs(ctx context.Context, in *GetTraceIDsRequest, opts ...grpc.CallOption) (*GetTraceIDsResponse, error)
+	// ListMD5 returns the MD5 hashes for the given CommitIDs.
+	ListMD5(ctx context.Context, in *ListMD5Request, opts ...grpc.CallOption) (*ListMD5Response, error)
 	// Ping should always succeed. Used to test if the service is up and
 	// running.
 	Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
@@ -444,6 +497,15 @@ func (c *traceServiceClient) GetTraceIDs(ctx context.Context, in *GetTraceIDsReq
 	return out, nil
 }
 
+func (c *traceServiceClient) ListMD5(ctx context.Context, in *ListMD5Request, opts ...grpc.CallOption) (*ListMD5Response, error) {
+	out := new(ListMD5Response)
+	err := grpc.Invoke(ctx, "/traceservice.TraceService/ListMD5", in, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *traceServiceClient) Ping(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
 	out := new(Empty)
 	err := grpc.Invoke(ctx, "/traceservice.TraceService/Ping", in, out, c.cc, opts...)
@@ -477,6 +539,8 @@ type TraceServiceServer interface {
 	// GetTraceIDs returns the traceids for the given trace64ids. These are used
 	// in decoding the bytes returned from GetValuesRaw.
 	GetTraceIDs(context.Context, *GetTraceIDsRequest) (*GetTraceIDsResponse, error)
+	// ListMD5 returns the MD5 hashes for the given CommitIDs.
+	ListMD5(context.Context, *ListMD5Request) (*ListMD5Response, error)
 	// Ping should always succeed. Used to test if the service is up and
 	// running.
 	Ping(context.Context, *Empty) (*Empty, error)
@@ -594,6 +658,18 @@ func _TraceService_GetTraceIDs_Handler(srv interface{}, ctx context.Context, dec
 	return out, nil
 }
 
+func _TraceService_ListMD5_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
+	in := new(ListMD5Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	out, err := srv.(TraceServiceServer).ListMD5(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func _TraceService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -645,6 +721,10 @@ var _TraceService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTraceIDs",
 			Handler:    _TraceService_GetTraceIDs_Handler,
+		},
+		{
+			MethodName: "ListMD5",
+			Handler:    _TraceService_ListMD5_Handler,
 		},
 		{
 			MethodName: "Ping",

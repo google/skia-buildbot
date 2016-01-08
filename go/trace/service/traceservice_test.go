@@ -69,7 +69,7 @@ func TestImpl(t *testing.T) {
 	defer util.Close(ts)
 	defer cleanup()
 
-	now := time.Now()
+	now := time.Unix(100, 0)
 
 	first := now.Unix()
 	second := now.Add(time.Minute).Unix()
@@ -171,6 +171,7 @@ func TestImpl(t *testing.T) {
 	for _, v := range valuesResp.Values {
 		assert.Equal(t, expected[v.Key], math.Float64frombits(binary.LittleEndian.Uint64(v.Value)))
 	}
+	assert.NotEqual(t, "", valuesResp.Md5)
 
 	paramsReq := &GetParamsRequest{
 		Traceids: []string{"key:8888:android", "key:gpu:win8"},
@@ -187,6 +188,7 @@ func TestImpl(t *testing.T) {
 	rawResp, err := ts.GetValuesRaw(ctx, rawRequest)
 	assert.NoError(t, err)
 	assert.Equal(t, 34, len(rawResp.Value))
+	assert.Equal(t, valuesResp.Md5, rawResp.Md5, "Should get the same md5 regardless of how you request the data.")
 	// Confirm that we can decode the info on the client side.
 	ci, err := NewCommitInfo(rawResp.Value)
 	assert.NoError(t, err)
@@ -206,6 +208,17 @@ func TestImpl(t *testing.T) {
 	assert.Equal(t, 2, len(traceids.Ids))
 	assert.True(t, util.In(traceids.Ids[0].Id, paramsReq.Traceids))
 	assert.True(t, util.In(traceids.Ids[1].Id, paramsReq.Traceids))
+
+	// List the md5s.
+	listMD5Request := &ListMD5Request{
+		Commitid: commitIDs,
+	}
+	listMD5Response, err := ts.ListMD5(ctx, listMD5Request)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(listMD5Response.Commitmd5))
+	hashes := []string{listMD5Response.Commitmd5[0].Md5, listMD5Response.Commitmd5[1].Md5}
+	assert.True(t, util.In("d41d8cd98f00b204e9800998ecf8427e", hashes))
+	assert.NotEqual(t, hashes[0], hashes[1])
 
 	// Remove the commit.
 	removeRequest := &RemoveRequest{

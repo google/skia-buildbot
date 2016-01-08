@@ -35,6 +35,9 @@ service TraceService {
   // in decoding the bytes returned from GetValuesRaw.
   rpc GetTraceIDs(GetTraceIDsRequest) returns (GetTraceIDsResponse) {}
 
+  // ListMD5 returns the MD5 hashes for the given CommitIDs.
+  rpc ListMD5(ListMD5Request) returns (ListMD5Response) {}
+
   // Ping should always succeed. Used to test if the service is up and
   // running.
   rpc Ping (Empty) returns (Empty) {}
@@ -122,6 +125,7 @@ message GetValuesRequest {
 
 message GetValuesResponse {
   repeated ValuePair values = 4;
+  string md5 = 5;
 }
 
 message GetParamsRequest {
@@ -136,6 +140,7 @@ message GetParamsResponse {
 message GetValuesRawResponse {
   // Raw byte slice that can be decoded with NewCommitInfo.
   bytes value = 1;
+  string md5 = 2;
 }
 
 message GetTraceIDsRequest {
@@ -149,5 +154,18 @@ message TraceIDPair {
 
 message GetTraceIDsResponse {
   repeated TraceIDPair ids = 1;
+}
+
+message ListMD5Request {
+  repeated CommitID commitid = 1;
+}
+
+message CommitMD5 {
+  CommitID commitid = 1;
+  string md5 = 2;
+}
+
+message ListMD5Response {
+  repeated CommitMD5 commitmd5 = 1;
 }
 

@@ -5,6 +5,7 @@ package traceservice
 
 import (
 	"bytes"
+	"crypto/md5"
 	"encoding/binary"
 	"fmt"
 	"strings"
@@ -35,6 +36,7 @@ var (
 	addCount           = metrics.NewRegisteredCounter("added-count", metrics.DefaultRegistry)
 	removeCalls        = metrics.NewRegisteredCounter("remove-calls", metrics.DefaultRegistry)
 	listCalls          = metrics.NewRegisteredCounter("list-calls", metrics.DefaultRegistry)
+	listMD5Calls       = metrics.NewRegisteredCounter("list-md5-calls", metrics.DefaultRegistry)
 	getParamsCalls     = metrics.NewRegisteredCounter("get-params-calls", metrics.DefaultRegistry)
 	getValuesCalls     = metrics.NewRegisteredCounter("get-values-calls", metrics.DefaultRegistry)
 	getValuesRawCalls  = metrics.NewRegisteredCounter("get-values-raw-calls", metrics.DefaultRegistry)
@@ -84,7 +86,7 @@ type TraceServiceImpl struct {
 	// db is the BoltDB datastore we actually store the data in.
 	db *bolt.DB
 
-	// cache is an in-memory LRU cache for traceids and trace64ids.
+	// cache is an in-memory LRU cache for traceids <-> trace64ids and commitid -> md5.
 	cache *lru.Cache
 
 	// mutex controls access to cache.
@@ -120,6 +122,51 @@ func NewTraceServiceServer(filename string) (*TraceServiceImpl, error) {
 		db:    d,
 		cache: lru.New(MAX_INT64_ID_CACHED),
 	}, nil
+}
+
+// addMD5 adds the md5 of the raw bytes for the given key, which should
+// be a CommitID as a byte slice.
+//
+// The md5 is stored as a hex formatted string.
+//
+// This func doesn't lock the cache, which should be done by the caller.
+func (ts *TraceServiceImpl) addMD5(key, raw []byte) string {
+	hash := fmt.Sprintf("%x", md5.Sum(raw))
+	ts.cache.Add(string(key), hash)
+	return hash
+}
+
+// getMD5 retrieves the md5 of the raw bytes for the given key, which should
+// be a CommitID as a byte slice. If the md5 isn't in the cache then it is
+// calculated and added to the cache.
+//
+// The md5 is stored as a hex formatted string.
+//
+func (ts *TraceServiceImpl) getMD5(key, raw []byte) string {
+	ts.mutex.Lock()
+	defer ts.mutex.Unlock()
+
+	if hash, ok := ts.cache.Get(string(key)); !ok {
+		return ts.addMD5(key, raw)
+	} else {
+		return hash.(string)
+	}
+}
+
+// readMD5 retrieves the md5 of the raw bytes for the given key, which should
+// be a CommitID as a byte slice. If the md5 isn't in the cache then "" is returned.
+//
+// The md5 is stored as a hex formatted string.
+//
+func (ts *TraceServiceImpl) readMD5(key []byte) string {
+	ts.mutex.Lock()
+	defer ts.mutex.Unlock()
+
+	if hash, ok := ts.cache.Get(string(key)); !ok {
+		return ""
+	} else {
+		return hash.(string)
+	}
 }
 
 // atomize looks up the 64bit id for the given strings.
@@ -396,8 +443,17 @@ func (ts *TraceServiceImpl) Add(ctx context.Context, in *AddRequest) (*Empty, er
 			data.Values[trace64ids[entry.Key]] = entry.Value
 		}
 
+		// Convert the CommitInfo back into bytes.
+		b := data.ToBytes()
+
+		ts.mutex.Lock()
+		defer ts.mutex.Unlock()
+
+		// Update the md5 for the CommitID.
+		_ = ts.addMD5(key, b)
+
 		// Write to the datastore.
-		if err := c.Put(key, data.ToBytes()); err != nil {
+		if err := c.Put(key, b); err != nil {
 			return fmt.Errorf("Failed to write the trace info for %s: %s", key, err)
 		}
 		return nil
@@ -483,8 +539,14 @@ func (ts *TraceServiceImpl) GetValues(ctx context.Context, getValuesRequest *Get
 			return err
 		}
 
-		// Load the raw data and convert it into a CommitInfo.
-		data, err := NewCommitInfo(c.Get(key))
+		// Load the raw data.
+		b := c.Get(key)
+
+		// Get the MD5 hash for the commit id.
+		ret.Md5 = ts.getMD5(key, b)
+
+		// Convert into a CommitInfo.
+		data, err := NewCommitInfo(b)
 		if err != nil {
 			return fmt.Errorf("Unable to decode stored values: %s", err)
 		}
@@ -530,6 +592,7 @@ func (ts *TraceServiceImpl) GetValuesRaw(ctx context.Context, getValuesRequest *
 			return err
 		}
 		ret.Value = c.Get(key)
+		ret.Md5 = ts.getMD5(key, ret.Value)
 		return nil
 	}
 	if err := ts.db.View(load); err != nil {
@@ -592,6 +655,41 @@ func (ts *TraceServiceImpl) GetParams(ctx context.Context, getParamsRequest *Get
 	}
 	if err := ts.db.View(load); err != nil {
 		return nil, fmt.Errorf("GetParams: Failed to load data: %s", err)
+	}
+
+	return ret, nil
+}
+
+func (ts *TraceServiceImpl) ListMD5(ctx context.Context, listMD5Request *ListMD5Request) (*ListMD5Response, error) {
+	listMD5Calls.Inc(1)
+	if listMD5Request == nil {
+		return nil, fmt.Errorf("Received nil request.")
+	}
+
+	ret := &ListMD5Response{
+		Commitmd5: []*CommitMD5{},
+	}
+	for _, commitid := range listMD5Request.Commitid {
+		key, err := CommitIDToBytes(commitid)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to convert CommitID to bytes: %s", err)
+		}
+		hash := ts.readMD5(key)
+		// If the hash isn't cached then we need to calculate it from the bytes stored in bolt.
+		if hash == "" {
+			load := func(tx *bolt.Tx) error {
+				c := tx.Bucket([]byte(COMMIT_BUCKET_NAME))
+				hash = ts.getMD5(key, c.Get(key))
+				return nil
+			}
+			if err := ts.db.View(load); err != nil {
+				return nil, fmt.Errorf("Failed to load data for commitid: %#v, %s", *commitid, err)
+			}
+		}
+		ret.Commitmd5 = append(ret.Commitmd5, &CommitMD5{
+			Commitid: commitid,
+			Md5:      hash,
+		})
 	}
 
 	return ret, nil
