@@ -19,6 +19,9 @@ var (
 	BUCKET_BUILDS_BY_COMMIT      = []byte("builds_byCommit")     // map[commit|BuildID]bit
 	BUCKET_BUILDS_BY_FINISH_TIME = []byte("builds_byFinishTime") // map[time.Time|BuildID]bit
 
+	// Build comments.
+	BUCKET_BUILD_COMMENTS = []byte("buildComments") // map[id]BuildComment
+
 	// Builder comments.
 	BUCKET_BUILDER_COMMENTS            = []byte("builderComments")           // map[id]BuilderComment
 	BUCKET_BUILDER_COMMENTS_BY_BUILDER = []byte("builderComments_byBuilder") // map[builder|id]id
@@ -28,7 +31,8 @@ var (
 	BUCKET_COMMIT_COMMENTS_BY_COMMIT = []byte("commitComments_byCommit") // map[commit|id]id
 
 	// Special keys for storing the next ID.
-	KEY_BUILDER_COMMENTS_NEXT_ID = []byte("buildComments_nextID")
+	KEY_BUILD_COMMENTS_NEXT_ID   = []byte("buildComments_nextID")
+	KEY_BUILDER_COMMENTS_NEXT_ID = []byte("builderComments_nextID")
 	KEY_COMMIT_COMMENTS_NEXT_ID  = []byte("commitComments_nextID")
 )
 
@@ -50,7 +54,7 @@ func intToBytesBigEndian(i int64) []byte {
 
 func bytesToIntBigEndian(b []byte) (int64, error) {
 	if len(b) != 8 {
-		return -1, fmt.Errorf("Invalid length byte slice; must be 8")
+		return -1, fmt.Errorf("Invalid length byte slice (%d); must be 8", len(b))
 	}
 	return int64(binary.BigEndian.Uint64(b)), nil
 }
@@ -112,6 +116,9 @@ func NewLocalDB(filename string) (DB, error) {
 		if _, err := tx.CreateBucketIfNotExists(BUCKET_BUILDS_BY_FINISH_TIME); err != nil {
 			return err
 		}
+		if _, err := tx.CreateBucketIfNotExists(BUCKET_BUILD_COMMENTS); err != nil {
+			return err
+		}
 		if _, err := tx.CreateBucketIfNotExists(BUCKET_BUILDER_COMMENTS); err != nil {
 			return err
 		}
@@ -129,6 +136,11 @@ func NewLocalDB(filename string) (DB, error) {
 		var initialId bytes.Buffer
 		if err := gob.NewEncoder(&initialId).Encode(INITIAL_ID); err != nil {
 			return err
+		}
+		if tx.Bucket(BUCKET_BUILD_COMMENTS).Get(KEY_BUILD_COMMENTS_NEXT_ID) == nil {
+			if err := tx.Bucket(BUCKET_BUILD_COMMENTS).Put(KEY_BUILD_COMMENTS_NEXT_ID, initialId.Bytes()); err != nil {
+				return err
+			}
 		}
 		if tx.Bucket(BUCKET_BUILDER_COMMENTS).Get(KEY_BUILDER_COMMENTS_NEXT_ID) == nil {
 			if err := tx.Bucket(BUCKET_BUILDER_COMMENTS).Put(KEY_BUILDER_COMMENTS_NEXT_ID, initialId.Bytes()); err != nil {
@@ -491,6 +503,62 @@ func (d *localDB) NumIngestedBuilds() (int, error) {
 		return -1, err
 	}
 	return n, nil
+}
+
+// See documentation for DB interface.
+func (d *localDB) PutBuildComment(master, builder string, number int, c *BuildComment) error {
+	if c.Id != 0 {
+		return fmt.Errorf("Build comments cannot be edited.")
+	}
+	if err := d.db.Update(func(tx *bolt.Tx) error {
+		build, err := getBuild(tx, MakeBuildID(master, builder, number))
+		if err != nil {
+			return fmt.Errorf("Failed to retrieve build: %s", err)
+		}
+		// This is a new comment. Determine which ID to use, and set the next ID.
+		nextIdSerialized := tx.Bucket(BUCKET_BUILD_COMMENTS).Get(KEY_BUILD_COMMENTS_NEXT_ID)
+		var nextId int64
+		if err := gob.NewDecoder(bytes.NewBuffer(nextIdSerialized)).Decode(&nextId); err != nil {
+			return err
+		}
+		c.Id = nextId
+		nextId++
+		nextIdSerialized2 := bytes.NewBuffer(nil)
+		if err := gob.NewEncoder(nextIdSerialized2).Encode(nextId); err != nil {
+			return err
+		}
+		if err := tx.Bucket(BUCKET_BUILD_COMMENTS).Put(KEY_BUILD_COMMENTS_NEXT_ID, nextIdSerialized2.Bytes()); err != nil {
+			return err
+		}
+		build.Comments = append(build.Comments, c)
+		return putBuild(tx, build)
+	}); err != nil {
+		c.Id = 0
+		return err
+	}
+	return nil
+}
+
+// See documentation for DB interface.
+func (d *localDB) DeleteBuildComment(master, builder string, number int, id int64) error {
+	return d.db.Update(func(tx *bolt.Tx) error {
+		build, err := getBuild(tx, MakeBuildID(master, builder, number))
+		if err != nil {
+			return fmt.Errorf("Failed to retrieve build: %s", err)
+		}
+		idx := -1
+		for i, c := range build.Comments {
+			if c.Id == id {
+				idx = i
+				break
+			}
+		}
+		if idx == -1 {
+			return fmt.Errorf("No such comment: %d", id)
+		}
+		build.Comments = append(build.Comments[:idx], build.Comments[idx+1:]...)
+		return putBuild(tx, build)
+	})
 }
 
 // getBuilderComment returns the given builder comment.

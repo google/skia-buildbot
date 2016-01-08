@@ -16,6 +16,9 @@ service BuildbotDB {
   rpc PutBuilds(PutBuildsRequest) returns (Empty) {}
   rpc NumIngestedBuilds(Empty) returns (NumIngestedBuildsResponse) {}
 
+  rpc PutBuildComment(PutBuildCommentRequest) returns (Empty) {}
+  rpc DeleteBuildComment(DeleteBuildCommentRequest) returns (Empty) {}
+
   rpc GetBuilderComments(GetBuilderCommentsRequest) returns (GetBuilderCommentsResponse) {}
   rpc GetBuildersComments(GetBuildersCommentsRequest) returns (GetBuildersCommentsResponse) {}
   rpc PutBuilderComment(PutBuilderCommentRequest) returns (Empty) {}
@@ -94,6 +97,20 @@ message PutBuildsRequest {
 
 message NumIngestedBuildsResponse {
   int64 ingested = 1;
+}
+
+message PutBuildCommentRequest {
+  string master = 1;
+  string builder = 2;
+  int64 number = 3;
+  bytes comment = 4;
+}
+
+message DeleteBuildCommentRequest {
+  string master = 1;
+  string builder = 2;
+  int64 number = 3;
+  int64 id = 4;
 }
 
 message GetBuilderCommentsRequest {

@@ -244,30 +244,30 @@ type BuildSlave struct {
 
 // BuildComment contains a comment about a build.
 type BuildComment struct {
-	Id        int64
-	User      string
-	Timestamp time.Time
-	Message   string
+	Id        int64     `json:"id"`
+	User      string    `json:"user"`
+	Timestamp time.Time `json:"time"`
+	Message   string    `json:"message"`
 }
 
 // BuilderComment contains a comment about a builder.
 type BuilderComment struct {
-	Id            int64
-	Builder       string
-	User          string
-	Timestamp     time.Time
-	Flaky         bool
-	IgnoreFailure bool
-	Message       string
+	Id            int64     `json:"id"`
+	Builder       string    `json:"builder"`
+	User          string    `json:"user"`
+	Timestamp     time.Time `json:"time"`
+	Flaky         bool      `json:"flaky"`
+	IgnoreFailure bool      `json:"ignoreFailure"`
+	Message       string    `json:"message"`
 }
 
 // CommitComment contains a comment about a commit.
 type CommitComment struct {
-	Id        int64
-	Commit    string
-	User      string
-	Timestamp time.Time
-	Message   string
+	Id        int64     `json:"id"`
+	Commit    string    `json:"commit"`
+	User      string    `json:"user"`
+	Timestamp time.Time `json:"time"`
+	Message   string    `json:"message"`
 }
 
 // IsTrybot determines whether the given builder is a trybot.
@@ -294,6 +294,11 @@ func (b *Build) GetStringProperty(property string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	// It's okay for the property to be unset.
+	if val == nil {
+		return "", nil
+	}
+
 	strVal, ok := val.(string)
 	if !ok {
 		return "", fmt.Errorf("Not a string property %s", property)

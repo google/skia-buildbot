@@ -231,6 +231,38 @@ func (d *remoteDB) NumIngestedBuilds() (int, error) {
 }
 
 // See documentation for DB interface.
+func (d *remoteDB) PutBuildComment(master, builder string, number int, c *BuildComment) error {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(c); err != nil {
+		return err
+	}
+	req := &rpc.PutBuildCommentRequest{
+		Master:  master,
+		Builder: builder,
+		Number:  int64(number),
+		Comment: buf.Bytes(),
+	}
+	if _, err := d.client.PutBuildComment(context.Background(), req); err != nil {
+		return err
+	}
+	return nil
+}
+
+// See documentation for DB interface.
+func (d *remoteDB) DeleteBuildComment(master, builder string, number int, id int64) error {
+	req := &rpc.DeleteBuildCommentRequest{
+		Master:  master,
+		Builder: builder,
+		Number:  int64(number),
+		Id:      id,
+	}
+	if _, err := d.client.DeleteBuildComment(context.Background(), req); err != nil {
+		return err
+	}
+	return nil
+}
+
+// See documentation for DB interface.
 func (d *remoteDB) GetBuilderComments(builder string) ([]*BuilderComment, error) {
 	req := &rpc.GetBuilderCommentsRequest{
 		Builder: builder,

@@ -20,9 +20,9 @@ func MakeBuildID(master, builder string, number int) BuildID {
 // ParseBuildID parses the BuildID and returns the master name, builder name,
 // and build number it refers to.
 func ParseBuildID(id BuildID) (string, string, int, error) {
-	parts := strings.Split(string(id), "|")
+	parts := strings.SplitN(string(id), "|", 3)
 	if len(parts) != 3 {
-		return "", "", -1, fmt.Errorf("Invalid build ID: Must be of the form: myMaster|myBuilder|42")
+		return "", "", -1, fmt.Errorf("Invalid build ID `%s`: Must be of the form: myMaster|myBuilder|42", string(id))
 	}
 	n, err := bytesToIntBigEndian([]byte(parts[2]))
 	if err != nil {
@@ -77,6 +77,14 @@ type DB interface {
 	// NumIngestedBuilds returns the total number of builds which have been
 	// ingested into the database.
 	NumIngestedBuilds() (int, error)
+
+	// Build comments.
+
+	// PutBuildComment inserts the BuildComment into the database.
+	PutBuildComment(string, string, int, *BuildComment) error
+
+	// DeleteBuildComment deletes the BuildComment from the database.
+	DeleteBuildComment(string, string, int, int64) error
 
 	// Builder comments.
 

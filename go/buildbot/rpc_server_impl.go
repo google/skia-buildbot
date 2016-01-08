@@ -223,6 +223,24 @@ func (s *rpcServer) NumIngestedBuilds(ctx context.Context, req *rpc.Empty) (*rpc
 	}, nil
 }
 
+func (s *rpcServer) PutBuildComment(ctx context.Context, req *rpc.PutBuildCommentRequest) (*rpc.Empty, error) {
+	var c BuildComment
+	if err := gob.NewDecoder(bytes.NewBuffer(req.Comment)).Decode(&c); err != nil {
+		return nil, err
+	}
+	if err := s.db.PutBuildComment(req.Master, req.Builder, int(req.Number), &c); err != nil {
+		return nil, err
+	}
+	return &rpc.Empty{}, nil
+}
+
+func (s *rpcServer) DeleteBuildComment(ctx context.Context, req *rpc.DeleteBuildCommentRequest) (*rpc.Empty, error) {
+	if err := s.db.DeleteBuildComment(req.Master, req.Builder, int(req.Number), req.Id); err != nil {
+		return nil, err
+	}
+	return &rpc.Empty{}, nil
+}
+
 func (s *rpcServer) GetBuilderComments(ctx context.Context, req *rpc.GetBuilderCommentsRequest) (*rpc.GetBuilderCommentsResponse, error) {
 	comments, err := s.db.GetBuilderComments(req.Builder)
 	if err != nil {
