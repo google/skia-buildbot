@@ -27,9 +27,9 @@ func BenchmarkHistory(b *testing.B) {
 
 	tileBuilder := mocks.GetTileBuilderFromEnv(b)
 	storages := &storage.Storage{
-		TileBuilder: tileBuilder,
-		DigestStore: digestStore,
-		EventBus:    eventbus.New(nil),
+		MasterTileBuilder: tileBuilder,
+		DigestStore:       digestStore,
+		EventBus:          eventbus.New(nil),
 	}
 
 	tile := tileBuilder.GetTile()

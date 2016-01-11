@@ -338,20 +338,29 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	eventBus := eventbus.New(nil)
-	tileBuilder, err := tracedb.NewTileBuilder(git, *traceservice, *nCommits, types.GoldenTraceBuilder, rietveld.RIETVELD_SKIA_URL, eventBus)
+	evt := eventbus.New(nil)
+
+	// Connect to traceDB and create the builders.
+	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
 	if err != nil {
-		glog.Fatal(err)
+		glog.Fatalf("Failed to connect to tracedb: %s", err)
 	}
+
+	masterTileBuilder, err := tracedb.NewMasterTileBuilder(db, git, *nCommits, evt)
+	if err != nil {
+		glog.Fatalf("Failed to build trace/db.DB: %s", err)
+	}
+	branchTileBuilder := tracedb.NewBranchTileBuilder(db, git, rietveld.RIETVELD_SKIA_URL, evt)
 
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
-		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), eventBus),
+		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
 		IgnoreStore:       ignore.NewSQLIgnoreStore(vdb),
-		TileBuilder:       tileBuilder,
+		MasterTileBuilder: masterTileBuilder,
+		BranchTileBuilder: branchTileBuilder,
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
-		EventBus:          eventBus,
+		EventBus:          evt,
 		TrybotResults:     trybot.NewTrybotResultStorage(vdb),
 		RietveldAPI:       rietveld.New(*rietveldURL, nil),
 	}

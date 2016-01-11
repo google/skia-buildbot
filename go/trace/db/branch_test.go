@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-func TestPertTrace(t *testing.T) {
+func TestPerfTrace(t *testing.T) {
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.Nil(t, err)
 	m := mockhttpclient.NewURLMock()
@@ -35,7 +35,7 @@ func TestPertTrace(t *testing.T) {
 	vcs := ingestion.MockVCS(vcsCommits)
 
 	builder := &tileBuilder{
-		Builder:   nil,
+		db:        nil,
 		vcs:       vcs,
 		review:    review,
 		reviewURL: "https://codereview.chromium.org",

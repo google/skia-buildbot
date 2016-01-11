@@ -104,7 +104,10 @@ func TestNewTraceDBBuilder(t *testing.T) {
 	}
 
 	evt := eventbus.New(nil)
-	builder, err := db.NewBuilder(git, port, 50, types.PerfTraceBuilder, evt)
+	traceDB, err := db.NewTraceServiceDBFromAddress(port, types.PerfTraceBuilder)
+	assert.Nil(t, err)
+
+	builder, err := db.NewMasterTileBuilder(traceDB, git, 50, evt)
 	if err != nil {
 		t.Fatalf("Failed to construct TraceStore: %s", err)
 	}
@@ -152,7 +155,13 @@ func TestNewTraceDBBuilder(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to add data to traceservice: %s", err)
 	}
-	if err := builder.LoadTile(); err != nil {
+
+	// Access the LoadTile method without exposing it in the MasterBuilder interface.
+	type hasLoadTile interface {
+		LoadTile() error
+	}
+	masterBuilder := builder.(hasLoadTile)
+	if err := masterBuilder.LoadTile(); err != nil {
 		t.Fatalf("Failed to force load Tile: %s", err)
 	}
 

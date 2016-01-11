@@ -44,7 +44,7 @@ func BenchmarkStatusWatcher(b *testing.B) {
 	tileBuilder := mocks.GetTileBuilderFromEnv(b)
 
 	storages := &storage.Storage{
-		TileBuilder: tileBuilder,
+		MasterTileBuilder: tileBuilder,
 	}
 
 	// Load the tile into memory and reset the timer to avoid measuring
@@ -55,11 +55,11 @@ func BenchmarkStatusWatcher(b *testing.B) {
 	testStatusWatcher(b, tileBuilder)
 }
 
-func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.TileBuilder) {
+func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder) {
 	eventBus := eventbus.New(nil)
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
-		TileBuilder:       tileBuilder,
+		MasterTileBuilder: tileBuilder,
 		DigestStore:       &MockDigestStore{},
 		EventBus:          eventBus,
 	}

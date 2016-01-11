@@ -10,7 +10,6 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/tiling"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -19,10 +18,16 @@ const (
 	NEW_TILE_AVAILABLE_EVENT = "new-tile-available-event"
 )
 
-// Builder loads Tiles from a trace/db.DB.
-type Builder struct {
-	// DB is public to construct Tiles besides the default Tile of tileSize.
-	DB DB
+// MasterTileBuilder continously loads Tiles from a trace/db.DB.
+type MasterTileBuilder interface {
+	// GetTile returns the most recently loaded Tile.
+	GetTile() *tiling.Tile
+}
+
+// Impelementation of MasterTilebuilder
+type masterTileBuilder struct {
+	// db is used to construct  tiles.
+	db DB
 
 	// tile is the last successfully loaded Tile.
 	tile *tiling.Tile
@@ -44,21 +49,10 @@ type Builder struct {
 // traceserver running at the given address. The tiles contain the last
 // 'tileSize' commits and are built from Traces of the type that traceBuilder
 // returns.
-func NewBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder, evt *eventbus.EventBus) (*Builder, error) {
-	conn, err := grpc.Dial(address, grpc.WithInsecure())
-	if err != nil {
-		return nil, fmt.Errorf("did not connect: %v", err)
-	}
-
-	// Build a tracedb.DB client.
-	tracedb, err := NewTraceServiceDB(conn, traceBuilder)
-	if err != nil {
-		return nil, fmt.Errorf("NewTraceStore: Failed to create DB: %s", err)
-	}
-
-	ret := &Builder{
+func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt *eventbus.EventBus) (MasterTileBuilder, error) {
+	ret := &masterTileBuilder{
 		tileSize: tileSize,
-		DB:       tracedb,
+		db:       db,
 		git:      git,
 		evt:      evt,
 	}
@@ -80,11 +74,11 @@ func NewBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder
 	return ret, nil
 }
 
-// LoadTile loads a Tile from the DB.
+// LoadTile loads a Tile from the db.
 //
 // Users of Builder should not normally need to call this func, as it is called
 // periodically by the Builder to keep the tile fresh.
-func (t *Builder) LoadTile() error {
+func (t *masterTileBuilder) LoadTile() error {
 	// Build CommitIDs for the last INITIAL_TILE_SIZE commits to the repo.
 	if err := t.git.Update(true, false); err != nil {
 		glog.Errorf("Failed to update Git repo: %s", err)
@@ -100,7 +94,7 @@ func (t *Builder) LoadTile() error {
 	}
 
 	// Build a Tile from those CommitIDs.
-	tile, err := t.DB.TileFromCommits(commitIDs)
+	tile, err := t.db.TileFromCommits(commitIDs)
 	if err != nil {
 		return fmt.Errorf("Failed to load tile: %s", err)
 	}
@@ -122,9 +116,8 @@ func (t *Builder) LoadTile() error {
 	return nil
 }
 
-// GetTile returns the most recently loaded Tile.
-// See the tiling.TileBuilder interface.
-func (t *Builder) GetTile() *tiling.Tile {
+// See the MasterTileBuilder interface.
+func (t *masterTileBuilder) GetTile() *tiling.Tile {
 	t.mutex.Lock()
 	defer t.mutex.Unlock()
 	return t.tile

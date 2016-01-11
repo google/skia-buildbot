@@ -42,7 +42,7 @@ var (
 	alertingLatency = metrics.NewRegisteredTimer("alerting.latency", metrics.DefaultRegistry)
 
 	// tileBuilder is the tracedb.Builder where we load Tiles from.
-	tileBuilder tracedb.TileBuilder
+	tileBuilder tracedb.MasterTileBuilder
 )
 
 // CombineClusters combines freshly found clusters with existing clusters.
@@ -331,7 +331,7 @@ func calcNewClusters() {
 }
 
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
-func Start(tb tracedb.TileBuilder) {
+func Start(tb tracedb.MasterTileBuilder) {
 	tileBuilder = tb
 	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {

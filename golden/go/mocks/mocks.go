@@ -12,7 +12,6 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/golden/go/diff"
@@ -106,7 +105,7 @@ func (m *MockTileBuilder) TileFromCommits(commitIDs []*tracedb.CommitIDLong) (*t
 }
 
 // Mock the tilestore for GoldenTraces
-func NewMockTileBuilderFromTile(t assert.TestingT, tile *tiling.Tile) tracedb.TileBuilder {
+func NewMockTileBuilderFromTile(t assert.TestingT, tile *tiling.Tile) tracedb.MasterTileBuilder {
 	return &MockTileBuilder{
 		t:    t,
 		tile: tile,
@@ -116,7 +115,7 @@ func NewMockTileBuilderFromTile(t assert.TestingT, tile *tiling.Tile) tracedb.Ti
 // GetTileBuilderFromEnv looks at the TEST_TRACEDB_ADDRESS environement variable for the
 // name of directory that contains tiles. If it's defined it will return a
 // TileStore instance. If the not the calling test will fail.
-func GetTileBuilderFromEnv(t assert.TestingT) tracedb.TileBuilder {
+func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
 	traceDBAddress := os.Getenv("TEST_TRACEDB_ADDRESS")
 	assert.NotEqual(t, "", traceDBAddress, "Please define the TEST_TRACEDB_ADDRESS environment variable to point to the traceDB.")
 
@@ -132,13 +131,16 @@ func GetTileBuilderFromEnv(t assert.TestingT) tracedb.TileBuilder {
 	}
 
 	eventBus := eventbus.New(nil)
-	tileBuilder, err := tracedb.NewTileBuilder(git, traceDBAddress, 50, types.GoldenTraceBuilder, rietveld.RIETVELD_SKIA_URL, eventBus)
+	db, err := tracedb.NewTraceServiceDBFromAddress(traceDBAddress, types.GoldenTraceBuilder)
+	assert.Nil(t, err)
+
+	tileBuilder, err := tracedb.NewMasterTileBuilder(db, git, 50, eventBus)
 	assert.Nil(t, err)
 	return tileBuilder
 }
 
 // Mock the tilestore for GoldenTraces
-func NewMockTileBuilder(t assert.TestingT, digests [][]string, params []map[string]string, commits []*tiling.Commit) tracedb.TileBuilder {
+func NewMockTileBuilder(t assert.TestingT, digests [][]string, params []map[string]string, commits []*tiling.Commit) tracedb.MasterTileBuilder {
 	// Build the tile from the digests, params and commits.
 	traces := map[string]tiling.Trace{}
 
@@ -161,7 +163,7 @@ func NewMockTileBuilder(t assert.TestingT, digests [][]string, params []map[stri
 
 // NewMockTileStoreFromJson reads a tile that has been serialized to JSON
 // and wraps an instance of MockTileStore around it.
-func NewMockTileBuilderFromJson(t assert.TestingT, fname string) tracedb.TileBuilder {
+func NewMockTileBuilderFromJson(t assert.TestingT, fname string) tracedb.MasterTileBuilder {
 	f, err := os.Open(fname)
 	assert.Nil(t, err)
 

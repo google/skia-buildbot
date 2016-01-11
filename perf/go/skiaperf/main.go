@@ -98,7 +98,9 @@ var (
 var (
 	evt *eventbus.EventBus
 
-	nanoTileStore tracedb.TileBuilder
+	masterTileBuilder tracedb.MasterTileBuilder
+
+	branchTileBuilder tracedb.BranchTileBuilder
 
 	templates *template.Template
 
@@ -149,10 +151,18 @@ func Init() {
 	}
 	evt := eventbus.New(nil)
 	tileStats = tilestats.New(evt)
-	nanoTileStore, err = tracedb.NewTileBuilder(git, *traceservice, *tileSize, types.PerfTraceBuilder, rietveld.RIETVELD_SKIA_URL, evt)
+
+	// Connect to traceDB and create the builders.
+	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.PerfTraceBuilder)
+	if err != nil {
+		glog.Fatalf("Failed to connect to tracedb: %s", err)
+	}
+
+	masterTileBuilder, err = tracedb.NewMasterTileBuilder(db, git, *tileSize, evt)
 	if err != nil {
 		glog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
+	branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveld.RIETVELD_SKIA_URL, evt)
 }
 
 // showcutHandler handles the POST requests of the shortcut page.
@@ -222,7 +232,7 @@ func trybotHandler(w http.ResponseWriter, r *http.Request) {
 func alertingHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Alerting Handler: %q\n", r.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
-	tile := nanoTileStore.GetTile()
+	tile := masterTileBuilder.GetTile()
 	alerts, err := alerting.ListFrom(tile.Commits[0].CommitTime)
 	if err != nil {
 		util.ReportError(w, r, err, "Error retrieving cluster summaries.")
@@ -358,7 +368,7 @@ func writeClusterSummaries(summary *clustering.ClusterSummaries, w http.Response
 func kernelJSONHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO(jcgregorio) Determine the tile(s) to load based on the commit hashes,
 	// possibly loading two different tiles, one for each hash.
-	tile := nanoTileStore.GetTile()
+	tile := masterTileBuilder.GetTile()
 	commit1 := r.FormValue("commit1")
 	commit2 := r.FormValue("commit2")
 
@@ -452,7 +462,7 @@ func kernelJSONHandler(w http.ResponseWriter, r *http.Request) {
 // sk.Query.selectionsAsQuery().
 func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Clustering Handler: %q\n", r.URL.Path)
-	tile := nanoTileStore.GetTile()
+	tile := masterTileBuilder.GetTile()
 	w.Header().Set("Content-Type", "application/json")
 	// If there are no query parameters just return with an empty set of ClusterSummaries.
 	if r.FormValue("_k") == "" || r.FormValue("_stddev") == "" {
@@ -562,7 +572,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Infof("tile: %d %d", tileScale, tileNumber)
-	tile := nanoTileStore.GetTile()
+	tile := masterTileBuilder.GetTile()
 	guiTile := tiling.NewTileGUI(tile.Scale, tile.TileIndex)
 	guiTile.Commits = tile.Commits
 	guiTile.ParamSet = tile.ParamSet
@@ -696,7 +706,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Infof("tile: %d %d", tileScale, tileNumber)
-	tile := nanoTileStore.GetTile()
+	tile := masterTileBuilder.GetTile()
 	w.Header().Set("Content-Type", "application/json")
 	ret := &QueryResponse{
 		Traces: []*tiling.TraceGUI{},
@@ -815,7 +825,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 		idx = -1
 	}
 	glog.Infof("Hash: %s tileNum: %d, idx: %d\n", hash, tileNum, idx)
-	tile := nanoTileStore.GetTile()
+	tile := masterTileBuilder.GetTile()
 
 	if idx < 0 {
 		idx = len(tile.Commits) - 1 // Defaults to the last slice element.
@@ -918,7 +928,7 @@ func addFlatCalculatedTraces(qr *FlatQueryResponse, tile *tiling.Tile, formula s
 func calcHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Calc Handler: %q\n", r.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
-	tile := nanoTileStore.GetTile()
+	tile := masterTileBuilder.GetTile()
 	formula := r.FormValue("formula")
 
 	var data interface{} = nil
@@ -1103,7 +1113,7 @@ func commitsJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 	beginTime := time.Now().Add(-begin)
 	endTime := beginTime.Add(dur)
-	commits, err := nanoTileStore.ListLong(beginTime, endTime, r.FormValue("source"))
+	commits, err := branchTileBuilder.ListLong(beginTime, endTime, r.FormValue("source"))
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to load commits")
 		return
@@ -1155,8 +1165,8 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	stats.Start(nanoTileStore, git)
-	alerting.Start(nanoTileStore)
+	stats.Start(masterTileBuilder, git)
+	alerting.Start(masterTileBuilder)
 
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
 	if !*local {

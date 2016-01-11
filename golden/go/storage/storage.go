@@ -23,7 +23,8 @@ type Storage struct {
 	DiffStore         diff.DiffStore
 	ExpectationsStore expstorage.ExpectationsStore
 	IgnoreStore       ignore.IgnoreStore
-	TileBuilder       tracedb.TileBuilder
+	MasterTileBuilder tracedb.MasterTileBuilder
+	BranchTileBuilder tracedb.BranchTileBuilder
 	DigestStore       digeststore.DigestStore
 	EventBus          *eventbus.EventBus
 	TrybotResults     *trybot.TrybotResultStorage
@@ -94,7 +95,7 @@ Loop:
 // includeIgnores - If true then include ignored digests in the returned tile.
 func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*tiling.Tile, error) {
 	// Retieve the most recent tile.
-	tile := s.TileBuilder.GetTile()
+	tile := s.MasterTileBuilder.GetTile()
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -177,9 +178,9 @@ func (s *Storage) GetOrUpdateDigestInfo(testName, digest string, commit *tiling.
 
 // GetTileFromTimeRange returns a tile that contains the commits in the given time range.
 func (s *Storage) GetTileFromTimeRange(begin, end time.Time) (*tiling.Tile, error) {
-	commitIDs, err := s.TileBuilder.ListLong(begin, end, "master")
+	commitIDs, err := s.BranchTileBuilder.ListLong(begin, end, "master")
 	if err != nil {
 		return nil, fmt.Errorf("Failed retrieving commitIDs in range %s to %s. Got error: %s", begin, end, err)
 	}
-	return s.TileBuilder.TileFromCommits(commitIDs)
+	return s.BranchTileBuilder.TileFromCommits(commitIDs)
 }

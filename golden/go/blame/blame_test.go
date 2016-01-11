@@ -73,7 +73,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	eventBus := eventbus.New(nil)
 	storages := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
-		TileBuilder:       mocks.NewMockTileBuilder(t, digests, params, commits),
+		MasterTileBuilder: mocks.NewMockTileBuilder(t, digests, params, commits),
 		DigestStore:       &mocks.MockDigestStore{FirstSeen: start + 1000, OkValue: true},
 		EventBus:          eventBus,
 	}
@@ -126,7 +126,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	assert.Equal(t, &BlameDistribution{Freq: []int{3}}, blamer.GetBlame("baz", DI_8, commits))
 
 	// Change the underlying tile and trigger with another change.
-	tile := storages.TileBuilder.GetTile()
+	tile := storages.MasterTileBuilder.GetTile()
 
 	// Get the trace for the last parameters and set a value.
 	gTrace := tile.Traces[mocks.TraceKey(params[5])].(*types.GoldenTrace)
@@ -180,11 +180,11 @@ func TestBlamerWithLiveData(t *testing.T) {
 	testBlamerWithLiveData(t, tileStore)
 }
 
-func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.TileBuilder) {
+func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder) {
 	eventBus := eventbus.New(nil)
 	storage := &storage.Storage{
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
-		TileBuilder:       tileBuilder,
+		MasterTileBuilder: tileBuilder,
 		DigestStore: &mocks.MockDigestStore{
 			FirstSeen: time.Now().Unix(),
 			OkValue:   true,
@@ -204,7 +204,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.TileBuilder) 
 		}
 	}
 
-	tile := storage.TileBuilder.GetTile()
+	tile := storage.MasterTileBuilder.GetTile()
 
 	// Since we set the 'First' timestamp of all digest info entries
 	// to Now. We should get a non-empty blamelist of all digests.

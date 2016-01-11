@@ -140,7 +140,7 @@ func TestCalcSummaries(t *testing.T) {
 		DiffStore:         mocks.MockDiffStore{},
 		ExpectationsStore: expstorage.NewMemExpectationsStore(eventBus),
 		IgnoreStore:       ignore.NewMemIgnoreStore(),
-		TileBuilder:       mocks.NewMockTileBuilderFromTile(t, tile),
+		MasterTileBuilder: mocks.NewMockTileBuilderFromTile(t, tile),
 		NCommits:          50,
 		EventBus:          eventBus,
 		DigestStore:       &mocks.MockDigestStore{FirstSeen: time.Now().Unix() + 1000, OkValue: true},

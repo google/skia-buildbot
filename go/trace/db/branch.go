@@ -28,13 +28,10 @@ type CommitIDLong struct {
 	Desc   string `json:"desc"`
 }
 
-// TileBuilder is a high level interface to build tiles base on a datasource that
+// BranchTileBuilder is a high level interface to build tiles base on a datasource that
 // originated via a version control system or from a code review system via trybot
 // runs.
-type TileBuilder interface {
-	// GetTile returns the most recently loaded Tile.
-	GetTile() *tiling.Tile
-
+type BranchTileBuilder interface {
 	// ListLong returns a slice of CommitIDLongs that appear in the given time
 	// range from begin to end, and may be filtered by the 'source' parameter. If
 	// 'source' is the empty string then no filtering is done.
@@ -45,8 +42,7 @@ type TileBuilder interface {
 }
 
 type tileBuilder struct {
-	*Builder
-
+	db        DB
 	vcs       vcsinfo.VCS
 	review    *rietveld.Rietveld
 	reviewURL string
@@ -55,25 +51,23 @@ type tileBuilder struct {
 	cache map[string]*rietveld.Issue
 }
 
-func NewTileBuilder(git *gitinfo.GitInfo, address string, tileSize int, traceBuilder tiling.TraceBuilder, reviewURL string, evt *eventbus.EventBus) (TileBuilder, error) {
+// NewBranchTileBuilder returns an instance of BranchTileBuilder that allows to create
+// tiles based on the given VCS or code review system based on querying db.
+// TODO(stephana): The EventBus is used to update the internal cache as commits are updated.
+func NewBranchTileBuilder(db DB, git *gitinfo.GitInfo, reviewURL string, evt *eventbus.EventBus) BranchTileBuilder {
 	review := rietveld.New(reviewURL, util.NewTimeoutClient())
-	builder, err := NewBuilder(git, address, tileSize, traceBuilder, evt)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to construct Builder: %s", err)
-	}
-
 	return &tileBuilder{
-		Builder:   builder,
+		db:        db,
 		vcs:       git,
 		review:    review,
 		reviewURL: reviewURL,
 		cache:     map[string]*rietveld.Issue{},
-	}, nil
+	}
 }
 
 // See the TileBuilder interface.
 func (b *tileBuilder) ListLong(begin, end time.Time, source string) ([]*CommitIDLong, error) {
-	commitIDs, err := b.DB.List(begin, end)
+	commitIDs, err := b.db.List(begin, end)
 	if err != nil {
 		return nil, fmt.Errorf("Error while looking up commits: %s", err)
 	}
@@ -86,7 +80,7 @@ func (b *tileBuilder) TileFromCommits(commitIDs []*CommitIDLong) (*tiling.Tile, 
 	for idx, cid := range commitIDs {
 		shortCids[idx] = cid.CommitID
 	}
-	return b.Builder.DB.TileFromCommits(shortCids)
+	return b.db.TileFromCommits(shortCids)
 }
 
 // convertToLongCommits converts the CommitIDs into CommitIDLong's, after
