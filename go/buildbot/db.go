@@ -31,6 +31,14 @@ func ParseBuildID(id BuildID) (string, string, int, error) {
 	return parts[0], parts[1], int(n), nil
 }
 
+func (id BuildID) String() string {
+	m, b, n, err := ParseBuildID(id)
+	if err != nil {
+		return fmt.Sprintf("<invalid BuildID: %q>", err)
+	}
+	return fmt.Sprintf("%s|%s|%019d", m, b, n)
+}
+
 // DB is an interface used for interacting with the buildbot database.
 type DB interface {
 	Close() error

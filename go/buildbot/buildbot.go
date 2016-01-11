@@ -162,7 +162,7 @@ func (b *Build) UnmarshalJSON(data []byte) error {
 	}
 	b.GotRevision, err = b.GetStringProperty("got_revision")
 	if err != nil {
-		return err
+		b.GotRevision = ""
 	}
 	b.Branch, err = b.GetStringProperty("branch")
 	if err != nil {

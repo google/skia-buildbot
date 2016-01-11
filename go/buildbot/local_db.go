@@ -245,7 +245,7 @@ func (d *localDB) GetBuildFromDB(master, builder string, number int) (*Build, er
 func getBuild(tx *bolt.Tx, id BuildID) (*Build, error) {
 	serialized := tx.Bucket(BUCKET_BUILDS).Get(id)
 	if serialized == nil {
-		return nil, fmt.Errorf("No such build in DB: %s", string(id))
+		return nil, fmt.Errorf("No such build in DB: %s", id)
 	}
 	var b Build
 	if err := gob.NewDecoder(bytes.NewBuffer(serialized)).Decode(&b); err != nil {
@@ -408,13 +408,15 @@ func (d *localDB) GetLastProcessedBuilds(m string) ([]BuildID, error) {
 		for k != nil {
 			// We're seeked to the last build on the current builder.
 			// Add the build ID to the slice.
-			rv = append(rv, k)
-
-			// Seek to the first build on the current builder.
-			master, builder, _, err := ParseBuildID(k)
+			master, builder, number, err := ParseBuildID(k)
 			if err != nil {
 				return err
 			}
+			if master == m {
+				rv = append(rv, MakeBuildID(master, builder, number))
+			}
+
+			// Seek to the first build on the current builder.
 			k, _ = c.Seek(MakeBuildID(master, builder, 0))
 
 			// The build before the first build on the current builder is
