@@ -94,7 +94,7 @@ func (t *masterTileBuilder) LoadTile() error {
 	}
 
 	// Build a Tile from those CommitIDs.
-	tile, err := t.db.TileFromCommits(commitIDs)
+	tile, _, err := t.db.TileFromCommits(commitIDs)
 	if err != nil {
 		return fmt.Errorf("Failed to load tile: %s", err)
 	}

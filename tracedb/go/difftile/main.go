@@ -40,7 +40,7 @@ func diff(tile *tiling.Tile, ts db.DB, isGold bool) error {
 	glog.Infof("COMMIT ids:\n\n\n %s\n\n\n", spew.Sdump(commitIDs))
 	glog.Infof("LOADING tile")
 
-	traceDBTile, err := ts.TileFromCommits(commitIDs)
+	traceDBTile, _, err := ts.TileFromCommits(commitIDs)
 	if err != nil {
 		return err
 	}

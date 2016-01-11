@@ -42,6 +42,7 @@ func TestPerfTrace(t *testing.T) {
 		cache:     map[string]*rietveld.Issue{},
 	}
 
+	now := time.Unix(100, 0)
 	commits := []*CommitID{
 		&CommitID{
 			Timestamp: time.Now().Unix(),
@@ -78,12 +79,12 @@ func TestPerfTrace(t *testing.T) {
 
 	badCommits := []*CommitID{
 		&CommitID{
-			Timestamp: time.Now().Unix(),
+			Timestamp: now.Add(2 * time.Minute).Unix(),
 			ID:        "2",
 			Source:    "https://codereview.chromium.org/99999999",
 		},
 		&CommitID{
-			Timestamp: time.Now().Unix(),
+			Timestamp: now.Add(3 * time.Minute).Unix(),
 			ID:        "barbarbar",
 			Source:    "master",
 		},

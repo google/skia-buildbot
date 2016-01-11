@@ -100,8 +100,12 @@ func (m *MockTileBuilder) ListLong(start, end time.Time, source string) ([]*trac
 	return nil, nil
 }
 
-func (m *MockTileBuilder) TileFromCommits(commitIDs []*tracedb.CommitIDLong) (*tiling.Tile, error) {
-	return m.tile, nil
+func (m *MockTileBuilder) TileFromCommits(commitIDs []*tracedb.CommitIDLong) (*tiling.Tile, []string, error) {
+	return m.tile, nil, nil
+}
+
+func (m *MockTileBuilder) ListMD5(commitIDs []*tracedb.CommitID) ([]string, error) {
+	return nil, nil
 }
 
 // Mock the tilestore for GoldenTraces

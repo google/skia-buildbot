@@ -59,7 +59,12 @@ type DB interface {
 	// the timestamp, the Author will not be populated.
 	//
 	// The Tile's Scale and TileIndex will be set to 0.
-	TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error)
+	//
+	// The md5 hashes for each commitid are also returned.
+	TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, error)
+
+	// ListMD5 returns the md5 hashes of the data stored for each commitid.
+	ListMD5(commitIDs []*CommitID) ([]string, error)
 
 	// Close the datastore.
 	Close() error
@@ -276,7 +281,7 @@ func (ts *TsDB) List(begin, end time.Time) ([]*CommitID, error) {
 }
 
 // TileFromCommits implements DB.TileFromCommits().
-func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
+func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, []string, error) {
 	ts.clearMutex.RLock()
 	ts.clearMutex.RUnlock()
 	ctx := context.Background()
@@ -285,6 +290,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 	tile := tiling.NewTile()
 	n := len(commitIDs)
 	tile.Commits = make([]*tiling.Commit, n, n)
+	hash := make([]string, n)
 
 	// Populate the Tile's commits.
 	for i, cid := range commitIDs {
@@ -370,6 +376,8 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 					return
 				}
 			}
+			// Fill in the commits hash.
+			hash[i] = getRawValues.Md5
 			ts.mutex.Unlock()
 		}(i, cid)
 	}
@@ -379,7 +387,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 	select {
 	case err, ok := <-errCh:
 		if ok {
-			return nil, fmt.Errorf("Failed to load trace data: %s", err)
+			return nil, nil, fmt.Errorf("Failed to load trace data: %s", err)
 		}
 	default:
 	}
@@ -436,7 +444,7 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 	select {
 	case err, ok := <-errCh:
 		if ok {
-			return nil, fmt.Errorf("Failed to load params: %s", err)
+			return nil, nil, fmt.Errorf("Failed to load params: %s", err)
 		}
 	default:
 	}
@@ -454,7 +462,27 @@ func (ts *TsDB) TileFromCommits(commitIDs []*CommitID) (*tiling.Tile, error) {
 	// Rebuild the ParamSet.
 	glog.Infof("Finished loading params. Starting to rebuild ParamSet.")
 	tiling.GetParamSet(tile.Traces, tile.ParamSet)
-	return tile, nil
+	return tile, hash, nil
+}
+
+// ListMD5 returns the md5 hashes of the data stored for each commitid.
+func (ts *TsDB) ListMD5(commitIDs []*CommitID) ([]string, error) {
+	ctx := context.Background()
+	req := &traceservice.ListMD5Request{
+		Commitid: make([]*traceservice.CommitID, len(commitIDs)),
+	}
+	for i, cid := range commitIDs {
+		req.Commitid[i] = tsCommitID(cid)
+	}
+	resp, err := ts.traceService.ListMD5(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load hashes: %s", err)
+	}
+	ret := make([]string, len(commitIDs))
+	for i, ci5 := range resp.Commitmd5 {
+		ret[i] = ci5.Md5
+	}
+	return ret, nil
 }
 
 // Close the underlying connection to the datastore.

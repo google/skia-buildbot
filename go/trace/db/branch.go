@@ -80,7 +80,8 @@ func (b *tileBuilder) TileFromCommits(commitIDs []*CommitIDLong) (*tiling.Tile, 
 	for idx, cid := range commitIDs {
 		shortCids[idx] = cid.CommitID
 	}
-	return b.db.TileFromCommits(shortCids)
+	tile, _, err := b.db.TileFromCommits(shortCids)
+	return tile, err
 }
 
 // convertToLongCommits converts the CommitIDs into CommitIDLong's, after

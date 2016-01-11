@@ -71,7 +71,7 @@ func TestTrybotPerfIngestion(t *testing.T) {
 	}, commitIDs[0])
 
 	// Get a tile and make sure we have the right number of traces.
-	tile, err := traceDB.TileFromCommits(commitIDs)
+	tile, _, err := traceDB.TileFromCommits(commitIDs)
 	assert.Nil(t, err)
 
 	traces := tile.Traces

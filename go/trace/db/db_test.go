@@ -57,7 +57,7 @@ func TestAdd(t *testing.T) {
 	}
 	defer util.Close(ts)
 
-	now := time.Now()
+	now := time.Unix(100, 0)
 
 	commitIDs := []*CommitID{
 		&CommitID{
@@ -66,7 +66,7 @@ func TestAdd(t *testing.T) {
 			Source:    "master",
 		},
 		&CommitID{
-			Timestamp: now.Add(time.Minute).Unix(),
+			Timestamp: now.Add(time.Hour).Unix(),
 			ID:        "xyz789",
 			Source:    "master",
 		},
@@ -94,10 +94,19 @@ func TestAdd(t *testing.T) {
 	err = ts.Add(commitIDs[0], entries)
 
 	assert.NoError(t, err)
-	tile, err := ts.TileFromCommits(commitIDs)
+	tile, hashes, err := ts.TileFromCommits(commitIDs)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tile.Traces))
 	assert.Equal(t, 2, len(tile.Commits))
+	assert.Equal(t, 2, len(hashes))
+	assert.True(t, util.In("d41d8cd98f00b204e9800998ecf8427e", hashes))
+	assert.NotEqual(t, hashes[0], hashes[1])
+
+	hashes, err = ts.ListMD5(commitIDs)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(hashes))
+	assert.True(t, util.In("d41d8cd98f00b204e9800998ecf8427e", hashes))
+	assert.NotEqual(t, hashes[0], hashes[1])
 
 	tr := tile.Traces["key:8888:android"].(*types.PerfTrace)
 	assert.Equal(t, 0.01, tr.Values[0])

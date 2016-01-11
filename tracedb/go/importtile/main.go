@@ -40,7 +40,7 @@ func _main(ts db.DB) {
 	}
 
 	begin := time.Now()
-	_, err = ts.TileFromCommits(commits)
+	_, _, err = ts.TileFromCommits(commits)
 	if err != nil {
 		glog.Errorf("Failed to load Tile: %s", err)
 		return
@@ -48,7 +48,7 @@ func _main(ts db.DB) {
 	glog.Infof("Time to load tile: %v", time.Now().Sub(begin))
 	// Now load a second time.
 	begin = time.Now()
-	_, err = ts.TileFromCommits(commits)
+	_, _, err = ts.TileFromCommits(commits)
 	if err != nil {
 		glog.Errorf("Failed to load Tile: %s", err)
 		return
