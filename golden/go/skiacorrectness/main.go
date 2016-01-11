@@ -44,35 +44,36 @@ import (
 	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
+	gstorage "google.golang.org/api/storage/v1"
 )
 
 // Command line flags.
 var (
-	authWhiteList    = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
-	clientSecretFile = flag.String("client_secrets", "client_secret.json", "The file name for the client_secret.json file.")
-	cpuProfile       = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
-	doOauth          = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
-	forceLogin       = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
-	graphiteServer   = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	gsBucketName     = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
-	imageDir         = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
-	issueTrackerKey  = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
-	local            = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	memProfile       = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
-	nCommits         = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
-	nTilesToBackfill = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
-	oauthCacheFile   = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
-	port             = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
-	redirectURL      = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
-	redisDB          = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
-	redisHost        = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
-	resourcesDir     = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
-	rietveldURL      = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
-	selfTest         = flag.Bool("self_test", false, "Run test agains live data, used debugging only.")
-	storageDir       = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
-	gitRepoDir       = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	gitRepoURL       = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
-	traceservice     = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
+	authWhiteList      = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
+	cpuProfile         = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
+	doOauth            = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
+	forceLogin         = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
+	graphiteServer     = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	gsBucketName       = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
+	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
+	issueTrackerKey    = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
+	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	memProfile         = flag.Duration("memprofile", 0, "Duration for which to profile memory. After this duration the program writes the memory profile and exits.")
+	nCommits           = flag.Int("n_commits", 50, "Number of recent commits to include in the analysis.")
+	nTilesToBackfill   = flag.Int("backfill_tiles", 0, "Number of tiles to backfill in our history of tiles.")
+	oauthCacheFile     = flag.String("oauth_cache_file", "/home/perf/google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
+	port               = flag.String("port", ":9000", "HTTP service address (e.g., ':9000')")
+	redirectURL        = flag.String("redirect_url", "https://gold.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
+	redisDB            = flag.Int("redis_db", 0, "The index of the Redis database we should use. Default will work fine in most cases.")
+	redisHost          = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
+	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
+	rietveldURL        = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
+	selfTest           = flag.Bool("self_test", false, "Run test agains live data, used debugging only.")
+	storageDir         = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
+	gitRepoDir         = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
+	gitRepoURL         = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
+	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+	traceservice       = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
 )
 
 const (
@@ -194,33 +195,6 @@ func (ug *URLAwareFileServer) GetURL(path string) string {
 	return ret
 }
 
-// getOAuthClient returns an oauth client.
-func getOAuthClient(cacheFilePath string) *http.Client {
-	var client *http.Client
-	var err error
-	if *doOauth || *local {
-		if *local {
-			// Load client secrets file.  The client_secret.json file must come from
-			// project id: 470362608618, which is whitelisted for access to
-			// gs://chromium-skia-gm.
-
-			client, err = auth.NewClientWithTransport(true, cacheFilePath, *clientSecretFile, nil, auth.SCOPE_READ_ONLY)
-			if err != nil {
-				glog.Fatalf("Failed to auth: (Did you download the client_secret.json file from the project with ID: google.com:chrome-skia #470362608618 ?) %s", err)
-			}
-		} else {
-			// Load client id and secret from metadata.
-			clientId := metadata.Must(metadata.ProjectGet(metadata.CHROMIUM_SKIA_GM_CLIENT_ID))
-			clientSecret := metadata.Must(metadata.ProjectGet(metadata.CHROMIUM_SKIA_GM_CLIENT_SECRET))
-			client, err = auth.NewClientFromIdAndSecret(clientId, clientSecret, cacheFilePath, auth.SCOPE_READ_ONLY)
-			if err != nil {
-				glog.Fatalf("Failed to auth: %s", err)
-			}
-		}
-	}
-	return client
-}
-
 func main() {
 	defer common.LogPanic()
 	var err error
@@ -297,8 +271,11 @@ func main() {
 	}
 	login.Init(clientID, clientSecret, useRedirectURL, cookieSalt, login.DEFAULT_SCOPE, *authWhiteList, *local)
 
-	// get the Oauthclient if necessary.
-	client := getOAuthClient(*oauthCacheFile)
+	// Get the client to be used to access GS and the Monorail issue tracker.
+	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, gstorage.CloudPlatformScope, "https://www.googleapis.com/auth/userinfo.email")
+	if err != nil {
+		glog.Fatalf("Failed to authenticate service account: %s", err)
+	}
 
 	// Set up the cache implementation to use.
 	cacheFactory := filediffstore.MemCacheFactory
@@ -389,7 +366,7 @@ func main() {
 		*issueTrackerKey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
 	}
 
-	issueTracker = issues.NewIssueTracker(*issueTrackerKey)
+	issueTracker = issues.NewMonorailIssueTracker(client)
 
 	summaries, err = summary.New(storages, tallies, blamer)
 	if err != nil {
