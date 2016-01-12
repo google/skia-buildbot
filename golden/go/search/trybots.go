@@ -7,6 +7,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/trybot"
 )
@@ -86,13 +87,20 @@ func ListTrybotIssues(storages *storage.Storage, offset, size int) ([]*TrybotIss
 	wg.Wait()
 	close(ch)
 
+	errFound := false
 	for err := range ch {
-		return nil, 0, err
+		errFound = true
+		glog.Errorf("Error retrieving code review information: %s", err)
 	}
 
 	ret := make([]*TrybotIssue, 0, len(retMap))
 	for _, issueInfo := range issueInfos {
 		ret = append(ret, retMap[issueInfo.Issue])
+	}
+
+	// If we didn't find any items and had errors then return an error.
+	if (len(ret) == 0) && errFound {
+		return nil, 0, fmt.Errorf("Got errors (see log) and unable to find any Rietveld issues.")
 	}
 
 	return ret, total, nil
