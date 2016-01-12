@@ -78,7 +78,10 @@
     <div class="stacktrace">
       <template is="dom-repeat" items="{{frames}}" as="frame">
           <div class="frame" >
-            <span class="line">{{frame.packageName}}{{frame.fileName}}:{{frame.lineNumber}}</span>
+            <span class="line">
+              <a target="_blank" href$="{{_computeCSLink(frame)}}">{{frame.packageName}}{{frame.fileName}}:{{frame.lineNumber}}
+              </a>
+            </span>
             <span class="function-name">
               <template is="dom-if" if="{{frame.functionName}}">
                 <span>{{frame.functionName}}</span>
@@ -134,6 +137,10 @@
           return "hidden";
         }
         return "";
+      },
+
+      _computeCSLink: function(frame) {
+        return "https://code.google.com/p/chromium/codesearch#chromium/src/third_party/skia/" + frame.packageName + frame.fileName +"&l="+frame.lineNumber;
       },
 
       showMore: function() {
