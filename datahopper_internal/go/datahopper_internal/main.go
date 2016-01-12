@@ -162,7 +162,7 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 		glog.Errorf("Failed to write codename to data store: %s", err)
 	}
 
-	buildNumber, err := db.GetBuildNumberForCommit(build.Builder, build.Master, commitHash)
+	buildNumber, err := db.GetBuildNumberForCommit(build.Master, build.Builder, commitHash)
 	if err != nil {
 		return fmt.Errorf("Failed to find the build in the database: %s", err)
 	}
