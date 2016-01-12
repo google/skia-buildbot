@@ -352,7 +352,11 @@ func deleteBuild(tx *bolt.Tx, id BuildID) error {
 // putBuild inserts the build into the database, replacing any previous version.
 func putBuild(tx *bolt.Tx, b *Build) error {
 	id := b.Id()
-	if tx.Bucket(BUCKET_BUILDS).Get(id) != nil {
+	if tx.Bucket(BUCKET_BUILDS).Get(id) == nil {
+		// Measure the time between build start and first DB insertion.
+		t := int64(time.Now().Sub(b.Started))
+		metrics.GetOrRegisterSlidingWindow("buildbot.startToIngestLatency", metrics.DEFAULT_WINDOW).Update(t)
+	} else {
 		if err := deleteBuild(tx, id); err != nil {
 			return err
 		}
