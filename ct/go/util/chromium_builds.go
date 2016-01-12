@@ -239,8 +239,8 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 		return fmt.Errorf("Error while restarting goma compiler proxy: %s", err)
 	}
 
-	// Run "GYP_DEFINES='gomadir=/b/build/goma' GYP_GENERATORS='ninja' build/gyp_chromium -Duse_goma=1".
-	env := []string{fmt.Sprintf("GYP_DEFINES=gomadir=%s", GomaDir), "GYP_GENERATORS=ninja"}
+	// Run "GYP_DEFINES='gomadir=/b/build/goma' GYP_GENERATORS='ninja' CPPFLAGS=-DSK_WHITELIST_SERIALIZED_TYPEFACES build/gyp_chromium -Duse_goma=1".
+	env := []string{fmt.Sprintf("GYP_DEFINES=gomadir=%s", GomaDir), "GYP_GENERATORS=ninja", "CPPFLAGS=-DSK_WHITELIST_SERIALIZED_TYPEFACES"}
 	err = ExecuteCmd(filepath.Join("build", "gyp_chromium"), []string{"-Duse_goma=1"}, env,
 		GYP_CHROMIUM_TIMEOUT, nil, nil)
 	if err != nil {
