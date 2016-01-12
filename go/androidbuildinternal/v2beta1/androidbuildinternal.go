@@ -5369,7 +5369,8 @@ func (c *BuildartifactGetCall) Do() (*BuildArtifactMetadata, error) {
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/androidbuild.internal"
 	//   ],
-	//   "supportsMediaDownload": true
+	//   "supportsMediaDownload": true,
+	//   "useMediaDownloadService": true
 	// }
 
 }
@@ -5724,8 +5725,9 @@ type BuildartifactUpdateCall struct {
 	buildartifactmetadata *BuildArtifactMetadata
 	urlParams_            gensupport.URLParams
 	media_                io.Reader
-	resumable_            googleapi.SizeReaderAt
 	mediaType_            string
+	resumable_            googleapi.SizeReaderAt
+	resumableMediaType_   string
 	protocol_             string
 	progressUpdater_      googleapi.ProgressUpdater
 	ctx_                  context.Context
@@ -5761,8 +5763,9 @@ func (c *BuildartifactUpdateCall) UserIP(userIP string) *BuildartifactUpdateCall
 
 // Media specifies the media to upload in a single chunk. At most one of
 // Media and ResumableMedia may be set.
-func (c *BuildartifactUpdateCall) Media(r io.Reader) *BuildartifactUpdateCall {
-	c.media_ = r
+func (c *BuildartifactUpdateCall) Media(r io.Reader, options ...googleapi.MediaOption) *BuildartifactUpdateCall {
+	opts := googleapi.ProcessMediaOptions(options)
+	c.media_, c.mediaType_ = gensupport.DetermineContentType(r, opts.ContentType)
 	c.protocol_ = "multipart"
 	return c
 }
@@ -5776,7 +5779,7 @@ func (c *BuildartifactUpdateCall) Media(r io.Reader) *BuildartifactUpdateCall {
 func (c *BuildartifactUpdateCall) ResumableMedia(ctx context.Context, r io.ReaderAt, size int64, mediaType string) *BuildartifactUpdateCall {
 	c.ctx_ = ctx
 	c.resumable_ = io.NewSectionReader(r, 0, size)
-	c.mediaType_ = mediaType
+	c.resumableMediaType_ = mediaType
 	c.protocol_ = "resumable"
 	return c
 }
@@ -5823,7 +5826,7 @@ func (c *BuildartifactUpdateCall) doRequest(alt string) (*http.Response, error) 
 	}
 	urls += "?" + c.urlParams_.Encode()
 	if c.protocol_ != "resumable" && c.media_ != nil {
-		cancel := gensupport.IncludeMedia(c.media_, &body, &ctype)
+		cancel := gensupport.IncludeMedia(c.media_, c.mediaType_, &body, &ctype)
 		defer cancel()
 	}
 	req, _ := http.NewRequest("PUT", urls, body)
@@ -5834,10 +5837,10 @@ func (c *BuildartifactUpdateCall) doRequest(alt string) (*http.Response, error) 
 		"resourceId": c.resourceId,
 	})
 	if c.protocol_ == "resumable" {
-		if c.mediaType_ == "" {
-			c.mediaType_ = gensupport.DetectMediaType(c.resumable_)
+		if c.resumableMediaType_ == "" {
+			c.resumableMediaType_ = gensupport.DetectMediaType(c.resumable_)
 		}
-		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
+		req.Header.Set("X-Upload-Content-Type", c.resumableMediaType_)
 	}
 	req.Header.Set("Content-Type", ctype)
 	req.Header.Set("User-Agent", c.s.userAgent())
@@ -5879,7 +5882,7 @@ func (c *BuildartifactUpdateCall) Do() (*BuildArtifactMetadata, error) {
 			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
-			MediaType:     c.mediaType_,
+			MediaType:     c.resumableMediaType_,
 			ContentLength: c.resumable_.Size(),
 			Callback: func(curr int64) {
 				if c.progressUpdater_ != nil {
@@ -8690,7 +8693,8 @@ func (c *DeviceblobGetCall) Do() (*BuildArtifactMetadata, error) {
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/androidbuild.internal"
 	//   ],
-	//   "supportsMediaDownload": true
+	//   "supportsMediaDownload": true,
+	//   "useMediaDownloadService": true
 	// }
 
 }
@@ -9037,8 +9041,9 @@ type DeviceblobUpdateCall struct {
 	buildartifactmetadata *BuildArtifactMetadata
 	urlParams_            gensupport.URLParams
 	media_                io.Reader
-	resumable_            googleapi.SizeReaderAt
 	mediaType_            string
+	resumable_            googleapi.SizeReaderAt
+	resumableMediaType_   string
 	protocol_             string
 	progressUpdater_      googleapi.ProgressUpdater
 	ctx_                  context.Context
@@ -9073,8 +9078,9 @@ func (c *DeviceblobUpdateCall) UserIP(userIP string) *DeviceblobUpdateCall {
 
 // Media specifies the media to upload in a single chunk. At most one of
 // Media and ResumableMedia may be set.
-func (c *DeviceblobUpdateCall) Media(r io.Reader) *DeviceblobUpdateCall {
-	c.media_ = r
+func (c *DeviceblobUpdateCall) Media(r io.Reader, options ...googleapi.MediaOption) *DeviceblobUpdateCall {
+	opts := googleapi.ProcessMediaOptions(options)
+	c.media_, c.mediaType_ = gensupport.DetermineContentType(r, opts.ContentType)
 	c.protocol_ = "multipart"
 	return c
 }
@@ -9088,7 +9094,7 @@ func (c *DeviceblobUpdateCall) Media(r io.Reader) *DeviceblobUpdateCall {
 func (c *DeviceblobUpdateCall) ResumableMedia(ctx context.Context, r io.ReaderAt, size int64, mediaType string) *DeviceblobUpdateCall {
 	c.ctx_ = ctx
 	c.resumable_ = io.NewSectionReader(r, 0, size)
-	c.mediaType_ = mediaType
+	c.resumableMediaType_ = mediaType
 	c.protocol_ = "resumable"
 	return c
 }
@@ -9135,7 +9141,7 @@ func (c *DeviceblobUpdateCall) doRequest(alt string) (*http.Response, error) {
 	}
 	urls += "?" + c.urlParams_.Encode()
 	if c.protocol_ != "resumable" && c.media_ != nil {
-		cancel := gensupport.IncludeMedia(c.media_, &body, &ctype)
+		cancel := gensupport.IncludeMedia(c.media_, c.mediaType_, &body, &ctype)
 		defer cancel()
 	}
 	req, _ := http.NewRequest("PUT", urls, body)
@@ -9145,10 +9151,10 @@ func (c *DeviceblobUpdateCall) doRequest(alt string) (*http.Response, error) {
 		"resourceId": c.resourceId,
 	})
 	if c.protocol_ == "resumable" {
-		if c.mediaType_ == "" {
-			c.mediaType_ = gensupport.DetectMediaType(c.resumable_)
+		if c.resumableMediaType_ == "" {
+			c.resumableMediaType_ = gensupport.DetectMediaType(c.resumable_)
 		}
-		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
+		req.Header.Set("X-Upload-Content-Type", c.resumableMediaType_)
 	}
 	req.Header.Set("Content-Type", ctype)
 	req.Header.Set("User-Agent", c.s.userAgent())
@@ -9190,7 +9196,7 @@ func (c *DeviceblobUpdateCall) Do() (*BuildArtifactMetadata, error) {
 			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
-			MediaType:     c.mediaType_,
+			MediaType:     c.resumableMediaType_,
 			ContentLength: c.resumable_.Size(),
 			Callback: func(curr int64) {
 				if c.progressUpdater_ != nil {
@@ -12227,7 +12233,8 @@ func (c *TestartifactGetCall) Do() (*BuildArtifactMetadata, error) {
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/androidbuild.internal"
 	//   ],
-	//   "supportsMediaDownload": true
+	//   "supportsMediaDownload": true,
+	//   "useMediaDownloadService": true
 	// }
 
 }
@@ -12642,8 +12649,9 @@ type TestartifactUpdateCall struct {
 	buildartifactmetadata *BuildArtifactMetadata
 	urlParams_            gensupport.URLParams
 	media_                io.Reader
-	resumable_            googleapi.SizeReaderAt
 	mediaType_            string
+	resumable_            googleapi.SizeReaderAt
+	resumableMediaType_   string
 	protocol_             string
 	progressUpdater_      googleapi.ProgressUpdater
 	ctx_                  context.Context
@@ -12681,8 +12689,9 @@ func (c *TestartifactUpdateCall) UserIP(userIP string) *TestartifactUpdateCall {
 
 // Media specifies the media to upload in a single chunk. At most one of
 // Media and ResumableMedia may be set.
-func (c *TestartifactUpdateCall) Media(r io.Reader) *TestartifactUpdateCall {
-	c.media_ = r
+func (c *TestartifactUpdateCall) Media(r io.Reader, options ...googleapi.MediaOption) *TestartifactUpdateCall {
+	opts := googleapi.ProcessMediaOptions(options)
+	c.media_, c.mediaType_ = gensupport.DetermineContentType(r, opts.ContentType)
 	c.protocol_ = "multipart"
 	return c
 }
@@ -12696,7 +12705,7 @@ func (c *TestartifactUpdateCall) Media(r io.Reader) *TestartifactUpdateCall {
 func (c *TestartifactUpdateCall) ResumableMedia(ctx context.Context, r io.ReaderAt, size int64, mediaType string) *TestartifactUpdateCall {
 	c.ctx_ = ctx
 	c.resumable_ = io.NewSectionReader(r, 0, size)
-	c.mediaType_ = mediaType
+	c.resumableMediaType_ = mediaType
 	c.protocol_ = "resumable"
 	return c
 }
@@ -12743,7 +12752,7 @@ func (c *TestartifactUpdateCall) doRequest(alt string) (*http.Response, error) {
 	}
 	urls += "?" + c.urlParams_.Encode()
 	if c.protocol_ != "resumable" && c.media_ != nil {
-		cancel := gensupport.IncludeMedia(c.media_, &body, &ctype)
+		cancel := gensupport.IncludeMedia(c.media_, c.mediaType_, &body, &ctype)
 		defer cancel()
 	}
 	req, _ := http.NewRequest("PUT", urls, body)
@@ -12756,10 +12765,10 @@ func (c *TestartifactUpdateCall) doRequest(alt string) (*http.Response, error) {
 		"resourceId":   c.resourceId,
 	})
 	if c.protocol_ == "resumable" {
-		if c.mediaType_ == "" {
-			c.mediaType_ = gensupport.DetectMediaType(c.resumable_)
+		if c.resumableMediaType_ == "" {
+			c.resumableMediaType_ = gensupport.DetectMediaType(c.resumable_)
 		}
-		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
+		req.Header.Set("X-Upload-Content-Type", c.resumableMediaType_)
 	}
 	req.Header.Set("Content-Type", ctype)
 	req.Header.Set("User-Agent", c.s.userAgent())
@@ -12801,7 +12810,7 @@ func (c *TestartifactUpdateCall) Do() (*BuildArtifactMetadata, error) {
 			UserAgent:     c.s.userAgent(),
 			URI:           loc,
 			Media:         c.resumable_,
-			MediaType:     c.mediaType_,
+			MediaType:     c.resumableMediaType_,
 			ContentLength: c.resumable_.Size(),
 			Callback: func(curr int64) {
 				if c.progressUpdater_ != nil {
