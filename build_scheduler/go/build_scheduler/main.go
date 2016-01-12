@@ -14,7 +14,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/build_queue"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/buildbot_deprecated"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
@@ -49,7 +49,7 @@ var (
 		regexp.MustCompile("^Mac10\\.9 Tests$"),
 		regexp.MustCompile("^Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-CT_DM_1m_SKPs$"),
 		regexp.MustCompile("^Win7 Tests \\(1\\)"),
-		buildbot_deprecated.TRYBOT_REGEXP,
+		buildbot.TRYBOT_REGEXP,
 	}
 
 	// MASTERS determines which masters we poll for builders.
@@ -68,6 +68,7 @@ var (
 	}
 
 	// Flags.
+	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
 	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Build candidate scores are penalized using exponential time decay, starting at 1.0. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
@@ -300,8 +301,6 @@ func scheduleBuilds(q *build_queue.BuildQueue, bb *buildbucket.Client) error {
 
 func main() {
 	defer common.LogPanic()
-	// Setup flags.
-	dbConf := buildbot_deprecated.DBConfigFromFlags()
 
 	// Global init.
 	common.InitWithMetrics(APP_NAME, graphiteServer)
@@ -313,12 +312,8 @@ func main() {
 	}
 
 	// Initialize the buildbot database.
-	if !*local {
-		if err := dbConf.GetPasswordFromMetadata(); err != nil {
-			glog.Fatal(err)
-		}
-	}
-	if err := dbConf.InitDB(); err != nil {
+	db, err := buildbot.NewRemoteDB(*buildbotDbHost)
+	if err != nil {
 		glog.Fatal(err)
 	}
 
@@ -336,7 +331,7 @@ func main() {
 			glog.Fatal(err)
 		}
 	}
-	q, err := build_queue.NewBuildQueue(period, repos, *scoreThreshold, *scoreDecay24Hr, BOT_BLACKLIST)
+	q, err := build_queue.NewBuildQueue(period, repos, *scoreThreshold, *scoreDecay24Hr, BOT_BLACKLIST, db)
 	if err != nil {
 		glog.Fatal(err)
 	}

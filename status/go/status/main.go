@@ -25,7 +25,7 @@ import (
 )
 
 import (
-	"go.skia.org/infra/go/buildbot_deprecated"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/influxdb"
@@ -49,6 +49,7 @@ var (
 	commitCaches         map[string]*commit_cache.CommitCache = nil
 	buildbotDashTemplate *template.Template                   = nil
 	commitsTemplate      *template.Template                   = nil
+	db                   buildbot.DB                          = nil
 	hostsTemplate        *template.Template                   = nil
 	infraTemplate        *template.Template                   = nil
 	dbClient             *influxdb.Client                     = nil
@@ -70,6 +71,7 @@ var (
 	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
 )
 
 // StringIsInteresting returns true iff the string contains non-whitespace characters.
@@ -174,11 +176,22 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	buildId, err := strconv.ParseInt(mux.Vars(r)["buildId"], 10, 32)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid build id: %v", err))
+	master, ok := mux.Vars(r)["master"]
+	if !ok {
+		util.ReportError(w, r, err, "No build master given!")
 		return
 	}
+	builder, ok := mux.Vars(r)["builder"]
+	if !ok {
+		util.ReportError(w, r, err, "No builder given!")
+		return
+	}
+	number, err := strconv.ParseInt(mux.Vars(r)["number"], 10, 64)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("No valid build number given: %v", err))
+		return
+	}
+
 	comment := struct {
 		Comment string `json:"comment"`
 	}{}
@@ -187,13 +200,12 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer util.Close(r.Body)
-	c := buildbot_deprecated.BuildComment{
-		BuildId:   int(buildId),
+	c := buildbot.BuildComment{
 		User:      login.LoggedInAs(r),
-		Timestamp: float64(time.Now().UTC().Unix()),
+		Timestamp: time.Now().UTC(),
 		Message:   comment.Comment,
 	}
-	if err := cache.AddBuildComment(int(buildId), &c); err != nil {
+	if err := cache.AddBuildComment(master, builder, int(number), &c); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
@@ -210,17 +222,27 @@ func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	buildId, err := strconv.ParseInt(mux.Vars(r)["buildId"], 10, 32)
-	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid build id: %v", err))
+	master, ok := mux.Vars(r)["master"]
+	if !ok {
+		util.ReportError(w, r, err, "No build master given!")
 		return
 	}
-	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
+	builder, ok := mux.Vars(r)["builder"]
+	if !ok {
+		util.ReportError(w, r, err, "No builder given!")
+		return
+	}
+	number, err := strconv.ParseInt(mux.Vars(r)["number"], 10, 64)
+	if err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("No valid build number given: %v", err))
+		return
+	}
+	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 64)
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := cache.DeleteBuildComment(int(buildId), int(commentId)); err != nil {
+	if err := cache.DeleteBuildComment(master, builder, int(number), commentId); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
@@ -250,10 +272,10 @@ func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 
-	c := buildbot_deprecated.BuilderComment{
+	c := buildbot.BuilderComment{
 		Builder:       builder,
 		User:          login.LoggedInAs(r),
-		Timestamp:     float64(time.Now().UTC().Unix()),
+		Timestamp:     time.Now().UTC(),
 		Flaky:         comment.Flaky,
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
@@ -281,7 +303,7 @@ func deleteBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := cache.DeleteBuilderComment(builder, int(commentId)); err != nil {
+	if err := cache.DeleteBuilderComment(builder, commentId); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
@@ -304,13 +326,13 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 
-	c := buildbot_deprecated.CommitComment{
+	c := buildbot.CommitComment{
 		Commit:    commit,
 		User:      login.LoggedInAs(r),
-		Timestamp: float64(time.Now().UTC().Unix()),
+		Timestamp: time.Now().UTC(),
 		Message:   comment.Comment,
 	}
-	if _, err := c.InsertIntoDB(); err != nil {
+	if err := db.PutCommitComment(&c); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %v", err))
 		return
 	}
@@ -328,7 +350,7 @@ func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := buildbot_deprecated.DeleteCommitComment(int(commentId)); err != nil {
+	if err := db.DeleteCommitComment(commentId); err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %v", err))
 		return
 	}
@@ -393,7 +415,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch the builds.
-	builds, err := buildbot_deprecated.GetBuildsFromDateRange(startTime, endTime)
+	builds, err := db.GetBuildsFromDateRange(startTime, endTime)
 	if err != nil {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
 		return
@@ -405,8 +427,8 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	// TinyBuildStep is a struct containing a small subset of a BuildStep's fields.
 	type TinyBuildStep struct {
 		Name     string
-		Started  float64
-		Finished float64
+		Started  time.Time
+		Finished time.Time
 		Results  int
 	}
 
@@ -417,8 +439,8 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		Master     string
 		Number     int
 		Properties [][]interface{} `json:"properties"`
-		Started    float64
-		Finished   float64
+		Started    time.Time
+		Finished   time.Time
 		Results    int
 		Steps      []*TinyBuildStep
 	}
@@ -596,7 +618,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
-	builds := r.PathPrefix("/json/{repo}/builds/{buildId:[0-9]+}").Subrouter()
+	builds := r.PathPrefix("/json/{repo}/builds/{master}/{builder}/{number:[0-9]+}").Subrouter()
 	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
 	builds.HandleFunc("/comments/{commentId:[0-9]+}", deleteBuildCommentHandler).Methods("DELETE")
 	builders := r.PathPrefix("/json/{repo}/builders/{builder}").Subrouter()
@@ -614,7 +636,6 @@ func runServer(serverURL string) {
 func main() {
 	defer common.LogPanic()
 	// Setup flags.
-	dbConf := buildbot_deprecated.DBConfigFromFlags()
 	influxdb.SetupFlags()
 
 	common.InitWithMetrics("status", graphiteServer)
@@ -631,6 +652,12 @@ func main() {
 	serverURL := "https://" + *host
 	if *testing {
 		serverURL = "http://" + *host + *port
+	}
+
+	// Create buildbot remote DB.
+	db, err = buildbot.NewRemoteDB(*buildbotDbHost)
+	if err != nil {
+		glog.Fatal(err)
 	}
 
 	// Setup InfluxDB client.
@@ -665,25 +692,15 @@ func main() {
 
 	glog.Info("CloneOrUpdate complete")
 
-	// Initialize the buildbot database.
-	if *useMetadata {
-		if err := dbConf.GetPasswordFromMetadata(); err != nil {
-			glog.Fatal(err)
-		}
-	}
-	if err := dbConf.InitDB(); err != nil {
-		glog.Fatal(err)
-	}
-
 	// Create the commit caches.
 	commitCaches = map[string]*commit_cache.CommitCache{}
-	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD)
+	skiaCache, err := commit_cache.New(skiaRepo, path.Join(*workdir, "commit_cache.gob"), DEFAULT_COMMITS_TO_LOAD, db)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
 	commitCaches[SKIA_REPO] = skiaCache
 
-	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD)
+	infraCache, err := commit_cache.New(infraRepo, path.Join(*workdir, "commit_cache_infra.gob"), DEFAULT_COMMITS_TO_LOAD, db)
 	if err != nil {
 		glog.Fatalf("Failed to create commit cache: %v", err)
 	}
@@ -705,7 +722,7 @@ func main() {
 	}
 
 	// Load slave_hosts_cfg and device cfgs in a loop.
-	slaveHosts, err = buildbot_deprecated.SlaveHostsCfgPoller(infraRepoPath)
+	slaveHosts, err = buildbot.SlaveHostsCfgPoller(infraRepoPath)
 	if err != nil {
 		glog.Fatal(err)
 	}

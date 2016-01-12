@@ -13,7 +13,7 @@ import (
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/go/autoroll"
-	"go.skia.org/infra/go/buildbot_deprecated"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/util"
 )
@@ -55,21 +55,21 @@ var BUILDSLAVE_OFFLINE_BLACKLIST = []string{
 	"vm255-m3",
 }
 
-type BuildSlice []*buildbot_deprecated.Build
+type BuildSlice []*buildbot.Build
 
 func (s BuildSlice) Len() int {
 	return len(s)
 }
 
 func (s BuildSlice) Less(i, j int) bool {
-	return s[i].Finished < s[j].Finished
+	return s[j].Finished.After(s[i].Finished)
 }
 
 func (s BuildSlice) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c *influxdb.Client) {
+func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c *influxdb.Client, db buildbot.DB) {
 	emailAction, err := alerting.ParseAction("Email(infra-alerts@skia.org)")
 	if err != nil {
 		glog.Fatal(err)
@@ -82,7 +82,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		re := regexp.MustCompile("[^A-Za-z0-9]+")
 		for _ = range time.Tick(tickInterval) {
 			glog.Info("Loading buildslave data.")
-			slaves, err := buildbot_deprecated.GetBuildSlaves()
+			slaves, err := buildbot.GetBuildSlaves()
 			if err != nil {
 				glog.Error(err)
 				continue
@@ -180,10 +180,14 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		hangTimePeriod := 3 * time.Hour
 		for _ = range time.Tick(tickInterval) {
 			glog.Infof("Searching for hung buildslaves and disconnected Android devices.")
-			builds, err := buildbot_deprecated.GetUnfinishedBuilds()
-			if err != nil {
-				glog.Error(err)
-				continue
+			builds := []*buildbot.Build{}
+			for _, m := range buildbot.MASTER_NAMES {
+				b, err := db.GetUnfinishedBuilds(m)
+				if err != nil {
+					glog.Error(err)
+					continue
+				}
+				builds = append(builds, b...)
 			}
 			for _, b := range builds {
 				// Disconnected Android device?
@@ -191,7 +195,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 				if strings.Contains(b.Builder, "Android") && !strings.Contains(b.Builder, "Build") {
 					for _, s := range b.Steps {
 						if strings.Contains(s.Name, "wait for device") {
-							if s.Finished == 0 && time.Since(time.Unix(int64(s.Started), 0)) > ANDROID_DISCONNECT_TIME_LIMIT {
+							if !s.IsFinished() && time.Since(s.Started) > ANDROID_DISCONNECT_TIME_LIMIT {
 								if err := am.AddAlert(&alerting.Alert{
 									Name:     fmt.Sprintf("Android device disconnected (%s)", b.BuildSlave),
 									Category: alerting.INFRA_ALERT,
@@ -213,7 +217,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 							continue
 						}
 						// If the step has been running for over an hour, it's probably hung.
-						if s.Finished == 0 && time.Since(time.Unix(int64(s.Started), 0)) > hangTimePeriod {
+						if !s.IsFinished() && time.Since(s.Started) > hangTimePeriod {
 							if err := am.AddAlert(&alerting.Alert{
 								Name:        fmt.Sprintf("Possibly hung buildslave (%s)", b.BuildSlave),
 								Category:    alerting.INFRA_ALERT,
@@ -237,7 +241,7 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		for _ = range time.Tick(tickInterval) {
 			glog.Infof("Searching for builds which failed update_scripts.")
 			currentSearch := time.Now()
-			builds, err := buildbot_deprecated.GetBuildsFromDateRange(lastSearch, currentSearch)
+			builds, err := db.GetBuildsFromDateRange(lastSearch, currentSearch)
 			lastSearch = currentSearch
 			if err != nil {
 				glog.Error(err)

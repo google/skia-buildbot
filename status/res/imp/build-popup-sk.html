@@ -86,7 +86,7 @@
       </template>
     </table>
     <hr/>
-    <comments-sk comments="{{build.comments}}" addCommentUrl="/json/{{repo}}/builds/{{build.id}}/comments" on-submit="{{commentAdded}}" allowDelete></comments-sk>
+    <comments-sk comments="{{build.comments}}" addCommentUrl="/json/{{repo}}/builds/{{build.master}}/{{build.builder}}/{{build.number}}/comments" on-submit="{{commentAdded}}" allowDelete></comments-sk>
   </template>
   <script>
     Polymer({

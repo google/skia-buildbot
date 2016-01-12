@@ -100,8 +100,8 @@ To test alert config changes:
    don't exist in your local InfluxDB).
 3. TODO(benjaminwagner): Run `make all && alertserver --alsologtostderr
    --testing --use_metadata=false --alert_db_host=localhost
-   --buildbot_db_host=localhost --buildbot_db_user=root --influxdb_host
-   localhost:10117 --influxdb_database=graphite`
+   --buildbot_db_host=skia-datahopper2:8000--influxdb_host localhost:10117
+   --influxdb_database=graphite`
 
 ### Master
 

@@ -227,6 +227,9 @@
 
       parseDate: function(v) {
         var d = new Date(v * 1000)
+        if (isNaN(d.getTime())) {
+          d = new Date(v);
+        }
         return d.toLocaleDateString() + ", " + d.toLocaleTimeString();
       },
 

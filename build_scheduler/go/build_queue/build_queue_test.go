@@ -1,17 +1,18 @@
 package build_queue
 
 import (
+	"io/ioutil"
 	"math"
+	"os"
+	"path"
 	"reflect"
 	"regexp"
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/buildbot_deprecated"
-	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -52,21 +53,29 @@ var (
 	}
 )
 
+type testDB struct {
+	db  buildbot.DB
+	dir string
+}
+
+func (d *testDB) Close(t *testing.T) {
+	assert.Nil(t, d.db.Close())
+	assert.Nil(t, os.RemoveAll(d.dir))
+}
+
 // clearDB initializes the database, upgrading it if needed, and removes all
-// data to ensure that the test begins with a clean slate. Returns a MySQLTestDatabase
+// data to ensure that the test begins with a clean slate. Returns a testDB
 // which must be closed after the test finishes.
-func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
-	failMsg := "Database initialization failed. Do you have the test database set up properly?  Details: %v"
+func clearDB(t *testing.T) *testDB {
+	tempDir, err := ioutil.TempDir("", "build_scheduler_test_")
+	assert.Nil(t, err)
+	db, err := buildbot.NewLocalDB(path.Join(tempDir, "buildbot.db"))
+	assert.Nil(t, err)
 
-	// Set up the database.
-	testDb := testutil.SetupMySQLTestDatabase(t, buildbot_deprecated.MigrationSteps())
-
-	conf := testutil.LocalTestDatabaseConfig(buildbot_deprecated.MigrationSteps())
-	var err error
-	buildbot_deprecated.DB, err = sqlx.Open("mysql", conf.MySQLString())
-	assert.Nil(t, err, failMsg)
-
-	return testDb
+	return &testDB{
+		db:  db,
+		dir: tempDir,
+	}
 }
 
 func TestLambda(t *testing.T) {
@@ -111,13 +120,13 @@ func TestBuildScoring(t *testing.T) {
 	}
 
 	now := details[hashes['I']].Timestamp.Add(1 * time.Hour)
-	build1 := &buildbot_deprecated.Build{
+	build1 := &buildbot.Build{
 		GotRevision: hashes['A'],
 		Commits:     []string{hashes['A'], hashes['B'], hashes['C']},
 	}
 	cases := []struct {
 		commit        *vcsinfo.LongCommit
-		build         *buildbot_deprecated.Build
+		build         *buildbot.Build
 		expectedScore float64
 		lambda        float64
 	}{
@@ -255,7 +264,7 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	assert.Nil(t, repos.Update())
 
 	// Create the BuildQueue.
-	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, timeDecay24Hr, []*regexp.Regexp{})
+	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, timeDecay24Hr, []*regexp.Regexp{}, d.db)
 	assert.Nil(t, err)
 
 	// Fake time.Now()
@@ -282,7 +291,7 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 			// Actually insert a build, as if we're really using the scheduler.
 			// Do this even if we're not testing insertion, because if we don't,
 			// the queue won't know about this builder.
-			b := &buildbot_deprecated.Build{
+			b := &buildbot.Build{
 				Builder:     bc.Builder,
 				Master:      "fake",
 				Number:      buildNum,
@@ -291,7 +300,7 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 				GotRevision: bc.Commit,
 				Repository:  TEST_REPO,
 			}
-			assert.Nil(t, buildbot_deprecated.IngestBuild(b, repos))
+			assert.Nil(t, buildbot.IngestBuild(d.db, b, repos))
 			buildNum++
 			assert.Nil(t, q.update(now))
 		}

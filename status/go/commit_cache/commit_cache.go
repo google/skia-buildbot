@@ -11,7 +11,7 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/go/buildbot_deprecated"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -35,6 +35,7 @@ type CommitCache struct {
 	buildCache  *build_cache.BuildCache
 	cacheFile   string
 	Commits     []*vcsinfo.LongCommit
+	db          buildbot.DB
 	mutex       sync.RWMutex
 	repo        *gitinfo.GitInfo
 	requestSize int
@@ -75,15 +76,16 @@ func (c *CommitCache) toFile() error {
 // New creates and returns a new CommitCache which watches the given repo.
 // The initial update will load ALL commits from the repository, so expect
 // this to be slow.
-func New(repo *gitinfo.GitInfo, cacheFile string, requestSize int) (*CommitCache, error) {
+func New(repo *gitinfo.GitInfo, cacheFile string, requestSize int, db buildbot.DB) (*CommitCache, error) {
 	defer timer.New("commit_cache.New()").Stop()
 	c, err := fromFile(cacheFile)
 	if err != nil {
 		glog.Warningf("Failed to read commit cache from file; starting from scratch. Error: %v", err)
 		c = &CommitCache{}
 	}
-	c.buildCache = &build_cache.BuildCache{}
+	c.buildCache = build_cache.NewBuildCache(db)
 	c.cacheFile = cacheFile
+	c.db = db
 	c.repo = repo
 	c.requestSize = requestSize
 
@@ -169,7 +171,7 @@ func (c *CommitCache) update() (rv error) {
 	for _, commit := range allCommits[len(allCommits)-c.requestSize:] {
 		buildCacheHashes = append(buildCacheHashes, commit.Hash)
 	}
-	byId, byCommit, builderStatuses, err := build_cache.LoadData(buildCacheHashes)
+	byId, byCommit, builderStatuses, err := build_cache.LoadData(c.db, buildCacheHashes)
 	if err != nil {
 		return fmt.Errorf("Failed to update BuildCache: %v", err)
 	}
@@ -206,19 +208,19 @@ func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
 		return err
 	}
 
-	comments, err := buildbot_deprecated.GetCommitsComments(hashes)
+	comments, err := c.db.GetCommitsComments(hashes)
 	if err != nil {
 		return err
 	}
 
 	data := struct {
-		Comments    map[string][]*buildbot_deprecated.CommitComment         `json:"comments"`
-		Commits     []*vcsinfo.LongCommit                                   `json:"commits"`
-		BranchHeads []*gitinfo.GitBranch                                    `json:"branch_heads"`
-		Builds      map[string]map[string]*buildbot_deprecated.BuildSummary `json:"builds"`
-		Builders    map[string][]*buildbot_deprecated.BuilderComment        `json:"builders"`
-		StartIdx    int                                                     `json:"startIdx"`
-		EndIdx      int                                                     `json:"endIdx"`
+		Comments    map[string][]*buildbot.CommitComment         `json:"comments"`
+		Commits     []*vcsinfo.LongCommit                        `json:"commits"`
+		BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
+		Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
+		Builders    map[string][]*buildbot.BuilderComment        `json:"builders"`
+		StartIdx    int                                          `json:"startIdx"`
+		EndIdx      int                                          `json:"endIdx"`
 	}{
 		Comments:    comments,
 		Commits:     commits,
@@ -243,52 +245,38 @@ func (c *CommitCache) LastNAsJson(w io.Writer, n int) error {
 }
 
 // AddBuildComment adds the given comment to the given build.
-func (c *CommitCache) AddBuildComment(buildId int, comment *buildbot_deprecated.BuildComment) error {
-	b, err := c.buildCache.Get(buildId)
-	if err != nil {
-		return fmt.Errorf("No such build: %v", err)
+func (c *CommitCache) AddBuildComment(master, builder string, number int, comment *buildbot.BuildComment) error {
+	if err := c.db.PutBuildComment(master, builder, number, comment); err != nil {
+		return fmt.Errorf("Failed to add comment: %s", err)
 	}
-	b.Comments = append(b.Comments, comment)
-	return c.buildCache.UpdateBuild(buildId)
+	return c.buildCache.RefreshBuild(buildbot.MakeBuildID(master, builder, number))
 }
 
 // DeleteBuildComment deletes the given comment from the given build.
-func (c *CommitCache) DeleteBuildComment(buildId, commentId int) error {
-	b, err := c.buildCache.Get(buildId)
-	if err != nil {
-		return fmt.Errorf("No such build: %v", err)
+func (c *CommitCache) DeleteBuildComment(master, builder string, number int, commentId int64) error {
+	if err := c.db.DeleteBuildComment(master, builder, number, commentId); err != nil {
+		return fmt.Errorf("Failed to delete comment: %s", err)
 	}
-	idx := -1
-	for i, comment := range b.Comments {
-		if comment.Id == commentId {
-			idx = i
-			break
-		}
-	}
-	if idx == -1 {
-		return fmt.Errorf("No such comment: %d", commentId)
-	}
-	b.Comments = append(b.Comments[:idx], b.Comments[idx+1:]...)
-	return c.buildCache.UpdateBuild(buildId)
+	return c.buildCache.RefreshBuild(buildbot.MakeBuildID(master, builder, number))
 }
 
 // AddBuilderComment adds a comment about the given builder.
-func (c *CommitCache) AddBuilderComment(builder string, comment *buildbot_deprecated.BuilderComment) error {
+func (c *CommitCache) AddBuilderComment(builder string, comment *buildbot.BuilderComment) error {
 	return c.buildCache.AddBuilderComment(builder, comment)
 }
 
 // DeleteBuilderComment deletes the given comment from the given builder.
-func (c *CommitCache) DeleteBuilderComment(builder string, id int) error {
+func (c *CommitCache) DeleteBuilderComment(builder string, id int64) error {
 	return c.buildCache.DeleteBuilderComment(builder, id)
 }
 
 // GetBuildsForCommit returns the builds which ran at the given commit.
-func (c *CommitCache) GetBuildsForCommit(hash string) ([]*buildbot_deprecated.BuildSummary, error) {
+func (c *CommitCache) GetBuildsForCommit(hash string) ([]*buildbot.BuildSummary, error) {
 	builds, _, err := c.buildCache.GetBuildsForCommits([]string{hash})
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get build data for commit: %v", err)
 	}
-	rv := make([]*buildbot_deprecated.BuildSummary, 0, len(builds[hash]))
+	rv := make([]*buildbot.BuildSummary, 0, len(builds[hash]))
 	for _, b := range builds[hash] {
 		rv = append(rv, b)
 	}

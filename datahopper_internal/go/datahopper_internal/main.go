@@ -32,7 +32,7 @@ import (
 	"go.skia.org/infra/go/androidbuild"
 	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/buildbot_deprecated"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/login"
@@ -59,6 +59,7 @@ const (
 
 // flags
 var (
+	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	workdir        = flag.String("workdir", ".", "Working directory used by data processors.")
@@ -74,6 +75,9 @@ var (
 
 	// codenameDB is a leveldb to store codenames and their deobfuscated counterparts.
 	codenameDB *leveldb.DB
+
+	// db is a buildbot.DB instance used for ingesting build data.
+	db buildbot.DB
 
 	// repos provides information about the Git repositories in workdir.
 	repos *gitinfo.RepoMap
@@ -95,10 +99,10 @@ func isFinished(b *androidbuildinternal.Build) bool {
 // buildFromCommit builds a buildbot.Build from the commit and the info
 // returned from the Apiary API.  It also returns a key that uniqely identifies
 // this build.
-func buildFromCommit(build *androidbuildinternal.Build, commit *vcsinfo.ShortCommit) (string, *buildbot_deprecated.Build) {
+func buildFromCommit(build *androidbuildinternal.Build, commit *vcsinfo.ShortCommit) (string, *buildbot.Build) {
 	codename := util.StringToCodeName(build.Target.Name)
 	key := build.Branch + ":" + build.Target.Name + ":" + build.BuildId
-	b := &buildbot_deprecated.Build{
+	b := &buildbot.Build{
 		Builder:     codename,
 		Master:      FAKE_MASTER,
 		Number:      0,
@@ -111,10 +115,9 @@ func buildFromCommit(build *androidbuildinternal.Build, commit *vcsinfo.ShortCom
 			[]interface{}{"buildbotURL", "https://internal.skia.org/", "tradefed"},
 		},
 		PropertiesStr: "",
-		Results:       buildbot_deprecated.BUILDBOT_FAILURE,
+		Results:       buildbot.BUILDBOT_FAILURE,
 		Steps:         nil,
-		Times:         nil,
-		Started:       float64(build.CreationTimestamp) / 1000.0,
+		Started:       util.UnixMillisToTime(build.CreationTimestamp),
 		Comments:      nil,
 		Repository:    "https://skia.googlesource.com/skia.git",
 	}
@@ -126,11 +129,11 @@ func buildFromCommit(build *androidbuildinternal.Build, commit *vcsinfo.ShortCom
 		glog.Errorf("Failed to encode properties: %s", err)
 	}
 	if build.Successful {
-		b.Results = buildbot_deprecated.BUILDBOT_SUCCESS
+		b.Results = buildbot.BUILDBOT_SUCCESS
 	}
 	// Only fill in Finished if the build has completed.
 	if isFinished(build) {
-		b.Finished = float64(time.Now().UTC().Unix())
+		b.Finished = time.Now().UTC()
 	}
 	return key, b
 }
@@ -153,20 +156,20 @@ func brokenOnMaster(buildService *androidbuildinternal.Service, target, buildID 
 //   - Record the mapping between the codename (build.Builder) and the internal target name.
 //   - If no matching build exists, assign a new build number for this build and insert it.
 //   - Otherwise, update the existing build to match the given build.
-func ingestBuild(build *buildbot_deprecated.Build, commitHash, target string) error {
+func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 	// Store build.Builder (the codename) with its pair build.Target.Name in a local leveldb to serve redirects.
 	if err := codenameDB.Put([]byte(build.Builder), []byte(target), nil); err != nil {
 		glog.Errorf("Failed to write codename to data store: %s", err)
 	}
 
-	buildNumber, err := buildbot_deprecated.GetBuildForCommit(build.Builder, build.Master, commitHash)
+	buildNumber, err := db.GetBuildNumberForCommit(build.Builder, build.Master, commitHash)
 	if err != nil {
 		return fmt.Errorf("Failed to find the build in the database: %s", err)
 	}
 	glog.Infof("GetBuildForCommit at hash: %s returned %d", commitHash, buildNumber)
-	var cachedBuild *buildbot_deprecated.Build
+	var cachedBuild *buildbot.Build
 	if buildNumber != -1 {
-		cachedBuild, err = buildbot_deprecated.GetBuildFromDB(build.Builder, build.Master, buildNumber)
+		cachedBuild, err = db.GetBuildFromDB(build.Master, build.Builder, buildNumber)
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve build from database: %s", err)
 		}
@@ -178,7 +181,7 @@ func ingestBuild(build *buildbot_deprecated.Build, commitHash, target string) er
 		// after borenet's "giant datahopper change."
 
 		// First calculate a new unique build.Number.
-		number, err := buildbot_deprecated.GetMaxBuildNumber(build.Builder)
+		number, err := db.GetMaxBuildNumber(build.Master, build.Builder)
 		if err != nil {
 			return fmt.Errorf("Failed to find next build number: %s", err)
 		}
@@ -186,11 +189,9 @@ func ingestBuild(build *buildbot_deprecated.Build, commitHash, target string) er
 		glog.Infof("Writing new build to the database: %s %d", build.Builder, build.Number)
 	} else {
 		// If the state of the build has changed then write it to the buildbot database.
-		build.Id = cachedBuild.Id
-		build.Number = cachedBuild.Number
 		glog.Infof("Writing updated build to the database: %s %d", build.Builder, build.Number)
 	}
-	if err := buildbot_deprecated.IngestBuild(build, repos); err != nil {
+	if err := buildbot.IngestBuild(db, build, repos); err != nil {
 		return fmt.Errorf("Failed to ingest build: %s", err)
 	}
 	return nil
@@ -221,15 +222,15 @@ func step(targets []string, buildService *androidbuildinternal.Service) {
 				// Only look at the first commit in the list. The commits always appear in reverse chronological order, so
 				// the 0th entry is the most recent commit.
 				c := commits[0]
-				// Create a buildbot_deprecated.Build from the build info.
+				// Create a buildbot.Build from the build info.
 				key, build := buildFromCommit(b, c)
 				glog.Infof("Key: %s Hash: %s", key, c.Hash)
 
 				// If this was a failure then we need to check that there is a
 				// mirror failure on the main branch, at which point we will say
 				// that this is a warning.
-				if build.Results == buildbot_deprecated.BUILDBOT_FAILURE && brokenOnMaster(buildService, target, b.BuildId) {
-					build.Results = buildbot_deprecated.BUILDBOT_WARNING
+				if build.Results == buildbot.BUILDBOT_FAILURE && brokenOnMaster(buildService, target, b.BuildId) {
+					build.Results = buildbot.BUILDBOT_WARNING
 				}
 				if err := ingestBuild(build, c.Hash, target); err != nil {
 					glog.Error(err)
@@ -312,7 +313,7 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Not a valid build number.")
 		return
 	}
-	build, err := buildbot_deprecated.GetBuildFromDB(string(codename), FAKE_MASTER, buildNumber)
+	build, err := db.GetBuildFromDB(FAKE_MASTER, string(codename), buildNumber)
 	if err != nil {
 		util.ReportError(w, r, err, "Could not find a matching build.")
 	}
@@ -392,13 +393,13 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		codename = util.StringToCodeName(target)
 	}
-	buildbotResults, err := buildbot_deprecated.ParseResultsString(status)
+	buildbotResults, err := buildbot.ParseResultsString(status)
 	if err != nil {
 		util.ReportError(w, r, err, "Invalid parameters.")
 		return
 	}
-	buildbotTime := float64(time.Now().UTC().Unix())
-	b := &buildbot_deprecated.Build{
+	buildbotTime := time.Now().UTC()
+	b := &buildbot.Build{
 		Builder:       codename,
 		Master:        FAKE_MASTER,
 		Number:        0,
@@ -409,7 +410,6 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		PropertiesStr: "",
 		Results:       buildbotResults,
 		Steps:         nil,
-		Times:         nil,
 		Started:       buildbotTime,
 		Finished:      buildbotTime,
 		Comments:      nil,
@@ -452,8 +452,6 @@ func main() {
 	defer common.LogPanic()
 
 	var err error
-	// Setup flags.
-	dbConf := buildbot_deprecated.DBConfigFromFlags() // Global init to initialize glog and parse arguments.
 
 	// Global init to initialize glog and parse arguments.
 	common.InitWithMetrics("internal", graphiteServer)
@@ -472,12 +470,8 @@ func main() {
 		glog.Fatalf("Failed to open codename leveldb at %s: %s", *codenameDbDir, err)
 	}
 	// Initialize the buildbot database.
-	if !*local {
-		if err := dbConf.GetPasswordFromMetadata(); err != nil {
-			glog.Fatal(err)
-		}
-	}
-	if err := dbConf.InitDB(); err != nil {
+	db, err = buildbot.NewRemoteDB(*buildbotDbHost)
+	if err != nil {
 		glog.Fatal(err)
 	}
 

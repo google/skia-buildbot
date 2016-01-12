@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/buildbot_deprecated"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/timer"
@@ -66,6 +66,7 @@ func (s BuildCandidateSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 // commits.
 type BuildQueue struct {
 	botBlacklist   []*regexp.Regexp
+	db             buildbot.DB
 	lock           sync.RWMutex
 	period         time.Duration
 	scoreThreshold float64
@@ -99,12 +100,13 @@ type BuildQueue struct {
 // timeDecay24Hr equal to 0.5 causes the score for a build candidate with value
 // 1.0 to be 0.5 if the commit is 24 hours old. At 48 hours with a value of 1.0
 // the build candidate would receive a score of 0.25.
-func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold, timeDecay24Hr float64, botBlacklist []*regexp.Regexp) (*BuildQueue, error) {
+func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold, timeDecay24Hr float64, botBlacklist []*regexp.Regexp, db buildbot.DB) (*BuildQueue, error) {
 	if timeDecay24Hr <= 0.0 || timeDecay24Hr > 1.0 {
 		return nil, fmt.Errorf("Time penalty must be 0 < p <= 1")
 	}
 	q := &BuildQueue{
 		botBlacklist:   botBlacklist,
+		db:             db,
 		lock:           sync.RWMutex{},
 		period:         period,
 		scoreThreshold: scoreThreshold,
@@ -128,7 +130,7 @@ func timeFactor(now, t time.Time, lambda float64) float64 {
 
 // scoreBuild returns the current score for the given commit/builder pair. The
 // details on how scoring works are described in the doc for NewBuildQueue.
-func scoreBuild(commit *vcsinfo.LongCommit, build *buildbot_deprecated.Build, now time.Time, timeLambda float64) float64 {
+func scoreBuild(commit *vcsinfo.LongCommit, build *buildbot.Build, now time.Time, timeLambda float64) float64 {
 	s := -1.0
 	if build != nil {
 		if build.GotRevision == commit.Hash {
@@ -224,7 +226,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	}
 
 	// Get all builds associated with the recent commits.
-	buildsByCommit, err := buildbot_deprecated.GetBuildsForCommits(recentCommitsPreload, map[int]bool{})
+	buildsByCommit, err := q.db.GetBuildsForCommits(recentCommitsPreload, nil)
 	if err != nil {
 		return nil, fmt.Errorf(errMsg, err)
 	}
@@ -238,13 +240,13 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 				continue
 			}
 			if _, ok := buildCaches[build.Builder]; !ok {
-				bc, err := newBuildCache(build.Builder, build.Master, build.Repository)
+				bc, err := newBuildCache(build.Master, build.Builder, build.Repository, q.db)
 				if err != nil {
 					return nil, fmt.Errorf(errMsg, err)
 				}
 				buildCaches[build.Builder] = bc
 			}
-			if err := buildCaches[build.Builder].Put(build); err != nil {
+			if err := buildCaches[build.Builder].PutBuild(build); err != nil {
 				return nil, err
 			}
 		}
@@ -301,11 +303,11 @@ func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []str
 			return nil, err
 		}
 		// "insert" the new build.
-		if err := bc.Put(newBuild); err != nil {
+		if err := bc.PutBuild(newBuild); err != nil {
 			return nil, err
 		}
 		if stoleFrom != nil {
-			if err := bc.Put(stoleFrom); err != nil {
+			if err := bc.PutBuild(stoleFrom); err != nil {
 				return nil, err
 			}
 		}
@@ -321,7 +323,7 @@ func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []str
 }
 
 // getBestCandidate finds the best BuildCandidate for the given builder.
-func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, now time.Time) (float64, *buildbot_deprecated.Build, *buildbot_deprecated.Build, error) {
+func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
 	errMsg := fmt.Sprintf("Failed to get best candidate for %s: %%v", bc.Builder)
 	repo, err := q.repos.Repo(bc.Repo)
 	if err != nil {
@@ -344,8 +346,8 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 	// For each commit/builder pair, determine the score increase obtained
 	// by running a build at that commit.
 	scoreIncrease := map[string]float64{}
-	newBuildsByCommit := map[string]*buildbot_deprecated.Build{}
-	stoleFromByCommit := map[string]*buildbot_deprecated.Build{}
+	newBuildsByCommit := map[string]*buildbot.Build{}
+	stoleFromByCommit := map[string]*buildbot.Build{}
 	for _, commit := range recentCommits {
 		// Shortcut: Don't bisect builds with a huge number
 		// of commits.  This saves lots of time and only affects
@@ -364,14 +366,14 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 
 		newScores := map[string]float64{}
 		// Pretend to create a new Build at the given commit.
-		newBuild := buildbot_deprecated.Build{
+		newBuild := buildbot.Build{
 			Builder:     bc.Builder,
 			Master:      bc.Master,
 			Number:      bc.MaxBuildNum + 1,
 			GotRevision: commit,
 			Repository:  bc.Repo,
 		}
-		commits, stealFrom, stolen, err := buildbot_deprecated.FindCommitsForBuild(bc, &newBuild, q.repos)
+		commits, stealFrom, stolen, err := buildbot.FindCommitsForBuild(bc, &newBuild, q.repos)
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
@@ -405,11 +407,11 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 			}
 			if stoleFromOrig == nil {
 				// The build may not be cached. Fall back on getting it from the DB.
-				stoleFromOrig, err = buildbot_deprecated.GetBuildFromDB(bc.Builder, bc.Master, stealFrom)
+				stoleFromOrig, err = q.db.GetBuildFromDB(bc.Master, bc.Builder, stealFrom)
 				if err != nil {
 					return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 				}
-				if err := bc.Put(stoleFromOrig); err != nil {
+				if err := bc.PutBuild(stoleFromOrig); err != nil {
 					return 0.0, nil, nil, err
 				}
 			}

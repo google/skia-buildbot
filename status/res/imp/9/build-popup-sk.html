@@ -23,7 +23,7 @@
         commits:     Array of strings indicating which commits were part of the build.
         failedSteps: Array of strings indicating which steps failed.
         finished:    Number indicating the timestamp when the build finished, or zero if it is still running.
-        id:          Number indicating the unique ID of the build.
+        master:      String indicating the master of the build.
         number:      Number indicating the build number of this build.
         results:     Number indicating the result status code of the build.
 
@@ -167,7 +167,7 @@
         return '/hosts?filter=%5E' + build.buildslave + '%24';
       },
       _makeAddCommentURL: function (build, repo) {
-        return '/json/' + repo + '/builds/' + build.id + '/comments';
+        return '/json/' + repo + '/builds/' + build.master + '/' + build.builder + '/' + build.number + '/comments';
       },
       _makeBuildStepLogURL: function (build, buildbot_url_prefix, step) {
         return buildbot_url_prefix + 'builders/' + build.builder + '/builds/' + build.number + '/steps/' + step + '/logs/stdio';

@@ -29,7 +29,7 @@ import (
 import (
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/alertserver/go/rules"
-	"go.skia.org/infra/go/buildbot_deprecated"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/influxdb"
@@ -63,6 +63,7 @@ var (
 	emailClientSecretFlag = flag.String("email_clientsecret", "", "OAuth Client Secret for sending email.")
 	alertPollInterval     = flag.String("alert_poll_interval", "1s", "How often to check for new alerts.")
 	alertsFile            = flag.String("alerts_file", "alerts.cfg", "Config file containing alert rules.")
+	buildbotDbHost        = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
 	testing               = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
 	validateAndExit       = flag.Bool("validate_and_exit", false, "If set, just validate the config file and then exit.")
 	workdir               = flag.String("workdir", ".", "Directory to use for scratch work.")
@@ -350,7 +351,6 @@ func runServer(serverURL string) {
 func main() {
 	defer common.LogPanic()
 	alertDBConf := alerting.DBConfigFromFlags()
-	buildbotDBConf := buildbot_deprecated.DBConfigFromFlags()
 	influxdb.SetupFlags()
 	common.InitWithMetrics("alertserver", graphiteServer)
 	v, err := skiaversion.GetVersion()
@@ -428,14 +428,13 @@ func main() {
 		if err := alertDBConf.GetPasswordFromMetadata(); err != nil {
 			glog.Fatal(err)
 		}
-		if err := buildbotDBConf.GetPasswordFromMetadata(); err != nil {
-			glog.Fatal(err)
-		}
 	}
 	if err := alertDBConf.InitDB(); err != nil {
 		glog.Fatal(err)
 	}
-	if err := buildbotDBConf.InitDB(); err != nil {
+
+	buildbotDb, err := buildbot.NewRemoteDB(*buildbotDbHost)
+	if err != nil {
 		glog.Fatal(err)
 	}
 
@@ -448,7 +447,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to set up rules: %v", err)
 	}
-	StartAlertRoutines(alertManager, 10*parsedPollInterval, dbClient)
+	StartAlertRoutines(alertManager, 10*parsedPollInterval, dbClient, buildbotDb)
 
 	runServer(serverURL)
 }
