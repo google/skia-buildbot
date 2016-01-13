@@ -29,7 +29,8 @@ var (
 	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	workdir        = flag.String("workdir", ".", "Working directory used by data processors.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port           = flag.String("port", ":8000", "Port on which to run the buildbot data server.")
+	grpcPort       = flag.String("grpc_port", ":8000", "Port on which to run the buildbot data gRPC server.")
+	httpPort       = flag.String("http_port", ":8001", "Port on which to run the HTTP server.")
 
 	// Regexp matching non-alphanumeric characters.
 	re = regexp.MustCompile("[^A-Za-z0-9]+")
@@ -79,7 +80,7 @@ func main() {
 	}
 
 	// Run a server for the buildbot data.
-	if err := buildbot.RunBuildServer(*port, db); err != nil {
+	if err := buildbot.RunBuildServer(*grpcPort, db); err != nil {
 		glog.Fatal(err)
 	}
 
@@ -146,6 +147,10 @@ func main() {
 			infraGauge.Update(int64(infraRepo.NumCommits()))
 		}
 	}()
+
+	if err := buildbot.RunBackupServer(db, *httpPort); err != nil {
+		glog.Fatal(err)
+	}
 
 	// Wait while the above goroutines generate data.
 	select {}

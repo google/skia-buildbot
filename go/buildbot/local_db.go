@@ -5,9 +5,12 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"fmt"
+	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/boltdb/bolt"
+	"github.com/gorilla/mux"
 	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
 )
@@ -813,4 +816,27 @@ func (d *localDB) DeleteCommitComment(id int64) error {
 		}
 		return tx.Bucket(BUCKET_COMMIT_COMMENTS).Delete(key_COMMIT_COMMENTS(id))
 	})
+}
+
+// RunBackupServer runs an HTTP server which provides downloadable database backups.
+func RunBackupServer(db DB, port string) error {
+	local, ok := db.(*localDB)
+	if !ok {
+		return fmt.Errorf("Cannot run a backup server for a non-local database.")
+	}
+	r := mux.NewRouter()
+	r.HandleFunc("/backup", func(w http.ResponseWriter, r *http.Request) {
+		if err := local.db.View(func(tx *bolt.Tx) error {
+			w.Header().Set("Content-Type", "application/octet-stream")
+			w.Header().Set("Content-Disposition", "attachment; filename=\"buildbot.db\"")
+			w.Header().Set("Content-Length", strconv.Itoa(int(tx.Size())))
+			_, err := tx.WriteTo(w)
+			return err
+		}); err != nil {
+			util.ReportError(w, r, err, fmt.Sprintf("Failed to create DB backup: %s", err))
+		}
+	})
+	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	go http.ListenAndServe(port, nil)
+	return nil
 }
