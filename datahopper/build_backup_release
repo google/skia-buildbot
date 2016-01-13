@@ -1,6 +1,6 @@
 #!/bin/bash
 # Builds and uploads a debian package for buildbot_db_backup.
-APPNAME=buildbot_db_backup
+APPNAME=buildbot-db-backup
 DESCRIPTION="Service which performs backups of the buildbot database."
 SYSTEMD=${APPNAME}.service
 SYSTEMD_TIMER=${APPNAME}.timer
