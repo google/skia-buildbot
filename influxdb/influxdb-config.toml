@@ -190,9 +190,9 @@ reporting-disabled = false
 
     # Rules for buildbot measurements.
     #
-    # datahopper.skia-datahopper.buildbot.builds.Test_Ubuntu_GCC_Golo_GPU_GT610_x86_64_Debug_ASAN.duration.value
+    # datahopper.skia-datahopper2.buildbot.builds.Test_Ubuntu_GCC_Golo_GPU_GT610_x86_64_Debug_ASAN.duration.value
     "*.*.buildbot.builds.* app.host.measurement.measurement.builder.measurement*",
-    # datahopper.skia-datahopper.buildbot.buildstepsbybuilder.Test_Android_GCC_NexusPlayer_GPU_PowerVR_x86_Debug.push_uninteresting_hashes_txt.duration.value
+    # datahopper.skia-datahopper2.buildbot.buildstepsbybuilder.Test_Android_GCC_NexusPlayer_GPU_PowerVR_x86_Debug.push_uninteresting_hashes_txt.duration.value
     "*.*.buildbot.buildstepsbybuilder.* app.host.measurement.measurement.builder.step.measurement*",
 
     # Rule for logserver metrics.
