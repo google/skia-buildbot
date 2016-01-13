@@ -23,6 +23,10 @@ type CommitID struct {
 	Source    string `json:"source"` // The branch name, e.g. "master", or the Reitveld issue id.
 }
 
+func (c CommitID) String() string {
+	return fmt.Sprintf("%s:%s:%d", c.ID, c.Source, c.Timestamp)
+}
+
 // Entry holds the params and a value for single measurement.
 type Entry struct {
 	Params map[string]string

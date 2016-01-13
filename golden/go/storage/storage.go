@@ -182,5 +182,5 @@ func (s *Storage) GetTileFromTimeRange(begin, end time.Time) (*tiling.Tile, erro
 	if err != nil {
 		return nil, fmt.Errorf("Failed retrieving commitIDs in range %s to %s. Got error: %s", begin, end, err)
 	}
-	return s.BranchTileBuilder.TileFromCommits(commitIDs)
+	return s.BranchTileBuilder.CachedTileFromCommits(tracedb.ShortFromLong(commitIDs))
 }

@@ -6,12 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang/groupcache/lru"
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/perf/go/types"
 )
 
 func TestPerfTrace(t *testing.T) {
@@ -39,7 +41,8 @@ func TestPerfTrace(t *testing.T) {
 		vcs:       vcs,
 		review:    review,
 		reviewURL: "https://codereview.chromium.org",
-		cache:     map[string]*rietveld.Issue{},
+		tcache:    lru.New(2),
+		cache:     lru.New(2),
 	}
 
 	now := time.Unix(100, 0)
@@ -97,4 +100,87 @@ func TestPerfTrace(t *testing.T) {
 	assert.Equal(t, "barbarbar", long[1].ID)
 	assert.Equal(t, "", long[1].Desc)
 	assert.Equal(t, "", long[1].Author)
+}
+
+func TestTileFromCommits(t *testing.T) {
+	ts, cleanup := setupClientServerForTesting(t.Fatalf)
+	defer cleanup()
+
+	now := time.Unix(100, 0)
+
+	commitIDs := []*CommitID{
+		&CommitID{
+			Timestamp: now.Unix(),
+			ID:        "foofoofoo",
+			Source:    "master",
+		},
+	}
+
+	vcsCommits := []*vcsinfo.LongCommit{
+		&vcsinfo.LongCommit{
+			ShortCommit: &vcsinfo.ShortCommit{
+				Hash:    "foofoofoo",
+				Author:  "bar@example.com",
+				Subject: "some commit",
+			},
+		},
+	}
+	vcs := ingestion.MockVCS(vcsCommits)
+
+	entries := map[string]*Entry{
+		"key:8888:android": &Entry{
+			Params: map[string]string{
+				"config":   "8888",
+				"platform": "android",
+				"type":     "skp",
+			},
+			Value: types.BytesFromFloat64(0.01),
+		},
+		"key:gpu:win8": &Entry{
+			Params: map[string]string{
+				"config":   "gpu",
+				"platform": "win8",
+				"type":     "skp",
+			},
+			Value: types.BytesFromFloat64(1.234),
+		},
+	}
+
+	// Populate the tile with some data.
+	err := ts.Add(commitIDs[0], entries)
+	assert.NoError(t, err)
+
+	// Now test tileBuilder.
+	builder := &tileBuilder{
+		db:     ts,
+		vcs:    vcs,
+		tcache: lru.New(2),
+		cache:  lru.New(2),
+	}
+	tile, err := builder.CachedTileFromCommits(commitIDs)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tile.Commits))
+	assert.Equal(t, 2, len(tile.Traces))
+	assert.Equal(t, 1, builder.tcache.Len(), "The tile should have been added to the cache.")
+
+	entries = map[string]*Entry{
+		"key:565:linux": &Entry{
+			Params: map[string]string{
+				"config":   "565",
+				"platform": "linux",
+				"type":     "skp",
+			},
+			Value: types.BytesFromFloat64(0.05),
+		},
+	}
+
+	// Add more data and be sure that the new data is returned when we
+	// call CachedTileFromCommits again.
+	err = ts.Add(commitIDs[0], entries)
+	assert.NoError(t, err)
+	tile, err = builder.CachedTileFromCommits(commitIDs)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tile.Commits))
+	assert.Equal(t, 3, len(tile.Traces), "The new data should appear in the tile.")
+	assert.Equal(t, 1, builder.tcache.Len(), "The new tile should have replaced the old tile in the cache.")
 }

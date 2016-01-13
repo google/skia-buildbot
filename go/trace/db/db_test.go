@@ -1,61 +1,17 @@
 package db
 
 import (
-	"fmt"
-	"net"
-	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/go/trace/service"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/types"
-	"google.golang.org/grpc"
 )
-
-const (
-	FILENAME = "/tmp/tracedb_test.db"
-)
-
-func cleanup() {
-	if err := os.Remove(FILENAME); err != nil {
-		fmt.Printf("Failed to clean up %s: %s", FILENAME, err)
-	}
-}
 
 func TestAdd(t *testing.T) {
+	ts, cleanup := setupClientServerForTesting(t.Fatalf)
 	defer cleanup()
-
-	// First spin up a traceservice server that we wil talk to.
-	server, err := traceservice.NewTraceServiceServer(FILENAME)
-	if err != nil {
-		t.Fatalf("Failed to initialize the tracestore server: %s", err)
-	}
-
-	// Start the server on an open port.
-	lis, err := net.Listen("tcp", "localhost:0")
-	if err != nil {
-		t.Fatalf("failed to listen: %v", err)
-	}
-	port := lis.Addr().String()
-	s := grpc.NewServer()
-	traceservice.RegisterTraceServiceServer(s, server)
-	go func() {
-		t.Fatalf("Failed while serving: %s", s.Serve(lis))
-	}()
-
-	// Set up a connection to the server.
-	conn, err := grpc.Dial(port, grpc.WithInsecure())
-	if err != nil {
-		t.Fatalf("did not connect: %v", err)
-	}
-	defer util.Close(conn)
-	ts, err := NewTraceServiceDB(conn, types.PerfTraceBuilder)
-	if err != nil {
-		t.Fatalf("Failed to create tracedb.DB: %s", err)
-	}
-	defer util.Close(ts)
 
 	now := time.Unix(100, 0)
 
@@ -91,7 +47,7 @@ func TestAdd(t *testing.T) {
 		},
 	}
 
-	err = ts.Add(commitIDs[0], entries)
+	err := ts.Add(commitIDs[0], entries)
 
 	assert.NoError(t, err)
 	tile, hashes, err := ts.TileFromCommits(commitIDs)
