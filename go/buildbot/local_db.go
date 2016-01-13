@@ -11,6 +11,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
 )
@@ -42,6 +43,9 @@ var (
 const (
 	// Initial ID number.
 	INITIAL_ID = 1
+
+	// If ingestion latency is greater than this, an alert will be triggered.
+	INGEST_LATENCY_ALERT_THRESHOLD = 2 * time.Minute
 )
 
 func init() {
@@ -357,8 +361,12 @@ func putBuild(tx *bolt.Tx, b *Build) error {
 	id := b.Id()
 	if tx.Bucket(BUCKET_BUILDS).Get(id) == nil {
 		// Measure the time between build start and first DB insertion.
-		t := int64(time.Now().Sub(b.Started))
-		metrics.GetOrRegisterSlidingWindow("buildbot.startToIngestLatency", metrics.DEFAULT_WINDOW).Update(t)
+		latency := time.Now().Sub(b.Started)
+		if latency > INGEST_LATENCY_ALERT_THRESHOLD {
+			// This is probably going to trigger an alert. Log the build for debugging.
+			glog.Warningf("Build start to ingestion latency is greater than %s (%s): %s %s #%d", INGEST_LATENCY_ALERT_THRESHOLD, latency, b.Master, b.Builder, b.Number)
+		}
+		metrics.GetOrRegisterSlidingWindow("buildbot.startToIngestLatency", metrics.DEFAULT_WINDOW).Update(int64(latency))
 	} else {
 		if err := deleteBuild(tx, id); err != nil {
 			return err
