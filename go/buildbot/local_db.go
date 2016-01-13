@@ -837,6 +837,5 @@ func RunBackupServer(db DB, port string) error {
 		}
 	})
 	http.Handle("/", util.LoggingGzipRequestResponse(r))
-	go http.ListenAndServe(port, nil)
-	return nil
+	return http.ListenAndServe(port, nil)
 }

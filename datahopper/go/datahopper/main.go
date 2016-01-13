@@ -148,9 +148,10 @@ func main() {
 		}
 	}()
 
-	if err := buildbot.RunBackupServer(db, *httpPort); err != nil {
-		glog.Fatal(err)
-	}
+	// Run a backup server.
+	go func() {
+		glog.Fatal(buildbot.RunBackupServer(db, *httpPort))
+	}()
 
 	// Wait while the above goroutines generate data.
 	select {}
