@@ -65,10 +65,26 @@ func googleStorageChangeHandler(w http.ResponseWriter, r *http.Request) {
 	eventBus.Publish(event.GLOBAL_GOOGLE_STORAGE, data)
 }
 
+func buildbotEventHandler(w http.ResponseWriter, r *http.Request) {
+	defer util.Close(r.Body)
+	data := r.PostFormValue("packets")
+	var events []*event.BuildbotEventData
+	if err := json.Unmarshal([]byte(data), &events); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		return
+	}
+
+	// Log the event and fire it.
+	for _, e := range events {
+		eventBus.Publish(event.GLOBAL_BUILDBOT, e)
+	}
+}
+
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/googlestorage", googleStorageChangeHandler).Methods("POST")
+	r.HandleFunc("/buildbot", buildbotEventHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	http.Handle("/", util.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
@@ -93,11 +109,10 @@ func main() {
 	}
 	eventBus = eventbus.New(globalEventBus)
 
-	// Add a subscription for the storage events. This prevents the messages
+	// Add a subscription for the each event type. This prevents the messages
 	// to queue up if there are no other clients connected.
-	eventBus.SubscribeAsync(event.GLOBAL_GOOGLE_STORAGE, func(evData interface{}) {
-		// Ignore the messages.
-	})
+	eventBus.SubscribeAsync(event.GLOBAL_GOOGLE_STORAGE, func(evData interface{}) {})
+	eventBus.SubscribeAsync(event.GLOBAL_BUILDBOT, func(evData interface{}) {})
 
 	if *testing {
 		*useMetadata = false

@@ -11,12 +11,14 @@ import (
 )
 
 const (
+	GLOBAL_BUILDBOT       = "global-buildbot-event"
 	GLOBAL_GOOGLE_STORAGE = "global-google-storage-event"
 )
 
 func init() {
 	// GLOBAL_GOOGLE_STORAGE even will be fired with an instance of GoogleStorageEventData
 	eventbus.RegisterGlobalEvent(GLOBAL_GOOGLE_STORAGE, util.JSONCodec(&GoogleStorageEventData{}))
+	eventbus.RegisterGlobalEvent(GLOBAL_BUILDBOT, util.JSONCodec(&BuildbotEventData{}))
 }
 
 func StorageEvent(bucket, prefix string) string {
@@ -53,4 +55,26 @@ type GoogleStorageEventData struct {
 	Owner          map[string]string `json:"owner"`
 	Crc32C         string            `json:"crc32c"`
 	ETag           string            `json:"etag"`
+}
+
+// BuildbotEventType registers a subtopic and returns a subtopic name for the
+// given buildbot event type.
+func BuildbotEventType(eventType string) string {
+	subTopic := fmt.Sprintf("%s-%s", GLOBAL_BUILDBOT, eventType)
+	eventbus.RegisterSubTopic(GLOBAL_BUILDBOT, subTopic, func(eventData interface{}) bool {
+		e, ok := eventData.(*BuildbotEventData)
+		if !ok {
+			glog.Errorf("Received data that was not an instance of BuildbotEventData.")
+			return false
+		}
+		return e.Event == eventType
+	})
+	return subTopic
+}
+
+type BuildbotEventData struct {
+	Id      int64                  `json:"id"`
+	Event   string                 `json:"event"`
+	Payload map[string]interface{} `json:"payload"`
+	Project string                 `json:"project"`
 }
