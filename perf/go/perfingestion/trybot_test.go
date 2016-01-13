@@ -50,7 +50,7 @@ func TestTrybotPerfIngestion(t *testing.T) {
 
 	processor.(*perfTrybotProcessor).review = rietveld.New("https://codereview.chromium.org", m.Client())
 
-	fsResult, err := ingestion.FileSystemResult(filepath.Join(TEST_DATA_DIR, "trybot.json"))
+	fsResult, err := ingestion.FileSystemResult(filepath.Join(TEST_DATA_DIR, "trybot.json"), TEST_DATA_DIR)
 	assert.Nil(t, err)
 	err = processor.Process(fsResult)
 	assert.Nil(t, err)

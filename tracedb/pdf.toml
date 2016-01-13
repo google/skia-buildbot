@@ -20,7 +20,7 @@ GitRepoURL     = "https://skia.googlesource.com/skia"
 		OutputJsonBucket   = "skia-infra-gm"
 		OutputJsonDir      = "pdf/dm-json-v1"
 
-		OutputImagesBucket  = "skia-infra-gm"
-		OutputImagesDir     = "pdf/dm-images-v1"
+		OutputImagesBucket  = "chromium-skia-gm"
+		OutputImagesDir     = "dm-images-v1"
 
 		PdfCacheDir         = "/mnt/pd0/pdf/cache"

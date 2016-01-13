@@ -66,7 +66,7 @@ func TestPDFProcessor(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Load the example file and process it.
-	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE)
+	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
 	assert.Nil(t, err)
 
 	err = processor.Process(fsResult)
@@ -80,14 +80,14 @@ func TestPDFProcessor(t *testing.T) {
 	assert.Nil(t, pProcessor.download(TEST_BUCKET, JSON_OUT_DIR, fsResult.Name(), resultFileName))
 
 	// Make sure we get the expected result.
-	fsResult, err = ingestion.FileSystemResult(TEST_INGESTION_FILE)
+	fsResult, err = ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
 	assert.Nil(t, err)
 	r, err := fsResult.Open()
 	assert.Nil(t, err)
 	fsDMResults, err := goldingestion.ParseDMResultsFromReader(r)
 	assert.Nil(t, err)
 
-	foundResult, err := ingestion.FileSystemResult(resultFileName)
+	foundResult, err := ingestion.FileSystemResult(resultFileName, "./")
 	assert.Nil(t, err)
 	r, err = foundResult.Open()
 	assert.Nil(t, err)

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -170,7 +171,7 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 						continue
 					}
 					// We re-encode the md5 hash as a hex string to make debugging and testing easier.
-					retval = append(retval, newGSResultFileLocation(result, updateTimestamp, hex.EncodeToString(md5Bytes), g.client))
+					retval = append(retval, newGSResultFileLocation(result, g.rootDir, updateTimestamp, hex.EncodeToString(md5Bytes), g.client))
 				}
 			}
 			if len(resp.NextPageToken) > 0 {
@@ -197,16 +198,18 @@ func (g *GoogleStorageSource) ID() string {
 // gsResultFileLocation implements the ResultFileLocation for Google storage.
 type gsResultFileLocation struct {
 	uri         string
+	path        string
 	name        string
 	lastUpdated int64
 	md5         string
 	client      *http.Client
 }
 
-func newGSResultFileLocation(result *storage.Object, updateTS int64, md5 string, client *http.Client) ResultFileLocation {
+func newGSResultFileLocation(result *storage.Object, rootDir string, updateTS int64, md5 string, client *http.Client) ResultFileLocation {
 	return &gsResultFileLocation{
 		uri:         result.MediaLink,
-		name:        result.Name,
+		path:        result.Name,
+		name:        strings.TrimPrefix(result.Name, rootDir+"/"),
 		lastUpdated: updateTS,
 		md5:         md5,
 		client:      client,
@@ -229,7 +232,7 @@ func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 		if resp.StatusCode != 200 {
 			glog.Errorf("Failed to retrieve %s. Error: %d  %s", g.uri, resp.StatusCode, resp.Status)
 		}
-		glog.Infof("GSFILE READ %s", g.name)
+		glog.Infof("GSFILE READ %s", g.path)
 		return resp.Body, nil
 	}
 	return nil, fmt.Errorf("Failed fetching %s after %d attempts", g.uri, MAX_URI_GET_TRIES)
@@ -282,7 +285,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 
 				updateTimestamp := info.ModTime().Unix()
 				if updateTimestamp > startTime {
-					rf, err := FileSystemResult(path)
+					rf, err := FileSystemResult(path, f.rootDir)
 					if err != nil {
 						glog.Errorf("Unable to create file system result: %s", err)
 						return nil
@@ -323,7 +326,9 @@ type fsResultFileLocation struct {
 	md5  string
 }
 
-func FileSystemResult(path string) (ResultFileLocation, error) {
+// FileSystemResult returns a ResultFileLocation for files. path is the path
+// where the target file resides and rootDir is the root of all paths.
+func FileSystemResult(path, rootDir string) (ResultFileLocation, error) {
 	// Read file into buffer and calculate the md5 in the process.
 	file, err := os.Open(path)
 	if err != nil {
@@ -337,8 +342,18 @@ func FileSystemResult(path string) (ResultFileLocation, error) {
 		return nil, fmt.Errorf("Unable to get MD5 hash of %s: %s", path, err)
 	}
 
+	absRootDir, err := filepath.Abs(rootDir)
+	if err != nil {
+		return nil, err
+	}
+
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
+
 	return &fsResultFileLocation{
-		path: path,
+		path: strings.TrimPrefix(absPath, absRootDir+"/"),
 		buf:  buf.Bytes(),
 		md5:  hex.EncodeToString(md5),
 	}, nil

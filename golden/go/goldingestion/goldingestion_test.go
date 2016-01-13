@@ -88,7 +88,7 @@ func TestGoldProcessor(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Load the example file and process it.
-	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE)
+	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
 	assert.Nil(t, err)
 	err = processor.Process(fsResult)
 	assert.Nil(t, err)

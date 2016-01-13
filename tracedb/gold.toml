@@ -14,6 +14,10 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 		Bucket         = "chromium-skia-gm"
 		Dir            = "dm-json-v1"
 
+		[[Ingesters.gold.Sources]]
+		Bucket         = "skia-infra-gm"
+		Dir            = "pdf/dm-json-v1"
+
 		[Ingesters.gold.ExtraParams]
 		TraceService   = "localhost:10000"
 
