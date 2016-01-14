@@ -24,6 +24,9 @@
 
   <quartile-sk id=quar name=Regressions></quartile-sk>
 
+  <h2>Event details</h2>
+  <pre id=events></pre>
+
   <error-toast-sk></error-toast-sk>
   <script type="text/javascript" charset="utf-8">
     $$$('#quar').quartile = {
@@ -78,6 +81,10 @@
       ],
       percent: 0.041025641025641026
     }
+
+    document.body.addEventListener("view-traces", function(e) {
+      $$$('#events').textContent = JSON.stringify(e.detail, null, 2);
+    });
   </script>
 </body>
 </html>

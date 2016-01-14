@@ -1,8 +1,18 @@
 <!-- The <center-sk> custom element declaration.
 
   Attributes:
+    data - A serialized kmlabel.Center.
+
   Events:
+    view-traces - Fired when the view traces button is pressed.
+      The event details contains the ids of the traces to display:
+
+      details: {
+        ids: ["traceid1", "traceid2", ..],
+      }
+
   Methods:
+    None.
 -->
 
 <link rel="import" href="/res/common/imp/9/word-cloud.html">
@@ -43,12 +53,7 @@
     },
 
     _view: function() {
-      var state = {
-        keys: this.data.ids,
-      };
-      sk.post('/shortcuts/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
-        window.open('/#' + json.id, '_blank');
-      }).catch(sk.errorMessage);
+      this.fire("view-traces", {ids: this.data.ids});
     },
 
   });
