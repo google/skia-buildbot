@@ -1,0 +1,55 @@
+<!-- The <center-sk> custom element declaration.
+
+  Attributes:
+  Events:
+  Methods:
+-->
+
+<link rel="import" href="/res/common/imp/9/word-cloud.html">
+<dom-module id="center-sk">
+  <style>
+    :host {
+      display: block;
+      margin: 0.8em;
+      margin-left: 2em;
+      border: solid #ddd 1px;
+      padding: 1em;
+      background: #eee;
+    }
+  </style>
+  <template>
+    <div>
+      {{data.size}} Traces
+      <button class=action on-tap="_view">View</button>
+    </div>
+    <word-cloud-sk id=cloud><word-cloud-sk>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "center-sk",
+
+    properties: {
+      data: {
+        type: Object,
+        value: function() { return {} },
+        observer: "_dataChanged",
+      },
+    },
+
+    _dataChanged: function() {
+      this.$.cloud.setItems(this.data.wordcloud);
+    },
+
+    _view: function() {
+      var state = {
+        keys: this.data.ids,
+      };
+      sk.post('/shortcuts/', JSON.stringify(state)).then(JSON.parse).then(function (json) {
+        window.open('/#' + json.id, '_blank');
+      }).catch(sk.errorMessage);
+    },
+
+  });
+</script>
