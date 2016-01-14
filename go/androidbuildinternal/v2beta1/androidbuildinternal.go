@@ -5879,7 +5879,7 @@ func (c *BuildartifactUpdateCall) Do() (*BuildArtifactMetadata, error) {
 	}
 	if c.protocol_ == "resumable" {
 		loc := res.Header.Get("Location")
-		rx := &googleapi.ResumableUpload{
+		rx := &gensupport.ResumableUpload{
 			Client:        c.s.client,
 			UserAgent:     c.s.userAgent(),
 			URI:           loc,
@@ -9195,7 +9195,7 @@ func (c *DeviceblobUpdateCall) Do() (*BuildArtifactMetadata, error) {
 	}
 	if c.protocol_ == "resumable" {
 		loc := res.Header.Get("Location")
-		rx := &googleapi.ResumableUpload{
+		rx := &gensupport.ResumableUpload{
 			Client:        c.s.client,
 			UserAgent:     c.s.userAgent(),
 			URI:           loc,
@@ -12811,7 +12811,7 @@ func (c *TestartifactUpdateCall) Do() (*BuildArtifactMetadata, error) {
 	}
 	if c.protocol_ == "resumable" {
 		loc := res.Header.Get("Location")
-		rx := &googleapi.ResumableUpload{
+		rx := &gensupport.ResumableUpload{
 			Client:        c.s.client,
 			UserAgent:     c.s.userAgent(),
 			URI:           loc,
