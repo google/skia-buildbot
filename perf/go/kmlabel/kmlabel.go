@@ -107,6 +107,10 @@ type Measure struct {
 
 	// Distances is the pre-calculated distance to each value, based on Counts.
 	Distances []float64
+
+	// squares just used in Calc, but adding it here avoids allocating a new one
+	// each time Calc is called.
+	squares []float64
 }
 
 // NewMeasure returns a new Measure for a parameter with 'size' possible values.
@@ -114,6 +118,7 @@ func NewMeasure(size int) *Measure {
 	return &Measure{
 		Counts:    make([]int, size),
 		Distances: make([]float64, size),
+		squares:   make([]float64, size),
 	}
 }
 
@@ -186,14 +191,14 @@ func (m *Measure) Calc() {
 	for i, _ := range m.Counts {
 		sum += float64(m.Counts[i])
 	}
-	squares := make([]float64, len(m.Counts))
 	tss := 0.0
 	for i, x := range m.Counts {
-		squares[i] = math.Pow(float64(x), 2.0)
-		tss += squares[i]
+		m.squares[i] = float64(x) * float64(x)
+		tss += m.squares[i]
 	}
 	for i, _ := range m.Counts {
-		m.Distances[i] = math.Sqrt(tss-squares[i]+math.Pow(sum-float64(m.Counts[i]), 2.0)) / sum
+		delta := sum - float64(m.Counts[i])
+		m.Distances[i] = math.Sqrt(tss-m.squares[i]+delta*delta) / sum
 	}
 }
 
@@ -251,7 +256,8 @@ func (c *Centroid) Distance(clusterable kmeans.Clusterable) float64 {
 	total := 0.0
 	t := clusterable.(*Trace)
 	for i, p := range t.Params {
-		total += math.Pow(c.Dimensions[i].Distance(p), 2)
+		d := c.Dimensions[i].Distance(p)
+		total += d * d
 	}
 	return math.Sqrt(total)
 }

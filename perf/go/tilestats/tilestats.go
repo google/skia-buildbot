@@ -29,7 +29,7 @@ type TraceStats struct {
 type TileStats struct {
 	evt   *eventbus.EventBus
 	stats map[string]*TraceStats
-	mutex sync.Mutex
+	mutex sync.RWMutex
 }
 
 // New create a new TileStats. The eventbus is monitored for new tiles
@@ -118,4 +118,20 @@ func (t *TileStats) calcStats(tile *tiling.Tile) {
 		st.Q3 = q3
 		t.mutex.Unlock()
 	}
+}
+
+// TraceStats returns the statistics for the given trace.
+func (t *TileStats) TraceStats(id string) (*TraceStats, bool) {
+	st, ok := t.stats[id]
+	return st, ok
+}
+
+// RLock gets a read lock on the TileStats. Needs to be called before calling
+// TraceStats.
+func (t *TileStats) RLock() {
+	t.mutex.RLock()
+}
+
+func (t *TileStats) RUnLock() {
+	t.mutex.RUnlock()
 }
