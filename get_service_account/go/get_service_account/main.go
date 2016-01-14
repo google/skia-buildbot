@@ -49,7 +49,7 @@ type Item struct {
 }
 
 func main() {
-	output, err := exec.RunSimple("gcloud compute project-info describe --format=json")
+	output, err := exec.RunSimple("gcloud --quiet compute project-info describe --format=json")
 	if err != nil {
 		glog.Fatalf("Failed to execute gcloud: %s", err)
 	}

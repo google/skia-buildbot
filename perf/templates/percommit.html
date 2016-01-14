@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skia Performance Monitoring | Per Commits and Trybot Results</title>
+    {{template "header.html" .}}
+    <style type="text/css" media="screen">
+      query-sk,
+      perf-commit-picker-sk {
+        display: block;
+      }
+      paper-spinner {
+        margin: 3em;
+        display: block;
+      }
+      paper-spinner.hide {
+        display: none;
+      }
+      h3 {
+        margin-bottom: 0;
+      }
+      #results {
+        margin: 1em;
+      }
+      #results.hide {
+        display: none;
+      }
+      th {
+        text-align: right;
+      }
+      quartile-sk {
+        display: block;
+      }
+    </style>
+</head>
+<body>
+  <perf-scaffold-sk>
+    <div>
+      <h3>Filters</h3>
+      <query-chooser-sk id=query></query-chooser-sk>
+    </div>
+    <h3>Commits</h3>
+    <perf-commit-picker-sk id=reference title=Reference></perf-commit-picker-sk>
+    <button class=action id=start>Start</button>
+    <paper-spinner active id=spinner></paper-spinner>
+    <h2>Stats</h2>
+    <table>
+      <tr><th>Total Traces</th><td id=total></td></tr>
+      <tr><th>Matches</th><td id=matches></td></tr>
+    </table>
+    <quartile-sk id=reg name=Regressions></quartile-sk>
+    <quartile-sk id=q4 name=Q4></quartile-sk>
+    <quartile-sk id=q3 name=Q3></quartile-sk>
+    <quartile-sk id=q2 name=Q2></quartile-sk>
+    <quartile-sk id=q1 name=Q1></quartile-sk>
+    <quartile-sk id=imp name=Improvements></quartile-sk>
+  </perf-scaffold-sk>
+  <script type="text/javascript" charset="utf-8">
+    (function() {
+      function onLoad() {
+        // The current state of the page.
+        var page = {};
+        page.state = {
+          query:   "source_type=gm&sub_result=min_ms",
+          ref_id: "",
+          ref_source: "",
+          ret_ts: 0,
+        }
+        // newState is called when page.state changes.
+        function newState() {
+          $$$('#query').query.setSelections(page.state.query);
+          $$$('#spinner').active = false;
+          $$$('#spinner').classList.add('hide');
+          $$$('#reference').selectCommitID(page.state.ref_id, page.state.ref_source);
+        }
+        sk.get('/_/commits/').then(JSON.parse).then(function(json) {
+          $$$('query-sk').setParamSet(json.paramset);
+          json.commits.reverse();
+          sk.Mailbox.send("commits", json.commits);
+          // Only map state to/from the URL after commits and params are loaded, which means
+          // also waiting until after templates have been expanded.
+          window.setTimeout(function() {
+            sk.stateReflector(page, newState);
+          }, 1);
+        }).catch(sk.errorMessage);
+        $$$('#start').addEventListener('click', function(e) {
+          // Load the data for the given selections.
+          sk.get('/_/per/?' + sk.query.fromObject(page.state)).then(JSON.parse).then(function(json) {
+            $$$('#total').textContent = json.total_traces;
+            $$$('#matches').textContent = json.matches;
+            $$$("#imp").quartile = json.improvements;
+            $$$("#q1").quartile = json.q1;
+            $$$("#q2").quartile = json.q2;
+            $$$("#q3").quartile = json.q3;
+            $$$("#q4").quartile = json.q4;
+            $$$("#reg").quartile = json.regression;
+          });
+        });
+        $$$('#reference').addEventListener('commit-selected', function(e) {
+          page.state.ref_id = e.detail.commit.id;
+          page.state.ref_source = e.detail.commit.source;
+          page.state.ref_ts = e.detail.commit.ts;
+        });
+        $$$('#query').addEventListener('query-change', function(e) {
+          page.state.query = e.detail;
+        });
+      };
+      sk.DomReady.then(onLoad);
+    })();
+  </script>
+</body>
+</html>

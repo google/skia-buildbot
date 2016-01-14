@@ -35,6 +35,7 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	idb "go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/parser"
+	"go.skia.org/infra/perf/go/quartiles"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stats"
 	"go.skia.org/infra/perf/go/tilestats"
@@ -116,8 +117,8 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/activitylog.html"),
 		filepath.Join(*resourcesDir, "templates/compare.html"),
 		filepath.Join(*resourcesDir, "templates/help.html"),
-		filepath.Join(*resourcesDir, "templates/kernel.html"),
 		filepath.Join(*resourcesDir, "templates/frame.html"),
+		filepath.Join(*resourcesDir, "templates/percommit.html"),
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -337,57 +338,66 @@ func writeClusterSummaries(summary *clustering.ClusterSummaries, w http.Response
 	}
 }
 
-// kernelJSONHandler returns the data needed for displaying Kernel Density Estimates.
+// perCommitJSONHandler returns the data needed for displaying statistics about a single commit, either
+// a real commit, or a trybot run.
 //
-// The return format is JSON of the form:
+// The return format is a serialized kmlabel.Description:
 //
-// {
-//   "commit1": {
-//     "key1": 1.234,
-//     "key2": 1.235,
-//     "key3": 1.230,
-//     "key4": 1.239,
-//     ...
-//   },
-//   "commit2": {
-//     "key1": 1.434,
-//     "key2": 1.834,
-//     "key3": 1.234,
-//     "key4": 1.134,
-//     ...
-//   },
-//   missing: 5, // Number of missing values.
-// }
+//  {
+//    percent: 0.041025641025641026,
+//    centers: [
+//      {
+//        ids: [
+//          "Arm7:GCC:GPU:Adreno330:Nexus5:Android:GM_multipicturedraw_rectclip_simple_180_286:msaa4",
+//          ...
+//        ],
+//        size: 21,
+//        wordcloud: [
+//          [{Value: "Android", Weight: 26}],
+//          [{Value: "Qualcomm", Weight: 25}, {Value: "ARM", Weight: 12}]
+//          ...
+//        ],
+//      },
+//      {
+//        ids: [
+//          "Arm7:GCC:GPU:Adreno330:Nexus5:Android:GM_convex_poly_clip_870_540:gpu",
+//          "Arm7:GCC:GPU:Adreno330:Nexus5:Android:GM_radial_gradient3_500_500:gpu"
+//          ...
+//        ],
+//        size: 13,
+//        wordcloud: [
+//          [{Value: "Arm7", Weight: 21}, {Value: "x86_64", Weight: 16}],
+//          [{Value: "GCC", Weight: 21}, {Value: "Clang", Weight: 16}],
+//          [{Value: "Qualcomm", Weight: 21}, {Value: "Intel Inc.", Weight: 15}],
+//        ]
+//      }
+//    ]
+//  }
 //
 // Takes the following query parameters:
 //
-//   commit1 - The hash for the first commit.
-//   commit2 - The hash for the second commit.
-//   query   - A paramset in URI query format used to filter the results at each commit.
+//   ref_id     - The reference commit id.
+//   ref_source - The reference commit value.
+//   ref_ts     - The reference commit timestamp.
+//   query      - A paramset in URI query format used to filter the results at each commit.
 //
-func kernelJSONHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO(jcgregorio) Determine the tile(s) to load based on the commit hashes,
-	// possibly loading two different tiles, one for each hash.
-	tile := masterTileBuilder.GetTile()
-	commit1 := r.FormValue("commit1")
-	commit2 := r.FormValue("commit2")
-
-	// Calulate the indices where the commit falls in the tile.
-	commit1Index := -1
-	commit2Index := -1
-
-	// Confirm that the two commits appear in the tile.
-	for i, c := range tile.Commits {
-		if c.Hash == commit1 {
-			commit1Index = i
-		}
-		if c.Hash == commit2 {
-			commit2Index = i
-		}
+func perCommitJSONHandler(w http.ResponseWriter, r *http.Request) {
+	ref_ts, err := strconv.Atoi(r.FormValue("ref_ts"))
+	if err != nil {
+		util.ReportError(w, r, fmt.Errorf("Failed to parse value."), "Invalid ref_ts.")
+		return
 	}
-	if commit1Index == -1 || commit2Index == -1 {
-		glog.Warningf("Commits %s[%d] %s[%d]", commit1, commit1Index, commit2, commit2Index)
-		util.ReportError(w, r, fmt.Errorf("Failed to find commits in tile."), fmt.Sprintf("Failed to find commits in tile."))
+	commits := []*tracedb.CommitID{
+		&tracedb.CommitID{
+			ID:        r.FormValue("ref_id"),
+			Source:    r.FormValue("ref_source"),
+			Timestamp: int64(ref_ts),
+		},
+	}
+	glog.Infof("%#v", *commits[0])
+	tile, err := branchTileBuilder.CachedTileFromCommits(commits)
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to create tile from query.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -397,24 +407,7 @@ func kernelJSONHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, fmt.Sprintf("Failed to parse query parameters."))
 		return
 	}
-	ret := struct {
-		Commit1 map[string]float64 `json:"commit1"`
-		Commit2 map[string]float64 `json:"commit2"`
-		Missing int32              `json:"missing"`
-	}{
-		Commit1: map[string]float64{},
-		Commit2: map[string]float64{},
-	}
-	for key, tr := range tile.Traces {
-		if tiling.Matches(tr, q) {
-			if tr.IsMissing(commit1Index) || tr.IsMissing(commit2Index) {
-				ret.Missing += 1
-				continue
-			}
-			ret.Commit1[key] = tr.(*types.PerfTrace).Values[commit1Index]
-			ret.Commit2[key] = tr.(*types.PerfTrace).Values[commit2Index]
-		}
-	}
+	ret := quartiles.FromTile(tile, tileStats, q)
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(ret); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
@@ -1060,6 +1053,12 @@ func shortCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//
+type CommitJSONResponse struct {
+	Commits  []*tracedb.CommitIDLong `json:"commits"`
+	ParamSet map[string][]string     `json:"paramset"`
+}
+
 // commitsJSONHandler returns JSON info of a range of commits.
 //
 // Queries look like:
@@ -1074,17 +1073,21 @@ func shortCommitsHandler(w http.ResponseWriter, r *http.Request) {
 //    to "" which means include all sources.
 //
 //
-// Response is JSON of perftrace.CommitIDLong that looks like:
+// Response is a JSON serialization of CommitJSONResponse:
 //
-//   [
-//     {
-//       ts: 14070203,
-//       id: "123abc",
-//       source: "master",
-//       author: "name@example.org",
-//       desc: "Adds short commits."
+//   {
+//     commits:[
+//        {
+//          ts: 14070203,
+//          id: "123abc",
+//          source: "master",
+//          author: "name@example.org",
+//          desc: "Adds short commits."
+//        },
+//        ...
+//     ],
+//     paramset: {
 //     },
-//     ...
 //   ]
 //
 func commitsJSONHandler(w http.ResponseWriter, r *http.Request) {
@@ -1119,9 +1122,15 @@ func commitsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	tile := masterTileBuilder.GetTile()
+	body := CommitJSONResponse{
+		Commits:  commits,
+		ParamSet: tile.ParamSet,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(commits); err != nil {
+	if err := enc.Encode(body); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
@@ -1200,8 +1209,8 @@ func main() {
 	router.HandleFunc("/alert_reset/", alertResetHandler)
 	router.HandleFunc("/annotate/", annotate.Handler)
 	router.HandleFunc("/compare/", templateHandler("compare.html"))
-	router.HandleFunc("/kernel/", templateHandler("kernel.html"))
-	router.HandleFunc("/_/kernel/", kernelJSONHandler)
+	router.HandleFunc("/per/", templateHandler("percommit.html"))
+	router.HandleFunc("/_/per/", perCommitJSONHandler)
 	router.HandleFunc("/calc/", calcHandler)
 	router.HandleFunc("/help/", helpHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
