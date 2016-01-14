@@ -107,7 +107,7 @@ func main() {
 	// Average build and step time.
 	go func() {
 		period := 24 * time.Hour
-		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+		for _ = range time.Tick(10 * time.Minute) {
 			glog.Info("Loading build and buildstep duration data.")
 			end := time.Now().UTC()
 			start := end.Add(-period)

@@ -7,10 +7,13 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
+	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
@@ -101,6 +104,66 @@ func key_COMMIT_COMMENTS_BY_COMMIT(commit string, id int64) []byte {
 // localDB is a struct used for interacting with a local database.
 type localDB struct {
 	db *bolt.DB
+
+	txNextId int64
+	txActive map[int64]string
+	txMutex  sync.RWMutex
+}
+
+// startTx monitors when a transaction starts.
+func (d *localDB) startTx(name string) int64 {
+	d.txMutex.Lock()
+	defer d.txMutex.Unlock()
+	go_metrics.GetOrRegisterCounter("buildbot.txcount", go_metrics.DefaultRegistry).Inc(1)
+	id := d.txNextId
+	d.txActive[id] = name
+	d.txNextId++
+	return id
+}
+
+// endTx monitors when a transaction ends.
+func (d *localDB) endTx(id int64) {
+	d.txMutex.Lock()
+	defer d.txMutex.Unlock()
+	go_metrics.GetOrRegisterCounter("buildbot.txcount", go_metrics.DefaultRegistry).Dec(1)
+	delete(d.txActive, id)
+}
+
+// reportActiveTx prints out the list of active transactions.
+func (d *localDB) reportActiveTx() {
+	d.txMutex.RLock()
+	defer d.txMutex.RUnlock()
+	if len(d.txActive) == 0 {
+		glog.Infof("Active Transactions: (none)")
+		return
+	}
+	txs := make([]string, 0, len(d.txActive))
+	for id, name := range d.txActive {
+		txs = append(txs, fmt.Sprintf("  %d\t%s", id, name))
+	}
+	glog.Infof("Active Transactions:\n%s", strings.Join(txs, "\n"))
+}
+
+// tx is a wrapper for a BoltDB transaction which tracks statistics.
+func (d *localDB) tx(name string, fn func(*bolt.Tx) error, update bool) error {
+	txId := d.startTx(name)
+	defer d.endTx(txId)
+	defer metrics.NewTimer(fmt.Sprintf("buildbot.tx.%s", name)).Stop()
+	if update {
+		return d.db.Update(fn)
+	} else {
+		return d.db.View(fn)
+	}
+}
+
+// view is a wrapper for the BoltDB instance's View method.
+func (d *localDB) view(name string, fn func(*bolt.Tx) error) error {
+	return d.tx(name, fn, false)
+}
+
+// update is a wrapper for the BoltDB instance's Update method.
+func (d *localDB) update(name string, fn func(*bolt.Tx) error) error {
+	return d.tx(name, fn, true)
 }
 
 // NewLocalDB returns a local DB instance.
@@ -109,8 +172,19 @@ func NewLocalDB(filename string) (DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	db := &localDB{
+		db:       d,
+		txNextId: 0,
+		txActive: map[int64]string{},
+		txMutex:  sync.RWMutex{},
+	}
+	go func() {
+		for _ = range time.Tick(time.Minute) {
+			db.reportActiveTx()
+		}
+	}()
 
-	if err := d.Update(func(tx *bolt.Tx) error {
+	if err := db.update("NewLocalDB", func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists(BUCKET_BUILD_NUMS_BY_COMMIT); err != nil {
 			return err
 		}
@@ -165,7 +239,7 @@ func NewLocalDB(filename string) (DB, error) {
 		return nil, err
 	}
 
-	return &localDB{d}, nil
+	return db, nil
 }
 
 // Close closes the db.
@@ -176,7 +250,7 @@ func (d *localDB) Close() error {
 // See documentation for DB interface.
 func (d *localDB) BuildExists(master, builder string, number int) (bool, error) {
 	rv := false
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("BuildExists", func(tx *bolt.Tx) error {
 		rv = (tx.Bucket(BUCKET_BUILDS).Get(MakeBuildID(master, builder, number)) != nil)
 		return nil
 	}); err != nil {
@@ -188,7 +262,7 @@ func (d *localDB) BuildExists(master, builder string, number int) (bool, error) 
 // See documentation for DB interface.
 func (d *localDB) GetBuildNumberForCommit(master, builder, commit string) (int, error) {
 	n := -1
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetBuildNumberForCommit", func(tx *bolt.Tx) error {
 		serialized := tx.Bucket(BUCKET_BUILD_NUMS_BY_COMMIT).Get(key_BUILD_NUMS_BY_COMMIT(master, builder, commit))
 		if serialized == nil {
 			// No build exists at this commit, which is okay. Return -1 as the build number.
@@ -207,7 +281,7 @@ func (d *localDB) GetBuildNumberForCommit(master, builder, commit string) (int, 
 // See documentation for DB interface.
 func (d *localDB) GetBuildsForCommits(commits []string, ignore map[string]bool) (map[string][]*Build, error) {
 	rv := map[string][]*Build{}
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetBuildsForCommits", func(tx *bolt.Tx) error {
 		cursor := tx.Bucket(BUCKET_BUILDS_BY_COMMIT).Cursor()
 		for _, c := range commits {
 			ids := []BuildID{}
@@ -230,7 +304,7 @@ func (d *localDB) GetBuildsForCommits(commits []string, ignore map[string]bool) 
 // See documentation for DB interface.
 func (d *localDB) GetBuild(id BuildID) (*Build, error) {
 	var rv *Build
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetBuild", func(tx *bolt.Tx) error {
 		b, err := getBuild(tx, id)
 		if err != nil {
 			return err
@@ -395,7 +469,7 @@ func putBuilds(tx *bolt.Tx, builds []*Build) error {
 
 // See documentation for DB interface.
 func (d *localDB) PutBuild(b *Build) error {
-	return d.db.Update(func(tx *bolt.Tx) error {
+	return d.update("PutBuild", func(tx *bolt.Tx) error {
 		return putBuild(tx, b)
 	})
 }
@@ -403,7 +477,7 @@ func (d *localDB) PutBuild(b *Build) error {
 // See documentation for DB interface.
 func (d *localDB) PutBuilds(builds []*Build) error {
 	defer metrics.NewTimer("buildbot.PutBuilds").Stop()
-	return d.db.Update(func(tx *bolt.Tx) error {
+	return d.update("PutBuilds", func(tx *bolt.Tx) error {
 		return putBuilds(tx, builds)
 	})
 }
@@ -412,7 +486,7 @@ func (d *localDB) PutBuilds(builds []*Build) error {
 func (d *localDB) GetLastProcessedBuilds(m string) ([]BuildID, error) {
 	rv := []BuildID{}
 	// Seek to the end of the bucket, grab the last build for each builder.
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetLastProcessedBuilds", func(tx *bolt.Tx) error {
 		b := tx.Bucket(BUCKET_BUILDS)
 		c := b.Cursor()
 		k, _ := c.Last()
@@ -449,7 +523,7 @@ func (d *localDB) GetLastProcessedBuilds(m string) ([]BuildID, error) {
 func (d *localDB) GetUnfinishedBuilds(master string) ([]*Build, error) {
 	prefix := []byte(fmt.Sprintf("%s|%s|", util.TimeUnixZero.Format(time.RFC3339Nano), master))
 	var rv []*Build
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetUnfinishedBuilds", func(tx *bolt.Tx) error {
 		ids := []BuildID{}
 		cursor := tx.Bucket(BUCKET_BUILDS_BY_FINISH_TIME).Cursor()
 		for k, v := cursor.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = cursor.Next() {
@@ -472,7 +546,7 @@ func (d *localDB) GetBuildsFromDateRange(start, end time.Time) ([]*Build, error)
 	min := []byte(start.Format(time.RFC3339))
 	max := []byte(start.Format(time.RFC3339))
 	var rv []*Build
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetBuildsFromDateRange", func(tx *bolt.Tx) error {
 		c := tx.Bucket(BUCKET_BUILDS_BY_FINISH_TIME).Cursor()
 		ids := []BuildID{}
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
@@ -493,7 +567,7 @@ func (d *localDB) GetBuildsFromDateRange(start, end time.Time) ([]*Build, error)
 // See documentation for DB interface.
 func (d *localDB) GetMaxBuildNumber(master, builder string) (int, error) {
 	var rv int
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetMaxBuildNumber", func(tx *bolt.Tx) error {
 		c := tx.Bucket(BUCKET_BUILDS).Cursor()
 		maxID := MakeBuildID(master, builder, -1)
 		_, _ = c.Seek(maxID)
@@ -513,7 +587,7 @@ func (d *localDB) GetMaxBuildNumber(master, builder string) (int, error) {
 // See documentation for DB interface.
 func (d *localDB) NumIngestedBuilds() (int, error) {
 	var n int
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("NumIngestedBuilds", func(tx *bolt.Tx) error {
 		n = tx.Bucket(BUCKET_BUILDS).Stats().KeyN
 		return nil
 	}); err != nil {
@@ -527,7 +601,7 @@ func (d *localDB) PutBuildComment(master, builder string, number int, c *BuildCo
 	if c.Id != 0 {
 		return fmt.Errorf("Build comments cannot be edited.")
 	}
-	if err := d.db.Update(func(tx *bolt.Tx) error {
+	if err := d.update("PutBuildComment", func(tx *bolt.Tx) error {
 		build, err := getBuild(tx, MakeBuildID(master, builder, number))
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve build: %s", err)
@@ -558,7 +632,7 @@ func (d *localDB) PutBuildComment(master, builder string, number int, c *BuildCo
 
 // See documentation for DB interface.
 func (d *localDB) DeleteBuildComment(master, builder string, number int, id int64) error {
-	return d.db.Update(func(tx *bolt.Tx) error {
+	return d.update("DeleteBuildComment", func(tx *bolt.Tx) error {
 		build, err := getBuild(tx, MakeBuildID(master, builder, number))
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve build: %s", err)
@@ -612,7 +686,7 @@ func getBuilderComments(tx *bolt.Tx, builder string) ([]*BuilderComment, error) 
 // See documentation for DB interface.
 func (d *localDB) GetBuilderComments(builder string) ([]*BuilderComment, error) {
 	var rv []*BuilderComment
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetBuilderComments", func(tx *bolt.Tx) error {
 		comments, err := getBuilderComments(tx, builder)
 		if err != nil {
 			return err
@@ -628,7 +702,7 @@ func (d *localDB) GetBuilderComments(builder string) ([]*BuilderComment, error) 
 // See documentation for DB interface.
 func (d *localDB) GetBuildersComments(builders []string) (map[string][]*BuilderComment, error) {
 	rv := map[string][]*BuilderComment{}
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetBuildersComments", func(tx *bolt.Tx) error {
 		for _, b := range builders {
 			comments, err := getBuilderComments(tx, b)
 			if err != nil {
@@ -646,7 +720,7 @@ func (d *localDB) GetBuildersComments(builders []string) (map[string][]*BuilderC
 // See documentation for DB interface.
 func (d *localDB) PutBuilderComment(c *BuilderComment) error {
 	oldId := c.Id
-	if err := d.db.Update(func(tx *bolt.Tx) error {
+	if err := d.update("PutBuilderComment", func(tx *bolt.Tx) error {
 		if c.Id == 0 {
 			// This is a new comment. Determine which ID to use, and set the next ID.
 			nextIdSerialized := tx.Bucket(BUCKET_BUILDER_COMMENTS).Get(KEY_BUILDER_COMMENTS_NEXT_ID)
@@ -689,7 +763,7 @@ func (d *localDB) PutBuilderComment(c *BuilderComment) error {
 
 // See documentation for DB interface.
 func (d *localDB) DeleteBuilderComment(id int64) error {
-	return d.db.Update(func(tx *bolt.Tx) error {
+	return d.update("DeleteBuilderComment", func(tx *bolt.Tx) error {
 		key := key_BUILDER_COMMENTS(id)
 		comment, err := getBuilderComment(tx, key)
 		if err != nil {
@@ -736,7 +810,7 @@ func getCommitComments(tx *bolt.Tx, commit string) ([]*CommitComment, error) {
 // See documentation for DB interface.
 func (d *localDB) GetCommitComments(commit string) ([]*CommitComment, error) {
 	var rv []*CommitComment
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetCommitComments", func(tx *bolt.Tx) error {
 		comments, err := getCommitComments(tx, commit)
 		if err != nil {
 			return err
@@ -752,7 +826,7 @@ func (d *localDB) GetCommitComments(commit string) ([]*CommitComment, error) {
 // See documentation for DB interface.
 func (d *localDB) GetCommitsComments(commits []string) (map[string][]*CommitComment, error) {
 	rv := map[string][]*CommitComment{}
-	if err := d.db.View(func(tx *bolt.Tx) error {
+	if err := d.view("GetCommitsComments", func(tx *bolt.Tx) error {
 		for _, c := range commits {
 			comments, err := getCommitComments(tx, c)
 			if err != nil {
@@ -770,7 +844,7 @@ func (d *localDB) GetCommitsComments(commits []string) (map[string][]*CommitComm
 // See documentation for DB interface.
 func (d *localDB) PutCommitComment(c *CommitComment) error {
 	oldId := c.Id
-	if err := d.db.Update(func(tx *bolt.Tx) error {
+	if err := d.update("PutCommitComment", func(tx *bolt.Tx) error {
 		if c.Id == 0 {
 			// This is a new comment. Determine which ID to use, and set the next ID.
 			nextIdSerialized := tx.Bucket(BUCKET_COMMIT_COMMENTS).Get(KEY_COMMIT_COMMENTS_NEXT_ID)
@@ -813,7 +887,7 @@ func (d *localDB) PutCommitComment(c *CommitComment) error {
 
 // See documentation for DB interface.
 func (d *localDB) DeleteCommitComment(id int64) error {
-	return d.db.Update(func(tx *bolt.Tx) error {
+	return d.update("DeleteCommitComment", func(tx *bolt.Tx) error {
 		key := key_COMMIT_COMMENTS(id)
 		comment, err := getCommitComment(tx, key)
 		if err != nil {
@@ -834,7 +908,7 @@ func RunBackupServer(db DB, port string) error {
 	}
 	r := mux.NewRouter()
 	r.HandleFunc("/backup", func(w http.ResponseWriter, r *http.Request) {
-		if err := local.db.View(func(tx *bolt.Tx) error {
+		if err := local.view("Backup", func(tx *bolt.Tx) error {
 			w.Header().Set("Content-Type", "application/octet-stream")
 			w.Header().Set("Content-Disposition", "attachment; filename=\"buildbot.db\"")
 			w.Header().Set("Content-Length", strconv.Itoa(int(tx.Size())))

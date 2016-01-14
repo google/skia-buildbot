@@ -194,6 +194,8 @@ reporting-disabled = false
     "*.*.buildbot.builds.* app.host.measurement.measurement.builder.measurement*",
     # datahopper.skia-datahopper2.buildbot.buildstepsbybuilder.Test_Android_GCC_NexusPlayer_GPU_PowerVR_x86_Debug.push_uninteresting_hashes_txt.duration.value
     "*.*.buildbot.buildstepsbybuilder.* app.host.measurement.measurement.builder.step.measurement*",
+    # datahopper.skia-datahopper2.buildbot.tx.PutBuild.mean.value
+    "*.*.buildbot.tx.* app.host.measurement.measurement.transaction.measurement*",
 
     # Rule for logserver metrics.
     #
