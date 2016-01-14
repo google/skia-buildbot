@@ -1,6 +1,6 @@
 {
 if [ -z "$SKIA_REPO_DIR" ]; then
-  SKIA_REPO_DIR="~"
+  SKIA_REPO_DIR="$HOME"
 fi
 mkdir -p $SKIA_REPO_DIR
 cd $SKIA_REPO_DIR
