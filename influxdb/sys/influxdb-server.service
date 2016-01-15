@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/opt/influxdb/influxd \
+ExecStart=/usr/bin/influxd \
     -pidfile /var/run/influxdb/influxd.pid \
     -config /opt/influxdb/shared/config.toml
 Restart=always
