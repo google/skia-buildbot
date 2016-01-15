@@ -43,7 +43,7 @@
     }
   </style>
   <template>
-    <pre><span>{{_trimPad(commit.author)}}</span> <span>{{_humanize(commit.ts)}}</span> <span><a href$="{{_commitHref(commit)}}">{{_name(commit.id, commit.source)}}</a></span> <span>{{_trimNewline(commit.desc)}}</span></pre>
+    <pre><span>[[_trimPad(commit.author)]]</span> <span>[[_humanize(commit.ts)]]</span> <span><a href$="[[_commitHref(commit)]]">[[_name(commit.id, commit.source)]]</a></span> <span>[[_trimNewline(commit.desc)]]</span></pre>
   </template>
 </dom-module>
 
@@ -52,32 +52,10 @@
     is: "perf-commit-sk",
 
     properties: {
-      cid: {
-        type: String,
-        value: "",
-        reflectToAttribute: true,
-        observer: "_idChange",
-      },
-      source: {
-        type: String,
-        value: "",
-        reflectToAttribute: true,
-        observer: "_idChange",
-      },
       commit: {
         type: Object,
         value: null,
       }
-    },
-
-    ready: function() {
-      // All available commits, populated via mailbox.
-      this._commits = [];
-
-      sk.Mailbox.subscribe('commits', function(commits) {
-        this._commits = commits;
-        this._idChange();
-      }.bind(this));
     },
 
     asString: function() {
@@ -89,19 +67,6 @@
         this.commit.id + " " +
         this.commit.source + " " +
         this._trimNewline(this.commit.desc);
-    },
-
-    _idChange: function() {
-      if (!this._commits) {
-        return;
-      }
-      for (var i = this._commits.length - 1; i >= 0; i--) {
-        var c = this._commits[i];
-        if (c.id == this.cid && c.source == this.source) {
-          this.commit = c;
-          break
-        }
-      }
     },
 
     _trimPad: function(s) {

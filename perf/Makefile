@@ -2,7 +2,8 @@
 # minified. These files should be either present in the project, brought
 # into third_party/bower_components via bower, or in node_modules.
 CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
-					third_party/bower_components/webcomponentsjs/webcomponents-lite.min.js\
+					third_party/bower_components/webcomponentsjs/webcomponents-lite.min.js \
+					third_party/bower_components/wcstamp/src/stamp.js \
           ../res/js/common.js
 
 BOWER_DIR=third_party/bower_components

@@ -90,8 +90,8 @@
       </div>
     </template>
     <iron-selector id=selector class$="{{_selectionClass(selection)}}">
-      <template is="dom-repeat" items="{{_commitinfo}}" as="c">
-        <perf-commit-sk cid="{{c.id}}" source="{{c.source}}"></perf-commit-sk>
+      <template is="dom-repeat" items="[[_commitinfo]]" as="c" initial-count=5>
+        <perf-commit-sk commit="[[c]]"></perf-commit-sk>
       </template>
     </iron-selector>
     </table>
