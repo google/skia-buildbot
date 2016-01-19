@@ -18,7 +18,6 @@ from py.utils import misc
 from py.utils import shell_utils
 
 import gclient_utils
-import skia_vars
 
 import re
 import shlex
@@ -38,6 +37,8 @@ CHROME_REV_LKGR = 'CHROME_REV_LKGR'
 # Sync Chrome to origin/master.
 CHROME_REV_MASTER = 'CHROME_REV_MASTER'
 
+# Skia repo URL.
+SKIA_GIT_URL = 'https://skia.googlesource.com/skia.git'
 # Code revision specified by DEPS.
 SKIA_REV_DEPS = 'SKIA_REV_DEPS'
 # Sync to origin/master.
@@ -77,8 +78,7 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
   """
   # Figure out what revision of Skia we should use.
   if skia_revision == SKIA_REV_MASTER:
-    output = git_utils.GetRemoteMasterHash(
-        skia_vars.GetGlobalVariable('skia_git_url'))
+    output = git_utils.GetRemoteMasterHash(SKIA_GIT_URL)
     if output:
       skia_revision = shlex.split(output)[0]
     if not skia_revision:
