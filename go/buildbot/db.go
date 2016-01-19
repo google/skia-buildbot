@@ -70,7 +70,8 @@ type DB interface {
 	// is the one with the greatest build number for its builder.
 	GetLastProcessedBuilds(string) ([]BuildID, error)
 
-	// GetMaxBuildNumber returns the highest known build number for the given builder.
+	// GetMaxBuildNumber returns the highest known build number for the given builder,
+	// or -1 if there are no builds for the given builder.
 	GetMaxBuildNumber(string, string) (int, error)
 
 	// GetUnfinishedBuilds returns a slice of Builds which are not finished.

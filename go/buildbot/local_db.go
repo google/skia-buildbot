@@ -572,6 +572,10 @@ func (d *localDB) GetMaxBuildNumber(master, builder string) (int, error) {
 		maxID := MakeBuildID(master, builder, -1)
 		_, _ = c.Seek(maxID)
 		k, _ := c.Prev()
+		if k == nil {
+			rv = -1
+			return nil
+		}
 		_, _, n, err := ParseBuildID(k)
 		if err != nil {
 			return err

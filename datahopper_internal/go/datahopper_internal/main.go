@@ -21,11 +21,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"path"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
@@ -37,7 +39,7 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
-	skmetics "go.skia.org/infra/go/metrics"
+	skmetrics "go.skia.org/infra/go/metrics"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/webhook"
@@ -82,13 +84,22 @@ var (
 	// repos provides information about the Git repositories in workdir.
 	repos *gitinfo.RepoMap
 
-	// liveness is a metric for the time since last successful run through step().
-	liveness = skmetics.NewLiveness("android_internal_ingest")
+	// tradefedLiveness is a metric for the time since last successful run through step().
+	tradefedLiveness = skmetrics.NewLiveness("android_internal_ingest")
 
 	// noCodenameTargets is a set of targets that do not need to be obfuscated.
 	noCodenameTargets = map[string]bool{
 		GOOGLE3_AUTOROLLER_TARGET_NAME: true,
 	}
+
+	// ingestBuildWebhookCodenames is the set of codenames we expect in ingestBuildHandler.
+	ingestBuildWebhookCodenames = map[string]bool{
+		GOOGLE3_AUTOROLLER_TARGET_NAME: true,
+	}
+
+	// ingestBuildWebhookLiveness maps a target codename to a metric for the time since last
+	// successful build ingestion.
+	ingestBuildWebhookLiveness = map[string]*skmetrics.Liveness{}
 )
 
 // isFinished returns true if the Build has finished running.
@@ -119,7 +130,7 @@ func buildFromCommit(build *androidbuildinternal.Build, commit *vcsinfo.ShortCom
 		Steps:         nil,
 		Started:       util.UnixMillisToTime(build.CreationTimestamp),
 		Comments:      nil,
-		Repository:    "https://skia.googlesource.com/skia.git",
+		Repository:    common.REPO_SKIA,
 	}
 	// Fill in PropertiesStr based on Properties.
 	props, err := json.Marshal(b.Properties)
@@ -166,15 +177,15 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 	if err != nil {
 		return fmt.Errorf("Failed to find the build in the database: %s", err)
 	}
-	glog.Infof("GetBuildForCommit at hash: %s returned %d", commitHash, buildNumber)
-	var cachedBuild *buildbot.Build
+	glog.Infof("GetBuildNumberForCommit at hash: %s returned %d", commitHash, buildNumber)
+	var existingBuild *buildbot.Build
 	if buildNumber != -1 {
-		cachedBuild, err = db.GetBuildFromDB(build.Master, build.Builder, buildNumber)
+		existingBuild, err = db.GetBuildFromDB(build.Master, build.Builder, buildNumber)
 		if err != nil {
 			return fmt.Errorf("Failed to retrieve build from database: %s", err)
 		}
 	}
-	if cachedBuild == nil {
+	if existingBuild == nil {
 		// This is a new build we've never seen before, so add it to the buildbot database.
 
 		// TODO(benjaminwagner): This logic won't work well for concurrent requests. Revisit
@@ -189,6 +200,7 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 		glog.Infof("Writing new build to the database: %s %d", build.Builder, build.Number)
 	} else {
 		// If the state of the build has changed then write it to the buildbot database.
+		build.Number = buildNumber
 		glog.Infof("Writing updated build to the database: %s %d", build.Builder, build.Number)
 	}
 	if err := buildbot.IngestBuild(db, build, repos); err != nil {
@@ -199,7 +211,7 @@ func ingestBuild(build *buildbot.Build, commitHash, target string) error {
 
 // step does a single step in ingesting builds from tradefed and pushing the results into the buildbot database.
 func step(targets []string, buildService *androidbuildinternal.Service) {
-	glog.Errorf("step: Begin")
+	glog.Infof("step: Begin")
 
 	if err := repos.Update(); err != nil {
 		glog.Errorf("Failed to update repos: %s", err)
@@ -236,7 +248,7 @@ func step(targets []string, buildService *androidbuildinternal.Service) {
 					glog.Error(err)
 				}
 			}
-			liveness.Update()
+			tradefedLiveness.Update()
 		}
 	}
 }
@@ -382,7 +394,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	commitHash := vars["commitHash"]
 	status := vars["status"]
 	if target == "" || commitHash == "" || status == "" {
-		util.ReportError(w, r, err, "Invalid parameters.")
+		util.ReportError(w, r, fmt.Errorf("Invalid parameters."), "")
 		return
 	}
 	cl := vars["changeListNumber"]
@@ -392,6 +404,10 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		codename = target
 	} else {
 		codename = util.StringToCodeName(target)
+	}
+	if !ingestBuildWebhookCodenames[codename] {
+		util.ReportError(w, r, fmt.Errorf("Unrecognized target %s (mapped to codename %s)", target, codename), "")
+		return
 	}
 	buildbotResults, err := buildbot.ParseResultsString(status)
 	if err != nil {
@@ -413,7 +429,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		Started:       buildbotTime,
 		Finished:      buildbotTime,
 		Comments:      nil,
-		Repository:    "https://skia.googlesource.com/skia.git",
+		Repository:    common.REPO_SKIA,
 	}
 	if cl != "" {
 		if clNum, err := strconv.Atoi(cl); err == nil {
@@ -446,6 +462,64 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		util.ReportError(w, r, err, "Failed to ingest build.")
 		return
 	}
+	if metric, present := ingestBuildWebhookLiveness[codename]; present {
+		metric.Update()
+	}
+}
+
+// updateWebhookMetrics updates "oldest-untested-commit-age" metrics for all
+// ingestBuildWebhookCodenames. This metric records the age of the oldest commit for which we have
+// not ingested a build. Returns an error if any metric was not updated.
+func updateWebhookMetrics() error {
+	if err := repos.Update(); err != nil {
+		return err
+	}
+	repo, err := repos.Repo(common.REPO_SKIA)
+	if err != nil {
+		return err
+	}
+	commitHashes := repo.LastN(100)
+	N := len(commitHashes)
+	for codename, _ := range ingestBuildWebhookCodenames {
+		for i := 0; i < N; i++ {
+			// commitHashes is ordered oldest to newest.
+			commitHash := commitHashes[N-i-1]
+			buildNumber, err := db.GetBuildNumberForCommit(FAKE_MASTER, codename, commitHash)
+			if err != nil {
+				return err
+			}
+			if buildNumber == -1 {
+				// No tests for this commit, check older.
+				continue
+			}
+			metric := metrics.GetOrRegisterGauge(fmt.Sprintf("ingest-build-webhook.%s.oldest-untested-commit-age", codename), metrics.DefaultRegistry)
+			if i == 0 {
+				// There are no untested commits.
+				metric.Update(0)
+			} else {
+				// This commit is tested; the following commit is not.
+				laterCommitHash := commitHashes[N-i]
+				metric.Update(int64(time.Since(repo.Timestamp(laterCommitHash)).Seconds()))
+			}
+			break
+		}
+	}
+	return nil
+}
+
+// startWebhookMetrics starts a goroutine to run updateWebhookMetrics.
+func startWebhookMetrics() {
+	// A metric to ensure the other metrics are being updated.
+	metricLiveness := skmetrics.NewLiveness("ingest-build-webhook.oldest-untested-commit-age-metric")
+	go func() {
+		for _ = range time.Tick(common.SAMPLE_PERIOD) {
+			if err := updateWebhookMetrics(); err != nil {
+				glog.Errorf("Failed to update metrics: %s", err)
+				continue
+			}
+			metricLiveness.Update()
+		}
+	}()
 }
 
 func main() {
@@ -470,9 +544,16 @@ func main() {
 		glog.Fatalf("Failed to open codename leveldb at %s: %s", *codenameDbDir, err)
 	}
 	// Initialize the buildbot database.
-	db, err = buildbot.NewRemoteDB(*buildbotDbHost)
-	if err != nil {
-		glog.Fatal(err)
+	if *local {
+		db, err = buildbot.NewLocalDB(path.Join(*workdir, "buildbot.db"))
+		if err != nil {
+			glog.Fatal(err)
+		}
+	} else {
+		db, err = buildbot.NewRemoteDB(*buildbotDbHost)
+		if err != nil {
+			glog.Fatal(err)
+		}
 	}
 
 	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
@@ -491,6 +572,19 @@ func main() {
 	}
 
 	repos = gitinfo.NewRepoMap(*workdir)
+	// Ensure Skia repo is cloned and updated.
+	if _, err := repos.Repo(common.REPO_SKIA); err != nil {
+		glog.Fatalf("Unable to clone Skia repo at %s: %s", common.REPO_SKIA, err)
+	}
+	if err := repos.Update(); err != nil {
+		glog.Fatalf("Failed to update repos: %s", err)
+	}
+
+	// Initialize and start metrics.
+	for codename, _ := range ingestBuildWebhookCodenames {
+		ingestBuildWebhookLiveness[codename] = skmetrics.NewLiveness("ingest-build-webhook." + codename)
+	}
+	startWebhookMetrics()
 
 	// Ingest Android framework builds.
 	go func() {
