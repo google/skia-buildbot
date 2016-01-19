@@ -248,6 +248,11 @@ func (g *gsResultFileLocation) MD5() string {
 	return g.md5
 }
 
+// See ResultFileLocation interface.
+func (g *gsResultFileLocation) TimeStamp() int64 {
+	return g.lastUpdated
+}
+
 // FileSystemSource implements the Source interface to read from the local
 // file system.
 type FileSystemSource struct {
@@ -321,14 +326,20 @@ func (f *FileSystemSource) ID() string {
 // fsResultFileLocation implements the ResultFileLocation interface for
 // the local filesystem.
 type fsResultFileLocation struct {
-	path string
-	buf  []byte
-	md5  string
+	path        string
+	buf         []byte
+	md5         string
+	lastUpdated int64
 }
 
 // FileSystemResult returns a ResultFileLocation for files. path is the path
 // where the target file resides and rootDir is the root of all paths.
 func FileSystemResult(path, rootDir string) (ResultFileLocation, error) {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return nil, err
+	}
+
 	// Read file into buffer and calculate the md5 in the process.
 	file, err := os.Open(path)
 	if err != nil {
@@ -353,9 +364,10 @@ func FileSystemResult(path, rootDir string) (ResultFileLocation, error) {
 	}
 
 	return &fsResultFileLocation{
-		path: strings.TrimPrefix(absPath, absRootDir+"/"),
-		buf:  buf.Bytes(),
-		md5:  hex.EncodeToString(md5),
+		path:        strings.TrimPrefix(absPath, absRootDir+"/"),
+		buf:         buf.Bytes(),
+		md5:         hex.EncodeToString(md5),
+		lastUpdated: fileInfo.ModTime().Unix(),
 	}, nil
 }
 
@@ -372,4 +384,9 @@ func (f *fsResultFileLocation) Name() string {
 // see ResultFileLocation interface.
 func (f *fsResultFileLocation) MD5() string {
 	return f.md5
+}
+
+// see ResultFileLocation interface.
+func (f *fsResultFileLocation) TimeStamp() int64 {
+	return f.lastUpdated
 }

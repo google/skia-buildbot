@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"go.skia.org/infra/go/ingestion"
@@ -75,4 +76,14 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 		ID:        strconv.FormatInt(dmResults.Patchset, 10),
 		Source:    source,
 	}, nil
+}
+
+// ExtractIssueInfo returns the issue id and the patchset id for a given commitID.
+func ExtractIssueInfo(commitID *tracedb.CommitID, reviewURL string) (string, string) {
+	return commitID.Source[strings.LastIndex(commitID.Source, "/")+1:], commitID.ID
+}
+
+// GetPrefix returns the filter prefix to search for the given issue and reviewURL.
+func GetPrefix(issueID string, reviewURL string) string {
+	return fmt.Sprintf("%s/%s", reviewURL, issueID)
 }

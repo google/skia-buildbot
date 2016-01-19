@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/url"
 	"sort"
+	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/tiling"
@@ -14,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/goldingestion"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/storage"
@@ -96,6 +98,7 @@ type Query struct {
 	IncludeIgnores bool
 	Query          string
 	Issue          string
+	Patchsets      []string
 	CommitRange    CommitRange
 	Limit          int  // Only return this many items.
 	IncludeMaster  bool // Include digests from master when searching Rietveld issues.
@@ -162,7 +165,7 @@ func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer 
 	var ret []*Digest
 	var commits []*tiling.Commit = nil
 	if q.Issue != "" {
-		ret, err = searchByIssue(q.Issue, q, e, parsedQuery, storages, tile, tallies, paramset)
+		ret, err = searchByIssue(q.Issue, q, e, parsedQuery, storages, tallies, paramset)
 	} else {
 		ret, commits, err = searchTile(q, e, parsedQuery, storages, tile, tallies, blamer, paramset)
 	}
@@ -205,11 +208,14 @@ func (i *issueIntermediate) add(params map[string]string) {
 	util.AddParamsToParamSet(i.paramSet, params)
 }
 
-// searchByIssue searches across the given issue.
-func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tile *tiling.Tile, tallies *tally.Tallies, tileParamSet *paramsets.Summary) ([]*Digest, error) {
-	trybotResults, err := storages.TrybotResults.Get(issue)
+func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tallies *tally.Tallies, tileParamSet *paramsets.Summary) ([]*Digest, error) {
+	issue, tile, err := storages.TrybotResults.GetIssue(issueID)
 	if err != nil {
 		return nil, err
+	}
+
+	if issue == nil {
+		return nil, fmt.Errorf("Issue not found.")
 	}
 
 	// Get a matcher for the ignore rules if we filter ignores.
@@ -227,58 +233,72 @@ func searchByIssue(issue string, q *Query, exp *expstorage.Expectations, parsedQ
 		queryRule = ignore.NewQueryRule(parsedQuery)
 	}
 
-	// Aggregate the results into an intermediate representation to avoid
-	// passing over the dataset twice.
-	inter := map[string]*issueIntermediate{}
+	if len(q.Patchsets) == 0 {
+		q.Patchsets = []string{strconv.Itoa(int(issue.Patchsets[len(issue.Patchsets)-1]))}
+	}
+	pidMap := util.StringSet(q.Patchsets)
 	talliesByTest := tallies.ByTest()
+	digestMap := map[string]*Digest{}
+	reviewURL := storages.RietveldAPI.Url()
 
-	for _, bot := range trybotResults.Bots {
-		for _, result := range bot.TestResults {
-			expandedParams := util.CopyStringMap(bot.BotParams)
-			util.AddParams(expandedParams, result.Params)
+	for idx, cid := range issue.CommitIDs {
+		_, pid := goldingestion.ExtractIssueInfo(cid.CommitID, reviewURL)
+		if !pidMap[pid] {
+			continue
+		}
 
+		for _, trace := range tile.Traces {
+			gTrace := trace.(*types.GoldenTrace)
+			digest := gTrace.Values[idx]
+
+			if digest == types.MISSING_DIGEST {
+				continue
+			}
+
+			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+			params := gTrace.Params_
+
+			// 	If we have seen this before process it.
+			key := testName + ":" + digest
+			if found, ok := digestMap[key]; ok {
+				util.AddParamsToParamSet(found.ParamSet, params)
+				continue
+			}
+
+			// Should this trace be ignored.
 			if ignoreMatcher != nil {
-				if _, ok := ignoreMatcher(expandedParams); ok {
+				if _, ok := ignoreMatcher(params); ok {
 					continue
 				}
 			}
 
-			if (queryRule == nil) || queryRule.IsMatch(expandedParams) {
-				testName := expandedParams[types.PRIMARY_KEY_FIELD]
-				digest := trybotResults.Digests[result.DigestIdx]
-				key := testName + ":" + digest
+			// Does it match a given query.
+			if (queryRule == nil) || queryRule.IsMatch(params) {
 				if !q.IncludeMaster {
 					if _, ok := talliesByTest[testName][digest]; ok {
 						continue
 					}
 				}
-				if found, ok := inter[key]; ok {
-					found.add(expandedParams)
-				} else if cl := exp.Classification(testName, digest); !q.excludeClassification(cl) {
-					inter[key] = newIssueIntermediate(expandedParams, digest, cl)
+
+				if cl := exp.Classification(testName, digest); !q.excludeClassification(cl) {
+					digestMap[key] = &Digest{
+						Test:     testName,
+						Digest:   digest,
+						ParamSet: util.AddParamsToParamSet(make(map[string][]string, len(params)), params),
+						Status:   cl.String(),
+					}
 				}
 			}
 		}
 	}
 
-	// Build the output and make sure the digest are cached on disk.
-	digests := make(map[string]bool, len(inter))
-	ret := make([]*Digest, 0, len(inter))
+	ret := make([]*Digest, 0, len(digestMap))
 	emptyTraces := &Traces{}
-	for _, i := range inter {
-		ret = append(ret, &Digest{
-			Test:     i.test,
-			Digest:   i.digest,
-			Status:   i.status.String(),
-			ParamSet: i.paramSet,
-			Diff:     buildDiff(i.test, i.digest, exp, tile, talliesByTest, nil, storages.DiffStore, tileParamSet, q.IncludeIgnores),
-			Traces:   emptyTraces,
-		})
-		digests[i.digest] = true
+	for _, digestEntry := range digestMap {
+		digestEntry.Diff = buildDiff(digestEntry.Test, digestEntry.Digest, exp, nil, talliesByTest, nil, storages.DiffStore, tileParamSet, q.IncludeIgnores)
+		digestEntry.Traces = emptyTraces
+		ret = append(ret, digestEntry)
 	}
-
-	// This ensures that all digests are cached on disk.
-	storages.DiffStore.AbsPath(util.KeysOfStringSet(digests))
 	return ret, nil
 }
 

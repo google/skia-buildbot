@@ -47,6 +47,9 @@ type ResultFileLocation interface {
 
 	// MD5 returns the MD5 hash of the content of the file.
 	MD5() string
+
+	// Timestamp returns the timestamp when the file was last updated.
+	TimeStamp() int64
 }
 
 // Processor is the core of an ingester. It takes instances of ResultFileLocation
@@ -317,18 +320,23 @@ func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
 		return 0, 0, fmt.Errorf("No commits found.")
 	}
 
-	for len(hashes) < i.nCommits {
-		delta *= 2
-		moreHashes := i.vcs.From(time.Now().Add(delta))
-		if len(moreHashes) == len(hashes) {
+	// If the number of required commits is not covered by this time
+	// frame then keep adding more.
+	if len(hashes) < i.nCommits {
+		for len(hashes) < i.nCommits {
+			delta *= 2
+			moreHashes := i.vcs.From(time.Now().Add(delta))
+			if len(moreHashes) == len(hashes) {
+				hashes = moreHashes
+				break
+			}
 			hashes = moreHashes
-			break
 		}
-		hashes = moreHashes
-	}
 
-	if len(hashes) > i.nCommits {
-		hashes = hashes[len(hashes)-i.nCommits:]
+		// In case we have retrieved to many commits.
+		if len(hashes) > i.nCommits {
+			hashes = hashes[len(hashes)-i.nCommits:]
+		}
 	}
 
 	// Get the commit time of the first commit of interest.

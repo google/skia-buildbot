@@ -283,6 +283,15 @@ func KeysOfStringSet(set map[string]bool) []string {
 	return ret
 }
 
+// StringSet returns the given list of strings as map[string]bool.
+func StringSet(list []string) map[string]bool {
+	ret := make(map[string]bool, len(list))
+	for _, entry := range list {
+		ret[entry] = true
+	}
+	return ret
+}
+
 // KeysOfIntSet returns the keys of a set of strings represented by the keys
 // of a map.
 func KeysOfIntSet(set map[int]bool) []int {

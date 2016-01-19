@@ -163,7 +163,9 @@ func Init() {
 	if err != nil {
 		glog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
-	branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveld.RIETVELD_SKIA_URL, evt)
+
+	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, util.NewTimeoutClient())
+	branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveldAPI, evt)
 }
 
 // showcutHandler handles the POST requests of the shortcut page.

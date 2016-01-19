@@ -64,7 +64,7 @@
           </tr>
           <tr template repeat="{{entry in trybotEntries}}" class="rowEntry">
             <td class="issueValue"><a href="{{entry.url}}" target="_blank" title="See codereview in a new window">{{entry.id}}</a></td>
-            <td class="patchsetValue"><a href="/search2?issue={{entry.id}}&unt=true&query={{ page.query | queryStr }}&master=false" title="Results up to Patchset {{entry.currentPatchset}}">Patchset {{entry.currentPatchset}}</a></td>
+            <td class="patchsetValue"><a href="/search2?issue={{entry.id}}&unt=true&query={{ page.query | queryStr }}&master=false" title="Results up to Patchset {{entry.patchsets.length}}">Patchset {{entry.patchsets.length}}</a></td>
             <td class="nameValue">{{entry.owner}}</td>
             <td class="dateTimeValue">{{entry.updated | _toLocalDate}}</td>
             <td class="subjectValue">{{entry.subject}}</td>

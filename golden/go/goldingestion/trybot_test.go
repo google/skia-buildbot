@@ -109,5 +109,11 @@ func TestTrybotGoldProcessor(t *testing.T) {
 
 	// Make sure the prefix is stripped correctly.
 	assert.Equal(t, TEST_CODE_REVIEW_URL+"/1381483003", commitIDs[0].Source)
+	issueID, patchsetID := ExtractIssueInfo(commitIDs[0], TEST_CODE_REVIEW_URL)
+	assert.Equal(t, "1", patchsetID)
+	assert.Equal(t, "1381483003", issueID)
+	issueID, patchsetID = ExtractIssueInfo(&tracedb.CommitID{}, TEST_CODE_REVIEW_URL)
+	assert.Equal(t, "", issueID)
+	assert.Equal(t, "", patchsetID)
 	assert.Nil(t, traceDB.Close())
 }

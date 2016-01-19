@@ -14,7 +14,6 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -30,6 +29,10 @@ type CommitIDLong struct {
 	*CommitID
 	Author string `json:"author"`
 	Desc   string `json:"desc"`
+
+	// Details contains the related information either from git or rietveld.
+	// A nil value means Rietveld failed to respond or the issue was not available.
+	Details interface{} `json:"-"`
 }
 
 // BranchTileBuilder is a high level interface to build tiles base on a datasource that
@@ -75,12 +78,12 @@ type tileBuilder struct {
 // querying db.
 //
 // TODO(stephana): The EventBus is used to update the internal cache as commits are updated.
-func NewBranchTileBuilder(db DB, git *gitinfo.GitInfo, reviewURL string, evt *eventbus.EventBus) BranchTileBuilder {
+func NewBranchTileBuilder(db DB, git *gitinfo.GitInfo, review *rietveld.Rietveld, evt *eventbus.EventBus) BranchTileBuilder {
 	return &tileBuilder{
 		db:        db,
 		vcs:       git,
-		review:    rietveld.New(reviewURL, util.NewTimeoutClient()),
-		reviewURL: reviewURL,
+		review:    review,
+		reviewURL: review.Url(),
 		cache:     lru.New(MAX_ISSUE_CACHE_SIZE),
 		tcache:    lru.New(MAX_TILE_CACHE_SIZE),
 	}
@@ -163,9 +166,9 @@ func ShortFromLong(commitIDs []*CommitIDLong) []*CommitID {
 func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string) []*CommitIDLong {
 	// Filter
 	if source != "" {
-		dst := []*CommitID{}
+		dst := make([]*CommitID, 0, len(commitIDs))
 		for _, cid := range commitIDs {
-			if cid.Source == source {
+			if strings.HasPrefix(cid.Source, source) {
 				dst = append(dst, cid)
 			}
 		}
@@ -177,6 +180,7 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 	for _, cid := range commitIDs {
 		results = append(results, &CommitIDLong{
 			CommitID: cid,
+			Details:  nil,
 		})
 	}
 
@@ -192,6 +196,7 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 			}
 			c.Author = issueInfo.Owner
 			c.Desc = issueInfo.Subject
+			c.Details = issueInfo
 		} else {
 			// vcsinfo
 			details, err := b.vcs.Details(c.ID, true)
@@ -201,6 +206,7 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 			}
 			c.Author = details.Author
 			c.Desc = details.Subject
+			c.Details = details
 		}
 	}
 

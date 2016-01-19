@@ -94,21 +94,22 @@ func (m *mockProcessor) BatchFinished() error {
 }
 
 type mockRFLocation struct {
-	t    int64
-	path string
-	md5  string
+	path        string
+	md5         string
+	lastUpdated int64
 }
 
 func (m *mockRFLocation) Open() (io.ReadCloser, error) { return nil, nil }
 func (m *mockRFLocation) Name() string                 { return m.path }
 func (m *mockRFLocation) MD5() string                  { return m.md5 }
+func (m *mockRFLocation) TimeStamp() int64             { return m.lastUpdated }
 
 func rfLocation(t time.Time, fname string) ResultFileLocation {
 	path := fmt.Sprintf("root/%d/%d/%d/%d/%d/%s", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), fname)
 	return &mockRFLocation{
-		t:    t.Unix(),
-		path: path,
-		md5:  fmt.Sprintf("%x", md5.Sum([]byte(path))),
+		path:        path,
+		md5:         fmt.Sprintf("%x", md5.Sum([]byte(path))),
+		lastUpdated: t.Unix(),
 	}
 }
 
@@ -127,9 +128,9 @@ func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
 }
 
 func (m mockSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	startIdx := sort.Search(len(m), func(i int) bool { return m[i].(*mockRFLocation).t >= startTime })
+	startIdx := sort.Search(len(m), func(i int) bool { return m[i].TimeStamp() >= startTime })
 	endIdx := startIdx
-	for ; (endIdx < len(m)) && (m[endIdx].(*mockRFLocation).t <= endTime); endIdx++ {
+	for ; (endIdx < len(m)) && (m[endIdx].TimeStamp() <= endTime); endIdx++ {
 	}
 	return m[startIdx:endIdx], nil
 }

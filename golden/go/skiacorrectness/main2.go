@@ -27,6 +27,7 @@ import (
 	"go.skia.org/infra/golden/go/digesttools"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/newtrybot"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
@@ -1456,12 +1457,12 @@ func failureClearJSONHandler(w http.ResponseWriter, r *http.Request) {
 // listTrybotsJSONHandler returns a list of issues (Rietveld) that have
 // trybot results associated with them.
 func listTrybotsJSONHandler(w http.ResponseWriter, r *http.Request) {
-	var trybotRuns []*search.TrybotIssue
+	var trybotRuns []*newtrybot.Issue
 	var total int
 
 	offset, size, err := util.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
-		trybotRuns, total, err = search.ListTrybotIssues(storages, offset, size)
+		trybotRuns, total, err = storages.TrybotResults.ListTrybotIssues(offset, size)
 	}
 
 	if err != nil {

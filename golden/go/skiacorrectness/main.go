@@ -35,13 +35,12 @@ import (
 	"go.skia.org/infra/golden/go/filediffstore"
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/newtrybot"
 	"go.skia.org/infra/golden/go/paramsets"
-	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
-	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 	gstorage "google.golang.org/api/storage/v1"
@@ -68,7 +67,6 @@ var (
 	redisHost          = flag.String("redis_host", "", "The host and port (e.g. 'localhost:6379') of the Redis data store that will be used for caching.")
 	resourcesDir       = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the directory relative to the source code files will be used.")
 	rietveldURL        = flag.String("rietveld_url", "https://codereview.chromium.org/", "URL of the Rietveld instance where we retrieve CL metadata.")
-	selfTest           = flag.Bool("self_test", false, "Run test agains live data, used debugging only.")
 	storageDir         = flag.String("storage_dir", "/tmp/gold-storage", "Directory to store reproducible application data.")
 	gitRepoDir         = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL         = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
@@ -317,6 +315,8 @@ func main() {
 
 	evt := eventbus.New(nil)
 
+	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, util.NewTimeoutClient())
+
 	// Connect to traceDB and create the builders.
 	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
 	if err != nil {
@@ -327,7 +327,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
-	branchTileBuilder := tracedb.NewBranchTileBuilder(db, git, rietveld.RIETVELD_SKIA_URL, evt)
+	branchTileBuilder := tracedb.NewBranchTileBuilder(db, git, rietveldAPI, evt)
 
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
@@ -338,8 +338,8 @@ func main() {
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          evt,
-		TrybotResults:     trybot.NewTrybotResultStorage(vdb),
-		RietveldAPI:       rietveld.New(*rietveldURL, nil),
+		TrybotResults:     newtrybot.NewTrybotResults(branchTileBuilder, rietveldAPI),
+		RietveldAPI:       rietveldAPI,
 	}
 
 	if err := history.Init(storages, *nTilesToBackfill); err != nil {
@@ -385,11 +385,6 @@ func main() {
 		glog.Fatalf("Failed to initialize the warmer: %s", err)
 	}
 	mainTimer.Stop()
-
-	// Everything is wired up at this point. Run the self tests if requested.
-	if *selfTest {
-		search.SelfTest(storages, tallies, blamer, paramsetSum)
-	}
 
 	router := mux.NewRouter()
 
