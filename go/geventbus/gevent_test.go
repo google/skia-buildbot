@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-// TODO(stephana): Disable until fixed.
 func TestEventBus(t *testing.T) {
 	testutils.SkipIfShort(t)
 

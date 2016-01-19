@@ -1,13 +1,16 @@
 package geventbus
 
 import (
+	"strconv"
 	"strings"
 	"sync"
-
-	"go.skia.org/infra/go/util"
+	"sync/atomic"
+	"time"
 
 	"github.com/bitly/go-nsq"
+	"github.com/hashicorp/golang-lru"
 	"github.com/satori/go.uuid"
+	"go.skia.org/infra/go/util"
 )
 
 type GlobalEventBus interface {
@@ -59,10 +62,13 @@ type NSQEventBus struct {
 	producer *nsq.Producer
 
 	// Unique prefix prepended to each message to recognize whether a message
-	// was sent by this instance. producerPrefix and producerPrefixBytes contain
-	// the same content for convenience to avoid unnecessary allocations.
-	producerPrefix      string
-	producerPrefixBytes []byte
+	// was sent by this instance.
+	producerPrefix string
+
+	// MessageIdCounter is atomically incremented counter that uniquely identifies
+	// a message by this producer.
+	messageIdCounter *int64
+	dedupCache       *lru.Cache
 
 	// Tracks whether to dispatch events to subscribers that were sent by
 	// this instance.
@@ -74,6 +80,12 @@ type NSQEventBus struct {
 	// mutex protects consumerCallbacks.
 	mutex sync.Mutex
 }
+
+// Maximum size of the LRU cache for message deduplication.
+const MAX_CACHE_SIZE = 20000
+
+// Separator used to distinguish parts of the prefix: sender_id : message_id : payload.
+const PREFIX_SEPARATOR = ":"
 
 // consumberCallbackT aggregates the nsq consumer and the callback functions for
 // a single topic.
@@ -93,7 +105,14 @@ func NewNSQEventBus(address string) (GlobalEventBus, error) {
 	// Create a client id based on timestamp, mac address and a random string.
 	clientID := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
 	producerPrefix := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	producerPrefixBytes := []byte(producerPrefix + ":")
+
+	// Keeps track of individual messages.
+	messageIdCounter := new(int64)
+	*messageIdCounter = time.Now().Unix()
+	dedupCache, err := lru.New(MAX_CACHE_SIZE)
+	if err != nil {
+		return nil, err
+	}
 
 	config := nsq.NewConfig()
 	producer, err := nsq.NewProducer(address, config)
@@ -106,14 +125,15 @@ func NewNSQEventBus(address string) (GlobalEventBus, error) {
 	}
 
 	ret := &NSQEventBus{
-		clientID:            clientID,
-		address:             address,
-		config:              config,
-		producer:            producer,
-		producerPrefix:      producerPrefix,
-		producerPrefixBytes: producerPrefixBytes,
-		dispatchSent:        true,
-		consumerCallbacks:   map[string]*consumerCallbackT{},
+		clientID:          clientID,
+		address:           address,
+		config:            config,
+		producer:          producer,
+		producerPrefix:    producerPrefix,
+		messageIdCounter:  messageIdCounter,
+		dedupCache:        dedupCache,
+		dispatchSent:      true,
+		consumerCallbacks: map[string]*consumerCallbackT{},
 	}
 
 	return ret, nil
@@ -121,7 +141,9 @@ func NewNSQEventBus(address string) (GlobalEventBus, error) {
 
 // See GlobalEventBus interface.
 func (g *NSQEventBus) Publish(topic string, data []byte) error {
-	return g.producer.Publish(topic, append(g.producerPrefixBytes, data...))
+	messageID := strconv.FormatInt(atomic.AddInt64(g.messageIdCounter, 1), 10)
+	msg := strings.Join([]string{g.producerPrefix, messageID, string(data)}, PREFIX_SEPARATOR)
+	return g.producer.Publish(topic, []byte(msg))
 }
 
 // See GlobalEventBus interface.
@@ -136,20 +158,25 @@ func (g *NSQEventBus) SubscribeAsync(topic string, callback CallbackFn) error {
 			return err
 		}
 		consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
-			// Ensure we don't collide with subscriptions. This should be the exception
-			// since most of the subscription will be done during app setup.
-			g.mutex.Lock()
-			defer g.mutex.Unlock()
-
 			// Get the sender from the prefix and only dispatch if the dispatchSent flag
 			// is set.
-			splitMessage := strings.SplitN(string(message.Body), ":", 2)
+			splitMessage := strings.SplitN(string(message.Body), PREFIX_SEPARATOR, 3)
 			if !g.dispatchSent && (splitMessage[0] == g.producerPrefix) {
 				return nil
 			}
 
+			// Check if we have seen this message already.
+			found, _ := g.dedupCache.ContainsOrAdd(splitMessage[0]+PREFIX_SEPARATOR+splitMessage[1], true)
+			if found {
+				return nil
+			}
+
+			// Ensure we don't collide with subscriptions. This should be the exception
+			// since most of the subscription will be done during app setup.
+			g.mutex.Lock()
+			defer g.mutex.Unlock()
 			for _, cb := range g.consumerCallbacks[topic].callbacks {
-				go cb([]byte(splitMessage[1]))
+				go cb([]byte(splitMessage[2]))
 			}
 			return nil
 		}))
