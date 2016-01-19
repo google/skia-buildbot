@@ -32,6 +32,8 @@ const (
 	ROLL_RESULT_SUCCESS             = "succeeded"
 	ROLL_RESULT_FAILURE             = "failed"
 
+	TRYBOT_CATEGORY_CQ = "cq"
+
 	TRYBOT_STATUS_STARTED   = "STARTED"
 	TRYBOT_STATUS_COMPLETED = "COMPLETED"
 	TRYBOT_STATUS_SCHEDULED = "SCHEDULED"
@@ -188,6 +190,9 @@ func (a *AutoRollIssue) AllTrybotsSucceeded() bool {
 		}
 	}
 	for _, t := range bots {
+		if t.Category != TRYBOT_CATEGORY_CQ {
+			continue
+		}
 		if !t.Succeeded() {
 			return false
 		}
@@ -207,17 +212,19 @@ func (a *AutoRollIssue) Succeeded() bool {
 
 // TryResult is a struct which contains trybot result details.
 type TryResult struct {
-	Builder string    `json:"builder"`
-	Created time.Time `json:"created_ts"`
-	Result  string    `json:"result"`
-	Status  string    `json:"status"`
-	Url     string    `json:"url"`
+	Builder  string    `json:"builder"`
+	Category string    `json:"category"`
+	Created  time.Time `json:"created_ts"`
+	Result   string    `json:"result"`
+	Status   string    `json:"status"`
+	Url      string    `json:"url"`
 }
 
 // TryResultFromBuildbucket returns a new TryResult based on a buildbucket.Build.
 func TryResultFromBuildbucket(b *buildbucket.Build) (*TryResult, error) {
 	var params struct {
-		Builder string `json:"builder_name"`
+		Builder  string `json:"builder_name"`
+		Category string `json:"category"`
 	}
 	if err := json.Unmarshal([]byte(b.ParametersJson), &params); err != nil {
 		return nil, err
@@ -227,11 +234,12 @@ func TryResultFromBuildbucket(b *buildbucket.Build) (*TryResult, error) {
 		return nil, err
 	}
 	return &TryResult{
-		Builder: params.Builder,
-		Created: util.UnixMillisToTime(created),
-		Result:  b.Result,
-		Status:  b.Status,
-		Url:     b.Url,
+		Builder:  params.Builder,
+		Category: params.Category,
+		Created:  util.UnixMillisToTime(created),
+		Result:   b.Result,
+		Status:   b.Status,
+		Url:      b.Url,
 	}, nil
 }
 

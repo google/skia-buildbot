@@ -33,7 +33,7 @@ func TestTrybotResults(t *testing.T) {
 	trybot := &buildbucket.Build{
 		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000),
 		Status:           TRYBOT_STATUS_STARTED,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\"}",
+		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	tryResult, err := TryResultFromBuildbucket(trybot)
 	assert.Nil(t, err)
@@ -50,7 +50,7 @@ func TestTrybotResults(t *testing.T) {
 	retry := &buildbucket.Build{
 		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000+25),
 		Status:           TRYBOT_STATUS_STARTED,
-		ParametersJson:   "{\"builder_name\":\"fake-builder\"}",
+		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	tryResult, err = TryResultFromBuildbucket(retry)
 	assert.Nil(t, err)
@@ -66,6 +66,19 @@ func TestTrybotResults(t *testing.T) {
 
 	// Verify that the ordering of try results does not matter.
 	roll.TryResults[0], roll.TryResults[1] = roll.TryResults[1], roll.TryResults[0]
+	assert.True(t, roll.AllTrybotsFinished())
+	assert.True(t, roll.AllTrybotsSucceeded())
+
+	// Verify that an "experimental" trybot doesn't count against us.
+	exp := &buildbucket.Build{
+		CreatedTimestamp: fmt.Sprintf("%d", time.Now().UTC().UnixNano()/1000000+25),
+		Result:           TRYBOT_RESULT_SUCCESS,
+		Status:           TRYBOT_STATUS_COMPLETED,
+		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq-experimental\"}",
+	}
+	tryResult, err = TryResultFromBuildbucket(exp)
+	assert.Nil(t, err)
+	roll.TryResults = append(roll.TryResults, tryResult)
 	assert.True(t, roll.AllTrybotsFinished())
 	assert.True(t, roll.AllTrybotsSucceeded())
 }
