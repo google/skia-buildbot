@@ -246,6 +246,31 @@ server {
     return 301 https://catapult-roll.skia.org$request_uri;
 }
 
+#####   nacl-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name nacl-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/nacl-roll.access.log;
+    error_log /var/log/nginx/nacl-roll.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://nacl-autoroll:8000;
+    }
+}
+server {
+    listen      80;
+    server_name nacl-roll.skia.org;
+    return 301 https://nacl-roll.skia.org$request_uri;
+}
+
 #####   mon.skia.org   ###########################
 server {
     listen      443;
