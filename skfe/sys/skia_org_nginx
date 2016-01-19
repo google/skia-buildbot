@@ -632,6 +632,32 @@ server {
     return 301 https://internal.skia.org$request_uri;
 }
 
+#####   debugger.skia.org   ###########################
+server {
+    listen      443;
+    server_name debugger.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/debugger.access.log;
+    error_log /var/log/nginx/debugger.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://skia-debugger:8000;
+    }
+}
+
+server {
+    listen      80;
+    server_name debugger.skia.org;
+    return 301 https://debugger.skia.org$request_uri;
+}
+
 #####   cs.skia.org (REDIRECT)   ###########################
 server {
     listen 443;
