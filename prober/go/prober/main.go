@@ -129,7 +129,8 @@ func validJSON(r io.Reader) bool {
 // testBuildbotJSON tests that all of the slaves are reported as connected.
 func testBuildbotJSON(r io.Reader) bool {
 	type SlaveStatus struct {
-		Connected bool `json:"connected"`
+		Connected bool             `json:"connected"`
+		Builders  map[string][]int `json:"builders"`
 	}
 
 	type Slaves map[string]SlaveStatus
@@ -145,7 +146,11 @@ func testBuildbotJSON(r io.Reader) bool {
 	for k, v := range slaves {
 		allConnected = allConnected && v.Connected
 		if !v.Connected {
-			glog.Errorf("Disconnected buildslave: %s", k)
+			builders := []string{}
+			for bname, _ := range v.Builders {
+				builders = append(builders, fmt.Sprintf("%q", bname))
+			}
+			glog.Errorf("Disconnected buildslave: %s Builders: %s", k, strings.Join(builders, ", "))
 		}
 	}
 	return allConnected
