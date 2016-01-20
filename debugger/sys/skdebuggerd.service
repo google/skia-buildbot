@@ -1,0 +1,18 @@
+[Unit]
+Description=Skia Debugger Content Server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/skdebugger \
+    --resources_dir=/usr/local/share/skdebugger/  \
+    --log_dir=/var/log/logserver \
+    --graphite_server=skia-monitoring:2003 \
+    --port=:8000
+Restart=always
+User=default
+Group=default
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target
