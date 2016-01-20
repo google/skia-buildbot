@@ -101,6 +101,16 @@ func key_COMMIT_COMMENTS_BY_COMMIT(commit string, id int64) []byte {
 	return []byte(fmt.Sprintf("%s|%s", commit, string(key_COMMIT_COMMENTS(id))))
 }
 
+func checkInterrupt(stop <-chan struct{}) error {
+	select {
+	case <-stop:
+		glog.Errorf("Transaction interrupted!")
+		return fmt.Errorf("Transaction was interrupted.")
+	default:
+		return nil
+	}
+}
+
 // localDB is a struct used for interacting with a local database.
 type localDB struct {
 	db *bolt.DB
@@ -279,16 +289,25 @@ func (d *localDB) GetBuildNumberForCommit(master, builder, commit string) (int, 
 }
 
 // See documentation for DB interface.
-func (d *localDB) GetBuildsForCommits(commits []string, ignore map[string]bool) (map[string][]*Build, error) {
+func (d *localDB) getBuildsForCommits(commits []string, ignore map[string]bool, stop <-chan struct{}) (map[string][]*Build, error) {
 	rv := map[string][]*Build{}
 	if err := d.view("GetBuildsForCommits", func(tx *bolt.Tx) error {
 		cursor := tx.Bucket(BUCKET_BUILDS_BY_COMMIT).Cursor()
 		for _, c := range commits {
+			if err := checkInterrupt(stop); err != nil {
+				return err
+			}
 			ids := []BuildID{}
 			for k, v := cursor.Seek([]byte(c)); bytes.HasPrefix(k, []byte(c)); k, v = cursor.Next() {
+				if err := checkInterrupt(stop); err != nil {
+					return err
+				}
 				ids = append(ids, v)
 			}
-			builds, err := getBuilds(tx, ids)
+			if err := checkInterrupt(stop); err != nil {
+				return err
+			}
+			builds, err := getBuilds(tx, ids, stop)
 			if err != nil {
 				return err
 			}
@@ -299,6 +318,11 @@ func (d *localDB) GetBuildsForCommits(commits []string, ignore map[string]bool) 
 		return nil, err
 	}
 	return rv, nil
+}
+
+// See documentation for DB interface.
+func (d *localDB) GetBuildsForCommits(commits []string, ignore map[string]bool) (map[string][]*Build, error) {
+	return d.getBuildsForCommits(commits, ignore, make(chan struct{}))
 }
 
 // See documentation for DB interface.
@@ -337,11 +361,17 @@ func getBuild(tx *bolt.Tx, id BuildID) (*Build, error) {
 }
 
 // getBuilds retrieves the given builds from the database.
-func getBuilds(tx *bolt.Tx, ids []BuildID) ([]*Build, error) {
+func getBuilds(tx *bolt.Tx, ids []BuildID, stop <-chan struct{}) ([]*Build, error) {
 	rv := make([]*Build, 0, len(ids))
 	for _, id := range ids {
+		if err := checkInterrupt(stop); err != nil {
+			return nil, err
+		}
 		b, err := getBuild(tx, id)
 		if err != nil {
+			return nil, err
+		}
+		if err := checkInterrupt(stop); err != nil {
 			return nil, err
 		}
 		rv = append(rv, b)
@@ -482,8 +512,7 @@ func (d *localDB) PutBuilds(builds []*Build) error {
 	})
 }
 
-// See documentation for DB interface.
-func (d *localDB) GetLastProcessedBuilds(m string) ([]BuildID, error) {
+func (d *localDB) getLastProcessedBuilds(m string, stop <-chan struct{}) ([]BuildID, error) {
 	rv := []BuildID{}
 	// Seek to the end of the bucket, grab the last build for each builder.
 	if err := d.view("GetLastProcessedBuilds", func(tx *bolt.Tx) error {
@@ -495,6 +524,9 @@ func (d *localDB) GetLastProcessedBuilds(m string) ([]BuildID, error) {
 			return nil
 		}
 		for k != nil {
+			if err := checkInterrupt(stop); err != nil {
+				return err
+			}
 			// We're seeked to the last build on the current builder.
 			// Add the build ID to the slice.
 			master, builder, number, err := ParseBuildID(k)
@@ -520,16 +552,53 @@ func (d *localDB) GetLastProcessedBuilds(m string) ([]BuildID, error) {
 }
 
 // See documentation for DB interface.
-func (d *localDB) GetUnfinishedBuilds(master string) ([]*Build, error) {
+func (d *localDB) GetLastProcessedBuilds(m string) ([]BuildID, error) {
+	return d.getLastProcessedBuilds(m, make(chan struct{}))
+}
+
+func (d *localDB) getUnfinishedBuilds(master string, stop <-chan struct{}) ([]*Build, error) {
 	prefix := []byte(fmt.Sprintf("%s|%s|", util.TimeUnixZero.Format(time.RFC3339Nano), master))
 	var rv []*Build
 	if err := d.view("GetUnfinishedBuilds", func(tx *bolt.Tx) error {
 		ids := []BuildID{}
 		cursor := tx.Bucket(BUCKET_BUILDS_BY_FINISH_TIME).Cursor()
 		for k, v := cursor.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = cursor.Next() {
+			if err := checkInterrupt(stop); err != nil {
+				return err
+			}
 			ids = append(ids, v)
 		}
-		builds, err := getBuilds(tx, ids)
+		builds, err := getBuilds(tx, ids, stop)
+		if err != nil {
+			return err
+		}
+		rv = builds
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return rv, nil
+}
+
+// See documentation for DB interface.
+func (d *localDB) GetUnfinishedBuilds(master string) ([]*Build, error) {
+	return d.getUnfinishedBuilds(master, make(chan struct{}))
+}
+
+func (d *localDB) getBuildsFromDateRange(start, end time.Time, stop <-chan struct{}) ([]*Build, error) {
+	min := []byte(start.Format(time.RFC3339))
+	max := []byte(start.Format(time.RFC3339))
+	var rv []*Build
+	if err := d.view("GetBuildsFromDateRange", func(tx *bolt.Tx) error {
+		c := tx.Bucket(BUCKET_BUILDS_BY_FINISH_TIME).Cursor()
+		ids := []BuildID{}
+		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
+			if err := checkInterrupt(stop); err != nil {
+				return err
+			}
+			ids = append(ids, v)
+		}
+		builds, err := getBuilds(tx, ids, stop)
 		if err != nil {
 			return err
 		}
@@ -543,25 +612,7 @@ func (d *localDB) GetUnfinishedBuilds(master string) ([]*Build, error) {
 
 // See documentation for DB interface.
 func (d *localDB) GetBuildsFromDateRange(start, end time.Time) ([]*Build, error) {
-	min := []byte(start.Format(time.RFC3339))
-	max := []byte(start.Format(time.RFC3339))
-	var rv []*Build
-	if err := d.view("GetBuildsFromDateRange", func(tx *bolt.Tx) error {
-		c := tx.Bucket(BUCKET_BUILDS_BY_FINISH_TIME).Cursor()
-		ids := []BuildID{}
-		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
-			ids = append(ids, v)
-		}
-		builds, err := getBuilds(tx, ids)
-		if err != nil {
-			return err
-		}
-		rv = builds
-		return nil
-	}); err != nil {
-		return nil, err
-	}
-	return rv, nil
+	return d.getBuildsFromDateRange(start, end, make(chan struct{}))
 }
 
 // See documentation for DB interface.

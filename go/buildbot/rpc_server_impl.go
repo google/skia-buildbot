@@ -50,7 +50,7 @@ func (s *rpcServer) GetBuildsForCommits(ctx context.Context, req *rpc.GetBuildsF
 	for _, i := range req.Ignore {
 		ignore[i] = true
 	}
-	builds, err := s.db.GetBuildsForCommits(req.Commits, ignore)
+	builds, err := s.db.getBuildsForCommits(req.Commits, ignore, ctx.Done())
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (s *rpcServer) GetBuildsFromDateRange(ctx context.Context, req *rpc.GetBuil
 	if err != nil {
 		return nil, err
 	}
-	builds, err := s.db.GetBuildsFromDateRange(start, end)
+	builds, err := s.db.getBuildsFromDateRange(start, end, ctx.Done())
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (s *rpcServer) GetBuildNumberForCommit(ctx context.Context, req *rpc.GetBui
 }
 
 func (s *rpcServer) GetLastProcessedBuilds(ctx context.Context, req *rpc.Master) (*rpc.BuildIDs, error) {
-	ids, err := s.db.GetLastProcessedBuilds(req.Master)
+	ids, err := s.db.getLastProcessedBuilds(req.Master, ctx.Done())
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (s *rpcServer) GetMaxBuildNumber(ctx context.Context, req *rpc.GetMaxBuildN
 }
 
 func (s *rpcServer) GetUnfinishedBuilds(ctx context.Context, req *rpc.Master) (*rpc.Builds, error) {
-	builds, err := s.db.GetUnfinishedBuilds(req.Master)
+	builds, err := s.db.getUnfinishedBuilds(req.Master, ctx.Done())
 	if err != nil {
 		return nil, err
 	}
