@@ -830,17 +830,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'build234-a4': {
-    'slaves': [
-      ('build234-a4', '0', False),
-    ],
-    'copies': None,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': None,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
 }
 
 
