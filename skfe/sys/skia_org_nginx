@@ -297,6 +297,33 @@ server {
     return 301 https://mon.skia.org$request_uri;
 }
 
+#####   metrics.skia.org   ###########################
+server {
+    listen      443;
+    server_name metrics.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/metrics.access.log;
+    error_log /var/log/nginx/metrics.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://skia-monitoring:10117;
+    }
+}
+
+server {
+    listen      80;
+    server_name metrics.skia.org;
+    return 301 https://metrics.skia.org$request_uri;
+}
+
+
 #####   push.skia.org   ###########################
 server {
     listen      443;
