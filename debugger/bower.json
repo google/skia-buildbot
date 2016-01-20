@@ -1,0 +1,21 @@
+{
+  "name": "skdebugger",
+  "version": "0.1.0",
+  "authors": [],
+  "description": "debugger.skia.org",
+  "license": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "third_party/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.3",
+    "iron-elements": "PolymerElements/iron-elements#^1.0.0",
+    "paper-elements": "PolymerElements/paper-elements#^1.0.0"
+  }
+}
