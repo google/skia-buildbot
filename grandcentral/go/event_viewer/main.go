@@ -15,12 +15,19 @@ import (
 
 // flags
 var (
-	nsqdAddress = flag.String("nsqd", "", "Address and port of nsqd instance.")
+	nsqdAddress  = flag.String("nsqd", "", "Address and port of nsqd instance.")
+	gsBucket     = flag.String("gs_bucket", "skia-infra-gm", "bucket to listen to for storage events.")
+	gsPrefix     = flag.String("gs_prefix", "dm-json-v1", "prefix to listen to for storage events.")
+	botEventType = flag.String("bot_event_type", "", "bot event type to filter for.")
+	botStepName  = flag.String("bot_step_name", "", "name of the step name we are interested in.")
 )
 
 func init() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: %s bucket prefix \n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Usage: %s <command> \n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Valid Commands:\n")
+		fmt.Fprintf(os.Stderr, "   storage - Follow storage events.\n")
+		fmt.Fprintf(os.Stderr, "   bot     - Follow build bot events.\n\n")
 		flag.PrintDefaults()
 	}
 }
@@ -29,18 +36,19 @@ func main() {
 	defer common.LogPanic()
 	common.Init()
 
-	args := flag.Args()
-	if len(args) != 2 {
-		flag.Usage()
-		os.Exit(1)
-	}
-
-	bucket, prefix := args[0], args[1]
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		glog.Fatal(err)
 	}
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
+
+	args := flag.Args()
+	glog.Infof("ARGS: %v", args)
+	if len(args) != 1 {
+		glog.Infof("Wrong number of arguments. Needed exactly 1.")
+		flag.Usage()
+		os.Exit(1)
+	}
 
 	if *nsqdAddress == "" {
 		glog.Fatal("Missing address of nsqd server.")
@@ -52,9 +60,37 @@ func main() {
 	}
 
 	eventBus := eventbus.New(globalEventBus)
-	eventBus.SubscribeAsync(event.StorageEvent(bucket, prefix), func(evData interface{}) {
-		data := evData.(*event.GoogleStorageEventData)
-		glog.Infof("Google Storage notification from bucket\n %s:  %s : %s", data.Updated, data.Bucket, data.Name)
-	})
+
+	switch args[0] {
+	case "bot":
+		eventBus.SubscribeAsync(event.GLOBAL_BUILDBOT, func(evData interface{}) {
+			data := evData.(*event.BuildbotEventData)
+
+			if (*botEventType != "") && (*botEventType != data.Event) {
+				return
+			}
+
+			if *botStepName != "" {
+				if step, ok := data.Payload["step"]; ok {
+					if name, ok := step.(map[string]interface{})["name"]; ok {
+						if name.(string) != *botStepName {
+							return
+						}
+					}
+				}
+			}
+
+			glog.Infof("Buildbot event:\n %v", data)
+		})
+	case "storage":
+		eventBus.SubscribeAsync(event.StorageEvent(*gsBucket, *gsPrefix), func(evData interface{}) {
+			data := evData.(*event.GoogleStorageEventData)
+			glog.Infof("Google Storage notification from bucket\n %s:  %s : %s", data.Updated, data.Bucket, data.Name)
+		})
+	default:
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	select {}
 }
