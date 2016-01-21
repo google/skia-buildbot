@@ -1,0 +1,39 @@
+<!-- The <debugger-app-sk> custom element declaration.
+
+The main application element for the Skia Debugger.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+-->
+<link href="/res/common/imp/9/error-toast-sk.html" rel="import">
+<dom-module id="debugger-app-sk">
+  <template>
+    <p>
+    This is the app!
+    </p>
+    <h2>XHR Results:</h2>
+    <button on-tap="_get">Test XHR</button>
+    <pre id=results></pre>
+    <error-toast-sk></error-toast-sk>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "debugger-app-sk",
+
+    _get: function() {
+      this.$.results.textContent = "Running...";
+      sk.get("/_/info").then(JSON.parse).then(function(json) {
+        this.$.results.textContent = JSON.stringify(json, 2);
+      }.bind(this)).catch(sk.errorMessage);
+    },
+  });
+</script>

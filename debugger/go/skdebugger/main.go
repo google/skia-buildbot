@@ -34,6 +34,7 @@ func loadTemplates() {
 func templateHandler(name string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		if *local {
 			loadTemplates()
 		}
@@ -55,6 +56,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		fileServer.ServeHTTP(w, r)
 	}
 }

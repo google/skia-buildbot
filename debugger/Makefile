@@ -11,6 +11,19 @@ VULCANIZE1=true
 
 .PHONY: build
 build: elements_html core_js
-	go install -v ./go/skdebugger
+	go install -v ./go/skdebugger ./go/fakedebugger
+
+# Build debug versions of core.js and elements.html.
+.PHONY: debug
+debug: clean_webtools debug_core_js debug_elements_html
+
+push: build
+	./build_release "`date --rfc-3339=seconds`"
+
+run_fake_local: build
+	fakedebugger --source="http://localhost:9000" --alsologtostderr
+
+run_server_local: build
+	skdebugger --port=:9000 --graphite_server= --alsologtostderr
 
 include ../webtools/webtools.mk
