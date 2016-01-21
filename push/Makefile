@@ -12,6 +12,7 @@ VULCANIZE1=true
 default: core_js elements_html
 	go install -v ./go/pull
 	go install -v ./go/push
+	go install -v ./go/pushcli
 
 release: default
 	./build_pushd_release "$(MESSAGE)"

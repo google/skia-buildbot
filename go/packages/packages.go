@@ -123,19 +123,28 @@ func (a *AllInfo) AllAvailableByPackageName() map[string]*Package {
 
 // PutInstalled writes a new list of installed packages for the given server.
 func (a *AllInfo) PutInstalled(serverName string, packages []string, generation int64) error {
+	err := PutInstalled(a.store, serverName, packages, generation)
+	if err != nil {
+		return err
+	}
+	return a.step()
+}
+
+// PutInstalled writes a new list of installed packages for the given server.
+func PutInstalled(store *storage.Service, serverName string, packages []string, generation int64) error {
 	b, err := json.Marshal(packages)
 	if err != nil {
 		return fmt.Errorf("Failed to encode installed packages: %s", err)
 	}
 	buf := bytes.NewBuffer(b)
-	req := a.store.Objects.Insert(bucketName, &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf)
+	req := store.Objects.Insert(bucketName, &storage.Object{Name: "server/" + serverName + ".json"}).Media(buf)
 	if generation != -1 {
 		req = req.IfGenerationMatch(generation)
 	}
 	if _, err = req.Do(); err != nil {
 		return fmt.Errorf("Failed to write installed packages list to Google Storage for %s: %s", serverName, err)
 	}
-	return a.step()
+	return nil
 }
 
 func (a *AllInfo) AllInstalled() map[string]*Installed {
@@ -243,6 +252,43 @@ func AllAvailable(store *storage.Service) (map[string][]*Package, error) {
 	for _, value := range ret {
 		sort.Sort(PackageSlice(value))
 	}
+	return ret, nil
+}
+
+// AllAvailableApp returns all known packages for the given applications uploaded to
+// gs://<bucketName>/debs/<appname>.
+func AllAvailableApp(store *storage.Service, appName string) ([]*Package, error) {
+	prefix := fmt.Sprintf("debs/%s/", appName)
+	req := store.Objects.List(bucketName).Prefix(prefix)
+	ret := []*Package{}
+	for {
+		objs, err := req.Do()
+		if err != nil {
+			return nil, fmt.Errorf("Failed to list debian packages in Google Storage: %s", err)
+		}
+		for _, o := range objs.Items {
+			key := safeGet(o.Metadata, "appname", "")
+			if key == "" {
+				glog.Errorf("Debian package without proper metadata: %s", o.Name)
+				continue
+			}
+			p := &Package{
+				Name:     o.Name[len(prefix):], // Strip of debs/ from the beginning.
+				Hash:     safeGet(o.Metadata, "hash", ""),
+				UserID:   safeGet(o.Metadata, "userid", ""),
+				Built:    safeGetTime(o.Metadata, "datetime"),
+				Dirty:    safeGetBool(o.Metadata, "dirty"),
+				Note:     safeGet(o.Metadata, "note", ""),
+				Services: safeGetStringSlice(o.Metadata, "services"),
+			}
+			ret = append(ret, p)
+		}
+		if objs.NextPageToken == "" {
+			break
+		}
+		req.PageToken(objs.NextPageToken)
+	}
+	sort.Sort(PackageSlice(ret))
 	return ret, nil
 }
 

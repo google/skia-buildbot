@@ -18,7 +18,8 @@ build: elements_html core_js
 debug: clean_webtools debug_core_js debug_elements_html
 
 push: build
-	./build_release "`date --rfc-3339=seconds`"
+	./build_release "`git log -n1 --format=%s`"
+	pushcli skdebuggerd skia-debugger
 
 run_fake_local: build
 	fakedebugger --source="http://localhost:9000" --alsologtostderr
