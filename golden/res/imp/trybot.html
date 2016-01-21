@@ -75,7 +75,11 @@
   <script>
     Polymer({
       ready: function() {
-        this.pagination = null;
+        this.pagination = {
+          size: 100, 
+          offset: 0
+        }; 
+
         this.page = {
           state: {},
           query: {
