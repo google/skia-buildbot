@@ -66,7 +66,7 @@ var (
 )
 
 // sendEmail sends an email with the specified header and body to the recipients.
-func sendEmail(recipients []string, subject, body string) error {
+func sendEmail(recipients []string, subject, body, markup string) error {
 	gmail, err := email.NewGMail(
 		"292895568497-u2m421dk2htq171bfodi9qoqtb5smuea.apps.googleusercontent.com",
 		"jv-g54CaPS783QV6H8SdagYn",
@@ -74,7 +74,7 @@ func sendEmail(recipients []string, subject, body string) error {
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
-	if err := gmail.Send(recipients, subject, body); err != nil {
+	if err := gmail.SendWithMarkup(recipients, subject, body, markup); err != nil {
 		return fmt.Errorf("Could not send email: %s", err)
 	}
 	return nil
@@ -132,7 +132,12 @@ func main() {
 		}
 
 		emailSubject := fmt.Sprintf("%s is the next %s", sheriffUsername, shiftType.shiftName)
-		if err := sendEmail([]string{sheriffEmail, EXTRA_RECIPIENT}, emailSubject, emailBytes.String()); err != nil {
+		viewActionMarkup, err := email.GetViewActionMarkup(shiftType.schedulesLink, "View Schedule", "Direct link to the schedule")
+		if err != nil {
+			glog.Fatalf("Failed to get view action markup: %s", err)
+			return
+		}
+		if err := sendEmail([]string{sheriffEmail, EXTRA_RECIPIENT}, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
 			glog.Fatalf("Error sending email to sheriff: %s", err)
 		}
 	}

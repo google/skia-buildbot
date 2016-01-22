@@ -12,19 +12,33 @@ import (
 )
 
 var (
+	viewActionMarkupTemplate string = `
+<div itemscope itemtype="http://schema.org/EmailMessage">
+  <div itemprop="potentialAction" itemscope itemtype="http://schema.org/ViewAction">
+    <link itemprop="target" href="{{.Link}}"/>
+    <meta itemprop="name" content="{{.Name}}"/>
+  </div>
+  <meta itemprop="description" content="{{.Description}}"/>
+</div>
+`
 	emailTemplate string = `From: {{.From}}
 To: {{.To}}
 Subject: {{.Subject}}
-Content-Type: text/html
+Content-Type: text/html; charset=UTF-8
 
 <html>
+<body>
+{{.Markup}}
 {{.Body}}
+</body>
 </html>
 `
-	emailTemplateParsed *template.Template = nil
+	viewActionMarkupTemplateParsed *template.Template = nil
+	emailTemplateParsed            *template.Template = nil
 )
 
 func init() {
+	viewActionMarkupTemplateParsed = template.Must(template.New("view_action").Parse(viewActionMarkupTemplate))
 	emailTemplateParsed = template.Must(template.New("email").Parse(emailTemplate))
 }
 
@@ -38,6 +52,23 @@ type Message struct {
 	To      []string
 	Subject string
 	Body    string
+}
+
+// GetViewActionMarkup returns a string that contains the required markup.
+func GetViewActionMarkup(link, name, description string) (string, error) {
+	markupBytes := new(bytes.Buffer)
+	if err := viewActionMarkupTemplateParsed.Execute(markupBytes, struct {
+		Link        string
+		Name        string
+		Description string
+	}{
+		Link:        link,
+		Name:        name,
+		Description: description,
+	}); err != nil {
+		return "", fmt.Errorf("Could not execute template: %v", err)
+	}
+	return markupBytes.String(), nil
 }
 
 // NewGMail returns a new GMail object which is authorized to send email.
@@ -57,6 +88,13 @@ func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 
 // Send an email.
 func (a *GMail) Send(to []string, subject string, body string) error {
+	return a.SendWithMarkup(to, subject, body, "")
+}
+
+// Send an email with gmail markup.
+// Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
+// A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
+func (a *GMail) SendWithMarkup(to []string, subject string, body string, markup string) error {
 	user := "me"
 	msgBytes := new(bytes.Buffer)
 	if err := emailTemplateParsed.Execute(msgBytes, struct {
@@ -64,11 +102,13 @@ func (a *GMail) Send(to []string, subject string, body string) error {
 		To      string
 		Subject string
 		Body    template.HTML
+		Markup  template.HTML
 	}{
 		From:    user,
 		To:      strings.Join(to, ","),
 		Subject: subject,
 		Body:    template.HTML(body),
+		Markup:  template.HTML(markup),
 	}); err != nil {
 		return fmt.Errorf("Failed to send email; could not execute template: %v", err)
 	}
