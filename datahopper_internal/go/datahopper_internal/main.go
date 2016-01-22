@@ -416,13 +416,16 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	buildbotTime := time.Now().UTC()
 	b := &buildbot.Build{
-		Builder:       codename,
-		Master:        FAKE_MASTER,
-		Number:        0,
-		BuildSlave:    FAKE_BUILDSLAVE,
-		Branch:        "master",
-		Commits:       nil,
-		GotRevision:   commitHash,
+		Builder:     codename,
+		Master:      FAKE_MASTER,
+		Number:      0,
+		BuildSlave:  FAKE_BUILDSLAVE,
+		Branch:      "master",
+		Commits:     nil,
+		GotRevision: commitHash,
+		Properties: [][]interface{}{
+			[]interface{}{"buildbotURL", "https://internal.skia.org/", "datahopper_internal"},
+		},
 		PropertiesStr: "",
 		Results:       buildbotResults,
 		Steps:         nil,
