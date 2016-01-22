@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"html/template"
+	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"runtime"
@@ -36,6 +37,18 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	loadTemplates()
 	if err := templates.ExecuteTemplate(w, "index.html", map[string]string{"source": *source}); err != nil {
 		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+func imgHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "image/png")
+
+	b, err := ioutil.ReadFile(filepath.Join(*resourcesDir, "image.png"))
+	if err != nil {
+		util.ReportError(w, r, err, "Failed to load image.")
+	}
+	if _, err := w.Write(b); err != nil {
+		glog.Errorf("Failed to write image: %s", err)
 	}
 }
 
@@ -77,6 +90,7 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", indexHandler)
+	router.HandleFunc("/img", imgHandler)
 	router.HandleFunc("/_/info", infoHandler)
 	http.Handle("/", util.LoggingGzipRequestResponse(router))
 

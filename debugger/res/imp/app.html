@@ -45,6 +45,7 @@ The main application element for the Skia Debugger.
         <h2>XHR Results:</h2>
         <button on-tap="_get">Test XHR</button>
         <pre id=results></pre>
+        <img id=img src="">
         <error-toast-sk></error-toast-sk>
       </div>
     </paper-header-panel>
@@ -54,6 +55,11 @@ The main application element for the Skia Debugger.
 <script>
   Polymer({
     is: "debugger-app-sk",
+
+    ready: function() {
+      // Load the test image served by the debugger.
+      this.$.img.src = window.location.origin + "/img";window.location.origin + "/img";
+    },
 
     _get: function() {
       this.$.results.textContent = "Running...";
