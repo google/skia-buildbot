@@ -302,6 +302,11 @@ reporting-disabled = false
     # datahopper.skia-datahopper2.buildbot.tx.PutBuild.mean.value
     "*.*.buildbot.tx.* app.host.measurement.measurement.transaction.measurement*",
 
+    # Rules for datahopper_internal ingestBuild webhook measurements.
+    #
+    # internal.skia-internal.ingest-build-webhook.Google3-Autoroller.oldest-untested-commit-age.value
+    "*.*.ingest-build-webhook.* app.host.measurement.codename.measurement*",
+
     # Rule for logserver metrics.
     #
     # These look like:

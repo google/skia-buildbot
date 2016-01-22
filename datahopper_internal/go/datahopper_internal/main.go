@@ -510,7 +510,7 @@ func updateWebhookMetrics() error {
 // startWebhookMetrics starts a goroutine to run updateWebhookMetrics.
 func startWebhookMetrics() {
 	// A metric to ensure the other metrics are being updated.
-	metricLiveness := skmetrics.NewLiveness("ingest-build-webhook.oldest-untested-commit-age-metric")
+	metricLiveness := skmetrics.NewLiveness("ingest-build-webhook-oldest-untested-commit-age-metric")
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			if err := updateWebhookMetrics(); err != nil {
