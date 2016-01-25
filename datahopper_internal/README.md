@@ -24,7 +24,7 @@ You will also need a file named "service-account.json" in the CWD containing the
 value of the
 [GCE metadata key jwt_service_account](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
 
-To start a local server, run:
+To start a local server, `mkdir /tmp/datahopper_internal`, then run:
 
 ```
 make && datahopper_internal --local=true \
@@ -32,7 +32,8 @@ make && datahopper_internal --local=true \
   --port=:8000 \
   --graphite_server='localhost:2003' \
   --targets=<ask another infra team member> \
-  --workdir=/tmp/datahopper_internal
+  --workdir=/tmp/datahopper_internal \
+  --codename_db_dir=/tmp/datahopper_internal_codenames
 ```
 
 To test the ingestBuild handler locally, use commands like the following:
