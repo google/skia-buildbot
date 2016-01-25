@@ -18,7 +18,10 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
 <link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel=import href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel=import href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel=import href="/res/imp/bower_components/iron-selector/iron-selector.html">
 
+<link rel=import href="/res/common/imp/9/details-summary.html">
 <link rel=import href="/res/common/imp/9/error-toast-sk.html">
 <dom-module id="debugger-app-sk">
   <style type="text/css" media="screen">
@@ -34,6 +37,23 @@ The main application element for the Skia Debugger.
     #content {
       margin: 1em;
     }
+
+    details-sk {
+      display: block;
+    }
+
+    details-sk.iron-selected {
+      background: #eee;
+    }
+
+    #center {
+      margin: 0 10px;
+    }
+
+    * {
+      font-family: Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    }
+
   </style>
   <template>
     <paper-header-panel>
@@ -41,13 +61,49 @@ The main application element for the Skia Debugger.
         <div>Skia Debugger</div>
       </paper-toolbar>
       <div id=content>
-        <p> This is the app!  </p>
-        <h2>XHR Results:</h2>
-        <button on-tap="_get">Test XHR</button>
-        <pre id=results></pre>
-        <img id=img src="">
+        <div class="layout horizontal">
+          <div id=left class="layout vertical flex-1">
+            <h2>Ops</h2>
+            <!-- Just mocked in for now, will replace with real elements soon. -->
+            <iron-selector>
+              <details-sk>
+                <summary-sk>Clip Rect</summary-sk>
+                <pre>
+                X: 0
+                Y: 0
+                Width: 100
+                Height: 100
+              </pre>
+              </details-sk>
+              <details-sk>
+                <summary-sk>Move</summary-sk>
+                <pre>
+                X: 10
+                Y: 10
+              </pre>
+              </details-sk>
+              <details-sk>
+                <summary-sk>Line</summary-sk>
+                <pre>
+                X: 80
+                Y: 70
+              </pre>
+              </details-sk>
+            </iron-selector>
+          </div>
+          <div id=center class="layout vertical flex-3">
+            <h2>Image</h2>
+            <div id=rendered>
+              <img id=img src="">
+            </div>
+          </div>
+          <div id=right class="layout vertical flex-1">
+            <h2>Controls</h2>
+          </div>
+        </div>
+        <hr/>
         <h2>Upload an SKP here.</h2>
-        <form enctype="multipart/form-data" method="post" action="/new" name="fileinfo">
+        <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
           <label>SKP to send:</label>
           <input type="file" name="file" required />
           <input type="submit" value="Upload" />
@@ -64,7 +120,8 @@ The main application element for the Skia Debugger.
 
     ready: function() {
       // Load the test image served by the debugger.
-      this.$.img.src = window.location.origin + "/img";window.location.origin + "/img";
+      this.$.img.src = window.location.origin + "/img";
+      this.$.post_skp.action= window.location.origin + "/new";
     },
 
     _get: function() {
