@@ -23,7 +23,6 @@ import (
 	"go.skia.org/infra/fuzzer/go/frontend"
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
-	"go.skia.org/infra/fuzzer/go/functionnamefinder"
 	"go.skia.org/infra/fuzzer/go/fuzz"
 	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	"go.skia.org/infra/go/auth"
@@ -131,11 +130,8 @@ func main() {
 		if err := gsloader.LoadFromBoltDB(cache); err != nil {
 			glog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
 		}
-		var finder functionnamefinder.Finder
-		if !*local {
-			finder = functionnamefinder.NewAsync()
-		}
-		gsLoader := gsloader.New(storageClient, finder, cache)
+
+		gsLoader := gsloader.New(storageClient, cache)
 		if err := gsLoader.LoadFreshFromGoogleStorage(); err != nil {
 			glog.Fatalf("Error loading in data from GCS: %s", err)
 		}

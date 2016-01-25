@@ -9,7 +9,6 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
-	"go.skia.org/infra/fuzzer/go/functionnamefinder"
 	"go.skia.org/infra/fuzzer/go/fuzz"
 	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	"go.skia.org/infra/go/gs"
@@ -35,7 +34,6 @@ func LoadFromBoltDB(cache *fuzzcache.FuzzReportCache) error {
 // GSLoader is a struct that handles downloading fuzzes from Google Storage.
 type GSLoader struct {
 	storageClient *storage.Client
-	finder        functionnamefinder.Finder
 	Cache         *fuzzcache.FuzzReportCache
 
 	// completedCounter is the number of fuzzes that have been downloaded from GCS, used for logging.
@@ -43,18 +41,11 @@ type GSLoader struct {
 }
 
 // New creates a GSLoader and returns it.
-func New(s *storage.Client, f functionnamefinder.Finder, c *fuzzcache.FuzzReportCache) *GSLoader {
+func New(s *storage.Client, c *fuzzcache.FuzzReportCache) *GSLoader {
 	return &GSLoader{
 		storageClient: s,
-		finder:        f,
 		Cache:         c,
 	}
-}
-
-// SetFinder updates the finder used to look up function names in the fuzz stacktraces
-// loaded from GCS by this object.
-func (g *GSLoader) SetFinder(f functionnamefinder.Finder) {
-	g.finder = f
 }
 
 // LoadFreshFromGoogleStorage pulls all fuzzes out of GCS and loads them into memory.
@@ -71,8 +62,6 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 	fuzz.ClearStaging()
 	binaryFuzzNames := make([]string, 0, len(reports))
 	for report := range reports {
-		report.DebugStackTrace.LookUpFunctions(g.finder)
-		report.ReleaseStackTrace.LookUpFunctions(g.finder)
 		fuzz.NewBinaryFuzzFound(report)
 		binaryFuzzNames = append(binaryFuzzNames, report.BadBinaryName)
 	}
@@ -95,10 +84,6 @@ func (g *GSLoader) LoadBinaryFuzzesFromGoogleStorage(whitelist []string) error {
 	fuzz.StagingFromCurrent()
 	n := 0
 	for report := range reports {
-		if g.finder != nil {
-			report.DebugStackTrace.LookUpFunctions(g.finder)
-			report.ReleaseStackTrace.LookUpFunctions(g.finder)
-		}
 		fuzz.NewBinaryFuzzFound(report)
 		n++
 	}
