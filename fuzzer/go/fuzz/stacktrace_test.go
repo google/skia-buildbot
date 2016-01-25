@@ -10,28 +10,24 @@ import (
 
 func TestParseReleaseDump(t *testing.T) {
 	testInput := testutils.MustReadFile("parse-release.dump")
-
 	trace := ParseStackTrace(testInput)
-
 	expected := StackTrace{
 		Frames: []StackTraceFrame{
-			BasicStackFrame("src/core/", "SkReadBuffer.cpp", 344),
-			BasicStackFrame("src/core/", "SkReadBuffer.h", 130),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 498),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 424),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 580),
-			BasicStackFrame("src/core/", "SkPicture.cpp", 153),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 392),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 580),
-			BasicStackFrame("src/core/", "SkPicture.cpp", 153),
-			BasicStackFrame("fuzzer_cache/src/", "parseskp.cpp", 41),
+			FullStackFrame("src/core/", "SkReadBuffer.cpp", "readFlattenable", 344),
+			FullStackFrame("src/core/", "SkReadBuffer.h", "readFlattenable", 130),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseBufferTag", 498),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseStreamTag", 424),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseStream", 580),
+			FullStackFrame("src/core/", "SkPicture.cpp", "CreateFromStream", 153),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseStreamTag", 392),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseStream", 580),
+			FullStackFrame("src/core/", "SkPicture.cpp", "CreateFromStream", 153),
+			FullStackFrame("fuzzer_cache/src/", "parseskp.cpp", "tool_main", 41),
 		},
 	}
-
 	if !reflect.DeepEqual(expected, trace) {
 		t.Errorf("Expected %#v\nbut was %#v", expected, trace)
 	}
-
 }
 
 func TestParseDebugDump(t *testing.T) {
@@ -41,22 +37,22 @@ func TestParseDebugDump(t *testing.T) {
 
 	expected := StackTrace{
 		Frames: []StackTraceFrame{
-			BasicStackFrame("src/core/", "SkReadBuffer.h", 130),
-			BasicStackFrame("src/core/", "SkReadBuffer.h", 136),
-			BasicStackFrame("src/core/", "SkPaint.cpp", 1971),
-			BasicStackFrame("src/core/", "SkReadBuffer.h", 126),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 498),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 424),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 580),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 553),
-			BasicStackFrame("src/core/", "SkPicture.cpp", 153),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 392),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 580),
-			BasicStackFrame("src/core/", "SkPictureData.cpp", 553),
-			BasicStackFrame("src/core/", "SkPicture.cpp", 153),
-			BasicStackFrame("src/core/", "SkPicture.cpp", 142),
-			BasicStackFrame("fuzzer_cache/src/", "parseskp.cpp", 41),
-			BasicStackFrame("fuzzer_cache/src/", "parseskp.cpp", 71),
+			FullStackFrame("src/core/", "SkReadBuffer.cpp", "readFlattenable", 343),
+			FullStackFrame("src/core/", "SkReadBuffer.h", "readFlattenable", 130),
+			FullStackFrame("src/core/", "SkReadBuffer.h", "readPathEffect", 136),
+			FullStackFrame("src/core/", "SkPaint.cpp", "unflatten", 1971),
+			FullStackFrame("src/core/", "SkReadBuffer.h", "readPaint", 126),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseBufferTag", 498),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseStreamTag", 424),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseStream", 580),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "CreateFromStream", 553),
+			FullStackFrame("src/core/", "SkPicture.cpp", "CreateFromStream", 153),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseStreamTag", 392),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "parseStream", 580),
+			FullStackFrame("src/core/", "SkPictureData.cpp", "CreateFromStream", 553),
+			FullStackFrame("src/core/", "SkPicture.cpp", "CreateFromStream", 153),
+			FullStackFrame("src/core/", "SkPicture.cpp", "CreateFromStream", 142),
+			FullStackFrame("fuzzer_cache/src/", "parseskp.cpp", "tool_main", 41),
 		},
 	}
 
@@ -65,43 +61,34 @@ func TestParseDebugDump(t *testing.T) {
 	}
 }
 
+func TestParsingEdgeCases(t *testing.T) {
+	// This is a made up dump that has the edge cases for parsing.
+	testInput := testutils.MustReadFile("parse-edge.dump")
+	trace := ParseStackTrace(testInput)
+	expected := StackTrace{
+		Frames: []StackTraceFrame{
+			FullStackFrame("src/codec/", "SkMasks.cpp", "convert_to_8", 54),
+			FullStackFrame("src/codec/", "SkBmpMaskCodec.cpp", "decodeRows", 93),
+			FullStackFrame("src/core/", "SkClipStack.cpp", "Element::updateBoundAndGenID", 483),
+			FullStackFrame("src/core/", "SkClipStack.cpp", "pushElement", 719),
+			FullStackFrame("dm/", "DMSrcSink.cpp", "SKPSrc::draw", 751),
+			FullStackFrame("src/core/", "SkReader32.h", "eof", 38),
+			FullStackFrame("src/core/", "SkTaskGroup.cpp", "ThreadPool::Wait", 88),
+			FullStackFrame("fuzz/", "fuzz.cpp", "fuzz_img", 110),
+		},
+	}
+
+	if !reflect.DeepEqual(expected, trace) {
+		t.Errorf("Expected %#v\nbut was %#v", expected, trace)
+		t.Errorf("Expected \n%s\nbut was \n%s", expected.String(), trace.String())
+	}
+}
+
 func TestParseEmptyStackTrace(t *testing.T) {
 	trace := ParseStackTrace("")
 
 	if !trace.IsEmpty() {
 		t.Errorf("Expected stacktrace to be empty but was %#v", trace)
-	}
-}
-
-type mockFunctionNameFinder struct{}
-
-func (f *mockFunctionNameFinder) FunctionName(packageName string, fileName string, lineNumber int) string {
-	if fileName == "SkReadBuffer.h" {
-		return "thisFunction(SkPath path)"
-	}
-	if fileName == "parseskp.cpp" {
-		return "thisOtherFunction()"
-	}
-	return "PROBLEM"
-}
-
-func TestLookUpFunctions(t *testing.T) {
-	testTrace := StackTrace{
-		Frames: []StackTraceFrame{
-			BasicStackFrame("src/core/", "SkReadBuffer.h", 130),
-			BasicStackFrame("fuzzer_cache/src/", "parseskp.cpp", 165),
-		},
-	}
-
-	mockFinder := &mockFunctionNameFinder{}
-
-	testTrace.LookUpFunctions(mockFinder)
-
-	if testTrace.Frames[0].FunctionName != "thisFunction(SkPath path)" {
-		t.Errorf("Wrong function name for frame 0 -> %s", testTrace.Frames[0].FunctionName)
-	}
-	if testTrace.Frames[1].FunctionName != "thisOtherFunction()" {
-		t.Errorf("Wrong function name for frame 1 -> %s", testTrace.Frames[1].FunctionName)
 	}
 }
 
