@@ -63,24 +63,9 @@ func main() {
 
 	switch args[0] {
 	case "bot":
-		eventBus.SubscribeAsync(event.GLOBAL_BUILDBOT, func(evData interface{}) {
-			data := evData.(*event.BuildbotEventData)
-
-			if (*botEventType != "") && (*botEventType != data.Event) {
-				return
-			}
-
-			if *botStepName != "" {
-				if step, ok := data.Payload["step"]; ok {
-					if name, ok := step.(map[string]interface{})["name"]; ok {
-						if name.(string) != *botStepName {
-							return
-						}
-					}
-				}
-			}
-
-			glog.Infof("Buildbot event:\n %v", data)
+		filter := event.BotEventFilter().EventType(*botEventType).StepName(*botStepName)
+		eventBus.SubscribeAsync(event.BuildbotEvents(filter), func(evData interface{}) {
+			glog.Infof("Buildbot event:\n %v", evData)
 		})
 	case "storage":
 		eventBus.SubscribeAsync(event.StorageEvent(*gsBucket, *gsPrefix), func(evData interface{}) {
