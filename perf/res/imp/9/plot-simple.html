@@ -339,7 +339,6 @@ work, so we just prefix every rule with plot-simple-sk.
         // so they scale from 0 to 1.0.
         var scalex = Math.abs(xMax - xMin);
         var scaley = Math.abs(yMax - yMin);
-        console.log(scalex, scaley);
         for (var i = this._lineData.length - 1; i >= 0; i--) {
           var atrace = this._lineData[i];
           for (var j = atrace.length - 1; j >= 0; j--) {
@@ -585,6 +584,9 @@ work, so we just prefix every rule with plot-simple-sk.
       _mouseUp: function() {
         var r = this._svg.select(".selectionrect")[0][0];
         if (!r) {
+          return
+        }
+        if (r.width.baseVal.value < 5 || r.height.baseVal.value  < 5) {
           return
         }
         var xMin = this._xRange.invert(r.x.baseVal.value);

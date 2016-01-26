@@ -5,6 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/wcstamp/src/stamp.js"></script>
   <script type="text/javascript" charset="utf-8">
     // Mock out sk.get() to return random numbers for matches.
     sk.get = function(url) {
@@ -21,7 +22,7 @@
 <body>
   <h1>Query Chooser</h1>
 
-  <query-chooser-sk id=chooser whitelist="config type test"></query-chooser-sk>
+  <query-chooser-sk id=chooser whitelist='["config", "type", "test"]'></query-chooser-sk>
 
   <script type="text/javascript" charset="utf-8">
     var paramset = {
