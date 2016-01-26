@@ -17,7 +17,15 @@ import (
 
 const LOCAL_STATUS_DIR = "./ingestion_status"
 
-func TestIngester(t *testing.T) {
+func TestPollingIngester(t *testing.T) {
+	testIngester(t, false)
+}
+
+func TestEventIngester(t *testing.T) {
+	testIngester(t, true)
+}
+
+func testIngester(t *testing.T, asEvents bool) {
 	defer util.RemoveAll(LOCAL_STATUS_DIR)
 
 	now := time.Now()
@@ -32,7 +40,11 @@ func TestIngester(t *testing.T) {
 		assert.NotEqual(t, "", h)
 	}
 
-	sources := []Source{MockSource(t, vcs)}
+	useNCommits := -1
+	if asEvents {
+		useNCommits = totalCommits / 2
+	}
+	sources := []Source{MockSource(t, vcs, useNCommits)}
 
 	// Instantiate the mock processor.
 	collected := map[string]int{}
@@ -51,7 +63,7 @@ func TestIngester(t *testing.T) {
 	// Instantiate ingesterConf
 	conf := &sharedconfig.IngesterConfig{
 		RunEvery:  sharedconfig.TomlDuration{Duration: 1 * time.Second},
-		NCommits:  50,
+		NCommits:  totalCommits / 2,
 		MinDays:   3,
 		StatusDir: LOCAL_STATUS_DIR,
 	}
@@ -61,14 +73,25 @@ func TestIngester(t *testing.T) {
 	assert.Nil(t, err)
 	ingester.Start()
 
-	// Give it enough time to run a few ingestion cycles and to shut down.
-	time.Sleep(5 * time.Second)
-	ingester.stop()
-	time.Sleep(5 * time.Second)
+	// Wait until we have collected the desired result, but no more than two seconds.
+	startTime := time.Now()
+	for {
+		mutex.Lock()
+		colen := len(collected)
+		mutex.Unlock()
+		if colen >= (totalCommits/2) || (time.Now().Sub(startTime) > (time.Second * 2)) {
+			break
+		}
+		time.Sleep(time.Millisecond * 100)
+	}
 
 	assert.Equal(t, totalCommits/2, len(collected))
 	for _, count := range collected {
 		assert.Equal(t, 1, count)
+	}
+	for _, result := range sources[0].(*mockSource).data[totalCommits/2:] {
+		_, ok := collected[result.Name()]
+		assert.True(t, ok)
 	}
 }
 
@@ -114,9 +137,14 @@ func rfLocation(t time.Time, fname string) ResultFileLocation {
 }
 
 // mock source
-type mockSource []ResultFileLocation
+type mockSource struct {
+	data          []ResultFileLocation
+	nEventCommits int
+}
 
-func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
+// If the nEventCommits > 0 then it indicates to use events and send
+// that number of result files.
+func MockSource(t *testing.T, vcs vcsinfo.VCS, nEventCommits int) Source {
 	hashes := vcs.From(time.Unix(0, 0))
 	ret := make([]ResultFileLocation, 0, len(hashes))
 	for _, h := range hashes {
@@ -124,18 +152,36 @@ func MockSource(t *testing.T, vcs vcsinfo.VCS) Source {
 		assert.Nil(t, err)
 		ret = append(ret, rfLocation(detail.Timestamp, fmt.Sprintf("result-file-%s", h)))
 	}
-	return mockSource(ret)
-}
-
-func (m mockSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
-	startIdx := sort.Search(len(m), func(i int) bool { return m[i].TimeStamp() >= startTime })
-	endIdx := startIdx
-	for ; (endIdx < len(m)) && (m[endIdx].TimeStamp() <= endTime); endIdx++ {
+	return &mockSource{
+		data:          ret,
+		nEventCommits: nEventCommits,
 	}
-	return m[startIdx:endIdx], nil
 }
 
-func (m mockSource) EventChan() <-chan []ResultFileLocation {
+func (m *mockSource) Poll(startTime, endTime int64) ([]ResultFileLocation, error) {
+	if m.nEventCommits <= 0 {
+		startIdx := sort.Search(len(m.data), func(i int) bool { return m.data[i].TimeStamp() >= startTime })
+		endIdx := startIdx
+		for ; (endIdx < len(m.data)) && (m.data[endIdx].TimeStamp() <= endTime); endIdx++ {
+		}
+		return m.data[startIdx:endIdx], nil
+	}
+	return []ResultFileLocation{}, nil
+}
+
+func (m *mockSource) EventChan() <-chan []ResultFileLocation {
+	if m.nEventCommits > 0 {
+		ch := make(chan []ResultFileLocation)
+		go func() {
+			for _, oneEntry := range m.data[len(m.data)-m.nEventCommits:] {
+				go func(entry ResultFileLocation) {
+					ch <- []ResultFileLocation{entry}
+				}(oneEntry)
+				time.Sleep(time.Millisecond)
+			}
+		}()
+		return ch
+	}
 	return nil
 }
 
@@ -159,4 +205,22 @@ func getVCS(start, end int64, nCommits int) vcsinfo.VCS {
 		t += inc
 	}
 	return MockVCS(commits)
+}
+
+func TestRflQueue(t *testing.T) {
+	locs := []ResultFileLocation{
+		rfLocation(time.Now(), "1"),
+		rfLocation(time.Now(), "2"),
+		rfLocation(time.Now(), "3"),
+		rfLocation(time.Now(), "4"),
+		rfLocation(time.Now(), "5"),
+	}
+
+	queue := rflQueue([]ResultFileLocation{})
+	queue.push(locs[0:3])
+	queue.push(locs[3:])
+
+	assert.Equal(t, locs, []ResultFileLocation(queue))
+	queue.clear()
+	assert.Equal(t, 0, len(queue))
 }

@@ -68,15 +68,15 @@ type Processor interface {
 
 // Ingester is the main type that drives ingestion for a single type.
 type Ingester struct {
-	id           string
-	vcs          vcsinfo.VCS
-	nCommits     int
-	minDuration  time.Duration
-	runEvery     time.Duration
-	sources      []Source
-	processor    Processor
-	stopChannels []chan<- bool
-	statusDB     *bolt.DB
+	id          string
+	vcs         vcsinfo.VCS
+	nCommits    int
+	minDuration time.Duration
+	runEvery    time.Duration
+	sources     []Source
+	processor   Processor
+	doneCh      chan bool
+	statusDB    *bolt.DB
 
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
@@ -130,45 +130,50 @@ func (i *Ingester) setupMetrics() {
 // Start starts the ingester in a new goroutine.
 func (i *Ingester) Start() {
 	pollChan, eventChan := i.getInputChannels()
-	stopCh := make(chan bool)
-	i.stopChannels = append(i.stopChannels, stopCh)
-
-	go func(stopCh <-chan bool) {
+	go func(doneCh <-chan bool) {
 		var resultFiles []ResultFileLocation = nil
 		var useMetrics *processMetrics
 
-	MainLoop:
 		for {
 			select {
 			case resultFiles = <-pollChan:
 				useMetrics = i.pollProcessMetrics
 			case resultFiles = <-eventChan:
 				useMetrics = i.eventProcessMetrics
-			case <-stopCh:
-				break MainLoop
+			case <-doneCh:
+				return
 			}
 			i.processResults(resultFiles, useMetrics)
 		}
-	}(stopCh)
+	}(i.doneCh)
 }
 
 // stop stops the ingestion process. Currently only used for testing.
 func (i *Ingester) stop() {
-	for _, ch := range i.stopChannels {
-		ch <- true
-	}
-	util.Close(i.statusDB)
+	close(i.doneCh)
+}
+
+// rflQueue is a helper type that implements a very simple queue to buffer ResultFileLcoations.
+type rflQueue []ResultFileLocation
+
+// push appends the given result file locations to the queue.
+func (q *rflQueue) push(items []ResultFileLocation) {
+	*q = append(*q, items...)
+}
+
+// clear removes all elements from the queue.
+func (q *rflQueue) clear() {
+	*q = rflQueue{}
 }
 
 func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []ResultFileLocation) {
 	pollChan := make(chan []ResultFileLocation)
 	eventChan := make(chan []ResultFileLocation)
-	i.stopChannels = make([]chan<- bool, 0, len(i.sources))
+	i.doneCh = make(chan bool)
 
 	for idx, source := range i.sources {
-		stopCh := make(chan bool)
-		go func(source Source, srcMetrics *sourceMetrics, stopCh <-chan bool) {
-			util.Repeat(i.runEvery, stopCh, func() {
+		go func(source Source, srcMetrics *sourceMetrics, doneCh <-chan bool) {
+			util.Repeat(i.runEvery, doneCh, func() {
 				var startTime, endTime int64 = 0, 0
 				startTime, endTime, err := i.getCommitRangeOfInterest()
 				if err != nil {
@@ -192,22 +197,24 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 				pollChan <- resultFiles
 				srcMetrics.liveness.Update()
 			})
-		}(source, i.srcMetrics[idx], stopCh)
-		i.stopChannels = append(i.stopChannels, stopCh)
+		}(source, i.srcMetrics[idx], i.doneCh)
 
 		if ch := source.EventChan(); ch != nil {
-			stopCh := make(chan bool)
-			go func(ch <-chan []ResultFileLocation, stopCh <-chan bool) {
-			MainLoop:
+			go func(ch <-chan []ResultFileLocation, doneCh <-chan bool) {
+				queue := rflQueue{}
 				for {
 					select {
-					case eventChan <- (<-ch):
-					case <-stopCh:
-						break MainLoop
+					// If the channel is ready push everything we have.
+					case eventChan <- queue:
+						queue.clear()
+					// Get new results and add them to the queue.
+					case results := <-ch:
+						queue.push(results)
+					case <-doneCh:
+						return
 					}
 				}
-			}(ch, stopCh)
-			i.stopChannels = append(i.stopChannels, stopCh)
+			}(ch, i.doneCh)
 		}
 	}
 	return pollChan, eventChan

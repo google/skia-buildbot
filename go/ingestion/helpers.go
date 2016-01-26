@@ -2,7 +2,6 @@ package ingestion
 
 import (
 	"bytes"
-	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"io"
@@ -12,16 +11,19 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	storage "google.golang.org/api/storage/v1"
+	gc_event "go.skia.org/infra/grandcentral/go/event"
+	"golang.org/x/net/context"
+	"google.golang.org/cloud"
+	"google.golang.org/cloud/storage"
 )
 
 // Limit the number of times the ingester tries to get a file before giving up.
@@ -52,7 +54,7 @@ func Register(name string, constructor Constructor) {
 // client is assumed to be suitable for the given application. If e.g. the
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
-func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*Ingester, error) {
+func IngestersFromConfig(config *sharedconfig.Config, client *http.Client, evt *eventbus.EventBus) ([]*Ingester, error) {
 	ret := []*Ingester{}
 
 	// Set up the gitinfo object.
@@ -79,7 +81,7 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 		// Instantiate the sources
 		sources := make([]Source, 0, len(ingesterConf.Sources))
 		for _, dataSource := range ingesterConf.Sources {
-			oneSource, err := getSource(id, dataSource, client)
+			oneSource, err := getSource(id, dataSource, client, evt)
 			if err != nil {
 				return nil, fmt.Errorf("Error instantiating sources for ingester '%s': %s", id, err)
 			}
@@ -105,41 +107,43 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client) ([]*I
 
 // getSource returns an instance of source that is either getting data from
 // Google storage or the local fileystem.
-func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Client) (Source, error) {
+func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Client, evt *eventbus.EventBus) (Source, error) {
 	if dataSource.Dir == "" {
 		return nil, fmt.Errorf("Datasource for %s is missing a directory.", id)
 	}
 
 	if dataSource.Bucket != "" {
-		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client)
+		return NewGoogleStorageSource(id, dataSource.Bucket, dataSource.Dir, client, evt)
 	}
 	return NewFileSystemSource(id, dataSource.Dir)
 }
 
 // GoogleStorageSource implementes the Source interface for Google Storage.
 type GoogleStorageSource struct {
-	bucket   string
-	rootDir  string
-	id       string
-	gStorage *storage.Service
-	client   *http.Client
+	bucket        string
+	rootDir       string
+	id            string
+	storageClient *storage.Client
+	client        *http.Client
+	evt           *eventbus.EventBus
 }
 
 // NewGoogleStorageSource returns a new instance of GoogleStorageSource based
 // on the bucket and directory provided. The id is used to identify the Source
 // and is generally the same id as the ingester.
-func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client) (Source, error) {
-	gStorage, err := storage.New(client)
+func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client, evt *eventbus.EventBus) (Source, error) {
+	storageClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to create a Google Storage API client: %s", err)
 	}
 
 	return &GoogleStorageSource{
-		bucket:   bucket,
-		rootDir:  rootDir,
-		id:       fmt.Sprintf("%s:gs://%s/%s", baseName, bucket, rootDir),
-		client:   client,
-		gStorage: gStorage,
+		bucket:        bucket,
+		rootDir:       rootDir,
+		id:            fmt.Sprintf("%s:gs://%s/%s", baseName, bucket, rootDir),
+		client:        client,
+		storageClient: storageClient,
+		evt:           evt,
 	}, nil
 }
 
@@ -150,44 +154,32 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 	for _, dir := range dirs {
 		glog.Infof("Opening bucket/directory: %s/%s", g.bucket, dir)
 
-		req := g.gStorage.Objects.List(g.bucket).Prefix(dir).Fields("nextPageToken", "items/updated", "items/md5Hash", "items/mediaLink", "items/name")
-		for req != nil {
-			resp, err := req.Do()
-			if err != nil {
-				return nil, fmt.Errorf("Error occurred while listing JSON files: %s", err)
+		err := gs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
+			if item.Updated.Unix() > startTime {
+				retval = append(retval, newGSResultFileLocation(item, g.rootDir, g.storageClient))
 			}
-			for _, result := range resp.Items {
-				updateDate, err := time.Parse(time.RFC3339, result.Updated)
-				if err != nil {
-					glog.Errorf("Unable to parse date %s: %s", result.Updated, err)
-					continue
-				}
-				updateTimestamp := updateDate.Unix()
-				if updateTimestamp > startTime {
-					// Decode the MD5 hash from base64.
-					md5Bytes, err := base64.StdEncoding.DecodeString(result.Md5Hash)
-					if err != nil {
-						glog.Errorf("Unable to decode base64-encoded MD5: %s", err)
-						continue
-					}
-					// We re-encode the md5 hash as a hex string to make debugging and testing easier.
-					retval = append(retval, newGSResultFileLocation(result, g.rootDir, updateTimestamp, hex.EncodeToString(md5Bytes), g.client))
-				}
-			}
-			if len(resp.NextPageToken) > 0 {
-				req.PageToken(resp.NextPageToken)
-			} else {
-				req = nil
-			}
+		})
+
+		if err != nil {
+			return nil, fmt.Errorf("Error occurred while retrieving files from %s/%s: %s", g.bucket, dir, err)
 		}
 	}
 	return retval, nil
 }
 
-// TODO(stephana): Add the event channel once it's tested in the Ingester type.
 // See Source interface.
 func (g *GoogleStorageSource) EventChan() <-chan []ResultFileLocation {
-	return nil
+	ch := make(chan []ResultFileLocation)
+	g.evt.SubscribeAsync(gc_event.StorageEvent(g.bucket, g.rootDir), func(eventData interface{}) {
+		storageEv := eventData.(*gc_event.GoogleStorageEventData)
+		result, err := g.storageClient.Bucket(storageEv.Bucket).Object(storageEv.Name).Attrs(context.Background())
+		if err != nil {
+			glog.Errorf("Error retrievint obj attributes for %s/%s: %s", storageEv.Bucket, storageEv.Name, err)
+			return
+		}
+		ch <- []ResultFileLocation{newGSResultFileLocation(result, g.rootDir, g.storageClient)}
+	})
+	return ch
 }
 
 // See Source interface.
@@ -197,50 +189,42 @@ func (g *GoogleStorageSource) ID() string {
 
 // gsResultFileLocation implements the ResultFileLocation for Google storage.
 type gsResultFileLocation struct {
-	uri         string
-	path        string
-	name        string
-	lastUpdated int64
-	md5         string
-	client      *http.Client
+	bucket        string
+	name          string
+	relativeName  string
+	lastUpdated   int64
+	md5           string
+	storageClient *storage.Client
 }
 
-func newGSResultFileLocation(result *storage.Object, rootDir string, updateTS int64, md5 string, client *http.Client) ResultFileLocation {
+func newGSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storageClient *storage.Client) ResultFileLocation {
 	return &gsResultFileLocation{
-		uri:         result.MediaLink,
-		path:        result.Name,
-		name:        strings.TrimPrefix(result.Name, rootDir+"/"),
-		lastUpdated: updateTS,
-		md5:         md5,
-		client:      client,
+		bucket:        result.Bucket,
+		name:          result.Name,
+		relativeName:  strings.TrimPrefix(result.Name, rootDir+"/"),
+		lastUpdated:   result.Updated.Unix(),
+		md5:           hex.EncodeToString(result.MD5),
+		storageClient: storageClient,
 	}
 }
 
 // See ResultFileLocation interface.
 func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
 	for i := 0; i < MAX_URI_GET_TRIES; i++ {
-		request, err := gs.RequestForStorageURL(g.uri)
+		reader, err := g.storageClient.Bucket(g.bucket).Object(g.name).NewReader(context.Background())
 		if err != nil {
-			glog.Errorf("Unable to create Storage MediaURI request: %s\n", err)
+			glog.Errorf("New reader failed for %s/%s: %s", g.bucket, g.name, err)
 			continue
 		}
-		resp, err := g.client.Do(request)
-		if err != nil {
-			glog.Errorf("Unable to retrieve URI while creating file iterator: %s", err)
-			continue
-		}
-		if resp.StatusCode != 200 {
-			glog.Errorf("Failed to retrieve %s. Error: %d  %s", g.uri, resp.StatusCode, resp.Status)
-		}
-		glog.Infof("GSFILE READ %s", g.path)
-		return resp.Body, nil
+		glog.Infof("GSFILE READ %s/%s", g.bucket, g.name)
+		return reader, nil
 	}
-	return nil, fmt.Errorf("Failed fetching %s after %d attempts", g.uri, MAX_URI_GET_TRIES)
+	return nil, fmt.Errorf("Failed fetching %s/%s after %d attempts", g.bucket, g.name, MAX_URI_GET_TRIES)
 }
 
 // See ResultFileLocation interface.
 func (g *gsResultFileLocation) Name() string {
-	return g.name
+	return g.relativeName
 }
 
 // See ResultFileLocation interface.

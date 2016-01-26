@@ -9,6 +9,8 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/geventbus"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	_ "go.skia.org/infra/golden/go/goldingestion"
@@ -23,11 +25,23 @@ var (
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	configFilename     = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
+	nsqdAddress        = flag.String("nsqd", "", "Address and port of nsqd instance.")
 )
 
 func main() {
 	defer common.LogPanic()
 	common.InitWithMetrics("skia-ingestion", graphiteServer)
+
+	// If no nsqd servers is defines, we simply don't have gloabl events.
+	var globalEventBus geventbus.GlobalEventBus = nil
+	var err error
+	if *nsqdAddress != "" {
+		globalEventBus, err = geventbus.NewNSQEventBus(*nsqdAddress)
+		if err != nil {
+			glog.Fatalf("Unable to connect to NSQ server at address %s: %s", *nsqdAddress, err)
+		}
+	}
+	evt := eventbus.New(globalEventBus)
 
 	// Initialize oauth client and start the ingesters.
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountFile, nil, storage.CloudPlatformScope)
@@ -41,7 +55,7 @@ func main() {
 		glog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
 	}
 
-	ingesters, err := ingestion.IngestersFromConfig(config, client)
+	ingesters, err := ingestion.IngestersFromConfig(config, client, evt)
 	if err != nil {
 		glog.Fatalf("Unable to instantiate ingesters: %s", err)
 	}
