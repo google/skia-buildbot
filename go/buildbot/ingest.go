@@ -246,51 +246,90 @@ func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *git
 	return b, err
 }
 
+// validateBuildForIngestion verifies that the build is ready to be ingested.
+func validateBuildForIngestion(b *Build) error {
+	if b.Master == "" {
+		return fmt.Errorf("Build has no master name!")
+	}
+	if b.Builder == "" {
+		return fmt.Errorf("Build has no builder name!")
+	}
+	if util.TimeIsZero(b.Started) {
+		return fmt.Errorf("Build has no start time!")
+	}
+	return nil
+}
+
 // IngestBuild retrieves the given build from the build master's JSON interface
 // and pushes it into the database.
 func IngestBuild(db DB, b *Build, repos *gitinfo.RepoMap) error {
 	defer metrics.NewTimer("buildbot.IngestBuild").Stop()
 	defer go_metrics.GetOrRegisterCounter("buildbot.NumIngestedBuilds", go_metrics.DefaultRegistry).Inc(1)
-	// Find the commits for this build.
-	commits, stoleFrom, stolen, err := FindCommitsForBuild(db, b, repos)
-	if err != nil {
+	if err := validateBuildForIngestion(b); err != nil {
 		return err
 	}
-	b.Commits = commits
+	// Find the previously-inserted version of this build, if it exists,
+	// and update it rather than inserting a brand new build.
+	needToComputeBlamelist := true
+	oldBuild, err := db.GetBuild(b.Id())
+	if err == nil {
+		if oldBuild.GotRevision == "" {
+			oldBuild.GotRevision = b.GotRevision
+		} else {
+			needToComputeBlamelist = false
+		}
+		if b.GotRevision != oldBuild.GotRevision {
+			return fmt.Errorf("Cannot change an already-ingested build's GotRevision.")
+		}
+		oldBuild.Results = b.Results
+		oldBuild.Properties = b.Properties
+		oldBuild.PropertiesStr = b.PropertiesStr
+		oldBuild.Steps = b.Steps
+		oldBuild.Finished = b.Finished
 
-	// Log the case where we found no revisions for the build.
-	if !(IsTrybot(b.Builder) || strings.Contains(b.Builder, "Housekeeper")) && len(b.Commits) == 0 {
-		glog.Infof("Got build with 0 revs: %s #%d GotRev=%s", b.Builder, b.Number, b.GotRevision)
+		b = oldBuild
 	}
-
-	// Insert the build.
-	if stoleFrom >= 0 && stolen != nil && len(stolen) > 0 {
-		// Remove the commits we stole from the previous owner.
-		oldBuild, err := db.GetBuildFromDB(b.Master, b.Builder, stoleFrom)
+	if needToComputeBlamelist {
+		// Find the commits for this build.
+		commits, stoleFrom, stolen, err := FindCommitsForBuild(db, b, repos)
 		if err != nil {
 			return err
 		}
-		if oldBuild == nil {
-			return fmt.Errorf("Attempted to retrieve %s #%d, but got a nil build from the DB.", b.Builder, stoleFrom)
+		b.Commits = commits
+
+		// Log the case where we found no revisions for the build.
+		if !(IsTrybot(b.Builder) || strings.Contains(b.Builder, "Housekeeper")) && len(b.Commits) == 0 {
+			glog.Infof("Got build with 0 revs: %s #%d GotRev=%s", b.Builder, b.Number, b.GotRevision)
 		}
-		newCommits := make([]string, 0, len(oldBuild.Commits))
-		for _, c := range oldBuild.Commits {
-			keep := true
-			for _, s := range stolen {
-				if c == s {
-					keep = false
-					break
+
+		// Insert the build.
+		if stoleFrom >= 0 && stolen != nil && len(stolen) > 0 {
+			// Remove the commits we stole from the previous owner.
+			oldBuild, err := db.GetBuildFromDB(b.Master, b.Builder, stoleFrom)
+			if err != nil {
+				return err
+			}
+			if oldBuild == nil {
+				return fmt.Errorf("Attempted to retrieve %s #%d, but got a nil build from the DB.", b.Builder, stoleFrom)
+			}
+			newCommits := make([]string, 0, len(oldBuild.Commits))
+			for _, c := range oldBuild.Commits {
+				keep := true
+				for _, s := range stolen {
+					if c == s {
+						keep = false
+						break
+					}
+				}
+				if keep {
+					newCommits = append(newCommits, c)
 				}
 			}
-			if keep {
-				newCommits = append(newCommits, c)
-			}
+			oldBuild.Commits = newCommits
+			return db.PutBuilds([]*Build{b, oldBuild})
 		}
-		oldBuild.Commits = newCommits
-		return db.PutBuilds([]*Build{b, oldBuild})
-	} else {
-		return db.PutBuild(b)
 	}
+	return db.PutBuild(b)
 }
 
 // getLatestBuilds returns a map whose keys are master names and values are
