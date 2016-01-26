@@ -587,7 +587,7 @@ func (d *localDB) GetUnfinishedBuilds(master string) ([]*Build, error) {
 
 func (d *localDB) getBuildsFromDateRange(start, end time.Time, stop <-chan struct{}) ([]*Build, error) {
 	min := []byte(start.Format(time.RFC3339))
-	max := []byte(start.Format(time.RFC3339))
+	max := []byte(end.Format(time.RFC3339))
 	var rv []*Build
 	if err := d.view("GetBuildsFromDateRange", func(tx *bolt.Tx) error {
 		c := tx.Bucket(BUCKET_BUILDS_BY_FINISH_TIME).Cursor()
