@@ -148,7 +148,7 @@ func (c *ingestCache) GetUnfinishedBuilds(master string) ([]*Build, error) {
 		}
 	}
 	for _, b := range c.builds {
-		if !b.IsFinished() {
+		if !b.IsFinished() && b.Master == master {
 			unfinished[string(b.Id())] = b
 		}
 	}
