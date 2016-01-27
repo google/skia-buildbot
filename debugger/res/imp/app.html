@@ -90,7 +90,7 @@ The main application element for the Skia Debugger.
         <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
           <label>SKP to send:</label>
           <input type="file" name="file" required />
-          <input type="submit" value="Upload" on-tap="_submit" />
+          <input type="submit" value="Upload" />
         </form>
         <error-toast-sk></error-toast-sk>
       </div>
@@ -109,14 +109,7 @@ The main application element for the Skia Debugger.
 
       // Can't set this as an attribute directly on iron-selector. Bah.
       this.$.selector.selectedAttribute = "selected";
-    },
-
-    _submit: function(e) {
-      this.$.img.classList.add("hidden");
-      sk.post(window.location.origin + "/new", new FormData(this.$.post_skp)).then(function() {
-        this._refreshPage();
-      }.bind(this)).catch(sk.errorMessage);
-      e.preventDefault();
+      this._refreshPage();
     },
 
     _refreshPage: function() {

@@ -158,9 +158,13 @@ this.sk = this.sk || function() {
 
 
   // Returns a Promise that uses XMLHttpRequest to make a POST request to the
-  // given URL with the given JSON body.
-  sk.post = function(url, body) {
-    return sk.request('POST', url, body, {"Content-Type": "application/json"});
+  // given URL with the given JSON body. The content_type is optional and
+  // defaults to "application/json".
+  sk.post = function(url, body, content_type) {
+    if (!content_type) {
+      content_type = "application/json";
+    }
+    return sk.request('POST', url, body, {"Content-Type": content_type});
   }
 
   // Returns a Promise that uses XMLHttpRequest to make a DELETE request to the

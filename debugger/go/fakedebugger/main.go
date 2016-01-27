@@ -89,10 +89,8 @@ func cmdHandler(w http.ResponseWriter, r *http.Request) {
 
 func skpHandler(w http.ResponseWriter, r *http.Request) {
 	// We get an SKP posted here. Drop it on the floor.
-	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write([]byte("{}")); err != nil {
-		glog.Errorf("Failed to write response: %s", err)
-	}
+	http.Redirect(w, r, "/", 303)
+	util.Close(r.Body)
 }
 
 func Init() {
