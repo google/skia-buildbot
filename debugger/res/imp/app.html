@@ -82,7 +82,6 @@ The main application element for the Skia Debugger.
           <div id=right class="layout vertical flex-1">
             <h2>Info</h2>
             <pre>{{ _json(info) }}</pre>
-
           </div>
         </div>
         <hr/>
@@ -119,12 +118,28 @@ The main application element for the Skia Debugger.
         this.set('info', json);
       }.bind(this)).catch(sk.errorMessage);
       sk.get("/cmd").then(JSON.parse).then(function(json) {
-        this.set('cmd', json);
+        this.set('cmd', this._addDepth(json));
       }.bind(this)).catch(sk.errorMessage);
     },
 
     _json: function(s) {
       return JSON.stringify(s, null, 2);
+    },
+
+    // _addDepth cycles through the commands and set a depth based on Save/Restore pairs.
+    _addDepth: function(cmd) {
+      var commands = cmd.commands;
+      var depth = 0;
+      for (var i = 0; i < commands.length; i++) {
+        commands[i]._depth = depth;
+        if (commands[i].command == "Save") {
+          depth++;
+        } else if (commands[i].command == "Restore") {
+          depth--;
+          commands[i]._depth = depth;
+        }
+      }
+      return cmd;
     }
   });
 </script>

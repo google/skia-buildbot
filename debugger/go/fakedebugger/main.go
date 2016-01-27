@@ -36,12 +36,32 @@ const (
         "version": 1,
         "commands": [
           {
+            "command": "Save"
+          },
+          {
             "command": "Matrix",
             "matrix": [
               [ 1, 0, 20 ],
               [ 0, 1, 20 ],
               [ 0, 0, 1 ]
             ]
+          },
+          {
+            "command": "Save"
+          },
+          {
+            "command": "Matrix",
+            "matrix": [
+              [ 1, 0, 20 ],
+              [ 0, 1, 20 ],
+              [ 0, 0, 1 ]
+            ]
+          },
+          {
+            "command": "Restore"
+          },
+          {
+            "command": "Restore"
           }
         ]
       }`

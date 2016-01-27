@@ -37,7 +37,7 @@
   </style>
   <template>
     <details-sk selected$="{{selected}}">
-      <summary-sk>{{ op.command }}</summary-sk>
+      <summary-sk style$="padding-left: {{ op._depth }}em;" id=summary>{{ op.command }}</summary-sk>
       <pre>
 {{ _display(op) }}
       </pre>
