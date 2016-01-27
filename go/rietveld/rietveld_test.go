@@ -25,4 +25,8 @@ func TestRietveld(t *testing.T) {
 		assert.True(t, details.Modified.After(t_delta))
 		assert.True(t, len(details.Patchsets) > 0)
 	}
+
+	keys, err := api.SearchKeys(5, SearchModifiedAfter(time.Now().Add(-time.Hour)))
+	assert.Nil(t, err)
+	assert.Equal(t, 5, len(keys))
 }

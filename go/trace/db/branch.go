@@ -64,7 +64,7 @@ type tileBuilder struct {
 
 	// cache is a cache for rietveld.Issue's. Note that gitinfo has its own cache
 	// for Details(), so we don't need to cache the results.
-	cache *lru.Cache
+	issueCache *rietveld.CodeReviewCache
 
 	// tcache is a cache for tiles built from CachedTileFromCommits, it stores 'cachedTile's.
 	tcache *lru.Cache
@@ -80,12 +80,12 @@ type tileBuilder struct {
 // TODO(stephana): The EventBus is used to update the internal cache as commits are updated.
 func NewBranchTileBuilder(db DB, git *gitinfo.GitInfo, review *rietveld.Rietveld, evt *eventbus.EventBus) BranchTileBuilder {
 	return &tileBuilder{
-		db:        db,
-		vcs:       git,
-		review:    review,
-		reviewURL: review.Url(),
-		cache:     lru.New(MAX_ISSUE_CACHE_SIZE),
-		tcache:    lru.New(MAX_TILE_CACHE_SIZE),
+		db:         db,
+		vcs:        git,
+		review:     review,
+		reviewURL:  review.Url(),
+		issueCache: rietveld.NewCodeReviewCache(review, time.Minute, MAX_ISSUE_CACHE_SIZE),
+		tcache:     lru.New(MAX_TILE_CACHE_SIZE),
 	}
 }
 
@@ -217,26 +217,25 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 // "https://chromium.codereview.org/1232143243" and returns information about
 // the issue from Rietveld.
 func (b *tileBuilder) getIssue(source string) (*rietveld.Issue, error) {
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
 	u, err := url.Parse(source)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse trybot source: %s", err)
 	}
-	// The issue id as a string is the URL path w/o the leading slash.
+
 	issueStr := u.Path[1:]
-	if interfaceIssue, ok := b.cache.Get(issueStr); !ok {
-		issueInt, err := strconv.Atoi(issueStr)
-		if err != nil {
-			return nil, fmt.Errorf("Unable to convert Rietveld issue id: %s", err)
-		}
-		issue, err := b.review.GetIssueProperties(int64(issueInt), false)
+	issueInt, err := strconv.ParseInt(issueStr, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to convert Rietveld issue id: %s", err)
+	}
+
+	var issue *rietveld.Issue
+	var ok bool
+	if issue, ok = b.issueCache.Get(issueInt); !ok {
+		issue, err = b.review.GetIssueProperties(int64(issueInt), false)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to get details for review %s: %s", source, err)
 		}
-		b.cache.Add(issueStr, issue)
-		return issue, nil
-	} else {
-		return interfaceIssue.(*rietveld.Issue), nil
+		b.issueCache.Add(issueInt, issue)
 	}
+	return issue, nil
 }

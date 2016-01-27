@@ -9,8 +9,11 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/golang/groupcache/lru"
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/util"
 )
@@ -329,6 +332,42 @@ func (r *Rietveld) Search(limit int, terms ...*SearchTerm) ([]*Issue, error) {
 	return issues, nil
 }
 
+// SearchKeys returns the issue ids that meet the given search terms.
+func (r *Rietveld) SearchKeys(limit int, terms ...*SearchTerm) ([]int64, error) {
+	// 1000 is the maximum number Rietveld will accept. If we want more than that,
+	// we will do multiple requests with the maximum query limit.
+	queryLimit := util.MinInt(limit, 1000)
+	searchUrl := fmt.Sprintf("/search?format=json&keys_only=true&limit=%d", queryLimit)
+	for _, term := range terms {
+		searchUrl += fmt.Sprintf("&%s=%s", term.Key, term.Value)
+	}
+
+	cursor := ""
+	ret := []int64{}
+	for {
+		var data struct {
+			Results []int64
+			Cursor  string
+		}
+		err := r.get(searchUrl+cursor, &data)
+		if err != nil {
+			return nil, fmt.Errorf("Rietveld search failed: %v", err)
+		}
+		ret = append(ret, data.Results...)
+		if (len(data.Results) < queryLimit) || (len(ret) >= limit) {
+			break
+		}
+		cursor = "&cursor=" + data.Cursor
+	}
+
+	// There is a very small change we have more than we asked for.
+	if len(ret) > limit {
+		ret = ret[0:limit]
+	}
+
+	return ret, nil
+}
+
 // GetPatchset returns information about the given patchset.
 func (r Rietveld) GetPatchset(issueID int64, patchsetID int64) (*Patchset, error) {
 	url := fmt.Sprintf("/api/%d/%d", issueID, patchsetID)
@@ -345,4 +384,59 @@ func (r Rietveld) GetPatchset(issueID int64, patchsetID int64) (*Patchset, error
 // GetTrybotResults returns trybot results for the given Issue and Patchset.
 func (r *Rietveld) GetTrybotResults(issueID int64, patchsetID int64) ([]*buildbucket.Build, error) {
 	return buildbucket.NewClient(r.client).GetTrybotsForCL(issueID, patchsetID)
+}
+
+// CodeReviewCache is an LRU cache for Rietveld Issues that polls in the background to determine if
+// issues have been updated. If so it expells them from the cache to force a reload.
+type CodeReviewCache struct {
+	cache       *lru.Cache
+	rietveldAPI *Rietveld
+	timeDelta   time.Duration
+	mutex       sync.Mutex
+}
+
+// NewCodeReviewCache returns a new chache for the given API instance, poll interval and maximum cache size.
+func NewCodeReviewCache(rietveldAPI *Rietveld, pollInterval time.Duration, cacheSize int) *CodeReviewCache {
+	ret := &CodeReviewCache{
+		cache:       lru.New(cacheSize),
+		rietveldAPI: rietveldAPI,
+		timeDelta:   pollInterval * 2,
+	}
+
+	// Start the poller.
+	go util.Repeat(pollInterval, nil, ret.poll)
+	return ret
+}
+
+// Add an issue to the cache.
+func (c *CodeReviewCache) Add(key int64, value *Issue) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.cache.Add(key, value)
+}
+
+// Retrieve an issue from the cache.
+func (c *CodeReviewCache) Get(key int64) (*Issue, bool) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	if val, ok := c.cache.Get(key); ok {
+		return val.(*Issue), true
+	}
+	return nil, false
+}
+
+// Poll rietveld for all issues that have changed in the recent past.
+func (c *CodeReviewCache) poll() {
+	// Search for all keys that ahve changed in the last
+	keys, err := c.rietveldAPI.SearchKeys(10000, SearchModifiedAfter(time.Now().Add(-c.timeDelta)))
+	if err != nil {
+		glog.Errorf("Error polling Rietveld: %s", err)
+		return
+	}
+
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	for _, key := range keys {
+		c.cache.Remove(key)
+	}
 }
