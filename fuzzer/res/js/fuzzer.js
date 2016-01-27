@@ -6,19 +6,27 @@ this.fuzzer = this.fuzzer || function() {
 
   var fuzzer = {};
 
-  fuzzer.getLinkToDetails = function(detailsBase, fuzzType, attr, value) {
+  fuzzer.getLinkToDetails = function(detailsBase, attr, value) {
     if (!detailsBase || !value) {
       return "#";
     }
-    // String.prototype.endsWith is ECMA 6, so check for it to fail gracefully
-    if (!(detailsBase.endsWith && detailsBase.endsWith("?"))) {
-      detailsBase = detailsBase + "&";
+    // The file names have "/" in them and the functions can have "(*&" in them.
+    // We base64 encode them to prevent problems.
+    return detailsBase + "/"+attr+"/" + btoa(value);
+  }
+
+  fuzzer.paramFromPath = function(attr) {
+    var path = window.location.pathname;
+    var start = path.indexOf(attr+"/");
+    if (start == -1) {
+      return "";
     }
-    var base = detailsBase + attr + "=" + value;
-    if (fuzzType === undefined) {
-      return base;
+    path = path.slice(start + attr.length + 1);
+    var end = path.indexOf("/");
+    if (end == -1) {
+      return path;
     }
-    return base + "&fuzz-type=" + fuzzType;
+    return path.slice(0, end);
   }
 
   return fuzzer;

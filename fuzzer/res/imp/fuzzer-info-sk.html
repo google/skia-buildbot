@@ -27,10 +27,16 @@
     None.
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="fuzzer-collapse-file-sk.html">
 <dom-module id="fuzzer-info-sk">
   <template>
-      <fuzzer-collapse-file-sk file="{{fuzzFileDetails}}" expand="true"></fuzzer-collapse-file-sk>
+  <iron-ajax auto url="/json/details"
+      handle-as="json"
+      params="{{_urlParams}}"
+      last-response="{{fileDetails}}">
+    </iron-ajax>
+      <fuzzer-collapse-file-sk file="{{fileDetails}}" category="{{category}}" expand></fuzzer-collapse-file-sk>
   </template>
 
   <script>
@@ -38,15 +44,29 @@
       is: 'fuzzer-info-sk',
 
       properties: {
-        fuzzFileDetails: {
+        fileDetails: {
           type: Array,
-          value: function() { return [];
+          value: function() {
+            return [];
           },
-          readOnly: true, //generates _setFuzzFileDetails
         },
+        category: {
+          type: String,
+          value: "",
+        },
+        _urlParams: {
+          type: String,
+          computed: "_getURLParams(category)",
+        }
       },
-      ready: function() {
-        sk.get("/json/details?" + window.location.search.substring(1)).then(JSON.parse).then(this._setFuzzFileDetails.bind(this));
+      _getURLParams: function(category) {
+        return {
+          "category": category,
+          "file": fuzzer.paramFromPath("file"),
+          "func": fuzzer.paramFromPath("func"),
+          "line": fuzzer.paramFromPath("line"),
+          "name": fuzzer.paramFromPath("name"),
+        };
       }
     });
   </script>

@@ -1,0 +1,98 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <fuzzer-summary-sk>
+
+  This element will request once from /json/fuzz-summary for the fuzz contents to display, which will be an array of FileDetails.
+  See fuzzer-collapse-file-sk.html for more information.
+
+  To use this file import it:
+
+    <link href="/res/imp/fuzzer-summary-sk.html" rel="import" />
+
+  Usage:
+
+    <fuzzer-summary-sk></fuzzer-summary-sk>
+
+  Properties:
+    None.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<dom-module id="fuzzer-summary-sk">
+  <template>
+    <style>
+      #summaryBox {
+        max-width: inherit;
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+        @apply(--layout-around-justified);
+      }
+      /* This aligns the 4 counts in a nice grid structure, with the fuzz type as a header. */
+      .countBox {
+        border: 1px solid black;
+        padding: 5px;
+        border-radius: 8px;
+        display: table-cell;
+        margin: 5px;
+      }
+      .countRow {
+        display: table-row;
+      }
+      .cell {
+        display: table-cell;
+        padding: 1px 5px;
+      }
+      .header {
+        text-align: center;
+        padding: 1px;
+        font-size: 1.3em;
+      }
+    </style>
+    <iron-ajax auto url="/json/fuzz-summary" handle-as="json" last-response="{{fuzz_types}}"></iron-ajax>
+    <div id = "summaryBox">
+      <template is="dom-repeat" items="{{fuzz_types}}" as="fuzz">
+        <span class="countBox">
+          <div class="header">
+            <a href$="{{getLink(fuzz)}}">{{fuzz.categoryDisplay}}</a>
+          </div>
+          <div class="countRow">
+            <span class="cell">New Bad Fuzzes: {{fuzz.thisBadCount}}</span>
+            <span class="cell">New Grey Fuzzes: {{fuzz.thisGreyCount}}</span>
+          </div>
+          <div class="countRow">
+            <span class="cell">Total Bad Fuzzes: {{fuzz.totalBadCount}}</span>
+            <span class="cell">Total Grey Fuzzes: {{fuzz.totalGreyCount}}</span>
+         </div>
+        </span>
+      </template>
+    </div>
+  </template>
+  <script>
+  Polymer({
+    is: 'fuzzer-summary-sk',
+
+    properties: {
+      fuzz_types: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+    },
+
+    getLink: function(fuzz){
+      return "/category/"+fuzz.category;
+    },
+  });
+  </script>
+</dom-module>

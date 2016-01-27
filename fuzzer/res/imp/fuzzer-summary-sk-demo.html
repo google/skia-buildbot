@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>fuzzer-summary-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/js/fuzzer.js"></script>
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="/res/imp/sinon-server-1.17.2.js"></script>
+
+  <script type="text/javascript" charset="utf-8">
+    var server = sinon.fakeServer.create();
+    server.autoRespond = true;
+    var responses = [
+      [{"category":"skpicture",
+        "categoryDisplay":"SkPicture",
+        "totalBadCount": 8322,
+        "totalGreyCount": 1728,
+        "thisBadCount": 180,
+        "thisGreyCount": 89
+      },{"category":"api_paeth",
+        "categoryDisplay":"API - Paeth",
+        "totalBadCount": 17,
+        "totalGreyCount": 120,
+        "thisBadCount": 15,
+        "thisGreyCount": 84
+      },{"category":"skcodec",
+        "categoryDisplay":"SkCodec",
+        "totalBadCount": 3,
+        "totalGreyCount": 0,
+        "thisBadCount": 3,
+        "thisGreyCount": 0
+      }
+      ],
+    ];
+
+    var counter = 0;
+
+    server.respondWith("GET", "/json/fuzz-summary", function(request) {
+        request.respond(200, {"Content-Type":"application/json"},
+          JSON.stringify(responses[counter]));
+        counter++;
+      });
+  </script>
+
+  <link rel="import" href="fuzzer-summary-sk.html">
+
+</head>
+
+<body>
+  <h1>fuzzer-summary-sk demo</h1>
+
+  <fuzzer-summary-sk style="max-width:800px"></fuzzer-summary-sk>
+
+</body>
+
+</html>

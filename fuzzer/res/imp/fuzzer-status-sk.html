@@ -22,7 +22,7 @@
         - {{_getAuthor(pending)}}</a>
       </div>
     </template>
-    <iron-ajax auto url="/status" handle-as="json" last-response="{{_status}}"></iron-ajax>
+    <iron-ajax auto url="/json/status" handle-as="json" last-response="{{_status}}"></iron-ajax>
   </template>
   <script>
   Polymer({

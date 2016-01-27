@@ -8,13 +8,10 @@ For now, only binary ones are supported, but the api fuzzes shouldn't be too har
 If extra details are supplied (in binaryReports),
 the view can be clicked to expand and show the individual stack traces.
 
-**fuzzer-collapse-function-sk:** Shows how many fuzzes broke at various lines in a given function.
+**fuzzer-collapse-file-sk:** Shows how many fuzzes broke at various functions and lines in a given file.
 Uses fuzzer-collapse-details-sk.
 
-**fuzzer-collapse-file-sk:** Shows how many fuzzes broke at various functions in a given file.
-Uses fuzzer-collapse-function-sk.
-
-**fuzzer-summary-list-sk:** Loads fuzz summary statistics from server and
+**fuzzer-file-list-sk:** Loads fuzz summary statistics from server and
 shows how many broke at various files/functions/lines.  Uses fuzzer-collapse-file-sk.
 
 **fuzzer-info-sk:** Loads detailed fuzz reports from server and

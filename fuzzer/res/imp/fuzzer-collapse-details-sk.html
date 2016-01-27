@@ -17,14 +17,13 @@
   Properties:
     details - The details object.  Expected to have the following attributes:
       lineNumber: Number,
-      apiCount: Number,
-      binaryCount: Number,
-      binaryReports: Array of Reports. If non-empty,
+      count: Number,
+      reports: Array of Reports. If non-empty,
         an expandable details panel will be created containing representations of the reports.
         If empty, just the summary will be shown.
         Reports are objects and have the following attributes:
-        - binaryName: String, The name of the binary, likely an md5 hash
-        - binaryType: String, The type of the binary
+        - name: String, The name of the binary, likely an md5 hash
+        - type: String, The type of the binary
         - flags: Array of String, The flags associated with the run (e.g. DebugDumped)
         - debugStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
         - releaseStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
@@ -39,6 +38,7 @@
   Events:
     None.
   -->
+<link rel="import" href="/res/common/imp/9/details-summary.html">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="/res/imp/bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
@@ -52,22 +52,6 @@
       border-radius: 8px;
       background-color: #DEDEDE;
       color: #000000;
-    }
-
-    #indicator {
-      cursor: pointer;
-      margin: 1px 6px 1px 1px;
-      /*Make the indicator icon a bit smaller than normal*/
-      --iron-icon-height: 20px;
-      --iron-icon-width: 20px;
-    }
-
-    #indicator.toggled {
-      transform: rotate(.25turn);
-    }
-
-    iron-icon:hover {
-      fill: #f09300;
     }
 
     .panel-container {
@@ -115,57 +99,54 @@
     </style>
     <div id="wrapper">
       <template is="dom-if" if="{{!_hasDetails(details)}}">
-        <li>line {{details.lineNumber}} -- {{totalCount}} crash-causing fuzzes: {{details.binaryCount}}
-        <a href$="{{_getDetailsLink(detailsBase, details, 'binary')}}">binary</a>
-        and {{details.apiCount}}
-        <a href$="{{_getDetailsLink(detailsBase, details, 'api')}}">api</a>
+        <li>
+          <a href$="{{_getDetailsLink(detailsBase, details)}}">Line {{details.lineNumber}}</a>
+          -- {{details.count}} crash-causing fuzzes
         </li>
       </template>
       <template is="dom-if" if="{{_hasDetails(details)}}">
         <li>
-          <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleDetails" title="Click to toggle line number view" class="toggled"></iron-icon>
-          <span>line {{details.lineNumber}} -- {{totalCount}} crash-causing fuzzes: {{details.binaryCount}}
-          <a href$="{{_getDetailsLink(detailsBase, details, 'binary')}}">binary</a>
-          and {{details.apiCount}}
-          <a href$="{{_getDetailsLink(detailsBase, details, 'api')}}">api</a>
-          </span>
-        </li>
-        <iron-collapse id="detailsPanel" opened="true">
-          <div class="panel-container">
-            <template is="dom-repeat" items="{{reports}}" as="report">
-              <div class="panel">
-                <div class="title">
-                File:
-                <a href$="{{_getDownloadLink(report)}}">{{report.binaryName}}.{{report.binaryType}}</a>
-                &nbsp;
-                <a href$="{{_getPermaLink(report)}}"><iron-icon icon="icons:link" title="permalink"></iron-icon></a>
-                &nbsp;
-                <a href$="{{_getNewBugLink(report)}}" target="_blank"><iron-icon icon="icons:bug-report" title="file a bug about this fuzz"></iron-icon></a>
+          <details-sk>
+            <summary-sk>
+              <a href$="{{_getDetailsLink(detailsBase, details)}}">Line {{details.lineNumber}}</a>
+            -- {{details.count}} crash-causing fuzzes
+            </summary-sk>
+            <div class="panel-container">
+              <template is="dom-repeat" items="{{reports}}" as="report">
+                <div class="panel">
+                  <div class="title">
+                  File:
+                  <a href$="{{_getDownloadLink(report)}}">{{report.fuzzName}}</a>
+                  &nbsp;
+                  <a href$="{{_getPermaLink(report)}}"><iron-icon icon="icons:link" title="permalink"></iron-icon></a>
+                  &nbsp;
+                  <a href$="{{_getNewBugLink(report)}}" target="_blank"><iron-icon icon="icons:bug-report" title="file a bug about this fuzz"></iron-icon></a>
+                  </div>
+                  <div class="raw">
+                    <a href$="{{_getMetaLink(report,'debug','err')}}">debug_err</a>
+                    <a href$="{{_getMetaLink(report,'release','err')}}">release_err</a>
+                    <a href$="{{_getMetaLink(report,'debug','dump')}}">debug_dump</a>
+                    <a href$="{{_getMetaLink(report,'release','dump')}}">release_dump</a>
+                  </div>
+                  <div>{{_getFlags(report)}}</div>
+                  <h4>Debug Stack Trace</h4>
+                  <fuzzer-stacktrace-sk trace="{{report.debugStackTrace}}"></fuzzer-stacktrace-sk>
+                  <h4>Release Stack Trace</h4>
+                  <fuzzer-stacktrace-sk trace="{{report.releaseStackTrace}}"></fuzzer-stacktrace-sk>
                 </div>
-                <div class="raw">
-                  <a href$="{{_getMetaLink(report,'debug','err')}}">debug_err</a>
-                  <a href$="{{_getMetaLink(report,'release','err')}}">release_err</a>
-                  <a href$="{{_getMetaLink(report,'debug','dump')}}">debug_dump</a>
-                  <a href$="{{_getMetaLink(report,'release','dump')}}">release_dump</a>
-                </div>
-                <div>{{_getFlags(report)}}</div>
-                <h4>Debug Stack Trace</h4>
-                <fuzzer-stacktrace-sk trace="{{report.debugStackTrace}}"></fuzzer-stacktrace-sk>
-                <h4>Release Stack Trace</h4>
-                <fuzzer-stacktrace-sk trace="{{report.releaseStackTrace}}"></fuzzer-stacktrace-sk>
+              </template>
+              <div class="show-more-less-bar">
+                <paper-button disabled$="{{!hasFewer}}" on-click="showFewer">Show Fewer</paper-button>
+                <span class="status">
+                  <span class="center">Showing {{toShow}}/{{details.count}}</span>
+                </span>
+                <paper-button disabled$="{{!hasMore}}" on-click="showMore">Show More</paper-button>
               </div>
-            </template>
-            <div class="show-more-less-bar">
-              <paper-button disabled$="{{!hasFewer}}" on-click="showFewer">Show Fewer</paper-button>
-              <span class="status">
-                <span class="center">Showing {{toShow}}/{{totalCount}}</span>
-              </span>
-              <paper-button disabled$="{{!hasMore}}" on-click="showMore">Show More</paper-button>
             </div>
-            <div>
-        </iron-collapse>
+          </details-sk>
+        </li>
       </template>
-      </div>
+    </div>
   </template>
   <script>
   Polymer({
@@ -184,11 +165,6 @@
       detailsBase: { // expected to be provided
         type: String,
         value: ""
-      },
-      // Returns the total count of fuzzes represented here.
-      totalCount: {
-        type: Number,
-        computed: "_getTotalCount(details)",
       },
       // The number of detail panels to show
       toShow: {
@@ -214,22 +190,18 @@
     },
 
     ready: function() {
-      if (this.details.binaryReports) {
-        this._setToShow(Math.min(6, this.details.binaryReports.length));
+      if (this.details.reports) {
+        this._setToShow(Math.min(6, this.details.reports.length));
       }
     },
 
     setDetails: function(details) {
       this.details = details;
-      this._setToShow(Math.min(6, this.details.binaryReports.length));
-    },
-
-    _getTotalCount: function(details) {
-      return details.binaryCount + details.apiCount;
+      this._setToShow(Math.min(6, this.details.reports.length));
     },
 
     _hasDetails: function(details) {
-      return this.details.binaryReports && this.details.binaryReports.length > 0;
+      return this.details.reports && this.details.reports.length > 0;
     },
 
     _getFlags: function(report) {
@@ -237,7 +209,7 @@
     },
 
     showMore: function() {
-      this._setToShow(Math.min(this.toShow + 6, this.details.binaryReports.length));
+      this._setToShow(Math.min(this.toShow + 6, this.details.reports.length));
     },
 
     showFewer: function() {
@@ -245,7 +217,7 @@
     },
 
     _hasMore: function(details, toShow) {
-      return details.binaryReports && toShow < details.binaryReports.length;
+      return details.reports && toShow < details.reports.length;
     },
 
     _hasFewer: function(toShow) {
@@ -254,40 +226,35 @@
 
     // _getSomeReports returns up to {{toShow}} reports from details
     _getSomeReports: function(details, toShow) {
-      if (!details.binaryReports) {
+      if (!details.reports) {
         return [];
       }
-      if (toShow > details.binaryReports.length) {
-        return details.binaryReports;
+      if (toShow > details.reports.length) {
+        return details.reports;
       }
-      return details.binaryReports.slice(0, toShow);
+      return details.reports.slice(0, toShow);
     },
 
     _getDownloadLink: function(report) {
-      return "/fuzz/binary/" + report.binaryName +"." +report.binaryType;
+      return "/fuzz/"+report.category+"/" + report.fuzzName;
     },
 
     _getMetaLink: function(report, build, extension) {
-      var name = report.binaryName +"_" + build +"." + extension;
-      return "/metadata/binary/" + report.binaryType +"/" + name;
+      var name = report.fuzzName +"_" + build +"." + extension;
+      return "/metadata/" + report.category +"/" + name;
     },
 
-    _getDetailsLink: function(detailsBase, details, fuzzType) {
-      return fuzzer.getLinkToDetails(detailsBase, fuzzType, 'line', details.lineNumber);
+    _getDetailsLink: function(detailsBase, details) {
+      return fuzzer.getLinkToDetails(detailsBase, 'line', details.lineNumber);
     },
 
     _getPermaLink: function(report) {
-      return "/details?name=" + report.binaryName;
+      return "/category/"+report.category + "/name/" + report.fuzzName;
     },
 
     _getNewBugLink: function(report) {
-      return "/newBug?name=" + report.binaryName;
+      return "/newBug?name=" + report.fuzzName + "&category="+report.category;
     },
-
-    toggleDetails: function() {
-      this.$$("#detailsPanel").toggle();
-      this.$$("#indicator").toggleClass("toggled");
-    }
   });
   </script>
 </dom-module>

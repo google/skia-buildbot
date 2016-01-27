@@ -26,7 +26,7 @@
     }];
     var counter = 0;
 
-    server.respondWith("GET", "/status", function(request) {
+    server.respondWith("GET", "/json/status", function(request) {
         request.respond(200, {"Content-Type":"application/json"},
           JSON.stringify(responses[counter]));
         counter++;

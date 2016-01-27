@@ -19,8 +19,7 @@
   Properties:
     file - The FileDetails object.  Expected to have the following attributes:
       fileName: String,
-      apiCount: Number,
-      binaryCount: Number,
+      count: Number,
       byFunction: Array of FunctionDetail objects.  See fuzzer-collapse-function-sk.html for schema.
 
     expand: String, which should be "true" if the element and any children should start expanded.
@@ -31,59 +30,62 @@
   Events:
     None.
 -->
+<link rel="import" href="/res/common/imp/9/details-summary.html">
 <link rel="import" href="/res/imp/bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="fuzzer-collapse-function-sk.html" />
+<link rel="import" href="fuzzer-collapse-details-sk.html" />
 <dom-module id="fuzzer-collapse-file-sk">
   <template>
     <style>
-    #wrapper {
+    #file {
       padding: 20px;
       margin: 10px;
       border-radius: 10px;
       background-color: #F5F5F5;
       color: #000000;
+      display:block;
     }
 
-    div.message {
-      overflow-wrap: word-break;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    .func {
+      padding: 20px;
+      border-radius: 10px;
+      background-color: #E5E5E5;
+      color: #000000;
+      display:block;
     }
 
     h3 {
+      display:inline;
       margin-top: 0px;
     }
 
-    #indicator {
-      cursor: pointer;
-      margin: 1px 6px 1px 1px;
-    }
-
-    #indicator.toggled {
-      transform: rotate(.25turn);
-    }
-
-    #indicator:hover {
-      fill: #f09300;
+    ul {
+      list-style-type: none;
     }
     </style>
-    <div id="wrapper">
-      <div class="message">
-        <h3>
-          <iron-icon role="button" id="indicator" icon="icons:send" on-click="toggleFunctions" title="Click to toggle function view"></iron-icon>
-          {{file.fileName}} -- {{totalCount}} crash-causing fuzzes: {{file.binaryCount}}
-          <a href$="{{_getDetailsLink(file, 'binary')}}">binary</a>
-          and {{file.apiCount}}
-          <a href$="{{_getDetailsLink(file, 'api')}}">api</a>
-        </h3>
-      </div>
-      <iron-collapse id="functions">
-        <template is="dom-repeat" items="{{file.byFunction}}" as="function">
-          <fuzzer-collapse-function-sk func="{{function}}" expand="{{expand}}" details-base="{{_getDetailsLink(file)}}"></fuzzer-collapse-function-sk>
-        </template>
-      </iron-collapse>
-    </div>
+    <details-sk id="file" open="[[expand]]">
+      <summary-sk>
+      <h3>
+        <a href$="{{_getDetailsLink(category, file)}}">{{file.fileName}}</a>
+        -- {{file.count}} crash-causing fuzzes
+      </h3>
+      </summary-sk>
+      <template is="dom-repeat" items="{{file.byFunction}}" as="func">
+        <details-sk class="func" open="[[expand]]">
+          <summary-sk>
+            <span>
+              <a href$="{{_getDetailsLink(category, file, func)}}">Function {{func.functionName}}</a>
+              -- {{func.count}} crash-causing fuzzes
+            </span>
+          </summary-sk>
+          <ul>
+            <template is="dom-repeat" items="{{func.byLineNumber}}" as="lineNumber">
+              <fuzzer-collapse-details-sk details="{{lineNumber}}" details-base="{{_getDetailsLink(category, file, func)}}"></fuzzer-collapse-details-sk>
+            </template>
+          </ul>
+        </details-sk>
+      </template>
+    </details-sk>
   </template>
   <script>
   Polymer({
@@ -94,41 +96,34 @@
         type: Object,
         value: function() {
           return {};
-        }
+        },
       },
-      totalCount: {
-        type: Number,
-        computed: "_getTotalCount(file)"
-      },
-      expand: {
+      category: {
         type: String,
-        value: ""
+        value: "",
       },
-    },
-
-    ready: function() {
-      if (this.expand) {
-        this.$.functions.show();
-        this.$.indicator.toggleClass("toggled");
-      }
+      // We can use one-way [[]] bindings to initialize all of the details-sk,
+      // but keep their open states untangled.
+      expand: {
+        type: Boolean,
+        value: false,
+      },
     },
 
     setFile: function(file) {
       this.file = file;
     },
 
-    _getTotalCount: function(file) {
-      return file.binaryCount + file.apiCount;
+    _getDetailsLink: function(category, file, func) {
+      if (!file) {
+        return "#";
+      }
+      var base = fuzzer.getLinkToDetails("/category/"+category, "file", file.fileName);
+      if (func) {
+        base = fuzzer.getLinkToDetails(base, "func", func.functionName);
+      }
+      return base;
     },
-
-    _getDetailsLink: function(file, fuzzType) {
-      return fuzzer.getLinkToDetails("/details?", fuzzType, 'file', file.fileName);
-    },
-
-    toggleFunctions: function() {
-      this.$.functions.toggle();
-      this.$.indicator.toggleClass("toggled");
-    }
   });
   </script>
 </dom-module>
