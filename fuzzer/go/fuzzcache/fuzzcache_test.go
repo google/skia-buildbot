@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"go.skia.org/infra/fuzzer/go/common"
-	"go.skia.org/infra/fuzzer/go/fuzz"
+	"go.skia.org/infra/fuzzer/go/frontend/data"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -71,9 +71,9 @@ func deleteBeforeTest(t *testing.T) {
 	}
 }
 
-func makeStacktrace(file, function string, line int) fuzz.StackTrace {
-	return fuzz.StackTrace{
-		Frames: []fuzz.StackTraceFrame{
+func makeStacktrace(file, function string, line int) data.StackTrace {
+	return data.StackTrace{
+		Frames: []data.StackTraceFrame{
 			{
 				PackageName:  "mock/package/",
 				FileName:     file,
@@ -88,113 +88,113 @@ var expectedFuzzNames = []string{"aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff",
 
 var mockFlags = []string{"foo", "bar"}
 
-var mockPictureDetails = map[string]fuzz.FuzzReport{
-	"aaaa": fuzz.FuzzReport{
+var mockPictureDetails = map[string]data.FuzzReport{
+	"aaaa": data.FuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace:  makeStacktrace("alpha", "beta", 16),
 		HumanReadableFlags: mockFlags,
 		FuzzName:           "aaaa",
 		FuzzCategory:       "skpicture",
 	},
-	"bbbb": fuzz.FuzzReport{
+	"bbbb": data.FuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
-		ReleaseStackTrace:  fuzz.StackTrace{},
+		ReleaseStackTrace:  data.StackTrace{},
 		HumanReadableFlags: mockFlags,
 		FuzzName:           "bbbb",
 		FuzzCategory:       "skpicture",
 	},
-	"cccc": fuzz.FuzzReport{
+	"cccc": data.FuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace:  makeStacktrace("alpha", "gamma", 26),
 		HumanReadableFlags: mockFlags,
 		FuzzName:           "cccc",
 		FuzzCategory:       "skpicture",
 	},
-	"dddd": fuzz.FuzzReport{
+	"dddd": data.FuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "gamma", 43),
 		ReleaseStackTrace:  makeStacktrace("delta", "epsilon", 125),
 		HumanReadableFlags: mockFlags,
 		FuzzName:           "dddd",
 		FuzzCategory:       "skpicture",
 	},
-	"eeee": fuzz.FuzzReport{
-		DebugStackTrace:    fuzz.StackTrace{},
-		ReleaseStackTrace:  fuzz.StackTrace{},
+	"eeee": data.FuzzReport{
+		DebugStackTrace:    data.StackTrace{},
+		ReleaseStackTrace:  data.StackTrace{},
 		HumanReadableFlags: mockFlags,
 		FuzzName:           "eeee",
 		FuzzCategory:       "skpicture",
 	},
-	"ffff": fuzz.FuzzReport{
+	"ffff": data.FuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace:  makeStacktrace("alpha", "beta", 16),
 		HumanReadableFlags: mockFlags,
 		FuzzName:           "ffff",
 		FuzzCategory:       "skpicture",
 	},
-	"gggg": fuzz.FuzzReport{
+	"gggg": data.FuzzReport{
 		DebugStackTrace:    makeStacktrace("delta", "epsilon", 122),
-		ReleaseStackTrace:  fuzz.StackTrace{},
+		ReleaseStackTrace:  data.StackTrace{},
 		HumanReadableFlags: mockFlags,
 		FuzzName:           "gggg",
 		FuzzCategory:       "skpicture",
 	},
 }
 
-var mockAPIDetails = map[string]fuzz.FuzzReport{
-	"hhhh": fuzz.FuzzReport{
+var mockAPIDetails = map[string]data.FuzzReport{
+	"hhhh": data.FuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
 		ReleaseStackTrace:  makeStacktrace("alpha", "beta", 16),
 		HumanReadableFlags: mockFlags,
 		FuzzName:           "hhhh",
 		FuzzCategory:       "api",
 	},
-	"iiii": fuzz.FuzzReport{
+	"iiii": data.FuzzReport{
 		DebugStackTrace:    makeStacktrace("alpha", "beta", 16),
-		ReleaseStackTrace:  fuzz.StackTrace{},
+		ReleaseStackTrace:  data.StackTrace{},
 		HumanReadableFlags: mockFlags,
 		FuzzName:           "iiii",
 		FuzzCategory:       "api",
 	},
 }
 
-var expectedPictureTree = fuzz.FuzzReportTree{
-	fuzz.FileFuzzReport{
-		FileName: "mock/package/alpha", Count: 4, Functions: []fuzz.FunctionFuzzReport{
-			fuzz.FunctionFuzzReport{
-				FunctionName: "beta", Count: 3, LineNumbers: []fuzz.LineFuzzReport{
-					fuzz.LineFuzzReport{
-						LineNumber: 16, Count: 3, Details: []fuzz.FuzzReport{mockPictureDetails["aaaa"], mockPictureDetails["bbbb"], mockPictureDetails["ffff"]},
+var expectedPictureTree = data.FuzzReportTree{
+	data.FileFuzzReport{
+		FileName: "mock/package/alpha", Count: 4, Functions: []data.FunctionFuzzReport{
+			data.FunctionFuzzReport{
+				FunctionName: "beta", Count: 3, LineNumbers: []data.LineFuzzReport{
+					data.LineFuzzReport{
+						LineNumber: 16, Count: 3, Details: []data.FuzzReport{mockPictureDetails["aaaa"], mockPictureDetails["bbbb"], mockPictureDetails["ffff"]},
 					},
 				},
-			}, fuzz.FunctionFuzzReport{
-				FunctionName: "gamma", Count: 1, LineNumbers: []fuzz.LineFuzzReport{
-					fuzz.LineFuzzReport{
-						LineNumber: 26, Count: 1, Details: []fuzz.FuzzReport{mockPictureDetails["cccc"]},
-					},
-				},
-			},
-		},
-	},
-	fuzz.FileFuzzReport{
-		FileName: "mock/package/delta", Count: 2, Functions: []fuzz.FunctionFuzzReport{
-			fuzz.FunctionFuzzReport{
-				FunctionName: "epsilon", Count: 2, LineNumbers: []fuzz.LineFuzzReport{
-					fuzz.LineFuzzReport{
-						LineNumber: 122, Count: 1, Details: []fuzz.FuzzReport{mockPictureDetails["gggg"]},
-					},
-					fuzz.LineFuzzReport{
-						LineNumber: 125, Count: 1, Details: []fuzz.FuzzReport{mockPictureDetails["dddd"]},
+			}, data.FunctionFuzzReport{
+				FunctionName: "gamma", Count: 1, LineNumbers: []data.LineFuzzReport{
+					data.LineFuzzReport{
+						LineNumber: 26, Count: 1, Details: []data.FuzzReport{mockPictureDetails["cccc"]},
 					},
 				},
 			},
 		},
 	},
-	fuzz.FileFuzzReport{
-		FileName: common.UNKNOWN_FILE, Count: 1, Functions: []fuzz.FunctionFuzzReport{
-			fuzz.FunctionFuzzReport{
-				FunctionName: common.UNKNOWN_FUNCTION, Count: 1, LineNumbers: []fuzz.LineFuzzReport{
-					fuzz.LineFuzzReport{
-						LineNumber: -1, Count: 1, Details: []fuzz.FuzzReport{mockPictureDetails["eeee"]},
+	data.FileFuzzReport{
+		FileName: "mock/package/delta", Count: 2, Functions: []data.FunctionFuzzReport{
+			data.FunctionFuzzReport{
+				FunctionName: "epsilon", Count: 2, LineNumbers: []data.LineFuzzReport{
+					data.LineFuzzReport{
+						LineNumber: 122, Count: 1, Details: []data.FuzzReport{mockPictureDetails["gggg"]},
+					},
+					data.LineFuzzReport{
+						LineNumber: 125, Count: 1, Details: []data.FuzzReport{mockPictureDetails["dddd"]},
+					},
+				},
+			},
+		},
+	},
+	data.FileFuzzReport{
+		FileName: common.UNKNOWN_FILE, Count: 1, Functions: []data.FunctionFuzzReport{
+			data.FunctionFuzzReport{
+				FunctionName: common.UNKNOWN_FUNCTION, Count: 1, LineNumbers: []data.LineFuzzReport{
+					data.LineFuzzReport{
+						LineNumber: -1, Count: 1, Details: []data.FuzzReport{mockPictureDetails["eeee"]},
 					},
 				},
 			},
@@ -202,13 +202,13 @@ var expectedPictureTree = fuzz.FuzzReportTree{
 	},
 }
 
-var expectedAPITree = fuzz.FuzzReportTree{
-	fuzz.FileFuzzReport{
-		FileName: "mock/package/alpha", Count: 2, Functions: []fuzz.FunctionFuzzReport{
-			fuzz.FunctionFuzzReport{
-				FunctionName: "beta", Count: 2, LineNumbers: []fuzz.LineFuzzReport{
-					fuzz.LineFuzzReport{
-						LineNumber: 16, Count: 2, Details: []fuzz.FuzzReport{mockAPIDetails["hhhh"], mockAPIDetails["iiii"]},
+var expectedAPITree = data.FuzzReportTree{
+	data.FileFuzzReport{
+		FileName: "mock/package/alpha", Count: 2, Functions: []data.FunctionFuzzReport{
+			data.FunctionFuzzReport{
+				FunctionName: "beta", Count: 2, LineNumbers: []data.LineFuzzReport{
+					data.LineFuzzReport{
+						LineNumber: 16, Count: 2, Details: []data.FuzzReport{mockAPIDetails["hhhh"], mockAPIDetails["iiii"]},
 					},
 				},
 			},

@@ -1,4 +1,4 @@
-package fuzz
+package data
 
 import (
 	"bufio"

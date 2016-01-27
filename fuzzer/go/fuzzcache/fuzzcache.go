@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/boltdb/bolt"
-	"go.skia.org/infra/fuzzer/go/fuzz"
+	"go.skia.org/infra/fuzzer/go/frontend/data"
 )
 
 const REPORT_KEY = "report-"
@@ -32,11 +32,11 @@ func getReportKey(category string) []byte {
 	return []byte(REPORT_KEY + category)
 }
 
-// Load returns a *fuzz.fuzz.FuzzReport that corresponds to the passed in revision,
+// Load returns a *data.FuzzReport that corresponds to the passed in revision,
 // and the fuzz names associated with the report.
 // It returns an error if such a Report does not exist.
-func (b *FuzzReportCache) LoadTree(category, revision string) (*fuzz.FuzzReportTree, error) {
-	var report fuzz.FuzzReportTree
+func (b *FuzzReportCache) LoadTree(category, revision string) (*data.FuzzReportTree, error) {
+	var report data.FuzzReportTree
 	loadFunc := func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(revision))
 		if b == nil {
@@ -75,10 +75,10 @@ func (b *FuzzReportCache) LoadFuzzNames(revision string) ([]string, error) {
 	return fuzzNames, b.DB.View(loadFunc)
 }
 
-// Store stores a fuzz.FuzzReport and the fuzzNames associated with it to the underlying
-// fuzz.FuzzReportCache. It creates a bucket with the
+// Store stores a data.FuzzReport and the fuzzNames associated with it to the underlying
+// data.FuzzReportCache. It creates a bucket with the
 // name of the given revision and stores the report as a []byte under a simple key.
-func (b *FuzzReportCache) StoreTree(report fuzz.FuzzReportTree, category, revision string) error {
+func (b *FuzzReportCache) StoreTree(report data.FuzzReportTree, category, revision string) error {
 	storeFunc := func(tx *bolt.Tx) error {
 		bkt, err := tx.CreateBucketIfNotExists([]byte(revision))
 		if err != nil {
@@ -116,7 +116,7 @@ func (b *FuzzReportCache) StoreFuzzNames(fuzzNames []string, revision string) er
 	return b.DB.Update(storeFunc)
 }
 
-// Close closes the underlying fuzz.FuzzReportCache, returning any errors the instance returns.
+// Close closes the underlying data.FuzzReportCache, returning any errors the instance returns.
 func (b *FuzzReportCache) Close() error {
 	return b.DB.Close()
 }

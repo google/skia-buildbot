@@ -23,9 +23,9 @@ import (
 	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend"
+	"go.skia.org/infra/fuzzer/go/frontend/data"
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
-	"go.skia.org/infra/fuzzer/go/fuzz"
 	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -291,7 +291,7 @@ type fuzzOverview struct {
 func summaryJSONHandler(w http.ResponseWriter, r *http.Request) {
 	var overview interface{}
 	if cat := r.FormValue("category"); cat != "" {
-		overview = fuzz.CategoryOverview(cat)
+		overview = data.CategoryOverview(cat)
 	} else {
 		overview = getOverview()
 	}
@@ -350,10 +350,10 @@ func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var f fuzz.FileFuzzReport
+	var f data.FileFuzzReport
 	if name != "" {
 		var err error
-		if f, err = fuzz.FindFuzzDetailForFuzz(category, name); err != nil {
+		if f, err = data.FindFuzzDetailForFuzz(category, name); err != nil {
 			util.ReportError(w, r, err, "There was a problem fulfilling the request.")
 		}
 	} else {
@@ -362,7 +362,7 @@ func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 			line = fcommon.UNKNOWN_LINE
 		}
 
-		if f, err = fuzz.FindFuzzDetails(category, file, function, int(line)); err != nil {
+		if f, err = data.FindFuzzDetails(category, file, function, int(line)); err != nil {
 			util.ReportError(w, r, err, "There was a problem fulfilling the request.")
 			return
 		}

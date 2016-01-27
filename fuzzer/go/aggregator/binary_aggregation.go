@@ -18,7 +18,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
-	"go.skia.org/infra/fuzzer/go/fuzz"
+	"go.skia.org/infra/fuzzer/go/frontend/data"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/util"
@@ -385,7 +385,7 @@ var analyzeSkp = AnalysisPackage{
 			upload.ReleaseDump = dump
 			upload.ReleaseErr = stderr
 		}
-		if r := fuzz.ParseFuzzResult(upload.DebugDump, upload.DebugErr, upload.ReleaseDump, upload.ReleaseErr); r.Flags == fuzz.DebugFailedGracefully|fuzz.ReleaseFailedGracefully {
+		if r := data.ParseFuzzResult(upload.DebugDump, upload.DebugErr, upload.ReleaseDump, upload.ReleaseErr); r.Flags == data.DebugFailedGracefully|data.ReleaseFailedGracefully {
 			upload.FuzzType = GREY_FUZZ
 		}
 		return upload, nil

@@ -76,7 +76,7 @@ func (f *FuzzSyncer) Refresh() {
 
 	for _, cat := range common.FUZZ_CATEGORIES {
 		lastCount := FuzzCount{}
-		currentBadNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/bad/", cat, currRevision))
+		currentBadNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/bad", cat, currRevision))
 		if err != nil {
 			glog.Errorf("Problem getting total bad fuzz counts: %s", err)
 		} else {
@@ -84,19 +84,19 @@ func (f *FuzzSyncer) Refresh() {
 			allCurrentNames = append(allCurrentNames, currentBadNames...)
 		}
 
-		if previousBadNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/bad/", cat, prevRevision)); err != nil {
+		if previousBadNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/bad", cat, prevRevision)); err != nil {
 			glog.Errorf("Problem getting this bad fuzz counts: %s", err)
 		} else {
 			lastCount.ThisBad = lastCount.TotalBad - len(previousBadNames)
 		}
 
-		if currentGreyNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/grey/", cat, currRevision)); err != nil {
+		if currentGreyNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/grey", cat, currRevision)); err != nil {
 			glog.Errorf("Problem getting total grey fuzz counts: %s", err)
 		} else {
 			lastCount.TotalGrey = len(currentGreyNames)
 		}
 
-		if previousGreyNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/grey/", cat, prevRevision)); err != nil {
+		if previousGreyNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/grey", cat, prevRevision)); err != nil {
 			glog.Errorf("Problem getting this grey fuzz counts: %s", err)
 		} else {
 			lastCount.ThisGrey = lastCount.TotalGrey - len(previousGreyNames)

@@ -9,13 +9,13 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
-	"go.skia.org/infra/fuzzer/go/fuzz"
+	"go.skia.org/infra/fuzzer/go/frontend/data"
 	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	"go.skia.org/infra/go/gs"
 	"google.golang.org/cloud/storage"
 )
 
-// LoadFromBoltDB loads the fuzz.FuzzReport from FuzzReportCache associated with the given hash.
+// LoadFromBoltDB loads the data.FuzzReport from FuzzReportCache associated with the given hash.
 // The FuzzReport is first put into the staging fuzz cache, and then into the current.
 // If a cache for the commit does not exist, or there are other problems with the retrieval,
 // an error is returned.
@@ -25,11 +25,11 @@ func LoadFromBoltDB(cache *fuzzcache.FuzzReportCache) error {
 		if staging, err := cache.LoadTree(category, config.FrontEnd.SkiaVersion.Hash); err != nil {
 			return fmt.Errorf("Problem decoding existing from bolt db: %s", err)
 		} else {
-			fuzz.SetStaging(category, *staging)
+			data.SetStaging(category, *staging)
 			glog.Infof("Successfully loaded %s fuzzes from bolt db cache", category)
 		}
 	}
-	fuzz.StagingToCurrent()
+	data.StagingToCurrent()
 	return nil
 }
 
@@ -57,7 +57,7 @@ func New(s *storage.Client, c *fuzzcache.FuzzReportCache) *GSLoader {
 // to the current copy.
 func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 	revision := config.FrontEnd.SkiaVersion.Hash
-	fuzz.ClearStaging()
+	data.ClearStaging()
 	fuzzNames := make([]string, 0, 100)
 	for _, cat := range common.FUZZ_CATEGORIES {
 		badPath := fmt.Sprintf("%s/%s/bad", cat, revision)
@@ -67,16 +67,16 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 		}
 		n := 0
 		for report := range reports {
-			fuzz.NewFuzzFound(cat, report)
+			data.NewFuzzFound(cat, report)
 			fuzzNames = append(fuzzNames, report.FuzzName)
 			n++
 		}
 		glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", n, config.GS.Bucket, badPath)
 	}
 
-	fuzz.StagingToCurrent()
+	data.StagingToCurrent()
 	for _, category := range common.FUZZ_CATEGORIES {
-		if err := g.Cache.StoreTree(fuzz.StagingCopy(category), category, revision); err != nil {
+		if err := g.Cache.StoreTree(data.StagingCopy(category), category, revision); err != nil {
 			glog.Errorf("Problem storing category %s to boltDB: %s", category, err)
 		}
 	}
@@ -88,7 +88,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 // and moves them from staging to the current copy.
 func (g *GSLoader) LoadBinaryFuzzesFromGoogleStorage(whitelist []string) error {
 	revision := config.FrontEnd.SkiaVersion.Hash
-	fuzz.StagingFromCurrent()
+	data.StagingFromCurrent()
 	sort.Strings(whitelist)
 
 	fuzzNames := make([]string, 0, 100)
@@ -100,13 +100,13 @@ func (g *GSLoader) LoadBinaryFuzzesFromGoogleStorage(whitelist []string) error {
 		}
 		n := 0
 		for report := range reports {
-			fuzz.NewFuzzFound(cat, report)
+			data.NewFuzzFound(cat, report)
 			fuzzNames = append(fuzzNames, report.FuzzName)
 			n++
 		}
 		glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", n, config.GS.Bucket, badPath)
 	}
-	fuzz.StagingToCurrent()
+	data.StagingToCurrent()
 
 	oldBinaryFuzzNames, err := g.Cache.LoadFuzzNames(revision)
 	if err != nil {
@@ -114,7 +114,7 @@ func (g *GSLoader) LoadBinaryFuzzesFromGoogleStorage(whitelist []string) error {
 		oldBinaryFuzzNames = []string{}
 	}
 	for _, category := range common.FUZZ_CATEGORIES {
-		if err := g.Cache.StoreTree(fuzz.StagingCopy(category), category, revision); err != nil {
+		if err := g.Cache.StoreTree(data.StagingCopy(category), category, revision); err != nil {
 			glog.Errorf("Problem storing category %s to boltDB: %s", category, err)
 		}
 	}
@@ -135,8 +135,8 @@ type fuzzPackage struct {
 // groups them by fuzz.  It parses these groups of files into a BinaryFuzzReport and returns
 // a channel through whcih all reports generated in this way will be streamed.
 // The channel will be closed when all reports are done being sent.
-func (g *GSLoader) getBinaryReportsFromGS(baseFolder string, whitelist []string) (<-chan fuzz.FuzzReport, error) {
-	reports := make(chan fuzz.FuzzReport, 10000)
+func (g *GSLoader) getBinaryReportsFromGS(baseFolder string, whitelist []string) (<-chan data.FuzzReport, error) {
+	reports := make(chan data.FuzzReport, 10000)
 
 	fuzzPackages, err := g.fetchFuzzPackages(baseFolder)
 	if err != nil {
@@ -210,14 +210,14 @@ func emptyStringOnError(b []byte, err error) string {
 // the four pieces of the package.  It then parses them into a BinaryFuzzReport and sends
 // the binary to the passed in channel.  When there is no more work to be done, this function.
 // returns and writes out true to the done channel.
-func (g *GSLoader) download(toDownload <-chan fuzzPackage, reports chan<- fuzz.FuzzReport, wg *sync.WaitGroup) {
+func (g *GSLoader) download(toDownload <-chan fuzzPackage, reports chan<- data.FuzzReport, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for job := range toDownload {
 		debugDump := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.DebugDumpName))
 		debugErr := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.DebugErrName))
 		releaseDump := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.ReleaseDumpName))
 		releaseErr := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.ReleaseErrName))
-		reports <- fuzz.ParseReport(job.FuzzName, debugDump, debugErr, releaseDump, releaseErr)
+		reports <- data.ParseReport(job.FuzzName, debugDump, debugErr, releaseDump, releaseErr)
 		atomic.AddInt32(&g.completedCounter, 1)
 		if g.completedCounter%100 == 0 {
 			glog.Infof("%d fuzzes downloaded", g.completedCounter)

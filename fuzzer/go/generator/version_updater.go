@@ -131,11 +131,11 @@ func (v *VersionUpdater) downloadAllBadAndGreyFuzzes(commitHash, downloadPath st
 	}
 
 	// TODO(kjlubick): Fix this hardcoded type with a proper variable
-	if err := gs.AllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("skpicture/%s/bad/", commitHash), badFilter); err != nil {
+	if err := gs.AllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("skpicture/%s/bad", commitHash), badFilter); err != nil {
 		return nil, nil, fmt.Errorf("Problem getting bad fuzzes: %s", err)
 	}
 
-	if err := gs.AllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("skpicture/%s/grey/", commitHash), greyFilter); err != nil {
+	if err := gs.AllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("skpicture/%s/grey", commitHash), greyFilter); err != nil {
 		return nil, nil, fmt.Errorf("Problem getting grey fuzzes: %s", err)
 	}
 
