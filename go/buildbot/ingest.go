@@ -511,9 +511,11 @@ func NumTotalBuilds() (int, error) {
 
 // IngestNewBuildsLoop continually ingests new builds.
 func IngestNewBuildsLoop(db DB, workdir string) error {
-	if _, ok := db.(*localDB); !ok {
+	local, ok := db.(*localDB)
+	if !ok {
 		return fmt.Errorf("Can only ingest builds with a local DB instance.")
 	}
+	cache := newIngestCache(local)
 	repos := gitinfo.NewRepoMap(workdir)
 	go func() {
 		var wg sync.WaitGroup
@@ -522,7 +524,7 @@ func IngestNewBuildsLoop(db DB, workdir string) error {
 				defer wg.Done()
 				lv := metrics.NewLiveness(fmt.Sprintf("buildbot-ingest-%s", master))
 				for _ = range time.Tick(10 * time.Second) {
-					if err := ingestNewBuilds(db.(*localDB), master, repos); err != nil {
+					if err := ingestNewBuilds(cache, master, repos); err != nil {
 						glog.Errorf("Failed to ingest new builds: %s", err)
 					} else {
 						lv.Update()
