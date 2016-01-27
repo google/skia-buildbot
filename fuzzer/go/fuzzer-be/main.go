@@ -13,6 +13,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/aggregator"
+	"go.skia.org/infra/fuzzer/go/backend"
 	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/generator"
@@ -39,7 +40,7 @@ var (
 	downloadProcesses  = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
 
 	bucket               = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to store found fuzzes.")
-	binaryFuzzPath       = flag.String("fuzz_path", filepath.Join(os.TempDir(), "fuzzes"), "The directory to temporarily store the binary fuzzes during aggregation.")
+	fuzzPath             = flag.String("fuzz_path", filepath.Join(os.TempDir(), "fuzzes"), "The directory to temporarily store the binary fuzzes during aggregation.")
 	executablePath       = flag.String("executable_path", filepath.Join(os.TempDir(), "executables"), "The directory to store temporary executables that will run the fuzzes during aggregation. Defaults to /tmp/executables.")
 	numAnalysisProcesses = flag.Int("analysis_processes", 0, `The number of processes to analyze fuzzes.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
 	rescanPeriod         = flag.Duration("rescan_period", 60*time.Second, `The time in which to sleep for every cycle of aggregation. `)
@@ -69,23 +70,31 @@ func main() {
 	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Generator.SkiaRoot, &config.Generator); err != nil {
 		glog.Fatalf("Problem downloading Skia: %s", err)
 	}
-	if err := generator.DownloadBinarySeedFiles(storageClient); err != nil {
+
+	gen := generator.New("skpicture")
+	if err := gen.DownloadSeedFiles(storageClient); err != nil {
 		glog.Fatalf("Problem downloading binary seed files: %s", err)
 	}
 
 	glog.Infof("Starting generator with configuration %#v", config.Generator)
-	if err := generator.StartBinaryGenerator(); err != nil {
+	if err := gen.Start(); err != nil {
 		glog.Fatalf("Problem starting binary generator: %s", err)
 	}
 
 	glog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
-	agg, err := aggregator.StartBinaryAggregator(storageClient)
+	agg, err := aggregator.StartAggregator(storageClient, "skpicture")
 	if err != nil {
 		glog.Fatalf("Could not start aggregator: %s", err)
 	}
 
+	updater := backend.NewVersionUpdater(storageClient, []backend.FuzzPipeline{
+		{
+			Category: "skpicture",
+			Agg:      agg,
+			Gen:      gen,
+		},
+	})
 	glog.Info("Starting version watcher")
-	updater := generator.NewVersionUpdater(storageClient, agg)
 	watcher := fcommon.NewVersionWatcher(storageClient, config.Generator.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
 	watcher.Start()
 
@@ -131,7 +140,7 @@ func writeFlagsToConfig() error {
 	config.Generator.NumDownloadProcesses = *downloadProcesses
 
 	config.GS.Bucket = *bucket
-	config.Aggregator.BinaryFuzzPath, err = fileutil.EnsureDirExists(*binaryFuzzPath)
+	config.Aggregator.FuzzPath, err = fileutil.EnsureDirExists(*fuzzPath)
 	if err != nil {
 		return err
 	}

@@ -22,7 +22,7 @@ type generatorConfig struct {
 }
 
 type aggregatorConfig struct {
-	BinaryFuzzPath       string
+	FuzzPath             string
 	ExecutablePath       string
 	NumAnalysisProcesses int
 	NumUploadProcesses   int

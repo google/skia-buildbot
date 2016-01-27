@@ -17,21 +17,31 @@ import (
 	"google.golang.org/cloud/storage"
 )
 
-var fuzzProcessCount go_metrics.Counter
-var fuzzProcesses []exec.Process
+type Generator struct {
+	Category         string
+	fuzzProcessCount go_metrics.Counter
+	fuzzProcesses    []exec.Process
+}
 
-// StartBinaryGenerator starts up 1 goroutine running a "master" afl-fuzz and n-1 "slave"
-// afl-fuzz processes, where n is specified by config.Generator.NumFuzzProcesses.
-// Output goes to config.Generator.AflOutputPath
-func StartBinaryGenerator() error {
-	executable, err := setup()
+func New(category string) *Generator {
+	return &Generator{
+		Category:      category,
+		fuzzProcesses: nil,
+	}
+}
+
+// Start starts up 1 goroutine running a "master" afl-fuzz and n-1 "slave" afl-fuzz processes, where
+// n is specified by config.Generator.NumFuzzProcesses. Output goes to
+// config.Generator.AflOutputPath
+func (g *Generator) Start() error {
+	executable, err := g.setup()
 	if err != nil {
-		return fmt.Errorf("Failed binary generator setup: %s", err)
+		return fmt.Errorf("Failed %s generator setup: %s", g.Category, err)
 	}
 
 	masterCmd := &exec.Command{
 		Name:      "./afl-fuzz",
-		Args:      []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "100", "-M", "fuzzer0", "--", executable, "--type", "skp", "--bytes", "@@"},
+		Args:      common.GenerationArgsFor(g.Category, executable, "fuzzer0", true),
 		Dir:       config.Generator.AflRoot,
 		LogStdout: true,
 		LogStderr: true,
@@ -41,35 +51,34 @@ func StartBinaryGenerator() error {
 		masterCmd.Stdout = os.Stdout
 	}
 
-	fuzzProcesses = append(fuzzProcesses, run(masterCmd))
+	g.fuzzProcesses = append(g.fuzzProcesses, g.run(masterCmd))
 
 	fuzzCount := config.Generator.NumFuzzProcesses
 	if fuzzCount <= 0 {
 		// TODO(kjlubick): Make this actually an intelligent number based on the number of cores.
 		fuzzCount = 10
 	}
-	fuzzProcessCount = go_metrics.NewRegisteredCounter("afl_fuzz_process_count", go_metrics.DefaultRegistry)
-	fuzzProcessCount.Inc(int64(fuzzCount))
+	g.fuzzProcessCount = go_metrics.NewRegisteredCounter("afl_fuzz_process_count", go_metrics.DefaultRegistry)
+	g.fuzzProcessCount.Inc(int64(fuzzCount))
 	for i := 1; i < fuzzCount; i++ {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
 		slaveCmd := &exec.Command{
 			Name:      "./afl-fuzz",
-			Args:      []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "100", "-S", fuzzerName, "--", executable, "--type", "skp", "--bytes", "@@"},
+			Args:      common.GenerationArgsFor(g.Category, executable, fuzzerName, false),
 			Dir:       config.Generator.AflRoot,
 			LogStdout: true,
 			LogStderr: true,
 			Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
 		}
-		fuzzProcesses = append(fuzzProcesses, run(slaveCmd))
+		g.fuzzProcesses = append(g.fuzzProcesses, g.run(slaveCmd))
 	}
-
 	return nil
 }
 
 // setup clears out previous fuzzing sessions and builds the executable we need to run afl-fuzz.
 // The binary is then copied to the working directory as "dm_afl_Release".
-func setup() (string, error) {
-	if err := ClearBinaryGenerator(); err != nil {
+func (g *Generator) setup() (string, error) {
+	if err := g.Clear(); err != nil {
 		return "", err
 	}
 	// build afl
@@ -84,8 +93,8 @@ func setup() (string, error) {
 	return executable, nil
 }
 
-func ClearBinaryGenerator() error {
-	// remove previous binaries
+// Clear removes the previous fuzzing sessions data and any previously used binaries.
+func (g *Generator) Clear() error {
 	if err := os.RemoveAll(config.Generator.WorkingPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("Failed to remove previous binaries: %s", err)
 	}
@@ -105,7 +114,7 @@ func ClearBinaryGenerator() error {
 
 // run runs the command and logs any failures.  It returns the Process that can be used to
 // manually kill the command.
-func run(command *exec.Command) exec.Process {
+func (g *Generator) run(command *exec.Command) exec.Process {
 	p, status, err := exec.RunIndefinitely(command)
 	if err != nil {
 		glog.Errorf("Failed afl fuzzer command %#v: %s", command, err)
@@ -113,17 +122,17 @@ func run(command *exec.Command) exec.Process {
 	}
 	go func() {
 		err := <-status
-		fuzzProcessCount.Dec(int64(1))
-		glog.Infof(`afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, command.Args, err, fuzzProcessCount.Count())
+		g.fuzzProcessCount.Dec(int64(1))
+		glog.Infof(`afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, command.Args, err, g.fuzzProcessCount.Count())
 	}()
 	return p
 }
 
-// StopBinaryGenerator terminates all afl-fuzz processes that were spawned,
+// Stop terminates all afl-fuzz processes that were spawned,
 // logging any errors.
-func StopBinaryGenerator() {
-	glog.Infof("Trying to stop %d fuzz processes", len(fuzzProcesses))
-	for _, p := range fuzzProcesses {
+func (g *Generator) Stop() {
+	glog.Infof("Trying to stop %d fuzz processes", len(g.fuzzProcesses))
+	for _, p := range g.fuzzProcesses {
 		if p != nil {
 			if err := p.Kill(); err != nil {
 				glog.Warningf("Error while trying to kill afl process: %s", err)
@@ -132,25 +141,27 @@ func StopBinaryGenerator() {
 			}
 		}
 	}
-	fuzzProcesses = nil
+	g.fuzzProcesses = nil
 }
 
-// DownloadBinarySeedFiles downloads the seed skp files stored in Google
-// Storage to be used by afl-fuzz.  It places them in
-// config.Generator.FuzzSamples after cleaning the folder out.
-// It returns an error on failure.
-func DownloadBinarySeedFiles(storageClient *storage.Client) error {
-	if err := os.RemoveAll(config.Generator.FuzzSamples); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("Could not clean binary seed path %s: %s", config.Generator.FuzzSamples, err)
+// DownloadSeedFiles downloads the seed files stored in Google Storage to be used by afl-fuzz.  It
+// places them in config.Generator.FuzzSamples/[category] after cleaning the folder out. It returns
+// an error on failure.
+func (g *Generator) DownloadSeedFiles(storageClient *storage.Client) error {
+	seedPath := filepath.Join(config.Generator.FuzzSamples, g.Category)
+	if err := os.RemoveAll(seedPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Could not clean binary seed path %s: %s", seedPath, err)
 	}
-	if err := os.MkdirAll(config.Generator.FuzzSamples, 0755); err != nil {
-		return fmt.Errorf("Could not create binary seed path %s: %s", config.Generator.FuzzSamples, err)
+	if err := os.MkdirAll(seedPath, 0755); err != nil {
+		return fmt.Errorf("Could not create binary seed path %s: %s", seedPath, err)
 	}
 
-	err := gs.AllFilesInDir(storageClient, config.GS.Bucket, "skp_samples", func(item *storage.ObjectAttrs) {
+	gsFolder := fmt.Sprintf("samples/%s/", g.Category)
+
+	err := gs.AllFilesInDir(storageClient, config.GS.Bucket, gsFolder, func(item *storage.ObjectAttrs) {
 		name := item.Name
 		// skip the parent folder
-		if name == "skp_samples/" {
+		if name == gsFolder {
 			return
 		}
 		content, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, name)
@@ -158,7 +169,7 @@ func DownloadBinarySeedFiles(storageClient *storage.Client) error {
 			glog.Errorf("Problem downloading %s from Google Storage, continuing anyway", item.Name)
 			return
 		}
-		fileName := filepath.Join(config.Generator.FuzzSamples, strings.SplitAfter(name, "skp_samples/")[1])
+		fileName := filepath.Join(seedPath, strings.SplitAfter(name, gsFolder)[1])
 		if err = ioutil.WriteFile(fileName, content, 0644); err != nil && !os.IsExist(err) {
 			glog.Errorf("Problem creating binary seed file %s, continuing anyway", fileName)
 		}
