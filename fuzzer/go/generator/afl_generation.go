@@ -31,7 +31,7 @@ func StartBinaryGenerator() error {
 
 	masterCmd := &exec.Command{
 		Name:      "./afl-fuzz",
-		Args:      []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "3000", "-M", "fuzzer0", "--", executable, "--src", "skp", "--skps", "@@", "--config", "8888"},
+		Args:      []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "100", "-M", "fuzzer0", "--", executable, "--type", "skp", "--bytes", "@@"},
 		Dir:       config.Generator.AflRoot,
 		LogStdout: true,
 		LogStderr: true,
@@ -54,7 +54,7 @@ func StartBinaryGenerator() error {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
 		slaveCmd := &exec.Command{
 			Name:      "./afl-fuzz",
-			Args:      []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "3000", "-S", fuzzerName, "--", executable, "--src", "skp", "--skps", "@@", "--config", "8888"},
+			Args:      []string{"-i", config.Generator.FuzzSamples, "-o", config.Generator.AflOutputPath, "-m", "5000", "-t", "100", "-S", fuzzerName, "--", executable, "--type", "skp", "--bytes", "@@"},
 			Dir:       config.Generator.AflRoot,
 			LogStdout: true,
 			LogStderr: true,
@@ -73,7 +73,7 @@ func setup() (string, error) {
 		return "", err
 	}
 	// build afl
-	if err := common.BuildAflDM("Release"); err != nil {
+	if err := common.BuildFuzzingHarness("Release"); err != nil {
 		return "", fmt.Errorf("Failed to build dm using afl-fuzz %s", err)
 	}
 	// copy to working directory

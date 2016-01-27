@@ -122,24 +122,25 @@ func StartBinaryAggregator(s *storage.Client) (*BinaryAggregator, error) {
 // a debug and a release version of Skia for use in analysis.  It then spawns the
 // aggregation pipeline and a monitoring thread.
 func (agg *BinaryAggregator) start() error {
-	if _, err := fileutil.EnsureDirExists(config.Aggregator.BinaryFuzzPath); err != nil {
-		return err
-	}
-	if _, err := fileutil.EnsureDirExists(config.Aggregator.ExecutablePath); err != nil {
-		return err
-	}
-	if err := common.BuildClangDM("Debug", true); err != nil {
-		return err
-	}
-	if err := common.BuildClangDM("Release", true); err != nil {
-		return err
-	}
 	// Set the wait groups to fresh
 	agg.monitoringWaitGroup = &sync.WaitGroup{}
 	agg.pipelineWaitGroup = &sync.WaitGroup{}
 	agg.analysisCount = 0
 	agg.uploadCount = 0
 	agg.bugReportCount = 0
+	if _, err := fileutil.EnsureDirExists(config.Aggregator.BinaryFuzzPath); err != nil {
+		return err
+	}
+	if _, err := fileutil.EnsureDirExists(config.Aggregator.ExecutablePath); err != nil {
+		return err
+	}
+	if err := common.BuildClangHarness("Debug", true); err != nil {
+		return err
+	}
+	if err := common.BuildClangHarness("Release", true); err != nil {
+		return err
+	}
+
 	agg.monitoringWaitGroup.Add(1)
 	go agg.scanForNewCandidates()
 
@@ -367,7 +368,7 @@ var analyzeSkp = AnalysisPackage{
 	Analyze: func(workingDirPath, skpFileName string) (uploadPackage, error) {
 		upload := uploadPackage{
 			Name:     skpFileName,
-			FileType: "skp",
+			FileType: "skpicture",
 			FuzzType: BAD_FUZZ,
 			FilePath: filepath.Join(config.Aggregator.BinaryFuzzPath, skpFileName),
 		}
@@ -413,7 +414,7 @@ func performBinaryAnalysis(workingDirPath, baseExecutableName, fileName string, 
 
 	cmd := &exec.Command{
 		Name:      "timeout",
-		Args:      []string{timeoutInSeconds, "catchsegv", pathToExecutable, "--src", "skp", "--skps", pathToFile, "--config", "8888"},
+		Args:      []string{timeoutInSeconds, "catchsegv", pathToExecutable, "--type", "skp", "--bytes", pathToFile},
 		LogStdout: false,
 		LogStderr: false,
 		Stdout:    &dump,
@@ -512,7 +513,7 @@ func (agg *BinaryAggregator) upload(p uploadPackage) error {
 // uploadBinaryFromDisk uploads a binary file on disk to GCS, returning an error if
 // anything goes wrong.
 func (agg *BinaryAggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath string) error {
-	name := fmt.Sprintf("binary_fuzzes/%s/%s/%s/%s/%s", config.Generator.SkiaVersion.Hash, p.FuzzType, p.FileType, p.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.FileType, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render
@@ -533,7 +534,7 @@ func (agg *BinaryAggregator) uploadBinaryFromDisk(p uploadPackage, fileName, fil
 // uploadBinaryFromDisk uploads the contents of a string as a file to GCS, returning an error if
 // anything goes wrong.
 func (agg *BinaryAggregator) uploadString(p uploadPackage, fileName, contents string) error {
-	name := fmt.Sprintf("binary_fuzzes/%s/%s/%s/%s/%s", config.Generator.SkiaVersion.Hash, p.FuzzType, p.FileType, p.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.FileType, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"

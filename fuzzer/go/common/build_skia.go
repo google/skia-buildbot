@@ -10,32 +10,32 @@ import (
 	"go.skia.org/infra/go/exec"
 )
 
-// BuildClangDM builds the test harness for parsing skp files using clang.  If any step fails, it returns an error.
-func BuildClangDM(buildType string, isClean bool) error {
+// BuildClangHarness builds the test harness for parsing skp files using clang.  If any step fails, it returns an error.
+func BuildClangHarness(buildType string, isClean bool) error {
 	buildVars := []string{
 		fmt.Sprintf("CC=%s", config.Common.ClangPath),
 		fmt.Sprintf("CXX=%s", config.Common.ClangPlusPlusPath),
 	}
-	return buildDM(buildType, isClean, buildVars)
+	return buildHarness(buildType, isClean, buildVars)
 }
 
-// BuildAflDM builds the test harness for parsing skp files using afl-instrumented clang.  If any step fails, it returns an error.
-func BuildAflDM(buildType string) error {
+// BuildFuzzingHarness builds the test harness for parsing skp files using afl-instrumented clang.  If any step fails, it returns an error.
+func BuildFuzzingHarness(buildType string) error {
 	buildVars := []string{
 		fmt.Sprintf("CC=%s", filepath.Join(config.Generator.AflRoot, "afl-clang")),
 		fmt.Sprintf("CXX=%s", filepath.Join(config.Generator.AflRoot, "afl-clang++")),
 	}
 
-	return buildDM(buildType, true, buildVars)
+	return buildHarness(buildType, true, buildVars)
 }
 
-// buildDM builds the test harness for parsing skp (and other) files.
+// buildHarness builds the test harness for parsing skp (and other) files.
 // First it creates a hard link for the gyp and cpp files. The gyp file is linked into Skia's gyp folder and the cpp file is linked into SKIA_ROOT/../fuzzer_cache/src, which is where the gyp file is configured to point.
 // Then it activates Skia's gyp command, which creates the build (ninja) files.
 // Finally, it runs those build files.
 // If any step fails in unexpected ways, it returns an error.
-func buildDM(buildType string, isClean bool, buildVars []string) error {
-	glog.Infof("Building %s dm", buildType)
+func buildHarness(buildType string, isClean bool, buildVars []string) error {
+	glog.Infof("Building %s fuzzing harness", buildType)
 
 	// clean previous build if specified
 	buildLocation := filepath.Join("out", buildType)
@@ -62,7 +62,7 @@ func buildDM(buildType string, isClean bool, buildVars []string) error {
 
 	ninjaCmd := &exec.Command{
 		Name:        ninjaPath,
-		Args:        []string{"-C", buildLocation, "dm"},
+		Args:        []string{"-C", buildLocation, "fuzz"},
 		LogStdout:   true,
 		LogStderr:   true,
 		InheritPath: true,

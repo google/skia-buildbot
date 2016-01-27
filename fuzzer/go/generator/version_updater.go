@@ -13,6 +13,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/aggregator"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/net/context"
@@ -129,11 +130,12 @@ func (v *VersionUpdater) downloadAllBadAndGreyFuzzes(commitHash, downloadPath st
 		toDownload <- item.Name
 	}
 
-	if err := gs.AllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("binary_fuzzes/%s/bad/", commitHash), badFilter); err != nil {
+	// TODO(kjlubick): Fix this hardcoded type with a proper variable
+	if err := gs.AllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("skpicture/%s/bad/", commitHash), badFilter); err != nil {
 		return nil, nil, fmt.Errorf("Problem getting bad fuzzes: %s", err)
 	}
 
-	if err := gs.AllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("binary_fuzzes/%s/grey/", commitHash), greyFilter); err != nil {
+	if err := gs.AllFilesInDir(v.storageClient, config.GS.Bucket, fmt.Sprintf("skpicture/%s/grey/", commitHash), greyFilter); err != nil {
 		return nil, nil, fmt.Errorf("Problem getting grey fuzzes: %s", err)
 	}
 
@@ -149,14 +151,17 @@ func (v *VersionUpdater) downloadAllBadAndGreyFuzzes(commitHash, downloadPath st
 func (v *VersionUpdater) download(toDownload <-chan string, downloadPath string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for file := range toDownload {
-		contents, err := gs.FileContentsFromGS(v.storageClient, config.GS.Bucket, file)
-		if err != nil {
-			glog.Warningf("Problem downloading fuzz %s, continuing anyway: %s", file, err)
-		}
 		hash := file[strings.LastIndex(file, "/")+1:]
 		onDisk := filepath.Join(downloadPath, hash)
-		if err = ioutil.WriteFile(onDisk, contents, 0644); err != nil && !os.IsExist(err) {
-			glog.Warningf("Problem writing fuzz to %s, continuing anyway: %s", onDisk, err)
+		if !fileutil.FileExists(onDisk) {
+			contents, err := gs.FileContentsFromGS(v.storageClient, config.GS.Bucket, file)
+			if err != nil {
+				glog.Warningf("Problem downloading fuzz %s, continuing anyway: %s", file, err)
+				continue
+			}
+			if err = ioutil.WriteFile(onDisk, contents, 0644); err != nil && !os.IsExist(err) {
+				glog.Warningf("Problem writing fuzz to %s, continuing anyway: %s", onDisk, err)
+			}
 		}
 		atomic.AddInt32(&completedCounter, 1)
 		if completedCounter%100 == 0 {

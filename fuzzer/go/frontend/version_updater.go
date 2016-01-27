@@ -2,7 +2,6 @@ package frontend
 
 import (
 	"fmt"
-	"sync"
 
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
@@ -15,9 +14,8 @@ import (
 // for the frontend.
 // It will handle both a pending change and a current change.
 type VersionUpdater struct {
-	finderBuilding sync.Mutex
-	gsLoader       *gsloader.GSLoader
-	syncer         *syncer.FuzzSyncer
+	gsLoader *gsloader.GSLoader
+	syncer   *syncer.FuzzSyncer
 }
 
 // NewVersionUpdater returns a VersionUpdater.
@@ -58,7 +56,6 @@ func (v *VersionUpdater) HandleCurrentVersion(currentHash string) (*vcsinfo.Long
 	if err := common.DownloadSkia(currentHash, config.FrontEnd.SkiaRoot, &config.FrontEnd); err != nil {
 		return nil, fmt.Errorf("Could not update Skia to current version %s: %s", currentHash, err)
 	}
-
 	if err := v.gsLoader.LoadFreshFromGoogleStorage(); err != nil {
 		return nil, fmt.Errorf("Had problems fetching new fuzzes from GCS: %s", err)
 	}
