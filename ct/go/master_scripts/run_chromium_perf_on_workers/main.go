@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/email"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -56,9 +57,21 @@ func sendEmail(recipients []string) {
 	// Send completion email.
 	emailSubject := fmt.Sprintf("Cluster telemetry chromium perf task has completed (%s)", *runID)
 	failureHtml := ""
-	if !taskCompletedSuccessfully {
+	viewActionMarkup := ""
+	var err error
+
+	if taskCompletedSuccessfully {
+		if viewActionMarkup, err = email.GetViewActionMarkup(htmlOutputLink, "View Results", "Direct link to the HTML results"); err != nil {
+			glog.Errorf("Failed to get view action markup: %s", err)
+			return
+		}
+	} else {
 		emailSubject += " with failures"
 		failureHtml = util.GetFailureEmailHtml(*runID)
+		if viewActionMarkup, err = email.GetViewActionMarkup(util.GetMasterLogLink(*runID), "View Failure", "Direct link to the master log"); err != nil {
+			glog.Errorf("Failed to get view action markup: %s", err)
+			return
+		}
 	}
 	bodyTemplate := `
 	The chromium perf %s benchmark task on %s pageset has completed.<br/>
@@ -73,7 +86,7 @@ func sendEmail(recipients []string) {
 	Thanks!
 	`
 	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, htmlOutputLink, chromiumPatchLink, skiaPatchLink, frontend.ChromiumPerfTasksWebapp)
-	if err := util.SendEmail(recipients, emailSubject, emailBody); err != nil {
+	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
 	}

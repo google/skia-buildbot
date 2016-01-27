@@ -34,6 +34,25 @@ func SendEmail(recipients []string, subject, body string) error {
 	return nil
 }
 
+// SendEmailWithMarkup sends an email with the specified header and body to the recipients. It also
+// includes gmail markups.
+// Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
+// A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
+func SendEmailWithMarkup(recipients []string, subject, body, markup string) error {
+	gmail, err := email.NewGMail(
+		"292895568497-u2m421dk2htq171bfodi9qoqtb5smuea.apps.googleusercontent.com",
+		"jv-g54CaPS783QV6H8SdagYn",
+		EmailTokenPath)
+	if err != nil {
+		return fmt.Errorf("Could not initialize gmail object: %s", err)
+	}
+	if err := gmail.SendWithMarkup(recipients, subject, body, markup); err != nil {
+		return fmt.Errorf("Could not send email with markup: %s", err)
+	}
+
+	return nil
+}
+
 func GetFailureEmailHtml(runID string) string {
 	return fmt.Sprintf(
 		"<br/>There were <b>failures</b> in the run. "+

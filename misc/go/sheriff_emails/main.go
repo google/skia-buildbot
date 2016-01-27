@@ -134,7 +134,7 @@ func main() {
 		emailSubject := fmt.Sprintf("%s is the next %s", sheriffUsername, shiftType.shiftName)
 		viewActionMarkup, err := email.GetViewActionMarkup(shiftType.schedulesLink, "View Schedule", "Direct link to the schedule")
 		if err != nil {
-			glog.Fatalf("Failed to get view action markup: %s", err)
+			glog.Errorf("Failed to get view action markup: %s", err)
 			return
 		}
 		if err := sendEmail([]string{sheriffEmail, EXTRA_RECIPIENT}, emailSubject, emailBytes.String(), viewActionMarkup); err != nil {
