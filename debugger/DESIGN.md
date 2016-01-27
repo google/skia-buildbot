@@ -58,4 +58,41 @@ machine, or with port forwarding could be run on an Android device:
 +----------------------------------+    +----------------------+
 ~~~~
 
+URL Structure
+=============
+
+Current Actions:
+  * Upload a new SKP.
+  * Get info about the SKP.
+  * Get the rendered image of the SKP.
+
+Future Actions:
+  * Get the rendered image of an SKP up to command N (N=0 to number of total commands in SKP - 1)
+  * Get the current info (matrix, clip) for an SKP up to command N.
+  * Modify command N (change values, not the command itself).
+
+Far Future Actions:
+  * Insert command at N.
+  * Delete command N.
+  * Update command N (change both values and/or command).
+
+
+    /new
+      POST /new - Start working on a new SKP. The content is a
+          multipart/form-data with the SKP uploaded as 'file'.
+
+    /info[/N]
+      GET /info - Get general info for the fully rendered SKP (matrix, clip).
+      Get /info/N - Get info about the SKP after rendering to command N (matrix, clip).
+
+    /img[/N]
+      Get /img - Get the rendered image from the full SKP.
+      Get /img/N - Get the rendered image up to command N.
+
+    /cmd[/N][/toggle]
+      GET /cmd - Returns JSON description of all commands.
+      GET /cmd/N - Returns JSON description of one command.
+      PUT /cmd/N - Update the command at location N.
+      DELETE /cmd/N - Delete command at location N.
+      POST /cmd/N/[0|1] - Toggles command N on or off.
 
