@@ -22,9 +22,9 @@ push: build
 	pushcli skdebuggerd skia-debugger
 
 run_fake_local: build
-	fakedebugger --source="http://localhost:9000" --alsologtostderr
+	fakedebugger --source="http://localhost:9000" --port=localhost:8000 --alsologtostderr
 
 run_server_local: build
-	skdebugger --port=:9000 --graphite_server= --alsologtostderr
+	skdebugger --port=localhost:9000 --graphite_server= --alsologtostderr
 
 include ../webtools/webtools.mk

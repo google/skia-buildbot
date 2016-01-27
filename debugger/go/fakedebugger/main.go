@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"html/template"
 	"io/ioutil"
@@ -24,6 +23,28 @@ var (
 
 var (
 	templates *template.Template
+)
+
+const (
+	INFO_JSON = `{
+        "version": 1,
+        "width": 100,
+        "height": 100
+      }`
+
+	CMD_JSON = `{
+        "version": 1,
+        "commands": [
+          {
+            "command": "Matrix",
+            "matrix": [
+              [ 1, 0, 20 ],
+              [ 0, 1, 20 ],
+              [ 0, 0, 1 ]
+            ]
+          }
+        ]
+      }`
 )
 
 func loadTemplates() {
@@ -54,16 +75,23 @@ func imgHandler(w http.ResponseWriter, r *http.Request) {
 
 func infoHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	enc := json.NewEncoder(w)
-	data := struct {
-		CommandLine string `json:"command_line"`
-		Version     string `json:"version"`
-	}{
-		CommandLine: "skdebugger --foo --bar",
-		Version:     "1.0",
+	if _, err := w.Write([]byte(INFO_JSON)); err != nil {
+		glog.Errorf("Failed to write response: %s", err)
 	}
-	if err := enc.Encode(data); err != nil {
-		glog.Errorln("Failed to encode response: %s", err)
+}
+
+func cmdHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write([]byte(CMD_JSON)); err != nil {
+		glog.Errorf("Failed to write response: %s", err)
+	}
+}
+
+func skpHandler(w http.ResponseWriter, r *http.Request) {
+	// We get an SKP posted here. Drop it on the floor.
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write([]byte("{}")); err != nil {
+		glog.Errorf("Failed to write response: %s", err)
 	}
 }
 
@@ -90,8 +118,10 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/", indexHandler)
+	router.HandleFunc("/cmd", cmdHandler)
 	router.HandleFunc("/img", imgHandler)
-	router.HandleFunc("/_/info", infoHandler)
+	router.HandleFunc("/info", infoHandler)
+	router.HandleFunc("/new", skpHandler)
 	http.Handle("/", util.LoggingGzipRequestResponse(router))
 
 	glog.Infoln("Ready to serve.")

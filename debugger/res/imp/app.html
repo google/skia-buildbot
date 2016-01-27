@@ -53,6 +53,10 @@ The main application element for the Skia Debugger.
       font-family: Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
     }
 
+    .hidden {
+      display: none;
+    }
+
   </style>
   <template>
     <paper-header-panel>
@@ -64,7 +68,7 @@ The main application element for the Skia Debugger.
           <div id=left class="layout vertical flex-1">
             <h2>Ops</h2>
             <iron-selector id=selector>
-              <template is="dom-repeat" items="{{json.commands}}" as="command">
+              <template is="dom-repeat" items="{{cmd.commands}}" as="command">
                 <op-sk op="{{command}}"></op-sk>
               </template>
             </iron-selector>
@@ -72,11 +76,13 @@ The main application element for the Skia Debugger.
           <div id=center class="layout vertical flex-3">
             <h2>Image</h2>
             <div id=rendered>
-              <img id=img src="">
+              <img id=img src="" class=hidden>
             </div>
           </div>
           <div id=right class="layout vertical flex-1">
-            <h2>Controls</h2>
+            <h2>Info</h2>
+            <pre>{{ _json(info) }}</pre>
+
           </div>
         </div>
         <hr/>
@@ -84,7 +90,7 @@ The main application element for the Skia Debugger.
         <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
           <label>SKP to send:</label>
           <input type="file" name="file" required />
-          <input type="submit" value="Upload" />
+          <input type="submit" value="Upload" on-tap="_submit" />
         </form>
         <error-toast-sk></error-toast-sk>
       </div>
@@ -103,94 +109,29 @@ The main application element for the Skia Debugger.
 
       // Can't set this as an attribute directly on iron-selector. Bah.
       this.$.selector.selectedAttribute = "selected";
-
-      this.json = {
-        "version": 1,
-        "commands": [
-        {
-          "command": "Matrix",
-          "matrix": [
-            [ 1, 0, 20 ],
-            [ 0, 1, 20 ],
-            [ 0, 0, 1 ]
-          ]
-        },
-        {
-          "command": "Path",
-          "path": [
-          {
-            "move": [
-              200.103638,
-              900.077698
-            ]
-          },
-          {
-            "conic": [
-              [
-                -199.97406,
-                600.181335
-              ],
-              [
-                99.922302,
-                200.103638
-              ],
-              0.707107
-            ]
-          },
-          {
-            "conic": [
-              [
-                399.818665,
-                -199.97406
-              ],
-              [
-                799.896362,
-                99.922302
-              ],
-              0.707107
-            ]
-          },
-          {
-            "conic": [
-              [
-                1199.974121,
-                399.818665
-              ],
-              [
-                900.077698,
-                799.896362
-              ],
-              0.707107
-            ]
-          },
-          {
-            "conic": [
-              [
-                669.959167,
-                1106.886719
-              ],
-              [
-                313.870209,
-                964.064331
-              ],
-              0.793353
-            ]
-          }
-          ],
-          "paint": {
-            "color": [
-              255,
-              148,
-              65,
-              165
-            ],
-            "style": "stroke",
-            "strokeWidth": 15,
-            "antiAlias": true
-          }
-        }
-        ]
-      };
     },
+
+    _submit: function(e) {
+      this.$.img.classList.add("hidden");
+      sk.post(window.location.origin + "/new", new FormData(this.$.post_skp)).then(function() {
+        this._refreshPage();
+      }.bind(this)).catch(sk.errorMessage);
+      e.preventDefault();
+    },
+
+    _refreshPage: function() {
+      this.$.img.classList.remove("hidden");
+      this.$.img.src = window.location.origin + "/img" /* + new Date().getTime() */;
+      sk.get("/info").then(JSON.parse).then(function(json) {
+        this.set('info', json);
+      }.bind(this)).catch(sk.errorMessage);
+      sk.get("/cmd").then(JSON.parse).then(function(json) {
+        this.set('cmd', json);
+      }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _json: function(s) {
+      return JSON.stringify(s, null, 2);
+    }
   });
 </script>
