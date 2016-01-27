@@ -115,3 +115,41 @@ func DecodeTomlFile(filename string, configuration interface{}) {
 	conf_str := spew.Sdump(configuration)
 	glog.Infof("Read TOML configuration from %s: %s", filename, conf_str)
 }
+
+// MultiString implements flag.Value, allowing it to be used as
+// var slice common.MultiString
+// func init() {
+// 	flag.Var(&slice, "someArg", "list of frobulators")
+// }
+//
+// And then a client can pass in multiple values like
+// my_executable --someArg foo --someArg bar
+// or
+// my_executable --someArg foo,bar,baz
+// or any combination of
+// my_executable --someArg alpha --someArg beta,gamma --someArg delta
+type MultiString []string
+
+// NewMultiStringFlag returns a MultiString flag, loaded with the given
+// preloadedValues, usage string and name.
+// NOTE: because of how MultiString functions, the values passed in are
+// not the traditional "default" values, because they will not be replaced
+// by the flags, only appended to.
+func NewMultiStringFlag(name string, preloadedValues []string, usage string) *MultiString {
+	m := MultiString(preloadedValues)
+	flag.Var(&m, name, usage)
+	return &m
+}
+
+// String() returns the current value of MultiString, as a comma seperated list
+func (m *MultiString) String() string {
+	return strings.Join(*m, ",")
+}
+
+// From the flag docs: "Set is called once, in command line order, for each flag present.""
+func (m *MultiString) Set(value string) error {
+	for _, s := range strings.Split(value, ",") {
+		*m = append(*m, s)
+	}
+	return nil
+}
