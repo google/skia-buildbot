@@ -19,11 +19,10 @@ import (
 // Once started, it will occasionally wake up and download any new fuzzes
 // Clients should look at LastCount for the last count of fuzzes data.
 type FuzzSyncer struct {
-	LastCount FuzzCount
-
 	countMutex    sync.Mutex
 	storageClient *storage.Client
 	gsLoader      *gsloader.GSLoader
+	lastCount     map[string]FuzzCount
 }
 
 // FuzzCount is a struct that holds the counts of fuzzes.
@@ -39,6 +38,7 @@ type FuzzCount struct {
 func New(s *storage.Client) *FuzzSyncer {
 	return &FuzzSyncer{
 		storageClient: s,
+		lastCount:     make(map[string]FuzzCount),
 	}
 }
 
@@ -72,33 +72,39 @@ func (f *FuzzSyncer) Refresh() {
 	}
 	f.countMutex.Lock()
 	defer f.countMutex.Unlock()
-	currentBadFuzzHashes, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("binary_fuzzes/%s/bad/", currRevision))
-	if err != nil {
-		glog.Errorf("Problem getting total bad fuzz counts: %s", err)
-	} else {
-		f.LastCount.TotalBad = len(currentBadFuzzHashes)
+	allCurrentNames := []string{}
+
+	for _, cat := range common.FUZZ_CATEGORIES {
+		lastCount := FuzzCount{}
+		currentBadNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/bad/", cat, currRevision))
+		if err != nil {
+			glog.Errorf("Problem getting total bad fuzz counts: %s", err)
+		} else {
+			lastCount.TotalBad = len(currentBadNames)
+			allCurrentNames = append(allCurrentNames, currentBadNames...)
+		}
+
+		if previousBadNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/bad/", cat, prevRevision)); err != nil {
+			glog.Errorf("Problem getting this bad fuzz counts: %s", err)
+		} else {
+			lastCount.ThisBad = lastCount.TotalBad - len(previousBadNames)
+		}
+
+		if currentGreyNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/grey/", cat, currRevision)); err != nil {
+			glog.Errorf("Problem getting total grey fuzz counts: %s", err)
+		} else {
+			lastCount.TotalGrey = len(currentGreyNames)
+		}
+
+		if previousGreyNames, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("%s/%s/grey/", cat, prevRevision)); err != nil {
+			glog.Errorf("Problem getting this grey fuzz counts: %s", err)
+		} else {
+			lastCount.ThisGrey = lastCount.TotalGrey - len(previousGreyNames)
+		}
+		f.lastCount[cat] = lastCount
 	}
 
-	if prevBadFuzzHashes, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("binary_fuzzes/%s/bad/", prevRevision)); err != nil {
-		glog.Errorf("Problem getting this bad fuzz counts: %s", err)
-	} else {
-		f.LastCount.ThisBad = f.LastCount.TotalBad - len(prevBadFuzzHashes)
-	}
-
-	// We don't need to mess with grey fuzzes here because those only change when the Skia
-	// revision changes.
-	if greyFuzzHashes, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("binary_fuzzes/%s/grey/", currRevision)); err != nil {
-		glog.Errorf("Problem getting total grey fuzz counts: %s", err)
-	} else {
-		f.LastCount.TotalGrey = len(greyFuzzHashes)
-	}
-
-	if greyFuzzHashes, err := common.GetAllFuzzNamesInFolder(f.storageClient, fmt.Sprintf("binary_fuzzes/%s/grey/", prevRevision)); err != nil {
-		glog.Errorf("Problem getting this grey fuzz counts: %s", err)
-	} else {
-		f.LastCount.ThisGrey = f.LastCount.TotalGrey - len(greyFuzzHashes)
-	}
-	if err = f.updateLoadedBinaryFuzzes(currentBadFuzzHashes); err != nil {
+	if err = f.updateLoadedBinaryFuzzes(allCurrentNames); err != nil {
 		glog.Errorf("Problem updating loaded binary fuzzes: %s", err)
 	}
 }
@@ -123,27 +129,34 @@ func (f *FuzzSyncer) getMostRecentOldRevision() (string, error) {
 }
 
 // updateLoadedBinaryFuzzes uses gsLoader to download the fuzzes that are currently not
-// in the
+// in the fuzz report tree / cache.
 func (f *FuzzSyncer) updateLoadedBinaryFuzzes(currentBadFuzzHashes []string) error {
 	if f.gsLoader == nil {
 		glog.Info("Skipping update because the finder/cache hasn't been set yet")
 		return nil
 	}
-	_, prevBadFuzzHashes, err := f.gsLoader.Cache.Load(config.FrontEnd.SkiaVersion.Hash)
+	prevBadFuzzNames, err := f.gsLoader.Cache.LoadFuzzNames(config.FrontEnd.SkiaVersion.Hash)
 	if err != nil {
 		return fmt.Errorf("Could not load previous fuzz hashes from cache at revision %s: %s", config.FrontEnd.SkiaVersion.Hash, err)
 	}
 	sort.Strings(currentBadFuzzHashes)
-	sort.Strings(prevBadFuzzHashes)
+	sort.Strings(prevBadFuzzNames)
 
-	newBinaryFuzzNames := make([]string, 0, len(currentBadFuzzHashes)-len(prevBadFuzzHashes))
+	newBinaryFuzzNames := make([]string, 0, 10)
 	for _, h := range currentBadFuzzHashes {
-		if i := sort.SearchStrings(prevBadFuzzHashes, h); i < len(prevBadFuzzHashes) && prevBadFuzzHashes[i] == h {
+		if i := sort.SearchStrings(prevBadFuzzNames, h); i < len(prevBadFuzzNames) && prevBadFuzzNames[i] == h {
 			continue
 		}
 		newBinaryFuzzNames = append(newBinaryFuzzNames, h)
 	}
 
 	glog.Infof("%d newly found fuzzes from Google Storage.  Going to load them.", len(newBinaryFuzzNames))
-	return f.gsLoader.LoadBinaryFuzzesFromGoogleStorage(newBinaryFuzzNames)
+	if len(newBinaryFuzzNames) > 0 {
+		return f.gsLoader.LoadBinaryFuzzesFromGoogleStorage(newBinaryFuzzNames)
+	}
+	return nil
+}
+
+func (f *FuzzSyncer) LastCount(category string) FuzzCount {
+	return f.lastCount[category]
 }

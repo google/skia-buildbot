@@ -3,11 +3,11 @@ package gsloader
 import (
 	"fmt"
 	"sort"
-	"strings"
 	"sync"
 	"sync/atomic"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/fuzz"
 	"go.skia.org/infra/fuzzer/go/fuzzcache"
@@ -21,13 +21,15 @@ import (
 // an error is returned.
 func LoadFromBoltDB(cache *fuzzcache.FuzzReportCache) error {
 	glog.Infof("Looking into cache for revision %s", config.FrontEnd.SkiaVersion.Hash)
-	if staging, fuzzes, err := cache.Load(config.FrontEnd.SkiaVersion.Hash); err != nil {
-		return fmt.Errorf("Problem decoding existing from bolt db: %s", err)
-	} else {
-		fuzz.SetStaging(*staging)
-		fuzz.StagingToCurrent()
-		glog.Infof("Successfully loaded %d binary fuzzes from bolt db cache", len(fuzzes))
+	for _, category := range common.FUZZ_CATEGORIES {
+		if staging, err := cache.LoadTree(category, config.FrontEnd.SkiaVersion.Hash); err != nil {
+			return fmt.Errorf("Problem decoding existing from bolt db: %s", err)
+		} else {
+			fuzz.SetStaging(category, *staging)
+			glog.Infof("Successfully loaded %s fuzzes from bolt db cache", category)
+		}
 	}
+	fuzz.StagingToCurrent()
 	return nil
 }
 
@@ -55,20 +57,30 @@ func New(s *storage.Client, c *fuzzcache.FuzzReportCache) *GSLoader {
 // to the current copy.
 func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 	revision := config.FrontEnd.SkiaVersion.Hash
-	reports, err := g.getBinaryReportsFromGS(fmt.Sprintf("binary_fuzzes/%s/bad/", revision), nil)
-	if err != nil {
-		return err
-	}
 	fuzz.ClearStaging()
-	binaryFuzzNames := make([]string, 0, len(reports))
-	for report := range reports {
-		fuzz.NewBinaryFuzzFound(report)
-		binaryFuzzNames = append(binaryFuzzNames, report.BadBinaryName)
+	fuzzNames := make([]string, 0, 100)
+	for _, cat := range common.FUZZ_CATEGORIES {
+		badPath := fmt.Sprintf("%s/%s/bad", cat, revision)
+		reports, err := g.getBinaryReportsFromGS(badPath, nil)
+		if err != nil {
+			return err
+		}
+		n := 0
+		for report := range reports {
+			fuzz.NewFuzzFound(cat, report)
+			fuzzNames = append(fuzzNames, report.FuzzName)
+			n++
+		}
+		glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", n, config.GS.Bucket, badPath)
 	}
-	glog.Infof("%d fuzzes freshly loaded from Google Storage", len(binaryFuzzNames))
-	fuzz.StagingToCurrent()
 
-	return g.Cache.Store(fuzz.StagingCopy(), binaryFuzzNames, revision)
+	fuzz.StagingToCurrent()
+	for _, category := range common.FUZZ_CATEGORIES {
+		if err := g.Cache.StoreTree(fuzz.StagingCopy(category), category, revision); err != nil {
+			glog.Errorf("Problem storing category %s to boltDB: %s", category, err)
+		}
+	}
+	return g.Cache.StoreFuzzNames(fuzzNames, revision)
 }
 
 // LoadBinaryFuzzesFromGoogleStorage pulls all fuzzes out of GCS that are on the given whitelist
@@ -76,33 +88,42 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 // and moves them from staging to the current copy.
 func (g *GSLoader) LoadBinaryFuzzesFromGoogleStorage(whitelist []string) error {
 	revision := config.FrontEnd.SkiaVersion.Hash
-	sort.Strings(whitelist)
-	reports, err := g.getBinaryReportsFromGS(fmt.Sprintf("binary_fuzzes/%s/bad/", revision), whitelist)
-	if err != nil {
-		return err
-	}
 	fuzz.StagingFromCurrent()
-	n := 0
-	for report := range reports {
-		fuzz.NewBinaryFuzzFound(report)
-		n++
+	sort.Strings(whitelist)
+
+	fuzzNames := make([]string, 0, 100)
+	for _, cat := range common.FUZZ_CATEGORIES {
+		badPath := fmt.Sprintf("%s/%s/bad", cat, revision)
+		reports, err := g.getBinaryReportsFromGS(badPath, whitelist)
+		if err != nil {
+			return err
+		}
+		n := 0
+		for report := range reports {
+			fuzz.NewFuzzFound(cat, report)
+			fuzzNames = append(fuzzNames, report.FuzzName)
+			n++
+		}
+		glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", n, config.GS.Bucket, badPath)
 	}
-	glog.Infof("%d new fuzzes loaded from Google Storage", n)
 	fuzz.StagingToCurrent()
 
-	_, oldBinaryFuzzNames, err := g.Cache.Load(revision)
+	oldBinaryFuzzNames, err := g.Cache.LoadFuzzNames(revision)
 	if err != nil {
 		glog.Warningf("Could not read old binary fuzz names from cache.  Continuing...", err)
 		oldBinaryFuzzNames = []string{}
 	}
-
-	return g.Cache.Store(fuzz.StagingCopy(), append(oldBinaryFuzzNames, whitelist...), revision)
+	for _, category := range common.FUZZ_CATEGORIES {
+		if err := g.Cache.StoreTree(fuzz.StagingCopy(category), category, revision); err != nil {
+			glog.Errorf("Problem storing category %s to boltDB: %s", category, err)
+		}
+	}
+	return g.Cache.StoreFuzzNames(append(oldBinaryFuzzNames, whitelist...), revision)
 }
 
 // A fuzzPackage contains all the information about a fuzz, mostly the paths to the files that
 // need to be downloaded.
 type fuzzPackage struct {
-	FuzzType        string
 	FuzzName        string
 	DebugDumpName   string
 	DebugErrName    string
@@ -114,8 +135,8 @@ type fuzzPackage struct {
 // groups them by fuzz.  It parses these groups of files into a BinaryFuzzReport and returns
 // a channel through whcih all reports generated in this way will be streamed.
 // The channel will be closed when all reports are done being sent.
-func (g *GSLoader) getBinaryReportsFromGS(baseFolder string, whitelist []string) (<-chan fuzz.BinaryFuzzReport, error) {
-	reports := make(chan fuzz.BinaryFuzzReport, 10000)
+func (g *GSLoader) getBinaryReportsFromGS(baseFolder string, whitelist []string) (<-chan fuzz.FuzzReport, error) {
+	reports := make(chan fuzz.FuzzReport, 10000)
 
 	fuzzPackages, err := g.fetchFuzzPackages(baseFolder)
 	if err != nil {
@@ -158,64 +179,19 @@ func (g *GSLoader) getBinaryReportsFromGS(baseFolder string, whitelist []string)
 // slice of all of the metadata for each fuzz, as a fuzz package.  It returns
 // error if it cannot access Google Storage.
 func (g *GSLoader) fetchFuzzPackages(baseFolder string) (fuzzPackages []fuzzPackage, err error) {
-	var debugDump, debugErr, releaseDump, releaseErr string
-	isInitialized := false
-	currFuzzFolder := "" // will be something like binary_fuzzes/bad/skp/badbeef
-	currFuzzName := ""
-	currFuzzType := ""
 
-	// We cannot simply use common.GetAllFuzzNamesInFolder because that loses FuzzType.
-	err = gs.AllFilesInDir(g.storageClient, config.GS.Bucket, baseFolder, func(item *storage.ObjectAttrs) {
-		// Assumption, files are sorted alphabetically and have the structure
-		// [baseFolder]/[filetype]/[fuzzname]/[fuzzname][suffix]
-		// where suffix is one of _debug.dump, _debug.err, _release.dump or _release.err
-		name := item.Name
-		if name == baseFolder || strings.Count(name, "/") <= 4 {
-			return
-		}
-
-		if !isInitialized || !strings.HasPrefix(name, currFuzzFolder) {
-			if isInitialized {
-				fuzzPackages = append(fuzzPackages, fuzzPackage{
-					FuzzType:        currFuzzType,
-					FuzzName:        currFuzzName,
-					DebugDumpName:   debugDump,
-					DebugErrName:    debugErr,
-					ReleaseDumpName: releaseDump,
-					ReleaseErrName:  releaseErr,
-				})
-			} else {
-				isInitialized = true
-			}
-
-			parts := strings.Split(name, "/")
-			currFuzzFolder = strings.Join(parts[0:5], "/")
-			currFuzzType = parts[3]
-			currFuzzName = parts[4]
-			// reset for next one
-			debugDump, debugErr, releaseDump, releaseErr = "", "", "", ""
-		}
-		if strings.HasSuffix(name, "_debug.dump") {
-			debugDump = name
-		} else if strings.HasSuffix(name, "_debug.err") {
-			debugErr = name
-		} else if strings.HasSuffix(name, "_release.dump") {
-			releaseDump = name
-		} else if strings.HasSuffix(name, "_release.err") {
-			releaseErr = name
-		}
-	})
+	fuzzNames, err := common.GetAllFuzzNamesInFolder(g.storageClient, baseFolder)
 	if err != nil {
-		return fuzzPackages, err
+		return nil, fmt.Errorf("Problem getting fuzz packages from %s: %s", baseFolder, err)
 	}
-	if currFuzzName != "" {
+	for _, fuzzName := range fuzzNames {
+		prefix := fmt.Sprintf("%s/%s/%s", baseFolder, fuzzName, fuzzName)
 		fuzzPackages = append(fuzzPackages, fuzzPackage{
-			FuzzType:        currFuzzType,
-			FuzzName:        currFuzzName,
-			DebugDumpName:   debugDump,
-			DebugErrName:    debugErr,
-			ReleaseDumpName: releaseDump,
-			ReleaseErrName:  releaseErr,
+			FuzzName:        fuzzName,
+			DebugDumpName:   fmt.Sprintf("%s_debug.dump", prefix),
+			DebugErrName:    fmt.Sprintf("%s_debug.err", prefix),
+			ReleaseDumpName: fmt.Sprintf("%s_release.dump", prefix),
+			ReleaseErrName:  fmt.Sprintf("%s_release.err", prefix),
 		})
 	}
 	return fuzzPackages, nil
@@ -234,14 +210,14 @@ func emptyStringOnError(b []byte, err error) string {
 // the four pieces of the package.  It then parses them into a BinaryFuzzReport and sends
 // the binary to the passed in channel.  When there is no more work to be done, this function.
 // returns and writes out true to the done channel.
-func (g *GSLoader) download(toDownload <-chan fuzzPackage, reports chan<- fuzz.BinaryFuzzReport, wg *sync.WaitGroup) {
+func (g *GSLoader) download(toDownload <-chan fuzzPackage, reports chan<- fuzz.FuzzReport, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for job := range toDownload {
 		debugDump := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.DebugDumpName))
 		debugErr := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.DebugErrName))
 		releaseDump := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.ReleaseDumpName))
 		releaseErr := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.ReleaseErrName))
-		reports <- fuzz.ParseBinaryReport(job.FuzzType, job.FuzzName, debugDump, debugErr, releaseDump, releaseErr)
+		reports <- fuzz.ParseReport(job.FuzzName, debugDump, debugErr, releaseDump, releaseErr)
 		atomic.AddInt32(&g.completedCounter, 1)
 		if g.completedCounter%100 == 0 {
 			glog.Infof("%d fuzzes downloaded", g.completedCounter)

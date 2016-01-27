@@ -5,6 +5,8 @@ Runs the frontend portion of the fuzzer.  This primarily is the webserver (see D
 */
 
 import (
+	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -45,7 +47,11 @@ const (
 var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
-	// detailsTemplate is used for /details, which actually displays the stacktraces and fuzzes.
+	// detailsTemplate is used for /category/foo, which displays the number of
+	// fuzzes by file/function/line
+	overviewTemplate *template.Template = nil
+	// detailsTemplate is used for /details, which displays the information from
+	// overview as well as the stacktraces and fuzzes.
 	detailsTemplate *template.Template = nil
 
 	storageClient *storage.Client = nil
@@ -92,6 +98,10 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/index.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
+	overviewTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/overview.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
 	detailsTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/details.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -130,7 +140,6 @@ func main() {
 		if err := gsloader.LoadFromBoltDB(cache); err != nil {
 			glog.Errorf("Could not load from boltdb.  Loading from source of truth anyway. %s", err)
 		}
-
 		gsLoader := gsloader.New(storageClient, cache)
 		if err := gsLoader.LoadFreshFromGoogleStorage(); err != nil {
 			glog.Fatalf("Error loading in data from GCS: %s", err)
@@ -201,15 +210,19 @@ func runServer() {
 
 	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.HandleFunc("/", indexHandler)
-	r.HandleFunc("/details", detailsPageHandler)
+	r.HandleFunc("/category/{category:[a-z_]+}", summaryPageHandler)
+	r.HandleFunc("/category/{category:[a-z_]+}/name/{name}", detailsPageHandler)
+	r.HandleFunc("/category/{category:[a-z_]+}/file/{file}", detailsPageHandler)
+	r.HandleFunc("/category/{category:[a-z_]+}/file/{file}/func/{function}", detailsPageHandler)
+	r.HandleFunc(`/category/{category:[a-z_]+}/file/{file}/func/{function}/line/{line}`, detailsPageHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
-	r.HandleFunc("/json/fuzz-list", fuzzListHandler)
-	r.HandleFunc("/json/details", detailedReportsHandler)
-	r.HandleFunc("/status", statusHandler)
-	r.HandleFunc(`/fuzz/{kind:(binary|api)}/{name:[0-9a-f]+\.(skp)}`, fuzzHandler)
-	r.HandleFunc(`/metadata/{kind:(binary|api)}/{type:(skp)}/{name:[0-9a-f]+_(debug|release)\.(err|dump)}`, metadataHandler)
+	r.HandleFunc("/json/fuzz-summary", summaryJSONHandler)
+	r.HandleFunc("/json/details", detailsJSONHandler)
+	r.HandleFunc("/json/status", statusJSONHandler)
+	r.HandleFunc(`/fuzz/{category:[a-z_]+}/{name:[0-9a-f]+}`, fuzzHandler)
+	r.HandleFunc(`/metadata/{category:[a-z_]+}/{name:[0-9a-f]+_(debug|release)\.(err|dump)}`, metadataHandler)
 	r.HandleFunc("/fuzz_count", fuzzCountHandler)
 	r.HandleFunc("/newBug", newBugHandler)
 
@@ -224,7 +237,6 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-
 	w.Header().Set("Content-Type", "text/html")
 
 	if err := indexTemplate.Execute(w, nil); err != nil {
@@ -236,41 +248,121 @@ func detailsPageHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-
 	w.Header().Set("Content-Type", "text/html")
 
-	if err := detailsTemplate.Execute(w, nil); err != nil {
+	var cat = struct {
+		Category string
+	}{
+		Category: mux.Vars(r)["category"],
+	}
+
+	if err := detailsTemplate.Execute(w, cat); err != nil {
 		glog.Errorf("Failed to expand template: %v", err)
 	}
 }
 
-func fuzzListHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+func summaryPageHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		reloadTemplates()
+	}
+	w.Header().Set("Content-Type", "text/html")
 
-	f := fuzz.FuzzSummary()
+	var cat = struct {
+		Category string
+	}{
+		Category: mux.Vars(r)["category"],
+	}
 
-	if err := json.NewEncoder(w).Encode(f); err != nil {
+	if err := overviewTemplate.Execute(w, cat); err != nil {
+		glog.Errorf("Failed to expand template: %v", err)
+	}
+}
+
+type fuzzOverview struct {
+	Category        string `json:"category"`
+	CategoryDisplay string `json:"categoryDisplay"`
+	TotalBad        int    `json:"totalBadCount"`
+	TotalGrey       int    `json:"totalGreyCount"`
+	// "This" means "newly introduced/fixed in this revision"
+	ThisBad  int `json:"thisBadCount"`
+	ThisGrey int `json:"thisGreyCount"`
+}
+
+func summaryJSONHandler(w http.ResponseWriter, r *http.Request) {
+	var overview interface{}
+	if cat := r.FormValue("category"); cat != "" {
+		overview = fuzz.CategoryOverview(cat)
+	} else {
+		overview = getOverview()
+	}
+
+	if err := json.NewEncoder(w).Encode(overview); err != nil {
 		glog.Errorf("Failed to write or encode output: %v", err)
 		return
 	}
 }
 
-func detailedReportsHandler(w http.ResponseWriter, r *http.Request) {
+func getOverview() []fuzzOverview {
+	overviews := make([]fuzzOverview, 0, len(fcommon.FUZZ_CATEGORIES))
+	for _, cat := range fcommon.FUZZ_CATEGORIES {
+		o := fuzzOverview{
+			CategoryDisplay: fcommon.PrettifyCategory(cat),
+			Category:        cat,
+		}
+		c := syncer.FuzzCount{
+			TotalBad:  -1,
+			TotalGrey: -1,
+			ThisBad:   -1,
+			ThisGrey:  -1,
+		}
+		if fuzzSyncer != nil {
+			c = fuzzSyncer.LastCount(cat)
+		}
+		o.TotalBad = c.TotalBad
+		o.ThisBad = c.ThisBad
+		o.TotalGrey = c.TotalGrey
+		o.ThisGrey = c.ThisGrey
+		overviews = append(overviews, o)
+	}
+	return overviews
+}
+
+func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
+	category := r.FormValue("category")
+	name := r.FormValue("name")
+	// The file names have "/" in them and the functions can have "(*&" in them.
+	// We base64 encode them to prevent problems.
+	file, err := decodeBase64(r.FormValue("file"))
+	if err != nil {
+		util.ReportError(w, r, err, "There was a problem decoding the params.")
+		return
+	}
+	function, err := decodeBase64(r.FormValue("func"))
+	if err != nil {
+		util.ReportError(w, r, err, "There was a problem decoding the params.")
+		return
+	}
+	lineStr, err := decodeBase64(r.FormValue("line"))
+	if err != nil {
+		util.ReportError(w, r, err, "There was a problem decoding the params.")
+		return
+	}
+
 	var f fuzz.FileFuzzReport
-	if name := r.FormValue("name"); name != "" {
+	if name != "" {
 		var err error
-		if f, err = fuzz.FindFuzzDetailForFuzz(name); err != nil {
+		if f, err = fuzz.FindFuzzDetailForFuzz(category, name); err != nil {
 			util.ReportError(w, r, err, "There was a problem fulfilling the request.")
 		}
 	} else {
-		line, err := strconv.ParseInt(r.FormValue("line"), 10, 32)
+		line, err := strconv.ParseInt(lineStr, 10, 32)
 		if err != nil {
 			line = fcommon.UNKNOWN_LINE
 		}
 
-		if f, err = fuzz.FindFuzzDetails(r.FormValue("file"), r.FormValue("func"), int(line), r.FormValue("fuzz-type") == "binary"); err != nil {
+		if f, err = fuzz.FindFuzzDetails(category, file, function, int(line)); err != nil {
 			util.ReportError(w, r, err, "There was a problem fulfilling the request.")
 			return
 		}
@@ -282,36 +374,51 @@ func detailedReportsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func decodeBase64(s string) (string, error) {
+	if s == "" {
+		return "", nil
+	}
+	b, err := base64.URLEncoding.DecodeString(s)
+	return string(b), err
+}
+
 func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
-	kind := v["kind"]
+	category := v["category"]
+	// Check the category to avoid someone trying to download arbitrary files from our bucket
+	if !fcommon.HasCategory(category) {
+		util.ReportError(w, r, nil, "Category not found")
+		return
+	}
 	name := v["name"]
-	xs := strings.Split(name, ".")
-	hash, ftype := xs[0], xs[1]
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/%s/bad/%s/%s/%s", kind, config.FrontEnd.SkiaVersion.Hash, ftype, hash, hash))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.FrontEnd.SkiaVersion.Hash, name, name))
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
+		util.ReportError(w, r, err, "Fuzz not found")
 		return
 	}
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.Header().Set("Content-Disposition", name)
 	n, err := w.Write(contents)
 	if err != nil || n != len(contents) {
-		glog.Errorf("Could only serve %d bytes of fuzz %s, not %d: %s", n, hash, len(contents), err)
+		glog.Errorf("Could only serve %d bytes of fuzz %s, not %d: %s", n, name, len(contents), err)
 		return
 	}
 }
 
 func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
-	ftype := v["type"]
-	kind := v["kind"]
+	category := v["category"]
+	// Check the category to avoid someone trying to download arbitrary files from our bucket
+	if !fcommon.HasCategory(category) {
+		util.ReportError(w, r, nil, "Category not found")
+		return
+	}
 	name := v["name"]
 	hash := strings.Split(name, "_")[0]
 
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s_fuzzes/%s/bad/%s/%s/%s", kind, config.FrontEnd.SkiaVersion.Hash, ftype, hash, name))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.FrontEnd.SkiaVersion.Hash, hash, name))
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Fuzz with name %v not found", v["name"]))
+		util.ReportError(w, r, err, "Fuzz metadata not found")
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -333,7 +440,7 @@ type status struct {
 	Pending *commit `json:"pending"`
 }
 
-func statusHandler(w http.ResponseWriter, r *http.Request) {
+func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	s := status{
@@ -369,7 +476,7 @@ func fuzzCountHandler(w http.ResponseWriter, r *http.Request) {
 		ThisGrey:  -1,
 	}
 	if fuzzSyncer != nil {
-		c = fuzzSyncer.LastCount
+		c = fuzzSyncer.LastCount(r.FormValue("category"))
 	}
 	if err := json.NewEncoder(w).Encode(c); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
@@ -377,22 +484,42 @@ func fuzzCountHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-const newBugTemplate = `# Your bug description here
+type newBug struct {
+	Category       string
+	PrettyCategory string
+	Name           string
+	Revision       string
+}
+
+var newBugTemplate = template.Must(template.New("new_bug").Parse(`# Your bug description here about fuzz found in {{.PrettyCategory}}
 
 # tracking metadata below:
-fuzz_commit: %s
-related_fuzz: https://fuzzer.skia.org/details?name=%s
-`
+fuzz_category: {{.Category}}
+fuzz_commit: {{.Revision}}
+related_fuzz: https://fuzzer.skia.org/category/{{.Category}}/name/{{.Name}}
+fuzz_download: https://fuzzer.skia.org/fuzz/{{.Category}}/{{.Name}}
+`))
 
 func newBugHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	name := r.FormValue("name")
+	category := r.FormValue("category")
 	q := url.Values{
 		"labels": []string{"FromSkiaFuzzer,Type-Defect,Priority-Medium,Restrict-View-Googler"},
+		"status": []string{"New"},
 	}
-	if name != "" {
-		q.Add("comment", fmt.Sprintf(newBugTemplate, config.FrontEnd.SkiaVersion.Hash, name))
+	b := newBug{
+		Category:       category,
+		PrettyCategory: fcommon.PrettifyCategory(category),
+		Name:           name,
+		Revision:       config.FrontEnd.SkiaVersion.Hash,
 	}
+	var t bytes.Buffer
+	if err := newBugTemplate.Execute(&t, b); err != nil {
+		util.ReportError(w, r, err, fmt.Sprintf("Could not create template with %#v", b))
+		return
+	}
+	q.Add("comment", t.String())
 	// 303 means "make a GET request to this url"
 	http.Redirect(w, r, "https://bugs.chromium.org/p/skia/issues/entry?"+q.Encode(), 303)
 }

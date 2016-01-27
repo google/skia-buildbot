@@ -124,11 +124,6 @@ func decodeFunctionName(s string) string {
 	return common.UNKNOWN_FUNCTION
 }
 
-// BasicStackFrame creates a StackTraceFrame with a blank function name
-func BasicStackFrame(packageName, fileName string, lineNumber int) StackTraceFrame {
-	return FullStackFrame(packageName, fileName, "", lineNumber)
-}
-
 // FullStackFrame creates a StackTraceFrame with all components
 func FullStackFrame(packageName, fileName, functionName string, lineNumber int) StackTraceFrame {
 	return StackTraceFrame{
