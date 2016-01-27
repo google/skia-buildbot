@@ -21,7 +21,6 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel=import href="/res/imp/bower_components/iron-selector/iron-selector.html">
 
-<link rel=import href="/res/common/imp/9/details-summary.html">
 <link rel=import href="/res/common/imp/9/error-toast-sk.html">
 <dom-module id="debugger-app-sk">
   <style type="text/css" media="screen">
@@ -38,7 +37,7 @@ The main application element for the Skia Debugger.
       margin: 1em;
     }
 
-    details-sk {
+    op-sk {
       display: block;
     }
 
@@ -64,31 +63,10 @@ The main application element for the Skia Debugger.
         <div class="layout horizontal">
           <div id=left class="layout vertical flex-1">
             <h2>Ops</h2>
-            <!-- Just mocked in for now, will replace with real elements soon. -->
-            <iron-selector>
-              <details-sk>
-                <summary-sk>Clip Rect</summary-sk>
-                <pre>
-                X: 0
-                Y: 0
-                Width: 100
-                Height: 100
-              </pre>
-              </details-sk>
-              <details-sk>
-                <summary-sk>Move</summary-sk>
-                <pre>
-                X: 10
-                Y: 10
-              </pre>
-              </details-sk>
-              <details-sk>
-                <summary-sk>Line</summary-sk>
-                <pre>
-                X: 80
-                Y: 70
-              </pre>
-              </details-sk>
+            <iron-selector id=selector>
+              <template is="dom-repeat" items="{{json.commands}}" as="command">
+                <op-sk op="{{command}}"></op-sk>
+              </template>
             </iron-selector>
           </div>
           <div id=center class="layout vertical flex-3">
@@ -122,13 +100,97 @@ The main application element for the Skia Debugger.
       // Load the test image served by the debugger.
       this.$.img.src = window.location.origin + "/img";
       this.$.post_skp.action= window.location.origin + "/new";
-    },
 
-    _get: function() {
-      this.$.results.textContent = "Running...";
-      sk.get("/_/info").then(JSON.parse).then(function(json) {
-        this.$.results.textContent = JSON.stringify(json, 2);
-      }.bind(this)).catch(sk.errorMessage);
+      // Can't set this as an attribute directly on iron-selector. Bah.
+      this.$.selector.selectedAttribute = "selected";
+
+      this.json = {
+        "version": 1,
+        "commands": [
+        {
+          "command": "Matrix",
+          "matrix": [
+            [ 1, 0, 20 ],
+            [ 0, 1, 20 ],
+            [ 0, 0, 1 ]
+          ]
+        },
+        {
+          "command": "Path",
+          "path": [
+          {
+            "move": [
+              200.103638,
+              900.077698
+            ]
+          },
+          {
+            "conic": [
+              [
+                -199.97406,
+                600.181335
+              ],
+              [
+                99.922302,
+                200.103638
+              ],
+              0.707107
+            ]
+          },
+          {
+            "conic": [
+              [
+                399.818665,
+                -199.97406
+              ],
+              [
+                799.896362,
+                99.922302
+              ],
+              0.707107
+            ]
+          },
+          {
+            "conic": [
+              [
+                1199.974121,
+                399.818665
+              ],
+              [
+                900.077698,
+                799.896362
+              ],
+              0.707107
+            ]
+          },
+          {
+            "conic": [
+              [
+                669.959167,
+                1106.886719
+              ],
+              [
+                313.870209,
+                964.064331
+              ],
+              0.793353
+            ]
+          }
+          ],
+          "paint": {
+            "color": [
+              255,
+              148,
+              65,
+              165
+            ],
+            "style": "stroke",
+            "strokeWidth": 15,
+            "antiAlias": true
+          }
+        }
+        ]
+      };
     },
   });
 </script>

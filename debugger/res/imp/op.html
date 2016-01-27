@@ -1,0 +1,70 @@
+<!-- The <op-sk> custom element declaration.
+
+  Attributes:
+    op - A deserialized JSON object that describes the operation.
+
+    Presumes ops are structured as below, where the "details" will
+    change based on the name of the opertion.
+
+      {
+        command: "line",
+        ...,
+      }
+
+    selected - True if this op has been selected.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+
+<link rel=import href="/res/common/imp/9/details-summary.html">
+<dom-module id="op-sk">
+  <style type="text/css" media="screen">
+    details-sk {
+      display: block;
+    }
+
+    details-sk[selected] {
+      background: #eee;
+    }
+
+    pre {
+      margin-left: 3em;
+    }
+  </style>
+  <template>
+    <details-sk selected$="{{selected}}">
+      <summary-sk>{{ op.command }}</summary-sk>
+      <pre>
+{{ _display(op) }}
+      </pre>
+    </details-sk>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "op-sk",
+
+    properties: {
+      op: {
+        type: Object,
+        value: function() { return {}; },
+        reflectToAttribute: false,
+      },
+      selected: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: false,
+      }
+    },
+
+    _display: function(op) {
+      return JSON.stringify(op, null, 2);
+    },
+
+  });
+</script>
