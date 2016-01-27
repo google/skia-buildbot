@@ -66,7 +66,7 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Fix archives", util.GetMasterLogLink(*runID), ""))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Fix archives", *runID, ""))
 	// Ensure completion email is sent even if task fails.
 	defer sendEmail(emailsArr)
 

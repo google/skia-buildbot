@@ -95,7 +95,7 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&lua_scripts.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Lua script", util.GetMasterLogLink(*runID), *description))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Lua script", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)

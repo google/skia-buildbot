@@ -61,8 +61,9 @@ func GetFailureEmailHtml(runID string) string {
 		GetMasterLogLink(runID), WORKERS_LOGSERVER_LINK, CtAdmins)
 }
 
-func SendTaskStartEmail(recipients []string, taskName, masterLogLink, description string) error {
-	emailSubject := taskName + " cluster telemetry task has started"
+func SendTaskStartEmail(recipients []string, taskName, runID, description string) error {
+	emailSubject := fmt.Sprintf("%s cluster telemetry task has started (%s)", taskName, runID)
+	masterLogLink := GetMasterLogLink(runID)
 	descriptionHtml := ""
 	if description != "" {
 		descriptionHtml = fmt.Sprintf("Run description: %s<br/><br/>", description)

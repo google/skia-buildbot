@@ -114,7 +114,7 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_perf.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", util.GetMasterLogLink(*runID), *description))
+	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
