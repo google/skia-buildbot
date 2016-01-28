@@ -7,11 +7,12 @@ import (
 )
 
 const (
-	NUM_WORKERS_PROD     int = 100
-	MASTER_NAME              = "build101-m5"
-	WORKER_NAME_TEMPLATE     = "build%d-m5"
-	GS_HTTP_LINK             = "https://storage.cloud.google.com/"
-	LOGS_LINK_PREFIX         = "http://uberchromegw.corp.google.com/i/skia-ct-worker"
+	NUM_WORKERS_PROD      int = 100
+	MASTER_NAME               = "build101-m5"
+	WORKER_NAME_TEMPLATE      = "build%d-m5"
+	GS_HTTP_LINK              = "https://storage.cloud.google.com/"
+	LOGS_LINK_PREFIX          = "http://uberchromegw.corp.google.com/i/skia-ct-worker"
+	CT_EMAIL_DISPLAY_NAME     = "Cluster Telemetry"
 
 	// File names and dir names.
 	TIMESTAMP_FILE_NAME          = "TIMESTAMP"

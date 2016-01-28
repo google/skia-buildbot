@@ -49,9 +49,10 @@ type GMail struct {
 
 // Message represents a single email message.
 type Message struct {
-	To      []string
-	Subject string
-	Body    string
+	SenderDisplayName string
+	To                []string
+	Subject           string
+	Body              string
 }
 
 // GetViewActionMarkup returns a string that contains the required markup.
@@ -87,24 +88,31 @@ func NewGMail(clientId, clientSecret, tokenCacheFile string) (*GMail, error) {
 }
 
 // Send an email.
-func (a *GMail) Send(to []string, subject string, body string) error {
-	return a.SendWithMarkup(to, subject, body, "")
+func (a *GMail) Send(senderDisplayName string, to []string, subject string, body string) error {
+	return a.SendWithMarkup(senderDisplayName, to, subject, body, "")
 }
 
 // Send an email with gmail markup.
 // Documentation about markups supported in gmail are here: https://developers.google.com/gmail/markup/
 // A go-to action example is here: https://developers.google.com/gmail/markup/reference/go-to-action
-func (a *GMail) SendWithMarkup(to []string, subject string, body string, markup string) error {
-	user := "me"
+func (a *GMail) SendWithMarkup(senderDisplayName string, to []string, subject string, body string, markup string) error {
+	sender := "me"
+	// Get email address to use in the from section.
+	profile, err := a.service.Users.GetProfile(sender).Do()
+	if err != nil {
+		return fmt.Errorf("Failed to get profile for %s: %v", sender, err)
+	}
+	fromWithName := fmt.Sprintf("%s <%s>", senderDisplayName, profile.EmailAddress)
+
 	msgBytes := new(bytes.Buffer)
 	if err := emailTemplateParsed.Execute(msgBytes, struct {
-		From    string
+		From    template.HTML
 		To      string
 		Subject string
 		Body    template.HTML
 		Markup  template.HTML
 	}{
-		From:    user,
+		From:    template.HTML(fromWithName),
 		To:      strings.Join(to, ","),
 		Subject: subject,
 		Body:    template.HTML(body),
@@ -117,11 +125,11 @@ func (a *GMail) SendWithMarkup(to []string, subject string, body string, markup 
 	msg.Snippet = subject
 	msg.Raw = base64.URLEncoding.EncodeToString(msgBytes.Bytes())
 
-	_, err := a.service.Users.Messages.Send(user, &msg).Do()
+	_, err = a.service.Users.Messages.Send(sender, &msg).Do()
 	return err
 }
 
 // SendMessage sends the given Message.
 func (a *GMail) SendMessage(msg *Message) error {
-	return a.Send(msg.To, msg.Subject, msg.Body)
+	return a.Send(msg.SenderDisplayName, msg.To, msg.Subject, msg.Body)
 }

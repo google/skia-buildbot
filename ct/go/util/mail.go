@@ -27,7 +27,7 @@ func SendEmail(recipients []string, subject, body string) error {
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
-	if err := gmail.Send(recipients, subject, body); err != nil {
+	if err := gmail.Send(CT_EMAIL_DISPLAY_NAME, recipients, subject, body); err != nil {
 		return fmt.Errorf("Could not send email: %s", err)
 	}
 
@@ -46,7 +46,7 @@ func SendEmailWithMarkup(recipients []string, subject, body, markup string) erro
 	if err != nil {
 		return fmt.Errorf("Could not initialize gmail object: %s", err)
 	}
-	if err := gmail.SendWithMarkup(recipients, subject, body, markup); err != nil {
+	if err := gmail.SendWithMarkup(CT_EMAIL_DISPLAY_NAME, recipients, subject, body, markup); err != nil {
 		return fmt.Errorf("Could not send email with markup: %s", err)
 	}
 

@@ -85,9 +85,10 @@ func initEmail(auth *email.GMail) {
 				to = append(to, r)
 			}
 			sendMessage(&email.Message{
-				To:      to,
-				Subject: fmt.Sprintf("Skia Alerts: Multiple messages as of %s", time.Now()),
-				Body:    body,
+				SenderDisplayName: "Alert Server",
+				To:                to,
+				Subject:           fmt.Sprintf("Skia Alerts: Multiple messages as of %s", time.Now()),
+				Body:              body,
 			})
 		} else {
 			// Send all queued messages.
