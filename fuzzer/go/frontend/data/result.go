@@ -105,7 +105,7 @@ func (r *FuzzResult) computeFlags() {
 		flags |= DebugAssertionViolated
 	} else if strings.Contains(r.DebugStdErr, `terminate called after throwing an instance of 'std::bad_alloc'`) {
 		flags |= DebugCrashed | DebugBadAlloc
-	} else if strings.Contains(r.DebugStdErr, `Couldn't decode`) {
+	} else if strings.Contains(r.DebugStdErr, `Success`) {
 		flags |= DebugFailedGracefully
 	} else if r.DebugStdErr != "" {
 		flags |= DebugOther
@@ -115,7 +115,7 @@ func (r *FuzzResult) computeFlags() {
 		flags |= ReleaseTimedOut
 	} else if strings.Contains(r.ReleaseStdErr, `terminate called after throwing an instance of 'std::bad_alloc'`) {
 		flags |= ReleaseCrashed | ReleaseBadAlloc
-	} else if strings.Contains(r.ReleaseStdErr, `Couldn't decode`) {
+	} else if strings.Contains(r.ReleaseStdErr, `Success`) {
 		flags |= ReleaseFailedGracefully
 	} else if r.ReleaseStdErr != "" {
 		flags |= ReleaseOther

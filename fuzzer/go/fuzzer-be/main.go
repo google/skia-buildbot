@@ -26,7 +26,7 @@ import (
 )
 
 var (
-	aflOutputPath      = flag.String("afl_output_path", "", "[REQUIRED] The output folder of afl-fuzz.  This will have N folders named fuzzer0 - fuzzerN.  Should not be in /tmp or afl-fuzz will refuse to run.")
+	aflOutputPath      = flag.String("afl_output_path", "", "[REQUIRED] The output folder of afl-fuzz.  This will have on folder for each fuzz_to_run.  Each of those will have N folders named fuzzer0 - fuzzerN.  Should not be in /tmp or afl-fuzz will refuse to run.")
 	generatorWD        = flag.String("generator_working_dir", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
 	fuzzSamples        = flag.String("fuzz_samples", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
 	skiaRoot           = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
@@ -34,17 +34,18 @@ var (
 	clangPlusPlusPath  = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
 	depotToolsPath     = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
 	aflRoot            = flag.String("afl_root", "", "[REQUIRED] The install directory of afl-fuzz (v1.94b or later).")
-	numFuzzProcesses   = flag.Int("fuzz_processes", 0, `The number of processes to run afl-fuzz.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
+	numFuzzProcesses   = flag.Int("fuzz_processes", 0, `The number of processes to run afl-fuzz [per fuzz to run].  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
 	watchAFL           = flag.Bool("watch_afl", false, "(debug only) If the afl master's output should be piped to stdout.")
 	versionCheckPeriod = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
-	downloadProcesses  = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
+	downloadProcesses  = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes when re-analyzing them. This is constant with respect to the number of fuzzes.")
+	fuzzesToRun        = common.NewMultiStringFlag("fuzz_to_run", nil, fmt.Sprintf("A set of fuzzes to run.  Can be one or more of the known fuzzes: %q", fcommon.FUZZ_CATEGORIES))
 
 	bucket               = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to store found fuzzes.")
 	fuzzPath             = flag.String("fuzz_path", filepath.Join(os.TempDir(), "fuzzes"), "The directory to temporarily store the binary fuzzes during aggregation.")
 	executablePath       = flag.String("executable_path", filepath.Join(os.TempDir(), "executables"), "The directory to store temporary executables that will run the fuzzes during aggregation. Defaults to /tmp/executables.")
-	numAnalysisProcesses = flag.Int("analysis_processes", 0, `The number of processes to analyze fuzzes.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
+	numAnalysisProcesses = flag.Int("analysis_processes", 0, `The number of processes to analyze fuzzes [per fuzz to run].  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
 	rescanPeriod         = flag.Duration("rescan_period", 60*time.Second, `The time in which to sleep for every cycle of aggregation. `)
-	numUploadProcesses   = flag.Int("upload_processes", 0, `The number of processes to upload fuzzes. Defaults to 0, which means "Make an intelligent guess"`)
+	numUploadProcesses   = flag.Int("upload_processes", 0, `The number of processes to upload fuzzes [per fuzz to run]. Defaults to 0, which means "Make an intelligent guess"`)
 	statusPeriod         = flag.Duration("status_period", 60*time.Second, `The time period used to report the status of the aggregation/analysis/upload queue. `)
 	analysisTimeout      = flag.Duration("analysis_timeout", 5*time.Second, `The maximum time an analysis should run.`)
 
@@ -52,7 +53,7 @@ var (
 )
 
 var (
-	requiredFlags                 = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir"}
+	requiredFlags                 = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir", "fuzz_to_run"}
 	storageClient *storage.Client = nil
 )
 
@@ -71,34 +72,37 @@ func main() {
 		glog.Fatalf("Problem downloading Skia: %s", err)
 	}
 
-	gen := generator.New("skpicture")
-	if err := gen.DownloadSeedFiles(storageClient); err != nil {
-		glog.Fatalf("Problem downloading binary seed files: %s", err)
-	}
+	fuzzPipelines := make([]backend.FuzzPipeline, 0, len(*fuzzesToRun))
 
-	glog.Infof("Starting generator with configuration %#v", config.Generator)
-	if err := gen.Start(); err != nil {
-		glog.Fatalf("Problem starting binary generator: %s", err)
-	}
+	for _, category := range *fuzzesToRun {
+		gen := generator.New(category)
+		if err := gen.DownloadSeedFiles(storageClient); err != nil {
+			glog.Fatalf("Problem downloading binary seed files: %s", err)
+		}
 
-	glog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
-	agg, err := aggregator.StartAggregator(storageClient, "skpicture")
-	if err != nil {
-		glog.Fatalf("Could not start aggregator: %s", err)
-	}
+		glog.Infof("Starting %s generator with configuration %#v", category, config.Generator)
+		if err := gen.Start(); err != nil {
+			glog.Fatalf("Problem starting binary generator: %s", err)
+		}
 
-	updater := backend.NewVersionUpdater(storageClient, []backend.FuzzPipeline{
-		{
-			Category: "skpicture",
+		glog.Infof("Starting %s aggregator with configuration %#v", category, config.Aggregator)
+		agg, err := aggregator.StartAggregator(storageClient, category)
+		if err != nil {
+			glog.Fatalf("Could not start aggregator: %s", err)
+		}
+		fuzzPipelines = append(fuzzPipelines, backend.FuzzPipeline{
+			Category: category,
 			Agg:      agg,
 			Gen:      gen,
-		},
-	})
+		})
+	}
+
+	updater := backend.NewVersionUpdater(storageClient, fuzzPipelines)
 	glog.Info("Starting version watcher")
 	watcher := fcommon.NewVersionWatcher(storageClient, config.Generator.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
 	watcher.Start()
 
-	err = <-watcher.Status
+	err := <-watcher.Status
 	glog.Fatal(err)
 }
 
@@ -153,6 +157,13 @@ func writeFlagsToConfig() error {
 	config.Aggregator.StatusPeriod = *statusPeriod
 	config.Aggregator.RescanPeriod = *rescanPeriod
 	config.Aggregator.AnalysisTimeout = *analysisTimeout
+
+	// Check all the fuzzes are valid ones we can handle
+	for _, f := range *fuzzesToRun {
+		if !fcommon.HasCategory(f) {
+			return fmt.Errorf("Unknown fuzz category %q", f)
+		}
+	}
 	return nil
 }
 

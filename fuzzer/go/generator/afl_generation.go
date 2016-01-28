@@ -32,7 +32,7 @@ func New(category string) *Generator {
 
 // Start starts up 1 goroutine running a "master" afl-fuzz and n-1 "slave" afl-fuzz processes, where
 // n is specified by config.Generator.NumFuzzProcesses. Output goes to
-// config.Generator.AflOutputPath
+// config.Generator.AflOutputPath/[category].
 func (g *Generator) Start() error {
 	executable, err := g.setup()
 	if err != nil {
@@ -81,12 +81,12 @@ func (g *Generator) setup() (string, error) {
 	if err := g.Clear(); err != nil {
 		return "", err
 	}
-	// build afl
-	if err := common.BuildFuzzingHarness("Release"); err != nil {
+	// build afl.
+	if err := common.BuildFuzzingHarness("Release", true); err != nil {
 		return "", fmt.Errorf("Failed to build dm using afl-fuzz %s", err)
 	}
 	// copy to working directory
-	executable := filepath.Join(config.Generator.WorkingPath, common.TEST_HARNESS_NAME+"_afl_Release")
+	executable := filepath.Join(config.Generator.WorkingPath, g.Category, common.TEST_HARNESS_NAME+"_afl_Release")
 	if err := fileutil.CopyExecutable(filepath.Join(config.Generator.SkiaRoot, "out", "Release", common.TEST_HARNESS_NAME), executable); err != nil {
 		return "", err
 	}
@@ -95,19 +95,21 @@ func (g *Generator) setup() (string, error) {
 
 // Clear removes the previous fuzzing sessions data and any previously used binaries.
 func (g *Generator) Clear() error {
-	if err := os.RemoveAll(config.Generator.WorkingPath); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("Failed to remove previous binaries: %s", err)
+	workingPath := filepath.Join(config.Generator.WorkingPath, g.Category)
+	if err := os.RemoveAll(workingPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Failed to remove previous binaries from %s: %s", workingPath, err)
 	}
-	if err := os.MkdirAll(config.Generator.WorkingPath, 0755); err != nil {
-		return fmt.Errorf("Failed to create working directory: %s", err)
+	if err := os.MkdirAll(workingPath, 0755); err != nil {
+		return fmt.Errorf("Failed to create working directory %s: %s", workingPath, err)
 	}
 
 	// remove previous fuzz results
-	if err := os.RemoveAll(config.Generator.AflOutputPath); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("Failed to remove previous fuzz results: %s", err)
+	resultsPath := filepath.Join(config.Generator.AflOutputPath, g.Category)
+	if err := os.RemoveAll(resultsPath); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Failed to remove previous fuzz results from %s: %s", resultsPath, err)
 	}
-	if err := os.MkdirAll(config.Generator.AflOutputPath, 0755); err != nil {
-		return fmt.Errorf("Failed to create fuzz results directory: %s", err)
+	if err := os.MkdirAll(resultsPath, 0755); err != nil {
+		return fmt.Errorf("Failed to create fuzz results directory %s: %s", resultsPath, err)
 	}
 	return nil
 }
@@ -123,7 +125,7 @@ func (g *Generator) run(command *exec.Command) exec.Process {
 	go func() {
 		err := <-status
 		g.fuzzProcessCount.Dec(int64(1))
-		glog.Infof(`afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, command.Args, err, g.fuzzProcessCount.Count())
+		glog.Infof(`[%s] afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, g.Category, command.Args, err, g.fuzzProcessCount.Count())
 	}()
 	return p
 }
@@ -135,9 +137,9 @@ func (g *Generator) Stop() {
 	for _, p := range g.fuzzProcesses {
 		if p != nil {
 			if err := p.Kill(); err != nil {
-				glog.Warningf("Error while trying to kill afl process: %s", err)
+				glog.Warningf("[%s] Error while trying to kill afl process: %s", g.Category, err)
 			} else {
-				glog.Info("Quietly shutdown fuzz process.")
+				glog.Infof("[%s] Quietly shutdown fuzz process.", g.Category)
 			}
 		}
 	}
@@ -166,12 +168,12 @@ func (g *Generator) DownloadSeedFiles(storageClient *storage.Client) error {
 		}
 		content, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, name)
 		if err != nil {
-			glog.Errorf("Problem downloading %s from Google Storage, continuing anyway", item.Name)
+			glog.Errorf("[%s] Problem downloading %s from Google Storage, continuing anyway", g.Category, item.Name)
 			return
 		}
 		fileName := filepath.Join(seedPath, strings.SplitAfter(name, gsFolder)[1])
 		if err = ioutil.WriteFile(fileName, content, 0644); err != nil && !os.IsExist(err) {
-			glog.Errorf("Problem creating binary seed file %s, continuing anyway", fileName)
+			glog.Errorf("[%s] Problem creating binary seed file %s, continuing anyway", g.Category, fileName)
 		}
 	})
 	return err

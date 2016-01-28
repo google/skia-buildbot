@@ -110,6 +110,21 @@ func TestParseDumpFilesCase0(t *testing.T) {
 	}
 }
 
+func TestParseDumpFilesCase1(t *testing.T) {
+	// Case 1, both debug and release exist with partial success
+	debugDump := ""
+	debugErr := testutils.MustReadFile(stacktrace("case1_debug.err"))
+	releaseDump := ""
+	releaseErr := testutils.MustReadFile(stacktrace("case1_release.err"))
+
+	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
+	expectedFlags := DebugFailedGracefully | ReleaseFailedGracefully
+
+	if result.Flags != expectedFlags {
+		t.Errorf("parsed Flags were wrong.  Expected %s, but was %s", expectedFlags.String(), result.Flags.String())
+	}
+}
+
 func TestParseDumpFilesCase2(t *testing.T) {
 	// Case 2, debug dumped and hit an assertion, release timed out
 	debugDump := testutils.MustReadFile(stacktrace("case2_debug.dump"))

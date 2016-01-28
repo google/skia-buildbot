@@ -12,6 +12,14 @@ import (
 type AnalysisArgs []string
 type GenerationArgs []string
 
+// argsAfterExecutable is a map of arguments that come after the executable
+// and before the path to the bytes file, that will be fuzzed.
+var argsAfterExecutable = map[string][]string{
+	"api_paeth": []string{"--type", "api", "--name", "Paeth", "--bytes"},
+	"skcodec":   []string{"--type", "image", "--bytes"},
+	"skpicture": []string{"--type", "skp", "--bytes"},
+}
+
 // AnalysisArgsFor creates an appropriate analysis command for the category of fuzz specified given
 // the passed in variables. It is expected that these arguments will be executed with GNU timeout
 // GNU timeout is used instead of the option on exec.Command because experimentation with the latter
@@ -19,11 +27,13 @@ type GenerationArgs []string
 // human readable dumps of crashes, which can then be scanned for stacktrace information.
 func AnalysisArgsFor(category string, pathToExecutable, pathToFile string) AnalysisArgs {
 	timeoutInSeconds := fmt.Sprintf("%ds", config.Aggregator.AnalysisTimeout/time.Second)
-	if category == "skpicture" {
-		return []string{timeoutInSeconds, "catchsegv", pathToExecutable, "--type", "skp", "--bytes", pathToFile}
+	args, found := argsAfterExecutable[category]
+	if !found {
+		glog.Errorf("Unknown fuzz category %q", category)
+		return nil
 	}
-	glog.Errorf("Unknown fuzz category %q", category)
-	return nil
+	cmd := append([]string{timeoutInSeconds, "catchsegv", pathToExecutable}, args...)
+	return append(cmd, pathToFile)
 }
 
 // GenerationArgsFor creates the appropriate arguments to run afl-fuzz on a fuzz of the given
@@ -32,15 +42,17 @@ func AnalysisArgsFor(category string, pathToExecutable, pathToFile string) Analy
 // which is short enough to not bog down afl-fuzz in the weeds of a long running time, but long
 // enough to accomodate typical execution paths.
 func GenerationArgsFor(category, pathToExecutable, fuzzerName string, isMaster bool) GenerationArgs {
+	args, found := argsAfterExecutable[category]
+	if !found {
+		glog.Errorf("Unknown fuzz category %q", category)
+		return nil
+	}
 	masterFlag := "-M"
 	if !isMaster {
 		masterFlag = "-S"
 	}
 	seedPath := filepath.Join(config.Generator.FuzzSamples, category)
 	outputPath := filepath.Join(config.Generator.AflOutputPath, category)
-	if category == "skpicture" {
-		return []string{"-i", seedPath, "-o", outputPath, "-m", "5000", "-t", "100", masterFlag, fuzzerName, "--", pathToExecutable, "--type", "skp", "--bytes", "@@"}
-	}
-	glog.Errorf("Unknown fuzz category %q", category)
-	return nil
+	cmd := append([]string{"-i", seedPath, "-o", outputPath, "-m", "5000", "-t", "100", masterFlag, fuzzerName, "--", pathToExecutable}, args...)
+	return append(cmd, "@@")
 }

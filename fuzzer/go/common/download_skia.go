@@ -2,6 +2,8 @@ package common
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/skia-dev/glog"
@@ -20,8 +22,16 @@ func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string, v
 	if err != nil {
 		return fmt.Errorf("Could not get Skia version from GCS: %s", err)
 	}
-
-	return DownloadSkia(skiaVersion, path, v)
+	if err := DownloadSkia(skiaVersion, path, v); err != nil {
+		return fmt.Errorf("Problem downloading skia: %s", err)
+	}
+	// Always clean out the build directory, to mitigate potential build
+	// problems
+	buildDir := filepath.Join(path, "out")
+	if err := os.RemoveAll(buildDir); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("Failed to clean out Skia build dir %s: %s", buildDir, err)
+	}
+	return nil
 }
 
 // GetCurrentSkiaVersionFromGCS checks the skia_version folder in the fuzzer bucket for a single file

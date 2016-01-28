@@ -20,13 +20,13 @@ func BuildClangHarness(buildType string, isClean bool) error {
 }
 
 // BuildFuzzingHarness builds the test harness for parsing skp files using afl-instrumented clang.  If any step fails, it returns an error.
-func BuildFuzzingHarness(buildType string) error {
+func BuildFuzzingHarness(buildType string, isClean bool) error {
 	buildVars := []string{
 		fmt.Sprintf("CC=%s", filepath.Join(config.Generator.AflRoot, "afl-clang")),
 		fmt.Sprintf("CXX=%s", filepath.Join(config.Generator.AflRoot, "afl-clang++")),
 	}
 
-	return buildHarness(buildType, true, buildVars)
+	return buildHarness(buildType, isClean, buildVars)
 }
 
 // buildHarness builds the test harness for parsing skp (and other) files.

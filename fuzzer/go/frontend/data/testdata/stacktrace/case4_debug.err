@@ -1,9 +1,1 @@
-1 srcs * 1 sinks + 0 tests == 1 tasks
-
-
-FAILURE: 8888 skp  d6c7e704974949baaf92a3a8b1bc1b7dc0afb215: Couldn't decode /tmp/fuzzes/d6c7e704974949baaf92a3a8b1bc1b7dc0afb215 as a picture.
-
-[K(  41/43  MB      0) 4.83ms	8888 skp  d6c7e704974949baaf92a3a8b1bc1b7dc0afb215
-Failures:
-	8888 skp  d6c7e704974949baaf92a3a8b1bc1b7dc0afb215: Couldn't decode /tmp/fuzzes/d6c7e704974949baaf92a3a8b1bc1b7dc0afb215 as a picture.
-1 failures
+Success!
