@@ -46,7 +46,7 @@ type queryClient interface {
 
 // Client is a struct used for communicating with an InfluxDB instance.
 type Client struct {
-	database string
+	Database string
 	dbClient queryClient
 }
 
@@ -66,7 +66,7 @@ func NewClient(host, user, password, database string) (*Client, error) {
 		return nil, fmt.Errorf("Failed to initialize InfluxDB client: %s", err)
 	}
 	return &Client{
-		database: database,
+		Database: database,
 		dbClient: dbClient,
 	}, nil
 }
@@ -97,10 +97,10 @@ func NewClientFromFlagsAndMetadata(local bool) (*Client, error) {
 }
 
 // Query issues a query to the InfluxDB instance and returns its results.
-func (c *Client) Query(q string) ([]client.Result, error) {
+func (c *Client) Query(database, q string) ([]client.Result, error) {
 	response, err := c.dbClient.Query(client.Query{
 		Command:  q,
-		Database: c.database,
+		Database: database,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query InfluxDB with query %q: %s", q, err)
@@ -114,24 +114,24 @@ func (c *Client) Query(q string) ([]client.Result, error) {
 // QueryNumber issues a query to the InfluxDB instance and returns a single
 // point value. The query must return a single series with a single point,
 // otherwise QueryNumber returns an error.
-func (c *Client) QueryNumber(q string) (json.Number, error) {
-	results, err := c.Query(q)
+func (c *Client) QueryNumber(database, q string) (json.Number, error) {
+	results, err := c.Query(database, q)
 	if err != nil {
 		return "", err
 	}
 	// We want exactly one series.
 	if len(results) < 1 {
-		return "", fmt.Errorf("Query returned no data: %q", q)
+		return "", fmt.Errorf("Query returned no data: d=%q q=%q", database, q)
 	}
 	if len(results) > 1 {
-		return "", fmt.Errorf("Query returned more than one series: %q", q)
+		return "", fmt.Errorf("Query returned more than one series: d=%q q=%q", database, q)
 	}
 	series := results[0].Series
 	if len(series) < 1 {
-		return "", fmt.Errorf("Query returned no series: %q", q)
+		return "", fmt.Errorf("Query returned no series: d=%q q=%q", database, q)
 	}
 	if len(series) > 1 {
-		return "", fmt.Errorf("Query returned more than one series: %q", q)
+		return "", fmt.Errorf("Query returned more than one series: d=%q q=%q", database, q)
 	}
 	valueColumn := 0
 	for _, label := range series[0].Columns {
@@ -168,8 +168,8 @@ func (c *Client) QueryNumber(q string) (json.Number, error) {
 // QueryFloat64 issues a query to the InfluxDB instance and returns a
 // single float64 point value. The query must return a single series with a
 // single point, otherwise QueryFloat64 returns an error.
-func (c *Client) QueryFloat64(q string) (float64, error) {
-	n, err := c.QueryNumber(q)
+func (c *Client) QueryFloat64(database, q string) (float64, error) {
+	n, err := c.QueryNumber(database, q)
 	if err != nil {
 		return 0.0, err
 	}
@@ -179,8 +179,8 @@ func (c *Client) QueryFloat64(q string) (float64, error) {
 // QueryInt64 issues a query to the InfluxDB instance and returns a
 // single int64 point value. The query must return a single series with a
 // single point, otherwise QueryInt64 returns an error.
-func (c *Client) QueryInt64(q string) (int64, error) {
-	n, err := c.QueryNumber(q)
+func (c *Client) QueryInt64(database, q string) (int64, error) {
+	n, err := c.QueryNumber(database, q)
 	if err != nil {
 		return 0.0, err
 	}
@@ -189,8 +189,8 @@ func (c *Client) QueryInt64(q string) (int64, error) {
 
 // PollingStatus returns a util.PollingStatus which runs the given
 // query at the given interval.
-func (c *Client) Int64PollingStatus(query string, interval time.Duration) (*util.PollingStatus, error) {
+func (c *Client) Int64PollingStatus(database, query string, interval time.Duration) (*util.PollingStatus, error) {
 	return util.NewPollingStatus(func() (interface{}, error) {
-		return c.QueryInt64(query)
+		return c.QueryInt64(database, query)
 	}, interval)
 }

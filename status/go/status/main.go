@@ -708,15 +708,15 @@ func main() {
 	glog.Info("commit_cache complete")
 
 	// Load Perf and Gold data in a loop.
-	perfStatus, err = dbClient.Int64PollingStatus("select value from \"alerting.new.value\" where app='skiaperf' and host='skia-perf' order by time desc limit 1", time.Minute)
+	perfStatus, err = dbClient.Int64PollingStatus(dbClient.Database, "select value from \"alerting.new.value\" where app='skiaperf' and host='skia-perf' order by time desc limit 1", time.Minute)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Perf status: %v", err)
 	}
-	goldGMStatus, err = dbClient.Int64PollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
+	goldGMStatus, err = dbClient.Int64PollingStatus(dbClient.Database, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
 	}
-	goldImageStatus, err = dbClient.Int64PollingStatus(fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
+	goldImageStatus, err = dbClient.Int64PollingStatus(dbClient.Database, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 	if err != nil {
 		glog.Fatalf("Failed to create polling Gold status: %v", err)
 	}

@@ -40,7 +40,7 @@ func TestQueryNumber(t *testing.T) {
 				return &client.Response{}, nil
 			},
 			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned no data: \"<dummy query>\""),
+			ExpectedErr: fmt.Errorf("Query returned no data: d=\"nodatabase\" q=\"<dummy query>\""),
 		},
 		queryCase{
 			Name: "NoSeries",
@@ -55,7 +55,7 @@ func TestQueryNumber(t *testing.T) {
 				}, nil
 			},
 			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned no series: \"<dummy query>\""),
+			ExpectedErr: fmt.Errorf("Query returned no series: d=\"nodatabase\" q=\"<dummy query>\""),
 		},
 		queryCase{
 			Name: "TooManySeries",
@@ -73,7 +73,7 @@ func TestQueryNumber(t *testing.T) {
 				}, nil
 			},
 			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned more than one series: \"<dummy query>\""),
+			ExpectedErr: fmt.Errorf("Query returned more than one series: d=\"nodatabase\" q=\"<dummy query>\""),
 		},
 		queryCase{
 			Name: "NotEnoughCols",
@@ -201,10 +201,10 @@ func TestQueryNumber(t *testing.T) {
 	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
 	for _, c := range cases {
 		client := Client{
-			database: "nodatabase",
+			Database: "nodatabase",
 			dbClient: dummyClient{c.QueryFunc},
 		}
-		val, err := client.QueryNumber("<dummy query>")
+		val, err := client.QueryNumber(client.Database, "<dummy query>")
 		assert.Equal(t, c.ExpectedErr, err, fmt.Sprintf(errorStr, c.Name, c.ExpectedErr, err))
 		if err != nil {
 			continue

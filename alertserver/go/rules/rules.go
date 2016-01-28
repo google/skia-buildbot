@@ -20,6 +20,7 @@ import (
 // Rule is an object used for triggering Alerts.
 type Rule struct {
 	Name        string        `json:"name"`
+	Database    string        `json:"database"`
 	Query       string        `json:"query"`
 	Category    string        `json:"category"`
 	Condition   string        `json:"condition"`
@@ -85,7 +86,7 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 }
 
 func (r *Rule) tick(am *alerting.AlertManager) error {
-	d, err := executeQuery(r.client, r.Query)
+	d, err := executeQuery(r.client, r.Database, r.Query)
 	if err != nil {
 		// We shouldn't fail to execute a query. Trigger an alert.
 		return r.queryExecutionAlert(err, am)
@@ -134,6 +135,10 @@ func newRule(r parsedRule, client *influxdb.Client, testing bool, tickInterval t
 	if !ok {
 		return nil, fmt.Errorf(errString, "condition")
 	}
+	database, ok := r["database"].(string)
+	if !ok {
+		return nil, fmt.Errorf(errString, "database")
+	}
 	message, ok := r["message"].(string)
 	if !ok {
 		return nil, fmt.Errorf(errString, "message")
@@ -166,6 +171,7 @@ func newRule(r parsedRule, client *influxdb.Client, testing bool, tickInterval t
 	}
 	rule := Rule{
 		Name:        name,
+		Database:    database,
 		Query:       query,
 		Category:    category,
 		Condition:   condition,
@@ -231,9 +237,12 @@ func MakeRules(cfgFile string, dbClient *influxdb.Client, tickInterval time.Dura
 }
 
 type queryable interface {
-	QueryFloat64(string) (float64, error)
+	// QueryFloat64 sends a query to the database and returns a single
+	// float64 value along with any error. The parameters are the name
+	// of the database and the query to perform.
+	QueryFloat64(string, string) (float64, error)
 }
 
-func executeQuery(c queryable, q string) (float64, error) {
-	return c.QueryFloat64(q)
+func executeQuery(c queryable, database, q string) (float64, error) {
+	return c.QueryFloat64(database, q)
 }

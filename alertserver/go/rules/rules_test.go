@@ -17,13 +17,14 @@ import (
 
 type mockClient struct{}
 
-func (c mockClient) QueryFloat64(query string) (float64, error) {
+func (c mockClient) QueryFloat64(database, query string) (float64, error) {
 	return 1.0, nil
 }
 
 func getRule() *Rule {
 	r := &Rule{
 		Name:        "TestRule",
+		Database:    "DefaultDatabase",
 		Query:       "DummyQuery",
 		Category:    "testing",
 		Message:     "Dummy query meets dummy condition!",
@@ -102,6 +103,7 @@ func TestRuleParsing(t *testing.T) {
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
 condition = "x > 0.5"
@@ -114,6 +116,7 @@ auto-dismiss = false
 			Name: "NoName",
 			Input: `[[rule]]
 message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
 condition = "x > 0.5"
@@ -127,6 +130,7 @@ auto-dismiss = false
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
 category = "testing"
 condition = "x > 0.5"
 actions = ["Print"]
@@ -139,6 +143,7 @@ auto-dismiss = false
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
 actions = ["Print"]
@@ -151,6 +156,7 @@ auto-dismiss = false
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
 condition = "x > 0.5"
@@ -163,6 +169,7 @@ auto-dismiss = false
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
 condition = "x > y"
@@ -175,6 +182,7 @@ auto-dismiss = false
 			Name: "NoMessage",
 			Input: `[[rule]]
 name = "randombits"
+database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
 condition = "x > 0.5"
@@ -189,6 +197,7 @@ auto-dismiss = false
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 category = "testing"
+database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print"]
@@ -200,6 +209,7 @@ actions = ["Print"]
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
 condition = "x > 0.5"
@@ -214,6 +224,7 @@ nag = "1h10m"
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 condition = "x > 0.5"
 actions = ["Print"]
@@ -221,6 +232,20 @@ auto-dismiss = false
 nag = "1h10m"
 `,
 			ExpectedErr: fmt.Errorf("Alert rule missing field \"category\""),
+		},
+		parseCase{
+			Name: "NoDatabase",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
+condition = "x > 0.5"
+actions = ["Print"]
+auto-dismiss = false
+nag = "1h10m"
+`,
+			ExpectedErr: fmt.Errorf("Alert rule missing field \"database\""),
 		},
 	}
 	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
