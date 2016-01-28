@@ -34,7 +34,6 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
     prod)
   	DATABASE_HOST="173.194.104.24"
   	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness"
-  	INGEST_DATABASE_NAME="skia"
     REDIRECT_URL="https://gold.skia.org/oauth2callback/"
     ADD_FLAGS="--backfill_tiles=2"
   	;;
@@ -43,7 +42,6 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
     stage)
   	DATABASE_HOST="173.194.254.28"
   	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_stage"
-  	INGEST_DATABASE_NAME="skiacorr_ingest_stage"
     REDIRECT_URL="https://gold-staging.skia.org/oauth2callback/"
     ADD_FLAGS="--backfill_tiles=2"
     ;;
@@ -52,7 +50,6 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
     android)
     DATABASE_HOST="173.194.254.28"
     SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_android"
-    INGEST_DATABASE_NAME="skiacorr_ingest_android"
     REDIRECT_URL="https://gold-android.skia.org/oauth2callback/"
     GS_BUCKET="skia-android-dm"
     N_COMMITS="200"
@@ -63,7 +60,6 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
     blink)
     DATABASE_HOST="173.194.254.28"
     SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_blink"
-    INGEST_DATABASE_NAME="skiacorr_ingest_blink"
     REDIRECT_URL="https://gold-blink.skia.org/oauth2callback/"
     ;;
 
@@ -75,9 +71,8 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   # Builds and uploads a debian package for skiacorrectness.
   APPNAME=skiacorrectness-$INSTANCE_ID
   CORRECTNESS_APPNAME="skiacorrectness"
-  INGEST_APPNAME="ingest"
   SETUP_APPNAME="setup_skiacorrectness"
-  SYSTEMD="${CORRECTNESS_APPNAME}.service ${INGEST_APPNAME}.service"
+  SYSTEMD="${CORRECTNESS_APPNAME}.service"
   SYSTEMD_TIMER="${SETUP_APPNAME}.timer"
   DESCRIPTION="Manages baseline images."
 
@@ -95,20 +90,15 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   CORR_SED="$CORR_SED;s#<<REPLACE_N_COMMITS>>#$N_COMMITS#g"
   CORR_SED="$CORR_SED;s#<<REPLACE_ADD_FLAGS>>#$ADD_FLAGS#g"
 
-  # Generate the init file for ingest and skiacorrectness.
+  # Generate the init file for skiacorrectness.
   sed "$CORR_SED" \
       ./sys/skiacorrectness.service.template > ./sys/skiacorrectness.service
-
-  sed "s/<<REPLACE_DATABASE_HOST>>/$DATABASE_HOST/g;s/<<REPLACE_DATABASE_NAME>>/$INGEST_DATABASE_NAME/g" \
-      ./sys/ingest.service.template > ./sys/ingest.service
 
   INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
   INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
 
   ${INSTALL} --mode=755 -T ${GOPATH}/bin/correctness_migratedb    ${ROOT}/usr/local/bin/correctness_migratedb
   ${INSTALL} --mode=755 -T ${GOPATH}/bin/skiacorrectness          ${ROOT}/usr/local/bin/skiacorrectness
-  ${INSTALL} --mode=755 -T ${GOPATH}/bin/ingest                   ${ROOT}/usr/local/bin/ingest
-  ${INSTALL} --mode=755 -T ${GOPATH}/bin/tiletool                 ${ROOT}/usr/local/bin/tiletool
   ${INSTALL} --mode=755 -T ${GOPATH}/bin/perf_migratedb           ${ROOT}/usr/local/bin/perf_migratedb
 
   ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/templates
@@ -131,8 +121,6 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   ${INSTALL} --mode=755 -T ./sys/${SETUP_APPNAME}.sh              ${ROOT}/usr/local/bin/${SETUP_APPNAME}.sh
 
   ${INSTALL} --mode=644 -T ./sys/${CORRECTNESS_APPNAME}.service   ${ROOT}/etc/systemd/system/${CORRECTNESS_APPNAME}.service
-  ${INSTALL} --mode=644 -T ./sys/${INGEST_APPNAME}.service        ${ROOT}/etc/systemd/system/${INGEST_APPNAME}.service
-  ${INSTALL} --mode=644 -T ./sys/${INSTANCE_ID}-gold-ingest.toml  ${ROOT}/etc/skiacorrectness/gold-ingest.toml
   }
 
   source ../bash/release.sh

@@ -1,7 +1,6 @@
-// newtrybot implements routines to retrieve trybot results from the tracedb data store.
+// trybot implements routines to retrieve trybot results from the tracedb data store.
 //
-// TODO(stephana): Remove the current trybot package and rename this to 'trybot'.
-package newtrybot
+package trybot
 
 import (
 	"fmt"

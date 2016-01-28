@@ -30,4 +30,4 @@ link_redis_dir $REDIS_LOG_DIR $DATADISK_REDIS_LOG_DIR
 
 mkdir -p /mnt/pd0/redis-data/gold
 chown default:default /mnt/pd0/redis-data/gold
-sudo systemctl restart skiacorrectness.service ingest.service
+sudo systemctl restart skiacorrectness.service

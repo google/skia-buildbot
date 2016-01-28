@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/newtrybot"
+	"go.skia.org/infra/golden/go/trybot"
 )
 
 // Storage is a container struct for the various storage objects we are using.
@@ -27,7 +27,7 @@ type Storage struct {
 	BranchTileBuilder tracedb.BranchTileBuilder
 	DigestStore       digeststore.DigestStore
 	EventBus          *eventbus.EventBus
-	TrybotResults     *newtrybot.TrybotResults
+	TrybotResults     *trybot.TrybotResults
 	RietveldAPI       *rietveld.Rietveld
 
 	// NCommits is the number of commits we should consider. If NCommits is

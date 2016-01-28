@@ -35,12 +35,12 @@ import (
 	"go.skia.org/infra/golden/go/filediffstore"
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/newtrybot"
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/tally"
+	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 	"go.skia.org/infra/golden/go/warmer"
 	gstorage "google.golang.org/api/storage/v1"
@@ -338,7 +338,7 @@ func main() {
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          evt,
-		TrybotResults:     newtrybot.NewTrybotResults(branchTileBuilder, rietveldAPI),
+		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI),
 		RietveldAPI:       rietveldAPI,
 	}
 
