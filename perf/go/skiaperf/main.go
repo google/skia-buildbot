@@ -22,7 +22,6 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/human"
-	"go.skia.org/infra/go/ingester"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
@@ -39,9 +38,13 @@ import (
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stats"
 	"go.skia.org/infra/perf/go/tilestats"
-	"go.skia.org/infra/perf/go/trybot"
 	"go.skia.org/infra/perf/go/types"
 	"go.skia.org/infra/perf/go/vec"
+)
+
+var (
+	// TODO(jcgregorio) Make into a flag.
+	BEGINNING_OF_TIME = time.Date(2014, time.June, 18, 0, 0, 0, 0, time.UTC)
 )
 
 var (
@@ -211,21 +214,6 @@ func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		http.NotFound(w, r)
-	}
-}
-
-// trybotHandler handles the GET for trybot data.
-func trybotHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Trybot Handler: %q\n", r.URL.Path)
-	w.Header().Set("Content-Type", "application/json")
-	try, err := trybot.List(50)
-	if err != nil {
-		util.ReportError(w, r, err, "Failed to retrieve trybot results.")
-		return
-	}
-	enc := json.NewEncoder(w)
-	if err = enc.Encode(try); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -476,17 +464,6 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	issue := r.FormValue("_issue")
-	var tryResults *types.TryBotResults = nil
-	if issue != "" {
-		var err error
-		tryResults, err = trybot.Get(issue)
-		if err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Failed to get trybot data for clustering."))
-			return
-		}
-	}
-
 	delete(r.Form, "_k")
 	delete(r.Form, "_stddev")
 	delete(r.Form, "_issue")
@@ -494,20 +471,9 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 	// Create a filter function for traces that match the query parameters and
 	// optionally tryResults.
 	filter := func(key string, tr *types.PerfTrace) bool {
-		if tryResults != nil {
-			if _, ok := tryResults.Values[key]; !ok {
-				return false
-			}
-		}
 		return tiling.Matches(tr, r.Form)
 	}
 
-	if issue != "" {
-		if tile, err = trybot.TileWithTryData(tile, issue); err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Failed to get trybot data for clustering."))
-			return
-		}
-	}
 	summary, err := clustering.CalculateClusterSummaries(tile, int(k), stddev, filter)
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to calculate clusters.")
@@ -730,12 +696,7 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 				http.NotFound(w, r)
 				return
 			}
-			if sh.Issue != "" {
-				if tile, err = trybot.TileWithTryData(tile, sh.Issue); err != nil {
-					util.ReportError(w, r, err, "Failed to populate shortcut data with trybot result.")
-					return
-				}
-			}
+
 			ret.Hash = sh.Hash
 			for _, k := range sh.Keys {
 				if tr, ok := tile.Traces[k]; ok {
@@ -813,7 +774,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	hash := match[1]
 
-	tileNum, idx, err := git.TileAddressFromHash(hash, time.Time(ingester.BEGINNING_OF_TIME))
+	tileNum, idx, err := git.TileAddressFromHash(hash, BEGINNING_OF_TIME)
 	if err != nil {
 		glog.Infof("Did not find hash '%s', use latest: %q.\n", hash, err)
 		tileNum = -1
@@ -1201,7 +1162,6 @@ func main() {
 	router.HandleFunc("/commits/", commitsHandler)
 	router.HandleFunc("/_/commits/", commitsJSONHandler)
 	router.HandleFunc("/shortcommits/", shortCommitsHandler)
-	router.HandleFunc("/trybots/", trybotHandler)
 	router.HandleFunc("/clusters/", templateHandler("clusters.html"))
 	router.HandleFunc("/clustering/", clusteringHandler)
 	router.PathPrefix("/cl/").HandlerFunc(clHandler)
