@@ -95,14 +95,22 @@ func (r *Rietveld) Url() string {
 // Patchset contains the information about one patchset. Currently we omit
 // fields that we don't need.
 type Patchset struct {
-	Patchset    int64  `json:"patchset"`
-	Issue       int64  `json:"issue"`
-	Owner       string `json:"owner"`
-	OwnerEmail  string `json:"owner_email"`
-	Created     time.Time
-	CreatedStr  string `json:"created"`
-	Modified    time.Time
-	ModifiedStr string `json:"modified"`
+	Patchset      int64           `json:"patchset"`
+	Issue         int64           `json:"issue"`
+	Owner         string          `json:"owner"`
+	OwnerEmail    string          `json:"owner_email"`
+	Created       time.Time       `json:"-"`
+	CreatedStr    string          `json:"created"`
+	Modified      time.Time       `json:"-"`
+	ModifiedStr   string          `json:"modified"`
+	TryjobResults []*TryjobResult `json:"try_job_results"`
+}
+
+// TryjobResult contains the trybots that have been scheduled in Rietveld. We ommit
+// fields we are currently not interested in.
+type TryjobResult struct {
+	Builder     string `json:"builder"`
+	BuildNumber int64  `json:"buildnumber"`
 }
 
 func parseTime(t string) time.Time {
