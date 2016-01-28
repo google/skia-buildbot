@@ -80,7 +80,7 @@
           </summary-sk>
           <ul>
             <template is="dom-repeat" items="{{func.byLineNumber}}" as="lineNumber">
-              <fuzzer-collapse-details-sk details="{{lineNumber}}" details-base="{{_getDetailsLink(category, file, func)}}"></fuzzer-collapse-details-sk>
+              <fuzzer-collapse-details-sk details="{{lineNumber}}" details-base="{{_getDetailsLink(category, file, func)}}" expand="{{_expandFirst(index)}}"></fuzzer-collapse-details-sk>
             </template>
           </ul>
         </details-sk>
@@ -112,6 +112,10 @@
 
     setFile: function(file) {
       this.file = file;
+    },
+
+    _expandFirst: function(index) {
+      return index === 0;
     },
 
     _getDetailsLink: function(category, file, func) {

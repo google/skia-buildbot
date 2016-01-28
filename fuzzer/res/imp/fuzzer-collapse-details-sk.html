@@ -28,6 +28,7 @@
         - debugStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
         - releaseStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
     detailsBase: String, the base url for details (should include file and function name)
+    expand: Boolean, if this element should be auto expanded.
 
   Methods:
     setDetails(details) - Programmatically set the details object.
@@ -106,7 +107,7 @@
       </template>
       <template is="dom-if" if="{{_hasDetails(details)}}">
         <li>
-          <details-sk>
+          <details-sk open="[[expand]]">
             <summary-sk>
               <a href$="{{_getDetailsLink(detailsBase, details)}}">Line {{details.lineNumber}}</a>
             -- {{details.count}} crash-causing fuzzes
@@ -159,9 +160,12 @@
           return {};
         }
       },
+      expand: {
+        type: Boolean,
+        value: false,
+      },
       // detailsBase is the base url to the details page for the parent element.
-      // In this case, it is /details?file=foo.h&func=fizz() where the file and function names are provided.
-      // We will append &line=16 for whatever the line number is.
+      // We will use fuzzer.getLinkToDetails() to append the line information to the link.
       detailsBase: { // expected to be provided
         type: String,
         value: ""

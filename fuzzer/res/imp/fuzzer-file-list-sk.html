@@ -6,7 +6,7 @@
 
     <fuzzer-file-list-sk>
 
-  This element will request once from /json/fuzz-list for the fuzz contents to display, which will be an array of FileDetails.
+  This element will request once from /json/fuzz-summary for the fuzz contents to display, which will be an array of FileDetails.
   See fuzzer-collapse-file-sk.html for more information.
 
   To use this file import it:
@@ -30,7 +30,7 @@
 <link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
 <dom-module id="fuzzer-file-list-sk">
   <template>
-   <iron-ajax auto url="/json/fuzz-overview"
+   <iron-ajax auto url="/json/fuzz-summary"
       handle-as="json"
       params="{{_urlParams}}"
       last-response="{{files}}">
