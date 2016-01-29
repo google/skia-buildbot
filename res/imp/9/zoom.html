@@ -1,0 +1,138 @@
+<!-- The <zoom-sk> custom element declaration.
+
+  The zoom-sk element presents a zoomed in view of a source img element.
+
+  Attributes:
+    source - The id of an img element to present a zoom for.
+
+    x, y - The point to center the zoom on. The units are in the natural size
+      of the source image.
+
+    pixels - The number of pixels to display in the horizontal direction.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<dom-module id="zoom-sk">
+  <style type="text/css" media="screen">
+    #copy {
+      display: none;
+    }
+
+    #zoom {
+      margin: 0;
+      padding: 0;
+    }
+
+    :host {
+      padding: 0;
+    }
+
+  </style>
+  <template>
+    <canvas id=zoom width=10 height=10></canvas>
+    <canvas id=copy width=10 height=10></canvas>
+  </template>
+  <script>
+    Polymer({
+      is: 'zoom-sk',
+
+      behaviors: [
+        // Listen for resize events and change the size of the #zoom canvas accordingly.
+        Polymer.IronResizableBehavior
+      ],
+
+      listeners: {
+        'iron-resize': '_onIronResize'
+      },
+
+      attached: function() {
+        this.async(this.notifyResize, 1);
+      },
+
+      properties: {
+        source: {
+          type: String,
+          value: "",
+        },
+        x: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: true,
+          observer: "_drawZoom",
+        },
+        y: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: true,
+          observer: "_drawZoom",
+        },
+        pixels: {
+          type: Number,
+          value: 10,
+          reflectToAttribute: true,
+          observer: "_pixelResize",
+        },
+      },
+
+      ready: function () {
+        // Grab the img we are zooming from.
+        this._img = $$$('#' + this.source);
+        this._img.addEventListener('load', this._cloneImage.bind(this));
+        this._cloneImage();
+
+        // The canvas context we are drawing the zoomed pixels on.
+        this.ctx = this.$.zoom.getContext('2d');
+      },
+
+      _onIronResize: function() {
+        this.$.zoom.width = this.parentElement.clientWidth;
+        this.$.zoom.height = this.parentElement.clientHeight;
+        this._pixelResize();
+      },
+
+      _pixelResize: function() {
+        this.pixelSize = Math.floor(this.$.zoom.width/this.pixels);
+      },
+
+
+      _cloneImage: function() {
+        this.$.copy.width = this._img.naturalWidth;
+        this.$.copy.height = this._img.naturalHeight;
+        this.$.copy.getContext('2d').drawImage(this._img, 0, 0, this._img.naturalWidth, this._img.naturalHeight);
+      },
+
+      _drawZoom: function () {
+        if (!this.ctx) {
+          return
+        }
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        var dx = this.pixelSize;
+        var dy = this.pixelSize;
+        this.ctx.lineWidth =  1;
+        this.ctx.strokeStyle = '#000';
+        // Draw out each pixel as a rect on the target canvas, as this works around FireFox doing a blur as it copies from one canvas to another.
+        var colors = this.$.copy.getContext('2d').getImageData(this.x - this.pixels/ 2, this.y - this.pixels / 2, this.pixels, this.pixels).data;
+        for (var x = 0; x < this.pixels; x++) {
+          for (var y = 0; y < this.pixels; y++) {
+            var offset = (y * this.pixels + x) * 4;
+            // Offset into the colors array.
+            this.set("ctx.fillStyle", "rgba(" + colors[offset] + ", " + colors[offset + 1] + ", " + colors[offset + 2] + ", " + colors[offset + 3] / 255 + ")");
+            this.ctx.fillRect(x * dx, y * dy, dx - 1, dy - 1);
+            // Box one selected pixel with its rgba values.
+            if (x == this.pixels / 2 && y == this.pixels / 2) {
+              this.ctx.strokeRect(x * dx - 0.5, y * dy - 0.5, dx, dy);
+            }
+          }
+        }
+      },
+
+    });
+  </script>
+</dom-module>
