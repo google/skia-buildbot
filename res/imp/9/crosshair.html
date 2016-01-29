@@ -1,0 +1,211 @@
+<!-- The <crosshair-sk> custom element declaration.
+
+  The crosshair-sk element works with the canvas-layers-sk element
+  and draws a crosshair on one of the given layers. Use the update_on
+  attribute to control when the crosshair is moved.
+
+  Attributes:
+    x, y - The x,y coords of the crosshair, as measure in the natural
+      dimensions of the image. I.e. not in the coords of the img
+      if it has a different size as determined by CSS styling.
+
+    target - The id of the canvas-layers-sk element we are drawing
+      a crosshair on.
+
+    name - The name of the layer in the canvas-layer-sk element
+       we are drawing a crosshair on.
+
+    update_on - Update the crosshair:
+      "move" - when the mouse moves.
+      "click" - when the user clicks.
+      "none" - (default) do not update the crosshair based on user action.
+
+  Events:
+    crosshair - Produced if the crosshair is moved by clicking in the image.
+      The coordinates of the click are in e.detail.x and e.detail.y. They
+      are in offsets from the image origin in the images natural dimensions.
+      That is, even if the image is sizes using CSS the x and y values
+      will be reported as values in the images original size.
+
+  Methods:
+    None.
+
+-->
+<link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
+<dom-module id="crosshair-sk">
+  <template>
+  </template>
+  <script>
+    Polymer({
+      is: 'crosshair-sk',
+
+      properties: {
+        x: {
+          type: Number,
+          value: 0,
+          observer: '_xChanged',
+          reflectToAttribute: true
+        },
+        y: {
+          type: Number,
+          value: 0,
+          observer: '_yChanged',
+          reflectToAttribute: true
+        },
+        target: {
+          type: String,
+          value: "",
+          observer: '_layerChanged',
+          reflectToAttribute: true
+        },
+        name: {
+          type: String,
+          value: "",
+          observer: '_layerChanged',
+          reflectToAttribute: true
+        },
+        update_on: {
+          // Valid values are "click", "move", and "none".
+          type: String,
+          value: "none",
+          observer: '_registerCallbacks',
+          reflectToAttribute: true
+        },
+      },
+
+      ready: function () {
+        // The current location of the crosshair, in CSS units.
+        this.thumb = {
+          x: 0,
+          y: 0,
+        };
+
+        // If we are tracking mousemove events we'll store the coords here.
+        this._move = {
+          x: 0,
+          y: 0,
+        };
+
+        // If we are tracking mousemove events we'll store the previous coords
+        // here, so we only redraw the crosshair if it's actually moved.
+        this._lastMove = {
+          x: 0,
+          y: 0,
+        };
+      },
+
+      _xChanged: function (newValue, oldValue) {
+        if (this._img && oldValue != newValue) {
+          this.thumb.x = this._img.width * (this.x / this._img.naturalWidth);
+          this._drawCrosshair();
+        }
+      },
+
+      _yChanged: function (newValue, oldValue) {
+        if (this._img && oldValue != newValue) {
+          this.thumb.y = this._img.height * (this.y / this._img.naturalHeight);
+          this._drawCrosshair();
+        }
+      },
+
+      _layerChanged: function() {
+        if (!(this.target && this.name)) {
+          return;
+        }
+        $$$("#" + this.target).addEventListener('canvas-layers-updated', this._canvasLayersUpdated.bind(this));
+      },
+
+      _canvasLayersUpdated: function() {
+        var layer = $$$("#" + this.target);
+        if (this._canvas) {
+          // If we are switching to a new canvas then unregister all of our old callbacks.
+          this._unregisterAllCallbacks();
+        }
+        this._canvas = layer.canvas(this.name);
+        this._img = layer.img();
+        if (this._canvas) {
+          this._registerCallbacks();
+          this._ctx = this._canvas.getContext('2d');
+        }
+      },
+
+      _registerCallbacks: function() {
+        if (!this._canvas) {
+          return;
+        }
+        this._canvas.addEventListener('canvas-update', this._drawCrosshair.bind(this));
+        if (this.update_on === "click") {
+          this._canvas.addEventListener('click', this._clickEventHandler.bind(this));
+          this._canvas.removeEventListener('mousemove', this._moveEventHandler.bind(this));
+        } else if (this.update_on === "move")  {
+          this._canvas.addEventListener('mousemove', this._moveEventHandler.bind(this));
+          this._canvas.removeEventListener('click', this._moveEventHandler.bind(this));
+          window.requestAnimationFrame(this._moveAnimationFrame.bind(this));
+        } else {
+          this._canvas.removeEventListener('mousemove', this._moveEventHandler.bind(this));
+          this._canvas.removeEventListener('click', this._moveEventHandler.bind(this));
+        }
+      },
+
+      _unregisterAllCallbacks: function() {
+        this._canvas.removeEventListener('mousemove', this._moveEventHandler.bind(this));
+        this._canvas.removeEventListener('click', this._moveEventHandler.bind(this));
+        this._canvas.removeEventListener('canvas-update', this._drawCrosshair.bind(this));
+      },
+
+      _moveEventHandler: function (e) {
+        // Only record the values, don't do any work here.
+        // The actual updating takes place in the RaF _moveAnimationFrame.
+        this._move.x = e.clientX;
+        this._move.y = e.clientY;
+      },
+
+      _clickEventHandler: function (e) {
+        this._moveCrosshair(e.clientX, e.clientY);
+      },
+
+      _moveAnimationFrame: function() {
+        if (this._lastMove.x != this._move.x || this._lastMove.y != this._move.y) {
+          this._moveCrosshair(this._move.x, this._move.y);
+          this._lastMove.x == this._move.x;
+          this._lastMove.y == this._move.y;
+        }
+        if (this.update_on === "move") {
+          window.requestAnimationFrame(this._moveAnimationFrame.bind(this));
+        }
+      },
+
+      _moveCrosshair: function (clientX, clientY) {
+        var p = sk.elePos(this._canvas);
+        this.thumb.x = clientX - p.x;
+        this.thumb.y = clientY - p.y;
+        this._drawCrosshair();
+        this.x = Math.floor(this.thumb.x / this._img.width * this._img.naturalWidth);
+        this.y = Math.floor(this.thumb.y / this._img.height * this._img.naturalHeight);
+        var detail = {
+          x: this.x,
+          y: this.y
+        };
+        var evt = new CustomEvent('crosshair', {
+          detail: detail,
+          bubbles: true
+        });
+        this.dispatchEvent(evt);
+      },
+
+      _drawCrosshair: function () {
+        this._ctx.clearRect(0, 0, this._ctx.canvas.width, this._ctx.canvas.height);
+        this._ctx.lineWidth = 1;
+        this._ctx.strokeStyle = '#F00';
+        this._ctx.beginPath();
+        this._ctx.moveTo(0, this.thumb.y + 0.5);
+        this._ctx.lineTo(this._ctx.canvas.width, this.thumb.y + 0.5);
+        this._ctx.stroke();
+        this._ctx.beginPath();
+        this._ctx.moveTo(this.thumb.x + 0.5, 0);
+        this._ctx.lineTo(this.thumb.x + 0.5, this._ctx.canvas.height);
+        this._ctx.stroke();
+      }
+    });
+  </script>
+</dom-module>

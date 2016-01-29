@@ -17,6 +17,9 @@
   Events:
     canvas-update - Triggered when the underlying image has changed.
 
+    canvas-layers-updated - Triggered when the templating has finished
+       and the canvases are in place.
+
   Methods:
     canvas(name) - Returns the canvas object for the layer 'name'. See
       the layers attribute.
@@ -60,7 +63,12 @@
       this._img = $$$('img', this);
       this._img.addEventListener('load', this._imageLoaded.bind(this));
       this.addEventListener('dom-change', this._imageLoaded.bind(this));
+      this.addEventListener('dom-change', this._domChanged.bind(this));
       this._imageLoaded();
+    },
+
+    _domChanged: function() {
+      this.dispatchEvent(new CustomEvent('canvas-layers-updated', { bubbles: true }));
     },
 
     _imageLoaded: function() {
@@ -77,6 +85,10 @@
 
     canvas: function(name) {
       return $$$("#" + this.id + "-" + name, this);
+    },
+
+    img: function() {
+      return this._img;
     },
 
   });
