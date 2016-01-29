@@ -111,7 +111,10 @@ func (c *Client) Query(database, q string) ([]influx_client.Result, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query InfluxDB with query %q: %s", q, err)
 	}
-	return response.Results, nil
+	if response.Err != "" {
+		err = fmt.Errorf(response.Err)
+	}
+	return response.Results, err
 }
 
 // QueryNumber issues a query to the InfluxDB instance and returns a single

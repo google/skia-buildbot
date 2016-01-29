@@ -125,8 +125,8 @@ func main() {
 				}
 				builderNameParts, err := buildbot.ParseBuilderName(b.Builder)
 				if err != nil {
-					glog.Errorf("Failed to parse builder name %q: %s", b.Builder, err)
-					continue
+					glog.Warningf("Failed to parse builder name %q: %s", b.Builder, err)
+					builderNameParts = map[string]string{}
 				}
 				for k, v := range builderNameParts {
 					tags[k] = v
