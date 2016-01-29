@@ -6,17 +6,16 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"path"
 	"regexp"
+	"strconv"
 	"time"
 
-	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 )
 
 const (
@@ -26,11 +25,10 @@ const (
 
 // flags
 var (
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	workdir        = flag.String("workdir", ".", "Working directory used by data processors.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	grpcPort       = flag.String("grpc_port", ":8000", "Port on which to run the buildbot data gRPC server.")
-	httpPort       = flag.String("http_port", ":8001", "Port on which to run the HTTP server.")
+	workdir  = flag.String("workdir", ".", "Working directory used by data processors.")
+	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	grpcPort = flag.String("grpc_port", ":8000", "Port on which to run the buildbot data gRPC server.")
+	httpPort = flag.String("http_port", ":8001", "Port on which to run the HTTP server.")
 
 	// Regexp matching non-alphanumeric characters.
 	re = regexp.MustCompile("[^A-Za-z0-9]+")
@@ -46,7 +44,7 @@ func main() {
 	defer common.LogPanic()
 
 	// Global init to initialize glog and parse arguments.
-	common.InitWithMetrics("datahopper", graphiteServer)
+	common.InitWithMetrics2("datahopper")
 
 	// Shared repo objects.
 	skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "datahopper_skia"), true)
@@ -85,8 +83,8 @@ func main() {
 	}
 
 	// Measure buildbot data ingestion progress.
-	totalGuage := go_metrics.GetOrRegisterGauge("buildbot.builds.total", go_metrics.DefaultRegistry)
-	ingestGuage := go_metrics.GetOrRegisterGauge("buildbot.builds.ingested", go_metrics.DefaultRegistry)
+	totalGauge := metrics2.GetInt64Metric("buildbot.builds.total", nil)
+	ingestGuage := metrics2.GetInt64Metric("buildbot.builds.ingested", nil)
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			totalBuilds, err := buildbot.NumTotalBuilds()
@@ -99,18 +97,17 @@ func main() {
 				glog.Error(err)
 				continue
 			}
-			totalGuage.Update(int64(totalBuilds))
+			totalGauge.Update(int64(totalBuilds))
 			ingestGuage.Update(int64(ingestedBuilds))
 		}
 	}()
 
 	// Average build and step time.
 	go func() {
-		period := 24 * time.Hour
+		start := time.Now().Add(-24 * time.Hour)
 		for _ = range time.Tick(10 * time.Minute) {
-			glog.Info("Loading build and buildstep duration data.")
 			end := time.Now().UTC()
-			start := end.Add(-period)
+			glog.Info("Loading build and buildstep duration data from %s to %s", start, end)
 			builds, err := db.GetBuildsFromDateRange(start, end)
 			if err != nil {
 				glog.Errorf("Failed to obtain build and buildstep duration data: %s", err)
@@ -120,28 +117,44 @@ func main() {
 				if !b.IsFinished() {
 					continue
 				}
+				tags := map[string]string{
+					"builder":    b.Builder,
+					"buildslave": b.BuildSlave,
+					"master":     b.Master,
+					"number":     strconv.Itoa(b.Number),
+				}
+				builderNameParts, err := buildbot.ParseBuilderName(b.Builder)
+				if err != nil {
+					glog.Errorf("Failed to parse builder name %q: %s", b.Builder, err)
+					continue
+				}
+				for k, v := range builderNameParts {
+					tags[k] = v
+				}
 				// Report build time.
-				// app.host.measurement.measurement.builder.measurement*
 				d := b.Finished.Sub(b.Started)
-				metric := fmt.Sprintf("buildbot.builds.%s.duration", fixName(b.Builder))
-				metrics.GetOrRegisterSlidingWindow(metric, metrics.DEFAULT_WINDOW).Update(int64(d))
+				metrics2.RawAddInt64PointAtTime("buildbot.builds.duration", tags, int64(d), b.Finished)
 				for _, s := range b.Steps {
 					if !s.IsFinished() {
 						continue
 					}
-					// app.host.measurement.measurement.builder.step.measurement*
 					d := s.Finished.Sub(s.Started)
-					metric := fmt.Sprintf("buildbot.buildstepsbybuilder.%s.%s.duration", fixName(b.Builder), fixName(s.Name))
-					metrics.GetOrRegisterSlidingWindow(metric, metrics.DEFAULT_WINDOW).Update(int64(d))
+					stepTags := make(map[string]string, len(tags)+1)
+					for k, v := range tags {
+						stepTags[k] = v
+					}
+					stepTags["step"] = s.Name
+					metrics2.RawAddInt64PointAtTime("buildbot.buildsteps.duration", stepTags, int64(d), s.Finished)
 				}
 			}
+			start = end
 		}
 	}()
 
 	// Number of commits in the repo.
 	go func() {
-		skiaGauge := go_metrics.GetOrRegisterGauge("repo.skia.commits", go_metrics.DefaultRegistry)
-		infraGauge := go_metrics.GetOrRegisterGauge("repo.infra.commits", go_metrics.DefaultRegistry)
+		skiaGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "skia"})
+		infraGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "infra"})
 		for _ = range time.Tick(5 * time.Minute) {
 			skiaGauge.Update(int64(skiaRepo.NumCommits()))
 			infraGauge.Update(int64(infraRepo.NumCommits()))

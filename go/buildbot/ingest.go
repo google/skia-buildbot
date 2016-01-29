@@ -7,11 +7,10 @@ import (
 	"sync"
 	"time"
 
-	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 )
 
@@ -164,7 +163,7 @@ func findCommitsRecursive(db DB, commits map[string]bool, b *Build, hash string,
 // given build. Assumes that all previous builds for the given builder/master
 // are already in the database.
 func FindCommitsForBuild(db DB, b *Build, repos *gitinfo.RepoMap) ([]string, int, []string, error) {
-	defer metrics.NewTimer("buildbot.FindCommitsForBuild").Stop()
+	defer metrics2.FuncTimer().Stop()
 	// Shortcut: Don't bother computing commit blamelists for trybots.
 	if IsTrybot(b.Builder) {
 		return []string{}, -1, []string{}, nil
@@ -233,7 +232,7 @@ func getBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.
 // interface as specified by the master, builder, and build number. Makes
 // multiple attempts in case the master fails to respond.
 func retryGetBuildFromMaster(master, builder string, buildNumber int, repos *gitinfo.RepoMap) (*Build, error) {
-	defer metrics.NewTimer("buildbot.retryGetBuildFromMaster").Stop()
+	defer metrics2.FuncTimer().Stop()
 	var b *Build
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
@@ -263,8 +262,7 @@ func validateBuildForIngestion(b *Build) error {
 // IngestBuild retrieves the given build from the build master's JSON interface
 // and pushes it into the database.
 func IngestBuild(db DB, b *Build, repos *gitinfo.RepoMap) error {
-	defer metrics.NewTimer("buildbot.IngestBuild").Stop()
-	defer go_metrics.GetOrRegisterCounter("buildbot.NumIngestedBuilds", go_metrics.DefaultRegistry).Inc(1)
+	defer metrics2.FuncTimer().Stop()
 	if err := validateBuildForIngestion(b); err != nil {
 		return err
 	}
@@ -381,7 +379,7 @@ func GetBuildSlaves() (map[string]map[string]*BuildSlave, error) {
 // sub-maps whose keys are builder names and values are slices of ints
 // representing the numbers of builds which have not yet been ingested.
 func getUningestedBuilds(db DB, m string) (map[string][]int, error) {
-	defer metrics.NewTimer("buildbot.getUningestedBuilds").Stop()
+	defer metrics2.FuncTimer().Stop()
 	// Get the latest and last-processed builds for all builders.
 	latest, err := getLatestBuilds(m)
 	if err != nil {
@@ -437,7 +435,7 @@ func getUningestedBuilds(db DB, m string) (map[string][]int, error) {
 
 // ingestNewBuilds finds the set of uningested builds and ingests them.
 func ingestNewBuilds(db DB, m string, repos *gitinfo.RepoMap) error {
-	defer metrics.NewTimer("buildbot.ingestNewBuilds").Stop()
+	defer metrics2.FuncTimer().Stop()
 	glog.Infof("Ingesting builds for %s", m)
 	// TODO(borenet): Investigate the use of channels here. We should be
 	// able to start ingesting builds as the data becomes available rather
@@ -522,12 +520,12 @@ func IngestNewBuildsLoop(db DB, workdir string) error {
 		for _, m := range MASTER_NAMES {
 			go func(master string) {
 				defer wg.Done()
-				lv := metrics.NewLiveness(fmt.Sprintf("buildbot-ingest-%s", master))
+				lv := metrics2.NewLiveness("buildbot-ingest", map[string]string{"master": master})
 				for _ = range time.Tick(10 * time.Second) {
 					if err := ingestNewBuilds(cache, master, repos); err != nil {
 						glog.Errorf("Failed to ingest new builds: %s", err)
 					} else {
-						lv.Update()
+						lv.Reset()
 					}
 				}
 			}(m)

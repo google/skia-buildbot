@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/skia-dev/influxdb/client"
-	"github.com/skia-dev/influxdb/influxql"
+	client "github.com/influxdata/influxdb/client/v2"
+	"github.com/influxdb/influxdb/models"
 	assert "github.com/stretchr/testify/require"
 )
 
@@ -16,6 +16,10 @@ type dummyClient struct {
 
 func (c dummyClient) Query(q client.Query) (*client.Response, error) {
 	return c.queryFn(q)
+}
+
+func (c dummyClient) Write(client.BatchPoints) error {
+	return nil
 }
 
 func TestQueryNumber(t *testing.T) {
@@ -48,10 +52,10 @@ func TestQueryNumber(t *testing.T) {
 				return &client.Response{
 					Results: []client.Result{
 						client.Result{
-							Series: []influxql.Row{},
+							Series: []models.Row{},
 						},
 					},
-					Err: nil,
+					Err: "",
 				}, nil
 			},
 			ExpectedVal: 0.0,
@@ -63,13 +67,13 @@ func TestQueryNumber(t *testing.T) {
 				return &client.Response{
 					Results: []client.Result{
 						client.Result{
-							Series: []influxql.Row{
-								influxql.Row{},
-								influxql.Row{},
+							Series: []models.Row{
+								models.Row{},
+								models.Row{},
 							},
 						},
 					},
-					Err: nil,
+					Err: "",
 				}, nil
 			},
 			ExpectedVal: 0.0,
@@ -81,8 +85,8 @@ func TestQueryNumber(t *testing.T) {
 				return &client.Response{
 					Results: []client.Result{
 						client.Result{
-							Series: []influxql.Row{
-								influxql.Row{
+							Series: []models.Row{
+								models.Row{
 									Columns: []string{"value"},
 									Values: [][]interface{}{
 										[]interface{}{
@@ -94,7 +98,7 @@ func TestQueryNumber(t *testing.T) {
 							},
 						},
 					},
-					Err: nil,
+					Err: "",
 				}, nil
 			},
 			ExpectedVal: 0.0,
@@ -106,8 +110,8 @@ func TestQueryNumber(t *testing.T) {
 				return &client.Response{
 					Results: []client.Result{
 						client.Result{
-							Series: []influxql.Row{
-								influxql.Row{
+							Series: []models.Row{
+								models.Row{
 									Columns: []string{"time", "label", "value"},
 									Values: [][]interface{}{
 										[]interface{}{
@@ -119,7 +123,7 @@ func TestQueryNumber(t *testing.T) {
 							},
 						},
 					},
-					Err: nil,
+					Err: "",
 				}, nil
 			},
 			ExpectedVal: 0.0,
@@ -131,15 +135,15 @@ func TestQueryNumber(t *testing.T) {
 				return &client.Response{
 					Results: []client.Result{
 						client.Result{
-							Series: []influxql.Row{
-								influxql.Row{
+							Series: []models.Row{
+								models.Row{
 									Columns: []string{"time", "value"},
 									Values:  [][]interface{}{},
 								},
 							},
 						},
 					},
-					Err: nil,
+					Err: "",
 				}, nil
 			},
 			ExpectedVal: 0.0,
@@ -151,8 +155,8 @@ func TestQueryNumber(t *testing.T) {
 				return &client.Response{
 					Results: []client.Result{
 						client.Result{
-							Series: []influxql.Row{
-								influxql.Row{
+							Series: []models.Row{
+								models.Row{
 									Columns: []string{"time", "value"},
 									Values: [][]interface{}{
 										[]interface{}{
@@ -164,7 +168,7 @@ func TestQueryNumber(t *testing.T) {
 							},
 						},
 					},
-					Err: nil,
+					Err: "",
 				}, nil
 			},
 			ExpectedVal: 1.5,
@@ -176,8 +180,8 @@ func TestQueryNumber(t *testing.T) {
 				return &client.Response{
 					Results: []client.Result{
 						client.Result{
-							Series: []influxql.Row{
-								influxql.Row{
+							Series: []models.Row{
+								models.Row{
 									Columns: []string{"time", "sequence_number", "value"},
 									Values: [][]interface{}{
 										[]interface{}{
@@ -190,7 +194,7 @@ func TestQueryNumber(t *testing.T) {
 							},
 						},
 					},
-					Err: nil,
+					Err: "",
 				}, nil
 			},
 			ExpectedVal: 1.5,
@@ -201,8 +205,8 @@ func TestQueryNumber(t *testing.T) {
 	errorStr := "Case %s:\nExpected:\n%v\nActual:\n%v"
 	for _, c := range cases {
 		client := Client{
-			Database: "nodatabase",
-			dbClient: dummyClient{c.QueryFunc},
+			Database:     "nodatabase",
+			influxClient: dummyClient{c.QueryFunc},
 		}
 		val, err := client.QueryNumber(client.Database, "<dummy query>")
 		assert.Equal(t, c.ExpectedErr, err, fmt.Sprintf(errorStr, c.Name, c.ExpectedErr, err))

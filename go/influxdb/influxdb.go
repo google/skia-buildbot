@@ -8,10 +8,10 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"net/url"
+	"sync"
 	"time"
 
-	"github.com/skia-dev/influxdb/client"
+	influx_client "github.com/influxdata/influxdb/client/v2"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
 )
@@ -21,8 +21,6 @@ const (
 	DEFAULT_USER     = "root"
 	DEFAULT_PASSWORD = "root"
 	DEFAULT_DATABASE = "graphite"
-
-	TAG_NAME = "influxdb"
 )
 
 var (
@@ -41,23 +39,23 @@ func SetupFlags() {
 }
 
 type queryClient interface {
-	Query(client.Query) (*client.Response, error)
+	Query(influx_client.Query) (*influx_client.Response, error)
+	Write(influx_client.BatchPoints) error
 }
 
 // Client is a struct used for communicating with an InfluxDB instance.
 type Client struct {
-	Database string
-	dbClient queryClient
+	Database     string
+	influxClient queryClient
+	defaultTags  map[string]string
+	mtx          sync.Mutex
+	values       influx_client.BatchPoints
 }
 
 // NewClient returns a Client with the given credentials.
 func NewClient(host, user, password, database string) (*Client, error) {
-	u, err := url.Parse(fmt.Sprintf("http://%s", host))
-	if err != nil {
-		return nil, err
-	}
-	dbClient, err := client.NewClient(client.Config{
-		URL:      *u,
+	influxClient, err := influx_client.NewHTTPClient(influx_client.HTTPConfig{
+		Addr:     fmt.Sprintf("http://%s", host),
 		Username: user,
 		Password: password,
 		Timeout:  time.Minute,
@@ -65,9 +63,17 @@ func NewClient(host, user, password, database string) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to initialize InfluxDB client: %s", err)
 	}
-	return &Client{
+	values, err := influx_client.NewBatchPoints(influx_client.BatchPointsConfig{
 		Database: database,
-		dbClient: dbClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &Client{
+		Database:     database,
+		influxClient: influxClient,
+		mtx:          sync.Mutex{},
+		values:       values,
 	}, nil
 }
 
@@ -97,16 +103,13 @@ func NewClientFromFlagsAndMetadata(local bool) (*Client, error) {
 }
 
 // Query issues a query to the InfluxDB instance and returns its results.
-func (c *Client) Query(database, q string) ([]client.Result, error) {
-	response, err := c.dbClient.Query(client.Query{
+func (c *Client) Query(database, q string) ([]influx_client.Result, error) {
+	response, err := c.influxClient.Query(influx_client.Query{
 		Command:  q,
 		Database: database,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("Failed to query InfluxDB with query %q: %s", q, err)
-	}
-	if response.Err != nil {
-		return nil, fmt.Errorf("Failed to query InfluxDB with query %q: %s", q, response.Err)
 	}
 	return response.Results, nil
 }
@@ -193,4 +196,35 @@ func (c *Client) Int64PollingStatus(database, query string, interval time.Durati
 	return util.NewPollingStatus(func() (interface{}, error) {
 		return c.QueryInt64(database, query)
 	}, interval)
+}
+
+// BatchPoints is a struct used for writing batches of points into InfluxDB.
+type BatchPoints struct {
+	bp influx_client.BatchPoints
+}
+
+// AddPoint adds a point to the BatchPoints.
+func (bp *BatchPoints) AddPoint(measurement string, tags map[string]string, fields map[string]interface{}, ts time.Time) error {
+	pt, err := influx_client.NewPoint(measurement, tags, fields, ts)
+	if err != nil {
+		return err
+	}
+	bp.bp.AddPoint(pt)
+	return nil
+}
+
+// NewBatchPoints returns an InfluxDB BatchPoints instance.
+func (c *Client) NewBatchPoints() (*BatchPoints, error) {
+	bp, err := influx_client.NewBatchPoints(influx_client.BatchPointsConfig{
+		Database: c.Database,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &BatchPoints{bp: bp}, nil
+}
+
+// WriteBatch writes the BatchPoints into InfluxDB.
+func (c *Client) WriteBatch(batch *BatchPoints) error {
+	return c.influxClient.Write(batch.bp)
 }

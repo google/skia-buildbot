@@ -15,6 +15,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -69,6 +70,10 @@ var (
 
 	testPort = findAPort{port: 23234}
 )
+
+func init() {
+	metrics2.InitForTesting()
+}
 
 type findAPort struct {
 	port int

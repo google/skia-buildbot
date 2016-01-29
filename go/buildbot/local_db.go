@@ -13,9 +13,8 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
-	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 )
 
@@ -115,6 +114,7 @@ func checkInterrupt(stop <-chan struct{}) error {
 type localDB struct {
 	db *bolt.DB
 
+	txCount  *metrics2.Counter
 	txNextId int64
 	txActive map[int64]string
 	txMutex  sync.RWMutex
@@ -124,7 +124,7 @@ type localDB struct {
 func (d *localDB) startTx(name string) int64 {
 	d.txMutex.Lock()
 	defer d.txMutex.Unlock()
-	go_metrics.GetOrRegisterCounter("buildbot.txcount", go_metrics.DefaultRegistry).Inc(1)
+	d.txCount.Inc(1)
 	id := d.txNextId
 	d.txActive[id] = name
 	d.txNextId++
@@ -135,7 +135,7 @@ func (d *localDB) startTx(name string) int64 {
 func (d *localDB) endTx(id int64) {
 	d.txMutex.Lock()
 	defer d.txMutex.Unlock()
-	go_metrics.GetOrRegisterCounter("buildbot.txcount", go_metrics.DefaultRegistry).Dec(1)
+	d.txCount.Dec(1)
 	delete(d.txActive, id)
 }
 
@@ -158,7 +158,10 @@ func (d *localDB) reportActiveTx() {
 func (d *localDB) tx(name string, fn func(*bolt.Tx) error, update bool) error {
 	txId := d.startTx(name)
 	defer d.endTx(txId)
-	defer metrics.NewTimer(fmt.Sprintf("buildbot.tx.%s", name)).Stop()
+	defer metrics2.NewTimer("db-tx-duration", map[string]string{
+		"database":    "buildbot",
+		"transaction": name,
+	}).Stop()
 	if update {
 		return d.db.Update(fn)
 	} else {
@@ -183,7 +186,10 @@ func NewLocalDB(filename string) (DB, error) {
 		return nil, err
 	}
 	db := &localDB{
-		db:       d,
+		db: d,
+		txCount: metrics2.NewCounter("db-active-tx", map[string]string{
+			"database": "buildbot",
+		}),
 		txNextId: 0,
 		txActive: map[int64]string{},
 		txMutex:  sync.RWMutex{},
@@ -470,7 +476,11 @@ func putBuild(tx *bolt.Tx, b *Build) error {
 			// This is probably going to trigger an alert. Log the build for debugging.
 			glog.Warningf("Build start to ingestion latency is greater than %s (%s): %s %s #%d", INGEST_LATENCY_ALERT_THRESHOLD, latency, b.Master, b.Builder, b.Number)
 		}
-		metrics.GetOrRegisterSlidingWindow("buildbot.startToIngestLatency", metrics.DEFAULT_WINDOW).Update(int64(latency))
+		metrics2.RawAddInt64PointAtTime("buildbot.ingest.latency", map[string]string{
+			"master":  b.Master,
+			"builder": b.Builder,
+			"number":  strconv.Itoa(b.Number),
+		}, int64(latency), time.Now())
 	} else {
 		if err := deleteBuild(tx, id); err != nil {
 			return err
@@ -506,7 +516,6 @@ func (d *localDB) PutBuild(b *Build) error {
 
 // See documentation for DB interface.
 func (d *localDB) PutBuilds(builds []*Build) error {
-	defer metrics.NewTimer("buildbot.PutBuilds").Stop()
 	return d.update("PutBuilds", func(tx *bolt.Tx) error {
 		return putBuilds(tx, builds)
 	})

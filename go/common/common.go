@@ -11,8 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/metrics2"
+
 	"github.com/BurntSushi/toml"
-	"github.com/cyberdelia/go-metrics-graphite"
+	graphite "github.com/cyberdelia/go-metrics-graphite"
 	"github.com/davecgh/go-spew/spew"
 	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
@@ -96,6 +99,31 @@ func startMetrics(appName, graphiteServer string) {
 			uptimeGuage.Update(time.Since(startTime).Seconds())
 		}
 	}()
+}
+
+// Runs normal Init functions as well as tracking runtime metrics.
+// Sets up metrics push into InfluxDB.
+func InitWithMetrics2(appName string) {
+	influxdb.SetupFlags()
+	Init()
+
+	local := false
+	localFlag := flag.Lookup("local")
+	if localFlag != nil {
+		if localFlag.Value.String() == "true" {
+			local = true
+		}
+	}
+	influxClient, err := influxdb.NewClientFromFlagsAndMetadata(local)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	if err := metrics2.Init(appName, influxClient); err != nil {
+		glog.Fatal(err)
+	}
+
+	// Start runtime metrics.
+	metrics2.RuntimeMetrics()
 }
 
 // Defer from main() to log any panics and flush the log. Defer this function before any other
