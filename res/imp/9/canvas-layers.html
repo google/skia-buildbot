@@ -1,0 +1,83 @@
+<!-- The <canvas-layers-sk> custom element declaration.
+
+  This is a utility element that is used around an img element, which places
+  layers of multiple canvas elements directly over the img element. Useful for
+  drawing annotations, crosshairs, etc. over an image.
+
+  The canvas-layers-sk element listens for 'load' events from the img element
+  and resizes each canvas when the image changes.
+
+  Attributes:
+    layers - A JSON serialized array of layer names. There will be one canvas
+      for each name. Call canvas(name) to get the underlying canvas object.
+      Note that the order in layers determines the DOM order, with the last
+      member of layers being the last DOM canvas, which, for example, will
+      be the only canvas to get 'click' events because it will be on top.
+
+  Events:
+    canvas-update - Triggered when the underlying image has changed.
+
+  Methods:
+    canvas(name) - Returns the canvas object for the layer 'name'. See
+      the layers attribute.
+-->
+
+<link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
+<dom-module id="canvas-layers-sk">
+  <style>
+    :host {
+      display: inline-block;
+      position: relative;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+  <template>
+    <content></content>
+    <template is="dom-repeat" items="{{ layers }}" as="layer">
+      <canvas id$="{{ id }}-{{ layer }}" width=500 height=500>
+    </template>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "canvas-layers-sk",
+
+    properties: {
+      layers: {
+        type: Array,
+        value: function() { return []; },
+        reflectToAttribute: false,
+      },
+    },
+
+    ready: function() {
+      this._img = $$$('img', this);
+      this._img.addEventListener('load', this._imageLoaded.bind(this));
+      this.addEventListener('dom-change', this._imageLoaded.bind(this));
+      this._imageLoaded();
+    },
+
+    _imageLoaded: function() {
+      var detail = {
+        width: this._img.width,
+        height: this._img.height,
+      };
+      $$('canvas', this).forEach(function(c) {
+        c.width = this._img.width;
+        c.height = this._img.height;
+        c.dispatchEvent(new CustomEvent("canvas-update", { detail: detail, bubbles: true }));
+      }.bind(this));
+    },
+
+    canvas: function(name) {
+      return $$$("#" + this.id + "-" + name, this);
+    },
+
+  });
+</script>
