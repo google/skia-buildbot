@@ -203,15 +203,25 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 			go func(ch <-chan []ResultFileLocation, doneCh <-chan bool) {
 				queue := rflQueue{}
 				for {
-					select {
-					// If the channel is ready push everything we have.
-					case eventChan <- queue:
-						queue.clear()
-					// Get new results and add them to the queue.
-					case results := <-ch:
-						queue.push(results)
-					case <-doneCh:
-						return
+					// If the queue is not empty, try to send the data while we wait for more data.
+					if len(queue) > 0 {
+						select {
+						case eventChan <- queue:
+							queue.clear()
+						case results := <-ch:
+							queue.push(results)
+						case <-doneCh:
+							return
+						}
+					} else {
+						// if the queue is empty we just wait for data.
+						select {
+						case results := <-ch:
+							queue.push(results)
+						case <-doneCh:
+							return
+						}
+
 					}
 				}
 			}(ch, i.doneCh)
