@@ -21,6 +21,10 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel=import href="/res/imp/bower_components/iron-selector/iron-selector.html">
 
+<link rel=import href="/res/common/imp/9/canvas-layers.html">
+<link rel=import href="/res/common/imp/9/crosshair.html">
+<link rel=import href="/res/common/imp/9/zoom.html">
+
 <link rel=import href="/res/common/imp/9/error-toast-sk.html">
 <dom-module id="debugger-app-sk">
   <style type="text/css" media="screen">
@@ -76,12 +80,16 @@ The main application element for the Skia Debugger.
           <div id=center class="layout vertical flex-3">
             <h2>Image</h2>
             <div id=rendered>
-              <img id=img src="" class=hidden>
+              <canvas-layers-sk layers='["crosshair"]' id=layers>
+                <img id=img src="" class=hidden>
+              </canvas-layers-sk>
+              <crosshair-sk id=crosshair target=layers name=crosshair update_on=move></crosshair-sk>
             </div>
           </div>
-          <div id=right class="layout vertical flex-1">
+          <div id=right class="layout vertical flex-2">
             <h2>Info</h2>
             <pre>{{ _json(info) }}</pre>
+            <zoom-sk source=img pixels=20 id=zoom></zoom-sk>
           </div>
         </div>
         <hr/>
@@ -109,6 +117,11 @@ The main application element for the Skia Debugger.
       // Can't set this as an attribute directly on iron-selector. Bah.
       this.$.selector.selectedAttribute = "selected";
       this._refreshPage();
+
+      this.$.crosshair.addEventListener('crosshair', function(e) {
+        this.$.zoom.x = e.detail.x;
+        this.$.zoom.y = e.detail.y;
+      }.bind(this));
     },
 
     _refreshPage: function() {

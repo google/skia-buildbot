@@ -83,13 +83,22 @@
 
       ready: function () {
         // Grab the img we are zooming from.
-        this._img = $$$('#' + this.source);
+        this._img = $$$('#' + this.source, this._findParent());
         this._img.addEventListener('load', this._cloneImage.bind(this));
         this._cloneImage();
 
         // The canvas context we are drawing the zoomed pixels on.
         this.ctx = this.$.zoom.getContext('2d');
       },
+
+      _findParent: function() {
+        var p = this.parentNode;
+        while (p.parentNode != null) {
+          p = p.parentNode;
+        }
+        return p
+      },
+
 
       _onIronResize: function() {
         this.$.zoom.width = this.parentElement.clientWidth;

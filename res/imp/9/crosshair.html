@@ -112,7 +112,15 @@
         if (!(this.target && this.name)) {
           return;
         }
-        $$$("#" + this.target).addEventListener('canvas-layers-updated', this._canvasLayersUpdated.bind(this));
+        $$$("#" + this.target, this._findParent()).addEventListener('canvas-layers-updated', this._canvasLayersUpdated.bind(this));
+      },
+
+      _findParent: function() {
+        var p = this.parentNode;
+        while (p.parentNode != null) {
+          p = p.parentNode;
+        }
+        return p
       },
 
       _canvasLayersUpdated: function() {
