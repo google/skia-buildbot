@@ -49,8 +49,14 @@ The main application element for the Skia Debugger.
       background: #eee;
     }
 
+    #left {
+      overflow-y: scroll;
+      height: 98vh;
+    }
+
     #center {
       margin: 0 10px;
+      overflow: auto;
     }
 
     * {
@@ -60,7 +66,6 @@ The main application element for the Skia Debugger.
     .hidden {
       display: none;
     }
-
   </style>
   <template>
     <paper-header-panel>
@@ -68,6 +73,13 @@ The main application element for the Skia Debugger.
         <div>Skia Debugger</div>
       </paper-toolbar>
       <div id=content>
+        <h2>Upload an SKP here.</h2>
+        <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
+          <label>SKP to send:</label>
+          <input type="file" name="file" required />
+          <input type="submit" value="Upload" />
+        </form>
+        <hr/>
         <div class="layout horizontal">
           <div id=left class="layout vertical flex-1">
             <h2>Ops</h2>
@@ -92,13 +104,6 @@ The main application element for the Skia Debugger.
             <zoom-sk source=img pixels=20 id=zoom></zoom-sk>
           </div>
         </div>
-        <hr/>
-        <h2>Upload an SKP here.</h2>
-        <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
-          <label>SKP to send:</label>
-          <input type="file" name="file" required />
-          <input type="submit" value="Upload" />
-        </form>
         <error-toast-sk></error-toast-sk>
       </div>
     </paper-header-panel>
