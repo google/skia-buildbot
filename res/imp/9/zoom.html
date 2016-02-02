@@ -11,7 +11,17 @@
     pixels - The number of pixels to display in the horizontal direction.
 
   Events:
-    None.
+    zoom-point - This event is generated whenever the zoom moves. The detail
+      of the event contains the values for the color:
+
+          {
+            r: 0xff,
+            g: 0xef,
+            b: 0xd5,
+            a: 0xff,
+            rgb: "rbg(255, 239, 213, 1.0)",
+            hex: "#ffefd5ff",
+          }
 
   Methods:
     None.
@@ -117,6 +127,23 @@
         this.$.copy.getContext('2d').drawImage(this._img, 0, 0, this._img.naturalWidth, this._img.naturalHeight);
       },
 
+      _hexify: function(i) {
+        var s = i.toString(16).toUpperCase();
+        // Pad out to two hex digits if necessary.
+        if (s.length < 2) {
+          s = '0' + s;
+        }
+        return s;
+      },
+
+      _colorHex: function(colors) {
+        return '#'
+          + this._hexify(colors[0])
+          + this._hexify(colors[1])
+          + this._hexify(colors[2])
+          + this._hexify(colors[3]);
+      },
+
       _drawZoom: function () {
         if (!this.ctx) {
           return
@@ -132,11 +159,25 @@
           for (var y = 0; y < this.pixels; y++) {
             var offset = (y * this.pixels + x) * 4;
             // Offset into the colors array.
-            this.set("ctx.fillStyle", "rgba(" + colors[offset] + ", " + colors[offset + 1] + ", " + colors[offset + 2] + ", " + colors[offset + 3] / 255 + ")");
+            var colorRGB = "rgba(" + colors[offset] + ", " + colors[offset + 1] + ", " + colors[offset + 2] + ", " + colors[offset + 3] / 255 + ")";
+            this.set("ctx.fillStyle", colorRGB);
             this.ctx.fillRect(x * dx, y * dy, dx - 1, dy - 1);
             // Box one selected pixel with its rgba values.
             if (x == this.pixels / 2 && y == this.pixels / 2) {
               this.ctx.strokeRect(x * dx - 0.5, y * dy - 0.5, dx, dy);
+              var detail = {
+                r: colors[offset+0],
+                g: colors[offset+1],
+                b: colors[offset+2],
+                a: colors[offset+3],
+                rgb: colorRGB,
+                hex: this._colorHex(colors),
+              };
+              var evt = new CustomEvent('zoom-point', {
+                detail: detail,
+                bubbles: true
+              });
+              this.dispatchEvent(evt);
             }
           }
         }
