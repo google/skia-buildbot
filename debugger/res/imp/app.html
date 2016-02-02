@@ -111,7 +111,7 @@ The main application element for the Skia Debugger.
             <h2>Ops</h2>
             <iron-selector id=selector>
               <template is="dom-repeat" items="{{cmd.commands}}" as="command">
-                <op-sk op="{{command}}"></op-sk>
+                <op-sk op="{{command}}" index="{{index}}"></op-sk>
               </template>
             </iron-selector>
           </div>
@@ -160,6 +160,10 @@ The main application element for the Skia Debugger.
 
       // Can't set this as an attribute directly on iron-selector. Bah.
       this.$.selector.selectedAttribute = "selected";
+      this.$.selector.addEventListener('iron-select', function(e) {
+        this.n = e.detail.item.index;
+        this._setCacheBreakingURL();
+      }.bind(this));
       this._refreshPage();
 
       this.$.crosshair.addEventListener('crosshair', function(e) {
@@ -178,6 +182,22 @@ The main application element for the Skia Debugger.
       }.bind(this));
     },
 
+    properties: {
+      // The commands that make up the skp.
+      cmd: {
+        type: Object,
+        value: function() { return { commands: [] } },
+        reflectToAttribute: false,
+      },
+      // Which command are we displaying, a zero based index, with the value
+      // -1 for the last command, ie. the fully rendered skp.
+      n: {
+        type: Object,
+        value: -1,
+        reflectToAttribute: false,
+      }
+    },
+
     attached: function() {
       document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
     },
@@ -194,7 +214,11 @@ The main application element for the Skia Debugger.
     },
 
     _setCacheBreakingURL: function() {
-      this.$.img.src = window.location.origin + "/img?" + new Date().getTime();
+      var path = "/img?";
+      if (this.n != -1) {
+        path = "/img/" + this.n + "?";
+      }
+      this.$.img.src = window.location.origin + path + "?" + new Date().getTime();
     },
 
     _crosshairClick: function() {

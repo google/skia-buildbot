@@ -125,6 +125,7 @@
         this.$.copy.width = this._img.naturalWidth;
         this.$.copy.height = this._img.naturalHeight;
         this.$.copy.getContext('2d').drawImage(this._img, 0, 0, this._img.naturalWidth, this._img.naturalHeight);
+        this._drawZoom();
       },
 
       _hexify: function(i) {
