@@ -232,13 +232,8 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 		buildTarget = "chrome_public_apk"
 	}
 
-	// Restart Goma's compiler proxy right before building the checkout by doing a stop and then a start.
-	err := ExecuteCmd("python", []string{filepath.Join(GomaDir, "goma_ctl.py"), "stop"},
-		os.Environ(), GOMA_CTL_RESTART_TIMEOUT, nil, nil)
-	if err != nil {
-		return fmt.Errorf("Error while stopping goma compiler proxy: %s", err)
-	}
-	err = ExecuteCmd("python", []string{filepath.Join(GomaDir, "goma_ctl.py"), "start"},
+	// Start Goma's compiler proxy right before building the checkout.
+	err := ExecuteCmd("python", []string{filepath.Join(GomaDir, "goma_ctl.py"), "start"},
 		os.Environ(), GOMA_CTL_RESTART_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error while starting goma compiler proxy: %s", err)
