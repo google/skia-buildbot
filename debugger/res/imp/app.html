@@ -142,7 +142,7 @@ The main application element for the Skia Debugger.
 
     ready: function() {
       // Load the test image served by the debugger.
-      this.$.img.src = window.location.origin + "/img";
+      this._setCacheBreakingURL();
       this.$.post_skp.action= window.location.origin + "/new";
 
       // Can't set this as an attribute directly on iron-selector. Bah.
@@ -161,13 +161,17 @@ The main application element for the Skia Debugger.
 
     _refreshPage: function() {
       this.$.img.classList.remove("hidden");
-      this.$.img.src = window.location.origin + "/img" /* + new Date().getTime() */;
+      this._setCacheBreakingURL();
       sk.get("/info").then(JSON.parse).then(function(json) {
         this.set('info', json);
       }.bind(this)).catch(sk.errorMessage);
       sk.get("/cmd").then(JSON.parse).then(function(json) {
         this.set('cmd', this._addDepth(json));
       }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _setCacheBreakingURL: function() {
+      this.$.img.src = window.location.origin + "/img?" + new Date().getTime();
     },
 
     _crosshairClick: function() {
