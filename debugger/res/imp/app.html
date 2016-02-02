@@ -84,6 +84,11 @@ The main application element for the Skia Debugger.
     #colors {
       margin: 1em 0;
     }
+
+    #download {
+      margin: 0 3em;
+      color: #1f78b4;
+    }
   </style>
   <template>
     <paper-header-panel>
@@ -92,11 +97,14 @@ The main application element for the Skia Debugger.
       </paper-toolbar>
       <div id=content>
         <h2>Upload an SKP here.</h2>
-        <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
-          <label>SKP to send:</label>
-          <input type="file" name="file" required />
-          <input type="submit" value="Upload" />
-        </form>
+        <div class="layout horizontal">
+          <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
+            <label>SKP to send:</label>
+            <input type="file" name="file" required />
+            <input type="submit" value="Upload" />
+          </form>
+          <a href="/download" id=download class=hidden>Download</a>
+        </div>
         <hr/>
         <div class="layout horizontal">
           <div id=left class="layout vertical flex-1">
@@ -162,6 +170,11 @@ The main application element for the Skia Debugger.
       this.$.zoom.addEventListener('zoom-point', function(e) {
         this.set("rgb", e.detail.rgb);
         this.set("hex", e.detail.hex);
+      }.bind(this));
+
+      this.$.img.addEventListener('load', function() {
+        this.$.download.href = window.location.origin + "/download";
+        this.$.download.classList.remove("hidden");
       }.bind(this));
     },
 
