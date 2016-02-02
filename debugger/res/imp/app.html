@@ -23,6 +23,7 @@ The main application element for the Skia Debugger.
 
 <link rel=import href="/res/common/imp/9/canvas-layers.html">
 <link rel=import href="/res/common/imp/9/crosshair.html">
+<link rel=import href="/res/common/imp/9/details-summary.html">
 <link rel=import href="/res/common/imp/9/zoom.html">
 
 <link rel=import href="/res/common/imp/9/error-toast-sk.html">
@@ -66,6 +67,19 @@ The main application element for the Skia Debugger.
     .hidden {
       display: none;
     }
+
+    .shortcuts {
+      margin-left: 3em;
+      margin-bottom: 2em;
+    }
+
+    .shortcuts td {
+      padding-left: 1em;
+    }
+
+    .shortcuts tr {
+      padding-bottom: 0.5em;
+    }
   </style>
   <template>
     <paper-header-panel>
@@ -92,7 +106,7 @@ The main application element for the Skia Debugger.
           <div id=center class="layout vertical flex-3">
             <h2>Image</h2>
             <div id=rendered>
-              <canvas-layers-sk layers='["crosshair"]' id=layers>
+              <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
                 <img id=img src="" class=hidden>
               </canvas-layers-sk>
               <crosshair-sk id=crosshair target=layers name=crosshair update_on=move></crosshair-sk>
@@ -101,6 +115,18 @@ The main application element for the Skia Debugger.
           <div id=right class="layout vertical flex-2">
             <h2>Info</h2>
             <pre>{{ _json(info) }}</pre>
+            <details-sk id=keyboardshortcuts class=hidden>
+              <summary-sk>
+                Keyboard shortcuts
+              </summary-sk>
+              <table class=shortcuts>
+                <tr><th>H</th><td>Left</td></tr>
+                <tr><th>L</th><td>Right</td></tr>
+                <tr><th>J</th><td>Down</td></tr>
+                <tr><th>K</th><td>Up</td></tr>
+                <tr><td colspan=2>Click the image again to turn off keyboard navigation.</td></tr>
+              </table>
+            </details-sk>
             <zoom-sk source=img pixels=20 id=zoom></zoom-sk>
           </div>
         </div>
@@ -129,6 +155,10 @@ The main application element for the Skia Debugger.
       }.bind(this));
     },
 
+    attached: function() {
+      document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+    },
+
     _refreshPage: function() {
       this.$.img.classList.remove("hidden");
       this.$.img.src = window.location.origin + "/img" /* + new Date().getTime() */;
@@ -138,6 +168,37 @@ The main application element for the Skia Debugger.
       sk.get("/cmd").then(JSON.parse).then(function(json) {
         this.set('cmd', this._addDepth(json));
       }.bind(this)).catch(sk.errorMessage);
+    },
+
+    _crosshairClick: function() {
+      if (this.$.crosshair.update_on === "move") {
+        this.$.crosshair.update_on = "click";
+        this.$.keyboardshortcuts.classList.remove("hidden");
+      } else {
+        this.$.crosshair.update_on = "move";
+        this.$.keyboardshortcuts.classList.add("hidden");
+      }
+    },
+
+    _keyDownHandler: function(e) {
+      var c = String.fromCharCode(e.keyCode);
+      switch (c) {
+        case "J":
+          this.$.crosshair.y = this.$.crosshair.y+1;
+          break;
+        case "K":
+          this.$.crosshair.y = this.$.crosshair.y-1;
+          break;
+        case "H":
+          this.$.crosshair.x = this.$.crosshair.x-1;
+          break;
+        case "L":
+          this.$.crosshair.x = this.$.crosshair.x+1;
+          break;
+      }
+      if ("JKHL".indexOf(c) != -1 ) {
+        e.stopPropagation();
+      }
     },
 
     _json: function(s) {

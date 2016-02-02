@@ -98,6 +98,7 @@
         if (this._img && oldValue != newValue) {
           this.thumb.x = this._img.width * (this.x / this._img.naturalWidth);
           this._drawCrosshair();
+          this._event();
         }
       },
 
@@ -105,6 +106,7 @@
         if (this._img && oldValue != newValue) {
           this.thumb.y = this._img.height * (this.y / this._img.naturalHeight);
           this._drawCrosshair();
+          this._event();
         }
       },
 
@@ -190,6 +192,10 @@
         this._drawCrosshair();
         this.x = Math.floor(this.thumb.x / this._img.width * this._img.naturalWidth);
         this.y = Math.floor(this.thumb.y / this._img.height * this._img.naturalHeight);
+        this._event();
+      },
+
+      _event: function() {
         var detail = {
           x: this.x,
           y: this.y
