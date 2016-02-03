@@ -12,13 +12,21 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/go/database/testutil"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/testutils"
 )
 
 type mockClient struct{}
 
-func (c mockClient) QueryFloat64(database, query string) (float64, error) {
-	return 1.0, nil
+func (c mockClient) Query(database, query string) ([]*influxdb.Point, error) {
+	return []*influxdb.Point{
+		&influxdb.Point{
+			Tags: map[string]string{
+				"tagKey": "tagValue",
+			},
+			Value: "1.0",
+		},
+	}, nil
 }
 
 func getRule() *Rule {

@@ -102,8 +102,16 @@ func NewClientFromFlagsAndMetadata(local bool) (*Client, error) {
 	return NewClientFromFlags()
 }
 
-// Query issues a query to the InfluxDB instance and returns its results.
-func (c *Client) Query(database, q string) ([]influx_client.Result, error) {
+// Point is a struct representing a single data point in InfluxDB.
+type Point struct {
+	Tags  map[string]string
+	Value json.Number
+}
+
+// Query issues a query to the InfluxDB instance and returns a slice of Points.
+// The query must return series which have a single point, otherwise an error is
+// returned.
+func (c *Client) Query(database, q string) ([]*Point, error) {
 	response, err := c.influxClient.Query(influx_client.Query{
 		Command:  q,
 		Database: database,
@@ -112,85 +120,90 @@ func (c *Client) Query(database, q string) ([]influx_client.Result, error) {
 		return nil, fmt.Errorf("Failed to query InfluxDB with query %q: %s", q, err)
 	}
 	if response.Err != "" {
-		err = fmt.Errorf(response.Err)
+		return nil, fmt.Errorf(response.Err)
 	}
-	return response.Results, err
-}
 
-// QueryNumber issues a query to the InfluxDB instance and returns a single
-// point value. The query must return a single series with a single point,
-// otherwise QueryNumber returns an error.
-func (c *Client) QueryNumber(database, q string) (json.Number, error) {
-	results, err := c.Query(database, q)
+	results := response.Results
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	// We want exactly one series.
+	// We want exactly one result.
 	if len(results) < 1 {
-		return "", fmt.Errorf("Query returned no data: d=%q q=%q", database, q)
+		return nil, fmt.Errorf("Query returned no results: d=%q q=%q", database, q)
 	}
 	if len(results) > 1 {
-		return "", fmt.Errorf("Query returned more than one series: d=%q q=%q", database, q)
+		return nil, fmt.Errorf("Query returned more than one result: d=%q q=%q", database, q)
 	}
+	// We want at least one series.
 	series := results[0].Series
 	if len(series) < 1 {
-		return "", fmt.Errorf("Query returned no series: d=%q q=%q", database, q)
+		return nil, fmt.Errorf("Query returned no series: d=%q q=%q", database, q)
 	}
-	if len(series) > 1 {
-		return "", fmt.Errorf("Query returned more than one series: d=%q q=%q", database, q)
-	}
-	valueColumn := 0
-	for _, label := range series[0].Columns {
-		if label == "time" || label == "sequence_number" {
-			valueColumn++
-		} else {
-			break
+	rv := make([]*Point, 0, len(series))
+	for _, s := range series {
+		valueColumn := 0
+		for _, label := range s.Columns {
+			if label == "time" || label == "sequence_number" {
+				valueColumn++
+			} else {
+				break
+			}
 		}
-	}
-	// The column containing the value should be the last column.
-	if len(series[0].Columns) != valueColumn+1 {
-		return "", fmt.Errorf("Query returned an incorrect set of columns: %q %v", q, series[0].Columns)
-	}
-	// We want exactly one point.
-	points := series[0].Values
-	if len(points) < 1 {
-		return "", fmt.Errorf("Query returned no points: %q", q)
-	}
-	if len(points) > 1 {
-		return "", fmt.Errorf("Query returned more than one point: %q", q)
-	}
-	point := points[0]
+		// The column containing the value should be the last column.
+		if len(s.Columns) != valueColumn+1 {
+			return nil, fmt.Errorf("Query returned an incorrect set of columns: %q %v", q, s.Columns)
+		}
+		// We want exactly one point.
+		points := s.Values
+		if len(points) < 1 {
+			return nil, fmt.Errorf("Query returned no points: %q", q)
+		}
+		if len(points) > 1 {
+			return nil, fmt.Errorf("Query returned more than one point: %q", q)
+		}
+		point := points[0]
 
-	// Ensure that the columns are correct for the point.
-	if len(series[0].Columns) != len(point) {
-		return "", fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec:\nCols:\n%v\nVals:\n%v", series[0].Columns, point)
+		// Ensure that the columns are correct for the point.
+		if len(s.Columns) != len(point) {
+			return nil, fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec:\nCols:\n%v\nVals:\n%v", series[0].Columns, point)
+		}
+		if point[valueColumn] == nil {
+			return nil, fmt.Errorf("Query returned nil value: %q", q)
+		}
+		rv = append(rv, &Point{
+			Tags:  s.Tags,
+			Value: point[valueColumn].(json.Number),
+		})
 	}
-	if point[valueColumn] == nil {
-		return "", fmt.Errorf("Query returned nil value: %q", q)
-	}
-	return point[valueColumn].(json.Number), nil
+	return rv, nil
 }
 
 // QueryFloat64 issues a query to the InfluxDB instance and returns a
 // single float64 point value. The query must return a single series with a
 // single point, otherwise QueryFloat64 returns an error.
 func (c *Client) QueryFloat64(database, q string) (float64, error) {
-	n, err := c.QueryNumber(database, q)
+	res, err := c.Query(database, q)
 	if err != nil {
 		return 0.0, err
 	}
-	return n.Float64()
+	if len(res) != 1 {
+		return 0.0, fmt.Errorf("Query returned more than one series: %q", q)
+	}
+	return res[0].Value.Float64()
 }
 
 // QueryInt64 issues a query to the InfluxDB instance and returns a
 // single int64 point value. The query must return a single series with a
 // single point, otherwise QueryInt64 returns an error.
 func (c *Client) QueryInt64(database, q string) (int64, error) {
-	n, err := c.QueryNumber(database, q)
+	res, err := c.Query(database, q)
 	if err != nil {
 		return 0.0, err
 	}
-	return n.Int64()
+	if len(res) != 1 {
+		return 0.0, fmt.Errorf("Query returned more than one series: %q", q)
+	}
+	return res[0].Value.Int64()
 }
 
 // PollingStatus returns a util.PollingStatus which runs the given

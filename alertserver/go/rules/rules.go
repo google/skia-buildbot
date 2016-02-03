@@ -3,6 +3,7 @@ package rules
 import (
 	"fmt"
 	"go/token"
+	"strings"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -31,17 +32,25 @@ type Rule struct {
 	Actions     []string
 }
 
+func formatMsg(msg string, tags map[string]string) string {
+	rv := msg
+	for k, v := range tags {
+		rv = strings.Replace(rv, fmt.Sprintf("%%(%s)s", k), v, -1)
+	}
+	return rv
+}
+
 // Fire causes the Alert to become Active() and not Snoozed(), and causes each
 // action to be performed. Active Alerts do not perform new queries.
-func (r *Rule) fire(am *alerting.AlertManager, message string) error {
+func (r *Rule) fire(am *alerting.AlertManager, tags map[string]string) error {
 	actions, err := alerting.ParseActions(r.Actions)
 	if err != nil {
 		return fmt.Errorf("Could not fire alert: %v", err)
 	}
 	a := alerting.Alert{
-		Name:        r.Name,
+		Name:        formatMsg(r.Name, tags),
 		Category:    r.Category,
-		Message:     message,
+		Message:     formatMsg(r.Message, tags),
 		Nag:         int64(r.Nag),
 		AutoDismiss: r.AutoDismiss,
 		Actions:     actions,
@@ -86,17 +95,26 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 }
 
 func (r *Rule) tick(am *alerting.AlertManager) error {
-	d, err := executeQuery(r.client, r.Database, r.Query)
+	res, err := executeQuery(r.client, r.Database, r.Query)
 	if err != nil {
 		// We shouldn't fail to execute a query. Trigger an alert.
 		return r.queryExecutionAlert(err, am)
 	}
-	doAlert, err := r.evaluate(d)
-	if err != nil {
-		return r.queryEvaluationAlert(err, am)
-	}
-	if doAlert {
-		return r.fire(am, r.Message)
+	// Evaluate the query comparison for each returned value.
+	for _, v := range res {
+		f, err := v.Value.Float64()
+		if err != nil {
+			return r.queryEvaluationAlert(err, am)
+		}
+		doAlert, err := r.evaluate(f)
+		if err != nil {
+			return r.queryEvaluationAlert(err, am)
+		}
+		if doAlert {
+			if err := r.fire(am, v.Tags); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -237,12 +255,12 @@ func MakeRules(cfgFile string, dbClient *influxdb.Client, tickInterval time.Dura
 }
 
 type queryable interface {
-	// QueryFloat64 sends a query to the database and returns a single
-	// float64 value along with any error. The parameters are the name
-	// of the database and the query to perform.
-	QueryFloat64(string, string) (float64, error)
+	// Query sends a query to the database and returns a slice of points
+	// along with any error. The parameters are the name of the database
+	// and the query to perform.
+	Query(string, string) ([]*influxdb.Point, error)
 }
 
-func executeQuery(c queryable, database, q string) (float64, error) {
-	return c.QueryFloat64(database, q)
+func executeQuery(c queryable, database, q string) ([]*influxdb.Point, error) {
+	return c.Query(database, q)
 }

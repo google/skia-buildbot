@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"go.skia.org/infra/go/testutils"
+
 	client "github.com/influxdata/influxdb/client/v2"
 	"github.com/influxdb/influxdb/models"
 	assert "github.com/stretchr/testify/require"
@@ -26,7 +28,7 @@ func TestQueryNumber(t *testing.T) {
 	type queryCase struct {
 		Name        string
 		QueryFunc   func(client.Query) (*client.Response, error)
-		ExpectedVal float64
+		ExpectedVal []*Point
 		ExpectedErr error
 	}
 	cases := []queryCase{
@@ -35,7 +37,7 @@ func TestQueryNumber(t *testing.T) {
 			QueryFunc: func(q client.Query) (*client.Response, error) {
 				return nil, fmt.Errorf("<dummy error>")
 			},
-			ExpectedVal: 0.0,
+			ExpectedVal: nil,
 			ExpectedErr: fmt.Errorf("Failed to query InfluxDB with query \"<dummy query>\": <dummy error>"),
 		},
 		queryCase{
@@ -43,8 +45,22 @@ func TestQueryNumber(t *testing.T) {
 			QueryFunc: func(q client.Query) (*client.Response, error) {
 				return &client.Response{}, nil
 			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned no data: d=\"nodatabase\" q=\"<dummy query>\""),
+			ExpectedVal: nil,
+			ExpectedErr: fmt.Errorf("Query returned no results: d=\"nodatabase\" q=\"<dummy query>\""),
+		},
+		queryCase{
+			Name: "MultipleResults",
+			QueryFunc: func(q client.Query) (*client.Response, error) {
+				return &client.Response{
+					Results: []client.Result{
+						client.Result{},
+						client.Result{},
+					},
+					Err: "",
+				}, nil
+			},
+			ExpectedVal: nil,
+			ExpectedErr: fmt.Errorf("Query returned more than one result: d=\"nodatabase\" q=\"<dummy query>\""),
 		},
 		queryCase{
 			Name: "NoSeries",
@@ -58,26 +74,52 @@ func TestQueryNumber(t *testing.T) {
 					Err: "",
 				}, nil
 			},
-			ExpectedVal: 0.0,
+			ExpectedVal: nil,
 			ExpectedErr: fmt.Errorf("Query returned no series: d=\"nodatabase\" q=\"<dummy query>\""),
 		},
 		queryCase{
-			Name: "TooManySeries",
+			Name: "MultipleSeries",
 			QueryFunc: func(q client.Query) (*client.Response, error) {
 				return &client.Response{
 					Results: []client.Result{
 						client.Result{
 							Series: []models.Row{
-								models.Row{},
-								models.Row{},
+
+								models.Row{
+									Columns: []string{"time", "value"},
+									Values: [][]interface{}{
+										[]interface{}{
+											interface{}(12345),
+											interface{}(json.Number("1.5")),
+										},
+									},
+								},
+								models.Row{
+									Columns: []string{"time", "value"},
+									Values: [][]interface{}{
+										[]interface{}{
+											interface{}(12345),
+											interface{}(json.Number("3.5")),
+										},
+									},
+								},
 							},
 						},
 					},
 					Err: "",
 				}, nil
 			},
-			ExpectedVal: 0.0,
-			ExpectedErr: fmt.Errorf("Query returned more than one series: d=\"nodatabase\" q=\"<dummy query>\""),
+			ExpectedVal: []*Point{
+				&Point{
+					Tags:  nil,
+					Value: json.Number("1.5"),
+				},
+				&Point{
+					Tags:  nil,
+					Value: json.Number("3.5"),
+				},
+			},
+			ExpectedErr: nil,
 		},
 		queryCase{
 			Name: "NotEnoughCols",
@@ -101,7 +143,7 @@ func TestQueryNumber(t *testing.T) {
 					Err: "",
 				}, nil
 			},
-			ExpectedVal: 0.0,
+			ExpectedVal: nil,
 			ExpectedErr: fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec:\nCols:\n[value]\nVals:\n[12345 1.004]"),
 		},
 		queryCase{
@@ -126,7 +168,7 @@ func TestQueryNumber(t *testing.T) {
 					Err: "",
 				}, nil
 			},
-			ExpectedVal: 0.0,
+			ExpectedVal: nil,
 			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns: \"<dummy query>\" [time label value]"),
 		},
 		queryCase{
@@ -146,7 +188,7 @@ func TestQueryNumber(t *testing.T) {
 					Err: "",
 				}, nil
 			},
-			ExpectedVal: 0.0,
+			ExpectedVal: nil,
 			ExpectedErr: fmt.Errorf("Query returned no points: \"<dummy query>\""),
 		},
 		queryCase{
@@ -171,7 +213,12 @@ func TestQueryNumber(t *testing.T) {
 					Err: "",
 				}, nil
 			},
-			ExpectedVal: 1.5,
+			ExpectedVal: []*Point{
+				&Point{
+					Tags:  nil,
+					Value: json.Number("1.5"),
+				},
+			},
 			ExpectedErr: nil,
 		},
 		queryCase{
@@ -197,7 +244,12 @@ func TestQueryNumber(t *testing.T) {
 					Err: "",
 				}, nil
 			},
-			ExpectedVal: 1.5,
+			ExpectedVal: []*Point{
+				&Point{
+					Tags:  nil,
+					Value: json.Number("1.5"),
+				},
+			},
 			ExpectedErr: nil,
 		},
 	}
@@ -208,14 +260,12 @@ func TestQueryNumber(t *testing.T) {
 			Database:     "nodatabase",
 			influxClient: dummyClient{c.QueryFunc},
 		}
-		val, err := client.QueryNumber(client.Database, "<dummy query>")
+		res, err := client.Query(client.Database, "<dummy query>")
 		assert.Equal(t, c.ExpectedErr, err, fmt.Sprintf(errorStr, c.Name, c.ExpectedErr, err))
 		if err != nil {
 			continue
 		}
-		v, err := val.Float64()
-		assert.Nil(t, err, fmt.Sprintf(errorStr, c.Name, nil, err))
-		assert.Equal(t, c.ExpectedVal, v, fmt.Sprintf(errorStr, c.Name, c.ExpectedVal, v))
+		testutils.AssertDeepEqual(t, res, c.ExpectedVal)
 	}
 
 }
