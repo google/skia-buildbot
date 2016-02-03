@@ -127,6 +127,7 @@ The main application element for the Skia Debugger.
           <div id=right class="layout vertical flex-2">
             <h2>Info</h2>
             <pre>{{ _json(info) }}</pre>
+            <div id=colors><b>Postion:</b> ({{ x }}, {{ y }})</div>
             <div id=colors><b>Color:</b> {{ rgb }} {{ hex }}</div>
             <details-sk id=keyboardshortcuts class=hidden>
               <summary-sk>
@@ -174,6 +175,8 @@ The main application element for the Skia Debugger.
       this.$.zoom.addEventListener('zoom-point', function(e) {
         this.set("rgb", e.detail.rgb);
         this.set("hex", e.detail.hex);
+        this.set("x", e.detail.x);
+        this.set("y", e.detail.y);
       }.bind(this));
 
       this.$.img.addEventListener('load', function() {

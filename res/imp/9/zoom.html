@@ -15,6 +15,8 @@
       of the event contains the values for the color:
 
           {
+            x: 100,
+            y: 100,
             r: 0xff,
             g: 0xef,
             b: 0xd5,
@@ -167,6 +169,8 @@
             if (x == this.pixels / 2 && y == this.pixels / 2) {
               this.ctx.strokeRect(x * dx - 0.5, y * dy - 0.5, dx, dy);
               var detail = {
+                x: this.x,
+                y: this.y,
                 r: colors[offset+0],
                 g: colors[offset+1],
                 b: colors[offset+2],
