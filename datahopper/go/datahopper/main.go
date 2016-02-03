@@ -169,7 +169,7 @@ func main() {
 					if s.Results != buildbot.BUILDBOT_SUCCESS {
 						stepFailStatus = 1
 					}
-					metrics2.RawAddInt64PointAtTime("buildbot.buildsteps.failure-status", stepTags, int64(stepFailStatus), b.Finished)
+					metrics2.RawAddInt64PointAtTime("buildbot.buildsteps.failure-status", stepTags, int64(stepFailStatus), s.Finished)
 				}
 			}
 			start = end
