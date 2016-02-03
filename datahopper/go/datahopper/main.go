@@ -16,11 +16,14 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/util"
 )
 
 const (
 	SKIA_REPO  = "https://skia.googlesource.com/skia.git"
 	INFRA_REPO = "https://skia.googlesource.com/buildbot.git"
+
+	BUILDSLAVES_CONNECTED_MEASUREMENT = "buildbot.buildslaves.connected"
 )
 
 // flags
@@ -32,6 +35,12 @@ var (
 
 	// Regexp matching non-alphanumeric characters.
 	re = regexp.MustCompile("[^A-Za-z0-9]+")
+
+	BUILDSLAVE_OFFLINE_BLACKLIST = []string{
+		"build3-a3",
+		"build4-a3",
+		"vm255-m3",
+	}
 )
 
 // fixName transforms names of builders/buildsteps into strings useable by
@@ -150,6 +159,31 @@ func main() {
 			start = end
 		}
 	}()
+
+	// Offline buildslaves.
+	for _ = range time.Tick(time.Minute) {
+		glog.Info("Loading buildslave data.")
+		slaves, err := buildbot.GetBuildSlaves()
+		if err != nil {
+			glog.Error(err)
+			continue
+		}
+		for masterName, m := range slaves {
+			for _, s := range m {
+				if util.In(s.Name, BUILDSLAVE_OFFLINE_BLACKLIST) {
+					continue
+				}
+				v := int64(0)
+				if s.Connected {
+					v = int64(1)
+				}
+				metrics2.GetInt64Metric(BUILDSLAVES_CONNECTED_MEASUREMENT, map[string]string{
+					"buildslave": s.Name,
+					"master":     masterName,
+				}).Update(v)
+			}
+		}
+	}
 
 	// Number of commits in the repo.
 	go func() {

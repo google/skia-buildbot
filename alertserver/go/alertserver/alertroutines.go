@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/autoroll/go/autoroller"
@@ -32,10 +30,7 @@ Host info: https://status.skia.org/hosts?filter=%s`
 	// Allow up to 30 minutes for the device to charge. If "wait for device" has been running for longer than that, the device is probably offline.
 	ANDROID_DISCONNECT_TIME_LIMIT = 30 * time.Minute
 	AUTOROLL_ALERT_NAME           = "AutoRoll Failed"
-	BUILDSLAVE_OFFLINE            = `Buildslave %s is not connected to https://uberchromegw.corp.google.com/i/%s/buildslaves/%s
 
-Dashboard: https://status.skia.org/buildbots?botGrouping=buildslave&filterBy=buildslave&include=%%5E%s%%24&tab=builds
-Host info: https://status.skia.org/hosts?filter=%s`
 	HUNG_BUILDSLAVE = `Possibly hung buildslave (%s)
 
 A step has been running for over %s:
@@ -48,12 +43,6 @@ Build: https://uberchromegw.corp.google.com/i/%s/builders/%s/builds/%d
 Dashboard: https://status.skia.org/buildbots?botGrouping=builder&filterBy=builder&include=%%5E%s%%24&tab=builds
 Host info: https://status.skia.org/hosts?filter=%s`
 )
-
-var BUILDSLAVE_OFFLINE_BLACKLIST = []string{
-	"build3-a3",
-	"build4-a3",
-	"vm255-m3",
-}
 
 type BuildSlice []*buildbot.Build
 
@@ -75,46 +64,6 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		glog.Fatal(err)
 	}
 	actions := []alerting.Action{emailAction}
-
-	// Disconnected buildslaves.
-	go func() {
-		seriesTmpl := "buildbot.buildslaves.%s.connected"
-		re := regexp.MustCompile("[^A-Za-z0-9]+")
-		for _ = range time.Tick(tickInterval) {
-			glog.Info("Loading buildslave data.")
-			slaves, err := buildbot.GetBuildSlaves()
-			if err != nil {
-				glog.Error(err)
-				continue
-			}
-			for masterName, m := range slaves {
-				for _, s := range m {
-					if util.In(s.Name, BUILDSLAVE_OFFLINE_BLACKLIST) {
-						continue
-					}
-					v := int64(0)
-					if s.Connected {
-						v = int64(1)
-					}
-					metric := fmt.Sprintf(seriesTmpl, re.ReplaceAllString(s.Name, "_"))
-					metrics.GetOrRegisterGauge(metric, metrics.DefaultRegistry).Update(v)
-					if !s.Connected {
-						// This buildslave is offline. Figure out which one it is.
-						if err := am.AddAlert(&alerting.Alert{
-							Name:        fmt.Sprintf("Buildslave %s offline", s.Name),
-							Category:    alerting.INFRA_ALERT,
-							Message:     fmt.Sprintf(BUILDSLAVE_OFFLINE, s.Name, masterName, s.Name, s.Name, s.Name),
-							Nag:         int64(time.Hour),
-							AutoDismiss: int64(2 * tickInterval),
-							Actions:     actions,
-						}); err != nil {
-							glog.Error(err)
-						}
-					}
-				}
-			}
-		}
-	}()
 
 	// AutoRoll failure.
 	go func() {
