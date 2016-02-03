@@ -111,7 +111,7 @@ func main() {
 		}
 	}()
 
-	// Average build and step time.
+	// Average build and step duration, failure rate.
 	go func() {
 		start := time.Now().Add(-24 * time.Hour)
 		for _ = range time.Tick(10 * time.Minute) {
@@ -140,9 +140,17 @@ func main() {
 				for k, v := range builderNameParts {
 					tags[k] = v
 				}
-				// Report build time.
+				// Report build duration.
 				d := b.Finished.Sub(b.Started)
 				metrics2.RawAddInt64PointAtTime("buildbot.builds.duration", tags, int64(d), b.Finished)
+
+				// Report build failure rate.
+				failureStatus := 0
+				if b.Results != buildbot.BUILDBOT_SUCCESS {
+					failureStatus = 1
+				}
+				metrics2.RawAddInt64PointAtTime("buildbot.builds.failure-status", tags, int64(failureStatus), b.Finished)
+
 				for _, s := range b.Steps {
 					if !s.IsFinished() {
 						continue
@@ -153,7 +161,15 @@ func main() {
 						stepTags[k] = v
 					}
 					stepTags["step"] = s.Name
+					// Report step duration.
 					metrics2.RawAddInt64PointAtTime("buildbot.buildsteps.duration", stepTags, int64(d), s.Finished)
+
+					// Report step failure rate.
+					stepFailStatus := 0
+					if s.Results != buildbot.BUILDBOT_SUCCESS {
+						stepFailStatus = 1
+					}
+					metrics2.RawAddInt64PointAtTime("buildbot.buildsteps.failure-status", stepTags, int64(stepFailStatus), b.Finished)
 				}
 			}
 			start = end
