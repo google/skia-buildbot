@@ -139,12 +139,12 @@
         return s;
       },
 
-      _colorHex: function(colors) {
+      _colorHex: function(colors, offset) {
         return '#'
-          + this._hexify(colors[0])
-          + this._hexify(colors[1])
-          + this._hexify(colors[2])
-          + this._hexify(colors[3]);
+          + this._hexify(colors[offset+0])
+          + this._hexify(colors[offset+1])
+          + this._hexify(colors[offset+2])
+          + this._hexify(colors[offset+3]);
       },
 
       _drawZoom: function () {
@@ -176,7 +176,7 @@
                 b: colors[offset+2],
                 a: colors[offset+3],
                 rgb: colorRGB,
-                hex: this._colorHex(colors),
+                hex: this._colorHex(colors, offset),
               };
               var evt = new CustomEvent('zoom-point', {
                 detail: detail,
