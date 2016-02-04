@@ -25,6 +25,7 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/common/imp/9/crosshair.html">
 <link rel=import href="/res/common/imp/9/details-summary.html">
 <link rel=import href="/res/common/imp/9/zoom.html">
+<link rel=import href="/res/common/imp/9/play.html">
 
 <link rel=import href="/res/common/imp/9/error-toast-sk.html">
 <dom-module id="debugger-app-sk">
@@ -50,9 +51,14 @@ The main application element for the Skia Debugger.
       background: #eee;
     }
 
-    #left {
+    #selector {
       overflow-y: scroll;
-      height: 98vh;
+      height: 80vh;
+      position: relative;
+    }
+
+    play-sk {
+      margin: 5px auto;
     }
 
     #center {
@@ -108,7 +114,7 @@ The main application element for the Skia Debugger.
         <hr/>
         <div class="layout horizontal">
           <div id=left class="layout vertical flex-1">
-            <h2>Ops</h2>
+            <play-sk id=play></play-sk>
             <iron-selector id=selector>
               <template is="dom-repeat" items="{{cmd.commands}}" as="command">
                 <op-sk op="{{command}}" index="{{index}}"></op-sk>
@@ -116,7 +122,6 @@ The main application element for the Skia Debugger.
             </iron-selector>
           </div>
           <div id=center class="layout vertical flex-3">
-            <h2>Image</h2>
             <div id=rendered>
               <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
                 <img id=img src="" class=hidden>
@@ -125,7 +130,6 @@ The main application element for the Skia Debugger.
             </div>
           </div>
           <div id=right class="layout vertical flex-2">
-            <h2>Info</h2>
             <pre>{{ _json(info) }}</pre>
             <div id=colors><b>Postion:</b> ({{ x }}, {{ y }})</div>
             <div id=colors><b>Color:</b> {{ rgb }} {{ hex }}</div>
@@ -155,6 +159,11 @@ The main application element for the Skia Debugger.
     is: "debugger-app-sk",
 
     ready: function() {
+      // _targetIndex is the index of the op we are in the process of moving to.
+      // That is, we've requested to move to this op, but the image might not
+      // be loaded yet.
+      this._targetIndex = 0;
+
       // Load the test image served by the debugger.
       this._setCacheBreakingURL();
       this.$.post_skp.action= window.location.origin + "/new";
@@ -162,7 +171,7 @@ The main application element for the Skia Debugger.
       // Can't set this as an attribute directly on iron-selector. Bah.
       this.$.selector.selectedAttribute = "selected";
       this.$.selector.addEventListener('iron-select', function(e) {
-        this.n = e.detail.item.index;
+        this._targetIndex = e.detail.item.index;
         this._setCacheBreakingURL();
       }.bind(this));
       this._refreshPage();
@@ -182,6 +191,14 @@ The main application element for the Skia Debugger.
       this.$.img.addEventListener('load', function() {
         this.$.download.href = window.location.origin + "/download";
         this.$.download.classList.remove("hidden");
+        this.$.play.movedTo(this._targetIndex);
+        this.$.selector.scrollTop = this.$.selector.items[this._targetIndex].offsetTop;
+        this.$.selector.select(this._targetIndex);
+      }.bind(this));
+
+      this.$.play.addEventListener('moveto', function(e) {
+        this._targetIndex = e.detail.index;
+        this._setCacheBreakingURL();
       }.bind(this));
     },
 
@@ -192,13 +209,6 @@ The main application element for the Skia Debugger.
         value: function() { return { commands: [] } },
         reflectToAttribute: false,
       },
-      // Which command are we displaying, a zero based index, with the value
-      // -1 for the last command, ie. the fully rendered skp.
-      n: {
-        type: Object,
-        value: -1,
-        reflectToAttribute: false,
-      }
     },
 
     attached: function() {
@@ -213,14 +223,14 @@ The main application element for the Skia Debugger.
       }.bind(this)).catch(sk.errorMessage);
       sk.get("/cmd").then(JSON.parse).then(function(json) {
         this.set('cmd', this._addDepth(json));
+        this.$.play.size = json.commands.length;
+        this._targetIndex = json.commands.length - 1;
+        this._setCacheBreakingURL();
       }.bind(this)).catch(sk.errorMessage);
     },
 
     _setCacheBreakingURL: function() {
-      var path = "/img?";
-      if (this.n != -1) {
-        path = "/img/" + this.n + "?";
-      }
+      var path = "/img/" + this._targetIndex + "?";
       this.$.img.src = window.location.origin + path + "?" + new Date().getTime();
     },
 
