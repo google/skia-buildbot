@@ -1,0 +1,127 @@
+<!-- The <play-sk> custom element declaration.
+
+  Allows moving through a series of operations, i.e. play, pause, step, etc.
+
+  Attributes:
+      size - The number of operations to be played.
+             Events will be indexed from [0, size-1].
+
+      index - The index of the current operation.
+
+      mode - Either "play" or "pause".
+
+  Events:
+      moveto - The index of the operation to be executed is available
+            in detail.index.
+
+  Methods:
+      movedTo(index) - Called when the action has moved to index.
+          Should be called in response to the control generating
+          a 'moveto' event. Important so that if the play-sk
+          control is in 'play' mode it can generate a new event
+          to moveto the next index.
+-->
+
+<link rel=import href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
+<link rel=import href="/res/imp/bower_components/iron-icons/av-icons.html">
+<link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
+
+<dom-module id="play-sk">
+  <template>
+    <paper-icon-button icon="av:skip-previous" id=begin on-tap="_begin"></paper-icon-button>
+    <paper-icon-button icon="icons:chevron-left" id=prev on-tap="_prev"></paper-icon-button>
+    <paper-icon-button icon="av:play-arrow" id=playpause on-tap="_togglePlay"></paper-icon-button>
+    <paper-icon-button icon="icons:chevron-right" id=next on-tap="_next"></paper-icon-button>
+    <paper-icon-button icon="av:skip-next" id=end on-tap="_end"></paper-icon-button>
+  </template>
+</dom-module>
+
+<script>
+  (function () {
+    var modeToIcon = {
+      "pause": "av:play-arrow",
+      "play": "av:pause",
+    };
+
+    Polymer({
+      is: "play-sk",
+
+      properties: {
+        mode: {
+          type: String,
+          value: "pause",
+          reflectToAttribute: true,
+          observer: "_modeChange",
+        },
+        index: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: true,
+        },
+        size: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: true,
+        },
+      },
+
+      _togglePlay: function() {
+        this.mode = (this.mode == "play") ? "pause" : "play";
+      },
+
+      _modeChange: function() {
+        this.$.playpause.icon = modeToIcon[this.mode];
+        if (this.mode == "play") {
+          this._triggerNext();
+        }
+        this._setDisabled(this.mode == "play");
+      },
+
+      _setDisabled: function(b) {
+          this.$.begin.disabled = b;
+          this.$.end.disabled = b;
+          this.$.next.disabled = b;
+          this.$.prev.disabled = b;
+      },
+
+      _triggerEvent: function() {
+        this.dispatchEvent(new CustomEvent('moveto', {detail: {index: this.index}}));
+      },
+
+      _triggerNext: function() {
+        this.index = (this.index+1) % this.size;
+        this._triggerEvent();
+      },
+
+      _begin: function() {
+        this.index = 0;
+        this._triggerEvent();
+      },
+
+      _end: function() {
+        this.index = this.size-1;
+        this._triggerEvent();
+      },
+
+      _prev: function() {
+        this.index -= 1;
+        if (this.index < 0) {
+          this.index += this.size;
+        }
+        this._triggerEvent();
+      },
+
+      _next: function() {
+        this._triggerNext();
+      },
+
+      movedTo: function(index) {
+        this.index = index;
+        if (this.mode == "play") {
+          this._triggerNext();
+        }
+      },
+
+    });
+  })();
+</script>
