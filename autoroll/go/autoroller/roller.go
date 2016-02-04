@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/autoroll/go/recent_rolls"
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/util"
 )
@@ -43,6 +44,7 @@ type AutoRoller struct {
 	emails           []string
 	includeCommitLog bool
 	lastError        error
+	liveness         *metrics2.Liveness
 	modeHistory      *autoroll_modes.ModeHistory
 	mtx              sync.RWMutex
 	recent           *recent_rolls.RecentRolls
@@ -73,6 +75,7 @@ func NewAutoRoller(workdir, childPath string, cqExtraTrybots, emails []string, r
 		cqExtraTrybots:   cqExtraTrybots,
 		emails:           emails,
 		includeCommitLog: true,
+		liveness:         metrics2.NewLiveness("last-autoroll-landed", map[string]string{"child-path": childPath}),
 		modeHistory:      mh,
 		recent:           recent,
 		rietveld:         rietveld,
@@ -290,6 +293,7 @@ func (r *AutoRoller) updateCurrentRoll() error {
 			}
 			time.Sleep(10 * time.Second)
 		}
+		r.liveness.Reset()
 	}
 	return r.recent.Update(updated)
 }

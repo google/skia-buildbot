@@ -1,16 +1,12 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/alertserver/go/alerting"
-	"go.skia.org/infra/autoroll/go/autoroller"
-	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/util"
@@ -45,55 +41,6 @@ func StartAlertRoutines(am *alerting.AlertManager, tickInterval time.Duration, c
 		glog.Fatal(err)
 	}
 	actions := []alerting.Action{emailAction}
-
-	// AutoRoll failure.
-	go func() {
-		getDepsRollStatus := func() (*autoroller.AutoRollStatus, error) {
-			resp, err := http.Get(autoroll.AUTOROLL_STATUS_URL)
-			if err != nil {
-				return nil, err
-			}
-
-			defer util.Close(resp.Body)
-			var status autoroller.AutoRollStatus
-			if err := json.NewDecoder(resp.Body).Decode(&status); err != nil {
-				return nil, err
-			}
-			return &status, nil
-		}
-
-		for _ = range time.Tick(time.Minute) {
-			glog.Infof("Searching for DEPS rolls.")
-			status, err := getDepsRollStatus()
-			if err != nil {
-				util.LogErr(fmt.Errorf("Failed to search for DEPS rolls: %v", err))
-				continue
-			}
-
-			activeAlert := am.ActiveAlert(AUTOROLL_ALERT_NAME)
-			if status.LastRoll != nil {
-				if status.LastRoll.Closed {
-					if status.LastRoll.Succeeded() {
-						if activeAlert != 0 {
-							msg := fmt.Sprintf("Subsequent roll succeeded: %s/%d", autoroll.RIETVELD_URL, status.LastRoll.Issue)
-							if err := am.Dismiss(activeAlert, alerting.USER_ALERTSERVER, msg); err != nil {
-								util.LogErr(err)
-							}
-						}
-					} else if status.LastRoll.Failed() {
-						if err := am.AddAlert(&alerting.Alert{
-							Name:    AUTOROLL_ALERT_NAME,
-							Message: fmt.Sprintf("DEPS roll failed: %s/%d", autoroll.RIETVELD_URL, status.LastRoll.Issue),
-							Nag:     int64(3 * time.Hour),
-							Actions: actions,
-						}); err != nil {
-							util.LogErr(err)
-						}
-					}
-				}
-			}
-		}
-	}()
 
 	// Android device disconnects, hung buildslaves.
 	go func() {

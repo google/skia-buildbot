@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/autoroll/go/repo_manager"
 	"go.skia.org/infra/go/autoroll"
 	"go.skia.org/infra/go/buildbucket"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/testutils"
@@ -23,6 +24,10 @@ import (
 const COMMITTED_STR = "Committed: https://chromium.googlesource.com/chromium/src/+/fd01dc2938"
 
 var noTrybots = []*buildbucket.Build{}
+
+func init() {
+	metrics2.InitForTesting()
+}
 
 // mockRepoManager is a struct used for mocking out the AutoRoller's
 // interactions with a RepoManager.

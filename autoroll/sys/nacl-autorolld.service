@@ -6,8 +6,9 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/autoroll \
     --use_metadata=true \
-    --graphite_server=skia-monitoring:2003 \
     --host=nacl-roll.skia.org \
+    --influxdb_database=skmetrics \
+    --influxdb_host=skia-monitoring:10117 \
     --log_dir=/var/log/logserver \
     --log_max_size=10485760 \
     --workdir=/mnt/pd0/autoroll_workdir \

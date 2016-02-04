@@ -25,6 +25,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
@@ -42,7 +43,6 @@ var (
 
 // flags
 var (
-	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	host           = flag.String("host", "localhost", "HTTP service host")
 	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
@@ -174,7 +174,7 @@ func runServer(serverURL string) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("autoroll", graphiteServer)
+	common.InitWithMetrics2("autoroll")
 	Init()
 
 	v, err := skiaversion.GetVersion()
@@ -211,6 +211,18 @@ func main() {
 	if err != nil {
 		glog.Fatal(err)
 	}
+
+	// Feed AutoRoll stats into InfluxDB.
+	go func() {
+		for _ = range time.Tick(time.Minute) {
+			status := arb.GetStatus(false)
+			v := int64(0)
+			if status.LastRoll != nil && status.LastRoll.Closed && status.LastRoll.Committed {
+				v = int64(1)
+			}
+			metrics2.GetInt64Metric("autoroll.last-roll-result", nil).Update(v)
+		}
+	}()
 
 	// Update the current sheriff in a loop.
 	go func() {
