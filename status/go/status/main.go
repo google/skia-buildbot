@@ -64,7 +64,6 @@ var (
 
 // flags
 var (
-	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	host           = flag.String("host", "localhost", "HTTP service host")
 	port           = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
@@ -642,7 +641,7 @@ func main() {
 	defer common.LogPanic()
 	// Setup flags.
 
-	common.InitWithMetrics("status", graphiteServer)
+	common.InitWithMetrics2("status", influxHost, influxUser, influxPassword, influxDatabase, testing)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		glog.Fatal(err)
