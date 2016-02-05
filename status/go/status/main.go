@@ -43,6 +43,7 @@ const (
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
 	GOLD_STATUS_QUERY_TMPL  = "select value from \"status.untriaged.by_corpus.%s.value\" where app='skiacorrectness' and host='skia-gold-prod' order by time desc limit 1"
+	GRAPHITE_DATABASE       = "graphite"
 )
 
 var (
@@ -664,7 +665,7 @@ func main() {
 	}
 
 	// Setup InfluxDB client.
-	dbClient, err = influxdb.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
+	dbClient, err = influxdb.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, GRAPHITE_DATABASE, *testing)
 	if err != nil {
 		glog.Fatal(err)
 	}
