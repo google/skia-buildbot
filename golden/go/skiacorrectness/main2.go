@@ -1227,13 +1227,13 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func search2Handler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
 	if *local {
 		loadTemplates()
 	}
 	digests, numMatches, commits, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
 	if err != nil {
 		util.ReportError(w, r, err, "Search for digests failed.")
+		return
 	}
 	js, err := json.MarshalIndent(digests, "", "  ")
 	if err != nil {
@@ -1258,6 +1258,7 @@ func search2Handler(w http.ResponseWriter, r *http.Request) {
 		NumMatches: numMatches,
 	}
 
+	w.Header().Set("Content-Type", "text/html")
 	if err := templates.ExecuteTemplate(w, "search2.html", context); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
