@@ -1,0 +1,86 @@
+<!-- The <gold-status-sk> element displays the status of gold
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    None
+-->
+<dom-module id="gold-status-sk">
+  <template>
+    <style>
+    .statusEntry {
+      float: left;
+      padding-right: 2em;
+      font-size: 12pt;
+    }
+
+    .statusEntry a {
+      color: white;
+    }
+
+    </style>
+    <template is="dom-if" if="{{status}}">
+      <template is="dom-repeat" items="{{status.corpStatus}}">
+        <div class="statusEntry">
+          {{item.name}}:{{item.untriagedCount}} / {{item.negativeCount}}
+        </div>
+      </template>
+
+      <div class="statusEntry">
+        <a href$="https://skia.googlesource.com/skia/+/{{status.lastCommit.hash}}" target="_blank">
+           Last Commit: {{_lastCommitText(status)}}
+        </a>
+      </div>
+    </template>      
+  </template>
+  <script>
+    Polymer({
+      is: "gold-status-sk",
+
+      properties: {
+        status: {
+          type: Object,
+          value: null,
+        }
+      },
+
+      ready: function() {
+        this.status = null;
+        this._reload();
+      },
+
+      // Load or reload the listing.
+      _reload: function() {
+        var that = this;
+        sk.get("_/trstatus").then(JSON.parse).then(function (json) {
+          if (JSON.stringify(json) != JSON.stringify(that.status)) {
+            that.status = json;
+          }
+          that.async(that._reload, 3000);
+        }).catch(function(errorMessage) {
+          that.status = null;
+          console.log("Status Error:", errorMessage);
+          that.async(that._reload, 3000);
+        });
+      },
+
+      _lastCommitText: function(status) {
+        return this._limitTo(status.lastCommit.hash, 7) + " - " +  this._limitTo(status.lastCommit.author, 0);
+      },
+
+      // _limitTo is a custom filter that returns the first len characters of
+      // a string or all characters before '(' - depending on len.
+      _limitTo: function(val, len) {
+        if (len > 0) {
+          return val.substr(0, len);
+        }
+        var idx = val.indexOf('(');
+        return val.substring(0, (idx === -1) ? val.length : idx);
+      }
+    });
+  </script>
+</dom-module>

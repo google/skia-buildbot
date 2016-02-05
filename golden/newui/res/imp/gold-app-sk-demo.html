@@ -1,0 +1,59 @@
+<html>
+<head>
+  <title>gold-status-sk demo</title>
+  <base href="/">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="node_modules/native-promise-only/npo.js"></script>
+  <script src="res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="res/imp/bower_components/page/page.js"></script>
+  <script src="res/common/js/common.js"></script>
+  <script src="res/imp/bower_components/sinonjs/sinon.js"></script>
+
+  <script>
+    var server = sinon.fakeServer.create();
+    server.respondImmediately = true;
+
+    // gold-sk-status response 
+    server.respondWith("GET", "_/trstatus", function(request) {
+        request.respond(200, {"Content-Type":"application/json"}, 
+          JSON.stringify({
+            corpStatus: [
+              {name: "gm", untriagedCount: 27, negativeCount:649 },
+              {name: "image", untriagedCount: 61, negativeCount:9 },
+            ],
+            lastCommit: {
+              hash: "136baaa927877e0f7fcc97acb456ee0d63f7f343",
+              author: "username", 
+            }
+          }));
+    });
+
+    // login status response 
+    server.respondWith("GET", "/loginstatus/", function(request) {
+        request.respond(200, {"Content-Type":"application/json"}, 
+          JSON.stringify({
+            Email: "user@google.com",
+            LoginURL:"https://accounts.google.com/"
+          }));
+    });
+
+    // version requester.
+    server.respondWith("GET", "/json/version", function(request) {
+        request.respond(200, {"Content-Type":"application/json"}, 
+          JSON.stringify({
+            commit: "d316ad4ee47f4b0a6918cc3a3f215c40cf10d3d7",
+            date: "2016-02-01T13:36:37-05:00"
+          }));
+    });
+    
+  </script>
+
+  <link rel="import" href="res/imp/gold-app-sk.html">
+  
+</head>
+<body>
+  <gold-app-sk></gold-app-sk>
+</body>
+</html>

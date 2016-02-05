@@ -27,6 +27,9 @@
 #     and uses the new command line flags. This can be removed once all projects
 #     have moved to vulcanize 1.x.
 
+# Get the directory of this makefile to refer to common resources relative to this. 
+WEBTOOLS_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
 ##### core_js ####
 
 # The core_js target builds res/js/core.js from the concatenated source file
@@ -52,7 +55,7 @@ $(BOWER_DIR)/lastupdate: bower.json ./node_modules/.bin/bower
 	touch $(BOWER_DIR)/lastupdate
 
 res/common:
-	ln -sf ../../res res/common
+	ln -sfr $(WEBTOOLS_DIR)/../res res/common
 
 #### elements_html ####
 

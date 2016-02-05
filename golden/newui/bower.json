@@ -1,0 +1,28 @@
+{
+  "name": "gold",
+  "version": "0.0.0",
+  "authors": [],
+  "license": "BSD",
+  "private": true,
+  "description": "UI for gold",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "third_party/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.2.4",
+    "iron-elements": "PolymerElements/iron-elements#^1.0.0",
+    "paper-elements": "PolymerElements/paper-elements#^1.0.0",
+    "d3": "~3.5.6",
+    "sinonjs": "~1.17.1",
+    "page": "visionmedia/page.js#~1.6.4",
+    "wcstamp": "~1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^1.0.0"
+  }
+}

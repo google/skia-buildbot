@@ -1,0 +1,117 @@
+<!--
+  The <gold-app-sk> custom element declaration. 
+
+  This is the container element for the Skia Gold frontend. 
+
+  Attributes: None
+
+  Events: None
+
+  Methods: None
+
+-->
+
+<link rel="import" href="/res/imp/bower_components/polymer/polymer.html"> 
+<link rel="import" href="/res/imp/bower_components/iron-pages/iron-pages.html"> 
+
+<link rel="import" href="/res/common/imp/9/app-sk.html" />
+<link rel="import" href="/res/common/imp/9/login.html" />
+<link rel="import" href="/res/imp/gold-menu-sk.html" />
+
+<link rel="import" href="/res/imp/gold-status-sk.html" />
+<link rel="import" href="/res/imp/byblame-page-sk.html" />
+<link rel="import" href="/res/imp/ignores-page-sk.html" />
+<link rel="import" href="/res/imp/list-page-sk.html" />
+<link rel="import" href="/res/imp/trybot-page-sk.html" />
+<link rel="import" href="/res/imp/failures-page-sk.html" />
+<link rel="import" href="/res/imp/search-page-sk.html" />
+<link rel="import" href="/res/imp/triagelog-page-sk.html" />
+<link rel="import" href="/res/imp/help-page-sk.html" />
+
+<dom-module id="gold-app-sk">
+  <template>
+    <style>
+    app-sk {
+      --app-sk-main: {
+        background-color: #FFFFFF;
+        font-family: Arial, sans-serif;
+      };
+      --app-sk-toolbar: {
+        background-color: #D95F02;
+        font-family: Roboto, Arial, sans-serif;
+      };
+      login-sk{
+        --login-sk-color: white;
+      };
+    }
+    </style>
+
+    <app-sk mode="standard" responsive_width="600px" drawer_width="230px">
+      <h2 header>Skia Gold</h2>
+      <gold-status-sk rtoolbar></gold-status-sk>
+      <gold-menu-sk navigation></gold-menu-sk>
+      <div>
+         <iron-pages attr-for-selected="data-route" selected="{{route}}">
+          <section data-route="byblame">
+            <byblame-page-sk></byblame-page-sk>
+          </section>
+          <section data-route="ignores">
+            <ignores-page-sk></ignores-page-sk>          
+          </section>
+          <section data-route="list">
+            <list-page-sk></list-page-sk>
+          </section>
+          <section data-route="trybot">
+            <trybot-page-sk></trybot-page-sk>
+          </section>
+          <section data-route="failures">
+            <failures-page-sk></failures-page-sk>
+          </section>
+          <section data-route="search">
+            <search-page-sk></search-page-sk>
+          </section>
+          <section data-route="triagelog">
+            <triagelog-page-sk></triagelog-page-sk>
+          </section>
+          <section data-route="help">
+            <help-page-sk></help-page-sk>
+          </section>
+       </iron-pages>
+     </div>
+    </app-sk>
+
+  </template>
+  <script>
+    Polymer({ 
+      is: "gold-app-sk",
+
+      properties: {
+        route: {
+          type: String, 
+          value: "byblame"
+        }
+      },
+
+      ready: function() {
+        // TODO(stephana): Make sure this works with stateReflector. 
+
+        // Set up in-app routing using the history api. 
+        this._setRoute('/newui/', 'byblame');
+        this._setRoute('/newui/ignores', 'ignores');
+        this._setRoute('/newui/list', 'list');
+        this._setRoute('/newui/trybot', 'trybot');
+        this._setRoute('/newui/failures', 'failures');
+        this._setRoute('/newui/search', 'search');
+        this._setRoute('/newui/triagelog', 'triagelog');
+        this._setRoute('/newui/help', 'help');
+
+        // Don't use hashbangs in the URL. 
+        page({ hashbang: false });
+      },
+
+      _setRoute: function(path, routeID) {
+        page(path, (function() { this.route = routeID; }).bind(this));
+      }
+    });
+  </script>
+</dom-module>
