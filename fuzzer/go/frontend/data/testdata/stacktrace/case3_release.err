@@ -1,3 +1,0 @@
-1 srcs * 1 sinks + 0 tests == 1 tasks
-terminate called after throwing an instance of 'std::bad_alloc'
-  what():  std::bad_alloc

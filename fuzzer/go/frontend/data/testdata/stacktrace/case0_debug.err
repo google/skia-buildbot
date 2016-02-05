@@ -1,2 +1,0 @@
-1 srcs * 1 sinks + 0 tests == 1 tasks
-../../src/core/SkDebug.cpp:45: failed assertion "(int)x == x"

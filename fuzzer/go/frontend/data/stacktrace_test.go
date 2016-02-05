@@ -9,7 +9,7 @@ import (
 )
 
 func TestParseReleaseDump(t *testing.T) {
-	testInput := testutils.MustReadFile("parse-release.dump")
+	testInput := testutils.MustReadFile("parse-catchsegv-release.dump")
 	trace := ParseStackTrace(testInput)
 	expected := StackTrace{
 		Frames: []StackTraceFrame{
@@ -31,7 +31,7 @@ func TestParseReleaseDump(t *testing.T) {
 }
 
 func TestParseDebugDump(t *testing.T) {
-	testInput := testutils.MustReadFile("parse-debug.dump")
+	testInput := testutils.MustReadFile("parse-catchsegv-debug.dump")
 
 	trace := ParseStackTrace(testInput)
 
@@ -62,8 +62,8 @@ func TestParseDebugDump(t *testing.T) {
 }
 
 func TestParsingEdgeCases(t *testing.T) {
-	// This is a made up dump that has the edge cases for parsing.
-	testInput := testutils.MustReadFile("parse-edge.dump")
+	// This is a made up dump that has the edge cases for parsing function names.
+	testInput := testutils.MustReadFile("parse-catchsegv-edge.dump")
 	trace := ParseStackTrace(testInput)
 	expected := StackTrace{
 		Frames: []StackTraceFrame{
@@ -94,103 +94,4 @@ func TestParseEmptyStackTrace(t *testing.T) {
 
 func stacktrace(file string) string {
 	return filepath.Join("stacktrace", file)
-}
-
-func TestParseDumpFilesCase0(t *testing.T) {
-	// Case 0, both debug and release dumped, due to an assertion error
-	debugDump := testutils.MustReadFile(stacktrace("case0_debug.dump"))
-	debugErr := testutils.MustReadFile(stacktrace("case0_debug.err"))
-	releaseDump := testutils.MustReadFile(stacktrace("case0_release.dump"))
-	releaseErr := testutils.MustReadFile(stacktrace("case0_release.err"))
-
-	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
-	expectedFlags := DebugCrashed | ReleaseCrashed | DebugAssertionViolated | ReleaseOther
-	if result.Flags != expectedFlags {
-		t.Errorf("parsed Flags were wrong.  Expected %s, but was %s", expectedFlags.String(), result.Flags.String())
-	}
-}
-
-func TestParseDumpFilesCase1(t *testing.T) {
-	// Case 1, both debug and release exist with partial success
-	debugDump := ""
-	debugErr := testutils.MustReadFile(stacktrace("case1_debug.err"))
-	releaseDump := ""
-	releaseErr := testutils.MustReadFile(stacktrace("case1_release.err"))
-
-	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
-	expectedFlags := DebugFailedGracefully | ReleaseFailedGracefully
-
-	if result.Flags != expectedFlags {
-		t.Errorf("parsed Flags were wrong.  Expected %s, but was %s", expectedFlags.String(), result.Flags.String())
-	}
-}
-
-func TestParseDumpFilesCase2(t *testing.T) {
-	// Case 2, debug dumped and hit an assertion, release timed out
-	debugDump := testutils.MustReadFile(stacktrace("case2_debug.dump"))
-	debugErr := testutils.MustReadFile(stacktrace("case2_debug.err"))
-	releaseDump := ""
-	releaseErr := ""
-
-	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
-	expectedFlags := DebugCrashed | DebugAssertionViolated | ReleaseTimedOut
-	if result.Flags != expectedFlags {
-		t.Errorf("parsed Flags were wrong.  Expected %s, but was %s", expectedFlags.String(), result.Flags.String())
-	}
-}
-
-func TestParseDumpFilesCase3(t *testing.T) {
-	// Case 3, both debug and release ran a bad malloc
-	debugDump := testutils.MustReadFile(stacktrace("case3_debug.dump"))
-	debugErr := testutils.MustReadFile(stacktrace("case3_debug.err"))
-	releaseDump := testutils.MustReadFile(stacktrace("case3_release.dump"))
-	releaseErr := testutils.MustReadFile(stacktrace("case3_release.err"))
-
-	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
-	expectedFlags := DebugCrashed | DebugBadAlloc | ReleaseCrashed | ReleaseBadAlloc
-	if result.Flags != expectedFlags {
-		t.Errorf("parsed Flags were wrong.  Expected %s, but was %s", expectedFlags.String(), result.Flags.String())
-	}
-}
-
-func TestParseDumpFilesCase4(t *testing.T) {
-	// Case 4, both debug and release failed gracefully
-	debugDump := testutils.MustReadFile(stacktrace("case4_debug.dump"))
-	debugErr := testutils.MustReadFile(stacktrace("case4_debug.err"))
-	releaseDump := testutils.MustReadFile(stacktrace("case4_release.dump"))
-	releaseErr := testutils.MustReadFile(stacktrace("case4_release.err"))
-
-	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
-	expectedFlags := DebugFailedGracefully | ReleaseFailedGracefully
-	if result.Flags != expectedFlags {
-		t.Errorf("parsed Flags were wrong.  Expected %s, but was %s", expectedFlags.String(), result.Flags.String())
-	}
-}
-
-func TestParseDumpFilesCase5(t *testing.T) {
-	// Case 5, both debug and release crashed, but no stacktrace
-	debugDump := testutils.MustReadFile(stacktrace("case5_debug.dump"))
-	debugErr := testutils.MustReadFile(stacktrace("case5_debug.err"))
-	releaseDump := testutils.MustReadFile(stacktrace("case5_release.dump"))
-	releaseErr := testutils.MustReadFile(stacktrace("case5_release.err"))
-
-	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
-	expectedFlags := DebugCrashed | ReleaseCrashed | DebugNoStackTrace | ReleaseNoStackTrace
-	if result.Flags != expectedFlags {
-		t.Errorf("parsed Flags were wrong.  Expected %s, but was %s", expectedFlags.String(), result.Flags.String())
-	}
-}
-
-func TestParseDumpFilesCase6(t *testing.T) {
-	// Case 6, both debug and release timed out
-	debugDump := ""
-	debugErr := ""
-	releaseDump := ""
-	releaseErr := ""
-
-	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
-	expectedFlags := DebugTimedOut | ReleaseTimedOut
-	if result.Flags != expectedFlags {
-		t.Errorf("parsed Flags were wrong.  Expected %s, but was %s", expectedFlags.String(), result.Flags.String())
-	}
 }
