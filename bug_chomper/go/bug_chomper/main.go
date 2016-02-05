@@ -25,6 +25,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/bug_chomper/go/issue_tracker"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
@@ -41,12 +42,16 @@ const (
 
 // Flags:
 var (
-	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	host         = flag.String("host", "localhost", "HTTP service host")
+	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	useMetadata  = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	testing      = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
+	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 var (
@@ -219,7 +224,7 @@ func runServer(serverURL string) {
 // Run the BugChomper server.
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("bug_chomper", graphiteServer)
+	common.InitWithMetrics2("bug_chomper", influxHost, influxUser, influxPassword, influxDatabase, testing)
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
