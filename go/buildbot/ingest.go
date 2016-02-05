@@ -3,6 +3,7 @@ package buildbot
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -286,6 +287,22 @@ func IngestBuild(db DB, b *Build, repos *gitinfo.RepoMap) error {
 		oldBuild.Finished = b.Finished
 
 		b = oldBuild
+	}
+	// Record metrics for unfinished buildsteps.
+	if !b.IsFinished() {
+		now := time.Now()
+		for _, s := range b.Steps {
+			if !s.IsFinished() {
+				runTime := now.Sub(s.Started)
+				metrics2.RawAddInt64PointAtTime("buildbot.buildsteps.running-time", map[string]string{
+					"builder":    b.Builder,
+					"buildslave": b.BuildSlave,
+					"master":     b.Master,
+					"number":     strconv.Itoa(b.Number),
+					"step":       s.Name,
+				}, int64(runTime), now)
+			}
+		}
 	}
 	if needToComputeBlamelist {
 		// Find the commits for this build.
