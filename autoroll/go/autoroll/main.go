@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
@@ -46,7 +47,7 @@ var (
 	host           = flag.String("host", "localhost", "HTTP service host")
 	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
 	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
 	childName      = flag.String("childName", "Skia", "Name of the project to roll.")
 	childPath      = flag.String("childPath", "src/third_party/skia", "Path within Chromium repo of the project to roll.")
@@ -54,6 +55,11 @@ var (
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	sheriff        = flag.String("sheriff", "", "Email address to CC on rolls, or URL from which to obtain such an email address.")
 	depot_tools    = flag.String("depot_tools", "", "Path to the depot_tools installation. If empty, assumes depot_tools is in PATH.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 func getSheriff() ([]string, error) {
@@ -142,7 +148,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
 	// Don't use cached templates in testing mode.
-	if *testing {
+	if *local {
 		reloadTemplates()
 	}
 	mainPage := struct {
@@ -174,7 +180,7 @@ func runServer(serverURL string) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("autoroll")
+	common.InitWithMetrics2("autoroll", *influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
 	Init()
 
 	v, err := skiaversion.GetVersion()
@@ -183,7 +189,7 @@ func main() {
 	}
 	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
-	if *testing {
+	if *local {
 		*useMetadata = false
 	}
 
@@ -237,7 +243,7 @@ func main() {
 	}()
 
 	serverURL := "https://" + *host
-	if *testing {
+	if *local {
 		serverURL = "http://" + *host + *port
 	}
 

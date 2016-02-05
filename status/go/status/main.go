@@ -72,6 +72,11 @@ var (
 	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 // StringIsInteresting returns true iff the string contains non-whitespace characters.
@@ -636,7 +641,6 @@ func runServer(serverURL string) {
 func main() {
 	defer common.LogPanic()
 	// Setup flags.
-	influxdb.SetupFlags()
 
 	common.InitWithMetrics("status", graphiteServer)
 	v, err := skiaversion.GetVersion()
@@ -661,7 +665,7 @@ func main() {
 	}
 
 	// Setup InfluxDB client.
-	dbClient, err = influxdb.NewClientFromFlagsAndMetadata(*testing)
+	dbClient, err = influxdb.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
 	if err != nil {
 		glog.Fatal(err)
 	}

@@ -6,7 +6,6 @@ package influxdb
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"sync"
 	"time"
@@ -22,21 +21,6 @@ const (
 	DEFAULT_PASSWORD = "root"
 	DEFAULT_DATABASE = "graphite"
 )
-
-var (
-	host     *string
-	user     *string
-	password *string
-	database *string
-)
-
-// SetupFlags adds command-line flags for InfluxDB.
-func SetupFlags() {
-	host = flag.String("influxdb_host", DEFAULT_HOST, "The InfluxDB hostname.")
-	user = flag.String("influxdb_name", DEFAULT_USER, "The InfluxDB username.")
-	password = flag.String("influxdb_password", DEFAULT_PASSWORD, "The InfluxDB password.")
-	database = flag.String("influxdb_database", DEFAULT_DATABASE, "The InfluxDB database.")
-}
 
 type queryClient interface {
 	Query(influx_client.Query) (*influx_client.Response, error)
@@ -77,16 +61,10 @@ func NewClient(host, user, password, database string) (*Client, error) {
 	}, nil
 }
 
-// NewClientFromFlags returns a Client with credentials obtained from flags.
-// Assumes that SetupFlags() and flag.Parse() have been called.
-func NewClientFromFlags() (*Client, error) {
-	return NewClient(*host, *user, *password, *database)
-}
-
-// NewClientFromFlagsAndMetadata returns a Client with credentials obtained
-// from a combination of flags and metadata, depending on whether the program
-// is running in local mode.
-func NewClientFromFlagsAndMetadata(local bool) (*Client, error) {
+// NewClientFromParamsAndMetadata returns a Client with credentials obtained
+// from a combination of the given parameters and metadata, depending on whether
+// the program is running in local mode.
+func NewClientFromParamsAndMetadata(host, user, password, database string, local bool) (*Client, error) {
 	if !local {
 		userMeta, err := metadata.ProjectGet(metadata.INFLUXDB_NAME)
 		if err != nil {
@@ -96,10 +74,10 @@ func NewClientFromFlagsAndMetadata(local bool) (*Client, error) {
 		if err != nil {
 			return nil, err
 		}
-		*user = userMeta
-		*password = passMeta
+		user = userMeta
+		password = passMeta
 	}
-	return NewClientFromFlags()
+	return NewClient(host, user, password, database)
 }
 
 // Point is a struct representing a single data point in InfluxDB.

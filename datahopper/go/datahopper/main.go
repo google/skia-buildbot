@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 )
@@ -32,6 +33,11 @@ var (
 	local    = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	grpcPort = flag.String("grpc_port", ":8000", "Port on which to run the buildbot data gRPC server.")
 	httpPort = flag.String("http_port", ":8001", "Port on which to run the HTTP server.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 
 	// Regexp matching non-alphanumeric characters.
 	re = regexp.MustCompile("[^A-Za-z0-9]+")
@@ -53,7 +59,7 @@ func main() {
 	defer common.LogPanic()
 
 	// Global init to initialize glog and parse arguments.
-	common.InitWithMetrics2("datahopper")
+	common.InitWithMetrics2("datahopper", *influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
 
 	// Shared repo objects.
 	skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "datahopper_skia"), true)
