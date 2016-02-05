@@ -563,7 +563,6 @@ _slave_host_dicts = {
 
   'skiabot-macmini-10_8-001': {
     'slaves': [
-      ('skiabot-macmini-10_8-000', '0', False),
       ('skiabot-macmini-10_8-001', '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
@@ -582,18 +581,6 @@ _slave_host_dicts = {
     'ip': '192.168.1.135',
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': '6',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skiabot-mac-10_8-compile': {
-    'slaves': [
-      ('skiabot-mac-10_8-compile-000', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.104',
-    'kvm_switch': KVM_SWITCH_DOOR,
-    'kvm_num': '7',
     'path_to_buildbot': ['buildbot'],
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
