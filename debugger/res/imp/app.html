@@ -27,6 +27,7 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/common/imp/9/details-summary.html">
 <link rel=import href="/res/common/imp/9/zoom.html">
 <link rel=import href="/res/common/imp/9/play.html">
+<link rel=import href="/res/common/imp/9/dbg-info.html">
 
 <link rel=import href="/res/common/imp/9/error-toast-sk.html">
 <dom-module id="debugger-app-sk">
@@ -104,6 +105,12 @@ The main application element for the Skia Debugger.
       margin: 0 3em;
       color: #1f78b4;
     }
+
+    dbg-info-sk {
+      margin-left: 3em;
+      margin-bottom: 1em;
+      display: block;
+    }
   </style>
   <template>
     <paper-header-panel>
@@ -139,7 +146,12 @@ The main application element for the Skia Debugger.
             </div>
           </div>
           <div id=right class="layout vertical flex-2">
-            <pre>{{ _json(info) }}</pre>
+            <details-sk open>
+              <summary-sk>
+                Clip and Matrix
+              </summary-sk>
+              <dbg-info-sk info="{{ info }}"></dbg-info-sk>
+            </details-sk>
             <div id=position><b>Postion:</b> ({{ x }}, {{ y }})</div>
             <div id=colors><b>Color:</b> {{ rgb }} {{ hex }} </div>
             <div>
