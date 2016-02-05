@@ -63,6 +63,10 @@ The main application element for the Skia Debugger.
     }
 
     #center {
+      overflow: hidden;
+    }
+
+    #rendered {
       margin: 0 10px;
       overflow: auto;
     }
@@ -257,6 +261,9 @@ The main application element for the Skia Debugger.
 
     _setCacheBreakingURL: function() {
       var path = "/img/" + this._targetIndex + "?";
+      sk.get("/info/" + this._targetIndex).then(JSON.parse).then(function(json) {
+        this.set('info', json);
+      }.bind(this)).catch(sk.errorMessage);
       this.$.img.src = window.location.origin + path + "?" + new Date().getTime();
     },
 
