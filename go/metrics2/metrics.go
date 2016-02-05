@@ -170,7 +170,7 @@ func (c *Client) getRawMetric(measurement string, tags map[string]string, initia
 		m = &rawMetric{
 			measurement: measurement,
 			mtx:         sync.RWMutex{},
-			tags:        tags,
+			tags:        util.CopyStringMap(tags),
 			value:       initial,
 		}
 		c.metrics[key] = m
