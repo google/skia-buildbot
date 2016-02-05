@@ -12,7 +12,10 @@
 
   Events:
       moveto - The index of the operation to be executed is available
-            in detail.index.
+          in detail.index.
+
+      mode-changed-manually - Event generated when the mode changes by the
+          user pressing a button. The new mode is in e.detail.
 
   Methods:
       movedTo(index) - Called when the action has moved to index.
@@ -67,6 +70,7 @@
 
       _togglePlay: function() {
         this.mode = (this.mode == "play") ? "pause" : "play";
+        this.dispatchEvent(new CustomEvent('mode-changed-manually', { mode: this.mode, bubbles: true }));
       },
 
       _modeChange: function() {
