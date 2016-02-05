@@ -59,7 +59,7 @@ func main() {
 	defer common.LogPanic()
 
 	// Global init to initialize glog and parse arguments.
-	common.InitWithMetrics2("datahopper", *influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
+	common.InitWithMetrics2("datahopper", influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	// Shared repo objects.
 	skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "datahopper_skia"), true)

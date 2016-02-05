@@ -180,7 +180,7 @@ func runServer(serverURL string) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("autoroll", *influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
+	common.InitWithMetrics2("autoroll", influxHost, influxUser, influxPassword, influxDatabase, local)
 	Init()
 
 	v, err := skiaversion.GetVersion()

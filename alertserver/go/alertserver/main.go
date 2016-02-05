@@ -376,7 +376,7 @@ func runServer(serverURL string) {
 func main() {
 	defer common.LogPanic()
 	alertDBConf := alerting.DBConfigFromFlags()
-	common.InitWithMetrics2("alertserver", *influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
+	common.InitWithMetrics2("alertserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		glog.Fatal(err)
