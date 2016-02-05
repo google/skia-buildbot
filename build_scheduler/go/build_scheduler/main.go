@@ -19,7 +19,8 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/human"
-	"go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 )
 
@@ -69,12 +70,16 @@ var (
 
 	// Flags.
 	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
-	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Build candidate scores are penalized using exponential time decay, starting at 1.0. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
 	scoreThreshold = flag.Float64("scoreThreshold", build_queue.DEFAULT_SCORE_THRESHOLD, "Don't schedule builds with scores below this threshold.")
 	timePeriod     = flag.String("timePeriod", "4d", "Time period to use.")
 	workdir        = flag.String("workdir", "workdir", "Working directory to use.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 // jsonGet fetches the given URL and decodes JSON into the given destination object.
@@ -303,7 +308,7 @@ func main() {
 	defer common.LogPanic()
 
 	// Global init.
-	common.InitWithMetrics(APP_NAME, graphiteServer)
+	common.InitWithMetrics2(APP_NAME, influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	// Parse the time period.
 	period, err := human.ParseDuration(*timePeriod)
@@ -337,14 +342,15 @@ func main() {
 	}
 
 	// Start scheduling builds in a loop.
-	liveness := metrics.NewLiveness(APP_NAME)
+	liveness := metrics2.NewLiveness("time-since-last-successful-scheduling", nil)
 	if err := scheduleBuilds(q, bb); err != nil {
 		glog.Errorf("Failed to schedule builds: %v", err)
 	}
 	for _ = range time.Tick(time.Minute) {
-		liveness.Update()
 		if err := scheduleBuilds(q, bb); err != nil {
 			glog.Errorf("Failed to schedule builds: %v", err)
+		} else {
+			liveness.Reset()
 		}
 	}
 }
