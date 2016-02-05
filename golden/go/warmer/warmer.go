@@ -5,6 +5,7 @@
 package warmer
 
 import (
+	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -64,6 +65,11 @@ func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tall
 			digests := util.KeysOfStringSet(traceDigests)
 			glog.Infof("FOUND %d digests to fetch.", len(digests))
 			storages.DiffStore.AbsPath(digests)
+
+			if err := warmTrybotDigests(storages, traceDigests); err != nil {
+				glog.Errorf("Error retrieving trybot digests: %s", err)
+				return
+			}
 		}
 
 		oneRun()
@@ -71,5 +77,44 @@ func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tall
 			oneRun()
 		}
 	}()
+	return nil
+}
+
+func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) error {
+	issues, _, err := storages.TrybotResults.ListTrybotIssues(0, 100)
+	if err != nil {
+		return err
+	}
+
+	trybotDigests := map[string]bool{}
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+	for _, oneIssue := range issues {
+		wg.Add(1)
+		go func(issueID string) {
+			_, tile, err := storages.TrybotResults.GetIssue(issueID)
+			if err != nil {
+				glog.Errorf("Unable to retrieve issue %s. Got error: %s", issueID, err)
+				return
+			}
+
+			for _, trace := range tile.Traces {
+				gTrace := trace.(*types.GoldenTrace)
+				for _, digest := range gTrace.Values {
+					if !traceDigests[digest] {
+						mutex.Lock()
+						trybotDigests[digest] = true
+						mutex.Unlock()
+					}
+				}
+			}
+			wg.Done()
+		}(oneIssue.ID)
+	}
+
+	wg.Wait()
+	digests := util.KeysOfStringSet(trybotDigests)
+	glog.Infof("FOUND %d trybot digests to fetch.", len(digests))
+	storages.DiffStore.AbsPath(digests)
 	return nil
 }
