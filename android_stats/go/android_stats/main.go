@@ -7,33 +7,50 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"reflect"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/metrics2"
+)
+
+const (
+	MEASUREMENT = "android-stats"
 )
 
 var (
-	frequency      = flag.String("frequency", "1m", "How often to send data.")
-	graphiteServer = flag.String("graphite server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
-	statsScript    = flag.String("stats_script", "", "Script to run which generates stats.")
+	frequency   = flag.String("frequency", "1m", "How often to send data.")
+	local       = flag.Bool("local", false, "Whether or not we're running in local testing mode.")
+	statsScript = flag.String("stats_script", "", "Script to run which generates stats.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
-// parseAndReportStats drills down recursively until it hits a non-map value,
-// then reports that value with the metric name as the path of keys to that
-// value, eg. "Nexus_5X.002e3da61560d3d4.battery.level".
-func parseAndReportStats(name string, stats map[string]interface{}) {
-	for k, v := range stats {
-		measurement := name + "." + k
-		kind := reflect.ValueOf(v).Kind()
-		if kind == reflect.Map {
-			parseAndReportStats(measurement, v.(map[string]interface{}))
-		} else {
-			glog.Infof("%s = %v", measurement, v)
-			metrics.GetOrRegisterGaugeFloat64(measurement, metrics.DefaultRegistry).Update(v.(float64))
+// reportStats drills down recursively until it hits a non-map value,
+// then reports that value with the measurement as given above, tags for device,
+// serial, and stat name, which is composed of the remaining map keys, eg.
+// device=Nexus_5X serial=002e3da61560d3d4 stat=battery-level
+func reportStats(device, serial, stat string, val interface{}) {
+	float, ok := val.(float64)
+	if ok {
+		tags := map[string]string{
+			"device": device,
+			"serial": serial,
+			"stat":   stat,
+		}
+		glog.Infof("%s %v = %v", MEASUREMENT, tags, float)
+		metrics2.GetFloat64Metric(MEASUREMENT, map[string]string{}).Update(float)
+		return
+	}
+	m, ok := val.(map[string]interface{})
+	if ok {
+		for k, v := range m {
+			reportStats(device, serial, stat+"-"+k, v)
 		}
 	}
 }
@@ -68,19 +85,29 @@ func generateStats() error {
 		return err
 	}
 
-	res := map[string]interface{}{}
+	res := map[string]map[string]map[string]interface{}{}
 	if err := json.Unmarshal([]byte(output), &res); err != nil {
 		return err
 	}
 
-	parseAndReportStats("androidstats", res)
+	for device, deviceStats := range res {
+		for serial, statMap := range deviceStats {
+			for stat, val := range statMap {
+				reportStats(device, serial, stat, val)
+			}
+		}
+	}
 
 	return nil
 }
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("android_stats", graphiteServer)
+	common.InitWithMetrics2("android_stats", influxHost, influxUser, influxPassword, influxDatabase, local)
+
+	if *statsScript == "" {
+		glog.Fatal("You must provide --stats_script.")
+	}
 
 	pollFreq, err := time.ParseDuration(*frequency)
 	if err != nil {
