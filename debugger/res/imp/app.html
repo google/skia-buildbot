@@ -171,8 +171,11 @@ The main application element for the Skia Debugger.
       // Can't set this as an attribute directly on iron-selector. Bah.
       this.$.selector.selectedAttribute = "selected";
       this.$.selector.addEventListener('iron-select', function(e) {
-        this._targetIndex = e.detail.item.index;
-        this._setCacheBreakingURL();
+        // Only force reloading the image if necessary.
+        if (this._targetIndex != e.detail.item.index) {
+          this._targetIndex = e.detail.item.index;
+          this._setCacheBreakingURL();
+        }
       }.bind(this));
       this._refreshPage();
 
@@ -188,10 +191,13 @@ The main application element for the Skia Debugger.
         this.set("y", e.detail.y);
       }.bind(this));
 
+      this.$.zoom.addEventListener('zoom-loaded', function(e) {
+        this.$.play.movedTo(this._targetIndex);
+      }.bind(this));
+
       this.$.img.addEventListener('load', function() {
         this.$.download.href = window.location.origin + "/download";
         this.$.download.classList.remove("hidden");
-        this.$.play.movedTo(this._targetIndex);
         this.$.selector.scrollTop = this.$.selector.items[this._targetIndex].offsetTop;
         this.$.selector.select(this._targetIndex);
       }.bind(this));

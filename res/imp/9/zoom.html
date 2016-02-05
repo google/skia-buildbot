@@ -25,6 +25,9 @@
             hex: "#ffefd5ff",
           }
 
+    zoom-loaded - This event is generated whenever the zoom has finished
+        updating the zoomed view after an image load.
+
   Methods:
     None.
 
@@ -96,7 +99,10 @@
       ready: function () {
         // Grab the img we are zooming from.
         this._img = $$$('#' + this.source, this._findParent());
-        this._img.addEventListener('load', this._cloneImage.bind(this));
+        this._img.addEventListener('load', function() {
+          this._cloneImage();
+          this.dispatchEvent(new CustomEvent('zoom-loaded', { bubbles: true }));
+        }.bind(this));
         this._cloneImage();
 
         // The canvas context we are drawing the zoomed pixels on.
