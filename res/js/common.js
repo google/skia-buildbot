@@ -673,6 +673,23 @@ this.sk = this.sk || function() {
 
   }
 
+  // Returns true if the sorted arrays a and b
+  // contain at least one element in common
+  sk.sharesElement = function(a, b) {
+    var i = 0;
+    var j = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] < b[j]) {
+        i++;
+      } else if (b[j] < a[i]) {
+        j++;
+      } else {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // Polyfill for String.startsWith from
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith#Polyfill
   // returns true iff the string starts with the given prefix

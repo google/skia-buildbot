@@ -102,7 +102,11 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/overview.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
-	detailsTemplate = template.Must(template.ParseFiles(
+	detailsTemplate = template.New("details.html")
+	// Allows this template to have Polymer binding in it and go template markup.  The go templates
+	// have been changed to be {%.Thing%} instead of {{.Thing}}
+	detailsTemplate.Delims("{%", "%}")
+	detailsTemplate = template.Must(detailsTemplate.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/details.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -210,7 +214,7 @@ func runServer() {
 
 	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.HandleFunc("/", indexHandler)
-	r.HandleFunc("/category/{category:[a-z_]+}", summaryPageHandler)
+	r.HandleFunc("/category/{category:[a-z_]+}", detailsPageHandler)
 	r.HandleFunc("/category/{category:[a-z_]+}/name/{name}", detailsPageHandler)
 	r.HandleFunc("/category/{category:[a-z_]+}/file/{file}", detailsPageHandler)
 	r.HandleFunc("/category/{category:[a-z_]+}/file/{file}/func/{function}", detailsPageHandler)
@@ -222,7 +226,7 @@ func runServer() {
 	r.HandleFunc("/json/details", detailsJSONHandler)
 	r.HandleFunc("/json/status", statusJSONHandler)
 	r.HandleFunc(`/fuzz/{category:[a-z_]+}/{name:[0-9a-f]+}`, fuzzHandler)
-	r.HandleFunc(`/metadata/{category:[a-z_]+}/{name:[0-9a-f]+_(debug|release)\.(err|dump)}`, metadataHandler)
+	r.HandleFunc(`/metadata/{category:[a-z_]+}/{name:[0-9a-f]+_(debug|release)\.(err|dump|asan)}`, metadataHandler)
 	r.HandleFunc("/fuzz_count", fuzzCountHandler)
 	r.HandleFunc("/newBug", newBugHandler)
 
@@ -278,7 +282,7 @@ func summaryPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type fuzzOverview struct {
+type countSummary struct {
 	Category        string `json:"category"`
 	CategoryDisplay string `json:"categoryDisplay"`
 	TotalBad        int    `json:"totalBadCount"`
@@ -302,10 +306,10 @@ func summaryJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getOverview() []fuzzOverview {
-	overviews := make([]fuzzOverview, 0, len(fcommon.FUZZ_CATEGORIES))
+func getOverview() []countSummary {
+	overviews := make([]countSummary, 0, len(fcommon.FUZZ_CATEGORIES))
 	for _, cat := range fcommon.FUZZ_CATEGORIES {
-		o := fuzzOverview{
+		o := countSummary{
 			CategoryDisplay: fcommon.PrettifyCategory(cat),
 			Category:        cat,
 		}
@@ -350,7 +354,7 @@ func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var f data.FileFuzzReport
+	var f data.FuzzReportTree
 	if name != "" {
 		var err error
 		if f, err = data.FindFuzzDetailForFuzz(category, name); err != nil {
@@ -451,13 +455,15 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 		Pending: nil,
 	}
 
-	s.Current.Hash = config.FrontEnd.SkiaVersion.Hash
-	s.Current.Author = config.FrontEnd.SkiaVersion.Author
-	if versionWatcher != nil {
-		if pending := versionWatcher.PendingVersion; pending != nil {
-			s.Pending = &commit{
-				Hash:   pending.Hash,
-				Author: pending.Author,
+	if config.FrontEnd.SkiaVersion != nil {
+		s.Current.Hash = config.FrontEnd.SkiaVersion.Hash
+		s.Current.Author = config.FrontEnd.SkiaVersion.Author
+		if versionWatcher != nil {
+			if pending := versionWatcher.PendingVersion; pending != nil {
+				s.Pending = &commit{
+					Hash:   pending.Hash,
+					Author: pending.Author,
+				}
 			}
 		}
 	}

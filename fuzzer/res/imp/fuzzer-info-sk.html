@@ -1,5 +1,5 @@
 <!--
-  The common.js file must be included before this file.
+  The res/js/fuzzer.js file must be included before this file.
 
   This in an HTML Import-able file that contains the definition
   of the following elements:
@@ -18,7 +18,11 @@
     <fuzzer-info-sk></fuzzer-info-sk>
 
   Properties:
-    None.
+    category: String.
+    exclude: Array of String, all fuzzes that have one or more of these strings as a flag will not
+        be shown.  This array must be sorted lexographically.
+    include: Array of String, all fuzzes must have one or more of these strings as a flag to be
+        shown.  This array must be sorted lexographically.
 
   Methods:
     None.
@@ -26,17 +30,32 @@
   Events:
     None.
 -->
+
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/common/imp/9/url-params-sk.html">
+
 <link rel="import" href="fuzzer-collapse-file-sk.html">
+<link rel="import" href="fuzzer-filter-sk.html">
+
 <dom-module id="fuzzer-info-sk">
   <template>
-  <iron-ajax auto url="/json/details"
+    <iron-ajax auto url="/json/details"
       handle-as="json"
-      params="{{_urlParams}}"
-      last-response="{{fileDetails}}">
+      params="[[_urlParams]]"
+      last-response="{{_fileDetails}}">
     </iron-ajax>
-      <fuzzer-collapse-file-sk file="{{fileDetails}}" category="{{category}}" expand></fuzzer-collapse-file-sk>
+
+    <template is="dom-repeat" items="{{_fileDetails}}" as="file" sort="_byCount" observe="count">
+      <fuzzer-collapse-file-sk file="{{file}}"
+          category="[[category]]"
+          include="[[include]]"
+          exclude="[[exclude]]"
+          expand="[[_shouldExpand()]]">
+      </fuzzer-collapse-file-sk>
+    </template>
+
   </template>
 
   <script>
@@ -44,20 +63,32 @@
       is: 'fuzzer-info-sk',
 
       properties: {
-        fileDetails: {
+        category: {
+          type: String,
+          value: "",
+        },
+        include: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+        exclude: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+        _fileDetails: {
           type: Array,
           value: function() {
             return [];
           },
         },
-        category: {
-          type: String,
-          value: "",
-        },
         _urlParams: {
           type: String,
           computed: "_getURLParams(category)",
-        }
+        },
       },
       _getURLParams: function(category) {
         return {
@@ -67,6 +98,13 @@
           "line": fuzzer.paramFromPath("line"),
           "name": fuzzer.paramFromPath("name"),
         };
+      },
+      _shouldExpand: function(){
+        return fuzzer.paramFromPath("file").length > 0;
+      },
+      _byCount: function(a, b) {
+        // Higher counts come first
+        return b.count - a.count;
       }
     });
   </script>

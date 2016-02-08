@@ -1,0 +1,136 @@
+<!--
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <fuzzer-filter-sk>
+
+  This element encapsulates the filtering mechanism for the fuzzer ui.
+
+  To use this file import it:
+
+    <link href="/res/imp/fuzzer-filter-sk.html" rel="import" />
+
+  Usage:
+
+    <fuzzer-filter-sk></fuzzer-filter-sk>
+
+  Properties:
+    include - An Array of strings that should be a part of the "include" filter.
+        This is sorted via sk.sortStrings.
+    exclude - An Array of strings that should be a part of the "exclude" filter.
+        This is sorted via sk.sortStrings.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/common/imp/9/url-params-sk.html">
+<link rel="import" href="/res/common/imp/9/select-status-sk.html">
+
+<dom-module id="fuzzer-filter-sk">
+  <template>
+  <style>
+  .selector {
+    max-width:240px;
+    display:inline-block;
+  }
+
+  </style>
+
+    <url-param-sk name="include" value="{{_include}}" multi></url-param-sk>
+    <url-param-sk name="exclude" value="{{_exclude}}" multi></url-param-sk>
+
+    <div class='.selector'>
+      <div>Include</div>
+      <select id="include" size="9" multiple>
+      <!-- These are from result.go, arranged in order by estimated usefullness.-->
+        <option value="ASAN_global-buffer-overflow">ASAN_global-buffer-overflow</option>
+        <option value="ASAN_heap-buffer-overflow">ASAN_heap-buffer-overflow</option>
+        <option value="ASAN_stack-buffer-overflow">ASAN_stack-buffer-overflow</option>
+        <option value="ASAN_heap-use-after-free">ASAN_heap-use-after-free</option>
+
+        <option value="SKPICTURE_DuringRendering">SKPICTURE_DuringRendering</option>
+
+        <option value="Other">Other</option>
+        <option value="AssertionViolated">AssertionViolated</option>
+        <option value="BadAlloc">BadAlloc</option>
+        <option value="FailedGracefully">FailedGracefully</option>
+        <option value="ClangCrashed">ClangCrashed</option>
+        <option value="ASANCrashed">ASANCrashed</option>
+        <option value="NoStackTrace">NoStackTrace</option>
+        <option value="TimedOut">TimedOut</option>
+      </select>
+      <select-status-sk target="include" values="{{_include}}" clear></select-status-sk>
+    </div>
+
+
+    <div class='.selector'>
+      <div>Exclude</div>
+      <select id="exclude" size="9" multiple>
+      <!-- These are from result.go, arranged in order by estimated usefullness.-->
+        <option value="ASAN_global-buffer-overflow">ASAN_global-buffer-overflow</option>
+        <option value="ASAN_heap-buffer-overflow">ASAN_heap-buffer-overflow</option>
+        <option value="ASAN_stack-buffer-overflow">ASAN_stack-buffer-overflow</option>
+        <option value="ASAN_heap-use-after-free">ASAN_heap-use-after-free</option>
+
+        <option value="SKPICTURE_DuringRendering">SKPICTURE_DuringRendering</option>
+
+        <option value="Other">Other</option>
+        <option value="AssertionViolated">AssertionViolated</option>
+        <option value="BadAlloc">BadAlloc</option>
+        <option value="FailedGracefully">FailedGracefully</option>
+        <option value="ClangCrashed">ClangCrashed</option>
+        <option value="ASANCrashed">ASANCrashed</option>
+        <option value="NoStackTrace">NoStackTrace</option>
+        <option value="TimedOut">TimedOut</option>
+      </select>
+      <select-status-sk target="exclude" values="{{_exclude}}" clear></select-status-sk>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'fuzzer-filter-sk',
+
+      properties: {
+        // We want the child elements (url-param and multi-select) to be able to be bound together.
+        // However, we don't want anything the parent element does to mess up the filters.
+        // Using the standard "readOnly":true allows the latter, but doesn't allow the child
+        // elements to bind, so we add in this computed element which returns the
+        // (sorted) elements.
+        exclude: {
+          type: Array,
+          computed: '_sort(_exclude)',
+          notify: true,
+        },
+        include: {
+          type: Array,
+          computed: '_sort(_include)',
+          notify: true,
+        },
+        _exclude: {
+          type: Array,
+          // no default value to avoid clobbering default value in the url parameters
+        },
+        _include: {
+          type: Array,
+          // no default value to avoid clobbering default value in the url parameters
+        },
+      },
+
+      _sort: function(val) {
+        if (!val) {
+          return [];
+        }
+        return val.sort();
+      },
+
+    });
+  </script>
+</dom-module>

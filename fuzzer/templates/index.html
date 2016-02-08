@@ -6,43 +6,41 @@
 </head>
 <body class="fullbleed vertical layout unresolved">
     <style is="custom-style">
-    app-sk {
-      --app-sk-main: {
-        background-color: #FFFFFF;
-        font-family: sans-serif;
-      };
-      --app-sk-toolbar: {
-        background-color: #8be1b8;
-      };
-      login-sk{
-        --login-sk-color: white;
-      };
-    }
-    .title {
-      padding:2px;
-      margin-top:5px;
-    }
-    .title span {
-      display:inline;
-      font-size: 1.5em;
-      -webkit-margin-before: 0.83em;
-      -webkit-margin-after: 0.83em;
-      -webkit-margin-start: 0px;
-      -webkit-margin-end: 0px;
-      font-weight: bold;
-    }
-    .count {
-      max-width:420px;
-    }
+      app-sk {
+        --app-sk-main: {
+          background-color: #FFFFFF;
+          font-family: sans-serif;
+        };
+        --app-sk-toolbar: {
+          background-color: #8be1b8;
+        };
+        login-sk{
+          --login-sk-color: white;
+        };
+      }
+      .title {
+        padding:2px;
+        margin-top:5px;
+      }
+      .title {
+        display:inline;
+        font-size: 1.5em;
+        -webkit-margin-before: 0.83em;
+        -webkit-margin-after: 0.83em;
+        -webkit-margin-start: 0px;
+        -webkit-margin-end: 0px;
+        font-weight: bold;
+      }
+      .count {
+        max-width:420px;
+      }
     </style>
   <app-sk class="fit" flex>
     <img header id="logo" src="/res/img/skia_fuzz.png">
     <fuzzer-status-sk rtoolbar></fuzzer-status-sk>
     <fuzzer-menu-sk navigation></fuzzer-menu-sk>
 
-    <div class="title horizontal layout">
-      <span>Failing Fuzzes</span>
-    </div>
+    <div class="title">Failing Fuzzes</div>
 
     <fuzzer-summary-sk></fuzzer-summary-sk>
   </app-sk>

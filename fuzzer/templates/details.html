@@ -2,32 +2,41 @@
 <html>
 <head>
     <title>Skia Fuzzer Details</title>
-    {{template "header.html" .}}
+    {%template "header.html" .%}
 </head>
 <body class="fullbleed vertical layout unresolved">
-    <style is="custom-style">
-    app-sk {
-      --app-sk-main: {
-        background-color: #FFFFFF;
-        font-family: sans-serif;
-      };
-      --app-sk-toolbar: {
-        background-color: #8be1b8;
-      };
-      login-sk{
-        --login-sk-color: white;
-      };
-    }
-    </style>
-  <app-sk class="fit" flex>
-    <img header id="logo" src="/res/img/skia_fuzz.png">
-    <fuzzer-status-sk rtoolbar></fuzzer-status-sk>
-    <fuzzer-menu-sk navigation></fuzzer-menu-sk>
+  <style is="custom-style">
+  app-sk {
+    --app-sk-main: {
+      background-color: #FFFFFF;
+      font-family: sans-serif;
+    };
+    --app-sk-toolbar: {
+      background-color: #8be1b8;
+    };
+    login-sk{
+      --login-sk-color: white;
+    };
+  }
+  </style>
+  <template is="dom-bind">
+    <app-sk class="fit" drawer_width="250px" flex>
+      <img header id="logo" src="/res/img/skia_fuzz.png">
+      <fuzzer-status-sk rtoolbar></fuzzer-status-sk>
+      <fuzzer-menu-sk navigation>
+        <fuzzer-filter-sk include="{{include}}" exclude="{{exclude}}">
+        </fuzzer-filter-sk>
+      </fuzzer-menu-sk>
 
-    <h2>Fuzz Details</h2>
+      <h2>Fuzz Details</h2>
 
-    <fuzzer-info-sk category="{{.Category}}"></fuzzer-info-sk>
-  </app-sk>
+      <fuzzer-info-sk
+          category="{%.Category%}"
+          include="[[include]]"
+          exclude="[[exclude]]">
+      </fuzzer-info-sk>
+    </app-sk>
+  </template>
 
 </body>
 </html>

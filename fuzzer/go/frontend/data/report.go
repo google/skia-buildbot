@@ -102,22 +102,28 @@ func FindFuzzSummary(category string) FuzzReportTree {
 
 // FindFuzzDetails returns the detailed fuzz reports for a file name, function name, and line number.
 // If functionName is "" or lineNumber is -1, all reports are shown.
-func FindFuzzDetails(category, fileName, functionName string, lineNumber int) (FileFuzzReport, error) {
-	cache := currentData.caches[category]
-	for _, file := range cache.FullReport {
-		if file.FileName == fileName {
-			if functionName == "" {
-				return file, nil
+func FindFuzzDetails(category, fileName, functionName string, lineNumber int) (FuzzReportTree, error) {
+	cache, found := currentData.caches[category]
+	if found {
+		if fileName == "" {
+			return cache.FullReport, nil
+		}
+		for _, file := range cache.FullReport {
+			if file.FileName == fileName {
+				if functionName == "" {
+					return FuzzReportTree{file}, nil
+				}
+				file.filterByFunctionName(functionName)
+				if lineNumber == common.UNKNOWN_LINE {
+					return FuzzReportTree{file}, nil
+				}
+				file.Functions[0].filterByLineNumber(lineNumber)
+				return FuzzReportTree{file}, nil
 			}
-			file.filterByFunctionName(functionName)
-			if lineNumber == common.UNKNOWN_LINE {
-				return file, nil
-			}
-			file.Functions[0].filterByLineNumber(lineNumber)
-			return file, nil
 		}
 	}
-	return FileFuzzReport{}, fmt.Errorf("File %q not found", fileName)
+
+	return nil, fmt.Errorf("File %q not found", fileName)
 }
 
 // filterByFunctionName removes all FuzzReportFunction except that which matches functionName
@@ -149,15 +155,15 @@ func CategoryOverview(category string) FuzzReportTree {
 
 // FindFuzzDetailForFuzz returns a tree containing the single
 // report with the given name, or an error, it it doesn't exist.
-func FindFuzzDetailForFuzz(category, name string) (FileFuzzReport, error) {
+func FindFuzzDetailForFuzz(category, name string) (FuzzReportTree, error) {
 	if cache, found := currentData.caches[category]; found {
 		for _, file := range cache.FullReport {
 			if file.filterByFuzzName(name) {
-				return file, nil
+				return FuzzReportTree{file}, nil
 			}
 		}
 	}
-	return FileFuzzReport{}, fmt.Errorf("Fuzz with name %q not found", name)
+	return nil, fmt.Errorf("Fuzz with name %q not found", name)
 }
 
 // filterByFuzzName filters out all functions that do not contain a fuzz with the given

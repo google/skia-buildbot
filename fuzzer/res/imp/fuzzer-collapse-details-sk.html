@@ -17,24 +17,29 @@
   Properties:
     details - The details object.  Expected to have the following attributes:
       lineNumber: Number,
-      count: Number,
+      count: Number, The full number of reports.
       reports: Array of Reports. If non-empty,
         an expandable details panel will be created containing representations of the reports.
         If empty, just the summary will be shown.
         Reports are objects and have the following attributes:
         - name: String, The name of the binary, likely an md5 hash
         - type: String, The type of the binary
-        - flags: Array of String, The flags associated with the run (e.g. DebugDumped)
+        - debugFlags: Array of String, Flags associated with the debug run (e.g. FailedGracefully)
+        - releaseFlags: Array of String, Flags associated with the release run (e.g. ASANCrashed)
         - debugStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
         - releaseStackTrace: Object (see fuzzer-stacktrace-sk.html for schema)
+        - category: String.
     detailsBase: String, the base url for details (should include file and function name)
     expand: Boolean, if this element should be auto expanded.
+    exclude: Array of String, all fuzzes that have one or more of these strings as a flag will not
+        be shown.  This array must be sorted lexographically.
+    include: Array of String, all fuzzes must have one or more of these strings as a flag to be
+        shown.  This array must be sorted lexographically.
 
   Methods:
     setDetails(details) - Programmatically set the details object.
     showMore() - Programmatically show up to 6 more details panels.
     showFewer() - Programmatically show up to 6 fewer details panels.
-    toggleDetails() - Programmticaly hide/show the details panels.
 
   Events:
     None.
@@ -99,54 +104,48 @@
     }
     </style>
     <div id="wrapper">
-      <template is="dom-if" if="{{!_hasDetails(details)}}">
-        <li>
-          <a href$="{{_getDetailsLink(detailsBase, details)}}">Line {{details.lineNumber}}</a>
-          -- {{details.count}} crash-causing fuzzes
-        </li>
-      </template>
-      <template is="dom-if" if="{{_hasDetails(details)}}">
-        <li>
-          <details-sk open="[[expand]]">
-            <summary-sk>
-              <a href$="{{_getDetailsLink(detailsBase, details)}}">Line {{details.lineNumber}}</a>
-            -- {{details.count}} crash-causing fuzzes
-            </summary-sk>
-            <div class="panel-container">
-              <template is="dom-repeat" items="{{reports}}" as="report">
-                <div class="panel">
-                  <div class="title">
-                  File:
-                  <a href$="{{_getDownloadLink(report)}}">{{report.fuzzName}}</a>
-                  &nbsp;
-                  <a href$="{{_getPermaLink(report)}}"><iron-icon icon="icons:link" title="permalink"></iron-icon></a>
-                  &nbsp;
-                  <a href$="{{_getNewBugLink(report)}}" target="_blank"><iron-icon icon="icons:bug-report" title="file a bug about this fuzz"></iron-icon></a>
-                  </div>
-                  <div class="raw">
-                    <a href$="{{_getMetaLink(report,'debug','err')}}">debug_err</a>
-                    <a href$="{{_getMetaLink(report,'release','err')}}">release_err</a>
-                    <a href$="{{_getMetaLink(report,'debug','dump')}}">debug_dump</a>
-                    <a href$="{{_getMetaLink(report,'release','dump')}}">release_dump</a>
-                  </div>
-                  <div>{{_getFlags(report)}}</div>
-                  <h4>Debug Stack Trace</h4>
-                  <fuzzer-stacktrace-sk trace="{{report.debugStackTrace}}"></fuzzer-stacktrace-sk>
-                  <h4>Release Stack Trace</h4>
-                  <fuzzer-stacktrace-sk trace="{{report.releaseStackTrace}}"></fuzzer-stacktrace-sk>
+      <li>
+        <details-sk open="[[expand]]">
+          <summary-sk>
+            <a href$="{{_getDetailsLink(detailsBase, details)}}">Line {{details.lineNumber}}</a>
+          -- {{numReports}} crash-causing fuzzes
+          </summary-sk>
+          <div class="panel-container">
+            <template is="dom-repeat" items="{{_getSomeReports(filteredReports, toShow)}}" as="report">
+              <div class="panel">
+                <div class="title">
+                File:
+                <a href$="{{_getDownloadLink(report)}}">{{report.fuzzName}}</a>
+                &nbsp;
+                <a href$="{{_getPermaLink(report)}}"><iron-icon icon="icons:link" title="permalink"></iron-icon></a>
+                &nbsp;
+                <a href$="{{_getNewBugLink(report)}}" target="_blank"><iron-icon icon="icons:bug-report" title="file a bug about this fuzz"></iron-icon></a>
                 </div>
-              </template>
-              <div class="show-more-less-bar">
-                <paper-button disabled$="{{!hasFewer}}" on-click="showFewer">Show Fewer</paper-button>
-                <span class="status">
-                  <span class="center">Showing {{toShow}}/{{details.count}}</span>
-                </span>
-                <paper-button disabled$="{{!hasMore}}" on-click="showMore">Show More</paper-button>
+                <div class="raw">
+                  <a href$="{{_getMetaLink(report,'debug','asan')}}">debug_asan</a>
+                  <a href$="{{_getMetaLink(report,'release','asan')}}">release_asan</a>
+                  <a href$="{{_getMetaLink(report,'debug','err')}}">debug_err</a>
+                  <a href$="{{_getMetaLink(report,'release','err')}}">release_err</a>
+                  <a href$="{{_getMetaLink(report,'debug','dump')}}">debug_dump</a>
+                  <a href$="{{_getMetaLink(report,'release','dump')}}">release_dump</a>
+                </div>
+                <div>{{_getFlags(report)}}</div>
+                <h4>Debug Stack Trace</h4>
+                <fuzzer-stacktrace-sk trace="{{report.debugStackTrace}}"></fuzzer-stacktrace-sk>
+                <h4>Release Stack Trace</h4>
+                <fuzzer-stacktrace-sk trace="{{report.releaseStackTrace}}"></fuzzer-stacktrace-sk>
               </div>
+            </template>
+            <div class="show-more-less-bar">
+              <paper-button disabled$="{{!hasFewer}}" on-click="showFewer">Show Fewer</paper-button>
+              <span class="status">
+                <span class="center">Showing {{_min(toShow, numReports)}}/{{numReports}}</span>
+              </span>
+              <paper-button disabled$="{{!hasMore}}" on-click="showMore">Show More</paper-button>
             </div>
-          </details-sk>
-        </li>
-      </template>
+          </div>
+        </details-sk>
+      </li>
     </div>
   </template>
   <script>
@@ -166,7 +165,7 @@
       },
       // detailsBase is the base url to the details page for the parent element.
       // We will use fuzzer.getLinkToDetails() to append the line information to the link.
-      detailsBase: { // expected to be provided
+      detailsBase: {
         type: String,
         value: ""
       },
@@ -187,10 +186,24 @@
         computed: "_hasFewer(toShow)"
       },
       // Returns the amount of detail panels equal to 'toShow'
-      reports: {
+      filteredReports: {
         type: Array,
-        computed: "_getSomeReports(details, toShow)",
+        computed: "_filterReports(details, exclude, include)",
       },
+      exclude: {
+        type: Array,
+        value: [],
+      },
+      include: {
+        type: Array,
+        value: [],
+      },
+      numReports: {
+        type: Number,
+        computed: "_getNumFiltered(filteredReports)",
+        reflectToAttribute: true,
+        notify: true,
+      }
     },
 
     ready: function() {
@@ -204,12 +217,15 @@
       this._setToShow(Math.min(6, this.details.reports.length));
     },
 
-    _hasDetails: function(details) {
-      return this.details.reports && this.details.reports.length > 0;
-    },
-
     _getFlags: function(report) {
-      return report.flags.join(" | ");
+      if (!report.debugFlags) {
+        report.debugFlags = ["<none>"];
+      }
+      if (!report.releaseFlags) {
+        report.releaseFlags = ["<none>"];
+      }
+      return "[Debug] " + report.debugFlags.join(" | ") + "  [Release] " +
+              report.releaseFlags.join(" | ");
     },
 
     showMore: function() {
@@ -228,15 +244,42 @@
       return toShow > 0;
     },
 
-    // _getSomeReports returns up to {{toShow}} reports from details
-    _getSomeReports: function(details, toShow) {
-      if (!details.reports) {
-        return [];
-      }
-      if (toShow > details.reports.length) {
+    _min: function(a, b) {
+      return Math.min(a, b);
+    },
+
+    _filterReports: function(details, exclude, include) {
+      exclude = exclude || [];
+      include = include || [];
+      if (exclude.length === 0 && include.length === 0) {
         return details.reports;
       }
-      return details.reports.slice(0, toShow);
+
+      return details.reports.filter(function(report){
+        if (sk.sharesElement(exclude, report.debugFlags) ||
+            sk.sharesElement(exclude, report.releaseFlags)) {
+          return false;
+        }
+        if (include.length === 0) {
+          return true;
+        }
+        if (!sk.sharesElement(include, report.debugFlags) &&
+            !sk.sharesElement(include, report.releaseFlags)) {
+          return false;
+        }
+        return true;
+      });
+    },
+
+    // _getSomeReports returns up to {{toShow}} reports from details
+    _getSomeReports: function(filteredReports, toShow) {
+      if (!filteredReports) {
+        return [];
+      }
+      if (toShow > filteredReports.length) {
+        return filteredReports;
+      }
+      return filteredReports.slice(0, toShow);
     },
 
     _getDownloadLink: function(report) {
@@ -258,6 +301,12 @@
 
     _getNewBugLink: function(report) {
       return "/newBug?name=" + report.fuzzName + "&category="+report.category;
+    },
+    _getNumFiltered: function(filteredReports) {
+      if (!filteredReports) {
+        return 0;
+      }
+      return filteredReports.length;
     },
   });
   </script>
