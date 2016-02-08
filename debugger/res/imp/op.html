@@ -34,10 +34,16 @@
     pre {
       margin-left: 3em;
     }
+
+    summary-sk span {
+      float: right;
+      margin-top: 0.7em;
+      margin-right: 1em;
+    }
   </style>
   <template>
     <details-sk selected$="{{selected}}">
-      <summary-sk style$="padding-left: {{ op._depth }}em;" id=summary>{{ op.command }}</summary-sk>
+      <summary-sk style$="padding-left: {{ op._depth }}em;" id=summary>{{ op.command }} <span>{{index}}</span></summary-sk>
       <pre>
 {{ _display(op) }}
       </pre>
