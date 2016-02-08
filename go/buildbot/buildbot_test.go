@@ -246,7 +246,7 @@ func testFindCommitsForBuild(t *testing.T, local bool) {
 		// 0. The first build.
 		{
 			GotRevision: hashes['B'],
-			Expected:    []string{hashes['A'], hashes['B']},
+			Expected:    []string{hashes['B']}, // Build #0 is limited to a single commit.
 			StoleFrom:   -1,
 			Stolen:      []string{},
 		},

@@ -15,6 +15,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	MAX_BLAMELIST_COMMITS = 500
+)
+
 var (
 	// BUILD_BLACKLIST is a set of builds which, for one reason or another,
 	// we want to skip during ingestion. Typically this means that there is
@@ -92,12 +96,28 @@ func findCommitsRecursive(db DB, commits map[string]bool, b *Build, hash string,
 		return commits, stealFrom, stolen, nil
 	}
 
+	// Shortcut in case we missed this case before; if this is the first
+	// build on this bot which has a valid GotRevision, the blamelist will
+	// be the entire Git history. If we find too many commits, assume we've
+	// hit this case and just return the GotRevision as the blamelist.
+	if len(commits) > MAX_BLAMELIST_COMMITS && stealFrom == -1 {
+		return map[string]bool{b.GotRevision: true}, -1, []string{}, nil
+	}
+
 	// Determine whether any build already includes this commit.
 	n, err := db.GetBuildNumberForCommit(b.Master, b.Builder, hash)
 	if err != nil {
 		return commits, stealFrom, stolen, fmt.Errorf("Could not find build for commit %s: %s", hash, err)
 	}
-	// If so, we have to make a decision.
+
+	// If we're stealing commits from a previous build but the current
+	// commit is not in any build's blamelist, we must have scrolled past
+	// the beginning of the builds. Just return.
+	if n < 0 && stealFrom >= 0 {
+		return commits, stealFrom, stolen, nil
+	}
+
+	// If a previous build already included this commit, we have to make a decision.
 	if n >= 0 {
 		// If the build we found is the current build, keep going,
 		// since we may have already ingested data for this build but still
@@ -126,8 +146,11 @@ func findCommitsRecursive(db DB, commits map[string]bool, b *Build, hash string,
 				}
 			}
 			if stealFrom == n {
+				// Continue stealing commits from the older build.
 				stolen = append(stolen, hash)
 			} else {
+				// If we've hit a commit belonging to a different build,
+				// just return.
 				return commits, stealFrom, stolen, nil
 			}
 		}
@@ -186,11 +209,10 @@ func FindCommitsForBuild(db DB, b *Build, repos *gitinfo.RepoMap) ([]string, int
 		}
 	}
 
-	// Shortcut for the first build for a given builder: this build must be
-	// the first inclusion for all revisions prior to b.GotRevision.
+	// Shortcut for the first build for a given builder: Just use GotRevision
+	// as the blamelist.
 	if b.Number == 0 && b.GotRevision != "" {
-		revlist, err := repo.RevList(b.GotRevision)
-		return revlist, -1, []string{}, err
+		return []string{b.GotRevision}, -1, []string{}, nil
 	}
 	// Start tracing commits back in time until we hit a previous build.
 	commitMap, stealFrom, stolen, err := findCommitsRecursive(db, map[string]bool{}, b, b.GotRevision, repo, -1, []string{})
