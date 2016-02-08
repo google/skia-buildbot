@@ -352,12 +352,14 @@ func AddParamSetToParamSet(a map[string][]string, b map[string][]string) map[str
 
 // AddParams adds the second instance of map[string]string to the first and
 // returns the first map.
-func AddParams(a map[string]string, b map[string]string) map[string]string {
+func AddParams(a map[string]string, b ...map[string]string) map[string]string {
 	if a == nil {
 		a = make(map[string]string, len(b))
 	}
-	for k, v := range b {
-		a[k] = v
+	for _, oneMap := range b {
+		for k, v := range oneMap {
+			a[k] = v
+		}
 	}
 	return a
 }

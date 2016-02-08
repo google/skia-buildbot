@@ -157,9 +157,12 @@ func (m *rawMetric) update(v interface{}) {
 
 // getRawMetric creates or retrieves a metric with the given measurement name
 // and tag set and returns it.
-func (c *Client) getRawMetric(measurement string, tags map[string]string, initial interface{}) *rawMetric {
+func (c *Client) getRawMetric(measurement string, tagsList []map[string]string, initial interface{}) *rawMetric {
 	c.metricsMtx.Lock()
 	defer c.metricsMtx.Unlock()
+
+	// Make a copy of the concatenation of all provided tags.
+	tags := util.AddParams(map[string]string{}, tagsList...)
 	md5, err := util.MD5Params(tags)
 	if err != nil {
 		glog.Errorf("Failed to encode measurement tags: %s", err)
@@ -170,7 +173,7 @@ func (c *Client) getRawMetric(measurement string, tags map[string]string, initia
 		m = &rawMetric{
 			measurement: measurement,
 			mtx:         sync.RWMutex{},
-			tags:        util.CopyStringMap(tags),
+			tags:        tags,
 			value:       initial,
 		}
 		c.metrics[key] = m

@@ -4,6 +4,8 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -21,29 +23,32 @@ type Timer struct {
 	tags        map[string]string
 }
 
-// NewTimer creates and returns a new Timer.
-func (c *Client) NewTimer(name string, tags map[string]string) *Timer {
-	// Add the name to the tags.
-	t := make(map[string]string, len(tags)+1)
-	for k, v := range tags {
-		t[k] = v
-	}
-	t["name"] = name
-	return &Timer{
-		begin:       time.Now(),
+// NewTimer creates and returns a new started timer.
+func (c *Client) NewTimer(name string, tagsList ...map[string]string) *Timer {
+	// Make a copy of the tags and add the name.
+	tags := util.AddParams(map[string]string{}, tagsList...)
+	tags["name"] = name
+	ret := &Timer{
 		client:      c,
 		measurement: MEASUREMENT_TIMER,
-		tags:        t,
+		tags:        tags,
 	}
+	ret.Start()
+	return ret
 }
 
 // NewTimer creates and returns a new Timer using the default client.
-func NewTimer(name string, tags map[string]string) *Timer {
-	return DefaultClient.NewTimer(name, tags)
+func NewTimer(name string, tags ...map[string]string) *Timer {
+	return DefaultClient.NewTimer(name, tags...)
+}
+
+// Start starts or resets the timer.
+func (t *Timer) Start() {
+	t.begin = time.Now()
 }
 
 // Stop stops the timer and reports the elapsed time.
-func (t Timer) Stop() {
+func (t *Timer) Stop() {
 	v := int64(time.Now().Sub(t.begin))
 	t.client.addPoint(t.measurement, t.tags, v)
 }

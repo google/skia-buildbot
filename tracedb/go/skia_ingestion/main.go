@@ -11,6 +11,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/geventbus"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	_ "go.skia.org/infra/golden/go/goldingestion"
@@ -21,16 +22,19 @@ import (
 
 // Command line flags.
 var (
-	graphiteServer     = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	local              = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	configFilename     = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 	nsqdAddress        = flag.String("nsqd", "", "Address and port of nsqd instance.")
+	influxHost         = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser         = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword     = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase     = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("skia-ingestion", graphiteServer)
+	common.InitWithMetrics2("skia-ingestion", influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	// If no nsqd servers is defines, we simply don't have gloabl events.
 	var globalEventBus geventbus.GlobalEventBus = nil

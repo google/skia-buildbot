@@ -3,6 +3,8 @@ package metrics2
 import (
 	"sync"
 	"time"
+
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -25,16 +27,13 @@ type Liveness struct {
 // NewLiveness creates a new Liveness metric helper. The current value is
 // reported at the given frequency; if the report frequency is zero, the value
 // is only reported when it changes.
-func (c *Client) NewLiveness(name string, tags map[string]string) *Liveness {
-	// Add the name to the tags.
-	t := make(map[string]string, len(tags)+1)
-	for k, v := range tags {
-		t[k] = v
-	}
-	t["name"] = name
+func (c *Client) NewLiveness(name string, tagsList ...map[string]string) *Liveness {
+	// Make a copy of the tags and add the name.
+	tags := util.AddParams(map[string]string{}, tagsList...)
+	tags["name"] = name
 	l := &Liveness{
 		lastSuccessfulUpdate: time.Now(),
-		m:                    c.GetInt64Metric(MEASUREMENT_LIVENESS, t),
+		m:                    c.GetInt64Metric(MEASUREMENT_LIVENESS, tags),
 		mtx:                  sync.Mutex{},
 	}
 	go func() {
@@ -48,8 +47,8 @@ func (c *Client) NewLiveness(name string, tags map[string]string) *Liveness {
 // NewLiveness creates a new Liveness metric helper using the default client.
 // The current value is reported at the given frequency; if the report frequency
 // is zero, the value is only reported when it changes.
-func NewLiveness(name string, tags map[string]string) *Liveness {
-	return DefaultClient.NewLiveness(name, tags)
+func NewLiveness(name string, tags ...map[string]string) *Liveness {
+	return DefaultClient.NewLiveness(name, tags...)
 }
 
 // updateLocked sets the value of the Liveness. Assumes the caller holds a lock.

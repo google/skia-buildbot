@@ -10,7 +10,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
-	smetrics "go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -18,6 +18,14 @@ import (
 
 // BoltDB bucket where MD5 hashes of processed files are stored.
 const PROCESSED_FILES_BUCKET = "processed_files"
+
+// Tag names used to collect metrics.
+const (
+	MEASUREMENT_INGESTION = "ingestion"
+	TAG_INGESTION_METRIC  = "metric"
+	TAG_INGESTER_ID       = "ingester"
+	TAG_INGESTER_SOURCE   = "source"
+)
 
 // Source defines an ingestion source that returns lists of result files
 // either through polling or in an event driven mode.
@@ -174,6 +182,7 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 	for idx, source := range i.sources {
 		go func(source Source, srcMetrics *sourceMetrics, doneCh <-chan bool) {
 			util.Repeat(i.runEvery, doneCh, func() {
+				srcMetrics.pollTimer.Start()
 				var startTime, endTime int64 = 0, 0
 				startTime, endTime, err := i.getCommitRangeOfInterest()
 				if err != nil {
@@ -182,9 +191,7 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 				}
 
 				// measure how long the polling takes.
-				pollStart := time.Now()
 				resultFiles, err := source.Poll(startTime, endTime)
-				srcMetrics.pollTimer.UpdateSince(pollStart)
 				if err != nil {
 					// Indicate that there was an error in polling the source.
 					srcMetrics.pollError.Update(1)
@@ -195,18 +202,20 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 				// Indicate that the polling was successful.
 				srcMetrics.pollError.Update(0)
 				pollChan <- resultFiles
-				srcMetrics.liveness.Update()
+				srcMetrics.liveness.Reset()
+				srcMetrics.pollTimer.Stop()
 			})
 		}(source, i.srcMetrics[idx], i.doneCh)
 
 		if ch := source.EventChan(); ch != nil {
-			go func(ch <-chan []ResultFileLocation, doneCh <-chan bool) {
+			go func(ch <-chan []ResultFileLocation, doneCh <-chan bool, srcMetrics *sourceMetrics) {
 				queue := rflQueue{}
 				for {
 					// If the queue is not empty, try to send the data while we wait for more data.
 					if len(queue) > 0 {
 						select {
 						case eventChan <- queue:
+							srcMetrics.eventsReceived.Update(int64(len(queue)))
 							queue.clear()
 						case results := <-ch:
 							queue.push(results)
@@ -224,7 +233,7 @@ func (i *Ingester) getInputChannels() (<-chan []ResultFileLocation, <-chan []Res
 
 					}
 				}
-			}(ch, i.doneCh)
+			}(ch, i.doneCh, i.srcMetrics[idx])
 		}
 	}
 	return pollChan, eventChan
@@ -365,46 +374,50 @@ func (i *Ingester) getCommitRangeOfInterest() (int64, int64, error) {
 	return detail.Timestamp.Unix(), time.Now().Unix(), nil
 }
 
+// Shorthand type to define helpers.
+type tags map[string]string
+
 // processMetrics contains the metrics we are interested for processing results.
 // We have one instance for polled result files and one for files that were
 // delievered via events.
 type processMetrics struct {
-	totalFilesGauge metrics.Gauge
-	processedGauge  metrics.Gauge
-	ignoredGauge    metrics.Gauge
-	errorGauge      metrics.Gauge
+	totalFilesGauge *metrics2.Int64Metric
+	processedGauge  *metrics2.Int64Metric
+	ignoredGauge    *metrics2.Int64Metric
+	errorGauge      *metrics2.Int64Metric
 }
 
 // newProcessMetrics instantiates the metrics to track processing and registers them
 // with the metrics package.
 func newProcessMetrics(id, subtype string) *processMetrics {
-	prefix := fmt.Sprintf("%s.%s", id, subtype)
+	commonTags := tags{TAG_INGESTER_ID: id, TAG_INGESTER_SOURCE: subtype}
 	return &processMetrics{
-		totalFilesGauge: metrics.NewRegisteredGauge(prefix+".total", metrics.DefaultRegistry),
-		processedGauge:  metrics.NewRegisteredGauge(prefix+".processed", metrics.DefaultRegistry),
-		ignoredGauge:    metrics.NewRegisteredGauge(prefix+".ignored", metrics.DefaultRegistry),
-		errorGauge:      metrics.NewRegisteredGauge(prefix+".errors", metrics.DefaultRegistry),
+		totalFilesGauge: metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "total"}),
+		processedGauge:  metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "processed"}),
+		ignoredGauge:    metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "ignored"}),
+		errorGauge:      metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "errors"}),
 	}
 }
 
 // sourceMetrics tracks metrics for one input source.
 type sourceMetrics struct {
-	liveness       *smetrics.Liveness
-	pollTimer      metrics.Timer
-	pollError      metrics.Gauge
-	eventsReceived metrics.Meter
+	liveness       *metrics2.Liveness
+	pollTimer      *metrics2.Timer
+	pollError      *metrics2.Int64Metric
+	eventsReceived *metrics2.Int64Metric
 }
 
 // newSourceMetrics instantiates a set of metrics for an input source.
 func newSourceMetrics(id string, sources []Source) []*sourceMetrics {
 	ret := make([]*sourceMetrics, len(sources))
+	commonTags := tags{TAG_INGESTER_ID: id}
 	for idx, source := range sources {
-		prefix := fmt.Sprintf("%s.%s", id, source.ID())
+		srcTags := tags{TAG_INGESTER_SOURCE: source.ID()}
 		ret[idx] = &sourceMetrics{
-			liveness:       smetrics.NewLiveness(prefix + ".poll-liveness"),
-			pollTimer:      metrics.NewRegisteredTimer(prefix+".poll-timer", metrics.DefaultRegistry),
-			pollError:      metrics.NewRegisteredGauge(prefix+".poll-error", metrics.DefaultRegistry),
-			eventsReceived: metrics.NewRegisteredMeter(prefix+".events-received", metrics.DefaultRegistry),
+			liveness:       metrics2.NewLiveness(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "poll"}),
+			pollTimer:      metrics2.NewTimer(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "poll_timer"}),
+			pollError:      metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "poll_error"}),
+			eventsReceived: metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "events"}),
 		}
 	}
 	return ret
