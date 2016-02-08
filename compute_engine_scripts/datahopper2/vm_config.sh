@@ -13,5 +13,27 @@ if [ $? != "0" ]; then
   exit 1
 fi
 
-# The name of instance where skia datahopper2 is running.
-INSTANCE_NAME=skia-datahopper2
+VM_ID="$1"
+
+# The name of instance where datahopper is running.
+case "$VM_ID" in
+  prod)
+    INSTANCE_NAME=skia-datahopper2
+    IP_ADDRESS=104.154.112.122
+    ;;
+  test1)
+    INSTANCE_NAME=skia-datahopper-test1
+    IP_ADDRESS=104.154.112.124
+    ;;
+  test2)
+    INSTANCE_NAME=skia-datahopper-test2
+    IP_ADDRESS=104.154.112.125
+    ;;
+  *)
+    # Must provide a target instance id.
+    echo "Usage: $0 {prod | test1 | test2}"
+    echo "   An instance id must be provided as the first argument."
+    exit 1
+    ;;
+
+esac
