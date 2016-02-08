@@ -154,6 +154,8 @@ func parseASANStackTrace(contents string) StackTrace {
 			continue
 		}
 
+		line = strings.Replace(line, "(anonymous namespace)::", "", -1)
+
 		if match := asanStackTraceLine.FindStringSubmatch(line); match != nil {
 			// match[0] is the entire matched portion, [1] is the function name [2] is the
 			// "package", [3] is the file name, [4] is the line number

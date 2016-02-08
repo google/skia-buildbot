@@ -9,6 +9,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/fuzzer/go/deduplicator"
 	"go.skia.org/infra/fuzzer/go/frontend/data"
 	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	"go.skia.org/infra/go/gs"
@@ -18,7 +19,8 @@ import (
 // LoadFromBoltDB loads the data.FuzzReport from FuzzReportCache associated with the given hash.
 // The FuzzReport is first put into the staging fuzz cache, and then into the current.
 // If a cache for the commit does not exist, or there are other problems with the retrieval,
-// an error is returned.
+// an error is returned.  We do not need to deduplicate on extraction because
+// the fuzzes were deduplicated on storage.
 func LoadFromBoltDB(cache *fuzzcache.FuzzReportCache) error {
 	glog.Infof("Looking into cache for revision %s", config.FrontEnd.SkiaVersion.Hash)
 	for _, category := range common.FUZZ_CATEGORIES {
@@ -37,6 +39,7 @@ func LoadFromBoltDB(cache *fuzzcache.FuzzReportCache) error {
 type GSLoader struct {
 	storageClient *storage.Client
 	Cache         *fuzzcache.FuzzReportCache
+	deduplicator  *deduplicator.Deduplicator
 
 	// completedCounter is the number of fuzzes that have been downloaded from GCS, used for logging.
 	completedCounter int32
@@ -47,6 +50,7 @@ func New(s *storage.Client, c *fuzzcache.FuzzReportCache) *GSLoader {
 	return &GSLoader{
 		storageClient: s,
 		Cache:         c,
+		deduplicator:  deduplicator.New(),
 	}
 }
 
@@ -58,6 +62,7 @@ func New(s *storage.Client, c *fuzzcache.FuzzReportCache) *GSLoader {
 func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 	revision := config.FrontEnd.SkiaVersion.Hash
 	data.ClearStaging()
+	g.deduplicator.Clear()
 	fuzzNames := make([]string, 0, 100)
 	for _, cat := range common.FUZZ_CATEGORIES {
 		badPath := fmt.Sprintf("%s/%s/bad", cat, revision)
@@ -65,16 +70,23 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 		if err != nil {
 			return err
 		}
-		n := 0
+		b := 0
+		d := 0
 		for report := range reports {
-			data.NewFuzzFound(cat, report)
+			// We always add the fuzzName, to avoid redownloading duplicates over and over again.
 			fuzzNames = append(fuzzNames, report.FuzzName)
-			n++
+			if g.deduplicator.IsUnique(report) {
+				data.NewFuzzFound(cat, report)
+				b++
+			} else {
+				d++
+			}
+
 		}
-		glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", n, config.GS.Bucket, badPath)
+		glog.Infof("%d bad fuzzes (%d duplicate) freshly loaded from gs://%s/%s", b, d, config.GS.Bucket, badPath)
+		data.StagingToCurrent()
 	}
 
-	data.StagingToCurrent()
 	for _, category := range common.FUZZ_CATEGORIES {
 		if err := g.Cache.StoreTree(data.StagingCopy(category), category, revision); err != nil {
 			glog.Errorf("Problem storing category %s to boltDB: %s", category, err)
@@ -98,13 +110,19 @@ func (g *GSLoader) LoadBinaryFuzzesFromGoogleStorage(whitelist []string) error {
 		if err != nil {
 			return err
 		}
-		n := 0
+		b := 0
+		d := 0
 		for report := range reports {
-			data.NewFuzzFound(cat, report)
+			// We always add the fuzzName, to avoid redownloading duplicates over and over again.
 			fuzzNames = append(fuzzNames, report.FuzzName)
-			n++
+			if g.deduplicator.IsUnique(report) {
+				data.NewFuzzFound(cat, report)
+				b++
+			} else {
+				d++
+			}
 		}
-		glog.Infof("%d bad fuzzes freshly loaded from gs://%s/%s", n, config.GS.Bucket, badPath)
+		glog.Infof("%d bad fuzzes (%d duplicate) incrementally loaded from gs://%s/%s", b, d, config.GS.Bucket, badPath)
 	}
 	data.StagingToCurrent()
 

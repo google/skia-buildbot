@@ -4,8 +4,8 @@ READ of size 1 at 0x000001177628 thread T0
     #0 0xa65430 in convert_to_8(unsigned int, unsigned int) /tmp/skia/out/Debug/../../src/codec/SkMasks.cpp:54:16
     #1 0xa63dee in swizzle_mask24_to_n32_opaque(void*, unsigned char const*, int, SkMasks*, unsigned int, unsigned int) /tmp/skia/out/Debug/../../src/codec/SkMaskSwizzler.cpp:93:23
     #2 0xa5dfa6 in SkBmpMaskCodec::decodeRows(SkImageInfo const&, void*, unsigned long, SkCodec::Options const&) /tmp/skia/out/Debug/../../src/codec/SkBmpMaskCodec.cpp:103:9
-    #3 0xa5dd2a in SkBmpMaskCodec::onGetPixels(SkImageInfo const&, void*, unsigned long, SkCodec::Options const&, unsigned int*, int*, int*) /tmp/skia/out/Debug/../../src/codec/SkBmpMaskCodec.cpp:53:16
-    #4 0xa43e9c in SkCodec::getPixels(SkImageInfo const&, void*, unsigned long, SkCodec::Options const*, unsigned int*, int*) /tmp/skia/out/Debug/../../src/codec/SkCodec.cpp:204:27
+    #3 0xc19b94 in piex::(anonymous namespace)::GetPreviewData(std::set<int, std::less<int>, std::allocator<int> > const&, unsigned int, unsigned int, piex::StreamInterface*, piex::TiffContent*, piex::PreviewImageData*) /tmp/skia/out/Debug/../../third_party/externals/piex/src/piex.cc:59:10
+    #4 0xc19850 in piex::(anonymous namespace)::GetPreviewData(std::set<int, std::less<int>, std::allocator<int> > const&, unsigned int, piex::StreamInterface*, piex::PreviewImageData*) /tmp/skia/out/Debug/../../third_party/externals/piex/src/piex.cc:68:10
     #5 0x72c2dc in fuzz_img(SkData*) /tmp/skia/out/Debug/../../fuzz/fuzz.cpp:119:13
     #6 0x72bd09 in main /tmp/skia/out/Debug/../../fuzz/fuzz.cpp:53:30
     #7 0x7f4ae3494ec4 in __libc_start_main /tmp/tmp.Htw1L27e9P/csu/libc-start.c:287

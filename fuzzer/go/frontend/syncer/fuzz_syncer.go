@@ -132,7 +132,7 @@ func (f *FuzzSyncer) getMostRecentOldRevision() (string, error) {
 // in the fuzz report tree / cache.
 func (f *FuzzSyncer) updateLoadedBinaryFuzzes(currentBadFuzzHashes []string) error {
 	if f.gsLoader == nil {
-		glog.Info("Skipping update because the finder/cache hasn't been set yet")
+		glog.Info("Skipping update because the cache hasn't been set yet")
 		return nil
 	}
 	prevBadFuzzNames, err := f.gsLoader.Cache.LoadFuzzNames(config.FrontEnd.SkiaVersion.Hash)
