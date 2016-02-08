@@ -58,20 +58,6 @@ func loadReports() *treeReportBuilder {
 	return builder
 }
 
-func TestSummary(t *testing.T) {
-	builder := loadReports()
-
-	summary := builder.getSummarySortedByTotal("skpicture")
-	if !reflect.DeepEqual(expectedPictureSummary, summary) {
-		t.Errorf("Summary Report Expected: %#v\n, but was: %#v", expectedPictureSummary, summary)
-	}
-
-	summary = builder.getSummarySortedByTotal("api")
-	if !reflect.DeepEqual(expectedAPISummary, summary) {
-		t.Errorf("Summary Report Expected: %#v\n, but was: %#v", expectedAPISummary, summary)
-	}
-}
-
 func makeStacktrace(file, function string, line int) StackTrace {
 	return StackTrace{
 		Frames: []StackTraceFrame{

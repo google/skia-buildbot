@@ -76,11 +76,10 @@ func newBuilder() *treeReportBuilder {
 type fuzzReportCache struct {
 	// All the data goes in here, in no particular order
 	rawData FuzzReportTree
-	// Generated, sorted caches
-	FullReport    FuzzReportTree
-	SummaryReport FuzzReportTree
+	// Generated, sorted cache
+	FullReport FuzzReportTree
 
-	// If data is in rawData, but not in SummaryReport or FullReport, the trees should be
+	// If data is in rawData, but not in FullReport, the trees should be
 	// rebuilt
 	isDirty bool
 }
@@ -91,14 +90,6 @@ var currentData = newBuilder()
 // stagingData is the object that processes can write to to queue up new data
 // without disturbing the data shown to users.
 var stagingData = newBuilder()
-
-func FindFuzzSummary(category string) FuzzReportTree {
-	cache, found := currentData.caches[category]
-	if !found {
-		return FuzzReportTree{}
-	}
-	return cache.SummaryReport
-}
 
 // FindFuzzDetails returns the detailed fuzz reports for a file name, function name, and line number.
 // If functionName is "" or lineNumber is -1, all reports are shown.
@@ -143,14 +134,6 @@ func (function *FunctionFuzzReport) filterByLineNumber(lineNumber int) {
 			function.LineNumbers = []LineFuzzReport{line}
 		}
 	}
-}
-
-func CategoryOverview(category string) FuzzReportTree {
-	overview, found := currentData.caches[category]
-	if found {
-		return overview.SummaryReport
-	}
-	return FuzzReportTree{}
 }
 
 // FindFuzzDetailForFuzz returns a tree containing the single
@@ -365,26 +348,9 @@ func (r *treeReportBuilder) getTreeSortedByTotal(category string) FuzzReportTree
 	return cache.FullReport
 }
 
-// getSummarySortedByTotal gets the summary FuzzReport for a fuzz category
-// sorted by total number of fuzzes.
-func (r *treeReportBuilder) getSummarySortedByTotal(category string) FuzzReportTree {
-	cache, found := r.caches[category]
-	if !found {
-		glog.Warningf("Could not find report tree for category %s", category)
-		return FuzzReportTree{}
-	}
-	if cache.isDirty {
-		r.mutex.Lock()
-		defer r.mutex.Unlock()
-		cache.rebuildSortedReports()
-	}
-	return cache.SummaryReport
-}
-
 // rebuildSortedReports creates the sorted reports for a given cache.
 func (c *fuzzReportCache) rebuildSortedReports() {
 	c.FullReport = c.getClonedSortedReport(true)
-	c.SummaryReport = c.getClonedSortedReport(false)
 	c.isDirty = false
 }
 

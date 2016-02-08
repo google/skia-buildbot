@@ -47,11 +47,8 @@ const (
 var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
-	// detailsTemplate is used for /category/foo, which displays the number of
-	// fuzzes by file/function/line
-	overviewTemplate *template.Template = nil
-	// detailsTemplate is used for /details, which displays the information from
-	// overview as well as the stacktraces and fuzzes.
+	// detailsTemplate is used for /category, which displays the count of fuzzes in various files
+	// as well as the stacktraces.
 	detailsTemplate *template.Template = nil
 
 	storageClient *storage.Client = nil
@@ -96,10 +93,6 @@ func Init() {
 func reloadTemplates() {
 	indexTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
-		filepath.Join(*resourcesDir, "templates/header.html"),
-	))
-	overviewTemplate = template.Must(template.ParseFiles(
-		filepath.Join(*resourcesDir, "templates/overview.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
 	detailsTemplate = template.New("details.html")
@@ -227,7 +220,6 @@ func runServer() {
 	r.HandleFunc("/json/status", statusJSONHandler)
 	r.HandleFunc(`/fuzz/{category:[a-z_]+}/{name:[0-9a-f]+}`, fuzzHandler)
 	r.HandleFunc(`/metadata/{category:[a-z_]+}/{name:[0-9a-f]+_(debug|release)\.(err|dump|asan)}`, metadataHandler)
-	r.HandleFunc("/fuzz_count", fuzzCountHandler)
 	r.HandleFunc("/newBug", newBugHandler)
 
 	rootHandler := login.ForceAuth(util.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
@@ -265,23 +257,6 @@ func detailsPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func summaryPageHandler(w http.ResponseWriter, r *http.Request) {
-	if *local {
-		reloadTemplates()
-	}
-	w.Header().Set("Content-Type", "text/html")
-
-	var cat = struct {
-		Category string
-	}{
-		Category: mux.Vars(r)["category"],
-	}
-
-	if err := overviewTemplate.Execute(w, cat); err != nil {
-		glog.Errorf("Failed to expand template: %v", err)
-	}
-}
-
 type countSummary struct {
 	Category        string `json:"category"`
 	CategoryDisplay string `json:"categoryDisplay"`
@@ -293,21 +268,16 @@ type countSummary struct {
 }
 
 func summaryJSONHandler(w http.ResponseWriter, r *http.Request) {
-	var overview interface{}
-	if cat := r.FormValue("category"); cat != "" {
-		overview = data.CategoryOverview(cat)
-	} else {
-		overview = getOverview()
-	}
+	summary := getSummary()
 
-	if err := json.NewEncoder(w).Encode(overview); err != nil {
+	if err := json.NewEncoder(w).Encode(summary); err != nil {
 		glog.Errorf("Failed to write or encode output: %v", err)
 		return
 	}
 }
 
-func getOverview() []countSummary {
-	overviews := make([]countSummary, 0, len(fcommon.FUZZ_CATEGORIES))
+func getSummary() []countSummary {
+	counts := make([]countSummary, 0, len(fcommon.FUZZ_CATEGORIES))
 	for _, cat := range fcommon.FUZZ_CATEGORIES {
 		o := countSummary{
 			CategoryDisplay: fcommon.PrettifyCategory(cat),
@@ -326,9 +296,9 @@ func getOverview() []countSummary {
 		o.ThisBad = c.ThisBad
 		o.TotalGrey = c.TotalGrey
 		o.ThisGrey = c.ThisGrey
-		overviews = append(overviews, o)
+		counts = append(counts, o)
 	}
-	return overviews
+	return counts
 }
 
 func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
@@ -469,22 +439,6 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(s); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
-		return
-	}
-}
-
-func fuzzCountHandler(w http.ResponseWriter, r *http.Request) {
-	c := syncer.FuzzCount{
-		TotalBad:  -1,
-		TotalGrey: -1,
-		ThisBad:   -1,
-		ThisGrey:  -1,
-	}
-	if fuzzSyncer != nil {
-		c = fuzzSyncer.LastCount(r.FormValue("category"))
-	}
-	if err := json.NewEncoder(w).Encode(c); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}
