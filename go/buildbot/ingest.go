@@ -292,7 +292,7 @@ func IngestBuild(db DB, b *Build, repos *gitinfo.RepoMap) error {
 	if !b.IsFinished() {
 		now := time.Now()
 		for _, s := range b.Steps {
-			if !s.IsFinished() {
+			if s.IsStarted() && !s.IsFinished() {
 				runTime := now.Sub(s.Started)
 				metrics2.RawAddInt64PointAtTime("buildbot.buildsteps.running-time", map[string]string{
 					"builder":    b.Builder,

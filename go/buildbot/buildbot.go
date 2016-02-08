@@ -35,6 +35,11 @@ type BuildStep struct {
 	Finished time.Time
 }
 
+// IsStarted returns true iff the BuildStep has started.
+func (bs *BuildStep) IsStarted() bool {
+	return !util.TimeIsZero(bs.Started)
+}
+
 // IsFinished returns true iff the BuildStep has finished.
 func (bs *BuildStep) IsFinished() bool {
 	return !util.TimeIsZero(bs.Finished)
@@ -315,7 +320,12 @@ func getPropertyInterface(propname string, value interface{}) []interface{} {
 	}
 }
 
-// Finished indicates whether the build has finished.
+// IsStarted indicates whether the build has started.
+func (b *Build) IsStarted() bool {
+	return !util.TimeIsZero(b.Started)
+}
+
+// IsFinished indicates whether the build has finished.
 func (b *Build) IsFinished() bool {
 	return !util.TimeIsZero(b.Finished)
 }
