@@ -61,7 +61,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 	fuzzNames := make([]string, 0, 100)
 	for _, cat := range common.FUZZ_CATEGORIES {
 		badPath := fmt.Sprintf("%s/%s/bad", cat, revision)
-		reports, err := g.getBinaryReportsFromGS(badPath, nil)
+		reports, err := g.getBinaryReportsFromGS(badPath, cat, nil)
 		if err != nil {
 			return err
 		}
@@ -94,7 +94,7 @@ func (g *GSLoader) LoadBinaryFuzzesFromGoogleStorage(whitelist []string) error {
 	fuzzNames := make([]string, 0, 100)
 	for _, cat := range common.FUZZ_CATEGORIES {
 		badPath := fmt.Sprintf("%s/%s/bad", cat, revision)
-		reports, err := g.getBinaryReportsFromGS(badPath, whitelist)
+		reports, err := g.getBinaryReportsFromGS(badPath, cat, whitelist)
 		if err != nil {
 			return err
 		}
@@ -125,8 +125,11 @@ func (g *GSLoader) LoadBinaryFuzzesFromGoogleStorage(whitelist []string) error {
 // need to be downloaded.
 type fuzzPackage struct {
 	FuzzName        string
+	FuzzCategory    string
+	DebugASANName   string
 	DebugDumpName   string
 	DebugErrName    string
+	ReleaseASANName string
 	ReleaseDumpName string
 	ReleaseErrName  string
 }
@@ -135,10 +138,10 @@ type fuzzPackage struct {
 // groups them by fuzz.  It parses these groups of files into a BinaryFuzzReport and returns
 // a channel through whcih all reports generated in this way will be streamed.
 // The channel will be closed when all reports are done being sent.
-func (g *GSLoader) getBinaryReportsFromGS(baseFolder string, whitelist []string) (<-chan data.FuzzReport, error) {
+func (g *GSLoader) getBinaryReportsFromGS(baseFolder, category string, whitelist []string) (<-chan data.FuzzReport, error) {
 	reports := make(chan data.FuzzReport, 10000)
 
-	fuzzPackages, err := g.fetchFuzzPackages(baseFolder)
+	fuzzPackages, err := g.fetchFuzzPackages(baseFolder, category)
 	if err != nil {
 		close(reports)
 		return reports, err
@@ -178,7 +181,7 @@ func (g *GSLoader) getBinaryReportsFromGS(baseFolder string, whitelist []string)
 // fetchFuzzPackages scans for all fuzzes in the given folder and returns a
 // slice of all of the metadata for each fuzz, as a fuzz package.  It returns
 // error if it cannot access Google Storage.
-func (g *GSLoader) fetchFuzzPackages(baseFolder string) (fuzzPackages []fuzzPackage, err error) {
+func (g *GSLoader) fetchFuzzPackages(baseFolder, category string) (fuzzPackages []fuzzPackage, err error) {
 
 	fuzzNames, err := common.GetAllFuzzNamesInFolder(g.storageClient, baseFolder)
 	if err != nil {
@@ -188,8 +191,11 @@ func (g *GSLoader) fetchFuzzPackages(baseFolder string) (fuzzPackages []fuzzPack
 		prefix := fmt.Sprintf("%s/%s/%s", baseFolder, fuzzName, fuzzName)
 		fuzzPackages = append(fuzzPackages, fuzzPackage{
 			FuzzName:        fuzzName,
+			FuzzCategory:    category,
+			DebugASANName:   fmt.Sprintf("%s_debug.asan", prefix),
 			DebugDumpName:   fmt.Sprintf("%s_debug.dump", prefix),
 			DebugErrName:    fmt.Sprintf("%s_debug.err", prefix),
+			ReleaseASANName: fmt.Sprintf("%s_release.asan", prefix),
 			ReleaseDumpName: fmt.Sprintf("%s_release.dump", prefix),
 			ReleaseErrName:  fmt.Sprintf("%s_release.err", prefix),
 		})
@@ -213,11 +219,22 @@ func emptyStringOnError(b []byte, err error) string {
 func (g *GSLoader) download(toDownload <-chan fuzzPackage, reports chan<- data.FuzzReport, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for job := range toDownload {
-		debugDump := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.DebugDumpName))
-		debugErr := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.DebugErrName))
-		releaseDump := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.ReleaseDumpName))
-		releaseErr := emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.ReleaseErrName))
-		reports <- data.ParseReport(job.FuzzName, debugDump, debugErr, releaseDump, releaseErr)
+		p := data.GCSPackage{
+			Name:         job.FuzzName,
+			FuzzCategory: job.FuzzCategory,
+			Debug: data.OutputFiles{
+				Asan:   emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.DebugASANName)),
+				Dump:   emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.DebugDumpName)),
+				StdErr: emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.DebugErrName)),
+			},
+			Release: data.OutputFiles{
+				Asan:   emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.ReleaseASANName)),
+				Dump:   emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.ReleaseDumpName)),
+				StdErr: emptyStringOnError(gs.FileContentsFromGS(g.storageClient, config.GS.Bucket, job.ReleaseErrName)),
+			},
+		}
+
+		reports <- data.ParseReport(p)
 		atomic.AddInt32(&g.completedCounter, 1)
 		if g.completedCounter%100 == 0 {
 			glog.Infof("%d fuzzes downloaded", g.completedCounter)

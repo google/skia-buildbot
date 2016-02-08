@@ -49,6 +49,8 @@ type commonConfig struct {
 	ClangPath         string
 	ClangPlusPlusPath string
 	DepotToolsPath    string
+	ForceReanalysis   bool
+	VerboseBuilds     bool
 }
 
 var Generator = generatorConfig{}

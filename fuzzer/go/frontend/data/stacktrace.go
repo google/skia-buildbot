@@ -25,10 +25,11 @@ type StackTraceFrame struct {
 
 // The `?:` at the beginning of the groups prevent them from being captured
 // \1 is the "package", \2 is the file name, \3 is the line number, \4 is the function symbol string
-var stackTraceLine = regexp.MustCompile(`(?:\.\./)+(?P<package>(?:\w+/)+)(?P<file>.+):(?P<line>\d+).*\(_(?P<symbol>.*)\)`)
+var segvStackTraceLine = regexp.MustCompile(`(?:\.\./)+(?P<package>(?:\w+/)+)(?P<file>.+):(?P<line>\d+).*\(_(?P<symbol>.*)\)`)
 
-// Given the files of a dump file (created through get_stack_trace [which uses catchsegv]), return the stack trace
-func ParseStackTrace(contents string) StackTrace {
+// parseCatchsegvStackTrace takes the contents of a dump file of a catchsegv run, and returns the
+// parsed stacktrace
+func parseCatchsegvStackTrace(contents string) StackTrace {
 	r := bytes.NewBufferString(contents)
 	scan := bufio.NewScanner(r)
 
@@ -48,10 +49,10 @@ func ParseStackTrace(contents string) StackTrace {
 			continue
 		}
 
-		if match := stackTraceLine.FindStringSubmatch(line); match != nil {
+		if match := segvStackTraceLine.FindStringSubmatch(line); match != nil {
 			// match[0] is the entire matched portion, [1] is the "package", [2] is the file name,
 			// [3] is the line number and [4] is the encoded function symbol string.
-			newFrame := FullStackFrame(match[1], match[2], decodeFunctionName(match[4]), safeParseInt(match[3]))
+			newFrame := FullStackFrame(match[1], match[2], catchsegvFunctionName(match[4]), safeParseInt(match[3]))
 			frames = append(frames, newFrame)
 		}
 	}
@@ -76,7 +77,7 @@ var nonstaticStart = regexp.MustCompile(`^Z(\d+)`)
 var methodStart = regexp.MustCompile(`^(ZNK?)(\d+)`)
 var methodName = regexp.MustCompile(`^(\d+)`)
 
-// decodeFunctionName parses the symbol string from a stacktrace to
+// catchsegvFunctionName parses the symbol string from a stacktrace to
 // get the name of the related function.
 //TODO(kjlubick) parse arguments if that helps the readability of the stacktraces
 // Here are some examples of symbol strings and what the various chars mean:
@@ -87,7 +88,7 @@ var methodName = regexp.MustCompile(`^(\d+)`)
 // ZNK2DM6SKPSrc4drawEP8SkCanvas -> ZNK2 -> type is 2 long (method is konstant) "DM" ->
 //    6 -> Sub type is 6 long "SKPSrc" -> 4 -> method is 4 long "draw"
 //    (since there is no number directly after the 3rd step, we have found the param boundary).
-func decodeFunctionName(s string) string {
+func catchsegvFunctionName(s string) string {
 	if match := methodStart.FindStringSubmatch(s); match != nil {
 		length := safeParseInt(match[2])
 		// ZNK? is 2-3 chars, so slice (num letters + num digits + number of spaces) chars off
@@ -122,6 +123,45 @@ func decodeFunctionName(s string) string {
 		return s[start : start+length]
 	}
 	return common.UNKNOWN_FUNCTION
+}
+
+// The `?:` at the beginning of the groups prevent them from being captured
+// \1 is the (hopefully symbolized) function name, \2 is the "package", \3 is the file name,
+// \4 is the line number
+var asanStackTraceLine = regexp.MustCompile(`in (?P<function>[a-zA-Z0-9_:]+).*(?:\.\./)+(?P<package>(?:\w+/)+)(?P<file>.+?):(?P<line>\d+)`)
+
+// parseCatchsegvStackTrace takes the output of an AddressSanitizer crash, and returns the parsed
+// StackTrace, if it is able to find one.  If the result is not symbolized, this will return
+// an empty StackTrace.
+func parseASANStackTrace(contents string) StackTrace {
+	r := bytes.NewBufferString(contents)
+	scan := bufio.NewScanner(r)
+
+	hasBegun := false
+
+	frames := make([]StackTraceFrame, 0, 5)
+
+	for scan.Scan() {
+		line := scan.Text()
+		if strings.Contains(line, "ERROR: AddressSanitizer:") {
+			hasBegun = true
+			continue
+		}
+		if hasBegun && line == "" {
+			break
+		}
+		if !hasBegun {
+			continue
+		}
+
+		if match := asanStackTraceLine.FindStringSubmatch(line); match != nil {
+			// match[0] is the entire matched portion, [1] is the function name [2] is the
+			// "package", [3] is the file name, [4] is the line number
+			newFrame := FullStackFrame(match[2], match[3], match[1], safeParseInt(match[4]))
+			frames = append(frames, newFrame)
+		}
+	}
+	return StackTrace{Frames: frames}
 }
 
 // FullStackFrame creates a StackTraceFrame with all components

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -145,20 +147,39 @@ func AllFilesInDir(s *storage.Client, bucket, folder string, callback func(item 
 	return nil
 }
 
-func DeleteAllFilesInDir(s *storage.Client, bucket, folder string) error {
-	var deleteError bool
+// DeleteAllFilesInDir deletes all the files in a given folder.  If processes is set to > 1,
+// that many go routines will be spun up to delete the file simultaneously.
+func DeleteAllFilesInDir(s *storage.Client, bucket, folder string, processes int) error {
+	errCount := int32(0)
+	var wg sync.WaitGroup
+	toDelete := make(chan string, 1000)
+	for i := 0; i < processes; i++ {
+		go deleteHelper(s, bucket, &wg, toDelete, &errCount)
+	}
 	del := func(item *storage.ObjectAttrs) {
-		if err := s.Bucket(bucket).Object(item.Name).Delete(context.Background()); err != nil {
-			glog.Errorf("Problem deleting gs://%s/%s: %s", bucket, item.Name, err)
-			deleteError = true
-		}
+		toDelete <- item.Name
 	}
 	if err := AllFilesInDir(s, bucket, folder, del); err != nil {
 		return err
 	}
-	if deleteError {
+	close(toDelete)
+	wg.Wait()
+	if errCount > 0 {
 		return fmt.Errorf("There were one or more problems when deleting files in folder %q", folder)
 	}
 	return nil
 
+}
+
+// deleteHelper spins and waits for work to come in on the toDelete channel.  When it does, it
+// uses the storage client to delete the file from the given bucket.
+func deleteHelper(s *storage.Client, bucket string, wg *sync.WaitGroup, toDelete <-chan string, errCount *int32) {
+	wg.Add(1)
+	defer wg.Done()
+	for file := range toDelete {
+		if err := s.Bucket(bucket).Object(file).Delete(context.Background()); err != nil {
+			glog.Errorf("Problem deleting gs://%s/%s: %s", bucket, file, err)
+			atomic.AddInt32(errCount, 1)
+		}
+	}
 }

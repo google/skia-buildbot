@@ -32,9 +32,10 @@ type LineFuzzReport struct {
 }
 
 type FuzzReport struct {
-	DebugStackTrace    StackTrace `json:"debugStackTrace"`
-	ReleaseStackTrace  StackTrace `json:"releaseStackTrace"`
-	HumanReadableFlags []string   `json:"flags"`
+	DebugStackTrace   StackTrace `json:"debugStackTrace"`
+	ReleaseStackTrace StackTrace `json:"releaseStackTrace"`
+	DebugFlags        []string   `json:"debugFlags"`
+	ReleaseFlags      []string   `json:"releaseFlags"`
 
 	FuzzName     string `json:"fuzzName"`
 	FuzzCategory string `json:"category"`
@@ -43,14 +44,15 @@ type FuzzReport struct {
 type SortedFuzzReports []FuzzReport
 
 // ParseReport creates a report given the raw materials passed in.
-func ParseReport(fuzzName, debugDump, debugErr, releaseDump, releaseErr string) FuzzReport {
-	result := ParseFuzzResult(debugDump, debugErr, releaseDump, releaseErr)
+func ParseReport(g GCSPackage) FuzzReport {
+	result := ParseGCSPackage(g)
 	return FuzzReport{
-		DebugStackTrace:    result.DebugStackTrace,
-		ReleaseStackTrace:  result.ReleaseStackTrace,
-		HumanReadableFlags: result.Flags.ToHumanReadableFlags(),
-		FuzzName:           fuzzName,
-		FuzzCategory:       "", // Will be filled in later, when added to the tree
+		DebugStackTrace:   result.Debug.StackTrace,
+		ReleaseStackTrace: result.Release.StackTrace,
+		DebugFlags:        result.Debug.Flags.ToHumanReadableFlags(),
+		ReleaseFlags:      result.Release.Flags.ToHumanReadableFlags(),
+		FuzzName:          g.Name,
+		FuzzCategory:      g.FuzzCategory,
 	}
 }
 

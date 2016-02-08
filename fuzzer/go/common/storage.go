@@ -15,7 +15,7 @@ import (
 func GetAllFuzzNamesInFolder(s *storage.Client, name string) (hashes []string, err error) {
 	filter := func(item *storage.ObjectAttrs) {
 		name := item.Name
-		if strings.HasSuffix(name, ".dump") || strings.HasSuffix(name, ".err") {
+		if strings.Contains(name, ".") {
 			return
 		}
 		fuzzHash := name[strings.LastIndex(name, "/")+1:]

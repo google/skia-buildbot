@@ -8,6 +8,8 @@ const (
 	UNKNOWN_FUNCTION = "UNKNOWN"
 	UNKNOWN_FILE     = "UNKNOWN"
 	UNKNOWN_LINE     = -1
+
+	ASAN_OPTIONS = "ASAN_OPTIONS=detect_leaks=0 symbolize=1 allocator_may_return_null=1"
 )
 
 var prettyFuzzCategories = map[string]string{

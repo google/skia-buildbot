@@ -84,9 +84,17 @@ func (p *FuzzPipeline) reanalyzeAndRestart(storageClient *storage.Client, oldRev
 	if err != nil {
 		return fmt.Errorf("Problem downloading all previous fuzzes: %s", err)
 	}
-	glog.Infof("There are %d badFuzzNames and %d greyFuzzNames to rescan.", len(badFuzzNames), len(greyFuzzNames))
+	glog.Infof("There are %d bad fuzzes and %d grey fuzzes to rescan.", len(badFuzzNames), len(greyFuzzNames))
 	// This is a soft shutdown, i.e. it waits for aggregator's queues to be empty
 	p.Agg.ShutDown()
+
+	if config.Common.ForceReanalysis {
+		glog.Infof("Deleting previous fuzz results")
+		if err := gs.DeleteAllFilesInDir(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/", p.Category, oldRevision), config.Aggregator.NumUploadProcesses); err != nil {
+			return fmt.Errorf("Could not delete previous fuzzes: %s", err)
+		}
+	}
+
 	if err := p.Gen.Clear(); err != nil {
 		return fmt.Errorf("Could not remove previous afl-fuzz results: %s", err)
 	}
@@ -139,7 +147,7 @@ func (p *FuzzPipeline) downloadAllBadAndGreyFuzzes(commitHash string, storageCli
 
 	badFilter := func(item *storage.ObjectAttrs) {
 		name := item.Name
-		if strings.HasSuffix(name, ".dump") || strings.HasSuffix(name, ".err") {
+		if strings.Contains(name, ".") {
 			return
 		}
 		fuzzHash := name[strings.LastIndex(name, "/")+1:]
@@ -149,7 +157,7 @@ func (p *FuzzPipeline) downloadAllBadAndGreyFuzzes(commitHash string, storageCli
 
 	greyFilter := func(item *storage.ObjectAttrs) {
 		name := item.Name
-		if strings.HasSuffix(item.Name, ".dump") || strings.HasSuffix(item.Name, ".err") {
+		if strings.Contains(name, ".") {
 			return
 		}
 		fuzzHash := name[strings.LastIndex(name, "/")+1:]
@@ -199,10 +207,10 @@ func download(storageClient *storage.Client, toDownload <-chan string, downloadP
 // skia_version/current.  It also removes all pending versions.
 func (v *VersionUpdater) replaceCurrentSkiaVersionWith(oldHash, newHash string) error {
 	// delete all pending requests
-	if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, "skia_version/pending/"); err != nil {
+	if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, "skia_version/pending/", 1); err != nil {
 		return err
 	}
-	if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, "skia_version/current/"); err != nil {
+	if err := gs.DeleteAllFilesInDir(v.storageClient, config.GS.Bucket, "skia_version/current/", 1); err != nil {
 		return err
 	}
 	if err := v.touch(fmt.Sprintf("skia_version/current/%s", newHash)); err != nil {

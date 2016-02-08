@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/vcsinfo"
 	"google.golang.org/cloud/storage"
 )
@@ -76,6 +77,14 @@ func (vw *VersionWatcher) Start() {
 				}
 				vw.CurrentVersion = cv
 				vw.lastCurrentHash = current
+			}
+
+			if config.Common.ForceReanalysis {
+				if _, err := vw.onPendingChange(vw.lastCurrentHash); err != nil {
+					glog.Errorf("There was a problem during force analysis: %s", err)
+				}
+				config.Common.ForceReanalysis = false
+				return
 			}
 
 			pending, err := GetPendingSkiaVersionFromGCS(vw.storageClient)

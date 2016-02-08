@@ -1,0 +1,2 @@
+Decoding
+../../src/core/SkReader32.h:87: failed assertion "fCurr <= fStop"

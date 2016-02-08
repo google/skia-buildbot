@@ -72,26 +72,22 @@ type Aggregator struct {
 	bugReportCount int64
 }
 
-// AnalysisPackage is a generic holder for the functions needed to analyze
-type AnalysisPackage struct {
-	Setup   func(workingDirPath string) error
-	Analyze func(workingDirPath, pathToFile string) (uploadPackage, error)
-}
-
 const (
 	BAD_FUZZ  = "bad"
 	GREY_FUZZ = "grey"
 )
 
+var (
+	CLANG_DEBUG   = common.TEST_HARNESS_NAME + "_clang_debug"
+	CLANG_RELEASE = common.TEST_HARNESS_NAME + "_clang_release"
+	ASAN_DEBUG    = common.TEST_HARNESS_NAME + "_asan_debug"
+	ASAN_RELEASE  = common.TEST_HARNESS_NAME + "_asan_release"
+)
+
 // uploadPackage is a struct containing all the pieces of a fuzz that need to be uploaded to GCS
 type uploadPackage struct {
-	Name        string
-	FilePath    string
-	DebugDump   string
-	DebugErr    string
-	ReleaseDump string
-	ReleaseErr  string
-	FileType    string
+	Data     data.GCSPackage
+	FilePath string
 	// Must be BAD_FUZZ or GREY_FUZZ
 	FuzzType string
 }
@@ -116,6 +112,7 @@ func StartAggregator(s *storage.Client, category string) (*Aggregator, error) {
 		forUpload:          make(chan uploadPackage, 100),
 		forBugReporting:    make(chan bugReportingPackage, 100),
 		MakeBugOnBadFuzz:   false,
+		UploadGreyFuzzes:   false,
 		monitoringShutdown: make(chan bool, 2),
 		// aggregationShutdown needs to be created with a calculated capacity in start
 	}
@@ -133,16 +130,7 @@ func (agg *Aggregator) start() error {
 	agg.analysisCount = 0
 	agg.uploadCount = 0
 	agg.bugReportCount = 0
-	if _, err := fileutil.EnsureDirExists(agg.fuzzPath); err != nil {
-		return err
-	}
-	if _, err := fileutil.EnsureDirExists(agg.executablePath); err != nil {
-		return err
-	}
-	if err := common.BuildClangHarness("Debug", true); err != nil {
-		return err
-	}
-	if err := common.BuildClangHarness("Release", true); err != nil {
+	if err := agg.buildAnalysisBinaries(); err != nil {
 		return err
 	}
 
@@ -175,6 +163,44 @@ func (agg *Aggregator) start() error {
 	// start background routine to monitor queue details
 	agg.monitoringWaitGroup.Add(1)
 	go agg.monitorStatus(numAnalysisProcesses, numUploadProcesses)
+	return nil
+}
+
+// buildAnalysisBinaries creates the 4 executables we need to perform analysis and makes a copy of
+// them in the executablePath.  We need (Debug,Release) x (Clang,ASAN).  The copied binaries have
+// a suffix like _clang_debug
+func (agg *Aggregator) buildAnalysisBinaries() error {
+	if _, err := fileutil.EnsureDirExists(agg.fuzzPath); err != nil {
+		return err
+	}
+	if _, err := fileutil.EnsureDirExists(agg.executablePath); err != nil {
+		return err
+	}
+	if err := common.BuildClangHarness("Debug", true); err != nil {
+		return err
+	}
+	outPath := filepath.Join(config.Generator.SkiaRoot, "out")
+	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(agg.executablePath, CLANG_DEBUG)); err != nil {
+		return err
+	}
+	if err := common.BuildClangHarness("Release", true); err != nil {
+		return err
+	}
+	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(agg.executablePath, CLANG_RELEASE)); err != nil {
+		return err
+	}
+	if err := common.BuildASANHarness("Debug", false); err != nil {
+		return err
+	}
+	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(agg.executablePath, ASAN_DEBUG)); err != nil {
+		return err
+	}
+	if err := common.BuildASANHarness("Release", false); err != nil {
+		return err
+	}
+	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(agg.executablePath, ASAN_RELEASE)); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -245,6 +271,10 @@ func (agg *Aggregator) findBadFuzzPaths(alreadyFoundFuzzes *SortedStringSlice) (
 
 	scanPath := filepath.Join(config.Generator.AflOutputPath, agg.Category)
 	aflDir, err := os.Open(scanPath)
+	if os.IsNotExist(err) {
+		glog.Warningf("Path to scan %s does not exist.  Returning 0 found fuzzes", scanPath)
+		return []string{}, nil
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -357,12 +387,17 @@ func (agg *Aggregator) setupAnalysis(workingDirPath string) error {
 		return err
 	}
 
-	// make a copy of the debug and release executables
-	basePath := filepath.Join(config.Generator.SkiaRoot, "out")
-	if err := fileutil.CopyExecutable(filepath.Join(basePath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(workingDirPath, common.TEST_HARNESS_NAME+"_debug")); err != nil {
+	// make a copy of the 4 executables that were made in buildAnalysisBinaries()
+	if err := fileutil.CopyExecutable(filepath.Join(agg.executablePath, CLANG_DEBUG), filepath.Join(workingDirPath, CLANG_DEBUG)); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(basePath, "Release", common.TEST_HARNESS_NAME), filepath.Join(workingDirPath, common.TEST_HARNESS_NAME+"_release")); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(agg.executablePath, CLANG_RELEASE), filepath.Join(workingDirPath, CLANG_RELEASE)); err != nil {
+		return err
+	}
+	if err := fileutil.CopyExecutable(filepath.Join(agg.executablePath, ASAN_DEBUG), filepath.Join(workingDirPath, ASAN_DEBUG)); err != nil {
+		return err
+	}
+	if err := fileutil.CopyExecutable(filepath.Join(agg.executablePath, ASAN_RELEASE), filepath.Join(workingDirPath, ASAN_RELEASE)); err != nil {
 		return err
 	}
 	return nil
@@ -372,25 +407,38 @@ func (agg *Aggregator) setupAnalysis(workingDirPath string) error {
 // completion, it checks to see if the fuzz is a grey fuzz and sets the FuzzType accordingly.
 func (agg *Aggregator) analyze(workingDirPath, fileName string) (uploadPackage, error) {
 	upload := uploadPackage{
-		Name:     fileName,
-		FileType: agg.Category,
+		Data: data.GCSPackage{
+			Name:         fileName,
+			FuzzCategory: agg.Category,
+		},
 		FuzzType: BAD_FUZZ,
 		FilePath: filepath.Join(agg.fuzzPath, fileName),
 	}
 
-	if dump, stderr, err := agg.performAnalysis(workingDirPath, common.TEST_HARNESS_NAME, upload.FilePath, true); err != nil {
+	if dump, stderr, err := agg.performAnalysis(workingDirPath, CLANG_DEBUG, upload.FilePath); err != nil {
 		return upload, err
 	} else {
-		upload.DebugDump = dump
-		upload.DebugErr = stderr
+		upload.Data.Debug.Dump = dump
+		upload.Data.Debug.StdErr = stderr
 	}
-	if dump, stderr, err := agg.performAnalysis(workingDirPath, common.TEST_HARNESS_NAME, upload.FilePath, false); err != nil {
+	if dump, stderr, err := agg.performAnalysis(workingDirPath, CLANG_RELEASE, upload.FilePath); err != nil {
 		return upload, err
 	} else {
-		upload.ReleaseDump = dump
-		upload.ReleaseErr = stderr
+		upload.Data.Release.Dump = dump
+		upload.Data.Release.StdErr = stderr
 	}
-	if r := data.ParseFuzzResult(upload.DebugDump, upload.DebugErr, upload.ReleaseDump, upload.ReleaseErr); r.Flags == data.DebugFailedGracefully|data.ReleaseFailedGracefully {
+	// AddressSanitizer only outputs to stderr
+	if _, stderr, err := agg.performAnalysis(workingDirPath, ASAN_DEBUG, upload.FilePath); err != nil {
+		return upload, err
+	} else {
+		upload.Data.Debug.Asan = stderr
+	}
+	if _, stderr, err := agg.performAnalysis(workingDirPath, ASAN_RELEASE, upload.FilePath); err != nil {
+		return upload, err
+	} else {
+		upload.Data.Release.Asan = stderr
+	}
+	if r := data.ParseGCSPackage(upload.Data); r.Debug.Flags == data.TerminatedGracefully && r.Release.Flags == data.TerminatedGracefully {
 		upload.FuzzType = GREY_FUZZ
 	}
 	return upload, nil
@@ -399,13 +447,7 @@ func (agg *Aggregator) analyze(workingDirPath, fileName string) (uploadPackage, 
 // performAnalysis executes a command from the working dir specified using
 // AnalysisArgs for a given fuzz category. The crash dumps (which
 // come via standard out) and standard errors are recorded as strings.
-func (agg *Aggregator) performAnalysis(workingDirPath, baseExecutableName, pathToFile string, isDebug bool) (string, string, error) {
-	suffix := "_release"
-	if isDebug {
-		suffix = "_debug"
-	}
-
-	pathToExecutable := fmt.Sprintf("./%s%s", baseExecutableName, suffix)
+func (agg *Aggregator) performAnalysis(workingDirPath, executableName, pathToFile string) (string, string, error) {
 
 	var dump bytes.Buffer
 	var stdErr bytes.Buffer
@@ -413,13 +455,15 @@ func (agg *Aggregator) performAnalysis(workingDirPath, baseExecutableName, pathT
 	// GNU timeout is used instead of the option on exec.Command because experimentation with the
 	// latter showed evidence of that way leaking processes, which led to OOM errors.
 	cmd := &exec.Command{
-		Name:      "timeout",
-		Args:      common.AnalysisArgsFor(agg.Category, pathToExecutable, pathToFile),
-		LogStdout: false,
-		LogStderr: false,
-		Stdout:    &dump,
-		Stderr:    &stdErr,
-		Dir:       workingDirPath,
+		Name:        "timeout",
+		Args:        common.AnalysisArgsFor(agg.Category, "./"+executableName, pathToFile),
+		LogStdout:   false,
+		LogStderr:   false,
+		Stdout:      &dump,
+		Stderr:      &stdErr,
+		Dir:         workingDirPath,
+		InheritPath: true,
+		Env:         []string{common.ASAN_OPTIONS},
 	}
 
 	//errors are fine/expected from this, as we are dealing with bad fuzzes
@@ -471,7 +515,7 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 		case p := <-agg.forUpload:
 			atomic.AddInt64(&agg.uploadCount, int64(1))
 			if !agg.UploadGreyFuzzes && p.FuzzType == GREY_FUZZ {
-				glog.Infof("[%s] Skipping upload of grey fuzz %s", agg.Category, p.Name)
+				glog.Infof("[%s] Skipping upload of grey fuzz %s", agg.Category, p.Data.Name)
 				continue
 			}
 			if err := agg.upload(p); err != nil {
@@ -479,7 +523,7 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 				return
 			}
 			agg.forBugReporting <- bugReportingPackage{
-				FuzzName:   p.Name,
+				FuzzName:   p.Data.Name,
 				CommitHash: config.Generator.SkiaVersion.Hash,
 				IsBadFuzz:  p.FuzzType == BAD_FUZZ,
 			}
@@ -493,27 +537,33 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 // upload breaks apart the uploadPackage into its constituant parts and uploads them to GCS using
 // some helper methods.
 func (agg *Aggregator) upload(p uploadPackage) error {
-	glog.Infof("[%s] uploading %s with file %s and analysis bytes %d;%d;%d;%d", agg.Category, p.Name, p.FilePath, len(p.DebugDump), len(p.DebugErr), len(p.ReleaseDump), len(p.ReleaseErr))
+	glog.Infof("[%s] uploading %s with file %s and analysis bytes %d;%d;%d|%d;%d;%d", agg.Category, p.Data.Name, p.FilePath, len(p.Data.Debug.Asan), len(p.Data.Debug.Dump), len(p.Data.Debug.StdErr), len(p.Data.Release.Asan), len(p.Data.Release.Dump), len(p.Data.Release.StdErr))
 
-	if err := agg.uploadBinaryFromDisk(p, p.Name, p.FilePath); err != nil {
+	if err := agg.uploadBinaryFromDisk(p, p.Data.Name, p.FilePath); err != nil {
 		return err
 	}
-	if err := agg.uploadString(p, p.Name+"_debug.dump", p.DebugDump); err != nil {
+	if err := agg.uploadString(p, p.Data.Name+"_debug.asan", p.Data.Debug.Asan); err != nil {
 		return err
 	}
-	if err := agg.uploadString(p, p.Name+"_debug.err", p.DebugErr); err != nil {
+	if err := agg.uploadString(p, p.Data.Name+"_debug.dump", p.Data.Debug.Dump); err != nil {
 		return err
 	}
-	if err := agg.uploadString(p, p.Name+"_release.dump", p.ReleaseDump); err != nil {
+	if err := agg.uploadString(p, p.Data.Name+"_debug.err", p.Data.Debug.StdErr); err != nil {
 		return err
 	}
-	return agg.uploadString(p, p.Name+"_release.err", p.ReleaseErr)
+	if err := agg.uploadString(p, p.Data.Name+"_release.asan", p.Data.Release.Asan); err != nil {
+		return err
+	}
+	if err := agg.uploadString(p, p.Data.Name+"_release.dump", p.Data.Release.Dump); err != nil {
+		return err
+	}
+	return agg.uploadString(p, p.Data.Name+"_release.err", p.Data.Release.StdErr)
 }
 
 // uploadBinaryFromDisk uploads a binary file on disk to GCS, returning an error if anything
 // goes wrong.
 func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath string) error {
-	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.FileType, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Data.FuzzCategory, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render a fuzzed png
@@ -534,7 +584,7 @@ func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath 
 // uploadBinaryFromDisk uploads the contents of a string as a file to GCS, returning an error if
 // anything goes wrong.
 func (agg *Aggregator) uploadString(p uploadPackage, fileName, contents string) error {
-	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.FileType, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Data.FuzzCategory, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"

@@ -10,8 +10,10 @@ import (
 	"go.skia.org/infra/go/exec"
 )
 
-// BuildClangHarness builds the test harness for parsing skp files using clang.  If any step fails, it returns an error.
+// BuildClangHarness builds the test harness for parsing skp files using clang. If any step fails,
+// it returns an error.
 func BuildClangHarness(buildType string, isClean bool) error {
+	glog.Infof("Building %s clang harness", buildType)
 	buildVars := []string{
 		fmt.Sprintf("CC=%s", config.Common.ClangPath),
 		fmt.Sprintf("CXX=%s", config.Common.ClangPlusPlusPath),
@@ -19,8 +21,24 @@ func BuildClangHarness(buildType string, isClean bool) error {
 	return buildHarness(buildType, isClean, buildVars)
 }
 
-// BuildFuzzingHarness builds the test harness for parsing skp files using afl-instrumented clang.  If any step fails, it returns an error.
+// BuildASANHarness builds the test harness for parsing skp files using clang and AddressSanitizer.
+// If any step fails, it returns an error.
+func BuildASANHarness(buildType string, isClean bool) error {
+	glog.Infof("Building %s ASAN harness", buildType)
+	buildVars := []string{
+		fmt.Sprintf("CC=%s", config.Common.ClangPath),
+		fmt.Sprintf("CXX=%s", config.Common.ClangPlusPlusPath),
+		"CXXFLAGS=-O1 -g -fsanitize=address -fno-omit-frame-pointer",
+		"LDFLAGS=-g -fsanitize=address",
+		ASAN_OPTIONS,
+	}
+	return buildHarness(buildType, isClean, buildVars)
+}
+
+// BuildFuzzingHarness builds the test harness for parsing skp files using afl-instrumented clang.
+// If any step fails, it returns an error.
 func BuildFuzzingHarness(buildType string, isClean bool) error {
+	glog.Infof("Building %s fuzzing harness", buildType)
 	buildVars := []string{
 		fmt.Sprintf("CC=%s", filepath.Join(config.Generator.AflRoot, "afl-clang")),
 		fmt.Sprintf("CXX=%s", filepath.Join(config.Generator.AflRoot, "afl-clang++")),
@@ -35,8 +53,6 @@ func BuildFuzzingHarness(buildType string, isClean bool) error {
 // Finally, it runs those build files.
 // If any step fails in unexpected ways, it returns an error.
 func buildHarness(buildType string, isClean bool, buildVars []string) error {
-	glog.Infof("Building %s fuzzing harness", buildType)
-
 	// clean previous build if specified
 	buildLocation := filepath.Join("out", buildType)
 	if isClean {
@@ -48,8 +64,8 @@ func buildHarness(buildType string, isClean bool, buildVars []string) error {
 	gypCmd := &exec.Command{
 		Name:      "./gyp_skia",
 		Dir:       config.Generator.SkiaRoot,
-		LogStdout: false,
-		LogStderr: false,
+		LogStdout: config.Common.VerboseBuilds,
+		LogStderr: config.Common.VerboseBuilds,
 		Env:       append(buildVars, "GYP_DEFINES=skia_clang_build=1"),
 	}
 
@@ -63,7 +79,7 @@ func buildHarness(buildType string, isClean bool, buildVars []string) error {
 	ninjaCmd := &exec.Command{
 		Name:        ninjaPath,
 		Args:        []string{"-C", buildLocation, "fuzz"},
-		LogStdout:   true,
+		LogStdout:   config.Common.VerboseBuilds,
 		LogStderr:   true,
 		InheritPath: true,
 		Dir:         config.Generator.SkiaRoot,

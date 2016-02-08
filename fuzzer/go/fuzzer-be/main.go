@@ -35,7 +35,6 @@ var (
 	depotToolsPath     = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
 	aflRoot            = flag.String("afl_root", "", "[REQUIRED] The install directory of afl-fuzz (v1.94b or later).")
 	numFuzzProcesses   = flag.Int("fuzz_processes", 0, `The number of processes to run afl-fuzz [per fuzz to run].  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
-	watchAFL           = flag.Bool("watch_afl", false, "(debug only) If the afl master's output should be piped to stdout.")
 	versionCheckPeriod = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
 	downloadProcesses  = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes when re-analyzing them. This is constant with respect to the number of fuzzes.")
 	fuzzesToRun        = common.NewMultiStringFlag("fuzz_to_run", nil, fmt.Sprintf("A set of fuzzes to run.  Can be one or more of the known fuzzes: %q", fcommon.FUZZ_CATEGORIES))
@@ -50,6 +49,11 @@ var (
 	analysisTimeout      = flag.Duration("analysis_timeout", 5*time.Second, `The maximum time an analysis should run.`)
 
 	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
+
+	watchAFL        = flag.Bool("watch_afl", false, "(debug only) If the afl master's output should be piped to stdout.")
+	skipGeneration  = flag.Bool("skip_generation", false, "(debug only) If the generation step should be disabled.")
+	forceReanalysis = flag.Bool("force_reanalysis", false, "(debug only) If the fuzzes should be downloaded, re-analyzed, (deleted for GCS), and reuploaded.")
+	verboseBuilds   = flag.Bool("verbose_builds", false, "If output from ninja and gyp should be printed to stdout.")
 )
 
 var (
@@ -80,9 +84,14 @@ func main() {
 			glog.Fatalf("Problem downloading binary seed files: %s", err)
 		}
 
-		glog.Infof("Starting %s generator with configuration %#v", category, config.Generator)
-		if err := gen.Start(); err != nil {
-			glog.Fatalf("Problem starting binary generator: %s", err)
+		// If we are reanalyzing, no point in running the generator first, just to stop it.
+		if !*skipGeneration && !*forceReanalysis {
+			glog.Infof("Starting %s generator with configuration %#v", category, config.Generator)
+			if err := gen.Start(); err != nil {
+				glog.Fatalf("Problem starting binary generator: %s", err)
+			}
+		} else {
+			glog.Infof("Skipping %s generator because --skip_generation is enabled", category)
 		}
 
 		glog.Infof("Starting %s aggregator with configuration %#v", category, config.Aggregator)
@@ -135,6 +144,7 @@ func writeFlagsToConfig() error {
 		return err
 	}
 
+	config.Common.VerboseBuilds = *verboseBuilds
 	config.Common.ClangPath = *clangPath
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Common.DepotToolsPath = *depotToolsPath
@@ -157,6 +167,7 @@ func writeFlagsToConfig() error {
 	config.Aggregator.StatusPeriod = *statusPeriod
 	config.Aggregator.RescanPeriod = *rescanPeriod
 	config.Aggregator.AnalysisTimeout = *analysisTimeout
+	config.Common.ForceReanalysis = *forceReanalysis
 
 	// Check all the fuzzes are valid ones we can handle
 	for _, f := range *fuzzesToRun {

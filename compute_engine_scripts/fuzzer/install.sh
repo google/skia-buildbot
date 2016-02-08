@@ -6,3 +6,5 @@ sudo apt-get install clang-3.6 lldb-3.6 make build-essential libfontconfig1-dev 
 # Afl-fuzz can't find the clang-3.6 aliases, so make the standard /usr/bin/clang
 sudo ln /usr/bin/clang-3.6 /usr/bin/clang
 sudo ln /usr/bin/clang++-3.6 /usr/bin/clang++
+# Make symbolizer easier to find
+sudo ln /usr/bin/llvm-symbolizer-3.6 /usr/bin/llvm-symbolizer
