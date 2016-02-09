@@ -5,6 +5,7 @@ package main
 
 import (
 	"flag"
+	"os"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
@@ -34,7 +35,7 @@ var (
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("skia-ingestion", influxHost, influxUser, influxPassword, influxDatabase, local)
+	common.InitWithMetrics2(os.Args[0], influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	// If no nsqd servers is defines, we simply don't have gloabl events.
 	var globalEventBus geventbus.GlobalEventBus = nil
