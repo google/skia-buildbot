@@ -5,7 +5,8 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/local/bin/gold_ingestion \
-    --graphite_server=skia-monitoring:2003 \
+    --influxdb_host=skia-monitoring:10117 \
+    --influxdb_database=skmetrics \
     --config_filename=/etc/gold_ingestion/config.toml \
     --log_dir=/var/log/logserver
 Restart=always
