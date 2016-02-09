@@ -5,7 +5,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -331,34 +330,12 @@ func rulesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// TODO(rmistry): Populate the below handler after we figure out what gmail sends back to us.
-func gmailActionsHandler(w http.ResponseWriter, r *http.Request) {
-	glog.Info("------------------gmailActionsHandler------------------")
-
-	glog.Infof("Authorization: %v", r.Header.Get("Authorization"))
-	glog.Infof("User-Agent: %v", r.Header.Get("User-Agent"))
-
-	expectedUserAgent := "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/1.0 (KHTML, like Gecko; Gmail Actions)"
-	glog.Infof("Expected User-Agent: %v", expectedUserAgent)
-	glog.Infof("User-Agent matches expected: %t", r.Header.Get("User-Agent") == expectedUserAgent)
-
-	glog.Infof("All Headers: %v", r.Header)
-
-	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(r.Body); err != nil {
-		glog.Error(err)
-		return
-	}
-	glog.Infof("Request body: %s", buf.String())
-}
-
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", alertHandler)
 	r.HandleFunc("/infra", infraAlertHandler)
 	r.HandleFunc("/rules", rulesHandler)
-	r.HandleFunc("/gmail_actions", gmailActionsHandler).Methods("POST")
 	alerts := r.PathPrefix("/json/alerts").Subrouter()
 	alerts.HandleFunc("/", util.CorsHandler(alertJsonHandler))
 	alerts.HandleFunc("/{alertId:[0-9]+}/{action}", postAlertsJsonHandler).Methods("POST")
