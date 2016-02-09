@@ -37,3 +37,12 @@ case "$VM_ID" in
     ;;
 
 esac
+
+MACHINE_TYPE=n1-highmem-16
+SOURCE_SNAPSHOT=skia-systemd-pushable-base
+SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
+
+DATA_DISK_NAME="$INSTANCE_NAME-data"
+
+# Remove the startup script and generate a new one with the right disk name.
+sed "s/DATA_DISK_NAME/${DATA_DISK_NAME}/g" startup-script.sh.template > startup-script.sh
