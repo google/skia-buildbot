@@ -30,9 +30,11 @@ const (
 	CHROMIUM_SKIA_GM_CLIENT_ID     = "chromium_skia_gm_clientid"
 	CHROMIUM_SKIA_GM_CLIENT_SECRET = "chromium_skia_gm_clientsecret"
 
-	// INFLUXDB_NAME and INFLUXDB_PASSWORD are used for accessing InfluxDB.
+	// INFLUXDB_* values are used for accessing InfluxDB.
 	INFLUXDB_NAME     = "influxdb_name"
 	INFLUXDB_PASSWORD = "influxdb_password"
+	INFLUXDB_HOST     = "influxdb_host"
+	INFLUXDB_DATABASE = "influxdb_database"
 
 	// DATABASE_RW_PASSWORD and DATABASE_ROOT_PASSWORD are the MySQL Database passwords for the
 	// readwrite and root user respectively.

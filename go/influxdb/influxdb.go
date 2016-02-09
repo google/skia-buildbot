@@ -66,16 +66,23 @@ func NewClient(host, user, password, database string) (*Client, error) {
 // the program is running in local mode.
 func NewClientFromParamsAndMetadata(host, user, password, database string, local bool) (*Client, error) {
 	if !local {
-		userMeta, err := metadata.ProjectGet(metadata.INFLUXDB_NAME)
+		var err error
+		user, err = metadata.ProjectGet(metadata.INFLUXDB_NAME)
 		if err != nil {
 			return nil, err
 		}
-		passMeta, err := metadata.ProjectGet(metadata.INFLUXDB_PASSWORD)
+		password, err = metadata.ProjectGet(metadata.INFLUXDB_PASSWORD)
 		if err != nil {
 			return nil, err
 		}
-		user = userMeta
-		password = passMeta
+		database, err = metadata.ProjectGet(metadata.INFLUXDB_DATABASE)
+		if err != nil {
+			return nil, err
+		}
+		host, err = metadata.ProjectGet(metadata.INFLUXDB_HOST)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return NewClient(host, user, password, database)
 }
