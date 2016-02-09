@@ -24,8 +24,8 @@ To snooze or dismiss this alert, visit %s
 )
 
 var (
-	emailAuth  *email.GMail        = nil
-	emailQueue chan *email.Message = nil
+	emailAuth  *email.GMail       = nil
+	emailQueue chan *AlertMessage = nil
 )
 
 // Actions are performed whenever an Alert is updated.
@@ -40,10 +40,29 @@ type EmailAction struct {
 	str string
 }
 
+type AlertMessage struct {
+	SenderDisplayName string
+	To                []string
+	Subject           string
+	Body              string
+	AlertLink         string
+}
+
+// Get link to the Alerts page.
+func getLinkToAlert(alert *Alert) string {
+	url := ALERTS_URL
+	// TODO(borenet): This is a pretty hacky. Instead, we should point directly
+	// to an endpoint for the individual alert, or automatically filter by category.
+	if alert.Category == INFRA_ALERT {
+		url += "/infra"
+	}
+	return url
+}
+
 func initEmail(auth *email.GMail) {
 	emailAuth = auth
-	emailQueue = make(chan *email.Message, EMAIL_QUEUE_SIZE)
-	msgs := []*email.Message{}
+	emailQueue = make(chan *AlertMessage, EMAIL_QUEUE_SIZE)
+	msgs := []*AlertMessage{}
 	recentlySent := util.NewAutoDecrementCounter(EMAIL_RATE_PERIOD)
 	msgSep := strings.Repeat("=", 72)
 
@@ -56,9 +75,13 @@ func initEmail(auth *email.GMail) {
 		}
 
 		// Helper function for sending messages.
-		sendMessage := func(msg *email.Message) {
+		sendMessage := func(msg *AlertMessage) {
+			viewActionMarkup, err := email.GetViewActionMarkup(msg.AlertLink, "View Alert", "Link to the Alertserver")
+			if err != nil {
+				glog.Errorf("Failed to get view action markup: %s", err)
+			}
 			if emailAuth != nil {
-				if err := emailAuth.SendMessage(msg); err != nil {
+				if err := emailAuth.SendWithMarkup(msg.SenderDisplayName, msg.To, msg.Subject, msg.Body, viewActionMarkup); err != nil {
 					glog.Errorf("Failed to send email: %s", err)
 				}
 			} else {
@@ -75,7 +98,9 @@ func initEmail(auth *email.GMail) {
 			// Aggregate the recipients and contents of the emails.
 			recipients := map[string]bool{}
 			body := ""
+			alertLink := ""
 			for _, m := range msgs {
+				alertLink = m.AlertLink
 				for _, recipient := range m.To {
 					recipients[recipient] = true
 				}
@@ -85,11 +110,12 @@ func initEmail(auth *email.GMail) {
 			for r, _ := range recipients {
 				to = append(to, r)
 			}
-			sendMessage(&email.Message{
+			sendMessage(&AlertMessage{
 				SenderDisplayName: EMAIL_SENDER_DISPLAY_NAME,
 				To:                to,
 				Subject:           fmt.Sprintf("Skia Alerts: Multiple messages as of %s", time.Now()),
 				Body:              body,
+				AlertLink:         alertLink,
 			})
 		} else {
 			// Send all queued messages.
@@ -98,7 +124,7 @@ func initEmail(auth *email.GMail) {
 			}
 		}
 		// Reset the queue.
-		msgs = []*email.Message{}
+		msgs = []*AlertMessage{}
 	}
 
 	go func() {
@@ -120,30 +146,26 @@ func (a *EmailAction) emailSubject(alert *Alert) string {
 
 // Create an email footer from an Alert.
 func (a *EmailAction) emailFooter(alert *Alert) string {
-	url := ALERTS_URL
-	// TODO(borenet): This is a pretty hacky. Instead, we should point directly
-	// to an endpoint for the individual alert, or automatically filter by category.
-	if alert.Category == INFRA_ALERT {
-		url += "/infra"
-	}
-	return fmt.Sprintf(EMAIL_FOOTER, url)
+	return fmt.Sprintf(EMAIL_FOOTER, getLinkToAlert(alert))
 }
 
 func (a *EmailAction) Fire(alert *Alert) {
-	emailQueue <- &email.Message{
+	emailQueue <- &AlertMessage{
 		SenderDisplayName: EMAIL_SENDER_DISPLAY_NAME,
 		To:                a.to,
 		Subject:           a.emailSubject(alert),
 		Body:              alert.Message + a.emailFooter(alert),
+		AlertLink:         getLinkToAlert(alert),
 	}
 }
 
 func (a *EmailAction) Followup(alert *Alert, msg string) {
-	emailQueue <- &email.Message{
+	emailQueue <- &AlertMessage{
 		SenderDisplayName: EMAIL_SENDER_DISPLAY_NAME,
 		To:                a.to,
 		Subject:           a.emailSubject(alert),
 		Body:              msg + a.emailFooter(alert),
+		AlertLink:         getLinkToAlert(alert),
 	}
 }
 
