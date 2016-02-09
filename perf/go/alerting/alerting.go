@@ -7,11 +7,10 @@ import (
 	"math"
 	"time"
 
-	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/issues"
+	"go.skia.org/infra/go/metrics2"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/clustering"
@@ -33,13 +32,13 @@ const (
 
 var (
 	// The number of clusters with a status of "New".
-	newClustersGauge = metrics.NewRegisteredGauge("alerting.new", metrics.DefaultRegistry)
+	newClustersGauge *metrics2.Int64Metric
 
 	// The number of times we've successfully done alert clustering.
-	runsCounter = metrics.NewRegisteredCounter("alerting.runs", metrics.DefaultRegistry)
+	runsCounter *metrics2.Counter
 
 	// How long it takes to do a clustering run.
-	alertingLatency = metrics.NewRegisteredTimer("alerting.latency", metrics.DefaultRegistry)
+	clusteringLatency *metrics2.Timer
 
 	// tileBuilder is the tracedb.Builder where we load Tiles from.
 	tileBuilder tracedb.MasterTileBuilder
@@ -254,7 +253,7 @@ func updateBugs(c *types.ClusterSummary, issueTracker issues.IssueTracker) error
 
 // singleStep does a single round of alerting.
 func singleStep(issueTracker issues.IssueTracker) {
-	latencyBegin := time.Now()
+	clusteringLatency.Start()
 	tile := tileBuilder.GetTile()
 	summary, err := clustering.CalculateClusterSummaries(tile, CLUSTER_SIZE, CLUSTER_STDDEV, skpOnly)
 	if err != nil {
@@ -308,7 +307,7 @@ func singleStep(issueTracker issues.IssueTracker) {
 	}
 	newClustersGauge.Update(int64(count))
 	runsCounter.Inc(1)
-	alertingLatency.UpdateSince(latencyBegin)
+	clusteringLatency.Stop()
 }
 
 // calcNewClusters counts how many clusters are "New" and updates
@@ -332,6 +331,9 @@ func calcNewClusters() {
 
 // Start kicks off a go routine the periodically refreshes the current alerting clusters.
 func Start(tb tracedb.MasterTileBuilder) {
+	newClustersGauge = metrics2.GetInt64Metric("perf.clustering.untriaged", nil)
+	runsCounter = metrics2.NewCounter("perf.clustering.runs", nil)
+	clusteringLatency = metrics2.NewTimer("perf.clustering.latency", nil)
 	tileBuilder = tb
 	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {

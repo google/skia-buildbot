@@ -2,7 +2,6 @@
 
 TileDir        = "/tmp/tileStore2/"                     # Path where tiles will be placed.
 GitRepoDir     = "../../../skia"                        # Directory location for the Skia repo.
-GraphiteServer = "skia-monitoring:2003"                 # Where is Graphite metrics ingestion server running.
 DoOauth        = true                                   # Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.
 OauthCacheFile = "/home/perf/google_storage_token.data" # Path to the file where to cache cache the oauth credentials.
 Local          = false                                  # Running locally if true. As opposed to in production.

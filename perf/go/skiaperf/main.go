@@ -22,6 +22,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
@@ -92,7 +93,10 @@ var (
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	traceservice   = flag.String("trace_service", "localhost:9090", "The address of the traceservice endpoint.")
@@ -1126,7 +1130,8 @@ func main() {
 	// Setup DB flags.
 	dbConf := idb.DBConfigFromFlags()
 
-	common.InitWithMetrics("skiaperf", graphiteServer)
+	common.InitWithMetrics2("skiaperf", influxHost, influxUser, influxPassword, influxDatabase, local)
+
 	Init()
 	if !*local {
 		if err := dbConf.GetPasswordFromMetadata(); err != nil {

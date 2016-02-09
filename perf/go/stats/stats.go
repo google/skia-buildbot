@@ -3,9 +3,9 @@ package stats
 import (
 	"time"
 
-	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/metrics2"
 	tracedb "go.skia.org/infra/go/trace/db"
 )
 
@@ -14,12 +14,14 @@ import (
 // We presume the git.Update(true) is called somewhere else, usually this is done
 // in the trace/db.Builder, so the repo is always as good as the loaded tiles.
 func Start(tileBuilder tracedb.MasterTileBuilder, git *gitinfo.GitInfo) {
-	coverage := metrics.NewRegisteredGaugeFloat64("stats.tests.bench_runs_per_changelist", metrics.DefaultRegistry)
-	skpLatency := metrics.NewRegisteredTimer("stats.skp.update_latency", metrics.DefaultRegistry)
-	commits := metrics.NewRegisteredGauge("stats.commits.total", metrics.DefaultRegistry)
+	coverage := metrics2.GetFloat64Metric("perf.coverage", nil)
+	liveness := metrics2.NewLiveness("perf.coverage", nil)
+	latency := metrics2.NewTimer("perf.stats.latency", nil)
+	commits := metrics2.GetInt64Metric("perf.commits", nil)
 
 	go func() {
 		for _ = range time.Tick(2 * time.Minute) {
+			latency.Start()
 			tile := tileBuilder.GetTile()
 			numCommits := tile.LastCommitIndex() + 1
 			numTraces := len(tile.Traces)
@@ -35,13 +37,9 @@ func Start(tileBuilder tracedb.MasterTileBuilder, git *gitinfo.GitInfo) {
 			glog.Info("Coverage: ", cov)
 			coverage.Update(cov)
 
-			last, err := git.LastSkpCommit()
-			if err != nil {
-				glog.Warning("Failed to read last SKP commit: %s", err)
-				continue
-			}
-			skpLatency.Update(time.Since(last))
 			commits.Update(int64(git.NumCommits()))
+			latency.Stop()
+			liveness.Reset()
 		}
 	}()
 }
