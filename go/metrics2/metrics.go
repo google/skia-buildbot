@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	DEFAULT_REPORT_FREQUENCY = 5 * time.Second
+	DEFAULT_REPORT_FREQUENCY = time.Minute
 	PUSH_FREQUENCY           = time.Minute
 )
 
