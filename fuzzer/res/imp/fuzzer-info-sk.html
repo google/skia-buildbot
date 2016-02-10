@@ -47,13 +47,14 @@
       last-response="{{_fileDetails}}">
     </iron-ajax>
 
-    <template is="dom-repeat" items="{{_fileDetails}}" as="file" sort="_byCount" observe="count">
+    <template is="dom-repeat" items="{{_filteredFileDetails}}" as="file" sort="_byCount">
       <fuzzer-collapse-file-sk file="{{file}}"
           category="[[category]]"
-          include="[[include]]"
-          exclude="[[exclude]]"
           expand="[[_shouldExpand()]]">
       </fuzzer-collapse-file-sk>
+    </template>
+    <template is="dom-if" if="{{_isEmpty}}">
+      <div>No results found (or server is still loading). Try refreshing this page later.</div>
     </template>
 
   </template>
@@ -85,6 +86,14 @@
             return [];
           },
         },
+        _filteredFileDetails: {
+          type: Array,
+          computed: "_filter(_fileDetails, include, exclude)",
+        },
+        _isEmpty: {
+          type: Boolean,
+          computed: "_empty(_filteredFileDetails)",
+        },
         _urlParams: {
           type: String,
           computed: "_getURLParams(category)",
@@ -105,6 +114,54 @@
       _byCount: function(a, b) {
         // Higher counts come first
         return b.count - a.count;
+      },
+      _filter: function(fileDetails, include, exclude){
+        if (this._empty(fileDetails)) {
+          return [];
+        }
+        exclude = exclude || [];
+        include = include || [];
+        if (exclude.length === 0 && include.length === 0) {
+          return fileDetails;
+        }
+
+        // make a fresh copy of the data.  This way, we can just completely replace the array
+        // without having to do Polymer's special array manipulation.
+        var retVal = JSON.parse(JSON.stringify(fileDetails));
+
+        retVal.forEach(function(file){
+          var fileCount = 0;
+          file.byFunction.forEach(function(func) {
+            var funcCount = 0;
+            func.byLineNumber.forEach(function(line) {
+              line.reports = line.reports.filter(function(report) {
+                if (sk.sharesElement(exclude, report.debugFlags) ||
+                    sk.sharesElement(exclude, report.releaseFlags)) {
+                  return false;
+                }
+                if (include.length === 0) {
+                  return true;
+                }
+                if (!sk.sharesElement(include, report.debugFlags) &&
+                    !sk.sharesElement(include, report.releaseFlags)) {
+                  return false;
+                }
+                return true;
+              });
+              line.count = line.reports.length;
+              funcCount += line.count;
+            });
+            func.count = funcCount;
+            fileCount += funcCount
+          });
+          file.count = fileCount;
+        });
+
+        return retVal;
+
+      },
+      _empty: function(a) {
+        return !a || !a.length;
       }
     });
   </script>

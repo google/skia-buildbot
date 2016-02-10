@@ -17,12 +17,11 @@
     <select-status-sk></select-status-sk>
 
   Properties:
-    target - String.  The unique id of the select element that should be attached to.
     values - Array of Strings.  The selected values.
     clear - Boolean.  If there should be a clear button as well.
 
   Methods:
-    None.
+    setTarget(targetSelect) - Should be called to bind this to a select element.  targetSelect should be a dom element.
 
   Events:
     None.
@@ -41,21 +40,12 @@
           type: Boolean,
           value: false,
         },
-        target: {
-          type: String,
-          value: null,
-        },
         values: {
           type: Array,
           notify: true,
           observer: "applySelection"
           // no default value here to allow parent to supply the value from another binding.
         },
-      },
-
-      attached: function() {
-        this.select = $$$('#' + this.target);
-        this.select.addEventListener('change', this._updateSelection.bind(this));
       },
 
       // applySelection handles input from the parent element via the binding,
@@ -88,6 +78,17 @@
         });
         this._updateSelection();
       },
+
+      // target should be a select element, e.g. this.$.select, from the parent. It used to be a
+      // string, and in the attached() callback of select-status, we would look for $('#' + target)
+      // and save that as this.select. However, this does not work in most cases because the
+      // attached of the select was typically after the attached of the parent and the target
+      // select had not been stamped out yet.
+      setTarget: function(target) {
+        this.select = target;
+        this.applySelection(this.values);
+        this.select.addEventListener('change', this._updateSelection.bind(this));
+      }
 
     });
   </script>

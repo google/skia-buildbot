@@ -4,6 +4,7 @@
   "authors": [],
   "license": "BSD",
   "private": true,
+  "description": "UI for the fuzzer",
   "ignore": [
     "**/.*",
     "node_modules",

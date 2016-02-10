@@ -91,7 +91,8 @@
     },
 
     getLink: function(fuzz){
-      return "/category/"+fuzz.category;
+      // by default, hide these fuzzes
+      return "/category/"+fuzz.category+ "?exclude=SKAbortHit";
     },
   });
   </script>

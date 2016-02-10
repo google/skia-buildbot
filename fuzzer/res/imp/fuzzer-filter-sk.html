@@ -65,7 +65,7 @@
         <option value="NoStackTrace">NoStackTrace</option>
         <option value="TimedOut">TimedOut</option>
       </select>
-      <select-status-sk target="include" values="{{_include}}" clear></select-status-sk>
+      <select-status-sk id="includestatus" values="{{_include}}" clear></select-status-sk>
     </div>
 
 
@@ -81,7 +81,7 @@
         <option value="SKPICTURE_DuringRendering">SKPICTURE_DuringRendering</option>
 
         <option value="Other">Other</option>
-        <option value="AssertionViolated">AssertionViolated</option>
+        <option value="SKAbortHit">SKAbortHit</option>
         <option value="BadAlloc">BadAlloc</option>
         <option value="FailedGracefully">FailedGracefully</option>
         <option value="ClangCrashed">ClangCrashed</option>
@@ -89,7 +89,7 @@
         <option value="NoStackTrace">NoStackTrace</option>
         <option value="TimedOut">TimedOut</option>
       </select>
-      <select-status-sk target="exclude" values="{{_exclude}}" clear></select-status-sk>
+      <select-status-sk id="excludestatus" values="{{_exclude}}" clear></select-status-sk>
     </div>
 
   </template>
@@ -122,6 +122,11 @@
           type: Array,
           // no default value to avoid clobbering default value in the url parameters
         },
+      },
+
+      attached: function() {
+        this.$.includestatus.setTarget(this.$.include);
+        this.$.excludestatus.setTarget(this.$.exclude);
       },
 
       _sort: function(val) {

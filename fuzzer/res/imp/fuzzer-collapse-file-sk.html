@@ -23,14 +23,9 @@
       byFunction: Array of FunctionDetail objects.  See fuzzer-collapse-function-sk.html for schema.
 
     expand: String, which should be "true" if the element and any children should start expanded.
-    exclude: Array of String, all fuzzes that have one or more of these strings as a flag will not
-        be shown.  This array must be sorted lexographically.
-    include: Array of String, all fuzzes must have one or more of these strings as a flag to be
-        shown.  This array must be sorted lexographically.
 
   Methods:
     setFile(file) - Programmatically set the FileDetails object.
-    toggleLineNumbers() - Programmtically expand/collapse the function details.
 
   Events:
     None.
@@ -68,24 +63,23 @@
       list-style-type: none;
     }
     </style>
-    <details-sk id="file" open="[[expand]]">
+    <details-sk id="file" open="{{expand}}">
       <summary-sk>
       <h3>
         <a href$="{{_getDetailsLink(category, file)}}">{{file.fileName}}</a>
         -- {{file.count}} crash-causing fuzzes
       </h3>
       </summary-sk>
-      <template  is="dom-repeat" items="{{file.byFunction}}" as="func" sort="_byCount" observe="count">
-        <fuzzer-collapse-function-sk
-          class="func-group"
-          expand="[[expand]]"
-          func="{{func}}"
-          exclude="[[exclude]]"
-          include="[[include]]"
-          details-base="{{_getDetailsLink(category, file)}}"
-          on-dom-change="_recount"
-        ></fuzzer-collapse-function-sk>
+      <template is="dom-if" if="{{expand}}">
+        <template  is="dom-repeat" items="{{file.byFunction}}" as="func" sort="_byCount">
+          <fuzzer-collapse-function-sk
+            class="func-group"
+            func="{{func}}"
+            details-base="{{_getDetailsLink(category, file)}}"
+          ></fuzzer-collapse-function-sk>
+        </template>
       </template>
+<!--        -->
     </details-sk>
   </template>
   <script>
@@ -109,35 +103,15 @@
         type: Boolean,
         value: false,
       },
-      exclude: {
-        type: Array,
-        value: function() {
-          return [];
-        },
-      },
-      include: {
-        type: Array,
-        value: function() {
-          return [];
-        },
-      },
-    },
-
-    _recount: function() {
-      this.debounce("recount-file", function(){
-        this.flushDebouncer("recount-function");
-        var funcs = $$(".func-group", this.$.file);
-        var sum = 0;
-        funcs.forEach(function(a){
-          sum += a.numReports;
-        });
-        this.set("file.count", sum);
-      }.bind(this), 10);
-
     },
 
     setFile: function(file) {
       this.file = file;
+    },
+
+    _byCount: function(a, b) {
+      // Higher counts come first
+      return b.count - a.count;
     },
 
     _getDetailsLink: function(category, file, func) {
@@ -149,11 +123,7 @@
         base = fuzzer.getLinkToDetails(base, "func", func.functionName);
       }
       return base;
-    },
-    _byCount: function(a, b) {
-        // Higher counts come first
-        return b.count - a.count;
-      }
+    }
   });
   </script>
 </dom-module>

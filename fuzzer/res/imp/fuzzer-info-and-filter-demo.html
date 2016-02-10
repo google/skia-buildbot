@@ -20,13 +20,31 @@
   </script>
 
   <link rel="import" href="fuzzer-info-sk.html">
+  <link rel="import" href="fuzzer-filter-sk.html">
 
 </head>
 
 <body>
   <h1>fuzzer-info-sk demo</h1>
 
-  <fuzzer-info-sk category="skpicture"></fuzzer-info-sk>
+  <template is="dom-bind">
+  <fuzzer-filter-sk
+      include="{{include}}"
+      exclude="{{exclude}}">
+  </fuzzer-filter-sk>
+
+  <div>Include: [[include]]</div>
+  <div>Exclude: [[exclude]]</div>
+
+    <fuzzer-info-sk
+        category="skpicture"
+        include="[[include]]"
+        exclude="[[exclude]]">
+    </fuzzer-info-sk>
+
+  </template>
+
+
 
 </body>
 

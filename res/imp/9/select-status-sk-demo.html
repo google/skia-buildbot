@@ -11,7 +11,8 @@
 </head>
 <body>
 
-<template is="dom-bind">
+<dom-module id="select-status-demo">
+<template>
   <style>
     #selector,#no-button {
       max-width:100px;
@@ -38,6 +39,7 @@
       <option value="delta">&Delta; is for Delta</option>
     </select>
     <select-status-sk
+      id="greekstatus"
       target="greek"
       values="{{_selected}}"
       clear>
@@ -56,6 +58,7 @@
       <option value="delta">&Delta; is for Delta</option>
     </select>
     <select-status-sk
+      id="secondstatus"
       target="second"
       values="{{_no_button}}">
     </select-status-sk>
@@ -63,6 +66,19 @@
   <br/>
   <div>{{_no_button}} is selected</div>
 </template>
+  <script>
+  Polymer({
+    is: 'select-status-demo',
+    attached: function(){
+      this.$.secondstatus.setTarget(this.$.second);
+      this.$.greekstatus.setTarget(this.$.greek);
+    },
+  });
+
+  </script>
+</dom-module>
+
+<select-status-demo></select-status-demo>
 
 
 </body>

@@ -31,10 +31,6 @@
         - category: String.
     detailsBase: String, the base url for details (should include file and function name)
     expand: Boolean, if this element should be auto expanded.
-    exclude: Array of String, all fuzzes that have one or more of these strings as a flag will not
-        be shown.  This array must be sorted lexographically.
-    include: Array of String, all fuzzes must have one or more of these strings as a flag to be
-        shown.  This array must be sorted lexographically.
 
   Methods:
     setDetails(details) - Programmatically set the details object.
@@ -108,10 +104,10 @@
         <details-sk open="[[expand]]">
           <summary-sk>
             <a href$="{{_getDetailsLink(detailsBase, details)}}">Line {{details.lineNumber}}</a>
-          -- {{numReports}} crash-causing fuzzes
+          -- {{details.count}} crash-causing fuzzes
           </summary-sk>
           <div class="panel-container">
-            <template is="dom-repeat" items="{{_getSomeReports(filteredReports, toShow)}}" as="report">
+            <template is="dom-repeat" items="{{reports}}" as="report">
               <div class="panel">
                 <div class="title">
                 File:
@@ -139,7 +135,8 @@
             <div class="show-more-less-bar">
               <paper-button disabled$="{{!hasFewer}}" on-click="showFewer">Show Fewer</paper-button>
               <span class="status">
-                <span class="center">Showing {{_min(toShow, numReports)}}/{{numReports}}</span>
+                <span class="center">Showing {{toShow}}/
+                  {{details.count}}</span>
               </span>
               <paper-button disabled$="{{!hasMore}}" on-click="showMore">Show More</paper-button>
             </div>
@@ -186,24 +183,10 @@
         computed: "_hasFewer(toShow)"
       },
       // Returns the amount of detail panels equal to 'toShow'
-      filteredReports: {
+      reports: {
         type: Array,
-        computed: "_filterReports(details, exclude, include)",
+        computed: "_getSomeReports(details, toShow)",
       },
-      exclude: {
-        type: Array,
-        value: [],
-      },
-      include: {
-        type: Array,
-        value: [],
-      },
-      numReports: {
-        type: Number,
-        computed: "_getNumFiltered(filteredReports)",
-        reflectToAttribute: true,
-        notify: true,
-      }
     },
 
     ready: function() {
@@ -244,42 +227,15 @@
       return toShow > 0;
     },
 
-    _min: function(a, b) {
-      return Math.min(a, b);
-    },
-
-    _filterReports: function(details, exclude, include) {
-      exclude = exclude || [];
-      include = include || [];
-      if (exclude.length === 0 && include.length === 0) {
-        return details.reports;
-      }
-
-      return details.reports.filter(function(report){
-        if (sk.sharesElement(exclude, report.debugFlags) ||
-            sk.sharesElement(exclude, report.releaseFlags)) {
-          return false;
-        }
-        if (include.length === 0) {
-          return true;
-        }
-        if (!sk.sharesElement(include, report.debugFlags) &&
-            !sk.sharesElement(include, report.releaseFlags)) {
-          return false;
-        }
-        return true;
-      });
-    },
-
     // _getSomeReports returns up to {{toShow}} reports from details
-    _getSomeReports: function(filteredReports, toShow) {
-      if (!filteredReports) {
+    _getSomeReports: function(details, toShow) {
+      if (!details.reports) {
         return [];
       }
-      if (toShow > filteredReports.length) {
-        return filteredReports;
+      if (toShow > details.reports.length) {
+        return details.reports;
       }
-      return filteredReports.slice(0, toShow);
+      return details.reports.slice(0, toShow);
     },
 
     _getDownloadLink: function(report) {
@@ -301,12 +257,6 @@
 
     _getNewBugLink: function(report) {
       return "/newBug?name=" + report.fuzzName + "&category="+report.category;
-    },
-    _getNumFiltered: function(filteredReports) {
-      if (!filteredReports) {
-        return 0;
-      }
-      return filteredReports.length;
     },
   });
   </script>
