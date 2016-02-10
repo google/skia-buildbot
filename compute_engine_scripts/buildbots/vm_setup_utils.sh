@@ -141,7 +141,7 @@ function setup_contab {
   echo
   echo "===== Setup Crontab. ====="
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
-    "crontab $SKIA_REPO_DIR/buildbot/compute_engine_scripts/cron-file.txt" \
+    "crontab $SKIA_REPO_DIR/buildbot/compute_engine_scripts/buildbots/cron-file.txt" \
     || FAILED="$FAILED SetupCrontab"
   echo
 }
