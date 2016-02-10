@@ -10,17 +10,12 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
 const LOCAL_STATUS_DIR = "./ingestion_status"
-
-func init() {
-	metrics2.InitForTesting()
-}
 
 func TestPollingIngester(t *testing.T) {
 	testIngester(t, false)

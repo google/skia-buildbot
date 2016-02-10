@@ -21,7 +21,9 @@ const (
 )
 
 var (
-	DefaultClient *Client
+	DefaultClient *Client = &Client{
+		metrics: map[string]*rawMetric{},
+	}
 )
 
 // Init() initializes the metrics package.
@@ -92,6 +94,10 @@ func NewClient(influxClient *influxdb.Client, defaultTags map[string]string, rep
 func (c *Client) addPointAtTime(measurement string, tags map[string]string, value interface{}, ts time.Time) {
 	c.valuesMtx.Lock()
 	defer c.valuesMtx.Unlock()
+	if c.values == nil {
+		glog.Errorf("Metrics client not initialized; cannot add points.")
+		return
+	}
 	if tags == nil {
 		tags = map[string]string{}
 	}
@@ -122,6 +128,9 @@ func RawAddInt64PointAtTime(measurement string, tags map[string]string, value in
 func (c *Client) pushData() error {
 	c.valuesMtx.Lock()
 	defer c.valuesMtx.Unlock()
+	if c.influxClient == nil {
+		return fmt.Errorf("InfluxDB client is nil! Cannot push data. Did you initialize the metrics2 package?")
+	}
 	if err := c.influxClient.WriteBatch(c.values); err != nil {
 		return err
 	}
