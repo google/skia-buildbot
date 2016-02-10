@@ -40,6 +40,11 @@ func Init(appName string, influxClient *influxdb.Client) error {
 	if err != nil {
 		return err
 	}
+	// Some metrics may already be registered with DefaultClient. Copy them
+	// over.
+	c.metrics = DefaultClient.metrics
+
+	// Set the default client.
 	DefaultClient = c
 	return nil
 }
