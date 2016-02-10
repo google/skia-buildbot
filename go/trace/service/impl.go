@@ -15,7 +15,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/golang/groupcache/lru"
 	"github.com/golang/protobuf/proto"
-	"github.com/rcrowley/go-metrics"
+	"go.skia.org/infra/go/metrics2"
 	"golang.org/x/net/context"
 )
 
@@ -30,18 +30,19 @@ const (
 )
 
 var (
-	missingParamsCalls = metrics.NewRegisteredCounter("missing-params-calls", metrics.DefaultRegistry)
-	addParamsCalls     = metrics.NewRegisteredCounter("add-params-calls", metrics.DefaultRegistry)
-	addCalls           = metrics.NewRegisteredCounter("add-calls", metrics.DefaultRegistry)
-	addCount           = metrics.NewRegisteredCounter("added-count", metrics.DefaultRegistry)
-	removeCalls        = metrics.NewRegisteredCounter("remove-calls", metrics.DefaultRegistry)
-	listCalls          = metrics.NewRegisteredCounter("list-calls", metrics.DefaultRegistry)
-	listMD5Calls       = metrics.NewRegisteredCounter("list-md5-calls", metrics.DefaultRegistry)
-	getParamsCalls     = metrics.NewRegisteredCounter("get-params-calls", metrics.DefaultRegistry)
-	getValuesCalls     = metrics.NewRegisteredCounter("get-values-calls", metrics.DefaultRegistry)
-	getValuesRawCalls  = metrics.NewRegisteredCounter("get-values-raw-calls", metrics.DefaultRegistry)
-	getTraceIDsCalls   = metrics.NewRegisteredCounter("get-traceids-calls", metrics.DefaultRegistry)
-	pingCalls          = metrics.NewRegisteredCounter("ping-calls", metrics.DefaultRegistry)
+	tags               = map[string]string{"module": "tracedb"}
+	missingParamsCalls = metrics2.NewCounter("missing-params-calls", tags)
+	addParamsCalls     = metrics2.NewCounter("add-params-calls", tags)
+	addCalls           = metrics2.NewCounter("add-calls", tags)
+	addCount           = metrics2.NewCounter("added-count", tags)
+	removeCalls        = metrics2.NewCounter("remove-calls", tags)
+	listCalls          = metrics2.NewCounter("list-calls", tags)
+	listMD5Calls       = metrics2.NewCounter("list-md5-calls", tags)
+	getParamsCalls     = metrics2.NewCounter("get-params-calls", tags)
+	getValuesCalls     = metrics2.NewCounter("get-values-calls", tags)
+	getValuesRawCalls  = metrics2.NewCounter("get-values-raw-calls", tags)
+	getTraceIDsCalls   = metrics2.NewCounter("get-traceids-calls", tags)
+	pingCalls          = metrics2.NewCounter("ping-calls", tags)
 )
 
 // bytesFromUint64 converts a uint64 to a []byte.

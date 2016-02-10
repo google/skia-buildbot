@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/trace/service"
 	"golang.org/x/net/context"
@@ -140,10 +140,10 @@ func NewTraceServiceDB(conn *grpc.ClientConn, traceBuilder tiling.TraceBuilder) 
 
 	// Liveness metric.
 	go func() {
-		liveness := metrics.NewLiveness("tracedb-ping")
+		liveness := metrics2.NewLiveness("ping", map[string]string{"module": "tracedb"})
 		for _ = range time.Tick(time.Minute) {
 			if ret.ping() == nil {
-				liveness.Update()
+				liveness.Reset()
 			}
 		}
 	}()

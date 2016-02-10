@@ -13,6 +13,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/trace/service"
 	"google.golang.org/grpc"
 )
@@ -21,12 +22,16 @@ import (
 var (
 	db_file        = flag.String("db_file", "", "The name of the BoltDB file that will store the traces.")
 	port           = flag.String("port", ":9090", "The port to serve the gRPC endpoint on.")
-	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 	cpuprofile     = flag.String("cpuprofile", "", "Write cpu profile to file.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
 func main() {
-	common.InitWithMetrics(filepath.Base(os.Args[0]), graphiteServer)
+	common.InitWithMetrics2(filepath.Base(os.Args[0]), influxHost, influxUser, influxPassword, influxDatabase, local)
 	ts, err := traceservice.NewTraceServiceServer(*db_file)
 	if err != nil {
 		glog.Fatalf("Failed to initialize the tracestore server: %s", err)

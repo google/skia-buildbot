@@ -8,7 +8,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/tiling"
 )
 
@@ -61,12 +61,12 @@ func NewMasterTileBuilder(db DB, git *gitinfo.GitInfo, tileSize int, evt *eventb
 	}
 	evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile())
 	go func() {
-		liveness := metrics.NewLiveness("perf-tracedb-tile-refresh")
+		liveness := metrics2.NewLiveness("tile-refresh", map[string]string{"module": "tracedb"})
 		for _ = range time.Tick(TILE_REFRESH_DURATION) {
 			if err := ret.LoadTile(); err != nil {
 				glog.Errorf("Failed to refresh tile: %s", err)
 			} else {
-				liveness.Update()
+				liveness.Reset()
 				evt.Publish(NEW_TILE_AVAILABLE_EVENT, ret.GetTile())
 			}
 		}

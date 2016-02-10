@@ -19,6 +19,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/filetilestore"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	gtypes "go.skia.org/infra/golden/go/types"
@@ -29,18 +30,22 @@ import (
 
 // Commands
 const (
-	VALIDATE     = "validate"
 	DUMP_COMMITS = "dump"
-	MD5          = "md5"
 	JSON         = "json"
+	MD5          = "md5"
+	VALIDATE     = "validate"
 )
 
 // Command line flags.
 var (
-	tileDir    = flag.String("tile_dir", "/tmp/tileStore", "What directory to look for tiles in.")
-	verbose    = flag.Bool("verbose", false, "Verbose.")
-	echoHashes = flag.Bool("echo_hashes", false, "Echo Git hashes during validation.")
-	dataset    = flag.String("dataset", config.DATASET_NANO, "")
+	dataset        = flag.String("dataset", config.DATASET_NANO, "")
+	echoHashes     = flag.Bool("echo_hashes", false, "Echo Git hashes during validation.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	tileDir        = flag.String("tile_dir", "/tmp/tileStore", "What directory to look for tiles in.")
+	verbose        = flag.Bool("verbose", false, "Verbose.")
 )
 
 func dumpCommits(store tiling.TileStore, n int) {
@@ -253,7 +258,8 @@ func checkArgs(args []string, command string, requiredArgs int) {
 func main() {
 	defer common.LogPanic()
 	flag.Usage = printUsage
-	common.Init()
+	t := true
+	common.InitWithMetrics2("tiletool", influxHost, influxUser, influxPassword, influxDatabase, &t)
 	args := flag.Args()
 	if len(args) == 0 {
 		printUsage()
