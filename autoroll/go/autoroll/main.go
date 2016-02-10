@@ -88,8 +88,8 @@ func getSheriff() ([]string, error) {
 	return []string{sheriff.Username}, nil
 }
 
-func getCQExtraTrybots() []string {
-	return strings.Split(*cqExtraTrybots, ",")
+func getCQExtraTrybots() string {
+	return *cqExtraTrybots
 }
 
 func reloadTemplates() {
@@ -203,7 +203,7 @@ func main() {
 	// Retrieve the list of extra CQ trybots.
 	// TODO(borenet): Make this editable on the web front-end.
 	cqExtraTrybots := getCQExtraTrybots()
-	glog.Infof("CQ extra trybots: %s", strings.Join(cqExtraTrybots, ", "))
+	glog.Infof("CQ extra trybots: %s", cqExtraTrybots)
 
 	// Retrieve the initial email list.
 	emails, err := getSheriff()

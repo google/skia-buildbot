@@ -44,7 +44,7 @@ type RepoManager interface {
 	LastRollRev() string
 	RolledPast(string) bool
 	ChildHead() string
-	CreateNewRoll([]string, []string, bool) (int64, error)
+	CreateNewRoll([]string, string, bool) (int64, error)
 	User() string
 }
 
@@ -261,7 +261,7 @@ func (r *repoManager) cleanChromium() error {
 
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
-func (r *repoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool) (int64, error) {
+func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 
@@ -298,8 +298,8 @@ func (r *repoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool
 	if err != nil {
 		return 0, err
 	}
-	if cqExtraTrybots != nil && len(cqExtraTrybots) > 0 {
-		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, strings.Join(cqExtraTrybots, ","))
+	if cqExtraTrybots != "" {
+		commitMsg += "\n" + fmt.Sprintf(TMPL_CQ_INCLUDE_TRYBOTS, cqExtraTrybots)
 	}
 	uploadCmd := &exec.Command{
 		Dir:  r.chromiumDir,

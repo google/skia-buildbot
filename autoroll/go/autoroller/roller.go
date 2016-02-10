@@ -40,7 +40,7 @@ var (
 
 // AutoRoller is a struct used for managing DEPS rolls.
 type AutoRoller struct {
-	cqExtraTrybots   []string
+	cqExtraTrybots   string
 	emails           []string
 	includeCommitLog bool
 	lastError        error
@@ -55,7 +55,7 @@ type AutoRoller struct {
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
-func NewAutoRoller(workdir, childPath string, cqExtraTrybots, emails []string, rietveld *rietveld.Rietveld, tickFrequency, repoFrequency time.Duration, depot_tools string) (*AutoRoller, error) {
+func NewAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, rietveld *rietveld.Rietveld, tickFrequency, repoFrequency time.Duration, depot_tools string) (*AutoRoller, error) {
 	rm, err := repo_manager.NewRepoManager(workdir, childPath, repoFrequency, depot_tools)
 	if err != nil {
 		return nil, err

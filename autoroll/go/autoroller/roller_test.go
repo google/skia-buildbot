@@ -143,7 +143,7 @@ func (r *mockRepoManager) mockChildHead(hash string) {
 
 // CreateNewRoll pretends to create a new DEPS roll from the mocked repo,
 // returning the fake issue number set by the test.
-func (r *mockRepoManager) CreateNewRoll(emails, cqExtraTrybots []string, dryRun bool) (int64, error) {
+func (r *mockRepoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	return r.mockIssueNumber, nil
@@ -403,7 +403,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	roll1 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
 
 	// Create the roller.
-	roller, err := NewAutoRoller(workdir, "src/third_party/skia", []string{}, []string{}, rv.r, time.Hour, time.Hour, "depot_tools")
+	roller, err := NewAutoRoller(workdir, "src/third_party/skia", "", []string{}, rv.r, time.Hour, time.Hour, "depot_tools")
 	assert.Nil(t, err)
 
 	// Verify that the bot ran successfully.
