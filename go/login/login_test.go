@@ -49,7 +49,7 @@ func TestLoggedInAs(t *testing.T) {
 
 	s := Session{
 		Email:     "fred@example.com",
-		AuthScope: DEFAULT_SCOPE,
+		AuthScope: DEFAULT_SCOPE[0],
 		Token:     nil,
 	}
 	cookie, err := CookieFor(&s)

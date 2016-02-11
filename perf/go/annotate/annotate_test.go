@@ -41,7 +41,7 @@ func TestGoodLogin(t *testing.T) {
 	}
 	s := &login.Session{
 		Email:     "fred@example.com",
-		AuthScope: login.DEFAULT_SCOPE,
+		AuthScope: login.DEFAULT_SCOPE[0],
 		Token:     nil,
 	}
 	cookie, err := login.CookieFor(s)

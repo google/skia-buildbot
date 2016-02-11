@@ -252,7 +252,7 @@ func main() {
 		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
 		clientSecret = metadata.Must(metadata.ProjectGet(metadata.CLIENT_SECRET))
 	}
-	login.Init(clientID, clientSecret, redirectURL, cookieSalt, strings.Join(issue_tracker.OAUTH_SCOPE, " "), login.DEFAULT_DOMAIN_WHITELIST, false)
+	login.Init(clientID, clientSecret, redirectURL, cookieSalt, issue_tracker.OAUTH_SCOPE, login.DEFAULT_DOMAIN_WHITELIST, false)
 
 	runServer(serverURL)
 }

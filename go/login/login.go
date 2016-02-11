@@ -36,23 +36,22 @@ import (
 	"strings"
 	"time"
 
-	"code.google.com/p/goauth2/oauth"
 	"github.com/gorilla/securecookie"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
 
 const (
 	COOKIE_NAME         = "sktoken"
-	DEFAULT_SCOPE       = "email"
 	SESSION_COOKIE_NAME = "sksession"
 	DEFAULT_COOKIE_SALT = "notverysecret"
-)
 
-// DEFAULT_DOMAIN_WHITELIST is a white list of domains we use frequently.
-const DEFAULT_DOMAIN_WHITELIST = "google.com chromium.org skia.org"
+	// DEFAULT_DOMAIN_WHITELIST is a white list of domains we use frequently.
+	DEFAULT_DOMAIN_WHITELIST = "google.com chromium.org skia.org"
+)
 
 var (
 	// cookieSalt is some entropy for our encoders.
@@ -61,19 +60,12 @@ var (
 	secureCookie *securecookie.SecureCookie = nil
 
 	// oauthConfig is the OAuth 2.0 client configuration.
-	oauthConfig = &oauth.Config{
-		ClientId:     "not-a-valid-client-id",
+	oauthConfig = &oauth2.Config{
+		ClientID:     "not-a-valid-client-id",
 		ClientSecret: "not-a-valid-client-secret",
-		Scope:        DEFAULT_SCOPE,
-		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
-		TokenURL:     "https://accounts.google.com/o/oauth2/token",
+		Scopes:       DEFAULT_SCOPE,
+		Endpoint:     google.Endpoint,
 		RedirectURL:  "http://localhost:8000/oauth2callback/",
-
-		// We don't need a refresh token, we'll just go through the approval flow again.
-		AccessType: "online",
-
-		// And when we go through the approval flow again don't stop if they've already approved once.
-		ApprovalPrompt: "auto",
 	}
 
 	// activeDomainWhiteList is the list of domains that are allowed to log in.
@@ -81,12 +73,15 @@ var (
 
 	// activeEmailWhiteList is the list of whitelisted email addresses.
 	activeEmailWhiteList map[string]bool
+
+	DEFAULT_SCOPE = []string{"email"}
 )
 
+// Session is encrypted and serialized and stored in a user's cookie.
 type Session struct {
 	Email     string
 	AuthScope string
-	Token     *oauth.Token
+	Token     *oauth2.Token
 }
 
 // Init must be called before any other methods.
@@ -94,13 +89,13 @@ type Session struct {
 // The Client ID, Client Secret, and Redirect URL are listed in the Google
 // Developers Console. The authWhiteList is the space separated list of domains
 // and email addresses that are allowed to log in.
-func Init(clientId, clientSecret, redirectURL, salt, scope string, authWhiteList string, local bool) {
+func Init(clientID, clientSecret, redirectURL, salt string, scopes []string, authWhiteList string, local bool) {
 	cookieSalt = salt
 	secureCookie = securecookie.New([]byte(salt), nil)
-	oauthConfig.ClientId = clientId
+	oauthConfig.ClientID = clientID
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
-	oauthConfig.Scope = scope
+	oauthConfig.Scopes = scopes
 
 	// If we are in the cloud and there is a whitelist in meta data then use the
 	// meta data version.
@@ -159,7 +154,10 @@ func LoginURL(w http.ResponseWriter, r *http.Request) string {
 	// trusted.
 	state = fmt.Sprintf("%s:%x:%s", state, sha256.Sum256([]byte(cookieSalt+redirect)), redirect)
 
-	return oauthConfig.AuthCodeURL(state)
+	// Only retrieve an online access token, i.e. no refresh token. And when we
+	// go through the approval flow again don't stop if they've already approved
+	// once.
+	return oauthConfig.AuthCodeURL(state, oauth2.AccessTypeOnline, oauth2.SetAuthURLParam("approval_prompt", "auto"))
 }
 
 func getSession(r *http.Request) (*Session, error) {
@@ -171,8 +169,8 @@ func getSession(r *http.Request) (*Session, error) {
 	if err := secureCookie.Decode(COOKIE_NAME, cookie.Value, &s); err != nil {
 		return nil, err
 	}
-	if s.AuthScope != oauthConfig.Scope {
-		return nil, fmt.Errorf("Stored auth scope differs from expected (%s vs %s)", oauthConfig.Scope, s.AuthScope)
+	if s.AuthScope != strings.Join(oauthConfig.Scopes, " ") {
+		return nil, fmt.Errorf("Stored auth scope differs from expected (%v vs %s)", oauthConfig.Scopes, s.AuthScope)
 	}
 	return &s, nil
 }
@@ -279,13 +277,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	code := r.FormValue("code")
 	glog.Infof("Code: %s ", code[:5])
-	transport := &oauth.Transport{
-		Config: oauthConfig,
-		Transport: &http.Transport{
-			Dial: util.DialTimeout,
-		},
-	}
-	token, err := transport.Exchange(code)
+	token, err := oauthConfig.Exchange(oauth2.NoContext, code)
 	if err != nil {
 		glog.Errorf("Failed to authenticate: %s", err)
 		http.Error(w, "Failed to authenticate.", 500)
@@ -294,7 +286,11 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	// idToken is a JSON Web Token. We only need to decode the token, we do not
 	// need to validate the token because it came to us over HTTPS directly from
 	// Google's servers.
-	idToken := token.Extra["id_token"]
+	idToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		http.Error(w, "No id_token returned.", 500)
+		return
+	}
 	// The id token is actually three base64 encoded parts that are "." separated.
 	segments := strings.Split(idToken, ".")
 	if len(segments) != 3 {
@@ -334,7 +330,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	s := Session{
 		Email:     email,
-		AuthScope: oauthConfig.Scope,
+		AuthScope: strings.Join(oauthConfig.Scopes, " "),
 		Token:     token,
 	}
 	setSkIDCookieValue(w, &s)
@@ -374,11 +370,7 @@ func GetHttpClient(r *http.Request) *http.Client {
 		glog.Errorf("Failed to get session state; falling back to default http client.")
 		return &http.Client{}
 	}
-	t := oauth.Transport{
-		Config: oauthConfig,
-		Token:  s.Token,
-	}
-	return t.Client()
+	return oauthConfig.Client(oauth2.NoContext, s.Token)
 }
 
 // ForceAuth is middleware that enforces authentication
@@ -454,7 +446,7 @@ func tryLoadingFromMetadata() (string, string, string) {
 // The authWhiteList is the space separated list of domains and email addresses
 // that are allowed to log in. The authWhiteList will be overwritten from
 // GCE instance level metadata if present.
-func InitFromMetadataOrJSON(redirectURL, scopes string, authWhiteList string) error {
+func InitFromMetadataOrJSON(redirectURL string, scopes []string, authWhiteList string) error {
 	cookieSalt, clientID, clientSecret := tryLoadingFromMetadata()
 	if clientID == "" {
 		b, err := ioutil.ReadFile("client_secret.json")
@@ -469,10 +461,10 @@ func InitFromMetadataOrJSON(redirectURL, scopes string, authWhiteList string) er
 		clientSecret = config.ClientSecret
 	}
 	secureCookie = securecookie.New([]byte(cookieSalt), nil)
-	oauthConfig.ClientId = clientID
+	oauthConfig.ClientID = clientID
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
-	oauthConfig.Scope = scopes
+	oauthConfig.Scopes = scopes
 	// We allow for meta data to not be present.
 	whiteList, err := metadata.Get(metadata.AUTH_WHITE_LIST)
 	if err != nil {
