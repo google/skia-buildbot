@@ -86,8 +86,11 @@ that have decided to implement details/summary. See:
       }
     },
 
-    _toggle: function() {
+    _toggle: function(e) {
       this.open = !this.open;
+      // The paper-icon-button doesn't swallow its tap event, so we have
+      // swallow it here.
+      e.stopPropagation();
     },
 
   });

@@ -14,12 +14,19 @@
     selected - True if this op has been selected.
 
   Events:
-    None.
+    op-toggled - This event is sent when a paper-checkbox is toggled.
+        The checked status and index of the op are returned in e.detail.
+
+        {
+          checked: false,
+          index: 102,
+        }
 
   Methods:
     None.
 -->
 
+<link rel=import href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <link rel=import href="/res/common/imp/9/details-summary.html">
 <dom-module id="op-sk">
   <style type="text/css" media="screen">
@@ -43,7 +50,8 @@
   </style>
   <template>
     <details-sk selected$="{{selected}}">
-      <summary-sk style$="padding-left: {{ op._depth }}em;" id=summary>{{ op.command }} <span>{{index}}</span></summary-sk>
+      <summary-sk id=summary><paper-checkbox id=toggle checked style$="padding-right: {{
+          op._depth }}em;" on-tap="_check"></paper-checkbox>{{ op.command }} <span>{{index}}</span></summary-sk>
       <pre>
 {{ _display(op) }}
       </pre>
@@ -75,6 +83,15 @@
 
     _display: function(op) {
       return JSON.stringify(op, null, 2);
+    },
+
+    _check: function(e) {
+      var detail = {
+        checked: this.$.toggle.checked,
+        index: this.index,
+      };
+      this.dispatchEvent(new CustomEvent('op-toggled', { detail: detail, bubbles: true }));
+      e.stopPropagation();
     },
 
   });

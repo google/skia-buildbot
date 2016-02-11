@@ -199,8 +199,21 @@ The main application element for the Skia Debugger.
         if (this._targetIndex != e.detail.item.index) {
           this._targetIndex = e.detail.item.index;
           this._setCacheBreakingURL();
+        } else {
+          // We know if we've gotten here that the element wasn't selected by
+          // a UI action, i.e. we know we're here because we are 'run'ing.
+          this.$.selector.scrollTop = this.$.selector.items[this._targetIndex].offsetTop;
         }
       }.bind(this));
+
+      this.$.selector.addEventListener('op-toggled', function(e) {
+        // Toggle the op and the trigger a reload of the image.
+        var value = e.detail.checked ? "1" : "0";
+        sk.post("/cmd/" + e.detail.index + "/" + value, "").then(function() {
+          this._setCacheBreakingURL();
+        }.bind(this)).catch(sk.errorMessage);
+      }.bind(this));
+
       this._refreshPage();
 
       this.$.crosshair.addEventListener('crosshair', function(e) {
@@ -229,7 +242,6 @@ The main application element for the Skia Debugger.
       this.$.img.addEventListener('load', function() {
         this.$.download.href = window.location.origin + "/download";
         this.$.download.classList.remove("hidden");
-        this.$.selector.scrollTop = this.$.selector.items[this._targetIndex].offsetTop;
         this.$.selector.select(this._targetIndex);
       }.bind(this));
 
