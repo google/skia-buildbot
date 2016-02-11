@@ -179,169 +179,174 @@ The main application element for the Skia Debugger.
 </dom-module>
 
 <script>
-  Polymer({
-    is: "debugger-app-sk",
+  (function () {
+    var INDENTERS  = ["Save", "SaveLayer", "BeginDrawPicture"];
+    var OUTDENTERS = ["Restore", "EndDrawPicture"];
 
-    ready: function() {
-      // _targetIndex is the index of the op we are in the process of moving to.
-      // That is, we've requested to move to this op, but the image might not
-      // be loaded yet.
-      this._targetIndex = 0;
+    Polymer({
+      is: "debugger-app-sk",
 
-      // Load the test image served by the debugger.
-      this._setCacheBreakingURL();
-      this.$.post_skp.action= window.location.origin + "/new";
+      ready: function() {
+        // _targetIndex is the index of the op we are in the process of moving to.
+        // That is, we've requested to move to this op, but the image might not
+        // be loaded yet.
+        this._targetIndex = 0;
 
-      // Can't set this as an attribute directly on iron-selector. Bah.
-      this.$.selector.selectedAttribute = "selected";
-      this.$.selector.addEventListener('iron-select', function(e) {
-        // Only force reloading the image if necessary.
-        if (this._targetIndex != e.detail.item.index) {
-          this._targetIndex = e.detail.item.index;
+        // Load the test image served by the debugger.
+        this._setCacheBreakingURL();
+        this.$.post_skp.action= window.location.origin + "/new";
+
+        // Can't set this as an attribute directly on iron-selector. Bah.
+        this.$.selector.selectedAttribute = "selected";
+        this.$.selector.addEventListener('iron-select', function(e) {
+          // Only force reloading the image if necessary.
+          if (this._targetIndex != e.detail.item.index) {
+            this._targetIndex = e.detail.item.index;
+            this._setCacheBreakingURL();
+          } else {
+            // We know if we've gotten here that the element wasn't selected by
+            // a UI action, i.e. we know we're here because we are 'run'ing.
+            this.$.selector.scrollTop = this.$.selector.items[this._targetIndex].offsetTop;
+          }
+        }.bind(this));
+
+        this.$.selector.addEventListener('op-toggled', function(e) {
+          // Toggle the op and the trigger a reload of the image.
+          var value = e.detail.checked ? "1" : "0";
+          sk.post("/cmd/" + e.detail.index + "/" + value, "").then(function() {
+            this._setCacheBreakingURL();
+          }.bind(this)).catch(sk.errorMessage);
+        }.bind(this));
+
+        this._refreshPage();
+
+        this.$.crosshair.addEventListener('crosshair', function(e) {
+          this.$.zoom.x = e.detail.x;
+          this.$.zoom.y = e.detail.y;
+        }.bind(this));
+
+        this.$.zoom.addEventListener('zoom-point', function(e) {
+          if ( this.$.colorBreakPoint.disabled == false
+              && this.$.colorBreakPoint.checked
+              && this.hex != e.detail.hex) {
+            // We've hit a breakpoint. Stop the play and show the change in color.
+            this.$.prevColor.textContent = this.hex + " -> " +  e.detail.hex;
+            this.$.play.mode = "pause";
+          }
+          this.set("rgb", e.detail.rgb);
+          this.set("hex", e.detail.hex);
+          this.set("x", e.detail.x);
+          this.set("y", e.detail.y);
+        }.bind(this));
+
+        this.$.zoom.addEventListener('zoom-loaded', function(e) {
+          this.$.play.movedTo(this._targetIndex);
+        }.bind(this));
+
+        this.$.img.addEventListener('load', function() {
+          this.$.download.href = window.location.origin + "/download";
+          this.$.download.classList.remove("hidden");
+          this.$.selector.select(this._targetIndex);
+        }.bind(this));
+
+        this.$.play.addEventListener('moveto', function(e) {
+          this._targetIndex = e.detail.index;
           this._setCacheBreakingURL();
-        } else {
-          // We know if we've gotten here that the element wasn't selected by
-          // a UI action, i.e. we know we're here because we are 'run'ing.
-          this.$.selector.scrollTop = this.$.selector.items[this._targetIndex].offsetTop;
-        }
-      }.bind(this));
+        }.bind(this));
 
-      this.$.selector.addEventListener('op-toggled', function(e) {
-        // Toggle the op and the trigger a reload of the image.
-        var value = e.detail.checked ? "1" : "0";
-        sk.post("/cmd/" + e.detail.index + "/" + value, "").then(function() {
+        this.$.play.addEventListener('mode-changed-manually', function(e) {
+          // Clear the breakpoint info if the user presses a button.
+          this.$.prevColor.textContent = "";
+        }.bind(this));
+      },
+
+      properties: {
+        // The commands that make up the skp.
+        cmd: {
+          type: Object,
+          value: function() { return { commands: [] } },
+          reflectToAttribute: false,
+        },
+      },
+
+      attached: function() {
+        document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+      },
+
+      _refreshPage: function() {
+        this.$.img.classList.remove("hidden");
+        this._setCacheBreakingURL();
+        sk.get("/info").then(JSON.parse).then(function(json) {
+          this.set('info', json);
+        }.bind(this)).catch(sk.errorMessage);
+        sk.get("/cmd").then(JSON.parse).then(function(json) {
+          this.set('cmd', this._addDepth(json));
+          this.$.play.size = json.commands.length;
+          this._targetIndex = json.commands.length - 1;
           this._setCacheBreakingURL();
         }.bind(this)).catch(sk.errorMessage);
-      }.bind(this));
-
-      this._refreshPage();
-
-      this.$.crosshair.addEventListener('crosshair', function(e) {
-        this.$.zoom.x = e.detail.x;
-        this.$.zoom.y = e.detail.y;
-      }.bind(this));
-
-      this.$.zoom.addEventListener('zoom-point', function(e) {
-        if ( this.$.colorBreakPoint.disabled == false
-            && this.$.colorBreakPoint.checked
-            && this.hex != e.detail.hex) {
-          // We've hit a breakpoint. Stop the play and show the change in color.
-          this.$.prevColor.textContent = this.hex + " -> " +  e.detail.hex;
-          this.$.play.mode = "pause";
-        }
-        this.set("rgb", e.detail.rgb);
-        this.set("hex", e.detail.hex);
-        this.set("x", e.detail.x);
-        this.set("y", e.detail.y);
-      }.bind(this));
-
-      this.$.zoom.addEventListener('zoom-loaded', function(e) {
-        this.$.play.movedTo(this._targetIndex);
-      }.bind(this));
-
-      this.$.img.addEventListener('load', function() {
-        this.$.download.href = window.location.origin + "/download";
-        this.$.download.classList.remove("hidden");
-        this.$.selector.select(this._targetIndex);
-      }.bind(this));
-
-      this.$.play.addEventListener('moveto', function(e) {
-        this._targetIndex = e.detail.index;
-        this._setCacheBreakingURL();
-      }.bind(this));
-
-      this.$.play.addEventListener('mode-changed-manually', function(e) {
-        // Clear the breakpoint info if the user presses a button.
-        this.$.prevColor.textContent = "";
-      }.bind(this));
-    },
-
-    properties: {
-      // The commands that make up the skp.
-      cmd: {
-        type: Object,
-        value: function() { return { commands: [] } },
-        reflectToAttribute: false,
       },
-    },
 
-    attached: function() {
-      document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
-    },
+      _setCacheBreakingURL: function() {
+        var path = "/img/" + this._targetIndex + "?";
+        sk.get("/info/" + this._targetIndex).then(JSON.parse).then(function(json) {
+          this.set('info', json);
+        }.bind(this)).catch(sk.errorMessage);
+        this.$.img.src = window.location.origin + path + "?" + new Date().getTime();
+      },
 
-    _refreshPage: function() {
-      this.$.img.classList.remove("hidden");
-      this._setCacheBreakingURL();
-      sk.get("/info").then(JSON.parse).then(function(json) {
-        this.set('info', json);
-      }.bind(this)).catch(sk.errorMessage);
-      sk.get("/cmd").then(JSON.parse).then(function(json) {
-        this.set('cmd', this._addDepth(json));
-        this.$.play.size = json.commands.length;
-        this._targetIndex = json.commands.length - 1;
-        this._setCacheBreakingURL();
-      }.bind(this)).catch(sk.errorMessage);
-    },
-
-    _setCacheBreakingURL: function() {
-      var path = "/img/" + this._targetIndex + "?";
-      sk.get("/info/" + this._targetIndex).then(JSON.parse).then(function(json) {
-        this.set('info', json);
-      }.bind(this)).catch(sk.errorMessage);
-      this.$.img.src = window.location.origin + path + "?" + new Date().getTime();
-    },
-
-    _crosshairClick: function() {
-      if (this.$.crosshair.update_on === "move") {
-        this.$.crosshair.update_on = "click";
-        this.$.colorBreakPoint.disabled = false;
-        this.$.keyboardshortcuts.classList.remove("hidden");
-      } else {
-        this.$.crosshair.update_on = "move";
-        this.$.colorBreakPoint.disabled = true;
-        this.$.keyboardshortcuts.classList.add("hidden");
-      }
-    },
-
-    _keyDownHandler: function(e) {
-      var c = String.fromCharCode(e.keyCode);
-      switch (c) {
-        case "J":
-          this.$.crosshair.y = this.$.crosshair.y+1;
-          break;
-        case "K":
-          this.$.crosshair.y = this.$.crosshair.y-1;
-          break;
-        case "H":
-          this.$.crosshair.x = this.$.crosshair.x-1;
-          break;
-        case "L":
-          this.$.crosshair.x = this.$.crosshair.x+1;
-          break;
-      }
-      if ("JKHL".indexOf(c) != -1 ) {
-        e.stopPropagation();
-      }
-    },
-
-    _json: function(s) {
-      return JSON.stringify(s, null, 2);
-    },
-
-    // _addDepth cycles through the commands and set a depth based on Save/Restore pairs.
-    _addDepth: function(cmd) {
-      var commands = cmd.commands;
-      var depth = 0;
-      for (var i = 0; i < commands.length; i++) {
-        commands[i]._depth = depth;
-        if (commands[i].command == "Save") {
-          depth++;
-        } else if (commands[i].command == "Restore") {
-          depth--;
-          commands[i]._depth = depth;
+      _crosshairClick: function() {
+        if (this.$.crosshair.update_on === "move") {
+          this.$.crosshair.update_on = "click";
+          this.$.colorBreakPoint.disabled = false;
+          this.$.keyboardshortcuts.classList.remove("hidden");
+        } else {
+          this.$.crosshair.update_on = "move";
+          this.$.colorBreakPoint.disabled = true;
+          this.$.keyboardshortcuts.classList.add("hidden");
         }
+      },
+
+      _keyDownHandler: function(e) {
+        var c = String.fromCharCode(e.keyCode);
+        switch (c) {
+          case "J":
+            this.$.crosshair.y = this.$.crosshair.y+1;
+            break;
+          case "K":
+            this.$.crosshair.y = this.$.crosshair.y-1;
+            break;
+          case "H":
+            this.$.crosshair.x = this.$.crosshair.x-1;
+            break;
+          case "L":
+            this.$.crosshair.x = this.$.crosshair.x+1;
+            break;
+        }
+        if ("JKHL".indexOf(c) != -1 ) {
+          e.stopPropagation();
+        }
+      },
+
+      _json: function(s) {
+        return JSON.stringify(s, null, 2);
+      },
+
+      // _addDepth cycles through the commands and set a depth based on Save/Restore pairs.
+      _addDepth: function(cmd) {
+        var commands = cmd.commands;
+        var depth = 0;
+        for (var i = 0; i < commands.length; i++) {
+          commands[i]._depth = depth;
+          if (INDENTERS.indexOf(commands[i].command) != -1) {
+            depth++;
+          } else if (OUTDENTERS.indexOf(commands[i].command) != -1) {
+            depth--;
+            commands[i]._depth = depth;
+          }
+        }
+        return cmd;
       }
-      return cmd;
-    }
-  });
+    });
+  })();
 </script>
