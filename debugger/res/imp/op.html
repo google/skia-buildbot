@@ -13,6 +13,16 @@
 
     selected - True if this op has been selected.
 
+    index - The index of this command.
+
+    prefix - An array of icons and their color to display
+      before the command name. The look like:
+
+       {
+         icon: "icons:image",
+         color: "green",
+       }
+
   Events:
     op-toggled - This event is sent when a paper-checkbox is toggled.
         The checked status and index of the op are returned in e.detail.
@@ -27,6 +37,9 @@
 -->
 
 <link rel=import href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/image-icons.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel=import href="/res/common/imp/9/details-summary.html">
 <dom-module id="op-sk">
   <style type="text/css" media="screen">
@@ -42,16 +55,24 @@
       margin-left: 3em;
     }
 
-    summary-sk span {
+    summary-sk #index {
       float: right;
       margin-top: 0.7em;
       margin-right: 1em;
     }
+
+    iron-icon {
+      opacity: 0.7;
+    }
+
   </style>
   <template>
-    <details-sk selected$="{{selected}}">
-      <summary-sk id=summary><paper-checkbox id=toggle checked style$="padding-right: {{
-          op._depth }}em;" on-tap="_check"></paper-checkbox>{{ op.command }} <span>{{index}}</span></summary-sk>
+    <details-sk selected$="{{ selected }}">
+      <summary-sk id=summary><paper-checkbox id=toggle checked on-tap="_check"></paper-checkbox>
+        <template is="dom-repeat" items="{{ prefix }}">
+          <iron-icon icon="{{ item.icon }}" style$="color: {{ item.color }};"><iron-icon>
+        </template>
+        {{ op.details.command }} <span id=index>{{ index }}</span></summary-sk>
       <pre>
 {{ _display(op) }}
       </pre>
@@ -79,10 +100,15 @@
         value: 0,
         reflectToAttribute: true,
       },
+      prefix: {
+        type: Array,
+        value: function() { return []; },
+        reflectToAttribute: false,
+      },
     },
 
     _display: function(op) {
-      return JSON.stringify(op, null, 2);
+      return JSON.stringify(op.details, null, 2);
     },
 
     _check: function(e) {

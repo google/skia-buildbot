@@ -133,7 +133,7 @@ The main application element for the Skia Debugger.
             <play-sk id=play></play-sk>
             <iron-selector id=selector>
               <template is="dom-repeat" items="{{cmd.commands}}" as="command">
-                <op-sk op="{{command}}" index="{{index}}"></op-sk>
+                <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{index}}"></op-sk>
               </template>
             </iron-selector>
           </div>
@@ -180,7 +180,11 @@ The main application element for the Skia Debugger.
 
 <script>
   (function () {
-    var INDENTERS  = ["Save", "SaveLayer", "BeginDrawPicture"];
+    var INDENTERS = {
+      "Save":             { icon: "icons:save",         color: "#B2DF8A" },
+      "SaveLayer":        { icon: "icons:content-copy", color: "#FDBF6F" },
+      "BeginDrawPicture": { icon: "image:image",        color: "#A6CEE3" },
+    };
     var OUTDENTERS = ["Restore", "EndDrawPicture"];
 
     Polymer({
@@ -336,13 +340,21 @@ The main application element for the Skia Debugger.
       _addDepth: function(cmd) {
         var commands = cmd.commands;
         var depth = 0;
+        var prefixes = [];
         for (var i = 0; i < commands.length; i++) {
+          commands[i] = {
+            details: commands[i],
+          };
           commands[i]._depth = depth;
-          if (INDENTERS.indexOf(commands[i].command) != -1) {
+          commands[i]._prefix = prefixes.slice();
+          if (commands[i].details.command in INDENTERS) {
             depth++;
-          } else if (OUTDENTERS.indexOf(commands[i].command) != -1) {
+            prefixes.push(INDENTERS[commands[i].details.command]);
+          } else if (OUTDENTERS.indexOf(commands[i].details.command) != -1) {
             depth--;
+            prefixes.pop();
             commands[i]._depth = depth;
+            commands[i]._prefix = prefixes.slice();
           }
         }
         return cmd;
