@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
@@ -60,12 +61,16 @@ var (
 
 var (
 	// web server params
-	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
-	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8001", "HTTP service port (e.g., ':8002')")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
-	boltDBPath     = flag.String("bolt_db_path", "fuzzer-db", "The path to the bolt db to be used as a local cache.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+
+	host         = flag.String("host", "localhost", "HTTP service host")
+	port         = flag.String("port", ":8001", "HTTP service port (e.g., ':8002')")
+	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	boltDBPath   = flag.String("bolt_db_path", "fuzzer-db", "The path to the bolt db to be used as a local cache.")
 
 	// OAUTH params
 	authWhiteList = flag.String("auth_whitelist", login.DEFAULT_DOMAIN_WHITELIST, "White space separated list of domains and email addresses that are allowed to login.")
@@ -108,7 +113,7 @@ func reloadTemplates() {
 func main() {
 	defer common.LogPanic()
 	// Calls flag.Parse()
-	common.InitWithMetrics("fuzzer", graphiteServer)
+	common.InitWithMetrics2("fuzzer-fe", influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	if err := writeFlagsToConfig(); err != nil {
 		glog.Fatalf("Problem with configuration: %s", err)

@@ -7,19 +7,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/metrics2"
 	"google.golang.org/cloud/storage"
 )
 
 type Generator struct {
 	Category         string
-	fuzzProcessCount go_metrics.Counter
+	fuzzProcessCount *metrics2.Counter
 	fuzzProcesses    []exec.Process
 }
 
@@ -58,7 +58,7 @@ func (g *Generator) Start() error {
 		// TODO(kjlubick): Make this actually an intelligent number based on the number of cores.
 		fuzzCount = 10
 	}
-	g.fuzzProcessCount = go_metrics.NewRegisteredCounter("afl_fuzz_process_count", go_metrics.DefaultRegistry)
+	g.fuzzProcessCount = metrics2.NewCounter("afl-fuzz-process-count", map[string]string{"category": g.Category})
 	g.fuzzProcessCount.Inc(int64(fuzzCount))
 	for i := 1; i < fuzzCount; i++ {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
@@ -125,7 +125,7 @@ func (g *Generator) run(command *exec.Command) exec.Process {
 	go func() {
 		err := <-status
 		g.fuzzProcessCount.Dec(int64(1))
-		glog.Infof(`[%s] afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, g.Category, command.Args, err, g.fuzzProcessCount.Count())
+		glog.Infof(`[%s] afl fuzzer with args %q ended with error "%v".  There are %d fuzzers remaining`, g.Category, command.Args, err, g.fuzzProcessCount.Get())
 	}()
 	return p
 }

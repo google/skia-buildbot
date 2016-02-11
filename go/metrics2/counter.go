@@ -51,3 +51,10 @@ func (c *Counter) Reset() {
 	defer c.mtx.Unlock()
 	c.m.Update(0)
 }
+
+// Get returns the current value in the counter.
+func (c *Counter) Get() int64 {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	return c.m.Get()
+}

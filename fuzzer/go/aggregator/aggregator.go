@@ -14,13 +14,13 @@ import (
 	"sync/atomic"
 	"time"
 
-	go_metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend/data"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud/storage"
@@ -245,8 +245,8 @@ func (agg *Aggregator) scanHelper(alreadyFoundFuzzes *SortedStringSlice) error {
 	// we have references to where the crashes will be.
 	// TODO(kjlubick), switch to using flock once afl-fuzz implements that upstream.
 	time.Sleep(time.Second)
-	go_metrics.GetOrRegisterGauge("binary_newly_found_fuzzes", go_metrics.DefaultRegistry).Update(int64(len(newlyFound)))
-	glog.Infof("[%s] %d newly found bad binary fuzzes", agg.Category, len(newlyFound))
+	metrics2.GetInt64Metric("fuzzer.fuzzes.newly-found", map[string]string{"category": agg.Category}).Update(int64(len(newlyFound)))
+	glog.Infof("[%s] %d newly found bad fuzzes", agg.Category, len(newlyFound))
 	for _, f := range newlyFound {
 		agg.forAnalysis <- f
 	}
@@ -332,7 +332,7 @@ func (agg *Aggregator) findBadFuzzPaths(alreadyFoundFuzzes *SortedStringSlice) (
 // happen, this method terminates.
 func (agg *Aggregator) waitForAnalysis(identifier int) {
 	defer agg.aggregationWaitGroup.Done()
-	defer go_metrics.GetOrRegisterCounter("analysis_process_count", go_metrics.DefaultRegistry).Dec(int64(1))
+	defer metrics2.NewCounter("analysis-process-count", map[string]string{"category": agg.Category}).Dec(int64(1))
 	glog.Infof("[%s] Spawning analyzer %d", agg.Category, identifier)
 
 	// our own unique working folder
@@ -508,7 +508,7 @@ func (s *SortedStringSlice) Append(strs []string) {
 // them.  If any unrecoverable errors happen, this method terminates.
 func (agg *Aggregator) waitForUploads(identifier int) {
 	defer agg.aggregationWaitGroup.Done()
-	defer go_metrics.GetOrRegisterCounter("upload_process_count", go_metrics.DefaultRegistry).Dec(int64(1))
+	defer metrics2.NewCounter("upload-process-count", map[string]string{"category": agg.Category}).Dec(int64(1))
 	glog.Infof("[%s] Spawning uploader %d", agg.Category, identifier)
 	for {
 		select {
@@ -627,11 +627,11 @@ func (agg *Aggregator) bugReportingHelper(p bugReportingPackage) error {
 // many processes are up.
 func (agg *Aggregator) monitorStatus(numAnalysisProcesses, numUploadProcesses int) {
 	defer agg.monitoringWaitGroup.Done()
-	analysisProcessCount := go_metrics.GetOrRegisterCounter("analysis_process_count", go_metrics.DefaultRegistry)
-	analysisProcessCount.Clear()
+	analysisProcessCount := metrics2.NewCounter("analysis-process-count", map[string]string{"category": agg.Category})
+	analysisProcessCount.Reset()
 	analysisProcessCount.Inc(int64(numAnalysisProcesses))
-	uploadProcessCount := go_metrics.GetOrRegisterCounter("upload_process_count", go_metrics.DefaultRegistry)
-	uploadProcessCount.Clear()
+	uploadProcessCount := metrics2.NewCounter("upload-process-count", map[string]string{"category": agg.Category})
+	uploadProcessCount.Reset()
 	uploadProcessCount.Inc(int64(numUploadProcesses))
 
 	t := time.Tick(config.Aggregator.StatusPeriod)
@@ -641,9 +641,9 @@ func (agg *Aggregator) monitorStatus(numAnalysisProcesses, numUploadProcesses in
 			glog.Infof("[%s] aggregator monitor got signal to shut down", agg.Category)
 			return
 		case <-t:
-			go_metrics.GetOrRegisterGauge("binary_analysis_queue_size", go_metrics.DefaultRegistry).Update(int64(len(agg.forAnalysis)))
-			go_metrics.GetOrRegisterGauge("binary_upload_queue_size", go_metrics.DefaultRegistry).Update(int64(len(agg.forUpload)))
-			go_metrics.GetOrRegisterGauge("binary_bug_report_queue_size", go_metrics.DefaultRegistry).Update(int64(len(agg.forBugReporting)))
+			metrics2.GetInt64Metric("fuzzer.queue-size.analysis", map[string]string{"category": agg.Category}).Update(int64(len(agg.forAnalysis)))
+			metrics2.GetInt64Metric("fuzzer.queue-size.upload", map[string]string{"category": agg.Category}).Update(int64(len(agg.forUpload)))
+			metrics2.GetInt64Metric("fuzzer.queue-size.bug-report", map[string]string{"category": agg.Category}).Update(int64(len(agg.forBugReporting)))
 		}
 	}
 }
@@ -694,6 +694,7 @@ func (agg *Aggregator) WaitForEmptyQueues() {
 			break
 		}
 		glog.Infof("[%s] Waiting %s for the aggregator's queues to be empty", agg.Category, config.Aggregator.StatusPeriod)
+
 	}
 }
 

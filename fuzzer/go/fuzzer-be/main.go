@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/influxdb"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud"
 	"google.golang.org/cloud/storage"
@@ -48,12 +49,16 @@ var (
 	statusPeriod         = flag.Duration("status_period", 60*time.Second, `The time period used to report the status of the aggregation/analysis/upload queue. `)
 	analysisTimeout      = flag.Duration("analysis_timeout", 5*time.Second, `The maximum time an analysis should run.`)
 
-	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 
 	watchAFL        = flag.Bool("watch_afl", false, "(debug only) If the afl master's output should be piped to stdout.")
 	skipGeneration  = flag.Bool("skip_generation", false, "(debug only) If the generation step should be disabled.")
-	forceReanalysis = flag.Bool("force_reanalysis", false, "(debug only) If the fuzzes should be downloaded, re-analyzed, (deleted for GCS), and reuploaded.")
+	forceReanalysis = flag.Bool("force_reanalysis", false, "(debug only) If the fuzzes should be downloaded, re-analyzed, (deleted from GCS), and reuploaded.")
 	verboseBuilds   = flag.Bool("verbose_builds", false, "If output from ninja and gyp should be printed to stdout.")
+	local           = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 )
 
 var (
@@ -64,7 +69,7 @@ var (
 func main() {
 	defer common.LogPanic()
 	// Calls flag.Parse()
-	common.InitWithMetrics("fuzzer-be", graphiteServer)
+	common.InitWithMetrics2("fuzzer-be", influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	if err := writeFlagsToConfig(); err != nil {
 		glog.Fatalf("Problem with configuration: %v", err)
@@ -85,7 +90,7 @@ func main() {
 		}
 
 		// If we are reanalyzing, no point in running the generator first, just to stop it.
-		if !*skipGeneration && !*forceReanalysis {
+		if !*forceReanalysis {
 			glog.Infof("Starting %s generator with configuration %#v", category, config.Generator)
 			if err := gen.Start(); err != nil {
 				glog.Fatalf("Problem starting binary generator: %s", err)
