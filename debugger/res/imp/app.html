@@ -132,7 +132,7 @@ The main application element for the Skia Debugger.
           <div id=left class="layout vertical flex-1">
             <play-sk id=play></play-sk>
             <iron-selector id=selector>
-              <template is="dom-repeat" items="{{cmd.commands}}" as="command">
+              <template is="dom-repeat" items="{{cmd.commands}}" as="command" initial-count="20">
                 <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{index}}"></op-sk>
               </template>
             </iron-selector>
