@@ -65,8 +65,15 @@ func (l *Liveness) update() {
 
 // Reset should be called when some work has been successfully completed.
 func (l *Liveness) Reset() {
+	l.ManualReset(time.Now())
+}
+
+// ManualReset sets the last-successful-update time of the Liveness to a
+// specific value. Useful for tracking processes whose lifetimes are outside
+// of that of the current process, but should not be needed in most cases.
+func (l *Liveness) ManualReset(lastSuccessfulUpdate time.Time) {
 	l.mtx.Lock()
 	defer l.mtx.Unlock()
-	l.lastSuccessfulUpdate = time.Now()
+	l.lastSuccessfulUpdate = lastSuccessfulUpdate
 	l.updateLocked()
 }

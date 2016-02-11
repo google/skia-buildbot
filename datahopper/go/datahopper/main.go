@@ -12,12 +12,17 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
+	"golang.org/x/net/context"
+	"google.golang.org/cloud"
+	"google.golang.org/cloud/storage"
 )
 
 const (
@@ -216,6 +221,40 @@ func main() {
 		for _ = range time.Tick(5 * time.Minute) {
 			skiaGauge.Update(int64(skiaRepo.NumCommits()))
 			infraGauge.Update(int64(infraRepo.NumCommits()))
+		}
+	}()
+
+	// Time since last successful backup.
+	go func() {
+		lv := metrics2.NewLiveness("last-buildbot-db-backup", nil)
+		authClient, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_ONLY)
+		if err != nil {
+			glog.Fatal(err)
+		}
+		gsClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(authClient))
+		if err != nil {
+			glog.Fatal(err)
+		}
+		setLastBackupTime := func() error {
+			last := time.Time{}
+			if err := gs.AllFilesInDir(gsClient, "skia-buildbots", "db_backup", func(item *storage.ObjectAttrs) {
+				if item.Updated.After(last) {
+					last = item.Updated
+				}
+			}); err != nil {
+				return err
+			}
+			lv.ManualReset(last)
+			glog.Infof("Last DB backup was %s.", last)
+			return nil
+		}
+		if err := setLastBackupTime(); err != nil {
+			glog.Fatal(err)
+		}
+		for _ = range time.Tick(10 * time.Minute) {
+			if err := setLastBackupTime(); err != nil {
+				glog.Errorf("Failed to get last DB backup time: %s", err)
+			}
 		}
 	}()
 
