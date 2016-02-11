@@ -183,29 +183,31 @@ func main() {
 	}()
 
 	// Offline buildslaves.
-	for _ = range time.Tick(time.Minute) {
-		glog.Info("Loading buildslave data.")
-		slaves, err := buildbot.GetBuildSlaves()
-		if err != nil {
-			glog.Error(err)
-			continue
-		}
-		for masterName, m := range slaves {
-			for _, s := range m {
-				if util.In(s.Name, BUILDSLAVE_OFFLINE_BLACKLIST) {
-					continue
+	go func() {
+		for _ = range time.Tick(time.Minute) {
+			glog.Info("Loading buildslave data.")
+			slaves, err := buildbot.GetBuildSlaves()
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			for masterName, m := range slaves {
+				for _, s := range m {
+					if util.In(s.Name, BUILDSLAVE_OFFLINE_BLACKLIST) {
+						continue
+					}
+					v := int64(0)
+					if s.Connected {
+						v = int64(1)
+					}
+					metrics2.GetInt64Metric(BUILDSLAVES_CONNECTED_MEASUREMENT, map[string]string{
+						"buildslave": s.Name,
+						"master":     masterName,
+					}).Update(v)
 				}
-				v := int64(0)
-				if s.Connected {
-					v = int64(1)
-				}
-				metrics2.GetInt64Metric(BUILDSLAVES_CONNECTED_MEASUREMENT, map[string]string{
-					"buildslave": s.Name,
-					"master":     masterName,
-				}).Update(v)
 			}
 		}
-	}
+	}()
 
 	// Number of commits in the repo.
 	go func() {
