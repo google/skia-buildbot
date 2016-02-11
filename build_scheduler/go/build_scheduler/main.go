@@ -45,7 +45,6 @@ var (
 		regexp.MustCompile("^Housekeeper-Periodic-AutoRoll$"),
 		regexp.MustCompile("^Housekeeper-Nightly-RecreateSKPs_Canary$"),
 		regexp.MustCompile("^Housekeeper-Weekly-RecreateSKPs$"),
-		regexp.MustCompile("^Infra-PerCommit$"),
 		regexp.MustCompile("^Linux Tests$"),
 		regexp.MustCompile("^Mac10\\.9 Tests$"),
 		regexp.MustCompile("^Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-CT_DM_1m_SKPs$"),
