@@ -53,15 +53,16 @@ var (
 	// Directories in which to run "go test" and whether or not to invoke
 	// with --alsologtostderr.
 	GO_TEST_DIRS_AND_VERBOSITY = map[string]bool{
-		".":           false,
-		"alertserver": false,
-		"autoroll":    true,
-		"ct":          false,
-		"datahopper":  false,
-		"fuzzer":      false,
-		"golden":      false,
-		"perf":        false,
-		"status":      false,
+		".":               false,
+		"alertserver":     false,
+		"autoroll":        true,
+		"build_scheduler": false,
+		"ct":              false,
+		"datahopper":      false,
+		"fuzzer":          false,
+		"golden":          false,
+		"perf":            false,
+		"status":          false,
 	}
 
 	// Directories with these names are skipped when searching for tests.
