@@ -70,7 +70,7 @@
         -- {{file.count}} crash-causing fuzzes
       </h3>
       </summary-sk>
-      <template is="dom-if" if="{{expand}}">
+      <template is="dom-if" if="[[expand]]">
         <template  is="dom-repeat" items="{{file.byFunction}}" as="func" sort="_byCount">
           <fuzzer-collapse-function-sk
             class="func-group"
@@ -79,7 +79,6 @@
           ></fuzzer-collapse-function-sk>
         </template>
       </template>
-<!--        -->
     </details-sk>
   </template>
   <script>

@@ -34,6 +34,10 @@ func New(category string) *Generator {
 // n is specified by config.Generator.NumFuzzProcesses. Output goes to
 // config.Generator.AflOutputPath/[category].
 func (g *Generator) Start() error {
+	if config.Generator.SkipGeneration {
+		glog.Info("Skipping generation because flag was set.")
+		return nil
+	}
 	executable, err := g.setup()
 	if err != nil {
 		return fmt.Errorf("Failed %s generator setup: %s", g.Category, err)

@@ -2,15 +2,17 @@ package deduplicator
 
 import (
 	"fmt"
+	"sync"
 
-	"go.skia.org/infra/fuzzer/go/frontend/data"
+	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/go/util"
 )
 
 const _MAX_STACKTRACE_LINES = 4
 
 type Deduplicator struct {
-	seen map[string]bool
+	seen  map[string]bool
+	mutex sync.Mutex
 }
 
 func New() *Deduplicator {
@@ -20,6 +22,8 @@ func New() *Deduplicator {
 }
 
 func (d *Deduplicator) Clear() {
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 	d.seen = make(map[string]bool)
 }
 
@@ -32,6 +36,8 @@ func (d *Deduplicator) IsUnique(report data.FuzzReport) bool {
 	if util.In("Other", report.DebugFlags) || util.In("Other", report.ReleaseFlags) {
 		return true
 	}
+	d.mutex.Lock()
+	defer d.mutex.Unlock()
 	if k := key(report); d.seen[k] {
 		return false
 	} else {

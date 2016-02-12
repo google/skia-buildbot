@@ -152,7 +152,7 @@ func (f *FuzzSyncer) updateLoadedBinaryFuzzes(currentBadFuzzHashes []string) err
 
 	glog.Infof("%d newly found fuzzes from Google Storage.  Going to load them.", len(newBinaryFuzzNames))
 	if len(newBinaryFuzzNames) > 0 {
-		return f.gsLoader.LoadBinaryFuzzesFromGoogleStorage(newBinaryFuzzNames)
+		return f.gsLoader.LoadFuzzesFromGoogleStorage(newBinaryFuzzNames)
 	}
 	return nil
 }

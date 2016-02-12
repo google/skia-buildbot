@@ -16,7 +16,9 @@ import (
 	"go.skia.org/infra/fuzzer/go/backend"
 	fcommon "go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/generator"
+	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -86,21 +88,30 @@ func main() {
 	for _, category := range *fuzzesToRun {
 		gen := generator.New(category)
 		if err := gen.DownloadSeedFiles(storageClient); err != nil {
-			glog.Fatalf("Problem downloading binary seed files: %s", err)
+			glog.Fatalf("Problem downloading seed files: %s", err)
 		}
 
-		// If we are reanalyzing, no point in running the generator first, just to stop it.
+		var startingReports <-chan data.FuzzReport
+		// If we are reanalyzing, no point in running the generator first, just to stop it, nor
+		// is there reason to download all of the current fuzz reports.
 		if !*forceReanalysis {
 			glog.Infof("Starting %s generator with configuration %#v", category, config.Generator)
-			if err := gen.Start(); err != nil {
-				glog.Fatalf("Problem starting binary generator: %s", err)
+			var err error
+			if err = gen.Start(); err != nil {
+				glog.Fatalf("Problem starting generator: %s", err)
+			}
+			glog.Infof("Downloading all bad %s fuzzes @%sto setup duplication detection", category, config.Generator.SkiaVersion.Hash)
+			baseFolder := fmt.Sprintf("%s/%s/bad", category, config.Generator.SkiaVersion.Hash)
+			if startingReports, err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, nil, config.Generator.NumDownloadProcesses); err != nil {
+				glog.Fatalf("Could not download previously found fuzzes for deduplication: %s", err)
 			}
 		} else {
-			glog.Infof("Skipping %s generator because --skip_generation is enabled", category)
+			glog.Infof("Skipping %s generator and deduplication setup because --force_reanalysis is enabled", category)
+
 		}
 
 		glog.Infof("Starting %s aggregator with configuration %#v", category, config.Aggregator)
-		agg, err := aggregator.StartAggregator(storageClient, category)
+		agg, err := aggregator.StartAggregator(storageClient, category, startingReports)
 		if err != nil {
 			glog.Fatalf("Could not start aggregator: %s", err)
 		}
@@ -157,6 +168,7 @@ func writeFlagsToConfig() error {
 	config.Generator.WatchAFL = *watchAFL
 	config.Generator.VersionCheckPeriod = *versionCheckPeriod
 	config.Generator.NumDownloadProcesses = *downloadProcesses
+	config.Generator.SkipGeneration = *skipGeneration
 
 	config.GS.Bucket = *bucket
 	config.Aggregator.FuzzPath, err = fileutil.EnsureDirExists(*fuzzPath)

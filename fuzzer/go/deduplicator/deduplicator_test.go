@@ -3,7 +3,7 @@ package deduplicator
 import (
 	"testing"
 
-	"go.skia.org/infra/fuzzer/go/frontend/data"
+	"go.skia.org/infra/fuzzer/go/data"
 )
 
 func TestSimpleDeduplication(t *testing.T) {

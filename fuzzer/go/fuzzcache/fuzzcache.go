@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/boltdb/bolt"
-	"go.skia.org/infra/fuzzer/go/frontend/data"
+	"go.skia.org/infra/fuzzer/go/data"
 )
 
 const REPORT_KEY = "report-"

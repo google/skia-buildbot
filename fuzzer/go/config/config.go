@@ -16,6 +16,7 @@ type generatorConfig struct {
 	NumFuzzProcesses     int
 	NumDownloadProcesses int
 	WatchAFL             bool
+	SkipGeneration       bool
 	VersionCheckPeriod   time.Duration
 	SkiaVersion          *vcsinfo.LongCommit
 	versionMutex         sync.Mutex

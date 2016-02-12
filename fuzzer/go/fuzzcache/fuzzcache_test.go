@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"go.skia.org/infra/fuzzer/go/common"
-	"go.skia.org/infra/fuzzer/go/frontend/data"
+	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/go/testutils"
 )
 
