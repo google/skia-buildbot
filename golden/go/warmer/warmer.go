@@ -52,7 +52,7 @@ func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tall
 				glog.Errorf("Error retrieving tile: %s", err)
 			}
 			tileLen := tile.LastCommitIndex() + 1
-			traceDigests := make(map[string]bool, tileLen)
+			traceDigests := make(util.StringSet, tileLen)
 			for _, trace := range tile.Traces {
 				gTrace := trace.(*types.GoldenTrace)
 				for _, digest := range gTrace.Values {
@@ -62,7 +62,7 @@ func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tall
 				}
 			}
 
-			digests := util.KeysOfStringSet(traceDigests)
+			digests := traceDigests.Keys()
 			glog.Infof("FOUND %d digests to fetch.", len(digests))
 			storages.DiffStore.AbsPath(digests)
 
@@ -86,7 +86,7 @@ func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) 
 		return err
 	}
 
-	trybotDigests := map[string]bool{}
+	trybotDigests := util.NewStringSet()
 	var wg sync.WaitGroup
 	var mutex sync.Mutex
 	for _, oneIssue := range issues {
@@ -113,7 +113,7 @@ func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) 
 	}
 
 	wg.Wait()
-	digests := util.KeysOfStringSet(trybotDigests)
+	digests := trybotDigests.Keys()
 	glog.Infof("FOUND %d trybot digests to fetch.", len(digests))
 	storages.DiffStore.AbsPath(digests)
 	return nil

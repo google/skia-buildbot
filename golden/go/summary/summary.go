@@ -161,7 +161,7 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 	t = timer.New("Tally up the filtered traces")
 	lastCommitIndex := tile.LastCommitIndex()
 	for name, traces := range filtered {
-		digests := map[string]bool{}
+		digests := util.NewStringSet()
 		corpus := ""
 		for _, trid := range traces {
 			corpus = trid.tr.Params()["source_type"]
@@ -190,7 +190,7 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 				}
 			}
 		}
-		ret[name] = s.makeSummary(name, e, s.storages.DiffStore, corpus, util.KeysOfStringSet(digests))
+		ret[name] = s.makeSummary(name, e, s.storages.DiffStore, corpus, digests.Keys())
 	}
 	t.Stop()
 

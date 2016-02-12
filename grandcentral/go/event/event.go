@@ -78,7 +78,7 @@ func BotEventFilter() *BotFilter {
 // to a subtopic of all buildbot events. If any of the arguments is
 // the empty string, the filter will be ignored.
 func (b *BotFilter) EventType(eTypes ...string) *BotFilter {
-	lookup := util.StringSet(eTypes)
+	lookup := util.NewStringSet(eTypes)
 	if lookup[""] {
 		return b
 	}
@@ -92,7 +92,7 @@ func (b *BotFilter) EventType(eTypes ...string) *BotFilter {
 // to a subtopic of all buildbot events. If any of the arguments is
 // the empty string, the filter will be ignored.
 func (b *BotFilter) StepName(stepNames ...string) *BotFilter {
-	lookup := util.StringSet(stepNames)
+	lookup := util.NewStringSet(stepNames)
 	if lookup[""] {
 		return b
 	}

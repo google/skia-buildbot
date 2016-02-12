@@ -633,8 +633,8 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	leftDigests, leftTotal, err := imgInfo(req.LeftFilter, req.LeftQuery, req.Test, e, req.LeftN, req.LeftIncludeIgnores, req.Sort == "left", req.Dir, req.Digest, req.Head)
 
 	// Extract out string slices of digests to pass to *AbsPath and storages.DiffStore.Get().
-	allDigests := map[string]bool{}
-	topDigestMap := map[string]bool{}
+	allDigests := util.NewStringSet()
+	topDigestMap := util.NewStringSet()
 	for _, d := range topDigests {
 		allDigests[d.Digest] = true
 		topDigestMap[d.Digest] = true
@@ -643,8 +643,8 @@ func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 		allDigests[d.Digest] = true
 	}
 
-	topDigestSlice := util.KeysOfStringSet(topDigestMap)
-	allDigestsSlice := util.KeysOfStringSet(allDigests)
+	topDigestSlice := topDigestMap.Keys()
+	allDigestsSlice := allDigests.Keys()
 	full := storages.DiffStore.AbsPath(allDigestsSlice)
 
 	grid := [][]*PolyTestDiffInfo{}
@@ -915,7 +915,7 @@ func buildDetailsGUI(tile *tiling.Tile, exp *expstorage.Expectations, test strin
 		}
 	}
 
-	keys := util.UnionStrings(util.KeysOfParamSet(topParamSet), util.KeysOfParamSet(leftParamSet))
+	keys := util.NewStringSet(util.KeysOfParamSet(topParamSet), util.KeysOfParamSet(leftParamSet)).Keys()
 	sort.Strings(keys)
 	for _, k := range keys {
 		ret.Params = append(ret.Params, &PerParamCompare{

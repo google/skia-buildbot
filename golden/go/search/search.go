@@ -236,7 +236,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	if len(q.Patchsets) == 0 {
 		q.Patchsets = []string{strconv.Itoa(int(issue.Patchsets[len(issue.Patchsets)-1]))}
 	}
-	pidMap := util.StringSet(q.Patchsets)
+	pidMap := util.NewStringSet(q.Patchsets)
 	talliesByTest := tallies.ByTest()
 	digestMap := map[string]*Digest{}
 	reviewURL := storages.RietveldAPI.Url()
@@ -507,7 +507,7 @@ func blameGroupID(b *blame.BlameDistribution, commits []*tiling.Commit) string {
 // 'head', and being robust to tallies not having been calculated for the
 // trace.
 func digestsFromTrace(id string, tr tiling.Trace, head bool, lastCommitIndex int, traceTally map[string]tally.Tally) []string {
-	digests := map[string]bool{}
+	digests := util.NewStringSet()
 	if head {
 		// Find the last non-missing value in the trace.
 		for i := lastCommitIndex; i >= 0; i-- {
@@ -533,7 +533,7 @@ func digestsFromTrace(id string, tr tiling.Trace, head bool, lastCommitIndex int
 		}
 	}
 
-	return util.KeysOfStringSet(digests)
+	return digests.Keys()
 }
 
 // PointSlice is a utility type for sorting Points by their X value.

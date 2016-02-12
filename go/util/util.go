@@ -272,26 +272,6 @@ func IntersectIntSets(sets []map[int]bool, minIdx int) map[int]bool {
 	return resultSet
 }
 
-// KeysOfStringSet returns the keys of a set of strings represented by the keys
-// of a map.
-func KeysOfStringSet(set map[string]bool) []string {
-	ret := make([]string, 0, len(set))
-	for v := range set {
-		ret = append(ret, v)
-	}
-
-	return ret
-}
-
-// StringSet returns the given list of strings as map[string]bool.
-func StringSet(list []string) map[string]bool {
-	ret := make(map[string]bool, len(list))
-	for _, entry := range list {
-		ret[entry] = true
-	}
-	return ret
-}
-
 // KeysOfIntSet returns the keys of a set of strings represented by the keys
 // of a map.
 func KeysOfIntSet(set map[int]bool) []int {
@@ -300,17 +280,6 @@ func KeysOfIntSet(set map[int]bool) []int {
 		ret = append(ret, v)
 	}
 	return ret
-}
-
-// UnionStrings returns a union of all unique strings in the input slices.
-func UnionStrings(lists ...[]string) []string {
-	result := map[string]bool{}
-	for _, set := range lists {
-		for _, val := range set {
-			result[val] = true
-		}
-	}
-	return KeysOfStringSet(result)
 }
 
 // RepeatJoin repeats a given string N times with the given separator between
