@@ -1,15 +1,14 @@
 <html>
 <head>
   <title>gold-status-sk demo</title>
-  <base href="/">
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="node_modules/native-promise-only/npo.js"></script>
-  <script src="res/common/js/common.js"></script>
-  <script src="res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <script src="res/imp/bower_components/sinonjs/sinon.js"></script>
-  <link rel="import" href="res/imp/bower_components/polymer/polymer.html">
+  <script src="../common/js/common.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="bower_components/sinonjs/sinon.js"></script>
+  <link rel="import" href="bower_components/polymer/polymer.html">
   <script>
     var server = sinon.fakeServer.create();
     server.respondImmediately = true;
@@ -23,12 +22,12 @@
         author: "username", 
       }
     };
-    server.respondWith("GET", "_/trstatus", function(request) {
+    server.respondWith("GET", "/_/trstatus", function(request) {
         request.respond(200, {"Content-Type":"application/json"},
                         JSON.stringify(RESPONSE));
       });
   </script>
-  <link rel="import" href="res/imp/gold-status-sk.html">
+  <link rel="import" href="gold-status-sk.html">
 </head>
 <body>
   <h1>gold-status-sk demo</h1>

@@ -72,6 +72,7 @@ var (
 	gitRepoURL         = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 	traceservice       = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
+	newUI              = flag.Bool("newui", false, "Enable new UI.")
 )
 
 const (
@@ -392,7 +393,7 @@ func main() {
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)
 
 	// New Polymer based UI endpoints.
-	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler(*resourcesDir, *newUI))
 
 	// TODO(stephana): Remove the 'poly' prefix from all the handlers and clean
 	// up main2.go by either merging it it into main.go or making it clearer that
@@ -402,8 +403,6 @@ func main() {
 	// All the handlers will be prefixed with poly to differentiate it from the
 	// angular code until the angular code is removed.
 	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
-	router.HandleFunc("/", byBlameHandler).Methods("GET")
-	router.HandleFunc("/list", templateHandler("list.html")).Methods("GET")
 	router.HandleFunc("/_/details", polyDetailsHandler).Methods("GET")
 	router.HandleFunc("/_/diff", polyDiffJSONDigestHandler).Methods("GET")
 	router.HandleFunc("/_/hashes", polyAllHashesHandler).Methods("GET")
@@ -428,21 +427,32 @@ func main() {
 	router.HandleFunc("/_/failure", failureListJSONHandler).Methods("GET")
 	router.HandleFunc("/_/failure/clear", failureClearJSONHandler).Methods("POST")
 	router.HandleFunc("/_/trybot", listTrybotsJSONHandler).Methods("GET")
-
-	router.HandleFunc("/byblame", byBlameHandler).Methods("GET")
-	router.HandleFunc("/cluster", templateHandler("cluster.html")).Methods("GET")
-	router.HandleFunc("/search2", search2Handler).Methods("GET")
-	router.HandleFunc("/cmp/{test}", templateHandler("compare.html")).Methods("GET")
-	router.HandleFunc("/detail", templateHandler("single.html")).Methods("GET")
-	router.HandleFunc("/diff", templateHandler("diff.html")).Methods("GET")
-	router.HandleFunc("/help", templateHandler("help.html")).Methods("GET")
-	router.HandleFunc("/ignores", templateHandler("ignores.html")).Methods("GET")
+	router.HandleFunc("/json/version", skiaversion.JsonHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
-	router.HandleFunc("/search", templateHandler("search.html")).Methods("GET")
-	router.HandleFunc("/triagelog", templateHandler("triagelog.html")).Methods("GET")
-	router.HandleFunc("/trybot", templateHandler("trybot.html")).Methods("GET")
-	router.HandleFunc("/failures", templateHandler("failures.html")).Methods("GET")
+
+	// Register the new UI or the old UI at the root of the site.
+	if *newUI {
+		indexFile := *resourcesDir + "/index.html"
+		router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, indexFile)
+		})
+	} else {
+		router.HandleFunc("/", byBlameHandler).Methods("GET")
+		router.HandleFunc("/list", templateHandler("list.html")).Methods("GET")
+		router.HandleFunc("/byblame", byBlameHandler).Methods("GET")
+		router.HandleFunc("/cluster", templateHandler("cluster.html")).Methods("GET")
+		router.HandleFunc("/search2", search2Handler).Methods("GET")
+		router.HandleFunc("/cmp/{test}", templateHandler("compare.html")).Methods("GET")
+		router.HandleFunc("/detail", templateHandler("single.html")).Methods("GET")
+		router.HandleFunc("/diff", templateHandler("diff.html")).Methods("GET")
+		router.HandleFunc("/help", templateHandler("help.html")).Methods("GET")
+		router.HandleFunc("/ignores", templateHandler("ignores.html")).Methods("GET")
+		router.HandleFunc("/search", templateHandler("search.html")).Methods("GET")
+		router.HandleFunc("/triagelog", templateHandler("triagelog.html")).Methods("GET")
+		router.HandleFunc("/trybot", templateHandler("trybot.html")).Methods("GET")
+		router.HandleFunc("/failures", templateHandler("failures.html")).Methods("GET")
+	}
 
 	// Add the necessary middleware and have the router handle all requests.
 	// By structuring the middleware this way we only log requests that are

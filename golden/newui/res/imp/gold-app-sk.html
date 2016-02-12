@@ -11,22 +11,22 @@
 
 -->
 
-<link rel="import" href="/res/imp/bower_components/polymer/polymer.html"> 
-<link rel="import" href="/res/imp/bower_components/iron-pages/iron-pages.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/iron-pages/iron-pages.html"> 
 
-<link rel="import" href="/res/common/imp/9/app-sk.html" />
-<link rel="import" href="/res/common/imp/9/login.html" />
-<link rel="import" href="/res/imp/gold-menu-sk.html" />
+<link rel="import" href="../common/imp/9/app-sk.html" />
+<link rel="import" href="../common/imp/9/login.html" />
 
-<link rel="import" href="/res/imp/gold-status-sk.html" />
-<link rel="import" href="/res/imp/byblame-page-sk.html" />
-<link rel="import" href="/res/imp/ignores-page-sk.html" />
-<link rel="import" href="/res/imp/list-page-sk.html" />
-<link rel="import" href="/res/imp/trybot-page-sk.html" />
-<link rel="import" href="/res/imp/failures-page-sk.html" />
-<link rel="import" href="/res/imp/search-page-sk.html" />
-<link rel="import" href="/res/imp/triagelog-page-sk.html" />
-<link rel="import" href="/res/imp/help-page-sk.html" />
+<link rel="import" href="gold-menu-sk.html" />
+<link rel="import" href="gold-status-sk.html" />
+<link rel="import" href="byblame-page-sk.html" />
+<link rel="import" href="ignores-page-sk.html" />
+<link rel="import" href="list-page-sk.html" />
+<link rel="import" href="trybot-page-sk.html" />
+<link rel="import" href="failures-page-sk.html" />
+<link rel="import" href="search-page-sk.html" />
+<link rel="import" href="triagelog-page-sk.html" />
+<link rel="import" href="help-page-sk.html" />
 
 <dom-module id="gold-app-sk">
   <template>
@@ -46,7 +46,7 @@
     }
     </style>
 
-    <app-sk mode="standard" responsive_width="600px" drawer_width="230px">
+    <app-sk mode="standard" responsive_width="600px" drawer_width="230px" class="fit" flex>
       <h2 header>Skia Gold</h2>
       <gold-status-sk rtoolbar></gold-status-sk>
       <gold-menu-sk navigation></gold-menu-sk>
@@ -76,6 +76,9 @@
           <section data-route="help">
             <help-page-sk></help-page-sk>
           </section>
+          <section data-route="notfound">
+            <help-page-sk notfound></help-page-sk>
+          </section>
        </iron-pages>
      </div>
     </app-sk>
@@ -96,14 +99,15 @@
         // TODO(stephana): Make sure this works with stateReflector. 
 
         // Set up in-app routing using the history api. 
-        this._setRoute('/newui/', 'byblame');
-        this._setRoute('/newui/ignores', 'ignores');
-        this._setRoute('/newui/list', 'list');
-        this._setRoute('/newui/trybot', 'trybot');
-        this._setRoute('/newui/failures', 'failures');
-        this._setRoute('/newui/search', 'search');
-        this._setRoute('/newui/triagelog', 'triagelog');
-        this._setRoute('/newui/help', 'help');
+        this._setRoute('/', 'byblame');
+        this._setRoute('/ignores', 'ignores');
+        this._setRoute('/list', 'list');
+        this._setRoute('/trybot', 'trybot');
+        this._setRoute('/failures', 'failures');
+        this._setRoute('/search', 'search');
+        this._setRoute('/triagelog', 'triagelog');
+        this._setRoute('/help', 'help');
+        this._setRoute('*', 'notfound');
 
         // Don't use hashbangs in the URL. 
         page({ hashbang: false });

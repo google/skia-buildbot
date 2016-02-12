@@ -14,13 +14,13 @@
     "tests"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.2.4",
-    "iron-elements": "PolymerElements/iron-elements#^1.0.0",
-    "paper-elements": "PolymerElements/paper-elements#^1.0.0",
-    "d3": "~3.5.6",
-    "sinonjs": "~1.17.1",
-    "page": "visionmedia/page.js#~1.6.4",
-    "wcstamp": "~1.0.0"
+    "d3": "^3.5.6",
+    "sinonjs": "^1.17.1",
+    "page": "visionmedia/page.js#^1.6.4",
+    "wcstamp": "^1.0.0",
+    "iron-elements": "^1.0.8",
+    "paper-elements": "^1.0.7",
+    "polymer": "^1.2.4"
   },
   "resolutions": {
     "polymer": "^1.0.0"

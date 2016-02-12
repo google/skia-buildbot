@@ -1489,13 +1489,16 @@ func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
 }
 
 // makeResourceHandler creates a static file handler that sets a caching policy.
-func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
-	fileServer := http.FileServer(http.Dir(*resourcesDir))
+func makeResourceHandler(resourceDir string, newUI bool) func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(resourceDir))
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
 	}
 }
+
+// TODO(stephana): Revise once we switch to the new UI. This includes
+// removing the templates to be loaded.
 
 // Init figures out where the resources are and then loads the templates.
 func Init() {
@@ -1503,5 +1506,9 @@ func Init() {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
-	loadTemplates()
+	if *newUI {
+		*resourcesDir = *resourcesDir + "/newui"
+	} else {
+		loadTemplates()
+	}
 }

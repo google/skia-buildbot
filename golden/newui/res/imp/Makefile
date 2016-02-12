@@ -1,10 +1,13 @@
-# Set up the local directory to run the demo pages.
+# This makefile allows to install and run a test server in the root of the site (../..).
+# The primary purpose is to drive demo pages for the elements, that use the same root 
+# folder as the application in production. 
+
+# default: install the necessary server and creates links for the demo pages to work. 
 default:
 	ln -sf ../../third_party/bower_components bower_components 
-	ln -sfr ../../res res
-	ln -sfr ../../node_modules node_modules
-	bower install
+	cd ../.. && bower install
 	npm install http-server
-# Run a local HTTP server for the demo pages. Make sure to disable caching.
+
+# run: runs a local HTTP server for the demo pages, without caching and autoIndex. 
 run:
-	../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1 -c-1 
+	../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1 -c-1 -i false ../.. 
