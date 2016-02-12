@@ -20,7 +20,6 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel=import href="/res/imp/bower_components/iron-icon/iron-icon.html">
 <link rel=import href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
-<link rel=import href="/res/imp/bower_components/iron-selector/iron-selector.html">
 
 <link rel=import href="/res/common/imp/9/canvas-layers.html">
 <link rel=import href="/res/common/imp/9/crosshair.html">
@@ -47,16 +46,6 @@ The main application element for the Skia Debugger.
 
     op-sk {
       display: block;
-    }
-
-    details-sk.iron-selected {
-      background: #eee;
-    }
-
-    #selector {
-      overflow-y: scroll;
-      height: 80vh;
-      position: relative;
     }
 
     play-sk {
@@ -131,11 +120,7 @@ The main application element for the Skia Debugger.
         <div class="layout horizontal">
           <div id=left class="layout vertical flex-2">
             <play-sk id=play></play-sk>
-            <iron-selector id=selector>
-              <template is="dom-repeat" items="{{cmd.commands}}" as="command" initial-count="20">
-                <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{index}}"></op-sk>
-              </template>
-            </iron-selector>
+            <commands-sk id=commands></commands-sk>
           </div>
           <div id=center class="layout vertical flex-3">
             <div id=rendered>
@@ -200,21 +185,19 @@ The main application element for the Skia Debugger.
         this._setCacheBreakingURL();
         this.$.post_skp.action= window.location.origin + "/new";
 
-        // Can't set this as an attribute directly on iron-selector. Bah.
-        this.$.selector.selectedAttribute = "selected";
-        this.$.selector.addEventListener('iron-select', function(e) {
+        this.$.commands.addEventListener('op-selected', function(e) {
           // Only force reloading the image if necessary.
-          if (this._targetIndex != e.detail.item.index) {
-            this._targetIndex = e.detail.item.index;
+          if (this._targetIndex != e.detail.index) {
+            this._targetIndex = e.detail.index;
             this._setCacheBreakingURL();
           } else {
             // We know if we've gotten here that the element wasn't selected by
             // a UI action, i.e. we know we're here because we are 'run'ing.
-            this.$.selector.scrollTop = this.$.selector.items[this._targetIndex].offsetTop;
+            this.$.commands.scrollToTop(this._targetIndex);
           }
         }.bind(this));
 
-        this.$.selector.addEventListener('op-toggled', function(e) {
+        this.$.commands.addEventListener('op-toggled', function(e) {
           // Toggle the op and the trigger a reload of the image.
           var value = e.detail.checked ? "1" : "0";
           sk.post("/cmd/" + e.detail.index + "/" + value, "").then(function() {
@@ -250,7 +233,7 @@ The main application element for the Skia Debugger.
         this.$.img.addEventListener('load', function() {
           this.$.download.href = window.location.origin + "/download";
           this.$.download.classList.remove("hidden");
-          this.$.selector.select(this._targetIndex);
+          this.$.commands.index = this._targetIndex;
         }.bind(this));
 
         this.$.play.addEventListener('moveto', function(e) {
@@ -264,15 +247,6 @@ The main application element for the Skia Debugger.
         }.bind(this));
       },
 
-      properties: {
-        // The commands that make up the skp.
-        cmd: {
-          type: Object,
-          value: function() { return { commands: [] } },
-          reflectToAttribute: false,
-        },
-      },
-
       attached: function() {
         document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
       },
@@ -284,7 +258,8 @@ The main application element for the Skia Debugger.
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);
         sk.get("/cmd").then(JSON.parse).then(function(json) {
-          this.set('cmd', this._addDepth(json));
+          var alteredCommands = this._addDepth(json);
+          this.$.commands.cmd = alteredCommands;
           this.$.play.size = json.commands.length;
           this._targetIndex = json.commands.length - 1;
           this._setCacheBreakingURL();

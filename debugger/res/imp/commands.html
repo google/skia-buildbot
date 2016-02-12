@@ -1,0 +1,111 @@
+<!-- The <commands-sk> custom element declaration.
+
+  Displays the list of commands in an SKP in an ordered list.
+
+  Attributes:
+    cmd - The data to display. Looks like:
+
+      {
+        "version": 1,
+        "commands":[
+          {
+            "details": {"command":"BeginDrawPicture"},
+            "_depth":0,
+            "_prefix":[]
+          },
+          {
+            "details":{"command":"Save"},
+            "_depth":1,
+            "_prefix":[{"icon":"image:image","color":"#A6CEE3"}]
+          },
+          ...
+        ]
+      }
+
+    index - The index of the command that is selected.
+
+  Events:
+    op-selected - This event contains the index of the op selected in
+         e.details.index.
+
+    op-toggled - This event is sent when a paper-checkbox is toggled.
+        The checked status and index of the op are returned in e.detail.
+
+        {
+          checked: false,
+          index: 102,
+        }
+
+        This event bubbles up from the op-sk child elements.
+
+  Methods:
+
+     scrollToTop(index) - Scroll the op at the given index to the top of the
+       selection.
+-->
+<link rel=import href="/res/imp/bower_components/iron-selector/iron-selector.html">
+
+<link rel=import href="/res/imp/op.html">
+<dom-module id="commands-sk">
+  <style>
+    :host {
+      position: relative;
+    }
+
+    #selector {
+      overflow-y: scroll;
+      height: 80vh;
+      display: block;
+    }
+
+    details-sk.iron-selected {
+      background: #eee;
+    }
+  </style>
+  <template>
+    <iron-selector id=selector>
+      <template is="dom-repeat" items="{{cmd.commands}}" as="command" initial-count="20">
+        <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{index}}"></op-sk>
+      </template>
+    </iron-selector>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "commands-sk",
+
+    properties: {
+      cmd: {
+        type: Object,
+        value: function() { return { commands: [] }; },
+        reflectToAttribute: false,
+      },
+      index: {
+        type: Number,
+        value: 0,
+        reflectToAttribute: true,
+        observer: "_indexChange",
+      },
+    },
+
+    _indexChange: function() {
+      this.$.selector.select(this.index);
+    },
+
+    ready: function() {
+      this.$.selector.selectedAttribute = "selected";
+      this.$.selector.addEventListener('iron-select', function(e) {
+        var detail = {
+          index: e.detail.item.index,
+        };
+        this.dispatchEvent(new CustomEvent('op-selected', { detail: detail, bubbles: true }));
+      });
+    },
+
+    scrollToTop: function(index) {
+      this.$.selector.scrollTop = this.$.selector.items[index].offsetTop;
+    },
+
+  });
+</script>
