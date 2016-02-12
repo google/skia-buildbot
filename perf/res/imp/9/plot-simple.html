@@ -586,16 +586,13 @@ work, so we just prefix every rule with plot-simple-sk.
         if (!r) {
           return
         }
-        if (r.width.baseVal.value < 5 || r.height.baseVal.value  < 5) {
-          return
-        }
         var xMin = this._xRange.invert(r.x.baseVal.value);
         var xMax = this._xRange.invert(r.x.baseVal.value + r.width.baseVal.value);
         var yMax = this._yRange.invert(r.y.baseVal.value);
         var yMin = this._yRange.invert(r.y.baseVal.value + r.height.baseVal.value);
         this._svg.selectAll(".selectionrect").remove();
 
-        if (r.width.baseVal.value == 0 || r.height.baseVal.value == 0) {
+        if (r.width.baseVal.value < 5 || r.height.baseVal.value  < 5) {
           return
         }
 
