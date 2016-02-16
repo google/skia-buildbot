@@ -155,7 +155,10 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 		glog.Infof("Opening bucket/directory: %s/%s", g.bucket, dir)
 
 		err := gs.AllFilesInDir(g.storageClient, g.bucket, dir, func(item *storage.ObjectAttrs) {
-			if item.Updated.Unix() > startTime {
+			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
+			if strings.Contains(filepath.Base(item.Name), "uploading") {
+				glog.Warningf("Received temporary file from GS: %s", item.Name)
+			} else if item.Updated.Unix() > startTime {
 				retval = append(retval, newGSResultFileLocation(item, g.rootDir, g.storageClient))
 			}
 		})

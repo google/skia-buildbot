@@ -1,6 +1,7 @@
 package ingestion
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"path/filepath"
@@ -25,6 +26,13 @@ const (
 	TAG_INGESTION_METRIC  = "metric"
 	TAG_INGESTER_ID       = "ingester"
 	TAG_INGESTER_SOURCE   = "source"
+)
+
+var (
+	// IgnoreResultsFileErr can be returned by the Process function of a processor to
+	// indicated that this file should be considered ignored. It is up to the processor
+	// to write to the log.
+	IgnoreResultsFileErr = errors.New("Ignore this file.")
 )
 
 // Source defines an ingestion source that returns lists of result files
@@ -298,8 +306,12 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 			i.processFileTimer.UpdateSince(processFileStart)
 
 			if err != nil {
-				errorCounter++
-				glog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
+				if err == IgnoreResultsFileErr {
+					ignoredCounter++
+				} else {
+					errorCounter++
+					glog.Errorf("Failed to ingest %s: %s", resultLocation.Name(), err)
+				}
 				continue
 			}
 
@@ -310,6 +322,7 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 			ignoredCounter++
 		}
 	}
+	targetMetrics.liveness.Reset()
 
 	// Update the timer and the gauges that measure how the ingestion works
 	// for the input type.
@@ -385,6 +398,7 @@ type processMetrics struct {
 	processedGauge  *metrics2.Int64Metric
 	ignoredGauge    *metrics2.Int64Metric
 	errorGauge      *metrics2.Int64Metric
+	liveness        *metrics2.Liveness
 }
 
 // newProcessMetrics instantiates the metrics to track processing and registers them
@@ -396,6 +410,7 @@ func newProcessMetrics(id, subtype string) *processMetrics {
 		processedGauge:  metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "processed"}),
 		ignoredGauge:    metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "ignored"}),
 		errorGauge:      metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, tags{TAG_INGESTION_METRIC: "errors"}),
+		liveness:        metrics2.NewLiveness(id, tags{TAG_INGESTER_SOURCE: subtype, TAG_INGESTION_METRIC: "since-last-run"}),
 	}
 }
 
@@ -414,7 +429,7 @@ func newSourceMetrics(id string, sources []Source) []*sourceMetrics {
 	for idx, source := range sources {
 		srcTags := tags{TAG_INGESTER_SOURCE: source.ID()}
 		ret[idx] = &sourceMetrics{
-			liveness:       metrics2.NewLiveness(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "poll"}),
+			liveness:       metrics2.NewLiveness(id, srcTags, tags{TAG_INGESTION_METRIC: "src-last-run"}),
 			pollTimer:      metrics2.NewTimer(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "poll_timer"}),
 			pollError:      metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "poll_error"}),
 			eventsReceived: metrics2.GetInt64Metric(MEASUREMENT_INGESTION, commonTags, srcTags, tags{TAG_INGESTION_METRIC: "events"}),

@@ -1,9 +1,9 @@
 package perfingestion
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	tracedb "go.skia.org/infra/go/trace/db"
@@ -54,7 +54,8 @@ func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	}
 
 	if !commit.Branches["master"] {
-		return fmt.Errorf("Commit %s is not in master branch.", commit.Hash)
+		glog.Warningf("Commit %s is not in master branch.", commit.Hash)
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	cid := &tracedb.CommitID{

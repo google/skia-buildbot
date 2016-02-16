@@ -1,8 +1,9 @@
 package goldingestion
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
@@ -64,7 +65,8 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	}
 
 	if !commit.Branches["master"] {
-		return fmt.Errorf("Commit %s is not in master branch.", commit.Hash)
+		glog.Warningf("Commit %s is not in master branch.", commit.Hash)
+		return ingestion.IgnoreResultsFileErr
 	}
 
 	// Add the column to the trace db.
