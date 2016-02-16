@@ -10,7 +10,7 @@ BYPASS_GENERATION=true
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-wget https://s3.amazonaws.com/influxdb/influxdb_0.9.6.1_amd64.deb -O ${ROOT}/${APPNAME}.deb
+wget https://s3.amazonaws.com/influxdb/influxdb_0.10.0-1_amd64.deb -O ${ROOT}/${APPNAME}.deb
 }
 
 source ../bash/release.sh

@@ -11,6 +11,8 @@ Restart=always
 User=root
 Group=root
 LimitNOFILE=10000
+ExecStartPost=influx -execute 'CREATE DATABASE graphite'
+ExecStartPost=influx -execute 'CREATE DATABASE skmetrics'
 
 [Install]
 WantedBy=multi-user.target
