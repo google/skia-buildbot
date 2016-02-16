@@ -95,7 +95,8 @@ The main application element for the Skia Debugger.
       color: #1f78b4;
     }
 
-    dbg-info-sk {
+    dbg-info-sk,
+    #clip {
       margin-left: 3em;
       margin-bottom: 1em;
       display: block;
@@ -120,7 +121,7 @@ The main application element for the Skia Debugger.
         <div class="layout horizontal">
           <div id=left class="layout vertical flex-2">
             <play-sk id=play></play-sk>
-            <commands-sk id=commands></commands-sk>
+            <commands-sk id=commands grouping=50></commands-sk>
           </div>
           <div id=center class="layout vertical flex-3">
             <div id=rendered>
@@ -135,6 +136,7 @@ The main application element for the Skia Debugger.
               <summary-sk>
                 Clip and Matrix
               </summary-sk>
+              <paper-checkbox id=clip on-tap="_clipHandler">Show Clip</paper-checkbox>
               <dbg-info-sk info="{{ info }}"></dbg-info-sk>
             </details-sk>
             <div id=position><b>Postion:</b> ({{ x }}, {{ y }})</div>
@@ -262,6 +264,13 @@ The main application element for the Skia Debugger.
           this.$.commands.cmd = alteredCommands;
           this.$.play.size = json.commands.length;
           this._targetIndex = json.commands.length - 1;
+          this._setCacheBreakingURL();
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      _clipHandler: function() {
+        var alpha = this.$.clip.checked ? 128 : 0;
+        sk.post("/clipAlpha/" + alpha).then(function() {
           this._setCacheBreakingURL();
         }.bind(this)).catch(sk.errorMessage);
       },

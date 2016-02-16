@@ -24,6 +24,9 @@
 
     index - The index of the command that is selected.
 
+    grouping - The number of op-sks to group together under each
+      op-expando-sk.
+
   Events:
     op-selected - This event contains the index of the op selected in
          e.details.index.
@@ -43,9 +46,14 @@
      scrollToTop(index) - Scroll the op at the given index to the top of the
        selection.
 -->
-<link rel=import href="/res/imp/bower_components/iron-selector/iron-selector.html">
+<style type="text/css" media="screen">
+  #selector details-sk.selected {
+    background: #eee;
+  }
+</style>
 
-<link rel=import href="/res/imp/op.html">
+<link rel=import href="op.html">
+<link rel=import href="op-expando.html">
 <dom-module id="commands-sk">
   <style>
     :host {
@@ -58,16 +66,19 @@
       display: block;
     }
 
-    details-sk.iron-selected {
-      background: #eee;
-    }
   </style>
   <template>
-    <iron-selector id=selector>
-      <template is="dom-repeat" items="{{cmd.commands}}" as="command" initial-count="20">
+    <div id=selector>
+      <template is="dom-repeat" items="{{_initial(cmd, grouping)}}" as="command">
         <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{index}}"></op-sk>
       </template>
-    </iron-selector>
+      <template is="dom-repeat" items="{{_groupings(cmd, grouping)}}" as="g" initial-count="{{grouping}}">
+        <op-expando-sk cmd="{{cmd}}" begin="{{g.begin}}" end="{{g.end}}"></op-expando-sk>
+      </template>
+      <template is="dom-repeat" items="{{_remainder(cmd, grouping)}}" as="command">
+        <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{_remainderplus(cmd, index, grouping)}}"></op-sk>
+      </template>
+    </div>
   </template>
 </dom-module>
 
@@ -87,24 +98,124 @@
         reflectToAttribute: true,
         observer: "_indexChange",
       },
-    },
-
-    _indexChange: function() {
-      this.$.selector.select(this.index);
+      grouping: {
+        type: Number,
+        value: 10,
+        reflectToAttribute: true,
+      },
     },
 
     ready: function() {
-      this.$.selector.selectedAttribute = "selected";
-      this.$.selector.addEventListener('iron-select', function(e) {
+      this.$.selector.addEventListener('click', function(e) {
+        // Find the op-sk that was selected and return its index, not
+        // the index of the item's location in the list.
+        var ele = sk.findParent(e.target, "PAPER-CHECKBOX");
+        if (ele != null) {
+          return;
+        }
+        ele = sk.findParent(e.target, "PAPER-ICON-BUTTON");
+        if (ele != null) {
+          return;
+        }
+        ele = sk.findParent(e.target, "OP-SK");
+        if (ele == null) {
+          return;
+        }
+        this.index = ele.index;
         var detail = {
-          index: e.detail.item.index,
+          index: ele.index,
         };
-        this.dispatchEvent(new CustomEvent('op-selected', { detail: detail, bubbles: true }));
-      });
+      }.bind(this));
     },
 
+    // Scrolls the op-sk with index=index to the top. Waits for the
+    // element to exist and not be hidden, both of which might
+    // occur if the op-sk is inside an op-expando-sk.
     scrollToTop: function(index) {
-      this.$.selector.scrollTop = this.$.selector.items[index].offsetTop;
+      var ele = $$$("op-sk[index='" + index + "']", this.$.selector);
+      if (ele && ele.style.display != "none") {
+        this.$.selector.scrollTop = ele.offsetTop - 150;
+      } else {
+        window.setTimeout(this.scrollToTop.bind(this, index), 10);
+      }
+    },
+
+    _indexChange: function(newIndex, oldIndex) {
+      if (newIndex != oldIndex) {
+        var detail = {
+          index: newIndex,
+        }
+        this.dispatchEvent(new CustomEvent('op-selected', { detail: detail, bubbles: true }));
+      }
+      // Unselect the previously selected ele.
+      $$("op-sk[selected]", this.$.selector).forEach(function(ele) {
+        ele.removeAttribute('selected');
+      });
+      // Expand the op-expando that contains our new selected ele, if any.
+      var n = this.cmd.commands.length;
+      var begin = Math.floor(this.index/this.grouping)*this.grouping;
+      var ele = $$$("op-sk[index='" + this.index + "']", this.$.selector);
+      var expando = $$$("op-expando-sk[begin='" + begin + "']", this.$.selector);
+      if (expando && expando.expanded == false) {
+        expando.expanded = true;
+      }
+      // Collapse other expandos if necessary.
+      $$("op-expando-sk[expanded]", this.$.selector).forEach(function(ele) {
+        if (ele.begin != begin) {
+          ele.expanded = false;
+        }
+      });
+      // Set the new op-sk as selected.
+      this._setSelected(this.index);
+    },
+
+    // Sets the 'selected' attribute of the op-sk with index=index.
+    //
+    // Will wait for the element to come into existence, which is needed
+    // if the op-sk is inside an op-expando-sk.
+    _setSelected: function(index) {
+      var ele = $$$("op-sk[index='" + this.index + "']", this.$.selector);
+      if (ele) {
+        ele.setAttribute('selected', true);
+      } else {
+        window.setTimeout(this._setSelected.bind(this, index), 10);
+      }
+    },
+
+    _initial: function(cmd, grouping) {
+      return cmd.commands.slice(0, grouping);
+    },
+
+    _remainder: function(cmd, grouping) {
+      var n = cmd.commands.length;
+      if (n <= grouping) {
+        return [];
+      }
+      var remainder = n % grouping;
+      return cmd.commands.slice(-remainder);
+    },
+
+    _groupings: function(cmd, grouping) {
+      var ret = [];
+      var n = cmd.commands.length;
+      if (n <= grouping) {
+        return ret;
+      }
+      var num_groups = Math.floor(n / grouping) - 1;
+      if (num_groups < 1) {
+        return ret;
+      }
+      for (var i = 0; i < num_groups; i++) {
+        ret.push({
+          begin: (i+1)*grouping,
+          end: (i+2)*grouping,
+        });
+      }
+      return ret;
+    },
+
+    _remainderplus: function(cmd,index, grouping) {
+      return index + Math.floor(cmd.commands.length / grouping)*grouping;
     },
 
   });
