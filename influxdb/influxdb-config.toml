@@ -119,7 +119,7 @@ bind-address = ":8088"
   #retry-max-interval = "1m0s"
   #purge-interval = "1h0m0s"
 
-[graphite]
+[[graphite]]
   enabled = true
   database = "graphite"
   bind-address = ":2003"
