@@ -80,16 +80,6 @@
       }
 
       function onLoad() {
-        sk.get('/trybots/').then(JSON.parse).then(function(json){
-          var select = $$$('#_issue');
-          json.forEach(function(issue) {
-            var op = document.createElement('OPTION');
-            op.value = issue;
-            op.innerText = issue;
-            select.appendChild(op);
-          });
-        }).catch(sk.errorMessage);
-
         $$$('#start').addEventListener('click', function(){
           beginClustering(
               $$$('#_k').value, $$$('#_stddev').value, $$$('#_issue').value, $$$('query-sk').currentquery);
