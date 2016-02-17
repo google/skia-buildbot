@@ -328,6 +328,7 @@ The main application element for the Skia Debugger.
         for (var i = 0; i < commands.length; i++) {
           commands[i] = {
             details: commands[i],
+            _index: i,
           };
           commands[i]._depth = depth;
           commands[i]._prefix = prefixes.slice();

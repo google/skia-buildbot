@@ -40,7 +40,7 @@
     </template>
     <template is="dom-if" if="{{expanded}}">
       <template is="dom-repeat" items="{{_mySliceOfCmds(cmd, begin, end)}}" as="command">
-        <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{_plus(index, begin)}}"></op-sk>
+        <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{command._index}}"></op-sk>
       </template>
     </template>
   </template>
@@ -88,10 +88,6 @@
     _minusone: function(n) {
       return n-1;
     },
-
-    _plus: function(m, n) {
-      return m+n
-    }
 
   });
 </script>

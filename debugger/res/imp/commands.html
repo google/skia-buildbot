@@ -70,13 +70,13 @@
   <template>
     <div id=selector>
       <template is="dom-repeat" items="{{_initial(cmd, grouping)}}" as="command">
-        <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{index}}"></op-sk>
+        <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{command._index}}"></op-sk>
       </template>
       <template is="dom-repeat" items="{{_groupings(cmd, grouping)}}" as="g" initial-count="{{grouping}}">
         <op-expando-sk cmd="{{cmd}}" begin="{{g.begin}}" end="{{g.end}}"></op-expando-sk>
       </template>
       <template is="dom-repeat" items="{{_remainder(cmd, grouping)}}" as="command">
-        <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{_remainderplus(cmd, index, grouping)}}"></op-sk>
+        <op-sk op="{{command}}" prefix="{{command._prefix}}" index="{{command._index}}"></op-sk>
       </template>
     </div>
   </template>
@@ -212,10 +212,6 @@
         });
       }
       return ret;
-    },
-
-    _remainderplus: function(cmd,index, grouping) {
-      return index + Math.floor(cmd.commands.length / grouping)*grouping;
     },
 
   });

@@ -31,23 +31,25 @@
       "version": 1,
       "commands": [
       {
-        "details":
-        {command:"BeginDrawPicture"},
-        "_depth":0,
-        "_prefix": [{"icon":"image:image","color":"#A6CEE3"}]
+        details: { command:"BeginDrawPicture" },
+        _index: 0,
+        _depth: 0,
+        _prefix: [{icon:"image:image", color:"#A6CEE3"}]
       },
       {
-        "details":{command:"Save"},
-        "_depth":1,
-        "_prefix":[{"icon":"image:image","color":"#A6CEE3"}]
+        details:{command:"Save"},
+        _index: 0,
+        _depth: 1,
+        _prefix:[{icon:"image:image", color:"#A6CEE3"}]
       },
       ]
     };
     for (var i = 0; i < 100; i++) {
       data.commands.push({
-        "details": {command:"BeginDrawPicture"},
-        "_depth":0,
-        "_prefix":[{"icon":"image:image","color":"#A6CEE3"}]
+        details: {command:"BeginDrawPicture"},
+        _index: 2+i,
+        _depth: 0,
+        _prefix: [{icon:"image:image", color:"#A6CEE3"}]
       }
       );
     }
