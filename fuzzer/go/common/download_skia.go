@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud/storage"
 )
@@ -22,7 +23,7 @@ func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string, v
 	if err != nil {
 		return fmt.Errorf("Could not get Skia version from GCS: %s", err)
 	}
-	if err := DownloadSkia(skiaVersion, path, v); err != nil {
+	if err := DownloadSkia(skiaVersion, path, v, true); err != nil {
 		return fmt.Errorf("Problem downloading skia: %s", err)
 	}
 	// Always clean out the build directory, to mitigate potential build
@@ -76,8 +77,14 @@ func versionHelper(storageClient *storage.Client, prefix string) (string, error)
 // Upon sucess, the SkiaVersion in config is set to be the current version and any dependencies
 // needed to compile Skia have been installed (e.g. the latest version of gyp).
 // It returns an error on failure.
-func DownloadSkia(version, path string, v config.VersionSetter) error {
-	glog.Infof("Cloning Skia version %s to %s", version, path)
+func DownloadSkia(version, path string, v config.VersionSetter, clean bool) error {
+	glog.Infof("Cloning Skia version %s to %s, clean: %t", version, path, clean)
+
+	if clean {
+		// The third_party folder can cause bin/sync-and-gyp to fail.  Clean builds
+		// delete everything, just to make sure.
+		util.RemoveAll(filepath.Join(path))
+	}
 
 	repo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia", path, false)
 	if err != nil {
@@ -88,9 +95,12 @@ func DownloadSkia(version, path string, v config.VersionSetter) error {
 		return fmt.Errorf("Problem setting Skia to version %s: %s", version, err)
 	}
 
+	//  as of skia@2362c476ef4, we need gclient on the path to run sync-and-gyp
 	syncCmd := &exec.Command{
 		Name: "bin/sync-and-gyp",
 		Dir:  path,
+		// This is a bit of a hack because we need to expand the os path (which has python on it)
+		Env: []string{"PATH=" + config.Common.DepotToolsPath + ":" + os.Getenv("PATH")},
 	}
 
 	if err := exec.Run(syncCmd); err != nil {

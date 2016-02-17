@@ -13,9 +13,10 @@ const (
 )
 
 var prettyFuzzCategories = map[string]string{
-	"api_paeth": "API - Paeth",
-	"skcodec":   "SkCodec",
-	"skpicture": "SkPicture",
+	"api_paeth":     "API - Paeth",
+	"skcodec_scale": "SkCodec (Scaling)",
+	"skcodec_mode":  "SkCodec (Modes)",
+	"skpicture":     "SkPicture",
 }
 
 var FUZZ_CATEGORIES = []string{}

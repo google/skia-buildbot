@@ -100,7 +100,7 @@ func main() {
 			if err = gen.Start(); err != nil {
 				glog.Fatalf("Problem starting generator: %s", err)
 			}
-			glog.Infof("Downloading all bad %s fuzzes @%sto setup duplication detection", category, config.Generator.SkiaVersion.Hash)
+			glog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Generator.SkiaVersion.Hash)
 			baseFolder := fmt.Sprintf("%s/%s/bad", category, config.Generator.SkiaVersion.Hash)
 			if startingReports, err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, nil, config.Generator.NumDownloadProcesses); err != nil {
 				glog.Fatalf("Could not download previously found fuzzes for deduplication: %s", err)

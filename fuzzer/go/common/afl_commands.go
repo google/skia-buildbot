@@ -15,9 +15,10 @@ type GenerationArgs []string
 // argsAfterExecutable is a map of arguments that come after the executable
 // and before the path to the bytes file, that will be fuzzed.
 var argsAfterExecutable = map[string][]string{
-	"api_paeth": []string{"--type", "api", "--name", "Paeth", "--bytes"},
-	"skcodec":   []string{"--type", "image", "--bytes"},
-	"skpicture": []string{"--type", "skp", "--bytes"},
+	"api_paeth":     []string{"--type", "api", "--name", "Paeth", "--bytes"},
+	"skcodec_scale": []string{"--type", "image_scale", "--bytes"},
+	"skcodec_mode":  []string{"--type", "image_mode", "--bytes"},
+	"skpicture":     []string{"--type", "skp", "--bytes"},
 }
 
 // AnalysisArgsFor creates an appropriate analysis command for the category of fuzz specified given
@@ -53,6 +54,6 @@ func GenerationArgsFor(category, pathToExecutable, fuzzerName string, isMaster b
 	}
 	seedPath := filepath.Join(config.Generator.FuzzSamples, category)
 	outputPath := filepath.Join(config.Generator.AflOutputPath, category)
-	cmd := append([]string{"-i", seedPath, "-o", outputPath, "-m", "5000", "-t", "100", masterFlag, fuzzerName, "--", pathToExecutable}, args...)
+	cmd := append([]string{"-i", seedPath, "-o", outputPath, "-m", "5000", masterFlag, fuzzerName, "--", pathToExecutable}, args...)
 	return append(cmd, "@@")
 }

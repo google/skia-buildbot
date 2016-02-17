@@ -55,7 +55,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) (*vcsinfo.LongCo
 	}
 
 	// sync skia to version, which sets config.Generator.SkiaVersion
-	if err := common.DownloadSkia(newHash, config.Generator.SkiaRoot, &config.Generator); err != nil {
+	if err := common.DownloadSkia(newHash, config.Generator.SkiaRoot, &config.Generator, true); err != nil {
 		return nil, fmt.Errorf("Could not sync skia to %s: %s", newHash, err)
 	}
 
