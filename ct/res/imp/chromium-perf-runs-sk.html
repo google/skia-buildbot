@@ -149,7 +149,12 @@
         <tr style="border: 1px solid black;">
           <!-- Id col -->
           <td class="nowrap">
-            <span>{{chromiumPerfTask.Id}}</span>
+            <template is="dom-if" if="{{chromiumPerfTask.Results.String}}">
+              <a href="{{chromiumPerfTask.Results.String}}" target="_blank">{{chromiumPerfTask.Id}}</a>
+            </template>
+            <template is="dom-if" if="{{!chromiumPerfTask.Results.String}}">
+              <span>{{chromiumPerfTask.Id}}</span>
+            </template>
             <paper-icon-button icon="delete" mini
                                class="delete-button"
                                disabled="{{!chromiumPerfTask.canDelete}}"
