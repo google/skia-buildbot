@@ -268,8 +268,8 @@ type countSummary struct {
 	TotalBad        int    `json:"totalBadCount"`
 	TotalGrey       int    `json:"totalGreyCount"`
 	// "This" means "newly introduced/fixed in this revision"
-	ThisBad  int `json:"thisBadCount"`
-	ThisGrey int `json:"thisGreyCount"`
+	ThisBad        int `json:"thisBadCount"`
+	ThisRegression int `json:"thisRegressionCount"`
 }
 
 func summaryJSONHandler(w http.ResponseWriter, r *http.Request) {
@@ -289,10 +289,10 @@ func getSummary() []countSummary {
 			Category:        cat,
 		}
 		c := syncer.FuzzCount{
-			TotalBad:  -1,
-			TotalGrey: -1,
-			ThisBad:   -1,
-			ThisGrey:  -1,
+			TotalBad:       -1,
+			TotalGrey:      -1,
+			ThisBad:        -1,
+			ThisRegression: -1,
 		}
 		if fuzzSyncer != nil {
 			c = fuzzSyncer.LastCount(cat)
@@ -300,7 +300,7 @@ func getSummary() []countSummary {
 		o.TotalBad = c.TotalBad
 		o.ThisBad = c.ThisBad
 		o.TotalGrey = c.TotalGrey
-		o.ThisGrey = c.ThisGrey
+		o.ThisRegression = c.ThisRegression
 		counts = append(counts, o)
 	}
 	return counts

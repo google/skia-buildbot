@@ -109,7 +109,7 @@
         };
       },
       _shouldExpand: function(){
-        return fuzzer.paramFromPath("file").length > 0;
+        return fuzzer.paramFromPath("file").length > 0 || fuzzer.paramFromPath("name").length > 0;
       },
       _byCount: function(a, b) {
         // Higher counts come first

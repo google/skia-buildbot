@@ -155,6 +155,7 @@ func (file *FileFuzzReport) filterByFuzzName(name string) bool {
 	for _, function := range file.Functions {
 		if function.filterByFuzzName(name) {
 			file.Functions = []FunctionFuzzReport{function}
+			file.Count = 1
 			return true
 		}
 	}
@@ -167,6 +168,7 @@ func (function *FunctionFuzzReport) filterByFuzzName(name string) bool {
 	for _, line := range function.LineNumbers {
 		if line.filterByFuzzName(name) {
 			function.LineNumbers = []LineFuzzReport{line}
+			function.Count = 1
 			return true
 		}
 	}
@@ -178,6 +180,7 @@ func (function *FunctionFuzzReport) filterByFuzzName(name string) bool {
 func (line *LineFuzzReport) filterByFuzzName(name string) bool {
 	if b, hasIt := line.Details.containsName(name); hasIt {
 		line.Details = SortedFuzzReports{b}
+		line.Count = 1
 		return true
 	}
 	return false
