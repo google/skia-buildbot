@@ -14,6 +14,12 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_LINUX_BOTS[@]}
   WAIT_TIME_AFTER_CREATION_SECS=600
   DISK_ARGS="--boot_disk_size_gb=20"
+  if [ "$VM_IS_SWARMINGBOT" = True ]; then
+    SKIA_BOT_IMAGE_NAME=$SKIA_SWARMING_IMAGE_NAME
+    # TODO(rmistry): We may want to use 32 cores instead. Using 16 cores for now.
+    SKIA_BOT_MACHINE_TYPE="n1-standard-16"
+  fi
+
 elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_WIN_IMAGE_NAME
   ORIG_STARTUP_SCRIPT="../../scripts/win_setup.ps1"
@@ -110,15 +116,19 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
     install_redis
 
-    checkout_skia_repos
-
-    copy_files
-
     if [ "$VM_IS_BUILDBOT" = True ]; then
-      setup_contab
+      checkout_skia_repos
 
-      reboot
+      copy_files
+
+      setup_contab
     fi
+
+    if [ "$VM_IS_SWARMINGBOT" = True ]; then                                       
+      run_swarming_bootstrap                                                       
+    fi
+
+    reboot
 
     if [[ $FAILED ]]; then
       echo
