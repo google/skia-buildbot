@@ -36,7 +36,7 @@
   </style>
   <template>
     <template is="dom-if" if="{{_not(expanded)}}">
-      <div id=title on-tap="_toggle"><strong>Ops:</strong> {{begin}}...{{_minusone(end)}}</div>
+      <div id=title on-tap="_toggle"><strong>Ops:</strong> {{_index(cmd, begin)}}...{{_indexminusone(cmd, end)}}</div>
     </template>
     <template is="dom-if" if="{{expanded}}">
       <template is="dom-repeat" items="{{_mySliceOfCmds(cmd, begin, end)}}" as="command">
@@ -87,6 +87,20 @@
 
     _minusone: function(n) {
       return n-1;
+    },
+
+    _index: function(cmd, n) {
+      if (n >= cmd.commands.length) {
+        return 0;
+      }
+      return cmd.commands[n]._index;
+    },
+
+    _indexminusone: function(cmd, n) {
+      if (n >= cmd.commands.length) {
+        return 0;
+      }
+      return cmd.commands[n-1]._index;
     },
 
   });

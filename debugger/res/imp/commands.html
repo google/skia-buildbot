@@ -22,7 +22,7 @@
         ]
       }
 
-    index - The index of the command that is selected.
+    item - The index of the command that is selected.
 
     grouping - The number of op-sks to group together under each
       op-expando-sk.
@@ -92,11 +92,11 @@
         value: function() { return { commands: [] }; },
         reflectToAttribute: false,
       },
-      index: {
+      item: {
         type: Number,
         value: 0,
         reflectToAttribute: true,
-        observer: "_indexChange",
+        observer: "_itemChange",
       },
       grouping: {
         type: Number,
@@ -108,7 +108,7 @@
     ready: function() {
       this.$.selector.addEventListener('click', function(e) {
         // Find the op-sk that was selected and return its index, not
-        // the index of the item's location in the list.
+        // the item's location in the list.
         var ele = sk.findParent(e.target, "PAPER-CHECKBOX");
         if (ele != null) {
           return;
@@ -121,10 +121,7 @@
         if (ele == null) {
           return;
         }
-        this.index = ele.index;
-        var detail = {
-          index: ele.index,
-        };
+        this.item = this._findItemFromIndex(ele.index);
       }.bind(this));
     },
 
@@ -140,10 +137,25 @@
       }
     },
 
-    _indexChange: function(newIndex, oldIndex) {
-      if (newIndex != oldIndex) {
+    _findItemFromIndex: function(index) {
+      var item = 0;
+      for (var i = 0; i < this.cmd.commands.length ; i++) {
+        if (this.cmd.commands[i]._index == index) {
+          item = i;
+          break;
+        }
+      }
+      return item;
+    },
+
+    _itemChange: function(newItem, oldItem) {
+      if (this.cmd.commands.length == 0) {
+        return;
+      }
+      var index = this.cmd.commands[this.item]._index;
+      if (newItem != oldItem) {
         var detail = {
-          index: newIndex,
+          index: index,
         }
         this.dispatchEvent(new CustomEvent('op-selected', { detail: detail, bubbles: true }));
       }
@@ -152,9 +164,8 @@
         ele.removeAttribute('selected');
       });
       // Expand the op-expando that contains our new selected ele, if any.
-      var n = this.cmd.commands.length;
-      var begin = Math.floor(this.index/this.grouping)*this.grouping;
-      var ele = $$$("op-sk[index='" + this.index + "']", this.$.selector);
+      var begin = Math.floor(this.item/this.grouping)*this.grouping;
+      var ele = $$$("op-sk[index='" + index + "']", this.$.selector);
       var expando = $$$("op-expando-sk[begin='" + begin + "']", this.$.selector);
       if (expando && expando.expanded == false) {
         expando.expanded = true;
@@ -166,7 +177,7 @@
         }
       });
       // Set the new op-sk as selected.
-      this._setSelected(this.index);
+      this._setSelected(index);
     },
 
     // Sets the 'selected' attribute of the op-sk with index=index.
@@ -174,7 +185,7 @@
     // Will wait for the element to come into existence, which is needed
     // if the op-sk is inside an op-expando-sk.
     _setSelected: function(index) {
-      var ele = $$$("op-sk[index='" + this.index + "']", this.$.selector);
+      var ele = $$$("op-sk[index='" + index + "']", this.$.selector);
       if (ele) {
         ele.setAttribute('selected', true);
       } else {
