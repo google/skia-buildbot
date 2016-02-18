@@ -20,6 +20,7 @@ type generatorConfig struct {
 	VersionCheckPeriod   time.Duration
 	SkiaVersion          *vcsinfo.LongCommit
 	versionMutex         sync.Mutex
+	FuzzesToGenerate     []string
 }
 
 type aggregatorConfig struct {

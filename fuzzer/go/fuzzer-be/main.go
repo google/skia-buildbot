@@ -83,7 +83,8 @@ func main() {
 		glog.Fatalf("Problem downloading Skia: %s", err)
 	}
 
-	fuzzPipelines := make([]backend.FuzzPipeline, 0, len(*fuzzesToRun))
+	generators := make([]*generator.Generator, 0, len(*fuzzesToRun))
+	startingReports := make(map[string]<-chan data.FuzzReport)
 
 	for _, category := range *fuzzesToRun {
 		gen := generator.New(category)
@@ -91,7 +92,6 @@ func main() {
 			glog.Fatalf("Problem downloading seed files: %s", err)
 		}
 
-		var startingReports <-chan data.FuzzReport
 		// If we are reanalyzing, no point in running the generator first, just to stop it, nor
 		// is there reason to download all of the current fuzz reports.
 		if !*forceReanalysis {
@@ -102,32 +102,27 @@ func main() {
 			}
 			glog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Generator.SkiaVersion.Hash)
 			baseFolder := fmt.Sprintf("%s/%s/bad", category, config.Generator.SkiaVersion.Hash)
-			if startingReports, err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, nil, config.Generator.NumDownloadProcesses); err != nil {
-				glog.Fatalf("Could not download previously found fuzzes for deduplication: %s", err)
+			if startingReports[category], err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, nil, config.Generator.NumDownloadProcesses); err != nil {
+				glog.Fatalf("Could not download previously found %s fuzzes for deduplication: %s", category, err)
 			}
 		} else {
 			glog.Infof("Skipping %s generator and deduplication setup because --force_reanalysis is enabled", category)
-
 		}
-
-		glog.Infof("Starting %s aggregator with configuration %#v", category, config.Aggregator)
-		agg, err := aggregator.StartAggregator(storageClient, category, startingReports)
-		if err != nil {
-			glog.Fatalf("Could not start aggregator: %s", err)
-		}
-		fuzzPipelines = append(fuzzPipelines, backend.FuzzPipeline{
-			Category: category,
-			Agg:      agg,
-			Gen:      gen,
-		})
+		generators = append(generators, gen)
 	}
 
-	updater := backend.NewVersionUpdater(storageClient, fuzzPipelines)
+	glog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
+	agg, err := aggregator.StartAggregator(storageClient, startingReports)
+	if err != nil {
+		glog.Fatalf("Could not start aggregator: %s", err)
+	}
+
+	updater := backend.NewVersionUpdater(storageClient, agg, generators)
 	glog.Info("Starting version watcher")
 	watcher := fcommon.NewVersionWatcher(storageClient, config.Generator.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
 	watcher.Start()
 
-	err := <-watcher.Status
+	err = <-watcher.Status
 	glog.Fatal(err)
 }
 
@@ -192,6 +187,7 @@ func writeFlagsToConfig() error {
 			return fmt.Errorf("Unknown fuzz category %q", f)
 		}
 	}
+	config.Generator.FuzzesToGenerate = *fuzzesToRun
 	return nil
 }
 

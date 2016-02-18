@@ -44,21 +44,19 @@ type Aggregator struct {
 	// Should be set if we want to upload grey fuzzes.  This should only be true
 	// if we are changing versions.
 	UploadGreyFuzzes bool
-	// The category of fuzzes this aggregator is set for.
-	Category string
 
-	storageClient  *storage.Client
-	fuzzPath       string
-	executablePath string
+	storageClient *storage.Client
+
 	// For passing the paths of new binaries that should be scanned.
-	forAnalysis chan string
+	forAnalysis chan analysisPackage
 	// For passing the file names of analyzed fuzzes that should be uploaded from where they rest on
 	// disk in `fuzzPath`
 	forUpload chan uploadPackage
 
 	forBugReporting chan bugReportingPackage
 
-	deduplicator *deduplicator.Deduplicator
+	// maps category to its deduplicator
+	deduplicators map[string]*deduplicator.Deduplicator
 
 	// The shutdown channels are used to signal shutdowns.  There are two groups, to
 	// allow for a softer, cleaner shutdown w/ minimal lost work.
@@ -82,7 +80,7 @@ type Aggregator struct {
 const (
 	BAD_FUZZ       = "bad"
 	GREY_FUZZ      = "grey"
-	HANG_THRESHOLD = 100
+	HANG_THRESHOLD = 10
 )
 
 var (
@@ -92,12 +90,19 @@ var (
 	ASAN_RELEASE  = common.TEST_HARNESS_NAME + "_asan_release"
 )
 
+// analysisPackage is a struct containing all the pieces of a fuzz needed to analyse it.
+type analysisPackage struct {
+	FilePath string
+	Category string
+}
+
 // uploadPackage is a struct containing all the pieces of a fuzz that need to be uploaded to GCS
 type uploadPackage struct {
 	Data     data.GCSPackage
 	FilePath string
 	// Must be BAD_FUZZ or GREY_FUZZ
 	FuzzType string
+	Category string
 }
 
 // bugReportingPackage is a struct containing the pieces of a fuzz that may need to have
@@ -106,29 +111,31 @@ type bugReportingPackage struct {
 	FuzzName   string
 	CommitHash string
 	IsBadFuzz  bool
+	Category   string
 }
 
 // StartAggregator creates and starts a Aggregator.
 // If there is a problem starting up, an error is returned.  Other errors will be logged.
-func StartAggregator(s *storage.Client, category string, startingReports <-chan data.FuzzReport) (*Aggregator, error) {
+func StartAggregator(s *storage.Client, startingReports map[string]<-chan data.FuzzReport) (*Aggregator, error) {
 	b := Aggregator{
-		Category:           category,
 		storageClient:      s,
-		fuzzPath:           filepath.Join(config.Aggregator.FuzzPath, category),
-		executablePath:     filepath.Join(config.Aggregator.ExecutablePath, category),
-		forAnalysis:        make(chan string, 10000),
+		forAnalysis:        make(chan analysisPackage, 10000),
 		forUpload:          make(chan uploadPackage, 100),
 		forBugReporting:    make(chan bugReportingPackage, 100),
 		MakeBugOnBadFuzz:   false,
 		UploadGreyFuzzes:   false,
-		deduplicator:       deduplicator.New(),
+		deduplicators:      make(map[string]*deduplicator.Deduplicator),
 		monitoringShutdown: make(chan bool, 2),
 		// aggregationShutdown needs to be created with a calculated capacity in start
 	}
 
-	// preload the duplicator
-	for report := range startingReports {
-		b.deduplicator.IsUnique(report)
+	// preload the deduplicator
+	for _, category := range config.Generator.FuzzesToGenerate {
+		d := deduplicator.New()
+		for report := range startingReports[category] {
+			d.IsUnique(report)
+		}
+		b.deduplicators[category] = d
 	}
 
 	return &b, b.start()
@@ -141,9 +148,10 @@ func (agg *Aggregator) start() error {
 	// Set the wait groups to fresh
 	agg.monitoringWaitGroup = &sync.WaitGroup{}
 	agg.aggregationWaitGroup = &sync.WaitGroup{}
-	agg.analysisCount = 0
-	agg.uploadCount = 0
-	agg.bugReportCount = 0
+	atomic.StoreInt64(&agg.analysisCount, int64(0))
+	atomic.StoreInt64(&agg.uploadCount, int64(0))
+	atomic.StoreInt64(&agg.bugReportCount, int64(0))
+
 	if err := agg.buildAnalysisBinaries(); err != nil {
 		return err
 	}
@@ -184,35 +192,35 @@ func (agg *Aggregator) start() error {
 // them in the executablePath.  We need (Debug,Release) x (Clang,ASAN).  The copied binaries have
 // a suffix like _clang_debug
 func (agg *Aggregator) buildAnalysisBinaries() error {
-	if _, err := fileutil.EnsureDirExists(agg.fuzzPath); err != nil {
+	if _, err := fileutil.EnsureDirExists(config.Aggregator.FuzzPath); err != nil {
 		return err
 	}
-	if _, err := fileutil.EnsureDirExists(agg.executablePath); err != nil {
+	if _, err := fileutil.EnsureDirExists(config.Aggregator.ExecutablePath); err != nil {
 		return err
 	}
 	if err := common.BuildClangHarness("Debug", true); err != nil {
 		return err
 	}
 	outPath := filepath.Join(config.Generator.SkiaRoot, "out")
-	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(agg.executablePath, CLANG_DEBUG)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, CLANG_DEBUG)); err != nil {
 		return err
 	}
 	if err := common.BuildClangHarness("Release", true); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(agg.executablePath, CLANG_RELEASE)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, CLANG_RELEASE)); err != nil {
 		return err
 	}
 	if err := common.BuildASANHarness("Debug", false); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(agg.executablePath, ASAN_DEBUG)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, ASAN_DEBUG)); err != nil {
 		return err
 	}
 	if err := common.BuildASANHarness("Release", false); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(agg.executablePath, ASAN_RELEASE)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, ASAN_RELEASE)); err != nil {
 		return err
 	}
 	return nil
@@ -227,44 +235,51 @@ func (agg *Aggregator) scanForNewCandidates() {
 	alreadyFoundFuzzes := &SortedStringSlice{}
 	// time.Tick does not fire immediately, so we fire it manually once.
 	if err := agg.scanHelper(alreadyFoundFuzzes); err != nil {
-		glog.Errorf("[%s] Scanner terminated due to error: %v", agg.Category, err)
+		glog.Errorf("Scanner terminated due to error: %v", err)
 		return
 	}
-	glog.Infof("[%s] Sleeping for %s, then waking up to find new crashes again", agg.Category, config.Aggregator.RescanPeriod)
+	glog.Infof("Sleeping for %s, then waking up to find new crashes again", config.Aggregator.RescanPeriod)
 
 	t := time.Tick(config.Aggregator.RescanPeriod)
 	for {
 		select {
 		case <-t:
 			if err := agg.scanHelper(alreadyFoundFuzzes); err != nil {
-				glog.Errorf("[%s] Aggregator scanner terminated due to error: %v", agg.Category, err)
+				glog.Errorf("Aggregator scanner terminated due to error: %s", err)
 				return
 			}
-			glog.Infof("[%s] Sleeping for %s, then waking up to find new crashes again", agg.Category, config.Aggregator.RescanPeriod)
+			glog.Infof("Sleeping for %s, then waking up to find new crashes again", config.Aggregator.RescanPeriod)
 		case <-agg.monitoringShutdown:
-			glog.Infof("[%s] Aggregator scanner got signal to shut down", agg.Category)
+			glog.Info("Aggregator scanner got signal to shut down")
 			return
 		}
 
 	}
 }
 
-// scanHelper runs findBadFuzzPaths, logs the output and keeps alreadyFoundFuzzes up to date.
+// scanHelper runs findBadFuzzPaths for every category, logs the output and keeps
+// alreadyFoundFuzzes up to date.
 func (agg *Aggregator) scanHelper(alreadyFoundFuzzes *SortedStringSlice) error {
-	newlyFound, err := agg.findBadFuzzPaths(alreadyFoundFuzzes)
-	if err != nil {
-		return err
+	for _, category := range config.Generator.FuzzesToGenerate {
+		newlyFound, err := findBadFuzzPaths(category, alreadyFoundFuzzes)
+		if err != nil {
+			return err
+		}
+		// AFL-fuzz does not write crashes or hangs atomically, so this workaround waits for a bit after
+		// we have references to where the crashes will be.
+		// TODO(kjlubick), switch to using flock once afl-fuzz implements that upstream.
+		time.Sleep(time.Second)
+		metrics2.GetInt64Metric("fuzzer.fuzzes.newly-found", map[string]string{"category": category}).Update(int64(len(newlyFound)))
+		glog.Infof("%d newly found %s bad fuzzes", len(newlyFound), category)
+		for _, f := range newlyFound {
+			agg.forAnalysis <- analysisPackage{
+				FilePath: f,
+				Category: category,
+			}
+		}
+		alreadyFoundFuzzes.Append(newlyFound)
 	}
-	// AFL-fuzz does not write crashes or hangs atomically, so this workaround waits for a bit after
-	// we have references to where the crashes will be.
-	// TODO(kjlubick), switch to using flock once afl-fuzz implements that upstream.
-	time.Sleep(time.Second)
-	metrics2.GetInt64Metric("fuzzer.fuzzes.newly-found", map[string]string{"category": agg.Category}).Update(int64(len(newlyFound)))
-	glog.Infof("[%s] %d newly found bad fuzzes", agg.Category, len(newlyFound))
-	for _, f := range newlyFound {
-		agg.forAnalysis <- f
-	}
-	alreadyFoundFuzzes.Append(newlyFound)
+
 	return nil
 }
 
@@ -280,10 +295,10 @@ func (agg *Aggregator) scanHelper(alreadyFoundFuzzes *SortedStringSlice) error {
 //			-fuzzer_stats
 //		-fuzzer1/
 //		...
-func (agg *Aggregator) findBadFuzzPaths(alreadyFoundFuzzes *SortedStringSlice) ([]string, error) {
+func findBadFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([]string, error) {
 	badFuzzPaths := make([]string, 0)
 
-	scanPath := filepath.Join(config.Generator.AflOutputPath, agg.Category)
+	scanPath := filepath.Join(config.Generator.AflOutputPath, category)
 	aflDir, err := os.Open(scanPath)
 	if os.IsNotExist(err) {
 		glog.Warningf("Path to scan %s does not exist.  Returning 0 found fuzzes", scanPath)
@@ -346,27 +361,27 @@ func (agg *Aggregator) findBadFuzzPaths(alreadyFoundFuzzes *SortedStringSlice) (
 // happen, this method terminates.
 func (agg *Aggregator) waitForAnalysis(identifier int) {
 	defer agg.aggregationWaitGroup.Done()
-	defer metrics2.NewCounter("analysis-process-count", map[string]string{"category": agg.Category}).Dec(int64(1))
-	glog.Infof("[%s] Spawning analyzer %d", agg.Category, identifier)
+	defer metrics2.NewCounter("analysis-process-count", nil).Dec(int64(1))
+	glog.Infof("Spawning analyzer %d", identifier)
 
 	// our own unique working folder
-	executableDir := filepath.Join(agg.executablePath, fmt.Sprintf("analyzer%d", identifier))
-	if err := agg.setupAnalysis(executableDir); err != nil {
-		glog.Errorf("[%s] Analyzer %d terminated due to error: %s", agg.Category, identifier, err)
+	executableDir := filepath.Join(config.Aggregator.ExecutablePath, fmt.Sprintf("analyzer%d", identifier))
+	if err := setupAnalysis(executableDir); err != nil {
+		glog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
 		return
 	}
 	for {
 		select {
-		case badFuzzPath := <-agg.forAnalysis:
+		case badFuzz := <-agg.forAnalysis:
 			atomic.AddInt64(&agg.analysisCount, int64(1))
-			err := agg.analysisHelper(executableDir, badFuzzPath)
+			err := agg.analysisHelper(executableDir, badFuzz)
 			if err != nil {
 				atomic.AddInt64(&agg.analysisCount, int64(-1))
-				glog.Errorf("[%s] Analyzer %d terminated due to error: %s", agg.Category, identifier, err)
+				glog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
 				return
 			}
 		case <-agg.aggregationShutdown:
-			glog.Infof("[%s] Analyzer %d recieved shutdown signal", agg.Category, identifier)
+			glog.Infof("Analyzer %d recieved shutdown signal", identifier)
 			return
 		}
 	}
@@ -374,16 +389,16 @@ func (agg *Aggregator) waitForAnalysis(identifier int) {
 
 // analysisHelper performs the analysis on the given fuzz and returns an error if anything goes
 // wrong.  On success, the results will be placed in the upload queue.
-func (agg *Aggregator) analysisHelper(executableDir, badFuzzPath string) error {
-	hash, data, err := calculateHash(badFuzzPath)
+func (agg *Aggregator) analysisHelper(executableDir string, badFuzz analysisPackage) error {
+	hash, data, err := calculateHash(badFuzz.FilePath)
 	if err != nil {
 		return err
 	}
-	newFuzzPath := filepath.Join(agg.fuzzPath, hash)
+	newFuzzPath := filepath.Join(config.Aggregator.FuzzPath, hash)
 	if err := ioutil.WriteFile(newFuzzPath, data, 0644); err != nil {
 		return err
 	}
-	if upload, err := agg.analyze(executableDir, hash); err != nil {
+	if upload, err := analyze(executableDir, hash, badFuzz.Category); err != nil {
 		return fmt.Errorf("Problem analyzing %s, terminating: %s", newFuzzPath, err)
 	} else {
 		agg.forUpload <- upload
@@ -393,7 +408,7 @@ func (agg *Aggregator) analysisHelper(executableDir, badFuzzPath string) error {
 
 // Setup cleans out the working directory and makes a copy of the Debug and Release fuzz executable
 // in that directory.
-func (agg *Aggregator) setupAnalysis(workingDirPath string) error {
+func setupAnalysis(workingDirPath string) error {
 	// Delete all previous executables to get a clean start
 	if err := os.RemoveAll(workingDirPath); err != nil && !os.IsNotExist(err) {
 		return err
@@ -403,16 +418,16 @@ func (agg *Aggregator) setupAnalysis(workingDirPath string) error {
 	}
 
 	// make a copy of the 4 executables that were made in buildAnalysisBinaries()
-	if err := fileutil.CopyExecutable(filepath.Join(agg.executablePath, CLANG_DEBUG), filepath.Join(workingDirPath, CLANG_DEBUG)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.ExecutablePath, CLANG_DEBUG), filepath.Join(workingDirPath, CLANG_DEBUG)); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(agg.executablePath, CLANG_RELEASE), filepath.Join(workingDirPath, CLANG_RELEASE)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.ExecutablePath, CLANG_RELEASE), filepath.Join(workingDirPath, CLANG_RELEASE)); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(agg.executablePath, ASAN_DEBUG), filepath.Join(workingDirPath, ASAN_DEBUG)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.ExecutablePath, ASAN_DEBUG), filepath.Join(workingDirPath, ASAN_DEBUG)); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(agg.executablePath, ASAN_RELEASE), filepath.Join(workingDirPath, ASAN_RELEASE)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.ExecutablePath, ASAN_RELEASE), filepath.Join(workingDirPath, ASAN_RELEASE)); err != nil {
 		return err
 	}
 	return nil
@@ -420,35 +435,36 @@ func (agg *Aggregator) setupAnalysis(workingDirPath string) error {
 
 // analyze simply invokes performAnalysis with a fuzz under both the Debug and Release build.  Upon
 // completion, it checks to see if the fuzz is a grey fuzz and sets the FuzzType accordingly.
-func (agg *Aggregator) analyze(workingDirPath, fileName string) (uploadPackage, error) {
+func analyze(workingDirPath, filename, category string) (uploadPackage, error) {
 	upload := uploadPackage{
 		Data: data.GCSPackage{
-			Name:         fileName,
-			FuzzCategory: agg.Category,
+			Name:         filename,
+			FuzzCategory: category,
 		},
 		FuzzType: BAD_FUZZ,
-		FilePath: filepath.Join(agg.fuzzPath, fileName),
+		FilePath: filepath.Join(config.Aggregator.FuzzPath, filename),
+		Category: category,
 	}
 
-	if dump, stderr, err := agg.performAnalysis(workingDirPath, CLANG_DEBUG, upload.FilePath); err != nil {
+	if dump, stderr, err := performAnalysis(workingDirPath, CLANG_DEBUG, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
 		upload.Data.Debug.Dump = dump
 		upload.Data.Debug.StdErr = stderr
 	}
-	if dump, stderr, err := agg.performAnalysis(workingDirPath, CLANG_RELEASE, upload.FilePath); err != nil {
+	if dump, stderr, err := performAnalysis(workingDirPath, CLANG_RELEASE, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
 		upload.Data.Release.Dump = dump
 		upload.Data.Release.StdErr = stderr
 	}
 	// AddressSanitizer only outputs to stderr
-	if _, stderr, err := agg.performAnalysis(workingDirPath, ASAN_DEBUG, upload.FilePath); err != nil {
+	if _, stderr, err := performAnalysis(workingDirPath, ASAN_DEBUG, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
 		upload.Data.Debug.Asan = stderr
 	}
-	if _, stderr, err := agg.performAnalysis(workingDirPath, ASAN_RELEASE, upload.FilePath); err != nil {
+	if _, stderr, err := performAnalysis(workingDirPath, ASAN_RELEASE, upload.FilePath, category); err != nil {
 		return upload, err
 	} else {
 		upload.Data.Release.Asan = stderr
@@ -462,7 +478,7 @@ func (agg *Aggregator) analyze(workingDirPath, fileName string) (uploadPackage, 
 // performAnalysis executes a command from the working dir specified using
 // AnalysisArgs for a given fuzz category. The crash dumps (which
 // come via standard out) and standard errors are recorded as strings.
-func (agg *Aggregator) performAnalysis(workingDirPath, executableName, pathToFile string) (string, string, error) {
+func performAnalysis(workingDirPath, executableName, pathToFile, category string) (string, string, error) {
 
 	var dump bytes.Buffer
 	var stdErr bytes.Buffer
@@ -471,7 +487,7 @@ func (agg *Aggregator) performAnalysis(workingDirPath, executableName, pathToFil
 	// latter showed evidence of that way leaking processes, which led to OOM errors.
 	cmd := &exec.Command{
 		Name:        "timeout",
-		Args:        common.AnalysisArgsFor(agg.Category, "./"+executableName, pathToFile),
+		Args:        common.AnalysisArgsFor(category, "./"+executableName, pathToFile),
 		LogStdout:   false,
 		LogStderr:   false,
 		Stdout:      &dump,
@@ -523,26 +539,31 @@ func (s *SortedStringSlice) Append(strs []string) {
 // them.  If any unrecoverable errors happen, this method terminates.
 func (agg *Aggregator) waitForUploads(identifier int) {
 	defer agg.aggregationWaitGroup.Done()
-	defer metrics2.NewCounter("upload-process-count", map[string]string{"category": agg.Category}).Dec(int64(1))
-	glog.Infof("[%s] Spawning uploader %d", agg.Category, identifier)
+	defer metrics2.NewCounter("upload-process-count", nil).Dec(int64(1))
+	glog.Infof("Spawning uploader %d", identifier)
 	for {
 		select {
 		case p := <-agg.forUpload:
 			atomic.AddInt64(&agg.uploadCount, int64(1))
 			if !agg.UploadGreyFuzzes && p.FuzzType == GREY_FUZZ {
-				glog.Infof("[%s] Skipping upload of grey fuzz %s", agg.Category, p.Data.Name)
+				glog.Infof("Skipping upload of grey fuzz %s", p.Data.Name)
 				// We are skipping the bugReport, so increment the counts.
 				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				continue
 			}
-			if p.FuzzType != GREY_FUZZ && !agg.deduplicator.IsUnique(data.ParseReport(p.Data)) {
-				glog.Infof("[%s] Skipping upload of duplicate fuzz %s", agg.Category, p.Data.Name)
+			d, found := agg.deduplicators[p.Category]
+			if !found {
+				glog.Errorf("Problem in Uploader %d, no deduplicator found for category %q; %#v;", identifier, p.Category, agg.deduplicators)
+				return
+			}
+			if p.FuzzType != GREY_FUZZ && !d.IsUnique(data.ParseReport(p.Data)) {
+				glog.Infof("Skipping upload of duplicate fuzz %s", p.Data.Name)
 				// We are skipping the bugReport, so increment the counts.
 				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				continue
 			}
 			if err := agg.upload(p); err != nil {
-				glog.Errorf("[%s] Uploader %d terminated due to error: %s", agg.Category, identifier, err)
+				glog.Errorf("Uploader %d terminated due to error: %s", identifier, err)
 				// We are skipping the bugReport, so increment the counts.
 				atomic.AddInt64(&agg.bugReportCount, int64(1))
 				return
@@ -553,7 +574,7 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 				IsBadFuzz:  p.FuzzType == BAD_FUZZ,
 			}
 		case <-agg.aggregationShutdown:
-			glog.Infof("[%s] Uploader %d recieved shutdown signal", agg.Category, identifier)
+			glog.Infof("Uploader %d recieved shutdown signal", identifier)
 			return
 		}
 	}
@@ -562,7 +583,7 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 // upload breaks apart the uploadPackage into its constituant parts and uploads them to GCS using
 // some helper methods.
 func (agg *Aggregator) upload(p uploadPackage) error {
-	glog.Infof("[%s] uploading %s with file %s and analysis bytes %d;%d;%d|%d;%d;%d", agg.Category, p.Data.Name, p.FilePath, len(p.Data.Debug.Asan), len(p.Data.Debug.Dump), len(p.Data.Debug.StdErr), len(p.Data.Release.Asan), len(p.Data.Release.Dump), len(p.Data.Release.StdErr))
+	glog.Infof("uploading %s with file %s and analysis bytes %d;%d;%d|%d;%d;%d", p.Data.Name, p.FilePath, len(p.Data.Debug.Asan), len(p.Data.Debug.Dump), len(p.Data.Debug.StdErr), len(p.Data.Release.Asan), len(p.Data.Release.Dump), len(p.Data.Release.StdErr))
 	if p.FuzzType == GREY_FUZZ {
 		agg.greyNames = append(agg.greyNames, p.Data.Name)
 	} else {
@@ -593,7 +614,7 @@ func (agg *Aggregator) upload(p uploadPackage) error {
 // uploadBinaryFromDisk uploads a binary file on disk to GCS, returning an error if anything
 // goes wrong.
 func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath string) error {
-	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Data.FuzzCategory, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Category, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render a fuzzed png
@@ -614,7 +635,7 @@ func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath 
 // uploadBinaryFromDisk uploads the contents of a string as a file to GCS, returning an error if
 // anything goes wrong.
 func (agg *Aggregator) uploadString(p uploadPackage, fileName, contents string) error {
-	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Data.FuzzCategory, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Category, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
@@ -629,16 +650,16 @@ func (agg *Aggregator) uploadString(p uploadPackage, fileName, contents string) 
 // them.  If any unrecoverable errors happen, this method terminates.
 func (agg *Aggregator) waitForBugReporting() {
 	defer agg.aggregationWaitGroup.Done()
-	glog.Infof("[%s] Spawning bug reporting routine", agg.Category)
+	glog.Info("Spawning bug reporting routine")
 	for {
 		select {
 		case p := <-agg.forBugReporting:
 			if err := agg.bugReportingHelper(p); err != nil {
-				glog.Errorf("[%s] Bug reporting terminated due to error: %s", agg.Category, err)
+				glog.Errorf("Bug reporting terminated due to error: %s", err)
 				return
 			}
 		case <-agg.aggregationShutdown:
-			glog.Infof("[%s] Bug reporting routine recieved shutdown signal", agg.Category)
+			glog.Infof("Bug reporting routine recieved shutdown signal")
 			return
 		}
 	}
@@ -648,7 +669,7 @@ func (agg *Aggregator) waitForBugReporting() {
 func (agg *Aggregator) bugReportingHelper(p bugReportingPackage) error {
 	defer atomic.AddInt64(&agg.bugReportCount, int64(1))
 	if agg.MakeBugOnBadFuzz && p.IsBadFuzz {
-		glog.Warningf("[%s] Should create bug for %s", agg.Category, p.FuzzName)
+		glog.Warningf("Should create bug for %s", p.FuzzName)
 	}
 	return nil
 }
@@ -657,10 +678,10 @@ func (agg *Aggregator) bugReportingHelper(p bugReportingPackage) error {
 // many processes are up.
 func (agg *Aggregator) monitorStatus(numAnalysisProcesses, numUploadProcesses int) {
 	defer agg.monitoringWaitGroup.Done()
-	analysisProcessCount := metrics2.NewCounter("analysis-process-count", map[string]string{"category": agg.Category})
+	analysisProcessCount := metrics2.NewCounter("analysis-process-count", nil)
 	analysisProcessCount.Reset()
 	analysisProcessCount.Inc(int64(numAnalysisProcesses))
-	uploadProcessCount := metrics2.NewCounter("upload-process-count", map[string]string{"category": agg.Category})
+	uploadProcessCount := metrics2.NewCounter("upload-process-count", nil)
 	uploadProcessCount.Reset()
 	uploadProcessCount.Inc(int64(numUploadProcesses))
 
@@ -668,12 +689,12 @@ func (agg *Aggregator) monitorStatus(numAnalysisProcesses, numUploadProcesses in
 	for {
 		select {
 		case <-agg.monitoringShutdown:
-			glog.Infof("[%s] aggregator monitor got signal to shut down", agg.Category)
+			glog.Info("aggregator monitor got signal to shut down")
 			return
 		case <-t:
-			metrics2.GetInt64Metric("fuzzer.queue-size.analysis", map[string]string{"category": agg.Category}).Update(int64(len(agg.forAnalysis)))
-			metrics2.GetInt64Metric("fuzzer.queue-size.upload", map[string]string{"category": agg.Category}).Update(int64(len(agg.forUpload)))
-			metrics2.GetInt64Metric("fuzzer.queue-size.bug-report", map[string]string{"category": agg.Category}).Update(int64(len(agg.forBugReporting)))
+			metrics2.GetInt64Metric("fuzzer.queue-size.analysis", nil).Update(int64(len(agg.forAnalysis)))
+			metrics2.GetInt64Metric("fuzzer.queue-size.upload", nil).Update(int64(len(agg.forUpload)))
+			metrics2.GetInt64Metric("fuzzer.queue-size.bug-report", nil).Update(int64(len(agg.forBugReporting)))
 		}
 	}
 }
@@ -699,7 +720,9 @@ func (agg *Aggregator) ShutDown() {
 // RestartAnalysis restarts the shut down aggregator.  Anything that is in the scanning directory
 // should be cleared out, lest it be rescanned/analyzed.
 func (agg *Aggregator) RestartAnalysis() error {
-	agg.deduplicator.Clear()
+	for _, d := range agg.deduplicators {
+		d.Clear()
+	}
 	return agg.start()
 }
 
@@ -710,18 +733,18 @@ func (agg *Aggregator) WaitForEmptyQueues() {
 	u := len(agg.forUpload)
 	b := len(agg.forBugReporting)
 	if a == 0 && u == 0 && b == 0 && agg.analysisCount == agg.uploadCount && agg.uploadCount == agg.bugReportCount {
-		glog.Infof("[%s] Queues were already empty", agg.Category)
+		glog.Info("Queues were already empty")
 		return
 	}
 	t := time.Tick(config.Aggregator.StatusPeriod)
-	glog.Infof("[%s] Waiting %s for the aggregator's queues to be empty", agg.Category, config.Aggregator.StatusPeriod)
+	glog.Infof("Waiting %s for the aggregator's queues to be empty", config.Aggregator.StatusPeriod)
 	hangCount := 0
 	for _ = range t {
 		a = len(agg.forAnalysis)
 		u = len(agg.forUpload)
 		b = len(agg.forBugReporting)
-		glog.Infof("[%s] AnalysisQueue: %d, UploadQueue: %d, BugReportingQueue: %d", agg.Category, a, u, b)
-		glog.Infof("[%s] AnalysisTotal: %d, UploadTotal: %d, BugReportingTotal: %d", agg.Category, agg.analysisCount, agg.uploadCount, agg.bugReportCount)
+		glog.Infof("AnalysisQueue: %d, UploadQueue: %d, BugReportingQueue: %d", a, u, b)
+		glog.Infof("AnalysisTotal: %d, UploadTotal: %d, BugReportingTotal: %d", agg.analysisCount, agg.uploadCount, agg.bugReportCount)
 		if a == 0 && u == 0 && b == 0 && agg.analysisCount == agg.uploadCount && agg.uploadCount == agg.bugReportCount {
 			break
 		}
@@ -731,14 +754,20 @@ func (agg *Aggregator) WaitForEmptyQueues() {
 			glog.Warningf("Was waiting for %d rounds and still wasn't done.  Quitting anyway.", hangCount)
 		}
 
-		glog.Infof("[%s] Waiting %s for the aggregator's queues to be empty", agg.Category, config.Aggregator.StatusPeriod)
+		glog.Infof("Waiting %s for the aggregator's queues to be empty", config.Aggregator.StatusPeriod)
 	}
+	atomic.StoreInt64(&agg.analysisCount, int64(0))
+	atomic.StoreInt64(&agg.uploadCount, int64(0))
+	atomic.StoreInt64(&agg.bugReportCount, int64(0))
 }
 
 // ForceAnalysis directly adds the given path to the analysis queue, where it will be analyzed,
 // uploaded and possibly bug reported.
-func (agg *Aggregator) ForceAnalysis(path string) {
-	agg.forAnalysis <- path
+func (agg *Aggregator) ForceAnalysis(path, category string) {
+	agg.forAnalysis <- analysisPackage{
+		FilePath: path,
+		Category: category,
+	}
 }
 
 func (agg *Aggregator) ClearUploadedFuzzNames() {
