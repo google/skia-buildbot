@@ -371,7 +371,7 @@ func TestUpdateWebappTaskSetFailedFailure(t *testing.T) {
 		assert.Equal(t, "/"+ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI,
 			r.URL.Path)
 		defer skutil.Close(r.Body)
-		skutil.ReportError(w, r, fmt.Errorf(errstr), "")
+		skutil.ReportError(w, r, fmt.Errorf(errstr), errstr)
 	}
 	defer frontend.CloseTestServer(frontend.InitTestServer(http.HandlerFunc(mockServer)))
 	err := updateWebappTaskSetFailed(&task)

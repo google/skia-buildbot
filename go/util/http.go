@@ -164,7 +164,7 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 func ReportError(w http.ResponseWriter, r *http.Request, err error, message string) {
 	glog.Errorln(message, err)
 	if err != io.ErrClosedPipe {
-		http.Error(w, fmt.Sprintf("%s %s", message, err), 500)
+		http.Error(w, message, 500)
 	}
 }
 
