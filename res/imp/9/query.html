@@ -1,6 +1,5 @@
 <!--
-  The common.js file must be included before this file, as well as the wcstamp
-  library.
+  The common.js file must be included before this file.
 
   This in an HTML Import-able file that contains the definition
   of the following elements:
@@ -53,39 +52,24 @@
 <link rel="import" href="/res/common/imp/9/toggle.html">
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all" />
 
-<!--
-This template is not a Polymer template, but a Stamp (https://github.com/jcgregorio/stamp) template,
-which we use here because it is so much faster than Polymer templating.
--->
-<template id=nodeTemplate>
-  <div data-repeat-sel="data">
-    <div class="node">
-      <h4>{{ sel.name }}</h4>
-      <select size=9 data-name="{{ sel.name }}" multiple=true data-repeat-o="{{ sel.values }}">
-        <option label="{{ o }}">{{ o }}</option>
-      </select>
-    </div>
-  </div>
-</template>
+
+<style type="text/css" media="screen">
+  #moreContainer.hide {
+    display: none;
+  }
+</style>
 
 <dom-module id="query-sk">
   <style type="text/css" media="screen">
-    #moreContainer.display {
+    #moreContainer,
+    #inputsContainer {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+
+    #moreContainer.hide {
       display: none;
-    }
-
-    #inputsContainer > div,
-    #moreContainer > div {
-      @apply(--layout-horizontal);
-      @apply(--layout-wrap);
-    }
-
-    toggle-display-sk {
-      display: none;
-    }
-
-    toggle-display-sk.display {
-      display: block;
     }
 
     select {
@@ -95,14 +79,6 @@ which we use here because it is so much faster than Polymer templating.
 
     option {
       padding: 0.2em;
-    }
-
-    .moreContainer {
-      width: 100%
-    }
-
-    .hide {
-      display: none;
     }
 
     .node {
@@ -117,18 +93,35 @@ which we use here because it is so much faster than Polymer templating.
     <div>
       <paper-input id="fast" label="Filter"></paper-input>
     </div>
-    <div id="inputsContainer"></div>
+    <div id="inputsContainer">
+			<template is="dom-repeat" items="[[_primary]]" as="sel">
+				<div class="node">
+					<h4>[[sel.name]]</h4>
+					<select size=9 data-name$="[[sel.name]]" multiple=true initial-count=1000>
+						<template is="dom-repeat" items="[[sel.values]]" as="o">
+							<option label="[[o]]">[[o]]</option>
+						</template>
+					</select>
+				</div>
+			</template>
+    </div>
     <toggle-display-sk id=toggle classname=hide>More...</toggle-display-sk>
-    <div class=hide>
-      <div id="moreContainer"> </div>
+    <div id=moreContainer class="hide">
+			<template is="dom-repeat" items="[[_secondary]]" as="sel">
+				<div class="node">
+					<h4>[[sel.name]]</h4>
+					<select size=9 data-name$="[[sel.name]]" multiple=true>
+						<template is="dom-repeat" items="[[sel.values]]" as="o" initial-count=1000>
+							<option label="[[o]]">[[o]]</option>
+						</template>
+					</select>
+				</div>
+			</template>
     </div>
   </template>
 </dom-module>
 <script>
   (function () {
-    // Grab the local context so we can do templating later.
-    ctx = new Stamp.Context();
-
     Polymer({
       is: 'query-sk',
 
@@ -291,8 +284,6 @@ which we use here because it is so much faster than Polymer templating.
         } else {
           $$$('toggle-display-sk', this.shadowRoot).classList.add('display');
         }
-        Stamp.expandInto(Polymer.dom(this.$.inputsContainer), ctx.import('nodeTemplate'), {data: this._primary});
-        Stamp.expandInto(Polymer.dom(this.$.moreContainer), ctx.import('nodeTemplate'), {data: this._secondary});
       }
     });
   })();
