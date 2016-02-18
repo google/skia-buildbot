@@ -23,6 +23,10 @@
           a 'moveto' event. Important so that if the play-sk
           control is in 'play' mode it can generate a new event
           to moveto the next item.
+
+      prePlayCallback(cb) - A callback function to be called immediately
+          after the user presses "play". If the cb returns false then play
+          does not proceed.
 -->
 
 <link rel=import href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
@@ -68,7 +72,18 @@
         },
       },
 
+      ready: function() {
+        this._cb = null;
+      },
+
+      prePlayCallback: function(cb) {
+        this._cb = cb;
+      },
+
       _togglePlay: function() {
+        if (this._cb && !this._cb()) {
+          return;
+        }
         this.mode = (this.mode == "play") ? "pause" : "play";
         this.dispatchEvent(new CustomEvent('mode-changed-manually', { mode: this.mode, bubbles: true }));
       },

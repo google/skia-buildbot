@@ -96,3 +96,10 @@ Far Future Actions:
       DELETE /cmd/N - Delete command at location N.
       POST /cmd/N/[0|1] - Toggles command N on or off.
 
+    /clipAlpha/[0-255]
+      POST - Change the opacity of the clip overlay.
+
+    /break/n/x/y
+      GET - Returns the index of the next op after 'n'
+        where the color of the pixel at (x, y) has changed.
+

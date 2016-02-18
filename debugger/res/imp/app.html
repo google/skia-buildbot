@@ -143,7 +143,7 @@ The main application element for the Skia Debugger.
             <div id=position><b>Postion:</b> ({{ x }}, {{ y }})</div>
             <div id=colors><b>Color:</b> {{ rgb }} {{ hex }} </div>
             <div>
-              <paper-checkbox disabled id=colorBreakPoint>Break on change.</paper-checkbox> <span id=prevColor></span>
+              <paper-checkbox disabled id=colorBreakPoint on-tap="_breakPoint">Break on change.</paper-checkbox> <span id=prevColor></span>
             </div>
             <details-sk id=keyboardshortcuts class=hidden>
               <summary-sk>
@@ -241,14 +241,24 @@ The main application element for the Skia Debugger.
           this.$.zoom.y = e.detail.y;
         }.bind(this));
 
-        this.$.zoom.addEventListener('zoom-point', function(e) {
-          if ( this.$.colorBreakPoint.disabled == false
-              && this.$.colorBreakPoint.checked
-              && this.hex != e.detail.hex) {
-            // We've hit a breakpoint. Stop the play and show the change in color.
-            this.$.prevColor.textContent = this.hex + " -> " +  e.detail.hex;
-            this.$.play.mode = "pause";
+        this.$.play.prePlayCallback(function() {
+          if (!this.$.colorBreakPoint.disabled && this.$.colorBreakPoint.checked) {
+            sk.get("/break/" + this._targetItem + "/" + this.x + "/" + this.y).then(JSON.parse).then(function(json) {
+              if (json.endOp != -1) {
+                this.$.prevColor.textContent = json.startColor + " -> " + json.endColor;
+                var item = this._findItemFromIndex(json.endOp);
+                this._targetItem = item;
+                this._setCacheBreakingURL();
+              } else {
+                sk.errorMessage("Pixel at (" + this.x + ", " + this.y + ") never changes.");
+              }
+            }.bind(this)).catch(sk.errorMessage);
+            return false;
           }
+          return true;
+        }.bind(this));
+
+        this.$.zoom.addEventListener('zoom-point', function(e) {
           this.set("rgb", e.detail.rgb);
           this.set("hex", e.detail.hex);
           this.set("x", e.detail.x);
@@ -279,6 +289,15 @@ The main application element for the Skia Debugger.
 
       attached: function() {
         document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+      },
+
+      _breakPoint: function() {
+        if (this.$.colorBreakPoint.checked) {
+          // We want to be able to jump to any op when the breakpoint
+          // triggers, so we remove all filtering.
+          this.$.fast.value = "";
+          this._fastFilter();
+        }
       },
 
       _findItemFromIndex: function(index) {
