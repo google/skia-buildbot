@@ -44,10 +44,17 @@ const (
 
 var (
 	templates *template.Template
+
+	// TODO(stephana): This can be removed once the UI is refactored. We should not
+	// need the template functions.
+	// funcMap are functions injected into the templates.
+	funcMap = template.FuncMap{
+		"add": func(left, right int) int { return left + right },
+	}
 )
 
 func loadTemplates() {
-	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
+	templates = template.Must(template.New("").Funcs(funcMap).Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "templates/byblame.html"),
 		filepath.Join(*resourcesDir, "templates/cluster.html"),
 		filepath.Join(*resourcesDir, "templates/list.html"),
@@ -1230,32 +1237,51 @@ func search2Handler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	digests, numMatches, commits, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
 	if err != nil {
 		util.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
-	js, err := json.MarshalIndent(digests, "", "  ")
+	js, err := json.MarshalIndent(searchResponse.Digests, "", "  ")
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to encode response data.")
 		return
 	}
-	commitsjs, err := json.MarshalIndent(commits, "", "  ")
+	commitsjs, err := json.MarshalIndent(searchResponse.Commits, "", "  ")
 	if err != nil {
 		util.ReportError(w, r, err, "Failed to encode commits.")
 		return
 	}
 
+	// Set the url for the issue that can be extended in the template.
+	issueBaseUrl := ""
+	var includedPatchsets map[string]bool = nil
+	if searchResponse.IssueResponse != nil {
+		// Remove the patchsets from the query to be added in the template.
+		url := *r.URL
+		vals := url.Query()
+		vals.Del("patchsets")
+		url.RawQuery = vals.Encode()
+		issueBaseUrl = url.String()
+		includedPatchsets = util.NewStringSet(searchResponse.IssueResponse.QueryPatchsets)
+	}
+
 	context := struct {
-		Digests    []*search.Digest
-		JS         template.JS
-		CommitsJS  template.JS
-		NumMatches int
+		Digests           []*search.Digest
+		JS                template.JS
+		CommitsJS         template.JS
+		NumMatches        int
+		IssueResponse     *search.IssueResponse
+		IssueBaseURL      string
+		IncludedPatchsets map[string]bool
 	}{
-		Digests:    digests,
-		JS:         template.JS(string(js)),
-		CommitsJS:  template.JS(string(commitsjs)),
-		NumMatches: numMatches,
+		Digests:           searchResponse.Digests,
+		JS:                template.JS(string(js)),
+		CommitsJS:         template.JS(string(commitsjs)),
+		NumMatches:        searchResponse.Total,
+		IssueResponse:     searchResponse.IssueResponse,
+		IssueBaseURL:      issueBaseUrl,
+		IncludedPatchsets: includedPatchsets,
 	}
 
 	w.Header().Set("Content-Type", "text/html")
@@ -1271,20 +1297,14 @@ type SearchResult struct {
 	NumMatches int
 }
 
-// TODO(stephan): Replace all other search handlers with  search3JSONHandler.
+// TODO(stephan): Replace all other search handlers with search3JSONHandler.
 func search3JSONHandler(w http.ResponseWriter, r *http.Request) {
-	digests, numMatches, commits, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
 	if err != nil {
 		util.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
-
-	result := SearchResult{
-		Digests:    digests,
-		Commits:    commits,
-		NumMatches: numMatches,
-	}
-	sendJsonResponse(w, &result)
+	sendJsonResponse(w, searchResponse)
 }
 
 func queryFromRequest(r *http.Request) *search.Query {
@@ -1296,6 +1316,13 @@ func queryFromRequest(r *http.Request) *search.Query {
 			Limit = li
 		}
 	}
+
+	// Parse out the patchsets.
+	var patchsets []string = nil
+	if temp := r.FormValue("patchsets"); temp != "" {
+		patchsets = strings.Split(temp, ",")
+	}
+
 	return &search.Query{
 		BlameGroupID:   r.FormValue("blame"),
 		Pos:            r.FormValue("pos") == "true",
@@ -1305,6 +1332,7 @@ func queryFromRequest(r *http.Request) *search.Query {
 		IncludeIgnores: r.FormValue("include") == "true",
 		Query:          r.FormValue("query"),
 		Issue:          r.FormValue("issue"),
+		Patchsets:      patchsets,
 		Limit:          Limit,
 		IncludeMaster:  r.FormValue("master") == "true",
 	}
@@ -1353,16 +1381,16 @@ func (p SearchDigestSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
 func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	digestsInfo, _, _, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
 	if err != nil {
 		util.ReportError(w, r, err, "Search for digests failed.")
 	}
 	// Sort the digests so they are displayed with untriaged last, which means
 	// they will be displayed 'on top', because in SVG document order is z-order.
-	sort.Sort(SearchDigestSlice(digestsInfo))
+	sort.Sort(SearchDigestSlice(searchResponse.Digests))
 
 	digests := []string{}
-	for _, digest := range digestsInfo {
+	for _, digest := range searchResponse.Digests {
 		digests = append(digests, digest.Digest)
 	}
 
@@ -1377,7 +1405,7 @@ func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 		Paramsets: map[string]map[string][]string{},
 		Paramset:  map[string][]string{},
 	}
-	for i, d := range digestsInfo {
+	for i, d := range searchResponse.Digests {
 		d3.Nodes = append(d3.Nodes, Node{
 			Name:   d.Digest,
 			Status: d.Status,

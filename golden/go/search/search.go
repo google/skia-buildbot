@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/golden/go/paramsets"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
+	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -104,6 +105,22 @@ type Query struct {
 	IncludeMaster  bool // Include digests from master when searching Rietveld issues.
 }
 
+// SearchResponse is the standard search response. Depending on the query some fields
+// might be empty, i.e. IssueDetails only makes sense if a trybot isssue was given in the query.
+type SearchResponse struct {
+	Digests       []*Digest
+	Total         int
+	Commits       []*tiling.Commit
+	IssueResponse *IssueResponse
+}
+
+// IssueResponse contains specific query responses when we search for a trybot issue. Currently
+// it extends trybot.IssueDetails.
+type IssueResponse struct {
+	*trybot.IssueDetails
+	QueryPatchsets []string
+}
+
 // excludeClassification returns true if the given label/status for a digest
 // should be excluded based on the values in the query.
 func (q *Query) excludeClassification(cl types.Label) bool {
@@ -146,32 +163,33 @@ func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // Search returns a slice of Digests that match the input query, and the total number of Digests
 // that matched the query. It also returns a slice of Commits that were used in the calculations.
-func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer, paramset *paramsets.Summary) ([]*Digest, int, []*tiling.Commit, error) {
+func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer, paramset *paramsets.Summary) (*SearchResponse, error) {
 	parsedQuery, err := url.ParseQuery(q.Query)
 	if err != nil {
-		return nil, 0, nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
+		return nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
 	}
 
 	tile, err := storages.GetLastTileTrimmed(q.IncludeIgnores)
 	if err != nil {
-		return nil, 0, nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
+		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
 	}
 
 	e, err := storages.ExpectationsStore.Get()
 	if err != nil {
-		return nil, 0, nil, fmt.Errorf("Couldn't get expectations: %s", err)
+		return nil, fmt.Errorf("Couldn't get expectations: %s", err)
 	}
 
 	var ret []*Digest
+	var issueResponse *IssueResponse = nil
 	var commits []*tiling.Commit = nil
 	if q.Issue != "" {
-		ret, err = searchByIssue(q.Issue, q, e, parsedQuery, storages, tallies, paramset)
+		ret, issueResponse, err = searchByIssue(q.Issue, q, e, parsedQuery, storages, tallies, paramset)
 	} else {
 		ret, commits, err = searchTile(q, e, parsedQuery, storages, tile, tallies, blamer, paramset)
 	}
 
 	if err != nil {
-		return nil, 0, nil, err
+		return nil, err
 	}
 
 	sort.Sort(DigestSlice(ret))
@@ -180,7 +198,12 @@ func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer 
 		ret = ret[0:q.Limit]
 	}
 
-	return ret, fullLength, commits, nil
+	return &SearchResponse{
+		Digests:       ret,
+		Total:         fullLength,
+		Commits:       commits,
+		IssueResponse: issueResponse,
+	}, nil
 }
 
 // issueIntermediate is a utility struct for searchByIssue.
@@ -208,14 +231,14 @@ func (i *issueIntermediate) add(params map[string]string) {
 	util.AddParamsToParamSet(i.paramSet, params)
 }
 
-func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tallies *tally.Tallies, tileParamSet *paramsets.Summary) ([]*Digest, error) {
+func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tallies *tally.Tallies, tileParamSet *paramsets.Summary) ([]*Digest, *IssueResponse, error) {
 	issue, tile, err := storages.TrybotResults.GetIssue(issueID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if issue == nil {
-		return nil, fmt.Errorf("Issue not found.")
+		return nil, nil, fmt.Errorf("Issue not found.")
 	}
 
 	// Get a matcher for the ignore rules if we filter ignores.
@@ -223,7 +246,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	if !q.IncludeIgnores {
 		ignoreMatcher, err = storages.IgnoreStore.BuildRuleMatcher()
 		if err != nil {
-			return nil, fmt.Errorf("Unable to build rules matcher: %s", err)
+			return nil, nil, fmt.Errorf("Unable to build rules matcher: %s", err)
 		}
 	}
 
@@ -299,7 +322,13 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 		digestEntry.Traces = emptyTraces
 		ret = append(ret, digestEntry)
 	}
-	return ret, nil
+
+	issueResponse := &IssueResponse{
+		IssueDetails:   issue,
+		QueryPatchsets: q.Patchsets,
+	}
+
+	return ret, issueResponse, nil
 }
 
 // searchTile queries across a tile.

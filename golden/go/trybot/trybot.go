@@ -32,7 +32,23 @@ type Issue struct {
 // IssueDetails extends issue with the commit ideas for the issue.
 type IssueDetails struct {
 	*Issue
-	CommitIDs []*tracedb.CommitIDLong `json:"-"`
+	PatchsetDetails map[int64]*PatchsetDetail
+	CommitIDs       []*tracedb.CommitIDLong `json:"-"`
+}
+
+type PatchsetDetail struct {
+	Tryjobs  []*Tryjob `json:"tryjobs"`
+	JobTotal int64     `json:"jobTotal"`
+	JobDone  int64     `json:"jobDone"`
+	Digests  int64     `json:"digests"`
+	InMaster int64     `json:"inMaster"`
+	Url      string    `json:"url"`
+}
+
+type Tryjob struct {
+	Builder     string `json:"builder"`
+	Buildnumber string `json:"buildnumber"`
+	Status      string `json:"status"`
 }
 
 // TrybotResults manages everything related to aggregating information about trybot results.
@@ -93,9 +109,30 @@ func (t *TrybotResults) GetIssue(issueID string) (*IssueDetails, *tiling.Tile, e
 		return nil, nil, fmt.Errorf("Error retrieving tile: %s", err)
 	}
 
+	// TODO(stephana): Remove placeholder in next CL - just used to build skeleton code.
+	// To be populated with the data from ingestion and Rietveld.
+	patchsetDetails := map[int64]*PatchsetDetail{}
+	for _, pid := range issue.Patchsets {
+		patchsetDetails[pid] = &PatchsetDetail{
+			JobTotal: 10,
+			JobDone:  3,
+			Digests:  5555,
+			InMaster: 35,
+			Url:      fmt.Sprintf("https://codereview.chromium.org/%s/#ps%d", issue.ID, pid),
+			Tryjobs: []*Tryjob{
+				&Tryjob{Builder: fmt.Sprintf("Builder 1 - %d", pid), Status: "running"},
+				&Tryjob{Builder: fmt.Sprintf("Builder 2 - %d", pid), Status: "complete"},
+				&Tryjob{Builder: fmt.Sprintf("Builder 3 - %d", pid), Status: "ingested"},
+				&Tryjob{Builder: fmt.Sprintf("Builder 4 - %d", pid), Status: "failed"},
+				&Tryjob{Builder: fmt.Sprintf("Builder 5 - %d", pid), Status: "failed"},
+			},
+		}
+	}
+
 	return &IssueDetails{
-		Issue:     issue,
-		CommitIDs: commits,
+		Issue:           issue,
+		CommitIDs:       commits,
+		PatchsetDetails: patchsetDetails,
 	}, tile, nil
 }
 

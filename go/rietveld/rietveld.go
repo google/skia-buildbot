@@ -109,8 +109,10 @@ type Patchset struct {
 // TryjobResult contains the trybots that have been scheduled in Rietveld. We ommit
 // fields we are currently not interested in.
 type TryjobResult struct {
+	Master      string `json:"master"`
 	Builder     string `json:"builder"`
 	BuildNumber int64  `json:"buildnumber"`
+	Result      int64  `json:"result"`
 }
 
 func parseTime(t string) time.Time {
@@ -377,7 +379,7 @@ func (r *Rietveld) SearchKeys(limit int, terms ...*SearchTerm) ([]int64, error) 
 }
 
 // GetPatchset returns information about the given patchset.
-func (r Rietveld) GetPatchset(issueID int64, patchsetID int64) (*Patchset, error) {
+func (r *Rietveld) GetPatchset(issueID int64, patchsetID int64) (*Patchset, error) {
 	url := fmt.Sprintf("/api/%d/%d", issueID, patchsetID)
 	patchset := &Patchset{}
 	if err := r.get(url, patchset); err != nil {
