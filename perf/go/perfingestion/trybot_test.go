@@ -36,7 +36,7 @@ func TestTrybotPerfIngestion(t *testing.T) {
 	m := mockhttpclient.NewURLMock()
 	m.Mock("https://codereview.chromium.org/api/1467533002/1", b)
 
-	server, serverAddr := ingestion.StartTraceDBTestServer(t, "./trybot_test_trace.db")
+	server, serverAddr := ingestion.StartTraceDBTestServer(t, "./trybot_test_trace.db", "")
 	defer server.Stop()
 	defer testutils.Remove(t, "./trybot_test_trace.db")
 

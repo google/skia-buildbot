@@ -57,6 +57,7 @@
       .tryjobStatus {
         padding-right: .5em;
         padding-left: .5em;
+        margin: 0.1em;
         float: left;
       }
 
@@ -79,9 +80,8 @@
           <thead> 
             <tr>
               <th class="issueRow">Patchset <br> (* - Showing)</th>
-              <th class="issueRow">Digests <br> (New / Total)</th>
               <th class="issueRow">Jobs <br> (Finished / Total)</th>
-              <th class="issueRow">Builders</th>
+              <th class="issueRow">Test Builders</th>
             </tr>
           </thead>
           <tbody>
@@ -91,7 +91,6 @@
                 <td class="issueRow"><a href="{%html $.IssueBaseURL%}&patchsets={%html $e%}">{%add $i 1%}</a>
                 {%if print $e|index $.IncludedPatchsets%} * {%end%}
                 </td>
-                <td class="issueRow">{%$data.InMaster%} / {%$data.Digests%}</td>
                 <td class="issueRow">{%$data.JobDone%} / {%$data.JobTotal%}</td>
                 <td class="issueRow">
                     {%range $data.Tryjobs%}

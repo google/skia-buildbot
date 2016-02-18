@@ -38,8 +38,14 @@ func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 		return nil, err
 	}
 
+	ingestionStore, err := NewIngestionStore(config.ExtraParams[CONFIG_TRACESERVICE])
+	if err != nil {
+		return nil, fmt.Errorf("Unable to open ingestion store: %s", err)
+	}
+
 	// Get the underlying goldProcessor.
 	gProcessor := processor.(*goldProcessor)
+	gProcessor.ingestionStore = ingestionStore
 	ret := &goldTrybotProcessor{
 		goldProcessor: gProcessor,
 		review:        rietveld.New(config.ExtraParams[CONFIG_CODE_REVIEW_URL], nil),

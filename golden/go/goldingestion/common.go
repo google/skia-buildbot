@@ -57,7 +57,7 @@ type Result struct {
 type DMResults struct {
 	Master      string            `json:"master"`
 	Builder     string            `json:"builder"`
-	BuildNumber string            `json:"build_number"`
+	BuildNumber int64             `json:"build_number,string"`
 	GitHash     string            `json:"gitHash"`
 	Key         map[string]string `json:"key"`
 	Issue       int64             `json:"issue,string"`

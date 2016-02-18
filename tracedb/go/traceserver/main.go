@@ -14,6 +14,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/sharedb"
 	"go.skia.org/infra/go/trace/service"
 	"google.golang.org/grpc"
 )
@@ -23,6 +24,7 @@ var (
 	db_file        = flag.String("db_file", "", "The name of the BoltDB file that will store the traces.")
 	port           = flag.String("port", ":9090", "The port to serve the gRPC endpoint on.")
 	cpuprofile     = flag.String("cpuprofile", "", "Write cpu profile to file.")
+	sharedbDir     = flag.String("sharedb_dir", "", "Directory used by shareDB. If empty shareDB service will not enabled.")
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
@@ -43,6 +45,11 @@ func main() {
 	}
 	s := grpc.NewServer()
 	traceservice.RegisterTraceServiceServer(s, ts)
+
+	// If a directory for sharedb was registered add a the sharedb service.
+	if *sharedbDir != "" {
+		sharedb.RegisterShareDBServer(s, sharedb.NewServer(*sharedbDir))
+	}
 
 	go func() {
 		if *cpuprofile != "" {

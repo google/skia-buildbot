@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
+	"go.skia.org/infra/go/sharedb"
 	"go.skia.org/infra/go/trace/service"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -46,8 +47,8 @@ func (m mockVCS) Details(hash string, getBranches bool) (*vcsinfo.LongCommit, er
 // listening as the second return value.
 // Upon completion the calling test should call the Stop() function of the
 // returned server object.
-func StartTraceDBTestServer(t assert.TestingT, fileName string) (*grpc.Server, string) {
-	traceDBServer, err := traceservice.NewTraceServiceServer(fileName)
+func StartTraceDBTestServer(t assert.TestingT, traceDBFileName, shareDBDir string) (*grpc.Server, string) {
+	traceDBServer, err := traceservice.NewTraceServiceServer(traceDBFileName)
 	assert.Nil(t, err)
 
 	lis, err := net.Listen("tcp", "localhost:0")
@@ -55,6 +56,11 @@ func StartTraceDBTestServer(t assert.TestingT, fileName string) (*grpc.Server, s
 
 	server := grpc.NewServer()
 	traceservice.RegisterTraceServiceServer(server, traceDBServer)
+
+	if shareDBDir != "" {
+		sharedb.RegisterShareDBServer(server, sharedb.NewServer(shareDBDir))
+	}
+
 	go func() {
 		// We ignore the error, because calling the Stop() function always causes
 		// an error and we are primarily interested in using this to test other code.

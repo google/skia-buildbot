@@ -5,18 +5,30 @@ package trybot
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/goldingestion"
 )
 
 var (
 	TIME_FRAME = time.Hour * time.Duration(24*14)
+)
+
+const (
+	TRYJOB_SCHEDULED = "scheduled"
+	TRYJOB_RUNNING   = "running"
+	TRYJOB_COMPLETE  = "complete"
+	TRYJOB_INGESTED  = "ingested"
+	TRYJOB_FAILED    = "failed"
 )
 
 // Issue captures information about a single Rietveld issued.
@@ -34,6 +46,7 @@ type IssueDetails struct {
 	*Issue
 	PatchsetDetails map[int64]*PatchsetDetail
 	CommitIDs       []*tracedb.CommitIDLong `json:"-"`
+	TargetPatchsets []string                `json:"-"`
 }
 
 type PatchsetDetail struct {
@@ -53,14 +66,18 @@ type Tryjob struct {
 
 // TrybotResults manages everything related to aggregating information about trybot results.
 type TrybotResults struct {
-	tileBuilder tracedb.BranchTileBuilder
-	reviewURL   string
+	tileBuilder    tracedb.BranchTileBuilder
+	reviewURL      string
+	rietveldAPI    *rietveld.Rietveld
+	ingestionStore *goldingestion.IngestionStore
 }
 
-func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietveld.Rietveld) *TrybotResults {
+func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietveld.Rietveld, ingestionStore *goldingestion.IngestionStore) *TrybotResults {
 	ret := &TrybotResults{
-		tileBuilder: tileBuilder,
-		reviewURL:   rietveldAPI.Url(),
+		tileBuilder:    tileBuilder,
+		reviewURL:      rietveldAPI.Url(),
+		rietveldAPI:    rietveldAPI,
+		ingestionStore: ingestionStore,
 	}
 	return ret
 }
@@ -83,13 +100,13 @@ func (t *TrybotResults) ListTrybotIssues(offset, size int) ([]*Issue, int, error
 	size = util.MaxInt(size, 0)
 	startIdx := offset
 	endIdx := util.MinInt(offset+size, maxIdx)
-	return issuesList[startIdx:endIdx], len(issuesList), nil
+	return issuesList[startIdx : endIdx+1], len(issuesList), nil
 }
 
 // GetIssue returns the information about a specific issue. It returns the a superset
 // of the issue information including the commit ids that make up the issue.
 // The commmit ids align with the tile that is returned.
-func (t *TrybotResults) GetIssue(issueID string) (*IssueDetails, *tiling.Tile, error) {
+func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string, cacheOnly bool) (*IssueDetails, *tiling.Tile, error) {
 	end := time.Now()
 	begin := end.Add(-TIME_FRAME)
 	prefix := goldingestion.GetPrefix(issueID, t.reviewURL)
@@ -109,31 +126,122 @@ func (t *TrybotResults) GetIssue(issueID string) (*IssueDetails, *tiling.Tile, e
 		return nil, nil, fmt.Errorf("Error retrieving tile: %s", err)
 	}
 
-	// TODO(stephana): Remove placeholder in next CL - just used to build skeleton code.
-	// To be populated with the data from ingestion and Rietveld.
-	patchsetDetails := map[int64]*PatchsetDetail{}
-	for _, pid := range issue.Patchsets {
-		patchsetDetails[pid] = &PatchsetDetail{
-			JobTotal: 10,
-			JobDone:  3,
-			Digests:  5555,
-			InMaster: 35,
-			Url:      fmt.Sprintf("https://codereview.chromium.org/%s/#ps%d", issue.ID, pid),
-			Tryjobs: []*Tryjob{
-				&Tryjob{Builder: fmt.Sprintf("Builder 1 - %d", pid), Status: "running"},
-				&Tryjob{Builder: fmt.Sprintf("Builder 2 - %d", pid), Status: "complete"},
-				&Tryjob{Builder: fmt.Sprintf("Builder 3 - %d", pid), Status: "ingested"},
-				&Tryjob{Builder: fmt.Sprintf("Builder 4 - %d", pid), Status: "failed"},
-				&Tryjob{Builder: fmt.Sprintf("Builder 5 - %d", pid), Status: "failed"},
-			},
-		}
+	// Retrieve all the patchset results for this commit.
+	patchsetDetails, targetPatchsets, err := t.getPatchsetDetails(issue, targetPatchsets, cacheOnly)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	return &IssueDetails{
 		Issue:           issue,
 		CommitIDs:       commits,
 		PatchsetDetails: patchsetDetails,
+		TargetPatchsets: targetPatchsets,
 	}, tile, nil
+}
+
+func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []string, cacheOnly bool) (map[int64]*PatchsetDetail, []string, error) {
+	// Get the target patchsets.
+	var int64PidMap map[int64]bool = nil
+
+	// if no patchset was given, use the last one.
+	if len(targetPatchsets) == 0 {
+		pset := issue.Patchsets[len(issue.Patchsets)-1]
+		targetPatchsets = []string{strconv.Itoa(int(pset))}
+		int64PidMap = map[int64]bool{pset: true}
+	} else {
+		int64PidMap = make(map[int64]bool, len(targetPatchsets))
+		for _, k := range targetPatchsets {
+			convKey, err := strconv.ParseInt(k, 10, 64)
+			if err != nil {
+				return nil, nil, fmt.Errorf("Invalid patchset id (%s): %s", k, err)
+			}
+			int64PidMap[convKey] = true
+		}
+	}
+
+	ret := make(map[int64]*PatchsetDetail, len(issue.Patchsets))
+	var wg sync.WaitGroup
+	var mutex sync.Mutex
+
+	intIssueID, err := strconv.ParseInt(issue.ID, 10, 64)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Unable to parse issue id %s. Got error: %s", issue.ID, err)
+	}
+
+	for _, pid := range issue.Patchsets {
+		wg.Add(1)
+		go func(pid int64) {
+			defer wg.Done()
+			crPatchSet, err := t.getCachedPatchset(intIssueID, pid, int64PidMap, cacheOnly)
+			if err != nil {
+				glog.Errorf("Error retrieving patchset %d: %s", pid, err)
+				return
+			}
+
+			glog.Infof("Got patchset %d: %d", intIssueID, pid)
+
+			nTryjobs := len(crPatchSet.TryjobResults)
+			tryjobs := make([]*Tryjob, 0, nTryjobs)
+			var tjIngested int64 = 0
+			for _, tj := range crPatchSet.TryjobResults {
+				// Filter out tryjobs we want to ignore. This includes compile bots, since we'll never
+				// ingest any results from them. We count the bot as ingested.
+				if filterTryjob(tj) {
+					tjIngested++
+					continue
+				}
+
+				var status string
+				switch tj.Result {
+				// scheduled but not yet started.
+				case 6:
+					status = TRYJOB_SCHEDULED
+				// currently running.
+				case -1:
+					status = TRYJOB_RUNNING
+				// Finished. Lets' figure out if it has already been ingested.
+				case 0:
+					if t.ingestionStore.IsIngested(config.CONSTRUCTOR_GOLD, tj.Master, tj.Builder, tj.BuildNumber) {
+						status = TRYJOB_INGESTED
+						tjIngested++
+					} else {
+						status = TRYJOB_COMPLETE
+					}
+				// failed.
+				case 2:
+					status = TRYJOB_FAILED
+				default:
+					status = TRYJOB_FAILED
+				}
+
+				tryjobs = append(tryjobs, &Tryjob{
+					Builder: tj.Builder,
+					Status:  status,
+				})
+			}
+
+			mutex.Lock()
+			defer mutex.Unlock()
+			ret[pid] = &PatchsetDetail{
+				Tryjobs:  tryjobs,
+				JobDone:  tjIngested,
+				JobTotal: int64(nTryjobs),
+			}
+		}(pid)
+	}
+	wg.Wait()
+	return ret, targetPatchsets, nil
+}
+
+func (t *TrybotResults) getCachedPatchset(intIssueID, pid int64, targetPatchsets map[int64]bool, cacheOnly bool) (*rietveld.Patchset, error) {
+	// TODO(stephana): Add caching.
+	return t.rietveldAPI.GetPatchset(intIssueID, pid)
+}
+
+// filterTryjob returns true if the given tryjob should be ignored.
+func filterTryjob(tj *rietveld.TryjobResult) bool {
+	return !strings.HasPrefix(tj.Builder, "Test")
 }
 
 func (t *TrybotResults) getCommits(startTime, endTime time.Time, prefix string) ([]*tracedb.CommitIDLong, map[string]bool, error) {

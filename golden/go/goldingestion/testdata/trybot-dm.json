@@ -1,5 +1,7 @@
 {
    "build_number" : "1228",
+   "builder" : "Test-Win8-MSVC-ShuttleB-CPU-AVX2-x86-Debug",
+   "master" : "client.skia",
    "gitHash" : "02cb37309c01506e2552e931efa9c04a569ed266",
    "issue": "1381483003",
    "patchset": "1", 

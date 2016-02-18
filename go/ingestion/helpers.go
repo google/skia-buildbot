@@ -43,10 +43,10 @@ var constructors = map[string]Constructor{}
 var registrationMutex sync.Mutex
 
 // Register registers the given constructor to create an instance of a Processor.
-func Register(name string, constructor Constructor) {
+func Register(id string, constructor Constructor) {
 	registrationMutex.Lock()
 	defer registrationMutex.Unlock()
-	constructors[name] = constructor
+	constructors[id] = constructor
 }
 
 // IngestersFromConfig creates a list of ingesters from a config struct.

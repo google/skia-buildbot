@@ -76,3 +76,14 @@ func (s StringSet) Union(other StringSet) StringSet {
 
 	return resultSet
 }
+
+// AddLists adds lists of strings to the StringSet and returns
+// the receiving StringSet.
+func (s StringSet) AddLists(lists ...[]string) StringSet {
+	for _, oneList := range lists {
+		for _, item := range oneList {
+			s[item] = true
+		}
+	}
+	return s
+}

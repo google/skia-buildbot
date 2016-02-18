@@ -25,9 +25,10 @@ func init() {
 
 // goldProcessor implements the ingestion.Processor interface for gold.
 type goldProcessor struct {
-	traceDB   tracedb.DB
-	vcs       vcsinfo.VCS
-	extractID extractIDFn
+	traceDB        tracedb.DB
+	vcs            vcsinfo.VCS
+	extractID      extractIDFn
+	ingestionStore *IngestionStore
 }
 
 type extractIDFn func(*vcsinfo.LongCommit, *DMResults) (*tracedb.CommitID, error)
@@ -75,7 +76,17 @@ func (g *goldProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
-	return g.traceDB.Add(cid, dmResults.getTraceDBEntries())
+	// Write the result to the tracedb.
+	err = g.traceDB.Add(cid, dmResults.getTraceDBEntries())
+
+	// If there was no problem and we have an ingestion store that record that we have processed that file.
+	if (err == nil) && (g.ingestionStore != nil) {
+		if err := g.ingestionStore.Add(config.CONSTRUCTOR_GOLD, dmResults.Master, dmResults.Builder, dmResults.BuildNumber); err != nil {
+			glog.Errorf("Error writing ingested build info: %s", err)
+		}
+	}
+
+	return err
 }
 
 // See ingestion.Processor interface.

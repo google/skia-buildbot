@@ -6,7 +6,6 @@ import (
 	"math"
 	"net/url"
 	"sort"
-	"strconv"
 	"strings"
 
 	"go.skia.org/infra/go/tiling"
@@ -232,7 +231,7 @@ func (i *issueIntermediate) add(params map[string]string) {
 }
 
 func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tallies *tally.Tallies, tileParamSet *paramsets.Summary) ([]*Digest, *IssueResponse, error) {
-	issue, tile, err := storages.TrybotResults.GetIssue(issueID)
+	issue, tile, err := storages.TrybotResults.GetIssue(issueID, q.Patchsets, false)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -256,10 +255,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 		queryRule = ignore.NewQueryRule(parsedQuery)
 	}
 
-	if len(q.Patchsets) == 0 {
-		q.Patchsets = []string{strconv.Itoa(int(issue.Patchsets[len(issue.Patchsets)-1]))}
-	}
-	pidMap := util.NewStringSet(q.Patchsets)
+	pidMap := util.NewStringSet(issue.TargetPatchsets)
 	talliesByTest := tallies.ByTest()
 	digestMap := map[string]*Digest{}
 	reviewURL := storages.RietveldAPI.Url()
@@ -325,7 +321,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 
 	issueResponse := &IssueResponse{
 		IssueDetails:   issue,
-		QueryPatchsets: q.Patchsets,
+		QueryPatchsets: issue.TargetPatchsets,
 	}
 
 	return ret, issueResponse, nil

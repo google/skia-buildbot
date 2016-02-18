@@ -73,7 +73,7 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Set up mock VCS and run a servcer with the given data directory.
 	vcs := ingestion.MockVCS(TEST_COMMITS)
-	server, serverAddr := ingestion.StartTraceDBTestServer(t, TRACE_DB_FILENAME)
+	server, serverAddr := ingestion.StartTraceDBTestServer(t, TRACE_DB_FILENAME, "")
 	defer server.Stop()
 	defer testutils.Remove(t, TRACE_DB_FILENAME)
 

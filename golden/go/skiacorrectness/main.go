@@ -33,6 +33,7 @@ import (
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/filediffstore"
+	"go.skia.org/infra/golden/go/goldingestion"
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/paramsets"
@@ -330,6 +331,10 @@ func main() {
 	}
 	branchTileBuilder := tracedb.NewBranchTileBuilder(db, git, rietveldAPI, evt)
 
+	ingestionStore, err := goldingestion.NewIngestionStore(*traceservice)
+	if err != nil {
+		glog.Fatalf("Unable to open ingestion store: %s", err)
+	}
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
@@ -339,7 +344,7 @@ func main() {
 		DigestStore:       digestStore,
 		NCommits:          *nCommits,
 		EventBus:          evt,
-		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI),
+		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI, ingestionStore),
 		RietveldAPI:       rietveldAPI,
 	}
 
