@@ -173,7 +173,7 @@ func (c *Client) QueryFloat64(database, q string) (float64, error) {
 		return 0.0, err
 	}
 	if len(res) != 1 {
-		return 0.0, fmt.Errorf("Query returned more than one series: %q", q)
+		return 0.0, fmt.Errorf("Query returned %d series (db = %q): %q\n%v", len(res), database, q, res)
 	}
 	return res[0].Value.Float64()
 }
@@ -187,7 +187,7 @@ func (c *Client) QueryInt64(database, q string) (int64, error) {
 		return 0.0, err
 	}
 	if len(res) != 1 {
-		return 0.0, fmt.Errorf("Query returned more than one series: %q", q)
+		return 0.0, fmt.Errorf("Query returned %d series (db = %q): %q\n%v", len(res), database, q, res)
 	}
 	return res[0].Value.Int64()
 }
