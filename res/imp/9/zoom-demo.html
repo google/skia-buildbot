@@ -26,9 +26,13 @@
       <img id=source_img src="raster.png"/>
     </canvas-layers-sk>
     <crosshair-sk target=layers name=crosshair update_on=click></crosshair-sk>
+    <h2>Event</h2>
+    <pre id=event>
+    </pre>
 
     <h2>Zoomed View</h2>
     <zoom-sk source=source_img pixels=20 id=zoom></zoom-sk>
+
   </div>
 
   <script type="text/javascript" charset="utf-8">
@@ -36,6 +40,10 @@
     $$$('crosshair-sk').addEventListener('crosshair', function(e) {
       $$$('#zoom').x = e.detail.x;
       $$$('#zoom').y = e.detail.y;
+    });
+
+    $$$('#zoom').addEventListener('zoom-point', function(e) {
+      $$$('#event').textContent = JSON.stringify(e.detail, null, 2);
     });
   </script>
 </body>
