@@ -348,15 +348,26 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 	scoreIncrease := map[string]float64{}
 	newBuildsByCommit := map[string]*buildbot.Build{}
 	stoleFromByCommit := map[string]*buildbot.Build{}
+	foundNewerBuild := false
 	for _, commit := range recentCommits {
 		// Shortcut: Don't bisect builds with a huge number
 		// of commits.  This saves lots of time and only affects
-		// the first successful build for a bot.
+		// the first successful build for a bot. Additionally, don't
+		// go past the first commit which ran on this bot.
 		b, err := bc.getBuildForCommit(commit)
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
-		if b != nil {
+		if b == nil {
+			// Don't go past the first commit which ran on this bot.
+			if foundNewerBuild {
+				glog.Warningf("Skipping %s on %s; reached the beginning of time for this bot.")
+				break
+			}
+		} else {
+			foundNewerBuild = true
+
+			// Don't bisect giant blamelists...
 			if len(b.Commits) > NO_BISECT_COMMIT_LIMIT {
 				glog.Warningf("Skipping %s on %s; previous build has too many commits (#%d)", commit[0:7], b.Builder, b.Number)
 				scoreIncrease[commit] = 0.0
