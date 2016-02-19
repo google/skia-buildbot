@@ -66,10 +66,10 @@ func (d *testDB) Close(t *testing.T) {
 // clearDB initializes the database, upgrading it if needed, and removes all
 // data to ensure that the test begins with a clean slate. Returns a testDB
 // which must be closed after the test finishes.
-func clearDB(t *testing.T, repos *gitinfo.RepoMap) *testDB {
+func clearDB(t *testing.T) *testDB {
 	tempDir, err := ioutil.TempDir("", "build_scheduler_test_")
 	assert.Nil(t, err)
-	db, err := buildbot.NewLocalDB(path.Join(tempDir, "buildbot.db"), repos)
+	db, err := buildbot.NewLocalDB(path.Join(tempDir, "buildbot.db"))
 	assert.Nil(t, err)
 
 	return &testDB{
@@ -123,7 +123,6 @@ func TestBuildScoring(t *testing.T) {
 	build1 := &buildbot.Build{
 		GotRevision: hashes['A'],
 		Commits:     []string{hashes['A'], hashes['B'], hashes['C']},
-		Started:     time.Now(),
 	}
 	cases := []struct {
 		commit        *vcsinfo.LongCommit
@@ -252,6 +251,10 @@ type buildQueueExpect struct {
 func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQueueExpect, testInsert bool) {
 	testutils.SkipIfShort(t)
 
+	// Initialize the buildbot database.
+	d := clearDB(t)
+	defer d.Close(t)
+
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
@@ -259,10 +262,6 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	repo, err := repos.Repo(TEST_REPO)
 	assert.Nil(t, err)
 	assert.Nil(t, repos.Update())
-
-	// Initialize the buildbot database.
-	d := clearDB(t, repos)
-	defer d.Close(t)
 
 	// Insert an initial build.
 	buildNum := 0
@@ -534,6 +533,10 @@ func TestBuildQueueLambdaInsert(t *testing.T) {
 func TestBuildQueueNoPrevious(t *testing.T) {
 	testutils.SkipIfShort(t)
 
+	// Initialize the buildbot database.
+	d := clearDB(t)
+	defer d.Close(t)
+
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
@@ -541,10 +544,6 @@ func TestBuildQueueNoPrevious(t *testing.T) {
 	repo, err := repos.Repo(TEST_REPO)
 	assert.Nil(t, err)
 	assert.Nil(t, repos.Update())
-
-	// Initialize the buildbot database.
-	d := clearDB(t, repos)
-	defer d.Close(t)
 
 	// Create the BuildQueue.
 	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, 1.0, []*regexp.Regexp{}, d.db)

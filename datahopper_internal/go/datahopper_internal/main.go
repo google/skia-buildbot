@@ -27,12 +27,12 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	metrics "github.com/rcrowley/go-metrics"
+	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"go.skia.org/infra/go/androidbuild"
-	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
+	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
@@ -43,7 +43,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/webhook"
-	storage "google.golang.org/api/storage/v1"
+	"google.golang.org/api/storage/v1"
 )
 
 const (
@@ -573,19 +573,9 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to open codename leveldb at %s: %s", *codenameDbDir, err)
 	}
-
-	repos = gitinfo.NewRepoMap(*workdir)
-	// Ensure Skia repo is cloned and updated.
-	if _, err := repos.Repo(common.REPO_SKIA); err != nil {
-		glog.Fatalf("Unable to clone Skia repo at %s: %s", common.REPO_SKIA, err)
-	}
-	if err := repos.Update(); err != nil {
-		glog.Fatalf("Failed to update repos: %s", err)
-	}
-
 	// Initialize the buildbot database.
 	if *local {
-		db, err = buildbot.NewLocalDB(path.Join(*workdir, "buildbot.db"), repos)
+		db, err = buildbot.NewLocalDB(path.Join(*workdir, "buildbot.db"))
 		if err != nil {
 			glog.Fatal(err)
 		}
@@ -609,6 +599,15 @@ func main() {
 		webhook.InitRequestSaltForTesting()
 	} else {
 		webhook.MustInitRequestSaltFromMetadata()
+	}
+
+	repos = gitinfo.NewRepoMap(*workdir)
+	// Ensure Skia repo is cloned and updated.
+	if _, err := repos.Repo(common.REPO_SKIA); err != nil {
+		glog.Fatalf("Unable to clone Skia repo at %s: %s", common.REPO_SKIA, err)
+	}
+	if err := repos.Update(); err != nil {
+		glog.Fatalf("Failed to update repos: %s", err)
 	}
 
 	// Initialize and start metrics.

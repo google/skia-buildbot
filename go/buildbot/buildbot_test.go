@@ -121,10 +121,10 @@ func (d *testRemoteDB) Close(t *testing.T) {
 }
 
 // clearDB returns a clean testDB instance which must be closed after the test finishes.
-func clearDB(t *testing.T, repos *gitinfo.RepoMap, local bool) testDB {
+func clearDB(t *testing.T, local bool) testDB {
 	tempDir, err := ioutil.TempDir("", "buildbot_test_")
 	assert.Nil(t, err)
-	localDB, err := NewLocalDB(path.Join(tempDir, "buildbot.db"), repos)
+	localDB, err := NewLocalDB(path.Join(tempDir, "buildbot.db"))
 	assert.Nil(t, err)
 	if local {
 		return &testLocalDB{
@@ -196,13 +196,14 @@ func TestBuildJsonSerialization(t *testing.T) {
 func testFindCommitsForBuild(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
 	httpClient = testHttpClient
+	d := clearDB(t, local)
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
+
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	d := clearDB(t, repos, local)
-	defer d.Close(t)
 
 	// The test repo is laid out like this:
 	//
@@ -365,12 +366,14 @@ func dbSerializeAndCompare(t *testing.T, d testDB, b1 *Build, ignoreIds bool) {
 func testBuildDbSerialization(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
 
+	d := clearDB(t, local)
+	defer d.Close(t)
+
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
+
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	d := clearDB(t, repos, local)
-	defer d.Close(t)
 
 	// Test case: an empty build. Tests null and empty values.
 	emptyBuild := &Build{
@@ -394,13 +397,14 @@ func testBuildDbSerialization(t *testing.T, local bool) {
 // finishes.
 func testUnfinishedBuild(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
+	d := clearDB(t, local)
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
+
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	d := clearDB(t, repos, local)
-	defer d.Close(t)
 
 	// Obtain and insert an unfinished build.
 	httpClient = testHttpClient
@@ -453,13 +457,14 @@ func testUnfinishedBuild(t *testing.T, local bool) {
 // the expected result.
 func testLastProcessedBuilds(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
+	d := clearDB(t, local)
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
+
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	d := clearDB(t, repos, local)
-	defer d.Close(t)
 
 	build, err := testGetBuildFromMaster(repos)
 	assert.Nil(t, err)
@@ -552,13 +557,14 @@ func TestGetLatestBuilds(t *testing.T) {
 // testGetUningestedBuilds verifies that getUningestedBuilds works as expected.
 func testGetUningestedBuilds(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
+	d := clearDB(t, local)
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
+
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	d := clearDB(t, repos, local)
-	defer d.Close(t)
 
 	// This builder is no longer found on the master.
 	b1, err := testGetBuildFromMaster(repos)
@@ -623,13 +629,14 @@ func testGetUningestedBuilds(t *testing.T, local bool) {
 // into the database.
 func testIngestNewBuilds(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
+	d := clearDB(t, local)
+	defer d.Close(t)
 
 	// Load the test repo.
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
+
 	repos := gitinfo.NewRepoMap(tr.Dir)
-	d := clearDB(t, repos, local)
-	defer d.Close(t)
 
 	// This builder needs to load a few builds.
 	b1, err := testGetBuildFromMaster(repos)
@@ -714,12 +721,7 @@ func testIngestNewBuilds(t *testing.T, local bool) {
 // build numbers are strictly ascending.
 func testBuildKeyOrdering(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
-
-	// Load the test repo.
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
-	repos := gitinfo.NewRepoMap(tr.Dir)
-	d := clearDB(t, repos, local)
+	d := clearDB(t, local)
 	defer d.Close(t)
 
 	b := "Test-Builder"
@@ -747,12 +749,7 @@ func testBuildKeyOrdering(t *testing.T, local bool) {
 // testBuilderComments ensures that we properly handle builder comments.
 func testBuilderComments(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
-
-	// Load the test repo.
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
-	repos := gitinfo.NewRepoMap(tr.Dir)
-	d := clearDB(t, repos, local)
+	d := clearDB(t, local)
 	defer d.Close(t)
 
 	b := "Perf-Android-Venue8-PowerVR-x86-Release"
@@ -823,12 +820,7 @@ func testBuilderComments(t *testing.T, local bool) {
 // testCommitComments ensures that we properly handle builder comments.
 func testCommitComments(t *testing.T, local bool) {
 	testutils.SkipIfShort(t)
-
-	// Load the test repo.
-	tr := util.NewTempRepo()
-	defer tr.Cleanup()
-	repos := gitinfo.NewRepoMap(tr.Dir)
-	d := clearDB(t, repos, local)
+	d := clearDB(t, local)
 	defer d.Close(t)
 
 	c := "3e9eff3518fe26312c0e1f5bd5f49e17cf270d9a"
