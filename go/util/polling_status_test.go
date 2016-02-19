@@ -16,15 +16,14 @@ func TestPollingStatus(t *testing.T) {
 	i := 0
 	tc := []int64{0, 10, -35}
 	duration := 100 * time.Millisecond
-	ps, err := NewPollingStatus(func() (interface{}, error) {
+	ps := NewPollingStatus(func() (interface{}, error) {
 		if i >= len(tc) {
 			return 0, fmt.Errorf("Reached the end of test data.")
 		}
 		return tc[i], nil
 	}, duration)
-	assert.Nil(t, err)
 
-	time.Sleep(duration / 2)
+	time.Sleep(2 * duration)
 	for j, v := range tc {
 		bytes, err := json.Marshal(ps)
 		assert.Nil(t, err)

@@ -17,13 +17,10 @@ type PollingStatus struct {
 	stop   chan bool
 }
 
-func NewPollingStatus(poll func() (interface{}, error), frequency time.Duration) (*PollingStatus, error) {
+func NewPollingStatus(poll func() (interface{}, error), frequency time.Duration) *PollingStatus {
 	s := PollingStatus{
 		pollFn: poll,
 		stop:   make(chan bool),
-	}
-	if err := s.poll(); err != nil {
-		return nil, err
 	}
 	go func(s *PollingStatus) {
 		ticker := time.Tick(frequency)
@@ -38,7 +35,7 @@ func NewPollingStatus(poll func() (interface{}, error), frequency time.Duration)
 			}
 		}
 	}(&s)
-	return &s, nil
+	return &s
 }
 
 func (s *PollingStatus) poll() error {

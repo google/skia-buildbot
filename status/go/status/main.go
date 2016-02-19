@@ -712,32 +712,14 @@ func main() {
 	glog.Info("commit_cache complete")
 
 	// Load Perf and Gold data in a loop.
-	perfStatus, err = dbClient.Int64PollingStatus(dbClient.Database, "select value from \"alerting.new.value\" where app='skiaperf' and host='skia-perf' order by time desc limit 1", time.Minute)
-	if err != nil {
-		glog.Fatalf("Failed to create polling Perf status: %v", err)
-	}
-	goldGMStatus, err = dbClient.Int64PollingStatus(dbClient.Database, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
-	if err != nil {
-		glog.Fatalf("Failed to create polling Gold status: %v", err)
-	}
-	goldImageStatus, err = dbClient.Int64PollingStatus(dbClient.Database, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
-	if err != nil {
-		glog.Fatalf("Failed to create polling Gold status: %v", err)
-	}
+	perfStatus = dbClient.Int64PollingStatus("skmetrics", "select value from \"perf.clustering.untriaged\" where app='skiaperf' and host='skia-perf' order by time desc limit 1", time.Minute)
+	goldGMStatus = dbClient.Int64PollingStatus(dbClient.Database, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
+	goldImageStatus = dbClient.Int64PollingStatus(dbClient.Database, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
 	// Load slave_hosts_cfg and device cfgs in a loop.
-	slaveHosts, err = buildbot.SlaveHostsCfgPoller(infraRepoPath)
-	if err != nil {
-		glog.Fatal(err)
-	}
-	androidDevices, err = device_cfg.AndroidDeviceCfgPoller(*workdir)
-	if err != nil {
-		glog.Fatal(err)
-	}
-	sshDevices, err = device_cfg.SSHDeviceCfgPoller(*workdir)
-	if err != nil {
-		glog.Fatal(err)
-	}
+	slaveHosts = buildbot.SlaveHostsCfgPoller(infraRepoPath)
+	androidDevices = device_cfg.AndroidDeviceCfgPoller(*workdir)
+	sshDevices = device_cfg.SSHDeviceCfgPoller(*workdir)
 
 	runServer(serverURL)
 }

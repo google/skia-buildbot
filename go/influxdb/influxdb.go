@@ -194,7 +194,7 @@ func (c *Client) QueryInt64(database, q string) (int64, error) {
 
 // PollingStatus returns a util.PollingStatus which runs the given
 // query at the given interval.
-func (c *Client) Int64PollingStatus(database, query string, interval time.Duration) (*util.PollingStatus, error) {
+func (c *Client) Int64PollingStatus(database, query string, interval time.Duration) *util.PollingStatus {
 	return util.NewPollingStatus(func() (interface{}, error) {
 		return c.QueryInt64(database, query)
 	}, interval)
