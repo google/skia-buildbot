@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/generator"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/net/context"
@@ -131,6 +132,8 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 		v.aggregator.UploadGreyFuzzes = false
 		bad, grey := v.aggregator.UploadedFuzzNames()
 		glog.Infof("Done reanalyzing %s.  Uploaded %d bad and %d grey fuzzes", category, len(bad), len(grey))
+		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "status": "bad"}).Update(int64(len(bad)))
+		metrics2.GetInt64Metric("fuzzer.fuzzes.status", map[string]string{"category": category, "status": "grey"}).Update(int64(len(grey)))
 
 		if config.Common.ForceReanalysis {
 			uploadFuzzNames(v.storageClient, oldRevision, category, bad, grey)
