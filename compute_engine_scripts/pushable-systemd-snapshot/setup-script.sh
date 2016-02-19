@@ -19,14 +19,14 @@ sudo apt-get --assume-yes install git
 # enabled by default. Thus we are not running any commands to update packages.
 
 sudo apt-get --assume-yes -o Dpkg::Options::="--force-confold" install collectd
-gsutil cp gs://skia-push/debs/pulld/pulld:stephana@stephana2.cnc.corp.google.com:2015-09-16T14:41:21Z:a2a216c62a5b280fc444a2766b4ff3d61918915f.deb pulld.deb
+gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2015-11-23T18:46:16Z:0483101f84c284640c4899ade97e4356655bfd00.deb pulld.deb
 sudo dpkg -i pulld.deb
 sudo apt-get --assume-yes install --fix-broken
 
 # Setup collectd.
 sudo cat <<EOF > collectd.conf
 FQDNLookup false
-Interval 10
+Interval 60
 
 LoadPlugin "logfile"
 <Plugin "logfile">
