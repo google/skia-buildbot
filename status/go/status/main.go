@@ -665,7 +665,7 @@ func main() {
 	}
 
 	// Setup InfluxDB client.
-	dbClient, err = influxdb.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, GRAPHITE_DATABASE, *testing)
+	dbClient, err = influxdb.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -713,8 +713,8 @@ func main() {
 
 	// Load Perf and Gold data in a loop.
 	perfStatus = dbClient.Int64PollingStatus("skmetrics", "select value from \"perf.clustering.untriaged\" where app='skiaperf' and host='skia-perf' order by time desc limit 1", time.Minute)
-	goldGMStatus = dbClient.Int64PollingStatus(dbClient.Database, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
-	goldImageStatus = dbClient.Int64PollingStatus(dbClient.Database, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
+	goldGMStatus = dbClient.Int64PollingStatus(GRAPHITE_DATABASE, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
+	goldImageStatus = dbClient.Int64PollingStatus(GRAPHITE_DATABASE, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
 	// Load slave_hosts_cfg and device cfgs in a loop.
 	slaveHosts = buildbot.SlaveHostsCfgPoller(infraRepoPath)
