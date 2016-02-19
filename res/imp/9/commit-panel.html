@@ -11,6 +11,10 @@
 
     selector - The iron-selector element that wraps the commits.
 
+    mailbox - The sk.Mailbox name to listen for the data to populate
+      the element. This is in addition to the 'commits' mailbox 
+      described below. 
+
   Methods:
     setCommitInfo - Sets the commit info, an array of *types.Commit. See the
       description for the commits Mailbox for more details.
@@ -88,7 +92,7 @@
     </template>
     <iron-selector id=selector>
       <template is="dom-repeat" items="{{_commitinfo}}" as="c">
-        <commit-sk data-hash$="{{c.hash}}" hash="{{c.hash}}"></commit-sk>
+        <commit-sk data-hash$="{{c.hash}}" hash="{{c.hash}}" commit="{{c}}"></commit-sk>
       </template>
     </iron-selector>
     </table>
@@ -109,6 +113,10 @@
           reflectToAttribute: true,
           observer: "_selectionChanged",
         },
+        mailbox: {
+          value: "",
+          reflectToAttribute: true
+        }
       },
 
       listeners: {
@@ -120,6 +128,10 @@
         this._firstHash = '';
         this.selector = this.$.selector;
         sk.Mailbox.subscribe('commits', this.setCommitInfo.bind(this));
+
+        if (this.mailbox != "") {
+           sk.Mailbox.subscribe(this.mailbox, this.setCommitInfo.bind(this));
+        }
       },
 
       setCommitInfo: function(commitinfo) {

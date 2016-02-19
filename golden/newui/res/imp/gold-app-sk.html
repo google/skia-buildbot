@@ -44,14 +44,19 @@
         --login-sk-color: white;
       };
     }
+
+    #mainContentWrapper {
+      padding: 1em
+    };
+
     </style>
 
     <app-sk mode="standard" responsive_width="600px" drawer_width="230px" class="fit" flex>
       <h2 header>Skia Gold</h2>
       <gold-status-sk rtoolbar></gold-status-sk>
       <gold-menu-sk navigation></gold-menu-sk>
-      <div>
-         <iron-pages attr-for-selected="data-route" selected="{{route}}">
+      <div id="mainContentWrapper">
+         <iron-pages id="pagesContainer" attr-for-selected="data-route" selected="{{route}}">
           <section data-route="byblame">
             <byblame-page-sk></byblame-page-sk>
           </section>
@@ -108,10 +113,18 @@
         this._setRoute('/triagelog', 'triagelog');
         this._setRoute('/help', 'help');
         this._setRoute('*', 'notfound');
+        this.route = "byblame";
 
         // Don't use hashbangs in the URL. 
         page({ hashbang: false });
+
+        // Notify the page elements that the page has been selected. 
+        this.listen(this.$.pagesContainer, "iron-select", "_pagesSelect");
       },
+
+      _pagesSelect: function(ev, obj) {
+        obj.item.children[0].pageSelected(this.route);
+      }, 
 
       _setRoute: function(path, routeID) {
         page(path, (function() { this.route = routeID; }).bind(this));

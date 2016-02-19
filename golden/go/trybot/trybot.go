@@ -95,6 +95,10 @@ func (t *TrybotResults) ListTrybotIssues(offset, size int) ([]*Issue, int, error
 	}
 
 	issuesList := t.getIssuesFromCommits(commits, issueIDs)
+	if len(issuesList) == 0 {
+		return []*Issue{}, 0, nil
+	}
+
 	maxIdx := util.MaxInt(0, len(issuesList)-1)
 	offset = util.MinInt(util.MaxInt(offset, 0), maxIdx)
 	size = util.MaxInt(size, 0)

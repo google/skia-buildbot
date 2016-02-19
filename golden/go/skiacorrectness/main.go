@@ -438,6 +438,10 @@ func main() {
 
 	// Register the new UI or the old UI at the root of the site.
 	if *newUI {
+		// json handlers only used by the new UI.
+		router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
+
+		// For everything else serve the same markup.
 		indexFile := *resourcesDir + "/index.html"
 		router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.ServeFile(w, r, indexFile)

@@ -41,7 +41,7 @@
 
 <dom-module id="commit-sk">
   <template>
-    <pre><span>{{_trimPad(commit.author)}}</span> <span>{{_humanize(commit.commit_time)}}</span> <span><a href$="{{_commitHref(commit)}}">{{_trunc(commit.hash)}}</a></span> <span>{{_trimNewline(commit.message)}}</span></pre>
+    <pre><span>{{_trimPad(commit.author)}}</span> <span>{{_humanize(commit.commit_time)}}</span> <span><a href$="{{_commitHref(commit)}}" target="_blank">{{_trunc(commit.hash)}}</a></span> <span>{{_trimNewline(commit.message)}}</span></pre>
   </template>
 </dom-module>
 

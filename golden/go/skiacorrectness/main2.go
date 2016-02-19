@@ -1507,10 +1507,17 @@ func listTrybotsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	sendResponse(w, trybotRuns, 200, pagination)
 }
 
+// setJSONHeaders sets secure headers for JSON responses.
+func setJSONHeaders(w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Type", "application/javascript; charset=utf-8")
+	h.Set("X-Content-Type-Options", "nosniff")
+}
+
 // sendJsonResponse serializes resp to JSON. If an error occurs
 // a text based error code is send to the client.
 func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
-	w.Header().Set("Content-Type", "application/json")
+	setJSONHeaders(w)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		util.ReportError(w, nil, err, "Failed to encode JSON response.")
 	}
