@@ -15,10 +15,10 @@ type GenerationArgs []string
 // argsAfterExecutable is a map of arguments that come after the executable
 // and before the path to the bytes file, that will be fuzzed.
 var argsAfterExecutable = map[string][]string{
-	"api_paeth":     []string{"--type", "api", "--name", "Paeth", "--bytes"},
-	"skcodec_scale": []string{"--type", "image_scale", "--bytes"},
-	"skcodec_mode":  []string{"--type", "image_mode", "--bytes"},
-	"skpicture":     []string{"--type", "skp", "--bytes"},
+	"api_parse_path": []string{"--type", "api", "--name", "ParsePath", "--bytes"},
+	"skcodec_scale":  []string{"--type", "image_scale", "--bytes"},
+	"skcodec_mode":   []string{"--type", "image_mode", "--bytes"},
+	"skpicture":      []string{"--type", "skp", "--bytes"},
 }
 
 // AnalysisArgsFor creates an appropriate analysis command for the category of fuzz specified given

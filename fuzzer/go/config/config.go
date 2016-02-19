@@ -8,19 +8,20 @@ import (
 )
 
 type generatorConfig struct {
-	SkiaRoot             string
-	AflRoot              string
-	FuzzSamples          string
-	AflOutputPath        string
-	WorkingPath          string
-	NumFuzzProcesses     int
-	NumDownloadProcesses int
-	WatchAFL             bool
-	SkipGeneration       bool
-	VersionCheckPeriod   time.Duration
-	SkiaVersion          *vcsinfo.LongCommit
-	versionMutex         sync.Mutex
-	FuzzesToGenerate     []string
+	SkiaRoot               string
+	AflRoot                string
+	FuzzSamples            string
+	AflOutputPath          string
+	WorkingPath            string
+	NumAPIFuzzProcesses    int
+	NumBinaryFuzzProcesses int
+	NumDownloadProcesses   int
+	WatchAFL               bool
+	SkipGeneration         bool
+	VersionCheckPeriod     time.Duration
+	SkiaVersion            *vcsinfo.LongCommit
+	versionMutex           sync.Mutex
+	FuzzesToGenerate       []string
 }
 
 type aggregatorConfig struct {

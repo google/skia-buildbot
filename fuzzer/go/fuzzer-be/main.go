@@ -29,18 +29,19 @@ import (
 )
 
 var (
-	aflOutputPath      = flag.String("afl_output_path", "", "[REQUIRED] The output folder of afl-fuzz.  This will have on folder for each fuzz_to_run.  Each of those will have N folders named fuzzer0 - fuzzerN.  Should not be in /tmp or afl-fuzz will refuse to run.")
-	generatorWD        = flag.String("generator_working_dir", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
-	fuzzSamples        = flag.String("fuzz_samples", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
-	skiaRoot           = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
-	clangPath          = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
-	clangPlusPlusPath  = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
-	depotToolsPath     = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
-	aflRoot            = flag.String("afl_root", "", "[REQUIRED] The install directory of afl-fuzz (v1.94b or later).")
-	numFuzzProcesses   = flag.Int("fuzz_processes", 0, `The number of processes to run afl-fuzz [per fuzz to run].  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
-	versionCheckPeriod = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
-	downloadProcesses  = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes when re-analyzing them. This is constant with respect to the number of fuzzes.")
-	fuzzesToRun        = common.NewMultiStringFlag("fuzz_to_run", nil, fmt.Sprintf("A set of fuzzes to run.  Can be one or more of the known fuzzes: %q", fcommon.FUZZ_CATEGORIES))
+	aflOutputPath          = flag.String("afl_output_path", "", "[REQUIRED] The output folder of afl-fuzz.  This will have on folder for each fuzz_to_run.  Each of those will have N folders named fuzzer0 - fuzzerN.  Should not be in /tmp or afl-fuzz will refuse to run.")
+	generatorWD            = flag.String("generator_working_dir", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
+	fuzzSamples            = flag.String("fuzz_samples", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
+	skiaRoot               = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
+	clangPath              = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
+	clangPlusPlusPath      = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
+	depotToolsPath         = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
+	aflRoot                = flag.String("afl_root", "", "[REQUIRED] The install directory of afl-fuzz (v1.94b or later).")
+	numBinaryFuzzProcesses = flag.Int("binary_fuzz_processes", 0, `The number of processes to run binary fuzzes per fuzz category.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
+	numAPIFuzzProcesses    = flag.Int("api_fuzz_processes", 0, `The number of processes to run api fuzzes per fuzz category.  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
+	versionCheckPeriod     = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
+	downloadProcesses      = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes when re-analyzing them. This is constant with respect to the number of fuzzes.")
+	fuzzesToRun            = common.NewMultiStringFlag("fuzz_to_run", nil, fmt.Sprintf("A set of fuzzes to run.  Can be one or more of the known fuzzes: %q", fcommon.FUZZ_CATEGORIES))
 
 	bucket               = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to store found fuzzes.")
 	fuzzPath             = flag.String("fuzz_path", filepath.Join(os.TempDir(), "fuzzes"), "The directory to temporarily store the binary fuzzes during aggregation.")
@@ -159,7 +160,8 @@ func writeFlagsToConfig() error {
 	config.Common.ClangPath = *clangPath
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Common.DepotToolsPath = *depotToolsPath
-	config.Generator.NumFuzzProcesses = *numFuzzProcesses
+	config.Generator.NumBinaryFuzzProcesses = *numBinaryFuzzProcesses
+	config.Generator.NumAPIFuzzProcesses = *numAPIFuzzProcesses
 	config.Generator.WatchAFL = *watchAFL
 	config.Generator.VersionCheckPeriod = *versionCheckPeriod
 	config.Generator.NumDownloadProcesses = *downloadProcesses

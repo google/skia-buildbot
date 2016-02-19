@@ -57,11 +57,15 @@ func (g *Generator) Start() error {
 
 	g.fuzzProcesses = append(g.fuzzProcesses, g.run(masterCmd))
 
-	fuzzCount := config.Generator.NumFuzzProcesses
+	fuzzCount := config.Generator.NumBinaryFuzzProcesses
+	if strings.HasPrefix(g.Category, "api_") {
+		fuzzCount = config.Generator.NumAPIFuzzProcesses
+	}
 	if fuzzCount <= 0 {
 		// TODO(kjlubick): Make this actually an intelligent number based on the number of cores.
-		fuzzCount = 10
+		fuzzCount = 4
 	}
+
 	g.fuzzProcessCount = metrics2.NewCounter("afl-fuzz-process-count", map[string]string{"category": g.Category})
 	g.fuzzProcessCount.Inc(int64(fuzzCount))
 	for i := 1; i < fuzzCount; i++ {
@@ -162,7 +166,12 @@ func (g *Generator) DownloadSeedFiles(storageClient *storage.Client) error {
 		return fmt.Errorf("Could not create binary seed path %s: %s", seedPath, err)
 	}
 
-	gsFolder := fmt.Sprintf("samples/%s/", g.Category)
+	// API fuzzes can all share the same seeds, as they are just random numbers
+	cat := g.Category
+	if strings.HasPrefix(cat, "api_") {
+		cat = "api"
+	}
+	gsFolder := fmt.Sprintf("samples/%s/", cat)
 
 	err := gs.AllFilesInDir(storageClient, config.GS.Bucket, gsFolder, func(item *storage.ObjectAttrs) {
 		name := item.Name

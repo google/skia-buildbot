@@ -120,8 +120,8 @@ func StartAggregator(s *storage.Client, startingReports map[string]<-chan data.F
 	b := Aggregator{
 		storageClient:      s,
 		forAnalysis:        make(chan analysisPackage, 10000),
-		forUpload:          make(chan uploadPackage, 100),
-		forBugReporting:    make(chan bugReportingPackage, 100),
+		forUpload:          make(chan uploadPackage, 10000),
+		forBugReporting:    make(chan bugReportingPackage, 10000),
 		MakeBugOnBadFuzz:   false,
 		UploadGreyFuzzes:   false,
 		deduplicators:      make(map[string]*deduplicator.Deduplicator),
@@ -729,10 +729,16 @@ func (agg *Aggregator) RestartAnalysis() error {
 // WaitForEmptyQueues will return once there is nothing more in the analysis-upload-report
 // pipeline, waiting in increments of config.Aggregator.StatusPeriod until it is done.
 func (agg *Aggregator) WaitForEmptyQueues() {
+	// Wait one second before doing anything for any newly queued tasks
+	time.Sleep(time.Second)
+
 	a := len(agg.forAnalysis)
 	u := len(agg.forUpload)
 	b := len(agg.forBugReporting)
-	if a == 0 && u == 0 && b == 0 && agg.analysisCount == agg.uploadCount && agg.uploadCount == agg.bugReportCount {
+	ac := atomic.LoadInt64(&agg.analysisCount)
+	uc := atomic.LoadInt64(&agg.uploadCount)
+	bc := atomic.LoadInt64(&agg.bugReportCount)
+	if a == 0 && u == 0 && b == 0 && ac == uc && uc == bc {
 		glog.Info("Queues were already empty")
 		return
 	}
@@ -743,9 +749,12 @@ func (agg *Aggregator) WaitForEmptyQueues() {
 		a = len(agg.forAnalysis)
 		u = len(agg.forUpload)
 		b = len(agg.forBugReporting)
+		ac = atomic.LoadInt64(&agg.analysisCount)
+		uc = atomic.LoadInt64(&agg.uploadCount)
+		bc = atomic.LoadInt64(&agg.bugReportCount)
 		glog.Infof("AnalysisQueue: %d, UploadQueue: %d, BugReportingQueue: %d", a, u, b)
-		glog.Infof("AnalysisTotal: %d, UploadTotal: %d, BugReportingTotal: %d", agg.analysisCount, agg.uploadCount, agg.bugReportCount)
-		if a == 0 && u == 0 && b == 0 && agg.analysisCount == agg.uploadCount && agg.uploadCount == agg.bugReportCount {
+		glog.Infof("AnalysisTotal: %d, UploadTotal: %d, BugReportingTotal: %d", ac, uc, bc)
+		if a == 0 && u == 0 && b == 0 && ac == uc && uc == bc {
 			break
 		}
 		// This prevents waiting forever if an upload crashes, aborts or otherwise hangs.

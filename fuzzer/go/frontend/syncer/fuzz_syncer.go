@@ -2,6 +2,7 @@ package syncer
 
 import (
 	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
 	"sync"
@@ -121,9 +122,16 @@ func (f *FuzzSyncer) getMostRecentOldRevision() (string, error) {
 
 // getOrLookUpFuzzNames first checks the cache for a StringSet of fuzz names linked to a given
 // tuple of fuzzType (bad or grey), category, revision.  If such a thing is not in the cache, it
-// fetches it via getFuzzNames() and caches it for next time.
+// fetches it via getFuzzNames() and caches it for next time. The cache occasionally empties
+// itself to avoid staleness (for example, after a version update).
 func (f *FuzzSyncer) getOrLookUpFuzzNames(fuzzType, category, revision string) util.StringSet {
 	key := strings.Join([]string{fuzzType, category, revision}, "|")
+	// 5% of the time, we purge the cache
+	cachePurge := rand.Float32() > 0.95
+	if cachePurge {
+		glog.Info("Purging the cached fuzz names")
+		f.fuzzNameCache = make(map[string]util.StringSet)
+	}
 	if s, has := f.fuzzNameCache[key]; has {
 		return s
 	}
