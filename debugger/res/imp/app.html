@@ -19,6 +19,7 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/paper-drawer-panel/paper-drawer-panel.html">
 <link rel=import href="/res/imp/bower_components/paper-header-panel/paper-header-panel.html">
 <link rel=import href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
+<link rel=import href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel=import href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel=import href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
 
@@ -101,6 +102,10 @@ The main application element for the Skia Debugger.
       margin-bottom: 1em;
       display: block;
     }
+
+    paper-toggle-button {
+      margin: 0.5em 1em;
+    }
   </style>
   <template>
     <paper-header-panel>
@@ -125,6 +130,7 @@ The main application element for the Skia Debugger.
             <commands-sk id=commands grouping=50></commands-sk>
           </div>
           <div id=center class="layout vertical flex-3">
+            <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
             <div id=rendered>
               <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
                 <img id=img src="" class=hidden>
@@ -289,6 +295,28 @@ The main application element for the Skia Debugger.
 
       attached: function() {
         document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+      },
+
+      _gpuChange: function(e) {
+        // Ignore if this._cmd hasn't been loaded yet.
+        if (!this._cmd) {
+          return
+        }
+        // Don't do anything if the toggle and the mode already agree.
+        if (e.target.checked == (this._cmd.mode == "gpu")) {
+          return
+        }
+        sk.post("/enableGPU/" + (e.target.checked ? 1 : 0), "").then(function() {
+          // Reloads the image and the JSON for all the commands.
+          this._refreshPage();
+        }.bind(this)).catch(function(err) {
+          this.$.gpu.checked = !this.$.gpu.checked;
+          sk.errorMessage("err");
+        }.bind(this));
+      },
+
+      _gpuChecked: function(mode) {
+        return mode == "gpu";
       },
 
       _breakPoint: function() {

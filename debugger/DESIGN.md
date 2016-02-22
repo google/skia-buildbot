@@ -103,3 +103,6 @@ Far Future Actions:
       GET - Returns the index of the next op after 'n'
         where the color of the pixel at (x, y) has changed.
 
+    /enableGPU/[0|1]
+       POST - Changes the rendering to/from CPU/GPU.
+
