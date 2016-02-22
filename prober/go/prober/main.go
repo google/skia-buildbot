@@ -16,21 +16,24 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cyberdelia/go-metrics-graphite"
-	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/issues"
-	imetrics "go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 )
 
 var (
-	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
-	config         = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
-	prefix         = flag.String("prefix", "prober", "Prefix to add to all prober values sent to Graphite.")
-	runEvery       = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
+	config   = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
+	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
+	testing  = flag.Bool("testing", false, "Set to true for local testing.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
 	bodyTesters = map[string]BodyTester{
@@ -75,8 +78,8 @@ type Probe struct {
 	BodyTestName string `json:"bodytest"`
 
 	bodyTest BodyTester
-	failure  metrics.Gauge
-	latency  metrics.Gauge // Latency in ms.
+	failure  *metrics2.Int64Metric
+	latency  *metrics2.Int64Metric // Latency in ms.
 }
 
 // Probes is all the probes that are to be run.
@@ -261,19 +264,11 @@ func ctfeRevDataJSON(r io.Reader) bool {
 // monitorIssueTracker reads the counts for all the types of issues in the Skia
 // issue tracker (bugs.chromium.org/p/skia) and stuffs the counts into Graphite.
 func monitorIssueTracker(c *http.Client) {
-	// Create a new metrics registry for the issue tracker metrics.
-	addr, err := net.ResolveTCPAddr("tcp", *graphiteServer)
-	if err != nil {
-		glog.Fatalln("Failed to resolve the Graphite server: ", err)
-	}
-	issueRegistry := metrics.NewRegistry()
-	go graphite.Graphite(issueRegistry, common.SAMPLE_PERIOD, "issues", addr)
-
 	// IssueStatus has all the info we need to capture and record a single issue status. I.e. capture
 	// the count of all issues with a status of "New".
 	type IssueStatus struct {
 		Name   string
-		Metric metrics.Gauge
+		Metric *metrics2.Int64Metric
 		URL    string
 	}
 
@@ -288,12 +283,12 @@ func monitorIssueTracker(c *http.Client) {
 		q.Set("status", issueName)
 		issueStatus = append(issueStatus, &IssueStatus{
 			Name:   issueName,
-			Metric: metrics.NewRegisteredGauge(strings.ToLower(issueName), issueRegistry),
+			Metric: metrics2.GetInt64Metric("issues", map[string]string{"status": strings.ToLower(issueName)}),
 			URL:    issues.MONORAIL_BASE_URL + "?" + q.Encode(),
 		})
 	}
 
-	liveness := imetrics.NewLiveness("issue-tracker")
+	liveness := metrics2.NewLiveness("issue-tracker")
 	for _ = range time.Tick(ISSUE_TRACKER_PERIOD) {
 		for _, issue := range issueStatus {
 			resp, err := c.Get(issue.URL)
@@ -314,7 +309,7 @@ func monitorIssueTracker(c *http.Client) {
 				util.Close(resp.Body)
 			}
 		}
-		liveness.Update()
+		liveness.Reset()
 	}
 }
 
@@ -322,7 +317,7 @@ func probeOneRound(cfg Probes, c *http.Client) {
 	var resp *http.Response
 	var begin time.Time
 	for name, probe := range cfg {
-		glog.Infof("Probe: %s Starting fail value: %d", name, probe.failure.Value())
+		glog.Infof("Probe: %s Starting fail value: %d", name, probe.failure.Get())
 		begin = time.Now()
 		var err error
 		if probe.Method == "GET" {
@@ -366,26 +361,15 @@ func probeOneRound(cfg Probes, c *http.Client) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("probeserver", graphiteServer)
+	common.InitWithMetrics2("probeserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
 
 	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		glog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
 	}
 	go monitorIssueTracker(client)
-	glog.Infoln("Looking for Graphite server.")
-	addr, err := net.ResolveTCPAddr("tcp", *graphiteServer)
-	if err != nil {
-		glog.Fatalln("Failed to resolve the Graphite server: ", err)
-	}
-	glog.Infoln("Found Graphite server.")
 
-	liveness := imetrics.NewLiveness("probes")
-
-	// We have two sets of metrics, one for the probes and one for the probe
-	// server itself. The server's metrics are handled by common.Init()
-	probeRegistry := metrics.NewRegistry()
-	go graphite.Graphite(probeRegistry, common.SAMPLE_PERIOD, *prefix, addr)
+	liveness := metrics2.NewLiveness("probes")
 
 	// TODO(jcgregorio) Monitor config file and reload if it changes.
 	cfg, err := readConfigFiles(*config)
@@ -395,8 +379,8 @@ func main() {
 	glog.Infoln("Successfully read config file.")
 	// Register counters for each probe.
 	for name, probe := range cfg {
-		probe.failure = metrics.NewRegisteredGauge(name+".failure", probeRegistry)
-		probe.latency = metrics.NewRegisteredGauge(name+".latency", probeRegistry)
+		probe.failure = metrics2.GetInt64Metric("prober", map[string]string{"type": "failure", "probename": name})
+		probe.latency = metrics2.GetInt64Metric("prober", map[string]string{"type": "latency", "probename": name})
 	}
 
 	// Create a client that uses our dialer with a timeout.
@@ -408,6 +392,6 @@ func main() {
 	probeOneRound(cfg, c)
 	for _ = range time.Tick(*runEvery) {
 		probeOneRound(cfg, c)
-		liveness.Update()
+		liveness.Reset()
 	}
 }
