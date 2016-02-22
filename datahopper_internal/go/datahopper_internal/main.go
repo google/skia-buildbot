@@ -27,23 +27,23 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"go.skia.org/infra/go/androidbuild"
-	"go.skia.org/infra/go/androidbuildinternal/v2beta1"
+	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
-	skmetrics "go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/go/webhook"
-	"google.golang.org/api/storage/v1"
+	storage "google.golang.org/api/storage/v1"
 )
 
 const (
@@ -63,12 +63,16 @@ const (
 var (
 	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	workdir        = flag.String("workdir", ".", "Working directory used by data processors.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	targetList     = flag.String("targets", "", "The targets to monitor, a space separated list.")
 	codenameDbDir  = flag.String("codename_db_dir", "codenames", "The location of the leveldb database that holds the mappings between targets and their codenames.")
 	period         = flag.Duration("period", 5*time.Minute, "The time between ingestion runs.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 var (
@@ -85,7 +89,7 @@ var (
 	repos *gitinfo.RepoMap
 
 	// tradefedLiveness is a metric for the time since last successful run through step().
-	tradefedLiveness = skmetrics.NewLiveness("android_internal_ingest")
+	tradefedLiveness = metrics2.NewLiveness("android-internal-ingest", nil)
 
 	// noCodenameTargets is a set of targets that do not need to be obfuscated.
 	noCodenameTargets = map[string]bool{
@@ -99,7 +103,7 @@ var (
 
 	// ingestBuildWebhookLiveness maps a target codename to a metric for the time since last
 	// successful build ingestion.
-	ingestBuildWebhookLiveness = map[string]*skmetrics.Liveness{}
+	ingestBuildWebhookLiveness = map[string]*metrics2.Liveness{}
 )
 
 // isFinished returns true if the Build has finished running.
@@ -248,7 +252,7 @@ func step(targets []string, buildService *androidbuildinternal.Service) {
 					glog.Error(err)
 				}
 			}
-			tradefedLiveness.Update()
+			tradefedLiveness.Reset()
 		}
 	}
 }
@@ -493,7 +497,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if metric, present := ingestBuildWebhookLiveness[codename]; present {
-		metric.Update()
+		metric.Reset()
 	}
 }
 
@@ -522,7 +526,7 @@ func updateWebhookMetrics() error {
 				// No tests for this commit, check older.
 				continue
 			}
-			metric := metrics.GetOrRegisterGauge(fmt.Sprintf("ingest-build-webhook.%s.oldest-untested-commit-age", codename), metrics.DefaultRegistry)
+			metric := metrics2.GetInt64Metric("datahopper_internal.ingest-build-webhook.oldest-untested-commit-age", map[string]string{"codename": codename})
 			if i == 0 {
 				// There are no untested commits.
 				metric.Update(0)
@@ -540,14 +544,14 @@ func updateWebhookMetrics() error {
 // startWebhookMetrics starts a goroutine to run updateWebhookMetrics.
 func startWebhookMetrics() {
 	// A metric to ensure the other metrics are being updated.
-	metricLiveness := skmetrics.NewLiveness("ingest-build-webhook-oldest-untested-commit-age-metric")
+	metricLiveness := metrics2.NewLiveness("ingest-build-webhook-oldest-untested-commit-age-metric", nil)
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			if err := updateWebhookMetrics(); err != nil {
 				glog.Errorf("Failed to update metrics: %s", err)
 				continue
 			}
-			metricLiveness.Update()
+			metricLiveness.Reset()
 		}
 	}()
 }
@@ -558,7 +562,7 @@ func main() {
 	var err error
 
 	// Global init to initialize glog and parse arguments.
-	common.InitWithMetrics("internal", graphiteServer)
+	common.InitWithMetrics2("datahopper_internal", influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	if !*local {
 		*targetList = metadata.Must(metadata.ProjectGet("datahopper_internal_targets"))
@@ -612,7 +616,7 @@ func main() {
 
 	// Initialize and start metrics.
 	for codename, _ := range ingestBuildWebhookCodenames {
-		ingestBuildWebhookLiveness[codename] = skmetrics.NewLiveness("ingest-build-webhook." + codename)
+		ingestBuildWebhookLiveness[codename] = metrics2.NewLiveness("ingest-build-webhook.", map[string]string{"codename": codename})
 	}
 	startWebhookMetrics()
 
