@@ -446,18 +446,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'skia-vm-024': {
-    'slaves': [
-      ('skia-vm-024', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skia-vm-025': {
     'slaves': [
       ('skiabot-linux-tester-004', '0', False),
