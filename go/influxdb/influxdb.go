@@ -202,11 +202,14 @@ func (c *Client) Int64PollingStatus(database, query string, interval time.Durati
 
 // BatchPoints is a struct used for writing batches of points into InfluxDB.
 type BatchPoints struct {
-	bp influx_client.BatchPoints
+	bp  influx_client.BatchPoints
+	mtx sync.Mutex
 }
 
 // AddPoint adds a point to the BatchPoints.
 func (bp *BatchPoints) AddPoint(measurement string, tags map[string]string, fields map[string]interface{}, ts time.Time) error {
+	bp.mtx.Lock()
+	defer bp.mtx.Unlock()
 	pt, err := influx_client.NewPoint(measurement, tags, fields, ts)
 	if err != nil {
 		return err
@@ -223,10 +226,22 @@ func (c *Client) NewBatchPoints() (*BatchPoints, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &BatchPoints{bp: bp}, nil
+	return &BatchPoints{
+		bp:  bp,
+		mtx: sync.Mutex{},
+	}, nil
+}
+
+// NumPoints returns the number of points in the batch.
+func (bp *BatchPoints) NumPoints() int64 {
+	bp.mtx.Lock()
+	defer bp.mtx.Unlock()
+	return int64(len(bp.bp.Points()))
 }
 
 // WriteBatch writes the BatchPoints into InfluxDB.
 func (c *Client) WriteBatch(batch *BatchPoints) error {
+	batch.mtx.Lock()
+	defer batch.mtx.Unlock()
 	return c.influxClient.Write(batch.bp)
 }

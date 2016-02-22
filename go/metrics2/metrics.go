@@ -80,8 +80,11 @@ func NewClient(influxClient *influxdb.Client, defaultTags map[string]string, rep
 	}
 	go func() {
 		for _ = range time.Tick(PUSH_FREQUENCY) {
-			if err := c.pushData(); err != nil {
+			numPoints, err := c.pushData()
+			if err != nil {
 				glog.Errorf("Failed to push data into InfluxDB: %s", err)
+			} else {
+				c.GetInt64Metric("metrics.points.pushed", nil).Update(numPoints)
 			}
 		}
 	}()
@@ -130,21 +133,22 @@ func RawAddInt64PointAtTime(measurement string, tags map[string]string, value in
 }
 
 // pushData pushes all queued data into InfluxDB.
-func (c *Client) pushData() error {
+func (c *Client) pushData() (int64, error) {
 	c.valuesMtx.Lock()
 	defer c.valuesMtx.Unlock()
 	if c.influxClient == nil {
-		return fmt.Errorf("InfluxDB client is nil! Cannot push data. Did you initialize the metrics2 package?")
+		return 0, fmt.Errorf("InfluxDB client is nil! Cannot push data. Did you initialize the metrics2 package?")
 	}
+	numPoints := c.values.NumPoints()
 	if err := c.influxClient.WriteBatch(c.values); err != nil {
-		return err
+		return 0, err
 	}
 	newValues, err := c.influxClient.NewBatchPoints()
 	if err != nil {
-		return err
+		return 0, err
 	}
 	c.values = newValues
-	return nil
+	return numPoints, nil
 }
 
 // rawMetric is a metric which has no explicit type.
