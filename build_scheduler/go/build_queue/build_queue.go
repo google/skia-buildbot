@@ -361,7 +361,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 		if b == nil {
 			// Don't go past the first commit which ran on this bot.
 			if foundNewerBuild {
-				glog.Warningf("Skipping %s on %s; reached the beginning of time for this bot.")
+				glog.Warningf("Skipping %s on %s; reached the beginning of time for this bot.", commit, bc.Builder)
 				break
 			}
 		} else {
