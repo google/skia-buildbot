@@ -17,10 +17,8 @@ const (
 // helpers, Timer does not continuously report data; instead, it reports a
 // single data point when Stop() is called.
 type Timer struct {
-	begin       time.Time
-	client      *Client
-	measurement string
-	tags        map[string]string
+	begin time.Time
+	m     *Int64MeanMetric
 }
 
 // NewTimer creates and returns a new started timer.
@@ -29,9 +27,7 @@ func (c *Client) NewTimer(name string, tagsList ...map[string]string) *Timer {
 	tags := util.AddParams(map[string]string{}, tagsList...)
 	tags["name"] = name
 	ret := &Timer{
-		client:      c,
-		measurement: MEASUREMENT_TIMER,
-		tags:        tags,
+		m: c.GetInt64MeanMetric(MEASUREMENT_TIMER, tags),
 	}
 	ret.Start()
 	return ret
@@ -50,7 +46,7 @@ func (t *Timer) Start() {
 // Stop stops the timer and reports the elapsed time.
 func (t *Timer) Stop() {
 	v := int64(time.Now().Sub(t.begin))
-	t.client.addPoint(t.measurement, t.tags, v)
+	t.m.update(v)
 }
 
 // FuncTimer is specifically intended for measuring the duration of functions.

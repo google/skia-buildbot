@@ -22,7 +22,8 @@ const (
 
 var (
 	DefaultClient *Client = &Client{
-		metrics: map[string]*rawMetric{},
+		aggMetrics: map[string]*aggregateMetric{},
+		metrics:    map[string]*rawMetric{},
 	}
 )
 
@@ -42,6 +43,7 @@ func Init(appName string, influxClient *influxdb.Client) error {
 	}
 	// Some metrics may already be registered with DefaultClient. Copy them
 	// over.
+	c.aggMetrics = DefaultClient.aggMetrics
 	c.metrics = DefaultClient.metrics
 
 	// Set the default client.
@@ -51,6 +53,8 @@ func Init(appName string, influxClient *influxdb.Client) error {
 
 // Client is a struct used for communicating with an InfluxDB instance.
 type Client struct {
+	aggMetrics      map[string]*aggregateMetric
+	aggMetricsMtx   sync.Mutex
 	influxClient    *influxdb.Client
 	defaultTags     map[string]string
 	metrics         map[string]*rawMetric
@@ -70,6 +74,8 @@ func NewClient(influxClient *influxdb.Client, defaultTags map[string]string, rep
 		return nil, err
 	}
 	c := &Client{
+		aggMetrics:      map[string]*aggregateMetric{},
+		aggMetricsMtx:   sync.Mutex{},
 		influxClient:    influxClient,
 		defaultTags:     defaultTags,
 		metrics:         map[string]*rawMetric{},
@@ -80,22 +86,44 @@ func NewClient(influxClient *influxdb.Client, defaultTags map[string]string, rep
 	}
 	go func() {
 		for _ = range time.Tick(PUSH_FREQUENCY) {
-			numPoints, err := c.pushData()
+			byMeasurement, err := c.pushData()
 			if err != nil {
 				glog.Errorf("Failed to push data into InfluxDB: %s", err)
 			} else {
-				c.GetInt64Metric("metrics.points.pushed", nil).Update(numPoints)
+				total := int64(0)
+				for k, v := range byMeasurement {
+					c.GetInt64Metric("metrics.points-pushed.by-measurement", map[string]string{"measurement": k}).Update(v)
+					total += v
+				}
+				c.GetInt64Metric("metrics.points-pushed.total", nil).Update(total)
 			}
 		}
 	}()
 	go func() {
 		for _ = range time.Tick(reportFrequency) {
-			for _, m := range c.metrics {
-				c.addPoint(m.measurement, m.tags, m.get())
-			}
+			c.collectMetrics()
+			c.collectAggregateMetrics()
 		}
 	}()
 	return c, nil
+}
+
+// collectMetrics collects data points from all raw metrics.
+func (c *Client) collectMetrics() {
+	c.metricsMtx.Lock()
+	defer c.metricsMtx.Unlock()
+	for _, m := range c.metrics {
+		c.addPoint(m.measurement, m.tags, m.get())
+	}
+}
+
+// collectAggregateMetrics collects data points from all aggregate metrics.
+func (c *Client) collectAggregateMetrics() {
+	c.aggMetricsMtx.Lock()
+	defer c.aggMetricsMtx.Unlock()
+	for _, m := range c.aggMetrics {
+		c.addPoint(m.measurement, m.tags, m.reset())
+	}
 }
 
 // addPointAtTime adds a data point with the given timestamp.
@@ -133,22 +161,33 @@ func RawAddInt64PointAtTime(measurement string, tags map[string]string, value in
 }
 
 // pushData pushes all queued data into InfluxDB.
-func (c *Client) pushData() (int64, error) {
+func (c *Client) pushData() (map[string]int64, error) {
 	c.valuesMtx.Lock()
 	defer c.valuesMtx.Unlock()
 	if c.influxClient == nil {
-		return 0, fmt.Errorf("InfluxDB client is nil! Cannot push data. Did you initialize the metrics2 package?")
+		return nil, fmt.Errorf("InfluxDB client is nil! Cannot push data. Did you initialize the metrics2 package?")
 	}
-	numPoints := c.values.NumPoints()
+
+	// Push the points.
 	if err := c.influxClient.WriteBatch(c.values); err != nil {
-		return 0, err
+		return nil, err
 	}
+
+	// Record the number of points.
+	byMeasurement := map[string]int64{}
+	points := c.values.Points()
+	for _, pt := range points {
+		count := byMeasurement[pt.Name()]
+		byMeasurement[pt.Name()] = count + 1
+	}
+
+	// Get a fresh BatchPoints.
 	newValues, err := c.influxClient.NewBatchPoints()
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	c.values = newValues
-	return numPoints, nil
+	return byMeasurement, nil
 }
 
 // rawMetric is a metric which has no explicit type.
@@ -195,6 +234,33 @@ func (c *Client) getRawMetric(measurement string, tagsList []map[string]string, 
 			value:       initial,
 		}
 		c.metrics[key] = m
+	}
+	return m
+}
+
+// getAggregateMetric creates or retrieves an aggregateMetric with the given
+// measurement name and tag set and returns it.
+func (c *Client) getAggregateMetric(measurement string, tagsList []map[string]string, aggFn func([]interface{}) interface{}) *aggregateMetric {
+	c.aggMetricsMtx.Lock()
+	defer c.aggMetricsMtx.Unlock()
+
+	// Make a copy of the concatenation of all provided tags.
+	tags := util.AddParams(map[string]string{}, tagsList...)
+	md5, err := util.MD5Params(tags)
+	if err != nil {
+		glog.Errorf("Failed to encode measurement tags: %s", err)
+	}
+	key := fmt.Sprintf("%s_%s", measurement, md5)
+	m, ok := c.aggMetrics[key]
+	if !ok {
+		m = &aggregateMetric{
+			aggFn:       aggFn,
+			measurement: measurement,
+			mtx:         sync.RWMutex{},
+			tags:        tags,
+			values:      []interface{}{},
+		}
+		c.aggMetrics[key] = m
 	}
 	return m
 }

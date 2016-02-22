@@ -233,10 +233,10 @@ func (c *Client) NewBatchPoints() (*BatchPoints, error) {
 }
 
 // NumPoints returns the number of points in the batch.
-func (bp *BatchPoints) NumPoints() int64 {
+func (bp *BatchPoints) Points() []*influx_client.Point {
 	bp.mtx.Lock()
 	defer bp.mtx.Unlock()
-	return int64(len(bp.bp.Points()))
+	return bp.bp.Points()
 }
 
 // WriteBatch writes the BatchPoints into InfluxDB.
