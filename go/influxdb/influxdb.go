@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/polling_status"
+
 	influx_client "github.com/influxdata/influxdb/client/v2"
-	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -59,32 +59,6 @@ func NewClient(host, user, password, database string) (*Client, error) {
 		mtx:          sync.Mutex{},
 		values:       values,
 	}, nil
-}
-
-// NewClientFromParamsAndMetadata returns a Client with credentials obtained
-// from a combination of the given parameters and metadata, depending on whether
-// the program is running in local mode.
-func NewClientFromParamsAndMetadata(host, user, password, database string, local bool) (*Client, error) {
-	if !local {
-		var err error
-		user, err = metadata.ProjectGet(metadata.INFLUXDB_NAME)
-		if err != nil {
-			return nil, err
-		}
-		password, err = metadata.ProjectGet(metadata.INFLUXDB_PASSWORD)
-		if err != nil {
-			return nil, err
-		}
-		database, err = metadata.ProjectGet(metadata.INFLUXDB_DATABASE)
-		if err != nil {
-			return nil, err
-		}
-		host, err = metadata.ProjectGet(metadata.INFLUXDB_HOST)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return NewClient(host, user, password, database)
 }
 
 // Point is a struct representing a single data point in InfluxDB.
@@ -192,10 +166,10 @@ func (c *Client) QueryInt64(database, q string) (int64, error) {
 	return res[0].Value.Int64()
 }
 
-// PollingStatus returns a util.PollingStatus which runs the given
+// PollingStatus returns a PollingStatus which runs the given
 // query at the given interval.
-func (c *Client) Int64PollingStatus(database, query string, interval time.Duration) *util.PollingStatus {
-	return util.NewPollingStatus(func() (interface{}, error) {
+func (c *Client) Int64PollingStatus(database, query string, interval time.Duration) *polling_status.PollingStatus {
+	return polling_status.NewPollingStatus(func() (interface{}, error) {
 		return c.QueryInt64(database, query)
 	}, interval)
 }

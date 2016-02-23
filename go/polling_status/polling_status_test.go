@@ -1,4 +1,4 @@
-package util
+package polling_status
 
 import (
 	"encoding/json"

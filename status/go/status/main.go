@@ -29,8 +29,10 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/polling_status"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -54,13 +56,13 @@ var (
 	hostsTemplate        *template.Template                   = nil
 	infraTemplate        *template.Template                   = nil
 	dbClient             *influxdb.Client                     = nil
-	goldGMStatus         *util.PollingStatus                  = nil
-	goldSKPStatus        *util.PollingStatus                  = nil
-	goldImageStatus      *util.PollingStatus                  = nil
-	perfStatus           *util.PollingStatus                  = nil
-	slaveHosts           *util.PollingStatus                  = nil
-	androidDevices       *util.PollingStatus                  = nil
-	sshDevices           *util.PollingStatus                  = nil
+	goldGMStatus         *polling_status.PollingStatus        = nil
+	goldSKPStatus        *polling_status.PollingStatus        = nil
+	goldImageStatus      *polling_status.PollingStatus        = nil
+	perfStatus           *polling_status.PollingStatus        = nil
+	slaveHosts           *polling_status.PollingStatus        = nil
+	androidDevices       *polling_status.PollingStatus        = nil
+	sshDevices           *polling_status.PollingStatus        = nil
 )
 
 // flags
@@ -665,7 +667,7 @@ func main() {
 	}
 
 	// Setup InfluxDB client.
-	dbClient, err = influxdb.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
+	dbClient, err = influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
 	if err != nil {
 		glog.Fatal(err)
 	}

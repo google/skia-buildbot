@@ -32,6 +32,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
@@ -375,7 +376,7 @@ func main() {
 	if *testing {
 		*useMetadata = false
 	}
-	dbClient, err := influxdb.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
+	dbClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *testing)
 	if err != nil {
 		glog.Fatalf("Failed to initialize InfluxDB client: %s", err)
 	}

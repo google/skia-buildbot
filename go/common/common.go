@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/metrics2"
 
 	"github.com/BurntSushi/toml"
@@ -105,7 +105,7 @@ func startMetrics(appName, graphiteServer string) {
 // Sets up metrics push into InfluxDB.
 func InitWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, local *bool) {
 	Init()
-	influxClient, err := influxdb.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
+	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
 	if err != nil {
 		glog.Fatal(err)
 	}

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/polling_status"
 )
 
 // buildSlaveByHost represents information about a buildslave which is relevant
@@ -83,8 +83,8 @@ func GetSlaveHostsCfg(workdir string) (map[string]*SlaveHost, error) {
 // SlaveHostsCfgPoller periodically reads the slave_hosts_cfg.py file from the
 // repo. It does NOT update the repository; it is assumed that the caller takes
 // care of that.
-func SlaveHostsCfgPoller(workdir string) *util.PollingStatus {
-	return util.NewPollingStatus(func() (interface{}, error) {
+func SlaveHostsCfgPoller(workdir string) *polling_status.PollingStatus {
+	return polling_status.NewPollingStatus(func() (interface{}, error) {
 		return GetSlaveHostsCfg(workdir)
 	}, 5*time.Minute)
 }

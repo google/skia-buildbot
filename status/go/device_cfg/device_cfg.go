@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/gitiles"
+	"go.skia.org/infra/go/polling_status"
 	"go.skia.org/infra/go/util"
 )
 
@@ -80,8 +81,8 @@ func GetAndroidDeviceCfg(workdir string) (map[string]*AndroidDeviceCfg, error) {
 
 // AndroidDeviceCfgPoller periodically reads the android_devices.py file from
 // the repo using Gitiles.
-func AndroidDeviceCfgPoller(workdir string) *util.PollingStatus {
-	return util.NewPollingStatus(func() (interface{}, error) {
+func AndroidDeviceCfgPoller(workdir string) *polling_status.PollingStatus {
+	return polling_status.NewPollingStatus(func() (interface{}, error) {
 		return GetAndroidDeviceCfg(workdir)
 	}, 5*time.Minute)
 }
@@ -131,8 +132,8 @@ func GetSSHDeviceCfg(workdir string) (map[string]*SSHDeviceCfg, error) {
 
 // SSHDeviceCfgPoller periodically reads the android_devices.py file from
 // the repo using Gitiles.
-func SSHDeviceCfgPoller(workdir string) *util.PollingStatus {
-	return util.NewPollingStatus(func() (interface{}, error) {
+func SSHDeviceCfgPoller(workdir string) *polling_status.PollingStatus {
+	return polling_status.NewPollingStatus(func() (interface{}, error) {
 		return GetSSHDeviceCfg(workdir)
 	}, 5*time.Minute)
 }
