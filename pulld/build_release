@@ -14,6 +14,7 @@ ${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}  ${ROOT}/usr/local/bin/${APPNA
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service  ${ROOT}/etc/systemd/system/${APPNAME}.service
 ${INSTALL} --mode=644 -T ./res/vul/elements.html   ${ROOT}/usr/local/share/pulld/res/vul/elements.html
 ${INSTALL} --mode=644 -T ./res/js/core.js          ${ROOT}/usr/local/share/pulld/res/js/core.js
+${INSTALL} --mode=644 -T ./res/common/css/md.css   ${ROOT}/usr/local/share/pulld/res/common/css/md.css
 ${INSTALL} --mode=644 -T ./templates/header.html   ${ROOT}/usr/local/share/pulld/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/index.html    ${ROOT}/usr/local/share/pulld/templates/index.html
 ${INSTALL} --mode=644 -T ./templates/titlebar.html ${ROOT}/usr/local/share/pulld/templates/titlebar.html
