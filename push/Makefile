@@ -10,15 +10,11 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 default: core_js elements_html
-	go install -v ./go/pull
 	go install -v ./go/push
 	go install -v ./go/pushcli
 
 release: default
 	./build_pushd_release "$(MESSAGE)"
-
-pull_release: default
-	./build_pull_release "$(MESSAGE)"
 
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
