@@ -7,7 +7,6 @@ After=network-online.target
 ExecStart=/usr/local/bin/skdebugger \
     --resources_dir=/usr/local/share/skdebugger/  \
     --log_dir=/var/log/logserver \
-    --graphite_server=skia-monitoring:2003 \
     --port=:8000
 Restart=always
 User=default
