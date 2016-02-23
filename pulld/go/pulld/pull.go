@@ -111,7 +111,7 @@ func pullInit() {
 	}
 	glog.Infof("Running with hostname: %s", hostname)
 
-	client, err := auth.NewDefaultJWTServiceAccountClient(storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)
+	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: util.DialTimeout}, storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)
 	if err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
