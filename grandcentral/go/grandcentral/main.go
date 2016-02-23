@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/geventbus"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/grandcentral/go/event"
@@ -23,13 +24,17 @@ import (
 
 // flags
 var (
-	graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
-	host           = flag.String("host", "localhost", "HTTP service host")
-	port           = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
-	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
-	testing        = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
-	workdir        = flag.String("workdir", ".", "Directory to use for scratch work.")
-	nsqdAddress    = flag.String("nsqd", "", "Address and port of nsqd instance.")
+	host        = flag.String("host", "localhost", "HTTP service host")
+	port        = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
+	useMetadata = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
+	testing     = flag.Bool("testing", false, "Set to true for locally testing rules. No email will be sent.")
+	workdir     = flag.String("workdir", ".", "Directory to use for scratch work.")
+	nsqdAddress = flag.String("nsqd", "", "Address and port of nsqd instance.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 var eventBus *eventbus.EventBus
@@ -93,7 +98,7 @@ func runServer(serverURL string) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("grandcentral", graphiteServer)
+	common.InitWithMetrics2("grandcentral", influxHost, influxUser, influxPassword, influxDatabase, testing)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		glog.Fatal(err)
