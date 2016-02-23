@@ -7,6 +7,7 @@
     change based on the name of the opertion.
 
       {
+        visible: true,
         command: "line",
         ...,
       }
@@ -66,7 +67,7 @@
   </style>
   <template>
     <details-sk selected$="{{ selected }}">
-      <summary-sk id=summary><paper-checkbox id=toggle checked on-tap="_check"></paper-checkbox>
+      <summary-sk id=summary><paper-checkbox id=toggle checked$="{{ op.details.visible }}" on-tap="_check"></paper-checkbox>
         <template is="dom-repeat" items="{{ prefix }}">
           <iron-icon icon="{{ item.icon }}" style$="color: {{ item.color }};"><iron-icon>
         </template>
