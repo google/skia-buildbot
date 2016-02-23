@@ -38,6 +38,7 @@ import (
 
 	"github.com/gorilla/securecookie"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/oauth2"
@@ -385,7 +386,7 @@ func ForceAuth(h http.Handler, oauthCallbackPath string) http.Handler {
 				redirectUrl := LoginURL(w, r)
 				glog.Infof("Redirect URL: %s", redirectUrl)
 				if redirectUrl == "" {
-					util.ReportError(w, r, fmt.Errorf("Unable to get redirect URL."), "Redirect to login failed:")
+					httputils.ReportError(w, r, fmt.Errorf("Unable to get redirect URL."), "Redirect to login failed:")
 					return
 				}
 				http.Redirect(w, r, redirectUrl, http.StatusTemporaryRedirect)

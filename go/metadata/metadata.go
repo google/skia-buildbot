@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -65,7 +66,7 @@ func get(name string, level string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("metadata.Get() failed to build request: %s", err)
 	}
-	c := util.NewTimeoutClient()
+	c := httputils.NewTimeoutClient()
 	req.Header.Add("Metadata-Flavor", "Google")
 	resp, err := c.Do(req)
 	if err != nil {

@@ -8,10 +8,10 @@ import (
 
 	"github.com/golang/groupcache/lru"
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/rietveld"
-	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/types"
 )
@@ -23,7 +23,7 @@ func TestPerfTrace(t *testing.T) {
 	// Mock this only once to confirm that caching works.
 	m.MockOnce("https://codereview.chromium.org/api/1490543002", b)
 
-	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, util.NewTimeoutClient())
+	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 
 	vcsCommits := []*vcsinfo.LongCommit{
 		&vcsinfo.LongCommit{
@@ -151,7 +151,7 @@ func TestTileFromCommits(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Now test tileBuilder.
-	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, util.NewTimeoutClient())
+	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	builder := &tileBuilder{
 		db:         ts,
 		vcs:        vcs,

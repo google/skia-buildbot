@@ -16,6 +16,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
@@ -114,19 +115,19 @@ func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 //
 func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse form data.")
+		httputils.ReportError(w, r, err, "Failed to parse form data.")
 		return
 	}
 	// If the query only includes source_type parameters, and include==false, then we can just
 	// filter the response from summaries.Get(). If the query is broader than that, or
 	// include==true, then we need to call summaries.CalcSummaries().
 	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Invalid request.")
+		httputils.ReportError(w, r, err, "Invalid request.")
 		return
 	}
 	q, err := url.ParseQuery(r.FormValue("query"))
 	if err != nil {
-		util.ReportError(w, r, err, "Invalid query in request.")
+		httputils.ReportError(w, r, err, "Invalid query in request.")
 		return
 	}
 	_, hasSourceType := q["source_type"]
@@ -143,7 +144,7 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		glog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
 		sumMap, err := summaries.CalcSummaries(nil, r.FormValue("query"), r.FormValue("include") == "true", r.FormValue("head") == "true")
 		if err != nil {
-			util.ReportError(w, r, err, "Failed to calculate summaries.")
+			httputils.ReportError(w, r, err, "Failed to calculate summaries.")
 			return
 		}
 		for _, s := range sumMap {
@@ -164,7 +165,7 @@ func polyTestStatusHandler(w http.ResponseWriter, r *http.Request) {
 	var summary *summary.Summary
 	var ok bool
 	if summary, ok = summaries.Get()[test]; !ok {
-		util.ReportError(w, r, fmt.Errorf("Unknown test: %q", test), "No summaries for test.")
+		httputils.ReportError(w, r, fmt.Errorf("Unknown test: %q", test), "No summaries for test.")
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -182,7 +183,7 @@ func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 	ignores, err = storages.IgnoreStore.List()
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to retrieve ignored traces.")
+		httputils.ReportError(w, r, err, "Failed to retrieve ignored traces.")
 	}
 
 	// TODO(stephana): Wrap in response envelope if it makes sense !
@@ -195,38 +196,38 @@ func polyIgnoresJSONHandler(w http.ResponseWriter, r *http.Request) {
 func polyIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	user := login.LoggedInAs(r)
 	if user == "" {
-		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.")
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.")
 		return
 	}
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
 	if err != nil {
-		util.ReportError(w, r, err, "ID must be valid integer.")
+		httputils.ReportError(w, r, err, "ID must be valid integer.")
 		return
 	}
 	req := &IgnoresRequest{}
 	if err := parseJson(r, req); err != nil {
-		util.ReportError(w, r, err, "Failed to parse submitted data.")
+		httputils.ReportError(w, r, err, "Failed to parse submitted data.")
 		return
 	}
 	if req.Filter == "" {
-		util.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
+		httputils.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
 		return
 	}
 	d, err := human.ParseDuration(req.Duration)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to parse duration")
+		httputils.ReportError(w, r, err, "Failed to parse duration")
 		return
 	}
 	ignoreRule := ignore.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to create ignore rule.")
+		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
 	}
 	ignoreRule.ID = int(id)
 
 	err = storages.IgnoreStore.Update(int(id), ignoreRule)
 	if err != nil {
-		util.ReportError(w, r, err, "Unable to update ignore rule.")
+		httputils.ReportError(w, r, err, "Unable to update ignore rule.")
 	} else {
 		// If update worked just list the current ignores and return them.
 		polyIgnoresJSONHandler(w, r)
@@ -236,17 +237,17 @@ func polyIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 func polyIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	user := login.LoggedInAs(r)
 	if user == "" {
-		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
 		return
 	}
 	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
 	if err != nil {
-		util.ReportError(w, r, err, "ID must be valid integer.")
+		httputils.ReportError(w, r, err, "ID must be valid integer.")
 		return
 	}
 
 	if _, err = storages.IgnoreStore.Delete(int(id), user); err != nil {
-		util.ReportError(w, r, err, "Unable to delete ignore rule.")
+		httputils.ReportError(w, r, err, "Unable to delete ignore rule.")
 	} else {
 		// If delete worked just list the current ignores and return them.
 		polyIgnoresJSONHandler(w, r)
@@ -265,31 +266,31 @@ var durationRe = regexp.MustCompile("([0-9]+)([smhdw])")
 func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	user := login.LoggedInAs(r)
 	if user == "" {
-		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
 		return
 	}
 	req := &IgnoresRequest{}
 	if err := parseJson(r, req); err != nil {
-		util.ReportError(w, r, err, "Failed to parse submitted data.")
+		httputils.ReportError(w, r, err, "Failed to parse submitted data.")
 		return
 	}
 	if req.Filter == "" {
-		util.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
+		httputils.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
 		return
 	}
 	d, err := human.ParseDuration(req.Duration)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to parse duration")
+		httputils.ReportError(w, r, err, "Failed to parse duration")
 		return
 	}
 	ignoreRule := ignore.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to create ignore rule.")
+		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
 	}
 
 	if err = storages.IgnoreStore.Create(ignoreRule); err != nil {
-		util.ReportError(w, r, err, "Failed to create ignore rule.")
+		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
 		return
 	}
 
@@ -300,26 +301,26 @@ func polyIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 // returns a JSON serialized PolyTestDiffInfo as the response.
 func polyDiffJSONDigestHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse form values")
+		httputils.ReportError(w, r, err, "Failed to parse form values")
 		return
 	}
 	top := r.Form.Get("top")
 	left := r.Form.Get("left")
 	test := r.Form.Get("test")
 	if top == "" || left == "" || test == "" {
-		util.ReportError(w, r, fmt.Errorf("Some query parameters are missing: %q %q %q", top, left, test), "Missing query parameters.")
+		httputils.ReportError(w, r, fmt.Errorf("Some query parameters are missing: %q %q %q", top, left, test), "Missing query parameters.")
 		return
 	}
 
 	diffs, err := storages.DiffStore.Get(left, []string{top})
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to do diffs")
+		httputils.ReportError(w, r, err, "Failed to do diffs")
 		return
 	}
 	full := storages.DiffStore.AbsPath([]string{top, left})
 	d, ok := diffs[top]
 	if !ok {
-		util.ReportError(w, r, fmt.Errorf("Failed to calculate diff."), "Failed to calculate diff.")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to calculate diff."), "Failed to calculate diff.")
 		return
 	}
 
@@ -344,12 +345,12 @@ func polyDiffJSONDigestHandler(w http.ResponseWriter, r *http.Request) {
 
 func polySearchJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Invalid request.")
+		httputils.ReportError(w, r, err, "Invalid request.")
 		return
 	}
 	di, err := summaries.Search(r.FormValue("query"), r.FormValue("include") == "true", r.FormValue("head") == "true", r.FormValue("pos") == "true", r.FormValue("neg") == "true", r.FormValue("unt") == "true")
 	if err != nil {
-		util.ReportError(w, r, err, "Search failed.")
+		httputils.ReportError(w, r, err, "Search failed.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -367,18 +368,18 @@ func polyTriageLogHandler(w http.ResponseWriter, r *http.Request) {
 	var total int
 
 	q := r.URL.Query()
-	offset, size, err := util.PaginationParams(q, 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	offset, size, err := httputils.PaginationParams(q, 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
 		details := q.Get("details") == "true"
 		logEntries, total, err = storages.ExpectationsStore.QueryLog(offset, size, details)
 	}
 
 	if err != nil {
-		util.ReportError(w, r, err, "Unable to retrieve triage log.")
+		httputils.ReportError(w, r, err, "Unable to retrieve triage log.")
 		return
 	}
 
-	pagination := &util.ResponsePagination{
+	pagination := &httputils.ResponsePagination{
 		Offset: offset,
 		Size:   size,
 		Total:  total,
@@ -397,21 +398,21 @@ func triageUndoHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the user and make sure they are logged in.
 	user := login.LoggedInAs(r)
 	if user == "" {
-		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change expectations.")
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change expectations.")
 		return
 	}
 
 	// Extract the id to undo.
 	changeID, err := strconv.Atoi(r.URL.Query().Get("id"))
 	if err != nil {
-		util.ReportError(w, r, err, "Invalid change id.")
+		httputils.ReportError(w, r, err, "Invalid change id.")
 		return
 	}
 
 	// Do the undo procedure.
 	_, err = storages.ExpectationsStore.UndoChange(changeID, user)
 	if err != nil {
-		util.ReportError(w, r, err, "Unable to undo.")
+		httputils.ReportError(w, r, err, "Unable to undo.")
 		return
 	}
 
@@ -626,12 +627,12 @@ func imgInfo(filter, queryString, testName string, e types.TestClassification, m
 func polyTestHandler(w http.ResponseWriter, r *http.Request) {
 	req := &PolyTestRequest{}
 	if err := parseJson(r, req); err != nil {
-		util.ReportError(w, r, err, "Failed to parse JSON request.")
+		httputils.ReportError(w, r, err, "Failed to parse JSON request.")
 		return
 	}
 	exp, err := storages.ExpectationsStore.Get()
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load expectations.")
+		httputils.ReportError(w, r, err, "Failed to load expectations.")
 		return
 	}
 	e := exp.Tests[req.Test]
@@ -722,13 +723,13 @@ type PolyTriageRequest struct {
 func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 	req := &PolyTriageRequest{}
 	if err := parseJson(r, req); err != nil {
-		util.ReportError(w, r, err, "Failed to parse JSON request.")
+		httputils.ReportError(w, r, err, "Failed to parse JSON request.")
 		return
 	}
 	glog.Infof("Triage request: %#v", req)
 	user := login.LoggedInAs(r)
 	if user == "" {
-		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
 		return
 	}
 
@@ -739,7 +740,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 	if req.All {
 		exp, err := storages.ExpectationsStore.Get()
 		if err != nil {
-			util.ReportError(w, r, err, "Failed to load expectations.")
+			httputils.ReportError(w, r, err, "Failed to load expectations.")
 			return
 		}
 		e := exp.Tests[req.Test]
@@ -762,7 +763,7 @@ func polyTriageHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Otherwise update the expectations directly.
 	if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
-		util.ReportError(w, r, err, "Failed to store the updated expectations.")
+		httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
 		return
 	}
 
@@ -868,28 +869,28 @@ type PolyDetailsGUI struct {
 func polyDetailsHandler(w http.ResponseWriter, r *http.Request) {
 	tile, err := storages.GetLastTileTrimmed(true)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load tile")
+		httputils.ReportError(w, r, err, "Failed to load tile")
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse form values")
+		httputils.ReportError(w, r, err, "Failed to parse form values")
 		return
 	}
 	top := r.Form.Get("top")
 	left := r.Form.Get("left")
 	if top == "" || left == "" {
-		util.ReportError(w, r, fmt.Errorf("Missing the top or left query parameter: %s %s", top, left), "No digests specified.")
+		httputils.ReportError(w, r, fmt.Errorf("Missing the top or left query parameter: %s %s", top, left), "No digests specified.")
 		return
 	}
 	test := r.Form.Get("test")
 	if test == "" {
-		util.ReportError(w, r, fmt.Errorf("Missing the test query parameter."), "No test name specified.")
+		httputils.ReportError(w, r, fmt.Errorf("Missing the test query parameter."), "No test name specified.")
 		return
 	}
 
 	exp, err := storages.ExpectationsStore.Get()
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load expectations.")
+		httputils.ReportError(w, r, err, "Failed to load expectations.")
 		return
 	}
 
@@ -1044,7 +1045,7 @@ func buildTraceData(digest string, traceNames []string, tile *tiling.Tile, trace
 func polyParamsHandler(w http.ResponseWriter, r *http.Request) {
 	tile, err := storages.GetLastTileTrimmed(false)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load tile")
+		httputils.ReportError(w, r, err, "Failed to load tile")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -1145,7 +1146,7 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 	tile, sum, err := allUntriagedSummaries()
 	commits := tile.Commits
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load summaries.")
+		httputils.ReportError(w, r, err, "Failed to load summaries.")
 		return
 	}
 
@@ -1205,7 +1206,7 @@ func byBlameHandler(w http.ResponseWriter, r *http.Request) {
 	// JSON here.
 	commitinfojs, err := json.MarshalIndent(commitinfo, "", "  ")
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to encode response data.")
+		httputils.ReportError(w, r, err, "Failed to encode response data.")
 		return
 	}
 
@@ -1239,17 +1240,17 @@ func search2Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
 	if err != nil {
-		util.ReportError(w, r, err, "Search for digests failed.")
+		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
 	js, err := json.MarshalIndent(searchResponse.Digests, "", "  ")
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to encode response data.")
+		httputils.ReportError(w, r, err, "Failed to encode response data.")
 		return
 	}
 	commitsjs, err := json.MarshalIndent(searchResponse.Commits, "", "  ")
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to encode commits.")
+		httputils.ReportError(w, r, err, "Failed to encode commits.")
 		return
 	}
 
@@ -1301,7 +1302,7 @@ type SearchResult struct {
 func search3JSONHandler(w http.ResponseWriter, r *http.Request) {
 	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
 	if err != nil {
-		util.ReportError(w, r, err, "Search for digests failed.")
+		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
 	}
 	sendJsonResponse(w, searchResponse)
@@ -1383,7 +1384,7 @@ func nxnJSONHandler(w http.ResponseWriter, r *http.Request) {
 
 	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
 	if err != nil {
-		util.ReportError(w, r, err, "Search for digests failed.")
+		httputils.ReportError(w, r, err, "Search for digests failed.")
 	}
 	// Sort the digests so they are displayed with untriaged last, which means
 	// they will be displayed 'on top', because in SVG document order is z-order.
@@ -1465,20 +1466,20 @@ func failureListJSONHandler(w http.ResponseWriter, r *http.Request) {
 func failureClearJSONHandler(w http.ResponseWriter, r *http.Request) {
 	user := login.LoggedInAs(r)
 	if user == "" {
-		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.")
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.")
 		return
 	}
 
 	digests := []string{}
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&digests); err != nil {
-		util.ReportError(w, r, err, "Unable to decode digest list.")
+		httputils.ReportError(w, r, err, "Unable to decode digest list.")
 		return
 	}
 	purgeGS := r.URL.Query().Get("purge") == "true"
 
 	if err := storages.DiffStore.PurgeDigests(digests, purgeGS); err != nil {
-		util.ReportError(w, r, err, "Unable to clear digests.")
+		httputils.ReportError(w, r, err, "Unable to clear digests.")
 	}
 	failureListJSONHandler(w, r)
 }
@@ -1489,17 +1490,17 @@ func listTrybotsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	var trybotRuns []*trybot.Issue
 	var total int
 
-	offset, size, err := util.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
 		trybotRuns, total, err = storages.TrybotResults.ListTrybotIssues(offset, size)
 	}
 
 	if err != nil {
-		util.ReportError(w, r, err, "Retrieving trybot results failed.")
+		httputils.ReportError(w, r, err, "Retrieving trybot results failed.")
 		return
 	}
 
-	pagination := &util.ResponsePagination{
+	pagination := &httputils.ResponsePagination{
 		Offset: offset,
 		Size:   size,
 		Total:  total,
@@ -1519,7 +1520,7 @@ func setJSONHeaders(w http.ResponseWriter) {
 func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
 	setJSONHeaders(w)
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		util.ReportError(w, nil, err, "Failed to encode JSON response.")
+		httputils.ReportError(w, nil, err, "Failed to encode JSON response.")
 	}
 }
 

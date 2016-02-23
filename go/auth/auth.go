@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
@@ -59,7 +60,7 @@ func NewClientFromIdAndSecret(clientId, clientSecret, oauthCacheFile string, sco
 //
 // The OAuth tokens will be stored in oauthCacheFile.
 // The OAuth config will come from oauthConfigFile.
-// The transport will be used. If nil then util.NewBackOffTransport() is used.
+// The transport will be used. If nil then httputils.NewBackOffTransport() is used.
 func NewClientWithTransport(local bool, oauthCacheFile string, oauthConfigFile string, transport http.RoundTripper, scopes ...string) (*http.Client, error) {
 	// If this is running locally we need to load the oauth configuration.
 	var config *oauth2.Config = nil
@@ -83,7 +84,7 @@ func NewClientWithTransport(local bool, oauthCacheFile string, oauthConfigFile s
 // NewClientFromConfigAndTransport creates an new OAuth 2.0 authorized client
 // for the given config and transport.
 //
-// If the transport is nil then util.NewBackOffTransport() is used.
+// If the transport is nil then httputils.NewBackOffTransport() is used.
 // If local is true then a 3-legged flow is initiated, otherwise the GCE
 // Service Account is used.
 func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCacheFile string, transport http.RoundTripper) (*http.Client, error) {
@@ -91,14 +92,14 @@ func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCac
 		oauthCacheFile = "google_storage_token.data"
 	}
 	if transport == nil {
-		transport = util.NewBackOffTransport()
+		transport = httputils.NewBackOffTransport()
 	}
 
 	var client *http.Client
 	if local {
 		tokenClient := &http.Client{
 			Transport: transport,
-			Timeout:   util.REQUEST_TIMEOUT,
+			Timeout:   httputils.REQUEST_TIMEOUT,
 		}
 		ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
 		tokenSource, err := newCachingTokenSource(oauthCacheFile, ctx, config)
@@ -110,7 +111,7 @@ func NewClientFromConfigAndTransport(local bool, config *oauth2.Config, oauthCac
 				Source: tokenSource,
 				Base:   transport,
 			},
-			Timeout: util.REQUEST_TIMEOUT,
+			Timeout: httputils.REQUEST_TIMEOUT,
 		}
 	} else {
 		// Use compute engine service account.
@@ -139,7 +140,7 @@ func GCEServiceAccountClient(transport http.RoundTripper) *http.Client {
 			Source: google.ComputeTokenSource(""),
 			Base:   transport,
 		},
-		Timeout: util.REQUEST_TIMEOUT,
+		Timeout: httputils.REQUEST_TIMEOUT,
 	}
 }
 
@@ -275,7 +276,7 @@ func NewJWTServiceAccountClient(metadataname, filename string, transport http.Ro
 		body = []byte(jwt)
 	}
 	if transport == nil {
-		transport = util.NewBackOffTransport()
+		transport = httputils.NewBackOffTransport()
 	}
 	jwtConfig, err := google.JWTConfigFromJSON(body, scopes...)
 	if err != nil {
@@ -283,7 +284,7 @@ func NewJWTServiceAccountClient(metadataname, filename string, transport http.Ro
 	}
 	tokenClient := &http.Client{
 		Transport: transport,
-		Timeout:   util.REQUEST_TIMEOUT,
+		Timeout:   httputils.REQUEST_TIMEOUT,
 	}
 	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, tokenClient)
 	return &http.Client{
@@ -291,6 +292,6 @@ func NewJWTServiceAccountClient(metadataname, filename string, transport http.Ro
 			Source: jwtConfig.TokenSource(ctx),
 			Base:   transport,
 		},
-		Timeout: util.REQUEST_TIMEOUT,
+		Timeout: httputils.REQUEST_TIMEOUT,
 	}, nil
 }

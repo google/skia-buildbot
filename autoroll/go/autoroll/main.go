@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/autoroll/go/autoroller"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -112,7 +113,7 @@ func Init() {
 
 func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 	if !login.IsAGoogler(r) {
-		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in with an @google.com account to do that.")
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in with an @google.com account to do that.")
 		return
 	}
 
@@ -121,12 +122,12 @@ func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&mode); err != nil {
-		util.ReportError(w, r, err, "Failed to decode request body.")
+		httputils.ReportError(w, r, err, "Failed to decode request body.")
 		return
 	}
 
 	if err := arb.SetMode(mode.Mode, login.LoggedInAs(r), "[Placeholder Message]"); err != nil {
-		util.ReportError(w, r, err, "Failed to set AutoRoll mode.")
+		httputils.ReportError(w, r, err, "Failed to set AutoRoll mode.")
 		return
 	}
 
@@ -165,15 +166,15 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/json/mode", modeJsonHandler).Methods("POST")
-	r.HandleFunc("/json/status", util.CorsHandler(statusJsonHandler))
+	r.HandleFunc("/json/status", httputils.CorsHandler(statusJsonHandler))
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

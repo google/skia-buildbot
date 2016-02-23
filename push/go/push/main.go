@@ -21,6 +21,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/packages"
@@ -331,7 +332,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.FormValue("refresh") == "true" {
 		if err := packageInfo.ForceRefresh(); err != nil {
-			util.ReportError(w, r, err, "Failed to refresh.")
+			httputils.ReportError(w, r, err, "Failed to refresh.")
 		}
 	}
 	allAvailable := packageInfo.AllAvailable()
@@ -371,18 +372,18 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		if login.LoggedInAs(r) == "" {
-			util.ReportError(w, r, fmt.Errorf("You must be logged on to push."), "")
+			httputils.ReportError(w, r, fmt.Errorf("You must be logged on to push."), "")
 			return
 		}
 		push := PushNewPackage{}
 		dec := json.NewDecoder(r.Body)
 		defer util.Close(r.Body)
 		if err := dec.Decode(&push); err != nil {
-			util.ReportError(w, r, fmt.Errorf("Failed to decode push request"), "Failed to decode push request")
+			httputils.ReportError(w, r, fmt.Errorf("Failed to decode push request"), "Failed to decode push request")
 			return
 		}
 		if installedPackages, ok := allInstalled[push.Server]; !ok {
-			util.ReportError(w, r, fmt.Errorf("Unknown server name"), "Unknown server name")
+			httputils.ReportError(w, r, fmt.Errorf("Unknown server name"), "Unknown server name")
 			return
 		} else {
 			// Find a string starting with the same appname, replace it with
@@ -398,7 +399,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			glog.Infof("Updating %s with %#v giving %#v", push.Server, push.Name, newInstalled)
 			if err := packageInfo.PutInstalled(push.Server, newInstalled, installedPackages.Generation); err != nil {
-				util.ReportError(w, r, err, "Failed to update server.")
+				httputils.ReportError(w, r, err, "Failed to update server.")
 				return
 			}
 			resp, err := fastClient.Get(fmt.Sprintf("http://%s:10114/pullpullpull", push.Server))
@@ -462,11 +463,11 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 // running on the machine hosting that service.
 func changeHandler(w http.ResponseWriter, r *http.Request) {
 	if login.LoggedInAs(r) == "" {
-		util.ReportError(w, r, fmt.Errorf("You must be logged on to push."), "")
+		httputils.ReportError(w, r, fmt.Errorf("You must be logged on to push."), "")
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse form.")
+		httputils.ReportError(w, r, err, "Failed to parse form.")
 		return
 	}
 	action := r.Form.Get("action")
@@ -475,12 +476,12 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	url := fmt.Sprintf("http://%s:10114/_/change?name=%s&action=%s", machine, name, action)
 	resp, err := fastClient.Post(url, "", nil)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
 		return
 	}
 	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to reach %s: %v %s", machine, resp, err))
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -524,7 +525,7 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/change", changeHandler)
 	r.HandleFunc("/_/state", stateHandler)
@@ -532,7 +533,7 @@ func main() {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

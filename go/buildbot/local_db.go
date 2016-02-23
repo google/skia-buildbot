@@ -14,6 +14,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 )
@@ -987,9 +988,9 @@ func RunBackupServer(db DB, port string) error {
 			_, err := tx.WriteTo(w)
 			return err
 		}); err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Failed to create DB backup: %s", err))
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to create DB backup: %s", err))
 		}
 	})
-	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	return http.ListenAndServe(port, nil)
 }

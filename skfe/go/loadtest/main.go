@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/httputils"
 )
 
 // flags
@@ -96,7 +96,7 @@ func startWorkers(targets <-chan Target, latencies chan<- float64, wg *sync.Wait
 
 	wg.Add(*numWorkers)
 	for i := 0; i < *numWorkers; i++ {
-		c := util.NewTimeoutClient()
+		c := httputils.NewTimeoutClient()
 		go func(c *http.Client) {
 			for t := range targets {
 				t0 := time.Now()

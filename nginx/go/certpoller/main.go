@@ -24,6 +24,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -121,7 +122,7 @@ func get(client *http.Client, cert *cert) error {
 func main() {
 	defer common.LogPanic()
 	common.InitWithMetrics("certpoller", graphiteServer)
-	client := util.NewTimeoutClient()
+	client := httputils.NewTimeoutClient()
 	certs := []*cert{}
 	// Populate certs based on cmd-line args.
 	for _, metadata := range flag.Args() {

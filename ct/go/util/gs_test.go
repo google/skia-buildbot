@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	storage "google.golang.org/api/storage/v1"
 )
@@ -85,7 +86,7 @@ func Auth_TestUploadWorkerArtifacts(t *testing.T) {
 }
 
 func TestAreTimestampsEqual(t *testing.T) {
-	gs, err := NewGsUtil(util.NewTimeoutClient())
+	gs, err := NewGsUtil(httputils.NewTimeoutClient())
 	if err != nil {
 		t.Errorf("Unexpected error: %s", err)
 	}

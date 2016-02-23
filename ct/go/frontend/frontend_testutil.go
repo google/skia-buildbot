@@ -12,6 +12,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/pending_tasks"
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
+	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
 )
@@ -76,7 +77,7 @@ func (ms *MockServer) HandleGetOldestPendingTask(w http.ResponseWriter, r *http.
 	defer ms.mutex.Unlock()
 	ms.oldestPendingTaskReqCount++
 	if err := pending_tasks.EncodeTask(w, ms.currentTask); err != nil {
-		skutil.ReportError(w, r, err, "Failed to encode JSON")
+		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
 }
@@ -87,13 +88,13 @@ func (ms *MockServer) HandleUpdateTask(w http.ResponseWriter, r *http.Request) {
 	defer skutil.Close(r.Body)
 	if err != nil {
 		updateTaskReq.Error = err
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 	err = json.Unmarshal(data, &updateTaskReq.Vars)
 	if err != nil {
 		updateTaskReq.Error = err
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

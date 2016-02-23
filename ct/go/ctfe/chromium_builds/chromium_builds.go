@@ -28,6 +28,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -46,7 +47,7 @@ var (
 	addTaskTemplate     *template.Template = nil
 	runsHistoryTemplate *template.Template = nil
 
-	httpClient = skutil.NewTimeoutClient()
+	httpClient = httputils.NewTimeoutClient()
 )
 
 func ReloadTemplates(resourcesDir string) {
@@ -157,14 +158,14 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 	w.Header().Set("Content-Type", "application/json")
 	revString := r.FormValue("rev")
 	if revString == "" {
-		skutil.ReportError(w, r, fmt.Errorf("No revision specified"), "")
+		httputils.ReportError(w, r, fmt.Errorf("No revision specified"), "")
 		return
 	}
 
 	if strings.EqualFold(revString, "LKGR") {
 		lkgr, err := getLkgr()
 		if err != nil {
-			skutil.ReportError(w, r, fmt.Errorf("Unable to retrieve LKGR revision"), "")
+			httputils.ReportError(w, r, fmt.Errorf("Unable to retrieve LKGR revision"), "")
 		}
 		glog.Infof("Retrieved LKGR commit hash: %s", lkgr)
 		revString = lkgr
@@ -173,30 +174,30 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 	glog.Infof("Reading revision detail from %s", commitUrl)
 	resp, err := httpClient.Get(commitUrl)
 	if err != nil {
-		skutil.ReportError(w, r, err, "Unable to retrieve revision detail")
+		httputils.ReportError(w, r, err, "Unable to retrieve revision detail")
 		return
 	}
 	defer skutil.Close(resp.Body)
 	if resp.StatusCode == 404 {
 		// Return successful empty response, since the user could be typing.
 		if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
-			skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 			return
 		}
 		return
 	}
 	if resp.StatusCode != 200 {
-		skutil.ReportError(w, r, fmt.Errorf("Unable to retrieve revision detail"), "")
+		httputils.ReportError(w, r, fmt.Errorf("Unable to retrieve revision detail"), "")
 		return
 	}
 	// Remove junk in the first line. https://code.google.com/p/gitiles/issues/detail?id=31
 	bufBody := bufio.NewReader(resp.Body)
 	if _, err = bufBody.ReadString('\n'); err != nil {
-		skutil.ReportError(w, r, err, "Unable to retrieve revision detail")
+		httputils.ReportError(w, r, err, "Unable to retrieve revision detail")
 		return
 	}
 	if _, err = io.Copy(w, bufBody); err != nil {
-		skutil.ReportError(w, r, err, "Unable to retrieve revision detail")
+		httputils.ReportError(w, r, err, "Unable to retrieve revision detail")
 		return
 	}
 }

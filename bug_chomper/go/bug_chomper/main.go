@@ -25,11 +25,11 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/bug_chomper/go/issue_tracker"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
-	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -209,14 +209,14 @@ func submitData(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", makeBugChomperPage).Methods("GET")
 	r.HandleFunc("/", submitData).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.HandleFunc(OAUTH_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Info("Server is running at " + serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

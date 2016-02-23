@@ -53,6 +53,7 @@ import (
 	"io"
 	"net/http"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -71,7 +72,7 @@ type Reitveld struct {
 // NewClient creates a new client for interacting with Rietveld.
 func NewClient() *Reitveld {
 	return &Reitveld{
-		client: util.NewTimeoutClient(),
+		client: httputils.NewTimeoutClient(),
 	}
 }
 

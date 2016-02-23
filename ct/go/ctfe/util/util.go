@@ -10,8 +10,8 @@ import (
 	"strings"
 	"text/template"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
-	skutil "go.skia.org/infra/go/util"
 )
 
 // URIs for frontend handlers.
@@ -102,7 +102,7 @@ func ExecuteSimpleTemplate(template *template.Template, w http.ResponseWriter, r
 
 	PreExecuteTemplateHook()
 	if err := template.Execute(w, struct{}{}); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 		return
 	}
 }

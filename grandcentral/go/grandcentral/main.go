@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/geventbus"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
@@ -54,14 +55,14 @@ Hello World
 func googleStorageChangeHandler(w http.ResponseWriter, r *http.Request) {
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to read response body: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to read response body: %v", err))
 		return
 	}
 
 	defer util.Close(r.Body)
 	var data event.GoogleStorageEventData
 	if err := json.Unmarshal(buf, &data); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to decode response body: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode response body: %v", err))
 		return
 	}
 
@@ -75,7 +76,7 @@ func buildbotEventHandler(w http.ResponseWriter, r *http.Request) {
 	data := r.PostFormValue("packets")
 	var events []*event.BuildbotEventData
 	if err := json.Unmarshal([]byte(data), &events); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
 		return
 	}
 
@@ -91,7 +92,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/googlestorage", googleStorageChangeHandler).Methods("POST")
 	r.HandleFunc("/buildbot", buildbotEventHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
-	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

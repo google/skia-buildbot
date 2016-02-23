@@ -9,6 +9,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/util"
 	compute "google.golang.org/api/compute/v1"
@@ -111,7 +112,7 @@ func pullInit() {
 	}
 	glog.Infof("Running with hostname: %s", hostname)
 
-	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: util.DialTimeout}, storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)
+	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)
 	if err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}

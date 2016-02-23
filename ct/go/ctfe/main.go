@@ -29,10 +29,10 @@ import (
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/skiaversion"
-	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
 )
 
@@ -86,7 +86,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(skutil.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	chromium_perf.AddHandlers(r)
 	capture_skps.AddHandlers(r)
@@ -102,7 +102,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/login/", loginHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	http.Handle("/", skutil.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

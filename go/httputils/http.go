@@ -1,4 +1,4 @@
-package util
+package httputils
 
 import (
 	"bytes"
@@ -19,6 +19,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -246,7 +247,7 @@ func PaginationParams(query url.Values, defaultOffset, defaultSize, maxSize int)
 		return 0, 0, err
 	}
 
-	return offset, MinInt(size, maxSize), nil
+	return offset, util.MinInt(size, maxSize), nil
 }
 
 // getPositiveInt parses the param in query and ensures it is >= 0 using

@@ -20,7 +20,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/gs"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/httputils"
 )
 
 const (
@@ -210,7 +210,7 @@ func DownloadTestDataArchive(t assert.TestingT, uriPath, targetDir string) error
 func openUri(uriPath string) (*http.Response, error) {
 	uri := GS_TEST_DATA_ROOT_URI + uriPath
 
-	client := util.NewTimeoutClient()
+	client := httputils.NewTimeoutClient()
 	request, err := gs.RequestForStorageURL(uri)
 	if err != nil {
 		return nil, err

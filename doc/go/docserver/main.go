@@ -23,7 +23,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/doc/go/docset"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/httputils"
 )
 
 var (
@@ -100,12 +100,12 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if cl != "" {
 		issue, err := strconv.ParseInt(cl, 10, 64)
 		if err != nil {
-			util.ReportError(w, r, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.")
+			httputils.ReportError(w, r, fmt.Errorf("Not a valid integer id for an issue."), "The CL given is not valid.")
 			return
 		}
 		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), filepath.Join(*workDir, "primary"), issue)
 		if err != nil {
-			util.ReportError(w, r, err, "Failed to load the given CL")
+			httputils.ReportError(w, r, err, "Failed to load the given CL")
 			return
 		}
 	}
@@ -135,7 +135,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	// Write the response.
 	b, err := d.Body(filename)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load file")
+		httputils.ReportError(w, r, err, "Failed to load file")
 		return
 	}
 	if raw {

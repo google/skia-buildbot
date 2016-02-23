@@ -23,6 +23,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
 )
@@ -31,7 +32,7 @@ var (
 	addTaskTemplate     *template.Template = nil
 	runsHistoryTemplate *template.Template = nil
 
-	httpClient = skutil.NewTimeoutClient()
+	httpClient = httputils.NewTimeoutClient()
 )
 
 func ReloadTemplates(resourcesDir string) {
@@ -127,7 +128,7 @@ func parametersHandler(w http.ResponseWriter, r *http.Request) {
 		"platforms":  ctutil.SupportedPlatformsToDesc,
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
 	}
 }
@@ -233,28 +234,28 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	detail, err := getCLDetail(r.FormValue("cl"))
 	if err != nil {
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 	if detail.Issue == 0 {
 		// Return successful empty response, since the user could still be typing.
 		if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
-			skutil.ReportError(w, r, err, "Failed to encode JSON")
+			httputils.ReportError(w, r, err, "Failed to encode JSON")
 		}
 		return
 	}
 	patch, err := getCLPatch(detail, 0)
 	if err != nil {
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 	clData, err := gatherCLData(detail, patch)
 	if err != nil {
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 	if err = json.NewEncoder(w).Encode(clData); err != nil {
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 }
@@ -383,18 +384,18 @@ func addTrybotTaskHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := webhook.AuthenticateRequest(r)
 	if err != nil {
 		if data == nil {
-			skutil.ReportError(w, r, err, "Failed to read add request")
+			httputils.ReportError(w, r, err, "Failed to read add request")
 			return
 		}
 		if !ctfeutil.UserHasAdminRights(r) {
-			skutil.ReportError(w, r, err, "Failed authentication")
+			httputils.ReportError(w, r, err, "Failed authentication")
 			return
 		}
 	}
 
 	trybotTask := TrybotTask{}
 	if err := json.Unmarshal(data, &trybotTask); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add %v trybot task", trybotTask))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add %v trybot task", trybotTask))
 		return
 	}
 
@@ -402,22 +403,22 @@ func addTrybotTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Add patch data to the task.
 	detail, err := getCLDetail(trybotTask.Issue)
 	if err != nil {
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 	patchsetID, err := strconv.Atoi(trybotTask.PatchsetID)
 	if err != nil {
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 	patch, err := getCLPatch(detail, patchsetID)
 	if err != nil {
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 	clData, err := gatherCLData(detail, patch)
 	if err != nil {
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 		return
 	}
 
@@ -433,7 +434,7 @@ func addTrybotTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	taskID, err := task_common.AddTask(task)
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
 		return
 	}
 
@@ -442,7 +443,7 @@ func addTrybotTaskHandler(w http.ResponseWriter, r *http.Request) {
 		"taskID": taskID,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
-		skutil.ReportError(w, r, err, "Failed to encode JSON")
+		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
 }

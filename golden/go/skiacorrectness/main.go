@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -86,15 +87,15 @@ const (
 // TODO(stephana): Simplify
 // the ResponseEnvelope and use it solely to wrap JSON arrays.
 // Remove sendResponse and sendErrorResponse in favor of sendJsonResponse
-// and util.ReportError.
+// and httputils.ReportError.
 
 // ResponseEnvelope wraps all responses. Some fields might be empty depending
 // on context or whether there was an error or not.
 type ResponseEnvelope struct {
-	Data       *interface{}             `json:"data"`
-	Err        *string                  `json:"err"`
-	Status     int                      `json:"status"`
-	Pagination *util.ResponsePagination `json:"pagination"`
+	Data       *interface{}                  `json:"data"`
+	Err        *string                       `json:"err"`
+	Status     int                           `json:"status"`
+	Pagination *httputils.ResponsePagination `json:"pagination"`
 }
 
 type PathToURLConverter func(string) string
@@ -113,7 +114,7 @@ var (
 
 // sendResponse wraps the data of a succesful response in a response envelope
 // and sends it to the client.
-func sendResponse(w http.ResponseWriter, data interface{}, status int, pagination *util.ResponsePagination) {
+func sendResponse(w http.ResponseWriter, data interface{}, status int, pagination *httputils.ResponsePagination) {
 	resp := ResponseEnvelope{&data, nil, status, pagination}
 	sendJson(w, &resp, status)
 }
@@ -317,7 +318,7 @@ func main() {
 
 	evt := eventbus.New(nil)
 
-	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, util.NewTimeoutClient())
+	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 
 	// Connect to traceDB and create the builders.
 	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.GoldenTraceBuilder)
@@ -466,7 +467,7 @@ func main() {
 	// Add the necessary middleware and have the router handle all requests.
 	// By structuring the middleware this way we only log requests that are
 	// authenticated.
-	rootHandler := util.LoggingGzipRequestResponse(router)
+	rootHandler := httputils.LoggingGzipRequestResponse(router)
 	if *forceLogin {
 		rootHandler = login.ForceAuth(rootHandler, OAUTH2_CALLBACK_PATH)
 	}

@@ -24,7 +24,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/httputils"
 )
 
 // cert contains information about one SSL certificate file.
@@ -120,7 +120,7 @@ func get(client *http.Client, cert *cert) error {
 func main() {
 	defer common.LogPanic()
 	common.Init()
-	client := util.NewTimeoutClient()
+	client := httputils.NewTimeoutClient()
 	retVal := 255
 
 	// Populate certs based on cmd-line args.

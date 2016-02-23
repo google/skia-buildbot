@@ -15,7 +15,7 @@ import (
 	androidbuildinternal "go.skia.org/infra/go/androidbuildinternal/v2beta1"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/httputils"
 	storage "google.golang.org/api/storage/v1"
 )
 
@@ -51,7 +51,7 @@ func main() {
 	// In this case we don't want a backoff transport since the Apiary backend
 	// seems to fail a lot, so we basically want to fall back to polling if a
 	// call fails.
-	client, err := auth.NewClientWithTransport(*local, OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, &http.Transport{Dial: util.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
+	client, err := auth.NewClientWithTransport(*local, OAUTH_CACHE_FILEPATH, CLIENT_SECRET_FILEPATH, &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
 	if err != nil {
 		glog.Fatalf("Unable to create installed app oauth client:%s", err)
 	}

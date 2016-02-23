@@ -10,8 +10,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/util"
 )
 
 // flags
@@ -74,7 +74,7 @@ func main() {
 	router := mux.NewRouter()
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	router.HandleFunc("/", templateHandler("index.html"))
-	http.Handle("/", util.LoggingGzipRequestResponse(router))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

@@ -24,7 +24,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_types"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
-	skutil "go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/httputils"
 )
 
 var (
@@ -137,12 +137,12 @@ func getOldestPendingTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	oldestTask, err := GetOldestPendingTask()
 	if err != nil {
-		skutil.ReportError(w, r, err, "Failed to get oldest pending task")
+		httputils.ReportError(w, r, err, "Failed to get oldest pending task")
 		return
 	}
 
 	if err := EncodeTask(w, oldestTask); err != nil {
-		skutil.ReportError(w, r, err,
+		httputils.ReportError(w, r, err,
 			fmt.Sprintf("Failed to encode JSON for %#v", oldestTask))
 		return
 	}

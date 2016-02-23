@@ -17,6 +17,7 @@ import (
 	"github.com/skia-dev/glog"
 	"github.com/skia-dev/go-systemd/dbus"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/systemd"
@@ -104,17 +105,17 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse form.")
+		httputils.ReportError(w, r, err, "Failed to parse form.")
 		return
 	}
 	action := r.Form.Get("action")
 	if !util.In(action, ACTIONS) {
-		util.ReportError(w, r, fmt.Errorf("Not a valid action: %s", action), "Invalid action.")
+		httputils.ReportError(w, r, fmt.Errorf("Not a valid action: %s", action), "Invalid action.")
 		return
 	}
 	name := r.Form.Get("name")
 	if name == "" {
-		util.ReportError(w, r, fmt.Errorf("Not a valid service name: %s", name), "Invalid service name.")
+		httputils.ReportError(w, r, fmt.Errorf("Not a valid service name: %s", name), "Invalid service name.")
 		return
 	}
 	if *local {
@@ -134,7 +135,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 		_, err = dbc.RestartUnit(name, "replace", ch)
 	}
 	if err != nil {
-		util.ReportError(w, r, err, "Action failed.")
+		httputils.ReportError(w, r, err, "Action failed.")
 		return
 	}
 	res := ChangeResult{}
@@ -246,7 +247,7 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 func listHandler(w http.ResponseWriter, r *http.Request) {
 	units, err := listUnits()
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to list units.")
+		httputils.ReportError(w, r, err, "Failed to list units.")
 		return
 	}
 
@@ -270,7 +271,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		units, err := listUnits()
 		if err != nil {
-			util.ReportError(w, r, err, "Failed to list units.")
+			httputils.ReportError(w, r, err, "Failed to list units.")
 			return
 		}
 		context := &IndexBody{
@@ -291,12 +292,12 @@ func main() {
 	pullInit()
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", mainHandler).Methods("GET")
 	r.HandleFunc("/_/list", listHandler).Methods("GET")
 	r.HandleFunc("/_/change", changeHandler).Methods("POST")
 	r.HandleFunc("/pullpullpull", pullHandler)
-	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

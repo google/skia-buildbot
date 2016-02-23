@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -32,7 +33,7 @@ func NewRepo(url string) *Repo {
 // ReadFile reads the current version of the given file from the master branch
 // of the Repo.
 func (r *Repo) ReadFile(srcPath string, w io.Writer) error {
-	resp, err := util.NewTimeoutClient().Get(fmt.Sprintf(DOWNLOAD_URL, r.URL, "master", srcPath))
+	resp, err := httputils.NewTimeoutClient().Get(fmt.Sprintf(DOWNLOAD_URL, r.URL, "master", srcPath))
 	if err != nil {
 		return err
 	}

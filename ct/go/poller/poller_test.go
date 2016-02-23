@@ -20,6 +20,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
 
 	expect "github.com/stretchr/testify/assert"
@@ -371,7 +372,7 @@ func TestUpdateWebappTaskSetFailedFailure(t *testing.T) {
 		assert.Equal(t, "/"+ctfeutil.UPDATE_RECREATE_WEBPAGE_ARCHIVES_TASK_POST_URI,
 			r.URL.Path)
 		defer skutil.Close(r.Body)
-		skutil.ReportError(w, r, fmt.Errorf(errstr), errstr)
+		httputils.ReportError(w, r, fmt.Errorf(errstr), errstr)
 	}
 	defer frontend.CloseTestServer(frontend.InitTestServer(http.HandlerFunc(mockServer)))
 	err := updateWebappTaskSetFailed(&task)

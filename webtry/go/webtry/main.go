@@ -35,6 +35,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/webtry/go/config"
@@ -638,7 +639,7 @@ func workspaceHandler(w http.ResponseWriter, r *http.Request) {
 			name = match[1]
 			rows, err := db.Query("SELECT create_ts, hash, source_image_id FROM workspacetry WHERE name=? ORDER BY create_ts", name)
 			if err != nil {
-				util.ReportError(w, r, err, "Failed to select.")
+				httputils.ReportError(w, r, err, "Failed to select.")
 				return
 			}
 			defer util.Close(rows)

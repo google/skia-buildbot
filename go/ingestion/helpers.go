@@ -17,6 +17,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -67,7 +68,7 @@ func IngestersFromConfig(config *sharedconfig.Config, client *http.Client, evt *
 	// Set up the Google storage client.
 	if client == nil {
 		client = &http.Client{
-			Transport: util.NewBackOffTransport(),
+			Transport: httputils.NewBackOffTransport(),
 		}
 	}
 

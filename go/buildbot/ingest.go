@@ -11,6 +11,7 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 )
@@ -69,7 +70,7 @@ var (
 	// TODO(borenet): Avoid hard-coding this list. Instead, obtain it from
 	// checked-in code or the set of masters which are actually running.
 	MASTER_NAMES = []string{"client.skia", "client.skia.android", "client.skia.compile", "client.skia.fyi"}
-	httpClient   = util.NewTimeoutClient()
+	httpClient   = httputils.NewTimeoutClient()
 )
 
 // get loads data from a buildbot JSON endpoint.

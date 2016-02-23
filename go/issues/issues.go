@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -30,7 +31,7 @@ type CodesiteIssueTracker struct {
 func NewIssueTracker(apiKey string) IssueTracker {
 	return &CodesiteIssueTracker{
 		apiKey: apiKey,
-		client: util.NewTimeoutClient(),
+		client: httputils.NewTimeoutClient(),
 	}
 }
 

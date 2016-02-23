@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -86,7 +87,7 @@ func imgHandler(w http.ResponseWriter, r *http.Request) {
 
 	b, err := ioutil.ReadFile(filepath.Join(*resourcesDir, "image.png"))
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load image.")
+		httputils.ReportError(w, r, err, "Failed to load image.")
 	}
 	if _, err := w.Write(b); err != nil {
 		glog.Errorf("Failed to write image: %s", err)
@@ -140,7 +141,7 @@ func main() {
 	router.HandleFunc("/img", imgHandler)
 	router.HandleFunc("/info", infoHandler)
 	router.HandleFunc("/new", skpHandler)
-	http.Handle("/", util.LoggingGzipRequestResponse(router))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

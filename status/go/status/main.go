@@ -28,6 +28,7 @@ import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/login"
@@ -144,7 +145,7 @@ func getCommitCache(w http.ResponseWriter, r *http.Request) (*commit_cache.Commi
 	if !ok {
 		e := fmt.Sprintf("Unknown repo: %s", repo)
 		err := fmt.Errorf(e)
-		util.ReportError(w, r, err, e)
+		httputils.ReportError(w, r, err, e)
 		return nil, err
 	}
 	return cache, nil
@@ -160,14 +161,14 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	commitsToLoad := DEFAULT_COMMITS_TO_LOAD
 	n, err := getIntParam("n", r)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid parameter: %v", err))
 		return
 	}
 	if n != nil {
 		commitsToLoad = *n
 	}
 	if err := cache.LastNAsJson(w, commitsToLoad); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
 		return
 	}
 }
@@ -175,7 +176,7 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("addBuildCommentHandler").Stop()
 	if !userHasEditRights(r) {
-		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -185,17 +186,17 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	master, ok := mux.Vars(r)["master"]
 	if !ok {
-		util.ReportError(w, r, err, "No build master given!")
+		httputils.ReportError(w, r, err, "No build master given!")
 		return
 	}
 	builder, ok := mux.Vars(r)["builder"]
 	if !ok {
-		util.ReportError(w, r, err, "No builder given!")
+		httputils.ReportError(w, r, err, "No builder given!")
 		return
 	}
 	number, err := strconv.ParseInt(mux.Vars(r)["number"], 10, 64)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("No valid build number given: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("No valid build number given: %v", err))
 		return
 	}
 
@@ -203,7 +204,7 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Comment string `json:"comment"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
 	defer util.Close(r.Body)
@@ -213,7 +214,7 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Message:   comment.Comment,
 	}
 	if err := cache.AddBuildComment(master, builder, int(number), &c); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
 }
@@ -221,7 +222,7 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("deleteBuildCommentHandler").Stop()
 	if !userHasEditRights(r) {
-		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -231,26 +232,26 @@ func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	master, ok := mux.Vars(r)["master"]
 	if !ok {
-		util.ReportError(w, r, err, "No build master given!")
+		httputils.ReportError(w, r, err, "No build master given!")
 		return
 	}
 	builder, ok := mux.Vars(r)["builder"]
 	if !ok {
-		util.ReportError(w, r, err, "No builder given!")
+		httputils.ReportError(w, r, err, "No builder given!")
 		return
 	}
 	number, err := strconv.ParseInt(mux.Vars(r)["number"], 10, 64)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("No valid build number given: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("No valid build number given: %v", err))
 		return
 	}
 	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 64)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
 	if err := cache.DeleteBuildComment(master, builder, int(number), commentId); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
 }
@@ -258,7 +259,7 @@ func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("addBuilderCommentHandler").Stop()
 	if !userHasEditRights(r) {
-		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -274,7 +275,7 @@ func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 		IgnoreFailure bool   `json:"ignoreFailure"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
 	defer util.Close(r.Body)
@@ -288,7 +289,7 @@ func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Message:       comment.Comment,
 	}
 	if err := cache.AddBuilderComment(builder, &c); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to add builder comment: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add builder comment: %v", err))
 		return
 	}
 }
@@ -296,7 +297,7 @@ func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 func deleteBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("deleteBuilderCommentHandler").Stop()
 	if !userHasEditRights(r) {
-		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -307,11 +308,11 @@ func deleteBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 	builder := mux.Vars(r)["builder"]
 	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
 	if err := cache.DeleteBuilderComment(builder, commentId); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
 }
@@ -319,7 +320,7 @@ func deleteBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("addCommitCommentHandler").Stop()
 	if !userHasEditRights(r) {
-		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -328,7 +329,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Comment string `json:"comment"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&comment); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
 	defer util.Close(r.Body)
@@ -340,7 +341,7 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Message:   comment.Comment,
 	}
 	if err := db.PutCommitComment(&c); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add commit comment: %v", err))
 		return
 	}
 }
@@ -348,17 +349,17 @@ func addCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 func deleteCommitCommentHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("deleteCommitCommentHandler").Stop()
 	if !userHasEditRights(r) {
-		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "User does not have edit rights.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
 	if err := db.DeleteCommitComment(commentId); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete commit comment: %v", err))
 		return
 	}
 }
@@ -373,7 +374,7 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := commitsTemplate.Execute(w, struct{}{}); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 	}
 }
 
@@ -387,7 +388,7 @@ func infraHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := infraTemplate.Execute(w, struct{}{}); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 	}
 }
 
@@ -397,12 +398,12 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	start, err := getIntParam("start", r)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"start\": %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"start\": %v", err))
 		return
 	}
 	end, err := getIntParam("end", r)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"end\": %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid value for parameter \"end\": %v", err))
 		return
 	}
 
@@ -424,7 +425,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	// Fetch the builds.
 	builds, err := db.GetBuildsFromDateRange(startTime, endTime)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
 		return
 	}
 	// Shrink the builds.
@@ -493,7 +494,7 @@ func buildbotDashHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := buildbotDashTemplate.Execute(w, struct{}{}); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to expand template: %v", err))
 		return
 	}
 }
@@ -501,7 +502,7 @@ func buildbotDashHandler(w http.ResponseWriter, r *http.Request) {
 func perfJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]interface{}{"alerts": perfStatus}); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to report Perf status: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to report Perf status: %v", err))
 		return
 	}
 }
@@ -555,7 +556,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the commit cache.
 	cache, err := getCommitCache(w, r)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to get the commit cache."))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the commit cache."))
 		return
 	}
 
@@ -563,7 +564,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 	hash := r.FormValue("commit")
 	buildsAtNewCommit, err := cache.GetBuildsForCommit(hash)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
 	}
 	finishedAtNewCommit := 0
@@ -576,12 +577,12 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 	// Find an older commit for which we'll assume that all builds have completed.
 	oldCommit, err := cache.Get(cache.NumCommits() - DEFAULT_COMMITS_TO_LOAD)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to get an old commit from the cache."))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get an old commit from the cache."))
 		return
 	}
 	buildsAtOldCommit, err := cache.GetBuildsForCommit(oldCommit.Hash)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
 	}
 	finishedAtOldCommit := 0
@@ -604,7 +605,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 		FinishedProportion:  float64(finishedAtNewCommit) / float64(finishedAtOldCommit),
 	}
 	if err := json.NewEncoder(w).Encode(res); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON."))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON."))
 		return
 	}
 }
@@ -624,7 +625,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	builds := r.PathPrefix("/json/{repo}/builds/{master}/{builder}/{number:[0-9]+}").Subrouter()
 	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
 	builds.HandleFunc("/comments/{commentId:[0-9]+}", deleteBuildCommentHandler).Methods("DELETE")
@@ -635,7 +636,7 @@ func runServer(serverURL string) {
 	commits.HandleFunc("/", commitsJsonHandler)
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments", addCommitCommentHandler).Methods("POST")
 	commits.HandleFunc("/{commit:[a-f0-9]+}/comments/{commentId:[0-9]+}", deleteCommitCommentHandler).Methods("DELETE")
-	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

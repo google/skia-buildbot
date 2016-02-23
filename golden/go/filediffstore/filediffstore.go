@@ -23,6 +23,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	storage "google.golang.org/api/storage/v1"
@@ -148,7 +149,7 @@ type FileDiffStore struct {
 // Use RECOMMENDED_WORKER_POOL_SIZE if unsure what this value should be.
 func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storageBaseDir string, cacheFactory CacheFactory, workerPoolSize int) (diff.DiffStore, error) {
 	if client == nil {
-		client = util.NewTimeoutClient()
+		client = httputils.NewTimeoutClient()
 	}
 
 	if storageBaseDir == "" {

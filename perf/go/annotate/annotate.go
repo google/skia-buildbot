@@ -7,6 +7,7 @@ import (
 	"net/url"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/perf/go/activitylog"
@@ -49,7 +50,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Annotate Handler: %q\n", r.URL.Path)
 
 	if login.LoggedInAs(r) == "" {
-		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change an alert status.")
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change an alert status.")
 		return
 	}
 	if r.Method != "POST" {
@@ -57,7 +58,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.Body == nil {
-		util.ReportError(w, r, fmt.Errorf("Missing POST Body."), "POST with no request body.")
+		httputils.ReportError(w, r, fmt.Errorf("Missing POST Body."), "POST with no request body.")
 		return
 	}
 
@@ -68,25 +69,25 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}{}
 	dec := json.NewDecoder(r.Body)
 	if err := dec.Decode(&req); err != nil {
-		util.ReportError(w, r, err, "Unable to decode posted JSON.")
+		httputils.ReportError(w, r, err, "Unable to decode posted JSON.")
 		return
 	}
 
 	if !util.In(req.Status, types.ValidStatusValues) {
-		util.ReportError(w, r, fmt.Errorf("Invalid status value: %s", req.Status), "Unknown value.")
+		httputils.ReportError(w, r, fmt.Errorf("Invalid status value: %s", req.Status), "Unknown value.")
 		return
 	}
 
 	// Store the updated values in the ClusterSummary.
 	c, err := alerting.Get(req.Id)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load cluster summary.")
+		httputils.ReportError(w, r, err, "Failed to load cluster summary.")
 		return
 	}
 	c.Status = req.Status
 	c.Message = req.Message
 	if err := alerting.Write(c); err != nil {
-		util.ReportError(w, r, err, "Failed to save cluster summary.")
+		httputils.ReportError(w, r, err, "Failed to save cluster summary.")
 		return
 	}
 
@@ -98,7 +99,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		URL:    fmt.Sprintf("https://perf.skia.org/cl/%d", req.Id),
 	}
 	if err := activitylog.Write(a); err != nil {
-		util.ReportError(w, r, err, "Failed to save activity.")
+		httputils.ReportError(w, r, err, "Failed to save activity.")
 		return
 	}
 

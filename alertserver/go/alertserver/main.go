@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/alertserver/go/rules"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/influxdb_init"
 	"go.skia.org/infra/go/login"
@@ -165,55 +166,55 @@ func alertJsonHandler(w http.ResponseWriter, r *http.Request) {
 func handleAlert(alertId int64, comment string, until int, w http.ResponseWriter, r *http.Request) {
 	email := login.LoggedInAs(r)
 	if !userHasEditRights(email) {
-		util.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in to an account with edit rights to do that.")
+		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in to an account with edit rights to do that.")
 		return
 	}
 
 	action, ok := mux.Vars(r)["action"]
 	if !ok {
-		util.ReportError(w, r, fmt.Errorf("No action provided."), "No action provided.")
+		httputils.ReportError(w, r, fmt.Errorf("No action provided."), "No action provided.")
 		return
 	}
 
 	if action == "dismiss" {
 		glog.Infof("%s %d", action, alertId)
 		if err := alertManager.Dismiss(alertId, email, comment); err != nil {
-			util.ReportError(w, r, err, "Failed to dismiss alert.")
+			httputils.ReportError(w, r, err, "Failed to dismiss alert.")
 			return
 		}
 		return
 	} else if action == "snooze" {
 		if until == 0 {
-			util.ReportError(w, r, fmt.Errorf("Invalid snooze time."), fmt.Sprintf("Invalid snooze time"))
+			httputils.ReportError(w, r, fmt.Errorf("Invalid snooze time."), fmt.Sprintf("Invalid snooze time"))
 			return
 		}
 		until := time.Unix(int64(until), 0)
 		glog.Infof("%s %d until %v", action, alertId, until.String())
 		if err := alertManager.Snooze(alertId, until, email, comment); err != nil {
-			util.ReportError(w, r, err, "Failed to snooze alert.")
+			httputils.ReportError(w, r, err, "Failed to snooze alert.")
 			return
 		}
 		return
 	} else if action == "unsnooze" {
 		glog.Infof("%s %d", action, alertId)
 		if err := alertManager.Unsnooze(alertId, email, comment); err != nil {
-			util.ReportError(w, r, err, "Failed to unsnooze alert.")
+			httputils.ReportError(w, r, err, "Failed to unsnooze alert.")
 			return
 		}
 		return
 	} else if action == "addcomment" {
 		if !StringIsInteresting(comment) {
-			util.ReportError(w, r, fmt.Errorf("Invalid comment text."), comment)
+			httputils.ReportError(w, r, fmt.Errorf("Invalid comment text."), comment)
 			return
 		}
 		glog.Infof("%s %d: %s", action, alertId, comment)
 		if err := alertManager.AddComment(alertId, email, comment); err != nil {
-			util.ReportError(w, r, err, "Failed to add comment.")
+			httputils.ReportError(w, r, err, "Failed to add comment.")
 			return
 		}
 		return
 	} else {
-		util.ReportError(w, r, fmt.Errorf("Invalid action %s", action), "The requested action is invalid.")
+		httputils.ReportError(w, r, fmt.Errorf("Invalid action %s", action), "The requested action is invalid.")
 		return
 	}
 
@@ -223,12 +224,12 @@ func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	// Get the alert ID.
 	alertIdStr, ok := mux.Vars(r)["alertId"]
 	if !ok {
-		util.ReportError(w, r, fmt.Errorf("No alert ID provided."), "No alert ID provided.")
+		httputils.ReportError(w, r, fmt.Errorf("No alert ID provided."), "No alert ID provided.")
 		return
 	}
 	alertId, err := strconv.ParseInt(alertIdStr, 10, 64)
 	if err != nil {
-		util.ReportError(w, r, fmt.Errorf("Invalid alert ID %s", alertIdStr), "Not found.")
+		httputils.ReportError(w, r, fmt.Errorf("Invalid alert ID %s", alertIdStr), "Not found.")
 		return
 	}
 
@@ -238,7 +239,7 @@ func postAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		util.ReportError(w, r, err, "Failed to decode request body.")
+		httputils.ReportError(w, r, err, "Failed to decode request body.")
 		return
 	}
 
@@ -254,12 +255,12 @@ func postMultiAlertsJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer util.Close(r.Body)
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		util.ReportError(w, r, err, "Failed to decode request body.")
+		httputils.ReportError(w, r, err, "Failed to decode request body.")
 		return
 	}
 
 	if len(req.AlertIDs) < 1 {
-		util.ReportError(w, r, fmt.Errorf("No alerts specified."), "No alerts specified.")
+		httputils.ReportError(w, r, fmt.Errorf("No alerts specified."), "No alerts specified.")
 		return
 	}
 
@@ -278,11 +279,11 @@ func handleAlerts(w http.ResponseWriter, r *http.Request, title string, categori
 
 	categoriesJson, err := json.Marshal(categories)
 	if err != nil {
-		util.ReportError(w, r, fmt.Errorf("Failed to encode JSON."), "Failed to encode JSON")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to encode JSON."), "Failed to encode JSON")
 	}
 	excludeJson, err := json.Marshal(excludeCategories)
 	if err != nil {
-		util.ReportError(w, r, fmt.Errorf("Failed to encode JSON."), "Failed to encode JSON")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to encode JSON."), "Failed to encode JSON")
 	}
 	inp := struct {
 		Categories        string
@@ -333,12 +334,12 @@ func rulesHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	r.HandleFunc("/", alertHandler)
 	r.HandleFunc("/infra", infraAlertHandler)
 	r.HandleFunc("/rules", rulesHandler)
 	alerts := r.PathPrefix("/json/alerts").Subrouter()
-	alerts.HandleFunc("/", util.CorsHandler(alertJsonHandler))
+	alerts.HandleFunc("/", httputils.CorsHandler(alertJsonHandler))
 	alerts.HandleFunc("/{alertId:[0-9]+}/{action}", postAlertsJsonHandler).Methods("POST")
 	alerts.HandleFunc("/multi/{action}", postMultiAlertsJsonHandler).Methods("POST")
 	r.HandleFunc("/json/rules", rulesJsonHandler)
@@ -346,7 +347,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Infof("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }

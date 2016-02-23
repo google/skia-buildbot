@@ -31,6 +31,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
@@ -208,7 +209,7 @@ func runServer() {
 	}
 
 	r := mux.NewRouter()
-	r.PathPrefix("/res/").HandlerFunc(util.MakeResourceHandler(*resourcesDir))
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
 	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.HandleFunc("/", indexHandler)
@@ -227,7 +228,7 @@ func runServer() {
 	r.HandleFunc(`/metadata/{category:[a-z_]+}/{name:[0-9a-f]+_(debug|release)\.(err|dump|asan)}`, metadataHandler)
 	r.HandleFunc("/newBug", newBugHandler)
 
-	rootHandler := login.ForceAuth(util.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
+	rootHandler := login.ForceAuth(httputils.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
 
 	http.Handle("/", rootHandler)
 	glog.Infof("Ready to serve on %s", serverURL)
@@ -315,17 +316,17 @@ func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	// We base64 encode them to prevent problems.
 	file, err := decodeBase64(r.FormValue("file"))
 	if err != nil {
-		util.ReportError(w, r, err, "There was a problem decoding the params.")
+		httputils.ReportError(w, r, err, "There was a problem decoding the params.")
 		return
 	}
 	function, err := decodeBase64(r.FormValue("func"))
 	if err != nil {
-		util.ReportError(w, r, err, "There was a problem decoding the params.")
+		httputils.ReportError(w, r, err, "There was a problem decoding the params.")
 		return
 	}
 	lineStr, err := decodeBase64(r.FormValue("line"))
 	if err != nil {
-		util.ReportError(w, r, err, "There was a problem decoding the params.")
+		httputils.ReportError(w, r, err, "There was a problem decoding the params.")
 		return
 	}
 
@@ -333,7 +334,7 @@ func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if name != "" {
 		var err error
 		if f, err = data.FindFuzzDetailForFuzz(category, name); err != nil {
-			util.ReportError(w, r, err, "There was a problem fulfilling the request.")
+			httputils.ReportError(w, r, err, "There was a problem fulfilling the request.")
 		}
 	} else {
 		line, err := strconv.ParseInt(lineStr, 10, 32)
@@ -342,7 +343,7 @@ func detailsJSONHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if f, err = data.FindFuzzDetails(category, file, function, int(line)); err != nil {
-			util.ReportError(w, r, err, "There was a problem fulfilling the request.")
+			httputils.ReportError(w, r, err, "There was a problem fulfilling the request.")
 			return
 		}
 	}
@@ -366,13 +367,13 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 	category := v["category"]
 	// Check the category to avoid someone trying to download arbitrary files from our bucket
 	if !fcommon.HasCategory(category) {
-		util.ReportError(w, r, nil, "Category not found")
+		httputils.ReportError(w, r, nil, "Category not found")
 		return
 	}
 	name := v["name"]
 	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.FrontEnd.SkiaVersion.Hash, name, name))
 	if err != nil {
-		util.ReportError(w, r, err, "Fuzz not found")
+		httputils.ReportError(w, r, err, "Fuzz not found")
 		return
 	}
 	w.Header().Set("Content-Type", "application/octet-stream")
@@ -389,7 +390,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	category := v["category"]
 	// Check the category to avoid someone trying to download arbitrary files from our bucket
 	if !fcommon.HasCategory(category) {
-		util.ReportError(w, r, nil, "Category not found")
+		httputils.ReportError(w, r, nil, "Category not found")
 		return
 	}
 	name := v["name"]
@@ -397,7 +398,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 
 	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.FrontEnd.SkiaVersion.Hash, hash, name))
 	if err != nil {
-		util.ReportError(w, r, err, "Fuzz metadata not found")
+		httputils.ReportError(w, r, err, "Fuzz metadata not found")
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -481,7 +482,7 @@ func newBugHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	var t bytes.Buffer
 	if err := newBugTemplate.Execute(&t, b); err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Could not create template with %#v", b))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Could not create template with %#v", b))
 		return
 	}
 	q.Add("comment", t.String())

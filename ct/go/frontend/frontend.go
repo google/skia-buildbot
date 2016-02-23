@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
@@ -44,7 +45,7 @@ var (
 	GetOldestPendingTaskWebapp               string
 )
 
-var httpClient = skutil.NewTimeoutClient()
+var httpClient = httputils.NewTimeoutClient()
 
 // Initializes *Webapp URLs above and sets up authentication credentials for UpdateWebappTaskV2.
 func MustInit() {
@@ -97,7 +98,7 @@ func UpdateWebappTask(gaeTaskID int64, webappURL string, extraData map[string]st
 	if err != nil {
 		return fmt.Errorf("Could not create HTTP request: %s", err)
 	}
-	client := util.NewTimeoutClient()
+	client := httputils.NewTimeoutClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Could not update webapp task: %s", err)
@@ -141,7 +142,7 @@ func UpdateWebappTaskV2(vars task_common.UpdateTaskVars) error {
 		return fmt.Errorf("Could not compute authentication hash: %s", err)
 	}
 	req.Header.Set(webhook.REQUEST_AUTH_HASH_HEADER, hash)
-	client := util.NewTimeoutClient()
+	client := httputils.NewTimeoutClient()
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("Could not update webapp task: %s", err)

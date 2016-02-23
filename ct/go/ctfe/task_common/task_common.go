@@ -19,6 +19,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
 	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
@@ -97,16 +98,16 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	if !ctfeutil.UserHasEditRights(r) {
-		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to add tasks"), "")
+		httputils.ReportError(w, r, fmt.Errorf("Must have google or chromium account to add tasks"), "")
 		return
 	}
 	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
-		skutil.ReportError(w, r, fmt.Errorf("Must be admin to add admin tasks; contact rmistry@"), "")
+		httputils.ReportError(w, r, fmt.Errorf("Must be admin to add admin tasks; contact rmistry@"), "")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to add %T task", task))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add %T task", task))
 		return
 	}
 	defer skutil.Close(r.Body)
@@ -114,12 +115,12 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
 	task.GetAddTaskCommonVars().TsAdded = ctutil.GetCurrentTs()
 	if len(task.GetAddTaskCommonVars().Username) > 255 {
-		skutil.ReportError(w, r, fmt.Errorf("Username is too long, limit 255 bytes"), "")
+		httputils.ReportError(w, r, fmt.Errorf("Username is too long, limit 255 bytes"), "")
 		return
 	}
 
 	if _, err := AddTask(task); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to insert %T task", task))
 		return
 	}
 }
@@ -207,19 +208,19 @@ func DBTaskQuery(prototype Task, params QueryParams) (string, []interface{}) {
 func GetTaskStatusHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	taskID := r.FormValue("task_id")
 	if taskID == "" {
-		skutil.ReportError(w, r, fmt.Errorf("Missing required parameter task_id"), "")
+		httputils.ReportError(w, r, fmt.Errorf("Missing required parameter task_id"), "")
 		return
 	}
 
 	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", prototype.TableName())
 	data, err := prototype.Select(rowQuery, taskID)
 	if err != nil {
-		skutil.ReportError(w, r, fmt.Errorf("Could not find %s task with ID %s", prototype.GetTaskName(), taskID), "")
+		httputils.ReportError(w, r, fmt.Errorf("Could not find %s task with ID %s", prototype.GetTaskName(), taskID), "")
 		return
 	}
 	tasks := AsTaskSlice(data)
 	if len(tasks) == 0 {
-		skutil.ReportError(w, r, fmt.Errorf("Could not find %s task with ID %s", prototype.GetTaskName(), taskID), "")
+		httputils.ReportError(w, r, fmt.Errorf("Could not find %s task with ID %s", prototype.GetTaskName(), taskID), "")
 		return
 	}
 
@@ -241,7 +242,7 @@ func GetTaskStatusHandler(prototype Task, w http.ResponseWriter, r *http.Request
 		"resultsLink": resultsLink,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
-		skutil.ReportError(w, r, err, "Failed to encode JSON")
+		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
 }
@@ -271,18 +272,18 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	params.FutureRunsOnly = parseBoolFormValue(r.FormValue("include_future_runs"))
 	params.ExcludeDummyPageSets = parseBoolFormValue(r.FormValue("exclude_dummy_page_sets"))
 	if params.SuccessfulOnly && params.PendingOnly {
-		skutil.ReportError(w, r, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "")
+		httputils.ReportError(w, r, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "")
 		return
 	}
 	if params.ExcludeDummyPageSets && !HasPageSetsColumn(prototype) {
-		skutil.ReportError(w, r, fmt.Errorf("Task %s does not use page sets and thus cannot exclude dummy page sets.", prototype.GetTaskName()), "")
+		httputils.ReportError(w, r, fmt.Errorf("Task %s does not use page sets and thus cannot exclude dummy page sets.", prototype.GetTaskName()), "")
 		return
 	}
-	offset, size, err := skutil.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
 	if err == nil {
 		params.Offset, params.Size = offset, size
 	} else {
-		skutil.ReportError(w, r, err, "Failed to get pagination params")
+		httputils.ReportError(w, r, err, "Failed to get pagination params")
 		return
 	}
 	params.CountQuery = false
@@ -290,7 +291,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Running %s", query)
 	data, err := prototype.Select(query, args...)
 	if err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
 		return
 	}
 
@@ -300,11 +301,11 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Running %s", query)
 	countVal := []int{}
 	if err := db.DB.Select(&countVal, query, args...); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to query %s tasks", prototype.GetTaskName()))
 		return
 	}
 
-	pagination := &skutil.ResponsePagination{
+	pagination := &httputils.ResponsePagination{
 		Offset: offset,
 		Size:   size,
 		Total:  countVal[0],
@@ -326,7 +327,7 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		"pagination":  pagination,
 	}
 	if err := json.NewEncoder(w).Encode(jsonResponse); err != nil {
-		skutil.ReportError(w, r, err, "Failed to encode JSON")
+		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
 }
@@ -406,23 +407,23 @@ func UpdateTaskHandler(vars UpdateTaskVars, tableName string, w http.ResponseWri
 	data, err := webhook.AuthenticateRequest(r)
 	if err != nil {
 		if data == nil {
-			skutil.ReportError(w, r, err, "Failed to read update request")
+			httputils.ReportError(w, r, err, "Failed to read update request")
 			return
 		}
 		if !ctfeutil.UserHasAdminRights(r) {
-			skutil.ReportError(w, r, err, "Failed authentication")
+			httputils.ReportError(w, r, err, "Failed authentication")
 			return
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.Unmarshal(data, &vars); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to parse %T update", vars))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to parse %T update", vars))
 		return
 	}
 	defer skutil.Close(r.Body)
 
 	if err := UpdateTask(vars, tableName); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to update %T task", vars))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to update %T task", vars))
 		return
 	}
 }
@@ -469,13 +470,13 @@ func canRedoTask(task Task, r *http.Request) (bool, error) {
 
 func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
-		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to delete tasks"), "")
+		httputils.ReportError(w, r, fmt.Errorf("Must have google or chromium account to delete tasks"), "")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	vars := struct{ Id int64 }{}
 	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
-		skutil.ReportError(w, r, err, "Failed to parse delete request")
+		httputils.ReportError(w, r, err, "Failed to parse delete request")
 		return
 	}
 	defer skutil.Close(r.Body)
@@ -490,7 +491,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	}
 	result, err := db.DB.Exec(deleteQuery, binds...)
 	if err != nil {
-		skutil.ReportError(w, r, err, "Failed to delete")
+		httputils.ReportError(w, r, err, "Failed to delete")
 		return
 	}
 	// Check result to ensure that the row was deleted.
@@ -502,7 +503,7 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", prototype.TableName())
 	data, err := prototype.Select(rowQuery, vars.Id)
 	if err != nil {
-		skutil.ReportError(w, r, err, "Unable to validate request.")
+		httputils.ReportError(w, r, err, "Unable to validate request.")
 		return
 	}
 	tasks := AsTaskSlice(data)
@@ -511,22 +512,22 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, err := canDeleteTask(tasks[0], r); !ok {
-		skutil.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "")
 	} else {
-		skutil.ReportError(w, r, fmt.Errorf("Failed to delete; reason unknown"), "")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to delete; reason unknown"), "")
 		return
 	}
 }
 
 func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
-		skutil.ReportError(w, r, fmt.Errorf("Must have google or chromium account to redo tasks"), "")
+		httputils.ReportError(w, r, fmt.Errorf("Must have google or chromium account to redo tasks"), "")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	vars := struct{ Id int64 }{}
 	if err := json.NewDecoder(r.Body).Decode(&vars); err != nil {
-		skutil.ReportError(w, r, err, "Failed to parse redo request")
+		httputils.ReportError(w, r, err, "Failed to parse redo request")
 		return
 	}
 	defer skutil.Close(r.Body)
@@ -535,12 +536,12 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	binds := []interface{}{vars.Id}
 	data, err := prototype.Select(rowQuery, binds...)
 	if err != nil {
-		skutil.ReportError(w, r, err, "Unable to find requested task.")
+		httputils.ReportError(w, r, err, "Unable to find requested task.")
 		return
 	}
 	tasks := AsTaskSlice(data)
 	if len(tasks) != 1 {
-		skutil.ReportError(w, r, err, "Unable to find requested task.")
+		httputils.ReportError(w, r, err, "Unable to find requested task.")
 		return
 	}
 
@@ -548,7 +549,7 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	// Replace the username with the new requester.
 	addTaskVars.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
 	if _, err := AddTask(addTaskVars); err != nil {
-		skutil.ReportError(w, r, err, "Could not redo the task.")
+		httputils.ReportError(w, r, err, "Could not redo the task.")
 		return
 	}
 }
@@ -566,7 +567,7 @@ func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(pageSets); err != nil {
-		skutil.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
 	}
 }

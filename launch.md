@@ -32,9 +32,9 @@ Use `go.skia.org/infra/go/login` paired with `res/imp/9/login.html` and/or
 `go.skia.org/infra/go/webhook` for authentication.
 
 Wrap your `http.Handler` with
-`go.skia.org/infra/go/util.LoggingGzipRequestResponse` to provide monitoring and
+`go.skia.org/infra/go/httputils.LoggingGzipRequestResponse` to provide monitoring and
 logging of HTTP requests and responses. Use
-`go.skia.org/infra/go/util.NewTimeoutClient` for HTTP clients.
+`go.skia.org/infra/go/httputils.NewTimeoutClient` for HTTP clients.
 
 Write your code with security in mind:
 

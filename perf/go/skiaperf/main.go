@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
@@ -171,7 +172,7 @@ func Init() {
 		glog.Fatalf("Failed to build trace/db.DB: %s", err)
 	}
 
-	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, util.NewTimeoutClient())
+	rietveldAPI := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 	branchTileBuilder = tracedb.NewBranchTileBuilder(db, git, rietveldAPI, evt)
 }
 
@@ -202,13 +203,13 @@ func shortcutHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		// check header
 		if ct := r.Header.Get("Content-Type"); ct != "application/json" {
-			util.ReportError(w, r, fmt.Errorf("Error: received %s", ct), "Invalid content type.")
+			httputils.ReportError(w, r, fmt.Errorf("Error: received %s", ct), "Invalid content type.")
 			return
 		}
 		defer util.Close(r.Body)
 		id, err := shortcut.Insert(r.Body)
 		if err != nil {
-			util.ReportError(w, r, err, "Error inserting shortcut.")
+			httputils.ReportError(w, r, err, "Error inserting shortcut.")
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -230,7 +231,7 @@ func alertingHandler(w http.ResponseWriter, r *http.Request) {
 	tile := masterTileBuilder.GetTile()
 	alerts, err := alerting.ListFrom(tile.Commits[0].CommitTime)
 	if err != nil {
-		util.ReportError(w, r, err, "Error retrieving cluster summaries.")
+		httputils.ReportError(w, r, err, "Error retrieving cluster summaries.")
 		return
 	}
 	enc := json.NewEncoder(w)
@@ -244,7 +245,7 @@ func alertingHandler(w http.ResponseWriter, r *http.Request) {
 func alertResetHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("AlertResetHandler: %q\n", r.URL.Path)
 	if login.LoggedInAs(r) == "" {
-		util.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change an alert status.")
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change an alert status.")
 		return
 	}
 	if r.Method != "POST" {
@@ -276,12 +277,12 @@ func clHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	id, err := strconv.ParseInt(match[1], 10, 0)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed parsing ID.")
+		httputils.ReportError(w, r, err, "Failed parsing ID.")
 		return
 	}
 	cl, err := alerting.Get(id)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to find cluster with that ID.")
+		httputils.ReportError(w, r, err, "Failed to find cluster with that ID.")
 		return
 	}
 	if err := templates.ExecuteTemplate(w, "cl.html", cl); err != nil {
@@ -309,14 +310,14 @@ func activityHandler(w http.ResponseWriter, r *http.Request) {
 	if len(match[1]) > 0 {
 		num, err := strconv.ParseInt(match[1], 10, 0)
 		if err != nil {
-			util.ReportError(w, r, err, "Failed parsing the given number.")
+			httputils.ReportError(w, r, err, "Failed parsing the given number.")
 			return
 		}
 		n = int(num)
 	}
 	a, err := activitylog.GetRecent(n)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to retrieve activity.")
+		httputils.ReportError(w, r, err, "Failed to retrieve activity.")
 		return
 	}
 	if err := templates.ExecuteTemplate(w, "activitylog.html", a); err != nil {
@@ -378,7 +379,7 @@ func writeClusterSummaries(summary *clustering.ClusterSummaries, w http.Response
 func perCommitJSONHandler(w http.ResponseWriter, r *http.Request) {
 	ref_ts, err := strconv.Atoi(r.FormValue("ref_ts"))
 	if err != nil {
-		util.ReportError(w, r, fmt.Errorf("Failed to parse value."), "Invalid ref_ts.")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to parse value."), "Invalid ref_ts.")
 		return
 	}
 	commits := []*tracedb.CommitID{
@@ -391,14 +392,14 @@ func perCommitJSONHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("%#v", *commits[0])
 	tile, err := branchTileBuilder.CachedTileFromCommits(commits)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to create tile from query.")
+		httputils.ReportError(w, r, err, "Failed to create tile from query.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	query := r.FormValue("query")
 	q, err := url.ParseQuery(query)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("Failed to parse query parameters."))
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to parse query parameters."))
 		return
 	}
 	ret := quartiles.FromTile(tile, tileStats, q)
@@ -459,12 +460,12 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 
 	k, err := strconv.ParseInt(r.FormValue("_k"), 10, 32)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("_k parameter must be an integer %s.", r.FormValue("_k")))
+		httputils.ReportError(w, r, err, fmt.Sprintf("_k parameter must be an integer %s.", r.FormValue("_k")))
 		return
 	}
 	stddev, err := strconv.ParseFloat(r.FormValue("_stddev"), 64)
 	if err != nil {
-		util.ReportError(w, r, err, fmt.Sprintf("_stddev parameter must be a float %s.", r.FormValue("_stddev")))
+		httputils.ReportError(w, r, err, fmt.Sprintf("_stddev parameter must be a float %s.", r.FormValue("_stddev")))
 		return
 	}
 
@@ -480,7 +481,7 @@ func clusteringHandler(w http.ResponseWriter, r *http.Request) {
 
 	summary, err := clustering.CalculateClusterSummaries(tile, int(k), stddev, filter)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to calculate clusters.")
+		httputils.ReportError(w, r, err, "Failed to calculate clusters.")
 		return
 	}
 	writeClusterSummaries(summary, w, r)
@@ -528,12 +529,12 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	tileScale, err := strconv.ParseInt(match[1], 10, 0)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed parsing tile scale.")
+		httputils.ReportError(w, r, err, "Failed parsing tile scale.")
 		return
 	}
 	tileNumber, err := strconv.ParseInt(match[2], 10, 0)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed parsing tile number.")
+		httputils.ReportError(w, r, err, "Failed parsing tile number.")
 		return
 	}
 	glog.Infof("tile: %d %d", tileScale, tileNumber)
@@ -562,7 +563,7 @@ func tileHandler(w http.ResponseWriter, r *http.Request) {
 	// Marshal and send
 	marshaledResult, err := json.Marshal(guiTile)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to marshal JSON.")
+		httputils.ReportError(w, r, err, "Failed to marshal JSON.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -658,16 +659,16 @@ func queryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse query params.")
+		httputils.ReportError(w, r, err, "Failed to parse query params.")
 	}
 	tileScale, err := strconv.ParseInt(match[1], 10, 0)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed parsing tile scale.")
+		httputils.ReportError(w, r, err, "Failed parsing tile scale.")
 		return
 	}
 	tileNumber, err := strconv.ParseInt(match[2], 10, 0)
 	if err != nil {
-		util.ReportError(w, r, err, "Failed parsing tile number.")
+		httputils.ReportError(w, r, err, "Failed parsing tile number.")
 		return
 	}
 	glog.Infof("tile: %d %d", tileScale, tileNumber)
@@ -774,7 +775,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := r.ParseForm(); err != nil {
-		util.ReportError(w, r, err, "Failed to parse query params.")
+		httputils.ReportError(w, r, err, "Failed to parse query params.")
 	}
 	hash := match[1]
 
@@ -800,7 +801,7 @@ func singleHandler(w http.ResponseWriter, r *http.Request) {
 		if tiling.Matches(tr, r.Form) {
 			v, err := vec.FillAt(tr.(*types.PerfTrace).Values, idx)
 			if err != nil {
-				util.ReportError(w, r, err, "Error while getting value at slice index.")
+				httputils.ReportError(w, r, err, "Error while getting value at slice index.")
 				return
 			}
 			t := &SingleTrace{
@@ -897,7 +898,7 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 			Traces: []*types.PerfTrace{},
 		}
 		if err := addFlatCalculatedTraces(resp, tile, formula); err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
 			return
 		}
 		data = resp
@@ -907,7 +908,7 @@ func calcHandler(w http.ResponseWriter, r *http.Request) {
 			Hash:   "",
 		}
 		if err := addCalculatedTraces(resp, tile, formula); err != nil {
-			util.ReportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed in /calc/ to evaluate formula."))
 			return
 		}
 		data = resp
@@ -954,13 +955,13 @@ func commitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	begin := r.FormValue("begin")
 	if len(begin) != 40 {
-		util.ReportError(w, r, fmt.Errorf("Invalid hash format: %s", begin), "Error while looking up hashes.")
+		httputils.ReportError(w, r, fmt.Errorf("Invalid hash format: %s", begin), "Error while looking up hashes.")
 		return
 	}
 	end := r.FormValue("end")
 	body, err := git.Log(begin, end)
 	if err != nil {
-		util.ReportError(w, r, err, "Error while looking up hashes.")
+		httputils.ReportError(w, r, err, "Error while looking up hashes.")
 		return
 	}
 	escaped := ehtml.EscapeString(body)
@@ -1000,17 +1001,17 @@ func shortCommitsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	begin := r.FormValue("begin")
 	if len(begin) != 40 {
-		util.ReportError(w, r, fmt.Errorf("Invalid begin hash format: %s", begin), "Error while looking up hashes.")
+		httputils.ReportError(w, r, fmt.Errorf("Invalid begin hash format: %s", begin), "Error while looking up hashes.")
 		return
 	}
 	end := r.FormValue("end")
 	if len(end) != 40 {
-		util.ReportError(w, r, fmt.Errorf("Invalid end hash format: %s", end), "Error while looking up hashes.")
+		httputils.ReportError(w, r, fmt.Errorf("Invalid end hash format: %s", end), "Error while looking up hashes.")
 		return
 	}
 	commits, err := git.ShortList(begin, end)
 	if err != nil {
-		util.ReportError(w, r, err, "Error while looking up hashes.")
+		httputils.ReportError(w, r, err, "Error while looking up hashes.")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -1065,7 +1066,7 @@ func commitsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	begin, err := human.ParseDuration(beginStr)
 	if err != nil {
-		util.ReportError(w, r, fmt.Errorf("Failed to parse duration."), "Invalid value for begin.")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to parse duration."), "Invalid value for begin.")
 		return
 	}
 	durStr := r.FormValue("dur")
@@ -1074,7 +1075,7 @@ func commitsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	dur, err := human.ParseDuration(durStr)
 	if err != nil {
-		util.ReportError(w, r, fmt.Errorf("Failed to parse duration."), "Invalid value for end.")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to parse duration."), "Invalid value for end.")
 		return
 	}
 	if dur > begin {
@@ -1085,7 +1086,7 @@ func commitsJSONHandler(w http.ResponseWriter, r *http.Request) {
 	endTime := beginTime.Add(dur)
 	commits, err := branchTileBuilder.ListLong(beginTime, endTime, r.FormValue("source"))
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load commits")
+		httputils.ReportError(w, r, err, "Failed to load commits")
 		return
 	}
 
@@ -1184,7 +1185,7 @@ func main() {
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 
-	http.Handle("/", util.LoggingGzipRequestResponse(router))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))

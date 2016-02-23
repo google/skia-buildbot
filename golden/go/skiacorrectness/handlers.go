@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/tiling"
-	"go.skia.org/infra/go/util"
 )
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -17,7 +17,7 @@ func jsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	tile, sum, err := allUntriagedSummaries()
 	commits := tile.Commits
 	if err != nil {
-		util.ReportError(w, r, err, "Failed to load summaries.")
+		httputils.ReportError(w, r, err, "Failed to load summaries.")
 		return
 	}
 

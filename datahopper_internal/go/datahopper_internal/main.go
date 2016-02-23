@@ -36,6 +36,7 @@ import (
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -321,17 +322,17 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	buildNumberStr := vars["buildNumber"]
 	target, err := codenameDB.Get([]byte(codename), nil)
 	if err != nil {
-		util.ReportError(w, r, err, "Not a valid target codename.")
+		httputils.ReportError(w, r, err, "Not a valid target codename.")
 		return
 	}
 	buildNumber, err := strconv.Atoi(buildNumberStr)
 	if err != nil {
-		util.ReportError(w, r, err, "Not a valid build number.")
+		httputils.ReportError(w, r, err, "Not a valid build number.")
 		return
 	}
 	build, err := db.GetBuildFromDB(FAKE_MASTER, string(codename), buildNumber)
 	if err != nil {
-		util.ReportError(w, r, err, "Could not find a matching build.")
+		httputils.ReportError(w, r, err, "Could not find a matching build.")
 	}
 	result := ""
 	if id, err := build.GetStringProperty("androidinternal_buildid"); err == nil {
@@ -344,12 +345,12 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if result == "" {
 		glog.Errorf("No redirect for %#v", build)
-		util.ReportError(w, r, fmt.Errorf("No redirect for this build."), "")
+		httputils.ReportError(w, r, fmt.Errorf("No redirect for this build."), "")
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if _, err := w.Write([]byte(result)); err != nil {
-		util.ReportError(w, r, err, "Failed to write response")
+		httputils.ReportError(w, r, err, "Failed to write response")
 	}
 }
 
@@ -364,7 +365,7 @@ func builderRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	codename := vars["codename"]
 	target, err := codenameDB.Get([]byte(codename), nil)
 	if err != nil {
-		util.ReportError(w, r, err, "Not a valid target codename.")
+		httputils.ReportError(w, r, err, "Not a valid target codename.")
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")
@@ -386,20 +387,20 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := webhook.AuthenticateRequest(r)
 	if err != nil {
 		glog.Errorf("Failed authentication in ingestBuildHandler: %s", err)
-		util.ReportError(w, r, fmt.Errorf("Failed authentication."), "")
+		httputils.ReportError(w, r, fmt.Errorf("Failed authentication."), "")
 		return
 	}
 	vars := map[string]string{}
 	if err := json.Unmarshal(data, &vars); err != nil {
 		glog.Errorf("Failed to parse request: %s", err)
-		util.ReportError(w, r, fmt.Errorf("Failed to parse request."), "")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to parse request."), "")
 		return
 	}
 	target := vars["target"]
 	commitHash := vars["commitHash"]
 	status := vars["status"]
 	if target == "" || commitHash == "" || status == "" {
-		util.ReportError(w, r, fmt.Errorf("Missing parameter."), "")
+		httputils.ReportError(w, r, fmt.Errorf("Missing parameter."), "")
 		return
 	}
 	cl := vars["changeListNumber"]
@@ -413,13 +414,13 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		codename = util.StringToCodeName(target)
 	}
 	if !ingestBuildWebhookCodenames[codename] {
-		util.ReportError(w, r, fmt.Errorf("Unrecognized target (mapped to codename %s)", codename), "")
+		httputils.ReportError(w, r, fmt.Errorf("Unrecognized target (mapped to codename %s)", codename), "")
 		return
 	}
 	buildbotResults, err := buildbot.ParseResultsString(status)
 	if err != nil {
 		glog.Errorf("Invalid status parameter: %s", err)
-		util.ReportError(w, r, fmt.Errorf("Invalid status parameter."), "")
+		httputils.ReportError(w, r, fmt.Errorf("Invalid status parameter."), "")
 		return
 	}
 	startTime := time.Now().UTC()
@@ -428,7 +429,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 			startTime = time.Unix(t, 0).UTC()
 		} else {
 			glog.Errorf("Invalid startTime parameter: %s", err)
-			util.ReportError(w, r, fmt.Errorf("Invalid startTime parameter."), "")
+			httputils.ReportError(w, r, fmt.Errorf("Invalid startTime parameter."), "")
 			return
 		}
 	}
@@ -438,7 +439,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 			finishTime = time.Unix(t, 0).UTC()
 		} else {
 			glog.Errorf("Invalid finishTime parameter: %s", err)
-			util.ReportError(w, r, fmt.Errorf("Invalid finishTime parameter."), "")
+			httputils.ReportError(w, r, fmt.Errorf("Invalid finishTime parameter."), "")
 			return
 		}
 	}
@@ -466,7 +467,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 			b.Properties = append(b.Properties, []interface{}{"changeListNumber", strconv.Itoa(clNum), "datahopper_internal"})
 		} else {
 			glog.Errorf("Invalid changeListNumber parameter: %s", err)
-			util.ReportError(w, r, fmt.Errorf("Invalid changeListNumber parameter."), "")
+			httputils.ReportError(w, r, fmt.Errorf("Invalid changeListNumber parameter."), "")
 			return
 		}
 	}
@@ -475,7 +476,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 			b.Properties = append(b.Properties, []interface{}{"testResultsLink", url.String(), "datahopper_internal"})
 		} else {
 			glog.Errorf("Invalid testResultsLink parameter: %s", err)
-			util.ReportError(w, r, fmt.Errorf("Invalid testResultsLink parameter."), "")
+			httputils.ReportError(w, r, fmt.Errorf("Invalid testResultsLink parameter."), "")
 			return
 		}
 	}
@@ -488,12 +489,12 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := repos.Update(); err != nil {
 		glog.Errorf("Failed to update repos: %s", err)
-		util.ReportError(w, r, fmt.Errorf("Failed to update repos."), "")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to update repos."), "")
 		return
 	}
 	if err := ingestBuild(b, commitHash, target); err != nil {
 		glog.Errorf("Failed to ingest build: %s", err)
-		util.ReportError(w, r, fmt.Errorf("Failed to ingest build."), "")
+		httputils.ReportError(w, r, fmt.Errorf("Failed to ingest build."), "")
 		return
 	}
 	if metric, present := ingestBuildWebhookLiveness[codename]; present {
@@ -627,7 +628,7 @@ func main() {
 		// In this case we don't want a backoff transport since the Apiary backend
 		// seems to fail a lot, so we basically want to fall back to polling if a
 		// call fails.
-		client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: util.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
+		client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, androidbuildinternal.AndroidbuildInternalScope, storage.CloudPlatformScope)
 		if err != nil {
 			glog.Fatalf("Unable to create authenticated client: %s", err)
 		}
@@ -651,6 +652,6 @@ func main() {
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	http.Handle("/", util.LoggingGzipRequestResponse(r))
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
