@@ -10,15 +10,20 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/util"
 )
 
 // flags
 var (
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
-	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	local        = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	port         = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	resourcesDir = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 var (
@@ -63,7 +68,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("debugger", graphiteServer)
+	common.InitWithMetrics2("debugger", influxHost, influxUser, influxPassword, influxDatabase, local)
 	Init()
 
 	router := mux.NewRouter()
