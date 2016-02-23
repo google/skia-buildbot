@@ -13,18 +13,24 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/storage/v1"
+	compute "google.golang.org/api/compute/v1"
+	storage "google.golang.org/api/storage/v1"
 )
 
 var (
-	graphiteServer        = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	doOauth               = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	oauthCacheFile        = flag.String("oauth_cache_file", "google_storage_token.data", "Path to the file where to cache cache the oauth credentials.")
 	installedPackagesFile = flag.String("installed_packages_file", "installed_packages.json", "Path to the file where to cache the list of installed debs.")
 	hostname              = flag.String("hostname", "", "The hostname to use, will use os.Hostname() if not provided.")
+	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 // differences returns all strings that appear in server but not local.
@@ -61,7 +67,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	common.InitWithMetrics("pull", graphiteServer)
+	common.InitWithMetrics2("pull", influxHost, influxUser, influxPassword, influxDatabase, local)
 	glog.Infof("Running with hostname: %s", *hostname)
 
 	client, err := auth.NewClient(*doOauth, *oauthCacheFile,

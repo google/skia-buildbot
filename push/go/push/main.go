@@ -21,12 +21,13 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/storage/v1"
+	compute "google.golang.org/api/compute/v1"
+	storage "google.golang.org/api/storage/v1"
 )
 
 // Server is used in PushConfig.
@@ -77,11 +78,15 @@ var (
 var (
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	configFilename = flag.String("config_filename", "skiapush.conf", "Config filename.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	project        = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
 	bucketName     = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 func loadTemplates() {
@@ -507,7 +512,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("push", graphiteServer)
+	common.InitWithMetrics2("push", influxHost, influxUser, influxPassword, influxDatabase, local)
 	Init()
 
 	redirectURL := fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
