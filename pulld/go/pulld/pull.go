@@ -9,11 +9,10 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
-	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/api/compute/v1"
-	"google.golang.org/api/storage/v1"
+	compute "google.golang.org/api/compute/v1"
+	storage "google.golang.org/api/storage/v1"
 )
 
 var (
@@ -108,10 +107,8 @@ func pullHandler(w http.ResponseWriter, r *http.Request) {
 func pullInit() {
 	hostname, err := os.Hostname()
 	if err != nil {
-		// Never call glog before common.Init*.
-		os.Exit(1)
+		glog.Fatal(err)
 	}
-	common.InitWithMetrics("pulld."+hostname, graphiteServer)
 	glog.Infof("Running with hostname: %s", hostname)
 
 	client, err := auth.NewDefaultJWTServiceAccountClient(storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)

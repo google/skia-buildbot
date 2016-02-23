@@ -17,6 +17,7 @@ import (
 	"github.com/skia-dev/glog"
 	"github.com/skia-dev/go-systemd/dbus"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/packages"
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
@@ -36,12 +37,16 @@ var (
 
 // flags
 var (
-	graphiteServer        = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	installedPackagesFile = flag.String("installed_packages_file", "installed_packages.json", "Path to the file where to cache the list of installed debs.")
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port                  = flag.String("port", ":10114", "HTTP service address (e.g., ':8000')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	bucketName            = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 type UnitStatusSlice []*systemd.UnitStatus
@@ -281,7 +286,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("pulld", graphiteServer)
+	common.InitWithMetrics2("pulld", influxHost, influxUser, influxPassword, influxDatabase, local)
 	Init()
 	pullInit()
 
