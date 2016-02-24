@@ -17,16 +17,20 @@ Use `github.com/skia-dev/glog` for logging.
 
 Add flags to your main package like:
 ```
-graphiteServer = flag.String("graphite_server", "localhost:2003", "Where is Graphite metrics ingestion server running.")
 host           = flag.String("host", "localhost", "HTTP service host")
 port           = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+
+influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 ```
 You may not need a host flag if your service does not use the login package for
 authentication.
 
-Call `common.InitWithMetrics("<service name>", graphiteServer)` in your main
-function.
+Call `common.InitWithMetrics2("<service name>", influxHost, influxUser, influxPassword, influxDatabase, local)`
+in your main function.
 
 Use `go.skia.org/infra/go/login` paired with `res/imp/9/login.html` and/or
 `go.skia.org/infra/go/webhook` for authentication.
@@ -83,7 +87,7 @@ If you add any critical TODOs while you're coding, file a blocking bug for the i
       these are GCE instance names, not DNS names.)
 
 - Add additional stats gathering to your program using
-  `github.com/rcrowley/go-metrics`, e.g. to ensure liveness/heartbeat of any
+  `go.skia.org/infra/go/metrics2`, e.g. to ensure liveness/heartbeat of any
   background processes. You can add stats to see graphs on
   [mon.skia.org](https://mon.skia.org/) even if you do not plan to write alerts
   for these stats.
@@ -91,7 +95,7 @@ If you add any critical TODOs while you're coding, file a blocking bug for the i
 - Add alert rules to `alertserver/alerts.cfg`. Examples:
 
     - All prober rules.
-    - Additional stats from go-metrics.
+    - Additional stats from metrics2.
     - Too many goroutines.
     - Free disk space on the instance and any attached disks.
 
