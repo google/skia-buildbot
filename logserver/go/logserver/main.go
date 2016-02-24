@@ -17,9 +17,10 @@ import (
 	"strings"
 	"time"
 
-	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 )
 
@@ -67,7 +68,6 @@ const (
 var (
 	port           = flag.String("port", ":10115", "HTTP service address (e.g., ':10115')")
 	dir            = flag.String("dir", "/tmp/glog", "Directory to serve log files from.")
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	stateFile      = flag.String("state_file", "/tmp/logserver.state", "File where logserver stores all encountered log files. This ensures that metrics are not duplicated for already processed log files.")
 	allowOrigin    = flag.String("allow_origin", "", "Which site this logserver can share data with.")
 	reloadDuration = flag.Duration("reload_after", 20*time.Second, "Duration after which the logserver will automatically reload.")
@@ -79,6 +79,12 @@ var (
 		"app_log_threshold_buffer", 50*1024*1024,
 		"If any app's logs for a log level use up more than app_log_threshold then the files with the oldest modified time are deleted till size is less than app_log_threshold - app_log_threshold_buffer.")
 	dirWatchDuration = flag.Duration("dir_watch_duration", 10*time.Second, "How long dir watcher sleeps for before checking the dir.")
+	testing          = flag.Bool("testing", false, "Set to true for local testing.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 func FileServerWrapperHandler(w http.ResponseWriter, r *http.Request) {
@@ -422,7 +428,7 @@ func dirWatcher(duration time.Duration, dir string) {
 	if err != nil {
 		glog.Fatalf("Could get access previous state: %s", err)
 	}
-	appLogLevelToMetric := make(map[string]metrics.Gauge)
+	appLogLevelToMetric := make(map[string]*metrics2.Int64Metric)
 	updatedFiles := false
 	markFn := func(path string, fileInfo os.FileInfo, err error) error {
 		if err != nil {
@@ -442,7 +448,7 @@ func dirWatcher(duration time.Duration, dir string) {
 				if _, ok := appLogLevelToMetric[appLogLevel]; !ok {
 					// First time encountered this app and log level combination.
 					// Create a counter metric.
-					appLogLevelToMetric[appLogLevel] = metrics.NewRegisteredGauge(appLogLevel, metrics.DefaultRegistry)
+					appLogLevelToMetric[appLogLevel] = metrics2.GetInt64Metric("logs", map[string]string{"level": logLevel, "name": app})
 				}
 
 				// Calculate how many new lines and new disk space usage there is.
@@ -554,7 +560,7 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToStat
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("logserver", graphiteServer)
+	common.InitWithMetrics2("logserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {
 		glog.Fatalf("Failed to create dir for log files: %s", err)
