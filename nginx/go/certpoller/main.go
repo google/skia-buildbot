@@ -25,11 +25,16 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/util"
 )
 
 var (
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	testing        = flag.Bool("testing", false, "Set to true for local testing.")
 )
 
 // cert contains information about one SSL certificate file.
@@ -121,7 +126,7 @@ func get(client *http.Client, cert *cert) error {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("certpoller", graphiteServer)
+	common.InitWithMetrics2("certpoller", influxHost, influxUser, influxPassword, influxDatabase, testing)
 	client := httputils.NewTimeoutClient()
 	certs := []*cert{}
 	// Populate certs based on cmd-line args.

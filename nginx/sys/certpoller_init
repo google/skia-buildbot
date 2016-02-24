@@ -22,7 +22,7 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="The Skia certpoller application."
 NAME=certpoller
 DAEMON=/usr/local/bin/$NAME
-DAEMON_ARGS="--log_dir=/var/log/logserver --graphite_server=skia-monitoring:2003 skiamonitor-com-key skiaalerts-com-pem skiaalerts-com-key skiamonitor-com-pem"
+DAEMON_ARGS="--log_dir=/var/log/logserver skiamonitor-com-key skiaalerts-com-pem skiaalerts-com-key skiamonitor-com-pem"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
