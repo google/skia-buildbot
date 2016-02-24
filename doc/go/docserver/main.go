@@ -24,6 +24,7 @@ import (
 	"go.skia.org/infra/doc/go/docset"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/influxdb"
 )
 
 var (
@@ -34,14 +35,17 @@ var (
 
 // flags
 var (
-	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	docRepo        = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The directory to check out the doc repo into.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	graphiteServer = flag.String("graphite_server", "", "Where is Graphite metrics ingestion server running.")
+	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	preview        = flag.Bool("preview", false, "Preview markdown changes to a local repo. Doesn't do pulls.")
+	refresh        = flag.Duration("refresh", 5*time.Minute, "The duration between doc git repo refreshes.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	workDir        = flag.String("work_dir", "/tmp", "The directory to check out the doc repo into.")
-	docRepo        = flag.String("doc_repo", "https://skia.googlesource.com/skia", "The directory to check out the doc repo into.")
-	refresh        = flag.Duration("refresh", 5*time.Minute, "The duration between doc git repo refreshes.")
-	preview        = flag.Bool("preview", false, "Preview markdown changes to a local repo. Doesn't do pulls.")
 )
 
 func loadTemplates() {
@@ -172,7 +176,7 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics("docserver", graphiteServer)
+	common.InitWithMetrics2("docserver", influxHost, influxUser, influxPassword, influxDatabase, local)
 	Init()
 
 	// Resources are served directly.
