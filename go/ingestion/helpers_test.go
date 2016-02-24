@@ -10,6 +10,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/testutils"
 )
 
@@ -51,7 +52,7 @@ func TestGoogleStorageSource(t *testing.T) {
 func TestFileSystemResultFileLocations(t *testing.T) {
 	testutils.SkipIfShort(t)
 
-	err := testutils.DownloadTestDataArchive(t, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err := gs.DownloadTestDataArchive(t, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.Nil(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
@@ -67,7 +68,7 @@ func TestCompareSources(t *testing.T) {
 	gsSource, err := NewGoogleStorageSource("gs-test-src", TEST_GS_BUCKET, TEST_GS_DIR, http.DefaultClient, evt)
 	assert.Nil(t, err)
 
-	err = testutils.DownloadTestDataArchive(t, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err = gs.DownloadTestDataArchive(t, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.Nil(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

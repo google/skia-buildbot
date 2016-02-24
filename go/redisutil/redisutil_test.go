@@ -15,6 +15,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -56,7 +57,7 @@ func TestRedisLRUCache(t *testing.T) {
 
 func BenchmarkBigDataset(b *testing.B) {
 	// Download the testdata and remove the testdata directory at the end.
-	err := testutils.DownloadTestDataArchive(b, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err := gs.DownloadTestDataArchive(b, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.Nil(b, err, "Unable to download testdata.")
 	defer func() {
 		util.LogErr(os.RemoveAll(TEST_DATA_DIR))

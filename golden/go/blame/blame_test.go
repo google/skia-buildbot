@@ -9,6 +9,7 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
@@ -172,7 +173,7 @@ func BenchmarkBlamer(b *testing.B) {
 func TestBlamerWithLiveData(t *testing.T) {
 	testutils.SkipIfShort(t)
 
-	err := testutils.DownloadTestDataFile(t, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	err := gs.DownloadTestDataFile(t, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 	assert.Nil(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
