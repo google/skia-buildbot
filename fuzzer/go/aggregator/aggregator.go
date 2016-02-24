@@ -361,7 +361,7 @@ func findBadFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([
 // happen, this method terminates.
 func (agg *Aggregator) waitForAnalysis(identifier int) {
 	defer agg.aggregationWaitGroup.Done()
-	defer metrics2.NewCounter("analysis-process-count", nil).Dec(int64(1))
+	defer metrics2.GetCounter("analysis-process-count", nil).Dec(int64(1))
 	glog.Infof("Spawning analyzer %d", identifier)
 
 	// our own unique working folder
@@ -539,7 +539,7 @@ func (s *SortedStringSlice) Append(strs []string) {
 // them.  If any unrecoverable errors happen, this method terminates.
 func (agg *Aggregator) waitForUploads(identifier int) {
 	defer agg.aggregationWaitGroup.Done()
-	defer metrics2.NewCounter("upload-process-count", nil).Dec(int64(1))
+	defer metrics2.GetCounter("upload-process-count", nil).Dec(int64(1))
 	glog.Infof("Spawning uploader %d", identifier)
 	for {
 		select {
@@ -678,10 +678,10 @@ func (agg *Aggregator) bugReportingHelper(p bugReportingPackage) error {
 // many processes are up.
 func (agg *Aggregator) monitorStatus(numAnalysisProcesses, numUploadProcesses int) {
 	defer agg.monitoringWaitGroup.Done()
-	analysisProcessCount := metrics2.NewCounter("analysis-process-count", nil)
+	analysisProcessCount := metrics2.GetCounter("analysis-process-count", nil)
 	analysisProcessCount.Reset()
 	analysisProcessCount.Inc(int64(numAnalysisProcesses))
-	uploadProcessCount := metrics2.NewCounter("upload-process-count", nil)
+	uploadProcessCount := metrics2.GetCounter("upload-process-count", nil)
 	uploadProcessCount.Reset()
 	uploadProcessCount.Inc(int64(numUploadProcesses))
 

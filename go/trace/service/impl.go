@@ -31,18 +31,18 @@ const (
 
 var (
 	tags               = map[string]string{"module": "tracedb"}
-	missingParamsCalls = metrics2.NewCounter("missing-params-calls", tags)
-	addParamsCalls     = metrics2.NewCounter("add-params-calls", tags)
-	addCalls           = metrics2.NewCounter("add-calls", tags)
-	addCount           = metrics2.NewCounter("added-count", tags)
-	removeCalls        = metrics2.NewCounter("remove-calls", tags)
-	listCalls          = metrics2.NewCounter("list-calls", tags)
-	listMD5Calls       = metrics2.NewCounter("list-md5-calls", tags)
-	getParamsCalls     = metrics2.NewCounter("get-params-calls", tags)
-	getValuesCalls     = metrics2.NewCounter("get-values-calls", tags)
-	getValuesRawCalls  = metrics2.NewCounter("get-values-raw-calls", tags)
-	getTraceIDsCalls   = metrics2.NewCounter("get-traceids-calls", tags)
-	pingCalls          = metrics2.NewCounter("ping-calls", tags)
+	missingParamsCalls = metrics2.GetCounter("missing-params-calls", tags)
+	addParamsCalls     = metrics2.GetCounter("add-params-calls", tags)
+	addCalls           = metrics2.GetCounter("add-calls", tags)
+	addCount           = metrics2.GetCounter("added-count", tags)
+	removeCalls        = metrics2.GetCounter("remove-calls", tags)
+	listCalls          = metrics2.GetCounter("list-calls", tags)
+	listMD5Calls       = metrics2.GetCounter("list-md5-calls", tags)
+	getParamsCalls     = metrics2.GetCounter("get-params-calls", tags)
+	getValuesCalls     = metrics2.GetCounter("get-values-calls", tags)
+	getValuesRawCalls  = metrics2.GetCounter("get-values-raw-calls", tags)
+	getTraceIDsCalls   = metrics2.GetCounter("get-traceids-calls", tags)
+	pingCalls          = metrics2.GetCounter("ping-calls", tags)
 )
 
 // bytesFromUint64 converts a uint64 to a []byte.

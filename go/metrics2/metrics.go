@@ -23,6 +23,7 @@ const (
 var (
 	DefaultClient *Client = &Client{
 		aggMetrics: map[string]*aggregateMetric{},
+		counters:   map[string]*Counter{},
 		metrics:    map[string]*rawMetric{},
 	}
 )
@@ -44,6 +45,7 @@ func Init(appName string, influxClient *influxdb.Client) error {
 	// Some metrics may already be registered with DefaultClient. Copy them
 	// over.
 	c.aggMetrics = DefaultClient.aggMetrics
+	c.counters = DefaultClient.counters
 	c.metrics = DefaultClient.metrics
 
 	// Set the default client.
@@ -53,12 +55,18 @@ func Init(appName string, influxClient *influxdb.Client) error {
 
 // Client is a struct used for communicating with an InfluxDB instance.
 type Client struct {
-	aggMetrics      map[string]*aggregateMetric
-	aggMetricsMtx   sync.Mutex
-	influxClient    *influxdb.Client
-	defaultTags     map[string]string
-	metrics         map[string]*rawMetric
-	metricsMtx      sync.Mutex
+	aggMetrics    map[string]*aggregateMetric
+	aggMetricsMtx sync.Mutex
+
+	counters    map[string]*Counter
+	countersMtx sync.Mutex
+
+	influxClient *influxdb.Client
+	defaultTags  map[string]string
+
+	metrics    map[string]*rawMetric
+	metricsMtx sync.Mutex
+
 	reportFrequency time.Duration
 	values          *influxdb.BatchPoints
 	valuesMtx       sync.Mutex
@@ -75,14 +83,12 @@ func NewClient(influxClient *influxdb.Client, defaultTags map[string]string, rep
 	}
 	c := &Client{
 		aggMetrics:      map[string]*aggregateMetric{},
-		aggMetricsMtx:   sync.Mutex{},
+		counters:        map[string]*Counter{},
 		influxClient:    influxClient,
 		defaultTags:     defaultTags,
 		metrics:         map[string]*rawMetric{},
-		metricsMtx:      sync.Mutex{},
 		reportFrequency: reportFrequency,
 		values:          values,
-		valuesMtx:       sync.Mutex{},
 	}
 	go func() {
 		for _ = range time.Tick(PUSH_FREQUENCY) {
@@ -229,7 +235,6 @@ func (c *Client) getRawMetric(measurement string, tagsList []map[string]string, 
 	if !ok {
 		m = &rawMetric{
 			measurement: measurement,
-			mtx:         sync.RWMutex{},
 			tags:        tags,
 			value:       initial,
 		}
@@ -256,7 +261,6 @@ func (c *Client) getAggregateMetric(measurement string, tagsList []map[string]st
 		m = &aggregateMetric{
 			aggFn:       aggFn,
 			measurement: measurement,
-			mtx:         sync.RWMutex{},
 			tags:        tags,
 			values:      []interface{}{},
 		}

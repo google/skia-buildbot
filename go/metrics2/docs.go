@@ -19,7 +19,7 @@ Metrics2 provides a few typed metrics helpers which behave similarly to go_metri
 
 ### Counter
 
-Counter in the metrics2 package behaves similarly to those from go-metrics except that there is no GetOrRegisterCounter equivalent.  Instead, you should call metrics2.NewCounter(name, tags), hold on to the returned struct instance and call Inc(), Dec(), etc, on it as desired.  Note that Counter requires a name and not a measurement, because the measurement is always “counter”, and the provided name is inserted as a tag.
+Counter in the metrics2 package behaves similarly to those from go-metrics except that there is no GetOrRegisterCounter equivalent.  Instead, you should call metrics2.GetCounter(name, tags), hold on to the returned struct instance and call Inc(), Dec(), etc, on it as desired.  Note that Counter requires a name and not a measurement, because the measurement is always “counter”, and the provided name is inserted as a tag.
 
 ### Liveness
 

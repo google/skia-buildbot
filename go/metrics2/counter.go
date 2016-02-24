@@ -1,6 +1,12 @@
 package metrics2
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+
+	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
+)
 
 const (
 	MEASUREMENT_COUNTER = "counter"
@@ -12,23 +18,33 @@ type Counter struct {
 	mtx sync.Mutex
 }
 
-// NewCounter creates and returns a new Counter.
-func (c *Client) NewCounter(name string, tags map[string]string) *Counter {
-	// Add the name to the tags.
-	t := make(map[string]string, len(tags)+1)
-	for k, v := range tags {
-		t[k] = v
+// GetCounter creates or retrieves a Counter with the given name and tag set and
+// returns it.
+func (c *Client) GetCounter(name string, tagsList ...map[string]string) *Counter {
+	c.countersMtx.Lock()
+	defer c.countersMtx.Unlock()
+
+	// Make a copy of the concatenation of all provided tags.
+	tags := util.AddParams(map[string]string{}, tagsList...)
+	tags["name"] = name
+	md5, err := util.MD5Params(tags)
+	if err != nil {
+		glog.Errorf("Failed to encode measurement tags: %s", err)
 	}
-	t["name"] = name
-	return &Counter{
-		m:   c.GetInt64Metric(MEASUREMENT_COUNTER, t),
-		mtx: sync.Mutex{},
+	key := fmt.Sprintf("%s_%s", MEASUREMENT_COUNTER, md5)
+	m, ok := c.counters[key]
+	if !ok {
+		m = &Counter{
+			m: c.GetInt64Metric(MEASUREMENT_COUNTER, tags),
+		}
+		c.counters[key] = m
 	}
+	return m
 }
 
-// NewCounter creates and returns a new Counter using the default client.
-func NewCounter(name string, tags map[string]string) *Counter {
-	return DefaultClient.NewCounter(name, tags)
+// GetCounter creates and returns a new Counter using the default client.
+func GetCounter(name string, tags map[string]string) *Counter {
+	return DefaultClient.GetCounter(name, tags)
 }
 
 // Inc increments the counter by the given quantity.

@@ -16,8 +16,8 @@ import (
 	// google-http-java-client.
 	"github.com/cenkalti/backoff"
 	"github.com/fiorix/go-web/autogzip"
-	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 )
@@ -184,7 +184,7 @@ type responseProxy struct {
 func (rp *responseProxy) WriteHeader(code int) {
 	if !rp.wroteHeader {
 		glog.Infof("Response Code: %d", code)
-		metrics.GetOrRegisterCounter(fmt.Sprintf("http.statuscode.%d", code), metrics.DefaultRegistry).Inc(1)
+		metrics2.GetCounter("http.response", map[string]string{"statuscode": strconv.Itoa(code)}).Inc(1)
 		rp.ResponseWriter.WriteHeader(code)
 		rp.wroteHeader = true
 	}
