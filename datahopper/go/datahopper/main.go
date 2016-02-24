@@ -124,7 +124,7 @@ func main() {
 
 	// Average build and step duration, failure rate.
 	go func() {
-		start := time.Now().Add(-24 * time.Hour)
+		start := time.Now().Add(-1 * time.Hour)
 		for _ = range time.Tick(10 * time.Minute) {
 			end := time.Now().UTC()
 			glog.Info("Loading build and buildstep duration data from %s to %s", start, end)
