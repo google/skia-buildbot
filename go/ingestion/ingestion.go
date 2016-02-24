@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
@@ -104,10 +103,10 @@ type Ingester struct {
 	eventProcessMetrics *processMetrics
 
 	// processTimer measure the overall time it takes to process a set of files.
-	processTimer metrics.Timer
+	processTimer *metrics2.Timer
 
 	// processFileTimer measures how long it takes to process an individual file.
-	processFileTimer metrics.Timer
+	processFileTimer *metrics2.Timer
 }
 
 // NewIngester creates a new ingester with the given id and configuration around
@@ -139,8 +138,8 @@ func (i *Ingester) setupMetrics() {
 	i.pollProcessMetrics = newProcessMetrics(i.id, "poll")
 	i.eventProcessMetrics = newProcessMetrics(i.id, "event")
 	i.srcMetrics = newSourceMetrics(i.id, i.sources)
-	i.processTimer = metrics.NewRegisteredTimer(fmt.Sprintf("%s.process", i.id), metrics.DefaultRegistry)
-	i.processFileTimer = metrics.NewRegisteredTimer(fmt.Sprintf("%s.process-file", i.id), metrics.DefaultRegistry)
+	i.processTimer = metrics2.NewTimer("ingestion.process", map[string]string{"id": i.id})
+	i.processFileTimer = metrics2.NewTimer("ingestion.process-file", map[string]string{"id": i.id})
 }
 
 // Start starts the ingester in a new goroutine.
@@ -297,13 +296,13 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 	processedCounter, ignoredCounter, errorCounter := 0, 0, 0
 
 	// time how long the overall process takes.
-	processStart := time.Now()
+	i.processTimer.Start()
 	for _, resultLocation := range resultFiles {
 		if !i.inProcessedFiles(resultLocation.MD5()) {
 			// time how long it takes to process a file.
-			processFileStart := time.Now()
+			i.processFileTimer.Start()
 			err := i.processor.Process(resultLocation)
-			i.processFileTimer.UpdateSince(processFileStart)
+			i.processFileTimer.Stop()
 
 			if err != nil {
 				if err == IgnoreResultsFileErr {
@@ -326,7 +325,7 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 
 	// Update the timer and the gauges that measure how the ingestion works
 	// for the input type.
-	i.processTimer.UpdateSince(processStart)
+	i.processTimer.Stop()
 	targetMetrics.totalFilesGauge.Update(int64(len(resultFiles)))
 	targetMetrics.processedGauge.Update(int64(processedCounter))
 	targetMetrics.ignoredGauge.Update(int64(ignoredCounter))
