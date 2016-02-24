@@ -25,14 +25,14 @@ func TestDiffMetrics(t *testing.T) {
 			NumDiffPixels:     16,
 			PixelDiffPercent:  0.0064,
 			PixelDiffFilePath: "",
-			MaxRGBADiffs:      []int{54, 100, 125, 0},
+			MaxRGBADiffs:      []int{13878, 25700, 32125, 0},
 			DimDiffer:         false})
 	assertDiffs(t, "5024150605949408692", "11069776588985027208",
 		&DiffMetrics{
 			NumDiffPixels:     2233,
 			PixelDiffPercent:  0.8932,
 			PixelDiffFilePath: "",
-			MaxRGBADiffs:      []int{0, 0, 1, 0},
+			MaxRGBADiffs:      []int{0, 0, 257, 0},
 			DimDiffer:         false})
 	// Assert the same image.
 	assertDiffs(t, "5024150605949408692", "5024150605949408692",
@@ -48,7 +48,7 @@ func TestDiffMetrics(t *testing.T) {
 			NumDiffPixels:     571674,
 			PixelDiffPercent:  89.324066,
 			PixelDiffFilePath: "",
-			MaxRGBADiffs:      []int{255, 255, 255, 0},
+			MaxRGBADiffs:      []int{65535, 65535, 65535, 0},
 			DimDiffer:         true})
 	// Assert with images that match in dimensions but where all pixels differ.
 	assertDiffs(t, "4029959456464745507", "4029959456464745507-inverted",
@@ -56,7 +56,7 @@ func TestDiffMetrics(t *testing.T) {
 			NumDiffPixels:     250000,
 			PixelDiffPercent:  100.0,
 			PixelDiffFilePath: "",
-			MaxRGBADiffs:      []int{255, 255, 255, 0},
+			MaxRGBADiffs:      []int{65535, 65535, 65535, 0},
 			DimDiffer:         false})
 
 	// Assert different images where neither fits into the other.
@@ -65,7 +65,7 @@ func TestDiffMetrics(t *testing.T) {
 			NumDiffPixels:     172466,
 			PixelDiffPercent:  74.8550347222,
 			PixelDiffFilePath: "",
-			MaxRGBADiffs:      []int{255, 255, 255, 0},
+			MaxRGBADiffs:      []int{65535, 65535, 65535, 0},
 			DimDiffer:         true})
 	// Make sure the metric is symmetric.
 	assertDiffs(t, "fffbcca7e8913ec45b88cc2c6a3a73ad-rotated", "fffbcca7e8913ec45b88cc2c6a3a73ad",
@@ -73,7 +73,7 @@ func TestDiffMetrics(t *testing.T) {
 			NumDiffPixels:     172466,
 			PixelDiffPercent:  74.8550347222,
 			PixelDiffFilePath: "",
-			MaxRGBADiffs:      []int{255, 255, 255, 0},
+			MaxRGBADiffs:      []int{65535, 65535, 65535, 0},
 			DimDiffer:         true})
 
 	// Compare two images where one has an alpha channel and the other doesn't.
@@ -82,7 +82,7 @@ func TestDiffMetrics(t *testing.T) {
 			NumDiffPixels:     8750,
 			PixelDiffPercent:  2.8483074,
 			PixelDiffFilePath: "",
-			MaxRGBADiffs:      []int{255, 2, 255, 0},
+			MaxRGBADiffs:      []int{65535, 514, 65535, 0},
 			DimDiffer:         false})
 
 	// Compare two images where the alpha differs.
@@ -91,36 +91,64 @@ func TestDiffMetrics(t *testing.T) {
 			NumDiffPixels:     6,
 			PixelDiffPercent:  0.001953125,
 			PixelDiffFilePath: "",
-			MaxRGBADiffs:      []int{0, 0, 0, 235},
+			MaxRGBADiffs:      []int{0, 0, 0, 60395},
+			DimDiffer:         false})
+
+	// Compare a 16-bit image to itself.
+	assertDiffs(t, "aaxfermodes-f16", "aaxfermodes-f16",
+		&DiffMetrics{
+			NumDiffPixels:     0,
+			PixelDiffPercent:  0,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{0, 0, 0, 0},
+			DimDiffer:         false})
+
+	// Compare two similar 16-bit images.
+	assertDiffs(t, "aaxfermodes-b16", "aaxfermodes-f16",
+		&DiffMetrics{
+			NumDiffPixels:     217264,
+			PixelDiffPercent:  35.32748,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{63662, 57358, 57358, 4351},
+			DimDiffer:         false})
+
+	// Compare identical 8-bit and 16-bit images.
+	assertDiffs(t, "aaxfermodes-b16", "aaxfermodes-b8",
+		&DiffMetrics{
+			NumDiffPixels:     0,
+			PixelDiffPercent:  0,
+			PixelDiffFilePath: "",
+			MaxRGBADiffs:      []int{0, 0, 0, 0},
 			DimDiffer:         false})
 }
 
 const SRC1 = `! SKTEXTSIMPLE
 1 5
-0x00000000
-0x01000000
-0x00010000
-0x00000100
+0x000000ff
+0x010000ff
+0x000100ff
+0x000001ff
 0x00000001`
 
-// SRC2 is different in each pixel from SRC1 by one in each channel.
+// SRC2 is different in each pixel from SRC1 by 1.
 const SRC2 = `! SKTEXTSIMPLE
 1 5
-0x01000000
-0x02000000
-0x00020000
-0x00000200
+0x010000ff
+0x020000ff
+0x000200ff
+0x000002ff
 0x00000002`
 
-// SRC3 is different in each pixel from SRC1 by 6 in each channel.
+// SRC3 is different in each pixel from SRC1 by 6.
 const SRC3 = `! SKTEXTSIMPLE
 1 5
-0x06000000
-0x07000000
-0x00070000
-0x00000700
+0x060000ff
+0x070000ff
+0x000700ff
+0x000007ff
 0x00000007`
 
+// SRC4 is quite different from SRC1.
 const SRC4 = `! SKTEXTSIMPLE
 1 5
 0xffffffff
@@ -129,10 +157,10 @@ const SRC4 = `! SKTEXTSIMPLE
 0xffffffff
 0xffffffff`
 
-// SRC2 is different in each pixel from SRC1 by one in each channel.
+// SRC5 is SRC2 sideways.
 const SRC5 = `! SKTEXTSIMPLE
 5 1
-0x01000000 0x02000000 0x00020000 0x00000200 0x00000002`
+0x010000ff 0x020000ff 0x000200ff 0x000002ff 0x00000002`
 
 // EXPECTED_1_2 Should have all the pixels as the pixel diff color with an
 // offset of 1, except the last pixel which is only different in the alpha by
@@ -223,7 +251,7 @@ func assertImagesEqual(t *testing.T, got, want *image.NRGBA) {
 	}
 	if gotbuf.String() != wantbuf.String() {
 		t.Errorf("Pixel mismatch:\nGot:\n\n%v\n\nWant:\n\n%v\n", gotbuf, wantbuf)
-		// Also print out the lines that are different, to make debugging easier.
+		/// Also print out the lines that are different, to make debugging easier.
 		lineDiff(t, gotbuf.String(), wantbuf.String())
 	}
 }
@@ -256,7 +284,7 @@ func TestDiffImages(t *testing.T) {
 		NumDiffPixels:     24,
 		PixelDiffPercent:  (24.0 / 25.0) * 100,
 		PixelDiffFilePath: "",
-		MaxRGBADiffs:      []int{255, 255, 255, 0},
+		MaxRGBADiffs:      []int{65535, 65535, 65535, 0},
 		DimDiffer:         true,
 	})
 }
@@ -288,27 +316,27 @@ func TestDeltaOffset(t *testing.T) {
 		want   int
 	}{
 		{
-			offset: 1,
+			offset: 257,
 			want:   0,
 		},
 		{
-			offset: 2,
+			offset: 514,
 			want:   1,
 		},
 		{
-			offset: 5,
+			offset: 1285,
 			want:   1,
 		},
 		{
-			offset: 6,
+			offset: 1542,
 			want:   2,
 		},
 		{
-			offset: 100,
+			offset: 25700,
 			want:   4,
 		},
 		{
-			offset: 1024,
+			offset: 262140,
 			want:   6,
 		},
 	}
@@ -322,9 +350,12 @@ func TestDeltaOffset(t *testing.T) {
 }
 
 var (
-	img1 image.Image
-	img2 image.Image
-	once sync.Once
+	img1            image.Image
+	img2            image.Image
+	aaxfermodes_b8  image.Image
+	aaxfermodes_f16 image.Image
+	aaxfermodes_b16 image.Image
+	once            sync.Once
 )
 
 func loadBenchmarkImages() {
@@ -337,14 +368,58 @@ func loadBenchmarkImages() {
 	if err != nil {
 		glog.Fatal("Failed to open test file: ", err)
 	}
+	aaxfermodes_b8, err = OpenImage(filepath.Join(TESTDATA_DIR, "aaxfermodes-b8.png"))
+	if err != nil {
+		glog.Fatal("Failed to open test file: ", err)
+	}
+	aaxfermodes_f16, err = OpenImage(filepath.Join(TESTDATA_DIR, "aaxfermodes-f16.png"))
+	if err != nil {
+		glog.Fatal("Failed to open test file: ", err)
+	}
+	aaxfermodes_b16, err = OpenImage(filepath.Join(TESTDATA_DIR, "aaxfermodes-b16.png"))
+	if err != nil {
+		glog.Fatal("Failed to open test file: ", err)
+	}
 }
 
-func BenchmarkDiff(b *testing.B) {
-	// Only load the images once so we aren't measuring that as part of the
-	// benchmark.
+func BenchmarkDiff_32_32_identical(b *testing.B) {
 	once.Do(loadBenchmarkImages)
+	for i := 0; i < b.N; i++ {
+		Diff(img1, img1)
+	}
+}
 
+func BenchmarkDiff_32_32_similar(b *testing.B) {
+	once.Do(loadBenchmarkImages)
 	for i := 0; i < b.N; i++ {
 		Diff(img1, img2)
+	}
+}
+
+func BenchmarkDiff_64_64_identical(b *testing.B) {
+	once.Do(loadBenchmarkImages)
+	for i := 0; i < b.N; i++ {
+		Diff(aaxfermodes_b16, aaxfermodes_b16)
+	}
+}
+
+func BenchmarkDiff_64_64_similar(b *testing.B) {
+	once.Do(loadBenchmarkImages)
+	for i := 0; i < b.N; i++ {
+		Diff(aaxfermodes_b16, aaxfermodes_f16)
+	}
+}
+
+func BenchmarkDiff_32_64_identical(b *testing.B) {
+	once.Do(loadBenchmarkImages)
+	for i := 0; i < b.N; i++ {
+		Diff(aaxfermodes_b8, aaxfermodes_b16)
+	}
+}
+
+func BenchmarkDiff_32_64_similar(b *testing.B) {
+	once.Do(loadBenchmarkImages)
+	for i := 0; i < b.N; i++ {
+		Diff(aaxfermodes_b8, aaxfermodes_f16)
 	}
 }

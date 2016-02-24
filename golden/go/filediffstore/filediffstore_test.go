@@ -66,7 +66,7 @@ func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool
 		NumDiffPixels:     2233,
 		PixelDiffPercent:  0.8932,
 		PixelDiffFilePath: diffpath1_2,
-		MaxRGBADiffs:      []int{0, 0, 1, 0},
+		MaxRGBADiffs:      []int{0, 0, 257, 0},
 		DimDiffer:         false,
 	}
 	relExpectedDiffMetrics1_2 = &diff.DiffMetrics{}
@@ -79,7 +79,7 @@ func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool
 		NumDiffPixels:     250000,
 		PixelDiffPercent:  100,
 		PixelDiffFilePath: diffpath1_3,
-		MaxRGBADiffs:      []int{255, 255, 255, 0},
+		MaxRGBADiffs:      []int{65535, 65535, 65535, 0},
 		DimDiffer:         true,
 	}
 

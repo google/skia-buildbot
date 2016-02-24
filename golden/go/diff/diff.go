@@ -47,8 +47,10 @@ var (
 // or PixelAlphaDiffColor) based on the delta passed in.
 //
 // The number passed in is the difference between two colors,
-// on a scale from 1 to 1024.
+// which can take values in the range 4*[0,65535] == [0,262140].
 func deltaOffset(n int) int {
+	n = (n + 256) / 257
+	// scale down to 4*[0,255] == [0,1020] rounding up, then do the old 8-bit math.
 	ret := int(math.Ceil(math.Log(float64(n))/math.Log(3) + 0.5))
 	if ret < 1 || ret > 7 {
 		glog.Fatalf("Input: %d", n)
@@ -137,94 +139,198 @@ func OpenImage(filePath string) (image.Image, error) {
 	return im, nil
 }
 
-// Returns the percentage of pixels that differ, as a float between 0 and 100
-// (inclusive).
-func getPixelDiffPercent(numDiffPixels, totalPixels int) float32 {
-	return (float32(numDiffPixels) * 100) / float32(totalPixels)
-}
-
 func uint8ToColor(c []uint8) color.Color {
 	return color.NRGBA{R: c[0], G: c[1], B: c[2], A: c[3]}
 }
 
-// diffColors compares two color values and returns a color to indicate the
-// difference. If the colors differ it updates maxRGBADiffs to contain the
-// maximum difference over multiple calls.
-// If the RGB channels are identical, but the alpha differ then
-// PixelAlphaDiffColor is returned. This allows to distinguish pixels that
-// render the same, but have different alpha values.
-func diffColors(color1, color2 color.Color, maxRGBADiffs []int) color.Color {
-	// We compare them before normalizing to non-premultiplied. If one of the
-	// original images did not have an alpha channel (but the other did) the
-	// equality will be false.
+// diffColors compares two color values and returns a color to indicate the difference.
+// It also updates maxDiff with the maximum per-channel diffs.
+// If the RGB channels are identical but the alpha differs, return PixelAlphaDiffColor.
+func diffColors(color1, color2 color.Color, maxDiff []int) color.Color {
 	if color1 == color2 {
 		return PixelMatchColor
 	}
 
-	// Treat all colors as non-premultiplied.
-	c1 := color.NRGBAModel.Convert(color1).(color.NRGBA)
-	c2 := color.NRGBAModel.Convert(color2).(color.NRGBA)
+	c1 := color.NRGBA64Model.Convert(color1).(color.NRGBA64)
+	c2 := color.NRGBA64Model.Convert(color2).(color.NRGBA64)
 
-	rDiff := util.AbsInt(int(c1.R) - int(c2.R))
-	gDiff := util.AbsInt(int(c1.G) - int(c2.G))
-	bDiff := util.AbsInt(int(c1.B) - int(c2.B))
-	aDiff := util.AbsInt(int(c1.A) - int(c2.A))
-	maxRGBADiffs[0] = util.MaxInt(maxRGBADiffs[0], rDiff)
-	maxRGBADiffs[1] = util.MaxInt(maxRGBADiffs[1], gDiff)
-	maxRGBADiffs[2] = util.MaxInt(maxRGBADiffs[2], bDiff)
-	maxRGBADiffs[3] = util.MaxInt(maxRGBADiffs[3], aDiff)
+	dr := util.AbsInt(int(c1.R) - int(c2.R))
+	dg := util.AbsInt(int(c1.G) - int(c2.G))
+	db := util.AbsInt(int(c1.B) - int(c2.B))
+	da := util.AbsInt(int(c1.A) - int(c2.A))
+
+	maxDiff[0] = util.MaxInt(maxDiff[0], dr)
+	maxDiff[1] = util.MaxInt(maxDiff[1], dg)
+	maxDiff[2] = util.MaxInt(maxDiff[2], db)
+	maxDiff[3] = util.MaxInt(maxDiff[3], da)
 
 	// If the color channels differ we mark with the diff color.
-	if (c1.R != c2.R) || (c1.G != c2.G) || (c1.B != c2.B) {
-		// We use the Manhattan metric for color difference.
-		return uint8ToColor(PixelDiffColor[deltaOffset(rDiff+gDiff+bDiff+aDiff)])
+	if dr+dg+db > 0 {
+		return uint8ToColor(PixelDiffColor[deltaOffset(dr+dg+db+da)])
 	}
 
 	// If only the alpha channel differs we mark it with the alpha diff color.
-	//
-	if aDiff > 0 {
-		return uint8ToColor(PixelAlphaDiffColor[deltaOffset(aDiff)])
+	if da > 0 {
+		return uint8ToColor(PixelAlphaDiffColor[deltaOffset(da)])
 	}
 
 	return PixelMatchColor
 }
 
-// recode creates a new NRGBA image from the given image.
-func recode(img image.Image) *image.NRGBA {
-	ret := image.NewNRGBA(img.Bounds())
-	draw.Draw(ret, img.Bounds(), img, image.Pt(0, 0), draw.Src)
-	return ret
+func diff_64_64(img1, img2 *image.NRGBA64, result *image.NRGBA) *DiffMetrics {
+	p1 := unsafe.Pointer(&img1.Pix[0])
+	p2 := unsafe.Pointer(&img2.Pix[0])
+
+	total := len(img1.Pix) / 8
+	diffs := 0
+	maxDiff := []int{0, 0, 0, 0}
+	for i := 0; i < total; i++ {
+		// This awkward-looking unsafe.Pointer construction lets us:
+		//   1) do 64-bit reads out of an []uint8
+		//   2) bypass bounds checks
+		rgba := *(*uint64)(unsafe.Pointer(uintptr(p1) + uintptr(i*8)))
+		RGBA := *(*uint64)(unsafe.Pointer(uintptr(p2) + uintptr(i*8)))
+		if rgba == RGBA {
+			continue
+		}
+		// Code above this line is the hot path.  Code below here doesn't need to be super fast.
+		diffs++
+		r := uint16(rgba >> 0)
+		g := uint16(rgba >> 16)
+		b := uint16(rgba >> 32)
+		a := uint16(rgba >> 48)
+
+		R := uint16(RGBA >> 0)
+		G := uint16(RGBA >> 16)
+		B := uint16(RGBA >> 32)
+		A := uint16(RGBA >> 48)
+
+		dr := util.AbsInt(int(r) - int(R))
+		dg := util.AbsInt(int(g) - int(G))
+		db := util.AbsInt(int(b) - int(B))
+		da := util.AbsInt(int(a) - int(A))
+
+		maxDiff[0] = util.MaxInt(maxDiff[0], dr)
+		maxDiff[1] = util.MaxInt(maxDiff[1], dg)
+		maxDiff[2] = util.MaxInt(maxDiff[2], db)
+		maxDiff[3] = util.MaxInt(maxDiff[3], da)
+
+		if dr+dg+db > 0 {
+			copy(result.Pix[i*4:], PixelDiffColor[deltaOffset(dr+dg+db+da)])
+		} else {
+			copy(result.Pix[i*4:], PixelAlphaDiffColor[deltaOffset(da)])
+		}
+	}
+	return &DiffMetrics{
+		NumDiffPixels:    diffs,
+		PixelDiffPercent: 100 * float32(diffs) / float32(total),
+		MaxRGBADiffs:     maxDiff,
+		DimDiffer:        false,
+	}
 }
 
-// GetNRGBA converts the image to an *image.NRGBA in an efficent manner.
-func GetNRGBA(img image.Image) *image.NRGBA {
-	switch t := img.(type) {
-	case *image.NRGBA:
-		return t
-	case *image.RGBA:
-		for i := 0; i < len(t.Pix); i += 4 {
-			if t.Pix[i+3] != 0xff {
-				glog.Warning("Unexpected premultiplied image!")
-				return recode(img)
-			}
+func diff_32_32(img1, img2 *image.NRGBA, result *image.NRGBA) *DiffMetrics {
+	p1 := unsafe.Pointer(&img1.Pix[0])
+	p2 := unsafe.Pointer(&img2.Pix[0])
+
+	total := len(img1.Pix) / 4
+	diffs := 0
+	maxDiff := []int{0, 0, 0, 0}
+
+	for i := 0; i < total; i++ {
+		rgba := *(*uint32)(unsafe.Pointer(uintptr(p1) + uintptr(i*4)))
+		RGBA := *(*uint32)(unsafe.Pointer(uintptr(p2) + uintptr(i*4)))
+		if rgba == RGBA {
+			continue
 		}
-		// If every alpha is 0xff then t.Pix is already in NRGBA format, simply
-		// share Pix between the RGBA and NRGBA structs.
-		return &image.NRGBA{
-			Pix:    t.Pix,
-			Stride: t.Stride,
-			Rect:   t.Rect,
+		diffs++
+		r := uint8(rgba >> 0)
+		g := uint8(rgba >> 8)
+		b := uint8(rgba >> 16)
+		a := uint8(rgba >> 24)
+
+		R := uint8(RGBA >> 0)
+		G := uint8(RGBA >> 8)
+		B := uint8(RGBA >> 16)
+		A := uint8(RGBA >> 24)
+
+		dr := 257 * util.AbsInt(int(r)-int(R))
+		dg := 257 * util.AbsInt(int(g)-int(G))
+		db := 257 * util.AbsInt(int(b)-int(B))
+		da := 257 * util.AbsInt(int(a)-int(A))
+
+		maxDiff[0] = util.MaxInt(maxDiff[0], dr)
+		maxDiff[1] = util.MaxInt(maxDiff[1], dg)
+		maxDiff[2] = util.MaxInt(maxDiff[2], db)
+		maxDiff[3] = util.MaxInt(maxDiff[3], da)
+
+		if dr+dg+db > 0 {
+			copy(result.Pix[i*4:], PixelDiffColor[deltaOffset(dr+dg+db+da)])
+		} else {
+			copy(result.Pix[i*4:], PixelAlphaDiffColor[deltaOffset(da)])
 		}
-	default:
-		// TODO(mtklein): does it make sense we're getting other types, or a DM bug?
-		return recode(img)
+	}
+	return &DiffMetrics{
+		NumDiffPixels:    diffs,
+		PixelDiffPercent: 100 * float32(diffs) / float32(total),
+		MaxRGBADiffs:     maxDiff,
+		DimDiffer:        false,
+	}
+}
+
+func diff_32_64(img1 *image.NRGBA, img2 *image.NRGBA64, result *image.NRGBA) *DiffMetrics {
+	p1 := unsafe.Pointer(&img1.Pix[0])
+	p2 := unsafe.Pointer(&img2.Pix[0])
+
+	total := len(img1.Pix) / 4
+	diffs := 0
+	maxDiff := []int{0, 0, 0, 0}
+	for i := 0; i < total; i++ {
+		rgba := *(*uint32)(unsafe.Pointer(uintptr(p1) + uintptr(i*4)))
+		RGBA := *(*uint64)(unsafe.Pointer(uintptr(p2) + uintptr(i*8)))
+
+		r := uint16(uint8(rgba>>0)) * 257
+		g := uint16(uint8(rgba>>8)) * 257
+		b := uint16(uint8(rgba>>16)) * 257
+		a := uint16(uint8(rgba>>24)) * 257
+
+		R := uint16(RGBA >> 0)
+		G := uint16(RGBA >> 16)
+		B := uint16(RGBA >> 32)
+		A := uint16(RGBA >> 48)
+
+		if r == R && g == G && b == B && a == A {
+			continue
+		}
+		diffs++
+
+		dr := util.AbsInt(int(r) - int(R))
+		dg := util.AbsInt(int(g) - int(G))
+		db := util.AbsInt(int(b) - int(B))
+		da := util.AbsInt(int(a) - int(A))
+
+		maxDiff[0] = util.MaxInt(maxDiff[0], dr)
+		maxDiff[1] = util.MaxInt(maxDiff[1], dg)
+		maxDiff[2] = util.MaxInt(maxDiff[2], db)
+		maxDiff[3] = util.MaxInt(maxDiff[3], da)
+
+		if dr+dg+db > 0 {
+			copy(result.Pix[i*4:], PixelDiffColor[deltaOffset(dr+dg+db+da)])
+		} else {
+			copy(result.Pix[i*4:], PixelAlphaDiffColor[deltaOffset(da)])
+		}
+	}
+	return &DiffMetrics{
+		NumDiffPixels:    diffs,
+		PixelDiffPercent: 100 * float32(diffs) / float32(total),
+		MaxRGBADiffs:     maxDiff,
+		DimDiffer:        false,
 	}
 }
 
 // Diff is a utility function that calculates the DiffMetrics and the image of the
 // difference for the provided images.
 func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
-
 	img1Bounds := img1.Bounds()
 	img2Bounds := img2.Bounds()
 
@@ -239,76 +345,53 @@ func Diff(img1, img2 image.Image) (*DiffMetrics, *image.NRGBA) {
 	resultImg := image.NewNRGBA(image.Rect(0, 0, resultWidth, resultHeight))
 	totalPixels := resultWidth * resultHeight
 
-	// Loop through all points and compare. We start assuming all pixels are
-	// wrong. This takes care of the case where the images have different sizes
-	// and there is an area not inspected by the loop.
-	numDiffPixels := totalPixels
-	maxRGBADiffs := make([]int, 4)
-
-	// Pix is a []uint8 rotating through R, G, B, A, R, G, B, A, ...
-	p1 := GetNRGBA(img1).Pix
-	p2 := GetNRGBA(img2).Pix
-	// Compare the bounds, if they are the same then use this fast path.
-	// We pun to uint64 to compare 2 pixels at a time, so we also require
-	// an even number of pixels here.  If that's a big deal, we can easily
-	// fix that up, handling the straggler pixel separately at the end.
-	if img1Bounds.Eq(img2Bounds) && len(p1)%8 == 0 {
-		numDiffPixels = 0
-		// Note the += 8.  We're checking two pixels at a time here.
-		for i := 0; i < len(p1); i += 8 {
-			// Most pixels we compare will be the same, so from here to
-			// the 'continue' is the hot path in all this code.
-			rgba_2x := (*uint64)(unsafe.Pointer(&p1[i]))
-			RGBA_2x := (*uint64)(unsafe.Pointer(&p2[i]))
-			if *rgba_2x == *RGBA_2x {
-				continue
+	if img1Bounds.Eq(img2Bounds) {
+		// Fast paths for {NRGBA, NRGBA64}^2, all requiring the two images are the same shape.
+		switch i1 := img1.(type) {
+		case *image.NRGBA64:
+			switch i2 := img2.(type) {
+			case *image.NRGBA64:
+				return diff_64_64(i1, i2, resultImg), resultImg
+			case *image.NRGBA:
+				return diff_32_64(i2, i1, resultImg), resultImg
 			}
-
-			// When off == 0, we check the first pixel of the pair; when 4, the second.
-			for off := 0; off <= 4; off += 4 {
-				r, g, b, a := p1[off+i+0], p1[off+i+1], p1[off+i+2], p1[off+i+3]
-				R, G, B, A := p2[off+i+0], p2[off+i+1], p2[off+i+2], p2[off+i+3]
-				if r != R || g != G || b != B || a != A {
-					numDiffPixels++
-					dr := util.AbsInt(int(r) - int(R))
-					dg := util.AbsInt(int(g) - int(G))
-					db := util.AbsInt(int(b) - int(B))
-					da := util.AbsInt(int(a) - int(A))
-					maxRGBADiffs[0] = util.MaxInt(dr, maxRGBADiffs[0])
-					maxRGBADiffs[1] = util.MaxInt(dg, maxRGBADiffs[1])
-					maxRGBADiffs[2] = util.MaxInt(db, maxRGBADiffs[2])
-					maxRGBADiffs[3] = util.MaxInt(da, maxRGBADiffs[3])
-					if dr+dg+db > 0 {
-						copy(resultImg.Pix[off+i:], PixelDiffColor[deltaOffset(dr+dg+db+da)])
-					} else {
-						copy(resultImg.Pix[off+i:], PixelAlphaDiffColor[deltaOffset(da)])
-					}
-				}
-			}
-		}
-	} else {
-		// Fill the entire image with maximum diff color.
-		maxDiffColor := uint8ToColor(PixelDiffColor[deltaOffset(1024)])
-		draw.Draw(resultImg, resultImg.Bounds(), &image.Uniform{maxDiffColor}, image.ZP, draw.Src)
-		maxRGBADiffs = []int{255, 255, 255, 0}
-
-		for x := 0; x < cmpWidth; x++ {
-			for y := 0; y < cmpHeight; y++ {
-				color1 := img1.At(x, y)
-				color2 := img2.At(x, y)
-
-				dc := diffColors(color1, color2, maxRGBADiffs)
-				if dc == PixelMatchColor {
-					numDiffPixels--
-				}
-				resultImg.Set(x, y, dc)
+		case *image.NRGBA:
+			switch i2 := img2.(type) {
+			case *image.NRGBA64:
+				return diff_32_64(i1, i2, resultImg), resultImg
+			case *image.NRGBA:
+				return diff_32_32(i1, i2, resultImg), resultImg
 			}
 		}
 	}
 
+	// This is our very, very slow path.  It's used for images with different
+	// dimensions or for images that aren't one of our expected formats (NRGBA 32/64).
+	diffs := totalPixels // we'll count down
+	maxDiffs := []int{0, 0, 0, 0}
+
+	dimDiffer := !img1Bounds.Eq(img2Bounds)
+	if dimDiffer {
+		// Start every pixel at max-diff, so the non-overlapping pixels are correct.
+		// Per-channel max diffs don't make much sense in this case, so force them:
+		maxDiffs = []int{65535, 65535, 65535, 0}
+		maxDiffColor := uint8ToColor(PixelDiffColor[deltaOffset(65535*4)])
+		draw.Draw(resultImg, resultImg.Bounds(), &image.Uniform{maxDiffColor}, image.ZP, draw.Src)
+	}
+
+	for x := 0; x < cmpWidth; x++ {
+		for y := 0; y < cmpHeight; y++ {
+			dc := diffColors(img1.At(x, y), img2.At(x, y), maxDiffs)
+			if dc == PixelMatchColor {
+				diffs--
+			}
+			resultImg.Set(x, y, dc)
+		}
+	}
 	return &DiffMetrics{
-		NumDiffPixels:    numDiffPixels,
-		PixelDiffPercent: getPixelDiffPercent(numDiffPixels, totalPixels),
-		MaxRGBADiffs:     maxRGBADiffs,
-		DimDiffer:        (cmpWidth != resultWidth) || (cmpHeight != resultHeight)}, resultImg
+		NumDiffPixels:    diffs,
+		PixelDiffPercent: 100 * float32(diffs) / float32(totalPixels),
+		MaxRGBADiffs:     maxDiffs,
+		DimDiffer:        dimDiffer,
+	}, resultImg
 }
