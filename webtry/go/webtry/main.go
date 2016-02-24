@@ -31,12 +31,13 @@ import (
 	"github.com/fiorix/go-web/autogzip"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
-	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/webtry/go/config"
 )
@@ -107,14 +108,17 @@ var (
 
 	gitHash = ""
 	gitInfo = ""
-
-	requestsCounter = metrics.NewRegisteredCounter("requests", metrics.DefaultRegistry)
 )
 
 // Command line flags.
 var (
 	configFilename = flag.String("config", "webtry.toml", "Configuration filename")
-	graphiteServer = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
+	testing        = flag.Bool("testing", false, "Set to true for local testing.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 // lineNumbers adds #line numbering to the user's code.
@@ -272,7 +276,7 @@ func Init() {
 		}
 	}()
 
-	common.InitWithMetrics("webtry", graphiteServer)
+	common.InitWithMetrics2("webtry", influxHost, influxUser, influxPassword, influxDatabase, testing)
 
 	writeOutAllSourceImages()
 }
@@ -948,7 +952,7 @@ func writeOutputImages(hash string, outputImages OutputImages) error {
 // mainHandler handles the GET and POST of the main page.
 func mainHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Main Handler: %q\n", r.URL.Path)
-	requestsCounter.Inc(1)
+	metrics2.GetCounter("http-requests", nil).Inc(1)
 	if r.Method == "GET" {
 		rasterURL := ""
 		pdfURL := ""
