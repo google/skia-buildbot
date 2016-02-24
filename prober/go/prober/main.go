@@ -19,6 +19,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/metrics2"
@@ -363,7 +364,7 @@ func main() {
 	defer common.LogPanic()
 	common.InitWithMetrics2("probeserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
 
-	client, err := auth.NewDefaultJWTServiceAccountClient("https://www.googleapis.com/auth/userinfo.email")
+	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, "https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		glog.Fatalf("Failed to create client for talking to the issue tracker: %s", err)
 	}
