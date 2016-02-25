@@ -37,6 +37,12 @@ var (
 	// ERR_EMPTY_QUEUE is returned by BuildQueue.Pop() when the queue for
 	// that builder is empty.
 	ERR_EMPTY_QUEUE = fmt.Errorf("Queue is empty.")
+
+	SCHEDULER_BLACKLIST = map[string]map[string]bool{
+		"Infra-PerCommit": map[string]bool{
+			"355d0d378d1b9f2df9abe9fd4a73348d9b13471b": true,
+		},
+	}
 )
 
 // BuildCandidate is a struct which describes a candidate for a build.
@@ -350,6 +356,10 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 	stoleFromByCommit := map[string]*buildbot.Build{}
 	foundNewerBuild := false
 	for _, commit := range recentCommits {
+		if SCHEDULER_BLACKLIST[bc.Builder][commit] {
+			glog.Warningf("Skipping blacklisted builder/commit: %s @ %s", bc.Builder, commit)
+			continue
+		}
 		// Shortcut: Don't bisect builds with a huge number
 		// of commits.  This saves lots of time and only affects
 		// the first successful build for a bot. Additionally, don't
