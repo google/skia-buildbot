@@ -335,7 +335,6 @@ _slave_host_dicts = {
   'skia-vm-015': {
     'slaves': [
       ('skiabot-linux-housekeeper-001', '0', False),
-      ('skiabot-linux-housekeeper-002', '1', False),
       ('skiabot-linux-housekeeper-003', '2', False),
       ('skiabot-ct-trybot-000', '3', False),
       ('skiabot-ct-trybot-001', '4', False),
@@ -437,6 +436,21 @@ _slave_host_dicts = {
   'skia-vm-023': {
     'slaves': [
       ('skiabot-linux-tester-003', '0', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'ip': NO_IP_ADDR,
+    'kvm_switch': NO_KVM_SWITCH,
+    'kvm_num': NO_KVM_NUM,
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'skia-vm-024': {
+    'slaves': [
+      ('skiabot-linux-infra-000', '0', False),
+      ('skiabot-linux-infra-001', '1', False),
+      ('skiabot-linux-infra-002', '2', False),
+      ('skiabot-linux-infra-003', '3', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
