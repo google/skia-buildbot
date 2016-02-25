@@ -467,7 +467,10 @@ var issueAndPatch = regexp.MustCompile("([0-9]+)-[0-9]+")
 func StartCleaner(workDir string) {
 	glog.Info("Starting Cleaner")
 	for _ = range time.Tick(config.REFRESH) {
-		matches, err := filepath.Glob(workDir + "/patches/*")
+		// TODO (stephana): The extra 'patches' directory should go away after
+		// one of the path segments is removed in docserver/main.go or
+		// NewDocsetForIssue.
+		matches, err := filepath.Glob(workDir + "/patches/patches/*")
 		glog.Infof("Matches: %v", matches)
 		if err != nil {
 			glog.Errorf("Failed to retrieve list of patched checkouts: %s", err)
