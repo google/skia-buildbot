@@ -329,6 +329,8 @@ func probeOneRound(cfg Probes, c *http.Client) {
 			glog.Errorf("Error: unknown method: %s", probe.Method)
 			continue
 		}
+		d := time.Since(begin)
+		probe.latency.Update(d.Nanoseconds() / int64(time.Millisecond))
 		if err != nil {
 			glog.Errorf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
 			probe.failure.Update(1)
@@ -341,7 +343,6 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		if resp.Body != nil {
 			util.Close(resp.Body)
 		}
-		d := time.Since(begin)
 		// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 
 		if !In(resp.StatusCode, probe.Expected) {
@@ -356,7 +357,6 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		}
 
 		probe.failure.Update(0)
-		probe.latency.Update(d.Nanoseconds() / int64(time.Millisecond))
 	}
 }
 
