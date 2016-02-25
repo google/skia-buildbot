@@ -13,7 +13,6 @@ ExecStart=/usr/local/bin/alertserver \
     --log_dir=/var/log/logserver \
     --log_max_size=10485760 \
     --alert_poll_interval=1m \
-    --workdir=/mnt/pd0/alertserver_workdir \
     --resources_dir=/usr/local/share/skiaalertserver/
 Restart=always
 User=default

@@ -17,12 +17,6 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
   --source-snapshot $SOURCE_SNAPSHOT \
   --type "pd-standard"
 
-# Create a large data disk.
-gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
-  --size "10" \
-  --zone $ZONE \
-  --type "pd-standard"
-
 # Create the instance with the two disks attached.
 gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --zone $ZONE \
@@ -33,7 +27,6 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --tags "http-server" "https-server" \
   --metadata-from-file "startup-script=startup-script.sh" \
   --disk name=${INSTANCE_NAME}      device-name=${INSTANCE_NAME}      "mode=rw" "boot=yes" "auto-delete=yes" \
-  --disk name=${INSTANCE_NAME}-data device-name=${INSTANCE_NAME}-data "mode=rw" "boot=no" \
   --address=$IP_ADDRESS
 
 WAIT_TIME_AFTER_CREATION_SECS=600
