@@ -40,14 +40,14 @@ function setup_symlinks {
 }
 
 function install_go {
-  GO_VERSION="go1.4.2.linux-amd64"
+  GO_VERSION="go1.6.linux-amd64"
   echo
   echo "Install Go"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
       "wget https://storage.googleapis.com/golang/$GO_VERSION.tar.gz && " \
       "tar -zxvf $GO_VERSION.tar.gz && " \
-      "sudo mv go /usr/local && " \
-      "sudo ln -s /usr/local/go/bin/go /usr/bin/go && " \
+      "sudo mv go /usr/local/$GO_VERSION && " \
+      "sudo ln -s /usr/local/$GO_VERSION/bin/go /usr/bin/go && " \
       "rm $GO_VERSION.tar.gz" \
       || FAILED="$FAILED InstallGo"
   echo
