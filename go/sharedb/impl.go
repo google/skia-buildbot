@@ -17,14 +17,27 @@ import (
 	"google.golang.org/grpc"
 )
 
+// ShareDB is a wrapper around ShareDBClient to add convenience methods.
+type ShareDB struct {
+	*shareDBClient
+}
+
 // New returns a ShareDBClient that is connected to the given server address.
 // The returned client can then be used to make RPC calls.
-func New(serverAddress string) (ShareDBClient, error) {
+func New(serverAddress string) (*ShareDB, error) {
 	conn, err := grpc.Dial(serverAddress, grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
-	return NewShareDBClient(conn), nil
+
+	return &ShareDB{
+		shareDBClient: NewShareDBClient(conn).(*shareDBClient),
+	}, nil
+}
+
+// Close the underlying GRCP connection.
+func (s *ShareDB) Close() error {
+	return s.cc.Close()
 }
 
 // rpcServer implements the ShareDBServer define in the sharedb.proto file.

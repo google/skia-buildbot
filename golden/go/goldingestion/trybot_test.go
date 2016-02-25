@@ -61,6 +61,7 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	// Steal the traceDB used by the processor to verify the results.
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(serverAddress, types.GoldenTraceBuilder)
 	assert.Nil(t, err)
+	defer traceDB.Close()
 
 	// The timestamp for the issue/patchset in the testfile is 1443718869.
 	startTime := time.Unix(1443718868, 0)

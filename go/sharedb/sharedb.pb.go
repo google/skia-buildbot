@@ -38,23 +38,29 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the proto package it is being compiled against.
+const _ = proto.ProtoPackageIsVersion1
+
 type GetRequest struct {
 	Database string `protobuf:"bytes,1,opt,name=database" json:"database,omitempty"`
 	Bucket   string `protobuf:"bytes,2,opt,name=bucket" json:"bucket,omitempty"`
 	Key      string `protobuf:"bytes,3,opt,name=key" json:"key,omitempty"`
 }
 
-func (m *GetRequest) Reset()         { *m = GetRequest{} }
-func (m *GetRequest) String() string { return proto.CompactTextString(m) }
-func (*GetRequest) ProtoMessage()    {}
+func (m *GetRequest) Reset()                    { *m = GetRequest{} }
+func (m *GetRequest) String() string            { return proto.CompactTextString(m) }
+func (*GetRequest) ProtoMessage()               {}
+func (*GetRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
 type GetResponse struct {
 	Value []byte `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
 }
 
-func (m *GetResponse) Reset()         { *m = GetResponse{} }
-func (m *GetResponse) String() string { return proto.CompactTextString(m) }
-func (*GetResponse) ProtoMessage()    {}
+func (m *GetResponse) Reset()                    { *m = GetResponse{} }
+func (m *GetResponse) String() string            { return proto.CompactTextString(m) }
+func (*GetResponse) ProtoMessage()               {}
+func (*GetResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
 
 type PutRequest struct {
 	Database string `protobuf:"bytes,1,opt,name=database" json:"database,omitempty"`
@@ -63,17 +69,19 @@ type PutRequest struct {
 	Value    []byte `protobuf:"bytes,4,opt,name=value,proto3" json:"value,omitempty"`
 }
 
-func (m *PutRequest) Reset()         { *m = PutRequest{} }
-func (m *PutRequest) String() string { return proto.CompactTextString(m) }
-func (*PutRequest) ProtoMessage()    {}
+func (m *PutRequest) Reset()                    { *m = PutRequest{} }
+func (m *PutRequest) String() string            { return proto.CompactTextString(m) }
+func (*PutRequest) ProtoMessage()               {}
+func (*PutRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{2} }
 
 type PutResponse struct {
 	Ok bool `protobuf:"varint,1,opt,name=ok" json:"ok,omitempty"`
 }
 
-func (m *PutResponse) Reset()         { *m = PutResponse{} }
-func (m *PutResponse) String() string { return proto.CompactTextString(m) }
-func (*PutResponse) ProtoMessage()    {}
+func (m *PutResponse) Reset()                    { *m = PutResponse{} }
+func (m *PutResponse) String() string            { return proto.CompactTextString(m) }
+func (*PutResponse) ProtoMessage()               {}
+func (*PutResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{3} }
 
 type DeleteRequest struct {
 	Database string `protobuf:"bytes,1,opt,name=database" json:"database,omitempty"`
@@ -81,48 +89,54 @@ type DeleteRequest struct {
 	Key      string `protobuf:"bytes,3,opt,name=key" json:"key,omitempty"`
 }
 
-func (m *DeleteRequest) Reset()         { *m = DeleteRequest{} }
-func (m *DeleteRequest) String() string { return proto.CompactTextString(m) }
-func (*DeleteRequest) ProtoMessage()    {}
+func (m *DeleteRequest) Reset()                    { *m = DeleteRequest{} }
+func (m *DeleteRequest) String() string            { return proto.CompactTextString(m) }
+func (*DeleteRequest) ProtoMessage()               {}
+func (*DeleteRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{4} }
 
 type DeleteResponse struct {
 	Ok bool `protobuf:"varint,1,opt,name=ok" json:"ok,omitempty"`
 }
 
-func (m *DeleteResponse) Reset()         { *m = DeleteResponse{} }
-func (m *DeleteResponse) String() string { return proto.CompactTextString(m) }
-func (*DeleteResponse) ProtoMessage()    {}
+func (m *DeleteResponse) Reset()                    { *m = DeleteResponse{} }
+func (m *DeleteResponse) String() string            { return proto.CompactTextString(m) }
+func (*DeleteResponse) ProtoMessage()               {}
+func (*DeleteResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{5} }
 
 type DatabasesRequest struct {
 }
 
-func (m *DatabasesRequest) Reset()         { *m = DatabasesRequest{} }
-func (m *DatabasesRequest) String() string { return proto.CompactTextString(m) }
-func (*DatabasesRequest) ProtoMessage()    {}
+func (m *DatabasesRequest) Reset()                    { *m = DatabasesRequest{} }
+func (m *DatabasesRequest) String() string            { return proto.CompactTextString(m) }
+func (*DatabasesRequest) ProtoMessage()               {}
+func (*DatabasesRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{6} }
 
 type DatabasesResponse struct {
 	Values []string `protobuf:"bytes,1,rep,name=values" json:"values,omitempty"`
 }
 
-func (m *DatabasesResponse) Reset()         { *m = DatabasesResponse{} }
-func (m *DatabasesResponse) String() string { return proto.CompactTextString(m) }
-func (*DatabasesResponse) ProtoMessage()    {}
+func (m *DatabasesResponse) Reset()                    { *m = DatabasesResponse{} }
+func (m *DatabasesResponse) String() string            { return proto.CompactTextString(m) }
+func (*DatabasesResponse) ProtoMessage()               {}
+func (*DatabasesResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{7} }
 
 type BucketsRequest struct {
 	Database string `protobuf:"bytes,1,opt,name=database" json:"database,omitempty"`
 }
 
-func (m *BucketsRequest) Reset()         { *m = BucketsRequest{} }
-func (m *BucketsRequest) String() string { return proto.CompactTextString(m) }
-func (*BucketsRequest) ProtoMessage()    {}
+func (m *BucketsRequest) Reset()                    { *m = BucketsRequest{} }
+func (m *BucketsRequest) String() string            { return proto.CompactTextString(m) }
+func (*BucketsRequest) ProtoMessage()               {}
+func (*BucketsRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{8} }
 
 type BucketsResponse struct {
 	Values []string `protobuf:"bytes,1,rep,name=values" json:"values,omitempty"`
 }
 
-func (m *BucketsResponse) Reset()         { *m = BucketsResponse{} }
-func (m *BucketsResponse) String() string { return proto.CompactTextString(m) }
-func (*BucketsResponse) ProtoMessage()    {}
+func (m *BucketsResponse) Reset()                    { *m = BucketsResponse{} }
+func (m *BucketsResponse) String() string            { return proto.CompactTextString(m) }
+func (*BucketsResponse) ProtoMessage()               {}
+func (*BucketsResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{9} }
 
 type KeysRequest struct {
 	Database  string `protobuf:"bytes,1,opt,name=database" json:"database,omitempty"`
@@ -132,17 +146,34 @@ type KeysRequest struct {
 	MaxPrefix string `protobuf:"bytes,5,opt,name=maxPrefix" json:"maxPrefix,omitempty"`
 }
 
-func (m *KeysRequest) Reset()         { *m = KeysRequest{} }
-func (m *KeysRequest) String() string { return proto.CompactTextString(m) }
-func (*KeysRequest) ProtoMessage()    {}
+func (m *KeysRequest) Reset()                    { *m = KeysRequest{} }
+func (m *KeysRequest) String() string            { return proto.CompactTextString(m) }
+func (*KeysRequest) ProtoMessage()               {}
+func (*KeysRequest) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{10} }
 
 type KeysResponse struct {
 	Values []string `protobuf:"bytes,1,rep,name=values" json:"values,omitempty"`
 }
 
-func (m *KeysResponse) Reset()         { *m = KeysResponse{} }
-func (m *KeysResponse) String() string { return proto.CompactTextString(m) }
-func (*KeysResponse) ProtoMessage()    {}
+func (m *KeysResponse) Reset()                    { *m = KeysResponse{} }
+func (m *KeysResponse) String() string            { return proto.CompactTextString(m) }
+func (*KeysResponse) ProtoMessage()               {}
+func (*KeysResponse) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{11} }
+
+func init() {
+	proto.RegisterType((*GetRequest)(nil), "sharedb.GetRequest")
+	proto.RegisterType((*GetResponse)(nil), "sharedb.GetResponse")
+	proto.RegisterType((*PutRequest)(nil), "sharedb.PutRequest")
+	proto.RegisterType((*PutResponse)(nil), "sharedb.PutResponse")
+	proto.RegisterType((*DeleteRequest)(nil), "sharedb.DeleteRequest")
+	proto.RegisterType((*DeleteResponse)(nil), "sharedb.DeleteResponse")
+	proto.RegisterType((*DatabasesRequest)(nil), "sharedb.DatabasesRequest")
+	proto.RegisterType((*DatabasesResponse)(nil), "sharedb.DatabasesResponse")
+	proto.RegisterType((*BucketsRequest)(nil), "sharedb.BucketsRequest")
+	proto.RegisterType((*BucketsResponse)(nil), "sharedb.BucketsResponse")
+	proto.RegisterType((*KeysRequest)(nil), "sharedb.KeysRequest")
+	proto.RegisterType((*KeysResponse)(nil), "sharedb.KeysResponse")
+}
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ context.Context
@@ -338,4 +369,33 @@ var _ShareDB_serviceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams: []grpc.StreamDesc{},
+}
+
+var fileDescriptor0 = []byte{
+	// 400 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xac, 0x54, 0xcd, 0x4e, 0x32, 0x31,
+	0x14, 0xfd, 0x60, 0xf8, 0xbd, 0xfc, 0x7c, 0x58, 0x11, 0xc7, 0x46, 0x13, 0x52, 0x13, 0xa3, 0xd1,
+	0xb0, 0xc0, 0xb8, 0x32, 0x71, 0x41, 0x26, 0x71, 0xe1, 0x86, 0x8c, 0xf1, 0x01, 0x66, 0xa4, 0x06,
+	0x02, 0x32, 0x48, 0x67, 0x0c, 0x3c, 0x88, 0x4f, 0xe9, 0x4b, 0xd8, 0x69, 0x3b, 0xed, 0x00, 0xfe,
+	0x25, 0xb2, 0x9b, 0x7b, 0x4e, 0xcf, 0x3d, 0xb7, 0xb7, 0x07, 0xa0, 0xc6, 0x86, 0xde, 0x9c, 0x0e,
+	0xfc, 0xce, 0x6c, 0x1e, 0x84, 0x01, 0x2a, 0xaa, 0x92, 0xb8, 0x00, 0xb7, 0x34, 0x74, 0xe9, 0x4b,
+	0x44, 0x59, 0x88, 0x30, 0x94, 0x06, 0x5e, 0xe8, 0xf9, 0x1e, 0xa3, 0x76, 0xa6, 0x9d, 0x39, 0x2d,
+	0xbb, 0xba, 0x46, 0x2d, 0x28, 0xf8, 0xd1, 0xe3, 0x98, 0x86, 0x76, 0x56, 0x30, 0xaa, 0x42, 0x0d,
+	0xb0, 0xc6, 0x74, 0x69, 0x5b, 0x02, 0x8c, 0x3f, 0xc9, 0x31, 0x54, 0x44, 0x4f, 0x36, 0x0b, 0xa6,
+	0x5c, 0xd8, 0x84, 0xfc, 0xab, 0x37, 0x89, 0x64, 0xc7, 0xaa, 0x2b, 0x0b, 0x32, 0x04, 0xe8, 0x47,
+	0xdb, 0x35, 0x36, 0x4e, 0xb9, 0xb4, 0xd3, 0x11, 0x54, 0x84, 0x93, 0x1a, 0xa7, 0x0e, 0xd9, 0x60,
+	0x2c, 0x4c, 0x4a, 0x2e, 0xff, 0x22, 0x0f, 0x50, 0x73, 0xe8, 0x84, 0x86, 0x74, 0xbb, 0x4b, 0x68,
+	0x43, 0x3d, 0x69, 0xfb, 0x85, 0x31, 0x82, 0x86, 0xa3, 0xfa, 0x32, 0xe5, 0x4d, 0xce, 0x61, 0x27,
+	0x85, 0x29, 0x21, 0x37, 0x15, 0x37, 0x61, 0x5c, 0x6c, 0xc5, 0xa6, 0xb2, 0x22, 0x17, 0x50, 0xef,
+	0x09, 0x7b, 0xf6, 0x8b, 0xd1, 0xc9, 0x19, 0xfc, 0xd7, 0xa7, 0x7f, 0x68, 0xfc, 0x96, 0x81, 0xca,
+	0x1d, 0x5d, 0xb2, 0xbf, 0x6c, 0x84, 0xe3, 0xb3, 0x39, 0x7d, 0x1a, 0x2d, 0xd4, 0x52, 0x54, 0x85,
+	0x0e, 0xa1, 0xfc, 0x3c, 0x9a, 0xf6, 0x25, 0x95, 0x13, 0x94, 0x01, 0x04, 0xeb, 0x2d, 0x14, 0x9b,
+	0x57, 0x6c, 0x02, 0x90, 0x13, 0xa8, 0xca, 0xb1, 0xbe, 0x9f, 0xbf, 0xfb, 0x9e, 0x85, 0xe2, 0x7d,
+	0x1c, 0x70, 0xa7, 0x87, 0xba, 0x60, 0xf1, 0x30, 0xa2, 0xdd, 0x4e, 0xf2, 0x03, 0x30, 0x71, 0xc7,
+	0xcd, 0x55, 0x50, 0x76, 0x25, 0xff, 0x62, 0x0d, 0x4f, 0x4c, 0x4a, 0x63, 0x92, 0x9a, 0xd2, 0xa4,
+	0x42, 0xc5, 0x35, 0xd7, 0x50, 0x90, 0xef, 0x8d, 0x5a, 0xfa, 0xc4, 0x4a, 0xae, 0xf0, 0xfe, 0x06,
+	0xae, 0xc5, 0x0e, 0x94, 0xf5, 0xb3, 0xa3, 0x03, 0x73, 0x6e, 0x2d, 0x1e, 0x18, 0x7f, 0x46, 0xe9,
+	0x2e, 0x37, 0x50, 0x54, 0x2f, 0x8c, 0x8c, 0xd7, 0x6a, 0x42, 0xb0, 0xbd, 0x49, 0x68, 0xfd, 0x15,
+	0xe4, 0xe2, 0xf5, 0x22, 0x73, 0xc5, 0x54, 0x08, 0xf0, 0xde, 0x1a, 0x9a, 0xc8, 0xfc, 0x82, 0xf8,
+	0x4b, 0xb9, 0xfc, 0x08, 0x00, 0x00, 0xff, 0xff, 0x62, 0x1c, 0x22, 0x50, 0x63, 0x04, 0x00, 0x00,
 }

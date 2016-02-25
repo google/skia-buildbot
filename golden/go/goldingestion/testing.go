@@ -55,10 +55,15 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 
 	ingestionStore, err := NewIngestionStore(serverAddr)
 	assert.Nil(t, err)
+	defer func() { assert.Nil(t, ingestionStore.Close()) }()
 
 	// Set up the processor.
 	processor, err := newGoldTrybotProcessor(vcs, ingesterConf, nil)
 	assert.Nil(t, err)
+	defer func() {
+		assert.Nil(t, processor.(*goldTrybotProcessor).traceDB.Close())
+		assert.Nil(t, processor.(*goldTrybotProcessor).ingestionStore.Close())
+	}()
 
 	// Load the example file and process it.
 	fsResult, err = ingestion.FileSystemResult(ingestionFile, "./")

@@ -70,6 +70,7 @@ type TrybotResults struct {
 	reviewURL      string
 	rietveldAPI    *rietveld.Rietveld
 	ingestionStore *goldingestion.IngestionStore
+	timeFrame      time.Duration
 }
 
 func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietveld.Rietveld, ingestionStore *goldingestion.IngestionStore) *TrybotResults {
@@ -78,6 +79,7 @@ func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietve
 		reviewURL:      rietveldAPI.Url(),
 		rietveldAPI:    rietveldAPI,
 		ingestionStore: ingestionStore,
+		timeFrame:      TIME_FRAME,
 	}
 	return ret
 }
@@ -87,7 +89,7 @@ func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietve
 // total number of current issues to allow pagination.
 func (t *TrybotResults) ListTrybotIssues(offset, size int) ([]*Issue, int, error) {
 	end := time.Now()
-	begin := end.Add(-TIME_FRAME)
+	begin := end.Add(-t.timeFrame)
 
 	commits, issueIDs, err := t.getCommits(begin, end, t.reviewURL)
 	if err != nil {
@@ -112,7 +114,7 @@ func (t *TrybotResults) ListTrybotIssues(offset, size int) ([]*Issue, int, error
 // The commmit ids align with the tile that is returned.
 func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string, cacheOnly bool) (*IssueDetails, *tiling.Tile, error) {
 	end := time.Now()
-	begin := end.Add(-TIME_FRAME)
+	begin := end.Add(-t.timeFrame)
 	prefix := goldingestion.GetPrefix(issueID, t.reviewURL)
 	commits, issueIDs, err := t.getCommits(begin, end, prefix)
 

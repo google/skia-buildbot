@@ -107,7 +107,7 @@ func TestShareDB(t *testing.T) {
 	assert.Equal(t, "", string(foundResp.Value))
 }
 
-func startServer(t *testing.T, serverImpl ShareDBServer) (*grpc.Server, ShareDBClient, error) {
+func startServer(t *testing.T, serverImpl ShareDBServer) (*grpc.Server, *ShareDB, error) {
 	lis, err := net.Listen("tcp", SERVER_ADDRESS)
 	assert.Nil(t, err)
 	grpcServer := grpc.NewServer()

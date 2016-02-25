@@ -86,6 +86,7 @@ func TestGoldProcessor(t *testing.T) {
 	// Set up the processor.
 	processor, err := newGoldProcessor(vcs, ingesterConf, nil)
 	assert.Nil(t, err)
+	defer processor.(*goldProcessor).traceDB.Close()
 
 	// Load the example file and process it.
 	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")

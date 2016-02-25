@@ -1,6 +1,19 @@
 package trybot
 
-import "testing"
+import (
+	"testing"
+	"time"
+
+	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/eventbus"
+	"go.skia.org/infra/go/ingestion"
+	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/testutils"
+	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/goldingestion"
+	"go.skia.org/infra/golden/go/types"
+)
 
 const (
 	TEST_DATA_DIR        = "./testdata"
@@ -10,8 +23,11 @@ const (
 	TEST_CODE_REVIEW_URL = "https://codereview.chromium.org"
 )
 
+var (
+	BEGINNING_OF_TIME = time.Date(2015, time.June, 1, 0, 0, 0, 0, time.UTC)
+)
+
 func TestTrybotResults(t *testing.T) {
-	/* TODO(stephana) Test is flaky and/or broken.
 	testutils.SkipIfShort(t)
 
 	rietveldAPI := rietveld.New(TEST_CODE_REVIEW_URL, nil)
@@ -22,12 +38,14 @@ func TestTrybotResults(t *testing.T) {
 
 	db, err := tracedb.NewTraceServiceDBFromAddress(serverAddress, types.GoldenTraceBuilder)
 	assert.Nil(t, err)
+	defer util.Close(db)
 
 	ingestionStore, err := goldingestion.NewIngestionStore(serverAddress)
 	assert.Nil(t, err)
 
 	tileBuilder := tracedb.NewBranchTileBuilder(db, nil, rietveldAPI, eventbus.New(nil))
 	tr := NewTrybotResults(tileBuilder, rietveldAPI, ingestionStore)
+	tr.timeFrame = time.Now().Sub(BEGINNING_OF_TIME)
 
 	issues, total, err := tr.ListTrybotIssues(0, 20)
 	assert.Nil(t, err)
@@ -61,5 +79,5 @@ func TestTrybotResults(t *testing.T) {
 		}
 	}
 	assert.Equal(t, expectedDigests, foundDigests)
-	*/
+
 }

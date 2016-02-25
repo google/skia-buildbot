@@ -16,7 +16,7 @@ const (
 )
 
 type IngestionStore struct {
-	client sharedb.ShareDBClient
+	client *sharedb.ShareDB
 	ctx    context.Context
 }
 
@@ -37,6 +37,11 @@ func NewIngestionStore(serverAddr string) (*IngestionStore, error) {
 		client: client,
 		ctx:    context.Background(),
 	}, nil
+}
+
+// Close the connection to the RPC service.
+func (i *IngestionStore) Close() error {
+	return i.client.Close()
 }
 
 // IsIngested returns true if the results for the given master/builder/buildnumber have been processed.
