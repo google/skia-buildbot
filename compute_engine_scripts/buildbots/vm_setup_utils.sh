@@ -47,6 +47,7 @@ function install_go {
       "wget https://storage.googleapis.com/golang/$GO_VERSION.tar.gz && " \
       "tar -zxvf $GO_VERSION.tar.gz && " \
       "sudo mv go /usr/local/$GO_VERSION && " \
+      "sudo ln -s /usr/local/$GO_VERSION /usr/local/go && " \
       "sudo ln -s /usr/local/$GO_VERSION/bin/go /usr/bin/go && " \
       "rm $GO_VERSION.tar.gz" \
       || FAILED="$FAILED InstallGo"
