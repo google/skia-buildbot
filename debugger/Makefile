@@ -25,6 +25,6 @@ run_fake_local: build
 	fakedebugger --source="http://localhost:9000" --port=localhost:8000 --alsologtostderr
 
 run_server_local: build
-	skdebugger --port=localhost:9000 --graphite_server= --alsologtostderr
+	skdebugger --port=localhost:9000 --local --alsologtostderr
 
 include ../webtools/webtools.mk
