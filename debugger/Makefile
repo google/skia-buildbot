@@ -19,6 +19,7 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 push: build
 	./build_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
 	pushcli skdebuggerd skia-debugger
 
 run_fake_local: build
