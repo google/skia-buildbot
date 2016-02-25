@@ -37,8 +37,8 @@ module.exports = function(config) {
     reporters: ['dots'],
 
 
-    // web server port
-    port: 9876,
+    // Get the port from KARMA_PORT if it is set. 
+    port: parseInt(process.env.KARMA_PORT || "9876"),
 
 
     // enable / disable colors in the output (reporters and logs)
