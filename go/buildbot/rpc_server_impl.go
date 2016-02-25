@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -13,13 +14,13 @@ import (
 	"google.golang.org/grpc"
 )
 
-func RunBuildServer(port string, db DB) error {
+func RunBuildServer(port string, db DB) (string, error) {
 	if _, ok := db.(*localDB); !ok {
-		return fmt.Errorf("Can only run a build server on a local DB instance.")
+		return "", fmt.Errorf("Can only run a build server on a local DB instance.")
 	}
 	lis, err := net.Listen("tcp", port)
 	if err != nil {
-		return fmt.Errorf("Failed to create build server: failed to listen on port %q: %s", port, err)
+		return "", fmt.Errorf("Failed to create build server: failed to listen on port %q: %s", port, err)
 	}
 	s := grpc.NewServer()
 	rpc.RegisterBuildbotDBServer(s, &rpcServer{db: db.(*localDB)})
@@ -28,7 +29,8 @@ func RunBuildServer(port string, db DB) error {
 			glog.Errorf("Failed to run RPC server: %s", err)
 		}
 	}()
-	return nil
+	addrSplit := strings.Split(lis.Addr().String(), ":")
+	return fmt.Sprintf(":%s", addrSplit[len(addrSplit)-1]), nil
 }
 
 type rpcServer struct {

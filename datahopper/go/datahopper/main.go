@@ -98,7 +98,7 @@ func main() {
 	}
 
 	// Run a server for the buildbot data.
-	if err := buildbot.RunBuildServer(*grpcPort, db); err != nil {
+	if _, err := buildbot.RunBuildServer(*grpcPort, db); err != nil {
 		glog.Fatal(err)
 	}
 

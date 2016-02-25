@@ -8,7 +8,6 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -66,22 +65,7 @@ var (
 		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/466":         []byte(venue466),
 		"http://build.chromium.org/p/client.skia.fyi/json/builders/Housekeeper-PerCommit/builds/1035":                              []byte(housekeeper1035),
 	})
-
-	testPort = findAPort{port: 23234}
 )
-
-type findAPort struct {
-	port int
-	mtx  sync.Mutex
-}
-
-func (p *findAPort) Port() int {
-	p.mtx.Lock()
-	defer p.mtx.Unlock()
-	rv := p.port
-	p.port++
-	return rv
-}
 
 type testDB interface {
 	DB() DB
@@ -132,8 +116,8 @@ func clearDB(t *testing.T, local bool) testDB {
 			dir: tempDir,
 		}
 	} else {
-		port := fmt.Sprintf(":%d", testPort.Port())
-		assert.Nil(t, RunBuildServer(port, localDB))
+		port, err := RunBuildServer(":0", localDB)
+		assert.Nil(t, err)
 
 		remoteDB, err := NewRemoteDB(fmt.Sprintf("localhost%s", port))
 		assert.Nil(t, err)
