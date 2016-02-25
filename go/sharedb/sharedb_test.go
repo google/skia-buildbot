@@ -16,7 +16,6 @@ import (
 
 const MAX_KEYS = 200
 const DATA_DIR = "./data_dir"
-const SERVER_ADDRESS = "127.0.0.1:9999"
 
 func TestShareDB(t *testing.T) {
 	// Create the server and start it.
@@ -26,6 +25,7 @@ func TestShareDB(t *testing.T) {
 	grpcServer, client, err := startServer(t, serverImpl)
 	assert.Nil(t, err)
 	defer grpcServer.Stop()
+	defer func() { assert.Nil(t, client.Close()) }()
 
 	dbName := "database001"
 	bucketName := "bucket_01"
@@ -108,7 +108,7 @@ func TestShareDB(t *testing.T) {
 }
 
 func startServer(t *testing.T, serverImpl ShareDBServer) (*grpc.Server, *ShareDB, error) {
-	lis, err := net.Listen("tcp", SERVER_ADDRESS)
+	lis, err := net.Listen("tcp", "localhost:0")
 	assert.Nil(t, err)
 	grpcServer := grpc.NewServer()
 	RegisterShareDBServer(grpcServer, serverImpl)
@@ -117,7 +117,7 @@ func startServer(t *testing.T, serverImpl ShareDBServer) (*grpc.Server, *ShareDB
 	// 10ms should be plenty to bring up the server on the loopback interface
 	// and connect to it.
 	for i := 0; i < 10; i++ {
-		client, err := New(SERVER_ADDRESS)
+		client, err := New(lis.Addr().String())
 		if err == nil {
 			return grpcServer, client, nil
 		}
