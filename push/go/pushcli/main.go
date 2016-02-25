@@ -18,6 +18,7 @@ import (
 var (
 	project  = flag.String("project", "google.com:skia-buildbots", "The Google Compute Engine project.")
 	rollback = flag.Bool("rollback", false, "If true roll back to the next most recent package, otherwise use the most recently pushed package.")
+	force    = flag.Bool("force", false, "If true then install the package even if it hasn't previously been installed on the given server.")
 )
 
 func init() {
@@ -87,13 +88,18 @@ func main() {
 		latest = available[1]
 	}
 
+	found := false
 	// Build a new list of packages that is the old list of packages with the new package added.
 	newInstalled := []string{fmt.Sprintf("%s/%s", appName, latest.Name)}
 	for _, name := range installed.Names {
 		if strings.Split(name, "/")[0] == appName {
+			found = true
 			continue
 		}
 		newInstalled = append(newInstalled, name)
+	}
+	if !found && !*force {
+		glog.Fatalf("The application %s isn't currently installed on server %s. (Use --force to override.)", appName, serverName)
 	}
 
 	// Write the new list of packages back to Google Storage.
