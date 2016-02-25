@@ -21,7 +21,7 @@ alertserver: core_js elements_html skiaversion
 push: alertserver
 	./build_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
-	pushcli alertserverd skia-monitoring
+	pushcli alertserverd skia-alerts
 
 testgo: skiaversion
 	go test ./go/... -v
