@@ -16,6 +16,7 @@ ${INSTALL_DIR} --mode=755                                 ${ROOT}/usr/local/shar
 ${INSTALL} --mode=644 ./templates/*                       ${ROOT}/usr/local/share/skdebugger/templates
 ${INSTALL} --mode=644 ./res/js/core.js                    ${ROOT}/usr/local/share/skdebugger/res/js/core.js
 ${INSTALL} --mode=644 ./res/vul/elements.html             ${ROOT}/usr/local/share/skdebugger/res/vul/elements.html
+${INSTALL} --mode=644 ./res/img/favicon.ico               ${ROOT}/usr/local/share/skdebugger/res/img/favicon.ico
 }
 
 rm ./res/vul/elements.html
