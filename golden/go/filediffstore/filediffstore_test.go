@@ -11,7 +11,9 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 )
 
@@ -34,7 +36,6 @@ var (
 )
 
 func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool) *FileDiffStore {
-	Init()
 	baseDir := filepath.Join(os.TempDir(), TESTDATA_DIR)
 
 	// Ensure the directory exists and create a clean version if requested.
@@ -58,6 +59,9 @@ func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool
 	temp, err := NewFileDiffStore(nil, baseDir, gsBucketName, storageBaseDir, MemCacheFactory, RECOMMENDED_WORKER_POOL_SIZE)
 	assert.Nil(t, err)
 	ret := temp.(*FileDiffStore)
+	// Override the counters to avoid collisions between parallel tests.
+	ret.downloadSuccessCount = metrics2.GetCounter("gold.gsdownload", map[string]string{"result": "success", "test": util.RandomName()})
+	ret.downloadFailureCount = metrics2.GetCounter("gold.gsdownload", map[string]string{"result": "failure", "test": util.RandomName()})
 
 	relDiffPath1_2 := fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION)
 	diffpath1_2 := filepath.Join(ret.localDiffDir, relDiffPath1_2)
@@ -133,15 +137,15 @@ func TestCacheImageFromGS(t *testing.T) {
 	if _, err := os.Stat(imgFilePath); err != nil {
 		t.Errorf("File %s was not created!", imgFilePath)
 	}
-	assert.Equal(t, int64(1), downloadSuccessCount.Count())
+	assert.Equal(t, int64(1), fds.downloadSuccessCount.Get())
 
 	// Test error and assert the download failures map.
 	for i := 1; i < 6; i++ {
 		if err := fds.cacheImageFromGS(MISSING_DIGEST); err == nil {
 			t.Error("Was expecting 404 error for missing digest")
 		}
-		assert.Equal(t, int64(1), downloadSuccessCount.Count())
-		assert.Equal(t, int64(i), downloadFailureCount.Count())
+		assert.Equal(t, int64(1), fds.downloadSuccessCount.Get())
+		assert.Equal(t, int64(i), fds.downloadFailureCount.Get())
 	}
 }
 
@@ -210,8 +214,8 @@ func MassiveTestGet_45Digests(t *testing.T) {
 	if err != nil {
 		t.Error("Unexpected error: ", err)
 	}
-	assert.Equal(t, 45, downloadSuccessCount.Count())
-	assert.Equal(t, 1, downloadFailureCount.Count())
+	assert.Equal(t, 45, fds.downloadSuccessCount.Get())
+	assert.Equal(t, 1, fds.downloadFailureCount.Get())
 	assert.Equal(t, 44, len(diffMetricsMap))
 }
 
@@ -230,8 +234,8 @@ func MassiveTestAbsPath_45Digests(t *testing.T) {
 			"0f87072e6c003766135c40a6665ecd6e", "0f880aa7f6db1e50a6bc532581b52dc8", "0f915b5931e56817287fe5c355439a1a", "0f96f63917f0c62b2c9b8110ff20badc", "0f98bfd192b64eed137f9e6772683365", "0f9aa5700e3ec10bcec5ee74f357cb9d", "0fa1dad80143172942b9ebcb16a41dbf", "0fa50dc22558dc2cc39c48fb5f17f2d0", "0faacf520d0feae4dd7933eabb31d850",
 			"0fafdb43076e5667c38ac0864af59142", "0fb0442568f8d9f16da8f26435bfe612", "0fba6eb3b0577c16b76ad84a1bb0f23b", "0fbcd5335eb08911873395c00840b74b", "0fbe8c55504d8a8420c4bef6a9d078f4", "0fc082cb3ca2b72869379c3c053e51c2", "0fc528ee84845f6044e516a1276caa46", "0fc587b905523f45ef287f2f9defb844", "0fcacb142d1517474b8d09b93072f2fc",
 			"0fcbc9417b21e95b07f59495c1d8c29e", "0fce6e571aac26038cea582356065e34", "0fd21ebcb59b7f9fde71bc868c2bd77b", "0fdd731115695cc1b6c912ce8ab6e7e6", "0fe58f4a759d46a60198ac1853cb1d43", "0fe7a59b8a3caf68e83ae7fa4abe5052", "0fe88d578a0b1359dbced64a6063c4e9", "0ff48464b23d47af28d8c740507a1212", "0ff864fb2bab5daa74e67fced7eac536"})
-	assert.Equal(t, 45, downloadSuccessCount.Count())
-	assert.Equal(t, 1, downloadFailureCount.Count())
+	assert.Equal(t, 45, fds.downloadSuccessCount.Get())
+	assert.Equal(t, 1, fds.downloadFailureCount.Get())
 	assert.Equal(t, 45, len(digestsToPaths))
 }
 
@@ -266,8 +270,8 @@ func TestGet_e2e(t *testing.T) {
 	}
 	assert.Equal(t, 1, len(diffMetricsMap1))
 	assert.Equal(t, expectedDiffMetrics1_2, diffMetricsMap1[TEST_DIGEST2])
-	assert.Equal(t, int64(0), downloadSuccessCount.Count())
-	assert.Equal(t, int64(0), downloadFailureCount.Count())
+	assert.Equal(t, int64(0), fdsEmpty.downloadSuccessCount.Get())
+	assert.Equal(t, int64(0), fdsEmpty.downloadFailureCount.Get())
 
 	// 2 files that exist locally but diffmetrics does not exist.
 	fds2 := getTestFileDiffStore(t, TESTDATA_DIR, false)
@@ -288,8 +292,8 @@ func TestGet_e2e(t *testing.T) {
 	assertFileExists(diffMetricsFilePath, t)
 	assert.Equal(t, 1, len(diffMetricsMap2))
 	assert.Equal(t, expectedDiffMetrics1_2, diffMetricsMap2[TEST_DIGEST2])
-	assert.Equal(t, int64(0), downloadSuccessCount.Count())
-	assert.Equal(t, int64(0), downloadFailureCount.Count())
+	assert.Equal(t, int64(0), fds2.downloadSuccessCount.Get())
+	assert.Equal(t, int64(0), fds2.downloadFailureCount.Get())
 
 	// 1 file that exists locally, 1 file that exists in Google Storage, 1
 	// file that does not exist.
@@ -313,8 +317,8 @@ func TestGet_e2e(t *testing.T) {
 	assertFileExists(diffMetricsFilePath, t)
 	assert.Equal(t, 1, len(diffMetricsMap3))
 	assert.Equal(t, expectedDiffMetrics1_3, diffMetricsMap3[TEST_DIGEST3])
-	assert.Equal(t, int64(1), downloadSuccessCount.Count())
-	assert.Equal(t, int64(1), downloadFailureCount.Count())
+	assert.Equal(t, int64(1), fds3.downloadSuccessCount.Get())
+	assert.Equal(t, int64(1), fds3.downloadFailureCount.Get())
 
 	// Call Get with multiple digests.
 	fds5 := getTestFileDiffStore(t, TESTDATA_DIR, false)
@@ -336,7 +340,7 @@ func TestGet_e2e(t *testing.T) {
 	assert.Equal(t, 2, len(diffMetricsMap5))
 	assert.Equal(t, expectedDiffMetrics1_2, diffMetricsMap5[TEST_DIGEST2])
 	assert.Equal(t, expectedDiffMetrics1_3, diffMetricsMap5[TEST_DIGEST3])
-	assert.Equal(t, int64(1), downloadFailureCount.Count())
+	assert.Equal(t, int64(1), fds5.downloadFailureCount.Get())
 
 	// diffFilePath, diffMetricsFilePath, and newImageFilePath will be removed
 	// by the deferred testutils.Remove calls above.
@@ -352,8 +356,8 @@ func TestReuseSameInstance(t *testing.T) {
 	}
 	assert.Equal(t, 1, len(diffMetricsMap1))
 	assert.Equal(t, expectedDiffMetrics1_2, diffMetricsMap1[TEST_DIGEST2])
-	assert.Equal(t, int64(0), downloadSuccessCount.Count())
-	assert.Equal(t, int64(0), downloadFailureCount.Count())
+	assert.Equal(t, int64(0), fds.downloadSuccessCount.Get())
+	assert.Equal(t, int64(0), fds.downloadFailureCount.Get())
 
 	// Use same instance to call AbsPath.
 	digestToPaths := fds.AbsPath([]string{TEST_DIGEST1, TEST_DIGEST2})

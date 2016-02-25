@@ -1,14 +1,12 @@
 package status
 
 import (
-	"fmt"
 	"sort"
 	"sync"
 	"time"
 
-	"github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
-	imetrics "go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -19,20 +17,20 @@ import (
 
 const (
 	// Metric names and templates for metric names added in this file.
-	METRIC_TOTAL       = "status.digests.total"
-	METRIC_ALL_TMPL    = "status.%s.all"
-	METRIC_CORPUS_TMPL = "status.%s.by_corpus.%s"
+	METRIC_TOTAL  = "gold.status.total-digests"
+	METRIC_ALL    = "gold.status.all"
+	METRIC_CORPUS = "gold.status.by-corpus"
 )
 
 var (
 	// Gauges to track overall digests with different labels.
-	allUntriagedGauge = metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_ALL_TMPL, types.UNTRIAGED), nil)
-	allPositiveGauge  = metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_ALL_TMPL, types.POSITIVE), nil)
-	allNegativeGauge  = metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_ALL_TMPL, types.NEGATIVE), nil)
-	totalGauge        = metrics.NewRegisteredGauge(METRIC_TOTAL, nil)
+	allUntriagedGauge = metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.UNTRIAGED.String()})
+	allPositiveGauge  = metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.POSITIVE.String()})
+	allNegativeGauge  = metrics2.GetInt64Metric(METRIC_ALL, map[string]string{"type": types.NEGATIVE.String()})
+	totalGauge        = metrics2.GetInt64Metric(METRIC_TOTAL, nil)
 
 	// Gauges to track counts of digests by corpus / label
-	corpusGauges = map[string]map[types.Label]metrics.Gauge{}
+	corpusGauges = map[string]map[types.Label]*metrics2.Int64Metric{}
 )
 
 // GUIStatus reflects the current rebaseline status. In particular whether
@@ -111,7 +109,7 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		return err
 	}
 
-	liveness := imetrics.NewLiveness("status-monitoring")
+	liveness := metrics2.NewLiveness("gold.status-monitoring")
 
 	go func() {
 		for {
@@ -126,14 +124,14 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 					glog.Errorf("Error calculating status: %s", err)
 				} else {
 					lastTile = tile
-					liveness.Update()
+					liveness.Reset()
 				}
 			case <-expChanges:
 				storage.DrainChangeChannel(expChanges)
 				if err := s.calcStatus(lastTile); err != nil {
 					glog.Errorf("Error calculating tile after expectation update: %s", err)
 				}
-				liveness.Update()
+				liveness.Reset()
 			}
 		}
 	}()
@@ -182,10 +180,10 @@ func (s *StatusWatcher) calcStatus(tile *tiling.Tile) error {
 			}
 
 			if _, ok := corpusGauges[corpus]; !ok {
-				corpusGauges[corpus] = map[types.Label]metrics.Gauge{
-					types.UNTRIAGED: metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_CORPUS_TMPL, types.UNTRIAGED, corpus), nil),
-					types.POSITIVE:  metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_CORPUS_TMPL, types.POSITIVE, corpus), nil),
-					types.NEGATIVE:  metrics.NewRegisteredGauge(fmt.Sprintf(METRIC_CORPUS_TMPL, types.NEGATIVE, corpus), nil),
+				corpusGauges[corpus] = map[types.Label]*metrics2.Int64Metric{
+					types.UNTRIAGED: metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.UNTRIAGED.String(), "corpus": corpus}),
+					types.POSITIVE:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.POSITIVE.String(), "corpus": corpus}),
+					types.NEGATIVE:  metrics2.GetInt64Metric(METRIC_CORPUS, map[string]string{"type": types.NEGATIVE.String(), "corpus": corpus}),
 				}
 			}
 		}

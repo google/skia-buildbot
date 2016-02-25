@@ -425,14 +425,16 @@ func RandomName() string {
 func RandomNameR(r *mathrand.Rand) string {
 	a := 0
 	n := 0
+	suffix := 0
 	if r == nil {
 		a = mathrand.Intn(len(randomNameAdj))
 		n = mathrand.Intn(len(randomNameNoun))
+		suffix = mathrand.Intn(1000000)
 	} else {
 		a = r.Intn(len(randomNameAdj))
 		n = r.Intn(len(randomNameNoun))
+		suffix = r.Intn(1000000)
 	}
-	suffix := r.Intn(1000000)
 	return fmt.Sprintf("%s-%s-%d", randomNameAdj[a], randomNameNoun[n], suffix)
 }
 

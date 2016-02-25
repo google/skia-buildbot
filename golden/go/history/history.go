@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/metrics"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
@@ -71,7 +71,7 @@ func (h *historian) start() error {
 	if err := h.updateDigestInfo(lastTile); err != nil {
 		return err
 	}
-	liveness := metrics.NewLiveness("digest-history-monitoring")
+	liveness := metrics2.NewLiveness("gold.digest-history-monitoring")
 
 	// Keep processing tiles and feed them into the process channel.
 	go func() {
@@ -91,7 +91,7 @@ func (h *historian) start() error {
 					continue
 				}
 			}
-			liveness.Update()
+			liveness.Reset()
 		}
 	}()
 

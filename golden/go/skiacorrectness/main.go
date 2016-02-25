@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/issues"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
@@ -54,7 +55,6 @@ var (
 	cpuProfile         = flag.Duration("cpu_profile", 0, "Duration for which to profile the CPU usage. After this duration the program writes the CPU profile and exits.")
 	doOauth            = flag.Bool("oauth", true, "Run through the OAuth 2.0 flow on startup, otherwise use a GCE service account.")
 	forceLogin         = flag.Bool("force_login", false, "Force the user to be authenticated for all requests.")
-	graphiteServer     = flag.String("graphite_server", "skia-monitoring:2003", "Where is Graphite metrics ingestion server running.")
 	gsBucketName       = flag.String("gs_bucket", "chromium-skia-gm", "Name of the google storage bucket that holds uploaded images.")
 	imageDir           = flag.String("image_dir", "/tmp/imagedir", "What directory to store test and diff images in.")
 	issueTrackerKey    = flag.String("issue_tracker_key", "", "API Key for accessing the project hosting API.")
@@ -75,6 +75,11 @@ var (
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 	traceservice       = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
 	newUI              = flag.Bool("newui", false, "Enable new UI.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 const (
@@ -205,7 +210,7 @@ func main() {
 	dbConf := database.ConfigFromFlags(db.PROD_DB_HOST, db.PROD_DB_PORT, database.USER_RW, db.PROD_DB_NAME, db.MigrationSteps())
 
 	// Global init to initialize
-	common.InitWithMetrics("skiacorrectness", graphiteServer)
+	common.InitWithMetrics2("skiacorrectness", influxHost, influxUser, influxPassword, influxDatabase, local)
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
@@ -253,9 +258,6 @@ func main() {
 
 	// Init this module.
 	Init()
-
-	// Initialize submodules.
-	filediffstore.Init()
 
 	// Set up login
 	// TODO (stephana): Factor out to go/login/login.go and removed hard coded

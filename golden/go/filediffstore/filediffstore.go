@@ -19,11 +19,11 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/hashicorp/golang-lru"
-	metrics "github.com/rcrowley/go-metrics"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/diff"
 	storage "google.golang.org/api/storage/v1"
@@ -49,15 +49,6 @@ const (
 	MAX_URI_GET_TRIES = 4
 )
 
-var (
-	// Contains the number of times digests were successfully downloaded from
-	// Google Storage.
-	downloadSuccessCount metrics.Counter
-	// Contains the number of times digests failed to download from
-	// Google Storage.
-	downloadFailureCount metrics.Counter
-)
-
 // Interface that the cacheFactory argument must implement.
 type CacheFactory func(uniqueId string, codec util.LRUCodec) util.LRUCache
 
@@ -80,12 +71,6 @@ func (d DiffMetricsCodec) Decode(data []byte) (interface{}, error) {
 	var v diff.DiffMetrics
 	err := json.Unmarshal(data, &v)
 	return &v, err
-}
-
-// Init initializes the module.
-func Init() {
-	downloadSuccessCount = metrics.NewRegisteredCounter("gold.gsdownload.success", metrics.DefaultRegistry)
-	downloadFailureCount = metrics.NewRegisteredCounter("gold.gsdownload.failiure", metrics.DefaultRegistry)
 }
 
 type FileDiffStore struct {
@@ -135,6 +120,13 @@ type FileDiffStore struct {
 
 	// failureDB stores the digests that have failed to load.
 	failureDB *bolt.DB
+
+	// Contains the number of times digests were successfully downloaded from
+	// Google Storage.
+	downloadSuccessCount *metrics2.Counter
+	// Contains the number of times digests failed to download from
+	// Google Storage.
+	downloadFailureCount *metrics2.Counter
 }
 
 // NewFileDiffStore intializes and returns a file based implementation of
@@ -171,18 +163,20 @@ func NewFileDiffStore(client *http.Client, baseDir, gsBucketName string, storage
 	}
 
 	fs := &FileDiffStore{
-		client:              client,
-		localImgDir:         fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME))),
-		localDiffDir:        fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME))),
-		localDiffMetricsDir: fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME))),
-		localTempFileDir:    fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_TEMPFILE_DIR_NAME))),
-		gsBucketName:        gsBucketName,
-		storageBaseDir:      storageBaseDir,
-		imageCache:          imageCache,
-		diffCache:           diffCache,
-		unavailableDigests:  map[string]*diff.DigestFailure{},
-		unavailableChan:     unavailableChan,
-		failureDB:           failureDB,
+		client:               client,
+		localImgDir:          fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_IMG_DIR_NAME))),
+		localDiffDir:         fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFF_DIR_NAME))),
+		localDiffMetricsDir:  fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_DIFFMETRICS_DIR_NAME))),
+		localTempFileDir:     fileutil.Must(fileutil.EnsureDirExists(filepath.Join(baseDir, DEFAULT_TEMPFILE_DIR_NAME))),
+		gsBucketName:         gsBucketName,
+		storageBaseDir:       storageBaseDir,
+		imageCache:           imageCache,
+		diffCache:            diffCache,
+		unavailableDigests:   map[string]*diff.DigestFailure{},
+		unavailableChan:      unavailableChan,
+		failureDB:            failureDB,
+		downloadSuccessCount: metrics2.GetCounter("gold.gsdownload", map[string]string{"result": "success"}),
+		downloadFailureCount: metrics2.GetCounter("gold.gsdownload", map[string]string{"result": "failure"}),
 	}
 
 	if err := fs.loadDigestFailures(); err != nil {
@@ -656,6 +650,7 @@ func (fs *FileDiffStore) ensureDigestInCache(d string) error {
 		return err
 	}
 	if !exists {
+		glog.Errorf("!exists")
 		// Digest does not exist locally, get it from Google Storage.
 		if err := fs.cacheImageFromGS(d); err != nil {
 			fs.unavailableChan <- &diff.DigestFailure{
@@ -697,6 +692,7 @@ func (fs *FileDiffStore) isDigestInCache(d string) (bool, error) {
 // downloadFailureCount is incremented.
 //
 func (fs *FileDiffStore) cacheImageFromGS(d string) error {
+	glog.Errorf("cacheImageFromGS(%s)", d)
 	storage, err := storage.New(fs.client)
 	if err != nil {
 		return fmt.Errorf("Failed to create interface to Google Storage: %s\n", err)
@@ -705,7 +701,7 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 	objLocation := filepath.Join(fs.storageBaseDir, fmt.Sprintf("%s.%s", d, IMG_EXTENSION))
 	res, err := storage.Objects.Get(fs.gsBucketName, objLocation).Do()
 	if err != nil {
-		downloadFailureCount.Inc(1)
+		fs.downloadFailureCount.Inc(1)
 		return fmt.Errorf("Unable to retrieve: %s/%s:  %s", fs.gsBucketName, objLocation, err)
 	}
 
@@ -764,7 +760,8 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 				return fmt.Errorf("Unable to move file: %s", err)
 			}
 
-			downloadSuccessCount.Inc(1)
+			glog.Errorf("success.Inc()")
+			fs.downloadSuccessCount.Inc(1)
 			return nil
 		}()
 
@@ -776,7 +773,7 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 
 	if err != nil {
 		glog.Errorf("Failed fetching file after %d attempts", MAX_URI_GET_TRIES)
-		downloadFailureCount.Inc(1)
+		fs.downloadFailureCount.Inc(1)
 	}
 	return err
 }
