@@ -27,7 +27,7 @@ import (
 )
 
 var (
-	config   = flag.String("config", "probers.json,buildbots.json", "Comma separated names of prober config files.")
+	config   = flag.String("config", "probers.json", "Comma separated names of prober config files.")
 	runEvery = flag.Duration("run_every", 1*time.Minute, "How often to run the probes.")
 	testing  = flag.Bool("testing", false, "Set to true for local testing.")
 
@@ -36,15 +36,16 @@ var (
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 
-	// bodyTesters is a mapping of names to functions that test response bodies.
-	bodyTesters = map[string]BodyTester{
-		"ctfeChromiumPerfParametersJSON": ctfeChromiumPerfParametersJSON,
+	// responseTesters is a mapping of names to functions that test response bodies.
+	responseTesters = map[string]ResponseTester{
 		"ctfeCLDataJSON":                 ctfeCLDataJSON,
+		"ctfeChromiumPerfParametersJSON": ctfeChromiumPerfParametersJSON,
 		"ctfeGetTasksJSON":               ctfeGetTasksJSON,
 		"ctfeGetTasksNonEmptyJSON":       ctfeGetTasksNonEmptyJSON,
 		"ctfeRevDataJSON":                ctfeRevDataJSON,
-		"skfiddleJSONGood":               skfiddleJSONGood,
+		"nonZeroContenLength":            nonZeroContenLength,
 		"skfiddleJSONBad":                skfiddleJSONBad,
+		"skfiddleJSONGood":               skfiddleJSONGood,
 		"validJSON":                      validJSON,
 	}
 )
@@ -54,8 +55,8 @@ const (
 	ISSUE_TRACKER_PERIOD = 15 * time.Minute
 )
 
-// BodyTester tests the response body from a probe and returns true if it passes all tests.
-type BodyTester func(io.Reader) bool
+// ResponseTester tests the response from a probe and returns true if it passes all tests.
+type ResponseTester func(io.Reader, http.Header) bool
 
 // Probe is a single endpoint we are probing.
 type Probe struct {
@@ -75,11 +76,11 @@ type Probe struct {
 	MimeType string `json:"mimetype"`
 
 	// The body testing function we should use.
-	BodyTestName string `json:"bodytest"`
+	ResponseTestName string `json:"responsetest"`
 
-	bodyTest BodyTester
-	failure  *metrics2.Int64Metric
-	latency  *metrics2.Int64Metric // Latency in ms.
+	responseTest ResponseTester
+	failure      *metrics2.Int64Metric
+	latency      *metrics2.Int64Metric // Latency in ms.
 }
 
 // Probes is all the probes that are to be run.
@@ -98,9 +99,9 @@ func readConfigFiles(filenames string) (Probes, error) {
 			return nil, fmt.Errorf("Failed to decode JSON in config file: %s", err)
 		}
 		for k, v := range *p {
-			if f, ok := bodyTesters[v.BodyTestName]; ok {
-				v.bodyTest = f
-				glog.Infof("Found a body test for %s", k)
+			if f, ok := responseTesters[v.ResponseTestName]; ok {
+				v.responseTest = f
+				glog.Infof("Found a request test for %s", k)
 			}
 			allProbes[k] = v
 		}
@@ -123,14 +124,19 @@ func dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, TIMEOUT)
 }
 
+// nonZeroContenLength tests whether the Content-Length value is non-zero.
+func nonZeroContenLength(r io.Reader, headers http.Header) bool {
+	return headers.Get("Content-Length") != "0"
+}
+
 // validJSON tests whether the response contains valid JSON.
-func validJSON(r io.Reader) bool {
+func validJSON(r io.Reader, headers http.Header) bool {
 	var i interface{}
 	return json.NewDecoder(r).Decode(&i) == nil
 }
 
 // skfiddleJSONGood tests that the compile completed w/o error.
-func skfiddleJSONGood(r io.Reader) bool {
+func skfiddleJSONGood(r io.Reader, headers http.Header) bool {
 	type skfiddleResp struct {
 		CompileErrors []interface{} `json:"compileErrors"`
 		Message       string        `json:"message"`
@@ -150,8 +156,8 @@ func skfiddleJSONGood(r io.Reader) bool {
 }
 
 // skfiddleJSONBad tests that the compile completed w/error.
-func skfiddleJSONBad(r io.Reader) bool {
-	return !skfiddleJSONGood(r)
+func skfiddleJSONBad(r io.Reader, headers http.Header) bool {
+	return !skfiddleJSONGood(r, headers)
 }
 
 // decodeJSONObject reads a JSON object from r and returns the resulting object. Returns nil if the
@@ -180,19 +186,19 @@ func hasKeys(obj map[string]interface{}, keys []string) bool {
 
 // ctfeChromiumPerfParametersJSON tests that the response contains valid JSON with the keys
 // expected by ct/templates/chromium_perf.html.
-func ctfeChromiumPerfParametersJSON(r io.Reader) bool {
+func ctfeChromiumPerfParametersJSON(r io.Reader, headers http.Header) bool {
 	return hasKeys(decodeJSONObject(r), []string{"benchmarks", "platforms"})
 }
 
 // ctfeCLDataJSON tests that the response contains valid JSON with the keys expected by
 // ct/res/imp/chromium-perf-sk.html.
-func ctfeCLDataJSON(r io.Reader) bool {
+func ctfeCLDataJSON(r io.Reader, headers http.Header) bool {
 	return hasKeys(decodeJSONObject(r), []string{"cl", "patchset", "subject", "modified", "chromium_patch", "skia_patch"})
 }
 
 // ctfeGetTasksJSONObject tests that obj has the attributes expected by
 // ct/res/imp/pending-tasks-sk.html and ct/res/imp/*-runs-sk.html. Returns false if obj is nil.
-func ctfeGetTasksJSONObject(obj map[string]interface{}) bool {
+func ctfeGetTasksJSONObject(obj map[string]interface{}, headers http.Header) bool {
 	if !hasKeys(obj, []string{"data", "permissions", "pagination"}) {
 		return false
 	}
@@ -207,15 +213,15 @@ func ctfeGetTasksJSONObject(obj map[string]interface{}) bool {
 
 // ctfeGetTasksJSON tests that the response contains valid JSON and satisfies
 // ctfeGetTasksJSONObject.
-func ctfeGetTasksJSON(r io.Reader) bool {
-	return ctfeGetTasksJSONObject(decodeJSONObject(r))
+func ctfeGetTasksJSON(r io.Reader, headers http.Header) bool {
+	return ctfeGetTasksJSONObject(decodeJSONObject(r), headers)
 }
 
 // ctfeGetTasksNonEmptyJSON tests the same as ctfeGetTasksJSON and also checks that there is at
 // least one task present.
-func ctfeGetTasksNonEmptyJSON(r io.Reader) bool {
+func ctfeGetTasksNonEmptyJSON(r io.Reader, headers http.Header) bool {
 	obj := decodeJSONObject(r)
-	if !ctfeGetTasksJSONObject(obj) {
+	if !ctfeGetTasksJSONObject(obj, headers) {
 		return false
 	}
 	data := obj["data"].([]interface{})
@@ -227,7 +233,7 @@ func ctfeGetTasksNonEmptyJSON(r io.Reader) bool {
 
 // ctfeRevDataJSON tests that the response contains valid JSON with the keys expected by
 // ct/res/imp/chromium-builds-sk.html.
-func ctfeRevDataJSON(r io.Reader) bool {
+func ctfeRevDataJSON(r io.Reader, headers http.Header) bool {
 	return hasKeys(decodeJSONObject(r), []string{"commit", "author", "committer"})
 }
 
@@ -292,6 +298,8 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		var err error
 		if probe.Method == "GET" {
 			resp, err = c.Get(probe.URL)
+		} else if probe.Method == "HEAD" {
+			resp, err = c.Head(probe.URL)
 		} else if probe.Method == "POST" {
 			resp, err = c.Post(probe.URL, probe.MimeType, strings.NewReader(probe.Body))
 		} else {
@@ -305,9 +313,9 @@ func probeOneRound(cfg Probes, c *http.Client) {
 			probe.failure.Update(1)
 			continue
 		}
-		bodyTestResults := true
-		if probe.bodyTest != nil && resp.Body != nil {
-			bodyTestResults = probe.bodyTest(resp.Body)
+		responseTestResults := true
+		if probe.responseTest != nil && resp.Body != nil {
+			responseTestResults = probe.responseTest(resp.Body, resp.Header)
 		}
 		if resp.Body != nil {
 			util.Close(resp.Body)
@@ -319,8 +327,8 @@ func probeOneRound(cfg Probes, c *http.Client) {
 			probe.failure.Update(1)
 			continue
 		}
-		if !bodyTestResults {
-			glog.Warningf("Body test failed: Name: %s %#v", name, probe)
+		if !responseTestResults {
+			glog.Warningf("Response test failed: Name: %s %#v", name, probe)
 			probe.failure.Update(1)
 			continue
 		}

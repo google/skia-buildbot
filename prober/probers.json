@@ -12,7 +12,7 @@
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas)\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":256,\"height\":256}",
      "mimetype": "application/json",
-     "bodytest":"skfiddleJSONBad"
+     "responsetest":"skfiddleJSONBad"
    },
    "skfiddle_compile_good": {
      "url": "https://fiddle.skia.org",
@@ -20,7 +20,7 @@
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas) { SkPaint p; p.setColor(SK_ColorRED); canvas->drawText(\\\"Helloworld\\\", 10, 50, 50, p);}\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":256,\"height\":256}",
      "mimetype": "application/json",
-     "bodytest":"skfiddleJSONGood"
+     "responsetest":"skfiddleJSONGood"
    },
    "skiaperf": {
      "url": "https://perf.skia.org",
@@ -63,7 +63,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "validJSON"
+     "responsetest": "validJSON"
    },
    "skiaautoroll": {
      "url": "https://autoroll.skia.org",
@@ -78,7 +78,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "validJSON"
+     "responsetest": "validJSON"
    },
    "skiastatus": {
      "url": "https://status.skia.org",
@@ -93,7 +93,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "validJSON"
+     "responsetest": "validJSON"
    },
    "skiapush": {
      "url": "https://push.skia.org",
@@ -304,7 +304,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeChromiumPerfParametersJSON"
+     "responsetest": "ctfeChromiumPerfParametersJSON"
    },
    "ctfe_cl_data": {
      "url": "https://ct.skia.org/_/cl_data?cl=1330473002",
@@ -312,7 +312,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeCLDataJSON"
+     "responsetest": "ctfeCLDataJSON"
    },
    "ctfe_chromium_rev_data": {
      "url": "https://ct.skia.org/_/chromium_rev_data?rev=LKGR",
@@ -320,7 +320,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeRevDataJSON"
+     "responsetest": "ctfeRevDataJSON"
    },
    "ctfe_skia_rev_data": {
      "url": "https://ct.skia.org/_/skia_rev_data?rev=LKGR",
@@ -328,7 +328,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeRevDataJSON"
+     "responsetest": "ctfeRevDataJSON"
    },
    "ctfe_get_chromium_perf_tasks": {
      "url": "https://ct.skia.org/_/get_chromium_perf_tasks?size=2",
@@ -336,7 +336,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeGetTasksJSON"
+     "responsetest": "ctfeGetTasksJSON"
    },
    "ctfe_get_capture_skp_tasks": {
      "url": "https://ct.skia.org/_/get_capture_skp_tasks?size=2",
@@ -344,7 +344,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeGetTasksJSON"
+     "responsetest": "ctfeGetTasksJSON"
    },
    "ctfe_get_lua_script_tasks": {
      "url": "https://ct.skia.org/_/get_lua_script_tasks?size=2",
@@ -352,7 +352,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeGetTasksJSON"
+     "responsetest": "ctfeGetTasksJSON"
    },
    "ctfe_get_chromium_build_tasks": {
      "url": "https://ct.skia.org/_/get_chromium_build_tasks?size=2",
@@ -360,7 +360,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeGetTasksJSON"
+     "responsetest": "ctfeGetTasksJSON"
    },
    "ctfe_get_recreate_page_sets_tasks": {
      "url": "https://ct.skia.org/_/get_recreate_page_sets_tasks?size=2",
@@ -368,7 +368,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeGetTasksJSON"
+     "responsetest": "ctfeGetTasksJSON"
    },
    "ctfe_get_recreate_webpage_archives_tasks": {
      "url": "https://ct.skia.org/_/get_recreate_webpage_archives_tasks?size=2",
@@ -376,7 +376,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeGetTasksJSON"
+     "responsetest": "ctfeGetTasksJSON"
    },
    "ctfe_get_oldest_pending_task": {
      "url": "https://ct.skia.org/_/get_oldest_pending_task",
@@ -384,7 +384,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "validJSON"
+     "responsetest": "validJSON"
    },
    "ctfe_any_skp_repository_available": {
      "url": "https://ct.skia.org/_/get_capture_skp_tasks?size=1&successful=true",
@@ -392,7 +392,7 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeGetTasksNonEmptyJSON"
+     "responsetest": "ctfeGetTasksNonEmptyJSON"
    },
    "ctfe_any_chromium_builds_available": {
      "url": "https://ct.skia.org/_/get_chromium_build_tasks?size=1&successful=true",
@@ -400,6 +400,22 @@
      "expected": [200],
      "body": "",
      "mimetype": "application/json",
-     "bodytest": "ctfeGetTasksNonEmptyJSON"
+     "responsetest": "ctfeGetTasksNonEmptyJSON"
+   },
+   "timelapse_camera_1": {
+     "url": "https://storage.googleapis.com/skia-timelapse/public/today_1.webm",
+     "method": "HEAD",
+     "expected": [200],
+     "body": "",
+     "mimetype": "video/webm",
+     "responsetest": "nonZeroContenLength"
+   },
+   "timelapse_camera_2": {
+     "url": "https://storage.googleapis.com/skia-timelapse/public/today_2.webm",
+     "method": "HEAD",
+     "expected": [200],
+     "body": "",
+     "mimetype": "video/webm",
+     "responsetest": "nonZeroContenLength"
    }
 }
