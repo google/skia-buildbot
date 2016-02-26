@@ -12,7 +12,6 @@ import (
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
-	"go.skia.org/infra/go/testutils"
 )
 
 const (
@@ -57,7 +56,7 @@ func DownloadTestDataFile(t assert.TestingT, uriPath, targetPath string) error {
 	if err != nil {
 		return err
 	}
-	defer testutils.CloseInTest(t, resp.Body)
+	defer func() { assert.Nil(t, resp.Body.Close()) }()
 
 	// Open the output
 	var r io.ReadCloser = resp.Body
@@ -72,7 +71,7 @@ func DownloadTestDataFile(t assert.TestingT, uriPath, targetPath string) error {
 	if err != nil {
 		return err
 	}
-	defer testutils.CloseInTest(t, f)
+	defer func() { assert.Nil(t, f.Close()) }()
 	_, err = io.Copy(f, r)
 	return err
 }
@@ -93,7 +92,7 @@ func DownloadTestDataArchive(t assert.TestingT, uriPath, targetDir string) error
 	if err != nil {
 		return err
 	}
-	defer testutils.CloseInTest(t, resp.Body)
+	defer func() { assert.Nil(t, resp.Body.Close()) }()
 
 	// Open the output
 	r, err := gzip.NewReader(resp.Body)
@@ -127,7 +126,7 @@ func DownloadTestDataArchive(t assert.TestingT, uriPath, targetDir string) error
 			if err != nil {
 				return err
 			}
-			testutils.CloseInTest(t, f)
+			defer func() { assert.Nil(t, f.Close()) }()
 		}
 	}
 
