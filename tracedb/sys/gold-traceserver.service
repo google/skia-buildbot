@@ -7,7 +7,6 @@ After=network-online.target
 ExecStart=/usr/local/bin/gold_traceserver \
     --db_file=/mnt/pd0/gold/traceserver/goldtraces.db \
     --sharedb_dir=/mnt/pd0/gold/traceserver/sharedb-data \
-    --graphite_server=skia-monitoring:2003 \
     --port=:10000 \
     --log_dir=/var/log/logserver
 Restart=always

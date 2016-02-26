@@ -6,7 +6,6 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/perf_traceserver \
     --db_file=/mnt/pd0/perf/traceserver/perftraces.db \
-    --graphite_server=skia-monitoring:2003 \
     --port=:9000 \
     --log_dir=/var/log/logserver
 Restart=always
