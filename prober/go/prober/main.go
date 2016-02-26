@@ -38,7 +38,6 @@ var (
 
 	// bodyTesters is a mapping of names to functions that test response bodies.
 	bodyTesters = map[string]BodyTester{
-		"buildbotJSON":                   testBuildbotJSON,
 		"ctfeChromiumPerfParametersJSON": ctfeChromiumPerfParametersJSON,
 		"ctfeCLDataJSON":                 ctfeCLDataJSON,
 		"ctfeGetTasksJSON":               ctfeGetTasksJSON,
@@ -130,36 +129,6 @@ func validJSON(r io.Reader) bool {
 	return json.NewDecoder(r).Decode(&i) == nil
 }
 
-// testBuildbotJSON tests that all of the slaves are reported as connected.
-func testBuildbotJSON(r io.Reader) bool {
-	type SlaveStatus struct {
-		Connected bool             `json:"connected"`
-		Builders  map[string][]int `json:"builders"`
-	}
-
-	type Slaves map[string]SlaveStatus
-
-	dec := json.NewDecoder(r)
-
-	slaves := make(Slaves)
-	if err := dec.Decode(&slaves); err != nil {
-		glog.Errorf("Failed to decode buildslave JSON: %s", err)
-		return false
-	}
-	allConnected := true
-	for k, v := range slaves {
-		allConnected = allConnected && v.Connected
-		if !v.Connected {
-			builders := []string{}
-			for bname, _ := range v.Builders {
-				builders = append(builders, fmt.Sprintf("%q", bname))
-			}
-			glog.Errorf("Disconnected buildslave: %s Builders: %s", k, strings.Join(builders, ", "))
-		}
-	}
-	return allConnected
-}
-
 // skfiddleJSONGood tests that the compile completed w/o error.
 func skfiddleJSONGood(r io.Reader) bool {
 	type skfiddleResp struct {
@@ -173,7 +142,7 @@ func skfiddleJSONGood(r io.Reader) bool {
 		CompileErrors: []interface{}{},
 	}
 	if err := dec.Decode(&s); err != nil {
-		glog.Errorf("Failed to decode skfiddle JSON: %#v %s", s, err)
+		glog.Warningf("Failed to decode skfiddle JSON: %#v %s", s, err)
 		return false
 	}
 	glog.Infof("%#v", s)
@@ -332,7 +301,7 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		d := time.Since(begin)
 		probe.latency.Update(d.Nanoseconds() / int64(time.Millisecond))
 		if err != nil {
-			glog.Errorf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
+			glog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
 			probe.failure.Update(1)
 			continue
 		}
@@ -346,12 +315,12 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 
 		if !In(resp.StatusCode, probe.Expected) {
-			glog.Errorf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
+			glog.Warningf("Got wrong status code: Name %s Got %d Want %v", name, resp.StatusCode, probe.Expected)
 			probe.failure.Update(1)
 			continue
 		}
 		if !bodyTestResults {
-			glog.Errorf("Body test failed: Name: %s %#v", name, probe)
+			glog.Warningf("Body test failed: Name: %s %#v", name, probe)
 			probe.failure.Update(1)
 			continue
 		}

@@ -10,7 +10,6 @@ copy_release_files()
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/prober     ${ROOT}/usr/local/bin/prober
-${INSTALL} --mode=644 -T ./buildbots.json         ${ROOT}/etc/skiaprober/buildbots.json
 ${INSTALL} --mode=644 -T ./probers.json           ${ROOT}/etc/skiaprober/probers.json
 }
 

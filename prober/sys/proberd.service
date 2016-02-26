@@ -6,7 +6,7 @@ After=network-online.target
 [Service]
 ExecStart=/usr/local/bin/prober \
     --log_dir=/var/log/logserver \
-    --config=/etc/skiaprober/probers.json,/etc/skiaprober/buildbots.json
+    --config=/etc/skiaprober/probers.json
 Restart=always
 User=default
 Group=default
