@@ -49,12 +49,17 @@ package reitveld
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
+)
+
+var (
+	MissingIssue = errors.New("Issue doesn't exist.")
 )
 
 // Issue is a struct for decoding the JSON returned from Reitveld.
@@ -78,6 +83,8 @@ func NewClient() *Reitveld {
 
 // Issue returns the owner email, the most recent patchset id, and if an issue
 // is closed, for the given issue.
+//
+// Returns nil, MissingIssue if the issue has been deleted.
 func (r *Reitveld) Issue(issue int64) (*Issue, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://codereview.chromium.org/api/%d/", issue), nil)
 	if err != nil {
@@ -89,7 +96,7 @@ func (r *Reitveld) Issue(issue int64) (*Issue, error) {
 	}
 	defer util.Close(resp.Body)
 	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("No such issue %d", issue)
+		return nil, MissingIssue
 	}
 	dec := json.NewDecoder(resp.Body)
 	info := &Issue{}

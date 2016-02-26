@@ -489,10 +489,12 @@ func StartCleaner(workDir string) {
 				continue
 			}
 			issueInfo, err := rc.Issue(issue)
-			if err != nil {
+			if err != nil && err != reitveld.MissingIssue {
 				glog.Errorf("Failed to retrieve issue status %d: %s", issue, err)
+				continue
 			}
-			if issueInfo.Closed {
+			// Delete closed and missing issues.
+			if (issueInfo != nil && issueInfo.Closed) || (err == reitveld.MissingIssue) {
 				if err := os.RemoveAll(filename); err != nil {
 					glog.Errorf("Failed to remove %q: %s", filename, err)
 				}
