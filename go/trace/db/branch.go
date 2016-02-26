@@ -191,7 +191,8 @@ func (b *tileBuilder) convertToLongCommits(commitIDs []*CommitID, source string)
 			// Rietveld
 			issueInfo, err := b.getIssue(c.Source)
 			if err != nil {
-				glog.Errorf("Failed to get details for commit from Rietveld %s: %s", c.ID, err)
+				// Only a warning since users can delete Rietveld issues.
+				glog.Warningf("Failed to get details for commit from Rietveld %s: %s", c.ID, err)
 				continue
 			}
 			c.Author = issueInfo.Owner

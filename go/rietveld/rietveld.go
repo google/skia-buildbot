@@ -237,6 +237,12 @@ func (r *Rietveld) get(suburl string, rv interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Failed to GET %s: %s", r.url+suburl, err)
 	}
+	if resp.StatusCode == 404 {
+		return fmt.Errorf("Not a valid Issue %s: %s", r.url+suburl, err)
+	}
+	if resp.StatusCode >= 400 {
+		return fmt.Errorf("Error retrieving %s: %d %s", r.url+suburl, resp.StatusCode, resp.Status)
+	}
 	defer util.Close(resp.Body)
 	dec := json.NewDecoder(resp.Body)
 	if err := dec.Decode(rv); err != nil {
