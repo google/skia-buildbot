@@ -187,7 +187,7 @@ func main() {
 				}
 				// Set the PYTHONPATH to the pagesets and the telemetry dirs.
 				env := []string{
-					fmt.Sprintf("PYTHONPATH=%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir),
+					fmt.Sprintf("PYTHONPATH=%s:%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir, util.CatapultSrcDir),
 					"DISPLAY=:0",
 				}
 				skutil.LogErr(
