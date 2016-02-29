@@ -64,6 +64,21 @@
       margin-left: 2em;
     }
 
+    summary-sk {
+      display: block;
+      margin-left: 2.5em;
+      margin-top: -2em;
+    }
+
+    .batchid {
+      float: right;
+      background: #1B9E77;
+      color: white;
+      border-radius: 5px;
+      padding: 0.2em 0.4em;
+      margin-right: 0.5em;
+    }
+
   </style>
   <template>
     <details-sk selected$="{{ selected }}">
@@ -72,6 +87,9 @@
           <iron-icon icon="{{ item.icon }}" style$="color: {{ item.color }};"><iron-icon>
         </template>
         {{ op.details.command }}
+        <template is="dom-repeat" items="{{ _fixList(op.details.auditTrail.Batches) }}" as=batch>
+          <span class=batchid style$="background: {{ _bgColor(batch.BatchListID) }}">{{ _smartNumber(batch.BatchListID) }}</span>
+        </template>
       </summary-sk>
       <div>
         <strong>Index: </strong> <span id=index>{{ index }}</span>
@@ -84,44 +102,85 @@
 </dom-module>
 
 <script>
-  Polymer({
-    is: "op-sk",
+  (function () {
+    var colors = [
+      "#1B9E77",
+      "#D95F02",
+      "#7570B3",
+      "#E7298A",
+      "#66A61E",
+      "#E6AB02",
+      "#A6761D",
+      "#666666"
+    ];
 
-    properties: {
-      op: {
-        type: Object,
-        value: function() { return {}; },
-        reflectToAttribute: false,
-      },
-      selected: {
-        type: Boolean,
-        value: false,
-        reflectToAttribute: false,
-      },
-      index: {
-        type: Number,
-        value: 0,
-        reflectToAttribute: true,
-      },
-      prefix: {
-        type: Array,
-        value: function() { return []; },
-        reflectToAttribute: false,
-      },
-    },
+    Polymer({
+      is: "op-sk",
 
-    _display: function(op) {
-      return JSON.stringify(op.details, null, 2);
-    },
+      properties: {
+        op: {
+          type: Object,
+          value: function() { return {}; },
+          reflectToAttribute: false,
+        },
+        selected: {
+          type: Boolean,
+          value: false,
+          reflectToAttribute: false,
+        },
+        index: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: true,
+        },
+        prefix: {
+          type: Array,
+          value: function() { return []; },
+          reflectToAttribute: false,
+        },
+      },
 
-    _check: function(e) {
-      var detail = {
-        checked: this.$.toggle.checked,
-        index: this.index,
-      };
-      this.dispatchEvent(new CustomEvent('op-toggled', { detail: detail, bubbles: true }));
-      e.stopPropagation();
-    },
+      _display: function(op) {
+        return JSON.stringify(op.details, null, 2);
+      },
 
-  });
+      _check: function(e) {
+        var detail = {
+          checked: this.$.toggle.checked,
+          index: this.index,
+        };
+        this.dispatchEvent(new CustomEvent('op-toggled', { detail: detail, bubbles: true }));
+        e.stopPropagation();
+      },
+
+      _smartNumber: function(index) {
+        if (index == -1) {
+          return "...";
+        } else {
+          return index;
+        }
+      },
+
+      _bgColor: function(index) {
+        if (index == -1) {
+          return "black";
+        } else {
+          return colors[index % colors.length];
+        }
+      },
+
+      _fixList: function(list) {
+        if (!list) {
+          return
+        }
+        var ret = list.slice();
+        ret.reverse();
+        if (ret.length > 4) {
+          ret = [ret[0], ret[1], { BatchListID: -1 }, ret[ret.length-2], ret[ret.length-1]];
+        }
+        return ret;
+      },
+
+    });
+  })();
 </script>
