@@ -245,9 +245,9 @@ func step(targets []string, buildService *androidbuildinternal.Service) {
 
 				// If this was a failure then we need to check that there is a
 				// mirror failure on the main branch, at which point we will say
-				// that this is a warning.
+				// that this is a warning (appears green on status).
 				if build.Results == buildbot.BUILDBOT_FAILURE && brokenOnMaster(buildService, target, b.BuildId) {
-					build.Results = buildbot.BUILDBOT_WARNING
+					build.Results = buildbot.BUILDBOT_WARNINGS
 				}
 				if err := ingestBuild(build, c.Hash, target); err != nil {
 					glog.Error(err)

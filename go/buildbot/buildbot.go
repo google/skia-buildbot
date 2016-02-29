@@ -47,20 +47,30 @@ func (bs *BuildStep) IsFinished() bool {
 
 // Build.Results code descriptions, see http://docs.buildbot.net/current/developer/results.html.
 const (
-	BUILDBOT_SUCCESS = 0
-	BUILDBOT_WARNING = 1
-	BUILDBOT_FAILURE = 2
+	BUILDBOT_SUCCESS   = 0
+	BUILDBOT_WARNINGS  = 1
+	BUILDBOT_FAILURE   = 2
+	BUILDBOT_SKIPPED   = 3
+	BUILDBOT_EXCEPTION = 4
+	// The doc above says that both EXCEPTION and RETRY are value 4.
+	BUILDBOT_RETRY = 4
 )
 
-// Parse s as one of BUILDBOT_SUCCESS, BUILDBOT_WARNING, or BUILDBOT_FAILURE.
+// Parse s as one of the above values for Build.Results.
 func ParseResultsString(s string) (int, error) {
 	switch strings.ToLower(s) {
 	case "success":
 		return BUILDBOT_SUCCESS, nil
-	case "warning":
-		return BUILDBOT_WARNING, nil
+	case "warnings", "warning":
+		return BUILDBOT_WARNINGS, nil
 	case "failure":
 		return BUILDBOT_FAILURE, nil
+	case "skipped":
+		return BUILDBOT_SKIPPED, nil
+	case "exception":
+		return BUILDBOT_EXCEPTION, nil
+	case "retry":
+		return BUILDBOT_RETRY, nil
 	default:
 		return 0, fmt.Errorf("Invalid buildbot Results code: %s", s)
 	}
