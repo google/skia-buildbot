@@ -92,6 +92,7 @@ func TestTrybotGoldProcessor(t *testing.T) {
 		assert.True(t, ok)
 		assert.Equal(t, 1, len(goldTrace.Values))
 		assert.Equal(t, testEntry.value, goldTrace.Values[0])
+		assert.Equal(t, "no", goldTrace.Params()["gamma_correct"])
 	}
 
 	// Make sure the prefix is stripped correctly.

@@ -24,7 +24,8 @@
          },
          "md5" : "fa3c371d201d6f88f7a47b41862e2e85",
          "options" : {
-            "ext" : "png"
+            "ext" : "png",
+            "gamma_correct" : false
          }
       },
       {
@@ -35,7 +36,8 @@
          },
          "md5" : "64e446d96bebba035887dd7dda6db6c4",
          "options" : {
-            "ext" : "png"
+            "ext" : "png",
+            "gamma_correct" : false
          }
       },
       {
@@ -46,7 +48,8 @@
          },
          "md5" : "4d289d13da841e4a2f153bcb61024f42",
          "options" : {
-            "ext" : "pdf"
+            "ext" : "pdf",
+            "gamma_correct" : false
          }
       }
     ]

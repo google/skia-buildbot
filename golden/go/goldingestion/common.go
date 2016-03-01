@@ -53,6 +53,61 @@ type Result struct {
 	Digest  string            `json:"md5"`
 }
 
+func toStringMap(interfaceMap map[string]interface{}) (map[string]string, error) {
+	ret := make(map[string]string, len(interfaceMap))
+	for k, v := range interfaceMap {
+		switch val := v.(type) {
+		case bool:
+			if val {
+				ret[k] = "yes"
+			} else {
+				ret[k] = "no"
+			}
+		case string:
+			ret[k] = val
+		default:
+			return nil, fmt.Errorf("Unable to convert %#v to string map.", interfaceMap)
+		}
+	}
+
+	return ret, nil
+}
+
+// TODO(stephana) Potentially remove this function once gamme_corrected field contains
+// only strings.
+func (r *Result) UnmarshalJSON(data []byte) error {
+	var err error
+	container := map[string]interface{}{}
+	if err := json.Unmarshal(data, &container); err != nil {
+		return err
+	}
+
+	key, ok := container["key"]
+	if !ok {
+		return fmt.Errorf("Did not get key field in result.")
+	}
+
+	options, ok := container["options"]
+	if !ok {
+		return fmt.Errorf("Did not get options field in result.")
+	}
+
+	digest, ok := container["md5"].(string)
+	if !ok {
+		return fmt.Errorf("Did not get md5 field in result.")
+	}
+
+	if r.Key, err = toStringMap(key.(map[string]interface{})); err != nil {
+		return err
+	}
+
+	if r.Options, err = toStringMap(options.(map[string]interface{})); err != nil {
+		return err
+	}
+	r.Digest = digest
+	return nil
+}
+
 // DMResults is the top level structure for decoding DM JSON output.
 type DMResults struct {
 	Master      string            `json:"master"`
