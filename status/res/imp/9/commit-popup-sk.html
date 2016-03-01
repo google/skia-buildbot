@@ -1,0 +1,117 @@
+<!--
+  The common.js file must be included before this file.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <commit-popup-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/commit-popup-sk.html" rel="import" />
+
+  Usage:
+
+    <commit-popup-sk></commit-popup-sk>
+
+  Properties:
+    commit: The details for a commit.
+    repo: The name (not the URL) of the repository of the commit.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/common/imp/9/comments-sk.html">
+<link rel="import" href="/res/common/imp/9/linkify-sk.html">
+
+<dom-module id="commit-popup-sk">
+  <template>
+    <style>
+      #popup {
+        @apply(--layout-horizontal);
+        @apply(--layout-wrap);
+      }
+      .flex {
+        @apply(--layout-flex);
+      }
+
+      a {
+        color: #000;
+      }
+
+      paper-button[raised].colored {
+        background: #D95F02;
+        color: #fff;
+        font-size: 1.0em;
+        padding:5px;
+        border-radius: 3px;
+      }
+      .revert {
+        color: inherit;
+        background-color: inherit;
+        text-decoration:none;
+      }
+    </style>
+    <div id="popup">
+      <div class="flex">
+        <p>
+          <a href$="{{_makeRepoURL(repo,commit)}}" target="_blank">{{commit.hash}}</a>
+          <br/>
+          {{commit.author}}
+          <br/>
+          {{commit.timestamp}}
+        </p>
+      </div>
+    <template is="dom-if" if="{{commit.issue}}">
+      <div>
+        <a href$="{{_makeRevertURL(commit)}}" target="_blank" class="revert">
+            <paper-button raised class="colored" role="button">Revert</paper-button>
+        </a>
+      </div>
+    </template>
+    </div>
+    <hr/>
+    <h3 id="commitSubject"><linkify-sk text="{{commit.subject}}"></linkify-sk></h3>
+    <p id="commitBody"><linkify-sk text="{{commit.body}}"></p>
+    <hr/>
+    <comments-sk
+        comments="{{commit.comments}}"
+        add_comment_url="{{_makeCommentUrl(repo,commit)}}"
+        on-submit="commentAdded"
+        allow_add_comment
+        allow_delete_comment>
+    </comments-sk>
+  </template>
+  <script>
+    Polymer({
+      is:"commit-popup-sk",
+      properties: {
+        commit: {
+          type: Object,
+        },
+        repo: {
+          type: String,
+          value: "skia",
+        },
+      },
+
+      commentAdded: function() {
+        // reload page
+        window.location.href = window.location.href;
+      },
+
+      _makeRepoURL: function(repo,commit) {
+        if (repo == "infra") {
+          return "https://skia.googlesource.com/buildbot/+/"+commit.hash;
+        } else {
+          return "https://skia.googlesource.com/" + repo + "/+/"+commit.hash;
+        }
+      },
+      _makeRevertURL: function(commit){
+        return "https://codereview.chromium.org/"+ commit.issue +"/revert";
+      },
+      _makeCommentUrl: function(repo, commit){
+        return "/json/"+repo+"/commits/"+commit.hash+"/comments";
+      }
+    });
+  </script>
+</dom-module>

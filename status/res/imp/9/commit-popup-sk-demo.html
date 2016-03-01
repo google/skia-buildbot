@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>build-popup-sk demo</title>
+  <title>commit-popup-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
@@ -23,15 +23,13 @@
       });
     }
   </script>
-  <link rel=import href="build-popup-sk.html">
+  <link rel=import href="commit-popup-sk.html">
 </head>
 <body>
-  <h1>build-popup-sk demo</h1>
-  <build-popup-sk
-      buildbot_url_prefix="https://uberchromegw.corp.google.com/i/client.skia/"
-      build='{"builder":"Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Shared","number":2858,"buildslave":"skiabot-linux-tester-001","commits":["33366974d43eae80e22284a2e445225c343859da"],"comments":[],"failedSteps":["dm"],"color":"red","id":1234,"finished":true,"results":2}'
-      commit_details='{"33366974d43eae80e22284a2e445225c343859da":{"shortHash":"3336697","shortAuthor":"reed@google.com","shortSubject":"<span style=\"background-color:orange;\">XSS test</span> remove internalDrawBitmap, as it is no longer shared with any other c..."}}'
+  <h1>commit-popup-sk demo</h1>
+  <commit-popup-sk
+      commit='{"hash":"f5d4746ad73ef5eabc927d3d988bb9ee97c77921","author":"herb (herb@google.com)","subject":"Fix asserts found in SampleApp and update the tests with additional interesting numbers.<script>alert(\"XSS IS FUN\")</script>","parent":["4534562f7600e036fd7561df1fe04dc5e58a58fc"],"body":"<div style=\"background-color:orange;\">XSS test</div> BUG=skia:\nGOLD_TRYBOT_URL= https://gold.skia.org/search2?unt=true\u0026query=source_type%3Dgm\u0026master=false\u0026issue=1717743004\n\nReview URL: https://codereview.chromium.org/1717743004\n","timestamp":"2016-02-19T16:54:12-08:00","issue":"123456789"}'
       repo="skia">
-  </build-popup-sk>
+  </commit-popup-sk>
 </body>
 </html>
