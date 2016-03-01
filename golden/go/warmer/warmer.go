@@ -92,7 +92,7 @@ func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) 
 	for _, oneIssue := range issues {
 		wg.Add(1)
 		go func(issueID string) {
-			_, tile, err := storages.TrybotResults.GetIssue(issueID, nil, true)
+			_, tile, err := storages.TrybotResults.GetIssue(issueID, nil)
 			if err != nil {
 				glog.Errorf("Unable to retrieve issue %s. Got error: %s", issueID, err)
 				return

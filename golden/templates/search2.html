@@ -79,14 +79,15 @@
         <table class="issueTable">
           <thead> 
             <tr>
-              <th class="issueRow">Patchset <br> (* - Showing)</th>
-              <th class="issueRow">Jobs <br> (Finished / Total)</th>
+              <th class="issueRow">Patchset <br>(*-Showing)</th>
+              <th class="issueRow">Jobs <br> (Ingested / Total)</th>
               <th class="issueRow">Test Builders</th>
             </tr>
           </thead>
           <tbody>
           {%range $i, $e := .IssueResponse.Patchsets%}
             {%with $data := index $.IssueResponse.PatchsetDetails $e%}
+              {%if ne $data.JobTotal 0%}
               <tr>
                 <td class="issueRow"><a href="{%html $.IssueBaseURL%}&patchsets={%html $e%}">{%add $i 1%}</a>
                 {%if print $e|index $.IncludedPatchsets%} * {%end%}
@@ -99,6 +100,7 @@
                     <br style="clear: both;">
                 </td>
               </tr>
+              {%end%}
             {%end%}
           {%end%}
           </tbody>

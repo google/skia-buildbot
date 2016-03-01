@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	cache "github.com/patrickmn/go-cache"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/tiling"
@@ -29,6 +30,9 @@ const (
 	TRYJOB_COMPLETE  = "complete"
 	TRYJOB_INGESTED  = "ingested"
 	TRYJOB_FAILED    = "failed"
+
+	PATCHSET_CACHE_EXPIRATION       = 5 * time.Minute
+	PATCHSET_CACHE_CLEANUP_INTERVAL = 30 * time.Second
 )
 
 // Issue captures information about a single Rietveld issued.
@@ -71,6 +75,7 @@ type TrybotResults struct {
 	rietveldAPI    *rietveld.Rietveld
 	ingestionStore *goldingestion.IngestionStore
 	timeFrame      time.Duration
+	patchsetCache  *cache.Cache
 }
 
 func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietveld.Rietveld, ingestionStore *goldingestion.IngestionStore) *TrybotResults {
@@ -80,6 +85,7 @@ func NewTrybotResults(tileBuilder tracedb.BranchTileBuilder, rietveldAPI *rietve
 		rietveldAPI:    rietveldAPI,
 		ingestionStore: ingestionStore,
 		timeFrame:      TIME_FRAME,
+		patchsetCache:  cache.New(PATCHSET_CACHE_EXPIRATION, PATCHSET_CACHE_CLEANUP_INTERVAL),
 	}
 	return ret
 }
@@ -112,7 +118,7 @@ func (t *TrybotResults) ListTrybotIssues(offset, size int) ([]*Issue, int, error
 // GetIssue returns the information about a specific issue. It returns the a superset
 // of the issue information including the commit ids that make up the issue.
 // The commmit ids align with the tile that is returned.
-func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string, cacheOnly bool) (*IssueDetails, *tiling.Tile, error) {
+func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string) (*IssueDetails, *tiling.Tile, error) {
 	end := time.Now()
 	begin := end.Add(-t.timeFrame)
 	prefix := goldingestion.GetPrefix(issueID, t.reviewURL)
@@ -133,7 +139,7 @@ func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string, cache
 	}
 
 	// Retrieve all the patchset results for this commit.
-	patchsetDetails, targetPatchsets, err := t.getPatchsetDetails(issue, targetPatchsets, cacheOnly)
+	patchsetDetails, targetPatchsets, err := t.getPatchsetDetails(issue, targetPatchsets)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -146,7 +152,7 @@ func (t *TrybotResults) GetIssue(issueID string, targetPatchsets []string, cache
 	}, tile, nil
 }
 
-func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []string, cacheOnly bool) (map[int64]*PatchsetDetail, []string, error) {
+func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []string) (map[int64]*PatchsetDetail, []string, error) {
 	// Get the target patchsets.
 	var int64PidMap map[int64]bool = nil
 
@@ -179,13 +185,11 @@ func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []strin
 		wg.Add(1)
 		go func(pid int64) {
 			defer wg.Done()
-			crPatchSet, err := t.getCachedPatchset(intIssueID, pid, int64PidMap, cacheOnly)
+			crPatchSet, err := t.getCachedPatchset(intIssueID, pid, int64PidMap)
 			if err != nil {
 				glog.Errorf("Error retrieving patchset %d: %s", pid, err)
 				return
 			}
-
-			glog.Infof("Got patchset %d: %d", intIssueID, pid)
 
 			nTryjobs := len(crPatchSet.TryjobResults)
 			tryjobs := make([]*Tryjob, 0, nTryjobs)
@@ -240,9 +244,21 @@ func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []strin
 	return ret, targetPatchsets, nil
 }
 
-func (t *TrybotResults) getCachedPatchset(intIssueID, pid int64, targetPatchsets map[int64]bool, cacheOnly bool) (*rietveld.Patchset, error) {
-	// TODO(stephana): Add caching.
-	return t.rietveldAPI.GetPatchset(intIssueID, pid)
+func (t *TrybotResults) getCachedPatchset(intIssueID, pid int64, targetPatchsets map[int64]bool) (*rietveld.Patchset, error) {
+	key := strconv.FormatInt(intIssueID, 10) + ":" + strconv.FormatInt(pid, 10)
+
+	// Check for the key.
+	if val, ok := t.patchsetCache.Get(key); ok {
+		return val.(*rietveld.Patchset), nil
+	}
+
+	val, err := t.rietveldAPI.GetPatchset(intIssueID, pid)
+	if err != nil {
+		return nil, err
+	}
+
+	t.patchsetCache.Set(key, val, 0)
+	return val, nil
 }
 
 // filterTryjob returns true if the given tryjob should be ignored.

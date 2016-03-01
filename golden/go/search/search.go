@@ -231,7 +231,7 @@ func (i *issueIntermediate) add(params map[string]string) {
 }
 
 func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tallies *tally.Tallies, tileParamSet *paramsets.Summary) ([]*Digest, *IssueResponse, error) {
-	issue, tile, err := storages.TrybotResults.GetIssue(issueID, q.Patchsets, false)
+	issue, tile, err := storages.TrybotResults.GetIssue(issueID, q.Patchsets)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -650,7 +650,6 @@ func (fs *FileDiffStore) ensureDigestInCache(d string) error {
 		return err
 	}
 	if !exists {
-		glog.Errorf("!exists")
 		// Digest does not exist locally, get it from Google Storage.
 		if err := fs.cacheImageFromGS(d); err != nil {
 			fs.unavailableChan <- &diff.DigestFailure{
@@ -692,7 +691,6 @@ func (fs *FileDiffStore) isDigestInCache(d string) (bool, error) {
 // downloadFailureCount is incremented.
 //
 func (fs *FileDiffStore) cacheImageFromGS(d string) error {
-	glog.Errorf("cacheImageFromGS(%s)", d)
 	storage, err := storage.New(fs.client)
 	if err != nil {
 		return fmt.Errorf("Failed to create interface to Google Storage: %s\n", err)
@@ -760,7 +758,6 @@ func (fs *FileDiffStore) cacheImageFromGS(d string) error {
 				return fmt.Errorf("Unable to move file: %s", err)
 			}
 
-			glog.Errorf("success.Inc()")
 			fs.downloadSuccessCount.Inc(1)
 			return nil
 		}()

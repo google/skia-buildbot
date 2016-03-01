@@ -38,10 +38,11 @@ func TestTrybotResults(t *testing.T) {
 
 	db, err := tracedb.NewTraceServiceDBFromAddress(serverAddress, types.GoldenTraceBuilder)
 	assert.Nil(t, err)
-	defer util.Close(db)
+	defer func() { assert.Nil(t, db.Close()) }()
 
 	ingestionStore, err := goldingestion.NewIngestionStore(serverAddress)
 	assert.Nil(t, err)
+	defer func() { assert.Nil(t, ingestionStore.Close()) }()
 
 	tileBuilder := tracedb.NewBranchTileBuilder(db, nil, rietveldAPI, eventbus.New(nil))
 	tr := NewTrybotResults(tileBuilder, rietveldAPI, ingestionStore)
@@ -54,7 +55,7 @@ func TestTrybotResults(t *testing.T) {
 	assert.Equal(t, 1, total)
 
 	// issue, tile, err := tr.GetIssue(issues[0].ID)
-	_, tile, err := tr.GetIssue(issues[0].ID, nil, false)
+	_, tile, err := tr.GetIssue(issues[0].ID, nil)
 	assert.Nil(t, err)
 
 	foundDigests := util.NewStringSet()
