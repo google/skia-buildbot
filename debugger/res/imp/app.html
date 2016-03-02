@@ -22,6 +22,8 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel=import href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel=import href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
+<link rel=import href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
+<link rel=import href="/res/imp/bower_components/iron-pages/iron-pages.html">
 
 <link rel=import href="/res/common/imp/9/canvas-layers.html">
 <link rel=import href="/res/common/imp/9/crosshair.html">
@@ -123,6 +125,14 @@ The main application element for the Skia Debugger.
       opacity: 0.75;
     }
 
+    paper-tabs {
+      --paper-tabs-selection-bar-color: #1f78b4;
+    }
+
+    paper-tab[disabled] {
+      color: lightgray;
+    }
+
   </style>
   <template>
     <paper-header-panel>
@@ -152,10 +162,21 @@ The main application element for the Skia Debugger.
               <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuBatchBounds)}}" id=gpuBatchBounds on-tap="_gpuBatchBounds">Display Batch Bounds</paper-checkbox>
             </div>
             <div id=rendered>
-              <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
-                <img id=img src="" class=hidden>
-              </canvas-layers-sk>
-              <crosshair-sk id=crosshair target=layers name=crosshair update_on=move></crosshair-sk>
+              <paper-tabs selected="{{tab_selected}}">
+                <paper-tab>Picture</paper-tab>
+                <paper-tab disabled=[[_isEmpty(bitmap)]]>Image</paper-tab>
+              </paper-tabs>
+              <iron-pages selected="{{tab_selected}}">
+                <div>
+                  <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
+                    <img id=img src="" class=hidden>
+                  </canvas-layers-sk>
+                  <crosshair-sk id=crosshair target=layers name=crosshair update_on=move></crosshair-sk>
+                </div>
+                <div>
+                  <img id=standAloneImg src$="[[bitmap]]">
+                </div>
+              </iron-pages>
             </div>
           </div>
           <div id=right class="layout vertical flex-2">
@@ -215,6 +236,19 @@ The main application element for the Skia Debugger.
 
     Polymer({
       is: "debugger-app-sk",
+
+      properties: {
+        tab_selected: {
+          type: Number,
+          value: 0,
+          reflectToAttribute: false,
+        },
+        bitmap: {
+          type: String,
+          value: "",
+          reflectToAttribute: false,
+        },
+      },
 
       ready: function() {
         // _targetItem is the index of the op we are in the process of moving to.
@@ -359,6 +393,10 @@ The main application element for the Skia Debugger.
         return !!b;
       },
 
+      _isEmpty: function(s) {
+        return s.length == 0;
+      },
+
       _gpuBatchBounds: function(e) {
         // Ignore if this._cmd hasn't been loaded yet.
         if (!this._cmd) {
@@ -445,6 +483,10 @@ The main application element for the Skia Debugger.
         this._setCacheBreakingURL();
       },
 
+      _hasBitmap: function(s) {
+        return !!s;
+      },
+
       _clipHandler: function() {
         var alpha = this.$.clip.checked ? 128 : 0;
         sk.post("/clipAlpha/" + alpha).then(function() {
@@ -458,7 +500,9 @@ The main application element for the Skia Debugger.
           return
         }
         var index = this._filtered.commands[this._targetItem]._index;
+        var op = this._filtered.commands[this._targetItem];
         var path = "/img/" + index + "?";
+        this.bitmap = op.details.bitmap ? op.details.bitmap.data : "";
         sk.get("/info/" + index).then(JSON.parse).then(function(json) {
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);

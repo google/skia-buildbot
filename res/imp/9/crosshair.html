@@ -186,6 +186,9 @@
       },
 
       _moveCrosshair: function (clientX, clientY) {
+        if (this._img.width == 0 || this._img.height == 0) {
+          return
+        }
         var p = sk.elePos(this._canvas);
         this.thumb.x = clientX - p.x;
         this.thumb.y = clientY - p.y;
