@@ -10,6 +10,7 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/golden/go/types"
 )
@@ -86,7 +87,7 @@ func TestGoldProcessor(t *testing.T) {
 	// Set up the processor.
 	processor, err := newGoldProcessor(vcs, ingesterConf, nil)
 	assert.Nil(t, err)
-	defer processor.(*goldProcessor).traceDB.Close()
+	defer util.Close(processor.(*goldProcessor).traceDB)
 
 	// Load the example file and process it.
 	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
