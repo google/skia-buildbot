@@ -1,0 +1,213 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <alert-widget-sk>
+
+  This element occasionally polls the alert server, displaying the number of alerts and exposing
+  that number through the .
+
+  To use this file import it:
+
+    <link href="/res/imp/alert-widget-sk.html" rel="import" />
+
+  Usage:
+
+    <alert-widget-sk></alert-widget-sk>
+
+  Properties:
+    reload: Number, How often (in seconds) to reload the alert status.
+    include: Array<String>, The include filters for polling alerts.
+    exclude: Array<String>, The exclude filters for polling alerts.
+
+    active_alerts: Number, The number of active alerts.
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/res/imp/bower_components/iron-dropdown/iron-dropdown.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
+
+<link rel="import" href="/res/common/imp/9/alert-sk.html">
+<link rel="import" href="/res/common/imp/9/details-summary.html">
+<link rel="import" href="/res/common/imp/9/timer-sk.html">
+
+<dom-module id="alert-widget-sk">
+  <template>
+    <style>
+      #alert {
+        position: relative;
+        padding: 0px 2px;
+      }
+
+      paper-icon-button {
+        color: #FFFFFF;
+        width: 46px;
+        height: 46px;
+        padding: 0px;
+      }
+
+      /* Icons can't have text on them, so we super-impose the text on top of it using CSS.*/
+      #numAlerts {
+        color: #FFFFFF;
+        position: absolute;
+        left: 21px;
+        top: 2px;
+        text-align: center;
+        margin: 0px;
+        cursor:pointer;
+      }
+
+      @keyframes pulse {
+        0%   {transform: scale(1.0);}
+        50%  {transform: scale(0.8);}
+        100%  {transform: scale(1.0);}
+      }
+
+      .alerting > paper-icon-button {
+        background-color: #E6AB02;
+        border-radius: 23px;
+        animation: pulse 0.6s infinite linear;
+      }
+
+      .alerting > #numAlerts {
+        color: #D95F02;
+        animation: pulse 0.6s infinite linear;
+      }
+
+      #alertlist {
+        padding :10px;
+      }
+
+      .dropdown-content {
+        color: #000000;
+        background-color: #F5F5F5;
+        border-radius: 10px;
+        border: 2px solid #000000;
+      }
+      .dropdown-content div {
+        min-width: 300px;
+        min-height: 70px;
+        margin-top: 30px;
+      }
+
+    </style>
+
+    <iron-ajax
+      id="status"
+      auto url="https://alerts.skia.org/json/alerts/"
+      params='{{_getParams(include, exclude)}}'
+      handle-as="json"
+      last-response="{{_allAlerts}}">
+    </iron-ajax>
+    <timer-sk period="[[reload]]" on-trigger="_reload">
+
+    <span id="alert" class$="[[_alertingClass(active_alerts)]]">
+      <paper-icon-button
+          id="notifications"
+          icon="social:notifications-none"
+          on-tap="toggle">
+      </paper-icon-button>
+      <span id="numAlerts" on-tap="toggle">[[active_alerts]]</span>
+
+      <iron-dropdown id="alertlist" vertical-align="top" horizontal-align="right">
+        <div class="dropdown-content">
+          <template is="dom-repeat" items="[[_allAlerts]]" as="alert">
+              <alert-sk alert="{{alert}}" compact hidden$="{{_snoozed(alert)}}"></alert-sk>
+          </template>
+          <div hidden$="{{_has(active_alerts)}}">
+            No alerts are active.
+          </div>
+        </div>
+      </iron-dropdown>
+    </span>
+
+  </template>
+  <script>
+  Polymer({
+    is:"alert-widget-sk",
+
+    properties: {
+      // input
+      include: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+      exclude: {
+        type: Array,
+        value: function() {
+          return [];
+        }
+      },
+      reload: {
+        type: Number,
+        value: 60,
+      },
+
+      // output
+      active_alerts: {
+        type: Number,
+        computed: "_getUnsnoozedAlerts(_allAlerts)",
+        notify: true,
+      },
+
+      // private
+      _allAlerts: {
+        type: Array,
+      }
+    },
+
+    _alertingClass: function(alerts) {
+      if (alerts || alerts > 0) {
+        return "alerting";
+      }
+      return "";
+    },
+
+    _getUnsnoozedAlerts: function(alerts) {
+      if (!alerts) {
+        return 0;
+      }
+      var active_alerts = 0;
+      for (var i = 0; i < alerts.length; i++) {
+        if (!this._snoozed(alerts[i])) {
+          active_alerts++;
+        }
+      }
+      return active_alerts;
+    },
+
+    _getParams: function(include, exclude) {
+      return {"include":include, "exclude":exclude};
+    },
+
+    _has: function(active_alerts) {
+      return active_alerts > 0;
+    },
+
+    _reload: function() {
+      this.$.status.generateRequest();
+    },
+
+    _statusIcon:function(status) {
+      if (!status || !status.status || status.status == "stopped") {
+        return "icons:error";
+      }
+      if (status.status == "in progress") {
+        return "icons:autorenew";
+      }
+      return "icons:check-circle";
+    },
+    _snoozed: function(alert) {
+      return alert.snoozedUntil !== 0;
+    },
+
+    toggle: function() {
+      this.$.alertlist.open();
+    }
+
+  });
+  </script>
+</dom-module>

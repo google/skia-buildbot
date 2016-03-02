@@ -16,5 +16,7 @@ run:
 
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-table-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-canvas-demo.json
+	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/autoroll-widget-demo.json
+	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/alert-widget-demo.json
 
 	../../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1

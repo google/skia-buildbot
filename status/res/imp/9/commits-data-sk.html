@@ -21,8 +21,11 @@
 
   Properties:
     // inputs
+    autoroll_current: String, the commit hash of the current autoroll.
+    autoroll_last: String the commit hash of the previous autoroll.
     filter: String, the builder filter to be used.
     load: Number, the number of commits to load from the backend
+    reload: How often (in seconds) to reload the data.
     search: String, the string to be used if filter is "search".
 
     // outputs
@@ -47,13 +50,18 @@
 
 <link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
 
+<link rel="import" href="/res/common/imp/9/timer-sk.html">
+
 <dom-module id="commits-data-sk">
   <template>
-    <iron-ajax auto url="/json/skia/commits/"
+    <iron-ajax id="data"
+      auto url="/json/skia/commits/"
       handle-as="json"
       params="[[_params]]"
       last-response="{{_data}}">
     </iron-ajax>
+
+    <timer-sk period="[[reload]]" on-trigger="_reload">
   </template>
 
   <script>
@@ -178,6 +186,10 @@
           type: Number,
           value: 35,
         },
+        reload: {
+          type: Number,
+          value: 60,
+        },
         search: {
           type: String,
           observer:"_searchChanged",
@@ -275,6 +287,7 @@
       _getUrlParams: function(load) {
         return {"n":load};
       },
+
       _makeCommitsMap: function(arr) {
         if (!arr || arr.length == 0) {
           return {};
@@ -284,6 +297,10 @@
           m[c.hash] = c;
         });
         return m;
+      },
+
+      _reload: function() {
+        this.$.data.generateRequest();
       },
 
       _parseData: function(data, autoroll_current, autoroll_last) {
@@ -397,6 +414,7 @@
         this.set("branch_heads", data.branch_heads);
         console.timeEnd("totalLoadTime");
       },
+
       // Filter out green bots unless "showAllBuilders" is checked.
       _filterBuilders: function() {
         console.time("filterBuilders");
@@ -503,6 +521,7 @@
         this.set("category_list", categoryList);
         console.timeEnd("filterBuilders");
       },
+
       _searchChanged: function() {
         // This callback fires every time the user presses a key inside the
         // input box. Updating the display can be really slow when there are

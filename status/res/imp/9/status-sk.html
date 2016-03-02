@@ -1,0 +1,256 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <status-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/status-sk.html" rel="import" />
+
+  Usage:
+
+    <status-sk></status-sk>
+
+  Properties:
+    load: How many commits should be loaded, defaulting to 35.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/hardware-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="/res/common/imp/9/app-sk.html">
+<link rel="import" href="/res/common/imp/9/url-params-sk.html">
+
+<link rel="import" href="alert-widget-sk.html">
+<link rel="import" href="autoroll-widget-sk.html">
+<link rel="import" href="commits-table-sk.html">
+<link rel="import" href="commits-canvas-sk.html">
+<link rel="import" href="commits-data-sk.html">
+<link rel="import" href="gold-status-sk.html">
+<link rel="import" href="perf-status-sk.html">
+<link rel="import" href="status-menu-section-sk.html">
+<link rel="import" href="tree-status-sk.html">
+
+<dom-module id="status-sk">
+  <template>
+    <style>
+      :host{
+        --app-sk-main: {
+          background-color: #FFFFFF;
+          font-family: sans-serif;
+        };
+
+        login-sk{
+          --login-sk-color: white;
+        };
+      }
+      app-sk {
+        --app-sk-toolbar: {
+          color: #FFFFFF;
+          font-size: 15px;
+          font-family: sans-serif;
+          text-align: center;
+          height: 120px;
+
+          background-color: #66A61E;
+        };
+      }
+      app-sk.closed {
+        --app-sk-toolbar: {
+          color: #FFFFFF;
+          font-size: 15px;
+          font-family: sans-serif;
+          text-align: center;
+          height: 120px;
+
+          background-color: #D95F02;
+        };
+      }
+
+      #infobar {
+        margin-left:5%;
+        margin-right:5%;
+      }
+      paper-button.roles {
+        color:#FFFFFF;
+        text-transform: none;
+      }
+      paper-button.roles>iron-icon {
+        color:#E6AB02;
+      }
+
+      gold-status-sk, autoroll-widget-sk {
+        min-width:250px;
+      }
+      perf-status-sk, tree-status-sk {
+        min-width:200px;
+      }
+      alert-widget-sk {
+        min-width:100px;
+      }
+    </style>
+
+    <!-- To keep all the data binding sane and understandable, one-way and two-way bindings
+    have been used very purposefully.  That is, two-way bindings are *only* used when the data
+    flows out of the element.  This makes it easier to tell, at a glance, where data originates
+    from and where it is simply being read.  Additionally, the attributes are alphabetized,
+    with inputs listed first and output attributes listed second(where sensible). -->
+
+    <!-- these must go above the points at which their bound values are used.  Otherwise,
+    the bound values get set to "" and it clobbers the stored values -->
+    <url-param-sk name="commit_label" value="{{label}}" default="author"></url-param-sk>
+    <url-param-sk name="filter" value="{{filter}}" default="interesting"></url-param-sk>
+    <url-param-sk name="search_value" value="{{search}}"></url-param-sk>
+    <url-param-sk name="commit" value="{{highlighted_commit_hashes}}" multi></url-param-sk>
+
+    <app-sk id="app" class="fit"
+        mode="waterfall"
+        tall_class="medium-tall"
+        responsive_width="1200px">
+      <status-menu-section-sk navigation></status-menu-section-sk>
+
+      <h1 toolbar>Skia Status</h1>
+
+      <autoroll-widget-sk title="Skia DEPS roll status" rtoolbar
+        reload="[[reload]]"
+
+        status="{{autoroll_status}}">
+      </autoroll-widget-sk>
+
+      <tree-status-sk rtoolbar
+        reload="[[reload]]"
+
+        open="{{open}}"
+        sheriff="{{sheriff}}"
+        wrangler="{{wrangler}}"
+        trooper="{{trooper}}">
+      </tree-status-sk>
+
+      <!-- JSON arrays requires double quotes to be valid -->
+      <alert-widget-sk rtoolbar
+        exclude='["infra"]'
+        reload="[[reload]]">
+      </alert-widget-sk>
+
+      <div id="infobar" class="bottom horizontal layout flex" toolbar>
+        <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" class="inherit">
+        <paper-button id="sheriff-button" class="roles" title="The current Skia sheriff"><iron-icon icon="icons:star"></iron-icon>
+            Sheriff: [[sheriff]]
+          </paper-button>
+        </a>
+        <a href="http://skia-tree-status.appspot.com/gpu-sheriff" target="_blank" class="inherit">
+        <paper-button id="wrangler-button" class="roles" title="The current GPU wranger"><iron-icon icon="icons:gesture"></iron-icon>
+            GPU: [[wrangler]]
+          </paper-button>
+        </a>
+        <a href="http://skia-tree-status.appspot.com/trooper" target="_blank" class="inherit">
+        <paper-button id="trooper-button" class="roles" title="The current Infra trooper"><iron-icon icon="hardware:sim-card"></iron-icon>
+            Trooper: [[trooper]]
+          </paper-button>
+        </a>
+        <div class="flex"></div>
+        <perf-status-sk title="Active Perf alerts" reload="[[reload]]"></perf-status-sk>
+        <gold-status-sk title="Skia Gold: Untriaged image count" reload="[[reload]]"></gold-status-sk>
+      </div>
+
+      <div id="mainContent" class="horizontal layout flex">
+        <commits-canvas-sk id="can"
+          branch_heads="[[branch_heads]]"
+          commits="[[commits]]"
+
+          reload="{{reload}}">
+        </commits-canvas-sk>
+
+        <commits-table-sk id="table"
+            builders="[[builders]]"
+            builds="[[builds]]"
+            categories="[[categories]]"
+            category_list="[[category_list]]"
+            build_details="[[build_details]]"
+            commits="[[commits]]"
+            commits_map="[[commits_map]]"
+            highlighted_commit_hashes="[[highlighted_commit_hashes]]"
+            num_builders="[[num_builders]]"
+            relanded_map="[[relanded_map]]"
+            repo="skia"
+            reverted_map="[[reverted_map]]"
+
+            commit_label="{{label}}"
+            filter="{{filter}}"
+            search="{{search}}">
+        </commits-table-sk>
+
+        <commits-data-sk id="data"
+            autoroll_current="[[autoroll_status.currentRollRev]]"
+            autoroll_last="[[autoroll_status.lastRollRev]]"
+            load="[[load]]"
+            filter="[[filter]]"
+            reload="[[reload]]"
+            search="[[search]]"
+
+            branch_heads="{{branch_heads}}"
+            build_details="{{build_details}}"
+            builders="{{builders}}"
+            builds="{{builds}}"
+            categories="{{categories}}"
+            category_list="{{category_list}}"
+            commits="{{commits}}"
+            commits_map="{{commits_map}}"
+            num_builders="{{num_builders}}"
+            relanded_map="{{relanded_map}}"
+            reverted_map="{{reverted_map}}">
+        </commits-data-sk>
+      </div>
+    </app-sk>
+  </template>
+  <script>
+  Polymer({
+    is:"status-sk",
+
+    properties: {
+      // input
+      load: {
+        type: Number,
+        value: 35,
+      },
+
+      // private
+      open: {
+        type: Boolean,
+        observer: "_treeOpen",
+      },
+      sheriff: {
+        type: String,
+      },
+      wrangler: {
+        type: String,
+      },
+      trooper: {
+        type: String,
+      },
+    },
+
+    _treeOpen: function(open) {
+      // This cannot be simply done with a binding to the app-sk's class$= because
+      // the updateStyles must be called after adding the class to appropriately set
+      // the toolbar's color using the css variables.
+      if (open) {
+        this.$.app.classList.remove("closed");
+      } else {
+        this.$.app.classList.add("closed");
+      }
+      Polymer.updateStyles();
+    }
+
+  });
+  </script>
+</dom-module>

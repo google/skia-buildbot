@@ -1,0 +1,109 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <gold-status-sk>
+
+  This element occasionally polls the autoroller, displaying the number of gms that need triaging.
+
+  To use this file import it:
+
+    <link href="/res/imp/gold-status-sk.html" rel="import" />
+
+  Usage:
+
+    <gold-status-sk></gold-status-sk>
+
+  Properties:
+    reload: How often (in seconds) to reload the gold status.
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/image-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="/res/common/imp/9/timer-sk.html">
+
+<dom-module id="gold-status-sk">
+  <template>
+    <style>
+      a {
+        color: #FFFFFF;
+        text-decoration: none;
+        text-transform: none;
+      }
+      a.corpus:hover {
+        text-decoration: underline;
+      }
+      .label {
+        padding: 5px;
+      }
+      .value {
+        background-color: #E6AB02;
+        border-radius: 3px;
+        padding: 5px;
+      }
+      iron-icon {
+        color: #E6AB02;
+      }
+    </style>
+
+    <iron-ajax
+      id="status"
+      auto url="/json/goldStatus"
+      handle-as="json"
+      last-response="{{_goldStatus}}">
+    </iron-ajax>
+
+    <timer-sk period="[[reload]]" on-trigger="_reload">
+
+    <a href="https://gold.skia.org" target="_blank">
+      <paper-button>
+        <iron-icon icon="image:collections"></iron-icon>
+        <template is="dom-repeat" items="{{_objToArr(_goldStatus)}}" as="c">
+          <a class="corpus" href$="{{_getLink(c)}}" target="_blank">
+            <span class="label">{{c.label}}</span>
+            <span class="value">{{c.value}}</span>
+          </a>
+        </template>
+      </paper-button>
+    </a>
+
+  </template>
+  <script>
+  Polymer({
+    is:"gold-status-sk",
+
+    properties: {
+      // input
+      reload: {
+        type: Number,
+        value: 60,
+      },
+
+      // private
+      _goldStatus: {
+        type: Object,
+      }
+    },
+
+    _reload: function(){
+      this.$.status.generateRequest();
+    },
+
+    _getLink: function(corpus) {
+      return "https://gold.skia.org/#/triage?head=1&corpus=" + corpus.label;
+    },
+
+    _objToArr: function(obj) {
+      var arr = [];
+      for (c in obj) {
+        arr.push({"label":c, "value":obj[c]});
+      }
+      return arr;
+    },
+
+  });
+  </script>
+</dom-module>
