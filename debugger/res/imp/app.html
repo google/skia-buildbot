@@ -103,9 +103,26 @@ The main application element for the Skia Debugger.
       display: block;
     }
 
+    #gpuBatchBounds,
     paper-toggle-button {
       margin: 0.5em 1em;
     }
+
+    .opBoundColor {
+      color: #E31A1C;
+      opacity: 0.75;
+    }
+
+    .otherBoundColor {
+      color: #FF7F00;
+      opacity: 0.75;
+    }
+
+    .totalBoundColor {
+      color: #6A3D9A;
+      opacity: 0.75;
+    }
+
   </style>
   <template>
     <paper-header-panel>
@@ -130,7 +147,10 @@ The main application element for the Skia Debugger.
             <commands-sk id=commands grouping=50></commands-sk>
           </div>
           <div id=center class="layout vertical flex-3">
-            <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
+            <div class="layout horizontal">
+              <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
+              <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuBatchBounds)}}" id=gpuBatchBounds on-tap="_gpuBatchBounds">Display Batch Bounds</paper-checkbox>
+            </div>
             <div id=rendered>
               <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
                 <img id=img src="" class=hidden>
@@ -146,6 +166,18 @@ The main application element for the Skia Debugger.
               <paper-checkbox id=clip on-tap="_clipHandler">Show Clip</paper-checkbox>
               <dbg-info-sk info="{{ info }}"></dbg-info-sk>
             </details-sk>
+
+            <details-sk id=batchBoundsLegend class=hidden>
+              <summary-sk>
+                Batch Bounds Legend
+              </summary-sk>
+              <table class=shortcuts>
+                <tr><td class=opBoundColor>Bounds for the current op.</td></tr>
+                <tr><td class=otherBoundColor>Bounds for other ops in the same batch.</td></tr>
+                <tr><td class=totalBoundColor>Total bounds of the current batch.</td></tr>
+              </table>
+            </details-sk>
+
             <div id=position><b>Postion:</b> ({{ x }}, {{ y }})</div>
             <div id=colors><b>Color:</b> {{ rgb }} {{ hex }} </div>
             <div>
@@ -311,12 +343,39 @@ The main application element for the Skia Debugger.
           this._refreshPage();
         }.bind(this)).catch(function(err) {
           this.$.gpu.checked = !this.$.gpu.checked;
-          sk.errorMessage("err");
+          sk.errorMessage(err);
         }.bind(this));
       },
 
       _gpuChecked: function(mode) {
         return mode == "gpu";
+      },
+
+      _gpuNotChecked: function(mode) {
+        return !this._gpuChecked(mode);
+      },
+
+      _isTrue: function(b) {
+        return !!b;
+      },
+
+      _gpuBatchBounds: function(e) {
+        // Ignore if this._cmd hasn't been loaded yet.
+        if (!this._cmd) {
+          return
+        }
+        this.$.batchBoundsLegend.classList.toggle("hidden", !this.$.gpuBatchBounds.checked);
+        // Don't do anything if the toggle and the mode already agree.
+        if (this.$.gpuBatchBounds.checked === this._cmd.drawGpuBatchBounds) {
+          return
+        }
+        sk.post("/batchBounds/" + (this.$.gpuBatchBounds.checked ? 1 : 0), "").then(function() {
+          // Reloads the image and the JSON for all the commands.
+          this._refreshPage();
+        }.bind(this)).catch(function(err) {
+          this.$.gpuBatchBounds.checked = !this.$.gpuBatchBounds.checked;
+          sk.errorMessage(err);
+        }.bind(this));
       },
 
       _breakPoint: function() {
