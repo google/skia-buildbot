@@ -273,3 +273,231 @@ testdata.newBlameDist = {
   "freq": [ 43, 44, 45, 46, 47,  48 ],
   "old": false
 };
+
+// Sample dots. 
+testdata.traces = {
+  "tileSize": 50,
+  "traces": [
+    {
+      "data": [
+        {
+          "x": 21,
+          "y": 0,
+          "s": 1
+        },
+        {
+          "x": 36,
+          "y": 0,
+          "s": 1
+        },
+        {
+          "x": 46,
+          "y": 0,
+          "s": 1
+        },
+        {
+          "x": 48,
+          "y": 0,
+          "s": 0
+        }
+      ],
+      "label": "x86_64:GCC:gpu:Debug:GPU:GTX550Ti:ZeroGPUCache:ShuttleA:dstreadshuffle:Ubuntu:gm",
+      "params": {
+        "arch": "x86_64",
+        "builder": "Test-Ubuntu-GCC-ShuttleA-GPU-GTX550Ti-x86_64-Debug-ZeroGPUCache-Trybot",
+        "compiler": "GCC",
+        "config": "gpu",
+        "configuration": "Debug",
+        "cpu_or_gpu": "GPU",
+        "cpu_or_gpu_value": "GTX550Ti",
+        "ext": "png",
+        "extra_config": "ZeroGPUCache",
+        "model": "ShuttleA",
+        "name": "dstreadshuffle",
+        "os": "Ubuntu",
+        "source_type": "gm"
+      }
+    }
+  ],
+  "digests": [
+    {
+      "digest": "0444d7180dac4bf7a6b1d2487811b131",
+      "status": "untriaged"
+    },
+    {
+      "digest": "c977dacbf4693c63f4b507b4cbb44e17",
+      "status": "positive"
+    }
+  ]
+}; 
+
+testdata.searchDetails = [
+  {
+    "test": "dstreadshuffle",
+    "digest": "0444d7180dac4bf7a6b1d2487811b131",
+    "status": "untriaged",
+    "paramset": {
+      "arch": [
+        "x86_64"
+      ],
+      "builder": [
+        "Test-Ubuntu-GCC-ShuttleA-GPU-GTX550Ti-x86_64-Debug-ZeroGPUCache-Trybot"
+      ],
+      "compiler": [
+        "GCC"
+      ],
+      "config": [
+        "gpu"
+      ],
+      "configuration": [
+        "Debug"
+      ],
+      "cpu_or_gpu": [
+        "GPU"
+      ],
+      "cpu_or_gpu_value": [
+        "GTX550Ti"
+      ],
+      "ext": [
+        "png"
+      ],
+      "extra_config": [
+        "ZeroGPUCache"
+      ],
+      "model": [
+        "ShuttleA"
+      ],
+      "name": [
+        "dstreadshuffle"
+      ],
+      "os": [
+        "Ubuntu"
+      ],
+      "source_type": [
+        "gm"
+      ]
+    },
+    "traces": testdata.traces,
+    "diff": {
+      "diff": 0.0047283936,
+      "pos": {
+        "closest": {
+          "digest": "c977dacbf4693c63f4b507b4cbb44e17",
+          "diff": 0.0047283936,
+          "diffPixels": 0.00027777778,
+          "maxRGBA": [
+            2,
+            41,
+            0,
+            0
+          ]
+        },
+        "paramset": {
+          "arch": [
+            "x86_64"
+          ],
+          "builder": [
+            "Test-Ubuntu-GCC-ShuttleA-GPU-GTX550Ti-x86_64-Debug-ZeroGPUCache-Trybot",
+            "Test-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Debug-Trybot",
+            "Test-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release"
+          ],
+          "compiler": [
+            "GCC"
+          ],
+          "config": [
+            "gpu"
+          ],
+          "configuration": [
+            "Debug",
+            "Release"
+          ],
+          "cpu_or_gpu": [
+            "GPU"
+          ],
+          "cpu_or_gpu_value": [
+            "GTX550Ti",
+            "GTX660"
+          ],
+          "ext": [
+            "png"
+          ],
+          "extra_config": [
+            "ZeroGPUCache"
+          ],
+          "model": [
+            "ShuttleA"
+          ],
+          "name": [
+            "dstreadshuffle"
+          ],
+          "os": [
+            "Ubuntu"
+          ],
+          "source_type": [
+            "gm"
+          ]
+        }
+      },
+      "neg": {
+        "closest": {
+          "digest": "9f94ecf42d64cfbebc48ac1ac497116f",
+          "diff": 3.5267224,
+          "diffPixels": 16.44,
+          "maxRGBA": [
+            205,
+            223,
+            239,
+            0
+          ]
+        },
+        "paramset": {
+          "arch": [
+            "Arm7"
+          ],
+          "builder": [
+            "Test-Android-GCC-Nexus5-GPU-Adreno330-Arm7-Release",
+            "Test-Android-GCC-Nexus5-GPU-Adreno330-Arm7-Debug"
+          ],
+          "compiler": [
+            "GCC"
+          ],
+          "config": [
+            "gpu"
+          ],
+          "configuration": [
+            "Release",
+            "Debug"
+          ],
+          "cpu_or_gpu": [
+            "GPU"
+          ],
+          "cpu_or_gpu_value": [
+            "Adreno330"
+          ],
+          "ext": [
+            "png"
+          ],
+          "model": [
+            "Nexus5"
+          ],
+          "name": [
+            "dstreadshuffle"
+          ],
+          "os": [
+            "Android"
+          ],
+          "source_type": [
+            "gm"
+          ]
+        }
+      },
+      "blame": {
+        "freq": [
+          47,
+          48
+        ],
+        "old": true
+      }
+    }
+  }
+];

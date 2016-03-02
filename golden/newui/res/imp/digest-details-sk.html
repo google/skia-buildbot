@@ -1,0 +1,394 @@
+<!-- The <digest-details-sk> custom element declaration.
+
+  Displays the details about a digest.
+
+  Attributes:
+    details
+    triage
+    commits
+    images
+
+    details - An serialization of a search.Digest. 
+    commits - A list of commits that 'details' refers to.  
+    triage - A boolean, if true, then display the triage controls.
+    images - A boolean, if true the images are displayed.
+
+  Events:
+    triage - A triage event is generated when the triage button is pressed. The e.detail
+       of the event looks like:
+
+       {
+         digest: ["ba636123..."],
+         status: "positive",
+         test: "blurs"
+       }
+
+    zoom-clicked - This event is triggered when the user clicks on the 'zoom'
+      button. The 'detail' in the event is the digest-details-sk object.
+
+  Methods:
+    triggerTriage(status) - Set the triage status of the digest, triggering the triage event.
+-->
+
+<!-- <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout.html"> -->
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../common/imp/9/paramset.html"> 
+
+<link rel="import" href="triage-sk.html"> 
+<link rel="import" href="blame-sk.html"> 
+<link rel="import" href="dots-sk.html"> 
+<link rel="import" href="dot-legend-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="digest-details-sk">
+  <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+  <style include="shared-styles"></style>
+  <style>
+      circle.status0 {
+        fill:   #000000;
+        stroke: #000000;
+      }
+
+      dot-legend-sk {
+        margin-left: 5em;
+        margin-bottom: 2em;
+      }
+
+      dots-sk {
+        display: block;
+      }
+
+      .more {
+        margin-left: 3em;
+      }
+
+      .preview {
+        margin: 5px;
+        border: solid 2px lightgray;
+        display: block;
+        width: 132px;
+        height: 132px;
+      }
+
+      .preview img {
+        display: block;
+        max-width: 128px;
+        max-height: 128px;
+        width: auto;
+        height: auto;
+
+      }
+
+      .hidden * {
+        display: none;
+      }
+
+      .triageInfo,
+      .triageInfo div {
+        padding: 0.5em;
+      }
+      .untriagedImage svg {
+        margin: auto;
+      }
+      #images {
+        margin-right: 1.5em;
+      }
+      #warning {
+        font-weight: bold;
+        width: 5em;
+        padding: 1em;
+        color: #E7298A;
+      }
+
+      #paramset {
+        max-width: 40em;
+      }
+
+      .noCompare {
+        padding-right: 1em;
+      }
+
+    </style>
+  <template>
+    <div class="horizontal layout wrap">
+      <div class="vertical layout" id="warning" hidden$="{{!_negIsClosest}}">
+        Closest Image Is Negative!
+      </div>
+
+      <!-- Triage Controls -->
+      <div class="vertical layout triageInfo" hidden$="{{!triage}}">
+        <div hidden$="{{!_hasClosest(_closest, triage)}}">
+          <div>
+            <a href$="{{_diffPageUrl(_closest)}}">Details</a>
+          </div>
+          <div>
+            Diff: <span>{{_fixedPercent(_closest.closest.diff)}}</span>%
+          </div>
+          <div>Max RGBA: [<span>{{_closest.closest.maxRGBA}}</span>]</div>
+        </div>
+        <triage-sk value="{{details.status}}" 
+                   id="triage" 
+                   data-digest$="{{details.digest}}" 
+                   data-test$="{{details.test}}">
+        </triage-sk>
+      </div>
+
+      <!-- Images -->
+      <div class="vertical layout">
+        <div class="horizontal layout" id="images">
+          <div class="horizontal layout" hidden$="{{!_hasClosest(_closest, triage)}}">
+            <div class="vertical layout center untriagedImage">
+              <div class="horizontal layout">
+                <div class="preview">
+                  <img src="{{_digestUrl(images, _closest.closest.digest)}}">
+                </div>
+                <a href$="{{_digestHref(_closest.closest.digest)}}" target="_blank">
+                  <iron-icon icon="open-in-new"></iron-icon>
+                </a>
+              </div>
+              <a href$="{{_detailHref(_closest.closest.digest)}}" target="_blank">
+                {{_statusStr(_negIsClosest)}}
+              </a>
+            </div>
+            <div class="preview">
+              <img src="{{_diffUrl(images, diffDigests)}}">
+            </div>
+            <a href$="{{_diffHref(diffDigests)}}" target="_blank" >
+              <iron-icon icon="open-in-new"></iron-icon>
+            </a>
+          </div>
+          <template is="dom-if" if="{{triage}}">
+            <div class="vertical layout untriagedImage">
+              <div class="horizontal layout">
+                <div class="preview">
+                  <img src="{{_digestUrl(images, digest)}}">
+                </div>
+                <a target="_blank" href$="{{_digestHref(digest)}}">
+                  <iron-icon icon="open-in-new"></iron-icon>
+                </a>
+              </div>
+              <svg width="10" height="10" viewBox="-1 -1 2 2">
+                <circle cx="0" cy="0" r="0.3" class="status0"></circle>
+              </svg>
+            </div>
+          </template>
+        </div>
+        <paper-button id="zoomButton" raised>Zoom</paper-button>
+      </div>
+      <template is="dom-if" if="{{_hasPosNeg(closest, triage)}}">
+        <div class="noCompare">
+          <strong>No Positive or Negative Digests Found.</strong>
+        </div>
+      </template>
+
+      <!-- ParamSet -->
+      <div class="vertical layout" id="paramset">
+        <paramset-sk id="paramsets"></paramset-sk>
+      </div>
+
+      <!-- dots, dot-legend and blame -->
+      <div class="vertical layout">
+        <dots-sk id="dots"></dots-sk>
+        <dot-legend-sk id="dotlegend" 
+                       test="{{details.test}}"
+                       digests={{details.traces.digests}}>
+        </dot-legend-sk>
+       <blame-sk id="blame"
+                 commits="{{commits}}"
+                 value="{{details.diff.blame}}">
+        </blame-sk>
+      </div>
+
+      <!-- Links to Grid and Cluster. -->
+      <div id="links">
+        <span><a href$="{{_cmpUrl(test)}}"><iron-icon icon="apps"></iron-icon></a></span>
+        <span><a href$="{{_clusterUrl(test)}}"><iron-icon icon="radio-button-unchecked"></iron-icon></a></span>
+      </div>
+
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'digest-details-sk',
+
+      properties: {
+        details: {
+          type: Object,
+          value: function() { return {}; },
+          notify: true, 
+          observer: "_detailsChanged"
+        }, 
+
+        triage: {
+          type: Boolean,
+          value: false,
+          notify: true
+        },
+
+        commits: {
+          type: Array, 
+          value: function() { return []; },
+          notify: true
+        },
+
+        images: {
+          type: Boolean,
+          value: false
+        },
+
+        _negIsClosest: { 
+          type: Boolean,
+          value: false
+        },
+      },
+
+      ready: function () {
+        this.listen(this.$.zoomButton, 'click', '_zoomHandler');
+        this.listen(this.$.dots, 'hover', '_hoverHandler'); 
+        this.listen(this.$.dots, 'mouseleave', '_mouseLeaveHandler');
+        this.listen(this.$.triage, 'change', '_triageChangeHandler'); 
+      },
+
+      triggerTriage: function (status) {
+        this.set('$.triage.value', status);
+        var detail = {
+          'test': this.$.triage.dataset.test,
+          'digest': [this.$.triage.dataset.digest],
+          'status': status
+        };
+        this.dispatchEvent(new CustomEvent('triage', {
+          detail: detail,
+          bubbles: true
+        }));
+      },
+
+      _triageChangeHandler: function(e) {
+        // Convert the change event from the triage button into a more detailed triage event.
+        var detail = {
+          'test': this.details.test,
+          'digest': [this.details.digest],
+          'status': this.details.status
+        };
+        this.fire('triage', detail);
+      }, 
+
+      _zoomHandler: function() {
+        this.fire('zoom-clicked', this); 
+      },
+
+      _hoverHandler: function(e) {
+          var id = e.detail;
+          var params = {};
+          var traces = this.details.traces.traces;
+
+          // Find the matching trace in details.traces.
+          for (var i=0, len = traces.length; i < len; i++) {
+            if (traces[i].label == id) {
+              params = traces[i].params;
+              break;
+            }
+          }
+          this.$.paramsets.setHighlight(params);
+      },
+
+      _mouseLeaveHandler: function() {
+        this.$.paramsets.clearHighlight();
+      },       
+
+      _detailsChanged: function () {
+        // Check if we have data.
+        if (!this.details || !this.details.diff) {
+          return;
+        }
+
+        if (this.triage) {
+          this._negIsClosest = false;
+          this._closest = this.details.diff.pos;
+          if (this.details.diff.neg && 
+              (!this._closest || this.details.diff.neg.closest.diff < this._closest.diff)) {
+            this._closest = this.details.diff.neg;
+            this._negIsClosest = true;
+          }
+        }
+
+        // Set the blame, dots, dotlegend 
+        // this.set('$.blame.value', this.details.diff.blame);
+        this.$.dots.setValue(this.details.traces);
+        
+        if (this.triage) {
+          if (this._closest) {
+            this.diffDigests = this._concatOrdered(this._closest.closest.digest,
+                                                   this.details.digest);
+            var closestLabel = '';
+            if (this._closest.closest.digest) {
+              closestLabel = 'Closest ' + this._statusStr(this._negIsClosest);
+            }
+
+            this.$.paramsets.setParamSets([
+              this.details.paramset, 
+              this._closest.paramset
+            ], ['', closestLabel ]);
+          } else {
+            this.$.paramsets.setParamSets([this.details.paramset]);
+          }
+        }
+      },
+
+      _concatOrdered: function(d1, d2) {
+        return (d1 < d2) ? d1 + '-' + d2 : d2 + '-' + d1;
+      },      
+
+      _hasClosest: function(closest, triage) {
+        return (triage && closest && closest.closest && 
+                closest.closest.digest && closest.closest.digest != ''); 
+      },
+
+      _digestUrl: function(showImages, digest) {
+        return (showImages) ? this._digestHref(digest) : '';
+      },
+
+      _digestHref: function(digest) {
+        return '/img/images/' + digest + '.png'
+      },
+
+      _diffUrl: function (showImages, diffDigest) {
+        return (showImages) ? this._diffHref(diffDigest) : '';
+      },
+
+      _diffHref: function(diffDigest) {
+        '/img/diffs/' + diffDigest + '.png'
+      }, 
+
+      _fixedPercent: function (i) {
+        return (i) ? i.toFixed(2) : '';
+      },
+
+      _diffPageUrl: function (closest) {
+        return '/diff?test=' + this.test + '&left=' + this.digest + '&top=' + closest.closest.digest;
+      },
+
+      _detailHref: function (digest) {
+        return 'detail?test=' + this.test + '&digest=' + digest;
+      },
+
+      _statusStr: function(_negIsClosest) {
+        return _negIsClosest ? 'Negative' : 'Positive';
+      },
+
+      _hasPosNeg: function (closest, triage) {
+        return triage && !closest.closest.digest;
+      },
+
+      _cmpUrl: function (test) {
+        return 'cmp/' + test;
+      },
+
+      _clusterUrl: function (test) {
+        return 'cluster?query=name%3D' + test + '&head=true&pos=true&neg=true&unt=true&limit=200';
+      }
+    });
+  </script>
+</dom-module>
+
