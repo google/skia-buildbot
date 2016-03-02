@@ -32,7 +32,7 @@
     builds: Object, a map of the builder names to an object that maps build numbers to build results.
     categories: Object, a map of the builder categories to an object that has the subcategories and the colspan (total number of included builders).
     category_list: Array<String>, an array of the builder category names.
-    commits: Array<Object>, the commit objects, in chronological detail.
+    commits: Array<Object>, the commit objects, in chronological order.
     commits_map: Object, a map of commit hash to commit objects.
     num_builders: Number, the number of builders with data, after filtering.
     relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it
@@ -162,6 +162,14 @@
       is: "commits-data-sk",
       properties: {
         // input only
+        autoroll_current:{
+          type: String,
+          value: "",
+        },
+        autoroll_last: {
+          type: String,
+          value: "",
+        },
         filter: {
           type: String,
           observer:"_filterBuilders",
@@ -174,7 +182,6 @@
           type: String,
           observer:"_searchChanged",
         },
-
 
         // output only
         branch_heads: {
@@ -257,9 +264,13 @@
           value: function() {
             return {};
           },
-          observer:"_parseData",
+          observer:"",
         },
       },
+
+      observers: [
+        "_parseData(_data, autoroll_current, autoroll_last)"
+      ],
 
       _getUrlParams: function(load) {
         return {"n":load};
@@ -275,7 +286,7 @@
         return m;
       },
 
-      _parseData: function(data) {
+      _parseData: function(data, autoroll_current, autoroll_last) {
         if (!data || !data.commits) {
           console.log("Nothing to parse");
           return;
@@ -366,16 +377,16 @@
         this.set("build_details", build_details);
         this.set("builders", builders);
         this._filterBuilders();
-        if (this.autorollLast) {
+        if (autoroll_last) {
           data.branch_heads.push({
               name: "last DEPS roll",
-              head: this.autorollLast,
+              head: autoroll_last,
           });
         }
-        if (this.autorollCurrent) {
+        if (autoroll_current) {
           data.branch_heads.push({
             name: "current DEPS roll",
-            head: this.autorollCurrent,
+            head: autoroll_current,
           });
         }
         console.log("Prepared build data.");

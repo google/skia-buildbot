@@ -15,5 +15,6 @@ run:
 	cp ../../../node_modules/sinon/pkg/sinon-server-1.17.2.js res/imp/sinon-server-1.17.2.js
 
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-table-demo.json
+	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-canvas-demo.json
 
 	../../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1
