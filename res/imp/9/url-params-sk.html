@@ -69,20 +69,16 @@
         multi: {
           type: Boolean,
           value: false,
-          notify: true,
-          reflectToAttribute: true
         },
         name: {
           type: String,
-          value: '',
-          notify: true,
-          reflectToAttribute: true
         },
         valid: {
           type: Array,
           value: null,
-          notify: true,
-          reflectToAttribute: true
+        },
+        default: {
+          type: String,
         },
         value: {
           type: String,
@@ -102,7 +98,10 @@
         var val = this.getURL();
         if (val && this.isValid(val)) {
           this.set('value', val);
-        } else {
+        } else if (this.default && this.isValid(this.default)) {
+          this.set('value', this.default);
+        }
+        else {
           this.putURL();
         }
       },

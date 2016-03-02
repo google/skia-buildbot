@@ -646,6 +646,16 @@ this.sk = this.sk || function() {
     });
   }
 
+  // Truncate the given string to the given length. If the string was
+  // shortened, change the last three characters to ellipsis.
+  sk.truncate = function(str, len) {
+    if (str.length > len) {
+      var ellipsis = "..."
+      return str.substring(0, len - ellipsis.length) + ellipsis;
+    }
+    return str
+  }
+
   // Return a 32 bit hash for the given string.
   //
   // This is a super simple hash (h = h * 31 + x_i) currently used

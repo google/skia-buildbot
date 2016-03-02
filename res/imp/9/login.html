@@ -73,8 +73,11 @@
   Polymer({
     is: "login-sk",
 
-    ready: function() {
-      this.email = '';
+    properties: {
+      email: {
+        type: String,
+        value: '',
+      }
     },
 
     ready: function() {
