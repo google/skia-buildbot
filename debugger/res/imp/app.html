@@ -467,11 +467,15 @@ The main application element for the Skia Debugger.
         }.bind(this)).catch(sk.errorMessage);
         sk.get("/cmd").then(JSON.parse).then(function(json) {
           this._cmd = this._addDepth(json);
-          var filtered = {
-            version: 1,
-            commands: this._cmd.commands.slice(),
-          };
-          this._setFiltered(filtered);
+          if (this.$.fast.value) {
+            this._fastFilter();
+          } else {
+            var filtered = {
+              version: 1,
+              commands: this._cmd.commands.slice(),
+            };
+            this._setFiltered(filtered);
+          }
         }.bind(this)).catch(sk.errorMessage);
       },
 
