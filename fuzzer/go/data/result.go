@@ -246,7 +246,7 @@ var skAbortStackTraceLine = regexp.MustCompile(`(?:\.\./)+(?P<package>(?:\w+/)+)
 func extractSkAbortTrace(err string) StackTrace {
 	st := StackTrace{}
 	if match := skAbortStackTraceLine.FindStringSubmatch(err); match != nil {
-		st.Frames = append(st.Frames, FullStackFrame(match[1], match[2], common.UNKNOWN_FUNCTION, safeParseInt(match[3])))
+		st.Frames = append(st.Frames, FullStackFrame(match[1], match[2], common.UNKNOWN_FUNCTION, common.SafeAtoi(match[3])))
 	}
 	return st
 }

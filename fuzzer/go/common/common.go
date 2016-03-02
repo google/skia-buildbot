@@ -1,6 +1,11 @@
 package common
 
-import "sort"
+import (
+	"sort"
+	"strconv"
+
+	"github.com/skia-dev/glog"
+)
 
 const (
 	TEST_HARNESS_NAME = "fuzz"
@@ -35,4 +40,16 @@ func PrettifyCategory(category string) string {
 func HasCategory(c string) bool {
 	_, found := prettyFuzzCategories[c]
 	return found
+}
+
+// SafeParseInt parses a string that is known to contain digits into an int.
+// It may fail if the number is larger than MAX_INT, but it is unlikely those
+// numbers would come up in the stacktraces.
+func SafeAtoi(n string) int {
+	if i, err := strconv.Atoi(n); err != nil {
+		glog.Errorf("Could not parse number from known digits %q: %v", n, err)
+		return 0
+	} else {
+		return i
+	}
 }

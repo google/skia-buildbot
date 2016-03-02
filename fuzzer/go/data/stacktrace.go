@@ -5,10 +5,8 @@ import (
 	"bytes"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 )
 
@@ -52,23 +50,11 @@ func parseCatchsegvStackTrace(contents string) StackTrace {
 		if match := segvStackTraceLine.FindStringSubmatch(line); match != nil {
 			// match[0] is the entire matched portion, [1] is the "package", [2] is the file name,
 			// [3] is the line number and [4] is the encoded function symbol string.
-			newFrame := FullStackFrame(match[1], match[2], catchsegvFunctionName(match[4]), safeParseInt(match[3]))
+			newFrame := FullStackFrame(match[1], match[2], catchsegvFunctionName(match[4]), common.SafeAtoi(match[3]))
 			frames = append(frames, newFrame)
 		}
 	}
 	return StackTrace{Frames: frames}
-}
-
-// safeParseInt parses a string that is known to contain digits into an int.
-// It may fail if the number is larger than MAX_INT, but it is unlikely those
-// numbers would come up in the stacktraces.
-func safeParseInt(n string) int {
-	if i, err := strconv.Atoi(n); err != nil {
-		glog.Errorf("Could not parse number from known digits %q: %v", n, err)
-		return 0
-	} else {
-		return i
-	}
 }
 
 var staticStart = regexp.MustCompile(`^ZL(\d+)`)
@@ -90,7 +76,7 @@ var methodName = regexp.MustCompile(`^(\d+)`)
 //    (since there is no number directly after the 3rd step, we have found the param boundary).
 func catchsegvFunctionName(s string) string {
 	if match := methodStart.FindStringSubmatch(s); match != nil {
-		length := safeParseInt(match[2])
+		length := common.SafeAtoi(match[2])
 		// ZNK? is 2-3 chars, so slice (num letters + num digits + number of spaces) chars off
 		// the beginning.
 		s = s[len(match[1])+len(match[2])+length:]
@@ -103,7 +89,7 @@ func catchsegvFunctionName(s string) string {
 			if f != "" {
 				f += "::"
 			}
-			length = safeParseInt(match[1])
+			length = common.SafeAtoi(match[1])
 			start := len(match[1])
 			f += s[start : start+length]
 			s = s[start+length:]
@@ -111,13 +97,13 @@ func catchsegvFunctionName(s string) string {
 		return f
 	}
 	if match := staticStart.FindStringSubmatch(s); match != nil {
-		length := safeParseInt(match[1])
+		length := common.SafeAtoi(match[1])
 		// ZL is 2 chars, so advance 2 spaces + how many digits there are
 		start := 2 + len(match[1])
 		return s[start : start+length]
 	}
 	if match := nonstaticStart.FindStringSubmatch(s); match != nil {
-		length := safeParseInt(match[1])
+		length := common.SafeAtoi(match[1])
 		// Z is 1 char, so advance 1 space + how many digits there are
 		start := 1 + len(match[1])
 		return s[start : start+length]
@@ -159,7 +145,7 @@ func parseASANStackTrace(contents string) StackTrace {
 		if match := asanStackTraceLine.FindStringSubmatch(line); match != nil {
 			// match[0] is the entire matched portion, [1] is the function name [2] is the
 			// "package", [3] is the file name, [4] is the line number
-			newFrame := FullStackFrame(match[2], match[3], match[1], safeParseInt(match[4]))
+			newFrame := FullStackFrame(match[2], match[3], match[1], common.SafeAtoi(match[4]))
 			frames = append(frames, newFrame)
 		}
 	}

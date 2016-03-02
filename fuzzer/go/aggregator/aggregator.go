@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"sync"
@@ -248,6 +249,9 @@ func (agg *Aggregator) scanForNewCandidates() {
 				glog.Errorf("Aggregator scanner terminated due to error: %s", err)
 				return
 			}
+			if err := collectFuzzerMetrics(); err != nil {
+				glog.Warningf("Encountered error getting fuzzer metrics: %s", err)
+			}
 			glog.Infof("Sleeping for %s, then waking up to find new crashes again", config.Aggregator.RescanPeriod)
 		case <-agg.monitoringShutdown:
 			glog.Info("Aggregator scanner got signal to shut down")
@@ -353,6 +357,34 @@ func findBadFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([
 		}
 	}
 	return badFuzzPaths, nil
+}
+
+var execsDone = regexp.MustCompile(`execs_done\s+:\s+(\d+)`)
+var cyclesDone = regexp.MustCompile(`cycles_done\s+:\s+(\d+)`)
+var pathsTotal = regexp.MustCompile(`paths_total\s+:\s+(\d+)`)
+
+// collectFuzzerMetrics looks through the fuzzer_stats file in the main fuzzer output folder of
+// each fuzz category and extracts some key metrics from it.  The format of this file is
+// detailed in http://lcamtuf.coredump.cx/afl/status_screen.txt
+func collectFuzzerMetrics() error {
+	for _, category := range config.Generator.FuzzesToGenerate {
+		statsFile := filepath.Join(config.Generator.AflOutputPath, category, "fuzzer0", "fuzzer_stats")
+		b, err := ioutil.ReadFile(statsFile)
+		if err != nil {
+			return err
+		}
+		contents := string(b)
+		if match := execsDone.FindStringSubmatch(contents); match != nil {
+			metrics2.GetInt64Metric("fuzzer.stats.execs-done", map[string]string{"category": category}).Update(int64(common.SafeAtoi(match[1])))
+		}
+		if match := cyclesDone.FindStringSubmatch(contents); match != nil {
+			metrics2.GetInt64Metric("fuzzer.stats.cycles-done", map[string]string{"category": category}).Update(int64(common.SafeAtoi(match[1])))
+		}
+		if match := pathsTotal.FindStringSubmatch(contents); match != nil {
+			metrics2.GetInt64Metric("fuzzer.stats.paths-total", map[string]string{"category": category}).Update(int64(common.SafeAtoi(match[1])))
+		}
+	}
+	return nil
 }
 
 // waitForAnalysis waits for files that need to be analyzed (from forAnalysis) and makes a copy of
