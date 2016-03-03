@@ -174,7 +174,7 @@ func main() {
 					"--also-run-disabled-tests",
 					"--page-repeat=1", // Only need one run for SKPs.
 					"--skp-outdir=" + pathToSkps,
-					"--extra-browser-args=--skip-reencoding-on-skp-capture " + util.DEFAULT_BROWSER_ARGS,
+					"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
 					"--user-agent=" + decodedPageset.UserAgent,
 					"--urls-list=" + decodedPageset.UrlsList,
 					"--archive-data-file=" + decodedPageset.ArchiveDataFile,
