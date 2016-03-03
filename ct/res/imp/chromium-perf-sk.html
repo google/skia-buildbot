@@ -120,8 +120,8 @@
            Read about the trade-offs <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit?pli=1#heading=h.xz46aihphb8z">here</a>
         </td>
         <td>
+          <div id="True">True (Temporarily disabled due to <a href="https://bugs.chromium.org/p/skia/issues/detail?id=4506">skbug/4506</a>)</div>
           <iron-selector attr-for-selected="id" id="run_in_parallel" selected="False" class="long-field">
-            <div id="True">True (Works only for Linux rasterize_and_record_micro runs)</div>
             <div id="False">False</div>
           </iron-selector>
         </td>
@@ -297,7 +297,7 @@
      setRunInParallel: function() {
        if (this.$.benchmark_name.selected == "rasterize_and_record_micro" &&
            this.$.target_platform.selected == "Linux") {
-         this.$.run_in_parallel.selected = "True"
+         this.$.run_in_parallel.selected = "False"
        } else {
          this.$.run_in_parallel.selected = "False"
        }
