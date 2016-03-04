@@ -247,6 +247,15 @@ _slave_host_dicts = {
 
   'skia-vm-008': {
     'slaves': [
+      ('skiabot-linux-swarm-000', '0', False),
+      ('skiabot-linux-swarm-001', '1', False),
+      ('skiabot-linux-swarm-002', '2', False),
+      ('skiabot-linux-swarm-003', '3', False),
+      ('skiabot-linux-swarm-004', '4', False),
+      ('skiabot-linux-swarm-005', '5', False),
+      ('skiabot-linux-swarm-006', '6', False),
+      ('skiabot-linux-swarm-007', '7', False),
+      ('skiabot-linux-swarm-008', '8', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
