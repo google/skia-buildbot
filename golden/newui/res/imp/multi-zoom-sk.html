@@ -1,0 +1,277 @@
+<!-- The <multi-zoom-sk> custom element declaration.
+
+This element is a view that allows zooming into images.  
+It displays the three images, left, top and diff, and then allows zooming and
+panning over various combinations of the images. There is a single pixel in
+the center of the zoomed view which is highlighted, and its information is
+displayed on the zoom dialog.
+
+There are three images that it deals with, called left, top, and diff.  
+
+  Attributes:
+    llabel - The label for the image on the left.
+    rlabel - The label for the image on the right.
+
+  Events:
+    None
+
+  Methods:
+    setDetails(details) - Sets the information the zoom dialog needs, which
+      is an object of the following form, where each member is a
+      URL of the full size image.
+
+      {
+        leftImgUrl: "...",
+        middleImgUrl: "...",
+        rightImgUrl: "...",
+      }
+
+  Mailboxes:
+    None
+
+-->
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<link rel=import href="../common/imp/9/canvas-layers.html">
+<link rel=import href="../common/imp/9/crosshair.html">
+<link rel=import href="../common/imp/9/zoom.html">
+
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="multi-zoom-sk">
+  <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+  <style include="shared-styles"></style>
+  <style>
+
+    img {
+      width: 128px;
+    }
+
+    .imgContainer, .zoomContainer {
+      padding: 4px;
+      border: solid lightgray 1px;
+      margin: 4px;
+    }
+
+    .zoomContainer {
+      width: 20em;
+      height: 20em;
+    }
+
+    .selectorWrapper {
+      font-size: 16px; 
+    }
+
+    .imagesWrap {
+      margin-bottom: 2em;
+    }
+
+    .showBold {
+      font-weight: bold;
+    }
+
+  </style>
+
+  <template>
+    <div class="vertical layout" hidden="{{_noImage(details)}}">
+      <div class="horizontal layout wrap imagesWrap">
+        
+        <div class="vertical layout">
+          <div class="imgContainer">
+            <canvas-layers-sk layers='["crosshairLeft"]' id="layersLeft">
+              <img id="left_img" src$="{{details.leftImgUrl}}"/>
+            </canvas-layers-sk>
+            <crosshair-sk x="{{_x}}" 
+                          y="{{_y}}"
+                          target="layersLeft" 
+                          name="crosshairLeft" 
+                          update_on="click">
+            </crosshair-sk>
+          </div>
+          <div class="selectorWrapper">
+            <paper-toggle-button checked={{_leftActive}}>
+              <span class$="{{_boldClass(_currSeq, 'left')}}">{{llabel}}</span>
+            </paper-toggle-button>
+          </div>
+        </div>
+
+        <div class="layout vertical">
+          <div class="imgContainer">
+            <canvas-layers-sk layers='["crosshairMiddle"]' id="layersMiddle">
+              <img id="middle_img" src$="{{details.middleImgUrl}}"/>
+            </canvas-layers-sk>
+            <crosshair-sk x="{{_x}}" 
+                          y="{{_y}}"
+                          target="layersMiddle" 
+                          name="crosshairMiddle" 
+                          update_on="click">
+            </crosshair-sk>
+          </div>
+          <div class="selectorWrapper">
+            <paper-toggle-button checked={{_middleActive}}>
+              <span class$="{{_boldClass(_currSeq, 'middle')}}">Diff</span>
+            </paper-toggle-button>
+          </div>
+
+        </div>
+
+        <div class="layout vertical">
+          <div class="imgContainer">
+            <canvas-layers-sk layers='["crosshairRight"]' id="layersRight">
+              <img id="right_img" src$="{{details.rightImgUrl}}"/>
+            </canvas-layers-sk>
+            <crosshair-sk x="{{_x}}" 
+                          y="{{_y}}"
+                          target="layersRight" 
+                          name="crosshairRight" 
+                          update_on="click">
+            </crosshair-sk>
+          </div>
+
+          <div class="selectorWrapper">
+            <paper-toggle-button checked={{_rightActive}}>
+              <span class$="{{_boldClass(_currSeq, 'right')}}">{{rlabel}}</span>
+            </paper-toggle-button>
+          </div>
+        </div>
+      </div>
+
+      <div class="layout horizontal wrap">
+        <div class="layout vertical zoomContainer">
+          <zoom-sk  hidden$="{{_hideMe(_currSeq, 'left')}}"
+                    source="left_img" 
+                    pixels=20 
+                    id="zoomLeft" 
+                    x="{{_x}}" 
+                    y="{{_y}}">
+          </zoom-sk>
+
+          <zoom-sk  hidden$="{{_hideMe(_currSeq, 'middle')}}"
+                    source="middle_img" 
+                    pixels=20 
+                    id="zoomMiddle" 
+                    x="{{_x}}" 
+                    y="{{_y}}">
+          </zoom-sk>
+
+          <zoom-sk hidden$="{{_hideMe(_currSeq, 'right')}}"
+                   source="right_img" 
+                   pixels=20 
+                   id="zoomRight" 
+                   x="{{_x}}" 
+                   y="{{_y}}">
+          </zoom-sk> 
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+    	is: "multi-zoom-sk",
+
+      properties:{
+        details: {
+          type: Object, 
+          value: function() { return {}; }
+        },
+
+        llabel: "",
+        rlabel: "",
+
+        _currSeq: '', 
+
+        _leftActive: {
+          type: Boolean,
+          value: true,
+          observer: "_updateTiming"
+        },
+
+        _middleActive: {
+          type: Boolean,
+          value: false,
+          observer: "_updateTiming"
+        },
+
+        _rightActive: {
+          type: Boolean,
+          value: true,
+          observer: "_updateTiming"
+        },
+
+        _x : {
+          type: Number, 
+          value: 0,
+          notify: true
+        },
+
+        _y : {
+          type: Number, 
+          value: 0,
+          notify: true
+        }
+      },
+
+      ready: function() {
+        // Start the toggling function. 
+        this._showNext(); 
+      },
+
+      setDetails: function(details) {
+        this.set('details', details); 
+      },
+
+      _showNext: function() {
+        if (this._seq.length > 0) {
+          var idx = this._seq.indexOf(this._currSeq);
+          if (idx < 0) {
+            idx = 0; 
+          } else {
+            idx = (idx+1) % this._seq.length;  
+          }
+          this._currSeq = this._seq[idx]; 
+        } else {
+          this._currSeq = '';
+        }
+
+        this.async(this._showNext.bind(this), 500); 
+      }, 
+
+      _updateTiming: function() {
+        var seq = []; 
+        if (this._leftActive) { 
+          seq.push("left");
+        }
+
+        if (this._middleActive) {
+          seq.push('middle'); 
+        }
+
+        if (this._rightActive) {
+          seq.push('right');
+        }
+
+        this._seq = seq;
+      },
+
+      _hideMe: function(currSeq, pos) {  
+        return currSeq != pos; 
+      },
+
+      _boldClass: function(currSeq, pos) {
+        return (currSeq==pos) ? 'showBold' : ''; 
+      }, 
+
+      _noImage: function(details) {
+        return !(details && details.leftImgUrl); 
+      }
+
+
+    });
+  </script>
+</dom-module>

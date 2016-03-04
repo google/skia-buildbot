@@ -44,13 +44,15 @@
           type: Number,
           value: 0,
           observer: '_xChanged',
-          reflectToAttribute: true
+          reflectToAttribute: true,
+          notify: true
         },
         y: {
           type: Number,
           value: 0,
           observer: '_yChanged',
-          reflectToAttribute: true
+          reflectToAttribute: true,
+          notify: true
         },
         target: {
           type: String,
