@@ -3,11 +3,6 @@
   Displays the details about a digest.
 
   Attributes:
-    details
-    triage
-    commits
-    images
-
     details - An serialization of a search.Digest. 
     commits - A list of commits that 'details' refers to.  
     triage - A boolean, if true, then display the triage controls.
@@ -28,6 +23,9 @@
 
   Methods:
     triggerTriage(status) - Set the triage status of the digest, triggering the triage event.
+
+    getZoomDetail: Return the information used by the multi-zoom-sk element to show a zoomed
+                   view of the images related to this digest. 
 -->
 
 <!-- <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout.html"> -->
@@ -92,9 +90,11 @@
       .untriagedImage svg {
         margin: auto;
       }
-      #images {
+
+      .digestDetailImages {
         margin-right: 1.5em;
       }
+
       #warning {
         font-weight: bold;
         width: 5em;
@@ -137,12 +137,12 @@
 
       <!-- Images -->
       <div class="vertical layout">
-        <div class="horizontal layout" id="images">
+        <div class="horizontal layout digestDetailImages">
           <div class="horizontal layout" hidden$="{{!_hasClosest(_closest, triage)}}">
             <div class="vertical layout center untriagedImage">
               <div class="horizontal layout">
                 <div class="preview">
-                  <img src="{{_digestUrl(images, _closest.closest.digest)}}">
+                  <img src$="{{_digestUrl(images, _closest.closest.digest)}}">
                 </div>
                 <a href$="{{_digestHref(_closest.closest.digest)}}" target="_blank">
                   <iron-icon icon="open-in-new"></iron-icon>
@@ -153,7 +153,7 @@
               </a>
             </div>
             <div class="preview">
-              <img src="{{_diffUrl(images, diffDigests)}}">
+              <img src$="{{_diffUrl(images, diffDigests)}}">
             </div>
             <a href$="{{_diffHref(diffDigests)}}" target="_blank" >
               <iron-icon icon="open-in-new"></iron-icon>
@@ -163,9 +163,9 @@
             <div class="vertical layout untriagedImage">
               <div class="horizontal layout">
                 <div class="preview">
-                  <img src="{{_digestUrl(images, digest)}}">
+                  <img src$="{{_digestUrl(images, details.digest)}}">
                 </div>
-                <a target="_blank" href$="{{_digestHref(digest)}}">
+                <a target="_blank" href$="{{_digestHref(details.digest)}}">
                   <iron-icon icon="open-in-new"></iron-icon>
                 </a>
               </div>
@@ -224,18 +224,21 @@
         triage: {
           type: Boolean,
           value: false,
-          notify: true
+          notify: true,
+          observer: "_detailsChanged"         
         },
 
         commits: {
           type: Array, 
           value: function() { return []; },
-          notify: true
+          notify: true,
+          observer: "_detailsChanged" 
         },
 
         images: {
           type: Boolean,
-          value: false
+          value: false,
+          notify: true
         },
 
         _negIsClosest: { 
@@ -258,11 +261,16 @@
           'digest': [this.$.triage.dataset.digest],
           'status': status
         };
-        this.dispatchEvent(new CustomEvent('triage', {
-          detail: detail,
-          bubbles: true
-        }));
+        this.fire('triage', detail);
       },
+
+      getZoomDetail: function() {
+        return {
+          leftImgUrl: this._digestHref(this.details.digest), 
+          rightImgUrl: this._digestHref(this._closest.closest.digest),
+          middleImgUrl: this._diffHref(this.diffDigests)
+        }; 
+      },      
 
       _triageChangeHandler: function(e) {
         // Convert the change event from the triage button into a more detailed triage event.
@@ -275,7 +283,7 @@
       }, 
 
       _zoomHandler: function() {
-        this.fire('zoom-clicked', this); 
+        this.fire('zoom-clicked', this.getZoomDetail()); 
       },
 
       _hoverHandler: function(e) {
@@ -330,9 +338,9 @@
               this.details.paramset, 
               this._closest.paramset
             ], ['', closestLabel ]);
-          } else {
-            this.$.paramsets.setParamSets([this.details.paramset]);
           }
+        } else {
+          this.$.paramsets.setParamSets([this.details.paramset]);
         }
       },
 
@@ -353,12 +361,12 @@
         return '/img/images/' + digest + '.png'
       },
 
-      _diffUrl: function (showImages, diffDigest) {
-        return (showImages) ? this._diffHref(diffDigest) : '';
+      _diffUrl: function (showImages, diffDigests) {
+        return (showImages) ? this._diffHref(diffDigests) : '';
       },
 
-      _diffHref: function(diffDigest) {
-        '/img/diffs/' + diffDigest + '.png'
+      _diffHref: function(diffDigests) {
+        return '/img/diffs/' + diffDigests + '.png'
       }, 
 
       _fixedPercent: function (i) {

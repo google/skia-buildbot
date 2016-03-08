@@ -1,0 +1,35 @@
+<html>
+<head>
+  <title>search-page-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="../../node_modules/native-promise-only/npo.js"></script>
+  <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="bower_components/page/page.js"></script>
+  <script src="bower_components/d3/d3.js"></script>
+  <script src="../common/js/common.js"></script>
+  <script src="bower_components/sinonjs/sinon.js"></script>
+  <script src="testdata.js"></script>
+  <script>
+    var server = sinon.fakeServer.create();
+    server.respondImmediately = true;
+
+    server.respondWith("GET", "/json/search", function(request) {
+      request.respond(200, {"Content-Type":"application/json"}, 
+        JSON.stringify(testdata.fiveSearchResults));
+    });
+
+  </script>
+
+  <link rel="import" href="search-page-sk.html">
+
+</head>
+<body>
+  <search-page-sk></search-page-sk>
+  <script type="text/javascript" charset="utf-8">
+      debugger; 
+      $$$('search-page-sk').pageSelected();
+  </script>
+</body>
+</html>

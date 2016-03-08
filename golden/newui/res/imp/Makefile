@@ -11,3 +11,7 @@ default:
 # run: runs a local HTTP server for the demo pages, without caching and autoIndex. 
 run:
 	../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1 -c-1 -i false ../.. 
+
+# runproxy: same as run but proxies unresolved requests to port 9999
+runproxy:
+	../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1 -c-1 -i false -P http://localhost:9999 ../.. 

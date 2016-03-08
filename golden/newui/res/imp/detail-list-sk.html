@@ -1,0 +1,197 @@
+<!-- The <detail-list-sk> custom element declaration.
+
+    Manages a list of child elements like digest-detail-sk
+    that produce zoom-clicked, triage and commit-info events.
+
+    Handles the events and also focus highlighting.
+    It also responds to keyboard shortcuts. Since keyboard events
+    are registered against the global 'document' object, it provides
+    the 'startUse' and 'endUse' functions to indicate when this element 
+    is active. This is particularly important if it's part of dynamic 
+    behavior like pop-up dialogs. 
+
+    Attributes:
+      None
+
+    Events:
+      None
+
+    Methods:
+      startUse - to be called before the element is atively being used. 
+                 It registers the necessary keyboard shortcuts. 
+
+      endUse - to be called once the element is not used any more. 
+-->
+
+<link rel=import href="multi-zoom-sk.html">
+
+<dom-module id="detail-list-sk">
+  <template>
+    <content></content>
+    <!-- <commits-sk></commits-sk> -->
+
+    <!-- zoom dialog --> 
+    <paper-dialog id="zoomDialog">
+      <multi-zoom-sk id="zoomer"
+                     llabel="Closest Triaged"
+                     rlabel="Untriaged">
+      </multi-zoom-sk>
+      <div class="buttons">
+        <paper-button dialog-dismiss>Close</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: 'detail-list-sk',
+
+      ready: function () {
+        this._zooming = false;
+        this._zoomDetail = null; 
+
+        this.listen(this, 'zoom-clicked', "_handleZoomClicked");
+        this.listen(this, 'iron-overlay-closed', '_handleZoomClosed');
+        this.listen(this, 'iron-overlay-opened', '_handleZoomDialogOpened');
+        this.listen(this, 'triage', '_handleTriage');
+      },
+
+      startUse: function() {
+        this.listen(document, 'keydown', '_handleKeyDown');
+      }, 
+
+      endUse: function() {
+        this.unlisten(document, 'keydown', '_handleKeyDown');
+      }, 
+
+      _handleKeyDown: function(e) {
+        if (this._zooming) {
+          return;
+        }
+
+        var c = String.fromCharCode(e.keyCode);
+        switch (c) {
+          case 'J':
+            this._focusNext();
+            break;
+          case 'K':
+            this._focusPrev();
+            break;
+          case 'A':
+            this._markFocus('positive');
+            break;
+          case 'S':
+            this._markFocus('negative');
+            break;
+          case 'D':
+            this._markFocus('untriaged');
+            break;
+          case 'W':
+            this._handleZoomClicked();
+            break;
+        }
+      },
+
+      _handleZoomDialogOpened: function(ev) {
+        if (this._zoomDetail) {
+          this.$.zoomer.setDetails(this._zoomDetail);
+          this.$.zoomDialog.notifyResize();
+        }
+        ev.stopPropagation();
+      },
+
+      _handleZoomClosed: function (ev) {
+       this.$.zoomer.clear(); 
+       this._zoomDetail = null; 
+       this._zooming = false;
+       ev.stopPropagation();
+      },
+
+      _handleZoomClicked: function (ev) {
+        // This was triggerd by a keyboard shortcut.
+        if (!ev) {
+          var ele = this._findFocus();
+          if (ele == null) {
+            return
+          }
+          // Extract the zoom information from the element. 
+          this._zoomDetail = ele.getZoomDetail();
+        } else {
+          this._focusSet(ev.target);
+          this._zoomDetail = ev.detail; 
+          ev.stopPropagation(); 
+        }
+
+        this.$.zoomDialog.open();
+        this._zooming = true;
+      },
+
+      _handleTriage: function (ev) {
+        sk.post('_/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
+      },
+
+      // _findFocus returns the current details element with the keyboard focus.
+      _findFocus: function () {
+          return $$$('[data-focus]', this);
+      },
+
+      // _moveFocus does the actual work of changing the focus from lastEle
+      // to nextEle.
+      _moveFocus: function (lastEle, nextEle) {
+        // Don't wrap around past the bottom of the list.
+        if (lastEle != null && nextEle == null) {
+          return;
+        }
+
+        if (lastEle != null) {
+          Polymer.dom(lastEle).removeAttribute('data-focus');
+        }
+
+        // If nothing is selected, then focus on the first details element.
+        if (nextEle == null) {
+          nextEle = Polymer.dom(this).firstElementChild;
+        }
+
+        Polymer.dom(nextEle).setAttribute('data-focus', 'true');
+        nextEle.scrollIntoView(true);
+      },
+
+      _focusSet: function (ele) {
+        var lastEle = this._findFocus();
+        this._moveFocus(lastEle, ele);
+      },
+
+      // Move the focus to the next digest.
+      _focusNext: function () {
+        var nextEle = null;
+        var lastEle = this._findFocus();
+
+        if (lastEle != null) {
+          nextEle = lastEle.nextElementSibling;
+          if (nextEle.nodeName == 'TEMPLATE') {
+            nextEle = null; 
+          }
+        }
+        this._moveFocus(lastEle, nextEle);
+      },
+
+      // Move the focus to the previous digest.
+      _focusPrev: function () {
+        var nextEle = null;
+        var lastEle = this._findFocus();
+
+        if (lastEle != null) {
+          nextEle = lastEle.previousElementSibling;
+        }
+        this._moveFocus(lastEle, nextEle);
+      },
+
+      _markFocus: function (status) {
+        var ele = this._findFocus();
+        if (ele && ele.triggerTriage) {
+          ele.triggerTriage(status);
+        }
+      }
+    });
+  </script>
+</dom-module>
+  

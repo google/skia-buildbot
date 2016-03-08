@@ -1,12 +1,113 @@
 <!--
-  TODO(stephana): Place holder for old page to be ported over. 
+  The <search-page-sk> custom element declaration.
+
+  Shows the results of a search request. 
+  It sends the query string as a JSON request to the 
+  search entpoint ('/json/search') and renders the result. 
+
+  It assumes to the be part of a client site routed system
+  of views and therefore offers the 'pageSelected' and 'pageUnselected'
+  functions. These need to be called whenever the page goes 
+  in and out of view. 
+
+  Attributes:
+    None
+
+  Events:
+    None
+
+  Methods:
+    pageSelected - to be called with the route name as an argument 
+                   whenever this view is the foreground view. 
+
+    pageUnselected - to be called when this page goes out of view. 
 -->
 
+<link rel="import" href="bower_components/polymer/polymer.html"> 
+
+<link rel=import href="detail-list-sk.html">
+<link rel=import href="digest-details-sk.html">
+
 <dom-module id="search-page-sk">
+  <style>
+
+    digest-details-sk {
+      display: block;
+      box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
+      margin-top: 1em;
+      margin-bottom: 1em;
+      margin-left: 3em;
+      padding: 1em;
+    }  
+
+    digest-details-sk[data-focus] {
+      box-shadow: 3px 3px 6px 5px #FF7F00;
+    }
+
+  </style>
   <template>
-   TODO search
+    <div id="missing" hidden$="{{_hasEntries(data)}}">
+      No digests match your query.
+    </div>
+    <div hidden$="{{!_hasEntries(data)}}">
+      <detail-list-sk id="detailList">
+        <template is="dom-repeat" items="{{data.details}}">
+          <digest-details-sk 
+                  id$="{{_entryId(item)}}"
+                  triage
+                  details="[[item]]"
+                  commits="[[data.commits]]">
+          </digest-details-sk>
+        </template>
+      </detail-list-sk>
+    </div>
   </template>
   <script>
-    Polymer({is: "search-page-sk"});
+    Polymer({
+      is: "search-page-sk",
+
+      properties: {
+        data: {
+          type: Object, 
+          value: function() { return {}; }
+        }
+      },
+
+      pageSelected: function() {
+        this.$.detailList.startUse();
+        var q = window.location.search;
+        sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
+          this.set('data', json);
+          var delta = 10;
+          var that = this; 
+          this.data.details.forEach(function(ele) {
+            (function(useDelta) {
+              that.async(function() {
+                that._showImages(ele); 
+              }, useDelta);
+            })(delta);
+            delta += 100; 
+          });
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      pageUnselected: function() {
+        this.$.detailList.endUse(); 
+      },
+
+      _entryId: function(item) {
+        return item.test + '-' + item.digest; 
+      },
+
+      _showImages: function(detail) {
+        var node = this.$$('#'+this._entryId(detail));
+        Polymer.dom(node).setAttribute('images', true); 
+      },
+
+      _hasEntries: function(data) {
+        return data && data.details && data.details.length > 0;
+      }
+
+    });
   </script>
 </dom-module>

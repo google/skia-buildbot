@@ -47,7 +47,6 @@ There are three images that it deals with, called left, top, and diff.
   <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
   <style include="shared-styles"></style>
   <style>
-
     img {
       width: 128px;
     }
@@ -75,97 +74,104 @@ There are three images that it deals with, called left, top, and diff.
       font-weight: bold;
     }
 
+    .multiZoomWrapper {
+      min-width: 20em;
+      min-height: 20em;
+      padding: 2em;
+    }
   </style>
 
   <template>
-    <div class="vertical layout" hidden="{{_noImage(details)}}">
-      <div class="horizontal layout wrap imagesWrap">
-        
-        <div class="vertical layout">
-          <div class="imgContainer">
-            <canvas-layers-sk layers='["crosshairLeft"]' id="layersLeft">
-              <img id="left_img" src$="{{details.leftImgUrl}}"/>
-            </canvas-layers-sk>
-            <crosshair-sk x="{{_x}}" 
-                          y="{{_y}}"
-                          target="layersLeft" 
-                          name="crosshairLeft" 
-                          update_on="click">
-            </crosshair-sk>
+    <div class="multiZoomWrapper">
+      <div class="vertical layout" hidden="{{_noImage(details)}}">
+        <div class="horizontal layout wrap imagesWrap">
+          
+          <div class="vertical layout">
+            <div class="imgContainer">
+              <canvas-layers-sk layers='["crosshairLeft"]' id="layersLeft">
+                <img id="left_img" src$="{{details.leftImgUrl}}"/>
+              </canvas-layers-sk>
+              <crosshair-sk x="{{_x}}" 
+                            y="{{_y}}"
+                            target="layersLeft" 
+                            name="crosshairLeft" 
+                            update_on="click">
+              </crosshair-sk>
+            </div>
+            <div class="selectorWrapper">
+              <paper-toggle-button checked={{_leftActive}}>
+                <span class$="{{_boldClass(_currSeq, 'left')}}">{{llabel}}</span>
+              </paper-toggle-button>
+            </div>
           </div>
-          <div class="selectorWrapper">
-            <paper-toggle-button checked={{_leftActive}}>
-              <span class$="{{_boldClass(_currSeq, 'left')}}">{{llabel}}</span>
-            </paper-toggle-button>
+
+          <div class="layout vertical">
+            <div class="imgContainer">
+              <canvas-layers-sk layers='["crosshairMiddle"]' id="layersMiddle">
+                <img id="middle_img" src$="{{details.middleImgUrl}}"/>
+              </canvas-layers-sk>
+              <crosshair-sk x="{{_x}}" 
+                            y="{{_y}}"
+                            target="layersMiddle" 
+                            name="crosshairMiddle" 
+                            update_on="click">
+              </crosshair-sk>
+            </div>
+            <div class="selectorWrapper">
+              <paper-toggle-button checked={{_middleActive}}>
+                <span class$="{{_boldClass(_currSeq, 'middle')}}">Diff</span>
+              </paper-toggle-button>
+            </div>
+
+          </div>
+
+          <div class="layout vertical">
+            <div class="imgContainer">
+              <canvas-layers-sk layers='["crosshairRight"]' id="layersRight">
+                <img id="right_img" src$="{{details.rightImgUrl}}"/>
+              </canvas-layers-sk>
+              <crosshair-sk x="{{_x}}" 
+                            y="{{_y}}"
+                            target="layersRight" 
+                            name="crosshairRight" 
+                            update_on="click">
+              </crosshair-sk>
+            </div>
+
+            <div class="selectorWrapper">
+              <paper-toggle-button checked={{_rightActive}}>
+                <span class$="{{_boldClass(_currSeq, 'right')}}">{{rlabel}}</span>
+              </paper-toggle-button>
+            </div>
           </div>
         </div>
 
-        <div class="layout vertical">
-          <div class="imgContainer">
-            <canvas-layers-sk layers='["crosshairMiddle"]' id="layersMiddle">
-              <img id="middle_img" src$="{{details.middleImgUrl}}"/>
-            </canvas-layers-sk>
-            <crosshair-sk x="{{_x}}" 
-                          y="{{_y}}"
-                          target="layersMiddle" 
-                          name="crosshairMiddle" 
-                          update_on="click">
-            </crosshair-sk>
+        <div class="layout horizontal wrap">
+          <div class="layout vertical zoomContainer">
+            <zoom-sk  hidden$="{{_hideMe(_currSeq, 'left')}}"
+                      source="left_img" 
+                      pixels=20 
+                      id="zoomLeft" 
+                      x="{{_x}}" 
+                      y="{{_y}}">
+            </zoom-sk>
+
+            <zoom-sk  hidden$="{{_hideMe(_currSeq, 'middle')}}"
+                      source="middle_img" 
+                      pixels=20 
+                      id="zoomMiddle" 
+                      x="{{_x}}" 
+                      y="{{_y}}">
+            </zoom-sk>
+
+            <zoom-sk hidden$="{{_hideMe(_currSeq, 'right')}}"
+                     source="right_img" 
+                     pixels=20 
+                     id="zoomRight" 
+                     x="{{_x}}" 
+                     y="{{_y}}">
+            </zoom-sk> 
           </div>
-          <div class="selectorWrapper">
-            <paper-toggle-button checked={{_middleActive}}>
-              <span class$="{{_boldClass(_currSeq, 'middle')}}">Diff</span>
-            </paper-toggle-button>
-          </div>
-
-        </div>
-
-        <div class="layout vertical">
-          <div class="imgContainer">
-            <canvas-layers-sk layers='["crosshairRight"]' id="layersRight">
-              <img id="right_img" src$="{{details.rightImgUrl}}"/>
-            </canvas-layers-sk>
-            <crosshair-sk x="{{_x}}" 
-                          y="{{_y}}"
-                          target="layersRight" 
-                          name="crosshairRight" 
-                          update_on="click">
-            </crosshair-sk>
-          </div>
-
-          <div class="selectorWrapper">
-            <paper-toggle-button checked={{_rightActive}}>
-              <span class$="{{_boldClass(_currSeq, 'right')}}">{{rlabel}}</span>
-            </paper-toggle-button>
-          </div>
-        </div>
-      </div>
-
-      <div class="layout horizontal wrap">
-        <div class="layout vertical zoomContainer">
-          <zoom-sk  hidden$="{{_hideMe(_currSeq, 'left')}}"
-                    source="left_img" 
-                    pixels=20 
-                    id="zoomLeft" 
-                    x="{{_x}}" 
-                    y="{{_y}}">
-          </zoom-sk>
-
-          <zoom-sk  hidden$="{{_hideMe(_currSeq, 'middle')}}"
-                    source="middle_img" 
-                    pixels=20 
-                    id="zoomMiddle" 
-                    x="{{_x}}" 
-                    y="{{_y}}">
-          </zoom-sk>
-
-          <zoom-sk hidden$="{{_hideMe(_currSeq, 'right')}}"
-                   source="right_img" 
-                   pixels=20 
-                   id="zoomRight" 
-                   x="{{_x}}" 
-                   y="{{_y}}">
-          </zoom-sk> 
         </div>
       </div>
     </div>
@@ -217,13 +223,21 @@ There are three images that it deals with, called left, top, and diff.
         }
       },
 
-      ready: function() {
-        // Start the toggling function. 
+      setDetails: function(details) {
+        this.set('_leftActive', true);
+        this.set('_middleActive', false);
+        this.set('_rightActive', true);
+        this.set('_x', 0); 
+        this.set('_y', 0);
+        this.set('details', details); 
         this._showNext(); 
       },
 
-      setDetails: function(details) {
-        this.set('details', details); 
+      clear: function(details) {
+        this.set('details', {});
+        if (this._asyncHandle) {
+          this.cancelAsync(this._asyncHandle);
+        }
       },
 
       _showNext: function() {
@@ -239,7 +253,7 @@ There are three images that it deals with, called left, top, and diff.
           this._currSeq = '';
         }
 
-        this.async(this._showNext.bind(this), 500); 
+        this._asyncHandle = this.async(this._showNext.bind(this), 500); 
       }, 
 
       _updateTiming: function() {
