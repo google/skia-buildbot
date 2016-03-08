@@ -2142,5 +2142,5 @@ var fiveResultsDetails = [
 
 testdata.fiveSearchResults = {
   commits: fiveResultCommits,
-  details: fiveResultsDetails
+  digests: fiveResultsDetails
 };

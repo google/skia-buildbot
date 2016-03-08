@@ -51,7 +51,7 @@
     </div>
     <div hidden$="{{!_hasEntries(data)}}">
       <detail-list-sk id="detailList">
-        <template is="dom-repeat" items="{{data.details}}">
+        <template is="dom-repeat" items="{{data.digests}}">
           <digest-details-sk 
                   id$="{{_entryId(item)}}"
                   triage
@@ -78,16 +78,6 @@
         var q = window.location.search;
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
           this.set('data', json);
-          var delta = 10;
-          var that = this; 
-          this.data.details.forEach(function(ele) {
-            (function(useDelta) {
-              that.async(function() {
-                that._showImages(ele); 
-              }, useDelta);
-            })(delta);
-            delta += 100; 
-          });
         }.bind(this)).catch(sk.errorMessage);
       },
 
@@ -99,15 +89,9 @@
         return item.test + '-' + item.digest; 
       },
 
-      _showImages: function(detail) {
-        var node = this.$$('#'+this._entryId(detail));
-        Polymer.dom(node).setAttribute('images', true); 
-      },
-
       _hasEntries: function(data) {
-        return data && data.details && data.details.length > 0;
+        return data && data.digests && data.digests.length > 0;
       }
-
     });
   </script>
 </dom-module>

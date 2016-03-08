@@ -425,7 +425,6 @@ func main() {
 	// TODO(stephana): Once /_/search3 is stable it will replace /_/search and the
 	// /search*.html pages will be consolidated into one.
 	router.HandleFunc("/_/search", polySearchJSONHandler).Methods("GET")
-	router.HandleFunc("/_/search3", search3JSONHandler).Methods("GET")
 
 	router.HandleFunc("/_/status/{test}", polyTestStatusHandler).Methods("GET")
 	router.HandleFunc("/_/test", polyTestHandler).Methods("POST")
@@ -443,6 +442,7 @@ func main() {
 	if *newUI {
 		// json handlers only used by the new UI.
 		router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
+		router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
 
 		// For everything else serve the same markup.
 		indexFile := *resourcesDir + "/index.html"

@@ -237,7 +237,7 @@
 
         images: {
           type: Boolean,
-          value: false,
+          value: true,
           notify: true
         },
 
@@ -267,7 +267,7 @@
       getZoomDetail: function() {
         return {
           leftImgUrl: this._digestHref(this.details.digest), 
-          rightImgUrl: this._digestHref(this._closest.closest.digest),
+          rightImgUrl: this._digestHref(sk.robust_get(this, ['closest', 'closest', 'digest'])),
           middleImgUrl: this._diffHref(this.diffDigests)
         }; 
       },      
@@ -358,6 +358,10 @@
       },
 
       _digestHref: function(digest) {
+        if (!digest) {
+          return ''; 
+        }
+
         return '/img/images/' + digest + '.png'
       },
 
@@ -366,6 +370,10 @@
       },
 
       _diffHref: function(diffDigests) {
+        if (!diffDigests) {
+          return ''; 
+        }
+
         return '/img/diffs/' + diffDigests + '.png'
       }, 
 
@@ -374,10 +382,18 @@
       },
 
       _diffPageUrl: function (closest) {
+        if (!closest || !closest.closest) {
+          return "";
+        }
+
         return '/diff?test=' + this.test + '&left=' + this.digest + '&top=' + closest.closest.digest;
       },
 
       _detailHref: function (digest) {
+        if (!digest) {
+          return ''; 
+        }
+
         return 'detail?test=' + this.test + '&digest=' + digest;
       },
 
@@ -390,10 +406,18 @@
       },
 
       _cmpUrl: function (test) {
+        if (!test) {
+          return ''; 
+        }
+
         return 'cmp/' + test;
       },
 
       _clusterUrl: function (test) {
+        if (!test) {
+          return ''; 
+        }
+        
         return 'cluster?query=name%3D' + test + '&head=true&pos=true&neg=true&unt=true&limit=200';
       }
     });

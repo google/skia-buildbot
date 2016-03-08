@@ -7,6 +7,7 @@ import (
 
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/search"
 )
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -118,3 +119,23 @@ type ByBlameEntrySlice []*ByBlameEntry
 func (b ByBlameEntrySlice) Len() int           { return len(b) }
 func (b ByBlameEntrySlice) Less(i, j int) bool { return b[i].GroupID < b[j].GroupID }
 func (b ByBlameEntrySlice) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+
+// jsonSearchHandler is the endpoint for all searches.
+func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
+	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+	sendJsonResponse(w, &SearchResult{
+		Digests: searchResponse.Digests,
+		Commits: searchResponse.Commits,
+	})
+}
+
+// SearchResult encapsulates the results of a search request.
+type SearchResult struct {
+	Digests    []*search.Digest `json:"digests"`
+	Commits    []*tiling.Commit `json:"commits"`
+	NumMatches int
+}

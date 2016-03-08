@@ -128,7 +128,7 @@
       },
 
       _canvasLayersUpdated: function() {
-        var layer = $$$("#" + this.target);
+        var layer = $$$("#" + this.target, Polymer.dom(this).parentNode);
         if (this._canvas) {
           // If we are switching to a new canvas then unregister all of our old callbacks.
           this._unregisterAllCallbacks();

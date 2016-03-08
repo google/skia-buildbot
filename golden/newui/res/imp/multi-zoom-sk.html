@@ -105,7 +105,7 @@ There are three images that it deals with, called left, top, and diff.
             </div>
           </div>
 
-          <div class="layout vertical">
+          <div class="layout vertical" hidden="{{_hideImg(details.middleImgUrl)}}">
             <div class="imgContainer">
               <canvas-layers-sk layers='["crosshairMiddle"]' id="layersMiddle">
                 <img id="middle_img" src$="{{details.middleImgUrl}}"/>
@@ -125,7 +125,7 @@ There are three images that it deals with, called left, top, and diff.
 
           </div>
 
-          <div class="layout vertical">
+          <div class="layout vertical" hidden="{{_hideImg(details.rightImgUrl)}}">
             <div class="imgContainer">
               <canvas-layers-sk layers='["crosshairRight"]' id="layersRight">
                 <img id="right_img" src$="{{details.rightImgUrl}}"/>
@@ -223,6 +223,10 @@ There are three images that it deals with, called left, top, and diff.
         }
       },
 
+      ready: function(){
+        this._seq = []; 
+      },
+
       setDetails: function(details) {
         this.set('_leftActive', true);
         this.set('_middleActive', false);
@@ -257,16 +261,20 @@ There are three images that it deals with, called left, top, and diff.
       }, 
 
       _updateTiming: function() {
+        if (!this.details.middleImgUrl || !this.details.rightImgUrl) {
+          return; 
+        }
+
         var seq = []; 
         if (this._leftActive) { 
           seq.push("left");
         }
 
-        if (this._middleActive) {
+        if (this._middleActive && this.details.middleImgUrl != '') {
           seq.push('middle'); 
         }
 
-        if (this._rightActive) {
+        if (this._rightActive && this.details.rigthImgUrl != '') {
           seq.push('right');
         }
 
@@ -279,6 +287,10 @@ There are three images that it deals with, called left, top, and diff.
 
       _boldClass: function(currSeq, pos) {
         return (currSeq==pos) ? 'showBold' : ''; 
+      }, 
+
+      _hideImg: function(url) {
+        return url === ''; 
       }, 
 
       _noImage: function(details) {

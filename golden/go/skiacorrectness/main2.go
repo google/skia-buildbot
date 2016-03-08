@@ -1291,23 +1291,6 @@ func search2Handler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// SearchResult encapsulates the results of a search request.
-type SearchResult struct {
-	Digests    []*search.Digest `json:"digests"`
-	Commits    []*tiling.Commit `json:"digests"`
-	NumMatches int
-}
-
-// TODO(stephan): Replace all other search handlers with search3JSONHandler.
-func search3JSONHandler(w http.ResponseWriter, r *http.Request) {
-	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Search for digests failed.")
-		return
-	}
-	sendJsonResponse(w, searchResponse)
-}
-
 func queryFromRequest(r *http.Request) *search.Query {
 	Limit := 50
 	if l := r.FormValue("limit"); l != "" {

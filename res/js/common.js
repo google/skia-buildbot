@@ -700,6 +700,26 @@ this.sk = this.sk || function() {
     return false;
   }
 
+
+  // robust_get finds a sub object within 'obj' by following the path
+  // in 'idx'. It will not throw an error if any sub object is missing
+  // but instead return 'undefined'. 'idx' has to be an array.  
+  sk.robust_get = function(obj, idx) {
+    if (!idx) {
+      return;
+    }
+
+    for(var i=0, len=idx.length; i<len; i++) {
+      if ((typeof obj === 'undefined') || (typeof idx[i] === 'undefined')) {
+        return;  // returns 'undefined'
+      }
+
+      obj = obj[idx[i]];
+    }
+
+    return obj;
+  };
+
   // Polyfill for String.startsWith from
   // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith#Polyfill
   // returns true iff the string starts with the given prefix
