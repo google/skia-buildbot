@@ -146,7 +146,7 @@
         if (this.multi) {
           // Verify that it's an array and that all elements are valid.
           if (!Array.isArray(val)) {
-            this.console.error("url-param-sk: Value is not an array: " + val);
+            this.error("url-param-sk: Value is not an array: " + val);
             return false;
           }
           for (var i = 0; i < val.length; i++) {
