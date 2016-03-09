@@ -12,45 +12,59 @@
   <script>
     var BUILDBOT_FINISHED = "some date string";
 
-    function goodBuild(i, builder) {
+    // The examples have been carefully created such that the value for _id doesn't
+    // matter.  In the real world, _id helps deduplicate builds with the same number.
+    function goodBuild(i, builder, buildslave) {
       return {
+        _id: 7,
         Number: i,
         Builder: builder,
+        Buildslave: buildslave,
         Finished: BUILDBOT_FINISHED,
         Results: BUILDBOT_RESULT_SUCCESS,
       };
     }
 
-    function pendingBuild(i, builder) {
+    function pendingBuild(i, builder, buildslave) {
       return {
+        _id: 7,
         Number: i,
         Builder: builder,
+        Buildslave: buildslave,
         Finished: BUILDBOT_PENDING,
         Results: undefined,
       };
     }
 
-    function failedBuild(i, builder) {
+    function failedBuild(i, builder, buildslave) {
       return {
+        _id: 7,
         Number: i,
         Builder: builder,
+        Buildslave: buildslave,
         Finished: BUILDBOT_FINISHED,
         Results: BUILDBOT_RESULT_FAILURE,
       };
     }
 
-    function exceptionBuild(i, builder) {
+    function exceptionBuild(i, builder, buildslave) {
       return {
+        _id: 7,
         Number: i,
         Builder: builder,
+        Buildslave: buildslave,
         Finished: BUILDBOT_FINISHED,
         Results: BUILDBOT_RESULT_EXCEPTION,
       };
     }
 
-    function filler() {
+    function filler(i, builder, buildslave) {
       return {
+        _id: 7,
         filler:true,
+        Number: i,
+        Builder: builder,
+        Buildslave: buildslave,
         Finished: BUILDBOT_FINISHED,
         Results: BUILDBOT_RESULT_EXCEPTION,
       };
@@ -106,14 +120,52 @@
           value: function() {
             return {
               "alohamora": {
-                "Arthur": [ pendingBuild(24, "alohamora"),filler(), filler(), filler(), goodBuild(20, "alohamora"), failedBuild(19, "alohamora")],
-                "Molly": [filler(), filler(), exceptionBuild(22, "alohamora")],
-                "Charlie": [filler(), goodBuild(23, "alohamora"),filler(), goodBuild(21, "alohamora"), filler(), filler(), goodBuild(18, "alohamora"), goodBuild(17, "alohamora")],
+                "Arthur": [
+                    pendingBuild(24, "alohamora", "Arthur"),
+                    filler(23, "alohamora","Arthur"),
+                    filler(22, "alohamora","Arthur"),
+                    filler(21, "alohamora","Arthur"),
+                    goodBuild(20, "alohamora", "Arthur"),
+                    failedBuild(19, "alohamora", "Arthur")],
+                "Molly": [
+                    filler(24,"alohamora","Molly"),
+                    filler(23,"alohamora","Molly"),
+                    exceptionBuild(22, "alohamora","Molly")],
+                "Charlie": [
+                    filler(24,"alohamora","Charlie"),
+                    goodBuild(23, "alohamora","Charlie"),
+                    filler(22,"alohamora","Charlie"),
+                    goodBuild(21, "alohamora","Charlie"),
+                    filler(20,"alohamora","Charlie"),
+                    filler(19,"alohamora","Charlie"),
+                    goodBuild(18, "alohamora","Charlie"),
+                    goodBuild(17, "alohamora","Charlie")],
               },
               "w_leviosa": {
-                "Charlie": [filler(), filler(), filler(), filler(), filler(), goodBuild(125, "w_leviosa")],
-                "Percy": [exceptionBuild(130, "w_leviosa"), filler(), filler(), exceptionBuild(127, "w_leviosa"), filler(), filler(), exceptionBuild(124, "w_leviosa")],
-                "George": [filler(), goodBuild(129, "w_leviosa"), failedBuild(128, "w_leviosa"), filler(), goodBuild(126, "w_leviosa"), filler(), filler(), failedBuild(123, "w_leviosa")],
+                "Charlie": [
+                    filler(130, "w_leviosa","Charlie"),
+                    filler(129, "w_leviosa","Charlie"),
+                    filler(128, "w_leviosa","Charlie"),
+                    filler(127, "w_leviosa","Charlie"),
+                    filler(126, "w_leviosa","Charlie"),
+                    goodBuild(125, "w_leviosa","Charlie")],
+                "Percy": [
+                    exceptionBuild(130, "w_leviosa","Percy"),
+                    filler(129, "w_leviosa","Percy"),
+                    filler(128, "w_leviosa","Percy"),
+                    exceptionBuild(127, "w_leviosa","Percy"),
+                    filler(126, "w_leviosa","Percy"),
+                    filler(125, "w_leviosa","Percy"),
+                    exceptionBuild(124, "w_leviosa","Percy")],
+                "George": [
+                    filler(130, "w_leviosa","George"),
+                    goodBuild(129, "w_leviosa","George"),
+                    failedBuild(128, "w_leviosa","George"),
+                    filler(127, "w_leviosa","George"),
+                    goodBuild(126, "w_leviosa","George"),
+                    filler(125, "w_leviosa","George"),
+                    filler(124, "w_leviosa","George"),
+                    failedBuild(123, "w_leviosa","George")],
               },
             };
           },
@@ -190,20 +242,38 @@
           value: function() {
             return {
               "Arthur": {
-                "alohamora": [ pendingBuild(24, "alohamora"), goodBuild(20, "alohamora"), failedBuild(19, "alohamora")]
+                "alohamora": [
+                    pendingBuild(24, "alohamora","Arthur"),
+                    goodBuild(20, "alohamora","Arthur"),
+                    failedBuild(19, "alohamora","Arthur")]
               },
               "Molly": {
-                "alohamora": [exceptionBuild(22, "alohamora")],
+                "alohamora": [
+                    exceptionBuild(22, "alohamora","Molly")],
               },
               "Charlie": {
-                "alohamora":  [goodBuild(23, "alohamora"), filler(), goodBuild(21, "alohamora"), goodBuild(18, "alohamora"), goodBuild(17, "alohamora")],
-                "w_leviosa": [filler(), goodBuild(125, "w_leviosa")],
+                "alohamora":  [
+                    goodBuild(23, "alohamora","Charlie"),
+                    filler(125, "alohamora","Charlie"),
+                    goodBuild(21, "alohamora","Charlie"),
+                    goodBuild(18, "alohamora","Charlie"),
+                    goodBuild(17, "alohamora","Charlie")],
+                "w_leviosa": [
+                    filler(23, "w_leviosa","Charlie"),
+                    goodBuild(125, "w_leviosa","Charlie")],
               },
               "Percy": {
-                "w_leviosa": [exceptionBuild(130, "w_leviosa"), exceptionBuild(127, "w_leviosa"), exceptionBuild(124, "w_leviosa")],
+                "w_leviosa": [
+                    exceptionBuild(130, "w_leviosa","Percy"),
+                    exceptionBuild(127, "w_leviosa","Percy"),
+                    exceptionBuild(124, "w_leviosa","Percy")],
               },
               "George": {
-                "w_leviosa": [goodBuild(129, "w_leviosa"), failedBuild(128, "w_leviosa"), goodBuild(126, "w_leviosa"), failedBuild(123, "w_leviosa")],
+                "w_leviosa": [
+                    goodBuild(129, "w_leviosa","George"),
+                    failedBuild(128, "w_leviosa","George"),
+                    goodBuild(126, "w_leviosa","George"),
+                    failedBuild(123, "w_leviosa","George")],
               },
             };
           },

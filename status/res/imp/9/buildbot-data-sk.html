@@ -1,0 +1,352 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <buildbot-data-sk>
+
+  This element fetches and parses the buildbot data from the status server.
+
+  To use this file import it:
+
+    <link href="/res/imp/buildbot-data-sk.html" rel="import" />
+
+  Usage:
+
+    <buildbot-data-sk></buildbot-data-sk>
+
+  Properties:
+    // input
+    exclude: Array<String>, exclude a build if it matches any of these strings.
+    filter_by: String, "builder" or "buildslave" depending on which should be used to filter.
+    hours: Number, The number of hours of data to request from the backend.
+    include: Array<String>, include a build only if it matches all of these strings.
+
+    //output
+    builders: Array<String>, the names of the builders
+    builds_by_builder: Object, Map[builder][buildslave] -> build object which has the layout: {
+      _id: Number, a unique number, in that every build should have a different one.
+      filler: Boolean, if this represents a "filler" build, so as to space things correctly.
+      Number: Number, build number, used for urls and identifying builds.
+      Builder: String, builder, used for urls and identifying builds.
+      Buildslave: String, buildslave, used for urls and identifying builds.
+      Finished: String, The date string the build was finished, or falsey
+      Results: Number, one of the buildbot magic numbers
+    }
+    buildslaves_by_builder: Object, Maps builders to an Array<String> of buildslaves
+    urls_by_builder: Object, the base urls used to create links.  It has the following layout:
+    {
+      Key: {
+        key: The base url for a builder.
+        value: The base url for buildslaves.
+        base: The following will be appended to this base url:
+            /builders/[build.Builder]/builds/[build.Number]
+      }
+    }
+    buildslaves: Array<String>, the names of the buildslaves
+    builds_by_buildslave: Object, Map[buildslave][builder] -> build object which has the above layout:
+    builders_by_buildslave: Object, Maps buildslaves to an Array<String> of builders
+    urls_by_buildslave: Object, the base urls used to create links.  It has the following layout:
+    {
+      Key: {
+        key: The base url for a buildslave.
+        value: The base url for builder.
+        base: The following will be appended to this base url:
+            /builders/[build.Builder]/builds/[build.Number]
+      }
+    }
+
+    excluded_builders: Array<String>, the names of the builders that had one or more buildslave
+        filtered out.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="buildbot-data-sk">
+  <template>
+    <iron-ajax
+      id="builds"
+      auto url="/json/builds"
+      params='{{_urlParams(hours)}}'
+      handle-as="json"
+      last-response="{{_builds}}">
+    </iron-ajax>
+  </template>
+  <script>
+  (function(){
+    var filters = {
+      "builder": function(build) { return build.Builder; },
+      "buildslave": function(build) { return build.BuildSlave; },
+    };
+    Polymer({
+      is:"buildbot-data-sk",
+
+      properties: {
+        // input
+        exclude: {
+          type: Array,
+        },
+        filter_by: {
+          type: String,
+        },
+        hours: {
+          type: Number,
+        },
+        include: {
+          type: Array,
+        },
+
+        // output
+        builders: {
+          type: Array,
+          notify: true,
+        },
+        builds_by_builder: {
+          type: Object,
+          notify: true,
+        },
+        buildslaves_by_builder: {
+          type: Object,
+          notify: true,
+        },
+        urls_by_builder: {
+          type: Object,
+          notify: true,
+        },
+
+        buildslaves: {
+          type: Array,
+          notify: true,
+        },
+        builders_by_buildslave: {
+          type: Object,
+          notify: true,
+        },
+        builds_by_buildslave: {
+          type: Object,
+          notify: true,
+        },
+        urls_by_buildslave: {
+          type: Object,
+          notify: true,
+        },
+
+        excluded_builders: {
+          type: Array,
+          notify: true,
+        },
+
+        // private
+        _builds: {
+          type: Array,
+        },
+      },
+
+      observers: [
+        "_processBuilds(_builds, include, exclude, filter_by)",
+        "_refilter(include.*, exclude.*, filter_by)",
+      ],
+
+      _urlParams: function(hours) {
+        var now = sk.now();
+        return {
+          start: now - hours * 3600,
+          end: now,
+        };
+      },
+
+      _includeBuild: function(build) {
+        var key = filters[this.filter_by](build);
+        for (var i = 0; i < this.exclude.length; i++) {
+          if (key.match(this.exclude[i])) {
+            return false;
+          }
+        }
+        for (var i = 0; i < this.include.length; i++) {
+          if (!key.match(this.include[i])) {
+            return false;
+          }
+        }
+        return true;
+      },
+
+      _refilter: function() {
+        console.log("refiltering");
+        if (this._builds) {
+          this._processBuilds(this._builds);
+        }
+      },
+
+      _processBuilds: function(builds) {
+        console.log("Processing "+builds.length+" builds");
+        console.log("include: "+JSON.stringify(this.include));
+        console.log("exclude: "+JSON.stringify(this.exclude));
+        console.time("processBuilds");
+        var buildsByBuilder = {};
+        var buildsByBuildslave = {};
+        var excludedBuilders = {};
+
+        var urlsByBuildslave = {};
+        var urlsByBuilder = {};
+
+        var buildersByBuildslave = {};
+        var buildslavesByBuilder = {};
+
+        for (var i = 0; i < builds.length; i++) {
+          var build = builds[i];
+          // The id helps make the build blocks and the filler blocks uniquely identifiable.
+          build._id = i;
+          build.Started = new Date(build.Started);
+          build.Finished = new Date(build.Finished);
+
+          if (!this._includeBuild(build)) {
+            excludedBuilders[build.Builder] = true;
+            continue;
+          }
+
+          // Builds, builders, buildslaves, by buildslave and builder.
+          if (!buildsByBuilder[build.Builder]) {
+            buildsByBuilder[build.Builder] = {};
+            buildslavesByBuilder[build.Builder] = {};
+          }
+          if (!buildsByBuilder[build.Builder][build.BuildSlave]) {
+            buildsByBuilder[build.Builder][build.BuildSlave] = [];
+          }
+          buildsByBuilder[build.Builder][build.BuildSlave].push(build);
+
+          // To align all the builds, the non-active builds get a filler build with a copy of the
+          // build data and an additional field called filler.
+
+          for (var otherBuildSlave in buildsByBuilder[build.Builder]) {
+            if (otherBuildSlave != build.BuildSlave) {
+              var fillerCopy = {
+                _id : build._id,
+                filler:true,
+                BuildSlave: otherBuildSlave,
+                Builder: build.Builder,
+                Number: build.Number,
+                Started: build.Started,
+                Finished: build.Finished,
+                Results: build.Results,
+              };
+              buildsByBuilder[build.Builder][otherBuildSlave].push(fillerCopy);
+            }
+          }
+          buildslavesByBuilder[build.Builder][build.BuildSlave] = true;
+
+
+          if (!buildsByBuildslave[build.BuildSlave]) {
+            buildsByBuildslave[build.BuildSlave] = {};
+            buildersByBuildslave[build.BuildSlave] = {};
+          }
+          if (!buildsByBuildslave[build.BuildSlave][build.Builder]) {
+            buildsByBuildslave[build.BuildSlave][build.Builder] = [];
+          }
+          buildsByBuildslave[build.BuildSlave][build.Builder].push(build);
+
+          for (var otherBuilder in buildsByBuildslave[build.BuildSlave]) {
+            if (otherBuilder != build.Builder) {
+              var fillerCopy = {
+                _id : build._id,
+                filler:true,
+                BuildSlave: build.BuildSlave,
+                Builder: otherBuilder,
+                Number: build.Number,
+                Started: build.Started,
+                Finished: build.Finished,
+                Results: build.Results,
+              };
+              buildsByBuildslave[build.BuildSlave][otherBuilder].push(fillerCopy);
+            }
+          }
+          buildersByBuildslave[build.BuildSlave][build.Builder] = true;
+
+          urlsByBuilder[build.Builder] = {
+            "base": status_utils.getBuildbotUrlPrefix(build, true),
+          };
+          urlsByBuilder[build.Builder].key = urlsByBuilder[build.Builder].base +"builders/"+build.Builder;
+          urlsByBuilder[build.Builder].value = urlsByBuilder[build.Builder].base +"buildslaves/";
+
+          urlsByBuildslave[build.BuildSlave] = {
+            "base": status_utils.getBuildbotUrlPrefix(build, true),
+          };
+          urlsByBuildslave[build.BuildSlave].key = urlsByBuildslave[build.BuildSlave].base +"buildslaves/"+build.BuildSlave;
+          urlsByBuildslave[build.BuildSlave].value = urlsByBuildslave[build.BuildSlave].base +"builders/";
+        }
+
+
+        // Buildslaves by builder, builders by buildslave.
+        var _buildersByBuildslave = {};
+        for (var buildslave in buildersByBuildslave) {
+          _buildersByBuildslave[buildslave] = Object.keys(buildersByBuildslave[buildslave]);
+        }
+        var _buildslavesByBuilder = {};
+        for (var builder in buildslavesByBuilder) {
+          _buildslavesByBuilder[builder] = Object.keys(buildslavesByBuilder[builder]);
+        }
+
+
+        // Sort the builds by builder/buildslave.
+        for (var builder in buildsByBuilder) {
+          for (var slave in buildsByBuilder[builder]) {
+              buildsByBuilder[builder][slave].sort(function(a, b) {
+                return b.Started - a.Started;
+              });
+          }
+        }
+        for (var slave in buildsByBuildslave) {
+          for (var builder in buildsByBuildslave[slave]) {
+            buildsByBuildslave[slave][builder].sort(function(a, b) {
+              return b.Started - a.Started;
+            });
+          }
+        }
+
+        // All builders.
+        var builders = [];
+        for (var builder in _buildslavesByBuilder) {
+          builders.push(builder);
+          // Sort the builders while we're here.
+          sk.sortStrings(_buildslavesByBuilder[builder]);
+        }
+        sk.sortStrings(builders);
+
+        // All buildslaves.
+        var buildslaves = [];
+        for (var buildslave in _buildersByBuildslave) {
+          buildslaves.push(buildslave);
+          // Sort the buildslaves while we're here.
+          sk.sortStrings(_buildersByBuildslave[buildslave]);
+        }
+        sk.sortStrings(buildslaves);
+
+        var excluded_builders = [];
+        for (var bot in excludedBuilders) {
+          excluded_builders.push(bot);
+        }
+        sk.sortStrings(excluded_builders);
+
+        console.timeEnd("processBuilds");
+
+        // Setting all this data triggers any external rendering
+        this.set("builders", builders);
+        this.set("buildslaves_by_builder", _buildslavesByBuilder);
+        this.set("builds_by_builder", buildsByBuilder);
+        this.set("urls_by_builder", urlsByBuilder);
+
+        this.set("buildslaves", buildslaves)
+        this.set("builders_by_buildslave", _buildersByBuildslave);
+        this.set("builds_by_buildslave", buildsByBuildslave);
+        this.set("urls_by_buildslave", urlsByBuildslave);
+
+        this.set("excluded_builders", excluded_builders);
+      },
+    });
+  })()
+  </script>
+</dom-module>

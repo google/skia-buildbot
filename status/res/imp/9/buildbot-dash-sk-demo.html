@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>buildbot-dash-sk Demo)</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/js/status_utils.js"></script>
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script src="/res/imp/sinon-server-1.17.2.js"></script>
+  <!-- Makes a var called builds-->
+  <!-- <script type="text/javascript" src="buildbot-dash-demo-60min.json"></script> -->
+  <script type="text/javascript" src="buildbot-dash-demo-24hr.json"></script>
+  <!-- <script type="text/javascript" src="buildbot-dash-demo-1w.json"></script> -->
+  <script type="text/javascript" charset="utf-8">
+    sinon.format = function(object) {return sk.truncate(JSON.stringify(object), 1000);}
+    sinon.log = function(message) {console.log(message);};
+    sk.now = function() {return 1234567890;}
+    var server = sinon.fakeServer.create();
+    server.autoRespond = true;
+
+    // Mocked requests to Status.
+
+    var dataCalls = 0;
+    // Send the data, then slightly change the builds for the update.
+    server.respondWith("GET", new RegExp("/json/builds.*"), JSON.stringify(builds));
+
+    var login = {"Email":"test@google.com","LoginURL":"http://www.example.com","IsAGoogler":true};
+    server.respondWith("GET","/loginstatus/", JSON.stringify(login));
+
+    var version = {"commit":"3e0fcf9b99baf4256851a6767bc6955266fc2369","date":"2016-02-19T13:57:18-05:00"};
+    server.respondWith("GET","/json/version", JSON.stringify(version));
+
+  </script>
+
+  <link rel="import" href="buildbot-dash-sk.html">
+</head>
+
+<body>
+<h1>Buildbot dash demo</h1>
+  <buildbot-dash-sk></buildbot-dash-sk>
+</body>
+</html>

@@ -43,7 +43,8 @@ build-table-sk .key {
     border-right: 1px solid #DDD;
     display:flex;
     padding-bottom:15px; /*account for scrollbar in builds*/
-    width: 300px;
+    max-width: 300px;
+    flex: 1 1 0;
 }
 
 build-table-sk .values {
@@ -52,7 +53,8 @@ build-table-sk .values {
     flex-direction: column;
     justify-content: center;
     padding-bottom:15px; /*account for scrollbar in builds*/
-    width: 300px;
+    max-width: 300px;
+    flex: 1 1 0;
 }
 
 build-table-sk .valuename {
@@ -69,7 +71,7 @@ build-table-sk .builds {
     display: flex;
     flex-direction: column;
     flex: 1 1 0;
-    min-width: 100px;
+    min-width: 300px;
     overflow-x: scroll;
 }
 

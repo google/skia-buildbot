@@ -21,8 +21,11 @@
     {
       Key: {
         Value: Array<{
-          Number: Number, build number
-          Builder: String, builder (for making a url to this specific build)
+          _id: Number, a unique number, in that every build should have a different one.
+          filler: Boolean, if this represents a "filler" build, so as to space things correctly.
+          Number: Number, build number, used for urls and identifying builds.
+          Builder: String, builder, used for urls and identifying builds.
+          Buildslave: String, buildslave, used for urls and identifying builds.
           Finished: String, The date string the build was finished, or falsey
           Results: Number, one of the buildbot magic numbers
         }>
@@ -72,6 +75,28 @@ work, so we just prefix every rule with build-table-sk.
   </template>
   <script>
   (function(){
+
+    // Identifying data allows us to figure out which dom elements are already drawn
+    // or need to be removed.
+
+    // uniquely identify the keys data using the key itself, not index in array,
+    // which is the default.
+    var keyDataFunction = function(key){
+      return key;
+    };
+
+    // uniquely identify the values data using the value itself, not index in array,
+    // which is the default.
+    var valueDataFunction = function(value){
+      return value;
+    };
+
+    // uniquely identify the builds using the the _id, BuildSlave,Builder and Number, not index in
+    // array, which is the default.
+    var buildDataFunction = function(build){
+      return build._id + build.BuildSlave + build.Builder + build.Number;
+    };
+
     Polymer({
       is:"build-table-sk",
 
@@ -107,15 +132,7 @@ work, so we just prefix every rule with build-table-sk.
 
 
       _redraw:function(keys, values, builds, urls) {
-        console.time("removing rows that no longer need showing");
-        var deleteOld = d3.select(this.$.buildTable)
-          .selectAll(".row")
-          .data(keys, function(key){
-              // Bind the data by the key, not the index (which is default)
-              return key;
-            });
-        deleteOld.exit().remove();
-        console.timeEnd("removing rows that no longer need showing");
+        this._removeOldData(keys,values,builds);
 
         console.time("(re)drawing table starting with "+keys[0]);
         var start = 0;
@@ -136,11 +153,10 @@ work, so we just prefix every rule with build-table-sk.
           // Create a data binding between keys and div.row
           var data = d3.select(this.$.buildTable)
             .selectAll(".row")
-            .data(_keys, function(key){
-              // Bind the data by the key, not the index (which is default)
-              return key;
-            });
-          // Enter/create a div for every new data element.
+            .data(_keys, keyDataFunction);
+          // enter() returns placeholders for any element that doesn't exist but has a data point.
+          // We can use these placeholders to create actual divs.
+          // rows are any divs that were freshly created in this way.
           var rows = data
             .enter()
             .append("div")
@@ -171,7 +187,7 @@ work, so we just prefix every rule with build-table-sk.
             }
             d3.select(this)
               .selectAll("div")
-              .data(values[key])
+              .data(values[key], valueDataFunction)
               .enter()
               .append("div")
               .classed("valuename", true)
@@ -193,7 +209,9 @@ work, so we just prefix every rule with build-table-sk.
                   "key": key,
                   "value": value,
                 };
-              }))
+              }), function(d){
+                return d.key + d.value;
+              })
               .enter()
               .append("div")
               .classed("buildrow", true);
@@ -208,7 +226,7 @@ work, so we just prefix every rule with build-table-sk.
             }
             d3.select(this)
               .selectAll("div")
-              .data(builds[d.key][d.value])
+              .data(builds[d.key][d.value], buildDataFunction)
               .enter()
               .append("div")
               .classed("build", true)
@@ -242,6 +260,42 @@ work, so we just prefix every rule with build-table-sk.
         }.bind(this));
       },
 
+      _removeOldData: function(keys, values, builds) {
+        console.time("removing data that no longer need showing");
+        // By binding the data to the objects that we create in _redraw, we can remove those
+        // elements for which the data has been filtered out (i.e. no longer exists).  The .exit()
+        // returns all elements for which there once was data, but is no longer.
+        d3.select(this.$.buildTable)
+          .selectAll(".row")
+          .data(keys, keyDataFunction)
+          .exit()
+          .remove();
+
+        d3.select(this.$.buildTable).selectAll(".values").each(function(key) {
+          if (!values[key]) {
+            return;
+          }
+          d3.select(this)
+            .selectAll("div")
+            .data(values[key], valueDataFunction)
+            .exit()
+            .remove();
+        });
+
+        d3.select(this.$.buildTable).selectAll(".buildrow").each(function(d) {
+          if (!builds[d.key] || !builds[d.key][d.value]) {
+            d3.select(this).remove();
+            return;
+          }
+          d3.select(this)
+            .selectAll(".build")
+            .data(builds[d.key][d.value], buildDataFunction)
+            .exit()
+            .remove();
+        });
+        console.timeEnd("removing data that no longer need showing");
+      },
+
       // Fix the horizontal lines, which will be clipped unless the width is set manually.
       // http://stackoverflow.com/a/21540207
       _fixClippedDivs: function() {
@@ -252,7 +306,6 @@ work, so we just prefix every rule with build-table-sk.
           }
         });
       },
-
     });
   })()
   </script>

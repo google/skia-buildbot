@@ -316,6 +316,11 @@ this.sk = this.sk || function() {
     return Math.round(diff/DELTAS[i].delta)+DELTAS[i].units;
   }
 
+  // Gets the epoch time in seconds.  This is its own function to make it easier to mock.
+  sk.now = function() {
+    return Math.round(new Date().getTime() / 1000);
+  }
+
   // Namespace for utilities for working with arrays.
   sk.array = {};
 

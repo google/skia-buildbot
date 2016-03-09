@@ -1,0 +1,177 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <buildbot-filter-sk>
+
+  A ui for selecting various filtering options for the buildbot dash.  Anything that is selectable
+  is backed up by url-params.
+
+  To use this file import it:
+
+    <link href="/res/imp/buildbot-filter-sk.html" rel="import" />
+
+  Usage:
+
+    <buildbot-filter-sk></buildbot-filter-sk>
+
+  Properties:
+    //input
+    excluded_builders: Array<String> the names of the builders that had one or more buildslave
+        filtered out given the current set of filters.
+
+    //output
+    exclude: Array<String>, exclude a build if it matches any of these strings.
+    filter_by: String, "builder" or "buildslave" depending on which should be used to filter.
+    hours: Number, The number of hours of data to request from the backend.
+    include: Array<String>, include a build only if it matches all of these strings.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="/res/imp/bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="/res/imp/bower_components/paper-item/paper-item.html">
+<link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
+
+<link rel="import" href="/res/common/imp/9/url-params-sk.html">
+<link rel="import" href="input-list-sk.html">
+
+<dom-module id="buildbot-filter-sk">
+  <template>
+    <style>
+      #controls {
+        width: 200px;
+      }
+      .control {
+        margin: 5px;
+        padding: 10px;
+        border: 1px solid #eeeeee;
+        font-size: 12px;
+      }
+      .control > h2 {
+        font-size: 16px;
+      }
+
+      build-table-sk {
+        min-width:500px;
+      }
+      #groupby {
+        padding:10px;
+      }
+    </style>
+
+    <url-param-sk name="include" value="{{include}}" default="[]" multi></url-param-sk>
+    <url-param-sk name="exclude" value="{{exclude}}" default="[]" multi></url-param-sk>
+    <url-param-sk name="filterBy" value="{{filter_by}}" valid="{{_validFilters}}" default="builder"></url-param-sk>
+    <url-param-sk name="timePeriod" value="{{_selectedTimePeriod}}" valid="{{_validTimePeriods}}" default="24h"></url-param-sk>
+
+    <div id="controls">
+      <div class="control">
+        <paper-dropdown-menu label="Results from last">
+          <paper-listbox class="dropdown-content" attr-for-selected="value" selected="{{_selectedTimePeriod}}">
+            <template is="dom-repeat" items="[[_validTimePeriods]]">
+              <paper-item value=[[item]]>[[item]]</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+      </div>
+      <div class="control">
+        <h2>Filter By</h2>
+        <paper-radio-group selected="{{filter_by}}">
+            <paper-radio-button name="builder">Builder</paper-radio-button>
+            <paper-radio-button name="buildslave">Buildslave</paper-radio-button>
+        </paper-radio-group>
+      </div>
+      <input-list-sk
+          id="include_builders"
+          heading="Include Patterns"
+          values="{{include}}"></input-list-sk>
+      <input-list-sk
+          id="exclude_builders"
+          heading="Exclude Patterns"
+          values="{{exclude}}"></input-list-sk>
+      <div class="control">
+        <h2>Excluded Builders</h2>
+        <ul>
+          <template is="dom-repeat" items="[[excluded_builders]]" as="builder">
+            <li>{{builder}}</li>
+          </template>
+        </ul>
+      </div>
+    </div>
+
+  </template>
+  <script>
+  (function(){
+    var timePeriods  = {
+      "24h": 24,
+      "3d":  72,
+      "1w":  168,
+      "2w":  336,
+      "4w":  672,
+    };
+    Polymer({
+      is:"buildbot-filter-sk",
+
+      properties: {
+        // input
+        excluded_builders: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+
+        // output
+        exclude: {
+          type: Array,
+          notify: true,
+        },
+        filter_by: {
+          type: String,
+          notify:true,
+        },
+        hours: {
+          type: Number,
+          computed: "_getTimePeriodInHours(_selectedTimePeriod)",
+          notify: true,
+        },
+        include: {
+          type: Array,
+          notify: true,
+        },
+
+
+        // private
+        _selectedTimePeriod: {
+          type: String,
+        },
+        _validFilters: {
+          type: Array,
+          value: function() {
+            return ["builder", "buildslave"];
+          }
+        },
+        _validTimePeriods: {
+          type: Array,
+          value: function() {
+            return Object.keys(timePeriods);
+          }
+        },
+      },
+
+      _getTimePeriodInHours: function(time) {
+        return timePeriods[time];
+      }
+
+    });
+  })()
+  </script>
+</dom-module>
