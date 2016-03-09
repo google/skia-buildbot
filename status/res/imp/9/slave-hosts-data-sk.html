@@ -1,0 +1,110 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <slave-hosts-data-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/slave-hosts-data-sk.html" rel="import" />
+
+  Usage:
+
+    <slave-hosts-data-sk></slave-hosts-data-sk>
+
+  Properties:
+    // input
+    filter: String, a filter to apply to the data.
+
+    // output
+    androids: Object, a mapping of slave_name -> information
+    hosts: Object, a mapping of host_name -> information
+    host_names: Array, the hosts to display
+    ssh: Object, a mapping of slave_name -> information
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
+
+<dom-module id="slave-hosts-data-sk">
+  <template>
+    <iron-ajax
+      auto url="/json/slaveHosts"
+      handle-as="json"
+      last-response="{{_data}}"></iron-ajax>
+  </template>
+  <script>
+    Polymer({
+      is: 'slave-hosts-data-sk',
+      properties: {
+        // input
+        filter: {
+          type: String,
+        },
+        // output
+        android_devices: {
+          type: Object,
+          computed: "_android_devices(_data)",
+          notify: true,
+        },
+        hosts: {
+          type: Object,
+          computed: "_hosts(_data)",
+          notify: true,
+        },
+        host_names: {
+          type: Array,
+          computed: "_names(hosts,filter)",
+          notify: true,
+        },
+        ssh_devices: {
+          type: Object,
+          computed: "_ssh_devices(_data)",
+          notify: true,
+        },
+
+        _data: {
+          type: Object,
+        }
+      },
+      _android_devices: function(data) {
+        if (!data) {
+          return {};
+        }
+        return data.androidDevices;
+      },
+      _hosts: function(data) {
+        if (!data) {
+          return {};
+        }
+        return data.hosts;
+      },
+      _ssh_devices: function(data) {
+        if (!data) {
+          return {};
+        }
+        return data.sshDevices;
+      },
+      _names: function(hosts, filter) {
+        var hostNames = [];
+        for (var hostName in hosts) {
+          if (!filter || hostName.match(filter)) {
+            hostNames.push(hostName);
+            continue;
+          }
+          for (var i = 0; i < hosts[hostName].slaves.length; i++) {
+            if (!filter || hosts[hostName].slaves[i].name.match(filter)) {
+              hostNames.push(hostName);
+              break;
+            }
+          }
+        }
+        return hostNames;
+      }
+    });
+  </script>
+</dom-module>

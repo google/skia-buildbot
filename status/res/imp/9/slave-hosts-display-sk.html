@@ -1,0 +1,149 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <slave-hosts-display-sk>
+
+  This element displays a list of hosts and various data about them.
+
+  To use this file import it:
+
+    <link href="/res/imp/slave-hosts-display-sk" rel="import" />
+
+  Usage:
+
+    <slave-hosts-display-sk></slave-hosts-display-sk>
+
+  Properties:
+    android_devices: Object, a mapping of slave_name -> information
+    hosts: Object, a mapping of host_name -> information
+    host_names: Array, the hosts to display
+    ssh_devices: Object, a mapping of slave_name -> information
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
+
+
+<dom-module id="slave-hosts-display-sk">
+  <template>
+    <style>
+      div.host {
+        background-color: #EEEEEE;
+        border-radius: 5px;
+        padding: 5px 20px 20px 20px;
+        margin: 5px;
+      }
+      div.filterLabel {
+        margin: 0px 10px 0px 0px;
+        padding: 5px;
+      }
+      table {
+        font-family: monospace;
+        width: 100%;
+      }
+      th {
+        text-align: left;
+      }
+      td {
+        padding: 3px;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+
+    <template is="dom-repeat" items="{{host_names}}" as="h">
+      <div class="host">
+        <h3><a href="#" id="select|{{h}}" on-click="_select">{{h}}</a></h3>
+        <table>
+          <tr><td style="width: 20%">IP Address</td><td>{{_get(hosts,h,"ip")}}</td></tr>
+          <tr><td style="width: 20%">KVM Switch</td><td>{{_get(hosts,h,"kvm_switch")}}</td></tr>
+          <tr><td style="width: 20%">KVM Number</td><td>{{_get(hosts,h,"kvm_num")}}</td></tr>
+          <tr>
+            <td style="width: 20%">Slaves</td>
+            <td>
+              <template is="dom-if" if={{_hasSlaves(hosts,h)}}>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Buildslave</th>
+                      <th>Extra Information</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template is="dom-repeat" items='{{_get(hosts,h,"slaves")}}' as="slave">
+                      <tr>
+                        <td style="width: 50%">
+                          <a href="/buildbots?botGrouping=buildslave&filterBy=buildslave&tab=builds&include=%5E{{slave.name}}%24" target="_blank">
+                            <span>{{slave.name}}</span>
+                          </a>
+                        </td>
+                        <td style="width: 50%">
+                          <template is="dom-if" if="{{_get(android_devices,slave.name)}}">
+                            Serial: {{_get(android_devices,slave.name,"serial")}}<br/>
+                          </template>
+                          <template is="dom-if" if="{{_get(ssh_devices,slave.name)}}">
+                            ssh {{_get(ssh_devices,slave.name,"user")}}@{{_get(ssh_devices,slave.name,"host")}}:{{_get(ssh_devices,slave.name,"port")}}<br/>
+                          </template>
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                <table>
+              </template>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+    </template>
+
+  </template>
+  <script>
+    Polymer({
+      is: 'slave-hosts-display-sk',
+      properties: {
+        android_devices: {
+          type: Object,
+        },
+        hosts: {
+          type: Object,
+        },
+        host_names: {
+          type: Array,
+        },
+        ssh_devices: {
+          type: Object,
+        }
+      },
+
+      _get: function(a,b,c) {
+        if (!c) {
+          return a && a[b];
+        }
+        return a && a[b] && a[b][c];
+      },
+
+      _hasSlaves: function(hosts, host) {
+        return hosts[host].slaves && hosts[host].slaves.length > 0;
+      },
+
+      _select: function(e) {
+        var split = e.target.id.split("|");
+        if (split.length != 2) {
+          throw "Invalid id: " + e.target.id;
+        }
+        this.fire("filter", {filter:split[1]});
+      }
+    });
+  </script>
+</dom-module>
