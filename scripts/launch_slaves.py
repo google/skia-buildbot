@@ -16,6 +16,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib
 
 
 buildbot_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
@@ -261,28 +262,36 @@ python launch_slaves.py
   return CollectedArgs()
 
 
+def is_gce():
+  """Return True if we seem to be running in GCE and False otherwise."""
+  try:
+    urllib.urlopen('http://metadata')
+    return True
+  except IOError:
+    return False
+
+
 def setup_cronjob():
   # We only support Mac and Linux and assume the sdk is installed in HOME.
   if sys.platform.startswith('linux'):
-    sdk_dir = "android-sdk-linux"
+    cron_file = 'crontab_linux'
+    sdk_dir = 'android-sdk-linux'
+    if is_gce():
+      cron_file = 'crontab_linux_gce'
   elif sys.platform.startswith('darwin'):
-    sdk_dir = "android-sdk-macosx"
+    cron_file = 'crontab_osx'
+    sdk_dir = 'android-sdk-macosx'
   else:
     return
 
-  android_path = os.path.join(os.environ["HOME"], sdk_dir)
+  android_path = os.path.join(os.environ['HOME'], sdk_dir)
   if not os.path.exists(android_path):
     raise Exception('Android SDK not installed at %s' % android_path)
 
   try:
-    crontab_file = ""
-    c_file = tempfile.NamedTemporaryFile(delete=False)
-    script_path = os.path.join(buildbot_path,"scripts", "run_daily.sh")
-    c_file.write((CRON_ENTRY_TMPL % script_path) + "\n")
-    c_file.close()
-    crontab_file = c_file.name
-    subprocess.call(["crontab", "-r"])
-    subprocess.call(["crontab", crontab_file])
+    cron_path = os.path.join(buildbot_path, 'scripts', cron_file)
+    subprocess.call(['crontab', '-r'])
+    subprocess.call(['crontab', cron_path])
   finally:
     try:
       os.remove(crontab_file)

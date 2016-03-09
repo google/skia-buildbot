@@ -49,33 +49,9 @@ def _build_unix_env_vars(skia_repo_dir=None):
 def _setup_launch_on_reboot_linux(launch_script, skia_repo_dir):
   """Set up launch-on-reboot on Linux.
 
-  Sets up a cron job to run the launch script at reboot.
-
-  Args:
-      launch_script: string; the script to launch on boot.
-      skia_repo_dir: string; path to the Skia checkout on the buildslave.
+  This is a no-op since the crontab already does launch-on-reboot.
   """
-  env_vars = _build_unix_env_vars(skia_repo_dir)
-  # Wait for the drive containing the launch script to be mounted.
-  full_cmd = ('while [ ! -f "%s" ]; do '
-                'echo "%s not found"; '
-                'sleep 1; '
-              'done; ' % (launch_script, launch_script))
-  for k, v in env_vars.iteritems():
-    full_cmd += 'export %s=%s; ' % (k, v)
-  full_cmd += launch_script
-  # Write the command to a file to be read by crontab.
-  file_contents = '@reboot ' + full_cmd + '\n'
-  file_name = None
-  try:
-    with tempfile.NamedTemporaryFile(delete=False) as reboot_file:
-      reboot_file.write(file_contents)
-      file_name = reboot_file.name
-    if file_name:
-      subprocess.check_call(['crontab', '-u', getpass.getuser(), file_name])
-  finally:
-    if file_name:
-      os.remove(file_name)
+  pass
 
 
 def _setup_launch_on_reboot_mac(launch_script, skia_repo_dir):
