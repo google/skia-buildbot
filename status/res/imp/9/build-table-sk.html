@@ -1,0 +1,259 @@
+<!--
+  status_utils.js must be included before this.
+
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <buildbot-table-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/buildbot-table-sk.html" rel="import" />
+
+  Usage:
+
+    <buildbot-table-sk></buildbot-table-sk>
+
+  Properties:
+    keys: Array<String>, the keys of the data to be displayed
+    values: Object{String: Array<String>}, the values corresponding to keys to be displayed
+    builds: Object, the builds, corresponding to key-value pairs.  It has the following layout:
+    {
+      Key: {
+        Value: Array<{
+          Number: Number, build number
+          Builder: String, builder (for making a url to this specific build)
+          Finished: String, The date string the build was finished, or falsey
+          Results: Number, one of the buildbot magic numbers
+        }>
+      }
+    }
+    urls: Object, the base urls used to create links.  It has the following layout:
+    {
+      Key: {
+        key: The base url for keys. 'key' will be appended to this.
+        value: The base url for values. 'value' will be appended to this.
+        base: The following will be appended to this base url:
+            /builders/[build.Builder]/builds/[build.Number]
+      }
+    }
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<script src="/res/imp/bower_components/d3/d3.min.js"></script>
+
+<!--
+Styles for the internal divs are kept in a separate
+CSS file since we are using d3 to manage those elements and not the
+Polymer.dom() functions, so the whole magic CSS scoping stuff doesn't
+work, so we just prefix every rule with build-table-sk.
+-->
+<link rel="stylesheet" href="build-table.css">
+
+<dom-module id="build-table-sk">
+  <template>
+    <style>
+      #buildTable {
+        font-size: 12px;
+        margin: 5px;
+        max-width: inherit;
+        min-width: inherit;
+      }
+    </style>
+
+    <div id="buildTable"></div>
+
+  </template>
+  <script>
+  (function(){
+    Polymer({
+      is:"build-table-sk",
+
+      properties: {
+        keys: {
+          type: Array,
+        },
+        values: {
+          type: Object,
+        },
+        builds: {
+          type: Object,
+        },
+        urls: {
+          type: Object,
+        }
+      },
+
+      observers: [
+        "redraw(keys, values, builds, urls)"
+      ],
+
+
+      redraw:function(keys, values, builds, urls) {
+        // This gets called any time one of the values changes.  Since the values are
+        // updated simultaneously, we don't want to try to draw the table 4 times at the
+        // same time, so we debounce it.  No timeout on the debounce because all the this.set
+        // calls will happen before a paint call, so this just basically collates all the requests.
+        this.debounce("redraw-build-table", function(){
+          this._redraw(keys,values,builds,urls);
+        }.bind(this));
+      },
+
+
+      _redraw:function(keys, values, builds, urls) {
+        console.time("removing rows that no longer need showing");
+        var deleteOld = d3.select(this.$.buildTable)
+          .selectAll(".row")
+          .data(keys, function(key){
+              // Bind the data by the key, not the index (which is default)
+              return key;
+            });
+        deleteOld.exit().remove();
+        console.timeEnd("removing rows that no longer need showing");
+
+        console.time("(re)drawing table starting with "+keys[0]);
+        var start = 0;
+        var end = 0;
+        // We draw this in chunks to give the feel of responsive-ness for large data chunks.
+        d3.timer(function(){
+          start = end;
+          end = Math.min(keys.length, end + 10);
+          if (start >= end) {
+            console.timeEnd("(re)drawing table starting with "+keys[0]);
+            // d3.timer ends upon returning true.
+            return true;
+          }
+
+          console.log("frame "+start+"-"+end);
+          var _keys = keys.slice(0, end);
+
+          // Create a data binding between keys and div.row
+          var data = d3.select(this.$.buildTable)
+            .selectAll(".row")
+            .data(_keys, function(key){
+              // Bind the data by the key, not the index (which is default)
+              return key;
+            });
+          // Enter/create a div for every new data element.
+          var rows = data
+            .enter()
+            .append("div")
+            .classed("row", true);
+          // Resort the rows by key order, which should be alphabetical or some other specified,
+          // sensical order.
+          data.order();
+
+          // For every new row, add div.key, div.values and div.builds as inner html.
+          rows
+            .insert("div")
+            .classed("key", true)
+            .html(function(key){
+              return "<a target='_blank' class='plain' href="+urls[key].key+">"+key+"</a>";
+            });
+          rows
+            .insert("div")
+            .classed("values", true);
+          rows
+            .insert("div")
+            .classed("builds", true);
+
+          // For every div.values, bind the values to it.  If there are new values, create a
+          // div.valuename with the value anchor as content.
+          d3.select(this.$.buildTable).selectAll(".values").each(function(key) {
+            if (!values[key]) {
+              return;
+            }
+            d3.select(this)
+              .selectAll("div")
+              .data(values[key])
+              .enter()
+              .append("div")
+              .classed("valuename", true)
+              .html(function(value){
+                  return "<a target='_blank' class='plain' href="+urls[key].value + value+">"+value+"</a>";
+                });
+          });
+
+          // For every div.builds, bind the key and the value to it.  If there are new key-value
+          // pairs, create a div.buildrow with no content.
+          d3.select(this.$.buildTable).selectAll(".builds").each(function(key) {
+            if (!values[key]) {
+              return;
+            }
+            d3.select(this)
+              .selectAll("div")
+              .data(values[key].map(function(value) {
+                return {
+                  "key": key,
+                  "value": value,
+                };
+              }))
+              .enter()
+              .append("div")
+              .classed("buildrow", true);
+          });
+
+          // For every div.buildrow, bind the builds to it.  If there are new builds, create a
+          // div.build with the build number anchor tag as content.  This will be styled according
+          // to the build.
+          d3.select(this.$.buildTable).selectAll(".buildrow").each(function(d) {
+            if (!builds[d.key] || !builds[d.key][d.value]) {
+              return;
+            }
+            d3.select(this)
+              .selectAll("div")
+              .data(builds[d.key][d.value])
+              .enter()
+              .append("div")
+              .classed("build", true)
+              .classed("filler", function(build) {
+                return build.filler;
+              })
+              .classed("success", function(build) {
+                return build.Results == BUILDBOT_RESULT_SUCCESS || build.Results == BUILDBOT_RESULT_WARNINGS || build.Results == BUILDBOT_RESULT_SKIPPED;
+              })
+              .classed("failure", function(build){
+                return  build.Results == BUILDBOT_RESULT_FAILURE;
+              })
+              .classed("exception", function(build){
+                return  build.Results == BUILDBOT_RESULT_EXCEPTION || build.Results == BUILDBOT_RESULT_CANCELLED;
+              })
+              .classed("inprogress", function(build){
+                return build.Finished == BUILDBOT_PENDING;
+              })
+              .style("min-width", function(build){
+                // TODO(skia:4739)
+                return "32px";
+              })
+              .html(function(build){
+                if (build.filler) {
+                  return "";
+                }
+                return "<a target='_blank' class='plain' href="+urls[d.key].base+"builders/"+build.Builder+"/builds/"+build.Number+">"+build.Number+"</a>";
+              });
+          });
+          this._fixClippedDivs();
+        }.bind(this));
+      },
+
+      // Fix the horizontal lines, which will be clipped unless the width is set manually.
+      // http://stackoverflow.com/a/21540207
+      _fixClippedDivs: function() {
+        d3.select(this.$.buildTable).selectAll(".buildrow").style("width",function(d){
+          if (this.parentElement.scrollWidth) {
+            // Account for padding on .buildrow
+            return this.parentElement.scrollWidth +"px";
+          }
+        });
+      },
+
+    });
+  })()
+  </script>
+</dom-module>

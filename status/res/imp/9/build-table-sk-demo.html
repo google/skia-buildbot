@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>build-table-sk Demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/js/status_utils.js"></script>
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script>
+    var BUILDBOT_FINISHED = "some date string";
+
+    function goodBuild(i, builder) {
+      return {
+        Number: i,
+        Builder: builder,
+        Finished: BUILDBOT_FINISHED,
+        Results: BUILDBOT_RESULT_SUCCESS,
+      };
+    }
+
+    function pendingBuild(i, builder) {
+      return {
+        Number: i,
+        Builder: builder,
+        Finished: BUILDBOT_PENDING,
+        Results: undefined,
+      };
+    }
+
+    function failedBuild(i, builder) {
+      return {
+        Number: i,
+        Builder: builder,
+        Finished: BUILDBOT_FINISHED,
+        Results: BUILDBOT_RESULT_FAILURE,
+      };
+    }
+
+    function exceptionBuild(i, builder) {
+      return {
+        Number: i,
+        Builder: builder,
+        Finished: BUILDBOT_FINISHED,
+        Results: BUILDBOT_RESULT_EXCEPTION,
+      };
+    }
+
+    function filler() {
+      return {
+        filler:true,
+        Finished: BUILDBOT_FINISHED,
+        Results: BUILDBOT_RESULT_EXCEPTION,
+      };
+    }
+
+  </script>
+  <link rel="import" href="build-table-sk.html">
+</head>
+
+<body>
+<dom-module id="build-by-builder-demo">
+  <template>
+    <style>
+
+    </style>
+
+    <!--[key, value, builds] -->
+    <build-table-sk
+      keys="[[keys]]"
+      values="[[values]]"
+      builds="[[builds]]"
+      urls="[[urls]]">
+
+    </build-table-sk>
+
+  </template>
+  <script>
+     Polymer({
+      is:"build-by-builder-demo",
+
+      properties: {
+        // Our builders, in this example.
+        keys: {
+          type: Array,
+          value: function() {
+            return ["alohamora", "w_leviosa"];
+          },
+        },
+
+        // Our buildslaves, in this example.
+        values: {
+          type: Object,
+          value: function() {
+            return {
+              "alohamora": ["Arthur", "Charlie", "Molly"],
+              "w_leviosa": ["Charlie", "George", "Percy"],
+            };
+          },
+        },
+
+        builds: {
+          type: Array,
+          value: function() {
+            return {
+              "alohamora": {
+                "Arthur": [ pendingBuild(24, "alohamora"),filler(), filler(), filler(), goodBuild(20, "alohamora"), failedBuild(19, "alohamora")],
+                "Molly": [filler(), filler(), exceptionBuild(22, "alohamora")],
+                "Charlie": [filler(), goodBuild(23, "alohamora"),filler(), goodBuild(21, "alohamora"), filler(), filler(), goodBuild(18, "alohamora"), goodBuild(17, "alohamora")],
+              },
+              "w_leviosa": {
+                "Charlie": [filler(), filler(), filler(), filler(), filler(), goodBuild(125, "w_leviosa")],
+                "Percy": [exceptionBuild(130, "w_leviosa"), filler(), filler(), exceptionBuild(127, "w_leviosa"), filler(), filler(), exceptionBuild(124, "w_leviosa")],
+                "George": [filler(), goodBuild(129, "w_leviosa"), failedBuild(128, "w_leviosa"), filler(), goodBuild(126, "w_leviosa"), filler(), filler(), failedBuild(123, "w_leviosa")],
+              },
+            };
+          },
+        },
+
+        urls: {
+          type: Array,
+          value: function() {
+            return {
+              "alohamora": {
+                "base": "http://www.example.com/gringots/",
+                "key": "http://www.example.com/gringots/builders/alohamora",
+                "value": "http://www.example.com/gringots/buildslaves/",
+              },
+              "w_leviosa": {
+                "base": "http://www.example.com/hogwarts/",
+                "key": "http://www.example.com/hogwarts/builders/w_leviosa",
+                "value": "http://www.example.com/hogwarts/buildslaves/",
+              },
+            };
+          },
+        },
+      },
+    });
+  </script>
+
+</dom-module>
+
+<dom-module id="build-by-buildslave-demo">
+  <template>
+    <style>
+
+    </style>
+
+    <!--[key, value, builds] -->
+    <build-table-sk
+      keys="[[keys]]"
+      values="[[values]]"
+      builds="[[builds]]"
+      urls="[[urls]]">
+
+    </build-table-sk>
+
+  </template>
+  <script>
+     Polymer({
+      is:"build-by-buildslave-demo",
+
+      properties: {
+        // Our buildeslaves, in this example.
+        keys: {
+          type: Array,
+          value: function() {
+            return ["Arthur", "Charlie", "George", "Molly", "Percy"];
+          },
+        },
+
+        // Our builders, in this example.
+        values: {
+          type: Object,
+          value: function() {
+            return {
+              "Arthur": ["alohamora"],
+              "Charlie": ["alohamora","w_leviosa"],
+              "George": ["w_leviosa"],
+              "Molly": ["alohamora"],
+              "Percy": ["w_leviosa"],
+            };
+          },
+        },
+
+        builds: {
+          type: Array,
+          value: function() {
+            return {
+              "Arthur": {
+                "alohamora": [ pendingBuild(24, "alohamora"), goodBuild(20, "alohamora"), failedBuild(19, "alohamora")]
+              },
+              "Molly": {
+                "alohamora": [exceptionBuild(22, "alohamora")],
+              },
+              "Charlie": {
+                "alohamora":  [goodBuild(23, "alohamora"), filler(), goodBuild(21, "alohamora"), goodBuild(18, "alohamora"), goodBuild(17, "alohamora")],
+                "w_leviosa": [filler(), goodBuild(125, "w_leviosa")],
+              },
+              "Percy": {
+                "w_leviosa": [exceptionBuild(130, "w_leviosa"), exceptionBuild(127, "w_leviosa"), exceptionBuild(124, "w_leviosa")],
+              },
+              "George": {
+                "w_leviosa": [goodBuild(129, "w_leviosa"), failedBuild(128, "w_leviosa"), goodBuild(126, "w_leviosa"), failedBuild(123, "w_leviosa")],
+              },
+            };
+          },
+        },
+
+        urls: {
+          type: Array,
+          value: function() {
+            return {
+              "Arthur": {
+                "base": "http://www.example.com/gringots/",
+                "key": "http://www.example.com/gringots/buildslaves/Arthur",
+                "value": "http://www.example.com/gringots/builders/",
+              },
+              "Molly": {
+                "base": "http://www.example.com/gringots/",
+                "key": "http://www.example.com/gringots/buildslaves/Molly",
+                "value": "http://www.example.com/gringots/builders/",
+              },
+              "Charlie": {
+                "base": "http://www.example.com/gringots/",
+                "key": "http://www.example.com/gringots/buildslaves/Charlie",
+                "value": "http://www.example.com/hogwarts/builders/",
+              },
+              "Percy": {
+                "base": "http://www.example.com/hogwarts/",
+                "key": "http://www.example.com/hogwarts/buildslaves/Percy",
+                "value": "http://www.example.com/hogwarts/builders/",
+              },
+              "George": {
+                "base": "http://www.example.com/hogwarts/",
+                "key": "http://www.example.com/hogwarts/buildslaves/George",
+                "value": "http://www.example.com/hogwarts/builders/",
+              },
+            };
+          },
+        },
+      },
+    });
+  </script>
+</dom-module>
+
+<h1>Build table by builder demo </h1>
+
+  <build-by-builder-demo></build-by-builder-demo>
+
+  <h1>Build table by build slave demo </h1>
+
+  <build-by-buildslave-demo></build-by-buildslave-demo>
+
+</body>
+</html>

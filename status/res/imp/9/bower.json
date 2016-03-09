@@ -1,8 +1,8 @@
 {
-  "name": "9",
+  "name": "status",
   "version": "0.0.0",
   "authors": [],
-  "description": "Common Polymer 1.0 Elements",
+  "description": "Polymer 1.0 Elements for Status",
   "license": "https://github.com/google/skia/blob/master/LICENSE",
   "ignore": [
     "**/.*",
@@ -15,7 +15,8 @@
     "polymer": "Polymer/polymer#^1.0.0",
     "iron-elements": "PolymerElements/iron-elements#~1.0.0",
     "paper-elements": "PolymerElements/paper-elements#~1.0.0",
-    "paper-radio-group": "PolymerElements/paper-radio-group#1787048a8afee53"
+    "paper-radio-group": "PolymerElements/paper-radio-group#1787048a8afee53",
+    "d3": "~3.5.16"
   },
   "resolutions": {
     "polymer": "^1.0.0",

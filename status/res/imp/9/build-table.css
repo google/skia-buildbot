@@ -1,0 +1,91 @@
+/*
+Styles for the internal divs are kept in a separate
+CSS file since we are using d3 to manage those elements and not the
+Polymer.dom() functions, so the whole magic CSS scoping stuff doesn't
+work, so we just prefix every rule with build-table-sk.
+*/
+build-table-sk a.plain {
+    color: inherit;
+    margin: auto;
+    text-decoration: none;
+}
+build-table-sk a.plain:hover {
+    text-decoration: underline;
+}
+
+build-table-sk .success {
+    background-color: rgba(102, 166, 30, .3);
+}
+build-table-sk .failure {
+    background-color: #d95f02;
+}
+build-table-sk .exception {
+    background-color: #7570b3;
+    color:white;
+}
+build-table-sk .inprogress {
+    background-color: yellow;
+}
+build-table-sk .build.filler {
+    background-color: inherit;
+    border: 1px solid rgba(0,0,0,0);
+}
+
+build-table-sk .row {
+    border: 1px solid #DDD;
+    display:flex;
+    margin-bottom: -1px;
+    min-width: 100px;
+}
+
+build-table-sk .key {
+    align-items:center;
+    border-right: 1px solid #DDD;
+    display:flex;
+    padding-bottom:15px; /*account for scrollbar in builds*/
+    width: 300px;
+}
+
+build-table-sk .values {
+    border-right: 1px solid #DDD;
+    display:flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom:15px; /*account for scrollbar in builds*/
+    width: 300px;
+}
+
+build-table-sk .valuename {
+    align-items:center;
+    min-height:30px;
+    padding:6px;
+    text-align:center;
+    display:flex;
+    margin-top: -1px;
+    border-top:1px dashed #DDD;
+}
+
+build-table-sk .builds {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-width: 100px;
+    overflow-x: scroll;
+}
+
+build-table-sk .buildrow {
+    display: flex;
+    flex-direction: row;
+    flex: 1 1 auto;
+    margin-top: -1px;
+    border-top:1px dashed #DDD;
+}
+
+build-table-sk .build {
+    border-radius: 2px;
+    border: 1px solid black;
+    margin: auto 2px;
+    max-height:15px;
+    padding: 2px;
+    text-align: center;
+}

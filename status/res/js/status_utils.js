@@ -1,6 +1,16 @@
 /**
  * status_utils.js contains shared utilities used by Skia Status.
  */
+
+var BUILDBOT_PENDING = 0;
+
+var BUILDBOT_RESULT_SUCCESS = 0;
+var BUILDBOT_RESULT_WARNINGS = 1;
+var BUILDBOT_RESULT_FAILURE = 2;
+var BUILDBOT_RESULT_SKIPPED = 3;
+var BUILDBOT_RESULT_EXCEPTION = 4;
+var BUILDBOT_RESULT_CANCELLED = 5;
+
 this.status_utils = this.status_utils || function() {
   "use strict";
 
