@@ -81,6 +81,7 @@ var (
 	dirWatchDuration = flag.Duration("dir_watch_duration", 10*time.Second, "How long dir watcher sleeps for before checking the dir.")
 	testing          = flag.Bool("testing", false, "Set to true for local testing.")
 
+	enableMetrics  = flag.Bool("enable_metrics", true, "Set to false to disable collecting metrics. Causes the influxdb_* flags to be ignored.")
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
@@ -560,11 +561,9 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToStat
 
 func main() {
 	defer common.LogPanic()
-
-	if *influxHost == "" {
-		common.Init()
-	} else {
-		common.InitWithMetrics2("logserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
+	common.Init()
+	if *enableMetrics {
+		common.StartMetrics2("logserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
 	}
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {

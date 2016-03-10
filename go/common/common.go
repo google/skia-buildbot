@@ -105,6 +105,11 @@ func startMetrics(appName, graphiteServer string) {
 // Sets up metrics push into InfluxDB.
 func InitWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, local *bool) {
 	Init()
+	StartMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, local)
+}
+
+// Starts tracking runtime metrics and sets up metrics push into InfluxDB.
+func StartMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, local *bool) {
 	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
 	if err != nil {
 		glog.Fatal(err)
