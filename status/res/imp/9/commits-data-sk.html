@@ -55,7 +55,7 @@
 <dom-module id="commits-data-sk">
   <template>
     <iron-ajax id="data"
-      auto url="/json/skia/commits/"
+      auto url="{{_computeURL(repo)}}"
       handle-as="json"
       params="[[_params]]"
       last-response="{{_data}}">
@@ -190,6 +190,9 @@
           type: Number,
           value: 60,
         },
+        repo: {
+          type: String,
+        },
         search: {
           type: String,
           observer:"_searchChanged",
@@ -283,6 +286,10 @@
       observers: [
         "_parseData(_data, autoroll_current, autoroll_last)"
       ],
+
+      _computeURL: function(repo) {
+        return "/json/"+repo+"/commits/";
+      },
 
       _getUrlParams: function(load) {
         return {"n":load};

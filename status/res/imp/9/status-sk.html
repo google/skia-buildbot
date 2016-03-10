@@ -13,7 +13,8 @@
     <status-sk></status-sk>
 
   Properties:
-    load: How many commits should be loaded, defaulting to 35.
+    load: Number, How many commits should be loaded, defaulting to 35.
+    repo: String, The repo that should be shown, defaulting to "skia".
 
   Methods:
     None.
@@ -97,6 +98,10 @@
       alert-widget-sk {
         min-width:100px;
       }
+
+      h1 {
+        text-transform: capitalize;
+      }
     </style>
 
     <!-- To keep all the data binding sane and understandable, one-way and two-way bindings
@@ -118,7 +123,7 @@
         responsive_width="1200px">
       <status-menu-section-sk navigation></status-menu-section-sk>
 
-      <h1 toolbar>Skia Status</h1>
+      <h1 toolbar>[[repo]] Status</h1>
 
       <autoroll-widget-sk title="Skia DEPS roll status" rtoolbar
         reload="[[reload]]"
@@ -181,7 +186,7 @@
             highlighted_commit_hashes="[[highlighted_commit_hashes]]"
             num_builders="[[num_builders]]"
             relanded_map="[[relanded_map]]"
-            repo="skia"
+            repo="[[repo]]"
             reverted_map="[[reverted_map]]"
 
             commit_label="{{label}}"
@@ -195,6 +200,7 @@
             load="[[load]]"
             filter="[[filter]]"
             reload="[[reload]]"
+            repo="[[repo]]"
             search="[[search]]"
 
             branch_heads="{{branch_heads}}"
@@ -221,6 +227,9 @@
       load: {
         type: Number,
         value: 35,
+      },
+      repo: {
+        type: String,
       },
 
       // private
@@ -249,7 +258,7 @@
         this.$.app.classList.add("closed");
       }
       Polymer.updateStyles();
-    }
+    },
 
   });
   </script>

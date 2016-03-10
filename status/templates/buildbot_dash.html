@@ -3,27 +3,8 @@
   <head>
     {{template "header.html" .}}
     <title>Skia Buildbot Dashboard</title>
-
-    <style>
-    html /deep/ core-header-panel {
-      background: white;
-      font-family: sans-serif;
-    }
-    html /deep/ core-toolbar {
-      background-color: #006C7C;
-      color: #FFFFFF;
-      text-align: center;
-      font-size: 15px;
-    }
-    html /deep/ [main] {
-      background-color: #FFFFFF;
-    }
-    </style>
   </head>
-  <body fullbleed vertical layout unresolved>
-    <app-sk fit appName="Skia Buildbot Dashboard" drawerWidth="230px" responsiveWidth="1300px">
-      <status-menu-section-sk navigation></status-menu-section-sk>
-      <buildbot-dash-sk></buildbot-dash-sk>
-    </app-sk>
+  <body>
+    <buildbot-dash-sk></buildbot-dash-sk>
   </body>
 </html>

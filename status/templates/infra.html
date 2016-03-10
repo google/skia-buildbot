@@ -4,59 +4,8 @@
     {{template "header.html" .}}
     <title>Skia Infra Status</title>
 
-    <style>
-    html /deep/ core-header-panel {
-      font-family: sans-serif;
-    }
-    html /deep/ core-toolbar {
-      background-color: #66A61E;
-      color: #FFFFFF;
-      text-align: center;
-      font-size: 15px;
-    }
-    html /deep/ core-toolbar.closed {
-      background-color: #D95F02;
-    }
-    html /deep/ [main] {
-      background-color: #FFFFFF;
-    }
-    h1 {
-      font-size: 1.7em;
-      margin-bottom: 2px;
-      margin-top: 5px;
-    }
-    autoroll-widget-sk {
-      width: 220px;
-      min-width: 220px;
-      max-width: 220px;
-    }
-    tree-status-sk {
-      font-size: 1em;
-    }
-    </style>
   </head>
-  <body fullbleed vertical layout unresolved>
-    <app-sk fit appName="Infra Status" drawerWidth="230px" responsiveWidth="1100px">
-      <status-menu-section-sk navigation></status-menu-section-sk>
-      <tree-status-sk tool></tree-status-sk>
-      <autoroll-widget-sk tool></autoroll-widget-sk>
-      <alert-widget-sk categories="['infra']" tool></alert-widget-sk>
-      <commits-sk repo="infra" builderFilter="all"></commits-sk>
-    </app-sk>
-    <script type="text/javascript" charset="utf-8">
-    (function() {
-      sk.WebComponentsReady.then(function() {
-        $$$("html /deep/ tree-status-sk").addEventListener("change", function(e) {
-          var tb  = $$$("html /deep/ core-toolbar");
-          if (e.detail.open == tb.classList.contains("closed")) {
-            tb.classList.toggle("closed");
-          }
-        })
-        $$$("autoroll-widget-sk").addEventListener("change", function(e) {
-          $$$("commits-sk").setAutoRollStatus(e.detail.status.curr_roll_rev, e.detail.status.last_roll_rev);
-        })
-      })
-    })();
-    </script>
+  <body>
+    <status-sk repo=infra></status-sk>
   </body>
 </html>
