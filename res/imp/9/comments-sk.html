@@ -143,7 +143,8 @@
           <template is="dom-repeat" items="{{extra_fields}}" as="field">
             <td>
               <template is="dom-if" if="{{_fieldIsBool(field)}}">
-                <paper-checkbox id="{{_computeId(field)}}" label="{{field.label}}">
+                <paper-checkbox id="{{_computeId(field)}}">
+                {{field.label}}
                 </paper-checkbox>
               </template>
               <template is="dom-if" if="{{_fieldIsText(field)}}">
