@@ -288,16 +288,9 @@ def setup_cronjob():
   if not os.path.exists(android_path):
     raise Exception('Android SDK not installed at %s' % android_path)
 
-  try:
-    cron_path = os.path.join(buildbot_path, 'scripts', cron_file)
-    subprocess.call(['crontab', '-r'])
-    subprocess.call(['crontab', cron_path])
-  finally:
-    try:
-      os.remove(crontab_file)
-    except OSError as e:
-      if e.errno != errno.EEXIST:
-        raise
+  cron_path = os.path.join(buildbot_path, 'scripts', cron_file)
+  subprocess.call(['crontab', '-r'])
+  subprocess.call(['crontab', cron_path])
 
 
 def main():
