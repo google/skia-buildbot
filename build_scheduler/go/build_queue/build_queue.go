@@ -476,6 +476,9 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 		})
 	}
 	sort.Sort(BuildCandidateSlice(candidates))
+	if len(candidates) == 0 {
+		return 0.0, nil, nil, nil
+	}
 	best := candidates[len(candidates)-1]
 
 	return best.Score, newBuildsByCommit[best.Commit], stoleFromByCommit[best.Commit], nil
