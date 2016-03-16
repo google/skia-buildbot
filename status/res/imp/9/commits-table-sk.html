@@ -54,200 +54,44 @@
 <link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
 
-<link rel="import" href="build-popup-sk.html">
-<link rel="import" href="builder-popup-sk.html">
-<link rel="import" href="commit-popup-sk.html">
+<link rel="import" href="commits-table-d3-sk.html">
 
 <dom-module id="commits-table-sk">
   <template>
     <style>
-      table.commitList {
-        border: 0px;
-        border-spacing: 0px;
-        width: 100%;
-        border-collapse:collapse;
-      }
-      th {
-        text-align: left;
-        white-space: nowrap;
-        font-size: 12px;
-      }
-      th.header {
-        height: 53px;
-        padding: 5px;
-      }
-      th.category {
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
-        border-style: solid;
-        border-left-width: 1px;
-        border-top-width: 1px;
-        border-right-width: 0px;
-        border-bottom-width: 0px;
-        font-size: 12px;
-        height: 17px;
-        text-align: center;
-        overflow: hidden;
-      }
-      th.category:last-child {
-        border-right-width: 1px;
-      }
-      th.category:empty {
-        border-width: 1px 0px 0px 0px;
-        border-color: #FFFFFF;
-      }
-      th.subcategory {
-        background-color: #EFEFEF;
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
-        border-style: solid;
-        border-left-width: 1px;
-        border-top-width: 1px;
-        border-right-width: 0px;
-        border-bottom-width: 0px;
-        font-size: 10px;
-        height: 14px;
-        text-align: center;
-        overflow: hidden;
-      }
-      th.subcategory:last-child {
-        border-right-width: 1px;
-      }
-      th.subcategory:empty {
-        background-color: #FFFFFF;
-        border-width: 1px 0px 0px 0px;
-        border-color: #FFFFFF;
-      }
-      tr.builder {
-        height: 33px;
-      }
-      tr.commit {
-        font-size: 10px;
-        font-family: monospace;
-        height: 20px;
-        margin: 0px;
-        padding: 0px;
-      }
-      .alt:nth-child(odd) {
-        background-color: #EFEFEF;
-      }
-      .alt:nth-child(even) {
-        background-color: #FFFFFF;
-      }
-      .highlight.alt.commit {
-        background-color: #FFD740;
-      }
-      td {
-        padding: 0px;
-        margin: 0px;
-        white-space: nowrap;
-      }
-      td.author {
-        width: var(--commit-label-width, 100)px;
-        min-width: var(--commit-label-width, 100)px;
-        max-width: var(--commit-label-width, 100)px;
-        text-overflow: ellipsis;
-      }
-      td.build {
-        text-align: center;
-        padding: 0px;
-        /* Because of how tables work, it appears the browser will just size them all to fit if
-        the size is set to something really large.*/
-        width: var(--builder-width, 2000)px;
-        max-width: var(--builder-width, 2000)px;
-        min-width: var(--builder-width, 15)px;
-      }
-      td.commentIndicator {
-        width: var(--comment-indicator-width, 14)px;
-        max-width: var(--comment-indicator-width, 14)px;
-        min-width: var(--comment-indicator-width, 14)px;
-      }
-      td.revertIndicator, td.relandIndicator {
-        width: var(--revert-reland-indicator-width, 14)px;
-        max-width: var(--revert-reland-indicator-width, 14)px;
-        min-width: var(--revert-reland-indicator-width, 14)px;
-      }
-      a {
-        color: inherit;
-        position: relative;
-        z-index: 2;
-      }
-      a.author {
-        text-decoration: none;
-      }
-      a.author:hover {
-        text-decoration: underline;
-      }
-      a.build {
-        border-style: solid;
-        border-color: gray;
-        display: block;
-        text-decoration:none;
-      }
-      a.build_single {
-        border-width: 1px;
-        border-radius: 3px;
-        margin: 1px 0px 1px 1px;
-        height: 16px;
-      }
-      a.build_middle {
-        border-width: 0px 1px;
-        border-radius: 0px;
-        margin: 0px 0px 0px 1px;
-        height: 20px;
-      }
-      a.build_top {
-        border-width: 1px 1px 0px 1px;
-        border-top-left-radius: 3px;
-        border-top-right-radius: 3px;
-        margin: 1px 0px 0px 1px;
-        height: 18px;
-      }
-      a.build_bottom {
-        border-width: 0px 1px 1px 1px;
-        border-bottom-left-radius: 3px;
-        border-bottom-right-radius: 3px;
-        margin: 0px 0px 1px 1px;
-        height: 18px;
-      }
-      a.builder {
-        background-color: white;
-        height: 20px;
-        margin: 0px;
-      }
-      iron-icon.tiny {
-        width: 12px;
-        height: 12px;
-      }
-      iron-icon.revert {
-        color: var(--revert-background-color,#D95F02);
-      }
-      iron-icon.reland {
-        color: var(--reland-background-color,#66a61e);
-      }
-      #builderTextFilter {
-        max-width:144px;
-        display:inline-block;
-        --paper-input-container-label: {
-          font-size:12px;
-        };
-      }
-      #infoDialog {
-        overflow-y: auto;
-        min-width: 600px;
+      .filters{
+        font-size: .75em;
+        height: 50px;
+        overflow-x: auto;
       }
       div.tooltip {
         padding-right: 12px;
         display:inline-block;
       }
-      .shadow {
-        box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.37);
+
+      #builderTextFilter {
+        max-width:144px;
+        display:inline-block;
+        --paper-input-container-label: {
+          font-size:0.75em;
+        };
       }
+
+      /* Depending on if the subject or author is being shown, we may need more or less space.*/
+      #buildbotSelector.near {
+        margin-left: 80px;
+      }
+
+      #buildbotSelector.far {
+        margin-left: 380px;
+      }
+
       .helpicon {
         width: 12px;
         height: 12px;
         vertical-align: top;
       }
+
       paper-radio-group {
         --paper-radio-group-item-padding: 2px;
       }
@@ -259,143 +103,57 @@
             min-width: 300px;
           };
       }
-
     </style>
 
-    <table class="commitList">
-      <thead>
-        <tr>
-          <th class="header" colspan="4">
-            <paper-radio-group id="commitLabelSelector" selected="{{commit_label}}">
-              <template is="dom-repeat" items="{{_commit_labels}}" as="label">
-                <paper-radio-button name="{{label}}">{{_getPrettyCommitLabel(label)}}</paper-radio-button><br/>
-              </template>
-            </paper-radio-group>
-          </th>
-          <th class="header" colspan$="{{num_builders}}">
-            <paper-radio-group id="buildbotSelector" selected="{{filter}}">
-              <template is="dom-repeat" items="{{_short_filters}}" as="filter">
-                <paper-radio-button name="{{filter}}">{{_getPrettyFilterLabel(filter)}}</paper-radio-button>
-                <div class="tooltip" title$="{{_getPrettyFilterText(filter)}}">
-                  <iron-icon icon="icons:help" class="helpicon"></iron-icon>
-                </div>
-              </template>
-              <paper-radio-button name="search">{{_getPrettyFilterLabel('search')}}</paper-radio-button>
-            </paper-radio-group>
-            <paper-input
-                id="builderTextFilter"
-                value="{{search}}"
-                label="Filter builder"
-                on-change="_setFilterToSearch"
-                no-label-float>
-            </paper-input>
-            <div class="tooltip" title$="{{_getPrettyFilterText('search')}}">
+    <div>
+      <div class="filters">
+        <paper-radio-group id="commitLabelSelector" selected="{{commit_label}}">
+          <template is="dom-repeat" items="{{_commit_labels}}" as="label">
+            <paper-radio-button name="{{label}}">{{_getPrettyCommitLabel(label)}}</paper-radio-button><br/>
+          </template>
+        </paper-radio-group>
+
+        <paper-radio-group id="buildbotSelector" class$="{{_getLeftAlign(commit_label)}}" selected="{{filter}}">
+          <template is="dom-repeat" items="{{_short_filters}}" as="filter">
+            <paper-radio-button name="{{filter}}">{{_getPrettyFilterLabel(filter)}}</paper-radio-button>
+            <div class="tooltip" title$="{{_getPrettyFilterText(filter)}}">
               <iron-icon icon="icons:help" class="helpicon"></iron-icon>
             </div>
+          </template>
+          <paper-radio-button name="search">{{_getPrettyFilterLabel('search')}}</paper-radio-button>
+        </paper-radio-group>
+        <paper-input
+            id="builderTextFilter"
+            value="{{search}}"
+            label="Filter builder"
+            on-change="_setFilterToSearch"
+            no-label-float>
+        </paper-input>
+        <div class="tooltip" title$="{{_getPrettyFilterText('search')}}">
+          <iron-icon icon="icons:help" class="helpicon"></iron-icon>
+        </div>
+      </div>
 
-          </th>
-          <th class="header"><!-- Commit message --></th>
-        </tr>
-        <tr>
-          <td colspan="4" rowspan="3" style="font-size: 10px;">
-            <iron-icon class="tiny" icon="communication:chat"></iron-icon> comment<br/>
-            <iron-icon class="tiny" icon="image:texture"></iron-icon> flaky<br/>
-            <iron-icon class="tiny" icon="icons:block"></iron-icon> ignore failure<br/>
-            <iron-icon class="tiny revert" icon="icons:undo"></iron-icon> reverted<br/>
-            <iron-icon class="tiny reland" icon="icons:redo"></iron-icon> relanded<br/>
-          </td>
-          <template is="dom-repeat" items="{{category_list}}" as="c">
-            <th class="category" colspan$="{{_categoryColspan(categories,c)}}">{{c}}</th>
-          </template>
-        </tr>
-        <tr>
-        <template is="dom-repeat" items="{{category_list}}" as="c">
-            <template is="dom-repeat" items="{{_subcategoryList(categories, c)}}" as="s">
-              <th class="subcategory" colspan$="{{_subcategoryColspan(categories, c,s)}}">{{s}}</th>
-            </template>
-          </template>
-        </tr>
-        <tr class="builder">
-          <template is="dom-repeat" items="{{category_list}}" as="c">
-            <template is="dom-repeat" items="{{_subcategoryList(categories, c)}}" as="s">
-              <template is="dom-repeat" items="{{_builders(categories, c,s)}}" as="b">
-                <td class="build" title$="{{b}}">
-                  <div class="builder">
-                  <a id="openBuilder|{{b}}" class="builder build build_single shadow" href="#" on-click="_openBuilderPopup">
-                    <iron-icon class="tiny" icon="block" alt="Failures on this builder are ignored." hidden$="{{!_hasBuilderIcon(builders,b,'ignoreFailure')}}"></iron-icon>
-                    <iron-icon class="tiny" icon="image:texture" alt="This builder is marked as flaky." hidden$="{{!_hasBuilderIcon(builders,b,'flaky')}}"></iron-icon>
-                    <iron-icon class="tiny" icon="communication:chat" alt="This builder has a comment." hidden$="{{!_hasBuilderIcon(builders,b,'comments')}}"></iron-icon>
-                  </a>
-                  </div>
-                </td>
-              </template>
-            </template>
-          </template>
-        </tr>
-      </thead>
-      <tbody>
-        <template is="dom-repeat" items="{{commits}}" as="commit">
-          <tr class$="{{_commitClass(commit, highlighted_commit_hashes)}}">
-            <td class="author" id="h{{commit.hash}}-author-td" title="{{commit.shortSubject}}">
-              <a id="opencommit|{{index}}" href="#" class="author"
-              on-click="_openCommitPopup">
-                <span class="authorText" style$="{{_commentStyle(commit_label,'author')}}">
-                  {{commit.shortAuthor}}
-                </span>
-                <span class="authorText" style$="{{_commentStyle(commit_label,'subject')}}">
-                  {{commit.shortSubject}}
-                </span>
-              </a>
-            </td>
-            <td class="commentIndicator">
-              <a id="opencommit|{{index}}" href="#" class="author" on-click="_openCommitPopup"
-                  hidden$={{!_hasCommitComments(commit)}}>
-                <iron-icon class="tiny" icon="communication:chat" alt="There are comments on this commit."></iron-icon>
-              </a>
-            </td>
-            <td class="revertIndicator">
-              <a id="{{commit.hash}}" href="#" class="author" on-click="_toggleReverter"
-                  on-mouseover="_toggleReverter" on-mouseout="_toggleReverter" hidden$={{!_has(reverted_map,commit.hash)}}>
-                <iron-icon class="tiny revert" icon="icons:undo" alt="This commit has been reverted."></iron-icon>
-              </a>
-            </td>
-            <td class="relandIndicator">
-              <a id="{{commit.hash}}" href="#" class="author" on-click="_toggleRelander"
-                  on-mouseover="_toggleRelander" on-mouseout="_toggleRelander" hidden$="{{!_has(relanded_map,commit.hash)}}">
-                <iron-icon class="tiny reland" icon="icons:redo" alt="This commit has relanded."></iron-icon>
-              </a>
-            </td>
-            <template is="dom-repeat" items="{{category_list}}" as="c">
-              <template is="dom-repeat" items="{{_subcategoryList(categories,c)}}" as="s">
-                <template is="dom-repeat" items="{{_builders(categories,c,s)}}" as="builder">
-                  <td class="build">
-                    <a id="openbuild|{{commit.hash}}|{{builder}}"
-                        href="#"
-                        class$="{{_buildClass(commit,builder)}}"
-                        on-click="_openBuildPopup"
-                        style$="{{_buildStyle(build_details,commit.hash,builder)}}"
-                        title$="{{_buildTooltip(build_details,commit.hash,builder)}}"
-                        hidden$="{{!_hasBuildDetails(build_details,commit.hash,builder)}}">
-                      <iron-icon class="tiny" icon="communication:chat" alt="There are comments on this build." style="margin-top: 5px;"
-                          hidden$="{{!_hasBuilderComments(build_details,commit,builder)}}"></iron-icon>
-                    </a>
-                  </td>
-                </template>
-              </template>
-            </template>
-          </tr>
-        </template>
-      </tbody>
-    </table>
+      <commits-table-d3-sk
+          builders="[[builders]]"
+          builds="[[builds]]"
+          categories="[[categories]]"
+          category_list="[[category_list]]"
+          build_details="[[build_details]]"
+          commit_label="[[commit_label]]"
+          commits="[[commits]]"
+          commits_map="[[commits_map]]"
+          highlighted_commit_hashes="[[highlighted_commit_hashes]]"
+          num_builders="[[num_builders]]"
+          relanded_map="[[relanded_map]]"
+          repo="[[repo]]"
+          reverted_map="[[reverted_map]]">
+      </commits-table-d3-sk>
+    </div>
 
-    <paper-dialog id="infoDialog"></paper-dialog>
   </template>
   <script>
   (function(){
-    // These must be strings or Polymer gets confused when it tries to parse them.
-    var AUTHOR_WIDTH = "100";
-    var SUBJECT_WIDTH = "440";
-
     var PRETTY_COMMIT_LABELS = {
       "author": "Author",
       "subject": "Subject",
@@ -413,12 +171,6 @@
     Polymer({
       is: "commits-table-sk",
 
-      attached: function() {
-        // customStyle is not automatically set if the defaults are used a la var(foo,default)
-        // so we must set them here to use them later.
-        this.customStyle['--revert-background-color'] = "#D95F02";
-        this.customStyle['--reland-background-color'] = "#66a61e";
-      },
       properties: {
         // inputs from data source to render.
         builders: {
@@ -470,7 +222,6 @@
         },
         commit_label: {
           type: String,
-          observer: '_changeCommitLabel',
           notify:true,
         },
 
@@ -489,15 +240,6 @@
           }
         }
       },
-      _not: function(a,b){
-        return a != b;
-      },
-      _has: function(obj, key) {
-        return obj && obj[key];
-      },
-      _get: function(obj, key) {
-        return this._has(obj,key) || {};
-      },
 
       _getPrettyCommitLabel: function(key) {
         return PRETTY_COMMIT_LABELS[key];
@@ -511,225 +253,16 @@
         return PRETTY_FILTER_LABELS[key][1];
       },
 
-      _builders: function(categories, category, sub) {
-        var c = this._get(categories, category);
-        if (!c || !c.subcategories || !c.subcategories[sub]) {
-          return [];
-        }
-        return c.subcategories[sub].builders || [];
-      },
-      _buildDetails: function(build_details, commitHash, builder) {
-        if (!build_details || !build_details[commitHash]) {
-          return {};
-        }
-        return build_details[commitHash][builder] || {};
-      },
-      _subcategoryList: function(categories, category) {
-        return this._get(categories, category).subcategoryList;
-      },
-
-      _hasBuilderIcon: function(builders, builder, key){
-        if (key=="comments") {
-          return builders[builder][key].length > 0;
-        }
-        return builders[builder][key];
-      },
-      _hasBuilderComments: function(build_details, commit, builder) {
-        var details = this._buildDetails(build_details, commit.hash, builder);
-        return details.comments && details.comments.length > 0 && (commit.displayClass[builder] == 'build_top' || commit.displayClass[builder] == 'build_single');
-      },
-      _hasBuildDetails: function(build_details, commitHash, builder) {
-        return this._get(build_details, commitHash)[builder] !== undefined;
-      },
-      _hasCommitComments: function(commit) {
-        return commit.comments && commit.comments.length > 0;
-      },
-
-      _buildClass: function(commit, builder) {
-        var clss = commit.displayClass[builder];
-        if (!clss) {
-          // This prevents floating grey artifacts from builders that get hidden.
-          return "";
-        }
-        return "build "+clss;
-      },
-      _commitClass: function(commit, highlighted_commit_hashes) {
-        if (!highlighted_commit_hashes || highlighted_commit_hashes.indexOf(commit.hash) === -1) {
-          return "commit alt";
-        }
-        return "commit alt highlight";
-      },
-      _categoryColspan: function(categories, category) {
-        return  this._get(categories, category).colspan;
-      },
-      _subcategoryColspan: function(categories, category, sub) {
-        return this._builders(categories, category, sub).length;
-      },
-      _buildStyle: function(build_details, commitHash, builder) {
-        var details = this._buildDetails(build_details, commitHash, builder);
-        if (details.color) {
-          return "background-color: "+details.color;
-        }
-        return "";
-      },
-      _commentStyle: function(commit_label, type){
-        if (commit_label === type) {
-          return "display:block";
-        }
-        return "display:none";
-      },
-      _buildTooltip: function(build_details, commitHash, builder) {
-        return builder + ", #"+this._buildDetails(build_details, commitHash, builder).number;
-      },
-
-      _changeCommitLabel: function() {
-        if (this.commit_label == "author") {
-          this.customStyle["--commit-label-width"] = AUTHOR_WIDTH;
-        } else {
-          this.customStyle["--commit-label-width"] = SUBJECT_WIDTH;
-        }
-        this.updateStyles();
-      },
       _setFilterToSearch: function() {
         this.set("filter","search");
       },
-      // Begin Popup logic.
 
-      // Open the build popup.  Gets the clicked on element passed in, which will either be the
-      // build or an icon inside of it.
-      _openBuildPopup: function(e) {
-        if (this._infoPopupOpen()) {
-          return;
+      _getLeftAlign: function(commit_label) {
+        if (commit_label == "author") {
+          return "near";
         }
-        var target = e.target;
-        if (!target.id) {
-          target = target.parentElement;
-        }
-        var split = target.id.split("|");
-        if (split.length != 3) {
-          throw "Invalid id: " + e.target.id;
-        }
-        var commit = split[1];
-        var builder = split[2];
-        var build = this.build_details[commit][builder];
-        if (build) {
-          var buildInfo = document.createElement("build-popup-sk");
-          buildInfo.build = build;
-          buildInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(build, this.internalView);
-          buildInfo.repo = this.repo;
-          buildInfo.commit_details = this.commits_map;
-          buildInfo.parent = this;
-          this._openDialog(buildInfo);
-        }
-      },
-
-      // Open the builder popup.  ets the event of the clicked on element passed in, which will
-      // either be the builder or an icon inside of it.
-      _openBuilderPopup: function(e) {
-        if (this._infoPopupOpen()) {
-          return;
-        }
-        var target = e.target;
-        if (!target.id) {
-          // Sometimes the user clicks on the icon, which is the child element.
-          target = target.parentElement;
-        }
-        var split = target.id.split("|");
-        if (split.length != 2) {
-          throw "Invalid id: " + s.id;
-        }
-        var builder = split[1];
-        if (builder) {
-          var builderInfo = document.createElement("builder-popup-sk");
-          builderInfo.builder = this.builders[builder];
-          for (var buildNum in this.builds[builder]) {
-            builderInfo.buildbotUrlPrefix = status_utils.getBuildbotUrlPrefix(this.builds[builder][buildNum], this.internalView);
-            break;
-          }
-          builderInfo.repo = this.repo;
-          this._openDialog(builderInfo);
-        }
-      },
-
-      // Open the commit popup.  Gets the event of the clicked on element passed in, which will
-      // either be the commit or a revert/reland button inside of it.
-      _openCommitPopup: function(e, r) {
-        if (this._infoPopupOpen()) {
-          return;
-        }
-        var split = r && r.id && r.id.split("|");
-        if (!split) {
-          split = e.target.parentElement.id.split("|");
-        }
-
-        if (split.length != 2) {
-          throw "Invalid id: " + s.id;
-        }
-        var commit = this.commits[split[1]];
-        if (commit) {
-          var commitInfo = document.createElement("commit-popup-sk");
-          commitInfo.commit = commit;
-          commitInfo.repo = this.repo;
-          this._openDialog(commitInfo);
-        }
-      },
-
-      // Is the info popup open?
-      _infoPopupOpen: function() {
-        return this.$.infoDialog.opened;
-      },
-
-      // Set the dialog content and open the dialog.
-      _openDialog: function(child) {
-        this.$.infoDialog.innerHTML = "";
-        var infoDialogContent = document.createElement("div");
-        infoDialogContent.id = "infoDialogContent";
-        infoDialogContent.appendChild(child);
-        this.$.infoDialog.appendChild(infoDialogContent);
-        this.$.infoDialog.refit();
-        this.$.infoDialog.toggle();
-      },
-
-      // Toggle the highlighting of the reverting commit.
-      _toggleReverter: function(e, s) {
-        var reverterHash = this.reverted_map[e.target.parentElement.id];
-        if (!reverterHash) {
-          // Could not determine who the reverter was.
-          return;
-        }
-        // element ids can't start with a number or $$$ breaks
-        var elem = $$$("#h"+reverterHash + "-author-td");
-        elem.style.backgroundColor = this.customStyle['--revert-background-color'];
-
-        this._handleRevertRelandEvents(e, elem);
-      },
-
-      // Toggle the highlighting of the relanding commit.
-      _toggleRelander: function(e, s) {
-        var relanderHash = this.relanded_map[e.target.parentElement.id];
-        if (!relanderHash) {
-          // Could not determine who the relander was.
-          return;
-        }
-        // element ids can't start with a number or $$$ breaks
-        var elem = $$$("#h"+relanderHash + "-author-td");
-        elem.style.backgroundColor = this.customStyle['--reland-background-color'];
-
-        this._handleRevertRelandEvents(e, elem);
-      },
-
-      // Handle mouse events for the reverting or relanding commit.
-      _handleRevertRelandEvents: function(e, elem) {
-        if (e.type == "click") {
-            this._openCommitPopup(e, elem.children[0]);
-            this.$.infoDialog.addEventListener("iron-overlay-closed", function(event) {
-                 elem.style.backgroundColor = "";
-                 event.target.removeEventListener(event.type, arguments.callee);
-            });
-        } else if (e.type == "mouseout") {
-            elem.style.backgroundColor = "";
-        }
-      },
+        return "far";
+      }
 
     });
   })()

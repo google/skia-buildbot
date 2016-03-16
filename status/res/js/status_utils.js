@@ -11,6 +11,13 @@ var BUILDBOT_RESULT_SKIPPED = 3;
 var BUILDBOT_RESULT_EXCEPTION = 4;
 var BUILDBOT_RESULT_CANCELLED = 5;
 
+var CLASS_BUILD_SINGLE = "build_single";
+var CLASS_BUILD_TOP = "build_top";
+var CLASS_BUILD_MIDDLE = "build_middle";
+var CLASS_BUILD_BOTTOM = "build_bottom";
+var CLASS_DASHED_TOP = "dashed_top";
+var CLASS_DASHED_BOTTOM = "dashed_bottom";
+
 this.status_utils = this.status_utils || function() {
   "use strict";
 

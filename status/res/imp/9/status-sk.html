@@ -46,7 +46,7 @@
     <style>
       :host{
         --app-sk-main: {
-          background-color: #FFFFFF;
+          background-color: transparent;
           font-family: sans-serif;
         };
 
@@ -97,6 +97,24 @@
       }
       alert-widget-sk {
         min-width:100px;
+      }
+
+      #mainContent {
+        position:relative;
+      }
+
+      #can {
+        position:absolute;
+        top:0;
+        left:0;
+        width:175px;
+      }
+
+      #table {
+        position:absolute;
+        top:10px;
+        left:174px;
+        right:0;
       }
 
       h1 {
@@ -167,7 +185,7 @@
         <gold-status-sk title="Skia Gold: Untriaged image count" reload="[[reload]]"></gold-status-sk>
       </div>
 
-      <div id="mainContent" class="horizontal layout flex">
+      <div id="mainContent" class="">
         <commits-canvas-sk id="can"
           branch_heads="[[branch_heads]]"
           commits="[[commits]]"
@@ -175,7 +193,7 @@
           reload="{{reload}}">
         </commits-canvas-sk>
 
-        <commits-table-sk id="table"
+        <commits-table-sk id="table" class=""
             builders="[[builders]]"
             builds="[[builds]]"
             categories="[[categories]]"

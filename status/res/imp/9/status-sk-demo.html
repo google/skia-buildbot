@@ -11,7 +11,7 @@
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script src="/res/imp/sinon-server-1.17.2.js"></script>
   <!-- Makes a var called data-->
-  <script type="text/javascript" src="commits-table-demo.json"></script>
+  <script type="text/javascript" src="commits-table-35-demo.json"></script>
   <!-- Makes a var called autoroll-->
   <script type="text/javascript" src="autoroll-widget-demo.json"></script>
   <!-- Makes a var called alerts-->
@@ -26,15 +26,15 @@
 
     var dataCalls = 0;
     // Send the data, then slightly change the builds for the update.
-    server.respondWith("GET", "/json/skia/commits/?n=16",function(request){
+    server.respondWith("GET", "/json/skia/commits/?n=35",function(request){
         if (dataCalls === 0) {
           dataCalls++;
           return request.respond(200, {}, JSON.stringify(data));
         }
         // Finish one of the pending builds.
-        data.builds["1d56448400c1da722a9b34c80ff4a9e46dc3c173"]["Build-Ubuntu-GCC-x86_64-Release-Android"].finished=true;
-        data.builds["653db51b440491b0fb1908bf5a43dcc89c90044d"]["Build-Ubuntu-GCC-x86_64-Release-Android"].finished=true;
-        data.builds["ad3a13c4c34d300882b8f9a5fdb98ad34a9df55b"]["Build-Ubuntu-GCC-x86_64-Release-Android"].finished=true;
+        data.builds["e2a88f244a1eba029a815fdb3ec520af37707de2"]["Test-Android-GCC-Nexus6-GPU-Adreno420-Arm7-Debug"].finished=true;
+        data.builds["6599efffeef3168dfc68dca99c30454c5c23b859"]["Test-Android-GCC-Nexus6-GPU-Adreno420-Arm7-Debug"].finished=true;
+        data.builds["e7bbe0378233d16aa0921965f4a4ccc66b2eeec3"]["Test-Android-GCC-Nexus6-GPU-Adreno420-Arm7-Debug"].finished=true;
         return request.respond(200, {}, JSON.stringify(data));
     });
 
@@ -91,6 +91,6 @@
 </head>
 
 <body>
-  <status-sk load="16" repo="skia"></status-sk>
+  <status-sk repo="skia"></status-sk>
 </body>
 </html>

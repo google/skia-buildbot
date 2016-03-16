@@ -1,0 +1,555 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <commits-table-d3-sk>
+
+  This uses d3 to draw the commit table.  Unlike previous versions which used a table and basically
+  drew the table row by row, this implementation draws it column by column.  Because filtering
+  happens on a builder (column) basis, drawing it column by column results in simpler code.
+
+  D3 is much much faster than Polymer for this type of data visualization, although this element
+  still offers a Polymer interface.  If any of the inputs change, the table will be redrawn.
+
+  To use this file import it:
+
+    <link href="/res/imp/commits-table-d3-sk" rel="import" />
+
+  Usage:
+
+    <commits-table-d3-sk></commits-table-d3-sk>
+
+  Properties:
+    // inputs
+    build_details: Object, a map of commit hash to an object that has the build results by builder.
+    builders: Object, a map of the builder names to an object that has, among other things, category,
+        subcategory, comments and master.
+    builds: Object, a map of the builder names to an object that maps build numbers to build results.
+    categories: Object, a map of the builder categories to an object that has the subcategories and
+        the colspan (total number of included builders).
+    category_list: Array<String>, an array of the builder category names.
+    commits: Array<Object>, the commit objects, in chronological detail.
+    commits_map: Object, a map of commit hash to commit objects.
+    highlighted_commit_hashes: Array<String>, the commit hashes which should be highlighted.
+    num_builders: Number, the number of builders with data, after filtering.
+    relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
+    repo: String, the current repo, used to make links.
+    reverted_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+<script src="/res/imp/bower_components/d3/d3.min.js"></script>
+
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/communication-icons.html">
+<link rel="import" href="/res/imp/bower_components/iron-icons/image-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
+
+<link rel="import" href="build-popup-sk.html">
+<link rel="import" href="builder-popup-sk.html">
+<link rel="import" href="commit-popup-sk.html">
+
+<link rel="stylesheet" href="commits-table-d3.css">
+<dom-module id="commits-table-d3-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment">
+      #container {
+        overflow-x: hidden;
+      }
+      #commits {
+        min-height: 780px;
+        min-width: 150px;
+      }
+      #builds {
+        border: 1px solid blue;
+        min-height: 400px;
+      }
+      #legend {
+        border-right: 1px solid black;
+        font-size: 10px;
+        height: 68px;
+      }
+      #table {
+        overflow-x: auto;
+        overflow-y: hidden;
+        /* 80 pixels of header and 35 * 20px of commits.
+        It is important to preallocate this size, otherwise the flexbox layout
+        behaves strangely (i.e. wrong) when the data is first added. */
+        min-height: 780px;
+      }
+      #infoDialog {
+        overflow-y: auto;
+        min-width: 600px;
+      }
+    </style>
+
+    <div id="container" class="horizontal layout">
+      <div id="commits">
+        <div id="legend">
+          <iron-icon class="tiny" icon="communication:chat"></iron-icon> comment<br/>
+          <iron-icon class="tiny" icon="image:texture"></iron-icon> flaky<br/>
+          <iron-icon class="tiny" icon="icons:block"></iron-icon> ignore failure<br/>
+          <iron-icon class="tiny revert" icon="icons:undo"></iron-icon> reverted<br/>
+          <iron-icon class="tiny reland" icon="icons:redo"></iron-icon> relanded<br/>
+        </div>
+      </div>
+      <div id="table" class="flex horizontal layout"></div>
+    </div>
+
+    <paper-dialog id="infoDialog"></paper-dialog>
+
+  </template>
+  <script>
+  (function(){
+    var BUILD_HEIGHT = 20;
+    Polymer({
+      is: 'commits-table-d3-sk',
+      properties: {
+        // inputs from data source to render.
+        builders: {
+          type: Object,
+        },
+        build_details: {
+          type: Object,
+        },
+        builds: {
+          type: Object,
+        },
+        categories: {
+          type: Object,
+        },
+        category_list: {
+          type: Array,
+        },
+        commit_label: {
+          type: String,
+        },
+        commits: {
+          type: Array,
+        },
+        commits_map: {
+          type: Object,
+        },
+        highlighted_commit_hashes: {
+          type: Array,
+        },
+        relanded_map: {
+          type: Object,
+        },
+        repo: {
+          type: String,
+        },
+        reverted_map: {
+          type: Object,
+        },
+      },
+      observers: [
+        "redraw(builders, build_details, categories, category_list, commit_label, commits, commits_map, highlighted_commit_hashes, relanded_map, repo, reverted_map)",
+      ],
+
+      ready: function() {
+        // We redraw, so as to try to better fit the screen size.
+        d3.select(window).on('resize', this.redraw.bind(this));
+      },
+
+      redraw:function() {
+        // This gets called any time one of the values changes.  Since the values are
+        // updated simultaneously, we don't want to try to draw the table many times at the
+        // same time, so we debounce it.  No timeout on the debounce because all the this.set
+        // calls will happen before a paint call, so this just basically collates all the requests.
+        this.debounce("redraw-commits-table", function(){
+          this._redraw();
+        }.bind(this));
+      },
+
+      _redraw:function() {
+        console.time("d3 rendering");
+        this._drawCommitMessages(this.commits, this.highlighted_commit_hashes, this.relanded_map, this.reverted_map);
+
+        this._drawCategories(this.category_list, this.categories);
+
+        this._drawSubCategories(this.categories);
+
+        this._drawBuilderColumns(this.categories, this.builders, this.commits.length);
+
+        this._drawBuilds(this.commits, this.build_details);
+        console.timeEnd("d3 rendering");
+      },
+
+      // Draw all of the commit divs that are on the left.
+      _drawCommitMessages: function(commits, highlighted_commit_hashes, relanded_map, reverted_map){
+        var openCommitDialog = this._openCommitDialog.bind(this);
+        var commitLabel = this.commit_label;
+        // It's easiest to delete all .commits and redraw them.  Normally, we would only update
+        // the ones we want, but since we have a composed element and there aren't very many
+        // commits, starting from scratch is simplest.
+        d3.select(this.$.commits).selectAll(".commit").remove();
+        var data = d3.select(this.$.commits).selectAll(".commit")
+          .data(commits, function(commit, i){
+            commit.index = i;
+            return commit.hash;
+          });
+        // Create a commit div for each commit with id "h + hash" element selectors choke
+        // if an id starts with a number, thus the h prefix.
+        var newCommits = data
+          .enter()
+          .append("div")
+          .classed("commit",true)
+          .attr("id", function(commit){
+            return "h"+commit.hash;
+          })
+          .on("click", function(commit) {
+            openCommitDialog(commit);
+          });
+        // Sort the commits to be in the order we are presented with them.
+        data.order();
+        // Set the mouseover to be the opposite of what the label says.
+        newCommits
+          .attr("title", function(commit) {
+            if (commitLabel == "author") {
+              return commit.shortSubject;
+            }
+            return commit.author;
+          });
+
+        // handle highlighted and alternating grey/white logic.
+        newCommits
+          .insert("div")
+          .classed("back", true)
+          .style("background-color", function(commit){
+            if (highlighted_commit_hashes.indexOf(commit.hash) !== -1){
+              return "#FFD740";
+            } else if (commit.index % 2 === 1) {
+              return "#FFF";
+            }
+          });
+        // Insert a span with the commit label.
+        newCommits
+          .insert("span")
+          .classed("author", function(){
+            return commitLabel == "author";
+          })
+          .classed("subject", function(){
+            return commitLabel == "subject";
+          })
+          .text(function(commit) {
+            if (commitLabel == "author") {
+              return commit.shortAuthor || "[no author]";
+            }
+            return commit.shortSubject || "[no subject]";
+        });
+
+        newCommits
+          .insert("div")
+          .classed("flex", true);
+        // On the other side, conditionally draw iron icons for comments, relands, reverts.
+        this._addIronIcon(newCommits, "communication:chat", "tiny", function(commit){
+          return commit.comments && commit.comments.length > 0;
+        });
+        var reverts = this._addIronIcon(newCommits, "icons:undo", "tiny revert", function(commit){
+          return reverted_map[commit.hash] !== undefined;
+        });
+        reverts.on("mouseover", function(commit){
+          var reverterHash = reverted_map[commit.hash];
+          d3.select("#h"+reverterHash).classed("revert", true);
+        })
+        reverts.on("mouseleave", function(commit){
+          d3.selectAll(".commit.revert").classed("revert", false);
+        })
+        var relands = this._addIronIcon(newCommits, "icons:redo","tiny reland", function(commit){
+          return relanded_map[commit.hash] !== undefined;
+        });
+        relands.on("mouseover", function(commit){
+          var relanderHash = relanded_map[commit.hash];
+          d3.select("#h"+relanderHash).classed("reland", true);
+        })
+        relands.on("mouseleave", function(commit){
+          d3.selectAll(".commit.reland").classed("reland", false);
+        })
+      },
+
+      // Adds iron icons to everything in the selection if shouldAddIcon returns truthy.  It
+      // returns all icons that were added.
+      _addIronIcon: function(selection, icon, classes, shouldAddIcon) {
+        return selection
+          .insert("span")
+          .html(function(commit){
+            // The Polymer templates will pick this up and make it a real iron-icon element.
+            // However, if you try to do .insert("iron-icon")... that does not work.
+            if (shouldAddIcon(commit)) {
+              return "<iron-icon class=\""+classes+"\" icon=\"" + icon + "\"></iron-icon>";
+            }
+          });
+      },
+
+      // Draw all of the divs for the categories, including the header.
+      _drawCategories: function(category_list, categories){
+        var data = d3.select(this.$.table).selectAll(".category")
+          .data(category_list, function(category){
+            return category;
+          });
+        data.exit().remove();
+        var newCategories = data
+          .enter()
+          .append("div")
+          .classed("category",true);
+        data.order();
+        data
+          .style("flex-grow", function(category){
+            // This keeps the rows about as evenly sized as possible.
+            // colspan is the total number of builders in this category.
+            return categories[category].colspan;
+          });
+
+        newCategories
+          .insert("div")
+          .classed("category-title", true)
+          .text(function(category){
+            return category;
+          })
+        // .subcategories will hold all of the .subcategory elements.
+        newCategories
+          .insert("div")
+          .classed("subcategories", true);
+      },
+
+      // Draw all of the divs for the subcategories, including the header
+      _drawSubCategories: function(categories) {
+        d3.select(this.$.table).selectAll(".subcategories").each(function(category){
+          if (!categories[category]) {
+            return;
+          }
+          var list = categories[category].subcategoryList.map(function(subcat){
+            return {
+              "category": category,
+              "subcategory": subcat,
+            };
+          });
+
+          var data = d3.select(this)
+            .selectAll(".subcategory")
+            .data(list, function(d) {
+              return d.category + d.subcategory;
+            });
+          data.exit().remove();
+          var subcategories = data
+            .enter()
+            .insert("div")
+            .classed("subcategory", true);
+          data.order();
+          data
+            .style("flex-grow", function(d){
+              // This keeps the rows about as evenly sized as possible.
+              return categories[d.category].subcategories[d.subcategory].builders.length;
+            });
+          subcategories
+            .insert("div")
+            .classed("subcategory-title", true)
+            .text(function(d){
+              return d.subcategory;
+            });
+          // .builders will hold all of the .builder elements.
+          subcategories
+            .insert("div")
+            .classed("builders", true);
+        });
+      },
+
+      // draw all of the builder columns, including the header box with the flaky, ignore_failure,
+      // and comment icons
+      _drawBuilderColumns: function(categories, builders, num_commits) {
+        var addIronIcon = this._addIronIcon.bind(this);
+        var openBuilderDialog = this._openBuilderDialog.bind(this);
+        d3.select(this.$.table).selectAll(".builders").each(function(d){
+          if (!categories[d.category].subcategories[d.subcategory]) {
+            return;
+          }
+          var list = categories[d.category].subcategories[d.subcategory].builders.map(function(builder){
+            return {
+              "category": d.category,
+              "subcategory": d.subcategory,
+              "builder": builder,
+            };
+          });
+
+          var data = d3.select(this)
+            .selectAll(".builder")
+            .data(list, function(d) {
+              return d.category + d.subcategory + d.builder;
+            });
+          data.exit().remove();
+          var newBuilders = data
+            .enter()
+            .insert("div")
+            .classed("builder", true);
+          data.order();
+          var titles = newBuilders
+            .insert("div")
+            .classed("builder-title", true)
+            .attr("title", function(d){
+              return d.builder;
+            })
+            .on("click", function(d){
+              openBuilderDialog(d.builder);
+            });
+
+          addIronIcon(titles, "icons:block", "tiny", function(d){
+            return builders[d.builder].ignoreFailure;
+          });
+          addIronIcon(titles, "image:texture", "tiny", function(d){
+            return builders[d.builder].flaky;
+          });
+          addIronIcon(titles, "communication:chat", "tiny", function(d){
+            return builders[d.builder].comments && builders[d.builder].comments.length > 0;
+          });
+
+          newBuilders
+          .insert("div")
+          .classed("builder-spacer", true);
+
+          // Set the height so that flexing doesn't throw off the multi column alignment.
+          newBuilders
+            .insert("div")
+            .classed("builds", true)
+            .style("max-height", function(){
+              return (BUILD_HEIGHT * num_commits) + "px";
+            })
+            .style("min-height", function(){
+              return (BUILD_HEIGHT * num_commits) + "px";
+            });
+        });
+      },
+
+      // Draws the build divs.  We forego flexbox helping us align these.  First, we create a build
+      // div (which is a fixed height) in side of it create a div with the various build classes to
+      // set the heights/widths/margins etc.  This is easier to line up with the adjacent columns
+      // and allows for more consistent zooming behavior.
+      _drawBuilds: function(commits, build_details) {
+        var openBuildDialog = this._openBuildDialog.bind(this);
+        d3.select(this.$.table).selectAll(".builds").each(function(d){
+          var list = commits.map(function(commit) {
+            return {
+              "category": d.category,
+              "subcategory": d.subcategory,
+              "builder": d.builder,
+              "commit": commit,
+              "displayClass": commit.displayClass[d.builder] || [],
+            };
+          });
+          var data = d3.select(this)
+            .selectAll(".build")
+            .data(list, function(d) {
+              return d.category + d.subcategory + d.builder + d.commit.hash;
+            });
+          data
+            .enter()
+            .insert("div")
+            .classed("build",true)
+            .insert("div")
+            // This is kind of an awkward way to set classes, but it's the only way to do it in d3.
+            .classed(CLASS_BUILD_SINGLE, function(d){
+              return d.displayClass.indexOf(CLASS_BUILD_SINGLE) >= 0;
+            })
+            .classed(CLASS_BUILD_MIDDLE, function(d){
+              return d.displayClass.indexOf(CLASS_BUILD_MIDDLE) >= 0;
+            })
+            .classed(CLASS_BUILD_TOP, function(d){
+              return d.displayClass.indexOf(CLASS_BUILD_TOP) >= 0;
+            })
+            .classed(CLASS_BUILD_BOTTOM, function(d){
+              return d.displayClass.indexOf(CLASS_BUILD_BOTTOM) >= 0;
+            })
+            .classed(CLASS_DASHED_BOTTOM, function(d){
+              return d.displayClass.indexOf(CLASS_DASHED_BOTTOM) >= 0;
+            })
+            .classed(CLASS_DASHED_TOP, function(d){
+              return d.displayClass.indexOf(CLASS_DASHED_TOP) >= 0;
+            })
+            .attr("title", function(d){
+              var details = build_details[d.commit.hash][d.builder];
+              if (details) {
+                return d.builder + ", #"+details.number;
+              }
+              return "";
+            })
+            .on("click", function(build){
+              openBuildDialog(build);
+            });
+          data.order();
+          // Style the inside div.
+          data.each(function(d){
+            if (build_details[d.commit.hash] && build_details[d.commit.hash][d.builder]) {
+                this.children[0].style["background-color"] = build_details[d.commit.hash][d.builder].color;
+              }
+          });
+        });
+      },
+
+      _openBuildDialog: function(build) {
+        if (this._infoPopupOpen()) {
+          return;
+        }
+        var details = this.build_details[build.commit.hash][build.builder];
+        if (details) {
+          var buildInfo = document.createElement("build-popup-sk");
+          buildInfo.build = details;
+          buildInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(details, this.internalView);
+          buildInfo.repo = this.repo;
+          buildInfo.commit_details = this.commits_map;
+          buildInfo.parent = this;
+          this._openDialog(buildInfo);
+        }
+      },
+
+      _openBuilderDialog: function(builder) {
+        if (this._infoPopupOpen()) {
+          return;
+        }
+        if (builder) {
+          var builderInfo = document.createElement("builder-popup-sk");
+          builderInfo.builder = this.builders[builder];
+          for (var buildNum in this.builds[builder]) {
+            builderInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(this.builds[builder][buildNum], this.internalView);
+            break;
+          }
+          builderInfo.repo = this.repo;
+          this._openDialog(builderInfo);
+        }
+      },
+
+      _openCommitDialog: function(commit) {
+        if (this._infoPopupOpen()) {
+          return;
+        }
+        var commitInfo = document.createElement("commit-popup-sk");
+        commitInfo.commit = commit;
+        commitInfo.repo = this.repo;
+        this._openDialog(commitInfo);
+      },
+
+      // Is the info popup open?
+      _infoPopupOpen: function() {
+        return this.$.infoDialog.opened;
+      },
+
+      // Set the dialog content and open the dialog.
+      _openDialog: function(child) {
+        this.$.infoDialog.innerHTML = "";
+        var infoDialogContent = document.createElement("div");
+        infoDialogContent.id = "infoDialogContent";
+        infoDialogContent.appendChild(child);
+        this.$.infoDialog.appendChild(infoDialogContent);
+        this.$.infoDialog.resetFit();
+        this.$.infoDialog.refit();
+        this.$.infoDialog.center();
+        this.$.infoDialog.open();
+      },
+    });
+  })()
+  </script>
+</dom-module>

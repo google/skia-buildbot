@@ -40,36 +40,21 @@
 <dom-module id="commits-canvas-sk">
   <template>
     <style>
-      table.commitList {
-        border: 0px;
-        border-spacing: 0px;
-        width: 100%;
-        border-collapse:collapse;
+      #container {
+        position: relative;
       }
-      th {
-        text-align: left;
-        white-space: nowrap;
+
+      #reload {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+
+
+      .refresh {
         font-size: 12px;
-      }
-      th.header {
-        height: 53px;
-        padding: 5px;
-        font-size: 0.7em;
         font-weight: normal;
-      }
-      th.category {
-        height: 18px;
-      }
-      th.subcategory {
-        height: 15px;
-      }
-      tr.builder {
-        height: 33px;
-      }
-      td {
-        padding: 0px;
-        margin: 0px;
-        white-space: nowrap;
+        padding: 5px;
       }
 
       paper-input {
@@ -77,45 +62,36 @@
       }
       :host{
         --paper-input-container-input: {
-            font-size:1.0em;
+            font-size: 1.0em;
         };
       }
       div[prefix] {
-        font-size:1.0em;
+        font-size: 1.0em;
       }
 
       #commitCanvas {
-        width: 0px;
-        height: 0px;
+        position: absolute;
+        top: 128px;
+        left:0;
+        width: 0;
+        height: 0;
       }
+
     </style>
-    <!-- Use another table as a spacer for the canvas. I couldn't find a sane
-         way to put the canvas in the same table as the commit data. -->
-    <table class="commitList">
-      <thead>
-        <tr>
-          <th class="header">
-            <div>
-              <paper-input type="number" value="{{reload}}" auto-validate no-label-float>
-              <div prefix>Reload (s):</div>
-              </paper-input></div>
-              <div>Loaded {{_lastLoaded}}</div>
-            </div>
-          </th>
-        </tr>
-        <!-- placeholders to line up with other table -->
-        <tr><th class="category"></th></tr>
-        <tr><th class="subcategory"></th></tr>
-        <tr class="builder"><td></td></tr>
-      </thead>
-      <tbody>
-        <tr class="commit">
-          <td>
-            <canvas id="commitCanvas"></canvas>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+
+    <div id="container">
+
+      <div id="reload" class="refresh">
+        <paper-input type="number" value="{{reload}}" auto-validate no-label-float>
+          <div prefix>Reload (s):</div>
+        </paper-input>
+        <div>Loaded {{_lastLoaded}}</div>
+      </div>
+
+      <canvas id="commitCanvas"></canvas>
+
+    </div>
+
   </template>
   <script>
   (function() {

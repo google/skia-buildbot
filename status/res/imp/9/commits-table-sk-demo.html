@@ -13,6 +13,8 @@
      <!-- Makes a var called data-->
   <script type="text/javascript" src="commits-table-demo.json"></script>
   <script type="text/javascript" charset="utf-8">
+    sinon.format = function(object) {return JSON.stringify(object);}
+    sinon.log = function(message) {console.log(message);};
     var server = sinon.fakeServer.create();
     server.autoRespond = true;
     server.respondWith("GET", "/json/skia/commits/?n=16",JSON.stringify(data));
@@ -68,6 +70,7 @@
 
     <commits-data-sk id="data"
         load="16"
+        repo="skia"
         filter="[[filter]]"
         search="[[search]]"
 

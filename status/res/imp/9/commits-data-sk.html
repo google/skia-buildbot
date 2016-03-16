@@ -378,23 +378,57 @@
             }
             builds[builder][build.number] = build;
             // Figure out the display class to use.
-            var clazz = "build_single";
+            var classes = [CLASS_BUILD_SINGLE];
             if (i > 0) {
+              // We are drawing from most recent on back in time.  prevCommit is really the "next"
+              // commit in a temporal timeline.  But, it was the previously drawn commit, so the
+              // name sticks.
               var prevCommit = commits[i-1];
               var prevDetails = build_details[prevCommit.hash];
-              if (prevDetails) {
+              if (prevCommit.parent.indexOf(commit.hash) === -1) {
+                // We skipped one or more commits.  This is likely due to a branch.  We need to find the last drawn commit whose parent is this one.
+                prevCommit = undefined;
+                for (var j = i-1; j>= 0; j--) {
+                  if (commits[j].parent.indexOf(commit.hash) !== -1) {
+                    prevCommit = commits[j];
+                    break;
+                  }
+                }
+                if (prevCommit) {
+                  // If the previously drawn commit does not exist, it basically means we are the
+                  // head of the branch.  If it does exist, we change it to have a dashed bottom
+                  // and for this commit to have a dashed top.
+                  prevDetails = build_details[prevCommit.hash];
+                  var prevBuild = prevDetails[builder];
+                  // Only continue drawing if it's actually the same build
+                  if (prevBuild && prevBuild.number == build.number) {
+                    classes = [CLASS_BUILD_BOTTOM, CLASS_DASHED_TOP];
+
+                    if (prevCommit.displayClass[builder].indexOf(CLASS_BUILD_SINGLE) >= 0) {
+                      prevCommit.displayClass[builder] = [CLASS_BUILD_TOP, CLASS_DASHED_BOTTOM];
+                    } else {
+                      prevCommit.displayClass[builder] = [CLASS_BUILD_MIDDLE, CLASS_DASHED_BOTTOM];
+                    }
+
+                  }
+                }
+              } else if (prevDetails) {
                 var prevBuild = prevDetails[builder];
+                // Only continue drawing if it's actually the same build
                 if (prevBuild && prevBuild.number == build.number) {
-                  clazz = "build_bottom";
-                  if (prevCommit.displayClass[builder] == "build_single") {
-                    prevCommit.displayClass[builder] = "build_top";
-                  } else if (prevCommit.displayClass[builder] == "build_bottom") {
-                    prevCommit.displayClass[builder] = "build_middle";
+                  classes = [CLASS_BUILD_BOTTOM];
+                  var prevClasses = prevCommit.displayClass[builder];
+                  if (prevClasses.indexOf(CLASS_BUILD_SINGLE) >= 0) {
+                    prevCommit.displayClass[builder] = [CLASS_BUILD_TOP];
+                  } else if (prevClasses.indexOf(CLASS_BUILD_BOTTOM) >= 0) {
+                    var j = prevClasses.indexOf(CLASS_BUILD_BOTTOM);
+                    prevClasses[j] = CLASS_BUILD_MIDDLE;
+                    prevCommit.displayClass[builder] = prevClasses;
                   }
                 }
               }
             }
-            commit.displayClass[builder] = clazz;
+            commit.displayClass[builder] = classes;
           }
         }
         this.builds = builds;
