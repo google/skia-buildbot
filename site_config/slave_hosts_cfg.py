@@ -495,6 +495,7 @@ _slave_host_dicts = {
 
   'skia-vm-027': {
     'slaves': [
+      ('skiabot-linux-tester-006', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
@@ -506,6 +507,7 @@ _slave_host_dicts = {
 
   'skia-vm-028': {
     'slaves': [
+      ('skiabot-linux-tester-007', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
@@ -517,6 +519,7 @@ _slave_host_dicts = {
 
   'skia-vm-029': {
     'slaves': [
+      ('skiabot-linux-tester-008', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
@@ -528,6 +531,7 @@ _slave_host_dicts = {
 
   'skia-vm-030': {
     'slaves': [
+      ('skiabot-linux-tester-009', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
@@ -539,6 +543,7 @@ _slave_host_dicts = {
 
   'skia-vm-031': {
     'slaves': [
+      ('skiabot-linux-tester-010', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
@@ -550,6 +555,7 @@ _slave_host_dicts = {
 
   'skia-vm-032': {
     'slaves': [
+      ('skiabot-linux-tester-011', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
