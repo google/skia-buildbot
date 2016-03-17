@@ -59,10 +59,18 @@
 <dom-module id="commits-table-sk">
   <template>
     <style>
+      /*Hide scrollbar on filter wrapper*/
+      #filterWrapper::-webkit-scrollbar {
+         height: 0px;
+      }
+      #filterWrapper {
+        overflow-x: auto;
+      }
       .filters{
         font-size: .75em;
         height: 50px;
-        overflow-x: auto;
+        min-width: 950px;
+        max-width: 1250px;
       }
       div.tooltip {
         padding-right: 12px;
@@ -106,31 +114,33 @@
     </style>
 
     <div>
-      <div class="filters">
-        <paper-radio-group id="commitLabelSelector" selected="{{commit_label}}">
-          <template is="dom-repeat" items="{{_commit_labels}}" as="label">
-            <paper-radio-button name="{{label}}">{{_getPrettyCommitLabel(label)}}</paper-radio-button><br/>
-          </template>
-        </paper-radio-group>
+      <div id="filterWrapper">
+        <div class="filters">
+          <paper-radio-group id="commitLabelSelector" selected="{{commit_label}}">
+            <template is="dom-repeat" items="{{_commit_labels}}" as="label">
+              <paper-radio-button name="{{label}}">{{_getPrettyCommitLabel(label)}}</paper-radio-button><br/>
+            </template>
+          </paper-radio-group>
 
-        <paper-radio-group id="buildbotSelector" class$="{{_getLeftAlign(commit_label)}}" selected="{{filter}}">
-          <template is="dom-repeat" items="{{_short_filters}}" as="filter">
-            <paper-radio-button name="{{filter}}">{{_getPrettyFilterLabel(filter)}}</paper-radio-button>
-            <div class="tooltip" title$="{{_getPrettyFilterText(filter)}}">
-              <iron-icon icon="icons:help" class="helpicon"></iron-icon>
-            </div>
-          </template>
-          <paper-radio-button name="search">{{_getPrettyFilterLabel('search')}}</paper-radio-button>
-        </paper-radio-group>
-        <paper-input
-            id="builderTextFilter"
-            value="{{search}}"
-            label="Filter builder"
-            on-change="_setFilterToSearch"
-            no-label-float>
-        </paper-input>
-        <div class="tooltip" title$="{{_getPrettyFilterText('search')}}">
-          <iron-icon icon="icons:help" class="helpicon"></iron-icon>
+          <paper-radio-group id="buildbotSelector" class$="{{_getLeftAlign(commit_label)}}" selected="{{filter}}">
+            <template is="dom-repeat" items="{{_short_filters}}" as="filter">
+              <paper-radio-button name="{{filter}}">{{_getPrettyFilterLabel(filter)}}</paper-radio-button>
+              <div class="tooltip" title$="{{_getPrettyFilterText(filter)}}">
+                <iron-icon icon="icons:help" class="helpicon"></iron-icon>
+              </div>
+            </template>
+            <paper-radio-button name="search"></paper-radio-button>
+          </paper-radio-group>
+          <paper-input
+              id="builderTextFilter"
+              value="{{search}}"
+              label="Filter builder"
+              on-change="_setFilterToSearch"
+              no-label-float>
+          </paper-input>
+          <div class="tooltip" title$="{{_getPrettyFilterText('search')}}">
+            <iron-icon icon="icons:help" class="helpicon"></iron-icon>
+          </div>
         </div>
       </div>
 

@@ -63,7 +63,7 @@
       }
       #commits {
         min-height: 780px;
-        min-width: 150px;
+        min-width: 50px;
       }
       #builds {
         border: 1px solid blue;
@@ -83,9 +83,9 @@
         min-height: 780px;
       }
       #infoDialog {
-        overflow-y: auto;
-        min-width: 600px;
+        overflow: auto;
       }
+
     </style>
 
     <div id="container" class="horizontal layout">
@@ -446,45 +446,29 @@
             .data(list, function(d) {
               return d.category + d.subcategory + d.builder + d.commit.hash;
             });
+          data.exit().remove();
           data
             .enter()
             .insert("div")
             .classed("build",true)
             .insert("div")
-            // This is kind of an awkward way to set classes, but it's the only way to do it in d3.
-            .classed(CLASS_BUILD_SINGLE, function(d){
-              return d.displayClass.indexOf(CLASS_BUILD_SINGLE) >= 0;
-            })
-            .classed(CLASS_BUILD_MIDDLE, function(d){
-              return d.displayClass.indexOf(CLASS_BUILD_MIDDLE) >= 0;
-            })
-            .classed(CLASS_BUILD_TOP, function(d){
-              return d.displayClass.indexOf(CLASS_BUILD_TOP) >= 0;
-            })
-            .classed(CLASS_BUILD_BOTTOM, function(d){
-              return d.displayClass.indexOf(CLASS_BUILD_BOTTOM) >= 0;
-            })
-            .classed(CLASS_DASHED_BOTTOM, function(d){
-              return d.displayClass.indexOf(CLASS_DASHED_BOTTOM) >= 0;
-            })
-            .classed(CLASS_DASHED_TOP, function(d){
-              return d.displayClass.indexOf(CLASS_DASHED_TOP) >= 0;
-            })
-            .attr("title", function(d){
-              var details = build_details[d.commit.hash][d.builder];
-              if (details) {
-                return d.builder + ", #"+details.number;
-              }
-              return "";
-            })
             .on("click", function(build){
               openBuildDialog(build);
             });
           data.order();
+
           // Style the inside div.
           data.each(function(d){
-            if (build_details[d.commit.hash] && build_details[d.commit.hash][d.builder]) {
-                this.children[0].style["background-color"] = build_details[d.commit.hash][d.builder].color;
+            var build = this.children[0];
+            var details = build_details[d.commit.hash] && build_details[d.commit.hash][d.builder];
+            build.className = d.displayClass.join(" ");
+
+            if (details) {
+                build.style["background-color"] = build_details[d.commit.hash][d.builder].color;
+                build.title = d.builder + ", #"+details.number;
+              } else {
+                build.style["background-color"] = "";
+                build.title = "";
               }
           });
         });
@@ -542,11 +526,16 @@
         this.$.infoDialog.innerHTML = "";
         var infoDialogContent = document.createElement("div");
         infoDialogContent.id = "infoDialogContent";
+        // Set the min width to avoid problems with very small popups
+        // (like builder-popup with no comments)
+        infoDialogContent.style.minWidth = "400px";
+        // The paper-dialog has a hard time resizing the popups to fit on small screens, so we
+        // help it out by shrinking and scrolling large content.
+        infoDialogContent.style.maxWidth = window.screen.availWidth + "px";
+        infoDialogContent.style.maxHeight = window.screen.availHeight + "px";
         infoDialogContent.appendChild(child);
         this.$.infoDialog.appendChild(infoDialogContent);
-        this.$.infoDialog.resetFit();
         this.$.infoDialog.refit();
-        this.$.infoDialog.center();
         this.$.infoDialog.open();
       },
     });

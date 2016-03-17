@@ -96,7 +96,7 @@
         return "/buildbots?botGrouping=builder&filterBy=builder&include=%5E"+builder.builder+"%24";
       },
       _makeBuildMasterURL: function(buildbotUrlPrefix, builder) {
-        return buildbotUrlPrefix+builder.master;
+        return buildbotUrlPrefix;
       },
       _makeAddCommentURL: function (builder, repo) {
         return "/json/"+repo+"/builders/"+builder.builder+"/comments";

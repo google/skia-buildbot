@@ -60,7 +60,6 @@
           font-size: 15px;
           font-family: sans-serif;
           text-align: center;
-          height: 120px;
 
           background-color: #66A61E;
         };
@@ -71,7 +70,6 @@
           font-size: 15px;
           font-family: sans-serif;
           text-align: center;
-          height: 120px;
 
           background-color: #D95F02;
         };
@@ -81,6 +79,7 @@
         margin-left:5%;
         margin-right:5%;
       }
+
       paper-button.roles {
         color:#FFFFFF;
         text-transform: none;
@@ -120,6 +119,30 @@
       h1 {
         text-transform: capitalize;
       }
+
+      h1.shrunk {
+        font-size:1.5em;
+        display: block;
+      }
+      #infobar.shrunk, .shrunk {
+        display:none;
+      }
+
+      #can.shrunk {
+        display: block;
+        position:absolute;
+        top:0;
+        left:0;
+        width:100px;
+      }
+
+      #table.shrunk {
+        display: block;
+        position:absolute;
+        top:10px;
+        left:100px;
+        right:0;
+      }
     </style>
 
     <!-- To keep all the data binding sane and understandable, one-way and two-way bindings
@@ -137,19 +160,22 @@
 
     <app-sk id="app" class="fit"
         mode="waterfall"
-        tall_class="medium-tall"
-        responsive_width="1200px">
+        tall_class="tall"
+        responsive_width="800px"
+        header_height="120px"
+        header_responsive_height="56px";
+        narrow="{{narrow}}">
       <status-menu-section-sk navigation></status-menu-section-sk>
 
-      <h1 toolbar>[[repo]] Status</h1>
+      <h1 class="shrinkable" toolbar>[[repo]] Status</h1>
 
-      <autoroll-widget-sk title="Skia DEPS roll status" rtoolbar
+      <autoroll-widget-sk title="Skia DEPS roll status" class="shrinkable" rtoolbar
         reload="[[reload]]"
 
         status="{{autoroll_status}}">
       </autoroll-widget-sk>
 
-      <tree-status-sk rtoolbar
+      <tree-status-sk class="shrinkable" rtoolbar
         reload="[[reload]]"
 
         open="{{open}}"
@@ -164,7 +190,7 @@
         reload="[[reload]]">
       </alert-widget-sk>
 
-      <div id="infobar" class="bottom horizontal layout flex" toolbar>
+      <div id="infobar" class="bottom horizontal layout flex shrinkable" toolbar>
         <a href="http://skia-tree-status.appspot.com/sheriff" target="_blank" class="inherit">
         <paper-button id="sheriff-button" class="roles" title="The current Skia sheriff"><iron-icon icon="icons:star"></iron-icon>
             Sheriff: [[sheriff]]
@@ -185,15 +211,15 @@
         <gold-status-sk title="Skia Gold: Untriaged image count" reload="[[reload]]"></gold-status-sk>
       </div>
 
-      <div id="mainContent" class="">
-        <commits-canvas-sk id="can"
+      <div id="mainContent">
+        <commits-canvas-sk id="can" class="shrinkable"
           branch_heads="[[branch_heads]]"
           commits="[[commits]]"
 
           reload="{{reload}}">
         </commits-canvas-sk>
 
-        <commits-table-sk id="table" class=""
+        <commits-table-sk id="table" class="shrinkable"
             builders="[[builders]]"
             builds="[[builds]]"
             categories="[[categories]]"
@@ -251,6 +277,10 @@
       },
 
       // private
+      narrow: {
+        type: Boolean,
+        observer: "_toggleLargeMenuItems"
+      },
       open: {
         type: Boolean,
         observer: "_treeOpen",
@@ -264,6 +294,18 @@
       trooper: {
         type: String,
       },
+    },
+
+    _toggleLargeMenuItems: function(isNarrow) {
+      console.log("IS narrow", isNarrow)
+      var items = $$(".shrinkable", this.$.app);
+      items.forEach(function(a){
+        if (isNarrow) {
+          a.classList.add("shrunk");
+        } else {
+          a.classList.remove("shrunk");
+        }
+      });
     },
 
     _treeOpen: function(open) {
