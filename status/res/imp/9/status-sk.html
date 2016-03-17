@@ -216,6 +216,7 @@
           branch_heads="[[branch_heads]]"
           commits="[[commits]]"
 
+          commits_to_load="{{commits_to_load}}"
           reload="{{reload}}">
         </commits-canvas-sk>
 
@@ -241,7 +242,7 @@
         <commits-data-sk id="data"
             autoroll_current="[[autoroll_status.currentRollRev]]"
             autoroll_last="[[autoroll_status.lastRollRev]]"
-            load="[[load]]"
+            commits_to_load="[[commits_to_load]]"
             filter="[[filter]]"
             reload="[[reload]]"
             repo="[[repo]]"
@@ -268,7 +269,7 @@
 
     properties: {
       // input
-      load: {
+      commits_to_load: {
         type: Number,
         value: 35,
       },
@@ -297,7 +298,6 @@
     },
 
     _toggleLargeMenuItems: function(isNarrow) {
-      console.log("IS narrow", isNarrow)
       var items = $$(".shrinkable", this.$.app);
       items.forEach(function(a){
         if (isNarrow) {

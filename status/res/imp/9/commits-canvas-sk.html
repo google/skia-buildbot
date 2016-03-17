@@ -27,6 +27,7 @@
         timestamp: String, the commit's timestamp, formatted like: "2016-02-22T06:34:47-08:00"
 
     //output
+    commits_to_load: Number, the number of commits to load.
     reload: Number, the number of seconds that the status page should be reloaded.
 
   Methods:
@@ -84,7 +85,10 @@
 
       <div id="reload" class="refresh">
         <paper-input type="number" value="{{reload}}" auto-validate no-label-float>
-          <div prefix>Reload (s):</div>
+          <div prefix>Reload (s):&nbsp;</div>
+        </paper-input>
+        <paper-input type="number" value="{{commits_to_load}}" auto-validate no-label-float>
+          <div prefix>Commits:&nbsp;</div>
         </paper-input>
         <div>Loaded {{_lastLoaded}}</div>
       </div>
@@ -417,6 +421,11 @@
         },
 
         // output
+        commits_to_load: {
+          type: Number,
+          value: 35,
+          notify: true,
+        },
         reload: {
           type: Number,
           value: 60,
@@ -437,7 +446,6 @@
       draw: function(commits, branch_heads) {
         this._lastLoaded = new Date().toLocaleTimeString();
         console.time("draw");
-        console.log("Drawing.");
         // Initialize all commits.
         var prep = prepareCommitsForDisplay(commits, branch_heads);
         this.displayCommits = prep[0];

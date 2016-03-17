@@ -23,8 +23,8 @@
     // inputs
     autoroll_current: String, the commit hash of the current autoroll.
     autoroll_last: String the commit hash of the previous autoroll.
+    commits_to_load: Number, the number of commits to load from the backend
     filter: String, the builder filter to be used.
-    load: Number, the number of commits to load from the backend
     reload: How often (in seconds) to reload the data.
     search: String, the string to be used if filter is "search".
 
@@ -178,13 +178,13 @@
           type: String,
           value: "",
         },
+        commits_to_load: {
+          type: Number,
+          value: 35,
+        },
         filter: {
           type: String,
           observer:"_filterBuilders",
-        },
-        load: {
-          type: Number,
-          value: 35,
         },
         reload: {
           type: Number,
@@ -272,7 +272,7 @@
         //private
         _params: {
           type: String,
-          computed: "_getUrlParams(load)",
+          computed: "_getUrlParams(commits_to_load)",
         },
         _data: {
           type: Object,
@@ -291,8 +291,8 @@
         return "/json/"+repo+"/commits/";
       },
 
-      _getUrlParams: function(load) {
-        return {"n":load};
+      _getUrlParams: function(commits_to_load) {
+        return {"n":commits_to_load};
       },
 
       _makeCommitsMap: function(arr) {
