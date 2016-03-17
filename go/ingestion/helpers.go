@@ -119,6 +119,11 @@ func getSource(id string, dataSource *sharedconfig.DataSource, client *http.Clie
 	return NewFileSystemSource(id, dataSource.Dir)
 }
 
+// validIngestionFile returns true if the given file name matches basic rules.
+func validIngestionFile(fName string) bool {
+	return strings.HasSuffix(strings.TrimSpace(fName), ".json")
+}
+
 // GoogleStorageSource implementes the Source interface for Google Storage.
 type GoogleStorageSource struct {
 	bucket        string
@@ -159,7 +164,7 @@ func (g *GoogleStorageSource) Poll(startTime, endTime int64) ([]ResultFileLocati
 			// TODO(stephana): remove this when we move away from the chromium-skia-gm bucket.
 			if strings.Contains(filepath.Base(item.Name), "uploading") {
 				glog.Warningf("Received temporary file from GS: %s", item.Name)
-			} else if item.Updated.Unix() > startTime {
+			} else if validIngestionFile(item.Name) && (item.Updated.Unix() > startTime) {
 				retval = append(retval, newGSResultFileLocation(item, g.rootDir, g.storageClient))
 			}
 		})
@@ -176,12 +181,14 @@ func (g *GoogleStorageSource) EventChan() <-chan []ResultFileLocation {
 	ch := make(chan []ResultFileLocation)
 	g.evt.SubscribeAsync(gc_event.StorageEvent(g.bucket, g.rootDir), func(eventData interface{}) {
 		storageEv := eventData.(*gc_event.GoogleStorageEventData)
-		result, err := g.storageClient.Bucket(storageEv.Bucket).Object(storageEv.Name).Attrs(context.Background())
-		if err != nil {
-			glog.Errorf("Error retrievint obj attributes for %s/%s: %s", storageEv.Bucket, storageEv.Name, err)
-			return
+		if validIngestionFile(storageEv.Name) {
+			result, err := g.storageClient.Bucket(storageEv.Bucket).Object(storageEv.Name).Attrs(context.Background())
+			if err != nil {
+				glog.Errorf("Error retrievint obj attributes for %s/%s: %s", storageEv.Bucket, storageEv.Name, err)
+				return
+			}
+			ch <- []ResultFileLocation{newGSResultFileLocation(result, g.rootDir, g.storageClient)}
 		}
-		ch <- []ResultFileLocation{newGSResultFileLocation(result, g.rootDir, g.storageClient)}
 	})
 	return ch
 }
@@ -277,7 +284,7 @@ func (f *FileSystemSource) Poll(startTime, endTime int64) ([]ResultFileLocation,
 				}
 
 				updateTimestamp := info.ModTime().Unix()
-				if updateTimestamp > startTime {
+				if validIngestionFile(path) && (updateTimestamp > startTime) {
 					rf, err := FileSystemResult(path, f.rootDir)
 					if err != nil {
 						glog.Errorf("Unable to create file system result: %s", err)
