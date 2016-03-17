@@ -67,12 +67,14 @@
       .alerting > paper-icon-button {
         background-color: #E6AB02;
         border-radius: 23px;
-        animation: pulse 0.6s infinite linear;
+        /* Animation has been disabled temporarily as it appears to cause a rendering bug in Chrome
+        TODO(kjlubick) Find replicating case and file bug. */
+        /*animation: pulse 0.6s infinite linear;*/
       }
 
       .alerting > #numAlerts {
         color: #D95F02;
-        animation: pulse 0.6s infinite linear;
+        /*animation: pulse 0.6s infinite linear;*/
       }
 
       #alertlist {
@@ -100,7 +102,7 @@
       handle-as="json"
       last-response="{{_allAlerts}}">
     </iron-ajax>
-    <timer-sk period="[[reload]]" on-trigger="_reload">
+    <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
 
     <span id="alert" class$="[[_alertingClass(active_alerts)]]">
       <paper-icon-button
@@ -180,7 +182,7 @@
     },
 
     _getParams: function(include, exclude) {
-      return {"include":include, "exclude":exclude};
+      return {"category":include, "excludeCategory":exclude};
     },
 
     _has: function(active_alerts) {

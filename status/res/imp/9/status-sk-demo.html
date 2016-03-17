@@ -55,7 +55,7 @@
 
     var alertsCalls = 0;
     // Send one alert, then after one request, no alerts.
-    server.respondWith("GET","https://alerts.skia.org/json/alerts/?exclude=infra",function(request){
+    server.respondWith("GET","https://alerts.skia.org/json/alerts/?excludeCategory=infra",function(request){
         if (alertsCalls === 0) {
           alertsCalls++;
           return request.respond(200, {}, JSON.stringify(alerts));
