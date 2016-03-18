@@ -66,10 +66,12 @@ func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tall
 			glog.Infof("FOUND %d digests to fetch.", len(digests))
 			storages.DiffStore.AbsPath(digests)
 
-			if err := warmTrybotDigests(storages, traceDigests); err != nil {
-				glog.Errorf("Error retrieving trybot digests: %s", err)
-				return
-			}
+			// TODO(stephana): Re-enable this once we have figured out crashes.
+
+			// if err := warmTrybotDigests(storages, traceDigests); err != nil {
+			// 	glog.Errorf("Error retrieving trybot digests: %s", err)
+			// 	return
+			// }
 		}
 
 		oneRun()
