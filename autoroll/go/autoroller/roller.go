@@ -129,16 +129,8 @@ func (r *AutoRoller) GetStatus(includeError bool) AutoRollStatus {
 	defer r.mtx.RUnlock()
 
 	recent := r.recent.GetRecentRolls()
-
 	current := r.recent.CurrentRoll()
-	if current != nil {
-		current = &(*current)
-	}
-
 	last := r.recent.LastRoll()
-	if last != nil {
-		last = &(*last)
-	}
 
 	s := AutoRollStatus{
 		CurrentRoll: current,

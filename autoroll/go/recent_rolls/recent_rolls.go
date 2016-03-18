@@ -81,7 +81,9 @@ func (r *RecentRolls) GetRecentRolls() []*autoroll.AutoRollIssue {
 	defer r.mtx.RUnlock()
 	recent := make([]*autoroll.AutoRollIssue, 0, len(r.recent))
 	for _, r := range r.recent {
-		recent = append(recent, &(*r))
+		elem := new(autoroll.AutoRollIssue)
+		*elem = *r
+		recent = append(recent, elem)
 	}
 	return recent
 }
@@ -105,7 +107,9 @@ func (r *RecentRolls) CurrentRoll() *autoroll.AutoRollIssue {
 	defer r.mtx.RUnlock()
 	current := r.currentRoll()
 	if current != nil {
-		return &(*current)
+		rv := new(autoroll.AutoRollIssue)
+		*rv = *current
+		return rv
 	}
 	return nil
 }
@@ -116,9 +120,13 @@ func (r *RecentRolls) LastRoll() *autoroll.AutoRollIssue {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	if len(r.recent) > 0 && r.recent[0].Closed {
-		return r.recent[0]
+		rv := new(autoroll.AutoRollIssue)
+		*rv = *r.recent[0]
+		return rv
 	} else if len(r.recent) > 1 {
-		return r.recent[1]
+		rv := new(autoroll.AutoRollIssue)
+		*rv = *r.recent[1]
+		return rv
 	}
 	return nil
 }

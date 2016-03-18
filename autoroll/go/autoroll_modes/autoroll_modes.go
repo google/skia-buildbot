@@ -100,7 +100,9 @@ func (mh *ModeHistory) GetHistory() []*ModeChange {
 	defer mh.mtx.RUnlock()
 	rv := make([]*ModeChange, 0, len(mh.history))
 	for _, m := range mh.history {
-		rv = append(rv, &(*m))
+		elem := new(ModeChange)
+		*elem = *m
+		rv = append(rv, elem)
 	}
 	return rv
 }

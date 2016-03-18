@@ -113,7 +113,9 @@ func (bc *buildCache) getByNumber(number int) (*buildbot.Build, error) {
 // when any of the getter functions are called. It does not insert the build
 // into the database.
 func (bc *buildCache) PutBuild(b *buildbot.Build) error {
-	build := &(*b) // Copy the build.
+	// Copy the build.
+	build := new(buildbot.Build)
+	*build = *b
 	for _, c := range b.Commits {
 		bc.buildsByCommit[c] = build
 	}
