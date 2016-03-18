@@ -43,6 +43,7 @@ import (
 
 const (
 	DEFAULT_COMMITS_TO_LOAD = 50
+	MAX_COMMITS_TO_LOAD     = 100
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
 	GOLD_STATUS_QUERY_TMPL  = "select value from \"gold.status.by-corpus\" WHERE host='skia-gold-prod' AND app='skiacorrectness' AND type='untriaged' AND corpus='%s' ORDER BY time DESC LIMIT 1"
@@ -165,6 +166,13 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if n != nil {
 		commitsToLoad = *n
+	}
+	// Prevent server overload.
+	if commitsToLoad > MAX_COMMITS_TO_LOAD {
+		commitsToLoad = MAX_COMMITS_TO_LOAD
+	}
+	if commitsToLoad < 0 {
+		commitsToLoad = 0
 	}
 	if err := cache.LastNAsJson(w, commitsToLoad); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
