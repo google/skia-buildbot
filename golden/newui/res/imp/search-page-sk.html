@@ -30,7 +30,6 @@
 
 <dom-module id="search-page-sk">
   <style>
-
     digest-details-sk {
       display: block;
       box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
@@ -43,8 +42,8 @@
     digest-details-sk[data-focus] {
       box-shadow: 3px 3px 6px 5px #FF7F00;
     }
-
   </style>
+  
   <template>
     <div id="missing" hidden$="{{_hasEntries(data)}}">
       No digests match your query.
@@ -81,7 +80,7 @@
         }.bind(this)).catch(sk.errorMessage);
       },
 
-      pageUnselected: function() {
+      pageDeselected: function() {
         this.$.detailList.endUse(); 
       },
 

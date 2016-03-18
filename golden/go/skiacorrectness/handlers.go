@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"sort"
 	"strings"
@@ -138,4 +139,53 @@ type SearchResult struct {
 	Digests    []*search.Digest `json:"digests"`
 	Commits    []*tiling.Commit `json:"commits"`
 	NumMatches int
+}
+
+// TODO(stephana): Remove polyDiffJSONDigestHandler and polyDetailsHandler once all
+// detail and diff request go through jsonDetailsHandler and jsonDiffHandler.
+
+// jsonDetailsHandler returns the details about a single digest.
+func jsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract: test, digest.
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse form values")
+		return
+	}
+	test := r.Form.Get("test")
+	digest := r.Form.Get("digest")
+	if test == "" || digest == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Some query parameters are missing: %q %q", test, digest), "Missing query parameters.")
+		return
+	}
+
+	ret, err := search.GetDigestDetails(test, digest, storages, paramsetSum, tallies)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Unable to get digest details.")
+		return
+	}
+	sendJsonResponse(w, ret)
+}
+
+// jsonDiffHandler returns difference between two digests.
+func jsonDiffHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract: test, left, right where left and right are digests.
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse form values")
+		return
+	}
+	test := r.Form.Get("test")
+	left := r.Form.Get("left")
+	right := r.Form.Get("right")
+	if test == "" || left == "" || right == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Some query parameters are missing: %q %q %q", test, left, right), "Missing query parameters.")
+		return
+	}
+
+	ret, err := search.CompareDigests(test, left, right, storages, paramsetSum)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Unable to compare digests")
+		return
+	}
+
+	sendJsonResponse(w, ret)
 }

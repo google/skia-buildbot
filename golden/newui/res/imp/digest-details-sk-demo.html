@@ -19,13 +19,38 @@
 
   <dom-module id="main-document-element">
     <template>
-      <h3>Click/hover dots to test events and highlights. </h3>
+      <h3>In list detail with a positive diff</h3>
       <div>
-        <digest-details-sk id="digestDetail" 
-                           triage
-                           details="[[details]]" 
+        <digest-details-sk mode="list"
+                           details="[[posDetails]]" 
                            commits="[[commits]]">
         </digest-details-sk>
+      </div> 
+      <br><br>
+      <h3>In list detail with a negative diff</h3>
+      <div>
+        <digest-details-sk mode="list"
+                           details="[[negDetails]]" 
+                           commits="[[commits]]">
+        </digest-details-sk>
+      </div>
+      <br><br>
+      <h3>In list detail without a diff</h3>
+      <div>
+        <digest-details-sk mode="list"
+                           id="noDiffDigestDetail" 
+                           details="[[noDiffDetails]]" 
+                           commits="[[commits]]">
+        </digest-details-sk>
+      </div>
+      <br><br>
+      <h3>diff View Demo</h3>
+      <div>
+          <digest-details-sk mode="diff"
+                             details="[[diffData.left]]"
+                             right="[[diffData.right]]"
+                             diff="[[diffData.diff]]">
+          </digest-details-sk>
       </div>
     </template>
 
@@ -35,9 +60,25 @@
           is: 'main-document-element',
 
           ready: function() {
-            this.set('details', testdata.searchDetails[0]); 
+            var posDetails = JSON.parse(JSON.stringify(testdata.searchDetails[0]));
+            posDetails.diff.neg = null; 
+            
+            var negDetails = JSON.parse(JSON.stringify(posDetails)); 
+            negDetails.diff.neg = negDetails.diff.pos; 
+            negDetails.diff.pos = null; 
+            
+            var noDiffDetails = JSON.parse(JSON.stringify(posDetails)); 
+            noDiffDetails.diff.pos = null; 
+            noDiffDetails.diff.neg = null; 
+
+            this.set('posDetails', posDetails); 
+            this.set('negDetails', negDetails); 
+            this.set('noDiffDetails', noDiffDetails); 
             this.set('commits', testdata.commits); 
-          },
+
+            // Add the diff view data. 
+            this.set('diffData', testdata.diffDigests);
+          }
         });
       });
     </script>

@@ -27,6 +27,8 @@
 <link rel="import" href="search-page-sk.html" />
 <link rel="import" href="triagelog-page-sk.html" />
 <link rel="import" href="help-page-sk.html" />
+<link rel="import" href="detail-page-sk.html" />
+<link rel="import" href="diff-page-sk.html" />
 
 <dom-module id="gold-app-sk">
   <template>
@@ -81,6 +83,12 @@
           <section data-route="help">
             <help-page-sk></help-page-sk>
           </section>
+          <section data-route="detail">
+            <detail-page-sk></detail-page-sk>
+          </section>
+          <section data-route="diff">
+            <diff-page-sk></diff-page-sk>
+          </section>
           <section data-route="notfound">
             <help-page-sk notfound></help-page-sk>
           </section>
@@ -112,6 +120,8 @@
         this._setRoute('/search', 'search');
         this._setRoute('/triagelog', 'triagelog');
         this._setRoute('/help', 'help');
+        this._setRoute('/detail', 'detail');
+        this._setRoute('/diff', 'diff');
         this._setRoute('*', 'notfound');
         this.route = "byblame";
 
@@ -120,10 +130,15 @@
 
         // Notify the page elements that the page has been selected. 
         this.listen(this.$.pagesContainer, "iron-select", "_pagesSelect");
+        this.listen(this.$.pagesContainer, "iron-deselect", "_pagesDeselect");
       },
 
       _pagesSelect: function(ev, obj) {
         obj.item.children[0].pageSelected(this.route);
+      },
+
+      _pagesDeselect: function(ev, obj) {
+        obj.item.children[0].pageDeselected();
       }, 
 
       _setRoute: function(path, routeID) {

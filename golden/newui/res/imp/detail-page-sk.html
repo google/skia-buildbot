@@ -1,0 +1,46 @@
+<!-- The <detail-page-sk> custom element declaration.
+
+  A container element to display the details about a single digest. 
+
+  Attributes:
+    None
+
+  Methods:
+    pageSelected: This function has to be called if the page is selected by the router. 
+    pageDeselected: This function has to be called if the page is deselected by the router. 
+
+  Events:
+    None
+
+  Mailboxes:
+    None
+
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html"> 
+
+<link rel="import" href="digest-details-sk.html">
+
+<dom-module id="detail-page-sk">
+  <template>
+    <digest-details-sk 
+            details="[[data.digest]]"
+            commits="[[data.commits]]"
+            mode="detail">
+    </digest-details-sk>
+  </template>
+  <script>
+    Polymer({
+      is: "detail-page-sk",
+
+      pageSelected: function(routeName) {
+        var q = window.location.search;
+        sk.get("/json/details" + q).then(JSON.parse).then(function (json) {
+          this.set('data', json);
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      pageDeselected: function() {}
+    });
+  </script>
+</dom-module>

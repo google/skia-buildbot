@@ -65,6 +65,16 @@ func ClosestDigest(test string, digest string, exp *expstorage.Expectations, tal
 	}
 }
 
+// ClosestFromDiffMetrics returns an instance of Closest with the values of the
+// given diff.DiffMetrics. The Digest field will be left empty.
+func ClosestFromDiffMetrics(diff *diff.DiffMetrics) *Closest {
+	return &Closest{
+		Diff:       combinedDiffMetric(diff.PixelDiffPercent, diff.MaxRGBADiffs),
+		DiffPixels: diff.PixelDiffPercent,
+		MaxRGBA:    diff.MaxRGBADiffs,
+	}
+}
+
 // combinedDiffMetric returns a value in [0, 1] that represents how large
 // the diff is between two images.
 func combinedDiffMetric(pixelDiffPercent float32, maxRGBA []int) float32 {

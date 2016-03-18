@@ -2144,3 +2144,585 @@ testdata.fiveSearchResults = {
   commits: fiveResultCommits,
   digests: fiveResultsDetails
 };
+
+
+
+
+testdata.singleDigest = {
+    "blame": {
+        "freq": [
+            37
+        ], 
+        "old": false
+    }, 
+    "commits": [
+        {
+            "author": "cdalton (cdalton@nvidia.com)", 
+            "commit_time": 1457387906, 
+            "hash": "28f45b949acc746849100fbe112ee5280f0594c9"
+        }, 
+        {
+            "author": "halcanary (halcanary@google.com)", 
+            "commit_time": 1457391470, 
+            "hash": "48810a023705ffac466adb93efdb3861cf2e197a"
+        }, 
+        {
+            "author": "cdalton (cdalton@nvidia.com)", 
+            "commit_time": 1457393949, 
+            "hash": "8d988b3a73a75e062bc139f19cc6966888c722e2"
+        }, 
+        {
+            "author": "mtklein (mtklein@chromium.org)", 
+            "commit_time": 1457400026, 
+            "hash": "46752200009f70d708e37b413a2144b7aaa09ce1"
+        }, 
+        {
+            "author": "msarett (msarett@google.com)", 
+            "commit_time": 1457400312, 
+            "hash": "53add95b2e8d97e4dfe18b26e1f3a0d414706354"
+        }, 
+        {
+            "author": "benjaminwagner (benjaminwagner@google.com)", 
+            "commit_time": 1457402283, 
+            "hash": "706d21ffd03a0a446f7b997c801356abb891eaeb"
+        }, 
+        {
+            "author": "borenet (borenet@chromium.org)", 
+            "commit_time": 1457443983, 
+            "hash": "f2e2a1e290ad6de558fd26965f2f5c60c9828014"
+        }, 
+        {
+            "author": "bsalomon (bsalomon@google.com)", 
+            "commit_time": 1457454615, 
+            "hash": "cdaa97bf664e0d584187efc125bfff670a064a9a"
+        }, 
+        {
+            "author": "halcanary (halcanary@google.com)", 
+            "commit_time": 1457454732, 
+            "hash": "ece83924384b2e9e8cd422324c44797deb99ec90"
+        }, 
+        {
+            "author": "bungeman (bungeman@google.com)", 
+            "commit_time": 1457454923, 
+            "hash": "c901c11549acd19e7fc225276f78374ac1600496"
+        }, 
+        {
+            "author": "robertphillips (robertphillips@google.com)", 
+            "commit_time": 1457455038, 
+            "hash": "bd590aa658a80d1646656289d802046a80f7c987"
+        }, 
+        {
+            "author": "robertphillips (robertphillips@google.com)", 
+            "commit_time": 1457455643, 
+            "hash": "c80bf74bccc32da1b528e667bc4970069d2a6652"
+        }, 
+        {
+            "author": "mtklein (mtklein@chromium.org)", 
+            "commit_time": 1457456499, 
+            "hash": "c41fd9251dad3e2e2797436a4ccfaf0490914fe0"
+        }, 
+        {
+            "author": "reed (reed@google.com)", 
+            "commit_time": 1457456544, 
+            "hash": "aa5e1ae06b33841ad4efc9fbf4c8b2cd6236d58b"
+        }, 
+        {
+            "author": "senorblanco (senorblanco@chromium.org)", 
+            "commit_time": 1457456804, 
+            "hash": "e6eaa320e8dac34396dc364aa0863574d7b5291c"
+        }, 
+        {
+            "author": "joshualitt (joshualitt@chromium.org)", 
+            "commit_time": 1457458275, 
+            "hash": "08e65e718a3464a594e6dfca0351dfed19ac2445"
+        }, 
+        {
+            "author": "reed (reed@google.com)", 
+            "commit_time": 1457460558, 
+            "hash": "93bb080503eec5df5674a1bcfe4baaceced799ff"
+        }, 
+        {
+            "author": "fmalita (fmalita@chromium.org)", 
+            "commit_time": 1457461249, 
+            "hash": "d8a4f772115bbb9d50c0e73613bdd879833da690"
+        }, 
+        {
+            "author": "joshualitt (joshualitt@chromium.org)", 
+            "commit_time": 1457462622, 
+            "hash": "b0666ad3a9e99ce1a6e6d9ea69ff9f1ddbe74594"
+        }, 
+        {
+            "author": "robertphillips (robertphillips@google.com)", 
+            "commit_time": 1457462732, 
+            "hash": "ab01ccd2786b74ca9ff20fa7852e208ceb45d394"
+        }, 
+        {
+            "author": "joshualitt (joshualitt@chromium.org)", 
+            "commit_time": 1457463401, 
+            "hash": "810f77fb9c21a8f2e3373ff92ef302e22b585e4c"
+        }, 
+        {
+            "author": "aleksandar.stojiljkovic (aleksandar.stojiljkovic@intel.com)", 
+            "commit_time": 1457464702, 
+            "hash": "88cb82246a5dc141cb9f49a3b9187abb515cd49d"
+        }, 
+        {
+            "author": "mtklein (mtklein@chromium.org)", 
+            "commit_time": 1457465471, 
+            "hash": "bb6c41b1dbe5021da5c7e8257e04d8ed6979af05"
+        }, 
+        {
+            "author": "yujieqin (yujieqin@google.com)", 
+            "commit_time": 1457466451, 
+            "hash": "412f534563397fdda1229edffe6c49c15c5de59b"
+        }, 
+        {
+            "author": "bsalomon (bsalomon@google.com)", 
+            "commit_time": 1457466811, 
+            "hash": "093779c39add14f0b35b3374fee8f05cff10c9be"
+        }, 
+        {
+            "author": "robertphillips (robertphillips@google.com)", 
+            "commit_time": 1457467537, 
+            "hash": "40736abf74908dfed82567ba88432103c9a7e900"
+        }, 
+        {
+            "author": "jvanverth (jvanverth@google.com)", 
+            "commit_time": 1457467767, 
+            "hash": "910114a35076c6bb2dba21bac4607172a823f641"
+        }, 
+        {
+            "author": "brianosman (brianosman@google.com)", 
+            "commit_time": 1457468109, 
+            "hash": "8418aacec653e325c714384e5928667849dab6de"
+        }, 
+        {
+            "author": "egdaniel (egdaniel@google.com)", 
+            "commit_time": 1457468394, 
+            "hash": "d5e3b9e1e0f93a4722c20bb095079cde7ad80dc4"
+        }, 
+        {
+            "author": "mtklein (mtklein@chromium.org)", 
+            "commit_time": 1457469251, 
+            "hash": "6b5c5cc7b7bdffb4882706b915b544aba8714961"
+        }, 
+        {
+            "author": "halcanary (halcanary@google.com)", 
+            "commit_time": 1457469502, 
+            "hash": "9904c9212074279380e21f96575078734dbbd308"
+        }, 
+        {
+            "author": "reed (reed@google.com)", 
+            "commit_time": 1457470488, 
+            "hash": "647cc8474828202c98d540f799742e3074a2aace"
+        }, 
+        {
+            "author": "halcanary (halcanary@google.com)", 
+            "commit_time": 1457471035, 
+            "hash": "51d04d3c17954f9f8629e7d8a9fe870a7b19962f"
+        }, 
+        {
+            "author": "joshualitt (joshualitt@chromium.org)", 
+            "commit_time": 1457472273, 
+            "hash": "b82f088a112d700db570b837ebbf1b2e3772077c"
+        }, 
+        {
+            "author": "mtklein (mtklein@google.com)", 
+            "commit_time": 1457472342, 
+            "hash": "c48fc9b1fdd0ba255a3ef1a9b3bcba9ee918b1f7"
+        }, 
+        {
+            "author": "halcanary (halcanary@google.com)", 
+            "commit_time": 1457478616, 
+            "hash": "8103a34300c5de2e85793a96c4738a33fc6eb46d"
+        }, 
+        {
+            "author": "kulshin (kulshin@chromium.org)", 
+            "commit_time": 1457487005, 
+            "hash": "042f859c19f71ca9feacddd1cb058ff59eed8963"
+        }, 
+        {
+            "author": "reed (reed@google.com)", 
+            "commit_time": 1457491800, 
+            "hash": "8a21c9fe7f5fef9e87115defef27bd7218419f28"
+        }, 
+        {
+            "author": "robertphillips (robertphillips@google.com)", 
+            "commit_time": 1457529430, 
+            "hash": "6ac97b7eb99c06107bb4536e1a888fce7837213a"
+        }, 
+        {
+            "author": "caryclark (caryclark@google.com)", 
+            "commit_time": 1457531753, 
+            "hash": "18bbd00190623fb6cdb119df4a118ac3c1aed52a"
+        }, 
+        {
+            "author": "msarett (msarett@google.com)", 
+            "commit_time": 1457533015, 
+            "hash": "790f99ae729803ddf827251bbbb9bb21fc165e35"
+        }, 
+        {
+            "author": "bsalomon (bsalomon@google.com)", 
+            "commit_time": 1457533516, 
+            "hash": "e699d0cd25fd059e3f0c4949e613e50c83a52179"
+        }, 
+        {
+            "author": "msarett (msarett@google.com)", 
+            "commit_time": 1457536481, 
+            "hash": "c3adf2fb41d8f2be2724a998ed2aa03b48a10a99"
+        }, 
+        {
+            "author": "bungeman (bungeman@google.com)", 
+            "commit_time": 1457538174, 
+            "hash": "51190df040c5a81bb82b9cd5b95f07a39d0e602b"
+        }, 
+        {
+            "author": "halcanary (halcanary@google.com)", 
+            "commit_time": 1457538730, 
+            "hash": "e94ea625fbce6979b7ef59255c7598e81d37f546"
+        }, 
+        {
+            "author": "robertphillips (robertphillips@google.com)", 
+            "commit_time": 1457541443, 
+            "hash": "7f229ed827d1dc5897acfa87d84b642ce34b678f"
+        }, 
+        {
+            "author": "reed (reed@google.com)", 
+            "commit_time": 1457545850, 
+            "hash": "2ad1aa67c6894696cdd65ec56057f81031d1c24a"
+        }, 
+        {
+            "author": "bsalomon (bsalomon@google.com)", 
+            "commit_time": 1457545965, 
+            "hash": "7467ab8cc0818008649f043fb98127c929c2eb37"
+        }, 
+        {
+            "author": "bsalomon (bsalomon@google.com)", 
+            "commit_time": 1457546156, 
+            "hash": "5b592e8d0998d89a077a098b9d912c06ccebd8d8"
+        }, 
+        {
+            "author": "jvanverth (jvanverth@google.com)", 
+            "commit_time": 1457546272, 
+            "hash": "0fcfb7525f60eabfdaf9761c75c7d4fd1b46d0c5"
+        }
+    ], 
+    "issues": [], 
+    "leftStatus": "untriaged", 
+    "negClosest": {
+        "diff": 3.4028235e+38, 
+        "diffPixels": 3.4028235e+38, 
+        "digest": "", 
+        "maxRGBA": []
+    }, 
+    "otherDigests": [
+        {
+            "digest": "08179f132ac2ad1464263f71123fadad", 
+            "status": "untriaged"
+        }, 
+        {
+            "digest": "fbb3823abd270264d0d75db91c427b4c", 
+            "status": "positive"
+        }
+    ], 
+    "params": [
+        {
+            "left": [
+                "Arm7"
+            ], 
+            "name": "arch", 
+            "top": [
+                "Arm7"
+            ]
+        }, 
+        {
+            "left": [
+                "Test-Android-GCC-Nexus5-GPU-Adreno330-Arm7-Debug"
+            ], 
+            "name": "builder", 
+            "top": [
+                "Test-Android-GCC-Nexus5-GPU-Adreno330-Arm7-Debug"
+            ]
+        }, 
+        {
+            "left": [
+                "GCC"
+            ], 
+            "name": "compiler", 
+            "top": [
+                "GCC"
+            ]
+        }, 
+        {
+            "left": [
+                "msaa4"
+            ], 
+            "name": "config", 
+            "top": [
+                "msaa4"
+            ]
+        }, 
+        {
+            "left": [
+                "Debug"
+            ], 
+            "name": "configuration", 
+            "top": [
+                "Debug"
+            ]
+        }, 
+        {
+            "left": [
+                "GPU"
+            ], 
+            "name": "cpu_or_gpu", 
+            "top": [
+                "GPU"
+            ]
+        }, 
+        {
+            "left": [
+                "Adreno330"
+            ], 
+            "name": "cpu_or_gpu_value", 
+            "top": [
+                "Adreno330"
+            ]
+        }, 
+        {
+            "left": [
+                "png"
+            ], 
+            "name": "ext", 
+            "top": [
+                "png"
+            ]
+        }, 
+        {
+            "left": [
+                "no"
+            ], 
+            "name": "gamma_correct", 
+            "top": [
+                "no"
+            ]
+        }, 
+        {
+            "left": [
+                "Nexus5"
+            ], 
+            "name": "model", 
+            "top": [
+                "Nexus5"
+            ]
+        }, 
+        {
+            "left": [
+                "imageblur2"
+            ], 
+            "name": "name", 
+            "top": [
+                "imageblur2"
+            ]
+        }, 
+        {
+            "left": [
+                "Android"
+            ], 
+            "name": "os", 
+            "top": [
+                "Android"
+            ]
+        }, 
+        {
+            "left": [
+                "gm"
+            ], 
+            "name": "source_type", 
+            "top": [
+                "gm"
+            ]
+        }
+    ], 
+    "posClosest": {
+        "diff": 3.07502, 
+        "diffPixels": 17.08, 
+        "digest": "fbb3823abd270264d0d75db91c427b4c", 
+        "maxRGBA": [
+            181, 
+            106, 
+            189, 
+            0
+        ]
+    }, 
+    "tileSize": 50, 
+    "topStatus": "untriaged", 
+    "traces": [
+        {
+            "data": [
+                {
+                    "s": 1, 
+                    "x": 0, 
+                    "y": 0
+                }, 
+                {
+                    "s": 1, 
+                    "x": 5, 
+                    "y": 0
+                }, 
+                {
+                    "s": 1, 
+                    "x": 6, 
+                    "y": 0
+                }, 
+                {
+                    "s": 1, 
+                    "x": 20, 
+                    "y": 0
+                }, 
+                {
+                    "s": 1, 
+                    "x": 28, 
+                    "y": 0
+                }, 
+                {
+                    "s": 1, 
+                    "x": 36, 
+                    "y": 0
+                }, 
+                {
+                    "s": 0, 
+                    "x": 37, 
+                    "y": 0
+                }
+            ], 
+            "label": "Arm7:GCC:msaa4:Debug:GPU:Adreno330:Nexus5:imageblur2:Android:gm", 
+            "params": {
+                "arch": "Arm7", 
+                "builder": "Test-Android-GCC-Nexus5-GPU-Adreno330-Arm7-Debug", 
+                "compiler": "GCC", 
+                "config": "msaa4", 
+                "configuration": "Debug", 
+                "cpu_or_gpu": "GPU", 
+                "cpu_or_gpu_value": "Adreno330", 
+                "ext": "png", 
+                "gamma_correct": "no", 
+                "model": "Nexus5", 
+                "name": "imageblur2", 
+                "os": "Android", 
+                "source_type": "gm"
+            }
+        }
+    ]
+}; 
+
+
+testdata.diffDigests = {
+    "diff": {
+        "diff": 1.1579049, 
+        "diffPixels": 66.10344, 
+        "digest": "", 
+        "maxRGBA": [
+            7, 
+            3, 
+            7, 
+            0
+        ]
+    }, 
+    "left": {
+        "diff": null, 
+        "digest": "96bd09a4233feeeebcf263d5eccc9a64", 
+        "paramset": {
+            "arch": [
+                "Arm64"
+            ], 
+            "builder": [
+                "Test-Android-GCC-Nexus9-CPU-Denver-Arm64-Release"
+            ], 
+            "compiler": [
+                "GCC"
+            ], 
+            "config": [
+                "565"
+            ], 
+            "configuration": [
+                "Release"
+            ], 
+            "cpu_or_gpu": [
+                "CPU"
+            ], 
+            "cpu_or_gpu_value": [
+                "Denver"
+            ], 
+            "ext": [
+                "png"
+            ], 
+            "gamma_correct": [
+                "no"
+            ], 
+            "model": [
+                "Nexus9"
+            ], 
+            "name": [
+                "patch_grid"
+            ], 
+            "os": [
+                "Android"
+            ], 
+            "source_type": [
+                "gm"
+            ]
+        }, 
+        "status": "untriaged", 
+        "test": "patch_grid", 
+        "traces": null
+    }, 
+    "right": {
+        "diff": null, 
+        "digest": "5127f5a87717bf9102b114c941b852cd", 
+        "paramset": {
+            "arch": [
+                "Arm64"
+            ], 
+            "builder": [
+                "Test-Android-GCC-Nexus9-CPU-Denver-Arm64-Release"
+            ], 
+            "compiler": [
+                "GCC"
+            ], 
+            "config": [
+                "tiles_rt-8888"
+            ], 
+            "configuration": [
+                "Release"
+            ], 
+            "cpu_or_gpu": [
+                "CPU"
+            ], 
+            "cpu_or_gpu_value": [
+                "Denver"
+            ], 
+            "ext": [
+                "png"
+            ], 
+            "gamma_correct": [
+                "no"
+            ], 
+            "model": [
+                "Nexus9"
+            ], 
+            "name": [
+                "patch_grid"
+            ], 
+            "os": [
+                "Android"
+            ], 
+            "source_type": [
+                "gm"
+            ]
+        }, 
+        "status": "untriaged", 
+        "test": "patch_grid", 
+        "traces": null
+    }
+};

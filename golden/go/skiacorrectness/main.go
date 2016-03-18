@@ -443,6 +443,8 @@ func main() {
 		// json handlers only used by the new UI.
 		router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
 		router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
+		router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
+		router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
 
 		// For everything else serve the same markup.
 		indexFile := *resourcesDir + "/index.html"

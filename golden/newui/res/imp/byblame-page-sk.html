@@ -1,4 +1,4 @@
-<!-- The <by-blame-sk> custom element declaration.
+<!-- The <by-blame-page-sk> custom element declaration.
 
   A container element to display the current untriaged digests grouped by 
   blames. 
@@ -105,6 +105,7 @@
         }
       },
 
+      // pageSelected is called by the router when this view enters the foreground.
     	pageSelected: function(routeName) {
         sk.get("/json/byblame").then(JSON.parse).then(function (json) {
           // Send the commits to the mailboxes identified by the group id.
@@ -115,6 +116,9 @@
         }.bind(this)).catch(sk.errorMessage);
     	},
 
+      // pageDeselected is called by the router when this view enters the background. 
+      pageDeselected: function() {},
+      
       _noEntries: function(data) {
         return !data || (data.length == 0);
       }, 
