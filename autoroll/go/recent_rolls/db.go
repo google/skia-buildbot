@@ -10,6 +10,7 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/autoroll"
+	"go.skia.org/infra/go/util"
 )
 
 var (
@@ -66,7 +67,7 @@ func rollKey(a *autoroll.AutoRollIssue) []byte {
 
 // timeToKey returns a BoltDB key for the given time.Time.
 func timeToKey(t time.Time) []byte {
-	return []byte(t.Format(time.RFC3339Nano))
+	return []byte(t.Format(util.RFC3339NanoZeroPad))
 }
 
 // timeKey returns a BoltDB key for the given AutoRollIssue based on its

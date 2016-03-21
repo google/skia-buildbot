@@ -30,6 +30,12 @@ const (
 
 	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
 	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)
+
+	// time.RFC3339Nano only uses as many sub-second digits are required to
+	// represent the time, which makes it unsuitable for sorting. This
+	// format ensures that all 9 nanosecond digits are used, padding with
+	// zeroes if necessary.
+	RFC3339NanoZeroPad = "2006-01-02T15:04:05.000000000Z07:00"
 )
 
 var (
