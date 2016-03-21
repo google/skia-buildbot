@@ -26,6 +26,16 @@ function install_packages {
   echo
 }
 
+# TODO(borenet): Remove this function after we capture a new disk image.
+function fix_depot_tools {
+  echo
+  echo "Fix depot_tools"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+    "if [ ! -d depot_tools/.git ]; then rm -rf depot_tools; git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git; fi" \
+    || FAILED="$FAILED FixDepotTools"
+  echo
+}
+
 function setup_symlinks {
   # Add new symlinks that are not yet part of the image below.
   echo

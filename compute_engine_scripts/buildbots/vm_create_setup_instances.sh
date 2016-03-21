@@ -110,6 +110,8 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
     install_packages
 
+    fix_depot_tools
+
     setup_symlinks
 
     install_go
