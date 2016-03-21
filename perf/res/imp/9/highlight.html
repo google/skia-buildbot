@@ -13,17 +13,12 @@
       None.
 -->
 
-<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 
 <dom-module id="highlightbar-sk">
-  <style>
-    .bar {
-      @apply(--layout-horizontal);
-    }
-
+  <style include="iron-flex">
     .key {
-      @apply(--layout-flex);
       width: 40em;
     }
 
@@ -33,8 +28,8 @@
     }
   </style>
   <template>
-    <div class=bar>
-      <paper-input class=key value="{{key}}" label="Highlighted Trace ID" id="name"></paper-input>
+    <div class="layout horizontal">
+      <paper-input class="layout flex" value="{{key}}" label="Highlighted Trace ID" id="name"></paper-input>
       <paper-input class=value value="{{value}}" label="Value" id="value"> </paper-input>
     </div>
   </template>

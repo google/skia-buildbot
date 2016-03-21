@@ -24,10 +24,10 @@
 -->
 
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all" />
-<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html"/>
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 <dom-module id="systemd-unit-status-sk">
-  <style>
+  <style include="iron-flex">
     div div {
       font-family: monospace;
       margin: 0.6em;
@@ -61,13 +61,9 @@
     .exited {
       color: #666666;
     }
-    .top {
-      @apply(--layout-horizontal);
-      @apply(--layout-wrap);
-    }
   </style>
   <template>
-    <div class=top>
+    <div class="layout horizontal wrap">
       <div id=machine>[[machine]]</div>
       <div id=service>[[service]]</div>
       <div id=uptime>[[uptimeOf(value.props.ExecMainStartTimestamp)]]</div>

@@ -5,19 +5,9 @@
 
     {{template "header.html" .}}
 
-    <style is="custom-style" type="text/css" media="screen">
-      .vertical {
-        @apply(--layout-vertical);
+    <style is="custom-style" type="text/css" media="screen" include="iron-flex iron-flex-alignment">
+      .leftcolumn {
         padding: 1em 0.5em;
-      }
-
-      .horizontal_center {
-        @apply(--layout-horizontal);
-        @apply(--layout-center);
-      }
-
-      .horizontal {
-        @apply(--layout-horizontal);
       }
 
       .formula_area {
@@ -42,9 +32,9 @@
   </head>
   <body>
     <perf-scaffold-sk>
-      <div class=horizontal>
-        <div class=vertical>
-          <div class=horizontal_center>
+      <div class="layout horizontal">
+        <div class="layout vertical leftcolumn">
+          <div class="layout horizontal center">
             <button id=shortcut title="Create shortcut."><iron-icon icon="link"></iron-icon></button>
             <highlightbar-sk flex></highlightbar-sk>
           </div>

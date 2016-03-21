@@ -27,26 +27,19 @@
       None.
 
 -->
-<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
-
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <dom-module id="word-cloud-sk">
-  <style type="text/css" media="screen">
+  <style include="iron-flex iron-flex-alignment">
     .param {
-      @apply(--layout-vertical);
       margin:  10px;
-      border: solid #eee 1px;
+      border:  solid #eee 1px;
       padding: 10px;
-    }
-
-    .cloud {
-      @apply(--layout-horizontal);
-      @apply(--layout-wrap);
     }
   </style>
   <template>
-    <div class="cloud">
+    <div class="layout horizontal wrap">
       <template is="dom-repeat" items="{{_items}}" as="item">
-        <div class="param">
+        <div class="param layout vertical">
           <template is="dom-repeat" items="{{item}}" as="entry">
             <div style$="{{computeStyle(entry)}}">{{entry.Value}}</div>
           </template>
