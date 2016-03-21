@@ -372,7 +372,7 @@ func stateHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == "POST" {
 		if login.LoggedInAs(r) == "" {
-			httputils.ReportError(w, r, fmt.Errorf("You must be logged on to push."), "")
+			httputils.ReportError(w, r, nil, "You must be logged on to push.")
 			return
 		}
 		push := PushNewPackage{}
@@ -463,7 +463,7 @@ func statusHandler(w http.ResponseWriter, r *http.Request) {
 // running on the machine hosting that service.
 func changeHandler(w http.ResponseWriter, r *http.Request) {
 	if login.LoggedInAs(r) == "" {
-		httputils.ReportError(w, r, fmt.Errorf("You must be logged on to push."), "")
+		httputils.ReportError(w, r, nil, "You must be logged on to push.")
 		return
 	}
 	if err := r.ParseForm(); err != nil {

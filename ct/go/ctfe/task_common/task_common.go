@@ -98,11 +98,11 @@ func (vars *AddTaskCommonVars) IsAdminTask() bool {
 
 func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("Must have google or chromium account to add tasks"), "")
+		httputils.ReportError(w, r, nil, "Please login with google or chromium account to add tasks")
 		return
 	}
 	if task.IsAdminTask() && !ctfeutil.UserHasAdminRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("Must be admin to add admin tasks; contact rmistry@"), "")
+		httputils.ReportError(w, r, nil, "Must be admin to add admin tasks; contact rmistry@")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -115,7 +115,7 @@ func AddTaskHandler(w http.ResponseWriter, r *http.Request, task AddTaskVars) {
 	task.GetAddTaskCommonVars().Username = login.LoggedInAs(r)
 	task.GetAddTaskCommonVars().TsAdded = ctutil.GetCurrentTs()
 	if len(task.GetAddTaskCommonVars().Username) > 255 {
-		httputils.ReportError(w, r, fmt.Errorf("Username is too long, limit 255 bytes"), "")
+		httputils.ReportError(w, r, nil, "Username is too long, limit 255 bytes")
 		return
 	}
 
@@ -208,19 +208,19 @@ func DBTaskQuery(prototype Task, params QueryParams) (string, []interface{}) {
 func GetTaskStatusHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	taskID := r.FormValue("task_id")
 	if taskID == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Missing required parameter task_id"), "")
+		httputils.ReportError(w, r, nil, "Missing required parameter task_id")
 		return
 	}
 
 	rowQuery := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", prototype.TableName())
 	data, err := prototype.Select(rowQuery, taskID)
 	if err != nil {
-		httputils.ReportError(w, r, fmt.Errorf("Could not find %s task with ID %s", prototype.GetTaskName(), taskID), "")
+		httputils.ReportError(w, r, nil, fmt.Sprintf("Could not find the specified %s task", prototype.GetTaskName()))
 		return
 	}
 	tasks := AsTaskSlice(data)
 	if len(tasks) == 0 {
-		httputils.ReportError(w, r, fmt.Errorf("Could not find %s task with ID %s", prototype.GetTaskName(), taskID), "")
+		httputils.ReportError(w, r, nil, fmt.Sprintf("Could not find the specified %s task", prototype.GetTaskName()))
 		return
 	}
 
@@ -272,11 +272,11 @@ func GetTasksHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	params.FutureRunsOnly = parseBoolFormValue(r.FormValue("include_future_runs"))
 	params.ExcludeDummyPageSets = parseBoolFormValue(r.FormValue("exclude_dummy_page_sets"))
 	if params.SuccessfulOnly && params.PendingOnly {
-		httputils.ReportError(w, r, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "")
+		httputils.ReportError(w, r, fmt.Errorf("Inconsistent params: successful %v not_completed %v", r.FormValue("successful"), r.FormValue("not_completed")), "Inconsistent params")
 		return
 	}
 	if params.ExcludeDummyPageSets && !HasPageSetsColumn(prototype) {
-		httputils.ReportError(w, r, fmt.Errorf("Task %s does not use page sets and thus cannot exclude dummy page sets.", prototype.GetTaskName()), "")
+		httputils.ReportError(w, r, nil, fmt.Sprintf("Task %s does not use page sets and thus cannot exclude dummy page sets.", prototype.GetTaskName()))
 		return
 	}
 	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
@@ -470,7 +470,7 @@ func canRedoTask(task Task, r *http.Request) (bool, error) {
 
 func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("Must have google or chromium account to delete tasks"), "")
+		httputils.ReportError(w, r, nil, "Please login with google or chromium account to delete tasks")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -512,16 +512,16 @@ func DeleteTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if ok, err := canDeleteTask(tasks[0], r); !ok {
-		httputils.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "Do not have permission to delete task")
 	} else {
-		httputils.ReportError(w, r, fmt.Errorf("Failed to delete; reason unknown"), "")
+		httputils.ReportError(w, r, nil, "Failed to delete; reason unknown")
 		return
 	}
 }
 
 func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	if !ctfeutil.UserHasEditRights(r) {
-		httputils.ReportError(w, r, fmt.Errorf("Must have google or chromium account to redo tasks"), "")
+		httputils.ReportError(w, r, nil, "Please login with google or chromium account to redo tasks")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

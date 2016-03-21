@@ -345,7 +345,7 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if result == "" {
 		glog.Errorf("No redirect for %#v", build)
-		httputils.ReportError(w, r, fmt.Errorf("No redirect for this build."), "")
+		httputils.ReportError(w, r, nil, "No redirect for this build.")
 		return
 	}
 	w.Header().Set("Content-Type", "text/html")
@@ -387,20 +387,20 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	data, err := webhook.AuthenticateRequest(r)
 	if err != nil {
 		glog.Errorf("Failed authentication in ingestBuildHandler: %s", err)
-		httputils.ReportError(w, r, fmt.Errorf("Failed authentication."), "")
+		httputils.ReportError(w, r, nil, "Failed authentication.")
 		return
 	}
 	vars := map[string]string{}
 	if err := json.Unmarshal(data, &vars); err != nil {
 		glog.Errorf("Failed to parse request: %s", err)
-		httputils.ReportError(w, r, fmt.Errorf("Failed to parse request."), "")
+		httputils.ReportError(w, r, nil, "Failed to parse request.")
 		return
 	}
 	target := vars["target"]
 	commitHash := vars["commitHash"]
 	status := vars["status"]
 	if target == "" || commitHash == "" || status == "" {
-		httputils.ReportError(w, r, fmt.Errorf("Missing parameter."), "")
+		httputils.ReportError(w, r, nil, "Missing parameter.")
 		return
 	}
 	cl := vars["changeListNumber"]
@@ -414,13 +414,13 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 		codename = util.StringToCodeName(target)
 	}
 	if !ingestBuildWebhookCodenames[codename] {
-		httputils.ReportError(w, r, fmt.Errorf("Unrecognized target (mapped to codename %s)", codename), "")
+		httputils.ReportError(w, r, nil, fmt.Sprintf("Unrecognized target (mapped to codename %s)", codename))
 		return
 	}
 	buildbotResults, err := buildbot.ParseResultsString(status)
 	if err != nil {
 		glog.Errorf("Invalid status parameter: %s", err)
-		httputils.ReportError(w, r, fmt.Errorf("Invalid status parameter."), "")
+		httputils.ReportError(w, r, nil, "Invalid status parameter.")
 		return
 	}
 	startTime := time.Now().UTC()
@@ -429,7 +429,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 			startTime = time.Unix(t, 0).UTC()
 		} else {
 			glog.Errorf("Invalid startTime parameter: %s", err)
-			httputils.ReportError(w, r, fmt.Errorf("Invalid startTime parameter."), "")
+			httputils.ReportError(w, r, nil, "Invalid startTime parameter.")
 			return
 		}
 	}
@@ -439,7 +439,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 			finishTime = time.Unix(t, 0).UTC()
 		} else {
 			glog.Errorf("Invalid finishTime parameter: %s", err)
-			httputils.ReportError(w, r, fmt.Errorf("Invalid finishTime parameter."), "")
+			httputils.ReportError(w, r, nil, "Invalid finishTime parameter.")
 			return
 		}
 	}
@@ -467,7 +467,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 			b.Properties = append(b.Properties, []interface{}{"changeListNumber", strconv.Itoa(clNum), "datahopper_internal"})
 		} else {
 			glog.Errorf("Invalid changeListNumber parameter: %s", err)
-			httputils.ReportError(w, r, fmt.Errorf("Invalid changeListNumber parameter."), "")
+			httputils.ReportError(w, r, nil, "Invalid changeListNumber parameter.")
 			return
 		}
 	}
@@ -476,7 +476,7 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 			b.Properties = append(b.Properties, []interface{}{"testResultsLink", url.String(), "datahopper_internal"})
 		} else {
 			glog.Errorf("Invalid testResultsLink parameter: %s", err)
-			httputils.ReportError(w, r, fmt.Errorf("Invalid testResultsLink parameter."), "")
+			httputils.ReportError(w, r, nil, "Invalid testResultsLink parameter.")
 			return
 		}
 	}
@@ -489,12 +489,12 @@ func ingestBuildHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := repos.Update(); err != nil {
 		glog.Errorf("Failed to update repos: %s", err)
-		httputils.ReportError(w, r, fmt.Errorf("Failed to update repos."), "")
+		httputils.ReportError(w, r, nil, "Failed to update repos.")
 		return
 	}
 	if err := ingestBuild(b, commitHash, target); err != nil {
 		glog.Errorf("Failed to ingest build: %s", err)
-		httputils.ReportError(w, r, fmt.Errorf("Failed to ingest build."), "")
+		httputils.ReportError(w, r, nil, "Failed to ingest build.")
 		return
 	}
 	if metric, present := ingestBuildWebhookLiveness[codename]; present {

@@ -158,14 +158,14 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 	w.Header().Set("Content-Type", "application/json")
 	revString := r.FormValue("rev")
 	if revString == "" {
-		httputils.ReportError(w, r, fmt.Errorf("No revision specified"), "")
+		httputils.ReportError(w, r, nil, "No revision specified")
 		return
 	}
 
 	if strings.EqualFold(revString, "LKGR") {
 		lkgr, err := getLkgr()
 		if err != nil {
-			httputils.ReportError(w, r, fmt.Errorf("Unable to retrieve LKGR revision"), "")
+			httputils.ReportError(w, r, nil, "Unable to retrieve LKGR revision")
 		}
 		glog.Infof("Retrieved LKGR commit hash: %s", lkgr)
 		revString = lkgr
@@ -187,7 +187,7 @@ func getRevDataHandler(getLkgr func() (string, error), gitRepoUrl string, w http
 		return
 	}
 	if resp.StatusCode != 200 {
-		httputils.ReportError(w, r, fmt.Errorf("Unable to retrieve revision detail"), "")
+		httputils.ReportError(w, r, nil, "Unable to retrieve revision detail")
 		return
 	}
 	// Remove junk in the first line. https://code.google.com/p/gitiles/issues/detail?id=31

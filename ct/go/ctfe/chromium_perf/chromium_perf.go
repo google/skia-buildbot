@@ -234,7 +234,7 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	detail, err := getCLDetail(r.FormValue("cl"))
 	if err != nil {
-		httputils.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "Failed to get CL details")
 		return
 	}
 	if detail.Issue == 0 {
@@ -246,16 +246,16 @@ func getCLHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	patch, err := getCLPatch(detail, 0)
 	if err != nil {
-		httputils.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "Failed to get CL patch")
 		return
 	}
 	clData, err := gatherCLData(detail, patch)
 	if err != nil {
-		httputils.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "Failed to get CL data")
 		return
 	}
 	if err = json.NewEncoder(w).Encode(clData); err != nil {
-		httputils.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
 }
@@ -403,22 +403,22 @@ func addTrybotTaskHandler(w http.ResponseWriter, r *http.Request) {
 	// Add patch data to the task.
 	detail, err := getCLDetail(trybotTask.Issue)
 	if err != nil {
-		httputils.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "Failed to get CL details")
 		return
 	}
 	patchsetID, err := strconv.Atoi(trybotTask.PatchsetID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "Failed to get Patchset ID")
 		return
 	}
 	patch, err := getCLPatch(detail, patchsetID)
 	if err != nil {
-		httputils.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "Failed to get CL patch")
 		return
 	}
 	clData, err := gatherCLData(detail, patch)
 	if err != nil {
-		httputils.ReportError(w, r, err, "")
+		httputils.ReportError(w, r, err, "Failed to get CL data")
 		return
 	}
 
