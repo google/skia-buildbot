@@ -3,6 +3,7 @@ package common
 import (
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/skia-dev/glog"
 )
@@ -24,6 +25,11 @@ var prettyFuzzCategories = map[string]string{
 	"skpicture":      "SkPicture",
 }
 
+var extraBugLabels = map[string][]string{
+	"skcodec_scale": []string{"Area-ImageDecoder"},
+	"skcodec_mode":  []string{"Area-ImageDecoder"},
+}
+
 var FUZZ_CATEGORIES = []string{}
 
 func init() {
@@ -35,6 +41,14 @@ func init() {
 
 func PrettifyCategory(category string) string {
 	return prettyFuzzCategories[category]
+}
+
+func ExtraBugLabels(category string) []string {
+	return extraBugLabels[category]
+}
+
+func ReplicationArgs(category string) string {
+	return strings.Join(argsAfterExecutable[category], " ")
 }
 
 func HasCategory(c string) bool {
