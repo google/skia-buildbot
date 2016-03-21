@@ -25,15 +25,7 @@
 
 <dom-module id="commit-popup-sk">
   <template>
-    <style>
-      #popup {
-        @apply(--layout-horizontal);
-        @apply(--layout-wrap);
-      }
-      .flex {
-        @apply(--layout-flex);
-      }
-
+    <style include="iron-flex">
       a {
         color: #000;
       }
@@ -51,7 +43,7 @@
         text-decoration:none;
       }
     </style>
-    <div id="popup">
+    <div id="popup" class="horizontal layout wrap">
       <div class="flex">
         <p>
           <a href$="{{_makeRepoURL(repo,commit)}}" target="_blank">{{commit.hash}}</a>

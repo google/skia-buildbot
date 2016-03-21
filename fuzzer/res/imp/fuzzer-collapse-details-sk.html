@@ -41,25 +41,19 @@
     None.
   -->
 <link rel="import" href="/res/common/imp/9/details-summary.html">
-<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="fuzzer-stacktrace-sk.html">
 <dom-module id="fuzzer-collapse-details-sk">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment">
     #wrapper {
       padding: 16px;
       border-radius: 8px;
       background-color: #DEDEDE;
       color: #000000;
-    }
-
-    .panel-container {
-      @apply(--layout-horizontal);
-      @apply(--layout-wrap);
-      @apply(--layout-start);
     }
 
     .panel-container .title {
@@ -84,15 +78,9 @@
     }
 
     .show-more-less-bar {
-      @apply(--layout-horizontal);
       width: 100%;
       background-color: white;
       border-radius: 8px;
-    }
-
-    .show-more-less-bar .status {
-      @apply(--layout-horizontal);
-      @apply(--layout-flex);
     }
 
     .center {
@@ -106,7 +94,7 @@
             <a href$="{{_getDetailsLink(detailsBase, details)}}">Line {{details.lineNumber}}</a>
           -- {{details.count}} crash-causing fuzzes
           </summary-sk>
-          <div class="panel-container">
+          <div class="panel-container horizontal layout wrap start">
             <template is="dom-repeat" items="{{reports}}" as="report">
               <div class="panel">
                 <div class="title">
@@ -132,9 +120,9 @@
                 <fuzzer-stacktrace-sk trace="{{report.releaseStackTrace}}"></fuzzer-stacktrace-sk>
               </div>
             </template>
-            <div class="show-more-less-bar">
+            <div class="show-more-less-bar horizontal layout">
               <paper-button disabled$="{{!hasFewer}}" on-click="showFewer">Show Fewer</paper-button>
-              <span class="status">
+              <span class="status horizontal layout flex">
                 <span class="center">Showing {{toShow}}/
                   {{details.count}}</span>
               </span>

@@ -27,15 +27,12 @@
     None.
 -->
 <link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
-<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <dom-module id="fuzzer-summary-sk">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment">
       #summaryBox {
         max-width: inherit;
-        @apply(--layout-horizontal);
-        @apply(--layout-wrap);
-        @apply(--layout-around-justified);
       }
       /* This aligns the 4 counts in a nice grid structure, with the fuzz type as a header. */
       .countBox {
@@ -59,7 +56,7 @@
       }
     </style>
     <iron-ajax auto url="/json/fuzz-summary" handle-as="json" last-response="{{fuzz_types}}"></iron-ajax>
-    <div id = "summaryBox">
+    <div id="summaryBox" class="horizontal layout wrap around-justified">
       <template is="dom-repeat" items="{{fuzz_types}}" as="fuzz">
         <span class="countBox">
           <div class="header">

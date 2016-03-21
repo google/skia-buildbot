@@ -34,8 +34,15 @@
       .count {
         max-width:420px;
       }
+      .fit {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
     </style>
-  <app-sk class="fit" flex>
+  <app-sk class="fit">
     <img header id="logo" src="/res/img/skia_fuzz.png">
     <fuzzer-status-sk rtoolbar></fuzzer-status-sk>
     <fuzzer-menu-sk navigation></fuzzer-menu-sk>
