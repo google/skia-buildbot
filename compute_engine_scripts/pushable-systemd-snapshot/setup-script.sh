@@ -8,6 +8,7 @@
 # install applications via Skia Push.
 #
 # For more details see ../../push/DESIGN.md.
+set -x -e
 sudo apt-get update
 sudo apt-get --assume-yes install git
 # Running "sudo apt-get --assume-yes upgrade" may upgrade the package
@@ -19,8 +20,9 @@ sudo apt-get --assume-yes install git
 # enabled by default. Thus we are not running any commands to update packages.
 
 sudo apt-get --assume-yes -o Dpkg::Options::="--force-confold" install collectd
-gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2015-11-23T18:46:16Z:0483101f84c284640c4899ade97e4356655bfd00.deb pulld.deb
+sudo gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2015-11-23T18:46:16Z:0483101f84c284640c4899ade97e4356655bfd00.deb pulld.deb
 sudo dpkg -i pulld.deb
+sudo systemctl start pulld.service
 sudo apt-get --assume-yes install --fix-broken
 
 # Setup collectd.
