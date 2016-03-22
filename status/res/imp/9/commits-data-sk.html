@@ -37,6 +37,7 @@
     category_list: Array<String>, an array of the builder category names.
     commits: Array<Object>, the commit objects, in chronological order.
     commits_map: Object, a map of commit hash to commit objects.
+    loading: Boolean, if the data is being fetched from the server or parsed.
     num_builders: Number, the number of builders with data, after filtering.
     relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it
     reverted_map: Object, a map of a commit hash that was reverted to the commit hash that reverts it
@@ -55,6 +56,7 @@
 <dom-module id="commits-data-sk">
   <template>
     <iron-ajax id="data"
+      loading="{{_activeAJAX}}"
       auto url="{{_computeURL(repo)}}"
       handle-as="json"
       params="[[_params]]"
@@ -250,6 +252,11 @@
           notify:true,
           computed:"_makeCommitsMap(commits)",
         },
+        loading: {
+          type: Number,
+          notify: true,
+          computed: "_or(_activeAJAX, _filtering)",
+        },
         num_builders: {
           type: Number,
           notify:true,
@@ -270,6 +277,14 @@
         },
 
         //private
+        _activeAJAX: {
+          type: Boolean,
+          value: false,
+        },
+        _filtering: {
+          type: Boolean,
+          value: false,
+        },
         _params: {
           type: String,
           computed: "_getUrlParams(commits_to_load)",
@@ -295,6 +310,10 @@
         return {"n":commits_to_load};
       },
 
+      _or: function(a,b) {
+        return a || b;
+      },
+
       _makeCommitsMap: function(arr) {
         if (!arr || arr.length == 0) {
           return {};
@@ -315,6 +334,7 @@
           console.log("Nothing to parse");
           return;
         }
+        this.set("_filtering", true);
         console.time("processData");
         data.commits.reverse();
         for (var i = 0; i < data.commits.length; i++) {
@@ -449,6 +469,7 @@
         }
         console.log("Prepared build data.");
         console.timeEnd("processData");
+        this.set("_filtering", false);
 
         // Actually draw the commits.
         this.set("commits", commits);

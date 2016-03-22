@@ -25,6 +25,7 @@
     None.
 -->
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
 
@@ -84,6 +85,11 @@
         top:0;
         left:200px;
       }
+      #spinner {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+      }
     </style>
 
     <url-param-sk name="botGrouping" value="{{_bot_grouping}}" default="builder"></url-param-sk>
@@ -96,6 +102,8 @@
       <h1 toolbar>Skia Buildbot Dashboard</h1>
 
       <div id="content">
+
+        <paper-spinner id="spinner" alt="Loading and drawing buildbot dash" active="{{_or(_drawingA, _drawingB, _loading)}}"></paper-spinner>
 
         <buildbot-filter-sk id="filter"
           excluded_builders="[[_excluded_builders]]"
@@ -123,7 +131,9 @@
                 keys="[[_builders]]"
                 values="[[_buildslaves_by_builder]]"
                 builds="[[_builds_by_builder]]"
-                urls="[[_urls_by_builder]]">
+                urls="[[_urls_by_builder]]"
+
+                drawing="{{_drawingA}}">
               </build-table-sk>
             </template>
 
@@ -132,7 +142,9 @@
                 keys="[[_buildslaves]]"
                 values="[[_builders_by_buildslave]]"
                 builds="[[_builds_by_buildslave]]"
-                urls="[[_urls_by_buildslave]]">
+                urls="[[_urls_by_buildslave]]"
+
+                drawing="{{_drawingB}}">
               </build-table-sk>
             </template>
           </div>
@@ -154,7 +166,8 @@
       builders_by_buildslave="{{_builders_by_buildslave}}"
       builds_by_buildslave="{{_builds_by_buildslave}}"
       urls_by_buildslave="{{_urls_by_buildslave}}"
-      excluded_builders="{{_excluded_builders}}">
+      excluded_builders="{{_excluded_builders}}"
+      loading="{{_loading}}">
     </buildbot-data-sk>
 
   </template>
@@ -182,40 +195,49 @@
         _builders: {
           type: Array,
         },
+
         _builds_by_builder: {
           type: Object,
-          notify: true,
         },
         _buildslaves_by_builder: {
           type: Object,
-          notify: true,
         },
         _urls_by_builder: {
           type: Object,
-          notify: true,
         },
 
         _buildslaves: {
           type: Array,
-          notify: true,
         },
         _builders_by_buildslave: {
           type: Object,
-          notify: true,
         },
         _builds_by_buildslave: {
           type: Object,
-          notify: true,
         },
         _urls_by_buildslave: {
           type: Object,
-          notify: true,
         },
 
         _excluded_builders: {
           type: Array,
-          notify: true,
         },
+        _drawingA: {
+          type: Boolean,
+          value: false,
+        },
+        _drawingB: {
+          type: Boolean,
+          value: false,
+        },
+        _loading: {
+          type: Boolean,
+          value: false,
+        }
+      },
+
+      _or: function(a, b, c) {
+        return a || b || c;
       },
 
       _isBuilder: function(str) {

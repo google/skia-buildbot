@@ -35,8 +35,9 @@
     reverted_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
 
     // outputs
+    commit_label: String, "author" or "subject", which indicates what info should be displayed about a commit.
+    drawing: Boolean, if the table is being drawn.
     filter: String, the builder filter to be used.
-    label: String, "author" or "subject", which indicates what info should be displayed about a commit.
     search: String, the string to be used if filter is "search".
 
   Methods:
@@ -156,7 +157,9 @@
           num_builders="[[num_builders]]"
           relanded_map="[[relanded_map]]"
           repo="[[repo]]"
-          reverted_map="[[reverted_map]]">
+          reverted_map="[[reverted_map]]"
+
+          drawing="{{drawing}}">
       </commits-table-d3-sk>
     </div>
 
@@ -221,15 +224,19 @@
 
 
         // outputs (from UI elements)
+        commit_label: {
+          type: String,
+          notify:true,
+        },
+        drawing: {
+          type: Boolean,
+          notify: true,
+        },
         filter: {
           type: String,
           notify: true,
         },
         search: {
-          type: String,
-          notify:true,
-        },
-        commit_label: {
           type: String,
           notify:true,
         },

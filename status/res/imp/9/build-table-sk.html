@@ -15,6 +15,7 @@
     <buildbot-table-sk></buildbot-table-sk>
 
   Properties:
+    // input
     keys: Array<String>, the keys of the data to be displayed
     values: Object{String: Array<String>}, the values corresponding to keys to be displayed
     builds: Object, the builds, corresponding to key-value pairs.  It has the following layout:
@@ -40,6 +41,9 @@
             /builders/[build.Builder]/builds/[build.Number]
       }
     }
+
+  // output
+  drawing: Boolean, if the table is being drawn.
 
   Methods:
     None.
@@ -101,6 +105,7 @@ work, so we just prefix every rule with build-table-sk.
       is:"build-table-sk",
 
       properties: {
+        // input
         keys: {
           type: Array,
         },
@@ -112,6 +117,13 @@ work, so we just prefix every rule with build-table-sk.
         },
         urls: {
           type: Object,
+        },
+
+        // output
+        drawing: {
+          type: Boolean,
+          notify: true,
+          value: false,
         }
       },
 
@@ -132,7 +144,8 @@ work, so we just prefix every rule with build-table-sk.
 
 
       _redraw:function(keys, values, builds, urls) {
-        this._removeOldData(keys,values,builds);
+        this.set("drawing", true);
+        this._removeOldData(keys, values, builds);
 
         console.time("(re)drawing table starting with "+keys[0]);
         var start = 0;
@@ -142,6 +155,7 @@ work, so we just prefix every rule with build-table-sk.
           start = end;
           end = Math.min(keys.length, end + 10);
           if (start >= end) {
+            this.set("drawing", false);
             console.timeEnd("(re)drawing table starting with "+keys[0]);
             // d3.timer ends upon returning true.
             return true;
@@ -257,7 +271,7 @@ work, so we just prefix every rule with build-table-sk.
               });
           });
           this._fixClippedDivs();
-        }.bind(this));
+        }.bind(this), 10);
       },
 
       _removeOldData: function(keys, values, builds) {

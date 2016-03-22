@@ -27,6 +27,7 @@
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/hardware-icons.html">
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-spinner/paper-spinner.html">
 
 <link rel="import" href="/res/common/imp/9/app-sk.html">
 <link rel="import" href="/res/common/imp/9/url-params-sk.html">
@@ -109,6 +110,8 @@
         width:175px;
       }
 
+      /* The table needs to be placed absolutely so that the table portion can scroll independent
+      of the commits panel*/
       #table {
         position:absolute;
         top:10px;
@@ -138,10 +141,16 @@
 
       #table.shrunk {
         display: block;
-        position:absolute;
+        position: absolute;
         top:10px;
         left:100px;
         right:0;
+      }
+
+      #spinner {
+        position: absolute;
+        top: 5px;
+        right: 5px;
       }
     </style>
 
@@ -235,6 +244,7 @@
             reverted_map="[[reverted_map]]"
 
             commit_label="{{label}}"
+            drawing="{{drawing}}"
             filter="{{filter}}"
             search="{{search}}">
         </commits-table-sk>
@@ -256,10 +266,13 @@
             category_list="{{category_list}}"
             commits="{{commits}}"
             commits_map="{{commits_map}}"
+            loading="{{loading}}"
             num_builders="{{num_builders}}"
             relanded_map="{{relanded_map}}"
             reverted_map="{{reverted_map}}">
         </commits-data-sk>
+
+        <paper-spinner id="spinner" alt="Loading status table and drawing it" active="{{_or(drawing, loading)}}"></paper-spinner>
       </div>
     </app-sk>
   </template>
@@ -278,6 +291,14 @@
       },
 
       // private
+      drawing: {
+        type: Boolean,
+        value: false,
+      },
+      loading: {
+        type: Boolean,
+        value: false,
+      },
       narrow: {
         type: Boolean,
         observer: "_toggleLargeMenuItems"
@@ -295,6 +316,10 @@
       trooper: {
         type: String,
       },
+    },
+
+    _or: function(a, b) {
+      return a || b;
     },
 
     _toggleLargeMenuItems: function(isNarrow) {

@@ -57,6 +57,7 @@
 
     excluded_builders: Array<String>, the names of the builders that had one or more buildslave
         filtered out.
+    loading: Boolean, if the data is being fetched from the server or parsed.
 
   Methods:
     None.
@@ -72,7 +73,8 @@
     <iron-ajax
       id="builds"
       auto url="/json/builds"
-      params='{{_urlParams(hours)}}'
+      params="{{_urlParams(hours)}}"
+      loading="{{_activeAJAX}}"
       handle-as="json"
       last-response="{{_builds}}">
     </iron-ajax>
@@ -141,10 +143,24 @@
           notify: true,
         },
 
+        loading: {
+          type: Boolean,
+          notify: true,
+          computed: "_or(_activeAJAX, _filtering)",
+        },
+
         // private
+        _activeAJAX: {
+          type: Boolean,
+          value: false,
+        },
         _builds: {
           type: Array,
         },
+        _filtering: {
+          type: Boolean,
+          value: false,
+        }
       },
 
       observers: [
@@ -158,6 +174,10 @@
           start: now - hours * 3600,
           end: now,
         };
+      },
+
+      _or: function(ajax, isFiltering){
+        return ajax || isFiltering;
       },
 
       _includeBuild: function(build) {
@@ -183,6 +203,7 @@
       },
 
       _processBuilds: function(builds) {
+        this.set("_filtering", true);
         console.log("Processing "+builds.length+" builds");
         console.log("include: "+JSON.stringify(this.include));
         console.log("exclude: "+JSON.stringify(this.exclude));
@@ -332,6 +353,7 @@
         sk.sortStrings(excluded_builders);
 
         console.timeEnd("processBuilds");
+        this.set("_filtering", false);
 
         // Setting all this data triggers any external rendering
         this.set("builders", builders);

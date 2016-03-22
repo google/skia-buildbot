@@ -147,6 +147,13 @@
         reverted_map: {
           type: Object,
         },
+
+        // outputs
+        drawing: {
+          type: Boolean,
+          notify: true,
+          value: false,
+        }
       },
       observers: [
         "redraw(builders, build_details, categories, category_list, commit_label, commits, commits_map, highlighted_commit_hashes, relanded_map, repo, reverted_map)",
@@ -168,6 +175,7 @@
       },
 
       _redraw:function() {
+        this.set("drawing", true);
         console.time("d3 rendering");
         this._drawCommitMessages(this.commits, this.highlighted_commit_hashes, this.relanded_map, this.reverted_map);
 
@@ -179,6 +187,7 @@
 
         this._drawBuilds(this.commits, this.build_details);
         console.timeEnd("d3 rendering");
+        this.set("drawing", false);
       },
 
       // Draw all of the commit divs that are on the left.
