@@ -22,6 +22,14 @@
     var server = sinon.fakeServer.create();
     server.autoRespond = true;
     // Mocked requests to Status.
+    var mockComment = {
+      id: 3,
+      message: "This is a test message",
+      time: "2016-03-22T14:59:20.226445862Z",
+      user: "bob@example.com",
+    }
+    data.builds["e6d665e24feabf6c633452885910efd17e5f025e"]["Perf-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-CT_BENCH_10k_SKPs"].comments=[mockComment];
+    data.builds["6b4985c6d163e378551010eecd44abd4141ab4bc"]["Perf-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-CT_BENCH_10k_SKPs"].comments=[mockComment];
 
     var dataCalls = 0;
     // Send the data, then slightly change the builds for the update.

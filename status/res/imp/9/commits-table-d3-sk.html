@@ -290,7 +290,7 @@
           .html(function(commit){
             // The Polymer templates will pick this up and make it a real iron-icon element.
             // However, if you try to do .insert("iron-icon")... that does not work.
-            if (shouldAddIcon(commit)) {
+            if (shouldAddIcon === undefined || shouldAddIcon(commit)) {
               return "<iron-icon class=\""+classes+"\" icon=\"" + icon + "\"></iron-icon>";
             }
           });
@@ -440,6 +440,8 @@
       // and allows for more consistent zooming behavior.
       _drawBuilds: function(commits, build_details) {
         var openBuildDialog = this._openBuildDialog.bind(this);
+        var addIronIcon = this._addIronIcon.bind(this);
+
         d3.select(this.$.table).selectAll(".builds").each(function(d){
           var list = commits.map(function(commit) {
             return {
@@ -461,20 +463,27 @@
             .insert("div")
             .classed("build",true)
             .insert("div")
-            .on("click", function(build){
-              openBuildDialog(build);
+            .on("click", function(d){
+              openBuildDialog(d);
             });
           data.order();
-
           // Style the inside div.
           data.each(function(d){
             var build = this.children[0];
+            // Clear any icons already drawn in the child.
+            build.innerHTML = "";
             var details = build_details[d.commit.hash] && build_details[d.commit.hash][d.builder];
             build.className = d.displayClass.join(" ");
 
             if (details) {
                 build.style["background-color"] = build_details[d.commit.hash][d.builder].color;
                 build.title = d.builder + ", #"+details.number;
+                addIronIcon(d3.select(build), "communication:chat", "tiny", function(){
+                  return details.comments.length > 0 &&
+                      (build.className.indexOf(CLASS_BUILD_SINGLE) >= 0
+                    || build.className.indexOf(CLASS_BUILD_TOP) >= 0);
+                });
+
               } else {
                 build.style["background-color"] = "";
                 build.title = "";

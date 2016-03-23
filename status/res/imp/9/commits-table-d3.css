@@ -134,6 +134,7 @@ commits-table-d3-sk .build > div {
   border-style: solid;
   border-color: grey;
   border-width: 0;
+  text-align: center;
 }
 
 commits-table-d3-sk div.build_single {
