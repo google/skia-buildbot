@@ -2,16 +2,14 @@
 package util
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/util"
 
 	"strings"
@@ -68,7 +66,7 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 
 	// Find which Skia commit hash should be used.
 	if skiaHash == "" {
-		skiaHash, err = getSkiaHash()
+		skiaHash, err = buildskia.GetSkiaHash()
 		if err != nil {
 			return "", "", fmt.Errorf("Error while finding Skia's Hash: %s", err)
 		}
@@ -167,30 +165,6 @@ func getChromiumHash() (string, error) {
 	}
 	tokens := strings.Split(string(output), "\t")
 	return tokens[0], nil
-}
-
-func getSkiaHash() (string, error) {
-	// Find Skia's LKGR commit hash.
-	resp, err := http.Get("http://chromium.googlesource.com/chromium/src/+/master/DEPS?format=TEXT")
-	if err != nil {
-		return "", fmt.Errorf("Could not get Skia's LKGR: %s", err)
-	}
-	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Got statuscode %d while accessing Chromium's DEPS file", resp.StatusCode)
-	}
-	defer util.Close(resp.Body)
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Could not read Skia's LKGR: %s", err)
-	}
-	base64Text := make([]byte, base64.StdEncoding.EncodedLen(len(string(body))))
-	l, _ := base64.StdEncoding.Decode(base64Text, []byte(string(body)))
-	chromiumDepsText := string(base64Text[:l])
-	if strings.Contains(chromiumDepsText, "skia_revision") {
-		reg, _ := regexp.Compile(".*'skia_revision': '(?P<revision>[0-9a-fA-F]{2,40})'.*")
-		return reg.FindStringSubmatch(chromiumDepsText)[1], nil
-	}
-	return "", fmt.Errorf("Could not find skia_revision in Chromium DEPS file")
 }
 
 func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GsUtil) error {

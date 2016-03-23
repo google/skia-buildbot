@@ -2,13 +2,18 @@
 package buildskia
 
 import (
+	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -27,6 +32,35 @@ const (
 	CMAKE_COMPILE_ARGS_FILE = "skia_compile_arguments.txt"
 	CMAKE_LINK_ARGS_FILE    = "skia_link_arguments.txt"
 )
+
+var (
+	skiaRevRegex = regexp.MustCompile(".*'skia_revision': '(?P<revision>[0-9a-fA-F]{2,40})'.*")
+)
+
+// GetSkiaHash returns Skia's LKGR commit hash as recorded in chromium's DEPS file.
+func GetSkiaHash() (string, error) {
+	// Find Skia's LKGR commit hash.
+	client := httputils.NewTimeoutClient()
+	resp, err := client.Get("http://chromium.googlesource.com/chromium/src/+/master/DEPS?format=TEXT")
+	if err != nil {
+		return "", fmt.Errorf("Could not get Skia's LKGR: %s", err)
+	}
+	defer util.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("Got statuscode %d while accessing Chromium's DEPS file", resp.StatusCode)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("Could not read Skia's LKGR: %s", err)
+	}
+	base64Text := make([]byte, base64.StdEncoding.EncodedLen(len(string(body))))
+	l, _ := base64.StdEncoding.Decode(base64Text, []byte(string(body)))
+	chromiumDepsText := string(base64Text[:l])
+	if strings.Contains(chromiumDepsText, "skia_revision") {
+		return skiaRevRegex.FindStringSubmatch(chromiumDepsText)[1], nil
+	}
+	return "", fmt.Errorf("Could not find skia_revision in Chromium DEPS file")
+}
 
 // DownloadSkia uses git to clone Skia from googlesource.com and check it out
 // to the specified version.  Upon success, any dependencies needed to compile
