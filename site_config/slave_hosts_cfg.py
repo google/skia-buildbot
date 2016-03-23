@@ -630,7 +630,7 @@ _slave_host_dicts = {
 
   'win8-4790k-000': {
     'slaves': [
-      #('skiabot-shuttle-win8-i7-4790k-000', '0', False),
+      ('skiabot-shuttle-win8-i7-4790k-000', '0', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': '192.168.1.128',
