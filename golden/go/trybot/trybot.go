@@ -203,6 +203,7 @@ func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []strin
 				}
 
 				var status string
+				checkIngested := false
 				switch tj.Result {
 				// scheduled but not yet started.
 				case 6:
@@ -210,19 +211,22 @@ func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []strin
 				// currently running.
 				case -1:
 					status = TRYJOB_RUNNING
-				// Finished. Lets' figure out if it has already been ingested.
+					checkIngested = true
+					// Finished.
 				case 0:
-					if t.ingestionStore.IsIngested(config.CONSTRUCTOR_GOLD, tj.Master, tj.Builder, tj.BuildNumber) {
-						status = TRYJOB_INGESTED
-						tjIngested++
-					} else {
-						status = TRYJOB_COMPLETE
-					}
+					status = TRYJOB_COMPLETE
+					checkIngested = true
 				// failed.
 				case 2:
 					status = TRYJOB_FAILED
 				default:
 					status = TRYJOB_FAILED
+				}
+
+				// Check if the job has been ingested if the job has at least been started.
+				if checkIngested && t.ingestionStore.IsIngested(config.CONSTRUCTOR_GOLD, tj.Master, tj.Builder, tj.BuildNumber) {
+					status = TRYJOB_INGESTED
+					tjIngested++
 				}
 
 				tryjobs = append(tryjobs, &Tryjob{
