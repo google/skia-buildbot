@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -303,7 +304,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		return "", nil, err
 	}
 	runInParallel := 0
-	if task.RunInParallel == "True" {
+	if strings.EqualFold(task.RunInParallel, "True") {
 		runInParallel = 1
 	}
 	return fmt.Sprintf("INSERT INTO %s (username,benchmark,platform,page_sets,repeat_runs,run_in_parallel, benchmark_args,browser_args_nopatch,browser_args_withpatch,description,chromium_patch,blink_patch,skia_patch,benchmark_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
