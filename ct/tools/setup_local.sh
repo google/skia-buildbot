@@ -67,12 +67,13 @@ echo "1" | python goma_ctl.py update
 
 rsa_key="${HOME}/.ssh/id_rsa"
 if [[ ! -e "${rsa_key}" ]]; then
-  echo "Setting up passwordless SSH..."
+  echo "Setting up passwordless SSH to the local machine..."
   ssh-keygen -t rsa -N '' -f "${rsa_key}"
   cat "${rsa_key}.pub" >> "${HOME}/.ssh/authorized_keys"
   set +x
   echo
-  echo "Warning: Using ${rsa_key} for remote access is not advisable. Instead, follow instructions at http://go/gnubbyssh"
+  echo "Warning: Using ${rsa_key} for remote access is not advisable. (I.e. do not add ${rsa_key}.pub to any remote machine authorized_keys.)"
+  echo "For remote SSH access, follow instructions at http://go/gnubbyssh"
 elif grep -L ENCRYPTED "${rsa_key}"; then
   set +x
   echo
