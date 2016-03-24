@@ -15,7 +15,7 @@
     server.respondImmediately = true;
 
     // gold-sk-status response 
-    server.respondWith("GET", "/_/trstatus", function(request) {
+    server.respondWith("GET", "/json/trstatus", function(request) {
         request.respond(200, {"Content-Type":"application/json"}, 
           JSON.stringify({
             corpStatus: [

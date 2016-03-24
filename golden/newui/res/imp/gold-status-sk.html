@@ -56,7 +56,7 @@
       // Load or reload the listing.
       _reload: function() {
         var that = this;
-        sk.get("/_/trstatus").then(JSON.parse).then(function (json) {
+        sk.get("/json/trstatus").then(JSON.parse).then(function (json) {
           if (JSON.stringify(json) != JSON.stringify(that.status)) {
             that.status = json;
           }

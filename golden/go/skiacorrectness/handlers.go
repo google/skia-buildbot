@@ -1,14 +1,24 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/human"
+	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -188,4 +198,203 @@ func jsonDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sendJsonResponse(w, ret)
+}
+
+// IgnoresRequest encapsulates a single ignore rule that is submitted for addition or update.
+type IgnoresRequest struct {
+	Duration string `json:"duration"`
+	Filter   string `json:"filter"`
+	Note     string `json:"note"`
+}
+
+// jsonIgnoresHandler returns the current ignore rules in JSON format.
+func jsonIgnoresHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	ignores := []*ignore.IgnoreRule{}
+	var err error
+	ignores, err = storages.IgnoreStore.List()
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve ignored traces.")
+	}
+
+	// TODO(stephana): Wrap in response envelope if it makes sense !
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(ignores); err != nil {
+		glog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
+// jsonIgnoresUpdateHandler updates an existing ignores rule.
+func jsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to update an ignore rule.")
+		return
+	}
+	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
+	if err != nil {
+		httputils.ReportError(w, r, err, "ID must be valid integer.")
+		return
+	}
+	req := &IgnoresRequest{}
+	if err := parseJson(r, req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse submitted data.")
+		return
+	}
+	if req.Filter == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
+		return
+	}
+	d, err := human.ParseDuration(req.Duration)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse duration")
+		return
+	}
+	ignoreRule := ignore.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
+		return
+	}
+	ignoreRule.ID = int(id)
+
+	err = storages.IgnoreStore.Update(int(id), ignoreRule)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Unable to update ignore rule.")
+	} else {
+		// If update worked just list the current ignores and return them.
+		jsonIgnoresHandler(w, r)
+	}
+}
+
+// jsonIgnoresDeleteHandler deletes an existing ignores rule.
+func jsonIgnoresDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
+		return
+	}
+	id, err := strconv.ParseInt(mux.Vars(r)["id"], 10, 0)
+	if err != nil {
+		httputils.ReportError(w, r, err, "ID must be valid integer.")
+		return
+	}
+
+	if _, err = storages.IgnoreStore.Delete(int(id), user); err != nil {
+		httputils.ReportError(w, r, err, "Unable to delete ignore rule.")
+	} else {
+		// If delete worked just list the current ignores and return them.
+		jsonIgnoresHandler(w, r)
+	}
+}
+
+// jsonIgnoresAddHandler is for adding a new ignore rule.
+func jsonIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to add an ignore rule.")
+		return
+	}
+	req := &IgnoresRequest{}
+	if err := parseJson(r, req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse submitted data.")
+		return
+	}
+	if req.Filter == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Invalid Filter: %q", req.Filter), "Filters can't be empty.")
+		return
+	}
+	d, err := human.ParseDuration(req.Duration)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse duration")
+		return
+	}
+	ignoreRule := ignore.NewIgnoreRule(user, time.Now().Add(d), req.Filter, req.Note)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
+		return
+	}
+
+	if err = storages.IgnoreStore.Create(ignoreRule); err != nil {
+		httputils.ReportError(w, r, err, "Failed to create ignore rule.")
+		return
+	}
+
+	jsonIgnoresHandler(w, r)
+}
+
+// TriageRequest is the form of the JSON posted to jsonTriageHandler.
+type TriageRequest struct {
+	Test    string   `json:"test"`
+	Digest  []string `json:"digest"`
+	Status  string   `json:"status"`
+	All     bool     `json:"all"` // Ignore Digest and instead use the query, filter, and include.
+	Query   string   `json:"query"`
+	Filter  string   `json:"filter"`
+	Include bool     `json:"include"` // Include ignored digests.
+	Head    bool     `json:"head"`    // Only include digests at head if true.
+}
+
+// jsonTriageHandler handles a request to change the triage status of one or more
+// digests of one test.
+//
+// It accepts a POST'd JSON serialization of TriageRequest and updates
+// the expectations.
+func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
+	req := &TriageRequest{}
+	if err := parseJson(r, req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse JSON request.")
+		return
+	}
+	glog.Infof("Triage request: %#v", req)
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
+		return
+	}
+
+	// Build the expecations change request from the list of digests passed in.
+	digests := req.Digest
+
+	// Or build the expectations change request from filter, query, and include.
+	if req.All {
+		exp, err := storages.ExpectationsStore.Get()
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to load expectations.")
+			return
+		}
+		e := exp.Tests[req.Test]
+		ii, _, err := imgInfo(req.Filter, req.Query, req.Test, e, -1, req.Include, false, "", "", req.Head)
+		digests = []string{}
+		for _, d := range ii {
+			digests = append(digests, d.Digest)
+		}
+	}
+
+	// Label the digests.
+	labelledDigests := map[string]types.Label{}
+	for _, d := range digests {
+		labelledDigests[d] = types.LabelFromString(req.Status)
+	}
+
+	tc := map[string]types.TestClassification{
+		req.Test: labelledDigests,
+	}
+
+	// Otherwise update the expectations directly.
+	if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
+		httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(map[string]string{}); err != nil {
+		glog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
+// jsonStatusHandler returns the current status of with respect to HEAD.
+func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
+	sendJsonResponse(w, statusWatcher.GetStatus())
 }

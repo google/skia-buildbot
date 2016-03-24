@@ -414,10 +414,10 @@ func main() {
 	router.HandleFunc("/_/details", polyDetailsHandler).Methods("GET")
 	router.HandleFunc("/_/diff", polyDiffJSONDigestHandler).Methods("GET")
 	router.HandleFunc("/_/hashes", polyAllHashesHandler).Methods("GET")
-	router.HandleFunc("/_/ignores", polyIgnoresJSONHandler).Methods("GET")
-	router.HandleFunc("/_/ignores/add/", polyIgnoresAddHandler).Methods("POST")
-	router.HandleFunc("/_/ignores/del/{id}", polyIgnoresDeleteHandler).Methods("POST")
-	router.HandleFunc("/_/ignores/save/{id}", polyIgnoresUpdateHandler).Methods("POST")
+	router.HandleFunc("/_/ignores", jsonIgnoresHandler).Methods("GET")
+	router.HandleFunc("/_/ignores/add/", jsonIgnoresAddHandler).Methods("POST")
+	router.HandleFunc("/_/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
+	router.HandleFunc("/_/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
 	router.HandleFunc("/_/list", polyListTestsHandler).Methods("GET")
 	router.HandleFunc("/_/paramset", polyParamsHandler).Methods("GET")
 	router.HandleFunc("/_/nxn", nxnJSONHandler).Methods("GET")
@@ -428,7 +428,7 @@ func main() {
 
 	router.HandleFunc("/_/status/{test}", polyTestStatusHandler).Methods("GET")
 	router.HandleFunc("/_/test", polyTestHandler).Methods("POST")
-	router.HandleFunc("/_/triage", polyTriageHandler).Methods("POST")
+	router.HandleFunc("/_/triage", jsonTriageHandler).Methods("POST")
 	router.HandleFunc("/_/triagelog", polyTriageLogHandler).Methods("GET")
 	router.HandleFunc("/_/triagelog/undo", triageUndoHandler).Methods("POST")
 	router.HandleFunc("/_/failure", failureListJSONHandler).Methods("GET")
@@ -445,6 +445,11 @@ func main() {
 		router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
 		router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
 		router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
+		router.HandleFunc("/json/ignores", jsonIgnoresHandler).Methods("GET")
+		router.HandleFunc("/json/ignores/add/", jsonIgnoresAddHandler).Methods("POST")
+		router.HandleFunc("/json/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
+		router.HandleFunc("/json/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
+		router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
 
 		// For everything else serve the same markup.
 		indexFile := *resourcesDir + "/index.html"
@@ -477,7 +482,11 @@ func main() {
 	}
 
 	// The polyStatusHandler is being polled, so we exclude it from logging.
-	http.HandleFunc("/_/trstatus", polyStatusHandler)
+	http.HandleFunc("/_/trstatus", jsonStatusHandler)
+	if *newUI {
+		http.HandleFunc("/json/trstatus", jsonStatusHandler)
+	}
+
 	http.Handle("/", rootHandler)
 
 	// Start the server

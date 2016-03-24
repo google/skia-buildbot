@@ -126,7 +126,7 @@
       },
 
       _handleTriage: function (ev) {
-        sk.post('_/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
+        sk.post('/json/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
       },
 
       // _findFocus returns the current details element with the keyboard focus.
