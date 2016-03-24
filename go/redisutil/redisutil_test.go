@@ -52,6 +52,7 @@ type TestStruct struct {
 func TestRedisLRUCache(t *testing.T) {
 	testutils.SkipIfShort(t)
 	cache := NewRedisLRUCache("localhost:6379", 1, "test-di", util.UnitTestCodec())
+	testRedisUp(t, cache.(*RedisLRUCache).pool)
 	util.UnitTestLRUCache(t, cache)
 }
 
@@ -294,4 +295,9 @@ func TestRedisPrimitives(t *testing.T) {
 	foundHash, err = rp.LoadHashToStruct(TEST_HASH_KEY, &ts2)
 	assert.Nil(t, err)
 	assert.False(t, foundHash)
+}
+
+func testRedisUp(t assert.TestingT, pool *RedisPool) {
+	conn := pool.Get()
+	defer assert.Nil(t, conn.Close(), "Redis server not found.")
 }
