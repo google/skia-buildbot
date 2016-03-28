@@ -5,39 +5,30 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
+	"golang.org/x/net/context"
+	"google.golang.org/cloud"
+	"google.golang.org/cloud/storage"
 )
 
 const (
 	// GS bucket where we store test data. Add a folder to this bucket
 	// with the tests for a particular component.
-	GS_TEST_DATA_ROOT_URI = "http://storage.googleapis.com/skia-infra-testdata/"
+	TEST_DATA_BUCKET = "skia-infra-testdata"
 )
 
-func openUri(uriPath string) (*http.Response, error) {
-	uri := GS_TEST_DATA_ROOT_URI + uriPath
-
-	client := httputils.NewTimeoutClient()
-	request, err := RequestForStorageURL(uri)
+func getStorangeItem(bucket, gsPath string) (*storage.Reader, error) {
+	storageClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(httputils.NewTimeoutClient()))
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Downloading %s failed. Got response status: %d", uri, resp.StatusCode)
-	}
-
-	return resp, nil
+	return storageClient.Bucket(bucket).Object(gsPath).NewReader(context.Background())
 }
 
 // DownloadTestDataFile downloads a file with test data from Google Storage.
@@ -46,30 +37,30 @@ func openUri(uriPath string) (*http.Response, error) {
 // The file will be downloaded and stored at provided target
 // path (regardless of what the original name is).
 // If the the uri ends with '.gz' it will be transparently unzipped.
-func DownloadTestDataFile(t assert.TestingT, uriPath, targetPath string) error {
+func DownloadTestDataFile(t assert.TestingT, bucket, gsPath, targetPath string) error {
 	dir, _ := filepath.Split(targetPath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
 
-	resp, err := openUri(uriPath)
+	arch, err := getStorangeItem(bucket, gsPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not get gs://%s/%s: %s", bucket, gsPath, err)
 	}
-	defer func() { assert.Nil(t, resp.Body.Close()) }()
+	defer func() { assert.Nil(t, arch.Close()) }()
 
 	// Open the output
-	var r io.ReadCloser = resp.Body
-	if strings.HasSuffix(uriPath, ".gz") {
+	var r io.ReadCloser = arch
+	if strings.HasSuffix(gsPath, ".gz") {
 		r, err = gzip.NewReader(r)
 		if err != nil {
-			return err
+			return fmt.Errorf("Could not read gzip file: %s", err)
 		}
 	}
 
 	f, err := os.Create(targetPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not create target path: %s", err)
 	}
 	defer func() { assert.Nil(t, f.Close()) }()
 	_, err = io.Copy(f, r)
@@ -79,25 +70,25 @@ func DownloadTestDataFile(t assert.TestingT, uriPath, targetPath string) error {
 // DownloadTestDataArchive downloads testfiles that are stored in
 // a gz compressed tar archive and decompresses them into the provided
 // target directory.
-func DownloadTestDataArchive(t assert.TestingT, uriPath, targetDir string) error {
-	if !strings.HasSuffix(uriPath, ".tar.gz") {
-		return fmt.Errorf("Expected .tar.gz file. But got:%s", uriPath)
+func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string) error {
+	if !strings.HasSuffix(gsPath, ".tar.gz") {
+		return fmt.Errorf("Expected .tar.gz file. But got:%s", gsPath)
 	}
 
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
 		return err
 	}
 
-	resp, err := openUri(uriPath)
+	arch, err := getStorangeItem(bucket, gsPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not get gs://%s/%s: %s", bucket, gsPath, err)
 	}
-	defer func() { assert.Nil(t, resp.Body.Close()) }()
+	defer func() { assert.Nil(t, arch.Close()) }()
 
 	// Open the output
-	r, err := gzip.NewReader(resp.Body)
+	r, err := gzip.NewReader(arch)
 	if err != nil {
-		return err
+		return fmt.Errorf("Could not read gzip archive: %s", err)
 	}
 	tarReader := tar.NewReader(r)
 
@@ -108,23 +99,23 @@ func DownloadTestDataArchive(t assert.TestingT, uriPath, targetDir string) error
 		}
 
 		if err != nil {
-			return err
+			return fmt.Errorf("Problem reading from tar archive: %s", err)
 		}
 
 		targetPath := filepath.Join(targetDir, hdr.Name)
 
 		if hdr.Typeflag == tar.TypeDir {
 			if err := os.MkdirAll(targetPath, 0755); err != nil {
-				return err
+				return fmt.Errorf("Could not make %s: %s", targetPath, err)
 			}
 		} else {
 			f, err := os.Create(targetPath)
 			if err != nil {
-				return err
+				return fmt.Errorf("Could not create target file %s: %s", targetPath, err)
 			}
 			_, err = io.Copy(f, tarReader)
 			if err != nil {
-				return err
+				return fmt.Errorf("Problem while copying: %s", err)
 			}
 			defer func() { assert.Nil(t, f.Close()) }()
 		}

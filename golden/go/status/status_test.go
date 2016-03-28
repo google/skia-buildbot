@@ -17,7 +17,7 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-var (
+const (
 	// Directory with testdata.
 	TEST_DATA_DIR = "./testdata"
 
@@ -31,7 +31,7 @@ var (
 func TestStatusWatcher(t *testing.T) {
 	testutils.SkipIfShort(t)
 
-	err := gs.DownloadTestDataFile(t, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
+	err := gs.DownloadTestDataFile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
 	assert.Nil(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 

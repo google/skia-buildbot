@@ -15,8 +15,6 @@ import (
 )
 
 const (
-	// TEST_GS_BUCKET is the bucket from where to fetch GS test data.
-	TEST_GS_BUCKET = "skia-infra-testdata"
 
 	// TEST_GS_DIR is the directory from where to fetch GS test data.
 	TEST_GS_DIR = "ingest-testdata/dm-json-v1"
@@ -44,7 +42,7 @@ func TestGoogleStorageSource(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	evt := eventbus.New(nil)
-	src, err := NewGoogleStorageSource("gs-test-src", TEST_GS_BUCKET, TEST_GS_DIR, http.DefaultClient, evt)
+	src, err := NewGoogleStorageSource("gs-test-src", gs.TEST_DATA_BUCKET, TEST_GS_DIR, http.DefaultClient, evt)
 	assert.Nil(t, err)
 	testSource(t, src)
 }
@@ -52,7 +50,7 @@ func TestGoogleStorageSource(t *testing.T) {
 func TestFileSystemResultFileLocations(t *testing.T) {
 	testutils.SkipIfShort(t)
 
-	err := gs.DownloadTestDataArchive(t, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err := gs.DownloadTestDataArchive(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.Nil(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
@@ -65,10 +63,10 @@ func TestCompareSources(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	evt := eventbus.New(nil)
-	gsSource, err := NewGoogleStorageSource("gs-test-src", TEST_GS_BUCKET, TEST_GS_DIR, http.DefaultClient, evt)
+	gsSource, err := NewGoogleStorageSource("gs-test-src", gs.TEST_DATA_BUCKET, TEST_GS_DIR, http.DefaultClient, evt)
 	assert.Nil(t, err)
 
-	err = gs.DownloadTestDataArchive(t, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
+	err = gs.DownloadTestDataArchive(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
 	assert.Nil(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
