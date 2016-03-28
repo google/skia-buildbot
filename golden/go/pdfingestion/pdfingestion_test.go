@@ -1,7 +1,6 @@
 package pdfingestion
 
 import (
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"testing"
@@ -9,6 +8,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
@@ -123,14 +123,5 @@ func deleteFolderContent(t *testing.T, bucket, folderName string, client *http.C
 	cStorage, err := storage.NewClient(ctx, cloud.WithBaseHTTP(client))
 	assert.Nil(t, err)
 
-	bucketHdl := cStorage.Bucket(bucket)
-	objList, err := bucketHdl.List(ctx, &storage.Query{Prefix: folderName, MaxResults: 1000})
-	assert.Nil(t, err)
-
-	for _, obj := range objList.Results {
-		fmt.Printf("%s/%s\n\n", obj.Bucket, obj.Name)
-		objHdl := bucketHdl.Object(obj.Name)
-		assert.Nil(t, objHdl.Delete(ctx))
-		fmt.Printf("Deleted object %s / %s\n\n", obj.Bucket, obj.Name)
-	}
+	assert.Nil(t, gs.DeleteAllFilesInDir(cStorage, bucket, folderName, 1))
 }

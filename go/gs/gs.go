@@ -148,8 +148,12 @@ func AllFilesInDir(s *storage.Client, bucket, folder string, callback func(item 
 }
 
 // DeleteAllFilesInDir deletes all the files in a given folder.  If processes is set to > 1,
-// that many go routines will be spun up to delete the file simultaneously.
+// that many go routines will be spun up to delete the file simultaneously. Otherwise, it will
+// be done one one process.
 func DeleteAllFilesInDir(s *storage.Client, bucket, folder string, processes int) error {
+	if processes <= 0 {
+		processes = 1
+	}
 	errCount := int32(0)
 	var wg sync.WaitGroup
 	toDelete := make(chan string, 1000)
