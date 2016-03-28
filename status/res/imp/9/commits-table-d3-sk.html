@@ -147,6 +147,9 @@
         reverted_map: {
           type: Object,
         },
+        time_points: {
+          type: Object,
+        },
 
         // outputs
         drawing: {
@@ -156,7 +159,7 @@
         }
       },
       observers: [
-        "redraw(builders, build_details, categories, category_list, commit_label, commits, commits_map, highlighted_commit_hashes, relanded_map, repo, reverted_map)",
+        "redraw(builders, build_details, categories, category_list, commit_label, commits, commits_map, highlighted_commit_hashes, relanded_map, repo, reverted_map, time_points)",
       ],
 
       ready: function() {
@@ -177,7 +180,7 @@
       _redraw:function() {
         this.set("drawing", true);
         console.time("d3 rendering");
-        this._drawCommitMessages(this.commits, this.highlighted_commit_hashes, this.relanded_map, this.reverted_map);
+        this._drawCommitMessages(this.commits, this.highlighted_commit_hashes, this.relanded_map, this.reverted_map, this.time_points);
 
         this._drawCategories(this.category_list, this.categories);
 
@@ -191,7 +194,7 @@
       },
 
       // Draw all of the commit divs that are on the left.
-      _drawCommitMessages: function(commits, highlighted_commit_hashes, relanded_map, reverted_map){
+      _drawCommitMessages: function(commits, highlighted_commit_hashes, relanded_map, reverted_map, time_points){
         var openCommitDialog = this._openCommitDialog.bind(this);
         var commitLabel = this.commit_label;
         // It's easiest to delete all .commits and redraw them.  Normally, we would only update
@@ -237,6 +240,27 @@
               return "#FFF";
             }
           });
+
+        // Add a spacer to every commit where the time bubble could be.  This allows all
+        // the bubbles and non-bubble commits to line up vertically.
+        var spacers = newCommits
+          .insert("div")
+          .classed("time-spacer",true);
+
+        spacers.each(function(commit) {
+          var point = time_points[commit.hash];
+          if (point) {
+          d3.select(this)
+            .append("span")
+            .classed("time-underline", true);
+          d3.select(this)
+            .insert("span")
+            .classed("time", true)
+            .attr("title", point.label)
+            .text(point.label);
+          }
+        });
+
         // Insert a span with the commit label.
         newCommits
           .insert("span")

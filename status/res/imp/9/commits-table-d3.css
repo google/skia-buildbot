@@ -19,6 +19,32 @@ commits-table-d3-sk .back {
   z-index:-1;
 }
 
+commits-table-d3-sk .time-spacer {
+  display:flex;
+  margin-right: 1px;
+  width:25px;
+}
+
+commits-table-d3-sk .time {
+  background-color: #666666;
+  border-radius:3px;
+  bottom:-5.5px; /*The box is 11 px tall*/
+  color: white;
+  margin:auto;
+  padding: 1px;
+  position:absolute;
+  z-index: 2;
+}
+
+commits-table-d3-sk .time-underline {
+  border-bottom: 2px solid #666666;
+  bottom: 0;
+  height: 10px;
+  left: 13px;
+  position:absolute;
+  right: 0;
+}
+
 commits-table-d3-sk .author {
   margin: auto;
 }

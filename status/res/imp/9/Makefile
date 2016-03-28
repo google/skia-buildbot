@@ -12,7 +12,7 @@ run:
 	npm install http-server
 	# We use sinon to mock up the demo page's json requests.
 	npm install sinon@1.17.2
-	cp ../../../node_modules/sinon/pkg/sinon-server-1.17.2.js res/imp/sinon-server-1.17.2.js
+	cp ../../../node_modules/sinon/pkg/sinon-1.17.2.js res/imp/sinon-1.17.2.js
 
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/slave-hosts-demo.json
 	wget --no-clobber https://storage.googleapis.com/skia-infra-testdata/status-demo/commits-table-demo.json

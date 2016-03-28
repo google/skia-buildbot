@@ -9,7 +9,7 @@
   <script src="/res/js/status_utils.js"></script>
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
-  <script src="/res/imp/sinon-server-1.17.2.js"></script>
+  <script src="/res/imp/sinon-1.17.2.js"></script>
   <!-- Makes a var called data-->
   <script type="text/javascript" src="commits-table-35-demo.json"></script>
   <!-- Makes a var called autoroll-->
@@ -19,6 +19,9 @@
   <script type="text/javascript" charset="utf-8">
     // sinon.format = function(object) {return JSON.stringify(object);}
     // sinon.log = function(message) {console.log(message);};
+
+    // Sets the time to be Thu Mar 10 2016 12:13:20 GMT-0500 (EST)
+    var clock = sinon.useFakeTimers(1457630000000, "Date");
     var server = sinon.fakeServer.create();
     server.autoRespond = true;
     // Mocked requests to Status.
@@ -34,6 +37,8 @@
     var dataCalls = 0;
     // Send the data, then slightly change the builds for the update.
     server.respondWith("GET", "/json/skia/commits/?n=35",function(request){
+        // advance the clock 5 minutes.
+        clock.tick(5 * 60 * 1000);
         if (dataCalls === 0) {
           dataCalls++;
           return request.respond(200, {}, JSON.stringify(data));
