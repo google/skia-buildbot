@@ -170,6 +170,16 @@ func RawAddInt64PointAtTime(measurement string, tags map[string]string, value in
 func (c *Client) pushData() (map[string]int64, error) {
 	c.valuesMtx.Lock()
 	defer c.valuesMtx.Unlock()
+
+	// Always clear out the values after pushing, even if we failed.
+	newValues, err := c.influxClient.NewBatchPoints()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		c.values = newValues
+	}()
+
 	if c.influxClient == nil {
 		return nil, fmt.Errorf("InfluxDB client is nil! Cannot push data. Did you initialize the metrics2 package?")
 	}
@@ -187,12 +197,6 @@ func (c *Client) pushData() (map[string]int64, error) {
 		byMeasurement[pt.Name()] = count + 1
 	}
 
-	// Get a fresh BatchPoints.
-	newValues, err := c.influxClient.NewBatchPoints()
-	if err != nil {
-		return nil, err
-	}
-	c.values = newValues
 	return byMeasurement, nil
 }
 
