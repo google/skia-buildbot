@@ -17,12 +17,14 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
+	googleapi "google.golang.org/api/googleapi"
 	storage "google.golang.org/api/storage/v1"
 )
 
 const (
 	GOROUTINE_POOL_SIZE = 30
 	MAX_CHANNEL_SIZE    = 100000
+	UPLOAD_CHUNK_SIZE   = 4 * 1024 * 1014 * 1024
 )
 
 type GsUtil struct {
@@ -280,7 +282,10 @@ func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 		return fmt.Errorf("Error opening %s: %s", localFile, err)
 	}
 	defer util.Close(f)
-	if _, err := gs.service.Objects.Insert(GSBucketName, object).Media(f).Do(); err != nil {
+	// TODO(rmistry): gs api now enables resumable uploads by default. Handle 308
+	// response codes.
+	mediaOption := googleapi.ChunkSize(UPLOAD_CHUNK_SIZE)
+	if _, err := gs.service.Objects.Insert(GSBucketName, object).Media(f, mediaOption).Do(); err != nil {
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}
 	glog.Infof("Copied %s to %s", localFile, fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
