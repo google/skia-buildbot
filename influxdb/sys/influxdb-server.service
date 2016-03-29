@@ -11,6 +11,9 @@ Restart=always
 User=root
 Group=root
 LimitNOFILE=10000
+ExecStartPost=-/usr/bin/influx -port 10117 -execute "CREATE DATABASE skmetrics"
+ExecStartPost=-/usr/bin/influx -port 10117 -execute "CREATE RETENTION POLICY one_week ON skmetrics DURATION 720h REPLICATION 1 DEFAULT"
+ExecStartPost=-/usr/bin/influx -port 10117 -execute "CREATE RETENTION POLICY one_week ON graphite  DURATION 720h REPLICATION 1 DEFAULT"
 
 [Install]
 WantedBy=multi-user.target
