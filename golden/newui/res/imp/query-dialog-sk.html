@@ -1,0 +1,82 @@
+<!--
+   The <query-dialog-sk> custom element declaration.
+
+  A dialog that wraps around the query-sk custom element. 
+
+  Attributes:
+    queryEle - The wrapped query-sk element. 
+
+  Methods:
+    open(selection) - Opens the dialog with the given initial selections.
+                      'selection' is assumed to be a url-encoded string. 
+
+  Events:
+    'edit' - emitted when user clicks the edit button (and closes the dialog in the process). 
+             The 'detail' field of the event contains the url-encoded selections. 
+
+  Mailboxes:
+    None
+
+-->
+
+<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+
+<link rel=import href="../common/imp/9/query.html">
+
+<link rel="import" href="ignore-summary-sk.html">
+
+<dom-module id="query-dialog-sk">
+  <template>
+    <paper-dialog id="queryDialog">
+      <paper-dialog-scrollable>
+        <query-sk id="queryInput" whitelist="[]" matches=""></query-sk>
+      </paper-dialog-scrollable>
+      <div class="buttons">
+        <paper-button id="editButton" raised dialog-dismiss>Edit</paper-button>
+        <paper-button raised dialog-dismiss>Cancel</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: "query-dialog-sk",
+
+      properties: {
+        queryEle: {
+          type: Object,
+          readOnly: true
+        }
+      },
+
+      ready: function() {
+        this._setQueryEle(this.$.queryInput); 
+        this.listen(this.$.editButton, 'click', '_handleEditButton');
+        var dialogEl = this.$.queryDialog; 
+        var scrollable = Polymer.dom(dialogEl).querySelector('paper-dialog-scrollable'); 
+        scrollable.dialogElement = dialogEl;  
+      },
+
+      open: function(selection) {
+        this.$.queryInput.setSelections(selection); 
+        this.$.queryDialog.open(); 
+      },
+
+      _paramsetChanged: function() {
+        if (!this.paramset) { 
+          return; 
+        }
+        this.$.queryInput.setParamSet(this.paramset); 
+      }, 
+
+      _handleEditButton: function(ev) {
+        ev.stopPropagation(); 
+        this.fire('edit', this.$.queryInput.currentquery); 
+      }
+
+    });
+  </script>
+</dom-module>

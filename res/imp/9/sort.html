@@ -73,7 +73,9 @@
         // registering for the click event.
         $$('[data-key]', this).forEach(function (ele) {
           var ico = document.createElement('iron-icon');
-          ele.appendChild(ico);
+          ico.icon = 'icons:arrow-drop-down';
+          ico.style.visibility = 'hidden';
+          Polymer.dom(ele).appendChild(ico); 
           ele.addEventListener('click', this.clickHandler.bind(this));
         }.bind(this));
 
@@ -96,9 +98,9 @@
         // Set the children elements icons to reflect the new sorting order.
         ico.icon = toggle[ico.icon || ''];
         ico.style.visibility = 'initial';
-        $$('[data-key]', this).forEach(function (ele) {
-          if (ele.dataset.key !== ele.dataset.key) {
-            $$$('iron-icon', ele).style.visibility = 'hidden';
+        $$('[data-key]', this).forEach(function (innerEle) {
+          if (innerEle.dataset.key !== ele.dataset.key) {
+            $$$('iron-icon', innerEle).style.visibility = 'hidden';
           }
         });
 

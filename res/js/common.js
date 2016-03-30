@@ -531,7 +531,7 @@ this.sk = this.sk || function() {
       }
     });
     return ret;
-  }
+  };
 
   // Returns a copy of object o with values from delta if they exist.
   sk.object.applyDelta = function (delta, o) {
@@ -544,7 +544,18 @@ this.sk = this.sk || function() {
       }
     });
     return ret;
-  }
+  };
+
+  // Returns a shallow copy (top level keys) of the object. 
+  sk.object.shallowCopy = function(o) {
+    var ret = {};
+    for(var k in o) {
+      if (o.hasOwnProperty(k)) {
+        ret[k] = o[k]; 
+      }
+    }
+    return ret;
+  };
 
   // Track the state of a page and reflect it to and from the URL.
   //
