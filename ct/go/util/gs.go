@@ -24,7 +24,6 @@ import (
 const (
 	GOROUTINE_POOL_SIZE = 30
 	MAX_CHANNEL_SIZE    = 100000
-	UPLOAD_CHUNK_SIZE   = 4 * 1024 * 1014 * 1024
 )
 
 type GsUtil struct {
@@ -284,7 +283,11 @@ func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 	defer util.Close(f)
 	// TODO(rmistry): gs api now enables resumable uploads by default. Handle 308
 	// response codes.
-	mediaOption := googleapi.ChunkSize(UPLOAD_CHUNK_SIZE)
+	fi, err := f.Stat()
+	if err != nil {
+		return fmt.Errorf("Error stating %s: %s", localFile, err)
+	}
+	mediaOption := googleapi.ChunkSize(int(fi.Size()))
 	if _, err := gs.service.Objects.Insert(GSBucketName, object).Media(f, mediaOption).Do(); err != nil {
 		return fmt.Errorf("Objects.Insert failed: %s", err)
 	}
@@ -322,7 +325,6 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 		// Empty the remote dir before uploading to it.
 		util.LogErr(gs.deleteRemoteDir(gsDir))
 	}
-	glog.Infof("Starting upload of %s to %s", localDir, gsDir)
 
 	// Construct a dictionary of file paths to their file infos.
 	pathsToFileInfos := map[string]os.FileInfo{}
