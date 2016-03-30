@@ -178,6 +178,8 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GsUtil) 
 
 		genDir := filepath.Join(localOutDir, "gen")
 		genTmpDir := filepath.Join(ChromiumBuildsDir, "gen")
+		// Make sure the tmp dir is empty.
+		util.RemoveAll(genTmpDir)
 		if err := os.Rename(genDir, genTmpDir); err != nil {
 			return fmt.Errorf("Could not rename gen dir: %s", err)
 		}
@@ -185,6 +187,8 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GsUtil) 
 
 		objDir := filepath.Join(localOutDir, "obj")
 		objTmpDir := filepath.Join(ChromiumBuildsDir, "obj")
+		// Make sure the tmp dir is empty.
+		util.RemoveAll(objTmpDir)
 		if err := os.Rename(objDir, objTmpDir); err != nil {
 			return fmt.Errorf("Could not rename obj dir: %s", err)
 		}
