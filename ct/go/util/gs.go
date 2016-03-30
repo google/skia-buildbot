@@ -322,6 +322,7 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 		// Empty the remote dir before uploading to it.
 		util.LogErr(gs.deleteRemoteDir(gsDir))
 	}
+	glog.Infof("Starting upload of %s to %s", localDir, gsDir)
 
 	// Construct a dictionary of file paths to their file infos.
 	pathsToFileInfos := map[string]os.FileInfo{}
