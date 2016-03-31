@@ -380,5 +380,25 @@ func TestBranchInfo(t *testing.T) {
 		assert.True(t, details.Branches[tc.branchName])
 		assert.Equal(t, tc.nBranches, len(details.Branches))
 	}
+}
 
+func TestSetBranch(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	branches, err := r.GetBranches()
+	assert.Nil(t, err)
+	assert.Equal(t, 2, len(branches))
+
+	err = r.SetToBranch("test-branch-1")
+	assert.NoError(t, err)
+
+	commits := r.LastN(10)
+	assert.Equal(t, 3, len(commits))
+	assert.Equal(t, "3f5a807d432ac232a952bbf223bc6952e4b49b2c", commits[2])
 }

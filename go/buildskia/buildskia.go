@@ -2,13 +2,17 @@
 package buildskia
 
 import (
+	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
@@ -37,11 +41,20 @@ var (
 	skiaRevRegex = regexp.MustCompile(".*'skia_revision': '(?P<revision>[0-9a-fA-F]{2,40})'.*")
 )
 
+const (
+	CHROMIUM_DEPS_URL  = "https://chromium.googlesource.com/chromium/src/+/master/DEPS?format=TEXT"
+	SKIA_BRANCHES_JSON = "https://skia.googlesource.com/skia/+refs?format=JSON"
+)
+
 // GetSkiaHash returns Skia's LKGR commit hash as recorded in chromium's DEPS file.
-func GetSkiaHash() (string, error) {
+//
+// If client is nil then a default timeout client is used.
+func GetSkiaHash(client *http.Client) (string, error) {
+	if client == nil {
+		client = httputils.NewTimeoutClient()
+	}
 	// Find Skia's LKGR commit hash.
-	client := httputils.NewTimeoutClient()
-	resp, err := client.Get("http://chromium.googlesource.com/chromium/src/+/master/DEPS?format=TEXT")
+	resp, err := client.Get(CHROMIUM_DEPS_URL)
 	if err != nil {
 		return "", fmt.Errorf("Could not get Skia's LKGR: %s", err)
 	}
@@ -62,11 +75,49 @@ func GetSkiaHash() (string, error) {
 	return "", fmt.Errorf("Could not find skia_revision in Chromium DEPS file")
 }
 
-// DownloadSkia uses git to clone Skia from googlesource.com and check it out
-// to the specified version.  Upon success, any dependencies needed to compile
-// Skia have been installed (e.g. the latest version of gyp).
+type Branch struct {
+	Value string `json:"value"`
+	Time  time.Time
+}
+
+// GetSkiaBranches returns a list of the available branches for chrome along
+// with their associated githash.
 //
-//   version - The git hash to check out Skia at.
+// If client is nil then a default timeout client is used.
+func GetSkiaBranches(client *http.Client) (map[string]Branch, error) {
+	if client == nil {
+		client = httputils.NewTimeoutClient()
+	}
+	resp, err := client.Get(SKIA_BRANCHES_JSON)
+	if err != nil {
+		return nil, fmt.Errorf("Could not get Skia's branches: %s", err)
+	}
+	defer util.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("Got statuscode %d while accessing Skia's branches", resp.StatusCode)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read Skia's branches: %s", err)
+	}
+	if len(body) < 5 {
+		return nil, fmt.Errorf("Reponse too short.")
+	}
+	body = body[5:]
+	ret := map[string]Branch{}
+	if err := json.Unmarshal(body, &ret); err != nil {
+		return nil, fmt.Errorf("Failed to parse JSON: %s", err)
+	}
+	return ret, nil
+}
+
+// DownloadSkia uses git to clone Skia from googlesource.com and check it out
+// to the specified gitHash for the specified branch. Upon success, any
+// dependencies needed to compile Skia have been installed (e.g. the latest
+// version of gyp).
+//
+//   branch - The empty string signifies the master branch.
+//   gitHash - The git hash to check out Skia at.
 //   path - The path to check Skia out into.
 //   depotToolsPath - The depot_tools directory.
 //   clean - If true clean out the directory before cloning Skia.
@@ -74,20 +125,26 @@ func GetSkiaHash() (string, error) {
 //       sync-and-gyp.
 //
 // It returns an error on failure.
-func DownloadSkia(version, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
-	glog.Infof("Cloning Skia version %s to %s, clean: %t", version, path, clean)
+func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
+	glog.Infof("Cloning Skia gitHash %s to %s, clean: %t", gitHash, path, clean)
 
 	if clean {
 		util.RemoveAll(filepath.Join(path))
 	}
 
-	repo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia", path, false)
+	repo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia", path, true)
 	if err != nil {
 		return nil, fmt.Errorf("Failed cloning Skia: %s", err)
 	}
 
-	if err = repo.SetToCommit(version); err != nil {
-		return nil, fmt.Errorf("Problem setting Skia to version %s: %s", version, err)
+	if branch != "" {
+		if err := repo.SetToBranch(branch); err != nil {
+			return nil, fmt.Errorf("Failed to change to branch %s: %s", branch, err)
+		}
+	}
+
+	if err = repo.SetToCommit(gitHash); err != nil {
+		return nil, fmt.Errorf("Problem setting Skia to gitHash %s: %s", gitHash, err)
 	}
 
 	env := []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")}
@@ -119,8 +176,8 @@ func DownloadSkia(version, path, depotToolsPath string, clean bool, installDeps 
 		return nil, fmt.Errorf("Failed syncing and setting up gyp: %s", err)
 	}
 
-	if lc, err := repo.Details(version, false); err != nil {
-		return nil, fmt.Errorf("Could not get git details for skia version %s: %s", version, err)
+	if lc, err := repo.Details(gitHash, false); err != nil {
+		return nil, fmt.Errorf("Could not get git details for skia gitHash %s: %s", gitHash, err)
 	} else {
 		return lc, nil
 	}
@@ -192,7 +249,10 @@ func CMakeBuild(path string, build ReleaseType) error {
 //   path - the absolute path to the Skia checkout.
 //   out - A filename, either absolute, or relative to path, to write the exe.
 //   filenames - Absolute paths to the files to compile.
+//   extraIncludeDirs - Entra directories to search for includes.
 //   extraLinkFlags - Entra linker flags.
+//
+// Returns the stdout+stderr of the compiler and a non-nil error if the compile failed.
 //
 // Should run something like:
 //
@@ -200,25 +260,86 @@ func CMakeBuild(path string, build ReleaseType) error {
 //         draw.cpp @skia_link_arguments.txt -lOSMesa \
 //         -o myexample
 //
-func CMakeCompileAndLink(path, out string, filenames []string, extraLinkFlags []string) error {
+func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs []string, extraLinkFlags []string) (string, error) {
 	if !filepath.IsAbs(out) {
 		out = filepath.Join(path, out)
 	}
 	args := []string{
 		fmt.Sprintf("@%s", filepath.Join(path, CMAKE_OUTDIR, CMAKE_COMPILE_ARGS_FILE)),
-		// The filenames get inserted here.
+	}
+	if len(extraIncludeDirs) > 0 {
+		args = append(args, "-I"+strings.Join(extraIncludeDirs, ","))
+	}
+	for _, fn := range filenames {
+		args = append(args, fn)
+	}
+	moreArgs := []string{
 		fmt.Sprintf("@%s", filepath.Join(path, CMAKE_OUTDIR, CMAKE_LINK_ARGS_FILE)),
 		"-o",
 		out,
+	}
+	for _, s := range moreArgs {
+		args = append(args, s)
 	}
 	if len(extraLinkFlags) > 0 {
 		for _, fl := range extraLinkFlags {
 			args = append(args, fl)
 		}
 	}
+	output := bytes.Buffer{}
+	compileCmd := &exec.Command{
+		Name:           "c++",
+		Args:           args,
+		Dir:            path,
+		InheritPath:    true,
+		LogStderr:      true,
+		LogStdout:      true,
+		CombinedOutput: &output,
+		Timeout:        10 * time.Second,
+	}
+	glog.Infof("About to run: %#v", *compileCmd)
+
+	if err := exec.Run(compileCmd); err != nil {
+		return output.String(), fmt.Errorf("Failed compile: %s", err)
+	}
+	return output.String(), nil
+}
+
+// CMakeCompile will compile the given files into an executable.
+//
+//   path - the absolute path to the Skia checkout.
+//   out - A filename, either absolute, or relative to path, to write the .o file.
+//   filenames - Absolute paths to the files to compile.
+//
+// Should run something like:
+//
+//   $ c++ @skia_compile_arguments.txt fiddle_main.cpp \
+//         -o fiddle_main.o
+//
+func CMakeCompile(path, out string, filenames []string, extraIncludeDirs []string) error {
+	if !filepath.IsAbs(out) {
+		out = filepath.Join(path, out)
+	}
+	args := []string{
+		"-c",
+		fmt.Sprintf("@%s", filepath.Join(path, CMAKE_OUTDIR, CMAKE_COMPILE_ARGS_FILE)),
+	}
+	if len(extraIncludeDirs) > 0 {
+		args = append(args, "-I"+strings.Join(extraIncludeDirs, ","))
+	}
+	for _, fn := range filenames {
+		args = append(args, fn)
+	}
+	moreArgs := []string{
+		"-o",
+		out,
+	}
+	for _, s := range moreArgs {
+		args = append(args, s)
+	}
 	compileCmd := &exec.Command{
 		Name:        "c++",
-		Args:        append(append(append([]string{}, args[0]), filenames...), args[1:]...),
+		Args:        args,
 		Dir:         path,
 		InheritPath: true,
 		LogStderr:   true,

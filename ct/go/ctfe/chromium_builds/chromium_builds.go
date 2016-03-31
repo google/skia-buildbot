@@ -8,7 +8,6 @@ import (
 	"bufio"
 	"bytes"
 	"database/sql"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,6 +27,7 @@ import (
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
+	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
 )
@@ -223,25 +223,8 @@ func getChromiumRevDataHandler(w http.ResponseWriter, r *http.Request) {
 
 var skiaRevisionRegexp = regexp.MustCompile("'skia_revision': '([0-9a-fA-F]{2,40})'")
 
-// TODO(benjaminwagner): Seems to duplicate code in ct/go/util/chromium_builds.go.
-// Copied from https://github.com/google/skia-buildbot/blob/016cce36f0cd487c9586b013979705e49dd76f8e/appengine_scripts/skia-tree-status/status.py#L178
-// to work around 403 error.
 func getSkiaLkgr() (string, error) {
-	glog.Infof("Reading Skia LKGR from %s", CHROMIUM_DEPS_FILE)
-	resp, err := httpClient.Get(CHROMIUM_DEPS_FILE)
-	if err != nil {
-		return "", err
-	}
-	defer skutil.Close(resp.Body)
-	decodedBody, err := ioutil.ReadAll(base64.NewDecoder(base64.StdEncoding, resp.Body))
-	if err != nil {
-		return "", err
-	}
-	regexpMatches := skiaRevisionRegexp.FindSubmatch(decodedBody)
-	if regexpMatches == nil || len(regexpMatches) < 2 || len(regexpMatches[1]) == 0 {
-		return "", fmt.Errorf("Could not find skia_revision in %s", CHROMIUM_DEPS_FILE)
-	}
-	return bytes.NewBuffer(regexpMatches[1]).String(), nil
+	return buildskia.GetSkiaHash(httpClient)
 }
 
 func getSkiaRevDataHandler(w http.ResponseWriter, r *http.Request) {

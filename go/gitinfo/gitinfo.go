@@ -144,6 +144,13 @@ func (g *GitInfo) SetToCommit(hash string) error {
 	return nil
 }
 
+func (g *GitInfo) SetToBranch(branch string) error {
+	if _, err := exec.RunCwd(g.dir, "git", "checkout", branch); err != nil {
+		return fmt.Errorf("Failed to checkout %s: %s", branch, err)
+	}
+	return nil
+}
+
 // getBranchesForCommit returns a string set with all the branches that can reach
 // the commit with the given hash.
 // TODO(stephana): Speed up this method, there are either better ways to do this

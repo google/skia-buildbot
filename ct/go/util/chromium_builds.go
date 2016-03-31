@@ -66,7 +66,7 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 
 	// Find which Skia commit hash should be used.
 	if skiaHash == "" {
-		skiaHash, err = buildskia.GetSkiaHash()
+		skiaHash, err = buildskia.GetSkiaHash(nil)
 		if err != nil {
 			return "", "", fmt.Errorf("Error while finding Skia's Hash: %s", err)
 		}

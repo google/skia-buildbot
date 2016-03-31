@@ -16,7 +16,7 @@ func main() {
 	if err := os.MkdirAll(path, 0777); err != nil {
 		glog.Fatalf("Failed to create tmp dir: %s", err)
 	}
-	if _, err := buildskia.DownloadSkia("e7ec417268d4be2d7921b23c131859b322badf78", path, "/usr/local/google/home/jcgregorio/projects/depot_tools", false, false); err != nil {
+	if _, err := buildskia.DownloadSkia("master", "e7ec417268d4be2d7921b23c131859b322badf78", path, "/usr/local/google/home/jcgregorio/projects/depot_tools", false, false); err != nil {
 		glog.Fatalf("Failed to fetch: %s", err)
 	}
 	glog.Info("Starting CMakeBuild")
@@ -38,13 +38,13 @@ func main() {
 		filepath.Join(cwd, "draw.cpp"),
 		filepath.Join(path, "experimental", "fiddle", "fiddle_main.cpp"),
 	}
-	if err := buildskia.CMakeCompileAndLink(path, "/tmp/fiddle_main", files, []string{"-lOSMesa"}); err != nil {
+	if _, err := buildskia.CMakeCompileAndLink(path, "/tmp/fiddle_main", files, []string{}, []string{"-lOSMesa"}); err != nil {
 		glog.Fatalf("Failed cmake build: %s", err)
 	}
 	files = []string{
 		filepath.Join(os.Getenv("GOPATH"), "src", "go.skia.org", "infra", "webtry", "fiddle_secwrap.cpp"),
 	}
-	if err := buildskia.CMakeCompileAndLink(path, "fiddle_secwrap", files, []string{}); err != nil {
+	if _, err := buildskia.CMakeCompileAndLink(path, "fiddle_secwrap", files, []string{}, []string{}); err != nil {
 		glog.Fatalf("Failed cmake build: %s", err)
 	}
 }
