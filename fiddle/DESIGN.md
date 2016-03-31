@@ -35,7 +35,7 @@ The following executables part of that process:
                   an SKP data.
   * fiddle_run - This is run within the chroot jail. It compiles
                  the user's code against fiddle_main.o and
-                 libskia.a and then runs the resulting executable
+                 libskia.so and then runs the resulting executable
                  under the control of fiddle_secwrap. It gathers
                  the output of all steps and emits it as one large
                  JSON file written to stdout.
@@ -60,7 +60,7 @@ The rest are built on the server as it runs:
     +----------------------------------------------------------+
     |                                                          |
     |                                    cmake                 |
-    |  FIDDLE_ROOT/versions/<githash>/  +-----> libskia.a      |
+    |  FIDDLE_ROOT/versions/<githash>/  +-----> libskia.so     |
     |  FIDDLE_ROOT/.../fiddle_main.cpp  +-----> fiddle_main.o  |
     |                                                          |
     |                                                          |
@@ -78,7 +78,7 @@ The rest are built on the server as it runs:
     |           |                                              |
     |           |   draw.cpp        cmake                      |
     |           +-> fiddle_main.o  +----->  fiddle_main        |
-    |           |   libskia.a                                  |
+    |           |   libskia.so                                 |
     |           |                                              |
     |           |                                              |
     |           +-> fiddle_secwrap                             |
