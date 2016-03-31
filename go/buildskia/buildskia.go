@@ -44,7 +44,49 @@ var (
 const (
 	CHROMIUM_DEPS_URL  = "https://chromium.googlesource.com/chromium/src/+/master/DEPS?format=TEXT"
 	SKIA_BRANCHES_JSON = "https://skia.googlesource.com/skia/+refs?format=JSON"
+	SKIA_HEAD_JSON     = "https://skia.googlesource.com/skia/+/master?format=JSON"
 )
+
+type SkiaHead struct {
+	Commit string `json:"commit"`
+}
+
+// GetSkiaHead returns Skia's most recent commit hash to master.
+//
+// If client is nil then a default timeout client is used.
+func GetSkiaHead(client *http.Client) (string, error) {
+	if client == nil {
+		client = httputils.NewTimeoutClient()
+	}
+	resp, err := client.Get(SKIA_HEAD_JSON)
+	if err != nil {
+		return "", fmt.Errorf("Could not get Skia's HEAD: %s", err)
+	}
+	defer util.Close(resp.Body)
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("Got statuscode %d while accessing Skia's HEAD", resp.StatusCode)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("Could not read Skia's HEAD: %s", err)
+	}
+	if len(body) < 5 {
+		return "", fmt.Errorf("Reponse too short.")
+	}
+	// Strip off the XSS protection chars.
+	parts := strings.SplitN(string(body), "\n", 2)
+	if len(parts) != 2 {
+		return "", fmt.Errorf("Reponse invalid format.")
+	}
+	parsed := &SkiaHead{}
+	if err := json.Unmarshal([]byte(parts[1]), parsed); err != nil {
+		return "", fmt.Errorf("Failed to parse JSON: %s", err)
+	}
+	if parsed.Commit == "" {
+		return "", fmt.Errorf("Failed to get a valid git hash.")
+	}
+	return parsed.Commit, nil
+}
 
 // GetSkiaHash returns Skia's LKGR commit hash as recorded in chromium's DEPS file.
 //
@@ -103,9 +145,13 @@ func GetSkiaBranches(client *http.Client) (map[string]Branch, error) {
 	if len(body) < 5 {
 		return nil, fmt.Errorf("Reponse too short.")
 	}
-	body = body[5:]
+	// Strip off the XSS protection chars.
+	parts := strings.SplitN(string(body), "\n", 2)
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("Reponse invalid format.")
+	}
 	ret := map[string]Branch{}
-	if err := json.Unmarshal(body, &ret); err != nil {
+	if err := json.Unmarshal([]byte(parts[1]), &ret); err != nil {
 		return nil, fmt.Errorf("Failed to parse JSON: %s", err)
 	}
 	return ret, nil

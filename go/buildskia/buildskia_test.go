@@ -106,3 +106,39 @@ func TestGetSkiaBranchesEmpty(t *testing.T) {
 	_, err = GetSkiaBranches(client)
 	assert.Error(t, err)
 }
+
+func TestGetSkiaHead(t *testing.T) {
+	body := `)]}'
+{
+    "commit": "273c0f5e87397c40d22bb7e3ee078bb46a3f6860",
+    "tree": "70436fd146c39be9702c6c295a8fd204a38d865f",
+    "parents": [
+    "a5598a40f82d69113fb4764dcb8de62151921807"
+    ]
+}`
+	client := mockhttpclient.New(map[string][]byte{
+		SKIA_HEAD_JSON: []byte(body),
+	})
+
+	hash, err := GetSkiaHead(client)
+	assert.NoError(t, err)
+	assert.Equal(t, "273c0f5e87397c40d22bb7e3ee078bb46a3f6860", hash)
+}
+
+func TestGetSkiaHeadEmpty(t *testing.T) {
+	body := `)]}'`
+	client := mockhttpclient.New(map[string][]byte{
+		SKIA_BRANCHES_JSON: []byte(body),
+	})
+
+	_, err := GetSkiaBranches(client)
+	assert.Error(t, err)
+
+	body = ``
+	client = mockhttpclient.New(map[string][]byte{
+		SKIA_HEAD_JSON: []byte(body),
+	})
+
+	_, err = GetSkiaHead(client)
+	assert.Error(t, err)
+}
