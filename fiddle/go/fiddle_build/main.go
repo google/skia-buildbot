@@ -17,13 +17,16 @@ var (
 	force      = flag.Bool("force", false, "Force a rebuild even if the library has already been checked out.")
 	fiddleRoot = flag.String("fiddle_root", "", "Directory location where all the work is done.")
 	depotTools = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
-	milestone  = flag.Bool("milestone", false, "Also create a milestore mNN branch build.")
+	milestone  = flag.Bool("milestone", false, "Also create a milestone mNN branch build.")
 )
 
 func main() {
 	common.Init()
 	if *fiddleRoot == "" {
 		glog.Fatal("The --fiddle_root flag is required.")
+	}
+	if *depotTools == "" {
+		glog.Fatal("The --depot_tools flag is required.")
 	}
 	res, err := builder.BuildLatestSkia(*fiddleRoot, *depotTools, *force, *head)
 	if err != nil {

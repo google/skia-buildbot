@@ -71,6 +71,7 @@ func buildLib(checkout string) error {
 // The library will be checked out into fiddleRoot + "/" + githash, where githash
 // is the githash of the LKGR of Skia.
 //
+// fiddleRoot - The root directory where fiddle stores its files. See DESIGN.md.
 // depotTools - The directory where depot_tools is checked out.
 // force - If true then checkout and build even if the directory already exists.
 // head - If true then build Skia at HEAD, otherwise build Skia at LKGR.
@@ -120,6 +121,7 @@ func BuildLatestSkia(fiddleRoot, depotTools string, force bool, head bool) (*vcs
 // is the short name of the branch for Chrome. The mNN is chosen as the largest
 // NN from all the branches named refs/heads/chrome/m[0-9]+.
 //
+// fiddleRoot - The root directory where fiddle stores its files. See DESIGN.md.
 // depotTools - The directory where depot_tools is checked out.
 // force - If true then checkout and build even if the directory already exists.
 //
