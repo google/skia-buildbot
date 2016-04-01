@@ -108,6 +108,7 @@ func main() {
 			"--user-agent=" + decodedPageset.UserAgent,
 			"--urls-list=" + decodedPageset.UrlsList,
 			"--archive-data-file=" + decodedPageset.ArchiveDataFile,
+			"--device=desktop",
 		}
 		env := []string{
 			fmt.Sprintf("PYTHONPATH=%s:$PYTHONPATH", pathToPagesets),
