@@ -120,7 +120,7 @@
       if (id == name) {
         return 'check';
       }
-      return '';
+      return ' '; // Don't return an empty string here. Fixes skia:5153.
     },
 
     warnIfDirty: function(dirty) {
