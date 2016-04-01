@@ -17,8 +17,8 @@ service account.
 
 ### Running locally
 
-You will need to install InfluxDB locally and configure it as a graphite
-server using the configuration in ../influxdb/influxdb-config.toml.
+You will need to install InfluxDB locally and configure it using the
+configuration in ../influxdb/influxdb-config.toml.
 
 You will also need a file named "service-account.json" in the CWD containing the
 value of the
@@ -30,7 +30,6 @@ To start a local server, `mkdir /tmp/datahopper_internal`, then run:
 make && datahopper_internal --local=true \
   --logtostderr \
   --port=:8000 \
-  --graphite_server='localhost:2003' \
   --targets=<ask another infra team member> \
   --workdir=/tmp/datahopper_internal \
   --codename_db_dir=/tmp/datahopper_internal_codenames

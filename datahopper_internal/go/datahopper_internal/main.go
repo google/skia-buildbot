@@ -516,6 +516,7 @@ func updateWebhookMetrics() error {
 	commitHashes := repo.LastN(100)
 	N := len(commitHashes)
 	for codename, _ := range ingestBuildWebhookCodenames {
+		var untestedCommitInfo *vcsinfo.LongCommit = nil
 		for i := 0; i < N; i++ {
 			// commitHashes is ordered oldest to newest.
 			commitHash := commitHashes[N-i-1]
@@ -524,17 +525,22 @@ func updateWebhookMetrics() error {
 				return err
 			}
 			if buildNumber == -1 {
+				commitInfo, err := repo.Details(commitHash, true)
+				if err != nil {
+					return err
+				}
+				if commitInfo.Branches["master"] {
+					untestedCommitInfo = commitInfo
+				}
 				// No tests for this commit, check older.
 				continue
 			}
 			metric := metrics2.GetInt64Metric("datahopper_internal.ingest-build-webhook.oldest-untested-commit-age", map[string]string{"codename": codename})
-			if i == 0 {
+			if untestedCommitInfo == nil {
 				// There are no untested commits.
 				metric.Update(0)
 			} else {
-				// This commit is tested; the following commit is not.
-				laterCommitHash := commitHashes[N-i]
-				metric.Update(int64(time.Since(repo.Timestamp(laterCommitHash)).Seconds()))
+				metric.Update(int64(time.Since(untestedCommitInfo.Timestamp).Seconds()))
 			}
 			break
 		}
