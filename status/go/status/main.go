@@ -460,6 +460,11 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		Steps      []*TinyBuildStep
 	}
 
+	type buildbotDashData struct {
+		Builds  []*TinyBuild `json:"builds"`
+		Commits []string     `json:"commits"`
+	}
+
 	rv := make([]*TinyBuild, 0, len(builds))
 	for _, b := range builds {
 		steps := make([]*TinyBuildStep, 0, len(b.Steps))
@@ -484,8 +489,27 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	commits, err := commitCaches[SKIA_REPO].RevisionsInDateRange(startTime, endTime)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load Skia commits: %v", err))
+		return
+	}
+
+	infraCommits, err := commitCaches[INFRA_REPO].RevisionsInDateRange(startTime, endTime)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load Infra commits: %v", err))
+		return
+	}
+
+	commits = append(commits, infraCommits...)
+
+	data := buildbotDashData{
+		Builds:  rv,
+		Commits: commits,
+	}
+
 	defer timer.New("buildsHandler_encode").Stop()
-	if err := json.NewEncoder(w).Encode(rv); err != nil {
+	if err := json.NewEncoder(w).Encode(data); err != nil {
 		glog.Errorf("Failed to write or encode output: %s", err)
 		return
 	}

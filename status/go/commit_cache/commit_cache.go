@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 	"sync"
 	"time"
 
@@ -125,11 +126,36 @@ func (c *CommitCache) Get(idx int) (*vcsinfo.LongCommit, error) {
 // Slice returns a slice of LongCommits from the cache.
 func (c *CommitCache) Slice(startIdx, endIdx int) ([]*vcsinfo.LongCommit, error) {
 	c.mutex.RLock()
-	c.mutex.RUnlock()
+	defer c.mutex.RUnlock()
 	if startIdx < 0 || startIdx > endIdx || endIdx > len(c.Commits) {
 		return nil, fmt.Errorf("Index out of range: (%d < 0 || %d > %d || %d > %d)", startIdx, startIdx, endIdx, endIdx, len(c.Commits))
 	}
 	return c.Commits[startIdx:endIdx], nil
+}
+
+// RevisionsInDateRange returns a slice of revisions that happen within the bounded time.
+func (c *CommitCache) RevisionsInDateRange(start, end time.Time) ([]string, error) {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
+	if len(c.Commits) == 0 {
+		glog.Warning("No commits yet in commit cache")
+		return []string{}, nil
+	}
+
+	startIdx := sort.Search(len(c.Commits), func(i int) bool {
+		return c.Commits[i].Timestamp.After(start)
+	})
+	endIdx := sort.Search(len(c.Commits), func(i int) bool {
+		return c.Commits[i].Timestamp.After(end)
+	})
+	commits := c.Commits[startIdx:endIdx]
+
+	r := make([]string, 0, len(commits))
+	for _, commit := range commits {
+		r = append(r, commit.Hash)
+	}
+	return r, nil
 }
 
 // update syncs the source code repository and loads any new commits.

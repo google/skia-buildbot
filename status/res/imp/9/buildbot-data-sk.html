@@ -76,7 +76,7 @@
       params="{{_urlParams(hours)}}"
       loading="{{_activeAJAX}}"
       handle-as="json"
-      last-response="{{_builds}}">
+      last-response="{{_data}}">
     </iron-ajax>
   </template>
   <script>
@@ -85,11 +85,25 @@
       "builder": function(build) { return build.Builder; },
       "buildslave": function(build) { return build.BuildSlave; },
     };
+
+    var orderings = {
+      "build_time": function(thisBuild, thatBuild) {
+        return thatBuild.Started - thisBuild.Started;
+      },
+      "commit_time": function(thisBuild, thatBuild) {
+        return thatBuild.RevisionOrder - thisBuild.RevisionOrder;
+      },
+    };
+
+
     Polymer({
       is:"buildbot-data-sk",
 
       properties: {
         // input
+        build_ordering: {
+          type: String,
+        },
         exclude: {
           type: Array,
         },
@@ -154,7 +168,7 @@
           type: Boolean,
           value: false,
         },
-        _builds: {
+        _data: {
           type: Array,
         },
         _filtering: {
@@ -164,8 +178,8 @@
       },
 
       observers: [
-        "_processBuilds(_builds, include, exclude, filter_by)",
-        "_refilter(include.*, exclude.*, filter_by)",
+        "_processBuilds(_data, include, exclude, filter_by, build_ordering)",
+        "_refilter(include.*, exclude.*, filter_by, build_ordering)",
       ],
 
       _urlParams: function(hours) {
@@ -197,13 +211,19 @@
 
       _refilter: function() {
         console.log("refiltering");
-        if (this._builds) {
-          this._processBuilds(this._builds);
+        if (this._data) {
+          this._processBuilds(this._data);
         }
       },
 
-      _processBuilds: function(builds) {
+      _processBuilds: function(data) {
         this.set("_filtering", true);
+        if (!data) {
+          console.log("no data");
+          return;
+        }
+        var builds = data.builds;
+        var commits = data.commits;
         console.log("Processing "+builds.length+" builds");
         console.log("include: "+JSON.stringify(this.include));
         console.log("exclude: "+JSON.stringify(this.exclude));
@@ -224,6 +244,14 @@
           build._id = i;
           build.Started = new Date(build.Started);
           build.Finished = new Date(build.Finished);
+          build.Revision = "[unknown]"
+          for (var j = 0; j < build.properties.length; j++
+            ) {
+            if (build.properties[j][0] == "revision") {
+              build.Revision = build.properties[j][1];
+            }
+          }
+          build.RevisionOrder = commits.indexOf(build.Revision);
 
           if (!this._includeBuild(build)) {
             excludedBuilders[build.Builder] = true;
@@ -236,52 +264,65 @@
             buildslavesByBuilder[build.Builder] = {};
           }
           if (!buildsByBuilder[build.Builder][build.BuildSlave]) {
-            buildsByBuilder[build.Builder][build.BuildSlave] = [];
+            var anyBuildSlave = Object.keys(buildsByBuilder[build.Builder])[0];
+            var arr = [];
+            // If this is not the first build slave, we need to create filler versions
+            // of all the rest of the builds.
+            if (anyBuildSlave) {
+              var otherBuilds = buildsByBuilder[build.Builder][anyBuildSlave];
+              for (var j = 0; j < otherBuilds.length; j++) {
+                var fillerCopy = sk.object.applyDelta({
+                    BuildSlave: build.BuildSlave
+                  }, otherBuilds[j]);
+                fillerCopy.filler = true;
+                arr.push(fillerCopy);
+              }
+            }
+            buildsByBuilder[build.Builder][build.BuildSlave] = arr;
           }
           buildsByBuilder[build.Builder][build.BuildSlave].push(build);
 
           // To align all the builds, the non-active builds get a filler build with a copy of the
           // build data and an additional field called filler.
-
           for (var otherBuildSlave in buildsByBuilder[build.Builder]) {
             if (otherBuildSlave != build.BuildSlave) {
-              var fillerCopy = {
-                _id : build._id,
-                filler:true,
+              var fillerCopy = sk.object.applyDelta({
                 BuildSlave: otherBuildSlave,
-                Builder: build.Builder,
-                Number: build.Number,
-                Started: build.Started,
-                Finished: build.Finished,
-                Results: build.Results,
-              };
+              }, build);
+              fillerCopy.filler = true;
               buildsByBuilder[build.Builder][otherBuildSlave].push(fillerCopy);
             }
           }
           buildslavesByBuilder[build.Builder][build.BuildSlave] = true;
 
-
+          // Same thing as above, just now for buildsByBuildslave.
           if (!buildsByBuildslave[build.BuildSlave]) {
             buildsByBuildslave[build.BuildSlave] = {};
             buildersByBuildslave[build.BuildSlave] = {};
           }
           if (!buildsByBuildslave[build.BuildSlave][build.Builder]) {
-            buildsByBuildslave[build.BuildSlave][build.Builder] = [];
+            var anyBuilder = Object.keys(buildsByBuildslave[build.BuildSlave])[0];
+            var arr = [];
+            if (anyBuilder) {
+              var otherBuilds = buildsByBuildslave[build.BuildSlave][anyBuilder];
+              for (var j = 0; j < otherBuilds.length; j++) {
+                var fillerCopy = sk.object.applyDelta({
+                  Builder: build.Builder
+                }, otherBuilds[j]);
+                fillerCopy.filler = true;
+                arr.push(fillerCopy);
+              }
+            }
+            buildsByBuildslave[build.BuildSlave][build.Builder] = arr;
           }
           buildsByBuildslave[build.BuildSlave][build.Builder].push(build);
 
           for (var otherBuilder in buildsByBuildslave[build.BuildSlave]) {
             if (otherBuilder != build.Builder) {
-              var fillerCopy = {
-                _id : build._id,
-                filler:true,
-                BuildSlave: build.BuildSlave,
+              var fillerCopy = sk.object.applyDelta({
                 Builder: otherBuilder,
-                Number: build.Number,
-                Started: build.Started,
-                Finished: build.Finished,
-                Results: build.Results,
-              };
+              }, build);
+              fillerCopy.filler = true;
               buildsByBuildslave[build.BuildSlave][otherBuilder].push(fillerCopy);
             }
           }
@@ -315,16 +356,12 @@
         // Sort the builds by builder/buildslave.
         for (var builder in buildsByBuilder) {
           for (var slave in buildsByBuilder[builder]) {
-              buildsByBuilder[builder][slave].sort(function(a, b) {
-                return b.Started - a.Started;
-              });
+              buildsByBuilder[builder][slave].sort(orderings[this.build_ordering]);
           }
         }
         for (var slave in buildsByBuildslave) {
           for (var builder in buildsByBuildslave[slave]) {
-            buildsByBuildslave[slave][builder].sort(function(a, b) {
-              return b.Started - a.Started;
-            });
+            buildsByBuildslave[slave][builder].sort(orderings[this.build_ordering]);
           }
         }
 

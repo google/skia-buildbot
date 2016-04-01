@@ -238,9 +238,10 @@ work, so we just prefix every rule with build-table-sk.
             if (!builds[d.key] || !builds[d.key][d.value]) {
               return;
             }
-            d3.select(this)
+            var data = d3.select(this)
               .selectAll("div")
-              .data(builds[d.key][d.value], buildDataFunction)
+              .data(builds[d.key][d.value], buildDataFunction);
+            data
               .enter()
               .append("div")
               .classed("build", true)
@@ -267,8 +268,9 @@ work, so we just prefix every rule with build-table-sk.
                 if (build.filler) {
                   return "";
                 }
-                return "<a target='_blank' class='plain' href="+urls[d.key].base+"builders/"+build.Builder+"/builds/"+build.Number+">"+build.Number+"</a>";
+                return "<a target='_blank' class='plain' href="+escape(urls[d.key].base)+"builders/"+escape(build.Builder)+"/builds/"+build.Number+">"+build.Number+"</a>";
               });
+              data.order();
           });
           this._fixClippedDivs();
         }.bind(this), 10);

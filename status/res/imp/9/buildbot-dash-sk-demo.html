@@ -10,10 +10,8 @@
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script src="/res/imp/sinon-server-1.17.2.js"></script>
-  <!-- Makes a var called builds-->
-  <!-- <script type="text/javascript" src="buildbot-dash-demo-60min.json"></script> -->
-  <script type="text/javascript" src="buildbot-dash-demo-24hr.json"></script>
-  <!-- <script type="text/javascript" src="buildbot-dash-demo-1w.json"></script> -->
+  <!-- Makes a var called data-->
+  <script type="text/javascript" src="buildbot-dash-demo-60min.json"></script>
   <script type="text/javascript" charset="utf-8">
     sinon.format = function(object) {return sk.truncate(JSON.stringify(object), 1000);}
     sinon.log = function(message) {console.log(message);};
@@ -25,7 +23,7 @@
 
     var dataCalls = 0;
     // Send the data, then slightly change the builds for the update.
-    server.respondWith("GET", new RegExp("/json/builds.*"), JSON.stringify(builds));
+    server.respondWith("GET", new RegExp("/json/builds.*"), JSON.stringify(data));
 
     var login = {"Email":"test@google.com","LoginURL":"http://www.example.com","IsAGoogler":true};
     server.respondWith("GET","/loginstatus/", JSON.stringify(login));
