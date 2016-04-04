@@ -34,7 +34,7 @@
     submit - Fired when the alert is changed by the user through the alert
         controls.
 -->
-<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="/res/common/imp/9/alert-controls-sk.html">
 <link rel="import" href="/res/common/imp/9/comments-sk.html">
@@ -42,7 +42,7 @@
 <link rel="import" href="/res/common/imp/9/linkify-sk.html">
 <dom-module id="alert-sk">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment iron-positioning">
       #wrapper {
         padding: 20px;
         margin: 10px;

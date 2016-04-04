@@ -31,13 +31,14 @@
 -->
 <link rel="stylesheet" href="/res/common/css/md.css">
 <link rel="import" href="/res/imp/bower_components/polymer/polymer.html">
-<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/communication-icons.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <dom-module id="alert-controls-sk">
+<style include="iron-flex iron-flex-alignment iron-positioning"></style>
   <template>
     <div class="flex horizontal layout">
       <paper-input value="{{_commentText}}" label="Comment" class="flex" on-change="_preventBubble"></paper-input>
