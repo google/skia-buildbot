@@ -305,3 +305,58 @@ func TestMD5Hash(t *testing.T) {
 	assert.NotEqual(t, h_1, h_3)
 	assert.Equal(t, h_2, h_3)
 }
+
+func TestBugsFromCommitMsg(t *testing.T) {
+	cases := []struct {
+		in  string
+		out map[string][]string
+	}{
+		{
+			in: "BUG=skia:1234",
+			out: map[string][]string{
+				"skia": []string{"1234"},
+			},
+		},
+		{
+			in: "BUG=skia:1234,skia:4567",
+			out: map[string][]string{
+				"skia": []string{"1234", "4567"},
+			},
+		},
+		{
+			in: "BUG=skia:1234,skia:4567,skia:8901",
+			out: map[string][]string{
+				"skia": []string{"1234", "4567", "8901"},
+			},
+		},
+		{
+			in: "BUG=1234",
+			out: map[string][]string{
+				"chromium": []string{"1234"},
+			},
+		},
+		{
+			in: "BUG=skia:1234, 456",
+			out: map[string][]string{
+				"chromium": []string{"456"},
+				"skia":     []string{"1234"},
+			},
+		},
+		{
+			in: `Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+Quisque feugiat, mi et tristique dignissim, sapien risus tristique mi, non dignissim nibh erat ut ex.
+
+BUG=1234, skia:5678
+`,
+			out: map[string][]string{
+				"chromium": []string{"1234"},
+				"skia":     []string{"5678"},
+			},
+		},
+	}
+	for _, tc := range cases {
+		result := BugsFromCommitMsg(tc.in)
+		assert.Equal(t, tc.out, result)
+	}
+}

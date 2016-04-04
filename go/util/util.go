@@ -28,6 +28,10 @@ const (
 	TB
 	PB
 
+	PROJECT_CHROMIUM    = "chromium"
+	BUG_DEFAULT_PROJECT = PROJECT_CHROMIUM
+	BUGS_PATTERN        = "(?m)^BUG=(.+)$"
+
 	SECONDS_TO_MILLIS = int64(time.Second / time.Millisecond)
 	MILLIS_TO_NANOS   = int64(time.Millisecond / time.Nanosecond)
 
@@ -39,6 +43,8 @@ const (
 )
 
 var (
+	BUGS_REGEX = regexp.MustCompile(BUGS_PATTERN)
+
 	// randomNameAdj is a list of adjectives for building random names.
 	randomNameAdj = []string{
 		"autumn", "hidden", "bitter", "misty", "silent", "empty", "dry", "dark",
@@ -603,4 +609,29 @@ func ChunkIter(s []int, chunkSize int, fn func([]int) error) error {
 		}
 	}
 	return nil
+}
+
+// BugsFromCommitMsg parses BUG= tags from a commit message and returns them.
+func BugsFromCommitMsg(msg string) map[string][]string {
+	rv := map[string][]string{}
+	m := BUGS_REGEX.FindStringSubmatch(msg)
+	if len(m) > 1 {
+		bugs := strings.Split(m[1], ",")
+		for _, b := range bugs {
+			b = strings.Trim(b, " ")
+			split := strings.SplitN(strings.Trim(b, " "), ":", 2)
+			project := BUG_DEFAULT_PROJECT
+			bug := split[0]
+			if len(split) > 1 {
+				project = split[0]
+				bug = split[1]
+			}
+			if rv[project] == nil {
+				rv[project] = []string{}
+			}
+			rv[project] = append(rv[project], bug)
+		}
+	}
+	glog.Errorf("%v", rv)
+	return rv
 }

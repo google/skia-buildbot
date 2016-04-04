@@ -285,6 +285,29 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	if _, err := exec.RunCwd(r.chromiumDir, "git", "config", "user.email", autoroll.ROLL_AUTHOR); err != nil {
 		return 0, err
 	}
+
+	// Find Chromium bugs.
+	bugs := []string{}
+	cr := r.childRepo
+	commits, err := cr.RevList(fmt.Sprintf("%s..%s", r.lastRollRev, r.childHead))
+	if err != nil {
+		return 0, fmt.Errorf("Failed to list revisions: %s", err)
+	}
+	for _, c := range commits {
+		d, err := cr.Details(c, false)
+		if err != nil {
+			return 0, fmt.Errorf("Failed to obtain commit details: %s", err)
+		}
+		b := util.BugsFromCommitMsg(d.Body)
+		for _, bug := range b[util.PROJECT_CHROMIUM] {
+			bugs = append(bugs, bug)
+		}
+	}
+
+	args := []string{r.childPath, r.childHead}
+	for _, bug := range bugs {
+		args = append(args, "--bug", bug)
+	}
 	if _, err := exec.RunCommand(&exec.Command{
 		Dir:  r.chromiumDir,
 		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
