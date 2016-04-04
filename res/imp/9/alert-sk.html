@@ -146,8 +146,7 @@
       ready: function() {
         sk.Login.then(function (status) {
           var email = status["Email"];
-          var validEmail = "@google.com";
-          if (email.indexOf(validEmail, email.length - validEmail.length) !== -1) {
+          if (sk.isGoogler(email)) {
             this._loggedInUser = true;
           }
         }.bind(this));

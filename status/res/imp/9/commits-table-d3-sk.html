@@ -31,6 +31,7 @@
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
     highlighted_commit_hashes: Array<String>, the commit hashes which should be highlighted.
+    logged_in: Boolean, if the links should be for internal or external buildbot pages.
     num_builders: Number, the number of builders with data, after filtering.
     relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
     repo: String, the current repo, used to make links.
@@ -137,6 +138,9 @@
         },
         highlighted_commit_hashes: {
           type: Array,
+        },
+        logged_in: {
+          type: Boolean,
         },
         relanded_map: {
           type: Object,
@@ -524,7 +528,7 @@
         if (details) {
           var buildInfo = document.createElement("build-popup-sk");
           buildInfo.build = details;
-          buildInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(details, this.internalView);
+          buildInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(details, this.logged_in);
           buildInfo.repo = this.repo;
           buildInfo.commit_details = this.commits_map;
           buildInfo.parent = this;
@@ -540,7 +544,7 @@
           var builderInfo = document.createElement("builder-popup-sk");
           builderInfo.builder = this.builders[builder];
           for (var buildNum in this.builds[builder]) {
-            builderInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(this.builds[builder][buildNum], this.internalView);
+            builderInfo.buildbot_url_prefix = status_utils.getBuildbotUrlPrefix(this.builds[builder][buildNum], this.logged_in);
             break;
           }
           builderInfo.repo = this.repo;

@@ -1,4 +1,5 @@
 <!--
+  The common.js file must be included before this file.
   This in an HTML Import-able file that contains the definition
   of the following elements:
 
@@ -14,7 +15,7 @@
 
   Properties:
     load: Number, How many commits should be loaded, defaulting to 35.
-    repo: String, The repo that should be shown, defaulting to "skia".
+    repo: String, The repo that should be shown.
 
   Methods:
     None.
@@ -172,7 +173,8 @@
         tall_class="tall"
         responsive_width="800px"
         header_height="120px"
-        header_responsive_height="56px";
+        header_responsive_height="56px"
+        logged_in_email="{{email}}"
         narrow="{{narrow}}">
       <status-menu-section-sk navigation></status-menu-section-sk>
 
@@ -238,6 +240,7 @@
             commits="[[commits]]"
             commits_map="[[commits_map]]"
             highlighted_commit_hashes="[[highlighted_commit_hashes]]"
+            logged_in="[[logged_in]]"
             num_builders="[[num_builders]]"
             relanded_map="[[relanded_map]]"
             repo="[[repo]]"
@@ -297,9 +300,16 @@
         type: Boolean,
         value: false,
       },
+      email: {
+        type: String,
+      },
       loading: {
         type: Boolean,
         value: false,
+      },
+      logged_in: {
+        type: Boolean,
+        computed: "_isGoogler(email)",
       },
       narrow: {
         type: Boolean,
@@ -318,6 +328,10 @@
       trooper: {
         type: String,
       },
+    },
+
+    _isGoogler: function(email) {
+      return sk.isGoogler(email);
     },
 
     _or: function(a, b) {

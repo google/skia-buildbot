@@ -29,6 +29,7 @@
     commits: Array<Object>, the commit objects, in chronological detail.
     commits_map: Object, a map of commit hash to commit objects.
     highlighted_commit_hashes: Array<String>, the commit hashes which should be highlighted.
+    logged_in: Boolean, if the links should be for internal or external buildbot pages.
     num_builders: Number, the number of builders with data, after filtering.
     relanded_map: Object, a map of a commit hash that was relanded to the commit hash that relands it.
     repo: String, the current repo, used to make links.
@@ -154,6 +155,7 @@
           commits="[[commits]]"
           commits_map="[[commits_map]]"
           highlighted_commit_hashes="[[highlighted_commit_hashes]]"
+          logged_in="[[logged_in]]"
           num_builders="[[num_builders]]"
           relanded_map="[[relanded_map]]"
           repo="[[repo]]"
@@ -209,6 +211,9 @@
         },
         highlighted_commit_hashes: {
           type: Array,
+        },
+        logged_in: {
+          type: Boolean,
         },
         num_builders: {
           type: Number,

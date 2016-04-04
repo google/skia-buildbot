@@ -383,6 +383,10 @@ this.sk = this.sk || function() {
     return s;
   }
 
+  sk.isGoogler = function(email) {
+    return email && email.endsWith("@google.com");
+  };
+
   // Namespace for utilities for working with URL query strings.
   sk.query = {};
 
@@ -546,12 +550,12 @@ this.sk = this.sk || function() {
     return ret;
   };
 
-  // Returns a shallow copy (top level keys) of the object. 
+  // Returns a shallow copy (top level keys) of the object.
   sk.object.shallowCopy = function(o) {
     var ret = {};
     for(var k in o) {
       if (o.hasOwnProperty(k)) {
-        ret[k] = o[k]; 
+        ret[k] = o[k];
       }
     }
     return ret;
@@ -719,7 +723,7 @@ this.sk = this.sk || function() {
 
   // robust_get finds a sub object within 'obj' by following the path
   // in 'idx'. It will not throw an error if any sub object is missing
-  // but instead return 'undefined'. 'idx' has to be an array.  
+  // but instead return 'undefined'. 'idx' has to be an array.
   sk.robust_get = function(obj, idx) {
     if (!idx) {
       return;

@@ -20,6 +20,7 @@
     filter_by: String, "builder" or "buildslave" depending on which should be used to filter.
     hours: Number, The number of hours of data to request from the backend.
     include: Array<String>, include a build only if it matches all of these strings.
+    logged_in: Boolean, if the links should be for internal or external buildbot pages.
 
     //output
     builders: Array<String>, the names of the builders
@@ -116,6 +117,9 @@
         include: {
           type: Array,
         },
+        logged_in: {
+          type: Boolean,
+        },
 
         // output
         builders: {
@@ -178,8 +182,8 @@
       },
 
       observers: [
-        "_processBuilds(_data, include, exclude, filter_by, build_ordering)",
-        "_refilter(include.*, exclude.*, filter_by, build_ordering)",
+        "_processBuilds(_data, include, exclude, filter_by, build_ordering, logged_in)",
+        "_refilter(include.*, exclude.*, filter_by, build_ordering, logged_in)",
       ],
 
       _urlParams: function(hours) {
@@ -329,13 +333,13 @@
           buildersByBuildslave[build.BuildSlave][build.Builder] = true;
 
           urlsByBuilder[build.Builder] = {
-            "base": status_utils.getBuildbotUrlPrefix(build, true),
+            "base": status_utils.getBuildbotUrlPrefix(build, this.logged_in),
           };
           urlsByBuilder[build.Builder].key = urlsByBuilder[build.Builder].base +"builders/"+build.Builder;
           urlsByBuilder[build.Builder].value = urlsByBuilder[build.Builder].base +"buildslaves/";
 
           urlsByBuildslave[build.BuildSlave] = {
-            "base": status_utils.getBuildbotUrlPrefix(build, true),
+            "base": status_utils.getBuildbotUrlPrefix(build, this.logged_in),
           };
           urlsByBuildslave[build.BuildSlave].key = urlsByBuildslave[build.BuildSlave].base +"buildslaves/"+build.BuildSlave;
           urlsByBuildslave[build.BuildSlave].value = urlsByBuildslave[build.BuildSlave].base +"builders/";

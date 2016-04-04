@@ -81,7 +81,7 @@ Events:
         <div class="flex"></div>
         <content select="[rtoolbar], rtoolbar"></content>
         <app-menu-sk></app-menu-sk>
-        <login-sk></login-sk>
+        <login-sk email="{{logged_in_email}}"></login-sk>
       </paper-toolbar>
       <template is="dom-if" if="{{no_drawer}}">
         <div main id="maincontent" class="layout vertical">
@@ -134,6 +134,10 @@ Events:
         force_narrow: {
           type: Boolean,
           value: false,
+        },
+        logged_in_email: {
+          type: String,
+          notify: true,
         },
         narrow: {
           type: Boolean,

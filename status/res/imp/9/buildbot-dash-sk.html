@@ -1,4 +1,5 @@
 <!--
+  The common.js file must be included before this file.
   This in an HTML Import-able file that contains the definition
   of the following elements:
 
@@ -99,7 +100,8 @@
     <app-sk id="app" class="fit"
         mode="waterfall"
         tall_class="medium-tall"
-        responsive_width="1300px">
+        responsive_width="1300px"
+        logged_in_email="{{_email}}">
       <status-menu-section-sk navigation></status-menu-section-sk>
       <h1 toolbar>Skia Buildbot Dashboard</h1>
 
@@ -169,6 +171,7 @@
       filter_by="[[_filter_by]]"
       hours="[[_hours]]"
       include="[[_include]]"
+      logged_in="[[_logged_in]]"
 
       builders="{{_builders}}"
       buildslaves_by_builder="{{_buildslaves_by_builder}}"
@@ -245,9 +248,16 @@
           type: Boolean,
           value: false,
         },
+        _email: {
+          type: String,
+        },
         _loading: {
           type: Boolean,
           value: false,
+        },
+        _logged_in: {
+          type: Boolean,
+          computed: "_isGoogler(_email)",
         }
       },
 
@@ -258,6 +268,10 @@
       _isBuilder: function(str) {
         return str === 'builder';
       },
+
+    _isGoogler: function(email) {
+      return sk.isGoogler(email);
+    },
 
     });
   })()
