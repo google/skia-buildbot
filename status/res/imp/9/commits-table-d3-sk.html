@@ -219,7 +219,7 @@
           .attr("id", function(commit){
             return "h"+commit.hash;
           })
-          .on("click", function(commit) {
+          .on("tap", function(commit) {
             openCommitDialog(commit);
           });
         // Sort the commits to be in the order we are presented with them.
@@ -431,7 +431,7 @@
             .attr("title", function(d){
               return d.builder;
             })
-            .on("click", function(d){
+            .on("tap", function(d){
               openBuilderDialog(d.builder);
             });
 
@@ -491,7 +491,7 @@
             .insert("div")
             .classed("build",true)
             .insert("div")
-            .on("click", function(d){
+            .on("tap", function(d){
               openBuildDialog(d);
             });
           data.order();
