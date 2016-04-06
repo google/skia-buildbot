@@ -13,7 +13,7 @@ default: all
 
 include ../go/skiaversion/skiaversion.mk
 
-all: alertserver
+all: clean_webtools alertserver
 
 alertserver: core_js elements_html skiaversion
 	go install -v ./go/alertserver

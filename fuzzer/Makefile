@@ -11,7 +11,7 @@ BOWER_DIR=third_party/bower_components
 
 default: all
 
-all: core_js elements_html frontend backend skiaversion
+all: clean_webtools core_js elements_html frontend backend skiaversion
 
 release: all
 	./build_release "$(MESSAGE)"
