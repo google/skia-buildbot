@@ -19,10 +19,11 @@ const (
 )
 
 var prettyFuzzCategories = map[string]string{
-	"api_parse_path": "API - ParsePath",
-	"skcodec_scale":  "SkCodec (Scaling)",
-	"skcodec_mode":   "SkCodec (Modes)",
-	"skpicture":      "SkPicture",
+	"api_parse_path":   "API - ParsePath",
+	"api_image_filter": "API - SerializedImageFilter",
+	"skcodec_scale":    "SkCodec (Scaling)",
+	"skcodec_mode":     "SkCodec (Modes)",
+	"skpicture":        "SkPicture",
 }
 
 var extraBugLabels = map[string][]string{
