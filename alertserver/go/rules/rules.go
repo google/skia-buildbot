@@ -2,7 +2,9 @@ package rules
 
 import (
 	"fmt"
+	"go/constant"
 	"go/token"
+	"go/types"
 	"strings"
 	"time"
 
@@ -10,8 +12,6 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/alertserver/go/alerting"
 	"go.skia.org/infra/go/influxdb"
-	"golang.org/x/tools/go/exact"
-	"golang.org/x/tools/go/types"
 )
 
 /*
@@ -121,7 +121,7 @@ func (r *Rule) tick(am *alerting.AlertManager) error {
 
 func (r *Rule) evaluate(d float64) (bool, error) {
 	pkg := types.NewPackage("evaluateme", "evaluateme")
-	v := exact.MakeFloat64(d)
+	v := constant.MakeFloat64(d)
 	pkg.Scope().Insert(types.NewConst(0, pkg, "x", types.Typ[types.Float64], v))
 	tv, err := types.Eval(token.NewFileSet(), pkg, token.NoPos, r.Condition)
 	if err != nil {
@@ -130,7 +130,7 @@ func (r *Rule) evaluate(d float64) (bool, error) {
 	if tv.Type.String() != "untyped bool" {
 		return false, fmt.Errorf("Rule \"%v\" does not return boolean type.", r.Condition)
 	}
-	return exact.BoolVal(tv.Value), nil
+	return constant.BoolVal(tv.Value), nil
 }
 
 type parsedRule map[string]interface{}
