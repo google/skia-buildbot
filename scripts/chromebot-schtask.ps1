@@ -72,9 +72,10 @@ banner "Install depot tools."
 $fileName = "$tmp\depot_tools.zip"
 $depotToolsPath = "$userDir\depot_tools"
 if (!(Test-Path ($depotToolsPath))) {
-  $url = "https://src.chromium.org/svn/trunk/tools/depot_tools.zip"
+  $url = "https://storage.googleapis.com/chrome-infra/depot_tools.zip"
   $webclient.DownloadFile($url, $fileName)
-  unzip $fileName $userDir
+  new-item $depotToolsPath -itemtype directory
+  unzip $fileName $depotToolsPath
   addToPath $depotToolsPath
   cmd /c "gclient < nul"
 }
@@ -97,6 +98,9 @@ $shell.NameSpace($userDir).copyhere("c:\chromium-skia-gm.boto", 0x14)
 banner "Copy _netrc file"
 $shell.NameSpace($userDir).copyhere("c:\_netrc", 0x14)
 $shell.NameSpace($depotToolsPath).copyhere("c:\_netrc", 0x14)
+
+banner "Copy .gitconfig file"
+$shell.NameSpace($depotToolsPath).copyhere("c:\.gitconfig", 0x14)
 
 banner "Copy .bot_password file"
 $shell.NameSpace($userDir).copyhere("c:\.bot_password", 0x14)

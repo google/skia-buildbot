@@ -92,26 +92,26 @@ Set-Content C:\chromium-skia-gm.boto $boto_contents
 
 banner "Create _netrc file"
 $netrc_contents = @"
-INSERTFILE(~/.netrc)
+INSERTFILE(/tmp/.netrc)
 "@
 Set-Content C:\_netrc $netrc_contents
 
 banner "Create .bot_password"
 $bot_password = @"
-INSERTFILE(~/.bot_password)
+INSERTFILE(/tmp/.bot_password)
 "@
 Set-Content C:\.bot_password $bot_password
 
 banner "Create .gitconfig"
 $gitconfig_contents = @"
-INSERTFILE(~/.gitconfig)
+INSERTFILE(/tmp/.gitconfig)
 "@
-Set-Content $userDir\depot_tools\.gitconfig $gitconfig_contents
+Set-Content C:\.gitconfig $gitconfig_contents
 
 banner "Update hosts file."
 $additional_hosts = @"
 `n
-INSERTFILE(~/chrome_master_host)
+INSERTFILE(/tmp/chrome_master_host)
 "@
 Add-Content c:\Windows\System32\drivers\etc\hosts $additional_hosts
 
