@@ -152,7 +152,7 @@ class BuildSlaveManager(multiprocessing.Process):
       cmd = 'setlocal&&'
       cmd += 'set TESTING_SLAVENAME=%s&&' % self._slavename
       cmd += 'set BOTO_CFG=%s&&' % archive_boto_file
-      cmd += 'set AWS_CREDENTIAL_FILE =%s&&' % archive_boto_file
+      cmd += 'set AWS_CREDENTIAL_FILE=%s&&' % archive_boto_file
       cmd += 'run_slave.bat'
       cmd += '&& endlocal'
     else:
