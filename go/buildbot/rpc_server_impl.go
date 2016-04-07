@@ -169,6 +169,36 @@ func (s *rpcServer) GetMaxBuildNumber(ctx context.Context, req *rpc.GetMaxBuildN
 	}, nil
 }
 
+func (s *rpcServer) GetModifiedBuilds(ctx context.Context, req *rpc.GetModifiedBuildsRequest) (*rpc.Builds, error) {
+	builds, err := s.db.GetModifiedBuilds(req.Id)
+	if err != nil {
+		return nil, err
+	}
+	rv := &rpc.Builds{
+		Builds: make([]*rpc.Build, 0, len(builds)),
+	}
+	for _, b := range builds {
+		var buf bytes.Buffer
+		if err := gob.NewEncoder(&buf).Encode(b); err != nil {
+			return nil, err
+		}
+		rv.Builds = append(rv.Builds, &rpc.Build{
+			Build: buf.Bytes(),
+		})
+	}
+	return rv, nil
+}
+
+func (s *rpcServer) StartTrackingModifiedBuilds(ctx context.Context, req *rpc.Empty) (*rpc.StartTrackingModifiedBuildsResponse, error) {
+	id, err := s.db.StartTrackingModifiedBuilds()
+	if err != nil {
+		return nil, err
+	}
+	return &rpc.StartTrackingModifiedBuildsResponse{
+		Id: id,
+	}, nil
+}
+
 func (s *rpcServer) GetUnfinishedBuilds(ctx context.Context, req *rpc.Master) (*rpc.Builds, error) {
 	builds, err := s.db.getUnfinishedBuilds(req.Master, ctx.Done())
 	if err != nil {

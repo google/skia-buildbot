@@ -21,34 +21,37 @@ type buildCache struct {
 	Repo           string
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) Close() error {
 	return nil
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) BuildExists(string, string, int) (bool, error) {
 	return false, fmt.Errorf("BuildExists not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) GetBuildsForCommits([]string, map[string]bool) (map[string][]*buildbot.Build, error) {
 	return nil, fmt.Errorf("GetBuildsForCommits not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) GetBuild(buildbot.BuildID) (*buildbot.Build, error) {
 	return nil, fmt.Errorf("GetBuild not implemented")
 }
 
-// GetBuildFromDB returns the given Build.
+// See documentation for DB interface.
 func (bc *buildCache) GetBuildFromDB(master, builder string, number int) (*buildbot.Build, error) {
 	return bc.getByNumber(number)
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) GetBuildsFromDateRange(time.Time, time.Time) ([]*buildbot.Build, error) {
 	return nil, fmt.Errorf("GetBuildsFromDateRange not implemented")
 }
 
-// GetBuildNumberForCommit returns the build number of the build which included
-// the given commit, or -1 if no such build exists. It is used by the buildbot
-// package's FindCommitsForBuild function.
+// See documentation for DB interface.
 func (bc *buildCache) GetBuildNumberForCommit(master, builder, hash string) (int, error) {
 	if b, ok := bc.buildsByCommit[hash]; ok {
 		return b.Number, nil
@@ -61,14 +64,27 @@ func (bc *buildCache) GetBuildNumberForCommit(master, builder, hash string) (int
 	return b, nil
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) GetLastProcessedBuilds(string) ([]buildbot.BuildID, error) {
 	return nil, fmt.Errorf("GetLastProcessedBuilds not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) GetMaxBuildNumber(string, string) (int, error) {
 	return -1, fmt.Errorf("GetMaxBuildNumber not implemented")
 }
 
+// See documentation for DB interface.
+func (bc *buildCache) GetModifiedBuilds(string) ([]*buildbot.Build, error) {
+	return nil, fmt.Errorf("GetModifiedBuilds not implemented")
+}
+
+// See documentation for DB interface.
+func (bc *buildCache) StartTrackingModifiedBuilds() (string, error) {
+	return "", fmt.Errorf("StartTrackingModifiedBuilds not implemented.")
+}
+
+// See documentation for DB interface.
 func (bc *buildCache) GetUnfinishedBuilds(string) ([]*buildbot.Build, error) {
 	return nil, fmt.Errorf("GetUnfinishedBuilds not implemented")
 }
@@ -136,6 +152,7 @@ func (bc *buildCache) PutBuilds(builds []*buildbot.Build) error {
 	return nil
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) NumIngestedBuilds() (int, error) {
 	return -1, fmt.Errorf("NumIngestedBuilds not implemented")
 }
@@ -158,42 +175,52 @@ func newBuildCache(master, builder, repo string, db buildbot.DB) (*buildCache, e
 	}, nil
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) PutBuildComment(string, string, int, *buildbot.BuildComment) error {
 	return fmt.Errorf("PutBuildComment not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) DeleteBuildComment(string, string, int, int64) error {
 	return fmt.Errorf("DeleteBuildComment not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) GetBuilderComments(string) ([]*buildbot.BuilderComment, error) {
 	return nil, fmt.Errorf("GetBuilderComments not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) GetBuildersComments([]string) (map[string][]*buildbot.BuilderComment, error) {
 	return nil, fmt.Errorf("GetBuildersComments not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) PutBuilderComment(*buildbot.BuilderComment) error {
 	return fmt.Errorf("PutBuilderComment not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) DeleteBuilderComment(int64) error {
 	return fmt.Errorf("DeleteBuilderComment not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) GetCommitComments(string) ([]*buildbot.CommitComment, error) {
 	return nil, fmt.Errorf("GetCommitComments not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) GetCommitsComments([]string) (map[string][]*buildbot.CommitComment, error) {
 	return nil, fmt.Errorf("GetCommitsComments not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) PutCommitComment(*buildbot.CommitComment) error {
 	return fmt.Errorf("PutCommitComment not implemented")
 }
 
+// See documentation for DB interface.
 func (bc *buildCache) DeleteCommitComment(int64) error {
 	return fmt.Errorf("DeleteCommitComment not implemented")
 }

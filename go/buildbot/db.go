@@ -74,6 +74,16 @@ type DB interface {
 	// or -1 if there are no builds for the given builder.
 	GetMaxBuildNumber(string, string) (int, error)
 
+	// GetModifiedBuilds returns all builds modified since the last time
+	// GetModifiedBuilds was run with the given id.
+	GetModifiedBuilds(string) ([]*Build, error)
+
+	// StartTrackingModifiedBuilds initiates tracking of modified builds for
+	// the current caller. Returns a unique ID which can be used by the caller
+	// to retrieve builds which have been modified since the last query. The ID
+	// expires after a period of inactivity.
+	StartTrackingModifiedBuilds() (string, error)
+
 	// GetUnfinishedBuilds returns a slice of Builds which are not finished.
 	GetUnfinishedBuilds(string) ([]*Build, error)
 

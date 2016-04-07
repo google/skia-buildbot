@@ -235,6 +235,16 @@ func (c *ingestCache) GetMaxBuildNumber(string, string) (int, error) {
 }
 
 // See documentation for DB interface.
+func (c *ingestCache) GetModifiedBuilds(string) ([]*Build, error) {
+	return nil, notImplemented("GetModifiedBuilds")
+}
+
+// See documentation for DB interface.
+func (c *ingestCache) StartTrackingModifiedBuilds() (string, error) {
+	return "", notImplemented("StartTrackingModifiedBuilds")
+}
+
+// See documentation for DB interface.
 func (c *ingestCache) NumIngestedBuilds() (int, error) {
 	return -1, notImplemented("NumIngestedBuilds")
 }

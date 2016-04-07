@@ -11,6 +11,8 @@ service BuildbotDB {
   rpc GetBuildNumberForCommit(GetBuildNumberForCommitRequest) returns (Int64) {}
   rpc GetLastProcessedBuilds(Master) returns (BuildIDs) {}
   rpc GetMaxBuildNumber(GetMaxBuildNumberRequest) returns (Int64) {}
+  rpc GetModifiedBuilds(GetModifiedBuildsRequest) returns (Builds) {}
+  rpc StartTrackingModifiedBuilds(Empty) returns (StartTrackingModifiedBuildsResponse) {}
   rpc GetUnfinishedBuilds(Master) returns (Builds) {}
   rpc PutBuild(Build) returns (Empty) {}
   rpc PutBuilds(PutBuildsRequest) returns (Empty) {}
@@ -89,6 +91,14 @@ message GetBuildNumberForCommitRequest {
 message GetMaxBuildNumberRequest {
   string master = 1;
   string builder = 2;
+}
+
+message GetModifiedBuildsRequest {
+  string id = 1;
+}
+
+message StartTrackingModifiedBuildsResponse {
+  string id = 1;
 }
 
 message PutBuildsRequest {

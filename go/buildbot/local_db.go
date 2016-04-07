@@ -13,6 +13,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
+	"github.com/satori/go.uuid"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
@@ -49,6 +50,12 @@ const (
 
 	// If ingestion latency is greater than this, an alert will be triggered.
 	INGEST_LATENCY_ALERT_THRESHOLD = 2 * time.Minute
+
+	// Maximum number of simultaneous GetModifiedBuilds users.
+	MAX_MODIFIED_BUILDS_USERS = 10
+
+	// Expiration for GetModifiedBuilds users.
+	MODIFIED_BUILDS_TIMEOUT = 10 * time.Minute
 )
 
 func init() {
@@ -119,6 +126,10 @@ type localDB struct {
 	txNextId int64
 	txActive map[int64]string
 	txMutex  sync.RWMutex
+
+	modBuilds map[string]map[string]*Build
+	modExpire map[string]time.Time
+	modMutex  sync.RWMutex
 }
 
 // startTx monitors when a transaction starts.
@@ -194,10 +205,14 @@ func NewLocalDB(filename string) (DB, error) {
 		txNextId: 0,
 		txActive: map[int64]string{},
 		txMutex:  sync.RWMutex{},
+
+		modBuilds: map[string]map[string]*Build{},
+		modExpire: map[string]time.Time{},
 	}
 	go func() {
 		for _ = range time.Tick(time.Minute) {
 			db.reportActiveTx()
+			db.clearExpiredModifiedUsers()
 		}
 	}()
 
@@ -518,6 +533,7 @@ func putBuilds(tx *bolt.Tx, builds []*Build) error {
 
 // See documentation for DB interface.
 func (d *localDB) PutBuild(b *Build) error {
+	d.modify(b)
 	return d.update("PutBuild", func(tx *bolt.Tx) error {
 		return putBuild(tx, b)
 	})
@@ -525,6 +541,9 @@ func (d *localDB) PutBuild(b *Build) error {
 
 // See documentation for DB interface.
 func (d *localDB) PutBuilds(builds []*Build) error {
+	for _, b := range builds {
+		d.modify(b)
+	}
 	return d.update("PutBuilds", func(tx *bolt.Tx) error {
 		return putBuilds(tx, builds)
 	})
@@ -655,6 +674,54 @@ func (d *localDB) GetMaxBuildNumber(master, builder string) (int, error) {
 		return -1, err
 	}
 	return rv, nil
+}
+
+// See documentation for DB interface.
+func (d *localDB) GetModifiedBuilds(id string) ([]*Build, error) {
+	d.modMutex.Lock()
+	defer d.modMutex.Unlock()
+	modifiedBuilds, ok := d.modBuilds[id]
+	if !ok {
+		return nil, fmt.Errorf("Unknown or expired ID: %s", id)
+	}
+	rv := make([]*Build, 0, len(modifiedBuilds))
+	for _, b := range modifiedBuilds {
+		rv = append(rv, b)
+	}
+	d.modExpire[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
+	return rv, nil
+}
+
+// See documentation for DB interface.
+func (d *localDB) StartTrackingModifiedBuilds() (string, error) {
+	d.modMutex.Lock()
+	defer d.modMutex.Unlock()
+	if len(d.modBuilds) > MAX_MODIFIED_BUILDS_USERS {
+		return "", fmt.Errorf("Exceeded maximum modified builds users.")
+	}
+	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
+	d.modBuilds[id] = map[string]*Build{}
+	d.modExpire[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
+	return id, nil
+}
+
+func (d *localDB) clearExpiredModifiedUsers() {
+	d.modMutex.Lock()
+	defer d.modMutex.Unlock()
+	for id, t := range d.modExpire {
+		if time.Now().After(t) {
+			delete(d.modBuilds, id)
+			delete(d.modExpire, id)
+		}
+	}
+}
+
+func (d *localDB) modify(b *Build) {
+	d.modMutex.Lock()
+	defer d.modMutex.Unlock()
+	for _, modBuilds := range d.modBuilds {
+		modBuilds[string(b.Id())] = b
+	}
 }
 
 // See documentation for DB interface.

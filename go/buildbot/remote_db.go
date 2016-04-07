@@ -166,6 +166,36 @@ func (d *remoteDB) GetMaxBuildNumber(master, builder string) (int, error) {
 }
 
 // See documentation for DB interface.
+func (d *remoteDB) GetModifiedBuilds(id string) ([]*Build, error) {
+	req := &rpc.GetModifiedBuildsRequest{
+		Id: id,
+	}
+	resp, err := d.client.GetModifiedBuilds(context.Background(), req)
+	if err != nil {
+		return nil, err
+	}
+	rv := make([]*Build, 0, len(resp.Builds))
+	for _, build := range resp.Builds {
+		var b Build
+		if err := gob.NewDecoder(bytes.NewBuffer(build.Build)).Decode(&b); err != nil {
+			return nil, err
+		}
+		b.fixup()
+		rv = append(rv, &b)
+	}
+	return rv, nil
+}
+
+// See documentation for DB interface.
+func (d *remoteDB) StartTrackingModifiedBuilds() (string, error) {
+	resp, err := d.client.StartTrackingModifiedBuilds(context.Background(), &rpc.Empty{})
+	if err != nil {
+		return "", err
+	}
+	return resp.Id, nil
+}
+
+// See documentation for DB interface.
 func (d *remoteDB) GetUnfinishedBuilds(m string) ([]*Build, error) {
 	req := &rpc.Master{
 		Master: m,
