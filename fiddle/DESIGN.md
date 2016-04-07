@@ -162,6 +162,15 @@ stored as files in the /source directory:
     gs://skia-fiddle/source/1
     gs://skia-fiddle/source/2
 
+
+In addition there is a text file:
+
+    gs://skia-fiddle/source/lastid.txt
+
+That contains in text the largest ID for a source image ever used. This should
+be incremented and written back to Google Storage before adding a new image.
+Note that writing using generations can prevent the lost update problem.
+
 Security
 --------
 
