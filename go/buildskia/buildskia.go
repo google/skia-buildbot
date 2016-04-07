@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/util/limitwriter"
 	"go.skia.org/infra/go/vcsinfo"
 )
 
@@ -332,23 +333,22 @@ func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs 
 			args = append(args, fl)
 		}
 	}
-	output := bytes.Buffer{}
+	buf := bytes.Buffer{}
+	output := limitwriter.New(&buf, 64*1024)
 	compileCmd := &exec.Command{
 		Name:           "c++",
 		Args:           args,
 		Dir:            path,
 		InheritPath:    true,
-		LogStderr:      true,
-		LogStdout:      true,
-		CombinedOutput: &output,
+		CombinedOutput: output,
 		Timeout:        10 * time.Second,
 	}
 	glog.Infof("About to run: %#v", *compileCmd)
 
 	if err := exec.Run(compileCmd); err != nil {
-		return output.String(), fmt.Errorf("Failed compile: %s", err)
+		return buf.String(), fmt.Errorf("Failed compile: %s", err)
 	}
-	return output.String(), nil
+	return buf.String(), nil
 }
 
 // CMakeCompile will compile the given files into an executable.
