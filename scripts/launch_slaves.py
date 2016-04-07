@@ -147,8 +147,12 @@ class BuildSlaveManager(multiprocessing.Process):
 
     if os.name == 'nt':
       # We run different commands for the Windows shell
+      archive_boto_file = os.path.join(os.environ['HOME'],
+                                       'chromium-skia-gm.boto')
       cmd = 'setlocal&&'
       cmd += 'set TESTING_SLAVENAME=%s&&' % self._slavename
+      cmd += 'set BOTO_CFG=%s&&' % archive_boto_file
+      cmd += 'set AWS_CREDENTIAL_FILE =%s&&' % archive_boto_file
       cmd += 'run_slave.bat'
       cmd += '&& endlocal'
     else:
