@@ -169,7 +169,7 @@ func GetSkiaBranches(client *http.Client) (map[string]Branch, error) {
 //   depotToolsPath - The depot_tools directory.
 //   clean - If true clean out the directory before cloning Skia.
 //   installDeps - If true then run tools/install_dependencies.sh before
-//       sync-and-gyp.
+//       sync-and-gyp. The calling user should be sudo capable.
 //
 // It returns an error on failure.
 func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
@@ -197,7 +197,8 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 	env := []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")}
 	if installDeps {
 		depsCmd := &exec.Command{
-			Name:        "tools/install_dependencies.sh",
+			Name:        "sudo",
+			Args:        []string{"tools/install_dependencies.sh"},
 			Dir:         path,
 			InheritPath: false,
 			Env:         env,
