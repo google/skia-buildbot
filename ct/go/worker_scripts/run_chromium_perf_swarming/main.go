@@ -154,7 +154,7 @@ func runBenchmark(fileInfoName, pathToPagesets, localOutputDir, chromiumBuildNam
 	}
 	// Split benchmark args if not empty and append to args.
 	if *benchmarkExtraArgs != "" {
-		args = append(args, strings.Split(*benchmarkExtraArgs, " ")...)
+		args = append(args, strings.Fields(*benchmarkExtraArgs)...)
 	}
 	// Add the number of times to repeat.
 	args = append(args, fmt.Sprintf("--page-repeat=%d", *repeatBenchmark))

@@ -316,7 +316,7 @@ func runBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	}
 	// Split benchmark args if not empty and append to args.
 	if *benchmarkExtraArgs != "" {
-		for _, benchmarkArg := range strings.Split(*benchmarkExtraArgs, " ") {
+		for _, benchmarkArg := range strings.Fields(*benchmarkExtraArgs) {
 			args = append(args, benchmarkArg)
 		}
 	}
