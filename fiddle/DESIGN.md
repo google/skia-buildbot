@@ -171,6 +171,23 @@ That contains in text the largest ID for a source image ever used. This should
 be incremented and written back to Google Storage before adding a new image.
 Note that writing using generations can prevent the lost update problem.
 
+Drive
+-----
+
+An attached disk will reside at /mnt/pd0 and will be populated as:
+
+     /mnt/pd0/fiddle  - $FIDDLE_ROOT
+     /mnt/pd0/container_image
+     /mnt/pd0/depot_tools
+
+Startup
+-------
+
+During instance startup git and systemd-container will be installed and
+depot_tools will also be installed.
+
+The container image and all other exes will be installed via push.
+
 Security
 --------
 

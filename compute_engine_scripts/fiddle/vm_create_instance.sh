@@ -17,11 +17,14 @@ gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME \
   --source-snapshot $FIDDLE_SOURCE_SNAPSHOT \
   --type "pd-standard"
 
+set +e
+# The cmd may fail if the disk already exists, which is fine.
 # Create a large data disk.
 gcloud compute --project $PROJECT_ID disks create $INSTANCE_NAME"-data" \
   --size "1000" \
   --zone $ZONE \
   --type "pd-standard"
+set -e
 
 # Create the instance with the two disks attached.
 gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
@@ -36,12 +39,17 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --disk "name=${INSTANCE_NAME}-data,device-name=${INSTANCE_NAME}-data,mode=rw,boot=no" \
   --address=$FIDDLE_IP_ADDRESS
 
-WAIT_TIME_AFTER_CREATION_SECS=600
-echo
-echo "===== Wait $WAIT_TIME_AFTER_CREATION_SECS secs for instance to" \
-  "complete startup script. ====="
-echo
-sleep $WAIT_TIME_AFTER_CREATION_SECS
+# Wait until the instance is up.
+until nc -w 1 -z $FIDDLE_IP_ADDRESS 22; do
+    echo "Waiting for VM to come up."
+    sleep 2
+done
+
+gcloud compute copy-files install.sh $PROJECT_USER@$INSTANCE_NAME:/tmp/install.sh --zone $ZONE
+gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME \
+  --zone $ZONE \
+  --command "/tmp/install.sh" \
+  || echo "Installation failure."
 
 # The instance believes it is skia-systemd-snapshot-maker until it is rebooted.
 echo
