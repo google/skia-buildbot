@@ -453,7 +453,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Fetch the builds.
-	builds, err := db.GetBuildsFromDateRange(startTime, endTime)
+	builds, err := buildCache.GetBuildsFromDateRange(startTime, endTime)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load builds: %v", err))
 		return

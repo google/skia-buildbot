@@ -10,6 +10,7 @@ import (
 
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/timer"
+	"go.skia.org/infra/go/util"
 )
 
 /*
@@ -24,6 +25,9 @@ var (
 )
 
 const (
+	// How long to keep builds in the cache.
+	BUILD_EXPIRATION = 14 * 24 * time.Hour
+
 	// Time period of builds to load at a time.
 	BUILD_LOADING_CHUNK = 24 * time.Hour
 
@@ -35,7 +39,7 @@ const (
 type BuildCache struct {
 	byId            map[string]*buildbot.Build
 	byCommit        map[string]map[string]*buildbot.BuildSummary
-	byTime          map[time.Time]string
+	byTime          *TimeRangeTree
 	builders        map[string]bool
 	builderComments map[string][]*buildbot.BuilderComment
 	lastLoad        time.Time
@@ -56,7 +60,7 @@ func NewBuildCache(db buildbot.DB) (*BuildCache, error) {
 		builderComments: map[string][]*buildbot.BuilderComment{},
 		byId:            map[string]*buildbot.Build{},
 		byCommit:        map[string]map[string]*buildbot.BuildSummary{},
-		byTime:          map[time.Time]string{},
+		byTime:          NewTimeRangeTree(),
 		lastLoad:        time.Now(),
 		db:              db,
 		dbId:            dbId,
@@ -118,6 +122,7 @@ func (c *BuildCache) update() error {
 	if err := c.updateWithBuilds(builds); err != nil {
 		return err
 	}
+	c.evictExpiredBuilds()
 	return c.updateBuilderComments()
 }
 
@@ -138,33 +143,65 @@ func (c *BuildCache) updateBuilderComments() error {
 	return nil
 }
 
+// insert adds the given build to the cache. Assumes the caller holds a lock.
+func (c *BuildCache) insert(b *buildbot.Build) {
+	idStr := string(b.Id())
+	c.byId[idStr] = b
+	summary := b.GetSummary()
+	for _, h := range b.Commits {
+		if _, ok := c.byCommit[h]; !ok {
+			c.byCommit[h] = map[string]*buildbot.BuildSummary{}
+		}
+		c.byCommit[h][b.Builder] = summary
+	}
+	if b.IsFinished() {
+		c.byTime.Insert(b.Finished, idStr)
+	}
+	c.builders[b.Builder] = true
+}
+
+// get retrieves the given build from the cache. Assumes the caller holds a lock.
+func (c *BuildCache) get(id string) *buildbot.Build {
+	return c.byId[id]
+}
+
+// delete removes the given build from the cache. Assumes the caller holds a lock.
+func (c *BuildCache) delete(id string) {
+	b := c.byId[id]
+	for _, h := range b.Commits {
+		if _, ok := c.byCommit[h][b.Builder]; ok {
+			delete(c.byCommit[h], b.Builder)
+		}
+	}
+	c.byTime.Delete(b.Finished, id)
+	delete(c.byId, id)
+}
+
+// evictExpiredBuilds removes builds which have expired from the cache.
+func (c *BuildCache) evictExpiredBuilds() {
+	defer timer.New("BuildCache.evictExpiredBuilds").Stop()
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	expiredBefore := time.Now().Add(-BUILD_EXPIRATION)
+	expiredIds := c.byTime.GetRange(util.TimeUnixZero, expiredBefore)
+	for _, id := range expiredIds {
+		c.delete(id)
+	}
+	glog.Infof("Deleted %d expired builds.", len(expiredIds))
+}
+
 // updateWithBuilds inserts the given builds into the cache.
 func (c *BuildCache) updateWithBuilds(builds []*buildbot.Build) error {
 	defer timer.New("  BuildCache locked").Stop()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	glog.Infof("Inserting %d builds.", len(builds))
-	// Update builds by ID and by commit.
 	for _, b := range builds {
 		idStr := string(b.Id())
-		// Delete builds by commit for the included builds.
-		oldBuild, ok := c.byId[idStr]
-		if ok {
-			for _, h := range oldBuild.Commits {
-				if _, ok := c.byCommit[h][b.Builder]; ok {
-					delete(c.byCommit[h], b.Builder)
-				}
-			}
+		if c.get(idStr) != nil {
+			c.delete(idStr)
 		}
-		c.byId[idStr] = b
-		summary := b.GetSummary()
-		for _, h := range b.Commits {
-			if _, ok := c.byCommit[h]; !ok {
-				c.byCommit[h] = map[string]*buildbot.BuildSummary{}
-			}
-			c.byCommit[h][b.Builder] = summary
-		}
-		c.builders[b.Builder] = true
+		c.insert(b)
 	}
 	return nil
 }
@@ -182,6 +219,19 @@ func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[strin
 		}
 	}
 	return byCommit, nil
+}
+
+// GetBuildsFromDateRange returns builds within the given date range.
+func (c *BuildCache) GetBuildsFromDateRange(from, to time.Time) ([]*buildbot.Build, error) {
+	defer timer.New("BuildCache.GetBuildsFromDateRange").Stop()
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	ids := c.byTime.GetRange(from, to)
+	rv := make([]*buildbot.Build, 0, len(ids))
+	for _, id := range ids {
+		rv = append(rv, c.byId[id])
+	}
+	return rv, nil
 }
 
 // GetBuildersComments returns comments for all builders.
