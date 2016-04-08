@@ -297,7 +297,10 @@
      setRunInParallel: function() {
        if (this.$.benchmark_name.selected == "rasterize_and_record_micro" &&
            this.$.target_platform.selected == "Linux") {
-         this.$.run_in_parallel.selected = "True"
+         // Decided to leave this False to give the more consistent results
+         // by default to users. Should be revisited when parallel runs give
+         // better results.
+         this.$.run_in_parallel.selected = "False"
        } else {
          this.$.run_in_parallel.selected = "False"
        }
