@@ -12,12 +12,13 @@ import (
 
 // flags
 var (
-	local      = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
-	head       = flag.Bool("head", false, "Sync to HEAD instead of Skia LKGR.")
-	force      = flag.Bool("force", false, "Force a rebuild even if the library has already been checked out.")
-	fiddleRoot = flag.String("fiddle_root", "", "Directory location where all the work is done.")
-	depotTools = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
-	milestone  = flag.Bool("milestone", false, "Also create a milestone mNN branch build.")
+	local       = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	head        = flag.Bool("head", false, "Sync to HEAD instead of Skia LKGR.")
+	force       = flag.Bool("force", false, "Force a rebuild even if the library has already been checked out.")
+	installDeps = flag.Bool("install_deps", false, "Install Skia dependencies")
+	fiddleRoot  = flag.String("fiddle_root", "", "Directory location where all the work is done.")
+	depotTools  = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
+	milestone   = flag.Bool("milestone", false, "Also create a milestone mNN branch build.")
 )
 
 func main() {
@@ -28,7 +29,7 @@ func main() {
 	if *depotTools == "" {
 		glog.Fatal("The --depot_tools flag is required.")
 	}
-	res, err := builder.BuildLatestSkia(*fiddleRoot, *depotTools, *force, *head)
+	res, err := builder.BuildLatestSkia(*fiddleRoot, *depotTools, *force, *head, *installDeps)
 	if err != nil {
 		if err == builder.AlreadyExistsErr {
 			glog.Info("Checkout already exists, no work done.")

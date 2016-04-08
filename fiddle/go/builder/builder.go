@@ -71,15 +71,16 @@ func buildLib(checkout string) error {
 // The library will be checked out into fiddleRoot + "/" + githash, where githash
 // is the githash of the LKGR of Skia.
 //
-// fiddleRoot - The root directory where fiddle stores its files. See DESIGN.md.
-// depotTools - The directory where depot_tools is checked out.
-// force - If true then checkout and build even if the directory already exists.
-// head - If true then build Skia at HEAD, otherwise build Skia at LKGR.
+//    fiddleRoot - The root directory where fiddle stores its files. See DESIGN.md.
+//    depotTools - The directory where depot_tools is checked out.
+//    force - If true then checkout and build even if the directory already exists.
+//    head - If true then build Skia at HEAD, otherwise build Skia at LKGR.
+//    deps - If true then install Skia dependencies.
 //
 // Returns the commit info for the revision of Skia checked out.
 // Returns an error if any step fails, or return AlreadyExistsErr if
 // the target checkout directory already exists and force is false.
-func BuildLatestSkia(fiddleRoot, depotTools string, force bool, head bool) (*vcsinfo.LongCommit, error) {
+func BuildLatestSkia(fiddleRoot, depotTools string, force bool, head bool, deps bool) (*vcsinfo.LongCommit, error) {
 	versions, err := prepDirectory(fiddleRoot)
 	if err != nil {
 		return nil, err
@@ -103,7 +104,7 @@ func BuildLatestSkia(fiddleRoot, depotTools string, force bool, head bool) (*vcs
 		return nil, AlreadyExistsErr
 	}
 
-	ret, err := buildskia.DownloadSkia("", githash, checkout, depotTools, false, false)
+	ret, err := buildskia.DownloadSkia("", githash, checkout, depotTools, false, deps)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to fetch: %s", err)
 	}
