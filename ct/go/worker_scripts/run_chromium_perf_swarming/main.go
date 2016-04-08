@@ -143,7 +143,7 @@ func runBenchmark(fileInfoName, pathToPagesets, localOutputDir, chromiumBuildNam
 	// Need to capture output for all benchmarks.
 	outputDirArgValue := filepath.Join(localOutputDir, pagesetName)
 	args = append(args, "--output-dir="+outputDirArgValue)
-	// Figure out which browser should be used.
+	// Figure out which browser and device should be used.
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		if err := util.InstallChromeAPK(chromiumBuildName); err != nil {
 			return fmt.Errorf("Error while installing APK: %s", err)
@@ -151,6 +151,7 @@ func runBenchmark(fileInfoName, pathToPagesets, localOutputDir, chromiumBuildNam
 		args = append(args, "--browser=android-chromium")
 	} else {
 		args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
+		args = append(args, "--device=desktop")
 	}
 	// Split benchmark args if not empty and append to args.
 	if *benchmarkExtraArgs != "" {

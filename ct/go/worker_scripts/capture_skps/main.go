@@ -179,11 +179,12 @@ func main() {
 					"--urls-list=" + decodedPageset.UrlsList,
 					"--archive-data-file=" + decodedPageset.ArchiveDataFile,
 				}
-				// Figure out which browser should be used.
+				// Figure out which browser and device should be used.
 				if *targetPlatform == util.PLATFORM_ANDROID {
 					args = append(args, "--browser=android-chromium")
 				} else {
 					args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
+					args = append(args, "--device=desktop")
 				}
 				// Set the PYTHONPATH to the pagesets and the telemetry dirs.
 				env := []string{

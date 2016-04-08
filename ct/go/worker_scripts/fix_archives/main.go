@@ -163,9 +163,7 @@ func main() {
 			args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
 			// Split benchmark args if not empty and append to args.
 			if *benchmarkArgs != "" {
-				for _, benchmarkArg := range strings.Fields(*benchmarkArgs) {
-					args = append(args, benchmarkArg)
-				}
+				args = append(args, strings.Fields(*benchmarkArgs)...)
 			}
 			// Add browserArgs if not empty to args.
 			if *browserArgs != "" {
