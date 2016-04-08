@@ -2,9 +2,7 @@ package commit_cache
 
 import (
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"sort"
 	"sync"
@@ -17,7 +15,6 @@ import (
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
-	"go.skia.org/infra/status/go/build_cache"
 )
 
 /*
@@ -33,7 +30,6 @@ func init() {
 // the repository.
 type CommitCache struct {
 	BranchHeads []*gitinfo.GitBranch
-	buildCache  *build_cache.BuildCache
 	cacheFile   string
 	Commits     []*vcsinfo.LongCommit
 	db          buildbot.DB
@@ -84,7 +80,6 @@ func New(repo *gitinfo.GitInfo, cacheFile string, requestSize int, db buildbot.D
 		glog.Warningf("Failed to read commit cache from file; starting from scratch. Error: %v", err)
 		c = &CommitCache{}
 	}
-	c.buildCache = build_cache.NewBuildCache(db)
 	c.cacheFile = cacheFile
 	c.db = db
 	c.repo = repo
@@ -191,17 +186,7 @@ func (c *CommitCache) update() (rv error) {
 		return fmt.Errorf("Failed to read branch information from the repo: %v", err)
 	}
 
-	// Load new builds for the BuildCache.
 	allCommits := append(c.Commits, newCommits...)
-	buildCacheHashes := make([]string, 0, c.requestSize)
-	for _, commit := range allCommits[len(allCommits)-c.requestSize:] {
-		buildCacheHashes = append(buildCacheHashes, commit.Hash)
-	}
-	byId, byCommit, builderStatuses, err := build_cache.LoadData(c.db, buildCacheHashes)
-	if err != nil {
-		return fmt.Errorf("Failed to update BuildCache: %v", err)
-	}
-
 	// Update the cached values all at once at at the end.
 	glog.Infof("Updating the cache.")
 	// Write the cache to disk *after* unlocking it.
@@ -213,98 +198,52 @@ func (c *CommitCache) update() (rv error) {
 	defer c.mutex.Unlock()
 	c.BranchHeads = branchHeads
 	c.Commits = allCommits
-	c.buildCache.UpdateWithData(byId, byCommit, builderStatuses)
 	glog.Infof("Finished updating the cache.")
 	return nil
 }
 
-// RangeAsJson writes the given commit range along with the branch heads in JSON
-// format to the given Writer. Assumes that the caller holds a read lock.
-func (c *CommitCache) RangeAsJson(w io.Writer, startIdx, endIdx int) error {
+type CommitData struct {
+	Comments    map[string][]*buildbot.CommitComment `json:"comments"`
+	Commits     []*vcsinfo.LongCommit                `json:"commits"`
+	BranchHeads []*gitinfo.GitBranch                 `json:"branch_heads"`
+	StartIdx    int                                  `json:"startIdx"`
+	EndIdx      int                                  `json:"endIdx"`
+}
+
+// getRange returns the given commit range along with the branch heads.
+// Assumes that the caller holds a read lock.
+func (c *CommitCache) getRange(startIdx, endIdx int) (*CommitData, error) {
+	glog.Infof("CommitCache.RangeAsJson")
 	commits, err := c.Slice(startIdx, endIdx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	hashes := make([]string, 0, len(commits))
 	for _, c := range commits {
 		hashes = append(hashes, c.Hash)
 	}
-	builds, builders, err := c.buildCache.GetBuildsForCommits(hashes)
-	if err != nil {
-		return err
-	}
 
 	comments, err := c.db.GetCommitsComments(hashes)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	data := struct {
-		Comments    map[string][]*buildbot.CommitComment         `json:"comments"`
-		Commits     []*vcsinfo.LongCommit                        `json:"commits"`
-		BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
-		Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
-		Builders    map[string][]*buildbot.BuilderComment        `json:"builders"`
-		StartIdx    int                                          `json:"startIdx"`
-		EndIdx      int                                          `json:"endIdx"`
-	}{
+	data := &CommitData{
 		Comments:    comments,
 		Commits:     commits,
 		BranchHeads: c.BranchHeads,
-		Builds:      builds,
-		Builders:    builders,
 		StartIdx:    startIdx,
 		EndIdx:      endIdx,
 	}
-	return json.NewEncoder(w).Encode(&data)
+	return data, nil
 }
 
-// LastNAsJson writes the last N commits along with the branch heads in JSON
-// format to the given Writer.
-func (c *CommitCache) LastNAsJson(w io.Writer, n int) error {
+// GetLastN returns the last N commits along with the branch heads.
+func (c *CommitCache) GetLastN(n int) (*CommitData, error) {
 	end := c.NumCommits()
 	start := end - n
 	if start < 0 {
 		start = 0
 	}
-	return c.RangeAsJson(w, start, end)
-}
-
-// AddBuildComment adds the given comment to the given build.
-func (c *CommitCache) AddBuildComment(master, builder string, number int, comment *buildbot.BuildComment) error {
-	if err := c.db.PutBuildComment(master, builder, number, comment); err != nil {
-		return fmt.Errorf("Failed to add comment: %s", err)
-	}
-	return c.buildCache.RefreshBuild(buildbot.MakeBuildID(master, builder, number))
-}
-
-// DeleteBuildComment deletes the given comment from the given build.
-func (c *CommitCache) DeleteBuildComment(master, builder string, number int, commentId int64) error {
-	if err := c.db.DeleteBuildComment(master, builder, number, commentId); err != nil {
-		return fmt.Errorf("Failed to delete comment: %s", err)
-	}
-	return c.buildCache.RefreshBuild(buildbot.MakeBuildID(master, builder, number))
-}
-
-// AddBuilderComment adds a comment about the given builder.
-func (c *CommitCache) AddBuilderComment(builder string, comment *buildbot.BuilderComment) error {
-	return c.buildCache.AddBuilderComment(builder, comment)
-}
-
-// DeleteBuilderComment deletes the given comment from the given builder.
-func (c *CommitCache) DeleteBuilderComment(builder string, id int64) error {
-	return c.buildCache.DeleteBuilderComment(builder, id)
-}
-
-// GetBuildsForCommit returns the builds which ran at the given commit.
-func (c *CommitCache) GetBuildsForCommit(hash string) ([]*buildbot.BuildSummary, error) {
-	builds, _, err := c.buildCache.GetBuildsForCommits([]string{hash})
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get build data for commit: %v", err)
-	}
-	rv := make([]*buildbot.BuildSummary, 0, len(builds[hash]))
-	for _, b := range builds[hash] {
-		rv = append(rv, b)
-	}
-	return rv, nil
+	return c.getRange(start, end)
 }

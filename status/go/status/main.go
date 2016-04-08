@@ -37,6 +37,8 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/status/go/build_cache"
 	"go.skia.org/infra/status/go/commit_cache"
 	"go.skia.org/infra/status/go/device_cfg"
 )
@@ -50,6 +52,7 @@ const (
 )
 
 var (
+	buildCache           *build_cache.BuildCache              = nil
 	commitCaches         map[string]*commit_cache.CommitCache = nil
 	buildbotDashTemplate *template.Template                   = nil
 	commitsTemplate      *template.Template                   = nil
@@ -151,6 +154,19 @@ func getCommitCache(w http.ResponseWriter, r *http.Request) (*commit_cache.Commi
 	return cache, nil
 }
 
+type commitsData struct {
+	Comments    map[string][]*buildbot.CommitComment         `json:"comments"`
+	Commits     []*vcsinfo.LongCommit                        `json:"commits"`
+	BranchHeads []*gitinfo.GitBranch                         `json:"branch_heads"`
+	Builds      map[string]map[string]*buildbot.BuildSummary `json:"builds"`
+	Builders    map[string][]*buildbot.BuilderComment        `json:"builders"`
+	StartIdx    int                                          `json:"startIdx"`
+	EndIdx      int                                          `json:"endIdx"`
+}
+
+// commitsJsonHandler writes information about a range of commits into the
+// ResponseWriter. The information takes the form of a JSON-encoded commitsData
+// object.
 func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	defer timer.New("commitsJsonHandler").Stop()
 	w.Header().Set("Content-Type", "application/json")
@@ -174,8 +190,31 @@ func commitsJsonHandler(w http.ResponseWriter, r *http.Request) {
 	if commitsToLoad < 0 {
 		commitsToLoad = 0
 	}
-	if err := cache.LastNAsJson(w, commitsToLoad); err != nil {
+	commitData, err := cache.GetLastN(commitsToLoad)
+	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to load commits from cache: %v", err))
+		return
+	}
+	hashes := make([]string, 0, len(commitData.Commits))
+	for _, c := range commitData.Commits {
+		hashes = append(hashes, c.Hash)
+	}
+	builds, err := buildCache.GetBuildsForCommits(hashes)
+	if err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to obtain builds: %s", err))
+		return
+	}
+	rv := commitsData{
+		Comments:    commitData.Comments,
+		Commits:     commitData.Commits,
+		BranchHeads: commitData.BranchHeads,
+		Builds:      builds,
+		Builders:    buildCache.GetBuildersComments(),
+		StartIdx:    commitData.StartIdx,
+		EndIdx:      commitData.EndIdx,
+	}
+	if err := json.NewEncoder(w).Encode(rv); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
 		return
 	}
 }
@@ -187,18 +226,14 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
 	master, ok := mux.Vars(r)["master"]
 	if !ok {
-		httputils.ReportError(w, r, err, "No build master given!")
+		httputils.ReportError(w, r, fmt.Errorf("No build master given!"), "No build master given!")
 		return
 	}
 	builder, ok := mux.Vars(r)["builder"]
 	if !ok {
-		httputils.ReportError(w, r, err, "No builder given!")
+		httputils.ReportError(w, r, fmt.Errorf("No builder given!"), "No builder given!")
 		return
 	}
 	number, err := strconv.ParseInt(mux.Vars(r)["number"], 10, 64)
@@ -220,7 +255,7 @@ func addBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		Timestamp: time.Now().UTC(),
 		Message:   comment.Comment,
 	}
-	if err := cache.AddBuildComment(master, builder, int(number), &c); err != nil {
+	if err := buildCache.AddBuildComment(master, builder, int(number), &c); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add comment: %v", err))
 		return
 	}
@@ -233,18 +268,14 @@ func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
 	master, ok := mux.Vars(r)["master"]
 	if !ok {
-		httputils.ReportError(w, r, err, "No build master given!")
+		httputils.ReportError(w, r, fmt.Errorf("No build master given!"), "No build master given!")
 		return
 	}
 	builder, ok := mux.Vars(r)["builder"]
 	if !ok {
-		httputils.ReportError(w, r, err, "No builder given!")
+		httputils.ReportError(w, r, fmt.Errorf("No builder given!"), "No builder given!")
 		return
 	}
 	number, err := strconv.ParseInt(mux.Vars(r)["number"], 10, 64)
@@ -257,7 +288,7 @@ func deleteBuildCommentHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := cache.DeleteBuildComment(master, builder, int(number), commentId); err != nil {
+	if err := buildCache.DeleteBuildComment(master, builder, int(number), commentId); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
@@ -270,10 +301,6 @@ func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
 	builder := mux.Vars(r)["builder"]
 
 	comment := struct {
@@ -295,7 +322,7 @@ func addBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 		IgnoreFailure: comment.IgnoreFailure,
 		Message:       comment.Comment,
 	}
-	if err := cache.AddBuilderComment(builder, &c); err != nil {
+	if err := buildCache.AddBuilderComment(builder, &c); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add builder comment: %v", err))
 		return
 	}
@@ -308,17 +335,13 @@ func deleteBuilderCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	cache, err := getCommitCache(w, r)
-	if err != nil {
-		return
-	}
 	builder := mux.Vars(r)["builder"]
 	commentId, err := strconv.ParseInt(mux.Vars(r)["commentId"], 10, 32)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Invalid comment id: %v", err))
 		return
 	}
-	if err := cache.DeleteBuilderComment(builder, commentId); err != nil {
+	if err := buildCache.DeleteBuilderComment(builder, commentId); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete comment: %v", err))
 		return
 	}
@@ -593,7 +616,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Get the number of finished builds for the requested commit.
 	hash := r.FormValue("commit")
-	buildsAtNewCommit, err := cache.GetBuildsForCommit(hash)
+	buildsAtNewCommit, err := buildCache.GetBuildsForCommit(hash)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
@@ -611,7 +634,7 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get an old commit from the cache."))
 		return
 	}
-	buildsAtOldCommit, err := cache.GetBuildsForCommit(oldCommit.Hash)
+	buildsAtOldCommit, err := buildCache.GetBuildsForCommit(oldCommit.Hash)
 	if err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to get the number of finished builds."))
 		return
@@ -729,6 +752,13 @@ func main() {
 	}
 
 	glog.Info("CloneOrUpdate complete")
+
+	// Create the build cache.
+	bc, err := build_cache.NewBuildCache(db)
+	if err != nil {
+		glog.Fatalf("Failed to create build cache: %s", err)
+	}
+	buildCache = bc
 
 	// Create the commit caches.
 	commitCaches = map[string]*commit_cache.CommitCache{}

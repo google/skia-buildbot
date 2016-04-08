@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"regexp"
 	"sync"
+	"time"
 
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/timer"
-	"go.skia.org/infra/go/util"
 )
 
 /*
@@ -23,111 +23,172 @@ var (
 	}
 )
 
+const (
+	// Time period of builds to load at a time.
+	BUILD_LOADING_CHUNK = 24 * time.Hour
+
+	// Load all builds for this time period when starting up.
+	BUILD_LOADING_PERIOD = 14 * 24 * time.Hour
+)
+
 // BuildCache is a struct used for caching build data.
 type BuildCache struct {
-	byId     map[string]*buildbot.Build
-	byCommit map[string]map[string]*buildbot.BuildSummary
-	builders map[string][]*buildbot.BuilderComment
-	mutex    sync.RWMutex
-	db       buildbot.DB
+	byId            map[string]*buildbot.Build
+	byCommit        map[string]map[string]*buildbot.BuildSummary
+	byTime          map[time.Time]string
+	builders        map[string]bool
+	builderComments map[string][]*buildbot.BuilderComment
+	lastLoad        time.Time
+	mutex           sync.RWMutex
+	db              buildbot.DB
+	dbId            string
 }
 
 // NewBuildCache creates a new BuildCache instance.
-func NewBuildCache(db buildbot.DB) *BuildCache {
-	return &BuildCache{db: db}
-}
-
-// LoadData loads the build data for the given commits.
-func LoadData(db buildbot.DB, commits []string) (map[string]*buildbot.Build, map[string]map[string]*buildbot.BuildSummary, map[string][]*buildbot.BuilderComment, error) {
-	defer timer.New("build_cache.LoadData()").Stop()
-	builds, err := db.GetBuildsForCommits(commits, nil)
+func NewBuildCache(db buildbot.DB) (*BuildCache, error) {
+	// Start tracking build changes in the DB.
+	dbId, err := db.StartTrackingModifiedBuilds()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, err
 	}
-	byId := map[string]*buildbot.Build{}
-	byCommit := map[string]map[string]*buildbot.BuildSummary{}
-	builders := map[string]bool{}
-	for hash, buildList := range builds {
-		byBuilder := map[string]*buildbot.BuildSummary{}
-		for _, b := range buildList {
-			byId[string(b.Id())] = b
-			if !util.AnyMatch(BOT_BLACKLIST, b.Builder) {
-				byBuilder[b.Builder] = b.GetSummary()
-				builders[b.Builder] = true
+	bc := &BuildCache{
+		builders:        map[string]bool{},
+		builderComments: map[string][]*buildbot.BuilderComment{},
+		byId:            map[string]*buildbot.Build{},
+		byCommit:        map[string]map[string]*buildbot.BuildSummary{},
+		byTime:          map[time.Time]string{},
+		lastLoad:        time.Now(),
+		db:              db,
+		dbId:            dbId,
+	}
+	// Populate the cache with data.
+	to := time.Now()
+	from := to.Add(BUILD_LOADING_CHUNK)
+	for time.Now().Sub(from) < BUILD_LOADING_PERIOD {
+		glog.Infof("Loading builds from %s to %s", from, to)
+		builds, err := db.GetBuildsFromDateRange(from, to)
+		if err != nil {
+			return nil, err
+		}
+		if err := bc.updateWithBuilds(builds); err != nil {
+			return nil, err
+		}
+		to = from
+		from = to.Add(-BUILD_LOADING_CHUNK)
+	}
+	if err := bc.update(); err != nil {
+		return nil, err
+	}
+	go func() {
+		for _ = range time.Tick(time.Minute) {
+			if err := bc.update(); err != nil {
+				glog.Error(err)
 			}
 		}
-		byCommit[hash] = byBuilder
-	}
-	builderList := make([]string, 0, len(builders))
-	for b, _ := range builders {
-		builderList = append(builderList, b)
-	}
-	builderComments, err := db.GetBuildersComments(builderList)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-	return byId, byCommit, builderComments, nil
+	}()
+	return bc, nil
 }
 
-// UpdateWithData replaces the contents of the BuildCache with the given
-// data. Not intended to be used by consumers of BuildCache, but exists to
-// allow for loading and storing the cache data separately so that the cache
-// may be locked for the minimum amount of time.
-func (c *BuildCache) UpdateWithData(byId map[string]*buildbot.Build, byCommit map[string]map[string]*buildbot.BuildSummary, builders map[string][]*buildbot.BuilderComment) {
+// update obtains the set of modified builds since the last update
+// and inserts them into the cache.
+func (c *BuildCache) update() error {
+	builds, err := c.db.GetModifiedBuilds(c.dbId)
+	if err != nil {
+		if time.Now().Sub(c.lastLoad) >= 10*time.Minute {
+			glog.Errorf("Failed to GetModifiedBuilds. Attempting to re-establish connection to database.")
+			id, err := c.db.StartTrackingModifiedBuilds()
+			if err != nil {
+				return err
+			}
+			c.dbId = id
+			b1, err := c.db.GetBuildsFromDateRange(c.lastLoad, time.Now())
+			if err != nil {
+				return err
+			}
+			b2, err := c.db.GetModifiedBuilds(c.dbId)
+			if err != nil {
+				return err
+			}
+			builds = append(b1, b2...)
+			glog.Errorf("Re-connected successfully.")
+		} else {
+			return err
+		}
+	}
+	if err := c.updateWithBuilds(builds); err != nil {
+		return err
+	}
+	return c.updateBuilderComments()
+}
+
+// updateBuilderComments updates the comments for all builders.
+func (c *BuildCache) updateBuilderComments() error {
+	defer timer.New("BuildCache.updateBuilderComments").Stop()
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	builderList := make([]string, 0, len(c.builders))
+	for b, _ := range c.builders {
+		builderList = append(builderList, b)
+	}
+	builderComments, err := c.db.GetBuildersComments(builderList)
+	if err != nil {
+		return err
+	}
+	c.builderComments = builderComments
+	return nil
+}
+
+// updateWithBuilds inserts the given builds into the cache.
+func (c *BuildCache) updateWithBuilds(builds []*buildbot.Build) error {
 	defer timer.New("  BuildCache locked").Stop()
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.byId = byId
-	c.byCommit = byCommit
-	c.builders = builders
+	glog.Infof("Inserting %d builds.", len(builds))
+	// Update builds by ID and by commit.
+	for _, b := range builds {
+		idStr := string(b.Id())
+		// Delete builds by commit for the included builds.
+		oldBuild, ok := c.byId[idStr]
+		if ok {
+			for _, h := range oldBuild.Commits {
+				if _, ok := c.byCommit[h][b.Builder]; ok {
+					delete(c.byCommit[h], b.Builder)
+				}
+			}
+		}
+		c.byId[idStr] = b
+		summary := b.GetSummary()
+		for _, h := range b.Commits {
+			if _, ok := c.byCommit[h]; !ok {
+				c.byCommit[h] = map[string]*buildbot.BuildSummary{}
+			}
+			c.byCommit[h][b.Builder] = summary
+		}
+		c.builders[b.Builder] = true
+	}
+	return nil
 }
 
 // GetBuildsForCommits returns the build data for the given commits.
-func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[string]*buildbot.BuildSummary, map[string][]*buildbot.BuilderComment, error) {
+func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[string]*buildbot.BuildSummary, error) {
+	defer timer.New("BuildCache.GetBuildsForCommits").Stop()
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
-	builders := map[string][]*buildbot.BuilderComment{}
-	for k, v := range c.builders {
-		builders[k] = v
-	}
 	byCommit := map[string]map[string]*buildbot.BuildSummary{}
-	missing := []string{}
 	for _, hash := range commits {
 		builds, ok := c.byCommit[hash]
 		if ok {
 			byCommit[hash] = builds
-		} else {
-			missing = append(missing, hash)
 		}
 	}
-	missingBuilders := map[string]bool{}
-	if len(missing) > 0 {
-		glog.Warningf("Missing build data for some commits; loading now (%v)", missing)
-		_, missingByCommit, builders, err := LoadData(c.db, missing)
-		if err != nil {
-			return nil, nil, fmt.Errorf("Failed to load missing builds: %v", err)
-		}
-		for hash, byBuilder := range missingByCommit {
-			byCommit[hash] = byBuilder
-			for builder, _ := range byBuilder {
-				if _, ok := builders[builder]; !ok {
-					missingBuilders[builder] = true
-				}
-			}
-		}
-	}
-	missingBuilderList := make([]string, 0, len(missingBuilders))
-	for b, _ := range missingBuilders {
-		missingBuilderList = append(missingBuilderList, b)
-	}
-	missingComments, err := c.db.GetBuildersComments(missingBuilderList)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to load missing builder comments: %v", err)
-	}
-	for b, s := range missingComments {
-		builders[b] = s
-	}
-	return byCommit, builders, nil
+	return byCommit, nil
+}
+
+// GetBuildersComments returns comments for all builders.
+func (c *BuildCache) GetBuildersComments() map[string][]*buildbot.BuilderComment {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+	return c.builderComments
 }
 
 // Get returns the build with the given ID.
@@ -153,7 +214,7 @@ func (c *BuildCache) AddBuilderComment(builder string, comment *buildbot.Builder
 	if err := c.db.PutBuilderComment(comment); err != nil {
 		return err
 	}
-	c.builders[builder] = append(c.builders[builder], comment)
+	c.builderComments[builder] = append(c.builderComments[builder], comment)
 	return nil
 }
 
@@ -162,7 +223,7 @@ func (c *BuildCache) DeleteBuilderComment(builder string, commentId int64) error
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	idx := -1
-	for i, comment := range c.builders[builder] {
+	for i, comment := range c.builderComments[builder] {
 		if comment.Id == commentId {
 			idx = i
 		}
@@ -173,7 +234,7 @@ func (c *BuildCache) DeleteBuilderComment(builder string, commentId int64) error
 	if err := c.db.DeleteBuilderComment(commentId); err != nil {
 		return err
 	}
-	c.builders[builder] = append(c.builders[builder][:idx], c.builders[builder][idx+1:]...)
+	c.builderComments[builder] = append(c.builderComments[builder][:idx], c.builderComments[builder][idx+1:]...)
 	return nil
 }
 
@@ -195,4 +256,33 @@ func (c *BuildCache) RefreshBuild(id buildbot.BuildID) error {
 		c.byCommit[hash][b.Builder] = summary
 	}
 	return nil
+}
+
+// AddBuildComment adds the given comment to the given build.
+func (c *BuildCache) AddBuildComment(master, builder string, number int, comment *buildbot.BuildComment) error {
+	if err := c.db.PutBuildComment(master, builder, number, comment); err != nil {
+		return fmt.Errorf("Failed to add comment: %s", err)
+	}
+	return c.RefreshBuild(buildbot.MakeBuildID(master, builder, number))
+}
+
+// DeleteBuildComment deletes the given comment from the given build.
+func (c *BuildCache) DeleteBuildComment(master, builder string, number int, commentId int64) error {
+	if err := c.db.DeleteBuildComment(master, builder, number, commentId); err != nil {
+		return fmt.Errorf("Failed to delete comment: %s", err)
+	}
+	return c.RefreshBuild(buildbot.MakeBuildID(master, builder, number))
+}
+
+// GetBuildsForCommit returns the builds which ran at the given commit.
+func (c *BuildCache) GetBuildsForCommit(hash string) ([]*buildbot.BuildSummary, error) {
+	builds, err := c.GetBuildsForCommits([]string{hash})
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get build data for commit: %v", err)
+	}
+	rv := make([]*buildbot.BuildSummary, 0, len(builds[hash]))
+	for _, b := range builds[hash] {
+		rv = append(rv, b)
+	}
+	return rv, nil
 }
