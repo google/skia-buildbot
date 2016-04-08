@@ -50,6 +50,11 @@ var (
 			2: true, // Wrong repo.
 			3: true, // Wrong repo.
 		},
+		// This bot was removed before these build finished ingesting.
+		"Perf-Win8-MSVC-ShuttleB-CPU-AVX2-x86_64-Release-Swarming": map[int]bool{
+			12510: true,
+			12511: true,
+		},
 		"Linux Tests": map[int]bool{
 			// For some reason, these builds don't exist on the server.
 			2872: true,
@@ -61,6 +66,12 @@ var (
 		},
 		"Mac10.9 Tests": map[int]bool{
 			1727: true, // This build doesn't exist on the server.
+		},
+		// This bot was removed before these build finished ingesting.
+		"Test-Win8-MSVC-ShuttleB-CPU-AVX2-x86_64-Release-Swarming": map[int]bool{
+			12588: true,
+			12589: true,
+			12590: true,
 		},
 		"Win7 Tests (1)": map[int]bool{
 			1797: true, // This build doesn't exist on the server?
