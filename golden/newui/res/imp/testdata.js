@@ -12291,7 +12291,7 @@ testdata.listTestsResult = [
 ];
 
 
-testdata.nxnResult = {
+testdata.clusterDiffResult = {
   "links": [
     {
       "source": 0, 
@@ -15770,7 +15770,7 @@ testdata.nxnResult = {
       "status": "untriaged"
     }
   ], 
-  "paramsetByDigest": {
+  "paramsetsUnion": {
     "arch": [
       "Arm64", 
       "Arm7", 
@@ -15933,7 +15933,7 @@ testdata.nxnResult = {
       "gm"
     ]
   }, 
-  "paramsetsUnion": {
+  "paramsetByDigest": {
     "073f836f6c086e23c648ad554887467a": {
       "arch": [
         "Arm64"

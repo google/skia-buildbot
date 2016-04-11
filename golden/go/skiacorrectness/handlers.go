@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/types"
@@ -397,4 +398,79 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 // jsonStatusHandler returns the current status of with respect to HEAD.
 func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, statusWatcher.GetStatus())
+}
+
+// TODO (stephana): Remove nxnJSONHandler and the D3 struct once the new UI launched.
+
+// jsonClusterDiffHandler calculates the NxN diffs of all the digests that match
+// the incoming query and returns the data in a format appropriate for
+// handling in d3.
+func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+	}
+	// Sort the digests so they are displayed with untriaged last, which means
+	// they will be displayed 'on top', because in SVG document order is z-order.
+	sort.Sort(SearchDigestSlice(searchResponse.Digests))
+
+	digests := []string{}
+	for _, digest := range searchResponse.Digests {
+		digests = append(digests, digest.Digest)
+	}
+
+	digestIndex := map[string]int{}
+	for i, d := range digests {
+		digestIndex[d] = i
+	}
+
+	d3 := ClusterDiffResult{
+		Nodes:            []Node{},
+		Links:            []Link{},
+		ParamsetByDigest: map[string]map[string][]string{},
+		ParamsetsUnion:   map[string][]string{},
+	}
+	for i, d := range searchResponse.Digests {
+		d3.Nodes = append(d3.Nodes, Node{
+			Name:   d.Digest,
+			Status: d.Status,
+		})
+		remaining := digests[i:len(digests)]
+		diffs, err := storages.DiffStore.Get(d.Digest, remaining)
+		if err != nil {
+			glog.Errorf("Failed to calculate differences: %s", err)
+			continue
+		}
+		for otherDigest, diff := range diffs {
+			d3.Links = append(d3.Links, Link{
+				Source: digestIndex[d.Digest],
+				Target: digestIndex[otherDigest],
+				Value:  diff.PixelDiffPercent,
+			})
+		}
+		d3.ParamsetByDigest[d.Digest] = paramsetSum.Get(d.Test, d.Digest, false)
+		for _, p := range d3.ParamsetByDigest[d.Digest] {
+			sort.Strings(p)
+		}
+		d3.ParamsetsUnion = util.AddParamSetToParamSet(d3.ParamsetsUnion, d3.ParamsetByDigest[d.Digest])
+	}
+
+	for _, p := range d3.ParamsetsUnion {
+		sort.Strings(p)
+	}
+
+	sendJsonResponse(w, d3)
+}
+
+// ClusterDiffResult contains the result of comparing all digests within a test.
+// It is structured to be easy to render by the D3.js.
+type ClusterDiffResult struct {
+	Nodes []Node `json:"nodes"`
+	Links []Link `json:"links"`
+
+	// map [digest] paramset
+	ParamsetByDigest map[string]map[string][]string `json:"paramsetByDigest"`
+	ParamsetsUnion   map[string][]string            `json:"paramsetsUnion"`
 }

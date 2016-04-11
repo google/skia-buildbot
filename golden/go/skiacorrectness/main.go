@@ -450,6 +450,7 @@ func main() {
 		router.HandleFunc("/json/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
 		router.HandleFunc("/json/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
 		router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
+		router.HandleFunc("/json/clusterdiff", jsonClusterDiffHandler).Methods("GET")
 
 		// For everything else serve the same markup.
 		indexFile := *resourcesDir + "/index.html"

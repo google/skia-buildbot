@@ -258,7 +258,7 @@
             this.selected.push(p.getAttribute('data-name'));
           }
         }
-        this.fire('digest-select', this.selected);
+        this.fire('digest-select', this.selected.slice());
 
         // Remove the selectionRect.
         $$('.selectionRect', this.$.svg).forEach(function (ele) {
@@ -308,7 +308,7 @@
           Polymer.dom($$$('#x' + d.name)).classList.toggle('selected', true);
         }
 
-        this.fire('digest-select', this.selected);
+        this.fire('digest-select', this.selected.slice());
       },
 
       _dragend: function (d) {

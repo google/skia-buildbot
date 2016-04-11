@@ -1,0 +1,162 @@
+  <!-- The <cluster-page-sk> custom element declaration.
+
+    TODO(stephana): Add description.  
+
+  -->
+
+<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/iron-pages/iron-pages.html">
+
+<link rel="import" href="bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="bower_components/paper-tabs/paper-tab.html">
+
+<link rel="import" href="../common/imp/9/sort.html">
+<link rel="import" href="../common/imp/9/paramset.html">
+
+<link rel="import" href="query-dialog-sk.html">
+<link rel="import" href="cluster-sk.html">
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="test-summary-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="cluster-page-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles"></style>
+    <div id="clusterContainer" class="horizontal layout">
+      <cluster-sk class="flex" id="clusterView"></cluster-sk>
+      <div class="flex">
+        <paper-tabs id="tabs" selected={{_currentTab}}>
+          <paper-tab>Parameters</paper-tab>
+          <paper-tab>Details</paper-tab>
+        </paper-tabs>
+        <iron-pages id="pages" selected="{{_currentTab}}">
+          <div>
+            <paramset-sk clickable id=parameters></paramset-sk>
+          </div>
+          <div>
+            <h1>DETAILS</h1>
+
+            <div hidden$="{{_lenIsNot(_digestList, 0)}}">
+              There are no selected digests.
+              {{_digestList}}
+            </div>
+
+            <div hidden$="{{_lenIsNot(_digestList, 1)}}">
+              <h3>TODO: Show details about one digest.</h3>
+            </div>
+
+            <div hidden$="{{_lenIsNot(_digestList, 2)}}">
+              <h3>TODO: Show diff between two digests</h3>
+            </div>
+
+            <div hidden$="{{_hideBulkTriage(_digestList)}}">
+              <h3>TODO: Show Bulk Triage for three or more digests</h3>
+            </div>
+          </div>
+        </iron-pages>
+      </div>
+    </div>
+  </template>
+
+  <script>
+      Polymer({
+        is: "cluster-page-sk",
+
+        properties: {
+          _currentTab: {
+            type: Number,
+            value: 0
+          },
+
+          _digestList: {
+            type: Array, 
+            value: function() { return []; }
+          }
+        },
+
+        ready: function() {
+          this.listen(this.$.clusterContainer, 'paramset-key-click', '_handleParamsetKeyClick'); 
+          this.listen(this.$.clusterContainer, 'paramset-key-value-click', '_handleParamsetValueClick');
+          this.listen(this.$.clusterContainer, 'digest-select', '_handleDigestsSelected');
+        }, 
+
+        pageSelected: function(routeName) {
+          this.$.clusterView.startUse();
+          this._loadData(); 
+        },
+
+        pageDeselected: function() {
+          this.$.clusterView.endUse(); 
+        },
+
+        _loadData: function() {
+          var q = window.location.search;
+          sk.get("/json/clusterdiff"+q).then(JSON.parse).then(function(json) {
+            this.$.clusterView.setData(json);
+            this._data = json; 
+            this.$.parameters.setParamSets([json.paramsetsUnion]);
+          }.bind(this)).catch(sk.errorMessage);
+        },
+
+        _handleParamsetKeyClick: function(ev) {
+          ev.stopPropagation(); 
+
+          var text = {};
+          var key = ev.detail.key;
+          Object.keys(this._data.paramsetByDigest).forEach(function(digest) {
+            var value = this._data.paramsetByDigest[digest][key];
+            if (value) {
+              text[digest] = value.join(", ");
+            }
+          }.bind(this));
+          this.$.clusterView.setTextNodes(text, ev.detail.ctrl);
+        }, 
+
+        _handleParamsetValueClick: function(ev) {
+          ev.stopPropagation(); 
+
+          var text = {};
+          var value = ev.detail.value;
+          var key = ev.detail.key; 
+          Object.keys(this._data.paramsetByDigest).forEach(function(digest) {
+            var paramset = this._data.paramsetByDigest[digest];
+            if (paramset[key] && (paramset[key].indexOf(value) !== -1)) {
+              text[digest] = value;
+            }
+          }.bind(this));
+          this.$.clusterView.setTextNodes(text, ev.detail.ctrl);
+        }, 
+
+        _handleDigestsSelected: function(ev) {
+          ev.stopPropagation(); 
+
+          var before = this._digestList; 
+          this.set('_digestList', ev.detail);
+
+          // If there are no digests do nothing. 
+          if (this._digestList.length == 0) {
+            return; 
+          }
+
+          this._currentTab = 1; 
+
+          // TODO (stephana): Set parameters of details view. 
+
+          return;
+        },
+
+        _hideBulkTriage: function(digestList) { 
+          return digestList.length <= 2; 
+        },
+
+        _lenIsNot: function(digestList, len) {
+          return digestList.length !== len; 
+        }
+      });
+  </script>
+</dom-module>

@@ -40,17 +40,14 @@
           },
 
           ready: function() {
-            this.listen(this.$.clusterView, 'digest-select', '_handleDigestSelect'); 
-
-            var data = JSON.parse(JSON.stringify(testdata.nxnResult)); 
-            delete data['paramsetByDigest'];
-            delete data['paramsetsUnion']; 
+            this.listen(this.$.clusterView, 'digest-select', '_handleDigestSelect');  
             this.$.clusterView.startUse();
-            this.$.clusterView.setData(data);
+            this.$.clusterView.setData(testdata.clusterDiffResult);
           },
 
           _handleDigestSelect: function(ev) {
-            this._eventData = ev.detail; 
+            ev.stopPropagation();
+            this.set('_eventData', ev.detail); 
           }
 
         });
