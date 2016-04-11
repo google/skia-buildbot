@@ -18,9 +18,8 @@ import (
 )
 
 var (
-	workerNum     = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
-	pagesetType   = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
-	chromiumBuild = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
+	workerNum   = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
+	pagesetType = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
 )
 
 func main() {
@@ -32,11 +31,6 @@ func main() {
 	// Create the task file so that the master knows this worker is still busy.
 	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_CAPTURING_ARCHIVES))
 	defer util.DeleteTaskFile(util.ACTIVITY_CAPTURING_ARCHIVES)
-
-	if *chromiumBuild == "" {
-		glog.Error("Must specify --chromium_build")
-		return
-	}
 
 	// Reset the local chromium checkout.
 	if err := util.ResetCheckout(util.ChromiumSrcDir); err != nil {
@@ -61,12 +55,6 @@ func main() {
 		return
 	}
 
-	// Download the specified chromium build if it does not exist locally.
-	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
-		glog.Error(err)
-		return
-	}
-
 	// Download pagesets if they do not exist locally.
 	if err := gs.DownloadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {
 		glog.Error(err)
@@ -74,7 +62,6 @@ func main() {
 	}
 
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
-	chromiumBinary := filepath.Join(util.ChromiumBuildsDir, *chromiumBuild, util.BINARY_CHROME)
 	recordWprBinary := filepath.Join(util.TelemetryBinariesDir, util.BINARY_RECORD_WPR)
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureArchivesTimeoutSecs
 	// Loop through all pagesets.
@@ -103,8 +90,7 @@ func main() {
 		args := []string{
 			util.CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK,
 			"--extra-browser-args=--disable-setuid-sandbox",
-			"--browser=exact",
-			"--browser-executable=" + chromiumBinary,
+			"--browser=reference",
 			"--user-agent=" + decodedPageset.UserAgent,
 			"--urls-list=" + decodedPageset.UrlsList,
 			"--archive-data-file=" + decodedPageset.ArchiveDataFile,

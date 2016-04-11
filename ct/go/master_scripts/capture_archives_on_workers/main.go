@@ -19,11 +19,10 @@ import (
 )
 
 var (
-	emails        = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
-	gaeTaskID     = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
-	pagesetType   = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
-	chromiumBuild = flag.String("chromium_build", "", "The chromium build to use for this capture_archives run.")
-	runID         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
+	emails      = flag.String("emails", "", "The comma separated email addresses to notify when the task is picked up and completes.")
+	gaeTaskID   = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
+	pagesetType = flag.String("pageset_type", "", "The type of pagesets to use. Eg: 10k, Mobile10k, All.")
+	runID       = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully = new(bool)
 )
@@ -84,14 +83,10 @@ func main() {
 		glog.Error("Must specify --pageset_type")
 		return
 	}
-	if *chromiumBuild == "" {
-		glog.Error("Must specify --chromium_build")
-		return
-	}
 
 	cmd := append(master_common.WorkerSetupCmds(),
 		// The main command that runs capture_archives on all workers.
-		fmt.Sprintf("DISPLAY=:0 capture_archives --worker_num=%s --log_dir=%s --log_id=%s --pageset_type=%s --chromium_build=%s --local=%t;", util.WORKER_NUM_KEYWORD, util.GLogDir, *runID, *pagesetType, *chromiumBuild, *master_common.Local))
+		fmt.Sprintf("DISPLAY=:0 capture_archives --worker_num=%s --log_dir=%s --log_id=%s --pageset_type=%s --local=%t;", util.WORKER_NUM_KEYWORD, util.GLogDir, *runID, *pagesetType, *master_common.Local))
 
 	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CAPTURE_ARCHIVES_TIMEOUT)
 	if err != nil {

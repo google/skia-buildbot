@@ -303,7 +303,6 @@ func TestRecreateWebpageArchivesExecute(t *testing.T) {
 	expect.Contains(t, cmd.Args, "--gae_task_id=42")
 	expect.Contains(t, cmd.Args, "--emails=nobody@chromium.org")
 	expect.Contains(t, cmd.Args, "--pageset_type=All")
-	expect.Contains(t, cmd.Args, "--chromium_build=c14d891-586101c")
 	runId := getRunId(t, cmd)
 	expect.Contains(t, cmd.Args, "--log_id="+runId)
 	expect.NotNil(t, cmd.Timeout)

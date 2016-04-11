@@ -484,7 +484,6 @@ type RecreateWebpageArchivesTask struct {
 func (task *RecreateWebpageArchivesTask) Execute() error {
 	token := statusTracker.StartTask(RECREATE_WEBPAGE_ARCHIVES)
 	runId := runId(task)
-	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
 	err := exec.Run(&exec.Command{
 		Name: "capture_archives_on_workers",
 		Args: []string{
@@ -492,7 +491,6 @@ func (task *RecreateWebpageArchivesTask) Execute() error {
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
 			"--run_id=" + runId,
 			"--pageset_type=" + task.PageSets,
-			"--chromium_build=" + chromiumBuildDir,
 			"--log_dir=" + logDir,
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
