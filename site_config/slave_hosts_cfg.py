@@ -39,22 +39,10 @@ _slave_host_dicts = {
 
 ################################ Linux Machines ################################
 
-  'skiabot-shuttle-ubuntu12-gtx550ti-001': {
-    'slaves': [
-      ('skiabot-shuttle-ubuntu12-gtx550ti-001', '0', False),
-      ('skiabot-shuttle-ubuntu12-003',          '1', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.132',
-    'kvm_switch': KVM_SWITCH_OFFICE,
-    'kvm_num': 'E',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skiabot-shuttle-ubuntu12-gtx660-001': {
     'slaves': [
       ('skiabot-shuttle-ubuntu12-gtx660-000', '0', False),
+      ('skiabot-shuttle-ubuntu12-003',        '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': '192.168.1.113',
