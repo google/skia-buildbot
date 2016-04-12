@@ -76,6 +76,10 @@ var (
 		"Win7 Tests (1)": map[int]bool{
 			1797: true, // This build doesn't exist on the server?
 		},
+		// This bot was removed before the build finished ingesting.
+		"Test-Ubuntu-GCC-ShuttleA-GPU-GTX550Ti-x86_64-Release-SwarmingValgrind": map[int]bool{
+			107: true,
+		},
 	}
 
 	// TODO(borenet): Avoid hard-coding this list. Instead, obtain it from
