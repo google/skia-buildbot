@@ -1,0 +1,18 @@
+#!/bin/bash
+# Builds and uploads a debian package for push.
+APPNAME=fiddle
+SYSTEMD=${APPNAME}.service
+DESCRIPTION="Application to push updates for applications."
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service   ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=755 -T ${GOPATH}/bin/fiddle       ${ROOT}/usr/local/bin/fiddle
+${INSTALL} --mode=755 -T ${GOPATH}/bin/fiddle_build ${ROOT}/usr/local/bin/fiddle_build
+${INSTALL} --mode=755 -T ${GOPATH}/bin/fiddle_run   ${ROOT}/mnt/pd0/fiddle/bin/fiddle_run
+${INSTALL} --mode=755 -T fiddle_secwrap             ${ROOT}/mnt/pd0/fiddle/bin/fiddle_secwrap
+}
+
+source ../bash/release.sh
