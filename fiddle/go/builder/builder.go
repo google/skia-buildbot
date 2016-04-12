@@ -12,7 +12,12 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
+)
+
+const (
+	GOOD_BUILDS_FILENAME = "goodbuilds.txt"
 )
 
 // errors
@@ -111,6 +116,15 @@ func BuildLatestSkia(fiddleRoot, depotTools string, force bool, head bool, deps 
 
 	if err := buildLib(checkout); err != nil {
 		return nil, err
+	}
+	fb, err := os.OpenFile(filepath.Join(fiddleRoot, GOOD_BUILDS_FILENAME), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open %s for writing: %s", GOOD_BUILDS_FILENAME, err)
+	}
+	defer util.Close(fb)
+	_, err = fmt.Fprintf(fb, "%s\n", githash)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to write %s: %s", GOOD_BUILDS_FILENAME, err)
 	}
 	return ret, nil
 }

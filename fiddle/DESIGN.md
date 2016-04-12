@@ -96,6 +96,9 @@ locally and not using systemd-nspawn.
 
 Skia is checked out into $FIDDLE_ROOT/versions/<githash>, and cmake built,
 with the output going into $FIDDLE_ROOT/versions/<githash>/cmakeout.
+Good builds are recorded in $FIDDLE_ROOT/goodbuilds.txt, which is just
+a text file of good builds in the order they are done, that is, new
+good builds are appended to the end of the file.
 
 The rest of the work, compiling the user's code and then running it, is done
 in the container, i.e. run in a root jail using systemd-nspawn.
@@ -114,10 +117,11 @@ running fiddle_main is piped to stdout and contains the images as base64
 encoded values in JSON. The $FIDDLE_ROOT/images directory is whitelisted for
 access by fiddle_secwrap so that fiddle_main can read the source image.
 
-Summary of directories and how they are mounted in the container:
+Summary of directories and files and how they are mounted in the container:
 
 Directory                                 | Perms | Container
 ------------------------------------------|-------|----------
+$FIDDLE_ROOT/goodbuilds.txt               | R     | Y
 $FIDDLE_ROOT/versions/<githash>           | R     | Y
 $FIDDLE_ROOT/versions/<githash>/cmakeout/ | R     | Y
 .../cmakeout/fiddle_main.o                | R     | Y
@@ -128,6 +132,24 @@ $FIDDLE_ROOT/out/                         | RW    | Y
 $FIDDLE_ROOT/images/                      | R     | Y
 $FIDDLE_ROOT/bin/fiddle_secwrap           | R     | Y
 
+Decimation
+----------
+
+We could continuously add new builds to /versions/ but each checkout and build
+is ~1.3GB. So we'll fill up our 1TB disk in under a year. So we need to keep
+around older builds, but can't keep them all. Having finer-grained history for
+recent builds is also important, while we can tolerate gaps in older builds.
+I.e. we don't really need a build from 30 days ago, and 30 days and 1 hr ago,
+but we would like to have almost all of the last weeks worth of commits
+available. So we end up with a decimation strategy that is simple but also
+accomplishes the above goals.
+
+  * Keep 128+ builds.
+  * When the number of builds reaches 257, delete every other build in
+    chronological order, that is, order the builds in reverse chronological
+    order, number starting at 0, and then delete all the odd builds. Note that
+    this preserves the newest build and the oldest build, and again reduces
+    the number of builds to 128.
 
 Storage
 -------
