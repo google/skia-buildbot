@@ -129,7 +129,7 @@ func main() {
 		}
 
 		// Run the fiddle.
-		res, err := runner.Run(*fiddleRoot, *gitHash, true)
+		res, err := runner.Run(*fiddleRoot, *gitHash, true, "")
 		if err != nil {
 			glog.Errorf("Failed to run fiddle: %s", err)
 			continue

@@ -94,16 +94,17 @@ func testRun(cmd *exec.Command) error {
 }
 
 func TestRun(t *testing.T) {
-	// Confirm we don't do non-local runs yet.
-	res, err := Run("fiddleroot/", "abcdef", false)
-	assert.Error(t, err)
-
 	// Now test local runs, first set up exec for testing.
 	exec.SetRunForTesting(testRun)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 
-	res, err = Run("fiddleroot/", "abcdef", true)
+	res, err := Run("fiddleroot/", "abcdef", true, "")
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	assert.Equal(t, "fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --local", execString)
+
+	res, err = Run("fiddleroot/", "abcdef", false, "/mnt/pd0/fiddle/tmp/draw0123")
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container/ --bind=/mnt/pd0/fiddle --bind /mnt/pd0/fiddle/tmp/draw0123:/mnt/pd0/fiddle/src xargs --arg-file=/dev/null /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --alsologtostderr", execString)
 }

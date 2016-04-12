@@ -117,21 +117,46 @@ func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
 //    gitHash - The git hash of the version of Skia we have checked out.
 //    local - Boolean, true if we are running locally, else we should execute
 //        fiddle_run under fiddle_secwrap.
+//    tmpDir - The directory outside the container to mount as FIDDLE_ROOT/src
+//        that contains the user's draw.cpp file. Only used if local is false.
 //
 // Returns the parsed JSON that fiddle_run emits to stdout.
-func Run(fiddleRoot, gitHash string, local bool) (*types.Result, error) {
+//
+// If non-local this should run something like:
+//
+//    sudo systemd-nspawn -D /mnt/pd0/container/ --bind=/mnt/pd0/fiddle \
+//       xargs --arg-file=/dev/null \
+//       /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root=/mnt/pd0/fiddle \
+//       --git_hash=82b043e87380a64ea4ca736b293ec0ee5c30e676
+//
+// NOTE: When trying to run a binary that exists on a mounted directory under nspawn, it will fail with:
+//
+//    $ sudo systemd-nspawn -D /mnt/pd0/container/ --bind=/mnt/pd0/fiddle /mnt/pd0/fiddle/bin/fiddle_run
+//    Directory /mnt/pd0/container lacks the binary to execute or doesn't look like a binary tree. Refusing.
+//
+// That's because nspawn is looking for the exe before doing the bindings. The
+// fix? A pure hack, insert "xargs --arg-file=/dev/null " before the command
+// you want to run. Since xargs exists in the container this will proceed to
+// the point of making the bindings and then xargs will be able to execute the
+// exe within the container.
+//
+func Run(fiddleRoot, gitHash string, local bool, tmpDir string) (*types.Result, error) {
 	// TODO(jcgregorio) if local is false then we need to run this under systemd-nspawn
 	// and make sure to mount the correct tmp directory into FIDDLE_ROOT/src/.
-	if !local {
-		return nil, fmt.Errorf("Not implemented yet.")
+	name := "sudo"
+	args := []string{
+		"systemd-nspawn", "-D", "/mnt/pd0/container/", "--bind=/mnt/pd0/fiddle",
+		"--bind", tmpDir + ":/mnt/pd0/fiddle/src",
+		"xargs", "--arg-file=/dev/null", // See Note above for explanation of xargs.
+		"/mnt/pd0/fiddle/bin/fiddle_run", "--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--alsologtostderr",
 	}
-	args := []string{"--fiddle_root", fiddleRoot, "--git_hash", gitHash}
 	if local {
-		args = append(args, "--local")
+		name = "fiddle_run"
+		args = []string{"--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--local"}
 	}
 	output := &bytes.Buffer{}
 	runCmd := &exec.Command{
-		Name:      "fiddle_run",
+		Name:      name,
 		Args:      args,
 		LogStderr: true,
 		Stdout:    output,
