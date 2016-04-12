@@ -177,7 +177,7 @@ Drive
 An attached disk will reside at /mnt/pd0 and will be populated as:
 
      /mnt/pd0/fiddle  - $FIDDLE_ROOT
-     /mnt/pd0/container_image
+     /mnt/pd0/container
      /mnt/pd0/depot_tools
 
 Startup
