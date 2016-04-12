@@ -126,19 +126,26 @@ func (c *BuildCache) update() error {
 	return c.updateBuilderComments()
 }
 
-// updateBuilderComments updates the comments for all builders.
-func (c *BuildCache) updateBuilderComments() error {
-	defer timer.New("BuildCache.updateBuilderComments").Stop()
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
+// getBuilderList returns the list of all known builders.
+func (c *BuildCache) getBuilderList() []string {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
 	builderList := make([]string, 0, len(c.builders))
 	for b, _ := range c.builders {
 		builderList = append(builderList, b)
 	}
-	builderComments, err := c.db.GetBuildersComments(builderList)
+	return builderList
+}
+
+// updateBuilderComments updates the comments for all builders.
+func (c *BuildCache) updateBuilderComments() error {
+	defer timer.New("BuildCache.updateBuilderComments").Stop()
+	builderComments, err := c.db.GetBuildersComments(c.getBuilderList())
 	if err != nil {
 		return err
 	}
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	c.builderComments = builderComments
 	return nil
 }
@@ -241,35 +248,22 @@ func (c *BuildCache) GetBuildersComments() map[string][]*buildbot.BuilderComment
 	return c.builderComments
 }
 
-// Get returns the build with the given ID.
-func (c *BuildCache) Get(id buildbot.BuildID) (*buildbot.Build, error) {
-	c.mutex.RLock()
-	defer c.mutex.RUnlock()
-	b, ok := c.byId[string(id)]
-	if ok {
-		return b, nil
-	}
-	glog.Warningf("Missing build with id %v; loading now.", id)
-	build, err := c.db.GetBuild(id)
-	if err != nil {
-		return nil, err
-	}
-	return build, nil
-}
-
 // AddBuilderComment adds a comment for the given builder.
 func (c *BuildCache) AddBuilderComment(builder string, comment *buildbot.BuilderComment) error {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
 	if err := c.db.PutBuilderComment(comment); err != nil {
 		return err
 	}
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	c.builderComments[builder] = append(c.builderComments[builder], comment)
 	return nil
 }
 
 // DeleteBuilderComment deletes the given comment.
 func (c *BuildCache) DeleteBuilderComment(builder string, commentId int64) error {
+	if err := c.db.DeleteBuilderComment(commentId); err != nil {
+		return err
+	}
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	idx := -1
@@ -281,30 +275,20 @@ func (c *BuildCache) DeleteBuilderComment(builder string, commentId int64) error
 	if idx == -1 {
 		return fmt.Errorf("No such comment")
 	}
-	if err := c.db.DeleteBuilderComment(commentId); err != nil {
-		return err
-	}
 	c.builderComments[builder] = append(c.builderComments[builder][:idx], c.builderComments[builder][idx+1:]...)
 	return nil
 }
 
-// RefreshBuild reloads the given build from the DB.
-func (c *BuildCache) RefreshBuild(id buildbot.BuildID) error {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	b, ok := c.byId[string(id)]
-	if !ok {
-		return fmt.Errorf("No such build %d", id)
-	}
+// refreshBuild reloads the given build from the DB.
+func (c *BuildCache) refreshBuild(id buildbot.BuildID) error {
 	b, err := c.db.GetBuild(id)
 	if err != nil {
 		return err
 	}
-	c.byId[string(id)] = b
-	summary := b.GetSummary()
-	for _, hash := range b.Commits {
-		c.byCommit[hash][b.Builder] = summary
-	}
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.delete(string(b.Id()))
+	c.insert(b)
 	return nil
 }
 
@@ -313,7 +297,7 @@ func (c *BuildCache) AddBuildComment(master, builder string, number int, comment
 	if err := c.db.PutBuildComment(master, builder, number, comment); err != nil {
 		return fmt.Errorf("Failed to add comment: %s", err)
 	}
-	return c.RefreshBuild(buildbot.MakeBuildID(master, builder, number))
+	return c.refreshBuild(buildbot.MakeBuildID(master, builder, number))
 }
 
 // DeleteBuildComment deletes the given comment from the given build.
@@ -321,7 +305,7 @@ func (c *BuildCache) DeleteBuildComment(master, builder string, number int, comm
 	if err := c.db.DeleteBuildComment(master, builder, number, commentId); err != nil {
 		return fmt.Errorf("Failed to delete comment: %s", err)
 	}
-	return c.RefreshBuild(buildbot.MakeBuildID(master, builder, number))
+	return c.refreshBuild(buildbot.MakeBuildID(master, builder, number))
 }
 
 // GetBuildsForCommit returns the builds which ran at the given commit.

@@ -32,6 +32,7 @@ type CommitCache struct {
 	BranchHeads []*gitinfo.GitBranch
 	cacheFile   string
 	Commits     []*vcsinfo.LongCommit
+	Comments    map[string][]*buildbot.CommitComment
 	db          buildbot.DB
 	mutex       sync.RWMutex
 	repo        *gitinfo.GitInfo
@@ -171,6 +172,10 @@ func (c *CommitCache) update() (rv error) {
 	}
 	newCommitHashes := c.repo.From(from)
 	glog.Infof("Processing %d new commits.", len(newCommitHashes))
+	newComments, err := c.db.GetCommitsComments(newCommitHashes)
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve commit comments: %s", err)
+	}
 	newCommits := make([]*vcsinfo.LongCommit, len(newCommitHashes))
 	if len(newCommitHashes) > 0 {
 		for i, h := range newCommitHashes {
@@ -198,6 +203,12 @@ func (c *CommitCache) update() (rv error) {
 	defer c.mutex.Unlock()
 	c.BranchHeads = branchHeads
 	c.Commits = allCommits
+	if c.Comments == nil {
+		c.Comments = map[string][]*buildbot.CommitComment{}
+	}
+	for k, v := range newComments {
+		c.Comments[k] = v
+	}
 	glog.Infof("Finished updating the cache.")
 	return nil
 }
@@ -219,13 +230,10 @@ func (c *CommitCache) getRange(startIdx, endIdx int) (*CommitData, error) {
 		return nil, err
 	}
 	hashes := make([]string, 0, len(commits))
-	for _, c := range commits {
-		hashes = append(hashes, c.Hash)
-	}
-
-	comments, err := c.db.GetCommitsComments(hashes)
-	if err != nil {
-		return nil, err
+	comments := map[string][]*buildbot.CommitComment{}
+	for _, commit := range commits {
+		hashes = append(hashes, commit.Hash)
+		comments[commit.Hash] = c.Comments[commit.Hash]
 	}
 
 	data := &CommitData{
