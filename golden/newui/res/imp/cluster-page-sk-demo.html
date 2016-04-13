@@ -9,15 +9,31 @@
   <script src="bower_components/page/page.js"></script>
   <script src="bower_components/d3/d3.js"></script>
   <script src="../common/js/common.js"></script>
+  <script src="../js/gold.js"></script>
   <script src="bower_components/sinonjs/sinon.js"></script>
   <script src="testdata.js"></script>
   <script>
     var server = sinon.fakeServer.create();
-    server.respondImmediately = true;
+    server.autoRespond = true; 
+    server.autoRespondAfter = 2000;
 
-    server.respondWith("GET", "/json/clusterdiff", function(request) {
+    server.respondWith("GET",  /\/json\/clusterdiff*/, function(request) {
       request.respond(200, {"Content-Type":"application/json"}, 
         JSON.stringify(testdata.clusterDiffResult));
+    });
+
+    server.respondWith("GET", /\/json\/diff*/, function(request) {
+      request.respond(200, {"Content-Type":"application/json"}, 
+        JSON.stringify(testdata.diffDigests));
+    });
+
+    server.respondWith("GET", /\/json\/details*/, function(request) {
+      var ret = {
+        digest: testdata.fiveSearchResults.digests[0], 
+        commits: testdata.fiveSearchResults.commits
+      }; 
+      request.respond(200, {"Content-Type":"application/json"}, 
+        JSON.stringify(ret));
     });
 
   </script>
@@ -28,6 +44,10 @@
 <body>
   <cluster-page-sk></cluster-page-sk>
   <script type="text/javascript" charset="utf-8">
+      var testQuery = "?query=source_type%3Dgm%26name%3Dtextblobmixedsizes&include=false&head=true&unt=true&pos=false&neg=false";
+      // if (window.location.search !== testQuery) {
+        window.history.replaceState(null, null, window.location.pathname + testQuery); 
+//      }
       $$$('cluster-page-sk').pageSelected();
   </script>
 </body>

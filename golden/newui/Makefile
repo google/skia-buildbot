@@ -9,7 +9,8 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
           $(BOWER_DIR)/webcomponentsjs/webcomponents.min.js \
           $(BOWER_DIR)/page/page.js \
           $(BOWER_DIR)/d3/d3.js \
-          ../../res/js/common.js
+          ../../res/js/common.js \
+          res/js/gold.js
 
 .PHONY: web
 web: touch_elements core_js elements_html

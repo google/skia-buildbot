@@ -12292,6 +12292,7 @@ testdata.listTestsResult = [
 
 
 testdata.clusterDiffResult = {
+  "test": "textblobmixedsizes",
   "links": [
     {
       "source": 0, 

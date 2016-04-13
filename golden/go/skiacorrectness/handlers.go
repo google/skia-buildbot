@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -406,11 +407,24 @@ func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
 // the incoming query and returns the data in a format appropriate for
 // handling in d3.
 func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 
-	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	// Extract the test name as we only allow clustering within a test.
+	q := queryFromRequest(r)
+	parsedQuery, err := url.ParseQuery(q.Query)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Unable to parse query parameter.")
+		return
+	}
+	testName := parsedQuery.Get(types.PRIMARY_KEY_FIELD)
+	if testName == "" {
+		httputils.ReportError(w, r, err, "No test name provided.")
+		return
+	}
+
+	searchResponse, err := search.Search(q, storages, tallies, blamer, paramsetSum)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
 	}
 	// Sort the digests so they are displayed with untriaged last, which means
 	// they will be displayed 'on top', because in SVG document order is z-order.
@@ -427,6 +441,7 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	d3 := ClusterDiffResult{
+		Test:             testName,
 		Nodes:            []Node{},
 		Links:            []Link{},
 		ParamsetByDigest: map[string]map[string][]string{},
@@ -470,7 +485,7 @@ type ClusterDiffResult struct {
 	Nodes []Node `json:"nodes"`
 	Links []Link `json:"links"`
 
-	// map [digest] paramset
+	Test             string                         `json:"test"`
 	ParamsetByDigest map[string]map[string][]string `json:"paramsetByDigest"`
 	ParamsetsUnion   map[string][]string            `json:"paramsetsUnion"`
 }

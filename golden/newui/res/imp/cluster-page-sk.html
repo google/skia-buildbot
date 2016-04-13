@@ -18,6 +18,7 @@
 <link rel="import" href="../common/imp/9/paramset.html">
 
 <link rel="import" href="query-dialog-sk.html">
+<link rel="import" href="digest-details-sk.html">
 <link rel="import" href="cluster-sk.html">
 <link rel="import" href="activity-sk.html">
 <link rel="import" href="test-summary-sk.html">
@@ -28,7 +29,10 @@
     <style include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles"></style>
     <div id="clusterContainer" class="horizontal layout">
-      <cluster-sk class="flex" id="clusterView"></cluster-sk>
+      <div class="flex">
+        <activity-sk id="activityMain"></activity-sk>
+        <cluster-sk id="clusterView"></cluster-sk>
+      </div>
       <div class="flex">
         <paper-tabs id="tabs" selected={{_currentTab}}>
           <paper-tab>Parameters</paper-tab>
@@ -39,23 +43,40 @@
             <paramset-sk clickable id=parameters></paramset-sk>
           </div>
           <div>
-            <h1>DETAILS</h1>
 
             <div hidden$="{{_lenIsNot(_digestList, 0)}}">
               There are no selected digests.
-              {{_digestList}}
             </div>
 
             <div hidden$="{{_lenIsNot(_digestList, 1)}}">
-              <h3>TODO: Show details about one digest.</h3>
+              <activity-sk id="activityDetail"></activity-sk>
+              <digest-details-sk id="oneDigest"
+                   mode="detail"
+                   details="[[_digestDetails.digest]]"
+                   commits="[[_digestDetails.commits]]">
+              </digest-details-sk>
             </div>
 
             <div hidden$="{{_lenIsNot(_digestList, 2)}}">
-              <h3>TODO: Show diff between two digests</h3>
+              <activity-sk id="activityDiff"></activity-sk>
+              <digest-details-sk id="diffTwo"
+                   mode="diff"
+                   details="[[_diffData.left]]"
+                   right="[[_diffData.right]]"
+                   diff="[[_diffData.diff]]">
+              </digest-details-sk>
             </div>
 
             <div hidden$="{{_hideBulkTriage(_digestList)}}">
-              <h3>TODO: Show Bulk Triage for three or more digests</h3>
+              <h3>Bulk Triage</h3>
+              <triage-sk value="{{_triageStatus}}" 
+                         id="bulkTriage">
+              </triage-sk>
+
+
+
+              <h3>Param Set of Selected Digests</h3>
+              <paramset-sk id="bulkParamset" clickable></paramset-sk>
             </div>
           </div>
         </iron-pages>
@@ -72,35 +93,36 @@
             type: Number,
             value: 0
           },
-
           _digestList: {
             type: Array, 
             value: function() { return []; }
-          }
+          },
+          _triageStatus: "untriaged"
         },
 
         ready: function() {
           this.listen(this.$.clusterContainer, 'paramset-key-click', '_handleParamsetKeyClick'); 
           this.listen(this.$.clusterContainer, 'paramset-key-value-click', '_handleParamsetValueClick');
           this.listen(this.$.clusterContainer, 'digest-select', '_handleDigestsSelected');
+          this.listen(this.$.bulkTriage, 'change', '_handleBulkTriageChange');
+          this.listen(this, 'triage', '_handleTriage'); 
         }, 
 
         pageSelected: function(routeName) {
           this.$.clusterView.startUse();
-          this._loadData(); 
+          this._loadClusterDiff(); 
         },
 
         pageDeselected: function() {
           this.$.clusterView.endUse(); 
         },
 
-        _loadData: function() {
-          var q = window.location.search;
-          sk.get("/json/clusterdiff"+q).then(JSON.parse).then(function(json) {
-            this.$.clusterView.setData(json);
+        _loadClusterDiff: function() {
+          this._load("/json/clusterdiff" + window.location.search, this.$.activityMain, function(json) {
             this._data = json; 
+            this.$.clusterView.setData(json);
             this.$.parameters.setParamSets([json.paramsetsUnion]);
-          }.bind(this)).catch(sk.errorMessage);
+          }.bind(this)); 
         },
 
         _handleParamsetKeyClick: function(ev) {
@@ -132,10 +154,24 @@
           this.$.clusterView.setTextNodes(text, ev.detail.ctrl);
         }, 
 
+        _handleBulkTriageChange: function(ev) {
+          ev.stopPropagation();
+          var detail = {
+            test: this._data.test,
+            digest: this._digestList,
+            status: ev.detail,
+          };
+          this.fire('triage', detail);
+        },
+
+        _handleTriage: function(ev) {
+          ev.stopPropagation();
+          sk.post('/json/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
+        }, 
+
         _handleDigestsSelected: function(ev) {
           ev.stopPropagation(); 
 
-          var before = this._digestList; 
           this.set('_digestList', ev.detail);
 
           // If there are no digests do nothing. 
@@ -143,11 +179,66 @@
             return; 
           }
 
+          // Switch to the digest tab. 
           this._currentTab = 1; 
+          var url;
 
-          // TODO (stephana): Set parameters of details view. 
+          if (this._digestList.length == 1) {
+            // Show detailed information about the one selected digest. 
+            url = "/json/details" + gold.detailQuery(this._data.test, this._digestList[0]); 
+            this.$.oneDigest.clear();
+            this._load(url, this.$.activityDetail, '_digestDetails');
+          } else if (this._digestList.length == 2) {
+            // Show a diff between the two selected digests.
+            url = "/json/diff" +  gold.diffQuery(this._data.test, this._digestList[0], this._digestList[1]);
+            this.$.diffTwo.clear();
+            this._load(url, this.$.activityDiff, '_diffData');
+          } else {
+            // Show the option to bulk triage all selected digests. 
+            this._setBulkTriage(this._digestList); 
+          }
+        }, 
 
-          return;
+        // _load sends a GET request to the given url and uses the provide 
+        // acitivity element as an indicator. If the call succeeds it sets the 
+        // target to the result. 
+        _load: function(url, activity, target) {
+          activity.startSpinner("Loading...");
+          sk.get(url).then(JSON.parse).then(function (json) {
+            activity.stopSpinner();
+            if (typeof(target) === 'function') {
+              target(json); 
+            } else {
+              this.set(target, json);
+            }
+          }.bind(this)).catch(function(e) {
+            activity.stopSpinner();
+            sk.errorMessage(e);
+          });
+        },
+
+        _setBulkTriage: function(selected) {
+          this.set("_triageStatus", "untriaged");
+          var paramset = {};
+          var data = this._data;
+          selected.forEach(function(digest) {
+            var p = data.paramsetByDigest[digest];
+            Object.keys(p).forEach(function(key) {
+              var existingValues = paramset[key] || [];
+              var newValues = p[key];
+              newValues.forEach(function(value) {
+                if (existingValues.indexOf(value) == -1) {
+                  existingValues.push(value);
+                }
+              });
+              paramset[key] = existingValues;
+            });
+          });
+          // Sort the param values.
+          Object.keys(paramset).forEach(function(key) {
+            paramset[key].sort();
+          });
+          this.$.bulkParamset.setParamSets([paramset]);
         },
 
         _hideBulkTriage: function(digestList) { 

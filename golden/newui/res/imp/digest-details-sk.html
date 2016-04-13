@@ -35,6 +35,8 @@
     zoom-clicked - This event is triggered when the user clicks on the 'zoom'
       button. The 'detail' in the event is the digest-details-sk object.
 
+    clear - Clears the current digest shown. 
+
   Methods:
     triggerTriage(status) - Set the triage status of the digest, triggering the triage event.
 
@@ -340,7 +342,13 @@
           rightImgUrl: this._digestHref(sk.robust_get(this, ['closest', 'closest', 'digest'])),
           middleImgUrl: this._diffHref(this.diffDigests)
         }; 
-      },      
+      },   
+
+      clear: function() {
+        this.set('details', {});
+        this.set('right', null);
+        this.set('diff', null);
+      },
 
       _triageChangeHandler: function(e) {
         // Convert the change event from the triage button into a more detailed triage event.
@@ -428,6 +436,7 @@
           } else if (neg) { 
             this._right = neg; 
             status = NEGATIVE; 
+            this._negIsClosest = true;
           }
         }
 
@@ -517,7 +526,7 @@
           return ''; 
         }
 
-        return 'detail?test=' + this.details.test + '&digest=' + digest;
+        return '/detail?test=' + this.details.test + '&digest=' + digest;
       },
 
       _hideNegPosFound: function(closest) {
