@@ -42,7 +42,7 @@ func NewClient(host, user, password, database string) (*Client, error) {
 		Addr:     fmt.Sprintf("http://%s", host),
 		Username: user,
 		Password: password,
-		Timeout:  time.Minute,
+		Timeout:  2 * time.Minute,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("Failed to initialize InfluxDB client: %s", err)
