@@ -31,6 +31,8 @@ Properties:
 
   no_drawer - If true, no drawer panel is displayed at all.
 
+  no_version - If true, no version element is displayed.
+
   responsive_width - Screen width at which the paper-drawer-panel switches into
       narrow mode.
 
@@ -61,6 +63,9 @@ Events:
   #menuButton  {
     min-width: 40px;
   }
+  #headerPanel {
+    height: 100vh;
+  }
   paper-toolbar {
     @apply(--app-sk-toolbar);
   }
@@ -74,7 +79,7 @@ Events:
   }
   </style>
   <template>
-    <paper-header-panel id="headerPanel" mode="{{mode}}" tall-class="{{tall_class}}">
+    <paper-header-panel id="headerPanel" mode="{{mode}}" tall-class="{{tall_class}}" class=flex>
       <paper-toolbar id="header" style$="{{_headerStyle(narrow,header_height,header_responsive_height)}}">
         <paper-icon-button id="menuButton" icon="icons:menu" on-tap="_togglePanel" hidden$="{{!_showMenuButton}}"></paper-icon-button>
         <content select="[header], header, [toolbar], toolbar"></content>
@@ -84,19 +89,23 @@ Events:
         <login-sk email="{{logged_in_email}}"></login-sk>
       </paper-toolbar>
       <template is="dom-if" if="{{no_drawer}}">
-        <div main id="maincontent" class="layout vertical">
+        <div main id="mainContent" class="layout vertical">
           <content select="*"></content>
-          <div class="layout horizontal">
-            <div class="flex"></div>
-            <version-sk></version-sk>
-          </div>
+          <template is="dom-if" if="{{_showVersion(no_version)}}">
+            <div class="layout horizontal">
+              <div class="flex"></div>
+              <version-sk></version-sk>
+            </div>
+          </template>
         </div>
       </template>
       <paper-drawer-panel id="drawerPanel" drawer-width="{{drawer_width}}" responsive-width="{{responsive_width}}" force-narrow$="{{force_narrow}}" narrow="{{narrow}}" hidden$="{{no_drawer}}">
         <div drawer id="drawer" class="vertical layout">
           <content id="navContent" select="[navigation], nav, [drawer], drawer"></content>
-          <div class="flex"></div>
-          <version-sk></version-sk>
+          <template is="dom-if" if="{{_showVersion(no_version)}}">
+            <div class="flex"></div>
+            <version-sk></version-sk>
+          </template>
         </div>
         <div main id="mainContent" class="layout vertical">
           <content select="*"></content>
@@ -147,6 +156,10 @@ Events:
           type: Boolean,
           value: false,
         },
+        no_version: {
+          type: Boolean,
+          value: false,
+        },
         responsive_width: {
           type: String,
           value: "800px",
@@ -162,6 +175,10 @@ Events:
           return false;
         }
         return narrow;
+      },
+
+      _showVersion: function(no_version) {
+        return !no_version;
       },
 
       _headerStyle: function(isNarrow, height, responsive_height) {

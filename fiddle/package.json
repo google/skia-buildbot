@@ -1,0 +1,21 @@
+{
+  "name": "fiddle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "fiddle.skia.org",
+  "main": "",
+  "scripts": {
+    "test": "make test"
+  },
+  "author": "",
+  "license": "BSD",
+  "devDependencies": {
+    "autoprefixer": "~6.0.2",
+    "bower": "~1.5.2",
+    "cssmin": "",
+    "native-promise-only": "",
+    "postcss-cli": "~2.1.0",
+    "uglify-js": "",
+    "vulcanize": "^1.10.4"
+  }
+}
