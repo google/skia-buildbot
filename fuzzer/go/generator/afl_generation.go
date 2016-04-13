@@ -10,6 +10,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
@@ -90,7 +91,7 @@ func (g *Generator) setup() (string, error) {
 		return "", err
 	}
 	// build afl.
-	if err := common.BuildFuzzingHarness("Release", true); err != nil {
+	if err := common.BuildFuzzingHarness(buildskia.RELEASE_BUILD, true); err != nil {
 		return "", fmt.Errorf("Failed to build dm using afl-fuzz %s", err)
 	}
 	// copy to working directory

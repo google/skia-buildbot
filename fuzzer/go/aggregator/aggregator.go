@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/deduplicator"
+	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/metrics2"
@@ -199,26 +200,26 @@ func (agg *Aggregator) buildAnalysisBinaries() error {
 	if _, err := fileutil.EnsureDirExists(config.Aggregator.ExecutablePath); err != nil {
 		return err
 	}
-	if err := common.BuildClangHarness("Debug", true); err != nil {
+	if err := common.BuildClangHarness(buildskia.DEBUG_BUILD, true); err != nil {
 		return err
 	}
 	outPath := filepath.Join(config.Generator.SkiaRoot, "out")
 	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, CLANG_DEBUG)); err != nil {
 		return err
 	}
-	if err := common.BuildClangHarness("Release", true); err != nil {
+	if err := common.BuildClangHarness(buildskia.RELEASE_BUILD, true); err != nil {
 		return err
 	}
 	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, CLANG_RELEASE)); err != nil {
 		return err
 	}
-	if err := common.BuildASANHarness("Debug", false); err != nil {
+	if err := common.BuildASANHarness(buildskia.DEBUG_BUILD, false); err != nil {
 		return err
 	}
 	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, ASAN_DEBUG)); err != nil {
 		return err
 	}
-	if err := common.BuildASANHarness("Release", false); err != nil {
+	if err := common.BuildASANHarness(buildskia.RELEASE_BUILD, false); err != nil {
 		return err
 	}
 	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, ASAN_RELEASE)); err != nil {

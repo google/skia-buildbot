@@ -233,26 +233,28 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 
 // NinjaBuild builds the given target using ninja.
 //
-//   path - The absolute path to the Skia checkout.
+//   skiaPath - The absolute path to the Skia checkout.
 //   depotToolsPath - The depot_tools directory.
+//   extraEnv - Any additional environment variables that need to be set.  Can be nil.
 //   build - The type of build to perform.
-//   target -The build target, e.g. "SampleApp" or "most".
+//   target - The build target, e.g. "SampleApp" or "most".
+//   verbose - If the build's std out should be logged (usally quite long)
 //
 // Returns an error on failure.
-func NinjaBuild(path, depotToolsPath string, build ReleaseType, target string, numCores int) error {
+func NinjaBuild(skiaPath, depotToolsPath string, extraEnv []string, build ReleaseType, target string, numCores int, verbose bool) error {
 	if build == "" {
 		build = "Release"
 	}
 	buildCmd := &exec.Command{
 		Name:        "ninja",
 		Args:        []string{"-C", "out/" + string(build), "-j", fmt.Sprintf("%d", numCores), target},
-		Dir:         path,
+		Dir:         skiaPath,
 		InheritPath: false,
-		Env: []string{
-			"PATH=" + depotToolsPath + ":" + os.Getenv("PATH"),
-		},
+		Env: append(extraEnv,
+			"PATH="+depotToolsPath+":"+os.Getenv("PATH"),
+		),
 		LogStderr: true,
-		LogStdout: true,
+		LogStdout: verbose,
 	}
 	glog.Infof("About to run: %#v", *buildCmd)
 

@@ -24,7 +24,7 @@ func main() {
 		glog.Fatalf("Failed cmake build: %s", err)
 	}
 	glog.Info("Starting NinjaBuild")
-	if err := buildskia.NinjaBuild(path, "/usr/local/google/home/jcgregorio/projects/depot_tools", buildskia.RELEASE_BUILD, "skiaserve", 32); err != nil {
+	if err := buildskia.NinjaBuild(path, "/usr/local/google/home/jcgregorio/projects/depot_tools", nil, buildskia.RELEASE_BUILD, "skiaserve", 32, true); err != nil {
 		glog.Fatalf("Failed cmake build: %s", err)
 	}
 	glog.Info("Starting CMakeCompileAndLink")

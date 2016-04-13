@@ -6,22 +6,19 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
-	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/buildskia"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud/storage"
 )
 
-// DownloadSkiaVersionForFuzzing downloads the version of Skia specified in Google Storage
-// to the given path. On sucess, the given VersionSetter is set to be the current version.
-// It returns the version it found in GCS and any errors.
+// DownloadSkiaVersionForFuzzing downloads the revision of Skia specified in Google Storage
+// to the given path. On sucess, the given VersionSetter is set to be the current revision.
+// It returns the revision it found in GCS and any errors.
 func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string, v config.VersionSetter) error {
 	skiaVersion, err := GetCurrentSkiaVersionFromGCS(storageClient)
 	if err != nil {
-		return fmt.Errorf("Could not get Skia version from GCS: %s", err)
+		return fmt.Errorf("Could not get Skia revision from GCS: %s", err)
 	}
 	if err := DownloadSkia(skiaVersion, path, v, true); err != nil {
 		return fmt.Errorf("Problem downloading skia: %s", err)
@@ -36,27 +33,27 @@ func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string, v
 }
 
 // GetCurrentSkiaVersionFromGCS checks the skia_version folder in the fuzzer bucket for a single file
-// that has the current version to be used for fuzzing (typically a dep roll).  It returns the version
+// that has the current revision to be used for fuzzing (typically a dep roll).  It returns the revision
 // or an error if there was a failure.
 func GetCurrentSkiaVersionFromGCS(storageClient *storage.Client) (string, error) {
-	return versionHelper(storageClient, "skia_version/current/")
+	return revisionHelper(storageClient, "skia_version/current/")
 }
 
 // GetPendingSkiaVersionFromGCS checks the skia_version folder in the fuzzer bucket for a single file
-// that has the pending version to be used for fuzzing (typically a dep roll).  It returns the version
-// or an error if there was a failure.  If there is no pending version, empty string and error
+// that has the pending revision to be used for fuzzing (typically a dep roll).  It returns the revision
+// or an error if there was a failure.  If there is no pending revision, empty string and error
 // are returned.
 func GetPendingSkiaVersionFromGCS(storageClient *storage.Client) (string, error) {
-	// We ignore errors about not finding any pending versions
-	if version, err := versionHelper(storageClient, "skia_version/pending/"); err == nil || strings.HasPrefix(err.Error(), "Could not find specified version") {
-		return version, nil
+	// We ignore errors about not finding any pending revisions
+	if revision, err := revisionHelper(storageClient, "skia_version/pending/"); err == nil || strings.HasPrefix(err.Error(), "Could not find specified revision") {
+		return revision, nil
 	} else {
-		return version, err
+		return revision, err
 	}
 }
 
-// versionHelper actually goes and gets the version files from GCS and parses them
-func versionHelper(storageClient *storage.Client, prefix string) (string, error) {
+// revisionHelper actually goes and gets the revision files from GCS and parses them
+func revisionHelper(storageClient *storage.Client, prefix string) (string, error) {
 	if storageClient == nil {
 		return "", fmt.Errorf("Storage service cannot be nil!")
 	}
@@ -70,49 +67,18 @@ func versionHelper(storageClient *storage.Client, prefix string) (string, error)
 			return strings.SplitAfter(r.Name, prefix)[1], nil
 		}
 	}
-	return "", fmt.Errorf("Could not find specified version in %q", prefix)
+	return "", fmt.Errorf("Could not find specified revision in %q", prefix)
 }
 
-// downloadSkia uses git to clone Skia from googlesource.com and check it out to the specified version.
-// Upon sucess, the SkiaVersion in config is set to be the current version and any dependencies
-// needed to compile Skia have been installed (e.g. the latest version of gyp).
+// downloadSkia uses git to clone Skia from googlesource.com and check it out to the specified revision.
+// Upon sucess, the SkiaVersion in config is set to be the current revision and any dependencies
+// needed to compile Skia have been installed (e.g. the latest revision of gyp).
 // It returns an error on failure.
-func DownloadSkia(version, path string, v config.VersionSetter, clean bool) error {
-	glog.Infof("Cloning Skia version %s to %s, clean: %t", version, path, clean)
-
-	if clean {
-		// The third_party folder can cause bin/sync-and-gyp to fail.  Clean builds
-		// delete everything, just to make sure.
-		util.RemoveAll(filepath.Join(path))
+func DownloadSkia(revision, path string, v config.VersionSetter, clean bool) error {
+	if lc, err := buildskia.DownloadSkia("master", revision, path, config.Common.DepotToolsPath, clean, false); err != nil {
+		return fmt.Errorf("Could not get git details for skia revision %s: %s", revision, err)
+	} else {
+		v.SetSkiaVersion(lc)
+		return nil
 	}
-
-	repo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia", path, false)
-	if err != nil {
-		return fmt.Errorf("Failed cloning Skia: %s", err)
-	}
-
-	if err = repo.SetToCommit(version); err != nil {
-		return fmt.Errorf("Problem setting Skia to version %s: %s", version, err)
-	}
-
-	//  as of skia@2362c476ef4, we need gclient on the path to run sync-and-gyp
-	syncCmd := &exec.Command{
-		Name: "bin/sync-and-gyp",
-		Dir:  path,
-		// This is a bit of a hack because we need to expand the os path (which has python on it)
-		Env: []string{"PATH=" + config.Common.DepotToolsPath + ":" + os.Getenv("PATH")},
-	}
-
-	if err := exec.Run(syncCmd); err != nil {
-		return fmt.Errorf("Failed syncing and setting up gyp: %s", err)
-	}
-
-	if v != nil {
-		if lc, err := repo.Details(version, false); err != nil {
-			glog.Errorf("Could not get git details for skia version %s: %s", version, err)
-		} else {
-			v.SetSkiaVersion(lc)
-		}
-	}
-	return nil
 }
