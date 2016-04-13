@@ -1,10 +1,10 @@
-Purpose of the Skia Fuzzer
+Purpose of the Skia Fuzzing Infrastructure (aka Fuzzer)
 ==========================
 
-Chrome has a fuzzer called [ClusterFuzz](https://www.chromium.org/Home/chromium-security/bugs/using-clusterfuzz)
-that randomly bombards various components with input in an effort to find bugs.
-Because inputs are randomly generated, the main bugs that can be found are a set of inputs that
-crash Chrome.
+Chrome has fuzzing infrastructure called [ClusterFuzz](https://www.chromium.org/Home/chromium-security/bugs/using-clusterfuzz)
+which randomly bombards various components with input in an effort to find bugs.
+Because inputs are randomly generated, the main bugs that can be found are a set of inputs or
+user actions that crash Chrome.
 
 Some of the bugs ClusterFuzz finds are in Skia.
 We would like to find these bugs before ClusterFuzz does and find bugs in APIs that are not used by
@@ -36,10 +36,10 @@ Once Skia has been patched and a bad fuzz no longer crashes Skia, that fuzz is t
 Fuzzes are named by a SHA1 hash of their contents, i.e. the input itself.
 A fuzz's name does not change after it is created.
 
-Design of the Skia Fuzzer
+Design of the Skia Fuzzing Infrastructure
 =========================
 
-The fuzzer consists of several components that can run independently:
+The fuzzing infrastructure consists of several components that can run independently:
 
 1. **Generators** - Continuously creates and tests fuzzes against Skia.
 2. **Aggregator** - Keeps track of bad fuzzes and uploads analytics about them to Google Storage.
@@ -50,13 +50,15 @@ failing, and mark them as fixed.
 code.
 
 
-Generators
+Generators, aka Fuzzers
 ----------
 
 Generators continuously generate random fuzzes and execute them against Skia to see if they
 cause a crash (i.e. are bad fuzzes).
 There are many generators, one for each fuzz *category*.  There are several categories, such as
-skpicture, skcodec_mode, skcodec_scale, api_parse_path, and so on.
+skpicture, skcodec_mode, skcodec_scale, api_parse_path, and so on.  Throughout the code base,
+the term *fuzzer* is used as a synonym for a specific generator,
+e.g. the "skpicture fuzzer".
 
 
 ###Fuzz Generators###
@@ -124,7 +126,7 @@ The sanitizer functionality could be implemented as part of the Web Front End.
 Web Front End
 -------------
 
-Skia developers are able to visually browse the history of the fuzzer and
+Skia developers are able to visually browse the history of the fuzzers and
 get quick access to any failing fuzzes.
 The front end has the ability to filter fuzzes by file, function and line number, as well as by
 any of the analytic tags found during aggregation.
