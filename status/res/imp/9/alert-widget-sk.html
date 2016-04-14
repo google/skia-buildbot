@@ -93,6 +93,10 @@
         margin-top: 30px;
       }
 
+      .no-underline {
+        text-decoration: none;
+      }
+
     </style>
 
     <iron-ajax
@@ -114,9 +118,11 @@
 
       <iron-dropdown id="alertlist" vertical-align="top" horizontal-align="right">
         <div class="dropdown-content">
-          <template is="dom-repeat" items="[[_allAlerts]]" as="alert">
-              <alert-sk alert="{{alert}}" compact hidden$="{{_snoozed(alert)}}"></alert-sk>
-          </template>
+          <a class="no-underline" target="_blank" href$="{{_alertsURL(repo)}}">
+            <template is="dom-repeat" items="[[_allAlerts]]" as="alert">
+                <alert-sk alert="{{alert}}" compact hidden$="{{_snoozed(alert)}}"></alert-sk>
+            </template>
+          </a>
           <div hidden$="{{_has(active_alerts)}}">
             No alerts are active.
           </div>
@@ -146,6 +152,9 @@
       reload: {
         type: Number,
         value: 60,
+      },
+      repo: {
+        type: String,
       },
 
       // output
@@ -187,6 +196,13 @@
 
     _has: function(active_alerts) {
       return active_alerts > 0;
+    },
+
+    _alertsURL: function(repo) {
+      if (this.repo === "infra") {
+        return "https://alerts.skia.org/infra";
+      }
+      return "https://alerts.skia.org";
     },
 
     _reload: function() {
