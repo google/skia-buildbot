@@ -77,9 +77,19 @@ if (!(Test-Path ($fileName))) {
   cmd /c $fileName /q
 }
 
+banner "Install CMake"
+Set-Location -Path $downloadDir
+$fileName = "$downloadDir\cmake-3.5.1-win32-x86.msi"
+if (!(Test-Path ($fileName))) {
+  $url = "https://cmake.org/files/v3.5/cmake-3.5.1-win32-x86.msi"
+  $webclient.DownloadFile($url, $fileName)
+  cmd /c $fileName /q
+}
+
 banner "Add to registry PATH"
 addToRegistryPath "$userDir\depot_tools"
 addToRegistryPath "$userDir\depot_tools\python276_bin\Scripts"
+addToRegistryPath "C:\Program` Files` (x86)\CMake\bin"
 
 banner "Create .boto file"
 $boto_contents = (
