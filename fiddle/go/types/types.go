@@ -42,9 +42,9 @@ type Output struct {
 //
 // If new fields are added make sure to update ComputeHash.
 type Options struct {
-	Width  int
-	Height int
-	Source int
+	Width  int `json:"width"`
+	Height int `json:"height"`
+	Source int `json:"source"`
 }
 
 // ComputeHash calculates the fiddleHash for the given code and options.

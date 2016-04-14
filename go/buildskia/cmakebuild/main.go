@@ -20,7 +20,7 @@ func main() {
 		glog.Fatalf("Failed to fetch: %s", err)
 	}
 	glog.Info("Starting CMakeBuild")
-	if err := buildskia.CMakeBuild(path, buildskia.RELEASE_BUILD); err != nil {
+	if err := buildskia.CMakeBuild(path, "/usr/local/google/home/jcgregorio/projects/depot_tools", buildskia.RELEASE_BUILD); err != nil {
 		glog.Fatalf("Failed cmake build: %s", err)
 	}
 	glog.Info("Starting NinjaBuild")

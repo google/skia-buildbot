@@ -151,6 +151,45 @@ accomplishes the above goals.
     this preserves the newest build and the oldest build, and again reduces
     the number of builds to 128.
 
+URLs
+----
+
+The URL structure of fiddle is:
+
+    /c/cbb8dee39e9f1576cd97c2d504db8eee - Direct link to a fiddle.
+
+Links to individual resources:
+
+    /i/cbb8dee39e9f1576cd97c2d504db8eee_raster.png
+    /i/cbb8dee39e9f1576cd97c2d504db8eee_gpu.png
+    /i/cbb8dee39e9f1576cd97c2d504db8eee.pdf
+    /i/cbb8dee39e9f1576cd97c2d504db8eee.skp
+
+Links to individual resources for a given commit:
+
+    /ai/<runid>/cbb8dee39e9f1576cd97c2d504db8eee_raster.png
+    /ai/<runid>/cbb8dee39e9f1576cd97c2d504db8eee_gpu.png
+    /ai/<runid>/cbb8dee39e9f1576cd97c2d504db8eee.pdf
+    /ai/<runid>/cbb8dee39e9f1576cd97c2d504db8eee.skp
+
+Where runid is the hash timestamp and git hash of a particular version of Skia.
+
+To create a new fiddle, POST JSON to /\_/run of the form:
+
+    {
+      "code":"void draw(SkCanvas...",
+      "width":256,
+      "height":256,
+      "source":0,
+    }
+
+Embedding fiddles in iframes is done by:
+
+    /iframe/cbb8dee39e9f1576cd97c2d504db8eee
+
+Which should really just be a version of index.html that strips out much of the
+surrounding elements.
+
 Storage
 -------
 
@@ -183,7 +222,6 @@ stored as files in the /source directory:
 
     gs://skia-fiddle/source/1
     gs://skia-fiddle/source/2
-
 
 In addition there is a text file:
 

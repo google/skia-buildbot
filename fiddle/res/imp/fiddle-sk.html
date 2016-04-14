@@ -1,0 +1,67 @@
+<!-- The <fiddle-sk> custom element declaration.
+
+  Handles displaying and running a fiddle. Note that the code
+  should be supplied as a child element textarea.
+
+  Attributes:
+    width  - The width of the fiddle image.
+    height - The height of the fiddle image.
+    source - The index of the source image to use as input.
+
+  Methods:
+    None.
+
+  Events:
+    fiddle-success - generates an event when a succesful run is complete. The event contains
+      the hash of the new fiddle, to be used to retrieve the resultant images.
+-->
+<link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all">
+<dom-module id="fiddle-sk">
+  <style>
+  </style>
+  <template>
+    <content></content>
+    <button on-tap="_run">Run</button>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "fiddle-sk",
+    properties: {
+      width: {
+        type: Number,
+        value: 256,
+        reflectToAttribute: true,
+      },
+      height: {
+        type: Number,
+        value: 256,
+        reflectToAttribute: true,
+      },
+      source: {
+        type: Number,
+        value: 0,
+        reflectToAttribute: true,
+      },
+    },
+
+    ready: function() {
+    },
+
+    _run: function() {
+      body = {
+        code: $$$('textarea', this).value,
+        options: {
+          width: this.width,
+          height: this.height,
+          source: this.source,
+        }
+      };
+      sk.post("/_/run", JSON.stringify(body)).then(JSON.parse).then(function(json) {
+        this.fire("fiddle-success", json.fiddleHash);
+      }.bind(this)).catch(sk.reportError);
+    },
+
+  });
+</script>

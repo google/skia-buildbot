@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Skia Fiddle</title>
-    {{template "header.html" .}}
+    {%template "header.html" .%}
 </head>
 <body class="fullbleed vertical layout unresolved">
   <style is="custom-style">
@@ -13,6 +13,13 @@
 
     * {
       font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    }
+
+    textarea {
+      margin: 1em;
+      padding: 0.5em;
+      font-family: monospace;
+      display: block;
     }
 
     :root {
@@ -34,8 +41,15 @@
   </style>
   <app-sk mode="seamed" responsive_width=600px no_drawer no_version>
     <h2 header>Fiddle</h2>
-    <div>Content goes here</div>
+    <fiddle-sk width="{%.Options.Width%}" height="{%.Options.Height%}" source="{%.Options.Source%}">
+      <textarea spellcheck="false" rows="15" cols="100">{%.Code%}</textarea>
+    </fiddle-sk>
   </app-sk>
+  <script type="text/javascript" charset="utf-8">
+    $$$('fiddle-sk').addEventListener('fiddle-success', function(e) {
+      window.history.pushState(null, null, '/c/' + e.detail);
+    });
+  </script>
 
 </body>
 </html>

@@ -3,12 +3,15 @@ package builder
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
+	"strings"
+	"sync"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildskia"
@@ -28,6 +31,25 @@ var (
 var (
 	branchRegex = regexp.MustCompile("^refs/heads/chrome/m([0-9]+)$")
 )
+
+// Builder is for building versions of the Skia library and then compiling and
+// running fiddles against those built versions.
+//
+//    fiddleRoot - The root directory where fiddle stores its files. See DESIGN.md.
+//    depotTools - The directory where depot_tools is checked out.
+type Builder struct {
+	fiddleRoot string
+	depotTools string
+	mutex      sync.Mutex
+}
+
+// New returns a new Builder instance.
+func New(fiddleRoot, depotTools string) *Builder {
+	return &Builder{
+		fiddleRoot: fiddleRoot,
+		depotTools: depotTools,
+	}
+}
 
 // branch is used to sort the chrome branches in the Skia repo.
 type branch struct {
@@ -55,9 +77,9 @@ func prepDirectory(fiddleRoot string) (string, error) {
 
 // buildLib, given a directory that Skia is checked out into, builds libskia.a
 // and fiddle_main.o.
-func buildLib(checkout string) error {
+func buildLib(checkout, depotTools string) error {
 	glog.Info("Starting CMakeBuild")
-	if err := buildskia.CMakeBuild(checkout, buildskia.RELEASE_BUILD); err != nil {
+	if err := buildskia.CMakeBuild(checkout, depotTools, buildskia.RELEASE_BUILD); err != nil {
 		return fmt.Errorf("Failed cmake build: %s", err)
 	}
 
@@ -76,8 +98,6 @@ func buildLib(checkout string) error {
 // The library will be checked out into fiddleRoot + "/" + githash, where githash
 // is the githash of the LKGR of Skia.
 //
-//    fiddleRoot - The root directory where fiddle stores its files. See DESIGN.md.
-//    depotTools - The directory where depot_tools is checked out.
 //    force - If true then checkout and build even if the directory already exists.
 //    head - If true then build Skia at HEAD, otherwise build Skia at LKGR.
 //    deps - If true then install Skia dependencies.
@@ -85,8 +105,8 @@ func buildLib(checkout string) error {
 // Returns the commit info for the revision of Skia checked out.
 // Returns an error if any step fails, or return AlreadyExistsErr if
 // the target checkout directory already exists and force is false.
-func BuildLatestSkia(fiddleRoot, depotTools string, force bool, head bool, deps bool) (*vcsinfo.LongCommit, error) {
-	versions, err := prepDirectory(fiddleRoot)
+func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.LongCommit, error) {
+	versions, err := prepDirectory(b.fiddleRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -109,15 +129,17 @@ func BuildLatestSkia(fiddleRoot, depotTools string, force bool, head bool, deps 
 		return nil, AlreadyExistsErr
 	}
 
-	ret, err := buildskia.DownloadSkia("", githash, checkout, depotTools, false, deps)
+	ret, err := buildskia.DownloadSkia("", githash, checkout, b.depotTools, false, deps)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to fetch: %s", err)
 	}
 
-	if err := buildLib(checkout); err != nil {
+	if err := buildLib(checkout, b.depotTools); err != nil {
 		return nil, err
 	}
-	fb, err := os.OpenFile(filepath.Join(fiddleRoot, GOOD_BUILDS_FILENAME), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	fb, err := os.OpenFile(filepath.Join(b.fiddleRoot, GOOD_BUILDS_FILENAME), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open %s for writing: %s", GOOD_BUILDS_FILENAME, err)
 	}
@@ -129,6 +151,30 @@ func BuildLatestSkia(fiddleRoot, depotTools string, force bool, head bool, deps 
 	return ret, nil
 }
 
+// AvailableBuilds returns a list of git hashes, all the versions
+// of Skia that can be built against.
+func (b *Builder) AvailableBuilds() ([]string, error) {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	fi, err := os.Open(filepath.Join(b.fiddleRoot, GOOD_BUILDS_FILENAME))
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open %s for reading: %s", GOOD_BUILDS_FILENAME, err)
+	}
+	defer util.Close(fi)
+	buf, err := ioutil.ReadAll(fi)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read: %s", err)
+	}
+	hashes := strings.Split(string(buf), "\n")
+	revHashes := []string{}
+	for _, h := range hashes {
+		if h != "" {
+			revHashes = append(revHashes, h)
+		}
+	}
+	return revHashes, nil
+}
+
 // BuildLatestSkiaChromeBranch builds the most recent branch of Skia for Chrome
 // in the given fiddleRoot directory.
 //
@@ -136,15 +182,13 @@ func BuildLatestSkia(fiddleRoot, depotTools string, force bool, head bool, deps 
 // is the short name of the branch for Chrome. The mNN is chosen as the largest
 // NN from all the branches named refs/heads/chrome/m[0-9]+.
 //
-// fiddleRoot - The root directory where fiddle stores its files. See DESIGN.md.
-// depotTools - The directory where depot_tools is checked out.
-// force - If true then checkout and build even if the directory already exists.
+//   force - If true then checkout and build even if the directory already exists.
 //
 // Returns the commit info for the revision of Skia checked out.
 // Returns an error if any step fails, or return AlreadyExistsErr if
 // the target checkout directory already exists and force is false.
-func BuildLatestSkiaChromeBranch(fiddleRoot, depotTools string, force bool) (string, *vcsinfo.LongCommit, error) {
-	versions, err := prepDirectory(fiddleRoot)
+func (b *Builder) BuildLatestSkiaChromeBranch(force bool) (string, *vcsinfo.LongCommit, error) {
+	versions, err := prepDirectory(b.fiddleRoot)
 	if err != nil {
 		return "", nil, err
 	}
@@ -183,12 +227,12 @@ func BuildLatestSkiaChromeBranch(fiddleRoot, depotTools string, force bool) (str
 		return "", nil, AlreadyExistsErr
 	}
 
-	res, err := buildskia.DownloadSkia(branchNums[0].Name, branchNums[0].Hash, checkout, depotTools, false, false)
+	res, err := buildskia.DownloadSkia(branchNums[0].Name, branchNums[0].Hash, checkout, b.depotTools, false, false)
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to fetch: %s", err)
 	}
 
-	if err := buildLib(checkout); err != nil {
+	if err := buildLib(checkout, b.depotTools); err != nil {
 		return "", nil, err
 	}
 	return branchName, res, nil

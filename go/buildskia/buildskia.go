@@ -266,11 +266,12 @@ func NinjaBuild(skiaPath, depotToolsPath string, extraEnv []string, build Releas
 
 // CMakeBuild runs /skia/cmake/cmake_build to build Skia.
 //
-//   path - the absolute path to the Skia checkout.
-//   build - is the type of build to perform.
+//   path       - The absolute path to the Skia checkout.
+//   depotTools - The path to depot_tools.
+//   build      - Is the type of build to perform.
 //
 // The results of the build are stored in path/CMAKE_OUTDIR.
-func CMakeBuild(path string, build ReleaseType) error {
+func CMakeBuild(path, depotTools string, build ReleaseType) error {
 	if build == "" {
 		build = "Release"
 	}
@@ -281,7 +282,7 @@ func CMakeBuild(path string, build ReleaseType) error {
 		Env: []string{
 			"SKIA_OUT=" + filepath.Join(path, CMAKE_OUTDIR),
 			"BUILDTYPE=" + string(build),
-			"PATH=" + filepath.Join(path, "cmake") + ":" + os.Getenv("PATH"),
+			"PATH=" + filepath.Join(path, "cmake") + ":" + depotTools + ":" + os.Getenv("PATH"),
 		},
 		LogStderr: true,
 		LogStdout: true,

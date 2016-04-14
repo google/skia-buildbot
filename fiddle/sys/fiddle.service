@@ -4,7 +4,11 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/fiddle --log_dir=/var/log/logserver --resources_dir=/usr/local/share/fiddle/
+ExecStart=/usr/local/bin/fiddle \
+  --log_dir=/var/log/logserver \
+  --resources_dir=/usr/local/share/fiddle/ \
+  --fiddle_root=/mnt/pd0/fiddle \
+  --depot_tools=/mnt/pd0/depot_tools
 Restart=always
 User=default
 Group=default
