@@ -25,6 +25,10 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const (
+	FIDDLE_HASH_LENGTH = 32
+)
+
 // flags
 var (
 	depotTools        = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
@@ -71,6 +75,15 @@ var (
 		},
 	}
 
+	// trailingToMedia maps the end of each image URL to the store.Media type
+	// that it corresponds to.
+	trailingToMedia = map[string]store.Media{
+		"_raster.png": store.CPU,
+		"_gpu.png":    store.GPU,
+		".pdf":        store.PDF,
+		".skp":        store.SKP,
+	}
+
 	buildLiveness = metrics2.NewLiveness("fiddle.build")
 	build         *builder.Builder
 	fiddleStore   *store.Store
@@ -92,6 +105,49 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := templates.ExecuteTemplate(w, "index.html", defaultFiddle); err != nil {
 		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// imageHandler serves up images from the fiddle store.
+//
+// The URLs look like:
+//
+//   /i/cbb8dee39e9f1576cd97c2d504db8eee_raster.png
+//   /i/cbb8dee39e9f1576cd97c2d504db8eee_gpu.png
+//   /i/cbb8dee39e9f1576cd97c2d504db8eee.pdf
+//   /i/cbb8dee39e9f1576cd97c2d504db8eee.skp
+func imageHandler(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	if len(id) < FIDDLE_HASH_LENGTH {
+		http.NotFound(w, r)
+		glog.Error("Id too short.")
+		return
+	}
+	// The id is of the form:
+	//
+	//   cbb8dee39e9f1576cd97c2d504db8eee_raster.png
+	//   cbb8dee39e9f1576cd97c2d504db8eee_gpu.png
+	//   cbb8dee39e9f1576cd97c2d504db8eee.pdf
+	//   cbb8dee39e9f1576cd97c2d504db8eee.skp
+	//
+	// So we need to extract the fiddle hash.
+	fiddleHash := id[:FIDDLE_HASH_LENGTH]
+	trailing := id[FIDDLE_HASH_LENGTH:]
+	media, ok := trailingToMedia[trailing]
+	if !ok {
+		http.NotFound(w, r)
+		glog.Errorf("Unknown media type: %s", trailing)
+		return
+	}
+	body, contentType, _, err := fiddleStore.GetMedia(fiddleHash, media)
+	if err != nil {
+		http.NotFound(w, r)
+		glog.Errorf("Failed to retrieve media: %s", err)
+		return
+	}
+	w.Header().Set("Content-Type", contentType)
+	if _, err := w.Write(body); err != nil {
+		glog.Errorln("Failed to write image: %s", err)
 	}
 }
 
@@ -218,6 +274,7 @@ func main() {
 	StartBuilding()
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
+	r.HandleFunc("/i/{id:[0-9a-zA-Z._]+}", imageHandler)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
