@@ -29,14 +29,14 @@ and places that go into compiling and running user's untrusted C++ code.
 The following executables part of that process:
 
   * systemd-nspawn - Part of systemd, launches a chroot jail.
-  * fiddle_secwrap - Runs a program under the control of ptrace.
-  * fiddle_main - The user's code with a wrapper to load a source
+  * fiddle\_secwrap - Runs a program under the control of ptrace.
+  * fiddle\_main - The user's code with a wrapper to load a source
                   image and to write out the resulting PNGs, PDF,
                   an SKP data.
-  * fiddle_run - This is run within the chroot jail. It compiles
-                 the user's code against fiddle_main.o and
+  * fiddle\_run - This is run within the chroot jail. It compiles
+                 the user's code against fiddle\_main.o and
                  libskia.so and then runs the resulting executable
-                 under the control of fiddle_secwrap. It gathers
+                 under the control of fiddle\_secwrap. It gathers
                  the output of all steps and emits it as one large
                  JSON file written to stdout.
 
@@ -91,12 +91,12 @@ The rest are built on the server as it runs:
 ~~~~
 
 
-By default $FIDDLE_ROOT is /mnt/pd0, but can be another directory when running
+By default $FIDDLE\_ROOT is /mnt/pd0, but can be another directory when running
 locally and not using systemd-nspawn.
 
-Skia is checked out into $FIDDLE_ROOT/versions/<githash>, and cmake built,
-with the output going into $FIDDLE_ROOT/versions/<githash>/cmakeout.
-Good builds are recorded in $FIDDLE_ROOT/goodbuilds.txt, which is just
+Skia is checked out into $FIDDLE\_ROOT/versions/<githash>, and cmake built,
+with the output going into $FIDDLE\_ROOT/versions/<githash>/cmakeout.
+Good builds are recorded in $FIDDLE\_ROOT/goodbuilds.txt, which is just
 a text file of good builds in the order they are done, that is, new
 good builds are appended to the end of the file.
 
@@ -104,33 +104,33 @@ The rest of the work, compiling the user's code and then running it, is done
 in the container, i.e. run in a root jail using systemd-nspawn.
 
 In the container, / is mounted read-only. Also bind a directory
-$FIDDLE_ROOT/src/ as read-only, where the source for $FIDDLE_ROOT/src/ is
-$FIDDLE_ROOT/tmp/<tmpdir>/, where tmpdir is unique for each requested compile.
-(This is just a symbolic link when not running via nspawn.) Also mount a tmpfs
-at $FIDDLE_ROOT/out for the executable output of the compile, this will just
-be a tmpfs in the container so it gets cleaned up when the container exits.
-Compile $FIDDLE_ROOT/src/draw.cpp and run $FIDDLE_ROOT/out/fiddle_main  via
-ptrace control with fiddle_secwrap. The compilation is done via
-$FIDDLE_ROOT/versions/<githash>/cmakeout/skia_compile_arguments.txt and
-friends. Source images will be loaded in $FIDDLE_ROOT/images.  The output from
-running fiddle_main is piped to stdout and contains the images as base64
-encoded values in JSON. The $FIDDLE_ROOT/images directory is whitelisted for
-access by fiddle_secwrap so that fiddle_main can read the source image.
+$FIDDLE\_ROOT/src/ as read-only, where the source for $FIDDLE\_ROOT/src/ is
+$FIDDLE\_ROOT/tmp/<tmpdir>/, where tmpdir is unique for each requested compile.
+(This is just a symbolic link when not running via nspawn.) Also mount
+/tmp/<tmpdir> as read/write at $FIDDLE\_ROOT/out for the executable output of
+the compile.  Compile $FIDDLE\_ROOT/src/draw.cpp and run
+$FIDDLE\_ROOT/out/fiddle\_main  via ptrace control with fiddle\_secwrap. The
+compilation is done via
+$FIDDLE\_ROOT/versions/<githash>/cmakeout/skia\_compile\_arguments.txt and
+friends. Source images will be loaded in $FIDDLE\_ROOT/images.  The output from
+running fiddle\_main is piped to stdout and contains the images as base64
+encoded values in JSON. The $FIDDLE\_ROOT/images directory is whitelisted for
+access by fiddle\_secwrap so that fiddle\_main can read the source image.
 
 Summary of directories and files and how they are mounted in the container:
 
 Directory                                 | Perms | Container
 ------------------------------------------|-------|----------
-$FIDDLE_ROOT/goodbuilds.txt               | R     | Y
-$FIDDLE_ROOT/versions/<githash>           | R     | Y
-$FIDDLE_ROOT/versions/<githash>/cmakeout/ | R     | Y
-.../cmakeout/fiddle_main.o                | R     | Y
-$FIDDLE_ROOT/src/                         | R     | Y
-$FIDDLE_ROOT/src/draw.cpp                 | R     | Y
-$FIDDLE_ROOT/tmp/<tmpdir>/                | R     | N
-$FIDDLE_ROOT/out/                         | RW    | Y
-$FIDDLE_ROOT/images/                      | R     | Y
-$FIDDLE_ROOT/bin/fiddle_secwrap           | R     | Y
+$FIDDLE\_ROOT/goodbuilds.txt               | R     | Y
+$FIDDLE\_ROOT/versions/<githash>           | R     | Y
+$FIDDLE\_ROOT/versions/<githash>/cmakeout/ | R     | Y
+.../cmakeout/fiddle\_main.o                | R     | Y
+$FIDDLE\_ROOT/src/                         | R     | Y
+$FIDDLE\_ROOT/src/draw.cpp                 | R     | Y
+$FIDDLE\_ROOT/tmp/<tmpdir>/                | R     | N
+$FIDDLE\_ROOT/out/                         | RW    | Y
+$FIDDLE\_ROOT/images/                      | R     | Y
+$FIDDLE\_ROOT/bin/fiddle\_secwrap           | R     | Y
 
 Decimation
 ----------
@@ -244,7 +244,7 @@ Startup
 -------
 
 During instance startup git and systemd-container will be installed and
-depot_tools will also be installed.
+depot\_tools will also be installed.
 
 The container image and all other exes will be installed via push.
 
@@ -257,13 +257,15 @@ layered approach, using a combination of seccomp-bpf, chroot jail and rlimits.
 
 seccomp-bpf - Used to limit the types of system calls that the user code can
 make. Any attempts to make a system call that isn't allowed causes the
-application to terminate immediately.
+application to terminate immediately. Seccomp-bpf and ptrace are used from
+fiddle\_secwrap.cpp.
 
-chroot jail - The code is run in a chroot jail via systemd-nspawn, making the rest of the
-operating system files unreachable from the running code.
+chroot jail - The code is run in a chroot jail via systemd-nspawn, making the
+rest of the operating system files unreachable from the running code.
+Systemd-nspawn is launched from fiddle\_run.
 
 rlimits - Used to limit the resources the running code can get access to, for
-example runtime is limited to 5s of CPU.
+example runtime is limited to 10s of CPU. The limits are set in fiddle\_run.
 
 
 

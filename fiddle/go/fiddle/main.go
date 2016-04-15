@@ -13,8 +13,11 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/builder"
+	"go.skia.org/infra/fiddle/go/runner"
+	"go.skia.org/infra/fiddle/go/store"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
@@ -70,6 +73,8 @@ var (
 
 	buildLiveness = metrics2.NewLiveness("fiddle.build")
 	build         *builder.Builder
+	fiddleStore   *store.Store
+	repo          *gitinfo.GitInfo
 )
 
 func loadTemplates() {
@@ -99,13 +104,36 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Infof("Request: %#v", *req)
-	// TODO find latest git hash then call runner.Run()
-
+	allBuilds, err := build.AvailableBuilds()
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get list of available builds.")
+		return
+	}
+	if len(allBuilds) == 0 {
+		httputils.ReportError(w, r, fmt.Errorf("List of available builds is empty."), "No builds available.")
+		return
+	}
+	gitHash := allBuilds[0]
+	tmpDir, err := runner.WriteDrawCpp(*fiddleRoot, req.Code, &req.Options, *local)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to write the fiddle.")
+	}
+	res, err := runner.Run(*fiddleRoot, gitHash, *local, tmpDir)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to run the fiddle")
+		return
+	}
+	ts := repo.Timestamp(gitHash)
+	fiddleHash, err := fiddleStore.Put(req.Code, req.Options, gitHash, ts, res)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to store the fiddle")
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	resp := RunResults{
-		Errors:     "",
-		FiddleHash: "cbb8dee39e9f1576cd97c2d504db8eee",
+		Errors:     res.Errors,
+		FiddleHash: fiddleHash,
 	}
 	if err := enc.Encode(resp); err != nil {
 		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
@@ -133,6 +161,9 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 }
 
 func singleBuildLatest() {
+	if err := repo.Update(true, true); err != nil {
+		glog.Errorf("Failed to update skia repo used to look up git hashes: %s", err)
+	}
 	ci, err := build.BuildLatestSkia(false, false, false)
 	if err != nil {
 		glog.Errorf("Failed to build LKGR: %s", err)
@@ -172,6 +203,16 @@ func main() {
 	}
 	if *depotTools == "" {
 		glog.Fatal("The --depot_tools flag is required.")
+	}
+	loadTemplates()
+	var err error
+	repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
+	if err != nil {
+		glog.Fatalf("Failed to clone Skia: %s", err)
+	}
+	fiddleStore, err = store.New()
+	if err != nil {
+		glog.Fatalf("Failed to connect to store: %s", err)
 	}
 	build = builder.New(*fiddleRoot, *depotTools)
 	StartBuilding()

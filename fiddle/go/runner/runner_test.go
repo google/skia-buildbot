@@ -106,5 +106,6 @@ func TestRun(t *testing.T) {
 	res, err = Run("fiddleroot/", "abcdef", false, "/mnt/pd0/fiddle/tmp/draw0123")
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
-	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container/ --bind=/mnt/pd0/fiddle --bind /mnt/pd0/fiddle/tmp/draw0123:/mnt/pd0/fiddle/src xargs --arg-file=/dev/null /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --alsologtostderr", execString)
+	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network --machine draw0123 --bind-ro /mnt/pd0/fiddle --bind-ro /mnt/pd0/fiddle/tmp/draw0123:/mnt/pd0/fiddle/src --bind /mnt/pd0/fiddle/tmp/draw0123:/mnt/pd0/fiddle/out xargs --arg-file=/dev/null /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --alsologtostderr", execString)
+
 }

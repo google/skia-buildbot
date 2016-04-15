@@ -40,7 +40,12 @@ var (
 type Builder struct {
 	fiddleRoot string
 	depotTools string
-	mutex      sync.Mutex
+
+	// A cache of the hashes returned from AllAvailable.
+	hashes []string
+
+	// Mutex protects access to hashes and GOOD_BUILDS_FILENAME.
+	mutex sync.Mutex
 }
 
 // New returns a new Builder instance.
@@ -139,6 +144,7 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 	}
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
+	b.hashes = append(b.hashes, githash)
 	fb, err := os.OpenFile(filepath.Join(b.fiddleRoot, GOOD_BUILDS_FILENAME), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open %s for writing: %s", GOOD_BUILDS_FILENAME, err)
@@ -156,6 +162,9 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 func (b *Builder) AvailableBuilds() ([]string, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
+	if len(b.hashes) > 0 {
+		return b.hashes, nil
+	}
 	fi, err := os.Open(filepath.Join(b.fiddleRoot, GOOD_BUILDS_FILENAME))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open %s for reading: %s", GOOD_BUILDS_FILENAME, err)
@@ -172,6 +181,7 @@ func (b *Builder) AvailableBuilds() ([]string, error) {
 			revHashes = append(revHashes, h)
 		}
 	}
+	b.hashes = revHashes
 	return revHashes, nil
 }
 

@@ -8,11 +8,16 @@ DESCRIPTION="Application to push updates for applications."
 copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=644 -T ./sys/${APPNAME}.service   ${ROOT}/etc/systemd/system/${APPNAME}.service
-${INSTALL} --mode=755 -T ${GOPATH}/bin/fiddle       ${ROOT}/usr/local/bin/fiddle
-${INSTALL} --mode=755 -T ${GOPATH}/bin/fiddle_build ${ROOT}/usr/local/bin/fiddle_build
-${INSTALL} --mode=755 -T ${GOPATH}/bin/fiddle_run   ${ROOT}/mnt/pd0/fiddle/bin/fiddle_run
-${INSTALL} --mode=755 -T fiddle_secwrap             ${ROOT}/mnt/pd0/fiddle/bin/fiddle_secwrap
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=644 -T  ./sys/${APPNAME}.service   ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle       ${ROOT}/usr/local/bin/fiddle
+${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle_build ${ROOT}/usr/local/bin/fiddle_build
+${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle_run   ${ROOT}/mnt/pd0/fiddle/bin/fiddle_run
+${INSTALL} --mode=755 -T  fiddle_secwrap             ${ROOT}/mnt/pd0/fiddle/bin/fiddle_secwrap
+${INSTALL_DIR} --mode=755 ${ROOT}/usr/local/share/fiddle/templates
+${INSTALL} --mode=644     ./templates/*              ${ROOT}/usr/local/share/fiddle/templates
+${INSTALL} --mode=644 ./res/js/core.js               ${ROOT}/usr/local/share/fiddle/res/js/core.js
+${INSTALL} --mode=644 ./res/vul/elements.html        ${ROOT}/usr/local/share/fiddle/res/vul/elements.html
 }
 
 source ../bash/release.sh

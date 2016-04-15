@@ -6,9 +6,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
 	"path"
 	"path/filepath"
+	"syscall"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -48,6 +50,25 @@ func main() {
 		res.Errors = "fiddle_run: The --git_hash flag is required."
 	}
 	checkout := path.Join(*fiddleRoot, "versions", *gitHash)
+
+	// Set limits on this process and all its children.
+
+	// Limit total CPU seconds.
+	rLimit := &syscall.Rlimit{
+		Cur: 10,
+		Max: 10,
+	}
+	if err := syscall.Setrlimit(syscall.RLIMIT_CPU, rLimit); err != nil {
+		fmt.Println("Error Setting Rlimit ", err)
+	}
+	// Do not emit core dumps.
+	rLimit = &syscall.Rlimit{
+		Cur: 0,
+		Max: 0,
+	}
+	if err := syscall.Setrlimit(syscall.RLIMIT_CORE, rLimit); err != nil {
+		fmt.Println("Error Setting Rlimit ", err)
+	}
 
 	// Compile draw.cpp and link against fiddle_main.o and libskia to produce fiddle_main.
 	files := []string{

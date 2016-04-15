@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 
@@ -124,10 +125,15 @@ func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
 //
 // If non-local this should run something like:
 //
-//    sudo systemd-nspawn -D /mnt/pd0/container/ --bind=/mnt/pd0/fiddle \
+//     sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network \
+//       --bind-ro /mnt/pd0/fiddle \
+//       --bind-ro /mnt/pd0/fiddle/tmp/code288218027:/mnt/pd0/fiddle/src \
+//       --bind /mnt/pd0/fiddle/tmp/code288218027:/mnt/pd0/fiddle/out \
 //       xargs --arg-file=/dev/null \
-//       /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root=/mnt/pd0/fiddle \
-//       --git_hash=82b043e87380a64ea4ca736b293ec0ee5c30e676
+//       /mnt/pd0/fiddle/bin/fiddle_run \
+//       --fiddle_root /mnt/pd0/fiddle \
+//       --git_hash 5280dcbae3affd73be5d5e0ff3db8823e26901e6
+//       --alsologtostderr
 //
 // NOTE: When trying to run a binary that exists on a mounted directory under nspawn, it will fail with:
 //
@@ -141,12 +147,19 @@ func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
 // exe within the container.
 //
 func Run(fiddleRoot, gitHash string, local bool, tmpDir string) (*types.Result, error) {
-	// TODO(jcgregorio) if local is false then we need to run this under systemd-nspawn
-	// and make sure to mount the correct tmp directory into FIDDLE_ROOT/src/.
+	machine := ""
+	if !local {
+		machine = path.Base(tmpDir)
+	}
 	name := "sudo"
 	args := []string{
-		"systemd-nspawn", "-D", "/mnt/pd0/container/", "--bind=/mnt/pd0/fiddle",
-		"--bind", tmpDir + ":/mnt/pd0/fiddle/src",
+		"systemd-nspawn", "-D", "/mnt/pd0/container/",
+		"--read-only",        // Mount the root file system as read only.
+		"--private-network",  // Turn off networking.
+		"--machine", machine, // Give the container a unique name, so we can run fiddles concurrently.
+		"--bind-ro", "/mnt/pd0/fiddle", // Mount most of FIDDLE_ROOT as read-only.
+		"--bind-ro", tmpDir + ":/mnt/pd0/fiddle/src", // Mount the user's draw.cpp file into /src.
+		"--bind", tmpDir + ":/mnt/pd0/fiddle/out", // Also mount the same dir as draw.cpp as read/write to receive the executable.
 		"xargs", "--arg-file=/dev/null", // See Note above for explanation of xargs.
 		"/mnt/pd0/fiddle/bin/fiddle_run", "--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--alsologtostderr",
 	}
