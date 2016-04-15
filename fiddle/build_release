@@ -1,8 +1,8 @@
 #!/bin/bash
-# Builds and uploads a debian package for push.
+# Builds and uploads a debian package for fiddle.
 APPNAME=fiddle
 SYSTEMD=${APPNAME}.service
-DESCRIPTION="Application to push updates for applications."
+DESCRIPTION="Application for running Skia C++ code on the web."
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
