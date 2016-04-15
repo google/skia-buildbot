@@ -16,12 +16,23 @@
       the hash of the new fiddle, to be used to retrieve the resultant images.
 -->
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all">
+<link rel="import" href="bower_components/paper-spinner/paper-spinner.html">
 <dom-module id="fiddle-sk">
   <style>
+    button {
+      display: block;
+    }
   </style>
   <template>
     <content></content>
     <button on-tap="_run">Run</button>
+    <paper-spinner id=running></paper-spinner>
+    <template is="dom-if" if="{{_hasImages(fiddlehash)}}">
+      <img src="/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
+      <img src="/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
+      <a href="/i/{{fiddlehash}}.pdf">PDF</a>
+      <a href="/i/{{fiddlehash}}.skp">SKP</a>
+    </template>
   </template>
 </dom-module>
 
@@ -44,12 +55,19 @@
         value: 0,
         reflectToAttribute: true,
       },
+      fiddlehash: {
+        type: String,
+        value: "",
+        reflectToAttribute: true,
+      },
     },
 
     ready: function() {
     },
 
     _run: function() {
+      this.fiddlehash = "";
+      this.$.running.active = true;
       body = {
         code: $$$('textarea', this).value,
         options: {
@@ -59,8 +77,18 @@
         }
       };
       sk.post("/_/run", JSON.stringify(body)).then(JSON.parse).then(function(json) {
+        console.log(json);
+        this.fiddlehash = json.fiddleHash;
+        this.$.running.active = false;
         this.fire("fiddle-success", json.fiddleHash);
-      }.bind(this)).catch(sk.reportError);
+      }.bind(this)).catch(function(err) {
+        this.$.running.active = false;
+        sk.reportError(err);
+      }.bind(this));
+    },
+
+    _hasImages: function(fiddlehash) {
+      return fiddlehash != "";
     },
 
   });

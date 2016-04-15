@@ -43,8 +43,11 @@ var (
 	timeBetweenBuilds = flag.Duration("time_between_builds", time.Hour, "How long to wait between building LKGR of Skia.")
 )
 
-// FiddleContent is the serialized structure the we receive fiddle requests in.
-type FiddleContent struct {
+// FiddleContext is the structure we use for the expanding the index.html template.
+//
+// It is also used (without the Hash) as the incoming JSON request to /_/run.
+type FiddleContext struct {
+	Hash    string `json:"fiddlehash"`
 	Code    string `json:"code"`
 	Options types.Options
 }
@@ -58,7 +61,7 @@ type RunResults struct {
 var (
 	templates *template.Template
 
-	defaultFiddle *FiddleContent = &FiddleContent{
+	defaultFiddle *FiddleContext = &FiddleContext{
 		Code: `void draw(SkCanvas* canvas) {
     SkPaint p;
     p.setColor(SK_ColorRED);
@@ -108,6 +111,33 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// individualHandle handles permalinks to individual fiddles.
+func individualHandle(w http.ResponseWriter, r *http.Request) {
+	fiddleHash := mux.Vars(r)["fiddleHash"]
+	if len(fiddleHash) < FIDDLE_HASH_LENGTH {
+		http.NotFound(w, r)
+		glog.Error("Id too short.")
+		return
+	}
+	if *local {
+		loadTemplates()
+	}
+	code, options, err := fiddleStore.GetCode(fiddleHash)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	context := &FiddleContext{
+		Hash:    fiddleHash,
+		Code:    code,
+		Options: *options,
+	}
+	w.Header().Set("Content-Type", "text/html")
+	if err := templates.ExecuteTemplate(w, "index.html", context); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
 // imageHandler serves up images from the fiddle store.
 //
 // The URLs look like:
@@ -152,7 +182,7 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
-	req := &FiddleContent{}
+	req := &FiddleContext{}
 	dec := json.NewDecoder(r.Body)
 	defer util.Close(r.Body)
 	if err := dec.Decode(req); err != nil {
@@ -275,6 +305,7 @@ func main() {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/i/{id:[0-9a-zA-Z._]+}", imageHandler)
+	r.HandleFunc("/c/{fiddleHash:[0-9a-zA-Z]+}", individualHandle)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
