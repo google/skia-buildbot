@@ -39,22 +39,29 @@ Inspect and interrogate a running tracedb server.
 
 Commands:
 
-  ls        List all the commit ids for the given time range.
+  ls        	List all the commit ids for the given time range.
 
-            Flags: --begin --end
+            	Flags: --begin --end
 
-  count     Return the number of samples stored for all commits in the given time range.
+  count     	Return the number of samples stored for all commits in the given time range.
 
-            Flags: --begin --end
+            	Flags: --begin --end
 
-  ping      Call the Ping service method every 1s.
+  ping      	Call the Ping service method every 1s.
 
-  sample    Get a sampling of values for the given ID.
-            Flags: --begin --end --id --gold --regex --only
+  sample    	Get a sampling of values for the given ID.
+            	Flags: --begin --end --id --gold --regex --only
 
-            The first commitid with an ID that begins with the value of --id
-            will be loaded and a sampling of 10 values will be displayed.
+            	The first commitid with an ID that begins with the value of --id
+            	will be loaded and a sampling of 10 values will be displayed.
 
+  param_grep  Find parameter values that match a regular expression. 
+  						Flags: --begin --end --regex 
+
+	  					It loads all commits in the defined range and matches the 
+	  					parameter values of each trace in those commits agains the 
+	  					regular expression. For each commit it outputs the paramaters
+	  					and their values that match the regex. 
 
 Examples:
 
@@ -218,6 +225,56 @@ func sample(client traceservice.TraceServiceClient) {
 	}
 }
 
+func param_grep(client traceservice.TraceServiceClient) {
+	if *regex == "" {
+		glog.Fatalf("No regex given for param_grep")
+	}
+	r, err := regexp.Compile(*regex)
+	if err != nil {
+		glog.Fatalf("Invalid value for regex %q: %s\n", *regex, err)
+	}
+
+	ctx := context.Background()
+	resp, err := _list(client)
+	if err != nil {
+		glog.Fatalf("Failed to retrieve the list: %s\n", err)
+		return
+	}
+
+	for _, cid := range resp.Commitids {
+		traceIdsResp, err := client.GetValues(ctx, &traceservice.GetValuesRequest{Commitid: cid})
+		if err != nil {
+			glog.Errorf("Could not get trace ids: %s", err)
+			continue
+		}
+
+		traceIds := make([]string, 0, len(traceIdsResp.Values))
+		for _, valuePair := range traceIdsResp.Values {
+			traceIds = append(traceIds, valuePair.Key)
+		}
+
+		paramsResp, err := client.GetParams(ctx, &traceservice.GetParamsRequest{Traceids: traceIds})
+		if err != nil {
+			glog.Errorf("Unable to retrieve params for %s. Error: %s", cid, err)
+			continue
+		}
+
+		result := make(map[string]bool, len(paramsResp.Params))
+		for _, p := range paramsResp.Params {
+			for key, val := range p.Params {
+				if r.MatchString(val) {
+					result[fmt.Sprintf("%s = %s", key, val)] = true
+				}
+			}
+		}
+
+		fmt.Printf("%.3d %s  %s  %s \n", len(result), cid.Id, cid.Source, time.Unix(cid.Timestamp, 0))
+		for p := range result {
+			fmt.Printf("       %s\n", p)
+		}
+	}
+}
+
 func main() {
 	rand.Seed(time.Now().Unix())
 	// Grab the first argument off of os.Args, the command, before we call flag.Parse.
@@ -248,6 +305,8 @@ func main() {
 		count(client)
 	case "sample":
 		sample(client)
+	case "param_grep":
+		param_grep(client)
 	default:
 		fmt.Printf("Unknown command: %s\n", cmd)
 		Usage()

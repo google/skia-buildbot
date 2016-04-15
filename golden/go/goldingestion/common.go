@@ -125,10 +125,6 @@ func (d *DMResults) idAndParams(r *Result) (string, map[string]string) {
 	combinedLen := len(d.Key) + len(r.Key)
 	traceIdParts := make(map[string]string, combinedLen)
 	params := make(map[string]string, combinedLen+1)
-
-	// Add the builder field to params.
-	params["builder"] = d.Builder
-
 	for k, v := range d.Key {
 		traceIdParts[k] = v
 		params[k] = v
