@@ -80,3 +80,4 @@ res/imp/9/bower_components
 launch_slaves.log*
 tracedb/local_perf.toml
 fiddle/fiddle_secwrap
+fiddle/res/css

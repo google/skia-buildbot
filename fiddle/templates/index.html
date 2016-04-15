@@ -5,6 +5,7 @@
     {%template "header.html" .%}
 </head>
 <body class="fullbleed vertical layout unresolved">
+  <link rel="stylesheet" href="/res/css/codemirror.css">
   <style is="custom-style">
     body {
       margin: 0;
@@ -38,6 +39,33 @@
         background-color: #1F78B4;
       };
     }
+
+    /* CodeMirror customization */
+
+    .CodeMirror .error {
+      background: #f88;
+    }
+
+    .CodeMirror-lines,
+    .CodeMirror-scroll
+    {
+      background-color: #eee;
+    }
+
+    .CodeMirror {
+      border: solid gray 1px;
+      height: auto !important;
+
+      z-index: 0;
+    }
+
+    /* Make the code editor automatically resize */
+
+    .CodeMirror-scroll {
+      overflow-y: hidden;
+      overflow-x: auto;
+    }
+
   </style>
   <app-sk mode="seamed" responsive_width=600px no_drawer no_version>
     <h2 header>Fiddle</h2>
@@ -46,9 +74,31 @@
     </fiddle-sk>
   </app-sk>
   <script type="text/javascript" charset="utf-8">
-    $$$('fiddle-sk').addEventListener('fiddle-success', function(e) {
-      window.history.pushState(null, null, '/c/' + e.detail);
-    });
+    (function () {
+      $$$('fiddle-sk').addEventListener('fiddle-success', function(e) {
+        window.history.pushState(null, null, '/c/' + e.detail);
+      });
+
+      var editor = CodeMirror.fromTextArea($$$('textarea'), {
+        theme: "default",
+        lineNumbers: true,
+        matchBrackets: true,
+        lineWrapping: true,
+        mode: "text/x-c++src",
+        indentUnit: 4,
+      });
+
+      editor.setSize(editor.defaultCharWidth() * 100, null);
+
+      editor.on('beforeChange', function(instance, changeObj) {
+        var startLine = changeObj.from.line;
+        var endLine = changeObj.to.line;
+
+        for (var i = startLine ; i <= endLine ; i++) {
+          editor.removeLineClass( i, "wrap", "error" );
+        }
+      });
+    })();
   </script>
 
 </body>

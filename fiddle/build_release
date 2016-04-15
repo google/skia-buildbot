@@ -16,8 +16,9 @@ ${INSTALL} --mode=755 -T  ${GOPATH}/bin/fiddle_run   ${ROOT}/mnt/pd0/fiddle/bin/
 ${INSTALL} --mode=755 -T  fiddle_secwrap             ${ROOT}/mnt/pd0/fiddle/bin/fiddle_secwrap
 ${INSTALL_DIR} --mode=755 ${ROOT}/usr/local/share/fiddle/templates
 ${INSTALL} --mode=644     ./templates/*              ${ROOT}/usr/local/share/fiddle/templates
-${INSTALL} --mode=644 ./res/js/core.js               ${ROOT}/usr/local/share/fiddle/res/js/core.js
-${INSTALL} --mode=644 ./res/vul/elements.html        ${ROOT}/usr/local/share/fiddle/res/vul/elements.html
+${INSTALL} --mode=644 -T  ./res/js/core.js           ${ROOT}/usr/local/share/fiddle/res/js/core.js
+${INSTALL} --mode=644 -T  ./res/css/codemirror.css   ${ROOT}/usr/local/share/fiddle/res/css/codemirror.css
+${INSTALL} --mode=644 -T  ./res/vul/elements.html    ${ROOT}/usr/local/share/fiddle/res/vul/elements.html
 }
 
 source ../bash/release.sh

@@ -19,19 +19,61 @@
 <link rel="import" href="bower_components/paper-spinner/paper-spinner.html">
 <dom-module id="fiddle-sk">
   <style>
+    img {
+      box-shadow: 2px 2px 5px gray;
+      display: inline-block;
+      background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAAAAAA6mKC9AAAAAXNSR0IArs4c6QAAAAJiS0dEAP+Hj8y/AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAB3RJTUUH3gUBEi4DGRAQYgAAAB1JREFUGNNjfMoAAVJQmokBDdBHgPE/lPFsYN0BABdaAwN6tehMAAAAAElFTkSuQmCC');
+    }
+
+    #submit {
+      margin-top: 1em;
+    }
+
     button {
-      display: block;
+      margin-left: 0;
+    }
+
+    paper-spinner {
+      display: inline-block;
+      top: 10px;
+    }
+
+    #results {
+      margin-top: 1em;
+    }
+
+    #results > div {
+      display: inline-block;
+      margin-right: 1em;
+    }
+
+    :host {
+      padding: 1.5em;
     }
   </style>
   <template>
     <content></content>
-    <button on-tap="_run">Run</button>
-    <paper-spinner id=running></paper-spinner>
+    <div id=submit>
+      <button on-tap="_run">Run</button>
+      <paper-spinner id=running></paper-spinner>
+    </div>
     <template is="dom-if" if="{{_hasImages(fiddlehash)}}">
-      <img src="/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
-      <img src="/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
-      <a href="/i/{{fiddlehash}}.pdf">PDF</a>
-      <a href="/i/{{fiddlehash}}.skp">SKP</a>
+      <div id=results class="horizontal layout">
+        <div class="vertical layout center-justified">
+          <img src="/i/{{fiddlehash}}_raster.png" width="{{width}}" height="{{height}}">
+          <p>CPU</p>
+        </div>
+        <div class="vertical layout center-justified">
+          <img src="/i/{{fiddlehash}}_gpu.png" width="{{width}}" height="{{height}}">
+          <p>GPU</p>
+        </div>
+        <div class="vertical layout center">
+          <a href="/i/{{fiddlehash}}.pdf">PDF</a>
+        </div>
+        <div class="vertical layout center">
+          <a href="/i/{{fiddlehash}}.skp">SKP</a>
+        </div>
+      </div>
     </template>
   </template>
 </dom-module>
@@ -77,7 +119,6 @@
         }
       };
       sk.post("/_/run", JSON.stringify(body)).then(JSON.parse).then(function(json) {
-        console.log(json);
         this.fiddlehash = json.fiddleHash;
         this.$.running.active = false;
         this.fire("fiddle-success", json.fiddleHash);
