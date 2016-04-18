@@ -25,9 +25,10 @@
 
 <link rel="import" href="bower_components/polymer/polymer.html"> 
 
+<link rel="import" href="activity-sk.html">
 <link rel=import href="detail-list-sk.html">
 <link rel=import href="digest-details-sk.html">
-<link rel="import" href="activity-sk.html">
+<link rel=import href="search-controls-sk.html">
 
 <dom-module id="search-page-sk">
   <template>
@@ -44,8 +45,10 @@
       digest-details-sk[data-focus] {
         box-shadow: 3px 3px 6px 5px #FF7F00;
       }
-    </style>  
-    <activity-sk id="activitySearch" busy="{{_hideAll}}"></activity-sk>
+    </style>
+  
+    <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
+    <search-controls-sk id="searchControls"></search-controls-sk>
     <div hidden$="{{_hideAll}}">
       <div id="missing" hidden$="{{_hasEntries(data)}}">
         No digests match your query.
@@ -75,25 +78,39 @@
         }
       },
 
+      ready: function() {
+        debugger;
+        this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+      },
+
       pageSelected: function() {
         this.$.detailList.startUse();
-        this._loadData();
+        this.$.searchControls.setStateFromQuery(gold.defaultSearchState);
+        this._loadParamset();
       },
 
       pageDeselected: function() {
         this.$.detailList.endUse(); 
       },
 
-      _loadData: function() {
-        var q = window.location.search;
-        this.$.activitySearch.startSpinner("Loading ...");
+      _handleStateChange: function(ev) {
+        this._state = ev.detail;
+        var q = gold.queryFromState(ev.detail);
+        gold.setUrlQuery(q);
+        this.$.activityBar.startSpinner("Loading ...");
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
           this.set('data', json);
-          this.$.activitySearch.stopSpinner();
+          this.$.activityBar.stopSpinner(); 
         }.bind(this)).catch(function(e) {
-          this.$.activitySearch.stopSpinner();
+          this.$.activityBar.stopSpinner();
           sk.errorMessage(e);
-        }.bind(this));
+        }.bind(this)); 
+      },
+
+      _loadParamset: function() {
+        sk.get("/json/paramset").then(JSON.parse).then(function (json) {
+          this.$.searchControls.setParamSet(json);
+        }.bind(this)).catch(sk.errorMessage);          
       },
 
       _entryId: function(item) {

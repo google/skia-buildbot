@@ -1,0 +1,157 @@
+  <!-- The <search-controls-sk> custom element declaration.
+  
+    This is a general element to be used by all pages that 
+    call a search endpoint on the backend. 
+    It encapsulates the state of the query. When that state 
+    is changed through some of the controls it updates the URL 
+    and send an update to the host element to reload data based 
+    on the new query state. 
+
+    The state object contains these fiels:
+      - pos: show positive (boolean).
+      - neg: show negative (boolean).
+      - unt: show untriaged (boolean).
+      - include: show ignored digests (boolean).
+      - head: only digests that are currently in HEAD. 
+      - query: query string to select configuration. 
+  
+    Attributes:
+      None
+  
+    Events:
+      'state-change' - Fired when the state of the query changes and 
+          it needs to be reloaded. The 'detail' field of the event contains 
+          the new state represented by the controls. 
+
+    Methods:
+      setStateFromQuery(defaultState) - Set the state of the controls to the 
+          state encoded in the URL search query. Default values and hints to 
+          parse the query are take from defaultState. 
+      
+      setParamSet(params) - Sets the parameters of the enclosed query-sk element 
+          and enables the controls accordingly. 
+  -->
+<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="query-dialog-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="search-controls-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles"></style>
+    <style>
+      test-summary-sk {
+        display: block;
+        margin-top: 0.5em;
+      }
+      
+      .header {
+        width: 25em;
+      }
+
+      .header.short {
+        width: 10em;
+      }
+
+      corpus-chooser-sk {
+        display: block;
+      }
+
+      #search {
+        display: block;
+      }
+
+      .headToggle {
+        font-size: 20px;
+      }
+
+      .headToggle paper-toggle-button {
+        margin-right: 2em;
+      }
+
+      #core {
+        margin-top: 2em;
+      }
+
+      .blameHeader {
+        padding-top: 0.7em;
+        padding-right: 0.57em;
+        padding-bottom: 0.7em;
+        padding-left: 0.57em;
+        color: #1F78B4;
+        text-transform: uppercase;
+      }
+
+      paper-button[disabled] {
+        background: transparent;
+        color: #1F78B4;
+      }
+
+      .topControl {
+        margin-right: 2em;
+        font-weight: bold;
+      }
+
+    </style>
+      <div class="horizontal layout">
+        <paper-button id="searchButton" class="topControl" raised><iron-icon icon="search"></iron-icon></paper-button>
+        <paper-toggle-button id=head class="topControl" checked="{{_state.head}}">Head</paper-toggle-button>
+        <paper-toggle-button id=include class="topControl" checked="{{_state.include}}">Include Ignored</paper-toggle-button>
+        <paper-toggle-button id=pos class="topControl" checked="{{_state.pos}}">Positive</paper-toggle-button>
+        <paper-toggle-button id=neg class="topControl" checked="{{_state.neg}}">Negative</paper-toggle-button>
+        <paper-toggle-button id=unt class="topControl" checked="{{_state.unt}}">Untriaged</paper-toggle-button>
+      </div>
+
+      <query-dialog-sk id="queryDialog" trigger="searchButton"></query-dialog-sk>
+  </template>
+
+  <script>
+      Polymer({
+        is: "search-controls-sk",
+
+        properties: {
+          _state: {
+            type: Object
+          }
+        },
+
+        observers: [
+          '_fireStateChange(_state.*)'
+        ],
+
+        ready: function() {
+          this.listen(this.$.searchButton, 'click', '_handleSearchButton');
+          this.listen(this.$.queryDialog, 'edit', '_handleQueryEdit');
+          this.$.searchButton.disabled = true;
+        }, 
+
+        setStateFromQuery: function(defaultState) {
+          this.set('_state', gold.stateFromQuery(defaultState));
+        }, 
+
+        setParamSet: function(params) {
+          this.$.queryDialog.queryEle.setParamSet(params);
+          this.$.searchButton.disabled = false;
+        }, 
+
+        _handleQueryEdit: function(ev) {
+          ev.stopPropagation(); 
+          this.set('_state.query', ev.detail); 
+        },
+
+        _handleSearchButton: function(ev) {
+          ev.stopPropagation();
+          this.$.queryDialog.open(this._state.query);
+        },
+
+        _fireStateChange: function(ev) {
+          this.fire('state-change', sk.object.shallowCopy(this._state)); 
+        }
+
+      });
+  </script>
+</dom-module>

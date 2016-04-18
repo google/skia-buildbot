@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>query-dialog-sk demo</title>
+  <title>search-controls-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
@@ -8,22 +8,22 @@
   <script src="bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <script src="bower_components/d3/d3.js"></script>
   <script src="../common/js/common.js"></script>
+  <script src="../js/gold.js"></script>
   <script src="testdata.js"></script>
 
   <link rel="import" href="bower_components/polymer/polymer.html">
-  <link rel="import" href="query-dialog-sk.html">
+  <link rel="import" href="search-controls-sk.html">
   <link rel="import" href="bower_components/paper-button/paper-button.html">
   
 </head>
 <body>
-  <h1>query-dialog-sk demo</h1>
+  <h1>search-controls-sk demo</h1>
 
   <dom-module id="main-document-element">
     <template>
-      <query-dialog-sk id="queryDialog"></query-dialog-sk>
-      <paper-button on-click="_handleClick" raised>Open Dialog</paper-button>
+      <search-controls-sk id="searchControls"></search-controls-sk>
       <br><br>
-      Selection: &quot;{{_selection}}&quot;
+      Event: &quot;{{_state}}&quot;
     </template>
 
     <script>
@@ -32,23 +32,21 @@
           is: 'main-document-element',
 
           properties: {
-            _selection: {
+            _eventDetail: {
               type: String, 
               value: ''
             }
           },
 
           ready: function() {
-            this.$.queryDialog.queryEle.setParamSet(testdata.paramSet);
-            this.listen(this.$.queryDialog, 'edit', '_handleEditEvent');
+            this.$.searchControls.setParamSet(testdata.paramSet);
+            this.listen(this.$.searchControls, 'state-change', '_handleStateChange'); 
+            this.$.searchControls.setStateFromQuery(gold.defaultSearchState); 
           },
 
-          _handleClick: function() {
-            this.$.queryDialog.open(this._selection);
-          },
-
-          _handleEditEvent: function(ev) {
-            this._selection=ev.detail; 
+          _handleStateChange: function(ev) {
+            this.set('_state', JSON.stringify(ev.detail));
+            gold.setUrlQuery(gold.queryFromState(ev.detail));
           }
         });
       });

@@ -22,9 +22,9 @@
 
 <link rel="import" href="../common/imp/9/sort.html">
 
-<link rel="import" href="query-dialog-sk.html">
 <link rel="import" href="activity-sk.html">
 <link rel="import" href="test-summary-sk.html">
+<link rel="import" href="search-controls-sk.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="list-page-sk">
@@ -88,16 +88,7 @@
 
     <div id="core" class="vertical layout">
       <activity-sk id="activityBar"></activity-sk>
-      <div class="horizontal layout">
-        <paper-button id="searchButton" class="topControl" raised><iron-icon icon="search"></iron-icon></paper-button>
-        <paper-toggle-button id=head class="topControl" checked="{{_state.head}}">Head</paper-toggle-button>
-        <paper-toggle-button id=include class="topControl" checked="{{_state.include}}">Include Ignored</paper-toggle-button>
-        <paper-toggle-button id=pos class="topControl" checked="{{_state.pos}}">Positive</paper-toggle-button>
-        <paper-toggle-button id=neg class="topControl" checked="{{_state.neg}}">Negative</paper-toggle-button>
-        <paper-toggle-button id=unt class="topControl" checked="{{_state.unt}}">Untriaged</paper-toggle-button>
-      </div>
-
-      <query-dialog-sk id="queryDialog" trigger="searchButton"></query-dialog-sk>
+      <search-controls-sk id="searchControls"></search-controls-sk>
 
       <sort-sk target="summaries">
         <paper-button class="header" data-key="name" data-alpha=true>Name</paper-button>
@@ -115,125 +106,76 @@
 
   <script>
    (function() {
-      var defaultState = {
-       query:   "source_type=gm",
-       head:    true,
-       include: false,
-       pos: false,
-       neg: false, 
-       unt: true 
-      };
+    
+    var NAME_FIELD = "name"; 
 
-      var NAME_FIELD = "name";
+    Polymer({
+      is: "list-page-sk",
 
-      function stateFromQuery(defaultState) {
-        var delta = sk.query.toObject(window.location.search.slice(1), defaultState);
-        return sk.object.applyDelta(delta, defaultState);
-      }
-
-      function queryFromState(srcState) {
-        var ret = sk.query.fromObject(srcState); 
-        if (ret === '') {
-          return ''; 
+      properties: {
+        _state: {
+          type: Object, 
+          value: null,
+          notify: true
         }
-        return '?' + ret; 
+      },
+
+      ready: function() {
+        this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+      }, 
+
+      pageSelected: function(routeName) {
+        this.$.searchControls.setStateFromQuery(gold.defaultSearchState);
+        this._loadParamset();
+      },
+
+      pageDeselected: function() {},
+
+      _handleStateChange: function(ev) {
+        this._state = ev.detail;
+        var q = gold.queryFromState(ev.detail);
+        gold.setUrlQuery(q);
+        this.$.activityBar.startSpinner("Loading ...");
+        sk.get("/json/list" + q).then(JSON.parse).then(function (json) {
+          // Remove the name field from the current query. 
+          this._currentQuery = sk.query.toParamSet(this._state.query);
+          delete this._currentQuery[NAME_FIELD];
+
+          this._displaySummaries(json);
+          this.$.activityBar.stopSpinner(); 
+        }.bind(this)).catch(function(e) {
+          this.$.activityBar.stopSpinner();
+          sk.errorMessage(e);
+        }.bind(this)); 
+      },
+
+      _displaySummaries: function(summaries) {
+        var container = this.$.summaries;
+        sk.clearChildren(container);
+        var stateCopy = sk.object.shallowCopy(this._state);
+        summaries.forEach(function(c, i) {
+          var s = document.createElement("test-summary-sk");
+          s.summary = c; 
+          s.search = this._searchStr(stateCopy, c);
+          container.appendChild(s);
+        }.bind(this));
+      }, 
+
+      _searchStr: function(baseState, summary) {
+        // Swap out the test name and generate the search string. 
+        this._currentQuery[NAME_FIELD] = summary.name; 
+        baseState.query = sk.query.fromObject(this._currentQuery);
+        return sk.query.fromObject(baseState);
+      }, 
+
+      _loadParamset: function() {
+        sk.get("/json/paramset").then(JSON.parse).then(function (json) {
+          this.$.searchControls.setParamSet(json);
+        }.bind(this)).catch(sk.errorMessage);          
       }
 
-      function setQuery(q) {
-        history.pushState(null, "", window.location.origin + window.location.pathname + q);
-      }
+    });
 
-      Polymer({
-        is: "list-page-sk",
-
-        properties: {
-          _state: {
-            type: Object, 
-            value: null,
-            notify: true
-          }
-        },
-
-        observers: [
-          '_stateChanged(_state.*)'
-        ],
-
-        ready: function() {
-          this.listen(this.$.searchButton, 'click', '_handleSearchButton');
-          this.listen(this.$.queryDialog, 'edit', '_handleQueryEdit');
-        }, 
-
-        pageSelected: function(routeName) {
-          this.set('_state', stateFromQuery(defaultState));
-          this._loadParamset();
-        },
-
-        pageDeselected: function() {
-          this._state = null;
-        },
-
-        _loadList: function() {
-          var q = queryFromState(this._state);
-          setQuery(q);
-          this.$.activityBar.startSpinner("Loading ...");
-          sk.get("/json/list" + q).then(JSON.parse).then(function (json) {
-            // Remove the name field from the current query. 
-            this._currentQuery = sk.query.toParamSet(this._state.query);
-            delete this._currentQuery[NAME_FIELD];
-
-            this._displaySummaries(json);
-            this.$.activityBar.stopSpinner(); 
-          }.bind(this)).catch(function(e) {
-            this.$.activityBar.stopSpinner();
-            sk.errorMessage(e);
-          }.bind(this)); 
-        },
-
-        _displaySummaries: function(summaries) {
-          var container = this.$.summaries;
-          sk.clearChildren(container);
-          summaries.forEach(function(c, i) {
-            var s = document.createElement("test-summary-sk");
-            s.summary = c; 
-            s.search = this._searchStr(c);
-            container.appendChild(s);
-          }.bind(this));
-        }, 
-
-        _searchStr: function(summary) {
-          var state = sk.object.shallowCopy(this._state); 
-          var q = sk.object.shallowCopy(this._currentSelections); 
-          q[NAME_FIELD] = summary.name; 
-          state.query = sk.query.fromObject(q); 
-          return sk.query.fromObject(state);
-        }, 
-
-        _loadParamset: function() {
-          this.$.searchButton.disabled = true;
-          sk.get("/json/paramset").then(JSON.parse).then(function (json) {
-            this.$.queryDialog.queryEle.setParamSet(json);
-            this.$.searchButton.disabled = false;
-          }.bind(this)).catch(sk.errorMessage);          
-        },
-
-        _stateChanged: function() {
-          if (!this._state) {
-            return; 
-          }
-          this._loadList(); 
-        },
-
-        _handleQueryEdit: function(ev) {
-          ev.stopPropagation(); 
-          this.set('_state.query', ev.detail); 
-        },
-
-        _handleSearchButton: function() {
-          this.$.queryDialog.open(this._state.query);
-        }
-
-      });
-    })();
-
+    })();   
   </script>
 </dom-module>
