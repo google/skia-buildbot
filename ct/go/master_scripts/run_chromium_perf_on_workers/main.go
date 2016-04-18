@@ -334,6 +334,16 @@ func mergeUploadCSVFiles(runID string, gs *util.GsUtil) ([]string, error) {
 		if _, err = io.Copy(out, respBody); err != nil {
 			return noOutputSlaves, fmt.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
 		}
+		// If an output is less than 20 bytes that means something went wrong on the slave.
+		outputInfo, err := out.Stat()
+		if err != nil {
+			return noOutputSlaves, fmt.Errorf("Unable to stat file %s: %s", workerLocalOutputPath, err)
+		}
+		if outputInfo.Size() <= 20 {
+			glog.Errorf("Output file was less than 20 bytes %s: %s", workerLocalOutputPath, err)
+			noOutputSlaves = append(noOutputSlaves, fmt.Sprintf(util.WORKER_NAME_TEMPLATE, workerNum))
+			continue
+		}
 	}
 	// Call csv_merger.py to merge all results into a single results CSV.
 	_, currentFile, _, _ := runtime.Caller(0)
