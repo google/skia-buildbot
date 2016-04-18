@@ -27,38 +27,41 @@
 
 <link rel=import href="detail-list-sk.html">
 <link rel=import href="digest-details-sk.html">
+<link rel="import" href="activity-sk.html">
 
 <dom-module id="search-page-sk">
-  <style>
-    digest-details-sk {
-      display: block;
-      box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
-      margin-top: 1em;
-      margin-bottom: 1em;
-      margin-left: 3em;
-      padding: 1em;
-    }  
-
-    digest-details-sk[data-focus] {
-      box-shadow: 3px 3px 6px 5px #FF7F00;
-    }
-  </style>
-  
   <template>
-    <div id="missing" hidden$="{{_hasEntries(data)}}">
-      No digests match your query.
-    </div>
-    <div hidden$="{{!_hasEntries(data)}}">
-      <detail-list-sk id="detailList">
-        <template is="dom-repeat" items="{{data.digests}}">
-          <digest-details-sk 
-                  id$="{{_entryId(item)}}"
-                  triage
-                  details="[[item]]"
-                  commits="[[data.commits]]">
-          </digest-details-sk>
-        </template>
-      </detail-list-sk>
+    <style>
+      digest-details-sk {
+        display: block;
+        box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
+        margin-top: 1em;
+        margin-bottom: 1em;
+        margin-left: 3em;
+        padding: 1em;
+      }  
+
+      digest-details-sk[data-focus] {
+        box-shadow: 3px 3px 6px 5px #FF7F00;
+      }
+    </style>  
+    <activity-sk id="activitySearch" busy="{{_hideAll}}"></activity-sk>
+    <div hidden$="{{_hideAll}}">
+      <div id="missing" hidden$="{{_hasEntries(data)}}">
+        No digests match your query.
+      </div>
+      <div hidden$="{{!_hasEntries(data)}}">
+        <detail-list-sk id="detailList">
+          <template is="dom-repeat" items="{{data.digests}}">
+            <digest-details-sk 
+                    id$="{{_entryId(item)}}"
+                    triage
+                    details="[[item]]"
+                    commits="[[data.commits]]">
+            </digest-details-sk>
+          </template>
+        </detail-list-sk>
+      </div>
     </div>
   </template>
   <script>
@@ -74,14 +77,23 @@
 
       pageSelected: function() {
         this.$.detailList.startUse();
-        var q = window.location.search;
-        sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
-          this.set('data', json);
-        }.bind(this)).catch(sk.errorMessage);
+        this._loadData();
       },
 
       pageDeselected: function() {
         this.$.detailList.endUse(); 
+      },
+
+      _loadData: function() {
+        var q = window.location.search;
+        this.$.activitySearch.startSpinner("Loading ...");
+        sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
+          this.set('data', json);
+          this.$.activitySearch.stopSpinner();
+        }.bind(this)).catch(function(e) {
+          this.$.activitySearch.stopSpinner();
+          sk.errorMessage(e);
+        }.bind(this));
       },
 
       _entryId: function(item) {

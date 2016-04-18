@@ -442,6 +442,8 @@ func main() {
 	if *newUI {
 		// json handlers only used by the new UI.
 		router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
+		router.HandleFunc("/json/list", polyListTestsHandler).Methods("GET")
+		router.HandleFunc("/json/paramset", polyParamsHandler).Methods("GET")
 		router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
 		router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
 		router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")

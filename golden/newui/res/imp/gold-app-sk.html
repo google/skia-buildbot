@@ -29,6 +29,7 @@
 <link rel="import" href="help-page-sk.html" />
 <link rel="import" href="detail-page-sk.html" />
 <link rel="import" href="diff-page-sk.html" />
+<link rel="import" href="cluster-page-sk.html" />
 
 <dom-module id="gold-app-sk">
   <template>
@@ -89,6 +90,9 @@
           <section data-route="diff">
             <diff-page-sk></diff-page-sk>
           </section>
+          <section data-route="cluster">
+            <cluster-page-sk></cluster-page-sk>
+          </section>
           <section data-route="notfound">
             <help-page-sk notfound></help-page-sk>
           </section>
@@ -122,6 +126,7 @@
         this._setRoute('/help', 'help');
         this._setRoute('/detail', 'detail');
         this._setRoute('/diff', 'diff');
+        this._setRoute('/cluster', 'cluster');
         this._setRoute('*', 'notfound');
         this.route = "byblame";
 
@@ -134,11 +139,15 @@
       },
 
       _pagesSelect: function(ev, obj) {
-        obj.item.children[0].pageSelected(this.route);
+        if (obj.item.dataset.route) {
+          obj.item.children[0].pageSelected(this.route);
+        }
       },
 
       _pagesDeselect: function(ev, obj) {
-        obj.item.children[0].pageDeselected();
+        if (obj.item.dataset.route) {
+          obj.item.children[0].pageDeselected();
+        }
       }, 
 
       _setRoute: function(path, routeID) {

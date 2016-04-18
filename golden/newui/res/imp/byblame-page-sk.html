@@ -23,6 +23,7 @@
 <link rel="import" href="../common/imp/9/commit-panel.html" />
 
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="activity-sk.html">
 
 <dom-module id="byblame-page-sk">
   <template>
@@ -51,47 +52,47 @@
       }
 
     </style>
-
-    <template is="dom-if" if="{{_noEntries(data)}}">
-      <div>
+    <activity-sk id="activityMain" busy="{{_hideAll}}"></activity-sk>
+    <div hidden$="{{_hideAll}}">
+      <div hidden$="{{_hasEntries(data)}}">
         No untriaged digests.
       </div>
-    </template>
 
-    <template is="dom-repeat" items="{{data}}">
-      <div class="group">
-        <a target="_blank" href$="/search?blame={{item.groupID}}&unt=true&head=true&query=source_type%3Dgm">
-          {{item.nDigests}} digest(s) need triaging
-        </a>
+      <template is="dom-repeat" items="{{data}}">
+        <div class="group">
+          <a target="_blank" href$="/search?blame={{item.groupID}}&unt=true&head=true&query=source_type%3Dgm">
+            {{item.nDigests}} digest(s) need triaging
+          </a>
 
-        <template is="dom-if" if="{{_noBlames(item)}}">
-          <h3>No blamelist.</h3>
-        </template>
+          <template is="dom-if" if="{{_noBlames(item)}}">
+            <h3>No blamelist.</h3>
+          </template>
 
-        <template is="dom-if" if="{{!_noBlames(item)}}">
-          <h3>Blame</h3>
-          <commits-panel-sk mailbox="{{item.groupID}}"></commits-panel-sk>
-        </template>
+          <template is="dom-if" if="{{!_noBlames(item)}}">
+            <h3>Blame</h3>
+            <commits-panel-sk mailbox="{{item.groupID}}"></commits-panel-sk>
+          </template>
 
-        <h3>Tests Affected</h3>
-        <div>
-          {{item.nTests}} tests affected.
+          <h3>Tests Affected</h3>
+          <div>
+            {{item.nTests}} tests affected.
+          </div>
+
+          <template is="dom-if" if="{{_hasAffectedTests(item)}}">
+            <table>
+              <tr><th>Test</th><th>Num Digests</th><th>Example</th></tr>
+              <template is="dom-repeat" items="{{item.affectedTests}}">
+              <tr>
+                <td>{{item.test}}</td><td>{{item.num}}</td>
+                <td><a target=_blank href$="{{_detailHref(item)}}">
+                {{item.sample_digest}}</a></td>
+              </tr>
+              </template>
+            </table>
+          </template>
         </div>
-
-        <template is="dom-if" if="{{_hasAffectedTests(item)}}">
-          <table>
-            <tr><th>Test</th><th>Num Digests</th><th>Example</th></tr>
-            <template is="dom-repeat" items="{{item.affectedTests}}">
-            <tr>
-              <td>{{item.test}}</td><td>{{item.num}}</td>
-              <td><a target=_blank href="/detail?test={{item.test}}&digest={{item.sample_digest}}">
-              {{item.sample_digest}}</a></td>
-            </tr>
-            </template>
-          </table>
-        </template>
-      </div>
-    </template>
+      </template>
+    </div>
   </template>
 
   <script>
@@ -107,20 +108,29 @@
 
       // pageSelected is called by the router when this view enters the foreground.
     	pageSelected: function(routeName) {
+        this.$.activityMain.startSpinner("Loading ...");
         sk.get("/json/byblame").then(JSON.parse).then(function (json) {
           // Send the commits to the mailboxes identified by the group id.
           json.data.forEach(function(curr) {
             sk.Mailbox.send(curr.groupID, curr.commits); 
           });
           this.set('data', json.data); 
-        }.bind(this)).catch(sk.errorMessage);
+          this.$.activityMain.stopSpinner(); 
+        }.bind(this)).catch(function(e) {
+          this.$.activityMain.stopSpinner(); 
+          sk.errorMessage(e);
+        }.bind(this));
     	},
 
       // pageDeselected is called by the router when this view enters the background. 
       pageDeselected: function() {},
       
-      _noEntries: function(data) {
-        return !data || (data.length == 0);
+      _detailHref: function(item) {
+        return '/detail' + gold.detailQuery(item.test, item.sample_digest); 
+      },
+
+      _hasEntries: function(data) {
+        return data && (data.length > 0);
       }, 
 
       _noBlames: function(item) {

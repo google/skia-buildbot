@@ -100,11 +100,11 @@
       },
 
       _computeHref: function (di, test) {
-        return 'detail?test=' + test + '&digest=' + di.digest;
+        return 'detail' + gold.detailQuery(test, di.digest);
       },
       
       _computeHref2: function (di, digests, test) {
-        return 'diff?test=' + test + '&left=' + di.digest + '&top=' + digests[0].digest;
+        return 'diff' + gold.diffQuery(test, di.digest, digests[0].digest);
       }
     });
   </script>

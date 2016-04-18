@@ -13,7 +13,8 @@
   <script src="testdata.js"></script>
   <script>
     var server = sinon.fakeServer.create();
-    server.respondImmediately = true;
+    server.autoRespond = true; 
+    server.autoRespondAfter = 2000;
 
     server.respondWith("GET", "/json/search", function(request) {
       request.respond(200, {"Content-Type":"application/json"}, 

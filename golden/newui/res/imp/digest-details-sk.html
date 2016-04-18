@@ -467,10 +467,14 @@
         if (this._right) {
           this.diffDigests = this._concatOrdered(this._right.digest,
                                                  this.details.digest);
-          paramSets.push(this._right.paramset); 
-          paramTitles.push(this._rightParamTitle); 
-        }
 
+          // TODO(stephana): Fix this on the backend to make sure we never get an empty 
+          // set of parameters. Currently it can occur on occasion. 
+          if (this._right.paramset) { 
+            paramSets.push(this._right.paramset); 
+            paramTitles.push(this._rightParamTitle); 
+          }
+        }
         this.$.paramsets.setParamSets(paramSets, paramTitles);
       },
 
@@ -518,7 +522,7 @@
           return "";
         }
 
-        return '/diff?test=' + left.test + '&left=' + left.digest + '&right=' + right.digest;
+        return '/diff' + gold.diffQuery(left.test, left.digest, right.digest);
       },
 
       _detailHref: function (digest) {
@@ -526,7 +530,7 @@
           return ''; 
         }
 
-        return '/detail?test=' + this.details.test + '&digest=' + digest;
+        return '/detail' + gold.detailQuery(this.details.test, digest);
       },
 
       _hideNegPosFound: function(closest) {

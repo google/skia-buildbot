@@ -3,7 +3,8 @@
     Displays a spinner and an optional text. Usually set while content is loading. 
   
     Attributes:
-      None
+      busy - is true when spinner is active. This can used hide parts of the page while 
+             the spinner is active. 
 
     Events:
       None
@@ -35,6 +36,12 @@
       is: 'activity-sk',
 
       properties: {
+        busy: {
+          type: Boolean, 
+          value: false, 
+          notify: true, 
+          reflectToAttribute: true
+        },
         _text: {
           type: String,
           value: ''
@@ -45,12 +52,14 @@
         this._text = text; 
         this.$.activitySpinner.active = true; 
         this._hide = false;
+        this.set('busy', true);
       }, 
 
       stopSpinner: function() {
         this._text='';
         this.$.activitySpinner.active = false;
         this._hide = true;
+        this.set('busy', false);
       }
 
     });
