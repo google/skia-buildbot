@@ -38,6 +38,7 @@ pre {
   margin-left: 1em;
   padding: 1em;
   background: #fafafa;
+  overflow-x: auto;
 }
 
 pre code {
