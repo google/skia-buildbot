@@ -101,6 +101,7 @@ The main application element for the Skia Debugger.
     }
 
     dbg-info-sk,
+    #srgbMode,
     #clip {
       margin-left: 3em;
       margin-bottom: 1em;
@@ -197,6 +198,7 @@ The main application element for the Skia Debugger.
                 <paper-radio-button name="1">sRGB 32-bit</paper-radio-button>
                 <paper-radio-button name="2">Linear half-precision float</paper-radio-button>
               </paper-radio-group>
+              <paper-checkbox id=srgbMode checked="{{_isTrue(_cmd.srgbMode)}}" on-tap="_srgbMode">Treat SkColor as sRGB</paper-checkbox>
             </details-sk>
             <details-sk open>
               <summary-sk>
@@ -395,6 +397,24 @@ The main application element for the Skia Debugger.
           this._refreshPage();
         }.bind(this)).catch(function(err) {
           this.$.colorMode.selected = 0;
+          sk.errorMessage(err);
+        }.bind(this));
+      },
+
+      _srgbMode: function(e) {
+        // Ignore if this._cmd hasn't been loaded yet.
+        if (!this._cmd) {
+          return
+        }
+        // Don't do anything if the toggle and the mode already agree.
+        if (this.$.srgbMode.checked === this._cmd.srgbMode) {
+          return
+        }
+        sk.post("/srgbMode/" + (this.$.srgbMode.checked ? 1 : 0), "").then(function() {
+          // Reloads the image and the JSON for all the commands.
+          this._refreshPage();
+        }.bind(this)).catch(function(err) {
+          this.$.srgbMode.checked = !this.$.srgbMode.checked;
           sk.errorMessage(err);
         }.bind(this));
       },
