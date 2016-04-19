@@ -11,10 +11,6 @@ BOWER_DIR=third_party/bower_components
 
 VULCANIZE1=true
 
-res/css/codemirror.css: third_party/bower_components/codemirror/lib/codemirror.css
-	-mkdir res/css
-	cp third_party/bower_components/codemirror/lib/codemirror.css res/css/codemirror.css
-
 .PHONY: build
 build: elements_html core_js
 	go install -v ./go/fiddle_build
@@ -23,6 +19,10 @@ build: elements_html core_js
 	go install -v ./go/fiddle_run_all
 	go install -v ./go/fiddle
 	c++ fiddle_secwrap.cpp -o fiddle_secwrap
+
+res/css/codemirror.css: third_party/bower_components/codemirror/lib/codemirror.css
+	-mkdir res/css
+	cp third_party/bower_components/codemirror/lib/codemirror.css res/css/codemirror.css
 
 .PHONY: testgo
 testgo:

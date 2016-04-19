@@ -8,6 +8,9 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -52,10 +55,19 @@ type FiddleContext struct {
 	Options types.Options
 }
 
+// CompileError is a single line of compiler error output, along with the line
+// and column that the error occurred at.
+type CompileError struct {
+	Text string `json:"text"`
+	Line int    `json:"line"`
+	Col  int    `json:"col"`
+}
+
 // RunResults is the results we serialize to JSON as the results from a run.
 type RunResults struct {
-	Errors     string `json:"errors"`
-	FiddleHash string `json:"fiddleHash"`
+	CompileErrors []CompileError `json:"compile_errors"`
+	RunTimeError  string         `json:"runtime_error"`
+	FiddleHash    string         `json:"fiddleHash"`
 }
 
 var (
@@ -86,6 +98,30 @@ var (
 		".pdf":        store.PDF,
 		".skp":        store.SKP,
 	}
+
+	// parseCompilerOutput parses the compiler output to look for lines
+	// that begin with "draw.cpp:<N>:<M>:" where N and M are the line and column
+	// number where the error occurred. It also strips off the full path name
+	// of draw.cpp.
+	//
+	// For example if we had the following input line:
+	//
+	//    "/usr/local../src/draw.cpp:8:5: error: expected ‘)’ before ‘canvas’\n void draw(SkCanvas* canvas) {\n     ^\n"
+	//
+	// Then the re.FindAllStringSubmatch(s, -1) will return a match of the form:
+	//
+	//    [][]string{
+	//      []string{
+	//        "/usr/local.../src/draw.cpp:8:5: error: expected ‘)’ before ‘canvas’",
+	//        "/usr/local.../src/",
+	//        "draw.cpp:8:5: error: expected ‘)’ before ‘canvas’",
+	//        "8",
+	//        "5",
+	//      },
+	//    }
+	//
+	// Note that slice items 2, 3, and 4 are the ones we are really interested in.
+	parseCompilerOutput = regexp.MustCompile("^(.*/)(draw.cpp:([0-9]+):([-0-9]+):.*)")
 
 	buildLiveness = metrics2.NewLiveness("fiddle.build")
 	build         *builder.Builder
@@ -182,6 +218,10 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func runHandler(w http.ResponseWriter, r *http.Request) {
+	resp := RunResults{
+		CompileErrors: []CompileError{},
+		FiddleHash:    "",
+	}
 	req := &FiddleContext{}
 	dec := json.NewDecoder(r.Body)
 	defer util.Close(r.Body)
@@ -209,18 +249,50 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to run the fiddle")
 		return
 	}
+	glog.Infof("%#v", *res)
+	if res.Execute.Errors != "" {
+		glog.Infof("Runtime error: %s", res.Execute.Errors)
+		resp.RunTimeError = "Failed to run, possibly violated security container."
+	}
+	// Take the compiler output and strip off all the implementation dependant information
+	// and format it to be retured in RunResults.
+	if res.Compile.Errors != "" {
+		lines := strings.Split(res.Compile.Output, "\n")
+		for _, line := range lines {
+			match := parseCompilerOutput.FindAllStringSubmatch(line, -1)
+			if match == nil || len(match[0]) < 5 {
+				continue
+			}
+			line_num, err := strconv.Atoi(match[0][3])
+			if err != nil {
+				glog.Errorf("Failed to parse compiler output line number: %#v: %s", match, err)
+				continue
+			}
+			col_num, err := strconv.Atoi(match[0][4])
+			if err != nil {
+				glog.Errorf("Failed to parse compiler output column number: %#v: %s", match, err)
+				continue
+			}
+			resp.CompileErrors = append(resp.CompileErrors, CompileError{
+				Text: match[0][2],
+				Line: line_num,
+				Col:  col_num,
+			})
+		}
+	}
+	// Since the compile failed we will only store the code, not the media.
+	if res.Compile.Errors != "" || res.Execute.Errors != "" {
+		res = nil
+	}
 	ts := repo.Timestamp(gitHash)
 	fiddleHash, err := fiddleStore.Put(req.Code, req.Options, gitHash, ts, res)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to store the fiddle")
 		return
 	}
+	resp.FiddleHash = fiddleHash
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	resp := RunResults{
-		Errors:     res.Errors,
-		FiddleHash: fiddleHash,
-	}
 	if err := enc.Encode(resp); err != nil {
 		httputils.ReportError(w, r, err, "Failed to JSON Encode response.")
 	}
