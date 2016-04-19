@@ -4,9 +4,10 @@
   should be supplied as a child element textarea.
 
   Attributes:
-    width  - The width of the fiddle image.
-    height - The height of the fiddle image.
-    source - The index of the source image to use as input.
+    width    - The width of the fiddle image.
+    height   - The height of the fiddle image.
+    source   - The index of the source image to use as input.
+    bug_link - If true then display a link to report a bug.
 
   Methods:
     None.
@@ -99,6 +100,10 @@
     details-sk {
       display: inline-block;
       padding-bottom: 1em;
+
+    #bug {
+      display: inline-block;
+      margin-left: 1em;
     }
   </style>
   <template>
@@ -111,6 +116,9 @@
     <div id=submit>
       <button on-tap="_run">Run</button>
       <paper-spinner id=running></paper-spinner>
+      <template is="dom-if" if="{{bug_link}}">
+        <a id=bug target=_blank href$="{{_bugLink(fiddlehash)}}">File Bug</a>
+      </template>
     </div>
     <div on-tap="_errSelect">
       <template is="dom-if" if="{{_hasCompileErrors(_compile_errors)}}">
@@ -168,6 +176,11 @@
       fiddlehash: {
         type: String,
         value: "",
+        reflectToAttribute: true,
+      },
+      bug_link: {
+        type: Boolean,
+        value: true,
         reflectToAttribute: true,
       },
       _compile_errors: {
@@ -242,6 +255,13 @@
         this._editor.setCursor(+e.target.dataset.line-1, +e.target.dataset.col-1);
         this._editor.focus();
       }
+    },
+
+    _bugLink: function(fiddleHash) {
+      var comment = "Visit this link to see the issue on fiddle:\n\n https://fiddle.skia.org/c/" + fiddleHash;
+      return "https://bugs.chromium.org/p/skia/issues/entry?" + sk.query.fromObject({
+        comment: comment,
+      });
     },
 
     _hasImages: function(fiddlehash, compile_errors, runtime_error) {
