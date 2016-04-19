@@ -104,5 +104,7 @@ Far Future Actions:
         where the color of the pixel at (x, y) has changed.
 
     /enableGPU/[0|1]
-       POST - Changes the rendering to/from CPU/GPU.
+      POST - Changes the rendering to/from CPU/GPU.
 
+    /colorMode/[0|1|2]
+      POST - Changes rendering to Linear 32-bit (0), sRGB (1), or Half-float (2)

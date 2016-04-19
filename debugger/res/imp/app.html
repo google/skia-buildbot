@@ -20,6 +20,8 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/bower_components/paper-header-panel/paper-header-panel.html">
 <link rel=import href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
 <link rel=import href="/res/imp/bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel=import href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
+<link rel=import href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
 <link rel=import href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel=import href="/res/imp/bower_components/paper-toolbar/paper-toolbar.html">
 <link rel=import href="/res/imp/bower_components/paper-tabs/paper-tabs.html">
@@ -105,6 +107,12 @@ The main application element for the Skia Debugger.
       display: block;
     }
 
+    paper-radio-button {
+      margin-left: 3em;
+      margin-bottom: 1em;
+      padding: 0;
+    }
+
     #gpuBatchBounds,
     paper-toggle-button {
       margin: 0.5em 1em;
@@ -180,6 +188,16 @@ The main application element for the Skia Debugger.
             </div>
           </div>
           <div id=right class="layout vertical flex-2">
+            <details-sk open>
+              <summary-sk>
+                Color Mode
+              </summary-sk>
+              <paper-radio-group class="layout vertical" on-paper-radio-group-changed="_colorModeChange" id=colorMode selected="[[_cmd.colorMode]]">
+                <paper-radio-button name="0">Linear 32-bit (Legacy)</paper-radio-button>
+                <paper-radio-button name="1">sRGB 32-bit</paper-radio-button>
+                <paper-radio-button name="2">Linear half-precision float</paper-radio-button>
+              </paper-radio-group>
+            </details-sk>
             <details-sk open>
               <summary-sk>
                 Clip and Matrix
@@ -361,6 +379,24 @@ The main application element for the Skia Debugger.
 
       attached: function() {
         document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+      },
+
+      _colorModeChange: function(e) {
+        // Ignore if this._cmd hasn't been loaded yet.
+        if (!this._cmd) {
+          return
+        }
+        // Don't do anything if the radio group and the mode already agree.
+        if (e.target.selected == this._cmd.colorMode) {
+          return
+        }
+        sk.post("/colorMode/" + e.target.selected, "").then(function() {
+          // Reloads the image and the JSON for all the commands.
+          this._refreshPage();
+        }.bind(this)).catch(function(err) {
+          this.$.colorMode.selected = 0;
+          sk.errorMessage(err);
+        }.bind(this));
       },
 
       _gpuChange: function(e) {
