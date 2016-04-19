@@ -75,7 +75,7 @@ func main() {
 		filepath.Join(*fiddleRoot, "src", "draw.cpp"),
 	}
 	linkArgs := []string{path.Join(checkout, "cmakeout", "fiddle_main.o"), "-lOSMesa"}
-	compilePaths := []string{path.Join(checkout, "experimental", "fiddle")}
+	compilePaths := []string{path.Join(checkout, "tools", "fiddle")}
 	compileOutput, err := buildskia.CMakeCompileAndLink(checkout, path.Join(*fiddleRoot, "out", "fiddle_main"), files, compilePaths, linkArgs)
 	if err != nil {
 		res.Compile.Errors = err.Error()

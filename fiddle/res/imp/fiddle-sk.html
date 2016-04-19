@@ -17,6 +17,8 @@
 -->
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all">
 <link rel="import" href="bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="/res/common/imp/9/details-summary.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <style type="text/css" media="screen">
     .CodeMirror .error {
       background: #f88;
@@ -89,8 +91,22 @@
       color: #E31A1C;
       font-size: 18px;
     }
+
+    paper-input {
+      margin-left: 3em;
+    }
+
+    details-sk {
+      display: inline-block;
+      padding-bottom: 1em;
+    }
   </style>
   <template>
+    <details-sk>
+      <summary-sk>Options</summary-sk>
+      <paper-input label="Width" auto-validate allowed-pattern="[0-9]" value="{{width}}"></paper-input>
+      <paper-input label="Height" auto-validate allowed-pattern="[0-9]" value="{{height}}"></paper-input>
+    </details-sk>
     <content></content>
     <div id=submit>
       <button on-tap="_run">Run</button>
@@ -200,8 +216,8 @@
       body = {
         code: $$$('textarea', this).value,
         options: {
-          width: this.width,
-          height: this.height,
+          width: +this.width,
+          height: +this.height,
           source: this.source,
         }
       };
