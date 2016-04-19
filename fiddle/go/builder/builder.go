@@ -90,7 +90,7 @@ func buildLib(checkout, depotTools string) error {
 
 	glog.Info("Building fiddle_main.o")
 	files := []string{
-		filepath.Join(checkout, "experimental", "fiddle", "fiddle_main.cpp"),
+		filepath.Join(checkout, "tools", "fiddle", "fiddle_main.cpp"),
 	}
 	if err := buildskia.CMakeCompile(checkout, path.Join(checkout, "cmakeout", "fiddle_main.o"), files, []string{}); err != nil {
 		return fmt.Errorf("Failed cmake build of fiddle_main: %s", err)
