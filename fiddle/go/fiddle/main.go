@@ -132,6 +132,7 @@ var (
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/iframe.html"),
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -143,6 +144,33 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 	if err := templates.ExecuteTemplate(w, "index.html", defaultFiddle); err != nil {
+		glog.Errorln("Failed to expand template:", err)
+	}
+}
+
+// iframeHandle handles permalinks to individual fiddles.
+func iframeHandle(w http.ResponseWriter, r *http.Request) {
+	fiddleHash := mux.Vars(r)["fiddleHash"]
+	if len(fiddleHash) < FIDDLE_HASH_LENGTH {
+		http.NotFound(w, r)
+		glog.Error("Id too short.")
+		return
+	}
+	if *local {
+		loadTemplates()
+	}
+	code, options, err := fiddleStore.GetCode(fiddleHash)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	context := &FiddleContext{
+		Hash:    fiddleHash,
+		Code:    code,
+		Options: *options,
+	}
+	w.Header().Set("Content-Type", "text/html")
+	if err := templates.ExecuteTemplate(w, "iframe.html", context); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
 }
@@ -378,6 +406,7 @@ func main() {
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/i/{id:[0-9a-zA-Z._]+}", imageHandler)
 	r.HandleFunc("/c/{fiddleHash:[0-9a-zA-Z]+}", individualHandle)
+	r.HandleFunc("/iframe/{fiddleHash:[0-9a-zA-Z]+}", iframeHandle)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

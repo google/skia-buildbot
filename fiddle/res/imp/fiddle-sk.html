@@ -4,10 +4,11 @@
   should be supplied as a child element textarea.
 
   Attributes:
-    width    - The width of the fiddle image.
-    height   - The height of the fiddle image.
-    source   - The index of the source image to use as input.
-    bug_link - If true then display a link to report a bug.
+    width        - The width of the fiddle image.
+    height       - The height of the fiddle image.
+    source       - The index of the source image to use as input.
+    bug_link     - If true then display a link to report a bug.
+    embed_button - If true then display the embed button.
 
   Methods:
     None.
@@ -19,6 +20,7 @@
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all">
 <link rel="import" href="bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="/res/common/imp/9/details-summary.html">
+<link rel="import" href="/res/common/imp/9/toggle.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <style type="text/css" media="screen">
     .CodeMirror .error {
@@ -46,6 +48,16 @@
 
 <dom-module id="fiddle-sk">
   <style>
+    #embedder {
+      display: none;
+      margin-left: 2em;
+    }
+
+    #embedder.display {
+      display: block;
+    }
+
+
     img {
       box-shadow: 2px 2px 5px gray;
       display: inline-block;
@@ -100,6 +112,7 @@
     details-sk {
       display: inline-block;
       padding-bottom: 1em;
+    }
 
     #bug {
       display: inline-block;
@@ -107,17 +120,26 @@
     }
   </style>
   <template>
-    <details-sk>
-      <summary-sk>Options</summary-sk>
-      <paper-input label="Width" auto-validate allowed-pattern="[0-9]" value="{{width}}"></paper-input>
-      <paper-input label="Height" auto-validate allowed-pattern="[0-9]" value="{{height}}"></paper-input>
-    </details-sk>
+    <template is="dom-if" if="{{display_options}}">
+      <details-sk>
+        <summary-sk>Options</summary-sk>
+        <paper-input label="Width" auto-validate allowed-pattern="[0-9]" value="{{width}}"></paper-input>
+        <paper-input label="Height" auto-validate allowed-pattern="[0-9]" value="{{height}}"></paper-input>
+      </details-sk>
+    </template>
     <content></content>
     <div id=submit>
-      <button on-tap="_run">Run</button>
+      <button class=action on-tap="_run">Run</button>
       <paper-spinner id=running></paper-spinner>
       <template is="dom-if" if="{{bug_link}}">
         <a id=bug target=_blank href$="{{_bugLink(fiddlehash)}}">File Bug</a>
+      </template>
+      <template is="dom-if" if="{{embed_button}}">
+        <toggle-display-sk>Embed</toggle-display-sk>
+        <div id=embedder>
+          <h3>To embed as in iframe, use:</h3>
+          <input type="text" readonly size=150 value="&lt;iframe src='https://fiddle.skia.org/iframe/{{fiddlehash}}' width='900' height='550' style='border: solid #00a 1px; border-radius: 5px;'/>">
+        </div>
       </template>
     </div>
     <div on-tap="_errSelect">
@@ -180,7 +202,17 @@
       },
       bug_link: {
         type: Boolean,
-        value: true,
+        value: false,
+        reflectToAttribute: true,
+      },
+      embed_button: {
+        type: Boolean,
+        value: false,
+        reflectToAttribute: true,
+      },
+      display_options: {
+        type: Boolean,
+        value: false,
         reflectToAttribute: true,
       },
       _compile_errors: {

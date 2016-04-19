@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Skia Fiddle</title>
+    {%template "header.html" .%}
+</head>
+<body class="fullbleed vertical layout unresolved">
+  <link rel="stylesheet" href="/res/css/codemirror.css">
+  <style is="custom-style">
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    * {
+      font-family:Helvetica,Arial,'Bitstream Vera Sans',sans-serif;
+    }
+  </style>
+  <fiddle-sk width="{%.Options.Width%}" height="{%.Options.Height%}" source="{%.Options.Source%}" fiddlehash="{%.Hash%}">
+    <textarea spellcheck="false" rows="15" cols="100">{%.Code%}</textarea>
+  </fiddle-sk>
+  <error-toast-sk></error-toast-sk>
+</body>
+</html>
