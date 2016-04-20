@@ -100,13 +100,20 @@ func main() {
 		return
 	}
 
-	// Run the capture_skps script on all workers.
-	captureSKPsCmdTemplate := "DISPLAY=:0 capture_skps --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} " +
+	workerScript := "capture_skps"
+	// If it is a PDF page set then use the capture_skps_from_pdfs worker script instead.
+	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
+		workerScript = "capture_skps_from_pdfs"
+	}
+
+	// Run the capture SKPs script on all workers.
+	captureSKPsCmdTemplate := "DISPLAY=:0 {{.WorkerScript}} --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} " +
 		"--pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} " +
 		"--target_platform={{.TargetPlatform}} --local={{.Local}};"
 	captureSKPsTemplateParsed := template.Must(template.New("capture_skps_cmd").Parse(captureSKPsCmdTemplate))
 	captureSKPsCmdBytes := new(bytes.Buffer)
 	if err := captureSKPsTemplateParsed.Execute(captureSKPsCmdBytes, struct {
+		WorkerScript   string
 		WorkerNum      string
 		LogDir         string
 		PagesetType    string
@@ -115,6 +122,7 @@ func main() {
 		TargetPlatform string
 		Local          bool
 	}{
+		WorkerScript:   workerScript,
 		WorkerNum:      util.WORKER_NUM_KEYWORD,
 		LogDir:         util.GLogDir,
 		PagesetType:    *pagesetType,
@@ -126,10 +134,10 @@ func main() {
 		glog.Errorf("Failed to execute template: %s", err)
 		return
 	}
-	cmd := append(master_common.WorkerSetupCmds(),
-		// The main command that runs capture_skps on all workers.
-		captureSKPsCmdBytes.String())
 
+	cmd := append(master_common.WorkerSetupCmds(),
+		// The main command that captures SKPs on all workers.
+		captureSKPsCmdBytes.String())
 	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CAPTURE_SKPS_TIMEOUT)
 	if err != nil {
 		glog.Errorf("Error while running cmd %s: %s", cmd, err)
