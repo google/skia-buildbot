@@ -34,10 +34,11 @@ type Media string
 
 // Media constants.
 const (
-	CPU Media = "CPU"
-	GPU Media = "GPU"
-	PDF Media = "PDF"
-	SKP Media = "SKP"
+	CPU     Media = "CPU"
+	GPU     Media = "GPU"
+	PDF     Media = "PDF"
+	SKP     Media = "SKP"
+	UNKNOWN Media = ""
 )
 
 // props records the name and content-type for each type of Media and is used in mediaProps.
@@ -397,4 +398,19 @@ func (s *Store) ListSourceImages() ([]int, error) {
 		q = list.Next
 	}
 	return ret, nil
+}
+
+// GetHashFromName loads the fiddle hash for the given name.
+func (s *Store) GetHashFromName(name string) (string, error) {
+	ctx := context.Background()
+	r, err := s.bucket.Object(fmt.Sprintf("named/%s", name)).NewReader(ctx)
+	if err != nil {
+		return "", fmt.Errorf("Failed to open reader for name %q: %s", name, err)
+	}
+	defer util.Close(r)
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		return "", fmt.Errorf("Failed to read named file %q: %s", name, err)
+	}
+	return string(b), nil
 }

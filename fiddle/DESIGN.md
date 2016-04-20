@@ -151,6 +151,12 @@ accomplishes the above goals.
     this preserves the newest build and the oldest build, and again reduces
     the number of builds to 128.
 
+Named Fiddles
+-------------
+Named fiddles are actually just like soft links from a name to the fiddleHash
+of a fiddle. They can only be created by logged in users and the id of the
+person that created the named shortcut is attached as metadata to the file.
+
 URLs
 ----
 
@@ -230,6 +236,15 @@ In addition there is a text file:
 That contains in text the largest ID for a source image ever used. This should
 be incremented and written back to Google Storage before adding a new image.
 Note that writing using generations can prevent the lost update problem.
+
+Named fiddles are actually just like soft links from a name to the fiddleHash
+of a fiddle. The named fiddles are stored in:
+
+    gs://skia-fiddle/named/<fiddle name>
+
+Where the id of the fiddle is the filename, and the contents of the file is
+the fiddleHash. The id of the person that created the named shortcut is
+attached as metadata to the file.
 
 Drive
 -----

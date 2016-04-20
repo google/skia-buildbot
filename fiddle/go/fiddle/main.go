@@ -16,6 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/builder"
+	"go.skia.org/infra/fiddle/go/named"
 	"go.skia.org/infra/fiddle/go/runner"
 	"go.skia.org/infra/fiddle/go/source"
 	"go.skia.org/infra/fiddle/go/store"
@@ -51,8 +52,8 @@ var (
 //
 // It is also used (without the Hash) as the incoming JSON request to /_/run.
 type FiddleContext struct {
-	Sources string `json:"sources"` // All the source image ids serialized as a JSON array.
-	Hash    string `json:"fiddlehash"`
+	Sources string `json:"sources"`    // All the source image ids serialized as a JSON array.
+	Hash    string `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
 	Code    string `json:"code"`
 	Options types.Options
 }
@@ -130,6 +131,7 @@ var (
 	fiddleStore   *store.Store
 	repo          *gitinfo.GitInfo
 	src           *source.Source
+	names         *named.Named
 )
 
 func loadTemplates() {
@@ -148,16 +150,17 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defaultFiddle.Sources = src.ListAsJSON()
 	if err := templates.ExecuteTemplate(w, "index.html", defaultFiddle); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+		glog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
 // iframeHandle handles permalinks to individual fiddles.
 func iframeHandle(w http.ResponseWriter, r *http.Request) {
-	fiddleHash := mux.Vars(r)["fiddleHash"]
-	if len(fiddleHash) < FIDDLE_HASH_LENGTH {
+	id := mux.Vars(r)["id"]
+	fiddleHash, err := names.DereferenceID(id)
+	if err != nil {
 		http.NotFound(w, r)
-		glog.Error("Id too short.")
+		glog.Errorf("Invalid id: %s", err)
 		return
 	}
 	if *local {
@@ -169,22 +172,23 @@ func iframeHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	context := &FiddleContext{
-		Hash:    fiddleHash,
+		Hash:    id,
 		Code:    code,
 		Options: *options,
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if err := templates.ExecuteTemplate(w, "iframe.html", context); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+		glog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
 // individualHandle handles permalinks to individual fiddles.
 func individualHandle(w http.ResponseWriter, r *http.Request) {
-	fiddleHash := mux.Vars(r)["fiddleHash"]
-	if len(fiddleHash) < FIDDLE_HASH_LENGTH {
+	id := mux.Vars(r)["id"]
+	fiddleHash, err := names.DereferenceID(id)
+	if err != nil {
 		http.NotFound(w, r)
-		glog.Error("Id too short.")
+		glog.Errorf("Invalid id: %s", err)
 		return
 	}
 	if *local {
@@ -197,13 +201,13 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 	}
 	context := &FiddleContext{
 		Sources: src.ListAsJSON(),
-		Hash:    fiddleHash,
+		Hash:    id,
 		Code:    code,
 		Options: *options,
 	}
 	w.Header().Set("Content-Type", "text/html")
 	if err := templates.ExecuteTemplate(w, "index.html", context); err != nil {
-		glog.Errorln("Failed to expand template:", err)
+		glog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -215,27 +219,18 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 //   /i/cbb8dee39e9f1576cd97c2d504db8eee_gpu.png
 //   /i/cbb8dee39e9f1576cd97c2d504db8eee.pdf
 //   /i/cbb8dee39e9f1576cd97c2d504db8eee.skp
+//
+// or
+//
+//   /i/@some_name.png
+//   /i/@some_name_gpu.png
+//   /i/@some_name.pdf
+//   /i/@some_name.skp
 func imageHandler(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	if len(id) < FIDDLE_HASH_LENGTH {
+	fiddleHash, media, err := names.DereferenceImageID(mux.Vars(r)["id"])
+	if err != nil {
 		http.NotFound(w, r)
-		glog.Error("Id too short.")
-		return
-	}
-	// The id is of the form:
-	//
-	//   cbb8dee39e9f1576cd97c2d504db8eee_raster.png
-	//   cbb8dee39e9f1576cd97c2d504db8eee_gpu.png
-	//   cbb8dee39e9f1576cd97c2d504db8eee.pdf
-	//   cbb8dee39e9f1576cd97c2d504db8eee.skp
-	//
-	// So we need to extract the fiddle hash.
-	fiddleHash := id[:FIDDLE_HASH_LENGTH]
-	trailing := id[FIDDLE_HASH_LENGTH:]
-	media, ok := trailingToMedia[trailing]
-	if !ok {
-		http.NotFound(w, r)
-		glog.Errorf("Unknown media type: %s", trailing)
+		glog.Errorf("Invalid id: %s", err)
 		return
 	}
 	body, contentType, _, err := fiddleStore.GetMedia(fiddleHash, media)
@@ -246,7 +241,7 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", contentType)
 	if _, err := w.Write(body); err != nil {
-		glog.Errorln("Failed to write image: %s", err)
+		glog.Errorf("Failed to write image: %s", err)
 	}
 }
 
@@ -273,7 +268,7 @@ func sourceHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "image/png")
 	if _, err := w.Write(b); err != nil {
-		glog.Errorln("Failed to write image: %s", err)
+		glog.Errorf("Failed to write image: %s", err)
 		return
 	}
 }
@@ -365,7 +360,7 @@ func templateHandler(name string) http.HandlerFunc {
 			loadTemplates()
 		}
 		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
-			glog.Errorln("Failed to expand template:", err)
+			glog.Errorf("Failed to expand template: %s", err)
 		}
 	}
 }
@@ -436,13 +431,14 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to initialize source images: %s", err)
 	}
+	names = named.New(fiddleStore)
 	build = builder.New(*fiddleRoot, *depotTools)
 	StartBuilding()
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
-	r.HandleFunc("/i/{id:[0-9a-zA-Z._]+}", imageHandler)
-	r.HandleFunc("/c/{fiddleHash:[0-9a-zA-Z]+}", individualHandle)
-	r.HandleFunc("/iframe/{fiddleHash:[0-9a-zA-Z]+}", iframeHandle)
+	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
+	r.HandleFunc("/c/{id:[@0-9a-zA-Z]+}", individualHandle)
+	r.HandleFunc("/iframe/{id:[@0-9a-zA-Z]+}", iframeHandle)
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
