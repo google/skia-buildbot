@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>search-page-sk demo</title>
+  <title>triagelog-page-sk demo</title>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
@@ -17,25 +17,25 @@
     server.autoRespond = true; 
     server.autoRespondAfter = 1000;
 
-    server.respondWith("GET", /\/json\/search*/, function(request) {
+    server.respondWith("GET", /\/json\/triagelog.*/, function(request) {
       request.respond(200, {"Content-Type":"application/json"}, 
-        JSON.stringify(testdata.fiveSearchResults));
+        JSON.stringify(testdata.triageLogResults));
     });
 
-    server.respondWith("GET", "/json/paramset", function(request) {
+    server.respondWith(/\/json\/triagelog\/undo.*/, function(request, id) {
       request.respond(200, {"Content-Type":"application/json"}, 
-        JSON.stringify(testdata.paramSet));
+        JSON.stringify(testdata.triageLogResults));
     });
 
   </script>
 
-  <link rel="import" href="search-page-sk.html">
+  <link rel="import" href="triagelog-page-sk.html">
 
 </head>
 <body>
-  <search-page-sk></search-page-sk>
+  <triagelog-page-sk></triagelog-page-sk>
   <script type="text/javascript" charset="utf-8">
-      $$$('search-page-sk').pageSelected();
+      $$$('triagelog-page-sk').pageSelected();
   </script>
 </body>
 </html>
