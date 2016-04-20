@@ -24,6 +24,8 @@ const (
 	MAX_SYNC_TRIES = 3
 
 	TS_FORMAT = "20060102150405"
+
+	REMOVE_INVALID_SKPS_WORKER_POOL = 20
 )
 
 // GetCTWorkersProd returns an array of all CT workers in the Cluster Telemetry Golo.
@@ -264,7 +266,6 @@ func ReadPageset(pagesetPath string) (PagesetVars, error) {
 
 // ValidateSKPs moves all root_dir/dir_name/*.skp into the root_dir and validates them.
 // SKPs that fail validation are logged and deleted.
-// TODO(rmistry): Parallelize remove_invalid_skps.py
 func ValidateSKPs(pathToSkps string) error {
 	// List all directories in pathToSkps and copy out the skps.
 	skpFileInfos, err := ioutil.ReadDir(pathToSkps)
@@ -293,7 +294,8 @@ func ValidateSKPs(pathToSkps string) error {
 			// malformed.
 			if largestLayerInfo.Size() > 6000 {
 				layerPath := filepath.Join(pathToSkps, skpName, largestLayerInfo.Name())
-				util.Rename(layerPath, filepath.Join(pathToSkps, skpName+".skp"))
+				destSKP := filepath.Join(pathToSkps, skpName+".skp")
+				util.Rename(layerPath, destSKP)
 			} else {
 				glog.Warningf("Skipping %s because size was less than 6000 bytes", skpName)
 			}
@@ -302,24 +304,59 @@ func ValidateSKPs(pathToSkps string) error {
 		util.RemoveAll(filepath.Join(pathToSkps, skpName))
 	}
 
-	glog.Info("Calling remove_invalid_skps.py")
+	// Create channel that contains all SKP file paths. This channel will
+	// be consumed by the worker pool below to run remove_invalid_skp.py in
+	// parallel.
+	skps, err := ioutil.ReadDir(pathToSkps)
+	if err != nil {
+		return fmt.Errorf("Unable to read %s: %s", pathToSkps, err)
+	}
+	skpsChannel := make(chan string, len(skps))
+	for _, skp := range skps {
+		skpsChannel <- filepath.Join(pathToSkps, skp.Name())
+	}
+	close(skpsChannel)
+
+	glog.Info("Calling remove_invalid_skp.py")
 	// Sync Skia tree.
 	util.LogErr(SyncDir(SkiaTreeDir))
 	// Build tools.
 	util.LogErr(BuildSkiaTools())
-	// Run remove_invalid_skps.py.
+	// Run remove_invalid_skp.py in parallel goroutines.
 	// Construct path to the python script.
 	_, currentFile, _, _ := runtime.Caller(0)
 	pathToPyFiles := filepath.Join(
 		filepath.Dir((filepath.Dir(filepath.Dir(currentFile)))),
 		"py")
-	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skps.py")
+	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skp.py")
 	pathToSKPInfo := filepath.Join(SkiaTreeDir, "out", "Release", "skpinfo")
-	args := []string{
-		pathToRemoveSKPs,
-		"--skp_dir=" + pathToSkps,
-		"--path_to_skpinfo=" + pathToSKPInfo,
+
+	var wg sync.WaitGroup
+
+	// Loop through workers in the worker pool.
+	for i := 0; i < REMOVE_INVALID_SKPS_WORKER_POOL; i++ {
+		// Increment the WaitGroup counter.
+		wg.Add(1)
+
+		// Create and run a goroutine closure that captures SKPs.
+		go func(i int) {
+			// Decrement the WaitGroup counter when the goroutine completes.
+			defer wg.Done()
+
+			for skpPath := range skpsChannel {
+				args := []string{
+					pathToRemoveSKPs,
+					"--path_to_skp=" + skpPath,
+					"--path_to_skpinfo=" + pathToSKPInfo,
+				}
+				glog.Infof("Executing with goroutine#%d", i+1)
+				util.LogErr(ExecuteCmd("python", args, []string{}, REMOVE_INVALID_SKPS_TIMEOUT, nil, nil))
+			}
+		}(i)
 	}
-	util.LogErr(ExecuteCmd("python", args, []string{}, REMOVE_INVALID_SKPS_TIMEOUT, nil, nil))
+
+	// Wait for all spawned goroutines to complete.
+	wg.Wait()
+
 	return nil
 }

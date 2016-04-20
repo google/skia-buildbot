@@ -26,33 +26,25 @@ def IsSKPValid(path_to_skp, path_to_skpinfo):
     return False
 
 
-def RemoveInvalidSKPs(skp_dir, path_to_skpinfo):
+def RemoveInvalidSKPs(path_to_skp, path_to_skpinfo):
   """Removes invalid SKPs from the provided local dir."""
-  invalid_skps = []
-  for path_to_skp in glob.glob(os.path.join(skp_dir, '*.skp')):
-    if not IsSKPValid(path_to_skp, path_to_skpinfo):
-      print '=====%s is invalid!=====' % path_to_skp
-      invalid_skps.append(path_to_skp)
-      # Delete the SKP from the local path.
-      os.remove(path_to_skp)
-
-  if invalid_skps:
-    print '\n\n=====Deleted the following SKPs:====='
-    for invalid_skp in invalid_skps:
-      print invalid_skp
+  if not IsSKPValid(path_to_skp, path_to_skpinfo):
+    print '=====%s is invalid!=====' % path_to_skp
+    os.remove(path_to_skp)
+    print '=====Deleted the SKP=====\n\n'
 
 
 if '__main__' == __name__:
   option_parser = optparse.OptionParser()
   option_parser.add_option(
-    '', '--skp_dir', help='Directory that contains the SKPs we want to check.')
+    '', '--path_to_skp', help='Path to the SKP we want to check.')
   option_parser.add_option(
     '', '--path_to_skpinfo', help='Complete path to the skpinfo binary.')
 
   options, unused_args = option_parser.parse_args()
-  if not (options.skp_dir and options.path_to_skpinfo):
-    option_parser.error('Must specify skp_dir and path_to_skpinfo')
+  if not (options.path_to_skp and options.path_to_skpinfo):
+    option_parser.error('Must specify path_to_skp and path_to_skpinfo')
 
-  RemoveInvalidSKPs(skp_dir=options.skp_dir,
+  RemoveInvalidSKPs(path_to_skp=options.path_to_skp,
                     path_to_skpinfo=options.path_to_skpinfo)
 
