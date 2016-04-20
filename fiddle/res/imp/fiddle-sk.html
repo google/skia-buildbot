@@ -90,13 +90,13 @@
       padding: 1.5em;
     }
 
-    pre {
+    .compile-error {
       margin: 0 0 0 2em;
       font-weight: bold;
       cursor: pointer;
     }
 
-    pre:hover {
+    .compile-error:hover {
       background: #eee;
     }
 
@@ -105,26 +105,50 @@
       font-size: 18px;
     }
 
-    paper-input {
-      margin-left: 3em;
-    }
-
     details-sk {
       display: inline-block;
       padding-bottom: 1em;
+    }
+
+    .options {
+      margin-left: 3em;
     }
 
     #bug {
       display: inline-block;
       margin-left: 1em;
     }
+
+    iron-selector img {
+      margin: 0.5em;
+    }
+
+    img.iron-selected {
+      border: solid #1F78B4 3px;
+    }
+
+    .source-select {
+      margin: 1em 0 0.5em 0;
+    }
+
+    paper-input {
+      display: inline-block;
+    }
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
       <details-sk>
         <summary-sk>Options</summary-sk>
-        <paper-input label="Width" auto-validate allowed-pattern="[0-9]" value="{{width}}"></paper-input>
-        <paper-input label="Height" auto-validate allowed-pattern="[0-9]" value="{{height}}"></paper-input>
+        <div class=options>
+          <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]" value="{{width}}"></paper-input>
+          <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]" value="{{height}}"></paper-input>
+          <pre class=source-select>SkBitmap source;</pre>
+          <iron-selector selected="{{source}}" attr-for-selected="name" class="layout horizontal wrap">
+            <template is="dom-repeat" items="{{sources}}">
+              <img width=64 height=64 name="{{item}}" src="/s/{{item}}">
+            </template>
+          </iron-selector>
+        </div>
       </details-sk>
     </template>
     <content></content>
@@ -146,7 +170,7 @@
       <template is="dom-if" if="{{_hasCompileErrors(_compile_errors)}}">
         <h2>Compilation Errors</h2>
         <template is="dom-repeat" items="{{_compile_errors}}">
-          <pre data-line$={{item.line}} data-col$={{item.col}}>{{item.text}}</pre>
+          <pre class=compile-error data-line$="{{item.line}}" data-col$="{{item.col}}">{{item.text}}</pre>
         </template>
       </template>
     </div>
@@ -193,6 +217,11 @@
       source: {
         type: Number,
         value: 0,
+        reflectToAttribute: true,
+      },
+      sources: {
+        type: Array,
+        value: function() { return []; },
         reflectToAttribute: true,
       },
       fiddlehash: {
@@ -263,7 +292,7 @@
         options: {
           width: +this.width,
           height: +this.height,
-          source: this.source,
+          source: +this.source,
         }
       };
       sk.post("/_/run", JSON.stringify(body)).then(JSON.parse).then(function(json) {

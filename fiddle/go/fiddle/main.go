@@ -17,6 +17,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/builder"
 	"go.skia.org/infra/fiddle/go/runner"
+	"go.skia.org/infra/fiddle/go/source"
 	"go.skia.org/infra/fiddle/go/store"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/common"
@@ -50,6 +51,7 @@ var (
 //
 // It is also used (without the Hash) as the incoming JSON request to /_/run.
 type FiddleContext struct {
+	Sources string `json:"sources"` // All the source image ids serialized as a JSON array.
 	Hash    string `json:"fiddlehash"`
 	Code    string `json:"code"`
 	Options types.Options
@@ -127,6 +129,7 @@ var (
 	build         *builder.Builder
 	fiddleStore   *store.Store
 	repo          *gitinfo.GitInfo
+	src           *source.Source
 )
 
 func loadTemplates() {
@@ -143,6 +146,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
+	defaultFiddle.Sources = src.ListAsJSON()
 	if err := templates.ExecuteTemplate(w, "index.html", defaultFiddle); err != nil {
 		glog.Errorln("Failed to expand template:", err)
 	}
@@ -192,6 +196,7 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	context := &FiddleContext{
+		Sources: src.ListAsJSON(),
 		Hash:    fiddleHash,
 		Code:    code,
 		Options: *options,
@@ -245,6 +250,34 @@ func imageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// sourceHandler serves up source image thumbnails.
+//
+// The URLs look like:
+//
+//   /s/NNN
+//
+// Where NNN is the id of the source image.
+func sourceHandler(w http.ResponseWriter, r *http.Request) {
+	id := mux.Vars(r)["id"]
+	i, err := strconv.Atoi(id)
+	if err != nil {
+		http.NotFound(w, r)
+		glog.Errorf("Invalid source id: %s", err)
+		return
+	}
+	b, ok := src.Thumbnail(i)
+	if !ok {
+		http.NotFound(w, r)
+		glog.Errorf("Unknown source id %s", id)
+		return
+	}
+	w.Header().Set("Content-Type", "image/png")
+	if _, err := w.Write(b); err != nil {
+		glog.Errorln("Failed to write image: %s", err)
+		return
+	}
+}
+
 func runHandler(w http.ResponseWriter, r *http.Request) {
 	resp := RunResults{
 		CompileErrors: []CompileError{},
@@ -277,7 +310,6 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to run the fiddle")
 		return
 	}
-	glog.Infof("%#v", *res)
 	if res.Execute.Errors != "" {
 		glog.Infof("Runtime error: %s", res.Execute.Errors)
 		resp.RunTimeError = "Failed to run, possibly violated security container."
@@ -400,6 +432,10 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to store: %s", err)
 	}
+	src, err = source.New(fiddleStore)
+	if err != nil {
+		glog.Fatalf("Failed to initialize source images: %s", err)
+	}
 	build = builder.New(*fiddleRoot, *depotTools)
 	StartBuilding()
 	r := mux.NewRouter()
@@ -407,6 +443,7 @@ func main() {
 	r.HandleFunc("/i/{id:[0-9a-zA-Z._]+}", imageHandler)
 	r.HandleFunc("/c/{fiddleHash:[0-9a-zA-Z]+}", individualHandle)
 	r.HandleFunc("/iframe/{fiddleHash:[0-9a-zA-Z]+}", iframeHandle)
+	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

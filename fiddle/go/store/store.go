@@ -4,10 +4,13 @@ package store
 import (
 	"encoding/base64"
 	"fmt"
+	"image"
+	"image/png"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -50,6 +53,9 @@ var (
 		PDF: props{filename: "pdf.pdf", contentType: "application/pdf"},
 		SKP: props{filename: "skp.skp", contentType: "application/octet-stream"},
 	}
+
+	// sourceFileName parses a souce image filename as stored in Google Storage.
+	sourceFileName = regexp.MustCompile("^([0-9]+).png$")
 )
 
 // Store is used to read and write user code and media to and from Google
@@ -346,4 +352,49 @@ func (s *Store) DownloadAllSourceImages(fiddleRoot string) error {
 		q = list.Next
 	}
 	return nil
+}
+
+// GetSourceImage downloads a single source image from the Google Storage bucket.
+func (s *Store) GetSourceImage(i int) (image.Image, error) {
+	ctx := context.Background()
+	r, err := s.bucket.Object(fmt.Sprintf("source/%d.png", i)).NewReader(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to open reader for image: %s", err)
+	}
+	defer util.Close(r)
+	return png.Decode(r)
+}
+
+// ListSourceImages returns the ids of all the images under gs://skia-fiddles/source/.
+func (s *Store) ListSourceImages() ([]int, error) {
+	ret := []int{}
+	ctx := context.Background()
+	q := &storage.Query{
+		Prefix: fmt.Sprintf("source/"),
+	}
+	for {
+		list, err := s.bucket.List(ctx, q)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve image list: %s", err)
+		}
+		for _, res := range list.Results {
+			filename := strings.Split(res.Name, "/")[1]
+			matches := sourceFileName.FindAllStringSubmatch(filename, -1)
+			if len(matches) != 1 || len(matches[0]) != 2 {
+				glog.Infof("Filename %s is not a source image.", filename)
+				continue
+			}
+			i, err := strconv.Atoi(matches[0][1])
+			if err != nil {
+				glog.Errorf("Failed to parse souce image filename: %s", err)
+				continue
+			}
+			ret = append(ret, i)
+		}
+		if list.Next == nil {
+			break
+		}
+		q = list.Next
+	}
+	return ret, nil
 }
