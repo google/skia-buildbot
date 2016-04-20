@@ -312,12 +312,16 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	}
 
 	ret := make([]*Digest, 0, len(digestMap))
+	allDigests := make([]string, len(digestMap))
 	emptyTraces := &Traces{}
 	for _, digestEntry := range digestMap {
 		digestEntry.Diff = buildDiff(digestEntry.Test, digestEntry.Digest, exp, nil, talliesByTest, nil, storages.DiffStore, tileParamSet, q.IncludeIgnores)
 		digestEntry.Traces = emptyTraces
 		ret = append(ret, digestEntry)
+		allDigests = append(allDigests, digestEntry.Digest)
 	}
+
+	loadDigests(storages.DiffStore, allDigests)
 
 	issueResponse := &IssueResponse{
 		IssueDetails:   issue,
@@ -651,4 +655,13 @@ func GetDigestDetails(test, digest string, storages *storage.Storage, paramsetSu
 		},
 		Commits: tile.Commits,
 	}, nil
+}
+
+// TODO(stephana): Remove this stop gap when a better diff store is in place.
+
+// loadDigests makes sure the digests are loaded.
+func loadDigests(diffStore diff.DiffStore, digests []string) {
+	go func() {
+		diffStore.AbsPath(digests)
+	}()
 }
