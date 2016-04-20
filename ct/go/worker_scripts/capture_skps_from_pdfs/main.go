@@ -120,6 +120,10 @@ func main() {
 
 	var wg sync.WaitGroup
 
+	// Gather PDFs and SKPs with errors.
+	erroredPDFs := []string{}
+	erroredSKPs := []string{}
+
 	// Loop through workers in the worker pool.
 	for i := 0; i < WORKER_POOL_SIZE; i++ {
 		// Increment the WaitGroup counter.
@@ -153,26 +157,35 @@ func main() {
 				pdfBase, err := getPdfFileName(decodedPageset.UrlsList)
 				if err != nil {
 					glog.Errorf("Could not parse the URL %s to get a PDF file name: %s", decodedPageset.UrlsList, err)
+					erroredPDFs = append(erroredPDFs, decodedPageset.UrlsList)
+					continue
 				}
 				pdfPath := filepath.Join(pathToPdfs, pdfBase)
 				wgetArgs := []string{
 					"-O", pdfPath,
 					decodedPageset.UrlsList,
 				}
-				skutil.LogErr(
-					util.ExecuteCmd(util.BINARY_WGET, wgetArgs, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil))
+				if err := util.ExecuteCmd(util.BINARY_WGET, wgetArgs, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
+					glog.Errorf("Could not wget %s: %s", decodedPageset.UrlsList, err)
+					erroredPDFs = append(erroredPDFs, decodedPageset.UrlsList)
+					continue
+				}
 
 				// Run pdfium_test to create SKPs from the PDFs.
 				pdfiumTestArgs := []string{
 					"--skp", pdfPath,
 				}
-				skutil.LogErr(
-					util.ExecuteCmd(pdfiumLocalPath, pdfiumTestArgs, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil))
+				if err := util.ExecuteCmd(pdfiumLocalPath, pdfiumTestArgs, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
+					glog.Errorf("Could not run pdfium_test on %s: %s", pdfPath, err)
+					erroredSKPs = append(erroredSKPs, pdfBase)
+					continue
+				}
 
 				// Move generated SKPs into the pathToSKPs directory.
 				skps, err := filepath.Glob(path.Join(pathToPdfs, fmt.Sprintf("%s.*.skp", pdfBase)))
 				if err != nil {
 					glog.Errorf("Found no SKPs for %s: %s", pdfBase, err)
+					erroredSKPs = append(erroredSKPs, pdfBase)
 					continue
 				}
 				for _, skp := range skps {
@@ -180,6 +193,7 @@ func main() {
 					dest := path.Join(pathToSkps, skpBasename)
 					if err := os.Rename(skp, dest); err != nil {
 						glog.Errorf("Could not move %s to %s: %s", skp, dest, err)
+						continue
 					}
 				}
 			}
@@ -229,6 +243,20 @@ func main() {
 	if err := gs.UploadWorkerArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild), *workerNum); err != nil {
 		glog.Error(err)
 		return
+	}
+
+	// Summarize errors.
+	if len(erroredPDFs) > 0 {
+		glog.Error("The Following URLs could not be downloaded as PDFs:")
+		for _, erroredPDF := range erroredPDFs {
+			glog.Errorf("\t%s", erroredPDF)
+		}
+	}
+	if len(erroredSKPs) > 0 {
+		glog.Error("The Following PDFs could not be converted to SKPs:")
+		for _, erroredSKP := range erroredSKPs {
+			glog.Errorf("\t%s", erroredSKP)
+		}
 	}
 }
 
