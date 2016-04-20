@@ -93,6 +93,10 @@ run_lua:
 capture_skps:
 	go install -v ./go/worker_scripts/capture_skps/
 
+.PHONY: capture_skps_from_pdfs
+capture_skps_from_pdfs:
+	go install -v ./go/worker_scripts/capture_skps_from_pdfs/
+
 .PHONY: run_chromium_perf
 run_chromium_perf:
 	go install -v ./go/worker_scripts/run_chromium_perf/
@@ -127,7 +131,8 @@ master_scripts: run_command check_workers_health build_chromium \
 
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua capture_skps \
-                run_chromium_perf run_chromium_perf_swarming fix_archives
+                capture_skps_from_pdfs run_chromium_perf \
+                run_chromium_perf_swarming fix_archives
 
 .PHONY: all
 all: master_scripts worker_scripts testgo

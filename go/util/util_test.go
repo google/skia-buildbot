@@ -3,6 +3,9 @@ package util
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
+	"os"
+	"path"
 	"regexp"
 	"testing"
 	"time"
@@ -359,4 +362,29 @@ BUG=1234, skia:5678
 		result := BugsFromCommitMsg(tc.in)
 		assert.Equal(t, tc.out, result)
 	}
+}
+
+func TestIsDirEmpty(t *testing.T) {
+	d, err := ioutil.TempDir(os.TempDir(), "test_empty")
+	assert.Nil(t, err)
+	defer RemoveAll(d)
+
+	// Directory is initially empty.
+	empty, err := IsDirEmpty(d)
+	assert.Nil(t, err)
+	assert.True(t, empty)
+
+	// Add a file in the directory.
+	f, err := ioutil.TempFile(d, "test_file")
+	assert.Nil(t, err)
+	_, err = f.WriteString("testing")
+	Close(f)
+	assert.Nil(t, err)
+	empty, err = IsDirEmpty(d)
+	assert.Nil(t, err)
+	assert.False(t, empty)
+
+	// Test non existent directory.
+	empty, err = IsDirEmpty(path.Join(d, "nonexistent_dir"))
+	assert.NotNil(t, err)
 }

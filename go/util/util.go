@@ -635,3 +635,18 @@ func BugsFromCommitMsg(msg string) map[string][]string {
 	glog.Errorf("%v", rv)
 	return rv
 }
+
+// IsDirEmpty checks to see if the specified directory has any contents.
+func IsDirEmpty(dir string) (bool, error) {
+	f, err := os.Open(dir)
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+
+	_, err = f.Readdirnames(1)
+	if err == io.EOF {
+		return true, nil
+	}
+	return false, err
+}

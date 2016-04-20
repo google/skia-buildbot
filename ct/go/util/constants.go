@@ -20,9 +20,11 @@ const (
 	PAGESETS_DIR_NAME            = "page_sets"
 	WEB_ARCHIVES_DIR_NAME        = "webpage_archives"
 	SKPS_DIR_NAME                = "skps"
+	PDFS_DIR_NAME                = "pdfs"
 	STORAGE_DIR_NAME             = "storage"
 	REPO_DIR_NAME                = "skia-repo"
 	TASKS_DIR_NAME               = "tasks"
+	BINARIES_DIR_NAME            = "binaries"
 	LUA_TASKS_DIR_NAME           = "lua_runs"
 	BENCHMARK_TASKS_DIR_NAME     = "benchmark_runs"
 	CHROMIUM_PERF_TASKS_DIR_NAME = "chromium_perf_runs"
@@ -44,6 +46,7 @@ const (
 	PAGESET_TYPE_ALL        = "All"
 	PAGESET_TYPE_10k        = "10k"
 	PAGESET_TYPE_MOBILE_10k = "Mobile10k"
+	PAGESET_TYPE_PDF_10k    = "PDF10k"
 	PAGESET_TYPE_DUMMY_1k   = "Dummy1k" // Used for testing.
 
 	// Names of binaries executed by CT.
@@ -58,6 +61,8 @@ const (
 	BINARY_RENDER_PICTURES = "render_pictures"
 	BINARY_MAIL            = "mail"
 	BINARY_LUA             = "lua"
+	BINARY_PDFIUM_TEST     = "pdfium_test"
+	BINARY_WGET            = "wget"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
@@ -217,6 +222,7 @@ var (
 	WebhookRequestSaltPath = filepath.Join(StorageDir, "webhook_salt.data")
 	PagesetsDir            = filepath.Join(StorageDir, PAGESETS_DIR_NAME)
 	WebArchivesDir         = filepath.Join(StorageDir, WEB_ARCHIVES_DIR_NAME)
+	PdfsDir                = filepath.Join(StorageDir, PDFS_DIR_NAME)
 	SkpsDir                = filepath.Join(StorageDir, SKPS_DIR_NAME)
 	GLogDir                = filepath.Join(StorageDir, "glog")
 	ApkName                = "ChromePublic.apk"
@@ -224,6 +230,7 @@ var (
 	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
 	// Names of remote directories and files.
+	BinariesDir         = filepath.Join(BINARIES_DIR_NAME)
 	LuaRunsDir          = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
 	BenchmarkRunsDir    = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
 	ChromiumPerfRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
@@ -277,6 +284,16 @@ var (
 			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
+		},
+		PAGESET_TYPE_PDF_10k: &PagesetTypeInfo{
+			NumPages:                   1000,
+			CSVSource:                  "csv/pdf-top-1m.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  60,
+			CaptureArchivesTimeoutSecs: 300,
+			CaptureSKPsTimeoutSecs:     300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "PDF 10K",
 		},
 	}
 

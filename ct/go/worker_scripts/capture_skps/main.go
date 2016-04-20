@@ -208,60 +208,11 @@ func main() {
 	// Wait for all spawned goroutines to complete.
 	wg.Wait()
 
-	// Move, validate and upload all SKP files.
-	// List all directories in pathToSkps and copy out the skps.
-	skpFileInfos, err := ioutil.ReadDir(pathToSkps)
-	if err != nil {
-		glog.Errorf("Unable to read %s: %s", pathToSkps, err)
+	// Move and validate all SKP files.
+	if err := util.ValidateSKPs(pathToSkps); err != nil {
+		glog.Error(err)
 		return
 	}
-	for _, fileInfo := range skpFileInfos {
-		if !fileInfo.IsDir() {
-			// We are only interested in directories.
-			continue
-		}
-		skpName := fileInfo.Name()
-		// Find the largest layer in this directory.
-		layerInfos, err := ioutil.ReadDir(filepath.Join(pathToSkps, skpName))
-		if err != nil {
-			glog.Errorf("Unable to read %s: %s", filepath.Join(pathToSkps, skpName), err)
-		}
-		if len(layerInfos) > 0 {
-			largestLayerInfo := layerInfos[0]
-			for _, layerInfo := range layerInfos {
-				fmt.Println(layerInfo.Size())
-				if layerInfo.Size() > largestLayerInfo.Size() {
-					largestLayerInfo = layerInfo
-				}
-			}
-			// Only save SKPs greater than 6000 bytes. Less than that are probably
-			// malformed.
-			if largestLayerInfo.Size() > 6000 {
-				layerPath := filepath.Join(pathToSkps, skpName, largestLayerInfo.Name())
-				skutil.Rename(layerPath, filepath.Join(pathToSkps, skpName+".skp"))
-			} else {
-				glog.Warningf("Skipping %s because size was less than 5000 bytes", skpName)
-			}
-		}
-		// We extracted what we needed from the directory, now delete it.
-		skutil.RemoveAll(filepath.Join(pathToSkps, skpName))
-	}
-
-	glog.Info("Calling remove_invalid_skps.py")
-	// Sync Skia tree.
-	skutil.LogErr(util.SyncDir(util.SkiaTreeDir))
-	// Build tools.
-	skutil.LogErr(util.BuildSkiaTools())
-	// Run remove_invalid_skps.py
-	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skps.py")
-	pathToSKPInfo := filepath.Join(util.SkiaTreeDir, "out", "Release", "skpinfo")
-	args := []string{
-		pathToRemoveSKPs,
-		"--skp_dir=" + pathToSkps,
-		"--path_to_skpinfo=" + pathToSKPInfo,
-	}
-	skutil.LogErr(util.ExecuteCmd("python", args, []string{}, util.REMOVE_INVALID_SKPS_TIMEOUT,
-		nil, nil))
 
 	// Write timestamp to the SKPs dir.
 	skutil.LogErr(util.CreateTimestampFile(pathToSkps))
