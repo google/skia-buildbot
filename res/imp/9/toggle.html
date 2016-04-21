@@ -36,6 +36,8 @@
     classname - The name of the class to toggle on and off in the target
       element. If not supplied then the default of "display" is used.
 
+    disabled - Boolean, if true, the button is disabled.
+
   Methods:
 
     open() - Adds the display class.
@@ -53,7 +55,7 @@
 
 <dom-module id="toggle-display-sk">
   <template>
-    <button>
+    <button disabled$="{{disabled}}">
       <content></content>
     </button>
   </template>
@@ -72,6 +74,11 @@
       classname: {
         type: String,
         value: 'display',
+        reflectToAttribute: true
+      },
+      disabled: {
+        type: Boolean,
+        value: false,
         reflectToAttribute: true
       }
     },

@@ -242,7 +242,7 @@ of a fiddle. The named fiddles are stored in:
 
     gs://skia-fiddle/named/<fiddle name>
 
-Where the id of the fiddle is the filename, and the contents of the file is
+Where the name of the fiddle is the filename, and the contents of the file is
 the fiddleHash. The id of the person that created the named shortcut is
 attached as metadata to the file.
 

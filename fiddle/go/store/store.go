@@ -414,3 +414,21 @@ func (s *Store) GetHashFromName(name string) (string, error) {
 	}
 	return string(b), nil
 }
+
+// WriteName writes the name file for a named fiddle.
+//
+//   name - The name of the fidde.
+//   hash - The fiddle hash.
+//   user - The email of the user that created the name.
+func (s *Store) WriteName(name, hash, user string) error {
+	ctx := context.Background()
+	w := s.bucket.Object(fmt.Sprintf("named/%s", name)).NewWriter(ctx)
+	defer util.Close(w)
+	w.ObjectAttrs.Metadata = map[string]string{
+		"user": user,
+	}
+	if _, err := w.Write([]byte(hash)); err != nil {
+		return fmt.Errorf("Failed to write named file %q: %s", name, err)
+	}
+	return nil
+}

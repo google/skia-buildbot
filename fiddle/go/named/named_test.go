@@ -21,6 +21,13 @@ func (n *namedMock) GetHashFromName(name string) (string, error) {
 	}
 }
 
+func (n *namedMock) WriteName(name, hash, user string) error {
+	if name == "bad_name_to_trigger_fail" {
+		return fmt.Errorf("Failed to write.")
+	}
+	return nil
+}
+
 func TestNamed(t *testing.T) {
 	mock := &namedMock{
 		lookup: map[string]string{
@@ -69,4 +76,23 @@ func TestNamed(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, mediaHash, "cbb8dee39e9f1576cd97c2d504db8eee")
 	assert.Equal(t, media, store.CPU)
+}
+
+func TestAdd(t *testing.T) {
+	mock := &namedMock{
+		lookup: map[string]string{
+			"star":     "cbb8dee39e9f1576cd97c2d504db8eee",
+			"bad_hash": "cbb8d",
+		},
+	}
+
+	names := New(mock)
+	err := names.Add("a_good_name", "cbb8dee39e9f1576cd97c2d504db8eee", "user")
+	assert.NoError(t, err)
+
+	err = names.Add("no spaces in names", "cbb8dee39e9f1576cd97c2d504db8eee", "user")
+	assert.Error(t, err)
+
+	err = names.Add("a_good_name", "cbb8_bash_hash", "user")
+	assert.Error(t, err)
 }

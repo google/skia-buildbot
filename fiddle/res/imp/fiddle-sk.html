@@ -48,11 +48,13 @@
 
 <dom-module id="fiddle-sk">
   <style>
+    #namer,
     #embedder {
       display: none;
       margin-left: 2em;
     }
 
+    #namer.display,
     #embedder.display {
       display: block;
     }
@@ -68,7 +70,7 @@
       margin-top: 1em;
     }
 
-    button {
+    button.action {
       margin-left: 0;
     }
 
@@ -134,6 +136,7 @@
     paper-input {
       display: inline-block;
     }
+
   </style>
   <template>
     <template is="dom-if" if="{{display_options}}">
@@ -167,6 +170,14 @@
           <input type="text" readonly size=150 value="&lt;a href='https://fiddle.skia.org/c/{{fiddlehash}}'>&lt;img src='https://fiddle.skia.org/c/{{fiddlehash}}_raster.png'>&lt;/a>">
         </div>
       </template>
+        <toggle-display-sk disabled$={{_not_logged_in}}>Name</toggle-display-sk>
+        <div id=namer>
+          <h3>Create a name for this fiddle:</h3>
+          <paper-input id=name label="Name" size=40 auto-validate allowed-pattern="[0-9a-zA-Z_]" value=""></paper-input>
+          <!-- Add a pop-up menu here that has completions based on what's been typed so far, and also any names that this page has loaded previously.-->
+          <button class=save on-tap="_submit_name">Save</button>
+        </div>
+
     </div>
     <div on-tap="_errSelect">
       <template is="dom-if" if="{{_hasCompileErrors(_compile_errors)}}">
@@ -256,6 +267,11 @@
         value: "",
         reflectToAttribute: false,
       },
+      _not_logged_in: {
+        type: Boolean,
+        value: true,
+        reflectToAttribute: false,
+      }
     },
 
     ready: function() {
@@ -283,9 +299,21 @@
           this._editor.removeLineClass( i, "wrap", "error" );
         }
       }.bind(this));
+
+      sk.Login.then(function(status) {
+        this._not_logged_in = (status.Email == "");
+      }.bind(this));
     },
 
     _run: function() {
+      this._run_impl({});
+    },
+
+    _submit_name: function() {
+      this._run_impl({name: this.$.name.value});
+    },
+
+    _run_impl: function(extra) {
       this._editor.save();
       this.fiddlehash = "";
       this.$.running.active = true;
@@ -297,6 +325,9 @@
           source: +this.source,
         }
       };
+      for (key in extra) {
+        body[key] = extra[key];
+      }
       sk.post("/_/run", JSON.stringify(body)).then(JSON.parse).then(function(json) {
         this.fiddlehash = json.fiddleHash;
         this._compile_errors = json.compile_errors || [];

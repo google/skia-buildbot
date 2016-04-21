@@ -346,6 +346,8 @@ func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs 
 		InheritPath:    true,
 		CombinedOutput: output,
 		Timeout:        10 * time.Second,
+		LogStderr:      true,
+		LogStdout:      true,
 	}
 	glog.Infof("About to run: %#v", *compileCmd)
 

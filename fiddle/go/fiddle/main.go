@@ -55,6 +55,7 @@ type FiddleContext struct {
 	Sources string `json:"sources"`    // All the source image ids serialized as a JSON array.
 	Hash    string `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
 	Code    string `json:"code"`
+	Name    string `json:"name"` // In a request can be the name to create for this fiddle.
 	Options types.Options
 }
 
@@ -316,6 +317,11 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		for _, line := range lines {
 			match := parseCompilerOutput.FindAllStringSubmatch(line, -1)
 			if match == nil || len(match[0]) < 5 {
+				resp.CompileErrors = append(resp.CompileErrors, CompileError{
+					Text: line,
+					Line: 0,
+					Col:  0,
+				})
 				continue
 			}
 			line_num, err := strconv.Atoi(match[0][3])
@@ -346,6 +352,19 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp.FiddleHash = fiddleHash
+
+	user := login.LoggedInAs(r)
+	// Only logged in users can create named fiddles.
+	if req.Name != "" && user != "" {
+		// Create a name for this fiddle. Validation is done in this func.
+		if err := names.Add(req.Name, fiddleHash, user); err != nil {
+			httputils.ReportError(w, r, err, "Failed to store the name")
+			return
+		}
+		// Replace fiddleHash with name.
+		resp.FiddleHash = "@" + req.Name
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	if err := enc.Encode(resp); err != nil {
@@ -437,8 +456,8 @@ func main() {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
-	r.HandleFunc("/c/{id:[@0-9a-zA-Z]+}", individualHandle)
-	r.HandleFunc("/iframe/{id:[@0-9a-zA-Z]+}", iframeHandle)
+	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
+	r.HandleFunc("/iframe/{id:[@0-9a-zA-Z_]+}", iframeHandle)
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
