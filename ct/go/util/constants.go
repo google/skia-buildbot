@@ -55,6 +55,7 @@ const (
 	BINARY_RUN_BENCHMARK   = "run_benchmark"
 	BINARY_GCLIENT         = "gclient"
 	BINARY_MAKE            = "make"
+	BINARY_NINJA           = "ninja"
 	BINARY_LUA_PICTURES    = "lua_pictures"
 	BINARY_ADB             = "adb"
 	BINARY_GIT             = "git"
@@ -105,6 +106,7 @@ const (
 	GIT_APPLY_TIMEOUT             = 5 * time.Minute
 	GOMA_CTL_RESTART_TIMEOUT      = 10 * time.Minute
 	GYP_CHROMIUM_TIMEOUT          = 30 * time.Minute
+	GYP_PDFIUM_TIMEOUT            = 5 * time.Minute
 	NINJA_TIMEOUT                 = 2 * time.Hour
 	CREATE_CHROMIUM_BUILD_TIMEOUT = SYNC_SKIA_IN_CHROME_TIMEOUT + GIT_LS_REMOTE_TIMEOUT +
 		// Three patches are applied when applyPatches is specified.
@@ -227,6 +229,7 @@ var (
 	GLogDir                = filepath.Join(StorageDir, "glog")
 	ApkName                = "ChromePublic.apk"
 	SkiaTreeDir            = filepath.Join(RepoDir, "trunk")
+	PDFiumTreeDir          = filepath.Join(RepoDir, "pdfium")
 	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
 	// Names of remote directories and files.

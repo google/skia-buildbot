@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"path"
 	"strings"
 	"text/template"
 	"time"
@@ -101,9 +102,31 @@ func main() {
 	}
 
 	workerScript := "capture_skps"
-	// If it is a PDF page set then use the capture_skps_from_pdfs worker script instead.
 	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
+		// For PDF pagesets use the capture_skps_from_pdfs worker script.
 		workerScript = "capture_skps_from_pdfs"
+		// Sync PDFium and build pdfium_test binary which will be used by the worker script.
+		if err := util.SyncDir(util.PDFiumTreeDir); err != nil {
+			glog.Errorf("Could not sync PDFium: %s", err)
+			return
+		}
+		if err := util.BuildPDFium(); err != nil {
+			glog.Errorf("Could not build PDFium: %s", err)
+			return
+		}
+		// Copy pdfium_test to Google Storage.
+		pdfiumLocalDir := path.Join(util.PDFiumTreeDir, "out", "Debug")
+		pdfiumRemoteDir := path.Join(util.BINARIES_DIR_NAME, *chromiumBuild)
+		// Instantiate GsUtil object.
+		gs, err := util.NewGsUtil(nil)
+		if err != nil {
+			glog.Error(err)
+			return
+		}
+		if err := gs.UploadFile(util.BINARY_PDFIUM_TEST, pdfiumLocalDir, pdfiumRemoteDir); err != nil {
+			glog.Errorf("Could not upload %s to %s: %s", util.BINARY_PDFIUM_TEST, pdfiumRemoteDir, err)
+			return
+		}
 	}
 
 	// Run the capture SKPs script on all workers.

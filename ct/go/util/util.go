@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -159,6 +160,23 @@ func BuildSkiaTools() error {
 	// Build tools.
 	return ExecuteCmd(BINARY_MAKE, []string{"tools", "BUILDTYPE=Release"},
 		[]string{"GYP_DEFINES=\"skia_warnings_as_errors=0\""}, MAKE_TOOLS_TIMEOUT, nil, nil)
+}
+
+// BuildPDFium builds "pdfium_test" in the PDFium repo directory.
+func BuildPDFium() error {
+	if err := os.Chdir(PDFiumTreeDir); err != nil {
+		return fmt.Errorf("Could not chdir to %s: %s", SkiaTreeDir, err)
+	}
+
+	// Run "build/gyp_pdfium"
+	if err := ExecuteCmd(path.Join("build_gyp", "gyp_pdfium"), []string{},
+		[]string{"GYP_DEFINES=\"pdf_use_skia=1\"", "CPPFLAGS=\"-Wno-error\""}, GYP_PDFIUM_TIMEOUT, nil, nil); err != nil {
+		return err
+	}
+
+	// Build pdfium_test.
+	return ExecuteCmd(BINARY_NINJA, []string{"-C", "out/Debug", BINARY_PDFIUM_TEST},
+		[]string{}, NINJA_TIMEOUT, nil, nil)
 }
 
 // ResetCheckout resets the specified Git checkout.

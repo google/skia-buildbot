@@ -52,7 +52,7 @@ CMD="""
 sudo apt-get update;
 sudo apt-get -y install linux-tools python-django libgif-dev lua5.2 && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod;
 
-# Checkout Skia's buildbot and trunk repositories.
+# Checkout Skia's buildbot and trunk, and PDFium repositories.
 mkdir /b/storage/;
 mkdir /b/skia-repo/;
 cd /b/skia-repo/;
@@ -64,6 +64,14 @@ echo \"\"\"
     'url'         : 'https://skia.googlesource.com/skia.git',
     'deps_file'   : 'DEPS',
     'managed'     : True,
+    'custom_deps' : {
+    },
+    'safesync_url': '',
+  },
+  { 'name'        : 'pdfium',
+    'url'         : 'https://pdfium.googlesource.com/pdfium.git',
+    'deps_file'   : 'DEPS',
+    'managed'     : False,
     'custom_deps' : {
     },
     'safesync_url': '',
