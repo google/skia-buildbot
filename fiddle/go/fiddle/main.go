@@ -297,6 +297,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	gitHash := allBuilds[0]
+	glog.Infof("Building at: %s", gitHash)
 	tmpDir, err := runner.WriteDrawCpp(*fiddleRoot, req.Code, &req.Options, *local)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to write the fiddle.")

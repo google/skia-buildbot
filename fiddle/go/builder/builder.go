@@ -176,7 +176,8 @@ func (b *Builder) AvailableBuilds() ([]string, error) {
 	}
 	hashes := strings.Split(string(buf), "\n")
 	revHashes := []string{}
-	for _, h := range hashes {
+	for i := len(hashes) - 1; i >= 0; i-- {
+		h := hashes[i]
 		if h != "" {
 			revHashes = append(revHashes, h)
 		}
