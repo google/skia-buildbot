@@ -365,38 +365,13 @@ server {
     add_header X-Content-Type-Options nosniff;
 
     location / {
-        proxy_pass http://skia-webtry:8000;
+        proxy_pass http://skia-fiddle:8000;
     }
 }
 server {
     listen      80;
     server_name fiddle.skia.org;
     return 301 https://fiddle.skia.org$request_uri;
-}
-
-#####   fiddle-staging.skia.org   ###########################
-server {
-    listen      443;
-    server_name fiddle-staging.skia.org;
-
-    ssl on;
-
-    access_log /var/log/nginx/fiddle-stage.access.log;
-    error_log /var/log/nginx/fiddle-stage.error.log error;
-
-    # Enforce browser XSS protection
-    add_header X-XSS-Protection "1; mode=block";
-    # Disable content sniffing
-    add_header X-Content-Type-Options nosniff;
-
-    location / {
-        proxy_pass http://skia-webtry-experimental:8000;
-    }
-}
-server {
-    listen      80;
-    server_name fiddle-staging.skia.org;
-    return 301 https://fiddle-staging.skia.org$request_uri;
 }
 
 #####   fuzzer.skia.org   ###########################
