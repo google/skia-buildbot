@@ -7,7 +7,7 @@
      "mimetype": ""
    },
    "skfiddle_compile_bad": {
-     "url": "https://fiddle.skia.org",
+     "url": "https://fiddle.skia.org/_/run",
      "method": "POST",
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas)\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":256,\"height\":256}",
@@ -15,7 +15,7 @@
      "responsetest":"skfiddleJSONBad"
    },
    "skfiddle_compile_good": {
-     "url": "https://fiddle.skia.org",
+     "url": "https://fiddle.skia.org/_/run",
      "method": "POST",
      "expected": [200],
      "body": "{\"code\":\"void draw(SkCanvas* canvas) { SkPaint p; p.setColor(SK_ColorRED); canvas->drawText(\\\"Helloworld\\\", 10, 50, 50, p);}\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":256,\"height\":256}",
@@ -151,8 +151,8 @@
      "body": "",
      "mimetype": ""
    },
-   "skiawebtrylogs": {
-     "url": "http://skia-webtry:10115",
+   "skiafiddlelogs": {
+     "url": "http://skia-fiddle:10115",
      "method": "GET",
      "expected": [200],
      "body": "",

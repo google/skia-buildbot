@@ -135,15 +135,13 @@ func validJSON(r io.Reader, headers http.Header) bool {
 	return json.NewDecoder(r).Decode(&i) == nil
 }
 
+type skfiddleResp struct {
+	CompileErrors []interface{} `json:"compile_errors"`
+}
+
 // skfiddleJSONGood tests that the compile completed w/o error.
 func skfiddleJSONGood(r io.Reader, headers http.Header) bool {
-	type skfiddleResp struct {
-		CompileErrors []interface{} `json:"compileErrors"`
-		Message       string        `json:"message"`
-	}
-
 	dec := json.NewDecoder(r)
-
 	s := skfiddleResp{
 		CompileErrors: []interface{}{},
 	}
@@ -157,7 +155,16 @@ func skfiddleJSONGood(r io.Reader, headers http.Header) bool {
 
 // skfiddleJSONBad tests that the compile completed w/error.
 func skfiddleJSONBad(r io.Reader, headers http.Header) bool {
-	return !skfiddleJSONGood(r, headers)
+	dec := json.NewDecoder(r)
+	s := skfiddleResp{
+		CompileErrors: []interface{}{},
+	}
+	if err := dec.Decode(&s); err != nil {
+		glog.Warningf("Failed to decode skfiddle JSON: %#v %s", s, err)
+		return false
+	}
+	glog.Infof("%#v", s)
+	return len(s.CompileErrors) != 0
 }
 
 // decodeJSONObject reads a JSON object from r and returns the resulting object. Returns nil if the
