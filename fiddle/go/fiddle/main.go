@@ -453,6 +453,9 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to store: %s", err)
 	}
+	if err := fiddleStore.DownloadAllSourceImages(*fiddleRoot); err != nil {
+		glog.Fatalf("Failed to download source images: %s", err)
+	}
 	src, err = source.New(fiddleStore)
 	if err != nil {
 		glog.Fatalf("Failed to initialize source images: %s", err)
