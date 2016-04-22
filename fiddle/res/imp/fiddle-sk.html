@@ -19,6 +19,7 @@
 -->
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all">
 <link rel="import" href="bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="bower_components/paper-checkbox/paper-checkbox.html">
 <link rel="import" href="/res/common/imp/9/details-summary.html">
 <link rel="import" href="/res/common/imp/9/toggle.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
@@ -173,9 +174,10 @@
         <toggle-display-sk disabled$={{_not_logged_in}}>Name</toggle-display-sk>
         <div id=namer>
           <h3>Create a name for this fiddle:</h3>
-          <paper-input id=name label="Name" size=40 auto-validate allowed-pattern="[0-9a-zA-Z_]" value=""></paper-input>
+          <paper-input id=name label="Name" placeholder="fiddle_name_goes_here" size=40 auto-validate allowed-pattern="[0-9a-zA-Z_]" value="{{_name}}"></paper-input>
           <!-- Add a pop-up menu here that has completions based on what's been typed so far, and also any names that this page has loaded previously.-->
-          <button class=save on-tap="_submit_name">Save</button>
+          <paper-checkbox id=overwrite title="Overwrite the existing name if one exists.">Overwrite</paper-checkbox>
+          <button class=save on-tap="_submit_name" disabled="{{_isEmpty(_name)}}">Save</button>
         </div>
 
     </div>
@@ -271,7 +273,12 @@
         type: Boolean,
         value: true,
         reflectToAttribute: false,
-      }
+      },
+      _name: {
+        type: String,
+        value: "",
+        reflectToAttribute: false,
+      },
     },
 
     ready: function() {
@@ -310,7 +317,10 @@
     },
 
     _submit_name: function() {
-      this._run_impl({name: this.$.name.value});
+      this._run_impl({
+        name: this._name,
+        overwrite: this.$.overwrite.checked,
+      });
     },
 
     _run_impl: function(extra) {
@@ -337,7 +347,7 @@
         this._compile_errors.forEach(function(err) {
           this._editor.addLineClass(+err.line-1, "wrap", "error");
         }.bind(this));
-
+        this.$.overwrite.checked = false;
       }.bind(this)).catch(function(err) {
         this.$.running.active = false;
         sk.errorMessage(err);
@@ -364,6 +374,10 @@
 
     _hasCompileErrors: function(compile_errors) {
       return compile_errors.length > 0;
+    },
+
+    _isEmpty: function(name) {
+      return name == "";
     },
 
   });

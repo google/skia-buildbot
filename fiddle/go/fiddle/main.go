@@ -52,11 +52,12 @@ var (
 //
 // It is also used (without the Hash) as the incoming JSON request to /_/run.
 type FiddleContext struct {
-	Sources string `json:"sources"`    // All the source image ids serialized as a JSON array.
-	Hash    string `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
-	Code    string `json:"code"`
-	Name    string `json:"name"` // In a request can be the name to create for this fiddle.
-	Options types.Options
+	Sources   string `json:"sources"`    // All the source image ids serialized as a JSON array.
+	Hash      string `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
+	Code      string `json:"code"`
+	Name      string `json:"name"`      // In a request can be the name to create for this fiddle.
+	Overwrite bool   `json:"overwrite"` // In a request, should a name be overwritten if it already exists.
+	Options   types.Options
 }
 
 // CompileError is a single line of compiler error output, along with the line
@@ -349,7 +350,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	ts := repo.Timestamp(gitHash)
 	fiddleHash, err := fiddleStore.Put(req.Code, req.Options, gitHash, ts, res)
 	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to store the fiddle")
+		httputils.ReportError(w, r, err, "Failed to store the fiddle.")
 		return
 	}
 	resp.FiddleHash = fiddleHash
@@ -358,8 +359,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	// Only logged in users can create named fiddles.
 	if req.Name != "" && user != "" {
 		// Create a name for this fiddle. Validation is done in this func.
-		if err := names.Add(req.Name, fiddleHash, user); err != nil {
-			httputils.ReportError(w, r, err, "Failed to store the name")
+		err := names.Add(req.Name, fiddleHash, user, req.Overwrite)
+		if err == named.DuplicateNameErr {
+			httputils.ReportError(w, r, err, "Name already exists.")
+			return
+		}
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to store the name.")
 			return
 		}
 		// Replace fiddleHash with name.

@@ -2,6 +2,7 @@
 package named
 
 import (
+	"errors"
 	"fmt"
 	"path/filepath"
 	"regexp"
@@ -13,6 +14,8 @@ import (
 )
 
 var (
+	DuplicateNameErr = errors.New("Name already exists.")
+
 	// fiddleHashRe is used to validate fiddle hashes.
 	fiddleHashRe = regexp.MustCompile("^[0-9a-zA-Z]{32}$")
 
@@ -57,10 +60,11 @@ func New(st NameStore) *Named {
 
 // Add a named fiddle.
 //
-//   name - The name of the fidde, w/o the @ prefix.
-//   hash - The fiddle hash.
-//   user - The email of the user that created the name.
-func (n *Named) Add(name, hash, user string) error {
+//   name      - The name of the fidde, w/o the @ prefix.
+//   hash      - The fiddle hash.
+//   user      - The email of the user that created the name.
+//   overwrite - True if the write should proceed if the name already exists.
+func (n *Named) Add(name, hash, user string, overwrite bool) error {
 	if !fiddleNameRe.MatchString(name) {
 		return fmt.Errorf("Not a valid fiddle name %q", name)
 	}
@@ -69,6 +73,10 @@ func (n *Named) Add(name, hash, user string) error {
 	}
 	oldHash, err := n.DereferenceID("@" + name)
 	if err == nil {
+		// This name exists already.
+		if !overwrite {
+			return DuplicateNameErr
+		}
 		if oldHash == hash {
 			// Don't bother writing if the hash is already correct.
 			return nil

@@ -87,12 +87,18 @@ func TestAdd(t *testing.T) {
 	}
 
 	names := New(mock)
-	err := names.Add("a_good_name", "cbb8dee39e9f1576cd97c2d504db8eee", "user")
+	err := names.Add("a_good_name", "cbb8dee39e9f1576cd97c2d504db8eee", "user", true)
 	assert.NoError(t, err)
 
-	err = names.Add("no spaces in names", "cbb8dee39e9f1576cd97c2d504db8eee", "user")
+	err = names.Add("no spaces in names", "cbb8dee39e9f1576cd97c2d504db8eee", "user", true)
 	assert.Error(t, err)
 
-	err = names.Add("a_good_name", "cbb8_bash_hash", "user")
+	err = names.Add("a_good_name", "cbb8_bash_hash", "user", true)
 	assert.Error(t, err)
+
+	err = names.Add("star", "cbb8dee39e9f1576cd97c2d504db8eee", "user", false)
+	assert.Equal(t, err, DuplicateNameErr)
+
+	err = names.Add("star", "cbb8dee39e9f1576cd97c2d504db8eee", "user", true)
+	assert.NoError(t, err)
 }
