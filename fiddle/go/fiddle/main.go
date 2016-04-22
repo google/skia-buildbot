@@ -128,12 +128,14 @@ var (
 	// Note that slice items 2, 3, and 4 are the ones we are really interested in.
 	parseCompilerOutput = regexp.MustCompile("^(.*/)(draw.cpp:([0-9]+):([-0-9]+):.*)")
 
-	buildLiveness = metrics2.NewLiveness("fiddle.build")
-	build         *builder.Builder
-	fiddleStore   *store.Store
-	repo          *gitinfo.GitInfo
-	src           *source.Source
-	names         *named.Named
+	buildLiveness    = metrics2.NewLiveness("fiddle.build")
+	buildFailures    = metrics2.GetCounter("builds-failed", nil)
+	repoSyncFailures = metrics2.GetCounter("repo-sync-failed", nil)
+	build            *builder.Builder
+	fiddleStore      *store.Store
+	repo             *gitinfo.GitInfo
+	src              *source.Source
+	names            *named.Named
 )
 
 func loadTemplates() {
@@ -402,12 +404,19 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 func singleBuildLatest() {
 	if err := repo.Update(true, true); err != nil {
 		glog.Errorf("Failed to update skia repo used to look up git hashes: %s", err)
+		repoSyncFailures.Inc(1)
 	}
+	repoSyncFailures.Reset()
 	ci, err := build.BuildLatestSkia(false, false, false)
 	if err != nil {
 		glog.Errorf("Failed to build LKGR: %s", err)
+		// Only measure real build failures, not a failure if LKGR hasn't updated.
+		if err != builder.AlreadyExistsErr {
+			buildFailures.Inc(1)
+		}
 		return
 	}
+	buildFailures.Reset()
 	buildLiveness.Reset()
 	glog.Infof("Successfully built: %s %s", ci.Hash, ci.Subject)
 }

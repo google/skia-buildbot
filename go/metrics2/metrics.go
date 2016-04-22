@@ -22,9 +22,10 @@ const (
 
 var (
 	DefaultClient *Client = &Client{
-		aggMetrics: map[string]*aggregateMetric{},
-		counters:   map[string]*Counter{},
-		metrics:    map[string]*rawMetric{},
+		aggMetrics:      map[string]*aggregateMetric{},
+		counters:        map[string]*Counter{},
+		metrics:         map[string]*rawMetric{},
+		reportFrequency: time.Minute,
 	}
 )
 
