@@ -146,7 +146,9 @@
         <div class=options>
           <paper-input label="Width" size=5 auto-validate allowed-pattern="[0-9]" value="{{width}}"></paper-input>
           <paper-input label="Height" size=5 auto-validate allowed-pattern="[0-9]" value="{{height}}"></paper-input>
-          <pre class=source-select>SkBitmap source;</pre>
+          <pre class=source-select>SkBitmap source;
+sk_sp&lt;SkImage> image;
+          </pre>
           <iron-selector selected="{{source}}" attr-for-selected="name" class="layout horizontal wrap">
             <template is="dom-repeat" items="{{sources}}">
               <img width=64 height=64 name="{{item}}" src="/s/{{item}}">
