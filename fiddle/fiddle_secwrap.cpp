@@ -41,6 +41,9 @@ static bool install_syscall_filter() {
         ALLOW_SYSCALL(getrlimit),
         ALLOW_SYSCALL(arch_prctl),
         ALLOW_SYSCALL(access),
+        ALLOW_SYSCALL(fstatfs),
+        ALLOW_SYSCALL(readlink),
+        ALLOW_SYSCALL(fadvise64),
         /*
         The set of sycall's needed if running against an NVIDIA GPU, YMMV.
         ALLOW_SYSCALL(mremap),
@@ -203,7 +206,7 @@ int do_trace(pid_t child, char *allowed_exec) {
                 if (O_RDONLY != (flags & O_ACCMODE)) {
                     CHILD_FAIL( "No writing to files..." );
                 }
-                const char *allowed_prefixes[] = { "/usr/share/fonts", "/etc/ld.so.cache", "/lib/", "/usr/lib/", "skia.conf", "/mnt/pd0/" };
+                const char *allowed_prefixes[] = { "/usr/local/share/fonts", "/var/cache/fontconfig", "/etc/fonts", "/usr/share/fonts", "/etc/ld.so.cache", "/lib/", "/usr/lib/", "skia.conf", "/mnt/pd0/" };
                 bool okay = false;
                 for (unsigned int i = 0 ; i < sizeof(allowed_prefixes) / sizeof(allowed_prefixes[0]) ; i++) {
                     if (!strncmp(allowed_prefixes[i], name, strlen(allowed_prefixes[i]))) {
@@ -212,7 +215,7 @@ int do_trace(pid_t child, char *allowed_exec) {
                     }
                 }
                 if (!okay) {
-                    // CHILD_FAIL( name );
+                    perror( name );
                     CHILD_FAIL( "Invalid open." );
                 }
                 free(name);
@@ -225,7 +228,13 @@ int do_trace(pid_t child, char *allowed_exec) {
                 if (O_RDONLY != (flags & O_ACCMODE)) {
                     CHILD_FAIL( "No writing to files..." );
                 }
-                if (strncmp(name, "/usr/share/fonts", strlen("/usr/share/fonts"))) {
+                if (
+                        strncmp(name, "/usr/share/fonts", strlen("/usr/share/fonts")) &&
+                        strncmp(name, "/usr/local/share/fonts", strlen("/usr/local/share/fonts")) &&
+                        strncmp(name, "/var/cache/fontconfig", strlen("/var/cache/fontconfig")) &&
+                        strncmp(name, "/etc/fonts", strlen("/etc/fonts"))
+                   ) {
+                    perror(name);
                     CHILD_FAIL( "Invalid openat." );
                 }
                 free(name);
