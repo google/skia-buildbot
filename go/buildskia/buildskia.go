@@ -280,7 +280,8 @@ func CMakeBuild(path, depotTools string, build ReleaseType) error {
 		Dir:         filepath.Join(path, "cmake"),
 		InheritPath: false,
 		Env: []string{
-			"SKIA_OUT=" + filepath.Join(path, CMAKE_OUTDIR),
+			"SKIA_OUT=" + filepath.Join(path, CMAKE_OUTDIR), // Note that cmake_build will put the results in a sub-directory
+			// that is the build type.
 			"BUILDTYPE=" + string(build),
 			"PATH=" + filepath.Join(path, "cmake") + ":" + depotTools + ":" + os.Getenv("PATH"),
 		},
@@ -311,12 +312,12 @@ func CMakeBuild(path, depotTools string, build ReleaseType) error {
 //         draw.cpp @skia_link_arguments.txt -lOSMesa \
 //         -o myexample
 //
-func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs []string, extraLinkFlags []string) (string, error) {
+func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs []string, extraLinkFlags []string, build ReleaseType) (string, error) {
 	if !filepath.IsAbs(out) {
 		out = filepath.Join(path, out)
 	}
 	args := []string{
-		fmt.Sprintf("@%s", filepath.Join(path, CMAKE_OUTDIR, CMAKE_COMPILE_ARGS_FILE)),
+		fmt.Sprintf("@%s", filepath.Join(path, CMAKE_OUTDIR, string(build), CMAKE_COMPILE_ARGS_FILE)),
 	}
 	if len(extraIncludeDirs) > 0 {
 		args = append(args, "-I"+strings.Join(extraIncludeDirs, ","))
@@ -325,7 +326,7 @@ func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs 
 		args = append(args, fn)
 	}
 	moreArgs := []string{
-		fmt.Sprintf("@%s", filepath.Join(path, CMAKE_OUTDIR, CMAKE_LINK_ARGS_FILE)),
+		fmt.Sprintf("@%s", filepath.Join(path, CMAKE_OUTDIR, string(build), CMAKE_LINK_ARGS_FILE)),
 		"-o",
 		out,
 	}
@@ -368,13 +369,13 @@ func CMakeCompileAndLink(path, out string, filenames []string, extraIncludeDirs 
 //   $ c++ @skia_compile_arguments.txt fiddle_main.cpp \
 //         -o fiddle_main.o
 //
-func CMakeCompile(path, out string, filenames []string, extraIncludeDirs []string) error {
+func CMakeCompile(path, out string, filenames []string, extraIncludeDirs []string, build ReleaseType) error {
 	if !filepath.IsAbs(out) {
 		out = filepath.Join(path, out)
 	}
 	args := []string{
 		"-c",
-		fmt.Sprintf("@%s", filepath.Join(path, CMAKE_OUTDIR, CMAKE_COMPILE_ARGS_FILE)),
+		fmt.Sprintf("@%s", filepath.Join(path, CMAKE_OUTDIR, string(build), CMAKE_COMPILE_ARGS_FILE)),
 	}
 	if len(extraIncludeDirs) > 0 {
 		args = append(args, "-I"+strings.Join(extraIncludeDirs, ","))

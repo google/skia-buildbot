@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/fiddle/go/config"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
@@ -76,7 +77,7 @@ func main() {
 	}
 	linkArgs := []string{path.Join(checkout, "cmakeout", "fiddle_main.o"), "-lOSMesa"}
 	compilePaths := []string{path.Join(checkout, "tools", "fiddle")}
-	compileOutput, err := buildskia.CMakeCompileAndLink(checkout, path.Join(*fiddleRoot, "out", "fiddle_main"), files, compilePaths, linkArgs)
+	compileOutput, err := buildskia.CMakeCompileAndLink(checkout, path.Join(*fiddleRoot, "out", "fiddle_main"), files, compilePaths, linkArgs, config.BUILD_TYPE)
 	if err != nil {
 		res.Compile.Errors = err.Error()
 	}

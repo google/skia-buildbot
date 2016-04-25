@@ -14,6 +14,7 @@ import (
 	"sync"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/fiddle/go/config"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -84,7 +85,7 @@ func prepDirectory(fiddleRoot string) (string, error) {
 // and fiddle_main.o.
 func buildLib(checkout, depotTools string) error {
 	glog.Info("Starting CMakeBuild")
-	if err := buildskia.CMakeBuild(checkout, depotTools, buildskia.RELEASE_BUILD); err != nil {
+	if err := buildskia.CMakeBuild(checkout, depotTools, config.BUILD_TYPE); err != nil {
 		return fmt.Errorf("Failed cmake build: %s", err)
 	}
 
@@ -92,7 +93,7 @@ func buildLib(checkout, depotTools string) error {
 	files := []string{
 		filepath.Join(checkout, "tools", "fiddle", "fiddle_main.cpp"),
 	}
-	if err := buildskia.CMakeCompile(checkout, path.Join(checkout, "cmakeout", "fiddle_main.o"), files, []string{}); err != nil {
+	if err := buildskia.CMakeCompile(checkout, path.Join(checkout, "cmakeout", "fiddle_main.o"), files, []string{}, config.BUILD_TYPE); err != nil {
 		return fmt.Errorf("Failed cmake build of fiddle_main: %s", err)
 	}
 	return nil
