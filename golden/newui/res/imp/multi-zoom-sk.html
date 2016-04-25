@@ -58,8 +58,10 @@ There are three images that it deals with, called left, top, and diff.
     }
 
     .zoomContainer {
-      width: 20em;
-      height: 20em;
+      width: 270px;
+      height: 270px;
+      padding: 0;
+      margin: 0;
     }
 
     .selectorWrapper {
@@ -79,98 +81,136 @@ There are three images that it deals with, called left, top, and diff.
       min-height: 20em;
       padding: 2em;
     }
+
+    .legendContainer {
+      margin: 2em;
+      font-size: 90%;
+    }
+
   </style>
 
   <template>
     <div class="multiZoomWrapper">
-      <div class="vertical layout" hidden="{{_noImage(details)}}">
-        <div class="horizontal layout wrap imagesWrap">
-          
-          <div class="vertical layout">
-            <div class="imgContainer">
-              <canvas-layers-sk layers='["crosshairLeft"]' id="layersLeft">
-                <img id="left_img" src$="{{details.leftImgUrl}}"/>
-              </canvas-layers-sk>
-              <crosshair-sk x="{{_x}}" 
-                            y="{{_y}}"
-                            target="layersLeft" 
-                            name="crosshairLeft" 
-                            update_on="click">
-              </crosshair-sk>
+      <div class="horizontal layout">
+        <div class="vertical layout" hidden="{{_noImage(details)}}">
+          <div class="horizontal layout wrap imagesWrap">
+            <div class="vertical layout">
+              <div class="imgContainer">
+                <canvas-layers-sk layers='["crosshairLeft"]' id="layersLeft">
+                  <img id="left_img" src$="{{details.leftImgUrl}}"/>
+                </canvas-layers-sk>
+                <crosshair-sk x="{{_x}}" 
+                              y="{{_y}}"
+                              target="layersLeft" 
+                              name="crosshairLeft" 
+                              update_on="click">
+                </crosshair-sk>
+              </div>
+              <div class="selectorWrapper">
+                <paper-toggle-button checked={{_leftActive}}>
+                  <span class$="{{_boldClass(_currSeq, 'left')}}">{{llabel}}</span>
+                </paper-toggle-button>
+              </div>
             </div>
-            <div class="selectorWrapper">
-              <paper-toggle-button checked={{_leftActive}}>
-                <span class$="{{_boldClass(_currSeq, 'left')}}">{{llabel}}</span>
-              </paper-toggle-button>
+
+            <div class="layout vertical" hidden="{{_hideImg(details.middleImgUrl)}}">
+              <div class="imgContainer">
+                <canvas-layers-sk layers='["crosshairMiddle"]' id="layersMiddle">
+                  <img id="middle_img" src$="{{details.middleImgUrl}}"/>
+                </canvas-layers-sk>
+                <crosshair-sk x="{{_x}}" 
+                              y="{{_y}}"
+                              target="layersMiddle" 
+                              name="crosshairMiddle" 
+                              update_on="click">
+                </crosshair-sk>
+              </div>
+              <div class="selectorWrapper">
+                <paper-toggle-button checked={{_middleActive}}>
+                  <span class$="{{_boldClass(_currSeq, 'middle')}}">Diff</span>
+                </paper-toggle-button>
+              </div>
+
+            </div>
+
+            <div class="layout vertical" hidden="{{_hideImg(details.rightImgUrl)}}">
+              <div class="imgContainer">
+                <canvas-layers-sk layers='["crosshairRight"]' id="layersRight">
+                  <img id="right_img" src$="{{details.rightImgUrl}}"/>
+                </canvas-layers-sk>
+                <crosshair-sk x="{{_x}}" 
+                              y="{{_y}}"
+                              target="layersRight" 
+                              name="crosshairRight" 
+                              update_on="click">
+                </crosshair-sk>
+              </div>
+
+              <div class="selectorWrapper">
+                <paper-toggle-button checked={{_rightActive}}>
+                  <span class$="{{_boldClass(_currSeq, 'right')}}">{{rlabel}}</span>
+                </paper-toggle-button>
+              </div>
             </div>
           </div>
 
-          <div class="layout vertical" hidden="{{_hideImg(details.middleImgUrl)}}">
-            <div class="imgContainer">
-              <canvas-layers-sk layers='["crosshairMiddle"]' id="layersMiddle">
-                <img id="middle_img" src$="{{details.middleImgUrl}}"/>
-              </canvas-layers-sk>
-              <crosshair-sk x="{{_x}}" 
-                            y="{{_y}}"
-                            target="layersMiddle" 
-                            name="crosshairMiddle" 
-                            update_on="click">
-              </crosshair-sk>
-            </div>
-            <div class="selectorWrapper">
-              <paper-toggle-button checked={{_middleActive}}>
-                <span class$="{{_boldClass(_currSeq, 'middle')}}">Diff</span>
-              </paper-toggle-button>
-            </div>
+          <div class="layout horizontal wrap">
+            <div class="layout vertical zoomContainer">
+              <zoom-sk  hidden$="{{_hideMe(_currSeq, 'left')}}"
+                        source="left_img" 
+                        pixels="{{_pixels}}" 
+                        id="zoomLeft" 
+                        x="{{_x}}" 
+                        y="{{_y}}">
+              </zoom-sk>
 
-          </div>
+              <zoom-sk  hidden$="{{_hideMe(_currSeq, 'middle')}}"
+                        source="middle_img" 
+                        pixels="{{_pixels}}" 
+                        id="zoomMiddle" 
+                        x="{{_x}}" 
+                        y="{{_y}}">
+              </zoom-sk>
 
-          <div class="layout vertical" hidden="{{_hideImg(details.rightImgUrl)}}">
-            <div class="imgContainer">
-              <canvas-layers-sk layers='["crosshairRight"]' id="layersRight">
-                <img id="right_img" src$="{{details.rightImgUrl}}"/>
-              </canvas-layers-sk>
-              <crosshair-sk x="{{_x}}" 
-                            y="{{_y}}"
-                            target="layersRight" 
-                            name="crosshairRight" 
-                            update_on="click">
-              </crosshair-sk>
-            </div>
-
-            <div class="selectorWrapper">
-              <paper-toggle-button checked={{_rightActive}}>
-                <span class$="{{_boldClass(_currSeq, 'right')}}">{{rlabel}}</span>
-              </paper-toggle-button>
+              <zoom-sk hidden$="{{_hideMe(_currSeq, 'right')}}"
+                       source="right_img" 
+                        pixels="{{_pixels}}" 
+                       id="zoomRight" 
+                       x="{{_x}}" 
+                       y="{{_y}}">
+              </zoom-sk> 
             </div>
           </div>
         </div>
-
-        <div class="layout horizontal wrap">
-          <div class="layout vertical zoomContainer">
-            <zoom-sk  hidden$="{{_hideMe(_currSeq, 'left')}}"
-                      source="left_img" 
-                      pixels=20 
-                      id="zoomLeft" 
-                      x="{{_x}}" 
-                      y="{{_y}}">
-            </zoom-sk>
-
-            <zoom-sk  hidden$="{{_hideMe(_currSeq, 'middle')}}"
-                      source="middle_img" 
-                      pixels=20 
-                      id="zoomMiddle" 
-                      x="{{_x}}" 
-                      y="{{_y}}">
-            </zoom-sk>
-
-            <zoom-sk hidden$="{{_hideMe(_currSeq, 'right')}}"
-                     source="right_img" 
-                     pixels=20 
-                     id="zoomRight" 
-                     x="{{_x}}" 
-                     y="{{_y}}">
-            </zoom-sk> 
+        <div class="vertical layout">
+          <div class="legendContainer">
+            <table border="0" cellspacing="5" cellpadding="5">
+              <tr><th>Coord</th><td><pre>({{_x}}, {{_y}})</pre><td></tr>
+              <tr><th>{{llabel}}</th><td><pre>{{_centerPixel.zoomLeft}}</pre><td></tr>
+              <tr><th>Diff</th><td><pre>{{_centerPixel.zoomMiddle}}</pre><td></tr>
+              <tr><th>{{rlabel}}</th><td><pre>{{_centerPixel.zoomRight}}</pre><td></tr>
+            </table>
+            <table border="0" cellspacing="5" cellpadding="5">
+              <tr><th>Color Distance</th><th>RGBA</th><th>Alpha</th></tr>
+              <tr><td>1-1 </td><td><div style="background :#fdd0a2">&nbsp;</div>  </td><td><div style="background :#c6dbef">&nbsp;</div></td></tr>
+              <tr><td>2-5 </td><td><div style="background :#fdae6b">&nbsp;</div>  </td><td><div style="background :#9ecae1">&nbsp;</div></td></tr>
+              <tr><td>6-15  </td><td><div style="background :#fd8d3c">&nbsp;</div>  </td><td><div style="background :#6baed6">&nbsp;</div></td></tr>
+              <tr><td>16-46 </td><td><div style="background :#f16913">&nbsp;</div>  </td><td><div style="background :#4292c6">&nbsp;</div></td></tr>
+              <tr><td>47-140  </td><td><div style="background :#d94801">&nbsp;</div>  </td><td><div style="background :#2171b5">&nbsp;</div></td></tr>
+              <tr><td>141-420 </td><td><div style="background :#a63603">&nbsp;</div>  </td><td><div style="background :#08519c">&nbsp;</div></td></tr>
+              <tr><td>421-1024 </td><td><div style="background :#7f2704">&nbsp;</div> </td><td></td></tr>
+            </table>
+            <table border="0" cellspacing="5" cellpadding="5" id=nav>
+              <tr><th colspan=2>Naviation</th></tr>
+              <tr><th>H</th><td>Left</td></tr>
+              <tr><th>J</th><td>Down</td></tr>
+              <tr><th>K</th><td>Up</td></tr>
+              <tr><th>L</th><td>Right</td></tr>
+              <tr><th>A</th><td>Zoom In</td></tr>
+              <tr><th>Z</th><td>Zoom Out</td></tr>
+              <tr><th>U</th><td>Jump To Largest Diff</td></tr>
+              <tr><th>M</th><td>Manual Toggle</td></tr>
+            </table>
           </div>
         </div>
       </div>
@@ -220,11 +260,26 @@ There are three images that it deals with, called left, top, and diff.
           type: Number, 
           value: 0,
           notify: true
+        },
+
+        _pixels : {
+          type: Number, 
+          value: 64, 
+          notify: true
+        },
+
+        _centerPixel: {
+          type: Object, 
+          value: function() { return {}; }
         }
       },
 
       ready: function(){
         this._seq = []; 
+        this.listen(this.$.zoomLeft, 'zoom-point', '_handleZoomPixels');
+        this.listen(this.$.zoomMiddle, 'zoom-point', '_handleZoomPixels');
+        this.listen(this.$.zoomRight, 'zoom-point', '_handleZoomPixels');
+        this.listen(document, 'keydown', '_handleKeyDown');
       },
 
       setDetails: function(details) {
@@ -233,18 +288,28 @@ There are three images that it deals with, called left, top, and diff.
         this.set('_rightActive', true);
         this.set('_x', 0); 
         this.set('_y', 0);
-        this.set('details', details); 
-        this._showNext(); 
+        this.set('details', details);
+        this.set('_pixels', 64);
+        this._updateTiming();
+        this._showNext(true);
+        this._active = true; 
       },
 
       clear: function(details) {
         this.set('details', {});
-        if (this._asyncHandle) {
-          this.cancelAsync(this._asyncHandle);
-        }
+        this._cancelAsync();
+        this._active = false; 
       },
 
-      _showNext: function() {
+      _cancelAsync: function() {
+        if (this._asyncHandle) {
+          this.cancelAsync(this._asyncHandle);
+          this._asyncHandle = null;
+        }
+      }, 
+
+      _showNext: function(triggerAsync) {
+        var currSeq = '';
         if (this._seq.length > 0) {
           var idx = this._seq.indexOf(this._currSeq);
           if (idx < 0) {
@@ -252,34 +317,134 @@ There are three images that it deals with, called left, top, and diff.
           } else {
             idx = (idx+1) % this._seq.length;  
           }
-          this._currSeq = this._seq[idx]; 
-        } else {
-          this._currSeq = '';
+          currSeq = this._seq[idx];
         }
-
-        this._asyncHandle = this.async(this._showNext.bind(this), 500); 
+        this.set('_currSeq', currSeq);
+        if (triggerAsync) {
+          this._asyncHandle = this.async(function() {
+            this._showNext(true);
+          }.bind(this), 500);
+        }
       }, 
 
       _updateTiming: function() {
-        if (!this.details.middleImgUrl || !this.details.rightImgUrl) {
-          return; 
-        }
-
         var seq = []; 
         if (this._leftActive) { 
           seq.push("left");
         }
 
-        if (this._middleActive && this.details.middleImgUrl != '') {
+        if (this._middleActive && this.details.middleImgUrl && (this.details.middleImgUrl != '')) {
           seq.push('middle'); 
         }
 
-        if (this._rightActive && this.details.rigthImgUrl != '') {
+        if (this._rightActive && this.details.rightImgUrl && (this.details.rigthImgUrl != '')) {
           seq.push('right');
         }
 
         this._seq = seq;
       },
+
+      _handleZoomPixels: function(ev) {
+        ev.stopPropagation();
+        if (ev.target.id !== 'zoomMiddle') {
+          this.set('_centerPixel.' + ev.target.id, ev.detail.rgb + ' ' + ev.detail.hex);
+        } else {
+          var lc = this.$.zoomLeft.getPixelColor(ev.detail.x, ev.detail.y);
+          var rc = this.$.zoomRight.getPixelColor(ev.detail.x, ev.detail.y);
+          var color = [
+            Math.abs(lc[0]-rc[0]),
+            Math.abs(lc[1]-rc[1]),
+            Math.abs(lc[2]-rc[2]),
+            Math.abs(lc[3]-rc[3])
+          ];
+          var diffStr = sk.colorRGB(color, 0) + ' ' + sk.colorHex(color, 0); 
+          this.set("_centerPixel.zoomMiddle", diffStr);
+        }
+      },
+
+      _handleKeyDown: function(e) {
+        if (!this._active) {
+          return;
+        }
+
+        if (e.keyCode == 27) {
+          this.close();
+        }
+        var c = String.fromCharCode(e.keyCode);
+        switch (c) {
+          case "J":
+            this.set('_y', this._y+1);
+            break;
+          case "K":
+            this.set('_y', this._y-1);
+            break;
+          case "H":
+            this.set('_x', this._x-1);
+            break;
+          case "L":
+            this.set('_x', this._x+1);
+            break;
+          case "A":
+            this.set('_pixels', Math.max(this._pixels/2, 8));
+            break;
+          case "Z":
+            var size = this.$.zoomLeft.ctx.canvas.width;
+            var maxPixels = Math.pow(2, Math.floor(Math.log(size)/Math.log(2))-1);
+            this.set('_pixels', Math.min(this._pixels*2, maxPixels));
+            break;
+          case "U":
+            this._moveToLargestDiff();
+            break;
+          case "M":
+            this._manualToggle();
+            break;
+        }
+        
+        if ("JKHLAZUM".indexOf(c) != -1 ) {
+          e.stopPropagation();
+        }
+      },
+
+      _moveToLargestDiff: function() {
+        var leftColors = this.$.zoomLeft.getImageData();
+        var rightColors = this.$.zoomRight.getImageData();
+        var width = leftColors.width;
+        var height = leftColors.height;
+        var lc = leftColors.data; 
+        var rc = rightColors.data; 
+        var max = 0;
+        var dx = 0;
+        var dy = 0
+        for (var x=0; x<width; x++) {
+          for (var y=0; y<height; y++) {
+            var offset = (y*width+x)*4; // Offset into the colors array.
+            var dist = this._colorDist(
+                rc[offset+0]-lc[offset+0],
+                rc[offset+1]-lc[offset+1],
+                rc[offset+2]-lc[offset+2],
+                rc[offset+3]-lc[offset+3]
+                );
+            if (dist > max) {
+              max = dist;
+              dx = x;
+              dy = y;
+            }
+          }
+        }
+        this._x = dx;
+        this._y = dy;
+      },
+
+      // colorDist returns the distance of a color from (0, 0, 0, 0) using a
+      // crude square distance per channel.
+      _colorDist: function(r, g, b, a) {
+        return r*r + g*g + b*b + a*a;
+      },
+
+      _manualToggle: function() {
+        this._cancelAsync();
+        this._showNext(false); 
+      }, 
 
       _hideMe: function(currSeq, pos) {  
         return currSeq != pos; 

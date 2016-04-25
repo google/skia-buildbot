@@ -18,7 +18,8 @@ var gold = gold || {};
      include: false,
      pos: false,
      neg: false, 
-     unt: true 
+     unt: true,
+     blame: "" 
   };
 
   // Returns the query string to pass to the diff page or to the diff endpoint. 
@@ -41,7 +42,15 @@ var gold = gold || {};
 
   // queryFromState returns a query string from the the given state object.
   gold.queryFromState = function(srcState) {
-    var ret = sk.query.fromObject(srcState); 
+    // Filter out empty strings. 
+    var cpState = {};
+    for(var k in srcState) {
+      if (srcState.hasOwnProperty(k) && (srcState[k] !== '')) {
+        cpState[k] = srcState[k]; 
+      }
+    }
+
+    var ret = sk.query.fromObject(cpState); 
     if (ret === '') {
       return ''; 
     }

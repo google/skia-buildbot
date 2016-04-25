@@ -58,6 +58,7 @@
           <template is="dom-repeat" items="{{data.digests}}">
             <digest-details-sk 
                     id$="{{_entryId(item)}}"
+                    mode="list"
                     triage
                     details="[[item]]"
                     commits="[[data.commits]]">

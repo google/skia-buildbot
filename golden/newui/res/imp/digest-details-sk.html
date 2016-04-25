@@ -339,7 +339,7 @@
       getZoomDetail: function() {
         return {
           leftImgUrl: this._digestHref(this.details.digest), 
-          rightImgUrl: this._digestHref(sk.robust_get(this, ['closest', 'closest', 'digest'])),
+          rightImgUrl: this._digestHref(sk.robust_get(this._right, ['digest'])),
           middleImgUrl: this._diffHref(this.diffDigests)
         }; 
       },   
@@ -419,8 +419,7 @@
         this._right = null; 
         if (!detailsView) {
           var pos = this.details.diff.pos; 
-          var neg = this.details.diff.neg; 
-          this._right = null; 
+          var neg = this.details.diff.neg;
           if (pos && neg) {
             if (neg.closest.diff < pos.closest.diff) {
               this._right = neg;

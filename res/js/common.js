@@ -725,7 +725,7 @@ this.sk = this.sk || function() {
   // in 'idx'. It will not throw an error if any sub object is missing
   // but instead return 'undefined'. 'idx' has to be an array.
   sk.robust_get = function(obj, idx) {
-    if (!idx) {
+    if (!idx || !obj) {
       return;
     }
 
@@ -738,6 +738,37 @@ this.sk = this.sk || function() {
     }
 
     return obj;
+  };
+
+  // Utility function for colorHex. 
+  function _hexify(i) {
+    var s = i.toString(16).toUpperCase();
+    // Pad out to two hex digits if necessary.
+    if (s.length < 2) {
+      s = '0' + s;
+    }
+    return s;
+  }
+
+  // colorHex returns a hex representation of a given color pixel as a string. 
+  // 'colors' is an array of bytes that contain pixesl in  RGBA format. 
+  // 'offset' is the offset of the pixel of interest. 
+  sk.colorHex = function(colors, offset) {
+    return '#'
+      + _hexify(colors[offset+0])
+      + _hexify(colors[offset+1])
+      + _hexify(colors[offset+2])
+      + _hexify(colors[offset+3]);
+  };
+
+  // colorRGB returns the given RGBA pixel as a 4-tupel of decimal numbers.
+  // 'colors' is an array of bytes that contain pixesl in  RGBA format. 
+  // 'offset' is the offset of the pixel of interest. 
+  sk.colorRGB = function(colors, offset) {
+    return "rgba(" + colors[offset] + ", " + 
+              colors[offset + 1] + ", " + 
+              colors[offset + 2] + ", " + 
+              colors[offset + 3] / 255 + ")";
   };
 
   // Polyfill for String.startsWith from

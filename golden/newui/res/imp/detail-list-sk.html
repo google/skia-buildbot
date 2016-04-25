@@ -94,7 +94,7 @@
       _handleZoomDialogOpened: function(ev) {
         if (this._zoomDetail) {
           this.$.zoomer.setDetails(this._zoomDetail);
-          this.$.zoomDialog.notifyResize();
+          this.$.zoomDialog.refit();
         }
         ev.stopPropagation();
       },

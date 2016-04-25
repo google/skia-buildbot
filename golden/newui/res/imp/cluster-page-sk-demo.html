@@ -45,9 +45,7 @@
   <cluster-page-sk></cluster-page-sk>
   <script type="text/javascript" charset="utf-8">
       var testQuery = "?query=source_type%3Dgm%26name%3Dtextblobmixedsizes&include=false&head=true&unt=true&pos=false&neg=false";
-      // if (window.location.search !== testQuery) {
-        window.history.replaceState(null, null, window.location.pathname + testQuery); 
-//      }
+      window.history.replaceState(null, null, window.location.pathname + testQuery); 
       $$$('cluster-page-sk').pageSelected();
   </script>
 </body>

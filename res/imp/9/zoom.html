@@ -29,7 +29,9 @@
         updating the zoomed view after an image load.
 
   Methods:
-    None.
+    getImageData() - Returns the image data of the image wrapped by this zoom-sk element. 
+
+    getPixelColor(x,y) - Returns the color of the pixel as an array in RGBA format. 
 
 -->
 
@@ -109,6 +111,15 @@
         this.ctx = this.$.zoom.getContext('2d');
       },
 
+      getImageData: function() {
+        var c = this.$.copy;
+        return c.getContext('2d').getImageData(0, 0, c.width, c.height);
+      },
+
+      getPixelColor: function(x,y) {
+        return this.$.copy.getContext('2d').getImageData(x, y, 1, 1).data;
+      },
+
       _findParent: function() {
         var p = this.parentNode;
         while (p.parentNode != null) {
@@ -116,7 +127,6 @@
         }
         return p
       },
-
 
       _onIronResize: function() {
         this.$.zoom.width = this.parentElement.clientWidth;
@@ -126,6 +136,7 @@
 
       _pixelResize: function() {
         this.pixelSize = Math.floor(this.$.zoom.width/this.pixels);
+        this._drawZoom();
       },
 
 
@@ -134,23 +145,6 @@
         this.$.copy.height = this._img.naturalHeight;
         this.$.copy.getContext('2d').drawImage(this._img, 0, 0, this._img.naturalWidth, this._img.naturalHeight);
         this._drawZoom();
-      },
-
-      _hexify: function(i) {
-        var s = i.toString(16).toUpperCase();
-        // Pad out to two hex digits if necessary.
-        if (s.length < 2) {
-          s = '0' + s;
-        }
-        return s;
-      },
-
-      _colorHex: function(colors, offset) {
-        return '#'
-          + this._hexify(colors[offset+0])
-          + this._hexify(colors[offset+1])
-          + this._hexify(colors[offset+2])
-          + this._hexify(colors[offset+3]);
       },
 
       _drawZoom: function () {
@@ -168,7 +162,7 @@
           for (var y = 0; y < this.pixels; y++) {
             var offset = (y * this.pixels + x) * 4;
             // Offset into the colors array.
-            var colorRGB = "rgba(" + colors[offset] + ", " + colors[offset + 1] + ", " + colors[offset + 2] + ", " + colors[offset + 3] / 255 + ")";
+            var colorRGB = sk.colorRGB(colors, offset);
             this.set("ctx.fillStyle", colorRGB);
             this.ctx.fillRect(x * dx, y * dy, dx - 1, dy - 1);
             // Box one selected pixel with its rgba values.
@@ -182,7 +176,7 @@
                 b: colors[offset+2],
                 a: colors[offset+3],
                 rgb: colorRGB,
-                hex: this._colorHex(colors, offset),
+                hex: sk.colorHex(colors, offset),
               };
               var evt = new CustomEvent('zoom-point', {
                 detail: detail,
