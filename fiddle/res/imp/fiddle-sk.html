@@ -23,30 +23,6 @@
 <link rel="import" href="/res/common/imp/9/details-summary.html">
 <link rel="import" href="/res/common/imp/9/toggle.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
-<style type="text/css" media="screen">
-    .CodeMirror .error {
-      background: #f88;
-    }
-
-    .CodeMirror-lines,
-    .CodeMirror-scroll
-    {
-      background-color: #eee;
-    }
-
-    .CodeMirror {
-      border: solid gray 1px;
-      height: auto !important;
-
-      z-index: 0;
-    }
-
-    .CodeMirror-scroll {
-      overflow-y: hidden;
-      overflow-x: auto;
-    }
-</style>
-
 <dom-module id="fiddle-sk">
   <style>
     #namer,
@@ -281,29 +257,7 @@ sk_sp&lt;SkImage> image;
 
     ready: function() {
       this._errorLinesRe = /draw.cpp:([0-9]+):([0-9]+):/;
-
-      this._editor = CodeMirror.fromTextArea($$$('textarea', this), {
-        theme: "default",
-        lineNumbers: true,
-        matchBrackets: true,
-        lineWrapping: true,
-        mode: "text/x-c++src",
-        indentUnit: 4,
-      });
-
-      this._editor.setSize(this._editor.defaultCharWidth() * 100, null);
-      this.async(function() {
-        this._editor.refresh();
-      }.bind(this), 100);
-
-      this._editor.on('beforeChange', function(instance, changeObj) {
-        var startLine = changeObj.from.line;
-        var endLine = changeObj.to.line;
-
-        for (var i = 0; i <= this._editor.lineCount(); i++) {
-          this._editor.removeLineClass( i, "wrap", "error" );
-        }
-      }.bind(this));
+      this._editor = $$$('textarea-numbers-sk', this);
 
       sk.Login.then(function(status) {
         this._not_logged_in = (status.Email == "");
@@ -322,7 +276,6 @@ sk_sp&lt;SkImage> image;
     },
 
     _run_impl: function(extra) {
-      this._editor.save();
       this.fiddlehash = "";
       this.$.running.active = true;
       body = {
@@ -343,7 +296,7 @@ sk_sp&lt;SkImage> image;
         this.$.running.active = false;
         this.fire("fiddle-success", json.fiddleHash);
         this._compile_errors.forEach(function(err) {
-          this._editor.addLineClass(+err.line-1, "wrap", "error");
+          this._editor.setErrorLine(+err.line);
         }.bind(this));
         this.$.overwrite.checked = false;
       }.bind(this)).catch(function(err) {
@@ -354,7 +307,7 @@ sk_sp&lt;SkImage> image;
 
     _errSelect: function(e) {
       if (e.target.nodeName == "PRE") {
-        this._editor.setCursor(+e.target.dataset.line-1, +e.target.dataset.col-1);
+        this._editor.setCursor(+e.target.dataset.line, +e.target.dataset.col);
         this._editor.focus();
       }
     },

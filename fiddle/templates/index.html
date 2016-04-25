@@ -12,7 +12,9 @@
   </header>
   <section id=main>
     <fiddle-sk display_options embed_button bug_link width="{%.Options.Width%}" height="{%.Options.Height%}" source="{%.Options.Source%}" fiddlehash="{%.Hash%}" sources="{%.Sources%}">
-      <textarea spellcheck="false" rows="15" cols="100">{%.Code%}</textarea>
+      <textarea-numbers-sk>
+        <textarea spellcheck="false" rows="15" cols="100">{%.Code%}</textarea>
+      </textarea-numbers-sk>
     </fiddle-sk>
     <error-toast-sk></error-toast-sk>
   </section>

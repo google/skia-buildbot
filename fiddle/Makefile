@@ -3,8 +3,6 @@
 # into third_party/bower_components via bower, or in node_modules.
 CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
   third_party/bower_components/webcomponentsjs/webcomponents-lite.min.js \
-	third_party/bower_components/codemirror/lib/codemirror.js \
-	third_party/bower_components/codemirror/mode/clike/clike.js \
   ../res/js/common.js
 
 BOWER_DIR=third_party/bower_components
@@ -19,10 +17,6 @@ build: elements_html core_js
 	go install -v ./go/fiddle_run_all
 	go install -v ./go/fiddle
 	c++ fiddle_secwrap.cpp -o fiddle_secwrap
-
-res/css/codemirror.css: third_party/bower_components/codemirror/lib/codemirror.css
-	-mkdir res/css
-	cp third_party/bower_components/codemirror/lib/codemirror.css res/css/codemirror.css
 
 .PHONY: testgo
 testgo:
