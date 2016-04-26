@@ -18,13 +18,13 @@ import (
 
 type mockClient struct{}
 
-func (c mockClient) Query(database, query string) ([]*influxdb.Point, error) {
-	return []*influxdb.Point{
-		&influxdb.Point{
+func (c mockClient) MultiQuery(database, query string, n int) ([]*influxdb.MultiPoint, error) {
+	return []*influxdb.MultiPoint{
+		&influxdb.MultiPoint{
 			Tags: map[string]string{
 				"tagKey": "tagValue",
 			},
-			Value: "1.0",
+			Values: []json.Number{"1.0", "15.0"},
 		},
 	}, nil
 }
@@ -35,8 +35,8 @@ func getRule() *Rule {
 		Database:    "DefaultDatabase",
 		Query:       "DummyQuery",
 		Category:    "testing",
-		Message:     "Dummy query meets dummy condition!",
-		Condition:   "x > 0",
+		Message:     "Dummy query meets dummy conditions!",
+		Conditions:  []string{"x > 0", "y > 10 * x", "x < 4"},
 		client:      &mockClient{},
 		AutoDismiss: int64(time.Second),
 		Actions:     []string{"Print"},
@@ -89,8 +89,8 @@ func TestRuleTriggeringE2E(t *testing.T) {
 	getAlert()
 
 	// Ensure that the rule auto-dismisses.
-	// Hack the condition so that it's no longer true with the fake query results.
-	r.Condition = "x > 10"
+	// Hack the conditions so that it's no longer true with the fake query results.
+	r.Conditions = []string{"x > 2", "y > 10 * x", "x < 4"}
 	assert.Nil(t, r.tick(am))
 	time.Sleep(2 * time.Second)
 	assert.Equal(t, 0, len(getAlerts()))
@@ -114,7 +114,50 @@ message = "randombits generates more 1's than 0's in last 5 seconds"
 database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
-condition = "x > 0.5"
+conditions = ["x > 0.5"]
+actions = ["Print"]
+auto-dismiss = false
+`,
+			ExpectedErr: nil,
+		},
+		parseCase{
+			Name: "GoodTwoVariables",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
+query = "select mean(value), sum(value) from random_bits where time > now() - 5s"
+category = "testing"
+conditions = ["x > 0.5", "y < 0.5"]
+actions = ["Print"]
+auto-dismiss = false
+`,
+			ExpectedErr: nil,
+		},
+		parseCase{
+			Name: "GoodOneVariableTwice",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
+query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
+conditions = ["x > 0.5", "x < 1.0"]
+actions = ["Print"]
+auto-dismiss = false
+nag = "1h10m"
+`,
+			ExpectedErr: nil,
+		},
+		parseCase{
+			Name: "GoodTwoVariables, One condition",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
+query = "select max(value), min(value) from random_bits where time > now() - 5s"
+category = "testing"
+conditions = ["x > y"]
 actions = ["Print"]
 auto-dismiss = false
 `,
@@ -127,7 +170,7 @@ message = "randombits generates more 1's than 0's in last 5 seconds"
 database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
-condition = "x > 0.5"
+conditions = ["x > 0.5"]
 actions = ["Print"]
 auto-dismiss = false
 `,
@@ -140,7 +183,7 @@ name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 database = "graphite"
 category = "testing"
-condition = "x > 0.5"
+conditions = ["x > 0.5"]
 actions = ["Print"]
 auto-dismiss = false
 `,
@@ -157,7 +200,7 @@ category = "testing"
 actions = ["Print"]
 auto-dismiss = false
 `,
-			ExpectedErr: fmt.Errorf("Alert rule missing field \"condition\""),
+			ExpectedErr: fmt.Errorf("Alert rule missing field \"conditions\""),
 		},
 		parseCase{
 			Name: "NoActions",
@@ -167,24 +210,52 @@ message = "randombits generates more 1's than 0's in last 5 seconds"
 database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
-condition = "x > 0.5"
+conditions = ["x > 0.5"]
 auto-dismiss = false
 `,
 			ExpectedErr: fmt.Errorf("Alert rule missing field \"actions\""),
 		},
 		parseCase{
-			Name: "BadCondition",
+			Name: "BadVariables, 'a' never exists",
 			Input: `[[rule]]
 name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
-condition = "x > y"
+conditions = ["x > a"]
 actions = ["Print"]
 auto-dismiss = false
 `,
-			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x > y\": eval:1:5: undeclared name: y"),
+			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x > a\": eval:1:5: undeclared name: a"),
+		},
+		parseCase{
+			Name: "BadVariables, 'z' isn't defined",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
+query = "select mean(value), sum(value) from random_bits where time > now() - 5s"
+category = "testing"
+conditions = ["x > y", "x < z"]
+actions = ["Print"]
+auto-dismiss = false
+`,
+			ExpectedErr: fmt.Errorf("Failed to evaluate condition \"x < z\": eval:1:5: undeclared name: z"),
+		},
+		parseCase{
+			Name: "TooManyVariables",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
+query = "select mean(value), sum(value), min(value), max(value) from random_bits where time > now() - 5s"
+category = "testing"
+conditions = ["x > y", "x < z"]
+actions = ["Print"]
+auto-dismiss = false
+`,
+			ExpectedErr: fmt.Errorf(`Too many return values in query "select mean(value), sum(value), min(value), max(value) from random_bits where time > now() - 5s".  We only support 3 variables and found 4 return values`),
 		},
 		parseCase{
 			Name: "NoMessage",
@@ -193,7 +264,7 @@ name = "randombits"
 database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
-condition = "x > 0.5"
+conditions = ["x > 0.5"]
 actions = ["Print"]
 auto-dismiss = false
 `,
@@ -207,7 +278,7 @@ message = "randombits generates more 1's than 0's in last 5 seconds"
 category = "testing"
 database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > 0.5"
+conditions = ["x > 0.5"]
 actions = ["Print"]
 `,
 			ExpectedErr: fmt.Errorf("Alert rule missing field \"auto-dismiss\""),
@@ -220,7 +291,7 @@ message = "randombits generates more 1's than 0's in last 5 seconds"
 database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
-condition = "x > 0.5"
+conditions = ["x > 0.5"]
 actions = ["Print"]
 auto-dismiss = false
 nag = "1h10m"
@@ -234,7 +305,7 @@ name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 database = "graphite"
 query = "select mean(value) from random_bits where time > now() - 5s"
-condition = "x > 0.5"
+conditions = ["x > 0.5"]
 actions = ["Print"]
 auto-dismiss = false
 nag = "1h10m"
@@ -248,7 +319,7 @@ name = "randombits"
 message = "randombits generates more 1's than 0's in last 5 seconds"
 query = "select mean(value) from random_bits where time > now() - 5s"
 category = "testing"
-condition = "x > 0.5"
+conditions = ["x > 0.5"]
 actions = ["Print"]
 auto-dismiss = false
 nag = "1h10m"

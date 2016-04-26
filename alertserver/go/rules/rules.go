@@ -5,6 +5,7 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
+	"regexp"
 	"strings"
 	"time"
 
@@ -24,13 +25,17 @@ type Rule struct {
 	Database    string        `json:"database"`
 	Query       string        `json:"query"`
 	Category    string        `json:"category"`
-	Condition   string        `json:"condition"`
+	Conditions  []string      `json:"conditions"`
 	Message     string        `json:"message"`
 	Nag         time.Duration `json:"nag"`
 	client      queryable
 	AutoDismiss int64 `json:"autoDismiss"`
 	Actions     []string
 }
+
+// The first three return values of a clause will be loaded into x, y z.  If there are fewer than
+// three return values, the others will just be undefined.
+var CONDITION_VARIABLES = []string{"x", "y", "z"}
 
 func formatMsg(msg string, tags map[string]string) string {
 	rv := msg
@@ -82,7 +87,7 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 		return err
 	}
 	name := "Failed to evaluate query"
-	msg := fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]", r.Name, r.Condition)
+	msg := fmt.Sprintf("Failed to evaluate query for rule \"%s\": [ %s ]", r.Name, r.Conditions)
 	glog.Errorf("%s\nFull error:\n%v", msg, queryErr)
 	return am.AddAlert(&alerting.Alert{
 		Name:        name,
@@ -95,18 +100,24 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 }
 
 func (r *Rule) tick(am *alerting.AlertManager) error {
-	res, err := executeQuery(r.client, r.Database, r.Query)
+	res, err := executeQuery(r.client, r.Database, r.Query, len(r.Conditions))
 	if err != nil {
 		// We shouldn't fail to execute a query. Trigger an alert.
 		return r.queryExecutionAlert(err, am)
 	}
 	// Evaluate the query comparison for each returned value.
 	for _, v := range res {
-		f, err := v.Value.Float64()
-		if err != nil {
-			return r.queryEvaluationAlert(err, am)
+		values := v.Values
+		xf := make([]float64, 0, len(values))
+		for _, vf := range values {
+			f, err := vf.Float64()
+			if err != nil {
+				return r.queryEvaluationAlert(err, am)
+			}
+			xf = append(xf, f)
 		}
-		doAlert, err := r.evaluate(f)
+
+		doAlert, err := r.evaluate(xf)
 		if err != nil {
 			return r.queryEvaluationAlert(err, am)
 		}
@@ -119,18 +130,32 @@ func (r *Rule) tick(am *alerting.AlertManager) error {
 	return nil
 }
 
-func (r *Rule) evaluate(d float64) (bool, error) {
+// evaluate takes a slice of floats to represent the value(s) returned from the query.  It creates
+// variables (e.g. 'x', 'y', etc) in scope of a go program and then attempts to evaluate the
+// conditions.  It returns the result of anding all of the results of the conditions or an error.
+func (r *Rule) evaluate(xf []float64) (bool, error) {
+	if len(xf) > len(CONDITION_VARIABLES) {
+		return false, fmt.Errorf("Too many return values for query.  We support a max of %d (%q), but there were %d (%f)", len(CONDITION_VARIABLES), CONDITION_VARIABLES, len(xf), xf)
+	}
 	pkg := types.NewPackage("evaluateme", "evaluateme")
-	v := constant.MakeFloat64(d)
-	pkg.Scope().Insert(types.NewConst(0, pkg, "x", types.Typ[types.Float64], v))
-	tv, err := types.Eval(token.NewFileSet(), pkg, token.NoPos, r.Condition)
-	if err != nil {
-		return false, fmt.Errorf("Failed to evaluate condition %q: %s", r.Condition, err)
+	result := true
+	// Load all the inputs into CONDITION_VARIABLES
+	for i, f := range xf {
+		v := constant.MakeFloat64(f)
+		pkg.Scope().Insert(types.NewConst(0, pkg, CONDITION_VARIABLES[i], types.Typ[types.Float64], v))
 	}
-	if tv.Type.String() != "untyped bool" {
-		return false, fmt.Errorf("Rule \"%v\" does not return boolean type.", r.Condition)
+
+	for _, condition := range r.Conditions {
+		tv, err := types.Eval(token.NewFileSet(), pkg, token.NoPos, condition)
+		if err != nil {
+			return false, fmt.Errorf("Failed to evaluate condition %q: %s", condition, err)
+		}
+		if tv.Type.String() != "untyped bool" {
+			return false, fmt.Errorf("Rule \"%v\" does not return boolean type.", condition)
+		}
+		result = constant.BoolVal(tv.Value) && result
 	}
-	return constant.BoolVal(tv.Value), nil
+	return result, nil
 }
 
 type parsedRule map[string]interface{}
@@ -149,9 +174,14 @@ func newRule(r parsedRule, client *influxdb.Client, testing bool, tickInterval t
 	if !ok {
 		return nil, fmt.Errorf(errString, "category")
 	}
-	condition, ok := r["condition"].(string)
+	conditionsInterface, ok := r["conditions"]
 	if !ok {
-		return nil, fmt.Errorf(errString, "condition")
+		return nil, fmt.Errorf(errString, "conditions")
+	}
+	conditionsInterfaceList := conditionsInterface.([]interface{})
+	conditionsStrings := make([]string, 0, len(conditionsInterfaceList))
+	for _, iface := range conditionsInterfaceList {
+		conditionsStrings = append(conditionsStrings, iface.(string))
 	}
 	database, ok := r["database"].(string)
 	if !ok {
@@ -187,12 +217,25 @@ func newRule(r parsedRule, client *influxdb.Client, testing bool, tickInterval t
 			return nil, fmt.Errorf("Invalid nag duration %q: %v", nag, err)
 		}
 	}
+	numQueryReturns := countNumQueryReturns(query)
+	if numQueryReturns > len(CONDITION_VARIABLES) {
+		return nil, fmt.Errorf("Too many return values in query %q.  We only support %d variables and found %d return values", query, len(CONDITION_VARIABLES), numQueryReturns)
+	}
+	for i := numQueryReturns; i < len(CONDITION_VARIABLES); i++ {
+		undefinedVar := CONDITION_VARIABLES[i]
+		for _, condition := range conditionsStrings {
+			if j := strings.Index(condition, undefinedVar); j != -1 {
+				return nil, fmt.Errorf("Failed to evaluate condition %q: eval:1:%d: undeclared name: %s", condition, j+1, undefinedVar)
+			}
+		}
+	}
+
 	rule := Rule{
 		Name:        name,
 		Database:    database,
 		Query:       query,
 		Category:    category,
-		Condition:   condition,
+		Conditions:  conditionsStrings,
 		Message:     message,
 		Nag:         nagDuration,
 		client:      client,
@@ -200,11 +243,26 @@ func newRule(r parsedRule, client *influxdb.Client, testing bool, tickInterval t
 		Actions:     actionStrings,
 	}
 	// Verify that the condition can be evaluated.
-	_, err := rule.evaluate(0.0)
+	_, err := rule.evaluate(make([]float64, len(CONDITION_VARIABLES)))
 	if err != nil {
 		return nil, err
 	}
 	return &rule, nil
+}
+
+var commaCounter = regexp.MustCompile("(?i)select(.*)from")
+
+// countNumQueryReturns returns a heuristic-based guess as to how many return values the
+// given influxdb query has.  It basically counts the number of commas between select and from.
+func countNumQueryReturns(query string) int {
+	q := commaCounter.FindStringSubmatch(query)
+	if q == nil {
+		// This should never happen.  An error will be thrown because "x" will not be defined.
+		return 0
+	}
+	commas := strings.Count(q[0], ",")
+	// # of commas == # of variables - 1, so we add one to offset
+	return commas + 1
 }
 
 func parseAlertRules(cfgFile string) ([]parsedRule, error) {
@@ -258,9 +316,9 @@ type queryable interface {
 	// Query sends a query to the database and returns a slice of points
 	// along with any error. The parameters are the name of the database
 	// and the query to perform.
-	Query(string, string) ([]*influxdb.Point, error)
+	MultiQuery(string, string, int) ([]*influxdb.MultiPoint, error)
 }
 
-func executeQuery(c queryable, database, q string) ([]*influxdb.Point, error) {
-	return c.Query(database, q)
+func executeQuery(c queryable, database, q string, numConditions int) ([]*influxdb.MultiPoint, error) {
+	return c.MultiQuery(database, q, numConditions)
 }
