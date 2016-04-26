@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/config"
@@ -22,6 +23,11 @@ import (
 
 const (
 	GOOD_BUILDS_FILENAME = "goodbuilds.txt"
+
+	// PRESERVE_DURATION is used to determine if an LKGR commit should be
+	// preserved.  i.e. if a the distance between two commits is greater than
+	// PRESERVER_DURATION then they both should be preserved.
+	PRESERVE_DURATION = 30 * 24 * time.Hour
 )
 
 // errors
@@ -248,4 +254,58 @@ func (b *Builder) BuildLatestSkiaChromeBranch(force bool) (string, *vcsinfo.Long
 		return "", nil, err
 	}
 	return branchName, res, nil
+}
+
+// decimate returns a list of hashes to keep, the list to remove,
+// and an error if one occurred.
+//
+// The algorithm is:
+//   Preserve all hashes that are spaced one month apart.
+//   Then if there are more than 'limit' remaining hashes
+//   remove every other one to bring the count down to 'limit'/2.
+//
+func decimate(hashes []string, vcs vcsinfo.VCS, limit int) ([]string, []string, error) {
+	keep := []string{}
+	remove := []string{}
+
+	// The hashes are in reverse chronological order, so we start at the end
+	// and work back until we start to find hashes that are less than
+	// PRESERVE_DURATION apart. Once we find that spot set oldiesBegin
+	// to that index.
+	oldiesBegin := len(hashes)
+	c, err := vcs.Details(hashes[len(hashes)-1], true)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Failed to get hash details: %s", err)
+	}
+	lastTS := c.Timestamp
+	for i := len(hashes) - 2; i > 0; i-- {
+		c, err := vcs.Details(hashes[i], true)
+		if err != nil {
+			return nil, nil, fmt.Errorf("Failed to get hash details: %s", err)
+		}
+		if lastTS.Sub(c.Timestamp) < PRESERVE_DURATION {
+			break
+		}
+		lastTS = c.Timestamp
+		oldiesBegin = i
+	}
+
+	// Now that we know where the old hashes that we want to preserve are, we
+	// will chop them off and ignore them for the rest of the decimation process.
+	oldies := hashes[oldiesBegin:]
+	hashes = hashes[:oldiesBegin]
+
+	// Only do decimation if we have enough fresh hashes.
+	if len(hashes) < limit {
+		return append(hashes, oldies...), remove, nil
+	}
+	for i, h := range hashes {
+		if i%2 == 0 {
+			keep = append(keep, h)
+		} else {
+			remove = append(remove, h)
+		}
+	}
+	// Once done with decimation add the oldies back into the list of hashes to keep.
+	return append(keep, oldies...), remove, nil
 }
