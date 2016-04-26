@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
@@ -63,9 +65,9 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 	var ok bool
 	var cacheId = fmt.Sprintf("%d:%d", dmResults.Issue, dmResults.Patchset)
 	if ts, ok = g.cache[cacheId]; !ok {
-		patchinfo, err := g.review.GetPatchset(dmResults.Issue, dmResults.Patchset)
+		patchinfo, err := g.getPatchset(dmResults.Issue, dmResults.Patchset)
 		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve trybot patch info: %s", err)
+			return nil, err
 		}
 		ts = patchinfo.Created
 
@@ -82,6 +84,34 @@ func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults 
 		ID:        strconv.FormatInt(dmResults.Patchset, 10),
 		Source:    source,
 	}, nil
+}
+
+// getPatchset retrieves the patchset. If it does not exist (but the Rietveld issue exists)
+// it will return a ingestion.IgnoreResultsFileErr indicating that this input file should be ignored.
+func (g *goldTrybotProcessor) getPatchset(issueID int64, patchsetID int64) (*rietveld.Patchset, error) {
+	patchinfo, err := g.review.GetPatchset(issueID, patchsetID)
+	if err == nil {
+		return patchinfo, nil
+	}
+
+	// If we can find the issue, check if the patchset has been removed.
+	if issueInfo, err := g.review.GetIssueProperties(issueID, false); err == nil {
+		found := false
+		for _, pset := range issueInfo.Patchsets {
+			if pset == patchsetID {
+				found = true
+				break
+			}
+		}
+
+		// This patchset is no longer available ignore the result file.
+		if !found {
+			glog.Warningf("Rietveld issue/patchset (%d/%d) does not exist.", issueID, patchsetID)
+			return nil, ingestion.IgnoreResultsFileErr
+		}
+	}
+
+	return nil, fmt.Errorf("Failed to retrieve trybot issue and patch info for (%d, %d). Got Error: %s", issueID, patchsetID, err)
 }
 
 // ExtractIssueInfo returns the issue id and the patchset id for a given commitID.
