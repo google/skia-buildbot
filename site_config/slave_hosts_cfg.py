@@ -249,6 +249,8 @@ _slave_host_dicts = {
       ('skiabot-linux-swarm-011', '11', False),
       ('skiabot-linux-swarm-012', '12', False),
       ('skiabot-linux-swarm-013', '13', False),
+      ('skiabot-linux-swarm-014', '14', False),
+      ('skiabot-linux-swarm-015', '15', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
