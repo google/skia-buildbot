@@ -60,7 +60,7 @@ const (
 )
 
 var flagNames = []string{
-	"FailedGracefully",
+	"TerminatedGracefully",
 	"ClangCrashed",
 	"ASANCrashed",
 	"AssertionViolated",
@@ -152,7 +152,8 @@ func parseAll(category string, data *BuildData) FuzzFlag {
 	// If no sk abort message and no evidence of crashes, we either terminated gracefully or
 	// timed out.
 	if f == 0 && !asanCrashed(data.Asan) && !clangDumped(data.Dump) {
-		if strings.Contains(data.Asan, "[terminated]") && strings.Contains(data.StdErr, "[terminated]") {
+		if (strings.Contains(data.Asan, "[terminated]") && strings.Contains(data.StdErr, "[terminated]")) ||
+			(strings.Contains(data.Asan, "Signal boring") && strings.Contains(data.StdErr, "Signal boring")) {
 			return TerminatedGracefully
 		}
 		return TimedOut

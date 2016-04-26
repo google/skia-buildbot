@@ -434,3 +434,36 @@ func TestParseGCSPackage_SKAbort(t *testing.T) {
 		t.Errorf("Top frame was wrong.  Expected: %#v, but was %#v", expected, frame)
 	}
 }
+
+func TestParseGCSPackage_SKBoring(t *testing.T) {
+	// Both triggered SkBoring.
+	g := GCSPackage{
+		Debug: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("8grey_debug.asan")),
+			Dump:   "",
+			StdErr: testutils.MustReadFile(stacktrace("8grey_debug.err")),
+		},
+		Release: OutputFiles{
+			Asan:   testutils.MustReadFile(stacktrace("8grey_release.asan")),
+			Dump:   "",
+			StdErr: testutils.MustReadFile(stacktrace("8grey_release.err")),
+		},
+		FuzzCategory: "skpicture",
+	}
+
+	result := ParseGCSPackage(g)
+	expectedDebugFlags := TerminatedGracefully
+	expectedReleaseFlags := TerminatedGracefully
+	if result.Debug.Flags != expectedDebugFlags {
+		t.Errorf("Parsed Debug flags were wrong.  Expected %s, but was %s", expectedDebugFlags.String(), result.Debug.Flags.String())
+	}
+	if result.Release.Flags != expectedReleaseFlags {
+		t.Errorf("Parsed Release flags were wrong.  Expected %s, but was %s", expectedReleaseFlags.String(), result.Release.Flags.String())
+	}
+	if !result.Debug.StackTrace.IsEmpty() {
+		t.Errorf("Should have had empty debug stacktrace")
+	}
+	if !result.Release.StackTrace.IsEmpty() {
+		t.Errorf("Should have had empty release stacktrace")
+	}
+}
