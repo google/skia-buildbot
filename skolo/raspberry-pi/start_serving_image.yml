@@ -1,0 +1,34 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  remote_user: chrome-bot
+  become_user: root
+  become: yes
+  become_method: sudo
+  vars:
+    nfs_ip: 192.168.1.114
+    image: /opt/rpi_img/2016-03-18-raspbian-jessie-lite.img
+    # 8192 * 512
+    offset_boot: 4194304
+    # 131072 * 512
+    offset_root: 67108864
+  tasks:
+    - file: path=/opt/raspberrypi/boot state=directory
+    - file: path=/opt/raspberrypi/root state=directory
+
+    - mount: src="{{image}}" name="/opt/raspberrypi/boot" fstype="auto" opts="loop,offset={{offset_boot}},noauto" state="mounted"
+    - mount: src="{{image}}" name="/opt/raspberrypi/root" fstype="auto" opts="loop,offset={{offset_root}},noauto" state="mounted"
+
+    # start nfs
+    - service: name=nfs-kernel-server state=restarted
+
+    # make sure root stays mounted
+    - lineinfile: dest=/etc/cron.d/opt_raspberrypi_root line="* * * * * root /bin/mount /opt/raspberrypi/root" create=yes state=present
+
+    # Remount these at startup
+    - lineinfile: dest=/etc/rc.local line="mount /opt/raspberrypi/root" insertbefore="exit 0"
+    - lineinfile: dest=/etc/rc.local line="mount /opt/raspberrypi/boot" insertbefore="exit 0"
+
+
+  handlers:
+

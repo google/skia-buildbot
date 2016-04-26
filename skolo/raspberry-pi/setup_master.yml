@@ -1,0 +1,22 @@
+---
+- hosts: all
+  remote_user: chrome-bot
+  become_user: root
+  become: yes
+  become_method: sudo
+  vars:
+    net: 192.168.1.0
+  tasks:
+    - apt: upgrade=dist update_cache=yes
+    - apt: name=binfmt-support
+    - apt: name=qemu
+    - apt: name=qemu-user-static
+    - apt: name=unzip
+    - apt: name=nfs-kernel-server
+
+    - file: path=/opt/raspberrypi state=directory
+
+    - lineinfile: dest=/etc/exports line="/opt/raspberrypi/root {{net}}/24(ro,sync,no_root_squash,no_subtree_check)"
+
+  handlers:
+

@@ -1,0 +1,55 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  remote_user: chrome-bot
+  become_user: root
+  become: yes
+  become_method: sudo
+  vars:
+    image: /opt/rpi_img/2016-03-18-raspbian-jessie-lite.img
+    # 8192 * 512
+    offset_boot: 4194304
+    # 131072 * 512
+    offset_root: 67108864
+  tasks:
+    # Set up mounts in image's fstab
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab regexp=".*mmcblk0p2.*" state=absent
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p3  /b     ext4    defaults          0       2" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p5  /var   ext4    defaults          0       2" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p6  /tmp   ext4    defaults          0       2" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/fstab line="/dev/mmcblk0p7  /home/chrome-bot   ext4    defaults          0       2" state=present
+
+    # Swarming needs a /b file (which will have an SD card partition mounted to it.)
+    - file: path=/opt/raspberrypi/root/b state=directory mode=0777
+    # Make the hostname be set from the cmdline, not etc/hostname
+    - file: path=/opt/raspberrypi/root/etc/hostname state=absent
+    # Autologin to our user
+    - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service regexp="^ExecStart.*" state=absent
+    - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service line="ExecStart=-/sbin/agetty --autologin chrome-bot --noclear %I $TERM" state=present insertafter="\[Service\]"
+
+    - name: Create the startup script
+      copy: src=startup-script.sh dest=/opt/raspberrypi/root/opt/startup-script.sh owner=root group=root mode=0755
+
+    - name: Set to run our startup script at boot
+      lineinfile: dest=/opt/raspberrypi/root/home/chrome-bot line="/opt/startup-script.sh" insertafter=EOF
+
+    - name: Fixing udev rules for Android and NVIDIA devices
+      copy: src=udev-rules dest=/opt/raspberrypi/root/etc/udev/rules.d/51-android.rules owner=root group=root mode=0644
+
+   # Some niceties
+    - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias l='ls -CF'" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias la='ls -A'" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias ll='ls -alF'" state=present
+    - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias ls='ls --color=auto'" state=present
+
+
+    - lineinfile: dest=/opt/raspberrypi/root/etc/ld.so.preload line="#/usr/lib/arm-linux-gnueabihf/libarmmem.so" state=absent
+    - lineinfile: dest=/opt/raspberrypi/root/etc/ld.so.preload line="/usr/lib/arm-linux-gnueabihf/libarmmem.so" state=present
+
+    - command: umount /opt/raspberrypi/root/dev
+    - command: umount /opt/raspberrypi/root/proc
+    - command: umount /opt/raspberrypi/root/sys
+
+    - mount: name="/opt/raspberrypi/root" src="dontcare" fstype="auto" state="unmounted"
+  handlers:
+

@@ -1,0 +1,22 @@
+---
+- hosts: 127.0.0.1
+  connection: local
+  remote_user: chrome-bot
+  become_user: root
+  become: yes
+  become_method: sudo
+
+  tasks:
+
+    # Remove configurations that keep our files mounted
+    - lineinfile: dest=/etc/cron.d/opt_raspberrypi_root line="* * * * * root /bin/mount /opt/raspberrypi/root" create=no state=absent
+    - lineinfile: dest=/etc/rc.local line="mount /opt/raspberrypi/root" state=absent
+    - lineinfile: dest=/etc/rc.local line="mount /opt/raspberrypi/boot" state=absent
+
+    - service: name=nfs-kernel-server state=stopped
+
+    - mount: name="/opt/raspberrypi/boot" src="dontcare" fstype="auto" state="unmounted"
+    - mount: name="/opt/raspberrypi/root" src="dontcare" fstype="auto" state="unmounted"
+
+  handlers:
+
