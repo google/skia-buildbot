@@ -5,8 +5,8 @@ BOWER_DIR=third_party/bower_components
 # into third_party/bower_compoents via bower, or in node_modules.
 CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
   ${BOWER_DIR}/google-code-prettify/bin/prettify.min.js \
-	../res/js/common.js
-
+	../res/js/common.js \
+	./res/js/docs.js
 
 default: core_js res/css/docs.css
 	go install -v ./go/docserver
