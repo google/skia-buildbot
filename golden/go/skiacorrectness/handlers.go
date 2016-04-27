@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/search"
+	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -135,7 +136,13 @@ func (b ByBlameEntrySlice) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 
 // jsonSearchHandler is the endpoint for all searches.
 func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
-	searchResponse, err := search.Search(queryFromRequest(r), storages, tallies, blamer, paramsetSum)
+	query := search.Query{Limit: 50}
+	if err := parseQuery(r, &query); err != nil {
+		httputils.ReportError(w, r, err, "Search for digests failed.")
+		return
+	}
+
+	searchResponse, err := search.Search(&query, storages, tallies, blamer, paramsetSum)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -407,21 +414,19 @@ func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
 // the incoming query and returns the data in a format appropriate for
 // handling in d3.
 func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
-
 	// Extract the test name as we only allow clustering within a test.
-	q := queryFromRequest(r)
-	parsedQuery, err := url.ParseQuery(q.Query)
-	if err != nil {
+	q := search.Query{Limit: 50}
+	if err := parseQuery(r, &q); err != nil {
 		httputils.ReportError(w, r, err, "Unable to parse query parameter.")
 		return
 	}
-	testName := parsedQuery.Get(types.PRIMARY_KEY_FIELD)
+	testName := q.Query.Get(types.PRIMARY_KEY_FIELD)
 	if testName == "" {
-		httputils.ReportError(w, r, err, "No test name provided.")
+		httputils.ReportError(w, r, fmt.Errorf("test name parameter missing"), "No test name provided.")
 		return
 	}
 
-	searchResponse, err := search.Search(q, storages, tallies, blamer, paramsetSum)
+	searchResponse, err := search.Search(&q, storages, tallies, blamer, paramsetSum)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -488,4 +493,127 @@ type ClusterDiffResult struct {
 	Test             string                         `json:"test"`
 	ParamsetByDigest map[string]map[string][]string `json:"paramsetByDigest"`
 	ParamsetsUnion   map[string][]string            `json:"paramsetsUnion"`
+}
+
+// TOOD(stephana): Remove polyListTestsHandler which has a slightly different
+// input format with respect to query parameters.
+
+// jsonListTestsHandler returns a JSON list with high level information about
+// each test.
+//
+// It takes these parameters:
+//  include - If true ignored digests should be included. (true, false)
+//  query   - A query to restrict the responses to, encoded as a URL encoded paramset.
+//  head    - if only digest that appear at head should be included.
+//  unt     - If true include tests that have untriaged digests. (true, false)
+//  pos     - If true include tests that have positive digests. (true, false)
+//  neg     - If true include tests that have negative digests. (true, false)
+//
+// The return format looks like:
+//
+//  [
+//    {
+//      "name": "01-original",
+//      "diameter": 123242,
+//      "untriaged": 2,
+//      "num": 2
+//    },
+//    ...
+//  ]
+//
+func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the query object like with the other searches.
+	query := search.Query{}
+	if err := parseQuery(r, &query); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse form data.")
+		return
+	}
+
+	// If the query only includes source_type parameters, and include==false, then we can just
+	// filter the response from summaries.Get(). If the query is broader than that, or
+	// include==true, then we need to call summaries.CalcSummaries().
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, r, err, "Invalid request.")
+		return
+	}
+
+	corpus, hasSourceType := query.Query["source_type"]
+	sumSlice := []*summary.Summary{}
+	if !query.IncludeIgnores && query.Head && len(query.Query) == 1 && hasSourceType {
+		sumMap := summaries.Get()
+		for _, s := range sumMap {
+			if util.In(s.Corpus, corpus) && includeSummary(s, &query) {
+				sumSlice = append(sumSlice, s)
+			}
+		}
+	} else {
+		glog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
+		sumMap, err := summaries.CalcSummaries(nil, query.Query, query.IncludeIgnores, query.Head)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to calculate summaries.")
+			return
+		}
+		for _, s := range sumMap {
+			if includeSummary(s, &query) {
+				sumSlice = append(sumSlice, s)
+			}
+		}
+	}
+
+	sort.Sort(SummarySlice(sumSlice))
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(sumSlice); err != nil {
+		glog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
+// includeSummary returns true if the given summary matches the query flags.
+func includeSummary(s *summary.Summary, q *search.Query) bool {
+	return ((s.Pos > 0) && (q.Pos)) ||
+		((s.Neg > 0) && (q.Neg)) ||
+		((s.Untriaged > 0) && (q.Unt))
+}
+
+// TODO(stephana): Remove queryFromRequest in favor of parseQuery as the generic
+// way to parse input parameters for search-like endpoints.
+// Remove the "Limit" field and replace with pagination.
+
+// parseQuery parses the request parameters,
+func parseQuery(r *http.Request, query *search.Query) error {
+	// Get the limit
+	if l := r.FormValue("limit"); l != "" {
+		limit, err := strconv.Atoi(l)
+		if err != nil {
+			return fmt.Errorf("Unable to parse a limit of: %s", l)
+		}
+		query.Limit = limit
+	}
+
+	// Parse the query
+	var err error
+	query.Query = url.Values{}
+	if q := r.FormValue("query"); q != "" {
+		query.Query, err = url.ParseQuery(q)
+		if err != nil {
+			return fmt.Errorf("Unable to parse query: %s. Error: %s", q, err)
+		}
+	}
+
+	// Parse out the patchsets.
+	if temp := r.FormValue("patchsets"); temp != "" {
+		patchsets := strings.Split(temp, ",")
+		query.Patchsets = patchsets
+	}
+
+	query.BlameGroupID = r.FormValue("blame")
+	query.Pos = r.FormValue("pos") == "true"
+	query.Neg = r.FormValue("neg") == "true"
+	query.Unt = r.FormValue("unt") == "true"
+	query.Head = r.FormValue("head") == "true"
+	query.IncludeIgnores = r.FormValue("include") == "true"
+	query.Issue = r.FormValue("issue")
+	query.IncludeMaster = r.FormValue("master") == "true"
+
+	return nil
 }

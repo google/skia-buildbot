@@ -53,7 +53,7 @@ func New(storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer
 	}
 
 	var err error
-	s.summaries, err = s.CalcSummaries(nil, "", false, true)
+	s.summaries, err = s.CalcSummaries(nil, nil, false, true)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to calculate summaries in New: %s", err)
 	}
@@ -61,7 +61,7 @@ func New(storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer
 	// TODO(jcgregorio) Move to a channel for tallies and then combine
 	// this and the expStore handling into a single switch statement.
 	tallies.OnChange(func() {
-		summaries, err := s.CalcSummaries(nil, "", false, true)
+		summaries, err := s.CalcSummaries(nil, nil, false, true)
 		if err != nil {
 			glog.Errorf("Failed to refresh summaries: %s", err)
 			return
@@ -74,7 +74,7 @@ func New(storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer
 	storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		testNames := e.([]string)
 		glog.Info("Updating summaries after expectations change.")
-		partialSummaries, err := s.CalcSummaries(testNames, "", false, true)
+		partialSummaries, err := s.CalcSummaries(testNames, nil, false, true)
 		if err != nil {
 			glog.Errorf("Failed to refresh summaries: %s", err)
 			return
@@ -113,7 +113,7 @@ type TraceID struct {
 // head
 //   Only consider digests at head if true.
 //
-func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnores bool, head bool) (map[string]*Summary, error) {
+func (s *Summaries) CalcSummaries(testNames []string, query url.Values, includeIgnores bool, head bool) (map[string]*Summary, error) {
 	defer timer.New("CalcSummaries").Stop()
 	glog.Infof("CalcSummaries: includeIgnores %v head %v", includeIgnores, head)
 
@@ -122,10 +122,6 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 	t.Stop()
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
-	}
-	q, err := url.ParseQuery(query)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse Query in CalcSummaries: %s", err)
 	}
 
 	ret := map[string]*Summary{}
@@ -145,7 +141,7 @@ func (s *Summaries) CalcSummaries(testNames []string, query string, includeIgnor
 		if len(testNames) > 0 && !util.In(name, testNames) {
 			continue
 		}
-		if tiling.Matches(tr, q) {
+		if tiling.Matches(tr, query) {
 			if slice, ok := filtered[name]; ok {
 				filtered[name] = append(slice, &TraceID{tr: tr, id: id})
 			} else {

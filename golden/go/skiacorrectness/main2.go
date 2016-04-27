@@ -138,7 +138,7 @@ func polyListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		glog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		sumMap, err := summaries.CalcSummaries(nil, r.FormValue("query"), r.FormValue("include") == "true", r.FormValue("head") == "true")
+		sumMap, err := summaries.CalcSummaries(nil, q, r.FormValue("include") == "true", r.FormValue("head") == "true")
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to calculate summaries.")
 			return
@@ -896,7 +896,7 @@ func allUntriagedSummaries() (*tiling.Tile, map[string]*summary.Summary, error) 
 		return nil, nil, fmt.Errorf("Couldn't load tile: %s", err)
 	}
 	// Get a list of all untriaged images by test.
-	sum, err := summaries.CalcSummaries([]string{}, "source_type=gm", false, true)
+	sum, err := summaries.CalcSummaries([]string{}, url.Values{"source_type": []string{"gm"}}, false, true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Couldn't load summaries: %s", err)
 	}
@@ -1104,6 +1104,15 @@ func queryFromRequest(r *http.Request) *search.Query {
 		patchsets = strings.Split(temp, ",")
 	}
 
+	// Parse the query
+	qVals := url.Values{}
+	var err error
+	if q := r.FormValue("query"); q != "" {
+		if qVals, err = url.ParseQuery(q); err != nil {
+			glog.Errorf("Unable to parse query: %s. Error: %s", q, err)
+		}
+	}
+
 	return &search.Query{
 		BlameGroupID:   r.FormValue("blame"),
 		Pos:            r.FormValue("pos") == "true",
@@ -1111,7 +1120,7 @@ func queryFromRequest(r *http.Request) *search.Query {
 		Unt:            r.FormValue("unt") == "true",
 		Head:           r.FormValue("head") == "true",
 		IncludeIgnores: r.FormValue("include") == "true",
-		Query:          r.FormValue("query"),
+		Query:          qVals,
 		Issue:          r.FormValue("issue"),
 		Patchsets:      patchsets,
 		Limit:          Limit,

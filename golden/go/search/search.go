@@ -96,7 +96,7 @@ type Query struct {
 	Unt            bool
 	Head           bool
 	IncludeIgnores bool
-	Query          string
+	Query          url.Values
 	Issue          string
 	Patchsets      []string
 	CommitRange    CommitRange
@@ -163,11 +163,6 @@ func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 // Search returns a slice of Digests that match the input query, and the total number of Digests
 // that matched the query. It also returns a slice of Commits that were used in the calculations.
 func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer, paramset *paramsets.Summary) (*SearchResponse, error) {
-	parsedQuery, err := url.ParseQuery(q.Query)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
-	}
-
 	tile, err := storages.GetLastTileTrimmed(q.IncludeIgnores)
 	if err != nil {
 		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
@@ -182,9 +177,9 @@ func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer 
 	var issueResponse *IssueResponse = nil
 	var commits []*tiling.Commit = nil
 	if q.Issue != "" {
-		ret, issueResponse, err = searchByIssue(q.Issue, q, e, parsedQuery, storages, tallies, paramset)
+		ret, issueResponse, err = searchByIssue(q.Issue, q, e, q.Query, storages, tallies, paramset)
 	} else {
-		ret, commits, err = searchTile(q, e, parsedQuery, storages, tile, tallies, blamer, paramset)
+		ret, commits, err = searchTile(q, e, q.Query, storages, tile, tallies, blamer, paramset)
 	}
 
 	if err != nil {
