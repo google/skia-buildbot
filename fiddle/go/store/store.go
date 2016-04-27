@@ -82,6 +82,10 @@ func cacheKey(fiddleHash string, media Media) string {
 	return fiddleHash + "-" + string(media)
 }
 
+func shouldBeCached(media Media) bool {
+	return media == CPU || media == GPU
+}
+
 // New create a new Store.
 func New() (*Store, error) {
 	// TODO(jcgregorio) Decide is this needs to be a backoff client. May not be necessary if we add caching at this layer.
@@ -119,7 +123,7 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 	}
 
 	// Only PNGs get stored in the cache.
-	if media == CPU || media == GPU {
+	if shouldBeCached(media) {
 		key := cacheKey(fiddleHash, media)
 		glog.Infof("Cache write: %s", key)
 		if c, ok := s.cache.Get(key); !ok {
@@ -336,7 +340,7 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 	if err != nil {
 		return nil, "", "", fmt.Errorf("Unable to read the media file (%s, %s): %s", fiddleHash, string(media), err)
 	}
-	if media == CPU || media == GPU {
+	if shouldBeCached(media) {
 		s.cache.Add(cacheKey(fiddleHash, media), &cacheEntry{
 			body: b,
 		})
