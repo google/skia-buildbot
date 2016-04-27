@@ -24,6 +24,13 @@ After that finishes restart fiddle:
 
 Or restart Fiddle from the push dashboard.
 
+Debugging
+=========
+
+You can add the `--preserveTemp` flag to `fiddle.system` and that will cause
+the temp directories created to store the code and final fiddle executable to
+be preserved which may make debugging easier.
+
 Debugging fiddle\_secwrap.cpp
 -----------------------------
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -44,6 +45,7 @@ var (
 	influxUser        = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port              = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	preserveTemp      = flag.Bool("preserve_temp", false, "If true then preserve the build artifacts in the fiddle/tmp directory. Used for debugging only.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	timeBetweenBuilds = flag.Duration("time_between_builds", time.Hour, "How long to wait between building LKGR of Skia.")
 )
@@ -314,6 +316,11 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to run the fiddle")
 		return
+	}
+	if !*local && !*preserveTemp {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			glog.Errorf("Failed to remove temp dir: %s", err)
+		}
 	}
 	if res.Execute.Errors != "" {
 		glog.Infof("Runtime error: %s", res.Execute.Errors)
