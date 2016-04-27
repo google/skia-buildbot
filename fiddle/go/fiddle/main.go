@@ -128,7 +128,7 @@ var (
 	// Note that slice items 2, 3, and 4 are the ones we are really interested in.
 	parseCompilerOutput = regexp.MustCompile("^(.*/)(draw.cpp:([0-9]+):([-0-9]+):.*)")
 
-	buildLiveness    = metrics2.NewLiveness("fiddle.build")
+	buildLiveness    = metrics2.NewLiveness("build")
 	buildFailures    = metrics2.GetCounter("builds-failed", nil)
 	repoSyncFailures = metrics2.GetCounter("repo-sync-failed", nil)
 	build            *builder.Builder
@@ -470,7 +470,7 @@ func main() {
 		glog.Fatalf("Failed to initialize source images: %s", err)
 	}
 	names = named.New(fiddleStore)
-	build = builder.New(*fiddleRoot, *depotTools)
+	build = builder.New(*fiddleRoot, *depotTools, repo)
 	StartBuilding()
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())

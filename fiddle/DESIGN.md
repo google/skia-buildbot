@@ -142,14 +142,13 @@ recent builds is also important, while we can tolerate gaps in older builds.
 I.e. we don't really need a build from 30 days ago, and 30 days and 1 hr ago,
 but we would like to have almost all of the last weeks worth of commits
 available. So we end up with a decimation strategy that is simple but also
-accomplishes the above goals.
+accomplishes the above goals. For example:
 
-  * Keep 128+ builds.
-  * When the number of builds reaches 257, delete every other build in
-    chronological order, that is, order the builds in reverse chronological
-    order, number starting at 0, and then delete all the odd builds. Note that
-    this preserves the newest build and the oldest build, and again reduces
-    the number of builds to 128.
+  * Keep N/2 or more builds.
+  * Preserve all builds that are spaced one month apart.
+  * If there are more than N remaining builds (after removing
+    from consideration the builds that are one month apart)
+    remove every other one to bring the count down to N/2.
 
 Named Fiddles
 -------------

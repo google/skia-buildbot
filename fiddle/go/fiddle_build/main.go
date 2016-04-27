@@ -29,7 +29,7 @@ func main() {
 	if *depotTools == "" {
 		glog.Fatal("The --depot_tools flag is required.")
 	}
-	b := builder.New(*fiddleRoot, *depotTools)
+	b := builder.New(*fiddleRoot, *depotTools, nil)
 	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
 	if err != nil {
 		if err == builder.AlreadyExistsErr {

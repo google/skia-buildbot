@@ -24,7 +24,7 @@ func allAvailable(t *testing.T, testData []string) {
 	err = fi.Close()
 	assert.NoError(t, err)
 
-	b := New(tempDir, "")
+	b := New(tempDir, "", nil)
 	lst, err := b.AvailableBuilds()
 	assert.NoError(t, err)
 	assert.Equal(t, len(testData), len(lst))
@@ -75,22 +75,22 @@ func TestDecimate(t *testing.T) {
 				Timestamp: now.Add(time.Second),
 			},
 			"bbb": &vcsinfo.LongCommit{
-				Timestamp: now.Add(2 * time.Second),
+				Timestamp: now.Add(-2 * time.Second),
 			},
 			"ccc": &vcsinfo.LongCommit{
-				Timestamp: now.Add(3 * time.Second),
+				Timestamp: now.Add(-3 * time.Second),
 			},
 			"ddd": &vcsinfo.LongCommit{
-				Timestamp: now.Add(4 * time.Second),
+				Timestamp: now.Add(-4 * time.Second),
 			},
 			"eee": &vcsinfo.LongCommit{
-				Timestamp: now.Add(5 * time.Second),
+				Timestamp: now.Add(-5 * time.Second),
 			},
 			"fff": &vcsinfo.LongCommit{
-				Timestamp: now.Add(31 * 24 * time.Hour),
+				Timestamp: now.Add(-31 * 24 * time.Hour),
 			},
 			"ggg": &vcsinfo.LongCommit{
-				Timestamp: now.Add(62 * 24 * time.Hour),
+				Timestamp: now.Add(-62 * 24 * time.Hour),
 			},
 		},
 	}

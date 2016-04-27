@@ -17,6 +17,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/config"
 	"go.skia.org/infra/go/buildskia"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
 )
@@ -28,6 +29,13 @@ const (
 	// preserved.  i.e. if a the distance between two commits is greater than
 	// PRESERVER_DURATION then they both should be preserved.
 	PRESERVE_DURATION = 30 * 24 * time.Hour
+
+	// PRESERVE_COUNT is the max number of fresh LKGR builds to keep around.
+	// Always keep odd so the first and last hashes are always preserved.
+	PRESERVE_COUNT = 33
+
+	// DECIMATION_PERIOD is the time between decimation runs.
+	DECIMATION_PERIOD = time.Hour
 )
 
 // errors
@@ -47,8 +55,9 @@ var (
 type Builder struct {
 	fiddleRoot string
 	depotTools string
+	repo       vcsinfo.VCS
 
-	// A cache of the hashes returned from AllAvailable.
+	// A cache of the hashes returned from Available.
 	hashes []string
 
 	// Mutex protects access to hashes and GOOD_BUILDS_FILENAME.
@@ -56,11 +65,21 @@ type Builder struct {
 }
 
 // New returns a new Builder instance.
-func New(fiddleRoot, depotTools string) *Builder {
-	return &Builder{
+//
+//    fiddleRoot - The root directory where fiddle stores its files. See DESIGN.md.
+//    depotTools - The directory where depot_tools is checked out.
+//    repo - A vcs to pull hash info from. Can be nil, and if nil then the
+//        decimation process isn't started.
+func New(fiddleRoot, depotTools string, repo vcsinfo.VCS) *Builder {
+	b := &Builder{
 		fiddleRoot: fiddleRoot,
 		depotTools: depotTools,
+		repo:       repo,
 	}
+	if repo != nil {
+		go b.startDecimation()
+	}
+	return b
 }
 
 // branch is used to sort the chrome branches in the Skia repo.
@@ -165,7 +184,8 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 }
 
 // AvailableBuilds returns a list of git hashes, all the versions
-// of Skia that can be built against.
+// of Skia that can be built against. This returns the list
+// with the newest builds first.
 func (b *Builder) AvailableBuilds() ([]string, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -256,6 +276,64 @@ func (b *Builder) BuildLatestSkiaChromeBranch(force bool) (string, *vcsinfo.Long
 	return branchName, res, nil
 }
 
+func (b *Builder) writeNewGoodBuilds(hashes []string) error {
+	if len(hashes) < 1 {
+		return fmt.Errorf("At least one good build must be kept around.")
+	}
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+
+	revHashes := []string{}
+	for i := len(hashes) - 1; i >= 0; i-- {
+		h := hashes[i]
+		if h != "" {
+			revHashes = append(revHashes, h)
+		}
+	}
+	b.hashes = hashes
+	fb, err := os.Create(filepath.Join(b.fiddleRoot, GOOD_BUILDS_FILENAME))
+	if err != nil {
+		return fmt.Errorf("Failed to open %s for writing: %s", GOOD_BUILDS_FILENAME, err)
+	}
+	defer util.Close(fb)
+	if _, err := fb.Write([]byte(strings.Join(revHashes, "\n") + "\n")); err != nil {
+		return fmt.Errorf("Failed to write %s: %s", GOOD_BUILDS_FILENAME, err)
+	}
+	return nil
+}
+
+func (b *Builder) startDecimation() {
+	decimateLiveness := metrics2.NewLiveness("decimate")
+	decimateFailures := metrics2.GetCounter("decimate-failed", nil)
+	for _ = range time.Tick(DECIMATION_PERIOD) {
+		hashes, err := b.AvailableBuilds()
+		if err != nil {
+			glog.Errorf("Failed to get available builds while decimating: %s", err)
+			decimateFailures.Inc(1)
+			continue
+		}
+		keep, remove, err := decimate(hashes, b.repo, PRESERVE_COUNT)
+		if err != nil {
+			glog.Errorf("Failed to calc removals while decimating: %s", err)
+			decimateFailures.Inc(1)
+			continue
+		}
+		for _, hash := range remove {
+			glog.Infof("Decimate: Beginning %s", hash)
+			if err := os.RemoveAll(filepath.Join(b.fiddleRoot, "versions", hash)); err != nil {
+				glog.Errorf("Failed to remove directory for %s: %s", hash, err)
+				continue
+			}
+			glog.Infof("Decimate: Finished %s", hash)
+		}
+		if err := b.writeNewGoodBuilds(keep); err != nil {
+			continue
+		}
+		decimateFailures.Reset()
+		decimateLiveness.Reset()
+	}
+}
+
 // decimate returns a list of hashes to keep, the list to remove,
 // and an error if one occurred.
 //
@@ -283,7 +361,8 @@ func decimate(hashes []string, vcs vcsinfo.VCS, limit int) ([]string, []string, 
 		if err != nil {
 			return nil, nil, fmt.Errorf("Failed to get hash details: %s", err)
 		}
-		if lastTS.Sub(c.Timestamp) < PRESERVE_DURATION {
+		if c.Timestamp.Sub(lastTS) < PRESERVE_DURATION {
+			glog.Infof("Decimation: Time %v between %q and %q", c.Timestamp.Sub(lastTS), hashes[i], hashes[i+1])
 			break
 		}
 		lastTS = c.Timestamp
