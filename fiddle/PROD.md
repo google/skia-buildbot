@@ -51,8 +51,9 @@ Alerts
 
 Items below here should include target links from alerts.
 
-Fiddle is failing to build <a id=build_fail></a>
-------------------------------------------------
+build_fail
+----------
+Fiddle is failing to build.
 
 This usually isn't a critical error since Fiddle will only start
 using a build of Skia if it was successfully built, but this should
@@ -60,8 +61,9 @@ be addressed so Fiddle doesn't get too far removed from Skia HEAD.
 
 Search logs for "Failed to build LKGR:" and "Successfully built:".
 
-Fiddle is failing to sync<a id=sync_fail></a>
-------------------------------------------------
+sync_fail
+---------
+Fiddle is failing to sync.
 
 This sync is for Fiddle updating a local copy of Skia that's used
 to look up git hashes. The repo is located at /mnt/pd0/fiddle/skia.
