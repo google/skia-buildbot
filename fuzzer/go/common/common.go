@@ -124,6 +124,24 @@ func HasCategory(c string) bool {
 	return found
 }
 
+func Status(c string) string {
+	f, found := fuzzers[c]
+	if !found {
+		glog.Errorf("Unknown category %s", c)
+		return FUZZER_NOT_FOUND
+	}
+	return f.Status
+}
+
+func Groomer(c string) string {
+	f, found := fuzzers[c]
+	if !found {
+		glog.Errorf("Unknown category %s", c)
+		return FUZZER_NOT_FOUND
+	}
+	return f.Groomer
+}
+
 // SafeParseInt parses a string that is known to contain digits into an int.
 // It may fail if the number is larger than MAX_INT, but it is unlikely those
 // numbers would come up in the stack traces.

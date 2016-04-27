@@ -269,8 +269,10 @@ type countSummary struct {
 	TotalBad        int    `json:"totalBadCount"`
 	TotalGrey       int    `json:"totalGreyCount"`
 	// "This" means "newly introduced/fixed in this revision"
-	ThisBad        int `json:"thisBadCount"`
-	ThisRegression int `json:"thisRegressionCount"`
+	ThisBad        int    `json:"thisBadCount"`
+	ThisRegression int    `json:"thisRegressionCount"`
+	Status         string `json:"status"`
+	Groomer        string `json:"groomer"`
 }
 
 func summaryJSONHandler(w http.ResponseWriter, r *http.Request) {
@@ -302,6 +304,8 @@ func getSummary() []countSummary {
 		o.ThisBad = c.ThisBad
 		o.TotalGrey = c.TotalGrey
 		o.ThisRegression = c.ThisRegression
+		o.Status = fcommon.Status(cat)
+		o.Groomer = fcommon.Groomer(cat)
 		counts = append(counts, o)
 	}
 	return counts
