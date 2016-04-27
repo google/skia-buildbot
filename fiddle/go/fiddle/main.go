@@ -231,7 +231,11 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 //   /i/@some_name.pdf
 //   /i/@some_name.skp
 func imageHandler(w http.ResponseWriter, r *http.Request) {
-	fiddleHash, media, err := names.DereferenceImageID(mux.Vars(r)["id"])
+	id := mux.Vars(r)["id"]
+	fiddleHash, media, err := names.DereferenceImageID(id)
+	if fiddleHash == id {
+		w.Header().Add("Cache-Control", "max-age=36000")
+	}
 	if err != nil {
 		http.NotFound(w, r)
 		glog.Errorf("Invalid id: %s", err)
@@ -270,6 +274,7 @@ func sourceHandler(w http.ResponseWriter, r *http.Request) {
 		glog.Errorf("Unknown source id %s", id)
 		return
 	}
+	w.Header().Add("Cache-Control", "max-age=360000")
 	w.Header().Set("Content-Type", "image/png")
 	if _, err := w.Write(b); err != nil {
 		glog.Errorf("Failed to write image: %s", err)
