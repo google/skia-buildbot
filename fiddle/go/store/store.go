@@ -10,12 +10,14 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/auth"
@@ -27,6 +29,8 @@ import (
 
 const (
 	FIDDLE_STORAGE_BUCKET = "skia-fiddle"
+
+	LRU_CACHE_SIZE = 10000
 )
 
 // Media is the type of outputs we can get from running a fiddle.
@@ -59,10 +63,23 @@ var (
 	sourceFileName = regexp.MustCompile("^([0-9]+).png$")
 )
 
+// cacheEntry is used to store PNGs in the Store lru cache.
+type cacheEntry struct {
+	body  []byte
+	runId string
+}
+
 // Store is used to read and write user code and media to and from Google
 // Storage.
 type Store struct {
 	bucket *storage.BucketHandle
+
+	// cache is an in-memory cache of PNGs, where the keys are <fiddlehash>-<media>.
+	cache *lru.Cache
+}
+
+func cacheKey(fiddleHash string, media Media) string {
+	return fiddleHash + "-" + string(media)
 }
 
 // New create a new Store.
@@ -78,10 +95,11 @@ func New() (*Store, error) {
 	}
 	return &Store{
 		bucket: storageClient.Bucket(FIDDLE_STORAGE_BUCKET),
+		cache:  lru.New(LRU_CACHE_SIZE),
 	}, nil
 }
 
-// writeMediaFile writes a file to Google Storage.
+// writeMediaFile writes a file to Google Storage. It also adds it to the cache.
 //
 //    media - The type of the file to write.
 //    fiddleHash - The hash of the fiddle.
@@ -95,17 +113,45 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 	if p.filename == "" {
 		return fmt.Errorf("Unknown media type.")
 	}
-	path := strings.Join([]string{"fiddle", fiddleHash, runId, p.filename}, "/")
-	w := s.bucket.Object(path).NewWriter(context.Background())
-	defer util.Close(w)
-	w.ObjectAttrs.ContentEncoding = p.contentType
 	body, err := base64.StdEncoding.DecodeString(b64)
 	if err != nil {
 		return fmt.Errorf("Media wasn't properly encoded base64: %s", err)
 	}
-	if n, err := w.Write(body); err != nil {
-		return fmt.Errorf("There was a problem storing the media for %s. Uploaded %d bytes: %s", string(media), n, err)
+
+	// Only PNGs get stored in the cache.
+	if media == CPU || media == GPU {
+		key := cacheKey(fiddleHash, media)
+		glog.Infof("Cache write: %s", key)
+		if c, ok := s.cache.Get(key); !ok {
+			s.cache.Add(key, &cacheEntry{
+				runId: runId,
+				body:  body,
+			})
+		} else {
+			if entry, ok := c.(*cacheEntry); ok {
+				if entry.runId > runId {
+					entry.body = body
+				}
+			} else {
+				glog.Errorf("Found a non-cacheEntry in the lru Cache: %v", reflect.TypeOf(c))
+			}
+		}
 	}
+
+	// Don't stall the http response while we write the image to Google Storage.
+	// Instead, do the work in a Go routine. We know that by the time we reach
+	// here we've successfully written the code to Google Storage, so even if
+	// this fails the user can always 'rerun' the fiddle to generate an image
+	// that failed to write.
+	go func() {
+		path := strings.Join([]string{"fiddle", fiddleHash, runId, p.filename}, "/")
+		w := s.bucket.Object(path).NewWriter(context.Background())
+		defer util.Close(w)
+		w.ObjectAttrs.ContentEncoding = p.contentType
+		if n, err := w.Write(body); err != nil {
+			glog.Errorf("There was a problem storing the media for %s. Uploaded %d bytes: %s", string(media), n, err)
+		}
+	}()
 	return nil
 }
 
@@ -248,6 +294,13 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 //
 // Returns the media file contents as a byte slice, the content-type, and the filename of the media.
 func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string, error) {
+	key := cacheKey(fiddleHash, media)
+	if c, ok := s.cache.Get(key); ok {
+		if entry, ok := c.(*cacheEntry); ok {
+			glog.Infof("Cache hit: %s", key)
+			return entry.body, mediaProps[media].contentType, mediaProps[media].filename, nil
+		}
+	}
 	// List the dirs under gs://skia-fiddle/fiddle/<fiddleHash>/ and find the most recent one.
 	// Use Delimiter and Prefix to get a directory listing of sub-directories. See
 	// https://cloud.google.com/storage/docs/json_api/v1/objects/list
@@ -282,6 +335,11 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("Unable to read the media file (%s, %s): %s", fiddleHash, string(media), err)
+	}
+	if media == CPU || media == GPU {
+		s.cache.Add(cacheKey(fiddleHash, media), &cacheEntry{
+			body: b,
+		})
 	}
 	return b, mediaProps[media].contentType, mediaProps[media].filename, nil
 }
