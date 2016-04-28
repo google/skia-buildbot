@@ -140,7 +140,10 @@
 
       _pagesSelect: function(ev, obj) {
         if (obj.item.dataset.route) {
-          obj.item.children[0].pageSelected(this.route);
+          // Make sure the new views called after the URL is updated by page.js. 
+          this.async(function() {
+            obj.item.children[0].pageSelected(this.route);
+          }.bind(this)); 
         }
       },
 
