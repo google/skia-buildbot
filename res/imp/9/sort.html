@@ -112,7 +112,7 @@
 
         // Sort the children of the element at #target.
         var sortBy = ele.dataset.key;
-        var container = $$$('#' + this.target);
+        var container = $$$('#' + this.target, this.parentElement);
         var elements = [];
         var children = container.children;
         for (var i = 0; i < children.length; i++) {
