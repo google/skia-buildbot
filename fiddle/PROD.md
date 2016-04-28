@@ -72,3 +72,20 @@ Search logs for "Failed to update skia repo".
 
 One easy fix is to SSH into the machine and delete the directory and
 then restart Fiddle, which will rebuild the checkout.
+
+named_fail
+----------
+
+There are named fiddles that fail to build.
+
+This isn't a critical error since the images for named fiddles
+will still be served from previous successful builds, but if the
+fiddle is named it means it's probably used in documentation
+and won't compile and run unless changed.
+
+See https://fiddle.skia.org/f/ for the list of failing named
+fiddles.
+
+Depending on the failure mode either fix the code, fix fiddle_secwrap.cpp if
+it is a sandbox issue, or contact the person that created the fiddle.
+
