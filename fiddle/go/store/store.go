@@ -31,6 +31,13 @@ const (
 	FIDDLE_STORAGE_BUCKET = "skia-fiddle"
 
 	LRU_CACHE_SIZE = 10000
+
+	// *_METADATA are the keys used to store the metadata values in Google
+	// Storage.
+	USER_METADATA   = "user"
+	WIDTH_METADATA  = "width"
+	HEIGHT_METADATA = "height"
+	SOURCE_METADATA = "source"
 )
 
 // Media is the type of outputs we can get from running a fiddle.
@@ -194,9 +201,9 @@ func (s *Store) Put(code string, options types.Options, gitHash string, ts time.
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"
 	w.ObjectAttrs.Metadata = map[string]string{
-		"width":  fmt.Sprintf("%d", options.Width),
-		"height": fmt.Sprintf("%d", options.Height),
-		"source": fmt.Sprintf("%d", options.Source),
+		WIDTH_METADATA:  fmt.Sprintf("%d", options.Width),
+		HEIGHT_METADATA: fmt.Sprintf("%d", options.Height),
+		SOURCE_METADATA: fmt.Sprintf("%d", options.Source),
 	}
 	if n, err := w.Write([]byte(code)); err != nil {
 		return "", fmt.Errorf("There was a problem storing the code. Uploaded %d bytes: %s", n, err)
@@ -271,15 +278,15 @@ func (s *Store) GetCode(fiddleHash string) (string, *types.Options, error) {
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to read attributes for %s: %s", fiddleHash, err)
 	}
-	width, err := strconv.Atoi(attr.Metadata["width"])
+	width, err := strconv.Atoi(attr.Metadata[WIDTH_METADATA])
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to parse options width: %s", err)
 	}
-	height, err := strconv.Atoi(attr.Metadata["height"])
+	height, err := strconv.Atoi(attr.Metadata[HEIGHT_METADATA])
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to parse options height: %s", err)
 	}
-	source, err := strconv.Atoi(attr.Metadata["source"])
+	source, err := strconv.Atoi(attr.Metadata[SOURCE_METADATA])
 	if err != nil {
 		return "", nil, fmt.Errorf("Failed to parse options source: %s", err)
 	}
@@ -462,6 +469,39 @@ func (s *Store) ListSourceImages() ([]int, error) {
 	return ret, nil
 }
 
+// Named is the information about a named fiddle.
+type Named struct {
+	Name string
+	User string
+}
+
+// ListAllNames returns the list of all named fiddles.
+func (s *Store) ListAllNames() ([]Named, error) {
+	ret := []Named{}
+	ctx := context.Background()
+	q := &storage.Query{
+		Prefix: fmt.Sprintf("named/"),
+	}
+	for {
+		list, err := s.bucket.List(ctx, q)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve name list: %s", err)
+		}
+		for _, res := range list.Results {
+			filename := strings.Split(res.Name, "/")[1]
+			ret = append(ret, Named{
+				Name: filename,
+				User: res.Metadata[USER_METADATA],
+			})
+		}
+		if list.Next == nil {
+			break
+		}
+		q = list.Next
+	}
+	return ret, nil
+}
+
 // GetHashFromName loads the fiddle hash for the given name.
 func (s *Store) GetHashFromName(name string) (string, error) {
 	ctx := context.Background()
@@ -487,7 +527,7 @@ func (s *Store) WriteName(name, hash, user string) error {
 	w := s.bucket.Object(fmt.Sprintf("named/%s", name)).NewWriter(ctx)
 	defer util.Close(w)
 	w.ObjectAttrs.Metadata = map[string]string{
-		"user": user,
+		USER_METADATA: user,
 	}
 	if _, err := w.Write([]byte(hash)); err != nil {
 		return fmt.Errorf("Failed to write named file %q: %s", name, err)

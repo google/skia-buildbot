@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -133,17 +134,22 @@ var (
 	buildLiveness    = metrics2.NewLiveness("build")
 	buildFailures    = metrics2.GetCounter("builds-failed", nil)
 	repoSyncFailures = metrics2.GetCounter("repo-sync-failed", nil)
+	namedFailures    = metrics2.GetCounter("named-failures", nil)
+	tryNamedLiveness = metrics2.NewLiveness("try-named")
 	build            *builder.Builder
 	fiddleStore      *store.Store
 	repo             *gitinfo.GitInfo
 	src              *source.Source
 	names            *named.Named
+	failingNamed     = []store.Named{}
+	failingMutex     = sync.Mutex{}
 )
 
 func loadTemplates() {
 	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
 		filepath.Join(*resourcesDir, "templates/iframe.html"),
+		filepath.Join(*resourcesDir, "templates/failing.html"),
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -156,6 +162,18 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defaultFiddle.Sources = src.ListAsJSON()
 	if err := templates.ExecuteTemplate(w, "index.html", defaultFiddle); err != nil {
+		glog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
+func failedHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	failingMutex.Lock()
+	defer failingMutex.Unlock()
+	if err := templates.ExecuteTemplate(w, "failing.html", failingNamed); err != nil {
 		glog.Errorf("Failed to expand template: %s", err)
 	}
 }
@@ -313,14 +331,14 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to write the fiddle.")
 	}
 	res, err := runner.Run(*fiddleRoot, gitHash, *local, tmpDir)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to run the fiddle")
-		return
-	}
 	if !*local && !*preserveTemp {
 		if err := os.RemoveAll(tmpDir); err != nil {
 			glog.Errorf("Failed to remove temp dir: %s", err)
 		}
+	}
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to run the fiddle")
+		return
 	}
 	if res.Execute.Errors != "" {
 		glog.Infof("Runtime error: %s", res.Execute.Errors)
@@ -444,6 +462,75 @@ func StartBuilding() {
 	}()
 }
 
+func singleStepTryNamed() {
+	glog.Infoln("Begin: Try all named fiddles.")
+	namedFailures.Reset()
+	allNames, err := fiddleStore.ListAllNames()
+	if err != nil {
+		glog.Errorf("Failed to list all named fiddles: %s", err)
+		return
+	}
+	allBuilds, err := build.AvailableBuilds()
+	if err != nil {
+		glog.Errorf("Failed to find available builds: %s", err)
+		return
+	}
+	if len(allBuilds) == 0 {
+		glog.Errorf("No builds found.")
+		return
+	}
+	gitHash := allBuilds[0]
+	failing := []store.Named{}
+	for _, name := range allNames {
+		glog.Infof("Trying: %s", name.Name)
+		fiddleHash, err := names.DereferenceID("@" + name.Name)
+		if err != nil {
+			glog.Errorf("Can't dereference %s: %s", name.Name, err)
+			continue
+		}
+		code, options, err := fiddleStore.GetCode(fiddleHash)
+		if err != nil {
+			glog.Errorf("Can't get code for %s: %s", name.Name, err)
+			continue
+		}
+		tmpDir, err := runner.WriteDrawCpp(*fiddleRoot, code, options, *local)
+		if err != nil {
+			glog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
+			continue
+		}
+		res, err := runner.Run(*fiddleRoot, gitHash, *local, tmpDir)
+		if err != nil {
+			glog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
+		}
+		if res.Compile.Errors != "" || res.Execute.Errors != "" {
+			glog.Errorf("Failed to compile or run the named fiddle: %s", name.Name)
+			namedFailures.Inc(1)
+			failing = append(failing, name)
+		}
+		if !*local && !*preserveTemp {
+			if err := os.RemoveAll(tmpDir); err != nil {
+				glog.Errorf("Failed to remove temp dir: %s", err)
+			}
+		}
+	}
+	glog.Infof("The following named fiddles are failing: %v", failing)
+	tryNamedLiveness.Reset()
+	failingMutex.Lock()
+	defer failingMutex.Unlock()
+	failingNamed = failing
+}
+
+// StartTryNamed starts the Go routine that daily tests all of the named
+// fiddles and reports the ones that fail to build or run.
+func StartTryNamed() {
+	go func() {
+		singleStepTryNamed()
+		for _ = range time.Tick(24 * time.Hour) {
+			singleStepTryNamed()
+		}
+	}()
+}
+
 func main() {
 	defer common.LogPanic()
 	if *local {
@@ -484,12 +571,14 @@ func main() {
 	names = named.New(fiddleStore)
 	build = builder.New(*fiddleRoot, *depotTools, repo)
 	StartBuilding()
+	StartTryNamed()
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/i/{id:[@0-9a-zA-Z._]+}", imageHandler)
 	r.HandleFunc("/c/{id:[@0-9a-zA-Z_]+}", individualHandle)
 	r.HandleFunc("/iframe/{id:[@0-9a-zA-Z_]+}", iframeHandle)
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
+	r.HandleFunc("/f/", failedHandler)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
