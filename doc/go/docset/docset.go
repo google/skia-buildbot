@@ -41,6 +41,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/mail"
@@ -70,6 +71,8 @@ const (
 
 var (
 	rc = reitveld.NewClient()
+
+	IssueClosedErr = errors.New("The requested issue is closed.")
 )
 
 // DocSet is a single checked out repository of Markdown documents.
@@ -98,7 +101,7 @@ func newDocSet(repoDir, repo string, issue, patchset int64, refresh bool) (*DocS
 			return nil, err
 		}
 		if issueInfo.Closed {
-			return nil, fmt.Errorf("Issue %d is closed.", issue)
+			return nil, IssueClosedErr
 		}
 	}
 	git, err := gitinfo.CloneOrUpdate(repo, repoDir, false)
@@ -195,6 +198,9 @@ func NewDocSetForIssue(workDir, repo string, issue int64) (*DocSet, error) {
 	if _, err := os.Stat(repoDir); os.IsNotExist(err) {
 		d, err = newDocSet(repoDir, repo, issue, patchset, false)
 		if err != nil {
+			if err == IssueClosedErr {
+				return nil, err
+			}
 			if err := os.RemoveAll(repoDir); err != nil {
 				glog.Errorf("Failed to remove %q: %s", repoDir, err)
 			}

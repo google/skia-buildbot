@@ -108,8 +108,12 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		d, err = docset.NewDocSetForIssue(filepath.Join(*workDir, "patches"), filepath.Join(*workDir, "primary"), issue)
+		if err == docset.IssueClosedErr {
+			httputils.ReportError(w, r, err, "Failed to load the given CL, that issue is closed.")
+			return
+		}
 		if err != nil {
-			httputils.ReportError(w, r, err, "Failed to load the given CL")
+			httputils.ReportError(w, r, err, "Failed to load the given CL.")
 			return
 		}
 	}
