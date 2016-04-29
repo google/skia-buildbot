@@ -105,7 +105,7 @@
 				</div>
 			</template>
     </div>
-    <toggle-display-sk id=toggle hidden$="{{_noMore(_secondary)}}" classname=hide>More...</toggle-display-sk>
+    <toggle-display-sk id=toggle classname=hide>More...</toggle-display-sk>
     <div id=moreContainer class="hide">
 			<template is="dom-repeat" items="[[_secondary]]" as="sel">
 				<div class="node">
@@ -279,15 +279,7 @@
             this.push('_secondary', sel);
           }
         }
-        if (this._secondary.length == 0) {
-          $$$('toggle-display-sk', this.shadowRoot).classList.remove('display');
-        } else {
-          $$$('toggle-display-sk', this.shadowRoot).classList.add('display');
-        }
-      },
-
-      _noMore: function(secondary) {
-        return !secondary || (secondary.length == 0) 
+        this.$.toggle.hidden = (this._secondary.length == 0);
       }
     });
   })();
