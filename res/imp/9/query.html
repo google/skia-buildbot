@@ -33,6 +33,8 @@
 
     noclear - Don't display the clear selections button.
 
+    feedback - If set shows the current selections as string values. 
+
   Methods:
     setParamSet(set) - Set the params to be displayed.
 
@@ -47,11 +49,10 @@
       parameters chosen have changed. The event contains the current
       selections formatted as a URL query, found in e.detail.
 -->
-<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/res/common/imp/9/toggle.html">
 <link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all" />
-
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 <style type="text/css" media="screen">
   #moreContainer.hide {
@@ -60,13 +61,7 @@
 </style>
 
 <dom-module id="query-sk">
-  <style type="text/css" media="screen">
-    #moreContainer,
-    #inputsContainer {
-      display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-    }
+  <style include="iron-flex iron-flex-alignment">
 
     #moreContainer.hide {
       display: none;
@@ -84,40 +79,57 @@
     .node {
       margin: 0.5em;
     }
+
+    .topControls {
+      min-width: 40em;
+    }
+
+    .currSelection {
+      padding-left: 2em;
+      min-width: 40em;
+    }
+
   </style>
   <template>
-    <div>
-      <button id="clear">Clear selections</button>
-      <span id="count"></span>
-    </div>
-    <div>
-      <paper-input id="fast" label="Filter"></paper-input>
-    </div>
-    <div id="inputsContainer">
-			<template is="dom-repeat" items="[[_primary]]" as="sel">
-				<div class="node">
-					<h4>[[sel.name]]</h4>
-					<select size=9 data-name$="[[sel.name]]" multiple=true initial-count=1000>
-						<template is="dom-repeat" items="[[sel.values]]" as="o">
-							<option label="[[o]]">[[o]]</option>
-						</template>
-					</select>
-				</div>
-			</template>
-    </div>
+      <div class="horizontal layout">
+        <div class="vertical layout topControls">
+          <div>
+            <button id="clear">Clear selections</button>
+            <span id="count"></span>
+          </div>
+          <div>
+            <paper-input id="fast" label="Filter"></paper-input>
+          </div>
+        </div>
+        <div hidden$="{{!feedback}}" class="currSelection">
+          <pre>{{_splitAmp(currentquery)}}</pre>
+        </div>
+      </div>
+      <div id=inputsContainer class="horizontal layout wrap">
+  			<template is="dom-repeat" items="[[_primary]]" as="sel">
+  				<div class="node">
+  					<h4>[[sel.name]]</h4>
+  					<select size=9 data-name$="[[sel.name]]" multiple=true initial-count=1000>
+  						<template is="dom-repeat" items="[[sel.values]]" as="o">
+  							<option label="[[o]]">[[o]]</option>
+  						</template>
+  					</select>
+  				</div>
+  			</template>
+      </div>
     <toggle-display-sk id=toggle classname=hide>More...</toggle-display-sk>
-    <div id=moreContainer class="hide">
-			<template is="dom-repeat" items="[[_secondary]]" as="sel">
-				<div class="node">
-					<h4>[[sel.name]]</h4>
-					<select size=9 data-name$="[[sel.name]]" multiple=true>
-						<template is="dom-repeat" items="[[sel.values]]" as="o" initial-count=1000>
-							<option label="[[o]]">[[o]]</option>
-						</template>
-					</select>
-				</div>
-			</template>
-    </div>
+      <div id=moreContainer class="horizontal layout wrap hide">
+  			<template is="dom-repeat" items="[[_secondary]]" as="sel">
+  				<div class="node">
+  					<h4>[[sel.name]]</h4>
+  					<select size=9 data-name$="[[sel.name]]" multiple=true>
+  						<template is="dom-repeat" items="[[sel.values]]" as="o" initial-count=1000>
+  							<option label="[[o]]">[[o]]</option>
+  						</template>
+  					</select>
+  				</div>
+  			</template>
+      </div>
   </template>
 </dom-module>
 <script>
@@ -157,6 +169,11 @@
           },
           reflectToAttribute: true
         },
+        feedback: {
+          type: Boolean,
+          value: false,
+          notify: true
+        }
       },
 
       ready: function() {
@@ -184,6 +201,8 @@
         }.bind(this));
       },
 
+      _splitAmp: sk.query.splitAmp,
+
       _fastFilter: function() {
         var filters = this.$.fast.value.trim().toLowerCase().split(/\s+/);
         // Create a closure that returns true if the given label
@@ -198,7 +217,7 @@
           return false;
         };
         $$('option', this).forEach(function (ele) {
-          ele.classList.toggle('hide', !matches(ele.getAttribute('label')));
+          ele.hidden = !matches(ele.getAttribute('label'));
         });
       },
 

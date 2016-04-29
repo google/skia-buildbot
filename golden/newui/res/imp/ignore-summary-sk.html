@@ -89,18 +89,14 @@ Displays a summary of an ignore rule.
 
         _handleEditClick: function() {
             this.fire('edit', this.value); 
-        }, 
+        },
 
         _handleDeleteClick: function() {
             this.fire('delete', this.value);
-        }, 
-
-        _splitAmp: function (s) {
-          var re = new RegExp('&', 'g');
-          if (s) {
-            return s.replace(re, '\n');
-          }
         },
+
+        // Make an alias to split by ampersand. 
+        _splitAmp: sk.query.splitAmp,
 
         _humanDiffDate: function (s) {
           var ms = Date.parse(s);

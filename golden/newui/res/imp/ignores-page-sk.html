@@ -26,6 +26,7 @@
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="bower_components/paper-input/paper-input.html">
+<link rel="import" href="bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 
 <link rel=import href="../common/imp/9/query.html">
 
@@ -130,17 +131,17 @@
     <paper-fab id="addFab" icon="add"></paper-fab>
 
     <paper-dialog id="addEditDialog">
-      <div  class="vertical layout">
-        <paper-input id="durationInput" 
-                     label="Duration (1s, 5m, 2h, 3d, 5w)" value="{{_currRule.duration}}"></paper-input>
-        <paper-input label="Note" value="{{currRule.note}}"></paper-input>
-        <query-sk id="queryInput" whitelist="[]"></query-sk>
+        <paper-dialog-scrollable>
+          <paper-input id="durationInput" 
+                       label="Duration (1s, 5m, 2h, 3d, 5w)" value="{{_currRule.duration}}"></paper-input>
+          <paper-input label="Note" value="{{currRule.note}}"></paper-input>
+          <query-sk id="queryInput" whitelist="[]" matches="" feedback></query-sk>
+        </paper-dialog-scrollable>
         <div class="buttons">
           <paper-button id="addButton" hidden$="{{_isEdit}}" disabled$="{{_buttonDisabled}}" raised>Add</paper-button>
           <paper-button id="saveButton" hidden$="{{!_isEdit}}" disabled$="{{_buttonDisabled}}" raised>Save</paper-button>
           <paper-button dialog-dismiss>Cancel</paper-button>
         </div>
-      </div>
     </paper-dialog>
   </template>
   <script>
@@ -248,7 +249,7 @@
       }, 
 
       _sendRule: function(url) {
-        this._currRule.filter = this.$.queryInput.currentQuery;
+        this._currRule.filter = this.$.queryInput.currentquery;
         sk.post(url, JSON.stringify(this._currRule)).then(JSON.parse).then(function(json) {
           this._displayRules(json);
           this._closeDialog(); 

@@ -522,6 +522,13 @@ this.sk = this.sk || function() {
     return ret;
   }
 
+  // splitAmp returns the given query string as a newline 
+  // separated list of key value pairs. 
+  sk.query.splitAmp = function(queryStr) {
+    queryStr = queryStr || ""; 
+    return queryStr.split('&').join('\n');
+  };
+
   // Namespace for utilities for working with Objects.
   sk.object = {};
 
