@@ -14,20 +14,35 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-func allAvailable(t *testing.T, testData []string) {
+func setupTemp(t *testing.T, testData []string, repo vcsinfo.VCS) (*Builder, func()) {
 	tempDir, err := ioutil.TempDir("", "builder_test_")
 	assert.NoError(t, err)
-	defer util.RemoveAll(tempDir)
 	fi, err := os.Create(filepath.Join(tempDir, GOOD_BUILDS_FILENAME))
 	assert.NoError(t, err)
 	fmt.Fprintf(fi, strings.Join(testData, "\n"))
 	err = fi.Close()
 	assert.NoError(t, err)
 
-	b := New(tempDir, "", nil)
+	return New(tempDir, "", repo), func() {
+		util.RemoveAll(tempDir)
+	}
+}
+
+func allAvailable(t *testing.T, testData []string) {
+	now := time.Now()
+	mockRepo := &mockVcs{
+		commits: map[string]*vcsinfo.LongCommit{
+			"aaa": &vcsinfo.LongCommit{
+				Timestamp: now.Add(time.Second),
+			},
+		},
+	}
+	b, cleanup := setupTemp(t, testData, mockRepo)
+	defer cleanup()
 	lst, err := b.AvailableBuilds()
-	assert.NoError(t, err)
-	assert.Equal(t, len(testData), len(lst))
+	if len(testData) > 0 {
+		assert.NoError(t, err)
+	}
 	assert.Equal(t, len(testData), len(lst))
 
 	reversed := []string{}
@@ -131,4 +146,32 @@ func TestDecimate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"aaa", "ccc", "eee", "fff", "ggg"}, keep)
 	assert.Equal(t, []string{"bbb", "ddd"}, remove)
+}
+
+func TestCurrent(t *testing.T) {
+	now := time.Now()
+	mockRepo := &mockVcs{
+		commits: map[string]*vcsinfo.LongCommit{
+			"aaa": &vcsinfo.LongCommit{
+				ShortCommit: &vcsinfo.ShortCommit{
+					Hash: "aaa",
+				},
+				Timestamp: now.Add(time.Second),
+			},
+		},
+	}
+	testData := []string{
+		"aaa",
+	}
+	b, cleanup := setupTemp(t, testData, mockRepo)
+	defer cleanup()
+	assert.Equal(t, "aaa", b.Current().Hash)
+}
+
+func TestCurrentNoBuilds(t *testing.T) {
+	mockRepo := &mockVcs{}
+	testData := []string{}
+	b, cleanup := setupTemp(t, testData, mockRepo)
+	defer cleanup()
+	assert.Equal(t, "unknown", b.Current().Hash)
 }

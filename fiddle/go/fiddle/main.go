@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
+	ttemplate "html/template"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -30,6 +31,7 @@ import (
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 const (
@@ -55,11 +57,12 @@ var (
 //
 // It is also used (without the Hash) as the incoming JSON request to /_/run.
 type FiddleContext struct {
-	Sources   string `json:"sources"`    // All the source image ids serialized as a JSON array.
-	Hash      string `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
-	Code      string `json:"code"`
-	Name      string `json:"name"`      // In a request can be the name to create for this fiddle.
-	Overwrite bool   `json:"overwrite"` // In a request, should a name be overwritten if it already exists.
+	Build     *vcsinfo.LongCommit `json:"build"`      // The version of Skia this was run on.
+	Sources   string              `json:"sources"`    // All the source image ids serialized as a JSON array.
+	Hash      string              `json:"fiddlehash"` // Can be the fiddle hash or the fiddle name.
+	Code      string              `json:"code"`
+	Name      string              `json:"name"`      // In a request can be the name to create for this fiddle.
+	Overwrite bool                `json:"overwrite"` // In a request, should a name be overwritten if it already exists.
 	Options   types.Options
 }
 
@@ -80,6 +83,15 @@ type RunResults struct {
 
 var (
 	templates *template.Template
+
+	funcMap = ttemplate.FuncMap{
+		"chop": func(s string) string {
+			if len(s) > 6 {
+				return s[:6]
+			}
+			return s
+		},
+	}
 
 	defaultFiddle *FiddleContext = &FiddleContext{
 		Code: `void draw(SkCanvas* canvas) {
@@ -146,7 +158,7 @@ var (
 )
 
 func loadTemplates() {
-	templates = template.Must(template.New("").Delims("{%", "%}").ParseFiles(
+	templates = template.Must(template.New("").Delims("{%", "%}").Funcs(funcMap).ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
 		filepath.Join(*resourcesDir, "templates/iframe.html"),
 		filepath.Join(*resourcesDir, "templates/failing.html"),
@@ -160,8 +172,10 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	defaultFiddle.Sources = src.ListAsJSON()
-	if err := templates.ExecuteTemplate(w, "index.html", defaultFiddle); err != nil {
+	cp := *defaultFiddle
+	cp.Sources = src.ListAsJSON()
+	cp.Build = build.Current()
+	if err := templates.ExecuteTemplate(w, "index.html", cp); err != nil {
 		glog.Errorf("Failed to expand template: %s", err)
 	}
 }
@@ -224,6 +238,7 @@ func individualHandle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	context := &FiddleContext{
+		Build:   build.Current(),
 		Sources: src.ListAsJSON(),
 		Hash:    id,
 		Code:    code,
@@ -315,22 +330,13 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	glog.Infof("Request: %#v", *req)
-	allBuilds, err := build.AvailableBuilds()
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get list of available builds.")
-		return
-	}
-	if len(allBuilds) == 0 {
-		httputils.ReportError(w, r, fmt.Errorf("List of available builds is empty."), "No builds available.")
-		return
-	}
-	gitHash := allBuilds[0]
-	glog.Infof("Building at: %s", gitHash)
+	current := build.Current()
+	glog.Infof("Building at: %s", current.Hash)
 	tmpDir, err := runner.WriteDrawCpp(*fiddleRoot, req.Code, &req.Options, *local)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to write the fiddle.")
 	}
-	res, err := runner.Run(*fiddleRoot, gitHash, *local, tmpDir)
+	res, err := runner.Run(*fiddleRoot, current.Hash, *local, tmpDir)
 	if !*local && !*preserveTemp {
 		if err := os.RemoveAll(tmpDir); err != nil {
 			glog.Errorf("Failed to remove temp dir: %s", err)
@@ -379,8 +385,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	if res.Compile.Errors != "" || res.Execute.Errors != "" {
 		res = nil
 	}
-	ts := repo.Timestamp(gitHash)
-	fiddleHash, err := fiddleStore.Put(req.Code, req.Options, gitHash, ts, res)
+	fiddleHash, err := fiddleStore.Put(req.Code, req.Options, current.Hash, current.Timestamp, res)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to store the fiddle.")
 		return
@@ -470,16 +475,6 @@ func singleStepTryNamed() {
 		glog.Errorf("Failed to list all named fiddles: %s", err)
 		return
 	}
-	allBuilds, err := build.AvailableBuilds()
-	if err != nil {
-		glog.Errorf("Failed to find available builds: %s", err)
-		return
-	}
-	if len(allBuilds) == 0 {
-		glog.Errorf("No builds found.")
-		return
-	}
-	gitHash := allBuilds[0]
 	failing := []store.Named{}
 	for _, name := range allNames {
 		glog.Infof("Trying: %s", name.Name)
@@ -498,7 +493,7 @@ func singleStepTryNamed() {
 			glog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
 			continue
 		}
-		res, err := runner.Run(*fiddleRoot, gitHash, *local, tmpDir)
+		res, err := runner.Run(*fiddleRoot, build.Current().Hash, *local, tmpDir)
 		if err != nil {
 			glog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
 		}

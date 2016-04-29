@@ -57,10 +57,13 @@ type Builder struct {
 	depotTools string
 	repo       vcsinfo.VCS
 
-	// A cache of the hashes returned from Available.
+	// hashes is a cache of the hashes returned from Available.
 	hashes []string
 
-	// Mutex protects access to hashes and GOOD_BUILDS_FILENAME.
+	// current is the current commit we are building at.
+	current *vcsinfo.LongCommit
+
+	// mutex protects access to hashes, current, and GOOD_BUILDS_FILENAME.
 	mutex sync.Mutex
 }
 
@@ -68,17 +71,16 @@ type Builder struct {
 //
 //    fiddleRoot - The root directory where fiddle stores its files. See DESIGN.md.
 //    depotTools - The directory where depot_tools is checked out.
-//    repo - A vcs to pull hash info from. Can be nil, and if nil then the
-//        decimation process isn't started.
+//    repo - A vcs to pull hash info from.
 func New(fiddleRoot, depotTools string, repo vcsinfo.VCS) *Builder {
 	b := &Builder{
 		fiddleRoot: fiddleRoot,
 		depotTools: depotTools,
 		repo:       repo,
 	}
-	if repo != nil {
-		go b.startDecimation()
-	}
+	go b.startDecimation()
+	b.updateCurrent()
+
 	return b
 }
 
@@ -171,6 +173,7 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	b.hashes = append(b.hashes, githash)
+	b.updateCurrent()
 	fb, err := os.OpenFile(filepath.Join(b.fiddleRoot, GOOD_BUILDS_FILENAME), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to open %s for writing: %s", GOOD_BUILDS_FILENAME, err)
@@ -183,9 +186,35 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 	return ret, nil
 }
 
-// AvailableBuilds returns a list of git hashes, all the versions
-// of Skia that can be built against. This returns the list
-// with the newest builds first.
+// updateCurrent updates the value of b.current with the new gitinfo for the most recent build.
+//
+// Or a mildly informative stand-in if somehow the update fails.
+func (b *Builder) updateCurrent() {
+	allBuilds, err := b.AvailableBuilds()
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	fallback := &vcsinfo.LongCommit{ShortCommit: &vcsinfo.ShortCommit{Hash: "unknown"}}
+	if err != nil {
+		glog.Errorf("Failed to get list of available builds: %s", err)
+		if b.current == nil {
+			b.current = fallback
+		}
+		return
+	}
+	details, err := b.repo.Details(allBuilds[0], true)
+	if err != nil {
+		glog.Errorf("Unable to retrieve build info: %s", err)
+		if b.current == nil {
+			b.current = fallback
+		}
+		return
+	}
+	b.current = details
+}
+
+// AvailableBuilds returns a list of git hashes, all the versions of Skia that
+// can be built against. This returns the list with the newest builds first.
+// The list will always be of length > 1, otherwise and error is returned.
 func (b *Builder) AvailableBuilds() ([]string, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -210,7 +239,16 @@ func (b *Builder) AvailableBuilds() ([]string, error) {
 		}
 	}
 	b.hashes = revHashes
+	if len(b.hashes) == 0 {
+		return nil, fmt.Errorf("List of available builds is empty.")
+	}
 	return revHashes, nil
+}
+
+func (b *Builder) Current() *vcsinfo.LongCommit {
+	b.mutex.Lock()
+	defer b.mutex.Unlock()
+	return b.current
 }
 
 // BuildLatestSkiaChromeBranch builds the most recent branch of Skia for Chrome
