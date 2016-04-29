@@ -78,6 +78,7 @@ func New(fiddleRoot, depotTools string, repo vcsinfo.VCS) *Builder {
 		depotTools: depotTools,
 		repo:       repo,
 	}
+	_, _ = b.AvailableBuilds() // Called for side-effect of loading hashes.
 	go b.startDecimation()
 	b.updateCurrent()
 
@@ -159,6 +160,7 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 	fi, err := os.Stat(checkout)
 	// If the file is present and a directory then only proceed if 'force' is true.
 	if err == nil && fi.IsDir() == true && !force {
+		glog.Infof("Dir already exists: %s", checkout)
 		return nil, AlreadyExistsErr
 	}
 
@@ -189,19 +191,18 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 // updateCurrent updates the value of b.current with the new gitinfo for the most recent build.
 //
 // Or a mildly informative stand-in if somehow the update fails.
+//
+// updateCurrent presumes the caller already has a lock on the mutex.
 func (b *Builder) updateCurrent() {
-	allBuilds, err := b.AvailableBuilds()
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
 	fallback := &vcsinfo.LongCommit{ShortCommit: &vcsinfo.ShortCommit{Hash: "unknown"}}
-	if err != nil {
-		glog.Errorf("Failed to get list of available builds: %s", err)
+	if len(b.hashes) == 0 {
+		glog.Errorf("There are no hashes.")
 		if b.current == nil {
 			b.current = fallback
 		}
 		return
 	}
-	details, err := b.repo.Details(allBuilds[0], true)
+	details, err := b.repo.Details(b.hashes[len(b.hashes)-1], true)
 	if err != nil {
 		glog.Errorf("Unable to retrieve build info: %s", err)
 		if b.current == nil {
@@ -213,7 +214,7 @@ func (b *Builder) updateCurrent() {
 }
 
 // AvailableBuilds returns a list of git hashes, all the versions of Skia that
-// can be built against. This returns the list with the newest builds first.
+// can be built against. This returns the list with the newest builds last.
 // The list will always be of length > 1, otherwise and error is returned.
 func (b *Builder) AvailableBuilds() ([]string, error) {
 	b.mutex.Lock()
@@ -231,18 +232,17 @@ func (b *Builder) AvailableBuilds() ([]string, error) {
 		return nil, fmt.Errorf("Failed to read: %s", err)
 	}
 	hashes := strings.Split(string(buf), "\n")
-	revHashes := []string{}
-	for i := len(hashes) - 1; i >= 0; i-- {
-		h := hashes[i]
+	realHashes := []string{}
+	for _, h := range hashes {
 		if h != "" {
-			revHashes = append(revHashes, h)
+			realHashes = append(realHashes, h)
 		}
 	}
-	b.hashes = revHashes
+	b.hashes = realHashes
 	if len(b.hashes) == 0 {
 		return nil, fmt.Errorf("List of available builds is empty.")
 	}
-	return revHashes, nil
+	return realHashes, nil
 }
 
 func (b *Builder) Current() *vcsinfo.LongCommit {
@@ -321,20 +321,13 @@ func (b *Builder) writeNewGoodBuilds(hashes []string) error {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
-	revHashes := []string{}
-	for i := len(hashes) - 1; i >= 0; i-- {
-		h := hashes[i]
-		if h != "" {
-			revHashes = append(revHashes, h)
-		}
-	}
 	b.hashes = hashes
 	fb, err := os.Create(filepath.Join(b.fiddleRoot, GOOD_BUILDS_FILENAME))
 	if err != nil {
 		return fmt.Errorf("Failed to open %s for writing: %s", GOOD_BUILDS_FILENAME, err)
 	}
 	defer util.Close(fb)
-	if _, err := fb.Write([]byte(strings.Join(revHashes, "\n") + "\n")); err != nil {
+	if _, err := fb.Write([]byte(strings.Join(hashes, "\n") + "\n")); err != nil {
 		return fmt.Errorf("Failed to write %s: %s", GOOD_BUILDS_FILENAME, err)
 	}
 	return nil
@@ -356,6 +349,7 @@ func (b *Builder) startDecimation() {
 			decimateFailures.Inc(1)
 			continue
 		}
+		glog.Infof("Decimate: Keep %v Remove %v", keep, remove)
 		for _, hash := range remove {
 			glog.Infof("Decimate: Beginning %s", hash)
 			if err := os.RemoveAll(filepath.Join(b.fiddleRoot, "versions", hash)); err != nil {
@@ -384,45 +378,48 @@ func decimate(hashes []string, vcs vcsinfo.VCS, limit int) ([]string, []string, 
 	keep := []string{}
 	remove := []string{}
 
-	// The hashes are in reverse chronological order, so we start at the end
-	// and work back until we start to find hashes that are less than
-	// PRESERVE_DURATION apart. Once we find that spot set oldiesBegin
+	// The hashes are stored with the oldest first, newest last.
+	// So we start at the front and work forward until we start to find hashes that are less than
+	// PRESERVE_DURATION apart. Once we find that spot set oldiesEnd
 	// to that index.
-	oldiesBegin := len(hashes)
-	c, err := vcs.Details(hashes[len(hashes)-1], true)
+	oldiesEnd := 0
+	c, err := vcs.Details(hashes[0], true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Failed to get hash details: %s", err)
 	}
-	lastTS := c.Timestamp
-	for i := len(hashes) - 2; i > 0; i-- {
-		c, err := vcs.Details(hashes[i], true)
+	lastTS := time.Time{}
+	for i, h := range hashes {
+		c, err = vcs.Details(h, true)
 		if err != nil {
 			return nil, nil, fmt.Errorf("Failed to get hash details: %s", err)
 		}
+		fmt.Printf("%v", c.Timestamp.Sub(lastTS))
 		if c.Timestamp.Sub(lastTS) < PRESERVE_DURATION {
-			glog.Infof("Decimation: Time %v between %q and %q", c.Timestamp.Sub(lastTS), hashes[i], hashes[i+1])
 			break
 		}
 		lastTS = c.Timestamp
-		oldiesBegin = i
+		oldiesEnd = i
 	}
 
 	// Now that we know where the old hashes that we want to preserve are, we
 	// will chop them off and ignore them for the rest of the decimation process.
-	oldies := hashes[oldiesBegin:]
-	hashes = hashes[:oldiesBegin]
+	oldies := hashes[:oldiesEnd]
+	hashes = hashes[oldiesEnd:]
+	fmt.Println(oldies, hashes)
 
 	// Only do decimation if we have enough fresh hashes.
 	if len(hashes) < limit {
-		return append(hashes, oldies...), remove, nil
+		return append(oldies, hashes...), remove, nil
 	}
-	for i, h := range hashes {
+	last := hashes[len(hashes)-1]
+	for i, h := range hashes[:len(hashes)-1] {
 		if i%2 == 0 {
 			keep = append(keep, h)
 		} else {
 			remove = append(remove, h)
 		}
 	}
+	keep = append(keep, last)
 	// Once done with decimation add the oldies back into the list of hashes to keep.
-	return append(keep, oldies...), remove, nil
+	return append(oldies, keep...), remove, nil
 }

@@ -87,51 +87,51 @@ func TestDecimate(t *testing.T) {
 	mock := &mockVcs{
 		commits: map[string]*vcsinfo.LongCommit{
 			"aaa": &vcsinfo.LongCommit{
-				Timestamp: now.Add(time.Second),
+				Timestamp: now.Add(-62 * 24 * time.Hour),
 			},
 			"bbb": &vcsinfo.LongCommit{
-				Timestamp: now.Add(-2 * time.Second),
+				Timestamp: now.Add(-31 * 24 * time.Hour),
 			},
 			"ccc": &vcsinfo.LongCommit{
-				Timestamp: now.Add(-3 * time.Second),
+				Timestamp: now.Add(-5 * time.Second),
 			},
 			"ddd": &vcsinfo.LongCommit{
 				Timestamp: now.Add(-4 * time.Second),
 			},
 			"eee": &vcsinfo.LongCommit{
-				Timestamp: now.Add(-5 * time.Second),
+				Timestamp: now.Add(-3 * time.Second),
 			},
 			"fff": &vcsinfo.LongCommit{
-				Timestamp: now.Add(-31 * 24 * time.Hour),
+				Timestamp: now.Add(-2 * time.Second),
 			},
 			"ggg": &vcsinfo.LongCommit{
-				Timestamp: now.Add(-62 * 24 * time.Hour),
+				Timestamp: now.Add(time.Second),
 			},
 		},
 	}
 
 	// No change if number if items < limit.
-	keep, remove, err := decimate([]string{"aaa", "bbb", "ccc"}, mock, 4)
+	keep, remove, err := decimate([]string{"eee", "fff", "ggg"}, mock, 4)
 	assert.NoError(t, err)
-	assert.Equal(t, keep, []string{"aaa", "bbb", "ccc"}, "")
+	assert.Equal(t, keep, []string{"eee", "fff", "ggg"}, "")
 	assert.Equal(t, remove, []string{})
 
 	// Proper decimation if items == limit.
-	keep, remove, err = decimate([]string{"aaa", "bbb", "ccc", "ddd"}, mock, 4)
+	keep, remove, err = decimate([]string{"ddd", "eee", "fff", "ggg"}, mock, 4)
 	assert.NoError(t, err)
-	assert.Equal(t, keep, []string{"aaa", "ccc"})
-	assert.Equal(t, remove, []string{"bbb", "ddd"})
+	assert.Equal(t, keep, []string{"ddd", "fff", "ggg"})
+	assert.Equal(t, remove, []string{"eee"})
 
 	// Proper decimation if items > limit.
-	keep, remove, err = decimate([]string{"aaa", "bbb", "ccc", "ddd", "eee"}, mock, 4)
+	keep, remove, err = decimate([]string{"ccc", "ddd", "eee", "fff", "ggg"}, mock, 4)
 	assert.NoError(t, err)
-	assert.Equal(t, keep, []string{"aaa", "ccc", "eee"})
-	assert.Equal(t, remove, []string{"bbb", "ddd"})
+	assert.Equal(t, keep, []string{"ccc", "eee", "ggg"})
+	assert.Equal(t, remove, []string{"ddd", "fff"})
 
 	// Proper decimation (none) if we end up with less than 'limit' items after removing keepers.
-	keep, remove, err = decimate([]string{"aaa", "bbb", "ccc", "fff"}, mock, 4)
+	keep, remove, err = decimate([]string{"bbb", "ddd", "eee"}, mock, 4)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"aaa", "bbb", "ccc", "fff"}, keep)
+	assert.Equal(t, []string{"bbb", "ddd", "eee"}, keep)
 	assert.Equal(t, []string{}, remove)
 
 	// Proper decimation (none) if we end up with less than 'limit' items after removing keepers.
@@ -144,8 +144,8 @@ func TestDecimate(t *testing.T) {
 	// Proper decimation if we end up with enough 'limit' items after removing keepers.
 	keep, remove, err = decimate([]string{"aaa", "bbb", "ccc", "ddd", "eee", "fff", "ggg"}, mock, 4)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"aaa", "ccc", "eee", "fff", "ggg"}, keep)
-	assert.Equal(t, []string{"bbb", "ddd"}, remove)
+	assert.Equal(t, []string{"aaa", "bbb", "ccc", "eee", "ggg"}, keep)
+	assert.Equal(t, []string{"ddd", "fff"}, remove)
 }
 
 func TestCurrent(t *testing.T) {
