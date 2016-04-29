@@ -42,7 +42,6 @@ _slave_host_dicts = {
   'skiabot-shuttle-ubuntu12-gtx660-001': {
     'slaves': [
       ('skiabot-shuttle-ubuntu12-gtx660-000', '0', False),
-      ('skiabot-shuttle-ubuntu12-003',        '1', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': '192.168.1.113',
@@ -96,8 +95,6 @@ _slave_host_dicts = {
 
   'skiabot-shuttle-ubuntu15-002': {
     'slaves': [
-      ('skiabot-shuttle-ubuntu12-nexus5-001',      '0',  False),
-      ('skiabot-shuttle-ubuntu12-nexus5-002',      '1',  False),
       ('skiabot-shuttle-ubuntu12-nexus7-001',      '2', False),
     ],
     'copies': CHROMEBUILD_COPIES,
@@ -149,81 +146,23 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'skia-vm-001': {
-    'slaves': [
-      ('skiabot-linux-compile-000', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-vm-002': {
-    'slaves': [
-      ('skiabot-linux-compile-001', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-vm-003': {
-    'slaves': [
-      ('skiabot-linux-compile-002', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-vm-004': {
-    'slaves': [
-      ('skiabot-linux-compile-003', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-vm-005': {
-    'slaves': [
-      ('skiabot-linux-compile-004', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-vm-006': {
-    'slaves': [
-      ('skiabot-linux-compile-005', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skia-vm-007': {
     'slaves': [
-      ('skiabot-linux-compile-006', '0', False),
+      ('skiabot-linux-swarm-016', '16', False),
+      ('skiabot-linux-swarm-017', '17', False),
+      ('skiabot-linux-swarm-018', '18', False),
+      ('skiabot-linux-swarm-019', '19', False),
+      ('skiabot-linux-swarm-020', '20', False),
+      ('skiabot-linux-swarm-021', '21', False),
+      ('skiabot-linux-swarm-022', '22', False),
+      ('skiabot-linux-swarm-023', '23', False),
+      ('skiabot-linux-swarm-024', '24', False),
+      #('skiabot-linux-swarm-025', '25', False),
+      #('skiabot-linux-swarm-026', '26', False),
+      #('skiabot-linux-swarm-027', '27', False),
+      #('skiabot-linux-swarm-028', '28', False),
+      ('skiabot-linux-swarm-029', '29', False),
+      ('skiabot-linux-swarm-030', '30', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
@@ -244,8 +183,8 @@ _slave_host_dicts = {
       ('skiabot-linux-swarm-006', '6', False),
       ('skiabot-linux-swarm-007', '7', False),
       ('skiabot-linux-swarm-008', '8', False),
-      ('skiabot-linux-swarm-009', '9', False),
-      ('skiabot-linux-swarm-010', '10', False),
+      #('skiabot-linux-swarm-009', '9', False),
+      #('skiabot-linux-swarm-010', '10', False),
       ('skiabot-linux-swarm-011', '11', False),
       ('skiabot-linux-swarm-012', '12', False),
       ('skiabot-linux-swarm-013', '13', False),
@@ -773,54 +712,6 @@ _slave_host_dicts = {
   'slave11-c3': {
     'slaves': [
       ('slave11-c3', '0', False),
-    ],
-    'copies': None,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': None,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'vm690-m3': {
-    'slaves': [
-      ('vm690-m3', '0', False),
-    ],
-    'copies': None,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': None,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'vm691-m3': {
-    'slaves': [
-      ('vm691-m3', '0', False),
-    ],
-    'copies': None,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': None,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'vm692-m3': {
-    'slaves': [
-      ('vm692-m3', '0', False),
-    ],
-    'copies': None,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': None,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'vm693-m3': {
-    'slaves': [
-      ('vm693-m3', '0', False),
     ],
     'copies': None,
     'ip': NO_IP_ADDR,
