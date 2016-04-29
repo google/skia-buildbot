@@ -1,8 +1,10 @@
 #!/bin/sh
+# Sets up the chrome-bot swarming user and installs python adb to /opt/adb
 
 set -ex
-# Sets up the chrome-bot swarming user and installs python adb to /opt/adb
+
 sudo chroot /opt/raspberrypi/root/
+
 rm /etc/localtime
 ln -s /usr/share/zoneinfo/US/Eastern /etc/localtime
 
@@ -26,8 +28,8 @@ if [ ! -e /usr/include/openssl/opensslconf.h ]
 then
 	sudo ln -s /usr/include/arm-linux-gnueabihf/openssl/opensslconf.h /usr/include/openssl/opensslconf.h
 fi
-sudo pip install rsa
-sudo pip install libusb1
+pip install rsa
+pip install libusb1
 
 if [ ! -f /opt/adb ]
 then
@@ -35,5 +37,8 @@ then
 	./python-adb/make_tools.py
 	ln python-adb/adb.zip adb
 fi
+
+# Make swarming run on boot
+update-rc.d swarming defaults 90
 # Adb can now be used by python /opt/adb
 exit

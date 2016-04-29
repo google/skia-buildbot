@@ -27,12 +27,6 @@
     - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service regexp="^ExecStart.*" state=absent
     - lineinfile: dest=/opt/raspberrypi/root/lib/systemd/system/getty@.service line="ExecStart=-/sbin/agetty --autologin chrome-bot --noclear %I $TERM" state=present insertafter="\[Service\]"
 
-    - name: Create the startup script
-      copy: src=startup-script.sh dest=/opt/raspberrypi/root/opt/startup-script.sh owner=root group=root mode=0755
-
-    - name: Set to run our startup script at boot
-      lineinfile: dest=/opt/raspberrypi/root/home/chrome-bot line="/opt/startup-script.sh" insertafter=EOF
-
     - name: Fixing udev rules for Android and NVIDIA devices
       copy: src=udev-rules dest=/opt/raspberrypi/root/etc/udev/rules.d/51-android.rules owner=root group=root mode=0644
 
@@ -46,9 +40,14 @@
     - lineinfile: dest=/opt/raspberrypi/root/etc/ld.so.preload line="#/usr/lib/arm-linux-gnueabihf/libarmmem.so" state=absent
     - lineinfile: dest=/opt/raspberrypi/root/etc/ld.so.preload line="/usr/lib/arm-linux-gnueabihf/libarmmem.so" state=present
 
+    # With these unmounted, chroot not work anymore.  To make chroot work
+    # again, run the setup_for_chroot playbook.
     - command: umount /opt/raspberrypi/root/dev
+      ignore_errors: true
     - command: umount /opt/raspberrypi/root/proc
+      ignore_errors: true
     - command: umount /opt/raspberrypi/root/sys
+      ignore_errors: true
 
     - mount: name="/opt/raspberrypi/root" src="dontcare" fstype="auto" state="unmounted"
   handlers:

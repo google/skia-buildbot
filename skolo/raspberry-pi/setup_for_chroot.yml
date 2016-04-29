@@ -28,5 +28,12 @@
     # Illegal instruction (core dumped)
     - lineinfile: dest=/opt/raspberrypi/root/etc/ld.so.preload line="/usr/lib/arm-linux-gnueabihf/libarmmem.so" state=absent
     - lineinfile: dest=/opt/raspberrypi/root/etc/ld.so.preload line="#/usr/lib/arm-linux-gnueabihf/libarmmem.so" state=present
+
+    - name: Create the startup script
+      copy: src=start_swarming dest=/opt/raspberrypi/root/opt/start_swarming owner=root group=root mode=0755
+
+    - name: Create the swarming service
+      copy: src=swarming dest=/opt/raspberrypi/root/etc/init.d/swarming owner=root group=root mode=0755
+
   handlers:
 

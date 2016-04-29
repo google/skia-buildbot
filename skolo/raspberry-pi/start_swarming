@@ -3,6 +3,10 @@
 # Hack to get swarming access to /b
 sudo chmod 777 /b
 
+# Wait 10s to make sure ssl is fully booted.  Otherwise, we get an error
+# when trying to download the bootstrap code.
+sleep 10s
+
 if [ ! -d "/b/swarm_slave" ]; then
   cd /b
   echo "Bootstrapping swarming, expect a reboot"

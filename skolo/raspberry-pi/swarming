@@ -1,0 +1,30 @@
+#!/bin/sh
+# /etc/init.d/swarming
+### BEGIN INIT INFO
+# Provides:          swarming
+# Required-Start:    $remote_fs $syslog
+# Required-Stop:     $remote_fs $syslog
+# Default-Start:     3 5
+# Default-Stop:      0 6
+# Short-Description: Either initializes swarming or starts it
+# Description: Either initializes swarming or starts it
+### END INIT INFO
+
+case "$1" in
+  start)
+    # Hack to get swarming access to /b
+    chmod 777 /b
+    # We need to run swarming as chrome-bot.  Running it as root can cause issues.
+    runuser -l chrome-bot -c '/opt/start_swarming' > /var/log/startup.log 2>/var/log/startup.err
+    ;;
+  stop)
+    echo "Stopping swarming"
+    /usr/bin/python /b/swarm_slave/swarming_bot.zip stop_bot
+    ;;
+  *)
+    echo "Usage: /etc/init.d/start start-swarming {start|stop}"
+    exit 1
+    ;;
+esac
+
+exit 0
