@@ -19,7 +19,9 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 )
@@ -559,9 +561,47 @@ func cleanupAppLogs(dir string, appLogLevelToSpace map[string]int64, filesToStat
 	return deletedFiles
 }
 
+// GoogleLoggingAuthInit downloads the JWT service account stored in GCE project
+// level metadata and stores it where the Google Logging fluentd client expects to
+// find it. This function may fail if the directory for the credentials hasn't
+// been created, which is fine since not all machines are setup to use Google
+// Logging yet, which is why we only log warnings and don't return an error.
+//
+// See https://cloud.google.com/logging/docs/agent/authorization.
+func GoogleLoggingAuthInit() {
+	jwt, err := metadata.ProjectGet(metadata.JWT_SERVICE_ACCOUNT)
+	if err != nil {
+		glog.Warningf("Failed to download the jwt from metadata: %s", err)
+		return
+	}
+	f, err := os.OpenFile("/etc/google/auth/application_default_credentials.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		glog.Errorf("Failed to open Logging credentials file for writing: %s", err)
+		return
+	}
+	defer util.Close(f)
+	_, err = f.WriteString(jwt)
+	if err != nil {
+		glog.Errorf("Failed to write Logging credentials: %s", err)
+		return
+	}
+	restartCmd := &exec.Command{
+		Name:        "sudo",
+		Args:        []string{"/etc/init.d/google-fluentd restart"},
+		InheritPath: true,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+	if err = exec.Run(restartCmd); err != nil {
+		glog.Warningf("Failed to restart fluentd: %s", err)
+		return
+	}
+}
+
 func main() {
 	defer common.LogPanic()
 	common.Init()
+	go GoogleLoggingAuthInit()
 	if *enableMetrics {
 		common.StartMetrics2("logserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
 	}
