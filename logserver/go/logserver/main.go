@@ -576,13 +576,13 @@ func GoogleLoggingAuthInit() {
 	}
 	f, err := os.OpenFile("/etc/google/auth/application_default_credentials.json", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		glog.Errorf("Failed to open Logging credentials file for writing: %s", err)
+		glog.Warningf("Failed to open Logging credentials file for writing: %s", err)
 		return
 	}
 	defer util.Close(f)
 	_, err = f.WriteString(jwt)
 	if err != nil {
-		glog.Errorf("Failed to write Logging credentials: %s", err)
+		glog.Warningf("Failed to write Logging credentials: %s", err)
 		return
 	}
 	restartCmd := &exec.Command{
