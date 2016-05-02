@@ -38,6 +38,9 @@ then
 	ln python-adb/adb.zip adb
 fi
 
+# Fix df
+ln -s /proc/mounts /etc/mtab
+
 # Make swarming run on boot
 update-rc.d swarming defaults 90
 # Adb can now be used by python /opt/adb
