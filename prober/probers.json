@@ -10,7 +10,7 @@
      "url": "https://fiddle.skia.org/_/run",
      "method": "POST",
      "expected": [200],
-     "body": "{\"code\":\"void draw(SkCanvas* canvas)\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":256,\"height\":256}",
+     "body": "{\"code\":\"void draw(SkCanvas* canvas)\",\"name\":\"\",\"options\":{\"width\":256,\"height\":256}}",
      "mimetype": "application/json",
      "responsetest":"skfiddleJSONBad"
    },
@@ -18,7 +18,7 @@
      "url": "https://fiddle.skia.org/_/run",
      "method": "POST",
      "expected": [200],
-     "body": "{\"code\":\"void draw(SkCanvas* canvas) {SkPaint p;canvas->drawLine(0, 0, 10, 10, p);}\",\"name\":\"\",\"source\":0,\"gpu\":true,\"raster\":true,\"width\":10,\"height\":10}",
+     "body": "{\"code\":\"void draw(SkCanvas* canvas) {SkPaint p;canvas->drawLine(0, 0, 10, 10, p);}\",\"options\":{\"width\":10,\"height\":10}}",
      "mimetype": "application/json",
      "responsetest":"skfiddleJSONGood"
    },
