@@ -143,18 +143,21 @@ var (
 	// Note that slice items 2, 3, and 4 are the ones we are really interested in.
 	parseCompilerOutput = regexp.MustCompile("^(.*/)(draw.cpp:([0-9]+):([-0-9]+):.*)")
 
-	buildLiveness    = metrics2.NewLiveness("build")
-	buildFailures    = metrics2.GetCounter("builds-failed", nil)
-	repoSyncFailures = metrics2.GetCounter("repo-sync-failed", nil)
-	namedFailures    = metrics2.GetCounter("named-failures", nil)
-	tryNamedLiveness = metrics2.NewLiveness("try-named")
-	build            *builder.Builder
-	fiddleStore      *store.Store
-	repo             *gitinfo.GitInfo
-	src              *source.Source
-	names            *named.Named
-	failingNamed     = []store.Named{}
-	failingMutex     = sync.Mutex{}
+	buildFailures      = metrics2.GetCounter("builds-failed", nil)
+	buildLiveness      = metrics2.NewLiveness("build")
+	namedFailures      = metrics2.GetCounter("named-failures", nil)
+	repoSyncFailures   = metrics2.GetCounter("repo-sync-failed", nil)
+	maybeSecViolations = metrics2.GetCounter("maybe-sec-container-violation", nil)
+	runs               = metrics2.GetCounter("runs", nil)
+	tryNamedLiveness   = metrics2.NewLiveness("try-named")
+
+	build        *builder.Builder
+	fiddleStore  *store.Store
+	repo         *gitinfo.GitInfo
+	src          *source.Source
+	names        *named.Named
+	failingNamed = []store.Named{}
+	failingMutex = sync.Mutex{}
 )
 
 func loadTemplates() {
@@ -346,8 +349,9 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to run the fiddle")
 		return
 	}
+	maybeSecViolation := false
 	if res.Execute.Errors != "" {
-		glog.Infof("Runtime error: %s", res.Execute.Errors)
+		maybeSecViolation = true
 		resp.RunTimeError = "Failed to run, possibly violated security container."
 	}
 	// Take the compiler output and strip off all the implementation dependant information
@@ -390,6 +394,11 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to store the fiddle.")
 		return
 	}
+	if maybeSecViolation {
+		maybeSecViolations.Inc(1)
+		glog.Warningf("Attempted Security Container Violation for https://fiddle.skia.org/c/%s: %s", fiddleHash, res.Execute.Errors)
+	}
+	runs.Inc(1)
 	resp.FiddleHash = fiddleHash
 
 	user := login.LoggedInAs(r)
