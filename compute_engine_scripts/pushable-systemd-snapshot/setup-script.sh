@@ -23,6 +23,10 @@ sudo apt-get --assume-yes -o Dpkg::Options::="--force-confold" install collectd
 sudo gsutil cp gs://skia-push/debs/pulld/pulld:jcgregorio@jcgregorio.cnc.corp.google.com:2015-11-23T18:46:16Z:0483101f84c284640c4899ade97e4356655bfd00.deb pulld.deb
 sudo dpkg -i pulld.deb
 sudo systemctl start pulld.service
+
+sudo apt-get install unattended-upgrades
+sudo dpkg-reconfigure --priority=low unattended-upgrades
+
 sudo apt-get --assume-yes install --fix-broken
 
 # Setup collectd.
@@ -71,3 +75,25 @@ LoadPlugin write_graphite
 EOF
 sudo install -D --verbose --backup=none --group=root --owner=root --mode=600 collectd.conf /etc/collectd/collectd.conf
 sudo /etc/init.d/collectd restart
+
+# Install the Google Logging Agent and configure it to handle output logs.
+curl -sSO https://dl.google.com/cloudagents/install-logging-agent.sh
+sudo bash install-logging-agent.sh
+sudo cat <<EOF > skia.conf
+<source>
+  type tail
+  format none
+  path /var/log/logserver/*.INFO
+  pos_file /var/lib/google-fluentd/pos/skia.pos
+  read_from_head true
+  tag skia.*
+</source>
+EOF
+sudo install -D --verbose --backup=none --group=default --owner=default --mode=600 skia.conf /etc/google-fluentd/config.d/skia.conf
+
+# Install a placeholder for the auth credentials that the Google Logging Agent wants,
+# On startup logserver will fill it in with the right values from project level metadata.
+sudo cat <<EOF > application_default_credentials.json
+{}
+EOF
+sudo install -D --verbose --backup=none --group=default --owner=default --mode=600 application_default_credentials.json /etc/google/auth/application_default_credentials.json
