@@ -17821,3 +17821,269 @@ testdata.triageLogResults = {
   }, 
   "status": 200
 };
+
+
+testdata.trybotListResults = {
+  "data": [
+    {
+      "id": "1919993002", 
+      "owner": "Brian Osman", 
+      "patchsets": [
+        1, 
+        20001, 
+        40001, 
+        60001, 
+        80001, 
+        100001, 
+        120001, 
+        140001, 
+        160001, 
+        180001, 
+        200001, 
+        220001, 
+        240001, 
+        260001
+      ], 
+      "subject": "Added --tenBit option to SampleApp, triggers creation of a ten-bit/channel buffer.", 
+      "updated": 1461956865, 
+      "url": "https://codereview.chromium.org/1919993002"
+    }, 
+    {
+      "id": "1930323003", 
+      "owner": "bsalomon", 
+      "patchsets": [
+        1
+      ], 
+      "subject": "Unbreak vulkan after stencil constant name changes", 
+      "updated": 1461956635, 
+      "url": "https://codereview.chromium.org/1930323003"
+    }, 
+    {
+      "id": "1926163002", 
+      "owner": "borenet2", 
+      "patchsets": [
+        1
+      ], 
+      "subject": "Delete ChromeOS code", 
+      "updated": 1461955523, 
+      "url": "https://codereview.chromium.org/1926163002"
+    }, 
+    {
+      "id": "1925303002", 
+      "owner": "jvanverth1", 
+      "patchsets": [
+        1, 
+        20001, 
+        40001, 
+        60001
+      ], 
+      "subject": "Add mipmap loading to Vulkan.", 
+      "updated": 1461954421, 
+      "url": "https://codereview.chromium.org/1925303002"
+    }, 
+    {
+      "id": "1935623002", 
+      "owner": "robertphillips", 
+      "patchsets": [
+        1
+      ], 
+      "subject": "Fix old debugger", 
+      "updated": 1461954090, 
+      "url": "https://codereview.chromium.org/1935623002"
+    }, 
+    {
+      "id": "1931293003", 
+      "owner": "Ben Wagner", 
+      "patchsets": [
+        1
+      ], 
+      "subject": "Revert of Make stencils be attachable to render targets created via\u2026", 
+      "updated": 1461953831, 
+      "url": "https://codereview.chromium.org/1931293003"
+    }, 
+    {
+      "id": "1917223006", 
+      "owner": "djsollen", 
+      "patchsets": [
+        1
+      ], 
+      "subject": "Fix warnings that were exposed when running with SK_DEBUG enable on an optimized release build.", 
+      "updated": 1461953438, 
+      "url": "https://codereview.chromium.org/1917223006"
+    }, 
+    {
+      "id": "1936563002", 
+      "owner": "mtklein_C", 
+      "patchsets": [
+        1
+      ], 
+      "subject": "remove SkWriteBuffer::getWriter32().", 
+      "updated": 1461952744, 
+      "url": "https://codereview.chromium.org/1936563002"
+    }, 
+    {
+      "id": "1920423002", 
+      "owner": "Brian Osman", 
+      "patchsets": [
+        1, 
+        20001, 
+        40001, 
+        60001
+      ], 
+      "subject": "Prototype code that turns any/every flattenable into JSON", 
+      "updated": 1461952542, 
+      "url": "https://codereview.chromium.org/1920423002"
+    }, 
+    {
+      "id": "1933753002", 
+      "owner": "msarett", 
+      "patchsets": [
+        1, 
+        20001
+      ], 
+      "subject": "Add ColorCodecSrc for testing/comparison on color corrected decodes", 
+      "updated": 1461951652, 
+      "url": "https://codereview.chromium.org/1933753002"
+    }, 
+    {
+      "id": "1928123002", 
+      "owner": "msarett", 
+      "patchsets": [
+        1, 
+        20001, 
+        80001, 
+        120001, 
+        140001, 
+        160001, 
+        40002
+      ], 
+      "subject": "Introduce SkGammas type to represent ICC gamma curves", 
+      "updated": 1461949289, 
+      "url": "https://codereview.chromium.org/1928123002"
+    }, 
+    {
+      "id": "1935523002", 
+      "owner": "liyuqian", 
+      "patchsets": [
+        1, 
+        20001
+      ], 
+      "subject": "Fix Vulkan Build in Android", 
+      "updated": 1461949229, 
+      "url": "https://codereview.chromium.org/1935523002"
+    }, 
+    {
+      "id": "1933293002", 
+      "owner": "Jvsquare", 
+      "patchsets": [
+        1
+      ], 
+      "subject": "Don't mark mipmaps dirty if uploading > 1 levels", 
+      "updated": 1461948628, 
+      "url": "https://codereview.chromium.org/1933293002"
+    }, 
+    {
+      "id": "1930103003", 
+      "owner": "mtklein_C", 
+      "patchsets": [
+        1, 
+        20001, 
+        40001
+      ], 
+      "subject": "remove SkWriteBuffer::reserve()", 
+      "updated": 1461946265, 
+      "url": "https://codereview.chromium.org/1930103003"
+    }, 
+    {
+      "id": "1933053002", 
+      "owner": "bsalomon", 
+      "patchsets": [
+        1, 
+        20001, 
+        40001, 
+        60001
+      ], 
+      "subject": "Use constexpr constructors of GrStencilSettings rather than hacky macro system", 
+      "updated": 1461944659, 
+      "url": "https://codereview.chromium.org/1933053002"
+    }, 
+    {
+      "id": "1929343002", 
+      "owner": "bungeman-skia", 
+      "patchsets": [
+        1
+      ], 
+      "subject": "Remove skstd::is_function.", 
+      "updated": 1461943637, 
+      "url": "https://codereview.chromium.org/1929343002"
+    }, 
+    {
+      "id": "1930423002", 
+      "owner": "djsollen", 
+      "patchsets": [
+        1, 
+        20001
+      ], 
+      "subject": "Require Android SDK copy of CMake to build Vulkan on Android.", 
+      "updated": 1461942587, 
+      "url": "https://codereview.chromium.org/1930423002"
+    }, 
+    {
+      "id": "1928133002", 
+      "owner": "bsalomon", 
+      "patchsets": [
+        1, 
+        20001, 
+        40001, 
+        60001, 
+        80001
+      ], 
+      "subject": "Unify implementations of stroking radius calculations", 
+      "updated": 1461938826, 
+      "url": "https://codereview.chromium.org/1928133002"
+    }, 
+    {
+      "id": "1925803004", 
+      "owner": "robertphillips", 
+      "patchsets": [
+        1, 
+        20001
+      ], 
+      "subject": "Add sk_sp to SkSurface_Gpu and SkGpuDevice", 
+      "updated": 1461937601, 
+      "url": "https://codereview.chromium.org/1925803004"
+    }, 
+    {
+      "id": "1931903002", 
+      "owner": "djsollen", 
+      "patchsets": [
+        1
+      ], 
+      "subject": "Repurpose Release_Developer BUILDTYPE and remove SK_DEVELOPER.", 
+      "updated": 1461937298, 
+      "url": "https://codereview.chromium.org/1931903002"
+    }, 
+    {
+      "id": "1924183003", 
+      "owner": "Kimmo Kinnunen", 
+      "patchsets": [
+        1, 
+        20001, 
+        40001, 
+        60001, 
+        80001
+      ], 
+      "subject": "Make stencils be attachable to render targets created via SkSurface::MakeFromBackendTextureAsRender\u2026", 
+      "updated": 1461937292, 
+      "url": "https://codereview.chromium.org/1924183003"
+    }
+  ], 
+  "err": null, 
+  "pagination": {
+    "offset": 0, 
+    "size": 20, 
+    "total": 195
+  }, 
+  "status": 200
+};
+

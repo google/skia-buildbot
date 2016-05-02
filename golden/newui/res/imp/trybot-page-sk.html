@@ -1,20 +1,181 @@
 <!--
-  TODO(stephana): Place holder for old page to be ported over. 
+    Renders a list of Rietveld issues that have trybot runs associated with them.
+  
+    Attributes: 
+      None
+  
+    Events: 
+      None
+  
+    Methods:
+      pageSelected - Called by the router when view is visible.
+    
+      pageDeselected - Called by the router when the view is no longer visible. 
+
 -->
+
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-icons/image-icons.html">
+
+<link rel="import" href="../common/imp/9/paging.html">
+
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="shared-styles.html">
 
 <dom-module id="trybot-page-sk">
   <template>
-   TODO Trybot
+    <style include="shared-styles">
+        .nameHeader,
+        .issueHeader,
+        .dateTimeHeader,
+        .subjectHeader,
+        .patchsetHeader {
+          font-weight: bold;
+        }
+  
+        .nameHeader,
+        .nameValue {
+          width: 8em;
+        }
+  
+        .dateTimeHeader,
+        .dateTimeValue {
+          width: 12em;
+        }
+  
+        .subjectHeader,
+        .subjectValue {
+          min-width: 15em;
+          max-width: 35em;
+        }
+  
+        .issueHeader,
+        .issueValue {
+          width: 6em;
+        }
+  
+        .patchsetHeader,
+        .patchsetValue {
+          width: 7em;
+        }
+  
+        .headerContainer {
+          padding-top: 2em;
+        }
+  
+        tr.rowEntry:hover td {background:#DDDDDD}
+    </style>
+
+    <activity-sk id="activityTrybot" busy="{{_hideAll}}"></activity-sk>
+    <div hidden$="{{_hideAll}}">
+      <paging-sk id="trybotPagination" pagination="{{_pagination}}"></paging-sk>
+      <table class="headerContainer" hidden$="_">
+        <thead>
+          <tr>
+            <td class="issueHeader">Issue</td>
+            <td class="patchsetHeader">Results<br>Up To</td>
+            <td class="nameHeader">Owner</td>
+            <td class="dateTimeHeader">Updated</td>
+            <td class="subjectHeader">Subject</td>
+          </tr>
+          <template is="dom-repeat" items="{{_trybotEntries}}">
+            <tr class="rowEntry">
+              <td class="issueValue"><a target="_blank" title="See codereview in a new window" href$="{{item.url}}">{{item.id}}</a></td>
+              <td class="patchsetValue">
+                <a title$="Results up to Patchset {{item.patchsets.length}}" 
+                   href$="/search?issue={{item.id}}&unt=true&query={{_queryStr}}&master=false">
+                      Patchset <span>{{item.patchsets.length}}</span>
+                </a>
+              </td>
+              <td class="nameValue">{{item.owner}}</td>
+              <td class="dateTimeValue">{{_humanDiffDate(item.updated)}}</td>
+              <td class="subjectValue">{{item.subject}}</td>
+            </tr>
+          </template>
+        </thead>
+      </table>
+    </div>
   </template>
+
   <script>
-    Polymer({
-      is: "trybot-page-sk",
+    (function() {
+      var defaultPagination = {
+        size: 50,
+        offset: 0,
+        total: 0
+      };
 
-      pageSelected: function(routeName) {
-      },
+      var defaultState = {
+        size: defaultPagination.size,
+        offset: defaultPagination.offset
+      };
 
-      pageDeselected: function() {
-      }
-    });
+      Polymer({
+        is: "trybot-page-sk",
+
+        properties: {
+          _state: {
+            type: Object
+          },
+          _pagination: {
+            type: Object,
+            value: function() { return sk.object.shallowCopy(defaultPagination); }
+          }
+        },
+
+        observers: [
+          '_stateObserver(_state.*)'
+        ],
+
+        ready: function() {
+          this.listen(this.$.trybotPagination, 'pagechange', '_reload');
+        },
+
+        pageSelected: function(routeName) {
+          this._state = gold.stateFromQuery(defaultState);
+          this._reload();
+        },
+
+        pageDeselected: function() {
+          // This function is called by the router in gold-app-sk for all top level views. 
+        },
+
+        // Load or reload the listing.
+        _reload: function (ev) {
+          // Triggered by pagination. 
+          if (ev) {
+            this.set('_state', sk.object.applyDelta(this._pagination, this._state));
+          }
+          var q = gold.queryFromState(sk.object.shallowCopy(this._state));
+          this.$.activityTrybot.startSpinner("Loading ...");
+          this._handleServerResponse(sk.get("/json/trybot"+q));
+        },
+
+        _handleServerResponse: function (promise) {
+          promise.then(JSON.parse).then(function (json) {
+            this._trybotEntries = json.data;
+            this.set('_state', sk.object.applyDelta(json.pagination, this._state)); 
+            this.set('_pagination', json.pagination);
+            this.$.activityTrybot.stopSpinner();
+          }.bind(this)).catch(function(e) {
+            sk.errorMessage(e);
+            this.$.activityTrybot.stopSpinner();
+          }.bind(this));
+        },
+
+        _stateObserver: function() {
+          gold.setUrlQuery(gold.queryFromState(sk.object.shallowCopy(this._state)));
+        },
+
+        _humanDiffDate: function (timeStampSec) {
+          return sk.human.diffDate(timeStampSec * 1000);
+        }
+
+      });
+
+    })();
+
   </script>
 </dom-module>

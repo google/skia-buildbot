@@ -455,6 +455,7 @@ func main() {
 		router.HandleFunc("/json/clusterdiff", jsonClusterDiffHandler).Methods("GET")
 		router.HandleFunc("/json/triagelog", polyTriageLogHandler).Methods("GET")
 		router.HandleFunc("/json/triagelog/undo", triageUndoHandler).Methods("POST")
+		router.HandleFunc("/json/trybot", listTrybotsJSONHandler).Methods("GET")
 
 		// For everything else serve the same markup.
 		indexFile := *resourcesDir + "/index.html"
