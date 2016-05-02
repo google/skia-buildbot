@@ -189,6 +189,7 @@ func main() {
 
 	// Offline buildslaves.
 	go func() {
+		lastKnownSlaves := map[string]string{}
 		for _ = range time.Tick(time.Minute) {
 			glog.Info("Loading buildslave data.")
 			slaves, err := buildbot.GetBuildSlaves()
@@ -196,8 +197,11 @@ func main() {
 				glog.Error(err)
 				continue
 			}
+			currentSlaves := map[string]string{}
 			for masterName, m := range slaves {
 				for _, s := range m {
+					delete(lastKnownSlaves, s.Name)
+					currentSlaves[s.Name] = masterName
 					if util.In(s.Name, BUILDSLAVE_OFFLINE_BLACKLIST) {
 						continue
 					}
@@ -211,6 +215,17 @@ func main() {
 					}).Update(v)
 				}
 			}
+			// Delete metrics for slaves which have disappeared.
+			for slave, master := range lastKnownSlaves {
+				glog.Infof("Removing metric for buildslave %s", slave)
+				if err := metrics2.GetInt64Metric(BUILDSLAVES_CONNECTED_MEASUREMENT, map[string]string{
+					"buildslave": slave,
+					"master":     master,
+				}).Delete(); err != nil {
+					glog.Errorf("Failed to delete metric: %s", err)
+				}
+			}
+			lastKnownSlaves = currentSlaves
 		}
 	}()
 

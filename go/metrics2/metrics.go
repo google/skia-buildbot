@@ -203,6 +203,8 @@ func (c *Client) pushData() (map[string]int64, error) {
 
 // rawMetric is a metric which has no explicit type.
 type rawMetric struct {
+	client      *Client
+	key         string
 	measurement string
 	mtx         sync.RWMutex
 	tags        map[string]string
@@ -223,6 +225,23 @@ func (m *rawMetric) update(v interface{}) {
 	m.value = v
 }
 
+// Delete removes the metric from its Client's registry.
+func (m *rawMetric) Delete() error {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+	return m.client.deleteRawMetric(m.key)
+}
+
+// makeMetricKey generates a key for the given metric based on its measurement
+// name and tags.
+func makeMetricKey(measurement string, tags map[string]string) string {
+	md5, err := util.MD5Params(tags)
+	if err != nil {
+		glog.Errorf("Failed to encode measurement tags: %s", err)
+	}
+	return fmt.Sprintf("%s_%s", measurement, md5)
+}
+
 // getRawMetric creates or retrieves a metric with the given measurement name
 // and tag set and returns it.
 func (c *Client) getRawMetric(measurement string, tagsList []map[string]string, initial interface{}) *rawMetric {
@@ -231,14 +250,12 @@ func (c *Client) getRawMetric(measurement string, tagsList []map[string]string, 
 
 	// Make a copy of the concatenation of all provided tags.
 	tags := util.AddParams(map[string]string{}, tagsList...)
-	md5, err := util.MD5Params(tags)
-	if err != nil {
-		glog.Errorf("Failed to encode measurement tags: %s", err)
-	}
-	key := fmt.Sprintf("%s_%s", measurement, md5)
+	key := makeMetricKey(measurement, tags)
 	m, ok := c.metrics[key]
 	if !ok {
 		m = &rawMetric{
+			client:      c,
+			key:         key,
 			measurement: measurement,
 			tags:        tags,
 			value:       initial,
@@ -256,15 +273,13 @@ func (c *Client) getAggregateMetric(measurement string, tagsList []map[string]st
 
 	// Make a copy of the concatenation of all provided tags.
 	tags := util.AddParams(map[string]string{}, tagsList...)
-	md5, err := util.MD5Params(tags)
-	if err != nil {
-		glog.Errorf("Failed to encode measurement tags: %s", err)
-	}
-	key := fmt.Sprintf("%s_%s", measurement, md5)
+	key := makeMetricKey(measurement, tags)
 	m, ok := c.aggMetrics[key]
 	if !ok {
 		m = &aggregateMetric{
 			aggFn:       aggFn,
+			client:      c,
+			key:         key,
 			measurement: measurement,
 			tags:        tags,
 			values:      []interface{}{},
@@ -272,4 +287,30 @@ func (c *Client) getAggregateMetric(measurement string, tagsList []map[string]st
 		c.aggMetrics[key] = m
 	}
 	return m
+}
+
+// deleteRawMetric removes the given raw metric.
+func (c *Client) deleteRawMetric(key string) error {
+	c.metricsMtx.Lock()
+	defer c.metricsMtx.Unlock()
+
+	if _, ok := c.metrics[key]; ok {
+		delete(c.metrics, key)
+	} else {
+		return fmt.Errorf("Unable to delete unknown metric: %s", key)
+	}
+	return nil
+}
+
+// deleteAggregateMetric removes the given aggregate metric.
+func (c *Client) deleteAggregateMetric(key string) error {
+	c.aggMetricsMtx.Lock()
+	defer c.aggMetricsMtx.Unlock()
+
+	if _, ok := c.aggMetrics[key]; ok {
+		delete(c.aggMetrics, key)
+	} else {
+		return fmt.Errorf("Unable to delete unknown metric: %s", key)
+	}
+	return nil
 }

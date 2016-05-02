@@ -17,6 +17,8 @@ func meanInt64(vals []interface{}) interface{} {
 // aggregateMetric is a struct whose data is aggregated over the sampling period.
 type aggregateMetric struct {
 	aggFn       func([]interface{}) interface{}
+	client      *Client
+	key         string
 	measurement string
 	mtx         sync.RWMutex
 	tags        map[string]string
@@ -44,6 +46,13 @@ func (m *aggregateMetric) reset() interface{} {
 	rv := m.aggFn(m.values)
 	m.values = []interface{}{}
 	return rv
+}
+
+// Delete removes the metric from its Client's registry.
+func (m *aggregateMetric) Delete() error {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+	return m.client.deleteAggregateMetric(m.key)
 }
 
 // Int64MeanMetric is a metric whose data is aggregated over the sampling period
