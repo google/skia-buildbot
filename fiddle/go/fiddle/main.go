@@ -396,7 +396,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if maybeSecViolation {
 		maybeSecViolations.Inc(1)
-		glog.Warningf("Attempted Security Container Violation for https://fiddle.skia.org/c/%s: %s", fiddleHash, res.Execute.Errors)
+		glog.Warningf("Attempted Security Container Violation for https://fiddle.skia.org/c/%s", fiddleHash)
 	}
 	runs.Inc(1)
 	resp.FiddleHash = fiddleHash
