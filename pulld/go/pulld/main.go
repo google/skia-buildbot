@@ -290,6 +290,7 @@ func main() {
 	common.InitWithMetrics2("pulld", influxHost, influxUser, influxPassword, influxDatabase, local)
 	Init()
 	pullInit()
+	rebootMonitoringInit()
 
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
