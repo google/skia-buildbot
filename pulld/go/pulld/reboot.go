@@ -16,11 +16,15 @@ func rebootMonitoringInit() {
 		glog.Errorf("Failed to get hostname: %s", err)
 		return
 	}
-	reboot := metrics2.GetBoolMetric("reboot-required", map[string]string{"host": name})
+	reboot := metrics2.GetInt64Metric("reboot-required-i", map[string]string{"host": name})
 	go func() {
 		for _ = range time.Tick(time.Minute) {
 			_, err := os.Stat("/var/run/reboot-required")
-			reboot.Update(err == nil)
+			if err == nil {
+				reboot.Update(1)
+			} else {
+				reboot.Update(0)
+			}
 		}
 	}()
 }
