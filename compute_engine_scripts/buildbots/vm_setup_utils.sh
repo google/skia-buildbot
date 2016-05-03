@@ -151,7 +151,7 @@ function copy_files {
 function run_swarming_bootstrap {
   echo
   echo "===== Run Swarming Bootstrap ====="
-  $GCOMPUTE_CMD ssh --ssh_user=swarming $INSTANCE_NAME \
+  $GCOMPUTE_CMD ssh --ssh_user=chrome-bot $INSTANCE_NAME \
     "sudo chmod 777 /b && mkdir /b/swarm_slave && " \
     "wget https://chromium-swarm.appspot.com/bot_code -O /b/swarm_slave/swarming_bot.zip" \
     || FAILED="$FAILED SwarmingBootstrap"

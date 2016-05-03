@@ -11,4 +11,4 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   DISK_NAMES="$DISK_NAMES skia-disk"-`printf "%03d" ${MACHINE_IP}`
 done
 
-$GCOMPUTE_CMD deletedisk $DISK_NAMES
+$GCOMPUTE_CMD deletedisk $DISK_NAMES -f
