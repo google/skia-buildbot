@@ -23,14 +23,12 @@
     active_alerts: Number, The number of active alerts.
 -->
 
-<link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="/res/imp/bower_components/iron-dropdown/iron-dropdown.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
 
 <link rel="import" href="/res/common/imp/9/alert-sk.html">
 <link rel="import" href="/res/common/imp/9/details-summary.html">
-<link rel="import" href="/res/common/imp/9/timer-sk.html">
 
 <dom-module id="alert-widget-sk">
   <template>
@@ -87,6 +85,7 @@
         border-radius: 10px;
         border: 2px solid #000000;
       }
+
       .dropdown-content div {
         min-width: 300px;
         min-height: 70px;
@@ -98,15 +97,6 @@
       }
 
     </style>
-
-    <iron-ajax
-      id="status"
-      auto url="https://alerts.skia.org/json/alerts/"
-      params='{{_getParams(include, exclude)}}'
-      handle-as="json"
-      last-response="{{_allAlerts}}">
-    </iron-ajax>
-    <timer-sk period="[[reload]]" on-trigger="_reload"></timer-sk>
 
     <span id="alert" class$="[[_alertingClass(active_alerts)]]">
       <paper-icon-button
@@ -170,6 +160,10 @@
       }
     },
 
+    ready: function() {
+      this._reload();
+    },
+
     _alertingClass: function(alerts) {
       if (alerts || alerts > 0) {
         return "alerting";
@@ -190,10 +184,6 @@
       return active_alerts;
     },
 
-    _getParams: function(include, exclude) {
-      return {"category":include, "excludeCategory":exclude};
-    },
-
     _has: function(active_alerts) {
       return active_alerts > 0;
     },
@@ -206,7 +196,15 @@
     },
 
     _reload: function() {
-      this.$.status.generateRequest();
+      var params = {"category": this.include, "excludeCategory": this.exclude};
+      var url = "https://alerts.skia.org/json/alerts/?" + sk.query.fromParamSet(params);
+      sk.get(url).then(JSON.parse).then(function(json) {
+        this.set('_allAlerts', json);
+        this.async(this._reload, this.reload*1000);
+      }.bind(this)).catch(function(err) {
+        sk.errorMessage(err);
+        this.async(this._reload, this.reload*1000);
+      }.bind(this));
     },
 
     _statusIcon:function(status) {
