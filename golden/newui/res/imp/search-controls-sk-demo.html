@@ -41,12 +41,11 @@
           ready: function() {
             this.$.searchControls.setParamSet(testdata.paramSet);
             this.listen(this.$.searchControls, 'state-change', '_handleStateChange'); 
-            this.$.searchControls.setStateFromQuery(gold.defaultSearchState); 
+            this.$.searchControls.setState(gold.defaultSearchState); 
           },
 
           _handleStateChange: function(ev) {
             this.set('_state', JSON.stringify(ev.detail));
-            gold.setUrlQuery(gold.queryFromState(ev.detail));
           }
         });
       });

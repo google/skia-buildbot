@@ -16,7 +16,7 @@
       - query: query string to select configuration. 
   
     Attributes:
-      None
+      state - The current query state.
   
     Events:
       'state-change' - Fired when the state of the query changes and 
@@ -24,9 +24,7 @@
           the new state represented by the controls. 
 
     Methods:
-      setStateFromQuery(defaultState) - Set the state of the controls to the 
-          state encoded in the URL search query. Default values and hints to 
-          parse the query are take from defaultState. 
+      setState(state) - Set the state of the controls to 'state'.
       
       setParamSet(params) - Sets the parameters of the enclosed query-sk element 
           and enables the controls accordingly. 
@@ -99,11 +97,11 @@
     </style>
       <div class="horizontal layout">
         <paper-button id="searchButton" class="topControl" raised><iron-icon icon="search"></iron-icon></paper-button>
-        <paper-toggle-button id=head class="topControl" checked="{{_state.head}}">Head</paper-toggle-button>
-        <paper-toggle-button id=include class="topControl" checked="{{_state.include}}">Include Ignored</paper-toggle-button>
-        <paper-toggle-button id=pos class="topControl" checked="{{_state.pos}}">Positive</paper-toggle-button>
-        <paper-toggle-button id=neg class="topControl" checked="{{_state.neg}}">Negative</paper-toggle-button>
-        <paper-toggle-button id=unt class="topControl" checked="{{_state.unt}}">Untriaged</paper-toggle-button>
+        <paper-toggle-button id=head class="topControl" checked="{{state.head}}">Head</paper-toggle-button>
+        <paper-toggle-button id=include class="topControl" checked="{{state.include}}">Include Ignored</paper-toggle-button>
+        <paper-toggle-button id=pos class="topControl" checked="{{state.pos}}">Positive</paper-toggle-button>
+        <paper-toggle-button id=neg class="topControl" checked="{{state.neg}}">Negative</paper-toggle-button>
+        <paper-toggle-button id=unt class="topControl" checked="{{state.unt}}">Untriaged</paper-toggle-button>
       </div>
 
       <query-dialog-sk id="queryDialog" trigger="searchButton"></query-dialog-sk>
@@ -114,13 +112,13 @@
         is: "search-controls-sk",
 
         properties: {
-          _state: {
+          state: {
             type: Object
           }
         },
 
         observers: [
-          '_fireStateChange(_state.*)'
+          '_fireStateChange(state.*)'
         ],
 
         ready: function() {
@@ -129,9 +127,10 @@
           this.$.searchButton.disabled = true;
         }, 
 
-        setStateFromQuery: function(defaultState) {
-          this.set('_state', gold.stateFromQuery(defaultState));
-        }, 
+        setState: function(state) {
+          this._noFire = true;
+          this.set('state', state);
+        },
 
         setParamSet: function(params) {
           this.$.queryDialog.queryEle.setParamSet(params);
@@ -140,16 +139,20 @@
 
         _handleQueryEdit: function(ev) {
           ev.stopPropagation(); 
-          this.set('_state.query', ev.detail); 
+          this.set('state.query', ev.detail); 
         },
 
         _handleSearchButton: function(ev) {
           ev.stopPropagation();
-          this.$.queryDialog.open(this._state.query);
+          this.$.queryDialog.open(this.state.query);
         },
 
         _fireStateChange: function(ev) {
-          this.fire('state-change', sk.object.shallowCopy(this._state)); 
+          if (this._noFire) {
+            this._noFire = false;
+            return; 
+          }
+          this.fire('state-change', sk.object.shallowCopy(this.state)); 
         }
 
       });

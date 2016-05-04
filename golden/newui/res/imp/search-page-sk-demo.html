@@ -38,7 +38,7 @@
       // var q = "?head=true&query=source_type%3Dgm";
       var q = "?blame=09aa1fce69b214714171db12c341aebd78dd29ea&head=true&query=source_type%3Dgm";
       window.history.replaceState(null, null, window.location.pathname + q); 
-      $$$('search-page-sk').pageSelected();
+      $$$('search-page-sk').pageSelected(new page.Context(window.location.pathname + q));
   </script>
 </body>
 </html>

@@ -1,17 +1,21 @@
   <!-- The <list-page-sk> custom element declaration.
   
-    Displays the summary of tests that match the search query in the URL. 
-  
-    Attributes:
-      None
-  
-    Events:
-      None
+  Displays the summary of tests that match the search query in the URL. 
 
-    Methods:
-      pageSelected - Called by the router when view is visible.
+  Attributes:
+    None
+
+  Methods:
+    pageSelected(ctx) - Called by the router when the view becomes visible. 
+          ctx is the context provided in the route dispatch of page.js. 
     
-      pageDeselected - Called by the router when the view is no longer visible. 
+    pageDeselected - Called by the router when the view is no longer visible. 
+
+  Events:
+    None
+
+  Mailboxes:
+    None
 
   -->
 <link rel="import" href="bower_components/polymer/polymer.html"> 
@@ -122,21 +126,28 @@
         }
       },
 
+      behaviors: [gold.PageStateBehavior],
+
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
       }, 
 
-      pageSelected: function(routeName) {
-        this.$.searchControls.setStateFromQuery(gold.defaultSearchState);
+      pageSelected: function(ctx) {
         this._loadParamset();
+        this._initState(ctx, gold.defaultSearchState);
+        this.$.searchControls.setState(this._state);
+        this._load();
       },
 
       pageDeselected: function() {},
 
       _handleStateChange: function(ev) {
-        this._state = ev.detail;
-        var q = gold.queryFromState(ev.detail);
-        gold.setUrlQuery(q);
+        // Reload the page with the new  state in the query parameters.
+        this._redirectToState(ev.detail);
+      }, 
+
+      _load: function() {
+        var q = window.location.search;
         this.$.activityBar.startSpinner("Loading ...");
         sk.get("/json/list" + q).then(JSON.parse).then(function (json) {
           // Remove the name field from the current query. 

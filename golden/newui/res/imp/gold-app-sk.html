@@ -113,8 +113,6 @@
       },
 
       ready: function() {
-        // TODO(stephana): Make sure this works with stateReflector. 
-
         // Set up in-app routing using the history api. 
         this._setRoute('/', 'byblame');
         this._setRoute('/ignores', 'ignores');
@@ -134,17 +132,14 @@
         page({ hashbang: false });
 
         // Notify the page elements that the page has been selected. 
-        this.listen(this.$.pagesContainer, "iron-select", "_pagesSelect");
         this.listen(this.$.pagesContainer, "iron-deselect", "_pagesDeselect");
       },
 
-      _pagesSelect: function(ev, obj) {
-        if (obj.item.dataset.route) {
-          // Make sure the new views called after the URL is updated by page.js. 
-          this.async(function() {
-            obj.item.children[0].pageSelected(this.route);
-          }.bind(this)); 
-        }
+      _pagesSelect: function(el, ctx) {
+        // Make sure the new views called after the URL is updated by page.js. 
+        this.async(function() {
+          el.pageSelected(ctx);
+        }.bind(this)); 
       },
 
       _pagesDeselect: function(ev, obj) {
@@ -154,7 +149,11 @@
       }, 
 
       _setRoute: function(path, routeID) {
-        page(path, (function() { this.route = routeID; }).bind(this));
+        var pageElement = this.$$("section[data-route="+routeID+"]").children[0]; 
+        page(path, (function(ctx) { 
+          this.route = routeID; 
+          this._pagesSelect(pageElement, ctx);
+        }).bind(this));
       }
     });
   </script>

@@ -13,17 +13,21 @@
   Attributes:
     None
 
+  Methods:
+    pageSelected(ctx) - Called by the router when the view becomes visible. 
+          ctx is the context provided in the route dispatch of page.js. 
+    
+    pageDeselected - Called by the router when the view is no longer visible. 
+
   Events:
     None
 
-  Methods:
-    pageSelected - to be called with the route name as an argument 
-                   whenever this view is the foreground view. 
-
-    pageUnselected - to be called when this page goes out of view. 
+  Mailboxes:
+    None
 -->
 
 <link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 <link rel="import" href="activity-sk.html">
 <link rel=import href="detail-list-sk.html">
@@ -32,7 +36,8 @@
 
 <dom-module id="search-page-sk">
   <template>
-    <style>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles">
       digest-details-sk {
         display: block;
         box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
@@ -45,15 +50,24 @@
       digest-details-sk[data-focus] {
         box-shadow: 3px 3px 6px 5px #FF7F00;
       }
+
+      #missing {
+        padding-top: 2em;
+      }
     </style>
   
     <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
-    <search-controls-sk id="searchControls"></search-controls-sk>
+    <div class="layout horizontal">
+        <search-controls-sk id="searchControls"></search-controls-sk>
+        <div>
+          <paper-button id="triggerSearchButton" raised disabled="{{_hideAll}}">Search</paper-button>
+        </div>
+    </div>
     <div hidden$="{{_hideAll}}">
-      <div id="missing" hidden$="{{_hasEntries(data)}}">
+      <div id="missing" hidden$="{{_nonEmptyResult(data)}}">
         No digests match your query.
       </div>
-      <div hidden$="{{!_hasEntries(data)}}">
+      <div hidden$="{{_emptyResult(data)}}">
         <detail-list-sk id="detailList">
           <template is="dom-repeat" items="{{data.digests}}">
             <digest-details-sk 
@@ -72,6 +86,8 @@
     Polymer({
       is: "search-page-sk",
 
+      behaviors: [gold.PageStateBehavior],
+
       properties: {
         data: {
           type: Object, 
@@ -81,22 +97,39 @@
 
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+        this.listen(this.$.triggerSearchButton, 'click', '_handleSearchButton');
       },
 
-      pageSelected: function() {
+      pageSelected: function(ctx) {
         this.$.detailList.startUse();
-        this.$.searchControls.setStateFromQuery(gold.defaultSearchState);
         this._loadParamset();
+
+        // Initialize the state and set values of the controls. 
+        this._initState(ctx, gold.defaultSearchState);
+        this.$.searchControls.setState(this._state);
+
+        // Only load the page if there were parameters given. 
+        if (ctx.querystring !== '') {
+          this._load();
+        }
       },
 
       pageDeselected: function() {
-        this.$.detailList.endUse(); 
+        this.$.detailList.endUse();
+      },
+
+      _handleSearchButton: function(ev) {
+        // Reload the page with the current state of the controls. 
+        this._redirectToState(this.$.searchControls.state);
       },
 
       _handleStateChange: function(ev) {
-        this._state = ev.detail;
-        var q = gold.queryFromState(ev.detail);
-        gold.setUrlQuery(q);
+        // Reload the page with the new  state in the query parameters. 
+        this._redirectToState(ev.detail); 
+      }, 
+
+      _load: function() {
+        var q = window.location.search; 
         this.$.activityBar.startSpinner("Loading ...");
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
           this.set('data', json);
@@ -105,7 +138,7 @@
           this.$.activityBar.stopSpinner();
           sk.errorMessage(e);
         }.bind(this)); 
-      },
+      }, 
 
       _loadParamset: function() {
         sk.get("/json/paramset").then(JSON.parse).then(function (json) {
@@ -117,8 +150,14 @@
         return item.test + '-' + item.digest; 
       },
 
-      _hasEntries: function(data) {
-        return data && data.digests && data.digests.length > 0;
+      // Returns true if there was a query and result is not empty. 
+      _nonEmptyResult: function(data) {
+        return !data.digests || data.digests.length > 0; 
+      },
+
+      // Returns true if there was a query and the result is empty. 
+      _emptyResult: function(data) {
+        return !data.digests || data.digests.length === 0;
       }
     });
   </script>

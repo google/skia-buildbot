@@ -1,16 +1,20 @@
 <!--
-    Renders a list of Rietveld issues that have trybot runs associated with them.
-  
-    Attributes: 
-      None
-  
-    Events: 
-      None
-  
-    Methods:
-      pageSelected - Called by the router when view is visible.
+  Renders a list of Rietveld issues that have trybot runs associated with them.
+
+  Attributes: 
+    None
+
+  Methods:
+    pageSelected(ctx) - Called by the router when the view becomes visible. 
+          ctx is the context provided in the route dispatch of page.js. 
     
-      pageDeselected - Called by the router when the view is no longer visible. 
+    pageDeselected - Called by the router when the view is no longer visible. 
+
+  Events:
+    None
+
+  Mailboxes:
+    None
 
 -->
 
@@ -115,58 +119,46 @@
       Polymer({
         is: "trybot-page-sk",
 
+        behaviors: [gold.PageStateBehavior],
+
         properties: {
-          _state: {
-            type: Object
-          },
           _pagination: {
             type: Object,
             value: function() { return sk.object.shallowCopy(defaultPagination); }
           }
         },
 
-        observers: [
-          '_stateObserver(_state.*)'
-        ],
-
         ready: function() {
-          this.listen(this.$.trybotPagination, 'pagechange', '_reload');
+          this.listen(this.$.trybotPagination, 'pagechange', '_stateChanged');
         },
 
-        pageSelected: function(routeName) {
-          this._state = gold.stateFromQuery(defaultState);
-          this._reload();
+        pageSelected: function(ctx) {
+          this._initState(ctx, defaultState);
+          this._load();
         },
 
         pageDeselected: function() {
           // This function is called by the router in gold-app-sk for all top level views. 
         },
 
-        // Load or reload the listing.
-        _reload: function (ev) {
-          // Triggered by pagination. 
-          if (ev) {
-            this.set('_state', sk.object.applyDelta(this._pagination, this._state));
-          }
-          var q = gold.queryFromState(sk.object.shallowCopy(this._state));
-          this.$.activityTrybot.startSpinner("Loading ...");
-          this._handleServerResponse(sk.get("/json/trybot"+q));
+        _stateChanged: function(ev) {
+          // We only need pagination here, because the toggle writes directly to state. 
+          this._redirectToState(this._pagination);
         },
-
-        _handleServerResponse: function (promise) {
-          promise.then(JSON.parse).then(function (json) {
+        
+        // Load the listing.
+        _load: function() {
+          var q = window.location.search;
+          this.$.activityTrybot.startSpinner("Loading ...");
+          sk.get("/json/trybot"+q).then(JSON.parse).then(function (json) {
             this._trybotEntries = json.data;
-            this.set('_state', sk.object.applyDelta(json.pagination, this._state)); 
+            this._replaceState(json.pagination);
             this.set('_pagination', json.pagination);
             this.$.activityTrybot.stopSpinner();
           }.bind(this)).catch(function(e) {
             sk.errorMessage(e);
             this.$.activityTrybot.stopSpinner();
           }.bind(this));
-        },
-
-        _stateObserver: function() {
-          gold.setUrlQuery(gold.queryFromState(sk.object.shallowCopy(this._state)));
         },
 
         _humanDiffDate: function (timeStampSec) {

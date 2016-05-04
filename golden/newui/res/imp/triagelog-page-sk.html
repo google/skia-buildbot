@@ -9,8 +9,9 @@
     None
 
   Methods:
-    pageSelected - Called by the router when view is visible.
-  
+    pageSelected(ctx) - Called by the router when the view becomes visible. 
+          ctx is the context provided in the route dispatch of page.js. 
+    
     pageDeselected - Called by the router when the view is no longer visible. 
 
   Events:
@@ -145,40 +146,37 @@
       Polymer({
         is: "triagelog-page-sk",
 
-        properties: { 
-          _state: {
-            type: Object
-          },
+        behaviors: [gold.PageStateBehavior],
 
+        properties: { 
           _pagination: {
             type: Object,
             value: function() { return sk.object.shallowCopy(defaultPagination); },
           }
         },
 
-        pageSelected: function() {
-          this._state = gold.stateFromQuery(defaultState);
-          this._reload();
+        pageSelected: function(ctx) {
+          this._initState(ctx, defaultState);
+          this._handleServerResponse(sk.get("/json/triagelog" + window.location.search));
         },
 
         ready: function() {
-          this.listen(this.$.detailsToggle, 'change', '_reload');
-          this.listen(this.$.paginationTriagelog, 'pagechange', '_reload');
+          this.listen(this.$.detailsToggle, 'change', '_stateChanged');
+          this.listen(this.$.paginationTriagelog, 'pagechange', '_stateChanged');
         },
 
         pageDeselected: function() {},
 
-        _reload: function () {
-          var q = gold.queryFromState(sk.object.shallowCopy(this._state));
-          gold.setUrlQuery(q);
-          this.$.activityTriageLog.startSpinner("Loading ...");
-          this._handleServerResponse(sk.get("/json/triagelog" + q));
+        _stateChanged: function(ev) {
+          // We only need pagination here, because the toggle writes directly to state. 
+          this._redirectToState(this._pagination);
         },
 
         _handleServerResponse: function (promise) {
+          this.$.activityTriageLog.startSpinner("Loading ...");
           promise.then(JSON.parse).then(function (json) {
             this.logEntries = json.data;
-            this.set('_state', sk.object.applyDelta(json.pagination, this._state)); 
+            this._replaceState(json.pagination); 
             this.set('_pagination', json.pagination);
             this.$.activityTriageLog.stopSpinner();
           }.bind(this)).catch(function(e) {

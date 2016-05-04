@@ -57,8 +57,50 @@ var gold = gold || {};
     return '?' + ret; 
   }; 
 
-  // setQuery sets the current query on the URL without reloading. 
-  gold.setUrlQuery = function(q) {
-    history.pushState(null, "", window.location.origin + window.location.pathname + q);
+  // PageStateBehavior is a re-usable behavior what adds the _state and 
+  // _ctx (page.js context) variables to a Polymer element. All methods are 
+  // implemented as private since they should only be used within a 
+  // Polymer element. 
+  gold.PageStateBehavior = {
+    properties: {
+      _state: {
+        type: Object,
+        value: function() { return {}; }
+      }
+    },
+
+    // _initState initializes the "_state" and "_ctx" variables. ctx is the 
+    // context of the page.js route. It creates the value of the _state object 
+    // from the URL query string based on defaultState. It sets the URL to 
+    // the resulting the state. 
+    _initState: function(ctx, defaultState) {
+      this._ctx = ctx; 
+      this._state = gold.stateFromQuery(defaultState); 
+      this._setUrlFromState();
+    },
+
+    // _redirectToState updates the current state with 'updates'. After it 
+    // saves the current URL to history it redirects (via history.replaceState) 
+    // to the same path page with a query string that represents the 
+    // updated state. 
+    _redirectToState: function(updates) {
+      // Save the current history entry before the redirect.
+      this._ctx.pushState();
+      var newState = sk.object.applyDelta(updates, this._state);
+      page.redirect(window.location.pathname + gold.queryFromState(newState));
+    },
+
+    // _replaceState updates the current state with 'updates' and updates 
+    // the URL accordingly. No new page is loaded or reloaded. 
+    _replaceState: function(updates) {
+      this._state = sk.object.applyDelta(updates, this._state);
+      this._setUrlFromState();
+    },
+
+    // setUrlFromState simply replaces the query string of the current URL 
+    // with a query string that represents the current state.
+    _setUrlFromState: function() {
+      history.replaceState(this._ctx.state, this._ctx.title, window.location.pathname + gold.queryFromState(this._state));
+    }
   };
 })();
