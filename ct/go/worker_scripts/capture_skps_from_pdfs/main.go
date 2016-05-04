@@ -29,7 +29,7 @@ const (
 
 var (
 	workerNum      = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
-	pagesetType    = flag.String("pageset_type", util.PAGESET_TYPE_PDF_10k, "The type of pagesets to use for this run. Eg: PDF10k.")
+	pagesetType    = flag.String("pageset_type", util.PAGESET_TYPE_PDF_1m, "The type of pagesets to use for this run. Eg: PDF1m.")
 	chromiumBuild  = flag.String("chromium_build", "", "The specified chromium build. This value is used to find the pdfium_test binary from Google Storage and while uploading the PDFs and SKPs to Google Storage.")
 	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	targetPlatform = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")

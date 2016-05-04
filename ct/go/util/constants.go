@@ -46,7 +46,7 @@ const (
 	PAGESET_TYPE_ALL        = "All"
 	PAGESET_TYPE_10k        = "10k"
 	PAGESET_TYPE_MOBILE_10k = "Mobile10k"
-	PAGESET_TYPE_PDF_10k    = "PDF10k"
+	PAGESET_TYPE_PDF_1m     = "PDF1m"
 	PAGESET_TYPE_DUMMY_1k   = "Dummy1k" // Used for testing.
 
 	// Names of binaries executed by CT.
@@ -288,15 +288,15 @@ var (
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
 		},
-		PAGESET_TYPE_PDF_10k: &PagesetTypeInfo{
-			NumPages:                   1000,
+		PAGESET_TYPE_PDF_1m: &PagesetTypeInfo{
+			NumPages:                   1000000,
 			CSVSource:                  "csv/pdf-top-1m.csv",
 			UserAgent:                  "desktop",
 			CreatePagesetsTimeoutSecs:  60,
 			CaptureArchivesTimeoutSecs: 300,
 			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
-			Description:                "PDF 10K",
+			Description:                "PDF 1M",
 		},
 	}
 
