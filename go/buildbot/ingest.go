@@ -405,6 +405,46 @@ func getLatestBuilds(m string) (map[string]int, error) {
 	return res, nil
 }
 
+// GetBuilders returns the set of builders from all masters.
+func GetBuilders() (map[string]*Builder, error) {
+	builders := map[string][]*Builder{}
+	errs := map[string]error{}
+	var wg sync.WaitGroup
+	for _, m := range MASTER_NAMES {
+		wg.Add(1)
+		go func(master string) {
+			defer wg.Done()
+			b := map[string]*Builder{}
+			if err := get(BUILDBOT_URL+master+"/json/builders", &b); err != nil {
+				errs[master] = err
+				return
+			}
+			builderList := make([]*Builder, 0, len(b))
+			for builderName, builder := range b {
+				builder.Name = builderName
+				builder.Master = master
+				builderList = append(builderList, builder)
+			}
+			builders[master] = builderList
+		}(m)
+	}
+	wg.Wait()
+	if len(errs) > 0 {
+		errString := "Failed to get retrieve builders:"
+		for _, err := range errs {
+			errString += fmt.Sprintf("\n%v", err)
+		}
+		return nil, fmt.Errorf(errString)
+	}
+	rv := map[string]*Builder{}
+	for _, buildersForMaster := range builders {
+		for _, b := range buildersForMaster {
+			rv[b.Name] = b
+		}
+	}
+	return rv, nil
+}
+
 // GetBuildSlaves returns a map whose keys are master names and values are
 // sub-maps whose keys are slave names and values are BuildSlave objects.
 func GetBuildSlaves() (map[string]map[string]*BuildSlave, error) {

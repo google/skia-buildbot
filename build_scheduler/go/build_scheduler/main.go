@@ -27,14 +27,6 @@ import (
 const (
 	// APP_NAME is the name of this app.
 	APP_NAME = "buildbot_scheduler"
-
-	// MASTER_BUILDERS_URL is the JSON endpoint for the builders list on
-	// build masters.
-	MASTER_BUILDERS_URL = "http://build.chromium.org/p/%s/json/builders"
-
-	// MASTER_SLAVES_URL is the JSON endpoint for the buildslaves list on
-	// build masters.
-	MASTER_SLAVES_URL = "http://build.chromium.org/p/%s/json/slaves"
 )
 
 var (
@@ -94,128 +86,32 @@ func jsonGet(url string, rv interface{}) error {
 	return nil
 }
 
-// builder is a struct used for retrieving information about builders
-// from the masters.
-type builder struct {
-	Name          string   `json:"..."`
-	Master        string   `json:"..."`
-	PendingBuilds int      `json:"pendingBuilds"`
-	Slaves        []string `json:"slaves"`
-	State         string   `json:"state"`
-}
-
-// buildslave is a struct used for retrieving information about buildslaves
-// from the masters.
-type buildslave struct {
-	Builders      []string      `json:"..."`
-	Name          string        `json:"..."`
-	Master        string        `json:"..."`
-	Connected     bool          `json:"connected"`
-	RunningBuilds []interface{} `json:"runningBuilds"`
-}
-
-type buildslaveSlice []*buildslave
+type buildslaveSlice []*buildbot.BuildSlave
 
 func (s buildslaveSlice) Len() int           { return len(s) }
 func (s buildslaveSlice) Less(i, j int) bool { return s[i].Name < s[j].Name }
 func (s buildslaveSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
-// getBuildslaves returns the set of buildslaves from all masters.
-func getBuildslaves() (map[string]*buildslave, error) {
-	// Get the set of buildslaves for each master.
-	buildslaves := map[string]map[string]*buildslave{}
-	errs := map[string]error{}
-	var wg sync.WaitGroup
-	for _, m := range MASTERS {
-		wg.Add(1)
-		go func(master string) {
-			defer wg.Done()
-			url := fmt.Sprintf(MASTER_SLAVES_URL, master)
-			b := map[string]*buildslave{}
-			if err := jsonGet(url, &b); err != nil {
-				errs[master] = err
-				return
-			}
-			slaveList := make([]*buildslave, 0, len(b))
-			for slaveName, slave := range b {
-				slave.Name = slaveName
-				slave.Master = master
-				slaveList = append(slaveList, slave)
-			}
-			buildslaves[master] = b
-		}(m)
-	}
-	wg.Wait()
-	if len(errs) > 0 {
-		errString := "Failed to retrieve buildslaves:"
-		for _, err := range errs {
-			errString += fmt.Sprintf("\n%v", err)
-		}
-		return nil, fmt.Errorf(errString)
-	}
-	rv := map[string]*buildslave{}
-	for _, slavesForMaster := range buildslaves {
-		for _, s := range slavesForMaster {
-			rv[s.Name] = s
-		}
-	}
-	return rv, nil
-}
-
-// getBuilders returns the set of builders from all masters.
-func getBuilders() (map[string]*builder, error) {
-	builders := map[string][]*builder{}
-	errs := map[string]error{}
-	var wg sync.WaitGroup
-	for _, m := range MASTERS {
-		wg.Add(1)
-		go func(master string) {
-			defer wg.Done()
-			url := fmt.Sprintf(MASTER_BUILDERS_URL, master)
-			b := map[string]*builder{}
-			if err := jsonGet(url, &b); err != nil {
-				errs[master] = err
-				return
-			}
-			builderList := make([]*builder, 0, len(b))
-			for builderName, builder := range b {
-				builder.Name = builderName
-				builder.Master = master
-				builderList = append(builderList, builder)
-			}
-			builders[master] = builderList
-		}(m)
-	}
-	wg.Wait()
-	if len(errs) > 0 {
-		errString := "Failed to get retrieve builders:"
-		for _, err := range errs {
-			errString += fmt.Sprintf("\n%v", err)
-		}
-		return nil, fmt.Errorf(errString)
-	}
-	rv := map[string]*builder{}
-	for _, buildersForMaster := range builders {
-		for _, b := range buildersForMaster {
-			rv[b.Name] = b
-		}
-	}
-	return rv, nil
-}
-
 // getFreeBuildslaves returns a slice of names of buildslaves which are free.
-func getFreeBuildslaves() ([]*buildslave, error) {
+func getFreeBuildslaves() ([]*buildbot.BuildSlave, error) {
 	errMsg := "Failed to get free buildslaves: %v"
 	// Get the set of builders for each master.
-	builders, err := getBuilders()
+	builders, err := buildbot.GetBuilders()
 	if err != nil {
 		return nil, fmt.Errorf(errMsg, err)
 	}
 
 	// Get the set of buildslaves for each master.
-	buildslaves, err := getBuildslaves()
+	slaves, err := buildbot.GetBuildSlaves()
 	if err != nil {
 		return nil, fmt.Errorf(errMsg, err)
+	}
+	// Flatten the buildslaves list.
+	buildslaves := map[string]*buildbot.BuildSlave{}
+	for _, slavesMap := range slaves {
+		for slavename, slaveobj := range slavesMap {
+			buildslaves[slavename] = slaveobj
+		}
 	}
 
 	// Map the builders to buildslaves.
@@ -230,7 +126,7 @@ func getFreeBuildslaves() ([]*buildslave, error) {
 	}
 
 	// Return the builders which are connected and idle.
-	rv := []*buildslave{}
+	rv := []*buildbot.BuildSlave{}
 	for _, s := range buildslaves {
 		if len(s.RunningBuilds) == 0 && s.Connected {
 			rv = append(rv, s)
@@ -247,7 +143,7 @@ func scheduleBuilds(q *build_queue.BuildQueue, bb *buildbucket.Client) error {
 
 	// Get the list of idle buildslaves, update the BuildQueue.
 	var wg sync.WaitGroup
-	var free []*buildslave
+	var free []*buildbot.BuildSlave
 	var freeErr error
 	wg.Add(1)
 	go func() {

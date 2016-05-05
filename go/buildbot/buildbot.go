@@ -247,14 +247,22 @@ func (b *Build) fixup() {
 	sort.Strings(b.Commits)
 }
 
+// Builder contains information about a builder.
+type Builder struct {
+	Name          string
+	Master        string
+	PendingBuilds int
+	Slaves        []string
+	State         string
+}
+
 // BuildSlave contains information about a buildslave.
 type BuildSlave struct {
-	Admin     string
-	Builders  map[string][]int
-	Connected bool
-	Host      string
-	Name      string
-	Version   string
+	Builders      []string
+	Connected     bool
+	Name          string
+	Master        string
+	RunningBuilds []interface{}
 }
 
 // BuildComment contains a comment about a build.
