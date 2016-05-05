@@ -205,8 +205,6 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 	// Find the build target to use while building chromium.
 	buildTarget := "chrome"
 	if targetPlatform == "Android" {
-		util.LogErr(
-			ioutil.WriteFile(filepath.Join(chromiumDir, "chromium.gyp_env"), []byte("{ 'GYP_DEFINES': 'OS=android', }\n"), 0777))
 		buildTarget = "chrome_public_apk"
 	}
 
@@ -217,12 +215,14 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 		return fmt.Errorf("Error while starting goma compiler proxy: %s", err)
 	}
 
-	// Run "GYP_DEFINES='gomadir=/b/build/goma' GYP_GENERATORS='ninja' build/gyp_chromium -Duse_goma=1".
-	env := []string{fmt.Sprintf("GYP_DEFINES=gomadir=%s", GomaDir), "GYP_GENERATORS=ninja"}
-	err = ExecuteCmd(filepath.Join("build", "gyp_chromium"), []string{"-Duse_goma=1"}, env,
-		GYP_CHROMIUM_TIMEOUT, nil, nil)
+	// Run "gn gen out/Release --args=...".
+	gn_args := []string{"is_debug=false", "use_goma=true", fmt.Sprintf("goma_dir=\"%s\"", GomaDir)}
+	if targetPlatform == "Android" {
+		gn_args = append(gn_args, "target_os=\"android\"")
+	}
+	err = ExecuteCmd("gn", []string{"gen", "out/Release", fmt.Sprintf("--args=%s", strings.Join(gn_args, " "))}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil)
 	if err != nil {
-		return fmt.Errorf("Error while running gyp_chromium: %s", err)
+		return fmt.Errorf("Error while running gn: %s", err)
 	}
 	// Run "ninja -C out/Release -j100 ${build_target}".
 	// Use the full system env while building chromium.

@@ -106,14 +106,14 @@ const (
 	GIT_LS_REMOTE_TIMEOUT         = 5 * time.Minute
 	GIT_APPLY_TIMEOUT             = 5 * time.Minute
 	GOMA_CTL_RESTART_TIMEOUT      = 10 * time.Minute
-	GYP_CHROMIUM_TIMEOUT          = 30 * time.Minute
+	GN_CHROMIUM_TIMEOUT           = 30 * time.Minute
 	GYP_PDFIUM_TIMEOUT            = 5 * time.Minute
 	NINJA_TIMEOUT                 = 2 * time.Hour
 	CREATE_CHROMIUM_BUILD_TIMEOUT = SYNC_SKIA_IN_CHROME_TIMEOUT + GIT_LS_REMOTE_TIMEOUT +
 		// Three patches are applied when applyPatches is specified.
 		3*GIT_APPLY_TIMEOUT +
 		// The build steps are repeated twice when applyPatches is specified.
-		2*(GOMA_CTL_RESTART_TIMEOUT+GYP_CHROMIUM_TIMEOUT+NINJA_TIMEOUT+
+		2*(GOMA_CTL_RESTART_TIMEOUT+GN_CHROMIUM_TIMEOUT+NINJA_TIMEOUT+
 			RESET_CHROMIUM_CHECKOUT_TIMEOUT)
 
 	// util.InstallChromeAPK
