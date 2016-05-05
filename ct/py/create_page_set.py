@@ -95,11 +95,10 @@ if '__main__' == __name__:
   for index in xrange(int(options.start_number) - 1, int(options.end_number)):
     line = csv_contents[index]
     website = line.strip().split(',')[1]
-    if 'PDF' in options.pagesets_type:
-      # PDF urls do not need any additional prefixes.
+    if website.startswith('https://') or website.startswith('http://'):
       qualified_website = website
-    elif website.startswith('https://') or website.startswith('http://'):
-      qualified_website = website
+    elif website.startswith('www.'):
+      qualified_website = 'http://%s' % website
     else:
       qualified_website = 'http://www.%s' % website
     websites.append(qualified_website)
