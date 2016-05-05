@@ -177,8 +177,6 @@ func (c *Client) MultiQuery(database, q string, n int) ([]*MultiPoint, error) {
 	// Collect all data points.
 	rv := make([]*MultiPoint, 0, len(series))
 	for _, s := range series {
-		fmt.Printf("Columns: %s\n", s.Columns)
-		fmt.Printf("Values: %s\n", s.Values)
 		valueColumn := 0
 		// Skip over the non value columns, if any exist
 		for _, label := range s.Columns {
