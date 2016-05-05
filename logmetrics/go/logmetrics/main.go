@@ -24,7 +24,7 @@ var (
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 
 	loggingService *logging.Service
-	m              *metrics2.Int64Metric
+	m              *metrics2.Float64Metric
 )
 
 func step() {
@@ -60,7 +60,7 @@ AND (timestamp > %q)`, ts1, ts2)
 		req.PageToken = resp.NextPageToken
 	}
 	glog.Infof("Count: %d QPS: %0.1f\n", count, float32(count)/60)
-	m.Update(int64(count) / 60)
+	m.Update(float64(count) / 60)
 }
 
 func main() {
@@ -78,7 +78,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to create logging client: %s", err)
 	}
-	m = metrics2.GetInt64Metric("qps" /* tags */, nil)
+	m = metrics2.GetFloat64Metric("qps" /* tags */, nil)
 	step()
 	for _ = range time.Tick(time.Minute) {
 		step()
