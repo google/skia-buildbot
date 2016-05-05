@@ -19,12 +19,13 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/ct/go/worker_scripts/worker_common"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/httputils"
 	skutil "go.skia.org/infra/go/util"
 )
 
 const (
 	// The number of goroutines that will run in parallel to download PDFs and capture their SKPs.
-	WORKER_POOL_SIZE = 20
+	WORKER_POOL_SIZE = 10
 )
 
 var (
@@ -54,6 +55,8 @@ func main() {
 		return
 	}
 
+	// Instantiate timeout client for downloading PDFs.
+	httpTimeoutClient := httputils.NewTimeoutClient()
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
@@ -154,20 +157,39 @@ func main() {
 				skutil.LogErr(os.Chdir(pathToPdfs))
 
 				// Download the PDFs.
-				pdfBase, err := getPdfFileName(decodedPageset.UrlsList)
+				pdfURL := decodedPageset.UrlsList
+				// Add protocol if it is missing from the URL.
+				if !(strings.HasPrefix(pdfURL, "http://") || strings.HasPrefix(pdfURL, "https://")) {
+					pdfURL = fmt.Sprintf("http://%s", pdfURL)
+				}
+				pdfBase, err := getPdfFileName(pdfURL)
 				if err != nil {
-					glog.Errorf("Could not parse the URL %s to get a PDF file name: %s", decodedPageset.UrlsList, err)
-					erroredPDFs = append(erroredPDFs, decodedPageset.UrlsList)
+					glog.Errorf("Could not parse the URL %s to get a PDF file name: %s", pdfURL, err)
+					erroredPDFs = append(erroredPDFs, pdfURL)
 					continue
 				}
 				pdfPath := filepath.Join(pathToPdfs, pdfBase)
-				wgetArgs := []string{
-					"-O", pdfPath,
-					decodedPageset.UrlsList,
+				resp, err := httpTimeoutClient.Get(pdfURL)
+				if err != nil {
+					glog.Errorf("Could not GET %s: %s", pdfURL, err)
+					erroredPDFs = append(erroredPDFs, pdfURL)
+					continue
 				}
-				if err := util.ExecuteCmd(util.BINARY_WGET, wgetArgs, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
-					glog.Errorf("Could not wget %s: %s", decodedPageset.UrlsList, err)
-					erroredPDFs = append(erroredPDFs, decodedPageset.UrlsList)
+				defer skutil.Close(resp.Body)
+				out, err := os.Create(pdfPath)
+				if err != nil {
+					glog.Errorf("Unable to create file %s: %s", pdfPath, err)
+					erroredPDFs = append(erroredPDFs, pdfURL)
+					continue
+				}
+				if _, err = io.Copy(out, resp.Body); err != nil {
+					glog.Errorf("Unable to write to file %s: %s", pdfPath, err)
+					erroredPDFs = append(erroredPDFs, pdfURL)
+					continue
+				}
+				if err := out.Close(); err != nil {
+					glog.Errorf("Could not close %s: %s", pdfPath, err)
+					erroredPDFs = append(erroredPDFs, pdfURL)
 					continue
 				}
 

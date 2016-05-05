@@ -367,8 +367,20 @@ func ValidateSKPs(pathToSkps string) error {
 					"--path_to_skp=" + skpPath,
 					"--path_to_skpinfo=" + pathToSKPInfo,
 				}
-				glog.Infof("Executing with goroutine#%d", i+1)
-				util.LogErr(ExecuteCmd("python", args, []string{}, REMOVE_INVALID_SKPS_TIMEOUT, nil, nil))
+				glog.Infof("Executing remove_invalid_skp.py with goroutine#%d", i+1)
+				// Execute the command with stdout not logged. It otherwise outputs
+				// tons of log msgs.
+				util.LogErr(exec.Run(&exec.Command{
+					Name:        "python",
+					Args:        args,
+					Env:         []string{},
+					InheritPath: true,
+					Timeout:     REMOVE_INVALID_SKPS_TIMEOUT,
+					LogStdout:   false,
+					Stdout:      nil,
+					LogStderr:   true,
+					Stderr:      nil,
+				}))
 			}
 		}(i)
 	}
