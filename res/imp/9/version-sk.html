@@ -42,7 +42,7 @@
     <span>
       <paper-icon-button id="reloadButton" icon="icons:refresh" on-click="_reload" class$="{{_buttonClass(_needReload)}}"></paper-icon-button>
       <paper-tooltip for="reloadButton">A new version is available. Click to reload.</paper-tooltip>
-      version: <a id="link" href$="{{_commitUrl(commit)}}" title="{{date}}" target="_blank">{{short_commit}}</a>
+      version: <a id="link" href$="{{_commitUrl(commit)}}" title$="{{date}}" target="_blank">{{short_commit}}</a>
     </span>
   </template>
   <script>
