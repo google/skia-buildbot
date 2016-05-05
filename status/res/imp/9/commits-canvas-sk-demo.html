@@ -25,6 +25,11 @@
     var c = $$$("#can");
     c.set("branch_heads", branch_heads)
     c.set("commits", commits);
+    c.set("autoroll", {
+      currentRollRev: commits[1].hash,
+      lastRollRev: commits[7].hash,
+      lastRollIssue: 1944313002
+    });
 
     </script>
 

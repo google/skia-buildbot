@@ -25,6 +25,10 @@
         hash: String, the commit's revision
         parent: Array<String>, the hashes of any parents.
         timestamp: String, the commit's timestamp, formatted like: "2016-02-22T06:34:47-08:00"
+    autoroll: Object, which is used to link to the recent autorolls. contains at least:
+        currentRollRev: String, git hash of current roll
+        lastRollRev: String, git hash of previous roll
+        lastRollIssue: Number, issue number tied with previous roll
 
     //output
     commits_to_load: Number, the number of commits to load.
@@ -50,7 +54,6 @@
         top: 0;
         left: 0;
       }
-
 
       .refresh {
         font-size: 12px;
@@ -79,6 +82,10 @@
         z-index: -1;
       }
 
+      #commitCanvas.pointer {
+        cursor: pointer;
+      }
+
     </style>
 
     <div id="container">
@@ -93,7 +100,9 @@
         <div>Loaded {{_lastLoaded}}</div>
       </div>
 
-      <canvas id="commitCanvas"></canvas>
+      <!-- The tap event (which was originally used) does not always produce offsetY.
+      on-click works for the Pixels (even when touching), so we use that.-->
+      <canvas id="commitCanvas" on-click="handleclick" on-mousemove="handlemouseover"></canvas>
 
     </div>
 
@@ -121,6 +130,9 @@
     var commitBg = "#FFFFFF";    // Background color of alternating commits.
     var commitBgAlt = "#EFEFEF"; // Background color of alternating commits.
     var font = "10px monospace"; // Font used for labels.
+
+    var BRANCH_PREFIX = "origin/";
+    var REPO_BASE = "https://skia.googlesource.com/skia/+/";
 
     // Draws a filled-in dot at the given center with the given radius and color.
     function drawDot(ctx, center, radius, color) {
@@ -413,6 +425,9 @@
       is: "commits-canvas-sk",
       properties: {
         // input
+        autoroll: {
+          type: Object,
+        },
         branch_heads: {
           type: Array,
         },
@@ -433,6 +448,11 @@
         },
 
         // private
+        _linkMap: {
+          // Number: String, number is index of commit in display, String is URL to link to.
+          type: Object,
+          computed: "_computeLinkMap(commits.*,autoroll.*, branch_heads.*)",
+        },
         _lastLoaded: {
           type: String,
           value: "(not yet loaded)",
@@ -440,10 +460,12 @@
       },
 
       observers: [
-        "draw(commits, branch_heads)"
+        "draw(commits.*, branch_heads.*)"
       ],
 
-      draw: function(commits, branch_heads) {
+      draw: function() {
+        var commits = this.commits;
+        var branch_heads = this.branch_heads;
         this._lastLoaded = new Date().toLocaleTimeString();
         console.time("draw");
         // Initialize all commits.
@@ -494,6 +516,62 @@
         console.timeEnd("draw");
       },
 
+      // _computeLinkMap looks through all the branch_heads, finds the index of each
+      // commit belonging to a branch and makes a map of index -> URL.  Then, it handles
+      // the special case of current autoroll and previous autoroll.
+      _computeLinkMap: function() {
+        var linkMap = {};
+
+        // Link to generic branch heads.
+        this.branch_heads.forEach(function(branch) {
+          if (branch.name.startsWith(BRANCH_PREFIX)) {
+            // If the commit is not found in the range of commits, we will just be
+            // overwriting the value at key "-1", which won't actually get used.
+            var idx = this._indexOfRevision(branch.head);
+            var name = branch.name.slice(BRANCH_PREFIX.length);
+            linkMap[idx] = REPO_BASE + name;
+          }
+        }.bind(this));
+
+        // Link to the deps
+        var idx = this._indexOfRevision(this.autoroll.currentRollRev);
+        linkMap[idx] = "https://autoroll.skia.org",
+        idx = this._indexOfRevision(this.autoroll.lastRollRev);
+        linkMap[idx] = "https://crrev.com/" + this.autoroll.lastRollIssue
+
+        return linkMap;
+      },
+
+      _indexOfRevision: function(revision) {
+        var idx = -1;
+        this.commits.forEach(function(c,i){
+          if (c.hash === revision){
+            idx = i;
+          }
+        });
+        return idx;
+      },
+
+      // handleclick converts the click's offsetY (Y location relative to the tapped canvas) into index
+      handleclick: function(e) {
+        var y = (e && e.offsetY) || 1;
+        var commitIdx = Math.floor(y / commitY);
+
+        var link = this._linkMap[commitIdx];
+        if (link){
+          window.open(link);
+        }
+      },
+
+      handlemouseover: function(e) {
+        var commitIdx = Math.floor(e.offsetY / commitY);
+        var link = this._linkMap[commitIdx];
+        if (link){
+          this.$.commitCanvas.classList.add("pointer");
+        } else {
+          this.$.commitCanvas.classList.remove("pointer");
+        }
+      },
 
     });
   })();

@@ -20,7 +20,11 @@
     reload: Number, How often (in seconds) to reload the autoroll status.
 
     // output
-    status: Object, Contains two Strings: currentRollRev and lastRollRev.
+    status: Object, contains:
+        currentRollRev: String, git hash of current roll
+        currentRollIssue: Number, issue number tied with current roll
+        lastRollRev: String, git hash of previous roll
+        lastRollIssue: Number, issue number tied with previous roll
 -->
 
 <link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
@@ -103,17 +107,23 @@
       // It is better to return empty string (still falsey) than undefined, as the latter makes
       // multi-field observers harder to use.
       var curr = "";
+      var currIssue = 0;
       var prev = "";
+      var prevIssue = 0;
       if (roll_status) {
         prev = roll_status.lastRollRev || "";
+        prevIssue = (roll_status.lastRoll && roll_status.lastRoll.issue) || "0";
         if (roll_status.currentRoll) {
           curr = roll_status.currentRoll.rollingTo || ""
+          prevIssue = roll_status.currentRoll.issue || "0";
         }
       }
 
       return {
         currentRollRev: curr,
+        currentRollIssue: currIssue,
         lastRollRev: prev,
+        lastRollIssue: prevIssue,
       };
     },
 

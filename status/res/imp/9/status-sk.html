@@ -109,6 +109,7 @@
         top:0;
         left:0;
         width:175px;
+        z-index: 5;
       }
 
       /* The table needs to be placed absolutely so that the table portion can scroll independent
@@ -225,6 +226,7 @@
 
       <div id="mainContent">
         <commits-canvas-sk id="can" class="shrinkable"
+          autoroll="[[autoroll_status]]"
           branch_heads="[[branch_heads]]"
           commits="[[commits]]"
 
