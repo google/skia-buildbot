@@ -33,5 +33,11 @@ REQUIRED_FILES_FOR_WIN_BOTS=(/tmp/win-chrome-bot.txt \
                              /tmp/chromium-skia-gm.boto \
                              $CHROME_MASTER_HOST)
 
+REQUIRED_FILES_FOR_CT_BOTS=(/tmp/.gitconfig \
+                            /tmp/.boto \
+                            /tmp/.netrc \
+                            /tmp/google_storage_token.data \
+                            /tmp/client_secret.json)
+
 GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
 GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD --zone=$ZONE ssh --ssh_user=$PROJECT_USER"

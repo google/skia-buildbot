@@ -19,7 +19,10 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
     # TODO(rmistry): We may want to use 32 cores instead. Using 16 cores for now.
     SKIA_BOT_MACHINE_TYPE="n1-standard-16"
   fi
-
+  if [ "$VM_IS_CTBOT" = True ]; then
+    SKIA_BOT_MACHINE_TYPE="n1-highmem-2"
+    REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_CT_BOTS[@]}
+  fi
 elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_WIN_IMAGE_NAME
   ORIG_STARTUP_SCRIPT="../../scripts/win_setup.ps1"
@@ -126,8 +129,14 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
       setup_contab
     fi
 
-    if [ "$VM_IS_SWARMINGBOT" = True ]; then                                       
-      run_swarming_bootstrap                                                       
+    if [ "$VM_IS_SWARMINGBOT" = True ]; then
+      run_swarming_bootstrap
+    fi
+
+    if [ "$VM_IS_CTBOT" = True ]; then
+      copy_ct_files
+
+      setup_ct_swarming_bot
     fi
 
     reboot
@@ -154,6 +163,6 @@ If you created windows instances then please do the following:
 * Log in and open the Windows update service, click on "Change settings" and select
   "Download updates but let me choose whether to install them".
 * Click on properties of the "C:\0" folder and click on "Security". Add "Full control"
-  for "Users". 
+  for "Users".
 
 INP

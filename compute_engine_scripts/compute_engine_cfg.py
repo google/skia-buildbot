@@ -28,6 +28,8 @@ VM_PERSISTENT_DISK_SIZE_GB = os.environ.get('VM_PERSISTENT_DISK_SIZE_GB', 300)
 VM_IS_BUILDBOT = os.environ.get('VM_IS_BUILDBOT', True)
 # If this is true then the swarming image is used.
 VM_IS_SWARMINGBOT = os.environ.get('VM_IS_SWARMINGBOT', False)
+# If this is true then a CT VM is created.
+VM_IS_CTBOT = os.environ.get('VM_IS_CTBOT', False)
 
 # The Project ID is found in the Compute tab of the dev console.
 # https://console.developers.google.com/project/31977622648
@@ -38,6 +40,17 @@ PROJECT_ID = 'google.com:skia-buildbots'
 #
 # We flip the default one as required by PCRs in bigcluster.
 ZONE_TAG = os.environ.get('ZONE_TAG', 'c')
+
+if VM_IS_CTBOT:
+  # Use ct prefix. Swarming uses this prefix to put them in the 'CT' pool.
+  VM_BOT_NAME = 'ct-vm'
+  # Always use us-central1-b for CT bots because of maddigan@'s comment in
+  # https://gcpquotatool.googleplex.com/requests?request=ahlzfmdvb2dsZS5jb206Z2NwcXVvdGF0b29sci4LEghDdXN0b21lchiAgICAhN6GCgwLEgxRdW90YVJlcXVlc3QYgICAgIC5hAoM
+  ZONE_TAG = 'b'
+  # TODO(rmistry): Fill the below with CT's new IP address pool when
+  #                https://b.corp.google.com/issues/28593938 is resolved.
+  # IP_ADDRESS_WITHOUT_MACHINE_PART = ''
+
 ZONE = 'us-central1-%s' % ZONE_TAG
 
 # The below constants determine which instances the delete and create/setup

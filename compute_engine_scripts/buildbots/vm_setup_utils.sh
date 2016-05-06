@@ -158,6 +158,37 @@ function run_swarming_bootstrap {
   echo
 }
 
+function copy_ct_files {
+  echo
+  echo "===== Create CT storage dir to copy files into. ====="
+  $GCOMPUTE_CMD ssh --ssh_user=chrome-bot $INSTANCE_NAME \
+    "mkdir /b/storage" \
+    || FAILED="$FAILED CTStorageDir"
+  echo
+  echo "===== Copying over CT required files. ====="
+  $GCOMPUTE_CMD push --ssh_user=chrome-bot $INSTANCE_NAME \
+    /tmp/.gitconfig /home/chrome-bot/
+  $GCOMPUTE_CMD push --ssh_user=chrome-bot $INSTANCE_NAME \
+    /tmp/.boto /home/chrome-bot/
+  $GCOMPUTE_CMD push --ssh_user=chrome-bot $INSTANCE_NAME \
+    /tmp/.netrc /home/chrome-bot/
+  $GCOMPUTE_CMD push --ssh_user=chrome-bot $INSTANCE_NAME \
+    /tmp/google_storage_token.data /b/storage/google_storage_token.data
+  $GCOMPUTE_CMD push --ssh_user=chrome-bot $INSTANCE_NAME \
+    /tmp/client_secret.json /b/storage/client_secret.json
+  echo
+}
+
+function setup_ct_swarming_bot {
+  echo
+  echo "===== Run CT Bootstrap. ====="
+  $GCOMPUTE_CMD ssh --ssh_user=chrome-bot $INSTANCE_NAME \
+    "curl -sSf 'https://skia.googlesource.com/buildbot/+/master/ct/tools/setup_ct_machine.sh?format=TEXT' | base64 --decode > '/tmp/ct_setup.sh' && " \
+    "bash /tmp/ct_setup.sh" \
+    || FAILED="$FAILED CTBootstrap"
+  echo
+}
+
 function setup_contab {
   echo
   echo "===== Setup Crontab. ====="
