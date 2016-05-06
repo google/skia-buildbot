@@ -168,6 +168,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/named.html"),
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/menu.html"),
 	))
 }
 
