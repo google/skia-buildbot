@@ -9,7 +9,7 @@ CORE_SOURCE_FILES = node_modules/native-promise-only/npo.js \
           ../res/js/common.js
 
 .PHONY: all
-all: allgo touch_elements res/css/core.css core_js elements_html
+all: frontend allgo touch_elements res/css/core.css core_js elements_html
 
 include ../go/skiaversion/skiaversion.mk
 
@@ -57,6 +57,10 @@ node_modules: package.json
 touch_elements:
 	rm -f res/js/core.js
 	touch elements.html
+
+.PHONY: frontend
+frontend:
+	cd frontend && $(MAKE) web
 
 .PHONY: release
 release: all

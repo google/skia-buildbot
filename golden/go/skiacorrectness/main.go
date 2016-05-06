@@ -401,7 +401,7 @@ func main() {
 	router.PathPrefix(IMAGE_URL_PREFIX).Handler(imgFS.Handler)
 
 	// New Polymer based UI endpoints.
-	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler(*resourcesDir, *newUI))
+	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler(*resourcesDir))
 
 	// TODO(stephana): Remove the 'poly' prefix from all the handlers and clean
 	// up main2.go by either merging it it into main.go or making it clearer that

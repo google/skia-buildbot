@@ -43,7 +43,7 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   	DATABASE_HOST="173.194.254.28"
   	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness_stage"
     REDIRECT_URL="https://gold-staging.skia.org/oauth2callback/"
-    ADD_FLAGS="--backfill_tiles=2"
+    ADD_FLAGS="--backfill_tiles=2 --newui --resources_dir=/usr/local/share/skiacorrectness/frontend"
     ;;
 
     # experimental android instance: uses the staging database server for now.
@@ -115,6 +115,15 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
 
   ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/res/vul
   ${INSTALL}     --mode=644 ./res/vul/elements.html               ${ROOT}/usr/local/share/skiacorrectness/res/vul/elements.html
+
+  ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/frontend/res/img
+  ${INSTALL}     --mode=644 ./res/img/favicon.ico                 ${ROOT}/usr/local/share/skiacorrectness/frontend/res/img/favicon.ico
+
+  ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/frontend/res/js
+  ${INSTALL}     --mode=644 ./res/js/core.js                      ${ROOT}/usr/local/share/skiacorrectness/frontend/res/js/core.js
+
+  ${INSTALL_DIR} --mode=755                                       ${ROOT}/usr/local/share/skiacorrectness/frontend/res/vul
+  ${INSTALL}     --mode=644 ./frontend/res/vul/elements.html      ${ROOT}/usr/local/share/skiacorrectness/frontend/res/vul/elements.html
 
   ${INSTALL} --mode=644 -T ./sys/${SETUP_APPNAME}.timer           ${ROOT}/etc/systemd/system/${SETUP_APPNAME}.timer
   ${INSTALL} --mode=644 -T ./sys/${SETUP_APPNAME}.service         ${ROOT}/etc/systemd/system/${SETUP_APPNAME}.service
