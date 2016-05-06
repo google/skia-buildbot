@@ -21,6 +21,7 @@ import (
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/summary"
+	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
 )
 
@@ -150,14 +151,50 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, &SearchResult{
 		Digests: searchResponse.Digests,
 		Commits: searchResponse.Commits,
+		Issue:   adaptIssueResponse(searchResponse.IssueResponse),
 	})
 }
 
 // SearchResult encapsulates the results of a search request.
 type SearchResult struct {
-	Digests    []*search.Digest `json:"digests"`
-	Commits    []*tiling.Commit `json:"commits"`
+	Digests    []*search.Digest   `json:"digests"`
+	Commits    []*tiling.Commit   `json:"commits"`
+	Issue      *IssueSearchResult `json:"issue"`
 	NumMatches int
+}
+
+// TODO (stephana): Replace search.IssueResponse with IssueSearchResult
+// as soon as the search2Handler is retired.
+
+// IssueSearchResult is the (temporary) output struct for search.IssueResponse.
+type IssueSearchResult struct {
+	*trybot.Issue
+
+	// Override the Patchsets field of trybot.Issue to contain a list of PatchsetDetails.
+	Patchsets []*trybot.PatchsetDetail `json:"patchsets"`
+
+	// QueryPatchsets contains the list of patchsets that are included in the returned digests.
+	QueryPatchsets []string `json:"queryPatchsets"`
+}
+
+func adaptIssueResponse(ir *search.IssueResponse) *IssueSearchResult {
+	if ir == nil {
+		return nil
+	}
+
+	// Create a list of PatchsetDetails in the same order as the patchsets in the issue.
+	patchSets := make([]*trybot.PatchsetDetail, 0, len(ir.IssueDetails.PatchsetDetails))
+	for _, pid := range ir.Patchsets {
+		if pSet, ok := ir.PatchsetDetails[pid]; ok {
+			patchSets = append(patchSets, pSet)
+		}
+	}
+
+	return &IssueSearchResult{
+		Issue:          ir.IssueDetails.Issue,
+		Patchsets:      patchSets,
+		QueryPatchsets: ir.QueryPatchsets,
+	}
 }
 
 // TODO(stephana): Remove polyDiffJSONDigestHandler and polyDetailsHandler once all

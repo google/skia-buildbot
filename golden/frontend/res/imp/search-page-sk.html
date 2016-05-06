@@ -63,6 +63,8 @@
           <paper-button id="triggerSearchButton" raised disabled="{{_hideAll}}">Search</paper-button>
         </div>
     </div>
+    <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
+
     <div hidden$="{{_hideAll}}">
       <div id="missing" hidden$="{{_nonEmptyResult(data)}}">
         No digests match your query.
@@ -133,6 +135,7 @@
         this.$.activityBar.startSpinner("Loading ...");
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
           this.set('data', json);
+          this.$.trybotControls.setIssue(json.issue);
           this.$.activityBar.stopSpinner(); 
         }.bind(this)).catch(function(e) {
           this.$.activityBar.stopSpinner();

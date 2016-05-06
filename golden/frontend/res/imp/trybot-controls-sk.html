@@ -1,0 +1,144 @@
+  <!-- The <trybot-controls-sk> custom element declaration.
+    
+    Shows an overview of the patchsets that have been run for a CL.
+    It color codes bots according to their state (running, failed etc.)
+    and exposes links to view the digests associated individual 
+    patchsets.  
+  
+    Attributes:
+      None
+  
+    Events:
+      None
+
+    Methods:
+      setIssue(issue) - Sets the current issue as returned by the /json/search endpoint.
+          If issue is null the element does not show and is usually the result of search 
+          that was not querying for an issue. 
+
+    Mailboxes:
+      None
+
+  -->
+<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="trybot-controls-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles">
+      .issueTable {
+        padding: 1em;
+      }
+
+      .issueRow {
+        padding-right: 2em;
+        padding-bottom: 0.5em; 
+        vertical-align: top;
+      }
+
+      .runningTryjob { 
+        background-color: #FFD92F; 
+      }
+
+      .completeTryjob { 
+        background-color: #A6D854; 
+      }
+
+      .ingestedTryjob { 
+        background-color: #117733; 
+      }
+      .failedTryjob { 
+        background-color: #D95F02; 
+        color: white;
+      }
+
+      .tryjobStatus {
+        padding-right: .5em;
+        padding-left: .5em;
+        margin: 0.1em;
+        float: left;
+      }
+
+      .issueHeader {
+        font-weight: bold; 
+      }
+
+      .currentPatchset::after {
+        content: "*";
+      }
+
+    </style>
+    <template is="dom-if" if={{_issue}}>
+      <div class="issueHeader">Issue: <a href$="https://codereview.chromium.org/{{_issue.id}}" target="_blank">
+        {{_issue.id}} ({{_issue.owner}}) {{_issue.subject}}</a>
+      </div>
+
+      <table class="issueTable">
+        <thead> 
+          <tr>
+            <th class="issueRow">Patchset <br>(*-Showing)</th>
+            <th class="issueRow">Jobs <br> (Ingested / Total)</th>
+            <th class="issueRow">Test Builders</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template is="dom-repeat" items="{{_issue.patchsets}}">
+            <tr>
+              <td class="issueRow">
+                <a class$="{{_isCurr(item)}}" href="{{_patchsetHref(item)}}">{{_plusOne(index)}}</a>
+              </td>
+              <td class="issueRow">{{item.jobDone}} / {{item.jobTotal}}</td>
+              <td class="issueRow">
+                  <template is="dom-repeat" items={{item.tryjobs}} as="tryjob">
+                    <div class$="{{tryjob.status}}Tryjob tryjobStatus">{{tryjob.builder}}</div>
+                    <br style="clear: both;">
+                  </template>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </template>
+  </template>
+
+  <script>
+    Polymer({
+      is: "trybot-controls-sk",
+
+      properties: {
+        _issue: {
+          type: Object,
+          value: null
+        }
+      },
+
+      setIssue: function(issue) {
+        this.set("_issue", issue);
+
+        // Get a baseURL that we can customize with pageset ids.  
+        var state = gold.stateFromQuery({});
+        delete state['patchsets'];
+        var q = gold.queryFromState(state);
+        q += ((q === '') ? '?' : '&') + 'pagesets=';
+        this._baseUrl = window.location.pathname + q; 
+      },
+
+      _patchsetHref: function(patchset) {
+        return this._baseUrl + patchset.id; 
+      },
+      
+      _isCurr: function(patchset) {
+        return (this._issue.queryPatchsets.indexOf(patchset.id.toString()) !== -1) ? 'currentPatchset' : ''; 
+      }, 
+
+      _plusOne: function(index) {
+        return index+1; 
+      }
+    });
+  </script>
+</dom-module>

@@ -18087,3 +18087,135 @@ testdata.trybotListResults = {
   "status": 200
 };
 
+testdata.trybotResults = {
+  "NumMatches": 0, 
+  "commits": null, 
+  "digests": [], 
+  "issue": {
+    "id": "1953533002", 
+    "owner": "mtklein_C", 
+    "patchsets": [
+      {
+        "digests": 0, 
+        "id": 1, 
+        "inMaster": 0, 
+        "jobDone": 13, 
+        "jobTotal": 13, 
+        "tryjobs": [
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Shared-Trybot", 
+            "buildnumber": "", 
+            "status": "ingested"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-Trybot", 
+            "buildnumber": "", 
+            "status": "ingested"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-Trybot", 
+            "buildnumber": "", 
+            "status": "failed"
+          }
+        ], 
+        "url": ""
+      }, 
+      {
+        "digests": 0, 
+        "id": 20001, 
+        "inMaster": 0, 
+        "jobDone": 14, 
+        "jobTotal": 14, 
+        "tryjobs": [
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-SKNX_NO_SIMD-Trybot", 
+            "buildnumber": "", 
+            "status": "ingested"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Shared-Trybot", 
+            "buildnumber": "", 
+            "status": "failed"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-Trybot", 
+            "buildnumber": "", 
+            "status": "ingested"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-Trybot", 
+            "buildnumber": "", 
+            "status": "ingested"
+          }
+        ], 
+        "url": ""
+      }, 
+      {
+        "digests": 0, 
+        "id": 40001, 
+        "inMaster": 0, 
+        "jobDone": 14, 
+        "jobTotal": 14, 
+        "tryjobs": [
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-SKNX_NO_SIMD-Trybot", 
+            "buildnumber": "", 
+            "status": "ingested"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Shared-Trybot", 
+            "buildnumber": "", 
+            "status": "ingested"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-Trybot", 
+            "buildnumber": "", 
+            "status": "ingested"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-Trybot", 
+            "buildnumber": "", 
+            "status": "failed"
+          }
+        ], 
+        "url": ""
+      }, 
+      {
+        "digests": 0, 
+        "id": 60001, 
+        "inMaster": 0, 
+        "jobDone": 15, 
+        "jobTotal": 15, 
+        "tryjobs": [
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-SKNX_NO_SIMD-Trybot", 
+            "buildnumber": "", 
+            "status": "running"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Release-Shared-Trybot", 
+            "buildnumber": "", 
+            "status": "complete"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-ShuttleA-GPU-GTX660-x86_64-Release-Trybot", 
+            "buildnumber": "", 
+            "status": "ingested"
+          }, 
+          {
+            "builder": "Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-Trybot", 
+            "buildnumber": "", 
+            "status": "failed"
+          }
+        ], 
+        "url": ""
+      }
+    ], 
+    "queryPatchsets": [
+      "60001"
+    ], 
+    "subject": "SkOncePtr -> SkOnce", 
+    "updated": 1462455882, 
+    "url": "https://codereview.chromium.org/1953533002"
+  }
+};

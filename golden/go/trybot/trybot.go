@@ -48,12 +48,13 @@ type Issue struct {
 // IssueDetails extends issue with the commit ideas for the issue.
 type IssueDetails struct {
 	*Issue
-	PatchsetDetails map[int64]*PatchsetDetail
-	CommitIDs       []*tracedb.CommitIDLong `json:"-"`
-	TargetPatchsets []string                `json:"-"`
+	PatchsetDetails map[int64]*PatchsetDetail `json:"-"`
+	CommitIDs       []*tracedb.CommitIDLong   `json:"-"`
+	TargetPatchsets []string                  `json:"-"`
 }
 
 type PatchsetDetail struct {
+	ID       int64     `json:"id"`
 	Tryjobs  []*Tryjob `json:"tryjobs"`
 	JobTotal int64     `json:"jobTotal"`
 	JobDone  int64     `json:"jobDone"`
@@ -235,13 +236,16 @@ func (t *TrybotResults) getPatchsetDetails(issue *Issue, targetPatchsets []strin
 				})
 			}
 
-			mutex.Lock()
-			defer mutex.Unlock()
-			ret[pid] = &PatchsetDetail{
+			pSet := &PatchsetDetail{
+				ID:       pid,
 				Tryjobs:  tryjobs,
 				JobDone:  tjIngested,
 				JobTotal: int64(nTryjobs),
 			}
+
+			mutex.Lock()
+			defer mutex.Unlock()
+			ret[pid] = pSet
 		}(pid)
 	}
 	wg.Wait()
