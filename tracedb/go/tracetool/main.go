@@ -59,9 +59,19 @@ Commands:
   						Flags: --begin --end --regex 
 
 	  					It loads all commits in the defined range and matches the 
-	  					parameter values of each trace in those commits agains the 
+	  					parameter values of each trace in those commits against the 
 	  					regular expression. For each commit it outputs the paramaters
 	  					and their values that match the regex. 
+
+  value_grep  Find commits where at least one value matches a regular expression. 
+  						Flags: --begin --end --regex --verbose
+
+	  					It loads all commits in the defined range and matches the 
+	  					values of each trace in those commits against the 
+	  					regular expression. For each commit it outputs the values of the 
+	  					"name" parameter across traces. 
+	  					This only makes sense for Gold data since the digests are stored 
+	  					strings.
 
 Examples:
 
@@ -275,6 +285,64 @@ func param_grep(client traceservice.TraceServiceClient) {
 	}
 }
 
+func value_grep(client traceservice.TraceServiceClient) {
+	if *regex == "" {
+		glog.Fatalf("No regex given for param_grep")
+	}
+	r, err := regexp.Compile(*regex)
+	if err != nil {
+		glog.Fatalf("Invalid value for regex %q: %s\n", *regex, err)
+	}
+
+	ctx := context.Background()
+	resp, err := _list(client)
+	if err != nil {
+		glog.Fatalf("Failed to retrieve the list: %s\n", err)
+		return
+	}
+
+	for _, cid := range resp.Commitids {
+		traceIdsResp, err := client.GetValues(ctx, &traceservice.GetValuesRequest{Commitid: cid})
+		if err != nil {
+			glog.Errorf("Could not get trace ids: %s", err)
+			continue
+		}
+
+		traceIds := make([]string, 0, len(traceIdsResp.Values))
+		for _, valuePair := range traceIdsResp.Values {
+			if r.MatchString(string(valuePair.Value)) {
+				traceIds = append(traceIds, valuePair.Key)
+			}
+		}
+
+		if len(traceIds) == 0 {
+			if *verbose {
+				fmt.Printf("NOT FOUND IN %s  %s  %s\n", cid.Id, cid.Source, time.Unix(cid.Timestamp, 0))
+			}
+			continue
+		}
+
+		paramsResp, err := client.GetParams(ctx, &traceservice.GetParamsRequest{Traceids: traceIds})
+		if err != nil {
+			glog.Errorf("Unable to retrieve params for %s. Error: %s", cid, err)
+			continue
+		}
+
+		result := map[string]bool{}
+		for _, p := range paramsResp.Params {
+			if name, ok := p.Params["name"]; ok {
+				result[name] = true
+			}
+		}
+
+		fmt.Printf("%.3d %s  %s  %s : ", len(result), cid.Id, cid.Source, time.Unix(cid.Timestamp, 0))
+		for name := range result {
+			fmt.Print(name + "  ")
+		}
+		fmt.Println()
+	}
+}
+
 func main() {
 	rand.Seed(time.Now().Unix())
 	// Grab the first argument off of os.Args, the command, before we call flag.Parse.
@@ -307,6 +375,8 @@ func main() {
 		sample(client)
 	case "param_grep":
 		param_grep(client)
+	case "value_grep":
+		value_grep(client)
 	default:
 		fmt.Printf("Unknown command: %s\n", cmd)
 		Usage()
