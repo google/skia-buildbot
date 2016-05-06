@@ -55,6 +55,14 @@ solutions = [
 ]
 """ > .gclient;
 /b/depot_tools/gclient sync;
+# Checkout master in the repositories so that we can run "git pull" later.
+cd buildbot;
+git checkout master;
+cd ../trunk;
+git checkout master;
+cd ../pdfium;
+git checkout master;
+# Create glog dir.
 mkdir /b/storage/glog
 
 echo
