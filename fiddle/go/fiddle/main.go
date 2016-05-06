@@ -165,6 +165,7 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/index.html"),
 		filepath.Join(*resourcesDir, "templates/iframe.html"),
 		filepath.Join(*resourcesDir, "templates/failing.html"),
+		filepath.Join(*resourcesDir, "templates/named.html"),
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -191,6 +192,20 @@ func failedHandler(w http.ResponseWriter, r *http.Request) {
 	failingMutex.Lock()
 	defer failingMutex.Unlock()
 	if err := templates.ExecuteTemplate(w, "failing.html", failingNamed); err != nil {
+		glog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
+func namedHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	named, err := fiddleStore.ListAllNames()
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve list of named fiddles.")
+	}
+	if err := templates.ExecuteTemplate(w, "named.html", named); err != nil {
 		glog.Errorf("Failed to expand template: %s", err)
 	}
 }
@@ -583,6 +598,7 @@ func main() {
 	r.HandleFunc("/iframe/{id:[@0-9a-zA-Z_]+}", iframeHandle)
 	r.HandleFunc("/s/{id:[0-9]+}", sourceHandler)
 	r.HandleFunc("/f/", failedHandler)
+	r.HandleFunc("/named/", namedHandler)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/_/run", runHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
