@@ -1,11 +1,14 @@
 package issues
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
 )
 
@@ -18,6 +21,10 @@ const (
 type IssueTracker interface {
 	// FromQueury returns issue that match the given query string.
 	FromQuery(q string) ([]Issue, error)
+	// AddComment adds a comment to the issue with the given id
+	AddComment(id string, comment CommentRequest) error
+	// AddIssue creates an issue with the passed in params.
+	AddIssue(issue IssueRequest) error
 }
 
 // Issue is an individual issue returned from the project hosting response.
@@ -30,6 +37,25 @@ type Issue struct {
 // IssueResponse is used to decode JSON responses from the project hosting API.
 type IssueResponse struct {
 	Items []Issue `json:"items"`
+}
+
+type CommentRequest struct {
+	Content string `json:"content"`
+}
+
+type MonorailPerson struct {
+	Name     string `json:"name"`     // Email address
+	HtmlLink string `json:"htmlLink"` // Links to user id
+	Kind     string `json:"kind"`     // Is always "monorail#issuePerson"
+}
+
+type IssueRequest struct {
+	Status      string           `json:"status"`
+	Owner       MonorailPerson   `json:"owner"`
+	CC          []MonorailPerson `json:"cc"`
+	Labels      []string         `json:"labels"`
+	Summary     string           `json:"summary"`
+	Description string           `json:"description"`
 }
 
 // MonorailIssueTracker implements IssueTracker.
@@ -56,8 +82,19 @@ func (m *MonorailIssueTracker) FromQuery(q string) ([]Issue, error) {
 	return get(m.client, MONORAIL_BASE_URL+"?"+query.Encode())
 }
 
-func get(client *http.Client, url string) ([]Issue, error) {
-	resp, err := client.Get(url)
+// AddComment adds a comment to the issue with the given id
+func (m *MonorailIssueTracker) AddComment(id string, comment CommentRequest) error {
+	u := fmt.Sprintf("%s/%s/comments", MONORAIL_BASE_URL, id)
+	return post(m.client, u, comment)
+}
+
+// AddIssue creates an issue with the passed in params.
+func (m *MonorailIssueTracker) AddIssue(issue IssueRequest) error {
+	return post(m.client, MONORAIL_BASE_URL, issue)
+}
+
+func get(client *http.Client, u string) ([]Issue, error) {
+	resp, err := client.Get(u)
 	if err != nil || resp == nil || resp.StatusCode != 200 {
 		return nil, fmt.Errorf("Failed to retrieve issue tracker response: %s", err)
 	}
@@ -71,4 +108,22 @@ func get(client *http.Client, url string) ([]Issue, error) {
 	}
 
 	return issueResponse.Items, nil
+}
+
+func post(client *http.Client, dst string, request interface{}) error {
+	b := new(bytes.Buffer)
+	e := json.NewEncoder(b)
+	if err := e.Encode(request); err != nil {
+		return fmt.Errorf("Problem encoding json for request: %s", err)
+	}
+
+	resp, err := client.Post(dst, "application/json", b)
+
+	if err != nil || resp == nil || resp.StatusCode != 200 {
+		return fmt.Errorf("Failed to retrieve issue tracker response: %s", err)
+	}
+	defer util.Close(resp.Body)
+	msg, err := ioutil.ReadAll(resp.Body)
+	glog.Infof("%s\n\nErr: %v", string(msg), err)
+	return nil
 }
