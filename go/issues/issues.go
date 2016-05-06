@@ -6,12 +6,10 @@ import (
 	"net/http"
 	"net/url"
 
-	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
 const (
-	CODESITE_BASE_URL = "https://www.googleapis.com/projecthosting/v2/projects/skia/issues"
 	MONORAIL_BASE_URL = "https://monorail-prod.appspot.com/_ah/api/monorail/v1/projects/skia/issues"
 )
 
@@ -20,19 +18,6 @@ const (
 type IssueTracker interface {
 	// FromQueury returns issue that match the given query string.
 	FromQuery(q string) ([]Issue, error)
-}
-
-// CodesiteIssueTracker implements IssueTracker.
-type CodesiteIssueTracker struct {
-	apiKey string
-	client *http.Client
-}
-
-func NewIssueTracker(apiKey string) IssueTracker {
-	return &CodesiteIssueTracker{
-		apiKey: apiKey,
-		client: httputils.NewTimeoutClient(),
-	}
 }
 
 // Issue is an individual issue returned from the project hosting response.
@@ -45,15 +30,6 @@ type Issue struct {
 // IssueResponse is used to decode JSON responses from the project hosting API.
 type IssueResponse struct {
 	Items []Issue `json:"items"`
-}
-
-// FromQuery is part of the IssueTracker interface. See documentation there.
-func (c *CodesiteIssueTracker) FromQuery(q string) ([]Issue, error) {
-	query := url.Values{}
-	query.Add("q", q)
-	query.Add("key", c.apiKey)
-	query.Add("fields", "items/id,items/state,items/title")
-	return get(c.client, CODESITE_BASE_URL+"?"+query.Encode())
 }
 
 // MonorailIssueTracker implements IssueTracker.

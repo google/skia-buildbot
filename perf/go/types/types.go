@@ -225,7 +225,7 @@ type ClusterSummary struct {
 	// ID is the identifier for this summary in the datastore.
 	ID int64
 
-	// Bugs is a list of IDs of bugs in the codesite issue tracker.
+	// Bugs is a list of IDs of bugs in the issue tracker.
 	Bugs []int64
 }
 
