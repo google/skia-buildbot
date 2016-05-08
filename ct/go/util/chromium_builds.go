@@ -216,7 +216,7 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 	}
 
 	// Run "gn gen out/Release --args=...".
-	gn_args := []string{"is_debug=false", "use_goma=true", fmt.Sprintf("goma_dir=\"%s\"", GomaDir)}
+	gn_args := []string{"is_debug=false", "use_goma=true", fmt.Sprintf("goma_dir=\"%s\"", GomaDir), "treat_warnings_as_errors=false"}
 	if targetPlatform == "Android" {
 		gn_args = append(gn_args, "target_os=\"android\"")
 	}
