@@ -7,7 +7,6 @@ h4 {
   margin: 0.5em 0;
 }
 
-
 html /deep/ paper-button {
   color: #1f78b4;
 }
@@ -119,4 +118,12 @@ core-item:hover {
 .scrollable {
   height: 80vh;
   overflow-y: auto;
+}
+
+.fit {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
