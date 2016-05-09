@@ -1,4 +1,6 @@
 // Application that downloads PDFs and then captures SKPs from them.
+// TODO(rmistry): Capturing and uploading SKPs has been temporarily disabled due
+// to the comment in https://bugs.chromium.org/p/skia/issues/detail?id=5183#c34
 package main
 
 import (
@@ -8,7 +10,6 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -110,7 +111,8 @@ func main() {
 	// Downloaded pdfium_test binary needs to be set as an executable.
 	skutil.LogErr(os.Chmod(pdfiumLocalPath, 0777))
 
-	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
+	// TODO(rmistry): Uncomment when ready to capture SKPs.
+	//timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
 		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
@@ -193,31 +195,32 @@ func main() {
 					continue
 				}
 
-				// Run pdfium_test to create SKPs from the PDFs.
-				pdfiumTestArgs := []string{
-					"--skp", pdfPath,
-				}
-				if err := util.ExecuteCmd(pdfiumLocalPath, pdfiumTestArgs, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
-					glog.Errorf("Could not run pdfium_test on %s: %s", pdfPath, err)
-					erroredSKPs = append(erroredSKPs, pdfBase)
-					continue
-				}
-
-				// Move generated SKPs into the pathToSKPs directory.
-				skps, err := filepath.Glob(path.Join(pathToPdfs, fmt.Sprintf("%s.*.skp", pdfBase)))
-				if err != nil {
-					glog.Errorf("Found no SKPs for %s: %s", pdfBase, err)
-					erroredSKPs = append(erroredSKPs, pdfBase)
-					continue
-				}
-				for _, skp := range skps {
-					skpBasename := path.Base(skp)
-					dest := path.Join(pathToSkps, skpBasename)
-					if err := os.Rename(skp, dest); err != nil {
-						glog.Errorf("Could not move %s to %s: %s", skp, dest, err)
-						continue
-					}
-				}
+				// TODO(rmistry): Uncomment when ready to capture SKPs.
+				//// Run pdfium_test to create SKPs from the PDFs.
+				//pdfiumTestArgs := []string{
+				//	"--skp", pdfPath,
+				//}
+				//if err := util.ExecuteCmd(pdfiumLocalPath, pdfiumTestArgs, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
+				//	glog.Errorf("Could not run pdfium_test on %s: %s", pdfPath, err)
+				//	erroredSKPs = append(erroredSKPs, pdfBase)
+				//	continue
+				//}
+				//
+				//// Move generated SKPs into the pathToSKPs directory.
+				//skps, err := filepath.Glob(path.Join(pathToPdfs, fmt.Sprintf("%s.*.skp", pdfBase)))
+				//if err != nil {
+				//	glog.Errorf("Found no SKPs for %s: %s", pdfBase, err)
+				//	erroredSKPs = append(erroredSKPs, pdfBase)
+				//	continue
+				//}
+				//for _, skp := range skps {
+				//	skpBasename := path.Base(skp)
+				//	dest := path.Join(pathToSkps, skpBasename)
+				//	if err := os.Rename(skp, dest); err != nil {
+				//		glog.Errorf("Could not move %s to %s: %s", skp, dest, err)
+				//		continue
+				//	}
+				//}
 			}
 		}()
 	}
@@ -235,21 +238,22 @@ func main() {
 		glog.Errorf("Could not download any PDF in %s", pathToPdfs)
 		return
 	}
-	skpsEmpty, err := skutil.IsDirEmpty(pathToSkps)
-	if err != nil {
-		glog.Error(err)
-		return
-	}
-	if skpsEmpty {
-		glog.Errorf("Could not create any SKP in %s", pathToSkps)
-		return
-	}
-
-	// Move and validate all SKP files.
-	if err := util.ValidateSKPs(pathToSkps); err != nil {
-		glog.Error(err)
-		return
-	}
+	// TODO(rmistry): Uncomment when ready to capture SKPs.
+	//skpsEmpty, err := skutil.IsDirEmpty(pathToSkps)
+	//if err != nil {
+	//	glog.Error(err)
+	//	return
+	//}
+	//if skpsEmpty {
+	//	glog.Errorf("Could not create any SKP in %s", pathToSkps)
+	//	return
+	//}
+	//
+	//// Move and validate all SKP files.
+	//if err := util.ValidateSKPs(pathToSkps); err != nil {
+	//	glog.Error(err)
+	//	return
+	//}
 
 	// Write timestamp to the PDFs dir.
 	skutil.LogErr(util.CreateTimestampFile(pathToPdfs))
