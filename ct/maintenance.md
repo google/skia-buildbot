@@ -53,9 +53,10 @@ Prober config is in ../prober/probers.json. Alerts config is in
 ### Frontend
 
 To set up or upgrade the CTFE DB, run `make ctfe && ctfe_migratedb
---ctfe_db_host=localhost --logtostderr --ctfe_db_user=root`. Occasionally you
-may find it useful to downgrade the local DB; specify the `--target_version`
-flag to achieve this. Run `mysql -u root -D ctfe` to access the DB using SQL.
+--ctfe_db_host=localhost --logtostderr --ctfe_db_user=root --local=true`.
+Occasionally you may find it useful to downgrade the local DB; specify the
+`--target_version` flag to achieve this. Run `mysql -u root -D ctfe` to access
+the DB using SQL.
 
 To start a local server, run:
 ```
@@ -64,15 +65,12 @@ make ctfe_debug && ctfe --local=true \
   --ctfe_db_host=localhost \
   --port=:8000 \
   --ctfe_db_user=readwrite \
-  --graphite_server='localhost:2003'
-  --host=<your hostname>.cnc.corp.google.com
+  --host=<your hostname>.cnc.corp.google.com \
+  --influxdb_host=localhost:10117 \
+  --influxdb_database=skmetrics
 ```
 You can then access the server at [localhost:8000](http://localhost:8000/) or
 <your hostname\>.cnc.corp.google.com:8000.
-
-The `graphite_server` argument is only needed when testing metrics gathering;
-you will need to install InfluxDB locally and configure it as a graphite
-server using the configuration in ../influxdb/influxdb-config.toml.
 
 The `host` argument is optional and allows others to log in to your
 server. Initially you will get an error when logging in; follow the instructions
@@ -85,11 +83,11 @@ point to localhost:8000, then run `make && prober --alsologtostderr
 To check metrics from a locally running server or prober, run:
 ```
 influx --port 10117
-> use graphite
+> use skmetrics
 > show measurements
-> select * from /ctfe.benjaminwagner1-cnc-corp-google-com.num-pending-tasks.value/;
+> select * from "num-pending-tasks";
 ```
-replacing the value within slashes with whichever measurement you have changed.
+replacing the value within quotes with whichever measurement you have changed.
 
 To test alert config changes:
 
@@ -100,8 +98,7 @@ To test alert config changes:
    don't exist in your local InfluxDB).
 3. TODO(benjaminwagner): Run `make all && alertserver --alsologtostderr
    --testing --use_metadata=false --alert_db_host=localhost
-   --buildbot_db_host=skia-datahopper2:8000--influxdb_host localhost:10117
-   --influxdb_database=graphite`
+   --buildbot_db_host=skia-datahopper2:8000 --influxdb_host localhost:10117
 
 ### Master
 

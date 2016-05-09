@@ -16,7 +16,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 
-	metrics "github.com/rcrowley/go-metrics"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
@@ -30,16 +29,21 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/metadata"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/webhook"
 )
 
 // flags
 var (
-	graphiteServer         = flag.String("graphite_server", "localhost:2003", "Location of the Graphite metrics ingestion server.")
 	host                   = flag.String("host", "localhost", "HTTP service host")
+	influxHost             = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser             = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword         = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase         = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	port                   = flag.String("port", ":8002", "HTTP service port (e.g., ':8002')")
 	local                  = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	workdir                = flag.String("workdir", ".", "Directory to use for scratch work.")
@@ -107,13 +111,13 @@ func runServer(serverURL string) {
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
-// startCtfeMetrics registers gauges with the graphite server that indicate CT is running healthily
+// startCtfeMetrics registers metrics which indicate CT is running healthily
 // and starts a goroutine to update them periodically.
 func startCtfeMetrics() {
-	pendingTasksGauge := metrics.GetOrRegisterGauge("num-pending-tasks", metrics.DefaultRegistry)
-	oldestPendingTaskAgeGauge := metrics.GetOrRegisterGaugeFloat64("oldest-pending-task-age", metrics.DefaultRegistry)
+	pendingTasksGauge := metrics2.GetInt64Metric("num-pending-tasks")
+	oldestPendingTaskAgeGauge := metrics2.GetFloat64Metric("oldest-pending-task-age")
 	// 0=no tasks pending; 1=started; 2=not started
-	oldestPendingTaskStatusGauge := metrics.GetOrRegisterGauge("oldest-pending-task-status", metrics.DefaultRegistry)
+	oldestPendingTaskStatusGauge := metrics2.GetInt64Metric("oldest-pending-task-status")
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			pendingTaskCount, err := pending_tasks.GetPendingTaskCount()
@@ -208,7 +212,7 @@ func main() {
 		}
 	}
 
-	common.InitWithMetrics("ctfe", graphiteServer)
+	common.InitWithMetrics2("ctfe", influxHost, influxUser, influxPassword, influxDatabase, local)
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		glog.Fatal(err)
