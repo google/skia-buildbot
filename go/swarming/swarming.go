@@ -16,6 +16,7 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -197,7 +198,7 @@ func (s *SwarmingClient) CreateIsolatedGenJSON(isolatePath, baseDir, osType, tas
 	if err != nil {
 		return "", fmt.Errorf("Could not create %s: %s", isolatedGenJSONPath, err)
 	}
-	defer f.Close()
+	defer util.Close(f)
 
 	if err := json.NewEncoder(f).Encode(isolatedGenJSON); err != nil {
 		return "", fmt.Errorf("Could not write JSON to %s: %s", isolatedGenJSONPath, err)
