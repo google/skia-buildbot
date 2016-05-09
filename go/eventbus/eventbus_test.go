@@ -93,7 +93,10 @@ func TestEventBusGlobally(t *testing.T) {
 		secondMap.Add(d.ID, d)
 	})))
 
-	for !firstMap.isReady() && !secondMap.isReady() {
+	// Wait until both buses are ready before sending real data.  Otherwise, the first few messages
+	// may get lost and we will be stuck in an infinite loop waiting for there to
+	// be 4 recieved messages.
+	for !firstMap.isReady() || !secondMap.isReady() {
 		firstEventBus.Publish(GLOBAL_TOPIC, &testType{SYNC_MSG, "ignore"})
 	}
 
