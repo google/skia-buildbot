@@ -1,14 +1,11 @@
 #! /bin/bash
-# Mount data disk
-sudo mkdir -p /mnt/ssd0
-sudo /usr/share/google/safe_format_and_mount -m "mkfs.ext4 -F" /dev/disk/by-id/google-local-ssd-0 /mnt/ssd0
-sudo chmod 777 /mnt/ssd0
 
-AFL_VERSION="1.95b"
+AFL_VERSION="2.12b"
 # We need clang set as our c++ builder to build afl-clang
 export CC=/usr/bin/clang CXX=/usr/bin/clang++
 
 # Download and install afl-fuzz
+sudo rm -rf /mnt/ssd0/afl
 sudo mkdir /mnt/ssd0/afl
 sudo chmod 777 /mnt/ssd0/afl
 wget 'https://storage.googleapis.com/skia-fuzzer/afl-mirror/afl-'$AFL_VERSION'.tgz' -O /tmp/afl.tgz

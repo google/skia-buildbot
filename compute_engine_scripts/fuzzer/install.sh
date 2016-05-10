@@ -8,3 +8,12 @@ sudo ln /usr/bin/clang-3.6 /usr/bin/clang
 sudo ln /usr/bin/clang++-3.6 /usr/bin/clang++
 # Make symbolizer easier to find
 sudo ln /usr/bin/llvm-symbolizer-3.6 /usr/bin/llvm-symbolizer
+
+# Mount data disk
+sudo mkdir -p /mnt/ssd0
+sudo mkfs.ext4 -F /dev/disk/by-id/google-local-ssd-0
+sudo mount -o discard,defaults /dev/disk/by-id/google-local-ssd-0 /mnt/ssd0
+sudo chmod 777 /mnt/ssd0
+
+# Add mounting instructions to fstab so it remounts on reboot.
+echo '/dev/disk/by-id/google-local-ssd-0 /mnt/ssd0 ext4 discard,defaults 1 1' | sudo tee -a /etc/fstab
