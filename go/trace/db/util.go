@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net"
 	"os"
 
@@ -12,7 +13,7 @@ import (
 )
 
 const (
-	FILENAME = "/tmp/tracedb_test.db"
+	TMP_PREFIX = "tracedb_test"
 )
 
 type fatalf func(format string, args ...interface{})
@@ -25,8 +26,12 @@ type cleanup func()
 // returns a func that should be called to clean up both the client
 // and the server after they are done being used.
 func setupClientServerForTesting(f fatalf) (DB, cleanup) {
+	file, err := ioutil.TempFile("", TMP_PREFIX)
+	if err != nil {
+		f("Could not create temporary file: %s", err)
+	}
 	// First spin up a traceservice server that we will talk to.
-	server, err := traceservice.NewTraceServiceServer(FILENAME)
+	server, err := traceservice.NewTraceServiceServer(file.Name())
 	if err != nil {
 		f("Failed to initialize the tracestore server: %s", err)
 	}
@@ -55,8 +60,8 @@ func setupClientServerForTesting(f fatalf) (DB, cleanup) {
 	cl := func() {
 		util.Close(conn)
 		util.Close(ts)
-		if err := os.Remove(FILENAME); err != nil {
-			fmt.Printf("Failed to clean up %s: %s", FILENAME, err)
+		if err := os.Remove(file.Name()); err != nil {
+			fmt.Printf("Failed to clean up %s: %s", file.Name(), err)
 		}
 	}
 	return ts, cl
