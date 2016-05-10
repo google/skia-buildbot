@@ -142,7 +142,8 @@ then
   USERID=${USER}@${HOSTNAME}
   # Detect if we have unchecked in local changes, or if we are different from HEAD at origin/master.
   git fetch
-  if  [ git diff-index --quiet HEAD -- ] || [ $(git rev-parse HEAD) != $(git rev-parse @{u}) ] ; then
+  if ! git diff-index --quiet HEAD -- || \
+    [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/master)" ] ; then
     DIRTY=true
   else
     DIRTY=false
