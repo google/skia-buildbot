@@ -19,6 +19,7 @@ import (
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud"
@@ -30,6 +31,9 @@ const (
 	INFRA_REPO = "https://skia.googlesource.com/buildbot.git"
 
 	BUILDSLAVES_CONNECTED_MEASUREMENT = "buildbot.buildslaves.connected"
+
+	SWARM_BOTS_LAST_SEEN_MEASUREMENT   = "buildbot.swarm-bots.last-seen"
+	SWARM_BOTS_QUARANTINED_MEASUREMENT = "buildbot.swarm-bots.quarantined"
 )
 
 // flags
@@ -65,6 +69,13 @@ func main() {
 
 	// Global init to initialize glog and parse arguments.
 	common.InitWithMetrics2("datahopper", influxHost, influxUser, influxPassword, influxDatabase, local)
+
+	// Authenticated HTTP client.
+	oauthCacheFile := path.Join(*workdir, "google_storage_token.data")
+	httpClient, err := auth.NewClient(*local, oauthCacheFile, swarming.AUTH_SCOPE)
+	if err != nil {
+		glog.Fatal(err)
+	}
 
 	// Shared repo objects.
 	skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "datahopper_skia"), true)
@@ -226,6 +237,44 @@ func main() {
 				}
 			}
 			lastKnownSlaves = currentSlaves
+		}
+	}()
+
+	// Swarming bots.
+	go func() {
+		swarm, err := swarming.NewApiClient(httpClient)
+		if err != nil {
+			glog.Fatal(err)
+		}
+
+		for _ = range time.Tick(2 * time.Minute) {
+			glog.Infof("Loading Swarming bot data.")
+			bots, err := swarm.ListSkiaBots()
+			if err != nil {
+				glog.Fatal(err)
+			}
+			now := time.Now()
+			for _, bot := range bots {
+				last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
+				if err != nil {
+					glog.Fatal(err)
+				}
+				glog.Infof("Bot: %s - Last seen %s ago", bot.BotId, now.Sub(last))
+
+				// Bot last seen <duration> ago.
+				metrics2.GetInt64Metric(SWARM_BOTS_LAST_SEEN_MEASUREMENT, map[string]string{
+					"bot": bot.BotId,
+				}).Update(int64(now.Sub(last)))
+
+				// Bot quarantined status.
+				quarantined := int64(0)
+				if bot.Quarantined {
+					quarantined = int64(1)
+				}
+				metrics2.GetInt64Metric(SWARM_BOTS_QUARANTINED_MEASUREMENT, map[string]string{
+					"bot": bot.BotId,
+				}).Update(quarantined)
+			}
 		}
 	}()
 
