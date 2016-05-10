@@ -33,8 +33,16 @@
 
 </head>
 <body>
-  <search-page-sk></search-page-sk>
+  <search-page-sk id="searchPage"></search-page-sk>
+  <div>Error: &quot;<span id="errorMsg"></span>&quot;</div>
+
   <script type="text/javascript" charset="utf-8">
+      document.addEventListener('error-sk', function(err) {
+        var msg = ((err && err.detail && err.detail.message) || "Empty error message.").toString() 
+        console.log("Error:", msg);
+        $$$('#errorMsg').textContent = msg;
+      });
+
       // var q = "?head=true&query=source_type%3Dgm";
       var q = "?blame=09aa1fce69b214714171db12c341aebd78dd29ea&head=true&query=source_type%3Dgm";
       window.history.replaceState(null, null, window.location.pathname + q); 
