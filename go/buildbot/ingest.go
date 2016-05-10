@@ -407,6 +407,7 @@ func getLatestBuilds(m string) (map[string]int, error) {
 
 // GetBuilders returns the set of builders from all masters.
 func GetBuilders() (map[string]*Builder, error) {
+	var mtx sync.Mutex
 	builders := map[string][]*Builder{}
 	errs := map[string]error{}
 	var wg sync.WaitGroup
@@ -415,7 +416,10 @@ func GetBuilders() (map[string]*Builder, error) {
 		go func(master string) {
 			defer wg.Done()
 			b := map[string]*Builder{}
-			if err := get(BUILDBOT_URL+master+"/json/builders", &b); err != nil {
+			err := get(BUILDBOT_URL+master+"/json/builders", &b)
+			mtx.Lock()
+			defer mtx.Unlock()
+			if err != nil {
 				errs[master] = err
 				return
 			}
@@ -448,6 +452,7 @@ func GetBuilders() (map[string]*Builder, error) {
 // GetBuildSlaves returns a map whose keys are master names and values are
 // sub-maps whose keys are slave names and values are BuildSlave objects.
 func GetBuildSlaves() (map[string]map[string]*BuildSlave, error) {
+	var mtx sync.Mutex
 	res := map[string]map[string]*BuildSlave{}
 	errs := map[string]error{}
 	var wg sync.WaitGroup
@@ -456,7 +461,10 @@ func GetBuildSlaves() (map[string]map[string]*BuildSlave, error) {
 		go func(m string) {
 			defer wg.Done()
 			slaves := map[string]*BuildSlave{}
-			if err := get(BUILDBOT_URL+m+"/json/slaves", &slaves); err != nil {
+			err := get(BUILDBOT_URL+m+"/json/slaves", &slaves)
+			mtx.Lock()
+			defer mtx.Unlock()
+			if err != nil {
 				errs[m] = fmt.Errorf("Failed to retrieve buildslaves for %s: %s", m, err)
 				return
 			}
