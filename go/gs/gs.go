@@ -182,8 +182,11 @@ func deleteHelper(s *storage.Client, bucket string, wg *sync.WaitGroup, toDelete
 	defer wg.Done()
 	for file := range toDelete {
 		if err := s.Bucket(bucket).Object(file).Delete(context.Background()); err != nil {
-			glog.Errorf("Problem deleting gs://%s/%s: %s", bucket, file, err)
-			atomic.AddInt32(errCount, 1)
+			// Ignore 404 errors on deleting, as they are already gone.
+			if !strings.Contains(err.Error(), "statuscode 404") {
+				glog.Errorf("Problem deleting gs://%s/%s: %s", bucket, file, err)
+				atomic.AddInt32(errCount, 1)
+			}
 		}
 	}
 }
