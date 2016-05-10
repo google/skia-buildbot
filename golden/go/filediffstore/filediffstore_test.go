@@ -2,6 +2,7 @@ package filediffstore
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -35,28 +36,35 @@ var (
 	relExpectedDiffMetrics1_2 *diff.DiffMetrics
 )
 
-func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool) *FileDiffStore {
-	baseDir := filepath.Join(os.TempDir(), TESTDATA_DIR)
+func makeTestDir(t *testing.T) string {
+	d, err := ioutil.TempDir("", "filediffstore_test")
+	if err != nil {
+		t.Fatalf("Problem setting up temp dir: %s", err)
+	}
+	return d
+}
+
+func getTestFileDiffStore(t *testing.T, storageDir, testDir string, cleanTestDir bool) *FileDiffStore {
 
 	// Ensure the directory exists and create a clean version if requested.
-	cleanBaseDir = true
-	if cleanBaseDir {
-		assert.Nil(t, os.RemoveAll(baseDir))
-		assert.Nil(t, os.Mkdir(baseDir, 0755))
-		cpCmd := exec.Command("cp", "-rf", "./testdata/images", baseDir)
+	cleanTestDir = true
+	if cleanTestDir {
+		assert.Nil(t, os.RemoveAll(testDir))
+		assert.Nil(t, os.Mkdir(testDir, 0755))
+		cpCmd := exec.Command("cp", "-rf", "./testdata/images", testDir)
 		assert.Nil(t, cpCmd.Run())
 	} else {
-		assert.Nil(t, os.Mkdir(baseDir, 0700))
+		assert.Nil(t, os.Mkdir(testDir, 0700))
 	}
 
-	if cleanBaseDir {
+	if cleanTestDir {
 		// Clear out all directories other than the 'images' directory.
-		assert.Nil(t, os.RemoveAll(filepath.Join(baseDir, "diffmetrics")))
-		assert.Nil(t, os.RemoveAll(filepath.Join(baseDir, "diffs")))
+		assert.Nil(t, os.RemoveAll(filepath.Join(testDir, "diffmetrics")))
+		assert.Nil(t, os.RemoveAll(filepath.Join(testDir, "diffs")))
 	}
 
 	gsBucketName := "chromium-skia-gm"
-	temp, err := NewFileDiffStore(nil, baseDir, gsBucketName, storageBaseDir, MemCacheFactory, RECOMMENDED_WORKER_POOL_SIZE)
+	temp, err := NewFileDiffStore(nil, testDir, gsBucketName, storageDir, MemCacheFactory, RECOMMENDED_WORKER_POOL_SIZE)
 	assert.Nil(t, err)
 	ret := temp.(*FileDiffStore)
 	// Override the counters to avoid collisions between parallel tests.
@@ -91,12 +99,13 @@ func getTestFileDiffStore(t *testing.T, storageBaseDir string, cleanBaseDir bool
 }
 
 func TestFindDigestFromDir(t *testing.T) {
+	testDir := makeTestDir(t)
 	digestsToExpectedResults := map[string]bool{
 		TEST_DIGEST1:   true,
 		TEST_DIGEST2:   true,
 		MISSING_DIGEST: false,
 	}
-	fds := getTestFileDiffStore(t, "", true)
+	fds := getTestFileDiffStore(t, "", testDir, true)
 
 	for digest, expectedValue := range digestsToExpectedResults {
 		ret, err := fds.isDigestInCache(digest)
@@ -108,13 +117,14 @@ func TestFindDigestFromDir(t *testing.T) {
 }
 
 func TestGetDiffMetricFromDir(t *testing.T) {
+	testDir := makeTestDir(t)
 	digestsToExpectedResults := map[[2]string]*diff.DiffMetrics{
 		[2]string{TEST_DIGEST1, TEST_DIGEST2}:   expectedDiffMetrics1_2,
 		[2]string{TEST_DIGEST2, TEST_DIGEST1}:   expectedDiffMetrics1_2,
 		[2]string{MISSING_DIGEST, TEST_DIGEST2}: nil,
 		[2]string{TEST_DIGEST1, MISSING_DIGEST}: nil,
 	}
-	fds := getTestFileDiffStore(t, "", true)
+	fds := getTestFileDiffStore(t, "", testDir, true)
 
 	for digests, expectedValue := range digestsToExpectedResults {
 		if expectedValue != nil {
@@ -127,7 +137,8 @@ func TestGetDiffMetricFromDir(t *testing.T) {
 }
 
 func TestCacheImageFromGS(t *testing.T) {
-	fds := getTestFileDiffStore(t, TESTDATA_DIR, true)
+	testDir := makeTestDir(t)
+	fds := getTestFileDiffStore(t, TESTDATA_DIR, testDir, true)
 	imgFilePath := filepath.Join(fds.localImgDir, TEST_DIGEST3[0:2], TEST_DIGEST3[2:4], fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
 	defer testutils.Remove(t, imgFilePath)
 
@@ -150,7 +161,8 @@ func TestCacheImageFromGS(t *testing.T) {
 }
 
 func TestDiff(t *testing.T) {
-	fds := getTestFileDiffStore(t, "", true)
+	testDir := makeTestDir(t)
+	fds := getTestFileDiffStore(t, "", testDir, true)
 	diffFilePath := filepath.Join(fds.localDiffDir, TEST_DIGEST1[0:2], TEST_DIGEST1[2:4], fmt.Sprintf("%s-%s.%s", TEST_DIGEST1, TEST_DIGEST2, DIFF_EXTENSION))
 	defer testutils.Remove(t, diffFilePath)
 	diffMetrics, err := fds.diff(TEST_DIGEST1, TEST_DIGEST2)
@@ -179,7 +191,8 @@ func assertFileNotExists(filePath string, t *testing.T) {
 }
 
 func TestAbsPath(t *testing.T) {
-	fds := getTestFileDiffStore(t, TESTDATA_DIR, true)
+	testDir := makeTestDir(t)
+	fds := getTestFileDiffStore(t, TESTDATA_DIR, testDir, true)
 
 	digestToPaths := fds.AbsPath([]string{TEST_DIGEST1, TEST_DIGEST2})
 	assert.Equal(t, 2, len(digestToPaths))
@@ -195,15 +208,16 @@ func timeTrack(start time.Time, name string) {
 	fmt.Printf("%s took %s", name, elapsed)
 }
 
+// TODO(stephana) Remove the MASSIVE prefix and make these just skip on short tests.
 // Remove the 'Massive' prefix to run with massive test, takes around 13
 // seconds to run.
 func MassiveTestGet_45Digests(t *testing.T) {
 	defer timeTrack(time.Now(), "MassiveTestGet")
 
-	workingDir := filepath.Join(os.TempDir(), MASSIVE_TESTDATA_DIR)
+	workingDir := makeTestDir(t)
 	assert.Nil(t, os.Mkdir(workingDir, 0777))
 	defer testutils.RemoveAll(t, workingDir)
-	fds := getTestFileDiffStore(t, MASSIVE_TESTDATA_DIR, true)
+	fds := getTestFileDiffStore(t, MASSIVE_TESTDATA_DIR, workingDir, true)
 	diffMetricsMap, err := fds.Get(
 		"0ff8bf090c7bcfa6e1333f1b27de34a2",
 		[]string{MISSING_DIGEST, "0f35601a05e4b70e571d383531d6475d", "0f38c862a94642632a7e1418ce0322dc", "0f422eb209256e4e94442b8bc7216fc4", "0f448bf24d6b1a2d59e8d61ca1864a40", "0f47abec25acbba9fcd8a9fffcc89db4", "0f4d6addbbf439d8a5d43880d06aad2b", "0f50439a1bfcea213b7cb53e64dc8c41", "0f5964ac9eeb3e830c2af590f5a5b417", "0f5ab81728a3fc617374dd01b5e9139c",
@@ -224,10 +238,10 @@ func MassiveTestGet_45Digests(t *testing.T) {
 func MassiveTestAbsPath_45Digests(t *testing.T) {
 	defer timeTrack(time.Now(), "MassiveTestAbsPath")
 
-	workingDir := filepath.Join(os.TempDir(), MASSIVE_TESTDATA_DIR)
+	workingDir := makeTestDir(t)
 	assert.Nil(t, os.Mkdir(workingDir, 0777))
 	defer testutils.RemoveAll(t, workingDir)
-	fds := getTestFileDiffStore(t, MASSIVE_TESTDATA_DIR, true)
+	fds := getTestFileDiffStore(t, MASSIVE_TESTDATA_DIR, workingDir, true)
 	digestsToPaths := fds.AbsPath(
 		[]string{MISSING_DIGEST, "0ff8bf090c7bcfa6e1333f1b27de34a2", "0f35601a05e4b70e571d383531d6475d", "0f38c862a94642632a7e1418ce0322dc", "0f422eb209256e4e94442b8bc7216fc4", "0f448bf24d6b1a2d59e8d61ca1864a40", "0f47abec25acbba9fcd8a9fffcc89db4", "0f4d6addbbf439d8a5d43880d06aad2b", "0f50439a1bfcea213b7cb53e64dc8c41", "0f5964ac9eeb3e830c2af590f5a5b417",
 			"0f5ab81728a3fc617374dd01b5e9139c", "0f6227320e2ca014e2df9ec9d5b1ea0e", "0f654cb1f795e4f51672474d31e54df7", "0f6fd6ff6db45243f475644cc21675ac", "0f750afae368fc5094e9e2aaf93838dc", "0f77002c0d777a55aad75060a1988054", "0f7c3d2d6daea1e14e262adfd8956703", "0f802ed345aa011b3f645d935f115b5d", "0f81c4c1d4e29887cfe377090bff1e3d",
@@ -257,13 +271,14 @@ func awaitDiffMetricsGoroutine(diffMetricsFilePath string, timeout time.Duration
 
 func TestGet_e2e(t *testing.T) {
 	// Empty digests to compare too.
-	fdsEmpty := getTestFileDiffStore(t, TESTDATA_DIR, true)
+	testDir := makeTestDir(t)
+	fdsEmpty := getTestFileDiffStore(t, TESTDATA_DIR, testDir, true)
 	diffMetricsMapEmpty, err := fdsEmpty.Get(TEST_DIGEST1, []string{})
 	assert.Nil(t, err)
 	assert.Equal(t, 0, len(diffMetricsMapEmpty))
 
 	// 2 files that exist locally, diffmetrics exists locally as well.
-	fds1 := getTestFileDiffStore(t, TESTDATA_DIR, false)
+	fds1 := getTestFileDiffStore(t, TESTDATA_DIR, testDir, false)
 	diffMetricsMap1, err := fds1.Get(TEST_DIGEST1, []string{TEST_DIGEST2})
 	if err != nil {
 		t.Error("Unexpected error: ", err)
@@ -274,7 +289,7 @@ func TestGet_e2e(t *testing.T) {
 	assert.Equal(t, int64(0), fdsEmpty.downloadFailureCount.Get())
 
 	// 2 files that exist locally but diffmetrics does not exist.
-	fds2 := getTestFileDiffStore(t, TESTDATA_DIR, false)
+	fds2 := getTestFileDiffStore(t, TESTDATA_DIR, testDir, false)
 	diffBasename := fmt.Sprintf("%s-%s", TEST_DIGEST1, TEST_DIGEST2)
 	diffFilePath := filepath.Join(fds2.localDiffDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
 	diffMetricsFilePath := filepath.Join(fds2.localDiffMetricsDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFFMETRICS_EXTENSION))
@@ -297,7 +312,7 @@ func TestGet_e2e(t *testing.T) {
 
 	// 1 file that exists locally, 1 file that exists in Google Storage, 1
 	// file that does not exist.
-	fds3 := getTestFileDiffStore(t, TESTDATA_DIR, false)
+	fds3 := getTestFileDiffStore(t, TESTDATA_DIR, testDir, false)
 	newImageFilePath := filepath.Join(fds3.localImgDir, TEST_DIGEST3[0:2], TEST_DIGEST3[2:4], fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
 	diffBasename = fmt.Sprintf("%s-%s", TEST_DIGEST3, TEST_DIGEST1)
 	diffFilePath = filepath.Join(fds3.localDiffDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
@@ -321,7 +336,7 @@ func TestGet_e2e(t *testing.T) {
 	assert.Equal(t, int64(1), fds3.downloadFailureCount.Get())
 
 	// Call Get with multiple digests.
-	fds5 := getTestFileDiffStore(t, TESTDATA_DIR, false)
+	fds5 := getTestFileDiffStore(t, TESTDATA_DIR, testDir, false)
 	newImageFilePath = filepath.Join(fds5.localImgDir, TEST_DIGEST3[0:2], TEST_DIGEST3[2:4], fmt.Sprintf("%s.%s", TEST_DIGEST3, IMG_EXTENSION))
 	diffBasename = fmt.Sprintf("%s-%s", TEST_DIGEST3, TEST_DIGEST1)
 	diffFilePath = filepath.Join(fds5.localDiffDir, diffBasename[0:2], diffBasename[2:4], fmt.Sprintf("%s.%s", diffBasename, DIFF_EXTENSION))
@@ -347,7 +362,8 @@ func TestGet_e2e(t *testing.T) {
 }
 
 func TestReuseSameInstance(t *testing.T) {
-	fds := getTestFileDiffStore(t, TESTDATA_DIR, false)
+	testDir := makeTestDir(t)
+	fds := getTestFileDiffStore(t, TESTDATA_DIR, testDir, false)
 
 	// Use the instance to call Get.
 	diffMetricsMap1, err := fds.Get(TEST_DIGEST1, []string{TEST_DIGEST2})
@@ -367,7 +383,8 @@ func TestReuseSameInstance(t *testing.T) {
 }
 
 func TestPurgeDigests(t *testing.T) {
-	fds := getTestFileDiffStore(t, TESTDATA_DIR, true)
+	testDir := makeTestDir(t)
+	fds := getTestFileDiffStore(t, TESTDATA_DIR, testDir, true)
 	_, err := fds.Get(TEST_DIGEST1, []string{TEST_DIGEST2, TEST_DIGEST3})
 	assert.Nil(t, err)
 	_, err = fds.Get(TEST_DIGEST2, []string{TEST_DIGEST1, TEST_DIGEST3})
