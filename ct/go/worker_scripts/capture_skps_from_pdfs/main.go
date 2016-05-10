@@ -88,28 +88,29 @@ func main() {
 	// Cleanup the dir after the task is done.
 	defer skutil.RemoveAll(pathToSkps)
 
-	// Copy over the pdfium_test binary to this slave.
-	pdfiumLocalPath := filepath.Join(os.TempDir(), util.BINARY_PDFIUM_TEST)
-	pdfiumRemotePath := filepath.Join(util.BinariesDir, *chromiumBuild, util.BINARY_PDFIUM_TEST)
-	respBody, err := gs.GetRemoteFileContents(pdfiumRemotePath)
-	if err != nil {
-		glog.Errorf("Could not fetch %s: %s", pdfiumRemotePath, err)
-		return
-	}
-	defer skutil.Close(respBody)
-	out, err := os.Create(pdfiumLocalPath)
-	if err != nil {
-		glog.Errorf("Unable to create file %s: %s", pdfiumLocalPath, err)
-		return
-	}
-	defer skutil.Remove(pdfiumLocalPath)
-	if _, err = io.Copy(out, respBody); err != nil {
-		glog.Error(err)
-		return
-	}
-	skutil.Close(out)
-	// Downloaded pdfium_test binary needs to be set as an executable.
-	skutil.LogErr(os.Chmod(pdfiumLocalPath, 0777))
+	// TODO(rmistry): Uncomment when ready to capture SKPs.
+	//// Copy over the pdfium_test binary to this slave.
+	//pdfiumLocalPath := filepath.Join(os.TempDir(), util.BINARY_PDFIUM_TEST)
+	//pdfiumRemotePath := filepath.Join(util.BinariesDir, *chromiumBuild, util.BINARY_PDFIUM_TEST)
+	//respBody, err := gs.GetRemoteFileContents(pdfiumRemotePath)
+	//if err != nil {
+	//	glog.Errorf("Could not fetch %s: %s", pdfiumRemotePath, err)
+	//	return
+	//}
+	//defer skutil.Close(respBody)
+	//out, err := os.Create(pdfiumLocalPath)
+	//if err != nil {
+	//	glog.Errorf("Unable to create file %s: %s", pdfiumLocalPath, err)
+	//	return
+	//}
+	//defer skutil.Remove(pdfiumLocalPath)
+	//if _, err = io.Copy(out, respBody); err != nil {
+	//	glog.Error(err)
+	//	return
+	//}
+	//skutil.Close(out)
+	//// Downloaded pdfium_test binary needs to be set as an executable.
+	//skutil.LogErr(os.Chmod(pdfiumLocalPath, 0777))
 
 	// TODO(rmistry): Uncomment when ready to capture SKPs.
 	//timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
