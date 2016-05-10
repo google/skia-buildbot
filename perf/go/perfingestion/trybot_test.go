@@ -34,7 +34,7 @@ func TestTrybotPerfIngestion(t *testing.T) {
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
 	assert.NoError(t, err)
 	m := mockhttpclient.NewURLMock()
-	m.Mock("https://codereview.chromium.org/api/1467533002/1", b)
+	m.Mock("https://codereview.chromium.org/api/1467533002/1", mockhttpclient.MockGetDialogue(b))
 
 	server, serverAddr := ingestion.StartTraceDBTestServer(t, "./trybot_test_trace.db", "")
 	defer server.Stop()

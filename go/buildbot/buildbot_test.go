@@ -46,24 +46,24 @@ var (
 	venue466        = testutils.MustReadFile("venue466.json")
 	housekeeper1035 = testutils.MustReadFile("housekeeper1035.json")
 
-	testHttpClient = mockhttpclient.New(map[string][]byte{
-		"http://build.chromium.org/p/client.skia/json/builders":                                                                    []byte(buildersSkia),
-		"http://build.chromium.org/p/client.skia.android/json/builders":                                                            []byte(buildersAndroid),
-		"http://build.chromium.org/p/client.skia.compile/json/builders":                                                            []byte(buildersCompile),
-		"http://build.chromium.org/p/client.skia.fyi/json/builders":                                                                []byte(buildersFYI),
-		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/0":                 []byte(ubuntu0),
-		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/1":                 []byte(ubuntu1),
-		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/2":                 []byte(ubuntu2),
-		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/3":                 []byte(ubuntu3),
-		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/4":                 []byte(ubuntu4),
-		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/5":                 []byte(ubuntu5),
-		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/6":                 []byte(ubuntu6),
-		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721":               []byte(testJsonInput),
-		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind/builds/152": []byte(testIncompleteBuild),
-		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464":         []byte(venue464),
-		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/465":         []byte(venue465),
-		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/466":         []byte(venue466),
-		"http://build.chromium.org/p/client.skia.fyi/json/builders/Housekeeper-PerCommit/builds/1035":                              []byte(housekeeper1035),
+	testHttpClient = mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
+		"http://build.chromium.org/p/client.skia/json/builders":                                                                    mockhttpclient.MockGetDialogue([]byte(buildersSkia)),
+		"http://build.chromium.org/p/client.skia.android/json/builders":                                                            mockhttpclient.MockGetDialogue([]byte(buildersAndroid)),
+		"http://build.chromium.org/p/client.skia.compile/json/builders":                                                            mockhttpclient.MockGetDialogue([]byte(buildersCompile)),
+		"http://build.chromium.org/p/client.skia.fyi/json/builders":                                                                mockhttpclient.MockGetDialogue([]byte(buildersFYI)),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/0":                 mockhttpclient.MockGetDialogue([]byte(ubuntu0)),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/1":                 mockhttpclient.MockGetDialogue([]byte(ubuntu1)),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/2":                 mockhttpclient.MockGetDialogue([]byte(ubuntu2)),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/3":                 mockhttpclient.MockGetDialogue([]byte(ubuntu3)),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/4":                 mockhttpclient.MockGetDialogue([]byte(ubuntu4)),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/5":                 mockhttpclient.MockGetDialogue([]byte(ubuntu5)),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/6":                 mockhttpclient.MockGetDialogue([]byte(ubuntu6)),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX660-x86-Release/builds/721":               mockhttpclient.MockGetDialogue([]byte(testJsonInput)),
+		"http://build.chromium.org/p/client.skia/json/builders/Test-Ubuntu12-ShuttleA-GTX550Ti-x86_64-Release-Valgrind/builds/152": mockhttpclient.MockGetDialogue([]byte(testIncompleteBuild)),
+		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/464":         mockhttpclient.MockGetDialogue([]byte(venue464)),
+		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/465":         mockhttpclient.MockGetDialogue([]byte(venue465)),
+		"http://build.chromium.org/p/client.skia.android/json/builders/Perf-Android-Venue8-PowerVR-x86-Release/builds/466":         mockhttpclient.MockGetDialogue([]byte(venue466)),
+		"http://build.chromium.org/p/client.skia.fyi/json/builders/Housekeeper-PerCommit/builds/1035":                              mockhttpclient.MockGetDialogue([]byte(housekeeper1035)),
 	})
 )
 

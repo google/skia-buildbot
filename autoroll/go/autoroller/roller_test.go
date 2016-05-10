@@ -221,7 +221,7 @@ func (r *mockRietveld) mockTrybotResults(issue *rietveld.Issue, results []*build
 		Builds: results,
 	})
 	assert.Nil(r.t, err)
-	r.urlMock.MockOnce(url, serialized)
+	r.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }
 
 // updateIssue inserts or updates the issue in the mockRietveld.
@@ -229,14 +229,14 @@ func (r *mockRietveld) updateIssue(issue *rietveld.Issue, tryResults []*buildbuc
 	url := fmt.Sprintf("%s/api/%d?messages=true", autoroll.RIETVELD_URL, issue.Issue)
 	serialized, err := json.Marshal(issue)
 	assert.Nil(r.t, err)
-	r.urlMock.MockOnce(url, serialized)
+	r.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 	r.mockTrybotResults(issue, tryResults)
 
 	// If necessary, fake the CQ status URL. This is used whenever the rietveld package
 	// cannot find the "Committed: ..." string within the CL description.
 	if !strings.Contains(issue.Description, COMMITTED_STR) {
 		cqUrl := fmt.Sprintf(rietveld.CQ_STATUS_URL, issue.Issue, issue.Patchsets[len(issue.Patchsets)-1])
-		r.urlMock.MockOnce(cqUrl, []byte(fmt.Sprintf("{\"success\":%v}", false)))
+		r.urlMock.MockOnce(cqUrl, mockhttpclient.MockGetDialogue([]byte(fmt.Sprintf("{\"success\":%v}", false))))
 	}
 }
 
@@ -251,16 +251,18 @@ func (r *mockRietveld) modify(issue *rietveld.Issue, tryResults []*buildbucket.B
 
 // rollerWillCloseIssue sets expectations for the roller to close the issue.
 func (r *mockRietveld) rollerWillCloseIssue(issue *rietveld.Issue) {
-	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/publish", autoroll.RIETVELD_URL, issue.Issue), []byte{})
-	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/close", autoroll.RIETVELD_URL, issue.Issue), []byte{})
+	p := mockhttpclient.MockPostDialogue("application/x-www-form-urlencoded", mockhttpclient.DONT_CARE_REQUEST, []byte{})
+	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/publish", autoroll.RIETVELD_URL, issue.Issue), p)
+	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/close", autoroll.RIETVELD_URL, issue.Issue), p)
 }
 
 // rollerWillSwitchDryRun sets expectations for the roller to switch the issue
 // into or out of dry run mode.
 func (r *mockRietveld) rollerWillSwitchDryRun(issue *rietveld.Issue, tryResults []*buildbucket.Build, dryRun bool) {
 	r.updateIssue(issue, tryResults) // Initial issue update.
-	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/edit_flags", autoroll.RIETVELD_URL, issue.Issue), []byte{})
-	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/edit_flags", autoroll.RIETVELD_URL, issue.Issue), []byte{})
+	p := mockhttpclient.MockPostDialogue("application/x-www-form-urlencoded", mockhttpclient.DONT_CARE_REQUEST, []byte{})
+	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/edit_flags", autoroll.RIETVELD_URL, issue.Issue), p)
+	r.urlMock.MockOnce(fmt.Sprintf("%s/%d/edit_flags", autoroll.RIETVELD_URL, issue.Issue), p)
 	issue.CommitQueueDryRun = dryRun
 	r.updateIssue(issue, tryResults) // Update the issue after setting flags.
 }
@@ -281,7 +283,8 @@ func (r *mockRietveld) pretendDryRunFinished(issue *rietveld.Issue, tryResults [
 
 	// The roller will add a comment to the issue and close it if the dry run failed.
 	if success {
-		r.urlMock.MockOnce(fmt.Sprintf("%s/%d/publish", autoroll.RIETVELD_URL, issue.Issue), []byte{})
+		p := mockhttpclient.MockPostDialogue("application/x-www-form-urlencoded", mockhttpclient.DONT_CARE_REQUEST, []byte{})
+		r.urlMock.MockOnce(fmt.Sprintf("%s/%d/publish", autoroll.RIETVELD_URL, issue.Issue), p)
 		r.updateIssue(issue, tryResults) // Update the issue after adding a comment.
 	} else {
 		r.rollerWillCloseIssue(issue)
@@ -373,7 +376,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 
 	// Setup mocks.
 	urlMock := mockhttpclient.NewURLMock()
-	urlMock.Mock(fmt.Sprintf("%s/xsrf_token", autoroll.RIETVELD_URL), []byte("abc123"))
+	urlMock.Mock(fmt.Sprintf("%s/xsrf_token", autoroll.RIETVELD_URL), mockhttpclient.MockGetDialogue([]byte("abc123")))
 	rv := &mockRietveld{
 		fakeIssueNum: 10001,
 		r:            rietveld.New(autoroll.RIETVELD_URL, urlMock.Client()),
@@ -627,12 +630,12 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 	url := fmt.Sprintf("%s/api/%d?messages=true", autoroll.RIETVELD_URL, roll1.Issue)
 	serialized, err := json.Marshal(roll1)
 	assert.Nil(t, err)
-	rv.urlMock.MockOnce(url, serialized)
+	rv.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 	rv.mockTrybotResults(roll1, trybots)
 
 	// Fake the CQ status URL.
 	cqUrl := fmt.Sprintf(rietveld.CQ_STATUS_URL, roll1.Issue, roll1.Patchsets[len(roll1.Patchsets)-1])
-	rv.urlMock.MockOnce(cqUrl, []byte(fmt.Sprintf("{\"success\":%v}", true)))
+	rv.urlMock.MockOnce(cqUrl, mockhttpclient.MockGetDialogue([]byte(fmt.Sprintf("{\"success\":%v}", true))))
 
 	// Run the roller.
 	assert.Nil(t, roller.doAutoRoll())

@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"reflect"
+
+	"go.skia.org/infra/go/util"
 )
 
 // URLMock implements http.RoundTripper but returns mocked responses. It
@@ -37,8 +41,44 @@ import (
 //    res3, _ := m.Client().Get("https://www.google.com")
 //    body3, _ := ioutil.ReadAll(res3.Body)  // body3 == []byte("Here's a response.")
 type URLMock struct {
-	mockAlways map[string][]byte
-	mockOnce   map[string][][]byte
+	mockAlways map[string]MockDialogue
+	mockOnce   map[string][]MockDialogue
+}
+
+var DONT_CARE_REQUEST = []byte{0, 1, 2, 3, 4}
+
+type MockDialogue struct {
+	requestMethod  string
+	requestType    string
+	requestPayload []byte
+
+	responseStatus  string
+	responseCode    int
+	responsePayload []byte
+}
+
+func MockGetDialogue(responseBody []byte) MockDialogue {
+	return MockDialogue{
+		requestMethod:  "GET",
+		requestType:    "",
+		requestPayload: nil,
+
+		responseStatus:  "OK",
+		responseCode:    http.StatusOK,
+		responsePayload: responseBody,
+	}
+}
+
+func MockPostDialogue(requestType string, requestBody, responseBody []byte) MockDialogue {
+	return MockDialogue{
+		requestMethod:  "POST",
+		requestType:    requestType,
+		requestPayload: requestBody,
+
+		responseStatus:  "OK",
+		responseCode:    http.StatusOK,
+		responsePayload: responseBody,
+	}
 }
 
 // Mock adds a mocked response for the given URL; whenever this URLMock is used
@@ -46,8 +86,8 @@ type URLMock struct {
 // receive the given body in their responses. Mocks specified using Mock() are
 // independent of those specified MockOnce(), except that those specified using
 // MockOnce() take precedence when present.
-func (m *URLMock) Mock(url string, body []byte) {
-	m.mockAlways[url] = body
+func (m *URLMock) Mock(url string, md MockDialogue) {
+	m.mockAlways[url] = md
 }
 
 // MockOnce adds a mocked response for the given URL, to be used exactly once.
@@ -56,11 +96,11 @@ func (m *URLMock) Mock(url string, body []byte) {
 // to a call to MockOnce, in the same order that the requests will be made.
 // Mocks specified this way are independent of those specified using Mock(),
 // except that those specified using MockOnce() take precedence when present.
-func (m *URLMock) MockOnce(url string, body []byte) {
+func (m *URLMock) MockOnce(url string, md MockDialogue) {
 	if _, ok := m.mockOnce[url]; !ok {
-		m.mockOnce[url] = [][]byte{}
+		m.mockOnce[url] = []MockDialogue{}
 	}
-	m.mockOnce[url] = append(m.mockOnce[url], body)
+	m.mockOnce[url] = append(m.mockOnce[url], md)
 }
 
 // Client returns an http.Client instance which uses the URLMock.
@@ -74,22 +114,44 @@ func (m *URLMock) Client() *http.Client {
 // responses for requests to URLs based on past calls to Mock() and MockOnce().
 func (m *URLMock) RoundTrip(r *http.Request) (*http.Response, error) {
 	url := r.URL.String()
-	var body []byte
+	var md *MockDialogue
 	if resps, ok := m.mockOnce[url]; ok {
 		if resps != nil && len(resps) > 0 {
-			body = resps[0]
+			md = &resps[0]
 			m.mockOnce[url] = m.mockOnce[url][1:]
 		}
 	} else if data, ok := m.mockAlways[url]; ok {
-		body = data
+		md = &data
 	}
-	if body == nil {
-		return nil, fmt.Errorf("Unknown URL!")
+	if md == nil {
+		return nil, fmt.Errorf("Unknown URL %q", url)
 	}
+	if md.requestMethod != r.Method {
+		return nil, fmt.Errorf("Wrong Method, expected %q, but was %q", md.requestMethod, r.Method)
+	}
+	if md.requestPayload == nil {
+		if r.Body != nil {
+			requestBody, _ := ioutil.ReadAll(r.Body)
+			return nil, fmt.Errorf("No request payload expected, but was %s (%#v) ", string(requestBody), r.Body)
+		}
+	} else {
+		if ct := r.Header.Get("Content-Type"); md.requestType != ct {
+			return nil, fmt.Errorf("Content-Type was wrong, expected %q, but was %q", md.requestType, ct)
+		}
+		defer util.Close(r.Body)
+		requestBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return nil, fmt.Errorf("Error reading request body: %s", err)
+		}
+		if !reflect.DeepEqual(md.requestPayload, DONT_CARE_REQUEST) && !reflect.DeepEqual(md.requestPayload, requestBody) {
+			return nil, fmt.Errorf("Wrong request payload, expected \n%s, but was \n%s", md.requestPayload, requestBody)
+		}
+	}
+
 	return &http.Response{
-		Body:       &respBodyCloser{bytes.NewReader(body)},
-		Status:     "OK",
-		StatusCode: http.StatusOK,
+		Body:       &respBodyCloser{bytes.NewReader(md.responsePayload)},
+		Status:     md.responseStatus,
+		StatusCode: md.responseCode,
 	}, nil
 }
 
@@ -118,13 +180,13 @@ func (r respBodyCloser) Close() error {
 // NewURLMock returns an empty URLMock instance.
 func NewURLMock() *URLMock {
 	return &URLMock{
-		mockAlways: map[string][]byte{},
-		mockOnce:   map[string][][]byte{},
+		mockAlways: map[string]MockDialogue{},
+		mockOnce:   map[string][]MockDialogue{},
 	}
 }
 
 // New returns a new mocked HTTPClient.
-func New(urlMap map[string][]byte) *http.Client {
+func New(urlMap map[string]MockDialogue) *http.Client {
 	m := NewURLMock()
 	for k, v := range urlMap {
 		m.Mock(k, v)

@@ -21,7 +21,7 @@ func TestPerfTrace(t *testing.T) {
 	assert.Nil(t, err)
 	m := mockhttpclient.NewURLMock()
 	// Mock this only once to confirm that caching works.
-	m.MockOnce("https://codereview.chromium.org/api/1490543002", b)
+	m.MockOnce("https://codereview.chromium.org/api/1490543002", mockhttpclient.MockGetDialogue(b))
 
 	review := rietveld.New(rietveld.RIETVELD_SKIA_URL, httputils.NewTimeoutClient())
 

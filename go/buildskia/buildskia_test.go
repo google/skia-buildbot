@@ -29,8 +29,8 @@ func TestGetSkiaHash(t *testing.T) {
     'v8_revision': 'edb7ef701c169a11a69e2be028534936ffb56346',
   `
 	body := base64.StdEncoding.EncodeToString([]byte(deps))
-	client := mockhttpclient.New(map[string][]byte{
-		CHROMIUM_DEPS_URL: []byte(body),
+	client := mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
+		CHROMIUM_DEPS_URL: mockhttpclient.MockGetDialogue([]byte(body)),
 	})
 
 	hash, err := GetSkiaHash(client)
@@ -41,8 +41,8 @@ func TestGetSkiaHash(t *testing.T) {
 func TestGetSkiaHashEmpty(t *testing.T) {
 	deps := ``
 	body := base64.StdEncoding.EncodeToString([]byte(deps))
-	client := mockhttpclient.New(map[string][]byte{
-		CHROMIUM_DEPS_URL: []byte(body),
+	client := mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
+		CHROMIUM_DEPS_URL: mockhttpclient.MockGetDialogue([]byte(body)),
 	})
 
 	_, err := GetSkiaHash(client)
@@ -75,8 +75,8 @@ func TestGetSkiaBranches(t *testing.T) {
     "value": "8f0ed522970c2ea01050379a12be5d5e58632e66"
   }
 }`
-	client := mockhttpclient.New(map[string][]byte{
-		SKIA_BRANCHES_JSON: []byte(body),
+	client := mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
+		SKIA_BRANCHES_JSON: mockhttpclient.MockGetDialogue([]byte(body)),
 	})
 
 	br, err := GetSkiaBranches(client)
@@ -91,16 +91,16 @@ func TestGetSkiaBranches(t *testing.T) {
 
 func TestGetSkiaBranchesEmpty(t *testing.T) {
 	body := `)]}'`
-	client := mockhttpclient.New(map[string][]byte{
-		SKIA_BRANCHES_JSON: []byte(body),
+	client := mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
+		SKIA_BRANCHES_JSON: mockhttpclient.MockGetDialogue([]byte(body)),
 	})
 
 	_, err := GetSkiaBranches(client)
 	assert.Error(t, err)
 
 	body = ``
-	client = mockhttpclient.New(map[string][]byte{
-		SKIA_BRANCHES_JSON: []byte(body),
+	client = mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
+		SKIA_BRANCHES_JSON: mockhttpclient.MockGetDialogue([]byte(body)),
 	})
 
 	_, err = GetSkiaBranches(client)
@@ -116,8 +116,8 @@ func TestGetSkiaHead(t *testing.T) {
     "a5598a40f82d69113fb4764dcb8de62151921807"
     ]
 }`
-	client := mockhttpclient.New(map[string][]byte{
-		SKIA_HEAD_JSON: []byte(body),
+	client := mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
+		SKIA_HEAD_JSON: mockhttpclient.MockGetDialogue([]byte(body)),
 	})
 
 	hash, err := GetSkiaHead(client)
@@ -127,16 +127,16 @@ func TestGetSkiaHead(t *testing.T) {
 
 func TestGetSkiaHeadEmpty(t *testing.T) {
 	body := `)]}'`
-	client := mockhttpclient.New(map[string][]byte{
-		SKIA_BRANCHES_JSON: []byte(body),
+	client := mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
+		SKIA_BRANCHES_JSON: mockhttpclient.MockGetDialogue([]byte(body)),
 	})
 
 	_, err := GetSkiaBranches(client)
 	assert.Error(t, err)
 
 	body = ``
-	client = mockhttpclient.New(map[string][]byte{
-		SKIA_HEAD_JSON: []byte(body),
+	client = mockhttpclient.New(map[string]mockhttpclient.MockDialogue{
+		SKIA_HEAD_JSON: mockhttpclient.MockGetDialogue([]byte(body)),
 	})
 
 	_, err = GetSkiaHead(client)
