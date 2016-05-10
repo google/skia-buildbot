@@ -551,6 +551,25 @@ server {
     return 301 https://bugs.skia.org$request_uri;
 }
 
+#####   code.skia.org (REDIRECT)   ########################### 
+server {
+    listen 443;
+
+    ssl on;
+
+    access_log /var/log/nginx/code.access.log;
+    error_log /var/log/nginx/code.error.log error;
+
+    server_name code.skia.org;
+    rewrite ^ https://skia.googlesource.com/skia redirect;
+}
+
+server {
+    listen 80;
+    server_name code.skia.org;
+    rewrite ^ https://skia.googlesource.com/skia redirect;
+}
+
 #####   grandcentral.skia.org   ###########################
 server {
     listen      443;
