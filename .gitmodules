@@ -1,0 +1,3 @@
+[submodule "go/influxdb/vendor/github.com/influxdata/influxdb"]
+	path = go/influxdb/vendor/github.com/influxdata/influxdb
+	url = https://github.com/influxdata/influxdb.git
