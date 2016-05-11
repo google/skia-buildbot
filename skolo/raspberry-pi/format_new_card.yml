@@ -66,7 +66,7 @@
     - name: deleting /boot/cmdline.txt
       file: path=/media/boot/cmdline.txt state=absent
     - name: "writing /boot/cmdline.txt with hostname skia-rpi-{{hostname}} and ip 192.168.{{static_ip}}"
-      lineinfile: dest=/media/boot/cmdline.txt create=yes line="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:/opt/raspberrypi/root ip=192.168.{{static_ip}}:{{nfs_ip}}:192.168.1.1:255.255.255.0:skia-rpi-{{hostname}}:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
+      lineinfile: dest=/media/boot/cmdline.txt create=yes line="dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:/opt/raspberrypi/root,nfsvers=3 ip=192.168.{{static_ip}}:{{nfs_ip}}:192.168.1.1:255.255.255.0:skia-rpi-{{hostname}}:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
 
     - name: unmounting /boot
       mount: src="{{drive}}1" name="/media/boot" fstype="auto" state="unmounted"
