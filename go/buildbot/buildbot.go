@@ -258,7 +258,7 @@ type Builder struct {
 
 // BuildSlave contains information about a buildslave.
 type BuildSlave struct {
-	Builders      []string
+	Builders      map[string][]int
 	Connected     bool
 	Name          string
 	Master        string

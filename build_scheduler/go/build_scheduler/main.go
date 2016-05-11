@@ -120,7 +120,7 @@ func getFreeBuildslaves() ([]*buildbot.BuildSlave, error) {
 		// there are no already-pending builds.
 		if !util.AnyMatch(BOT_BLACKLIST, b.Name) && b.PendingBuilds == 0 {
 			for _, slave := range b.Slaves {
-				buildslaves[slave].Builders = append(buildslaves[slave].Builders, b.Name)
+				buildslaves[slave].Builders[b.Name] = nil
 			}
 		}
 	}
@@ -174,7 +174,11 @@ func scheduleBuilds(q *build_queue.BuildQueue, bb *buildbucket.Client) error {
 	glog.Infof("Free buildslaves:")
 	for _, s := range free {
 		glog.Infof("\t%s", s.Name)
-		build, err := q.Pop(s.Builders)
+		builders := make([]string, 0, len(s.Builders))
+		for b, _ := range s.Builders {
+			builders = append(builders, b)
+		}
+		build, err := q.Pop(builders)
 		if err == build_queue.ERR_EMPTY_QUEUE {
 			continue
 		}
