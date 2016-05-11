@@ -61,22 +61,15 @@ func NewClient(host, user, password, database string) (*Client, error) {
 	}, nil
 }
 
-// Point is a struct representing a single data point in InfluxDB.
+// Point is a struct representing a data point with multiple values in InfluxDB.
 type Point struct {
-	Tags  map[string]string
-	Value json.Number
-}
-
-// MultiPoint is a struct representing a data point with multiple values in InfluxDB.
-type MultiPoint struct {
 	Tags   map[string]string
 	Values []json.Number
 }
 
 // Query issues a query to the InfluxDB instance and returns a slice of Points.
-// The query must return series which have a single point, otherwise an error is
-// returned.
-func (c *Client) Query(database, q string) ([]*Point, error) {
+// The query must return series which have a single point with n values, or an error is returned.
+func (c *Client) Query(database, q string, n int) ([]*Point, error) {
 	response, err := c.influxClient.Query(influx_client.Query{
 		Command:  q,
 		Database: database,
@@ -99,83 +92,13 @@ func (c *Client) Query(database, q string) ([]*Point, error) {
 	if len(results) > 1 {
 		return nil, fmt.Errorf("Query returned more than one result: d=%q q=%q", database, q)
 	}
-	// Allow queries to return no series.
+	// We want at least one series.
 	series := results[0].Series
 	if len(series) < 1 {
-		return []*Point{}, nil
+		return nil, fmt.Errorf("Query returned no series: d=%q q=%q", database, q)
 	}
 	// Collect all data points.
 	rv := make([]*Point, 0, len(series))
-	for _, s := range series {
-		valueColumn := 0
-		for _, label := range s.Columns {
-			if label == "time" || label == "sequence_number" {
-				valueColumn++
-			} else {
-				break
-			}
-		}
-		// The column containing the value should be the last column.
-		if len(s.Columns) != valueColumn+1 {
-			return nil, fmt.Errorf("Query returned an incorrect set of columns: %q %v", q, s.Columns)
-		}
-		// We want exactly one point.
-		points := s.Values
-		if len(points) < 1 {
-			return nil, fmt.Errorf("Query returned no points: %q", q)
-		}
-		if len(points) > 1 {
-			return nil, fmt.Errorf("Query returned more than one point: %q", q)
-		}
-		point := points[0]
-
-		// Ensure that the columns are correct for the point.
-		if len(s.Columns) != len(point) {
-			return nil, fmt.Errorf("Invalid data from InfluxDB: Point data does not match column spec:\nCols:\n%v\nVals:\n%v", series[0].Columns, point)
-		}
-		if point[valueColumn] == nil {
-			return nil, fmt.Errorf("Query returned nil value: %q", q)
-		}
-		rv = append(rv, &Point{
-			Tags:  s.Tags,
-			Value: point[valueColumn].(json.Number),
-		})
-	}
-	return rv, nil
-}
-
-// MultiQuery issues a query to the InfluxDB instance and returns a slice of MultiPoints.
-// The query must return series which have a single point with n values, or an error is returned.
-func (c *Client) MultiQuery(database, q string, n int) ([]*MultiPoint, error) {
-	response, err := c.influxClient.Query(influx_client.Query{
-		Command:  q,
-		Database: database,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Failed to query InfluxDB with query %q: %s", q, err)
-	}
-	if response.Err != "" {
-		return nil, fmt.Errorf(response.Err)
-	}
-
-	results := response.Results
-	if err != nil {
-		return nil, err
-	}
-	// We want exactly one result.
-	if len(results) < 1 {
-		return nil, fmt.Errorf("Query returned no results: d=%q q=%q", database, q)
-	}
-	if len(results) > 1 {
-		return nil, fmt.Errorf("Query returned more than one result: d=%q q=%q", database, q)
-	}
-	// Allow queries to return no series.
-	series := results[0].Series
-	if len(series) < 1 {
-		return []*MultiPoint{}, nil
-	}
-	// Collect all data points.
-	rv := make([]*MultiPoint, 0, len(series))
 	for _, s := range series {
 		valueColumn := 0
 		// Skip over the non value columns, if any exist
@@ -212,7 +135,7 @@ func (c *Client) MultiQuery(database, q string, n int) ([]*MultiPoint, error) {
 			}
 			values = append(values, point[valueColumn].(json.Number))
 		}
-		rv = append(rv, &MultiPoint{
+		rv = append(rv, &Point{
 			Tags:   s.Tags,
 			Values: values,
 		})
@@ -220,32 +143,18 @@ func (c *Client) MultiQuery(database, q string, n int) ([]*MultiPoint, error) {
 	return rv, nil
 }
 
-// QueryFloat64 issues a query to the InfluxDB instance and returns a
-// single float64 point value. The query must return a single series with a
-// single point, otherwise QueryFloat64 returns an error.
-func (c *Client) QueryFloat64(database, q string) (float64, error) {
-	res, err := c.Query(database, q)
-	if err != nil {
-		return 0.0, err
-	}
-	if len(res) != 1 {
-		return 0.0, fmt.Errorf("Query returned %d series (db = %q): %q\n%v", len(res), database, q, res)
-	}
-	return res[0].Value.Float64()
-}
-
 // QueryInt64 issues a query to the InfluxDB instance and returns a
 // single int64 point value. The query must return a single series with a
 // single point, otherwise QueryInt64 returns an error.
 func (c *Client) QueryInt64(database, q string) (int64, error) {
-	res, err := c.Query(database, q)
+	res, err := c.Query(database, q, 1)
 	if err != nil {
 		return 0.0, err
 	}
 	if len(res) != 1 {
 		return 0.0, fmt.Errorf("Query returned %d series (db = %q): %q\n%v", len(res), database, q, res)
 	}
-	return res[0].Value.Int64()
+	return res[0].Values[0].Int64()
 }
 
 // PollingStatus returns a PollingStatus which runs the given

@@ -74,8 +74,8 @@ func TestQueryNumber(t *testing.T) {
 					Err: "",
 				}, nil
 			},
-			ExpectedVal: []*Point{},
-			ExpectedErr: nil,
+			ExpectedVal: nil,
+			ExpectedErr: fmt.Errorf("Query returned no series: d=\"nodatabase\" q=\"<dummy query>\""),
 		},
 		queryCase{
 			Name: "MultipleSeries",
@@ -111,12 +111,12 @@ func TestQueryNumber(t *testing.T) {
 			},
 			ExpectedVal: []*Point{
 				&Point{
-					Tags:  nil,
-					Value: json.Number("1.5"),
+					Tags:   nil,
+					Values: []json.Number{"1.5"},
 				},
 				&Point{
-					Tags:  nil,
-					Value: json.Number("3.5"),
+					Tags:   nil,
+					Values: []json.Number{"3.5"},
 				},
 			},
 			ExpectedErr: nil,
@@ -169,7 +169,7 @@ func TestQueryNumber(t *testing.T) {
 				}, nil
 			},
 			ExpectedVal: nil,
-			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns: \"<dummy query>\" [time label value]"),
+			ExpectedErr: fmt.Errorf("Query returned an incorrect set of columns.  Wanted 2 of them: \"<dummy query>\" [time label value]"),
 		},
 		queryCase{
 			Name: "NoPoints",
@@ -189,7 +189,7 @@ func TestQueryNumber(t *testing.T) {
 				}, nil
 			},
 			ExpectedVal: nil,
-			ExpectedErr: fmt.Errorf("Query returned no points: \"<dummy query>\""),
+			ExpectedErr: fmt.Errorf("Query returned too few points.  Wanted 1, but was 0: \"<dummy query>\""),
 		},
 		queryCase{
 			Name: "GoodData",
@@ -215,8 +215,8 @@ func TestQueryNumber(t *testing.T) {
 			},
 			ExpectedVal: []*Point{
 				&Point{
-					Tags:  nil,
-					Value: json.Number("1.5"),
+					Tags:   nil,
+					Values: []json.Number{"1.5"},
 				},
 			},
 			ExpectedErr: nil,
@@ -246,8 +246,8 @@ func TestQueryNumber(t *testing.T) {
 			},
 			ExpectedVal: []*Point{
 				&Point{
-					Tags:  nil,
-					Value: json.Number("1.5"),
+					Tags:   nil,
+					Values: []json.Number{"1.5"},
 				},
 			},
 			ExpectedErr: nil,
@@ -260,7 +260,7 @@ func TestQueryNumber(t *testing.T) {
 			Database:     "nodatabase",
 			influxClient: dummyClient{c.QueryFunc},
 		}
-		res, err := client.Query(client.Database, "<dummy query>")
+		res, err := client.Query(client.Database, "<dummy query>", 1)
 		assert.Equal(t, c.ExpectedErr, err, fmt.Sprintf(errorStr, c.Name, c.ExpectedErr, err))
 		if err != nil {
 			continue

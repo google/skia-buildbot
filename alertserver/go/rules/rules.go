@@ -316,9 +316,9 @@ type queryable interface {
 	// Query sends a query to the database and returns a slice of points
 	// along with any error. The parameters are the name of the database
 	// and the query to perform.
-	MultiQuery(string, string, int) ([]*influxdb.MultiPoint, error)
+	Query(string, string, int) ([]*influxdb.Point, error)
 }
 
-func executeQuery(c queryable, database, q string, numConditions int) ([]*influxdb.MultiPoint, error) {
-	return c.MultiQuery(database, q, numConditions)
+func executeQuery(c queryable, database, q string, numConditions int) ([]*influxdb.Point, error) {
+	return c.Query(database, q, numConditions)
 }

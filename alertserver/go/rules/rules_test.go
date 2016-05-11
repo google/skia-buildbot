@@ -18,9 +18,9 @@ import (
 
 type mockClient struct{}
 
-func (c mockClient) MultiQuery(database, query string, n int) ([]*influxdb.MultiPoint, error) {
-	return []*influxdb.MultiPoint{
-		&influxdb.MultiPoint{
+func (c mockClient) Query(database, query string, n int) ([]*influxdb.Point, error) {
+	return []*influxdb.Point{
+		&influxdb.Point{
 			Tags: map[string]string{
 				"tagKey": "tagValue",
 			},
