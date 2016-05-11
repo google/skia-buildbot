@@ -12,9 +12,10 @@ This module does the following steps:
   number of webpages.
 
 Sample Usage:
-  python create_page_set.py -s 1 -e 10000
+  python create_page_set.py -s 1
 
-Running the above command will create 10000 different page sets.
+Running the above command will create a page set with the webpage in 1st
+position in the CSV.
 """
 
 __author__ = 'Ravi Mistry'
@@ -37,15 +38,10 @@ ALEXA_PREFIX = 'alexa'
 if '__main__' == __name__:
   option_parser = optparse.OptionParser()
   option_parser.add_option(
-      '-s', '--start_number',
-      help='Specifies where to start with when adding the top webpages to the '
-           'page_set.',
+      '-s', '--position',
+      help='Specifies the position of the webpage in the CSV which will be '
+           'added to the page_set.',
       default='1')
-  option_parser.add_option(
-      '-e', '--end_number',
-      help='Specifies where to end with when adding the top webpages to the '
-           'page_set',
-      default='10000')
   option_parser.add_option(
       '-c', '--csv_file',
       help='Location of a filtered alexa top 1M CSV file. Each row should '
@@ -72,11 +68,8 @@ if '__main__' == __name__:
   options, unused_args = option_parser.parse_args()
 
   # Validate arguments.
-  if int(options.start_number) <= 0:
-    raise Exception('The -s/--start_number must be greater than 0')
-  if int(options.start_number) > int(options.end_number):
-    raise Exception('The -s/--start_number must be less than or equal to '
-                    '-e/--end_number')
+  if int(options.position) <= 0:
+    raise Exception('The -s/--position must be greater than 0')
 
   if options.csv_file:
     csv_contents = open(options.csv_file).readlines()
@@ -86,28 +79,22 @@ if '__main__' == __name__:
     myzipfile = zipfile.ZipFile(StringIO(usock.read()))
     csv_contents = myzipfile.open(TOP1M_CSV_FILE_NAME).readlines()
 
-  # Validate options.end_number.
-  if int(options.end_number) > len(csv_contents):
-    raise Exception('Please specify -e/--end_number less than or equal to %s' %
-              len(csv_contents))
-
   websites = []
-  for index in xrange(int(options.start_number) - 1, int(options.end_number)):
-    line = csv_contents[index]
-    website = line.strip().split(',')[1]
-    if 'PDF' in options.pagesets_type:
-      # PDF urls do not need any additional prefixes.
-      qualified_website = website
-    elif website.startswith('https://') or website.startswith('http://'):
-      qualified_website = website
-    else:
-      qualified_website = 'http://www.%s' % website
-    websites.append(qualified_website)
+  line = csv_contents[int(options.position)-1]
+  website = line.strip().split(',')[1]
+  if 'PDF' in options.pagesets_type:
+    # PDF urls do not need any additional prefixes.
+    qualified_website = website
+  elif website.startswith('https://') or website.startswith('http://'):
+    qualified_website = website
+  else:
+    qualified_website = 'http://www.%s' % website
+  websites.append(qualified_website)
 
   archive_data_file = os.path.join(
       '/', 'b', 'storage', 'webpage_archives',
       options.pagesets_type,
-      'alexa%s-%s.json' % (options.start_number, options.end_number))
+      '%s.json' % options.position)
 
   page_set_content = {
     'user_agent': options.useragent_type,
@@ -116,7 +103,7 @@ if '__main__' == __name__:
   }
 
   # Output the pageset to a file.
-  with open(os.path.join(options.pagesets_output_dir, 'alexa%s_%s.py' % (
-                options.start_number, options.end_number)),
+  with open(os.path.join(options.pagesets_output_dir, '%s.py' % (
+                options.position)),
             'w') as outfile:
     json.dump(page_set_content, outfile)
