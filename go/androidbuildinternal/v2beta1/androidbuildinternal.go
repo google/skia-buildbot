@@ -66,6 +66,8 @@ func New(client *http.Client) (*Service, error) {
 	s.Deviceblob = NewDeviceblobService(s)
 	s.Imagerequest = NewImagerequestService(s)
 	s.Label = NewLabelService(s)
+	s.Machine = NewMachineService(s)
+	s.Software = NewSoftwareService(s)
 	s.Target = NewTargetService(s)
 	s.Testartifact = NewTestartifactService(s)
 	s.Testresult = NewTestresultService(s)
@@ -100,6 +102,10 @@ type Service struct {
 	Imagerequest *ImagerequestService
 
 	Label *LabelService
+
+	Machine *MachineService
+
+	Software *SoftwareService
 
 	Target *TargetService
 
@@ -218,6 +224,24 @@ type LabelService struct {
 	s *Service
 }
 
+func NewMachineService(s *Service) *MachineService {
+	rs := &MachineService{s: s}
+	return rs
+}
+
+type MachineService struct {
+	s *Service
+}
+
+func NewSoftwareService(s *Service) *SoftwareService {
+	rs := &SoftwareService{s: s}
+	return rs
+}
+
+type SoftwareService struct {
+	s *Service
+}
+
 func NewTargetService(s *Service) *TargetService {
 	rs := &TargetService{s: s}
 	return rs
@@ -323,6 +347,8 @@ type BranchConfig struct {
 	Submitted *BranchConfigSubmittedBuildConfig `json:"submitted,omitempty"`
 
 	Targets []*Target `json:"targets,omitempty"`
+
+	TestRunnerConfigureds []string `json:"testRunnerConfigureds,omitempty"`
 
 	// ServerResponse contains the HTTP response code and headers from the
 	// server.
@@ -644,6 +670,8 @@ type Build struct {
 
 	CreationTimestamp int64 `json:"creationTimestamp,omitempty,string"`
 
+	HasTests bool `json:"hasTests,omitempty"`
+
 	Rank int64 `json:"rank,omitempty"`
 
 	ReferenceReleaseCandidateName string `json:"referenceReleaseCandidateName,omitempty"`
@@ -657,6 +685,8 @@ type Build struct {
 	Successful bool `json:"successful,omitempty"`
 
 	Target *Target `json:"target,omitempty"`
+
+	TestResultSummary *TestResultSummary `json:"testResultSummary,omitempty"`
 
 	WorknodeId string `json:"worknodeId,omitempty"`
 
@@ -1384,6 +1414,8 @@ type ImageRequestBuildInfo struct {
 
 	BuildId string `json:"buildId,omitempty"`
 
+	RcName string `json:"rcName,omitempty"`
+
 	Target string `json:"target,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Branch") to
@@ -1705,6 +1737,80 @@ func (s *LabelResetResponse) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
+type Machine struct {
+	BuildId string `json:"buildId,omitempty"`
+
+	BuildType string `json:"buildType,omitempty"`
+
+	CurrentStatus string `json:"currentStatus,omitempty"`
+
+	CurrentVersion string `json:"currentVersion,omitempty"`
+
+	DesiredStatus string `json:"desiredStatus,omitempty"`
+
+	DesiredVersion string `json:"desiredVersion,omitempty"`
+
+	LastUpdatedMillis int64 `json:"lastUpdatedMillis,omitempty,string"`
+
+	MachineName string `json:"machineName,omitempty"`
+
+	Operation string `json:"operation,omitempty"`
+
+	OsType string `json:"osType,omitempty"`
+
+	OsVersion string `json:"osVersion,omitempty"`
+
+	Revision string `json:"revision,omitempty"`
+
+	SubmitQueue bool `json:"submitQueue,omitempty"`
+
+	Target string `json:"target,omitempty"`
+
+	// ServerResponse contains the HTTP response code and headers from the
+	// server.
+	googleapi.ServerResponse `json:"-"`
+
+	// ForceSendFields is a list of field names (e.g. "BuildId") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *Machine) MarshalJSON() ([]byte, error) {
+	type noMethod Machine
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
+type MachineListResponse struct {
+	Machines []*Machine `json:"machines,omitempty"`
+
+	NextPageToken string `json:"nextPageToken,omitempty"`
+
+	PreviousPageToken string `json:"previousPageToken,omitempty"`
+
+	// ServerResponse contains the HTTP response code and headers from the
+	// server.
+	googleapi.ServerResponse `json:"-"`
+
+	// ForceSendFields is a list of field names (e.g. "Machines") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *MachineListResponse) MarshalJSON() ([]byte, error) {
+	type noMethod MachineListResponse
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
 type ManifestLocation struct {
 	Git *GitManifestLocation `json:"git,omitempty"`
 
@@ -1747,14 +1853,60 @@ func (s *PartitionSize) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
+type ReleaseRequest struct {
+	BuildInfo *ReleaseRequestBuildInfo `json:"buildInfo,omitempty"`
+
+	Type string `json:"type,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "BuildInfo") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *ReleaseRequest) MarshalJSON() ([]byte, error) {
+	type noMethod ReleaseRequest
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
+type ReleaseRequestBuildInfo struct {
+	Branch string `json:"branch,omitempty"`
+
+	RcName string `json:"rcName,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Branch") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *ReleaseRequestBuildInfo) MarshalJSON() ([]byte, error) {
+	type noMethod ReleaseRequestBuildInfo
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
 type Revision struct {
 	Commit *CommitInfo `json:"commit,omitempty"`
+
+	CreationTime int64 `json:"creationTime,omitempty,string"`
 
 	Fetchs []*FetchConfiguration `json:"fetchs,omitempty"`
 
 	GitRevision string `json:"gitRevision,omitempty"`
 
 	PatchSet int64 `json:"patchSet,omitempty"`
+
+	Ref string `json:"ref,omitempty"`
+
+	Uploader *User `json:"uploader,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "Commit") to
 	// unconditionally include in API requests. By default, fields with
@@ -1771,10 +1923,40 @@ func (s *Revision) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
+type SoftwareVersion struct {
+	DownloadUrl string `json:"downloadUrl,omitempty"`
+
+	Version string `json:"version,omitempty"`
+
+	// ServerResponse contains the HTTP response code and headers from the
+	// server.
+	googleapi.ServerResponse `json:"-"`
+
+	// ForceSendFields is a list of field names (e.g. "DownloadUrl") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *SoftwareVersion) MarshalJSON() ([]byte, error) {
+	type noMethod SoftwareVersion
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
 type Target struct {
+	AdditionalBuildTargets []string `json:"additionalBuildTargets,omitempty"`
+
 	BuildCommands []string `json:"buildCommands,omitempty"`
 
 	BuildPlatform string `json:"buildPlatform,omitempty"`
+
+	Disabled bool `json:"disabled,omitempty"`
+
+	Environments map[string]string `json:"environments,omitempty"`
 
 	JavaVersion string `json:"javaVersion,omitempty"`
 
@@ -1794,12 +1976,13 @@ type Target struct {
 	// server.
 	googleapi.ServerResponse `json:"-"`
 
-	// ForceSendFields is a list of field names (e.g. "BuildCommands") to
-	// unconditionally include in API requests. By default, fields with
-	// empty values are omitted from API requests. However, any non-pointer,
-	// non-interface field appearing in ForceSendFields will be sent to the
-	// server regardless of whether the field is empty or not. This may be
-	// used to include empty fields in Patch requests.
+	// ForceSendFields is a list of field names (e.g.
+	// "AdditionalBuildTargets") to unconditionally include in API requests.
+	// By default, fields with empty values are omitted from API requests.
+	// However, any non-pointer, non-interface field appearing in
+	// ForceSendFields will be sent to the server regardless of whether the
+	// field is empty or not. This may be used to include empty fields in
+	// Patch requests.
 	ForceSendFields []string `json:"-"`
 }
 
@@ -1844,6 +2027,8 @@ type TargetSigningConfig struct {
 
 	PackageType string `json:"packageType,omitempty"`
 
+	SigningBackend string `json:"signingBackend,omitempty"`
+
 	// ForceSendFields is a list of field names (e.g. "Apks") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
@@ -1861,6 +2046,8 @@ func (s *TargetSigningConfig) MarshalJSON() ([]byte, error) {
 
 type TargetSigningConfigApk struct {
 	AclName string `json:"aclName,omitempty"`
+
+	ApkRegex string `json:"apkRegex,omitempty"`
 
 	Key string `json:"key,omitempty"`
 
@@ -2002,6 +2189,8 @@ func (s *TestArtifactListResponse) MarshalJSON() ([]byte, error) {
 }
 
 type TestResult struct {
+	Critical bool `json:"critical,omitempty"`
+
 	Id int64 `json:"id,omitempty,string"`
 
 	PostedToGerrit bool `json:"postedToGerrit,omitempty"`
@@ -2012,13 +2201,17 @@ type TestResult struct {
 
 	Summary string `json:"summary,omitempty"`
 
+	TestRunnerType string `json:"testRunnerType,omitempty"`
+
+	TestSuite string `json:"testSuite,omitempty"`
+
 	TestTag string `json:"testTag,omitempty"`
 
 	// ServerResponse contains the HTTP response code and headers from the
 	// server.
 	googleapi.ServerResponse `json:"-"`
 
-	// ForceSendFields is a list of field names (e.g. "Id") to
+	// ForceSendFields is a list of field names (e.g. "Critical") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -2059,6 +2252,56 @@ func (s *TestResultListResponse) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
+type TestResultSummary struct {
+	AllCriticalTestsPassed bool `json:"allCriticalTestsPassed,omitempty"`
+
+	CompletedTools []string `json:"completedTools,omitempty"`
+
+	TestsComplete bool `json:"testsComplete,omitempty"`
+
+	ToolGroups *TestResultSummaryToolGroups `json:"toolGroups,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g.
+	// "AllCriticalTestsPassed") to unconditionally include in API requests.
+	// By default, fields with empty values are omitted from API requests.
+	// However, any non-pointer, non-interface field appearing in
+	// ForceSendFields will be sent to the server regardless of whether the
+	// field is empty or not. This may be used to include empty fields in
+	// Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *TestResultSummary) MarshalJSON() ([]byte, error) {
+	type noMethod TestResultSummary
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
+type TestResultSummaryToolGroups struct {
+}
+
+type TestResultSummaryToolGroupTestSuite struct {
+	Passed bool `json:"passed,omitempty"`
+
+	PassedTestTags map[string]string `json:"passedTestTags,omitempty"`
+
+	TestTags map[string]string `json:"testTags,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "Passed") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *TestResultSummaryToolGroupTestSuite) MarshalJSON() ([]byte, error) {
+	type noMethod TestResultSummaryToolGroupTestSuite
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
 type UrlManifestLocation struct {
 	Url string `json:"url,omitempty"`
 
@@ -2078,11 +2321,15 @@ func (s *UrlManifestLocation) MarshalJSON() ([]byte, error) {
 }
 
 type User struct {
+	AccountId int64 `json:"accountId,omitempty,string"`
+
 	Email string `json:"email,omitempty"`
 
 	Name string `json:"name,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "Email") to
+	Username string `json:"username,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "AccountId") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -2102,7 +2349,11 @@ type WorkNode struct {
 
 	ContainerId string `json:"containerId,omitempty"`
 
+	CreationTimeMillis int64 `json:"creationTimeMillis,omitempty,string"`
+
 	CurrentAttempt *WorkNodeAttempt `json:"currentAttempt,omitempty"`
+
+	ExpirationTimeMillis int64 `json:"expirationTimeMillis,omitempty,string"`
 
 	HeartbeatTimeMillis int64 `json:"heartbeatTimeMillis,omitempty,string"`
 
@@ -2152,11 +2403,13 @@ func (s *WorkNode) MarshalJSON() ([]byte, error) {
 }
 
 type WorkNodeAttempt struct {
+	AttemptId string `json:"attemptId,omitempty"`
+
 	ProgressMessages []*WorkNodeProgressMessage `json:"progressMessages,omitempty"`
 
 	StartTimeMillis int64 `json:"startTimeMillis,omitempty,string"`
 
-	// ForceSendFields is a list of field names (e.g. "ProgressMessages") to
+	// ForceSendFields is a list of field names (e.g. "AttemptId") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -2172,13 +2425,19 @@ func (s *WorkNodeAttempt) MarshalJSON() ([]byte, error) {
 }
 
 type WorkNodeCompleteRequest struct {
+	ProgressMessage *WorkNodeProgressMessage `json:"progressMessage,omitempty"`
+
+	ProgressMessages []*WorkNodeProgressMessage `json:"progressMessages,omitempty"`
+
+	Reason string `json:"reason,omitempty"`
+
 	Status string `json:"status,omitempty"`
 
 	WorkNode *WorkNode `json:"workNode,omitempty"`
 
 	WorkProduct *WorkProduct `json:"workProduct,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "Status") to
+	// ForceSendFields is a list of field names (e.g. "ProgressMessage") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -2216,9 +2475,15 @@ func (s *WorkNodeCompleteResponse) MarshalJSON() ([]byte, error) {
 }
 
 type WorkNodeFailRequest struct {
+	ProgressMessage *WorkNodeProgressMessage `json:"progressMessage,omitempty"`
+
+	ProgressMessages []*WorkNodeProgressMessage `json:"progressMessages,omitempty"`
+
+	Reason string `json:"reason,omitempty"`
+
 	WorkNode *WorkNode `json:"workNode,omitempty"`
 
-	// ForceSendFields is a list of field names (e.g. "WorkNode") to
+	// ForceSendFields is a list of field names (e.g. "ProgressMessage") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -2284,9 +2549,15 @@ func (s *WorkNodeListResponse) MarshalJSON() ([]byte, error) {
 type WorkNodePopRequest struct {
 	HeartbeatTimeMillis int64 `json:"heartbeatTimeMillis,omitempty,string"`
 
+	MaximumRetries int64 `json:"maximumRetries,omitempty"`
+
 	NodeId string `json:"nodeId,omitempty"`
 
 	PoppedStatus string `json:"poppedStatus,omitempty"`
+
+	ProgressMessage *WorkNodeProgressMessage `json:"progressMessage,omitempty"`
+
+	ProgressMessages []*WorkNodeProgressMessage `json:"progressMessages,omitempty"`
 
 	WorkExecutorType string `json:"workExecutorType,omitempty"`
 
@@ -2332,13 +2603,15 @@ func (s *WorkNodePopResponse) MarshalJSON() ([]byte, error) {
 }
 
 type WorkNodeProgressMessage struct {
+	AttemptEnded *WorkNodeProgressMessageAttemptEnded `json:"attemptEnded,omitempty"`
+
 	DisplayMessage string `json:"displayMessage,omitempty"`
 
 	MessageString string `json:"messageString,omitempty"`
 
 	TimeMillis int64 `json:"timeMillis,omitempty,string"`
 
-	// ForceSendFields is a list of field names (e.g. "DisplayMessage") to
+	// ForceSendFields is a list of field names (e.g. "AttemptEnded") to
 	// unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
@@ -2349,6 +2622,26 @@ type WorkNodeProgressMessage struct {
 
 func (s *WorkNodeProgressMessage) MarshalJSON() ([]byte, error) {
 	type noMethod WorkNodeProgressMessage
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
+type WorkNodeProgressMessageAttemptEnded struct {
+	ActionType string `json:"actionType,omitempty"`
+
+	Reason string `json:"reason,omitempty"`
+
+	// ForceSendFields is a list of field names (e.g. "ActionType") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *WorkNodeProgressMessageAttemptEnded) MarshalJSON() ([]byte, error) {
+	type noMethod WorkNodeProgressMessageAttemptEnded
 	raw := noMethod(*s)
 	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
@@ -2373,10 +2666,36 @@ func (s *WorkNodeRetry) MarshalJSON() ([]byte, error) {
 	return gensupport.MarshalJSON(raw, s.ForceSendFields)
 }
 
+type WorkNodeTouchResponse struct {
+	WorkNode *WorkNode `json:"workNode,omitempty"`
+
+	// ServerResponse contains the HTTP response code and headers from the
+	// server.
+	googleapi.ServerResponse `json:"-"`
+
+	// ForceSendFields is a list of field names (e.g. "WorkNode") to
+	// unconditionally include in API requests. By default, fields with
+	// empty values are omitted from API requests. However, any non-pointer,
+	// non-interface field appearing in ForceSendFields will be sent to the
+	// server regardless of whether the field is empty or not. This may be
+	// used to include empty fields in Patch requests.
+	ForceSendFields []string `json:"-"`
+}
+
+func (s *WorkNodeTouchResponse) MarshalJSON() ([]byte, error) {
+	type noMethod WorkNodeTouchResponse
+	raw := noMethod(*s)
+	return gensupport.MarshalJSON(raw, s.ForceSendFields)
+}
+
 type WorkParameters struct {
 	AtpTestParameters *WorkParametersAtpTestParameters `json:"atpTestParameters,omitempty"`
 
 	ChangeFinished *WorkParametersPendingChangeFinishedParameters `json:"changeFinished,omitempty"`
+
+	ImageRequest *ImageRequest `json:"imageRequest,omitempty"`
+
+	ReleaseRequest *ReleaseRequest `json:"releaseRequest,omitempty"`
 
 	SubmitQueue *WorkParametersPendingChangeBuildParameters `json:"submitQueue,omitempty"`
 
@@ -2458,6 +2777,8 @@ func (s *WorkParametersPendingChangeFinishedParameters) MarshalJSON() ([]byte, e
 }
 
 type WorkPlan struct {
+	CreationTimeMillis int64 `json:"creationTimeMillis,omitempty,string"`
+
 	Id string `json:"id,omitempty"`
 
 	LastUpdatedMillis int64 `json:"lastUpdatedMillis,omitempty,string"`
@@ -2468,8 +2789,8 @@ type WorkPlan struct {
 	// server.
 	googleapi.ServerResponse `json:"-"`
 
-	// ForceSendFields is a list of field names (e.g. "Id") to
-	// unconditionally include in API requests. By default, fields with
+	// ForceSendFields is a list of field names (e.g. "CreationTimeMillis")
+	// to unconditionally include in API requests. By default, fields with
 	// empty values are omitted from API requests. However, any non-pointer,
 	// non-interface field appearing in ForceSendFields will be sent to the
 	// server regardless of whether the field is empty or not. This may be
@@ -2999,6 +3320,7 @@ func (c *BranchListCall) Do(opts ...googleapi.CallOption) (*BranchListResponse, 
 	//       "type": "boolean"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -3012,6 +3334,108 @@ func (c *BranchListCall) Do(opts ...googleapi.CallOption) (*BranchListResponse, 
 	//   "response": {
 	//     "$ref": "BranchListResponse"
 	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *BranchListCall) Pages(ctx context.Context, f func(*BranchListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
+}
+
+// method id "androidbuildinternal.branch.trigger":
+
+type BranchTriggerCall struct {
+	s          *Service
+	branch     string
+	urlParams_ gensupport.URLParams
+	ctx_       context.Context
+}
+
+// Trigger:
+func (r *BranchService) Trigger(branch string) *BranchTriggerCall {
+	c := &BranchTriggerCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.branch = branch
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *BranchTriggerCall) Fields(s ...googleapi.Field) *BranchTriggerCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *BranchTriggerCall) Context(ctx context.Context) *BranchTriggerCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *BranchTriggerCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "branches/{branch}/trigger")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"branch": c.branch,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.branch.trigger" call.
+func (c *BranchTriggerCall) Do(opts ...googleapi.CallOption) error {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "httpMethod": "POST",
+	//   "id": "androidbuildinternal.branch.trigger",
+	//   "parameterOrder": [
+	//     "branch"
+	//   ],
+	//   "parameters": {
+	//     "branch": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "branches/{branch}/trigger",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/androidbuild.internal"
 	//   ]
@@ -3278,6 +3702,7 @@ func (c *BughashListCall) Do(opts ...googleapi.CallOption) (*BugHashListResponse
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -3300,6 +3725,27 @@ func (c *BughashListCall) Do(opts ...googleapi.CallOption) (*BugHashListResponse
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *BughashListCall) Pages(ctx context.Context, f func(*BugHashListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.bughash.patch":
@@ -3922,6 +4368,18 @@ func (c *BuildListCall) ExtraFields(extraFields ...string) *BuildListCall {
 	return c
 }
 
+// FailedTests sets the optional parameter "failedTests":
+func (c *BuildListCall) FailedTests(failedTests ...string) *BuildListCall {
+	c.urlParams_.SetMulti("failedTests", append([]string{}, failedTests...))
+	return c
+}
+
+// GitSha1 sets the optional parameter "gitSha1":
+func (c *BuildListCall) GitSha1(gitSha1 string) *BuildListCall {
+	c.urlParams_.Set("gitSha1", gitSha1)
+	return c
+}
+
 // MaxResults sets the optional parameter "maxResults":
 func (c *BuildListCall) MaxResults(maxResults int64) *BuildListCall {
 	c.urlParams_.Set("maxResults", fmt.Sprint(maxResults))
@@ -3931,6 +4389,12 @@ func (c *BuildListCall) MaxResults(maxResults int64) *BuildListCall {
 // PageToken sets the optional parameter "pageToken":
 func (c *BuildListCall) PageToken(pageToken string) *BuildListCall {
 	c.urlParams_.Set("pageToken", pageToken)
+	return c
+}
+
+// PassedTests sets the optional parameter "passedTests":
+func (c *BuildListCall) PassedTests(passedTests ...string) *BuildListCall {
+	c.urlParams_.SetMulti("passedTests", append([]string{}, passedTests...))
 	return c
 }
 
@@ -4113,13 +4577,28 @@ func (c *BuildListCall) Do(opts ...googleapi.CallOption) (*BuildListResponse, er
 	//       "repeated": true,
 	//       "type": "string"
 	//     },
+	//     "failedTests": {
+	//       "location": "query",
+	//       "repeated": true,
+	//       "type": "string"
+	//     },
+	//     "gitSha1": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
 	//     },
 	//     "pageToken": {
 	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "passedTests": {
+	//       "location": "query",
+	//       "repeated": true,
 	//       "type": "string"
 	//     },
 	//     "releaseCandidateName": {
@@ -4146,6 +4625,166 @@ func (c *BuildListCall) Do(opts ...googleapi.CallOption) (*BuildListResponse, er
 	//   "path": "builds",
 	//   "response": {
 	//     "$ref": "BuildListResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *BuildListCall) Pages(ctx context.Context, f func(*BuildListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
+}
+
+// method id "androidbuildinternal.build.markTestComplete":
+
+type BuildMarkTestCompleteCall struct {
+	s          *Service
+	buildId    string
+	target     string
+	urlParams_ gensupport.URLParams
+	ctx_       context.Context
+}
+
+// MarkTestComplete:
+func (r *BuildService) MarkTestComplete(buildId string, target string) *BuildMarkTestCompleteCall {
+	c := &BuildMarkTestCompleteCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.buildId = buildId
+	c.target = target
+	return c
+}
+
+// TestRunner sets the optional parameter "testRunner":
+//
+// Possible values:
+//   "atp"
+//   "batcave"
+func (c *BuildMarkTestCompleteCall) TestRunner(testRunner string) *BuildMarkTestCompleteCall {
+	c.urlParams_.Set("testRunner", testRunner)
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *BuildMarkTestCompleteCall) Fields(s ...googleapi.Field) *BuildMarkTestCompleteCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *BuildMarkTestCompleteCall) Context(ctx context.Context) *BuildMarkTestCompleteCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *BuildMarkTestCompleteCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "builds/{buildId}/{target}/markTestComplete")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"buildId": c.buildId,
+		"target":  c.target,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.build.markTestComplete" call.
+// Exactly one of *Build or error will be non-nil. Any non-2xx status
+// code is an error. Response headers are in either
+// *Build.ServerResponse.Header or (if a response was returned at all)
+// in error.(*googleapi.Error).Header. Use googleapi.IsNotModified to
+// check whether the returned error was because http.StatusNotModified
+// was returned.
+func (c *BuildMarkTestCompleteCall) Do(opts ...googleapi.CallOption) (*Build, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &Build{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "POST",
+	//   "id": "androidbuildinternal.build.markTestComplete",
+	//   "parameterOrder": [
+	//     "buildId",
+	//     "target"
+	//   ],
+	//   "parameters": {
+	//     "buildId": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "target": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "testRunner": {
+	//       "enum": [
+	//         "atp",
+	//         "batcave"
+	//       ],
+	//       "enumDescriptions": [
+	//         "",
+	//         ""
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "builds/{buildId}/{target}/markTestComplete",
+	//   "response": {
+	//     "$ref": "Build"
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/androidbuild.internal"
@@ -4533,6 +5172,145 @@ func (c *BuildSignCall) Do(opts ...googleapi.CallOption) (*BuildSignResponse, er
 	//   "path": "builds/{buildId}/{target}/sign",
 	//   "response": {
 	//     "$ref": "BuildSignResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// method id "androidbuildinternal.build.unsetTestComplete":
+
+type BuildUnsetTestCompleteCall struct {
+	s          *Service
+	buildId    string
+	target     string
+	urlParams_ gensupport.URLParams
+	ctx_       context.Context
+}
+
+// UnsetTestComplete:
+func (r *BuildService) UnsetTestComplete(buildId string, target string) *BuildUnsetTestCompleteCall {
+	c := &BuildUnsetTestCompleteCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.buildId = buildId
+	c.target = target
+	return c
+}
+
+// TestRunner sets the optional parameter "testRunner":
+//
+// Possible values:
+//   "atp"
+//   "batcave"
+func (c *BuildUnsetTestCompleteCall) TestRunner(testRunner string) *BuildUnsetTestCompleteCall {
+	c.urlParams_.Set("testRunner", testRunner)
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *BuildUnsetTestCompleteCall) Fields(s ...googleapi.Field) *BuildUnsetTestCompleteCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *BuildUnsetTestCompleteCall) Context(ctx context.Context) *BuildUnsetTestCompleteCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *BuildUnsetTestCompleteCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "builds/{buildId}/{target}/unsetTestComplete")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"buildId": c.buildId,
+		"target":  c.target,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.build.unsetTestComplete" call.
+// Exactly one of *Build or error will be non-nil. Any non-2xx status
+// code is an error. Response headers are in either
+// *Build.ServerResponse.Header or (if a response was returned at all)
+// in error.(*googleapi.Error).Header. Use googleapi.IsNotModified to
+// check whether the returned error was because http.StatusNotModified
+// was returned.
+func (c *BuildUnsetTestCompleteCall) Do(opts ...googleapi.CallOption) (*Build, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &Build{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "POST",
+	//   "id": "androidbuildinternal.build.unsetTestComplete",
+	//   "parameterOrder": [
+	//     "buildId",
+	//     "target"
+	//   ],
+	//   "parameters": {
+	//     "buildId": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "target": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "testRunner": {
+	//       "enum": [
+	//         "atp",
+	//         "batcave"
+	//       ],
+	//       "enumDescriptions": [
+	//         "",
+	//         ""
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "builds/{buildId}/{target}/unsetTestComplete",
+	//   "response": {
+	//     "$ref": "Build"
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/androidbuild.internal"
@@ -5256,6 +6034,7 @@ func (c *BuildartifactListCall) Do(opts ...googleapi.CallOption) (*BuildArtifact
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -5279,6 +6058,27 @@ func (c *BuildartifactListCall) Do(opts ...googleapi.CallOption) (*BuildArtifact
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *BuildartifactListCall) Pages(ctx context.Context, f func(*BuildArtifactListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.buildartifact.patch":
@@ -5438,7 +6238,7 @@ type BuildartifactUpdateCall struct {
 	buildartifactmetadata *BuildArtifactMetadata
 	urlParams_            gensupport.URLParams
 	media_                io.Reader
-	resumableBuffer_      *gensupport.ResumableBuffer
+	mediaBuffer_          *gensupport.MediaBuffer
 	mediaType_            string
 	mediaSize_            int64 // mediaSize, if known.  Used only for calls to progressUpdater_.
 	progressUpdater_      googleapi.ProgressUpdater
@@ -5456,18 +6256,29 @@ func (r *BuildartifactService) Update(buildId string, target string, attemptId s
 	return c
 }
 
-// Media specifies the media to upload in a single chunk. At most one of
-// Media and ResumableMedia may be set.
+// Media specifies the media to upload in one or more chunks. The chunk
+// size may be controlled by supplying a MediaOption generated by
+// googleapi.ChunkSize. The chunk size defaults to
+// googleapi.DefaultUploadChunkSize.The Content-Type header used in the
+// upload request will be determined by sniffing the contents of r,
+// unless a MediaOption generated by googleapi.ContentType is
+// supplied.
+// At most one of Media and ResumableMedia may be set.
 func (c *BuildartifactUpdateCall) Media(r io.Reader, options ...googleapi.MediaOption) *BuildartifactUpdateCall {
 	opts := googleapi.ProcessMediaOptions(options)
 	chunkSize := opts.ChunkSize
-	r, c.mediaType_ = gensupport.DetermineContentType(r, opts.ContentType)
-	c.media_, c.resumableBuffer_ = gensupport.PrepareUpload(r, chunkSize)
+	if !opts.ForceEmptyContentType {
+		r, c.mediaType_ = gensupport.DetermineContentType(r, opts.ContentType)
+	}
+	c.media_, c.mediaBuffer_ = gensupport.PrepareUpload(r, chunkSize)
 	return c
 }
 
 // ResumableMedia specifies the media to upload in chunks and can be
-// canceled with ctx. ResumableMedia is deprecated in favour of Media.
+// canceled with ctx.
+//
+// Deprecated: use Media instead.
+//
 // At most one of Media and ResumableMedia may be set. mediaType
 // identifies the MIME media type of the upload, such as "image/png". If
 // mediaType is "", it will be auto-detected. The provided ctx will
@@ -5476,7 +6287,7 @@ func (c *BuildartifactUpdateCall) ResumableMedia(ctx context.Context, r io.Reade
 	c.ctx_ = ctx
 	rdr := gensupport.ReaderAtToReader(r, size)
 	rdr, c.mediaType_ = gensupport.DetermineContentType(rdr, mediaType)
-	c.resumableBuffer_ = gensupport.NewResumableBuffer(rdr, googleapi.DefaultUploadChunkSize)
+	c.mediaBuffer_ = gensupport.NewMediaBuffer(rdr, googleapi.DefaultUploadChunkSize)
 	c.media_ = nil
 	c.mediaSize_ = size
 	return c
@@ -5518,10 +6329,10 @@ func (c *BuildartifactUpdateCall) doRequest(alt string) (*http.Response, error) 
 	ctype := "application/json"
 	c.urlParams_.Set("alt", alt)
 	urls := googleapi.ResolveRelative(c.s.BasePath, "builds/{buildId}/{target}/attempts/{attemptId}/artifacts/{resourceId}")
-	if c.media_ != nil || c.resumableBuffer_ != nil {
+	if c.media_ != nil || c.mediaBuffer_ != nil {
 		urls = strings.Replace(urls, "https://www.googleapis.com/", "https://www.googleapis.com/upload/", 1)
 		protocol := "multipart"
-		if c.resumableBuffer_ != nil {
+		if c.mediaBuffer_ != nil {
 			protocol = "resumable"
 		}
 		c.urlParams_.Set("uploadType", protocol)
@@ -5540,7 +6351,7 @@ func (c *BuildartifactUpdateCall) doRequest(alt string) (*http.Response, error) 
 		"attemptId":  c.attemptId,
 		"resourceId": c.resourceId,
 	})
-	if c.resumableBuffer_ != nil {
+	if c.mediaBuffer_ != nil && c.mediaType_ != "" {
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 	}
 	req.Header.Set("Content-Type", ctype)
@@ -5577,13 +6388,13 @@ func (c *BuildartifactUpdateCall) Do(opts ...googleapi.CallOption) (*BuildArtifa
 	if err := googleapi.CheckResponse(res); err != nil {
 		return nil, err
 	}
-	if c.resumableBuffer_ != nil {
+	if c.mediaBuffer_ != nil {
 		loc := res.Header.Get("Location")
 		rx := &gensupport.ResumableUpload{
 			Client:    c.s.client,
 			UserAgent: c.s.userAgent(),
 			URI:       loc,
-			Media:     c.resumableBuffer_,
+			Media:     c.mediaBuffer_,
 			MediaType: c.mediaType_,
 			Callback: func(curr int64) {
 				if c.progressUpdater_ != nil {
@@ -5600,6 +6411,9 @@ func (c *BuildartifactUpdateCall) Do(opts ...googleapi.CallOption) (*BuildArtifa
 			return nil, err
 		}
 		defer res.Body.Close()
+		if err := googleapi.CheckResponse(res); err != nil {
+			return nil, err
+		}
 	}
 	ret := &BuildArtifactMetadata{
 		ServerResponse: googleapi.ServerResponse{
@@ -6120,6 +6934,7 @@ func (c *BuildattemptListCall) Do(opts ...googleapi.CallOption) (*BuildAttemptLi
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -6143,6 +6958,27 @@ func (c *BuildattemptListCall) Do(opts ...googleapi.CallOption) (*BuildAttemptLi
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *BuildattemptListCall) Pages(ctx context.Context, f func(*BuildAttemptListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.buildattempt.patch":
@@ -6566,6 +7402,7 @@ func (c *BuildidListCall) Do(opts ...googleapi.CallOption) (*BuildIdListResponse
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -6584,6 +7421,27 @@ func (c *BuildidListCall) Do(opts ...googleapi.CallOption) (*BuildIdListResponse
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *BuildidListCall) Pages(ctx context.Context, f func(*BuildIdListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.buildrequest.get":
@@ -6956,6 +7814,7 @@ func (c *BuildrequestListCall) Do(opts ...googleapi.CallOption) (*BuildRequestLi
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -7000,6 +7859,27 @@ func (c *BuildrequestListCall) Do(opts ...googleapi.CallOption) (*BuildRequestLi
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *BuildrequestListCall) Pages(ctx context.Context, f func(*BuildRequestListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.buildrequest.patch":
@@ -8256,6 +9136,7 @@ func (c *DeviceblobListCall) Do(opts ...googleapi.CallOption) (*DeviceBlobListRe
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -8278,6 +9159,27 @@ func (c *DeviceblobListCall) Do(opts ...googleapi.CallOption) (*DeviceBlobListRe
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *DeviceblobListCall) Pages(ctx context.Context, f func(*DeviceBlobListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.deviceblob.patch":
@@ -8427,7 +9329,7 @@ type DeviceblobUpdateCall struct {
 	buildartifactmetadata *BuildArtifactMetadata
 	urlParams_            gensupport.URLParams
 	media_                io.Reader
-	resumableBuffer_      *gensupport.ResumableBuffer
+	mediaBuffer_          *gensupport.MediaBuffer
 	mediaType_            string
 	mediaSize_            int64 // mediaSize, if known.  Used only for calls to progressUpdater_.
 	progressUpdater_      googleapi.ProgressUpdater
@@ -8444,18 +9346,29 @@ func (r *DeviceblobService) Update(deviceName string, binaryType string, resourc
 	return c
 }
 
-// Media specifies the media to upload in a single chunk. At most one of
-// Media and ResumableMedia may be set.
+// Media specifies the media to upload in one or more chunks. The chunk
+// size may be controlled by supplying a MediaOption generated by
+// googleapi.ChunkSize. The chunk size defaults to
+// googleapi.DefaultUploadChunkSize.The Content-Type header used in the
+// upload request will be determined by sniffing the contents of r,
+// unless a MediaOption generated by googleapi.ContentType is
+// supplied.
+// At most one of Media and ResumableMedia may be set.
 func (c *DeviceblobUpdateCall) Media(r io.Reader, options ...googleapi.MediaOption) *DeviceblobUpdateCall {
 	opts := googleapi.ProcessMediaOptions(options)
 	chunkSize := opts.ChunkSize
-	r, c.mediaType_ = gensupport.DetermineContentType(r, opts.ContentType)
-	c.media_, c.resumableBuffer_ = gensupport.PrepareUpload(r, chunkSize)
+	if !opts.ForceEmptyContentType {
+		r, c.mediaType_ = gensupport.DetermineContentType(r, opts.ContentType)
+	}
+	c.media_, c.mediaBuffer_ = gensupport.PrepareUpload(r, chunkSize)
 	return c
 }
 
 // ResumableMedia specifies the media to upload in chunks and can be
-// canceled with ctx. ResumableMedia is deprecated in favour of Media.
+// canceled with ctx.
+//
+// Deprecated: use Media instead.
+//
 // At most one of Media and ResumableMedia may be set. mediaType
 // identifies the MIME media type of the upload, such as "image/png". If
 // mediaType is "", it will be auto-detected. The provided ctx will
@@ -8464,7 +9377,7 @@ func (c *DeviceblobUpdateCall) ResumableMedia(ctx context.Context, r io.ReaderAt
 	c.ctx_ = ctx
 	rdr := gensupport.ReaderAtToReader(r, size)
 	rdr, c.mediaType_ = gensupport.DetermineContentType(rdr, mediaType)
-	c.resumableBuffer_ = gensupport.NewResumableBuffer(rdr, googleapi.DefaultUploadChunkSize)
+	c.mediaBuffer_ = gensupport.NewMediaBuffer(rdr, googleapi.DefaultUploadChunkSize)
 	c.media_ = nil
 	c.mediaSize_ = size
 	return c
@@ -8506,10 +9419,10 @@ func (c *DeviceblobUpdateCall) doRequest(alt string) (*http.Response, error) {
 	ctype := "application/json"
 	c.urlParams_.Set("alt", alt)
 	urls := googleapi.ResolveRelative(c.s.BasePath, "deviceBlobs/{deviceName}/{binaryType}/{resourceId}")
-	if c.media_ != nil || c.resumableBuffer_ != nil {
+	if c.media_ != nil || c.mediaBuffer_ != nil {
 		urls = strings.Replace(urls, "https://www.googleapis.com/", "https://www.googleapis.com/upload/", 1)
 		protocol := "multipart"
-		if c.resumableBuffer_ != nil {
+		if c.mediaBuffer_ != nil {
 			protocol = "resumable"
 		}
 		c.urlParams_.Set("uploadType", protocol)
@@ -8527,7 +9440,7 @@ func (c *DeviceblobUpdateCall) doRequest(alt string) (*http.Response, error) {
 		"binaryType": c.binaryType,
 		"resourceId": c.resourceId,
 	})
-	if c.resumableBuffer_ != nil {
+	if c.mediaBuffer_ != nil && c.mediaType_ != "" {
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 	}
 	req.Header.Set("Content-Type", ctype)
@@ -8564,13 +9477,13 @@ func (c *DeviceblobUpdateCall) Do(opts ...googleapi.CallOption) (*BuildArtifactM
 	if err := googleapi.CheckResponse(res); err != nil {
 		return nil, err
 	}
-	if c.resumableBuffer_ != nil {
+	if c.mediaBuffer_ != nil {
 		loc := res.Header.Get("Location")
 		rx := &gensupport.ResumableUpload{
 			Client:    c.s.client,
 			UserAgent: c.s.userAgent(),
 			URI:       loc,
-			Media:     c.resumableBuffer_,
+			Media:     c.mediaBuffer_,
 			MediaType: c.mediaType_,
 			Callback: func(curr int64) {
 				if c.progressUpdater_ != nil {
@@ -8587,6 +9500,9 @@ func (c *DeviceblobUpdateCall) Do(opts ...googleapi.CallOption) (*BuildArtifactM
 			return nil, err
 		}
 		defer res.Body.Close()
+		if err := googleapi.CheckResponse(res); err != nil {
+			return nil, err
+		}
 	}
 	ret := &BuildArtifactMetadata{
 		ServerResponse: googleapi.ServerResponse{
@@ -9026,6 +9942,7 @@ func (c *ImagerequestListCall) Do(opts ...googleapi.CallOption) (*ImageRequestLi
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -9076,6 +9993,27 @@ func (c *ImagerequestListCall) Do(opts ...googleapi.CallOption) (*ImageRequestLi
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *ImagerequestListCall) Pages(ctx context.Context, f func(*ImageRequestListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.imagerequest.patch":
@@ -9316,9 +10254,9 @@ func (c *ImagerequestUpdateCall) Do(opts ...googleapi.CallOption) (*ImageRequest
 
 }
 
-// method id "androidbuildinternal.label.addbuilds":
+// method id "androidbuildinternal.label.addBuilds":
 
-type LabelAddbuildsCall struct {
+type LabelAddBuildsCall struct {
 	s                     *Service
 	namespace             string
 	name                  string
@@ -9327,9 +10265,9 @@ type LabelAddbuildsCall struct {
 	ctx_                  context.Context
 }
 
-// Addbuilds:
-func (r *LabelService) Addbuilds(namespace string, name string, labeladdbuildsrequest *LabelAddBuildsRequest) *LabelAddbuildsCall {
-	c := &LabelAddbuildsCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+// AddBuilds:
+func (r *LabelService) AddBuilds(namespace string, name string, labeladdbuildsrequest *LabelAddBuildsRequest) *LabelAddBuildsCall {
+	c := &LabelAddBuildsCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.namespace = namespace
 	c.name = name
 	c.labeladdbuildsrequest = labeladdbuildsrequest
@@ -9339,7 +10277,7 @@ func (r *LabelService) Addbuilds(namespace string, name string, labeladdbuildsre
 // Fields allows partial responses to be retrieved. See
 // https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
-func (c *LabelAddbuildsCall) Fields(s ...googleapi.Field) *LabelAddbuildsCall {
+func (c *LabelAddBuildsCall) Fields(s ...googleapi.Field) *LabelAddBuildsCall {
 	c.urlParams_.Set("fields", googleapi.CombineFields(s))
 	return c
 }
@@ -9347,12 +10285,12 @@ func (c *LabelAddbuildsCall) Fields(s ...googleapi.Field) *LabelAddbuildsCall {
 // Context sets the context to be used in this call's Do method. Any
 // pending HTTP request will be aborted if the provided context is
 // canceled.
-func (c *LabelAddbuildsCall) Context(ctx context.Context) *LabelAddbuildsCall {
+func (c *LabelAddBuildsCall) Context(ctx context.Context) *LabelAddBuildsCall {
 	c.ctx_ = ctx
 	return c
 }
 
-func (c *LabelAddbuildsCall) doRequest(alt string) (*http.Response, error) {
+func (c *LabelAddBuildsCall) doRequest(alt string) (*http.Response, error) {
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.labeladdbuildsrequest)
 	if err != nil {
@@ -9375,14 +10313,14 @@ func (c *LabelAddbuildsCall) doRequest(alt string) (*http.Response, error) {
 	return c.s.client.Do(req)
 }
 
-// Do executes the "androidbuildinternal.label.addbuilds" call.
+// Do executes the "androidbuildinternal.label.addBuilds" call.
 // Exactly one of *LabelAddBuildsResponse or error will be non-nil. Any
 // non-2xx status code is an error. Response headers are in either
 // *LabelAddBuildsResponse.ServerResponse.Header or (if a response was
 // returned at all) in error.(*googleapi.Error).Header. Use
 // googleapi.IsNotModified to check whether the returned error was
 // because http.StatusNotModified was returned.
-func (c *LabelAddbuildsCall) Do(opts ...googleapi.CallOption) (*LabelAddBuildsResponse, error) {
+func (c *LabelAddBuildsCall) Do(opts ...googleapi.CallOption) (*LabelAddBuildsResponse, error) {
 	gensupport.SetOptions(c.urlParams_, opts...)
 	res, err := c.doRequest("json")
 	if res != nil && res.StatusCode == http.StatusNotModified {
@@ -9413,7 +10351,7 @@ func (c *LabelAddbuildsCall) Do(opts ...googleapi.CallOption) (*LabelAddBuildsRe
 	return ret, nil
 	// {
 	//   "httpMethod": "POST",
-	//   "id": "androidbuildinternal.label.addbuilds",
+	//   "id": "androidbuildinternal.label.addBuilds",
 	//   "parameterOrder": [
 	//     "namespace",
 	//     "name"
@@ -9575,22 +10513,16 @@ func (c *LabelCloneCall) Do(opts ...googleapi.CallOption) (*LabelCloneResponse, 
 type LabelDeleteCall struct {
 	s          *Service
 	namespace  string
-	name       string
+	resourceId string
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
 }
 
 // Delete:
-func (r *LabelService) Delete(namespace string, name string) *LabelDeleteCall {
+func (r *LabelService) Delete(namespace string, resourceId string) *LabelDeleteCall {
 	c := &LabelDeleteCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.namespace = namespace
-	c.name = name
-	return c
-}
-
-// ResourceId sets the optional parameter "resourceId":
-func (c *LabelDeleteCall) ResourceId(resourceId string) *LabelDeleteCall {
-	c.urlParams_.Set("resourceId", resourceId)
+	c.resourceId = resourceId
 	return c
 }
 
@@ -9613,12 +10545,12 @@ func (c *LabelDeleteCall) Context(ctx context.Context) *LabelDeleteCall {
 func (c *LabelDeleteCall) doRequest(alt string) (*http.Response, error) {
 	var body io.Reader = nil
 	c.urlParams_.Set("alt", alt)
-	urls := googleapi.ResolveRelative(c.s.BasePath, "labels/{namespace}/{name}")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "labels/{namespace}/{resourceId}")
 	urls += "?" + c.urlParams_.Encode()
 	req, _ := http.NewRequest("DELETE", urls, body)
 	googleapi.Expand(req.URL, map[string]string{
-		"namespace": c.namespace,
-		"name":      c.name,
+		"namespace":  c.namespace,
+		"resourceId": c.resourceId,
 	})
 	req.Header.Set("User-Agent", c.s.userAgent())
 	if c.ctx_ != nil {
@@ -9644,25 +10576,21 @@ func (c *LabelDeleteCall) Do(opts ...googleapi.CallOption) error {
 	//   "id": "androidbuildinternal.label.delete",
 	//   "parameterOrder": [
 	//     "namespace",
-	//     "name"
+	//     "resourceId"
 	//   ],
 	//   "parameters": {
-	//     "name": {
-	//       "location": "path",
-	//       "required": true,
-	//       "type": "string"
-	//     },
 	//     "namespace": {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "resourceId": {
-	//       "location": "query",
+	//       "location": "path",
+	//       "required": true,
 	//       "type": "string"
 	//     }
 	//   },
-	//   "path": "labels/{namespace}/{name}",
+	//   "path": "labels/{namespace}/{resourceId}",
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/androidbuild.internal"
 	//   ]
@@ -9675,23 +10603,17 @@ func (c *LabelDeleteCall) Do(opts ...googleapi.CallOption) error {
 type LabelGetCall struct {
 	s            *Service
 	namespace    string
-	name         string
+	resourceId   string
 	urlParams_   gensupport.URLParams
 	ifNoneMatch_ string
 	ctx_         context.Context
 }
 
 // Get:
-func (r *LabelService) Get(namespace string, name string) *LabelGetCall {
+func (r *LabelService) Get(namespace string, resourceId string) *LabelGetCall {
 	c := &LabelGetCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.namespace = namespace
-	c.name = name
-	return c
-}
-
-// ResourceId sets the optional parameter "resourceId":
-func (c *LabelGetCall) ResourceId(resourceId string) *LabelGetCall {
-	c.urlParams_.Set("resourceId", resourceId)
+	c.resourceId = resourceId
 	return c
 }
 
@@ -9724,12 +10646,12 @@ func (c *LabelGetCall) Context(ctx context.Context) *LabelGetCall {
 func (c *LabelGetCall) doRequest(alt string) (*http.Response, error) {
 	var body io.Reader = nil
 	c.urlParams_.Set("alt", alt)
-	urls := googleapi.ResolveRelative(c.s.BasePath, "labels/{namespace}/{name}")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "labels/{namespace}/{resourceId}")
 	urls += "?" + c.urlParams_.Encode()
 	req, _ := http.NewRequest("GET", urls, body)
 	googleapi.Expand(req.URL, map[string]string{
-		"namespace": c.namespace,
-		"name":      c.name,
+		"namespace":  c.namespace,
+		"resourceId": c.resourceId,
 	})
 	req.Header.Set("User-Agent", c.s.userAgent())
 	if c.ifNoneMatch_ != "" {
@@ -9782,25 +10704,21 @@ func (c *LabelGetCall) Do(opts ...googleapi.CallOption) (*Label, error) {
 	//   "id": "androidbuildinternal.label.get",
 	//   "parameterOrder": [
 	//     "namespace",
-	//     "name"
+	//     "resourceId"
 	//   ],
 	//   "parameters": {
-	//     "name": {
-	//       "location": "path",
-	//       "required": true,
-	//       "type": "string"
-	//     },
 	//     "namespace": {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "resourceId": {
-	//       "location": "query",
+	//       "location": "path",
+	//       "required": true,
 	//       "type": "string"
 	//     }
 	//   },
-	//   "path": "labels/{namespace}/{name}",
+	//   "path": "labels/{namespace}/{resourceId}",
 	//   "response": {
 	//     "$ref": "Label"
 	//   },
@@ -9944,6 +10862,7 @@ func (c *LabelListCall) Do(opts ...googleapi.CallOption) (*LabelListResponse, er
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -9972,28 +10891,44 @@ func (c *LabelListCall) Do(opts ...googleapi.CallOption) (*LabelListResponse, er
 
 }
 
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *LabelListCall) Pages(ctx context.Context, f func(*LabelListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
+}
+
 // method id "androidbuildinternal.label.patch":
 
 type LabelPatchCall struct {
 	s          *Service
 	namespace  string
+	resourceId string
 	label      *Label
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
 }
 
 // Patch:
-func (r *LabelService) Patch(namespace string, name string, label *Label) *LabelPatchCall {
+func (r *LabelService) Patch(namespace string, resourceId string, label *Label) *LabelPatchCall {
 	c := &LabelPatchCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.namespace = namespace
-	c.urlParams_.Set("name", name)
+	c.resourceId = resourceId
 	c.label = label
-	return c
-}
-
-// ResourceId sets the optional parameter "resourceId":
-func (c *LabelPatchCall) ResourceId(resourceId string) *LabelPatchCall {
-	c.urlParams_.Set("resourceId", resourceId)
 	return c
 }
 
@@ -10021,11 +10956,12 @@ func (c *LabelPatchCall) doRequest(alt string) (*http.Response, error) {
 	}
 	ctype := "application/json"
 	c.urlParams_.Set("alt", alt)
-	urls := googleapi.ResolveRelative(c.s.BasePath, "labels/{namespace}")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "labels/{namespace}/{resourceId}")
 	urls += "?" + c.urlParams_.Encode()
 	req, _ := http.NewRequest("PATCH", urls, body)
 	googleapi.Expand(req.URL, map[string]string{
-		"namespace": c.namespace,
+		"namespace":  c.namespace,
+		"resourceId": c.resourceId,
 	})
 	req.Header.Set("Content-Type", ctype)
 	req.Header.Set("User-Agent", c.s.userAgent())
@@ -10076,25 +11012,21 @@ func (c *LabelPatchCall) Do(opts ...googleapi.CallOption) (*Label, error) {
 	//   "id": "androidbuildinternal.label.patch",
 	//   "parameterOrder": [
 	//     "namespace",
-	//     "name"
+	//     "resourceId"
 	//   ],
 	//   "parameters": {
-	//     "name": {
-	//       "location": "query",
-	//       "required": true,
-	//       "type": "string"
-	//     },
 	//     "namespace": {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "resourceId": {
-	//       "location": "query",
+	//       "location": "path",
+	//       "required": true,
 	//       "type": "string"
 	//     }
 	//   },
-	//   "path": "labels/{namespace}",
+	//   "path": "labels/{namespace}/{resourceId}",
 	//   "request": {
 	//     "$ref": "Label"
 	//   },
@@ -10108,9 +11040,9 @@ func (c *LabelPatchCall) Do(opts ...googleapi.CallOption) (*Label, error) {
 
 }
 
-// method id "androidbuildinternal.label.removebuilds":
+// method id "androidbuildinternal.label.removeBuilds":
 
-type LabelRemovebuildsCall struct {
+type LabelRemoveBuildsCall struct {
 	s                        *Service
 	namespace                string
 	name                     string
@@ -10119,9 +11051,9 @@ type LabelRemovebuildsCall struct {
 	ctx_                     context.Context
 }
 
-// Removebuilds:
-func (r *LabelService) Removebuilds(namespace string, name string, labelremovebuildsrequest *LabelRemoveBuildsRequest) *LabelRemovebuildsCall {
-	c := &LabelRemovebuildsCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+// RemoveBuilds:
+func (r *LabelService) RemoveBuilds(namespace string, name string, labelremovebuildsrequest *LabelRemoveBuildsRequest) *LabelRemoveBuildsCall {
+	c := &LabelRemoveBuildsCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.namespace = namespace
 	c.name = name
 	c.labelremovebuildsrequest = labelremovebuildsrequest
@@ -10131,7 +11063,7 @@ func (r *LabelService) Removebuilds(namespace string, name string, labelremovebu
 // Fields allows partial responses to be retrieved. See
 // https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
 // for more information.
-func (c *LabelRemovebuildsCall) Fields(s ...googleapi.Field) *LabelRemovebuildsCall {
+func (c *LabelRemoveBuildsCall) Fields(s ...googleapi.Field) *LabelRemoveBuildsCall {
 	c.urlParams_.Set("fields", googleapi.CombineFields(s))
 	return c
 }
@@ -10139,12 +11071,12 @@ func (c *LabelRemovebuildsCall) Fields(s ...googleapi.Field) *LabelRemovebuildsC
 // Context sets the context to be used in this call's Do method. Any
 // pending HTTP request will be aborted if the provided context is
 // canceled.
-func (c *LabelRemovebuildsCall) Context(ctx context.Context) *LabelRemovebuildsCall {
+func (c *LabelRemoveBuildsCall) Context(ctx context.Context) *LabelRemoveBuildsCall {
 	c.ctx_ = ctx
 	return c
 }
 
-func (c *LabelRemovebuildsCall) doRequest(alt string) (*http.Response, error) {
+func (c *LabelRemoveBuildsCall) doRequest(alt string) (*http.Response, error) {
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.labelremovebuildsrequest)
 	if err != nil {
@@ -10167,14 +11099,14 @@ func (c *LabelRemovebuildsCall) doRequest(alt string) (*http.Response, error) {
 	return c.s.client.Do(req)
 }
 
-// Do executes the "androidbuildinternal.label.removebuilds" call.
+// Do executes the "androidbuildinternal.label.removeBuilds" call.
 // Exactly one of *LabelRemoveBuildsResponse or error will be non-nil.
 // Any non-2xx status code is an error. Response headers are in either
 // *LabelRemoveBuildsResponse.ServerResponse.Header or (if a response
 // was returned at all) in error.(*googleapi.Error).Header. Use
 // googleapi.IsNotModified to check whether the returned error was
 // because http.StatusNotModified was returned.
-func (c *LabelRemovebuildsCall) Do(opts ...googleapi.CallOption) (*LabelRemoveBuildsResponse, error) {
+func (c *LabelRemoveBuildsCall) Do(opts ...googleapi.CallOption) (*LabelRemoveBuildsResponse, error) {
 	gensupport.SetOptions(c.urlParams_, opts...)
 	res, err := c.doRequest("json")
 	if res != nil && res.StatusCode == http.StatusNotModified {
@@ -10205,7 +11137,7 @@ func (c *LabelRemovebuildsCall) Do(opts ...googleapi.CallOption) (*LabelRemoveBu
 	return ret, nil
 	// {
 	//   "httpMethod": "POST",
-	//   "id": "androidbuildinternal.label.removebuilds",
+	//   "id": "androidbuildinternal.label.removeBuilds",
 	//   "parameterOrder": [
 	//     "namespace",
 	//     "name"
@@ -10358,28 +11290,18 @@ func (c *LabelResetCall) Do(opts ...googleapi.CallOption) (*LabelResetResponse, 
 type LabelUpdateCall struct {
 	s          *Service
 	namespace  string
+	resourceId string
 	label      *Label
 	urlParams_ gensupport.URLParams
 	ctx_       context.Context
 }
 
 // Update:
-func (r *LabelService) Update(namespace string, label *Label) *LabelUpdateCall {
+func (r *LabelService) Update(namespace string, resourceId string, label *Label) *LabelUpdateCall {
 	c := &LabelUpdateCall{s: r.s, urlParams_: make(gensupport.URLParams)}
 	c.namespace = namespace
+	c.resourceId = resourceId
 	c.label = label
-	return c
-}
-
-// Name sets the optional parameter "name":
-func (c *LabelUpdateCall) Name(name string) *LabelUpdateCall {
-	c.urlParams_.Set("name", name)
-	return c
-}
-
-// ResourceId sets the optional parameter "resourceId":
-func (c *LabelUpdateCall) ResourceId(resourceId string) *LabelUpdateCall {
-	c.urlParams_.Set("resourceId", resourceId)
 	return c
 }
 
@@ -10407,11 +11329,12 @@ func (c *LabelUpdateCall) doRequest(alt string) (*http.Response, error) {
 	}
 	ctype := "application/json"
 	c.urlParams_.Set("alt", alt)
-	urls := googleapi.ResolveRelative(c.s.BasePath, "labels/{namespace}")
+	urls := googleapi.ResolveRelative(c.s.BasePath, "labels/{namespace}/{resourceId}")
 	urls += "?" + c.urlParams_.Encode()
 	req, _ := http.NewRequest("PUT", urls, body)
 	googleapi.Expand(req.URL, map[string]string{
-		"namespace": c.namespace,
+		"namespace":  c.namespace,
+		"resourceId": c.resourceId,
 	})
 	req.Header.Set("Content-Type", ctype)
 	req.Header.Set("User-Agent", c.s.userAgent())
@@ -10461,29 +11384,904 @@ func (c *LabelUpdateCall) Do(opts ...googleapi.CallOption) (*Label, error) {
 	//   "httpMethod": "PUT",
 	//   "id": "androidbuildinternal.label.update",
 	//   "parameterOrder": [
-	//     "namespace"
+	//     "namespace",
+	//     "resourceId"
 	//   ],
 	//   "parameters": {
-	//     "name": {
-	//       "location": "query",
-	//       "type": "string"
-	//     },
 	//     "namespace": {
 	//       "location": "path",
 	//       "required": true,
 	//       "type": "string"
 	//     },
 	//     "resourceId": {
-	//       "location": "query",
+	//       "location": "path",
+	//       "required": true,
 	//       "type": "string"
 	//     }
 	//   },
-	//   "path": "labels/{namespace}",
+	//   "path": "labels/{namespace}/{resourceId}",
 	//   "request": {
 	//     "$ref": "Label"
 	//   },
 	//   "response": {
 	//     "$ref": "Label"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// method id "androidbuildinternal.machine.delete":
+
+type MachineDeleteCall struct {
+	s          *Service
+	resourceId string
+	urlParams_ gensupport.URLParams
+	ctx_       context.Context
+}
+
+// Delete:
+func (r *MachineService) Delete(resourceId string) *MachineDeleteCall {
+	c := &MachineDeleteCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.resourceId = resourceId
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *MachineDeleteCall) Fields(s ...googleapi.Field) *MachineDeleteCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *MachineDeleteCall) Context(ctx context.Context) *MachineDeleteCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *MachineDeleteCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "machines/{resourceId}")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("DELETE", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"resourceId": c.resourceId,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.machine.delete" call.
+func (c *MachineDeleteCall) Do(opts ...googleapi.CallOption) error {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if err != nil {
+		return err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return err
+	}
+	return nil
+	// {
+	//   "httpMethod": "DELETE",
+	//   "id": "androidbuildinternal.machine.delete",
+	//   "parameterOrder": [
+	//     "resourceId"
+	//   ],
+	//   "parameters": {
+	//     "resourceId": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "machines/{resourceId}",
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// method id "androidbuildinternal.machine.get":
+
+type MachineGetCall struct {
+	s            *Service
+	resourceId   string
+	urlParams_   gensupport.URLParams
+	ifNoneMatch_ string
+	ctx_         context.Context
+}
+
+// Get:
+func (r *MachineService) Get(resourceId string) *MachineGetCall {
+	c := &MachineGetCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.resourceId = resourceId
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *MachineGetCall) Fields(s ...googleapi.Field) *MachineGetCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// IfNoneMatch sets the optional parameter which makes the operation
+// fail if the object's ETag matches the given value. This is useful for
+// getting updates only after the object has changed since the last
+// request. Use googleapi.IsNotModified to check whether the response
+// error from Do is the result of In-None-Match.
+func (c *MachineGetCall) IfNoneMatch(entityTag string) *MachineGetCall {
+	c.ifNoneMatch_ = entityTag
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *MachineGetCall) Context(ctx context.Context) *MachineGetCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *MachineGetCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "machines/{resourceId}")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"resourceId": c.resourceId,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ifNoneMatch_ != "" {
+		req.Header.Set("If-None-Match", c.ifNoneMatch_)
+	}
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.machine.get" call.
+// Exactly one of *Machine or error will be non-nil. Any non-2xx status
+// code is an error. Response headers are in either
+// *Machine.ServerResponse.Header or (if a response was returned at all)
+// in error.(*googleapi.Error).Header. Use googleapi.IsNotModified to
+// check whether the returned error was because http.StatusNotModified
+// was returned.
+func (c *MachineGetCall) Do(opts ...googleapi.CallOption) (*Machine, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &Machine{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "GET",
+	//   "id": "androidbuildinternal.machine.get",
+	//   "parameterOrder": [
+	//     "resourceId"
+	//   ],
+	//   "parameters": {
+	//     "resourceId": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "machines/{resourceId}",
+	//   "response": {
+	//     "$ref": "Machine"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// method id "androidbuildinternal.machine.list":
+
+type MachineListCall struct {
+	s            *Service
+	urlParams_   gensupport.URLParams
+	ifNoneMatch_ string
+	ctx_         context.Context
+}
+
+// List:
+func (r *MachineService) List() *MachineListCall {
+	c := &MachineListCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	return c
+}
+
+// Branch sets the optional parameter "branch":
+func (c *MachineListCall) Branch(branch string) *MachineListCall {
+	c.urlParams_.Set("branch", branch)
+	return c
+}
+
+// BuildPlatform sets the optional parameter "buildPlatform":
+func (c *MachineListCall) BuildPlatform(buildPlatform string) *MachineListCall {
+	c.urlParams_.Set("buildPlatform", buildPlatform)
+	return c
+}
+
+// BuildType sets the optional parameter "buildType":
+//
+// Possible values:
+//   "external"
+//   "pending"
+//   "submitted"
+func (c *MachineListCall) BuildType(buildType string) *MachineListCall {
+	c.urlParams_.Set("buildType", buildType)
+	return c
+}
+
+// MachineName sets the optional parameter "machineName":
+func (c *MachineListCall) MachineName(machineName string) *MachineListCall {
+	c.urlParams_.Set("machineName", machineName)
+	return c
+}
+
+// MaxResults sets the optional parameter "maxResults":
+func (c *MachineListCall) MaxResults(maxResults int64) *MachineListCall {
+	c.urlParams_.Set("maxResults", fmt.Sprint(maxResults))
+	return c
+}
+
+// Operation sets the optional parameter "operation":
+//
+// Possible values:
+//   "finish"
+//   "queueBuild"
+//   "resetBuild"
+//   "start"
+//   "synced"
+//   "syncing"
+func (c *MachineListCall) Operation(operation string) *MachineListCall {
+	c.urlParams_.Set("operation", operation)
+	return c
+}
+
+// OsType sets the optional parameter "osType":
+func (c *MachineListCall) OsType(osType string) *MachineListCall {
+	c.urlParams_.Set("osType", osType)
+	return c
+}
+
+// PageToken sets the optional parameter "pageToken":
+func (c *MachineListCall) PageToken(pageToken string) *MachineListCall {
+	c.urlParams_.Set("pageToken", pageToken)
+	return c
+}
+
+// Status sets the optional parameter "status":
+//
+// Possible values:
+//   "offline"
+//   "online"
+func (c *MachineListCall) Status(status string) *MachineListCall {
+	c.urlParams_.Set("status", status)
+	return c
+}
+
+// Target sets the optional parameter "target":
+func (c *MachineListCall) Target(target string) *MachineListCall {
+	c.urlParams_.Set("target", target)
+	return c
+}
+
+// Version sets the optional parameter "version":
+func (c *MachineListCall) Version(version string) *MachineListCall {
+	c.urlParams_.Set("version", version)
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *MachineListCall) Fields(s ...googleapi.Field) *MachineListCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// IfNoneMatch sets the optional parameter which makes the operation
+// fail if the object's ETag matches the given value. This is useful for
+// getting updates only after the object has changed since the last
+// request. Use googleapi.IsNotModified to check whether the response
+// error from Do is the result of In-None-Match.
+func (c *MachineListCall) IfNoneMatch(entityTag string) *MachineListCall {
+	c.ifNoneMatch_ = entityTag
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *MachineListCall) Context(ctx context.Context) *MachineListCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *MachineListCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "machines")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.SetOpaque(req.URL)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ifNoneMatch_ != "" {
+		req.Header.Set("If-None-Match", c.ifNoneMatch_)
+	}
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.machine.list" call.
+// Exactly one of *MachineListResponse or error will be non-nil. Any
+// non-2xx status code is an error. Response headers are in either
+// *MachineListResponse.ServerResponse.Header or (if a response was
+// returned at all) in error.(*googleapi.Error).Header. Use
+// googleapi.IsNotModified to check whether the returned error was
+// because http.StatusNotModified was returned.
+func (c *MachineListCall) Do(opts ...googleapi.CallOption) (*MachineListResponse, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &MachineListResponse{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "GET",
+	//   "id": "androidbuildinternal.machine.list",
+	//   "parameters": {
+	//     "branch": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "buildPlatform": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "buildType": {
+	//       "enum": [
+	//         "external",
+	//         "pending",
+	//         "submitted"
+	//       ],
+	//       "enumDescriptions": [
+	//         "",
+	//         "",
+	//         ""
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "machineName": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "maxResults": {
+	//       "default": "10",
+	//       "format": "uint32",
+	//       "location": "query",
+	//       "type": "integer"
+	//     },
+	//     "operation": {
+	//       "enum": [
+	//         "finish",
+	//         "queueBuild",
+	//         "resetBuild",
+	//         "start",
+	//         "synced",
+	//         "syncing"
+	//       ],
+	//       "enumDescriptions": [
+	//         "",
+	//         "",
+	//         "",
+	//         "",
+	//         "",
+	//         ""
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "osType": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "pageToken": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "status": {
+	//       "enum": [
+	//         "offline",
+	//         "online"
+	//       ],
+	//       "enumDescriptions": [
+	//         "",
+	//         ""
+	//       ],
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "target": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "version": {
+	//       "location": "query",
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "machines",
+	//   "response": {
+	//     "$ref": "MachineListResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *MachineListCall) Pages(ctx context.Context, f func(*MachineListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
+}
+
+// method id "androidbuildinternal.machine.patch":
+
+type MachinePatchCall struct {
+	s          *Service
+	resourceId string
+	machine    *Machine
+	urlParams_ gensupport.URLParams
+	ctx_       context.Context
+}
+
+// Patch:
+func (r *MachineService) Patch(resourceId string, machine *Machine) *MachinePatchCall {
+	c := &MachinePatchCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.resourceId = resourceId
+	c.machine = machine
+	return c
+}
+
+// Comment sets the optional parameter "comment":
+func (c *MachinePatchCall) Comment(comment string) *MachinePatchCall {
+	c.urlParams_.Set("comment", comment)
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *MachinePatchCall) Fields(s ...googleapi.Field) *MachinePatchCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *MachinePatchCall) Context(ctx context.Context) *MachinePatchCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *MachinePatchCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.machine)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "machines/{resourceId}")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("PATCH", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"resourceId": c.resourceId,
+	})
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.machine.patch" call.
+// Exactly one of *Machine or error will be non-nil. Any non-2xx status
+// code is an error. Response headers are in either
+// *Machine.ServerResponse.Header or (if a response was returned at all)
+// in error.(*googleapi.Error).Header. Use googleapi.IsNotModified to
+// check whether the returned error was because http.StatusNotModified
+// was returned.
+func (c *MachinePatchCall) Do(opts ...googleapi.CallOption) (*Machine, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &Machine{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "PATCH",
+	//   "id": "androidbuildinternal.machine.patch",
+	//   "parameterOrder": [
+	//     "resourceId"
+	//   ],
+	//   "parameters": {
+	//     "comment": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "resourceId": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "machines/{resourceId}",
+	//   "request": {
+	//     "$ref": "Machine"
+	//   },
+	//   "response": {
+	//     "$ref": "Machine"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// method id "androidbuildinternal.machine.update":
+
+type MachineUpdateCall struct {
+	s          *Service
+	resourceId string
+	machine    *Machine
+	urlParams_ gensupport.URLParams
+	ctx_       context.Context
+}
+
+// Update:
+func (r *MachineService) Update(resourceId string, machine *Machine) *MachineUpdateCall {
+	c := &MachineUpdateCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.resourceId = resourceId
+	c.machine = machine
+	return c
+}
+
+// Comment sets the optional parameter "comment":
+func (c *MachineUpdateCall) Comment(comment string) *MachineUpdateCall {
+	c.urlParams_.Set("comment", comment)
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *MachineUpdateCall) Fields(s ...googleapi.Field) *MachineUpdateCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *MachineUpdateCall) Context(ctx context.Context) *MachineUpdateCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *MachineUpdateCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	body, err := googleapi.WithoutDataWrapper.JSONReader(c.machine)
+	if err != nil {
+		return nil, err
+	}
+	ctype := "application/json"
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "machines/{resourceId}")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("PUT", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"resourceId": c.resourceId,
+	})
+	req.Header.Set("Content-Type", ctype)
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.machine.update" call.
+// Exactly one of *Machine or error will be non-nil. Any non-2xx status
+// code is an error. Response headers are in either
+// *Machine.ServerResponse.Header or (if a response was returned at all)
+// in error.(*googleapi.Error).Header. Use googleapi.IsNotModified to
+// check whether the returned error was because http.StatusNotModified
+// was returned.
+func (c *MachineUpdateCall) Do(opts ...googleapi.CallOption) (*Machine, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &Machine{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "PUT",
+	//   "id": "androidbuildinternal.machine.update",
+	//   "parameterOrder": [
+	//     "resourceId"
+	//   ],
+	//   "parameters": {
+	//     "comment": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "resourceId": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "machines/{resourceId}",
+	//   "request": {
+	//     "$ref": "Machine"
+	//   },
+	//   "response": {
+	//     "$ref": "Machine"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// method id "androidbuildinternal.software.get":
+
+type SoftwareGetCall struct {
+	s            *Service
+	resourceId   string
+	urlParams_   gensupport.URLParams
+	ifNoneMatch_ string
+	ctx_         context.Context
+}
+
+// Get:
+func (r *SoftwareService) Get(resourceId string) *SoftwareGetCall {
+	c := &SoftwareGetCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.resourceId = resourceId
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *SoftwareGetCall) Fields(s ...googleapi.Field) *SoftwareGetCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// IfNoneMatch sets the optional parameter which makes the operation
+// fail if the object's ETag matches the given value. This is useful for
+// getting updates only after the object has changed since the last
+// request. Use googleapi.IsNotModified to check whether the response
+// error from Do is the result of In-None-Match.
+func (c *SoftwareGetCall) IfNoneMatch(entityTag string) *SoftwareGetCall {
+	c.ifNoneMatch_ = entityTag
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *SoftwareGetCall) Context(ctx context.Context) *SoftwareGetCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *SoftwareGetCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "software/{resourceId}")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("GET", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"resourceId": c.resourceId,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ifNoneMatch_ != "" {
+		req.Header.Set("If-None-Match", c.ifNoneMatch_)
+	}
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.software.get" call.
+// Exactly one of *SoftwareVersion or error will be non-nil. Any non-2xx
+// status code is an error. Response headers are in either
+// *SoftwareVersion.ServerResponse.Header or (if a response was returned
+// at all) in error.(*googleapi.Error).Header. Use
+// googleapi.IsNotModified to check whether the returned error was
+// because http.StatusNotModified was returned.
+func (c *SoftwareGetCall) Do(opts ...googleapi.CallOption) (*SoftwareVersion, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &SoftwareVersion{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "GET",
+	//   "id": "androidbuildinternal.software.get",
+	//   "parameterOrder": [
+	//     "resourceId"
+	//   ],
+	//   "parameters": {
+	//     "resourceId": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "software/{resourceId}",
+	//   "response": {
+	//     "$ref": "SoftwareVersion"
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/androidbuild.internal"
@@ -10640,6 +12438,27 @@ func (r *TargetService) List(branch string) *TargetListCall {
 	return c
 }
 
+// AdditionalBuildTarget sets the optional parameter
+// "additionalBuildTarget":
+func (c *TargetListCall) AdditionalBuildTarget(additionalBuildTarget string) *TargetListCall {
+	c.urlParams_.Set("additionalBuildTarget", additionalBuildTarget)
+	return c
+}
+
+// EnvironmentVariable sets the optional parameter
+// "environmentVariable":
+func (c *TargetListCall) EnvironmentVariable(environmentVariable string) *TargetListCall {
+	c.urlParams_.Set("environmentVariable", environmentVariable)
+	return c
+}
+
+// EnvironmentVariableKey sets the optional parameter
+// "environmentVariableKey":
+func (c *TargetListCall) EnvironmentVariableKey(environmentVariableKey string) *TargetListCall {
+	c.urlParams_.Set("environmentVariableKey", environmentVariableKey)
+	return c
+}
+
 // LaunchcontrolName sets the optional parameter "launchcontrolName":
 func (c *TargetListCall) LaunchcontrolName(launchcontrolName string) *TargetListCall {
 	c.urlParams_.Set("launchcontrolName", launchcontrolName)
@@ -10752,9 +12571,21 @@ func (c *TargetListCall) Do(opts ...googleapi.CallOption) (*TargetListResponse, 
 	//     "branch"
 	//   ],
 	//   "parameters": {
+	//     "additionalBuildTarget": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "branch": {
 	//       "location": "path",
 	//       "required": true,
+	//       "type": "string"
+	//     },
+	//     "environmentVariable": {
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "environmentVariableKey": {
+	//       "location": "query",
 	//       "type": "string"
 	//     },
 	//     "launchcontrolName": {
@@ -10762,6 +12593,7 @@ func (c *TargetListCall) Do(opts ...googleapi.CallOption) (*TargetListResponse, 
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -10784,6 +12616,27 @@ func (c *TargetListCall) Do(opts ...googleapi.CallOption) (*TargetListResponse, 
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *TargetListCall) Pages(ctx context.Context, f func(*TargetListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.testartifact.copyTo":
@@ -11473,6 +13326,7 @@ func (c *TestartifactListCall) Do(opts ...googleapi.CallOption) (*TestArtifactLi
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -11502,6 +13356,27 @@ func (c *TestartifactListCall) Do(opts ...googleapi.CallOption) (*TestArtifactLi
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *TestartifactListCall) Pages(ctx context.Context, f func(*TestArtifactListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.testartifact.patch":
@@ -11692,7 +13567,7 @@ type TestartifactUpdateCall struct {
 	buildartifactmetadata *BuildArtifactMetadata
 	urlParams_            gensupport.URLParams
 	media_                io.Reader
-	resumableBuffer_      *gensupport.ResumableBuffer
+	mediaBuffer_          *gensupport.MediaBuffer
 	mediaType_            string
 	mediaSize_            int64 // mediaSize, if known.  Used only for calls to progressUpdater_.
 	progressUpdater_      googleapi.ProgressUpdater
@@ -11712,18 +13587,29 @@ func (r *TestartifactService) Update(buildType string, buildId string, target st
 	return c
 }
 
-// Media specifies the media to upload in a single chunk. At most one of
-// Media and ResumableMedia may be set.
+// Media specifies the media to upload in one or more chunks. The chunk
+// size may be controlled by supplying a MediaOption generated by
+// googleapi.ChunkSize. The chunk size defaults to
+// googleapi.DefaultUploadChunkSize.The Content-Type header used in the
+// upload request will be determined by sniffing the contents of r,
+// unless a MediaOption generated by googleapi.ContentType is
+// supplied.
+// At most one of Media and ResumableMedia may be set.
 func (c *TestartifactUpdateCall) Media(r io.Reader, options ...googleapi.MediaOption) *TestartifactUpdateCall {
 	opts := googleapi.ProcessMediaOptions(options)
 	chunkSize := opts.ChunkSize
-	r, c.mediaType_ = gensupport.DetermineContentType(r, opts.ContentType)
-	c.media_, c.resumableBuffer_ = gensupport.PrepareUpload(r, chunkSize)
+	if !opts.ForceEmptyContentType {
+		r, c.mediaType_ = gensupport.DetermineContentType(r, opts.ContentType)
+	}
+	c.media_, c.mediaBuffer_ = gensupport.PrepareUpload(r, chunkSize)
 	return c
 }
 
 // ResumableMedia specifies the media to upload in chunks and can be
-// canceled with ctx. ResumableMedia is deprecated in favour of Media.
+// canceled with ctx.
+//
+// Deprecated: use Media instead.
+//
 // At most one of Media and ResumableMedia may be set. mediaType
 // identifies the MIME media type of the upload, such as "image/png". If
 // mediaType is "", it will be auto-detected. The provided ctx will
@@ -11732,7 +13618,7 @@ func (c *TestartifactUpdateCall) ResumableMedia(ctx context.Context, r io.Reader
 	c.ctx_ = ctx
 	rdr := gensupport.ReaderAtToReader(r, size)
 	rdr, c.mediaType_ = gensupport.DetermineContentType(rdr, mediaType)
-	c.resumableBuffer_ = gensupport.NewResumableBuffer(rdr, googleapi.DefaultUploadChunkSize)
+	c.mediaBuffer_ = gensupport.NewMediaBuffer(rdr, googleapi.DefaultUploadChunkSize)
 	c.media_ = nil
 	c.mediaSize_ = size
 	return c
@@ -11774,10 +13660,10 @@ func (c *TestartifactUpdateCall) doRequest(alt string) (*http.Response, error) {
 	ctype := "application/json"
 	c.urlParams_.Set("alt", alt)
 	urls := googleapi.ResolveRelative(c.s.BasePath, "builds/{buildType}/{buildId}/{target}/attempts/{attemptId}/tests/{testResultId}/artifacts/{resourceId}")
-	if c.media_ != nil || c.resumableBuffer_ != nil {
+	if c.media_ != nil || c.mediaBuffer_ != nil {
 		urls = strings.Replace(urls, "https://www.googleapis.com/", "https://www.googleapis.com/upload/", 1)
 		protocol := "multipart"
-		if c.resumableBuffer_ != nil {
+		if c.mediaBuffer_ != nil {
 			protocol = "resumable"
 		}
 		c.urlParams_.Set("uploadType", protocol)
@@ -11798,7 +13684,7 @@ func (c *TestartifactUpdateCall) doRequest(alt string) (*http.Response, error) {
 		"testResultId": strconv.FormatInt(c.testResultId, 10),
 		"resourceId":   c.resourceId,
 	})
-	if c.resumableBuffer_ != nil {
+	if c.mediaBuffer_ != nil && c.mediaType_ != "" {
 		req.Header.Set("X-Upload-Content-Type", c.mediaType_)
 	}
 	req.Header.Set("Content-Type", ctype)
@@ -11835,13 +13721,13 @@ func (c *TestartifactUpdateCall) Do(opts ...googleapi.CallOption) (*BuildArtifac
 	if err := googleapi.CheckResponse(res); err != nil {
 		return nil, err
 	}
-	if c.resumableBuffer_ != nil {
+	if c.mediaBuffer_ != nil {
 		loc := res.Header.Get("Location")
 		rx := &gensupport.ResumableUpload{
 			Client:    c.s.client,
 			UserAgent: c.s.userAgent(),
 			URI:       loc,
-			Media:     c.resumableBuffer_,
+			Media:     c.mediaBuffer_,
 			MediaType: c.mediaType_,
 			Callback: func(curr int64) {
 				if c.progressUpdater_ != nil {
@@ -11858,6 +13744,9 @@ func (c *TestartifactUpdateCall) Do(opts ...googleapi.CallOption) (*BuildArtifac
 			return nil, err
 		}
 		defer res.Body.Close()
+		if err := googleapi.CheckResponse(res); err != nil {
+			return nil, err
+		}
 	}
 	ret := &BuildArtifactMetadata{
 		ServerResponse: googleapi.ServerResponse{
@@ -12377,6 +14266,7 @@ func (c *TestresultListCall) Do(opts ...googleapi.CallOption) (*TestResultListRe
 	//       "type": "string"
 	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -12400,6 +14290,27 @@ func (c *TestresultListCall) Do(opts ...googleapi.CallOption) (*TestResultListRe
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *TestresultListCall) Pages(ctx context.Context, f func(*TestResultListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.testresult.patch":
@@ -13061,6 +14972,18 @@ func (c *WorknodeListCall) IsTimedOut(isTimedOut bool) *WorknodeListCall {
 	return c
 }
 
+// LastUpdatedAfter sets the optional parameter "lastUpdatedAfter":
+func (c *WorknodeListCall) LastUpdatedAfter(lastUpdatedAfter int64) *WorknodeListCall {
+	c.urlParams_.Set("lastUpdatedAfter", fmt.Sprint(lastUpdatedAfter))
+	return c
+}
+
+// LastUpdatedBefore sets the optional parameter "lastUpdatedBefore":
+func (c *WorknodeListCall) LastUpdatedBefore(lastUpdatedBefore int64) *WorknodeListCall {
+	c.urlParams_.Set("lastUpdatedBefore", fmt.Sprint(lastUpdatedBefore))
+	return c
+}
+
 // MaxResults sets the optional parameter "maxResults":
 func (c *WorknodeListCall) MaxResults(maxResults int64) *WorknodeListCall {
 	c.urlParams_.Set("maxResults", fmt.Sprint(maxResults))
@@ -13094,11 +15017,19 @@ func (c *WorknodeListCall) Status(status ...string) *WorknodeListCall {
 // Possible values:
 //   "atpTest"
 //   "dummyNode"
+//   "imageRequest"
 //   "pendingChangeBuild"
 //   "pendingChangeFinished"
+//   "releaseRequest"
 //   "unknownWorkExecutorType"
 func (c *WorknodeListCall) WorkExecutorTypes(workExecutorTypes ...string) *WorknodeListCall {
 	c.urlParams_.SetMulti("workExecutorTypes", append([]string{}, workExecutorTypes...))
+	return c
+}
+
+// WorkPlanId sets the optional parameter "workPlanId":
+func (c *WorknodeListCall) WorkPlanId(workPlanId string) *WorknodeListCall {
+	c.urlParams_.Set("workPlanId", workPlanId)
 	return c
 }
 
@@ -13197,7 +15128,18 @@ func (c *WorknodeListCall) Do(opts ...googleapi.CallOption) (*WorkNodeListRespon
 	//       "location": "query",
 	//       "type": "boolean"
 	//     },
+	//     "lastUpdatedAfter": {
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
+	//     "lastUpdatedBefore": {
+	//       "format": "int64",
+	//       "location": "query",
+	//       "type": "string"
+	//     },
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -13235,11 +15177,15 @@ func (c *WorknodeListCall) Do(opts ...googleapi.CallOption) (*WorkNodeListRespon
 	//       "enum": [
 	//         "atpTest",
 	//         "dummyNode",
+	//         "imageRequest",
 	//         "pendingChangeBuild",
 	//         "pendingChangeFinished",
+	//         "releaseRequest",
 	//         "unknownWorkExecutorType"
 	//       ],
 	//       "enumDescriptions": [
+	//         "",
+	//         "",
 	//         "",
 	//         "",
 	//         "",
@@ -13248,6 +15194,10 @@ func (c *WorknodeListCall) Do(opts ...googleapi.CallOption) (*WorkNodeListRespon
 	//       ],
 	//       "location": "query",
 	//       "repeated": true,
+	//       "type": "string"
+	//     },
+	//     "workPlanId": {
+	//       "location": "query",
 	//       "type": "string"
 	//     }
 	//   },
@@ -13260,6 +15210,27 @@ func (c *WorknodeListCall) Do(opts ...googleapi.CallOption) (*WorkNodeListRespon
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *WorknodeListCall) Pages(ctx context.Context, f func(*WorkNodeListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
 
 // method id "androidbuildinternal.worknode.patch":
@@ -13478,6 +15449,114 @@ func (c *WorknodePopCall) Do(opts ...googleapi.CallOption) (*WorkNodePopResponse
 	//   },
 	//   "response": {
 	//     "$ref": "WorkNodePopResponse"
+	//   },
+	//   "scopes": [
+	//     "https://www.googleapis.com/auth/androidbuild.internal"
+	//   ]
+	// }
+
+}
+
+// method id "androidbuildinternal.worknode.touch":
+
+type WorknodeTouchCall struct {
+	s          *Service
+	workNodeId string
+	urlParams_ gensupport.URLParams
+	ctx_       context.Context
+}
+
+// Touch:
+func (r *WorknodeService) Touch(workNodeId string) *WorknodeTouchCall {
+	c := &WorknodeTouchCall{s: r.s, urlParams_: make(gensupport.URLParams)}
+	c.workNodeId = workNodeId
+	return c
+}
+
+// Fields allows partial responses to be retrieved. See
+// https://developers.google.com/gdata/docs/2.0/basics#PartialResponse
+// for more information.
+func (c *WorknodeTouchCall) Fields(s ...googleapi.Field) *WorknodeTouchCall {
+	c.urlParams_.Set("fields", googleapi.CombineFields(s))
+	return c
+}
+
+// Context sets the context to be used in this call's Do method. Any
+// pending HTTP request will be aborted if the provided context is
+// canceled.
+func (c *WorknodeTouchCall) Context(ctx context.Context) *WorknodeTouchCall {
+	c.ctx_ = ctx
+	return c
+}
+
+func (c *WorknodeTouchCall) doRequest(alt string) (*http.Response, error) {
+	var body io.Reader = nil
+	c.urlParams_.Set("alt", alt)
+	urls := googleapi.ResolveRelative(c.s.BasePath, "workNodes/{workNodeId}/touch")
+	urls += "?" + c.urlParams_.Encode()
+	req, _ := http.NewRequest("POST", urls, body)
+	googleapi.Expand(req.URL, map[string]string{
+		"workNodeId": c.workNodeId,
+	})
+	req.Header.Set("User-Agent", c.s.userAgent())
+	if c.ctx_ != nil {
+		return ctxhttp.Do(c.ctx_, c.s.client, req)
+	}
+	return c.s.client.Do(req)
+}
+
+// Do executes the "androidbuildinternal.worknode.touch" call.
+// Exactly one of *WorkNodeTouchResponse or error will be non-nil. Any
+// non-2xx status code is an error. Response headers are in either
+// *WorkNodeTouchResponse.ServerResponse.Header or (if a response was
+// returned at all) in error.(*googleapi.Error).Header. Use
+// googleapi.IsNotModified to check whether the returned error was
+// because http.StatusNotModified was returned.
+func (c *WorknodeTouchCall) Do(opts ...googleapi.CallOption) (*WorkNodeTouchResponse, error) {
+	gensupport.SetOptions(c.urlParams_, opts...)
+	res, err := c.doRequest("json")
+	if res != nil && res.StatusCode == http.StatusNotModified {
+		if res.Body != nil {
+			res.Body.Close()
+		}
+		return nil, &googleapi.Error{
+			Code:   res.StatusCode,
+			Header: res.Header,
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer googleapi.CloseBody(res)
+	if err := googleapi.CheckResponse(res); err != nil {
+		return nil, err
+	}
+	ret := &WorkNodeTouchResponse{
+		ServerResponse: googleapi.ServerResponse{
+			Header:         res.Header,
+			HTTPStatusCode: res.StatusCode,
+		},
+	}
+	if err := json.NewDecoder(res.Body).Decode(&ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+	// {
+	//   "httpMethod": "POST",
+	//   "id": "androidbuildinternal.worknode.touch",
+	//   "parameterOrder": [
+	//     "workNodeId"
+	//   ],
+	//   "parameters": {
+	//     "workNodeId": {
+	//       "location": "path",
+	//       "required": true,
+	//       "type": "string"
+	//     }
+	//   },
+	//   "path": "workNodes/{workNodeId}/touch",
+	//   "response": {
+	//     "$ref": "WorkNodeTouchResponse"
 	//   },
 	//   "scopes": [
 	//     "https://www.googleapis.com/auth/androidbuild.internal"
@@ -14048,6 +16127,7 @@ func (c *WorkplanListCall) Do(opts ...googleapi.CallOption) (*WorkPlanListRespon
 	//   "id": "androidbuildinternal.workplan.list",
 	//   "parameters": {
 	//     "maxResults": {
+	//       "default": "10",
 	//       "format": "uint32",
 	//       "location": "query",
 	//       "type": "integer"
@@ -14066,4 +16146,25 @@ func (c *WorkplanListCall) Do(opts ...googleapi.CallOption) (*WorkPlanListRespon
 	//   ]
 	// }
 
+}
+
+// Pages invokes f for each page of results.
+// A non-nil error returned from f will halt the iteration.
+// The provided context supersedes any context provided to the Context method.
+func (c *WorkplanListCall) Pages(ctx context.Context, f func(*WorkPlanListResponse) error) error {
+	c.ctx_ = ctx
+	defer c.PageToken(c.urlParams_.Get("pageToken")) // reset paging to original point
+	for {
+		x, err := c.Do()
+		if err != nil {
+			return err
+		}
+		if err := f(x); err != nil {
+			return err
+		}
+		if x.NextPageToken == "" {
+			return nil
+		}
+		c.PageToken(x.NextPageToken)
+	}
 }
