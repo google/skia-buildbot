@@ -16,28 +16,32 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-type mockClient struct{}
+type mockClient struct {
+	Result []*influxdb.Point
+}
 
 func (c mockClient) Query(database, query string, n int) ([]*influxdb.Point, error) {
-	return []*influxdb.Point{
-		&influxdb.Point{
-			Tags: map[string]string{
-				"tagKey": "tagValue",
-			},
-			Values: []json.Number{"1.0", "15.0"},
-		},
-	}, nil
+	return c.Result, nil
 }
 
 func getRule() *Rule {
 	r := &Rule{
-		Name:        "TestRule",
-		Database:    "DefaultDatabase",
-		Query:       "DummyQuery",
-		Category:    "testing",
-		Message:     "Dummy query meets dummy conditions!",
-		Conditions:  []string{"x > 0", "y > 10 * x", "x < 4"},
-		client:      &mockClient{},
+		Name:       "TestRule",
+		Database:   "DefaultDatabase",
+		Query:      "DummyQuery",
+		Category:   "testing",
+		Message:    "Dummy query meets dummy conditions!",
+		Conditions: []string{"x > 0", "y > 10 * x", "x < 4"},
+		client: &mockClient{
+			Result: []*influxdb.Point{
+				&influxdb.Point{
+					Tags: map[string]string{
+						"tagKey": "tagValue",
+					},
+					Values: []json.Number{"1.0", "15.0"},
+				},
+			},
+		},
 		AutoDismiss: int64(time.Second),
 		Actions:     []string{"Print"},
 	}
@@ -97,6 +101,60 @@ func TestRuleTriggeringE2E(t *testing.T) {
 
 	// Stop the AlertManager.
 	am.Stop()
+}
+
+type mockAlerter struct {
+	Alerts []*alerting.Alert
+}
+
+func (m *mockAlerter) AddAlert(a *alerting.Alert) error {
+	m.Alerts = append(m.Alerts, a)
+	return nil
+}
+
+func TestEmptyResultsError(t *testing.T) {
+	am := &mockAlerter{}
+
+	// Ensure that the rule triggers an alert when results are empty.
+	r := &Rule{
+		Name:       "TestRule",
+		Database:   "DefaultDatabase",
+		Query:      "DummyQuery",
+		Category:   "testing",
+		Message:    "Dummy query meets dummy conditions!",
+		Conditions: []string{"x > 0", "y > 10 * x", "x < 4"},
+		client: &mockClient{
+			Result: []*influxdb.Point{},
+		},
+		AutoDismiss: int64(time.Second),
+		Actions:     []string{"Print"},
+	}
+	assert.Nil(t, r.tick(am))
+	assert.Equal(t, 1, len(am.Alerts))
+	assert.Equal(t, "Failed to execute query for rule \"TestRule\": [ DummyQuery ]", am.Alerts[0].Message)
+}
+
+func TestEmptyResultsOk(t *testing.T) {
+	am := &mockAlerter{}
+
+	// Ensure that the rule does not trigger an alert when EmptyResultsOk is
+	// true.
+	r := &Rule{
+		Name:           "TestRule",
+		Database:       "DefaultDatabase",
+		Query:          "DummyQuery",
+		EmptyResultsOk: true,
+		Category:       "testing",
+		Message:        "Dummy query meets dummy conditions!",
+		Conditions:     []string{"x > 0", "y > 10 * x", "x < 4"},
+		client: &mockClient{
+			Result: []*influxdb.Point{},
+		},
+		AutoDismiss: int64(time.Second),
+		Actions:     []string{"Print"},
+	}
+	assert.Nil(t, r.tick(am))
+	assert.Equal(t, 0, len(am.Alerts))
 }
 
 func TestRuleParsing(t *testing.T) {
@@ -160,6 +218,21 @@ category = "testing"
 conditions = ["x > y"]
 actions = ["Print"]
 auto-dismiss = false
+`,
+			ExpectedErr: nil,
+		},
+		parseCase{
+			Name: "GoodEmptyResultsOk",
+			Input: `[[rule]]
+name = "randombits"
+message = "randombits generates more 1's than 0's in last 5 seconds"
+database = "graphite"
+query = "select mean(value) from random_bits where time > now() - 5s"
+category = "testing"
+conditions = ["x > 0.5"]
+actions = ["Print"]
+auto-dismiss = false
+empty-results-ok = true
 `,
 			ExpectedErr: nil,
 		},

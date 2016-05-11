@@ -92,12 +92,9 @@ func (c *Client) Query(database, q string, n int) ([]*Point, error) {
 	if len(results) > 1 {
 		return nil, fmt.Errorf("Query returned more than one result: d=%q q=%q", database, q)
 	}
-	// We want at least one series.
-	series := results[0].Series
-	if len(series) < 1 {
-		return nil, fmt.Errorf("Query returned no series: d=%q q=%q", database, q)
-	}
+
 	// Collect all data points.
+	series := results[0].Series
 	rv := make([]*Point, 0, len(series))
 	for _, s := range series {
 		valueColumn := 0

@@ -74,8 +74,8 @@ func TestQueryNumber(t *testing.T) {
 					Err: "",
 				}, nil
 			},
-			ExpectedVal: nil,
-			ExpectedErr: fmt.Errorf("Query returned no series: d=\"nodatabase\" q=\"<dummy query>\""),
+			ExpectedVal: []*Point{},
+			ExpectedErr: nil,
 		},
 		queryCase{
 			Name: "MultipleSeries",

@@ -21,16 +21,24 @@ import (
 
 // Rule is an object used for triggering Alerts.
 type Rule struct {
-	Name        string        `json:"name"`
-	Database    string        `json:"database"`
-	Query       string        `json:"query"`
-	Category    string        `json:"category"`
-	Conditions  []string      `json:"conditions"`
-	Message     string        `json:"message"`
-	Nag         time.Duration `json:"nag"`
-	client      queryable
-	AutoDismiss int64 `json:"autoDismiss"`
-	Actions     []string
+	Name           string        `json:"name"`
+	Database       string        `json:"database"`
+	Query          string        `json:"query"`
+	EmptyResultsOk bool          `json:"emptyResultsOk"`
+	Category       string        `json:"category"`
+	Conditions     []string      `json:"conditions"`
+	Message        string        `json:"message"`
+	Nag            time.Duration `json:"nag"`
+	client         queryable
+	AutoDismiss    int64 `json:"autoDismiss"`
+	Actions        []string
+}
+
+// Alerter is a target for adding alerts.
+type Alerter interface {
+	// AddAlert inserts the given Alert into the Alerter, if one does not
+	// already exist for its rule, and fires its actions if inserted.
+	AddAlert(a *alerting.Alert) error
 }
 
 // The first three return values of a clause will be loaded into x, y z.  If there are fewer than
@@ -47,7 +55,7 @@ func formatMsg(msg string, tags map[string]string) string {
 
 // Fire causes the Alert to become Active() and not Snoozed(), and causes each
 // action to be performed. Active Alerts do not perform new queries.
-func (r *Rule) fire(am *alerting.AlertManager, tags map[string]string) error {
+func (r *Rule) fire(am Alerter, tags map[string]string) error {
 	actions, err := alerting.ParseActions(r.Actions)
 	if err != nil {
 		return fmt.Errorf("Could not fire alert: %v", err)
@@ -63,7 +71,7 @@ func (r *Rule) fire(am *alerting.AlertManager, tags map[string]string) error {
 	return am.AddAlert(&a)
 }
 
-func (r *Rule) queryExecutionAlert(queryErr error, am *alerting.AlertManager) error {
+func (r *Rule) queryExecutionAlert(queryErr error, am Alerter) error {
 	actions, err := alerting.ParseActions([]string{"Email(infra-alerts@skia.org)"})
 	if err != nil {
 		return err
@@ -81,7 +89,7 @@ func (r *Rule) queryExecutionAlert(queryErr error, am *alerting.AlertManager) er
 	})
 }
 
-func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) error {
+func (r *Rule) queryEvaluationAlert(queryErr error, am Alerter) error {
 	actions, err := alerting.ParseActions([]string{"Email(infra-alerts@skia.org)"})
 	if err != nil {
 		return err
@@ -99,11 +107,14 @@ func (r *Rule) queryEvaluationAlert(queryErr error, am *alerting.AlertManager) e
 	})
 }
 
-func (r *Rule) tick(am *alerting.AlertManager) error {
+func (r *Rule) tick(am Alerter) error {
 	res, err := executeQuery(r.client, r.Database, r.Query, len(r.Conditions))
 	if err != nil {
 		// We shouldn't fail to execute a query. Trigger an alert.
 		return r.queryExecutionAlert(err, am)
+	}
+	if len(res) == 0 && !r.EmptyResultsOk {
+		return r.queryExecutionAlert(fmt.Errorf("Query returned no series: %q", r.Query), am)
 	}
 	// Evaluate the query comparison for each returned value.
 	for _, v := range res {
@@ -170,6 +181,10 @@ func newRule(r parsedRule, client *influxdb.Client, testing bool, tickInterval t
 	if !ok {
 		return nil, fmt.Errorf(errString, "query")
 	}
+	emptyResultsOk, ok := r["empty-results-ok"].(bool)
+	if !ok {
+		emptyResultsOk = false
+	}
 	category, ok := r["category"].(string)
 	if !ok {
 		return nil, fmt.Errorf(errString, "category")
@@ -231,16 +246,17 @@ func newRule(r parsedRule, client *influxdb.Client, testing bool, tickInterval t
 	}
 
 	rule := Rule{
-		Name:        name,
-		Database:    database,
-		Query:       query,
-		Category:    category,
-		Conditions:  conditionsStrings,
-		Message:     message,
-		Nag:         nagDuration,
-		client:      client,
-		AutoDismiss: dismissInterval,
-		Actions:     actionStrings,
+		Name:           name,
+		Database:       database,
+		Query:          query,
+		EmptyResultsOk: emptyResultsOk,
+		Category:       category,
+		Conditions:     conditionsStrings,
+		Message:        message,
+		Nag:            nagDuration,
+		client:         client,
+		AutoDismiss:    dismissInterval,
+		Actions:        actionStrings,
 	}
 	// Verify that the condition can be evaluated.
 	_, err := rule.evaluate(make([]float64, len(CONDITION_VARIABLES)))
@@ -276,7 +292,7 @@ func parseAlertRules(cfgFile string) ([]parsedRule, error) {
 	return cfg.Rule, nil
 }
 
-func MakeRules(cfgFile string, dbClient *influxdb.Client, tickInterval time.Duration, am *alerting.AlertManager, testing bool) ([]*Rule, error) {
+func MakeRules(cfgFile string, dbClient *influxdb.Client, tickInterval time.Duration, am Alerter, testing bool) ([]*Rule, error) {
 	parsedRules, err := parseAlertRules(cfgFile)
 	if err != nil {
 		return nil, err
