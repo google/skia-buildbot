@@ -93,7 +93,7 @@ banner "Install zope.interface."
 cmd /c "easy_install zope.interface"
 
 banner "Copy .boto file"
-$shell.NameSpace($userDir).copyhere("c:\chromium-skia-gm.boto", 0x14)
+$shell.NameSpace($userDir).copyhere("c:\.boto", 0x14)
 
 banner "Copy _netrc file"
 $shell.NameSpace($userDir).copyhere("c:\_netrc", 0x14)
@@ -104,6 +104,9 @@ $shell.NameSpace($depotToolsPath).copyhere("c:\.gitconfig", 0x14)
 
 banner "Copy .bot_password file"
 $shell.NameSpace($userDir).copyhere("c:\.bot_password", 0x14)
+
+banner "Start Swarming."
+cmd /c "python -c `"import urllib; exec urllib.urlopen('https://chromium-swarm.appspot.com/bootstrap').read()`""
 
 banner "The Task ended"
 
