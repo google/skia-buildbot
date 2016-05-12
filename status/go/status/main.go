@@ -48,7 +48,10 @@ const (
 	MAX_COMMITS_TO_LOAD     = 100
 	SKIA_REPO               = "skia"
 	INFRA_REPO              = "infra"
-	GOLD_STATUS_QUERY_TMPL  = "select value from \"gold.status.by-corpus\" WHERE host='skia-gold-prod' AND app='skiacorrectness' AND type='untriaged' AND corpus='%s' ORDER BY time DESC LIMIT 1"
+	// The from clause needs to be in double quotes and the where clauses need to be
+	// in single quotes because InfluxDB is quite particular about these things.
+	GOLD_STATUS_QUERY_TMPL = `select value from "gold.status.by-corpus" WHERE time > now - 1h and host='skia-gold-prod' AND app='skiacorrectness' AND type='untriaged' AND corpus='%s' ORDER BY time DESC LIMIT 1`
+	PERF_STATUS_QUERY      = `select value from "perf.clustering.untriaged" where time > now - 1h and app='skiaperf' and host='skia-perf' order by time desc limit 1`
 )
 
 var (
@@ -776,7 +779,7 @@ func main() {
 	glog.Info("commit_cache complete")
 
 	// Load Perf and Gold data in a loop.
-	perfStatus = dbClient.Int64PollingStatus("skmetrics", "select value from \"perf.clustering.untriaged\" where app='skiaperf' and host='skia-perf' order by time desc limit 1", time.Minute)
+	perfStatus = dbClient.Int64PollingStatus("skmetrics", PERF_STATUS_QUERY, time.Minute)
 	goldGMStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "gm"), time.Minute)
 	goldImageStatus = dbClient.Int64PollingStatus(*influxDatabase, fmt.Sprintf(GOLD_STATUS_QUERY_TMPL, "image"), time.Minute)
 
