@@ -8,7 +8,7 @@ $username = "chrome-bot"
 $password = "CHROME_BOT_PASSWORD"
 $domain = $env:userdomain
 $userDir = "C:\Users\$username"
-$logFile = "C:\gce_startup.log"
+$logFile = "C:\gce_setup.log"
 
 Function log($msg) {
   Write-Debug $msg

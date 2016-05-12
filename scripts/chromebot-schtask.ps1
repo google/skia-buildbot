@@ -105,45 +105,6 @@ $shell.NameSpace($depotToolsPath).copyhere("c:\.gitconfig", 0x14)
 banner "Copy .bot_password file"
 $shell.NameSpace($userDir).copyhere("c:\.bot_password", 0x14)
 
-banner "Download Buildbot scripts."
-$gclientSpec = ( `
-  "`"solutions = [{ " +
-  "'name': 'buildbot'," +
-  "'url': 'https://skia.googlesource.com/buildbot.git'," +
-  "'deps_file': 'DEPS'," +
-  "'managed': True," +
-  "'custom_deps': {}," +
-  "'safesync_url': ''," +
-  "},{ " +
-  "'name': 'src'," +
-  "'url': 'https://chromium.googlesource.com/chromium/src.git'," +
-  "'deps_file': '.DEPS.git'," +
-  "'managed': True," +
-  "'custom_deps': {}," +
-  "'safesync_url': ''," +
-  "},]`"")
-cmd /c "gclient config --spec=$gclientSpec"
-cmd /c "gclient sync --force --verbose -j1"
-
-banner "Copy WinDbg Files"
-$winDbgFolder = "c:\DbgHelp"
-if (!(Test-Path ($winDbgFolder))) {
-  new-item $winDbgFolder -itemtype directory
-}
-$x86lib = ("$depotToolsPath\win_toolchain\vs2013_files\win8sdk\Debuggers\lib\" +
-           "x86\dbghelp.lib")
-$shell.NameSpace($winDbgFolder).copyhere($x86lib, 0x14)
-if (!(Test-Path ("$winDbgFolder\x64"))) {
-  new-item "$winDbgFolder\x64" -itemtype directory
-}
-$x64lib = ("$depotToolsPath\win_toolchain\vs2013_files\win8sdk\Debuggers\lib\" +
-           "x64\dbghelp.lib")
-$shell.NameSpace("$winDbgFolder\x64").copyhere($x64lib, 0x14)
-
-banner "Launch the Slave"
-cd buildbot
-cmd /c "call python scripts\launch_slaves.py"
-
 banner "The Task ended"
 
 } catch {

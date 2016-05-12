@@ -16,7 +16,6 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   DISK_ARGS="--boot_disk_size_gb=20"
   if [ "$VM_IS_SWARMINGBOT" = True ]; then
     SKIA_BOT_IMAGE_NAME=$SKIA_SWARMING_IMAGE_NAME
-    # TODO(rmistry): We may want to use 32 cores instead. Using 16 cores for now.
     SKIA_BOT_MACHINE_TYPE="n1-standard-16"
   fi
   if [ "$VM_IS_CTBOT" = True ]; then
@@ -25,23 +24,30 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   fi
 elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_WIN_IMAGE_NAME
-  ORIG_STARTUP_SCRIPT="../../scripts/win_setup.ps1"
-  MODIFIED_STARTUP_SCRIPT="/tmp/win_setup.ps1"
+  ORIG_SYSPREP_SCRIPT="../../scripts/win_setup.ps1"
+  MODIFIED_SYSPREP_SCRIPT="/tmp/win_setup.ps1"
   # Set chrome-bot's password in win_setup.ps1
-  cp $ORIG_STARTUP_SCRIPT $MODIFIED_STARTUP_SCRIPT
+  cp $ORIG_SYSPREP_SCRIPT $MODIFIED_SYSPREP_SCRIPT
   WIN_CHROME_BOT_PWD=$(echo $(cat /tmp/win-chrome-bot.txt) | sed -e 's/[\/&]/\\&/g')
-  sed -i "s/CHROME_BOT_PASSWORD/${WIN_CHROME_BOT_PWD}/g" $MODIFIED_STARTUP_SCRIPT
-  sed -i "s/GS_ACCESS_KEY_ID/$(echo $(cat /tmp/chromium-skia-gm.boto | sed -n 2p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
-  sed -i "s/GS_SECRET_ACCESS_KEY/$(echo $(cat /tmp/chromium-skia-gm.boto | sed -n 3p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_STARTUP_SCRIPT
-  python ../../scripts/insert_file.py $MODIFIED_STARTUP_SCRIPT $MODIFIED_STARTUP_SCRIPT
+  sed -i "s/CHROME_BOT_PASSWORD/${WIN_CHROME_BOT_PWD}/g" $MODIFIED_SYSPREP_SCRIPT
+  sed -i "s/GS_ACCESS_KEY_ID/$(echo $(cat /tmp/chromium-skia-gm.boto | sed -n 2p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_SYSPREP_SCRIPT
+  sed -i "s/GS_SECRET_ACCESS_KEY/$(echo $(cat /tmp/chromium-skia-gm.boto | sed -n 3p) | sed -e 's/[\/&]/\\&/g')/g" $MODIFIED_SYSPREP_SCRIPT
+  python ../../scripts/insert_file.py $MODIFIED_SYSPREP_SCRIPT $MODIFIED_SYSPREP_SCRIPT
 
-  # Fix line endings in $MODIFIED_STARTUP_SCRIPT. 'todos' is in the 'tofrodos'
+  # Fix line endings in $MODIFIED_SYSPREP_SCRIPT. 'todos' is in the 'tofrodos'
   # package on Ubuntu.
+  todos $MODIFIED_SYSPREP_SCRIPT
+
+  ORIG_STARTUP_SCRIPT="../../scripts/win_startup.ps1"
+  MODIFIED_STARTUP_SCRIPT="/tmp/win_startup.ps1"
+  cp $ORIG_STARTUP_SCRIPT $MODIFIED_STARTUP_SCRIPT
+  sed -i "s/CHROME_BOT_PASSWORD/${WIN_CHROME_BOT_PWD}/g" $MODIFIED_STARTUP_SCRIPT
   todos $MODIFIED_STARTUP_SCRIPT
 
   METADATA_ARGS="--metadata=gce-initial-windows-user:chrome-bot \
                  --metadata_from_file=gce-initial-windows-password:/tmp/win-chrome-bot.txt \
-                 --metadata_from_file=sysprep-oobe-script-ps1:$MODIFIED_STARTUP_SCRIPT"
+                 --metadata_from_file=sysprep-oobe-script-ps1:$MODIFIED_SYSPREP_SCRIPT \
+                 --metadata_from_file=windows-startup-script-ps1:$MODIFIED_STARTUP_SCRIPT"
   DISK_ARGS="--boot_disk_size_gb=$VM_PERSISTENT_DISK_SIZE_GB"
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_WIN_BOTS[@]}
   # We have to wait longer for windows because sysprep can take a while to
@@ -98,11 +104,23 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
   fi
 done
 
-echo
-echo "===== Wait $WAIT_TIME_AFTER_CREATION_SECS secs for all instances to" \
-     "come up. ====="
-echo
-sleep $WAIT_TIME_AFTER_CREATION_SECS
+if [ "$VM_INSTANCE_OS" == "Windows" ]; then
+  for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
+    INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+    # Read serial console output, wait for the instance to be running.
+    DONE_TEXT="Instance setup finished. ${INSTANCE_NAME} is ready to use."
+    while [ `gcloud compute instances get-serial-port-output --zone=${ZONE} ${INSTANCE_NAME} | grep -c "${DONE_TEXT}"` = 0 ]; do
+      echo "Waiting 5 seconds for ${INSTANCE_NAME} to come up."
+      sleep 5
+    done
+  done
+else
+  echo
+  echo "===== Wait $WAIT_TIME_AFTER_CREATION_SECS secs for all instances to" \
+       "come up. ====="
+  echo
+  sleep $WAIT_TIME_AFTER_CREATION_SECS
+fi
 
 # Looping through all bots and setting them up.
 for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
