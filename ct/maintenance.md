@@ -81,12 +81,14 @@ point to localhost:8000, then run `make && prober --alsologtostderr
 --use_metadata=false` from ../prober/.
 
 To check metrics from a locally running server or prober, run:
+
 ```
 influx --port 10117
 > use skmetrics
 > show measurements
 > select * from "num-pending-tasks";
 ```
+
 replacing the value within quotes with whichever measurement you have changed.
 
 To test alert config changes:
@@ -96,9 +98,15 @@ To test alert config changes:
 2. Edit the config in ../alertserver/alerts.cfg to make the measurement names
    match what you see in InfluxDB (you may need to comment out measurements that
    don't exist in your local InfluxDB).
-3. TODO(benjaminwagner): Run `make all && alertserver --alsologtostderr
-   --testing --use_metadata=false --alert_db_host=localhost
-   --buildbot_db_host=skia-datahopper2:8000 --influxdb_host localhost:10117
+3. Run:
+
+```
+make all && alertserver --alsologtostderr --testing \
+  --use_metadata=false \
+  --alert_db_host localhost \
+  --influxdb_host localhost:10117 \
+  --influxdb_database=skmetrics
+```
 
 ### Master
 
@@ -108,12 +116,14 @@ repos and files. To create and set up this directory, run
 `setup_local.sh` script assumes you are a Googler running Goobuntu.)
 
 To run the master poller in dry-run mode (not very useful), run
+
 ```
 make poller && poller --local=true \
   --alsologtostderr \
   --dry_run \
   --log_dir=/b/storage/glog \
-  --graphite_server='localhost:2003'
+  --influxdb_host=http://localhost:10117 \
+  --influxdb_database=skmetrics
 ```
 
 To run master scripts locally, you may want to modify the code to skip steps or
@@ -141,11 +151,13 @@ index 1c5c273..34ceb3a 100644
   `run_chromium_perf_on_workers`, and `run_lua_on_workers`.
 
 You can run the poller as:
+
 ```
 make poller && poller --local=true \
   --alsologtostderr \
   --log_dir=/b/storage/glog \
-  --graphite_server='localhost:2003'
+  --influxdb_host=http://localhost:10117 \
+  --influxdb_database=skmetrics
 ```
 
 ### Workers
@@ -207,17 +219,22 @@ There are several aliases in .bashrc on build101-m5 that are useful for
 maintenance. If the poller is not running (check using `ps x | grep poller`),
 run `start_poller` to update the code from the infra Git repo and start the
 poller. The definition of `start_poller` is currently:
+
 ```
 start_poller () {
   cd /b/skia-repo/go/src/go.skia.org/infra/ct/
   git pull
   make all
-  nohup poller --log_dir=/b/storage/glog --graphite_server=<IP address>:2003 &
+  nohup poller --log_dir=/b/storage/glog \
+    --influxdb_host=https://metrics.skia.org \
+    --influxdb_name=<from metadata> \
+    --influxdb_password=<from metadata> \
+    --influxdb_database=skmetrics &
 }
 ```
-where `<IP address>` is the external IP address for the skia-monitoring
-instance, available
-[here](https://pantheon.corp.google.com/project/31977622648/compute/instancesDetail/zones/us-central1-c/instances/skia-monitoring?graph=GCE_CPU&duration=PT1H).
+
+find `influxdb_name` and `influxdb_password` in
+[GCE metadata](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
 
 To stop the poller safely, check that the CTFE task queue is empty and check
 with `pstree <PID of poller>` to verify that there are no master scripts or

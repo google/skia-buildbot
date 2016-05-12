@@ -18,7 +18,6 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	metrics "github.com/rcrowley/go-metrics"
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
@@ -30,13 +29,18 @@ import (
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/metrics2"
 	skutil "go.skia.org/infra/go/util"
 )
 
 // flags
 var (
-	graphiteServer            = flag.String("graphite_server", "localhost:2003", "Location of the Graphite metrics ingestion server.")
 	dryRun                    = flag.Bool("dry_run", false, "If true, just log the commands that would be executed; don't actually execute the commands. Still polls CTFE for pending tasks, but does not post updates.")
+	influxHost                = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser                = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword            = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase            = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	pollInterval              = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
 	workerHealthCheckInterval = flag.Duration("worker_health_check_interval", 30*time.Minute, "How often to check worker health.")
 	// Value of --log_dir flag to pass to subcommands. Will be set in main.
@@ -103,32 +107,35 @@ type heartbeatStatusTracker struct {
 	// Protects the remaining fields.
 	mu sync.Mutex
 	// Time of last call to StartTask or FinishTask.
-	lastUpdate time.Time
+	lastUpdateLiveness *metrics2.Liveness
 	// State of the main goroutine.
 	currentStatus TaskType
 	// Updated with the value of currentStatus for monitoring.
-	currentStatusGauge metrics.Gauge
+	currentStatusGauge *metrics2.Int64Metric
 	// Reports the duration of each type of task.
-	taskDurations map[TaskType]metrics.Histogram
+	taskDurations map[TaskType]*metrics2.Timer
 	// Tracks the time of the last successful completion.
-	lastSuccessTime map[TaskType]time.Time
+	lastSuccessLiveness map[TaskType]*metrics2.Liveness
 	// Tracks the time of the last failure.
-	lastFailureTime map[TaskType]time.Time
+	lastFailureLiveness map[TaskType]*metrics2.Liveness
 	// Stores any errors encountered in StartTask or FinishTask.
 	errs []error
 }
 
 func NewHeartbeatStatusTracker() StatusTracker {
 	h := &heartbeatStatusTracker{}
-	h.currentStatusGauge = metrics.GetOrRegisterGauge("current-status", metrics.DefaultRegistry)
-	h.taskDurations = make(map[TaskType]metrics.Histogram)
+	h.currentStatusGauge = metrics2.GetInt64Metric("current-status")
+	h.taskDurations = make(map[TaskType]*metrics2.Timer)
 	for t := UPDATE_AND_BUILD; t <= POLL; t++ {
-		// Using the values from metrics.NewTimer().
-		s := metrics.NewExpDecaySample(1028, 0.015)
-		h.taskDurations[t] = metrics.GetOrRegisterHistogram(fmt.Sprintf("duration-%s", t), metrics.DefaultRegistry, s)
+		h.taskDurations[t] = metrics2.NewTimer("duration", map[string]string{"task": t.String()})
 	}
-	h.lastSuccessTime = make(map[TaskType]time.Time)
-	h.lastFailureTime = make(map[TaskType]time.Time)
+	h.lastUpdateLiveness = metrics2.NewLiveness("last-update")
+	h.lastSuccessLiveness = make(map[TaskType]*metrics2.Liveness)
+	h.lastFailureLiveness = make(map[TaskType]*metrics2.Liveness)
+	for t := UPDATE_AND_BUILD; t <= POLL; t++ {
+		h.lastSuccessLiveness[t] = metrics2.NewLiveness("last-success", map[string]string{"task": t.String()})
+		h.lastFailureLiveness[t] = metrics2.NewLiveness("last-failure", map[string]string{"task": t.String()})
+	}
 	return h
 }
 
@@ -145,7 +152,8 @@ func (h *heartbeatStatusTracker) StartTask(t TaskType) StatusTrackerToken {
 	}
 	h.currentStatus = t
 	h.currentStatusGauge.Update(int64(h.currentStatus))
-	h.lastUpdate = time.Now()
+	h.lastUpdateLiveness.Reset()
+	h.taskDurations[t].Start()
 	return t
 }
 
@@ -159,11 +167,11 @@ func (h *heartbeatStatusTracker) FinishTask(token StatusTrackerToken, err error)
 		} else if t != h.currentStatus {
 			h.errs = append(h.errs, fmt.Errorf("FinishTask called with %s but currentStatus is %s.", t, h.currentStatus))
 		} else {
-			h.taskDurations[t].Update(int64(time.Since(h.lastUpdate).Seconds()))
+			h.taskDurations[t].Stop()
 			if err == nil {
-				h.lastSuccessTime[t] = time.Now()
+				h.lastSuccessLiveness[t].Reset()
 			} else {
-				h.lastFailureTime[t] = time.Now()
+				h.lastFailureLiveness[t].Reset()
 			}
 		}
 	} else if token != nil {
@@ -171,38 +179,20 @@ func (h *heartbeatStatusTracker) FinishTask(token StatusTrackerToken, err error)
 	}
 	h.currentStatus = IDLE
 	h.currentStatusGauge.Update(int64(IDLE))
-	h.lastUpdate = time.Now()
+	h.lastUpdateLiveness.Reset()
 }
 
-// StartMetrics registers gauges with the graphite server that indicate the poller is running
+// StartMetrics registers metrics which indicate the poller is running
 // healthily and starts a goroutine to update them periodically.
 func (h *heartbeatStatusTracker) StartMetrics() {
-	timeSinceLastUpdateGauge := metrics.GetOrRegisterGaugeFloat64("time-since-last-update", metrics.DefaultRegistry)
-	healthyGauge := metrics.GetOrRegisterGauge("healthy", metrics.DefaultRegistry)
-	timeSinceLastSuccess := make(map[TaskType]metrics.GaugeFloat64)
-	timeSinceLastFailure := make(map[TaskType]metrics.GaugeFloat64)
-	for t := UPDATE_AND_BUILD; t <= POLL; t++ {
-		timeSinceLastSuccess[t] = metrics.GetOrRegisterGaugeFloat64(fmt.Sprintf("time-since-last-success-%s", t), metrics.DefaultRegistry)
-		timeSinceLastFailure[t] = metrics.GetOrRegisterGaugeFloat64(fmt.Sprintf("time-since-last-failure-%s", t), metrics.DefaultRegistry)
-	}
+	healthyGauge := metrics2.GetInt64Metric("healthy")
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			h.mu.Lock()
-			timeSinceLastUpdate := time.Since(h.lastUpdate)
 			currentStatus := h.currentStatus
-			for t := UPDATE_AND_BUILD; t <= POLL; t++ {
-				if v, ok := h.lastSuccessTime[t]; ok {
-					timeSinceLastSuccess[t].Update(time.Since(v).Seconds())
-				}
-				if v, ok := h.lastFailureTime[t]; ok {
-					timeSinceLastFailure[t].Update(time.Since(v).Seconds())
-				}
-			}
-			lastSuccessfulPoll := h.lastSuccessTime[POLL]
 			errs := h.errs
 			h.errs = nil
 			h.mu.Unlock()
-			timeSinceLastUpdateGauge.Update(timeSinceLastUpdate.Seconds())
 			expectPoll := false
 			var expectedDuration time.Duration = 0
 			switch currentStatus {
@@ -229,9 +219,11 @@ func (h *heartbeatStatusTracker) StartMetrics() {
 			// Provide a bit of head room.
 			expectedDuration += 2 * time.Minute
 
-			if expectPoll && time.Since(lastSuccessfulPoll) > 2*time.Minute {
-				errs = append(errs, fmt.Errorf("Last successful poll was at %s.", lastSuccessfulPoll))
+			lastSuccessfulPoll := time.Duration(h.lastSuccessLiveness[POLL].Get()) * time.Second
+			if expectPoll && lastSuccessfulPoll > 2*time.Minute {
+				errs = append(errs, fmt.Errorf("Last successful poll was %s ago.", lastSuccessfulPoll))
 			}
+			timeSinceLastUpdate := time.Duration(h.lastUpdateLiveness.Get()) * time.Second
 			if timeSinceLastUpdate > expectedDuration {
 				errs = append(errs, fmt.Errorf("Task %s has not finished after %s.", currentStatus, timeSinceLastUpdate))
 			}
@@ -593,7 +585,7 @@ func pollAndExecOnce() {
 
 func main() {
 	defer common.LogPanic()
-	master_common.InitWithMetrics("ct-poller", graphiteServer)
+	master_common.InitWithMetrics2("ct-poller", influxHost, influxUser, influxPassword, influxDatabase)
 
 	if logDirFlag := flag.Lookup("log_dir"); logDirFlag != nil {
 		logDir = logDirFlag.Value.String()

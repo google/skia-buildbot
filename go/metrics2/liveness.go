@@ -51,9 +51,21 @@ func NewLiveness(name string, tags ...map[string]string) *Liveness {
 	return DefaultClient.NewLiveness(name, tags...)
 }
 
+// getLocked returns the current value of the Liveness. Assumes the caller holds a lock.
+func (l *Liveness) getLocked() int64 {
+	return int64(time.Since(l.lastSuccessfulUpdate).Seconds())
+}
+
+// Get returns the current value of the Liveness.
+func (l *Liveness) Get() int64 {
+	l.mtx.Lock()
+	defer l.mtx.Unlock()
+	return l.getLocked()
+}
+
 // updateLocked sets the value of the Liveness. Assumes the caller holds a lock.
 func (l *Liveness) updateLocked() {
-	l.m.Update(int64(time.Since(l.lastSuccessfulUpdate).Seconds()))
+	l.m.Update(l.getLocked())
 }
 
 // update sets the value of the Liveness.

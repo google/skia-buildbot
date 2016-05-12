@@ -11,9 +11,8 @@ import (
 	"go.skia.org/infra/go/metadata"
 )
 
-// NewClientFromParamsAndMetadata returns a Client with credentials obtained
-// from a combination of the given parameters and metadata, depending on whether
-// the program is running in local mode.
+// NewClientFromParamsAndMetadata returns a Client with the given credentials if local is true or
+// from metadata if local is false.
 func NewClientFromParamsAndMetadata(host, user, password, database string, local bool) (*influxdb.Client, error) {
 	if !local {
 		var err error

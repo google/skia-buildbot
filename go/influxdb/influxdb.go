@@ -7,6 +7,7 @@ package influxdb
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -38,8 +39,11 @@ type Client struct {
 
 // NewClient returns a Client with the given credentials.
 func NewClient(host, user, password, database string) (*Client, error) {
+	if !(strings.HasPrefix(host, "http://") || strings.HasPrefix(host, "https://")) {
+		host = fmt.Sprintf("http://%s", host)
+	}
 	influxClient, err := influx_client.NewHTTPClient(influx_client.HTTPConfig{
-		Addr:     fmt.Sprintf("http://%s", host),
+		Addr:     host,
 		Username: user,
 		Password: password,
 		Timeout:  3 * time.Minute,
