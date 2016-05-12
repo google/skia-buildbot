@@ -106,7 +106,10 @@ banner "Copy .bot_password file"
 $shell.NameSpace($userDir).copyhere("c:\.bot_password", 0x14)
 
 banner "Start Swarming."
-cmd /c "python -c `"import urllib; exec urllib.urlopen('https://chromium-swarm.appspot.com/bootstrap').read()`""
+$swarm_slave_dir = "c:\b\swarm_slave"
+if (!(Test-Path ($swarm_slave_dir))) {
+  cmd /c "python -c `"import urllib; exec urllib.urlopen('https://chromium-swarm.appspot.com/bootstrap').read()`""
+}
 
 banner "The Task ended"
 
