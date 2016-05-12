@@ -36,12 +36,18 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --disk name=${INSTANCE_NAME}-data device-name=${INSTANCE_NAME}-data "mode=rw" "boot=no" \
   --address=$IP_ADDRESS
 
-WAIT_TIME_AFTER_CREATION_SECS=600
-echo
-echo "===== Wait $WAIT_TIME_AFTER_CREATION_SECS secs for instance to" \
-  "complete startup script. ====="
-echo
-sleep $WAIT_TIME_AFTER_CREATION_SECS
+# Wait until the instance is up.
+until nc -w 1 -z $IP_ADDRESS 22; do
+    echo "Waiting for VM to come up."
+    sleep 2
+done
+
+gcloud compute copy-files ../common/format_and_mount.sh $PROJECT_USER@$INSTANCE_NAME:/tmp/format_and_mount.sh --zone $ZONE
+
+gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME \
+  --zone $ZONE \
+  --command "/tmp/format_and_mount.sh monitoring-staging" \
+  || echo "Installation failure."
 
 # The instance believes it is skia-systemd-snapshot-maker until it is rebooted.
 echo

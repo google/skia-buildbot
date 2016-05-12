@@ -67,7 +67,3 @@ VM_NAME_BASE=${VM_NAME_BASE:="skia"}
 
 # The name of instance where gold is running on.
 INSTANCE_NAME=${VM_NAME_BASE}-gold-$VM_ID
-GOLD_DATA_DISK_NAME="$INSTANCE_NAME-data"
-
-# Remove the startup script and generate a new one with the right disk name.
-sed "s/GOLD_DATA_DISK_NAME/${GOLD_DATA_DISK_NAME}/g" startup-script.sh.template > startup-script.sh

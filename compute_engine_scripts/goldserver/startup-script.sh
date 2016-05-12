@@ -3,16 +3,9 @@
 set -x
 
 FIRST_BOOT_FILE="/var/lib/initial_setup_complete"
+DATADISK_ROOT="/mnt/pd0"
+
 if [ ! -e $FIRST_BOOT_FILE ]; then
-  DATADISK_ROOT="/mnt/pd0"
-
-  sudo mkdir -p "$DATADISK_ROOT"
-  sudo /usr/share/google/safe_format_and_mount -m "mkfs.ext4 -F" "/dev/disk/by-id/google-GOLD_DATA_DISK_NAME" "$DATADISK_ROOT"
-  sudo chmod 777 "$DATADISK_ROOT"
-
-  # Add the disk to fstab for automatic mounting on boot.
-  echo "/dev/disk/by-id/google-GOLD_DATA_DISK_NAME /mnt/pd0 ext4 defaults 1 1" | sudo tee --append /etc/fstab
-
   if [ ! -d "$DATADISK_ROOT/data" ]; then
     mkdir -p "$DATADISK_ROOT/data"
     chown default:default "$DATADISK_ROOT/data"

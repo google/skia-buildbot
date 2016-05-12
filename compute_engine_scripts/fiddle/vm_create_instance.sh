@@ -64,6 +64,8 @@ until nc -w 1 -z $FIDDLE_IP_ADDRESS 22; do
     sleep 2
 done
 
+gcloud compute copy-files ../common/format_and_mount.sh $PROJECT_USER@$INSTANCE_NAME:/tmp/format_and_mount.sh --zone $ZONE
+
 gcloud compute copy-files install.sh $PROJECT_USER@$INSTANCE_NAME:/tmp/install.sh --zone $ZONE
 gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME \
   --zone $ZONE \
