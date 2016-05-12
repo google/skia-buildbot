@@ -1,7 +1,7 @@
 package influxdb
 
 import (
-	influx_client "github.com/influxdata/influxdb/client/v2"
+	influx_client "github.com/skia-dev/influxdb/client/v2"
 )
 
 type testQueryClient struct{}

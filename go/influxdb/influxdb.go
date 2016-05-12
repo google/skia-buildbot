@@ -12,7 +12,7 @@ import (
 
 	"go.skia.org/infra/go/polling_status"
 
-	influx_client "github.com/influxdata/influxdb/client/v2"
+	influx_client "github.com/skia-dev/influxdb/client/v2"
 )
 
 const (

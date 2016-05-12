@@ -7,8 +7,8 @@ import (
 
 	"go.skia.org/infra/go/testutils"
 
-	client "github.com/influxdata/influxdb/client/v2"
-	"github.com/influxdata/influxdb/models"
+	client "github.com/skia-dev/influxdb/client/v2"
+	"github.com/skia-dev/influxdb/models"
 	assert "github.com/stretchr/testify/require"
 )
 
