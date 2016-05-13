@@ -139,7 +139,7 @@
           target = target.parentElement;
         }
         this.value = target.id;
-        this.fire('change', { detail: this.value });
+        this.fire('change', this.value);
       },
 
       _valueChanged: function () {

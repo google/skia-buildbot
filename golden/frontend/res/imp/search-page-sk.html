@@ -44,8 +44,12 @@
         box-shadow: 3px 3px 6px 1px rgba(133,133,133,1);
         margin-top: 1em;
         margin-bottom: 1em;
-        margin-left: 3em;
-        padding: 1em;
+        margin-left: 0;
+        margin-right: 0;
+        padding-left: 1em;
+        padding-top: 1em;
+        padding-bottom: 1em;
+        padding-right: 0;
       }  
 
       digest-details-sk[data-focus] {
@@ -55,33 +59,42 @@
       #missing {
         padding-top: 2em;
       }
+
+      .searchPageWrapper {
+        padding-left: 1em;
+        padding-top: 1em;
+        margin-left:1em;
+        margin-right: 3em;
+      }
     </style>
   
-    <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
-    <div class="layout horizontal">
-        <search-controls-sk id="searchControls"></search-controls-sk>
-        <div>
-          <paper-button id="triggerSearchButton" raised disabled="{{_hideAll}}">Search</paper-button>
-        </div>
-    </div>
-    <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
-
-    <div hidden$="{{_hideAll}}">
-      <div id="missing" hidden$="{{_nonEmptyResult(data)}}">
-        No digests match your query.
+    <div class="searchPageWrapper">
+      <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
+      <div class="layout horizontal">
+          <search-controls-sk id="searchControls"></search-controls-sk>
+          <div>
+            <paper-button id="triggerSearchButton" raised disabled="{{_hideAll}}">Search</paper-button>
+          </div>
       </div>
-      <div hidden$="{{_emptyResult(data)}}">
-        <detail-list-sk id="detailList">
-          <template is="dom-repeat" items="{{data.digests}}">
-            <digest-details-sk 
-                    id$="{{_entryId(item)}}"
-                    mode="list"
-                    triage
-                    details="[[item]]"
-                    commits="[[data.commits]]">
-            </digest-details-sk>
-          </template>
-        </detail-list-sk>
+      <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
+
+      <div hidden$="{{_hideAll}}">
+        <div id="missing" hidden$="{{_nonEmptyResult(data)}}">
+          No digests match your query.
+        </div>
+        <div hidden$="{{_emptyResult(data)}}">
+          <detail-list-sk id="detailList">
+            <template is="dom-repeat" items="{{data.digests}}">
+              <digest-details-sk 
+                      id$="{{_entryId(item)}}"
+                      mode="list"
+                      triage
+                      details="[[item]]"
+                      commits="[[data.commits]]">
+              </digest-details-sk>
+            </template>
+          </detail-list-sk>
+        </div>
       </div>
     </div>
   </template>

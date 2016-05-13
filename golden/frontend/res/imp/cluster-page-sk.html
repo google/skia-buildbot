@@ -37,7 +37,12 @@
 <dom-module id="cluster-page-sk">
   <template>
     <style include="iron-flex iron-flex-alignment"></style>
-    <style include="shared-styles"></style>
+    <style include="shared-styles">
+      #clusterContainer {
+        margin-left: 1em;
+        margin-top: 1em;
+      }
+    </style>
     <div id="clusterContainer" class="horizontal layout">
       <div class="flex">
         <activity-sk id="activityMain"></activity-sk>
@@ -176,7 +181,9 @@
 
         _handleTriage: function(ev) {
           ev.stopPropagation();
-          sk.post('/json/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
+          sk.post('/json/triage', JSON.stringify(ev.detail)).then(function() {
+            this.$.clusterView.newTriageStatus(ev.detail.digest, ev.detail.status);
+          }.bind(this)).catch(sk.errorMessage);
         }, 
 
         _handleDigestsSelected: function(ev) {

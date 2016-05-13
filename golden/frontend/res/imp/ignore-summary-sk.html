@@ -23,9 +23,11 @@ Displays a summary of an ignore rule.
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 
+<link rel="import" href="shared-styles.html">
+
 <dom-module id="ignore-summary-sk">
   <template>
-    <style>
+    <style include="shared-styles">
       div,
       pre {
         display: inline-block;
@@ -65,7 +67,7 @@ Displays a summary of an ignore rule.
     <div id="name">{{value.name}}</div>
     <div id="expires">{{_humanDiffDate(value.expires)}}</div>
     <pre id="query"><a href$="{{_queryHref(value.query)}}">{{_splitAmp(value.query)}}</a></pre>
-    <pre id="note">{{value.note}}</pre>
+    <div id="note">{{value.note}}</div>
     <div id="count">{{value.count}}</div>
     <paper-button id="edit" title="Edit"><iron-icon icon="create"></iron-icon></paper-button>
     <paper-button id="delete" title="Delete"><iron-icon icon="delete"></iron-icon></paper-button>

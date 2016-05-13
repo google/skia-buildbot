@@ -159,8 +159,8 @@ There are three images that it deals with, called left, top, and diff.
               <zoom-sk  hidden$="{{_hideMe(_currSeq, 'left')}}"
                         source="left_img" 
                         pixels="{{_pixels}}" 
-                        id="zoomLeft" 
-                        x="{{_x}}" 
+                        id="zoomLeft"
+                        x="{{_x}}"
                         y="{{_y}}">
               </zoom-sk>
 
@@ -190,6 +190,7 @@ There are three images that it deals with, called left, top, and diff.
               <tr><th>Diff</th><td><pre>{{_centerPixel.zoomMiddle}}</pre><td></tr>
               <tr><th>{{rlabel}}</th><td><pre>{{_centerPixel.zoomRight}}</pre><td></tr>
             </table>
+	    <div class="horizontal layout">
             <table border="0" cellspacing="5" cellpadding="5">
               <tr><th>Color Distance</th><th>RGBA</th><th>Alpha</th></tr>
               <tr><td>1-1 </td><td><div style="background :#fdd0a2">&nbsp;</div>  </td><td><div style="background :#c6dbef">&nbsp;</div></td></tr>
@@ -211,6 +212,7 @@ There are three images that it deals with, called left, top, and diff.
               <tr><th>U</th><td>Jump To Largest Diff</td></tr>
               <tr><th>M</th><td>Manual Toggle</td></tr>
             </table>
+	    </div>
           </div>
         </div>
       </div>
@@ -293,6 +295,9 @@ There are three images that it deals with, called left, top, and diff.
         this._updateTiming();
         this._showNext(true);
         this._active = true; 
+        this.$.zoomLeft.notifyResize();
+        this.$.zoomMiddle.notifyResize();
+        this.$.zoomRight.notifyResize();
       },
 
       clear: function(details) {

@@ -60,7 +60,8 @@
 <link rel="import" href="commit.html">
 
 <dom-module id="commits-panel-sk">
-  <style type="text/css" media="screen">
+  <template>
+    <style type="text/css" media="screen">
       div {
         margin-bottom: 0.5em;
       }
@@ -84,7 +85,6 @@
         display: block;
       }
     </style>
-  <template>
     <template is="dom-if" if="{{progress}}">
       <div>
         <a target="_blank" href$="{{_statusHref(_firstHash)}}">Buildbot Percent Complete: <span>{{_commitPercent(_percent)}}</span>%</a>
@@ -95,7 +95,6 @@
         <commit-sk data-hash$="{{c.hash}}" hash="{{c.hash}}" commit="{{c}}"></commit-sk>
       </template>
     </iron-selector>
-    </table>
   </template>
   <script>
     Polymer({

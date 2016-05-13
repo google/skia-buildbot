@@ -31,13 +31,20 @@
 <link rel=import href="../common/imp/9/query.html">
 
 <link rel="import" href="ignore-summary-sk.html">
+<link rel="import" href="shared-styles.html">
 
 <dom-module id="ignores-page-sk">
   <template>
+    <style include="shared-styles"></style>
     <style include="iron-flex iron-flex-alignment">
       paper-button {
         min-width: 2em;
       }
+
+      .ignoresPageWrapper {
+        padding: 1em;
+      }
+
       #nameHeader,
       #expiresHeader,
       #queryHeader,
@@ -103,7 +110,7 @@
       }
 
     </style>
-    <div class="layout vertical">
+    <div class="layout vertical ignoresPageWrapper">
       <div class="layout horizontal">
         <div id=nameHeader>Name</div>
         <div id=expiresHeader>Expires</div>

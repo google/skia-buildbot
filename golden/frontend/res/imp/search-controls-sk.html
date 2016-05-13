@@ -42,52 +42,6 @@
     <style include="iron-flex iron-flex-alignment"></style>
     <style include="shared-styles"></style>
     <style>
-      test-summary-sk {
-        display: block;
-        margin-top: 0.5em;
-      }
-      
-      .header {
-        width: 25em;
-      }
-
-      .header.short {
-        width: 10em;
-      }
-
-      corpus-chooser-sk {
-        display: block;
-      }
-
-      #search {
-        display: block;
-      }
-
-      .headToggle {
-        font-size: 20px;
-      }
-
-      .headToggle paper-toggle-button {
-        margin-right: 2em;
-      }
-
-      #core {
-        margin-top: 2em;
-      }
-
-      .blameHeader {
-        padding-top: 0.7em;
-        padding-right: 0.57em;
-        padding-bottom: 0.7em;
-        padding-left: 0.57em;
-        color: #1F78B4;
-        text-transform: uppercase;
-      }
-
-      paper-button[disabled] {
-        background: transparent;
-        color: #1F78B4;
-      }
 
       .topControl {
         margin-right: 2em;
@@ -97,11 +51,11 @@
     </style>
       <div class="horizontal layout">
         <paper-button id="searchButton" class="topControl" raised><iron-icon icon="search"></iron-icon></paper-button>
-        <paper-toggle-button id=head class="topControl" checked="{{state.head}}">Head</paper-toggle-button>
-        <paper-toggle-button id=include class="topControl" checked="{{state.include}}">Include Ignored</paper-toggle-button>
-        <paper-toggle-button id=pos class="topControl" checked="{{state.pos}}">Positive</paper-toggle-button>
-        <paper-toggle-button id=neg class="topControl" checked="{{state.neg}}">Negative</paper-toggle-button>
-        <paper-toggle-button id=unt class="topControl" checked="{{state.unt}}">Untriaged</paper-toggle-button>
+        <paper-toggle-button class="topControl" checked="{{state.head}}">Head</paper-toggle-button>
+        <paper-toggle-button class="topControl" checked="{{state.include}}">Include Ignored</paper-toggle-button>
+        <paper-toggle-button class="topControl" checked="{{state.pos}}">Positive</paper-toggle-button>
+        <paper-toggle-button class="topControl" checked="{{state.neg}}">Negative</paper-toggle-button>
+        <paper-toggle-button class="topControl" checked="{{state.unt}}">Untriaged</paper-toggle-button>
       </div>
 
       <query-dialog-sk id="queryDialog" trigger="searchButton"></query-dialog-sk>

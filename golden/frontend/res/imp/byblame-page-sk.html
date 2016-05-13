@@ -27,17 +27,26 @@
 
 <dom-module id="byblame-page-sk">
   <template>
-    <style include="shared-styles"></style>
-    <style type="text/css" media="screen">
+    <style include="shared-styles">
       commits-panel-sk,
       table {
         margin: 1em;
         display: block;
       }
 
+      .byBlameWrapper {
+        margin-left: 1em;
+        margin-right: 1.5em;
+        margin-top: 1em;
+        margin-bottom: 2.5em;
+      }
+
       .group {
         background: white;
-        margin: 2em;
+        margin-bottom: 2em;
+        margin-left: 0;
+        margin-right: 0;
+        margin-top: 0;
         border: solid 1px gray;
         padding: 1em;
         box-shadow: 11px 11px 31px 1px rgba(0, 0, 0, 0.52);
@@ -52,46 +61,48 @@
       }
 
     </style>
-    <activity-sk id="activityMain" busy="{{_hideAll}}"></activity-sk>
-    <div hidden$="{{_hideAll}}">
-      <div hidden$="{{_hasEntries(data)}}">
-        No untriaged digests.
-      </div>
-
-      <template is="dom-repeat" items="{{data}}">
-        <div class="group">
-          <a target="_blank" href$="/search?blame={{item.groupID}}&unt=true&head=true&query=source_type%3Dgm">
-            {{item.nDigests}} digest(s) need triaging
-          </a>
-
-          <template is="dom-if" if="{{_noBlames(item)}}">
-            <h3>No blamelist.</h3>
-          </template>
-
-          <template is="dom-if" if="{{!_noBlames(item)}}">
-            <h3>Blame</h3>
-            <commits-panel-sk mailbox="{{item.groupID}}"></commits-panel-sk>
-          </template>
-
-          <h3>Tests Affected</h3>
-          <div>
-            {{item.nTests}} tests affected.
-          </div>
-
-          <template is="dom-if" if="{{_hasAffectedTests(item)}}">
-            <table>
-              <tr><th>Test</th><th>Num Digests</th><th>Example</th></tr>
-              <template is="dom-repeat" items="{{item.affectedTests}}">
-              <tr>
-                <td>{{item.test}}</td><td>{{item.num}}</td>
-                <td><a target=_blank href$="{{_detailHref(item)}}">
-                {{item.sample_digest}}</a></td>
-              </tr>
-              </template>
-            </table>
-          </template>
+    <div class="byBlameWrapper">
+      <activity-sk id="activityMain" busy="{{_hideAll}}"></activity-sk>
+      <div hidden$="{{_hideAll}}">
+        <div hidden$="{{_hasEntries(data)}}">
+          No untriaged digests.
         </div>
-      </template>
+
+        <template is="dom-repeat" items="{{data}}">
+          <div class="group">
+            <a target="_blank" href$="/search?blame={{item.groupID}}&unt=true&head=true&query=source_type%3Dgm">
+              {{item.nDigests}} digest(s) need triaging
+            </a>
+
+            <template is="dom-if" if="{{_noBlames(item)}}">
+              <h3>No blamelist.</h3>
+            </template>
+
+            <template is="dom-if" if="{{!_noBlames(item)}}">
+              <h3>Blame</h3>
+              <commits-panel-sk mailbox="{{item.groupID}}" progress></commits-panel-sk>
+            </template>
+
+            <h3>Tests Affected</h3>
+            <div>
+              {{item.nTests}} tests affected.
+            </div>
+
+            <template is="dom-if" if="{{_hasAffectedTests(item)}}">
+              <table>
+                <tr><th>Test</th><th>Num Digests</th><th>Example</th></tr>
+                <template is="dom-repeat" items="{{item.affectedTests}}">
+                <tr>
+                  <td>{{item.test}}</td><td>{{item.num}}</td>
+                  <td><a target=_blank href$="{{_detailHref(item)}}">
+                  {{item.sample_digest}}</a></td>
+                </tr>
+                </template>
+              </table>
+            </template>
+          </div>
+        </template>
+      </div>
     </div>
   </template>
 
