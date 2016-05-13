@@ -7,32 +7,11 @@ $comp = hostname
 $username = "chrome-bot"
 $password = "CHROME_BOT_PASSWORD"
 $domain = $env:userdomain
-$userDir = "C:\Users\$username"
 $logFile = "C:\gce_setup.log"
 
 Function log($msg) {
   Write-Debug $msg
   Add-Content $logFile "$msg`n"
-}
-
-Function addToRegistryPath($dir) {
-  # Don't add empty strings.
-  If (!$dir) { Return }
-
-  # Retrieve the current PATH from the registry.
-  $envRegPath = ("Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\" +
-                 "Control\Session Manager\Environment")
-  $oldPath = (Get-ItemProperty -Path $envRegPath -Name PATH).Path
-
-  # Don't add duplicates to PATH.
-  $oldPath.Split(";") | ForEach { If ($_ -eq $dir) { Return } }
-
-  # Override PATH
-  $newPath=$oldPath+";"+$dir
-  Set-ItemProperty -Path $envRegPath -Name PATH -Value $newPath
-  $actualPath = (Get-ItemProperty -Path $envRegPath -Name PATH).Path
-  log $actualPath
-  $ENV:PATH = $actualPath
 }
 
 Function banner($title) {
@@ -86,11 +65,6 @@ if (!(Test-Path ($fileName))) {
   cmd /c $fileName /q
 }
 
-banner "Add to registry PATH"
-addToRegistryPath "$userDir\depot_tools"
-addToRegistryPath "$userDir\depot_tools\python276_bin\Scripts"
-addToRegistryPath "C:\Program` Files` (x86)\CMake\bin"
-
 banner "Create .boto file"
 $boto_contents = (
     "[Credentials]`n" +
@@ -135,7 +109,7 @@ $chromebotSchTask = "C:\chomebot-schtask.ps1"
 [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($b64Data)) | Out-File -Encoding "ASCII" $chromebotSchTask
 
 banner "Set chrome-bot's scheduled task"
-schtasks /Create /TN skiabot /SC ONSTART /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL HIGHEST
+schtasks /Create /TN skiabot /SC ONSTART /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL LIMITED
 
 $bot_dir = "C:\b"
 banner "Create $bot_dir"

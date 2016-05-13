@@ -77,20 +77,9 @@ if (!(Test-Path ($depotToolsPath))) {
   new-item $depotToolsPath -itemtype directory
   unzip $fileName $depotToolsPath
   addToPath $depotToolsPath
-  cmd /c "gclient < nul"
+  $gclient_output = (cmd /c "gclient") | Out-String
+  log $gclient_output
 }
-
-banner "Install Python SetupTools."
-$fileName = "$tmp\ez_setup.py"
-if (!(Test-Path ($fileName))) {
-  $url = "http://peak.telecommunity.com/dist/ez_setup.py"
-  $webclient.DownloadFile($url, $fileName)
-  cmd /c "python $fileName"
-    addToPath "$depotToolsPath\python276_bin\Scripts"
-}
-
-banner "Install zope.interface."
-cmd /c "easy_install zope.interface"
 
 banner "Copy .boto file"
 $shell.NameSpace($userDir).copyhere("c:\.boto", 0x14)
