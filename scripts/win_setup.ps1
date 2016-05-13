@@ -137,4 +137,11 @@ $chromebotSchTask = "C:\chomebot-schtask.ps1"
 banner "Set chrome-bot's scheduled task"
 schtasks /Create /TN skiabot /SC ONSTART /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL HIGHEST
 
+$bot_dir = "C:\b"
+banner "Create $bot_dir"
+New-Item -ItemType directory -Path $bot_dir
+$acl = Get-Acl $bot_dir
+$acl.SetOwner([System.Security.Principal.NTAccount] $username)
+Set-Acl $bot_dir $acl
+
 banner "The startup script completed"

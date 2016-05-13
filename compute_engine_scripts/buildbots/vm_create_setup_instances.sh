@@ -105,15 +105,39 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 done
 
 if [ "$VM_INSTANCE_OS" == "Windows" ]; then
+  # Wait for all instances to be ready.
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
-    # Read serial console output, wait for the instance to be running.
     DONE_TEXT="Instance setup finished. ${INSTANCE_NAME} is ready to use."
     while [ `gcloud compute instances get-serial-port-output --zone=${ZONE} ${INSTANCE_NAME} | grep -c "${DONE_TEXT}"` = 0 ]; do
       echo "Waiting 5 seconds for ${INSTANCE_NAME} to come up."
       sleep 5
     done
   done
+
+  # Reboot all instances. This causes the startup script to run.
+  for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
+    INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+    $GCOMPUTE_CMD resetinstance $INSTANCE_NAME
+  done
+
+  # Wait for all instances to come back from reboot and finish their startup script.
+  for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
+    INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+    DONE_TEXT="Finished running startup scripts."
+    while [ `gcloud compute instances get-serial-port-output --zone=${ZONE} ${INSTANCE_NAME} | grep -c "${DONE_TEXT}"` = 0 ]; do
+      echo "Waiting 5 seconds for ${INSTANCE_NAME} to come back from reboot."
+      sleep 5
+    done
+  done
+
+  # The startup script enabled auto-login as chrome-bot on boot. We need to
+  # reboot in order to run chrome-bot's scheduled task.
+  for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
+    INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+    $GCOMPUTE_CMD resetinstance $INSTANCE_NAME
+  done
+
 else
   echo
   echo "===== Wait $WAIT_TIME_AFTER_CREATION_SECS secs for all instances to" \
@@ -165,10 +189,6 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
       echo "Please manually fix these errors."
       echo
     fi
-
-  elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
-    # Restart the windows instance to run chrome-bot's scheduled task.
-    $GCOMPUTE_CMD resetinstance $INSTANCE_NAME
   fi
 done
 

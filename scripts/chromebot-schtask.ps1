@@ -106,6 +106,10 @@ banner "Copy .bot_password file"
 $shell.NameSpace($userDir).copyhere("c:\.bot_password", 0x14)
 
 banner "Start Swarming."
+$startup_dir = "c:\Users\chrome-bot\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+if (!(Test-Path ($startup_dir))) {
+  New-Item -ItemType directory -Path $startup_dir
+}
 $swarm_slave_dir = "c:\b\swarm_slave"
 if (!(Test-Path ($swarm_slave_dir))) {
   cmd /c "python -c `"import urllib; exec urllib.urlopen('https://chromium-swarm.appspot.com/bootstrap').read()`""
