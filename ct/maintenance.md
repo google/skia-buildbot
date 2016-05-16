@@ -208,6 +208,8 @@ automatically:
 
 - /b/storage/webhook_salt.data: Set this file to the value of
   [GCE metadata key webhook_request_salt](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
+- /b/storage/influxdb_password.txt: Set this file to the value of
+  [GCE metadata key influxdb_password](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
 - /b/storage/email.data and /b/storage/google_storage_token.data: Sign in to
   `skia.buildbots@gmail.com` in your browser using the password stored in
   [Valentine](https://valentine.corp.google.com/) as
@@ -228,12 +230,12 @@ start_poller () {
   nohup poller --log_dir=/b/storage/glog \
     --influxdb_host=https://metrics.skia.org \
     --influxdb_name=<from metadata> \
-    --influxdb_password=<from metadata> \
+    --influxdb_password="$(cat /b/storage/influxdb_password.txt)" \
     --influxdb_database=skmetrics &
 }
 ```
 
-find `influxdb_name` and `influxdb_password` in
+find `influxdb_name` in
 [GCE metadata](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
 
 To stop the poller safely, check that the CTFE task queue is empty and check
