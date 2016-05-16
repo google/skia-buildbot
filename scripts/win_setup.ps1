@@ -100,13 +100,13 @@ INSERTFILE(/tmp/chrome_master_host)
 Add-Content c:\Windows\System32\drivers\etc\hosts $additional_hosts
 
 banner "Download chrome-bot's scheduled task powershell script"
-$url = ("https://skia.googlesource.com/buildbot/+/master/scripts/" +
-        "chromebot-schtask.ps1?format=TEXT")
-$b64SchTask = "C:\b64-chromebot-schtask"
-$webclient.DownloadFile($url, $b64SchTask)
-$b64Data = Get-Content $b64SchTask
-$chromebotSchTask = "C:\chomebot-schtask.ps1"
-[System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($b64Data)) | Out-File -Encoding "ASCII" $chromebotSchTask
+$metadataclient = New-Object System.Net.WebClient
+$metadataclient.Headers.Add("Metadata-Flavor", "Google")
+$url = "http://metadata/computeMetadata/v1/instance/attributes/chromebot-schtask-ps1"
+$chromebotSchTask = "c:\chromebot-schtask.ps1"
+$data = $metadataclient.DownloadString($url)
+log $data
+Set-Content $chromebotSchTask $data
 
 banner "Set chrome-bot's scheduled task"
 schtasks /Create /TN skiabot /SC ONSTART /TR "powershell.exe -executionpolicy Unrestricted -file $chromebotSchTask" /RU $username /RP $password /F /RL LIMITED

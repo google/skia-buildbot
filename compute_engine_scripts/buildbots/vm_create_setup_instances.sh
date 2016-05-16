@@ -44,10 +44,16 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
   sed -i "s/CHROME_BOT_PASSWORD/${WIN_CHROME_BOT_PWD}/g" $MODIFIED_STARTUP_SCRIPT
   todos $MODIFIED_STARTUP_SCRIPT
 
+  ORIG_SCHTASK_SCRIPT="../../scripts/chromebot-schtask.ps1"
+  MODIFIED_SCHTASK_SCRIPT="/tmp/chromebot-schtask.ps1"
+  cp $ORIG_SCHTASK_SCRIPT $MODIFIED_SCHTASK_SCRIPT
+  todos $MODIFIED_SCHTASK_SCRIPT
+
   METADATA_ARGS="--metadata=gce-initial-windows-user:chrome-bot \
                  --metadata_from_file=gce-initial-windows-password:/tmp/win-chrome-bot.txt \
                  --metadata_from_file=sysprep-oobe-script-ps1:$MODIFIED_SYSPREP_SCRIPT \
-                 --metadata_from_file=windows-startup-script-ps1:$MODIFIED_STARTUP_SCRIPT"
+                 --metadata_from_file=windows-startup-script-ps1:$MODIFIED_STARTUP_SCRIPT \
+                 --metadata_from_file=chromebot-schtask-ps1:$MODIFIED_SCHTASK_SCRIPT"
   DISK_ARGS="--boot_disk_size_gb=$VM_PERSISTENT_DISK_SIZE_GB"
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_WIN_BOTS[@]}
   # We have to wait longer for windows because sysprep can take a while to
@@ -125,7 +131,7 @@ if [ "$VM_INSTANCE_OS" == "Windows" ]; then
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
     DONE_TEXT="Finished running startup scripts."
-    while [ `gcloud compute instances get-serial-port-output --zone=${ZONE} ${INSTANCE_NAME} | grep -c "${DONE_TEXT}"` = 0 ]; do
+    while [ `gcloud compute instances get-serial-port-output --zone=${ZONE} ${INSTANCE_NAME} | tail | grep -c "${DONE_TEXT}"` = 0 ]; do
       echo "Waiting 5 seconds for ${INSTANCE_NAME} to come back from reboot."
       sleep 5
     done
@@ -136,6 +142,16 @@ if [ "$VM_INSTANCE_OS" == "Windows" ]; then
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
     $GCOMPUTE_CMD resetinstance $INSTANCE_NAME
+  done
+
+  # Wait for all instances to come back from reboot.
+  for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
+    INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+    DONE_TEXT="Finished running startup scripts."
+    while [ `gcloud compute instances get-serial-port-output --zone=${ZONE} ${INSTANCE_NAME} | tail | grep -c "${DONE_TEXT}"` = 0 ]; do
+      echo "Waiting 5 seconds for ${INSTANCE_NAME} to come back from reboot."
+      sleep 5
+    done
   done
 
 else

@@ -23,6 +23,7 @@ Function unzip($fileName, $folder = "C:\") {
   $zip = $shell.NameSpace($fileName)
   log "Unzip $filename to $folder"
   foreach($item in $zip.items()) {
+    log "  extract $item"
     $shell.Namespace($folder).copyhere($item)
   }
 }
@@ -56,7 +57,7 @@ Function banner($title) {
 
 # TODO(borenet): This top-level try/catch is really stupid, but I don't know
 # how to get errors logged to a file.
-try {
+Try {
 
 # Create temp directory.
 $tmp = "$userDir\tmp"
@@ -76,10 +77,26 @@ if (!(Test-Path ($depotToolsPath))) {
   $webclient.DownloadFile($url, $fileName)
   new-item $depotToolsPath -itemtype directory
   unzip $fileName $depotToolsPath
-  addToPath $depotToolsPath
-  $gclient_output = (cmd /c "gclient") | Out-String
-  log $gclient_output
 }
+addToPath $depotToolsPath
+$ENV:DEPOT_TOOLS_UPDATE = "0"
+Try {
+  $gclient_output = (cmd /c "gclient.bat") 2>&1 | Out-String
+  log $gclient_output
+} Catch {
+  log "gclient failed:"
+  log $_.Exception.Message
+}
+
+banner "Manual depot_tools update"
+Set-Location -Path $depotToolsPath
+log "git fetch"
+cmd /c "git.bat fetch"
+log "git reset"
+cmd /c "git.bat reset --hard origin/master"
+$gitstatus = (cmd /c "git.bat status") | Out-String
+log $gitstatus
+Set-Location -Path $userDir
 
 banner "Copy .boto file"
 $shell.NameSpace($userDir).copyhere("c:\.boto", 0x14)
@@ -94,11 +111,13 @@ $shell.NameSpace($depotToolsPath).copyhere("c:\.gitconfig", 0x14)
 banner "Copy .bot_password file"
 $shell.NameSpace($userDir).copyhere("c:\.bot_password", 0x14)
 
-banner "Start Swarming."
-$startup_dir = "c:\Users\chrome-bot\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+banner "Create Startup Dir"
+$startup_dir = "$userDir\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
 if (!(Test-Path ($startup_dir))) {
   New-Item -ItemType directory -Path $startup_dir
 }
+
+banner "Start Swarming."
 $swarm_slave_dir = "c:\b\swarm_slave"
 if (!(Test-Path ($swarm_slave_dir))) {
   cmd /c "python -c `"import urllib; exec urllib.urlopen('https://chromium-swarm.appspot.com/bootstrap').read()`""
@@ -106,8 +125,9 @@ if (!(Test-Path ($swarm_slave_dir))) {
 
 banner "The Task ended"
 
-} catch {
+} Catch {
   log "ERROR:"
-  log $_.Message
+  log $_.Exception.Message
+  log $error[0]
 }
 
