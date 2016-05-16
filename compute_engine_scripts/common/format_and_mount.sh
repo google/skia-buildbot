@@ -8,11 +8,10 @@ set -x
 
 DISK_NAME="google-skia-$1-data"
 
-echo "Formatting and setting up rules for "$DISK_NAME
+echo "Formatting and setting up fstab rules for "$DISK_NAME
 # Mount data disk
 sudo mkdir -p /mnt/pd0
-sudo mkfs.ext4 -F -E lazy_itable_init=0,lazy_journal_init=0,discard "/dev/disk/by-id/"$DISK_NAME
-sudo mount -o discard,defaults "/dev/disk/by-id/"$DISK_NAME /mnt/pd0
+sudo ./safe_format_and_mount "/dev/disk/by-id/"$DISK_NAME /mnt/pd0
 sudo chmod 777 /mnt/pd0
 
 # Add mounting instructions to fstab so it remounts on reboot.
