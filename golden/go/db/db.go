@@ -141,6 +141,22 @@ var migrationSteps = []database.MigrationStep{
 		MySQLDown: []string{`ALTER TABLE tries DROP max_patchset`},
 	},
 
+	// Remove the tries table since we don't store trybot results in SQL anymore.
+	// version 9. Note: We re-add the table in the down-step to keep previous versions
+	// functioning and keep the version count correct.
+	{
+		MySQLUp: []string{`DROP TABLE IF EXISTS tries`},
+		MySQLDown: []string{
+			`CREATE TABLE IF NOT EXISTS tries (
+				issue        VARCHAR(255) NOT NULL PRIMARY KEY,
+				last_updated BIGINT       NOT NULL,
+				results      LONGTEXT     NOT NULL,
+				max_patchset INT NOT NULL DEFAULT 0,
+				INDEX tries_lastupdated_idx (last_updated)
+			)`,
+		},
+	},
+
 	// Use this is a template for more migration steps.
 	// version x
 	// {
