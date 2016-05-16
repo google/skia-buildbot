@@ -24,6 +24,7 @@ GCLIENT = 'gclient.bat' if os.name == 'nt' else 'gclient'
 GCLIENT_FILE = '.gclient'
 PATH_TO_SKIA_IN_CHROME = os.path.join('src', 'third_party', 'skia', 'src')
 DEFAULT_FETCH_TARGET = 'chromium'
+GIT = 'git'
 
 # Sync Chrome to LKGR.
 CHROME_REV_LKGR = 'CHROME_REV_LKGR'
