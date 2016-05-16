@@ -425,18 +425,6 @@ _slave_host_dicts = {
 
 ############################### Windows Machines ###############################
 
-  'win8-4790k-000': {
-    'slaves': [
-      ('skiabot-shuttle-win8-i7-4790k-000', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.128',
-    'kvm_switch': KVM_SWITCH_DOOR,
-    'kvm_num': 'H',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
   'win8-4790k-001': {
     'slaves': [
       ('skiabot-shuttle-win8-i7-4790k-001', '0', False),
@@ -445,6 +433,18 @@ _slave_host_dicts = {
     'ip': '192.168.1.129',
     'kvm_switch': KVM_SWITCH_DOOR,
     'kvm_num': '1',
+    'path_to_buildbot': ['buildbot'],
+    'launch_script': LAUNCH_SCRIPT_WIN,
+  },
+
+  'win8-4790k-002': {
+    'slaves': [
+      ('skiabot-shuttle-win8-i7-4790k-002', '0', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'ip': '192.168.1.136',
+    'kvm_switch': KVM_SWITCH_DOOR,
+    'kvm_num': '3',
     'path_to_buildbot': ['buildbot'],
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
