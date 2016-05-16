@@ -5,23 +5,16 @@
 
 """ Create (if needed) and sync a nested checkout of Skia inside of Chrome. """
 
+import optparse
 import os
-import sys
-PARENT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join('/b', 'skia-repo', 'trunk', 'common'))
-sys.path.append(os.path.join(PARENT_DIR, os.pardir, os.pardir, "site_config"))
-
-from optparse import OptionParser
-from py.utils.git_utils import GIT
-from py.utils import git_utils
-from py.utils import misc
-from py.utils import shell_utils
-
-import gclient_utils
-
 import re
 import shlex
+import sys
 import urllib2
+
+import gclient_utils
+import misc
+import shell_utils
 
 
 CHROME_GIT_URL = 'https://chromium.googlesource.com/chromium/src.git'
@@ -43,6 +36,11 @@ SKIA_GIT_URL = 'https://skia.googlesource.com/skia.git'
 SKIA_REV_DEPS = 'SKIA_REV_DEPS'
 # Sync to origin/master.
 SKIA_REV_MASTER = 'SKIA_REV_MASTER'
+
+
+def GetRemoteMasterHash(git_url):
+  return shell_utils.run(['git', 'ls-remote', git_url, '--verify',
+                          'refs/heads/master']).rstrip()
 
 
 def GetDepsVar(deps_filepath, variable):
@@ -78,7 +76,7 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
   """
   # Figure out what revision of Skia we should use.
   if skia_revision == SKIA_REV_MASTER:
-    output = git_utils.GetRemoteMasterHash(SKIA_GIT_URL)
+    output = GetRemoteMasterHash(SKIA_GIT_URL)
     if output:
       skia_revision = shlex.split(output)[0]
     if not skia_revision:
@@ -90,7 +88,7 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
     chrome_revision = urllib2.urlopen(CHROME_LKGR_URL).read()
   elif chrome_revision == CHROME_REV_MASTER:
     chrome_revision = shlex.split(
-        git_utils.GetRemoteMasterHash(CHROME_GIT_URL))[0]
+        GetRemoteMasterHash(CHROME_GIT_URL))[0]
 
   # Run "fetch chromium". The initial run is allowed to fail after it does some
   # work. At the least, we expect the .gclient file to be present when it
@@ -170,7 +168,7 @@ def Sync(skia_revision=SKIA_REV_MASTER, chrome_revision=CHROME_REV_LKGR,
 
 
 def Main():
-  parser = OptionParser()
+  parser = optparse.OptionParser()
   parser.add_option('--skia_revision',
                     help=('Desired revision of Skia. Defaults to the most '
                           'recent revision.'))

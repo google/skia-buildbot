@@ -6,18 +6,15 @@
 """This module contains utilities for managing gclient checkouts."""
 
 
-from py.utils.git_utils import GIT
-from py.utils import shell_utils
-from py.utils import misc
 import os
+
+import misc
+import shell_utils
 
 
 WHICH = 'where' if os.name == 'nt' else 'which'
 SKIA_TRUNK = 'skia'
-
-
-# TODO(borenet): There are a number of Git commands in this file.  They should
-# probably be added to git_utils.
+GIT = 'git'
 
 
 def _GetGclientPy():

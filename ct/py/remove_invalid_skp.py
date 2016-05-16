@@ -10,9 +10,7 @@ import optparse
 import os
 import sys
 
-# Set the PYTHONPATH for this script to include shell_utils.
-sys.path.append(os.path.join('/b', 'skia-repo', 'trunk', 'common', 'py'))
-from utils import shell_utils
+import shell_utils
 
 
 def IsSKPValid(path_to_skp, path_to_skpinfo):
