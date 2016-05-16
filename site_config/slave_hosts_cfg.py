@@ -93,18 +93,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'skiabot-shuttle-ubuntu15-002': {
-    'slaves': [
-      ('skiabot-shuttle-ubuntu12-nexus7-001',      '2', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.110',
-    'kvm_switch': KVM_SWITCH_OFFICE,
-    'kvm_num': 'C',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skiabot-shuttle-ubuntu15-003': {
     'slaves': [
       ('skiabot-shuttle-ubuntu15-androidone-001',  '7', False),
@@ -122,19 +110,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'skiabot-shuttle-ubuntu15-004': {
-    'slaves': [
-      ('skiabot-shuttle-ubuntu12-nexus7-002', '1', False),
-      ('skiabot-shuttle-ubuntu12-nexus7-003', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.139',
-    'kvm_switch': KVM_SWITCH_OFFICE,
-    'kvm_num': 'F',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skiabot-shuttle-ubuntu13-xxx': {
     'slaves': [
     ],
@@ -143,6 +118,33 @@ _slave_host_dicts = {
     'kvm_switch': KVM_SWITCH_OFFICE,
     'kvm_num': 'H',
     'path_to_buildbot': ['buildbot'],
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
+  'skia-vm-005': {
+    'slaves': [
+      ('skiabot-linux-swarm-048', '48', False),
+      ('skiabot-linux-swarm-049', '49', False),
+      ('skiabot-linux-swarm-050', '50', False),
+      #('skiabot-linux-swarm-051', '51', False),
+      #('skiabot-linux-swarm-052', '52', False),
+      #('skiabot-linux-swarm-053', '53', False),
+      #('skiabot-linux-swarm-054', '54', False),
+      #('skiabot-linux-swarm-055', '55', False),
+      #('skiabot-linux-swarm-056', '56', False),
+      #('skiabot-linux-swarm-057', '57', False),
+      #('skiabot-linux-swarm-058', '58', False),
+      #('skiabot-linux-swarm-059', '59', False),
+      #('skiabot-linux-swarm-060', '60', False),
+      #('skiabot-linux-swarm-061', '61', False),
+      #('skiabot-linux-swarm-062', '62', False),
+      #('skiabot-linux-swarm-063', '63', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'ip': NO_IP_ADDR,
+    'kvm_switch': NO_KVM_SWITCH,
+    'kvm_num': NO_KVM_NUM,
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
@@ -172,7 +174,6 @@ _slave_host_dicts = {
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
-
 
   'skia-vm-007': {
     'slaves': [
