@@ -2,6 +2,7 @@
 package main
 
 import (
+	"crypto/md5"
 	"encoding/binary"
 	"flag"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -31,6 +33,7 @@ var (
 	regex   = flag.String("regex", "", "A regular expression to match against traceids.")
 	verbose = flag.Bool("verbose", false, "Verbose output.")
 	only    = flag.Bool("only", false, "If true then only print values, otherwise print keys and values.")
+	showMD5 = flag.Bool("md5", false, "If true then include the MD5 hash value for each commit id to compare across databases. Warning: Slow !")
 )
 
 var Usage = func() {
@@ -41,7 +44,7 @@ Commands:
 
   ls        	List all the commit ids for the given time range.
 
-            	Flags: --begin --end
+            	Flags: --begin --end --md5
 
   count     	Return the number of samples stored for all commits in the given time range.
 
@@ -135,14 +138,44 @@ func list(client traceservice.TraceServiceClient) {
 	resp, err := _list(client)
 	if err != nil {
 		glog.Fatalf("Failed to retrieve the list: %s\n", err)
-		return
 	}
+
 	for _, cid := range resp.Commitids {
 		if *id != "" && !strings.HasPrefix(cid.Id, *id) {
 			continue
 		}
-		fmt.Printf("%s  %s  %s\n", cid.Id, cid.Source, time.Unix(cid.Timestamp, 0))
+		fmt.Printf("%s  %s  %s", cid.Id, cid.Source, time.Unix(cid.Timestamp, 0).UTC())
+		if *showMD5 {
+			fmt.Printf(" %s", calcMD5FromValues(client, cid))
+		}
+		fmt.Printf("\n")
 	}
+}
+
+// calcMD5FromValues loads the values for the given commit ID and sorts the bytes of the
+// values in lexicographical order and calculates the hash. This can be used to compare
+// commit values across databases.
+func calcMD5FromValues(client traceservice.TraceServiceClient, cid *traceservice.CommitID) string {
+	req := &traceservice.GetValuesRequest{Commitid: cid}
+	resp, err := client.GetValues(context.Background(), req)
+	if err != nil {
+		glog.Fatalf("Failed to retrieve value: %s", err)
+	}
+
+	sortedStr := make([]string, 0, len(resp.Values))
+	for _, val := range resp.Values {
+		sortedStr = append(sortedStr, string(val.Value))
+	}
+	sort.Strings(sortedStr)
+
+	ret := md5.New()
+	for _, val := range sortedStr {
+		_, err := ret.Write([]byte(val))
+		if err != nil {
+			glog.Fatalf("Error writint to MD5: %s", err)
+		}
+	}
+	return fmt.Sprintf("%x", ret.Sum(nil))
 }
 
 func _pingStep(ctx context.Context, req *traceservice.Empty, client traceservice.TraceServiceClient) {
@@ -248,7 +281,6 @@ func param_grep(client traceservice.TraceServiceClient) {
 	resp, err := _list(client)
 	if err != nil {
 		glog.Fatalf("Failed to retrieve the list: %s\n", err)
-		return
 	}
 
 	for _, cid := range resp.Commitids {
@@ -298,7 +330,6 @@ func value_grep(client traceservice.TraceServiceClient) {
 	resp, err := _list(client)
 	if err != nil {
 		glog.Fatalf("Failed to retrieve the list: %s\n", err)
-		return
 	}
 
 	for _, cid := range resp.Commitids {
