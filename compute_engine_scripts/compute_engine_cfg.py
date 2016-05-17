@@ -22,6 +22,7 @@ SKIA_BOT_MACHINE_TYPE = os.environ.get(
 VM_INSTANCE_OS = os.environ.get('VM_INSTANCE_OS', 'Linux')
 IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.112'
 VM_BOT_NAME = 'skia-vm'
+PERSISTENT_DISK_NAME = 'skia-disk'
 VM_PERSISTENT_DISK_SIZE_GB = os.environ.get('VM_PERSISTENT_DISK_SIZE_GB', 300)
 # If this is true then the VM instances will automatically try to connect to the
 # buildbot master.
@@ -44,6 +45,7 @@ ZONE_TAG = os.environ.get('ZONE_TAG', 'c')
 if VM_IS_CTBOT:
   # Use ct prefix. Swarming uses this prefix to put them in the 'CT' pool.
   VM_BOT_NAME = 'ct-vm'
+  PERSISTENT_DISK_NAME = 'ct-disk'
   # Always use us-central1-b for CT bots because of maddigan@'s comment in
   # https://gcpquotatool.googleplex.com/requests?request=ahlzfmdvb2dsZS5jb206Z2NwcXVvdGF0b29sci4LEghDdXN0b21lchiAgICAhN6GCgwLEgxRdW90YVJlcXVlc3QYgICAgIC5hAoM
   ZONE_TAG = 'b'

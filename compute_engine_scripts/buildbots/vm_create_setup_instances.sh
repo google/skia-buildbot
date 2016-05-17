@@ -79,7 +79,7 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
   if [ "$VM_INSTANCE_OS" == "Linux" ]; then
     # The persistent disk of linux GCE bots is based on the bot's IP address.
-    PERSISTENT_DISK_ARG=--disk=skia-disk-`printf "%03d" ${MACHINE_IP}`
+    PERSISTENT_DISK_ARG=--disk=$PERSISTENT_DISK_NAME-`printf "%03d" ${MACHINE_IP}`
   fi
 
   $GCOMPUTE_CMD addinstance ${INSTANCE_NAME} \
