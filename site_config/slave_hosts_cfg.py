@@ -39,30 +39,6 @@ _slave_host_dicts = {
 
 ################################ Linux Machines ################################
 
-  'skiabot-shuttle-ubuntu12-gtx660-001': {
-    'slaves': [
-      ('skiabot-shuttle-ubuntu12-gtx660-000', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.113',
-    'kvm_switch': KVM_SWITCH_DOOR,
-    'kvm_num': 'E',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skiabot-shuttle-ubuntu12-gtx660-002': {
-    'slaves': [
-      ('skiabot-shuttle-ubuntu12-gtx660-bench', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.122',
-    'kvm_switch': KVM_SWITCH_DOOR,
-    'kvm_num': 'F',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skiabot-shuttle-ubuntu15-000': {
     'slaves': [
       ('skiabot-shuttle-ubuntu12-nexusplayer-001', '0',  False),
@@ -126,10 +102,10 @@ _slave_host_dicts = {
       ('skiabot-linux-swarm-048', '48', False),
       ('skiabot-linux-swarm-049', '49', False),
       ('skiabot-linux-swarm-050', '50', False),
-      #('skiabot-linux-swarm-051', '51', False),
-      #('skiabot-linux-swarm-052', '52', False),
-      #('skiabot-linux-swarm-053', '53', False),
-      #('skiabot-linux-swarm-054', '54', False),
+      ('skiabot-linux-swarm-051', '51', False),
+      ('skiabot-linux-swarm-052', '52', False),
+      ('skiabot-linux-swarm-053', '53', False),
+      ('skiabot-linux-swarm-054', '54', False),
       #('skiabot-linux-swarm-055', '55', False),
       #('skiabot-linux-swarm-056', '56', False),
       #('skiabot-linux-swarm-057', '57', False),
@@ -397,30 +373,6 @@ _slave_host_dicts = {
     'ip': '192.168.1.136',
     'kvm_switch': KVM_SWITCH_DOOR,
     'kvm_num': '3',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
-  'win10-gtx660-00': {
-    'slaves': [
-      ('skiabot-shuttle-win10-gtx660-000', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.133',
-    'kvm_switch': KVM_SWITCH_DOOR,
-    'kvm_num': 'B',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
-  'win8-gtx960-002': {
-    'slaves': [
-      ('skiabot-shuttle-win8-gtx960-002', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.142',
-    'kvm_switch': KVM_SWITCH_DOOR,
-    'kvm_num': '2',
     'path_to_buildbot': ['buildbot'],
     'launch_script': LAUNCH_SCRIPT_WIN,
   },
