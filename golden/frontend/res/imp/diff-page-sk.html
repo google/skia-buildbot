@@ -40,6 +40,10 @@
         }
       },
 
+      ready: function() {
+        this.listen(this, 'triage', '_handleTriage');
+      }, 
+
       // Called when the page is selected into view.
       pageSelected: function(routeName) {
         var q = window.location.search;
@@ -49,7 +53,13 @@
       },
 
       // Called when the page is no long viewed. 
-      pageDeselected: function() {}
+      pageDeselected: function() {},
+
+      _handleTriage: function(ev) {
+        ev.stopPropagation();
+        sk.post('/json/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
+      }
+
     });
   </script>
 </dom-module>

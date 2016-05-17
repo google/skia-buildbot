@@ -422,18 +422,18 @@
           var neg = this.details.diff.neg;
           if (pos && neg) {
             if (neg.closest.diff < pos.closest.diff) {
-              this._right = neg;
+              this._diff = neg;
               status = NEGATIVE, 
               this._negIsClosest = true; 
             } else {
-              this._right = pos; 
+              this._diff = pos; 
               status = POSITIVE;
             }
           } else if (pos) {
-            this._right = pos;
+            this._diff = pos;
             status = POSITIVE;
           } else if (neg) { 
-            this._right = neg; 
+            this._diff = neg;
             status = NEGATIVE; 
             this._negIsClosest = true;
           }
@@ -441,7 +441,7 @@
 
         this._rightParamTitle = '';
         if (this._right) {
-          this._right = this._digestFromDiff(this.details.test, this._right, status)
+          this._right = this._digestFromDiff(this.details.test, this._diff, status)
           this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
         }
 
@@ -473,6 +473,9 @@
             paramSets.push(this._right.paramset); 
             paramTitles.push(this._rightParamTitle); 
           }
+        }
+        if (this._diff) {
+          this.set('_diff', this._diff); 
         }
         this.$.paramsets.setParamSets(paramSets, paramTitles);
       },

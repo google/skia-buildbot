@@ -33,6 +33,10 @@
     Polymer({
       is: "detail-page-sk",
 
+      ready: function() {
+        this.listen(this, 'triage', '_handleTriage');
+      }, 
+      
       pageSelected: function(routeName) {
         var q = window.location.search;
         sk.get("/json/details" + q).then(JSON.parse).then(function (json) {
@@ -40,7 +44,12 @@
         }.bind(this)).catch(sk.errorMessage);
       },
 
-      pageDeselected: function() {}
+      pageDeselected: function() {},
+
+      _handleTriage: function(ev) {
+        ev.stopPropagation();
+        sk.post('/json/triage', JSON.stringify(ev.detail)).catch(sk.errorMessage);
+      }
     });
   </script>
 </dom-module>
