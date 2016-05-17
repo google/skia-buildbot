@@ -162,10 +162,10 @@ _slave_host_dicts = {
       ('skiabot-linux-swarm-041', '41', False),
       ('skiabot-linux-swarm-042', '42', False),
       ('skiabot-linux-swarm-043', '43', False),
-      #('skiabot-linux-swarm-044', '44', False),
-      #('skiabot-linux-swarm-045', '45', False),
-      #('skiabot-linux-swarm-046', '46', False),
-      #('skiabot-linux-swarm-047', '47', False),
+      ('skiabot-linux-swarm-044', '44', False),
+      ('skiabot-linux-swarm-045', '45', False),
+      ('skiabot-linux-swarm-046', '46', False),
+      ('skiabot-linux-swarm-047', '47', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
@@ -204,14 +204,14 @@ _slave_host_dicts = {
 
   'skia-vm-008': {
     'slaves': [
-      #('skiabot-linux-swarm-000', '0', False),
-      #('skiabot-linux-swarm-001', '1', False),
-      #('skiabot-linux-swarm-002', '2', False),
-      #('skiabot-linux-swarm-003', '3', False),
-      #('skiabot-linux-swarm-004', '4', False),
-      #('skiabot-linux-swarm-005', '5', False),
-      #('skiabot-linux-swarm-006', '6', False),
-      #('skiabot-linux-swarm-007', '7', False),
+      ('skiabot-linux-swarm-000', '0', False),
+      ('skiabot-linux-swarm-001', '1', False),
+      ('skiabot-linux-swarm-002', '2', False),
+      ('skiabot-linux-swarm-003', '3', False),
+      ('skiabot-linux-swarm-004', '4', False),
+      ('skiabot-linux-swarm-005', '5', False),
+      ('skiabot-linux-swarm-006', '6', False),
+      ('skiabot-linux-swarm-007', '7', False),
       ('skiabot-linux-swarm-008', '8', False),
       ('skiabot-linux-swarm-009', '9', False),
       ('skiabot-linux-swarm-010', '10', False),
@@ -321,54 +321,6 @@ _slave_host_dicts = {
     'kvm_num': NO_KVM_NUM,
     'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
     'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-vm-016': {
-    'slaves': [
-      ('skiabot-win-compile-000', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
-  'skia-vm-017': {
-    'slaves': [
-      ('skiabot-win-compile-001', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
-  'skia-vm-018': {
-    'slaves': [
-      ('skiabot-win-compile-002', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
-  'skia-vm-019': {
-    'slaves': [
-      ('skiabot-win-compile-003', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
   },
 
   'skia-vm-024': {
