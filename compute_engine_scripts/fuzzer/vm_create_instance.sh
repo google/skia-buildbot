@@ -22,6 +22,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --scopes $FUZZER_SCOPES \
   --tags "http-server,https-server" \
   --metadata-from-file "startup-script=startup-script.sh" \
+  --metadata "owner_primary=kjlubick,owner_secondary=jcgregorio" \
   --disk "name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes" \
   --address $FUZZER_IP_ADDRESS
 

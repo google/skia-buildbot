@@ -19,6 +19,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --maintenance-policy "MIGRATE" \
   --scopes $SCOPES \
   --tags "http-server" "https-server" \
+  --metadata "owner_primary=jcgregorio" \
   --disk "name="$INSTANCE_NAME "device-name="$INSTANCE_NAME "mode=rw" "boot=yes" "auto-delete=yes" \
   --metadata-from-file "startup-script=startup-script.sh" \
   --address $DOCS_IP_ADDRESS

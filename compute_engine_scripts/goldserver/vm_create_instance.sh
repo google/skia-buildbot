@@ -22,6 +22,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --maintenance-policy "MIGRATE" \
   --scopes "$GOLD_SCOPES" \
   --tags "http-server,https-server" \
+  --metadata "owner_primary=stephana,owner_secondary=jcgregorio" \
   --disk "name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes" \
   --disk "name=${GOLD_DATA_DISK_NAME},device-name=${GOLD_DATA_DISK_NAME},mode=rw,boot=no" \
   --metadata-from-file "startup-script=startup-script.sh" \

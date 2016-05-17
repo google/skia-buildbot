@@ -31,6 +31,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --scopes $SCOPES \
   --tags "http-server" "https-server" \
   --metadata-from-file "startup-script=startup-script.sh" \
+  --metadata "owner_primary=borenet,owner_secondary=jcgregorio" \
   --disk name=${INSTANCE_NAME}      device-name=${INSTANCE_NAME}      "mode=rw" "boot=yes" "auto-delete=yes" \
   --disk name=${DATA_DISK_NAME} device-name=${DATA_DISK_NAME} "mode=rw" "boot=no" \
   --address=$IP_ADDRESS

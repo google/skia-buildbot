@@ -19,6 +19,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --maintenance-policy "MIGRATE" \
   --scopes $PUSH_SCOPES \
   --tags "http-server" "https-server" \
+  --metadata "owner_primary=jcgregorio" \
   --disk "name=skia-push" "device-name=skia-push" "mode=rw" "boot=yes" "auto-delete=yes" \
   --address $PUSH_IP_ADDRESS
 

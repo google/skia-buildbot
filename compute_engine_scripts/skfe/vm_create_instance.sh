@@ -21,6 +21,7 @@ for NUM in $(seq 1 $NUM_INSTANCES); do
     --maintenance-policy "MIGRATE" \
     --scopes $SCOPES \
     --tags "http-server,https-server" \
+    --metadata "owner_primary=stephana,owner_secondary=jcgregorio" \
     --disk "name=$INSTANCE_NAME-$NUM,device-name=$INSTANCE_NAME-$NUM,mode=rw,boot=yes,auto-delete=yes" \
     --address ${IP_ADDRESSES[NUM]}
 done

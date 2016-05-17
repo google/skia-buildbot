@@ -19,6 +19,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --maintenance-policy "MIGRATE" \
   --scopes $CTFE_SCOPES \
   --tags "http-server,https-server" \
+  --metadata "owner_primary=rmistry,owner_secondary=benjaminwagner" \
   --disk "name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes" \
   --address $CTFE_IP_ADDRESS
 

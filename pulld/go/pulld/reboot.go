@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
 )
 
@@ -16,7 +17,24 @@ func rebootMonitoringInit() {
 		glog.Errorf("Failed to get hostname: %s", err)
 		return
 	}
-	reboot := metrics2.GetInt64Metric("reboot-required-i", map[string]string{"host": name})
+	primary, err := metadata.Get("owner_primary")
+	if err != nil {
+		glog.Errorf("Problem getting primary instance owner: %s", err)
+		primary = "UNKNOWN_OWNER"
+	}
+	secondary, err := metadata.Get("owner_secondary")
+	if err != nil {
+		glog.Warningf("Problem getting secondary instance owner.  There might not actually be one: %s", err)
+		secondary = ""
+	}
+	owners := primary
+	if secondary != "" {
+		owners += ", " + secondary
+	}
+	reboot := metrics2.GetInt64Metric("reboot-required-i", map[string]string{
+		"host":   name,
+		"owners": owners,
+	})
 	go func() {
 		for _ = range time.Tick(time.Minute) {
 			_, err := os.Stat("/var/run/reboot-required")

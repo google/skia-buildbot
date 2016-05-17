@@ -25,6 +25,7 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --maintenance-policy "MIGRATE" \
   --scopes $DEBUGGER_SCOPES \
   --tags "http-server" "https-server" \
+  --metadata "owner_primary=jcgregorio" \
   --disk name=${INSTANCE_NAME}      device-name=${INSTANCE_NAME}      "mode=rw" "boot=yes" "auto-delete=yes" \
   --address=$DEBUGGER_IP_ADDRESS
 
