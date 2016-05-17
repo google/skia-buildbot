@@ -47,9 +47,7 @@ if VM_IS_CTBOT:
   # Always use us-central1-b for CT bots because of maddigan@'s comment in
   # https://gcpquotatool.googleplex.com/requests?request=ahlzfmdvb2dsZS5jb206Z2NwcXVvdGF0b29sci4LEghDdXN0b21lchiAgICAhN6GCgwLEgxRdW90YVJlcXVlc3QYgICAgIC5hAoM
   ZONE_TAG = 'b'
-  # TODO(rmistry): Fill the below with CT's new IP address pool when
-  #                https://b.corp.google.com/issues/28593938 is resolved.
-  # IP_ADDRESS_WITHOUT_MACHINE_PART = ''
+  IP_ADDRESS_WITHOUT_MACHINE_PART = '104.154.123'
 
 ZONE = 'us-central1-%s' % ZONE_TAG
 
