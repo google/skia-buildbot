@@ -131,7 +131,7 @@
           .attr('cy', function(d) { return d.y; })
           .attr('r', '0.3')
           .attr('class', function(d) { return 'status' + d.s; })
-          .attr('id', function(d, col, row) { return 'circ-'+col+'-'+row; })
+          .attr('id', function(d, col, row) { return 'circ-'+ row +'-'+ col; })
       },
 
       setCommits: function(commits) {

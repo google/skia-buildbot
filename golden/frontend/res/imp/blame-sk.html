@@ -85,8 +85,14 @@
       },
 
       _hoverHandler: function (e) {
+        e.stopPropagation();
+        var targetEle = e.target;
+        if (targetEle.nodeName !== 'DIV') {
+          targetEle = targetEle.parentElement; 
+        }
+
         var detail = {
-          index: parseInt(e.target.dataset.idx),
+          index: parseInt(targetEle.dataset.idx),
           b: e.type == 'mouseover'
         };
 
@@ -94,7 +100,12 @@
       },
 
       _clickHandler: function (e) {
-        var commitInfo = [this.commits[parseInt(e.target.idx)]];
+        e.stopPropagation();
+        var targetEle = e.target;
+        if (targetEle.nodeName !== 'DIV') {
+          targetEle = targetEle.parentElement; 
+        }
+        var commitInfo = [this.commits[parseInt(targetEle.dataset.idx)]];
         this.fire('commit-selected', commitInfo);
       },
 

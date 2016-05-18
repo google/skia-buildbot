@@ -53,12 +53,14 @@
 <link rel="import" href="blame-sk.html"> 
 <link rel="import" href="dots-sk.html"> 
 <link rel="import" href="dot-legend-sk.html">
+<link rel="import" href="commits-dialog-sk.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="digest-details-sk">
-  <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
-  <style include="shared-styles"></style>
-  <style>
+  <template>
+    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles"></style>
+    <style>
       circle.status0 {
         fill:   #000000;
         stroke: #000000;
@@ -147,9 +149,7 @@
         margin-bottom: 0.5em;
         white-space: nowrap;
       }
-
     </style>
-  <template>
     <div class="horizontal layout wrap" hidden="{{_noData(details)}}">
       <div class="vertical layout leftCol">
         <div class="horizontal layout">
@@ -267,6 +267,7 @@
         <paramset-sk id="paramsets"></paramset-sk>
       </div>
 
+      <commits-dialog-sk></commits-dialog-sk>
     </div>
   </template>
   <script>
@@ -323,7 +324,8 @@
         this.listen(this.$.zoomButton, 'click', '_zoomHandler');
         this.listen(this.$.dots, 'hover', '_hoverHandler'); 
         this.listen(this.$.dots, 'mouseleave', '_mouseLeaveHandler');
-        this.listen(this.$.triageControls, 'change', '_triageChangeHandler'); 
+        this.listen(this.$.triageControls, 'change', '_triageChangeHandler');
+        this.listen(this.$.blame, 'hover-blame', '_blameHoverHandler');
       },
 
       triggerTriage: function (status) {
@@ -378,6 +380,10 @@
           }
           this.$.paramsets.setHighlight(params);
       },
+
+      _blameHoverHandler: function(ev) {
+        this.$.dots.highlight(ev.detail.index, ev.detail.b);
+      }, 
 
       _mouseLeaveHandler: function() {
         this.$.paramsets.clearHighlight();
@@ -446,7 +452,7 @@
         }
 
         // Set the blame, dots, dotlegend 
-        // this.set('$.blame.value', this.details.diff.blame);
+        this.$.dots.setCommits(this.commits);
         this.$.dots.setValue(this.details.traces);
       },
 
