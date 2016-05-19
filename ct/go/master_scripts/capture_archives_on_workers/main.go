@@ -6,7 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"strings"
+	"path/filepath"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -25,6 +25,10 @@ var (
 	runID       = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 
 	taskCompletedSuccessfully = new(bool)
+)
+
+const (
+	MAX_PAGES_PER_SWARMING_BOT = 10
 )
 
 func sendEmail(recipients []string) {
@@ -71,10 +75,6 @@ func main() {
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
-	if !*master_common.Local {
-		// Cleanup tmp files after the run.
-		defer util.CleanTmpDir()
-	}
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Capture archives on Workers")
 	defer glog.Flush()
@@ -84,14 +84,20 @@ func main() {
 		return
 	}
 
-	cmd := append(master_common.WorkerSetupCmds(),
-		// The main command that runs capture_archives on all workers.
-		fmt.Sprintf("DISPLAY=:0 capture_archives --worker_num=%s --log_dir=%s --log_id=%s --pageset_type=%s --local=%t;", util.WORKER_NUM_KEYWORD, util.GLogDir, *runID, *pagesetType, *master_common.Local))
-
-	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CAPTURE_ARCHIVES_TIMEOUT)
+	// Empty the remote dir before the workers upload to it.
+	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Errorf("Error while running cmd %s: %s", cmd, err)
+		glog.Error(err)
 		return
 	}
+	gsBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.WEB_ARCHIVES_DIR_NAME, *pagesetType)
+	skutil.LogErr(gs.DeleteRemoteDir(gsBaseDir))
+
+	// Archive, trigger and collect swarming tasks.
+	if err := util.TriggerSwarmingTask(*pagesetType, "capture_archives", util.CAPTURE_ARCHIVES_ISOLATE, 2*time.Hour, 1*time.Hour, MAX_PAGES_PER_SWARMING_BOT, map[string]string{}); err != nil {
+		glog.Errorf("Error encountered when swarming tasks: %s", err)
+		return
+	}
+
 	*taskCompletedSuccessfully = true
 }
