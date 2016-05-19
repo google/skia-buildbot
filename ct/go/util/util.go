@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 
 	"github.com/skia-dev/glog"
@@ -389,4 +390,78 @@ func ValidateSKPs(pathToSkps string) error {
 	wg.Wait()
 
 	return nil
+}
+
+// GetStartRange returns the range worker should start processing at based on its num and how many
+// artifacts it is allowed to process.
+func GetStartRange(workerNum, artifactsPerWorker int) int {
+	return ((workerNum - 1) * artifactsPerWorker) + 1
+}
+
+func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName string, hardTimeout, ioTimeout time.Duration, maxPagesPerBot int, isolateExtraArgs map[string]string) error {
+	// Instantiate the swarming client.
+	workDir, err := ioutil.TempDir("", "swarming_work_")
+	if err != nil {
+		return fmt.Errorf("Could not get temp dir: %s", err)
+	}
+	s, err := swarming.NewSwarmingClient(workDir)
+	if err != nil {
+		return fmt.Errorf("Could not instantiate swarming client: %s", err)
+	}
+	defer s.Cleanup()
+	// Create isolated.gen.json files from tasks.
+	genJSONs := []string{}
+	// Get path to isolate files.
+	_, currentFile, _, _ := runtime.Caller(0)
+	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	for i := 1; i <= PagesetTypeToInfo[pagesetType].NumPages/maxPagesPerBot; i++ {
+		isolateArgs := map[string]string{
+			"START_RANGE":  strconv.Itoa(GetStartRange(i, maxPagesPerBot)),
+			"NUM":          strconv.Itoa(maxPagesPerBot),
+			"PAGESET_TYPE": pagesetType,
+		}
+		// Add isolateExtraArgs (if specified) into the isolateArgs.
+		for k, v := range isolateExtraArgs {
+			isolateArgs[k] = v
+		}
+		taskName := fmt.Sprintf("%s_%d", taskPrefix, i)
+		genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, isolateName), s.WorkDir, "linux", taskName, isolateArgs, []string{})
+		if err != nil {
+			return fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+		}
+		genJSONs = append(genJSONs, genJSON)
+	}
+
+	// Batcharchive the tasks.
+	tasksToHashes, err := s.BatchArchiveTargets(genJSONs, BATCHARCHIVE_TIMEOUT)
+	if err != nil {
+		return fmt.Errorf("Could not batch archive targets: %s", err)
+	}
+	if len(genJSONs) != len(tasksToHashes) {
+		return fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
+	}
+	// Trigger swarming using the isolate hashes.
+	dimensions := map[string]string{"pool": SWARMING_POOL}
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, swarming.RECOMMENDED_PRIORITY, swarming.RECOMMENDED_EXPIRATION, hardTimeout, ioTimeout, false)
+	if err != nil {
+		return fmt.Errorf("Could not trigger swarming task: %s", err)
+	}
+	// Collect all tasks and log the ones that fail.
+	for _, task := range tasks {
+		if _, _, err := task.Collect(s); err != nil {
+			glog.Errorf("task %s failed: %s", task.Title, err)
+			continue
+		}
+	}
+	return nil
+}
+
+// GetPathToPyFiles returns the location of CT's python scripts.
+func GetPathToPyFiles(runOnSwarming bool) string {
+	if runOnSwarming {
+		return filepath.Join(filepath.Dir(filepath.Dir(os.Args[0])), "src", "go.skia.org", "infra", "ct", "py")
+	} else {
+		_, currentFile, _, _ := runtime.Caller(0)
+		return filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "py")
+	}
 }

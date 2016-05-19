@@ -6,7 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"strings"
+	"path/filepath"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -15,7 +15,12 @@ import (
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
+)
+
+const (
+	MAX_PAGES_PER_SWARMING_BOT = 1000
 )
 
 var (
@@ -71,10 +76,6 @@ func main() {
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
-	if !*master_common.Local {
-		// Cleanup tmp files after the run.
-		defer util.CleanTmpDir()
-	}
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Creating Pagesets on Workers")
 	defer glog.Flush()
@@ -84,16 +85,20 @@ func main() {
 		return
 	}
 
-	cmd := append(master_common.WorkerSetupCmds(),
-		// The main command that runs create_pagesets on all workers.
-		fmt.Sprintf(
-			"create_pagesets --worker_num=%s --log_dir=%s --log_id=%s --pageset_type=%s --local=%t;",
-			util.WORKER_NUM_KEYWORD, util.GLogDir, *runID, *pagesetType, *master_common.Local))
-
-	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CREATE_PAGESETS_TIMEOUT)
+	// Empty the remote dir before the workers upload to it.
+	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Errorf("Error while running cmd %s: %s", cmd, err)
+		glog.Error(err)
 		return
 	}
+	gsBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.PAGESETS_DIR_NAME, *pagesetType)
+	skutil.LogErr(gs.DeleteRemoteDir(gsBaseDir))
+
+	// Archive, trigger and collect swarming tasks.
+	if err := util.TriggerSwarmingTask(*pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, swarming.RECOMMENDED_HARD_TIMEOUT, swarming.RECOMMENDED_IO_TIMEOUT, MAX_PAGES_PER_SWARMING_BOT, map[string]string{}); err != nil {
+		glog.Errorf("Error encountered when swarming tasks: %s", err)
+		return
+	}
+
 	*taskCompletedSuccessfully = true
 }

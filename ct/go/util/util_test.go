@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 
 	"go.skia.org/infra/go/util"
@@ -84,4 +85,17 @@ func TestCreateTimestampFile(t *testing.T) {
 	} else {
 		t.Error("Unexpected lack of error")
 	}
+}
+
+func TestGetStartRange(t *testing.T) {
+	assert.Equal(t, 1, GetStartRange(1, 1000))
+	assert.Equal(t, 2001, GetStartRange(3, 1000))
+	assert.Equal(t, 41, GetStartRange(3, 20))
+}
+
+func TestGetPathToPyFiles(t *testing.T) {
+	swarmingPath := GetPathToPyFiles(true)
+	assert.True(t, strings.HasSuffix(swarmingPath, filepath.Join("src", "go.skia.org", "infra", "ct", "py")))
+	nonSwarmingPath := GetPathToPyFiles(false)
+	assert.True(t, strings.HasSuffix(nonSwarmingPath, filepath.Join("src", "go.skia.org", "infra", "ct", "py")))
 }
