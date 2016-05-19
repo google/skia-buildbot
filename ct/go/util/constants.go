@@ -196,6 +196,7 @@ const (
 	CAPTURE_ARCHIVES_ISOLATE       = "capture_archives.isolate"
 	CAPTURE_SKPS_ISOLATE           = "capture_skps.isolate"
 	CAPTURE_SKPS_FROM_PDFS_ISOLATE = "capture_skps_from_pdfs.isolate"
+	RUN_LUA_ISOLATE                = "run_lua.isolate"
 )
 
 type PagesetTypeInfo struct {

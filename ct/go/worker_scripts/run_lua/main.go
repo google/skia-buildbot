@@ -3,10 +3,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -18,7 +19,8 @@ import (
 )
 
 var (
-	workerNum     = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
+	startRange    = flag.Int("start_range", 1, "The number this worker will run lua scripts from.")
+	num           = flag.Int("num", 100, "The total number of SKPs to run on starting from the start_range.")
 	pagesetType   = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create from the Alexa CSV list. Eg: 10k, Mobile10k, All.")
 	chromiumBuild = flag.String("chromium_build", "", "The chromium build that was used to create the SKPs we would like to run lua scripts against.")
 	runID         = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
@@ -39,10 +41,6 @@ func main() {
 		return
 	}
 
-	// Create the task file so that the master knows this worker is still busy.
-	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_RUNNING_LUA_SCRIPTS))
-	defer util.DeleteTaskFile(util.ACTIVITY_RUNNING_LUA_SCRIPTS)
-
 	// Sync Skia tree.
 	skutil.LogErr(util.SyncDir(util.SkiaTreeDir))
 
@@ -57,11 +55,12 @@ func main() {
 	}
 
 	// Download SKPs if they do not exist locally.
-	if err := gs.DownloadWorkerArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild), *workerNum); err != nil {
+	localSkpsDir := filepath.Join(util.SkpsDir, *pagesetType, *chromiumBuild)
+	if _, err := gs.DownloadSwarmingArtifacts(localSkpsDir, util.SKPS_DIR_NAME, path.Join(*pagesetType, *chromiumBuild), *startRange, *num); err != nil {
 		glog.Error(err)
 		return
 	}
-	localSkpsDir := filepath.Join(util.SkpsDir, *pagesetType, *chromiumBuild)
+	defer skutil.RemoveAll(localSkpsDir)
 
 	// Download the lua script for this run from Google storage.
 	luaScriptName := *runID + ".lua"
@@ -119,7 +118,7 @@ func main() {
 
 	// Copy stdout and stderr files to Google Storage.
 	skutil.LogErr(
-		gs.UploadFile(stdoutFileName, os.TempDir(), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "outputs")))
+		gs.UploadFile(stdoutFileName, os.TempDir(), filepath.Join(remoteDir, strconv.Itoa(*startRange), "outputs")))
 	skutil.LogErr(
-		gs.UploadFile(stderrFileName, os.TempDir(), filepath.Join(remoteDir, fmt.Sprintf("slave%d", *workerNum), "errors")))
+		gs.UploadFile(stderrFileName, os.TempDir(), filepath.Join(remoteDir, strconv.Itoa(*startRange), "errors")))
 }
