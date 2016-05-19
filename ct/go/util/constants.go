@@ -184,6 +184,9 @@ const (
 	MAKE_ALL_TIMEOUT = 15 * time.Minute
 
 	WEBHOOK_SALT_MSG = `For prod, set this file to the value of GCE metadata key webhook_request_salt or call webhook.MustInitRequestSaltFromMetadata() if running in GCE. For testing, run 'echo -n "notverysecret" | base64 -w 0 > /b/storage/webhook_salt.data' or call frontend.InitForTesting().`
+
+	// Swarming constants.
+	SWARMING_DIR_NAME = "swarming"
 )
 
 type PagesetTypeInfo struct {
