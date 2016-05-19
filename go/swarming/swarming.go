@@ -20,14 +20,14 @@ import (
 )
 
 const (
-	ISOLATE_BINARY         = "isolate"
-	ISOLATE_SERVER         = "isolateserver.appspot.com"
-	SWARMING_SERVER        = "chromium-swarm.appspot.com"
-	LUCI_CLIENT_REPO       = "https://github.com/luci/client-py"
-	IO_TIMEOUT             = 20 * time.Minute
-	HARD_TIMEOUT           = 1 * time.Hour
-	RECOMMENDED_PRIORITY   = 90
-	RECOMMENDED_EXPIRATION = 4 * time.Hour
+	ISOLATE_BINARY           = "isolate"
+	ISOLATE_SERVER           = "isolateserver.appspot.com"
+	SWARMING_SERVER          = "chromium-swarm.appspot.com"
+	LUCI_CLIENT_REPO         = "https://github.com/luci/client-py"
+	RECOMMENDED_IO_TIMEOUT   = 20 * time.Minute
+	RECOMMENDED_HARD_TIMEOUT = 1 * time.Hour
+	RECOMMENDED_PRIORITY     = 90
+	RECOMMENDED_EXPIRATION   = 4 * time.Hour
 )
 
 type SwarmingClient struct {
@@ -61,7 +61,7 @@ type TaskOutputFormat struct {
 	Shards []ShardOutputFormat `json:"shards"`
 }
 
-func (t *SwarmingTask) Trigger(s *SwarmingClient) error {
+func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Duration) error {
 	swarmingBinary := path.Join(s.WorkDir, "client-py", "swarming.py")
 	if err := _VerifyBinaryExists(swarmingBinary); err != nil {
 		return fmt.Errorf("Could not find swarming binary: %s", err)
@@ -78,8 +78,8 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient) error {
 		"--task-name", t.Title,
 		"--dump-json", dumpJSON,
 		"--expiration", strconv.FormatFloat(t.Expiration.Seconds(), 'f', 0, 64),
-		"--io-timeout", strconv.FormatFloat(IO_TIMEOUT.Seconds(), 'f', 0, 64),
-		"--hard-timeout", strconv.FormatFloat(HARD_TIMEOUT.Seconds(), 'f', 0, 64),
+		"--io-timeout", strconv.FormatFloat(ioTimeout.Seconds(), 'f', 0, 64),
+		"--hard-timeout", strconv.FormatFloat(hardTimeout.Seconds(), 'f', 0, 64),
 		"--verbose",
 	}
 	for k, v := range t.Dimensions {
@@ -242,7 +242,7 @@ func (s *SwarmingClient) BatchArchiveTargets(isolatedGenJSONs []string, d time.D
 }
 
 // Trigger swarming using the specified hashes and dimensions.
-func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes map[string]string, dimensions map[string]string, priority int, expiration time.Duration, idempotent bool) ([]*SwarmingTask, error) {
+func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes map[string]string, dimensions map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent bool) ([]*SwarmingTask, error) {
 	tasks := []*SwarmingTask{}
 
 	for taskName, hash := range tasksToHashes {
@@ -259,10 +259,10 @@ func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes map[string]string, d
 			Expiration:   expiration,
 			Idempotent:   idempotent,
 		}
-		if err := task.Trigger(s); err != nil {
+		if err := task.Trigger(s, hardTimeout, ioTimeout); err != nil {
 			return nil, fmt.Errorf("Could not trigger task %s: %s", taskName, err)
 		}
-		glog.Infof("Triggered the task: %s", task)
+		glog.Infof("Triggered the task: %v", task)
 		tasks = append(tasks, task)
 	}
 
@@ -280,7 +280,7 @@ func _VerifyBinaryExists(binary string) error {
 		Name:      binary,
 		Args:      []string{"help"},
 		Timeout:   60 * time.Second,
-		LogStdout: true,
+		LogStdout: false,
 		LogStderr: true,
 	})
 	if err != nil {

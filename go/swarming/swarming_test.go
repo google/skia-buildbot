@@ -106,7 +106,7 @@ func E2E_Success(t *testing.T) {
 
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, false)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false)
 	assert.Nil(t, err)
 
 	// Collect both output and file output of all tasks.
@@ -168,7 +168,7 @@ func E2E_OneFailure(t *testing.T) {
 
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, false)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false)
 	assert.Nil(t, err)
 
 	// Collect testTask1. It should have failed.
