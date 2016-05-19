@@ -99,6 +99,10 @@
       },
 
       setValue: function(value) {
+        if (value.tileSize === 0) {
+          return;
+        }
+
         this.value = value;
         var width = value.tileSize * 10 + 20; 
         var height = (value.traces.length + 2) * 10;

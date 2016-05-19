@@ -121,10 +121,10 @@
         this.set("_issue", issue);
 
         // Get a baseURL that we can customize with pageset ids.  
-        var state = gold.stateFromQuery({});
+        var state = gold.stateFromQuery(gold.defaultSearchState);
         delete state['patchsets'];
         var q = gold.queryFromState(state);
-        q += ((q === '') ? '?' : '&') + 'pagesets=';
+        q += ((q === '') ? '?' : '&') + 'patchsets=';
         this._baseUrl = window.location.pathname + q; 
       },
 

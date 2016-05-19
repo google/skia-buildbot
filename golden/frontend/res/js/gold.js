@@ -19,7 +19,9 @@ var gold = gold || {};
      pos: false,
      neg: false, 
      unt: true,
-     blame: "" 
+     blame: "",
+     issue: "",
+     patchsets: ""
   };
 
   // Returns the query string to pass to the diff page or to the diff endpoint. 

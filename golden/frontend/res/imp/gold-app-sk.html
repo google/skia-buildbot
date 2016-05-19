@@ -126,6 +126,15 @@
         this._setRoute('/detail', 'detail');
         this._setRoute('/diff', 'diff');
         this._setRoute('/cluster', 'cluster');
+
+        // TODO(stephana): Remove the alias once the "/search" path has been 
+        // used sufficiently long in Monorail. 
+        // Alias for the old path to make existing links in Monorail work. 
+        page("/search2", function() {
+          page.redirect("/search" + window.location.search);
+        }); 
+
+        // All other route go to 'notfound' and byblame is the default view. 
         this._setRoute('*', 'notfound');
         this.route = "byblame";
 
