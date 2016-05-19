@@ -417,38 +417,41 @@
       }, 
 
       _setRightFromDetails: function(detailsView) {
-        this._negIsClosest = false; 
-        var status, 
+        debugger;
+        var status = "", 
             POSITIVE = 'positive',
             NEGATIVE = 'negative';
+        var foundDiff = null; 
 
-        this._right = null; 
+        this._right = null;
+        this._negIsClosest = false;
+        this._diff = null;
+        this._rightParamTitle = '';
         if (!detailsView) {
           var pos = this.details.diff.pos; 
           var neg = this.details.diff.neg;
           if (pos && neg) {
             if (neg.closest.diff < pos.closest.diff) {
-              this._diff = neg;
-              status = NEGATIVE, 
-              this._negIsClosest = true; 
+              foundDiff = neg;
+              status = NEGATIVE; 
             } else {
-              this._diff = pos; 
+              foundDiff = pos; 
               status = POSITIVE;
             }
           } else if (pos) {
-            this._diff = pos;
+            foundDiff = pos;
             status = POSITIVE;
           } else if (neg) { 
-            this._diff = neg;
+            foundDiff = neg;
             status = NEGATIVE; 
-            this._negIsClosest = true;
           }
-        }
 
-        this._rightParamTitle = '';
-        if (this._right) {
-          this._right = this._digestFromDiff(this.details.test, this._diff, status)
-          this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
+          if (foundDiff) {
+            this._negIsClosest = (status === NEGATIVE);
+            this._right = this._digestFromDiff(this.details.test, foundDiff, status);
+            this._diff = foundDiff.closest;
+            this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
+          }
         }
 
         // Set the blame, dots, dotlegend 
