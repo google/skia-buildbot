@@ -41,7 +41,8 @@ func ChromiumBuildDir(chromiumHash, skiaHash, runID string) string {
 // Skia's LKGR hash is used (the hash in Chromium's DEPS file).
 // applyPatches if true looks for Chromium/Skia patches in the temp dir and
 // runs once with the patch applied and once without the patch applied.
-func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, applyPatches bool) (string, string, error) {
+// uploadSingleBuild if true does not upload a 2nd build of Chromium.
+func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, applyPatches, uploadSingleBuild bool) (string, string, error) {
 	// Determine which build dir and fetch target to use.
 	var chromiumBuildDir, fetchTarget string
 	if targetPlatform == "Android" {
@@ -123,11 +124,9 @@ func CreateChromiumBuild(runID, targetPlatform, chromiumHash, skiaHash string, a
 		return "", "", fmt.Errorf("There was an error uploaded the chromium build dir %s: %s", filepath.Join(chromiumBuildDir, "src", "out", "Release"), err)
 	}
 
-	// Check for the applypatch flag and reset and then build again and copy to
-	// google storage.
-	if applyPatches {
-		// Now build chromium without the patches and upload it to Google Storage.
-
+	// Create and upload another chromium build if the uploadSingleBuild flag is false. This build
+	// will be created without applying patches.
+	if !uploadSingleBuild {
 		// Make sure we are starting from a clean slate.
 		if err := resetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
 			return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
@@ -248,23 +247,27 @@ func resetChromiumCheckout(chromiumSrcDir string) error {
 }
 
 func applyRepoPatches(chromiumSrcDir, runID string) error {
-	// Apply Skia patch.
+	// Apply Skia patch if it exists.
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
 	skiaPatch := filepath.Join(os.TempDir(), runID+".skia.patch")
-	skiaPatchFile, _ := os.Open(skiaPatch)
-	skiaPatchFileInfo, _ := skiaPatchFile.Stat()
-	if skiaPatchFileInfo.Size() > 10 {
-		if err := ApplyPatch(skiaPatch, skiaDir); err != nil {
-			return fmt.Errorf("Could not apply Skia's patch in %s: %s", skiaDir, err)
+	if _, err := os.Stat(skiaPatch); err == nil {
+		skiaPatchFile, _ := os.Open(skiaPatch)
+		skiaPatchFileInfo, _ := skiaPatchFile.Stat()
+		if skiaPatchFileInfo.Size() > 10 {
+			if err := ApplyPatch(skiaPatch, skiaDir); err != nil {
+				return fmt.Errorf("Could not apply Skia's patch in %s: %s", skiaDir, err)
+			}
 		}
 	}
-	// Apply Chromium patch.
+	// Apply Chromium patch if it exists.
 	chromiumPatch := filepath.Join(os.TempDir(), runID+".chromium.patch")
-	chromiumPatchFile, _ := os.Open(chromiumPatch)
-	chromiumPatchFileInfo, _ := chromiumPatchFile.Stat()
-	if chromiumPatchFileInfo.Size() > 10 {
-		if err := ApplyPatch(chromiumPatch, chromiumSrcDir); err != nil {
-			return fmt.Errorf("Could not apply Chromium's patch in %s: %s", chromiumSrcDir, err)
+	if _, err := os.Stat(chromiumPatch); err == nil {
+		chromiumPatchFile, _ := os.Open(chromiumPatch)
+		chromiumPatchFileInfo, _ := chromiumPatchFile.Stat()
+		if chromiumPatchFileInfo.Size() > 10 {
+			if err := ApplyPatch(chromiumPatch, chromiumSrcDir); err != nil {
+				return fmt.Errorf("Could not apply Chromium's patch in %s: %s", chromiumSrcDir, err)
+			}
 		}
 	}
 	return nil

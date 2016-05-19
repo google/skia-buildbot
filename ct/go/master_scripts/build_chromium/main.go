@@ -90,7 +90,7 @@ func main() {
 		return
 	}
 
-	if _, _, err := util.CreateChromiumBuild("", *targetPlatform, *chromiumHash, *skiaHash, *applyPatches); err != nil {
+	if _, _, err := util.CreateChromiumBuild("", *targetPlatform, *chromiumHash, *skiaHash, *applyPatches, true); err != nil {
 		glog.Errorf("Error while creating the Chromium build: %s", err)
 		return
 	}

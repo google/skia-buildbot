@@ -165,7 +165,7 @@ func main() {
 	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
 
 	// Create the two required chromium builds (with patch and without the patch).
-	chromiumHash, skiaHash, err := util.CreateChromiumBuild(*runID, *targetPlatform, "", "", true)
+	chromiumHash, skiaHash, err := util.CreateChromiumBuild(*runID, *targetPlatform, "", "", true, false)
 	if err != nil {
 		glog.Errorf("Could not create chromium build: %s", err)
 		return
