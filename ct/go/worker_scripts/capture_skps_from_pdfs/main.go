@@ -10,7 +10,9 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -30,7 +32,8 @@ const (
 )
 
 var (
-	workerNum      = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
+	startRange     = flag.Int("start_range", 1, "The number this worker will capture SKPs from.")
+	num            = flag.Int("num", 100, "The total number of SKPs to capture starting from the start_range.")
 	pagesetType    = flag.String("pageset_type", util.PAGESET_TYPE_PDF_1m, "The type of pagesets to use for this run. Eg: PDF1m.")
 	chromiumBuild  = flag.String("chromium_build", "", "The specified chromium build. This value is used to find the pdfium_test binary from Google Storage and while uploading the PDFs and SKPs to Google Storage.")
 	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
@@ -40,9 +43,6 @@ var (
 func main() {
 	defer common.LogPanic()
 	worker_common.Init()
-	if !*worker_common.Local {
-		defer util.CleanTmpDir()
-	}
 	defer util.TimeTrack(time.Now(), "Capturing SKPs from PDFs")
 	defer glog.Flush()
 
@@ -66,11 +66,13 @@ func main() {
 	}
 
 	// Download PDF pagesets if they do not exist locally.
-	if err := gs.DownloadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {
+	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
+	pagesetsToIndex, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num)
+	if err != nil {
 		glog.Error(err)
 		return
 	}
-	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
+	defer skutil.RemoveAll(pathToPagesets)
 
 	// Create the dir that PDFs will be stored in.
 	pathToPdfs := filepath.Join(util.PdfsDir, *pagesetType, *chromiumBuild)
@@ -141,6 +143,7 @@ func main() {
 			defer wg.Done()
 
 			for pagesetName := range pagesetRequests {
+				index := strconv.Itoa(pagesetsToIndex[path.Join(pathToPagesets, pagesetName)])
 
 				// Read the pageset.
 				pagesetPath := filepath.Join(pathToPagesets, pagesetName)
@@ -171,7 +174,11 @@ func main() {
 					erroredPDFs = append(erroredPDFs, pdfURL)
 					continue
 				}
-				pdfPath := filepath.Join(pathToPdfs, pdfBase)
+				pdfDirWithIndex := filepath.Join(pathToPdfs, index)
+				if err := os.MkdirAll(pdfDirWithIndex, 0700); err != nil {
+					glog.Errorf("Could not mkdir %s: %s", pdfDirWithIndex, err)
+				}
+				pdfPath := filepath.Join(pdfDirWithIndex, pdfBase)
 				resp, err := httpTimeoutClient.Get(pdfURL)
 				if err != nil {
 					glog.Errorf("Could not GET %s: %s", pdfURL, err)
@@ -208,7 +215,7 @@ func main() {
 				//}
 				//
 				//// Move generated SKPs into the pathToSKPs directory.
-				//skps, err := filepath.Glob(path.Join(pathToPdfs, fmt.Sprintf("%s.*.skp", pdfBase)))
+				//skps, err := filepath.Glob(path.Join(pdfDirWithIndex, fmt.Sprintf("%s.*.skp", pdfBase)))
 				//if err != nil {
 				//	glog.Errorf("Found no SKPs for %s: %s", pdfBase, err)
 				//	erroredSKPs = append(erroredSKPs, pdfBase)
@@ -216,7 +223,11 @@ func main() {
 				//}
 				//for _, skp := range skps {
 				//	skpBasename := path.Base(skp)
-				//	dest := path.Join(pathToSkps, skpBasename)
+				//	destDir := path.Join(pathToSkps, index)
+				//  if err := os.MkdirAll(destDir, 0700); err != nil {
+				//		glog.Errorf("Could not mkdir %s: %s", destDir, err)
+				//	}
+				//	dest := path.Join(destDir, skpBasename)
 				//	if err := os.Rename(skp, dest); err != nil {
 				//		glog.Errorf("Could not move %s to %s: %s", skp, dest, err)
 				//		continue
@@ -256,18 +267,13 @@ func main() {
 	//	return
 	//}
 
-	// Write timestamp to the PDFs dir.
-	skutil.LogErr(util.CreateTimestampFile(pathToPdfs))
-	// Write timestamp to the SKPs dir.
-	skutil.LogErr(util.CreateTimestampFile(pathToSkps))
-
 	// Upload PDFs dir to Google Storage.
-	if err := gs.UploadWorkerArtifacts(util.PDFS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild), *workerNum); err != nil {
+	if err := gs.UploadSwarmingArtifacts(util.PDFS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
 		glog.Error(err)
 		return
 	}
 	// Upload SKPs dir to Google Storage.
-	if err := gs.UploadWorkerArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild), *workerNum); err != nil {
+	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
 		glog.Error(err)
 		return
 	}

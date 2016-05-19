@@ -192,8 +192,10 @@ const (
 	BATCHARCHIVE_TIMEOUT = 10 * time.Minute
 	XVFB_TIMEOUT         = 5 * time.Minute
 	// Isolate files.
-	CREATE_PAGESETS_ISOLATE  = "create_pagesets.isolate"
-	CAPTURE_ARCHIVES_ISOLATE = "capture_archives.isolate"
+	CREATE_PAGESETS_ISOLATE        = "create_pagesets.isolate"
+	CAPTURE_ARCHIVES_ISOLATE       = "capture_archives.isolate"
+	CAPTURE_SKPS_ISOLATE           = "capture_skps.isolate"
+	CAPTURE_SKPS_FROM_PDFS_ISOLATE = "capture_skps_from_pdfs.isolate"
 )
 
 type PagesetTypeInfo struct {

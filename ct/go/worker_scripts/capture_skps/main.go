@@ -2,13 +2,13 @@
 package main
 
 import (
-	"encoding/csv"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
-	"runtime"
+	"strconv"
 	"sync"
 	"time"
 
@@ -26,7 +26,8 @@ const (
 )
 
 var (
-	workerNum          = flag.Int("worker_num", 1, "The number of this CT worker. It will be in the {1..100} range.")
+	startRange         = flag.Int("start_range", 1, "The number this worker will capture SKPs from.")
+	num                = flag.Int("num", 100, "The total number of SKPs to capture starting from the start_range.")
 	pagesetType        = flag.String("pageset_type", util.PAGESET_TYPE_MOBILE_10k, "The type of pagesets to create SKPs from. Eg: 10k, Mobile10k, All.")
 	chromiumBuild      = flag.String("chromium_build", "", "The chromium build that will be used to create the SKPs.")
 	runID              = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
@@ -37,9 +38,6 @@ var (
 func main() {
 	defer common.LogPanic()
 	worker_common.Init()
-	if !*worker_common.Local {
-		defer util.CleanTmpDir()
-	}
 	defer util.TimeTrack(time.Now(), "Capturing SKPs")
 	defer glog.Flush()
 
@@ -68,10 +66,6 @@ func main() {
 		return
 	}
 
-	// Create the task file so that the master knows this worker is still busy.
-	skutil.LogErr(util.CreateTaskFile(util.ACTIVITY_CAPTURING_SKPS))
-	defer util.DeleteTaskFile(util.ACTIVITY_CAPTURING_SKPS)
-
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
@@ -96,35 +90,31 @@ func main() {
 	}
 
 	// Download pagesets if they do not exist locally.
-	if err := gs.DownloadWorkerArtifacts(util.PAGESETS_DIR_NAME, *pagesetType, *workerNum); err != nil {
+	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
+	if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
 		glog.Error(err)
 		return
 	}
-	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
+	defer skutil.RemoveAll(pathToPagesets)
 
 	// Download archives if they do not exist locally.
-	if err := gs.DownloadWorkerArtifacts(util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *workerNum); err != nil {
+	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
+	archivesToIndex, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num)
+	if err != nil {
 		glog.Error(err)
 		return
 	}
+	defer skutil.RemoveAll(pathToArchives)
 
 	// Create the dir that SKPs will be stored in.
 	pathToSkps := filepath.Join(util.SkpsDir, *pagesetType, *chromiumBuild)
 	// Delete and remake the local SKPs directory.
 	skutil.RemoveAll(pathToSkps)
 	skutil.MkdirAll(pathToSkps, 0700)
-
-	// Establish output paths.
-	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID)
-	skutil.RemoveAll(localOutputDir)
-	skutil.MkdirAll(localOutputDir, 0700)
-	defer skutil.RemoveAll(localOutputDir)
+	defer skutil.RemoveAll(pathToSkps)
 
 	// Construct path to the ct_run_benchmark python script.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToPyFiles := filepath.Join(
-		filepath.Dir((filepath.Dir(filepath.Dir(filepath.Dir(currentFile))))),
-		"py")
+	pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
 
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
@@ -168,12 +158,17 @@ func main() {
 				glog.Infof("===== Processing %s =====", pagesetPath)
 
 				skutil.LogErr(os.Chdir(pathToPyFiles))
+				index, ok := archivesToIndex[decodedPageset.ArchiveDataFile]
+				if !ok {
+					glog.Errorf("%s not found in the archivesToIndex map", decodedPageset.ArchiveDataFile)
+					continue
+				}
 				args := []string{
 					filepath.Join(util.TelemetryBinariesDir, util.BINARY_RUN_BENCHMARK),
 					util.BenchmarksToTelemetryName[util.BENCHMARK_SKPICTURE_PRINTER],
 					"--also-run-disabled-tests",
 					"--page-repeat=1", // Only need one run for SKPs.
-					"--skp-outdir=" + pathToSkps,
+					"--skp-outdir=" + path.Join(pathToSkps, strconv.Itoa(index)),
 					"--extra-browser-args=" + util.DEFAULT_BROWSER_ARGS,
 					"--user-agent=" + decodedPageset.UserAgent,
 					"--urls-list=" + decodedPageset.UrlsList,
@@ -195,7 +190,6 @@ func main() {
 					util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
 
 				mutex.RUnlock()
-
 			}
 		}()
 	}
@@ -209,51 +203,14 @@ func main() {
 	wg.Wait()
 
 	// Move and validate all SKP files.
-	if err := util.ValidateSKPs(pathToSkps); err != nil {
+	if err := util.ValidateSKPs(pathToSkps, pathToPyFiles); err != nil {
 		glog.Error(err)
 		return
 	}
-
-	// Write timestamp to the SKPs dir.
-	skutil.LogErr(util.CreateTimestampFile(pathToSkps))
 
 	// Upload SKPs dir to Google Storage.
-	if err := gs.UploadWorkerArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild), *workerNum); err != nil {
+	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, *pagesetType); err != nil {
 		glog.Error(err)
 		return
 	}
-}
-
-func getRowsFromCSV(csvPath string) ([]string, []string, error) {
-	csvFile, err := os.Open(csvPath)
-	defer skutil.Close(csvFile)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Could not open %s: %s", csvPath, err)
-	}
-	reader := csv.NewReader(csvFile)
-	reader.FieldsPerRecord = -1
-	rawCSVdata, err := reader.ReadAll()
-	if err != nil {
-		return nil, nil, fmt.Errorf("Could not read %s: %s", csvPath, err)
-	}
-	if len(rawCSVdata) != 2 {
-		return nil, nil, fmt.Errorf("No data in %s", csvPath)
-	}
-	return rawCSVdata[0], rawCSVdata[1], nil
-}
-
-func writeRowsToCSV(csvPath string, headers, values []string) error {
-	csvFile, err := os.OpenFile(csvPath, os.O_WRONLY, 666)
-	defer skutil.Close(csvFile)
-	if err != nil {
-		return fmt.Errorf("Could not open %s: %s", csvPath, err)
-	}
-	writer := csv.NewWriter(csvFile)
-	defer writer.Flush()
-	for _, row := range [][]string{headers, values} {
-		if err := writer.Write(row); err != nil {
-			return fmt.Errorf("Could not write to %s: %s", csvPath, err)
-		}
-	}
-	return nil
 }

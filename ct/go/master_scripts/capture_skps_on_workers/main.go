@@ -4,11 +4,10 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
+	"path/filepath"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -18,6 +17,11 @@ import (
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
 	skutil "go.skia.org/infra/go/util"
+)
+
+const (
+	MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS           = 100
+	MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS = 1000
 )
 
 var (
@@ -79,10 +83,6 @@ func main() {
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
 
-	if !*master_common.Local {
-		// Cleanup tmp files after the run.
-		defer util.CleanTmpDir()
-	}
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running capture skps task on workers")
 	defer glog.Flush()
@@ -100,10 +100,12 @@ func main() {
 		return
 	}
 
-	workerScript := "capture_skps"
+	isolateFile := util.CAPTURE_SKPS_ISOLATE
+	maxPages := MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS
 	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
 		// For PDF pagesets use the capture_skps_from_pdfs worker script.
-		workerScript = "capture_skps_from_pdfs"
+		isolateFile = util.CAPTURE_SKPS_FROM_PDFS_ISOLATE
+		maxPages = MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS
 		// TODO(rmistry): Uncomment when ready to capture SKPs.
 		//// Sync PDFium and build pdfium_test binary which will be used by the worker script.
 		//if err := util.SyncDir(util.PDFiumTreeDir); err != nil {
@@ -129,41 +131,26 @@ func main() {
 		//}
 	}
 
-	// Run the capture SKPs script on all workers.
-	captureSKPsCmdTemplate := "DISPLAY=:0 {{.WorkerScript}} --worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} " +
-		"--pageset_type={{.PagesetType}} --chromium_build={{.ChromiumBuild}} --run_id={{.RunID}} " +
-		"--target_platform={{.TargetPlatform}} --local={{.Local}};"
-	captureSKPsTemplateParsed := template.Must(template.New("capture_skps_cmd").Parse(captureSKPsCmdTemplate))
-	captureSKPsCmdBytes := new(bytes.Buffer)
-	if err := captureSKPsTemplateParsed.Execute(captureSKPsCmdBytes, struct {
-		WorkerScript   string
-		WorkerNum      string
-		LogDir         string
-		PagesetType    string
-		ChromiumBuild  string
-		RunID          string
-		TargetPlatform string
-		Local          bool
-	}{
-		WorkerScript:   workerScript,
-		WorkerNum:      util.WORKER_NUM_KEYWORD,
-		LogDir:         util.GLogDir,
-		PagesetType:    *pagesetType,
-		ChromiumBuild:  *chromiumBuild,
-		RunID:          *runID,
-		TargetPlatform: *targetPlatform,
-		Local:          *master_common.Local,
-	}); err != nil {
-		glog.Errorf("Failed to execute template: %s", err)
+	// Empty the remote dir before the workers upload to it.
+	gs, err := util.NewGsUtil(nil)
+	if err != nil {
+		glog.Error(err)
 		return
 	}
+	skpGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType)
+	skutil.LogErr(gs.DeleteRemoteDir(skpGSBaseDir))
+	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
+		pdfGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.PDFS_DIR_NAME, *pagesetType)
+		skutil.LogErr(gs.DeleteRemoteDir(pdfGSBaseDir))
+	}
 
-	cmd := append(master_common.WorkerSetupCmds(),
-		// The main command that captures SKPs on all workers.
-		captureSKPsCmdBytes.String())
-	_, err := util.SSH(strings.Join(cmd, " "), util.Slaves, util.CAPTURE_SKPS_TIMEOUT)
-	if err != nil {
-		glog.Errorf("Error while running cmd %s: %s", cmd, err)
+	// Archive, trigger and collect swarming tasks.
+	isolateExtraArgs := map[string]string{
+		"CHROMIUM_BUILD": *chromiumBuild,
+		"RUN_ID":         *runID,
+	}
+	if err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, 2*time.Hour, 1*time.Hour, maxPages, isolateExtraArgs); err != nil {
+		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
 

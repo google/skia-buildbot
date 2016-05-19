@@ -283,56 +283,62 @@ func ReadPageset(pagesetPath string) (PagesetVars, error) {
 	return decodedPageset, nil
 }
 
-// ValidateSKPs moves all root_dir/dir_name/*.skp into the root_dir and validates them.
-// SKPs that fail validation are logged and deleted.
-func ValidateSKPs(pathToSkps string) error {
+// ValidateSKPs moves all root_dir/index/dir_name/*.skp into the root_dir/index
+// and validates them. SKPs that fail validation are logged and deleted.
+func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
+	// This slice will be used to run remove_invalid_skp.py.
+	skps := []string{}
 	// List all directories in pathToSkps and copy out the skps.
-	skpFileInfos, err := ioutil.ReadDir(pathToSkps)
+	indexDirs, err := filepath.Glob(path.Join(pathToSkps, "*"))
 	if err != nil {
 		return fmt.Errorf("Unable to read %s: %s", pathToSkps, err)
 	}
-	for _, fileInfo := range skpFileInfos {
-		if !fileInfo.IsDir() {
-			// We are only interested in directories.
-			continue
-		}
-		skpName := fileInfo.Name()
-		// Find the largest layer in this directory.
-		layerInfos, err := ioutil.ReadDir(filepath.Join(pathToSkps, skpName))
+	for _, indexDir := range indexDirs {
+		index := path.Base(indexDir)
+		skpFileInfos, err := ioutil.ReadDir(indexDir)
 		if err != nil {
-			glog.Errorf("Unable to read %s: %s", filepath.Join(pathToSkps, skpName), err)
+			return fmt.Errorf("Unable to read %s: %s", indexDir, err)
 		}
-		if len(layerInfos) > 0 {
-			largestLayerInfo := layerInfos[0]
-			for _, layerInfo := range layerInfos {
-				if layerInfo.Size() > largestLayerInfo.Size() {
-					largestLayerInfo = layerInfo
+		for _, fileInfo := range skpFileInfos {
+			if !fileInfo.IsDir() {
+				// We are only interested in directories.
+				continue
+			}
+			skpName := fileInfo.Name()
+			// Find the largest layer in this directory.
+			layerInfos, err := ioutil.ReadDir(filepath.Join(pathToSkps, index, skpName))
+			if err != nil {
+				glog.Errorf("Unable to read %s: %s", filepath.Join(pathToSkps, index, skpName), err)
+			}
+			if len(layerInfos) > 0 {
+				largestLayerInfo := layerInfos[0]
+				for _, layerInfo := range layerInfos {
+					if layerInfo.Size() > largestLayerInfo.Size() {
+						largestLayerInfo = layerInfo
+					}
+				}
+				// Only save SKPs greater than 6000 bytes. Less than that are probably
+				// malformed.
+				if largestLayerInfo.Size() > 6000 {
+					layerPath := filepath.Join(pathToSkps, index, skpName, largestLayerInfo.Name())
+					destSKP := filepath.Join(pathToSkps, index, skpName+".skp")
+					util.Rename(layerPath, destSKP)
+					skps = append(skps, destSKP)
+				} else {
+					glog.Warningf("Skipping %s because size was less than 6000 bytes", skpName)
 				}
 			}
-			// Only save SKPs greater than 6000 bytes. Less than that are probably
-			// malformed.
-			if largestLayerInfo.Size() > 6000 {
-				layerPath := filepath.Join(pathToSkps, skpName, largestLayerInfo.Name())
-				destSKP := filepath.Join(pathToSkps, skpName+".skp")
-				util.Rename(layerPath, destSKP)
-			} else {
-				glog.Warningf("Skipping %s because size was less than 6000 bytes", skpName)
-			}
+			// We extracted what we needed from the directory, now delete it.
+			util.RemoveAll(filepath.Join(pathToSkps, index, skpName))
 		}
-		// We extracted what we needed from the directory, now delete it.
-		util.RemoveAll(filepath.Join(pathToSkps, skpName))
 	}
 
 	// Create channel that contains all SKP file paths. This channel will
 	// be consumed by the worker pool below to run remove_invalid_skp.py in
 	// parallel.
-	skps, err := ioutil.ReadDir(pathToSkps)
-	if err != nil {
-		return fmt.Errorf("Unable to read %s: %s", pathToSkps, err)
-	}
 	skpsChannel := make(chan string, len(skps))
 	for _, skp := range skps {
-		skpsChannel <- filepath.Join(pathToSkps, skp.Name())
+		skpsChannel <- skp
 	}
 	close(skpsChannel)
 
@@ -343,10 +349,6 @@ func ValidateSKPs(pathToSkps string) error {
 	util.LogErr(BuildSkiaTools())
 	// Run remove_invalid_skp.py in parallel goroutines.
 	// Construct path to the python script.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToPyFiles := filepath.Join(
-		filepath.Dir((filepath.Dir(filepath.Dir(currentFile)))),
-		"py")
 	pathToRemoveSKPs := filepath.Join(pathToPyFiles, "remove_invalid_skp.py")
 	pathToSKPInfo := filepath.Join(SkiaTreeDir, "out", "Release", "skpinfo")
 
