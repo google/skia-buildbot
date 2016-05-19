@@ -106,8 +106,8 @@ _slave_host_dicts = {
       ('skiabot-linux-swarm-052', '52', False),
       ('skiabot-linux-swarm-053', '53', False),
       ('skiabot-linux-swarm-054', '54', False),
-      #('skiabot-linux-swarm-055', '55', False),
-      #('skiabot-linux-swarm-056', '56', False),
+      ('skiabot-linux-swarm-055', '55', False),
+      ('skiabot-linux-swarm-056', '56', False),
       #('skiabot-linux-swarm-057', '57', False),
       #('skiabot-linux-swarm-058', '58', False),
       #('skiabot-linux-swarm-059', '59', False),
@@ -205,50 +205,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'skia-vm-009': {
-    'slaves': [
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-vm-010': {
-    'slaves': [
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-vm-011': {
-    'slaves': [
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'skia-vm-012': {
-    'slaves': [
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skia-vm-013': {
     'slaves': [
       ('skiabot-ct-dm-001', '0', False),
@@ -314,17 +270,6 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
-  'skia-vm-101': {
-    'slaves': [
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
 ################################# Mac Machines #################################
 
   'skiabot-mac-10_10-ios': {
@@ -352,30 +297,6 @@ _slave_host_dicts = {
   },
 
 ############################### Windows Machines ###############################
-
-  'win8-4790k-001': {
-    'slaves': [
-      ('skiabot-shuttle-win8-i7-4790k-001', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.129',
-    'kvm_switch': KVM_SWITCH_DOOR,
-    'kvm_num': '1',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
-
-  'win8-4790k-002': {
-    'slaves': [
-      ('skiabot-shuttle-win8-i7-4790k-002', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.136',
-    'kvm_switch': KVM_SWITCH_DOOR,
-    'kvm_num': '3',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_WIN,
-  },
 
 ############################ Machines in Chrome Golo ###########################
 
