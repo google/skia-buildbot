@@ -15,20 +15,21 @@ const (
 	CT_EMAIL_DISPLAY_NAME     = "Cluster Telemetry"
 
 	// File names and dir names.
-	TIMESTAMP_FILE_NAME          = "TIMESTAMP"
-	CHROMIUM_BUILDS_DIR_NAME     = "chromium_builds"
-	PAGESETS_DIR_NAME            = "page_sets"
-	WEB_ARCHIVES_DIR_NAME        = "webpage_archives"
-	SKPS_DIR_NAME                = "skps"
-	PDFS_DIR_NAME                = "pdfs"
-	STORAGE_DIR_NAME             = "storage"
-	REPO_DIR_NAME                = "skia-repo"
-	TASKS_DIR_NAME               = "tasks"
-	BINARIES_DIR_NAME            = "binaries"
-	LUA_TASKS_DIR_NAME           = "lua_runs"
-	BENCHMARK_TASKS_DIR_NAME     = "benchmark_runs"
-	CHROMIUM_PERF_TASKS_DIR_NAME = "chromium_perf_runs"
-	FIX_ARCHIVE_TASKS_DIR_NAME   = "fix_archive_runs"
+	TIMESTAMP_FILE_NAME              = "TIMESTAMP"
+	CHROMIUM_BUILDS_DIR_NAME         = "chromium_builds"
+	PAGESETS_DIR_NAME                = "page_sets"
+	WEB_ARCHIVES_DIR_NAME            = "webpage_archives"
+	SKPS_DIR_NAME                    = "skps"
+	PDFS_DIR_NAME                    = "pdfs"
+	STORAGE_DIR_NAME                 = "storage"
+	REPO_DIR_NAME                    = "skia-repo"
+	TASKS_DIR_NAME                   = "tasks"
+	BINARIES_DIR_NAME                = "binaries"
+	LUA_TASKS_DIR_NAME               = "lua_runs"
+	BENCHMARK_TASKS_DIR_NAME         = "benchmark_runs"
+	CHROMIUM_PERF_TASKS_DIR_NAME     = "chromium_perf_runs"
+	CHROMIUM_ANALYSIS_TASKS_DIR_NAME = "chromium_analysis_runs"
+	FIX_ARCHIVE_TASKS_DIR_NAME       = "fix_archive_runs"
 
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
@@ -197,6 +198,7 @@ const (
 	CAPTURE_SKPS_ISOLATE           = "capture_skps.isolate"
 	CAPTURE_SKPS_FROM_PDFS_ISOLATE = "capture_skps_from_pdfs.isolate"
 	RUN_LUA_ISOLATE                = "run_lua.isolate"
+	CHROMIUM_ANALYSIS_ISOLATE      = "chromium_analysis.isolate"
 )
 
 type PagesetTypeInfo struct {
@@ -248,11 +250,12 @@ var (
 	CtTreeDir              = filepath.Join(RepoDir, "go", "src", "go.skia.org", "infra", "ct")
 
 	// Names of remote directories and files.
-	BinariesDir         = filepath.Join(BINARIES_DIR_NAME)
-	LuaRunsDir          = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
-	BenchmarkRunsDir    = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
-	ChromiumPerfRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
-	FixArchivesRunsDir  = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
+	BinariesDir             = filepath.Join(BINARIES_DIR_NAME)
+	LuaRunsDir              = filepath.Join(TASKS_DIR_NAME, LUA_TASKS_DIR_NAME)
+	BenchmarkRunsDir        = filepath.Join(TASKS_DIR_NAME, BENCHMARK_TASKS_DIR_NAME)
+	ChromiumPerfRunsDir     = filepath.Join(TASKS_DIR_NAME, CHROMIUM_PERF_TASKS_DIR_NAME)
+	ChromiumAnalysisRunsDir = filepath.Join(TASKS_DIR_NAME, CHROMIUM_ANALYSIS_TASKS_DIR_NAME)
+	FixArchivesRunsDir      = filepath.Join(TASKS_DIR_NAME, FIX_ARCHIVE_TASKS_DIR_NAME)
 
 	// Map CT benchmarks to the names recognized by Telemetry.
 	BenchmarksToTelemetryName = map[string]string{

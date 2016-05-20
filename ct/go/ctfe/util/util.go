@@ -18,6 +18,8 @@ import (
 const (
 	CHROMIUM_PERF_URI                       = "chromium_perf/"
 	CHROMIUM_PERF_RUNS_URI                  = "chromium_perf_runs/"
+	CHROMIUM_ANALYSIS_URI                   = "chromium_analysis/"
+	CHROMIUM_ANALYSIS_RUNS_URI              = "chromium_analysis_runs/"
 	GET_CHROMIUM_PERF_RUN_STATUS_URI        = "get_chromium_perf_run_status"
 	CHROMIUM_PERF_PARAMETERS_POST_URI       = "_/chromium_perf/"
 	CHROMIUM_PERF_CL_DATA_POST_URI          = "_/cl_data"

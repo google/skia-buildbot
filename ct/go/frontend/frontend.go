@@ -39,6 +39,7 @@ var (
 	CaptureSKPsTasksWebapp                   string
 	UpdateCaptureSKPsTasksWebapp             string
 	ChromiumPerfTasksWebapp                  string
+	ChromiumAnalysisTasksWebapp              string
 	UpdateChromiumPerfTasksWebapp            string
 	ChromiumBuildTasksWebapp                 string
 	UpdateChromiumBuildTasksWebapp           string
@@ -75,6 +76,7 @@ func initUrls(webapp_root string) {
 	CaptureSKPsTasksWebapp = webapp_root + ctfeutil.CAPTURE_SKPS_URI
 	UpdateCaptureSKPsTasksWebapp = webapp_root + ctfeutil.UPDATE_CAPTURE_SKPS_TASK_POST_URI
 	ChromiumPerfTasksWebapp = webapp_root + ctfeutil.CHROMIUM_PERF_URI
+	ChromiumAnalysisTasksWebapp = webapp_root + ctfeutil.CHROMIUM_ANALYSIS_URI
 	UpdateChromiumPerfTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI
 	ChromiumBuildTasksWebapp = webapp_root + ctfeutil.CHROMIUM_BUILD_URI
 	UpdateChromiumBuildTasksWebapp = webapp_root + ctfeutil.UPDATE_CHROMIUM_BUILD_TASK_POST_URI
