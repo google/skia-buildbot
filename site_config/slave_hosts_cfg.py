@@ -300,42 +300,6 @@ _slave_host_dicts = {
 
 ############################ Machines in Chrome Golo ###########################
 
-  'build3-a3': {
-    'slaves': [
-      ('build3-a3', '0', False),
-    ],
-    'copies': None,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': None,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'build4-a3': {
-    'slaves': [
-      ('build4-a3', '0', False),
-    ],
-    'copies': None,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': None,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
-  'vm255-m3': {
-    'slaves': [
-      ('vm255-m3', '0', False),
-    ],
-    'copies': None,
-    'ip': NO_IP_ADDR,
-    'kvm_switch': NO_KVM_SWITCH,
-    'kvm_num': NO_KVM_NUM,
-    'path_to_buildbot': None,
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'slave11-c3': {
     'slaves': [
       ('slave11-c3', '0', False),
