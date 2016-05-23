@@ -35,6 +35,8 @@ until nc -w 1 -z $IP_ADDRESS 22; do
 done
 
 gcloud compute copy-files ../common/format_and_mount.sh $PROJECT_USER@$INSTANCE_NAME:/tmp/format_and_mount.sh --zone $ZONE
+gcloud compute copy-files ../common/safe_format_and_mount $PROJECT_USER@$INSTANCE_NAME:/tmp/safe_format_and_mount --zone $ZONE
+
 gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME \
   --zone $ZONE \
   --command "/tmp/format_and_mount.sh "$INSTANCE_NAME \

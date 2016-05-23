@@ -11,7 +11,7 @@ DISK_NAME="google-skia-$1-data"
 echo "Formatting and setting up fstab rules for "$DISK_NAME
 # Mount data disk
 sudo mkdir -p /mnt/pd0
-sudo ./safe_format_and_mount "/dev/disk/by-id/"$DISK_NAME /mnt/pd0
+sudo /tmp/safe_format_and_mount "/dev/disk/by-id/"$DISK_NAME /mnt/pd0
 sudo chmod 777 /mnt/pd0
 
 # Add mounting instructions to fstab so it remounts on reboot.
