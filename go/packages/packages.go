@@ -16,6 +16,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/skia-dev/glog"
 	iexec "go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gs"
@@ -40,6 +41,10 @@ type Package struct {
 	Dirty    bool
 	Note     string
 	Services []string
+}
+
+func (p *Package) String() string {
+	return fmt.Sprintf(`Package of %q@%s Note: %q built on %s by %s`, p.Services, p.Hash[0:6], p.Note, p.Built, p.UserID)
 }
 
 // Installed is a list of all the packages installed on a server.
@@ -213,6 +218,18 @@ type PackageSlice []*Package
 func (p PackageSlice) Len() int           { return len(p) }
 func (p PackageSlice) Less(i, j int) bool { return p[i].Built.After(p[j].Built) }
 func (p PackageSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+func (p PackageSlice) String() string {
+	if len(p) == 0 {
+		return "Package Slice:\n<empty>\n"
+	}
+	strs := make([]string, 0, len(p)+1)
+	strs = append(strs, "Package Slice:")
+	for _, v := range p {
+		strs = append(strs, v.String())
+	}
+	return strings.Join(strs, "\n")
+}
 
 // AllAvailable returns all known packages for all applications uploaded to
 // gs://<bucketName>/debs/.
@@ -468,4 +485,48 @@ func installDependencies(packageFileName string) error {
 		glog.Infof("No deps found.")
 	}
 	return nil
+}
+
+// ServerConfig is used in PackageConfig.
+type ServerConfig struct {
+	AppNames []string
+}
+
+// PackageConfig is the configuration of the application.
+//
+// It is a list of servers (by GCE domain name) and the list
+// of apps that are allowed to be installed on them. It is
+// loaded from infra/push/skiapush.conf in toml format.
+type PackageConfig struct {
+	Servers map[string]ServerConfig
+}
+
+func LoadPackageConfig(filename string) (PackageConfig, error) {
+	var config PackageConfig
+	// Read toml config file.
+	if _, err := toml.DecodeFile(filename, &config); err != nil {
+		return config, fmt.Errorf("Failed to decode config file: %s", err)
+	}
+	return config, nil
+}
+
+func (p *PackageConfig) AllServerNames() []string {
+	serverNames := make([]string, 0, len(p.Servers))
+	for k, _ := range p.Servers {
+		serverNames = append(serverNames, k)
+	}
+	return serverNames
+}
+
+func (p *PackageConfig) AllServerNamesWithPackage(name string) []string {
+	serverNames := make([]string, 0, len(p.Servers))
+	for k, config := range p.Servers {
+		for _, app := range config.AppNames {
+			if app == name {
+				serverNames = append(serverNames, k)
+				break
+			}
+		}
+	}
+	return serverNames
 }

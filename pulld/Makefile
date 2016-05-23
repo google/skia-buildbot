@@ -13,7 +13,12 @@ default: core_js elements_html
 	go install -v ./go/pulld
 
 release: default
-	./build_release
+	./build_release "$(MESSAGE)"
+
+# You should run make release first
+push_everywhere:
+	pushcli pulld "*"
+
 
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html

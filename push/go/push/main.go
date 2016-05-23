@@ -16,7 +16,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/BurntSushi/toml"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
@@ -31,26 +30,12 @@ import (
 	storage "google.golang.org/api/storage/v1"
 )
 
-// Server is used in PushConfig.
-type Server struct {
-	AppNames []string
-}
-
-// PushConfig is the configuration of the application.
-//
-// It is a list of servers (by GCE domain name) and the list
-// of apps that are allowed to be installed on them. It is
-// loaded from *config_filename in toml format.
-type PushConfig struct {
-	Servers map[string]Server
-}
-
 var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
 
 	// config is the configuration of what servers and apps we are managing.
-	config PushConfig
+	config packages.PackageConfig
 
 	// ip keeps an updated map from server name to public IP address.
 	ip *IPAddresses
@@ -120,17 +105,14 @@ func Init() {
 	}
 	loadTemplates()
 
-	// Read toml config file.
-	if _, err := toml.DecodeFile(*configFilename, &config); err != nil {
-		glog.Fatalf("Failed to decode config file: %s", err)
-	}
-
-	serverNames = make([]string, 0, len(config.Servers))
-	for k, _ := range config.Servers {
-		serverNames = append(serverNames, k)
-	}
-
 	var err error
+	config, err = packages.LoadPackageConfig(*configFilename)
+	if err != nil {
+		glog.Fatalf("Failed to load PackageConfig file: %s", err)
+	}
+
+	serverNames = config.AllServerNames()
+
 	if client, err = auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_FULL_CONTROL, auth.SCOPE_GCE); err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
