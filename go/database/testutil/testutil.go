@@ -70,9 +70,9 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 	defer lockDB.Close(t)
 
 	rootVdb, err := rootConf.NewVersionedDB()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	ClearMySQLTables(t, rootVdb)
-	assert.Nil(t, rootVdb.Close())
+	assert.NoError(t, rootVdb.Close())
 
 	// Configuration for the readwrite user without DDL privileges.
 	readWriteConf := LocalTestDatabaseConfig(migrationSteps)
@@ -84,12 +84,12 @@ func MySQLVersioningTests(t *testing.T, dbName string, migrationSteps []database
 	assert.NotNil(t, err)
 
 	rootVdb, err = rootConf.NewVersionedDB()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	testDBVersioning(t, rootVdb)
 
 	// Make sure it doesn't fail for readwrite user after the migration
 	_, err = readWriteConf.NewVersionedDB()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Downgrade database, removing most if not all tables.
 	downgradeDB(t, rootVdb)
@@ -103,11 +103,11 @@ type LockDB struct {
 // Get a lock from MySQL to serialize DB tests.
 func GetMySQlLock(t *testing.T, conf *database.DatabaseConfig) *LockDB {
 	db, err := sqlx.Open("mysql", conf.MySQLString())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	for {
 		var result int
-		assert.Nil(t, db.Get(&result, "SELECT GET_LOCK(?,5)", SQL_LOCK))
+		assert.NoError(t, db.Get(&result, "SELECT GET_LOCK(?,5)", SQL_LOCK))
 
 		// We obtained the lock. If not try again.
 		if result == 1 {
@@ -119,29 +119,29 @@ func GetMySQlLock(t *testing.T, conf *database.DatabaseConfig) *LockDB {
 // Release the MySQL lock.
 func (l *LockDB) Close(t *testing.T) {
 	var result int
-	assert.Nil(t, l.DB.Get(&result, "SELECT RELEASE_LOCK(?)", SQL_LOCK))
+	assert.NoError(t, l.DB.Get(&result, "SELECT RELEASE_LOCK(?)", SQL_LOCK))
 	assert.Equal(t, result, 1)
-	assert.Nil(t, l.DB.Close())
+	assert.NoError(t, l.DB.Close())
 }
 
 // Remove all tables from the database.
 func ClearMySQLTables(t *testing.T, vdb *database.VersionedDB) {
 	stmt := `SHOW TABLES`
 	rows, err := vdb.DB.Query(stmt)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer util.Close(rows)
 
 	names := make([]string, 0)
 	var tableName string
 	for rows.Next() {
-		assert.Nil(t, rows.Scan(&tableName))
+		assert.NoError(t, rows.Scan(&tableName))
 		names = append(names, tableName)
 	}
 
 	if len(names) > 0 {
 		stmt = "DROP TABLE " + strings.Join(names, ",")
 		_, err = vdb.DB.Exec(stmt)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 	}
 }
 
@@ -165,13 +165,13 @@ func SetupMySQLTestDatabase(t *testing.T, migrationSteps []database.MigrationSte
 	conf := LocalTestRootDatabaseConfig(migrationSteps)
 	lock := GetMySQlLock(t, conf)
 	rootVdb, err := conf.NewVersionedDB()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	ClearMySQLTables(t, rootVdb)
 	if err := rootVdb.Close(); err != nil {
 		t.Fatal(err)
 	}
 	rootVdb, err = conf.NewVersionedDB()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	if err := rootVdb.Migrate(rootVdb.MaxDBVersion()); err != nil {
 		t.Fatal(err)
 	}
@@ -179,8 +179,8 @@ func SetupMySQLTestDatabase(t *testing.T, migrationSteps []database.MigrationSte
 }
 
 func (d *MySQLTestDatabase) Close(t *testing.T) {
-	assert.Nil(t, d.rootVdb.Migrate(0))
-	assert.Nil(t, d.rootVdb.Close())
+	assert.NoError(t, d.rootVdb.Migrate(0))
+	assert.NoError(t, d.rootVdb.Close())
 	d.lockDB.Close(t)
 }
 
@@ -188,24 +188,24 @@ func (d *MySQLTestDatabase) Close(t *testing.T) {
 func testDBVersioning(t *testing.T, vdb *database.VersionedDB) {
 	// get the DB version
 	dbVersion, err := vdb.DBVersion()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	maxVersion := vdb.MaxDBVersion()
 
 	downgradeDB(t, vdb)
 
 	// upgrade the the latest version
 	err = vdb.Migrate(maxVersion)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	dbVersion, err = vdb.DBVersion()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, maxVersion, dbVersion)
 }
 
 func downgradeDB(t *testing.T, vdb *database.VersionedDB) {
 	// downgrade to 0
 	err := vdb.Migrate(0)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	dbVersion, err := vdb.DBVersion()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 0, dbVersion)
 }

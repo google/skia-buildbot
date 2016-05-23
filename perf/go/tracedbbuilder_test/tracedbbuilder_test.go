@@ -105,7 +105,7 @@ func TestNewTraceDBBuilder(t *testing.T) {
 
 	evt := eventbus.New(nil)
 	traceDB, err := db.NewTraceServiceDBFromAddress(port, types.PerfTraceBuilder)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	builder, err := db.NewMasterTileBuilder(traceDB, git, 50, evt)
 	if err != nil {

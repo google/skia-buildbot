@@ -18,7 +18,7 @@ import (
 
 func TestPerfTrace(t *testing.T) {
 	b, err := ioutil.ReadFile(filepath.Join("testdata", "rietveld_response.txt"))
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	m := mockhttpclient.NewURLMock()
 	// Mock this only once to confirm that caching works.
 	m.MockOnce("https://codereview.chromium.org/api/1490543002", mockhttpclient.MockGetDialogue(b))

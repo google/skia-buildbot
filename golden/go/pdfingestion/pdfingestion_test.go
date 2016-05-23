@@ -38,10 +38,10 @@ func TestPDFProcessor(t *testing.T) {
 
 	// Get the service account client from meta data or a local config file.
 	client, err := auth.NewJWTServiceAccountClient("", auth.DEFAULT_JWT_FILENAME, nil, storage.ScopeFullControl)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	cacheDir, err := fileutil.EnsureDirExists(CACHE_DIR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Clean up after the test.
 	defer func() {
@@ -63,36 +63,36 @@ func TestPDFProcessor(t *testing.T) {
 		},
 	}
 	processor, err := newPDFProcessor(nil, ingesterConf, client)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Load the example file and process it.
 	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	err = processor.Process(fsResult)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Fetch the json output and parse it.
 	pProcessor := processor.(*pdfProcessor)
 
 	// download the result.
 	resultFileName := filepath.Join(CACHE_DIR, "result-file.json")
-	assert.Nil(t, pProcessor.download(TEST_BUCKET, JSON_OUT_DIR, fsResult.Name(), resultFileName))
+	assert.NoError(t, pProcessor.download(TEST_BUCKET, JSON_OUT_DIR, fsResult.Name(), resultFileName))
 
 	// Make sure we get the expected result.
 	fsResult, err = ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	r, err := fsResult.Open()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	fsDMResults, err := goldingestion.ParseDMResultsFromReader(r)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	foundResult, err := ingestion.FileSystemResult(resultFileName, "./")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	r, err = foundResult.Open()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	foundDMResults, err := goldingestion.ParseDMResultsFromReader(r)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	dmResult1 := *fsDMResults
 	dmResult2 := *foundDMResults
@@ -121,7 +121,7 @@ func TestPDFProcessor(t *testing.T) {
 func deleteFolderContent(t *testing.T, bucket, folderName string, client *http.Client) {
 	ctx := context.Background()
 	cStorage, err := storage.NewClient(ctx, cloud.WithBaseHTTP(client))
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
-	assert.Nil(t, gs.DeleteAllFilesInDir(cStorage, bucket, folderName, 1))
+	assert.NoError(t, gs.DeleteAllFilesInDir(cStorage, bucket, folderName, 1))
 }

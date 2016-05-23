@@ -72,10 +72,10 @@ var (
 func TestBenchData(t *testing.T) {
 	// Load the sample data file as BenchData.
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, TEST_INGESTION_FILE))
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	benchData, err := parseBenchDataFromReader(r)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, "x86:GTX660:ShuttleA:Ubuntu12", benchData.keyPrefix())
 
@@ -107,20 +107,20 @@ func TestPerfProcessor(t *testing.T) {
 
 	// Set up the processor.
 	processor, err := newPerfProcessor(vcs, ingesterConf, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Load the example file and process it.
 	fsResult, err := ingestion.FileSystemResult(filepath.Join(TEST_DATA_DIR, TEST_INGESTION_FILE), TEST_DATA_DIR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	err = processor.Process(fsResult)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Steal the traceDB used by the processor to verify the results.
 	traceDB := processor.(*perfProcessor).traceDB
 
 	startTime := time.Now().Add(-time.Hour * 24 * 10)
 	commitIDs, err := traceDB.List(startTime, time.Now())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
@@ -131,7 +131,7 @@ func TestPerfProcessor(t *testing.T) {
 
 	// Get a tile and make sure we have the right number of traces.
 	tile, _, err := traceDB.TileFromCommits(commitIDs)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	traces := tile.Traces
 	assert.Equal(t, len(TEST_ENTRIES), len(traces))
@@ -145,5 +145,5 @@ func TestPerfProcessor(t *testing.T) {
 		assert.Equal(t, testEntry.value, perfTrace.Values[0])
 	}
 
-	assert.Nil(t, traceDB.Close())
+	assert.NoError(t, traceDB.Close())
 }

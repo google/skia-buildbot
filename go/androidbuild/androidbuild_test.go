@@ -90,33 +90,33 @@ func TestInfo(t *testing.T) {
 	// The first time we Get on an unknown target well get nil, err.
 	commit, err := i.Get("git_master-skia", "razor-userdebug", "100")
 	assert.Nil(t, commit)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	// After the first time we'll get an error.
 	commit, err = i.Get("git_master-skia", "razor-userdebug", "100")
 	assert.Nil(t, commit)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	// Now poll.
 	i.single_poll()
 
 	// Now the commits should be populated so the Get should succeed.
 	commit, err = i.Get("git_master-skia", "razor-userdebug", "100")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, commit)
 	if got, want := commit.Hash, "1234567890"; got != want {
 		t.Errorf("Wrong commit returned: Got %v Want %v", got, want)
 	}
 
 	commit, err = i.Get("git_master-skia", "razor-userdebug", "101")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, commit)
 	if got, want := commit.Hash, "1234567890"; got != want {
 		t.Errorf("Wrong commit returned: Got %v Want %v", got, want)
 	}
 
 	commit, err = i.Get("git_master-skia", "razor-userdebug", "103")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, commit)
 	if got, want := commit.Hash, "987654321"; got != want {
 		t.Errorf("Wrong commit returned: Got %v Want %v", got, want)
@@ -124,40 +124,40 @@ func TestInfo(t *testing.T) {
 
 	commit, err = i.Get("git_master-skia", "razor-userdebug", "99")
 	assert.Nil(t, commit)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	// Now add another target.
 
 	// The first time we Get on an unknown target well get nil, err.
 	commit, err = i.Get("git_master-skia", "volantis-userdebug", "100")
 	assert.Nil(t, commit)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	// After the first time we'll get an error.
 	commit, err = i.Get("git_master-skia", "volantis-userdebug", "100")
 	assert.Nil(t, commit)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 
 	// Now poll.
 	i.single_poll()
 
 	// Now the commits should be populated so the Get should succeed.
 	commit, err = i.Get("git_master-skia", "volantis-userdebug", "100")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, commit)
 	if got, want := commit.Hash, "1234567890"; got != want {
 		t.Errorf("Wrong commit returned: Got %v Want %v", got, want)
 	}
 
 	commit, err = i.Get("git_master-skia", "volantis-userdebug", "101")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, commit)
 	if got, want := commit.Hash, "1234567890"; got != want {
 		t.Errorf("Wrong commit returned: Got %v Want %v", got, want)
 	}
 
 	commit, err = i.Get("git_master-skia", "volantis-userdebug", "105")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, commit)
 	if got, want := commit.Hash, "987654321"; got != want {
 		t.Errorf("Wrong commit returned: Got %v Want %v", got, want)
@@ -165,5 +165,5 @@ func TestInfo(t *testing.T) {
 
 	commit, err = i.Get("git_master-skia", "volantis-userdebug", "99")
 	assert.Nil(t, commit)
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }

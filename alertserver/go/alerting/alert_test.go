@@ -54,7 +54,7 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 	conf := testutil.LocalTestDatabaseConfig(migrationSteps)
 	var err error
 	DB, err = sqlx.Open("mysql", conf.MySQLString())
-	assert.Nil(t, err, failMsg)
+	assert.NoError(t, err, failMsg)
 
 	return testDb
 }
@@ -69,9 +69,9 @@ func TestAlertJsonSerialization(t *testing.T) {
 
 	for _, want := range cases {
 		b, err := json.Marshal(want)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		got := &Alert{}
-		assert.Nil(t, json.Unmarshal(b, got))
+		assert.NoError(t, json.Unmarshal(b, got))
 		testutils.AssertDeepEqual(t, got, want)
 	}
 }
@@ -89,15 +89,15 @@ func TestAlertDBSerialization(t *testing.T) {
 	}
 
 	for _, want := range cases {
-		assert.Nil(t, want.retryReplaceIntoDB())
+		assert.NoError(t, want.retryReplaceIntoDB())
 		a, err := GetActiveAlerts()
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, 1, len(a))
 		got := a[0]
 		testutils.AssertDeepEqual(t, got, want)
 		// Dismiss the Alert, so that it doesn't show up later.
 		got.DismissedAt = 1000
-		assert.Nil(t, got.retryReplaceIntoDB())
+		assert.NoError(t, got.retryReplaceIntoDB())
 	}
 }
 
@@ -109,7 +109,7 @@ func TestAlertFlowE2E(t *testing.T) {
 	defer d.Close(t)
 
 	am, err := MakeAlertManager(time.Millisecond, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Stop the AlertManager's polling loop so that we can trigger it
 	// manually instead.
@@ -117,15 +117,15 @@ func TestAlertFlowE2E(t *testing.T) {
 
 	// Insert an Alert.
 	a := makeAlert()
-	assert.Nil(t, am.AddAlert(a))
+	assert.NoError(t, am.AddAlert(a))
 
 	// Verify that the Alert is active and not snoozed.
-	assert.Nil(t, am.tick())
+	assert.NoError(t, am.tick())
 	getAlerts := func() []*Alert {
 		b := bytes.NewBuffer([]byte{})
-		assert.Nil(t, am.WriteActiveAlertsJson(b, func(*Alert) bool { return true }))
+		assert.NoError(t, am.WriteActiveAlertsJson(b, func(*Alert) bool { return true }))
 		var active []*Alert
-		assert.Nil(t, json.Unmarshal(b.Bytes(), &active))
+		assert.NoError(t, json.Unmarshal(b.Bytes(), &active))
 		return active
 	}
 	getAlert := func() *Alert {
@@ -138,39 +138,39 @@ func TestAlertFlowE2E(t *testing.T) {
 	assert.False(t, got.Snoozed())
 
 	// Snooze the Alert.
-	assert.Nil(t, am.Snooze(got.Id, time.Now().UTC().Add(30*time.Second), "test_user", "msg"))
+	assert.NoError(t, am.Snooze(got.Id, time.Now().UTC().Add(30*time.Second), "test_user", "msg"))
 	assert.True(t, getAlert().Snoozed())
 
 	// Unsnooze the Alert.
-	assert.Nil(t, am.Unsnooze(got.Id, "test_user", "msg"))
+	assert.NoError(t, am.Unsnooze(got.Id, "test_user", "msg"))
 	assert.False(t, getAlert().Snoozed())
 
 	// Snooze the Alert and make sure it gets dismissed after the snooze
 	// period expires.
-	assert.Nil(t, am.Snooze(got.Id, time.Now().UTC().Add(1*time.Millisecond), "test_user", "msg"))
+	assert.NoError(t, am.Snooze(got.Id, time.Now().UTC().Add(1*time.Millisecond), "test_user", "msg"))
 	time.Sleep(2 * time.Second)
-	assert.Nil(t, am.tick())
+	assert.NoError(t, am.tick())
 	assert.False(t, am.Contains(got.Id))
 	assert.Equal(t, 0, len(getAlerts()))
 
 	// Add another Alert. Dismiss it.
-	assert.Nil(t, am.AddAlert(a))
-	assert.Nil(t, am.Dismiss(getAlert().Id, "test_user", "test dismiss"))
+	assert.NoError(t, am.AddAlert(a))
+	assert.NoError(t, am.Dismiss(getAlert().Id, "test_user", "test dismiss"))
 	assert.Equal(t, 0, len(getAlerts()))
 
 	// Ensure that Alerts auto-dismiss appropriately.
 	a.AutoDismiss = int64(time.Second)
-	assert.Nil(t, am.AddAlert(a))
+	assert.NoError(t, am.AddAlert(a))
 	// Normally, the Alert would be re-firing during this time...
 	time.Sleep(2 * time.Second)
-	assert.Nil(t, am.tick())
+	assert.NoError(t, am.tick())
 	// But since it didn't, we expect no active alerts.
 	assert.Equal(t, 0, len(getAlerts()))
 
 	// Now, ensure that Alerts DON'T auto-dismiss when they shouldn't.
 	a = makeAlert()
-	assert.Nil(t, am.AddAlert(a))
+	assert.NoError(t, am.AddAlert(a))
 	time.Sleep(2 * time.Second)
-	assert.Nil(t, am.tick())
+	assert.NoError(t, am.tick())
 	assert.Equal(t, 1, len(getAlerts()))
 }

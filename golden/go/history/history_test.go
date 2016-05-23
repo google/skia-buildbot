@@ -19,11 +19,11 @@ import (
 const TEST_DATA_DIR = "testdata"
 
 func BenchmarkHistory(b *testing.B) {
-	assert.Nil(b, os.MkdirAll(TEST_DATA_DIR, 0755))
+	assert.NoError(b, os.MkdirAll(TEST_DATA_DIR, 0755))
 	defer testutils.RemoveAll(b, TEST_DATA_DIR)
 
 	digestStore, err := digeststore.New(TEST_DATA_DIR)
-	assert.Nil(b, err)
+	assert.NoError(b, err)
 
 	tileBuilder := mocks.GetTileBuilderFromEnv(b)
 	storages := &storage.Storage{
@@ -33,7 +33,7 @@ func BenchmarkHistory(b *testing.B) {
 	}
 
 	tile := tileBuilder.GetTile()
-	assert.Nil(b, Init(storages, 0))
+	assert.NoError(b, Init(storages, 0))
 
 	// Gather the runtimes of the testname/digest lookup.
 	runtimes := make([]int64, 0, 1000000)
@@ -52,7 +52,7 @@ func BenchmarkHistory(b *testing.B) {
 		for _, digest := range gTrace.Values[:tileLen] {
 			if digest != types.MISSING_DIGEST {
 				found, err := timeIt(testName, digest)
-				assert.Nil(b, err)
+				assert.NoError(b, err)
 				assert.True(b, found)
 			}
 		}

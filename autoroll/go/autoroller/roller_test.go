@@ -220,7 +220,7 @@ func (r *mockRietveld) mockTrybotResults(issue *rietveld.Issue, results []*build
 	}{
 		Builds: results,
 	})
-	assert.Nil(r.t, err)
+	assert.NoError(r.t, err)
 	r.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 }
 
@@ -228,7 +228,7 @@ func (r *mockRietveld) mockTrybotResults(issue *rietveld.Issue, results []*build
 func (r *mockRietveld) updateIssue(issue *rietveld.Issue, tryResults []*buildbucket.Build) {
 	url := fmt.Sprintf("%s/api/%d?messages=true", autoroll.RIETVELD_URL, issue.Issue)
 	serialized, err := json.Marshal(issue)
-	assert.Nil(r.t, err)
+	assert.NoError(r.t, err)
 	r.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 	r.mockTrybotResults(issue, tryResults)
 
@@ -307,7 +307,7 @@ func (r *mockRietveld) pretendRollLanded(rm *mockRepoManager, issue *rietveld.Is
 	assert.NotNil(r.t, m)
 	assert.Equal(r.t, 3, len(m))
 	rolledTo, err := rm.FullChildHash(m[2])
-	assert.Nil(r.t, err)
+	assert.NoError(r.t, err)
 	rm.mockRolledPast(rolledTo, true)
 	rm.mockLastRollRev(rolledTo)
 	rm.mockForceUpdate()
@@ -338,11 +338,11 @@ func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, rm *mockRepoMana
 		if expect != nil {
 			assert.NotNil(t, actual)
 			ari, err := autoroll.FromRietveldIssue(expect, rm.FullChildHash)
-			assert.Nil(t, err)
+			assert.NoError(t, err)
 			tryResults := make([]*autoroll.TryResult, 0, len(expectTrybots))
 			for _, b := range expectTrybots {
 				tryResult, err := autoroll.TryResultFromBuildbucket(b)
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				tryResults = append(tryResults, tryResult)
 			}
 			ari.TryResults = tryResults
@@ -358,7 +358,7 @@ func checkStatus(t *testing.T, r *AutoRoller, rv *mockRietveld, rm *mockRepoMana
 				}
 			}
 
-			assert.Nil(t, ari.Validate())
+			assert.NoError(t, ari.Validate())
 			testutils.AssertDeepEqual(t, ari, actual)
 		} else {
 			assert.Nil(t, actual)
@@ -390,7 +390,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 	}
 
 	workdir, err := ioutil.TempDir("", "test_autoroll_mode_")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Set up more test data.
 	initialCommit := "abc1231010101010101010101010101010101010"
@@ -402,7 +402,7 @@ func setup(t *testing.T) (string, *AutoRoller, *mockRepoManager, *mockRietveld, 
 
 	// Create the roller.
 	roller, err := NewAutoRoller(workdir, "src/third_party/skia", "", []string{}, rv.r, time.Hour, time.Hour, "depot_tools")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Verify that the bot ran successfully.
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll1, noTrybots, false, nil, nil, false)
@@ -416,30 +416,30 @@ func TestAutoRollBasic(t *testing.T) {
 	// setup will initialize the roller and upload a CL.
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
-		assert.Nil(t, roller.Close())
-		assert.Nil(t, os.RemoveAll(workdir))
+		assert.NoError(t, roller.Close())
+		assert.NoError(t, os.RemoveAll(workdir))
 	}()
 
 	// Run again. Verify that we let the currently-running roll keep going.
 	rv.updateIssue(roll1, noTrybots)
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll1, noTrybots, false, nil, nil, false)
 
 	// The roll failed. Verify that we close it and upload another one.
 	rv.pretendRollFailed(roll1, noTrybots)
 	rv.rollerWillCloseIssue(roll1)
 	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	roll1.Closed = true // The roller should have closed this CL.
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
 
 	// The second roll succeeded. Verify that we're up-to-date.
 	rv.pretendRollLanded(rm, roll2, noTrybots)
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
 
 	// Verify that we remain idle.
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
 }
 
@@ -449,8 +449,8 @@ func TestAutoRollStop(t *testing.T) {
 	// setup will initialize the roller and upload a CL.
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
-		assert.Nil(t, roller.Close())
-		assert.Nil(t, os.RemoveAll(workdir))
+		assert.NoError(t, roller.Close())
+		assert.NoError(t, os.RemoveAll(workdir))
 	}()
 
 	// Stop the bot. Ensure that we close the in-progress roll and don't upload a new one.
@@ -462,7 +462,7 @@ func TestAutoRollStop(t *testing.T) {
 	roll1.Closed = true
 	// Change the mode, run the bot.
 	u := "test@google.com"
-	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_STOPPED, u, "Stoppit!"))
+	assert.NoError(t, roller.SetMode(autoroll_modes.MODE_STOPPED, u, "Stoppit!"))
 	// The roller should have closed the CL.
 	roll1.Closed = true
 	roll1.CommitQueue = false
@@ -470,26 +470,26 @@ func TestAutoRollStop(t *testing.T) {
 	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll1, noTrybots, false)
 
 	// Ensure that we don't upload another CL now that we're stopped.
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll1, noTrybots, false)
 
 	// Resume the bot. Ensure that we upload a new CL.
 	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), noTrybots, false)
-	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Resume!"))
+	assert.NoError(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Resume!"))
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll2, noTrybots, false, roll1, noTrybots, false)
 
 	// Pretend the roll landed.
 	rv.pretendRollLanded(rm, roll2, noTrybots)
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll2, noTrybots, false)
 
 	// Stop the roller again.
 	rm.mockChildCommit("adbcdf1010101010101010101010101010101010")
-	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_STOPPED, u, "Stop!"))
+	assert.NoError(t, roller.SetMode(autoroll_modes.MODE_STOPPED, u, "Stop!"))
 	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll2, noTrybots, false)
 
 	// Ensure that we don't upload another CL now that we're stopped.
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_STOPPED, nil, nil, false, roll2, noTrybots, false)
 }
 
@@ -497,8 +497,8 @@ func TestAutoRollStop(t *testing.T) {
 func TestAutoRollDryRun(t *testing.T) {
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
-		assert.Nil(t, roller.Close())
-		assert.Nil(t, os.RemoveAll(workdir))
+		assert.NoError(t, roller.Close())
+		assert.NoError(t, os.RemoveAll(workdir))
 	}()
 
 	// Change the mode to dry run. Expect the bot to switch the in-progress
@@ -511,17 +511,17 @@ func TestAutoRollDryRun(t *testing.T) {
 	}
 	trybots := []*buildbucket.Build{trybot}
 	rv.rollerWillSwitchDryRun(roll1, trybots, true)
-	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_DRY_RUN, u, "Dry run."))
+	assert.NoError(t, roller.SetMode(autoroll_modes.MODE_DRY_RUN, u, "Dry run."))
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll1, trybots, true, nil, nil, false)
 
 	// Dry run succeeded.
 	rv.pretendDryRunFinished(roll1, trybots, true)
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_SUCCESS, roll1, trybots, true, nil, nil, false)
 
 	// Run again. Ensure that we don't do anything crazy.
 	rv.updateIssue(roll1, trybots)
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_SUCCESS, roll1, trybots, true, nil, nil, false)
 
 	// Add an experimental trybot. Ensure that its failure is ignored.
@@ -532,7 +532,7 @@ func TestAutoRollDryRun(t *testing.T) {
 		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq-experimental\"}",
 	})
 	rv.updateIssue(roll1, trybots)
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_SUCCESS, roll1, trybots, true, nil, nil, false)
 
 	// New child commit: verify that we close the existing dry run and open another.
@@ -547,7 +547,7 @@ func TestAutoRollDryRun(t *testing.T) {
 	trybots2 := []*buildbucket.Build{trybot2}
 	roll2 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), trybots2, true)
 	roll2.CommitQueueDryRun = true
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	roll1.Closed = true // Roller should have closed this issue.
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll2, trybots2, true, roll1, trybots, true)
 
@@ -561,30 +561,30 @@ func TestAutoRollDryRun(t *testing.T) {
 	}
 	trybots3 := []*buildbucket.Build{trybot3}
 	roll3 := rm.rollerWillUpload(rv, rm.LastRollRev(), rm.ChildHead(), trybots3, true)
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	roll2.Closed = true // Roller should have closed this issue.
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll3, trybots3, true, roll2, trybots2, true)
 
 	// Ensure that we switch back to normal running mode as expected.
 	rv.rollerWillSwitchDryRun(roll3, trybots3, false)
-	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Normal mode."))
+	assert.NoError(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Normal mode."))
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
 
 	// Switch back to dry run.
 	rv.rollerWillSwitchDryRun(roll3, trybots3, true)
-	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_DRY_RUN, u, "Dry run again."))
+	assert.NoError(t, roller.SetMode(autoroll_modes.MODE_DRY_RUN, u, "Dry run again."))
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_IN_PROGRESS, roll3, trybots3, true, roll2, trybots2, true)
 
 	// Dry run succeeded.
 	rv.pretendDryRunFinished(roll3, trybots3, true)
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_DRY_RUN_SUCCESS, roll3, trybots3, true, roll2, trybots2, true)
 
 	// The successful dry run will not have the commit bit set. Make sure
 	// that, when we switch back into normal mode, we re-set the commit bit
 	// instead of closing the roll and opening a new one.
 	rv.rollerWillSwitchDryRun(roll3, trybots3, false)
-	assert.Nil(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Normal mode."))
+	assert.NoError(t, roller.SetMode(autoroll_modes.MODE_RUNNING, u, "Normal mode."))
 	checkStatus(t, roller, rv, rm, STATUS_IN_PROGRESS, roll3, trybots3, false, roll2, trybots2, true)
 }
 
@@ -596,8 +596,8 @@ func TestAutoRollDryRun(t *testing.T) {
 func TestAutoRollCommitDescRace(t *testing.T) {
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
-		assert.Nil(t, roller.Close())
-		assert.Nil(t, os.RemoveAll(workdir))
+		assert.NoError(t, roller.Close())
+		assert.NoError(t, os.RemoveAll(workdir))
 	}()
 
 	trybot := &buildbucket.Build{
@@ -615,7 +615,7 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 	assert.NotNil(t, m)
 	assert.Equal(t, 3, len(m))
 	rolledTo, err := rm.FullChildHash(m[2])
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	rm.mockRolledPast(rolledTo, true)
 	rm.mockLastRollRev(rolledTo)
 	rm.mockForceUpdate()
@@ -629,7 +629,7 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 	roll1.ModifiedString = now.Format(rietveld.TIME_FORMAT)
 	url := fmt.Sprintf("%s/api/%d?messages=true", autoroll.RIETVELD_URL, roll1.Issue)
 	serialized, err := json.Marshal(roll1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	rv.urlMock.MockOnce(url, mockhttpclient.MockGetDialogue(serialized))
 	rv.mockTrybotResults(roll1, trybots)
 
@@ -638,7 +638,7 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 	rv.urlMock.MockOnce(cqUrl, mockhttpclient.MockGetDialogue([]byte(fmt.Sprintf("{\"success\":%v}", true))))
 
 	// Run the roller.
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 
 	// Verify that the roller correctly determined that the CL landed.
 	roll1.Committed = true
@@ -652,8 +652,8 @@ func TestAutoRollCommitDescRace(t *testing.T) {
 func TestAutoRollCommitLandRace(t *testing.T) {
 	workdir, roller, rm, rv, roll1 := setup(t)
 	defer func() {
-		assert.Nil(t, roller.Close())
-		assert.Nil(t, os.RemoveAll(workdir))
+		assert.NoError(t, roller.Close())
+		assert.NoError(t, os.RemoveAll(workdir))
 	}()
 
 	// Pretend the roll landed but has not yet showed up in the repo.
@@ -684,7 +684,7 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 				assert.NotNil(t, m)
 				assert.Equal(t, 3, len(m))
 				rolledTo, err := rm.FullChildHash(m[2])
-				assert.Nil(t, err)
+				assert.NoError(t, err)
 				rm.mockRolledPast(rolledTo, true)
 				rm.mockLastRollRev(rolledTo)
 				rm.mockForceUpdate()
@@ -696,6 +696,6 @@ func TestAutoRollCommitLandRace(t *testing.T) {
 	}()
 
 	// Run the roller.
-	assert.Nil(t, roller.doAutoRoll())
+	assert.NoError(t, roller.doAutoRoll())
 	checkStatus(t, roller, rv, rm, STATUS_UP_TO_DATE, nil, nil, false, roll1, trybots, false)
 }

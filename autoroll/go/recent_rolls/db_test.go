@@ -22,10 +22,10 @@ type testDB struct {
 // when finished.
 func newTestDB(t *testing.T) *testDB {
 	tmpDir, err := ioutil.TempDir("", "test_autoroll_db_")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	dbFile := path.Join(tmpDir, "test.db")
 	d, err := openDB(dbFile)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	return &testDB{
 		db:  d,
 		dir: tmpDir,
@@ -34,8 +34,8 @@ func newTestDB(t *testing.T) *testDB {
 
 // cleanup closes the database and removes the underlying temporary directory.
 func (d *testDB) cleanup(t *testing.T) {
-	assert.Nil(t, d.db.Close())
-	assert.Nil(t, os.RemoveAll(d.dir))
+	assert.NoError(t, d.db.Close())
+	assert.NoError(t, os.RemoveAll(d.dir))
 }
 
 // Test that we insert, update, delete, and retrieve rolls as expected.
@@ -59,12 +59,12 @@ func TestRolls(t *testing.T) {
 	}
 
 	// Insert.
-	assert.Nil(t, d.db.InsertRoll(roll1))
+	assert.NoError(t, d.db.InsertRoll(roll1))
 	test1, err := d.db.GetRoll(roll1.Issue)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, roll1, test1)
 	recent, err := d.db.GetRecentRolls(10)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(recent))
 	testutils.AssertDeepEqual(t, roll1, recent[0])
 
@@ -73,22 +73,22 @@ func TestRolls(t *testing.T) {
 	roll1.Committed = true
 	roll1.Result = autoroll.ROLL_RESULT_SUCCESS
 
-	assert.Nil(t, d.db.UpdateRoll(roll1))
+	assert.NoError(t, d.db.UpdateRoll(roll1))
 	test1, err = d.db.GetRoll(roll1.Issue)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, roll1, test1)
 	recent, err = d.db.GetRecentRolls(10)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(recent))
 	testutils.AssertDeepEqual(t, roll1, recent[0])
 
 	// Delete.
-	assert.Nil(t, d.db.DeleteRoll(roll1))
+	assert.NoError(t, d.db.DeleteRoll(roll1))
 	test1, err = d.db.GetRoll(roll1.Issue)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Nil(t, test1)
 	recent, err = d.db.GetRecentRolls(10)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 0, len(recent))
 
 	// Multiple rolls.
@@ -132,17 +132,17 @@ func TestRolls(t *testing.T) {
 		TryResults:  []*autoroll.TryResult{},
 	}
 	for _, roll := range []*autoroll.AutoRollIssue{roll1, roll2, roll3, roll4} {
-		assert.Nil(t, d.db.InsertRoll(roll))
+		assert.NoError(t, d.db.InsertRoll(roll))
 	}
 
 	// Ensure that we get the rolls back most recent first.
 	expect := []*autoroll.AutoRollIssue{roll3, roll4, roll2, roll1}
 	recent, err = d.db.GetRecentRolls(10)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, recent, expect)
 
 	// Ensure that we get a maximum of the number of rolls we requested.
 	recent, err = d.db.GetRecentRolls(3)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, recent, expect[:3])
 }

@@ -59,8 +59,8 @@ type testDB struct {
 }
 
 func (d *testDB) Close(t *testing.T) {
-	assert.Nil(t, d.db.Close())
-	assert.Nil(t, os.RemoveAll(d.dir))
+	assert.NoError(t, d.db.Close())
+	assert.NoError(t, os.RemoveAll(d.dir))
 }
 
 // clearDB initializes the database, upgrading it if needed, and removes all
@@ -68,9 +68,9 @@ func (d *testDB) Close(t *testing.T) {
 // which must be closed after the test finishes.
 func clearDB(t *testing.T) *testDB {
 	tempDir, err := ioutil.TempDir("", "build_scheduler_test_")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	db, err := buildbot.NewLocalDB(path.Join(tempDir, "buildbot.db"))
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	return &testDB{
 		db:  db,
@@ -109,13 +109,13 @@ func TestBuildScoring(t *testing.T) {
 	defer tr.Cleanup()
 	repos := gitinfo.NewRepoMap(tr.Dir)
 	repo, err := repos.Repo(TEST_REPO)
-	assert.Nil(t, err)
-	assert.Nil(t, repos.Update())
+	assert.NoError(t, err)
+	assert.NoError(t, repos.Update())
 
 	details := map[string]*vcsinfo.LongCommit{}
 	for _, h := range hashes {
 		d, err := repo.Details(h, false)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		details[h] = d
 	}
 
@@ -260,8 +260,8 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	defer tr.Cleanup()
 	repos := gitinfo.NewRepoMap(tr.Dir)
 	repo, err := repos.Repo(TEST_REPO)
-	assert.Nil(t, err)
-	assert.Nil(t, repos.Update())
+	assert.NoError(t, err)
+	assert.NoError(t, repos.Update())
 
 	// Insert an initial build.
 	buildNum := 0
@@ -275,20 +275,20 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 		Repository:  TEST_REPO,
 		Started:     time.Now(),
 	}
-	assert.Nil(t, buildbot.IngestBuild(d.db, b, repos))
+	assert.NoError(t, buildbot.IngestBuild(d.db, b, repos))
 	buildNum++
 
 	// Create the BuildQueue.
 	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, timeDecay24Hr, []*regexp.Regexp{}, d.db)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Fake time.Now()
 	details, err := repo.Details(hashes['I'], false)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	now := details.Timestamp.Add(1 * time.Hour)
 
 	// Update the queue.
-	assert.Nil(t, q.update(now))
+	assert.NoError(t, q.update(now))
 
 	// Ensure that we get the expected BuildCandidate at each step. Insert
 	// each BuildCandidate into the buildbot database to simulate actually
@@ -315,9 +315,9 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 				Repository:  TEST_REPO,
 				Started:     time.Now(),
 			}
-			assert.Nil(t, buildbot.IngestBuild(d.db, b, repos))
+			assert.NoError(t, buildbot.IngestBuild(d.db, b, repos))
 			buildNum++
-			assert.Nil(t, q.update(now))
+			assert.NoError(t, q.update(now))
 		}
 	}
 }
@@ -542,26 +542,26 @@ func TestBuildQueueNoPrevious(t *testing.T) {
 	defer tr.Cleanup()
 	repos := gitinfo.NewRepoMap(tr.Dir)
 	repo, err := repos.Repo(TEST_REPO)
-	assert.Nil(t, err)
-	assert.Nil(t, repos.Update())
+	assert.NoError(t, err)
+	assert.NoError(t, repos.Update())
 
 	// Create the BuildQueue.
 	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, 1.0, []*regexp.Regexp{}, d.db)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Fake time.Now()
 	details, err := repo.Details(hashes['I'], false)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	now := details.Timestamp.Add(1 * time.Hour)
 
 	// Update the queue.
-	assert.Nil(t, q.update(now))
+	assert.NoError(t, q.update(now))
 
 	// Make sure we get the right candidate: when there are no previous
 	// builds, we should schedule a build at origin/master with the maximum
 	// score.
 	bc, err := q.Pop([]string{TEST_BUILDER})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, &BuildCandidate{
 		Author:  TEST_AUTHOR,
 		Commit:  hashes['I'],

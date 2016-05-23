@@ -79,7 +79,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 		EventBus:          eventBus,
 	}
 	blamer, err := New(storages)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Check when completely untriaged
 	blameLists, _ := blamer.GetAllBlameLists()
@@ -108,7 +108,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 		"foo": map[string]types.Label{DI_1: types.POSITIVE, DI_2: types.NEGATIVE},
 		"bar": map[string]types.Label{DI_4: types.POSITIVE, DI_6: types.NEGATIVE},
 	}
-	assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
+	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 
 	// Wait for the change to propagate.
 	waitForChange(blamer, blameLists)
@@ -133,7 +133,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	gTrace := tile.Traces[mocks.TraceKey(params[5])].(*types.GoldenTrace)
 	gTrace.Values[2] = DI_9
 
-	assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
+	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 
 	// Wait for the change to propagate.
 	waitForChange(blamer, blameLists)
@@ -148,7 +148,7 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 
 	// Simulate the case where the digest is not found in digest store.
 	storages.DigestStore.(*mocks.MockDigestStore).OkValue = false
-	assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
+	assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 	time.Sleep(10 * time.Millisecond)
 	blameLists, _ = blamer.GetAllBlameLists()
 	assert.Equal(t, 3, len(blameLists))
@@ -174,7 +174,7 @@ func TestBlamerWithLiveData(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	err := gs.DownloadTestDataFile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
-	assert.Nil(t, err, "Unable to download testdata.")
+	assert.NoError(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
 	tileStore := mocks.NewMockTileBuilderFromJson(t, TEST_DATA_PATH)
@@ -194,7 +194,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	}
 
 	blamer, err := New(storage)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Wait until we have a blamelist.
 	var blameLists map[string]map[string]*BlameDistribution
@@ -223,7 +223,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	changes := map[string]types.TestClassification{
 		oneTestName: map[string]types.Label{oneDigest: types.POSITIVE},
 	}
-	assert.Nil(t, storage.ExpectationsStore.AddChange(changes, ""))
+	assert.NoError(t, storage.ExpectationsStore.AddChange(changes, ""))
 
 	// Wait for change to propagate.
 	waitForChange(blamer, blameLists)
@@ -242,7 +242,7 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	// Set 'First' for all digests in the past and trigger another
 	// calculation.
 	storage.DigestStore.(*mocks.MockDigestStore).FirstSeen = 0
-	assert.Nil(t, storage.ExpectationsStore.AddChange(changes, ""))
+	assert.NoError(t, storage.ExpectationsStore.AddChange(changes, ""))
 	waitForChange(blamer, blameLists)
 	blameLists, _ = blamer.GetAllBlameLists()
 
@@ -265,12 +265,12 @@ func testBlamerWithLiveData(t assert.TestingT, tileBuilder tracedb.MasterTileBui
 	})
 
 	// Add the labels and wait for the recalculation.
-	assert.Nil(t, storage.ExpectationsStore.AddChange(changes, ""))
+	assert.NoError(t, storage.ExpectationsStore.AddChange(changes, ""))
 	waitForChange(blamer, blameLists)
 	blameLists, commits := blamer.GetAllBlameLists()
 
 	expecations, err := storage.ExpectationsStore.Get()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Verify that the results are plausible.
 	forEachTestTraceDo(tile, func(testName string, values []string) {

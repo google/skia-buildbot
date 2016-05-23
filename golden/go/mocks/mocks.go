@@ -127,7 +127,7 @@ func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
 	assert.NotEqual(t, "", traceDBAddress, "Please define the TEST_TRACEDB_ADDRESS environment variable to point to the Git URL.")
 
 	gitRepoDir, err := ioutil.TempDir("", "gitrepo")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	git, err := gitinfo.CloneOrUpdate(gitURL, gitRepoDir, false)
 	if err != nil {
@@ -136,10 +136,10 @@ func GetTileBuilderFromEnv(t assert.TestingT) tracedb.MasterTileBuilder {
 
 	eventBus := eventbus.New(nil)
 	db, err := tracedb.NewTraceServiceDBFromAddress(traceDBAddress, types.GoldenTraceBuilder)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	tileBuilder, err := tracedb.NewMasterTileBuilder(db, git, 50, eventBus)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	return tileBuilder
 }
 
@@ -169,10 +169,10 @@ func NewMockTileBuilder(t assert.TestingT, digests [][]string, params []map[stri
 // and wraps an instance of MockTileStore around it.
 func NewMockTileBuilderFromJson(t assert.TestingT, fname string) tracedb.MasterTileBuilder {
 	f, err := os.Open(fname)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	tile, err := types.TileFromJson(f, &types.GoldenTrace{})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	return &MockTileBuilder{
 		t:    t,

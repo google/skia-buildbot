@@ -12,11 +12,11 @@ import (
 const TEST_DATA_DIR = "testdata"
 
 func TestDigestStore(t *testing.T) {
-	assert.Nil(t, os.MkdirAll(TEST_DATA_DIR, 0755))
+	assert.NoError(t, os.MkdirAll(TEST_DATA_DIR, 0755))
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
 	digestStore, err := New(TEST_DATA_DIR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	testDigestStore(t, digestStore)
 }
 
@@ -25,16 +25,16 @@ func testDigestStore(t assert.TestingT, digestStore DigestStore) {
 	timestamp_1 := time.Now().Unix() - 20
 
 	di, ok, err := digestStore.Get(testName_1, digest_1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, ok)
 
 	digestInfos := []*DigestInfo{
 		&DigestInfo{TestName: testName_1, Digest: digest_1, First: timestamp_1, Last: timestamp_1},
 	}
-	assert.Nil(t, digestStore.Update(digestInfos))
+	assert.NoError(t, digestStore.Update(digestInfos))
 
 	di, ok, err = digestStore.Get(testName_1, digest_1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.True(t, ok)
 	assert.Equal(t, timestamp_1, di.Last)
 	assert.Equal(t, timestamp_1, di.First)
@@ -45,10 +45,10 @@ func testDigestStore(t assert.TestingT, digestStore DigestStore) {
 		&DigestInfo{TestName: testName_1, Digest: digest_1, First: timestamp_2, Last: timestamp_2},
 	}
 
-	assert.Nil(t, digestStore.Update(digestInfos))
+	assert.NoError(t, digestStore.Update(digestInfos))
 
 	di, ok, err = digestStore.Get(testName_1, digest_1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.True(t, ok)
 
 	assert.Equal(t, timestamp_1, di.First)

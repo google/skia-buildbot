@@ -23,9 +23,9 @@ func TestShareDB(t *testing.T) {
 	defer util.RemoveAll(DATA_DIR)
 
 	grpcServer, client, err := startServer(t, serverImpl)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer grpcServer.Stop()
-	defer func() { assert.Nil(t, client.Close()) }()
+	defer func() { assert.NoError(t, client.Close()) }()
 
 	dbName := "database001"
 	bucketName := "bucket_01"
@@ -37,26 +37,26 @@ func TestShareDB(t *testing.T) {
 		value := fmt.Sprintf("val_%04d", k)
 
 		ack, err := client.Put(ctx, &PutRequest{dbName, bucketName, key, []byte(value)})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.True(t, ack.Ok)
 
 		foundResp, err := client.Get(ctx, &GetRequest{dbName, bucketName, key})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, value, string(foundResp.Value))
 
 		allKeys = append(allKeys, key)
 	}
 
 	foundDBs, err := client.Databases(ctx, &DatabasesRequest{})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{dbName}, foundDBs.Values)
 
 	foundBuckets, err := client.Buckets(ctx, &BucketsRequest{dbName})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{bucketName}, foundBuckets.Values)
 
 	foundKeys, err := client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "", ""})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	sort.Strings(foundKeys.Values)
 	sort.Strings(allKeys)
@@ -64,38 +64,38 @@ func TestShareDB(t *testing.T) {
 
 	// Test a min-max range scan.
 	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "key_0010", "key_0015"})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{"key_0010", "key_0011", "key_0012", "key_0013", "key_0014", "key_0015"}, foundKeys.Values)
 
 	// Test a min to end range scan.
 	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "key_0015", ""})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{"key_0015", "key_0016", "key_0017", "key_0018", "key_0019"}, foundKeys.Values[0:5])
 
 	// Test a start to max range scan.
 	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "", "key_0004"})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{"key_0000", "key_0001", "key_0002", "key_0003", "key_0004"}, foundKeys.Values)
 
 	// Test a prefix scan.
 	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "key_000", "", ""})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	exp := []string{"key_0000", "key_0001", "key_0002", "key_0003", "key_0004",
 		"key_0005", "key_0006", "key_0007", "key_0008", "key_0009"}
 	assert.Equal(t, exp, foundKeys.Values)
 
 	for _, k := range allKeys {
 		ack, err := client.Delete(ctx, &DeleteRequest{dbName, bucketName, k})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.True(t, ack.Ok)
 
 		foundVal, err := client.Get(ctx, &GetRequest{dbName, bucketName, k})
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Nil(t, foundVal.Value)
 	}
 
 	foundKeys, err = client.Keys(ctx, &KeysRequest{dbName, bucketName, "", "", ""})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 0, len(foundKeys.Values))
 
 	foundResp, err := client.Get(ctx, &GetRequest{"Does-not-exist-either", bucketName, "does-not-exist"})
@@ -103,13 +103,13 @@ func TestShareDB(t *testing.T) {
 	assert.True(t, strings.Contains(err.Error(), "Does-not-exist-either"))
 
 	foundResp, err = client.Get(ctx, &GetRequest{dbName, bucketName, "does-not-exist"})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "", string(foundResp.Value))
 }
 
 func startServer(t *testing.T, serverImpl ShareDBServer) (*grpc.Server, *ShareDB, error) {
 	lis, err := net.Listen("tcp", "localhost:0")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	grpcServer := grpc.NewServer()
 	RegisterShareDBServer(grpcServer, serverImpl)
 	go func() { _ = grpcServer.Serve(lis) }()

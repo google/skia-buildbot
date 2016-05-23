@@ -48,10 +48,10 @@ func testRasterizer(t *testing.T, rasterizer Rasterizer, expectation string) {
 	assert.True(t, rasterizer.Enabled(), "%s.Enabled() failed.", rasterizer.String())
 
 	testDataDir, err := testutils.TestDataDir()
-	assert.Nil(t, err, "TestDataDir missing: %v", err)
+	assert.NoError(t, err, "TestDataDir missing: %v", err)
 
 	tempDir, err := ioutil.TempDir("", "pdf_test_")
-	assert.Nil(t, err, "ioutil.TempDir failed")
+	assert.NoError(t, err, "ioutil.TempDir failed")
 	defer util.RemoveAll(tempDir)
 
 	pdfSrcPath := path.Join(testDataDir, "minimal.pdf")
@@ -59,7 +59,7 @@ func testRasterizer(t *testing.T, rasterizer Rasterizer, expectation string) {
 	pdfInputPath := path.Join(tempDir, "minimal.pdf")
 
 	err = os.Symlink(pdfSrcPath, pdfInputPath)
-	assert.Nil(t, err, "Symlink failed")
+	assert.NoError(t, err, "Symlink failed")
 	assert.True(t, fileutil.FileExists(pdfInputPath), "Path '%s' does not exist", pdfInputPath)
 
 	outputFileName := path.Join(tempDir, "test.png")

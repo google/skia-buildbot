@@ -47,7 +47,7 @@ func getRunId(t *testing.T, cmd *exec.Command) string {
 		}
 	}
 	assert.Contains(t, strings.Join(cmd.Args, " "), "--run_id=")
-	assert.Nil(t, "getRunId is broken")
+	assert.FailNow(t, "getRunId is broken")
 	return ""
 }
 

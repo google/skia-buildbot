@@ -17,7 +17,7 @@ func TestSQLIgnoreStore(t *testing.T) {
 	defer mysqlDB.Close(t)
 
 	vdb, err := testutil.LocalTestDatabaseConfig(migrationSteps).NewVersionedDB()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer testutils.AssertCloses(t, vdb)
 
 	store := NewSQLIgnoreStore(vdb)

@@ -59,7 +59,7 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 
 	conf := testutil.LocalTestDatabaseConfig(alerting.MigrationSteps())
 	DB, err := sqlx.Open("mysql", conf.MySQLString())
-	assert.Nil(t, err, failMsg)
+	assert.NoError(t, err, failMsg)
 	alerting.DB = DB
 
 	return testDb
@@ -71,13 +71,13 @@ func TestRuleTriggeringE2E(t *testing.T) {
 	defer d.Close(t)
 
 	am, err := alerting.MakeAlertManager(50*time.Millisecond, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	getAlerts := func() []*alerting.Alert {
 		b := bytes.NewBuffer([]byte{})
-		assert.Nil(t, am.WriteActiveAlertsJson(b, func(*alerting.Alert) bool { return true }))
+		assert.NoError(t, am.WriteActiveAlertsJson(b, func(*alerting.Alert) bool { return true }))
 		var active []*alerting.Alert
-		assert.Nil(t, json.Unmarshal(b.Bytes(), &active))
+		assert.NoError(t, json.Unmarshal(b.Bytes(), &active))
 		return active
 	}
 	getAlert := func() *alerting.Alert {
@@ -89,13 +89,13 @@ func TestRuleTriggeringE2E(t *testing.T) {
 
 	// Ensure that the rule triggers an alert.
 	r := getRule()
-	assert.Nil(t, r.tick(am))
+	assert.NoError(t, r.tick(am))
 	getAlert()
 
 	// Ensure that the rule auto-dismisses.
 	// Hack the conditions so that it's no longer true with the fake query results.
 	r.Conditions = []string{"x > 2", "y > 10 * x", "x < 4"}
-	assert.Nil(t, r.tick(am))
+	assert.NoError(t, r.tick(am))
 	time.Sleep(2 * time.Second)
 	assert.Equal(t, 0, len(getAlerts()))
 
@@ -129,7 +129,7 @@ func TestEmptyResultsError(t *testing.T) {
 		AutoDismiss: int64(time.Second),
 		Actions:     []string{"Print"},
 	}
-	assert.Nil(t, r.tick(am))
+	assert.NoError(t, r.tick(am))
 	assert.Equal(t, 1, len(am.Alerts))
 	assert.Equal(t, "Failed to execute query for rule \"TestRule\": [ DummyQuery ]", am.Alerts[0].Message)
 }
@@ -153,7 +153,7 @@ func TestEmptyResultsOk(t *testing.T) {
 		AutoDismiss: int64(time.Second),
 		Actions:     []string{"Print"},
 	}
-	assert.Nil(t, r.tick(am))
+	assert.NoError(t, r.tick(am))
 	assert.Equal(t, 0, len(am.Alerts))
 }
 

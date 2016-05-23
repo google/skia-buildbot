@@ -18,11 +18,11 @@ import (
 
 func makeFakeTile(t *testing.T, filename string, tile *tiling.Tile) {
 	f, err := os.Create(filename)
-	assert.Nil(t, err, fmt.Sprintf("File creation failed before test start: %s", err))
+	assert.NoError(t, err, fmt.Sprintf("File creation failed before test start: %s", err))
 	defer testutils.AssertCloses(t, f)
 	enc := gob.NewEncoder(f)
-	assert.Nil(t, enc.Encode(tile), fmt.Sprintf("Tile globbed failed before test start: %s", err))
-	assert.Nil(t, f.Sync())
+	assert.NoError(t, enc.Encode(tile), fmt.Sprintf("Tile globbed failed before test start: %s", err))
+	assert.NoError(t, f.Sync())
 }
 
 func TestMerging(t *testing.T) {

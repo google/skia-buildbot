@@ -19,16 +19,16 @@ import (
 // data directories.
 func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestionFile, rootDir, reviewURL string) (*grpc.Server, string) {
 	shareDBDir, err := fileutil.EnsureDirExists(shareDBDir)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Extract the commits from the file.
 	fsResult, err := ingestion.FileSystemResult(ingestionFile, rootDir)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	r, err := fsResult.Open()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	dmResults, err := ParseDMResultsFromReader(r)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	now := time.Now()
 	testCommits := []*vcsinfo.LongCommit{
@@ -54,22 +54,22 @@ func RunGoldTrybotProcessor(t assert.TestingT, traceDBFile, shareDBDir, ingestio
 	}
 
 	ingestionStore, err := NewIngestionStore(serverAddr)
-	assert.Nil(t, err)
-	defer func() { assert.Nil(t, ingestionStore.Close()) }()
+	assert.NoError(t, err)
+	defer func() { assert.NoError(t, ingestionStore.Close()) }()
 
 	// Set up the processor.
 	processor, err := newGoldTrybotProcessor(vcs, ingesterConf, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer func() {
-		assert.Nil(t, processor.(*goldTrybotProcessor).traceDB.Close())
-		assert.Nil(t, processor.(*goldTrybotProcessor).ingestionStore.Close())
+		assert.NoError(t, processor.(*goldTrybotProcessor).traceDB.Close())
+		assert.NoError(t, processor.(*goldTrybotProcessor).ingestionStore.Close())
 	}()
 
 	// Load the example file and process it.
 	fsResult, err = ingestion.FileSystemResult(ingestionFile, "./")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	err = processor.Process(fsResult)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Make sure recorded that correct master/builder/build_number was recorded.
 	assert.True(t, ingestionStore.IsIngested(config.CONSTRUCTOR_GOLD, dmResults.Master, dmResults.Builder, dmResults.BuildNumber))

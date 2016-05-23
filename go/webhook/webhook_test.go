@@ -41,7 +41,7 @@ func TestMustInitRequestSaltFromFileSuccess(t *testing.T) {
 }
 
 func TestComputeAuthHashBase64Success(t *testing.T) {
-	assert.Nil(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
+	assert.NoError(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
 	test := func(input, expected string) {
 		actual, err := ComputeAuthHashBase64([]byte(input))
 		expect.NoError(t, err)
@@ -65,7 +65,7 @@ func TestComputeAuthHashBase64NotInitialized(t *testing.T) {
 }
 
 func TestAuthenticateRequestSuccess(t *testing.T) {
-	assert.Nil(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
+	assert.NoError(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
 	test := func(bodyStr string) {
 		body := []byte(bodyStr)
 		req, err := http.NewRequest("POST", "http://invalid.", bytes.NewReader(body))
@@ -87,7 +87,7 @@ func TestAuthenticateRequestSuccess(t *testing.T) {
 }
 
 func TestAuthenticateRequestNoHeader(t *testing.T) {
-	assert.Nil(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
+	assert.NoError(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
 	body := []byte("my data")
 	req, err := http.NewRequest("POST", "http://invalid.", bytes.NewReader(body))
 	assert.NoError(t, err)
@@ -112,7 +112,7 @@ func TestAuthenticateRequestErrorComputingHash(t *testing.T) {
 }
 
 func TestAuthenticateRequestWrongHeader(t *testing.T) {
-	assert.Nil(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
+	assert.NoError(t, setRequestSaltFromBase64([]byte(TEST_SALT_BASE64)))
 	body := []byte("my data")
 	req, err := http.NewRequest("POST", "http://invalid.", bytes.NewReader(body))
 	assert.NoError(t, err)

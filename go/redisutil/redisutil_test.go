@@ -59,14 +59,14 @@ func TestRedisLRUCache(t *testing.T) {
 func BenchmarkBigDataset(b *testing.B) {
 	// Download the testdata and remove the testdata directory at the end.
 	err := gs.DownloadTestDataArchive(b, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
-	assert.Nil(b, err, "Unable to download testdata.")
+	assert.NoError(b, err, "Unable to download testdata.")
 	defer func() {
 		util.LogErr(os.RemoveAll(TEST_DATA_DIR))
 	}()
 
 	// Load the data
 	fileInfos, err := ioutil.ReadDir(TEST_DATA_DIR)
-	assert.Nil(b, err)
+	assert.NoError(b, err)
 
 	results := make(chan interface{}, len(fileInfos))
 	var codec TestStructCodec
@@ -168,94 +168,94 @@ func TestRedisPrimitives(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	rp := NewRedisPool(REDIS_SERVER_ADDRESS, REDIS_DB_PRIMITIVE_TESTS)
-	assert.Nil(t, rp.FlushDB())
+	assert.NoError(t, rp.FlushDB())
 
 	// create a worker queue for a given type
 	codec := StringCodec{}
 	qRet, err := NewReadThroughCache(rp, Q_NAME_PRIMITIVES, nil, codec, runtime.NumCPU()-2)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Cast to WorkerQueue since we are testing internals.
 	q := qRet.(*RedisRTC)
 
 	inProgress, err := q.inProgress()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 0, len(inProgress))
 
 	ID_1, ID_2, ID_3, ID_4, ID_5 := "id_1", "id_2", "id_3", "id_4", "id_5"
 	p1 := rtcache.PriorityTimeCombined(3)
 	found, err := q.enqueue(ID_1, p1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, found)
 	time.Sleep(time.Millisecond * 1)
 
 	found, err = q.enqueue(ID_2, rtcache.PriorityTimeCombined(1))
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, found)
 	time.Sleep(time.Millisecond * 1)
 
 	p3 := rtcache.PriorityTimeCombined(1)
 	found, err = q.enqueue(ID_3, p3)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, found)
 	time.Sleep(time.Millisecond * 1)
 
 	p2 := rtcache.PriorityTimeCombined(0)
 	found, err = q.enqueue(ID_2, p2)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, found)
 
 	dequedItem, itemsLeft, err := q.dequeue()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, &workerTask{"id_2", p2}, dequedItem)
 	assert.Equal(t, 2, itemsLeft)
 
 	dequedItem, itemsLeft, err = q.dequeue()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, &workerTask{"id_3", p3}, dequedItem)
 	assert.Equal(t, 1, itemsLeft)
 
 	dequedItem, itemsLeft, err = q.dequeue()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, &workerTask{"id_1", p1}, dequedItem)
 	assert.Equal(t, 0, itemsLeft)
 
 	dequedItem, itemsLeft, err = q.dequeue()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Nil(t, dequedItem)
 	assert.Equal(t, 0, itemsLeft)
 
 	inProgress, err = q.inProgress()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	sort.Strings(inProgress)
 	assert.Equal(t, []string{"id_1", "id_2", "id_3"}, inProgress)
 
 	found, err = q.enqueue(ID_4, 1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, found)
 	time.Sleep(time.Millisecond * 5)
 
 	found, err = q.enqueue(ID_5, 1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, found)
 
 	inQueue, err := q.inQueue(100)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{ID_4, ID_5}, inQueue)
 	time.Sleep(time.Millisecond * 5)
 
 	found, err = q.enqueue(ID_5, 0)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, found)
 
 	inQueue, err = q.inQueue(100)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, []string{ID_5, ID_4}, inQueue)
 
 	// Test listening to a list.
 	const N_MESSAGES = 10000
 	const TEST_LIST = "mytestlist"
-	assert.Nil(t, rp.FlushDB())
+	assert.NoError(t, rp.FlushDB())
 
 	listCh := rp.List(TEST_LIST)
 
@@ -285,19 +285,19 @@ func TestRedisPrimitives(t *testing.T) {
 	}
 	var ts2 testStruct
 
-	assert.Nil(t, rp.SaveHash(TEST_HASH_KEY, &ts1))
+	assert.NoError(t, rp.SaveHash(TEST_HASH_KEY, &ts1))
 	foundHash, err := rp.LoadHashToStruct(TEST_HASH_KEY, &ts2)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.True(t, foundHash)
 	assert.Equal(t, ts1, ts2)
 
-	assert.Nil(t, rp.DeleteKey(TEST_HASH_KEY))
+	assert.NoError(t, rp.DeleteKey(TEST_HASH_KEY))
 	foundHash, err = rp.LoadHashToStruct(TEST_HASH_KEY, &ts2)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, foundHash)
 }
 
 func testRedisUp(t assert.TestingT, pool *RedisPool) {
 	conn := pool.Get()
-	defer assert.Nil(t, conn.Close(), "Redis server not found.")
+	defer assert.NoError(t, conn.Close(), "Redis server not found.")
 }

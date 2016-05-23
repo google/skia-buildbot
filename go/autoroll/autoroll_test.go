@@ -26,7 +26,7 @@ func TestTrybotResults(t *testing.T) {
 	from, to, err := rollRev(roll.Subject, func(h string) (string, error) {
 		return h, nil
 	})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	roll.RollingFrom = from
 	roll.RollingTo = to
 
@@ -36,7 +36,7 @@ func TestTrybotResults(t *testing.T) {
 		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	tryResult, err := TryResultFromBuildbucket(trybot)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	roll.TryResults = []*TryResult{tryResult}
 	assert.False(t, roll.AllTrybotsFinished())
 	assert.False(t, roll.AllTrybotsSucceeded())
@@ -53,7 +53,7 @@ func TestTrybotResults(t *testing.T) {
 		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq\"}",
 	}
 	tryResult, err = TryResultFromBuildbucket(retry)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	roll.TryResults = append(roll.TryResults, tryResult)
 	assert.False(t, roll.AllTrybotsFinished())
 	assert.False(t, roll.AllTrybotsSucceeded())
@@ -77,7 +77,7 @@ func TestTrybotResults(t *testing.T) {
 		ParametersJson:   "{\"builder_name\":\"fake-builder\",\"category\":\"cq-experimental\"}",
 	}
 	tryResult, err = TryResultFromBuildbucket(exp)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	roll.TryResults = append(roll.TryResults, tryResult)
 	assert.True(t, roll.AllTrybotsFinished())
 	assert.True(t, roll.AllTrybotsSucceeded())

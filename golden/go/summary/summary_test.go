@@ -147,7 +147,7 @@ func TestCalcSummaries(t *testing.T) {
 		DigestStore:       &mocks.MockDigestStore{FirstSeen: time.Now().Unix() + 1000, OkValue: true},
 	}
 
-	assert.Nil(t, storages.ExpectationsStore.AddChange(map[string]types.TestClassification{
+	assert.NoError(t, storages.ExpectationsStore.AddChange(map[string]types.TestClassification{
 		"foo": map[string]types.Label{
 			"aaa": types.POSITIVE,
 			"bbb": types.NEGATIVE,
@@ -161,7 +161,7 @@ func TestCalcSummaries(t *testing.T) {
 	}, "foo@example.com"))
 
 	ta, _ := tally.New(storages)
-	assert.Nil(t, storages.IgnoreStore.Create(&ignore.IgnoreRule{
+	assert.NoError(t, storages.IgnoreStore.Create(&ignore.IgnoreRule{
 		ID:      1,
 		Name:    "foo",
 		Expires: time.Now().Add(time.Hour),
@@ -169,10 +169,10 @@ func TestCalcSummaries(t *testing.T) {
 	}))
 
 	blamer, err := blame.New(storages)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	summaries, err := New(storages, ta, blamer)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	sum, err := summaries.CalcSummaries(nil, url.Values{"source_type": {"gm"}}, false, false)
 	if err != nil {

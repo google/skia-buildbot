@@ -22,7 +22,7 @@ func TestMySQLExpectationsStore(t *testing.T) {
 
 	conf := testutil.LocalTestDatabaseConfig(db.MigrationSteps())
 	vdb, err := conf.NewVersionedDB()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Test the MySQL backed store
 	sqlStore := NewSQLExpectationStore(vdb)
@@ -40,7 +40,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	// call this function multiple times with the same underlying
 	// SQLExpectationStore.
 	initialLogRecs, initialLogTotal, err := store.QueryLog(0, 100, true)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	initialLogRecsLen := len(initialLogRecs)
 
 	// If we have an event bus then keep gathering events.
@@ -76,7 +76,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 		&TriageDetail{TEST_2, DIGEST_22, "negative"},
 	}
 
-	assert.Nil(t, store.AddChange(expChange_1, "user-0"))
+	assert.NoError(t, store.AddChange(expChange_1, "user-0"))
 	if eventBus != nil {
 		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
@@ -84,7 +84,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	}
 
 	foundExps, err := store.Get()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, expChange_1, foundExps.Tests)
 	assert.False(t, &expChange_1 == &foundExps.Tests)
@@ -104,7 +104,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 		&TriageDetail{TEST_2, DIGEST_22, "untriaged"},
 	}
 
-	assert.Nil(t, store.AddChange(expChange_2, "user-1"))
+	assert.NoError(t, store.AddChange(expChange_2, "user-1"))
 	if eventBus != nil {
 		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
@@ -112,14 +112,14 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	}
 
 	foundExps, err = store.Get()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, types.NEGATIVE, foundExps.Tests[TEST_1][DIGEST_11])
 	assert.Equal(t, types.UNTRIAGED, foundExps.Tests[TEST_2][DIGEST_22])
 	checkLogEntry(t, store, expChange_2)
 
 	// Send empty changes to test the event bus.
 	emptyChanges := map[string]types.TestClassification{}
-	assert.Nil(t, store.AddChange(emptyChanges, "user-2"))
+	assert.NoError(t, store.AddChange(emptyChanges, "user-2"))
 	if eventBus != nil {
 		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
@@ -132,7 +132,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 		TEST_1: []string{DIGEST_11},
 		TEST_2: []string{DIGEST_22},
 	}
-	assert.Nil(t, store.RemoveChange(removeDigests_1))
+	assert.NoError(t, store.RemoveChange(removeDigests_1))
 	if eventBus != nil {
 		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
@@ -140,13 +140,13 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	}
 
 	foundExps, err = store.Get()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, types.TestClassification(map[string]types.Label{DIGEST_12: types.NEGATIVE}), foundExps.Tests[TEST_1])
 	assert.Equal(t, types.TestClassification(map[string]types.Label{DIGEST_21: types.POSITIVE}), foundExps.Tests[TEST_2])
 
 	removeDigests_2 := map[string][]string{TEST_1: []string{DIGEST_12}}
-	assert.Nil(t, store.RemoveChange(removeDigests_2))
+	assert.NoError(t, store.RemoveChange(removeDigests_2))
 	if eventBus != nil {
 		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
@@ -154,10 +154,10 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	}
 
 	foundExps, err = store.Get()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(foundExps.Tests))
 
-	assert.Nil(t, store.RemoveChange(map[string][]string{}))
+	assert.NoError(t, store.RemoveChange(map[string][]string{}))
 	if eventBus != nil {
 		eventBus.Wait(EV_EXPSTORAGE_CHANGED)
 		assert.Equal(t, 1, len(callbackCh))
@@ -167,7 +167,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	// Make sure we added the correct number of triage log entries.
 	addedRecs := 3
 	logEntries, total, err := store.QueryLog(0, 5, true)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, addedRecs+initialLogTotal, total)
 	assert.Equal(t, util.MinInt(addedRecs+initialLogRecsLen, 5), len(logEntries))
 	lastRec := logEntries[0]
@@ -178,28 +178,28 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	assert.Equal(t, logEntry_1, logEntries[2].Details)
 
 	logEntries, total, err = store.QueryLog(100, 5, true)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, addedRecs+initialLogTotal, total)
 	assert.Equal(t, 0, len(logEntries))
 
 	// Undo the latest version and make sure the corresponding record is correct.
 	changes, err := store.UndoChange(lastRec.ID, "user-1")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
 	changes, err = store.UndoChange(secondToLastRec.ID, "user-1")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	checkLogEntry(t, store, changes)
 
 	addedRecs += 2
 	logEntries, total, err = store.QueryLog(0, 2, true)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, addedRecs+initialLogTotal, total)
 	assert.Equal(t, 0, len(logEntries[1].Details))
 	assert.Equal(t, 2, len(logEntries[0].Details))
 
 	foundExps, err = store.Get()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	for testName, digests := range expChange_2 {
 		for d := range digests {
@@ -211,7 +211,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 
 	// Make sure undoing the previous undo causes an error.
 	logEntries, _, err = store.QueryLog(0, 1, false)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
 	_, err = store.UndoChange(logEntries[0].ID, "user-1")
 	assert.NotNil(t, err)
@@ -220,7 +220,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 	sqlStore, ok := store.(*SQLExpectationsStore)
 	if ok {
 		logEntries, _, err = store.QueryLog(0, 100, true)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		// Check the first addition.
 		firstAdd := logEntries[len(logEntries)-1]
@@ -236,7 +236,7 @@ func testExpectationStore(t *testing.T, store ExpectationsStore, eventBus *event
 func checkExpectationsAt(t *testing.T, sqlStore *SQLExpectationsStore, changeInfo *TriageLogEntry, name string) {
 	changeInfo.TS++
 	changes, err := sqlStore.getExpectationsAt(changeInfo)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	for _, d := range changeInfo.Details {
 		assert.Equal(t, d.Label, changes[d.TestName][d.Digest].String(), fmt.Sprintf("Comparing: %s:  %s - %s", name, d.TestName, d.Digest))
@@ -245,7 +245,7 @@ func checkExpectationsAt(t *testing.T, sqlStore *SQLExpectationsStore, changeInf
 
 func checkLogEntry(t *testing.T, store ExpectationsStore, changes map[string]types.TestClassification) {
 	logEntries, _, err := store.QueryLog(0, 1, true)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(logEntries))
 
 	counter := 0

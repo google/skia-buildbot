@@ -294,13 +294,13 @@ func TestMD5Hash(t *testing.T) {
 	var m_3 map[string]string = nil
 
 	h_1, err := MD5Params(m_1)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	h_2, err := MD5Params(m_2)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	h_3, err := MD5Params(m_3)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 32, len(h_1))
 	assert.Equal(t, 32, len(h_2))
 	assert.Equal(t, 32, len(h_3))
@@ -366,22 +366,22 @@ BUG=1234, skia:5678
 
 func TestIsDirEmpty(t *testing.T) {
 	d, err := ioutil.TempDir(os.TempDir(), "test_empty")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer RemoveAll(d)
 
 	// Directory is initially empty.
 	empty, err := IsDirEmpty(d)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.True(t, empty)
 
 	// Add a file in the directory.
 	f, err := ioutil.TempFile(d, "test_file")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	_, err = f.WriteString("testing")
 	Close(f)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	empty, err = IsDirEmpty(d)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.False(t, empty)
 
 	// Test non existent directory.

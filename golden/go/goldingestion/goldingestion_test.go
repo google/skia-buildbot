@@ -54,10 +54,10 @@ var (
 // Tests parsing and processing of a single file.
 func TestDMResults(t *testing.T) {
 	f, err := os.Open(TEST_INGESTION_FILE)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	dmResults, err := ParseDMResultsFromReader(f)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	entries := dmResults.getTraceDBEntries()
 	assert.Equal(t, len(TEST_ENTRIES), len(entries))
@@ -86,21 +86,21 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Set up the processor.
 	processor, err := newGoldProcessor(vcs, ingesterConf, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer util.Close(processor.(*goldProcessor).traceDB)
 
 	// Load the example file and process it.
 	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	err = processor.Process(fsResult)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Steal the traceDB used by the processor to verify the results.
 	traceDB := processor.(*goldProcessor).traceDB
 
 	startTime := time.Now().Add(-time.Hour * 24 * 10)
 	commitIDs, err := traceDB.List(startTime, time.Now())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, "master")))
 	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, TEST_CODE_REVIEW_URL)))
@@ -114,7 +114,7 @@ func TestGoldProcessor(t *testing.T) {
 
 	// Get a tile and make sure we have the right number of traces.
 	tile, _, err := traceDB.TileFromCommits(commitIDs)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	traces := tile.Traces
 	assert.Equal(t, len(TEST_ENTRIES), len(traces))
@@ -129,5 +129,5 @@ func TestGoldProcessor(t *testing.T) {
 	}
 
 	assert.Equal(t, "master", commitIDs[0].Source)
-	assert.Nil(t, traceDB.Close())
+	assert.NoError(t, traceDB.Close())
 }

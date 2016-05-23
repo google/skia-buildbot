@@ -338,7 +338,7 @@ func TestBranchInfo(t *testing.T) {
 	}
 
 	branches, err := r.GetBranches()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(branches))
 
 	// Make sure commits across all branches show up.
@@ -376,7 +376,7 @@ func TestBranchInfo(t *testing.T) {
 
 	for _, tc := range testCases {
 		details, err := r.Details(tc.commitHash, true)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.True(t, details.Branches[tc.branchName])
 		assert.Equal(t, tc.nBranches, len(details.Branches))
 	}
@@ -392,7 +392,7 @@ func TestSetBranch(t *testing.T) {
 	}
 
 	branches, err := r.GetBranches()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(branches))
 
 	err = r.SetToBranch("test-branch-1")

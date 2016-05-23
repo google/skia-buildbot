@@ -32,7 +32,7 @@ func TestStatusWatcher(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	err := gs.DownloadTestDataFile(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_PATH)
-	assert.Nil(t, err, "Unable to download testdata.")
+	assert.NoError(t, err, "Unable to download testdata.")
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
 	tileBuilder := mocks.NewMockTileBuilderFromJson(t, TEST_DATA_PATH)
@@ -51,7 +51,7 @@ func BenchmarkStatusWatcher(b *testing.B) {
 	// Load the tile into memory and reset the timer to avoid measuring
 	// disk load time.
 	_, err := storages.GetLastTileTrimmed(true)
-	assert.Nil(b, err)
+	assert.NoError(b, err)
 	b.ResetTimer()
 	testStatusWatcher(b, tileBuilder)
 }
@@ -66,7 +66,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 	}
 
 	watcher, err := New(storages)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Go through all corpora and change all the Items to positive.
 	status := watcher.GetStatus()
@@ -78,7 +78,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 
 		assert.False(t, corpStatus.OK)
 		tile, err := storages.GetLastTileTrimmed(true)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		changes := map[string]types.TestClassification{}
 		posOrNeg := []types.Label{types.POSITIVE, types.NEGATIVE}
@@ -96,7 +96,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 		}
 
 		// Update the expecations and wait for the status to change.
-		assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
+		assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 		time.Sleep(1 * time.Second)
 		newStatus := watcher.GetStatus()
 		assert.False(t, newStatus.CorpStatus[idx].OK)
@@ -105,7 +105,7 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 		// Make sure all tests have an issue attached to each DigestInfo and
 		// trigger another expectations update.
 		storages.DigestStore.(*MockDigestStore).issueIDs = []int{1}
-		assert.Nil(t, storages.ExpectationsStore.AddChange(changes, ""))
+		assert.NoError(t, storages.ExpectationsStore.AddChange(changes, ""))
 		time.Sleep(1 * time.Second)
 
 		// Make sure the current corpus is now ok.

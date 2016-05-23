@@ -59,10 +59,10 @@ func TestEventBusGlobally(t *testing.T) {
 	}
 
 	globalEventBus, err := geventbus.NewNSQEventBus(NSQD_ADDR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	secondGlobalBus, err := geventbus.NewNSQEventBus(NSQD_ADDR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Use atomic ints to sync the callback functions.
 	firstMap := newAtomicMap()
@@ -78,7 +78,7 @@ func TestEventBusGlobally(t *testing.T) {
 
 	secondMap := newAtomicMap()
 	errCh := make(chan error, 100)
-	assert.Nil(t, secondGlobalBus.SubscribeAsync(GLOBAL_TOPIC, geventbus.JSONCallback(&testType{}, func(data interface{}, err error) {
+	assert.NoError(t, secondGlobalBus.SubscribeAsync(GLOBAL_TOPIC, geventbus.JSONCallback(&testType{}, func(data interface{}, err error) {
 		if err != nil {
 			errCh <- err
 			return

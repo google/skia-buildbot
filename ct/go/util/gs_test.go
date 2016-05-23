@@ -142,10 +142,10 @@ func Auth_TestDownloadSwarmingArtifacts(t *testing.T) {
 	testPagesetsDirName := filepath.Join("unit-tests", "util", "page_sets")
 
 	gs, err := NewGsUtil(nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	localDir, err := ioutil.TempDir("", "util_test_")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer util.RemoveAll(localDir)
 	pageSetToIndex, err := gs.DownloadSwarmingArtifacts(localDir, testPagesetsDirName, "10k", 1, 2)
 	if err != nil {
@@ -158,7 +158,7 @@ func Auth_TestDownloadSwarmingArtifacts(t *testing.T) {
 	assert.Equal(t, 2, pageSetToIndex[filepath.Join(localDir, "2.py")])
 	// Examine contents of the local directory.
 	files, err := ioutil.ReadDir(localDir)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(files))
 	assert.Equal(t, "1.py", files[0].Name())
 	assert.Equal(t, "2.py", files[1].Name())

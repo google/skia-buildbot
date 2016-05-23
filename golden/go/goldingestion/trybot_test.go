@@ -60,13 +60,13 @@ func TestTrybotGoldProcessor(t *testing.T) {
 
 	// Steal the traceDB used by the processor to verify the results.
 	traceDB, err := tracedb.NewTraceServiceDBFromAddress(serverAddress, types.GoldenTraceBuilder)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer util.Close(traceDB)
 
 	// The timestamp for the issue/patchset in the testfile is 1443718869.
 	startTime := time.Unix(1443718868, 0)
 	commitIDs, err := traceDB.List(startTime, time.Now())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, 1, len(FilterCommitIDs(commitIDs, TEST_CODE_REVIEW_URL)))
 	assert.Equal(t, 0, len(FilterCommitIDs(commitIDs, "master")))
@@ -80,7 +80,7 @@ func TestTrybotGoldProcessor(t *testing.T) {
 
 	// Get a tile and make sure we have the right number of traces.
 	tile, _, err := traceDB.TileFromCommits(commitIDs)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	traces := tile.Traces
 	assert.Equal(t, len(TEST_ENTRIES), len(traces))
@@ -103,5 +103,5 @@ func TestTrybotGoldProcessor(t *testing.T) {
 	issueID, patchsetID = ExtractIssueInfo(&tracedb.CommitID{}, TEST_CODE_REVIEW_URL)
 	assert.Equal(t, "", issueID)
 	assert.Equal(t, "", patchsetID)
-	assert.Nil(t, traceDB.Close())
+	assert.NoError(t, traceDB.Close())
 }

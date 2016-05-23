@@ -43,7 +43,7 @@ func TestGoogleStorageSource(t *testing.T) {
 
 	evt := eventbus.New(nil)
 	src, err := NewGoogleStorageSource("gs-test-src", gs.TEST_DATA_BUCKET, TEST_GS_DIR, http.DefaultClient, evt)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	testSource(t, src)
 }
 
@@ -51,11 +51,11 @@ func TestFileSystemResultFileLocations(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	err := gs.DownloadTestDataArchive(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
 	src, err := NewFileSystemSource("test-fs-source", TEST_DATA_DIR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	testSource(t, src)
 }
 
@@ -64,20 +64,20 @@ func TestCompareSources(t *testing.T) {
 
 	evt := eventbus.New(nil)
 	gsSource, err := NewGoogleStorageSource("gs-test-src", gs.TEST_DATA_BUCKET, TEST_GS_DIR, http.DefaultClient, evt)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	err = gs.DownloadTestDataArchive(t, gs.TEST_DATA_BUCKET, TEST_DATA_STORAGE_PATH, TEST_DATA_DIR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, TEST_DATA_DIR)
 
 	fsSource, err := NewFileSystemSource("test-fs-source", TEST_DATA_DIR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	gsResults, err := gsSource.Poll(START_TIME, END_TIME)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	fsResults, err := fsSource.Poll(START_TIME, END_TIME)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, len(gsResults), len(fsResults))
 	sort.Sort(rflSlice(gsResults))
@@ -93,12 +93,12 @@ func TestCompareSources(t *testing.T) {
 
 		// Check if the content is the same for both sources.
 		file, err := result.Open()
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		c1, err := ioutil.ReadAll(file)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		file, err = fsResults[idx].Open()
 		c2, err := ioutil.ReadAll(file)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, string(c1), string(c2))
 	}
 }
@@ -107,7 +107,7 @@ func testSource(t *testing.T, src Source) {
 	testFilePaths := readTestFileNames(t)
 
 	resultFileLocations, err := src.Poll(START_TIME, END_TIME)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, len(testFilePaths), len(resultFileLocations))
 	sort.Sort(rflSlice(resultFileLocations))
@@ -118,7 +118,7 @@ func testSource(t *testing.T, src Source) {
 
 	// Make sure the narrow and wide time range produce the same result.
 	allResultFileLocations, err := src.Poll(BEGINNING_OF_TIME, END_OF_TIME)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	sort.Sort(rflSlice(allResultFileLocations))
 
 	assert.Equal(t, len(resultFileLocations), len(allResultFileLocations))
@@ -131,7 +131,7 @@ func testSource(t *testing.T, src Source) {
 func readTestFileNames(t *testing.T) []string {
 	// Read the expected list of files and compare them.
 	content, err := ioutil.ReadFile("./testdata/filelist_2015_10_01.txt")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
 	sort.Strings(lines)
 	return lines

@@ -49,23 +49,23 @@ func getTestFileDiffStore(t *testing.T, storageDir, testDir string, cleanTestDir
 	// Ensure the directory exists and create a clean version if requested.
 	cleanTestDir = true
 	if cleanTestDir {
-		assert.Nil(t, os.RemoveAll(testDir))
-		assert.Nil(t, os.Mkdir(testDir, 0755))
+		assert.NoError(t, os.RemoveAll(testDir))
+		assert.NoError(t, os.Mkdir(testDir, 0755))
 		cpCmd := exec.Command("cp", "-rf", "./testdata/images", testDir)
-		assert.Nil(t, cpCmd.Run())
+		assert.NoError(t, cpCmd.Run())
 	} else {
-		assert.Nil(t, os.Mkdir(testDir, 0700))
+		assert.NoError(t, os.Mkdir(testDir, 0700))
 	}
 
 	if cleanTestDir {
 		// Clear out all directories other than the 'images' directory.
-		assert.Nil(t, os.RemoveAll(filepath.Join(testDir, "diffmetrics")))
-		assert.Nil(t, os.RemoveAll(filepath.Join(testDir, "diffs")))
+		assert.NoError(t, os.RemoveAll(filepath.Join(testDir, "diffmetrics")))
+		assert.NoError(t, os.RemoveAll(filepath.Join(testDir, "diffs")))
 	}
 
 	gsBucketName := "chromium-skia-gm"
 	temp, err := NewFileDiffStore(nil, testDir, gsBucketName, storageDir, MemCacheFactory, RECOMMENDED_WORKER_POOL_SIZE)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	ret := temp.(*FileDiffStore)
 	// Override the counters to avoid collisions between parallel tests.
 	ret.downloadSuccessCount = metrics2.GetCounter("gold.gsdownload", map[string]string{"result": "success", "test": util.RandomName()})
@@ -128,10 +128,10 @@ func TestGetDiffMetricFromDir(t *testing.T) {
 
 	for digests, expectedValue := range digestsToExpectedResults {
 		if expectedValue != nil {
-			assert.Nil(t, fds.writeDiffMetricsToFileCache(getDiffBasename(digests[0], digests[1]), expectedValue))
+			assert.NoError(t, fds.writeDiffMetricsToFileCache(getDiffBasename(digests[0], digests[1]), expectedValue))
 		}
 		ret, err := fds.getDiffMetricsFromFileCache(getDiffBasename(digests[0], digests[1]))
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		assert.Equal(t, expectedValue, ret)
 	}
 }
@@ -143,7 +143,7 @@ func TestCacheImageFromGS(t *testing.T) {
 	defer testutils.Remove(t, imgFilePath)
 
 	err := fds.cacheImageFromGS(TEST_DIGEST3)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	if _, err := os.Stat(imgFilePath); err != nil {
 		t.Errorf("File %s was not created!", imgFilePath)
@@ -215,7 +215,7 @@ func MassiveTestGet_45Digests(t *testing.T) {
 	defer timeTrack(time.Now(), "MassiveTestGet")
 
 	workingDir := makeTestDir(t)
-	assert.Nil(t, os.Mkdir(workingDir, 0777))
+	assert.NoError(t, os.Mkdir(workingDir, 0777))
 	defer testutils.RemoveAll(t, workingDir)
 	fds := getTestFileDiffStore(t, MASSIVE_TESTDATA_DIR, workingDir, true)
 	diffMetricsMap, err := fds.Get(
@@ -239,7 +239,7 @@ func MassiveTestAbsPath_45Digests(t *testing.T) {
 	defer timeTrack(time.Now(), "MassiveTestAbsPath")
 
 	workingDir := makeTestDir(t)
-	assert.Nil(t, os.Mkdir(workingDir, 0777))
+	assert.NoError(t, os.Mkdir(workingDir, 0777))
 	defer testutils.RemoveAll(t, workingDir)
 	fds := getTestFileDiffStore(t, MASSIVE_TESTDATA_DIR, workingDir, true)
 	digestsToPaths := fds.AbsPath(
@@ -274,7 +274,7 @@ func TestGet_e2e(t *testing.T) {
 	testDir := makeTestDir(t)
 	fdsEmpty := getTestFileDiffStore(t, TESTDATA_DIR, testDir, true)
 	diffMetricsMapEmpty, err := fdsEmpty.Get(TEST_DIGEST1, []string{})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 0, len(diffMetricsMapEmpty))
 
 	// 2 files that exist locally, diffmetrics exists locally as well.
@@ -386,9 +386,9 @@ func TestPurgeDigests(t *testing.T) {
 	testDir := makeTestDir(t)
 	fds := getTestFileDiffStore(t, TESTDATA_DIR, testDir, true)
 	_, err := fds.Get(TEST_DIGEST1, []string{TEST_DIGEST2, TEST_DIGEST3})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	_, err = fds.Get(TEST_DIGEST2, []string{TEST_DIGEST1, TEST_DIGEST3})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	d_12 := getDiffBasename(TEST_DIGEST1, TEST_DIGEST2)
 	d_13 := getDiffBasename(TEST_DIGEST1, TEST_DIGEST3)
@@ -401,7 +401,7 @@ func TestPurgeDigests(t *testing.T) {
 	assertFileExists(fds.getDiffMetricPath(d_13), t)
 	assertFileExists(fds.getDiffMetricPath(d_23), t)
 
-	assert.Nil(t, fds.PurgeDigests([]string{TEST_DIGEST1}, false))
+	assert.NoError(t, fds.PurgeDigests([]string{TEST_DIGEST1}, false))
 	// Removed from image cache
 	assertFileNotExists(fileutil.TwoLevelRadixPath(fds.localImgDir, fds.getImageBaseName(TEST_DIGEST1)), t)
 	assertFileExists(fileutil.TwoLevelRadixPath(fds.localImgDir, fds.getImageBaseName(TEST_DIGEST2)), t)

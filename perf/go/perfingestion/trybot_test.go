@@ -20,10 +20,10 @@ import (
 func TestTrybotBenchData(t *testing.T) {
 	// Load the sample data file as BenchData.
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, "trybot.json"))
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	benchData, err := parseBenchDataFromReader(r)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, "x86_64:Clang:GPU:GeForce320M:MacMini4.1:Mac10.8", benchData.keyPrefix())
 	assert.Equal(t, "1467533002", benchData.Issue)
@@ -46,14 +46,14 @@ func TestTrybotPerfIngestion(t *testing.T) {
 		},
 	}
 	processor, err := newPerfTrybotProcessor(nil, ingesterConf, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	processor.(*perfTrybotProcessor).review = rietveld.New("https://codereview.chromium.org", m.Client())
 
 	fsResult, err := ingestion.FileSystemResult(filepath.Join(TEST_DATA_DIR, "trybot.json"), TEST_DATA_DIR)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	err = processor.Process(fsResult)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(processor.(*perfTrybotProcessor).cache))
 
 	// Steal the traceDB used by the processor to verify the results.
@@ -61,7 +61,7 @@ func TestTrybotPerfIngestion(t *testing.T) {
 
 	startTime := time.Time{}
 	commitIDs, err := traceDB.List(startTime, time.Now())
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, 1, len(commitIDs))
 	assert.Equal(t, &tracedb.CommitID{
@@ -72,10 +72,10 @@ func TestTrybotPerfIngestion(t *testing.T) {
 
 	// Get a tile and make sure we have the right number of traces.
 	tile, _, err := traceDB.TileFromCommits(commitIDs)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	traces := tile.Traces
 	assert.Equal(t, 2, len(traces))
 
-	assert.Nil(t, traceDB.Close())
+	assert.NoError(t, traceDB.Close())
 }

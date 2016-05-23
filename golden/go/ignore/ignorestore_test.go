@@ -20,20 +20,20 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	r3 := NewIgnoreRule("jon@example.com", time.Now().Add(time.Minute*50), "extra=123&extra=abc", "Ignore multiple.")
 	r4 := NewIgnoreRule("jon@example.com", time.Now().Add(time.Minute*100), "extra=123&extra=abc&config=8888", "Ignore multiple.")
 	assert.Equal(t, int64(0), store.Revision())
-	assert.Nil(t, store.Create(r1))
-	assert.Nil(t, store.Create(r2))
-	assert.Nil(t, store.Create(r3))
-	assert.Nil(t, store.Create(r4))
+	assert.NoError(t, store.Create(r1))
+	assert.NoError(t, store.Create(r2))
+	assert.NoError(t, store.Create(r3))
+	assert.NoError(t, store.Create(r4))
 	assert.Equal(t, int64(4), store.Revision())
 
 	allRules, err := store.List()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 4, len(allRules))
 	assert.Equal(t, int64(4), store.Revision())
 
 	// Test the rule matcher
 	matcher, err := store.BuildRuleMatcher()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	found, ok := matcher(map[string]string{"config": "565"})
 	assert.False(t, ok)
 	assert.Equal(t, []*IgnoreRule{}, found)
@@ -56,13 +56,13 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 
 	// Remove the third and fourth rule
 	delCount, err := store.Delete(r3.ID, "jon@example.com")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, delCount)
 	delCount, err = store.Delete(r4.ID, "jon@example.com")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 1, delCount)
 	allRules, err = store.List()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(allRules))
 	assert.Equal(t, int64(6), store.Revision())
 
@@ -71,7 +71,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	}
 
 	delCount, err = store.Delete(r1.ID, "jane@example.com")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	allRules, err = store.List()
 	assert.Equal(t, 1, len(allRules))
 	assert.Equal(t, r2.ID, allRules[0].ID)
@@ -95,29 +95,29 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	assert.Equal(t, int64(8), store.Revision())
 
 	delCount, err = store.Delete(r2.ID, "jon@example.com")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	allRules, err = store.List()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 0, len(allRules))
 	assert.Equal(t, int64(9), store.Revision())
 
 	delCount, err = store.Delete(1000000, "someuser@example.com")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, delCount, 0)
 	allRules, err = store.List()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 0, len(allRules))
 	assert.Equal(t, int64(9), store.Revision())
 }
 
 func TestToQuery(t *testing.T) {
 	queries, err := ToQuery([]*IgnoreRule{})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Len(t, queries, 0)
 
 	r1 := NewIgnoreRule("jon@example.com", time.Now().Add(time.Hour), "config=gpu", "reason")
 	queries, err = ToQuery([]*IgnoreRule{r1})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, queries[0], url.Values{"config": []string{"gpu"}})
 
 	r1 = NewIgnoreRule("jon@example.com", time.Now().Add(time.Hour), "bad=%", "reason")

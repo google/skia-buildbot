@@ -15,12 +15,12 @@ func TestModeHistory(t *testing.T) {
 
 	// Create the ModeHistory.
 	tmpDir, err := ioutil.TempDir("", "test_autoroll_mode_")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmpDir)
 	mh, err := NewModeHistory(path.Join(tmpDir, "test.db"))
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	defer func() {
-		assert.Nil(t, mh.Close())
+		assert.NoError(t, mh.Close())
 	}()
 
 	// Use this function for checking expectations.
@@ -43,7 +43,7 @@ func TestModeHistory(t *testing.T) {
 
 	expect := []*ModeChange{mc0}
 	setModeAndCheck := func(mc *ModeChange) {
-		assert.Nil(t, mh.Add(mc.Mode, mc.User, mc.Message))
+		assert.NoError(t, mh.Add(mc.Mode, mc.User, mc.Message))
 		assert.Equal(t, mc.Mode, mh.CurrentMode())
 		expect = append([]*ModeChange{mc}, expect...)
 		check(expect, mh.GetHistory())

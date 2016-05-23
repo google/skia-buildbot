@@ -109,15 +109,15 @@ func CloseInTest(t assert.TestingT, c io.Closer) {
 
 // AssertCloses takes an ioutil.Closer and asserts that it closes.
 func AssertCloses(t assert.TestingT, c io.Closer) {
-	assert.Nil(t, c.Close())
+	assert.NoError(t, c.Close())
 }
 
 // Remove attempts to remove the given file and asserts that no error is returned.
 func Remove(t assert.TestingT, fp string) {
-	assert.Nil(t, os.Remove(fp))
+	assert.NoError(t, os.Remove(fp))
 }
 
 // RemoveAll attempts to remove the given directory and asserts that no error is returned.
 func RemoveAll(t assert.TestingT, fp string) {
-	assert.Nil(t, os.RemoveAll(fp))
+	assert.NoError(t, os.RemoveAll(fp))
 }

@@ -37,26 +37,26 @@ func TestTrybotResults(t *testing.T) {
 	defer server.Stop()
 
 	db, err := tracedb.NewTraceServiceDBFromAddress(serverAddress, types.GoldenTraceBuilder)
-	assert.Nil(t, err)
-	defer func() { assert.Nil(t, db.Close()) }()
+	assert.NoError(t, err)
+	defer func() { assert.NoError(t, db.Close()) }()
 
 	ingestionStore, err := goldingestion.NewIngestionStore(serverAddress)
-	assert.Nil(t, err)
-	defer func() { assert.Nil(t, ingestionStore.Close()) }()
+	assert.NoError(t, err)
+	defer func() { assert.NoError(t, ingestionStore.Close()) }()
 
 	tileBuilder := tracedb.NewBranchTileBuilder(db, nil, rietveldAPI, eventbus.New(nil))
 	tr := NewTrybotResults(tileBuilder, rietveldAPI, ingestionStore)
 	tr.timeFrame = time.Now().Sub(BEGINNING_OF_TIME)
 
 	issues, total, err := tr.ListTrybotIssues(0, 20)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotNil(t, issues)
 	assert.Equal(t, 1, len(issues))
 	assert.Equal(t, 1, total)
 
 	// issue, tile, err := tr.GetIssue(issues[0].ID)
 	_, tile, err := tr.GetIssue(issues[0].ID, nil)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	foundDigests := util.NewStringSet()
 	for _, trace := range tile.Traces {
@@ -66,12 +66,12 @@ func TestTrybotResults(t *testing.T) {
 
 	// // Parse the input file and extract 'by hand'
 	fsResult, err := ingestion.FileSystemResult(TEST_INGESTION_FILE, "./")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	r, err := fsResult.Open()
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	dmResults, err := goldingestion.ParseDMResultsFromReader(r)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	expectedDigests := util.NewStringSet()
 	for _, result := range dmResults.Results {

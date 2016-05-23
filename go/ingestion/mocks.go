@@ -49,10 +49,10 @@ func (m mockVCS) Details(hash string, getBranches bool) (*vcsinfo.LongCommit, er
 // returned server object.
 func StartTraceDBTestServer(t assert.TestingT, traceDBFileName, shareDBDir string) (*grpc.Server, string) {
 	traceDBServer, err := traceservice.NewTraceServiceServer(traceDBFileName)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	lis, err := net.Listen("tcp", "localhost:0")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	server := grpc.NewServer()
 	traceservice.RegisterTraceServiceServer(server, traceDBServer)

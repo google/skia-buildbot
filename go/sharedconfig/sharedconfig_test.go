@@ -8,7 +8,7 @@ import (
 
 func TestIngesterConfig(t *testing.T) {
 	conf, err := ConfigFromTomlFile("./test-file.toml")
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	assert.Equal(t, "./skia", conf.GitRepoDir)
 	assert.Equal(t, 4, len(conf.Ingesters))

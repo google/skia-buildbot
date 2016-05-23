@@ -70,7 +70,7 @@ func testIngester(t *testing.T, asEvents bool) {
 
 	// Instantiate ingester and start it.
 	ingester, err := NewIngester("test-ingester", conf, vcs, sources, processor)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	ingester.Start()
 
 	// Wait until we have collected the desired result, but no more than two seconds.
@@ -149,7 +149,7 @@ func MockSource(t *testing.T, vcs vcsinfo.VCS, nEventCommits int) Source {
 	ret := make([]ResultFileLocation, 0, len(hashes))
 	for _, h := range hashes {
 		detail, err := vcs.Details(h, true)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 		ret = append(ret, rfLocation(detail.Timestamp, fmt.Sprintf("result-file-%s", h)))
 	}
 	return &mockSource{

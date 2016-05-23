@@ -26,7 +26,7 @@ func TestPollingStatus(t *testing.T) {
 	time.Sleep(2 * duration)
 	for j, v := range tc {
 		bytes, err := json.Marshal(ps)
-		assert.Nil(t, err)
+		assert.NoError(t, err)
 
 		assert.Equal(t, []byte(strconv.FormatInt(int64(v), 10)), bytes)
 		i = j + 1

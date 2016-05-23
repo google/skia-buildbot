@@ -47,7 +47,7 @@ func DownloadTestDataFile(t assert.TestingT, bucket, gsPath, targetPath string) 
 	if err != nil {
 		return fmt.Errorf("Could not get gs://%s/%s: %s", bucket, gsPath, err)
 	}
-	defer func() { assert.Nil(t, arch.Close()) }()
+	defer func() { assert.NoError(t, arch.Close()) }()
 
 	// Open the output
 	var r io.ReadCloser = arch
@@ -62,7 +62,7 @@ func DownloadTestDataFile(t assert.TestingT, bucket, gsPath, targetPath string) 
 	if err != nil {
 		return fmt.Errorf("Could not create target path: %s", err)
 	}
-	defer func() { assert.Nil(t, f.Close()) }()
+	defer func() { assert.NoError(t, f.Close()) }()
 	_, err = io.Copy(f, r)
 	return err
 }
@@ -83,7 +83,7 @@ func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string
 	if err != nil {
 		return fmt.Errorf("Could not get gs://%s/%s: %s", bucket, gsPath, err)
 	}
-	defer func() { assert.Nil(t, arch.Close()) }()
+	defer func() { assert.NoError(t, arch.Close()) }()
 
 	// Open the output
 	r, err := gzip.NewReader(arch)
@@ -117,7 +117,7 @@ func DownloadTestDataArchive(t assert.TestingT, bucket, gsPath, targetDir string
 			if err != nil {
 				return fmt.Errorf("Problem while copying: %s", err)
 			}
-			defer func() { assert.Nil(t, f.Close()) }()
+			defer func() { assert.NoError(t, f.Close()) }()
 		}
 	}
 

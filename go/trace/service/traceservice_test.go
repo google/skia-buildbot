@@ -112,7 +112,7 @@ func TestImpl(t *testing.T) {
 
 	// First confirm that Ping() works.
 	_, err = ts.Ping(ctx, &Empty{})
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	// Confirm that these traceids don't have Params stored in the db yet.
 	missingRequest := &MissingParamsRequest{

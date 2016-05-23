@@ -24,7 +24,7 @@ func TestReadThroughCache(t *testing.T) {
 	runtime.GOMAXPROCS(runtime.NumCPU() - 1)
 
 	rp := NewRedisPool(REDIS_SERVER_ADDRESS, REDIS_DB_RTCACHE)
-	assert.Nil(t, rp.FlushDB())
+	assert.NoError(t, rp.FlushDB())
 
 	worker := func(priority int64, id string) (interface{}, error) {
 		// Run a few calculations in a loop.
@@ -40,7 +40,7 @@ func TestReadThroughCache(t *testing.T) {
 	// create a worker queue for a given type
 	codec := StringCodec{}
 	qRet, err := NewReadThroughCache(rp, Q_NAME, nil, codec, runtime.NumCPU()-2)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	q := qRet.(*RedisRTC)
 
 	// make sure all results arrive.
@@ -64,7 +64,7 @@ func TestReadThroughCache(t *testing.T) {
 	}
 
 	q.worker = worker
-	assert.Nil(t, q.startWorkers(runtime.NumCPU()-2))
+	assert.NoError(t, q.startWorkers(runtime.NumCPU()-2))
 	allDone.Wait()
 
 	close(errCh)
