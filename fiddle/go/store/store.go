@@ -341,7 +341,7 @@ func (s *Store) GetMedia(fiddleHash string, media Media) ([]byte, string, string
 		return nil, "", "", fmt.Errorf("This fiddle has no valid output written (%s, %s)", fiddleHash, string(media))
 	}
 	sort.Strings(runIds)
-	r, err := s.bucket.Object(runIds[0] + mediaProps[media].filename).NewReader(ctx)
+	r, err := s.bucket.Object(runIds[len(runIds)-1] + mediaProps[media].filename).NewReader(ctx)
 	if err != nil {
 		return nil, "", "", fmt.Errorf("Unable to get reader for the media file (%s, %s): %s", fiddleHash, string(media), err)
 	}
