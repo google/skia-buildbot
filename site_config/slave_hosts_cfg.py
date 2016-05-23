@@ -272,18 +272,6 @@ _slave_host_dicts = {
 
 ################################# Mac Machines #################################
 
-  'skiabot-mac-10_10-ios': {
-    'slaves': [
-      ('skiabot-ipad4-000', '0', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.141',
-    'kvm_switch': KVM_SWITCH_OFFICE,
-    'kvm_num': '2',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skiabot-mac-10_10-001': {
     'slaves': [
       ('skiabot-shuttle-ubuntu15-nvidia-shield-001', '1', False),
