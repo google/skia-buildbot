@@ -140,8 +140,11 @@ func (s *Store) writeMediaFile(media Media, fiddleHash, runId, b64 string) error
 			})
 		} else {
 			if entry, ok := c.(*cacheEntry); ok {
-				if entry.runId > runId {
+				if runId > entry.runId {
 					entry.body = body
+					entry.runId = runId
+				} else {
+					glog.Infof("Ran an older version of Skia, not caching: %v <= %v", runId, entry.runId)
 				}
 			} else {
 				glog.Errorf("Found a non-cacheEntry in the lru Cache: %v", reflect.TypeOf(c))
