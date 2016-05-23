@@ -47,7 +47,7 @@ There are three images that it deals with, called left, top, and diff.
   <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
   <style include="shared-styles"></style>
   <style>
-    img {
+    img, .imgContainer {
       width: 128px;
     }
 
@@ -62,6 +62,10 @@ There are three images that it deals with, called left, top, and diff.
       height: 270px;
       padding: 0;
       margin: 0;
+    }
+
+    .imgColumn {
+      width: 12em;
     }
 
     .selectorWrapper {
@@ -94,7 +98,7 @@ There are three images that it deals with, called left, top, and diff.
       <div class="horizontal layout">
         <div class="vertical layout" hidden="{{_noImage(details)}}">
           <div class="horizontal layout wrap imagesWrap">
-            <div class="vertical layout">
+            <div class="vertical layout imgColumn">
               <div class="imgContainer">
                 <canvas-layers-sk layers='["crosshairLeft"]' id="layersLeft">
                   <img id="left_img" src$="{{details.leftImgUrl}}"/>
@@ -113,7 +117,7 @@ There are three images that it deals with, called left, top, and diff.
               </div>
             </div>
 
-            <div class="layout vertical" hidden="{{_hideImg(details.middleImgUrl)}}">
+            <div class="layout vertical imgColumn" hidden="{{_hideImg(details.middleImgUrl)}}">
               <div class="imgContainer">
                 <canvas-layers-sk layers='["crosshairMiddle"]' id="layersMiddle">
                   <img id="middle_img" src$="{{details.middleImgUrl}}"/>
@@ -133,7 +137,7 @@ There are three images that it deals with, called left, top, and diff.
 
             </div>
 
-            <div class="layout vertical" hidden="{{_hideImg(details.rightImgUrl)}}">
+            <div class="layout vertical imgColumn" hidden="{{_hideImg(details.rightImgUrl)}}">
               <div class="imgContainer">
                 <canvas-layers-sk layers='["crosshairRight"]' id="layersRight">
                   <img id="right_img" src$="{{details.rightImgUrl}}"/>
