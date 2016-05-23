@@ -300,7 +300,10 @@ func main() {
 				if _, err2 := exec.LookPath(goimportsCmd[0]); err2 != nil {
 					return fmt.Errorf(ERR_NEED_INSTALL, goimportsCmd[0], err), outStr
 				}
-				return err, outStr
+				// Sometimes goimports returns exit code 2, but gives no reason.
+				if outStr != "" {
+					return err, fmt.Sprintf("goimports output: %q", outStr)
+				}
 			}
 			diffFiles := strings.Split(outStr, "\n")
 			if len(diffFiles) > 0 && !(len(diffFiles) == 1 && diffFiles[0] == "") {
