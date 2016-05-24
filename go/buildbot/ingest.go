@@ -468,6 +468,10 @@ func GetBuildSlaves() (map[string]map[string]*BuildSlave, error) {
 				errs[m] = fmt.Errorf("Failed to retrieve buildslaves for %s: %s", m, err)
 				return
 			}
+			for name, s := range slaves {
+				s.Name = name
+				s.Master = m
+			}
 			res[m] = slaves
 		}(master)
 	}

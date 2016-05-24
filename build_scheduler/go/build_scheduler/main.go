@@ -114,6 +114,12 @@ func getFreeBuildslaves() ([]*buildbot.BuildSlave, error) {
 		}
 	}
 
+	// Empty the buildslaves' Builders lists and only include builders not
+	// in the blacklist.
+	for _, bs := range buildslaves {
+		bs.Builders = map[string][]int{}
+	}
+
 	// Map the builders to buildslaves.
 	for _, b := range builders {
 		// Only include builders in the whitelist, and those only if
