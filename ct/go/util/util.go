@@ -445,7 +445,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName string, hardTimeou
 		return fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
 	}
 	// Trigger swarming using the isolate hashes.
-	dimensions := map[string]string{"pool": SWARMING_POOL}
+	dimensions := map[string]string{"pool": SWARMING_POOL, "cores": strconv.Itoa(2)}
 	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, swarming.RECOMMENDED_PRIORITY, swarming.RECOMMENDED_EXPIRATION, hardTimeout, ioTimeout, false)
 	if err != nil {
 		return fmt.Errorf("Could not trigger swarming task: %s", err)
@@ -681,6 +681,84 @@ func writeRowsToCSV(csvPath string, headers []string, values [][]string) error {
 		if err := writer.Write(row); err != nil {
 			return fmt.Errorf("Could not write to %s: %s", csvPath, err)
 		}
+	}
+	return nil
+}
+
+// TriggerBuildRepoSwarmingTask creates a isolated.gen.json file using BUILD_REPO_ISOLATE,
+// archives it, and triggers it's swarming task. The swarming task will run the build_repo
+// worker script which will return a list of remote build directories.
+func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, hashes, patches []string, singleBuild bool, hardTimeout, ioTimeout time.Duration) ([]string, error) {
+	// Instantiate the swarming client.
+	workDir, err := ioutil.TempDir("", "swarming_work_")
+	if err != nil {
+		return nil, fmt.Errorf("Could not get temp dir: %s", err)
+	}
+	s, err := swarming.NewSwarmingClient(workDir)
+	if err != nil {
+		return nil, fmt.Errorf("Could not instantiate swarming client: %s", err)
+	}
+	defer s.Cleanup()
+	// Create isolated.gen.json.
+	// Get path to isolate files.
+	_, currentFile, _, _ := runtime.Caller(0)
+	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
+	isolateArgs := map[string]string{
+		"RUN_ID":          runID,
+		"REPO":            repo,
+		"HASHES":          strings.Join(hashes, ","),
+		"PATCHES":         strings.Join(patches, ","),
+		"SINGLE_BUILD":    strconv.FormatBool(singleBuild),
+		"TARGET_PLATFORM": targetPlatform,
+	}
+	genJSON, err := s.CreateIsolatedGenJSON(path.Join(pathToIsolates, BUILD_REPO_ISOLATE), s.WorkDir, "linux", taskName, isolateArgs, []string{})
+	if err != nil {
+		return nil, fmt.Errorf("Could not create isolated.gen.json for task %s: %s", taskName, err)
+	}
+	// Batcharchive the task.
+	tasksToHashes, err := s.BatchArchiveTargets([]string{genJSON}, BATCHARCHIVE_TIMEOUT)
+	if err != nil {
+		return nil, fmt.Errorf("Could not batch archive target: %s", err)
+	}
+	// Trigger swarming using the isolate hash.
+	dimensions := map[string]string{
+		"pool":  SWARMING_POOL,
+		"cores": strconv.Itoa(32),
+	}
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, swarming.RECOMMENDED_PRIORITY, swarming.RECOMMENDED_EXPIRATION, hardTimeout, ioTimeout, false)
+	if err != nil {
+		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
+	}
+	if len(tasks) != 1 {
+		return nil, fmt.Errorf("Expected a single task instead got: %v", tasks)
+	}
+	// Collect all tasks and log the ones that fail.
+	task := tasks[0]
+	_, outputDir, err := task.Collect(s)
+	if err != nil {
+		return nil, fmt.Errorf("task %s failed: %s", task.Title, err)
+	}
+	outputFile := filepath.Join(outputDir, BUILD_OUTPUT_FILENAME)
+	contents, err := ioutil.ReadFile(outputFile)
+	if err != nil {
+		return nil, fmt.Errorf("Could not read outputfile %s: %s", outputFile, err)
+	}
+	return strings.Split(string(contents), ","), nil
+}
+
+func DownloadPatch(localPath, remotePath string, gs *GsUtil) error {
+	respBody, err := gs.GetRemoteFileContents(remotePath)
+	if err != nil {
+		return fmt.Errorf("Could not fetch %s: %s", remotePath, err)
+	}
+	defer util.Close(respBody)
+	f, err := os.Create(localPath)
+	if err != nil {
+		return fmt.Errorf("Could not create %s: %s", localPath, err)
+	}
+	defer util.Close(f)
+	if _, err := io.Copy(f, respBody); err != nil {
+		return fmt.Errorf("Could not write to %s: %s", localPath, err)
 	}
 	return nil
 }

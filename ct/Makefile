@@ -81,6 +81,10 @@ logserver_proxy:
 create_pagesets:
 	go install -v ./go/worker_scripts/create_pagesets/
 
+.PHONY: build_repo
+build_repo:
+	go install -v ./go/worker_scripts/build_repo/
+
 .PHONY: capture_archives
 capture_archives:
 	go install -v ./go/worker_scripts/capture_archives/
@@ -128,7 +132,7 @@ master_scripts: run_command check_workers_health build_chromium \
 .PHONY: worker_scripts
 worker_scripts: create_pagesets capture_archives run_lua capture_skps \
                 capture_skps_from_pdfs run_chromium_perf \
-                run_chromium_analysis
+                run_chromium_analysis build_repo
 
 .PHONY: all
 all: master_scripts worker_scripts testgo
