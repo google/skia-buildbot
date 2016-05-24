@@ -6,9 +6,11 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"path"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -30,10 +32,19 @@ const (
 	SKIA_REPO  = "https://skia.googlesource.com/skia.git"
 	INFRA_REPO = "https://skia.googlesource.com/buildbot.git"
 
-	BUILDSLAVES_CONNECTED_MEASUREMENT = "buildbot.buildslaves.connected"
-
-	SWARM_BOTS_LAST_SEEN_MEASUREMENT   = "buildbot.swarm-bots.last-seen"
-	SWARM_BOTS_QUARANTINED_MEASUREMENT = "buildbot.swarm-bots.quarantined"
+	MEASUREMENT_BUILDS_DURATION               = "buildbot.builds.duration"
+	MEASUREMENT_BUILDS_FAILURE                = "buildbot.builds.failure-status"
+	MEASUREMENT_BUILDS_INGESTED               = "buildbot.builds.ingested"
+	MEASUREMENT_BUILDS_TOTAL                  = "buildbot.builds.total"
+	MEASUREMENT_BUILDSLAVES_CONNECTED         = "buildbot.buildslaves.connected"
+	MEASUREMENT_BUILDSTEPS_DURATION           = "buildbot.buildsteps.duration"
+	MEASUREMENT_BUILDSTEPS_FAILURE            = "buildbot.buildsteps.failure-status"
+	MEASUREMENT_SWARM_BOTS_LAST_SEEN          = "buildbot.swarm-bots.last-seen"
+	MEASUREMENT_SWARM_BOTS_QUARANTINED        = "buildbot.swarm-bots.quarantined"
+	MEASUREMENT_SWARM_TASKS_DURATION          = "swarming.tasks.duration"
+	MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT      = "swarming.tasks.overhead.bot"
+	MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD = "swarming.tasks.overhead.download"
+	MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD   = "swarming.tasks.overhead.upload"
 )
 
 // flags
@@ -77,6 +88,12 @@ func main() {
 		glog.Fatal(err)
 	}
 
+	// Swarming API client.
+	swarm, err := swarming.NewApiClient(httpClient)
+	if err != nil {
+		glog.Fatal(err)
+	}
+
 	// Shared repo objects.
 	skiaRepo, err := gitinfo.CloneOrUpdate(SKIA_REPO, path.Join(*workdir, "datahopper_skia"), true)
 	if err != nil {
@@ -114,8 +131,8 @@ func main() {
 	}
 
 	// Measure buildbot data ingestion progress.
-	totalGauge := metrics2.GetInt64Metric("buildbot.builds.total", nil)
-	ingestGuage := metrics2.GetInt64Metric("buildbot.builds.ingested", nil)
+	totalGauge := metrics2.GetInt64Metric(MEASUREMENT_BUILDS_TOTAL, nil)
+	ingestGuage := metrics2.GetInt64Metric(MEASUREMENT_BUILDS_INGESTED, nil)
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
 			totalBuilds, err := buildbot.NumTotalBuilds()
@@ -164,14 +181,14 @@ func main() {
 				}
 				// Report build duration.
 				d := b.Finished.Sub(b.Started)
-				metrics2.RawAddInt64PointAtTime("buildbot.builds.duration", tags, int64(d), b.Finished)
+				metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDS_DURATION, tags, int64(d), b.Finished)
 
 				// Report build failure rate.
 				failureStatus := 0
 				if b.Results != buildbot.BUILDBOT_SUCCESS {
 					failureStatus = 1
 				}
-				metrics2.RawAddInt64PointAtTime("buildbot.builds.failure-status", tags, int64(failureStatus), b.Finished)
+				metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDS_FAILURE, tags, int64(failureStatus), b.Finished)
 
 				for _, s := range b.Steps {
 					if !s.IsFinished() {
@@ -184,14 +201,14 @@ func main() {
 					}
 					stepTags["step"] = s.Name
 					// Report step duration.
-					metrics2.RawAddInt64PointAtTime("buildbot.buildsteps.duration", stepTags, int64(d), s.Finished)
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDSTEPS_DURATION, stepTags, int64(d), s.Finished)
 
 					// Report step failure rate.
 					stepFailStatus := 0
 					if s.Results != buildbot.BUILDBOT_SUCCESS {
 						stepFailStatus = 1
 					}
-					metrics2.RawAddInt64PointAtTime("buildbot.buildsteps.failure-status", stepTags, int64(stepFailStatus), s.Finished)
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDSTEPS_FAILURE, stepTags, int64(stepFailStatus), s.Finished)
 				}
 			}
 			start = end
@@ -220,7 +237,7 @@ func main() {
 					if s.Connected {
 						v = int64(1)
 					}
-					metrics2.GetInt64Metric(BUILDSLAVES_CONNECTED_MEASUREMENT, map[string]string{
+					metrics2.GetInt64Metric(MEASUREMENT_BUILDSLAVES_CONNECTED, map[string]string{
 						"buildslave": s.Name,
 						"master":     masterName,
 					}).Update(v)
@@ -229,7 +246,7 @@ func main() {
 			// Delete metrics for slaves which have disappeared.
 			for slave, master := range lastKnownSlaves {
 				glog.Infof("Removing metric for buildslave %s", slave)
-				if err := metrics2.GetInt64Metric(BUILDSLAVES_CONNECTED_MEASUREMENT, map[string]string{
+				if err := metrics2.GetInt64Metric(MEASUREMENT_BUILDSLAVES_CONNECTED, map[string]string{
 					"buildslave": slave,
 					"master":     master,
 				}).Delete(); err != nil {
@@ -242,27 +259,24 @@ func main() {
 
 	// Swarming bots.
 	go func() {
-		swarm, err := swarming.NewApiClient(httpClient)
-		if err != nil {
-			glog.Fatal(err)
-		}
-
 		for _ = range time.Tick(2 * time.Minute) {
 			glog.Infof("Loading Swarming bot data.")
 			bots, err := swarm.ListSkiaBots()
 			if err != nil {
-				glog.Fatal(err)
+				glog.Error(err)
+				continue
 			}
 			now := time.Now()
 			for _, bot := range bots {
 				last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
 				if err != nil {
-					glog.Fatal(err)
+					glog.Error(err)
+					continue
 				}
 				glog.Infof("Bot: %s - Last seen %s ago", bot.BotId, now.Sub(last))
 
 				// Bot last seen <duration> ago.
-				metrics2.GetInt64Metric(SWARM_BOTS_LAST_SEEN_MEASUREMENT, map[string]string{
+				metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, map[string]string{
 					"bot": bot.BotId,
 				}).Update(int64(now.Sub(last)))
 
@@ -271,9 +285,83 @@ func main() {
 				if bot.Quarantined {
 					quarantined = int64(1)
 				}
-				metrics2.GetInt64Metric(SWARM_BOTS_QUARANTINED_MEASUREMENT, map[string]string{
+				metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, map[string]string{
 					"bot": bot.BotId,
 				}).Update(quarantined)
+			}
+		}
+	}()
+
+	// Swarming tasks.
+	go func() {
+		// Initial query: load data from the past 2 hours.
+		lastLoad := time.Now().Add(-2 * time.Hour)
+
+		revisitTasks := map[string]bool{}
+
+		for _ = range time.Tick(2 * time.Minute) {
+			glog.Infof("Loading Swarming task data.")
+			now := time.Now()
+			tasks, err := swarm.ListSkiaTasks(lastLoad, now)
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			glog.Infof("Revisiting %d tasks.", len(revisitTasks))
+			for id, _ := range revisitTasks {
+				task, err := swarm.GetTask(id)
+				if err != nil {
+					glog.Error(err)
+					continue
+				}
+				tasks = append(tasks, task)
+			}
+			revisitTasks = map[string]bool{}
+			lastLoad = now
+			for _, task := range tasks {
+				if task.TaskResult.State == "COMPLETED" {
+					if task.TaskResult.DedupedFrom != "" {
+						continue
+					}
+					time, err := time.Parse("2006-01-02T15:04:05", task.Request.CreatedTs)
+					if err != nil {
+						glog.Errorf("Failed to parse Swarming task created timestamp: %s", err)
+						continue
+					}
+					name := ""
+					for _, tag := range task.TaskResult.Tags {
+						split := strings.SplitN(tag, ":", 2)
+						if len(split) != 2 {
+							glog.Errorf("Invalid Swarming task tag: %q", tag)
+							continue
+						}
+						if split[0] == "name" {
+							name = split[1]
+							break
+						}
+					}
+					if name == "" {
+						glog.Errorf("Failed to find name for Swarming task: %v", task)
+						continue
+					}
+					tags := map[string]string{
+						"task-id":   task.TaskId,
+						"task-name": name,
+					}
+					for _, d := range task.Request.Properties.Dimensions {
+						tags[fmt.Sprintf("dimension-%s", d.Key)] = d.Value
+					}
+
+					// Task duration.
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_DURATION, tags, int64(task.TaskResult.Duration*float64(1000.0)), time)
+
+					// Overhead stats.
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT, tags, int64(task.TaskResult.PerformanceStats.BotOverhead*float64(1000.0)), time)
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedDownload.Duration*float64(1000.0)), time)
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedUpload.Duration*float64(1000.0)), time)
+				} else {
+					revisitTasks[task.TaskId] = true
+				}
 			}
 		}
 	}()
