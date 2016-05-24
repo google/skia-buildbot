@@ -35,7 +35,7 @@ var (
 	startRange     = flag.Int("start_range", 1, "The number this worker will capture SKPs from.")
 	num            = flag.Int("num", 100, "The total number of SKPs to capture starting from the start_range.")
 	pagesetType    = flag.String("pageset_type", util.PAGESET_TYPE_PDF_1m, "The type of pagesets to use for this run. Eg: PDF1m.")
-	chromiumBuild  = flag.String("chromium_build", "", "The specified chromium build. This value is used to find the pdfium_test binary from Google Storage and while uploading the PDFs and SKPs to Google Storage.")
+	chromiumBuild  = flag.String("chromium_build", "", "The specified chromium build. This value is used while uploading the PDFs and SKPs to Google Storage.")
 	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	targetPlatform = flag.String("target_platform", util.PLATFORM_LINUX, "The platform the benchmark will run on (Android / Linux).")
 )
@@ -93,7 +93,7 @@ func main() {
 	// TODO(rmistry): Uncomment when ready to capture SKPs.
 	//// Copy over the pdfium_test binary to this slave.
 	//pdfiumLocalPath := filepath.Join(os.TempDir(), util.BINARY_PDFIUM_TEST)
-	//pdfiumRemotePath := filepath.Join(util.BinariesDir, *chromiumBuild, util.BINARY_PDFIUM_TEST)
+	//pdfiumRemotePath := filepath.Join(util.BinariesDir, *runID, util.BINARY_PDFIUM_TEST)
 	//respBody, err := gs.GetRemoteFileContents(pdfiumRemotePath)
 	//if err != nil {
 	//	glog.Errorf("Could not fetch %s: %s", pdfiumRemotePath, err)

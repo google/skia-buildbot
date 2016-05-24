@@ -107,6 +107,13 @@ func main() {
 		isolateFile = util.CAPTURE_SKPS_FROM_PDFS_ISOLATE
 		maxPages = MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS
 		// TODO(rmistry): Uncomment when ready to capture SKPs.
+		// TODO(rmistry): Replace the below block with:
+		// buildRemoteDir, err := util.TriggerBuildRepoSwarmingTask("build_pdfium", *runID, "pdfium", "Linux", []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, /*singleBuild*/ true, 2*time.Hour, 1*time.Hour)
+		// if err != nil {
+		//	glog.Errorf("Error encountered when swarming build repo task: %s", err)
+		//	return
+		// }
+		//
 		//// Sync PDFium and build pdfium_test binary which will be used by the worker script.
 		//if err := util.SyncDir(util.PDFiumTreeDir); err != nil {
 		//	glog.Errorf("Could not sync PDFium: %s", err)
