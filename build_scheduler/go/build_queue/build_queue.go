@@ -217,7 +217,15 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	if q.period == PERIOD_FOREVER {
 		from = time.Unix(0, 0)
 	}
-	recentCommits := util.Reverse(repo.From(from))
+	recentCommitsList := util.Reverse(repo.From(from))
+	recentCommits := make([]*vcsinfo.LongCommit, 0, len(recentCommitsList))
+	for _, h := range recentCommitsList {
+		details, err := repo.Details(h, true)
+		if err != nil {
+			return nil, fmt.Errorf(errMsg, err)
+		}
+		recentCommits = append(recentCommits, details)
+	}
 
 	// Pre-load commit details, from a larger window than we actually care about.
 	fromPreload := now.Add(time.Duration(int64(-1.5 * float64(q.period))))
@@ -226,7 +234,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	}
 	recentCommitsPreload := repo.From(fromPreload)
 	for _, c := range recentCommitsPreload {
-		if _, err := repo.Details(c, false); err != nil {
+		if _, err := repo.Details(c, true); err != nil {
 			return nil, fmt.Errorf(errMsg, err)
 		}
 	}
@@ -289,7 +297,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 }
 
 // getCandidatesForBuilder finds all BuildCandidates for the given builder, in order.
-func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []string, now time.Time) ([]*BuildCandidate, error) {
+func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []*vcsinfo.LongCommit, now time.Time) ([]*BuildCandidate, error) {
 	defer timer.New(fmt.Sprintf("getCandidatesForBuilder(%s)", bc.Builder)).Stop()
 	repo, err := q.repos.Repo(bc.Repo)
 	if err != nil {
@@ -329,7 +337,7 @@ func (q *BuildQueue) getCandidatesForBuilder(bc *buildCache, recentCommits []str
 }
 
 // getBestCandidate finds the best BuildCandidate for the given builder.
-func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
+func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []*vcsinfo.LongCommit, now time.Time) (float64, *buildbot.Build, *buildbot.Build, error) {
 	errMsg := fmt.Sprintf("Failed to get best candidate for %s: %%v", bc.Builder)
 	repo, err := q.repos.Repo(bc.Repo)
 	if err != nil {
@@ -338,15 +346,15 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 	// Find the current scores for each commit.
 	currentScores := map[string]float64{}
 	for _, commit := range recentCommits {
-		currentBuild, err := bc.getBuildForCommit(commit)
+		currentBuild, err := bc.getBuildForCommit(commit.Hash)
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
-		d, err := repo.Details(commit, false)
+		d, err := repo.Details(commit.Hash, false)
 		if err != nil {
 			return 0.0, nil, nil, err
 		}
-		currentScores[commit] = scoreBuild(d, currentBuild, now, q.timeLambda)
+		currentScores[commit.Hash] = scoreBuild(d, currentBuild, now, q.timeLambda)
 	}
 
 	// For each commit/builder pair, determine the score increase obtained
@@ -354,33 +362,42 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 	scoreIncrease := map[string]float64{}
 	newBuildsByCommit := map[string]*buildbot.Build{}
 	stoleFromByCommit := map[string]*buildbot.Build{}
-	foundNewerBuild := false
+	foundBranches := map[string]bool{}
 	for _, commit := range recentCommits {
-		if SCHEDULER_BLACKLIST[bc.Builder][commit] {
-			glog.Warningf("Skipping blacklisted builder/commit: %s @ %s", bc.Builder, commit)
+		if SCHEDULER_BLACKLIST[bc.Builder][commit.Hash] {
+			glog.Warningf("Skipping blacklisted builder/commit: %s @ %s", bc.Builder, commit.Hash)
 			continue
 		}
 		// Shortcut: Don't bisect builds with a huge number
 		// of commits.  This saves lots of time and only affects
 		// the first successful build for a bot. Additionally, don't
 		// go past the first commit which ran on this bot.
-		b, err := bc.getBuildForCommit(commit)
+		b, err := bc.getBuildForCommit(commit.Hash)
 		if err != nil {
 			return 0.0, nil, nil, fmt.Errorf(errMsg, err)
 		}
 		if b == nil {
-			// Don't go past the first commit which ran on this bot.
+			// Don't go past the first commit on this branch which ran on this bot.
+			foundNewerBuild := false
+			for branch, _ := range commit.Branches {
+				if foundBranches[branch] {
+					foundNewerBuild = true
+					break
+				}
+			}
 			if foundNewerBuild {
-				glog.Warningf("Skipping %s on %s; reached the beginning of time for this bot.", commit, bc.Builder)
+				glog.Warningf("Skipping %s on %s; reached the beginning of time for this bot.", commit.Hash, bc.Builder)
 				break
 			}
 		} else {
-			foundNewerBuild = true
+			for branch, _ := range commit.Branches {
+				foundBranches[branch] = true
+			}
 
 			// Don't bisect giant blamelists...
 			if len(b.Commits) > NO_BISECT_COMMIT_LIMIT {
-				glog.Warningf("Skipping %s on %s; previous build has too many commits (#%d)", commit[0:7], b.Builder, b.Number)
-				scoreIncrease[commit] = 0.0
+				glog.Warningf("Skipping %s on %s; previous build has too many commits (#%d)", commit.Hash[0:7], b.Builder, b.Number)
+				scoreIncrease[commit.Hash] = 0.0
 				break // Don't bother looking at previous commits either, since these will be out of range.
 			}
 		}
@@ -391,7 +408,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 			Builder:     bc.Builder,
 			Master:      bc.Master,
 			Number:      bc.MaxBuildNum + 1,
-			GotRevision: commit,
+			GotRevision: commit.Hash,
 			Repository:  bc.Repo,
 		}
 		commits, stealFrom, stolen, err := buildbot.FindCommitsForBuild(bc, &newBuild, q.repos)
@@ -417,7 +434,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 			}
 			newScores[c] = scoreBuild(d, &newBuild, now, q.timeLambda)
 		}
-		newBuildsByCommit[commit] = &newBuild
+		newBuildsByCommit[commit.Hash] = &newBuild
 		// If the new build includes commits previously included in
 		// another build, update scores for commits in the build we stole
 		// them from.
@@ -453,7 +470,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 				}
 				newScores[c] = scoreBuild(d, &stoleFromBuild, now, q.timeLambda)
 			}
-			stoleFromByCommit[commit] = &stoleFromBuild
+			stoleFromByCommit[commit.Hash] = &stoleFromBuild
 		}
 		// Sum the old and new scores.
 		oldScoresList := make([]float64, 0, len(newScores))
@@ -464,7 +481,7 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []string, no
 		}
 		oldTotal := util.Float64StableSum(oldScoresList)
 		newTotal := util.Float64StableSum(newScoresList)
-		scoreIncrease[commit] = newTotal - oldTotal
+		scoreIncrease[commit.Hash] = newTotal - oldTotal
 	}
 
 	// Arrange the score increases by builder.
