@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Skia Image Info</title>
+  {%template "header.html" .%}
+</head>
+<body>
+  <header class="horizontal layout center">
+    <h2>Skia Image Info</h2>
+    <div class=flex></div>
+    <login-sk></login-sk>
+  </header>
+  <section id=main>
+    <p>Analyze the color profile of an image.</p>
+    <form action="/info" method=get accept-charset="utf-8">
+      <label for=url>Image: </label> <input type=url name=url id=url size=100 placeholder="http://" value="" />
+      <button type=submit class=action>Analyze</button>
+    </form>
+  </section>
+</body>
+</html>
