@@ -109,7 +109,7 @@ func main() {
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
-	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir))
+	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running chromium analysis task on workers")
 	defer glog.Flush()
@@ -148,12 +148,16 @@ func main() {
 	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
 
 	// Create the required chromium build.
-	chromiumHash, skiaHash, err := util.CreateChromiumBuild(*runID, "Linux", "", "", true, true)
+	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", "Linux", []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
 	if err != nil {
-		glog.Errorf("Could not create chromium build: %s", err)
+		glog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return
 	}
-	chromiumBuild := fmt.Sprintf("try-%s-%s-%s-withpatch", chromiumHash, skiaHash, *runID)
+	if len(chromiumBuilds) != 1 {
+		glog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+		return
+	}
+	chromiumBuild := chromiumBuilds[0]
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
