@@ -246,7 +246,7 @@ func NinjaBuild(skiaPath, depotToolsPath string, extraEnv []string, build Releas
 		build = "Release"
 	}
 	buildCmd := &exec.Command{
-		Name:        "ninja",
+		Name:        filepath.Join(depotToolsPath, "ninja"),
 		Args:        []string{"-C", "out/" + string(build), "-j", fmt.Sprintf("%d", numCores), target},
 		Dir:         skiaPath,
 		InheritPath: false,
