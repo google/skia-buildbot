@@ -14,6 +14,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"google.golang.org/cloud/storage"
+
 	"github.com/golang/groupcache/lru"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
@@ -27,6 +29,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/limitwriter"
 	"go.skia.org/infra/imageinfo/go/builder"
+	"go.skia.org/infra/imageinfo/go/store"
 )
 
 const (
@@ -79,6 +82,9 @@ var (
 	// build is responsible to building visualize_color_gamut.
 	build *builder.Builder
 
+	// imageStore is a wrapper around Google Storage.
+	imageStore *store.Store
+
 	repoSyncFailures = metrics2.GetCounter("repo-sync-failed", nil)
 	buildFailures    = metrics2.GetCounter("builds-failed", nil)
 	buildLiveness    = metrics2.NewLiveness("build")
@@ -98,8 +104,69 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+	context := struct {
+		LoggedIn bool
+	}{
+		LoggedIn: login.LoggedInAs(r) != "",
+	}
+	if err := templates.ExecuteTemplate(w, "index.html", context); err != nil {
 		glog.Errorf("Failed to expand template: %s", err)
+	}
+}
+
+// uploadHandler handles POSTs of images to be analyzed.
+func uploadHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		http.Error(w, "You must be logged in to upload an image.", 403)
+		return
+	}
+	if *local {
+		loadTemplates()
+	}
+	if err := r.ParseMultipartForm(MAX_BODY_SIZE); err != nil {
+		httputils.ReportError(w, r, err, "Could not parse POST request body.")
+		return
+	}
+	f, fh, err := r.FormFile("upload")
+	if err != nil {
+		httputils.ReportError(w, r, err, "Could not find image in POST request body.")
+		return
+	}
+	defer util.Close(f)
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Could not read image in POST request body.")
+		return
+	}
+
+	// Checksum image.
+	hash := fmt.Sprintf("%x", md5.Sum(b))
+
+	// Store to Google Storage.
+	if err := imageStore.Put(b, hash, fh.Header.Get("Content-Type"), user); err != nil {
+		httputils.ReportError(w, r, err, "Could not write image into storage.")
+		return
+	}
+	http.Redirect(w, r, fmt.Sprintf("/info?hash=%s", hash), 303)
+}
+
+// imageHandler serves up the image for the identifying hash.
+func imageHandler(w http.ResponseWriter, r *http.Request) {
+	hash := mux.Vars(r)["hash"]
+	b, contentType, err := imageStore.Get(hash)
+	if err == storage.ErrObjectNotExist {
+		http.NotFound(w, r)
+		return
+	} else if err != nil {
+		httputils.ReportError(w, r, err, "Unable to load image.")
+		return
+	}
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Add("Cache-Control", "max-age=360000")
+	if _, err := w.Write(b); err != nil {
+		glog.Errorf("Unable to write image: %s", err)
+		return
 	}
 }
 
@@ -109,7 +176,8 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 		loadTemplates()
 	}
 	url := r.FormValue("url")
-	if url == "" {
+	hash := r.FormValue("hash")
+	if url == "" && hash == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Missing required parameter."), "Missing required parameter.")
 		return
 	}
@@ -127,20 +195,33 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	resp, err := http.Get(url)
-	defer util.Close(resp.Body)
+	var data []byte
+	if url != "" {
+		resp, err := http.Get(url)
+		defer util.Close(resp.Body)
 
-	// Copy the body out to a file.
-	// But limit the total size of the file.
-	lr := &io.LimitedReader{
-		R: resp.Body,
-		N: MAX_BODY_SIZE,
+		// Copy the body out to a file.
+		// But limit the total size of the file.
+		lr := &io.LimitedReader{
+			R: resp.Body,
+			N: MAX_BODY_SIZE,
+		}
+		data, err = ioutil.ReadAll(lr)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to download image from the web.")
+			return
+		}
+	} else {
+		data, _, err = imageStore.Get(hash)
+		if err == storage.ErrObjectNotExist {
+			http.NotFound(w, r)
+			return
+		} else if err != nil {
+			httputils.ReportError(w, r, err, "Failed to download image from storage.")
+			return
+		}
 	}
-	data, err := ioutil.ReadAll(lr)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to download image from the web.")
-		return
-	}
+
 	if err := ioutil.WriteFile(filepath.Join(dir, "input"), data, 0666); err != nil {
 		httputils.ReportError(w, r, err, "Failed to write image into temp dir.")
 		return
@@ -182,8 +263,12 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	key := fmt.Sprintf("%x", md5.Sum(output))
 	cache.Add(key, output)
+	source := url
+	if hash != "" {
+		source = fmt.Sprintf("/img/%s", hash)
+	}
 	cp := &Context{
-		Source: url,
+		Source: source,
 		Output: key,
 		StdOut: buf.String(),
 	}
@@ -275,6 +360,10 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to clone Skia: %s", err)
 	}
+	imageStore, err = store.New()
+	if err != nil {
+		glog.Fatalf("Failed to connect to Google Storage: %s", err)
+	}
 	build = builder.New(*workRoot, *depotTools, repo)
 	StartBuilding()
 	cache = lru.New(NUM_CACHED_RESULT_IMAGES)
@@ -282,6 +371,8 @@ func main() {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 	r.HandleFunc("/info", infoHandler)
+	r.HandleFunc("/img/{hash:[0-9a-zA-Z]+}", imageHandler)
+	r.HandleFunc("/upload", uploadHandler)
 	r.HandleFunc("/vis/{id:[0-9a-zA-Z]+}", visHandler)
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)

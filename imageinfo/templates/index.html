@@ -11,11 +11,20 @@
     <login-sk></login-sk>
   </header>
   <section id=main>
-    <p>Analyze the color profile of an image.</p>
+    <p>Analyze the color profile of an image on the web.</p>
     <form action="/info" method=get accept-charset="utf-8">
       <label for=url>Image: </label> <input type=url name=url id=url size=100 placeholder="http://" value="" />
       <button type=submit class=action>Analyze</button>
     </form>
+    {%if .LoggedIn%}
+    <p>Upload an image to be analyzed.</p>
+    <form action="/upload" method=post  enctype="multipart/form-data" accept-charset="utf-8">
+      <label for=upload>Image: </label><input type=file name="upload" accept="image/*" value="" id=upload>
+      <button type=submit class=action>Upload</button>
+    </form>
+    {%else%}
+    <p><b>Login to enable uploading images.</b></p>
+    {%end%}
   </section>
 </body>
 </html>
