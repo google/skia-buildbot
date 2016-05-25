@@ -26,9 +26,9 @@ PERSISTENT_DISK_NAME = 'skia-disk'
 VM_PERSISTENT_DISK_SIZE_GB = os.environ.get('VM_PERSISTENT_DISK_SIZE_GB', 300)
 # If this is true then the VM instances will automatically try to connect to the
 # buildbot master.
-VM_IS_BUILDBOT = os.environ.get('VM_IS_BUILDBOT', True)
+VM_IS_BUILDBOT = os.environ.get('VM_IS_BUILDBOT', False)
 # If this is true then the swarming image is used.
-VM_IS_SWARMINGBOT = os.environ.get('VM_IS_SWARMINGBOT', False)
+VM_IS_SWARMINGBOT = os.environ.get('VM_IS_SWARMINGBOT', True)
 # If this is true then a CT VM is created.
 VM_IS_CTBOT = os.environ.get('VM_IS_CTBOT', False)
 
