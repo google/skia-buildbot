@@ -12,7 +12,6 @@ source vm_setup_utils.sh
 if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_LINUX_IMAGE_NAME
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_LINUX_BOTS[@]}
-  WAIT_TIME_AFTER_CREATION_SECS=600
   DISK_ARGS="--boot_disk_size_gb=20"
   if [ "$VM_IS_SWARMINGBOT" = True ]; then
     SKIA_BOT_IMAGE_NAME=$SKIA_SWARMING_IMAGE_NAME
@@ -56,9 +55,6 @@ elif [ "$VM_INSTANCE_OS" == "Windows" ]; then
                  --metadata_from_file=chromebot-schtask-ps1:$MODIFIED_SCHTASK_SCRIPT"
   DISK_ARGS="--boot_disk_size_gb=$VM_PERSISTENT_DISK_SIZE_GB"
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_WIN_BOTS[@]}
-  # We have to wait longer for windows because sysprep can take a while to
-  # complete.
-  WAIT_TIME_AFTER_CREATION_SECS=900
 else
   echo "$VM_INSTANCE_OS is not recognized!"
   exit 1
@@ -156,10 +152,22 @@ if [ "$VM_INSTANCE_OS" == "Windows" ]; then
 
 else
   echo
-  echo "===== Wait $WAIT_TIME_AFTER_CREATION_SECS secs for all instances to" \
-       "come up. ====="
+  echo "===== Wait for all instances to come up. ====="
   echo
-  sleep $WAIT_TIME_AFTER_CREATION_SECS
+  for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
+    INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
+    DONE_TEXT="status: RUNNING"
+
+    while [ `gcloud compute instances describe --zone=${ZONE} ${INSTANCE_NAME} | grep -c "${DONE_TEXT}"` = 0 ]; do
+      echo "Waiting 5 seconds for ${INSTANCE_NAME} to come up."
+      sleep 5
+    done
+
+    while [ `gcloud compute ssh --zone=${ZONE} ${INSTANCE_NAME} echo "done" | grep -c "done"` = 0 ]; do
+      echo "Waiting 5 seconds for ${INSTANCE_NAME} to finish booting."
+      sleep 5
+    done
+  done
 fi
 
 # Looping through all bots and setting them up.
