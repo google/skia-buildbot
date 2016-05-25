@@ -3,6 +3,7 @@ package swarming
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -208,4 +209,40 @@ func (c *ApiClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadat
 		TaskResult: task,
 		Request:    req,
 	}, nil
+}
+
+// GetTagValue returns the value for the given tag key from the given Swarming task.
+func GetTagValue(t *swarming.SwarmingRpcsTaskRequestMetadata, tagKey string) (string, error) {
+	val := ""
+	for _, tag := range t.TaskResult.Tags {
+		split := strings.SplitN(tag, ":", 2)
+		if len(split) != 2 {
+			return "", fmt.Errorf("Invalid Swarming task tag: %q", tag)
+		}
+		if split[0] == tagKey {
+			val = split[1]
+			break
+		}
+	}
+	return val, nil
+}
+
+// parseTimestamp returns a time.Time for the given timestamp.
+func parseTimestamp(ts string) (time.Time, error) {
+	return time.Parse("2006-01-02T15:04:05", ts)
+}
+
+// Created returns a time.Time for the given task's created time.
+func Created(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
+	return parseTimestamp(t.Request.CreatedTs)
+}
+
+// Started returns a time.Time for the given task's started time.
+func Started(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
+	return parseTimestamp(t.TaskResult.StartedTs)
+}
+
+// Completed returns a time.Time for the given task's started time.
+func Completed(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
+	return parseTimestamp(t.TaskResult.CompletedTs)
 }

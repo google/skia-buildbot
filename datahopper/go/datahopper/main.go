@@ -10,7 +10,6 @@ import (
 	"path"
 	"regexp"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -45,6 +44,7 @@ const (
 	MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT      = "swarming.tasks.overhead.bot"
 	MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD = "swarming.tasks.overhead.download"
 	MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD   = "swarming.tasks.overhead.upload"
+	MEASUREMENT_SWARM_TASKS_PENDING_TIME      = "swarming.tasks.pending-time"
 )
 
 // flags
@@ -323,27 +323,33 @@ func main() {
 					if task.TaskResult.DedupedFrom != "" {
 						continue
 					}
-					time, err := time.Parse("2006-01-02T15:04:05", task.Request.CreatedTs)
+
+					// Get the created time for the task. We'll use that as the
+					// timestamp for all data points related to it.
+					createdTime, err := swarming.Created(task)
 					if err != nil {
 						glog.Errorf("Failed to parse Swarming task created timestamp: %s", err)
 						continue
 					}
-					name := ""
-					for _, tag := range task.TaskResult.Tags {
-						split := strings.SplitN(tag, ":", 2)
-						if len(split) != 2 {
-							glog.Errorf("Invalid Swarming task tag: %q", tag)
-							continue
-						}
-						if split[0] == "name" {
-							name = split[1]
-							break
-						}
-					}
-					if name == "" {
+
+					// Find the tags for the task, including ID, name, dimensions,
+					// and components of the builder name.
+					name, err := swarming.GetTagValue(task, "name")
+					if err != nil || name == "" {
 						glog.Errorf("Failed to find name for Swarming task: %v", task)
 						continue
 					}
+					builderName, err := swarming.GetTagValue(task, "buildername")
+					if err != nil || builderName == "" {
+						glog.Errorf("Failed to find buildername for Swarming task: %v", task)
+						continue
+					}
+					builderTags, err := buildbot.ParseBuilderName(builderName)
+					if err != nil {
+						glog.Errorf("Failed to parse builder name for Swarming task: %s", err)
+						continue
+					}
+
 					tags := map[string]string{
 						"task-id":   task.TaskId,
 						"task-name": name,
@@ -351,14 +357,26 @@ func main() {
 					for _, d := range task.Request.Properties.Dimensions {
 						tags[fmt.Sprintf("dimension-%s", d.Key)] = d.Value
 					}
+					for k, v := range builderTags {
+						tags[k] = v
+					}
 
-					// Task duration.
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_DURATION, tags, int64(task.TaskResult.Duration*float64(1000.0)), time)
+					// Task duration in milliseconds.
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_DURATION, tags, int64(task.TaskResult.Duration*float64(1000.0)), createdTime)
 
-					// Overhead stats.
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT, tags, int64(task.TaskResult.PerformanceStats.BotOverhead*float64(1000.0)), time)
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedDownload.Duration*float64(1000.0)), time)
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedUpload.Duration*float64(1000.0)), time)
+					// Overhead stats, in milliseconds.
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT, tags, int64(task.TaskResult.PerformanceStats.BotOverhead*float64(1000.0)), createdTime)
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedDownload.Duration*float64(1000.0)), createdTime)
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedUpload.Duration*float64(1000.0)), createdTime)
+
+					// Pending time in milliseconds.
+					startTime, err := swarming.Started(task)
+					if err != nil {
+						glog.Errorf("Failed to parse Swarming task started timestamp: %s", err)
+						continue
+					}
+					pendingMs := int64(startTime.Sub(createdTime).Seconds() * float64(1000.0))
+					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_PENDING_TIME, tags, pendingMs, createdTime)
 				} else {
 					revisitTasks[task.TaskId] = true
 				}
