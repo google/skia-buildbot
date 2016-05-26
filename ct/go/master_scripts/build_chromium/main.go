@@ -22,7 +22,6 @@ var (
 	gaeTaskID      = flag.Int64("gae_task_id", -1, "The key of the App Engine task. This task will be updated when the task is completed.")
 	runID          = flag.String("run_id", "", "The unique run id (typically requester + timestamp).")
 	targetPlatform = flag.String("target_platform", util.PLATFORM_ANDROID, "The platform the benchmark will run on (Android / Linux).")
-	applyPatches   = flag.Bool("apply_patches", false, "If true looks for Chromium/Skia patches in temp dir and runs once with the patches and once without.")
 	chromiumHash   = flag.String("chromium_hash", "", "The Chromium commit hash the checkout should be synced to. If not specified then Chromium's ToT hash is used.")
 	skiaHash       = flag.String("skia_hash", "", "The Skia commit hash the checkout should be synced to. If not specified then Skia's LKGR hash is used (the hash in Chromium's DEPS file).")
 
@@ -73,10 +72,6 @@ func main() {
 	// Ensure webapp is updated and completion email is sent even if task fails.
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
-	if !*master_common.Local {
-		// Cleanup tmp files after the run.
-		defer util.CleanTmpDir()
-	}
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running build chromium")
 	defer glog.Flush()
@@ -90,8 +85,14 @@ func main() {
 		return
 	}
 
-	if _, _, err := util.CreateChromiumBuild("", *targetPlatform, *chromiumHash, *skiaHash, *applyPatches, true); err != nil {
-		glog.Errorf("Error while creating the Chromium build: %s", err)
+	// Create the required chromium build.
+	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", "", "chromium", "Linux", []string{*chromiumHash, *skiaHash}, []string{}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
+	if err != nil {
+		glog.Errorf("Error encountered when swarming build repo task: %s", err)
+		return
+	}
+	if len(chromiumBuilds) != 1 {
+		glog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
 		return
 	}
 

@@ -34,9 +34,6 @@ func main() {
 	defer util.TimeTrack(time.Now(), "Building Repo")
 	defer glog.Flush()
 
-	if *runID == "" {
-		glog.Fatal("Must specify --run_id")
-	}
 	if *outDir == "" {
 		glog.Fatal("Must specify --out")
 	}
@@ -49,7 +46,9 @@ func main() {
 
 	var remoteDirs []string
 	if *repoName == "chromium" {
+		applyPatches := false
 		if *patches != "" {
+			applyPatches = true
 			for _, patch := range strings.Split(*patches, ",") {
 				patchName := path.Base(patch)
 				patchLocalPath := filepath.Join(os.TempDir(), patchName)
@@ -58,8 +57,19 @@ func main() {
 				}
 			}
 		}
+		chromiumHash := ""
+		skiaHash := ""
+		if *hashes != "" {
+			tokens := strings.Split(*hashes, ",")
+			if len(tokens) > 0 {
+				chromiumHash = tokens[0]
+				if len(tokens) == 2 {
+					skiaHash = tokens[1]
+				}
+			}
+		}
 		pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
-		chromiumHash, skiaHash, err := util.CreateChromiumBuildOnSwarming(*runID, *targetPlatform, "", "", pathToPyFiles, true, *uploadSingleBuild)
+		chromiumHash, skiaHash, err := util.CreateChromiumBuildOnSwarming(*runID, *targetPlatform, chromiumHash, skiaHash, pathToPyFiles, applyPatches, *uploadSingleBuild)
 		if err != nil {
 			glog.Fatalf("Could not create chromium build: %s", err)
 		}
