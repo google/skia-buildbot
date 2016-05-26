@@ -40,13 +40,11 @@ func main() {
 
 	// Reset the local chromium checkout.
 	if err := util.ResetCheckout(util.ChromiumSrcDir); err != nil {
-		glog.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-		return
+		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
-		glog.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-		return
+		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
 	// Delete and remake the local webpage archives directory.
@@ -58,16 +56,14 @@ func main() {
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 
 	// Download pagesets.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
 	pagesetsToIndex, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num)
 	if err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
@@ -76,8 +72,7 @@ func main() {
 	// Loop through all pagesets.
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
-		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
-		return
+		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
 	// Create channel that contains all pageset file names. This channel will
@@ -113,7 +108,7 @@ func main() {
 				decodedPageset, err := util.ReadPageset(pagesetPath)
 				if err != nil {
 					glog.Errorf("Could not read %s: %s", pagesetPath, err)
-					return
+					continue
 				}
 
 				glog.Infof("===== Processing %s =====", pagesetPath)
@@ -161,8 +156,7 @@ func main() {
 
 	// Upload all webpage archives to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.WEB_ARCHIVES_DIR_NAME, *pagesetType); err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 }
 

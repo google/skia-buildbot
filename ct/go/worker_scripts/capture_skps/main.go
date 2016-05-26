@@ -43,40 +43,33 @@ func main() {
 
 	// Validate required arguments.
 	if *chromiumBuild == "" {
-		glog.Error("Must specify --chromium_build")
-		return
+		glog.Fatal("Must specify --chromium_build")
 	}
 	if *runID == "" {
-		glog.Error("Must specify --run_id")
-		return
+		glog.Fatal("Must specify --run_id")
 	}
 	if *targetPlatform == util.PLATFORM_ANDROID {
-		glog.Error("Android is not yet supported for capturing SKPs.")
-		return
+		glog.Fatal("Android is not yet supported for capturing SKPs.")
 	}
 
 	// Reset the local chromium checkout.
 	if err := util.ResetCheckout(util.ChromiumSrcDir); err != nil {
-		glog.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-		return
+		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
-		glog.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-		return
+		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 
 	// Download the specified chromium build.
 	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 	// Delete the chromium build to save space when we are done.
 	defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, *chromiumBuild))
@@ -84,16 +77,14 @@ func main() {
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		// Install the APK on the Android device.
 		if err := util.InstallChromeAPK(*chromiumBuild); err != nil {
-			glog.Errorf("Could not install the chromium APK: %s", err)
-			return
+			glog.Fatalf("Could not install the chromium APK: %s", err)
 		}
 	}
 
 	// Download pagesets if they do not exist locally.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
 	if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
@@ -101,8 +92,7 @@ func main() {
 	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
 	archivesToIndex, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num)
 	if err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 	defer skutil.RemoveAll(pathToArchives)
 
@@ -119,8 +109,7 @@ func main() {
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
-		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
-		return
+		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
 	// Create channel that contains all pageset file names. This channel will
@@ -204,13 +193,11 @@ func main() {
 
 	// Move and validate all SKP files.
 	if err := util.ValidateSKPs(pathToSkps, pathToPyFiles); err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 
 	// Upload SKPs dir to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, *pagesetType); err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 }

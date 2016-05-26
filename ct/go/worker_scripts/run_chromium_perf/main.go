@@ -52,40 +52,32 @@ func main() {
 
 	// Validate required arguments.
 	if *chromiumBuildNoPatch == "" {
-		glog.Error("Must specify --chromium_build_nopatch")
-		return
+		glog.Fatal("Must specify --chromium_build_nopatch")
 	}
 	if *chromiumBuildWithPatch == "" {
-		glog.Error("Must specify --chromium_build_withpatch")
-		return
+		glog.Fatal("Must specify --chromium_build_withpatch")
 	}
 	if *runID == "" {
-		glog.Error("Must specify --run_id")
-		return
+		glog.Fatal("Must specify --run_id")
 	}
 	if *benchmarkName == "" {
-		glog.Error("Must specify --benchmark_name")
-		return
+		glog.Fatal("Must specify --benchmark_name")
 	}
 
 	// Reset the local chromium checkout.
 	if err := util.ResetCheckout(util.ChromiumSrcDir); err != nil {
-		glog.Errorf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-		return
+		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
-		glog.Errorf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
-		return
+		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
 	if *targetPlatform == util.PLATFORM_ANDROID {
 		if err := adb.VerifyLocalDevice(); err != nil {
 			// Android device missing or offline.
-			glog.Errorf("Could not find Android device: %s", err)
-			return
+			glog.Fatalf("Could not find Android device: %s", err)
 		}
-		// TODO(rmistry): Could this be a problem in swarming?
 		// Kill adb server to make sure we start from a clean slate.
 		skutil.LogErr(util.ExecuteCmd(util.BINARY_ADB, []string{"kill-server"}, []string{},
 			util.ADB_ROOT_TIMEOUT, nil, nil))
@@ -97,16 +89,14 @@ func main() {
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 
 	// Download the benchmark patch for this run from Google storage.
 	benchmarkPatchName := *runID + ".benchmark.patch"
 	tmpDir, err := ioutil.TempDir("", "patches")
 	if err != nil {
-		glog.Errorf("Could not create a temp dir: %s", err)
-		return
+		glog.Fatalf("Could not create a temp dir: %s", err)
 	}
 	defer skutil.RemoveAll(tmpDir)
 	benchmarkPatchLocalPath := filepath.Join(tmpDir, benchmarkPatchName)
@@ -114,32 +104,27 @@ func main() {
 	benchmarkPatchRemotePath := filepath.Join(remoteDir, benchmarkPatchName)
 	respBody, err := gs.GetRemoteFileContents(benchmarkPatchRemotePath)
 	if err != nil {
-		glog.Errorf("Could not fetch %s: %s", benchmarkPatchRemotePath, err)
-		return
+		glog.Fatalf("Could not fetch %s: %s", benchmarkPatchRemotePath, err)
 	}
 	defer skutil.Close(respBody)
 	buf := new(bytes.Buffer)
 	if _, err := buf.ReadFrom(respBody); err != nil {
-		glog.Errorf("Could not read from %s: %s", benchmarkPatchRemotePath, err)
-		return
+		glog.Fatalf("Could not read from %s: %s", benchmarkPatchRemotePath, err)
 	}
 	if err := ioutil.WriteFile(benchmarkPatchLocalPath, buf.Bytes(), 0666); err != nil {
-		glog.Errorf("Unable to create file %s: %s", benchmarkPatchLocalPath, err)
-		return
+		glog.Fatalf("Unable to create file %s: %s", benchmarkPatchLocalPath, err)
 	}
 	// Apply benchmark patch to the local chromium checkout.
 	if buf.Len() > 10 {
 		if err := util.ApplyPatch(benchmarkPatchLocalPath, util.ChromiumSrcDir); err != nil {
-			glog.Errorf("Could not apply Telemetry's patch in %s: %s", util.ChromiumSrcDir, err)
-			return
+			glog.Fatalf("Could not apply Telemetry's patch in %s: %s", util.ChromiumSrcDir, err)
 		}
 	}
 
 	// Download the specified chromium builds.
 	for _, chromiumBuild := range []string{*chromiumBuildNoPatch, *chromiumBuildWithPatch} {
 		if err := gs.DownloadChromiumBuild(chromiumBuild); err != nil {
-			glog.Error(err)
-			return
+			glog.Fatal(err)
 		}
 		//Delete the chromium build to save space when we are done.
 		defer skutil.RemoveAll(filepath.Join(util.ChromiumBuildsDir, chromiumBuild))
@@ -151,16 +136,14 @@ func main() {
 	// Download pagesets if they do not exist locally.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
 	if _, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
 	// Download archives if they do not exist locally.
 	pathToArchives := filepath.Join(util.WebArchivesDir, *pagesetType)
 	if _, err := gs.DownloadSwarmingArtifacts(pathToArchives, util.WEB_ARCHIVES_DIR_NAME, *pagesetType, *startRange, *num); err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 	defer skutil.RemoveAll(pathToArchives)
 
@@ -185,8 +168,7 @@ func main() {
 
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
-		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
-		return
+		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
 	numWorkers := WORKER_POOL_SIZE
@@ -229,11 +211,11 @@ func main() {
 
 				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark); err != nil {
 					glog.Errorf("Error while running nopatch benchmark: %s", err)
-					return
+					continue
 				}
 				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark); err != nil {
 					glog.Errorf("Error while running withpatch benchmark: %s", err)
-					return
+					continue
 				}
 				mutex.RUnlock()
 			}
@@ -251,12 +233,10 @@ func main() {
 	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
 		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, gs, *startRange); err != nil {
-			glog.Errorf("Error while processing withpatch CSV files: %s", err)
-			return
+			glog.Fatalf("Error while processing withpatch CSV files: %s", err)
 		}
 		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirWithPatch, pathToPyFiles, runIDWithPatch, remoteDirWithPatch, gs, *startRange); err != nil {
-			glog.Errorf("Error while processing withpatch CSV files: %s", err)
-			return
+			glog.Fatalf("Error while processing withpatch CSV files: %s", err)
 		}
 	}
 }

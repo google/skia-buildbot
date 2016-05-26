@@ -48,12 +48,10 @@ func main() {
 
 	// Validate required arguments.
 	if *runID == "" {
-		glog.Error("Must specify --run_id")
-		return
+		glog.Fatal("Must specify --run_id")
 	}
 	if *chromiumBuild == "" {
-		glog.Error("Must specify --chromium_build")
-		return
+		glog.Fatal("Must specify --chromium_build")
 	}
 
 	// Instantiate timeout client for downloading PDFs.
@@ -61,16 +59,14 @@ func main() {
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 
 	// Download PDF pagesets if they do not exist locally.
 	pathToPagesets := filepath.Join(util.PagesetsDir, *pagesetType)
 	pagesetsToIndex, err := gs.DownloadSwarmingArtifacts(pathToPagesets, util.PAGESETS_DIR_NAME, *pagesetType, *startRange, *num)
 	if err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 	defer skutil.RemoveAll(pathToPagesets)
 
@@ -96,19 +92,16 @@ func main() {
 	//pdfiumRemotePath := filepath.Join(util.BinariesDir, *runID, util.BINARY_PDFIUM_TEST)
 	//respBody, err := gs.GetRemoteFileContents(pdfiumRemotePath)
 	//if err != nil {
-	//	glog.Errorf("Could not fetch %s: %s", pdfiumRemotePath, err)
-	//	return
+	//	glog.Fatalf("Could not fetch %s: %s", pdfiumRemotePath, err)
 	//}
 	//defer skutil.Close(respBody)
 	//out, err := os.Create(pdfiumLocalPath)
 	//if err != nil {
-	//	glog.Errorf("Unable to create file %s: %s", pdfiumLocalPath, err)
-	//	return
+	//	glog.Fatalf("Unable to create file %s: %s", pdfiumLocalPath, err)
 	//}
 	//defer skutil.Remove(pdfiumLocalPath)
 	//if _, err = io.Copy(out, respBody); err != nil {
-	//	glog.Error(err)
-	//	return
+	//	glog.Fatal(err)
 	//}
 	//skutil.Close(out)
 	//// Downloaded pdfium_test binary needs to be set as an executable.
@@ -118,8 +111,7 @@ func main() {
 	//timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CaptureSKPsTimeoutSecs
 	fileInfos, err := ioutil.ReadDir(pathToPagesets)
 	if err != nil {
-		glog.Errorf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
-		return
+		glog.Fatalf("Unable to read the pagesets dir %s: %s", pathToPagesets, err)
 	}
 
 	// Create channel that contains all pageset file names. This channel will
@@ -243,39 +235,32 @@ func main() {
 	// Check to see if there is anything in the pathToPDFs and pathToSKPs dirs.
 	pdfsEmpty, err := skutil.IsDirEmpty(pathToPdfs)
 	if err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 	if pdfsEmpty {
-		glog.Errorf("Could not download any PDF in %s", pathToPdfs)
-		return
+		glog.Fatalf("Could not download any PDF in %s", pathToPdfs)
 	}
 	// TODO(rmistry): Uncomment when ready to capture SKPs.
 	//skpsEmpty, err := skutil.IsDirEmpty(pathToSkps)
 	//if err != nil {
-	//	glog.Error(err)
-	//	return
+	//	glog.Fatal(err)
 	//}
 	//if skpsEmpty {
-	//	glog.Errorf("Could not create any SKP in %s", pathToSkps)
-	//	return
+	//	glog.Fatalf("Could not create any SKP in %s", pathToSkps)
 	//}
 	//
 	//// Move and validate all SKP files.
 	//if err := util.ValidateSKPs(pathToSkps); err != nil {
-	//	glog.Error(err)
-	//	return
+	//	glog.Fatal(err)
 	//}
 
 	// Upload PDFs dir to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.PDFS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 	// Upload SKPs dir to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
-		glog.Error(err)
-		return
+		glog.Fatal(err)
 	}
 
 	// Summarize errors.
