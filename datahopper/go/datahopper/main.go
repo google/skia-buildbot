@@ -10,6 +10,7 @@ import (
 	"path"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -260,12 +261,20 @@ func main() {
 	// Swarming bots.
 	go func() {
 		for _ = range time.Tick(2 * time.Minute) {
-			glog.Infof("Loading Swarming bot data.")
-			bots, err := swarm.ListSkiaBots()
+			glog.Info("Loading Skia Swarming bot data.")
+			skiaBots, err := swarm.ListSkiaBots()
 			if err != nil {
 				glog.Error(err)
 				continue
 			}
+			glog.Info("Loading CT Swarming bot data.")
+			ctBots, err := swarm.ListCTBots()
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			bots := append(skiaBots, ctBots...)
+
 			now := time.Now()
 			for _, bot := range bots {
 				last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
@@ -275,19 +284,22 @@ func main() {
 				}
 				glog.Infof("Bot: %s - Last seen %s ago", bot.BotId, now.Sub(last))
 
-				// Bot last seen <duration> ago.
-				metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, map[string]string{
+				tags := map[string]string{
 					"bot": bot.BotId,
-				}).Update(int64(now.Sub(last)))
+				}
+				for _, d := range bot.Dimensions {
+					tags[fmt.Sprintf("dimension-%s", d.Key)] = strings.Join(d.Value, ",")
+				}
+
+				// Bot last seen <duration> ago.
+				metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags).Update(int64(now.Sub(last)))
 
 				// Bot quarantined status.
 				quarantined := int64(0)
 				if bot.Quarantined {
 					quarantined = int64(1)
 				}
-				metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, map[string]string{
-					"bot": bot.BotId,
-				}).Update(quarantined)
+				metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, tags).Update(quarantined)
 			}
 		}
 	}()

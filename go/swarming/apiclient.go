@@ -16,8 +16,9 @@ const (
 	AUTH_SCOPE    = "https://www.googleapis.com/auth/userinfo.email"
 	API_BASE_PATH = "https://chromium-swarm.appspot.com/_ah/api/swarming/v1/"
 
-	DIMENSION_POOL_KEY   = "pool"
-	DIMENSION_POOL_VALUE = "Skia"
+	DIMENSION_POOL_KEY        = "pool"
+	DIMENSION_POOL_VALUE_SKIA = "Skia"
+	DIMENSION_POOL_VALUE_CT   = "CT"
 )
 
 // ApiClient is a Skia-specific wrapper around the Swarming API.
@@ -44,11 +45,23 @@ func (c *ApiClient) SwarmingService() *swarming.Service {
 // ListSkiaBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 // corresponding to the Skia Swarming bots.
 func (c *ApiClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+	return c.listBots(DIMENSION_POOL_VALUE_SKIA)
+}
+
+// ListCTBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+// corresponding to the CT Swarming bots.
+func (c *ApiClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+	return c.listBots(DIMENSION_POOL_VALUE_CT)
+}
+
+// listBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+// corresponding to the Swarming bots in the requested pool.
+func (c *ApiClient) listBots(poolValue string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	bots := []*swarming.SwarmingRpcsBotInfo{}
 	cursor := ""
 	for {
 		call := c.s.Bots.List()
-		call.Dimensions(fmt.Sprintf("%s:%s", DIMENSION_POOL_KEY, DIMENSION_POOL_VALUE))
+		call.Dimensions(fmt.Sprintf("%s:%s", DIMENSION_POOL_KEY, poolValue))
 		call.Limit(100)
 		if cursor != "" {
 			call.Cursor(cursor)
