@@ -430,7 +430,6 @@ func (task *ChromiumBuildTask) Execute() error {
 			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
 			"--run_id=" + runId,
 			"--target_platform=Linux",
-			"--apply_patches=false",
 			"--chromium_hash=" + task.ChromiumRev,
 			"--skia_hash=" + task.SkiaRev,
 			"--log_dir=" + logDir,
