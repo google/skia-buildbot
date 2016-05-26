@@ -200,6 +200,7 @@ const (
 	CAPTURE_SKPS_FROM_PDFS_ISOLATE = "capture_skps_from_pdfs.isolate"
 	RUN_LUA_ISOLATE                = "run_lua.isolate"
 	CHROMIUM_ANALYSIS_ISOLATE      = "chromium_analysis.isolate"
+	CHROMIUM_PERF_ISOLATE          = "chromium_perf.isolate"
 	BUILD_REPO_ISOLATE             = "build_repo.isolate"
 )
 
@@ -345,6 +346,12 @@ var (
 		PLATFORM_LINUX:   "Linux (100 Ubuntu12.04 machines)",
 		PLATFORM_ANDROID: "Android (100 N5 devices)",
 	}
+
+	// Swarming machine dimensions.
+	GCE_WORKER_DIMENSIONS          = map[string]string{"pool": SWARMING_POOL, "cores": "2"}
+	GCE_ANDROID_BUILDER_DIMENSIONS = map[string]string{"pool": "AndroidBuilder", "cores": "32"}
+	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "LinuxBuilder", "cores": "32"}
+	GOLO_WORKER_DIMENSIONS         = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
 )
 
 func NumWorkers() int {

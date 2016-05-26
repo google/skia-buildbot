@@ -27,6 +27,8 @@ func Init() {
 	} else {
 		// Add depot_tools to the PATH.
 		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+":"+util.DepotToolsDir))
+		// Add adb to the PATH.
+		skutil.LogErr(os.Setenv("PATH", os.Getenv("PATH")+":/home/chrome-bot/KOT49H-hammerhead-userdebug-insecure"))
 		// Bring up Xvfb on workers (for GCE instances).
 		if _, _, err := exec.RunIndefinitely(&exec.Command{
 			Name:        "sudo",

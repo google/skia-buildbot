@@ -4,15 +4,11 @@
 package main
 
 import (
-	"bytes"
 	"database/sql"
 	"flag"
 	"fmt"
-	"html/template"
-	"io"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -25,6 +21,10 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
 	skutil "go.skia.org/infra/go/util"
+)
+
+const (
+	MAX_PAGES_PER_SWARMING_BOT = 100
 )
 
 var (
@@ -119,12 +119,8 @@ func main() {
 	defer updateWebappTask()
 	defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
-	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir))
-	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir))
-	if !*master_common.Local {
-		// Cleanup tmp files after the run.
-		defer util.CleanTmpDir()
-	}
+	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID))
+	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running chromium perf task on workers")
 	defer glog.Flush()
@@ -139,6 +135,10 @@ func main() {
 	}
 	if *runID == "" {
 		glog.Error("Must specify --run_id")
+		return
+	}
+	if *description == "" {
+		glog.Error("Must specify --description")
 		return
 	}
 
@@ -165,90 +165,51 @@ func main() {
 	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
 
 	// Create the two required chromium builds (with patch and without the patch).
-	chromiumHash, skiaHash, err := util.CreateChromiumBuild(*runID, *targetPlatform, "", "", true, false)
+	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask(
+		"build_chromium", *runID, "chromium", *targetPlatform, []string{},
+		[]string{filepath.Join(remoteOutputDir, chromiumPatchName), filepath.Join(remoteOutputDir, skiaPatchName)},
+		/*singlebuild*/ false, 3*time.Hour, 1*time.Hour)
 	if err != nil {
-		glog.Errorf("Could not create chromium build: %s", err)
+		glog.Errorf("Error encountered when swarming build repo task: %s", err)
 		return
 	}
-
-	// Reboot all workers to start from a clean slate.
-	if !*master_common.Local {
-		util.RebootWorkers()
-	}
-
-	if *targetPlatform == util.PLATFORM_ANDROID {
-		// Reboot all Android devices to start from a clean slate.
-		util.RebootAndroidDevices()
-	}
-
-	// Run the run_chromium_perf script on all workers.
-	runIDNoPatch := *runID + "-nopatch"
-	runIDWithPatch := *runID + "-withpatch"
-	chromiumBuildNoPatch := fmt.Sprintf("try-%s-%s-%s", chromiumHash, skiaHash, runIDNoPatch)
-	chromiumBuildWithPatch := fmt.Sprintf("try-%s-%s-%s", chromiumHash, skiaHash, runIDWithPatch)
-	runChromiumPerfCmdTemplate := "DISPLAY=:0 run_chromium_perf " +
-		"--worker_num={{.WorkerNum}} --log_dir={{.LogDir}} --log_id={{.RunID}} --pageset_type={{.PagesetType}} " +
-		"--chromium_build_nopatch={{.ChromiumBuildNoPatch}} --chromium_build_withpatch={{.ChromiumBuildWithPatch}} " +
-		"--run_id={{.RunID}} --run_id_nopatch={{.RunIDNoPatch}} --run_id_withpatch={{.RunIDWithPatch}} " +
-		"--benchmark_name={{.BenchmarkName}} --benchmark_extra_args=\"{{.BenchmarkExtraArgs}}\" " +
-		"--browser_extra_args_nopatch=\"{{.BrowserExtraArgsNoPatch}}\" --browser_extra_args_withpatch=\"{{.BrowserExtraArgsWithPatch}}\" " +
-		"--repeat_benchmark={{.RepeatBenchmark}} --run_in_parallel={{.RunInParallel}} --target_platform={{.TargetPlatform}} " +
-		"--local={{.Local}};"
-	runChromiumPerfTemplateParsed := template.Must(template.New("run_chromium_perf_cmd").Parse(runChromiumPerfCmdTemplate))
-	runChromiumPerfCmdBytes := new(bytes.Buffer)
-	if err := runChromiumPerfTemplateParsed.Execute(runChromiumPerfCmdBytes, struct {
-		WorkerNum                 string
-		LogDir                    string
-		PagesetType               string
-		ChromiumBuildNoPatch      string
-		ChromiumBuildWithPatch    string
-		RunID                     string
-		RunIDNoPatch              string
-		RunIDWithPatch            string
-		BenchmarkName             string
-		BenchmarkExtraArgs        string
-		BrowserExtraArgsNoPatch   string
-		BrowserExtraArgsWithPatch string
-		RepeatBenchmark           int
-		RunInParallel             bool
-		TargetPlatform            string
-		Local                     bool
-	}{
-		WorkerNum:              util.WORKER_NUM_KEYWORD,
-		LogDir:                 util.GLogDir,
-		PagesetType:            *pagesetType,
-		ChromiumBuildNoPatch:   chromiumBuildNoPatch,
-		ChromiumBuildWithPatch: chromiumBuildWithPatch,
-		RunID:                     *runID,
-		RunIDNoPatch:              runIDNoPatch,
-		RunIDWithPatch:            runIDWithPatch,
-		BenchmarkName:             *benchmarkName,
-		BenchmarkExtraArgs:        *benchmarkExtraArgs,
-		BrowserExtraArgsNoPatch:   *browserExtraArgsNoPatch,
-		BrowserExtraArgsWithPatch: *browserExtraArgsWithPatch,
-		RepeatBenchmark:           *repeatBenchmark,
-		RunInParallel:             *runInParallel,
-		TargetPlatform:            *targetPlatform,
-		Local:                     *master_common.Local,
-	}); err != nil {
-		glog.Errorf("Failed to execute template: %s", err)
+	if len(chromiumBuilds) != 2 {
+		glog.Errorf("Expected 2 builds but instead got %d: %v.", len(chromiumBuilds), chromiumBuilds)
 		return
 	}
-	cmd := append(master_common.WorkerSetupCmds(),
-		// The main command that runs run_chromium_perf on all workers.
-		runChromiumPerfCmdBytes.String())
-	_, err = util.SSH(strings.Join(cmd, " "), util.Slaves, util.RUN_CHROMIUM_PERF_TIMEOUT)
-	if err != nil {
-		glog.Errorf("Error while running cmd %s: %s", cmd, err)
+	chromiumBuildNoPatch := chromiumBuilds[0]
+	chromiumBuildWithPatch := chromiumBuilds[1]
+
+	// Parse out the Chromium and Skia hashes.
+	chromiumHash, skiaHash := getHashesFromBuild(chromiumBuildNoPatch)
+
+	// Archive, trigger and collect swarming tasks.
+	isolateExtraArgs := map[string]string{
+		"CHROMIUM_BUILD_NOPATCH":       chromiumBuildNoPatch,
+		"CHROMIUM_BUILD_WITHPATCH":     chromiumBuildWithPatch,
+		"RUN_ID":                       *runID,
+		"BENCHMARK":                    *benchmarkName,
+		"BENCHMARK_ARGS":               *benchmarkExtraArgs,
+		"BROWSER_EXTRA_ARGS_NOPATCH":   *browserExtraArgsNoPatch,
+		"BROWSER_EXTRA_ARGS_WITHPATCH": *browserExtraArgsWithPatch,
+		"REPEAT_BENCHMARK":             strconv.Itoa(*repeatBenchmark),
+		"RUN_IN_PARALLEL":              strconv.FormatBool(*runInParallel),
+		"TARGET_PLATFORM":              *targetPlatform,
+	}
+	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, 3*time.Hour, 1*time.Hour, MAX_PAGES_PER_SWARMING_BOT, isolateExtraArgs, util.GOLO_WORKER_DIMENSIONS); err != nil {
+		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
 
 	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
+	runIDNoPatch := fmt.Sprintf("%s-nopatch", *runID)
+	runIDWithPatch := fmt.Sprintf("%s-withpatch", *runID)
 	noOutputSlaves := []string{}
-	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
-		for _, runID := range []string{runIDNoPatch, runIDWithPatch} {
-			if noOutputSlaves, err = mergeUploadCSVFiles(runID, gs); err != nil {
-				glog.Errorf("Unable to merge and upload CSV files for %s: %s", runID, err)
+	pathToPyFiles := util.GetPathToPyFiles(false)
+	for _, run := range []string{runIDNoPatch, runIDWithPatch} {
+		if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
+			if noOutputSlaves, err = util.MergeUploadCSVFiles(run, pathToPyFiles, gs, util.PagesetTypeToInfo[*pagesetType].NumPages, MAX_PAGES_PER_SWARMING_BOT); err != nil {
+				glog.Errorf("Unable to merge and upload CSV files for %s: %s", run, err)
 			}
 		}
 	}
@@ -264,10 +225,6 @@ func main() {
 	noPatchOutputLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, util.BenchmarkRunsDir, runIDNoPatch, "consolidated_outputs", runIDNoPatch+".output")
 	withPatchOutputLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, util.BenchmarkRunsDir, runIDWithPatch, "consolidated_outputs", runIDWithPatch+".output")
 	// Construct path to the csv_comparer python script.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToPyFiles := filepath.Join(
-		filepath.Dir((filepath.Dir(filepath.Dir(filepath.Dir(currentFile))))),
-		"py")
 	pathToCsvComparer := filepath.Join(pathToPyFiles, "csv_comparer.py")
 	args := []string{
 		pathToCsvComparer,
@@ -309,62 +266,8 @@ func main() {
 	taskCompletedSuccessfully = true
 }
 
-func mergeUploadCSVFiles(runID string, gs *util.GsUtil) ([]string, error) {
-	localOutputDir := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runID)
-	skutil.MkdirAll(localOutputDir, 0700)
-	noOutputSlaves := []string{}
-	// Copy outputs from all slaves locally.
-	for i := 0; i < util.NumWorkers(); i++ {
-		workerNum := i + 1
-		workerLocalOutputPath := filepath.Join(localOutputDir, fmt.Sprintf("slave%d", workerNum)+".csv")
-		workerRemoteOutputPath := filepath.Join(util.BenchmarkRunsDir, runID, fmt.Sprintf("slave%d", workerNum), "outputs", runID+".output")
-		respBody, err := gs.GetRemoteFileContents(workerRemoteOutputPath)
-		if err != nil {
-			glog.Errorf("Could not fetch %s: %s", workerRemoteOutputPath, err)
-			noOutputSlaves = append(noOutputSlaves, fmt.Sprintf(util.WORKER_NAME_TEMPLATE, workerNum))
-			continue
-		}
-		defer skutil.Close(respBody)
-		out, err := os.Create(workerLocalOutputPath)
-		if err != nil {
-			return noOutputSlaves, fmt.Errorf("Unable to create file %s: %s", workerLocalOutputPath, err)
-		}
-		defer skutil.Close(out)
-		defer skutil.Remove(workerLocalOutputPath)
-		if _, err = io.Copy(out, respBody); err != nil {
-			return noOutputSlaves, fmt.Errorf("Unable to copy to file %s: %s", workerLocalOutputPath, err)
-		}
-		// If an output is less than 20 bytes that means something went wrong on the slave.
-		outputInfo, err := out.Stat()
-		if err != nil {
-			return noOutputSlaves, fmt.Errorf("Unable to stat file %s: %s", workerLocalOutputPath, err)
-		}
-		if outputInfo.Size() <= 20 {
-			glog.Errorf("Output file was less than 20 bytes %s: %s", workerLocalOutputPath, err)
-			noOutputSlaves = append(noOutputSlaves, fmt.Sprintf(util.WORKER_NAME_TEMPLATE, workerNum))
-			continue
-		}
-	}
-	// Call csv_merger.py to merge all results into a single results CSV.
-	_, currentFile, _, _ := runtime.Caller(0)
-	pathToPyFiles := filepath.Join(
-		filepath.Dir((filepath.Dir(filepath.Dir(filepath.Dir(currentFile))))),
-		"py")
-	pathToCsvMerger := filepath.Join(pathToPyFiles, "csv_merger.py")
-	outputFileName := runID + ".output"
-	args := []string{
-		pathToCsvMerger,
-		"--csv_dir=" + localOutputDir,
-		"--output_csv_name=" + filepath.Join(localOutputDir, outputFileName),
-	}
-	err := util.ExecuteCmd("python", args, []string{}, util.CSV_MERGER_TIMEOUT, nil, nil)
-	if err != nil {
-		return noOutputSlaves, fmt.Errorf("Error running csv_merger.py: %s", err)
-	}
-	// Copy the output file to Google Storage.
-	remoteOutputDir := filepath.Join(util.BenchmarkRunsDir, runID, "consolidated_outputs")
-	if err := gs.UploadFile(outputFileName, localOutputDir, remoteOutputDir); err != nil {
-		return noOutputSlaves, fmt.Errorf("Unable to upload %s to %s: %s", outputFileName, remoteOutputDir, err)
-	}
-	return noOutputSlaves, nil
+// getHashesFromBuild returns the Chromium and Skia hashes from a CT build string.
+func getHashesFromBuild(chromiumBuild string) (string, string) {
+	tokens := strings.Split(chromiumBuild, "-")
+	return tokens[1], tokens[2]
 }

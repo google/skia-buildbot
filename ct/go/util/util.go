@@ -402,7 +402,7 @@ func GetStartRange(workerNum, artifactsPerWorker int) int {
 	return ((workerNum - 1) * artifactsPerWorker) + 1
 }
 
-func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName string, hardTimeout, ioTimeout time.Duration, maxPagesPerBot int, isolateExtraArgs map[string]string) error {
+func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName string, hardTimeout, ioTimeout time.Duration, maxPagesPerBot int, isolateExtraArgs, dimensions map[string]string) error {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	if err != nil {
@@ -445,7 +445,6 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName string, hardTimeou
 		return fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
 	}
 	// Trigger swarming using the isolate hashes.
-	dimensions := map[string]string{"pool": SWARMING_POOL, "cores": strconv.Itoa(2)}
 	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, swarming.RECOMMENDED_PRIORITY, swarming.RECOMMENDED_EXPIRATION, hardTimeout, ioTimeout, false)
 	if err != nil {
 		return fmt.Errorf("Could not trigger swarming task: %s", err)
@@ -721,9 +720,11 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 		return nil, fmt.Errorf("Could not batch archive target: %s", err)
 	}
 	// Trigger swarming using the isolate hash.
-	dimensions := map[string]string{
-		"pool":  SWARMING_POOL,
-		"cores": strconv.Itoa(32),
+	var dimensions map[string]string
+	if targetPlatform == "Android" {
+		dimensions = GCE_ANDROID_BUILDER_DIMENSIONS
+	} else {
+		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
 	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, swarming.RECOMMENDED_PRIORITY, swarming.RECOMMENDED_EXPIRATION, hardTimeout, ioTimeout, false)
 	if err != nil {
