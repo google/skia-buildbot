@@ -380,39 +380,6 @@ func TestUpdateWebappTaskSetFailedFailure(t *testing.T) {
 	assert.Equal(t, 1, reqCount)
 }
 
-func TestDoWorkerHealthCheck(t *testing.T) {
-	mockExec := exec.CommandCollector{}
-	exec.SetRunForTesting(mockExec.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	doWorkerHealthCheck()
-	// Expect three commands: git pull; make all; check_workers_health --log_dir=/b/storage/glog
-	commands := mockExec.Commands()
-	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
-	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "check_workers_health --log_dir=/b/storage/glog --local=false",
-		exec.DebugString(commands[2]))
-}
-
-// Test that an error executing check_workers_health does not bubble up.
-func TestDoWorkerHealthCheckError(t *testing.T) {
-	commandCollector := exec.CommandCollector{}
-	mockRun := exec.MockRun{}
-	commandCollector.SetDelegateRun(mockRun.Run)
-	exec.SetRunForTesting(commandCollector.Run)
-	defer exec.SetRunForTesting(exec.DefaultRun)
-	mockRun.AddRule("check_workers_health", fmt.Errorf("I'm not a doctor."))
-	// Expect error to be logged and ignored.
-	doWorkerHealthCheck()
-	// Expect three commands: git pull; make all; check_workers_health --log_dir=/b/storage/glog
-	commands := commandCollector.Commands()
-	assert.Len(t, commands, 3)
-	expect.Equal(t, "git pull", exec.DebugString(commands[0]))
-	expect.Equal(t, "make all", exec.DebugString(commands[1]))
-	expect.Equal(t, "check_workers_health --log_dir=/b/storage/glog --local=false",
-		exec.DebugString(commands[2]))
-}
-
 func TestPollAndExecOnce(t *testing.T) {
 	task := pendingRecreateWebpageArchivesTask()
 	mockServer := frontend.MockServer{}

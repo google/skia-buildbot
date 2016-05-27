@@ -40,10 +40,6 @@ include ../webtools/webtools.mk
 run_command:
 	go install -v ./go/master_scripts/run_command/
 
-.PHONY: check_workers_health
-check_workers_health:
-	go install -v ./go/master_scripts/check_workers_health/
-
 .PHONY: build_chromium
 build_chromium:
 	go install -v ./go/master_scripts/build_chromium/
@@ -123,7 +119,7 @@ test:
 	go test ./go/...
 
 .PHONY: master_scripts
-master_scripts: run_command check_workers_health build_chromium \
+master_scripts: run_command build_chromium \
 	create_pagesets_on_workers capture_archives_on_workers \
 	run_lua_on_workers capture_skps_on_workers \
 	run_chromium_perf_on_workers logserver_proxy poller \

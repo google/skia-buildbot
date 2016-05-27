@@ -239,8 +239,8 @@ find `influxdb_name` in
 [GCE metadata](https://pantheon.corp.google.com/project/31977622648/compute/metadata).
 
 To stop the poller safely, check that the CTFE task queue is empty and check
-with `pstree <PID of poller>` to verify that there are no master scripts or
-check_workers_health currently running, then kill the poller process.
+with `pstree <PID of poller>` to verify that there are no master scripts
+running, then kill the poller process.
 
 As mentioned above, changes to master scripts and worker scripts will be picked
 up for the next task execution after the change is committed.

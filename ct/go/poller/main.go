@@ -36,13 +36,12 @@ import (
 
 // flags
 var (
-	dryRun                    = flag.Bool("dry_run", false, "If true, just log the commands that would be executed; don't actually execute the commands. Still polls CTFE for pending tasks, but does not post updates.")
-	influxHost                = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
-	influxUser                = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
-	influxPassword            = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
-	influxDatabase            = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
-	pollInterval              = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
-	workerHealthCheckInterval = flag.Duration("worker_health_check_interval", 30*time.Minute, "How often to check worker health.")
+	dryRun         = flag.Bool("dry_run", false, "If true, just log the commands that would be executed; don't actually execute the commands. Still polls CTFE for pending tasks, but does not post updates.")
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+	pollInterval   = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
 	// Value of --log_dir flag to pass to subcommands. Will be set in main.
 	logDir = "/b/storage/glog"
 )
@@ -59,7 +58,7 @@ const (
 	CHROMIUM_BUILD
 	RECREATE_PAGE_SETS
 	RECREATE_WEBPAGE_ARCHIVES
-	CHECK_WORKER_HEALTH
+	_
 	POLL
 )
 
@@ -81,8 +80,6 @@ func (t TaskType) String() string {
 		return "RECREATE_PAGE_SETS"
 	case RECREATE_WEBPAGE_ARCHIVES:
 		return "RECREATE_WEBPAGE_ARCHIVES"
-	case CHECK_WORKER_HEALTH:
-		return "CHECK_WORKER_HEALTH"
 	case POLL:
 		return "POLL"
 	default:
@@ -213,8 +210,6 @@ func (h *heartbeatStatusTracker) StartMetrics() {
 				expectedDuration = ctutil.MASTER_SCRIPT_CREATE_PAGESETS_TIMEOUT
 			case RECREATE_WEBPAGE_ARCHIVES:
 				expectedDuration = ctutil.MASTER_SCRIPT_CAPTURE_ARCHIVES_TIMEOUT
-			case CHECK_WORKER_HEALTH:
-				expectedDuration = ctutil.CHECK_WORKERS_HEALTH_TIMEOUT
 			}
 			// Provide a bit of head room.
 			expectedDuration += 2 * time.Minute
@@ -524,33 +519,6 @@ func updateWebappTaskSetFailed(task Task) error {
 	return frontend.UpdateWebappTaskV2(updateVars)
 }
 
-func checkWorkerHealth() error {
-	token := statusTracker.StartTask(CHECK_WORKER_HEALTH)
-	err := exec.Run(&exec.Command{
-		Name: "check_workers_health",
-		Args: []string{
-			"--log_dir=" + logDir,
-			fmt.Sprintf("--local=%t", *master_common.Local),
-		},
-		Timeout: ctutil.CHECK_WORKERS_HEALTH_TIMEOUT,
-	})
-	statusTracker.FinishTask(token, err)
-	return err
-}
-
-func doWorkerHealthCheck() {
-	glog.Infof("Preparing for worker health check")
-	if err := updateAndBuild(); err != nil {
-		glog.Errorf("Worker health check failed: %v", err)
-		return
-	}
-	if err := checkWorkerHealth(); err != nil {
-		glog.Errorf("Worker health check failed: %v", err)
-		return
-	}
-	glog.Infof("Completed worker health check")
-}
-
 func pollAndExecOnce() {
 	token := statusTracker.StartTask(POLL)
 	pending, err := frontend.GetOldestPendingTaskV2()
@@ -599,16 +567,9 @@ func main() {
 
 	statusTracker.(*heartbeatStatusTracker).StartMetrics()
 
-	workerHealthTick := time.Tick(*workerHealthCheckInterval)
-	pollTick := time.Tick(*pollInterval)
 	// Run immediately, since pollTick will not fire until after pollInterval.
 	pollAndExecOnce()
-	for {
-		select {
-		case <-workerHealthTick:
-			doWorkerHealthCheck()
-		case <-pollTick:
-			pollAndExecOnce()
-		}
+	for _ = range time.Tick(*pollInterval) {
+		pollAndExecOnce()
 	}
 }
