@@ -48,6 +48,10 @@ var (
 	logDir = "/b/storage/glog"
 	// Mutex that controls updating and building of the local checkout.
 	repoMtx = sync.Mutex{}
+	// Map that holds all picked up tasks. Used to ensure same task is not picked up more than once.
+	pickedUpTasks = map[string]string{}
+	// Mutex that controls access to the above map.
+	tasksMtx = sync.Mutex{}
 )
 
 // Enum of states that the poller could be in. Satisfies the fmt.Stringer interface.
@@ -370,7 +374,18 @@ func pollAndExecOnce() *sync.WaitGroup {
 	if task == nil {
 		return &wg
 	}
+
 	taskName, id := task.GetTaskName(), task.GetCommonCols().Id
+	tasksMtx.Lock()
+	_, exists := pickedUpTasks[fmt.Sprintf("%s.%d", taskName, id)]
+	tasksMtx.Unlock()
+	if exists {
+		return &wg
+	}
+	tasksMtx.Lock()
+	pickedUpTasks[fmt.Sprintf("%s.%d", taskName, id)] = "1"
+	tasksMtx.Unlock()
+
 	glog.Infof("Preparing to execute task %s %d", taskName, id)
 	if err = updateAndBuild(); err != nil {
 		glog.Error(err)
@@ -392,6 +407,9 @@ func pollAndExecOnce() *sync.WaitGroup {
 				}
 			}
 		}
+		tasksMtx.Lock()
+		delete(pickedUpTasks, fmt.Sprintf("%s.%d", taskName, id))
+		tasksMtx.Unlock()
 	}()
 	// Return the WaitGroup to allow some callers to call wg.Wait()
 	return &wg
