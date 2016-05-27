@@ -1,6 +1,8 @@
 /*
 	The Cluster Telemetry poller checks for new pending tasks by polling the Cluster Telemetry
-	frontend. Tasks are executed serially.
+	frontend. Pending tasks are picked up according to the order they were added to CTFE.
+	When picked up, tasks are immediately executed. There could be multiple tasks running at the
+	same time.
 */
 
 package main
@@ -44,6 +46,8 @@ var (
 	pollInterval   = flag.Duration("poll_interval", 30*time.Second, "How often to poll CTFE for new pending tasks.")
 	// Value of --log_dir flag to pass to subcommands. Will be set in main.
 	logDir = "/b/storage/glog"
+	// Mutex that controls updating and building of the local checkout.
+	repoMtx = sync.Mutex{}
 )
 
 // Enum of states that the poller could be in. Satisfies the fmt.Stringer interface.
@@ -87,158 +91,10 @@ func (t TaskType) String() string {
 	}
 }
 
-// StatusTracker expects callers to pass this opaque token back to FinishTask.
-type StatusTrackerToken interface{}
-
-// Tracks what the poller is currently doing. Goroutine-safe.
-type StatusTracker interface {
-	// Indicates the current goroutine is entering the given state.
-	StartTask(t TaskType) StatusTrackerToken
-	// Exits the state entered with StartTask. err is nil if no error occurred.
-	FinishTask(token StatusTrackerToken, err error)
-}
-
-// Implements StatusTracker and provides metrics for monitoring. Assumes a single goroutine
-// executes all tasks.
-type heartbeatStatusTracker struct {
-	// Protects the remaining fields.
-	mu sync.Mutex
-	// Time of last call to StartTask or FinishTask.
-	lastUpdateLiveness *metrics2.Liveness
-	// State of the main goroutine.
-	currentStatus TaskType
-	// Updated with the value of currentStatus for monitoring.
-	currentStatusGauge *metrics2.Int64Metric
-	// Reports the duration of each type of task.
-	taskDurations map[TaskType]*metrics2.Timer
-	// Tracks the time of the last successful completion.
-	lastSuccessLiveness map[TaskType]*metrics2.Liveness
-	// Tracks the time of the last failure.
-	lastFailureLiveness map[TaskType]*metrics2.Liveness
-	// Stores any errors encountered in StartTask or FinishTask.
-	errs []error
-}
-
-func NewHeartbeatStatusTracker() StatusTracker {
-	h := &heartbeatStatusTracker{}
-	h.currentStatusGauge = metrics2.GetInt64Metric("current-status")
-	h.taskDurations = make(map[TaskType]*metrics2.Timer)
-	for t := UPDATE_AND_BUILD; t <= POLL; t++ {
-		h.taskDurations[t] = metrics2.NewTimer("duration", map[string]string{"task": t.String()})
-	}
-	h.lastUpdateLiveness = metrics2.NewLiveness("last-update")
-	h.lastSuccessLiveness = make(map[TaskType]*metrics2.Liveness)
-	h.lastFailureLiveness = make(map[TaskType]*metrics2.Liveness)
-	for t := UPDATE_AND_BUILD; t <= POLL; t++ {
-		h.lastSuccessLiveness[t] = metrics2.NewLiveness("last-success", map[string]string{"task": t.String()})
-		h.lastFailureLiveness[t] = metrics2.NewLiveness("last-failure", map[string]string{"task": t.String()})
-	}
-	return h
-}
-
-func (h *heartbeatStatusTracker) StartTask(t TaskType) StatusTrackerToken {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	if t == IDLE {
-		h.errs = append(h.errs, fmt.Errorf("StartTask called with IDLE."))
-		return nil
-	}
-	if h.currentStatus != IDLE {
-		h.errs = append(h.errs, fmt.Errorf("StartTask called with %s when currentTask is %s.", t, h.currentStatus))
-		return nil
-	}
-	h.currentStatus = t
-	h.currentStatusGauge.Update(int64(h.currentStatus))
-	h.lastUpdateLiveness.Reset()
-	h.taskDurations[t].Start()
-	return t
-}
-
-func (h *heartbeatStatusTracker) FinishTask(token StatusTrackerToken, err error) {
-	t, ok := token.(TaskType)
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	if ok {
-		if t == IDLE {
-			h.errs = append(h.errs, fmt.Errorf("FinishTask got IDLE."))
-		} else if t != h.currentStatus {
-			h.errs = append(h.errs, fmt.Errorf("FinishTask called with %s but currentStatus is %s.", t, h.currentStatus))
-		} else {
-			h.taskDurations[t].Stop()
-			if err == nil {
-				h.lastSuccessLiveness[t].Reset()
-			} else {
-				h.lastFailureLiveness[t].Reset()
-			}
-		}
-	} else if token != nil {
-		h.errs = append(h.errs, fmt.Errorf("Expected argument to FinishTask to be TaskType, instead got %T: %#v", token, token))
-	}
-	h.currentStatus = IDLE
-	h.currentStatusGauge.Update(int64(IDLE))
-	h.lastUpdateLiveness.Reset()
-}
-
-// StartMetrics registers metrics which indicate the poller is running
-// healthily and starts a goroutine to update them periodically.
-func (h *heartbeatStatusTracker) StartMetrics() {
-	healthyGauge := metrics2.GetInt64Metric("healthy")
-	go func() {
-		for _ = range time.Tick(common.SAMPLE_PERIOD) {
-			h.mu.Lock()
-			currentStatus := h.currentStatus
-			errs := h.errs
-			h.errs = nil
-			h.mu.Unlock()
-			expectPoll := false
-			var expectedDuration time.Duration = 0
-			switch currentStatus {
-			case IDLE, POLL:
-				expectPoll = true
-				expectedDuration = *pollInterval
-			case UPDATE_AND_BUILD:
-				expectedDuration = ctutil.GIT_PULL_TIMEOUT + ctutil.MAKE_ALL_TIMEOUT
-			case CHROMIUM_PERF:
-				expectedDuration = ctutil.MASTER_SCRIPT_RUN_CHROMIUM_PERF_TIMEOUT
-			case CAPTURE_SKPS:
-				expectedDuration = ctutil.MASTER_SCRIPT_CAPTURE_SKPS_TIMEOUT
-			case LUA_SCRIPT:
-				expectedDuration = ctutil.MASTER_SCRIPT_RUN_LUA_TIMEOUT
-			case CHROMIUM_BUILD:
-				expectedDuration = ctutil.MASTER_SCRIPT_BUILD_CHROMIUM_TIMEOUT
-			case RECREATE_PAGE_SETS:
-				expectedDuration = ctutil.MASTER_SCRIPT_CREATE_PAGESETS_TIMEOUT
-			case RECREATE_WEBPAGE_ARCHIVES:
-				expectedDuration = ctutil.MASTER_SCRIPT_CAPTURE_ARCHIVES_TIMEOUT
-			}
-			// Provide a bit of head room.
-			expectedDuration += 2 * time.Minute
-
-			lastSuccessfulPoll := time.Duration(h.lastSuccessLiveness[POLL].Get()) * time.Second
-			if expectPoll && lastSuccessfulPoll > 2*time.Minute {
-				errs = append(errs, fmt.Errorf("Last successful poll was %s ago.", lastSuccessfulPoll))
-			}
-			timeSinceLastUpdate := time.Duration(h.lastUpdateLiveness.Get()) * time.Second
-			if timeSinceLastUpdate > expectedDuration {
-				errs = append(errs, fmt.Errorf("Task %s has not finished after %s.", currentStatus, timeSinceLastUpdate))
-			}
-			if len(errs) > 0 {
-				for _, err := range errs {
-					glog.Error(err)
-				}
-				healthyGauge.Update(0)
-			} else {
-				healthyGauge.Update(1)
-			}
-		}
-	}()
-}
-
-var statusTracker StatusTracker = NewHeartbeatStatusTracker()
-
 // Runs "git pull; make all".
 func updateAndBuild() error {
-	token := statusTracker.StartTask(UPDATE_AND_BUILD)
+	repoMtx.Lock()
+	defer repoMtx.Unlock()
 	makefilePath := ctutil.CtTreeDir
 
 	// TODO(benjaminwagner): Should this also do 'go get -u ...' and/or 'gclient sync'?
@@ -251,10 +107,9 @@ func updateAndBuild() error {
 		LogStderr: true,
 	})
 	if err != nil {
-		statusTracker.FinishTask(token, err)
 		return err
 	}
-	err = exec.Run(&exec.Command{
+	return exec.Run(&exec.Command{
 		Name:      "make",
 		Args:      []string{"all"},
 		Dir:       makefilePath,
@@ -262,8 +117,6 @@ func updateAndBuild() error {
 		LogStdout: true,
 		LogStderr: true,
 	})
-	statusTracker.FinishTask(token, err)
-	return err
 }
 
 // Specifies the methods that poll requires for each type of task.
@@ -292,7 +145,6 @@ type ChromiumPerfTask struct {
 }
 
 func (task *ChromiumPerfTask) Execute() error {
-	token := statusTracker.StartTask(CHROMIUM_PERF)
 	runId := runId(task)
 	// TODO(benjaminwagner): Since run_chromium_perf_on_workers only reads these in order to
 	// upload to Google Storage, eventually we should move the upload step here to avoid writing
@@ -311,7 +163,7 @@ func (task *ChromiumPerfTask) Execute() error {
 		}
 		defer skutil.Remove(patchPath)
 	}
-	err := exec.Run(&exec.Command{
+	return exec.Run(&exec.Command{
 		Name: "run_chromium_perf_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -332,8 +184,6 @@ func (task *ChromiumPerfTask) Execute() error {
 		},
 		Timeout: ctutil.MASTER_SCRIPT_RUN_CHROMIUM_PERF_TIMEOUT,
 	})
-	statusTracker.FinishTask(token, err)
-	return err
 }
 
 // Define frontend.CaptureSkpsDBTask here so we can add methods.
@@ -342,10 +192,9 @@ type CaptureSkpsTask struct {
 }
 
 func (task *CaptureSkpsTask) Execute() error {
-	token := statusTracker.StartTask(CAPTURE_SKPS)
 	runId := runId(task)
 	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
-	err := exec.Run(&exec.Command{
+	return exec.Run(&exec.Command{
 		Name: "capture_skps_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -361,8 +210,6 @@ func (task *CaptureSkpsTask) Execute() error {
 		},
 		Timeout: ctutil.MASTER_SCRIPT_CAPTURE_SKPS_TIMEOUT,
 	})
-	statusTracker.FinishTask(token, err)
-	return err
 }
 
 // Define frontend.LuaScriptDBTask here so we can add methods.
@@ -371,7 +218,6 @@ type LuaScriptTask struct {
 }
 
 func (task *LuaScriptTask) Execute() error {
-	token := statusTracker.StartTask(LUA_SCRIPT)
 	runId := runId(task)
 	chromiumBuildDir := ctutil.ChromiumBuildDir(task.ChromiumRev, task.SkiaRev, "")
 	// TODO(benjaminwagner): Since run_lua_on_workers only reads the lua script in order to
@@ -391,7 +237,7 @@ func (task *LuaScriptTask) Execute() error {
 		}
 		defer skutil.Remove(luaAggregatorPath)
 	}
-	err := exec.Run(&exec.Command{
+	return exec.Run(&exec.Command{
 		Name: "run_lua_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -406,8 +252,6 @@ func (task *LuaScriptTask) Execute() error {
 		},
 		Timeout: ctutil.MASTER_SCRIPT_RUN_LUA_TIMEOUT,
 	})
-	statusTracker.FinishTask(token, err)
-	return err
 }
 
 // Define frontend.ChromiumBuildDBTask here so we can add methods.
@@ -416,9 +260,8 @@ type ChromiumBuildTask struct {
 }
 
 func (task *ChromiumBuildTask) Execute() error {
-	token := statusTracker.StartTask(CHROMIUM_BUILD)
 	runId := runId(task)
-	err := exec.Run(&exec.Command{
+	return exec.Run(&exec.Command{
 		Name: "build_chromium",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -433,8 +276,6 @@ func (task *ChromiumBuildTask) Execute() error {
 		},
 		Timeout: ctutil.MASTER_SCRIPT_BUILD_CHROMIUM_TIMEOUT,
 	})
-	statusTracker.FinishTask(token, err)
-	return err
 }
 
 // Define frontend.RecreatePageSetsDBTask here so we can add methods.
@@ -443,9 +284,8 @@ type RecreatePageSetsTask struct {
 }
 
 func (task *RecreatePageSetsTask) Execute() error {
-	token := statusTracker.StartTask(RECREATE_PAGE_SETS)
 	runId := runId(task)
-	err := exec.Run(&exec.Command{
+	return exec.Run(&exec.Command{
 		Name: "create_pagesets_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -458,8 +298,6 @@ func (task *RecreatePageSetsTask) Execute() error {
 		},
 		Timeout: ctutil.MASTER_SCRIPT_CREATE_PAGESETS_TIMEOUT,
 	})
-	statusTracker.FinishTask(token, err)
-	return err
 }
 
 // Define frontend.RecreateWebpageArchivesDBTask here so we can add methods.
@@ -468,9 +306,8 @@ type RecreateWebpageArchivesTask struct {
 }
 
 func (task *RecreateWebpageArchivesTask) Execute() error {
-	token := statusTracker.StartTask(RECREATE_WEBPAGE_ARCHIVES)
 	runId := runId(task)
-	err := exec.Run(&exec.Command{
+	return exec.Run(&exec.Command{
 		Name: "capture_archives_on_workers",
 		Args: []string{
 			"--emails=" + task.Username,
@@ -483,8 +320,6 @@ func (task *RecreateWebpageArchivesTask) Execute() error {
 		},
 		Timeout: ctutil.MASTER_SCRIPT_CAPTURE_ARCHIVES_TIMEOUT,
 	})
-	statusTracker.FinishTask(token, err)
-	return err
 }
 
 // Returns a poller Task containing the given task_common.Task, or nil if otherTask is nil.
@@ -519,35 +354,47 @@ func updateWebappTaskSetFailed(task Task) error {
 	return frontend.UpdateWebappTaskV2(updateVars)
 }
 
-func pollAndExecOnce() {
-	token := statusTracker.StartTask(POLL)
+// pollAndExecOnce looks for the oldest pending task in CTFE. If one is found, then
+// the local checkout is synced and built, and the picked up task is started in a
+// go routine. The function returns without waiting for the task to finish and the
+// WaitGroup of the goroutine is returned to the caller. The caller can then call
+// wg.Wait() if they would like to wait for the task to finish.
+func pollAndExecOnce() *sync.WaitGroup {
 	pending, err := frontend.GetOldestPendingTaskV2()
-	statusTracker.FinishTask(token, err)
+	var wg sync.WaitGroup
 	if err != nil {
 		glog.Error(err)
-		return
+		return &wg
 	}
 	task := asPollerTask(pending)
 	if task == nil {
-		return
+		return &wg
 	}
 	taskName, id := task.GetTaskName(), task.GetCommonCols().Id
 	glog.Infof("Preparing to execute task %s %d", taskName, id)
 	if err = updateAndBuild(); err != nil {
 		glog.Error(err)
-		return
+		return &wg
 	}
 	glog.Infof("Executing task %s %d", taskName, id)
-	if err = task.Execute(); err == nil {
-		glog.Infof("Completed task %s %d", taskName, id)
-	} else {
-		glog.Errorf("Task %s %d failed: %v", taskName, id, err)
-		if !*dryRun {
-			if err := updateWebappTaskSetFailed(task); err != nil {
-				glog.Error(err)
+	// Increment the WaitGroup counter.
+	wg.Add(1)
+	go func() {
+		// Decrement the counter when the goroutine completes.
+		defer wg.Done()
+		if err = task.Execute(); err == nil {
+			glog.Infof("Completed task %s %d", taskName, id)
+		} else {
+			glog.Errorf("Task %s %d failed: %v", taskName, id, err)
+			if !*dryRun {
+				if err := updateWebappTaskSetFailed(task); err != nil {
+					glog.Error(err)
+				}
 			}
 		}
-	}
+	}()
+	// Return the WaitGroup to allow some callers to call wg.Wait()
+	return &wg
 }
 
 func main() {
@@ -565,11 +412,13 @@ func main() {
 		})
 	}
 
-	statusTracker.(*heartbeatStatusTracker).StartMetrics()
+	healthyGauge := metrics2.GetInt64Metric("healthy")
 
 	// Run immediately, since pollTick will not fire until after pollInterval.
 	pollAndExecOnce()
 	for _ = range time.Tick(*pollInterval) {
+		healthyGauge.Update(1)
 		pollAndExecOnce()
+
 	}
 }

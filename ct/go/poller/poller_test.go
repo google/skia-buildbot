@@ -388,7 +388,8 @@ func TestPollAndExecOnce(t *testing.T) {
 	mockExec := exec.CommandCollector{}
 	exec.SetRunForTesting(mockExec.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
-	pollAndExecOnce()
+	wg := pollAndExecOnce()
+	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
 	// Expect three commands: git pull; make all; capture_archives_on_workers ...
@@ -411,14 +412,16 @@ func TestPollAndExecOnceMultipleTasks(t *testing.T) {
 	exec.SetRunForTesting(mockExec.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 	// Poll frontend and execute the first task.
-	pollAndExecOnce()
+	wg1 := pollAndExecOnce()
 	// Update current task.
 	task2 := pendingChromiumPerfTask()
 	mockServer.SetCurrentTask(&task2.DBTask)
 	// Poll frontend and execute the second task.
-	pollAndExecOnce()
+	wg2 := pollAndExecOnce()
 
 	// Expect two pending task requests.
+	wg1.Wait()
+	wg2.Wait()
 	expect.Equal(t, 2, mockServer.OldestPendingTaskReqCount())
 	// Expect six commands: git pull; make all; capture_archives_on_workers ...; git pull;
 	// make all; run_chromium_perf_on_workers ...
@@ -445,7 +448,8 @@ func TestPollAndExecOnceError(t *testing.T) {
 	exec.SetRunForTesting(commandCollector.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 	mockRun.AddRule("capture_archives_on_workers", fmt.Errorf("workers too lazy"))
-	pollAndExecOnce()
+	wg := pollAndExecOnce()
+	wg.Wait()
 	// Expect only one poll.
 	expect.Equal(t, 1, mockServer.OldestPendingTaskReqCount())
 	// Expect three commands: git pull; make all; capture_archives_on_workers ...
@@ -475,10 +479,13 @@ func TestPollAndExecOnceNoTasks(t *testing.T) {
 	exec.SetRunForTesting(mockExec.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 	// Poll frontend, no tasks.
-	pollAndExecOnce()
-	pollAndExecOnce()
-	pollAndExecOnce()
+	wg1 := pollAndExecOnce()
+	wg2 := pollAndExecOnce()
+	wg3 := pollAndExecOnce()
 	// Expect three polls.
+	wg1.Wait()
+	wg2.Wait()
+	wg3.Wait()
 	expect.Equal(t, 3, mockServer.OldestPendingTaskReqCount())
 	// Expect no commands.
 	expect.Empty(t, mockExec.Commands())

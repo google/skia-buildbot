@@ -54,7 +54,7 @@ func runsHistoryView(w http.ResponseWriter, r *http.Request) {
 func GetOldestPendingTask() (task_common.Task, error) {
 	var oldestTask task_common.Task
 	for _, task := range task_types.Prototypes() {
-		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_completed IS NULL ORDER BY ts_added LIMIT 1;", task.TableName())
+		query := fmt.Sprintf("SELECT * FROM %s WHERE ts_started IS NULL ORDER BY ts_added LIMIT 1;", task.TableName())
 		if err := db.DB.Get(task, query); err == sql.ErrNoRows {
 			continue
 		} else if err != nil {
