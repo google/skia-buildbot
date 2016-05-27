@@ -402,7 +402,7 @@ func GetStartRange(workerNum, artifactsPerWorker int) int {
 	return ((workerNum - 1) * artifactsPerWorker) + 1
 }
 
-func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName string, hardTimeout, ioTimeout time.Duration, maxPagesPerBot int, isolateExtraArgs, dimensions map[string]string) error {
+func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, maxPagesPerBot int, isolateExtraArgs, dimensions map[string]string) error {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	if err != nil {
@@ -445,7 +445,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName string, hardTimeou
 		return fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
 	}
 	// Trigger swarming using the isolate hashes.
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false)
 	if err != nil {
 		return fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -726,7 +726,7 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	} else {
 		dimensions = GCE_LINUX_BUILDER_DIMENSIONS
 	}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false)
 	if err != nil {
 		return nil, fmt.Errorf("Could not trigger swarming task: %s", err)
 	}

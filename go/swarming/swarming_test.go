@@ -106,7 +106,8 @@ func E2E_Success(t *testing.T) {
 
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false)
+	tags := map[string]string{"testing": "123"}
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false)
 	assert.NoError(t, err)
 
 	// Collect both output and file output of all tasks.
@@ -115,6 +116,7 @@ func E2E_Success(t *testing.T) {
 		assert.NoError(t, err)
 		output = sanitizeOutput(output)
 		assert.Equal(t, fmt.Sprintf("arg_1_%s\narg_2_%s\n", task.Title, task.Title), output)
+		assert.Equal(t, tags, task.Tags)
 		// Verify contents of the outputDir.
 		rawFileOutput, err := ioutil.ReadFile(path.Join(outputDir, "output.txt"))
 		assert.NoError(t, err)
@@ -168,11 +170,13 @@ func E2E_OneFailure(t *testing.T) {
 
 	// Trigger swarming using the isolate hashes.
 	dimensions := map[string]string{"pool": "Chrome"}
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false)
+	tags := map[string]string{"testing": "123"}
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, tags, RECOMMENDED_PRIORITY, RECOMMENDED_EXPIRATION, RECOMMENDED_HARD_TIMEOUT, RECOMMENDED_IO_TIMEOUT, false)
 	assert.NoError(t, err)
 
 	// Collect testTask1. It should have failed.
 	output1, outputDir1, err1 := tasks[0].Collect(s)
+	assert.Equal(t, tags, tasks[0].Tags)
 	output1 = sanitizeOutput(output1)
 	assert.Equal(t, "", output1)
 	assert.Equal(t, "", outputDir1)
@@ -182,6 +186,7 @@ func E2E_OneFailure(t *testing.T) {
 	// Collect testTask2. It should have succeeded.
 	output2, outputDir2, err2 := tasks[1].Collect(s)
 	assert.NoError(t, err2)
+	assert.Equal(t, tags, tasks[1].Tags)
 	output2 = sanitizeOutput(output2)
 	assert.Equal(t, fmt.Sprintf("arg_1_%s\narg_2_%s\n", tasks[1].Title, tasks[1].Title), output2)
 	// Verify contents of the outputDir.

@@ -196,7 +196,7 @@ func main() {
 		"RUN_IN_PARALLEL":              strconv.FormatBool(*runInParallel),
 		"TARGET_PLATFORM":              *targetPlatform,
 	}
-	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, 12*time.Hour, 1*time.Hour, MAX_PAGES_PER_SWARMING_BOT, isolateExtraArgs, util.GOLO_WORKER_DIMENSIONS); err != nil {
+	if err := util.TriggerSwarmingTask(*pagesetType, "chromium_perf", util.CHROMIUM_PERF_ISOLATE, *runID, 12*time.Hour, 1*time.Hour, MAX_PAGES_PER_SWARMING_BOT, isolateExtraArgs, util.GOLO_WORKER_DIMENSIONS); err != nil {
 		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

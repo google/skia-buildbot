@@ -41,6 +41,7 @@ type SwarmingTask struct {
 	IsolatedHash string
 	OutputDir    string
 	Dimensions   map[string]string
+	Tags         map[string]string
 	Priority     int
 	Expiration   time.Duration
 	Idempotent   bool
@@ -84,6 +85,9 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 	}
 	for k, v := range t.Dimensions {
 		triggerArgs = append(triggerArgs, "--dimension", k, v)
+	}
+	for k, v := range t.Tags {
+		triggerArgs = append(triggerArgs, "--tag", fmt.Sprintf("%s:%s", k, v))
 	}
 	if t.Idempotent {
 		triggerArgs = append(triggerArgs, "--idempotent")
@@ -242,7 +246,7 @@ func (s *SwarmingClient) BatchArchiveTargets(isolatedGenJSONs []string, d time.D
 }
 
 // Trigger swarming using the specified hashes and dimensions.
-func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes map[string]string, dimensions map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent bool) ([]*SwarmingTask, error) {
+func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes, dimensions, tags map[string]string, priority int, expiration, hardTimeout, ioTimeout time.Duration, idempotent bool) ([]*SwarmingTask, error) {
 	tasks := []*SwarmingTask{}
 
 	for taskName, hash := range tasksToHashes {
@@ -255,6 +259,7 @@ func (s *SwarmingClient) TriggerSwarmingTasks(tasksToHashes map[string]string, d
 			IsolatedHash: hash,
 			OutputDir:    taskOutputDir,
 			Dimensions:   dimensions,
+			Tags:         tags,
 			Priority:     priority,
 			Expiration:   expiration,
 			Idempotent:   idempotent,
