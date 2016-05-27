@@ -56,9 +56,9 @@ func SendEmailWithMarkup(recipients []string, subject, body, markup string) erro
 func GetFailureEmailHtml(runID string) string {
 	return fmt.Sprintf(
 		"<br/>There were <b>failures</b> in the run. "+
-			"Please check the master log <a href='%s'>here</a> and the workers log <a href='%s'>here</a>."+
+			"Please check the master log <a href='%s'>here</a> and the logs of triggered swarming tasks <a href='%s'>here</a>."+
 			"<br/>Contact the admins %s for assistance.<br/><br/>",
-		GetMasterLogLink(runID), WORKERS_LOGSERVER_LINK, CtAdmins)
+		GetMasterLogLink(runID), fmt.Sprintf(SWARMING_TASKS_LINK_TEMPLATE, runID), CtAdmins)
 }
 
 func SendTaskStartEmail(recipients []string, taskName, runID, description string) error {
@@ -71,11 +71,11 @@ func SendTaskStartEmail(recipients []string, taskName, runID, description string
 	bodyTemplate := `
 	The %s queued task has started.<br/>
 	%s
-	You can watch the logs of the master <a href="%s">here</a> and the logs of all workers <a href="%s">here</a>.<br/>
-	<b>Note:</b> Must be on Google corp to access the above logs.<br/><br/>
+	You can watch the logs of the master <a href="%s">here</a> and the logs of triggered swarming tasks <a href="%s">here</a>.<br/>
+	<b>Note:</b> Must be on Google corp to access the master logs.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, masterLogLink, WORKERS_LOGSERVER_LINK)
+	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, masterLogLink, fmt.Sprintf(SWARMING_TASKS_LINK_TEMPLATE, runID))
 	if err := SendEmail(recipients, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending task start email: %s", err)
 	}

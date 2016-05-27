@@ -77,9 +77,10 @@ const (
 	BENCHMARK_REPAINT           = "repaint"
 	BENCHMARK_SMOOTHNESS        = "smoothness"
 
-	// Logserver links. These are only accessible from Google corp.
-	MASTER_LOGSERVER_LINK  = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
-	WORKERS_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/all_logs"
+	// Logserver link. This is only accessible from Google corp.
+	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
+	// Link to swarming tasks.
+	SWARMING_TASKS_LINK_TEMPLATE = "https://chromium-swarm.appspot.com/user/tasks?limit=500&sort=created_ts&state=all&task_tag=runid:%s"
 
 	// Default browser args when running benchmarks.
 	DEFAULT_BROWSER_ARGS = "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting"
