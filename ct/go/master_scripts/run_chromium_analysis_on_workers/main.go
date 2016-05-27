@@ -186,7 +186,8 @@ func main() {
 
 	// Display the no output slaves.
 	for _, noOutputSlave := range noOutputSlaves {
-		fmt.Printf("Missing output from %s\n", noOutputSlave)
+		directLink := fmt.Sprintf(util.SWARMING_TASKS_LINK_TEMPLATE+"%s:chromium_analysis_%s", *runID, util.SWARMING_NAME_PARAM, noOutputSlave)
+		fmt.Printf("Missing output from %s\n", directLink)
 	}
 
 	taskCompletedSuccessfully = true

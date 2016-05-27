@@ -37,7 +37,7 @@
     {% if missing_output_slaves %}
       <br/><b>Note:</b> The following slaves failed to report their results:
           {% for missing_output_slave in missing_output_slaves %}
-            <a href="{{ logs_link_prefix }}/{{ missing_output_slave }}/">{{ missing_output_slave }}</a>
+            <a href="{{ logs_link_prefix }}{{ missing_output_slave }}">task{{ missing_output_slave }}</a>
           {% endfor %}
       <br/>
     {% endif %}

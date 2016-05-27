@@ -71,8 +71,10 @@ class TestCsvComparer(unittest.TestCase):
         pageset_type='Mobile10k',
         chromium_hash='abcdefg1234567',
         skia_hash='tuvwxyz1234567',
-        missing_output_slaves='build1-m5 build3-m5 build100-m5',
-        logs_link_prefix='http://uberchromegw.corp.google.com/i/skia-ct-worker',
+        missing_output_slaves='1 3 100',
+        logs_link_prefix=('https://chromium-swarm.appspot.com/user/tasks?'
+                          'limit=500&sort=created_ts&state=all&task_tag='
+                          'runid:testing%0D%0Aname:perf_task_'),
         description='E2EComparerWithDiscardOutliers',
     )
     comparer.Compare()

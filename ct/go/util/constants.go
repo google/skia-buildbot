@@ -79,8 +79,6 @@ const (
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
-	// Link to swarming tasks.
-	SWARMING_TASKS_LINK_TEMPLATE = "https://chromium-swarm.appspot.com/user/tasks?limit=500&sort=created_ts&state=all&task_tag=runid:%s"
 
 	// Default browser args when running benchmarks.
 	DEFAULT_BROWSER_ARGS = "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting"
@@ -203,6 +201,9 @@ const (
 	CHROMIUM_ANALYSIS_ISOLATE      = "chromium_analysis.isolate"
 	CHROMIUM_PERF_ISOLATE          = "chromium_perf.isolate"
 	BUILD_REPO_ISOLATE             = "build_repo.isolate"
+	// Swarming links and params.
+	SWARMING_TASKS_LINK_TEMPLATE = "https://chromium-swarm.appspot.com/user/tasks?limit=500&sort=created_ts&state=all&task_tag=runid:%s"
+	SWARMING_NAME_PARAM          = "%0D%0Aname:"
 )
 
 type PagesetTypeInfo struct {
