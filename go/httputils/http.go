@@ -32,6 +32,8 @@ const (
 	BACKOFF_MULTIPLIER   = 1.5
 	MAX_INTERVAL         = 60 * time.Second
 	MAX_ELAPSED_TIME     = 5 * time.Minute
+
+	MAX_BYTES_IN_RESPONSE_BODY = 10 * 1024 //10 KB
 )
 
 // DialTimeout is a dialer that sets a timeout.
@@ -139,17 +141,13 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		}
 		if resp != nil {
 			if resp.StatusCode >= 500 && resp.StatusCode <= 599 {
-				if resp.Body != nil {
-					util.Close(resp.Body)
-				}
-				return fmt.Errorf("Got server error statuscode %d while making the HTTP %s request to %s", resp.StatusCode, req.Method, req.URL)
+				// We can't close the resp.Body on success, so we must do it in each of the failure cases.
+				return fmt.Errorf("Got server error statuscode %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, readAndClose(resp.Body))
 			} else if resp.StatusCode < 200 || resp.StatusCode > 299 {
-				if resp.Body != nil {
-					util.Close(resp.Body)
-				}
+				// We can't close the resp.Body on success, so we must do it in each of the failure cases.
 				// Stop backing off if there are non server errors.
 				backOffClient.MaxElapsedTime = backoff.Stop
-				return fmt.Errorf("Got non server error statuscode %d while making the HTTP %s request to %s", resp.StatusCode, req.Method, req.URL)
+				return fmt.Errorf("Got non server error statuscode %d while making the HTTP %s request to %s\nResponse: %s", resp.StatusCode, req.Method, req.URL, readAndClose(resp.Body))
 			}
 		}
 		return nil
@@ -162,6 +160,21 @@ func (t *BackOffTransport) RoundTrip(req *http.Request) (*http.Response, error) 
 		return nil, fmt.Errorf("HTTP request failed inspite of exponential backoff: %s", err)
 	}
 	return resp, nil
+}
+
+// readAndClose reads the content of a ReadCloser (e.g. http Response), and returns it as a string.
+// If the response was nil or there was a problem, it will return empty string.  The reader,
+//if non-null, will be closed by this function.
+func readAndClose(r io.ReadCloser) string {
+	if r != nil {
+		defer util.Close(r)
+		if b, err := ioutil.ReadAll(io.LimitReader(r, MAX_BYTES_IN_RESPONSE_BODY)); err != nil {
+			glog.Warningf("There was a potential problem reading the response body: %s", err)
+		} else {
+			return fmt.Sprintf("%q", string(b))
+		}
+	}
+	return ""
 }
 
 // TODO(stephana): Remove 'r' from the argument list since it's not used. It would
