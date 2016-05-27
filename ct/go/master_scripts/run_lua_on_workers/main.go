@@ -143,7 +143,7 @@ func main() {
 		"CHROMIUM_BUILD": *chromiumBuild,
 		"RUN_ID":         *runID,
 	}
-	if err := util.TriggerSwarmingTask(*pagesetType, "run_lua", util.RUN_LUA_ISOLATE, 2*time.Hour, 1*time.Hour, MAX_PAGES_PER_SWARMING_BOT, isolateExtraArgs, util.GCE_WORKER_DIMENSIONS); err != nil {
+	if err := util.TriggerSwarmingTask(*pagesetType, "run_lua", util.RUN_LUA_ISOLATE, 3*time.Hour, 1*time.Hour, MAX_PAGES_PER_SWARMING_BOT, isolateExtraArgs, util.GCE_WORKER_DIMENSIONS); err != nil {
 		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}
