@@ -1,4 +1,4 @@
-package builder
+package buildskia
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 )
 
-func setupTemp(t *testing.T, testData []string, repo vcsinfo.VCS) (*Builder, func()) {
+func setupTemp(t *testing.T, testData []string, repo vcsinfo.VCS) (*ContinuousBuilder, func()) {
 	tempDir, err := ioutil.TempDir("", "builder_test_")
 	assert.NoError(t, err)
 	fi, err := os.Create(filepath.Join(tempDir, GOOD_BUILDS_FILENAME))
@@ -23,7 +23,7 @@ func setupTemp(t *testing.T, testData []string, repo vcsinfo.VCS) (*Builder, fun
 	err = fi.Close()
 	assert.NoError(t, err)
 
-	return New(tempDir, "", repo), func() {
+	return New(tempDir, "", repo, nil, 2), func() {
 		util.RemoveAll(tempDir)
 	}
 }

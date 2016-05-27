@@ -1,4 +1,4 @@
-package builder
+package buildskia
 
 import (
 	"errors"
@@ -7,13 +7,11 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -27,15 +25,11 @@ const (
 	// PRESERVER_DURATION then they both should be preserved.
 	PRESERVE_DURATION = 30 * 24 * time.Hour
 
-	// PRESERVE_COUNT is the max number of fresh LKGR builds to keep around.
-	// Always keep odd so the first and last hashes are always preserved.
-	PRESERVE_COUNT = 5
-
 	// DECIMATION_PERIOD is the time between decimation runs.
 	DECIMATION_PERIOD = time.Hour
 
 	// BUILD_TYPE is the type of build we use throughout.
-	BUILD_TYPE = buildskia.RELEASE_BUILD
+	BUILD_TYPE = RELEASE_BUILD
 )
 
 // errors
@@ -43,15 +37,21 @@ var (
 	AlreadyExistsErr = errors.New("Checkout already exists.")
 )
 
-// Builder is for building versions of the Skia library and then compiling and
+// PerBuild is a callback function where ContinuousBuilder clients can
+// perform specific builds within the newest Skia checkout.
+type PerBuild func(checkout, depotTools string) error
+
+// ContinuousBuilder is for building versions of the Skia library and then compiling and
 // running command-line apps against those built versions.
 //
-//    workRoot - The root directory where builds are stored.
-//    depotTools - The directory where depot_tools is checked out.
-type Builder struct {
+// For each LKGR of Skia, that version of code will be checked out under
+// workDir/"versions"/<git hash>.
+type ContinuousBuilder struct {
 	workRoot   string
 	depotTools string
 	repo       vcsinfo.VCS
+	perBuild   PerBuild
+	preserve   int
 
 	// hashes is a cache of the hashes returned from Available.
 	hashes []string
@@ -63,16 +63,19 @@ type Builder struct {
 	mutex sync.Mutex
 }
 
-// New returns a new Builder instance.
+// New returns a new ContinuousBuilder instance.
 //
 //    workRoot - The root directory where work is stored.
 //    depotTools - The directory where depot_tools is checked out.
 //    repo - A vcs to pull hash info from.
-func New(workRoot, depotTools string, repo vcsinfo.VCS) *Builder {
-	b := &Builder{
+//    perBuild - A PerBuild callback that gets called every time a new successful build of Skia is available.
+func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int) *ContinuousBuilder {
+	b := &ContinuousBuilder{
 		workRoot:   workRoot,
 		depotTools: depotTools,
 		repo:       repo,
+		perBuild:   perBuild,
+		preserve:   preserve,
 	}
 	_, _ = b.AvailableBuilds() // Called for side-effect of loading hashes.
 	go b.startDecimation()
@@ -91,17 +94,6 @@ func prepDirectory(workRoot string) (string, error) {
 	return versions, nil
 }
 
-// buildSpecificTargets, given a directory that Skia is checked out into,
-// builds the specific targets we need for this application.
-func buildSpecificTargets(checkout, depotTools string) error {
-	// Do a gyp build of visualize_color_gamut.
-	glog.Info("Starting build of visualize_color_gamut")
-	if err := buildskia.NinjaBuild(checkout, depotTools, []string{}, BUILD_TYPE, "visualize_color_gamut", runtime.NumCPU(), true); err != nil {
-		return fmt.Errorf("Failed to build: %s", err)
-	}
-	return nil
-}
-
 // BuildLatestSkia builds the LKGR of Skia in the given workRoot directory.
 //
 // The library will be checked out into workRoot + "/" + githash, where githash
@@ -114,7 +106,7 @@ func buildSpecificTargets(checkout, depotTools string) error {
 // Returns the commit info for the revision of Skia checked out.
 // Returns an error if any step fails, or return AlreadyExistsErr if
 // the target checkout directory already exists and force is false.
-func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.LongCommit, error) {
+func (b *ContinuousBuilder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.LongCommit, error) {
 	versions, err := prepDirectory(b.workRoot)
 	if err != nil {
 		return nil, err
@@ -122,11 +114,11 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 
 	githash := ""
 	if head {
-		if githash, err = buildskia.GetSkiaHead(nil); err != nil {
+		if githash, err = GetSkiaHead(nil); err != nil {
 			return nil, fmt.Errorf("Failed to retrieve Skia HEAD: %s", err)
 		}
 	} else {
-		if githash, err = buildskia.GetSkiaHash(nil); err != nil {
+		if githash, err = GetSkiaHash(nil); err != nil {
 			return nil, fmt.Errorf("Failed to retrieve Skia LKGR: %s", err)
 		}
 	}
@@ -139,13 +131,15 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 		return nil, AlreadyExistsErr
 	}
 
-	ret, err := buildskia.DownloadSkia("", githash, checkout, b.depotTools, false, deps)
+	ret, err := DownloadSkia("", githash, checkout, b.depotTools, false, deps)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to fetch: %s", err)
 	}
 
-	if err := buildSpecificTargets(checkout, b.depotTools); err != nil {
-		return nil, err
+	if b.perBuild != nil {
+		if err := b.perBuild(checkout, b.depotTools); err != nil {
+			return nil, err
+		}
 	}
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
@@ -168,7 +162,7 @@ func (b *Builder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.Lo
 // Or a mildly informative stand-in if somehow the update fails.
 //
 // updateCurrent presumes the caller already has a lock on the mutex.
-func (b *Builder) updateCurrent() {
+func (b *ContinuousBuilder) updateCurrent() {
 	fallback := &vcsinfo.LongCommit{ShortCommit: &vcsinfo.ShortCommit{Hash: "unknown"}}
 	if len(b.hashes) == 0 {
 		glog.Errorf("There are no hashes.")
@@ -191,7 +185,7 @@ func (b *Builder) updateCurrent() {
 // AvailableBuilds returns a list of git hashes, all the versions of Skia that
 // can be built against. This returns the list with the newest builds last.
 // The list will always be of length > 1, otherwise and error is returned.
-func (b *Builder) AvailableBuilds() ([]string, error) {
+func (b *ContinuousBuilder) AvailableBuilds() ([]string, error) {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	if len(b.hashes) > 0 {
@@ -220,13 +214,13 @@ func (b *Builder) AvailableBuilds() ([]string, error) {
 	return realHashes, nil
 }
 
-func (b *Builder) Current() *vcsinfo.LongCommit {
+func (b *ContinuousBuilder) Current() *vcsinfo.LongCommit {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 	return b.current
 }
 
-func (b *Builder) writeNewGoodBuilds(hashes []string) error {
+func (b *ContinuousBuilder) writeNewGoodBuilds(hashes []string) error {
 	if len(hashes) < 1 {
 		return fmt.Errorf("At least one good build must be kept around.")
 	}
@@ -245,7 +239,7 @@ func (b *Builder) writeNewGoodBuilds(hashes []string) error {
 	return nil
 }
 
-func (b *Builder) startDecimation() {
+func (b *ContinuousBuilder) startDecimation() {
 	decimateLiveness := metrics2.NewLiveness("decimate")
 	decimateFailures := metrics2.GetCounter("decimate-failed", nil)
 	for _ = range time.Tick(DECIMATION_PERIOD) {
@@ -255,7 +249,7 @@ func (b *Builder) startDecimation() {
 			decimateFailures.Inc(1)
 			continue
 		}
-		keep, remove, err := decimate(hashes, b.repo, PRESERVE_COUNT)
+		keep, remove, err := decimate(hashes, b.repo, b.preserve)
 		if err != nil {
 			glog.Errorf("Failed to calc removals while decimating: %s", err)
 			decimateFailures.Inc(1)

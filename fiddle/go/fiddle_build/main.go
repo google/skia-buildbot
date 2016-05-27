@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/fiddle/go/builder"
+	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 )
 
@@ -29,24 +29,15 @@ func main() {
 	if *depotTools == "" {
 		glog.Fatal("The --depot_tools flag is required.")
 	}
-	b := builder.New(*fiddleRoot, *depotTools, nil)
+	b := buildskia.New(*fiddleRoot, *depotTools, nil, nil, 2)
 	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
 	if err != nil {
-		if err == builder.AlreadyExistsErr {
+		if err == buildskia.AlreadyExistsErr {
 			glog.Info("Checkout already exists, no work done.")
 		} else {
 			glog.Fatalf("Failed to build latest skia: %s", err)
 		}
 	} else {
 		fmt.Printf("Built: %#v", *res)
-	}
-
-	// Now do the same thing for the last chrome branch.
-	if *milestone {
-		name, res, err := b.BuildLatestSkiaChromeBranch(false)
-		if err != nil {
-			glog.Fatalf("Failed to build latest skia branch: %s", err)
-		}
-		fmt.Printf("Built: %s %#v", name, *res)
 	}
 }

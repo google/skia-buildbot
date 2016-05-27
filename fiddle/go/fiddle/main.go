@@ -9,6 +9,7 @@ import (
 	ttemplate "html/template"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -18,12 +19,13 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/fiddle/go/builder"
+	"go.skia.org/infra/fiddle/go/config"
 	"go.skia.org/infra/fiddle/go/named"
 	"go.skia.org/infra/fiddle/go/runner"
 	"go.skia.org/infra/fiddle/go/source"
 	"go.skia.org/infra/fiddle/go/store"
 	"go.skia.org/infra/fiddle/go/types"
+	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/httputils"
@@ -151,7 +153,7 @@ var (
 	runs               = metrics2.GetCounter("runs", nil)
 	tryNamedLiveness   = metrics2.NewLiveness("try-named")
 
-	build        *builder.Builder
+	build        *buildskia.ContinuousBuilder
 	fiddleStore  *store.Store
 	repo         *gitinfo.GitInfo
 	src          *source.Source
@@ -471,7 +473,7 @@ func singleBuildLatest() {
 	if err != nil {
 		glog.Errorf("Failed to build LKGR: %s", err)
 		// Only measure real build failures, not a failure if LKGR hasn't updated.
-		if err != builder.AlreadyExistsErr {
+		if err != buildskia.AlreadyExistsErr {
 			buildFailures.Inc(1)
 		}
 		return
@@ -551,6 +553,24 @@ func StartTryNamed() {
 	}()
 }
 
+// buildLib, given a directory that Skia is checked out into, builds libskia.a
+// and fiddle_main.o.
+func buildLib(checkout, depotTools string) error {
+	glog.Info("Starting CMakeBuild")
+	if err := buildskia.CMakeBuild(checkout, depotTools, config.BUILD_TYPE); err != nil {
+		return fmt.Errorf("Failed cmake build: %s", err)
+	}
+
+	glog.Info("Building fiddle_main.o")
+	files := []string{
+		filepath.Join(checkout, "tools", "fiddle", "fiddle_main.cpp"),
+	}
+	if err := buildskia.CMakeCompile(checkout, path.Join(checkout, "cmakeout", "fiddle_main.o"), files, []string{}, config.BUILD_TYPE); err != nil {
+		return fmt.Errorf("Failed cmake build of fiddle_main: %s", err)
+	}
+	return nil
+}
+
 func main() {
 	defer common.LogPanic()
 	if *local {
@@ -589,7 +609,7 @@ func main() {
 		glog.Fatalf("Failed to initialize source images: %s", err)
 	}
 	names = named.New(fiddleStore)
-	build = builder.New(*fiddleRoot, *depotTools, repo)
+	build = buildskia.New(*fiddleRoot, *depotTools, repo, buildLib, 64)
 	StartBuilding()
 	StartTryNamed()
 	r := mux.NewRouter()

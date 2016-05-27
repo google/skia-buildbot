@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"google.golang.org/cloud/storage"
@@ -19,6 +20,7 @@ import (
 	"github.com/golang/groupcache/lru"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
@@ -28,7 +30,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/limitwriter"
-	"go.skia.org/infra/imageinfo/go/builder"
 	"go.skia.org/infra/imageinfo/go/store"
 )
 
@@ -80,7 +81,7 @@ var (
 	repo *gitinfo.GitInfo
 
 	// build is responsible to building visualize_color_gamut.
-	build *builder.Builder
+	build *buildskia.ContinuousBuilder
 
 	// imageStore is a wrapper around Google Storage.
 	imageStore *store.Store
@@ -303,7 +304,7 @@ func singleBuildLatest() {
 	if err != nil {
 		glog.Errorf("Failed to build LKGR: %s", err)
 		// Only measure real build failures, not a failure if LKGR hasn't updated.
-		if err != builder.AlreadyExistsErr {
+		if err != buildskia.AlreadyExistsErr {
 			buildFailures.Inc(1)
 		}
 		return
@@ -330,6 +331,17 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
 	}
+}
+
+// buildVisualize, given a directory that Skia is checked out into,
+// builds the specific targets we need for this application.
+func buildVisualize(checkout, depotTools string) error {
+	// Do a gyp build of visualize_color_gamut.
+	glog.Info("Starting build of visualize_color_gamut")
+	if err := buildskia.NinjaBuild(checkout, depotTools, []string{}, buildskia.RELEASE_BUILD, "visualize_color_gamut", runtime.NumCPU(), true); err != nil {
+		return fmt.Errorf("Failed to build: %s", err)
+	}
+	return nil
 }
 
 func main() {
@@ -364,7 +376,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to Google Storage: %s", err)
 	}
-	build = builder.New(*workRoot, *depotTools, repo)
+	build = buildskia.New(*workRoot, *depotTools, repo, buildVisualize, 3)
 	StartBuilding()
 	cache = lru.New(NUM_CACHED_RESULT_IMAGES)
 	loadTemplates()
