@@ -4,6 +4,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildskia"
@@ -29,7 +30,7 @@ func main() {
 	if *depotTools == "" {
 		glog.Fatal("The --depot_tools flag is required.")
 	}
-	b := buildskia.New(*fiddleRoot, *depotTools, nil, nil, 2)
+	b := buildskia.New(*fiddleRoot, *depotTools, nil, nil, 2, time.Hour)
 	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
 	if err != nil {
 		if err == buildskia.AlreadyExistsErr {

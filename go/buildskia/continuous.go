@@ -53,6 +53,12 @@ type ContinuousBuilder struct {
 	perBuild   PerBuild
 	preserve   int
 
+	buildFailures    *metrics2.Counter
+	buildLiveness    *metrics2.Liveness
+	repoSyncFailures *metrics2.Counter
+
+	timeBetweenBuilds time.Duration
+
 	// hashes is a cache of the hashes returned from Available.
 	hashes []string
 
@@ -69,19 +75,57 @@ type ContinuousBuilder struct {
 //    depotTools - The directory where depot_tools is checked out.
 //    repo - A vcs to pull hash info from.
 //    perBuild - A PerBuild callback that gets called every time a new successful build of Skia is available.
-func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int) *ContinuousBuilder {
+//    preserve - The number of LKGR builds to preserve after decimation.
+//    timeBetweenBuilds - The duration between attempts to pull LGKR and built it.
+//
+// Call Start() to begin the continous build Go routine.
+func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int, timeBetweenBuilds time.Duration) *ContinuousBuilder {
 	b := &ContinuousBuilder{
-		workRoot:   workRoot,
-		depotTools: depotTools,
-		repo:       repo,
-		perBuild:   perBuild,
-		preserve:   preserve,
+		workRoot:          workRoot,
+		depotTools:        depotTools,
+		repo:              repo,
+		perBuild:          perBuild,
+		preserve:          preserve,
+		buildFailures:     metrics2.GetCounter("builds-failed", nil),
+		buildLiveness:     metrics2.NewLiveness("build"),
+		repoSyncFailures:  metrics2.GetCounter("repo-sync-failed", nil),
+		timeBetweenBuilds: timeBetweenBuilds,
 	}
 	_, _ = b.AvailableBuilds() // Called for side-effect of loading hashes.
 	go b.startDecimation()
 	b.updateCurrent()
 
 	return b
+}
+
+func (b *ContinuousBuilder) singleBuildLatest() {
+	if err := b.repo.Update(true, true); err != nil {
+		glog.Errorf("Failed to update skia repo used to look up git hashes: %s", err)
+		b.repoSyncFailures.Inc(1)
+	}
+	b.repoSyncFailures.Reset()
+	ci, err := b.BuildLatestSkia(false, false, false)
+	if err != nil {
+		glog.Errorf("Failed to build LKGR: %s", err)
+		// Only measure real build failures, not a failure if LKGR hasn't updated.
+		if err != AlreadyExistsErr {
+			b.buildFailures.Inc(1)
+		}
+		return
+	}
+	b.buildFailures.Reset()
+	b.buildLiveness.Reset()
+	glog.Infof("Successfully built: %s %s", ci.Hash, ci.Subject)
+}
+
+// Start the continuous build latest LKGR Go routine.
+func (b *ContinuousBuilder) Start() {
+	go func() {
+		b.singleBuildLatest()
+		for _ = range time.Tick(b.timeBetweenBuilds) {
+			b.singleBuildLatest()
+		}
+	}()
 }
 
 // prepDirectory adds the 'versions' directory to the workRoot

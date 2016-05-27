@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
-	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/util/limitwriter"
 	"go.skia.org/infra/imageinfo/go/store"
@@ -85,10 +84,6 @@ var (
 
 	// imageStore is a wrapper around Google Storage.
 	imageStore *store.Store
-
-	repoSyncFailures = metrics2.GetCounter("repo-sync-failed", nil)
-	buildFailures    = metrics2.GetCounter("builds-failed", nil)
-	buildLiveness    = metrics2.NewLiveness("build")
 )
 
 func loadTemplates() {
@@ -294,37 +289,6 @@ func visHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func singleBuildLatest() {
-	if err := repo.Update(true, true); err != nil {
-		glog.Errorf("Failed to update skia repo used to look up git hashes: %s", err)
-		repoSyncFailures.Inc(1)
-	}
-	repoSyncFailures.Reset()
-	ci, err := build.BuildLatestSkia(false, false, false)
-	if err != nil {
-		glog.Errorf("Failed to build LKGR: %s", err)
-		// Only measure real build failures, not a failure if LKGR hasn't updated.
-		if err != buildskia.AlreadyExistsErr {
-			buildFailures.Inc(1)
-		}
-		return
-	}
-	buildFailures.Reset()
-	buildLiveness.Reset()
-	glog.Infof("Successfully built: %s %s", ci.Hash, ci.Subject)
-}
-
-// StartBuilding starts a Go routine that periodically tries to
-// download the Skia LKGR and build it.
-func StartBuilding() {
-	go func() {
-		singleBuildLatest()
-		for _ = range time.Tick(*timeBetweenBuilds) {
-			singleBuildLatest()
-		}
-	}()
-}
-
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -376,8 +340,8 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to Google Storage: %s", err)
 	}
-	build = buildskia.New(*workRoot, *depotTools, repo, buildVisualize, 3)
-	StartBuilding()
+	build = buildskia.New(*workRoot, *depotTools, repo, buildVisualize, 3, *timeBetweenBuilds)
+	build.Start()
 	cache = lru.New(NUM_CACHED_RESULT_IMAGES)
 	loadTemplates()
 	r := mux.NewRouter()

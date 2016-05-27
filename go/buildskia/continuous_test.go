@@ -23,7 +23,7 @@ func setupTemp(t *testing.T, testData []string, repo vcsinfo.VCS) (*ContinuousBu
 	err = fi.Close()
 	assert.NoError(t, err)
 
-	return New(tempDir, "", repo, nil, 2), func() {
+	return New(tempDir, "", repo, nil, 2, time.Hour), func() {
 		util.RemoveAll(tempDir)
 	}
 }

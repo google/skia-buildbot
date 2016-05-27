@@ -144,14 +144,10 @@ var (
 	//
 	// Note that slice items 2, 3, and 4 are the ones we are really interested in.
 	parseCompilerOutput = regexp.MustCompile("^(.*/)(draw.cpp:([0-9]+):([-0-9]+):.*)")
-
-	buildFailures      = metrics2.GetCounter("builds-failed", nil)
-	buildLiveness      = metrics2.NewLiveness("build")
-	namedFailures      = metrics2.GetCounter("named-failures", nil)
-	repoSyncFailures   = metrics2.GetCounter("repo-sync-failed", nil)
-	maybeSecViolations = metrics2.GetCounter("maybe-sec-container-violation", nil)
-	runs               = metrics2.GetCounter("runs", nil)
-	tryNamedLiveness   = metrics2.NewLiveness("try-named")
+	namedFailures       = metrics2.GetCounter("named-failures", nil)
+	maybeSecViolations  = metrics2.GetCounter("maybe-sec-container-violation", nil)
+	runs                = metrics2.GetCounter("runs", nil)
+	tryNamedLiveness    = metrics2.NewLiveness("try-named")
 
 	build        *buildskia.ContinuousBuilder
 	fiddleStore  *store.Store
@@ -463,37 +459,6 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-func singleBuildLatest() {
-	if err := repo.Update(true, true); err != nil {
-		glog.Errorf("Failed to update skia repo used to look up git hashes: %s", err)
-		repoSyncFailures.Inc(1)
-	}
-	repoSyncFailures.Reset()
-	ci, err := build.BuildLatestSkia(false, false, false)
-	if err != nil {
-		glog.Errorf("Failed to build LKGR: %s", err)
-		// Only measure real build failures, not a failure if LKGR hasn't updated.
-		if err != buildskia.AlreadyExistsErr {
-			buildFailures.Inc(1)
-		}
-		return
-	}
-	buildFailures.Reset()
-	buildLiveness.Reset()
-	glog.Infof("Successfully built: %s %s", ci.Hash, ci.Subject)
-}
-
-// StartBuilding starts a Go routine that periodically tries to
-// download the Skia LKGR and build it.
-func StartBuilding() {
-	go func() {
-		singleBuildLatest()
-		for _ = range time.Tick(*timeBetweenBuilds) {
-			singleBuildLatest()
-		}
-	}()
-}
-
 func singleStepTryNamed() {
 	glog.Infoln("Begin: Try all named fiddles.")
 	namedFailures.Reset()
@@ -609,8 +574,8 @@ func main() {
 		glog.Fatalf("Failed to initialize source images: %s", err)
 	}
 	names = named.New(fiddleStore)
-	build = buildskia.New(*fiddleRoot, *depotTools, repo, buildLib, 64)
-	StartBuilding()
+	build = buildskia.New(*fiddleRoot, *depotTools, repo, buildLib, 64, *timeBetweenBuilds)
+	build.Start()
 	StartTryNamed()
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
