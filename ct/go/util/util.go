@@ -2,7 +2,6 @@
 package util
 
 import (
-	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -32,64 +31,14 @@ const (
 	REMOVE_INVALID_SKPS_WORKER_POOL = 20
 )
 
-// GetCTWorkersProd returns an array of all CT workers in the Cluster Telemetry Golo.
-func GetCTWorkersProd() []string {
-	workers := make([]string, NUM_WORKERS_PROD)
-	for i := 0; i < NUM_WORKERS_PROD; i++ {
-		workers[i] = fmt.Sprintf(WORKER_NAME_TEMPLATE, i+1)
+// GetCTBareMetalWorkers returns an array of all CT bare-metal workers in the Cluster
+// Telemetry Golo.
+func GetCTBareMetalWorkers() []string {
+	workers := make([]string, NUM_BARE_METAL_MACHINES)
+	for i := 0; i < NUM_BARE_METAL_MACHINES; i++ {
+		workers[i] = fmt.Sprintf(BARE_METAL_NAME_TEMPLATE, i+1)
 	}
 	return workers
-}
-
-// CreateTimestampFile creates a TIMESTAMP file in the specified dir. The dir must
-// exist else an error is returned.
-func CreateTimestampFile(dir string) error {
-	// Create the task file in TaskFileDir.
-	timestampFilePath := filepath.Join(dir, TIMESTAMP_FILE_NAME)
-	out, err := os.Create(timestampFilePath)
-	if err != nil {
-		return fmt.Errorf("Could not create %s: %s", timestampFilePath, err)
-	}
-	defer util.Close(out)
-	timestamp := time.Now().UnixNano() / int64(time.Millisecond)
-	w := bufio.NewWriter(out)
-	if _, err := w.WriteString(strconv.FormatInt(timestamp, 10)); err != nil {
-		return fmt.Errorf("Could not write to %s: %s", timestampFilePath, err)
-	}
-	util.LogErr(w.Flush())
-	return nil
-}
-
-// CreateTaskFile creates a taskName file in the TaskFileDir dir. It signifies
-// that the worker is currently busy doing a particular task.
-func CreateTaskFile(taskName string) error {
-	// Create TaskFileDir if it does not exist.
-	if _, err := os.Stat(TaskFileDir); err != nil {
-		if os.IsNotExist(err) {
-			// Dir does not exist create it.
-			if err := os.MkdirAll(TaskFileDir, 0700); err != nil {
-				return fmt.Errorf("Could not create %s: %s", TaskFileDir, err)
-			}
-		} else {
-			// There was some other error.
-			return err
-		}
-	}
-	// Create the task file in TaskFileDir.
-	taskFilePath := filepath.Join(TaskFileDir, taskName)
-	if _, err := os.Create(taskFilePath); err != nil {
-		return fmt.Errorf("Could not create %s: %s", taskFilePath, err)
-	}
-	return nil
-}
-
-// DeleteTaskFile deletes a taskName file in the TaskFileDir dir. It should be
-// called when the worker is done executing a particular task.
-func DeleteTaskFile(taskName string) {
-	taskFilePath := filepath.Join(TaskFileDir, taskName)
-	if err := os.Remove(taskFilePath); err != nil {
-		glog.Errorf("Could not delete %s: %s", taskFilePath, err)
-	}
 }
 
 func TimeTrack(start time.Time, name string) {
@@ -239,8 +188,8 @@ func GetClosedChannelOfPagesets(fileInfos []os.FileInfo) chan string {
 	for _, fileInfo := range fileInfos {
 		pagesetName := fileInfo.Name()
 		pagesetBaseName := filepath.Base(pagesetName)
-		if pagesetBaseName == TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
-			// Ignore timestamp files and .pyc files.
+		if filepath.Ext(pagesetBaseName) == ".pyc" {
+			// Ignore .pyc files.
 			continue
 		}
 		pagesetsChannel <- pagesetName
@@ -527,8 +476,8 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, nu
 
 func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, chromiumBuildName, chromiumBinary, runID, browserExtraArgs, benchmarkName, targetPlatform, benchmarkExtraArgs, pagesetType string, repeatBenchmark int) error {
 	pagesetBaseName := filepath.Base(fileInfoName)
-	if pagesetBaseName == TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
-		// Ignore timestamp files and .pyc files.
+	if filepath.Ext(pagesetBaseName) == ".pyc" {
+		// Ignore .pyc files.
 		return nil
 	}
 	// Read the pageset.

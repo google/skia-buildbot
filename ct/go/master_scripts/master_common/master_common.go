@@ -6,8 +6,6 @@ package master_common
 
 import (
 	"flag"
-	"fmt"
-	"path/filepath"
 
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/util"
@@ -37,20 +35,5 @@ func initRest() {
 		util.SetVarsForLocal()
 	} else {
 		frontend.MustInit()
-	}
-}
-
-func WorkerSetupCmds() []string {
-	if *Local {
-		return []string{
-			fmt.Sprintf("export GOPATH=%s;", filepath.Join(util.RepoDir, "go")),
-			"export PATH=$GOPATH/bin:$PATH;",
-		}
-	} else {
-		return []string{
-			fmt.Sprintf("cd %s;", util.CtTreeDir),
-			"git pull;",
-			"make all;",
-		}
 	}
 }

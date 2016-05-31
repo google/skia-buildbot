@@ -1,4 +1,4 @@
-// Application that executes a command on all CT workers and optionally prints
+// Application that executes a command on all CT bare-metal workers and optionally prints
 // their outputs.
 package main
 
@@ -14,15 +14,15 @@ import (
 )
 
 var (
-	cmd         = flag.String("cmd", "hostname", "Command to execute on CT slaves")
+	cmd         = flag.String("cmd", "hostname", "Command to execute on CT bare-metal slaves")
 	timeout     = flag.Duration("timeout", 10*time.Second, "Duration after which the cmd will timeout")
-	printOutput = flag.Bool("print_output", true, "Whether output of command from CT slaves should be printed")
+	printOutput = flag.Bool("print_output", true, "Whether output of command from CT bare-metal slaves should be printed")
 )
 
 func main() {
 	defer common.LogPanic()
 	common.Init()
-	out, err := util.SSH(*cmd, util.Slaves, *timeout)
+	out, err := util.SshToBareMetalMachines(*cmd, util.BareMetalSlaves, *timeout)
 	if err != nil {
 		glog.Fatal(err)
 	}

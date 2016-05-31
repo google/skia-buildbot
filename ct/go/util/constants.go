@@ -1,21 +1,18 @@
 package util
 
 import (
-	"fmt"
 	"path/filepath"
 	"time"
 )
 
 const (
-	NUM_WORKERS_PROD      int = 100
-	MASTER_NAME               = "build101-m5"
-	WORKER_NAME_TEMPLATE      = "build%d-m5"
-	GS_HTTP_LINK              = "https://storage.cloud.google.com/"
-	LOGS_LINK_PREFIX          = "http://uberchromegw.corp.google.com/i/skia-ct-worker"
-	CT_EMAIL_DISPLAY_NAME     = "Cluster Telemetry"
+	MASTER_NAME                  = "build101-m5"
+	NUM_BARE_METAL_MACHINES  int = 100
+	BARE_METAL_NAME_TEMPLATE     = "build%d-m5"
+	GS_HTTP_LINK                 = "https://storage.cloud.google.com/"
+	CT_EMAIL_DISPLAY_NAME        = "Cluster Telemetry"
 
 	// File names and dir names.
-	TIMESTAMP_FILE_NAME              = "TIMESTAMP"
 	CHROMIUM_BUILDS_DIR_NAME         = "chromium_builds"
 	PAGESETS_DIR_NAME                = "page_sets"
 	WEB_ARCHIVES_DIR_NAME            = "webpage_archives"
@@ -34,15 +31,6 @@ const (
 	// Limit the number of times CT tries to get a remote file before giving up.
 	MAX_URI_GET_TRIES = 4
 
-	// Activity constants.
-	ACTIVITY_CREATING_PAGESETS        = "CREATING_PAGESETS"
-	ACTIVITY_CAPTURING_ARCHIVES       = "CAPTURING_ARCHIVES"
-	ACTIVITY_CAPTURING_SKPS           = "CAPTURING_SKPS"
-	ACTIVITY_RUNNING_LUA_SCRIPTS      = "RUNNING_LUA_SCRIPTS"
-	ACTIVITY_RUNNING_CHROMIUM_PERF    = "RUNNING_CHROMIUM_PERF"
-	ACTIVITY_RUNNING_SKIA_CORRECTNESS = "RUNNING_SKIA_CORRECTNESS"
-	ACTIVITY_FIXING_ARCHIVES          = "FIXING_ARCHIVES"
-
 	// Pageset types supported by CT.
 	PAGESET_TYPE_ALL        = "All"
 	PAGESET_TYPE_10k        = "10k"
@@ -52,20 +40,18 @@ const (
 	PAGESET_TYPE_DUMMY_1k   = "Dummy1k" // Used for testing.
 
 	// Names of binaries executed by CT.
-	BINARY_CHROME          = "chrome"
-	BINARY_RECORD_WPR      = "record_wpr"
-	BINARY_RUN_BENCHMARK   = "run_benchmark"
-	BINARY_GCLIENT         = "gclient"
-	BINARY_MAKE            = "make"
-	BINARY_NINJA           = "ninja"
-	BINARY_LUA_PICTURES    = "lua_pictures"
-	BINARY_ADB             = "adb"
-	BINARY_GIT             = "git"
-	BINARY_RENDER_PICTURES = "render_pictures"
-	BINARY_MAIL            = "mail"
-	BINARY_LUA             = "lua"
-	BINARY_PDFIUM_TEST     = "pdfium_test"
-	BINARY_WGET            = "wget"
+	BINARY_CHROME        = "chrome"
+	BINARY_RECORD_WPR    = "record_wpr"
+	BINARY_RUN_BENCHMARK = "run_benchmark"
+	BINARY_GCLIENT       = "gclient"
+	BINARY_MAKE          = "make"
+	BINARY_NINJA         = "ninja"
+	BINARY_LUA_PICTURES  = "lua_pictures"
+	BINARY_ADB           = "adb"
+	BINARY_GIT           = "git"
+	BINARY_MAIL          = "mail"
+	BINARY_LUA           = "lua"
+	BINARY_PDFIUM_TEST   = "pdfium_test"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
@@ -75,7 +61,6 @@ const (
 	BENCHMARK_SKPICTURE_PRINTER = "skpicture_printer"
 	BENCHMARK_RR                = "rasterize_and_record_micro"
 	BENCHMARK_REPAINT           = "repaint"
-	BENCHMARK_SMOOTHNESS        = "smoothness"
 
 	// Logserver link. This is only accessible from Google corp.
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
@@ -101,7 +86,7 @@ const (
 	// util.resetChromiumCheckout calls ResetCheckout three times.
 	RESET_CHROMIUM_CHECKOUT_TIMEOUT = 3 * (GIT_RESET_TIMEOUT + GIT_CLEAN_TIMEOUT)
 
-	// util.CreateChromiumBuild
+	// util.CreateChromiumBuildOnSwarming
 	SYNC_SKIA_IN_CHROME_TIMEOUT   = 2 * time.Hour
 	GIT_LS_REMOTE_TIMEOUT         = 5 * time.Minute
 	GIT_APPLY_TIMEOUT             = 5 * time.Minute
@@ -218,10 +203,9 @@ type PagesetTypeInfo struct {
 }
 
 var (
-	Master       = fmt.Sprintf(WORKER_NAME_TEMPLATE, 101)
-	CtUser       = "chrome-bot"
-	Slaves       = GetCTWorkersProd()
-	GSBucketName = "cluster-telemetry"
+	CtUser          = "chrome-bot"
+	GSBucketName    = "cluster-telemetry"
+	BareMetalSlaves = GetCTBareMetalWorkers()
 
 	// Email address of cluster telemetry admins. They will be notified everytime
 	// a task has started and completed.
@@ -344,18 +328,9 @@ var (
 		PLATFORM_ANDROID: "Android (100 N5 devices)",
 	}
 
-	SupportedPageSetsToDesc = map[string]string{
-		PLATFORM_LINUX:   "Linux (100 Ubuntu12.04 machines)",
-		PLATFORM_ANDROID: "Android (100 N5 devices)",
-	}
-
 	// Swarming machine dimensions.
 	GCE_WORKER_DIMENSIONS          = map[string]string{"pool": SWARMING_POOL, "cores": "2"}
 	GCE_ANDROID_BUILDER_DIMENSIONS = map[string]string{"pool": "AndroidBuilder", "cores": "32"}
 	GCE_LINUX_BUILDER_DIMENSIONS   = map[string]string{"pool": "LinuxBuilder", "cores": "32"}
 	GOLO_WORKER_DIMENSIONS         = map[string]string{"pool": SWARMING_POOL, "os": "Android"}
 )
-
-func NumWorkers() int {
-	return len(Slaves)
-}

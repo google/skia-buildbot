@@ -71,11 +71,12 @@ func getKeyFile() (key ssh.Signer, err error) {
 	return
 }
 
-// SSH connects to the specified workers and runs the specified command. If the
-// command does not complete in the given duration then all remaining workers are
-// considered timed out. SSH also automatically substitutes the sequential number
-// of the worker for the WORKER_NUM_KEYWORD since it is a common use case.
-func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string, error) {
+// SshToBareMetalMachines connects to the specified workers and runs the specified
+// command. If the command does not complete in the given duration then all
+// remaining workers are considered timed out. SSH also automatically substitutes
+// the sequential number of the worker for the WORKER_NUM_KEYWORD since it is a
+// common use case.
+func SshToBareMetalMachines(cmd string, workers []string, timeout time.Duration) (map[string]string, error) {
 	glog.Infof("Running \"%s\" on %s with timeout of %s", cmd, workers, timeout)
 	numWorkers := len(workers)
 
@@ -132,53 +133,4 @@ func SSH(cmd string, workers []string, timeout time.Duration) (map[string]string
 	m.Lock()
 	defer m.Unlock()
 	return workersWithOutputs, nil
-}
-
-// RebootWorkers reboots all CT workers and waits for them to return.
-func RebootWorkers() {
-	if _, err := SSH("sudo reboot", Slaves, REBOOT_TIMEOUT); err != nil {
-		glog.Errorf("Got error while rebooting workers: %v", err)
-		return
-	}
-	waitTime := 3 * time.Minute
-	glog.Infof("Waiting for %s till all workers come back from reboot", waitTime)
-	time.Sleep(waitTime)
-
-	// Check every 2 mins and timeout after 10 mins.
-	ticker := time.NewTicker(2 * time.Minute)
-	deadlineTicker := time.NewTicker(10 * time.Minute)
-	defer ticker.Stop()
-	defer deadlineTicker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			output, err := SSH("uptime", Slaves, REBOOT_TIMEOUT)
-			if err != nil {
-				glog.Errorf("Got error while checking workers: %v", err)
-				return
-			}
-			for k, v := range output {
-				if v == "" {
-					glog.Infof("%s is not back yet. Continuing to wait.", k)
-					break
-				}
-				glog.Infof("All workers are back.")
-				return
-			}
-		case <-deadlineTicker.C:
-			fmt.Println("Deadline surpassed so we are done waiting for slaves.")
-			return
-		}
-	}
-}
-
-// RebootAndroidDevices reboots the Android device on all CT workers and waits
-// for few mins before returning.
-func RebootAndroidDevices() {
-	if _, err := SSH("adb reboot", Slaves, REBOOT_TIMEOUT); err != nil {
-		glog.Errorf("Got error while rebooting devices: %v", err)
-	}
-	waitTime := 5 * time.Minute
-	glog.Infof("Waiting for %s till all Android devices come back from reboot", waitTime)
-	time.Sleep(waitTime)
 }

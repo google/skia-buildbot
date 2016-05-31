@@ -5,7 +5,6 @@ package util
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -86,34 +85,6 @@ func (gs *GsUtil) GetRemoteFileContents(filePath string) (io.ReadCloser, error) 
 		return nil, fmt.Errorf("Could not get %s from GS: %s", filePath, err)
 	}
 	return getRespBody(res, gs.client)
-}
-
-// AreTimeStampsEqual checks whether the TIMESTAMP in the local dir matches the
-// TIMESTAMP in the remote Google Storage dir.
-func (gs *GsUtil) AreTimeStampsEqual(localDir, gsDir string) (bool, error) {
-	// Get timestamp from the local directory.
-	localTimestampPath := filepath.Join(localDir, TIMESTAMP_FILE_NAME)
-	fileContent, err := ioutil.ReadFile(localTimestampPath)
-	if err != nil {
-		return false, fmt.Errorf("Could not read %s: %s", localTimestampPath, err)
-	}
-	localTimestamp := strings.Trim(string(fileContent), "\n")
-
-	// Get timestamp from the Google Storage directory.
-	gsTimestampPath := filepath.Join(gsDir, TIMESTAMP_FILE_NAME)
-	respBody, err := gs.GetRemoteFileContents(gsTimestampPath)
-	if err != nil {
-		return false, err
-	}
-	defer util.Close(respBody)
-	resp, err := ioutil.ReadAll(respBody)
-	if err != nil {
-		return false, err
-	}
-	gsTimestamp := strings.Trim(string(resp), "\n")
-
-	// Return the comparison of the two timestamps.
-	return localTimestamp == gsTimestamp, nil
 }
 
 type filePathToStorageObject struct {
@@ -202,11 +173,7 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 func (gs *GsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 	localDir := filepath.Join(ChromiumBuildsDir, chromiumBuild)
 	gsDir := filepath.Join(CHROMIUM_BUILDS_DIR_NAME, chromiumBuild)
-	if equal, _ := gs.AreTimeStampsEqual(localDir, gsDir); equal {
-		glog.Infof("Not downloading %s because TIMESTAMPS match", gsDir)
-		return nil
-	}
-	glog.Infof("Timestamps between %s and %s are different. Downloading from Google Storage", localDir, gsDir)
+	glog.Infof("Downloading %s from Google Storage to %s", gsDir, localDir)
 	if err := gs.downloadRemoteDir(localDir, gsDir); err != nil {
 		return fmt.Errorf("Error downloading %s into %s: %s", gsDir, localDir, err)
 	}
@@ -214,20 +181,6 @@ func (gs *GsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 	util.LogErr(os.Chmod(filepath.Join(localDir, "chrome"), 0777))
 
 	return nil
-}
-
-// DownloadWorkerArtifacts downloads artifacts from Google Storage to a local dir.
-func (gs *GsUtil) DownloadWorkerArtifacts(dirName, pagesetType string, workerNum int) error {
-	localDir := filepath.Join(StorageDir, dirName, pagesetType)
-	gsDir := filepath.Join(dirName, pagesetType, fmt.Sprintf("slave%d", workerNum))
-
-	if equal, _ := gs.AreTimeStampsEqual(localDir, gsDir); equal {
-		// No need to download artifacts they already exist locally.
-		glog.Infof("Not downloading %s because TIMESTAMPS match", gsDir)
-		return nil
-	}
-	glog.Infof("Timestamps between %s and %s are different. Downloading from Google Storage", localDir, gsDir)
-	return gs.downloadRemoteDir(localDir, gsDir)
 }
 
 func (gs *GsUtil) DeleteRemoteDir(gsDir string) error {
@@ -306,19 +259,6 @@ func (gs *GsUtil) UploadFile(fileName, localDir, gsDir string) error {
 	glog.Infof("Updated ACL of %s", fmt.Sprintf("gs://%s/%s", GSBucketName, gsFile))
 
 	return nil
-}
-
-// UploadWorkerArtifacts uploads artifacts from a local dir to Google Storage.
-func (gs *GsUtil) UploadWorkerArtifacts(dirName, pagesetType string, workerNum int) error {
-	localDir := filepath.Join(StorageDir, dirName, pagesetType)
-	gsDir := filepath.Join(dirName, pagesetType, fmt.Sprintf("slave%d", workerNum))
-
-	if equal, _ := gs.AreTimeStampsEqual(localDir, gsDir); equal {
-		glog.Infof("Not uploading %s because TIMESTAMPS match", localDir)
-		return nil
-	}
-	glog.Infof("Timestamps between %s and %s are different. Uploading to Google Storage", localDir, gsDir)
-	return gs.UploadDir(localDir, gsDir, true)
 }
 
 // UploadSwarmingArtifact uploads the specified local artifacts to Google Storage.

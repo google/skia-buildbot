@@ -2,7 +2,6 @@
 package util
 
 import (
-	"os"
 	"os/user"
 	"path/filepath"
 	"runtime"
@@ -16,10 +15,6 @@ func SetVarsForLocal() {
 	if u, err := user.Current(); err == nil {
 		CtAdmins = []string{u.Username + "@google.com"}
 		CtUser = u.Username
-	}
-	Slaves = []string{"127.0.0.1"}
-	if h, err := os.Hostname(); err == nil {
-		Slaves = []string{h}
 	}
 	_, currentFile, _, _ := runtime.Caller(0)
 	myPathToCt := filepath.Dir(filepath.Dir(filepath.Dir(currentFile)))

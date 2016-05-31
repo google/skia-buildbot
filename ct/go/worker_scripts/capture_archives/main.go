@@ -96,8 +96,8 @@ func main() {
 			defer wg.Done()
 
 			for pagesetBaseName := range pagesetRequests {
-				if pagesetBaseName == util.TIMESTAMP_FILE_NAME || filepath.Ext(pagesetBaseName) == ".pyc" {
-					// Ignore timestamp files and .pyc files.
+				if filepath.Ext(pagesetBaseName) == ".pyc" {
+					// Ignore .pyc files.
 					continue
 				}
 
