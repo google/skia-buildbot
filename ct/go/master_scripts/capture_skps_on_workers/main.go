@@ -102,10 +102,12 @@ func main() {
 
 	isolateFile := util.CAPTURE_SKPS_ISOLATE
 	maxPages := MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS
+	workerDimensions := util.GOLO_WORKER_DIMENSIONS
 	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
 		// For PDF pagesets use the capture_skps_from_pdfs worker script.
 		isolateFile = util.CAPTURE_SKPS_FROM_PDFS_ISOLATE
 		maxPages = MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS
+		workerDimensions = util.GCE_WORKER_DIMENSIONS
 		// TODO(rmistry): Uncomment when ready to capture SKPs.
 		// TODO(rmistry): Replace the below block with:
 		// buildRemoteDir, err := util.TriggerBuildRepoSwarmingTask("build_pdfium", *runID, "pdfium", "Linux", []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, /*singleBuild*/ true, 2*time.Hour, 1*time.Hour)
@@ -156,7 +158,7 @@ func main() {
 		"CHROMIUM_BUILD": *chromiumBuild,
 		"RUN_ID":         *runID,
 	}
-	if err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, 3*time.Hour, 1*time.Hour, maxPages, isolateExtraArgs, util.GCE_WORKER_DIMENSIONS); err != nil {
+	if err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, 3*time.Hour, 1*time.Hour, maxPages, isolateExtraArgs, workerDimensions); err != nil {
 		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

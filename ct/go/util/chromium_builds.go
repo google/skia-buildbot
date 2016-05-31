@@ -104,8 +104,11 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 		// Add "try" prefix and "withpatch" suffix.
 		googleStorageDirName = fmt.Sprintf("try-%s-withpatch", googleStorageDirName)
 	}
+	// Hack: Use the "-DSK_WHITELIST_SERIALIZED_TYPEFACES" flag only when *runID is
+	// empty i.e. when invoked by the build_chromium task.
+	useWhitelistedFonts := (runID == "")
 	// Build chromium.
-	if err := buildChromium(chromiumBuildDir, targetPlatform); err != nil {
+	if err := buildChromium(chromiumBuildDir, targetPlatform, useWhitelistedFonts); err != nil {
 		return "", "", fmt.Errorf("There was an error building chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 	}
 
@@ -126,7 +129,7 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 			return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 		}
 		// Build chromium.
-		if err := buildChromium(chromiumBuildDir, targetPlatform); err != nil {
+		if err := buildChromium(chromiumBuildDir, targetPlatform, useWhitelistedFonts); err != nil {
 			return "", "", fmt.Errorf("There was an error building chromium %s + skia %s: %s", chromiumHash, skiaHash, err)
 		}
 		// Upload to Google Storage.
@@ -191,7 +194,7 @@ func uploadChromiumBuild(localOutDir, gsDir, targetPlatform string, gs *GsUtil) 
 	return gs.UploadDir(localUploadDir, gsDir, true)
 }
 
-func buildChromium(chromiumDir, targetPlatform string) error {
+func buildChromium(chromiumDir, targetPlatform string, useWhitelistedFonts bool) error {
 	if err := os.Chdir(filepath.Join(chromiumDir, "src")); err != nil {
 		return fmt.Errorf("Could not chdir to %s/src: %s", chromiumDir, err)
 	}
@@ -205,6 +208,9 @@ func buildChromium(chromiumDir, targetPlatform string) error {
 	gn_args := []string{"is_debug=false", "treat_warnings_as_errors=false"}
 	if targetPlatform == "Android" {
 		gn_args = append(gn_args, "target_os=\"android\"")
+	}
+	if useWhitelistedFonts {
+		gn_args = append(gn_args, "skia_whitelist_serialized_typefaces=true")
 	}
 
 	// Check to see if this machine is goma enabled.
