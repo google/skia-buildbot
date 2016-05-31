@@ -18,7 +18,7 @@ echo -e "\nexport PATH=/mnt/pd0/depot_tools:\$PATH" >> ~/.bashrc
 
 # Build the containter
 CONTAINER=/mnt/pd0/container
-sudo debootstrap --arch=amd64 wily /mnt/pd0/container
+sudo debootstrap --arch=amd64 wily --include=${PACKAGES// /,} /mnt/pd0/container
 
 sudo rm $CONTAINER/etc/machine-id
 sudo rm $CONTAINER/etc/resolv.conf
