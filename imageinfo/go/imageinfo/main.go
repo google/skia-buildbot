@@ -238,6 +238,8 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 		Args: []string{
 			"--input", filepath.Join(dir, "input"),
 			"--output", filepath.Join(dir, "output.png"),
+			"--adobeRGB",
+			"--sRGB",
 			"--resourcePath", resources,
 		},
 		Dir:            "/tmp",
