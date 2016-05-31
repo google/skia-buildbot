@@ -120,7 +120,6 @@ func main() {
 	defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID))
-	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
 	defer util.TimeTrack(time.Now(), "Running chromium perf task on workers")
 	defer glog.Flush()
@@ -211,6 +210,8 @@ func main() {
 			if noOutputSlaves, err = util.MergeUploadCSVFiles(run, pathToPyFiles, gs, util.PagesetTypeToInfo[*pagesetType].NumPages, MAX_PAGES_PER_SWARMING_BOT); err != nil {
 				glog.Errorf("Unable to merge and upload CSV files for %s: %s", run, err)
 			}
+			// Cleanup created dir after the run completes.
+			defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, run))
 		}
 	}
 

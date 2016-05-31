@@ -179,6 +179,8 @@ func main() {
 		if noOutputSlaves, err = util.MergeUploadCSVFiles(*runID, pathToPyFiles, gs, util.PagesetTypeToInfo[*pagesetType].NumPages, MAX_PAGES_PER_SWARMING_BOT); err != nil {
 			glog.Errorf("Unable to merge and upload CSV files for %s: %s", *runID, err)
 		}
+		// Cleanup created dir after the run completes.
+		defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	}
 
 	// Construct the output link.
