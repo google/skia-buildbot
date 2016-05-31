@@ -6,7 +6,7 @@ set -x
 
 source vm_config.sh
 
-DEBUGGER_MACHINE_TYPE=n1-standard-1
+DEBUGGER_MACHINE_TYPE=n1-highmem-32
 DEBUGGER_SOURCE_SNAPSHOT=skia-systemd-pushable-base
 DEBUGGER_SCOPES='https://www.googleapis.com/auth/devstorage.full_control'
 DEBUGGER_IP_ADDRESS=104.154.112.116
