@@ -5,14 +5,12 @@ Runs the frontend portion of the fuzzer.  This primarily is the webserver (see D
 */
 
 import (
-	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
 	"net/http"
-	"net/url"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -27,6 +25,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"go.skia.org/infra/fuzzer/go/fuzzcache"
+	"go.skia.org/infra/fuzzer/go/issues"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -58,6 +57,8 @@ var (
 	versionWatcher *fcommon.VersionWatcher = nil
 
 	fuzzSyncer *syncer.FuzzSyncer = nil
+
+	issueManager *issues.IssuesManager = nil
 )
 
 var (
@@ -199,6 +200,8 @@ func setupOAuth() error {
 	if err != nil {
 		return fmt.Errorf("Problem authenticating: %s", err)
 	}
+
+	issueManager = issues.NewManager(client)
 	return nil
 }
 
@@ -454,49 +457,21 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type newBug struct {
-	Category       string
-	PrettyCategory string
-	Name           string
-	Revision       string
-	Params         string
-}
-
-var newBugTemplate = template.Must(template.New("new_bug").Parse(`# Your bug description here about fuzz found in {{.PrettyCategory}}
-
-To replicate, build target "fuzz" at the specified commit and run:
-out/Release/fuzz {{.Params}} ~/Downloads/{{.Name}}
-
-# tracking metadata below:
-fuzz_category: {{.Category}}
-fuzz_commit: {{.Revision}}
-related_fuzz: https://fuzzer.skia.org/category/{{.Category}}/name/{{.Name}}
-fuzz_download: https://fuzzer.skia.org/fuzz/{{.Category}}/{{.Name}}
-`))
-
 func newBugHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	name := r.FormValue("name")
 	category := r.FormValue("category")
-	// Monorail expects a single, comma seperated list of query params for labels.
-	labels := append(fcommon.ExtraBugLabels(category), "FromSkiaFuzzer", "Restrict-View-Googler", "Type-Defect", "Priority-Medium")
-	q := url.Values{
-		"labels": []string{strings.Join(labels, ",")},
-		"status": []string{"New"},
-	}
-	b := newBug{
+
+	p := issues.IssueReportingPackage{
 		Category:       category,
-		PrettyCategory: fcommon.PrettifyCategory(category),
-		Name:           name,
-		Params:         fcommon.ReplicationArgs(category),
-		Revision:       config.FrontEnd.SkiaVersion.Hash,
+		FuzzName:       name,
+		CommitRevision: config.FrontEnd.SkiaVersion.Hash,
 	}
-	var t bytes.Buffer
-	if err := newBugTemplate.Execute(&t, b); err != nil {
-		httputils.ReportError(w, r, err, fmt.Sprintf("Could not create template with %#v", b))
-		return
+	if u, err := issueManager.CreateBadBugURL(p); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Problem creating issue link %#v", p))
+	} else {
+		// 303 means "make a GET request to this url"
+		http.Redirect(w, r, u, 303)
 	}
-	q.Add("comment", t.String())
-	// 303 means "make a GET request to this url"
-	http.Redirect(w, r, "https://bugs.chromium.org/p/skia/issues/entry?"+q.Encode(), 303)
+
 }

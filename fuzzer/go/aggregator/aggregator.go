@@ -20,6 +20,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/deduplicator"
+	"go.skia.org/infra/fuzzer/go/issues"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/fileutil"
@@ -48,6 +49,8 @@ type Aggregator struct {
 	UploadGreyFuzzes bool
 
 	storageClient *storage.Client
+
+	issueManager *issues.IssuesManager
 
 	// For passing the paths of new binaries that should be scanned.
 	forAnalysis chan analysisPackage
@@ -110,21 +113,20 @@ type uploadPackage struct {
 // bugReportingPackage is a struct containing the pieces of a fuzz that may need to have
 // a bug filed or updated.
 type bugReportingPackage struct {
-	FuzzName   string
-	CommitHash string
-	IsBadFuzz  bool
-	Category   string
+	Data      issues.IssueReportingPackage
+	IsBadFuzz bool
 }
 
 // StartAggregator creates and starts a Aggregator.
 // If there is a problem starting up, an error is returned.  Other errors will be logged.
-func StartAggregator(s *storage.Client, startingReports map[string]<-chan data.FuzzReport) (*Aggregator, error) {
+func StartAggregator(s *storage.Client, im *issues.IssuesManager, startingReports map[string]<-chan data.FuzzReport) (*Aggregator, error) {
 	b := Aggregator{
 		storageClient:      s,
+		issueManager:       im,
 		forAnalysis:        make(chan analysisPackage, 10000),
 		forUpload:          make(chan uploadPackage, 10000),
 		forBugReporting:    make(chan bugReportingPackage, 10000),
-		MakeBugOnBadFuzz:   false,
+		MakeBugOnBadFuzz:   true,
 		UploadGreyFuzzes:   false,
 		deduplicators:      make(map[string]*deduplicator.Deduplicator),
 		monitoringShutdown: make(chan bool, 2),
@@ -602,9 +604,12 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 				return
 			}
 			agg.forBugReporting <- bugReportingPackage{
-				FuzzName:   p.Data.Name,
-				CommitHash: config.Generator.SkiaVersion.Hash,
-				IsBadFuzz:  p.FuzzType == BAD_FUZZ,
+				Data: issues.IssueReportingPackage{
+					FuzzName:       p.Data.Name,
+					CommitRevision: config.Generator.SkiaVersion.Hash,
+					Category:       p.Category,
+				},
+				IsBadFuzz: p.FuzzType == BAD_FUZZ,
 			}
 		case <-agg.aggregationShutdown:
 			glog.Infof("Uploader %d recieved shutdown signal", identifier)
@@ -701,8 +706,11 @@ func (agg *Aggregator) waitForBugReporting() {
 // bugReportingHelper is a helper function to report bugs if the aggregator is configured to.
 func (agg *Aggregator) bugReportingHelper(p bugReportingPackage) error {
 	defer atomic.AddInt64(&agg.bugReportCount, int64(1))
-	if agg.MakeBugOnBadFuzz && p.IsBadFuzz {
-		glog.Warningf("Should create bug for %s", p.FuzzName)
+	if agg.MakeBugOnBadFuzz && p.IsBadFuzz && common.Status(p.Data.Category) == common.STABLE_FUZZER {
+		glog.Infof("Creating bug for %s", p.Data.FuzzName)
+		if err := agg.issueManager.CreateBadBugIssue(p.Data, "Crash found on 'stable' fuzzer"); err != nil {
+			glog.Errorf("Error while creating issue for bad fuzz: %s", err)
+		}
 	}
 	return nil
 }

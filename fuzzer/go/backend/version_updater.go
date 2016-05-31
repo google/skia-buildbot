@@ -128,7 +128,7 @@ func (v *VersionUpdater) reanalyze(oldRevision string) error {
 			v.aggregator.ForceAnalysis(name, category)
 		}
 		v.aggregator.WaitForEmptyQueues()
-		v.aggregator.MakeBugOnBadFuzz = false
+		v.aggregator.MakeBugOnBadFuzz = true
 		v.aggregator.UploadGreyFuzzes = false
 		bad, grey := v.aggregator.UploadedFuzzNames()
 		glog.Infof("Done reanalyzing %s.  Uploaded %d bad and %d grey fuzzes", category, len(bad), len(grey))

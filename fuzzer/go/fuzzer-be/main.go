@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/generator"
+	"go.skia.org/infra/fuzzer/go/issues"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
@@ -65,8 +66,9 @@ var (
 )
 
 var (
-	requiredFlags                 = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir", "fuzz_to_run"}
-	storageClient *storage.Client = nil
+	requiredFlags                       = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir", "fuzz_to_run"}
+	storageClient *storage.Client       = nil
+	issueManager  *issues.IssuesManager = nil
 )
 
 func main() {
@@ -113,7 +115,7 @@ func main() {
 	}
 
 	glog.Infof("Starting aggregator with configuration %#v", config.Aggregator)
-	agg, err := aggregator.StartAggregator(storageClient, startingReports)
+	agg, err := aggregator.StartAggregator(storageClient, issueManager, startingReports)
 	if err != nil {
 		glog.Fatalf("Could not start aggregator: %s", err)
 	}
@@ -202,5 +204,6 @@ func setupOAuth() error {
 	if storageClient, err = storage.NewClient(context.Background(), cloud.WithBaseHTTP(client)); err != nil {
 		return fmt.Errorf("Problem authenticating: %v", err)
 	}
+	issueManager = issues.NewManager(client)
 	return nil
 }

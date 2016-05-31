@@ -15,11 +15,12 @@ const (
 	UNKNOWN_FILE     = "UNKNOWN"
 	UNKNOWN_LINE     = -1
 
-	ASAN_OPTIONS = "ASAN_OPTIONS=detect_leaks=0 symbolize=1 allocator_may_return_null=1"
-
+	ASAN_OPTIONS        = "ASAN_OPTIONS=detect_leaks=0 symbolize=1 allocator_may_return_null=1"
 	STABLE_FUZZER       = "stable"
 	EXPERIMENTAL_FUZZER = "experimental"
 	FUZZER_NOT_FOUND    = "FUZZER_NOT_FOUND"
+
+	UNCLAIMED = "<unclaimed>"
 )
 
 // FuzzerInfo contains all the configuration needed to display, execute and analyze a fuzzer.
@@ -73,7 +74,7 @@ var fuzzers = map[string]FuzzerInfo{
 	"skpicture": {
 		PrettyName:          "SkPicture",
 		Status:              EXPERIMENTAL_FUZZER,
-		Groomer:             "<unclaimed>",
+		Groomer:             UNCLAIMED,
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "skp", "--bytes"},
 	},
