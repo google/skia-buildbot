@@ -13,7 +13,6 @@
         ],
         'command': [
           '../../../../../bin/capture_skps_from_pdfs',
-          '-logtostderr',
           '--start_range=<(START_RANGE)',
           '--num=<(NUM)',
           '--pageset_type=<(PAGESET_TYPE)',

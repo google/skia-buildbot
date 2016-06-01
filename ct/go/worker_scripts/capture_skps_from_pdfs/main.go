@@ -200,8 +200,17 @@ func main() {
 				//pdfiumTestArgs := []string{
 				//	"--skp", pdfPath,
 				//}
-				//if err := util.ExecuteCmd(pdfiumLocalPath, pdfiumTestArgs, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
-				//	glog.Errorf("Could not run pdfium_test on %s: %s", pdfPath, err)
+				//if err := exec.Run(&exec.Command{
+				//	Name:        pdfiumLocalPath,
+				//	Args:        pdfiumTestArgs,
+				//	Env:         []string{},
+				//	InheritPath: true,
+				//	Timeout:     time.Duration(timeoutSecs) * time.Second,
+				//	LogStdout:   false,
+				//	Stdout:      nil,
+				//	LogStderr:   false,
+				//	Stderr:      nil,
+				//}); err != nil {
 				//	erroredSKPs = append(erroredSKPs, pdfBase)
 				//	continue
 				//}
@@ -216,7 +225,7 @@ func main() {
 				//for _, skp := range skps {
 				//	skpBasename := path.Base(skp)
 				//	destDir := path.Join(pathToSkps, index)
-				//  if err := os.MkdirAll(destDir, 0700); err != nil {
+				//	if err := os.MkdirAll(destDir, 0700); err != nil {
 				//		glog.Errorf("Could not mkdir %s: %s", destDir, err)
 				//	}
 				//	dest := path.Join(destDir, skpBasename)
@@ -250,7 +259,8 @@ func main() {
 	//}
 	//
 	//// Move and validate all SKP files.
-	//if err := util.ValidateSKPs(pathToSkps); err != nil {
+	//pathToPyFiles := util.GetPathToPyFiles(!*worker_common.Local)
+	//if err := util.ValidateSKPs(pathToSkps, pathToPyFiles); err != nil {
 	//	glog.Fatal(err)
 	//}
 

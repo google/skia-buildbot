@@ -78,7 +78,7 @@ const (
 
 	// util.BuildSkiaTools
 	MAKE_CLEAN_TIMEOUT = 5 * time.Minute
-	MAKE_TOOLS_TIMEOUT = 5 * time.Minute
+	MAKE_TOOLS_TIMEOUT = 15 * time.Minute
 
 	// util.ResetCheckout
 	GIT_RESET_TIMEOUT = 5 * time.Minute
