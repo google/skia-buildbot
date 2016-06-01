@@ -385,11 +385,23 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		genJSONs = append(genJSONs, genJSON)
 	}
 
-	// Batcharchive the tasks.
-	tasksToHashes, err := s.BatchArchiveTargets(genJSONs, BATCHARCHIVE_TIMEOUT)
-	if err != nil {
-		return fmt.Errorf("Could not batch archive targets: %s", err)
+	// Batcharchive the tasks. Do not batcharchive more than 1000 at a time.
+	tasksToHashes := map[string]string{}
+	for i := 0; i < len(genJSONs); i += 1000 {
+		startRange := i
+		endRange := util.MinInt(len(genJSONs), i+1000)
+		t, err := s.BatchArchiveTargets(genJSONs[startRange:endRange], BATCHARCHIVE_TIMEOUT)
+		if err != nil {
+			return fmt.Errorf("Could not batch archive targets: %s", err)
+		}
+		// Add the above map to tasksToHashes.
+		for k, v := range t {
+			tasksToHashes[k] = v
+		}
+		// Sleep for a sec to give the swarming server some time to recuperate.
+		time.Sleep(time.Second)
 	}
+
 	if len(genJSONs) != len(tasksToHashes) {
 		return fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
 	}
