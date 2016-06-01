@@ -197,7 +197,7 @@ func main() {
 	}
 
 	// Upload SKPs dir to Google Storage.
-	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, *pagesetType); err != nil {
+	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
 		glog.Fatal(err)
 	}
 }

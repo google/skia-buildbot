@@ -146,7 +146,7 @@ func main() {
 		glog.Error(err)
 		return
 	}
-	skpGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType)
+	skpGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.SKPS_DIR_NAME, *pagesetType, *chromiumBuild)
 	skutil.LogErr(gs.DeleteRemoteDir(skpGSBaseDir))
 	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
 		pdfGSBaseDir := filepath.Join(util.SWARMING_DIR_NAME, util.PDFS_DIR_NAME, *pagesetType)
