@@ -175,8 +175,20 @@ func main() {
 					fmt.Sprintf("PYTHONPATH=%s:%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir, util.CatapultSrcDir),
 					"DISPLAY=:0",
 				}
-				skutil.LogErr(
-					util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil))
+				// Retry run_benchmark binary 3 times if there are any errors.
+				retryAttempts := 3
+				for i := 0; ; i++ {
+					err = util.ExecuteCmd("python", args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+					if err == nil {
+						break
+					}
+					if i >= (retryAttempts - 1) {
+						glog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetPath, err)
+						break
+					}
+					time.Sleep(time.Second)
+					glog.Warningf("Retrying due to error: %s", err)
+				}
 
 				mutex.RUnlock()
 			}
