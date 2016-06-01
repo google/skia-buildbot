@@ -208,6 +208,15 @@ func main() {
 		glog.Fatal(err)
 	}
 
+	// Check to see if there is anything in the pathToSKPs dir.
+	skpsEmpty, err := skutil.IsDirEmpty(pathToSkps)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	if skpsEmpty {
+		glog.Fatalf("Could not create any SKP in %s", pathToSkps)
+	}
+
 	// Upload SKPs dir to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.SKPS_DIR_NAME, filepath.Join(*pagesetType, *chromiumBuild)); err != nil {
 		glog.Fatal(err)
