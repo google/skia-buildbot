@@ -34,6 +34,7 @@ func main() {
 	fmt.Printf("Dimensions are different: %v\n", metrics.DimDiffer)
 	fmt.Printf("Number of pixels different: %v\n", metrics.NumDiffPixels)
 	fmt.Printf("Pixel diff percent: %v\n", metrics.PixelDiffPercent)
+	fmt.Printf("Max RGBA: %v\n", metrics.MaxRGBADiffs)
 	if *out == "" {
 		return
 	} else {

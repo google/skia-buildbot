@@ -256,7 +256,7 @@ func TestDiffImages(t *testing.T) {
 		NumDiffPixels:     24,
 		PixelDiffPercent:  (24.0 / 25.0) * 100,
 		PixelDiffFilePath: "",
-		MaxRGBADiffs:      []int{255, 255, 255, 0},
+		MaxRGBADiffs:      []int{0, 0, 0, 0},
 		DimDiffer:         true,
 	})
 }

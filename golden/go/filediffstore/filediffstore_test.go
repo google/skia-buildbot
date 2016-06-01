@@ -91,7 +91,7 @@ func getTestFileDiffStore(t *testing.T, storageDir, testDir string, cleanTestDir
 		NumDiffPixels:     250000,
 		PixelDiffPercent:  100,
 		PixelDiffFilePath: diffpath1_3,
-		MaxRGBADiffs:      []int{255, 255, 255, 0},
+		MaxRGBADiffs:      []int{248, 90, 113, 0},
 		DimDiffer:         true,
 	}
 
