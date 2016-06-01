@@ -410,11 +410,28 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	if err != nil {
 		return fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
-	// Collect all tasks and log the ones that fail.
+	// Collect all tasks and collect the ones that fail.
+	failedTasksToHashes := map[string]string{}
 	for _, task := range tasks {
 		if _, _, err := task.Collect(s); err != nil {
 			glog.Errorf("task %s failed: %s", task.Title, err)
+			failedTasksToHashes[task.Title] = tasksToHashes[task.Title]
 			continue
+		}
+	}
+
+	if len(failedTasksToHashes) > 0 {
+		glog.Info("Retrying tasks that failed...")
+		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false)
+		if err != nil {
+			return fmt.Errorf("Could not trigger swarming task: %s", err)
+		}
+		// Collect all tasks and log the ones that fail.
+		for _, task := range retryTasks {
+			if _, _, err := task.Collect(s); err != nil {
+				glog.Errorf("task %s failed inspite of a retry: %s", task.Title, err)
+				continue
+			}
 		}
 	}
 	return nil
