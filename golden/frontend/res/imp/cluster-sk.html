@@ -137,11 +137,14 @@
       },
 
       startUse: function() {
+        this._active = true;
+        this.width = this.height = -1;
         this._resizeWatcher(); 
         this.listen(document, 'keydown', '_handleKeyDown');
       }, 
 
       endUse: function() {
+        this._active = false;
         this.cancelAsync(this._resizeHandle);
         this.unlisten(document, 'keydown', '_handleKeyDown');
       },
@@ -363,21 +366,28 @@
       // Watch the size of the svg parents element and when it changes then
       // then resize the svg element to match.
       _resizeWatcher: function () {
-        this._resizeHandle = this.async(this._resizeWatcher.bind(this), 300);
+        if (this._active) {
+          this._resizeHandle = this.async(this._resizeWatcher.bind(this), 300);
+        }
         if (!this.force) {
           return;
         }
 
-        var w = +window.getComputedStyle(this, null).getPropertyValue('width').slice(0, -2);
-        var h = +window.getComputedStyle(this, null).getPropertyValue('height').slice(0, -2);
+        var w = Math.round(window.getComputedStyle(this, null).getPropertyValue('width').slice(0, -2));
+        var h = Math.round(window.getComputedStyle(this, null).getPropertyValue('height').slice(0, -2));
         if (w != this.width || h != this.height) {
-          this.width = w;
-          this.height = h;
-          this.svg.attr('width', this.width).attr('height', this.height);
+          this.svg.attr('width', w).attr('height', h);
           this.force.size([
             w,
             h
           ]).start();
+
+          // Measure again since the resize of svg might have caused a tiny change in the size of 
+          // the parent window. 
+          w = Math.round(window.getComputedStyle(this, null).getPropertyValue('width').slice(0, -2));
+          h = Math.round(window.getComputedStyle(this, null).getPropertyValue('height').slice(0, -2));
+          this.width = w;
+          this.height = h;
         }
       },
 
