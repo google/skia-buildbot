@@ -101,8 +101,6 @@ func main() {
 					continue
 				}
 
-				mutex.RLock()
-
 				// Read the pageset.
 				pagesetPath := filepath.Join(pathToPagesets, pagesetBaseName)
 				decodedPageset, err := util.ReadPageset(pagesetPath)
@@ -127,6 +125,8 @@ func main() {
 					fmt.Sprintf("PYTHONPATH=%s:$PYTHONPATH", pathToPagesets),
 					"DISPLAY=:0",
 				}
+
+				mutex.RLock()
 				// Retry record_wpr binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {

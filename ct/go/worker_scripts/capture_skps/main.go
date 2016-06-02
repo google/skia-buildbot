@@ -134,8 +134,6 @@ func main() {
 
 			for pagesetName := range pagesetRequests {
 
-				mutex.RLock()
-
 				// Read the pageset.
 				pagesetPath := filepath.Join(pathToPagesets, pagesetName)
 				decodedPageset, err := util.ReadPageset(pagesetPath)
@@ -170,11 +168,14 @@ func main() {
 					args = append(args, "--browser=exact", "--browser-executable="+chromiumBinary)
 					args = append(args, "--device=desktop")
 				}
+
 				// Set the PYTHONPATH to the pagesets and the telemetry dirs.
 				env := []string{
 					fmt.Sprintf("PYTHONPATH=%s:%s:%s:%s:$PYTHONPATH", pathToPagesets, util.TelemetryBinariesDir, util.TelemetrySrcDir, util.CatapultSrcDir),
 					"DISPLAY=:0",
 				}
+
+				mutex.RLock()
 				// Retry run_benchmark binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {
