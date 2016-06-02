@@ -91,6 +91,16 @@ func main() {
 			glog.Fatal(err)
 		}
 	}
+
+	// Check to see if there is anything in the pathToPagesets dir.
+	pagesetsEmpty, err := skutil.IsDirEmpty(pathToPagesets)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	if pagesetsEmpty {
+		glog.Fatalf("Could not create any page sets in %s", pathToPagesets)
+	}
+
 	// Upload all page sets to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.PAGESETS_DIR_NAME, *pagesetType); err != nil {
 		glog.Fatal(err)

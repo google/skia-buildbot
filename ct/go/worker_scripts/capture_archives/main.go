@@ -154,6 +154,15 @@ func main() {
 	// Wait for all spawned goroutines to complete.
 	wg.Wait()
 
+	// Check to see if there is anything in the pathToArchives dir.
+	archivesEmpty, err := skutil.IsDirEmpty(pathToArchives)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	if archivesEmpty {
+		glog.Fatalf("Could not create any archives in %s", pathToArchives)
+	}
+
 	// Upload all webpage archives to Google Storage.
 	if err := gs.UploadSwarmingArtifacts(util.WEB_ARCHIVES_DIR_NAME, *pagesetType); err != nil {
 		glog.Fatal(err)
