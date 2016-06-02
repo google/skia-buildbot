@@ -260,6 +260,7 @@ func main() {
 
 	// Swarming bots.
 	go func() {
+		oldMetrics := []*metrics2.Int64Metric{}
 		for _ = range time.Tick(2 * time.Minute) {
 			glog.Info("Loading Skia Swarming bot data.")
 			skiaBots, err := swarm.ListSkiaBots()
@@ -274,6 +275,15 @@ func main() {
 				continue
 			}
 			bots := append(skiaBots, ctBots...)
+
+			// Delete old metrics, replace with new ones. This fixes the case where
+			// bots are removed but their metrics hang around, or where dimensions
+			// change resulting in duplicate metrics with the same bot ID.
+			for _, m := range oldMetrics {
+				if err := m.Delete(); err != nil {
+					glog.Warningf("Failed to delete metric: %s", err)
+				}
+			}
 
 			now := time.Now()
 			for _, bot := range bots {
@@ -292,14 +302,18 @@ func main() {
 				}
 
 				// Bot last seen <duration> ago.
-				metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags).Update(int64(now.Sub(last)))
+				m1 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
+				m1.Update(int64(now.Sub(last)))
+				oldMetrics = append(oldMetrics, m1)
 
 				// Bot quarantined status.
 				quarantined := int64(0)
 				if bot.Quarantined {
 					quarantined = int64(1)
 				}
-				metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, tags).Update(quarantined)
+				m2 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_QUARANTINED, tags)
+				m2.Update(quarantined)
+				oldMetrics = append(oldMetrics, m2)
 			}
 		}
 	}()
