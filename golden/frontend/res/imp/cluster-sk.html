@@ -151,7 +151,7 @@
 
       newTriageStatus: function (digests, status) {
         digests.forEach(function (digest) {
-          var ele = $$$('#x' + digest);
+          var ele = $$$('#x' + digest, this);
           var selected = Polymer.dom(ele).classList.contains('selected');
           Polymer.dom(ele).setAttribute('class', 'node ' + status);
           Polymer.dom(ele).classList.toggle('selected', selected);
@@ -249,8 +249,8 @@
         });
         // Build the list of selected nodes.
         this.selected = [];
-        var r = $$$('.selectionRect');
-        var hits = $$$('svg').getIntersectionList(r.getBBox(), null);
+        var r = $$$('.selectionRect', this);
+        var hits = $$$('svg', this).getIntersectionList(r.getBBox(), null);
         for (var i = 0; i < hits.length; i++) {
           var ele = hits.item(i);
           if (ele.nodeName == 'circle') {
@@ -297,7 +297,7 @@
         if (e.ctrlKey || e.shiftKey) {
           // Ctrl or Shift means to toggle the selected state of a digest.
           var index = this.selected.indexOf(d.name);
-          Polymer.dom($$$('#x' + d.name)).classList.toggle('selected', index == -1);
+          Polymer.dom($$$('#x' + d.name, this)).classList.toggle('selected', index == -1);
           if (index == -1) {
             this.selected.push(d.name);
           } else {
@@ -308,7 +308,7 @@
           $$('.node.selected').forEach(function (ele) {
             Polymer.dom(ele).classList.toggle('selected', false);
           });
-          Polymer.dom($$$('#x' + d.name)).classList.toggle('selected', true);
+          Polymer.dom($$$('#x' + d.name, this)).classList.toggle('selected', true);
         }
 
         this.fire('digest-select', this.selected.slice());
