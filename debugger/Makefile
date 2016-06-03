@@ -17,6 +17,10 @@ build: elements_html core_js
 .PHONY: debug
 debug: clean_webtools debug_core_js debug_elements_html
 
+.PHONY: testgo
+testgo:
+	go test -v ./...
+
 push: build
 	./build_release "`git log -n1 --format=%s`"
 	go install -v ../push/go/pushcli
