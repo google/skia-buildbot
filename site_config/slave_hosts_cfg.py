@@ -39,21 +39,6 @@ _slave_host_dicts = {
 
 ################################ Linux Machines ################################
 
-  'skiabot-shuttle-ubuntu15-000': {
-    'slaves': [
-      ('skiabot-shuttle-ubuntu12-nexusplayer-001', '0',  False),
-      ('skiabot-shuttle-ubuntu12-nexusplayer-002', '1',  False),
-      ('skiabot-shuttle-ubuntu12-nexus10-001',     '2', False),
-      ('skiabot-shuttle-ubuntu12-nexus10-003',     '3', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.112',
-    'kvm_switch': KVM_SWITCH_OFFICE,
-    'kvm_num': 'A',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
-
   'skiabot-shuttle-ubuntu15-003': {
     'slaves': [
       ('skiabot-shuttle-ubuntu15-androidone-001',  '7', False),
@@ -82,6 +67,33 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
+  'skia-vm-004': {
+    'slaves': [
+      ('skiabot-linux-swarm-064', '64', False),
+      ('skiabot-linux-swarm-065', '65', False),
+      #('skiabot-linux-swarm-066', '66', False),
+      #('skiabot-linux-swarm-067', '67', False),
+      #('skiabot-linux-swarm-068', '68', False),
+      #('skiabot-linux-swarm-069', '69', False),
+      #('skiabot-linux-swarm-070', '70', False),
+      #('skiabot-linux-swarm-071', '71', False),
+      #('skiabot-linux-swarm-072', '72', False),
+      #('skiabot-linux-swarm-073', '73', False),
+      #('skiabot-linux-swarm-074', '74', False),
+      #('skiabot-linux-swarm-075', '75', False),
+      #('skiabot-linux-swarm-076', '76', False),
+      #('skiabot-linux-swarm-077', '77', False),
+      #('skiabot-linux-swarm-078', '78', False),
+      #('skiabot-linux-swarm-079', '79', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'ip': NO_IP_ADDR,
+    'kvm_switch': NO_KVM_SWITCH,
+    'kvm_num': NO_KVM_NUM,
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
   'skia-vm-005': {
     'slaves': [
       ('skiabot-linux-swarm-048', '48', False),
@@ -97,9 +109,9 @@ _slave_host_dicts = {
       ('skiabot-linux-swarm-058', '58', False),
       ('skiabot-linux-swarm-059', '59', False),
       ('skiabot-linux-swarm-060', '60', False),
-      #('skiabot-linux-swarm-061', '61', False),
-      #('skiabot-linux-swarm-062', '62', False),
-      #('skiabot-linux-swarm-063', '63', False),
+      ('skiabot-linux-swarm-061', '61', False),
+      ('skiabot-linux-swarm-062', '62', False),
+      ('skiabot-linux-swarm-063', '63', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
@@ -256,18 +268,6 @@ _slave_host_dicts = {
   },
 
 ################################# Mac Machines #################################
-
-  'skiabot-mac-10_10-001': {
-    'slaves': [
-      ('skiabot-shuttle-ubuntu15-nvidia-shield-001', '1', False),
-    ],
-    'copies': CHROMEBUILD_COPIES,
-    'ip': '192.168.1.121',
-    'kvm_switch': KVM_SWITCH_OFFICE,
-    'kvm_num': '5',
-    'path_to_buildbot': ['buildbot'],
-    'launch_script': LAUNCH_SCRIPT_UNIX,
-  },
 
 ############################### Windows Machines ###############################
 
