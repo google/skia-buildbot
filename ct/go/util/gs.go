@@ -43,6 +43,7 @@ func NewGsUtil(client *http.Client) (*GsUtil, error) {
 			return nil, err
 		}
 	}
+	client.Timeout = HTTP_CLIENT_TIMEOUT
 	service, err := storage.New(client)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create interface to Google Storage: %s", err)
