@@ -220,8 +220,14 @@ func recordResponse(h http.Handler) http.Handler {
 	})
 }
 
-// LoggingGzipRequestResponse records parts of the request and the response to the logs.
+// LoggingGzipRequestResponse records parts of the request and the response to
+// the logs and gzips responses when appropriate.
 func LoggingGzipRequestResponse(h http.Handler) http.Handler {
+	return autogzip.Handle(LoggingRequestResponse(h))
+}
+
+// LoggingRequestResponse records parts of the request and the response to the logs.
+func LoggingRequestResponse(h http.Handler) http.Handler {
 	// Closure to capture the request.
 	f := func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
@@ -236,7 +242,7 @@ func LoggingGzipRequestResponse(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 	}
 
-	return autogzip.Handle(recordResponse(http.HandlerFunc(f)))
+	return recordResponse(http.HandlerFunc(f))
 }
 
 // MakeResourceHandler is an HTTP handler function designed for serving files.
