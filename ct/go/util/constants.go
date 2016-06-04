@@ -71,7 +71,7 @@ const (
 	// Timeouts
 
 	PKILL_TIMEOUT       = 5 * time.Minute
-	HTTP_CLIENT_TIMEOUT = 15 * time.Minute
+	HTTP_CLIENT_TIMEOUT = 30 * time.Minute
 
 	// util.SyncDir
 	GIT_PULL_TIMEOUT     = 10 * time.Minute
