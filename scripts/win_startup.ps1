@@ -54,7 +54,12 @@ Function addToRegistryPath($dir) {
   $oldPath = (Get-ItemProperty -Path $envRegPath -Name PATH).Path
 
   # Don't add duplicates to PATH.
-  $oldPath.Split(";") | ForEach { If ($_ -eq $dir) { Return } }
+  $found = $FALSE
+  $oldPath.Split(";") | ForEach { If ($_ -eq $dir) { $found = $TRUE } }
+
+  if ($found) {
+    return
+  }
 
   # Override PATH
   $newPath=$oldPath+";"+$dir
