@@ -188,8 +188,8 @@ const (
 	CHROMIUM_PERF_ISOLATE          = "chromium_perf.isolate"
 	BUILD_REPO_ISOLATE             = "build_repo.isolate"
 	// Swarming links and params.
-	SWARMING_TASKS_LINK_TEMPLATE = "https://chromium-swarm.appspot.com/user/tasks?limit=500&sort=created_ts&state=all&task_tag=runid:%s"
-	SWARMING_NAME_PARAM          = "%0D%0Aname:"
+	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chromium-swarm.appspot.com/user/tasks?limit=500&sort=created_ts&state=all&task_tag=runid:%s"
+	SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE = SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE + "%%0D%%0Aname:%s"
 )
 
 type PagesetTypeInfo struct {

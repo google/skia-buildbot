@@ -58,7 +58,7 @@ func GetFailureEmailHtml(runID string) string {
 		"<br/>There were <b>failures</b> in the run. "+
 			"Please check the master log <a href='%s'>here</a> and the logs of triggered swarming tasks <a href='%s'>here</a>."+
 			"<br/>Contact the admins %s for assistance.<br/><br/>",
-		GetMasterLogLink(runID), fmt.Sprintf(SWARMING_TASKS_LINK_TEMPLATE, runID), CtAdmins)
+		GetMasterLogLink(runID), fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID), CtAdmins)
 }
 
 func SendTaskStartEmail(recipients []string, taskName, runID, description string) error {
@@ -75,7 +75,7 @@ func SendTaskStartEmail(recipients []string, taskName, runID, description string
 	<b>Note:</b> Must be on Google corp to access the master logs.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, masterLogLink, fmt.Sprintf(SWARMING_TASKS_LINK_TEMPLATE, runID))
+	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, masterLogLink, fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID))
 	if err := SendEmail(recipients, emailSubject, emailBody); err != nil {
 		return fmt.Errorf("Error while sending task start email: %s", err)
 	}

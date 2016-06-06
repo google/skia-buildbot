@@ -250,7 +250,7 @@ func main() {
 		"--chromium_hash=" + chromiumHash,
 		"--skia_hash=" + skiaHash,
 		"--missing_output_slaves=" + strings.Join(noOutputSlaves, " "),
-		"--logs_link_prefix=" + fmt.Sprintf(util.SWARMING_TASKS_LINK_TEMPLATE+"%s:chromium_perf_", *runID, util.SWARMING_NAME_PARAM),
+		"--logs_link_prefix=" + fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_perf_"),
 	}
 	err = util.ExecuteCmd("python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
