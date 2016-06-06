@@ -54,6 +54,9 @@
     - name: formatting home partition
       command: mkfs.ext4 {{drive}}7 -L HOME
 
+    - name: Removing reserved space
+      command: tune2fs {{drive}}3 -m 0
+
     - name: unmounting drive and partitions
       shell: umount {{drive}}*
       ignore_errors: true
