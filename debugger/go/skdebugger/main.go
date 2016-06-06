@@ -9,13 +9,17 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/fiorix/go-web/autogzip"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/debugger/go/containers"
+	"go.skia.org/infra/debugger/go/runner"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/login"
 )
 
 // flags
@@ -30,6 +34,7 @@ var (
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	timeBetweenBuilds = flag.Duration("time_between_builds", time.Hour, "How long to wait between building LKGR of Skia.")
 	workRoot          = flag.String("work_root", "", "Directory location where all the work is done.")
+	imageDir          = flag.String("image_dir", "", "Directory location of the container.")
 )
 
 var (
@@ -40,6 +45,9 @@ var (
 
 	// build is responsible to building the LKGR of skiaserve periodically.
 	build *buildskia.ContinuousBuilder
+
+	// co handles proxying requests to skiaserve instances which is spins up and down.
+	co *containers.Containers
 )
 
 func loadTemplates() {
@@ -58,6 +66,20 @@ func templateHandler(name string) http.HandlerFunc {
 		if err := templates.ExecuteTemplate(w, name, struct{}{}); err != nil {
 			glog.Errorln("Failed to expand template:", err)
 		}
+	}
+}
+
+func mainHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if login.LoggedInAs(r) == "" {
+		if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+			glog.Errorf("Failed to expand template: %s", err)
+		}
+	} else {
+		co.ServeHTTP(w, r)
 	}
 }
 
@@ -98,6 +120,14 @@ func main() {
 	}
 	Init()
 
+	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+	if !*local {
+		redirectURL = "https://debugger.skia.org/oauth2callback/"
+	}
+	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+		glog.Fatalf("Failed to initialize the login system: %s", err)
+	}
+
 	var err error
 	repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
 	if err != nil {
@@ -106,10 +136,22 @@ func main() {
 	build = buildskia.New(*workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds)
 	build.Start()
 
+	getHash := func() string {
+		return build.Current().Hash
+	}
+
+	run := runner.New(*workRoot, *imageDir, getHash, *local)
+	co = containers.New(run)
+
 	router := mux.NewRouter()
-	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
-	router.HandleFunc("/", templateHandler("index.html"))
-	http.Handle("/", httputils.LoggingGzipRequestResponse(router))
+	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))
+	router.HandleFunc("/", mainHandler)
+	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	router.HandleFunc("/logout/", login.LogoutHandler)
+	router.HandleFunc("/loginstatus/", login.StatusHandler)
+	router.NotFoundHandler = co
+
+	http.Handle("/", httputils.LoggingRequestResponse(router))
 
 	glog.Infoln("Ready to serve.")
 	glog.Fatal(http.ListenAndServe(*port, nil))
