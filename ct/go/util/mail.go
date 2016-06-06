@@ -64,6 +64,12 @@ func GetFailureEmailHtml(runID string) string {
 func SendTaskStartEmail(recipients []string, taskName, runID, description string) error {
 	emailSubject := fmt.Sprintf("%s cluster telemetry task has started (%s)", taskName, runID)
 	masterLogLink := GetMasterLogLink(runID)
+	swarmingLogsLink := fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID)
+
+	viewActionMarkup, err := email.GetViewActionMarkup(swarmingLogsLink, "View Logs", "Direct link to the swarming logs")
+	if err != nil {
+		return fmt.Errorf("Failed to get view action markup: %s", err)
+	}
 	descriptionHtml := ""
 	if description != "" {
 		descriptionHtml = fmt.Sprintf("Run description: %s<br/><br/>", description)
@@ -75,8 +81,8 @@ func SendTaskStartEmail(recipients []string, taskName, runID, description string
 	<b>Note:</b> Must be on Google corp to access the master logs.<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, masterLogLink, fmt.Sprintf(SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE, runID))
-	if err := SendEmail(recipients, emailSubject, emailBody); err != nil {
+	emailBody := fmt.Sprintf(bodyTemplate, taskName, descriptionHtml, masterLogLink, swarmingLogsLink)
+	if err := SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		return fmt.Errorf("Error while sending task start email: %s", err)
 	}
 	return nil
