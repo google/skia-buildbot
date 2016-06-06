@@ -86,6 +86,10 @@ func main() {
 	}
 
 	// Create the required chromium build.
+	// Note: chromium_builds.CreateChromiumBuildOnSwarming specifies the
+	//       "-DSK_WHITELIST_SERIALIZED_TYPEFACES" flag only when *runID is empty.
+	//       Since builds created by this master script will be consumed only by the
+	//       capture_skps tasks (which require that flag) specify runID as empty here.
 	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", "", "chromium", "Linux", []string{*chromiumHash, *skiaHash}, []string{}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
 	if err != nil {
 		glog.Errorf("Error encountered when swarming build repo task: %s", err)
