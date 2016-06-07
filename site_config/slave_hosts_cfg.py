@@ -243,6 +243,7 @@ _slave_host_dicts = {
       ('skiabot-ct-dm-000', '5', False),
       ('skiabot-ct-dm-002', '6', False),
       ('skiabot-ct-dm-003', '7', False),
+      ('skiabot-ct-dm-004', '7', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
