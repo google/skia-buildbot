@@ -12,6 +12,7 @@ VULCANIZE1=true
 .PHONY: build
 build: elements_html core_js
 	go install -v ./go/imageinfo
+	go install -v ../go/buildskia/skia_build
 
 .PHONY: testgo
 testgo:
