@@ -318,32 +318,8 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDescription, skiaClDescription, benchmarkClDescription) {
-       if (!chromiumClDescription && !skiaClDescription && !benchmarkClDescription) {
-         this.$.desc.value = "";
-       } else {
-         var str = "Testing ";
-         var prev = false;
-         if (chromiumClDescription) {
-           str += chromiumClDescription;
-           prev = true;
-         }
-         if (skiaClDescription) {
-           if (prev) {
-             str += " and ";
-           }
-           str += skiaClDescription;
-           prev = true;
-         }
-         if (benchmarkClDescription) {
-           if (prev) {
-             str += " with ";
-           }
-           str += benchmarkClDescription;
-           prev = true;
-         }
-         this.$.desc.value = str;
-       }
+     clDescriptionChanged: function(chromiumClDesc, skiaClDesc, benchmarkClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, benchmarkClDesc)
      },
 
      validateTask: function() {

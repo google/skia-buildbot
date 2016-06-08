@@ -1,0 +1,255 @@
+<!--
+  The <chromium-analysis-sk> custom element declaration. Displays a form that allows the user to
+  queue a task to analyse Chromium.
+
+  Attributes:
+    pageSets: List of all supported page sets, as accepted by page-set-selector-sk property
+      pageSets. Must be set.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+-->
+
+<dom-module id="chromium-analysis-sk">
+  <style>
+    paper-input {
+      width: 20em;
+    }
+
+    .iron-selected {
+      background-color: #D6ECF2;
+    }
+
+    .long-field {
+      width: 40em;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .short-field {
+      width: 5em;
+    }
+
+    iron-selector.long-field > div {
+      width: 40em;
+    }
+
+    iron-selector.medium-field > div {
+      width: 20em;
+    }
+
+    iron-selector.short-field > div {
+      width: 5em;
+    }
+
+    table.options td {
+      padding: 1em 2em;
+    }
+
+    td.center {
+      text-align:center;
+      padding-top:2em;
+    }
+
+    .panel {
+      @apply(--shadow-elevation-2dp);
+    }
+  </style>
+  <template>
+
+    <paper-dialog heading="Confirmation" id="confirm_dialog">
+      <div>Proceed with queueing task?</div>
+      <paper-button id="task_dismiss">Cancel</paper-button>
+      <paper-button id="task_confirm" autofocus>OK</paper-button>
+    </paper-dialog>
+
+    <table class="options panel">
+      <tr>
+        <td>Benchmark Name</td>
+        <td>
+          <paper-input value="" id="benchmark_name" label=""></paper-input>
+        </td>
+      </tr>
+
+      <tr>
+        <td>PageSets Type</td>
+        <td>
+          <page-set-selector-sk id="page_sets" page-sets="{{pageSets}}"></page-set-selector-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Benchmark Arguments</td>
+        <td>
+          <paper-input value="--output-format=csv-pivot-table" id="benchmark_args"></paper-input>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Browser Arguments</td>
+        <td>
+          <paper-input value="{{defaultLinuxBrowserArgs}}" id="browser_args" class="long-field"></paper-input>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Chromium Git patch (optional)<br/>
+          Applied to Chromium ToT
+        </td>
+        <td>
+          <patch-sk id="chromium_patch"
+                    patch-type="chromium"
+                    cl-description="{{chromiumClDescription}}">
+          </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          Telemetry Git patch (optional)<br/>
+          Applied to Chromium ToT<br/>
+          Documentation is <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.d3d1e25u2mzy">here</a>
+        </td>
+        <td>
+          <patch-sk id="benchmark_patch"
+                    patch-type="chromium"
+                    cl-description="{{benchmarkClDescription}}">
+          </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Repeat this task</td>
+        <td>
+          <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
+        </td>
+      </tr>
+
+      <tr>
+        <td>Description</td>
+        <td>
+          <paper-input value="" id="desc" label="Description is required"></paper-input>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="2" class="center">
+          <paper-button raised id="submit_task">Queue Task</paper-button>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2" class="center">
+          <paper-button raised id="view_history">View runs history</paper-button>
+        </td>
+      </tr>
+    </table>
+
+    <br/><br/>
+
+  </template>
+</dom-module>
+
+<script>
+   Polymer({
+     is: "chromium-analysis-sk",
+     properties: {
+       pageSets: {
+         type: Array,
+         observer: 'pageSetsChanged',
+       },
+       defaultLinuxBrowserArgs: {
+         type: String,
+         value: "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting",
+       },
+       chromiumClDescription: String,
+       benchmarkClDescription: String,
+     },
+
+     observers: [
+       "clDescriptionChanged(chromiumClDescription, benchmarkClDescription)"
+     ],
+
+     ready: function() {
+       var that = this;
+       this.$.submit_task.addEventListener('click', function(e) {
+         that.validateTask();
+       });
+       this.$.task_dismiss.addEventListener('click', function(e) {
+         that.dismissTask();
+       });
+       this.$.task_confirm.addEventListener('click', function(e) {
+         that.queueTask();
+       });
+       this.$.view_history.addEventListener('click', function(e) {
+         that.gotoRunsHistory();
+       });
+     },
+
+     pageSetsChanged: function(newValue, oldValue) {
+       // CT's chromium analysis does not support 1M and PDFs.
+       for (var i=this.pageSets.length-1; i>=0; i--) {
+         if (ctfe.pageSets.getKey(this.pageSets[i]) == "All" ||
+             ctfe.pageSets.getKey(this.pageSets[i]).startsWith("PDF")) {
+           this.pageSets.splice(i, 1);
+         }
+       }
+       if (!oldValue || oldValue.length == 0) {                                  
+         this.$.page_sets.selectFirst();                                         
+       }
+     },
+
+     clDescriptionChanged: function(chromiumClDesc, benchmarkClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, '', benchmarkClDesc)
+     },
+
+     validateTask: function() {
+       if (! this.$.benchmark_name.value) {
+         sk.errorMessage("Please specify a benchmark");
+         this.$.benchmark_name.focus();
+         return;
+       }
+       if (!this.$.chromium_patch.validate() ||
+           !this.$.benchmark_patch.validate()) {
+         return;
+       }
+       if (! this.$.desc.value) {
+         sk.errorMessage("Please specify a description");
+         this.$.desc.focus();
+         return;
+       }
+       this.$.confirm_dialog.open()
+     },
+
+     dismissTask: function() {
+       sk.errorMessage("Did not queue");
+       this.$.confirm_dialog.close()
+     },
+
+     queueTask: function() {
+       var params = {};
+       params["benchmark"] = this.$.benchmark_name.value;
+       params["page_sets"] = this.$.page_sets.selected;
+       params["benchmark_args"] = this.$.benchmark_args.value;
+       params["browser_args"] = this.$.browser_args.value;
+       params["desc"] = this.$.desc.value;
+       params["chromium_patch"] = this.$.chromium_patch.patch;
+       params["benchmark_patch"] = this.$.benchmark_patch.patch;
+       params["repeat_after_days"] = this.$.repeat_after_days.selected;
+
+       var that = this;
+       sk.post("/_/add_chromium_analysis_task", JSON.stringify(params)).then(function(resp) {
+         that.gotoRunsHistory();
+       }).catch(sk.errorMessage);
+     },
+
+     gotoRunsHistory: function() {
+       window.location.href = "/chromium_analysis_runs/";
+     },
+   });
+</script>

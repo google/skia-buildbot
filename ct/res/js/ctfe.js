@@ -162,5 +162,35 @@ this.ctfe = this.ctfe || function() {
         repository.Description + ")";
   }
 
+  /**
+   * Returns a string that describes the specified CLs.
+   **/
+  ctfe.getDescriptionOfCls = function(chromiumClDesc, skiaClDesc, benchmarkClDesc) {
+    if (!chromiumClDesc && !skiaClDesc && !benchmarkClDesc) {
+      return "";
+    }
+    var str = "Testing ";
+    var prev = false;
+    if (chromiumClDesc) {
+      str += chromiumClDesc;
+      prev = true;
+    }
+    if (skiaClDesc) {
+      if (prev) {
+        str += " and ";
+      }
+      str += skiaClDesc;
+      prev = true;
+    }
+    if (benchmarkClDesc) {
+      if (prev) {
+        str += " with ";
+      }
+      str += benchmarkClDesc;
+      prev = true;
+    }
+    return str;
+  }
+
   return ctfe;
 }();

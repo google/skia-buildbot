@@ -29,6 +29,11 @@
         Performance
       </paper-item>
 
+      <paper-item data-href="/chromium_analysis/">
+        <iron-icon icon="icons:search" class="right_padded"></iron-icon>
+        Analysis
+      </paper-item>
+
       <paper-item data-href="/capture_skps/">
         <iron-icon icon="image:photo-camera" class="right_padded"></iron-icon>
         SkPictures
@@ -91,6 +96,8 @@
          value: function() {
            return [{type: "ChromiumPerf",
                     get_url: "/_/get_chromium_perf_tasks"},
+                   {type: "ChromiumAnalysis",
+                    get_url: "/_/get_chromium_analysis_tasks"},
                    {type: "CaptureSkps",
                     get_url: "/_/get_capture_skp_tasks"},
                    {type: "LuaScript",
