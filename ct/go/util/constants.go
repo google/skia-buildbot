@@ -155,6 +155,11 @@ const (
 		RUN_CHROMIUM_PERF_TIMEOUT + 2*CSV_MERGER_TIMEOUT + CSV_COMPARER_TIMEOUT +
 		MASTER_SCRIPT_TIMEOUT_PADDING
 
+	// Run Chromium Analysis
+	// The timeout used for Chromium Perf should be sufficient for Chromium Analysis. This will be
+	// adjusted in the future if required.
+	MASTER_SCRIPT_RUN_CHROMIUM_ANALYSIS_TIMEOUT = MASTER_SCRIPT_RUN_CHROMIUM_PERF_TIMEOUT
+
 	// Run Lua
 	LUA_PICTURES_TIMEOUT          = 2 * time.Hour
 	RUN_LUA_TIMEOUT               = 2 * time.Hour

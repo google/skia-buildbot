@@ -22,6 +22,7 @@ import (
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
+	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
@@ -66,7 +67,7 @@ const (
 	CHROMIUM_BUILD
 	RECREATE_PAGE_SETS
 	RECREATE_WEBPAGE_ARCHIVES
-	_
+	CHROMIUM_ANALYSIS
 	POLL
 )
 
@@ -88,6 +89,8 @@ func (t TaskType) String() string {
 		return "RECREATE_PAGE_SETS"
 	case RECREATE_WEBPAGE_ARCHIVES:
 		return "RECREATE_WEBPAGE_ARCHIVES"
+	case CHROMIUM_ANALYSIS:
+		return "CHROMIUM_ANALYSIS"
 	case POLL:
 		return "POLL"
 	default:
@@ -141,6 +144,45 @@ func runId(task Task) string {
 	// ~(pollInterval - 1 second) and for the returned task to fail very quickly, in which case
 	// the next task would could start within the same second as the first task.
 	return strings.SplitN(task.GetCommonCols().Username, "@", 2)[0] + "-" + ctutil.GetCurrentTs()
+}
+
+// Define frontend.ChromiumAnalysisDBTask here so we can add methods.
+type ChromiumAnalysisTask struct {
+	chromium_analysis.DBTask
+}
+
+func (task *ChromiumAnalysisTask) Execute() error {
+	runId := runId(task)
+	for fileSuffix, patch := range map[string]string{
+		".chromium.patch":  task.ChromiumPatch,
+		".benchmark.patch": task.BenchmarkPatch,
+	} {
+		// Add an extra newline at the end because git sometimes rejects patches due to
+		// missing newlines.
+		patch = patch + "\n"
+		patchPath := filepath.Join(os.TempDir(), runId+fileSuffix)
+		if err := ioutil.WriteFile(patchPath, []byte(patch), 0666); err != nil {
+			return err
+		}
+		defer skutil.Remove(patchPath)
+	}
+	return exec.Run(&exec.Command{
+		Name: "run_chromium_analysis_on_workers",
+		Args: []string{
+			"--emails=" + task.Username,
+			"--description=" + task.Description,
+			"--gae_task_id=" + strconv.FormatInt(task.Id, 10),
+			"--pageset_type=" + task.PageSets,
+			"--benchmark_name=" + task.Benchmark,
+			"--benchmark_extra_args=" + task.BenchmarkArgs,
+			"--browser_extra_args=" + task.BrowserArgs,
+			"--run_id=" + runId,
+			"--log_dir=" + logDir,
+			"--log_id=" + runId,
+			fmt.Sprintf("--local=%t", *master_common.Local),
+		},
+		Timeout: ctutil.MASTER_SCRIPT_RUN_CHROMIUM_ANALYSIS_TIMEOUT,
+	})
 }
 
 // Define frontend.ChromiumPerfDBTask here so we can add methods.
@@ -344,6 +386,8 @@ func asPollerTask(otherTask task_common.Task) Task {
 		return &RecreatePageSetsTask{RecreatePageSetsDBTask: *t}
 	case *admin_tasks.RecreateWebpageArchivesDBTask:
 		return &RecreateWebpageArchivesTask{RecreateWebpageArchivesDBTask: *t}
+	case *chromium_analysis.DBTask:
+		return &ChromiumAnalysisTask{DBTask: *t}
 	default:
 		glog.Errorf("Missing case for %T in asPollerTask", otherTask)
 		return nil
