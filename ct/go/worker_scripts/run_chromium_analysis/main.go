@@ -161,9 +161,19 @@ func main() {
 			for pagesetName := range pagesetRequests {
 
 				mutex.RLock()
-				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, "Linux", *benchmarkExtraArgs, *pagesetType, -1); err != nil {
-					glog.Errorf("Error while running withpatch benchmark: %s", err)
-					continue
+				// Retry run_benchmark binary 3 times if there are any errors.
+				retryAttempts := 3
+				for i := 0; ; i++ {
+					err = util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDir, *chromiumBuild, chromiumBinary, *runID, *browserExtraArgs, *benchmarkName, "Linux", *benchmarkExtraArgs, *pagesetType, -1)
+					if err == nil {
+						break
+					}
+					if i >= (retryAttempts - 1) {
+						glog.Errorf("%s failed inspite of 3 retries. Last error: %s", pagesetName, err)
+						break
+					}
+					time.Sleep(time.Second)
+					glog.Warningf("Retrying due to error: %s", err)
 				}
 				mutex.RUnlock()
 			}
