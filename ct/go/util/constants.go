@@ -32,12 +32,14 @@ const (
 	MAX_URI_GET_TRIES = 4
 
 	// Pageset types supported by CT.
-	PAGESET_TYPE_ALL        = "All"
-	PAGESET_TYPE_10k        = "10k"
-	PAGESET_TYPE_MOBILE_10k = "Mobile10k"
-	PAGESET_TYPE_PDF_1m     = "PDF1m"
-	PAGESET_TYPE_PDF_1k     = "PDF1k"
-	PAGESET_TYPE_DUMMY_1k   = "Dummy1k" // Used for testing.
+	PAGESET_TYPE_ALL         = "All"
+	PAGESET_TYPE_100k        = "100k"
+	PAGESET_TYPE_MOBILE_100k = "Mobile100k"
+	PAGESET_TYPE_10k         = "10k"
+	PAGESET_TYPE_MOBILE_10k  = "Mobile10k"
+	PAGESET_TYPE_PDF_1m      = "PDF1m"
+	PAGESET_TYPE_PDF_1k      = "PDF1k"
+	PAGESET_TYPE_DUMMY_1k    = "Dummy1k" // Used for testing.
 
 	// Names of binaries executed by CT.
 	BINARY_CHROME        = "chrome"
@@ -270,6 +272,26 @@ var (
 			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1M (with desktop user-agent)",
+		},
+		PAGESET_TYPE_100k: &PagesetTypeInfo{
+			NumPages:                   100000,
+			CSVSource:                  "csv/top-1m.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  60,
+			CaptureArchivesTimeoutSecs: 300,
+			CaptureSKPsTimeoutSecs:     300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "Top 100K (with desktop user-agent)",
+		},
+		PAGESET_TYPE_MOBILE_100k: &PagesetTypeInfo{
+			NumPages:                   100000,
+			CSVSource:                  "csv/android-top-1m.csv",
+			UserAgent:                  "mobile",
+			CreatePagesetsTimeoutSecs:  60,
+			CaptureArchivesTimeoutSecs: 300,
+			CaptureSKPsTimeoutSecs:     300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "Top 100K (with mobile user-agent)",
 		},
 		PAGESET_TYPE_10k: &PagesetTypeInfo{
 			NumPages:                   10000,
