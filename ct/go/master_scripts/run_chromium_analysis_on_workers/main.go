@@ -4,6 +4,7 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/frontend"
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
@@ -81,14 +83,11 @@ func sendEmail(recipients []string) {
 }
 
 func updateWebappTask() {
-	// TODO(rmistry): Update this section when the analysis page is created.
-	//vars := chromium_perf.UpdateVars{}
-	//vars.Id = *gaeTaskID
-	//vars.SetCompleted(taskCompletedSuccessfully)
-	//vars.Results = sql.NullString{String: htmlOutputLink, Valid: true}
-	//vars.NoPatchRawOutput = sql.NullString{String: noPatchOutputLink, Valid: true}
-	//vars.WithPatchRawOutput = sql.NullString{String: withPatchOutputLink, Valid: true}
-	//skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
+	vars := chromium_analysis.UpdateVars{}
+	vars.Id = *gaeTaskID
+	vars.SetCompleted(taskCompletedSuccessfully)
+	vars.RawOutput = sql.NullString{String: outputLink, Valid: true}
+	skutil.LogErr(frontend.UpdateWebappTaskV2(&vars))
 }
 
 func main() {
@@ -102,8 +101,8 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
-	// TODO(rmistry): Update the below when the analysis page is created.
-	// skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_perf.UpdateVars{}, *gaeTaskID))
+
+	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
