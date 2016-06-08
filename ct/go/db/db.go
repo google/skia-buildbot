@@ -15,6 +15,7 @@ const (
 	PROD_DB_PORT = 3306
 	PROD_DB_NAME = "ctfe"
 
+	TABLE_CHROMIUM_ANALYSIS_TASKS         = "ChromiumAnalysisTasks"
 	TABLE_CHROMIUM_PERF_TASKS             = "ChromiumPerfTasks"
 	TABLE_CAPTURE_SKPS_TASKS              = "CaptureSkpsTasks"
 	TABLE_LUA_SCRIPT_TASKS                = "LuaScriptTasks"
@@ -257,36 +258,60 @@ var v11_down = []string{
 	`ALTER TABLE ChromiumPerfTasks DROP benchmark_patch`,
 }
 
+var v12_up = []string{
+	`CREATE TABLE IF NOT EXISTS ChromiumAnalysisTasks (
+		id                     INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+		username               VARCHAR(255) NOT NULL,
+		benchmark              VARCHAR(100) NOT NULL,
+		page_sets              VARCHAR(100) NOT NULL,
+		benchmark_args         VARCHAR(255),
+		browser_args           VARCHAR(255),
+		description            VARCHAR(255),
+		repeat_after_days      BIGINT       NOT NULL DEFAULT 0,
+		chromium_patch         TEXT,
+		benchmark_patch        TEXT,
+		ts_added               BIGINT       NOT NULL,
+		ts_started             BIGINT,
+		ts_completed           BIGINT,
+		failure                TINYINT(1),
+		raw_output             VARCHAR(255),
+	)`,
+}
+
+var v12_down = []string{
+	`DROP TABLE IF EXISTS ChromiumAnalysisTasks`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
 var migrationSteps = []database.MigrationStep{
-	// version 1. Create Chromium Perf tables.
+	// version 1: Create Chromium Perf tables.
 	{
 		MySQLUp:   v1_up,
 		MySQLDown: v1_down,
 	},
-	// version 2. Create Admin Task tables.
+	// version 2: Create Admin Task tables.
 	{
 		MySQLUp:   v2_up,
 		MySQLDown: v2_down,
 	},
-	// version 3. Create Chromium Build table.
+	// version 3: Create Chromium Build table.
 	{
 		MySQLUp:   v3_up,
 		MySQLDown: v3_down,
 	},
-	// version 4. Modify Chromium Build columns.
+	// version 4: Modify Chromium Build columns.
 	{
 		MySQLUp:   v4_up,
 		MySQLDown: v4_down,
 	},
-	// version 5. Create Capture SKPs table.
+	// version 5: Create Capture SKPs table.
 	{
 		MySQLUp:   v5_up,
 		MySQLDown: v5_down,
 	},
-	// version 6. Create Lua Scripts table.
+	// version 6: Create Lua Scripts table.
 	{
 		MySQLUp:   v6_up,
 		MySQLDown: v6_down,
@@ -315,6 +340,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v11_up,
 		MySQLDown: v11_down,
+	},
+	// version 12: Create Chromium Analysis table.
+	{
+		MySQLUp:   v12_up,
+		MySQLDown: v12_down,
 	},
 }
 

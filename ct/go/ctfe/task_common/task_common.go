@@ -8,10 +8,14 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"reflect"
+	"regexp"
+	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
@@ -31,6 +35,10 @@ const (
 
 	// Maximum page size used for pagination.
 	MAX_PAGE_SIZE = 100
+)
+
+var (
+	httpClient = httputils.NewTimeoutClient()
 )
 
 type CommonCols struct {
@@ -554,24 +562,164 @@ func RedoTaskHandler(prototype Task, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type PageSet struct {
+	Key         string `json:"key"`
+	Description string `json:"description"`
+}
+
+// ByPageSetDesc implements sort.Interface to order PageSets by their descriptions.
+type ByPageSetDesc []PageSet
+
+func (p ByPageSetDesc) Len() int           { return len(p) }
+func (p ByPageSetDesc) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p ByPageSetDesc) Less(i, j int) bool { return p[i].Description < p[j].Description }
+
 func pageSetsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	pageSets := []map[string]string{}
+	pageSets := []PageSet{}
 	for pageSet := range ctutil.PagesetTypeToInfo {
-		pageSetObj := map[string]string{
-			"key":         pageSet,
-			"description": ctutil.PagesetTypeToInfo[pageSet].Description,
+		p := PageSet{
+			Key:         pageSet,
+			Description: ctutil.PagesetTypeToInfo[pageSet].Description,
 		}
-		pageSets = append(pageSets, pageSetObj)
+		pageSets = append(pageSets, p)
 	}
-
+	sort.Sort(ByPageSetDesc(pageSets))
 	if err := json.NewEncoder(w).Encode(pageSets); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
 		return
 	}
 }
 
+var clURLRegexp = regexp.MustCompile("^(?:https?://codereview\\.chromium\\.org/)?(\\d{3,})/?$")
+
+type clDetail struct {
+	Issue     int    `json:"issue"`
+	Subject   string `json:"subject"`
+	Modified  string `json:"modified"`
+	Project   string `json:"project"`
+	Patchsets []int  `json:"patchsets"`
+}
+
+func GetCLDetail(clURLString string) (clDetail, error) {
+	if clURLString == "" {
+		return clDetail{}, fmt.Errorf("No CL specified")
+	}
+
+	matches := clURLRegexp.FindStringSubmatch(clURLString)
+	if len(matches) < 2 || matches[1] == "" {
+		// Don't return error, since user could still be typing.
+		return clDetail{}, nil
+	}
+	clString := matches[1]
+	detailJsonUrl := "https://codereview.chromium.org/api/" + clString
+	glog.Infof("Reading CL detail from %s", detailJsonUrl)
+	detailResp, err := httpClient.Get(detailJsonUrl)
+	if err != nil {
+		return clDetail{}, fmt.Errorf("Unable to retrieve CL detail: %v", err)
+	}
+	defer skutil.Close(detailResp.Body)
+	if detailResp.StatusCode == 404 {
+		// Don't return error, since user could still be typing.
+		return clDetail{}, nil
+	}
+	if detailResp.StatusCode != 200 {
+		return clDetail{}, fmt.Errorf("Unable to retrieve CL detail; status code %d", detailResp.StatusCode)
+	}
+	detail := clDetail{}
+	err = json.NewDecoder(detailResp.Body).Decode(&detail)
+	return detail, err
+}
+
+func GetCLPatch(detail clDetail, patchsetID int) (string, error) {
+	if len(detail.Patchsets) == 0 {
+		return "", fmt.Errorf("CL has no patchsets")
+	}
+	if patchsetID <= 0 {
+		// If no valid patchsetID has been specified then use the last patchset.
+		patchsetID = detail.Patchsets[len(detail.Patchsets)-1]
+	}
+	patchUrl := fmt.Sprintf("https://codereview.chromium.org/download/issue%d_%d.diff", detail.Issue, patchsetID)
+	glog.Infof("Downloading CL patch from %s", patchUrl)
+	patchResp, err := httpClient.Get(patchUrl)
+	if err != nil {
+		return "", fmt.Errorf("Unable to retrieve CL patch: %v", err)
+	}
+	defer skutil.Close(patchResp.Body)
+	if patchResp.StatusCode != 200 {
+		return "", fmt.Errorf("Unable to retrieve CL patch; status code %d", patchResp.StatusCode)
+	}
+	if int64(patchResp.ContentLength) > db.LONG_TEXT_MAX_LENGTH {
+		return "", fmt.Errorf("Patch is too large; length is %d bytes.", patchResp.ContentLength)
+	}
+	patchBytes, err := ioutil.ReadAll(patchResp.Body)
+	if err != nil {
+		return "", fmt.Errorf("Unable to retrieve CL patch: %v", err)
+	}
+	// Double-check length in case ContentLength was -1.
+	if int64(len(patchBytes)) > db.LONG_TEXT_MAX_LENGTH {
+		return "", fmt.Errorf("Patch is too large; length is %d bytes.", len(patchBytes))
+	}
+	return string(patchBytes), nil
+}
+
+func GatherCLData(detail clDetail, patch string) (map[string]string, error) {
+	clData := map[string]string{}
+	clData["cl"] = strconv.Itoa(detail.Issue)
+	clData["patchset"] = strconv.Itoa(detail.Patchsets[len(detail.Patchsets)-1])
+	clData["subject"] = detail.Subject
+	modifiedTime, err := time.Parse("2006-01-02 15:04:05.999999", detail.Modified)
+	if err != nil {
+		glog.Errorf("Unable to parse modified time for CL %d; input '%s', got %v", detail.Issue, detail.Modified, err)
+		clData["modified"] = ""
+	} else {
+		clData["modified"] = modifiedTime.UTC().Format(ctutil.TS_FORMAT)
+	}
+	clData["chromium_patch"] = ""
+	clData["skia_patch"] = ""
+	switch detail.Project {
+	case "chromium":
+		clData["chromium_patch"] = patch
+	case "skia":
+		clData["skia_patch"] = patch
+	default:
+		return nil, fmt.Errorf("CL project is %s; only chromium and skia are supported.", detail.Project)
+	}
+	return clData, nil
+}
+
+func getCLHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	detail, err := GetCLDetail(r.FormValue("cl"))
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get CL details")
+		return
+	}
+	if detail.Issue == 0 {
+		// Return successful empty response, since the user could still be typing.
+		if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
+			httputils.ReportError(w, r, err, "Failed to encode JSON")
+		}
+		return
+	}
+	patch, err := GetCLPatch(detail, 0)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get CL patch")
+		return
+	}
+	clData, err := GatherCLData(detail, patch)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to get CL data")
+		return
+	}
+	if err = json.NewEncoder(w).Encode(clData); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode JSON")
+		return
+	}
+}
+
 func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/"+ctfeutil.PAGE_SETS_PARAMETERS_POST_URI, pageSetsHandler).Methods("POST")
+	r.HandleFunc("/"+ctfeutil.CL_DATA_POST_URI, getCLHandler).Methods("POST")
 }

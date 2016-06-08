@@ -8,32 +8,25 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"path/filepath"
-	"regexp"
 	"strconv"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/ct/go/ctfe/task_common"
 	ctfeutil "go.skia.org/infra/ct/go/ctfe/util"
 	"go.skia.org/infra/ct/go/db"
 	ctutil "go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/httputils"
-	skutil "go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/webhook"
 )
 
 var (
 	addTaskTemplate     *template.Template = nil
 	runsHistoryTemplate *template.Template = nil
-
-	httpClient = httputils.NewTimeoutClient()
 )
 
 func ReloadTemplates(resourcesDir string) {
@@ -130,133 +123,6 @@ func parametersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode JSON: %v", err))
-		return
-	}
-}
-
-var clURLRegexp = regexp.MustCompile("^(?:https?://codereview\\.chromium\\.org/)?(\\d{3,})/?$")
-
-type clDetail struct {
-	Issue     int    `json:"issue"`
-	Subject   string `json:"subject"`
-	Modified  string `json:"modified"`
-	Project   string `json:"project"`
-	Patchsets []int  `json:"patchsets"`
-}
-
-func getCLDetail(clURLString string) (clDetail, error) {
-	if clURLString == "" {
-		return clDetail{}, fmt.Errorf("No CL specified")
-	}
-
-	matches := clURLRegexp.FindStringSubmatch(clURLString)
-	if len(matches) < 2 || matches[1] == "" {
-		// Don't return error, since user could still be typing.
-		return clDetail{}, nil
-	}
-	clString := matches[1]
-	detailJsonUrl := "https://codereview.chromium.org/api/" + clString
-	glog.Infof("Reading CL detail from %s", detailJsonUrl)
-	detailResp, err := httpClient.Get(detailJsonUrl)
-	if err != nil {
-		return clDetail{}, fmt.Errorf("Unable to retrieve CL detail: %v", err)
-	}
-	defer skutil.Close(detailResp.Body)
-	if detailResp.StatusCode == 404 {
-		// Don't return error, since user could still be typing.
-		return clDetail{}, nil
-	}
-	if detailResp.StatusCode != 200 {
-		return clDetail{}, fmt.Errorf("Unable to retrieve CL detail; status code %d", detailResp.StatusCode)
-	}
-	detail := clDetail{}
-	err = json.NewDecoder(detailResp.Body).Decode(&detail)
-	return detail, err
-}
-
-func getCLPatch(detail clDetail, patchsetID int) (string, error) {
-	if len(detail.Patchsets) == 0 {
-		return "", fmt.Errorf("CL has no patchsets")
-	}
-	if patchsetID <= 0 {
-		// If no valid patchsetID has been specified then use the last patchset.
-		patchsetID = detail.Patchsets[len(detail.Patchsets)-1]
-	}
-	patchUrl := fmt.Sprintf("https://codereview.chromium.org/download/issue%d_%d.diff", detail.Issue, patchsetID)
-	glog.Infof("Downloading CL patch from %s", patchUrl)
-	patchResp, err := httpClient.Get(patchUrl)
-	if err != nil {
-		return "", fmt.Errorf("Unable to retrieve CL patch: %v", err)
-	}
-	defer skutil.Close(patchResp.Body)
-	if patchResp.StatusCode != 200 {
-		return "", fmt.Errorf("Unable to retrieve CL patch; status code %d", patchResp.StatusCode)
-	}
-	if int64(patchResp.ContentLength) > db.LONG_TEXT_MAX_LENGTH {
-		return "", fmt.Errorf("Patch is too large; length is %d bytes.", patchResp.ContentLength)
-	}
-	patchBytes, err := ioutil.ReadAll(patchResp.Body)
-	if err != nil {
-		return "", fmt.Errorf("Unable to retrieve CL patch: %v", err)
-	}
-	// Double-check length in case ContentLength was -1.
-	if int64(len(patchBytes)) > db.LONG_TEXT_MAX_LENGTH {
-		return "", fmt.Errorf("Patch is too large; length is %d bytes.", len(patchBytes))
-	}
-	return string(patchBytes), nil
-}
-
-func gatherCLData(detail clDetail, patch string) (map[string]string, error) {
-	clData := map[string]string{}
-	clData["cl"] = strconv.Itoa(detail.Issue)
-	clData["patchset"] = strconv.Itoa(detail.Patchsets[len(detail.Patchsets)-1])
-	clData["subject"] = detail.Subject
-	modifiedTime, err := time.Parse("2006-01-02 15:04:05.999999", detail.Modified)
-	if err != nil {
-		glog.Errorf("Unable to parse modified time for CL %d; input '%s', got %v", detail.Issue, detail.Modified, err)
-		clData["modified"] = ""
-	} else {
-		clData["modified"] = modifiedTime.UTC().Format(ctutil.TS_FORMAT)
-	}
-	clData["chromium_patch"] = ""
-	clData["skia_patch"] = ""
-	switch detail.Project {
-	case "chromium":
-		clData["chromium_patch"] = patch
-	case "skia":
-		clData["skia_patch"] = patch
-	default:
-		return nil, fmt.Errorf("CL project is %s; only chromium and skia are supported.", detail.Project)
-	}
-	return clData, nil
-}
-
-func getCLHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	detail, err := getCLDetail(r.FormValue("cl"))
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get CL details")
-		return
-	}
-	if detail.Issue == 0 {
-		// Return successful empty response, since the user could still be typing.
-		if err := json.NewEncoder(w).Encode(map[string]interface{}{}); err != nil {
-			httputils.ReportError(w, r, err, "Failed to encode JSON")
-		}
-		return
-	}
-	patch, err := getCLPatch(detail, 0)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get CL patch")
-		return
-	}
-	clData, err := gatherCLData(detail, patch)
-	if err != nil {
-		httputils.ReportError(w, r, err, "Failed to get CL data")
-		return
-	}
-	if err = json.NewEncoder(w).Encode(clData); err != nil {
-		httputils.ReportError(w, r, err, "Failed to encode JSON")
 		return
 	}
 }
@@ -402,7 +268,7 @@ func addTrybotTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	task := &trybotTask.TaskVars
 	// Add patch data to the task.
-	detail, err := getCLDetail(trybotTask.Issue)
+	detail, err := task_common.GetCLDetail(trybotTask.Issue)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get CL details")
 		return
@@ -412,12 +278,12 @@ func addTrybotTaskHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, "Failed to get Patchset ID")
 		return
 	}
-	patch, err := getCLPatch(detail, patchsetID)
+	patch, err := task_common.GetCLPatch(detail, patchsetID)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get CL patch")
 		return
 	}
-	clData, err := gatherCLData(detail, patch)
+	clData, err := task_common.GatherCLData(detail, patch)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to get CL data")
 		return
@@ -475,7 +341,6 @@ func AddHandlers(r *mux.Router) {
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_RUNS_URI, runsHistoryView).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_RUN_STATUS_URI, getTaskStatusHandler).Methods("GET")
 	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_PARAMETERS_POST_URI, parametersHandler).Methods("POST")
-	r.HandleFunc("/"+ctfeutil.CHROMIUM_PERF_CL_DATA_POST_URI, getCLHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.ADD_CHROMIUM_PERF_TASK_POST_URI, addTaskHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.GET_CHROMIUM_PERF_TASKS_POST_URI, getTasksHandler).Methods("POST")
 	r.HandleFunc("/"+ctfeutil.UPDATE_CHROMIUM_PERF_TASK_POST_URI, updateTaskHandler).Methods("POST")

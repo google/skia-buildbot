@@ -17,6 +17,7 @@ import (
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
+	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
@@ -72,6 +73,7 @@ func GetOldestPendingTask() (task_common.Task, error) {
 // Union of all task types, to be easily marshalled/unmarshalled to/from JSON. At most one field
 // should be non-nil when serialized as JSON.
 type oldestPendingTask struct {
+	ChromiumAnalysis        *chromium_analysis.DBTask
 	ChromiumPerf            *chromium_perf.DBTask
 	CaptureSkps             *capture_skps.DBTask
 	LuaScript               *lua_scripts.DBTask
@@ -88,6 +90,8 @@ func EncodeTask(taskJson io.Writer, oldestTask task_common.Task) error {
 	switch task := oldestTask.(type) {
 	case nil:
 		// No fields set.
+	case *chromium_analysis.DBTask:
+		oldestTaskJsonRepr.ChromiumAnalysis = task
 	case *chromium_perf.DBTask:
 		oldestTaskJsonRepr.ChromiumPerf = task
 	case *capture_skps.DBTask:
@@ -115,6 +119,8 @@ func DecodeTask(taskJson io.Reader) (task_common.Task, error) {
 		return nil, err
 	}
 	switch {
+	case pending.ChromiumAnalysis != nil:
+		return pending.ChromiumAnalysis, nil
 	case pending.ChromiumPerf != nil:
 		return pending.ChromiumPerf, nil
 	case pending.CaptureSkps != nil:

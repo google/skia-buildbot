@@ -18,6 +18,7 @@ import (
 
 	"go.skia.org/infra/ct/go/ctfe/admin_tasks"
 	"go.skia.org/infra/ct/go/ctfe/capture_skps"
+	"go.skia.org/infra/ct/go/ctfe/chromium_analysis"
 	"go.skia.org/infra/ct/go/ctfe/chromium_builds"
 	"go.skia.org/infra/ct/go/ctfe/chromium_perf"
 	"go.skia.org/infra/ct/go/ctfe/lua_scripts"
@@ -58,6 +59,7 @@ func reloadTemplates() {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
+	chromium_analysis.ReloadTemplates(*resourcesDir)
 	chromium_perf.ReloadTemplates(*resourcesDir)
 	capture_skps.ReloadTemplates(*resourcesDir)
 	lua_scripts.ReloadTemplates(*resourcesDir)
@@ -92,7 +94,8 @@ func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
-	chromium_perf.AddHandlers(r)
+	chromium_analysis.AddHandlers(r)
+	chromium_perf.AddHandlers(r) // Note: chromium_perf adds a handler for "/".
 	capture_skps.AddHandlers(r)
 	lua_scripts.AddHandlers(r)
 	chromium_builds.AddHandlers(r)
