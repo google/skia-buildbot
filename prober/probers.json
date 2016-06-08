@@ -214,6 +214,13 @@
      "body": "",
      "mimetype": ""
    },
+   "ctfe_chromium_analysis": {
+     "url": "https://ct.skia.org/chromium_analysis/",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
    "ctfe_chromium_perf": {
      "url": "https://ct.skia.org/chromium_perf/",
      "method": "GET",
@@ -258,6 +265,13 @@
    },
    "ctfe_history": {
      "url": "https://ct.skia.org/history/",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "ctfe_chromium_analysis_runs": {
+     "url": "https://ct.skia.org/chromium_analysis_runs/",
      "method": "GET",
      "expected": [200],
      "body": "",
@@ -336,6 +350,14 @@
      "body": "",
      "mimetype": "application/json",
      "responsetest": "ctfeRevDataJSON"
+   },
+   "ctfe_get_chromium_analysis_tasks": {
+     "url": "https://ct.skia.org/_/get_chromium_analysis_tasks?size=2",
+     "method": "POST",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "responsetest": "ctfeGetTasksJSON"
    },
    "ctfe_get_chromium_perf_tasks": {
      "url": "https://ct.skia.org/_/get_chromium_perf_tasks?size=2",
