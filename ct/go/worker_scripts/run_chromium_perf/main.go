@@ -208,13 +208,14 @@ func main() {
 			for pagesetName := range pagesetRequests {
 
 				mutex.RLock()
-
 				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirNoPatch, *chromiumBuildNoPatch, chromiumBinaryNoPatch, runIDNoPatch, *browserExtraArgsNoPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark); err != nil {
 					glog.Errorf("Error while running nopatch benchmark: %s", err)
+					mutex.RUnlock()
 					continue
 				}
 				if err := util.RunBenchmark(pagesetName, pathToPagesets, pathToPyFiles, localOutputDirWithPatch, *chromiumBuildWithPatch, chromiumBinaryWithPatch, runIDWithPatch, *browserExtraArgsWithPatch, *benchmarkName, *targetPlatform, *benchmarkExtraArgs, *pagesetType, *repeatBenchmark); err != nil {
 					glog.Errorf("Error while running withpatch benchmark: %s", err)
+					mutex.RUnlock()
 					continue
 				}
 				mutex.RUnlock()
