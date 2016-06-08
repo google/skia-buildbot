@@ -133,7 +133,7 @@
         },
 
         _loadClusterDiff: function() {
-          this._load("/json/clusterdiff" + window.location.search, this.$.activityMain, function(json) {
+          gold.loadWithActivity(this, "/json/clusterdiff" + window.location.search, this.$.activityMain, function(json) {
             this._data = json; 
             this.$.clusterView.setData(json);
             this.$.parameters.setParamSets([json.paramsetsUnion]);
@@ -204,35 +204,17 @@
             // Show detailed information about the one selected digest. 
             url = "/json/details" + gold.detailQuery(this._data.test, this._digestList[0]); 
             this.$.oneDigest.clear();
-            this._load(url, this.$.activityDetail, '_digestDetails');
+            gold.loadWithActivity(this, url, this.$.activityDetail, '_digestDetails');
           } else if (this._digestList.length == 2) {
             // Show a diff between the two selected digests.
             url = "/json/diff" +  gold.diffQuery(this._data.test, this._digestList[0], this._digestList[1]);
             this.$.diffTwo.clear();
-            this._load(url, this.$.activityDiff, '_diffData');
+            gold.loadWithActivity(this, url, this.$.activityDiff, '_diffData');
           } else {
             // Show the option to bulk triage all selected digests. 
             this._setBulkTriage(this._digestList); 
           }
         }, 
-
-        // _load sends a GET request to the given url and uses the provide 
-        // acitivity element as an indicator. If the call succeeds it sets the 
-        // target to the result. 
-        _load: function(url, activity, target) {
-          activity.startSpinner("Loading...");
-          sk.get(url).then(JSON.parse).then(function (json) {
-            activity.stopSpinner();
-            if (typeof(target) === 'function') {
-              target(json); 
-            } else {
-              this.set(target, json);
-            }
-          }.bind(this)).catch(function(e) {
-            activity.stopSpinner();
-            sk.errorMessage(e);
-          });
-        },
 
         _setBulkTriage: function(selected) {
           this.set("_triageStatus", "untriaged");

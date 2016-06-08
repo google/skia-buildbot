@@ -24,6 +24,36 @@ var gold = gold || {};
      patchsets: ""
   };
 
+  // Table that maps reference point ids to readable titles. 
+  gold.diffTitles = {
+    "tpos" : "Trace positive",
+    "pos" : "Closest Positive",
+    "neg" : "Closest Negative"
+  }; 
+
+  // Return a title for the given reference point id. 
+  gold.getDiffTitle = function(diffType) {
+    return gold.diffTitles[diffType] || diffType;
+  }; 
+
+  // Return the URL for the given digest. 
+  gold.imgHref = function(digest) {
+    if (!digest) {
+      return ''; 
+    }
+
+    return '/img/images/' + digest + '.png'
+  };
+
+  // Return the URL for the diff image between the two given digests. 
+  gold.diffImgHref = function(d1, d2) {
+    if (!d1 || !d2) {
+      return ''; 
+    }
+    
+    return '/img/diffs/' + ((d1 < d2) ? (d1 + '-' + d2) : (d2 + '-' + d1)) + '.png'
+  }; 
+
   // Returns the query string to pass to the diff page or to the diff endpoint. 
   // Input is the name of the test and the two digests to compare. 
   gold.diffQuery = function(test, left, right) {
@@ -58,6 +88,26 @@ var gold = gold || {};
     }
     return '?' + ret; 
   }; 
+
+  // loadWithActivity sends a GET request to the given url and uses the provide 
+  // acitivity element as an indicator. If the call succeeds it applies the 
+  // parsed result to 'target'. 
+  // If 'target' is a string it will call the 'set' function of the Polymer 
+  // element 'ele' with 'target', if 'target' is a function it will call it. 
+  gold.loadWithActivity = function(ele, url, activity, target) {
+    activity.startSpinner("Loading...");
+    sk.get(url).then(JSON.parse).then(function (json) {
+      activity.stopSpinner();
+      if (typeof(target) === 'function') {
+        target(json); 
+      } else {
+        ele.set(target, json);
+      }
+    }).catch(function(e) {
+      activity.stopSpinner();
+      sk.errorMessage(e);
+    });
+  },
 
   // PageStateBehavior is a re-usable behavior what adds the _state and 
   // _ctx (page.js context) variables to a Polymer element. All methods are 

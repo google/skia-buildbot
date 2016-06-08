@@ -1,0 +1,147 @@
+<!-- The <select-popup-sk> custom element declaration.
+
+  Displays a button that opens a popup dialog with a list of checkboxes.
+
+  Attributes:
+    None
+
+  Events:
+    changed-selection: This fired when the selection changed. The detail 
+                       field contains the new selection as an array of strings. 
+
+  Methods:
+    setParamSet(params): Takes the set of parameters to draw from. 'set' is in 
+                         the same format as returned by the /json/paramset endpoint.
+
+    setSelection(sel): Sets the current selection. 'sel' is an array of strings. 
+                       Must be called after setParamSet. 
+
+-->
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="select-popup-sk">
+  <template>
+    <style include="shared-styles">
+      .asc #asc {
+        display: inline-block;
+      }
+      .desc #desc {
+        display: inline-block;
+      }
+      #asc,
+      #desc {
+        display: none;
+      }
+
+      .checkboxItem {
+        margin: 0.5em;
+      }
+
+    </style>
+
+    <paper-button id="paramsSelectionButton" on-click="_toggleButtonHandler" toggles raised disabled="{{_open}}">
+       <iron-icon icon="icons:menu" hidden$="{{!_syncParams}}"></iron-icon>
+    </paper-button>
+    <paper-dialog id="paramsSelectionDialog" no-overlap vertical-align="top" horizontal-align="left">
+      <paper-dialog-scrollable>
+          <template is='dom-repeat' items='{{ _items }}'>
+            <div class="checkboxItem">
+              <paper-checkbox checked="{{ item.checked }}">
+                  {{ item.name }}
+              </paper-checkbox> 
+            </div>
+          </template>
+      </paper-dialog-scrollable>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: 'select-popup-sk',
+
+      properties: {
+        _items: {
+          type: Array, 
+          value: function() { return []; }
+        },
+
+        _selLookup: {
+          type: Object,
+          value: function() { return {}; }
+        }, 
+
+        _open : {
+          type: Boolean, 
+          value: false
+        }
+      },
+
+      ready: function () {
+        this._currSelection = [];
+        var dialog = this.$.paramsSelectionDialog;  
+        this.listen(dialog, 'iron-overlay-closed', '_canceledHandler');
+        dialog.positionTarget = this.$.paramsSelectionButton;
+        dialog.refit();
+      },
+
+      setSelection: function(selection) {
+        var sel = {};
+        for(var i = 0, ilen = selection.length; i < ilen; i++) {
+          sel[selection[i]] = true;
+        }
+        this._selLookup = sel;
+        this._syncChecked();
+      },
+
+      setParamSet: function(paramSet) {
+        var keys = Object.keys(paramSet).sort();
+        var items = [];
+        for(var i=0, ilen=keys.length; i < ilen; i++) {
+          items.push({
+            name: keys[i],
+            checked: false
+          })
+        }
+        this._items = items;
+        this._syncChecked();
+      },
+
+      _syncChecked: function() {
+        for(var i=0, ilen=this._items.length; i < ilen; i++) {
+          this._items[i].checked = !!this._selLookup[this._items[i].name];
+        }
+        this.set('_items', this._items);
+        this._currSelection = this._getSelection();
+      },
+
+      _getSelection: function() {
+        var cur = [];
+        for(var i=0, ilen=this._items.length; i<ilen; i++) {
+          if (this._items[i].checked) {
+            cur.push(this._items[i].name); 
+          }
+        }
+        return cur; 
+      }, 
+
+      _toggleButtonHandler: function(ev) {
+        this.set("_open", true);
+        this.$.paramsSelectionDialog.open();
+      }, 
+
+      _canceledHandler: function(ev) {
+        ev.stopPropagation(); 
+        var sel = this._getSelection(); 
+        if (!sk.array.equal(sel, this._currSelection)) {
+          this._currSelection = sel;
+          this.fire('changed-selection', sel);
+        }
+        this.set("_open", false);
+      }
+    });
+  </script>
+</dom-module>

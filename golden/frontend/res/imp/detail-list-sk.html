@@ -23,23 +23,14 @@
       endUse - to be called once the element is not used any more. 
 -->
 
-<link rel=import href="multi-zoom-sk.html">
+<link rel="import" href="zoom-dialog-sk.html">
 
 <dom-module id="detail-list-sk">
   <template>
     <content></content>
-    <!-- <commits-sk></commits-sk> -->
 
     <!-- zoom dialog --> 
-    <paper-dialog id="zoomDialog">
-      <multi-zoom-sk id="zoomer"
-                     llabel="Closest Triaged"
-                     rlabel="Untriaged">
-      </multi-zoom-sk>
-      <div class="buttons">
-        <paper-button dialog-dismiss>Close</paper-button>
-      </div>
-    </paper-dialog>
+    <zoom-dialog-sk id="detailsZoomDialog"></zoom-dialog-sk>
   </template>
   <script>
     Polymer({
@@ -47,11 +38,9 @@
 
       ready: function () {
         this._zooming = false;
-        this._zoomDetail = null; 
 
         this.listen(this, 'zoom-clicked', "_handleZoomClicked");
         this.listen(this, 'iron-overlay-closed', '_handleZoomClosed');
-        this.listen(this, 'iron-overlay-opened', '_handleZoomDialogOpened');
         this.listen(this, 'triage', '_handleTriage');
       },
 
@@ -91,22 +80,13 @@
         }
       },
 
-      _handleZoomDialogOpened: function(ev) {
-        if (this._zoomDetail) {
-          this.$.zoomer.setDetails(this._zoomDetail);
-          this.$.zoomDialog.refit();
-        }
-        ev.stopPropagation();
-      },
-
       _handleZoomClosed: function (ev) {
-       this.$.zoomer.clear(); 
-       this._zoomDetail = null; 
        this._zooming = false;
-       ev.stopPropagation();
       },
 
       _handleZoomClicked: function (ev) {
+        var zoomDetail; 
+
         // This was triggerd by a keyboard shortcut.
         if (!ev) {
           var ele = this._findFocus();
@@ -114,14 +94,14 @@
             return
           }
           // Extract the zoom information from the element. 
-          this._zoomDetail = ele.getZoomDetail();
+          zoomDetail = ele.getZoomDetail();
         } else {
           this._focusSet(ev.target);
-          this._zoomDetail = ev.detail; 
+          zoomDetail = ev.detail; 
           ev.stopPropagation(); 
         }
 
-        this.$.zoomDialog.open();
+        this.$.detailsZoomDialog.open(zoomDetail);
         this._zooming = true;
       },
 

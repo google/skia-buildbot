@@ -17,6 +17,9 @@
   
     Attributes:
       state - The current query state.
+
+      orientation - Orientation of the controls. Values: 'horizontal', 'vertical'
+      disabled - Boolean to indicate whether to disable all the controls. 
   
     Events:
       'state-change' - Fired when the state of the query changes and 
@@ -43,19 +46,31 @@
     <style include="shared-styles"></style>
     <style>
 
-      .topControl {
-        margin-right: 2em;
+      .horizontalTopControl, .verticalTopControl {
         font-weight: bold;
       }
 
+      .verticalTopControl {
+        margin: 0 0 1em 0;
+      }
+
+      .horizontalTopControl {
+        margin: 0 2em 0 0;
+      }
+
+      paper-button {
+        max-width: 1em;
+      }
+
     </style>
-      <div class="horizontal layout">
-        <paper-button id="searchButton" class="topControl" raised><iron-icon icon="search"></iron-icon></paper-button>
-        <paper-toggle-button class="topControl" checked="{{state.head}}">Head</paper-toggle-button>
-        <paper-toggle-button class="topControl" checked="{{state.include}}">Include Ignored</paper-toggle-button>
-        <paper-toggle-button class="topControl" checked="{{state.pos}}">Positive</paper-toggle-button>
-        <paper-toggle-button class="topControl" checked="{{state.neg}}">Negative</paper-toggle-button>
-        <paper-toggle-button class="topControl" checked="{{state.unt}}">Untriaged</paper-toggle-button>
+      <div class$="{{orientation}} layout">
+        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.pos}}" disabled={{disabled}}>Positive</paper-toggle-button>
+        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.neg}}" disabled={{disabled}}>Negative</paper-toggle-button>
+        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.unt}}" disabled={{disabled}}>Untriaged</paper-toggle-button>
+        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.head}}" disabled={{disabled}}>Head</paper-toggle-button>
+        <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.include}}" disabled={{disabled}}>Ignored</paper-toggle-button>
+
+        <paper-button id="searchButton" class$="topControl" raised disabled={{disabled}}><iron-icon icon="search"></iron-icon></paper-button>
       </div>
 
       <query-dialog-sk id="queryDialog" trigger="searchButton"></query-dialog-sk>
@@ -68,6 +83,16 @@
         properties: {
           state: {
             type: Object
+          },
+
+          orientation: {
+            type: String, 
+            value: "horizontal"
+          },
+
+          disabled: {
+            type: Boolean,
+            value: false
           }
         },
 
@@ -78,18 +103,16 @@
         ready: function() {
           this.listen(this.$.searchButton, 'click', '_handleSearchButton');
           this.listen(this.$.queryDialog, 'edit', '_handleQueryEdit');
-          this.$.searchButton.disabled = true;
         }, 
 
-        setState: function(state) {
-          this._noFire = true;
-          this.set('state', state);
+        setState: function(state, fireEvent) {
+          this._noFire = !fireEvent;
+          this.set('state', sk.object.shallowCopy(state));
         },
 
         setParamSet: function(params) {
           this.$.queryDialog.queryEle.setParamSet(params);
-          this.$.searchButton.disabled = false;
-        }, 
+        },
 
         _handleQueryEdit: function(ev) {
           ev.stopPropagation(); 
@@ -101,12 +124,18 @@
           this.$.queryDialog.open(this.state.query);
         },
 
-        _fireStateChange: function(ev) {
+        _fireStateChange: function() {
           if (this._noFire) {
             this._noFire = false;
             return; 
           }
-          this.fire('state-change', sk.object.shallowCopy(this.state)); 
+
+          var detail = sk.object.shallowCopy(this.state);
+          this.fire('state-change', detail);
+        }, 
+
+        _tcClass: function(orientation) {
+          return (orientation==='horizontal') ? "horizontalTopControl" : "verticalTopControl";
         }
 
       });

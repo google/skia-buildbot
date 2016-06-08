@@ -1,0 +1,315 @@
+  <!-- The <comp-page-sk> custom element declaration.
+
+    Displays a comparison grid that allows to compare digests against each other. 
+
+    Attributes:
+      None
+
+    Events:
+      None
+
+    Methods:
+      pageSelected - Called by the router when view is visible.
+    
+      pageDeselected - Called by the router when the view is no longer visible. 
+
+  -->
+
+<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/iron-icons/notification-icons.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
+<link rel="import" href="bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="bower_components/paper-item/paper-item.html">
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+
+<link rel="import" href="../common/imp/9/paramset.html">
+
+<link rel="import" href="digest-details-sk.html">
+<link rel="import" href="activity-sk.html">
+<link rel="import" href="grid-sk.html">
+<link rel="import" href="search-controls-sk.html">
+<link rel="import" href="select-popup-sk.html">
+<link rel="import" href="zoom-dialog-sk.html">
+<link rel="import" href="shared-styles.html">
+
+<dom-module id="comp-page-sk">
+  <template>
+    <style include="iron-flex iron-flex-alignment"></style>
+    <style include="shared-styles">
+      #heading {
+        margin: 0;
+      }
+
+      #heading > span {
+        font-weight: bold;
+        margin-right: 1.5em;
+        vertical-align: middle;
+      }
+
+      .headingContainer {
+        padding-bottom: 2em;
+      }
+
+      .name {
+        color: #7570B3;
+      }
+
+      .pos {
+        color: #1B9E77;
+      }
+
+      .neg {
+        color: #E7298A;
+      }
+
+      .unt {
+        color: #A6761D;
+      }
+
+      .gridContainer {
+        margin: 0 5em 3em 2em;
+      }
+
+      .compDiffContainer {
+        width: 50em;
+      }
+
+      .modButtonContainer {
+        margin-bottom: 7em;
+        width: 10em;
+      }
+
+      .diffMetricLabel {
+        font-weight: bold;
+        margin-left: 20em;
+      }
+
+      paper-dropdown-menu.diffMetricSelect {
+        width: 8em;
+        --paper-input-container-underline: {
+            display: none;
+        };
+      }
+
+      .moreColumns {
+        vertical-align: middle;
+      }
+    </style>
+    <activity-sk id="activityCompare" busy="{{_hideAll}}"></activity-sk>
+    <div class="vertical layout">
+      <div class="horizontal layout center headingContainer">
+        <div id="heading">
+          <span class="name">Name: {{_data.summary.name}}</span>
+          <span class="pos">Pos: {{_data.summary.pos}}</span>
+          <span class="neg">Neg: {{_data.summary.neg}}</span>
+          <span class="unt">Unt: {{_data.summary.untriaged}}</span>
+        </div>
+
+        <div>
+          <span class="diffMetricLabel">Diff Metric:</span>
+          <paper-dropdown-menu label="Diff metric" class="diffMetricSelect" no-label-float>
+            <paper-listbox class="dropdown-content" selected="0">
+              <paper-item>Normalized</paper-item>
+              <paper-item>Percent</paper-item>
+            </paper-listbox>
+          </paper-dropdown-menu>
+        </div>
+
+      </div>
+
+      <div id="mainContent" class="horizontal layout wrap">
+        <!-- left column --> 
+        <div class="vertical layout">
+          <div class="vertical layout modButtonContainer">
+            <div class="horizontal layout">
+              <paper-button id="syncButton" toggles raised active="{{_syncParams}}">
+                <iron-icon icon="notification:sync" hidden$="{{!_syncParams}}"></iron-icon><iron-icon icon="notification:sync-disabled" hidden$="{{_syncParams}}"></iron-icon>
+              </paper-button>
+              <select-popup-sk id="paramsSelect"></select-popup-sk> 
+            </div>
+
+          </div>
+          <search-controls-sk id="rowSearchControls" orientation="vertical"></search-controls-sk>
+        </div>
+
+        <!-- main column with grid --> 
+        <div class="vertical layout gridContainer">
+          <search-controls-sk id="colSearchControls" orientation="horizontal" disabled="{{_syncParams}}"></search-controls-sk>
+          <div class="horizontal layout center">
+            <div class="layout vertical center">
+              <grid-sk id="gridCompare"></grid-sk>
+              <paper-button>
+                <iron-icon id="moreRowsButton" icon="icons:expand-more"></iron-icon>
+              </paper-button>
+            </div>
+            <div class="moreColumns">
+              <paper-button>
+                <iron-icon id="moreColumnsButton" icon="icons:chevron-right"></iron-icon>
+              </paper-button>
+            </div>
+          </div>
+        </div>
+        <div class="vertical layout compDiffContainer">
+          <activity-sk id="activityCompDiff"></activity-sk>
+          <digest-details-sk 
+               id="compDetails"
+               mode="diff"
+               details="[[_diffData.left]]"
+               right="[[_diffData.right]]"
+               diff="[[_diffData.diff]]"
+               embedded>
+          </digest-details-sk>
+        </div>
+      </div>
+    </div>
+
+    <!-- zoom dialog --> 
+    <zoom-dialog-sk id="compZoomDialog"></zoom-dialog-sk>
+  </template>
+  <script>
+    (function() {
+
+      var defaultMatchConfigs = ["gamma_correct"];
+
+      // The current state of the page.
+      var defaultQuery = {
+        test: "", 
+        rowQuery: null, 
+        columnQuery: null,
+        match: defaultMatchConfigs,
+        rowN: 5, 
+        columnN: 5, 
+        sort: "row", 
+        dir: gold.SORT_ASC,
+        digest: ""
+      }; 
+
+      Polymer({
+        is: "comp-page-sk",
+
+        properties: {
+          _data: {
+            type: Object,
+            value: function() { return {}; }
+          },
+          _syncParams: {
+            type: Boolean,
+            value: false,
+            observer: '_handleSyncStateChange'
+          }
+        },
+
+        ready: function() {
+          this.set('_diffData', {}); 
+          this.listen(this.$.paramsSelect, 'changed-selection', '_handleMatchChanged');
+          this.listen(this.$.gridCompare, 'diff-click', '_handleGridClick'); 
+          this.listen(this.$.gridCompare, 'diff-dblclick', '_handleGridDblClick');  
+          this.listen(this.$.compDetails, 'zoom-clicked', "_handleZoomClicked");
+          this.listen(this.$.rowSearchControls, 'state-change', '_handleRowQueryChange');
+          this.listen(this.$.colSearchControls, 'state-change', '_handleColQueryChange');
+          this.listen(this.$.moreColumnsButton, 'click', '_handleMoreColumns');
+          this.listen(this.$.moreRowsButton, 'click', '_handleMoreRows');
+        },
+
+        pageSelected: function(ctx) {
+          this._testName = ctx.params.test;
+          this._query = sk.object.shallowCopy(defaultQuery);
+          this._query.match = defaultMatchConfigs.slice();
+          this._query.rowQuery = sk.object.shallowCopy(gold.defaultSearchState);
+          this._query.colQuery = sk.object.shallowCopy(gold.defaultSearchState);
+          this._load();
+        },
+
+        pageDeselected: function() {},
+
+        _load: function() {
+          this.set("_diffData", {});
+          sk.get("/json/paramset").then(JSON.parse).then(function (json) {
+            this.$.rowSearchControls.setParamSet(json);
+            this.$.rowSearchControls.setState(this._query.rowQuery);
+
+            this.$.colSearchControls.setParamSet(json);
+            this.$.colSearchControls.setState(this._query.colQuery); 
+            this.$.paramsSelect.setParamSet(json);
+            this.$.paramsSelect.setSelection(this._query.match); 
+          }.bind(this)).catch(sk.errorMessage);
+
+          var url = "/json/cmp/" + this._testName;
+          var activity = this.$.activityCompare; 
+          activity.startSpinner("Loading...");
+          sk.post(url, JSON.stringify(this._query)).then(JSON.parse).then(function (json) {
+            activity.stopSpinner();
+            this.set("_data", json);
+            this.$.gridCompare.setValue(json.diffs);
+          }.bind(this)).catch(function(e) {
+            activity.stopSpinner();
+            sk.errorMessage(e);
+          });
+        },
+
+        _handleGridClick: function(ev) {
+          url = "/json/diff" +  gold.diffQuery(this._testName, ev.detail.rowDigest, ev.detail.colDigest);
+          this.$.compDetails.clear();
+          gold.loadWithActivity(this, url, this.$.activityCompDiff, '_diffData');
+        },
+
+        _handleGridDblClick: function(ev) {
+          var zoomDetail = {
+            leftImgUrl: gold.imgHref(ev.detail.rowDigest), 
+            rightImgUrl: gold.imgHref(ev.detail.colDigest),
+            middleImgUrl: gold.diffImgHref(ev.detail.rowDigest, ev.detail.colDigest)
+          }; 
+          this.$.compZoomDialog.open(zoomDetail);
+        },
+
+        _handleZoomClicked: function(ev) {
+          this.$.compZoomDialog.open(ev.detail);
+        }, 
+
+        _handleMatchChanged: function(ev) {
+          this._query.match = ev.detail; 
+          this._load();
+        },
+
+        _handleRowQueryChange: function(ev) {
+          this._query.rowQuery = ev.detail; 
+
+          // If we sync params trigger the load via the event that is 
+          // generated by calling setState. 
+          if (this._syncParams) { 
+            this.$.colSearchControls.setState(ev.detail, true);
+          } else {
+            this._load();
+          }
+        }, 
+
+        _handleColQueryChange: function(ev) {
+          this._query.colQuery = ev.detail;
+          this._load();
+        },
+
+        _handleSyncStateChange: function(newVal) {
+          if (newVal) {
+            this.$.colSearchControls.setState(this._query.rowQuery, true);
+          }
+        },
+
+        _handleMoreRows: function() {
+          this._query.rowN += 5; 
+          this._load();
+        }, 
+
+        _handleMoreColumns: function() {
+          this._query.columnN += 5; 
+          this._load();
+        }
+      });
+
+    })();
+
+  </script>
+</dom-module>

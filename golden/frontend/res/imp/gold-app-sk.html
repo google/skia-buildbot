@@ -94,6 +94,9 @@
           <section data-route="cluster">
             <cluster-page-sk></cluster-page-sk>
           </section>
+          <section data-route="compare">
+            <compare-page-sk></compare-page-sk>
+          </section>
           <section data-route="notfound">
             <help-page-sk notfound></help-page-sk>
           </section>
@@ -126,6 +129,7 @@
         this._setRoute('/detail', 'detail');
         this._setRoute('/diff', 'diff');
         this._setRoute('/cluster', 'cluster');
+        this._setRoute('/cmp/:test', 'compare');
 
         // TODO(stephana): Remove the alias once the "/search" path has been 
         // used sufficiently long in Monorail. 

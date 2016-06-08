@@ -20,7 +20,8 @@
     right - A serialization of search.Digest. 
     diff - A serialization of diff.
     commits - A list of commits that 'details' refers to.
-
+    embedded - Boolean flag that indicates that this is embedded as an 
+               auxiliary view and some field like title should be omitted. 
 
   Events:
     triage - A triage event is generated when the triage button is pressed. The e.detail
@@ -150,13 +151,13 @@
         white-space: nowrap;
       }
     </style>
-    <div class="horizontal layout wrap" hidden="{{_noData(details)}}">
+    <div class="horizontal layout wrap" hidden$="{{_noData(details)}}">
       <div class="vertical layout leftCol">
         <div class="horizontal layout">
-          <div class="flex self-start testHeader">Test: {{details.test}}</div>
+          <div class="flex self-start testHeader" hidden$="{{embedded}}">Test: {{details.test}}</div>
 
           <!-- Links to Grid and Cluster. -->
-          <div id="links">
+          <div id="links" hidden$="{{embedded}}">
             <span><a href$="{{_cmpUrl(details.test)}}"><iron-icon icon="apps"></iron-icon></a></span>
             <span><a href$="{{_clusterUrl(details.test)}}"><iron-icon icon="radio-button-unchecked"></iron-icon></a></span>
           </div>  
@@ -222,9 +223,9 @@
               <div class="horizontal layout" hidden$="{{!_hasRight(_right)}}">
                 <!-- diff image --> 
                 <div class="preview">
-                  <img src$="{{_diffHref(diffDigests)}}">
+                  <img src$="{{_diffImgHref}}">
                 </div>
-                <a href$="{{_diffHref(diffDigests)}}" target="_blank" >
+                <a href$="{{_diffImgHref}}" target="_blank" >
                   <iron-icon icon="open-in-new"></iron-icon>
                 </a>
 
@@ -300,6 +301,11 @@
           value: function() { return []; },
         },
 
+        embedded: {
+          type: Boolean, 
+          value: false
+        },
+
         _negIsClosest: { 
           type: Boolean,
           value: false
@@ -342,7 +348,7 @@
         return {
           leftImgUrl: this._digestHref(this.details.digest), 
           rightImgUrl: this._digestHref(sk.robust_get(this._right, ['digest'])),
-          middleImgUrl: this._diffHref(this.diffDigests)
+          middleImgUrl: this._diffImgHref
         }; 
       },   
 
@@ -472,8 +478,7 @@
         var paramSets = [this.details.paramset]; 
         var paramTitles = [this._leftParamTitle]; 
         if (this._right) {
-          this.diffDigests = this._concatOrdered(this._right.digest,
-                                                 this.details.digest);
+          this.set('_diffImgHref', gold.diffImgHref(this._right.digest, this.details.digest));
 
           // TODO(stephana): Fix this on the backend to make sure we never get an empty 
           // set of parameters. Currently it can occur on occasion. 
@@ -500,28 +505,13 @@
       },
 
       _concatOrdered: function(d1, d2) {
-        return (d1 < d2) ? d1 + '-' + d2 : d2 + '-' + d1;
       },      
 
       _hasRight: function(right) {
         return (right && right.digest !== ''); 
       },
 
-      _digestHref: function(digest) {
-        if (!digest) {
-          return ''; 
-        }
-
-        return '/img/images/' + digest + '.png'
-      },
-
-      _diffHref: function(diffDigests) {
-        if (!diffDigests) {
-          return ''; 
-        }
-
-        return '/img/diffs/' + diffDigests + '.png'
-      }, 
+      _digestHref: gold.imgHref,
 
       _fixedPercent: function (i) {
         return (i) ? i.toFixed(2) : '';
@@ -568,7 +558,7 @@
       }, 
 
       _hideDotsBlame: function(details) {
-        return (!details.traces || !details.traces.traces);
+        return (!details || !details.traces || !details.traces.traces);
       }, 
 
       _clusterUrl: function (test) {
