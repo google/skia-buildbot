@@ -274,7 +274,7 @@ var v12_up = []string{
 		ts_started             BIGINT,
 		ts_completed           BIGINT,
 		failure                TINYINT(1),
-		raw_output             VARCHAR(255),
+		raw_output             VARCHAR(255)
 	)`,
 }
 
