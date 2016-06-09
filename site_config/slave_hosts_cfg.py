@@ -77,7 +77,7 @@ _slave_host_dicts = {
       #('skiabot-linux-swarm-069', '69', False),
       #('skiabot-linux-swarm-070', '70', False),
       #('skiabot-linux-swarm-071', '71', False),
-      #('skiabot-linux-swarm-072', '72', False),
+      ('skiabot-linux-swarm-072', '72', False),
       #('skiabot-linux-swarm-073', '73', False),
       #('skiabot-linux-swarm-074', '74', False),
       #('skiabot-linux-swarm-075', '75', False),
@@ -237,7 +237,6 @@ _slave_host_dicts = {
   'skia-vm-015': {
     'slaves': [
       ('skiabot-linux-housekeeper-001', '0', False),
-      ('skiabot-linux-housekeeper-003', '2', False),
       ('skiabot-ct-trybot-000', '3', False),
       ('skiabot-ct-trybot-001', '4', False),
       ('skiabot-ct-dm-000', '5', False),
