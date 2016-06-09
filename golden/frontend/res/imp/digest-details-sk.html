@@ -348,7 +348,9 @@
         return {
           leftImgUrl: this._digestHref(this.details.digest), 
           rightImgUrl: this._digestHref(sk.robust_get(this._right, ['digest'])),
-          middleImgUrl: this._diffImgHref
+          middleImgUrl: this._diffImgHref,
+          llabel: this._leftParamTitle,
+          rlabel: this._rightParamTitle
         }; 
       },   
 

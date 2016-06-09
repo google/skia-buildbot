@@ -9,8 +9,7 @@ displayed on the zoom dialog.
 There are three images that it deals with, called left, top, and diff.  
 
   Attributes:
-    llabel - The label for the image on the left.
-    rlabel - The label for the image on the right.
+    None
 
   Events:
     None
@@ -24,6 +23,8 @@ There are three images that it deals with, called left, top, and diff.
         leftImgUrl: "...",
         middleImgUrl: "...",
         rightImgUrl: "...",
+        llabel: "Left Label",
+        rlabel: "Right Label"
       }
 
   Mailboxes:
@@ -112,7 +113,7 @@ There are three images that it deals with, called left, top, and diff.
               </div>
               <div class="selectorWrapper">
                 <paper-toggle-button checked={{_leftActive}}>
-                  <span class$="{{_boldClass(_currSeq, 'left')}}">{{llabel}}</span>
+                  <span class$="{{_boldClass(_currSeq, 'left')}}">{{details.llabel}}</span>
                 </paper-toggle-button>
               </div>
             </div>
@@ -152,7 +153,7 @@ There are three images that it deals with, called left, top, and diff.
 
               <div class="selectorWrapper">
                 <paper-toggle-button checked={{_rightActive}}>
-                  <span class$="{{_boldClass(_currSeq, 'right')}}">{{rlabel}}</span>
+                  <span class$="{{_boldClass(_currSeq, 'right')}}">{{details.rlabel}}</span>
                 </paper-toggle-button>
               </div>
             </div>
@@ -190,9 +191,9 @@ There are three images that it deals with, called left, top, and diff.
           <div class="legendContainer">
             <table border="0" cellspacing="5" cellpadding="5">
               <tr><th>Coord</th><td><pre>({{_x}}, {{_y}})</pre><td></tr>
-              <tr><th>{{llabel}}</th><td><pre>{{_centerPixel.zoomLeft}}</pre><td></tr>
-              <tr><th>Diff</th><td><pre>{{_centerPixel.zoomMiddle}}</pre><td></tr>
-              <tr><th>{{rlabel}}</th><td><pre>{{_centerPixel.zoomRight}}</pre><td></tr>
+              <tr><th>{{details.llabel}}</th><td><pre>{{_centerPixel.zoomLeft}}</pre><td></tr>
+              <tr hidden="{{_hideImg(details.middleImgUrl)}}"><th>Diff</th><td><pre>{{_centerPixel.zoomMiddle}}</pre><td></tr>
+              <tr hidden="{{_hideImg(details.rightImgUrl)}}"><th>{{details.rlabel}}</th><td><pre>{{_centerPixel.zoomRight}}</pre><td></tr>
             </table>
 	    <div class="horizontal layout">
             <table border="0" cellspacing="5" cellpadding="5">
@@ -232,9 +233,6 @@ There are three images that it deals with, called left, top, and diff.
           type: Object, 
           value: function() { return {}; }
         },
-
-        llabel: "",
-        rlabel: "",
 
         _currSeq: '', 
 
@@ -289,6 +287,10 @@ There are three images that it deals with, called left, top, and diff.
       },
 
       setDetails: function(details) {
+        details = sk.object.shallowCopy(details);
+        details.llabel = details.llabel || "Left";
+        details.rlabel = details.rlabel || "Right"; 
+
         this.set('_leftActive', true);
         this.set('_middleActive', false);
         this.set('_rightActive', true);
@@ -412,6 +414,10 @@ There are three images that it deals with, called left, top, and diff.
       },
 
       _moveToLargestDiff: function() {
+        if (!this.details || !this.details.middleImgUrl) {
+          return; 
+        }
+
         var leftColors = this.$.zoomLeft.getImageData();
         var rightColors = this.$.zoomRight.getImageData();
         var width = leftColors.width;
@@ -448,6 +454,10 @@ There are three images that it deals with, called left, top, and diff.
       },
 
       _manualToggle: function() {
+        if (!this.details || !this.details.middleImgUrl) {
+          return; 
+        }
+
         this._cancelAsync();
         this._showNext(false); 
       }, 
@@ -461,7 +471,7 @@ There are three images that it deals with, called left, top, and diff.
       }, 
 
       _hideImg: function(url) {
-        return url === ''; 
+        return !url;
       }, 
 
       _noImage: function(details) {

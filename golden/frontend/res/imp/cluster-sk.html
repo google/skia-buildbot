@@ -5,7 +5,7 @@
   digest images.
 
   Attributes:
-    None
+    disabled: Boolean, if set to true the keyboard shortcuts will be disabled. 
 
   Events:
     digest-select - Event generated when a digest is selected. The event
@@ -104,6 +104,11 @@
         _data: {
           type: Object,
           value: null
+        },
+        disabled: {
+          type: Boolean,
+          value: false,
+          notify: true
         }
       },
 
@@ -270,6 +275,10 @@
       },
 
       _handleKeyDown: function (e) {
+        if (this.disabled) {
+          return; 
+        }
+
         var c = String.fromCharCode(e.keyCode);
         switch (c) {
         case 'A':

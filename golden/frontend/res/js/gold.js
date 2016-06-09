@@ -155,4 +155,18 @@ var gold = gold || {};
       history.replaceState(this._ctx.state, this._ctx.title, window.location.pathname + gold.queryFromState(this._state));
     }
   };
+
+  // ZoomTargetBehavior adds handling of zoom-clicked events to an element. 
+  // It requires that a <zoom-dialog-sk> element is in the markup of the 
+  // element that uses this behavior. 
+  gold.ZoomTargetBehavior = {
+    ready: function() {
+      this.listen(this, 'zoom-clicked', '_handleZoomClicked');
+    }, 
+
+    _handleZoomClicked: function(ev) {
+      $$$('zoom-dialog-sk', this).open(ev.detail); 
+    }
+  }; 
+
 })();

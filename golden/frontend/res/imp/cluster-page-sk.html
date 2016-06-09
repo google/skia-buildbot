@@ -46,7 +46,7 @@
     <div id="clusterContainer" class="horizontal layout">
       <div class="flex">
         <activity-sk id="activityMain"></activity-sk>
-        <cluster-sk id="clusterView"></cluster-sk>
+        <cluster-sk id="clusterView" disabled="{{_zooming}}"></cluster-sk>
       </div>
       <div class="flex">
         <paper-tabs id="tabs" selected={{_currentTab}}>
@@ -97,11 +97,14 @@
         </iron-pages>
       </div>
     </div>
+    <zoom-dialog-sk opened="{{_zooming}}"></zoom-dialog-sk>
   </template>
 
   <script>
       Polymer({
         is: "cluster-page-sk",
+
+        behaviors: [gold.ZoomTargetBehavior],
 
         properties: {
           _currentTab: {
@@ -121,7 +124,7 @@
           this.listen(this.$.clusterContainer, 'digest-select', '_handleDigestsSelected');
           this.listen(this.$.bulkTriage, 'change', '_handleBulkTriageChange');
           this.listen(this, 'triage', '_handleTriage'); 
-        }, 
+        },
 
         pageSelected: function(routeName) {
           this.$.clusterView.startUse();

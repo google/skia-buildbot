@@ -168,7 +168,7 @@
     </div>
 
     <!-- zoom dialog --> 
-    <zoom-dialog-sk id="compZoomDialog"></zoom-dialog-sk>
+    <zoom-dialog-sk></zoom-dialog-sk>
   </template>
   <script>
     (function() {
@@ -190,6 +190,8 @@
 
       Polymer({
         is: "comp-page-sk",
+
+      behaviors: [gold.ZoomTargetBehavior],
 
         properties: {
           _data: {
@@ -261,14 +263,12 @@
           var zoomDetail = {
             leftImgUrl: gold.imgHref(ev.detail.rowDigest), 
             rightImgUrl: gold.imgHref(ev.detail.colDigest),
-            middleImgUrl: gold.diffImgHref(ev.detail.rowDigest, ev.detail.colDigest)
+            middleImgUrl: gold.diffImgHref(ev.detail.rowDigest, ev.detail.colDigest),
+            llabel: "Row",
+            rlabel: "Column"
           }; 
-          this.$.compZoomDialog.open(zoomDetail);
+          $$$('zoom-dialog-sk', this).open(zoomDetail);
         },
-
-        _handleZoomClicked: function(ev) {
-          this.$.compZoomDialog.open(ev.detail);
-        }, 
 
         _handleMatchChanged: function(ev) {
           this._query.match = ev.detail; 

@@ -4,11 +4,11 @@
   A dialog that wraps around the multi-zoom-sk element.
 
   Attributes:
-    queryEle - The wrapped query-sk element. 
+    None
 
   Methods:
     open(detail) - Opens the dialog with the given detail that is passed to the 
-                    multi-zoom-sk element. 
+                   multi-zoom-sk element. 
 
   Events:
     None
@@ -25,11 +25,8 @@
 
 <dom-module id="zoom-dialog-sk">
   <template>
-    <paper-dialog id="zoomDialog">
-      <multi-zoom-sk id="zoomer"
-                     llabel="Closest Triaged"
-                     rlabel="Untriaged">
-      </multi-zoom-sk>
+    <paper-dialog id="zoomDialog" opened="{{opened}}">
+      <multi-zoom-sk id="zoomer"></multi-zoom-sk>
       <div class="buttons">
         <paper-button dialog-dismiss>Close</paper-button>
       </div>
@@ -40,9 +37,10 @@
       is: "zoom-dialog-sk",
 
       properties: {
-        queryEle: {
-          type: Object,
-          readOnly: true
+        opened: {
+          type: Boolean, 
+          value: false,
+          notify: true
         }
       },
 

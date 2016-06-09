@@ -20,21 +20,35 @@
 <link rel="import" href="bower_components/polymer/polymer.html"> 
 
 <link rel="import" href="digest-details-sk.html">
+<link rel="import" href="shared-styles.html">
 
 <dom-module id="detail-page-sk">
   <template>
-    <digest-details-sk 
-            details="[[data.digest]]"
-            commits="[[data.commits]]"
-            mode="detail">
-    </digest-details-sk>
+    <style include="shared-styles" clas>
+      .detailContainer {
+        margin: 2em 0 0 2em;
+      }
+    </style>
+
+    <div class="detailContainer">
+      <digest-details-sk
+              details="[[data.digest]]"
+              commits="[[data.commits]]"
+              mode="detail">
+      </digest-details-sk>
+    </div>
+    <zoom-dialog-sk></zoom-dialog-sk>
+
   </template>
   <script>
     Polymer({
       is: "detail-page-sk",
 
+      behaviors: [gold.ZoomTargetBehavior],
+
       ready: function() {
         this.listen(this, 'triage', '_handleTriage');
+        this.listen(this, 'zoom-clicked', '_handleZoomClicked');
       }, 
       
       pageSelected: function(routeName) {
