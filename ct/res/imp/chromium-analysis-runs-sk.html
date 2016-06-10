@@ -103,6 +103,12 @@
         </paper-dialog-scrollable>
       </paper-dialog>
 
+      <paper-dialog heading="Catapult Patch" id="{{ getCatapultPatchId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{chromiumAnalysisTask.CatapultPatch}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
       <paper-dialog heading="Telemetry Patch" id="{{ getBenchmarkPatchId(index) }}">
         <paper-dialog-scrollable>
           <pre>{{chromiumAnalysisTask.BenchmarkPatch}}</pre>
@@ -217,6 +223,10 @@
               <a href="javascript:void(0);" data-index$="{{index}}"   data-type="chromiumPatch">Chromium</a>
               <br/>
             </template>
+            <template is="dom-if" if="{{chromiumAnalysisTask.CatapultPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="catapultPatch">Catapult</a>
+              <br/>
+            </template>
             <template is="dom-if" if="{{chromiumAnalysisTask.BenchmarkPatch}}">
               <a href="javascript:void(0);" data-index$="{{index}}"   data-type="benchmarkPatch">Telemetry</a>
             </template>
@@ -302,6 +312,8 @@
              that.toggleDialog(that.getBrowserArgsId(id));
            } else if (anchor.dataset.type == "chromiumPatch") {
              that.toggleDialog(that.getChromiumPatchId(id));
+           } else if (anchor.dataset.type == "catapultPatch") {
+             that.toggleDialog(that.getCatapultPatchId(id));
            } else if (anchor.dataset.type == "benchmarkPatch") {
              that.toggleDialog(that.getBenchmarkPatchId(id));
            }
@@ -371,6 +383,10 @@
 
      getChromiumPatchId: function(index) {
        return "chromium_patch" + index;
+     },
+
+     getCatapultPatchId: function(index) {
+       return "catapult_patch" + index;
      },
 
      getBenchmarkPatchId: function(index) {

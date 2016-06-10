@@ -155,6 +155,7 @@ func (task *ChromiumAnalysisTask) Execute() error {
 	runId := runId(task)
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch":  task.ChromiumPatch,
+		".catapult.patch":  task.CatapultPatch,
 		".benchmark.patch": task.BenchmarkPatch,
 	} {
 		// Add an extra newline at the end because git sometimes rejects patches due to

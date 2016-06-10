@@ -112,6 +112,19 @@
 
       <tr>
         <td>
+          Catapult Git patch (optional)<br/>
+          Applied to Catapult Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a><br/>
+        </td> 
+        <td>
+          <patch-sk id="catapult_patch"
+                    patch-type="catapult"                                       
+                    cl-description="{{catapultClDescription}}"> 
+          </patch-sk> 
+        </td>
+      </tr>
+
+      <tr>
+        <td>
           Telemetry Git patch (optional)<br/>
           Applied to Chromium ToT<br/>
           Documentation is <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.d3d1e25u2mzy">here</a>
@@ -169,10 +182,11 @@
        },
        chromiumClDescription: String,
        benchmarkClDescription: String,
+       catapultClDescription: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, benchmarkClDescription)"
+       "clDescriptionChanged(chromiumClDescription, benchmarkClDescription, catapultClDescription)"
      ],
 
      ready: function() {
@@ -204,8 +218,8 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDesc, benchmarkClDesc) {
-       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, '', benchmarkClDesc)
+     clDescriptionChanged: function(chromiumClDesc, benchmarkClDesc, catapultClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, '', benchmarkClDesc, catapultClDesc)
      },
 
      validateTask: function() {
@@ -215,6 +229,7 @@
          return;
        }
        if (!this.$.chromium_patch.validate() ||
+           !this.$.catapult_patch.validate() ||
            !this.$.benchmark_patch.validate()) {
          return;
        }
@@ -239,6 +254,7 @@
        params["browser_args"] = this.$.browser_args.value;
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
+       params["catapult_patch"] = this.$.catapult_patch.patch;
        params["benchmark_patch"] = this.$.benchmark_patch.patch;
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
 

@@ -282,6 +282,14 @@ var v12_down = []string{
 	`DROP TABLE IF EXISTS ChromiumAnalysisTasks`,
 }
 
+var v13_up = []string{
+	`ALTER TABLE ChromiumAnalysisTasks ADD catapult_patch longtext NOT NULL DEFAULT ""`,
+}
+
+var v13_down = []string{
+	`ALTER TABLE ChromiumAnalysisTasks DROP catapult_patch`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.

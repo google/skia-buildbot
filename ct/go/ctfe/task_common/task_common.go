@@ -678,13 +678,16 @@ func GatherCLData(detail clDetail, patch string) (map[string]string, error) {
 	}
 	clData["chromium_patch"] = ""
 	clData["skia_patch"] = ""
+	clData["catapult_patch"] = ""
 	switch detail.Project {
 	case "chromium":
 		clData["chromium_patch"] = patch
 	case "skia":
 		clData["skia_patch"] = patch
+	case "catapult":
+		clData["catapult_patch"] = patch
 	default:
-		return nil, fmt.Errorf("CL project is %s; only chromium and skia are supported.", detail.Project)
+		return nil, fmt.Errorf("CL project is %s; only chromium, skia, catapult are supported.", detail.Project)
 	}
 	return clData, nil
 }

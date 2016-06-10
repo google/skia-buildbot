@@ -50,6 +50,7 @@ type DBTask struct {
 	BrowserArgs    string         `db:"browser_args"`
 	Description    string         `db:"description"`
 	ChromiumPatch  string         `db:"chromium_patch"`
+	CatapultPatch  string         `db:"catapult_patch"`
 	BenchmarkPatch string         `db:"benchmark_patch"`
 	RawOutput      sql.NullString `db:"raw_output"`
 }
@@ -69,6 +70,7 @@ func (dbTask DBTask) GetPopulatedAddTaskVars() task_common.AddTaskVars {
 	taskVars.BrowserArgs = dbTask.BrowserArgs
 	taskVars.Description = dbTask.Description
 	taskVars.ChromiumPatch = dbTask.ChromiumPatch
+	taskVars.CatapultPatch = dbTask.CatapultPatch
 	taskVars.BenchmarkPatch = dbTask.BenchmarkPatch
 	return taskVars
 }
@@ -108,6 +110,7 @@ type AddTaskVars struct {
 	BrowserArgs    string `json:"browser_args"`
 	Description    string `json:"desc"`
 	ChromiumPatch  string `json:"chromium_patch"`
+	CatapultPatch  string `json:"catapult_patch"`
 	BenchmarkPatch string `json:"benchmark_patch"`
 }
 
@@ -124,11 +127,12 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 		{"browser_args", task.BrowserArgs, 255},
 		{"desc", task.Description, 255},
 		{"chromium_patch", task.ChromiumPatch, db.LONG_TEXT_MAX_LENGTH},
+		{"catapult_patch", task.CatapultPatch, db.LONG_TEXT_MAX_LENGTH},
 		{"benchmark_patch", task.BenchmarkPatch, db.LONG_TEXT_MAX_LENGTH},
 	}); err != nil {
 		return "", nil, err
 	}
-	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,benchmark_args,browser_args,description,chromium_patch,benchmark_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?);",
+	return fmt.Sprintf("INSERT INTO %s (username,benchmark,page_sets,benchmark_args,browser_args,description,chromium_patch,catapult_patch,benchmark_patch,ts_added,repeat_after_days) VALUES (?,?,?,?,?,?,?,?,?,?,?);",
 			db.TABLE_CHROMIUM_ANALYSIS_TASKS),
 		[]interface{}{
 			task.Username,
@@ -138,6 +142,7 @@ func (task *AddTaskVars) GetInsertQueryAndBinds() (string, []interface{}, error)
 			task.BrowserArgs,
 			task.Description,
 			task.ChromiumPatch,
+			task.CatapultPatch,
 			task.BenchmarkPatch,
 			task.TsAdded,
 			task.RepeatAfterDays,

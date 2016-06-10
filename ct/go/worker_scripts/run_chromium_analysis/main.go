@@ -98,6 +98,29 @@ func main() {
 		}
 	}
 
+	// Download the catapult patch for this run from Google storage.
+	catapultPatchName := *runID + ".catapult.patch"
+	catapultPatchLocalPath := filepath.Join(tmpDir, catapultPatchName)
+	catapultPatchRemotePath := filepath.Join(remotePatchesDir, catapultPatchName)
+	catapultRespBody, err := gs.GetRemoteFileContents(catapultPatchRemotePath)
+	if err != nil {
+		glog.Fatalf("Could not fetch %s: %s", catapultPatchRemotePath, err)
+	}
+	defer skutil.Close(catapultRespBody)
+	catapultBuf := new(bytes.Buffer)
+	if _, err := catapultBuf.ReadFrom(catapultRespBody); err != nil {
+		glog.Fatalf("Could not read from %s: %s", catapultPatchRemotePath, err)
+	}
+	if err := ioutil.WriteFile(catapultPatchLocalPath, catapultBuf.Bytes(), 0666); err != nil {
+		glog.Fatalf("Unable to create file %s: %s", catapultPatchLocalPath, err)
+	}
+	// Apply catapult patch to the local chromium checkout.
+	if catapultBuf.Len() > 10 {
+		if err := util.ApplyPatch(catapultPatchLocalPath, filepath.Join(util.ChromiumSrcDir, "third_party", "catapult")); err != nil {
+			glog.Fatalf("Could not apply Catapult's patch in %s: %s", util.ChromiumSrcDir, err)
+		}
+	}
+
 	// Download the specified chromium build.
 	if err := gs.DownloadChromiumBuild(*chromiumBuild); err != nil {
 		glog.Fatal(err)

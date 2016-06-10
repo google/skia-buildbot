@@ -39,6 +39,7 @@ var (
 	taskCompletedSuccessfully = false
 
 	chromiumPatchLink  = util.MASTER_LOGSERVER_LINK
+	catapultPatchLink  = util.MASTER_LOGSERVER_LINK
 	benchmarkPatchLink = util.MASTER_LOGSERVER_LINK
 	outputLink         = util.MASTER_LOGSERVER_LINK
 )
@@ -69,13 +70,13 @@ func sendEmail(recipients []string) {
 	%s
 	The CSV output is <a href='%s'>here</a>.<br/>
 	The patch(es) you specified are here:
-	<a href='%s'>chromium</a>/<a href='%s'>telemetry</a>
+	<a href='%s'>chromium</a>/<a href='%s'>catapult</a>/<a href='%s'>telemetry</a>
 	<br/><br/>
 	You can schedule more runs <a href='%s'>here</a>.
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, outputLink, chromiumPatchLink, benchmarkPatchLink, frontend.ChromiumAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, outputLink, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, frontend.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -136,14 +137,16 @@ func main() {
 
 	// Copy the patches to Google Storage.
 	chromiumPatchName := *runID + ".chromium.patch"
+	catapultPatchName := *runID + ".catapult.patch"
 	benchmarkPatchName := *runID + ".benchmark.patch"
-	for _, patchName := range []string{chromiumPatchName, benchmarkPatchName} {
+	for _, patchName := range []string{chromiumPatchName, catapultPatchName, benchmarkPatchName} {
 		if err := gs.UploadFile(patchName, os.TempDir(), remoteOutputDir); err != nil {
 			glog.Errorf("Could not upload %s to %s: %s", patchName, remoteOutputDir, err)
 			return
 		}
 	}
 	chromiumPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, chromiumPatchName)
+	catapultPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, catapultPatchName)
 	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
 
 	// Create the required chromium build.

@@ -165,8 +165,9 @@ this.ctfe = this.ctfe || function() {
   /**
    * Returns a string that describes the specified CLs.
    **/
-  ctfe.getDescriptionOfCls = function(chromiumClDesc, skiaClDesc, benchmarkClDesc) {
-    if (!chromiumClDesc && !skiaClDesc && !benchmarkClDesc) {
+  ctfe.getDescriptionOfCls = function(
+      chromiumClDesc, skiaClDesc, benchmarkClDesc, catapultClDesc) {
+    if (!chromiumClDesc && !skiaClDesc && !benchmarkClDesc && !catapultClDesc) {
       return "";
     }
     var str = "Testing ";
@@ -180,6 +181,13 @@ this.ctfe = this.ctfe || function() {
         str += " and ";
       }
       str += skiaClDesc;
+      prev = true;
+    }
+    if (catapultClDesc) {
+      if (prev) {
+        str += " and ";
+      }
+      str += catapultClDesc;
       prev = true;
     }
     if (benchmarkClDesc) {
