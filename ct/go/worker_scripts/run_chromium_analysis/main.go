@@ -58,6 +58,11 @@ func main() {
 	if err := util.ResetCheckout(util.ChromiumSrcDir); err != nil {
 		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
+	// Reset the local catapult checkout.
+	catapultDir := filepath.Join(util.ChromiumSrcDir, "third_party", "catapult")
+	if err := util.ResetCheckout(catapultDir); err != nil {
+		glog.Fatalf("Could not reset %s: %s", catapultDir, err)
+	}
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
 		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
