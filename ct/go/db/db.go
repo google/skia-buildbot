@@ -354,6 +354,11 @@ var migrationSteps = []database.MigrationStep{
 		MySQLUp:   v12_up,
 		MySQLDown: v12_down,
 	},
+	// version 13: Add catapult_patch column to ChromiumAnalysisTasks.
+	{
+		MySQLUp:   v13_up,
+		MySQLDown: v13_down,
+	},
 }
 
 // MigrationSteps returns the database migration steps.
