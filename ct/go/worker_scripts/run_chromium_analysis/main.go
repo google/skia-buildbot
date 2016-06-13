@@ -5,6 +5,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"sync"
@@ -59,9 +60,8 @@ func main() {
 		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Reset the local catapult checkout.
-	catapultDir := filepath.Join(util.ChromiumSrcDir, "third_party", "catapult")
-	if err := util.ResetCheckout(catapultDir); err != nil {
-		glog.Fatalf("Could not reset %s: %s", catapultDir, err)
+	if err := util.ResetCheckout(util.CatapultSrcDir); err != nil {
+		glog.Fatalf("Could not reset %s: %s", util.CatapultSrcDir, err)
 	}
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
@@ -74,56 +74,19 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	// Download the benchmark patch for this run from Google storage.
-	benchmarkPatchName := *runID + ".benchmark.patch"
 	tmpDir, err := ioutil.TempDir("", "patches")
-	if err != nil {
-		glog.Fatalf("Could not create a temp dir: %s", err)
-	}
-	defer skutil.RemoveAll(tmpDir)
-	benchmarkPatchLocalPath := filepath.Join(tmpDir, benchmarkPatchName)
 	remotePatchesDir := filepath.Join(util.ChromiumAnalysisRunsDir, *runID)
-	benchmarkPatchRemotePath := filepath.Join(remotePatchesDir, benchmarkPatchName)
-	respBody, err := gs.GetRemoteFileContents(benchmarkPatchRemotePath)
-	if err != nil {
-		glog.Fatalf("Could not fetch %s: %s", benchmarkPatchRemotePath, err)
-	}
-	defer skutil.Close(respBody)
-	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(respBody); err != nil {
-		glog.Fatalf("Could not read from %s: %s", benchmarkPatchRemotePath, err)
-	}
-	if err := ioutil.WriteFile(benchmarkPatchLocalPath, buf.Bytes(), 0666); err != nil {
-		glog.Fatalf("Unable to create file %s: %s", benchmarkPatchLocalPath, err)
-	}
-	// Apply benchmark patch to the local chromium checkout.
-	if buf.Len() > 10 {
-		if err := util.ApplyPatch(benchmarkPatchLocalPath, util.ChromiumSrcDir); err != nil {
-			glog.Fatalf("Could not apply Telemetry's patch in %s: %s", util.ChromiumSrcDir, err)
-		}
-	}
 
 	// Download the catapult patch for this run from Google storage.
 	catapultPatchName := *runID + ".catapult.patch"
-	catapultPatchLocalPath := filepath.Join(tmpDir, catapultPatchName)
-	catapultPatchRemotePath := filepath.Join(remotePatchesDir, catapultPatchName)
-	catapultRespBody, err := gs.GetRemoteFileContents(catapultPatchRemotePath)
-	if err != nil {
-		glog.Fatalf("Could not fetch %s: %s", catapultPatchRemotePath, err)
+	if err := downloadAndApplyPatch(catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
+		glog.Fatalf("Could not apply %s: %s", catapultPatchName, err)
 	}
-	defer skutil.Close(catapultRespBody)
-	catapultBuf := new(bytes.Buffer)
-	if _, err := catapultBuf.ReadFrom(catapultRespBody); err != nil {
-		glog.Fatalf("Could not read from %s: %s", catapultPatchRemotePath, err)
-	}
-	if err := ioutil.WriteFile(catapultPatchLocalPath, catapultBuf.Bytes(), 0666); err != nil {
-		glog.Fatalf("Unable to create file %s: %s", catapultPatchLocalPath, err)
-	}
-	// Apply catapult patch to the local chromium checkout.
-	if catapultBuf.Len() > 10 {
-		if err := util.ApplyPatch(catapultPatchLocalPath, filepath.Join(util.ChromiumSrcDir, "third_party", "catapult")); err != nil {
-			glog.Fatalf("Could not apply Catapult's patch in %s: %s", util.ChromiumSrcDir, err)
-		}
+
+	// Download the benchmark patch for this run from Google storage.
+	benchmarkPatchName := *runID + ".benchmark.patch"
+	if err := downloadAndApplyPatch(benchmarkPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
+		glog.Fatalf("Could not apply %s: %s", benchmarkPatchName, err)
 	}
 
 	// Download the specified chromium build.
@@ -222,4 +185,28 @@ func main() {
 			glog.Fatalf("Error while processing withpatch CSV files: %s", err)
 		}
 	}
+}
+
+func downloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout string, gs *util.GsUtil) error {
+	patchLocalPath := filepath.Join(localDir, patchName)
+	patchRemotePath := filepath.Join(remotePatchesDir, patchName)
+	respBody, err := gs.GetRemoteFileContents(patchRemotePath)
+	if err != nil {
+		return fmt.Errorf("Could not fetch %s: %s", patchRemotePath, err)
+	}
+	defer skutil.Close(respBody)
+	buf := new(bytes.Buffer)
+	if _, err := buf.ReadFrom(respBody); err != nil {
+		return fmt.Errorf("Could not read from %s: %s", patchRemotePath, err)
+	}
+	if err := ioutil.WriteFile(patchLocalPath, buf.Bytes(), 0666); err != nil {
+		return fmt.Errorf("Unable to create file %s: %s", patchLocalPath, err)
+	}
+	// Apply patch to the local chromium checkout.
+	if buf.Len() > 10 {
+		if err := util.ApplyPatch(patchLocalPath, checkout); err != nil {
+			return fmt.Errorf("Could not apply patch in %s: %s", checkout, err)
+		}
+	}
+	return nil
 }

@@ -181,12 +181,12 @@
          value: "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting",
        },
        chromiumClDescription: String,
-       benchmarkClDescription: String,
        catapultClDescription: String,
+       benchmarkClDescription: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, benchmarkClDescription, catapultClDescription)"
+       "clDescriptionChanged(chromiumClDescription, catapultClDescription, benchmarkClDescription)"
      ],
 
      ready: function() {
@@ -218,7 +218,7 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDesc, benchmarkClDesc, catapultClDesc) {
+     clDescriptionChanged: function(chromiumClDesc, catapultClDesc, benchmarkClDesc) {
        this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, '', benchmarkClDesc, catapultClDesc)
      },
 

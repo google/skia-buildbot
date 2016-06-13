@@ -246,7 +246,7 @@ func resetChromiumCheckout(chromiumSrcDir string) error {
 		return fmt.Errorf("Could not reset Skia's checkout in %s: %s", skiaDir, err)
 	}
 	// Reset Catapult.
-	catapultDir := filepath.Join(chromiumSrcDir, "third_party", "catapult")
+	catapultDir := filepath.Join(chromiumSrcDir, RelativeCatapultSrcDir)
 	if err := ResetCheckout(catapultDir); err != nil {
 		return fmt.Errorf("Could not reset Catapult's checkout in %s: %s", catapultDir, err)
 	}
