@@ -93,7 +93,7 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 	}
 
 	// Make sure we are starting from a clean slate.
-	if err := resetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
+	if err := ResetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
 		return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 	}
 	googleStorageDirName := ChromiumBuildDir(chromiumHash, skiaHash, runID)
@@ -125,7 +125,7 @@ func CreateChromiumBuildOnSwarming(runID, targetPlatform, chromiumHash, skiaHash
 	// will be created without applying patches.
 	if !uploadSingleBuild {
 		// Make sure we are starting from a clean slate.
-		if err := resetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
+		if err := ResetChromiumCheckout(filepath.Join(chromiumBuildDir, "src")); err != nil {
 			return "", "", fmt.Errorf("Could not reset the chromium checkout in %s: %s", chromiumBuildDir, err)
 		}
 		// Build chromium.
@@ -239,7 +239,7 @@ func getTruncatedHash(commitHash string) string {
 	return commitHash[0:7]
 }
 
-func resetChromiumCheckout(chromiumSrcDir string) error {
+func ResetChromiumCheckout(chromiumSrcDir string) error {
 	// Reset Skia.
 	skiaDir := filepath.Join(chromiumSrcDir, "third_party", "skia")
 	if err := ResetCheckout(skiaDir); err != nil {

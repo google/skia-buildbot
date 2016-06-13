@@ -56,12 +56,8 @@ func main() {
 	}
 
 	// Reset the local chromium checkout.
-	if err := util.ResetCheckout(util.ChromiumSrcDir); err != nil {
+	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
 		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
-	}
-	// Reset the local catapult checkout.
-	if err := util.ResetCheckout(util.CatapultSrcDir); err != nil {
-		glog.Fatalf("Could not reset %s: %s", util.CatapultSrcDir, err)
 	}
 	// Sync the local chromium checkout.
 	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
