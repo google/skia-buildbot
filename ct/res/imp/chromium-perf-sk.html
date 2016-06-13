@@ -158,6 +158,10 @@
                     patch-type="chromium"
                     cl-description="{{chromiumClDescription}}">
           </patch-sk>
+          <paper-checkbox id="benchmark_patch" checked>
+            Apply this patch when running benchmarks?
+            Documentation is <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.d3d1e25u2mzy">here</a>
+          </paper-checkbox>
         </td>
       </tr>
 
@@ -170,20 +174,6 @@
           <patch-sk id="skia_patch"
                     patch-type="skia"
                     cl-description="{{skiaClDescription}}">
-          </patch-sk>
-        </td>
-      </tr>
-
-      <tr>
-        <td>
-          Telemetry Git patch (optional)<br/>
-          Applied to Chromium ToT<br/>
-          Documentation is <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.d3d1e25u2mzy">here</a>
-        </td>
-        <td>
-          <patch-sk id="benchmark_patch"
-                    patch-type="chromium"
-                    cl-description="{{benchmarkClDescription}}">
           </patch-sk>
         </td>
       </tr>
@@ -245,11 +235,10 @@
        },
        chromiumClDescription: String,
        skiaClDescription: String,
-       benchmarkClDescription: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, skiaClDescription, benchmarkClDescription)"
+       "clDescriptionChanged(chromiumClDescription, skiaClDescription)"
      ],
 
      ready: function() {
@@ -319,14 +308,13 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDesc, skiaClDesc, benchmarkClDesc) {
-       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, benchmarkClDesc, '')
+     clDescriptionChanged: function(chromiumClDesc, skiaClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, '')
      },
 
      validateTask: function() {
        if (!this.$.chromium_patch.validate() ||
-           !this.$.skia_patch.validate() ||
-           !this.$.benchmark_patch.validate()) {
+           !this.$.skia_patch.validate()) {
          return;
        }
        if (! this.$.desc.value) {
@@ -367,7 +355,9 @@
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
        params["skia_patch"] = this.$.skia_patch.patch;
-       params["benchmark_patch"] = this.$.benchmark_patch.patch;
+       if (this.$.benchmark_patch.checked) {
+         params["benchmark_patch"] = this.$.chromium_patch.patch;
+       }
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
        var that = this;

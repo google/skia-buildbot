@@ -107,33 +107,23 @@
                     patch-type="chromium"
                     cl-description="{{chromiumClDescription}}">
           </patch-sk>
+          <paper-checkbox id="benchmark_patch" checked>
+            Apply this patch when running benchmarks?
+            Documentation is <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.d3d1e25u2mzy">here</a>
+          </paper-checkbox>
         </td>
       </tr>
 
       <tr>
         <td>
           Catapult Git patch (optional)<br/>
-          Applied to Catapult Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a><br/>
+          Applied to Catapult Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a>
         </td> 
         <td>
           <patch-sk id="catapult_patch"
                     patch-type="catapult"                                       
                     cl-description="{{catapultClDescription}}"> 
           </patch-sk> 
-        </td>
-      </tr>
-
-      <tr>
-        <td>
-          Telemetry Git patch (optional)<br/>
-          Applied to Chromium ToT<br/>
-          Documentation is <a href="https://docs.google.com/document/d/1GhqosQcwsy6F-eBAmFn_ITDF7_Iv_rY9FhCKwAnk9qQ/edit#heading=h.d3d1e25u2mzy">here</a>
-        </td>
-        <td>
-          <patch-sk id="benchmark_patch"
-                    patch-type="chromium"
-                    cl-description="{{benchmarkClDescription}}">
-          </patch-sk>
         </td>
       </tr>
 
@@ -182,11 +172,10 @@
        },
        chromiumClDescription: String,
        catapultClDescription: String,
-       benchmarkClDescription: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, catapultClDescription, benchmarkClDescription)"
+       "clDescriptionChanged(chromiumClDescription, catapultClDescription)"
      ],
 
      ready: function() {
@@ -218,8 +207,8 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDesc, catapultClDesc, benchmarkClDesc) {
-       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, '', benchmarkClDesc, catapultClDesc)
+     clDescriptionChanged: function(chromiumClDesc, catapultClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, '', catapultClDesc)
      },
 
      validateTask: function() {
@@ -229,8 +218,7 @@
          return;
        }
        if (!this.$.chromium_patch.validate() ||
-           !this.$.catapult_patch.validate() ||
-           !this.$.benchmark_patch.validate()) {
+           !this.$.catapult_patch.validate()) {
          return;
        }
        if (! this.$.desc.value) {
@@ -255,7 +243,9 @@
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
        params["catapult_patch"] = this.$.catapult_patch.patch;
-       params["benchmark_patch"] = this.$.benchmark_patch.patch;
+       if (this.$.benchmark_patch.checked) {
+         params["benchmark_patch"] = this.$.chromium_patch.patch;
+       }
        params["repeat_after_days"] = this.$.repeat_after_days.selected;
 
        var that = this;
