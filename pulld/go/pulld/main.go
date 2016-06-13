@@ -40,8 +40,10 @@ var (
 var (
 	installedPackagesFile = flag.String("installed_packages_file", "installed_packages.json", "Path to the file where to cache the list of installed debs.")
 	local                 = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
+	onGCE                 = flag.Bool("on_gce", true, "Running on GCE.  Could be running on some external machine, e.g. in the Skolo.")
 	port                  = flag.String("port", ":10114", "HTTP service address (e.g., ':8000')")
 	resourcesDir          = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
+	serviceAccountPath    = flag.String("service_account_path", "", "Path to the service account.  Can be empty string to use defaults or project metadata")
 	bucketName            = flag.String("bucket_name", "skia-push", "The name of the Google Storage bucket that contains push packages and info.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
@@ -287,9 +289,14 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	defer common.LogPanic()
-	common.InitWithMetrics2("pulld", influxHost, influxUser, influxPassword, influxDatabase, local)
+	flag.Parse()
+	if *onGCE {
+		common.InitWithMetrics2("pulld", influxHost, influxUser, influxPassword, influxDatabase, local)
+	} else {
+		common.Init()
+	}
 	Init()
-	pullInit()
+	pullInit(*serviceAccountPath)
 	rebootMonitoringInit()
 
 	r := mux.NewRouter()

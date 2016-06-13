@@ -15,6 +15,9 @@ default: core_js elements_html
 release: default
 	./build_release "$(MESSAGE)"
 
+release_not_gce: default
+	./build_release_not_gce "$(MESSAGE)"
+
 # You should run make release first
 push_everywhere:
 	pushcli pulld "*"

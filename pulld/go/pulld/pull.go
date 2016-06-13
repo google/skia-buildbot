@@ -105,14 +105,14 @@ func pullHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Pull triggered.")
 }
 
-func pullInit() {
+func pullInit(serviceAccountPath string) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		glog.Fatal(err)
 	}
 	glog.Infof("Running with hostname: %s", hostname)
 
-	client, err := auth.NewJWTServiceAccountClient("", "", &http.Transport{Dial: httputils.DialTimeout}, storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)
+	client, err := auth.NewJWTServiceAccountClient("", serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)
 	if err != nil {
 		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
