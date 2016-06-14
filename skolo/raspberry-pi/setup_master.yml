@@ -7,16 +7,29 @@
   vars:
     net: 192.168.1.0
   tasks:
-    - apt: upgrade=dist update_cache=yes
-    - apt: name=binfmt-support
-    - apt: name=qemu
-    - apt: name=qemu-user-static
-    - apt: name=unzip
-    - apt: name=nfs-kernel-server
+    - name: Update and Upgrade
+      apt: upgrade=dist update_cache=yes
+    - name: Install openssh-server
+      apt: name=openssh-server
+    - name: Install binfmt-support
+      apt: name=binfmt-support
+    - name: Install qemu
+      apt: name=qemu
+    - name: Install qemu-user-sta
+      apt: name=qemu-user-static
+    - name: Install unzip
+      apt: name=unzip
+    - name: Install nfs-kernel-server
+      apt: name=nfs-kernel-server
 
     - file: path=/opt/raspberrypi state=directory
+    - file: path=/var/log/logserver state=directory
 
-    - lineinfile: dest=/etc/exports line="/opt/raspberrypi/root {{net}}/24(ro,sync,no_root_squash,no_subtree_check)"
+    - name: make nfs sharing rule
+      lineinfile: dest=/etc/exports line="/opt/raspberrypi/root {{net}}/24(ro,sync,no_root_squash,no_subtree_check)"
 
-  handlers:
+    - name: make sudo passwordless
+      lineinfile: dest=/etc/sudoers line="chrome-bot ALL=(ALL) NOPASSWD: ALL"
 
+    - name: generate chrome-bot ssh
+      user: name=chrome-bot generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa

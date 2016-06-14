@@ -6,8 +6,7 @@
   become: yes
   become_method: sudo
   vars:
-    nfs_ip: 192.168.1.114
-    image: /opt/rpi_img/2016-03-18-raspbian-jessie-lite.img
+    image: /opt/rpi_img/current.img
     # 8192 * 512
     offset_boot: 4194304
     # 131072 * 512
@@ -28,7 +27,3 @@
     # Remount these at startup
     - lineinfile: dest=/etc/rc.local line="mount /opt/raspberrypi/root" insertbefore="exit 0"
     - lineinfile: dest=/etc/rc.local line="mount /opt/raspberrypi/boot" insertbefore="exit 0"
-
-
-  handlers:
-
