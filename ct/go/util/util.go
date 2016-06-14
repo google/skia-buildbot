@@ -571,7 +571,7 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 	return nil
 }
 
-func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GsUtil, startRange int) error {
+func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDir string, gs *GsUtil, startRange int, handleStrings bool) error {
 	// Move all results into a single directory.
 	fileInfos, err := ioutil.ReadDir(localOutputDir)
 	if err != nil {
@@ -613,6 +613,9 @@ func MergeUploadCSVFilesOnWorkers(localOutputDir, pathToPyFiles, runID, remoteDi
 		pathToCsvMerger,
 		"--csv_dir=" + localOutputDir,
 		"--output_csv_name=" + filepath.Join(localOutputDir, outputFileName),
+	}
+	if handleStrings {
+		args = append(args, "--handle_strings")
 	}
 	err = ExecuteCmd("python", args, []string{}, CSV_PIVOT_TABLE_MERGER_TIMEOUT, nil,
 		nil)

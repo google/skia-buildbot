@@ -28,13 +28,14 @@ OUTPUT_PAGE_NAME_KEY = 'page_name'
 class CsvMerger(object):
   """Class that merges many CSV files into a single file."""
 
-  def __init__(self, csv_dir, output_csv_name):
+  def __init__(self, csv_dir, output_csv_name, handle_strings):
     """Constructs a CsvMerge instance."""
     self._input_csv_files = sorted([
         os.path.join(csv_dir, f) for f in
         glob.glob(os.path.join(csv_dir, '*.csv'))
         if os.path.getsize(os.path.join(csv_dir, f))])
     self._output_csv_name = os.path.join(csv_dir, output_csv_name)
+    self._handle_strings = handle_strings
 
   def _GetFieldNameFromRow(self, row):
     fieldname = row[TELEMETRY_FIELD_NAME_KEY]
@@ -77,8 +78,12 @@ class CsvMerger(object):
       try:
         value = float(value)
       except (ValueError, TypeError):
-        # We expected only floats, cannot compare strings. Skip this row.
-        continue
+        if value and self._handle_strings:
+          # Keep the original value and proceed.
+          pass
+        else:
+          # We expected only floats, cannot compare strings. Skip this row.
+          continue
       if fieldname in fieldname_to_values:
         fieldname_to_values[fieldname].append(value)
       else:
@@ -89,7 +94,10 @@ class CsvMerger(object):
       if fieldname == OUTPUT_PAGE_NAME_KEY:
         avg_row[fieldname] = values
         continue
-      avg_row[fieldname] = self._GetAvg(values)
+      try:
+        avg_row[fieldname] = self._GetAvg(values)
+      except (ValueError, TypeError):
+        avg_row[fieldname] = ','.join(values)
 
     print
     print 'For rows: %s' % rows
@@ -152,8 +160,12 @@ if '__main__' == __name__:
       '', '--output_csv_name',
       help='The name of the resultant merged CSV. It will be outputted to the '
            '--csv_dir')
+  option_parser.add_option(
+      '', '--handle_strings', action="store_true", default=False,
+      help='If this option is False then rows with string values are dropped')
   options, unused_args = option_parser.parse_args()
   if not options.csv_dir or not options.output_csv_name:
     option_parser.error('Must specify both csv_dir and output_csv_name')
 
-  sys.exit(CsvMerger(options.csv_dir, options.output_csv_name).Merge())
+  sys.exit(CsvMerger(options.csv_dir, options.output_csv_name,
+                     options.handle_strings).Merge())
