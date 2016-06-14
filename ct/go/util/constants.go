@@ -68,7 +68,9 @@ const (
 	MASTER_LOGSERVER_LINK = "http://uberchromegw.corp.google.com/i/skia-ct-master/"
 
 	// Default browser args when running benchmarks.
-	DEFAULT_BROWSER_ARGS = "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting"
+	// "--no-sandbox" is now a required flag on older distros like 12.02. This will no longer
+	// be required after upgrading the baremetal machines.
+	DEFAULT_BROWSER_ARGS = "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting --no-sandbox"
 
 	// Timeouts
 

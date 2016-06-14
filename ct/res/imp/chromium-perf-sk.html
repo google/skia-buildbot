@@ -231,7 +231,9 @@
        },
        defaultLinuxBrowserArgs: {
          type: String,
-         value: "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting",
+        // "--no-sandbox" is now a required flag on older distros like 12.02. This will no longer
+        // be required after upgrading the baremetal machines. 
+         value: "--disable-setuid-sandbox --enable-threaded-compositing --enable-impl-side-painting --no-sandbox",
        },
        chromiumClDescription: String,
        skiaClDescription: String,
