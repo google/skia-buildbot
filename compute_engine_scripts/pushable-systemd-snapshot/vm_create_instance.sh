@@ -13,7 +13,8 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --maintenance-policy "MIGRATE" \
   --scopes $SCOPES \
   --tags "http-server,https-server" \
-  --image $IMAGE_TYPE \
+  --image-family $IMAGE_FAMILY \
+  --image-project $IMAGE_PROJECT \
   --boot-disk-type "pd-standard" \
   --boot-disk-device-name $INSTANCE_NAME \
   --address=$IP_ADDRESS
