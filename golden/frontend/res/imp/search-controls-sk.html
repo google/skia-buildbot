@@ -43,9 +43,7 @@
 <dom-module id="search-controls-sk">
   <template>
     <style include="iron-flex iron-flex-alignment"></style>
-    <style include="shared-styles"></style>
-    <style>
-
+    <style include="shared-styles">
       .horizontalTopControl, .verticalTopControl {
         font-weight: bold;
       }
@@ -58,10 +56,9 @@
         margin: 0 2em 0 0;
       }
 
-      paper-button {
-        max-width: 1em;
+      .buttonContainer {
+        width: 8em;
       }
-
     </style>
       <div class$="{{orientation}} layout">
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.pos}}" disabled={{disabled}}>Positive</paper-toggle-button>
@@ -70,7 +67,9 @@
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.head}}" disabled={{disabled}}>Head</paper-toggle-button>
         <paper-toggle-button class$="{{_tcClass(orientation)}}" checked="{{state.include}}" disabled={{disabled}}>Ignored</paper-toggle-button>
 
-        <paper-button id="searchButton" class$="topControl" raised disabled={{disabled}}><iron-icon icon="search"></iron-icon></paper-button>
+        <div class="buttonContainer"> 
+          <paper-button id="searchButton" class$="topControl" raised disabled={{disabled}}><iron-icon icon="search"></iron-icon></paper-button>
+        </div>
       </div>
 
       <query-dialog-sk id="queryDialog" trigger="searchButton"></query-dialog-sk>
