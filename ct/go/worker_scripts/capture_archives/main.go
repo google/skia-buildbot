@@ -39,7 +39,7 @@ func main() {
 	defer glog.Flush()
 
 	// Reset the local chromium checkout.
-	if err := util.ResetCheckout(util.ChromiumSrcDir); err != nil {
+	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
 		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.

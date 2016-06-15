@@ -3,7 +3,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -92,33 +91,19 @@ func main() {
 		glog.Fatal(err)
 	}
 
+	tmpDir, err := ioutil.TempDir("", "patches")
+	remotePatchesDir := filepath.Join(util.ChromiumPerfRunsDir, *runID)
+
+	// Download the catapult patch for this run from Google storage.
+	catapultPatchName := *runID + ".catapult.patch"
+	if err := util.DownloadAndApplyPatch(catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
+		glog.Fatalf("Could not apply %s: %s", catapultPatchName, err)
+	}
+
 	// Download the benchmark patch for this run from Google storage.
 	benchmarkPatchName := *runID + ".benchmark.patch"
-	tmpDir, err := ioutil.TempDir("", "patches")
-	if err != nil {
-		glog.Fatalf("Could not create a temp dir: %s", err)
-	}
-	defer skutil.RemoveAll(tmpDir)
-	benchmarkPatchLocalPath := filepath.Join(tmpDir, benchmarkPatchName)
-	remoteDir := filepath.Join(util.ChromiumPerfRunsDir, *runID)
-	benchmarkPatchRemotePath := filepath.Join(remoteDir, benchmarkPatchName)
-	respBody, err := gs.GetRemoteFileContents(benchmarkPatchRemotePath)
-	if err != nil {
-		glog.Fatalf("Could not fetch %s: %s", benchmarkPatchRemotePath, err)
-	}
-	defer skutil.Close(respBody)
-	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(respBody); err != nil {
-		glog.Fatalf("Could not read from %s: %s", benchmarkPatchRemotePath, err)
-	}
-	if err := ioutil.WriteFile(benchmarkPatchLocalPath, buf.Bytes(), 0666); err != nil {
-		glog.Fatalf("Unable to create file %s: %s", benchmarkPatchLocalPath, err)
-	}
-	// Apply benchmark patch to the local chromium checkout.
-	if buf.Len() > 10 {
-		if err := util.ApplyPatch(benchmarkPatchLocalPath, util.ChromiumSrcDir); err != nil {
-			glog.Fatalf("Could not apply Telemetry's patch in %s: %s", util.ChromiumSrcDir, err)
-		}
+	if err := util.DownloadAndApplyPatch(benchmarkPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
+		glog.Fatalf("Could not apply %s: %s", benchmarkPatchName, err)
 	}
 
 	// Download the specified chromium builds.

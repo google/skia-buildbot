@@ -732,19 +732,36 @@ func TriggerBuildRepoSwarmingTask(taskName, runID, repo, targetPlatform string, 
 	return strings.Split(string(contents), ","), nil
 }
 
-func DownloadPatch(localPath, remotePath string, gs *GsUtil) error {
+func DownloadPatch(localPath, remotePath string, gs *GsUtil) (int64, error) {
 	respBody, err := gs.GetRemoteFileContents(remotePath)
 	if err != nil {
-		return fmt.Errorf("Could not fetch %s: %s", remotePath, err)
+		return -1, fmt.Errorf("Could not fetch %s: %s", remotePath, err)
 	}
 	defer util.Close(respBody)
 	f, err := os.Create(localPath)
 	if err != nil {
-		return fmt.Errorf("Could not create %s: %s", localPath, err)
+		return -1, fmt.Errorf("Could not create %s: %s", localPath, err)
 	}
 	defer util.Close(f)
-	if _, err := io.Copy(f, respBody); err != nil {
-		return fmt.Errorf("Could not write to %s: %s", localPath, err)
+	written, err := io.Copy(f, respBody)
+	if err != nil {
+		return -1, fmt.Errorf("Could not write to %s: %s", localPath, err)
+	}
+	return written, nil
+}
+
+func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout string, gs *GsUtil) error {
+	patchLocalPath := filepath.Join(localDir, patchName)
+	patchRemotePath := filepath.Join(remotePatchesDir, patchName)
+	written, err := DownloadPatch(patchLocalPath, patchRemotePath, gs)
+	if err != nil {
+		return fmt.Errorf("Could not download %s: %s", patchRemotePath, err)
+	}
+	// Apply patch to the local checkout.
+	if written > 10 {
+		if err := ApplyPatch(patchLocalPath, checkout); err != nil {
+			return fmt.Errorf("Could not apply patch in %s: %s", checkout, err)
+		}
 	}
 	return nil
 }

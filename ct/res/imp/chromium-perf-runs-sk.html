@@ -124,6 +124,12 @@
         </paper-dialog-scrollable>
       </paper-dialog>
 
+      <paper-dialog heading="Catapult Patch" id="{{ getCatapultPatchId(index) }}">
+        <paper-dialog-scrollable>
+          <pre>{{chromiumPerfTask.CatapultPatch}}</pre>
+        </paper-dialog-scrollable>
+      </paper-dialog>
+
       <paper-dialog heading="Telemetry Patch" id="{{ getBenchmarkPatchId(index) }}">
         <paper-dialog-scrollable>
           <pre>{{chromiumPerfTask.BenchmarkPatch}}</pre>
@@ -266,6 +272,11 @@
             </template>
             <template is="dom-if" if="{{chromiumPerfTask.SkiaPatch}}">
               <a href="javascript:void(0);" data-index$="{{index}}" data-type="skiaPatch">Skia</a>
+              <br/>
+            </template>
+            <template is="dom-if" if="{{chromiumPerfTask.CatapultPatch}}">
+              <a href="javascript:void(0);" data-index$="{{index}}"   data-type="catapultPatch">Catapult</a>
+              <br/>
             </template>
             <template is="dom-if" if="{{chromiumPerfTask.BenchmarkPatch}}">
               <a href="javascript:void(0);" data-index$="{{index}}" data-type="benchmarkPatch">Telemetry</a>
@@ -358,6 +369,8 @@
              that.toggleDialog(that.getBlinkPatchId(id));
            } else if (anchor.dataset.type == "skiaPatch") {
              that.toggleDialog(that.getSkiaPatchId(id));
+           } else if (anchor.dataset.type == "catapultPatch") {
+             that.toggleDialog(that.getCatapultPatchId(id));
            } else if (anchor.dataset.type == "benchmarkPatch") {
              that.toggleDialog(that.getBenchmarkPatchId(id));
            }
@@ -439,6 +452,10 @@
 
      getSkiaPatchId: function(index) {
        return "skia_patch" + index;
+     },
+
+     getCatapultPatchId: function(index) {
+       return "catapult_patch" + index;
      },
 
      getBenchmarkPatchId: function(index) {

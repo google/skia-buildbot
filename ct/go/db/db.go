@@ -300,6 +300,14 @@ var v14_down = []string{
 	`ALTER TABLE ChromiumAnalysisTasks MODIFY COLUMN benchmark_patch text`,
 }
 
+var v15_up = []string{
+	`ALTER TABLE ChromiumPerfTasks ADD catapult_patch longtext NOT NULL DEFAULT ""`,
+}
+
+var v15_down = []string{
+	`ALTER TABLE ChromiumPerfTasks DROP catapult_patch`,
+}
+
 // Define the migration steps.
 // Note: Only add to this list, once a step has landed in version control it
 // must not be changed.
@@ -373,6 +381,11 @@ var migrationSteps = []database.MigrationStep{
 	{
 		MySQLUp:   v14_up,
 		MySQLDown: v14_down,
+	},
+	// version 15: Add catapult_patch column to ChromiumPerfTasks.
+	{
+		MySQLUp:   v15_up,
+		MySQLDown: v15_down,
 	},
 }
 

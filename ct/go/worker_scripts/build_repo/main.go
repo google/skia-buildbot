@@ -52,7 +52,7 @@ func main() {
 			for _, patch := range strings.Split(*patches, ",") {
 				patchName := path.Base(patch)
 				patchLocalPath := filepath.Join(os.TempDir(), patchName)
-				if err := util.DownloadPatch(patchLocalPath, patch, gs); err != nil {
+				if _, err := util.DownloadPatch(patchLocalPath, patch, gs); err != nil {
 					glog.Fatal(err)
 				}
 			}

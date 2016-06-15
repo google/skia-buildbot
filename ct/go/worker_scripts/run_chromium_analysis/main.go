@@ -3,9 +3,7 @@
 package main
 
 import (
-	"bytes"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"sync"
@@ -75,13 +73,13 @@ func main() {
 
 	// Download the catapult patch for this run from Google storage.
 	catapultPatchName := *runID + ".catapult.patch"
-	if err := downloadAndApplyPatch(catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
+	if err := util.DownloadAndApplyPatch(catapultPatchName, tmpDir, remotePatchesDir, util.CatapultSrcDir, gs); err != nil {
 		glog.Fatalf("Could not apply %s: %s", catapultPatchName, err)
 	}
 
 	// Download the benchmark patch for this run from Google storage.
 	benchmarkPatchName := *runID + ".benchmark.patch"
-	if err := downloadAndApplyPatch(benchmarkPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
+	if err := util.DownloadAndApplyPatch(benchmarkPatchName, tmpDir, remotePatchesDir, util.ChromiumSrcDir, gs); err != nil {
 		glog.Fatalf("Could not apply %s: %s", benchmarkPatchName, err)
 	}
 
@@ -181,28 +179,4 @@ func main() {
 			glog.Fatalf("Error while processing withpatch CSV files: %s", err)
 		}
 	}
-}
-
-func downloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout string, gs *util.GsUtil) error {
-	patchLocalPath := filepath.Join(localDir, patchName)
-	patchRemotePath := filepath.Join(remotePatchesDir, patchName)
-	respBody, err := gs.GetRemoteFileContents(patchRemotePath)
-	if err != nil {
-		return fmt.Errorf("Could not fetch %s: %s", patchRemotePath, err)
-	}
-	defer skutil.Close(respBody)
-	buf := new(bytes.Buffer)
-	if _, err := buf.ReadFrom(respBody); err != nil {
-		return fmt.Errorf("Could not read from %s: %s", patchRemotePath, err)
-	}
-	if err := ioutil.WriteFile(patchLocalPath, buf.Bytes(), 0666); err != nil {
-		return fmt.Errorf("Unable to create file %s: %s", patchLocalPath, err)
-	}
-	// Apply patch to the local chromium checkout.
-	if buf.Len() > 10 {
-		if err := util.ApplyPatch(patchLocalPath, checkout); err != nil {
-			return fmt.Errorf("Could not apply patch in %s: %s", checkout, err)
-		}
-	}
-	return nil
 }

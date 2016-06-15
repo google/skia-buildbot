@@ -179,6 +179,19 @@
       </tr>
 
       <tr>
+        <td>
+          Catapult Git patch (optional)<br/>
+          Applied to Catapult Rev in <a href="https://chromium.googlesource.com/chromium/src/+/HEAD/DEPS">DEPS</a>
+        </td>
+        <td>
+          <patch-sk id="catapult_patch"
+                    patch-type="catapult"
+                    cl-description="{{catapultClDescription}}">
+          </patch-sk>
+        </td>
+      </tr>
+
+      <tr>
         <td>Repeat this task</td>
         <td>
           <repeat-after-days-sk id="repeat_after_days"></repeat-after-days-sk>
@@ -237,10 +250,11 @@
        },
        chromiumClDescription: String,
        skiaClDescription: String,
+       catapultClDescription: String,
      },
 
      observers: [
-       "clDescriptionChanged(chromiumClDescription, skiaClDescription)"
+       "clDescriptionChanged(chromiumClDescription, skiaClDescription, catapultClDescription)"
      ],
 
      ready: function() {
@@ -310,13 +324,14 @@
        }
      },
 
-     clDescriptionChanged: function(chromiumClDesc, skiaClDesc) {
-       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, '')
+     clDescriptionChanged: function(chromiumClDesc, skiaClDesc, catapultClDesc) {
+       this.$.desc.value = ctfe.getDescriptionOfCls(chromiumClDesc, skiaClDesc, catapultClDesc)
      },
 
      validateTask: function() {
        if (!this.$.chromium_patch.validate() ||
-           !this.$.skia_patch.validate()) {
+           !this.$.skia_patch.validate() ||
+           !this.$.catapult_patch.validate()) {
          return;
        }
        if (! this.$.desc.value) {
@@ -357,6 +372,7 @@
        params["desc"] = this.$.desc.value;
        params["chromium_patch"] = this.$.chromium_patch.patch;
        params["skia_patch"] = this.$.skia_patch.patch;
+       params["catapult_patch"] = this.$.catapult_patch.patch;
        if (this.$.benchmark_patch.checked) {
          params["benchmark_patch"] = this.$.chromium_patch.patch;
        }

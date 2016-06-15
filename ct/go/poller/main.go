@@ -199,6 +199,7 @@ func (task *ChromiumPerfTask) Execute() error {
 	for fileSuffix, patch := range map[string]string{
 		".chromium.patch":  task.ChromiumPatch,
 		".skia.patch":      task.SkiaPatch,
+		".catapult.patch":  task.CatapultPatch,
 		".benchmark.patch": task.BenchmarkPatch,
 	} {
 		// Add an extra newline at the end because git sometimes rejects patches due to
