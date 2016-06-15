@@ -29,7 +29,7 @@
       lineinfile: dest=/etc/exports line="/opt/raspberrypi/root {{net}}/24(ro,sync,no_root_squash,no_subtree_check)"
 
     - name: make sudo passwordless
-      lineinfile: dest=/etc/sudoers line="chrome-bot ALL=(ALL) NOPASSWD: ALL"
+      lineinfile: "dest=/etc/sudoers line='chrome-bot ALL=(ALL) NOPASSWD: ALL'"
 
     - name: generate chrome-bot ssh
       user: name=chrome-bot generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
