@@ -23,7 +23,7 @@ var (
 	description = flag.String("description", "", "The description of the newly created issue")
 	owner       = flag.String("owner", "", "The email address of the issue's owner")
 	cc          = common.NewMultiStringFlag("cc", nil, fmt.Sprintf("The email addresses to cc to this issue."))
-	labels      = common.NewMultiStringFlag("labels", nil, fmt.Sprintf(`The labels to add to this issue.  Common labels are "Type-Defect","Priority-Medium","Restrict-View-Googler"`))
+	labels      = common.NewMultiStringFlag("labels", nil, fmt.Sprintf(`The labels to add to this issue.  Common labels are "Type-Defect","Priority-Medium","Restrict-View-Google"`))
 )
 
 func main() {

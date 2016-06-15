@@ -61,7 +61,7 @@ func (im *IssuesManager) CreateBadBugIssue(p IssueReportingPackage, desc string)
 	}
 
 	req := issues.IssueRequest{
-		Labels:      append(common.ExtraBugLabels(p.Category), "FromSkiaFuzzer", "Restrict-View-Googler", "Type-Defect", "Priority-Medium"),
+		Labels:      append(common.ExtraBugLabels(p.Category), "FromSkiaFuzzer", "Restrict-View-Google", "Type-Defect", "Priority-Medium"),
 		Status:      "New",
 		Summary:     "New crash found in " + common.PrettifyCategory(p.Category) + " by fuzzer",
 		Description: m,
@@ -82,7 +82,7 @@ func (im *IssuesManager) CreateBadBugIssue(p IssueReportingPackage, desc string)
 
 func (im *IssuesManager) CreateBadBugURL(p IssueReportingPackage) (string, error) {
 	// Monorail expects a single, comma seperated list of query params for labels.
-	labels := append(common.ExtraBugLabels(p.Category), "FromSkiaFuzzer", "Restrict-View-Googler", "Type-Defect", "Priority-Medium")
+	labels := append(common.ExtraBugLabels(p.Category), "FromSkiaFuzzer", "Restrict-View-Google", "Type-Defect", "Priority-Medium")
 	q := url.Values{
 		"labels":  []string{strings.Join(labels, ",")},
 		"status":  []string{"New"},
