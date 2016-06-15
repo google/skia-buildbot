@@ -1,0 +1,14 @@
+[Unit]
+Description=Monitors skia-rpi-master and allows for the hotspare to take over
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/hotspare --log_dir=/var/log/logserver --virtual_interface "enp5s0:0"
+Restart=always
+User=root
+Group=root
+LimitNOFILE=10000
+
+[Install]
+WantedBy=multi-user.target

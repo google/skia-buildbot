@@ -57,6 +57,14 @@ push:
 status:
 	cd status && $(MAKE) all
 
+.PHONY: fuzzer
+fuzzer:
+	cd fuzzer && $(MAKE) all
+
+.PHONY: skolo
+skolo:
+	cd skolo && $(MAKE) all
+
 .PHONY: all
 all: alertserver bug_chomper build_scheduler datahopper datahopper_internal golden perf sharedgo logserver ct ctfe status tags
 
