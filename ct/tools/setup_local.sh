@@ -67,12 +67,6 @@ cd src
 echo "N" | ./build/install-build-deps.sh
 /b/depot_tools/gclient runhooks
 
-echo "Installing goma..."
-GOMA_DIR=/b/build/goma
-mkdir -p ${GOMA_DIR} && cd ${GOMA_DIR}
-curl https://clients5.google.com/cxx-compiler-service/download/goma_ctl.py -o goma_ctl.py
-echo "1" | python goma_ctl.py update
-
 rsa_key="${HOME}/.ssh/id_rsa"
 if [[ ! -e "${rsa_key}" ]]; then
   echo "Setting up passwordless SSH to the local machine..."

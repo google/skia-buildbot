@@ -95,7 +95,6 @@ const (
 	SYNC_SKIA_IN_CHROME_TIMEOUT   = 2 * time.Hour
 	GIT_LS_REMOTE_TIMEOUT         = 5 * time.Minute
 	GIT_APPLY_TIMEOUT             = 5 * time.Minute
-	GOMA_CTL_RESTART_TIMEOUT      = 10 * time.Minute
 	GN_CHROMIUM_TIMEOUT           = 30 * time.Minute
 	GYP_PDFIUM_TIMEOUT            = 5 * time.Minute
 	NINJA_TIMEOUT                 = 2 * time.Hour
@@ -103,8 +102,7 @@ const (
 		// Three patches are applied when applyPatches is specified.
 		3*GIT_APPLY_TIMEOUT +
 		// The build steps are repeated twice when applyPatches is specified.
-		2*(GOMA_CTL_RESTART_TIMEOUT+GN_CHROMIUM_TIMEOUT+NINJA_TIMEOUT+
-			RESET_CHROMIUM_CHECKOUT_TIMEOUT)
+		2*(GN_CHROMIUM_TIMEOUT+NINJA_TIMEOUT+RESET_CHROMIUM_CHECKOUT_TIMEOUT)
 
 	// util.InstallChromeAPK
 	ADB_INSTALL_TIMEOUT = 15 * time.Minute
@@ -225,7 +223,6 @@ var (
 	StorageDir             = filepath.Join("/", "b", STORAGE_DIR_NAME)
 	RepoDir                = filepath.Join("/", "b", REPO_DIR_NAME)
 	DepotToolsDir          = filepath.Join("/", "b", "depot_tools")
-	GomaDir                = filepath.Join("/", "b", "build", "goma")
 	ChromiumBuildsDir      = filepath.Join(StorageDir, CHROMIUM_BUILDS_DIR_NAME)
 	ChromiumSrcDir         = filepath.Join(StorageDir, "chromium", "src")
 	TelemetryBinariesDir   = filepath.Join(ChromiumSrcDir, "tools", "perf")

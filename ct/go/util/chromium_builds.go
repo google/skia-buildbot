@@ -213,18 +213,6 @@ func buildChromium(chromiumDir, targetPlatform string, useWhitelistedFonts bool)
 		gn_args = append(gn_args, "skia_whitelist_serialized_typefaces=true")
 	}
 
-	// Check to see if this machine is goma enabled.
-	if _, err := os.Stat(filepath.Join(GomaDir, "goma_ctl.py")); err == nil {
-		// Start Goma's compiler proxy right before building the checkout.
-		err := ExecuteCmd("python", []string{filepath.Join(GomaDir, "goma_ctl.py"), "start"},
-			os.Environ(), GOMA_CTL_RESTART_TIMEOUT, nil, nil)
-		if err != nil {
-			return fmt.Errorf("Error while starting goma compiler proxy: %s", err)
-		}
-		// Add goma args to GN args.
-		gn_args = append(gn_args, "use_goma=true", fmt.Sprintf("goma_dir=\"%s\"", GomaDir))
-	}
-
 	// Run "gn gen out/Release --args=...".
 	if err := ExecuteCmd("gn", []string{"gen", "out/Release", fmt.Sprintf("--args=%s", strings.Join(gn_args, " "))}, os.Environ(), GN_CHROMIUM_TIMEOUT, nil, nil); err != nil {
 		return fmt.Errorf("Error while running gn: %s", err)
