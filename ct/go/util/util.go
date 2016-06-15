@@ -447,7 +447,7 @@ func GetPathToPyFiles(runOnSwarming bool) string {
 	}
 }
 
-func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, numPerWorker int) ([]string, error) {
+func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, numPerWorker int, handleStrings bool) ([]string, error) {
 	localOutputDir := filepath.Join(StorageDir, BenchmarkRunsDir, runID)
 	util.MkdirAll(localOutputDir, 0700)
 	noOutputSlaves := []string{}
@@ -490,6 +490,9 @@ func MergeUploadCSVFiles(runID, pathToPyFiles string, gs *GsUtil, totalPages, nu
 		pathToCsvMerger,
 		"--csv_dir=" + localOutputDir,
 		"--output_csv_name=" + filepath.Join(localOutputDir, outputFileName),
+	}
+	if handleStrings {
+		args = append(args, "--handle_strings")
 	}
 	err := ExecuteCmd("python", args, []string{}, CSV_MERGER_TIMEOUT, nil, nil)
 	if err != nil {

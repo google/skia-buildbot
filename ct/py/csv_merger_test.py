@@ -27,11 +27,25 @@ class TestCsvMerger(unittest.TestCase):
 
   def test_E2EMerger(self):
     merger = csv_merger.CsvMerger(csv_dir=self._test_csv_dir,
-                                  output_csv_name=ACTUAL_OUTPUT_FILENAME)
+                                  output_csv_name=ACTUAL_OUTPUT_FILENAME,
+                                  handle_strings=False)
     merger.Merge()
 
     # Compare actual with expected.
     expected_output = os.path.join(self._test_csv_dir, 'expected_output')
+    expected_output_lines = open(expected_output).readlines()
+    actual_output_lines = open(self._actual_output).readlines()
+    self.assertTrue(set(expected_output_lines) == set(actual_output_lines))
+
+  def test_E2EMergerWithStrings(self):
+    merger = csv_merger.CsvMerger(csv_dir=self._test_csv_dir,
+                                  output_csv_name=ACTUAL_OUTPUT_FILENAME,
+                                  handle_strings=True)
+    merger.Merge()
+
+    # Compare actual with expected.
+    expected_output = os.path.join(self._test_csv_dir,
+                                   'expected_output_with_strings')
     expected_output_lines = open(expected_output).readlines()
     actual_output_lines = open(self._actual_output).readlines()
     self.assertTrue(set(expected_output_lines) == set(actual_output_lines))
