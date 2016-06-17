@@ -94,6 +94,9 @@
     },
 
     _getLink: function(corpus) {
+      if (corpus === "dm") {
+        return "https://gold.skia.org/";
+      }
       return "https://gold.skia.org/list?query=source_type%3D" + corpus.label;
     },
 

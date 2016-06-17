@@ -132,7 +132,7 @@
 
     function findIssueNumber(commit) {
       // If there are multiple Review URLs in a CL then it selects the last one.
-      var re = /(.|[\r\n])*Review URL: https:\/\/codereview.chromium.org\/([0-9]*)/g;
+      var re = /(.|[\r\n])*Review-Url: https:\/\/codereview.chromium.org\/([0-9]*)/g;
       var tokens = re.exec(commit.body);
       if (tokens) {
         return tokens[tokens.length - 1];
