@@ -41,8 +41,9 @@
     None.
 -->
 <link rel="import" href="/res/common/imp/9/comments-sk.html">
+<link rel="import" href="status-popup.html">
 <dom-module id="build-popup-sk">
-  <style>
+  <style is="custom-style" include="status-popup">
     a {
       color: inherit;
     }
@@ -120,7 +121,7 @@
   <script>
     Polymer({
       is: 'build-popup-sk',
-
+      behaviors: [SkiaBehaviors.StatusPopup],
       properties: {
         build: {
           type: Object,
@@ -184,7 +185,8 @@
       },
       _commitSubject: function (c, commit_details) {
         return commit_details[c] ? commit_details[c].shortSubject : "";
-      }
+      },
+
     });
   </script>
 </dom-module>

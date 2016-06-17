@@ -4,6 +4,7 @@ default:
 	rm -rf res/
 	mkdir --parents res/imp
 	ln -sf ../../third_party/bower_components res/imp/bower_components
+	ln -sf ../../third_party/bower_components ../bower_components
 	ln -sf ../../../../../res res/common
 	ln -sf ../../../../res/js res/js
 

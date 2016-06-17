@@ -22,10 +22,11 @@
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/res/common/imp/9/comments-sk.html">
 <link rel="import" href="/res/common/imp/9/linkify-sk.html">
+<link rel="import" href="status-popup.html">
 
 <dom-module id="commit-popup-sk">
   <template>
-    <style include="iron-flex">
+    <style is="custom-style" include="status-popup iron-flex">
       a {
         color: #000;
       }
@@ -76,6 +77,8 @@
   <script>
     Polymer({
       is:"commit-popup-sk",
+      behaviors: [SkiaBehaviors.StatusPopup],
+
       properties: {
         commit: {
           type: Object,

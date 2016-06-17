@@ -83,10 +83,6 @@
         behaves strangely (i.e. wrong) when the data is first added. */
         min-height: 780px;
       }
-      #infoDialog {
-        overflow: auto;
-      }
-
     </style>
 
     <div id="container" class="horizontal layout">
@@ -102,7 +98,7 @@
       <div id="table" class="flex horizontal layout"></div>
     </div>
 
-    <paper-dialog id="infoDialog"></paper-dialog>
+    <div id="infoDialog"></div>
 
   </template>
   <script>
@@ -220,6 +216,8 @@
             return "h"+commit.hash;
           })
           .on("tap", function(commit) {
+            // Stop the propogation so we don't immediately hide the popup we show.
+            d3.event.stopPropagation();
             openCommitDialog(commit);
           });
         // Sort the commits to be in the order we are presented with them.
@@ -432,6 +430,8 @@
               return d.builder;
             })
             .on("tap", function(d){
+              // Stop the propogation so we don't immediately hide the popup we show.
+              d3.event.stopPropagation();
               openBuilderDialog(d.builder);
             });
 
@@ -492,6 +492,8 @@
             .classed("build",true)
             .insert("div")
             .on("tap", function(d){
+              // Stop the propogation so we don't immediately hide the popup we show.
+              d3.event.stopPropagation();
               openBuildDialog(d);
             });
           data.order();
@@ -569,20 +571,11 @@
 
       // Set the dialog content and open the dialog.
       _openDialog: function(child) {
-        this.$.infoDialog.innerHTML = "";
-        var infoDialogContent = document.createElement("div");
-        infoDialogContent.id = "infoDialogContent";
-        // Set the min width to avoid problems with very small popups
-        // (like builder-popup with no comments)
-        infoDialogContent.style.minWidth = "400px";
-        // The paper-dialog has a hard time resizing the popups to fit on small screens, so we
-        // help it out by shrinking and scrolling large content.
-        infoDialogContent.style.maxWidth = window.screen.availWidth + "px";
-        infoDialogContent.style.maxHeight = window.screen.availHeight + "px";
-        infoDialogContent.appendChild(child);
-        this.$.infoDialog.appendChild(infoDialogContent);
-        this.$.infoDialog.refit();
-        this.$.infoDialog.open();
+        this.$.infoDialog.innerHTML = '';
+        this.$.infoDialog.appendChild(child);
+        child.show();
+
+        console.log("show");
       },
     });
   })()
