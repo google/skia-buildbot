@@ -389,6 +389,8 @@ server {
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
 
+    client_max_body_size 500M;
+
     location / {
         proxy_pass http://skia-imageinfo:8000;
     }
@@ -692,6 +694,8 @@ server {
     add_header X-XSS-Protection "1; mode=block";
     # Disable content sniffing
     add_header X-Content-Type-Options nosniff;
+
+    client_max_body_size 500M;
 
     location / {
         proxy_pass http://skia-debugger:8000;
