@@ -59,7 +59,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"color_icc": {
 		PrettyName:          "SkColorSpace - ICC",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "msarett",
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "icc", "--bytes"},

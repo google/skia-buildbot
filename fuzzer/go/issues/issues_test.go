@@ -14,13 +14,13 @@ func TestCreateBadBugURL(t *testing.T) {
 	p := IssueReportingPackage{
 		FuzzName:       "1234567890abcdef",
 		CommitRevision: "fedcba9876543210",
-		Category:       "skpicture",
+		Category:       "color_icc",
 	}
 	url, err := im.CreateBadBugURL(p)
 	if err != nil {
 		t.Errorf("Should not have returned error: %s", err)
 	}
-	expectedURL := `https://bugs.chromium.org/p/skia/issues/entry?comment=%23+Description+here+about+fuzz+found+in+SkPicture%0A%0A%0ATo+replicate%2C+build+target+%22fuzz%22+at+the+specified+commit+and+run%3A%0Aout%2FRelease%2Ffuzz+--type+skp+--bytes+~%2FDownloads%2F1234567890abcdef%0A%0A%23+tracking+metadata+below%3A%0Afuzz_category%3A+skpicture%0Afuzz_commit%3A+fedcba9876543210%0Arelated_fuzz%3A+https%3A%2F%2Ffuzzer.skia.org%2Fcategory%2Fskpicture%2Fname%2F1234567890abcdef%0Afuzz_download%3A+https%3A%2F%2Ffuzzer.skia.org%2Ffuzz%2Fskpicture%2F1234567890abcdef%0A&labels=FromSkiaFuzzer%2CRestrict-View-Google%2CType-Defect%2CPriority-Medium&status=New&summary=New+crash+found+in+SkPicture+by+fuzzer`
+	expectedURL := `https://bugs.chromium.org/p/skia/issues/entry?cc=kjlubick%40google.com&comment=%23+Description+here+about+fuzz+found+in+SkColorSpace+-+ICC%0A%0A%0ATo+replicate%2C+build+target+%22fuzz%22+at+the+specified+commit+and+run%3A%0Aout%2FRelease%2Ffuzz+--type+icc+--bytes+~%2FDownloads%2F1234567890abcdef%0A%0A%23+tracking+metadata+below%3A%0Afuzz_category%3A+color_icc%0Afuzz_commit%3A+fedcba9876543210%0Arelated_fuzz%3A+https%3A%2F%2Ffuzzer.skia.org%2Fcategory%2Fcolor_icc%2Fname%2F1234567890abcdef%0Afuzz_download%3A+https%3A%2F%2Ffuzzer.skia.org%2Ffuzz%2Fcolor_icc%2F1234567890abcdef%0A&labels=Area-ImageDecoder%2CFromSkiaFuzzer%2CRestrict-View-Google%2CType-Defect%2CPriority-Medium&owner=msarett%40google.com&status=New&summary=New+crash+found+in+SkColorSpace+-+ICC+by+fuzzer`
 	if url != expectedURL {
 		t.Errorf("URL does not match.  Expected: %s\n\nWas: %s\n", expectedURL, url)
 	}

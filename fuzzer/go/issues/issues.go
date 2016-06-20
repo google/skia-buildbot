@@ -87,6 +87,11 @@ func (im *IssuesManager) CreateBadBugURL(p IssueReportingPackage) (string, error
 		"labels":  []string{strings.Join(labels, ",")},
 		"status":  []string{"New"},
 		"summary": []string{"New crash found in " + common.PrettifyCategory(p.Category) + " by fuzzer"},
+		"cc":      []string{"kjlubick@google.com"},
+	}
+
+	if groomer := common.Groomer(p.Category); groomer != common.UNCLAIMED {
+		q["owner"] = []string{groomer + "@google.com"}
 	}
 
 	m, err := issueMessage(p, "")
