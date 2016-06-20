@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
+	"syscall"
 	"time"
 
 	"github.com/fiorix/go-web/autogzip"
@@ -109,6 +112,27 @@ func buildSkiaServe(checkout, depotTools string) error {
 	return nil
 }
 
+// cleanShutdown listens for SIGTERM and then shuts down every container in an
+// orderly manner before exiting. If we don't do this then we get systemd
+// .scope files left behind which block starting new containers, and the only
+// solution is to reboot the instance.
+//
+// See https://github.com/docker/docker/issues/7015 for more details.
+func cleanShutdown() {
+	c := make(chan os.Signal, 1)
+	// We listen for SIGTERM, which is the first signal that systemd sends when
+	// trying to stop a service. It will later follow-up with SIGKILL if the
+	// process fails to stop.
+	signal.Notify(c, syscall.SIGTERM)
+	s := <-c
+	glog.Infof("Orderly shutdown after receiving signal: %s", s)
+	co.StopAll()
+	// In theory all the containers should be exiting by now, but let's wait a
+	// little before exiting ourselves.
+	time.Sleep(1 * time.Second)
+	os.Exit(0)
+}
+
 func main() {
 	defer common.LogPanic()
 	common.InitWithMetrics2("debugger", influxHost, influxUser, influxPassword, influxDatabase, local)
@@ -142,6 +166,8 @@ func main() {
 
 	run := runner.New(*workRoot, *imageDir, getHash, *local)
 	co = containers.New(run)
+
+	go cleanShutdown()
 
 	router := mux.NewRouter()
 	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))

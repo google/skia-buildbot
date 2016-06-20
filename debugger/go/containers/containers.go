@@ -178,3 +178,13 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Update lastUsed.
 	co.lastUsed = time.Now()
 }
+
+// StopAll stops all running containers.
+func (s *Containers) StopAll() {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	for _, co := range s.containers {
+		glog.Infof("Stopping container for user %q on port %d", co.user, co.port)
+		runner.Stop(co.port)
+	}
+}
