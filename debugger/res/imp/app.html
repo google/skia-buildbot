@@ -12,7 +12,7 @@ The main application element for the Skia Debugger.
     None.
 
 -->
-<link rel=import href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel=import href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel=import href="/res/imp/bower_components/iron-icon/iron-icon.html">
 <link rel=import href="/res/imp/bower_components/iron-icons/iron-icons.html">
 <link rel=import href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
@@ -35,7 +35,7 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/common/imp/9/play.html">
 <link rel=import href="/res/common/imp/9/zoom.html">
 <dom-module id="debugger-app-sk">
-  <style type="text/css" media="screen">
+  <style include="iron-flex iron-flex-alignment">
     :root {
       --paper-toolbar-background: #1f78b4;
     }
@@ -142,106 +142,121 @@ The main application element for the Skia Debugger.
       color: lightgray;
     }
 
+    header {
+      background: #1f78b4;
+      color: white;
+      padding: 0.5em;
+      margin: 0;
+    }
+
+    header > * {
+      display: inline-block;
+    }
+
+    header h2 {
+      margin: 0;
+    }
+
   </style>
   <template>
-    <paper-header-panel>
-      <paper-toolbar>
-        <div>Skia Debugger</div>
-      </paper-toolbar>
-      <div id=content>
-        <h2>Upload an SKP here.</h2>
-        <div class="layout horizontal">
-          <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
-            <label>SKP to send:</label>
-            <input type="file" name="file" required />
-            <input type="submit" value="Upload" />
-          </form>
-          <a href="/download" id=download class=hidden>Download</a>
-        </div>
-        <hr/>
-        <div class="layout horizontal">
-          <div id=left class="layout vertical flex-2">
-            <paper-input id="fast" on-change="_fastFilter" label="Filter"></paper-input>
-            <play-sk id=play></play-sk>
-            <commands-sk id=commands grouping=50></commands-sk>
-          </div>
-          <div id=center class="layout vertical flex-3">
-            <div class="layout horizontal">
-              <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
-              <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuBatchBounds)}}" id=gpuBatchBounds on-tap="_gpuBatchBounds">Display Batch Bounds</paper-checkbox>
-            </div>
-            <div id=rendered>
-              <paper-tabs selected="{{tab_selected}}">
-                <paper-tab>Picture</paper-tab>
-                <paper-tab disabled=[[_isEmpty(bitmap)]]>Image</paper-tab>
-              </paper-tabs>
-              <iron-pages selected="{{tab_selected}}">
-                <div>
-                  <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
-                    <img id=img src="" class=hidden>
-                  </canvas-layers-sk>
-                  <crosshair-sk id=crosshair target=layers name=crosshair update_on=move></crosshair-sk>
-                </div>
-                <div>
-                  <img id=standAloneImg src$="[[bitmap]]">
-                </div>
-              </iron-pages>
-            </div>
-          </div>
-          <div id=right class="layout vertical flex-2">
-            <details-sk open>
-              <summary-sk>
-                Color Mode
-              </summary-sk>
-              <paper-radio-group class="layout vertical" on-paper-radio-group-changed="_colorModeChange" id=colorMode selected="[[_cmd.colorMode]]">
-                <paper-radio-button name="0">Linear 32-bit (Legacy)</paper-radio-button>
-                <paper-radio-button name="1">sRGB 32-bit</paper-radio-button>
-                <paper-radio-button name="2">Linear half-precision float</paper-radio-button>
-              </paper-radio-group>
-              <paper-checkbox id=srgbMode checked="{{_isTrue(_cmd.srgbMode)}}" on-tap="_srgbMode">Treat SkColor as sRGB</paper-checkbox>
-            </details-sk>
-            <details-sk open>
-              <summary-sk>
-                Clip and Matrix
-              </summary-sk>
-              <paper-checkbox id=clip on-tap="_clipHandler">Show Clip</paper-checkbox>
-              <dbg-info-sk info="{{ info }}"></dbg-info-sk>
-            </details-sk>
-
-            <details-sk id=batchBoundsLegend class=hidden>
-              <summary-sk>
-                Batch Bounds Legend
-              </summary-sk>
-              <table class=shortcuts>
-                <tr><td class=opBoundColor>Bounds for the current op.</td></tr>
-                <tr><td class=otherBoundColor>Bounds for other ops in the same batch.</td></tr>
-                <tr><td class=totalBoundColor>Total bounds of the current batch.</td></tr>
-              </table>
-            </details-sk>
-
-            <div id=position><b>Postion:</b> ({{ x }}, {{ y }})</div>
-            <div id=colors><b>Color:</b> {{ rgb }} {{ hex }} </div>
-            <div>
-              <paper-checkbox disabled id=colorBreakPoint on-tap="_breakPoint">Break on change.</paper-checkbox> <span id=prevColor></span>
-            </div>
-            <details-sk id=keyboardshortcuts class=hidden>
-              <summary-sk>
-                Keyboard shortcuts
-              </summary-sk>
-              <table class=shortcuts>
-                <tr><th>H</th><td>Left</td></tr>
-                <tr><th>L</th><td>Right</td></tr>
-                <tr><th>J</th><td>Down</td></tr>
-                <tr><th>K</th><td>Up</td></tr>
-                <tr><td colspan=2>Click the image again to turn off keyboard navigation.</td></tr>
-              </table>
-            </details-sk>
-            <zoom-sk source=img pixels=20 id=zoom></zoom-sk>
-          </div>
-        </div>
-        <error-toast-sk></error-toast-sk>
+    <header class="horizontal layout center">
+      <h2>Skia Debugger</h2>
+      <div class=flex></div>
+      <login-sk id=login class=hidden></login-sk>
+    </header>
+    <div id=content>
+      <h2>Upload an SKP here.</h2>
+      <div class="layout horizontal">
+        <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
+          <label>SKP to send:</label>
+          <input type="file" name="file" required />
+          <input type="submit" value="Upload" />
+        </form>
+        <a href="/download" id=download class=hidden>Download</a>
       </div>
-    </paper-header-panel>
+      <hr/>
+      <div class="layout horizontal">
+        <div id=left class="layout vertical flex-2">
+          <paper-input id="fast" on-change="_fastFilter" label="Filter"></paper-input>
+          <play-sk id=play></play-sk>
+          <commands-sk id=commands grouping=50></commands-sk>
+        </div>
+        <div id=center class="layout vertical flex-3">
+          <div class="layout horizontal">
+            <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
+            <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuBatchBounds)}}" id=gpuBatchBounds on-tap="_gpuBatchBounds">Display Batch Bounds</paper-checkbox>
+          </div>
+          <div id=rendered>
+            <paper-tabs selected="{{tab_selected}}">
+              <paper-tab>Picture</paper-tab>
+              <paper-tab disabled=[[_isEmpty(bitmap)]]>Image</paper-tab>
+            </paper-tabs>
+            <iron-pages selected="{{tab_selected}}">
+              <div>
+                <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
+                  <img id=img src="" class=hidden>
+                </canvas-layers-sk>
+                <crosshair-sk id=crosshair target=layers name=crosshair update_on=move></crosshair-sk>
+              </div>
+              <div>
+                <img id=standAloneImg src$="[[bitmap]]">
+              </div>
+            </iron-pages>
+          </div>
+        </div>
+        <div id=right class="layout vertical flex-2">
+          <details-sk open>
+            <summary-sk>
+              Color Mode
+            </summary-sk>
+            <paper-radio-group class="layout vertical" on-paper-radio-group-changed="_colorModeChange" id=colorMode selected="[[_cmd.colorMode]]">
+              <paper-radio-button name="0">Linear 32-bit (Legacy)</paper-radio-button>
+              <paper-radio-button name="1">sRGB 32-bit</paper-radio-button>
+              <paper-radio-button name="2">Linear half-precision float</paper-radio-button>
+            </paper-radio-group>
+            <paper-checkbox id=srgbMode checked="{{_isTrue(_cmd.srgbMode)}}" on-tap="_srgbMode">Treat SkColor as sRGB</paper-checkbox>
+          </details-sk>
+          <details-sk open>
+            <summary-sk>
+              Clip and Matrix
+            </summary-sk>
+            <paper-checkbox id=clip on-tap="_clipHandler">Show Clip</paper-checkbox>
+            <dbg-info-sk info="{{ info }}"></dbg-info-sk>
+          </details-sk>
+
+          <details-sk id=batchBoundsLegend class=hidden>
+            <summary-sk>
+              Batch Bounds Legend
+            </summary-sk>
+            <table class=shortcuts>
+              <tr><td class=opBoundColor>Bounds for the current op.</td></tr>
+              <tr><td class=otherBoundColor>Bounds for other ops in the same batch.</td></tr>
+              <tr><td class=totalBoundColor>Total bounds of the current batch.</td></tr>
+            </table>
+          </details-sk>
+
+          <div id=position><b>Postion:</b> ({{ x }}, {{ y }})</div>
+          <div id=colors><b>Color:</b> {{ rgb }} {{ hex }} </div>
+          <div>
+            <paper-checkbox disabled id=colorBreakPoint on-tap="_breakPoint">Break on change.</paper-checkbox> <span id=prevColor></span>
+          </div>
+          <details-sk id=keyboardshortcuts class=hidden>
+            <summary-sk>
+              Keyboard shortcuts
+            </summary-sk>
+            <table class=shortcuts>
+              <tr><th>H</th><td>Left</td></tr>
+              <tr><th>L</th><td>Right</td></tr>
+              <tr><th>J</th><td>Down</td></tr>
+              <tr><th>K</th><td>Up</td></tr>
+              <tr><td colspan=2>Click the image again to turn off keyboard navigation.</td></tr>
+            </table>
+          </details-sk>
+          <zoom-sk source=img pixels=20 id=zoom></zoom-sk>
+        </div>
+      </div>
+      <error-toast-sk></error-toast-sk>
+    </div>
   </template>
 </dom-module>
 
@@ -376,6 +391,13 @@ The main application element for the Skia Debugger.
         this.$.play.addEventListener('mode-changed-manually', function(e) {
           // Clear the breakpoint info if the user presses a button.
           this.$.prevColor.textContent = "";
+        }.bind(this));
+
+        // Only display the login control if we are running in hosted mode, in which case
+        // the /loginstatus/ endpoint will return valid JSON, otherwise we are running
+        // locally.
+        sk.get("/loginstatus/").then(JSON.parse).then(function(json) {
+          this.$.login.classList.remove('hidden');
         }.bind(this));
       },
 

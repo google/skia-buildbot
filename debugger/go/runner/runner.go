@@ -65,7 +65,7 @@ func (c *Runner) Start(port int) error {
 	}
 	if c.local {
 		name = skiaserve
-		args = []string{"--port", fmt.Sprintf("%d", port), "--hosted"}
+		args = []string{"--port", fmt.Sprintf("%d", port), "--source", "", "--hosted"}
 	}
 	runCmd := &exec.Command{
 		Name:      name,
