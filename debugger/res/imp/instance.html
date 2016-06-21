@@ -38,7 +38,7 @@
     is: "instance-status-sk",
 
     ready: function() {
-      this.async(this._updateDuration.bind(this), 1);
+      this.async(this._updateDuration.bind(this), 1000);
       window.setInterval(function() {
         this._updateDuration();
       }.bind(this), 60*1000);
