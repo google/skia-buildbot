@@ -2,6 +2,7 @@
 package containers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httputil"
@@ -165,13 +166,41 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		// Wait for skiaserve to start.
 		// TODO(jcgregorio) We should actually poll the port and confirm the instance is running.
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 		co = s.getContainer(user)
 		if co == nil {
 			httputils.ReportError(w, r, fmt.Errorf("For user: %s", user), "Started container, but then couldn't find it.")
 			return
 		}
 	}
+	// Mostly we proxy requests to the backend, but there is one URL we handle here: /instanceStatus
+	//
+	if r.URL.Path == "/instanceStatus" {
+		if r.Method == "GET" {
+			// A GET to /instanceStatus will return the instance info, i.e. how long it's been running.
+			enc := json.NewEncoder(w)
+			if err := enc.Encode(
+				struct {
+					Started int64 `json:"started"`
+				}{
+					Started: co.started.Unix(),
+				},
+			); err != nil {
+				httputils.ReportError(w, r, err, "Failed to serialize response.")
+				return
+			}
+		} else if r.Method == "POST" {
+			// A POST to /instanceStatus will restart the instance.
+			runner.Stop(co.port)
+			time.Sleep(1)
+			s.mutex.Lock()
+			defer s.mutex.Unlock()
+			// Remove the entry for this container now that it has exited.
+			delete(s.containers, user)
+			http.Redirect(w, r, "/", 303)
+		}
+	}
+
 	// Proxy.
 	glog.Infof("Proxying request: %s %s", r.URL, user)
 	co.proxy.ServeHTTP(w, r)

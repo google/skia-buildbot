@@ -34,6 +34,9 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/common/imp/9/error-toast-sk.html">
 <link rel=import href="/res/common/imp/9/play.html">
 <link rel=import href="/res/common/imp/9/zoom.html">
+
+<link rel=import href="/res/imp/instance.html">
+
 <dom-module id="debugger-app-sk">
   <style include="iron-flex iron-flex-alignment">
     :root {
@@ -162,6 +165,7 @@ The main application element for the Skia Debugger.
     <header class="horizontal layout center">
       <h2>Skia Debugger</h2>
       <div class=flex></div>
+      <instance-status-sk id=status class=hidden></instance-status-sk>
       <login-sk id=login class=hidden></login-sk>
     </header>
     <div id=content>
@@ -398,6 +402,7 @@ The main application element for the Skia Debugger.
         // locally.
         sk.get("/loginstatus/").then(JSON.parse).then(function(json) {
           this.$.login.classList.remove('hidden');
+          this.$.status.classList.remove('hidden');
         }.bind(this));
       },
 

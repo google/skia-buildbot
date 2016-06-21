@@ -175,6 +175,10 @@ func main() {
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
+
+	// All URLs that we don't understand will be routed to be handled by
+	// skiaserve, with the one exception of "/instanceStatus" which will be
+	// handled by 'co' itself.
 	router.NotFoundHandler = co
 
 	http.Handle("/", httputils.LoggingRequestResponse(router))
