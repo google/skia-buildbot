@@ -4,10 +4,10 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/hotspare --log_dir=/var/log/logserver --virtual_interface "enp5s0:0"
+ExecStart=/usr/local/bin/hotspare --log_dir=/var/log/logserver --virtual_interface "enp5s0:0" --sync_remote_path "chrome-bot@192.168.1.199:/opt/rpi_img/current.img"
 Restart=always
-User=root
-Group=root
+User=chrome-bot
+Group=chrome-bot
 LimitNOFILE=10000
 
 [Install]

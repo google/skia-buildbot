@@ -2,7 +2,6 @@
 # Builds and uploads a debian package for rpi-failover.
 APPNAME=hotspare
 SYSTEMD=${APPNAME}.service
-SYSTEMD_TIMER=""
 DESCRIPTION="Application to allow rpi-master to failover to a hot spare."
 
 # Copy files into the right locations in ${ROOT}.
