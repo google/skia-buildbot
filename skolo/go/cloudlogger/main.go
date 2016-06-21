@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	rolloverLogs = common.NewMultiStringFlag("rollover_logs", nil, "A set of log file paths that may roll over.  e.g. supply run_isolated.log to monitor run_isolated.log and run_isolated.log.1")
+	rolloverLogs   = common.NewMultiStringFlag("rollover_logs", nil, "A set of log file paths that may roll over.  e.g. supply run_isolated.log to monitor run_isolated.log and run_isolated.log.1")
+	persistenceDir = flag.String("persistence_dir", "/var/cloudlogger", "The directory in which persistence data regarding the logging progress should be kept.")
 
 	pollPeriod = flag.Duration("poll_period", 1*time.Minute, `The period used to poll the log files`)
 )
@@ -39,6 +40,9 @@ func main() {
 		glog.Fatalf("Problem creating logs service: %s", err)
 	}
 	gcl.SetErrorLogger(logsclient)
+	if err := logagents.SetPersistenceDir(*persistenceDir); err != nil {
+		glog.Fatalf("Could not set Persistence Dir: %s", err)
+	}
 
 	scanners := []logagents.LogScanner{}
 	for _, r := range *rolloverLogs {

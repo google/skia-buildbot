@@ -1,6 +1,7 @@
 package logagents
 
 import (
+	"fmt"
 	"testing"
 
 	assert "github.com/stretchr/testify/require"
@@ -10,12 +11,12 @@ import (
 )
 
 func TestNoRollover(t *testing.T) {
+	mockOutPersistence()
 	log1 := testutils.MustReadFile("pylog1.0")
 	log2 := testutils.MustReadFile("pylog1.1")
 
 	roll := NewRollover(logparser.ParsePythonLog, "dontcare", "test", "test.1")
 	logger := &mockCloudLogger{}
-
 	readAndHashFile = func(path string) (contents, hash string, err error) {
 		if path == "test" {
 			return log1, "abcd", nil
@@ -48,6 +49,7 @@ func TestNoRollover(t *testing.T) {
 
 func TestNoRollover2(t *testing.T) {
 	// Checks rollover with the rollover file actually having something.
+	mockOutPersistence()
 	log1 := testutils.MustReadFile("pylog1.0")
 	log2 := testutils.MustReadFile("pylog1.1")
 	log3 := testutils.MustReadFile("pylog2.0")
@@ -86,6 +88,7 @@ func TestNoRollover2(t *testing.T) {
 }
 
 func TestRolloverToEmpty(t *testing.T) {
+	mockOutPersistence()
 	log1 := testutils.MustReadFile("pylog1.0")
 	log2 := testutils.MustReadFile("pylog1.1")
 
@@ -123,6 +126,7 @@ func TestRolloverToEmpty(t *testing.T) {
 }
 
 func TestRolloverWithNew(t *testing.T) {
+	mockOutPersistence()
 	log1 := testutils.MustReadFile("pylog1.0")
 	log2 := testutils.MustReadFile("pylog1.1")
 	log3 := testutils.MustReadFile("pylog2.0")
@@ -160,6 +164,110 @@ func TestRolloverWithNew(t *testing.T) {
 	assert.Equal(t, 7, logger.Count())
 }
 
+func TestWritePersistence(t *testing.T) {
+	readFromPersistenceFile = func(reportName string, v interface{}) error {
+		return nil
+	}
+	log1 := testutils.MustReadFile("pylog1.0")
+	log2 := testutils.MustReadFile("pylog1.1")
+	log3 := testutils.MustReadFile("pylog2.0")
+
+	roll := NewRollover(logparser.ParsePythonLog, "pylog", "test", "test.1")
+	logger := &mockCloudLogger{}
+
+	readAndHashFile = func(path string) (contents, hash string, err error) {
+		if path == "test" {
+			return log1, "abcd", nil
+		}
+		if path == "test.1" {
+			return log3, "rofl", nil
+		}
+		t.Errorf("Unexpected call to readAndhashFile: %s", path)
+		return "", "", nil
+	}
+	writeToPersistenceFile = func(reportName string, v interface{}) error {
+		rlog, ok := v.(*rolloverLog)
+		if !ok {
+			t.Errorf("The passed in type to write was wrong: %#v", v)
+			return nil
+		}
+		assert.Equal(t, "abcd", rlog.LogHash)
+		assert.Equal(t, "rofl", rlog.RolloverHash)
+		assert.Equal(t, 2, rlog.LastLine)
+		assert.Equal(t, false, rlog.IsFirstScan)
+		return nil
+	}
+	assert.NoError(t, roll.Scan(logger))
+	// Should be 2 lines here.  See parser_test for more thorough assertions.
+	assert.Equal(t, 2, logger.Count())
+
+	readAndHashFile = func(path string) (contents, hash string, err error) {
+		if path == "test" {
+			return log2, "efgh", nil
+		}
+		if path == "test.1" {
+			return log3, "rofl", nil
+		}
+		t.Errorf("Unexpected call to readAndhashFile: %s", path)
+		return "", "", nil
+	}
+	writeToPersistenceFile = func(reportName string, v interface{}) error {
+		rlog, ok := v.(*rolloverLog)
+		if !ok {
+			t.Errorf("The passed in type to write was wrong: %#v", v)
+			return nil
+		}
+		assert.Equal(t, "efgh", rlog.LogHash)
+		assert.Equal(t, "rofl", rlog.RolloverHash)
+		assert.Equal(t, 5, rlog.LastLine)
+		assert.Equal(t, false, rlog.IsFirstScan)
+		return nil
+	}
+	logger.Reset()
+	assert.NoError(t, roll.Scan(logger))
+	// There are 3 new lines in pylog1.1
+	assert.Equal(t, 3, logger.Count())
+}
+
+func TestReadPersistenceHappy(t *testing.T) {
+	readFromPersistenceFile = func(reportName string, v interface{}) error {
+		rlog, ok := v.(*rolloverLog)
+		if !ok {
+			t.Errorf("The passed in type to write was wrong: %#v", v)
+			return nil
+		}
+		if reportName != "pylog" {
+			t.Errorf("Wrong reportName: %s", reportName)
+			return nil
+		}
+		rlog.LogHash = "abc"
+		rlog.RolloverHash = "def"
+		rlog.LastLine = 3
+		rlog.IsFirstScan = false
+		return nil
+	}
+	r := NewRollover(logparser.ParsePythonLog, "pylog", "test", "test.1").(*rolloverLog)
+	assert.Equal(t, "abc", r.LogHash)
+	assert.Equal(t, "def", r.RolloverHash)
+	assert.Equal(t, 3, r.LastLine)
+	assert.Equal(t, false, r.IsFirstScan)
+	assert.NotNil(t, r.Parse)
+}
+
+func TestReadPersistenceCorrupt(t *testing.T) {
+	readFromPersistenceFile = func(reportName string, v interface{}) error {
+		if reportName != "pylog" {
+			t.Errorf("Wrong reportName: %s", reportName)
+		}
+		return fmt.Errorf("THERE WAS A PROBLEM (for testing purposes)")
+	}
+	r := NewRollover(logparser.ParsePythonLog, "pylog", "test", "test.1").(*rolloverLog)
+	assert.Equal(t, "", r.LogHash)
+	assert.Equal(t, "", r.RolloverHash)
+	assert.Equal(t, 0, r.LastLine)
+	assert.Equal(t, true, r.IsFirstScan)
+}
+
 type mockCloudLogger struct {
 	callCount int
 }
@@ -174,4 +282,14 @@ func (m *mockCloudLogger) Count() int {
 
 func (m *mockCloudLogger) Reset() {
 	m.callCount = 0
+}
+
+func mockOutPersistence() {
+	writeToPersistenceFile = func(reportName string, v interface{}) error {
+		return nil
+	}
+
+	readFromPersistenceFile = func(reportName string, v interface{}) error {
+		return nil
+	}
 }
