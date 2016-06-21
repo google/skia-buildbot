@@ -90,10 +90,6 @@ The main application element for the Skia Debugger.
       padding-bottom: 0.5em;
     }
 
-    #colors {
-      margin: 1em 0;
-    }
-
     #colorBreakPoint {
       margin-left: 3em;
     }
@@ -158,6 +154,15 @@ The main application element for the Skia Debugger.
 
     header h2 {
       margin: 0;
+    }
+
+    dt {
+      font-weight: bold;
+      padding: 0.5em 0;
+    }
+
+    dd {
+      font-family: monospace;
     }
 
   </style>
@@ -239,8 +244,13 @@ The main application element for the Skia Debugger.
             </table>
           </details-sk>
 
-          <div id=position><b>Postion:</b> ({{ x }}, {{ y }})</div>
-          <div id=colors><b>Color:</b> {{ rgb }} {{ hex }} </div>
+          <dl>
+            <dt>Postion</dt>
+            <dd>({{ x }}, {{ y }})</dd>
+            <dt>Color</dt>
+            <dd>{{ rgb }}</dd>
+            <dd>{{ hex }}</dd>
+          </dl>
           <div>
             <paper-checkbox disabled id=colorBreakPoint on-tap="_breakPoint">Break on change.</paper-checkbox> <span id=prevColor></span>
           </div>
