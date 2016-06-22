@@ -362,14 +362,25 @@ func findBadFuzzPaths(category string, alreadyFoundFuzzes *SortedStringSlice) ([
 	return badFuzzPaths, nil
 }
 
-var execsDone = regexp.MustCompile(`execs_done\s+:\s+(\d+)`)
-var cyclesDone = regexp.MustCompile(`cycles_done\s+:\s+(\d+)`)
-var pathsTotal = regexp.MustCompile(`paths_total\s+:\s+(\d+)`)
+var aflMetrics = []string{"start_time", "last_update", "cycles_done", "execs_done", "execs_per_sec", "paths_total", "paths_found", "paths_imported"}
+
+var aflRegexps = make([]*regexp.Regexp, 0, len(aflMetrics))
 
 // collectFuzzerMetrics looks through the fuzzer_stats file in the main fuzzer output folder of
 // each fuzz category and extracts some key metrics from it.  The format of this file is
 // detailed in http://lcamtuf.coredump.cx/afl/status_screen.txt
 func collectFuzzerMetrics() error {
+	// Compile the regexps for the metrics once
+	if len(aflRegexps) == 0 {
+		for _, m := range aflMetrics {
+			r, err := regexp.Compile(m + `\s+:\s+(\d+)`)
+			if err != nil {
+				glog.Warningf("Had a problem compiling regexp for %s: %s", m, err)
+			}
+			aflRegexps = append(aflRegexps, r)
+		}
+	}
+
 	for _, category := range config.Generator.FuzzesToGenerate {
 		statsFile := filepath.Join(config.Generator.AflOutputPath, category, "fuzzer0", "fuzzer_stats")
 		b, err := ioutil.ReadFile(statsFile)
@@ -377,14 +388,15 @@ func collectFuzzerMetrics() error {
 			return err
 		}
 		contents := string(b)
-		if match := execsDone.FindStringSubmatch(contents); match != nil {
-			metrics2.GetInt64Metric("fuzzer.stats.execs-done", map[string]string{"category": category}).Update(int64(common.SafeAtoi(match[1])))
-		}
-		if match := cyclesDone.FindStringSubmatch(contents); match != nil {
-			metrics2.GetInt64Metric("fuzzer.stats.cycles-done", map[string]string{"category": category}).Update(int64(common.SafeAtoi(match[1])))
-		}
-		if match := pathsTotal.FindStringSubmatch(contents); match != nil {
-			metrics2.GetInt64Metric("fuzzer.stats.paths-total", map[string]string{"category": category}).Update(int64(common.SafeAtoi(match[1])))
+		for i, m := range aflMetrics {
+			r := aflRegexps[i]
+			if r == nil {
+				continue
+			}
+			metric := fmt.Sprintf("fuzzer.stats.%s", strings.Replace(m, "_", "-", -1))
+			if match := r.FindStringSubmatch(contents); match != nil {
+				metrics2.GetInt64Metric(metric, map[string]string{"category": category}).Update(int64(common.SafeAtoi(match[1])))
+			}
 		}
 	}
 	return nil
