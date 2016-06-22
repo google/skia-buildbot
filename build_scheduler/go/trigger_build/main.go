@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"path"
+	"strings"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
@@ -55,14 +56,19 @@ func main() {
 		glog.Fatalf("Unable to find commit %s in any repo.", *commit)
 	}
 
-	// Find the builder.
-	builders, err := buildbot.GetBuilders()
-	if err != nil {
-		glog.Fatal(err)
-	}
-	b, ok := builders[*builder]
-	if !ok {
-		glog.Fatalf("Unknown builder %s", *builder)
+	builderNames := strings.Split(*builder, ",")
+	builders := make([]*buildbot.Builder, 0, len(builderNames))
+	for _, builderName := range builderNames {
+		// Find the builder.
+		allBuilders, err := buildbot.GetBuilders()
+		if err != nil {
+			glog.Fatal(err)
+		}
+		b, ok := allBuilders[builderName]
+		if !ok {
+			glog.Fatalf("Unknown builder %s", builderName)
+		}
+		builders = append(builders, b)
 	}
 
 	// Initialize the BuildBucket client.
@@ -73,9 +79,11 @@ func main() {
 	bb := buildbucket.NewClient(c)
 
 	// Schedule the build.
-	scheduled, err := bb.RequestBuild(b.Name, b.Master, *commit, repoName, author)
-	if err != nil {
-		glog.Fatal(err)
+	for _, b := range builders {
+		scheduled, err := bb.RequestBuild(b.Name, b.Master, *commit, repoName, author)
+		if err != nil {
+			glog.Fatal(err)
+		}
+		glog.Infof("Triggered %s. Builder page: %s%s/builders/%s", scheduled.Id, buildbot.BUILDBOT_URL, b.Master, b.Name)
 	}
-	glog.Infof("Triggered %s. Builder page: %s%s/builders/%s", scheduled.Id, buildbot.BUILDBOT_URL, b.Master, b.Name)
 }
