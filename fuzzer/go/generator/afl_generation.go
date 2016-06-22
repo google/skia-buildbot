@@ -22,12 +22,17 @@ type Generator struct {
 	Category         string
 	fuzzProcessCount *metrics2.Counter
 	fuzzProcesses    []exec.Process
+	affinityStart    int
 }
 
-func New(category string) *Generator {
+// New creates a new generator for a fuzzer of a given category.  Negative affinity means no
+// affinity, otherwise afl-fuzz will try to exclusively use the CPUs (virtual or real) starting at
+// affinityStart.
+func New(category string, affinityStart int) *Generator {
 	return &Generator{
 		Category:      category,
 		fuzzProcesses: nil,
+		affinityStart: affinityStart,
 	}
 }
 
@@ -44,14 +49,17 @@ func (g *Generator) Start() error {
 		return fmt.Errorf("Failed %s generator setup: %s", g.Category, err)
 	}
 
+	affinity := g.affinityStart
+
 	masterCmd := &exec.Command{
 		Name:      "./afl-fuzz",
-		Args:      common.GenerationArgsFor(g.Category, executable, "fuzzer0", true),
+		Args:      common.GenerationArgsFor(g.Category, executable, "fuzzer0", affinity, true),
 		Dir:       config.Generator.AflRoot,
 		LogStdout: true,
 		LogStderr: true,
 		Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
 	}
+	affinity++
 	if config.Generator.WatchAFL {
 		masterCmd.Stdout = os.Stdout
 	}
@@ -73,13 +81,14 @@ func (g *Generator) Start() error {
 		fuzzerName := fmt.Sprintf("fuzzer%d", i)
 		slaveCmd := &exec.Command{
 			Name:      "./afl-fuzz",
-			Args:      common.GenerationArgsFor(g.Category, executable, fuzzerName, false),
+			Args:      common.GenerationArgsFor(g.Category, executable, fuzzerName, affinity, false),
 			Dir:       config.Generator.AflRoot,
 			LogStdout: true,
 			LogStderr: true,
 			Env:       []string{"AFL_SKIP_CPUFREQ=true"}, // Avoids a warning afl-fuzz spits out about dynamic scaling of cpu frequency
 		}
 		g.fuzzProcesses = append(g.fuzzProcesses, g.run(slaveCmd))
+		affinity++
 	}
 	return nil
 }

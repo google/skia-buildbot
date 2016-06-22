@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -32,7 +33,7 @@ func AnalysisArgsFor(category string, pathToExecutable, pathToFile string) Analy
 // category. We set the maximum memory to 5GB to avoid all but the most extreme cases of memory
 // problems. The timeout is set at whatever afl-fuzz thinks is best.  This is typically < 100ms,
 // and is based on the
-func GenerationArgsFor(category, pathToExecutable, fuzzerName string, isMaster bool) GenerationArgs {
+func GenerationArgsFor(category, pathToExecutable, fuzzerName string, affinity int, isMaster bool) GenerationArgs {
 	f, found := fuzzers[category]
 	if !found {
 		glog.Errorf("Unknown fuzz category %q", category)
@@ -44,6 +45,13 @@ func GenerationArgsFor(category, pathToExecutable, fuzzerName string, isMaster b
 	}
 	seedPath := filepath.Join(config.Generator.FuzzSamples, category)
 	outputPath := filepath.Join(config.Generator.AflOutputPath, category)
-	cmd := append([]string{"-i", seedPath, "-o", outputPath, "-m", "5000", masterFlag, fuzzerName, "--", pathToExecutable}, f.ArgsAfterExecutable...)
+	var cmd []string
+	if affinity < 0 {
+		// No affinity because we have too many fuzzers
+		cmd = append([]string{"-i", seedPath, "-o", outputPath, "-m", "5000", masterFlag, fuzzerName, "--", pathToExecutable}, f.ArgsAfterExecutable...)
+	} else {
+		cmd = append([]string{"-i", seedPath, "-o", outputPath, "-Z", strconv.Itoa(affinity), "-m", "5000", masterFlag, fuzzerName, "--", pathToExecutable}, f.ArgsAfterExecutable...)
+	}
+
 	return append(cmd, "@@")
 }
