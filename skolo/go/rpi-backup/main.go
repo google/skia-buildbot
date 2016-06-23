@@ -36,7 +36,7 @@ func main() {
 	}
 
 	// We use the plain old http Transport, because the default one doesn't like uploading big files.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, auth.SCOPE_READ_WRITE)
+	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, auth.SCOPE_READ_WRITE, gcl.LOGGING_WRITE_SCOPE)
 	if err != nil {
 		gcl.Fatalf("Could not setup credentials: %s", err)
 	}
