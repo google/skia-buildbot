@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/debugger/go/runner"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/metrics2"
 )
 
 const (
@@ -124,6 +125,8 @@ func (s *Containers) startContainer(user string) error {
 	// Kick off a Go routine that calls runner.Start and then removes the
 	// container from s.containers once skiaserve exits.
 	go func() {
+		counter := metrics2.GetCounter("running.instances", nil)
+		counter.Inc(1)
 		co.started = time.Now()
 		// This call to s.runner.Start() doesn't return until the container exits.
 		if err := s.runner.Start(co.port); err != nil {
@@ -133,6 +136,7 @@ func (s *Containers) startContainer(user string) error {
 		defer s.mutex.Unlock()
 		// Remove the entry for this container now that it has exited.
 		delete(s.containers, user)
+		counter.Dec(1)
 		co.user = ""
 	}()
 
