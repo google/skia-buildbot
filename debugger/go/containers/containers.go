@@ -24,6 +24,12 @@ const (
 	// START_PORT Is the beginning of the range of ports the skiaserve instances
 	// will communicate on.
 	START_PORT = 20000
+
+	// START_WAIT_PERIOD poll the newly started skiaserve this many times before giving up.
+	START_WAIT_NUM = 50
+
+	// START_WAIT_PERIOD poll the newly started skiaserve this often.
+	START_WAIT_PERIOD = 100 * time.Millisecond
 )
 
 // container represents a single skiaserve instance, which may or may not
@@ -93,6 +99,8 @@ func New(runner *runner.Runner) *Containers {
 }
 
 // startContainer starts skiaserve running in a container for the given user.
+//
+// It waits until skiaserve responds to an HTTP request before returning.
 func (s *Containers) startContainer(user string) error {
 	s.mutex.Lock()
 	// Find first open container in the pool.
@@ -127,6 +135,26 @@ func (s *Containers) startContainer(user string) error {
 		delete(s.containers, user)
 		co.user = ""
 	}()
+
+	// Poll the port until we get a response.
+	url := fmt.Sprintf("http://localhost:%d", co.port)
+	var err error
+	var resp *http.Response
+	for i := 0; i < START_WAIT_NUM; i++ {
+		resp, err = http.Get(url)
+		if resp != nil && resp.Body != nil {
+			if err := resp.Body.Close(); err != nil {
+				glog.Errorf("Failed to close response while listing for skiaserve to start: %s", err)
+			}
+		}
+		if err == nil {
+			break
+		}
+		time.Sleep(START_WAIT_PERIOD)
+	}
+	if err != nil {
+		return fmt.Errorf("Started container but skiaserve never responded: %s", err)
+	}
 
 	return nil
 }
@@ -164,9 +192,6 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			httputils.ReportError(w, r, err, "Failed to start new container.")
 			return
 		}
-		// Wait for skiaserve to start.
-		// TODO(jcgregorio) We should actually poll the port and confirm the instance is running.
-		time.Sleep(2 * time.Second)
 		co = s.getContainer(user)
 		if co == nil {
 			httputils.ReportError(w, r, fmt.Errorf("For user: %s", user), "Started container, but then couldn't find it.")
@@ -187,7 +212,6 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				},
 			); err != nil {
 				httputils.ReportError(w, r, err, "Failed to serialize response.")
-				return
 			}
 		} else if r.Method == "POST" {
 			// A POST to /instanceStatus will restart the instance.
@@ -199,6 +223,7 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			delete(s.containers, user)
 			http.Redirect(w, r, "/", 303)
 		}
+		return
 	}
 
 	// Proxy.

@@ -41,5 +41,5 @@ func TestRunLocal(t *testing.T) {
 	err := runner.Start(20003)
 	assert.NoError(t, err)
 	assert.NotNil(t, runner)
-	assert.Equal(t, "/mnt/pd0/debugger/versions/aabbccdd/out/Release/skiaserve --port 20003 --hosted", execString)
+	assert.Equal(t, "/mnt/pd0/debugger/versions/aabbccdd/out/Release/skiaserve --port 20003 --source  --hosted", execString)
 }
