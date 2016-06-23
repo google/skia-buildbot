@@ -1,6 +1,7 @@
 package fileutil
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -8,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/util"
 )
 
 // EnsureDirExists checks whether the given path to a directory exits and creates it
@@ -89,4 +91,32 @@ func CopyExecutable(fromPath, toPath string) error {
 		return fmt.Errorf("Could not copy executable %s to %s: %s", fromPath, toPath, err)
 	}
 	return nil
+}
+
+// ReadAndSha1File opens a file, reads the contents, hashes them using the sha1
+// hashing algroithm and returns the contents and hash.  If the file doesn't exist, the err will be
+// nil and both contents and hash will be empty string.
+func ReadAndSha1File(path string) (contents, hash string, err error) {
+	if stat, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return "", "", nil
+		}
+		return "", "", fmt.Errorf("Problem getting information for file %s: %s", path, err)
+	} else if stat.IsDir() {
+		return "", "", fmt.Errorf("Cannot open a directory: %s", path)
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return "", "", nil
+		}
+		return "", "", fmt.Errorf("Problem opening file %s: %s", path, err)
+	}
+	defer util.Close(f)
+	b, err := ioutil.ReadAll(f)
+	if err != nil {
+		return "", "", fmt.Errorf("Problem reading file %s: %s", path, err)
+	}
+
+	return string(b), fmt.Sprintf("%x", sha1.Sum(b)), nil
 }

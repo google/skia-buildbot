@@ -1,0 +1,10 @@
+[Unit]
+Description=Backs up the rpi image daily
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+RandomizedDelaySec=100
+
+[Install]
+WantedBy=timers.target

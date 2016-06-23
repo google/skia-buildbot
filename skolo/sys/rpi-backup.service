@@ -1,0 +1,9 @@
+[Unit]
+Description=Backs up the rpi image to Google Storage
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/local/bin/rpi-backup --log_dir=/var/log/logserver --img_path /opt/rpi_img/current.img --service_account_path=/home/chrome-bot/service-account.json
+User=chrome-bot
+Group=chrome-bot

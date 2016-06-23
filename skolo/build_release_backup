@@ -1,0 +1,18 @@
+#!/bin/bash
+# Builds and uploads a debian package for rpi-backup.
+APPNAME=rpi-backup
+SYSTEMD=${APPNAME}.service
+SYSTEMD_TIMER=${APPNAME}.timer
+DESCRIPTION="backup the rpi image to GS"
+
+# Copy files into the right locations in ${ROOT}.
+copy_release_files()
+{
+INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
+INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
+${INSTALL} --mode=755 -T ${GOPATH}/bin/${APPNAME}  ${ROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service  ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.timer    ${ROOT}/etc/systemd/system/${APPNAME}.timer
+}
+
+source ../bash/release.sh

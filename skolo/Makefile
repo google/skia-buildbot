@@ -1,5 +1,5 @@
 .PHONY: all
-all: hotspare
+all: hotspare backup
 
 .PHONY: hotspare
 hotspare:
@@ -11,5 +11,20 @@ hotspare_release: hotspare
 
 .PHONY: hotspare_push
 hotspare_push: hotspare
+	go install -v ../push/go/pushcli
 	./build_release_hotspare "`git log -n1 --format=%s`"
 	pushcli hotspare skia-rpi-master-spare
+
+.PHONY: backup
+backup:
+	go install -v ./go/rpi-backup
+
+.PHONY: backup_release
+backup_release: backup
+	./build_release_backup "$(MESSAGE)"
+
+.PHONY: backup_push
+backup_push: backup
+	go install -v ../push/go/pushcli
+	./build_release_backup "`git log -n1 --format=%s`"
+	pushcli rpi-backup skia-rpi-master

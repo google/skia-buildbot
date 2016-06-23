@@ -1,10 +1,8 @@
 package logagents
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -35,25 +33,7 @@ func SetPersistenceDir(dir string) error {
 
 // readAndHashFile opens a file, reads the contents, hashes them and returns the contents and hash.
 // This is a package level var so it can be mocked out when unit testing
-var readAndHashFile = _readAndHashFile
-
-func _readAndHashFile(path string) (contents, hash string, err error) {
-	f, err := os.Open(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// Return empty string if file doesn't exist.  Same as "no logs".
-			return "", "", nil
-		}
-		return "", "", fmt.Errorf("Problem opening log file %s: %s", path, err)
-	}
-	defer util.Close(f)
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return "", "", fmt.Errorf("Problem reading log file %s: %s", path, err)
-	}
-
-	return string(b), fmt.Sprintf("%x", sha1.Sum(b)), nil
-}
+var readAndHashFile = fileutil.ReadAndSha1File
 
 // writeToPersistenceFile writes the given lines to a file in persistenceDir using reportName as the
 // name of the file. It will be encoded as json. If the file already has content, it will be
