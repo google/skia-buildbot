@@ -21,9 +21,14 @@
       apt: name=unzip
     - name: Install nfs-kernel-server
       apt: name=nfs-kernel-server
+    - name: Install SSHPass
+      apt: name=sshpass
 
-    - file: path=/opt/raspberrypi state=directory
-    - file: path=/var/log/logserver state=directory
+     # Create some directories that will be used by mounting image and pulld
+    - file: path=/opt/raspberrypi mode=0775 state=directory
+    - file: path=/var/log/logserver mode=0777 state=directory
+    - file: path=/var/pulld mode=0777 state=directory
+    - file: path=/opt/rpi_img mode=0777 state=directory
 
     - name: make nfs sharing rule
       lineinfile: dest=/etc/exports line="/opt/raspberrypi/root {{net}}/24(ro,sync,no_root_squash,no_subtree_check)"
@@ -33,3 +38,9 @@
 
     - name: generate chrome-bot ssh
       user: name=chrome-bot generate_ssh_key=yes ssh_key_bits=2048 ssh_key_file=.ssh/id_rsa
+
+    #http://docs.ansible.com/ansible/intro_getting_started.html#host-key-checking
+    - name: Disabling host key host key checking
+      file: path=/etc/ansible/ansible.cfg mode=0777 state=touch
+    - lineinfile: dest=/etc/ansible/ansible.cfg line="[defaults]"
+    - lineinfile: dest=/etc/ansible/ansible.cfg line="host_key_checking = False" insertafter="\[defaults\]"

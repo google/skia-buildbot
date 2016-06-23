@@ -8,27 +8,40 @@ This is meant to be a detailed description, with [this design doc](https://docs.
 acting as a high level overview.  If the current setup is lost in a fire and this document is the
 only thing remaining, it should be sufficient to fix Skolo.
 
-## Setting up the Server
-The server can theoretically be run on any OS that supports NSF mounting.
-It is currently running Ubuntu 14.04, although that is not for any special reason other than it was
-what was stable LTS at the time.
-Make the username chrome-bot, use the buildbot password from Valentine.
-I also suggest putting the jump host's ssh public key in ~/.ssh/authorized_keys.
+I have written the ansible commands to be executed locally, although the ansible playbooks lend
+themselves very well to being executed from a
+[remote machine](https://docs.google.com/document/d/1o07eSiEnzDS0D90HRn_fIWEGOUqmPx3w1d-LP-_MdUQ/edit#).
 
+## Setting up the master servers
+The basic setup looks like:
+![master-design](https://cloud.githubusercontent.com/assets/6819944/16122340/ac1a7d82-33b4-11e6-90ac-c6224b39522f.png)
+
+The master and the spare can theoretically be run on any OS that supports NSF mounting and systemd.
+They are currently running Ubuntu 16.04.  16.04 is the first LTS release that supports systemd.
+Make the username chrome-bot and use the buildbot password from Valentine.
+The hostnames should be skia-rpi-master and skia-rpi-master-spare.
 ```
-sudo apt-get update && sudo apt-get upgrade
+sudo apt-get update
 sudo apt-get install ansible git
-[clone this repo]
-cd skolo/raspberry-pi
+git clone https://github.com/google/skia-buildbot.git
+cd skia-buildbot/skolo/raspberry-pi
+# setup_master.yml should be run on both master and spare
 ansible-playbook -i "localhost," -c local setup_master.yml
 
-ifconfig
-# Write down the ip address for this machine if only using one machine.  Otherwise, use the load balancer's.
+# If you were setting up the spare, you would use spare.interfaces
+sudo cp master.interfaces /etc/network/interfaces
+sudo chmod 644 /etc/network/interfaces
 ```
+At this point, the steps get a bit hard to script, but we are nearly done.
+Generate a service-account.json and put it in /home/chrome-bot.
+Bootstrap pulld by downloading a recent .deb and installing it with `sudo dpkg -i pulld.deb`
+I also suggest putting the jump host's ssh public key in ~/.ssh/authorized_keys.
 
-I have written the ansible commands to be executed locally, although the ansible playbooks lend
-themselves very well to being executed from a remote machine.
 
+## Loading a pre-existing image
+  - Downoad the image from https://pantheon.corp.google.com/storage/browser/skia-images/Swarming/?project=google.com:skia-buildbots
+  - Place it in `/opt/rpi_img/`.
+  - See "Begin serving the image"
 
 ## Building the image (from scratch)
   - Download and uncompress the [latest raspbian "lite" image](https://www.raspberrypi.org/downloads/raspbian/).  Last known good version 2016-03-18-raspbian-jessie-lite.img
@@ -60,14 +73,16 @@ adduser chrome-bot
   - `./setup-swarming.sh`  This will do all automatic, idempotent setup that is possible.  If Ansible can be configured to act inside a chroot, this should be ported to Ansible.
   - `ansible-playbook -i "localhost," -c local finalize_image.yml`  finalize_image copies any scripts we need, changes any additional files that can be done in an automated way.
   - The mounted image file has been receiving the changes this entire time, no need to `dd` anything to back it up.  Current backups are in gs://skia-images/Swarming
+  - See "Begin serving the image"
 
 ## Begin serving the image
+By default, the script is looking for `/opt/rpi_img/current.img`
 `ansible-playbook -i "localhost," -c local start_serving_image.yml`
 
 ## Adding a new Raspberry PI into the swarm
 This is also quite straight-forward.
  1. Assemble Raspberry PI hardware.  Connect Ethernet cable.
- 2. Insert blank SD card into one of the masters.
+ 2. Insert blank SD card into skia-rpi-master.
  3. `ansible-playbook -i "localhost," -c local format_new_card.yml`  Type in static IP address and hostname suffix.
  4. Insert SD card into new pi.  Turn on.
 
