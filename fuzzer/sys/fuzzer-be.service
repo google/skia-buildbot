@@ -29,6 +29,7 @@ ExecStart=/usr/local/bin/fuzzer-be \
   --fuzz_to_run=skcodec_mode \
   --fuzz_to_run=api_parse_path \
   --fuzz_to_run=api_image_filter \
+  --fuzz_to_run=color_icc \
   --fuzz_to_run=color_icc
 Restart=always
 User=default

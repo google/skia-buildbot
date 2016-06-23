@@ -57,6 +57,13 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      []string{"Area-ImageFilter"},
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "SerializedImageFilter", "--bytes"},
 	},
+	"color_deserialize": {
+		PrettyName:          "SkColorSpace - Deserialize",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "msarett",
+		ExtraBugLabels:      []string{"Area-ImageDecoder"},
+		ArgsAfterExecutable: []string{"--type", "color_deserialize", "--bytes"},
+	},
 	"color_icc": {
 		PrettyName:          "SkColorSpace - ICC",
 		Status:              STABLE_FUZZER,
