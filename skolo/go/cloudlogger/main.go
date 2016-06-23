@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/skolo/go/gcl"
@@ -21,27 +20,21 @@ var (
 	pollPeriod = flag.Duration("poll_period", 1*time.Minute, `The period used to poll the log files`)
 )
 
-var (
-	logsclient gcl.CloudLogger
-)
-
 func main() {
 	defer common.LogPanic()
 	common.Init()
 
 	client, err := auth.NewDefaultJWTServiceAccountClient(logging.LoggingWriteScope)
-
 	if err != nil {
-		glog.Fatalf("Failed to create authenticated HTTP client: %s\nDid you run get_service_account?", err)
+		gcl.Fatalf("Failed to create authenticated HTTP client: %s\nDid you run get_service_account?", err)
 	}
 
-	logsclient, err = gcl.New(client)
+	err = gcl.Init(client, "raspberry-pis", "cloudlogger")
 	if err != nil {
-		glog.Fatalf("Problem creating logs service: %s", err)
+		gcl.Fatalf("Problem creating logs service: %s", err)
 	}
-	gcl.SetErrorLogger(logsclient)
 	if err := logagents.SetPersistenceDir(*persistenceDir); err != nil {
-		glog.Fatalf("Could not set Persistence Dir: %s", err)
+		gcl.Fatalf("Could not set Persistence Dir: %s", err)
 	}
 
 	scanners := []logagents.LogScanner{}
@@ -55,11 +48,11 @@ func main() {
 // scan executes Scan on all LogScanners on a repeating time clock of period.  This executes indefinitely.
 func scan(scanners []logagents.LogScanner, period time.Duration) {
 	for range time.Tick(period) {
-		glog.Infof("Waking up to scan logs.")
+		gcl.Infof("Waking up to scan logs.")
 		for _, s := range scanners {
-			glog.Infof("Scanning %s", s.ReportName())
-			if err := s.Scan(logsclient); err != nil {
-				glog.Errorf("Problem with log file %s : %s", s.ReportName(), err)
+			gcl.Infof("Scanning %s", s.ReportName())
+			if err := s.Scan(gcl.Instance()); err != nil {
+				gcl.Errorf("Problem with log file %s : %s", s.ReportName(), err)
 			}
 		}
 	}
