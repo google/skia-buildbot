@@ -23,8 +23,11 @@ import (
 )
 
 const (
-	GOROUTINE_POOL_SIZE = 30
-	MAX_CHANNEL_SIZE    = 100000
+	DOWNLOAD_UPLOAD_GOROUTINE_POOL_SIZE = 30
+	// Use larger pool size for deletions. This is useful when deleting directories
+	// with 1M/1B subdirectories from the master. Google Storage will not be overwhelmed
+	// because all slaves do not do large scale deletions at the same time.
+	DELETE_GOROUTINE_POOL_SIZE = 1000
 )
 
 type GsUtil struct {
@@ -102,42 +105,51 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	// Create the local dir.
 	util.MkdirAll(localDir, 0700)
 	// The channel where the storage objects to be deleted will be sent to.
-	chStorageObjects := make(chan filePathToStorageObject, MAX_CHANNEL_SIZE)
-	req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
-	for req != nil {
-		resp, err := req.Do()
-		if err != nil {
-			return fmt.Errorf("Error occured while listing %s: %s", gsDir, err)
-		}
-		for _, result := range resp.Items {
-			fileName := filepath.Base(result.Name)
-			// If downloading from subdir then add it to the fileName.
-			fileGsDir := filepath.Dir(result.Name)
-			subDirs := strings.TrimPrefix(fileGsDir, gsDir)
-			if subDirs != "" {
-				dirTokens := strings.Split(subDirs, "/")
-				for i := range dirTokens {
-					fileName = filepath.Join(dirTokens[len(dirTokens)-i-1], fileName)
-				}
-				// Create the local directory.
-				util.MkdirAll(filepath.Join(localDir, filepath.Dir(fileName)), 0700)
+	chStorageObjects := make(chan filePathToStorageObject, DOWNLOAD_UPLOAD_GOROUTINE_POOL_SIZE)
+
+	// Kick off one goroutine to populate the channel.
+	errPopulator := make(chan error, 1)
+	var wgPopulator sync.WaitGroup
+	wgPopulator.Add(1)
+	go func() {
+		defer wgPopulator.Done()
+		defer close(chStorageObjects)
+		req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
+		for req != nil {
+			resp, err := req.Do()
+			if err != nil {
+				errPopulator <- fmt.Errorf("Error occured while listing %s: %s", gsDir, err)
+				return
 			}
-			chStorageObjects <- filePathToStorageObject{storageObject: result, filePath: fileName}
+			for _, result := range resp.Items {
+				fileName := filepath.Base(result.Name)
+				// If downloading from subdir then add it to the fileName.
+				fileGsDir := filepath.Dir(result.Name)
+				subDirs := strings.TrimPrefix(fileGsDir, gsDir)
+				if subDirs != "" {
+					dirTokens := strings.Split(subDirs, "/")
+					for i := range dirTokens {
+						fileName = filepath.Join(dirTokens[len(dirTokens)-i-1], fileName)
+					}
+					// Create the local directory.
+					util.MkdirAll(filepath.Join(localDir, filepath.Dir(fileName)), 0700)
+				}
+				chStorageObjects <- filePathToStorageObject{storageObject: result, filePath: fileName}
+			}
+			if len(resp.NextPageToken) > 0 {
+				req.PageToken(resp.NextPageToken)
+			} else {
+				req = nil
+			}
 		}
-		if len(resp.NextPageToken) > 0 {
-			req.PageToken(resp.NextPageToken)
-		} else {
-			req = nil
-		}
-	}
-	close(chStorageObjects)
+	}()
 
 	// Kick off goroutines to download the storage objects.
-	var wg sync.WaitGroup
-	for i := 0; i < GOROUTINE_POOL_SIZE; i++ {
-		wg.Add(1)
+	var wgConsumer sync.WaitGroup
+	for i := 0; i < DOWNLOAD_UPLOAD_GOROUTINE_POOL_SIZE; i++ {
+		wgConsumer.Add(1)
 		go func(goroutineNum int) {
-			defer wg.Done()
+			defer wgConsumer.Done()
 			for obj := range chStorageObjects {
 				result := obj.storageObject
 				filePath := obj.filePath
@@ -165,7 +177,17 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 			}
 		}(i + 1)
 	}
-	wg.Wait()
+
+	wgPopulator.Wait()
+	wgConsumer.Wait()
+	// Check if there was an error listing the GS dir.
+	select {
+	case err, ok := <-errPopulator:
+		if ok {
+			return err
+		}
+	default:
+	}
 	return nil
 }
 
@@ -186,30 +208,39 @@ func (gs *GsUtil) DownloadChromiumBuild(chromiumBuild string) error {
 
 func (gs *GsUtil) DeleteRemoteDir(gsDir string) error {
 	// The channel where the GS filepaths to be deleted will be sent to.
-	chFilePaths := make(chan string, MAX_CHANNEL_SIZE)
-	req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
-	for req != nil {
-		resp, err := req.Do()
-		if err != nil {
-			return fmt.Errorf("Error occured while listing %s: %s", gsDir, err)
+	chFilePaths := make(chan string, DELETE_GOROUTINE_POOL_SIZE)
+
+	// Kick off one goroutine to populate the channel.
+	errPopulator := make(chan error, 1)
+	var wgPopulator sync.WaitGroup
+	wgPopulator.Add(1)
+	go func() {
+		defer wgPopulator.Done()
+		defer close(chFilePaths)
+		req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
+		for req != nil {
+			resp, err := req.Do()
+			if err != nil {
+				errPopulator <- fmt.Errorf("Error occured while listing %s: %s", gsDir, err)
+				return
+			}
+			for _, result := range resp.Items {
+				chFilePaths <- result.Name
+			}
+			if len(resp.NextPageToken) > 0 {
+				req.PageToken(resp.NextPageToken)
+			} else {
+				req = nil
+			}
 		}
-		for _, result := range resp.Items {
-			chFilePaths <- result.Name
-		}
-		if len(resp.NextPageToken) > 0 {
-			req.PageToken(resp.NextPageToken)
-		} else {
-			req = nil
-		}
-	}
-	close(chFilePaths)
+	}()
 
 	// Kick off goroutines to delete the file paths.
-	var wg sync.WaitGroup
-	for i := 0; i < GOROUTINE_POOL_SIZE; i++ {
-		wg.Add(1)
+	var wgConsumer sync.WaitGroup
+	for i := 0; i < DELETE_GOROUTINE_POOL_SIZE; i++ {
+		wgConsumer.Add(1)
 		go func(goroutineNum int) {
-			defer wg.Done()
+			defer wgConsumer.Done()
 			for filePath := range chFilePaths {
 				if err := gs.service.Objects.Delete(GSBucketName, filePath).Do(); err != nil {
 					glog.Errorf("Goroutine#%d could not delete %s: %s", goroutineNum, filePath, err)
@@ -222,7 +253,17 @@ func (gs *GsUtil) DeleteRemoteDir(gsDir string) error {
 			}
 		}(i + 1)
 	}
-	wg.Wait()
+
+	wgPopulator.Wait()
+	wgConsumer.Wait()
+	// Check if there was an error listing the GS dir.
+	select {
+	case err, ok := <-errPopulator:
+		if ok {
+			return err
+		}
+	default:
+	}
 	return nil
 }
 
@@ -296,7 +337,7 @@ func (gs *GsUtil) DownloadSwarmingArtifacts(localDir, remoteDirName, pagesetType
 	var mtx sync.Mutex
 	// Kick off goroutines to download artifacts and populate the artifactToIndex dictionary.
 	var wg sync.WaitGroup
-	for i := 0; i < GOROUTINE_POOL_SIZE; i++ {
+	for i := 0; i < DOWNLOAD_UPLOAD_GOROUTINE_POOL_SIZE; i++ {
 		wg.Add(1)
 		go func(goroutineNum int) {
 			defer wg.Done()
@@ -381,7 +422,7 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 	}
 
 	// The channel where the filepaths to be uploaded will be sent to.
-	chFilePaths := make(chan string, MAX_CHANNEL_SIZE)
+	chFilePaths := make(chan string, len(pathsToFileInfos))
 	// File filepaths and send it to the above channel.
 	for path, fileInfo := range pathsToFileInfos {
 		fileName := fileInfo.Name()
@@ -399,7 +440,7 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 
 	// Kick off goroutines to upload the file paths.
 	var wg sync.WaitGroup
-	for i := 0; i < GOROUTINE_POOL_SIZE; i++ {
+	for i := 0; i < DOWNLOAD_UPLOAD_GOROUTINE_POOL_SIZE; i++ {
 		wg.Add(1)
 		go func(goroutineNum int) {
 			defer wg.Done()
