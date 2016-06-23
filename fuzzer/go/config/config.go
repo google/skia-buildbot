@@ -8,7 +8,6 @@ import (
 )
 
 type generatorConfig struct {
-	SkiaRoot               string
 	AflRoot                string
 	FuzzSamples            string
 	AflOutputPath          string
@@ -18,15 +17,12 @@ type generatorConfig struct {
 	NumDownloadProcesses   int
 	WatchAFL               bool
 	SkipGeneration         bool
-	VersionCheckPeriod     time.Duration
-	SkiaVersion            *vcsinfo.LongCommit
-	versionMutex           sync.Mutex
 	FuzzesToGenerate       []string
 }
 
 type aggregatorConfig struct {
 	FuzzPath             string
-	ExecutablePath       string
+	WorkingPath          string
 	NumAnalysisProcesses int
 	NumUploadProcesses   int
 	RescanPeriod         time.Duration
@@ -35,13 +31,9 @@ type aggregatorConfig struct {
 }
 
 type frontendConfig struct {
-	SkiaRoot             string
 	BoltDBPath           string
 	NumDownloadProcesses int
 	FuzzSyncPeriod       time.Duration
-	VersionCheckPeriod   time.Duration
-	SkiaVersion          *vcsinfo.LongCommit
-	versionMutex         sync.Mutex
 }
 
 type gsConfig struct {
@@ -49,11 +41,17 @@ type gsConfig struct {
 }
 
 type commonConfig struct {
-	ClangPath         string
-	ClangPlusPlusPath string
-	DepotToolsPath    string
-	ForceReanalysis   bool
-	VerboseBuilds     bool
+	ClangPath           string
+	ClangPlusPlusPath   string
+	DepotToolsPath      string
+	ForceReanalysis     bool
+	VerboseBuilds       bool
+	ExecutableCachePath string
+	SkiaRoot            string
+	SkiaVersion         *vcsinfo.LongCommit
+	VersionCheckPeriod  time.Duration
+
+	versionMutex sync.Mutex
 }
 
 var Generator = generatorConfig{}
@@ -67,15 +65,8 @@ type VersionSetter interface {
 }
 
 // SetSkiaVersion safely stores the LongCommit of the skia version that is being used.
-func (f *frontendConfig) SetSkiaVersion(lc *vcsinfo.LongCommit) {
+func (f *commonConfig) SetSkiaVersion(lc *vcsinfo.LongCommit) {
 	f.versionMutex.Lock()
 	defer f.versionMutex.Unlock()
 	f.SkiaVersion = lc
-}
-
-// SetSkiaVersion safely stores the LongCommit of the skia version that is being used.
-func (g *generatorConfig) SetSkiaVersion(lc *vcsinfo.LongCommit) {
-	g.versionMutex.Lock()
-	defer g.versionMutex.Unlock()
-	g.SkiaVersion = lc
 }

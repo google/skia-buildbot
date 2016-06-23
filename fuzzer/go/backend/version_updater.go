@@ -40,15 +40,15 @@ func NewVersionUpdater(s *storage.Client, agg *aggregator.Aggregator, g []*gener
 // fuzzes and then start the Generator and the Aggregator again.  It re-uses the Aggregator pipeline
 // to do the re-analysis.
 func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) (*vcsinfo.LongCommit, error) {
-	oldRevision := config.Generator.SkiaVersion.Hash
+	oldRevision := config.Common.SkiaVersion.Hash
 
 	// stop all afl-fuzz processes
 	for _, g := range v.generators {
 		g.Stop()
 	}
 
-	// sync skia to version, which sets config.Generator.SkiaVersion
-	if err := common.DownloadSkia(newHash, config.Generator.SkiaRoot, &config.Generator, true); err != nil {
+	// sync skia to version, which sets config.Common.SkiaVersion
+	if err := common.DownloadSkia(newHash, config.Common.SkiaRoot, &config.Common, true); err != nil {
 		return nil, fmt.Errorf("Could not sync skia to %s: %s", newHash, err)
 	}
 
@@ -64,13 +64,13 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) (*vcsinfo.LongCo
 	}
 
 	// change GCS version to have the current be up to date (fuzzer-fe will be polling for it)
-	if err := v.replaceCurrentSkiaVersionWith(oldRevision, config.Generator.SkiaVersion.Hash); err != nil {
+	if err := v.replaceCurrentSkiaVersionWith(oldRevision, config.Common.SkiaVersion.Hash); err != nil {
 		return nil, fmt.Errorf("Could not update skia error: %s", err)
 	}
 
 	glog.Infof("We are updated to Skia revision %s", newHash)
 
-	return config.Generator.SkiaVersion, nil
+	return config.Common.SkiaVersion, nil
 }
 
 func (v *VersionUpdater) reanalyze(oldRevision string) error {

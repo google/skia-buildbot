@@ -34,8 +34,9 @@ import (
 var (
 	aflOutputPath          = flag.String("afl_output_path", "", "[REQUIRED] The output folder of afl-fuzz.  This will have on folder for each fuzz_to_run.  Each of those will have N folders named fuzzer0 - fuzzerN.  Should not be in /tmp or afl-fuzz will refuse to run.")
 	generatorWD            = flag.String("generator_working_dir", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
+	aggregatorWD           = flag.String("aggregator_working_dir", filepath.Join(os.TempDir(), "aggregator_wd"), "The aggregator's working directory.  Can be in /tmp.")
 	fuzzSamples            = flag.String("fuzz_samples", "", "[REQUIRED] The generator's working directory.  Should not be in /tmp.")
-	skiaRoot               = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
+	skiaRoot               = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.  Cannot be shared with front end.")
 	clangPath              = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
 	clangPlusPlusPath      = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
 	depotToolsPath         = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
@@ -46,9 +47,10 @@ var (
 	downloadProcesses      = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes when re-analyzing them. This is constant with respect to the number of fuzzes.")
 	fuzzesToRun            = common.NewMultiStringFlag("fuzz_to_run", nil, fmt.Sprintf("A set of fuzzes to run.  Can be one or more of the known fuzzes: %q", fcommon.FUZZ_CATEGORIES))
 
-	bucket               = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to store found fuzzes.")
-	fuzzPath             = flag.String("fuzz_path", filepath.Join(os.TempDir(), "fuzzes"), "The directory to temporarily store the binary fuzzes during aggregation.")
-	executablePath       = flag.String("executable_path", filepath.Join(os.TempDir(), "executables"), "The directory to store temporary executables that will run the fuzzes during aggregation. Defaults to /tmp/executables.")
+	bucket              = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to store found fuzzes.")
+	fuzzPath            = flag.String("fuzz_path", filepath.Join(os.TempDir(), "fuzzes"), "The directory to temporarily store the binary fuzzes during aggregation.")
+	executableCachePath = flag.String("executable_cache_path", filepath.Join(os.TempDir(), "executable_cache"), "The path in which built fuzz executables can be cached.  Can be safely shared with frontend.")
+
 	numAnalysisProcesses = flag.Int("analysis_processes", 0, `The number of processes to analyze fuzzes [per fuzz to run].  This should be fewer than the number of logical cores.  Defaults to 0, which means "Make an intelligent guess"`)
 	rescanPeriod         = flag.Duration("rescan_period", 60*time.Second, `The time in which to sleep for every cycle of aggregation. `)
 	numUploadProcesses   = flag.Int("upload_processes", 0, `The number of processes to upload fuzzes [per fuzz to run]. Defaults to 0, which means "Make an intelligent guess"`)
@@ -68,7 +70,7 @@ var (
 )
 
 var (
-	requiredFlags                       = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir", "fuzz_to_run"}
+	requiredFlags                       = []string{"afl_output_path", "skia_root", "clang_path", "clang_p_p_path", "afl_root", "generator_working_dir", "fuzz_to_run", "executable_cache_path"}
 	storageClient *storage.Client       = nil
 	issueManager  *issues.IssuesManager = nil
 )
@@ -84,7 +86,7 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		glog.Fatalf("Problem with OAuth: %s", err)
 	}
-	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Generator.SkiaRoot, &config.Generator); err != nil {
+	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common); err != nil {
 		glog.Fatalf("Problem downloading Skia: %s", err)
 	}
 
@@ -130,8 +132,8 @@ func main() {
 			if err = gen.Start(); err != nil {
 				glog.Fatalf("Problem starting generator: %s", err)
 			}
-			glog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Generator.SkiaVersion.Hash)
-			baseFolder := fmt.Sprintf("%s/%s/bad", category, config.Generator.SkiaVersion.Hash)
+			glog.Infof("Downloading all bad %s fuzzes @%s to setup duplication detection", category, config.Common.SkiaVersion.Hash)
+			baseFolder := fmt.Sprintf("%s/%s/bad", category, config.Common.SkiaVersion.Hash)
 			if startingReports[category], err = fstorage.GetReportsFromGS(storageClient, baseFolder, category, nil, config.Generator.NumDownloadProcesses); err != nil {
 				glog.Fatalf("Could not download previously found %s fuzzes for deduplication: %s", category, err)
 			}
@@ -149,7 +151,7 @@ func main() {
 
 	updater := backend.NewVersionUpdater(storageClient, agg, generators)
 	glog.Info("Starting version watcher")
-	watcher := fcommon.NewVersionWatcher(storageClient, config.Generator.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
+	watcher := fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, updater.UpdateToNewSkiaVersion, nil)
 	watcher.Start()
 
 	err = <-watcher.Status
@@ -168,10 +170,6 @@ func writeFlagsToConfig() error {
 	if err != nil {
 		return err
 	}
-	config.Generator.SkiaRoot, err = fileutil.EnsureDirExists(*skiaRoot)
-	if err != nil {
-		return err
-	}
 	config.Generator.AflRoot, err = fileutil.EnsureDirExists(*aflRoot)
 	if err != nil {
 		return err
@@ -185,14 +183,24 @@ func writeFlagsToConfig() error {
 		return err
 	}
 
+	config.Common.SkiaRoot, err = fileutil.EnsureDirExists(*skiaRoot)
+	if err != nil {
+		return err
+	}
+	config.Common.ExecutableCachePath, err = fileutil.EnsureDirExists(*executableCachePath)
+	if err != nil {
+		return err
+	}
+
 	config.Common.VerboseBuilds = *verboseBuilds
 	config.Common.ClangPath = *clangPath
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Common.DepotToolsPath = *depotToolsPath
+	config.Common.VersionCheckPeriod = *versionCheckPeriod
+
 	config.Generator.NumBinaryFuzzProcesses = *numBinaryFuzzProcesses
 	config.Generator.NumAPIFuzzProcesses = *numAPIFuzzProcesses
 	config.Generator.WatchAFL = *watchAFL
-	config.Generator.VersionCheckPeriod = *versionCheckPeriod
 	config.Generator.NumDownloadProcesses = *downloadProcesses
 	config.Generator.SkipGeneration = *skipGeneration
 
@@ -201,7 +209,7 @@ func writeFlagsToConfig() error {
 	if err != nil {
 		return err
 	}
-	config.Aggregator.ExecutablePath, err = fileutil.EnsureDirExists(*executablePath)
+	config.Aggregator.WorkingPath, err = fileutil.EnsureDirExists(*aggregatorWD)
 	if err != nil {
 		return err
 	}

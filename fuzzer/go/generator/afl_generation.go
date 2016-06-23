@@ -94,21 +94,22 @@ func (g *Generator) Start() error {
 }
 
 // setup clears out previous fuzzing sessions and builds the executable we need to run afl-fuzz.
-// The binary is then copied to the working directory as "dm_afl_Release".
+// The binary is then copied to the working directory as "fuzz_afl_Release".
 func (g *Generator) setup() (string, error) {
 	if err := g.Clear(); err != nil {
 		return "", err
 	}
-	// build afl.
-	if err := common.BuildFuzzingHarness(buildskia.RELEASE_BUILD, true); err != nil {
-		return "", fmt.Errorf("Failed to build dm using afl-fuzz %s", err)
+	// get a version of Skia built with afl-fuzz's instrumentation
+	if srcExe, err := common.BuildFuzzingHarness(buildskia.RELEASE_BUILD, true); err != nil {
+		return "", fmt.Errorf("Failed to build fuzz executable using afl-fuzz %s", err)
+	} else {
+		// copy to working directory
+		destExe := filepath.Join(config.Generator.WorkingPath, g.Category, common.TEST_HARNESS_NAME+"_afl_Release")
+		if err := fileutil.CopyExecutable(srcExe, destExe); err != nil {
+			return "", err
+		}
+		return destExe, nil
 	}
-	// copy to working directory
-	executable := filepath.Join(config.Generator.WorkingPath, g.Category, common.TEST_HARNESS_NAME+"_afl_Release")
-	if err := fileutil.CopyExecutable(filepath.Join(config.Generator.SkiaRoot, "out", "Release", common.TEST_HARNESS_NAME), executable); err != nil {
-		return "", err
-	}
-	return executable, nil
 }
 
 // Clear removes the previous fuzzing sessions data and any previously used binaries.

@@ -199,32 +199,27 @@ func (agg *Aggregator) buildAnalysisBinaries() error {
 	if _, err := fileutil.EnsureDirExists(config.Aggregator.FuzzPath); err != nil {
 		return err
 	}
-	if _, err := fileutil.EnsureDirExists(config.Aggregator.ExecutablePath); err != nil {
+	if _, err := fileutil.EnsureDirExists(config.Aggregator.WorkingPath); err != nil {
 		return err
 	}
-	if err := common.BuildClangHarness(buildskia.DEBUG_BUILD, true); err != nil {
+	if srcExe, err := common.BuildClangHarness(buildskia.DEBUG_BUILD, true); err != nil {
+		return err
+	} else if err := fileutil.CopyExecutable(srcExe, filepath.Join(config.Aggregator.WorkingPath, CLANG_DEBUG)); err != nil {
 		return err
 	}
-	outPath := filepath.Join(config.Generator.SkiaRoot, "out")
-	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, CLANG_DEBUG)); err != nil {
+	if srcExe, err := common.BuildClangHarness(buildskia.RELEASE_BUILD, true); err != nil {
+		return err
+	} else if err := fileutil.CopyExecutable(srcExe, filepath.Join(config.Aggregator.WorkingPath, CLANG_RELEASE)); err != nil {
 		return err
 	}
-	if err := common.BuildClangHarness(buildskia.RELEASE_BUILD, true); err != nil {
+	if srcExe, err := common.BuildASANHarness(buildskia.DEBUG_BUILD, false); err != nil {
+		return err
+	} else if err := fileutil.CopyExecutable(srcExe, filepath.Join(config.Aggregator.WorkingPath, ASAN_DEBUG)); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, CLANG_RELEASE)); err != nil {
+	if srcExe, err := common.BuildASANHarness(buildskia.RELEASE_BUILD, false); err != nil {
 		return err
-	}
-	if err := common.BuildASANHarness(buildskia.DEBUG_BUILD, false); err != nil {
-		return err
-	}
-	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Debug", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, ASAN_DEBUG)); err != nil {
-		return err
-	}
-	if err := common.BuildASANHarness(buildskia.RELEASE_BUILD, false); err != nil {
-		return err
-	}
-	if err := fileutil.CopyExecutable(filepath.Join(outPath, "Release", common.TEST_HARNESS_NAME), filepath.Join(config.Aggregator.ExecutablePath, ASAN_RELEASE)); err != nil {
+	} else if err := fileutil.CopyExecutable(srcExe, filepath.Join(config.Aggregator.WorkingPath, ASAN_RELEASE)); err != nil {
 		return err
 	}
 	return nil
@@ -412,7 +407,7 @@ func (agg *Aggregator) waitForAnalysis(identifier int) {
 	glog.Infof("Spawning analyzer %d", identifier)
 
 	// our own unique working folder
-	executableDir := filepath.Join(config.Aggregator.ExecutablePath, fmt.Sprintf("analyzer%d", identifier))
+	executableDir := filepath.Join(config.Aggregator.WorkingPath, fmt.Sprintf("analyzer%d", identifier))
 	if err := setupAnalysis(executableDir); err != nil {
 		glog.Errorf("Analyzer %d terminated due to error: %s", identifier, err)
 		return
@@ -465,16 +460,16 @@ func setupAnalysis(workingDirPath string) error {
 	}
 
 	// make a copy of the 4 executables that were made in buildAnalysisBinaries()
-	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.ExecutablePath, CLANG_DEBUG), filepath.Join(workingDirPath, CLANG_DEBUG)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.WorkingPath, CLANG_DEBUG), filepath.Join(workingDirPath, CLANG_DEBUG)); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.ExecutablePath, CLANG_RELEASE), filepath.Join(workingDirPath, CLANG_RELEASE)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.WorkingPath, CLANG_RELEASE), filepath.Join(workingDirPath, CLANG_RELEASE)); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.ExecutablePath, ASAN_DEBUG), filepath.Join(workingDirPath, ASAN_DEBUG)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.WorkingPath, ASAN_DEBUG), filepath.Join(workingDirPath, ASAN_DEBUG)); err != nil {
 		return err
 	}
-	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.ExecutablePath, ASAN_RELEASE), filepath.Join(workingDirPath, ASAN_RELEASE)); err != nil {
+	if err := fileutil.CopyExecutable(filepath.Join(config.Aggregator.WorkingPath, ASAN_RELEASE), filepath.Join(workingDirPath, ASAN_RELEASE)); err != nil {
 		return err
 	}
 	return nil
@@ -618,7 +613,7 @@ func (agg *Aggregator) waitForUploads(identifier int) {
 			agg.forBugReporting <- bugReportingPackage{
 				Data: issues.IssueReportingPackage{
 					FuzzName:       p.Data.Name,
-					CommitRevision: config.Generator.SkiaVersion.Hash,
+					CommitRevision: config.Common.SkiaVersion.Hash,
 					Category:       p.Category,
 				},
 				IsBadFuzz: p.FuzzType == BAD_FUZZ,
@@ -664,7 +659,7 @@ func (agg *Aggregator) upload(p uploadPackage) error {
 // uploadBinaryFromDisk uploads a binary file on disk to GCS, returning an error if anything
 // goes wrong.
 func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath string) error {
-	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Category, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	// We set the encoding to avoid accidental crashes if Chrome were to try to render a fuzzed png
@@ -685,7 +680,7 @@ func (agg *Aggregator) uploadBinaryFromDisk(p uploadPackage, fileName, filePath 
 // uploadBinaryFromDisk uploads the contents of a string as a file to GCS, returning an error if
 // anything goes wrong.
 func (agg *Aggregator) uploadString(p uploadPackage, fileName, contents string) error {
-	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Category, config.Generator.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
+	name := fmt.Sprintf("%s/%s/%s/%s/%s", p.Category, config.Common.SkiaVersion.Hash, p.FuzzType, p.Data.Name, fileName)
 	w := agg.storageClient.Bucket(config.GS.Bucket).Object(name).NewWriter(context.Background())
 	defer util.Close(w)
 	w.ObjectAttrs.ContentEncoding = "text/plain"

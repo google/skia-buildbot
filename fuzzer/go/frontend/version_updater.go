@@ -40,7 +40,7 @@ func (v *versionHolder) SetSkiaVersion(lc *vcsinfo.LongCommit) {
 // HandlePendingVersion updates the frontend's copy of Skia to the specified pending version
 func (v *VersionUpdater) HandlePendingVersion(pendingHash string) (*vcsinfo.LongCommit, error) {
 	pending := versionHolder{}
-	if err := common.DownloadSkia(pendingHash, config.FrontEnd.SkiaRoot, &pending, true); err != nil {
+	if err := common.DownloadSkia(pendingHash, config.Common.SkiaRoot, &pending, true); err != nil {
 		return nil, fmt.Errorf("Could not update Skia to pending version %s: %s", pendingHash, err)
 	}
 
@@ -51,12 +51,12 @@ func (v *VersionUpdater) HandlePendingVersion(pendingHash string) (*vcsinfo.Long
 // LoadFreshFromGoogleStorage.
 func (v *VersionUpdater) HandleCurrentVersion(currentHash string) (*vcsinfo.LongCommit, error) {
 	// Make sure skia version is at the proper version.  This also sets config.Frontend.SkiaVersion.
-	if err := common.DownloadSkia(currentHash, config.FrontEnd.SkiaRoot, &config.FrontEnd, false); err != nil {
+	if err := common.DownloadSkia(currentHash, config.Common.SkiaRoot, &config.Common, false); err != nil {
 		return nil, fmt.Errorf("Could not update Skia to current version %s: %s", currentHash, err)
 	}
 	if err := v.gsLoader.LoadFreshFromGoogleStorage(); err != nil {
 		return nil, fmt.Errorf("Had problems fetching new fuzzes from GCS: %s", err)
 	}
 	v.syncer.Refresh()
-	return config.FrontEnd.SkiaVersion, nil
+	return config.Common.SkiaVersion, nil
 }

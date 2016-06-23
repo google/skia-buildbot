@@ -68,7 +68,7 @@ func (f *FuzzSyncer) Start() {
 // Refresh updates the LastCount with fresh data.  Any errors are logged.
 func (f *FuzzSyncer) Refresh() {
 	glog.Info("Counting bad and grey fuzzes")
-	currRevision := config.FrontEnd.SkiaVersion.Hash
+	currRevision := config.Common.SkiaVersion.Hash
 	prevRevision, err := f.getMostRecentOldRevision()
 	if err != nil {
 		glog.Infof("Problem getting most recent old version: %s", err)
@@ -168,9 +168,9 @@ func (f *FuzzSyncer) updateLoadedBinaryFuzzes(currentBadFuzzHashes []string) err
 		glog.Info("Skipping update because the cache hasn't been set yet")
 		return nil
 	}
-	prevBadFuzzNames, err := f.gsLoader.Cache.LoadFuzzNames(config.FrontEnd.SkiaVersion.Hash)
+	prevBadFuzzNames, err := f.gsLoader.Cache.LoadFuzzNames(config.Common.SkiaVersion.Hash)
 	if err != nil {
-		return fmt.Errorf("Could not load previous fuzz hashes from cache at revision %s: %s", config.FrontEnd.SkiaVersion.Hash, err)
+		return fmt.Errorf("Could not load previous fuzz hashes from cache at revision %s: %s", config.Common.SkiaVersion.Hash, err)
 	}
 	sort.Strings(currentBadFuzzHashes)
 	sort.Strings(prevBadFuzzNames)

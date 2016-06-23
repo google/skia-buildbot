@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -79,19 +80,22 @@ var (
 	redirectURL   = flag.String("redirect_url", "https://fuzzer.skia.org/oauth2callback/", "OAuth2 redirect url. Only used when local=false.")
 
 	// Scanning params
-	skiaRoot          = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.")
-	clangPath         = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
-	clangPlusPlusPath = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
-	depotToolsPath    = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
-	bucket            = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
-	downloadProcesses = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
+	// At the moment, the front end does not actually build Skia.  It checks out Skia to get
+	// commit information only.  However, it is still not a good idea to share SkiaRoot dirs.
+	skiaRoot            = flag.String("skia_root", "", "[REQUIRED] The root directory of the Skia source code.  Cannot be safely shared with backend.")
+	clangPath           = flag.String("clang_path", "", "[REQUIRED] The path to the clang executable.")
+	clangPlusPlusPath   = flag.String("clang_p_p_path", "", "[REQUIRED] The path to the clang++ executable.")
+	depotToolsPath      = flag.String("depot_tools_path", "", "The absolute path to depot_tools.  Can be empty if they are on your path.")
+	executableCachePath = flag.String("executable_cache_path", filepath.Join(os.TempDir(), "executable_cache"), "The path in which built fuzz executables can be cached.  Can be safely shared with backend.")
+	bucket              = flag.String("bucket", "skia-fuzzer", "The GCS bucket in which to locate found fuzzes.")
+	downloadProcesses   = flag.Int("download_processes", 4, "The number of download processes to be used for fetching fuzzes.")
 
 	// Other params
 	versionCheckPeriod = flag.Duration("version_check_period", 20*time.Second, `The period used to check the version of Skia that needs fuzzing.`)
 	fuzzSyncPeriod     = flag.Duration("fuzz_sync_period", 2*time.Minute, `The period used to sync bad fuzzes and check the count of grey and bad fuzzes.`)
 )
 
-var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path", "bolt_db_path"}
+var requiredFlags = []string{"skia_root", "clang_path", "clang_p_p_path", "bolt_db_path", "executable_cache_path"}
 
 func Init() {
 	reloadTemplates()
@@ -128,7 +132,7 @@ func main() {
 	}
 
 	go func() {
-		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.FrontEnd.SkiaRoot, &config.FrontEnd); err != nil {
+		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common); err != nil {
 			glog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
@@ -150,7 +154,7 @@ func main() {
 		}
 		fuzzSyncer.SetGSLoader(gsLoader)
 		updater := frontend.NewVersionUpdater(gsLoader, fuzzSyncer)
-		versionWatcher = fcommon.NewVersionWatcher(storageClient, config.FrontEnd.VersionCheckPeriod, updater.HandlePendingVersion, updater.HandleCurrentVersion)
+		versionWatcher = fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, updater.HandlePendingVersion, updater.HandleCurrentVersion)
 		versionWatcher.Start()
 
 		err = <-versionWatcher.Status
@@ -167,15 +171,20 @@ func writeFlagsToConfig() error {
 		}
 	}
 	var err error
-	config.FrontEnd.SkiaRoot, err = fileutil.EnsureDirExists(*skiaRoot)
+	config.Common.SkiaRoot, err = fileutil.EnsureDirExists(*skiaRoot)
+	if err != nil {
+		return err
+	}
+	config.Common.ExecutableCachePath, err = fileutil.EnsureDirExists(*executableCachePath)
 	if err != nil {
 		return err
 	}
 	config.FrontEnd.BoltDBPath = *boltDBPath
-	config.FrontEnd.VersionCheckPeriod = *versionCheckPeriod
+	config.Common.VersionCheckPeriod = *versionCheckPeriod
 	config.Common.ClangPath = *clangPath
 	config.Common.ClangPlusPlusPath = *clangPlusPlusPath
 	config.Common.DepotToolsPath = *depotToolsPath
+
 	config.GS.Bucket = *bucket
 	config.FrontEnd.NumDownloadProcesses = *downloadProcesses
 	config.FrontEnd.FuzzSyncPeriod = *fuzzSyncPeriod
@@ -378,7 +387,7 @@ func fuzzHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	name := v["name"]
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.FrontEnd.SkiaVersion.Hash, name, name))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.Common.SkiaVersion.Hash, name, name))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fuzz not found")
 		return
@@ -403,7 +412,7 @@ func metadataHandler(w http.ResponseWriter, r *http.Request) {
 	name := v["name"]
 	hash := strings.Split(name, "_")[0]
 
-	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.FrontEnd.SkiaVersion.Hash, hash, name))
+	contents, err := gs.FileContentsFromGS(storageClient, config.GS.Bucket, fmt.Sprintf("%s/%s/bad/%s/%s", category, config.Common.SkiaVersion.Hash, hash, name))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Fuzz metadata not found")
 		return
@@ -438,9 +447,9 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 		Pending: nil,
 	}
 
-	if config.FrontEnd.SkiaVersion != nil {
-		s.Current.Hash = config.FrontEnd.SkiaVersion.Hash
-		s.Current.Author = config.FrontEnd.SkiaVersion.Author
+	if config.Common.SkiaVersion != nil {
+		s.Current.Hash = config.Common.SkiaVersion.Hash
+		s.Current.Author = config.Common.SkiaVersion.Author
 		if versionWatcher != nil {
 			if pending := versionWatcher.PendingVersion; pending != nil {
 				s.Pending = &commit{
@@ -465,7 +474,7 @@ func newBugHandler(w http.ResponseWriter, r *http.Request) {
 	p := issues.IssueReportingPackage{
 		Category:       category,
 		FuzzName:       name,
-		CommitRevision: config.FrontEnd.SkiaVersion.Hash,
+		CommitRevision: config.Common.SkiaVersion.Hash,
 	}
 	if u, err := issueManager.CreateBadBugURL(p); err != nil {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Problem creating issue link %#v", p))

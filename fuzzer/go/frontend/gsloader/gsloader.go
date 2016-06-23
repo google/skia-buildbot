@@ -19,9 +19,9 @@ import (
 // an error is returned.  We do not need to deduplicate on extraction because
 // the fuzzes were deduplicated on storage.
 func LoadFromBoltDB(cache *fuzzcache.FuzzReportCache) error {
-	glog.Infof("Looking into cache for revision %s", config.FrontEnd.SkiaVersion.Hash)
+	glog.Infof("Looking into cache for revision %s", config.Common.SkiaVersion.Hash)
 	for _, category := range common.FUZZ_CATEGORIES {
-		if staging, err := cache.LoadTree(category, config.FrontEnd.SkiaVersion.Hash); err != nil {
+		if staging, err := cache.LoadTree(category, config.Common.SkiaVersion.Hash); err != nil {
 			return fmt.Errorf("Problem decoding existing from bolt db: %s", err)
 		} else {
 			data.SetStaging(category, *staging)
@@ -52,7 +52,7 @@ func New(s *storage.Client, c *fuzzcache.FuzzReportCache) *GSLoader {
 // Upon completion, the full results are cached to a boltDB instance and moved from staging
 // to the current copy.
 func (g *GSLoader) LoadFreshFromGoogleStorage() error {
-	revision := config.FrontEnd.SkiaVersion.Hash
+	revision := config.Common.SkiaVersion.Hash
 	data.ClearStaging()
 	fuzzNames := make([]string, 0, 100)
 
@@ -85,7 +85,7 @@ func (g *GSLoader) LoadFreshFromGoogleStorage() error {
 // and loads them into memory (as staging).  After loading them, it updates the cache
 // and moves them from staging to the current copy.
 func (g *GSLoader) LoadFuzzesFromGoogleStorage(whitelist []string) error {
-	revision := config.FrontEnd.SkiaVersion.Hash
+	revision := config.Common.SkiaVersion.Hash
 	data.StagingFromCurrent()
 	sort.Strings(whitelist)
 
