@@ -29,6 +29,13 @@
      "body": "",
      "mimetype": ""
    },
+   "debugger": {
+     "url": "https://debugger.skia.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
    "skiaperf": {
      "url": "https://perf.skia.org",
      "method": "GET",
