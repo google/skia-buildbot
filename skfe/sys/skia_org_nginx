@@ -314,13 +314,12 @@ server {
 
     location / {
         proxy_pass http://skia-monitoring:10117;
+        # Skolo public IP
+        allow 172.23.215.237/32;
+         # Golo public IP
+        allow 74.125.248.64/27;
+        deny  all;
     }
-}
-
-server {
-    listen      80;
-    server_name metrics.skia.org;
-    return 301 https://metrics.skia.org$request_uri;
 }
 
 
@@ -578,7 +577,7 @@ server {
     return 301 https://bugs.skia.org$request_uri;
 }
 
-#####   code.skia.org (REDIRECT)   ########################### 
+#####   code.skia.org (REDIRECT)   ###########################
 server {
     listen 443;
 
