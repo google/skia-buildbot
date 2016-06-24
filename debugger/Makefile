@@ -11,7 +11,9 @@ VULCANIZE1=true
 
 .PHONY: build
 build: elements_html core_js
-	go install -v ./go/skdebugger ./go/fakedebugger
+	go install -v ./go/skdebugger
+	go install -v ./go/fakedebugger
+	go install -v ../go/buildskia/skia_build
 
 # Build debug versions of core.js and elements.html.
 .PHONY: debug
