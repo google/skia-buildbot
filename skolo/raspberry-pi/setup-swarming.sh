@@ -20,7 +20,7 @@ chown chrome-bot:chrome-bot /home/chrome-bot/.boto
 
 # This took a very long time for me.  Maybe just a fluke
 apt-get update
-apt-get install libusb-1.0-0-dev libssl-dev openssl time build-essential swig python-m2crypto ntpdate python-pip git android-tools-adb
+apt-get install libusb-1.0-0-dev libssl-dev openssl time build-essential swig python-m2crypto ntpdate python-pip git android-tools-adb collectd --no-install-recommends
 
 # Now to setup python-adb in /opt/adb
 cd /opt

@@ -30,6 +30,9 @@
     - name: Fixing udev rules for Android and NVIDIA devices
       copy: src=udev-rules dest=/opt/raspberrypi/root/etc/udev/rules.d/51-android.rules owner=root group=root mode=0644
 
+    - name: Configuring collectd
+      copy: src=collectd.conf dest=/opt/raspberrypi/root/etc/collectd/collectd.conf owner=root group=root mode=0644
+
    # Some niceties
     - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias l='ls -CF'" state=present
     - lineinfile: dest=/opt/raspberrypi/root/etc/profile line="alias la='ls -A'" state=present

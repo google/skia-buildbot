@@ -23,12 +23,20 @@
       apt: name=nfs-kernel-server
     - name: Install SSHPass
       apt: name=sshpass
+    - name: Install collectd, without the JDK
+      apt: name=collectd install_recommends=no
 
      # Create some directories that will be used by mounting image and pulld
     - file: path=/opt/raspberrypi mode=0775 state=directory
     - file: path=/var/log/logserver mode=0777 state=directory
     - file: path=/var/pulld mode=0777 state=directory
     - file: path=/opt/rpi_img mode=0777 state=directory
+
+    - name: Get collectd config situated
+      copy: src=collectd.conf dest=/etc/collectd/collectd.conf owner=root group=root mode=0644
+
+    - name: Start collectd
+      service: name=collectd state=restarted enabled=true
 
     - name: make nfs sharing rule
       lineinfile: dest=/etc/exports line="/opt/raspberrypi/root {{net}}/24(ro,sync,no_root_squash,no_subtree_check)"
