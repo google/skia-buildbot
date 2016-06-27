@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -23,6 +27,7 @@ import (
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/util"
 )
 
 // flags
@@ -83,6 +88,77 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		co.ServeHTTP(w, r)
+	}
+}
+
+// loadHandler allows an SKP available on the open web to be downloaded into
+// skiaserve for debugging.
+//
+// Expects a single query parameter of "url" that contains the URL of the SKP
+// to download.
+func loadHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if login.LoggedInAs(r) == "" {
+		if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
+			glog.Errorf("Failed to expand template: %s", err)
+		}
+		return
+	}
+
+	// Load the SKP from the given query parameter.
+	resp, err := http.Get(r.FormValue("url"))
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to retrieve the SKP.")
+		return
+	}
+	if resp.StatusCode != 200 {
+		httputils.ReportError(w, r, err, "Failed to retrieve the SKP, bad status code.")
+		return
+	}
+	defer util.Close(r.Body)
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to read body.")
+		return
+	}
+
+	// Now package that SKP up in the multipart/form-file that skiaserve expects.
+	body := &bytes.Buffer{}
+	multipartWriter := multipart.NewWriter(body)
+	formFile, err := multipartWriter.CreateFormFile("file", "file.skp")
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to create new multipart/form-file object to pass to skiaserve.")
+		return
+	}
+	if _, err := formFile.Write(b); err != nil {
+		httputils.ReportError(w, r, err, "Failed to copy SKP into multipart/form-file object to pass to skiaserve.")
+		return
+	}
+	if err := multipartWriter.Close(); err != nil {
+		httputils.ReportError(w, r, err, "Failed to close new multipart/form-file object to pass to skiaserve.")
+		return
+	}
+
+	// POST the image down to skiaserve.
+	req, err := http.NewRequest("POST", "/new", body)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to create new request object to pass to skiaserve.")
+		return
+	}
+	// Copy over cookies so the request is authenticated.
+	for _, c := range r.Cookies() {
+		req.AddCookie(c)
+	}
+	req.Header.Set("Content-Type", fmt.Sprintf("multipart/form-data; boundary=%s", multipartWriter.Boundary()))
+	rec := httptest.NewRecorder()
+	co.ServeHTTP(rec, req)
+	if rec.Code >= 400 {
+		httputils.ReportError(w, r, fmt.Errorf("Bad status from SKP upload: Status %d Body %q", rec.Code, rec.Body.String()), "Failed to upload SKP.")
+	} else {
+		http.Redirect(w, r, "/", 303)
 	}
 }
 
@@ -172,6 +248,7 @@ func main() {
 	router := mux.NewRouter()
 	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))
 	router.HandleFunc("/", mainHandler)
+	router.HandleFunc("/loadfrom", loadHandler)
 	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
