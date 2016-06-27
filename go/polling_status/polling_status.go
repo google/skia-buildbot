@@ -39,12 +39,12 @@ func NewPollingStatus(poll func() (interface{}, error), frequency time.Duration)
 }
 
 func (s *PollingStatus) poll() error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
 	v, err := s.pollFn()
 	if err != nil {
 		return err
 	}
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	s.value = v
 	return nil
 }
