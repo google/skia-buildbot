@@ -11,32 +11,34 @@
     sk.post = function(url, body) {
       return new Promise(function (resolve, reject) {
         var data = JSON.parse(body);
-        if (!data["builders"] || data["builders"].length < 1) {
-          reject("No builders specified!");
-        } else if (!data["commit"] || data["commit"].length != 40) {
-          reject("No valid commit specified!");
-        } else {
-          var result = [];
-          for (var i = 0; i < data["builders"].length; ++i) {
-            result.push({
-              "bucket": "client.skia", 
-              "completed_ts": "", 
-              "created_by": "", 
-              "created_ts": "", 
-              "failure_reason": "", 
-              "id": "ID:" + data["builders"][i],
-              "parameters_json": "", 
-              "result": "", 
-              "result_details_json": "", 
-              "status": "", 
-              "status_changed_ts": "", 
-              "updated_ts": "", 
-              "url": "", 
-              "utcnow_ts": ""
-            });
+        setTimeout(function() {
+          if (!data["builders"] || data["builders"].length < 1) {
+            reject("No builders specified!");
+          } else if (!data["commit"] || data["commit"].length != 40) {
+            reject("No valid commit specified!");
+          } else {
+            var result = [];
+            for (var i = 0; i < data["builders"].length; ++i) {
+              result.push({
+                "bucket": "client.skia", 
+                "completed_ts": "", 
+                "created_by": "", 
+                "created_ts": "", 
+                "failure_reason": "", 
+                "id": "ID:" + data["builders"][i],
+                "parameters_json": "", 
+                "result": "", 
+                "result_details_json": "", 
+                "status": "", 
+                "status_changed_ts": "", 
+                "updated_ts": "", 
+                "url": "", 
+                "utcnow_ts": ""
+              });
+            }
+            resolve(JSON.stringify(result));
           }
-          resolve(JSON.stringify(result));
-        }
+        }, 3000);
       });
     }
   </script>
@@ -92,5 +94,8 @@
   <h1>build-trigger-sk demo</h1>
   <build-trigger-demo></build-trigger-demo>
   <error-toast-sk></error-toast-sk>
+
+  <h1>immediate trigger demo</h1>
+  <a href="/build-trigger-sk-demo.html?builder=Build-Mac-Clang-Arm7-Debug-Android&commit=1d20258360a7fc0fac86a8a1ec8ad5016100f7d6&submit=true" target="_blank">Click here to trigger a build</a>
 </body>
 </html>
