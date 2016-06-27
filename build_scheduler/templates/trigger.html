@@ -1,0 +1,22 @@
+{{template "header.html"}}
+
+<h2>Trigger Builds</h2>
+<build-trigger-sk id="trigger_sk"></build-trigger-sk>
+
+<script>
+// Add builder and commit lists from the server to the build-trigger-sk.
+var bt = document.getElementById("trigger_sk");
+bt.builders = [
+  {{range .Builders}}
+  "{{.}}",
+  {{end}}
+];
+bt.commits = [
+  {{range .Commits}}
+  "{{.}}",
+  {{end}}
+];
+
+</script>
+
+{{template "footer.html"}}

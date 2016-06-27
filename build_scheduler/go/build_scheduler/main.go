@@ -4,24 +4,25 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"html/template"
 	"net/http"
 	"path"
+	"path/filepath"
 	"regexp"
-	"sort"
-	"sync"
-	"time"
+	"runtime"
 
+	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/build_queue"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/skiaversion"
 )
 
 const (
@@ -59,9 +60,20 @@ var (
 		common.REPO_SKIA_INFRA,
 	}
 
+	// HTML templates.
+	mainTemplate    *template.Template = nil
+	triggerTemplate *template.Template = nil
+
+	// Build Scheduler instance.
+	bs *BuildScheduler
+
 	// Flags.
 	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
+	host           = flag.String("host", "localhost", "HTTP service host")
+	port           = flag.String("port", ":8000", "HTTP service port (e.g., ':8000')")
+	useMetadata    = flag.Bool("use_metadata", true, "Load sensitive values from metadata not from flags.")
 	local          = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")
+	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	scoreDecay24Hr = flag.Float64("scoreDecay24Hr", 0.9, "Build candidate scores are penalized using exponential time decay, starting at 1.0. This is the desired value after 24 hours. Setting it to 1.0 causes commits not to be prioritized according to commit time.")
 	scoreThreshold = flag.Float64("scoreThreshold", build_queue.DEFAULT_SCORE_THRESHOLD, "Don't schedule builds with scores below this threshold.")
 	timePeriod     = flag.String("timePeriod", "4d", "Time period to use.")
@@ -73,140 +85,112 @@ var (
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
-// jsonGet fetches the given URL and decodes JSON into the given destination object.
-func jsonGet(url string, rv interface{}) error {
-	resp, err := http.Get(url)
-	if err != nil {
-		return fmt.Errorf("Failed to GET %s: %v", url, err)
+func reloadTemplates() {
+	// Change the current working directory to two directories up from this source file so that we
+	// can read templates and serve static (res/) files.
+	if *resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
-	defer util.Close(resp.Body)
-	if err := json.NewDecoder(resp.Body).Decode(rv); err != nil {
-		return fmt.Errorf("Failed to decode JSON: %v", err)
-	}
-	return nil
+	mainTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/main.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/footer.html"),
+	))
+	triggerTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/trigger.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/footer.html"),
+	))
 }
 
-type buildslaveSlice []*buildbot.BuildSlave
-
-func (s buildslaveSlice) Len() int           { return len(s) }
-func (s buildslaveSlice) Less(i, j int) bool { return s[i].Name < s[j].Name }
-func (s buildslaveSlice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-
-// getFreeBuildslaves returns a slice of names of buildslaves which are free.
-func getFreeBuildslaves() ([]*buildbot.BuildSlave, error) {
-	errMsg := "Failed to get free buildslaves: %v"
-	// Get the set of builders for each master.
-	builders, err := buildbot.GetBuilders()
-	if err != nil {
-		return nil, fmt.Errorf(errMsg, err)
-	}
-
-	// Get the set of buildslaves for each master.
-	slaves, err := buildbot.GetBuildSlaves()
-	if err != nil {
-		return nil, fmt.Errorf(errMsg, err)
-	}
-	// Flatten the buildslaves list.
-	buildslaves := map[string]*buildbot.BuildSlave{}
-	for _, slavesMap := range slaves {
-		for slavename, slaveobj := range slavesMap {
-			buildslaves[slavename] = slaveobj
-		}
-	}
-
-	// Empty the buildslaves' Builders lists and only include builders not
-	// in the blacklist.
-	for _, bs := range buildslaves {
-		bs.Builders = map[string][]int{}
-	}
-
-	// Map the builders to buildslaves.
-	for _, b := range builders {
-		// Only include builders in the whitelist, and those only if
-		// there are no already-pending builds.
-		if !util.AnyMatch(BOT_BLACKLIST, b.Name) && b.PendingBuilds == 0 {
-			for _, slave := range b.Slaves {
-				buildslaves[slave].Builders[b.Name] = nil
-			}
-		}
-	}
-
-	// Return the builders which are connected and idle.
-	rv := []*buildbot.BuildSlave{}
-	for _, s := range buildslaves {
-		if len(s.RunningBuilds) == 0 && s.Connected {
-			rv = append(rv, s)
-		}
-	}
-	return rv, nil
+func Init() {
+	reloadTemplates()
 }
 
-// scheduleBuilds finds builders with no pending builds, pops the
-// highest-priority builds for each from the queue, and requests builds using
-// buildbucket.
-func scheduleBuilds(q *build_queue.BuildQueue, bb *buildbucket.Client) error {
-	errMsg := "Failed to schedule builds: %v"
+func mainHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
 
-	// Get the list of idle buildslaves, update the BuildQueue.
-	var wg sync.WaitGroup
-	var free []*buildbot.BuildSlave
-	var freeErr error
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		free, freeErr = getFreeBuildslaves()
-	}()
-
-	var updateErr error
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		updateErr = q.Update()
-	}()
-
-	wg.Wait()
-	if updateErr != nil {
-		return fmt.Errorf(errMsg, updateErr)
+	// Don't use cached templates in testing mode.
+	if *local {
+		reloadTemplates()
 	}
-	if freeErr != nil {
-		return fmt.Errorf(errMsg, freeErr)
+	var page struct{}
+	if err := mainTemplate.Execute(w, page); err != nil {
+		httputils.ReportError(w, r, err, "Failed to execute template.")
+		return
+	}
+}
+
+func triggerHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *local {
+		reloadTemplates()
+	}
+	page := struct {
+		Builders []string
+		Commits  []string
+	}{
+		Builders: bs.Builders(),
+		Commits:  bs.Commits(),
+	}
+	if err := triggerTemplate.Execute(w, page); err != nil {
+		httputils.ReportError(w, r, err, "Failed to execute template.")
+		return
+	}
+}
+
+func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if !login.IsAGoogler(r) {
+		errStr := "Cannot trigger builds; user is not a logged-in Googler."
+		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
+		return
 	}
 
-	// Sort the list of idle buildslaves, for saner log viewing.
-	sort.Sort(buildslaveSlice(free))
+	var msg struct {
+		Builders []string `json:"builders"`
+		Commit   string   `json:"commit"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		return
+	}
 
-	// Schedule builds on free buildslaves.
-	errs := []error{}
-	glog.Infof("Free buildslaves:")
-	for _, s := range free {
-		glog.Infof("\t%s", s.Name)
-		builders := make([]string, 0, len(s.Builders))
-		for b, _ := range s.Builders {
-			builders = append(builders, b)
-		}
-		build, err := q.Pop(builders)
-		if err == build_queue.ERR_EMPTY_QUEUE {
-			continue
-		}
-		if *local {
-			glog.Infof("Would schedule: %s @ %s, score = %0.3f", build.Builder, build.Commit[0:7], build.Score)
-		} else {
-			scheduled, err := bb.RequestBuild(build.Builder, s.Master, build.Commit, build.Repo, build.Author)
-			if err != nil {
-				errs = append(errs, err)
-			} else {
-				glog.Infof("Scheduled: %s @ %s, score = %0.3f, id = %s", build.Builder, build.Commit[0:7], build.Score, scheduled.Id)
-			}
-		}
+	triggered, err := bs.Trigger(msg.Builders, msg.Commit)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to trigger builds.")
+		return
 	}
-	if len(errs) > 0 {
-		errString := "Got errors when scheduling builds:"
-		for _, err := range errs {
-			errString += fmt.Sprintf("\n%v", err)
-		}
-		return fmt.Errorf(errString)
+	// Return info about the triggered builds.
+	for _, b := range triggered {
+		glog.Infof("    %s", b.Id)
 	}
-	return nil
+
+	if err := json.NewEncoder(w).Encode(triggered); err != nil {
+		httputils.ReportError(w, r, err, "Failed to encode response.")
+		return
+	}
+}
+
+func runServer(serverURL string) {
+	r := mux.NewRouter()
+	// TODO(borenet): Implement a statusy main page.
+	//r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/trigger", triggerHandler)
+	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods("POST")
+	r.HandleFunc("/json/version", skiaversion.JsonHandler)
+	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
+
+	r.HandleFunc("/logout/", login.LogoutHandler)
+	r.HandleFunc("/loginstatus/", login.StatusHandler)
+	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+
+	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
+	glog.Infof("Ready to serve on %s", serverURL)
+	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
 func main() {
@@ -214,6 +198,14 @@ func main() {
 
 	// Global init.
 	common.InitWithMetrics2(APP_NAME, influxHost, influxUser, influxPassword, influxDatabase, local)
+
+	Init()
+
+	v, err := skiaversion.GetVersion()
+	if err != nil {
+		glog.Fatal(err)
+	}
+	glog.Infof("Version %s, built at %s", v.Commit, v.Date)
 
 	// Parse the time period.
 	period, err := human.ParseDuration(*timePeriod)
@@ -234,28 +226,17 @@ func main() {
 	}
 	bb := buildbucket.NewClient(c)
 
-	// Build the queue.
-	repos := gitinfo.NewRepoMap(*workdir)
-	for _, r := range REPOS {
-		if _, err := repos.Repo(r); err != nil {
-			glog.Fatal(err)
-		}
+	serverURL := "https://" + *host
+	if *local {
+		serverURL = "http://" + *host + *port
 	}
-	q, err := build_queue.NewBuildQueue(period, repos, *scoreThreshold, *scoreDecay24Hr, BOT_BLACKLIST, db)
-	if err != nil {
+
+	var redirectURL = serverURL + "/oauth2callback/"
+	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
 		glog.Fatal(err)
 	}
 
-	// Start scheduling builds in a loop.
-	liveness := metrics2.NewLiveness("time-since-last-successful-scheduling", nil)
-	if err := scheduleBuilds(q, bb); err != nil {
-		glog.Errorf("Failed to schedule builds: %v", err)
-	}
-	for _ = range time.Tick(time.Minute) {
-		if err := scheduleBuilds(q, bb); err != nil {
-			glog.Errorf("Failed to schedule builds: %v", err)
-		} else {
-			liveness.Reset()
-		}
-	}
+	bs = StartNewBuildScheduler(period, *scoreThreshold, *scoreDecay24Hr, db, bb, *workdir, *local)
+
+	runServer(serverURL)
 }

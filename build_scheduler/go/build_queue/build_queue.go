@@ -71,14 +71,16 @@ func (s BuildCandidateSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 // BuildQueue is a struct which contains a priority queue for builders and
 // commits.
 type BuildQueue struct {
-	botBlacklist   []*regexp.Regexp
-	db             buildbot.DB
-	lock           sync.RWMutex
-	period         time.Duration
-	scoreThreshold float64
-	queue          map[string][]*BuildCandidate
-	repos          *gitinfo.RepoMap
-	timeLambda     float64
+	botBlacklist     []*regexp.Regexp
+	db               buildbot.DB
+	lock             sync.RWMutex
+	period           time.Duration
+	scoreThreshold   float64
+	queue            map[string][]*BuildCandidate
+	recentCommits    []string
+	recentCommitsMtx sync.RWMutex
+	repos            *gitinfo.RepoMap
+	timeLambda       float64
 }
 
 // NewBuildQueue creates and returns a BuildQueue instance which considers
@@ -111,14 +113,16 @@ func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold,
 		return nil, fmt.Errorf("Time penalty must be 0 < p <= 1")
 	}
 	q := &BuildQueue{
-		botBlacklist:   botBlacklist,
-		db:             db,
-		lock:           sync.RWMutex{},
-		period:         period,
-		scoreThreshold: scoreThreshold,
-		queue:          map[string][]*BuildCandidate{},
-		repos:          repos,
-		timeLambda:     lambda(timeDecay24Hr),
+		botBlacklist:     botBlacklist,
+		db:               db,
+		lock:             sync.RWMutex{},
+		period:           period,
+		scoreThreshold:   scoreThreshold,
+		queue:            map[string][]*BuildCandidate{},
+		recentCommits:    []string{},
+		recentCommitsMtx: sync.RWMutex{},
+		repos:            repos,
+		timeLambda:       lambda(timeDecay24Hr),
 	}
 	return q, nil
 }
@@ -146,6 +150,20 @@ func scoreBuild(commit *vcsinfo.LongCommit, build *buildbot.Build, now time.Time
 		}
 	}
 	return s * timeFactor(now, commit.Timestamp, timeLambda)
+}
+
+// RecentCommits returns a list of recent commit hashes.
+func (q *BuildQueue) RecentCommits() []string {
+	q.recentCommitsMtx.RLock()
+	defer q.recentCommitsMtx.RUnlock()
+	return q.recentCommits
+}
+
+// setRecentCommits sets the list of recent commit hashes.
+func (q *BuildQueue) setRecentCommits(c []string) {
+	q.recentCommitsMtx.Lock()
+	defer q.recentCommitsMtx.Unlock()
+	q.recentCommits = c
 }
 
 // Update retrieves the set of commits over a time period and the builds
@@ -218,6 +236,7 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 		from = time.Unix(0, 0)
 	}
 	recentCommitsList := util.Reverse(repo.From(from))
+	q.setRecentCommits(recentCommitsList)
 	recentCommits := make([]*vcsinfo.LongCommit, 0, len(recentCommitsList))
 	for _, h := range recentCommitsList {
 		details, err := repo.Details(h, true)

@@ -1,0 +1,126 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <build-trigger-sk>
+
+  A ui for selecting builders and commits for triggering builds.
+
+  To use this file import it:
+
+    <link href="/res/imp/build-trigger-sk.html" rel="import" />
+
+  Usage:
+
+    <build-trigger-sk></build-trigger-sk>
+
+  Properties:
+    // input
+    builders: Array<String> the names of the available builders.
+    commits: Array<String> commit hashes.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/res/common/imp/9/autocomplete-input-sk.html">
+<link rel="import" href="/res/common/imp/9/input-list-sk.html">
+<link rel="import" href="/res/common/imp/9/url-params-sk.html">
+
+<dom-module id="build-trigger-sk">
+  <template>
+    <style>
+    .container {
+      margin: 5px;
+      padding: 10px;
+      border: 1px solid #eeeeee;
+      font-size: 12px;
+    }
+    h2 {
+      font-size: 16px;
+    }
+    #triggered_container.hide {
+      display: none;
+    }
+    </style>
+    <url-param-sk name="builder" value="{{_selected_builders}}" default="[]" multi></url-param-sk>
+    <url-param-sk name="commit" value="{{_selected_commit}}" default=""></url-param-sk>
+    <input-list-sk
+        autocomplete="[[builders]]"
+        id="builders_input"
+        heading="Builders"
+        values="{{_selected_builders}}"></input-list-sk>
+    <div class="container">
+      <h2>Commit</h2>
+      <autocomplete-input-sk
+          autocomplete="[[commits]]"
+          id="commit_input"
+          value="{{_selected_commit}}"></autocomplete-input-sk>
+    </div>
+    <paper-button on-click="_trigger_builds" raised>Trigger Builds</paper-button>
+    <div id="triggered_container" class$="[[_compute_triggered_container_class(_triggered)]]">
+      <h2>Triggered Builds</h2>
+      <template is="dom-repeat" items="[[_triggered]]">
+        <div class="triggered_build">
+          <a href="{{item.url}}">{{item.id}}</a>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script>
+  (function(){
+    Polymer({
+      is: "build-trigger-sk",
+
+      properties: {
+        builders: {
+          type: Array,
+        },
+        commits: {
+          type: Array,
+        },
+        _selected_builders: {
+          type: Array,
+        },
+        _selected_commit: {
+          type: String,
+        },
+        _triggered: {
+          type: Array,
+          value: function() {
+            return [];
+          },
+        },
+      },
+
+      _compute_triggered_container_class: function(triggered) {
+        if (triggered && triggered.length > 0) {
+          return "container";
+        }
+        return "hide";
+      },
+
+      _trigger_builds: function() {
+        var data = {
+          "builders": this._selected_builders,
+          "commit": this._selected_commit,
+        };
+        var str = JSON.stringify(data);
+        sk.post("/json/trigger", str).then(function(resp) {
+          this._selected_builders = [];
+          this._selected_commit = [];
+          this._triggered = JSON.parse(resp);
+        }.bind(this), function(err) {
+          sk.errorMessage(err);
+        });
+      },
+    });
+  })();
+  </script>
+</dom-module>
+

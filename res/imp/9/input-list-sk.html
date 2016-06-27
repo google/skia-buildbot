@@ -13,6 +13,7 @@
     <input-list-sk></input-list-sk>
 
   Properties:
+    autocomplete: Array<String> values for auto-completing.
     heading: String, the heading to display
     values: Array<String> Any typed in values
 
@@ -23,14 +24,11 @@
     None.
 -->
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
-<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
-<link rel="import" href="/res/imp/bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="/res/imp/bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="/res/imp/bower_components/paper-item/paper-item.html">
 <link rel="import" href="/res/imp/bower_components/paper-icon-button/paper-icon-button.html">
-<link rel="import" href="/res/imp/bower_components/paper-radio-button/paper-radio-button.html">
-<link rel="import" href="/res/imp/bower_components/paper-radio-group/paper-radio-group.html">
 
+<link rel="import" href="/res/common/imp/9/autocomplete-input-sk.html">
 <link rel="import" href="/res/common/imp/9/url-params-sk.html">
 
 <dom-module id="input-list-sk">
@@ -62,7 +60,11 @@
           <paper-icon-button icon="clear" value="{{value}}" on-click="_valueDeleted"></paper-icon-button>
         </div>
       </template>
-      <paper-input id="new" label="Enter a pattern" on-change="_newValueEntered" no-label-float></paper-input>
+      <autocomplete-input-sk
+          autocomplete="[[autocomplete]]"
+          id="new"
+          on-change="_newValueEntered"
+          ></autocomplete-input-sk>
     </div>
 
   </template>
@@ -72,6 +74,10 @@
       is:"input-list-sk",
 
       properties: {
+        autocomplete: {
+          type: Array,
+        },
+
         heading: {
           type: String,
         },
@@ -102,6 +108,7 @@
         var v = this.$.new.value;
         this.$.new.value = "";
         this.addValue(v);
+        this.suggestions = [];
       },
 
       _valueDeleted: function(e,d,s) {

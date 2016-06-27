@@ -1,0 +1,98 @@
+<html>
+<head>
+  <title>autocomplete-input-sk demo</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
+  <script src="/res/common/js/common.js"></script>
+  <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="autocomplete-input-sk.html">
+</head>
+<body>
+<dom-module id="autocomplete-input-demo">
+  <template>
+    <autocomplete-input-sk
+        id="input"
+        label="US States"
+        value="{{value}}"
+        autocomplete="[[autocomplete]]"
+        on-change="_change"
+        ></autocomplete-input-sk>
+  </template>
+  <script>
+  Polymer({
+    is: 'autocomplete-input-demo',
+
+    properties: {
+      autocomplete: {
+        type: Array,
+        value: function() {
+          return [
+            "Alabama",
+            "Alaska",
+            "Arizona",
+            "Arkansas",
+            "California",
+            "Colorado",
+            "Connecticut",
+            "Delaware",
+            "Florida",
+            "Georgia",
+            "Hawaii",
+            "Idaho",
+            "Illinois",
+            "Indiana",
+            "Iowa",
+            "Kansas",
+            "Kentucky",
+            "Louisiana",
+            "Maine",
+            "Maryland",
+            "Massachusetts",
+            "Michigan",
+            "Minnesota",
+            "Mississippi",
+            "Missouri",
+            "Montana",
+            "Nebraska",
+            "Nevada",
+            "New Hampshire",
+            "New Jersey",
+            "New Mexico",
+            "New York",
+            "North Carolina",
+            "North Dakota",
+            "Ohio",
+            "Oklahoma",
+            "Oregon",
+            "Pennsylvania",
+            "Rhode Island",
+            "South Carolina",
+            "South Dakota",
+            "Tennessee",
+            "Texas",
+            "Utah",
+            "Vermont",
+            "Virginia",
+            "Washington",
+            "West Virginia",
+            "Wisconsin",
+            "Wyoming",
+          ];
+        },
+      },
+      value: {
+        type: String,
+      },
+    },
+    _change: function() {
+      console.log("on-change fired: " + this.value);
+    },
+  });
+  </script>
+</dom-module>
+
+<h1>autocomplete-input-sk demo</h1>
+<autocomplete-input-demo></autocomplete-input-demo>
+</body>
+</html>

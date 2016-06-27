@@ -1,0 +1,24 @@
+{
+  "name": "imp",
+  "version": "0.0.0",
+  "authors": [],
+  "description": "Polymer 1.0 Elements for Build Scheduler",
+  "license": "https://github.com/google/skia/blob/master/LICENSE",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.2.3",
+    "iron-elements": "PolymerElements/iron-elements#~1.0.0",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.3.0",
+    "paper-elements": "PolymerElements/paper-elements#~1.0.0",
+    "wcstamp": "~1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^1.0.0"
+  }
+}
