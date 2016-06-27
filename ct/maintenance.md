@@ -52,13 +52,21 @@ Prober config is in ../prober/probers.json. Alerts config is in
 
 ### Frontend
 
-To set up or upgrade the CTFE DB, run `make ctfe && ctfe_migratedb
---ctfe_db_host=localhost --logtostderr --ctfe_db_user=root --local=true`.
+To set up or upgrade the CTFE DB, run
+
+```
+make ctfe && ctfe_migratedb --local=true \
+  --logtostderr \
+  --ctfe_db_host=localhost \
+  --ctfe_db_user=root
+```
+
 Occasionally you may find it useful to downgrade the local DB; specify the
 `--target_version` flag to achieve this. Run `mysql -u root -D ctfe` to access
 the DB using SQL.
 
 To start a local server, run:
+
 ```
 make ctfe_debug && ctfe --local=true \
   --logtostderr \
@@ -69,6 +77,7 @@ make ctfe_debug && ctfe --local=true \
   --influxdb_host=localhost:10117 \
   --influxdb_database=skmetrics
 ```
+
 You can then access the server at [localhost:8000](http://localhost:8000/) or
 <your hostname\>.cnc.corp.google.com:8000.
 

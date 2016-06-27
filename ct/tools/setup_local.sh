@@ -15,7 +15,7 @@ set -e
 
 echo "Installing debs..."
 sudo apt-get update
-sudo apt-get -y install linux-tools python-django libgif-dev lua5.2 && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod
+sudo apt-get -y install linux-tools-generic python-django libgif-dev lua5.2 && sudo easy_install -U pip && sudo pip install setuptools --no-use-wheel --upgrade && sudo pip install -U crcmod
 
 echo "Creating /usr/local/google/cluster-telemetry/b and linking to /b..."
 mkdir -p /usr/local/google/cluster-telemetry/b
@@ -87,7 +87,7 @@ set +x
 echo
 echo "The setup script has completed! Manual steps required:"
 echo
-echo " - Go to https://pantheon.corp.google.com/project/31977622648/apiui/credential/oauthclient/31977622648-utchjftf485h6q7fih17jdl7pusqabc4.apps.googleusercontent.com, click Download JSON, and save it to /b/storage/client_secret.json."
+echo " - Go to https://pantheon.corp.google.com/apis/credentials/oauthclient/31977622648-ubjke2f3staq6ouas64r31h8f8tcbiqp.apps.googleusercontent.com?project=google.com:skia-buildbots, click Download JSON, and save it to /b/storage/client_secret.json."
 echo " - Run a master script from the command line to set up Gmail and Google Storage authorization tokens."
 echo "     Here is an example of running a master script:"
 echo '     $ cd /b/skia-repo/go/src/go.skia.org/infra/ct'
