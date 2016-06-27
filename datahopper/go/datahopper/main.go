@@ -292,7 +292,6 @@ func main() {
 					glog.Error(err)
 					continue
 				}
-				glog.Infof("Bot: %s - Last seen %s ago", bot.BotId, now.Sub(last))
 
 				tags := map[string]string{
 					"bot": bot.BotId,
