@@ -1,0 +1,114 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <build-scheduler-status-sk>
+
+  Status information about the build scheduler.
+
+  To use this file import it:
+
+    <link href="/res/imp/build-scheduler-status-sk.html" rel="import" />
+
+  Usage:
+
+    <build-scheduler-status-sk></build-scheduler-status-sk>
+
+  Properties:
+    // input
+    last_scheduled: String, Time of the last build scheduling
+    top_candidates: Array of Objects indicating the next candidates for scheduling:
+        Author: String, commit author
+        Commit: String, commit hash
+        Builder: String, builder name
+        Repo: String, Repository in which the given commit lives
+        Score: Number, score of the build candidate
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/common/imp/9/human-date-sk.html">
+
+<dom-module id="build-scheduler-status-sk">
+  <template>
+    <style>
+    :host {
+      font-family: sans-serif;
+    }
+    .table {
+      border-collapse: collapse;
+      display: table;
+    }
+    .tr {
+      border-bottom: 1px solid #EEEEEE;
+      display: table-row;
+    }
+    .tr:hover {
+      background-color: #F5F5F5;
+    }
+    .tr:hover .tr:hover {
+      background-color: #FFFFFF;
+    }
+    .td,.th {
+      display: table-cell;
+      padding: 10px;
+    }
+    .td {
+      color: #212121;
+      font-size: 0.813em;
+    }
+    .th {
+      color: #767676;
+      font-size: 0.75em;
+    }
+    </style>
+    <div class="table">
+      <div class="tr">
+        <div class="td">Last Scheduled</div>
+        <div class="td">
+          <human-date-sk date="[[last_scheduled]]" diff></human-date-sk> ago
+        </div>
+      </div>
+      <div class="tr">
+        <div class="td">Top Candidates</div>
+        <div class="td">
+          <div class="table">
+            <div class="tr">
+              <div class="th">Builder</div>
+              <div class="th">Commit</div>
+              <div class="th">Score</div>
+            </div>
+            <template is="dom-repeat" items="{{top_candidates}}">
+              <div class="tr">
+                <div class="td">{{item.Builder}}</div>
+                <div class="td">{{item.Commit}}</div>
+                <div class="td">{{item.Score}}</div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+  <script>
+  (function(){
+    Polymer({
+      is: "build-scheduler-status-sk",
+
+      properties: {
+        last_scheduled: {
+          type: String,
+        },
+        top_candidates: {
+          type: Array,
+        },
+      },
+    });
+  })();
+  </script>
+</dom-module>
+

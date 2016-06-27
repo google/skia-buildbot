@@ -570,3 +570,22 @@ func (q *BuildQueue) Pop(builders []string) (*BuildCandidate, error) {
 	q.queue[best.Builder] = q.queue[best.Builder][1:len(q.queue[best.Builder])]
 	return best, nil
 }
+
+// TopN returns the top N scored build candidates in the queue.
+func (q *BuildQueue) TopN(n int) []*BuildCandidate {
+	q.lock.RLock()
+	defer q.lock.RUnlock()
+	topN := make([]*BuildCandidate, 0, n)
+	for _, candidates := range q.queue {
+		for _, candidate := range candidates {
+			if len(topN) < n {
+				topN = append(topN, candidate)
+				sort.Sort(sort.Reverse(BuildCandidateSlice(topN)))
+			} else if topN[n-1].Score < candidate.Score {
+				topN[n-1] = candidate
+				sort.Sort(sort.Reverse(BuildCandidateSlice(topN)))
+			}
+		}
+	}
+	return topN
+}

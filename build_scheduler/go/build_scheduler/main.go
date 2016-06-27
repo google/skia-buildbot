@@ -115,8 +115,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-	var page struct{}
-	if err := mainTemplate.Execute(w, page); err != nil {
+	if err := mainTemplate.Execute(w, bs.Status()); err != nil {
 		httputils.ReportError(w, r, err, "Failed to execute template.")
 		return
 	}
@@ -177,8 +176,7 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 
 func runServer(serverURL string) {
 	r := mux.NewRouter()
-	// TODO(borenet): Implement a statusy main page.
-	//r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)

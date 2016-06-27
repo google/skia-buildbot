@@ -1,5 +1,19 @@
 {{template "header.html"}}
 
-<h2>Status Information Here.</h2>
+<h2>Build Scheduler Status</h2>
+<build-scheduler-status-sk id="status_sk"></build-scheduler-status-sk>
 
+<script>
+// Add status information from the server to the build-scheduler-status-sk.
+var elem = document.getElementById("status_sk");
+elem.last_scheduled = {{.LastScheduled}};
+elem.top_candidates = [
+  {{range .TopCandidates}}
+    {"Builder": "{{.Builder}}", "Commit": "{{.Commit}}", "Score": "{{.Score}}"},
+  {{end}}
+];
+
+console.log(elem.last_scheduled);
+console.log(elem.top_candidates);
+</script>
 {{template "footer.html"}}

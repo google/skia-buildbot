@@ -79,6 +79,8 @@ type BuildScheduler struct {
 	local          bool
 	q              *build_queue.BuildQueue
 	repos          *gitinfo.RepoMap
+	status         *BuildSchedulerStatus
+	statusMtx      sync.RWMutex
 }
 
 // Builders returns the known list of builders.
@@ -266,6 +268,10 @@ func (bs *BuildScheduler) scheduleBuilds() error {
 		}
 		return fmt.Errorf(errString)
 	}
+	bs.setStatus(&BuildSchedulerStatus{
+		LastScheduled: time.Now(),
+		TopCandidates: bs.q.TopN(10),
+	})
 	return nil
 }
 
@@ -290,6 +296,11 @@ func StartNewBuildScheduler(period time.Duration, scoreThreshold, scoreDecay24Hr
 		local:          local,
 		q:              q,
 		repos:          repos,
+		status: &BuildSchedulerStatus{
+			LastScheduled: time.Time{},
+			TopCandidates: []*build_queue.BuildCandidate{},
+		},
+		statusMtx: sync.RWMutex{},
 	}
 
 	// Start scheduling builds in a loop.
@@ -307,4 +318,21 @@ func StartNewBuildScheduler(period time.Duration, scoreThreshold, scoreDecay24Hr
 		}
 	}()
 	return bs
+}
+
+func (bs *BuildScheduler) setStatus(status *BuildSchedulerStatus) {
+	bs.statusMtx.Lock()
+	defer bs.statusMtx.Unlock()
+	bs.status = status
+}
+
+func (bs *BuildScheduler) Status() *BuildSchedulerStatus {
+	bs.statusMtx.RLock()
+	defer bs.statusMtx.RUnlock()
+	return bs.status
+}
+
+type BuildSchedulerStatus struct {
+	LastScheduled time.Time                     `json:"last_scheduled"`
+	TopCandidates []*build_queue.BuildCandidate `json:"top_candidates"`
 }
