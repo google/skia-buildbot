@@ -9,9 +9,15 @@ copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=644 -T ./sys/${APPNAME}.service ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service      ${ROOT}/etc/systemd/system/${APPNAME}.service
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/build_scheduler ${ROOT}/usr/local/bin/build_scheduler
-${INSTALL_DIR} --mode=777                         ${ROOT}/mnt/pd0/build_scheduler_workdir
+${INSTALL} --mode=644 -T ./res/js/core.js              ${ROOT}/usr/local/share/build_scheduler/res/js/core.js
+${INSTALL} --mode=644 -T ./res/vul/elements.html       ${ROOT}/usr/local/share/build_scheduler/res/vul/elements.html
+${INSTALL} --mode=644 -T ./templates/footer.html       ${ROOT}/usr/local/share/build_scheduler/templates/footer.html
+${INSTALL} --mode=644 -T ./templates/header.html       ${ROOT}/usr/local/share/build_scheduler/templates/header.html
+${INSTALL} --mode=644 -T ./templates/main.html         ${ROOT}/usr/local/share/build_scheduler/templates/main.html
+${INSTALL} --mode=644 -T ./templates/trigger.html      ${ROOT}/usr/local/share/build_scheduler/templates/trigger.html
+${INSTALL_DIR} --mode=777                              ${ROOT}/mnt/pd0/build_scheduler_workdir
 }
 
 source ../bash/release.sh

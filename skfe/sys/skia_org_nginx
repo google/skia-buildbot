@@ -221,6 +221,31 @@ server {
     return 301 https://autoroll.skia.org$request_uri;
 }
 
+#####   build-scheduler.skia.org   ###########################
+server {
+    listen      443;
+    server_name build-scheduler.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/build-scheduler.access.log;
+    error_log /var/log/nginx/build-scheduler.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://skia-build-scheduler:8000;
+    }
+}
+server {
+    listen      80;
+    server_name build-scheduler.skia.org;
+    return 301 https://build-scheduler.skia.org$request_uri;
+}
+
 #####   catapult-roll.skia.org   ###########################
 server {
     listen      443;
