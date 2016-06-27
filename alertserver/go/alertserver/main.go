@@ -354,7 +354,13 @@ func runServer(serverURL string) {
 func main() {
 	defer common.LogPanic()
 	alertDBConf := alerting.DBConfigFromFlags()
-	common.InitWithMetrics2("alertserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
+	flag.Parse()
+	if !*validateAndExit {
+		common.InitWithMetrics2("alertserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
+	} else {
+		common.Init()
+	}
+
 	v, err := skiaversion.GetVersion()
 	if err != nil {
 		glog.Fatal(err)
@@ -363,7 +369,7 @@ func main() {
 
 	Init()
 	if *validateAndExit {
-		if _, err := rules.MakeRules(*alertsFile, nil, time.Second, nil, *testing); err != nil {
+		if _, err := rules.MakeRules(*alertsFile, nil, time.Second, nil, true); err != nil {
 			glog.Fatalf("Failed to set up rules: %v", err)
 		}
 		return

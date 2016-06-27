@@ -308,6 +308,9 @@ func MakeRules(cfgFile string, dbClient *influxdb.Client, tickInterval time.Dura
 		}
 		rules[r.Name] = r
 	}
+	if testing {
+		return nil, nil
+	}
 
 	// Start the goroutines.
 	rv := make([]*Rule, 0, len(rules))
