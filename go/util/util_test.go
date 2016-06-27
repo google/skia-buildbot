@@ -292,6 +292,12 @@ func TestMD5Hash(t *testing.T) {
 	m_1 := map[string]string{"key1": "val1"}
 	m_2 := map[string]string{}
 	var m_3 map[string]string = nil
+	m_4 := map[string]string{
+		"k3": "v1",
+		"k2": "v2",
+		"k1": "v3",
+		"k4": "v4",
+	}
 
 	h_1, err := MD5Params(m_1)
 	assert.NoError(t, err)
@@ -307,6 +313,23 @@ func TestMD5Hash(t *testing.T) {
 	assert.NotEqual(t, h_1, h_2)
 	assert.NotEqual(t, h_1, h_3)
 	assert.Equal(t, h_2, h_3)
+
+	// Ensure that we get the same hash every time.
+	h_4, err := MD5Params(m_4)
+	assert.NoError(t, err)
+	for i := 0; i < 100; i++ {
+		h, err := MD5Params(m_4)
+		assert.NoError(t, err)
+		assert.Equal(t, h_4, h)
+	}
+	h, err := MD5Params(map[string]string{
+		"k4": "v4",
+		"k2": "v2",
+		"k3": "v1",
+		"k1": "v3",
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, h_4, h)
 }
 
 func TestBugsFromCommitMsg(t *testing.T) {

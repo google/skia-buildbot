@@ -632,7 +632,6 @@ func BugsFromCommitMsg(msg string) map[string][]string {
 			rv[project] = append(rv[project], bug)
 		}
 	}
-	glog.Errorf("%v", rv)
 	return rv
 }
 

@@ -279,11 +279,14 @@ func main() {
 			// Delete old metrics, replace with new ones. This fixes the case where
 			// bots are removed but their metrics hang around, or where dimensions
 			// change resulting in duplicate metrics with the same bot ID.
+			failedDelete := []*metrics2.Int64Metric{}
 			for _, m := range oldMetrics {
 				if err := m.Delete(); err != nil {
 					glog.Warningf("Failed to delete metric: %s", err)
+					failedDelete = append(failedDelete, m)
 				}
 			}
+			oldMetrics = append([]*metrics2.Int64Metric{}, failedDelete...)
 
 			now := time.Now()
 			for _, bot := range bots {
