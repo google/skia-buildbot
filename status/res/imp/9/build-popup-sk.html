@@ -40,23 +40,46 @@
   Events:
     None.
 -->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/res/common/imp/9/comments-sk.html">
 <link rel="import" href="status-popup.html">
 <dom-module id="build-popup-sk">
-  <style is="custom-style" include="status-popup">
+  <style is="custom-style" include="status-popup iron-flex">
     a {
       color: inherit;
     }
     h3 {
       white-space: nowrap;
     }
+    paper-button[raised].colored {
+      background: #D95F02;
+      color: #fff;
+      font-size: 1.0em;
+      padding:5px;
+      border-radius: 3px;
+    }
+    .retry {
+      color: inherit;
+      background-color: inherit;
+      text-decoration:none;
+    }
   </style>
   <template>
-    <h3>
-      <a target="_blank" href$="{{_makeBuildURL(build, buildbot_url_prefix)}}">
-        <span>{{build.builder}}</span> #<span>{{build.number}}</span> <iron-icon icon="launch"></iron-icon>
-      </a>
-    </h3>
+    <div class="horizontal layout wrap">
+      <div class="flex">
+        <h3>
+          <a target="_blank" href$="{{_makeBuildURL(build, buildbot_url_prefix)}}">
+            <span>{{build.builder}}</span> #<span>{{build.number}}</span> <iron-icon icon="launch"></iron-icon>
+          </a>
+        </h3>
+      </div>
+      <div>
+        <a href$="{{_makeRetryURL(build)}}" target="_blank" class="retry">
+            <paper-button raised class="colored" role="button">Re-run Build</paper-button>
+        </a>
+      </div>
+    </div>
     <table>
       <tr>
         <td>Status:</td>
@@ -173,6 +196,9 @@
       },
       _makeCommitURL: function (c, repo) {
         return 'https://skia.googlesource.com/' + repo + '/+/' + c;
+      },
+      _makeRetryURL: function(build){
+        return "https://build-scheduler.skia.org/trigger?builder="+ build.builder +"&commit=" + build.got_revision;
       },
       _buildResultString: function (build) {
         return build.finished ? build.results == 0 ? 'success' : build.results == 1 ? 'success' : build.results == 3 ? 'success' : build.results == 2 ? 'failed' : build.results == 4 ? 'exception' : 'exception' : 'running';

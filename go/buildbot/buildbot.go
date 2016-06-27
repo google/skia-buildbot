@@ -361,6 +361,7 @@ func (b *Build) GetSummary() *BuildSummary {
 		BuildSlave:  b.BuildSlave,
 		FailedSteps: steps,
 		Finished:    b.IsFinished(),
+		GotRevision: b.GotRevision,
 		Master:      b.Master,
 		Number:      b.Number,
 		Properties:  b.Properties,
@@ -377,6 +378,7 @@ type BuildSummary struct {
 	BuildSlave  string          `json:"buildslave"`
 	FailedSteps []string        `json:"failedSteps"`
 	Finished    bool            `json:"finished"`
+	GotRevision string          `json:"got_revision"`
 	Master      string          `json:"master"`
 	Number      int             `json:"number"`
 	Properties  [][]interface{} `json:"properties"`
