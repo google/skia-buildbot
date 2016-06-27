@@ -37,6 +37,7 @@ const (
 	PAGESET_TYPE_MOBILE_100k = "Mobile100k"
 	PAGESET_TYPE_10k         = "10k"
 	PAGESET_TYPE_MOBILE_10k  = "Mobile10k"
+	PAGESET_TYPE_PDF_400m    = "PDF400m"
 	PAGESET_TYPE_PDF_1m      = "PDF1m"
 	PAGESET_TYPE_PDF_1k      = "PDF1k"
 	PAGESET_TYPE_DUMMY_1k    = "Dummy1k" // Used for testing.
@@ -322,6 +323,16 @@ var (
 			CaptureSKPsTimeoutSecs:     300,
 			RunChromiumPerfTimeoutSecs: 300,
 			Description:                "Top 1K (used for testing, hidden from Runs History by default)",
+		},
+		PAGESET_TYPE_PDF_400m: &PagesetTypeInfo{
+			NumPages:                   400000000,
+			CSVSource:                  "csv/pdf-400m.csv",
+			UserAgent:                  "desktop",
+			CreatePagesetsTimeoutSecs:  60,
+			CaptureArchivesTimeoutSecs: 300,
+			CaptureSKPsTimeoutSecs:     300,
+			RunChromiumPerfTimeoutSecs: 300,
+			Description:                "PDF 400M",
 		},
 		PAGESET_TYPE_PDF_1m: &PagesetTypeInfo{
 			NumPages:                   1000000,
