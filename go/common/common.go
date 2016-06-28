@@ -23,7 +23,7 @@ const (
 	SAMPLE_PERIOD = time.Minute
 )
 
-// Runs commonly-used initialization metrics.
+// Init runs commonly-used initialization metrics.
 func Init() {
 	flag.Parse()
 	defer glog.Flush()
@@ -40,18 +40,25 @@ func Init() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 }
 
-// Runs normal Init functions as well as tracking runtime metrics.
-// Sets up metrics push into InfluxDB. The influx* arguments are ignored and read from metadata
-// unless *local is true.
-func InitWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, local *bool) {
+// InitWithMetrics2 runs normal Init functions as well as tracking runtime metrics.
+// It sets up metrics push into InfluxDB. The influx* arguments are ignored and read from metadata
+// unless *skipMetadata is true.
+func InitWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, skipMetadata *bool) {
 	Init()
-	StartMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, local)
+	StartMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, *skipMetadata)
 }
 
-// Starts tracking runtime metrics and sets up metrics push into InfluxDB. The influx* arguments are
-// ignored and read from metadata unless *local is true.
-func StartMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, local *bool) {
-	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, *local)
+// InitExternalWithMetrics2 runs normal Init functions as well as tracking runtime metrics.
+// It sets up metrics push into InfluxDB. The influx* arguments are always used.
+func InitExternalWithMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string) {
+	Init()
+	StartMetrics2(appName, influxHost, influxUser, influxPassword, influxDatabase, true)
+}
+
+// StartMetrics2 starts tracking runtime metrics and sets up metrics push into InfluxDB. The
+// influx* arguments are ignored and read from metadata unless skipMetadata is true.
+func StartMetrics2(appName string, influxHost, influxUser, influxPassword, influxDatabase *string, skipMetadata bool) {
+	influxClient, err := influxdb_init.NewClientFromParamsAndMetadata(*influxHost, *influxUser, *influxPassword, *influxDatabase, skipMetadata)
 	if err != nil {
 		glog.Fatal(err)
 	}
@@ -63,8 +70,8 @@ func StartMetrics2(appName string, influxHost, influxUser, influxPassword, influ
 	metrics2.RuntimeMetrics()
 }
 
-// Defer from main() to log any panics and flush the log. Defer this function before any other
-// defers.
+// LogPanic, when deferred from main, logs any panics and flush the log. Defer this function before
+//  any other defers.
 func LogPanic() {
 	if r := recover(); r != nil {
 		glog.Fatal(r)
@@ -72,6 +79,8 @@ func LogPanic() {
 	glog.Flush()
 }
 
+// DecodeTomlFile decodes a TOML file into the passed in struct and logs it to glog.  If there is
+// an error, it panics.
 func DecodeTomlFile(filename string, configuration interface{}) {
 	if _, err := toml.DecodeFile(filename, configuration); err != nil {
 		glog.Fatalf("Failed to decode config file %s: %s", filename, err)

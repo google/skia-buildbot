@@ -4,7 +4,16 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/pulld-not-gce --port=:10114 --on_gce=false --log_dir=/var/log/logserver --resources_dir=/usr/local/share/pulld/ --log_dir=/var/log/logserver --installed_packages_file=/var/pulld/installed_packages.json --service_account_path=/home/chrome-bot/service-account.json
+ExecStart=/usr/local/bin/pulld-not-gce \
+  --port=:10114 \
+  --on_gce=false \
+  --log_dir=/var/log/logserver \
+  --resources_dir=/usr/local/share/pulld/ \
+  --log_dir=/var/log/logserver \
+  --influxdb_database=skmetrics \
+  --influxdb_host=https://metrics.skia.org \
+  --installed_packages_file=/var/pulld/installed_packages.json \
+  --service_account_path=/home/chrome-bot/service-account.json
 Restart=always
 User=root
 Group=root

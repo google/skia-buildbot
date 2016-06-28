@@ -603,7 +603,7 @@ func main() {
 	common.Init()
 	go GoogleLoggingAuthInit()
 	if *enableMetrics {
-		common.StartMetrics2("logserver", influxHost, influxUser, influxPassword, influxDatabase, testing)
+		common.StartMetrics2("logserver", influxHost, influxUser, influxPassword, influxDatabase, *testing)
 	}
 
 	if err := os.MkdirAll(*dir, 0777); err != nil {

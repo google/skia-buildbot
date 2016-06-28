@@ -311,7 +311,7 @@ func main() {
 	if *onGCE {
 		common.InitWithMetrics2("pulld", influxHost, influxUser, influxPassword, influxDatabase, local)
 	} else {
-		common.Init()
+		common.InitExternalWithMetrics2("pulld-not-gce", influxHost, influxUser, influxPassword, influxDatabase)
 	}
 	Init()
 	pullInit(*serviceAccountPath)

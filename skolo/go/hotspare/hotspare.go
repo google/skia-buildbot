@@ -13,6 +13,8 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 )
 
@@ -30,6 +32,11 @@ var (
 	syncPeriod     = flag.Duration("sync_period", time.Minute, "How often to sync the image from syncPath.")
 	syncRemotePath = flag.String("sync_remote_path", "", `Where the image is stored on the remote machine.  This should include ip address.  E.g. "192.168.1.198:/opt/rpi_img/current.img"`)
 	syncLocalPath  = flag.String("sync_local_path", "/opt/rpi_img/current.img", "Where the image is stored on the local disk.")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 type virtualIPManager struct {
@@ -66,6 +73,7 @@ func (v *virtualIPManager) Run() {
 			}
 			v.consecutiveFailures = 0
 		}
+		metrics2.GetInt64Metric("skolo.hotspare.consecutive_failures", nil).Update(int64(v.consecutiveFailures))
 	}
 }
 
@@ -136,7 +144,7 @@ func (i *imageSyncer) Run() {
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
+	common.InitExternalWithMetrics2("hotspare", influxHost, influxUser, influxPassword, influxDatabase)
 
 	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	if err != nil {
