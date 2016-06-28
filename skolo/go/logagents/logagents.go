@@ -7,14 +7,14 @@ import (
 	"path/filepath"
 
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/skolo/go/gcl"
 )
 
 // A LogScanner scans some log file(s), parses them, and reports any new logs to
 // the specified CloudLogger.  ReportName() should be the name of the log as shared with GCL.
 type LogScanner interface {
-	Scan(logsclient gcl.CloudLogger) error
+	Scan(logsclient sklog.CloudLogger) error
 	ReportName() string
 }
 

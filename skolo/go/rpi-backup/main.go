@@ -14,8 +14,8 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/skolo/go/gcl"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud"
 	"google.golang.org/cloud/storage"
@@ -32,28 +32,28 @@ func main() {
 	defer common.LogPanic()
 	common.Init()
 	if *imgPath == "" {
-		gcl.Fatalf("You must specify a local image location")
+		sklog.Fatalf("You must specify a local image location")
 	}
 
 	// We use the plain old http Transport, because the default one doesn't like uploading big files.
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, auth.SCOPE_READ_WRITE, gcl.LOGGING_WRITE_SCOPE)
+	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, auth.SCOPE_READ_WRITE, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	if err != nil {
-		gcl.Fatalf("Could not setup credentials: %s", err)
+		sklog.Fatalf("Could not setup credentials: %s", err)
 	}
 
-	err = gcl.Init(client, "rpi-master", "rpi-backup")
+	err = sklog.InitCloudLogging(client, "rpi-master", "rpi-backup")
 	if err != nil {
-		gcl.Fatalf("Could not setup cloud logging: %s", err)
+		sklog.Fatalf("Could not setup cloud logging: %s", err)
 	}
 
 	storageClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
 	if err != nil {
-		gcl.Fatalf("Could not authenticate to GCS: %s", err)
+		sklog.Fatalf("Could not authenticate to GCS: %s", err)
 	}
 
 	contents, hash, err := fileutil.ReadAndSha1File(*imgPath)
 	if err != nil {
-		gcl.Fatalf("Could not read image file: %s", err)
+		sklog.Fatalf("Could not read image file: %s", err)
 	}
 
 	// We name the file using date and sha1 hash of the image
@@ -67,12 +67,12 @@ func main() {
 	gw := gzip.NewWriter(w)
 	defer util.Close(gw)
 
-	gcl.Infof("Uploading to gs://%s/%s", *gceBucket, name)
+	sklog.Infof("Uploading to gs://%s/%s", *gceBucket, name)
 
 	// This takes a few minutes for a ~1.3 GB image (which gets compressed to about 400MB)
 	if i, err := gw.Write([]byte(contents)); err != nil {
-		gcl.Fatalf("Problem writing to GCS.  Only wrote %d/%d bytes: %s", i, len(contents), err)
+		sklog.Fatalf("Problem writing to GCS.  Only wrote %d/%d bytes: %s", i, len(contents), err)
 	}
 
-	gcl.Infof("Upload complete")
+	sklog.Infof("Upload complete")
 }

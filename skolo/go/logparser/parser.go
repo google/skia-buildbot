@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"go.skia.org/infra/skolo/go/gcl"
+	"go.skia.org/infra/go/sklog"
 )
 
 // A Parser is a function that takes the text contents of a log file and returns a ParsedLog.
@@ -28,16 +28,16 @@ type ParsedLog interface {
 	// Len returns how many parsed lines there are.
 	Len() int
 	// ReadAndNext returns a parsed line or nil and advances to the next line.
-	ReadAndNext() *gcl.LogPayload
+	ReadAndNext() *sklog.LogPayload
 	// ReadLine sets the line to the specified number and returns the parsed line at that location.
-	ReadLine(int) *gcl.LogPayload
+	ReadLine(int) *sklog.LogPayload
 }
 
 type logParser struct {
 	Content   []string
 	Line      int
 	SplitLine *regexp.Regexp
-	ParseLine func(s string) *gcl.LogPayload
+	ParseLine func(s string) *sklog.LogPayload
 }
 
 func (p *logParser) init(r io.Reader) {
@@ -68,7 +68,7 @@ func (p *logParser) Len() int {
 	return len(p.Content)
 }
 
-func (p *logParser) ReadAndNext() *gcl.LogPayload {
+func (p *logParser) ReadAndNext() *sklog.LogPayload {
 	if r := p.ReadLine(p.Line); r != nil {
 		p.Line++
 		return r
@@ -76,7 +76,7 @@ func (p *logParser) ReadAndNext() *gcl.LogPayload {
 	return nil
 }
 
-func (p *logParser) ReadLine(i int) *gcl.LogPayload {
+func (p *logParser) ReadLine(i int) *sklog.LogPayload {
 	if i >= 0 && i < len(p.Content) {
 		p.Line = i
 		s := strings.TrimSpace(p.Content[i])
@@ -110,11 +110,11 @@ var syslogParse = regexp.MustCompile(`(?s)(?P<time>\S\S\S \d\d \d\d:\d\d:\d\d) (
 
 const syslogRef = "Jan 2 15:04:05 2006"
 
-func parseSysLog(line string) *gcl.LogPayload {
-	p := gcl.LogPayload{}
+func parseSysLog(line string) *sklog.LogPayload {
+	p := sklog.LogPayload{}
 	matches := syslogParse.FindStringSubmatch(line)
 	if len(matches) < 4 {
-		gcl.LogError("syslogparser", fmt.Errorf("Problem parsing syslog line: \n%s\n", line))
+		sklog.CloudLogError("syslogparser", fmt.Errorf("Problem parsing syslog line: \n%s\n", line))
 		return &p
 	}
 	// matches[1] is time, [3] is payload
@@ -122,10 +122,10 @@ func parseSysLog(line string) *gcl.LogPayload {
 	if parsed, err := time.ParseInLocation(syslogRef, t, time.Local); err == nil {
 		p.Time = parsed
 	} else {
-		gcl.LogError("syslogparser", fmt.Errorf("Problem parsing date: %s\n", err))
+		sklog.CloudLogError("syslogparser", fmt.Errorf("Problem parsing date: %s\n", err))
 	}
 	p.Payload = strings.TrimSpace(matches[3])
-	p.Severity = gcl.INFO
+	p.Severity = sklog.INFO
 
 	return &p
 }
@@ -147,30 +147,30 @@ var pythonLogParse = regexp.MustCompile(`(?s)\d+ (?P<time>\d\d\d\d-\d\d-\d\d \d\
 const pythonLogRef = "2006-01-02 15:04:05.000"
 
 var pythonLogSeverity = map[string]string{
-	"D": gcl.DEBUG,
-	"I": gcl.INFO,
-	"W": gcl.WARNING,
-	"E": gcl.ERROR,
-	"C": gcl.CRITICAL,
+	"D": sklog.DEBUG,
+	"I": sklog.INFO,
+	"W": sklog.WARNING,
+	"E": sklog.ERROR,
+	"C": sklog.CRITICAL,
 }
 
-func parsePythonLog(line string) *gcl.LogPayload {
-	p := gcl.LogPayload{}
+func parsePythonLog(line string) *sklog.LogPayload {
+	p := sklog.LogPayload{}
 	matches := pythonLogParse.FindStringSubmatch(line)
 	if len(matches) < 4 {
-		gcl.LogError("pyparser", fmt.Errorf("Problem parsing pythonLog line: \n%s\n", line))
+		sklog.CloudLogError("pyparser", fmt.Errorf("Problem parsing pythonLog line: \n%s\n", line))
 		return &p
 	}
 	// matches[1] is time, [2] is severity, [3] is payload
 	if parsed, err := time.ParseInLocation(pythonLogRef, matches[1], time.Local); err == nil {
 		p.Time = parsed
 	} else {
-		gcl.LogError("pyparser", fmt.Errorf("Problem parsing date: %s\n", err))
+		sklog.CloudLogError("pyparser", fmt.Errorf("Problem parsing date: %s\n", err))
 	}
 	p.Payload = strings.TrimSpace(matches[3])
 	sev, found := pythonLogSeverity[matches[2]]
 	if !found {
-		sev = gcl.INFO
+		sev = sklog.INFO
 	}
 	p.Severity = sev
 

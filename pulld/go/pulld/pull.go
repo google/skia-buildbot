@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/packages"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	compute "google.golang.org/api/compute/v1"
 	storage "google.golang.org/api/storage/v1"
@@ -37,22 +37,22 @@ func differences(server, local []string) ([]string, []string) {
 }
 
 func step(client *http.Client, store *storage.Service, hostname string) {
-	glog.Info("About to read package list.")
+	sklog.Info("About to read package list.")
 	// Read the old and new packages from their respective storage locations.
 	serverList, err := packages.InstalledForServer(client, store, hostname)
 	if err != nil {
-		glog.Errorf("Failed to retrieve remote package list: %s", err)
+		sklog.Errorf("Failed to retrieve remote package list: %s", err)
 		return
 	}
 	localList, err := packages.FromLocalFile(*installedPackagesFile)
 	if err != nil {
-		glog.Errorf("Failed to retrieve local package list: %s", err)
+		sklog.Errorf("Failed to retrieve local package list: %s", err)
 		return
 	}
 
 	// Install any new or updated packages.
 	newPackages, installed := differences(serverList.Names, localList)
-	glog.Infof("New: %v, Installed: %v", newPackages, installed)
+	sklog.Infof("New: %v, Installed: %v", newPackages, installed)
 
 	for _, name := range newPackages {
 		// If just an appname appears w/o a package name then that means
@@ -62,16 +62,16 @@ func step(client *http.Client, store *storage.Service, hostname string) {
 		}
 		installed = append(installed, name)
 		if err := packages.ToLocalFile(installed, *installedPackagesFile); err != nil {
-			glog.Errorf("Failed to write local package list: %s", err)
+			sklog.Errorf("Failed to write local package list: %s", err)
 			continue
 		}
 		if err := packages.Install(client, store, name); err != nil {
-			glog.Errorf("Failed to install package %s: %s", name, err)
+			sklog.Errorf("Failed to install package %s: %s", name, err)
 			// Pop last name from 'installed' then rewrite the file since the
 			// install failed.
 			installed = installed[:len(installed)-1]
 			if err := packages.ToLocalFile(installed, *installedPackagesFile); err != nil {
-				glog.Errorf("Failed to rewrite local package list after install failure for %s: %s", name, err)
+				sklog.Errorf("Failed to rewrite local package list after install failure for %s: %s", name, err)
 			}
 			continue
 		}
@@ -81,8 +81,8 @@ func step(client *http.Client, store *storage.Service, hostname string) {
 		// pullg while it was updating itself. Instead pulld will just exit when
 		// it notices that it has been updated and count on systemd to restart it.
 		if containsPulld(newPackages) {
-			glog.Info("The pulld package has been updated, exiting to allow a restart.")
-			glog.Flush()
+			sklog.Info("The pulld package has been updated, exiting to allow a restart.")
+			sklog.Flush()
 			os.Exit(0)
 		}
 	}
@@ -91,7 +91,7 @@ func step(client *http.Client, store *storage.Service, hostname string) {
 // containsPull returns true if the list of installed packages contains the 'pull' package.
 func containsPulld(packages []string) bool {
 	for _, s := range packages {
-		if strings.Split(s, "/")[0] == "pulld" {
+		if p := strings.Split(s, "/")[0]; p == "pulld" || p == "pulld-not-gce" {
 			return true
 		}
 	}
@@ -108,19 +108,19 @@ func pullHandler(w http.ResponseWriter, r *http.Request) {
 func pullInit(serviceAccountPath string) {
 	hostname, err := os.Hostname()
 	if err != nil {
-		glog.Fatal(err)
+		sklog.Fatal(err)
 	}
-	glog.Infof("Running with hostname: %s", hostname)
+	sklog.Infof("Running with hostname: %s", hostname)
 
 	client, err := auth.NewJWTServiceAccountClient("", serviceAccountPath, &http.Transport{Dial: httputils.DialTimeout}, storage.DevstorageFullControlScope, compute.ComputeReadonlyScope)
 	if err != nil {
-		glog.Fatalf("Failed to create authenticated HTTP client: %s", err)
+		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
-	glog.Info("Got authenticated client.")
+	sklog.Info("Got authenticated client.")
 
 	store, err = storage.New(client)
 	if err != nil {
-		glog.Fatalf("Failed to create storage service client: %s", err)
+		sklog.Fatalf("Failed to create storage service client: %s", err)
 	}
 
 	step(client, store, hostname)

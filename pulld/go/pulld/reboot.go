@@ -4,9 +4,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/sklog"
 )
 
 // rebootMonitoringInit checks once a minute if the machine needs to be
@@ -14,17 +14,17 @@ import (
 func rebootMonitoringInit() {
 	name, err := os.Hostname()
 	if err != nil {
-		glog.Errorf("Failed to get hostname: %s", err)
+		sklog.Errorf("Failed to get hostname: %s", err)
 		return
 	}
 	primary, err := metadata.Get("owner_primary")
 	if err != nil {
-		glog.Errorf("Problem getting primary instance owner: %s", err)
+		sklog.Errorf("Problem getting primary instance owner: %s", err)
 		primary = "UNKNOWN_OWNER"
 	}
 	secondary, err := metadata.Get("owner_secondary")
 	if err != nil {
-		glog.Warningf("Problem getting secondary instance owner.  There might not actually be one: %s", err)
+		sklog.Warningf("Problem getting secondary instance owner.  There might not actually be one: %s", err)
 		secondary = ""
 	}
 	owners := primary

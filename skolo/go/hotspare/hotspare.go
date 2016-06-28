@@ -2,7 +2,6 @@ package main
 
 // hotspare is a runnable that polls an address:port at regular intervals and brings
 // up a virtual ip address (using ifconfig) if address:port is unreachable.
-// TODO(kjlubick): Add cloud logging support skia:5447
 
 import (
 	"flag"
@@ -14,7 +13,7 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
-	"go.skia.org/infra/skolo/go/gcl"
+	"go.skia.org/infra/go/sklog"
 )
 
 var (
@@ -55,13 +54,13 @@ func (v *virtualIPManager) Run() {
 	for range time.Tick(v.Period) {
 		conn, err := net.DialTimeout("tcp", v.Addr, v.Timeout)
 		if err != nil {
-			gcl.Errorf("Had problem connecting to %s: %s", v.Addr, err)
+			sklog.Errorf("Had problem connecting to %s: %s", v.Addr, err)
 			v.consecutiveFailures++
 			if v.consecutiveFailures == v.Threshold {
 				bringUpVIP()
 			}
 		} else {
-			gcl.Infof("Connected successfully to %s: %v\n", v.Addr, conn.Close())
+			sklog.Infof("Connected successfully to %s: %v\n", v.Addr, conn.Close())
 			if v.consecutiveFailures >= v.Threshold {
 				tearDownVIP()
 			}
@@ -73,28 +72,28 @@ func (v *virtualIPManager) Run() {
 func isServing() bool {
 	out, err := exec.RunSimple("ifconfig")
 	if err != nil {
-		gcl.Errorf("There was a problem running ifconfig: %s", err)
+		sklog.Errorf("There was a problem running ifconfig: %s", err)
 	}
 	return strings.Contains(out, *virtualInterface)
 }
 
 func bringUpVIP() {
-	gcl.Infof("Bringing up VIP, master is dead")
+	sklog.Infof("Bringing up VIP, master is dead")
 	cmd := fmt.Sprintf("sudo ifconfig %s %s", *virtualInterface, *virtualIp)
 	out, err := exec.RunSimple(cmd)
-	gcl.Infof("Output: %s", out)
+	sklog.Infof("Output: %s", out)
 	if err != nil {
-		gcl.Errorf("Could not bring up VIP: %s", err)
+		sklog.Errorf("Could not bring up VIP: %s", err)
 	}
 }
 
 func tearDownVIP() {
-	gcl.Infof("Tearing down VIP, master is live")
+	sklog.Infof("Tearing down VIP, master is live")
 	cmd := fmt.Sprintf("sudo ifconfig %s down", *virtualInterface)
 	out, err := exec.RunSimple(cmd)
-	gcl.Infof("Output: %s", out)
+	sklog.Infof("Output: %s", out)
 	if err != nil {
-		gcl.Errorf("Could not tear down VIP: %s", err)
+		sklog.Errorf("Could not tear down VIP: %s", err)
 	}
 }
 
@@ -115,10 +114,10 @@ func NewImageSyncer(period time.Duration, remotePath, localPath string) *imageSy
 func (i *imageSyncer) Run() {
 	for range time.Tick(i.Period) {
 		if isServing() {
-			gcl.Infof("Skipping sync because we are serving")
+			sklog.Infof("Skipping sync because we are serving")
 			continue
 		}
-		gcl.Infof("Attempting to sync image from remote")
+		sklog.Infof("Attempting to sync image from remote")
 		// This only works if the master has the spare's ssh key in authorized_key
 		err := exec.Run(&exec.Command{
 			Name:      "scp",
@@ -127,9 +126,9 @@ func (i *imageSyncer) Run() {
 			LogStdout: true,
 		})
 		if err != nil {
-			gcl.Errorf("Could not SCP: %s", err)
+			sklog.Errorf("Could not SCP: %s", err)
 		} else {
-			gcl.Infof("No error with scp")
+			sklog.Infof("No error with scp")
 		}
 
 	}
@@ -139,14 +138,14 @@ func main() {
 	defer common.LogPanic()
 	common.Init()
 
-	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, gcl.LOGGING_WRITE_SCOPE)
+	client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
 	if err != nil {
-		gcl.Fatalf("Failed to create authenticated HTTP client: %s", err)
+		sklog.Fatalf("Failed to create authenticated HTTP client: %s", err)
 	}
 
-	err = gcl.Init(client, "rpi-master", "hotspare")
+	err = sklog.InitCloudLogging(client, "rpi-master", "hotspare")
 	if err != nil {
-		gcl.Fatalf("Could not setup cloud gcl: %s", err)
+		sklog.Fatalf("Could not setup cloud sklog: %s", err)
 	}
 
 	lt := NewVirtualIPManager(*livenessAddr, *livenessPeriod, *livenessTimeout, *livenessThreshold)

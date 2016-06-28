@@ -14,12 +14,13 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/skia-dev/glog"
 	"github.com/skia-dev/go-systemd/dbus"
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/packages"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/systemd"
 	"go.skia.org/infra/go/util"
 )
@@ -50,6 +51,8 @@ var (
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+
+	cloudLoggingGroup = flag.String("cloud_logging_group", "rpi-master", "The log grouping to be used if cloud logging is configured (i.e. on_gce is false)")
 )
 
 type UnitStatusSlice []*systemd.UnitStatus
@@ -75,16 +78,30 @@ type ChangeResult struct {
 	Result string `json:"result"`
 }
 
+func initLogging() {
+	if !*onGCE {
+		client, err := auth.NewJWTServiceAccountClient("", *serviceAccountPath, nil, sklog.CLOUD_LOGGING_WRITE_SCOPE)
+		if err != nil {
+			sklog.Fatalf("Could not setup credentials: %s", err)
+		}
+
+		err = sklog.InitCloudLogging(client, *cloudLoggingGroup, "pulld-not-gce")
+		if err != nil {
+			sklog.Fatalf("Could not setup cloud logging: %s", err)
+		}
+	}
+}
+
 func Init() {
 	var err error
 	dbc, err = dbus.New()
 	if err != nil {
-		glog.Fatalf("Failed to initialize dbus: %s", err)
+		sklog.Fatalf("Failed to initialize dbus: %s", err)
 	}
 
 	hostname, err = os.Hostname()
 	if err != nil {
-		glog.Fatalf("Unable to retrieve hostname: %s", err)
+		sklog.Fatalf("Unable to retrieve hostname: %s", err)
 	}
 	packages.SetBucketName(*bucketName)
 	loadResouces()
@@ -123,7 +140,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		w.Header().Set("Content-Type", "application/json")
 		if err := json.NewEncoder(w).Encode(ChangeResult{"started"}); err != nil {
-			glog.Errorf("Failed to write or encode output: %s", err)
+			sklog.Errorf("Failed to write or encode output: %s", err)
 		}
 		return
 	}
@@ -144,7 +161,7 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 	res.Result = <-ch
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(res); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -238,7 +255,7 @@ func listUnits() ([]*systemd.UnitStatus, error) {
 		for _, unit := range units {
 			unit.Props, err = dbc.GetUnitTypeProperties(unit.Status.Name, "Service")
 			if err != nil {
-				glog.Errorf("Failed to get props for the unit %s: %s", unit.Status.Name, err)
+				sklog.Errorf("Failed to get props for the unit %s: %s", unit.Status.Name, err)
 			}
 		}
 	}
@@ -255,7 +272,7 @@ func listHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(units); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		sklog.Errorf("Failed to write or encode output: %s", err)
 	}
 }
 
@@ -282,7 +299,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "text/html")
 		if err := indexTemplate.ExecuteTemplate(w, "index.html", context); err != nil {
-			glog.Errorln("Failed to expand template:", err)
+			sklog.Errorln("Failed to expand template:", err)
 		}
 	}
 }
@@ -290,6 +307,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	defer common.LogPanic()
 	flag.Parse()
+	initLogging()
 	if *onGCE {
 		common.InitWithMetrics2("pulld", influxHost, influxUser, influxPassword, influxDatabase, local)
 	} else {
@@ -306,6 +324,6 @@ func main() {
 	r.HandleFunc("/_/change", changeHandler).Methods("POST")
 	r.HandleFunc("/pullpullpull", pullHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infoln("Ready to serve.")
-	glog.Fatal(http.ListenAndServe(*port, nil))
+	sklog.Infoln("Ready to serve.")
+	sklog.Fatal(http.ListenAndServe(*port, nil))
 }

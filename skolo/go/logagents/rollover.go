@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/skolo/go/gcl"
+	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/skolo/go/logparser"
 )
 
@@ -41,7 +41,7 @@ func (r *rolloverLog) ReportName() string {
 	return r.Name
 }
 
-func (r *rolloverLog) Scan(client gcl.CloudLogger) error {
+func (r *rolloverLog) Scan(client sklog.CloudLogger) error {
 	logC, logH, err := readAndHashFile(r.LogPath)
 	if err != nil {
 		return fmt.Errorf("Problem reading log file %s: %s", r.LogPath, err)
@@ -77,9 +77,9 @@ func (r *rolloverLog) Scan(client gcl.CloudLogger) error {
 	return writeToPersistenceFile(r.ReportName(), r)
 }
 
-func (r *rolloverLog) reportLogs(client gcl.CloudLogger, lp logparser.ParsedLog, startLine int) {
+func (r *rolloverLog) reportLogs(client sklog.CloudLogger, lp logparser.ParsedLog, startLine int) {
 	lp.Start(startLine)
 	for log := lp.ReadAndNext(); log != nil; log = lp.ReadAndNext() {
-		client.Log(r.ReportName(), log)
+		client.CloudLog(r.ReportName(), log)
 	}
 }
