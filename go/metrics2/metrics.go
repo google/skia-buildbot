@@ -201,6 +201,15 @@ func (c *Client) pushData() (map[string]int64, error) {
 	return byMeasurement, nil
 }
 
+// Flush pushes any queued data into InfluxDB.  It is meant to be deferred by short running apps.  Long running apps shouldn't worry about this as metrics2 will auto-push every so often.
+func Flush() {
+	DefaultClient.collectMetrics()
+	DefaultClient.collectAggregateMetrics()
+	if _, err := DefaultClient.pushData(); err != nil {
+		glog.Errorf("There was a problem while flushing metrics: %s", err)
+	}
+}
+
 // rawMetric is a metric which has no explicit type.
 type rawMetric struct {
 	client      *Client

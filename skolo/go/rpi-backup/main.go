@@ -14,6 +14,8 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/httputils"
+	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
@@ -26,11 +28,17 @@ var (
 	gceBucket          = flag.String("gce_bucket", "skia-images", "GCS Bucket images should be stored in")
 	gceFolder          = flag.String("gce_folder", "Swarming", "Folder in the bucket that should hold the images")
 	imgPath            = flag.String("img_path", "", "Where the image is stored on disk")
+
+	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
+	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
+	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
+	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 )
 
 func main() {
 	defer common.LogPanic()
-	common.Init()
+	common.InitExternalWithMetrics2("rpi-backup", influxHost, influxUser, influxPassword, influxDatabase)
+	defer metrics2.Flush()
 	if *imgPath == "" {
 		sklog.Fatalf("You must specify a local image location")
 	}
@@ -72,6 +80,8 @@ func main() {
 	// This takes a few minutes for a ~1.3 GB image (which gets compressed to about 400MB)
 	if i, err := gw.Write([]byte(contents)); err != nil {
 		sklog.Fatalf("Problem writing to GCS.  Only wrote %d/%d bytes: %s", i, len(contents), err)
+	} else {
+		metrics2.GetInt64Metric("skolo.rpi-backup.backup-size", nil).Update(int64(i))
 	}
 
 	sklog.Infof("Upload complete")
