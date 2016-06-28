@@ -2,17 +2,18 @@ package main
 
 import (
 	"fmt"
+	"path"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/build_scheduler/go/blacklist"
 	"go.skia.org/infra/build_scheduler/go/build_queue"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/metrics2"
-	"go.skia.org/infra/go/util"
 )
 
 type buildslaveSlice []*buildbot.BuildSlave
@@ -51,9 +52,8 @@ func getFreeBuildslaves() ([]*buildbot.BuildSlave, error) {
 
 	// Map the builders to buildslaves.
 	for _, b := range builders {
-		// Only include builders in the whitelist, and those only if
-		// there are no already-pending builds.
-		if !util.AnyMatch(BOT_BLACKLIST, b.Name) && b.PendingBuilds == 0 {
+		// Only include builders for which there are no already-pending builds.
+		if b.PendingBuilds == 0 {
 			for _, slave := range b.Slaves {
 				buildslaves[slave].Builders[b.Name] = nil
 			}
@@ -283,7 +283,13 @@ func StartNewBuildScheduler(period time.Duration, scoreThreshold, scoreDecay24Hr
 			glog.Fatal(err)
 		}
 	}
-	q, err := build_queue.NewBuildQueue(period, repos, scoreThreshold, scoreDecay24Hr, BOT_BLACKLIST, db)
+
+	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
+	if err != nil {
+		glog.Fatal(err)
+	}
+
+	q, err := build_queue.NewBuildQueue(period, repos, scoreThreshold, scoreDecay24Hr, bl, db)
 	if err != nil {
 		glog.Fatal(err)
 	}

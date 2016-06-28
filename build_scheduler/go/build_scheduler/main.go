@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"path"
 	"path/filepath"
-	"regexp"
 	"runtime"
 
 	"github.com/gorilla/mux"
@@ -32,18 +31,6 @@ const (
 
 var (
 	// "Constants"
-
-	// BOT_BLACKLIST indicates which bots we cannot schedule.
-	BOT_BLACKLIST = []*regexp.Regexp{
-		regexp.MustCompile("^Housekeeper-Periodic-AutoRoll$"),
-		regexp.MustCompile("^Housekeeper-Nightly-RecreateSKPs_Canary$"),
-		regexp.MustCompile("^Housekeeper-Weekly-RecreateSKPs$"),
-		regexp.MustCompile("^Linux Tests$"),
-		regexp.MustCompile("^Mac10\\.9 Tests$"),
-		regexp.MustCompile("^Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-CT_DM_1m_SKPs$"),
-		regexp.MustCompile("^Win7 Tests \\(1\\)"),
-		buildbot.TRYBOT_REGEXP,
-	}
 
 	// MASTERS determines which masters we poll for builders.
 	MASTERS = []string{

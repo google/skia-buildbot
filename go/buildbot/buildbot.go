@@ -18,12 +18,13 @@ import (
 */
 
 const (
-	BUILDBOT_URL  = "http://build.chromium.org/p/"
-	LOAD_ATTEMPTS = 3
+	BUILDBOT_URL   = "http://build.chromium.org/p/"
+	LOAD_ATTEMPTS  = 3
+	TRYBOT_PATTERN = ".*-Trybot$"
 )
 
 var (
-	TRYBOT_REGEXP = regexp.MustCompile(".*-Trybot$")
+	TRYBOT_REGEXP = regexp.MustCompile(TRYBOT_PATTERN)
 )
 
 // BuildStep contains information about a build step.

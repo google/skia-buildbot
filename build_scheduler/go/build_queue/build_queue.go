@@ -3,12 +3,12 @@ package build_queue
 import (
 	"fmt"
 	"math"
-	"regexp"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/build_scheduler/go/blacklist"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
@@ -37,12 +37,6 @@ var (
 	// ERR_EMPTY_QUEUE is returned by BuildQueue.Pop() when the queue for
 	// that builder is empty.
 	ERR_EMPTY_QUEUE = fmt.Errorf("Queue is empty.")
-
-	SCHEDULER_BLACKLIST = map[string]map[string]bool{
-		"Infra-PerCommit": map[string]bool{
-			"355d0d378d1b9f2df9abe9fd4a73348d9b13471b": true,
-		},
-	}
 )
 
 // BuildCandidate is a struct which describes a candidate for a build.
@@ -71,7 +65,7 @@ func (s BuildCandidateSlice) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 // BuildQueue is a struct which contains a priority queue for builders and
 // commits.
 type BuildQueue struct {
-	botBlacklist     []*regexp.Regexp
+	bl               *blacklist.Blacklist
 	db               buildbot.DB
 	lock             sync.RWMutex
 	period           time.Duration
@@ -108,12 +102,12 @@ type BuildQueue struct {
 // timeDecay24Hr equal to 0.5 causes the score for a build candidate with value
 // 1.0 to be 0.5 if the commit is 24 hours old. At 48 hours with a value of 1.0
 // the build candidate would receive a score of 0.25.
-func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold, timeDecay24Hr float64, botBlacklist []*regexp.Regexp, db buildbot.DB) (*BuildQueue, error) {
+func NewBuildQueue(period time.Duration, repos *gitinfo.RepoMap, scoreThreshold, timeDecay24Hr float64, bl *blacklist.Blacklist, db buildbot.DB) (*BuildQueue, error) {
 	if timeDecay24Hr <= 0.0 || timeDecay24Hr > 1.0 {
 		return nil, fmt.Errorf("Time penalty must be 0 < p <= 1")
 	}
 	q := &BuildQueue{
-		botBlacklist:     botBlacklist,
+		bl:               bl,
 		db:               db,
 		lock:             sync.RWMutex{},
 		period:           period,
@@ -268,8 +262,8 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	buildCaches := map[string]*buildCache{}
 	for _, buildsForCommit := range buildsByCommit {
 		for _, build := range buildsForCommit {
-			if util.AnyMatch(q.botBlacklist, build.Builder) {
-				glog.Infof("Skipping blacklisted builder %s", build.Builder)
+			if rule := q.bl.MatchRule(build.Builder, ""); rule != "" {
+				glog.Warningf("Skipping blacklisted builder: %s due to rule %q", build.Builder, rule)
 				continue
 			}
 			if _, ok := buildCaches[build.Builder]; !ok {
@@ -383,8 +377,8 @@ func (q *BuildQueue) getBestCandidate(bc *buildCache, recentCommits []*vcsinfo.L
 	stoleFromByCommit := map[string]*buildbot.Build{}
 	foundBranches := map[string]bool{}
 	for _, commit := range recentCommits {
-		if SCHEDULER_BLACKLIST[bc.Builder][commit.Hash] {
-			glog.Warningf("Skipping blacklisted builder/commit: %s @ %s", bc.Builder, commit.Hash)
+		if rule := q.bl.MatchRule(bc.Builder, commit.Hash); rule != "" {
+			glog.Warningf("Skipping blacklisted builder/commit: %s @ %s due to rule %q", bc.Builder, commit.Hash, rule)
 			continue
 		}
 		// Shortcut: Don't bisect builds with a huge number
@@ -541,6 +535,10 @@ func (q *BuildQueue) Pop(builders []string) (*BuildCandidate, error) {
 			h, err := r.FullHash("origin/master")
 			if err != nil {
 				return nil, err
+			}
+			if rule := q.bl.MatchRule(builder, h); rule != "" {
+				glog.Warningf("Skipping blacklisted builder/commit: %s @ %s due to rule %q", builder, h, rule)
+				continue
 			}
 			details, err := r.Details(h, false)
 			if err != nil {

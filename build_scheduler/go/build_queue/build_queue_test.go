@@ -6,12 +6,12 @@ import (
 	"os"
 	"path"
 	"reflect"
-	"regexp"
 	"testing"
 	"time"
 
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/build_scheduler/go/blacklist"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/testutils"
@@ -279,7 +279,12 @@ func testBuildQueue(t *testing.T, timeDecay24Hr float64, expectations []*buildQu
 	buildNum++
 
 	// Create the BuildQueue.
-	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, timeDecay24Hr, []*regexp.Regexp{}, d.db)
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+	bl, err := blacklist.FromFile(path.Join(tmp, "blacklist.json"))
+	assert.NoError(t, err)
+	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, timeDecay24Hr, bl, d.db)
 	assert.NoError(t, err)
 
 	// Fake time.Now()
@@ -546,7 +551,12 @@ func TestBuildQueueNoPrevious(t *testing.T) {
 	assert.NoError(t, repos.Update())
 
 	// Create the BuildQueue.
-	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, 1.0, []*regexp.Regexp{}, d.db)
+	tmp, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, tmp)
+	bl, err := blacklist.FromFile(path.Join(tmp, "blacklist.json"))
+	assert.NoError(t, err)
+	q, err := NewBuildQueue(PERIOD_FOREVER, repos, DEFAULT_SCORE_THRESHOLD, 1.0, bl, d.db)
 	assert.NoError(t, err)
 
 	// Fake time.Now()
