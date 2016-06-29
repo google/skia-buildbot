@@ -51,7 +51,8 @@ var (
 )
 
 const (
-	TIMEOUT              = time.Duration(5 * time.Second)
+	DIAL_TIMEOUT         = time.Duration(5 * time.Second)
+	REQUEST_TIMEOUT      = time.Duration(30 * time.Second)
 	ISSUE_TRACKER_PERIOD = 15 * time.Minute
 )
 
@@ -121,7 +122,7 @@ func In(n int, list []int) bool {
 
 // dialTimeout is a dialer that sets a timeout.
 func dialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, TIMEOUT)
+	return net.DialTimeout(network, addr, DIAL_TIMEOUT)
 }
 
 // nonZeroContenLength tests whether the Content-Length value is non-zero.
@@ -379,6 +380,7 @@ func main() {
 		Transport: &http.Transport{
 			Dial: dialTimeout,
 		},
+		Timeout: REQUEST_TIMEOUT,
 	}
 	probeOneRound(cfg, c)
 	for _ = range time.Tick(*runEvery) {
