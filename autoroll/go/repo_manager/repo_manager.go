@@ -148,6 +148,13 @@ func (r *repoManager) update() error {
 		if err := r.cleanChromium(); err != nil {
 			return err
 		}
+		// Update the repo.
+		if _, err := exec.RunCwd(r.chromiumDir, "git", "fetch"); err != nil {
+			return err
+		}
+		if _, err := exec.RunCwd(r.chromiumDir, "git", "reset", "--hard", "origin/master"); err != nil {
+			return err
+		}
 	}
 
 	if _, err := exec.RunCommand(&exec.Command{
