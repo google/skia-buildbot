@@ -10,6 +10,7 @@ ExecStart=/usr/local/bin/skdebugger \
     --log_dir=/var/log/logserver \
     --work_root=/mnt/pd0/debugger \
     --depot_tools=/mnt/pd0/depot_tools \
+    --hosted \
     --port=:8000
 Restart=always
 User=default

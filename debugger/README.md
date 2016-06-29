@@ -25,4 +25,7 @@ Make sure you have `$GOPATH/bin` added to your `PATH`.
 This will spin up a local server on port 9000.
 
 Make sure when you run the command-line debugger that it runs looking for
-http://localhost:9000 and not https://debugger.skia.org.
+http://localhost:9000 and not https://debugger.skia.org. I.e
+
+    ./out/Release/skiaserve --source http://localhost:9000
+

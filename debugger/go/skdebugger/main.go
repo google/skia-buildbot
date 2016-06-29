@@ -33,6 +33,7 @@ import (
 // flags
 var (
 	depotTools        = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
+	hosted            = flag.Bool("hosted", false, "True if skdebugger should build and run local skiaserve instances itself.")
 	influxDatabase    = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	influxHost        = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxPassword    = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
@@ -82,7 +83,7 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		loadTemplates()
 	}
-	if login.LoggedInAs(r) == "" {
+	if !*hosted || login.LoggedInAs(r) == "" {
 		if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
 			glog.Errorf("Failed to expand template: %s", err)
 		}
@@ -100,6 +101,9 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	if *local {
 		loadTemplates()
+	}
+	if !*hosted {
+		http.NotFound(w, r)
 	}
 	if login.LoggedInAs(r) == "" {
 		if err := templates.ExecuteTemplate(w, "index.html", nil); err != nil {
@@ -212,51 +216,57 @@ func cleanShutdown() {
 func main() {
 	defer common.LogPanic()
 	common.InitWithMetrics2("debugger", influxHost, influxUser, influxPassword, influxDatabase, local)
-	if *workRoot == "" {
-		glog.Fatal("The --work_root flag is required.")
-	}
-	if *depotTools == "" {
-		glog.Fatal("The --depot_tools flag is required.")
+	if *hosted {
+		if *workRoot == "" {
+			glog.Fatal("The --work_root flag is required.")
+		}
+		if *depotTools == "" {
+			glog.Fatal("The --depot_tools flag is required.")
+		}
 	}
 	Init()
 
-	var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
-	if !*local {
-		redirectURL = "https://debugger.skia.org/oauth2callback/"
-	}
-	if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
-		glog.Fatalf("Failed to initialize the login system: %s", err)
-	}
+	if *hosted {
+		var redirectURL = fmt.Sprintf("http://localhost%s/oauth2callback/", *port)
+		if !*local {
+			redirectURL = "https://debugger.skia.org/oauth2callback/"
+		}
+		if err := login.InitFromMetadataOrJSON(redirectURL, login.DEFAULT_SCOPE, login.DEFAULT_DOMAIN_WHITELIST); err != nil {
+			glog.Fatalf("Failed to initialize the login system: %s", err)
+		}
 
-	var err error
-	repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
-	if err != nil {
-		glog.Fatalf("Failed to clone Skia: %s", err)
+		var err error
+		repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
+		if err != nil {
+			glog.Fatalf("Failed to clone Skia: %s", err)
+		}
+		build = buildskia.New(*workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds)
+		build.Start()
+
+		getHash := func() string {
+			return build.Current().Hash
+		}
+
+		run := runner.New(*workRoot, *imageDir, getHash, *local)
+		co = containers.New(run)
+
+		go cleanShutdown()
 	}
-	build = buildskia.New(*workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds)
-	build.Start()
-
-	getHash := func() string {
-		return build.Current().Hash
-	}
-
-	run := runner.New(*workRoot, *imageDir, getHash, *local)
-	co = containers.New(run)
-
-	go cleanShutdown()
 
 	router := mux.NewRouter()
 	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))
 	router.HandleFunc("/", mainHandler)
-	router.HandleFunc("/loadfrom", loadHandler)
-	router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
-	router.HandleFunc("/logout/", login.LogoutHandler)
-	router.HandleFunc("/loginstatus/", login.StatusHandler)
+	if *hosted {
+		router.HandleFunc("/loadfrom", loadHandler)
+		router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+		router.HandleFunc("/logout/", login.LogoutHandler)
+		router.HandleFunc("/loginstatus/", login.StatusHandler)
 
-	// All URLs that we don't understand will be routed to be handled by
-	// skiaserve, with the one exception of "/instanceStatus" which will be
-	// handled by 'co' itself.
-	router.NotFoundHandler = co
+		// All URLs that we don't understand will be routed to be handled by
+		// skiaserve, with the one exception of "/instanceStatus" which will be
+		// handled by 'co' itself.
+		router.NotFoundHandler = co
+	}
 
 	http.Handle("/", httputils.LoggingRequestResponse(router))
 

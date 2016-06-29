@@ -147,8 +147,16 @@ The main application element for the Skia Debugger.
       margin: 0;
     }
 
-    header > * {
+    header h2,
+    header div,
+    header instance-status-sk,
+    header login-sk,
+    {
       display: inline-block;
+    }
+
+    header .hidden {
+      display: none;
     }
 
     header h2 {
