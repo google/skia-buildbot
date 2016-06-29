@@ -73,6 +73,7 @@ func getFreeBuildslaves() ([]*buildbot.BuildSlave, error) {
 // BuildScheduler is a struct used for scheduling builds on bots.
 type BuildScheduler struct {
 	bb             *buildbucket.Client
+	bl             *blacklist.Blacklist
 	cachedBuilders []string
 	cachedCommits  []string
 	cacheMtx       sync.RWMutex
@@ -296,6 +297,7 @@ func StartNewBuildScheduler(period time.Duration, scoreThreshold, scoreDecay24Hr
 
 	bs := &BuildScheduler{
 		bb:             bb,
+		bl:             bl,
 		cachedBuilders: []string{},
 		cachedCommits:  []string{},
 		cacheMtx:       sync.RWMutex{},
@@ -341,4 +343,8 @@ func (bs *BuildScheduler) Status() *BuildSchedulerStatus {
 type BuildSchedulerStatus struct {
 	LastScheduled time.Time                     `json:"last_scheduled"`
 	TopCandidates []*build_queue.BuildCandidate `json:"top_candidates"`
+}
+
+func (bs *BuildScheduler) GetBlacklist() *blacklist.Blacklist {
+	return bs.bl
 }

@@ -48,8 +48,9 @@ var (
 	}
 
 	// HTML templates.
-	mainTemplate    *template.Template = nil
-	triggerTemplate *template.Template = nil
+	blacklistTemplate *template.Template = nil
+	mainTemplate      *template.Template = nil
+	triggerTemplate   *template.Template = nil
 
 	// Build Scheduler instance.
 	bs *BuildScheduler
@@ -79,6 +80,11 @@ func reloadTemplates() {
 		_, filename, _, _ := runtime.Caller(0)
 		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
 	}
+	blacklistTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/blacklist.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+		filepath.Join(*resourcesDir, "templates/footer.html"),
+	))
 	mainTemplate = template.Must(template.ParseFiles(
 		filepath.Join(*resourcesDir, "templates/main.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
@@ -93,6 +99,19 @@ func reloadTemplates() {
 
 func Init() {
 	reloadTemplates()
+}
+
+func blacklistHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	// Don't use cached templates in testing mode.
+	if *local {
+		reloadTemplates()
+	}
+	if err := blacklistTemplate.Execute(w, bs.GetBlacklist()); err != nil {
+		httputils.ReportError(w, r, err, "Failed to execute template.")
+		return
+	}
 }
 
 func mainHandler(w http.ResponseWriter, r *http.Request) {
@@ -164,6 +183,7 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", mainHandler)
+	r.HandleFunc("/blacklist", blacklistHandler)
 	r.HandleFunc("/trigger", triggerHandler)
 	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods("POST")
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)

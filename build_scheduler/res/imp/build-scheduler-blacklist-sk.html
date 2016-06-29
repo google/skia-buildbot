@@ -1,0 +1,112 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <build-scheduler-blacklist-sk>
+
+  Status information about the build scheduler.
+
+  To use this file import it:
+
+    <link href="/res/imp/build-scheduler-blacklist-sk.html" rel="import" />
+
+  Usage:
+
+    <build-scheduler-blacklist-sk></build-scheduler-blacklist-sk>
+
+  Properties:
+    // input
+    rules: Array of Objects indicating the current set of blacklist rules:
+        added_by: String, Who added the rule.
+        builder_patterns: Array, regular expressions which match builder names.
+        commits: Array, commit hashes
+        description: String, detailed information about the rule.
+        name: String, name of the rule.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+<link rel="import" href="/res/common/imp/9/human-date-sk.html">
+
+<dom-module id="build-scheduler-blacklist-sk">
+  <template>
+    <style>
+    :host {
+      font-family: sans-serif;
+    }
+    .builder_pattern, .commit {
+      font-family: "Lucida Console", Monaco, monospace;
+    }
+    .table {
+      border-collapse: collapse;
+      display: table;
+    }
+    .tr {
+      border-bottom: 1px solid #EEEEEE;
+      display: table-row;
+    }
+    .tr:hover {
+      background-color: #F5F5F5;
+    }
+    .tr:hover .tr:hover {
+      background-color: #FFFFFF;
+    }
+    .td,.th {
+      display: table-cell;
+      padding: 10px;
+    }
+    .td {
+      color: #212121;
+      font-size: 0.813em;
+    }
+    .th {
+      color: #767676;
+      font-size: 0.75em;
+    }
+    </style>
+    <div class="table">
+      <div class="tr">
+        <div class="th">Name</div>
+        <div class="th">Added by</div>
+        <div class="th">Builder Patterns</div>
+        <div class="th">Commits</div>
+        <div class="th">Description</div>
+      </div>
+      <template is="dom-repeat" items="{{rules}}">
+        <div class="tr">
+          <div class="td">{{item.name}}</div>
+          <div class="td">{{item.added_by}}</div>
+          <div class="td">
+            <template is="dom-repeat" items="{{item.builder_patterns}}">
+              <div class="builder_pattern">{{item}}</div>
+            </template>
+          </div>
+          <div class="td">
+            <template is="dom-repeat" items="{{item.commits}}">
+              <div class="commit">{{item}}</div>
+            </template>
+          </div>
+          <div class="td">{{item.description}}</div>
+        </div>
+      </template>
+    </div>
+  </template>
+  <script>
+  (function(){
+    Polymer({
+      is: "build-scheduler-blacklist-sk",
+
+      properties: {
+        rules: {
+          type: Array,
+        },
+      },
+    });
+  })();
+  </script>
+</dom-module>
+
