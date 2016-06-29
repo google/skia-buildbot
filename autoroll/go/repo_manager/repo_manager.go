@@ -66,10 +66,18 @@ type repoManager struct {
 	user              string
 }
 
+// getEnv returns the environment used for most commands.
+func getEnv(depotTools string) []string {
+	return []string{
+		fmt.Sprintf("PATH=%s:%s", depotTools, os.Getenv("PATH")),
+		fmt.Sprintf("HOME=%s", os.Getenv("HOME")),
+	}
+}
+
 // getDepotToolsUser returns the authorized depot tools user.
 func getDepotToolsUser(depotTools string) (string, error) {
 	output, err := exec.RunCommand(&exec.Command{
-		Env:  []string{fmt.Sprintf("PATH=%s:%s", depotTools, os.Getenv("PATH"))},
+		Env:  getEnv(depotTools),
 		Name: path.Join(depotTools, "depot-tools-auth"),
 		Args: []string{"info", autoroll.RIETVELD_URL},
 	})
@@ -144,7 +152,7 @@ func (r *repoManager) update() error {
 
 	if _, err := exec.RunCommand(&exec.Command{
 		Dir:  r.chromiumParentDir,
-		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Env:  getEnv(r.depot_tools),
 		Name: r.gclient,
 		Args: []string{"config", REPO_CHROMIUM},
 	}); err != nil {
@@ -152,7 +160,7 @@ func (r *repoManager) update() error {
 	}
 	if _, err := exec.RunCommand(&exec.Command{
 		Dir:  r.chromiumParentDir,
-		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Env:  getEnv(r.depot_tools),
 		Name: r.gclient,
 		Args: []string{"sync", "--nohooks"},
 	}); err != nil {
@@ -252,7 +260,7 @@ func (r *repoManager) cleanChromium() error {
 	_, _ = exec.RunCwd(r.chromiumDir, "git", "branch", "-D", DEPS_ROLL_BRANCH)
 	if _, err := exec.RunCommand(&exec.Command{
 		Dir:  r.chromiumDir,
-		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Env:  getEnv(r.depot_tools),
 		Name: r.gclient,
 		Args: []string{"revert", "--nohooks"},
 	}); err != nil {
@@ -313,7 +321,7 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	glog.Infof("Running command: roll-dep %s", strings.Join(args, " "))
 	if _, err := exec.RunCommand(&exec.Command{
 		Dir:  r.chromiumDir,
-		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Env:  getEnv(r.depot_tools),
 		Name: r.rollDep,
 		Args: args,
 	}); err != nil {
@@ -329,7 +337,7 @@ func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryR
 	}
 	uploadCmd := &exec.Command{
 		Dir:  r.chromiumDir,
-		Env:  []string{fmt.Sprintf("PATH=%s:%s", r.depot_tools, os.Getenv("PATH"))},
+		Env:  getEnv(r.depot_tools),
 		Name: "git",
 		Args: []string{"cl", "upload", "--bypass-hooks", "-f"},
 	}
