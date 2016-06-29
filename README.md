@@ -16,7 +16,6 @@ $GOPATH/bin comes before /usr/bin in your PATH. If you have GOPATH set, run:
 
 ```
 $ go get -u go.skia.org/infra/...
-$ cd $GOPATH/src/go.skia.org/infra/
 ```
 
 This fetches the repository into your $GOPATH directory along with all the
@@ -30,7 +29,7 @@ more about using depot_tools from the
 Then run:
 
 ```
-$ cd ..
+$ cd $GOPATH/src/go.skia.org/
 $ gclient config --name infra --unmanaged https://skia.googlesource.com/buildbot
 $ gclient sync
 ```
@@ -71,6 +70,7 @@ Install other dependencies:
 $ sudo apt-get install npm nodejs-legacy python-django redis-server
 $ go get github.com/kisielk/errcheck
 $ go get golang.org/x/tools/cmd/goimports
+$ go get github.com/luci/luci-go/client/cmd/isolate
 $ sudo npm install -g polylint bower
 ```
 
