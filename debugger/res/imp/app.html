@@ -38,7 +38,7 @@ The main application element for the Skia Debugger.
 <link rel=import href="/res/imp/instance.html">
 
 <dom-module id="debugger-app-sk">
-  <style include="iron-flex iron-flex-alignment">
+  <style include="iron-flex iron-flex-alignment iron-flex-factors">
     :root {
       --paper-toolbar-background: #1f78b4;
     }
@@ -134,10 +134,23 @@ The main application element for the Skia Debugger.
 
     paper-tabs {
       --paper-tabs-selection-bar-color: #1f78b4;
+      margin-bottom: 5px;
     }
 
-    paper-tab[disabled] {
-      color: lightgray;
+    paper-tab {
+      color: white;
+      background: gray;
+    }
+
+    paper-tab.iron-selected {
+      font-weight: bold;
+      background: #1f78b4;
+    }
+
+    paper-tab[aria-disabled=true] {
+      color: white;
+      font-style: italic;
+      background: lightgray;
     }
 
     header {
@@ -172,6 +185,10 @@ The main application element for the Skia Debugger.
       font-family: monospace;
     }
 
+    canvas-layers-sk  {
+      border: solid lightgray 1px;
+    }
+
   </style>
   <template>
     <header class="horizontal layout center">
@@ -192,12 +209,12 @@ The main application element for the Skia Debugger.
       </div>
       <hr/>
       <div class="layout horizontal">
-        <div id=left class="layout vertical flex-2">
+        <div id=left class="layout vertical flex-3">
           <paper-input id="fast" on-change="_fastFilter" label="Filter"></paper-input>
           <play-sk id=play></play-sk>
           <commands-sk id=commands grouping=50></commands-sk>
         </div>
-        <div id=center class="layout vertical flex-3">
+        <div id=center class="layout vertical flex-6">
           <div class="layout horizontal">
             <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
             <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuBatchBounds)}}" id=gpuBatchBounds on-tap="_gpuBatchBounds">Display Batch Bounds</paper-checkbox>
