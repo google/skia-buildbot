@@ -3,11 +3,11 @@ package runner
 
 import (
 	"fmt"
-	"net/http"
 	"path/filepath"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -100,7 +100,8 @@ func New(workRoot, imageDir string, getHash GetCurrentGitHash, local bool) *Runn
 // Stop, when called from a different Go routine, will cause the skiaserve
 // running on the given port to exit and thus the container to exit.
 func Stop(port int) {
-	resp, _ := http.Get(fmt.Sprintf("http://localhost:%d/quitquitquit", port))
+	client := httputils.NewTimeoutClient()
+	resp, _ := client.Get(fmt.Sprintf("http://localhost:%d/quitquitquit", port))
 	if resp != nil && resp.Body != nil {
 		util.Close(resp.Body)
 	}

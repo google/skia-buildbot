@@ -193,7 +193,8 @@ func infoHandler(w http.ResponseWriter, r *http.Request) {
 
 	var data []byte
 	if url != "" {
-		resp, err := http.Get(url)
+		client := httputils.NewTimeoutClient()
+		resp, err := client.Get(url)
 		defer util.Close(resp.Body)
 
 		// Copy the body out to a file.

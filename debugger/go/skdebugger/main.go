@@ -113,7 +113,8 @@ func loadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Load the SKP from the given query parameter.
-	resp, err := http.Get(r.FormValue("url"))
+	client := httputils.NewTimeoutClient()
+	resp, err := client.Get(r.FormValue("url"))
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve the SKP.")
 		return

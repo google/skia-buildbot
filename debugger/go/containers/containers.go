@@ -144,8 +144,9 @@ func (s *Containers) startContainer(user string) error {
 	url := fmt.Sprintf("http://localhost:%d", co.port)
 	var err error
 	var resp *http.Response
+	client := httputils.NewTimeoutClient()
 	for i := 0; i < START_WAIT_NUM; i++ {
-		resp, err = http.Get(url)
+		resp, err = client.Get(url)
 		if resp != nil && resp.Body != nil {
 			if err := resp.Body.Close(); err != nil {
 				glog.Errorf("Failed to close response while listing for skiaserve to start: %s", err)
