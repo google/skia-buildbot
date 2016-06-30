@@ -98,18 +98,7 @@ func Init(clientID, clientSecret, redirectURL, salt string, scopes []string, aut
 	oauthConfig.RedirectURL = redirectURL
 	oauthConfig.Scopes = scopes
 
-	// If we are in the cloud and there is a whitelist in meta data then use the
-	// meta data version.
-	if !local {
-		// We allow for meta data to not be present.
-		whiteList, err := metadata.Get(metadata.AUTH_WHITE_LIST)
-		if err != nil {
-			glog.Infof("Unable to retrieve auth whitelist from meta data. Error:", err)
-		} else {
-			authWhiteList = whiteList
-		}
-	}
-	activeDomainWhiteList, activeEmailWhiteList = splitAuthWhiteList(authWhiteList)
+	setActiveWhitelists(authWhiteList)
 }
 
 // LoginURL returns a URL that the user is to be directed to for login.
@@ -413,6 +402,14 @@ func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
 	return domains, emails
 }
 
+// setActiveWhitelists initializes activeDomainWhiteList and
+// activeEmailWhiteList from instance metadata; or if metadata is not available,
+// from authWhiteList.
+func setActiveWhitelists(authWhiteList string) {
+	authWhiteList = metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, authWhiteList)
+	activeDomainWhiteList, activeEmailWhiteList = splitAuthWhiteList(authWhiteList)
+}
+
 // tryLoadingFromMetadata tries to load the cookie salt, client id, and client
 // secret from GCE project level metadata. If it fails then it returns the salt
 // it was passed and the client id and secret are the empty string.
@@ -466,13 +463,6 @@ func InitFromMetadataOrJSON(redirectURL string, scopes []string, authWhiteList s
 	oauthConfig.ClientSecret = clientSecret
 	oauthConfig.RedirectURL = redirectURL
 	oauthConfig.Scopes = scopes
-	// We allow for meta data to not be present.
-	whiteList, err := metadata.Get(metadata.AUTH_WHITE_LIST)
-	if err != nil {
-		glog.Infof("Failed to retrieve auth whitelist from instance meta data: %s", err)
-	} else {
-		authWhiteList = whiteList
-	}
-	activeDomainWhiteList, activeEmailWhiteList = splitAuthWhiteList(authWhiteList)
+	setActiveWhitelists(authWhiteList)
 	return nil
 }

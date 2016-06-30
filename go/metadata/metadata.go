@@ -89,6 +89,16 @@ func Get(name string) (string, error) {
 	return get(name, "instance")
 }
 
+// GetWithDefault is Get, but returns the default value on error.
+func GetWithDefault(name, defaultValue string) string {
+	if ret, err := Get(name); err == nil {
+		return ret
+	} else {
+		glog.Warningf("Unable to obtain %q from metadata server: %v", name, err)
+		return defaultValue
+	}
+}
+
 // ProjectGet retrieves the named value from the project Metadata server. See
 // https://developers.google.com/compute/docs/metadata
 func ProjectGet(name string) (string, error) {

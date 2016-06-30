@@ -17,16 +17,8 @@ func rebootMonitoringInit() {
 		sklog.Errorf("Failed to get hostname: %s", err)
 		return
 	}
-	primary, err := metadata.Get("owner_primary")
-	if err != nil {
-		sklog.Errorf("Problem getting primary instance owner: %s", err)
-		primary = "UNKNOWN_OWNER"
-	}
-	secondary, err := metadata.Get("owner_secondary")
-	if err != nil {
-		sklog.Warningf("Problem getting secondary instance owner.  There might not actually be one: %s", err)
-		secondary = ""
-	}
+	primary := metadata.GetWithDefault("owner_primary", "UNKNOWN_OWNER")
+	secondary := metadata.GetWithDefault("owner_secondary", "")
 	owners := primary
 	if secondary != "" {
 		owners += ", " + secondary
