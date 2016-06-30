@@ -31,13 +31,18 @@
       "version": 1,
       "commands": [
       {
-        details: { command:"BeginDrawPicture" },
+        details: {
+          command: "BeginDrawPicture",
+        },
         _index: 0,
         _depth: 0,
         _prefix: [{icon:"image:image", color:"#A6CEE3"}]
       },
       {
-        details:{command:"Save"},
+        details: {
+          command: "ClipRect",
+          shortDesc: " [1.2 1.2 3.4 5.4] ",
+        },
         _index: 0,
         _depth: 1,
         _prefix:[{icon:"image:image", color:"#A6CEE3"}]
@@ -46,7 +51,9 @@
     };
     for (var i = 0; i < 100; i++) {
       data.commands.push({
-        details: {command:"BeginDrawPicture"},
+        details: {
+          command: "BeginDrawPicture",
+        },
         _index: 2+i,
         _depth: 0,
         _prefix: [{icon:"image:image", color:"#A6CEE3"}]

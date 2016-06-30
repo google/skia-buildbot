@@ -90,6 +90,7 @@
           <iron-icon icon="{{ item.icon }}" style$="color: {{ item.color }};"><iron-icon>
         </template>
         {{ op.details.command }}
+        <code>{{op.details.shortDesc }}</code>
         <template is="dom-repeat" items="{{ _fixList(op.details.auditTrail.Batches) }}" as=batch>
           <span class=batchid style$="background: {{ _bgColor(batch.BatchListID) }}">{{ _smartNumber(batch.BatchListID) }}</span>
         </template>
