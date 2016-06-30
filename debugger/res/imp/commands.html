@@ -170,12 +170,6 @@
       if (expando && expando.expanded == false) {
         expando.expanded = true;
       }
-      // Collapse other expandos if necessary.
-      $$("op-expando-sk[expanded]", this.$.selector).forEach(function(ele) {
-        if (ele.begin != begin) {
-          ele.expanded = false;
-        }
-      });
       // Set the new op-sk as selected.
       this._setSelected(index);
     },

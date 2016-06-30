@@ -56,20 +56,20 @@
     }
     $$$('#cmds').cmd = data;
     $$$('#to').addEventListener('click', function() {
-      $$$('#cmds').index = 301;
+      $$$('#cmds').item = 301;
       $$$('#cmds').scrollToTop(301);
     });
     $$$('#next').addEventListener('click', function() {
-      $$$('#cmds').index = ($$$('#cmds').index + 1) % data.commands.length;
-      $$$('#cmds').scrollToTop($$$('#cmds').index);
+      $$$('#cmds').item = ($$$('#cmds').item + 1) % data.commands.length;
+      $$$('#cmds').scrollToTop($$$('#cmds').item);
     });
     $$$('#prev').addEventListener('click', function() {
-      var index = $$$('#cmds').index-1;
-      if (index < 0) {
-        index = data.commands.length-1;
+      var item = $$$('#cmds').item-1;
+      if (item < 0) {
+        item = data.commands.length-1;
       }
-      $$$('#cmds').index = index;
-      $$$('#cmds').scrollToTop(index);
+      $$$('#cmds').item = item;
+      $$$('#cmds').scrollToTop(item);
     });
   </script>
 </body>
