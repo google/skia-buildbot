@@ -149,7 +149,7 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 
 func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	if !login.IsAGoogler(r) {
+	if !login.IsGoogler(r) {
 		errStr := "Cannot trigger builds; user is not a logged-in Googler."
 		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
 		return

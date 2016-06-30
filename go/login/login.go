@@ -186,8 +186,8 @@ func LoggedInAs(r *http.Request) string {
 	return s.Email
 }
 
-// IsAGoogler determines whether the user is logged in with an @google.com account.
-func IsAGoogler(r *http.Request) bool {
+// IsGoogler determines whether the user is logged in with an @google.com account.
+func IsGoogler(r *http.Request) bool {
 	return strings.HasSuffix(LoggedInAs(r), "@google.com")
 }
 
@@ -356,7 +356,7 @@ func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	}{
 		Email:      LoggedInAs(r),
 		LoginURL:   LoginURL(w, r),
-		IsAGoogler: IsAGoogler(r),
+		IsAGoogler: IsGoogler(r),
 	}
 	if err := enc.Encode(body); err != nil {
 		glog.Errorf("Failed to encode Login status to JSON: %s", err)

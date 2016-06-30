@@ -112,7 +112,7 @@ func Init() {
 }
 
 func modeJsonHandler(w http.ResponseWriter, r *http.Request) {
-	if !login.IsAGoogler(r) {
+	if !login.IsGoogler(r) {
 		httputils.ReportError(w, r, fmt.Errorf("User does not have edit rights."), "You must be logged in with an @google.com account to do that.")
 		return
 	}
@@ -139,7 +139,7 @@ func statusJsonHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// Obtain the status info. Only display error messages if the user
 	// is a logged-in Googler.
-	status := arb.GetStatus(login.IsAGoogler(r))
+	status := arb.GetStatus(login.IsGoogler(r))
 	if err := json.NewEncoder(w).Encode(&status); err != nil {
 		glog.Error(err)
 	}
