@@ -7,11 +7,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gitinfo"
 )
 
 // flags
@@ -32,7 +34,12 @@ func main() {
 	if *depotTools == "" {
 		glog.Fatal("The --depot_tools flag is required.")
 	}
-	b := buildskia.New(*workRoot, *depotTools, nil, nil, 2, time.Hour)
+	repo, err := gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*workRoot, "skia"), true)
+	if err != nil {
+		glog.Fatalf("Failed to clone Skia: %s", err)
+	}
+
+	b := buildskia.New(*workRoot, *depotTools, repo, nil, 2, time.Hour)
 	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
 	if err != nil {
 		if err == buildskia.AlreadyExistsErr {

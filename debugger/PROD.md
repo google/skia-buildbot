@@ -23,7 +23,7 @@ SSH into `skia-debugger` and run:
 
 After that finishes restart debugger:
 
-    sudo systemctl restart skdebugger.service
+    sudo systemctl restart skdebuggerd.service
 
 Or restart debugger from the push dashboard.
 
