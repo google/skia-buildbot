@@ -52,6 +52,9 @@ const (
 
 	// DEFAULT_DOMAIN_WHITELIST is a white list of domains we use frequently.
 	DEFAULT_DOMAIN_WHITELIST = "google.com chromium.org skia.org"
+
+	// DEFAULT_ADMIN_WHITELIST is the white list of users we consider admins when we can't retrieve the whitelist from metadata.
+	DEFAULT_ADMIN_WHITELIST = "benjaminwagner@google.com borenet@google.com jcgregorio@google.com kjlubick@google.com rmistry@google.com stephana@google.com"
 )
 
 var (
@@ -69,11 +72,17 @@ var (
 		RedirectURL:  "http://localhost:8000/oauth2callback/",
 	}
 
-	// activeDomainWhiteList is the list of domains that are allowed to log in.
-	activeDomainWhiteList map[string]bool
+	// activeUserDomainWhiteList is the list of domains that are allowed to
+	// log in.
+	activeUserDomainWhiteList map[string]bool
 
-	// activeEmailWhiteList is the list of whitelisted email addresses.
-	activeEmailWhiteList map[string]bool
+	// activeUserEmailWhiteList is the list of email addresses that are
+	// allowed to log in (even if the domain is not whitelisted).
+	activeUserEmailWhiteList map[string]bool
+
+	// activeAdminEmailWhiteList is the list of email addresses that are
+	// allowed to perform admin tasks.
+	activeAdminEmailWhiteList map[string]bool
 
 	DEFAULT_SCOPE = []string{"email"}
 )
@@ -178,6 +187,12 @@ func LoggedInAs(r *http.Request) string {
 // IsGoogler determines whether the user is logged in with an @google.com account.
 func IsGoogler(r *http.Request) bool {
 	return strings.HasSuffix(LoggedInAs(r), "@google.com")
+}
+
+// IsAdmin determines whether the user is logged in with an account on the admin
+// whitelist. If true, user is allowed to perform admin tasks.
+func IsAdmin(r *http.Request) bool {
+	return activeAdminEmailWhiteList[LoggedInAs(r)]
 }
 
 // A JSON Web Token can contain much info, such as 'iss' and 'sub'. We don't care about
@@ -314,7 +329,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(activeDomainWhiteList) > 0 && !activeDomainWhiteList[parts[1]] && !activeEmailWhiteList[email] {
+	if len(activeUserDomainWhiteList) > 0 && !activeUserDomainWhiteList[parts[1]] && !activeUserEmailWhiteList[email] {
 		http.Error(w, "Accounts from your domain are not allowed or your email address is not white listed.", 500)
 		return
 	}
@@ -407,7 +422,9 @@ func splitAuthWhiteList(whiteList string) (map[string]bool, map[string]bool) {
 // from authWhiteList.
 func setActiveWhitelists(authWhiteList string) {
 	authWhiteList = metadata.GetWithDefault(metadata.AUTH_WHITE_LIST, authWhiteList)
-	activeDomainWhiteList, activeEmailWhiteList = splitAuthWhiteList(authWhiteList)
+	activeUserDomainWhiteList, activeUserEmailWhiteList = splitAuthWhiteList(authWhiteList)
+	adminWhiteList := metadata.ProjectGetWithDefault(metadata.ADMIN_WHITE_LIST, DEFAULT_ADMIN_WHITELIST)
+	_, activeAdminEmailWhiteList = splitAuthWhiteList(adminWhiteList)
 }
 
 // tryLoadingFromMetadata tries to load the cookie salt, client id, and client

@@ -46,6 +46,10 @@ const (
 	// and email address that are allowed to log into an app.
 	AUTH_WHITE_LIST = "auth_white_list"
 
+	// ADMIN_WHITE_LIST is the comma or whitespace separated list of domains
+	// and email address that are allowed to perform admin tasks.
+	ADMIN_WHITE_LIST = "admin_white_list"
+
 	// WEBHOOK_REQUEST_SALT is used to authenticate webhook requests. The value stored in
 	// Metadata is base64-encoded.
 	// Value created 2015-08-10 with
@@ -103,6 +107,16 @@ func GetWithDefault(name, defaultValue string) string {
 // https://developers.google.com/compute/docs/metadata
 func ProjectGet(name string) (string, error) {
 	return get(name, "project")
+}
+
+// ProjectGetWithDefault is ProjectGet, but returns the default value on error.
+func ProjectGetWithDefault(name, defaultValue string) string {
+	if ret, err := ProjectGet(name); err == nil {
+		return ret
+	} else {
+		glog.Warningf("Unable to obtain %q from metadata server: %v", name, err)
+		return defaultValue
+	}
 }
 
 // MustGet is Get() that panics on error.
