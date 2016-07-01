@@ -196,6 +196,13 @@ The main application element for the Skia Debugger.
       height: 24px;
     }
 
+    #upload summary-sk {
+      font-weight: bold;
+    }
+
+    #upload div {
+      padding: 1em 2em;
+    }
   </style>
   <template>
     <header class="horizontal layout center">
@@ -205,21 +212,23 @@ The main application element for the Skia Debugger.
       <login-sk id=login class=hidden></login-sk>
     </header>
     <div id=content>
-      <h2>Upload an SKP here.</h2>
-      <div class="layout horizontal center">
-        <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
-          <label>SKP to send:</label>
-          <input type="file" name="file" required />
-          <button class=action>Upload</button>
-        </form>
-        <a href="/download" id=download class=hidden>Download</a>
-      </div>
-      <hr/>
-      <div class="layout horizontal">
+      <details-sk id=upload open="[[ skp_not_loaded ]]">
+        <summary-sk>
+          SKP
+        </summary-sk>
+        <div class="layout horizontal center">
+          <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
+            <label>SKP to send:</label>
+            <input type="file" name="file" required />
+            <button class=action>Upload</button>
+          </form>
+          <a href="/download" id=download class=hidden>Download</a>
+        </div>
+      </details-sk>
+      <div class="layout horizontal" hidden="[[ skp_not_loaded ]]">
         <div id=left class$="layout vertical flex-{{ _leftRatio }}">
           <div class="layout horizontal end-justified">
-            <paper-icon-button on-tap=_smallerLeft icon="arrow-back"
-              title="Shrink the command panel."></paper-icon-button>
+            <paper-icon-button on-tap=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
           </div>
           <paper-input id="fast" on-change="_fastFilter" label="Filter"></paper-input>
           <play-sk id=play></play-sk>
@@ -338,6 +347,11 @@ The main application element for the Skia Debugger.
         _leftRatio: {
           type: Number,
           value: 3,
+          reflectToAttribute: false,
+        },
+        skp_not_loaded: {
+          type: Boolean,
+          value: true,
           reflectToAttribute: false,
         },
       },
@@ -593,6 +607,7 @@ The main application element for the Skia Debugger.
         this.$.img.classList.remove("hidden");
         this._setCacheBreakingURL();
         sk.get("/info").then(JSON.parse).then(function(json) {
+          this.skp_not_loaded = false;
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);
         sk.get("/cmd").then(JSON.parse).then(function(json) {
