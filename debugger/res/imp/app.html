@@ -230,7 +230,7 @@ The main application element for the Skia Debugger.
           <div class="layout horizontal end-justified">
             <paper-icon-button on-tap=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
           </div>
-          <paper-input id="fast" on-change="_fastFilter" label="Filter"></paper-input>
+          <paper-input id="fast" on-change="_fastFilter" label="Filter (Leading ! means remove matches)" placeholder="!save restore"></paper-input>
           <play-sk id=play></play-sk>
           <commands-sk id=commands grouping=50></commands-sk>
         </div>
@@ -581,15 +581,26 @@ The main application element for the Skia Debugger.
       },
 
       _fastFilter: function() {
-        var filters = this.$.fast.value.trim().toLowerCase().split(/\s+/);
+        var rawFilter = this.$.fast.value.trim().toLowerCase();
+        var negative = (rawFilter[0] == "!");
+        if (negative) {
+          rawFilter = rawFilter.slice(1);
+        }
+        var filters = rawFilter.split(/\s+/);
         var matches = function(s) {
           s = s.toLowerCase();
           for (var i = 0; i < filters.length; i++) {
-            if (s.indexOf(filters[i]) >= 0) {
-              return true;
+            if (negative) {
+              if (s.indexOf(filters[i]) >= 0) {
+                return false
+              }
+            } else {
+              if (s.indexOf(filters[i]) >= 0) {
+                return true
+              }
             }
           }
-          return false;
+          return negative;
         };
         var filtered = {
           version: 1,
