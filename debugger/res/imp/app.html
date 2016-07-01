@@ -189,6 +189,13 @@ The main application element for the Skia Debugger.
       border: solid lightgray 1px;
     }
 
+    paper-icon-button {
+      margin: 0;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+    }
+
   </style>
   <template>
     <header class="horizontal layout center">
@@ -209,15 +216,19 @@ The main application element for the Skia Debugger.
       </div>
       <hr/>
       <div class="layout horizontal">
-        <div id=left class="layout vertical flex-3">
+        <div id=left class$="layout vertical flex-{{ _leftRatio }}">
+          <div class="layout horizontal end-justified">
+            <paper-icon-button on-tap=_smallerLeft icon="arrow-back"
+              title="Shrink the command panel."></paper-icon-button>
+          </div>
           <paper-input id="fast" on-change="_fastFilter" label="Filter"></paper-input>
           <play-sk id=play></play-sk>
           <commands-sk id=commands grouping=50></commands-sk>
         </div>
         <div id=center class="layout vertical flex-6">
-          <div class="layout horizontal">
-            <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
-            <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuBatchBounds)}}" id=gpuBatchBounds on-tap="_gpuBatchBounds">Display Batch Bounds</paper-checkbox>
+          <div>
+            <paper-icon-button on-tap=_biggerLeft icon="arrow-forward"
+              title="Grow the command panel."></paper-icon-button>
           </div>
           <div id=rendered>
             <paper-tabs selected="{{tab_selected}}">
@@ -237,7 +248,11 @@ The main application element for the Skia Debugger.
             </iron-pages>
           </div>
         </div>
-        <div id=right class="layout vertical flex-2">
+        <div id=right class$="layout vertical flex-2">
+          <div class="layout horizontal">
+            <paper-toggle-button on-iron-change="_gpuChange" id=gpu checked="{{_gpuChecked(_cmd.mode)}}">GPU</paper-toggle-button>
+            <paper-checkbox disabled="{{_gpuNotChecked(_cmd.mode)}}" checked="{{_isTrue(_cmd.drawGpuBatchBounds)}}" id=gpuBatchBounds on-tap="_gpuBatchBounds">Display Batch Bounds</paper-checkbox>
+          </div>
           <details-sk open>
             <summary-sk>
               Color Mode
@@ -318,6 +333,11 @@ The main application element for the Skia Debugger.
         bitmap: {
           type: String,
           value: "",
+          reflectToAttribute: false,
+        },
+        _leftRatio: {
+          type: Number,
+          value: 3,
           reflectToAttribute: false,
         },
       },
@@ -441,6 +461,18 @@ The main application element for the Skia Debugger.
 
       attached: function() {
         document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+      },
+
+      _smallerLeft: function() {
+        if (this._leftRatio > 1) {
+          this._leftRatio--;
+        }
+      },
+
+      _biggerLeft: function() {
+        if (this._leftRatio < 12) {
+          this._leftRatio++;
+        }
       },
 
       _colorModeChange: function(e) {
