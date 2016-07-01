@@ -43,13 +43,15 @@ Download the files at
 https://drive.google.com/a/google.com/folderview?id=0B8qNi7tiU4KjflRQYnRxc2x1cW9VY3Z6VG54UkpOc0NrRmNDUUZqVjZQaDNscmNtcnBwcEk
 to /tmp.
 
-Look at
-https://skia.googlesource.com/buildbot/+/master/site_config/slave_hosts_cfg.py
-to see what the roles of the instances are going to be.
-The following are a few examples:
-- VM_INSTANCE_OS=Windows SKIA_BOT_MACHINE_TYPE=n1-standard-16 \
+The following are a few examples-
+To create windows swarming bots:
+- VM_INSTANCE_OS=Windows \
   VM_BOT_COUNT_START=16 VM_BOT_COUNT_END=19 bash vm_create_setup_instances.sh
+To create linux swarming bots:
+- VM_BOT_COUNT_START=20 VM_BOT_COUNT_END=22 bash vm_create_persistent_disks.sh
+- VM_BOT_COUNT_START=20 VM_BOT_COUNT_END=22 bash vm_create_setup_instances.sh
 
+To create other kinds of bots:
 - VM_IS_ANDROID_MERGE=1 VM_INSTANCE_OS=Linux \
   SKIA_BOT_MACHINE_TYPE=n1-standard-16 VM_BOT_COUNT_START=14 \
   VM_BOT_COUNT_END=14 bash vm_create_persistent_disks.sh
@@ -60,18 +62,15 @@ The following are a few examples:
 Access instances
 ================
 
-Run `gcloud compute ssh default@skia-vm-NNN`. Find the correct zone at
+Run `gcloud compute ssh chrome-bot@skia-vm-NNN`. Find the correct zone at
 https://pantheon.corp.google.com/project/31977622648/compute/instances
 
 
 How to delete old instances
 ===========================
 
-The following are a few examples:
-- VM_INSTANCE_OS=Windows SKIA_BOT_MACHINE_TYPE=n1-standard-16 \                 
-  VM_BOT_COUNT_START=16 VM_BOT_COUNT_END=19 bash vm_delete_instances.sh   
-                                                                                
-- VM_INSTANCE_OS=Linux SKIA_BOT_MACHINE_TYPE=n1-standard-16 \
-  VM_BOT_COUNT_START=14 VM_BOT_COUNT_END=14 bash vm_delete_persistent_disks.sh                        
-- VM_INSTANCE_OS=Linux SKIA_BOT_MACHINE_TYPE=n1-standard-16 \
-  VM_BOT_COUNT_START=14 VM_BOT_COUNT_END=14 bash vm_delete_instances.sh
+Windows does not have an external persistent disk thus can skip the
+vm_delete_persistent_disks.sh call below for Windows.
+
+- VM_BOT_COUNT_START=20 VM_BOT_COUNT_END=22 bash vm_delete_instances.sh
+- VM_BOT_COUNT_START=20 VM_BOT_COUNT_END=22 bash vm_delete_persistent_disks.sh
