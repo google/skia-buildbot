@@ -23,7 +23,7 @@ const (
 	CLIENT_SECRET = "uBfbay2KCy9t4QveJ-dOqHtp"
 
 	COMMITTED_ISSUE_REGEXP = "(?m:^Committed: .+$)"
-	CQ_STATUS_URL          = "https://chromium-cq-status.appspot.com/patch-summary/%d/%d"
+	CQ_STATUS_URL          = "https://chromium-cq-status.appspot.com/v2/patch-summary/codereview.chromium.org/%d/%d"
 
 	TIME_FORMAT = "2006-01-02 15:04:05.999999"
 
