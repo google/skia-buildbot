@@ -210,7 +210,7 @@ func cleanShutdown() {
 	co.StopAll()
 	// In theory all the containers should be exiting by now, but let's wait a
 	// little before exiting ourselves.
-	time.Sleep(1 * time.Second)
+	time.Sleep(10 * time.Second)
 	os.Exit(0)
 }
 
