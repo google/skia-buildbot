@@ -315,7 +315,6 @@ func probeOneRound(cfg Probes, c *http.Client) {
 			continue
 		}
 		d := time.Since(begin)
-		glog.Infof("DEBUG: Probe: %s HTTP request completed; resp: %v err: %v", name, resp, err)
 		probe.latency.Update(d.Nanoseconds() / int64(time.Millisecond))
 		if err != nil {
 			glog.Warningf("Failed to make request: Name: %s URL: %s Error: %s", name, probe.URL, err)
@@ -324,14 +323,10 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		}
 		responseTestResults := true
 		if probe.responseTest != nil && resp.Body != nil {
-			glog.Infof("DEBUG: Probe: %s calling responseTest", name)
 			responseTestResults = probe.responseTest(resp.Body, resp.Header)
-			glog.Infof("DEBUG: Probe: %s responseTest completed", name)
 		}
 		if resp.Body != nil {
-			if closeErr := resp.Body.Close(); closeErr != nil {
-				glog.Errorf("DEBUG: Probe: %s Error closing body: %v", name, closeErr)
-			}
+			util.Close(resp.Body)
 		}
 		// TODO(jcgregorio) Save the last N responses and present them in a web UI.
 
@@ -347,7 +342,6 @@ func probeOneRound(cfg Probes, c *http.Client) {
 		}
 
 		probe.failure.Update(0)
-		glog.Infof("DEBUG: Probe: %s Completed", name)
 	}
 }
 
@@ -384,7 +378,6 @@ func main() {
 	}
 	probeOneRound(cfg, c)
 	for _ = range time.Tick(*runEvery) {
-		glog.Infof("DEBUG: calling probeOneRound")
 		probeOneRound(cfg, c)
 		liveness.Reset()
 	}
