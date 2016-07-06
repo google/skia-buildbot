@@ -35,6 +35,10 @@ var (
 	hostname = ""
 
 	ACTIONS = []string{"start", "stop", "restart"}
+
+	// PROCESS_ENDING_UNITS include those that are likely to cause the
+	// current process to end.
+	PROCESS_ENDING_UNITS = []string{"reboot.target", "pulld.service"}
 )
 
 // flags
@@ -107,6 +111,21 @@ func Init() {
 	loadResouces()
 }
 
+// getFunctionForAction returns StartUnit, StopUnit, or RestartUnit based on action.
+func getFunctionForAction(action string) func(name string, mode string, ch chan<- string) (int, error) {
+	switch action {
+	case "start":
+		return dbc.StartUnit
+	case "stop":
+		return dbc.StopUnit
+	case "restart":
+		return dbc.RestartUnit
+	default:
+		sklog.Fatalf("%q in ACTIONS but not handled by getFunctionForAction", action)
+		return nil
+	}
+}
+
 // changeHandler changes the status of a service.
 //
 // Takes the following query parameters:
@@ -121,8 +140,6 @@ func Init() {
 //   }
 //
 func changeHandler(w http.ResponseWriter, r *http.Request) {
-	var err error
-
 	if err := r.ParseForm(); err != nil {
 		httputils.ReportError(w, r, err, "Failed to parse form.")
 		return
@@ -144,21 +161,24 @@ func changeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	ch := make(chan string)
-	switch action {
-	case "start":
-		_, err = dbc.StartUnit(name, "replace", ch)
-	case "stop":
-		_, err = dbc.StopUnit(name, "replace", ch)
-	case "restart":
-		_, err = dbc.RestartUnit(name, "replace", ch)
-	}
-	if err != nil {
-		httputils.ReportError(w, r, err, "Action failed.")
-		return
-	}
+	f := getFunctionForAction(action)
 	res := ChangeResult{}
-	res.Result = <-ch
+	if util.In(name, PROCESS_ENDING_UNITS) {
+		go func() {
+			<-time.After(1 * time.Second)
+			if _, err := f(name, "replace", nil); err != nil {
+				sklog.Error(err)
+			}
+		}()
+		res.Result = "enqueued"
+	} else {
+		ch := make(chan string)
+		if _, err := f(name, "replace", ch); err != nil {
+			httputils.ReportError(w, r, err, "Action failed.")
+			return
+		}
+		res.Result = <-ch
+	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(res); err != nil {
 		sklog.Errorf("Failed to write or encode output: %s", err)

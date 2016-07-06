@@ -64,6 +64,8 @@ Displays the server configurations, along with the ability to modify application
   the current one already selected. A selection will update and push.
 -->
 
+<link rel="import" href="/res/common/imp/9/confirm-dialog-sk.html">
+
 <dom-module id="push-server-sk">
   <style type="text/css" media="screen">
     table {
@@ -113,10 +115,15 @@ Displays the server configurations, along with the ability to modify application
     }
   </style>
   <template>
+    <confirm-dialog-sk id="reboot_confirm_dialog"></confirm-dialog-sk>
+
     <div on-tap="editClicked">
       <template is="dom-repeat" items="{{servers}}" as=server>
         <section>
           <h2>{{server.Name}}</h2>
+          <paper-button raised data-action="start"
+                        data-name="reboot.target"
+                        data-server$="[[server.Name]]">Reboot</paper-button>
           [<a target=_blank href$="{{monURI(server.Name)}}">mon</a>]
           [<a target=_blank href$="{{logsURI(server.Name)}}">logs</a>]
           <table>
@@ -194,12 +201,25 @@ Displays the server configurations, along with the ability to modify application
         return
       }
       this.server = button.dataset.server;
-      var id = button.dataset.name;
-      var app = button.dataset.app;
-      if (app != "") {
-        this.$.extChooser.choices = this.packages[app];
-        this.$.extChooser.choice = id;
-        this.$.extChooser.toggle();
+      if (button.dataset.action) {
+        this.$.reboot_confirm_dialog
+          .open("Proceed with rebooting " + this.server + "?")
+          .then(function() {
+            var detail = {
+              machine: button.dataset.server,
+              name: button.dataset.name,
+              action: button.dataset.action,
+            };
+            this.dispatchEvent(new CustomEvent('unit-action', {detail: detail, bubbles: true}));
+          }.bind(this));
+      } else {
+        var id = button.dataset.name;
+        var app = button.dataset.app;
+        if (app != "") {
+          this.$.extChooser.choices = this.packages[app];
+          this.$.extChooser.choice = id;
+          this.$.extChooser.toggle();
+        }
       }
     },
 
