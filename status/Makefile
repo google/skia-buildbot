@@ -14,7 +14,7 @@ all: clean_webtools status
 include ../go/skiaversion/skiaversion.mk
 
 status: core_js elements_html skiaversion
-	go install -v ./go/status
+	go install -race -v ./go/status
 
 testgo: skiaversion
 	go test ./go/... -v
