@@ -73,6 +73,7 @@ $boto_contents = (
     "[Boto]`n"
     )
 Set-Content C:\chromium-skia-gm.boto $boto_contents
+Set-Content C:\.boto $boto_contents
 
 banner "Create _netrc file"
 $netrc_contents = @"
