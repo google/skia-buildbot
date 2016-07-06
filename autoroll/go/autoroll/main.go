@@ -75,7 +75,8 @@ func getSheriff() ([]string, error) {
 	}
 
 	// Hit the URL to get the email address. Expect JSON.
-	resp, err := http.Get(*sheriff)
+	client := httputils.NewTimeoutClient()
+	resp, err := client.Get(*sheriff)
 	if err != nil {
 		return nil, err
 	}
