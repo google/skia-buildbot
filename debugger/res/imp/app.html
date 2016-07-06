@@ -203,6 +203,22 @@ The main application element for the Skia Debugger.
     #upload div {
       padding: 1em 2em;
     }
+
+    #histogram table {
+      padding-left: 2em;
+    }
+
+    #histogram .countCol {
+      text-align: right;
+    }
+
+    #histogram td {
+      padding: 0.2em;
+    }
+
+    zoom-sk {
+      display: block;
+    }
   </style>
   <template>
     <header class="horizontal layout center">
@@ -291,6 +307,18 @@ The main application element for the Skia Debugger.
             </table>
           </details-sk>
 
+          <details-sk id=histogram class="hidden">
+            <summary-sk>
+              Histogram
+            </summary-sk>
+            <table>
+              <template is="dom-repeat" items="{{histogram}}">
+                <tr><td class=countCol>{{item.count}}</td><td>{{item.name}}</td></tr>
+              </template>
+              <tr><td class=countCol>{{_filtered.commands.length}}</td><td><b>Total</b></td></tr>
+            </table>
+          </details-sk>
+
           <dl>
             <dt>Postion</dt>
             <dd>({{ x }}, {{ y }})</dd>
@@ -354,6 +382,11 @@ The main application element for the Skia Debugger.
           value: true,
           reflectToAttribute: false,
         },
+        histogram: {
+          type: Array,
+          value: function() { return []; },
+          reflectToAttribute: false,
+        }
       },
 
       ready: function() {
@@ -622,7 +655,7 @@ The main application element for the Skia Debugger.
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);
         sk.get("/cmd").then(JSON.parse).then(function(json) {
-          this._cmd = this._addDepth(json);
+          this._cmd = this._processCommands(json);
           if (this.$.fast.value) {
             this._fastFilter();
           } else {
@@ -706,11 +739,14 @@ The main application element for the Skia Debugger.
         return JSON.stringify(s, null, 2);
       },
 
-      // _addDepth cycles through the commands and set a depth based on Save/Restore pairs.
-      _addDepth: function(cmd) {
+      // _processCommands cycles through the commands and set a depth based on Save/Restore pairs.
+      //
+      // Also calculates the histogram.
+      _processCommands: function(cmd) {
         var commands = cmd.commands;
         var depth = 0;
         var prefixes = [];
+        var counts = {}; // Tally of each command.
         for (var i = 0; i < commands.length; i++) {
           commands[i] = {
             details: commands[i],
@@ -718,6 +754,8 @@ The main application element for the Skia Debugger.
           };
           commands[i]._depth = depth;
           commands[i]._prefix = prefixes.slice();
+          var name = commands[i].details.command;
+          counts[name] = (counts[name] || 0) + 1;
           if (commands[i].details.command in INDENTERS) {
             depth++;
             prefixes.push(INDENTERS[commands[i].details.command]);
@@ -728,6 +766,33 @@ The main application element for the Skia Debugger.
             commands[i]._prefix = prefixes.slice();
           }
         }
+
+        // Calculate the histogram of the ops.
+        // First convert the object into an Array of objects.
+        var histogram = [];
+        for (k in counts) {
+          histogram.push({
+            name: k,
+            count: counts[k],
+          });
+        }
+        // Now sort the array, descending on the count, ascending
+        // on the op name.
+        histogram.sort(function(a,b) {
+          if (a.count == b.count) {
+            if (a.name < b.name) {
+              return -1;
+            }
+            if (a.name > b.name) {
+              return 1;
+            }
+            return 0;
+          } else {
+            return b.count - a.count;
+          }
+        });
+        this.histogram = histogram;
+        this.$.histogram.classList.remove('hidden');
         return cmd;
       }
     });
