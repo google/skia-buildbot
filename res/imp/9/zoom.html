@@ -102,6 +102,7 @@
         // Grab the img we are zooming from.
         this._img = $$$('#' + this.source, this._findParent());
         this._img.addEventListener('load', function() {
+          this._onIronResize();
           this._cloneImage();
           this.dispatchEvent(new CustomEvent('zoom-loaded', { bubbles: true }));
         }.bind(this));

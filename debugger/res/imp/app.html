@@ -265,7 +265,7 @@ The main application element for the Skia Debugger.
                 <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
                   <img id=img src="" class=hidden>
                 </canvas-layers-sk>
-                <crosshair-sk id=crosshair target=layers name=crosshair update_on=move></crosshair-sk>
+                <crosshair-sk id=crosshair target=layers name=crosshair update_on=move hidden></crosshair-sk>
               </div>
               <div>
                 <img id=standAloneImg src$="[[bitmap]]">
@@ -702,15 +702,17 @@ The main application element for the Skia Debugger.
         this.$.img.src = window.location.origin + path + "?" + new Date().getTime();
       },
 
-      _crosshairClick: function() {
+      _crosshairClick: function(e) {
         if (this.$.crosshair.update_on === "move") {
           this.$.crosshair.update_on = "click";
           this.$.colorBreakPoint.disabled = false;
           this.$.keyboardshortcuts.classList.remove("hidden");
+          this.$.crosshair.hidden = false;
         } else {
           this.$.crosshair.update_on = "move";
           this.$.colorBreakPoint.disabled = true;
           this.$.keyboardshortcuts.classList.add("hidden");
+          this.$.crosshair.hidden = true;
         }
       },
 
