@@ -189,7 +189,8 @@ The main application element for the Skia Debugger.
       border: solid lightgray 1px;
     }
 
-    paper-icon-button {
+    paper-icon-button.resizer
+    #left paper-icon-button {
       margin: 0;
       padding: 0;
       width: 24px;
@@ -219,6 +220,36 @@ The main application element for the Skia Debugger.
     zoom-sk {
       display: block;
     }
+
+    #img.bottom {
+      width: auto;
+      height: 80vh;
+    }
+
+    #img.fit {
+      max-width: 100%;
+      max-height: 80vh;
+      width: auto;
+      height: auto;
+    }
+
+    #img.natural {
+      width: auto;
+      height: auto;
+    }
+
+    #img.right{
+      width: 100%;
+      height: auto;
+    }
+
+    .sizeToolBar paper-icon-button {
+      opacity: 0.5;
+    }
+
+    .sizeToolBar paper-icon-button:hover {
+      background-color: #eee;
+    }
   </style>
   <template>
     <header class="horizontal layout center">
@@ -244,7 +275,7 @@ The main application element for the Skia Debugger.
       <div class="layout horizontal" hidden="[[ skp_not_loaded ]]">
         <div id=left class$="layout vertical flex-{{ _leftRatio }}">
           <div class="layout horizontal end-justified">
-            <paper-icon-button on-tap=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
+            <paper-icon-button class=resizer on-tap=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
           </div>
           <paper-input id="fast" on-change="_fastFilter" label="Filter (Leading ! means remove matches)" placeholder="!save restore"></paper-input>
           <play-sk id=play></play-sk>
@@ -252,7 +283,7 @@ The main application element for the Skia Debugger.
         </div>
         <div id=center class="layout vertical flex-6">
           <div>
-            <paper-icon-button on-tap=_biggerLeft icon="arrow-forward"
+            <paper-icon-button class=resizer on-tap=_biggerLeft icon="arrow-forward"
               title="Grow the command panel."></paper-icon-button>
           </div>
           <div id=rendered>
@@ -262,8 +293,14 @@ The main application element for the Skia Debugger.
             </paper-tabs>
             <iron-pages selected="{{tab_selected}}">
               <div>
+                <div class="layout horizontal sizeToolBar">
+                  <paper-icon-button src="/res/img/image.png"  data-style="natural" title="Original size."     on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/both.png"   data-style="fit"     title="Fit to page."       on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/right.png"  data-style="right"   title="Fit to page width." on-tap="_resizeImage"></paper-icon-button>
+                  <paper-icon-button src="/res/img/bottom.png" data-style="bottom"  title="Fit to height."     on-tap="_resizeImage"></paper-icon-button>
+                </div>
                 <canvas-layers-sk layers='["crosshair"]' id=layers on-tap="_crosshairClick">
-                  <img id=img src="" class=hidden>
+                  <img id=img src="" class="fit">
                 </canvas-layers-sk>
                 <crosshair-sk id=crosshair target=layers name=crosshair update_on=move hidden></crosshair-sk>
               </div>
@@ -508,6 +545,16 @@ The main application element for the Skia Debugger.
 
       attached: function() {
         document.body.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+      },
+
+      _resizeImage: function(e) {
+        var ele = sk.findParent(e.target, "PAPER-ICON-BUTTON");
+        if (!ele) {
+          return
+        }
+        this.$.img.classList.remove("natural", "fit", "right", "bottom");
+        this.$.img.classList.add(ele.dataset.style);
+        window.dispatchEvent(new CustomEvent("partial-resize"));
       },
 
       _smallerLeft: function() {

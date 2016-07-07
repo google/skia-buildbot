@@ -197,8 +197,8 @@
       _moveAnimationFrame: function() {
         if (this._lastMove.x != this._move.x || this._lastMove.y != this._move.y) {
           this._moveCrosshair(this._move.x, this._move.y);
-          this._lastMove.x == this._move.x;
-          this._lastMove.y == this._move.y;
+          this._lastMove.x = this._move.x;
+          this._lastMove.y = this._move.y;
         }
         if (this.update_on === "move") {
           window.requestAnimationFrame(this._moveAnimationFrameBound);

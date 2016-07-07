@@ -7,6 +7,11 @@
   The canvas-layers-sk element listens for 'load' events from the img element
   and resizes each canvas when the image changes.
 
+  The canvas also listens for the builtin event "resize" on window, and also for
+  the custom event "partial-resize" also on window. You can send a
+  "partial-resize" custom event to window to trigger the canvas layers to check
+  the size of the image and resize appropriately.
+
   Attributes:
     layers - A JSON serialized array of layer names. There will be one canvas
       for each name. Call canvas(name) to get the underlying canvas object.
@@ -61,9 +66,24 @@
 
     ready: function() {
       this._img = $$$('img', this);
-      this._img.addEventListener('load', this._imageLoaded.bind(this));
-      this.addEventListener('dom-change', this._imageLoaded.bind(this));
+      this._imageLoadedBound = this._imageLoaded.bind(this);
+      this._img.addEventListener('load', this._imageLoadedBound );
+      this.addEventListener('dom-change', this._imageLoadedBound);
       this.addEventListener('dom-change', this._domChanged.bind(this));
+      this._resizing = false;
+      window.addEventListener('resize', function() {
+        if (this._resizing == true) {
+          return;
+        }
+        this._resizing = true;
+        window.requestAnimationFrame(function(){
+          this._resizing = false;
+          this._imageLoaded();
+        }.bind(this));
+      }.bind(this));
+      window.addEventListener('partial-resize', function() {
+        this._imageLoaded();
+      }.bind(this));
       this._imageLoaded();
     },
 
