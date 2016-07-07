@@ -7,12 +7,12 @@ import (
 	"flag"
 	"fmt"
 	"html/template"
-	"net/http"
 	"strings"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/email"
+	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/util"
 )
 
@@ -91,9 +91,10 @@ func main() {
 
 	defer glog.Flush()
 
+	client := httputils.NewTimeoutClient()
 	for _, shiftType := range allShiftTypes {
 
-		res, err := http.Get(shiftType.nextSheriffEndpoint)
+		res, err := client.Get(shiftType.nextSheriffEndpoint)
 		if err != nil {
 			glog.Fatalf("Could not HTTP Get: %s", err)
 		}
