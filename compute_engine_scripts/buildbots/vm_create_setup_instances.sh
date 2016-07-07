@@ -156,14 +156,14 @@ else
   echo
   for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
     INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
-    DONE_TEXT="status: RUNNING"
+    DONE_TEXT="RUNNING"
 
-    while [ `gcloud compute instances describe --zone=${ZONE} ${INSTANCE_NAME} | grep -c "${DONE_TEXT}"` = 0 ]; do
+    while [ `${GCOMPUTE_CMD} getinstance --zone=${ZONE} ${INSTANCE_NAME} | grep -c "${DONE_TEXT}"` = 0 ]; do
       echo "Waiting 5 seconds for ${INSTANCE_NAME} to come up."
       sleep 5
     done
 
-    while [ `gcloud compute ssh --zone=${ZONE} ${INSTANCE_NAME} echo "done" | grep -c "done"` = 0 ]; do
+    while [ `${GCOMPUTE_SSH_CMD} ${INSTANCE_NAME} echo "done" | grep -c "done"` = 0 ]; do
       echo "Waiting 5 seconds for ${INSTANCE_NAME} to finish booting."
       sleep 5
     done

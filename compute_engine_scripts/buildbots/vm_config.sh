@@ -40,4 +40,4 @@ REQUIRED_FILES_FOR_CT_BOTS=(/tmp/.gitconfig \
                             /tmp/client_secret.json)
 
 GCOMPUTE_CMD="$GCUTIL --project=$PROJECT_ID"
-GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD --zone=$ZONE ssh --ssh_user=$PROJECT_USER"
+GCOMPUTE_SSH_CMD="$GCOMPUTE_CMD ssh --zone=$ZONE --ssh_user=$PROJECT_USER"
