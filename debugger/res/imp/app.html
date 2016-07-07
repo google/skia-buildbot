@@ -100,6 +100,7 @@ The main application element for the Skia Debugger.
     }
 
     dbg-info-sk,
+    #textBounds,
     #clip {
       margin-left: 3em;
       margin-bottom: 1em;
@@ -250,6 +251,10 @@ The main application element for the Skia Debugger.
     .sizeToolBar paper-icon-button:hover {
       background-color: #eee;
     }
+
+    details-sk {
+      display: block;
+    }
   </style>
   <template>
     <header class="horizontal layout center">
@@ -327,12 +332,12 @@ The main application element for the Skia Debugger.
           </details-sk>
           <details-sk open>
             <summary-sk>
-              Clip and Matrix
+              Bounds and Matrix
             </summary-sk>
             <paper-checkbox id=clip on-tap="_clipHandler">Show Clip</paper-checkbox>
+            <paper-checkbox id=textBounds on-tap="_textBoundsHandler">Show Text Bounds</paper-checkbox>
             <dbg-info-sk info="{{ info }}"></dbg-info-sk>
           </details-sk>
-
           <details-sk id=batchBoundsLegend class=hidden>
             <summary-sk>
               Batch Bounds Legend
@@ -343,7 +348,6 @@ The main application element for the Skia Debugger.
               <tr><td class=totalBoundColor>Total bounds of the current batch.</td></tr>
             </table>
           </details-sk>
-
           <details-sk id=histogram class="hidden">
             <summary-sk>
               Histogram
@@ -730,6 +734,13 @@ The main application element for the Skia Debugger.
       _clipHandler: function() {
         var alpha = this.$.clip.checked ? 128 : 0;
         sk.post("/clipAlpha/" + alpha).then(function() {
+          this._setCacheBreakingURL();
+        }.bind(this)).catch(sk.errorMessage);
+      },
+
+      _textBoundsHandler: function() {
+        var checked = this.$.textBounds.checked ? 1 : 0;
+        sk.post("/textBounds/" + checked).then(function() {
           this._setCacheBreakingURL();
         }.bind(this)).catch(sk.errorMessage);
       },
