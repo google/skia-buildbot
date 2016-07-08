@@ -6,6 +6,7 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
+	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/vcsinfo"
 	"google.golang.org/cloud/storage"
 )
@@ -60,12 +61,12 @@ func (vw *VersionWatcher) Start() {
 		for _ = range t {
 			glog.Infof("Woke up to check the Skia version, last current seen was %s", vw.lastCurrentHash)
 
-			current, err := GetCurrentSkiaVersionFromGCS(vw.storageClient)
+			current, lastUpdated, err := GetCurrentSkiaVersionFromGCS(vw.storageClient)
 			if err != nil {
 				glog.Errorf("Failed getting current Skia version from GCS.  Going to try again: %s", err)
 				continue
 			}
-			glog.Infof("Current version found to be %q", current)
+			glog.Infof("Current version found to be %q, updated at %v", current, lastUpdated)
 			if vw.lastCurrentHash == "" {
 				vw.lastCurrentHash = current
 			} else if current != vw.lastCurrentHash && vw.onCurrentChange != nil {
@@ -77,6 +78,11 @@ func (vw *VersionWatcher) Start() {
 				}
 				vw.CurrentVersion = cv
 				vw.lastCurrentHash = current
+				lastUpdated = time.Now()
+			}
+
+			if !lastUpdated.IsZero() {
+				metrics2.GetInt64Metric("fuzzer.version.age", map[string]string{"type": "current"}).Update(int64(time.Since(lastUpdated) / time.Second))
 			}
 
 			if config.Common.ForceReanalysis {
@@ -87,15 +93,16 @@ func (vw *VersionWatcher) Start() {
 				return
 			}
 
-			pending, err := GetPendingSkiaVersionFromGCS(vw.storageClient)
+			pending, lastUpdated, err := GetPendingSkiaVersionFromGCS(vw.storageClient)
 			if err != nil {
 				glog.Errorf("Failed getting pending Skia version from GCS.  Going to try again: %s", err)
 				continue
 			}
-			glog.Infof("Pending version found to be %q", pending)
+			glog.Infof("Pending version found to be %q, updated at %v", pending, lastUpdated)
 			if pending == "" {
 				vw.lastPendingHash = ""
 				vw.PendingVersion = nil
+				lastUpdated = time.Now()
 			} else if vw.lastPendingHash != pending && vw.onPendingChange != nil {
 				glog.Infof("Calling onPendingChange(%q)", pending)
 				pv, err := vw.onPendingChange(pending)
@@ -105,6 +112,11 @@ func (vw *VersionWatcher) Start() {
 				}
 				vw.PendingVersion = pv
 				vw.lastPendingHash = pending
+				lastUpdated = time.Now()
+			}
+
+			if !lastUpdated.IsZero() {
+				metrics2.GetInt64Metric("fuzzer.version.age", map[string]string{"type": "pending"}).Update(int64(time.Since(lastUpdated) / time.Second))
 			}
 		}
 	}()
