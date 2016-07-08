@@ -24,16 +24,22 @@
     None
 -->
 <link rel="import" href="/res/common/imp/9/menu-item-sk.html">
+<link rel="import" href="/res/imp/bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="/res/imp/bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="/res/imp/bower_components/paper-item/paper-item.html">
+
 <dom-module id="fuzzer-menu-sk">
   <template>
     <menu-item-sk label="Home" url="/" icon="icons:home"></menu-item-sk>
     <menu-item-sk label="Help" url="https://docs.google.com/document/d/1FZZnfEXzuNcjshveX1R35Lp-96-iLJWibNYZ7_WgZjg/edit" icon="icons:help"></menu-item-sk>
+    <menu-item-sk label="Roll Fuzzer" url="/roll" icon="icons:autorenew"></menu-item-sk>
     <menu-item-sk label="Code" url="https://github.com/google/skia-buildbot/tree/master/fuzzer" icon="icons:folder"></menu-item-sk>
 
     <content></content>
   </template>
   <script>
-    Polymer({is: "fuzzer-menu-sk"});
+  Polymer({
+    is: "fuzzer-menu-sk",
+  });
   </script>
 </dom-module>

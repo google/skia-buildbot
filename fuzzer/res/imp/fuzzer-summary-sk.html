@@ -74,12 +74,14 @@
     },
 
     experimental: function(fuzzers) {
+      fuzzers = fuzzers || [];
       return fuzzers.filter(function(f){
         return f.status === "experimental";
       });
     },
 
     stable: function(fuzzers) {
+      fuzzers = fuzzers || [];
       return fuzzers.filter(function(f){
         return f.status === "stable";
       });

@@ -12,6 +12,11 @@
 <link rel="import" href="/res/imp/bower_components/iron-ajax/iron-ajax.html">
 <dom-module id="fuzzer-status-sk">
   <template>
+  <style>
+  :host{
+    color: #000000;
+  }
+  </style>
     <div>
       Last Commit In Fuzz: <a href$="{{_getLink(current)}}" target="_blank">{{_getShortHash(current)}}
       - {{_getAuthor(current)}}</a>
