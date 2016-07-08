@@ -269,7 +269,7 @@ The main application element for the Skia Debugger.
           SKP
         </summary-sk>
         <div class="layout horizontal center">
-          <form enctype="multipart/form-data" method="post" id=post_skp action="/new" name="fileinfo">
+          <form enctype="multipart/form-data" method="post" id=post_skp action="./new" name="fileinfo">
             <label>SKP to send:</label>
             <input type="file" name="file" required />
             <button class=action>Upload</button>
@@ -462,7 +462,7 @@ The main application element for the Skia Debugger.
 
         // Load the test image served by the debugger.
         this._setCacheBreakingURL();
-        this.$.post_skp.action= window.location.origin + "/new";
+        this.$.post_skp.action= this._correctedOrigin() + "new";
 
         this.$.commands.addEventListener('op-selected', function(e) {
           // Only force reloading the image if necessary.
@@ -481,7 +481,7 @@ The main application element for the Skia Debugger.
         this.$.commands.addEventListener('op-toggled', function(e) {
           // Toggle the op and the trigger a reload of the image.
           var value = e.detail.checked ? "1" : "0";
-          sk.post("/cmd/" + e.detail.index + "/" + value, "").then(function() {
+          sk.post("./cmd/" + e.detail.index + "/" + value, "").then(function() {
             this._setCacheBreakingURL();
           }.bind(this)).catch(sk.errorMessage);
         }.bind(this));
@@ -495,7 +495,7 @@ The main application element for the Skia Debugger.
 
         this.$.play.prePlayCallback(function() {
           if (!this.$.colorBreakPoint.disabled && this.$.colorBreakPoint.checked) {
-            sk.get("/break/" + this._targetItem + "/" + this.x + "/" + this.y).then(JSON.parse).then(function(json) {
+            sk.get("./break/" + this._targetItem + "/" + this.x + "/" + this.y).then(JSON.parse).then(function(json) {
               if (json.endOp != -1) {
                 this.$.prevColor.textContent = json.startColor + " -> " + json.endColor;
                 var item = this._findItemFromIndex(json.endOp);
@@ -522,7 +522,7 @@ The main application element for the Skia Debugger.
         }.bind(this));
 
         this.$.img.addEventListener('load', function() {
-          this.$.download.href = window.location.origin + "/download";
+          this.$.download.href = this._correctedOrigin() + "download";
           this.$.download.classList.remove("hidden");
 
           this.$.commands.item = this._targetItem;
@@ -582,7 +582,7 @@ The main application element for the Skia Debugger.
         if (e.target.selected == this._cmd.colorMode) {
           return
         }
-        sk.post("/colorMode/" + e.target.selected, "").then(function() {
+        sk.post("./colorMode/" + e.target.selected, "").then(function() {
           // Reloads the image and the JSON for all the commands.
           this._refreshPage();
         }.bind(this)).catch(function(err) {
@@ -600,7 +600,7 @@ The main application element for the Skia Debugger.
         if (e.target.checked == (this._cmd.mode == "gpu")) {
           return
         }
-        sk.post("/enableGPU/" + (e.target.checked ? 1 : 0), "").then(function() {
+        sk.post("./enableGPU/" + (e.target.checked ? 1 : 0), "").then(function() {
           // Reloads the image and the JSON for all the commands.
           this._refreshPage();
         }.bind(this)).catch(function(err) {
@@ -635,7 +635,7 @@ The main application element for the Skia Debugger.
         if (this.$.gpuBatchBounds.checked === this._cmd.drawGpuBatchBounds) {
           return
         }
-        sk.post("/batchBounds/" + (this.$.gpuBatchBounds.checked ? 1 : 0), "").then(function() {
+        sk.post("./batchBounds/" + (this.$.gpuBatchBounds.checked ? 1 : 0), "").then(function() {
           // Reloads the image and the JSON for all the commands.
           this._refreshPage();
         }.bind(this)).catch(function(err) {
@@ -701,11 +701,11 @@ The main application element for the Skia Debugger.
       _refreshPage: function() {
         this.$.img.classList.remove("hidden");
         this._setCacheBreakingURL();
-        sk.get("/info").then(JSON.parse).then(function(json) {
+        sk.get("./info").then(JSON.parse).then(function(json) {
           this.skp_not_loaded = false;
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);
-        sk.get("/cmd").then(JSON.parse).then(function(json) {
+        sk.get("./cmd").then(JSON.parse).then(function(json) {
           this._cmd = this._processCommands(json);
           if (this.$.fast.value) {
             this._fastFilter();
@@ -733,14 +733,14 @@ The main application element for the Skia Debugger.
 
       _clipHandler: function() {
         var alpha = this.$.clip.checked ? 128 : 0;
-        sk.post("/clipAlpha/" + alpha).then(function() {
+        sk.post("./clipAlpha/" + alpha).then(function() {
           this._setCacheBreakingURL();
         }.bind(this)).catch(sk.errorMessage);
       },
 
       _textBoundsHandler: function() {
         var checked = this.$.textBounds.checked ? 1 : 0;
-        sk.post("/textBounds/" + checked).then(function() {
+        sk.post("./textBounds/" + checked).then(function() {
           this._setCacheBreakingURL();
         }.bind(this)).catch(sk.errorMessage);
       },
@@ -752,12 +752,22 @@ The main application element for the Skia Debugger.
         }
         var index = this._filtered.commands[this._targetItem]._index;
         var op = this._filtered.commands[this._targetItem];
-        var path = "/img/" + index + "?";
-        this.bitmap = op.details.bitmap ? op.details.bitmap.data : "";
-        sk.get("/info/" + index).then(JSON.parse).then(function(json) {
+        var path = "img/" + index + "?";
+        this.bitmap = op.details.bitmap ? (this._correctedOrigin() + op.details.bitmap.data) : "";
+        sk.get("./info/" + index).then(JSON.parse).then(function(json) {
           this.set('info', json);
         }.bind(this)).catch(sk.errorMessage);
-        this.$.img.src = window.location.origin + path + "?" + new Date().getTime();
+        this.$.img.src = this._correctedOrigin() + path + "?" + new Date().getTime();
+      },
+
+      _correctedOrigin: function() {
+        // Since we always use relative URLs, i.e. "./foo" we need to make
+        // sure the base URL ends with a "/".
+        var origin = window.location.href;
+        if (origin[origin.length-1] != "/") {
+          origin += "/";
+        }
+        return origin;
       },
 
       _crosshairClick: function(e) {

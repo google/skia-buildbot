@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
+	"regexp"
+	"strconv"
 	"sync"
 	"time"
 
@@ -26,11 +29,18 @@ const (
 	// will communicate on.
 	START_PORT = 20000
 
-	// START_WAIT_PERIOD poll the newly started skiaserve this many times before giving up.
+	// START_WAIT_NUM poll the newly started skiaserve this many times before giving up.
 	START_WAIT_NUM = 50
 
 	// START_WAIT_PERIOD poll the newly started skiaserve this often.
 	START_WAIT_PERIOD = 100 * time.Millisecond
+
+	// EXIT_WAIT_PERIOD is the time to wait for the container to exit.
+	EXIT_WAIT_PERIOD = 2 * time.Second
+)
+
+var (
+	containerPrefixRe = regexp.MustCompile("^/([0-9])(/.*)")
 )
 
 // container represents a single skiaserve instance, which may or may not
@@ -66,7 +76,9 @@ type Containers struct {
 	// them on demand.
 	pool []*container
 
-	// containers is a map from userid to a container running skiaserve.
+	// containers is a map from userid to a container running skiaserve. Note
+	// that the id is actually "user:num" where num is the instance number. A
+	// user may have up to 10 instances running at the same time.
 	containers map[string]*container
 
 	// runner is used to start skiaserve instances running.
@@ -102,6 +114,12 @@ func New(runner *runner.Runner) *Containers {
 // startContainer starts skiaserve running in a container for the given user.
 //
 // It waits until skiaserve responds to an HTTP request before returning.
+//
+// The actual instance for the user is determined by looking at the prefix of
+// the URL.Path, i.e. /2/foo will be directed to instance 2 for the given user
+// and skiaserve will be sent the URL.Path "/foo", i.e. with the instance
+// number prefix stripped. If there is no prefix then the instance number is
+// considered to be 0.
 func (s *Containers) startContainer(user string) error {
 	s.mutex.Lock()
 	// Find first open container in the pool.
@@ -189,17 +207,31 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// From user look up container.
-	co := s.getContainer(user)
+	instanceNum := int64(0)
+	// Strip off the instance number from the URL if it exists.
+	parts := containerPrefixRe.FindStringSubmatch(r.URL.Path)
+	if len(parts) == 3 {
+		var err error
+		instanceNum, err = strconv.ParseInt(parts[1], 10, 32)
+		if err != nil {
+			instanceNum = 0
+		} else {
+			r.URL.Path = parts[2]
+		}
+	}
+
+	containerID := fmt.Sprintf("%s:%d", user, instanceNum)
+	// From user and the instance num prefix look up container.
+	co := s.getContainer(containerID)
 	if co == nil {
 		// If no container then start one up.
-		if err := s.startContainer(user); err != nil {
+		if err := s.startContainer(containerID); err != nil {
 			httputils.ReportError(w, r, err, "Failed to start new container.")
 			return
 		}
-		co = s.getContainer(user)
+		co = s.getContainer(containerID)
 		if co == nil {
-			httputils.ReportError(w, r, fmt.Errorf("For user: %s", user), "Started container, but then couldn't find it.")
+			httputils.ReportError(w, r, fmt.Errorf("Failed to start container %q", containerID), "Started container, but then couldn't find it.")
 			return
 		}
 	}
@@ -221,11 +253,11 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if r.Method == "POST" {
 			// A POST to /instanceStatus will restart the instance.
 			runner.Stop(co.port)
-			time.Sleep(1)
+			time.Sleep(EXIT_WAIT_PERIOD)
 			s.mutex.Lock()
 			defer s.mutex.Unlock()
 			// Remove the entry for this container now that it has exited.
-			delete(s.containers, user)
+			delete(s.containers, containerID)
 			http.Redirect(w, r, "/", 303)
 		}
 		return
@@ -233,9 +265,30 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Proxy.
 	glog.Infof("Proxying request: %s %s", r.URL, user)
-	co.proxy.ServeHTTP(w, r)
+	// If the request is a POST and we are at a non-zero instanceNum then pass in
+	// a recording response.  If the response is a 303 then we return a 303 with
+	// the  correct location URL, otherwise we return the response verbatim.
+	if r.Method == "POST" && instanceNum != 0 {
+		rw := httptest.NewRecorder()
+		co.proxy.ServeHTTP(rw, r)
+		if rw.Code == 303 {
+			http.Redirect(w, r, fmt.Sprintf("/%d/", instanceNum), 303)
+		} else {
+			for k, values := range rw.HeaderMap {
+				for _, v := range values {
+					w.Header().Set(k, v)
+				}
+			}
+			if _, err := w.Write(rw.Body.Bytes()); err != nil {
+				glog.Errorf("Failed proxying a recorded response: %s", err)
+			}
+		}
+	} else {
+		co.proxy.ServeHTTP(w, r)
+	}
+
 	// Update lastUsed.
-	co.lastUsed = time.Now()
+	s.setLastUsed(containerID)
 }
 
 // StopAll stops all running containers.

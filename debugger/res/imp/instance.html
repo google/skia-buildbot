@@ -26,7 +26,7 @@
   <template>
     <content>
       Your instance has been running <span id=duration></span>.
-      <form action="/instanceStatus" method="post" accept-charset="utf-8">
+      <form id=form action="./instanceStatus" method="post" accept-charset="utf-8">
         <button type="submit">Restart Instance</button>
       </form>
     </content>
@@ -42,14 +42,26 @@
       window.setInterval(function() {
         this._updateDuration();
       }.bind(this), 60*1000);
+      this.$.form.action = this._correctedOrigin() + "instanceStatus";
     },
 
     _updateDuration: function() {
       if (!this.classList.contains("hidden")) {
-        sk.get("/instanceStatus").then(JSON.parse).then(function(json){
+        sk.get(this._correctedOrigin() + "instanceStatus").then(JSON.parse).then(function(json){
           this.$.duration.innerText = sk.human.diffDate(json.started*1000);
         }.bind(this));
       }
+    },
+
+    _correctedOrigin: function() {
+      // TODO(jcgregorio) Extract from here and app.html into a common code file.
+      // Since we always use relative URLs, i.e. "./foo" we need to make
+      // sure the base URL ends with a "/".
+      var origin = window.location.href;
+      if (origin[origin.length-1] != "/") {
+        origin += "/";
+      }
+      return origin;
     },
 
   });
