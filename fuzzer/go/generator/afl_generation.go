@@ -141,10 +141,13 @@ func (g *Generator) run(command *exec.Command) exec.Process {
 	return p
 }
 
-// Stop terminates all afl-fuzz processes that were spawned,
-// logging any errors.
+// Stop terminates all afl-fuzz processes that were spawned, logging any errors. It also
+// sets some key metrics to 0, so the graphs at mon.skia.org reflect the stoppage.
 func (g *Generator) Stop() {
 	glog.Infof("Trying to stop %d fuzz processes", len(g.fuzzProcesses))
+	metrics2.GetInt64Metric("fuzzer.stats.execs-per-sec", map[string]string{"category": g.Category}).Update(0)
+	metrics2.GetInt64Metric("fuzzer.stats.paths-total", map[string]string{"category": g.Category}).Update(0)
+	metrics2.GetInt64Metric("fuzzer.stats.cycles-done", map[string]string{"category": g.Category}).Update(0)
 	for _, p := range g.fuzzProcesses {
 		if p != nil {
 			if err := p.Kill(); err != nil {

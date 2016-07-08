@@ -12,7 +12,6 @@ import (
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud/storage"
 )
@@ -39,7 +38,7 @@ func NewVersionUpdater(s *storage.Client, agg *aggregator.Aggregator, g []*gener
 // It will stop the Generator, pause the Aggregator, update to the new version, re-scan all previous
 // fuzzes and then start the Generator and the Aggregator again.  It re-uses the Aggregator pipeline
 // to do the re-analysis.
-func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) (*vcsinfo.LongCommit, error) {
+func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) error {
 	oldRevision := config.Common.SkiaVersion.Hash
 
 	// stop all afl-fuzz processes
@@ -49,7 +48,7 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) (*vcsinfo.LongCo
 
 	// sync skia to version, which sets config.Common.SkiaVersion
 	if err := common.DownloadSkia(newHash, config.Common.SkiaRoot, &config.Common, true); err != nil {
-		return nil, fmt.Errorf("Could not sync skia to %s: %s", newHash, err)
+		return fmt.Errorf("Could not sync skia to %s: %s", newHash, err)
 	}
 
 	// Reanalyze all previous found fuzzes and restart with new version
@@ -59,18 +58,18 @@ func (v *VersionUpdater) UpdateToNewSkiaVersion(newHash string) (*vcsinfo.LongCo
 
 	for _, g := range v.generators {
 		if err := g.Start(); err != nil {
-			return nil, fmt.Errorf("Could not restart generator %s: %s", g.Category, err)
+			return fmt.Errorf("Could not restart generator %s: %s", g.Category, err)
 		}
 	}
 
 	// change GCS version to have the current be up to date (fuzzer-fe will be polling for it)
 	if err := v.replaceCurrentSkiaVersionWith(oldRevision, config.Common.SkiaVersion.Hash); err != nil {
-		return nil, fmt.Errorf("Could not update skia error: %s", err)
+		return fmt.Errorf("Could not update skia error: %s", err)
 	}
 
 	glog.Infof("We are updated to Skia revision %s", newHash)
 
-	return config.Common.SkiaVersion, nil
+	return nil
 }
 
 func (v *VersionUpdater) reanalyze(oldRevision string) error {

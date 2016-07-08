@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -30,12 +31,14 @@ import (
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
+	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud"
 	"google.golang.org/cloud/storage"
@@ -49,6 +52,8 @@ const (
 var (
 	// indexTemplate is the main index.html page we serve.
 	indexTemplate *template.Template = nil
+	// rollTemplate is used for /roll, which allows a user to roll the fuzzer forward.
+	rollTemplate *template.Template = nil
 	// detailsTemplate is used for /category, which displays the count of fuzzes in various files
 	// as well as the stacktraces.
 	detailsTemplate *template.Template = nil
@@ -60,6 +65,9 @@ var (
 	fuzzSyncer *syncer.FuzzSyncer = nil
 
 	issueManager *issues.IssuesManager = nil
+
+	repo     *gitinfo.GitInfo = nil
+	repoLock sync.Mutex
 )
 
 var (
@@ -106,6 +114,10 @@ func reloadTemplates() {
 		filepath.Join(*resourcesDir, "templates/index.html"),
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
+	rollTemplate = template.Must(template.ParseFiles(
+		filepath.Join(*resourcesDir, "templates/roll.html"),
+		filepath.Join(*resourcesDir, "templates/header.html"),
+	))
 	detailsTemplate = template.New("details.html")
 	// Allows this template to have Polymer binding in it and go template markup.  The go templates
 	// have been changed to be {%.Thing%} instead of {{.Thing}}
@@ -132,7 +144,7 @@ func main() {
 	}
 
 	go func() {
-		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, *local); err != nil {
+		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, !*local); err != nil {
 			glog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
@@ -154,7 +166,7 @@ func main() {
 		}
 		fuzzSyncer.SetGSLoader(gsLoader)
 		updater := frontend.NewVersionUpdater(gsLoader, fuzzSyncer)
-		versionWatcher = fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, updater.HandlePendingVersion, updater.HandleCurrentVersion)
+		versionWatcher = fcommon.NewVersionWatcher(storageClient, config.Common.VersionCheckPeriod, nil, updater.HandleCurrentVersion)
 		versionWatcher.Start()
 
 		err = <-versionWatcher.Status
@@ -200,7 +212,7 @@ func setupOAuth() error {
 		return fmt.Errorf("Problem setting up server OAuth: %s", err)
 	}
 
-	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_ONLY)
+	client, err := auth.NewDefaultJWTServiceAccountClient(auth.SCOPE_READ_WRITE)
 	if err != nil {
 		return fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
@@ -239,6 +251,8 @@ func runServer() {
 	r.HandleFunc(`/fuzz/{category:[a-z_]+}/{name:[0-9a-f]+}`, fuzzHandler)
 	r.HandleFunc(`/metadata/{category:[a-z_]+}/{name:[0-9a-f]+_(debug|release)\.(err|dump|asan)}`, metadataHandler)
 	r.HandleFunc("/newBug", newBugHandler)
+	r.HandleFunc("/roll", rollHandler)
+	r.HandleFunc("/roll/revision", updateRevision)
 
 	rootHandler := login.ForceAuth(httputils.LoggingGzipRequestResponse(r), OAUTH2_CALLBACK_PATH)
 
@@ -271,6 +285,17 @@ func detailsPageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := detailsTemplate.Execute(w, cat); err != nil {
+		glog.Errorf("Failed to expand template: %v", err)
+	}
+}
+
+func rollHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		reloadTemplates()
+	}
+	w.Header().Set("Content-Type", "text/html")
+
+	if err := rollTemplate.Execute(w, nil); err != nil {
 		glog.Errorf("Failed to expand template: %v", err)
 	}
 }
@@ -453,10 +478,14 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 		s.Current.Author = config.Common.SkiaVersion.Author
 		s.LastUpdated = config.Common.SkiaVersion.Timestamp
 		if versionWatcher != nil {
-			if pending := versionWatcher.PendingVersion; pending != nil {
-				s.Pending = &commit{
-					Hash:   pending.Hash,
-					Author: pending.Author,
+			if pending := versionWatcher.LastPendingHash; pending != "" {
+				if ci, err := getCommitInfo(pending); err != nil {
+					glog.Errorf("Problem getting git info about pending revision %s: %s", pending, err)
+				} else {
+					s.Pending = &commit{
+						Hash:   ci.Hash,
+						Author: ci.Author,
+					}
 				}
 			}
 		}
@@ -484,5 +513,77 @@ func newBugHandler(w http.ResponseWriter, r *http.Request) {
 		// 303 means "make a GET request to this url"
 		http.Redirect(w, r, u, 303)
 	}
+}
 
+// getCommitInfo updates the front end's checkout of Skia and then queries it for information about the given revision.
+func getCommitInfo(revision string) (*vcsinfo.LongCommit, error) {
+	repoLock.Lock()
+	defer repoLock.Unlock()
+	var err error
+	repo, err = gitinfo.NewGitInfo(config.Common.SkiaRoot, true, false)
+	if err != nil {
+		return nil, fmt.Errorf("Could not fetch Skia before check: %s", err)
+	}
+
+	currInfo, err := repo.Details(revision, false)
+	if err != nil || currInfo == nil {
+		return nil, fmt.Errorf("Could not get info for %s: %s", revision, err)
+	}
+	return currInfo, nil
+}
+
+func updateRevision(w http.ResponseWriter, r *http.Request) {
+	if !login.IsGoogler(r) {
+		http.Error(w, "You do not have permission to push.  You must be a Googler.", http.StatusForbidden)
+		return
+	}
+	var msg struct {
+		Revision string `json:"revision"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+		return
+	}
+	msg.Revision = strings.TrimSpace(msg.Revision)
+	if msg.Revision == "" {
+		http.Error(w, "Revision cannot be blank", http.StatusBadRequest)
+		return
+	}
+	user := login.LoggedInAs(r)
+
+	glog.Infof("User %s is trying to roll the fuzzer to revision %q", user, msg.Revision)
+
+	if config.Common.SkiaVersion == nil || versionWatcher == nil || versionWatcher.LastCurrentHash == "" {
+		http.Error(w, "The fuzzer isn't finished booting up.  Try again later.", http.StatusServiceUnavailable)
+		return
+	}
+	if versionWatcher.LastPendingHash != "" {
+		http.Error(w, "There is already a pending version.", http.StatusBadRequest)
+		return
+	}
+
+	currInfo, err := getCommitInfo(versionWatcher.LastCurrentHash)
+	if err != nil || currInfo == nil {
+		httputils.ReportError(w, r, err, "Could not get information about current revision.  Please try again later")
+		return
+	}
+	newInfo, err := getCommitInfo(msg.Revision)
+	if err != nil || newInfo == nil {
+		httputils.ReportError(w, r, err, "Could not get information about revision.  Are you sure it exists?")
+		return
+	}
+
+	// We can only assume this to be the case because Skia has no branches that would
+	// cause commits of a later time to actually be merged in before other commits.
+	if newInfo.Timestamp.Before(currInfo.Timestamp) {
+		http.Error(w, fmt.Sprintf("Revision cannot be before current revision %s at %s", currInfo.Hash, currInfo.Timestamp), http.StatusBadRequest)
+		return
+	}
+
+	glog.Infof("Turning the crank to revision %q", newInfo.Hash)
+	if err := frontend.UpdateVersionToFuzz(storageClient, config.GS.Bucket, newInfo.Hash); err != nil {
+		glog.Errorf("Could not turn the crank: %s", err)
+	} else {
+		versionWatcher.Recheck()
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"go.skia.org/infra/fuzzer/go/frontend"
 	"go.skia.org/infra/go/auth"
 	"golang.org/x/net/context"
 	"google.golang.org/cloud"
@@ -30,13 +31,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	newVersionFile := fmt.Sprintf("skia_version/pending/%s", *versionToFuzz)
-	w := storageClient.Bucket(*bucket).Object(newVersionFile).NewWriter(context.Background())
-	if err := w.Close(); err != nil {
-		fmt.Printf("Could not create version file %s : %s", newVersionFile, err)
+	if err := frontend.UpdateVersionToFuzz(storageClient, *bucket, *versionToFuzz); err != nil {
+		fmt.Printf("Problem updating: %s", err)
 		os.Exit(1)
 	}
-	fmt.Printf("%s has been made.  The backend and frontend will eventually pick up this change (in that order).\n", newVersionFile)
 }
 
 func setupStorageClient() error {
