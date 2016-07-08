@@ -102,23 +102,14 @@ func main() {
 			neededCPUs += config.Generator.NumBinaryFuzzProcesses
 		}
 	}
-	affinityCount := 0
 	if totalCPUs := runtime.NumCPU(); neededCPUs > totalCPUs {
-		glog.Warningf("Ran out of cpus to allocate to generator processes.  Needed at least %d, but only have %d.  Falling back to no affinity.  Expect suboptimal performance", neededCPUs, totalCPUs)
-		// Set this to a large negative number to make all afinities negative,
-		// which will disable them in afl_commands.go
-		affinityCount = -100000
+		glog.Warningf("Going to run out of cpus to allocate to generator processes.  Needed at least %d, but only have %d.  Expect suboptimal performance", neededCPUs, totalCPUs)
 	} else {
 		glog.Infof("Going to allocate %d cpus (could go up to %d)", neededCPUs, totalCPUs)
 	}
 
 	for _, category := range *fuzzesToRun {
-		gen := generator.New(category, affinityCount)
-		if strings.HasPrefix(category, "api_") {
-			affinityCount += config.Generator.NumAPIFuzzProcesses
-		} else {
-			affinityCount += config.Generator.NumBinaryFuzzProcesses
-		}
+		gen := generator.New(category)
 
 		if err := gen.DownloadSeedFiles(storageClient); err != nil {
 			glog.Fatalf("Problem downloading seed files: %s", err)
