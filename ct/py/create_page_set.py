@@ -29,12 +29,6 @@ import zipfile
 from StringIO import StringIO
 
 
-TOP1M_CSV_FILE_NAME = 'top-1m.csv'
-TOP1M_CSV_ZIP_LOCATION = (
-    'http://s3.amazonaws.com/alexa-static/%s.zip' % TOP1M_CSV_FILE_NAME)
-ALEXA_PREFIX = 'alexa'
-
-
 if '__main__' == __name__:
   option_parser = optparse.OptionParser()
   option_parser.add_option(
@@ -71,16 +65,13 @@ if '__main__' == __name__:
   if int(options.position) <= 0:
     raise Exception('The -s/--position must be greater than 0')
 
-  if options.csv_file:
-    csv_contents = open(options.csv_file).readlines()
-  else:
-    # Download the zip file in member and extract its contents.
-    usock = urllib.urlopen(TOP1M_CSV_ZIP_LOCATION)
-    myzipfile = zipfile.ZipFile(StringIO(usock.read()))
-    csv_contents = myzipfile.open(TOP1M_CSV_FILE_NAME).readlines()
+  with open(options.csv_file) as fp:
+    for i, l in enumerate(fp):
+      if i == (int(options.position)-1):
+        line = l
+        break
 
   websites = []
-  line = csv_contents[int(options.position)-1]
   website = line.strip().split(',')[1]
   if 'PDF' in options.pagesets_type:
     # PDF urls do not need any additional prefixes.

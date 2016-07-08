@@ -225,6 +225,7 @@ type PagesetVars struct {
 func ReadPageset(pagesetPath string) (PagesetVars, error) {
 	decodedPageset := PagesetVars{}
 	pagesetContent, err := os.Open(pagesetPath)
+	defer util.Close(pagesetContent)
 	if err != nil {
 		return decodedPageset, fmt.Errorf("Could not read %s: %s", pagesetPath, err)
 	}

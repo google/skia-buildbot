@@ -17,7 +17,8 @@
           '--num=<(NUM)',
           '--pageset_type=<(PAGESET_TYPE)',
           '--chromium_build=<(CHROMIUM_BUILD)',
-          '--run_id=<(RUN_ID)'
+          '--run_id=<(RUN_ID)',
+          '--stderrthreshold=FATAL'
         ],
       },
     }],

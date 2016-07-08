@@ -20,7 +20,8 @@ import (
 )
 
 const (
-	MAX_PAGES_PER_SWARMING_BOT = 1000
+	// TODO(rmistry): Change back to 1000 once swarming can handle >10k pending tasks.
+	MAX_PAGES_PER_SWARMING_BOT = 50000
 )
 
 var (
@@ -95,7 +96,7 @@ func main() {
 	skutil.LogErr(gs.DeleteRemoteDir(gsBaseDir))
 
 	// Archive, trigger and collect swarming tasks.
-	if err := util.TriggerSwarmingTask(*pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, swarming.RECOMMENDED_HARD_TIMEOUT, swarming.RECOMMENDED_IO_TIMEOUT, MAX_PAGES_PER_SWARMING_BOT, map[string]string{}, util.GCE_WORKER_DIMENSIONS); err != nil {
+	if err := util.TriggerSwarmingTask(*pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, 5*time.Hour, swarming.RECOMMENDED_IO_TIMEOUT, MAX_PAGES_PER_SWARMING_BOT, map[string]string{}, util.GCE_WORKER_DIMENSIONS); err != nil {
 		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

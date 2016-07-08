@@ -458,3 +458,37 @@ func (gs *GsUtil) UploadDir(localDir, gsDir string, cleanDir bool) error {
 	wg.Wait()
 	return nil
 }
+
+// DownloadRemoteFile downloads the specified remote path into the specified local file.
+// This function has been tested to download very large files (~33GB).
+// TODO(rmistry): Update all code that downloads remote files to use this method.
+func (gs *GsUtil) DownloadRemoteFile(remotePath, localPath string) error {
+	respBody, err := gs.GetRemoteFileContents(remotePath)
+	if err != nil {
+		return err
+	}
+	defer util.Close(respBody)
+	out, err := os.Create(localPath)
+	if err != nil {
+		return err
+	}
+
+	bufferSize := int64(1024 * 1024 * 1024)
+	for {
+		_, err := io.CopyN(out, respBody, bufferSize)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			defer util.Close(out)
+			return err
+		}
+		// Sleep for 10 seconds. Bots run out of memory without this.
+		// Eg: https://chromium-swarm.appspot.com/user/task/2fba9fba3d553510
+		// Maybe this sleep gives Golang time to clear some caches.
+		time.Sleep(10 * time.Second)
+	}
+	if err := out.Close(); err != nil {
+		return err
+	}
+	return nil
+}

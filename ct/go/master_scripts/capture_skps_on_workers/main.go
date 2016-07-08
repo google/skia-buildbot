@@ -20,8 +20,9 @@ import (
 )
 
 const (
-	MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS           = 100
-	MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS = 10000
+	MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS = 100
+	// TODO(rmistry): Change back to 10000 once swarming can handle >10k pending tasks.
+	MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS = 50000
 )
 
 var (
@@ -103,11 +104,16 @@ func main() {
 	isolateFile := util.CAPTURE_SKPS_ISOLATE
 	maxPages := MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS
 	workerDimensions := util.GOLO_WORKER_DIMENSIONS
+	hardTimeout := 3 * time.Hour
+	ioTimeout := 1 * time.Hour
 	if strings.Contains(strings.ToUpper(*pagesetType), "PDF") {
 		// For PDF pagesets use the capture_skps_from_pdfs worker script.
 		isolateFile = util.CAPTURE_SKPS_FROM_PDFS_ISOLATE
 		maxPages = MAX_PAGES_PER_SWARMING_BOT_CAPTURE_SKPS_FROM_PDFS
 		workerDimensions = util.GCE_WORKER_DIMENSIONS
+		hardTimeout = 12 * time.Hour
+		ioTimeout = hardTimeout // PDFs do not output any logs thus the ioTimeout must be the same as the hardTimeout.
+
 		// TODO(rmistry): Uncomment when ready to capture SKPs.
 		// TODO(rmistry): Replace the below block with:
 		// buildRemoteDir, err := util.TriggerBuildRepoSwarmingTask("build_pdfium", *runID, "pdfium", "Linux", []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, /*singleBuild*/ true, 2*time.Hour, 1*time.Hour)
@@ -158,7 +164,7 @@ func main() {
 		"CHROMIUM_BUILD": *chromiumBuild,
 		"RUN_ID":         *runID,
 	}
-	if err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, 3*time.Hour, 1*time.Hour, maxPages, isolateExtraArgs, workerDimensions); err != nil {
+	if err := util.TriggerSwarmingTask(*pagesetType, "capture_skps", isolateFile, *runID, hardTimeout, ioTimeout, maxPages, isolateExtraArgs, workerDimensions); err != nil {
 		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

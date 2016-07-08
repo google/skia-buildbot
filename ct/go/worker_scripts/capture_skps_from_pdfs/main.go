@@ -28,7 +28,7 @@ import (
 
 const (
 	// The number of goroutines that will run in parallel to download PDFs and capture their SKPs.
-	WORKER_POOL_SIZE = 10
+	WORKER_POOL_SIZE = 25
 )
 
 var (

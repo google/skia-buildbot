@@ -4,7 +4,6 @@ package main
 
 import (
 	"flag"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -44,26 +43,16 @@ func main() {
 	numPages := pagesetTypeInfo.NumPages
 	userAgent := pagesetTypeInfo.UserAgent
 
-	// Download the CSV file from Google Storage to a tmp location.
+	// Download the CSV file from Google Storage.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
 		glog.Fatal(err)
 	}
-	respBody, err := gs.GetRemoteFileContents(csvSource)
-	if err != nil {
-		glog.Fatal(err)
+	csvFile := filepath.Join(util.StorageDir, filepath.Base(csvSource))
+	if err := gs.DownloadRemoteFile(csvSource, csvFile); err != nil {
+		glog.Fatalf("Could not download %s: %s", csvSource, err)
 	}
-	defer skutil.Close(respBody)
-	csvFile := filepath.Join(os.TempDir(), filepath.Base(csvSource))
-	out, err := os.Create(csvFile)
-	if err != nil {
-		glog.Fatalf("Unable to create file %s: %s", csvFile, err)
-	}
-	defer skutil.Close(out)
 	defer skutil.Remove(csvFile)
-	if _, err = io.Copy(out, respBody); err != nil {
-		glog.Fatal(err)
-	}
 
 	// Figure out the endRange of this worker.
 	endRange := skutil.MinInt(*startRange+*num-1, numPages)
