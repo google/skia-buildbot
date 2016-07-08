@@ -16,6 +16,9 @@
       Last Commit In Fuzz: <a href$="{{_getLink(current)}}" target="_blank">{{_getShortHash(current)}}
       - {{_getAuthor(current)}}</a>
     </div>
+    <div>
+      Updated: {{last_updated}} ago
+    </div>
     <template is="dom-if" if="{{pending}}">
       <div>
         Update in progress: <a href$="{{_getLink(pending)}}" target="_blank">{{_getShortHash(pending)}}
@@ -45,6 +48,10 @@
         type: Object,
         computed: "_getCurrent(_status)"
       },
+      last_updated: {
+        type: String,
+        computed: "_getLastUpdated(_status)"
+      },
       pending: {
         type: Object,
         computed: "_getPending(_status)"
@@ -53,6 +60,10 @@
 
     _getCurrent: function(status){
       return status.current;
+    },
+
+    _getLastUpdated: function(status){
+      return sk.human.diffDate(status.lastUpdated);
     },
 
     _getPending: function(status){

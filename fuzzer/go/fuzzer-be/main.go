@@ -86,7 +86,7 @@ func main() {
 	if err := setupOAuth(); err != nil {
 		glog.Fatalf("Problem with OAuth: %s", err)
 	}
-	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common); err != nil {
+	if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, *local); err != nil {
 		glog.Fatalf("Problem downloading Skia: %s", err)
 	}
 

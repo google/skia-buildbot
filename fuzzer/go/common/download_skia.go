@@ -16,12 +16,12 @@ import (
 // DownloadSkiaVersionForFuzzing downloads the revision of Skia specified in Google Storage
 // to the given path. On sucess, the given VersionSetter is set to be the current revision.
 // It returns the revision it found in GCS and any errors.
-func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string, v config.VersionSetter) error {
+func DownloadSkiaVersionForFuzzing(storageClient *storage.Client, path string, v config.VersionSetter, clean bool) error {
 	skiaVersion, _, err := GetCurrentSkiaVersionFromGCS(storageClient)
 	if err != nil {
 		return fmt.Errorf("Could not get Skia revision from GCS: %s", err)
 	}
-	if err := DownloadSkia(skiaVersion, path, v, true); err != nil {
+	if err := DownloadSkia(skiaVersion, path, v, clean); err != nil {
 		return fmt.Errorf("Problem downloading skia: %s", err)
 	}
 	// Always clean out the build directory, to mitigate potential build

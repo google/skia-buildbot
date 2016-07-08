@@ -132,7 +132,7 @@ func main() {
 	}
 
 	go func() {
-		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common); err != nil {
+		if err := fcommon.DownloadSkiaVersionForFuzzing(storageClient, config.Common.SkiaRoot, &config.Common, *local); err != nil {
 			glog.Fatalf("Problem downloading Skia: %s", err)
 		}
 
@@ -432,8 +432,9 @@ type commit struct {
 }
 
 type status struct {
-	Current commit  `json:"current"`
-	Pending *commit `json:"pending"`
+	Current     commit    `json:"current"`
+	Pending     *commit   `json:"pending"`
+	LastUpdated time.Time `json:"lastUpdated"`
 }
 
 func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
@@ -450,6 +451,7 @@ func statusJSONHandler(w http.ResponseWriter, r *http.Request) {
 	if config.Common.SkiaVersion != nil {
 		s.Current.Hash = config.Common.SkiaVersion.Hash
 		s.Current.Author = config.Common.SkiaVersion.Author
+		s.LastUpdated = config.Common.SkiaVersion.Timestamp
 		if versionWatcher != nil {
 			if pending := versionWatcher.PendingVersion; pending != nil {
 				s.Pending = &commit{
