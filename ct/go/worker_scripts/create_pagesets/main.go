@@ -4,8 +4,6 @@ package main
 
 import (
 	"flag"
-	"os"
-	"path"
 	"path/filepath"
 	"time"
 
@@ -63,22 +61,17 @@ func main() {
 
 	// Execute the create_page_set.py python script.
 	timeoutSecs := util.PagesetTypeToInfo[*pagesetType].CreatePagesetsTimeoutSecs
-	for currNum := *startRange; currNum <= endRange; currNum++ {
-		destDir := path.Join(pathToPagesets, strconv.Itoa(currNum))
-		if err := os.MkdirAll(destDir, 0700); err != nil {
-			glog.Fatal(err)
-		}
-		args := []string{
-			createPageSetScript,
-			"-s", strconv.Itoa(currNum),
-			"-c", csvFile,
-			"-p", *pagesetType,
-			"-u", userAgent,
-			"-o", destDir,
-		}
-		if err := util.ExecuteCmd("python", args, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
-			glog.Fatal(err)
-		}
+	args := []string{
+		createPageSetScript,
+		"-s", strconv.Itoa(*startRange),
+		"-e", strconv.Itoa(endRange),
+		"-c", csvFile,
+		"-p", *pagesetType,
+		"-u", userAgent,
+		"-o", pathToPagesets,
+	}
+	if err := util.ExecuteCmd("python", args, []string{}, time.Duration(timeoutSecs)*time.Second, nil, nil); err != nil {
+		glog.Fatal(err)
 	}
 
 	// Check to see if there is anything in the pathToPagesets dir.
