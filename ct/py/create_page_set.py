@@ -5,17 +5,13 @@
 
 """Creates a Python telemetry page_set from the specified webpages CSV.
 
-This module does the following steps:
-* Downloads a ZIP from http://s3.amazonaws.com/alexa-static/top-1m.csv.zip
-* Unpacks it and reads its contents in memory.
-* Writes out multiple Python page sets from the CSV file for the specified
-  number of webpages.
+This module writes out multiple Python page sets from the specified CSV file.
 
 Sample Usage:
-  python create_page_set.py -s 1
+  python create_page_set.py -s 1 -e 10 -c /tmp/test.csv
 
-Running the above command will create a page set with the webpage in 1st
-position in the CSV.
+Running the above command will create 10 page sets containing webpages from the
+1st to 10th position in the CSV.
 """
 
 __author__ = 'Ravi Mistry'
@@ -39,7 +35,7 @@ if '__main__' == __name__:
   option_parser.add_option(
       '-e', '--end',
       help='Specifies the end position of the webpages in the CSV which will '
-           'be created as pagesets.',
+           'be created as pagesets. This is inclusive.',
       default='1')
   option_parser.add_option(
       '-c', '--csv_file',
