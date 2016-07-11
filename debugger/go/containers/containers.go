@@ -300,3 +300,25 @@ func (s *Containers) StopAll() {
 		runner.Stop(co.port)
 	}
 }
+
+type ContainerInfo struct {
+	ID     string        `json:"id"`
+	User   string        `json:"user"`
+	Uptime time.Duration `json:"uptime"`
+	Port   int           `json:"port"`
+}
+
+func (s *Containers) DescribeAll() []*ContainerInfo {
+	info := []*ContainerInfo{}
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	for id, co := range s.containers {
+		info = append(info, &ContainerInfo{
+			ID:     id,
+			User:   co.user,
+			Uptime: time.Now().Sub(co.started),
+			Port:   co.port,
+		})
+	}
+	return info
+}

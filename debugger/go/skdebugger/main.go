@@ -62,6 +62,7 @@ var (
 func loadTemplates() {
 	templates = template.Must(template.New("").ParseFiles(
 		filepath.Join(*resourcesDir, "templates/index.html"),
+		filepath.Join(*resourcesDir, "templates/admin.html"),
 	))
 }
 
@@ -89,6 +90,20 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		co.ServeHTTP(w, r)
+	}
+}
+
+func adminHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+	if *local {
+		loadTemplates()
+	}
+	if *hosted && !login.IsAdmin(r) {
+		http.Error(w, "You must be an administrator to visit this page.", 500)
+		return
+	}
+	if err := templates.ExecuteTemplate(w, "admin.html", co.DescribeAll()); err != nil {
+		glog.Errorf("Failed to expand template: %s", err)
 	}
 }
 
@@ -257,6 +272,7 @@ func main() {
 	router := mux.NewRouter()
 	router.PathPrefix("/res/").HandlerFunc(autogzip.HandleFunc(makeResourceHandler()))
 	router.HandleFunc("/", mainHandler)
+	router.HandleFunc("/admin", adminHandler)
 	if *hosted {
 		router.HandleFunc("/loadfrom", loadHandler)
 		router.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
