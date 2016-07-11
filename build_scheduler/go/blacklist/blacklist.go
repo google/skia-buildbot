@@ -58,7 +58,7 @@ var (
 // not be scheduled.
 type Blacklist struct {
 	backingFile string
-	Rules       map[string]*Rule `json:"entries"`
+	Rules       map[string]*Rule `json:"rules"`
 	mtx         sync.RWMutex
 }
 
@@ -109,8 +109,8 @@ func (b *Blacklist) writeOut() error {
 }
 
 // Add adds a new Rule to the Blacklist.
-func (b *Blacklist) AddRule(r *Rule, repo *gitinfo.GitInfo) error {
-	if err := ValidateRule(r, repo); err != nil {
+func (b *Blacklist) AddRule(r *Rule, repos *gitinfo.RepoMap) error {
+	if err := ValidateRule(r, repos); err != nil {
 		return err
 	}
 	return b.addRule(r)
@@ -132,10 +132,18 @@ func (b *Blacklist) addRule(r *Rule) error {
 }
 
 // validateCommit returns an error if the commit is not valid.
-func validateCommit(c string, r *gitinfo.GitInfo) error {
+func validateCommit(c string, repos *gitinfo.RepoMap) error {
+	repo, err := repos.RepoForCommit(c)
+	if err != nil {
+		return fmt.Errorf("Failed to validate commit %q: %s", c, err)
+	}
+	r, err := repos.Repo(repo)
+	if err != nil {
+		return fmt.Errorf("Failed to retrieve repo for commit %q: %s", c, err)
+	}
 	h, err := r.FullHash(c)
 	if err != nil {
-		return fmt.Errorf("Failed to validate commit: %s", err)
+		return fmt.Errorf("Failed to validate commit %q: %s", c, err)
 	}
 	if h != c {
 		return fmt.Errorf("%q is not a valid commit.", c)
@@ -144,11 +152,19 @@ func validateCommit(c string, r *gitinfo.GitInfo) error {
 }
 
 // NewCommitRangeRule creates a new Rule which covers a range of commits.
-func NewCommitRangeRule(name, user, description string, builderPatterns []string, startCommit, endCommit string, repo *gitinfo.GitInfo) (*Rule, error) {
-	if err := validateCommit(startCommit, repo); err != nil {
+func NewCommitRangeRule(name, user, description string, builderPatterns []string, startCommit, endCommit string, repos *gitinfo.RepoMap) (*Rule, error) {
+	if err := validateCommit(startCommit, repos); err != nil {
 		return nil, err
 	}
-	if err := validateCommit(endCommit, repo); err != nil {
+	if err := validateCommit(endCommit, repos); err != nil {
+		return nil, err
+	}
+	r, err := repos.RepoForCommit(startCommit)
+	if err != nil {
+		return nil, err
+	}
+	repo, err := repos.Repo(r)
+	if err != nil {
 		return nil, err
 	}
 	commits, err := repo.RevList(fmt.Sprintf("%s..%s", startCommit, endCommit))
@@ -180,7 +196,7 @@ func NewCommitRangeRule(name, user, description string, builderPatterns []string
 		Description:     description,
 		Name:            name,
 	}
-	if err := ValidateRule(rule, repo); err != nil {
+	if err := ValidateRule(rule, repos); err != nil {
 		return nil, err
 	}
 	return rule, nil
@@ -231,7 +247,7 @@ type Rule struct {
 }
 
 // ValidateRule returns an error if the given Rule is not valid.
-func ValidateRule(r *Rule, repo *gitinfo.GitInfo) error {
+func ValidateRule(r *Rule, repos *gitinfo.RepoMap) error {
 	if r.Name == "" {
 		return fmt.Errorf("Rules must have a name.")
 	}
@@ -245,7 +261,7 @@ func ValidateRule(r *Rule, repo *gitinfo.GitInfo) error {
 		return fmt.Errorf("Rules must include a builder pattern and/or a commit/range.")
 	}
 	for _, c := range r.Commits {
-		if err := validateCommit(c, repo); err != nil {
+		if err := validateCommit(c, repos); err != nil {
 			return err
 		}
 	}

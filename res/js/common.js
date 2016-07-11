@@ -169,8 +169,8 @@ this.sk = this.sk || function() {
 
   // Returns a Promise that uses XMLHttpRequest to make a DELETE request to the
   // given URL.
-  sk.delete = function(url) {
-    return sk.request('DELETE', url);
+  sk.delete = function(url, body) {
+    return sk.request('DELETE', url, body);
   }
 
   // A Promise that resolves when DOMContentLoaded has fired.

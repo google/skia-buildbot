@@ -12,16 +12,19 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/build_scheduler/go/blacklist"
 	"go.skia.org/infra/build_scheduler/go/build_queue"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/util"
 )
 
 const (
@@ -54,6 +57,9 @@ var (
 
 	// Build Scheduler instance.
 	bs *BuildScheduler
+
+	// Git repo objects.
+	repos *gitinfo.RepoMap
 
 	// Flags.
 	buildbotDbHost = flag.String("buildbot_db_host", "skia-datahopper2:8000", "Where the Skia buildbot database is hosted.")
@@ -108,7 +114,16 @@ func blacklistHandler(w http.ResponseWriter, r *http.Request) {
 	if *local {
 		reloadTemplates()
 	}
-	if err := blacklistTemplate.Execute(w, bs.GetBlacklist()); err != nil {
+	page := struct {
+		Blacklist *blacklist.Blacklist
+		Builders  []string
+		Commits   []string
+	}{
+		Blacklist: bs.GetBlacklist(),
+		Builders:  bs.Builders(),
+		Commits:   bs.Commits(),
+	}
+	if err := blacklistTemplate.Execute(w, page); err != nil {
 		httputils.ReportError(w, r, err, "Failed to execute template.")
 		return
 	}
@@ -147,6 +162,54 @@ func triggerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jsonBlacklistHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if !login.IsGoogler(r) {
+		errStr := "Cannot modify the blacklist; user is not a logged-in Googler."
+		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
+		return
+	}
+
+	if r.Method == http.MethodDelete {
+		var msg struct {
+			Name string `json:"name"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+			return
+		}
+		defer util.Close(r.Body)
+		if err := bs.GetBlacklist().RemoveRule(msg.Name); err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to delete blacklist rule: %s", err))
+			return
+		}
+	} else if r.Method == http.MethodPost {
+		var rule blacklist.Rule
+		if err := json.NewDecoder(r.Body).Decode(&rule); err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
+			return
+		}
+		defer util.Close(r.Body)
+		rule.AddedBy = login.LoggedInAs(r)
+		if len(rule.Commits) == 2 {
+			rangeRule, err := blacklist.NewCommitRangeRule(rule.Name, rule.AddedBy, rule.Description, rule.BuilderPatterns, rule.Commits[0], rule.Commits[1], repos)
+			if err != nil {
+				httputils.ReportError(w, r, err, fmt.Sprintf("Failed to create commit range rule: %s", err))
+				return
+			}
+			rule = *rangeRule
+		}
+		if err := bs.GetBlacklist().AddRule(&rule, repos); err != nil {
+			httputils.ReportError(w, r, err, fmt.Sprintf("Failed to add blacklist rule: %s", err))
+			return
+		}
+	}
+	if err := json.NewEncoder(w).Encode(bs.GetBlacklist()); err != nil {
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to encode response: %s", err))
+		return
+	}
+}
+
 func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if !login.IsGoogler(r) {
@@ -163,7 +226,7 @@ func jsonTriggerHandler(w http.ResponseWriter, r *http.Request) {
 		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to decode request body: %s", err))
 		return
 	}
-
+	defer util.Close(r.Body)
 	triggered, err := bs.Trigger(msg.Builders, msg.Commit)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to trigger builds.")
@@ -185,7 +248,8 @@ func runServer(serverURL string) {
 	r.HandleFunc("/", mainHandler)
 	r.HandleFunc("/blacklist", blacklistHandler)
 	r.HandleFunc("/trigger", triggerHandler)
-	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods("POST")
+	r.HandleFunc("/json/blacklist", jsonBlacklistHandler).Methods(http.MethodPost, http.MethodDelete)
+	r.HandleFunc("/json/trigger", jsonTriggerHandler).Methods(http.MethodPost)
 	r.HandleFunc("/json/version", skiaversion.JsonHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 
@@ -241,7 +305,14 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	bs = StartNewBuildScheduler(period, *scoreThreshold, *scoreDecay24Hr, db, bb, *workdir, *local)
+	repos = gitinfo.NewRepoMap(*workdir)
+	for _, r := range REPOS {
+		if _, err := repos.Repo(r); err != nil {
+			glog.Fatal(err)
+		}
+	}
+
+	bs = StartNewBuildScheduler(period, *scoreThreshold, *scoreDecay24Hr, db, bb, repos, *workdir, *local)
 
 	runServer(serverURL)
 }

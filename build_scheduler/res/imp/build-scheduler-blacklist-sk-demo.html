@@ -6,55 +6,153 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1, user-scalable=yes">
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <script type="text/javascript" charset="utf-8">
+    var blacklist = [
+      {
+        "added_by": "BuildScheduler",
+        "builder_patterns": [
+          "^Infra-PerCommit$",
+        ],
+        "commits": [
+          "355d0d378d1b9f2df9abe9fd4a73348d9b13471b",
+        ],
+        "description": "Infra-PerCommit is broken at this revision.",
+        "name": "Infra-PerCommit@355d0d3",
+      },
+      {
+        "added_by": "BuildScheduler",
+        "builder_patterns": [
+          "^Housekeeper-Nightly-RecreateSKPs_Canary$",
+          "^Housekeeper-Weekly-RecreateSKPs$",
+          "^Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-CT_DM_1m_SKPs$",
+        ],
+        "commits": [],
+        "description": "Bots which the Build Scheduler should not schedule because they run on a timer.",
+        "name": "Timed Bots",
+      },
+      {
+        "added_by": "BuildScheduler",
+        "builder_patterns": [
+          ".*-Trybot$",
+        ],
+        "commits": [],
+        "description": "Trybots are scheduled through Rietveld or the Commit Queue.",
+        "name": "Trybots",
+      },
+    ];
+
+    var builders = [
+      "Build-Mac-Clang-Arm7-Debug-Android",
+      "Build-Mac-Clang-Arm7-Debug-iOS",
+      "Build-Mac-Clang-x86_64-Debug",
+      "Build-Mac-Clang-x86_64-Release",
+      "Build-Mac-Clang-x86_64-Release-CMake",
+      "Build-Ubuntu-Clang-x86_64-Debug",
+      "Build-Ubuntu-GCC-Arm64-Debug-Android",
+      "Build-Ubuntu-GCC-Arm64-Release-Android",
+    ];
+
+    var commits = [
+      "1afb8f8965b0549525c1ad8d8baa885ccdb48f6d",
+      "cb4efa90ab5f6ea7cf5e0f44aec6f4e6418aad3d",
+      "632d004677de66a985d05c25a25e25272c740ede",
+      "3917cf4ef76dabecd340f1e4cd7999802809e5ca",
+      "1d8de594f126b9a80bd8f8fa2005e90faf3b5b17",
+      "1d20258360a7fc0fac86a8a1ec8ad5016100f7d6",
+      "111a42d9cebf0bb8844c5d24f67fac57cc619d29",
+      "05dceabf3422b785b52439378aa5527c42c6ca18",
+      "7732c0cae7403639ad0ce88b8f06d9030ee1ca84",
+      "6efeda4838f5944e4e14ff156be5593aa59cf1aa",
+    ];
+
+    var gen_response = function() {
+      var data = {"rules":{}};
+      for (var i = 0; i < blacklist.length; ++i) {
+        data["rules"][blacklist[i]["name"]] = blacklist[i];
+      }
+      return JSON.stringify(data);
+    };
+
+    // Mock out sk.post() and sk.delete() to fake contact with the server.
+    sk.post = function(url, body) {
+      return new Promise(function (resolve, reject) {
+        var data = JSON.parse(body);
+
+        if (!data["name"] || data["name"] == "") {
+          reject("Rules must have a name.");
+          return;
+        }
+        if (data["name"].length > 50) {
+          reject("Rule names have a maximum length of 50; use the 'description' field for details.");
+          return;
+        }
+
+        data["added_by"] = "you!";
+        blacklist.push(data);
+        setTimeout(function() {
+          resolve(gen_response());
+        }, 2000);
+      });
+    };
+
+    sk.delete = function(url, body) {
+      return new Promise(function (resolve, reject) {
+        var data = JSON.parse(body);
+        if (!data["name"]) {
+          reject("No rule name specified.");
+          return;
+        }
+        var idx = -1;
+        for (var i = 0; i < blacklist.length; i++) {
+          if (blacklist[i]["name"] == data["name"]) {
+            idx = i;
+            break;
+          }
+        }
+        if (idx == -1) {
+          reject("No such rule");
+          return;
+        }
+        blacklist.splice(idx, 1);
+        setTimeout(function() {
+          resolve(gen_response());
+        }, 2000);
+      });
+    };
+  </script>
   <link rel="import" href="build-scheduler-blacklist-sk.html">
   <link rel="import" href="/res/common/imp/9/error-toast-sk.html">
 </head>
 <body>
 <dom-module id="build-scheduler-blacklist-sk-demo">
   <template>
-    <build-scheduler-blacklist-sk rules="[[rules]]"></build-scheduler-blacklist-sk>
+    <build-scheduler-blacklist-sk
+        builders="[[builders]]"
+        commits="[[commits]]"
+        rules="[[rules]]"
+        ></build-scheduler-blacklist-sk>
   </template>
   <script>
   Polymer({
     is: 'build-scheduler-blacklist-sk-demo',
 
     properties: {
+      builders: {
+        type: Array,
+        value: function() {
+          return builders;
+        },
+      },
+      commits: {
+        type: Array,
+        value: function() {
+          return commits;
+        },
+      },
       rules: {
         type: Array,
         value: function() {
-          return [
-            {
-              "added_by": "BuildScheduler",
-              "builder_patterns": [
-                "^Infra-PerCommit$",
-              ],
-              "commits": [
-                "355d0d378d1b9f2df9abe9fd4a73348d9b13471b",
-              ],
-              "description": "Infra-PerCommit is broken at this revision.",
-              "name": "Infra-PerCommit@355d0d3",
-            },
-            {
-              "added_by": "BuildScheduler",
-              "builder_patterns": [
-                "^Housekeeper-Nightly-RecreateSKPs_Canary$",
-                "^Housekeeper-Weekly-RecreateSKPs$",
-                "^Test-Ubuntu-GCC-GCE-CPU-AVX2-x86_64-Debug-CT_DM_1m_SKPs$",
-              ],
-              "commits": [],
-              "description": "Bots which the Build Scheduler should not schedule because they run on a timer.",
-              "name": "Timed Bots",
-            },
-            {
-              "added_by": "BuildScheduler",
-              "builder_patterns": [
-                ".*-Trybot$",
-              ],
-              "commits": [],
-              "description": "Trybots are scheduled through Rietveld or the Commit Queue.",
-              "name": "Trybots",
-            },
-          ];
+          return blacklist;
         },
       },
     },

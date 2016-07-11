@@ -166,7 +166,7 @@ func TestValidation(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := gitinfo.NewRepoMap(tmp)
-	repo, err := repos.Repo(remote)
+	_, err = repos.Repo(remote)
 	assert.NoError(t, err)
 
 	// Test.
@@ -293,7 +293,7 @@ func TestValidation(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		assert.Equal(t, test.expect, ValidateRule(&test.rule, repo), test.msg)
+		assert.Equal(t, test.expect, ValidateRule(&test.rule, repos), test.msg)
 	}
 }
 
@@ -306,7 +306,7 @@ func TestCommitRange(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.RemoveAll(t, tmp)
 	repos := gitinfo.NewRepoMap(tmp)
-	repo, err := repos.Repo(remote)
+	_, err = repos.Repo(remote)
 	assert.NoError(t, err)
 	f := path.Join(tmp, "blacklist.json")
 	b, err := FromFile(f)
@@ -317,9 +317,9 @@ func TestCommitRange(t *testing.T) {
 	// Create a commit range rule.
 	startCommit := "051955c355eb742550ddde4eccc3e90b6dc5b887"
 	endCommit := "d30286d2254716d396073c177a754f9e152bbb52"
-	rule, err := NewCommitRangeRule("commit range", "test@google.com", "...", []string{}, startCommit, endCommit, repo)
+	rule, err := NewCommitRangeRule("commit range", "test@google.com", "...", []string{}, startCommit, endCommit, repos)
 	assert.NoError(t, err)
-	err = b.AddRule(rule, repo)
+	err = b.AddRule(rule, repos)
 	assert.NoError(t, err)
 
 	// Ensure that we got the expected list of commits.

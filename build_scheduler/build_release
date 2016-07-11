@@ -13,6 +13,7 @@ ${INSTALL} --mode=644 -T ./sys/${APPNAME}.service      ${ROOT}/etc/systemd/syste
 ${INSTALL} --mode=755 -T ${GOPATH}/bin/build_scheduler ${ROOT}/usr/local/bin/build_scheduler
 ${INSTALL} --mode=644 -T ./res/js/core.js              ${ROOT}/usr/local/share/build_scheduler/res/js/core.js
 ${INSTALL} --mode=644 -T ./res/vul/elements.html       ${ROOT}/usr/local/share/build_scheduler/res/vul/elements.html
+${INSTALL} --mode=644 -T ./templates/blacklist.html    ${ROOT}/usr/local/share/build_scheduler/templates/blacklist.html
 ${INSTALL} --mode=644 -T ./templates/footer.html       ${ROOT}/usr/local/share/build_scheduler/templates/footer.html
 ${INSTALL} --mode=644 -T ./templates/header.html       ${ROOT}/usr/local/share/build_scheduler/templates/header.html
 ${INSTALL} --mode=644 -T ./templates/main.html         ${ROOT}/usr/local/share/build_scheduler/templates/main.html

@@ -276,15 +276,8 @@ func (bs *BuildScheduler) scheduleBuilds() error {
 	return nil
 }
 
-func StartNewBuildScheduler(period time.Duration, scoreThreshold, scoreDecay24Hr float64, db buildbot.DB, bb *buildbucket.Client, workdir string, local bool) *BuildScheduler {
+func StartNewBuildScheduler(period time.Duration, scoreThreshold, scoreDecay24Hr float64, db buildbot.DB, bb *buildbucket.Client, repos *gitinfo.RepoMap, workdir string, local bool) *BuildScheduler {
 	// Build the queue.
-	repos := gitinfo.NewRepoMap(workdir)
-	for _, r := range REPOS {
-		if _, err := repos.Repo(r); err != nil {
-			glog.Fatal(err)
-		}
-	}
-
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		glog.Fatal(err)
