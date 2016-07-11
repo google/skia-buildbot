@@ -9,6 +9,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"regexp"
+	"sort"
 	"strconv"
 	"sync"
 	"time"
@@ -308,6 +309,12 @@ type ContainerInfo struct {
 	Port   int           `json:"port"`
 }
 
+type ContainerInfoSlice []*ContainerInfo
+
+func (p ContainerInfoSlice) Len() int           { return len(p) }
+func (p ContainerInfoSlice) Less(i, j int) bool { return p[i].ID < p[j].ID }
+func (p ContainerInfoSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 func (s *Containers) DescribeAll() []*ContainerInfo {
 	info := []*ContainerInfo{}
 	s.mutex.Lock()
@@ -320,5 +327,6 @@ func (s *Containers) DescribeAll() []*ContainerInfo {
 			Port:   co.port,
 		})
 	}
+	sort.Sort(ContainerInfoSlice(info))
 	return info
 }
