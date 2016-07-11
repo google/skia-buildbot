@@ -25,11 +25,11 @@ if ! [ -d pdfium ]; then
     git clone "$REPO"
 fi
 
-cd pdfium
-
 if ! [ -f ".gclient" ] ; then
-    gclient config --name . --unmanaged "$REPO"
+    gclient config --unmanaged "$REPO"
 fi
+
+cd pdfium
 
 if [ "$(git diff --shortstat)" ] ; then
     git stash save

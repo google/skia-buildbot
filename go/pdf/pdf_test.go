@@ -3,6 +3,9 @@ package pdf
 import (
 	"bytes"
 	"crypto/md5"
+	"image"
+	"image/draw"
+	_ "image/png"
 	"io"
 	"io/ioutil"
 	"os"
@@ -14,6 +17,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/image/text"
 )
 
 func md5OfFile(path string) (sum []byte, err error) {
@@ -42,6 +46,32 @@ func filesEqual(path1, path2 string) bool {
 		return false
 	}
 	return 0 == bytes.Compare(checksum1, checksum2)
+}
+
+func readImg(t assert.TestingT, path string) *image.NRGBA {
+	infile, err := os.Open(path)
+	assert.Nil(t, err)
+	defer infile.Close()
+
+	img, _, err := image.Decode(infile)
+	assert.Nil(t, err)
+
+	// This accounts for the case when the image encoder (i.e. pnmtopng) writes a paletted image.
+	ret := image.NewNRGBA(img.Bounds())
+	draw.Draw(ret, img.Bounds(), img, image.Pt(0, 0), draw.Src)
+	return ret
+}
+
+func imagesEqual(t assert.TestingT, path1, path2 string) {
+	img_1 := readImg(t, path1)
+	img_2 := readImg(t, path2)
+
+	var buf_1 bytes.Buffer
+	assert.Nil(t, text.Encode(&buf_1, img_1))
+
+	var buf_2 bytes.Buffer
+	assert.Nil(t, text.Encode(&buf_2, img_2))
+	assert.Equal(t, string(buf_1.Bytes()), string(buf_2.Bytes()))
 }
 
 func testRasterizer(t *testing.T, rasterizer Rasterizer, expectation string) {
@@ -75,7 +105,8 @@ func testRasterizer(t *testing.T, rasterizer Rasterizer, expectation string) {
 	}
 
 	expectedOutput := path.Join(testDataDir, expectation)
-	assert.True(t, filesEqual(outputFileName, expectedOutput), "png output not correct")
+	imagesEqual(t, outputFileName, expectedOutput)
+	// 	assert.True(t, filesEqual(outputFileName, expectedOutput), "png output not correct")
 }
 
 func TestRasterizePdfium(t *testing.T) {
