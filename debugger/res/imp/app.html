@@ -663,7 +663,7 @@ The main application element for the Skia Debugger.
         var rawFilter = this.$.fast.value.trim().toLowerCase();
         var negative = (rawFilter[0] == "!");
         if (negative) {
-          rawFilter = rawFilter.slice(1);
+          rawFilter = rawFilter.slice(1).trim();
         }
         var filters = rawFilter.split(/\s+/);
         var matches = function(s) {
