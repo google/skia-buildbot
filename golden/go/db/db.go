@@ -157,6 +157,18 @@ var migrationSteps = []database.MigrationStep{
 		},
 	},
 
+	// Add the updated_by field.
+	// version 10
+	{
+		MySQLUp: []string{
+			`ALTER TABLE ignorerule ADD updated_by TEXT NOT NULL`,
+			`UPDATE ignorerule SET updated_by = userid`,
+		},
+		MySQLDown: []string{
+			`ALTER TABLE ignorerule DROP updated_by`,
+		},
+	},
+
 	// Use this is a template for more migration steps.
 	// version x
 	// {

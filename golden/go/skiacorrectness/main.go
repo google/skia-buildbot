@@ -341,7 +341,6 @@ func main() {
 	storages = &storage.Storage{
 		DiffStore:         diffStore,
 		ExpectationsStore: expstorage.NewCachingExpectationStore(expstorage.NewSQLExpectationStore(vdb), evt),
-		IgnoreStore:       ignore.NewSQLIgnoreStore(vdb),
 		MasterTileBuilder: masterTileBuilder,
 		BranchTileBuilder: branchTileBuilder,
 		DigestStore:       digestStore,
@@ -350,6 +349,9 @@ func main() {
 		TrybotResults:     trybot.NewTrybotResults(branchTileBuilder, rietveldAPI, ingestionStore),
 		RietveldAPI:       rietveldAPI,
 	}
+
+	// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
+	storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, true))
 
 	if err := history.Init(storages, *nTilesToBackfill); err != nil {
 		glog.Fatalf("Unable to initialize history package: %s", err)

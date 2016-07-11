@@ -2734,6 +2734,7 @@ testdata.ignoresResult = [
     "expires": "2016-03-15T21:01:55Z", 
     "id": 82, 
     "name": "mtklein@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "", 
     "query": "gamma_correct=yes"
   }, 
@@ -2742,6 +2743,7 @@ testdata.ignoresResult = [
     "expires": "2016-03-16T18:11:34Z", 
     "id": 77, 
     "name": "halcanary@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "PDF ingestion - Owned by Hal and Stephan", 
     "query": "config=pdf&config=pdf_poppler"
   }, 
@@ -2750,6 +2752,7 @@ testdata.ignoresResult = [
     "expires": "2016-03-17T14:16:02Z", 
     "id": 86, 
     "name": "msarett@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "Do not renew, these should filter out in a week", 
     "query": "source_type=image&source_options=gen_opaque&source_options=gen_premul&source_options=gen_unpremul"
   }, 
@@ -2758,6 +2761,7 @@ testdata.ignoresResult = [
     "expires": "2016-03-22T00:01:04Z", 
     "id": 63, 
     "name": "mtklein@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "SkRemote, halcanary+mtklein", 
     "query": "config=remote-8888&config=remote_cache-8888"
   }, 
@@ -2766,6 +2770,7 @@ testdata.ignoresResult = [
     "expires": "2016-04-19T15:08:02Z", 
     "id": 37, 
     "name": "egdaniel@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "bug: 3753", 
     "query": "config=nvprmsaa4&config=msaa16&config=msaa4&config=nvprmsaa16&name=filltypespersp&name=shadertext2"
   }, 
@@ -2774,6 +2779,7 @@ testdata.ignoresResult = [
     "expires": "2016-06-07T19:38:18Z", 
     "id": 48, 
     "name": "bungeman@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "Doesn't work on Windows anyway, produces unstable GMs with 'Unexpected error' from DirectWrite", 
     "query": "name=fontscalerdistortable&os=Win7&os=Win8"
   }, 
@@ -2782,6 +2788,7 @@ testdata.ignoresResult = [
     "expires": "2016-06-08T23:17:01Z", 
     "id": 56, 
     "name": "bsalomon@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "skia:3982, ignore dstreadshuffle on any nvidia+msaa configuration", 
     "query": "config=msaa16&config=msaa4&config=nvprmsaa4&config=nvprmsaa16&cpu_or_gpu_value=GT610&cpu_or_gpu_value=GTX550Ti&cpu_or_gpu_value=GTX660&cpu_or_gpu_value=GTX960&cpu_or_gpu_value=GeForce320M&cpu_or_gpu_value=TegraX1&cpu_or_gpu_value=TegraK1&cpu_or_gpu_value=Tegra3&name=dstreadshuffle"
   }, 
@@ -2790,6 +2797,7 @@ testdata.ignoresResult = [
     "expires": "2016-07-22T20:17:55Z", 
     "id": 54, 
     "name": "caryclark@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "Bug Skia:4118", 
     "query": "config=gpu&model=GalaxyS4&name=perlinnoise&name=perlinnoise_localmatrix&name=bigmatrix&name=blurrect_gallery&name=imageblur2&name=imagefiltersscaled&name=persp_shaders_aa"
   }, 
@@ -2798,6 +2806,7 @@ testdata.ignoresResult = [
     "expires": "2016-09-26T19:32:47Z", 
     "id": 44, 
     "name": "robertphillips@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "", 
     "query": "source_type=gm&name=imagefilterstransformed"
   }, 
@@ -2806,6 +2815,7 @@ testdata.ignoresResult = [
     "expires": "2016-12-14T20:01:23Z", 
     "id": 72, 
     "name": "benjaminwagner@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "4697, 4704,4694, 4705, and a host of other seemingly related nondeterministic image filter cases", 
     "query": "cpu_or_gpu=GPU&model=AndroidOne&name=imagefiltersscaled&name=apply-filter&name=matrixconvolution&name=bleed_alpha_bmp&name=bleed_alpha_image_shader&name=blurrects&name=bleed_alpha_bmp_shader&name=bleed_alpha_image&name=bigblurs&name=imagefiltersbase&name=dropshadowimagefilter&name=imageblurtiled&name=imagefiltersclipped&name=bleed&name=bleed_alpha_texture_bmp&name=bleed_alpha_texture_bmp_shader&name=bleed_texture_bmp"
   }, 
@@ -2814,6 +2824,7 @@ testdata.ignoresResult = [
     "expires": "2016-12-15T16:29:54Z", 
     "id": 73, 
     "name": "joshualitt@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "Nexus 7 has pixel diffs on this gm", 
     "query": "model=Nexus7&name=bleed_alpha_bmp"
   }, 
@@ -2822,6 +2833,7 @@ testdata.ignoresResult = [
     "expires": "2016-12-15T19:20:10Z", 
     "id": 74, 
     "name": "joshualitt@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "Generates different images", 
     "query": "config=tiles_rt-8888&name=image-cacherator-from-ctable&os=Win8"
   }, 
@@ -2830,6 +2842,7 @@ testdata.ignoresResult = [
     "expires": "2017-01-06T21:43:20Z", 
     "id": 75, 
     "name": "joshualitt@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "issue 4779", 
     "query": "model=AndroidOne&name=savelayer_with_backdrop"
   }, 
@@ -2838,6 +2851,7 @@ testdata.ignoresResult = [
     "expires": "2017-01-09T17:48:28Z", 
     "id": 76, 
     "name": "joshualitt@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "Ignoring windows 10 until someone cares enough to baseline", 
     "query": "os=Win10"
   }, 
@@ -2846,6 +2860,7 @@ testdata.ignoresResult = [
     "expires": "2017-01-19T15:56:26Z", 
     "id": 79, 
     "name": "benjaminwagner@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "skia:4837", 
     "query": "cpu_or_gpu_value=Mali400&name=bleed_alpha_texture_bmp_shader&name=bleed_texture_bmp&name=bleed_alpha_texture_bmp"
   }, 
@@ -2854,6 +2869,7 @@ testdata.ignoresResult = [
     "expires": "2017-02-21T00:00:58Z", 
     "id": 41, 
     "name": "mtklein@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "new config for testing xforms - owned by reed and mtklein", 
     "query": "config=upright-matrix-8888&config=upright-matrix-gpu"
   }, 
@@ -2862,6 +2878,7 @@ testdata.ignoresResult = [
     "expires": "2017-02-23T19:26:44Z", 
     "id": 80, 
     "name": "benjaminwagner@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "skia:5013", 
     "query": "cpu_or_gpu_value=Tegra3&name=bleed_alpha_image"
   }, 
@@ -2870,6 +2887,7 @@ testdata.ignoresResult = [
     "expires": "2017-05-03T17:01:22Z", 
     "id": 17, 
     "name": "herb@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "This gm's directly test the gpu", 
     "query": "config=565&config=8888&config=pipe-8888&config=serialize-8888&config=tiles_rt-8888&config=tiles_rt-gpu&config=remote-8888&config=remote_cache-8888&config=sp-8888&config=upright-matrix-8888&config=upright-matrix-gpu&name=bezier_conic_effects&name=bezier_quad_effects&name=bezier_cubic_effects&name=dcshader&name=convex_poly_effect&name=rrect_effect&name=texture_domain_effect&name=texdata&name=yuv_to_rgb_effect&name=textblobuseaftergpufree&name=image_from_yuv_textures&name=bleed_alpha_texture_bmp&name=bleed_texture_bmp&name=bleed_alpha_texture_bmp_shader"
   }, 
@@ -2878,6 +2896,7 @@ testdata.ignoresResult = [
     "expires": "2017-05-15T17:29:35Z", 
     "id": 39, 
     "name": "robertphillips@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "ignore pixel snap GMs for now", 
     "query": "name=pixel_snap_line&name=pixel_snap_point&name=pixel_snap_rect&name=pixel_snap_combo"
   }, 
@@ -2886,6 +2905,7 @@ testdata.ignoresResult = [
     "expires": "2019-07-31T19:30:36Z", 
     "id": 61, 
     "name": "robertphillips@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "These are always corrupted on the S4 and change randomly", 
     "query": "model=GalaxyS4&name=imagefilterscropped"
   }, 
@@ -2894,6 +2914,7 @@ testdata.ignoresResult = [
     "expires": "2019-08-02T20:13:27Z", 
     "id": 62, 
     "name": "robertphillips@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "Issue 4123", 
     "query": "config=msaa4&source_type=gm&model=Nexus6&name=colorwheelnative&name=small_image"
   }, 
@@ -2902,6 +2923,7 @@ testdata.ignoresResult = [
     "expires": "2019-08-02T20:17:27Z", 
     "id": 34, 
     "name": "robertphillips@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "The BMP subset decoder has unspecified behavior resulting in garbage pixels being displayed in the transparent areas", 
     "query": "source_type=image&name=pal8rletrns.bmp&name=pal4rletrns.bmp&source_options=subset&source_options=decode"
   }, 
@@ -2910,6 +2932,7 @@ testdata.ignoresResult = [
     "expires": "2030-07-12T18:00:11Z", 
     "id": 42, 
     "name": "egdaniel@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "Ignore valgrind images", 
     "query": "extra_config=Valgrind"
   }, 
@@ -2918,6 +2941,7 @@ testdata.ignoresResult = [
     "expires": "2035-05-02T12:47:34Z", 
     "id": 85, 
     "name": "robertphillips@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "NexusPlayer images are still very broken", 
     "query": "model=NexusPlayer"
   }, 
@@ -2926,6 +2950,7 @@ testdata.ignoresResult = [
     "expires": "2207-10-26T15:42:48Z", 
     "id": 83, 
     "name": "robertphillips@example.com", 
+    "updatedBy": "jdoe@example.com",
     "note": "Ignore all Swarming results", 
     "query": "extra_config=Swarming"
   }

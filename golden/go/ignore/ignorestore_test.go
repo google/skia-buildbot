@@ -26,7 +26,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	assert.NoError(t, store.Create(r4))
 	assert.Equal(t, int64(4), store.Revision())
 
-	allRules, err := store.List()
+	allRules, err := store.List(false)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(allRules))
 	assert.Equal(t, int64(4), store.Revision())
@@ -61,7 +61,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	delCount, err = store.Delete(r4.ID, "jon@example.com")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, delCount)
-	allRules, err = store.List()
+	allRules, err = store.List(false)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(allRules))
 	assert.Equal(t, int64(6), store.Revision())
@@ -72,7 +72,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 
 	delCount, err = store.Delete(r1.ID, "jane@example.com")
 	assert.NoError(t, err)
-	allRules, err = store.List()
+	allRules, err = store.List(false)
 	assert.Equal(t, 1, len(allRules))
 	assert.Equal(t, r2.ID, allRules[0].ID)
 	assert.Equal(t, int64(7), store.Revision())
@@ -82,7 +82,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	updatedRule.Note = "an updated rule"
 	err = store.Update(updatedRule.ID, &updatedRule)
 	assert.NoError(t, err, "Update should succeed.")
-	allRules, err = store.List()
+	allRules, err = store.List(false)
 	assert.Equal(t, 1, len(allRules))
 	assert.Equal(t, r2.ID, allRules[0].ID)
 	assert.Equal(t, "an updated rule", allRules[0].Note)
@@ -96,7 +96,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 
 	delCount, err = store.Delete(r2.ID, "jon@example.com")
 	assert.NoError(t, err)
-	allRules, err = store.List()
+	allRules, err = store.List(false)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(allRules))
 	assert.Equal(t, int64(9), store.Revision())
@@ -104,7 +104,7 @@ func testIgnoreStore(t *testing.T, store IgnoreStore) {
 	delCount, err = store.Delete(1000000, "someuser@example.com")
 	assert.NoError(t, err)
 	assert.Equal(t, delCount, 0)
-	allRules, err = store.List()
+	allRules, err = store.List(false)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(allRules))
 	assert.Equal(t, int64(9), store.Revision())

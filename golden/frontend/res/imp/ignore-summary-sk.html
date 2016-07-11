@@ -38,6 +38,10 @@ Displays a summary of an ignore rule.
         width: 15em;
         color: #D95F02;
       }
+      #updatedBy {
+        width: 15em;
+        color: #D95F02;
+      }
       #query {
         width: 20em;
         overflow: auto;
@@ -66,6 +70,7 @@ Displays a summary of an ignore rule.
     </style>
     <div id="name">{{value.name}}</div>
     <div id="expires">{{_humanDiffDate(value.expires)}}</div>
+    <div id="updatedBy">{{value.updatedBy}}</div>
     <pre id="query"><a href$="{{_queryHref(value.query)}}">{{_splitAmp(value.query)}}</a></pre>
     <div id="note">{{value.note}}</div>
     <div id="count">{{value.count}}</div>

@@ -169,6 +169,16 @@ func (g *GoldenTrace) SetAt(index int, value []byte) error {
 	return nil
 }
 
+// LastDigest returns the last digest in the trace (HEAD) or the empty string otherwise.
+func (g *GoldenTrace) LastDigest() string {
+	for i := len(g.Values) - 1; i >= 0; i-- {
+		if g.Values[i] != MISSING_DIGEST {
+			return g.Values[i]
+		}
+	}
+	return ""
+}
+
 // NewGoldenTrace allocates a new Trace set up for the given number of samples.
 //
 // The Trace Values are pre-filled in with the missing data sentinel since not

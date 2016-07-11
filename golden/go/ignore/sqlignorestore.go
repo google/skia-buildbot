@@ -6,19 +6,32 @@ import (
 	"sync"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/database"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/expstorage"
+	"go.skia.org/infra/golden/go/types"
 )
 
 type SQLIgnoreStore struct {
-	vdb      *database.VersionedDB
-	mutex    sync.Mutex
-	revision int64
+	vdb        *database.VersionedDB
+	mutex      sync.Mutex
+	revision   int64
+	tileStream <-chan *tiling.Tile
+	expStore   expstorage.ExpectationsStore
 }
 
-func NewSQLIgnoreStore(vdb *database.VersionedDB) IgnoreStore {
+// NewSQLIgnoreStore creates a new SQL based IgnoreStore.
+//   vdb - database to connect to.
+//   expStore - expectations store needed to cound the untriaged digests per rule.
+//   tileStream - continously provides an updated copy of the current tile.
+func NewSQLIgnoreStore(vdb *database.VersionedDB, expStore expstorage.ExpectationsStore, tileStream <-chan *tiling.Tile) IgnoreStore {
 	ret := &SQLIgnoreStore{
-		vdb: vdb,
+		vdb:        vdb,
+		tileStream: tileStream,
+		expStore:   expStore,
 	}
 
 	return ret
@@ -32,10 +45,10 @@ func (m *SQLIgnoreStore) inc() {
 
 // Create, see IgnoreStore interface.
 func (m *SQLIgnoreStore) Create(rule *IgnoreRule) error {
-	stmt := `INSERT INTO ignorerule (userid,  expires, query, note)
-	         VALUES(?,?,?,?)`
+	stmt := `INSERT INTO ignorerule (userid, updated_by, expires, query, note)
+	         VALUES(?,?,?,?,?)`
 
-	ret, err := m.vdb.DB.Exec(stmt, rule.Name, rule.Expires.Unix(), rule.Query, rule.Note)
+	ret, err := m.vdb.DB.Exec(stmt, rule.Name, rule.Name, rule.Expires.Unix(), rule.Query, rule.Note)
 	if err != nil {
 		return err
 	}
@@ -50,9 +63,9 @@ func (m *SQLIgnoreStore) Create(rule *IgnoreRule) error {
 
 // Update, see IgnoreStore interface.
 func (m *SQLIgnoreStore) Update(id int, rule *IgnoreRule) error {
-	stmt := `UPDATE ignorerule SET userid=?, expires=?, query=?, note=? WHERE id=?`
+	stmt := `UPDATE ignorerule SET updated_by=?, expires=?, query=?, note=? WHERE id=?`
 
-	res, err := m.vdb.DB.Exec(stmt, rule.Name, rule.Expires.Unix(), rule.Query, rule.Note, rule.ID)
+	res, err := m.vdb.DB.Exec(stmt, rule.UpdatedBy, rule.Expires.Unix(), rule.Query, rule.Note, rule.ID)
 	if err != nil {
 		return err
 	}
@@ -65,8 +78,8 @@ func (m *SQLIgnoreStore) Update(id int, rule *IgnoreRule) error {
 }
 
 // List, see IgnoreStore interface.
-func (m *SQLIgnoreStore) List() ([]*IgnoreRule, error) {
-	stmt := `SELECT id, userid, expires, query, note
+func (m *SQLIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
+	stmt := `SELECT id, userid, updated_by, expires, query, note
 	         FROM ignorerule
 	         ORDER BY expires ASC`
 	rows, err := m.vdb.DB.Query(stmt)
@@ -79,14 +92,76 @@ func (m *SQLIgnoreStore) List() ([]*IgnoreRule, error) {
 	for rows.Next() {
 		target := &IgnoreRule{}
 		var expiresTS int64
-		err := rows.Scan(&target.ID, &target.Name, &expiresTS, &target.Query, &target.Note)
+		err := rows.Scan(&target.ID, &target.Name, &target.UpdatedBy, &expiresTS, &target.Query, &target.Note)
 		if err != nil {
 			return nil, err
 		}
 		target.Expires = time.Unix(expiresTS, 0)
 		result = append(result, target)
 	}
+
+	if addCounts {
+		if err := m.addIgnoreCounts(result); err != nil {
+			glog.Errorf("Unable to add counts to ignore list result: %s", err)
+		}
+	}
+
 	return result, nil
+}
+
+// TODO(stephana): Add unit tests to addIgnoreCounts once we have a framework ready to
+// easily test against live (vs synthetic) data.
+
+// addIgnoreCounts counts the number of traces in the current tile that match the given
+// ignore rules. It sets the corresponding field in each instance of IgnoreRule.
+func (m *SQLIgnoreStore) addIgnoreCounts(rules []*IgnoreRule) error {
+	if (m.expStore == nil) || (m.tileStream == nil) {
+		return fmt.Errorf("Either expStore or tileStream is nil. Cannot count ignores.")
+	}
+
+	exp, err := m.expStore.Get()
+	if err != nil {
+		return err
+	}
+
+	ignoreMatcher, err := m.BuildRuleMatcher()
+	if err != nil {
+		return err
+	}
+
+	// Get the next tile.
+	var tile *tiling.Tile = nil
+	select {
+	case tile = <-m.tileStream:
+	default:
+	}
+	if tile == nil {
+		return fmt.Errorf("No tile available to count ignores")
+	}
+
+	// Count the untriaged digests in HEAD.
+	matchingDigests := make(map[int]map[string]bool, len(rules))
+	for _, trace := range tile.Traces {
+		gTrace := trace.(*types.GoldenTrace)
+		if matchRules, ok := ignoreMatcher(gTrace.Params_); ok {
+			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
+			if digest := gTrace.LastDigest(); digest != "" && (exp.Classification(testName, digest) == types.UNTRIAGED) {
+				k := testName + ":" + digest
+				for _, r := range matchRules {
+					if t, ok := matchingDigests[r.ID]; ok {
+						t[k] = true
+					} else {
+						matchingDigests[r.ID] = map[string]bool{k: true}
+					}
+				}
+			}
+		}
+	}
+
+	for _, r := range rules {
+		r.Count = len(matchingDigests[r.ID])
+	}
+	return nil
 }
 
 // Delete, see IgnoreStore interface.
@@ -119,7 +194,7 @@ func (m *SQLIgnoreStore) BuildRuleMatcher() (RuleMatcher, error) {
 }
 
 func buildRuleMatcher(store IgnoreStore) (RuleMatcher, error) {
-	rulesList, err := store.List()
+	rulesList, err := store.List(false)
 	if err != nil {
 		return noopRuleMatcher, err
 	}

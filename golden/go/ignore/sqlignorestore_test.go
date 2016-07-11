@@ -20,6 +20,6 @@ func TestSQLIgnoreStore(t *testing.T) {
 	assert.NoError(t, err)
 	defer testutils.AssertCloses(t, vdb)
 
-	store := NewSQLIgnoreStore(vdb)
+	store := NewSQLIgnoreStore(vdb, nil, nil)
 	testIgnoreStore(t, store)
 }

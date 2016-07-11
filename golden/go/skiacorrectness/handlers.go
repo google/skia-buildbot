@@ -259,7 +259,7 @@ func jsonIgnoresHandler(w http.ResponseWriter, r *http.Request) {
 
 	ignores := []*ignore.IgnoreRule{}
 	var err error
-	ignores, err = storages.IgnoreStore.List()
+	ignores, err = storages.IgnoreStore.List(true)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve ignored traces.")
 	}

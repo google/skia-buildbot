@@ -17,7 +17,9 @@ type IgnoreStore interface {
 	Create(*IgnoreRule) error
 
 	// List returns all ignore rules in the ignore store.
-	List() ([]*IgnoreRule, error)
+	// 'addCounts' indicates whether to include counts how often an ignore
+	// rule appears in the current tile.
+	List(addCounts bool) ([]*IgnoreRule, error)
 
 	// Updates an IgnoreRule.
 	Update(id int, rule *IgnoreRule) error
@@ -38,12 +40,13 @@ type IgnoreStore interface {
 
 // IgnoreRule is the GUI struct for dealing with Ignore rules.
 type IgnoreRule struct {
-	ID      int       `json:"id"`
-	Name    string    `json:"name"`
-	Expires time.Time `json:"expires"`
-	Query   string    `json:"query"`
-	Note    string    `json:"note"`
-	Count   int       `json:"count"`
+	ID        int       `json:"id"`
+	Name      string    `json:"name"`
+	UpdatedBy string    `json:"updatedBy"`
+	Expires   time.Time `json:"expires"`
+	Query     string    `json:"query"`
+	Note      string    `json:"note"`
+	Count     int       `json:"count"`
 }
 
 // ToQuery makes a slice of url.Values from the given slice of IngoreRules.
@@ -61,10 +64,11 @@ func ToQuery(ignores []*IgnoreRule) ([]url.Values, error) {
 
 func NewIgnoreRule(name string, expires time.Time, queryStr string, note string) *IgnoreRule {
 	return &IgnoreRule{
-		Name:    name,
-		Expires: expires,
-		Query:   queryStr,
-		Note:    note,
+		Name:      name,
+		UpdatedBy: name,
+		Expires:   expires,
+		Query:     queryStr,
+		Note:      note,
 	}
 }
 
@@ -99,7 +103,7 @@ func (m *MemIgnoreStore) Create(rule *IgnoreRule) error {
 }
 
 // List, see IgnoreStore interface.
-func (m *MemIgnoreStore) List() ([]*IgnoreRule, error) {
+func (m *MemIgnoreStore) List(addCounts bool) ([]*IgnoreRule, error) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 

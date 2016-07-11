@@ -115,7 +115,7 @@ func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*tiling.Tile, error) 
 		}
 	}
 
-	ignores, err := s.IgnoreStore.List()
+	ignores, err := s.IgnoreStore.List(false)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to get ignores to filter tile: %s", err)
 	}
