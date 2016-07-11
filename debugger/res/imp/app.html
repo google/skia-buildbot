@@ -264,19 +264,14 @@ The main application element for the Skia Debugger.
       <login-sk id=login class=hidden></login-sk>
     </header>
     <div id=content>
-      <details-sk id=upload open="[[ skp_not_loaded ]]">
-        <summary-sk>
-          SKP
-        </summary-sk>
-        <div class="layout horizontal center">
-          <form enctype="multipart/form-data" method="post" id=post_skp action="./new" name="fileinfo">
-            <label>SKP to send:</label>
-            <input type="file" name="file" required />
-            <button class=action>Upload</button>
-          </form>
-          <a href="/download" id=download class=hidden>Download</a>
-        </div>
-      </details-sk>
+      <div class="layout horizontal center">
+        <form enctype="multipart/form-data" method="post" id=post_skp action="./new" name="fileinfo">
+          <label>SKP to upload:</label>
+          <input type="file" name="file" required />
+          <button class=action>Upload</button>
+        </form>
+        <a href="/download" id=download class=hidden>Download</a>
+      </div>
       <div class="layout horizontal" hidden="[[ skp_not_loaded ]]">
         <div id=left class$="layout vertical flex-{{ _leftRatio }}">
           <div class="layout horizontal end-justified">
