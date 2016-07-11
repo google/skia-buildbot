@@ -182,7 +182,6 @@ func (task *ChromiumAnalysisTask) Execute() error {
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-		Timeout: ctutil.MASTER_SCRIPT_RUN_CHROMIUM_ANALYSIS_TIMEOUT,
 	})
 }
 
@@ -230,7 +229,6 @@ func (task *ChromiumPerfTask) Execute() error {
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-		Timeout: ctutil.MASTER_SCRIPT_RUN_CHROMIUM_PERF_TIMEOUT,
 	})
 }
 
@@ -256,7 +254,6 @@ func (task *CaptureSkpsTask) Execute() error {
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-		Timeout: ctutil.MASTER_SCRIPT_CAPTURE_SKPS_TIMEOUT,
 	})
 }
 
@@ -298,7 +295,6 @@ func (task *LuaScriptTask) Execute() error {
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-		Timeout: ctutil.MASTER_SCRIPT_RUN_LUA_TIMEOUT,
 	})
 }
 
@@ -322,7 +318,6 @@ func (task *ChromiumBuildTask) Execute() error {
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-		Timeout: ctutil.MASTER_SCRIPT_BUILD_CHROMIUM_TIMEOUT,
 	})
 }
 
@@ -344,7 +339,6 @@ func (task *RecreatePageSetsTask) Execute() error {
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-		Timeout: ctutil.MASTER_SCRIPT_CREATE_PAGESETS_TIMEOUT,
 	})
 }
 
@@ -366,7 +360,6 @@ func (task *RecreateWebpageArchivesTask) Execute() error {
 			"--log_id=" + runId,
 			fmt.Sprintf("--local=%t", *master_common.Local),
 		},
-		Timeout: ctutil.MASTER_SCRIPT_CAPTURE_ARCHIVES_TIMEOUT,
 	})
 }
 

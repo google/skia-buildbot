@@ -89,90 +89,34 @@ const (
 	// util.ResetCheckout
 	GIT_RESET_TIMEOUT = 5 * time.Minute
 	GIT_CLEAN_TIMEOUT = 5 * time.Minute
-	// util.resetChromiumCheckout calls ResetCheckout three times.
-	RESET_CHROMIUM_CHECKOUT_TIMEOUT = 3 * (GIT_RESET_TIMEOUT + GIT_CLEAN_TIMEOUT)
 
 	// util.CreateChromiumBuildOnSwarming
-	SYNC_SKIA_IN_CHROME_TIMEOUT   = 2 * time.Hour
-	GIT_LS_REMOTE_TIMEOUT         = 5 * time.Minute
-	GIT_APPLY_TIMEOUT             = 5 * time.Minute
-	GN_CHROMIUM_TIMEOUT           = 30 * time.Minute
-	GYP_PDFIUM_TIMEOUT            = 5 * time.Minute
-	NINJA_TIMEOUT                 = 2 * time.Hour
-	CREATE_CHROMIUM_BUILD_TIMEOUT = SYNC_SKIA_IN_CHROME_TIMEOUT + GIT_LS_REMOTE_TIMEOUT +
-		// Three patches are applied when applyPatches is specified.
-		3*GIT_APPLY_TIMEOUT +
-		// The build steps are repeated twice when applyPatches is specified.
-		2*(GN_CHROMIUM_TIMEOUT+NINJA_TIMEOUT+RESET_CHROMIUM_CHECKOUT_TIMEOUT)
+	SYNC_SKIA_IN_CHROME_TIMEOUT = 2 * time.Hour
+	GIT_LS_REMOTE_TIMEOUT       = 5 * time.Minute
+	GIT_APPLY_TIMEOUT           = 5 * time.Minute
+	GN_CHROMIUM_TIMEOUT         = 30 * time.Minute
+	GYP_PDFIUM_TIMEOUT          = 5 * time.Minute
+	NINJA_TIMEOUT               = 2 * time.Hour
 
 	// util.InstallChromeAPK
 	ADB_INSTALL_TIMEOUT = 15 * time.Minute
 
-	// Allow extra time for updating frontend and any other computation not included in the
-	// worker timeouts.
-	MASTER_SCRIPT_TIMEOUT_PADDING = 30 * time.Minute
-
-	// Build Chromium Task
-	GIT_LOG_TIMEOUT                      = 5 * time.Minute
-	MASTER_SCRIPT_BUILD_CHROMIUM_TIMEOUT = CREATE_CHROMIUM_BUILD_TIMEOUT + GIT_LOG_TIMEOUT +
-		MASTER_SCRIPT_TIMEOUT_PADDING
-
 	// Capture Archives
-	// Setting a 5 day timeout since it may take a while to capture 1M archives.
-	CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK  = "rasterize_and_record_micro_ct"
-	CAPTURE_ARCHIVES_TIMEOUT               = 5 * 24 * time.Hour
-	MASTER_SCRIPT_CAPTURE_ARCHIVES_TIMEOUT = CAPTURE_ARCHIVES_TIMEOUT +
-		MASTER_SCRIPT_TIMEOUT_PADDING
+	CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK = "rasterize_and_record_micro_ct"
 
 	// Capture SKPs
 	REMOVE_INVALID_SKPS_TIMEOUT = 3 * time.Hour
-	// Setting a 2 day timeout since it may take a while to capture 1M SKPs.
-	CAPTURE_SKPS_TIMEOUT               = 2 * 24 * time.Hour
-	MASTER_SCRIPT_CAPTURE_SKPS_TIMEOUT = CAPTURE_SKPS_TIMEOUT + MASTER_SCRIPT_TIMEOUT_PADDING
-
-	// Check Workers Health
-	ADB_DEVICES_TIMEOUT          = 30 * time.Minute
-	ADB_SHELL_UPTIME_TIMEOUT     = 30 * time.Minute
-	CHECK_WORKERS_HEALTH_TIMEOUT = ADB_DEVICES_TIMEOUT + ADB_SHELL_UPTIME_TIMEOUT +
-		MASTER_SCRIPT_TIMEOUT_PADDING
-
-	// Create Pagesets
-	// Setting a 4 hour timeout since it may take a while to upload page sets to
-	// Google Storage when doing 10k page sets per worker.
-	CREATE_PAGESETS_TIMEOUT               = 4 * time.Hour
-	MASTER_SCRIPT_CREATE_PAGESETS_TIMEOUT = CREATE_PAGESETS_TIMEOUT +
-		MASTER_SCRIPT_TIMEOUT_PADDING
 
 	// Run Chromium Perf
 	ADB_VERSION_TIMEOUT            = 5 * time.Minute
 	ADB_ROOT_TIMEOUT               = 5 * time.Minute
 	CSV_PIVOT_TABLE_MERGER_TIMEOUT = 10 * time.Minute
-	REBOOT_TIMEOUT                 = 5 * time.Minute
 	CSV_MERGER_TIMEOUT             = 1 * time.Hour
 	CSV_COMPARER_TIMEOUT           = 2 * time.Hour
-	// Setting a 1 day timeout since it may take a while run benchmarks with many
-	// repeats.
-	RUN_CHROMIUM_PERF_TIMEOUT = 1 * 24 * time.Hour
-	// csv_merger runs once for nopatch and once for withpatch
-	MASTER_SCRIPT_RUN_CHROMIUM_PERF_TIMEOUT = CREATE_CHROMIUM_BUILD_TIMEOUT + REBOOT_TIMEOUT +
-		RUN_CHROMIUM_PERF_TIMEOUT + 2*CSV_MERGER_TIMEOUT + CSV_COMPARER_TIMEOUT +
-		MASTER_SCRIPT_TIMEOUT_PADDING
-
-	// Run Chromium Analysis
-	// The timeout used for Chromium Perf should be sufficient for Chromium Analysis. This will be
-	// adjusted in the future if required.
-	MASTER_SCRIPT_RUN_CHROMIUM_ANALYSIS_TIMEOUT = MASTER_SCRIPT_RUN_CHROMIUM_PERF_TIMEOUT
 
 	// Run Lua
-	LUA_PICTURES_TIMEOUT          = 2 * time.Hour
-	RUN_LUA_TIMEOUT               = 2 * time.Hour
-	LUA_AGGREGATOR_TIMEOUT        = 1 * time.Hour
-	MASTER_SCRIPT_RUN_LUA_TIMEOUT = RUN_LUA_TIMEOUT + LUA_AGGREGATOR_TIMEOUT +
-		MASTER_SCRIPT_TIMEOUT_PADDING
-
-	// Fix Archives
-	// Setting a 1 day timeout since it may take a while to validate archives.
-	FIX_ARCHIVES_TIMEOUT = 1 * 24 * time.Hour
+	LUA_PICTURES_TIMEOUT   = 2 * time.Hour
+	LUA_AGGREGATOR_TIMEOUT = 1 * time.Hour
 
 	// Poller
 	MAKE_ALL_TIMEOUT = 15 * time.Minute
