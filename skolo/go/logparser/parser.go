@@ -140,7 +140,7 @@ func ParsePythonLog(contents string) ParsedLog {
 	return p
 }
 
-// pythonLog has a format like [thread] [time(implicitly in Eastern)] [severity] [payload]
+// pythonLog has a format like [thread] [time(implicitly in UTC)] [severity] [payload]
 var pythonLogLine = regexp.MustCompile(`\d+ \d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d+ \w: `)
 var pythonLogParse = regexp.MustCompile(`(?s)\d+ (?P<time>\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d\.\d+) (?P<severity>\w): (?P<payload>.*)`)
 
@@ -162,7 +162,7 @@ func parsePythonLog(line string) *sklog.LogPayload {
 		return &p
 	}
 	// matches[1] is time, [2] is severity, [3] is payload
-	if parsed, err := time.ParseInLocation(pythonLogRef, matches[1], time.Local); err == nil {
+	if parsed, err := time.ParseInLocation(pythonLogRef, matches[1], time.UTC); err == nil {
 		p.Time = parsed
 	} else {
 		sklog.CloudLogError("pyparser", fmt.Errorf("Problem parsing date: %s\n", err))

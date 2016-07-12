@@ -77,14 +77,17 @@ func Errorln(msg ...interface{}) {
 // Fatal* uses an ALERT Cloud Logging Severity and then panics, similar to glog.Fatalf()
 func Fatal(msg ...interface{}) {
 	log(ALERT, defaultReportName, msg...)
+	panic(fmt.Sprintln(msg...))
 }
 
 func Fatalf(format string, v ...interface{}) {
 	log(ALERT, defaultReportName, fmt.Sprintf(format, v...))
+	panic(fmt.Sprintf(format, v...))
 }
 
 func Fatalln(msg ...interface{}) {
 	log(ALERT, defaultReportName, msg...)
+	panic(fmt.Sprintln(msg...))
 }
 
 func Flush() {

@@ -43,7 +43,7 @@ var writeToPersistenceFile = _writeToPersistenceFile
 func _writeToPersistenceFile(reportName string, v interface{}) error {
 	f, err := os.Create(filepath.Join(persistenceDir, reportName))
 	if err != nil {
-		return fmt.Errorf("Could not open %s for writing: %s", f.Name(), err)
+		return fmt.Errorf("Could not open %s for writing: %s", reportName, err)
 	}
 	defer util.Close(f)
 	return json.NewEncoder(f).Encode(v)

@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
 	logging "google.golang.org/api/logging/v2beta1"
@@ -159,7 +160,8 @@ func (c *logsClient) CloudLog(reportName string, payload *LogPayload) {
 	}
 
 	if resp, err := c.service.Entries.Write(&entries).Do(); err != nil {
-		glog.Errorf("Problem writing logs %v %v:\n%s", payload, resp, err)
+		// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
+		glog.Errorf("Problem writing logs \nLogPayload:\n%v\nLogEntry:\n%v\nResponse:\n%v:\n%s", spew.Sdump(payload), spew.Sdump(log), spew.Sdump(resp), err)
 	} else {
 		glog.Infof("Response code %d", resp.HTTPStatusCode)
 	}

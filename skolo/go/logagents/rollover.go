@@ -3,7 +3,6 @@ package logagents
 import (
 	"fmt"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/skolo/go/logparser"
 )
@@ -32,7 +31,7 @@ func NewRollover(parse logparser.Parser, reportName, logFile, rolloverFile strin
 		IsFirstScan:  true,
 	}
 	if err := readFromPersistenceFile(reportName, log); err != nil {
-		glog.Warningf("Could not read from persistence file for %s.  Starting with default values: %s", reportName, err)
+		sklog.Warningf("Could not read from persistence file for %s.  Starting with default values: %s", reportName, err)
 	}
 	return log
 }
@@ -46,7 +45,7 @@ func (r *rolloverLog) Scan(client sklog.CloudLogger) error {
 	if err != nil {
 		return fmt.Errorf("Problem reading log file %s: %s", r.LogPath, err)
 	}
-	glog.Infof("Read log file with hash %s", logH)
+	sklog.Infof("Read %s with hash %s", r.LogPath, logH)
 
 	rollC, rollH, err := readAndHashFile(r.RolloverPath)
 	if err != nil {
@@ -61,7 +60,7 @@ func (r *rolloverLog) Scan(client sklog.CloudLogger) error {
 	}
 	if r.RolloverHash != rollH {
 		// We rolled over
-		glog.Infof("Detected rollover to file %s", r.RolloverPath)
+		sklog.Infof("Detected rollover to file %s", r.RolloverPath)
 		r.RolloverHash = rollH
 		lp := r.Parse(rollC)
 		r.reportLogs(client, lp, r.LastLine)
@@ -74,6 +73,7 @@ func (r *rolloverLog) Scan(client sklog.CloudLogger) error {
 		r.reportLogs(client, lp, r.LastLine)
 		r.LastLine = lp.CurrLine()
 	}
+	sklog.Infof("Finished at line %d", r.LastLine)
 	return writeToPersistenceFile(r.ReportName(), r)
 }
 

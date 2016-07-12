@@ -1,5 +1,5 @@
 .PHONY: all
-all: hotspare backup
+all: hotspare backup cloudlogger
 
 .PHONY: hotspare
 hotspare:
@@ -28,3 +28,14 @@ backup_push: backup
 	go install -v ../push/go/pushcli
 	./build_release_backup "`git log -n1 --format=%s`"
 	pushcli rpi-backup skia-rpi-master
+
+.PHONY: cloudlogger
+cloudlogger:
+	go install -v ./go/cloudlogger
+
+.PHONY: cloudlogger_release
+cloudlogger_release:
+	GOOS=linux GOARCH=arm GOARM=7 go build -o out/cloudlogger -v ./go/cloudlogger
+	go install -v ../get_service_account/go/get_service_account
+	get_service_account
+	./build_release_cloudlogger "$(MESSAGE)"
