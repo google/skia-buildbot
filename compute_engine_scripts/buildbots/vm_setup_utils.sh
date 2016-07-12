@@ -14,7 +14,7 @@ function install_packages {
     "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password password tmp_pass' && " \
     "sudo debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password tmp_pass' && " \
     "sudo apt-get -y install mercurial mysql-client mysql-server valgrind libosmesa-dev npm " \
-    "  nodejs-legacy libexpat1-dev:i386 clang-3.6 && " \
+    "  nodejs-legacy libexpat1-dev:i386 clang-3.6 poppler-utils && " \
     "sudo npm install -g bower@1.6.5 && " \
     "sudo npm install -g polylint@2.4.3 && " \
     "mysql -uroot -ptmp_pass -e \"SET PASSWORD = PASSWORD('');\" && " \
@@ -23,6 +23,11 @@ function install_packages {
     "(sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f -y install) && " \
     "rm google-chrome-stable_current_amd64.deb " \
     || FAILED="$FAILED InstallPackages"
+  $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
+    "sudo apt-get -y --purge remove apache2* && " \
+    "sudo echo 'swarming soft nofile 4096' >> /etc/security/limits.conf && " \
+    "sudo echo 'swarming hard nofile 8192' >> /etc/security/limits.conf "
+    || FAILED="$FAILED RemoveApache2FixUlimit"
   echo
 }
 
