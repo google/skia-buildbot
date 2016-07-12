@@ -185,6 +185,33 @@ _slave_host_dicts = {
     'launch_script': LAUNCH_SCRIPT_UNIX,
   },
 
+  'skia-vm-009': {
+    'slaves': [
+      ('skiabot-linux-swarm-080', '80', False),
+      ('skiabot-linux-swarm-081', '81', False),
+      ('skiabot-linux-swarm-082', '82', False),
+      ('skiabot-linux-swarm-083', '83', False),
+      ('skiabot-linux-swarm-084', '84', False),
+      ('skiabot-linux-swarm-085', '85', False),
+      ('skiabot-linux-swarm-086', '86', False),
+      ('skiabot-linux-swarm-087', '87', False),
+      ('skiabot-linux-swarm-088', '88', False),
+      ('skiabot-linux-swarm-089', '89', False),
+      ('skiabot-linux-swarm-090', '90', False),
+      #('skiabot-linux-swarm-091', '91', False),
+      #('skiabot-linux-swarm-092', '92', False),
+      #('skiabot-linux-swarm-093', '93', False),
+      #('skiabot-linux-swarm-094', '94', False),
+      #('skiabot-linux-swarm-095', '95', False),
+    ],
+    'copies': CHROMEBUILD_COPIES,
+    'ip': NO_IP_ADDR,
+    'kvm_switch': NO_KVM_SWITCH,
+    'kvm_num': NO_KVM_NUM,
+    'path_to_buildbot': CHROMECOMPUTE_BUILDBOT_PATH,
+    'launch_script': LAUNCH_SCRIPT_UNIX,
+  },
+
   'skia-vm-013': {
     'slaves': [
       ('skiabot-ct-dm-000', '0', False),
