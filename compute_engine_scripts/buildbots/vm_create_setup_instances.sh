@@ -13,11 +13,11 @@ if [ "$VM_INSTANCE_OS" == "Linux" ]; then
   SKIA_BOT_IMAGE_NAME=$SKIA_BOT_LINUX_IMAGE_NAME
   REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_LINUX_BOTS[@]}
   DISK_ARGS="--boot_disk_size_gb=20"
-  if [ "$VM_IS_SWARMINGBOT" = True ]; then
+  if [ "$VM_IS_SWARMINGBOT" = 1 ]; then
     SKIA_BOT_IMAGE_NAME=$SKIA_SWARMING_IMAGE_NAME
     SKIA_BOT_MACHINE_TYPE="n1-standard-16"
   fi
-  if [ "$VM_IS_CTBOT" = True ]; then
+  if [ "$VM_IS_CTBOT" = 1 ]; then
     SKIA_BOT_MACHINE_TYPE="n1-highmem-2"
     REQUIRED_FILES_FOR_BOTS=${REQUIRED_FILES_FOR_CT_BOTS[@]}
   fi
@@ -187,7 +187,7 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
 
     install_redis
 
-    if [ "$VM_IS_BUILDBOT" = True ]; then
+    if [ "$VM_IS_BUILDBOT" = 1 ]; then
       checkout_skia_repos
 
       copy_files
@@ -195,11 +195,11 @@ for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
       setup_contab
     fi
 
-    if [ "$VM_IS_SWARMINGBOT" = True ]; then
+    if [ "$VM_IS_SWARMINGBOT" = 1 ]; then
       run_swarming_bootstrap
     fi
 
-    if [ "$VM_IS_CTBOT" = True ]; then
+    if [ "$VM_IS_CTBOT" = 1 ]; then
       copy_ct_files
 
       setup_ct_swarming_bot
