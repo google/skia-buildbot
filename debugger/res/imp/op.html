@@ -22,7 +22,11 @@
        {
          icon: "icons:image",
          color: "green",
+         count: 2,
        }
+
+       The count is the run-length encoding, ie. the number
+       of repetitions of that operation that appear.
 
   Events:
     op-toggled - This event is sent when a paper-checkbox is toggled.
@@ -69,7 +73,6 @@
       display: block;
       margin-left: 2.5em;
       margin-top: -2.5em;
-      padding: 0.25em;
     }
 
     .batchid {
@@ -82,12 +85,22 @@
       margin-top: -0.05em;
     }
 
+    .count {
+      margin-left: -0.7em;
+      font-weight: bold;
+      top: 0.5em;
+      position: relative;
+    }
+
   </style>
   <template>
     <details-sk selected$="{{ selected }}">
       <summary-sk id=summary><paper-checkbox id=toggle checked$="{{ op.details.visible }}" on-tap="_check"></paper-checkbox>
         <template is="dom-repeat" items="{{ prefix }}">
-          <iron-icon icon="{{ item.icon }}" style$="color: {{ item.color }};"><iron-icon>
+          <iron-icon icon="{{ item.icon }}" style$="color: {{ item.color }};"> </iron-icon>
+          <template is="dom-if" if="{{ _gt1(item.count) }}">
+            <span class=count>{{ item.count }}</span>
+          </template>
         </template>
         {{ op.details.command }}
         <code>{{op.details.shortDesc }}</code>
@@ -183,6 +196,10 @@
           ret = [ret[0], ret[1], { BatchListID: -1 }, ret[ret.length-2], ret[ret.length-1]];
         }
         return ret;
+      },
+
+      _gt1: function(n) {
+        return n > 1;
       },
 
     });
