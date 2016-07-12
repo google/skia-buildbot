@@ -4,6 +4,7 @@ package main
 // up a virtual ip address (using ifconfig) if address:port is unreachable.
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"net"
@@ -37,6 +38,9 @@ var (
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	influxPassword = flag.String("influxdb_password", influxdb.DEFAULT_PASSWORD, "The InfluxDB password.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
+
+	startServingPlaybook = flag.String("start_serving_playbook", "", "The Ansible playbook that, when run locally, will start serving the image.  This should be idempotent.")
+	stopServingPlaybook  = flag.String("stop_serving_playbook", "", "The Ansible playbook that, when run locally, will stop serving the image.  This should be idempotent.")
 )
 
 type virtualIPManager struct {
@@ -120,25 +124,75 @@ func NewImageSyncer(period time.Duration, remotePath, localPath string) *imageSy
 }
 
 func (i *imageSyncer) Run() {
+	// Force a sync at the beginning to make sure we are in a good state for serving.
+	i.sync()
 	for range time.Tick(i.Period) {
-		if isServing() {
-			sklog.Infof("Skipping sync because we are serving")
-			continue
-		}
-		sklog.Infof("Attempting to sync image from remote")
-		// This only works if the master has the spare's ssh key in authorized_key
-		err := exec.Run(&exec.Command{
-			Name:      "scp",
-			Args:      []string{i.RemotePath, i.LocalPath},
-			LogStderr: true,
-			LogStdout: true,
-		})
-		if err != nil {
-			sklog.Errorf("Could not SCP: %s", err)
-		} else {
-			sklog.Infof("No error with scp")
-		}
+		i.sync()
+	}
+}
 
+// sync pulls the image from master and then, if successful, reloads the image
+// that is being served via NFS.
+func (i *imageSyncer) sync() bool {
+	if isServing() {
+		sklog.Infof("Skipping sync because we are already serving")
+		return false
+	}
+	sklog.Infof("Attempting to sync image from remote")
+	stdOut := bytes.Buffer{}
+	stdErr := bytes.Buffer{}
+	// This only works if the master has the spare's ssh key in authorized_key
+	err := exec.Run(&exec.Command{
+		Name:   "rsync",
+		Args:   []string{i.RemotePath, i.LocalPath},
+		Stdout: &stdOut,
+		Stderr: &stdErr,
+	})
+	sklog.Infof("StdOut of rsync command: %s", stdOut.String())
+	sklog.Infof("StdErr of rsync command: %s", stdErr.String())
+	if err != nil {
+		sklog.Errorf("Could not copy image with rsync: %s", err)
+		return false
+	} else {
+		sklog.Infof("No error with rsync")
+		reloadImage()
+	}
+	return true
+}
+
+// reloadImage uses Ansible playbooks to stop and then quickly start serving the image,
+// which forces a refresh of the image being served.
+func reloadImage() {
+	stdOut := bytes.Buffer{}
+	stdErr := bytes.Buffer{}
+	err := exec.Run(&exec.Command{
+		Name:   "ansible-playbook",
+		Args:   []string{"-i", `"localhost,"`, "-c", "local", *stopServingPlaybook},
+		Stdout: &stdOut,
+		Stderr: &stdErr,
+	})
+	sklog.Infof("StdOut of Ansible stop command: %s", stdOut.String())
+	sklog.Infof("StdErr of Ansible stop command: %s", stdErr.String())
+	if err != nil {
+		sklog.Errorf("Could not stop serving image: %s", err)
+	} else {
+		sklog.Infof("Ansible stop serving playbook success")
+	}
+
+	stdOut.Reset()
+	stdErr.Reset()
+	err = exec.Run(&exec.Command{
+		Name:   "ansible-playbook",
+		Args:   []string{"-i", `"localhost,"`, "-c", "local", *startServingPlaybook},
+		Stdout: &stdOut,
+		Stderr: &stdErr,
+	})
+	sklog.Infof("StdOut of Ansible start command: %s", stdOut.String())
+	sklog.Infof("StdErr of Ansible start command: %s", stdErr.String())
+	if err != nil {
+		sklog.Errorf("Could not start serving image: %s", err)
+	} else {
+		sklog.Infof("Ansible start serving playbook success")
 	}
 }
 
