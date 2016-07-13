@@ -7,6 +7,9 @@ import (
 	"go.skia.org/infra/skolo/go/logparser"
 )
 
+// The raspberry pi might run out of memory if we don't log in smallish batches.
+const BATCH_REPORT_SIZE = 100
+
 // rolloverLog watches two files, the primary log and the first rollover log (e.g. log.1)
 // It hashes them every time it scans and uses that information to detect if any changes happened
 // and/or if the logs rolled over.
@@ -56,7 +59,7 @@ func (r *rolloverLog) Scan(client sklog.CloudLogger) error {
 		// This was the first scan and there was something already there.
 		// We will not log that stuff now.
 		r.RolloverHash = rollH
-		r.IsFirstScan = false
+
 	}
 	if r.RolloverHash != rollH {
 		// We rolled over
@@ -70,16 +73,30 @@ func (r *rolloverLog) Scan(client sklog.CloudLogger) error {
 	if r.LogHash != logH {
 		r.LogHash = logH
 		lp := r.Parse(logC)
-		r.reportLogs(client, lp, r.LastLine)
+		start := r.LastLine
+		if r.IsFirstScan && lp.Len() > 1000 {
+			// Only log the first 1000 lines of a new log file, to avoid OOM problems.
+			start = lp.Len() - 1000
+		}
+		sklog.Infof("Starting %s log at line %d out of %d", r.ReportName(), start, lp.Len())
+		r.reportLogs(client, lp, start)
 		r.LastLine = lp.CurrLine()
 	}
-	sklog.Infof("Finished at line %d", r.LastLine)
+
+	r.IsFirstScan = false
+	sklog.Infof("Finished %s at line %d", r.ReportName(), r.LastLine)
 	return writeToPersistenceFile(r.ReportName(), r)
 }
 
 func (r *rolloverLog) reportLogs(client sklog.CloudLogger, lp logparser.ParsedLog, startLine int) {
 	lp.Start(startLine)
+	logs := make([]*sklog.LogPayload, 0, BATCH_REPORT_SIZE)
 	for log := lp.ReadAndNext(); log != nil; log = lp.ReadAndNext() {
-		client.CloudLog(r.ReportName(), log)
+		logs = append(logs, log)
+		if len(logs) >= BATCH_REPORT_SIZE {
+			client.BatchCloudLog(r.ReportName(), logs...)
+			logs = nil
+		}
 	}
+	client.BatchCloudLog(r.ReportName(), logs...)
 }

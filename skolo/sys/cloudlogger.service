@@ -1,5 +1,5 @@
 [Unit]
-Description=log the files on the raspberry pi to cloud logging
+Description=Mirror the files on the raspberry pi to cloud logging
 Wants=network-online.target
 After=network-online.target
 

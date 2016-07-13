@@ -76,6 +76,9 @@ type CloudLogger interface {
 	// CloudLog directly is if customizing the reportName, the time, or use one of the less common
 	// severities.
 	CloudLog(reportName string, payload *LogPayload)
+
+	// BatchCloudLog works like CloudLog, but will send multiple logs at a time.
+	BatchCloudLog(reportName string, payloads ...*LogPayload)
 }
 
 // LogPayload represents the contents of a Log Entry with a text payload.
@@ -132,36 +135,46 @@ func (c *logsClient) CloudLog(reportName string, payload *LogPayload) {
 		glog.Warningf("Will not log nil log to %s", reportName)
 		return
 	}
+	c.BatchCloudLog(reportName, payload)
+}
 
-	log := logging.LogEntry{
-		// The LogName is the second stage of grouping, after MonitoredResource name. The first
-		// part of the following string is boilerplate to tell cloud logging what project this is.
-		// The logs/reportName part basically creates a virtual log file with a given name in the
-		// MonitoredResource. Logs made to the same MonitoredResource with the same LogName will be
-		// coalesced, as if they were in the same "virtual log file".
-		LogName: "projects/google.com:skia-buildbots/logs/" + reportName,
-		// Labels allow for a third stage of grouping, after MonitoredResource name and LogName.
-		// These are strictly optional and can be different from LogEntry to LogEntry. There is no
-		// automatic coalescing of logs based on Labels, but they can be filtered upon.
-		Labels: map[string]string{
-			"hostname": c.hostname,
-		},
-		TextPayload: payload.Payload,
-		Timestamp:   payload.Time.Format(util.RFC3339NanoZeroPad),
-		// Required. See comment in logsClient struct.
-		Resource: c.loggingResource,
-		Severity: payload.Severity,
+// See documentation on interface.
+func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
+	if len(payloads) == 0 {
+		glog.Warningf("Will not log empty logs to %s", reportName)
+		return
+	}
+	entries := make([]*logging.LogEntry, 0, len(payloads))
+	for _, payload := range payloads {
+		log := logging.LogEntry{
+			// The LogName is the second stage of grouping, after MonitoredResource name. The first
+			// part of the following string is boilerplate to tell cloud logging what project this is.
+			// The logs/reportName part basically creates a virtual log file with a given name in the
+			// MonitoredResource. Logs made to the same MonitoredResource with the same LogName will be
+			// coalesced, as if they were in the same "virtual log file".
+			LogName: "projects/google.com:skia-buildbots/logs/" + reportName,
+			// Labels allow for a third stage of grouping, after MonitoredResource name and LogName.
+			// These are strictly optional and can be different from LogEntry to LogEntry. There is no
+			// automatic coalescing of logs based on Labels, but they can be filtered upon.
+			Labels: map[string]string{
+				"hostname": c.hostname,
+			},
+			TextPayload: payload.Payload,
+			Timestamp:   payload.Time.Format(util.RFC3339NanoZeroPad),
+			// Required. See comment in logsClient struct.
+			Resource: c.loggingResource,
+			Severity: payload.Severity,
+		}
+		entries = append(entries, &log)
 	}
 
-	entries := logging.WriteLogEntriesRequest{
-		Entries: []*logging.LogEntry{
-			&log,
-		},
+	request := logging.WriteLogEntriesRequest{
+		Entries: entries,
 	}
-
-	if resp, err := c.service.Entries.Write(&entries).Do(); err != nil {
+	glog.Infof("Sending log entry batch of %d", len(entries))
+	if resp, err := c.service.Entries.Write(&request).Do(); err != nil {
 		// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
-		glog.Errorf("Problem writing logs \nLogPayload:\n%v\nLogEntry:\n%v\nResponse:\n%v:\n%s", spew.Sdump(payload), spew.Sdump(log), spew.Sdump(resp), err)
+		glog.Errorf("Problem writing logs \nLogPayloads:\n%v\nLogEntries:\n%v\nResponse:\n%v:\n%s", spew.Sdump(payloads), spew.Sdump(entries), spew.Sdump(resp), err)
 	} else {
 		glog.Infof("Response code %d", resp.HTTPStatusCode)
 	}

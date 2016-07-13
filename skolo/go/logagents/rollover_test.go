@@ -276,6 +276,10 @@ func (m *mockCloudLogger) CloudLog(reportName string, payload *sklog.LogPayload)
 	m.callCount++
 }
 
+func (m *mockCloudLogger) BatchCloudLog(reportName string, payloads ...*sklog.LogPayload) {
+	m.callCount += len(payloads)
+}
+
 func (m *mockCloudLogger) Count() int {
 	return m.callCount
 }

@@ -3,15 +3,15 @@
 APPNAME=cloudlogger
 SYSTEMD=""
 DESCRIPTION="log the files on the raspberry pi to cloud logging"
-
+CHROOT="/opt/raspberrypi/root"
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=755 -T ./out/${APPNAME}          ${ROOT}/opt/raspberrypi/root/usr/local/bin/${APPNAME}
-${INSTALL} --mode=644 -T ./sys/${APPNAME}.service  ${ROOT}/opt/raspberrypi/root/etc/systemd/system/${APPNAME}.service
-${INSTALL} --mode=644 -T ./service-account.json    ${ROOT}/opt/raspberrypi/root/opt/service-account.json
+${INSTALL} --mode=755 -T ./out/${APPNAME}          ${ROOT}${CHROOT}/usr/local/bin/${APPNAME}
+${INSTALL} --mode=644 -T ./sys/${APPNAME}.service  ${ROOT}${CHROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL} --mode=644 -T ./service-account.json    ${ROOT}${CHROOT}/opt/service-account.json
 }
 
 source ../bash/release.sh
