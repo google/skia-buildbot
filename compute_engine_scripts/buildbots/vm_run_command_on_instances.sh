@@ -26,11 +26,9 @@ fi
 SSH_USER=$1
 CMD=$2
 
-echo "About to run $CMD on instances..."
-for MACHINE_IP in $(seq $VM_BOT_COUNT_START $VM_BOT_COUNT_END); do
-  INSTANCE_NAME=${VM_BOT_NAME}-`printf "%03d" ${MACHINE_IP}`
-  echo "========== $INSTANCE_NAME =========="
-  $GCOMPUTE_CMD ssh --ssh_user=$SSH_USER $INSTANCE_NAME "$CMD"
-  echo "===================================="
-done
-
+echo "About to run $CMD on instances $VM_BOT_COUNT_START ... $VM_BOT_COUNT_END"
+go run vm_run_command_on_instances.go --alsologtostderr \
+  --user=$SSH_USER --gcompute_cmd="$GCOMPUTE_CMD" \
+  --range_start=$VM_BOT_COUNT_START --range_end=$VM_BOT_COUNT_END \
+  --vm_name_prefix=$VM_BOT_NAME --verbose \
+  --cmd="$CMD"
