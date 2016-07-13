@@ -46,10 +46,19 @@ Example:
 
 <link rel="import" href="/res/imp/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/res/imp/bower_components/paper-dialog/paper-dialog.html">
-<link rel="stylesheet" href="/res/common/css/md.css" type="text/css" media="all" />
 
 <dom-module id="confirm-dialog-sk">
   <template>
+    <style>
+      paper-button {
+        color: #1f78b4;
+      }
+
+      paper-button:hover {
+        background: #eee;
+      }
+    </style>
+
     <paper-dialog id="dialog" modal>
       <div>[[message]]</div>
       <paper-button dialog-dismiss id="dismiss_button">[[dismiss_text]]</paper-button>

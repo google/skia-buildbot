@@ -60,14 +60,6 @@ button.raised:active {
   box-shadow: 2px 2px 5px 0 rgba(0, 0, 0, 0.1);
 }
 
-paper-button {
-  color: #1f78b4;
-}
-
-paper-button:hover {
-  background: #eee;
-}
-
 select,
 option {
   padding: 0.4em 1.2em;
