@@ -10,5 +10,5 @@ To install Poppler use the package manager of your system. On Ubuntu use this
 command:
 
 ```
-$ sudo apt-get install poppler-utils
+$ sudo apt-get install poppler-utils netpbm
 ```
