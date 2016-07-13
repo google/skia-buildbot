@@ -9,13 +9,14 @@ import (
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/testutils"
 )
 
 func TestEventBus(t *testing.T) {
 	testutils.SkipIfShort(t)
 
-	eventBus, err := NewNSQEventBus("127.0.0.1:4150")
+	eventBus, err := NewNSQEventBus(metadata.NSQDTestServerAddr())
 	assert.NoError(t, err)
 
 	ch := make(chan string, 100)

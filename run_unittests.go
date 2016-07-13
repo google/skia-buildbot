@@ -98,7 +98,7 @@ func cmdTest(cmd []string, cwd, name string) *test {
 			if cwd != "" {
 				command.Dir = cwd
 			}
-			output, err := command.Output()
+			output, err := command.CombinedOutput()
 			if err != nil {
 				if _, err2 := exec.LookPath(cmd[0]); err2 != nil {
 					return fmt.Errorf(ERR_NEED_INSTALL, cmd[0], err), string(output)

@@ -58,6 +58,10 @@ const (
 
 	// JWT_SERVICE_ACCOUNT is the JSON formatted service account.
 	JWT_SERVICE_ACCOUNT = "jwt_service_account"
+
+	// NSQ_REDIS_TEST_SERVER refers to a test server in GCE which runs both
+	// NSQ and Redis for testing purposes.
+	NSQ_REDIS_TEST_SERVER = "nsq-redis-test-server"
 )
 
 // get retrieves the named value from the Metadata server. See
@@ -133,4 +137,20 @@ func Must(s string, err error) string {
 		glog.Fatalf("Failed to read metadata: %s.", err)
 	}
 	return s
+}
+
+// NSQDTestServerAddr returns the address of a test NSQD server used for testing. If
+// not running in GCE, this is the local machine.
+func NSQDTestServerAddr() string {
+	server := ProjectGetWithDefault(NSQ_REDIS_TEST_SERVER, "127.0.0.1")
+	glog.Errorf("Got test NSQ server: %s", server)
+	return fmt.Sprintf("%s:4150", server)
+}
+
+// RedisTestServerAddr returns the address of a redis server used for testing.
+// If not running in GCE, this is the local machine.
+func RedisTestServerAddr() string {
+	server := ProjectGetWithDefault(NSQ_REDIS_TEST_SERVER, "127.0.0.1")
+	glog.Errorf("Got test redis server: %s", server)
+	return fmt.Sprintf("%s:6379", server)
 }

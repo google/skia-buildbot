@@ -16,6 +16,7 @@ import (
 	"github.com/skia-dev/glog"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gs"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
@@ -29,15 +30,15 @@ const (
 	// See go/testutils for details.
 	TEST_DATA_STORAGE_PATH = "common-testdata/redislru-benchdata.tar.gz"
 
-	// REDIS_SERVER_ADDRESS is the address of the redis server used for testing.
-	REDIS_SERVER_ADDRESS = "127.0.0.1:6379"
-
 	// REDIS_DB_RTCACHE is the database used in the readthrough cache test.
 	REDIS_DB_RTCACHE = 1
 
 	// REDIS_DB_PRIMITIVE_TESTS is the database used in testing the Redis primitives.
 	REDIS_DB_PRIMITIVE_TESTS = 2
 )
+
+// REDIS_SERVER_ADDRESS is the address of the redis server used for testing.
+var REDIS_SERVER_ADDRESS = metadata.RedisTestServerAddr()
 
 type TestStruct struct {
 	NumDiffPixels     int
@@ -51,7 +52,7 @@ type TestStruct struct {
 
 func TestRedisLRUCache(t *testing.T) {
 	testutils.SkipIfShort(t)
-	cache := NewRedisLRUCache("localhost:6379", 1, "test-di", util.UnitTestCodec())
+	cache := NewRedisLRUCache(REDIS_SERVER_ADDRESS, 1, "test-di", util.UnitTestCodec())
 	testRedisUp(t, cache.(*RedisLRUCache).pool)
 	util.UnitTestLRUCache(t, cache)
 }

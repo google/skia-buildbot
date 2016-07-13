@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.skia.org/infra/go/geventbus"
+	"go.skia.org/infra/go/metadata"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 
@@ -18,7 +19,7 @@ const GLOBAL_TOPIC = "global-topic"
 const LOCAL_TOPIC = "local-topic"
 const SYNC_MSG = -1
 
-const NSQD_ADDR = "127.0.0.1:4150"
+var NSQD_ADDR = metadata.NSQDTestServerAddr()
 
 type testType struct {
 	ID    int
