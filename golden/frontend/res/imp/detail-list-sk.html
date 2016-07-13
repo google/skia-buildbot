@@ -24,6 +24,7 @@
 -->
 
 <link rel="import" href="zoom-dialog-sk.html">
+<link rel="import" href="help-dialog-sk.html">
 
 <dom-module id="detail-list-sk">
   <template>
@@ -31,6 +32,20 @@
 
     <!-- zoom dialog --> 
     <zoom-dialog-sk id="detailsZoomDialog"></zoom-dialog-sk>
+
+    <!-- help dialog --> 
+    <help-dialog-sk id="helpDialog">
+      <table>
+        <tr><th colspan=2>Keyboard Shortcuts</th></tr>
+        <tr><th>J</th><td>Next</td></tr>
+        <tr><th>K</th><td>Prev</td></tr>
+        <tr><th>W</th><td>Zoom</td></tr>
+        <tr><th>A</th><td>Postive</td></tr>
+        <tr><th>S</th><td>Negative</td></tr>
+        <tr><th>D</th><td>Untriaged</td></tr>
+        <tr><th>?</th><td>Help</td></tr>
+      </table>
+    </help-dialog-sk>
   </template>
   <script>
     Polymer({
@@ -45,11 +60,11 @@
       },
 
       startUse: function() {
-        this.listen(document, 'keydown', '_handleKeyDown');
+        this.listen(document, 'keypress', '_handleKeyDown');
       }, 
 
       endUse: function() {
-        this.unlisten(document, 'keydown', '_handleKeyDown');
+        this.unlisten(document, 'keypress', '_handleKeyDown');
       }, 
 
       _handleKeyDown: function(e) {
@@ -57,7 +72,7 @@
           return;
         }
 
-        var c = String.fromCharCode(e.keyCode);
+        var c = String.fromCharCode(e.keyCode).toUpperCase();
         switch (c) {
           case 'J':
             this._focusNext();
@@ -76,6 +91,9 @@
             break;
           case 'W':
             this._handleZoomClicked();
+            break;
+          case '?':
+            this.$.helpDialog.open();
             break;
         }
       },
