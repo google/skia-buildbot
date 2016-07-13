@@ -677,6 +677,36 @@ The main application element for the Skia Debugger.
 
       _fastFilter: function() {
         var rawFilter = this.$.fast.value.trim().toLowerCase();
+        if (rawFilter.indexOf(":") > 0) {
+          // This is a range filter, e.g. "3:21".
+          this._rangeFilter(rawFilter);
+        } else {
+          // Text filter, e.g. "!save restore".
+          this._textFilter(rawFilter);
+        }
+      },
+
+      _rangeFilter: function(rawFilter) {
+        var parts = rawFilter.split(":");
+        if (parts.length != 2) {
+          sk.errorMessage("Range filters are of the form 'N:M'.");
+          return
+        }
+        var begin = +parts[0];
+        var end = +parts[1];
+        var filtered = {
+          version: 1,
+          commands: [],
+        }
+        this._cmd.commands.forEach(function(c, i) {
+          if (i >= begin && i <= end) {
+            filtered.commands.push(c);
+          }
+        }.bind(this));
+        this._setFiltered(filtered);
+      },
+
+      _textFilter: function(rawFilter) {
         var negative = (rawFilter[0] == "!");
         if (negative) {
           rawFilter = rawFilter.slice(1).trim();
