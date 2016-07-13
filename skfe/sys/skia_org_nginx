@@ -323,6 +323,7 @@ server {
 }
 
 #####   metrics.skia.org   ###########################
+# This rule allows Skolo and Golo bots to report influxdb metrics over https.
 server {
     listen      443;
     server_name metrics.skia.org;
@@ -340,7 +341,7 @@ server {
     location / {
         proxy_pass http://skia-monitoring:10117;
         # Skolo public IP
-        allow 216.239.33.118/32;
+        allow 216.239.33.70/32;
          # Golo public IP
         allow 74.125.248.64/27;
         deny  all;
