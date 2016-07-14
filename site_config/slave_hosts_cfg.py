@@ -198,11 +198,11 @@ _slave_host_dicts = {
       ('skiabot-linux-swarm-088', '88', False),
       ('skiabot-linux-swarm-089', '89', False),
       ('skiabot-linux-swarm-090', '90', False),
-      #('skiabot-linux-swarm-091', '91', False),
-      #('skiabot-linux-swarm-092', '92', False),
-      #('skiabot-linux-swarm-093', '93', False),
-      #('skiabot-linux-swarm-094', '94', False),
-      #('skiabot-linux-swarm-095', '95', False),
+      ('skiabot-linux-swarm-091', '91', False),
+      ('skiabot-linux-swarm-092', '92', False),
+      ('skiabot-linux-swarm-093', '93', False),
+      ('skiabot-linux-swarm-094', '94', False),
+      ('skiabot-linux-swarm-095', '95', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
@@ -264,10 +264,6 @@ _slave_host_dicts = {
 
   'skia-vm-024': {
     'slaves': [
-      ('skiabot-linux-infra-000', '0', False),
-      ('skiabot-linux-infra-001', '1', False),
-      ('skiabot-linux-infra-002', '2', False),
-      ('skiabot-linux-infra-003', '3', False),
     ],
     'copies': CHROMEBUILD_COPIES,
     'ip': NO_IP_ADDR,
