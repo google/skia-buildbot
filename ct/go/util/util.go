@@ -409,7 +409,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		return fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
 	}
 	// Trigger swarming using the isolate hashes.
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 2*24*time.Hour, hardTimeout, ioTimeout, false)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false)
 	if err != nil {
 		return fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -425,7 +425,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 
 	if len(failedTasksToHashes) > 0 {
 		glog.Info("Retrying tasks that failed...")
-		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 2*24*time.Hour, hardTimeout, ioTimeout, false)
+		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 7*24*time.Hour, hardTimeout, ioTimeout, false)
 		if err != nil {
 			return fmt.Errorf("Could not trigger swarming task: %s", err)
 		}
