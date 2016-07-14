@@ -340,7 +340,9 @@ server {
 
     location / {
         proxy_pass http://skia-monitoring:10117;
-        # Skolo public IP
+        # Skolo primary public IP
+        allow 216.239.33.118/32;
+        # Skolo secondary public IP
         allow 216.239.33.70/32;
          # Golo public IP
         allow 74.125.248.64/27;
