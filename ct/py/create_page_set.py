@@ -90,7 +90,7 @@ if '__main__' == __name__:
         archive_data_file = os.path.join(
             '/', 'b', 'storage', 'webpage_archives',
             options.pagesets_type,
-            '%s.json' % options.position)
+            '%s.json' % (i+1))
 
         page_set_content = {
           'user_agent': options.useragent_type,
