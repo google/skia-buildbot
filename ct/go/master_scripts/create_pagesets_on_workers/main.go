@@ -15,7 +15,6 @@ import (
 	"go.skia.org/infra/ct/go/master_scripts/master_common"
 	"go.skia.org/infra/ct/go/util"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/swarming"
 	skutil "go.skia.org/infra/go/util"
 )
 
@@ -96,7 +95,7 @@ func main() {
 	skutil.LogErr(gs.DeleteRemoteDir(gsBaseDir))
 
 	// Archive, trigger and collect swarming tasks.
-	if err := util.TriggerSwarmingTask(*pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, 5*time.Hour, swarming.RECOMMENDED_IO_TIMEOUT, MAX_PAGES_PER_SWARMING_BOT, map[string]string{}, util.GCE_WORKER_DIMENSIONS); err != nil {
+	if err := util.TriggerSwarmingTask(*pagesetType, "create_pagesets", util.CREATE_PAGESETS_ISOLATE, *runID, 5*time.Hour, 1*time.Hour, util.ADMIN_TASKS_PRIORITY, MAX_PAGES_PER_SWARMING_BOT, map[string]string{}, util.GCE_WORKER_DIMENSIONS); err != nil {
 		glog.Errorf("Error encountered when swarming tasks: %s", err)
 		return
 	}

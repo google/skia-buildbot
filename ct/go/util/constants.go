@@ -3,6 +3,8 @@ package util
 import (
 	"path/filepath"
 	"time"
+
+	"go.skia.org/infra/go/swarming"
 )
 
 const (
@@ -142,6 +144,9 @@ const (
 	// Swarming links and params.
 	SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE   = "https://chromium-swarm.appspot.com/user/tasks?limit=500&sort=created_ts&state=all&task_tag=runid:%s"
 	SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE = SWARMING_RUN_ID_ALL_TASKS_LINK_TEMPLATE + "%%0D%%0Aname:%s"
+	// Priorities
+	USER_TASKS_PRIORITY  = swarming.RECOMMENDED_PRIORITY
+	ADMIN_TASKS_PRIORITY = swarming.RECOMMENDED_PRIORITY + 10 // Use lower priority for admin tasks because they can be long runned and we do not want to starve user jobs.
 )
 
 type PagesetTypeInfo struct {

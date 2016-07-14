@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"os"
 	"path"
 	"path/filepath"
@@ -352,7 +353,7 @@ func GetStartRange(workerNum, artifactsPerWorker int) int {
 	return ((workerNum - 1) * artifactsPerWorker) + 1
 }
 
-func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, maxPagesPerBot int, isolateExtraArgs, dimensions map[string]string) error {
+func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, hardTimeout, ioTimeout time.Duration, priority, maxPagesPerBot int, isolateExtraArgs, dimensions map[string]string) error {
 	// Instantiate the swarming client.
 	workDir, err := ioutil.TempDir("", "swarming_work_")
 	if err != nil {
@@ -368,7 +369,8 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 	// Get path to isolate files.
 	_, currentFile, _, _ := runtime.Caller(0)
 	pathToIsolates := filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(currentFile))), "isolates")
-	for i := 1; i <= PagesetTypeToInfo[pagesetType].NumPages/maxPagesPerBot; i++ {
+	numTasks := int(math.Ceil(float64(PagesetTypeToInfo[pagesetType].NumPages) / float64(maxPagesPerBot)))
+	for i := 1; i <= numTasks; i++ {
 		isolateArgs := map[string]string{
 			"START_RANGE":  strconv.Itoa(GetStartRange(i, maxPagesPerBot)),
 			"NUM":          strconv.Itoa(maxPagesPerBot),
@@ -407,7 +409,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 		return fmt.Errorf("len(genJSONs) was %d and len(tasksToHashes) was %d", len(genJSONs), len(tasksToHashes))
 	}
 	// Trigger swarming using the isolate hashes.
-	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false)
+	tasks, err := s.TriggerSwarmingTasks(tasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 2*24*time.Hour, hardTimeout, ioTimeout, false)
 	if err != nil {
 		return fmt.Errorf("Could not trigger swarming task: %s", err)
 	}
@@ -423,7 +425,7 @@ func TriggerSwarmingTask(pagesetType, taskPrefix, isolateName, runID string, har
 
 	if len(failedTasksToHashes) > 0 {
 		glog.Info("Retrying tasks that failed...")
-		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, swarming.RECOMMENDED_PRIORITY, 2*24*time.Hour, hardTimeout, ioTimeout, false)
+		retryTasks, err := s.TriggerSwarmingTasks(failedTasksToHashes, dimensions, map[string]string{"runid": runID}, priority, 2*24*time.Hour, hardTimeout, ioTimeout, false)
 		if err != nil {
 			return fmt.Errorf("Could not trigger swarming task: %s", err)
 		}
