@@ -3,7 +3,7 @@
 APPNAME=cloudlogger
 SYSTEMD=""
 DESCRIPTION="log the files on the raspberry pi to cloud logging"
-CHROOT="/opt/raspberrypi/root"
+CHROOT="/opt/prod/root"
 
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()

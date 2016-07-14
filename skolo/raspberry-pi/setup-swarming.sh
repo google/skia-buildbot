@@ -3,7 +3,7 @@
 
 set -ex
 
-sudo chroot /opt/raspberrypi/root/
+sudo chroot /opt/prod/root/
 
 rm /etc/localtime
 ln -s /usr/share/zoneinfo/US/Eastern /etc/localtime

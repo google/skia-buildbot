@@ -31,8 +31,8 @@ var (
 	livenessThreshold = flag.Int("liveness_threshold", 5, "How many liveness failures in a row constitute the livenessAddr being down.")
 
 	syncPeriod     = flag.Duration("sync_period", time.Minute, "How often to sync the image from syncPath.")
-	syncRemotePath = flag.String("sync_remote_path", "", `Where the image is stored on the remote machine.  This should include ip address.  E.g. "192.168.1.198:/opt/rpi_img/current.img"`)
-	syncLocalPath  = flag.String("sync_local_path", "/opt/rpi_img/current.img", "Where the image is stored on the local disk.")
+	syncRemotePath = flag.String("sync_remote_path", "", `Where the image is stored on the remote machine.  This should include ip address.  E.g. "192.168.1.198:/opt/rpi_img/prod.img"`)
+	syncLocalPath  = flag.String("sync_local_path", "/opt/rpi_img/prod.img", "Where the image is stored on the local disk.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")

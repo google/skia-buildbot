@@ -6,24 +6,27 @@
   become: yes
   become_method: sudo
   vars:
-    image: /opt/rpi_img/current.img
+    # override with --extra-vars "nfs_mount_point=/opt/stage"
+    nfs_mount_point: /opt/prod
+    # override with --extra-vars "image=/opt/rpi_img/stage.img"
+    image: /opt/rpi_img/prod.img
     # 8192 * 512
     offset_boot: 4194304
     # 131072 * 512
     offset_root: 67108864
   tasks:
-    - file: path=/opt/raspberrypi/boot state=directory
-    - file: path=/opt/raspberrypi/root state=directory
+    - file: path={{nfs_mount_point}}/boot state=directory
+    - file: path={{nfs_mount_point}}/root state=directory
 
-    - mount: src="{{image}}" name="/opt/raspberrypi/boot" fstype="auto" opts="loop,offset={{offset_boot}},noauto" state="mounted"
-    - mount: src="{{image}}" name="/opt/raspberrypi/root" fstype="auto" opts="loop,offset={{offset_root}},noauto" state="mounted"
+    - mount: src="{{image}}" name="{{nfs_mount_point}}/boot" fstype="auto" opts="loop,offset={{offset_boot}},noauto" state="mounted"
+    - mount: src="{{image}}" name="{{nfs_mount_point}}/root" fstype="auto" opts="loop,offset={{offset_root}},noauto" state="mounted"
 
     # start nfs
     - service: name=nfs-kernel-server state=restarted
 
     # make sure root stays mounted
-    - lineinfile: dest=/etc/cron.d/opt_raspberrypi_root line="* * * * * root /bin/mount /opt/raspberrypi/root" create=yes state=present
+    - lineinfile: dest=/etc/cron.d/opt_raspberrypi_root line="* * * * * root /bin/mount {{nfs_mount_point}}/root" create=yes state=present
 
     # Remount these at startup
-    - lineinfile: dest=/etc/rc.local line="mount /opt/raspberrypi/root" insertbefore="exit 0"
-    - lineinfile: dest=/etc/rc.local line="mount /opt/raspberrypi/boot" insertbefore="exit 0"
+    - lineinfile: dest=/etc/rc.local line="mount {{nfs_mount_point}}/root" insertbefore="exit 0"
+    - lineinfile: dest=/etc/rc.local line="mount {{nfs_mount_point}}/boot" insertbefore="exit 0"

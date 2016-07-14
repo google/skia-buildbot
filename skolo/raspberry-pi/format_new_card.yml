@@ -7,6 +7,8 @@
   become_method: sudo
   vars:
     nfs_ip: 192.168.1.200
+    # override with --extra-vars "nfs_mount_point=/opt/stage"
+    nfs_mount_point: /opt/prod
     drive: /dev/sdb
     total_sectors: "{{ansible_devices.sdb.sectors}}"
     # Generate this with sfdisk -d [drive]
@@ -64,12 +66,12 @@
     - name: remounting /boot for writing
       mount: src="{{drive}}1" name="/media/boot" fstype="auto" state="mounted"
     - name: Copying /boot files
-      shell: cp -rp /opt/raspberrypi/boot/* /media/boot/
+      shell: cp -rp {{nfs_mount_point}}/boot/* /media/boot/
 
     - name: deleting /boot/cmdline.txt
       file: path=/media/boot/cmdline.txt state=absent
     - name: "writing /boot/cmdline.txt with hostname skia-rpi-{{hostname}} and ip 192.168.{{static_ip}}"
-      lineinfile: dest=/media/boot/cmdline.txt create=yes line="smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:/opt/raspberrypi/root,nfsvers=3 ip=192.168.{{static_ip}}:{{nfs_ip}}:192.168.1.1:255.255.255.0:skia-rpi-{{hostname}}:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
+      lineinfile: dest=/media/boot/cmdline.txt create=yes line="smsc95xx.turbo_mode=N dwc_otg.lpm_enable=0 console=ttyAMA0,115200 console=tty1 root=/dev/nfs nfsroot={{nfs_ip}}:{{nfs_mount_point}}/root,nfsvers=3 ip=192.168.{{static_ip}}:{{nfs_ip}}:192.168.1.1:255.255.255.0:skia-rpi-{{hostname}}:eth0:off:8.8.8.8:8.8.4.4 elevator=deadline fsck.repair=yes rootwait"
 
     - name: unmounting /boot
       mount: src="{{drive}}1" name="/media/boot" fstype="auto" state="absent"
@@ -77,7 +79,7 @@
     - name: remounting /home for writing
       mount: src="{{drive}}7" name="/media/home" fstype="auto" state="mounted"
     - name: Copying /home files
-      command: rsync -a /opt/raspberrypi/root/home/chrome-bot/ /media/home/
+      command: rsync -a {{nfs_mount_point}}/root/home/chrome-bot/ /media/home/
     - name: unmounting /home
       mount: src="{{drive}}7" name="/media/home" fstype="auto" state="absent"
 

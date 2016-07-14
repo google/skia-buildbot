@@ -8,7 +8,7 @@ ExecStart=/usr/local/bin/rpi-backup \
   --log_dir=/var/log/logserver \
   --influxdb_database=skmetrics \
   --influxdb_host=https://metrics.skia.org \
-  --img_path /opt/rpi_img/current.img \
+  --img_path /opt/rpi_img/prod.img \
   --service_account_path=/home/chrome-bot/service-account.json
 User=chrome-bot
 Group=chrome-bot

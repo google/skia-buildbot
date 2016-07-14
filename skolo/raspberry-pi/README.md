@@ -40,7 +40,7 @@ I also suggest putting the jump host's ssh public key in ~/.ssh/authorized_keys.
 
 ## Loading a pre-existing image
   - Downoad the image from https://pantheon.corp.google.com/storage/browser/skia-images/Swarming/?project=google.com:skia-buildbots
-  - Place it in `/opt/rpi_img/`.
+  - Place it in `/opt/rpi_img/`.  Rename it to `prod.img` or `stage.img` or similar.
   - See "Begin serving the image"
 
 ## Building the image (from scratch)
@@ -50,7 +50,7 @@ I also suggest putting the jump host's ssh public key in ~/.ssh/authorized_keys.
   - We will now chroot into the image and, using basically "an ARM emulator", run commands on the image.  As much as possible has been scripted into finalize_image.yml, but some manual stuff must still be done.  I could not figure out how to get Ansible to execute commands inside the chroot.
 
 ```
-sudo chroot /opt/raspberrypi/root/
+sudo chroot /opt/prod/root/
 # You should now be in a different filesystem.  Check this with pwd.  You should be in /
 
 # First we fix the keyboard layout
@@ -76,14 +76,20 @@ adduser chrome-bot
   - See "Begin serving the image"
 
 ## Begin serving the image
-By default, the script is looking for `/opt/rpi_img/current.img`
-`ansible-playbook -i "localhost," -c local start_serving_image.yml`
+By default, the script is looking for `/opt/rpi_img/prod.img`
+
+    ansible-playbook -i "localhost," -c local start_serving_image.yml
+
+To being serving staging image
+
+    ansible-playbook -i "localhost," -c local start_serving_image.yml --extra-vars "nfs_mount_point=/opt/stage image=/opt/rpi_img/stage.img"
+
 
 ## Adding a new Raspberry PI into the swarm
 This is also quite straight-forward.
  1. Assemble Raspberry PI hardware.  Connect Ethernet cable.
  2. Insert blank SD card into skia-rpi-master.
- 3. `ansible-playbook -i "localhost," -c local format_new_card.yml`  Type in static IP address and hostname suffix.
+ 3. `./format_new_card.yml`  Optionally add the argument `stage` for the staging environment. Type in static IP address and hostname suffix.
  4. Insert SD card into new pi.  Turn on.
 
 The SD card is partitioned to have two primary partitions and one extended partitions with 3 logical partitions.
