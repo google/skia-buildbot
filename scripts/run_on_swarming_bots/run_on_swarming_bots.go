@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"path"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -37,13 +38,15 @@ const (
 )
 
 var (
-	pool     = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
-	script   = flag.String("script", "", "Path to a Python script to run.")
-	taskName = flag.String("task_name", "", "Name of the task to run.")
-	workdir  = flag.String("workdir", ".", "Working directory. Optional, but recommended not to use CWD.")
+	dimensions = common.NewMultiStringFlag("dimension", nil, "Colon-separated key/value pair, eg: \"os:Linux\" Dimensions of the bots on which to run. Can specify multiple times.")
+	pool       = flag.String("pool", swarming.DIMENSION_POOL_VALUE_SKIA, "Which Swarming pool to use.")
+	script     = flag.String("script", "", "Path to a Python script to run.")
+	taskName   = flag.String("task_name", "", "Name of the task to run.")
+	workdir    = flag.String("workdir", ".", "Working directory. Optional, but recommended not to use CWD.")
 )
 
 func main() {
+	// Setup, parse args.
 	defer common.LogPanic()
 	common.Init()
 
@@ -53,6 +56,17 @@ func main() {
 	scriptName := path.Base(*script)
 	if *taskName == "" {
 		*taskName = fmt.Sprintf("run_%s", scriptName)
+	}
+
+	dims := map[string]string{
+		"pool": *pool,
+	}
+	for _, dim := range *dimensions {
+		split := strings.SplitN(dim, ":", 2)
+		if len(split) != 2 {
+			glog.Fatalf("--dimension must take the form \"key:value\"; %q is invalid", dim)
+		}
+		dims[split[0]] = split[1]
 	}
 
 	var err error
@@ -75,7 +89,7 @@ func main() {
 	}
 
 	// Obtain the list of bots.
-	bots, err := swarmApi.ListBots(*pool)
+	bots, err := swarmApi.ListBots(dims)
 	if err != nil {
 		glog.Fatal(err)
 	}

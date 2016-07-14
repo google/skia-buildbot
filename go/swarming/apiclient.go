@@ -45,23 +45,31 @@ func (c *ApiClient) SwarmingService() *swarming.Service {
 // ListSkiaBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 // corresponding to the Skia Swarming bots.
 func (c *ApiClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.ListBots(DIMENSION_POOL_VALUE_SKIA)
+	return c.ListBots(map[string]string{
+		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA,
+	})
 }
 
 // ListCTBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 // corresponding to the CT Swarming bots.
 func (c *ApiClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.ListBots(DIMENSION_POOL_VALUE_CT)
+	return c.ListBots(map[string]string{
+		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_CT,
+	})
 }
 
 // ListBots returns a slice of swarming.SwarmingRpcsBotInfo instances
-// corresponding to the Swarming bots in the requested pool.
-func (c *ApiClient) ListBots(poolValue string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+// corresponding to the Swarming bots matching the requested dimensions.
+func (c *ApiClient) ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	bots := []*swarming.SwarmingRpcsBotInfo{}
 	cursor := ""
 	for {
 		call := c.s.Bots.List()
-		call.Dimensions(fmt.Sprintf("%s:%s", DIMENSION_POOL_KEY, poolValue))
+		dimensionStrs := make([]string, 0, len(dimensions))
+		for k, v := range dimensions {
+			dimensionStrs = append(dimensionStrs, fmt.Sprintf("%s:%s", k, v))
+		}
+		call.Dimensions(dimensionStrs...)
 		call.Limit(100)
 		if cursor != "" {
 			call.Cursor(cursor)
