@@ -45,18 +45,18 @@ func (c *ApiClient) SwarmingService() *swarming.Service {
 // ListSkiaBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 // corresponding to the Skia Swarming bots.
 func (c *ApiClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.listBots(DIMENSION_POOL_VALUE_SKIA)
+	return c.ListBots(DIMENSION_POOL_VALUE_SKIA)
 }
 
 // ListCTBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 // corresponding to the CT Swarming bots.
 func (c *ApiClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
-	return c.listBots(DIMENSION_POOL_VALUE_CT)
+	return c.ListBots(DIMENSION_POOL_VALUE_CT)
 }
 
-// listBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+// ListBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 // corresponding to the Swarming bots in the requested pool.
-func (c *ApiClient) listBots(poolValue string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *ApiClient) ListBots(poolValue string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	bots := []*swarming.SwarmingRpcsBotInfo{}
 	cursor := ""
 	for {
