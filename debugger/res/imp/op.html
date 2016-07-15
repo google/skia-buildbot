@@ -7,9 +7,14 @@
     change based on the name of the opertion.
 
       {
-        visible: true,
-        command: "line",
-        ...,
+        details: {
+          visible: true,
+          command: "line",
+          ...,
+        }
+        _zoom: "1:4",
+        _index: 1,
+        _depth: 1,
       }
 
     selected - True if this op has been selected.
@@ -37,6 +42,12 @@
           index: 102,
         }
 
+    op-zoom - This event is sent when the zoom button is clicked.
+      The range to zoom to is returned in the detail as a filter
+      string.
+
+        "2:7"
+
   Methods:
     None.
 -->
@@ -50,6 +61,21 @@
   <style type="text/css" media="screen">
     details-sk {
       display: block;
+    }
+
+    .zoom {
+      display: none;
+      font-size: 12px;
+      padding: 0;
+      margin: 0 1em;
+    }
+
+    :host:hover .zoom {
+      display: inline-block;
+    }
+
+    :host:hover details-sk {
+      background-color: #eeffee;
     }
 
     details-sk[selected] {
@@ -102,7 +128,10 @@
             <span class=count>{{ item.count }}</span>
           </template>
         </template>
-        {{ op.details.command }}
+        <span>{{ op.details.command }}</span>
+        <template is="dom-if" if="{{ op._zoom }}">
+          <button class=zoom on-tap=_zoom>Zoom</button>
+        </template>
         <code>{{op.details.shortDesc }}</code>
         <template is="dom-repeat" items="{{ _fixList(op.details.auditTrail.Batches) }}" as=batch>
           <span class=batchid style$="background: {{ _bgColor(batch.BatchListID) }}">{{ _smartNumber(batch.BatchListID) }}</span>
@@ -200,6 +229,11 @@
 
       _gt1: function(n) {
         return n > 1;
+      },
+
+      _zoom: function(e) {
+        this.dispatchEvent(new CustomEvent('op-zoom', { detail: this.op._zoom, bubbles: true }));
+        e.stopPropagation();
       },
 
     });

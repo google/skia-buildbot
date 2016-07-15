@@ -294,7 +294,12 @@ The main application element for the Skia Debugger.
           <div class="layout horizontal end-justified">
             <paper-icon-button class=resizer on-tap=_smallerLeft icon="arrow-back" title="Shrink the command panel."></paper-icon-button>
           </div>
-          <paper-input id="fast" on-change="_fastFilter" label="Filter (Leading ! means remove matches)" placeholder="!save restore"></paper-input>
+          <div class="layout horizontal">
+            <paper-input id="fast" on-change="_fastFilter" label="Filter
+              (Leading ! means remove matches)" placeholder="!save restore"
+              class=flex></paper-input>
+            <button id=clear on-tap=_clearFilter>Clear</button>
+          </div>
           <play-sk id=play></play-sk>
           <commands-sk id=commands grouping=50></commands-sk>
         </div>
@@ -497,6 +502,11 @@ The main application element for the Skia Debugger.
           }.bind(this)).catch(sk.errorMessage);
         }.bind(this));
 
+        this.$.commands.addEventListener('op-zoom', function(e) {
+          this.$.fast.value = e.detail;
+          this._fastFilter();
+        }.bind(this));
+
         this._refreshPage();
 
         this.$.crosshair.addEventListener('crosshair', function(e) {
@@ -673,6 +683,11 @@ The main application element for the Skia Debugger.
           }
         }
         return item;
+      },
+
+      _clearFilter: function()  {
+        this.$.fast.value = "";
+        this._fastFilter();
       },
 
       _fastFilter: function() {
@@ -862,6 +877,7 @@ The main application element for the Skia Debugger.
         var depth = 0;
         var prefixes = [];
         var counts = {}; // Tally of each command.
+        var matchup = []; // Match up saves and restores.
         for (var i = 0; i < commands.length; i++) {
           commands[i] = {
             details: commands[i],
@@ -873,6 +889,8 @@ The main application element for the Skia Debugger.
           counts[name] = (counts[name] || 0) + 1;
           if (commands[i].details.command in INDENTERS) {
             depth++;
+
+            matchup.push(i);
             // If this is the same type of indenting op we've already seen
             // then just increment the count, otherwise add as a new
             // op in prefixes.
@@ -883,6 +901,14 @@ The main application element for the Skia Debugger.
             }
           } else if (OUTDENTERS.indexOf(commands[i].details.command) != -1) {
             depth--;
+
+            // Now that we can match an OUTDENTER with an INDENTER we can set
+            // the _zoom property for both commands.
+            var begin = matchup.pop();
+            var range = begin + ":" + i;
+            commands[i]._zoom = range
+            commands[begin]._zoom = range;
+
             // Only pop the op from prefixes if its count has reached 1.
             if (prefixes[prefixes.length-1].count > 1) {
               prefixes[prefixes.length-1].count--;
