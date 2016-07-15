@@ -74,6 +74,12 @@ type Point struct {
 // Query issues a query to the InfluxDB instance and returns a slice of Points.
 // The query must return series which have a single point with n values, or an error is returned.
 func (c *Client) Query(database, q string, n int) ([]*Point, error) {
+	// The below lock is needed due to
+	// https://github.com/skia-dev/influxdb/blob/master/client/v2/client.go#L527
+	// and *might* be the cause of the issue where datahopper and prober stop
+	// reporting metrics occasionally.
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
 	response, err := c.influxClient.Query(influx_client.Query{
 		Command:  q,
 		Database: database,

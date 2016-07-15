@@ -222,7 +222,11 @@ func (c *BuildCache) GetBuildsForCommits(commits []string) (map[string]map[strin
 	for _, hash := range commits {
 		builds, ok := c.byCommit[hash]
 		if ok {
-			byCommit[hash] = builds
+			cpyBuilds := map[string]*buildbot.BuildSummary{}
+			for k, v := range builds {
+				cpyBuilds[k] = v
+			}
+			byCommit[hash] = cpyBuilds
 		}
 	}
 	return byCommit, nil
