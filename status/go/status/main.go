@@ -52,6 +52,9 @@ const (
 	// in single quotes because InfluxDB is quite particular about these things.
 	GOLD_STATUS_QUERY_TMPL = `select value from "gold.status.by-corpus" WHERE time > now() - 1h and host='skia-gold-prod' AND app='skiacorrectness' AND type='untriaged' AND corpus='%s' ORDER BY time DESC LIMIT 1`
 	PERF_STATUS_QUERY      = `select value from "perf.clustering.untriaged" where time > now() - 1h and app='skiaperf' and host='skia-perf' order by time desc limit 1`
+
+	// OAUTH2_CALLBACK_PATH is callback endpoint used for the Oauth2 flow.
+	OAUTH2_CALLBACK_PATH = "/oauth2callback/"
 )
 
 var (
@@ -536,7 +539,7 @@ func buildsJsonHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer timer.New("buildsHandler_encode").Stop()
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		glog.Errorf("Failed to write or encode output: %s", err)
+		httputils.ReportError(w, r, err, fmt.Sprintf("Failed to write or encode output: %s", err))
 		return
 	}
 }
@@ -670,10 +673,10 @@ func buildProgressHandler(w http.ResponseWriter, r *http.Request) {
 func runServer(serverURL string) {
 	r := mux.NewRouter()
 	r.HandleFunc("/", commitsHandler)
-	r.HandleFunc("/buildbots", buildbotDashHandler)
+	r.Handle("/buildbots", login.ForceAuth(http.HandlerFunc(buildbotDashHandler), OAUTH2_CALLBACK_PATH))
 	r.HandleFunc("/hosts", hostsHandler)
 	r.HandleFunc("/infra", infraHandler)
-	r.HandleFunc("/json/builds", buildsJsonHandler)
+	r.Handle("/json/builds", login.ForceAuth(http.HandlerFunc(buildsJsonHandler), OAUTH2_CALLBACK_PATH))
 	r.HandleFunc("/json/goldStatus", goldJsonHandler)
 	r.HandleFunc("/json/perfAlerts", perfJsonHandler)
 	r.HandleFunc("/json/slaveHosts", slaveHostsJsonHandler)
@@ -681,7 +684,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/json/{repo}/buildProgress", buildProgressHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
-	r.HandleFunc("/oauth2callback/", login.OAuth2CallbackHandler)
+	r.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
 	r.PathPrefix("/res/").HandlerFunc(httputils.MakeResourceHandler(*resourcesDir))
 	builds := r.PathPrefix("/json/{repo}/builds/{master}/{builder}/{number:[0-9]+}").Subrouter()
 	builds.HandleFunc("/comments", addBuildCommentHandler).Methods("POST")
@@ -734,7 +737,7 @@ func main() {
 	var cookieSalt = "notverysecret"
 	var clientID = "31977622648-1873k0c1e5edaka4adpv1ppvhr5id3qm.apps.googleusercontent.com"
 	var clientSecret = "cw0IosPu4yjaG2KWmppj2guj"
-	var redirectURL = serverURL + "/oauth2callback/"
+	var redirectURL = serverURL + OAUTH2_CALLBACK_PATH
 	if *useMetadata {
 		cookieSalt = metadata.Must(metadata.ProjectGet(metadata.COOKIESALT))
 		clientID = metadata.Must(metadata.ProjectGet(metadata.CLIENT_ID))
