@@ -26,8 +26,12 @@
     is: "error-toast-sk",
     ready: function() {
       document.addEventListener('error-sk', function(e) {
-         this.$.toast.text = e.detail.message;
-         this.$.toast.show();
+        if (e.detail.message) {
+          this.$.toast.text = e.detail.message;
+          this.$.toast.show();
+        } else {
+          console.log("Empty message?", e);
+        }
       }.bind(this));
     },
   });
