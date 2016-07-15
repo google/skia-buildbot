@@ -22,12 +22,27 @@
       margin-left: 0.5em;
       margin-right: 1em;
     }
+
+    a {
+      color: white;
+      text-decoration: none;
+      border: solid white 1px;
+      border-radius: 3px;
+      padding: 0.6em 1.2em;
+      margin: 0.6em;
+      text-transform: uppercase;
+    }
+
+    a:hover {
+      opacity: 0.5;
+    }
   </style>
   <template>
     <content>
       Your instance has been running <span id=duration></span>.
       <form id=form action="./instanceStatus" method="post" accept-charset="utf-8">
         <button type="submit">Restart Instance</button>
+        <a href="/instanceNew" title="Start a new instance.">New</a>
       </form>
     </content>
   </template>

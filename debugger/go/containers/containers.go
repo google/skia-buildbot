@@ -236,7 +236,8 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	// Mostly we proxy requests to the backend, but there is one URL we handle here: /instanceStatus
+
+	// Mostly we proxy requests to the backend, but there is a URL we handle here: /instanceStatus
 	//
 	if r.URL.Path == "/instanceStatus" {
 		if r.Method == "GET" {
@@ -261,6 +262,21 @@ func (s *Containers) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			delete(s.containers, containerID)
 			http.Redirect(w, r, "/", 303)
 		}
+		return
+	}
+
+	// Mostly we proxy requests to the backend, but there is a URL we handle here: /instanceNew
+	//
+	if r.URL.Path == "/instanceNew" && r.Method == "GET" {
+		// Loop over all possible instance names and find the first free one.
+		for i := 0; i < 9; i++ {
+			if _, ok := s.containers[fmt.Sprintf("%s:%d", user, i)]; !ok {
+				// We start instances on demand, so just redirect to its URL.
+				http.Redirect(w, r, fmt.Sprintf("/%d/", i), 303)
+				return
+			}
+		}
+		httputils.ReportError(w, r, fmt.Errorf("Tried to create 11 instances: %s", user), "Can't create more than 10 instances per user.")
 		return
 	}
 
