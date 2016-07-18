@@ -145,11 +145,20 @@
       _displaySummaries: function(summaries) {
         var container = this.$.summaries;
         sk.clearChildren(container);
-        var stateCopy = sk.object.shallowCopy(this._state);
+        var stateCopy = gold.filterEmpty(this._state);
+
+        // The search string for the cluster link includes 
+        // positive, negatives and untriaged. 
+        var clusterStateCopy = gold.filterEmpty(this._state);
+        clusterStateCopy.pos = true;
+        clusterStateCopy.neg = true; 
+        clusterStateCopy.unt = true;
+
         summaries.forEach(function(c, i) {
           var s = document.createElement("test-summary-sk");
           s.summary = c; 
           s.search = this._searchStr(stateCopy, c);
+          s.clusterSearch = this._searchStr(clusterStateCopy, c);
           container.appendChild(s);
         }.bind(this));
       }, 

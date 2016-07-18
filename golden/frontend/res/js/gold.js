@@ -72,22 +72,26 @@ var gold = gold || {};
     return sk.object.applyDelta(delta, defaultState);
   }; 
 
-  // queryFromState returns a query string from the the given state object.
-  gold.queryFromState = function(srcState) {
-    // Filter out empty strings. 
-    var cpState = {};
-    for(var k in srcState) {
-      if (srcState.hasOwnProperty(k) && (srcState[k] !== '')) {
-        cpState[k] = srcState[k]; 
+  // filterEmpty returns a copy of the object without fields where the value 
+  // is an empty string.
+  gold.filterEmpty = function(obj) {
+    var cpObj = {};
+    for(var k in obj) {
+      if (obj.hasOwnProperty(k) && (obj[k] !== '')) {
+        cpObj[k] = obj[k]; 
       }
     }
+    return cpObj; 
+  }; 
 
-    var ret = sk.query.fromObject(cpState); 
+  // queryFromState returns a query string from the the given state object.
+  gold.queryFromState = function(srcState) {
+    var ret = sk.query.fromObject(gold.filterEmpty(srcState)); 
     if (ret === '') {
       return ''; 
     }
     return '?' + ret; 
-  }; 
+  };
 
   // loadWithActivity sends a GET request to the given url and uses the provide 
   // acitivity element as an indicator. If the call succeeds it applies the 
@@ -127,7 +131,7 @@ var gold = gold || {};
     // the resulting the state. 
     _initState: function(ctx, defaultState) {
       this._ctx = ctx; 
-      this._state = gold.stateFromQuery(defaultState); 
+      this._state = gold.stateFromQuery(defaultState);
       this._setUrlFromState();
     },
 

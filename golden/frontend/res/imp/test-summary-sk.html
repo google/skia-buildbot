@@ -15,6 +15,9 @@
 
       search - The url-encoded search string to query the test described by summary 
                against the backend. 
+
+      clusterSearch - The url-encoded search string to query for the test in the 
+               cluster view. 
   
     Events:
       None
@@ -64,7 +67,7 @@
           </a>
         </span>
         <span class="short">
-          <a href$="{{_clusterHref(search)}}">
+          <a href$="{{_clusterHref(clusterSearch)}}">
             <iron-icon icon="radio-button-unchecked"></iron-icon>
           </a>
         </span>

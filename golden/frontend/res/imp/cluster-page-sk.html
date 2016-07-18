@@ -33,6 +33,7 @@
 <link rel="import" href="activity-sk.html">
 <link rel="import" href="test-summary-sk.html">
 <link rel="import" href="shared-styles.html">
+<link rel="import" href="search-controls-sk.html">
 
 <dom-module id="cluster-page-sk">
   <template>
@@ -42,7 +43,14 @@
         margin-left: 1em;
         margin-top: 1em;
       }
+      .searchControlsWrapper {
+        padding: 1em 0 0 1em;
+      }
     </style>
+    <div class="vertical layout">
+    <div class="searchControlsWrapper">
+      <search-controls-sk id="searchControls"></search-controls-sk>
+    </div>
     <div id="clusterContainer" class="horizontal layout">
       <div class="flex">
         <activity-sk id="activityMain"></activity-sk>
@@ -104,7 +112,7 @@
       Polymer({
         is: "cluster-page-sk",
 
-        behaviors: [gold.ZoomTargetBehavior],
+        behaviors: [gold.ZoomTargetBehavior, gold.PageStateBehavior],
 
         properties: {
           _currentTab: {
@@ -124,15 +132,28 @@
           this.listen(this.$.clusterContainer, 'digest-select', '_handleDigestsSelected');
           this.listen(this.$.bulkTriage, 'change', '_handleBulkTriageChange');
           this.listen(this, 'triage', '_handleTriage'); 
+          this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
         },
 
-        pageSelected: function(routeName) {
+        pageSelected: function(ctx) {
           this.$.clusterView.startUse();
+          this._loadParamset();
+
+          // Initialize the state and set values of the controls. 
+          this._initState(ctx, gold.defaultSearchState);
+          this.$.searchControls.setState(this._state);
+
           this._loadClusterDiff(); 
         },
 
         pageDeselected: function() {
           this.$.clusterView.endUse(); 
+        },
+
+        _loadParamset: function() {
+          sk.get("/json/paramset").then(JSON.parse).then(function (json) {
+            this.$.searchControls.setParamSet(json);
+          }.bind(this)).catch(sk.errorMessage);          
         },
 
         _loadClusterDiff: function() {
@@ -141,6 +162,11 @@
             this.$.clusterView.setData(json);
             this.$.parameters.setParamSets([json.paramsetsUnion]);
           }.bind(this)); 
+        },
+
+        _handleStateChange: function(ev) {
+          // Reload the page with the new  state in the query parameters. 
+          this._redirectToState(ev.detail); 
         },
 
         _handleParamsetKeyClick: function(ev) {
