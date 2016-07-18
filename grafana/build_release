@@ -10,8 +10,7 @@ BYPASS_GENERATION=true
 # Copy files into the right locations in ${ROOT}.
 copy_release_files()
 {
-wget https://grafanarel.s3.amazonaws.com/builds/grafana_3.0.4-1464167696_amd64.deb -O ${ROOT}/${APPNAME}.deb
-
+  wget https://grafanarel.s3.amazonaws.com/builds/grafana_3.1.0-1468321182_amd64.deb  -O ${ROOT}/${APPNAME}.deb
 }
 
 source ../bash/release.sh
