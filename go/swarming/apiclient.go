@@ -3,10 +3,13 @@ package swarming
 import (
 	"fmt"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/util"
 
 	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
@@ -19,6 +22,10 @@ const (
 	DIMENSION_POOL_KEY        = "pool"
 	DIMENSION_POOL_VALUE_SKIA = "Skia"
 	DIMENSION_POOL_VALUE_CT   = "CT"
+)
+
+var (
+	retriesRE = regexp.MustCompile("retries:([0-9])*")
 )
 
 // ApiClient is a Skia-specific wrapper around the Swarming API.
@@ -91,9 +98,13 @@ func (c *ApiClient) ListBots(dimensions map[string]string) ([]*swarming.Swarming
 // ListSkiaTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
 // corresponding to Skia Swarming tasks within the given time window.
 func (c *ApiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
-	startF64 := float64(start.Unix())
-	endF64 := float64(end.Unix())
+	return c.ListTasks(start, end, []string{"pool:Skia"}, "")
+}
 
+// ListTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
+// corresponding to the specified tags and within given time window.
+// Specify time.Time{} for start and end if you do not want to restrict on time.
+func (c *ApiClient) ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	var wg sync.WaitGroup
 
 	// Query for task results.
@@ -105,11 +116,18 @@ func (c *ApiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpc
 		cursor := ""
 		for {
 			list := c.s.Tasks.List()
+			if state != "" {
+				list.State(state)
+			}
 			list.Limit(100)
-			list.Tags("pool:Skia")
+			list.Tags(tags...)
 			list.IncludePerformanceStats(true)
-			list.Start(startF64)
-			list.End(endF64)
+			if !start.IsZero() {
+				list.Start(float64(start.Unix()))
+			}
+			if !end.IsZero() {
+				list.End(float64(end.Unix()))
+			}
 			if cursor != "" {
 				list.Cursor(cursor)
 			}
@@ -135,10 +153,17 @@ func (c *ApiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpc
 		cursor := ""
 		for {
 			list := c.s.Tasks.Requests()
+			if state != "" {
+				list.State(state)
+			}
 			list.Limit(100)
-			list.Tags("pool:Skia")
-			list.Start(startF64)
-			list.End(endF64)
+			list.Tags(tags...)
+			if !start.IsZero() {
+				list.Start(float64(start.Unix()))
+			}
+			if !end.IsZero() {
+				list.End(float64(end.Unix()))
+			}
 			if cursor != "" {
 				list.Cursor(cursor)
 			}
@@ -190,6 +215,56 @@ func (c *ApiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpc
 	}
 
 	return rv, nil
+}
+
+func (c *ApiClient) CancelTask(id string) error {
+	req, reqErr := c.s.Task.Cancel(id).Do()
+	if reqErr != nil {
+		return reqErr
+	}
+	if !req.Ok {
+		return fmt.Errorf("Could not cancel task %s", id)
+	}
+	return nil
+}
+
+func (c *ApiClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+	return c.s.Tasks.New(t).Do()
+}
+
+func (c *ApiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+	// Swarming API does not have a way to Retry commands. This was done
+	// intentionally by swarming-eng to reduce API surface.
+	newReq := &swarming.SwarmingRpcsNewTaskRequest{}
+	newReq.Name = fmt.Sprintf("%s (retry)", t.Request.Name)
+	newReq.ParentTaskId = t.Request.ParentTaskId
+	newReq.ExpirationSecs = t.Request.ExpirationSecs
+	newReq.Priority = t.Request.Priority
+	newReq.Properties = t.Request.Properties
+	newReq.PubsubTopic = t.Request.PubsubTopic
+	newReq.PubsubUserdata = t.Request.PubsubUserdata
+	newReq.User = t.Request.User
+	newReq.ForceSendFields = t.Request.ForceSendFields
+
+	newReq.Tags = t.Request.Tags
+	// Add retries tag. Increment it if it already exists.
+	foundRetriesTag := false
+	for i, tag := range newReq.Tags {
+		if retriesRE.FindString(tag) != "" {
+			n, err := strconv.Atoi(strings.Split(tag, ":")[1])
+			if err != nil {
+				glog.Errorf("retries value in %s is not numeric: %s", tag, err)
+				continue
+			}
+			newReq.Tags[i] = fmt.Sprintf("retries:%d", (n + 1))
+			foundRetriesTag = true
+		}
+	}
+	if !foundRetriesTag {
+		newReq.Tags = append(newReq.Tags, "retries:1")
+	}
+
+	return c.TriggerTask(newReq)
 }
 
 // GetTask returns a swarming.SwarmingRpcsTaskRequestMetadata instance
