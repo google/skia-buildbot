@@ -167,15 +167,17 @@ func (c *logsClient) BatchCloudLog(reportName string, payloads ...*LogPayload) {
 		}
 		entries = append(entries, &log)
 	}
+	go func() {
+		request := logging.WriteLogEntriesRequest{
+			Entries: entries,
+		}
+		glog.Infof("Sending log entry batch of %d", len(entries))
+		if resp, err := c.service.Entries.Write(&request).Do(); err != nil {
+			// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
+			glog.Errorf("Problem writing logs \nLogPayloads:\n%v\nLogEntries:\n%v\nResponse:\n%v:\n%s", spew.Sdump(payloads), spew.Sdump(entries), spew.Sdump(resp), err)
+		} else {
+			glog.Infof("Response code %d", resp.HTTPStatusCode)
+		}
+	}()
 
-	request := logging.WriteLogEntriesRequest{
-		Entries: entries,
-	}
-	glog.Infof("Sending log entry batch of %d", len(entries))
-	if resp, err := c.service.Entries.Write(&request).Do(); err != nil {
-		// We can't use httputil.DumpResponse, because that doesn't accept *logging.WriteLogEntriesResponse
-		glog.Errorf("Problem writing logs \nLogPayloads:\n%v\nLogEntries:\n%v\nResponse:\n%v:\n%s", spew.Sdump(payloads), spew.Sdump(entries), spew.Sdump(resp), err)
-	} else {
-		glog.Infof("Response code %d", resp.HTTPStatusCode)
-	}
 }
