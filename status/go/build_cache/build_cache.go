@@ -249,6 +249,12 @@ func (c *BuildCache) GetBuildsFromDateRange(from, to time.Time) ([]*buildbot.Bui
 func (c *BuildCache) GetBuildersComments() map[string][]*buildbot.BuilderComment {
 	c.mutex.RLock()
 	defer c.mutex.RUnlock()
+	rv := map[string][]*buildbot.BuilderComment{}
+	for k, v := range c.builderComments {
+		cpy := make([]*buildbot.BuilderComment, len(v))
+		copy(cpy, v)
+		rv[k] = cpy
+	}
 	return c.builderComments
 }
 
