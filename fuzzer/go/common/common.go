@@ -50,6 +50,13 @@ var fuzzers = map[string]FuzzerInfo{
 		ExtraBugLabels:      nil,
 		ArgsAfterExecutable: []string{"--type", "api", "--name", "ParsePath", "--bytes"},
 	},
+	"api_pathop": {
+		PrettyName:          "API - PathOp",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "caryclark",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "Pathop", "--bytes"},
+	},
 	"api_image_filter": {
 		PrettyName:          "API - SerializedImageFilter",
 		Status:              EXPERIMENTAL_FUZZER,
@@ -59,7 +66,7 @@ var fuzzers = map[string]FuzzerInfo{
 	},
 	"color_deserialize": {
 		PrettyName:          "SkColorSpace - Deserialize",
-		Status:              EXPERIMENTAL_FUZZER,
+		Status:              STABLE_FUZZER,
 		Groomer:             "msarett",
 		ExtraBugLabels:      []string{"Area-ImageDecoder"},
 		ArgsAfterExecutable: []string{"--type", "color_deserialize", "--bytes"},
