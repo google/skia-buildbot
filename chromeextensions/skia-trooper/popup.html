@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Skia Infra Alerts Popup</title>
+  </head>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      font-size: 0.8em;
+      width: 500px;
+    }
+
+    .alerts-link {
+      text-align: center;
+    }
+
+    a {
+      text-decoration: underline;
+      color: #444;
+    }
+
+    a:hover {
+      color: black;
+      cursor: pointer;
+    }
+
+    .alerts-row-name td {
+      font-weight: bold;
+      padding-top: 15px;
+    }
+
+    #errors {
+      color: red;
+    }
+  </style>
+
+  <body>
+    <div class="alerts-link">
+      <a href="https://alerts.skia.org/infra" target="_blank">Go to Alerts Page</a>
+    </div>
+    <table id="alerts-table"></table>
+    <div id="errors"></div>
+    <script src="popup.js"></script>
+  </body>
+</html>
