@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
 	"path"
@@ -28,7 +29,7 @@ import (
 
 const (
 	// The number of goroutines that will run in parallel to download PDFs and capture their SKPs.
-	WORKER_POOL_SIZE = 30
+	WORKER_POOL_SIZE = 100
 )
 
 var (
@@ -54,8 +55,6 @@ func main() {
 		glog.Fatal("Must specify --chromium_build")
 	}
 
-	// Instantiate timeout client for downloading PDFs.
-	httpTimeoutClient := httputils.NewTimeoutClient()
 	// Instantiate GsUtil object.
 	gs, err := util.NewGsUtil(nil)
 	if err != nil {
@@ -123,6 +122,9 @@ func main() {
 	// Gather PDFs and SKPs with errors.
 	erroredPDFs := []string{}
 	erroredSKPs := []string{}
+	// Mutexes to control access to the above.
+	var erroredPDFsMutex sync.Mutex
+	//var erroredSKPsMutex sync.Mutex
 
 	// Loop through workers in the worker pool.
 	for i := 0; i < WORKER_POOL_SIZE; i++ {
@@ -133,6 +135,15 @@ func main() {
 		go func() {
 			// Decrement the WaitGroup counter when the goroutine completes.
 			defer wg.Done()
+
+			// Instantiate timeout client for downloading PDFs.
+			transport := &http.Transport{
+				Dial: httputils.DialTimeout,
+			}
+			httpTimeoutClient := &http.Client{
+				Transport: transport,
+				Timeout:   httputils.REQUEST_TIMEOUT,
+			}
 
 			for pagesetName := range pagesetRequests {
 				index := strconv.Itoa(pagesetsToIndex[path.Join(pathToPagesets, pagesetName)])
@@ -151,51 +162,24 @@ func main() {
 					glog.Errorf("capture_skps_from_pdfs does not support multiple URLs in pagesets. Found in pageset %s", pagesetPath)
 					continue
 				}
+				pdfURL := decodedPageset.UrlsList
 
 				skutil.LogErr(os.Chdir(pathToPdfs))
 
-				// Download the PDFs.
-				pdfURL := decodedPageset.UrlsList
-				// Add protocol if it is missing from the URL.
-				if !(strings.HasPrefix(pdfURL, "http://") || strings.HasPrefix(pdfURL, "https://")) {
-					pdfURL = fmt.Sprintf("http://%s", pdfURL)
-				}
-				pdfBase, err := getPdfFileName(pdfURL)
-				if err != nil {
-					glog.Errorf("Could not parse the URL %s to get a PDF file name: %s", pdfURL, err)
+				// Download PDF.
+				if err := downloadPDFs(pdfURL, index, pathToPdfs, httpTimeoutClient); err != nil {
+					glog.Errorf("Could not download %s: %s", pdfURL, err)
+					erroredPDFsMutex.Lock()
 					erroredPDFs = append(erroredPDFs, pdfURL)
+					erroredPDFsMutex.Unlock()
 					continue
 				}
-				pdfDirWithIndex := filepath.Join(pathToPdfs, index)
-				if err := os.MkdirAll(pdfDirWithIndex, 0700); err != nil {
-					glog.Errorf("Could not mkdir %s: %s", pdfDirWithIndex, err)
-				}
-				pdfPath := filepath.Join(pdfDirWithIndex, pdfBase)
-				resp, err := httpTimeoutClient.Get(pdfURL)
-				if err != nil {
-					glog.Errorf("Could not GET %s: %s", pdfURL, err)
-					erroredPDFs = append(erroredPDFs, pdfURL)
-					continue
-				}
-				defer skutil.Close(resp.Body)
-				out, err := os.Create(pdfPath)
-				if err != nil {
-					glog.Errorf("Unable to create file %s: %s", pdfPath, err)
-					erroredPDFs = append(erroredPDFs, pdfURL)
-					continue
-				}
-				if _, err = io.Copy(out, resp.Body); err != nil {
-					glog.Errorf("Unable to write to file %s: %s", pdfPath, err)
-					erroredPDFs = append(erroredPDFs, pdfURL)
-					continue
-				}
-				if err := out.Close(); err != nil {
-					glog.Errorf("Could not close %s: %s", pdfPath, err)
-					erroredPDFs = append(erroredPDFs, pdfURL)
-					continue
-				}
+				// By default, transport caches connections for future re-use.
+				// This may leave many open connections when accessing many hosts.
+				transport.CloseIdleConnections()
 
 				// TODO(rmistry): Uncomment when ready to capture SKPs.
+				// TODO(rmistry): Use erroredSKPsMutex below.
 				//// Run pdfium_test to create SKPs from the PDFs.
 				//pdfiumTestArgs := []string{
 				//	"--skp", pdfPath,
@@ -286,6 +270,36 @@ func main() {
 			glog.Errorf("\t%s", erroredSKP)
 		}
 	}
+}
+
+func downloadPDFs(pdfURL, index, pathToPdfs string, httpTimeoutClient *http.Client) error {
+	// Add protocol if it is missing from the URL.
+	if !(strings.HasPrefix(pdfURL, "http://") || strings.HasPrefix(pdfURL, "https://")) {
+		pdfURL = fmt.Sprintf("http://%s", pdfURL)
+	}
+	pdfBase, err := getPdfFileName(pdfURL)
+	if err != nil {
+		return fmt.Errorf("Could not parse the URL %s to get a PDF file name: %s", pdfURL, err)
+	}
+	pdfDirWithIndex := filepath.Join(pathToPdfs, index)
+	if err := os.MkdirAll(pdfDirWithIndex, 0700); err != nil {
+		return fmt.Errorf("Could not mkdir %s: %s", pdfDirWithIndex, err)
+	}
+	pdfPath := filepath.Join(pdfDirWithIndex, pdfBase)
+	resp, err := httpTimeoutClient.Get(pdfURL)
+	if err != nil {
+		return fmt.Errorf("Could not GET %s: %s", pdfURL, err)
+	}
+	defer skutil.Close(resp.Body)
+	out, err := os.Create(pdfPath)
+	defer skutil.Close(out)
+	if err != nil {
+		return fmt.Errorf("Unable to create file %s: %s", pdfPath, err)
+	}
+	if _, err = io.Copy(out, resp.Body); err != nil {
+		return fmt.Errorf("Unable to write to file %s: %s", pdfPath, err)
+	}
+	return nil
 }
 
 // getPdfFileName constructs a name for the locally stored PDF file from the URL.
