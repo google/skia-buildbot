@@ -79,6 +79,8 @@ Rolling forward with the CLI
 ---------------
 There is a simple app in the Skia Buildbot repo called [update_version_to_fuzz](https://github.com/google/skia-buildbot/blob/d4feb7c69fecb31f6a5d97786637cfe794f3b356/fuzzer/go/update_version_to_fuzz/main.go).
 
+Build it with `make update`
+
 Run this like `update_version_to_fuzz --version_to_fuzz deadbeef`
 
 The CLI also takes a `--bucket` param, if you want to upload to the `fuzzer-test` bucket.
@@ -131,3 +133,9 @@ broken_roll
 -------------
 A roll forward has taken more than 2 hours.  A typical time for a roll forward is about 20 minutes.
 Check the logs for failures.
+
+Adding new Fuzzers
+======
+
+[Adding a new binary fuzzer](https://docs.google.com/document/d/1QDX0o8yDdmhbjoudNsXc66iuRXRF5XNNqGnzDzX7c2I/edit#)
+[Adding a new API fuzzer](https://docs.google.com/document/d/1e3ikXO7SwoBsbsi1MF06vydXRlXvYalVORaiUuOXk2Y/edit)
