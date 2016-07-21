@@ -12,7 +12,7 @@ import types
 PROJECT_USER = 'default'
 SKIA_NETWORK_NAME = 'default'
 SKIA_REPO_DIR = '/home/%s/storage/skia-repo' % PROJECT_USER
-SCOPES = 'https://www.googleapis.com/auth/devstorage.full_control'
+SCOPES = 'https://www.googleapis.com/auth/devstorage.full_control,https://www.googleapis.com/auth/userinfo.email'
 SKIA_BOT_LINUX_IMAGE_NAME = 'skia-buildbot-v8'
 SKIA_SWARMING_IMAGE_NAME = 'skia-swarming-v3'
 SKIA_BOT_WIN_IMAGE_NAME = 'projects/google.com:windows-internal/global/images/windows-server-2008-r2-ent-internal-v20150310'
