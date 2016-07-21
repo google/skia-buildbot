@@ -316,6 +316,10 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 		r.Header.Set("Referer", r.URL.String())
 		http.Redirect(w, r, login.LoginURL(w, r), 302)
 		return
+	} else if !login.IsGoogler(r) {
+		errStr := "Cannot view; user is not a logged-in Googler."
+		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
+		return
 	}
 	vars := mux.Vars(r)
 	codename := vars["codename"]
@@ -359,6 +363,10 @@ func builderRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	if login.LoggedInAs(r) == "" {
 		r.Header.Set("Referer", r.URL.String())
 		http.Redirect(w, r, login.LoginURL(w, r), 302)
+		return
+	} else if !login.IsGoogler(r) {
+		errStr := "Cannot view; user is not a logged-in Googler."
+		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
 		return
 	}
 	vars := mux.Vars(r)
