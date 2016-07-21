@@ -98,6 +98,7 @@ func main() {
 		for _, t := range tasks {
 			glog.Infof("  %s", getTaskStr(t))
 		}
+		glog.Infof("Listed %d tasks.", len(tasks))
 
 	} else if *cmd == CANCEL_CMD {
 		resp, err := displayTasksAndConfirm(tasks, "canceling")
