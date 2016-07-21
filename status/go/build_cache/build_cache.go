@@ -255,7 +255,7 @@ func (c *BuildCache) GetBuildersComments() map[string][]*buildbot.BuilderComment
 		copy(cpy, v)
 		rv[k] = cpy
 	}
-	return c.builderComments
+	return rv
 }
 
 // AddBuilderComment adds a comment for the given builder.
