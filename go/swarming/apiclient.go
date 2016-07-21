@@ -190,7 +190,7 @@ func (c *ApiClient) ListTasks(start, end time.Time, tags []string, state string)
 
 	// Match requests to results.
 	if len(tasks) != len(reqs) {
-		return nil, fmt.Errorf("Got different numbers of task requests and results.")
+		glog.Warningf("Got different numbers of task requests and results.")
 	}
 	rv := make([]*swarming.SwarmingRpcsTaskRequestMetadata, 0, len(tasks))
 	for _, t := range tasks {
@@ -206,7 +206,8 @@ func (c *ApiClient) ListTasks(start, end time.Time, tags []string, state string)
 			}
 		}
 		if data.Request == nil {
-			return nil, fmt.Errorf("Failed to find request for task %s", data.TaskId)
+			glog.Warningf("Failed to find request for task %s", data.TaskId)
+			continue
 		}
 		rv = append(rv, data)
 	}
