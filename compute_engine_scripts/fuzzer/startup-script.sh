@@ -15,6 +15,7 @@ make
 
 # Download and install depot_tools to /mnt/ssd0/depot_tools
 git clone 'https://chromium.googlesource.com/chromium/tools/depot_tools.git' /mnt/ssd0/depot_tools
+sudo chmod 777 /mnt/ssd0/depot_tools
 
 # Fix afl-fuzz's requirement on core
 sudo sh -c "echo 'core' >/proc/sys/kernel/core_pattern"
