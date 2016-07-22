@@ -7,11 +7,11 @@ sudo chmod 777 /b
 # when trying to download the bootstrap code.
 sleep 10s
 
-if [ ! -d "/b/swarm_slave" ]; then
+if [ ! -d "/b/s" ]; then
   cd /b
   echo "Bootstrapping swarming, expect a reboot"
   python -c "import urllib; exec urllib.urlopen('https://chromium-swarm.appspot.com/bootstrap').read()"
 else
   echo "Starting swarming"
-  /usr/bin/python /b/swarm_slave/swarming_bot.zip start_bot &
+  /usr/bin/python /b/s/swarming_bot.zip start_bot &
 fi
