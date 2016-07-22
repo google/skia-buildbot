@@ -174,7 +174,7 @@ _slave_host_dicts = {
       ('skiabot-linux-swarm-027', '27', False),
       ('skiabot-linux-swarm-028', '28', False),
       ('skiabot-linux-swarm-029', '29', False),
-      ('skiabot-linux-swarm-030', '30', False),
+      #('skiabot-linux-swarm-030', '30', False),
       ('skiabot-linux-swarm-031', '31', False),
     ],
     'copies': CHROMEBUILD_COPIES,
