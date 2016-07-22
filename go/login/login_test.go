@@ -49,6 +49,7 @@ func TestLoggedInAs(t *testing.T) {
 
 	s := Session{
 		Email:     "fred@example.com",
+		ID:        "12345",
 		AuthScope: DEFAULT_SCOPE[0],
 		Token:     nil,
 	}

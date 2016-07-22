@@ -90,6 +90,7 @@ var (
 // Session is encrypted and serialized and stored in a user's cookie.
 type Session struct {
 	Email     string
+	ID        string
 	AuthScope string
 	Token     *oauth2.Token
 }
@@ -184,6 +185,26 @@ func LoggedInAs(r *http.Request) string {
 	return s.Email
 }
 
+// ID returns the user's ID, i.e. their opaque identifier, if they are
+// logged in, and "" if they are not logged in.
+func ID(r *http.Request) string {
+	s, err := getSession(r)
+	if err != nil {
+		return ""
+	}
+	return s.ID
+}
+
+// UserIdentifiers returns both the email and opaque user id of the logged in
+// user, and will return two empty strings if they are not logged in.
+func UserIdentifiers(r *http.Request) (string, string) {
+	s, err := getSession(r)
+	if err != nil {
+		return "", ""
+	}
+	return s.Email, s.ID
+}
+
 // IsGoogler determines whether the user is logged in with an @google.com account.
 func IsGoogler(r *http.Request) bool {
 	return strings.HasSuffix(LoggedInAs(r), "@google.com")
@@ -206,6 +227,7 @@ func IsAdmin(r *http.Request) bool {
 // }
 type decodedIDToken struct {
 	Email string `json:"email"`
+	ID    string `json:"sub"`
 }
 
 // CookieFor creates an encoded Cookie for the given user id.
@@ -335,6 +357,7 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	s := Session{
 		Email:     email,
+		ID:        decoded.ID,
 		AuthScope: strings.Join(oauthConfig.Scopes, " "),
 		Token:     token,
 	}
@@ -345,20 +368,25 @@ func OAuth2CallbackHandler(w http.ResponseWriter, r *http.Request) {
 // StatusHandler returns the login status of the user as JSON that looks like:
 //
 // {
-//   "Email": "fred@example.com",
-//   "LoginURL": "https://..."
+//   "Email":     "fred@example.com",
+//   "ID":        "12342...34324",
+//   "LoginURL":  "https://..."
+//   "IsAGoogler": false,
 // }
 //
 func StatusHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("StatusHandler\n")
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
+	email, id := UserIdentifiers(r)
 	body := struct {
 		Email      string
+		ID         string
 		LoginURL   string
 		IsAGoogler bool
 	}{
-		Email:      LoggedInAs(r),
+		Email:      email,
+		ID:         id,
 		LoginURL:   LoginURL(w, r),
 		IsAGoogler: IsGoogler(r),
 	}
