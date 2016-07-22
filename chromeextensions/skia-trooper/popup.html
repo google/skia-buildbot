@@ -25,9 +25,28 @@
       cursor: pointer;
     }
 
+    #extra-info {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #extra-info td {
+      padding: 0px 10px;
+      width: 33%;
+      text-align: center;
+    }
+
     .alerts-row-name td {
       font-weight: bold;
-      padding-top: 15px;
+      padding-top: 20px;
+    }
+
+    .first-svg {
+      padding-left: 20px;
+    }
+
+    svg {
+      height: 22px;
+      width: 40px;
     }
 
     #errors {
@@ -38,7 +57,21 @@
   <body>
     <div class="alerts-link">
       <a href="https://alerts.skia.org/infra" target="_blank">Go to Alerts Page</a>
+      <span id="login-status"></span>
     </div>
+    <table id="extra-info">
+      <tr>
+        <td>
+          Trooper:<span id="current-trooper"></span>
+        </td>
+        <td>
+          Sheriff:<span id="current-sheriff"></span>
+        </td>
+        <td>
+          <span id="snoozed-alerts"></span>
+        </td>
+      </tr>
+    </table>
     <table id="alerts-table"></table>
     <div id="errors"></div>
     <script src="popup.js"></script>
