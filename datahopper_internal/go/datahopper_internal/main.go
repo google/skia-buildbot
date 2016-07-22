@@ -358,6 +358,37 @@ func redirectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type Mapping struct {
+	Codename string
+	Target   string
+}
+
+// mappingHandler displays all codename to target mappings.
+func mappingHandler(w http.ResponseWriter, r *http.Request) {
+	if login.LoggedInAs(r) == "" {
+		r.Header.Set("Referer", r.URL.String())
+		http.Redirect(w, r, login.LoginURL(w, r), 302)
+		return
+	} else if !login.IsGoogler(r) {
+		errStr := "Cannot view; user is not a logged-in Googler."
+		httputils.ReportError(w, r, fmt.Errorf(errStr), errStr)
+		return
+	}
+
+	iter := codenameDB.NewIterator(nil, nil)
+	allMappings := []Mapping{}
+	for iter.Next() {
+		m := Mapping{Codename: string(iter.Key()), Target: string(iter.Value())}
+		allMappings = append(allMappings, m)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(allMappings); err != nil {
+		httputils.ReportError(w, r, err, "Failed to marshal mappings.")
+		return
+	}
+}
+
 // builderRedirectHandler handles redirecting to the correct internal builder page.
 func builderRedirectHandler(w http.ResponseWriter, r *http.Request) {
 	if login.LoggedInAs(r) == "" {
@@ -662,6 +693,7 @@ func main() {
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/builders/{codename}/builds/{buildNumber}", redirectHandler)
 	r.HandleFunc("/builders/{codename}", builderRedirectHandler)
+	r.HandleFunc("/mapping/", mappingHandler)
 	r.HandleFunc("/ingestBuild", ingestBuildHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	r.HandleFunc("/logout/", login.LogoutHandler)
