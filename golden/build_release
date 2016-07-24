@@ -35,7 +35,7 @@ for INSTANCE_ID in $TARGET_INSTANCE_IDS; do
   	DATABASE_HOST="173.194.104.24"
   	SKIACORRECTNESS_DATABASE_NAME="skiacorrectness"
     REDIRECT_URL="https://gold.skia.org/oauth2callback/"
-    ADD_FLAGS="--backfill_tiles=2 --newui --resources_dir=/usr/local/share/skiacorrectness/frontend"
+    ADD_FLAGS="--backfill_tiles=2 --resources_dir=/usr/local/share/skiacorrectness/frontend"
   	;;
 
     # stage instance

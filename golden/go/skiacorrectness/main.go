@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"runtime/pprof"
 	"time"
 
@@ -74,7 +75,6 @@ var (
 	gitRepoURL         = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	serviceAccountFile = flag.String("service_account_file", "", "Credentials file for service account.")
 	traceservice       = flag.String("trace_service", "localhost:10000", "The address of the traceservice endpoint.")
-	newUI              = flag.Bool("newui", false, "Enable new UI.")
 
 	influxHost     = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
@@ -256,8 +256,12 @@ func main() {
 		})
 	}
 
-	// Init this module.
-	Init()
+	// Set the resource directory if it's empty. Useful for running locally.
+	if *resourcesDir == "" {
+		_, filename, _, _ := runtime.Caller(0)
+		*resourcesDir = filepath.Join(filepath.Dir(filename), "../..")
+		*resourcesDir += "/frontend"
+	}
 
 	// Set up login
 	// TODO (stephana): Factor out to go/login/login.go and removed hard coded
@@ -413,73 +417,37 @@ func main() {
 	// All the handlers will be prefixed with poly to differentiate it from the
 	// angular code until the angular code is removed.
 	router.HandleFunc(OAUTH2_CALLBACK_PATH, login.OAuth2CallbackHandler)
-	router.HandleFunc("/_/details", polyDetailsHandler).Methods("GET")
-	router.HandleFunc("/_/diff", polyDiffJSONDigestHandler).Methods("GET")
-	router.HandleFunc("/_/hashes", polyAllHashesHandler).Methods("GET")
-	router.HandleFunc("/_/ignores", jsonIgnoresHandler).Methods("GET")
-	router.HandleFunc("/_/ignores/add/", jsonIgnoresAddHandler).Methods("POST")
-	router.HandleFunc("/_/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
-	router.HandleFunc("/_/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
-	router.HandleFunc("/_/list", polyListTestsHandler).Methods("GET")
-	router.HandleFunc("/_/paramset", polyParamsHandler).Methods("GET")
-	router.HandleFunc("/_/nxn", nxnJSONHandler).Methods("GET")
 
-	// TODO(stephana): Once /_/search3 is stable it will replace /_/search and the
-	// /search*.html pages will be consolidated into one.
-	router.HandleFunc("/_/search", polySearchJSONHandler).Methods("GET")
-
-	router.HandleFunc("/_/status/{test}", polyTestStatusHandler).Methods("GET")
-	router.HandleFunc("/_/test", polyTestHandler).Methods("POST")
-	router.HandleFunc("/_/triage", jsonTriageHandler).Methods("POST")
-	router.HandleFunc("/_/triagelog", polyTriageLogHandler).Methods("GET")
-	router.HandleFunc("/_/triagelog/undo", triageUndoHandler).Methods("POST")
-	router.HandleFunc("/_/failure", failureListJSONHandler).Methods("GET")
-	router.HandleFunc("/_/failure/clear", failureClearJSONHandler).Methods("POST")
-	router.HandleFunc("/_/trybot", listTrybotsJSONHandler).Methods("GET")
+	// /_/hashes is used by the bots to find hashes it does not need to upload.
+	router.HandleFunc("/_/hashes", textAllHashesHandler).Methods("GET")
 	router.HandleFunc("/json/version", skiaversion.JsonHandler)
 	router.HandleFunc("/loginstatus/", login.StatusHandler)
 	router.HandleFunc("/logout/", login.LogoutHandler)
 
-	// Register the new UI or the old UI at the root of the site.
-	if *newUI {
-		// json handlers only used by the new UI.
-		router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
-		router.HandleFunc("/json/list", jsonListTestsHandler).Methods("GET")
-		router.HandleFunc("/json/paramset", polyParamsHandler).Methods("GET")
-		router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
-		router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
-		router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
-		router.HandleFunc("/json/ignores", jsonIgnoresHandler).Methods("GET")
-		router.HandleFunc("/json/ignores/add/", jsonIgnoresAddHandler).Methods("POST")
-		router.HandleFunc("/json/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
-		router.HandleFunc("/json/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
-		router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
-		router.HandleFunc("/json/clusterdiff", jsonClusterDiffHandler).Methods("GET")
-		router.HandleFunc("/json/triagelog", polyTriageLogHandler).Methods("GET")
-		router.HandleFunc("/json/triagelog/undo", triageUndoHandler).Methods("POST")
-		router.HandleFunc("/json/trybot", listTrybotsJSONHandler).Methods("GET")
+	// json handlers only used by the new UI.
+	router.HandleFunc("/json/byblame", jsonByBlameHandler).Methods("GET")
+	router.HandleFunc("/json/list", jsonListTestsHandler).Methods("GET")
+	router.HandleFunc("/json/paramset", jsonParamsHandler).Methods("GET")
+	router.HandleFunc("/json/search", jsonSearchHandler).Methods("GET")
+	router.HandleFunc("/json/diff", jsonDiffHandler).Methods("GET")
+	router.HandleFunc("/json/details", jsonDetailsHandler).Methods("GET")
+	router.HandleFunc("/json/ignores", jsonIgnoresHandler).Methods("GET")
+	router.HandleFunc("/json/ignores/add/", jsonIgnoresAddHandler).Methods("POST")
+	router.HandleFunc("/json/ignores/del/{id}", jsonIgnoresDeleteHandler).Methods("POST")
+	router.HandleFunc("/json/ignores/save/{id}", jsonIgnoresUpdateHandler).Methods("POST")
+	router.HandleFunc("/json/triage", jsonTriageHandler).Methods("POST")
+	router.HandleFunc("/json/clusterdiff", jsonClusterDiffHandler).Methods("GET")
+	router.HandleFunc("/json/triagelog", jsonTriageLogHandler).Methods("GET")
+	router.HandleFunc("/json/triagelog/undo", jsonTriageUndoHandler).Methods("POST")
+	router.HandleFunc("/json/trybot", jsonListTrybotsHandler).Methods("GET")
+	router.HandleFunc("/json/failure", jsonListFailureHandler).Methods("GET")
+	router.HandleFunc("/json/failure/clear", jsonClearFailureHandler).Methods("POST")
 
-		// For everything else serve the same markup.
-		indexFile := *resourcesDir + "/index.html"
-		router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, indexFile)
-		})
-	} else {
-		router.HandleFunc("/", byBlameHandler).Methods("GET")
-		router.HandleFunc("/list", templateHandler("list.html")).Methods("GET")
-		router.HandleFunc("/byblame", byBlameHandler).Methods("GET")
-		router.HandleFunc("/cluster", templateHandler("cluster.html")).Methods("GET")
-		router.HandleFunc("/search2", search2Handler).Methods("GET")
-		router.HandleFunc("/cmp/{test}", templateHandler("compare.html")).Methods("GET")
-		router.HandleFunc("/detail", templateHandler("single.html")).Methods("GET")
-		router.HandleFunc("/diff", templateHandler("diff.html")).Methods("GET")
-		router.HandleFunc("/help", templateHandler("help.html")).Methods("GET")
-		router.HandleFunc("/ignores", templateHandler("ignores.html")).Methods("GET")
-		router.HandleFunc("/search", templateHandler("search.html")).Methods("GET")
-		router.HandleFunc("/triagelog", templateHandler("triagelog.html")).Methods("GET")
-		router.HandleFunc("/trybot", templateHandler("trybot.html")).Methods("GET")
-		router.HandleFunc("/failures", templateHandler("failures.html")).Methods("GET")
-	}
+	// For everything else serve the same markup.
+	indexFile := *resourcesDir + "/index.html"
+	router.PathPrefix("/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, indexFile)
+	})
 
 	// Add the necessary middleware and have the router handle all requests.
 	// By structuring the middleware this way we only log requests that are
@@ -489,12 +457,8 @@ func main() {
 		rootHandler = login.ForceAuth(rootHandler, OAUTH2_CALLBACK_PATH)
 	}
 
-	// The polyStatusHandler is being polled, so we exclude it from logging.
-	http.HandleFunc("/_/trstatus", jsonStatusHandler)
-	if *newUI {
-		http.HandleFunc("/json/trstatus", jsonStatusHandler)
-	}
-
+	// The jsonStatusHandler is being polled, so we exclude it from logging.
+	http.HandleFunc("/json/trstatus", jsonStatusHandler)
 	http.Handle("/", rootHandler)
 
 	// Start the server

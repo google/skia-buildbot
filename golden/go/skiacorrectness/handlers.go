@@ -17,12 +17,24 @@ import (
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/tiling"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/golden/go/blame"
+	"go.skia.org/infra/golden/go/diff"
+	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
+)
+
+const (
+	// DEFAULT_PAGE_SIZE is the default page size used for pagination.
+	DEFAULT_PAGE_SIZE = 20
+
+	// MAX_PAGE_SIZE is the maximum page size used for pagination.
+	MAX_PAGE_SIZE = 100
 )
 
 // TODO(stephana): once the byBlameHandler is removed, refactor this to
@@ -119,6 +131,29 @@ func jsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, map[string]interface{}{"data": blameEntries})
 }
 
+// allUntriagedSummaries returns a tile and summaries for all untriaged GMs.
+func allUntriagedSummaries() (*tiling.Tile, map[string]*summary.Summary, error) {
+	tile, err := storages.GetLastTileTrimmed(true)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Couldn't load tile: %s", err)
+	}
+	// Get a list of all untriaged images by test.
+	sum, err := summaries.CalcSummaries([]string{}, url.Values{"source_type": []string{"gm"}}, false, true)
+	if err != nil {
+		return nil, nil, fmt.Errorf("Couldn't load summaries: %s", err)
+	}
+	return tile, sum, nil
+}
+
+// lookUpCommits returns the commit hashes for the commit indices in 'freq'.
+func lookUpCommits(freq []int, commits []*tiling.Commit) []string {
+	ret := []string{}
+	for _, index := range freq {
+		ret = append(ret, commits[index].Hash)
+	}
+	return ret
+}
+
 // ByBlameEntry is a helper structure that is serialized to
 // JSON and sent to the front-end.
 type ByBlameEntry struct {
@@ -134,6 +169,28 @@ type ByBlameEntrySlice []*ByBlameEntry
 func (b ByBlameEntrySlice) Len() int           { return len(b) }
 func (b ByBlameEntrySlice) Less(i, j int) bool { return b[i].GroupID < b[j].GroupID }
 func (b ByBlameEntrySlice) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
+
+// ByBlame describes a single digest and it's blames.
+type ByBlame struct {
+	Test          string                   `json:"test"`
+	Digest        string                   `json:"digest"`
+	Blame         *blame.BlameDistribution `json:"blame"`
+	CommitIndices []int                    `json:"commit_indices"`
+	Key           string
+}
+
+// CommitSlice is a utility type simple for sorting Commit slices so earliest commits come first.
+type CommitSlice []*tiling.Commit
+
+func (p CommitSlice) Len() int           { return len(p) }
+func (p CommitSlice) Less(i, j int) bool { return p[i].CommitTime > p[j].CommitTime }
+func (p CommitSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
+type TestRollup struct {
+	Test         string `json:"test"`
+	Num          int    `json:"num"`
+	SampleDigest string `json:"sample_digest"`
+}
 
 // jsonSearchHandler is the endpoint for all searches.
 func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
@@ -196,9 +253,6 @@ func adaptIssueResponse(ir *search.IssueResponse) *IssueSearchResult {
 		QueryPatchsets: ir.QueryPatchsets,
 	}
 }
-
-// TODO(stephana): Remove polyDiffJSONDigestHandler and polyDetailsHandler once all
-// detail and diff request go through jsonDetailsHandler and jsonDiffHandler.
 
 // jsonDetailsHandler returns the details about a single digest.
 func jsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
@@ -410,10 +464,10 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		e := exp.Tests[req.Test]
-		ii, _, err := imgInfo(req.Filter, req.Query, req.Test, e, -1, req.Include, false, "", "", req.Head)
-		digests = []string{}
-		for _, d := range ii {
-			digests = append(digests, d.Digest)
+		digests, err = filterDigests(req.Filter, req.Query, req.Test, e, req.Include, req.Head)
+		if err != nil {
+			httputils.ReportError(w, r, err, "Failed to filter requested digests.")
+			return
 		}
 	}
 
@@ -440,12 +494,67 @@ func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// TODO(stephana): Replace filterDigests with a call to search where this
+// functionality is already implementd but not exposed as a function.
+
+// filterDigests returns a slice of digests based on the filter and
+// queryString passed in.
+// If head is true then only return digests that appear at head.
+// If includeIgnores it true, ignored traces are included.
+func filterDigests(filter, queryString, testName string, e types.TestClassification, includeIgnores bool, head bool) ([]string, error) {
+	query, err := url.ParseQuery(queryString)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse Query in imgInfo: %s", err)
+	}
+	query[types.PRIMARY_KEY_FIELD] = []string{testName}
+
+	t := timer.New("finding digests")
+	digests := map[string]int{}
+	if head {
+		tile, err := storages.GetLastTileTrimmed(includeIgnores)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
+		}
+		lastCommitIndex := tile.LastCommitIndex()
+		for _, tr := range tile.Traces {
+			if tiling.Matches(tr, query) {
+				for i := lastCommitIndex; i >= 0; i-- {
+					if tr.IsMissing(i) {
+						continue
+					} else {
+						digests[tr.(*types.GoldenTrace).Values[i]] = 1
+						break
+					}
+				}
+			}
+		}
+	} else {
+		digests, err = tallies.ByQuery(query, includeIgnores)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
+		}
+	}
+	t.Stop()
+
+	label := types.LabelFromString(filter)
+	// Now filter digests by their expectations status here.
+	t = timer.New("apply expectations")
+	ret := make([]string, 0, len(digests))
+	for digest := range digests {
+		if e[digest] != label {
+			continue
+		}
+		ret = append(ret, digest)
+	}
+	t.Stop()
+
+	return ret, nil
+}
+
 // jsonStatusHandler returns the current status of with respect to HEAD.
 func jsonStatusHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, statusWatcher.GetStatus())
 }
-
-// TODO (stephana): Remove nxnJSONHandler and the D3 struct once the new UI launched.
 
 // jsonClusterDiffHandler calculates the NxN diffs of all the digests that match
 // the incoming query and returns the data in a format appropriate for
@@ -521,6 +630,33 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 	sendJsonResponse(w, d3)
 }
 
+// SearchDigestSlice is for sorting search.Digest's in the order of digest status.
+type SearchDigestSlice []*search.Digest
+
+func (p SearchDigestSlice) Len() int { return len(p) }
+func (p SearchDigestSlice) Less(i, j int) bool {
+	if p[i].Status == p[j].Status {
+		return p[i].Digest < p[j].Digest
+	} else {
+		// Alphabetical order, so neg, pos, unt.
+		return p[i].Status < p[j].Status
+	}
+}
+func (p SearchDigestSlice) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
+// Node represents a single node in a d3 diagram. Used in ClusterDiffResult.
+type Node struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+// Link represents a link between d3 nodes, used in ClusterDiffResult.
+type Link struct {
+	Source int     `json:"source"`
+	Target int     `json:"target"`
+	Value  float32 `json:"value"`
+}
+
 // ClusterDiffResult contains the result of comparing all digests within a test.
 // It is structured to be easy to render by the D3.js.
 type ClusterDiffResult struct {
@@ -531,9 +667,6 @@ type ClusterDiffResult struct {
 	ParamsetByDigest map[string]map[string][]string `json:"paramsetByDigest"`
 	ParamsetsUnion   map[string][]string            `json:"paramsetsUnion"`
 }
-
-// TOOD(stephana): Remove polyListTestsHandler which has a slightly different
-// input format with respect to query parameters.
 
 // jsonListTestsHandler returns a JSON list with high level information about
 // each test.
@@ -612,6 +745,12 @@ func includeSummary(s *summary.Summary, q *search.Query) bool {
 		((s.Untriaged > 0) && (q.Unt))
 }
 
+type SummarySlice []*summary.Summary
+
+func (p SummarySlice) Len() int           { return len(p) }
+func (p SummarySlice) Less(i, j int) bool { return p[i].Untriaged > p[j].Untriaged }
+func (p SummarySlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+
 // TODO(stephana): Remove queryFromRequest in favor of parseQuery as the generic
 // way to parse input parameters for search-like endpoints.
 // Remove the "Limit" field and replace with pagination.
@@ -653,4 +792,202 @@ func parseQuery(r *http.Request, query *search.Query) error {
 	query.IncludeMaster = r.FormValue("master") == "true"
 
 	return nil
+}
+
+// FailureList contains the list of the digests that could not be processed
+// the count value is for convenience to make it easier to inspect the JSON
+// output and might be removed in the future.
+type FailureList struct {
+	Count          int                   `json:"count"`
+	DigestFailures []*diff.DigestFailure `json:"failures"`
+}
+
+// jsonListFailureHandler returns the digests that have failed to load.
+func jsonListFailureHandler(w http.ResponseWriter, r *http.Request) {
+	unavailable := storages.DiffStore.UnavailableDigests()
+	ret := FailureList{
+		DigestFailures: make([]*diff.DigestFailure, 0, len(unavailable)),
+		Count:          len(unavailable),
+	}
+
+	for _, failure := range unavailable {
+		ret.DigestFailures = append(ret.DigestFailures, failure)
+	}
+
+	sort.Sort(sort.Reverse(diff.DigestFailureSlice(ret.DigestFailures)))
+	sendJsonResponse(w, &ret)
+}
+
+// jsonClearFailureHandler removes digests from the local cache.
+func jsonClearFailureHandler(w http.ResponseWriter, r *http.Request) {
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to clear digests.")
+		return
+	}
+
+	digests := []string{}
+	dec := json.NewDecoder(r.Body)
+	if err := dec.Decode(&digests); err != nil {
+		httputils.ReportError(w, r, err, "Unable to decode digest list.")
+		return
+	}
+	purgeGS := r.URL.Query().Get("purge") == "true"
+
+	if err := storages.DiffStore.PurgeDigests(digests, purgeGS); err != nil {
+		httputils.ReportError(w, r, err, "Unable to clear digests.")
+	}
+	jsonListFailureHandler(w, r)
+}
+
+// jsonTriageLogHandler returns the entries in the triagelog paginated
+// in reverse chronological order.
+func jsonTriageLogHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the pagination params.
+	var logEntries []*expstorage.TriageLogEntry
+	var total int
+
+	q := r.URL.Query()
+	offset, size, err := httputils.PaginationParams(q, 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	if err == nil {
+		details := q.Get("details") == "true"
+		logEntries, total, err = storages.ExpectationsStore.QueryLog(offset, size, details)
+	}
+
+	if err != nil {
+		httputils.ReportError(w, r, err, "Unable to retrieve triage log.")
+		return
+	}
+
+	pagination := &httputils.ResponsePagination{
+		Offset: offset,
+		Size:   size,
+		Total:  total,
+	}
+
+	sendResponse(w, logEntries, http.StatusOK, pagination)
+}
+
+// jsonTriageUndoHandler performs an "undo" for a given change id.
+// The change id's are returned in the result of jsonTriageLogHandler.
+// It accepts one query parameter 'id' which is the id if the change
+// that should be reversed.
+// If successful it retunrs the same result as a call to jsonTriageLogHandler
+// to reflect the changed triagelog.
+func jsonTriageUndoHandler(w http.ResponseWriter, r *http.Request) {
+	// Get the user and make sure they are logged in.
+	user := login.LoggedInAs(r)
+	if user == "" {
+		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to change expectations.")
+		return
+	}
+
+	// Extract the id to undo.
+	changeID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		httputils.ReportError(w, r, err, "Invalid change id.")
+		return
+	}
+
+	// Do the undo procedure.
+	_, err = storages.ExpectationsStore.UndoChange(changeID, user)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Unable to undo.")
+		return
+	}
+
+	// Send the same response as a query for the first page.
+	jsonTriageLogHandler(w, r)
+}
+
+// jsonListTrybotsHandler returns a list of issues (Rietveld) that have
+// trybot results associated with them.
+func jsonListTrybotsHandler(w http.ResponseWriter, r *http.Request) {
+	var trybotRuns []*trybot.Issue
+	var total int
+
+	offset, size, err := httputils.PaginationParams(r.URL.Query(), 0, DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE)
+	if err == nil {
+		trybotRuns, total, err = storages.TrybotResults.ListTrybotIssues(offset, size)
+	}
+
+	if err != nil {
+		httputils.ReportError(w, r, err, "Retrieving trybot results failed.")
+		return
+	}
+
+	pagination := &httputils.ResponsePagination{
+		Offset: offset,
+		Size:   size,
+		Total:  total,
+	}
+	sendResponse(w, trybotRuns, 200, pagination)
+}
+
+// setJSONHeaders sets secure headers for JSON responses.
+func setJSONHeaders(w http.ResponseWriter) {
+	h := w.Header()
+	h.Set("Content-Type", "application/javascript; charset=utf-8")
+	h.Set("X-Content-Type-Options", "nosniff")
+}
+
+// sendJsonResponse serializes resp to JSON. If an error occurs
+// a text based error code is send to the client.
+func sendJsonResponse(w http.ResponseWriter, resp interface{}) {
+	setJSONHeaders(w)
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		httputils.ReportError(w, nil, err, "Failed to encode JSON response.")
+	}
+}
+
+// makeResourceHandler creates a static file handler that sets a caching policy.
+func makeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Request) {
+	fileServer := http.FileServer(http.Dir(resourceDir))
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Cache-Control", "max-age=300")
+		fileServer.ServeHTTP(w, r)
+	}
+}
+
+// jsonParamsHandler returns the union of all parameters.
+func jsonParamsHandler(w http.ResponseWriter, r *http.Request) {
+	tile, err := storages.GetLastTileTrimmed(false)
+	if err != nil {
+		httputils.ReportError(w, r, err, "Failed to load tile")
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(tile.ParamSet); err != nil {
+		glog.Errorf("Failed to write or encode result: %s", err)
+	}
+}
+
+// textAllHashesHandler returns the list of all hashes we currently know about
+// regardless of triage status.
+// Endpoint used by the buildbots to avoid transferring already known images.
+func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
+	unavailableDigests := storages.DiffStore.UnavailableDigests()
+
+	byTest := tallies.ByTest()
+	hashes := map[string]bool{}
+	for _, test := range byTest {
+		for k, _ := range test {
+			if _, ok := unavailableDigests[k]; !ok {
+				hashes[k] = true
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	for k, _ := range hashes {
+		if _, err := w.Write([]byte(k)); err != nil {
+			glog.Errorf("Failed to write or encode result: %s", err)
+			return
+		}
+		if _, err := w.Write([]byte("\n")); err != nil {
+			glog.Errorf("Failed to write or encode result: %s", err)
+			return
+		}
+	}
 }
