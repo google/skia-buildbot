@@ -113,6 +113,7 @@ func main() {
 				index := strconv.Itoa(pagesetsToIndex[path.Join(pathToPagesets, pagesetBaseName)])
 				archiveDataFile := addIndexInDataFileLocation(decodedPageset.ArchiveDataFile, index)
 				args := []string{
+					recordWprBinary,
 					util.CAPTURE_ARCHIVES_DEFAULT_CT_BENCHMARK,
 					"--extra-browser-args=--disable-setuid-sandbox",
 					"--browser=reference",
@@ -130,7 +131,7 @@ func main() {
 				// Retry record_wpr binary 3 times if there are any errors.
 				retryAttempts := 3
 				for i := 0; ; i++ {
-					err = util.ExecuteCmd(recordWprBinary, args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
+					err = util.ExecuteCmd(util.BINARY_PYTHON_2_7_11, args, env, time.Duration(timeoutSecs)*time.Second, nil, nil)
 					if err == nil {
 						break
 					}

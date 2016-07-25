@@ -57,6 +57,9 @@ const (
 	BINARY_MAIL          = "mail"
 	BINARY_LUA           = "lua"
 	BINARY_PDFIUM_TEST   = "pdfium_test"
+	// TODO(rmistry): Remove once all CT bots have been upgraded to use 2.7.11
+	//                by default.
+	BINARY_PYTHON_2_7_11 = "/usr/local/lib/python2.7.11/bin/python"
 
 	// Platforms supported by CT.
 	PLATFORM_ANDROID = "Android"
