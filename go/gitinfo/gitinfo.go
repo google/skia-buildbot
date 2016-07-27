@@ -317,6 +317,14 @@ func (g *GitInfo) ShortList(begin, end string) (*ShortCommits, error) {
 	return ret, nil
 }
 
+func (g *GitInfo) IsAncestor(a, b string) bool {
+	cmd := []string{"git", "merge-base", "--is-ancestor", a, b}
+	if _, err := exec.RunCwd(g.dir, cmd...); err != nil {
+		return false
+	}
+	return true
+}
+
 // gitHash represents information on a single Git commit.
 type gitHash struct {
 	hash      string

@@ -34,6 +34,11 @@ const (
 var (
 	// "Constants".
 
+	// Blacklist these branches.
+	BLACKLIST_BRANCHES = []string{
+		"infra/config",
+	}
+
 	// ERR_EMPTY_QUEUE is returned by BuildQueue.Pop() when the queue for
 	// that builder is empty.
 	ERR_EMPTY_QUEUE = fmt.Errorf("Queue is empty.")
@@ -233,6 +238,17 @@ func (q *BuildQueue) updateRepo(repoUrl string, now time.Time) (map[string][]*Bu
 	q.setRecentCommits(recentCommitsList)
 	recentCommits := make([]*vcsinfo.LongCommit, 0, len(recentCommitsList))
 	for _, h := range recentCommitsList {
+		skip := false
+		for _, branch := range BLACKLIST_BRANCHES {
+			if repo.IsAncestor(h, fmt.Sprintf("origin/%s", branch)) {
+				glog.Warningf("Skipping commit %s on blacklisted branch %s", h, branch)
+				skip = true
+				break
+			}
+		}
+		if skip {
+			continue
+		}
 		details, err := repo.Details(h, true)
 		if err != nil {
 			return nil, fmt.Errorf(errMsg, err)
