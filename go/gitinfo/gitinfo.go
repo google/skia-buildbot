@@ -440,7 +440,7 @@ func (g *GitInfo) SkpCommits(tile *tiling.Tile) ([]int, error) {
 	//
 	// The output should be a \n separated list of hashes that match.
 	first, last := tile.CommitRange()
-	output, err := exec.RunCwd(g.dir, "git", "log", "--format=format:%H", first+".."+last, "SKP_VERSION")
+	output, err := exec.RunCwd(g.dir, "git", "log", "--format=format:%H", first+".."+last, path.Join("infra", "bots", "assets", "skp", "VERSION"))
 	if err != nil {
 		return nil, fmt.Errorf("SkpCommits: Failed to find git log of SKP_VERSION: %s", err)
 	}
