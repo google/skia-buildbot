@@ -4,25 +4,38 @@
 
 function updateIcon() {
   var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open( "GET", "https://alerts.skia.org/json/alerts/", false );
-  xmlHttp.send(null);
-  var alerts = JSON.parse(xmlHttp.responseText);
-  var numActiveInfraAlerts = 0;
-  for (var i = 0; i < alerts.length; i++) {
-    if (alerts[i]["category"] == "infra" && alerts[i]["snoozedUntil"] == 0) {
-      numActiveInfraAlerts++;
+  xmlHttp.open("GET", "https://alerts.skia.org/json/alerts/", true);
+  xmlHttp.timeout = 5000;
+  xmlHttp.onload = function(e) {
+    if (xmlHttp.readyState === XMLHttpRequest.DONE && xmlHttp.status === 200) {
+      var alerts = JSON.parse(xmlHttp.responseText);
+      var numActiveInfraAlerts = 0;
+      for (var i = 0; i < alerts.length; i++) {
+        if (alerts[i]["category"] == "infra" && alerts[i]["snoozedUntil"] == 0) {
+          numActiveInfraAlerts++;
+        }
+      }
+      chrome.browserAction.setIcon({path:"bell.png"});
+      chrome.browserAction.setTitle({title:"Alerts for Skia Troopers"});
+      chrome.browserAction.setBadgeText({text: String(numActiveInfraAlerts)});
+      if (numActiveInfraAlerts > 0) {
+        chrome.browserAction.setBadgeBackgroundColor({color: "red"});
+      } else {
+        chrome.browserAction.setBadgeBackgroundColor({color: "green"});
+      }
+    } else {
+      console.error("Error talking to alertserver.");
     }
   }
-  chrome.browserAction.setIcon({path:"bell.png"});
-  chrome.browserAction.setTitle({title:"Alerts for Skia Troopers"});
-  chrome.browserAction.setBadgeText({text: String(numActiveInfraAlerts)});
-  if (numActiveInfraAlerts > 0) {
-    chrome.browserAction.setBadgeBackgroundColor({color: "red"});
-  } else {
-    chrome.browserAction.setBadgeBackgroundColor({color: "green"});
+  xmlHttp.onreadystatechange = function() {
+    if (xmlHttp.readyState == XMLHttpRequest.DONE) {
+      setTimeout(updateIcon, 10000);
+    }
   }
-
-  setTimeout(updateIcon, 10000);
+  xmlHttp.onerror = function(e) {
+    console.error("Error talking to alertserver.");
+  }
+  xmlHttp.send(null);
 }
 
 updateIcon();
