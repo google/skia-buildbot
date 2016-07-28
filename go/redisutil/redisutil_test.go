@@ -53,7 +53,8 @@ type TestStruct struct {
 func TestRedisLRUCache(t *testing.T) {
 	testutils.SkipIfShort(t)
 	cache := NewRedisLRUCache(REDIS_SERVER_ADDRESS, 1, "test-di", util.UnitTestCodec())
-	testRedisUp(t, cache.(*RedisLRUCache).pool)
+	defer util.Close(cache)
+	testRedisUp(t, cache.pool)
 	util.UnitTestLRUCache(t, cache)
 }
 
@@ -104,8 +105,8 @@ func BenchmarkBigDataset(b *testing.B) {
 
 	groundTruth := make(map[string]interface{}, counter)
 	cache := NewRedisLRUCache("localhost:6379", 1, "di", TestStructCodec(0))
-	rlruCache := cache.(*RedisLRUCache)
-	rlruCache.Purge()
+	defer util.Close(cache)
+	cache.Purge()
 
 	for i := 0; i < counter; i++ {
 		ret := <-results
@@ -134,7 +135,7 @@ func BenchmarkBigDataset(b *testing.B) {
 	b.StopTimer()
 
 	// Cleanup code that should not be timed but deserves to be tested.
-	rlruCache.Purge()
+	cache.Purge()
 	assert.Equal(b, 0, cache.Len())
 }
 
@@ -169,6 +170,7 @@ func TestRedisPrimitives(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	rp := NewRedisPool(REDIS_SERVER_ADDRESS, REDIS_DB_PRIMITIVE_TESTS)
+	defer util.Close(rp)
 	assert.NoError(t, rp.FlushDB())
 
 	// create a worker queue for a given type

@@ -288,6 +288,7 @@ func main() {
 	cacheFactory := filediffstore.MemCacheFactory
 	if *redisHost != "" {
 		cacheFactory = func(uniqueId string, codec util.LRUCodec) util.LRUCache {
+			// This RedisLRUCache never gets closed, but there is only one that is created and used until the program exits.
 			return redisutil.NewRedisLRUCache(*redisHost, *redisDB, uniqueId, codec)
 		}
 	}

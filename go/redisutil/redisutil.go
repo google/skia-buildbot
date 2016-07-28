@@ -34,10 +34,11 @@ type RedisLRUCache struct {
 }
 
 // NewRedisLRUCache returns a new Redis backed cache that complies with the
-// util.LRUCache interface.
+// util.LRUCache interface. The RedisLRUCache should be closed when no longer
+// needed.
 // TODO(stephana): This is a misnomer since NewRedisLRUCache does not
 // expunge items automatically based on a timestamp. This needs to be fixed.
-func NewRedisLRUCache(serverAddr string, db int, id string, codec util.LRUCodec) util.LRUCache {
+func NewRedisLRUCache(serverAddr string, db int, id string, codec util.LRUCodec) *RedisLRUCache {
 	return &RedisLRUCache{
 		keyPrefix:   id + ":",
 		indexSetKey: id + ":idx",
@@ -46,7 +47,7 @@ func NewRedisLRUCache(serverAddr string, db int, id string, codec util.LRUCodec)
 	}
 }
 
-// Add, see the diff.LRUCache interface for details.
+// Add, see the util.LRUCache interface for details.
 func (c *RedisLRUCache) Add(key, value interface{}) bool {
 	prefixedKey, rawKey, err := c.encodeKey(key)
 	if err != nil {
@@ -74,7 +75,7 @@ func (c *RedisLRUCache) Add(key, value interface{}) bool {
 	return true
 }
 
-// Get, see the diff.LRUCache interface for details.
+// Get, see the util.LRUCache interface for details.
 func (c *RedisLRUCache) Get(key interface{}) (interface{}, bool) {
 	prefixedKey, _, err := c.encodeKey(key)
 	if err != nil {
@@ -95,7 +96,7 @@ func (c *RedisLRUCache) Get(key interface{}) (interface{}, bool) {
 	return ret, true
 }
 
-// Remove, see the diff.LRUCache interface for details.
+// Remove, see the util.LRUCache interface for details.
 func (c *RedisLRUCache) Remove(key interface{}) {
 	conn := c.pool.Get()
 	defer util.Close(conn)
@@ -121,6 +122,11 @@ func (c *RedisLRUCache) Purge() {
 	}
 }
 
+// Releases resources used by the cache. Does not modify the Redis server.
+func (c *RedisLRUCache) Close() error {
+	return c.pool.Close()
+}
+
 // Keys returns all current keys in the cache.
 func (c *RedisLRUCache) Keys() []interface{} {
 	conn := c.pool.Get()
@@ -144,7 +150,7 @@ func (c *RedisLRUCache) Keys() []interface{} {
 	return result
 }
 
-// Len, see the diff.LRUCache interface for details.
+// Len, see the util.LRUCache interface for details.
 func (c *RedisLRUCache) Len() int {
 	conn := c.pool.Get()
 	defer util.Close(conn)
@@ -226,7 +232,7 @@ type RedisPool struct {
 }
 
 // NewRedisPool returns a new instance of RedisPool that connects to the given
-// server and database.
+// server and database. The RedisPool should be closed when no longer needed.
 func NewRedisPool(serverAddr string, db int) *RedisPool {
 	dial := func() (redis.Conn, error) {
 		c, err := redis.Dial("tcp", serverAddr)
