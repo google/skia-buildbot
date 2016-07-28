@@ -427,7 +427,7 @@
               // commit in a temporal timeline.  But, it was the previously drawn commit, so the
               // name sticks.
               var prevCommit = commits[i-1];
-              var prevDetails = build_details[prevCommit.hash];
+              var prevDetails = build_details[prevCommit.hash] || {};
               if (prevCommit.parent.indexOf(commit.hash) === -1) {
                 // We skipped one or more commits.  This is likely due to a branch.  We need to find the last drawn commit whose parent is this one.
                 prevCommit = undefined;
@@ -441,7 +441,7 @@
                   // If the previously drawn commit does not exist, it basically means we are the
                   // head of the branch.  If it does exist, we change it to have a dashed bottom
                   // and for this commit to have a dashed top.
-                  prevDetails = build_details[prevCommit.hash];
+                  prevDetails = build_details[prevCommit.hash] || {};
                   var prevBuild = prevDetails[builder];
                   // Only continue drawing if it's actually the same build
                   if (prevBuild && prevBuild.number == build.number) {
@@ -531,6 +531,7 @@
 
         // Actually draw the commits.
         this.set("commits", commits);
+        console.log(commits);  // TODO(kjlubick): Remove this once we've solved skia:5575.
         this.set("branch_heads", data.branch_heads);
         this.set("time_points", time_points);
         console.timeEnd("totalLoadTime");
