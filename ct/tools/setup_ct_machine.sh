@@ -26,9 +26,11 @@ make
 sudo make install
 
 # Checkout depot_tools
-cd /b/
-git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
-echo 'export PATH=/b/depot_tools:$PATH' >> ~/.bashrc
+if [ ! -d "/b/depot_tools" ]; then
+  cd /b/
+  git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+  echo 'export PATH=/b/depot_tools:$PATH' >> ~/.bashrc
+fi
 
 # Checkout Chromium repository.
 mkdir -p /b/storage/chromium;
