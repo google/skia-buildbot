@@ -1,6 +1,6 @@
   <!-- The <cluster-page-sk> custom element declaration.
 
-    Displays the cluster view for a single test. 
+    Displays the cluster view for a single test.
 
     Attributes:
       None
@@ -10,12 +10,12 @@
 
     Methods:
       pageSelected - Called by the router when view is visible.
-    
-      pageDeselected - Called by the router when the view is no longer visible. 
+
+      pageDeselected - Called by the router when the view is no longer visible.
 
   -->
 
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
@@ -25,8 +25,8 @@
 <link rel="import" href="bower_components/paper-tabs/paper-tabs.html">
 <link rel="import" href="bower_components/paper-tabs/paper-tab.html">
 
-<link rel="import" href="../common/imp/9/sort.html">
-<link rel="import" href="../common/imp/9/paramset.html">
+<link rel="import" href="../common/imp/sort.html">
+<link rel="import" href="../common/imp/paramset.html">
 
 <link rel="import" href="digest-details-sk.html">
 <link rel="import" href="cluster-sk.html">
@@ -92,7 +92,7 @@
 
             <div hidden$="{{_hideBulkTriage(_digestList)}}">
               <h3>Bulk Triage</h3>
-              <triage-sk value="{{_triageStatus}}" 
+              <triage-sk value="{{_triageStatus}}"
                          id="bulkTriage">
               </triage-sk>
 
@@ -120,18 +120,18 @@
             value: 0
           },
           _digestList: {
-            type: Array, 
+            type: Array,
             value: function() { return []; }
           },
           _triageStatus: "untriaged"
         },
 
         ready: function() {
-          this.listen(this.$.clusterContainer, 'paramset-key-click', '_handleParamsetKeyClick'); 
+          this.listen(this.$.clusterContainer, 'paramset-key-click', '_handleParamsetKeyClick');
           this.listen(this.$.clusterContainer, 'paramset-key-value-click', '_handleParamsetValueClick');
           this.listen(this.$.clusterContainer, 'digest-select', '_handleDigestsSelected');
           this.listen(this.$.bulkTriage, 'change', '_handleBulkTriageChange');
-          this.listen(this, 'triage', '_handleTriage'); 
+          this.listen(this, 'triage', '_handleTriage');
           this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
         },
 
@@ -139,38 +139,38 @@
           this.$.clusterView.startUse();
           this._loadParamset();
 
-          // Initialize the state and set values of the controls. 
+          // Initialize the state and set values of the controls.
           this._initState(ctx, gold.defaultSearchState);
           this.$.searchControls.setState(this._state);
 
-          this._loadClusterDiff(); 
+          this._loadClusterDiff();
         },
 
         pageDeselected: function() {
-          this.$.clusterView.endUse(); 
+          this.$.clusterView.endUse();
         },
 
         _loadParamset: function() {
           sk.get("/json/paramset").then(JSON.parse).then(function (json) {
             this.$.searchControls.setParamSet(json);
-          }.bind(this)).catch(sk.errorMessage);          
+          }.bind(this)).catch(sk.errorMessage);
         },
 
         _loadClusterDiff: function() {
           gold.loadWithActivity(this, "/json/clusterdiff" + window.location.search, this.$.activityMain, function(json) {
-            this._data = json; 
+            this._data = json;
             this.$.clusterView.setData(json);
             this.$.parameters.setParamSets([json.paramsetsUnion]);
-          }.bind(this)); 
+          }.bind(this));
         },
 
         _handleStateChange: function(ev) {
-          // Reload the page with the new  state in the query parameters. 
-          this._redirectToState(ev.detail); 
+          // Reload the page with the new  state in the query parameters.
+          this._redirectToState(ev.detail);
         },
 
         _handleParamsetKeyClick: function(ev) {
-          ev.stopPropagation(); 
+          ev.stopPropagation();
 
           var text = {};
           var key = ev.detail.key;
@@ -181,14 +181,14 @@
             }
           }.bind(this));
           this.$.clusterView.setTextNodes(text, ev.detail.ctrl);
-        }, 
+        },
 
         _handleParamsetValueClick: function(ev) {
-          ev.stopPropagation(); 
+          ev.stopPropagation();
 
           var text = {};
           var value = ev.detail.value;
-          var key = ev.detail.key; 
+          var key = ev.detail.key;
           Object.keys(this._data.paramsetByDigest).forEach(function(digest) {
             var paramset = this._data.paramsetByDigest[digest];
             if (paramset[key] && (paramset[key].indexOf(value) !== -1)) {
@@ -196,7 +196,7 @@
             }
           }.bind(this));
           this.$.clusterView.setTextNodes(text, ev.detail.ctrl);
-        }, 
+        },
 
         _handleBulkTriageChange: function(ev) {
           ev.stopPropagation();
@@ -213,25 +213,25 @@
           sk.post('/json/triage', JSON.stringify(ev.detail)).then(function() {
             this.$.clusterView.newTriageStatus(ev.detail.digest, ev.detail.status);
           }.bind(this)).catch(sk.errorMessage);
-        }, 
+        },
 
         _handleDigestsSelected: function(ev) {
-          ev.stopPropagation(); 
+          ev.stopPropagation();
 
           this.set('_digestList', ev.detail);
 
-          // If there are no digests do nothing. 
+          // If there are no digests do nothing.
           if (this._digestList.length == 0) {
-            return; 
+            return;
           }
 
-          // Switch to the digest tab. 
-          this._currentTab = 1; 
+          // Switch to the digest tab.
+          this._currentTab = 1;
           var url;
 
           if (this._digestList.length == 1) {
-            // Show detailed information about the one selected digest. 
-            url = "/json/details" + gold.detailQuery(this._data.test, this._digestList[0]); 
+            // Show detailed information about the one selected digest.
+            url = "/json/details" + gold.detailQuery(this._data.test, this._digestList[0]);
             this.$.oneDigest.clear();
             gold.loadWithActivity(this, url, this.$.activityDetail, '_digestDetails');
           } else if (this._digestList.length == 2) {
@@ -240,10 +240,10 @@
             this.$.diffTwo.clear();
             gold.loadWithActivity(this, url, this.$.activityDiff, '_diffData');
           } else {
-            // Show the option to bulk triage all selected digests. 
-            this._setBulkTriage(this._digestList); 
+            // Show the option to bulk triage all selected digests.
+            this._setBulkTriage(this._digestList);
           }
-        }, 
+        },
 
         _setBulkTriage: function(selected) {
           this.set("_triageStatus", "untriaged");
@@ -269,12 +269,12 @@
           this.$.bulkParamset.setParamSets([paramset]);
         },
 
-        _hideBulkTriage: function(digestList) { 
-          return digestList.length <= 2; 
+        _hideBulkTriage: function(digestList) {
+          return digestList.length <= 2;
         },
 
         _lenIsNot: function(digestList, len) {
-          return digestList.length !== len; 
+          return digestList.length !== len;
         }
       });
   </script>

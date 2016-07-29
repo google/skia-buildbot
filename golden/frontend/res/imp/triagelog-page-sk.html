@@ -1,18 +1,18 @@
 <!--
   The <triagelog-page-sk> custom element declaration.
 
-  A container element to display the transactional changes to 
-  the expecations database. For each transaction there is an 
+  A container element to display the transactional changes to
+  the expecations database. For each transaction there is an
   undo button.
 
   Attributes:
     None
 
   Methods:
-    pageSelected(ctx) - Called by the router when the view becomes visible. 
-          ctx is the context provided in the route dispatch of page.js. 
-    
-    pageDeselected - Called by the router when the view is no longer visible. 
+    pageSelected(ctx) - Called by the router when the view becomes visible.
+          ctx is the context provided in the route dispatch of page.js.
+
+    pageDeselected - Called by the router when the view is no longer visible.
 
   Events:
     None
@@ -21,14 +21,14 @@
     None
 -->
 
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/iron-icons/image-icons.html">
 
-<link rel="import" href="../common/imp/9/paging.html">
+<link rel="import" href="../common/imp/paging.html">
 
 <link rel="import" href="activity-sk.html">
 <link rel="import" href="shared-styles.html">
@@ -93,7 +93,7 @@
     <div class="horizontal layout">
       <div class="topToggle">
         Details
-        <paper-toggle-button id="detailsToggle" 
+        <paper-toggle-button id="detailsToggle"
                              checked="{{_state.details}}">
         </paper-toggle-button>
       </div>
@@ -135,7 +135,7 @@
         size: 20,
         offset: 0,
         total: 0
-      }; 
+      };
 
       var defaultState = {
         size: defaultPagination.size,
@@ -148,7 +148,7 @@
 
         behaviors: [gold.PageStateBehavior],
 
-        properties: { 
+        properties: {
           _pagination: {
             type: Object,
             value: function() { return sk.object.shallowCopy(defaultPagination); },
@@ -168,7 +168,7 @@
         pageDeselected: function() {},
 
         _stateChanged: function(ev) {
-          // We only need pagination here, because the toggle writes directly to state. 
+          // We only need pagination here, because the toggle writes directly to state.
           this._redirectToState(this._pagination);
         },
 
@@ -176,7 +176,7 @@
           this.$.activityTriageLog.startSpinner("Loading ...");
           promise.then(JSON.parse).then(function (json) {
             this.logEntries = json.data;
-            this._replaceState(json.pagination); 
+            this._replaceState(json.pagination);
             this.set('_pagination', json.pagination);
             this.$.activityTriageLog.stopSpinner();
           }.bind(this)).catch(function(e) {
@@ -190,7 +190,7 @@
         },
 
         _undoHandler: function (ev) {
-          ev.stopPropagation(); 
+          ev.stopPropagation();
           var q = sk.query.fromObject({ id: ev.target.dataset.entryid });
           this._handleServerResponse(sk.post('/json/triagelog/undo?' + q));
         },

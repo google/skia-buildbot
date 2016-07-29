@@ -1,12 +1,12 @@
 <!-- The <multi-zoom-sk> custom element declaration.
 
-This element is a view that allows zooming into images.  
+This element is a view that allows zooming into images.
 It displays the three images, left, top and diff, and then allows zooming and
 panning over various combinations of the images. There is a single pixel in
 the center of the zoomed view which is highlighted, and its information is
 displayed on the zoom dialog.
 
-There are three images that it deals with, called left, top, and diff.  
+There are three images that it deals with, called left, top, and diff.
 
   Attributes:
     None
@@ -32,15 +32,15 @@ There are three images that it deals with, called left, top, and diff.
 
 -->
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 <link rel="import" href="bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 
-<link rel=import href="../common/imp/9/canvas-layers.html">
-<link rel=import href="../common/imp/9/crosshair.html">
-<link rel=import href="../common/imp/9/zoom.html">
+<link rel=import href="../common/imp/canvas-layers.html">
+<link rel=import href="../common/imp/crosshair.html">
+<link rel=import href="../common/imp/zoom.html">
 
 <link rel="import" href="shared-styles.html">
 
@@ -70,7 +70,7 @@ There are three images that it deals with, called left, top, and diff.
     }
 
     .selectorWrapper {
-      font-size: 16px; 
+      font-size: 16px;
     }
 
     .imagesWrap {
@@ -104,10 +104,10 @@ There are three images that it deals with, called left, top, and diff.
                 <canvas-layers-sk layers='["crosshairLeft"]' id="layersLeft">
                   <img id="left_img" src$="{{details.leftImgUrl}}"/>
                 </canvas-layers-sk>
-                <crosshair-sk x="{{_x}}" 
+                <crosshair-sk x="{{_x}}"
                               y="{{_y}}"
-                              target="layersLeft" 
-                              name="crosshairLeft" 
+                              target="layersLeft"
+                              name="crosshairLeft"
                               update_on="click">
                 </crosshair-sk>
               </div>
@@ -123,10 +123,10 @@ There are three images that it deals with, called left, top, and diff.
                 <canvas-layers-sk layers='["crosshairMiddle"]' id="layersMiddle">
                   <img id="middle_img" src$="{{details.middleImgUrl}}"/>
                 </canvas-layers-sk>
-                <crosshair-sk x="{{_x}}" 
+                <crosshair-sk x="{{_x}}"
                               y="{{_y}}"
-                              target="layersMiddle" 
-                              name="crosshairMiddle" 
+                              target="layersMiddle"
+                              name="crosshairMiddle"
                               update_on="click">
                 </crosshair-sk>
               </div>
@@ -143,10 +143,10 @@ There are three images that it deals with, called left, top, and diff.
                 <canvas-layers-sk layers='["crosshairRight"]' id="layersRight">
                   <img id="right_img" src$="{{details.rightImgUrl}}"/>
                 </canvas-layers-sk>
-                <crosshair-sk x="{{_x}}" 
+                <crosshair-sk x="{{_x}}"
                               y="{{_y}}"
-                              target="layersRight" 
-                              name="crosshairRight" 
+                              target="layersRight"
+                              name="crosshairRight"
                               update_on="click">
                 </crosshair-sk>
               </div>
@@ -162,28 +162,28 @@ There are three images that it deals with, called left, top, and diff.
           <div class="layout horizontal wrap">
             <div class="layout vertical zoomContainer">
               <zoom-sk  hidden$="{{_hideMe(_currSeq, 'left')}}"
-                        source="left_img" 
-                        pixels="{{_pixels}}" 
+                        source="left_img"
+                        pixels="{{_pixels}}"
                         id="zoomLeft"
                         x="{{_x}}"
                         y="{{_y}}">
               </zoom-sk>
 
               <zoom-sk  hidden$="{{_hideMe(_currSeq, 'middle')}}"
-                        source="middle_img" 
-                        pixels="{{_pixels}}" 
-                        id="zoomMiddle" 
-                        x="{{_x}}" 
+                        source="middle_img"
+                        pixels="{{_pixels}}"
+                        id="zoomMiddle"
+                        x="{{_x}}"
                         y="{{_y}}">
               </zoom-sk>
 
               <zoom-sk hidden$="{{_hideMe(_currSeq, 'right')}}"
-                       source="right_img" 
-                        pixels="{{_pixels}}" 
-                       id="zoomRight" 
-                       x="{{_x}}" 
+                       source="right_img"
+                        pixels="{{_pixels}}"
+                       id="zoomRight"
+                       x="{{_x}}"
                        y="{{_y}}">
-              </zoom-sk> 
+              </zoom-sk>
             </div>
           </div>
         </div>
@@ -230,11 +230,11 @@ There are three images that it deals with, called left, top, and diff.
 
       properties:{
         details: {
-          type: Object, 
+          type: Object,
           value: function() { return {}; }
         },
 
-        _currSeq: '', 
+        _currSeq: '',
 
         _leftActive: {
           type: Boolean,
@@ -255,31 +255,31 @@ There are three images that it deals with, called left, top, and diff.
         },
 
         _x : {
-          type: Number, 
+          type: Number,
           value: 0,
           notify: true
         },
 
         _y : {
-          type: Number, 
+          type: Number,
           value: 0,
           notify: true
         },
 
         _pixels : {
-          type: Number, 
-          value: 64, 
+          type: Number,
+          value: 64,
           notify: true
         },
 
         _centerPixel: {
-          type: Object, 
+          type: Object,
           value: function() { return {}; }
         }
       },
 
       ready: function(){
-        this._seq = []; 
+        this._seq = [];
         this.listen(this.$.zoomLeft, 'zoom-point', '_handleZoomPixels');
         this.listen(this.$.zoomMiddle, 'zoom-point', '_handleZoomPixels');
         this.listen(this.$.zoomRight, 'zoom-point', '_handleZoomPixels');
@@ -289,18 +289,18 @@ There are three images that it deals with, called left, top, and diff.
       setDetails: function(details) {
         details = sk.object.shallowCopy(details);
         details.llabel = details.llabel || "Left";
-        details.rlabel = details.rlabel || "Right"; 
+        details.rlabel = details.rlabel || "Right";
 
         this.set('_leftActive', true);
         this.set('_middleActive', false);
         this.set('_rightActive', true);
-        this.set('_x', 0); 
+        this.set('_x', 0);
         this.set('_y', 0);
         this.set('details', details);
         this.set('_pixels', 64);
         this._updateTiming();
         this._showNext(true);
-        this._active = true; 
+        this._active = true;
         this.$.zoomLeft.notifyResize();
         this.$.zoomMiddle.notifyResize();
         this.$.zoomRight.notifyResize();
@@ -309,7 +309,7 @@ There are three images that it deals with, called left, top, and diff.
       clear: function(details) {
         this.set('details', {});
         this._cancelAsync();
-        this._active = false; 
+        this._active = false;
       },
 
       _cancelAsync: function() {
@@ -317,16 +317,16 @@ There are three images that it deals with, called left, top, and diff.
           this.cancelAsync(this._asyncHandle);
           this._asyncHandle = null;
         }
-      }, 
+      },
 
       _showNext: function(triggerAsync) {
         var currSeq = '';
         if (this._seq.length > 0) {
           var idx = this._seq.indexOf(this._currSeq);
           if (idx < 0) {
-            idx = 0; 
+            idx = 0;
           } else {
-            idx = (idx+1) % this._seq.length;  
+            idx = (idx+1) % this._seq.length;
           }
           currSeq = this._seq[idx];
         }
@@ -336,16 +336,16 @@ There are three images that it deals with, called left, top, and diff.
             this._showNext(true);
           }.bind(this), 500);
         }
-      }, 
+      },
 
       _updateTiming: function() {
-        var seq = []; 
-        if (this._leftActive) { 
+        var seq = [];
+        if (this._leftActive) {
           seq.push("left");
         }
 
         if (this._middleActive && this.details.middleImgUrl && (this.details.middleImgUrl != '')) {
-          seq.push('middle'); 
+          seq.push('middle');
         }
 
         if (this._rightActive && this.details.rightImgUrl && (this.details.rigthImgUrl != '')) {
@@ -368,7 +368,7 @@ There are three images that it deals with, called left, top, and diff.
             Math.abs(lc[2]-rc[2]),
             Math.abs(lc[3]-rc[3])
           ];
-          var diffStr = sk.colorRGB(color, 0) + ' ' + sk.colorHex(color, 0); 
+          var diffStr = sk.colorRGB(color, 0) + ' ' + sk.colorHex(color, 0);
           this.set("_centerPixel.zoomMiddle", diffStr);
         }
       },
@@ -407,7 +407,7 @@ There are three images that it deals with, called left, top, and diff.
             this._manualToggle();
             break;
         }
-        
+
         if ("JKHLAZUM".indexOf(c) != -1 ) {
           e.stopPropagation();
         }
@@ -415,15 +415,15 @@ There are three images that it deals with, called left, top, and diff.
 
       _moveToLargestDiff: function() {
         if (!this.details || !this.details.middleImgUrl) {
-          return; 
+          return;
         }
 
         var leftColors = this.$.zoomLeft.getImageData();
         var rightColors = this.$.zoomRight.getImageData();
         var width = leftColors.width;
         var height = leftColors.height;
-        var lc = leftColors.data; 
-        var rc = rightColors.data; 
+        var lc = leftColors.data;
+        var rc = rightColors.data;
         var max = 0;
         var dx = 0;
         var dy = 0
@@ -455,27 +455,27 @@ There are three images that it deals with, called left, top, and diff.
 
       _manualToggle: function() {
         if (!this.details || !this.details.middleImgUrl) {
-          return; 
+          return;
         }
 
         this._cancelAsync();
-        this._showNext(false); 
-      }, 
+        this._showNext(false);
+      },
 
-      _hideMe: function(currSeq, pos) {  
-        return currSeq != pos; 
+      _hideMe: function(currSeq, pos) {
+        return currSeq != pos;
       },
 
       _boldClass: function(currSeq, pos) {
-        return (currSeq==pos) ? 'showBold' : ''; 
-      }, 
+        return (currSeq==pos) ? 'showBold' : '';
+      },
 
       _hideImg: function(url) {
         return !url;
-      }, 
+      },
 
       _noImage: function(details) {
-        return !(details && details.leftImgUrl); 
+        return !(details && details.leftImgUrl);
       }
 
 

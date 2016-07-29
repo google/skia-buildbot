@@ -1,15 +1,15 @@
 <!-- The <by-blame-page-sk> custom element declaration.
 
-  A container element to display the current untriaged digests grouped by 
-  blames. 
+  A container element to display the current untriaged digests grouped by
+  blames.
 
   Attributes:
     None
 
   Methods:
     pageSelected: This function has to be called if the page is selected
-    via a route. It's  equivalent to the ready function, when we don't 
-    want to trigger loading the content unless a user selects the page. 
+    via a route. It's  equivalent to the ready function, when we don't
+    want to trigger loading the content unless a user selects the page.
 
   Events:
     None
@@ -20,7 +20,7 @@
 -->
 
 <link rel="import" href="bower_components/polymer/polymer.html"> 
-<link rel="import" href="../common/imp/9/commit-panel.html" />
+<link rel="import" href="../common/imp/commit-panel.html" />
 
 <link rel="import" href="shared-styles.html">
 <link rel="import" href="activity-sk.html">
@@ -112,7 +112,7 @@
 
       properties:{
         data: {
-          type: Array, 
+          type: Array,
           value: []
         }
       },
@@ -123,26 +123,26 @@
         sk.get("/json/byblame").then(JSON.parse).then(function (json) {
           // Send the commits to the mailboxes identified by the group id.
           json.data.forEach(function(curr) {
-            sk.Mailbox.send(curr.groupID, curr.commits); 
+            sk.Mailbox.send(curr.groupID, curr.commits);
           });
-          this.set('data', json.data); 
-          this.$.activityMain.stopSpinner(); 
+          this.set('data', json.data);
+          this.$.activityMain.stopSpinner();
         }.bind(this)).catch(function(e) {
-          this.$.activityMain.stopSpinner(); 
+          this.$.activityMain.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
     	},
 
-      // pageDeselected is called by the router when this view enters the background. 
+      // pageDeselected is called by the router when this view enters the background.
       pageDeselected: function() {},
-      
+
       _detailHref: function(item) {
-        return '/detail' + gold.detailQuery(item.test, item.sample_digest); 
+        return '/detail' + gold.detailQuery(item.test, item.sample_digest);
       },
 
       _hasEntries: function(data) {
         return data && (data.length > 0);
-      }, 
+      },
 
       _noBlames: function(item) {
         return !item.commits || (item.commits.lenght == 0);

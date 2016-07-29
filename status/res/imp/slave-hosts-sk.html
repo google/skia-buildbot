@@ -1,0 +1,121 @@
+<!--
+  This in an HTML Import-able file that contains the definition
+  of the following elements:
+
+    <slave-hosts-sk>
+
+  To use this file import it:
+
+    <link href="/res/imp/slave-hosts-sk.html" rel="import" />
+
+  Usage:
+
+    <slave-hosts-sk></slave-hosts-sk>
+
+  Properties:
+    None.
+
+  Methods:
+    None.
+
+  Events:
+    None.
+-->
+
+
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-input/paper-input.html">
+
+<link rel="import" href="/res/common/imp/app-sk.html">
+<link rel="import" href="/res/common/imp/url-params-sk.html">
+
+<link rel="import" href="slave-hosts-data-sk.html">
+<link rel="import" href="slave-hosts-display-sk.html">
+<link rel="import" href="status-menu-section-sk.html">
+
+<dom-module id="slave-hosts-sk">
+  <template>
+    <style include="iron-positioning">
+      :host{
+        --app-sk-main: {
+          background-color: #FFFFFF;
+          font-family: sans-serif;
+        };
+        login-sk{
+          --login-sk-color: white;
+        };
+      }
+      app-sk {
+        --app-sk-toolbar: {
+          color: #FFFFFF;
+          font-size: 15px;
+          font-family: sans-serif;
+          text-align: center;
+          background-color: #006600;
+        };
+      }
+      div.filter {
+        margin: 5px;
+        padding: 0px 10px;
+      }
+    </style>
+
+    <url-param-sk name="filter" value="{{filter}}" default=""></url-param-sk>
+
+    <app-sk id="app"
+      class="fit"
+      mode="waterfall"
+      tall_class="medium-tall"
+      responsive_width="800px">
+      <status-menu-section-sk navigation></status-menu-section-sk>
+      <h1 toolbar>SkiaLab Hosts</h1>
+
+      <div class="filter">
+        <paper-input label="Filter" value="{{filter}}"></paper-input>
+      </div>
+
+      <slave-hosts-display-sk on-filter="_updateFilter"
+        android_devices="[[android_devices]]"
+        hosts="[[hosts]]"
+        host_names="[[host_names]]"
+        ssh_devices="[[ssh_devices]]">
+      </slave-hosts-display-sk>
+
+      <slave-hosts-data-sk
+        filter="[[filter]]"
+
+        android_devices="{{android_devices}}"
+        hosts="{{hosts}}"
+        host_names="{{host_names}}"
+        ssh_devices="{{ssh_devices}}">
+      </slave-hosts-data-sk>
+    </app-sk>
+  </template>
+  <script>
+  Polymer({
+    is:"slave-hosts-sk",
+
+    properties: {
+      android_devices: {
+        type: Object,
+      },
+      filter: {
+        type: String,
+      },
+      hosts: {
+        type: Object,
+      },
+      host_names: {
+        type: Array,
+      },
+      ssh_devices: {
+        type: Object,
+      }
+    },
+
+    _updateFilter: function(e) {
+      this.set("filter",e.detail.filter);
+    }
+  });
+  </script>
+</dom-module>

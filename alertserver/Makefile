@@ -15,8 +15,11 @@ include ../go/skiaversion/skiaversion.mk
 
 all: clean_webtools alertserver
 
-alertserver: core_js elements_html skiaversion
+alertserver: web skiaversion
 	go install -v ./go/alertserver
+
+.PHONY: web
+web: clean_webtools elements_html core_js
 
 push: alertserver
 	./build_release "`git log -n1 --format=%s`"

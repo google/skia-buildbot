@@ -80,11 +80,11 @@ var (
 	}
 
 	POLYMER_PATHS = []string{
-		"res/imp/9",
-		"alertserver/res/imp/9",
+		"res/imp",
+		"alertserver/res/imp",
 		"autoroll/res/imp",
 		"fuzzer/res/imp",
-		"status/res/imp/9",
+		"status/res/imp",
 	}
 )
 

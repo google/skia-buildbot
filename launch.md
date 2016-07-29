@@ -32,7 +32,7 @@ authentication.
 Call `common.InitWithMetrics2("<service name>", influxHost, influxUser, influxPassword, influxDatabase, local)`
 in your main function.
 
-Use `go.skia.org/infra/go/login` paired with `res/imp/9/login.html` and/or
+Use `go.skia.org/infra/go/login` paired with `res/imp/login.html` and/or
 `go.skia.org/infra/go/webhook` for authentication.
 
 Wrap your `http.Handler` with

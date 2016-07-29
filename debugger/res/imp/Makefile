@@ -1,12 +1,8 @@
 # Set up the local directory to run the demo pages.
 default:
-	bower install
+	ln -sf ../../res res
 	npm install http-server
-	rm -rf res/
-	mkdir --parents res/imp
-	ln -sf ../../bower_components res/imp/bower_components
-	ln -sf ../../../res/common res/common
 
 # Run a local HTTP server for the demo pages.
 run:
-	node_modules/.bin/http-server -p 8080 -a 127.0.0.1 -c-1
+	../../node_modules/.bin/http-server -p 8080 -a 127.0.0.1 -c-1

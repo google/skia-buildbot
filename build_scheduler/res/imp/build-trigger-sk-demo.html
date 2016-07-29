@@ -20,19 +20,19 @@
             var result = [];
             for (var i = 0; i < data["builders"].length; ++i) {
               result.push({
-                "bucket": "client.skia", 
-                "completed_ts": "", 
-                "created_by": "", 
-                "created_ts": "", 
-                "failure_reason": "", 
+                "bucket": "client.skia",
+                "completed_ts": "",
+                "created_by": "",
+                "created_ts": "",
+                "failure_reason": "",
                 "id": "ID:" + data["builders"][i],
-                "parameters_json": "", 
-                "result": "", 
-                "result_details_json": "", 
-                "status": "", 
-                "status_changed_ts": "", 
-                "updated_ts": "", 
-                "url": "", 
+                "parameters_json": "",
+                "result": "",
+                "result_details_json": "",
+                "status": "",
+                "status_changed_ts": "",
+                "updated_ts": "",
+                "url": "",
                 "utcnow_ts": ""
               });
             }
@@ -43,7 +43,7 @@
     }
   </script>
   <link rel="import" href="build-trigger-sk.html">
-  <link rel="import" href="/res/common/imp/9/error-toast-sk.html">
+  <link rel="import" href="/res/common/imp/error-toast-sk.html">
 </head>
 <body>
 <dom-module id="build-trigger-demo">

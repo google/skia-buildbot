@@ -22,9 +22,9 @@
        }
 -->
 
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
-<link rel="import" href="../common/imp/9/commit-panel.html" />
+<link rel="import" href="../common/imp/commit-panel.html" />
 
 <dom-module id="commits-dialog-sk">
   <template>
@@ -49,7 +49,7 @@
 
       ready: function () {
         this.listen(this.parentElement, 'commit-selected', '_handleCommitSelected');
-        this.$.commitsDialog.positionTarget = document.body; 
+        this.$.commitsDialog.positionTarget = document.body;
       },
 
       _handleCommitSelected: function(ev) {
@@ -60,11 +60,10 @@
         if (this.$.commitsDialog.opened) {
           this.$.commitsDialog.close();
         }
-        this.$.commitsPanel.setCommitInfo(commitInfo); 
+        this.$.commitsPanel.setCommitInfo(commitInfo);
         this.$.commitsDialog.open();
       }
 
     });
   </script>
 </dom-module>
-  

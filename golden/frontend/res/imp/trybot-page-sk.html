@@ -1,14 +1,14 @@
 <!--
   Renders a list of Rietveld issues that have trybot runs associated with them.
 
-  Attributes: 
+  Attributes:
     None
 
   Methods:
-    pageSelected(ctx) - Called by the router when the view becomes visible. 
-          ctx is the context provided in the route dispatch of page.js. 
-    
-    pageDeselected - Called by the router when the view is no longer visible. 
+    pageSelected(ctx) - Called by the router when the view becomes visible.
+          ctx is the context provided in the route dispatch of page.js.
+
+    pageDeselected - Called by the router when the view is no longer visible.
 
   Events:
     None
@@ -23,7 +23,7 @@
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/iron-icons/image-icons.html">
 
-<link rel="import" href="../common/imp/9/paging.html">
+<link rel="import" href="../common/imp/paging.html">
 
 <link rel="import" href="activity-sk.html">
 <link rel="import" href="shared-styles.html">
@@ -38,37 +38,37 @@
         .patchsetHeader {
           font-weight: bold;
         }
-  
+
         .nameHeader,
         .nameValue {
           width: 8em;
         }
-  
+
         .dateTimeHeader,
         .dateTimeValue {
           width: 12em;
         }
-  
+
         .subjectHeader,
         .subjectValue {
           min-width: 15em;
           max-width: 35em;
         }
-  
+
         .issueHeader,
         .issueValue {
           width: 6em;
         }
-  
+
         .patchsetHeader,
         .patchsetValue {
           width: 7em;
         }
-  
+
         .headerContainer {
           padding-top: 2em;
         }
-  
+
         tr.rowEntry:hover td {background:#DDDDDD}
     </style>
 
@@ -88,7 +88,7 @@
             <tr class="rowEntry">
               <td class="issueValue"><a target="_blank" title="See codereview in a new window" href$="{{item.url}}">{{item.id}}</a></td>
               <td class="patchsetValue">
-                <a title$="Results up to Patchset {{item.patchsets.length}}" 
+                <a title$="Results up to Patchset {{item.patchsets.length}}"
                    href$="/search?issue={{item.id}}&unt=true&query={{_queryStr}}&master=false">
                       Patchset <span>{{item.patchsets.length}}</span>
                 </a>
@@ -138,14 +138,14 @@
         },
 
         pageDeselected: function() {
-          // This function is called by the router in gold-app-sk for all top level views. 
+          // This function is called by the router in gold-app-sk for all top level views.
         },
 
         _stateChanged: function(ev) {
-          // We only need pagination here, because the toggle writes directly to state. 
+          // We only need pagination here, because the toggle writes directly to state.
           this._redirectToState(this._pagination);
         },
-        
+
         // Load the listing.
         _load: function() {
           var q = window.location.search;

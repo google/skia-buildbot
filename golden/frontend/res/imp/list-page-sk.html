@@ -1,15 +1,15 @@
   <!-- The <list-page-sk> custom element declaration.
-  
-  Displays the summary of tests that match the search query in the URL. 
+
+  Displays the summary of tests that match the search query in the URL.
 
   Attributes:
     None
 
   Methods:
-    pageSelected(ctx) - Called by the router when the view becomes visible. 
-          ctx is the context provided in the route dispatch of page.js. 
-    
-    pageDeselected - Called by the router when the view is no longer visible. 
+    pageSelected(ctx) - Called by the router when the view becomes visible.
+          ctx is the context provided in the route dispatch of page.js.
+
+    pageDeselected - Called by the router when the view is no longer visible.
 
   Events:
     None
@@ -18,13 +18,13 @@
     None
 
   -->
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="bower_components/paper-button/paper-button.html">
 
-<link rel="import" href="../common/imp/9/sort.html">
+<link rel="import" href="../common/imp/sort.html">
 
 <link rel="import" href="activity-sk.html">
 <link rel="import" href="test-summary-sk.html">
@@ -40,7 +40,7 @@
         display: block;
         margin-top: 0.5em;
       }
-      
+
       .header {
         width: 25em;
       }
@@ -92,15 +92,15 @@
 
   <script>
    (function() {
-    
-    var NAME_FIELD = "name"; 
+
+    var NAME_FIELD = "name";
 
     Polymer({
       is: "list-page-sk",
 
       properties: {
         _state: {
-          type: Object, 
+          type: Object,
           value: null,
           notify: true
         }
@@ -110,7 +110,7 @@
 
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
-      }, 
+      },
 
       pageSelected: function(ctx) {
         this._loadParamset();
@@ -124,22 +124,22 @@
       _handleStateChange: function(ev) {
         // Reload the page with the new  state in the query parameters.
         this._redirectToState(ev.detail);
-      }, 
+      },
 
       _load: function() {
         var q = window.location.search;
         this.$.activityBar.startSpinner("Loading ...");
         sk.get("/json/list" + q).then(JSON.parse).then(function (json) {
-          // Remove the name field from the current query. 
+          // Remove the name field from the current query.
           this._currentQuery = sk.query.toParamSet(this._state.query);
           delete this._currentQuery[NAME_FIELD];
 
           this._displaySummaries(json);
-          this.$.activityBar.stopSpinner(); 
+          this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
           this.$.activityBar.stopSpinner();
           sk.errorMessage(e);
-        }.bind(this)); 
+        }.bind(this));
       },
 
       _displaySummaries: function(summaries) {
@@ -147,37 +147,37 @@
         sk.clearChildren(container);
         var stateCopy = gold.filterEmpty(this._state);
 
-        // The search string for the cluster link includes 
-        // positive, negatives and untriaged. 
+        // The search string for the cluster link includes
+        // positive, negatives and untriaged.
         var clusterStateCopy = gold.filterEmpty(this._state);
         clusterStateCopy.pos = true;
-        clusterStateCopy.neg = true; 
+        clusterStateCopy.neg = true;
         clusterStateCopy.unt = true;
 
         summaries.forEach(function(c, i) {
           var s = document.createElement("test-summary-sk");
-          s.summary = c; 
+          s.summary = c;
           s.search = this._searchStr(stateCopy, c);
           s.clusterSearch = this._searchStr(clusterStateCopy, c);
           container.appendChild(s);
         }.bind(this));
-      }, 
+      },
 
       _searchStr: function(baseState, summary) {
-        // Swap out the test name and generate the search string. 
-        this._currentQuery[NAME_FIELD] = summary.name; 
+        // Swap out the test name and generate the search string.
+        this._currentQuery[NAME_FIELD] = summary.name;
         baseState.query = sk.query.fromObject(this._currentQuery);
         return sk.query.fromObject(baseState);
-      }, 
+      },
 
       _loadParamset: function() {
         sk.get("/json/paramset").then(JSON.parse).then(function (json) {
           this.$.searchControls.setParamSet(json);
-        }.bind(this)).catch(sk.errorMessage);          
+        }.bind(this)).catch(sk.errorMessage);
       }
 
     });
 
-    })();   
+    })();
   </script>
 </dom-module>

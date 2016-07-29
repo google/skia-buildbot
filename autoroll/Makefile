@@ -15,6 +15,7 @@ include ../go/skiaversion/skiaversion.mk
 all: autoroll
 
 autoroll: core_js elements_html skiaversion
+	ln -sf ../../res res/imp/res	
 	go install -v ./go/autoroll
 
 testgo: skiaversion

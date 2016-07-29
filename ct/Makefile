@@ -16,7 +16,7 @@ include ../go/skiaversion/skiaversion.mk
 ctfe_migratedb:
 	go install -v ./go/ctfe_migratedb
 
-# Require clean_webtools to ensure changes to res/common/imp/9/*.html are reflected.
+# Require clean_webtools to ensure changes to res/common/imp/*.html are reflected.
 .PHONY: ctfe
 ctfe: res/css/ctfe.css clean_webtools core_js elements_html skiaversion ctfe_migratedb
 	go install -v ./go/ctfe
