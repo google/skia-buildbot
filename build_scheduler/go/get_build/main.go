@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"flag"
 	"path"
 
@@ -35,5 +37,15 @@ func main() {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	glog.Infof("Build: %s\n%v", build.Url, build)
+
+	// Pretty print the build.
+	b, err := json.Marshal(build)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	var out bytes.Buffer
+	if err := json.Indent(&out, b, "", "\t"); err != nil {
+		glog.Fatal(err)
+	}
+	glog.Infof("Build: %s\n%s", build.Url, out.String())
 }
