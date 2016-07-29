@@ -2,9 +2,11 @@ package buildskia
 
 import (
 	"encoding/base64"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/mockhttpclient"
 	"go.skia.org/infra/go/util"
 )
@@ -141,4 +143,44 @@ func TestGetSkiaHeadEmpty(t *testing.T) {
 
 	_, err = GetSkiaHead(client)
 	assert.Error(t, err)
+}
+
+func TestGNGen(t *testing.T) {
+	mock := exec.CommandCollector{}
+	exec.SetRunForTesting(mock.Run)
+	defer exec.SetRunForTesting(exec.DefaultRun)
+
+	err := GNGen("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", []string{"is_debug=true"})
+	assert.NoError(t, err)
+
+	got, want := exec.DebugString(mock.Commands()[0]), `gn gen out/Debug --args="is_debug=true"`
+	if !strings.HasSuffix(got, want) {
+		t.Errorf("Failed: Command %q doesn't end with %q", got, want)
+	}
+}
+
+func TestGNNinjaBuild(t *testing.T) {
+	mock := exec.CommandCollector{}
+	exec.SetRunForTesting(mock.Run)
+	defer exec.SetRunForTesting(exec.DefaultRun)
+
+	err := GNNinjaBuild("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "", false)
+	assert.NoError(t, err)
+	got, want := exec.DebugString(mock.Commands()[0]), "/mnt/pd0/depot_tools/ninja -C out/Debug"
+	if !strings.HasSuffix(got, want) {
+		t.Errorf("Failed: Command %q doesn't end with %q", got, want)
+	}
+}
+
+func TestGNNinjaBuildTarget(t *testing.T) {
+	mock := exec.CommandCollector{}
+	exec.SetRunForTesting(mock.Run)
+	defer exec.SetRunForTesting(exec.DefaultRun)
+
+	err := GNNinjaBuild("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "fiddle", false)
+	assert.NoError(t, err)
+	got, want := exec.DebugString(mock.Commands()[0]), "/mnt/pd0/depot_tools/ninja -C out/Debug fiddle"
+	if !strings.HasSuffix(got, want) {
+		t.Errorf("Failed: Command %q doesn't end with %q", got, want)
+	}
 }

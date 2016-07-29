@@ -231,6 +231,156 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 	}
 }
 
+// GNDownloadSkia uses depot_tools fetch to clone Skia from googlesource.com
+// and check it out to the specified gitHash for the specified branch. Upon
+// success, any dependencies needed to compile Skia have been installed.
+//
+//   branch - The empty string signifies the master branch.
+//   gitHash - The git hash to check out Skia at.
+//   path - The path to check Skia out into.
+//   depotToolsPath - The depot_tools directory.
+//   clean - If true clean out the directory before cloning Skia.
+//   installDeps - If true then run tools/install_dependencies.sh before
+//       syncing. The calling user should be sudo capable.
+//
+// It returns an error on failure.
+func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, installDeps bool) (*vcsinfo.LongCommit, error) {
+	glog.Infof("Cloning Skia gitHash %s to %s, clean: %t", gitHash, path, clean)
+
+	if clean {
+		util.RemoveAll(filepath.Join(path))
+	}
+
+	env := []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")}
+	fetchCmd := &exec.Command{
+		Name:        "fetch",
+		Args:        []string{"skia"},
+		Dir:         path,
+		InheritPath: false,
+		Env:         env,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+
+	if err := exec.Run(fetchCmd); err != nil {
+		// Failing to fetch might be because we already have Skia checked out here.
+		glog.Infof("Failed to fetch skia: %s", err)
+	}
+
+	repoPath := filepath.Join(path, "skia")
+	repo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia", repoPath, true)
+	if err != nil {
+		return nil, fmt.Errorf("Failed working with Skia repo: %s", err)
+	}
+
+	if branch != "" {
+		if err := repo.SetToBranch(branch); err != nil {
+			return nil, fmt.Errorf("Failed to change to branch %s: %s", branch, err)
+		}
+	}
+
+	if err = repo.SetToCommit(gitHash); err != nil {
+		return nil, fmt.Errorf("Problem setting Skia to gitHash %s: %s", gitHash, err)
+	}
+
+	if installDeps {
+		depsCmd := &exec.Command{
+			Name:        "sudo",
+			Args:        []string{"tools/install_dependencies.sh"},
+			Dir:         repoPath,
+			InheritPath: false,
+			Env:         env,
+			LogStderr:   true,
+			LogStdout:   true,
+		}
+
+		if err := exec.Run(depsCmd); err != nil {
+			return nil, fmt.Errorf("Failed installing dependencies: %s", err)
+		}
+	}
+
+	syncCmd := &exec.Command{
+		Name:        "gclient",
+		Args:        []string{"sync"},
+		Dir:         path,
+		InheritPath: false,
+		Env:         env,
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+
+	if err := exec.Run(syncCmd); err != nil {
+		return nil, fmt.Errorf("Failed syncing: %s", err)
+	}
+
+	if lc, err := repo.Details(gitHash, false); err != nil {
+		return nil, fmt.Errorf("Could not get git details for skia gitHash %s: %s", gitHash, err)
+	} else {
+		return lc, nil
+	}
+}
+
+// GNGen runs GN on Skia.
+//
+//   path       - The absolute path to the Skia checkout, should be the same
+//                path passed to DownloadSkiaGN.
+//   depotTools - The path to depot_tools.
+//   outSubDir  - The name of the sub-directory under 'out' to build in.
+//   args       - A slice of strings to pass to gn --args. See the skia
+//                BUILD.gn and https://skia.org/user/quick/gn.
+//
+// The results of the build are stored in path/skia/out/<outSubDir>.
+func GNGen(path, depotTools, outSubDir string, args []string) error {
+	genCmd := &exec.Command{
+		Name:        "gn",
+		Args:        []string{"gen", filepath.Join("out", outSubDir), fmt.Sprintf(`--args="%s"`, strings.Join(args, " "))},
+		Dir:         filepath.Join(path, "skia"),
+		InheritPath: false,
+		Env: []string{
+			"PATH=" + depotTools + ":" + os.Getenv("PATH"),
+		},
+		LogStderr: true,
+		LogStdout: true,
+	}
+	glog.Infof("About to run: %#v", *genCmd)
+
+	if err := exec.Run(genCmd); err != nil {
+		return fmt.Errorf("Failed gn gen: %s", err)
+	}
+	return nil
+}
+
+// GNNinjaBuild builds the given target using ninja.
+//
+//   path - The absolute path to the Skia checkout as passed into DownloadSkiaGN.
+//   depotToolsPath - The depot_tools directory.
+//   outSubDir - The name of the sub-directory under 'out' to build in.
+//   target - The specific target to build. Pass in the empty string to build all targets.
+//   verbose - If the build's std out should be logged (usally quite long)
+//
+// Returns an error on failure.
+func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) error {
+	args := []string{"-C", filepath.Join("out", outSubDir)}
+	if target != "" {
+		args = append(args, target)
+	}
+	buildCmd := &exec.Command{
+		Name:        filepath.Join(depotToolsPath, "ninja"),
+		Args:        args,
+		Dir:         path,
+		InheritPath: false,
+		Env:         []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")},
+		LogStderr:   true,
+		LogStdout:   verbose,
+	}
+	glog.Infof("About to run: %#v", *buildCmd)
+
+	if err := exec.Run(buildCmd); err != nil {
+		return fmt.Errorf("Failed ninja build: %s", err)
+	}
+	return nil
+}
+
 // NinjaBuild builds the given target using ninja.
 //
 //   skiaPath - The absolute path to the Skia checkout.
@@ -242,9 +392,6 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 //
 // Returns an error on failure.
 func NinjaBuild(skiaPath, depotToolsPath string, extraEnv []string, build ReleaseType, target string, numCores int, verbose bool) error {
-	if build == "" {
-		build = "Release"
-	}
 	buildCmd := &exec.Command{
 		Name:        filepath.Join(depotToolsPath, "ninja"),
 		Args:        []string{"-C", "out/" + string(build), "-j", fmt.Sprintf("%d", numCores), target},
