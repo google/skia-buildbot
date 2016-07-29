@@ -19,6 +19,10 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 		Bucket         = "skia-perf"
 		Dir            = "ct/10k"
 
+		[[Ingesters.nano.Sources]]
+		Bucket         = "skia-perf"
+		Dir            = "nano-json-v1"
+
 		[Ingesters.nano.ExtraParams]
 		TraceService   = "localhost:9000"
 
@@ -32,6 +36,10 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 
     [[Ingesters.nano-trybot.Sources]]
     Bucket         = "chromium-skia-gm"
+    Dir            = "trybot/nano-json-v1"
+
+    [[Ingesters.nano-trybot.Sources]]
+    Bucket         = "skia-perf"
     Dir            = "trybot/nano-json-v1"
 
     [Ingesters.nano-trybot.ExtraParams]
