@@ -136,7 +136,6 @@ func main() {
 	ingestGuage := metrics2.GetInt64Metric(MEASUREMENT_BUILDS_INGESTED, nil)
 	go func() {
 		for _ = range time.Tick(common.SAMPLE_PERIOD) {
-			glog.Infof("DEBUG: updating %s and %s", MEASUREMENT_BUILDS_TOTAL, MEASUREMENT_BUILDS_INGESTED)
 			totalBuilds, err := buildbot.NumTotalBuilds()
 			if err != nil {
 				glog.Error(err)
@@ -149,7 +148,6 @@ func main() {
 			}
 			totalGauge.Update(int64(totalBuilds))
 			ingestGuage.Update(int64(ingestedBuilds))
-			glog.Infof("DEBUG: updated %s and %s", MEASUREMENT_BUILDS_TOTAL, MEASUREMENT_BUILDS_INGESTED)
 		}
 	}()
 
@@ -164,7 +162,6 @@ func main() {
 				glog.Errorf("Failed to obtain build and buildstep duration data: %s", err)
 				continue
 			}
-			glog.Infof("DEBUG: loaded build and buildstep duration data from %s to %s", start, end)
 			for _, b := range builds {
 				if !b.IsFinished() {
 					continue
@@ -183,7 +180,6 @@ func main() {
 				for k, v := range builderNameParts {
 					tags[k] = v
 				}
-				glog.Infof("DEBUG: updating metrics for build %s", tags)
 				// Report build duration.
 				d := b.Finished.Sub(b.Started)
 				metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDS_DURATION, tags, int64(d), b.Finished)
@@ -205,7 +201,6 @@ func main() {
 						stepTags[k] = v
 					}
 					stepTags["step"] = s.Name
-					glog.Infof("DEBUG: updating metrics for build step %s", stepTags)
 					// Report step duration.
 					metrics2.RawAddInt64PointAtTime(MEASUREMENT_BUILDSTEPS_DURATION, stepTags, int64(d), s.Finished)
 
@@ -231,7 +226,6 @@ func main() {
 				glog.Error(err)
 				continue
 			}
-			glog.Infof("DEBUG: Loaded buildslave data")
 			currentSlaves := map[string]string{}
 			for masterName, m := range slaves {
 				for _, s := range m {
@@ -244,7 +238,6 @@ func main() {
 					if s.Connected {
 						v = int64(1)
 					}
-					glog.Infof("DEBUG: updating %s for %s", MEASUREMENT_BUILDSLAVES_CONNECTED, s.Name)
 					metrics2.GetInt64Metric(MEASUREMENT_BUILDSLAVES_CONNECTED, map[string]string{
 						"buildslave": s.Name,
 						"master":     masterName,
@@ -282,7 +275,6 @@ func main() {
 				continue
 			}
 			bots := append(skiaBots, ctBots...)
-			glog.Infof("DEBUG: Loaded Skia and CT Swarming bot data")
 
 			// Delete old metrics, replace with new ones. This fixes the case where
 			// bots are removed but their metrics hang around, or where dimensions
@@ -298,7 +290,6 @@ func main() {
 
 			now := time.Now()
 			for _, bot := range bots {
-				glog.Infof("DEBUG: updating swarming bot metrics for %s", bot.BotId)
 				last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
 				if err != nil {
 					glog.Error(err)
@@ -344,16 +335,13 @@ func main() {
 				glog.Error(err)
 				continue
 			}
-			glog.Infof("DEBUG: Loaded Swarming task data.")
 			glog.Infof("Revisiting %d tasks.", len(revisitTasks))
 			for id, _ := range revisitTasks {
-				glog.Infof("DEBUG: Loading Swarming task %s", id)
 				task, err := swarm.GetTask(id)
 				if err != nil {
 					glog.Error(err)
 					continue
 				}
-				glog.Infof("DEBUG: Loaded Swarming task %s", id)
 				tasks = append(tasks, task)
 			}
 			revisitTasks = map[string]bool{}
@@ -364,7 +352,6 @@ func main() {
 						continue
 					}
 
-					glog.Infof("DEBUG: Loading details for swarming task %s", task.TaskId)
 					// Get the created time for the task. We'll use that as the
 					// timestamp for all data points related to it.
 					createdTime, err := swarming.Created(task)
@@ -385,7 +372,6 @@ func main() {
 						glog.Errorf("Failed to find buildername for Swarming task: %v", task)
 						continue
 					}
-					glog.Infof("DEBUG: Loaded details for swarming task %s", task.TaskId)
 					builderTags, err := buildbot.ParseBuilderName(builderName)
 					if err != nil {
 						glog.Errorf("Failed to parse builder name for Swarming task: %s", err)
@@ -402,7 +388,6 @@ func main() {
 					for k, v := range builderTags {
 						tags[k] = v
 					}
-					glog.Infof("DEBUG: Updating metrics for swarming task %s %s", task.TaskId, tags)
 
 					// Task duration in milliseconds.
 					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_DURATION, tags, int64(task.TaskResult.Duration*float64(1000.0)), createdTime)
@@ -432,7 +417,6 @@ func main() {
 		skiaGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "skia"})
 		infraGauge := metrics2.GetInt64Metric("repo.commits", map[string]string{"repo": "infra"})
 		for _ = range time.Tick(5 * time.Minute) {
-			glog.Infof("DEBUG: Updating metrics repo.commits")
 			skiaGauge.Update(int64(skiaRepo.NumCommits()))
 			infraGauge.Update(int64(infraRepo.NumCommits()))
 		}
@@ -451,7 +435,6 @@ func main() {
 		}
 		setLastBackupTime := func() error {
 			last := time.Time{}
-			glog.Infof("DEBUG: Loading db_backup last timestamp")
 			if err := gs.AllFilesInDir(gsClient, "skia-buildbots", "db_backup", func(item *storage.ObjectAttrs) {
 				if item.Updated.After(last) {
 					last = item.Updated
@@ -459,7 +442,6 @@ func main() {
 			}); err != nil {
 				return err
 			}
-			glog.Infof("DEBUG: Loaded db_backup last timestamp")
 			lv.ManualReset(last)
 			glog.Infof("Last DB backup was %s.", last)
 			return nil
