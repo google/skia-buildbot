@@ -170,7 +170,7 @@ func (s *rpcServer) GetMaxBuildNumber(ctx context.Context, req *rpc.GetMaxBuildN
 }
 
 func (s *rpcServer) GetModifiedBuilds(ctx context.Context, req *rpc.GetModifiedBuildsRequest) (*rpc.Builds, error) {
-	builds, err := s.db.GetModifiedBuilds(req.Id)
+	builds, err := s.db.GetModifiedBuildsGOB(req.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -178,12 +178,8 @@ func (s *rpcServer) GetModifiedBuilds(ctx context.Context, req *rpc.GetModifiedB
 		Builds: make([]*rpc.Build, 0, len(builds)),
 	}
 	for _, b := range builds {
-		var buf bytes.Buffer
-		if err := gob.NewEncoder(&buf).Encode(b); err != nil {
-			return nil, err
-		}
 		rv.Builds = append(rv.Builds, &rpc.Build{
-			Build: buf.Bytes(),
+			Build: b.Bytes(),
 		})
 	}
 	return rv, nil

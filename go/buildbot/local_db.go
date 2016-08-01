@@ -678,15 +678,36 @@ func (d *localDB) GetMaxBuildNumber(master, builder string) (int, error) {
 
 // See documentation for DB interface.
 func (d *localDB) GetModifiedBuilds(id string) ([]*Build, error) {
+	gobs, err := d.GetModifiedBuildsGOB(id)
+	if err != nil {
+		return nil, err
+	}
+	rv := make([]*Build, 0, len(gobs))
+	for _, serialized := range gobs {
+		var b Build
+		if err := gob.NewDecoder(bytes.NewBuffer(serialized.Bytes())).Decode(&b); err != nil {
+			return nil, err
+		}
+		rv = append(rv, &b)
+	}
+	return rv, nil
+}
+
+// Like GetModifiedBuilds, but returns the GOB of each build.
+func (d *localDB) GetModifiedBuildsGOB(id string) ([]*bytes.Buffer, error) {
 	d.modMutex.Lock()
 	defer d.modMutex.Unlock()
 	modifiedBuilds, ok := d.modBuilds[id]
 	if !ok {
 		return nil, fmt.Errorf("Unknown or expired ID: %s", id)
 	}
-	rv := make([]*Build, 0, len(modifiedBuilds))
+	rv := make([]*bytes.Buffer, 0, len(modifiedBuilds))
 	for _, b := range modifiedBuilds {
-		rv = append(rv, b)
+		var serialized bytes.Buffer
+		if err := gob.NewEncoder(&serialized).Encode(b); err != nil {
+			return nil, err
+		}
+		rv = append(rv, &serialized)
 	}
 	d.modExpire[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
 	return rv, nil
