@@ -38,7 +38,7 @@ cd /b/storage/chromium;
 /b/depot_tools/fetch chromium;
 cd src;
 git checkout master;
-/b/depot_tools/gclient sync
+/b/depot_tools/gclient sync --nohooks
 
 # Checkout Skia's buildbot and trunk, and PDFium repositories.
 mkdir /b/skia-repo/;
