@@ -35,7 +35,7 @@ fi
 # Checkout Chromium repository.
 mkdir -p /b/storage/chromium;
 cd /b/storage/chromium;
-/b/depot_tools/fetch chromium --nohooks;
+/b/depot_tools/fetch --nohooks chromium;
 cd src;
 git checkout master;
 /b/depot_tools/gclient sync --nohooks
