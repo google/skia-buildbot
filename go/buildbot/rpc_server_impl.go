@@ -179,7 +179,7 @@ func (s *rpcServer) GetModifiedBuilds(ctx context.Context, req *rpc.GetModifiedB
 	}
 	for _, b := range builds {
 		rv.Builds = append(rv.Builds, &rpc.Build{
-			Build: b.Bytes(),
+			Build: b,
 		})
 	}
 	return rv, nil

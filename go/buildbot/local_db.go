@@ -127,7 +127,7 @@ type localDB struct {
 	txActive map[int64]string
 	txMutex  sync.RWMutex
 
-	modBuilds map[string]map[string]*Build
+	modBuilds map[string]map[string][]byte
 	modExpire map[string]time.Time
 	modMutex  sync.RWMutex
 }
@@ -206,7 +206,7 @@ func NewLocalDB(filename string) (DB, error) {
 		txActive: map[int64]string{},
 		txMutex:  sync.RWMutex{},
 
-		modBuilds: map[string]map[string]*Build{},
+		modBuilds: map[string]map[string][]byte{},
 		modExpire: map[string]time.Time{},
 	}
 	go func() {
@@ -402,7 +402,7 @@ func getBuilds(tx *bolt.Tx, ids []BuildID, stop <-chan struct{}) ([]*Build, erro
 }
 
 // insertBuild inserts the Build into the database.
-func insertBuild(tx *bolt.Tx, b *Build) error {
+func (d *localDB) insertBuild(tx *bolt.Tx, b *Build) error {
 	// Insert the build into the various buckets.
 	id := b.Id()
 	b.fixup()
@@ -412,6 +412,7 @@ func insertBuild(tx *bolt.Tx, b *Build) error {
 	if err := gob.NewEncoder(&serialized).Encode(b); err != nil {
 		return err
 	}
+	d.modify(b, serialized.Bytes())
 	if err := tx.Bucket(BUCKET_BUILDS).Put(id, serialized.Bytes()); err != nil {
 		return err
 	}
@@ -499,7 +500,7 @@ func recordBuildIngestLatency(b *Build) {
 }
 
 // putBuild inserts the build into the database, replacing any previous version.
-func putBuild(tx *bolt.Tx, b *Build) error {
+func (d *localDB) putBuild(tx *bolt.Tx, b *Build) error {
 	id := b.Id()
 	if tx.Bucket(BUCKET_BUILDS).Get(id) == nil {
 		recordBuildIngestLatency(b)
@@ -508,11 +509,11 @@ func putBuild(tx *bolt.Tx, b *Build) error {
 			return err
 		}
 	}
-	return insertBuild(tx, b)
+	return d.insertBuild(tx, b)
 }
 
 // putBuilds inserts the builds into the database, replacing any previous versions.
-func putBuilds(tx *bolt.Tx, builds []*Build) error {
+func (d *localDB) putBuilds(tx *bolt.Tx, builds []*Build) error {
 	for _, b := range builds {
 		id := b.Id()
 		if tx.Bucket(BUCKET_BUILDS).Get(id) == nil {
@@ -524,7 +525,7 @@ func putBuilds(tx *bolt.Tx, builds []*Build) error {
 		}
 	}
 	for _, b := range builds {
-		if err := insertBuild(tx, b); err != nil {
+		if err := d.insertBuild(tx, b); err != nil {
 			return err
 		}
 	}
@@ -533,19 +534,15 @@ func putBuilds(tx *bolt.Tx, builds []*Build) error {
 
 // See documentation for DB interface.
 func (d *localDB) PutBuild(b *Build) error {
-	d.modify(b)
 	return d.update("PutBuild", func(tx *bolt.Tx) error {
-		return putBuild(tx, b)
+		return d.putBuild(tx, b)
 	})
 }
 
 // See documentation for DB interface.
 func (d *localDB) PutBuilds(builds []*Build) error {
-	for _, b := range builds {
-		d.modify(b)
-	}
 	return d.update("PutBuilds", func(tx *bolt.Tx) error {
-		return putBuilds(tx, builds)
+		return d.putBuilds(tx, builds)
 	})
 }
 
@@ -685,7 +682,7 @@ func (d *localDB) GetModifiedBuilds(id string) ([]*Build, error) {
 	rv := make([]*Build, 0, len(gobs))
 	for _, serialized := range gobs {
 		var b Build
-		if err := gob.NewDecoder(bytes.NewBuffer(serialized.Bytes())).Decode(&b); err != nil {
+		if err := gob.NewDecoder(bytes.NewBuffer(serialized)).Decode(&b); err != nil {
 			return nil, err
 		}
 		rv = append(rv, &b)
@@ -694,20 +691,16 @@ func (d *localDB) GetModifiedBuilds(id string) ([]*Build, error) {
 }
 
 // Like GetModifiedBuilds, but returns the GOB of each build.
-func (d *localDB) GetModifiedBuildsGOB(id string) ([]*bytes.Buffer, error) {
+func (d *localDB) GetModifiedBuildsGOB(id string) ([][]byte, error) {
 	d.modMutex.Lock()
 	defer d.modMutex.Unlock()
 	modifiedBuilds, ok := d.modBuilds[id]
 	if !ok {
 		return nil, fmt.Errorf("Unknown or expired ID: %s", id)
 	}
-	rv := make([]*bytes.Buffer, 0, len(modifiedBuilds))
+	rv := make([][]byte, 0, len(modifiedBuilds))
 	for _, b := range modifiedBuilds {
-		var serialized bytes.Buffer
-		if err := gob.NewEncoder(&serialized).Encode(b); err != nil {
-			return nil, err
-		}
-		rv = append(rv, &serialized)
+		rv = append(rv, b)
 	}
 	d.modExpire[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
 	return rv, nil
@@ -721,7 +714,7 @@ func (d *localDB) StartTrackingModifiedBuilds() (string, error) {
 		return "", fmt.Errorf("Exceeded maximum modified builds users.")
 	}
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	d.modBuilds[id] = map[string]*Build{}
+	d.modBuilds[id] = map[string][]byte{}
 	d.modExpire[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
 	return id, nil
 }
@@ -737,11 +730,13 @@ func (d *localDB) clearExpiredModifiedUsers() {
 	}
 }
 
-func (d *localDB) modify(b *Build) {
+func (d *localDB) modify(b *Build, gob []byte) {
+	// Copy to allow the original buffer to be GC'd.
+	gob = append(make([]byte, len(gob)), gob...)
 	d.modMutex.Lock()
 	defer d.modMutex.Unlock()
 	for _, modBuilds := range d.modBuilds {
-		modBuilds[string(b.Id())] = b
+		modBuilds[string(b.Id())] = gob
 	}
 }
 
@@ -783,7 +778,7 @@ func (d *localDB) PutBuildComment(master, builder string, number int, c *BuildCo
 			return err
 		}
 		build.Comments = append(build.Comments, c)
-		return putBuild(tx, build)
+		return d.putBuild(tx, build)
 	}); err != nil {
 		c.Id = 0
 		return err
@@ -809,7 +804,7 @@ func (d *localDB) DeleteBuildComment(master, builder string, number int, id int6
 			return fmt.Errorf("No such comment: %d", id)
 		}
 		build.Comments = append(build.Comments[:idx], build.Comments[idx+1:]...)
-		return putBuild(tx, build)
+		return d.putBuild(tx, build)
 	})
 }
 
