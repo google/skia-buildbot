@@ -22,6 +22,12 @@ import (
 	"go.skia.org/infra/golden/go/warmer"
 )
 
+const (
+	// Event emitted when the indexer updates the search index.
+	// Callback argument: *SearchIndex
+	EV_INDEX_UPDATED = "indexer:index-updated"
+)
+
 // SearchIndex contains everything that is necessary to search
 // our current knowledge about test results. It should be
 // considered as immutable. Whenever the underlying data change
@@ -241,6 +247,9 @@ func (ixr *Indexer) setIndex(state interface{}) error {
 	ixr.mutex.Lock()
 	defer ixr.mutex.Unlock()
 	ixr.lastIndex = newIndex
+	if ixr.storages.EventBus != nil {
+		ixr.storages.EventBus.Publish(EV_INDEX_UPDATED, state)
+	}
 	return nil
 }
 
