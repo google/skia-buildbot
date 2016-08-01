@@ -226,9 +226,12 @@ func main() {
 				glog.Error(err)
 				continue
 			}
+			glog.Infof("DEBUG: Loaded buildslave data")
+			glog.Infof("DEBUG: lastKnownSlaves before deleting current %s", lastKnownSlaves)
 			currentSlaves := map[string]string{}
 			for masterName, m := range slaves {
 				for _, s := range m {
+					glog.Infof("DEBUG: processing slave %s", s.Name)
 					delete(lastKnownSlaves, s.Name)
 					currentSlaves[s.Name] = masterName
 					if util.In(s.Name, BUILDSLAVE_OFFLINE_BLACKLIST) {
@@ -238,12 +241,15 @@ func main() {
 					if s.Connected {
 						v = int64(1)
 					}
+					glog.Infof("DEBUG: updating %s for slave %s", MEASUREMENT_BUILDSLAVES_CONNECTED, s.Name)
 					metrics2.GetInt64Metric(MEASUREMENT_BUILDSLAVES_CONNECTED, map[string]string{
 						"buildslave": s.Name,
 						"master":     masterName,
 					}).Update(v)
 				}
 			}
+			glog.Infof("DEBUG: currentSlaves %s", currentSlaves)
+			glog.Infof("DEBUG: lastKnownSlaves after deleting current %s", lastKnownSlaves)
 			// Delete metrics for slaves which have disappeared.
 			for slave, master := range lastKnownSlaves {
 				glog.Infof("Removing metric for buildslave %s", slave)
@@ -275,12 +281,14 @@ func main() {
 				continue
 			}
 			bots := append(skiaBots, ctBots...)
+			glog.Infof("DEBUG: Loaded Skia and CT Swarming bot data")
 
 			// Delete old metrics, replace with new ones. This fixes the case where
 			// bots are removed but their metrics hang around, or where dimensions
 			// change resulting in duplicate metrics with the same bot ID.
 			failedDelete := []*metrics2.Int64Metric{}
 			for _, m := range oldMetrics {
+				glog.Infof("DEBUG: Deleting metric %v", m)
 				if err := m.Delete(); err != nil {
 					glog.Warningf("Failed to delete metric: %s", err)
 					failedDelete = append(failedDelete, m)
@@ -290,6 +298,7 @@ func main() {
 
 			now := time.Now()
 			for _, bot := range bots {
+				glog.Infof("DEBUG: Processing Swarming bot %s", bot.BotId)
 				last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
 				if err != nil {
 					glog.Error(err)
@@ -303,10 +312,14 @@ func main() {
 					tags[fmt.Sprintf("dimension-%s", d.Key)] = strings.Join(d.Value, ",")
 				}
 
+				glog.Infof("DEBUG: Updating %s for %s", MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
+
 				// Bot last seen <duration> ago.
 				m1 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
 				m1.Update(int64(now.Sub(last)))
 				oldMetrics = append(oldMetrics, m1)
+
+				glog.Infof("DEBUG: Updating %s for %s", MEASUREMENT_SWARM_BOTS_QUARANTINED, tags)
 
 				// Bot quarantined status.
 				quarantined := int64(0)
@@ -317,6 +330,8 @@ func main() {
 				m2.Update(quarantined)
 				oldMetrics = append(oldMetrics, m2)
 			}
+			glog.Infof("DEBUG: oldMetrics after loop %s", oldMetrics)
+
 		}
 	}()
 
