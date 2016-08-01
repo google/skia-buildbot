@@ -732,7 +732,7 @@ func (d *localDB) clearExpiredModifiedUsers() {
 
 func (d *localDB) modify(b *Build, gob []byte) {
 	// Copy to allow the original buffer to be GC'd.
-	gob = append(make([]byte, len(gob)), gob...)
+	gob = append([]byte{}, gob...)
 	d.modMutex.Lock()
 	defer d.modMutex.Unlock()
 	for _, modBuilds := range d.modBuilds {
