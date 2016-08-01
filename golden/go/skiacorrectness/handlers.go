@@ -23,6 +23,7 @@ import (
 	"go.skia.org/infra/golden/go/diff"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
+	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/search"
 	"go.skia.org/infra/golden/go/summary"
 	"go.skia.org/infra/golden/go/trybot"
@@ -42,7 +43,8 @@ const (
 
 // jsonByBlameHandler returns a json object with the digests to be triaged grouped by blamelist.
 func jsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
-	tile, sum, err := allUntriagedSummaries()
+	idx := ixr.GetIndex()
+	tile, sum, err := allUntriagedSummaries(idx)
 	commits := tile.Commits
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load summaries.")
@@ -63,7 +65,7 @@ func jsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
 
 	for test, s := range sum {
 		for _, d := range s.UntHashes {
-			dist := blamer.GetBlame(test, d, commits)
+			dist := idx.GetBlame(test, d, commits)
 			groupid := strings.Join(lookUpCommits(dist.Freq, commits), ":")
 			// Only fill in commitinfo for each groupid only once.
 			if _, ok := commitinfo[groupid]; !ok {
@@ -132,13 +134,11 @@ func jsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // allUntriagedSummaries returns a tile and summaries for all untriaged GMs.
-func allUntriagedSummaries() (*tiling.Tile, map[string]*summary.Summary, error) {
-	tile, err := storages.GetLastTileTrimmed(true)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Couldn't load tile: %s", err)
-	}
+func allUntriagedSummaries(idx *indexer.SearchIndex) (*tiling.Tile, map[string]*summary.Summary, error) {
+	tile := idx.GetTile(true)
+
 	// Get a list of all untriaged images by test.
-	sum, err := summaries.CalcSummaries([]string{}, url.Values{"source_type": []string{"gm"}}, false, true)
+	sum, err := idx.CalcSummaries([]string{}, url.Values{"source_type": []string{"gm"}}, false, true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Couldn't load summaries: %s", err)
 	}
@@ -200,7 +200,7 @@ func jsonSearchHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	searchResponse, err := search.Search(&query, storages, tallies, blamer, paramsetSum)
+	searchResponse, err := search.Search(&query, storages, ixr.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -268,7 +268,7 @@ func jsonDetailsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := search.GetDigestDetails(test, digest, storages, paramsetSum, tallies)
+	ret, err := search.GetDigestDetails(test, digest, storages, ixr.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to get digest details.")
 		return
@@ -291,7 +291,7 @@ func jsonDiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ret, err := search.CompareDigests(test, left, right, storages, paramsetSum)
+	ret, err := search.CompareDigests(test, left, right, storages, ixr.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to compare digests")
 		return
@@ -508,13 +508,11 @@ func filterDigests(filter, queryString, testName string, e types.TestClassificat
 	}
 	query[types.PRIMARY_KEY_FIELD] = []string{testName}
 
+	idx := ixr.GetIndex()
 	t := timer.New("finding digests")
 	digests := map[string]int{}
 	if head {
-		tile, err := storages.GetLastTileTrimmed(includeIgnores)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
-		}
+		tile := idx.GetTile(includeIgnores)
 		lastCommitIndex := tile.LastCommitIndex()
 		for _, tr := range tile.Traces {
 			if tiling.Matches(tr, query) {
@@ -529,10 +527,7 @@ func filterDigests(filter, queryString, testName string, e types.TestClassificat
 			}
 		}
 	} else {
-		digests, err = tallies.ByQuery(query, includeIgnores)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to retrieve tallies in imgInfo: %s", err)
-		}
+		digests = idx.TalliesByQuery(query, includeIgnores)
 	}
 	t.Stop()
 
@@ -572,7 +567,8 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	searchResponse, err := search.Search(&q, storages, tallies, blamer, paramsetSum)
+	idx := ixr.GetIndex()
+	searchResponse, err := search.Search(&q, storages, ixr.GetIndex())
 	if err != nil {
 		httputils.ReportError(w, r, err, "Search for digests failed.")
 		return
@@ -616,7 +612,7 @@ func jsonClusterDiffHandler(w http.ResponseWriter, r *http.Request) {
 				Value:  diff.PixelDiffPercent,
 			})
 		}
-		d3.ParamsetByDigest[d.Digest] = paramsetSum.Get(d.Test, d.Digest, false)
+		d3.ParamsetByDigest[d.Digest] = idx.GetParamsetSummary(d.Test, d.Digest, false)
 		for _, p := range d3.ParamsetByDigest[d.Digest] {
 			sort.Strings(p)
 		}
@@ -707,10 +703,11 @@ func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	idx := ixr.GetIndex()
 	corpus, hasSourceType := query.Query["source_type"]
 	sumSlice := []*summary.Summary{}
 	if !query.IncludeIgnores && query.Head && len(query.Query) == 1 && hasSourceType {
-		sumMap := summaries.Get()
+		sumMap := idx.GetSummaries()
 		for _, s := range sumMap {
 			if util.In(s.Corpus, corpus) && includeSummary(s, &query) {
 				sumSlice = append(sumSlice, s)
@@ -718,7 +715,7 @@ func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		glog.Infof("%q %q %q", r.FormValue("query"), r.FormValue("include"), r.FormValue("head"))
-		sumMap, err := summaries.CalcSummaries(nil, query.Query, query.IncludeIgnores, query.Head)
+		sumMap, err := idx.CalcSummaries(nil, query.Query, query.IncludeIgnores, query.Head)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to calculate summaries.")
 			return
@@ -951,14 +948,14 @@ func makeResourceHandler(resourceDir string) func(http.ResponseWriter, *http.Req
 
 // jsonParamsHandler returns the union of all parameters.
 func jsonParamsHandler(w http.ResponseWriter, r *http.Request) {
-	tile, err := storages.GetLastTileTrimmed(false)
+	tilePair, err := storages.GetLastTileTrimmed()
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load tile")
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
-	if err := enc.Encode(tile.ParamSet); err != nil {
+	if err := enc.Encode(tilePair.Tile.ParamSet); err != nil {
 		glog.Errorf("Failed to write or encode result: %s", err)
 	}
 }
@@ -969,7 +966,8 @@ func jsonParamsHandler(w http.ResponseWriter, r *http.Request) {
 func textAllHashesHandler(w http.ResponseWriter, r *http.Request) {
 	unavailableDigests := storages.DiffStore.UnavailableDigests()
 
-	byTest := tallies.ByTest()
+	idx := ixr.GetIndex()
+	byTest := idx.TalliesByTest()
 	hashes := map[string]bool{}
 	for _, test := range byTest {
 		for k, _ := range test {

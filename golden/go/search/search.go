@@ -16,7 +16,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/goldingestion"
 	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/paramsets"
+	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/trybot"
@@ -162,11 +162,8 @@ func (p DigestSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
 // Search returns a slice of Digests that match the input query, and the total number of Digests
 // that matched the query. It also returns a slice of Commits that were used in the calculations.
-func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer, paramset *paramsets.Summary) (*SearchResponse, error) {
-	tile, err := storages.GetLastTileTrimmed(q.IncludeIgnores)
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
-	}
+func Search(q *Query, storages *storage.Storage, idx *indexer.SearchIndex) (*SearchResponse, error) {
+	tile := idx.GetTile(q.IncludeIgnores)
 
 	e, err := storages.ExpectationsStore.Get()
 	if err != nil {
@@ -177,9 +174,9 @@ func Search(q *Query, storages *storage.Storage, tallies *tally.Tallies, blamer 
 	var issueResponse *IssueResponse = nil
 	var commits []*tiling.Commit = nil
 	if q.Issue != "" {
-		ret, issueResponse, err = searchByIssue(q.Issue, q, e, q.Query, storages, tallies, paramset)
+		ret, issueResponse, err = searchByIssue(q.Issue, q, e, q.Query, storages, idx)
 	} else {
-		ret, commits, err = searchTile(q, e, q.Query, storages, tile, tallies, blamer, paramset)
+		ret, commits, err = searchTile(q, e, q.Query, storages, tile, idx)
 	}
 
 	if err != nil {
@@ -225,7 +222,7 @@ func (i *issueIntermediate) add(params map[string]string) {
 	util.AddParamsToParamSet(i.paramSet, params)
 }
 
-func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tallies *tally.Tallies, tileParamSet *paramsets.Summary) ([]*Digest, *IssueResponse, error) {
+func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, idx *indexer.SearchIndex) ([]*Digest, *IssueResponse, error) {
 	issue, tile, err := storages.TrybotResults.GetIssue(issueID, q.Patchsets)
 	if err != nil {
 		return nil, nil, err
@@ -251,7 +248,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	}
 
 	pidMap := util.NewStringSet(issue.TargetPatchsets)
-	talliesByTest := tallies.ByTest()
+	talliesByTest := idx.TalliesByTest()
 	digestMap := map[string]*Digest{}
 	reviewURL := storages.RietveldAPI.Url()
 
@@ -310,7 +307,7 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 	allDigests := make([]string, len(digestMap))
 	emptyTraces := &Traces{}
 	for _, digestEntry := range digestMap {
-		digestEntry.Diff = buildDiff(digestEntry.Test, digestEntry.Digest, exp, nil, talliesByTest, nil, storages.DiffStore, tileParamSet, q.IncludeIgnores)
+		digestEntry.Diff = buildDiff(digestEntry.Test, digestEntry.Digest, exp, nil, talliesByTest, storages.DiffStore, idx, q.IncludeIgnores)
 		digestEntry.Traces = emptyTraces
 		ret = append(ret, digestEntry)
 		allDigests = append(allDigests, digestEntry.Digest)
@@ -327,10 +324,10 @@ func searchByIssue(issueID string, q *Query, exp *expstorage.Expectations, parse
 }
 
 // searchTile queries across a tile.
-func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tile *tiling.Tile, tallies *tally.Tallies, blamer *blame.Blamer, paramset *paramsets.Summary) ([]*Digest, []*tiling.Commit, error) {
+func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, storages *storage.Storage, tile *tiling.Tile, idx *indexer.SearchIndex) ([]*Digest, []*tiling.Commit, error) {
 	// TODO Use CommitRange to create a trimmed tile.
 
-	traceTally := tallies.ByTrace()
+	traceTally := idx.TalliesByTrace()
 	lastCommitIndex := tile.LastCommitIndex()
 
 	// Loop over the tile and pull out all the digests that match
@@ -354,7 +351,7 @@ func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, st
 				// Fix blamer to make this easier.
 				if q.BlameGroupID != "" {
 					if cl == types.UNTRIAGED {
-						b := blamer.GetBlame(test, digest, tile.Commits)
+						b := idx.GetBlame(test, digest, tile.Commits)
 						if q.BlameGroupID != blameGroupID(b, tile.Commits) {
 							continue
 						}
@@ -375,34 +372,34 @@ func searchTile(q *Query, e *expstorage.Expectations, parsedQuery url.Values, st
 	ret := make([]*Digest, 0, len(inter))
 	for key, i := range inter {
 		parts := strings.Split(key, ":")
-		ret = append(ret, digestFromIntermediate(parts[0], parts[1], i, e, tile, tallies, blamer, storages.DiffStore, paramset, q.IncludeIgnores))
+		ret = append(ret, digestFromIntermediate(parts[0], parts[1], i, e, tile, idx, storages.DiffStore, q.IncludeIgnores))
 	}
 	return ret, tile.Commits, nil
 }
 
-func digestFromIntermediate(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, tallies *tally.Tallies, blamer *blame.Blamer, diffStore diff.DiffStore, paramset *paramsets.Summary, includeIgnores bool) *Digest {
-	traceTally := tallies.ByTrace()
+func digestFromIntermediate(test, digest string, inter *intermediate, e *expstorage.Expectations, tile *tiling.Tile, idx *indexer.SearchIndex, diffStore diff.DiffStore, includeIgnores bool) *Digest {
+	traceTally := idx.TalliesByTrace()
 	ret := &Digest{
 		Test:     test,
 		Digest:   digest,
 		Status:   e.Classification(test, digest).String(),
-		ParamSet: paramset.Get(test, digest, includeIgnores),
+		ParamSet: idx.GetParamsetSummary(test, digest, includeIgnores),
 		Traces:   buildTraces(test, digest, inter.Traces, e, tile, traceTally),
-		Diff:     buildDiff(test, digest, e, tile, tallies.ByTest(), blamer, diffStore, paramset, includeIgnores),
+		Diff:     buildDiff(test, digest, e, tile, idx.TalliesByTest(), diffStore, idx, includeIgnores),
 	}
 	return ret
 }
 
 // buildDiff creates a Diff for the given intermediate.
-func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Tile, testTally map[string]tally.Tally, blamer *blame.Blamer, diffStore diff.DiffStore, paramset *paramsets.Summary, includeIgnores bool) *Diff {
+func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Tile, testTally map[string]tally.Tally, diffStore diff.DiffStore, idx *indexer.SearchIndex, includeIgnores bool) *Diff {
 	ret := &Diff{
 		Diff: math.MaxFloat32,
 		Pos:  nil,
 		Neg:  nil,
 	}
 
-	if blamer != nil {
-		ret.Blame = blamer.GetBlame(test, digest, tile.Commits)
+	if tile != nil {
+		ret.Blame = idx.GetBlame(test, digest, tile.Commits)
 	}
 
 	t := testTally[test]
@@ -415,7 +412,7 @@ func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Til
 		ret.Pos = &DiffDigest{
 			Closest: closest,
 		}
-		ret.Pos.ParamSet = paramset.Get(test, ret.Pos.Closest.Digest, includeIgnores)
+		ret.Pos.ParamSet = idx.GetParamsetSummary(test, ret.Pos.Closest.Digest, includeIgnores)
 		diffVal = closest.Diff
 	}
 
@@ -423,7 +420,7 @@ func buildDiff(test, digest string, e *expstorage.Expectations, tile *tiling.Til
 		ret.Neg = &DiffDigest{
 			Closest: closest,
 		}
-		ret.Neg.ParamSet = paramset.Get(test, ret.Neg.Closest.Digest, includeIgnores)
+		ret.Neg.ParamSet = idx.GetParamsetSummary(test, ret.Neg.Closest.Digest, includeIgnores)
 		if (ret.Pos == nil) || (closest.Diff < diffVal) {
 			diffVal = closest.Diff
 		}
@@ -579,7 +576,7 @@ type DigestDiff struct {
 
 // CompareDigests compares two digests that were generated by the given test. It returns
 // an instance of DigestDiff.
-func CompareDigests(test, left, right string, storages *storage.Storage, paramsetSummary *paramsets.Summary) (*DigestDiff, error) {
+func CompareDigests(test, left, right string, storages *storage.Storage, idx *indexer.SearchIndex) (*DigestDiff, error) {
 	// Get the diff between the two digests
 	diff, err := storages.DiffStore.Get(left, []string{right})
 	if err != nil {
@@ -596,13 +593,13 @@ func CompareDigests(test, left, right string, storages *storage.Storage, paramse
 			Test:     test,
 			Digest:   left,
 			Status:   exp.Classification(test, left).String(),
-			ParamSet: paramsetSummary.Get(test, left, true),
+			ParamSet: idx.GetParamsetSummary(test, left, true),
 		},
 		Right: &Digest{
 			Test:     test,
 			Digest:   right,
 			Status:   exp.Classification(test, right).String(),
-			ParamSet: paramsetSummary.Get(test, right, true),
+			ParamSet: idx.GetParamsetSummary(test, right, true),
 		},
 		Diff: digesttools.ClosestFromDiffMetrics(diff[right]),
 	}, nil
@@ -615,11 +612,8 @@ type DigestDetails struct {
 }
 
 // GetDigestDetails returns details about a digest as an instance of DigestDetails.
-func GetDigestDetails(test, digest string, storages *storage.Storage, paramsetSummary *paramsets.Summary, tallies *tally.Tallies) (*DigestDetails, error) {
-	tile, err := storages.GetLastTileTrimmed(true)
-	if err != nil {
-		return nil, err
-	}
+func GetDigestDetails(test, digest string, storages *storage.Storage, idx *indexer.SearchIndex) (*DigestDetails, error) {
+	tile := idx.GetTile(true)
 
 	exp, err := storages.ExpectationsStore.Get()
 	if err != nil {
@@ -644,9 +638,9 @@ func GetDigestDetails(test, digest string, storages *storage.Storage, paramsetSu
 			Test:     test,
 			Digest:   digest,
 			Status:   exp.Classification(test, digest).String(),
-			ParamSet: paramsetSummary.Get(test, digest, true),
-			Traces:   buildTraces(test, digest, traces, exp, tile, tallies.ByTrace()),
-			Diff:     buildDiff(test, digest, exp, tile, tallies.ByTest(), nil, storages.DiffStore, paramsetSummary, true),
+			ParamSet: idx.GetParamsetSummary(test, digest, true),
+			Traces:   buildTraces(test, digest, traces, exp, tile, idx.TalliesByTrace()),
+			Diff:     buildDiff(test, digest, exp, nil, idx.TalliesByTest(), storages.DiffStore, idx, true),
 		},
 		Commits: tile.Commits,
 	}, nil

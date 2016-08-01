@@ -21,6 +21,8 @@ import (
 )
 
 // Summary contains rolled up metrics for one test.
+// It is not thread safe. The client of this package needs to make sure there
+// are no conflicts.
 type Summary struct {
 	Name      string                 `json:"name"`
 	Diameter  int                    `json:"diameter"`
@@ -33,65 +35,76 @@ type Summary struct {
 	Blame     []*blame.WeightedBlame `json:"blame"`
 }
 
+// clone creates a copy of the summary.
+func (s *Summary) clone() *Summary {
+	ret := &Summary{}
+	*ret = *s
+	ret.UntHashes = append([]string(nil), s.UntHashes...)
+	ret.Blame = append([]*blame.WeightedBlame(nil), s.Blame...)
+	for idx, b := range s.Blame {
+		ret.Blame[idx] = &blame.WeightedBlame{}
+		*ret.Blame[idx] = *b
+	}
+	return ret
+}
+
 // Summaries contains a Summary for each test.
 //
 // It also updates itself when Tallies have been updated.
 type Summaries struct {
 	storages  *storage.Storage
-	mutex     sync.Mutex
-	summaries map[string]*Summary
 	tallies   *tally.Tallies
 	blamer    *blame.Blamer
+	summaries map[string]*Summary
 }
 
 // New creates a new instance of Summaries.
-func New(storages *storage.Storage, tallies *tally.Tallies, blamer *blame.Blamer) (*Summaries, error) {
-	s := &Summaries{
+func New(storages *storage.Storage) *Summaries {
+	return &Summaries{
 		storages: storages,
-		tallies:  tallies,
-		blamer:   blamer,
 	}
-
-	var err error
-	s.summaries, err = s.CalcSummaries(nil, nil, false, true)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to calculate summaries in New: %s", err)
-	}
-
-	// TODO(jcgregorio) Move to a channel for tallies and then combine
-	// this and the expStore handling into a single switch statement.
-	tallies.OnChange(func() {
-		summaries, err := s.CalcSummaries(nil, nil, false, true)
-		if err != nil {
-			glog.Errorf("Failed to refresh summaries: %s", err)
-			return
-		}
-		s.mutex.Lock()
-		s.summaries = summaries
-		s.mutex.Unlock()
-	})
-
-	storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
-		testNames := e.([]string)
-		glog.Info("Updating summaries after expectations change.")
-		partialSummaries, err := s.CalcSummaries(testNames, nil, false, true)
-		if err != nil {
-			glog.Errorf("Failed to refresh summaries: %s", err)
-			return
-		}
-		s.mutex.Lock()
-		for k, v := range partialSummaries {
-			s.summaries[k] = v
-		}
-		s.mutex.Unlock()
-	})
-	return s, nil
 }
 
-func (s *Summaries) Get() map[string]*Summary {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+// Clone creates a deep copy of the Summaries instance.
+func (s *Summaries) Clone() *Summaries {
+	copied := make(map[string]*Summary, len(s.summaries))
+	for k, v := range s.summaries {
+		copied[k] = v.clone()
+	}
 
+	return &Summaries{
+		storages:  s.storages,
+		tallies:   s.tallies,
+		blamer:    s.blamer,
+		summaries: copied,
+	}
+}
+
+// Calculate sets the summaries based on the given tile. If testNames is empty
+// (or nil) the entire tile will be calculated. Otherwise only the given
+// test names will be updated.
+func (s *Summaries) Calculate(tile *tiling.Tile, testNames []string, tallies *tally.Tallies, blamer *blame.Blamer) error {
+	s.tallies = tallies
+	s.blamer = blamer
+
+	summaries, err := s.CalcSummaries(tile, testNames, nil, true)
+	if err != nil {
+		return fmt.Errorf("Failed to calculate summaries in Calculate: %s", err)
+	}
+
+	// If testNames were given, we copy the partially updated results.
+	if testNames == nil {
+		s.summaries = summaries
+	} else {
+		for k, v := range summaries {
+			s.summaries[k] = v
+		}
+	}
+	return nil
+}
+
+// Get returns the summaries keyed by the test names.
+func (s *Summaries) Get() map[string]*Summary {
 	return s.summaries
 }
 
@@ -107,26 +120,16 @@ type TraceID struct {
 //   If not nil or empty then restrict the results to only tests that appear in this slice.
 // query
 //   URL encoded paramset to use for filtering.
-// includeIgnores
-//   Boolean, if true then include all digests in the results, including ones normally hidden
-//   by the ignores list.
 // head
 //   Only consider digests at head if true.
 //
-func (s *Summaries) CalcSummaries(testNames []string, query url.Values, includeIgnores bool, head bool) (map[string]*Summary, error) {
+func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query url.Values, head bool) (map[string]*Summary, error) {
 	defer timer.New("CalcSummaries").Stop()
-	glog.Infof("CalcSummaries: includeIgnores %v head %v", includeIgnores, head)
-
-	t := timer.New("CalcSummaries:GetLastTileTrimmed")
-	tile, err := s.storages.GetLastTileTrimmed(includeIgnores)
-	t.Stop()
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
-	}
+	glog.Infof("CalcSummaries: head %v", head)
 
 	ret := map[string]*Summary{}
 
-	t = timer.New("CalcSummaries:Expectations")
+	t := timer.New("CalcSummaries:Expectations")
 	e, err := s.storages.ExpectationsStore.Get()
 	t.Stop()
 	if err != nil {
@@ -199,23 +202,20 @@ type DigestInfo struct {
 	Digest string `json:"digest"`
 }
 
-// Search returns a slice of DigestInfo with all the digests that match the given query parameters.
+// TODO(stephana): search should probably be removed because it is not used
+// anywhere.
+
+// search returns a slice of DigestInfo with all the digests that match the given query parameters.
 //
 // Note that unlike CalcSummaries the results aren't restricted by test name.
 // Also note that the result can include positive and negative digests.
-func (s *Summaries) Search(query string, includeIgnores bool, head bool, pos bool, neg bool, unt bool) ([]DigestInfo, error) {
-	t := timer.New("Search:GetLastTileTrimmed")
-	tile, err := s.storages.GetLastTileTrimmed(includeIgnores)
-	t.Stop()
-	if err != nil {
-		return nil, fmt.Errorf("Couldn't retrieve tile: %s", err)
-	}
+func (s *Summaries) search(tile *tiling.Tile, query string, head bool, pos bool, neg bool, unt bool) ([]DigestInfo, error) {
 	q, err := url.ParseQuery(query)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse Query in Search: %s", err)
 	}
 
-	t = timer.New("Search:Expectations")
+	t := timer.New("Search:Expectations")
 	e, err := s.storages.ExpectationsStore.Get()
 	t.Stop()
 	if err != nil {

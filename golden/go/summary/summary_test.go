@@ -160,7 +160,9 @@ func TestCalcSummaries(t *testing.T) {
 		},
 	}, "foo@example.com"))
 
-	ta, _ := tally.New(storages)
+	ta := tally.New()
+	ta.Calculate(tile)
+
 	assert.NoError(t, storages.IgnoreStore.Create(&ignore.IgnoreRule{
 		ID:      1,
 		Name:    "foo",
@@ -168,13 +170,17 @@ func TestCalcSummaries(t *testing.T) {
 		Query:   "config=565",
 	}))
 
-	blamer, err := blame.New(storages)
+	tileWithoutIgnored, err := storage.FilterIgnored(tile, storages.IgnoreStore)
 	assert.NoError(t, err)
 
-	summaries, err := New(storages, ta, blamer)
+	blamer := blame.New(storages)
+	err = blamer.Calculate(tile)
 	assert.NoError(t, err)
 
-	sum, err := summaries.CalcSummaries(nil, url.Values{"source_type": {"gm"}}, false, false)
+	summaries := New(storages)
+	assert.NoError(t, summaries.Calculate(tileWithoutIgnored, nil, ta, blamer))
+
+	sum, err := summaries.CalcSummaries(tileWithoutIgnored, nil, url.Values{"source_type": {"gm"}}, false)
 	if err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
@@ -184,7 +190,8 @@ func TestCalcSummaries(t *testing.T) {
 	assert.Equal(t, []string{}, sum["foo"].UntHashes)
 	assert.Equal(t, []string{"ggg"}, sum["bar"].UntHashes)
 
-	if sum, err = summaries.CalcSummaries(nil, url.Values{"source_type": {"gm"}}, true, false); err != nil {
+	// if sum, err = summaries.CalcSummaries(nil, url.Values{"source_type": {"gm"}}, true, false); err != nil {
+	if sum, err = summaries.CalcSummaries(tile, nil, url.Values{"source_type": {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 2, len(sum))
@@ -193,21 +200,24 @@ func TestCalcSummaries(t *testing.T) {
 	assert.Equal(t, sum["foo"].UntHashes, []string{"ccc", "ddd"})
 	assert.Equal(t, sum["bar"].UntHashes, []string{"ggg"})
 
-	if sum, err = summaries.CalcSummaries([]string{"foo"}, url.Values{"source_type": {"gm"}}, true, false); err != nil {
+	// if sum, err = summaries.CalcSummaries([]string{"foo"}, url.Values{"source_type": {"gm"}}, true, false); err != nil {
+	if sum, err = summaries.CalcSummaries(tile, []string{"foo"}, url.Values{"source_type": {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))
 	triageCountsCorrect(t, sum, "foo", 2, 1, 2)
 	assert.Equal(t, sum["foo"].UntHashes, []string{"ccc", "ddd"})
 
-	if sum, err = summaries.CalcSummaries([]string{"foo"}, nil, false, false); err != nil {
+	// if sum, err = summaries.CalcSummaries([]string{"foo"}, nil, false, false); err != nil {
+	if sum, err = summaries.CalcSummaries(tileWithoutIgnored, []string{"foo"}, nil, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))
 	triageCountsCorrect(t, sum, "foo", 2, 1, 0)
 	assert.Equal(t, sum["foo"].UntHashes, []string{})
 
-	if sum, err = summaries.CalcSummaries(nil, url.Values{"config": {"8888", "565"}}, false, false); err != nil {
+	// if sum, err = summaries.CalcSummaries(nil, url.Values{"config": {"8888", "565"}}, false, false); err != nil {
+	if sum, err = summaries.CalcSummaries(tileWithoutIgnored, nil, url.Values{"config": {"8888", "565"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 3, len(sum))
@@ -218,7 +228,8 @@ func TestCalcSummaries(t *testing.T) {
 	assert.Equal(t, sum["bar"].UntHashes, []string{"ggg"})
 	assert.Equal(t, sum["quux"].UntHashes, []string{"jjj"})
 
-	if sum, err = summaries.CalcSummaries(nil, url.Values{"config": {"8888", "565"}}, false, true); err != nil {
+	// if sum, err = summaries.CalcSummaries(nil, url.Values{"config": {"8888", "565"}}, false, true); err != nil {
+	if sum, err = summaries.CalcSummaries(tileWithoutIgnored, nil, url.Values{"config": {"8888", "565"}}, true); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 3, len(sum))
@@ -229,14 +240,16 @@ func TestCalcSummaries(t *testing.T) {
 	assert.Equal(t, sum["bar"].UntHashes, []string{"ggg"})
 	assert.Equal(t, sum["quux"].UntHashes, []string{"jjj"})
 
-	if sum, err = summaries.CalcSummaries(nil, url.Values{"config": {"gpu"}}, false, false); err != nil {
+	// if sum, err = summaries.CalcSummaries(nil, url.Values{"config": {"gpu"}}, false, false); err != nil {
+	if sum, err = summaries.CalcSummaries(tileWithoutIgnored, nil, url.Values{"config": {"gpu"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))
 	triageCountsCorrect(t, sum, "foo", 1, 0, 0)
 	assert.Equal(t, sum["foo"].UntHashes, []string{})
 
-	if sum, err = summaries.CalcSummaries(nil, url.Values{"config": {"unknown"}}, false, false); err != nil {
+	// if sum, err = summaries.CalcSummaries(nil, url.Values{"config": {"unknown"}}, false, false); err != nil {
+	if sum, err = summaries.CalcSummaries(tileWithoutIgnored, nil, url.Values{"config": {"unknown"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 0, len(sum))

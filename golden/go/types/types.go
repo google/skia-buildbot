@@ -70,6 +70,15 @@ func (tc *TestClassification) DeepCopy() TestClassification {
 	return result
 }
 
+// TilePair contains two tiles of the underlying data.
+type TilePair struct {
+	// Tile is the current tile without ignored traces.
+	Tile *tiling.Tile
+
+	// TileWithIgnores is the current tile containing all available data.
+	TileWithIgnores *tiling.Tile
+}
+
 const (
 	// No digest available.
 	MISSING_DIGEST = ""

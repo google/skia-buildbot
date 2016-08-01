@@ -2,29 +2,25 @@ package blame
 
 import (
 	"sort"
-	"sync"
-	"time"
 
-	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/storage"
 	"go.skia.org/infra/golden/go/types"
 )
 
 // Blamer calculates blame lists by continously loading tiles
 // and changed expectations.
+// It is not thread safe. The client of this package needs to make sure there
+// are no conflicts.
 type Blamer struct {
 	// commits are the commits corresponding to the current blamelists.
 	commits []*tiling.Commit
 
 	// testBlameLists are the blamelists keyed by testName and digest.
 	testBlameLists map[string]map[string]*BlameDistribution
-
-	storages *storage.Storage
-	mutex    sync.Mutex
+	storages       *storage.Storage
 }
 
 // BlameDistribution contains a rough estimation of the probabilities that
@@ -58,57 +54,14 @@ func (w WeightedBlameSlice) Swap(i, j int)      { w[i], w[j] = w[j], w[i] }
 
 // New returns a new Blamer instance and error. The error is not
 // nil if the first run of calculating the blame lists failed.
-func New(storages *storage.Storage) (*Blamer, error) {
-	ret := &Blamer{
-		testBlameLists: map[string]map[string]*BlameDistribution{},
-		storages:       storages,
+func New(storages *storage.Storage) *Blamer {
+	return &Blamer{
+		storages: storages,
 	}
-
-	// Process the first tile, schedule a background process.
-	return ret, ret.processTileStream()
-}
-
-// processTileStream processes the first tile instantly and starts a background
-// process to recalculate the blame lists as tiles and expectations change.
-func (b *Blamer) processTileStream() error {
-	expChanges := make(chan []string)
-	b.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
-		expChanges <- e.([]string)
-	})
-	tileStream := b.storages.GetTileStreamNow(2*time.Minute, false)
-
-	lastTile := <-tileStream
-	if err := b.updateBlame(lastTile); err != nil {
-		return err
-	}
-
-	// Schedule a background process to keep updating the blame lists.
-	go func() {
-		for {
-			select {
-			case tile := <-tileStream:
-				if err := b.updateBlame(tile); err != nil {
-					glog.Errorf("Error updating blame lists: %s", err)
-				} else {
-					lastTile = tile
-				}
-			case <-expChanges:
-				storage.DrainChangeChannel(expChanges)
-				if err := b.updateBlame(lastTile); err != nil {
-					glog.Errorf("Error updating blame lists: %s", err)
-				}
-			}
-		}
-	}()
-
-	return nil
 }
 
 func (b *Blamer) GetAllBlameLists() (map[string]map[string]*BlameDistribution, []*tiling.Commit) {
-	b.mutex.Lock()
-	blameLists, commits := b.testBlameLists, b.commits
-	b.mutex.Unlock()
-	return blameLists, commits
+	return b.testBlameLists, b.commits
 }
 
 // GetBlamesForTest returns the list of authors that have blame assigned to
@@ -181,9 +134,8 @@ func (b *Blamer) getBlame(blameDistribution *BlameDistribution, blameCommits, co
 	return ret, maxCount
 }
 
-// updateBlame reads from the provided tileStream and updates the current
-// blame lists.
-func (b *Blamer) updateBlame(tile *tiling.Tile) error {
+// Calculate calculates the blame list from the given tile.
+func (b *Blamer) Calculate(tile *tiling.Tile) error {
 	exp, err := b.storages.ExpectationsStore.Get()
 	if err != nil {
 		return err
@@ -287,8 +239,6 @@ func (b *Blamer) updateBlame(tile *tiling.Tile) error {
 	}
 
 	// Swap out the old blame lists for the new ones.
-	b.mutex.Lock()
 	b.testBlameLists, b.commits = ret, commits
-	b.mutex.Unlock()
 	return nil
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/skia-dev/glog"
 
 	"go.skia.org/infra/go/database"
-	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/types"
@@ -19,7 +18,7 @@ type SQLIgnoreStore struct {
 	vdb        *database.VersionedDB
 	mutex      sync.Mutex
 	revision   int64
-	tileStream <-chan *tiling.Tile
+	tileStream <-chan *types.TilePair
 	expStore   expstorage.ExpectationsStore
 }
 
@@ -27,7 +26,7 @@ type SQLIgnoreStore struct {
 //   vdb - database to connect to.
 //   expStore - expectations store needed to cound the untriaged digests per rule.
 //   tileStream - continously provides an updated copy of the current tile.
-func NewSQLIgnoreStore(vdb *database.VersionedDB, expStore expstorage.ExpectationsStore, tileStream <-chan *tiling.Tile) IgnoreStore {
+func NewSQLIgnoreStore(vdb *database.VersionedDB, expStore expstorage.ExpectationsStore, tileStream <-chan *types.TilePair) IgnoreStore {
 	ret := &SQLIgnoreStore{
 		vdb:        vdb,
 		tileStream: tileStream,
@@ -130,18 +129,18 @@ func (m *SQLIgnoreStore) addIgnoreCounts(rules []*IgnoreRule) error {
 	}
 
 	// Get the next tile.
-	var tile *tiling.Tile = nil
+	var tilePair *types.TilePair = nil
 	select {
-	case tile = <-m.tileStream:
+	case tilePair = <-m.tileStream:
 	default:
 	}
-	if tile == nil {
+	if tilePair == nil {
 		return fmt.Errorf("No tile available to count ignores")
 	}
 
 	// Count the untriaged digests in HEAD.
 	matchingDigests := make(map[int]map[string]bool, len(rules))
-	for _, trace := range tile.Traces {
+	for _, trace := range tilePair.TileWithIgnores.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		if matchRules, ok := ignoreMatcher(gTrace.Params_); ok {
 			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]

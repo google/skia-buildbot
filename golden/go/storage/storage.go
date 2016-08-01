@@ -15,6 +15,7 @@ import (
 	"go.skia.org/infra/golden/go/expstorage"
 	"go.skia.org/infra/golden/go/ignore"
 	"go.skia.org/infra/golden/go/trybot"
+	"go.skia.org/infra/golden/go/types"
 )
 
 // Storage is a container struct for the various storage objects we are using.
@@ -47,22 +48,22 @@ type Storage struct {
 // Should the call to read a new tile fail it will send that last
 // successfully read tile. Thus it guarantees to send a tile in the provided
 // interval, assuming at least one tile could be read.
-func (s *Storage) GetTileStreamNow(interval time.Duration, includeIgnores bool) <-chan *tiling.Tile {
-	retCh := make(chan *tiling.Tile)
+func (s *Storage) GetTileStreamNow(interval time.Duration) <-chan *types.TilePair {
+	retCh := make(chan *types.TilePair)
 
 	go func() {
-		var lastTile *tiling.Tile = nil
+		var lastTile *types.TilePair = nil
 
 		readOneTile := func() {
-			if tile, err := s.GetLastTileTrimmed(includeIgnores); err != nil {
+			if tilePair, err := s.GetLastTileTrimmed(); err != nil {
 				// Log the error and send the best tile we have right now.
 				glog.Errorf("Error reading tile: %s", err)
 				if lastTile != nil {
 					retCh <- lastTile
 				}
 			} else {
-				lastTile = tile
-				retCh <- tile
+				lastTile = tilePair
+				retCh <- tilePair
 			}
 		}
 
@@ -91,9 +92,7 @@ Loop:
 // GetLastTrimmed returns the last tile as read-only trimmed to contain at
 // most NCommits. It caches trimmed tiles as long as the underlying tiles
 // do not change.
-//
-// includeIgnores - If true then include ignored digests in the returned tile.
-func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*tiling.Tile, error) {
+func (s *Storage) GetLastTileTrimmed() (*types.TilePair, error) {
 	// Retieve the most recent tile.
 	tile := s.MasterTileBuilder.GetTile()
 
@@ -101,53 +100,64 @@ func (s *Storage) GetLastTileTrimmed(includeIgnores bool) (*tiling.Tile, error) 
 	defer s.mutex.Unlock()
 
 	if s.NCommits <= 0 {
-		return tile, nil
+		return &types.TilePair{
+			Tile:            tile,
+			TileWithIgnores: tile,
+		}, nil
 	}
 
 	currentIgnoreRev := s.IgnoreStore.Revision()
 
 	// Check if the tile hasn't changed and the ignores haven't changed.
 	if s.lastTrimmedTile != nil && tile == s.lastTrimmedTile && s.lastTrimmedIgnoredTile != nil && currentIgnoreRev == s.lastIgnoreRev {
-		if includeIgnores {
-			return s.lastTrimmedTile, nil
-		} else {
-			return s.lastTrimmedIgnoredTile, nil
-		}
+		return &types.TilePair{
+			Tile:            s.lastTrimmedIgnoredTile,
+			TileWithIgnores: s.lastTrimmedTile,
+		}, nil
 	}
 
-	ignores, err := s.IgnoreStore.List(false)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to get ignores to filter tile: %s", err)
-	}
-
-	// Now copy the tile by value.
-	retIgnoredTile := tile.Copy()
-
-	// Then remove traces that should be ignored.
-	ignoreQueries, err := ignore.ToQuery(ignores)
+	// Get the tile without the ignored traces.
+	retIgnoredTile, err := FilterIgnored(tile, s.IgnoreStore)
 	if err != nil {
 		return nil, err
-	}
-	for id, tr := range retIgnoredTile.Traces {
-		for _, q := range ignoreQueries {
-			if tiling.Matches(tr, q) {
-				delete(retIgnoredTile.Traces, id)
-				continue
-			}
-		}
 	}
 
 	// Cache this tile.
 	s.lastIgnoreRev = currentIgnoreRev
 	s.lastTrimmedTile = tile
 	s.lastTrimmedIgnoredTile = retIgnoredTile
-	fmt.Printf("Lengths: %d %d\n", len(s.lastTrimmedTile.Traces), len(s.lastTrimmedIgnoredTile.Traces))
 
-	if includeIgnores {
-		return s.lastTrimmedTile, nil
-	} else {
-		return s.lastTrimmedIgnoredTile, nil
+	return &types.TilePair{
+		Tile:            s.lastTrimmedIgnoredTile,
+		TileWithIgnores: s.lastTrimmedTile,
+	}, nil
+}
+
+// FilterIgnored returns a copy of the given tile with all traces removed
+// that match the ignore rules in the given ignore store.
+func FilterIgnored(inputTile *tiling.Tile, ignoreStore ignore.IgnoreStore) (*tiling.Tile, error) {
+	ignores, err := ignoreStore.List(false)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get ignores to filter tile: %s", err)
 	}
+
+	// Now copy the tile by value.
+	ret := inputTile.Copy()
+
+	// Then remove traces that should be ignored.
+	ignoreQueries, err := ignore.ToQuery(ignores)
+	if err != nil {
+		return nil, err
+	}
+	for id, tr := range ret.Traces {
+		for _, q := range ignoreQueries {
+			if tiling.Matches(tr, q) {
+				delete(ret.Traces, id)
+				continue
+			}
+		}
+	}
+	return ret, nil
 }
 
 // GetOrUpdateDigestInfo is a helper function that retrieves the DigestInfo for

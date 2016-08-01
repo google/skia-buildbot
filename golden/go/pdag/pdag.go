@@ -44,11 +44,13 @@ type ProcessFn func(interface{}) error
 // Node of the Dag.
 type Node struct {
 	id       string
+	name     string
 	children map[string]*Node
 	procFn   ProcessFn
 	mutex    sync.Mutex
 	inputMap map[string]int
 	inputCh  chan *call
+	verbose  bool // debuging only
 }
 
 // Processing function that does nothing. Mostly used for testing.
@@ -60,8 +62,10 @@ func NoOp(ctx interface{}) error {
 // to be executed in this node and an optional list of parent nodes.
 func NewNode(fn ProcessFn, parents ...*Node) *Node {
 	// Create a new node with a unique id.
+	id := uuid.NewV4().String()
 	node := &Node{
-		id:       uuid.NewV4().String(),
+		id:       id,
+		name:     id,
 		children: map[string]*Node{},
 		procFn:   fn,
 		inputCh:  make(chan *call),
@@ -103,6 +107,11 @@ func (n *Node) Trigger(state interface{}) error {
 	nodesCalled := n.addInput(msg.id)
 	msg.wg.Add(nodesCalled)
 
+	if n.verbose {
+		n.dump(msg.id, "")
+		glog.Infof("Number of nodes to call: %d\n", nodesCalled)
+	}
+
 	// Trigger the execution and wait for all nodes to be visited.
 	n.inputCh <- &msg
 	msg.wg.Wait()
@@ -112,6 +121,23 @@ func (n *Node) Trigger(state interface{}) error {
 	}
 
 	return nil
+}
+
+// setName assigns a name to the Node. It's purely used
+// for debugging purposes. Iternally a unique id is used.
+// it returns Node so it can easily be chained.
+func (n *Node) setName(name string) *Node {
+	n.name = name
+	return n
+}
+
+// dump outputs the input connections of this node and its
+// decendents. Only useful for debugging.
+func (n *Node) dump(msgID, indent string) {
+	glog.Infof("Node %s : %d\n", n.name, n.inputMap[msgID])
+	for _, child := range n.children {
+		child.dump(msgID, indent+"     ")
+	}
 }
 
 // addInput records the number of inputs each each node
@@ -125,6 +151,13 @@ func (n *Node) addInput(msgID string) int {
 	}
 	n.inputMap[msgID] += 1
 	n.mutex.Unlock()
+
+	// If we have visited this node before that means we have
+	// visited it's children and we can stop now.
+	if descendents == 0 {
+		return descendents
+	}
+
 	for _, child := range n.children {
 		descendents += child.addInput(msgID)
 	}

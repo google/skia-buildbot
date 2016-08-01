@@ -3,6 +3,7 @@ package pdag
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -108,6 +109,54 @@ func TestError(t *testing.T) {
 	err := root.Trigger(nil)
 	assert.NotNil(t, err)
 	assert.Equal(t, "Not Implemented", err.Error())
+}
+
+func TestComplexCallOrder(t *testing.T) {
+	aFn := orderFn("a")
+	bFn := orderFn("b")
+	cFn := orderFn("c")
+	dFn := orderFn("d")
+	eFn := orderFn("e")
+	fFn := orderFn("f")
+	gFn := orderFn("g")
+
+	a := NewNode(aFn).setName("a")
+	b := a.Child(bFn).setName("b")
+	c := a.Child(cFn).setName("c")
+	b.Child(dFn).setName("d")
+	e := NewNode(eFn, b, c).setName("e")
+	NewNode(fFn, b, e).setName("f")
+	e.Child(gFn).setName("g")
+
+	// Create a context and trigger in the root node.
+	data := make(chan string, 100)
+	a.verbose = true
+	assert.NoError(t, a.Trigger(data))
+	close(data)
+	o := ""
+	for c := range data {
+		o += c
+	}
+	bPos := strings.Index(o, "b")
+	dPos := strings.Index(o, "d")
+	assert.True(t, (bPos >= 0) && (dPos > bPos))
+
+	// make sure d is called after b
+	results := map[string]bool{
+		"abcefg": true,
+		"abcegf": true,
+		"acbefg": true,
+		"acbegf": true,
+	}
+	o = o[0:dPos] + o[dPos+1:]
+	assert.True(t, results[o])
+}
+
+func orderFn(msg string) ProcessFn {
+	return func(ctx interface{}) error {
+		ctx.(chan string) <- msg
+		return nil
+	}
 }
 
 func incFn(increment int, ch chan<- string, chVal string) ProcessFn {

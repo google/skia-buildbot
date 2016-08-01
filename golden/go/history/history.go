@@ -65,10 +65,10 @@ func (h *historian) start() error {
 	h.storages.EventBus.SubscribeAsync(expstorage.EV_EXPSTORAGE_CHANGED, func(e interface{}) {
 		expChanges <- e.([]string)
 	})
-	tileStream := h.storages.GetTileStreamNow(2*time.Minute, true)
+	tileStream := h.storages.GetTileStreamNow(2 * time.Minute)
 
-	lastTile := <-tileStream
-	if err := h.updateDigestInfo(lastTile); err != nil {
+	lastTilePair := <-tileStream
+	if err := h.updateDigestInfo(lastTilePair.TileWithIgnores); err != nil {
 		return err
 	}
 	liveness := metrics2.NewLiveness("gold.digest-history-monitoring")
@@ -77,16 +77,16 @@ func (h *historian) start() error {
 	go func() {
 		for {
 			select {
-			case tile := <-tileStream:
-				if err := h.updateDigestInfo(tile); err != nil {
+			case tilePair := <-tileStream:
+				if err := h.updateDigestInfo(tilePair.TileWithIgnores); err != nil {
 					glog.Errorf("Error calculating status: %s", err)
 					continue
 				} else {
-					lastTile = tile
+					lastTilePair = tilePair
 				}
 			case <-expChanges:
 				storage.DrainChangeChannel(expChanges)
-				if err := h.updateDigestInfo(lastTile); err != nil {
+				if err := h.updateDigestInfo(lastTilePair.TileWithIgnores); err != nil {
 					glog.Errorf("Error calculating tile after expectation udpate: %s", err)
 					continue
 				}

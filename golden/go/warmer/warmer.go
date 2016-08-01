@@ -6,9 +6,9 @@ package warmer
 
 import (
 	"sync"
-	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/tiling"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/digesttools"
@@ -18,68 +18,66 @@ import (
 	"go.skia.org/infra/golden/go/types"
 )
 
-func Init(storages *storage.Storage, summaries *summary.Summaries, tallies *tally.Tallies) error {
-	exp, err := storages.ExpectationsStore.Get()
-	if err != nil {
-		return err
+// TODO(stephana): This should be folded into the rewritten FileDiffStore.
+
+// Warmer continously prefetches images and calculates diffs that are likely to
+// be requested by the front-end.
+type Warmer struct {
+	storages *storage.Storage
+}
+
+// New creates an new instance of warmer.
+func New(storages *storage.Storage) *Warmer {
+	return &Warmer{
+		storages: storages,
 	}
-	go func() {
-		oneRun := func() {
-			t := timer.New("warmer one loop")
-			for test, sum := range summaries.Get() {
-				for _, digest := range sum.UntHashes {
-					t := tallies.ByTest()[test]
-					if t != nil {
-						// Calculate the closest digest for the side effect of filling in the filediffstore cache.
-						digesttools.ClosestDigest(test, digest, exp, t, storages.DiffStore, types.POSITIVE)
-						digesttools.ClosestDigest(test, digest, exp, t, storages.DiffStore, types.NEGATIVE)
-					}
-				}
-			}
-			t.Stop()
-			if newExp, err := storages.ExpectationsStore.Get(); err != nil {
-				glog.Errorf("warmer: Failed to get expectations: %s", err)
-			} else {
-				exp = newExp
-			}
+}
 
-			// Make sure all images are downloaded. This is necessary, because
-			// the front-end doesn't get URLs (generated via DiffStore.AbsPath)
-			// which ensures that the image has been downloaded.
-			// TODO(stephana): Remove this once the new diffstore is in place.
-			tile, err := storages.GetLastTileTrimmed(true)
-			if err != nil {
-				glog.Errorf("Error retrieving tile: %s", err)
+// Run prefetches the digests in tile and calculates differences we'll need.
+func (w *Warmer) Run(tile *tiling.Tile, summaries *summary.Summaries, tallies *tally.Tallies) {
+	exp, err := w.storages.ExpectationsStore.Get()
+	if err != nil {
+		glog.Errorf("warmer: Failed to get expectations: %s", err)
+	}
+
+	t := timer.New("warmer one loop")
+	for test, sum := range summaries.Get() {
+		for _, digest := range sum.UntHashes {
+			t := tallies.ByTest()[test]
+			if t != nil {
+				// Calculate the closest digest for the side effect of filling in the filediffstore cache.
+				digesttools.ClosestDigest(test, digest, exp, t, w.storages.DiffStore, types.POSITIVE)
+				digesttools.ClosestDigest(test, digest, exp, t, w.storages.DiffStore, types.NEGATIVE)
 			}
-			tileLen := tile.LastCommitIndex() + 1
-			traceDigests := make(util.StringSet, tileLen)
-			for _, trace := range tile.Traces {
-				gTrace := trace.(*types.GoldenTrace)
-				for _, digest := range gTrace.Values {
-					if digest != types.MISSING_DIGEST {
-						traceDigests[digest] = true
-					}
-				}
-			}
-
-			digests := traceDigests.Keys()
-			glog.Infof("FOUND %d digests to fetch.", len(digests))
-			storages.DiffStore.AbsPath(digests)
-
-			// TODO(stephana): Re-enable this once we have figured out crashes.
-
-			// if err := warmTrybotDigests(storages, traceDigests); err != nil {
-			// 	glog.Errorf("Error retrieving trybot digests: %s", err)
-			// 	return
-			// }
 		}
+	}
+	t.Stop()
 
-		oneRun()
-		for _ = range time.Tick(time.Minute) {
-			oneRun()
+	// Make sure all images are downloaded. This is necessary, because
+	// the front-end doesn't get URLs (generated via DiffStore.AbsPath)
+	// which ensures that the image has been downloaded.
+	// TODO(stephana): Remove this once the new diffstore is in place.
+	tileLen := tile.LastCommitIndex() + 1
+	traceDigests := make(util.StringSet, tileLen)
+	for _, trace := range tile.Traces {
+		gTrace := trace.(*types.GoldenTrace)
+		for _, digest := range gTrace.Values {
+			if digest != types.MISSING_DIGEST {
+				traceDigests[digest] = true
+			}
 		}
-	}()
-	return nil
+	}
+
+	digests := traceDigests.Keys()
+	glog.Infof("FOUND %d digests to fetch.", len(digests))
+	w.storages.DiffStore.AbsPath(digests)
+
+	// TODO(stephana): Re-enable this once we have figured out crashes.
+
+	// if err := warmTrybotDigests(storages, traceDigests); err != nil {
+	// 	glog.Errorf("Error retrieving trybot digests: %s", err)
+	// 	return
+	// }
 }
 
 func warmTrybotDigests(storages *storage.Storage, traceDigests map[string]bool) error {

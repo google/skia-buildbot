@@ -50,7 +50,7 @@ func BenchmarkStatusWatcher(b *testing.B) {
 
 	// Load the tile into memory and reset the timer to avoid measuring
 	// disk load time.
-	_, err := storages.GetLastTileTrimmed(true)
+	_, err := storages.GetLastTileTrimmed()
 	assert.NoError(b, err)
 	b.ResetTimer()
 	testStatusWatcher(b, tileBuilder)
@@ -77,12 +77,12 @@ func testStatusWatcher(t assert.TestingT, tileBuilder tracedb.MasterTileBuilder)
 		storages.DigestStore.(*MockDigestStore).issueIDs = nil
 
 		assert.False(t, corpStatus.OK)
-		tile, err := storages.GetLastTileTrimmed(true)
+		tilePair, err := storages.GetLastTileTrimmed()
 		assert.NoError(t, err)
 
 		changes := map[string]types.TestClassification{}
 		posOrNeg := []types.Label{types.POSITIVE, types.NEGATIVE}
-		for _, trace := range tile.Traces {
+		for _, trace := range tilePair.Tile.Traces {
 			if trace.Params()[types.CORPUS_FIELD] == corpStatus.Name {
 				gTrace := trace.(*types.GoldenTrace)
 				testName := gTrace.Params()[types.PRIMARY_KEY_FIELD]

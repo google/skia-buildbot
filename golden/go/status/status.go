@@ -102,10 +102,10 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		expChanges <- e.([]string)
 	})
 
-	tileStream := s.storages.GetTileStreamNow(2*time.Minute, false)
+	tileStream := s.storages.GetTileStreamNow(2 * time.Minute)
 
-	lastTile := <-tileStream
-	if err := s.calcStatus(lastTile); err != nil {
+	lastTilePair := <-tileStream
+	if err := s.calcStatus(lastTilePair.Tile); err != nil {
 		return err
 	}
 
@@ -115,20 +115,21 @@ func (s *StatusWatcher) calcAndWatchStatus() error {
 		for {
 			select {
 			case <-tileStream:
-				tile, err := s.storages.GetLastTileTrimmed(false)
+				tilePair, err := s.storages.GetLastTileTrimmed()
 				if err != nil {
 					glog.Errorf("Error retrieving tile: %s", err)
 					continue
 				}
-				if err := s.calcStatus(tile); err != nil {
+
+				if err := s.calcStatus(tilePair.Tile); err != nil {
 					glog.Errorf("Error calculating status: %s", err)
 				} else {
-					lastTile = tile
+					lastTilePair = tilePair
 					liveness.Reset()
 				}
 			case <-expChanges:
 				storage.DrainChangeChannel(expChanges)
-				if err := s.calcStatus(lastTile); err != nil {
+				if err := s.calcStatus(lastTilePair.Tile); err != nil {
 					glog.Errorf("Error calculating tile after expectation update: %s", err)
 				}
 				liveness.Reset()

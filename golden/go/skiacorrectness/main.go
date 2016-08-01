@@ -31,7 +31,6 @@ import (
 	"go.skia.org/infra/go/timer"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/golden/go/blame"
 	"go.skia.org/infra/golden/go/db"
 	"go.skia.org/infra/golden/go/digeststore"
 	"go.skia.org/infra/golden/go/expstorage"
@@ -39,14 +38,11 @@ import (
 	"go.skia.org/infra/golden/go/goldingestion"
 	"go.skia.org/infra/golden/go/history"
 	"go.skia.org/infra/golden/go/ignore"
-	"go.skia.org/infra/golden/go/paramsets"
+	"go.skia.org/infra/golden/go/indexer"
 	"go.skia.org/infra/golden/go/status"
 	"go.skia.org/infra/golden/go/storage"
-	"go.skia.org/infra/golden/go/summary"
-	"go.skia.org/infra/golden/go/tally"
 	"go.skia.org/infra/golden/go/trybot"
 	"go.skia.org/infra/golden/go/types"
-	"go.skia.org/infra/golden/go/warmer"
 	gstorage "google.golang.org/api/storage/v1"
 )
 
@@ -109,11 +105,8 @@ var (
 	// Module level variables that need to be accessible to main2.go.
 	storages           *storage.Storage
 	pathToURLConverter PathToURLConverter
-	tallies            *tally.Tallies
-	summaries          *summary.Summaries
 	statusWatcher      *status.StatusWatcher
-	blamer             *blame.Blamer
-	paramsetSum        *paramsets.Summary
+	ixr                *indexer.Indexer
 	issueTracker       issues.IssueTracker
 )
 
@@ -356,38 +349,27 @@ func main() {
 	}
 
 	// TODO(stephana): Remove this workaround to avoid circular dependencies once the 'storage' module is cleaned up.
-	storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute, true))
+	storages.IgnoreStore = ignore.NewSQLIgnoreStore(vdb, storages.ExpectationsStore, storages.GetTileStreamNow(time.Minute))
 
 	if err := history.Init(storages, *nTilesToBackfill); err != nil {
 		glog.Fatalf("Unable to initialize history package: %s", err)
-	}
-
-	if blamer, err = blame.New(storages); err != nil {
-		glog.Fatalf("Unable to create blamer: %s", err)
 	}
 
 	if err := ignore.Init(storages.IgnoreStore); err != nil {
 		glog.Fatalf("Failed to start monitoring for expired ignore rules: %s", err)
 	}
 
-	// Enable the experimental features.
-	tallies, err = tally.New(storages)
+	// Rebuild the index every two minutes.
+	ixr, err = indexer.New(storages, 2*time.Minute)
 	if err != nil {
-		glog.Fatalf("Failed to build tallies: %s", err)
+		glog.Fatalf("Failed to create indexer: %s", err)
 	}
-
-	paramsetSum = paramsets.New(tallies, storages)
 
 	if !*local {
 		*issueTrackerKey = metadata.Must(metadata.ProjectGet(metadata.APIKEY))
 	}
 
 	issueTracker = issues.NewMonorailIssueTracker(client)
-
-	summaries, err = summary.New(storages, tallies, blamer)
-	if err != nil {
-		glog.Fatalf("Failed to build summary: %s", err)
-	}
 
 	statusWatcher, err = status.New(storages)
 	if err != nil {
@@ -396,10 +378,6 @@ func main() {
 
 	imgFS := NewURLAwareFileServer(*imageDir, IMAGE_URL_PREFIX)
 	pathToURLConverter = imgFS.GetURL
-
-	if err := warmer.Init(storages, summaries, tallies); err != nil {
-		glog.Fatalf("Failed to initialize the warmer: %s", err)
-	}
 	mainTimer.Stop()
 
 	router := mux.NewRouter()
