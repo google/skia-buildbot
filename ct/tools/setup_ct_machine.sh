@@ -31,14 +31,15 @@ if [ ! -d "/b/depot_tools" ]; then
   git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
   echo 'export PATH=/b/depot_tools:$PATH' >> ~/.bashrc
 fi
+PATH=$PATH:/b/depot_tools
 
 # Checkout Chromium repository.
 mkdir -p /b/storage/chromium;
 cd /b/storage/chromium;
-/b/depot_tools/fetch --nohooks chromium;
+/b/depot_tools/fetch chromium;
 cd src;
 git checkout master;
-/b/depot_tools/gclient sync --nohooks
+/b/depot_tools/gclient sync
 
 # Checkout Skia's buildbot and trunk, and PDFium repositories.
 mkdir /b/skia-repo/;
