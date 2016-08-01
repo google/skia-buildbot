@@ -8,10 +8,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"reflect"
 	"runtime"
 	"testing"
 
-	"github.com/juju/testing/checkers"
+	"github.com/davecgh/go-spew/spew"
 	assert "github.com/stretchr/testify/require"
 )
 
@@ -24,8 +25,8 @@ func SkipIfShort(t *testing.T) {
 
 // AssertDeepEqual fails the test if the two objects do not pass reflect.DeepEqual.
 func AssertDeepEqual(t *testing.T, a, b interface{}) {
-	if eq, err := checkers.DeepEqual(a, b); !eq {
-		t.Fatal(err)
+	if !reflect.DeepEqual(a, b) {
+		t.Fatalf("Objects to not match: \na:\n%s\n\nb:\n%s\n", spew.Sprint(a), spew.Sprint(b))
 	}
 }
 

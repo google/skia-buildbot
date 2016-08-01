@@ -63,7 +63,7 @@ func clearDB(t *testing.T) *testutil.MySQLTestDatabase {
 // deserialize Alerts to JSON.
 func TestAlertJsonSerialization(t *testing.T) {
 	cases := []*Alert{
-		&Alert{},    // Empty Alert.
+		&Alert{Comments: []*Comment{}, Actions: []Action{}}, // Empty Alert.
 		makeAlert(), // Realistic case.
 	}
 
