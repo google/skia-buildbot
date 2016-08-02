@@ -74,6 +74,7 @@ func main() {
 	// Compile draw.cpp and link against fiddle_main.o and libskia to produce fiddle_main.
 	files := []string{
 		filepath.Join(*fiddleRoot, "src", "draw.cpp"),
+		filepath.Join(*fiddleRoot, "src", "images", "SkForceLinking.cpp"),
 	}
 	linkArgs := []string{path.Join(checkout, "cmakeout", "fiddle_main.o"), "-lOSMesa"}
 	compilePaths := []string{path.Join(checkout, "tools", "fiddle")}
