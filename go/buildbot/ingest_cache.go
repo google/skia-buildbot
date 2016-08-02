@@ -71,7 +71,7 @@ func (c *ingestCache) GetBuild(id BuildID) (*Build, error) {
 	if !ok {
 		return c.db.GetBuild(id)
 	}
-	return b, nil
+	return b.Copy(), nil
 }
 
 // See documentation for DB interface.
@@ -140,8 +140,8 @@ func (c *ingestCache) GetUnfinishedBuilds(master string) ([]*Build, error) {
 	}
 	unfinished := map[string]*Build{}
 	for _, b := range builds {
-		if updated, ok := c.builds[string(b.Id())]; ok {
-			b = updated
+		if _, ok := c.builds[string(b.Id())]; ok {
+			continue
 		}
 		if !b.IsFinished() {
 			unfinished[string(b.Id())] = b
@@ -149,7 +149,7 @@ func (c *ingestCache) GetUnfinishedBuilds(master string) ([]*Build, error) {
 	}
 	for _, b := range c.builds {
 		if !b.IsFinished() && b.Master == master {
-			unfinished[string(b.Id())] = b
+			unfinished[string(b.Id())] = b.Copy()
 		}
 	}
 	rv := make([]*Build, 0, len(unfinished))
@@ -161,7 +161,7 @@ func (c *ingestCache) GetUnfinishedBuilds(master string) ([]*Build, error) {
 
 // See documentation for DB interface.
 func (c *ingestCache) putBuild_Locked(b *Build) error {
-	c.builds[string(b.Id())] = b
+	c.builds[string(b.Id())] = b.Copy()
 
 	// by commit
 	if _, ok := c.buildNumsByCommit[b.Master]; !ok {

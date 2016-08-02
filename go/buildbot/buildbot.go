@@ -46,6 +46,10 @@ func (bs *BuildStep) IsFinished() bool {
 	return !util.TimeIsZero(bs.Finished)
 }
 
+func (bs BuildStep) Copy() *BuildStep {
+	return &bs
+}
+
 // Build.Results code descriptions, see http://docs.buildbot.net/current/developer/results.html.
 const (
 	BUILDBOT_SUCCESS   = 0
@@ -248,6 +252,26 @@ func (b *Build) fixup() {
 	sort.Strings(b.Commits)
 }
 
+func (b Build) Copy() *Build {
+	b.Commits = append([]string{}, b.Commits...)
+	props := [][]interface{}{}
+	for _, p := range b.Properties {
+		props = append(props, append([]interface{}{}, p...))
+	}
+	b.Properties = props
+	steps := []*BuildStep{}
+	for _, s := range b.Steps {
+		steps = append(steps, s.Copy())
+	}
+	b.Steps = steps
+	comments := []*BuildComment{}
+	for _, c := range b.Comments {
+		comments = append(comments, c.Copy())
+	}
+	b.Comments = comments
+	return &b
+}
+
 // Builder contains information about a builder.
 type Builder struct {
 	Name          string
@@ -272,6 +296,10 @@ type BuildComment struct {
 	User      string    `json:"user"`
 	Timestamp time.Time `json:"time"`
 	Message   string    `json:"message"`
+}
+
+func (bc BuildComment) Copy() *BuildComment {
+	return &bc
 }
 
 // BuilderComment contains a comment about a builder.
