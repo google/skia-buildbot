@@ -101,7 +101,7 @@ func (idx *SearchIndex) GetParamsetSummary(test, digest string, includeIgnores b
 
 // Proxy to blame.Blamer.GetBlame.
 func (idx *SearchIndex) GetBlame(test, digest string, commits []*tiling.Commit) *blame.BlameDistribution {
-	return idx.GetBlame(test, digest, commits)
+	return idx.blamer.GetBlame(test, digest, commits)
 }
 
 // Indexer is the type that drive continously indexing as the underlying
