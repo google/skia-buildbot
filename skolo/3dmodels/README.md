@@ -39,6 +39,13 @@ raspirack_*_extended.stl : A variant of the rack that has a larger "payload"
                            The payload width is 25mm, compared to 11mm on the
                            standard rack.
 
+raspirack_*_narrow.stl : A variant of the rack with the same size "payload"
+                          as normal, but has only one pin spot on each side
+                          to connect with other racks.  Additionally, the
+                          depth of the rack is about half of normal. This
+                          should allow for more rpi density and faster batch
+                          printing.
+
 
 raspirack_pi_holder.stl : Holder for the RPi. This is incorporated into
                   all version starting with raspirack_v4.
