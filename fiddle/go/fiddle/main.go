@@ -9,7 +9,6 @@ import (
 	ttemplate "html/template"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -19,7 +18,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/fiddle/go/config"
 	"go.skia.org/infra/fiddle/go/named"
 	"go.skia.org/infra/fiddle/go/runner"
 	"go.skia.org/infra/fiddle/go/source"
@@ -42,7 +40,6 @@ const (
 
 // flags
 var (
-	depotTools        = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
 	fiddleRoot        = flag.String("fiddle_root", "", "Directory location where all the work is done.")
 	influxDatabase    = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
 	influxHost        = flag.String("influxdb_host", influxdb.DEFAULT_HOST, "The InfluxDB hostname.")
@@ -50,7 +47,7 @@ var (
 	influxUser        = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local             = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port              = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
-	preserveTemp      = flag.Bool("preserve_temp", false, "If true then preserve the build artifacts in the fiddle/tmp directory. Used for debugging only.")
+	preserveTemp      = flag.Bool("preserve_temp", true, "If true then preserve the build artifacts in the fiddle/tmp directory. Used for debugging only.")
 	resourcesDir      = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	timeBetweenBuilds = flag.Duration("time_between_builds", time.Hour, "How long to wait between building LKGR of Skia.")
 )
@@ -156,6 +153,7 @@ var (
 	names        *named.Named
 	failingNamed = []store.Named{}
 	failingMutex = sync.Mutex{}
+	depotTools   string
 )
 
 func loadTemplates() {
@@ -349,11 +347,12 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 	glog.Infof("Request: %#v", *req)
 	current := build.Current()
 	glog.Infof("Building at: %s", current.Hash)
-	tmpDir, err := runner.WriteDrawCpp(*fiddleRoot, req.Code, &req.Options, *local)
+	checkout := filepath.Join(*fiddleRoot, "versions", current.Hash)
+	tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, req.Code, &req.Options, *local)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to write the fiddle.")
 	}
-	res, err := runner.Run(*fiddleRoot, current.Hash, *local, tmpDir)
+	res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir)
 	if !*local && !*preserveTemp {
 		if err := os.RemoveAll(tmpDir); err != nil {
 			glog.Errorf("Failed to remove temp dir: %s", err)
@@ -468,6 +467,7 @@ func singleStepTryNamed() {
 		return
 	}
 	failing := []store.Named{}
+	current := build.Current()
 	for _, name := range allNames {
 		glog.Infof("Trying: %s", name.Name)
 		fiddleHash, err := names.DereferenceID("@" + name.Name)
@@ -480,14 +480,18 @@ func singleStepTryNamed() {
 			glog.Errorf("Can't get code for %s: %s", name.Name, err)
 			continue
 		}
-		tmpDir, err := runner.WriteDrawCpp(*fiddleRoot, code, options, *local)
+		checkout := filepath.Join(*fiddleRoot, "versions", current.Hash)
+		tmpDir, err := runner.WriteDrawCpp(checkout, *fiddleRoot, code, options, *local)
 		if err != nil {
 			glog.Errorf("Failed to write fiddle for %s: %s", name.Name, err)
 			continue
 		}
-		res, err := runner.Run(*fiddleRoot, build.Current().Hash, *local, tmpDir)
+		res, err := runner.Run(checkout, *fiddleRoot, depotTools, current.Hash, *local, tmpDir)
 		if err != nil {
 			glog.Errorf("Failed to run fiddle for %s: %s", name.Name, err)
+			namedFailures.Inc(1)
+			failing = append(failing, name)
+			continue
 		}
 		if res.Compile.Errors != "" || res.Execute.Errors != "" {
 			glog.Errorf("Failed to compile or run the named fiddle: %s", name.Name)
@@ -521,17 +525,15 @@ func StartTryNamed() {
 // buildLib, given a directory that Skia is checked out into, builds libskia.a
 // and fiddle_main.o.
 func buildLib(checkout, depotTools string) error {
-	glog.Info("Starting CMakeBuild")
-	if err := buildskia.CMakeBuild(checkout, depotTools, config.BUILD_TYPE); err != nil {
-		return fmt.Errorf("Failed cmake build: %s", err)
+	glog.Info("Starting GNGen")
+	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false"}); err != nil {
+		return fmt.Errorf("Failed GN gen: %s", err)
 	}
 
-	glog.Info("Building fiddle_main.o")
-	files := []string{
-		filepath.Join(checkout, "tools", "fiddle", "fiddle_main.cpp"),
-	}
-	if err := buildskia.CMakeCompile(checkout, path.Join(checkout, "cmakeout", "fiddle_main.o"), files, []string{}, config.BUILD_TYPE); err != nil {
-		return fmt.Errorf("Failed cmake build of fiddle_main: %s", err)
+	glog.Info("Building fiddle")
+	if output, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "fiddle", true); err != nil {
+		glog.Errorf("Compile output: %q", output)
+		return fmt.Errorf("Failed ninja build of fiddle: %s", err)
 	}
 	return nil
 }
@@ -553,9 +555,7 @@ func main() {
 	if *fiddleRoot == "" {
 		glog.Fatal("The --fiddle_root flag is required.")
 	}
-	if *depotTools == "" {
-		glog.Fatal("The --depot_tools flag is required.")
-	}
+	depotTools = filepath.Join(*fiddleRoot, "depot_tools")
 	loadTemplates()
 	var err error
 	repo, err = gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
@@ -574,7 +574,7 @@ func main() {
 		glog.Fatalf("Failed to initialize source images: %s", err)
 	}
 	names = named.New(fiddleStore)
-	build = buildskia.New(*fiddleRoot, *depotTools, repo, buildLib, 64, *timeBetweenBuilds)
+	build = buildskia.New(*fiddleRoot, depotTools, repo, buildLib, 64, *timeBetweenBuilds, true)
 	build.Start()
 	StartTryNamed()
 	r := mux.NewRouter()

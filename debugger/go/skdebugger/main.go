@@ -256,7 +256,7 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Failed to clone Skia: %s", err)
 		}
-		build = buildskia.New(*workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds)
+		build = buildskia.New(*workRoot, *depotTools, repo, buildSkiaServe, 64, *timeBetweenBuilds, false)
 		build.Start()
 
 		getHash := func() string {

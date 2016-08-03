@@ -13,6 +13,8 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/fiddle/go/linenumbers"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/exec"
@@ -60,21 +62,19 @@ func prepCodeToCompile(fiddleRoot, code string, opts *types.Options) string {
 //    local - If true then we are running locally, so write the code to
 //        fiddleRoot/src/draw.cpp.
 //
-// Returns the directory where the 'draw.cpp' file was written.
-func WriteDrawCpp(fiddleRoot, code string, opts *types.Options, local bool) (string, error) {
+// Returns a temp directory. Depending on 'local' this is where the 'draw.cpp' file was written.
+func WriteDrawCpp(checkout, fiddleRoot, code string, opts *types.Options, local bool) (string, error) {
 	code = prepCodeToCompile(fiddleRoot, code, opts)
 	dstDir := filepath.Join(fiddleRoot, "src")
 	if !local {
-		tmp := filepath.Join(fiddleRoot, "tmp")
-		err := os.MkdirAll(tmp, 0755)
-		if err != nil {
-			return "", fmt.Errorf("Failed to create FIDDLE_ROOT/tmp: %s", err)
-		}
-		dstDir, err = ioutil.TempDir(tmp, "code")
+		var err error
+		dstDir, err = ioutil.TempDir(filepath.Join(fiddleRoot, "tmp"), "code")
+		glog.Infof("Created tmp dir: %s %s", dstDir, err)
 		if err != nil {
 			return "", fmt.Errorf("Failed to create temp dir for draw.cpp: %s", err)
 		}
 	} else {
+		dstDir = filepath.Join(checkout, "skia", "tools", "fiddle")
 		if _, err := os.Stat(dstDir); err != nil && os.IsNotExist(err) {
 			err := os.MkdirAll(dstDir, 0755)
 			if err != nil {
@@ -82,7 +82,9 @@ func WriteDrawCpp(fiddleRoot, code string, opts *types.Options, local bool) (str
 			}
 		}
 	}
+	glog.Infof("About to write to: %s", dstDir)
 	w, err := os.Create(filepath.Join(dstDir, "draw.cpp"))
+	glog.Infof("Create: %v %v", *w, err)
 	if err != nil {
 		return dstDir, fmt.Errorf("Failed to open destination: %s", err)
 	}
@@ -125,17 +127,26 @@ func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
 //
 // If non-local this should run something like:
 //
-//     sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network \
-//       --bind-ro /mnt/pd0/fiddle \
-//       --bind-ro /mnt/pd0/fiddle/tmp/code288218027:/mnt/pd0/fiddle/src \
-//       --bind /mnt/pd0/fiddle/tmp/code288218027:/mnt/pd0/fiddle/out \
-//       xargs --arg-file=/dev/null \
-//       /mnt/pd0/fiddle/bin/fiddle_run \
-//       --fiddle_root /mnt/pd0/fiddle \
-//       --git_hash 5280dcbae3affd73be5d5e0ff3db8823e26901e6
-//       --alsologtostderr
+// sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network
+//  --machine foo
+//  --overlay=/mnt/pd0/fiddle:/tmp:/mnt/pd0/fiddle
+//  --bind-ro /tmp/draw.cpp:/mnt/pd0/fiddle/versions/d6dd44140d8dd6d18aba1dfe9edc5582dcd73d2f/tools/fiddle/draw.cpp
+//  xargs --arg-file=/dev/null \
+//    /mnt/pd0/fiddle/bin/fiddle_run \
+//    --fiddle_root /mnt/pd0/fiddle \
+//    --git_hash 5280dcbae3affd73be5d5e0ff3db8823e26901e6 \
+//    --alsologtostderr
 //
-// NOTE: When trying to run a binary that exists on a mounted directory under nspawn, it will fail with:
+// OVERLAY
+//    The use of --overlay=/mnt/pd0/fiddle:/tmp:/mnt/pd0/fiddle sets up an interesting directory
+//    /mnt/pd0/fiddle in the container, where the entire contents of the host's
+//    /mnt/pd0/fiddle is available read-only, and if the container tries to write
+//    to any files there, or create new files, they end up in /tmp and the first
+//    directory stays untouched. See https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt
+//    and the documentation for the --overlay flag of systemd-nspawn.
+//
+// Why xargs?
+//    When trying to run a binary that exists on a mounted directory under nspawn, it will fail with:
 //
 //    $ sudo systemd-nspawn -D /mnt/pd0/container/ --bind=/mnt/pd0/fiddle /mnt/pd0/fiddle/bin/fiddle_run
 //    Directory /mnt/pd0/container lacks the binary to execute or doesn't look like a binary tree. Refusing.
@@ -146,7 +157,7 @@ func GitHashTimeStamp(fiddleRoot, gitHash string) (time.Time, error) {
 // the point of making the bindings and then xargs will be able to execute the
 // exe within the container.
 //
-func Run(fiddleRoot, gitHash string, local bool, tmpDir string) (*types.Result, error) {
+func Run(checkout, fiddleRoot, depotTools, gitHash string, local bool, tmpDir string) (*types.Result, error) {
 	machine := ""
 	if !local {
 		machine = path.Base(tmpDir)
@@ -157,15 +168,14 @@ func Run(fiddleRoot, gitHash string, local bool, tmpDir string) (*types.Result, 
 		"--read-only",        // Mount the root file system as read only.
 		"--private-network",  // Turn off networking.
 		"--machine", machine, // Give the container a unique name, so we can run fiddles concurrently.
-		"--bind-ro", "/mnt/pd0/fiddle", // Mount most of FIDDLE_ROOT as read-only.
-		"--bind-ro", tmpDir + ":/mnt/pd0/fiddle/src", // Mount the user's draw.cpp file into /src.
-		"--bind", tmpDir + ":/mnt/pd0/fiddle/out", // Also mount the same dir as draw.cpp as read/write to receive the executable.
+		"--overlay", fmt.Sprintf("%s:%s:%s", fiddleRoot, tmpDir, fiddleRoot), // Build our copy-on-write layered filesystem. See OVERLAY note above.
+		"--bind-ro", tmpDir + "/draw.cpp" + ":" + filepath.Join(checkout, "skia", "tools", "fiddle", "draw.cpp"), // Mount the user's draw.cpp over the default draw.cpp.
 		"xargs", "--arg-file=/dev/null", // See Note above for explanation of xargs.
-		"/mnt/pd0/fiddle/bin/fiddle_run", "--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--alsologtostderr",
+		"/mnt/pd0/fiddle/bin/fiddle_run", "--fiddle_root", fiddleRoot, "--git_hash", gitHash,
 	}
 	if local {
 		name = "fiddle_run"
-		args = []string{"--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--local"}
+		args = []string{"--fiddle_root", fiddleRoot, "--git_hash", gitHash, "--local", "--alsologtostderr"}
 	}
 	output := &bytes.Buffer{}
 	runCmd := &exec.Command{
@@ -180,7 +190,9 @@ func Run(fiddleRoot, gitHash string, local bool, tmpDir string) (*types.Result, 
 	// Parse the output into types.Result.
 	res := &types.Result{}
 	if err := json.Unmarshal(output.Bytes(), res); err != nil {
+		glog.Errorf("Received erroneous output: %q", output.String())
 		return nil, fmt.Errorf("Failed to decode results from run: %s", err)
 	}
+	// TODO Clean up the tmp directory.
 	return res, nil
 }

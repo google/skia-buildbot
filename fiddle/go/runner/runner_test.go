@@ -64,18 +64,30 @@ func TestWriteDrawCpp(t *testing.T) {
 		}
 	}()
 
+	// Create a temp checkout that gets cleaned up.
+	checkout, err := ioutil.TempDir("", "runner-test")
+	assert.NoError(t, err)
+	defer func() {
+		err := os.RemoveAll(checkout)
+		if err != nil {
+			t.Logf("Failed to clean up checkout: %s", err)
+		}
+	}()
+	err = os.MkdirAll(filepath.Join(checkout, "tools", "fiddle"), 0777)
+	assert.NoError(t, err)
+
 	opts := &types.Options{
 		Width:  128,
 		Height: 256,
 		Source: 2,
 	}
 	// Test local=true.
-	dir, err := WriteDrawCpp(fiddleRoot, "void draw(SkCanvas* canvas) {\n}", opts, true)
+	dir, err := WriteDrawCpp(checkout, fiddleRoot, "void draw(SkCanvas* canvas) {\n}", opts, true)
 	assert.NoError(t, err)
-	assert.Equal(t, dir, filepath.Join(fiddleRoot, "src"))
+	assert.Equal(t, dir, filepath.Join(checkout, "skia", "tools", "fiddle"))
 
 	// Test local=false.
-	dir, err = WriteDrawCpp(fiddleRoot, "void draw(SkCanvas* canvas) {\n}", opts, false)
+	dir, err = WriteDrawCpp(checkout, fiddleRoot, "void draw(SkCanvas* canvas) {\n}", opts, false)
 	assert.NoError(t, err)
 	assert.True(t, strings.HasPrefix(dir, filepath.Join(fiddleRoot, "tmp")))
 }
@@ -98,14 +110,13 @@ func TestRun(t *testing.T) {
 	exec.SetRunForTesting(testRun)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 
-	res, err := Run("fiddleroot/", "abcdef", true, "")
+	res, err := Run("checkout/", "fiddleroot/", "depot_tools/", "abcdef", true, "")
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
-	assert.Equal(t, "fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --local", execString)
+	assert.Equal(t, "fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --local --alsologtostderr", execString)
 
-	res, err = Run("fiddleroot/", "abcdef", false, "/mnt/pd0/fiddle/tmp/draw0123")
+	res, err = Run("checkout/", "fiddleroot/", "depot_tools/", "abcdef", false, "/mnt/pd0/fiddle/tmp/draw0123")
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
-	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network --machine draw0123 --bind-ro /mnt/pd0/fiddle --bind-ro /mnt/pd0/fiddle/tmp/draw0123:/mnt/pd0/fiddle/src --bind /mnt/pd0/fiddle/tmp/draw0123:/mnt/pd0/fiddle/out xargs --arg-file=/dev/null /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef --alsologtostderr", execString)
-
+	assert.Equal(t, "sudo systemd-nspawn -D /mnt/pd0/container/ --read-only --private-network --machine draw0123 --overlay fiddleroot/:/mnt/pd0/fiddle/tmp/draw0123:fiddleroot/ --bind-ro /mnt/pd0/fiddle/tmp/draw0123/draw.cpp:checkout/skia/tools/fiddle/draw.cpp xargs --arg-file=/dev/null /mnt/pd0/fiddle/bin/fiddle_run --fiddle_root fiddleroot/ --git_hash abcdef", execString)
 }

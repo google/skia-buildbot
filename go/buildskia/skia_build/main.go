@@ -24,6 +24,7 @@ var (
 	installDeps = flag.Bool("install_deps", false, "Install Skia dependencies")
 	workRoot    = flag.String("work_root", "", "Directory location where all the work is done.")
 	depotTools  = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
+	useGN       = flag.Bool("use_gn", false, "This application use GN to build.")
 )
 
 func main() {
@@ -39,7 +40,7 @@ func main() {
 		glog.Fatalf("Failed to clone Skia: %s", err)
 	}
 
-	b := buildskia.New(*workRoot, *depotTools, repo, nil, 2, time.Hour)
+	b := buildskia.New(*workRoot, *depotTools, repo, nil, 2, time.Hour, *useGN)
 	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
 	if err != nil {
 		if err == buildskia.AlreadyExistsErr {

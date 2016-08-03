@@ -251,6 +251,10 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		util.RemoveAll(filepath.Join(path))
 	}
 
+	if err := os.MkdirAll(path, 0755); err != nil {
+		return nil, fmt.Errorf("Failed to create dir for checkout: %s", err)
+	}
+
 	env := []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")}
 	fetchCmd := &exec.Command{
 		Name:        "fetch",
@@ -268,15 +272,9 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 	}
 
 	repoPath := filepath.Join(path, "skia")
-	repo, err := gitinfo.CloneOrUpdate("https://skia.googlesource.com/skia", repoPath, true)
+	repo, err := gitinfo.NewGitInfo(repoPath, false, true)
 	if err != nil {
 		return nil, fmt.Errorf("Failed working with Skia repo: %s", err)
-	}
-
-	if branch != "" {
-		if err := repo.SetToBranch(branch); err != nil {
-			return nil, fmt.Errorf("Failed to change to branch %s: %s", branch, err)
-		}
 	}
 
 	if err = repo.SetToCommit(gitHash); err != nil {
@@ -313,6 +311,20 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		return nil, fmt.Errorf("Failed syncing: %s", err)
 	}
 
+	fetchGn := &exec.Command{
+		Name:        filepath.Join(repoPath, "bin", "fetch-gn"),
+		Args:        []string{},
+		Dir:         repoPath,
+		InheritPath: false,
+		Env:         []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")},
+		LogStderr:   true,
+		LogStdout:   true,
+	}
+
+	if err := exec.Run(fetchGn); err != nil {
+		return nil, fmt.Errorf("Failed installing dependencies: %s", err)
+	}
+
 	if lc, err := repo.Details(gitHash, false); err != nil {
 		return nil, fmt.Errorf("Could not get git details for skia gitHash %s: %s", gitHash, err)
 	} else {
@@ -332,8 +344,8 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 // The results of the build are stored in path/skia/out/<outSubDir>.
 func GNGen(path, depotTools, outSubDir string, args []string) error {
 	genCmd := &exec.Command{
-		Name:        "gn",
-		Args:        []string{"gen", filepath.Join("out", outSubDir), fmt.Sprintf(`--args="%s"`, strings.Join(args, " "))},
+		Name:        filepath.Join(depotTools, "gn"),
+		Args:        []string{"gen", filepath.Join("out", outSubDir), fmt.Sprintf(`--args=%s`, strings.Join(args, " "))},
 		Dir:         filepath.Join(path, "skia"),
 		InheritPath: false,
 		Env: []string{
@@ -359,26 +371,29 @@ func GNGen(path, depotTools, outSubDir string, args []string) error {
 //   verbose - If the build's std out should be logged (usally quite long)
 //
 // Returns an error on failure.
-func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) error {
+func GNNinjaBuild(path, depotToolsPath, outSubDir, target string, verbose bool) (string, error) {
 	args := []string{"-C", filepath.Join("out", outSubDir)}
 	if target != "" {
 		args = append(args, target)
 	}
+	buf := bytes.Buffer{}
+	output := limitwriter.New(&buf, 64*1024)
 	buildCmd := &exec.Command{
-		Name:        filepath.Join(depotToolsPath, "ninja"),
-		Args:        args,
-		Dir:         path,
-		InheritPath: false,
-		Env:         []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")},
-		LogStderr:   true,
-		LogStdout:   verbose,
+		Name:           filepath.Join(depotToolsPath, "ninja"),
+		Args:           args,
+		Dir:            filepath.Join(path, "skia"),
+		InheritPath:    false,
+		Env:            []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")},
+		CombinedOutput: output,
+		LogStderr:      true,
+		LogStdout:      verbose,
 	}
 	glog.Infof("About to run: %#v", *buildCmd)
 
 	if err := exec.Run(buildCmd); err != nil {
-		return fmt.Errorf("Failed ninja build: %s", err)
+		return buf.String(), fmt.Errorf("Failed compile: %s", err)
 	}
-	return nil
+	return buf.String(), nil
 }
 
 // NinjaBuild builds the given target using ninja.

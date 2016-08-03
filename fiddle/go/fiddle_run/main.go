@@ -13,8 +13,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/skia-dev/glog"
-	"go.skia.org/infra/fiddle/go/config"
 	"go.skia.org/infra/fiddle/go/types"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
@@ -31,7 +29,7 @@ var (
 func serializeOutput(res types.Result) {
 	enc := json.NewEncoder(os.Stdout)
 	if err := enc.Encode(res); err != nil {
-		glog.Errorf("Failed to encode: %s", err)
+		fmt.Printf("Failed to encode: %s", err)
 	}
 }
 
@@ -50,6 +48,8 @@ func main() {
 	if *gitHash == "" {
 		res.Errors = "fiddle_run: The --git_hash flag is required."
 	}
+
+	depotTools := filepath.Join(*fiddleRoot, "depot_tools")
 	checkout := path.Join(*fiddleRoot, "versions", *gitHash)
 
 	// Set limits on this process and all its children.
@@ -71,37 +71,27 @@ func main() {
 		fmt.Println("Error Setting Rlimit ", err)
 	}
 
-	// Compile draw.cpp and link against fiddle_main.o and libskia to produce fiddle_main.
-	files := []string{
-		filepath.Join(*fiddleRoot, "src", "draw.cpp"),
-		filepath.Join(*fiddleRoot, "versions", *gitHash, "src", "images", "SkForceLinking.cpp"),
-	}
-	linkArgs := []string{path.Join(checkout, "cmakeout", "fiddle_main.o"), "-lOSMesa"}
-	compilePaths := []string{path.Join(checkout, "tools", "fiddle")}
-	compileOutput, err := buildskia.CMakeCompileAndLink(checkout, path.Join(*fiddleRoot, "out", "fiddle_main"), files, compilePaths, linkArgs, config.BUILD_TYPE)
-	if err != nil {
+	// Compile draw.cpp into 'fiddle'.
+	if output, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "fiddle", true); err != nil {
 		res.Compile.Errors = err.Error()
-	}
-	res.Compile.Output = compileOutput
-
-	if err != nil {
+		res.Compile.Output = output
 		serializeOutput(res)
 		return
 	}
 
-	// Now that we've built fiddle_main we want to run it as:
+	// Now that we've built fiddle we want to run it as:
 	//
-	//    $ bin/fiddle_secwrap out/fiddle_main
+	//    $ bin/fiddle_secwrap out/fiddle
 	//
 	// in the container, or as
 	//
-	//    $ out/fiddle_main
+	//    $ out/Release/fiddle
 	//
 	// if running locally.
 	name := path.Join(*fiddleRoot, "bin", "fiddle_secwrap")
-	args := []string{path.Join(*fiddleRoot, "out", "fiddle_main")}
+	args := []string{path.Join(checkout, "skia", "out", "Release", "fiddle")}
 	if *local {
-		name = path.Join(*fiddleRoot, "out", "fiddle_main")
+		name = path.Join(checkout, "skia", "out", "Release", "fiddle")
 		args = []string{}
 	}
 
@@ -114,7 +104,7 @@ func main() {
 		InheritPath: true,
 		Stdout:      &stdout,
 		Stderr:      &stderr,
-		Timeout:     10 * time.Second,
+		Timeout:     20 * time.Second,
 	}
 	if err := exec.Run(runCmd); err != nil {
 		res.Execute.Errors = err.Error()

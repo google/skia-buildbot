@@ -2,6 +2,9 @@ package buildskia
 
 import (
 	"encoding/base64"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -153,7 +156,7 @@ func TestGNGen(t *testing.T) {
 	err := GNGen("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", []string{"is_debug=true"})
 	assert.NoError(t, err)
 
-	got, want := exec.DebugString(mock.Commands()[0]), `gn gen out/Debug --args="is_debug=true"`
+	got, want := exec.DebugString(mock.Commands()[0]), `gn gen out/Debug --args=is_debug=true`
 	if !strings.HasSuffix(got, want) {
 		t.Errorf("Failed: Command %q doesn't end with %q", got, want)
 	}
@@ -164,9 +167,36 @@ func TestGNNinjaBuild(t *testing.T) {
 	exec.SetRunForTesting(mock.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 
-	err := GNNinjaBuild("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "", false)
+	_, err := GNNinjaBuild("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "", false)
 	assert.NoError(t, err)
 	got, want := exec.DebugString(mock.Commands()[0]), "/mnt/pd0/depot_tools/ninja -C out/Debug"
+	if !strings.HasSuffix(got, want) {
+		t.Errorf("Failed: Command %q doesn't end with %q", got, want)
+	}
+}
+
+func TestGNDownloadSkia(t *testing.T) {
+	mock := exec.CommandCollector{}
+	exec.SetRunForTesting(mock.Run)
+	defer exec.SetRunForTesting(exec.DefaultRun)
+
+	checkout, err := ioutil.TempDir("", "download-test")
+	assert.NoError(t, err)
+	defer func() {
+		err := os.RemoveAll(checkout)
+		if err != nil {
+			t.Logf("Failed to clean up checkout: %s", err)
+		}
+	}()
+	err = os.MkdirAll(filepath.Join(checkout, "skia"), 0777)
+	assert.NoError(t, err)
+
+	_, err = GNDownloadSkia("master", "aabbccddeeff", checkout, "/mnt/pd0/fiddle/depot_tools", false, false)
+	// Not all of exec is mockable, so GNDownloadSkia will fail, but check the correctness
+	// of the commands we did issue before hitting the failure point.
+	assert.Error(t, err)
+	assert.Equal(t, 1, len(mock.Commands()))
+	got, want := exec.DebugString(mock.Commands()[0]), "fetch skia"
 	if !strings.HasSuffix(got, want) {
 		t.Errorf("Failed: Command %q doesn't end with %q", got, want)
 	}
@@ -177,7 +207,7 @@ func TestGNNinjaBuildTarget(t *testing.T) {
 	exec.SetRunForTesting(mock.Run)
 	defer exec.SetRunForTesting(exec.DefaultRun)
 
-	err := GNNinjaBuild("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "fiddle", false)
+	_, err := GNNinjaBuild("/mnt/pd0/skia/", "/mnt/pd0/depot_tools", "Debug", "fiddle", false)
 	assert.NoError(t, err)
 	got, want := exec.DebugString(mock.Commands()[0]), "/mnt/pd0/depot_tools/ninja -C out/Debug fiddle"
 	if !strings.HasSuffix(got, want) {

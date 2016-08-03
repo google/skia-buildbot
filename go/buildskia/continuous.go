@@ -52,6 +52,7 @@ type ContinuousBuilder struct {
 	repo       vcsinfo.VCS
 	perBuild   PerBuild
 	preserve   int
+	useGn      bool
 
 	buildFailures    *metrics2.Counter
 	buildLiveness    *metrics2.Liveness
@@ -77,9 +78,10 @@ type ContinuousBuilder struct {
 //    perBuild - A PerBuild callback that gets called every time a new successful build of Skia is available.
 //    preserve - The number of LKGR builds to preserve after decimation.
 //    timeBetweenBuilds - The duration between attempts to pull LGKR and built it.
+//    useGn - Use GN as the meta build system, as opposed to GYP.
 //
 // Call Start() to begin the continous build Go routine.
-func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int, timeBetweenBuilds time.Duration) *ContinuousBuilder {
+func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, preserve int, timeBetweenBuilds time.Duration, useGn bool) *ContinuousBuilder {
 	b := &ContinuousBuilder{
 		workRoot:          workRoot,
 		depotTools:        depotTools,
@@ -90,6 +92,7 @@ func New(workRoot, depotTools string, repo vcsinfo.VCS, perBuild PerBuild, prese
 		buildLiveness:     metrics2.NewLiveness("build"),
 		repoSyncFailures:  metrics2.GetCounter("repo-sync-failed", nil),
 		timeBetweenBuilds: timeBetweenBuilds,
+		useGn:             useGn,
 	}
 	_, _ = b.AvailableBuilds() // Called for side-effect of loading hashes.
 	go b.startDecimation()
@@ -150,6 +153,9 @@ func prepDirectory(workRoot string) (string, error) {
 // Returns the commit info for the revision of Skia checked out.
 // Returns an error if any step fails, or return AlreadyExistsErr if
 // the target checkout directory already exists and force is false.
+//
+// In GN mode ninja files are not generated, the caller must call GNGen
+// in their PerBuild callback before calling GNNinjaBuild.
 func (b *ContinuousBuilder) BuildLatestSkia(force bool, head bool, deps bool) (*vcsinfo.LongCommit, error) {
 	versions, err := prepDirectory(b.workRoot)
 	if err != nil {
@@ -175,9 +181,17 @@ func (b *ContinuousBuilder) BuildLatestSkia(force bool, head bool, deps bool) (*
 		return nil, AlreadyExistsErr
 	}
 
-	ret, err := DownloadSkia("", githash, checkout, b.depotTools, false, deps)
-	if err != nil {
-		return nil, fmt.Errorf("Failed to fetch: %s", err)
+	var ret *vcsinfo.LongCommit
+	if b.useGn {
+		ret, err = GNDownloadSkia("", githash, checkout, b.depotTools, false, deps)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to fetch: %s", err)
+		}
+	} else {
+		ret, err = DownloadSkia("", githash, checkout, b.depotTools, false, deps)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to fetch: %s", err)
+		}
 	}
 
 	if b.perBuild != nil {

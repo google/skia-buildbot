@@ -35,7 +35,7 @@ The following executables part of that process:
                   an SKP data.
   * fiddle\_run - This is run within the chroot jail. It compiles
                  the user's code against fiddle\_main.o and
-                 libskia.so and then runs the resulting executable
+                 libskia.a and then runs the resulting executable
                  under the control of fiddle\_secwrap. It gathers
                  the output of all steps and emits it as one large
                  JSON file written to stdout.
@@ -59,15 +59,14 @@ The rest are built on the server as it runs:
     skia-fiddle
     +----------------------------------------------------------+
     |                                                          |
-    |                                    cmake                 |
-    |  FIDDLE_ROOT/versions/<githash>/  +-----> libskia.so     |
-    |  FIDDLE_ROOT/.../fiddle_main.cpp  +-----> fiddle_main.o  |
+    |                                    gn/ninja              |
+    |  FIDDLE_ROOT/versions/<githash>/  +-----> libskia.a      |
+    |  FIDDLE_ROOT/.../fiddle_main.cpp  +-----> fiddle         |
     |                                                          |
     |                                                          |
     |                                                          |
-    |  User's code written and mounted in container at:        |
-    |    FIDDLE_ROOT/src/draw.cpp                              |
-    |                                                          |
+    |  User's code written and mounted in container to         |
+    |  overwrite the default tools/fiddle/draw.cpp.            |
     |                                                          |
     |                                                          |
     |  systemd-nspawn                                          |
@@ -76,15 +75,15 @@ The rest are built on the server as it runs:
     |    +-> fiddle_run (stdout produces JSON)                 |
     |           +       (capture stdout/stderr of child procs) |
     |           |                                              |
-    |           |   draw.cpp        cmake                      |
-    |           +-> fiddle_main.o  +----->  fiddle_main        |
-    |           |   libskia.so                                 |
+    |           |                   ninja                      |
+    |           +-> draw.cpp       +----->  fiddle             |
+    |           |                                              |
     |           |                                              |
     |           |                                              |
     |           +-> fiddle_secwrap                             |
     |                   +                                      |
     |                   |                                      |
-    |                   +-> fiddle_main                        |
+    |                   +-> fiddle                             |
     |                                                          |
     |                                                          |
     +----------------------------------------------------------+
@@ -94,43 +93,43 @@ The rest are built on the server as it runs:
 By default $FIDDLE\_ROOT is /mnt/pd0, but can be another directory when running
 locally and not using systemd-nspawn.
 
-Skia is checked out into $FIDDLE\_ROOT/versions/<githash>, and cmake built,
-with the output going into $FIDDLE\_ROOT/versions/<githash>/cmakeout.
-Good builds are recorded in $FIDDLE\_ROOT/goodbuilds.txt, which is just
-a text file of good builds in the order they are done, that is, new
-good builds are appended to the end of the file.
+Skia is checked out into $FIDDLE\_ROOT/versions/<githash>, and gn/ninja built.
+Good builds are recorded in $FIDDLE\_ROOT/goodbuilds.txt, which is just a text
+file of good builds in the order they are done, that is, new good builds are
+appended to the end of the file.
 
 The rest of the work, compiling the user's code and then running it, is done
 in the container, i.e. run in a root jail using systemd-nspawn.
 
-In the container, / is mounted read-only. Also bind a directory
-$FIDDLE\_ROOT/src/ as read-only, where the source for $FIDDLE\_ROOT/src/ is
-$FIDDLE\_ROOT/tmp/<tmpdir>/, where tmpdir is unique for each requested compile.
-(This is just a symbolic link when not running via nspawn.) Also mount
-/tmp/<tmpdir> as read/write at $FIDDLE\_ROOT/out for the executable output of
-the compile.  Compile $FIDDLE\_ROOT/src/draw.cpp and run
-$FIDDLE\_ROOT/out/fiddle\_main  via ptrace control with fiddle\_secwrap. The
-compilation is done via
-$FIDDLE\_ROOT/versions/<githash>/cmakeout/skia\_compile\_arguments.txt and
-friends. Source images will be loaded in $FIDDLE\_ROOT/images.  The output from
-running fiddle\_main is piped to stdout and contains the images as base64
-encoded values in JSON. The $FIDDLE\_ROOT/images directory is whitelisted for
-access by fiddle\_secwrap so that fiddle\_main can read the source image.
+In the container, / is mounted read-only. Also bind an overlay filesystem is
+created to mirror /mnt/pd0/fiddle into the container, so the full contents are
+available to read, but any writes are directed into the temp directory created
+for each run.
+
+The source for draw.cpp is mounted readonly as a file that takes the place of
+the default draw.cpp.  The source of the mount point for draw.cpp is
+$FIDDLE\_ROOT/tmp/<tmpdir>/, where tmpdir is unique for each requested
+compile.  (This is just a symbolic link when not running via nspawn.)
+
+Compile 'fiddle' using Ninja and run via ptrace control with fiddle\_secwrap.
+Source images will be loaded in $FIDDLE\_ROOT/images.  The output from running
+fiddle\_main is piped to stdout and contains the images as base64 encoded
+values in JSON. The $FIDDLE\_ROOT/images directory is whitelisted for access
+by fiddle\_secwrap so that fiddle\_main can read the source image.
 
 Summary of directories and files and how they are mounted in the container:
 
-Directory                                 | Perms | Container
-------------------------------------------|-------|----------
+ Directory                                 | Perms | Container
+-------------------------------------------|-------|----------
 $FIDDLE\_ROOT/goodbuilds.txt               | R     | Y
-$FIDDLE\_ROOT/versions/<githash>           | R     | Y
-$FIDDLE\_ROOT/versions/<githash>/cmakeout/ | R     | Y
-.../cmakeout/fiddle\_main.o                | R     | Y
-$FIDDLE\_ROOT/src/                         | R     | Y
-$FIDDLE\_ROOT/src/draw.cpp                 | R     | Y
+$FIDDLE\_ROOT/                             | RWish | Y
+  ./<githash>/tools/fiddle/draw.cpp        | R     | Y
 $FIDDLE\_ROOT/tmp/<tmpdir>/                | R     | N
-$FIDDLE\_ROOT/out/                         | RW    | Y
 $FIDDLE\_ROOT/images/                      | R     | Y
-$FIDDLE\_ROOT/bin/fiddle\_secwrap           | R     | Y
+$FIDDLE\_ROOT/bin/fiddle\_secwrap          | R     | Y
+
+Where 'RWish' means that the directory is mounted is a way that allows
+reading from any file, but writes are redirected to a temp directory.
 
 Decimation
 ----------
@@ -252,7 +251,7 @@ An attached disk will reside at /mnt/pd0 and will be populated as:
 
      /mnt/pd0/fiddle  - $FIDDLE_ROOT
      /mnt/pd0/container
-     /mnt/pd0/depot_tools
+     /mnt/pd0/fiddle/depot_tools
 
 Startup
 -------

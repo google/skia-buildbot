@@ -4,11 +4,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/go/gitinfo"
 )
 
 // flags
@@ -18,19 +20,34 @@ var (
 	force       = flag.Bool("force", false, "Force a rebuild even if the library has already been checked out.")
 	installDeps = flag.Bool("install_deps", false, "Install Skia dependencies")
 	fiddleRoot  = flag.String("fiddle_root", "", "Directory location where all the work is done.")
-	depotTools  = flag.String("depot_tools", "", "Directory location where depot_tools is installed.")
-	milestone   = flag.Bool("milestone", false, "Also create a milestone mNN branch build.")
 )
+
+// buildLib, given a directory that Skia is checked out into, builds libskia.a
+// and fiddle_main.o.
+func buildLib(checkout, depotTools string) error {
+	glog.Info("Starting GNGen")
+	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false"}); err != nil {
+		return fmt.Errorf("Failed GN gen: %s", err)
+	}
+
+	glog.Info("Building fiddle")
+	if msg, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "fiddle", true); err != nil {
+		return fmt.Errorf("Failed ninja build of fiddle: %q %s", msg, err)
+	}
+	return nil
+}
 
 func main() {
 	common.Init()
 	if *fiddleRoot == "" {
 		glog.Fatal("The --fiddle_root flag is required.")
 	}
-	if *depotTools == "" {
-		glog.Fatal("The --depot_tools flag is required.")
+	depotTools := filepath.Join(*fiddleRoot, "depot_tools")
+	repo, err := gitinfo.CloneOrUpdate(common.REPO_SKIA, filepath.Join(*fiddleRoot, "skia"), true)
+	if err != nil {
+		glog.Fatalf("Failed to clone Skia: %s", err)
 	}
-	b := buildskia.New(*fiddleRoot, *depotTools, nil, nil, 2, time.Hour)
+	b := buildskia.New(*fiddleRoot, depotTools, repo, buildLib, 2, time.Hour, true)
 	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
 	if err != nil {
 		if err == buildskia.AlreadyExistsErr {

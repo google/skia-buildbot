@@ -343,7 +343,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to connect to Google Storage: %s", err)
 	}
-	build = buildskia.New(*workRoot, *depotTools, repo, buildVisualize, 3, *timeBetweenBuilds)
+	build = buildskia.New(*workRoot, *depotTools, repo, buildVisualize, 3, *timeBetweenBuilds, false)
 	build.Start()
 	cache = lru.New(NUM_CACHED_RESULT_IMAGES)
 	loadTemplates()
