@@ -85,7 +85,7 @@ type Aggregator struct {
 const (
 	BAD_FUZZ       = "bad"
 	GREY_FUZZ      = "grey"
-	HANG_THRESHOLD = 10
+	HANG_THRESHOLD = 20
 )
 
 var (
@@ -809,6 +809,7 @@ func (agg *Aggregator) WaitForEmptyQueues() {
 		hangCount++
 		if hangCount >= HANG_THRESHOLD {
 			glog.Warningf("Was waiting for %d rounds and still wasn't done.  Quitting anyway.", hangCount)
+			break
 		}
 
 		glog.Infof("Waiting %s for the aggregator's queues to be empty", config.Aggregator.StatusPeriod)
