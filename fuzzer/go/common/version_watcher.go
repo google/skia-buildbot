@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/metrics2"
-	"google.golang.org/cloud/storage"
 )
 
 // A VersionHandler is the type of the callbacks used by VersionWatcher.

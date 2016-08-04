@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/fileutil"
@@ -15,8 +16,7 @@ import (
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/golden/go/goldingestion"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -120,7 +120,7 @@ func TestPDFProcessor(t *testing.T) {
 // deleteFolderContent removes all content ing the given GS bucket/foldername.
 func deleteFolderContent(t *testing.T, bucket, folderName string, client *http.Client) {
 	ctx := context.Background()
-	cStorage, err := storage.NewClient(ctx, cloud.WithBaseHTTP(client))
+	cStorage, err := storage.NewClient(ctx, option.WithHTTPClient(client))
 	assert.NoError(t, err)
 
 	assert.NoError(t, gs.DeleteAllFilesInDir(cStorage, bucket, folderName, 1))

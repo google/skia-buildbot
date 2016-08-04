@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
@@ -27,7 +28,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud/storage"
 )
 
 // Aggregator is a key part of the fuzzing operation

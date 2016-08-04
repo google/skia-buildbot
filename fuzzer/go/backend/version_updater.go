@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/aggregator"
 	"go.skia.org/infra/fuzzer/go/common"
@@ -13,7 +14,6 @@ import (
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud/storage"
 )
 
 // VersionUpdater is a struct that will handle the updating from one version to fuzz to another

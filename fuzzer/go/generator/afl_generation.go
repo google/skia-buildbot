@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
@@ -15,7 +16,6 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/metrics2"
-	"google.golang.org/cloud/storage"
 )
 
 type Generator struct {

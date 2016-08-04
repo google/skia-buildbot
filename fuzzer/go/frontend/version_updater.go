@@ -3,13 +3,13 @@ package frontend
 import (
 	"fmt"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
 	"go.skia.org/infra/fuzzer/go/frontend/syncer"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud/storage"
 )
 
 // VersionUpdater is a struct that will handle the updating from one version to fuzz to another

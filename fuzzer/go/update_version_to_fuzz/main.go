@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"os"
 
+	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/frontend"
 	"go.skia.org/infra/go/auth"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -43,7 +43,7 @@ func setupStorageClient() error {
 		return fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
 
-	storageClient, err = storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
+	storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return fmt.Errorf("Problem authenticating: %s", err)
 	}

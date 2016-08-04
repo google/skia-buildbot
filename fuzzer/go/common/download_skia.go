@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/buildskia"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud/storage"
 )
 
 // DownloadSkiaVersionForFuzzing downloads the revision of Skia specified in Google Storage

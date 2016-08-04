@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/aggregator"
 	"go.skia.org/infra/fuzzer/go/backend"
@@ -27,8 +28,7 @@ import (
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/influxdb"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -227,7 +227,7 @@ func setupOAuth() error {
 		return fmt.Errorf("Problem setting up client OAuth: %v", err)
 	}
 
-	if storageClient, err = storage.NewClient(context.Background(), cloud.WithBaseHTTP(client)); err != nil {
+	if storageClient, err = storage.NewClient(context.Background(), option.WithHTTPClient(client)); err != nil {
 		return fmt.Errorf("Problem authenticating: %v", err)
 	}
 	issueManager = issues.NewManager(client)

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/fileutil"
@@ -23,8 +24,7 @@ import (
 	"go.skia.org/infra/go/vcsinfo"
 	gc_event "go.skia.org/infra/grandcentral/go/event"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 // Limit the number of times the ingester tries to get a file before giving up.
@@ -138,7 +138,7 @@ type GoogleStorageSource struct {
 // on the bucket and directory provided. The id is used to identify the Source
 // and is generally the same id as the ingester.
 func NewGoogleStorageSource(baseName, bucket, rootDir string, client *http.Client, evt *eventbus.EventBus) (Source, error) {
-	storageClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create a Google Storage API client: %s", err)
 	}

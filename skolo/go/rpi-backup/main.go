@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/fileutil"
@@ -19,8 +20,7 @@ import (
 	"go.skia.org/infra/go/sklog"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -54,7 +54,7 @@ func main() {
 		sklog.Fatalf("Could not setup cloud logging: %s", err)
 	}
 
-	storageClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		sklog.Fatalf("Could not authenticate to GCS: %s", err)
 	}

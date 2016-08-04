@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"time"
 
+	"cloud.google.com/go/storage"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fiddle/go/store"
@@ -19,8 +20,7 @@ import (
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 // Command line flags.
@@ -78,7 +78,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Problem setting up client OAuth: %s", err)
 	}
-	storageClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		glog.Fatalf("Problem authenticating: %s", err)
 	}

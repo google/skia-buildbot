@@ -14,6 +14,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/ingestion"
@@ -24,8 +25,7 @@ import (
 	"go.skia.org/infra/golden/go/config"
 	"go.skia.org/infra/golden/go/goldingestion"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -86,7 +86,7 @@ func newPDFProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig, clien
 	}
 
 	// Create the storage service client.
-	storageClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create a Google Storage API client: %s", err)
 	}

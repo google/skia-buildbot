@@ -6,13 +6,13 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	"github.com/golang/groupcache/lru"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -42,7 +42,7 @@ func New() (*Store, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Problem setting up client OAuth: %s", err)
 	}
-	storageClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(client))
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, fmt.Errorf("Problem creating storage client: %s", err)
 	}

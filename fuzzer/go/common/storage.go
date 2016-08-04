@@ -9,11 +9,11 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/gs"
-	"google.golang.org/cloud/storage"
 )
 
 // ExtractFuzzNameFromPath turns a path name into a fuzz name by stripping off all but the

@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"cloud.google.com/go/storage"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/httputils"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 )
 
 func getStorangeItem(bucket, gsPath string) (*storage.Reader, error) {
-	storageClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(httputils.NewTimeoutClient()))
+	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(httputils.NewTimeoutClient()))
 	if err != nil {
 		return nil, err
 	}

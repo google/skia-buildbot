@@ -15,7 +15,7 @@ import (
 	"runtime"
 	"time"
 
-	"google.golang.org/cloud/storage"
+	"cloud.google.com/go/storage"
 
 	"github.com/golang/groupcache/lru"
 	"github.com/gorilla/mux"

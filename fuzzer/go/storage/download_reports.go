@@ -6,12 +6,12 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/go/gs"
-	"google.golang.org/cloud/storage"
 )
 
 // GetReportsFromGS fetches all fuzz reports in the baseFolder from Google Storage. It returns a

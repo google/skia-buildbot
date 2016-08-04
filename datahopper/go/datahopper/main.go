@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
@@ -24,8 +25,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
-	"google.golang.org/cloud"
-	"google.golang.org/cloud/storage"
+	"google.golang.org/api/option"
 )
 
 const (
@@ -444,7 +444,7 @@ func main() {
 		if err != nil {
 			glog.Fatal(err)
 		}
-		gsClient, err := storage.NewClient(context.Background(), cloud.WithBaseHTTP(authClient))
+		gsClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(authClient))
 		if err != nil {
 			glog.Fatal(err)
 		}

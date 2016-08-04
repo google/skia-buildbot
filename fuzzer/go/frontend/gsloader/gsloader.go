@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"sort"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/data"
 	"go.skia.org/infra/fuzzer/go/fuzzcache"
 	fstorage "go.skia.org/infra/fuzzer/go/storage"
-	"google.golang.org/cloud/storage"
 )
 
 // LoadFromBoltDB loads the data.FuzzReport from FuzzReportCache associated with the given hash.

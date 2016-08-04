@@ -8,13 +8,13 @@ import (
 	"sync"
 	"time"
 
+	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/fuzzer/go/common"
 	"go.skia.org/infra/fuzzer/go/config"
 	"go.skia.org/infra/fuzzer/go/frontend/gsloader"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/util"
-	"google.golang.org/cloud/storage"
 )
 
 // FuzzSyncer is a struct that will handle the syncing of bad/grey fuzzes.
