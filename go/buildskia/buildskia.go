@@ -257,7 +257,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 
 	env := []string{"PATH=" + depotToolsPath + ":" + os.Getenv("PATH")}
 	fetchCmd := &exec.Command{
-		Name:        "fetch",
+		Name:        filepath.Join(depotToolsPath, "fetch"),
 		Args:        []string{"skia"},
 		Dir:         path,
 		InheritPath: false,
@@ -298,7 +298,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 	}
 
 	syncCmd := &exec.Command{
-		Name:        "gclient",
+		Name:        filepath.Join(depotToolsPath, "gclient"),
 		Args:        []string{"sync"},
 		Dir:         path,
 		InheritPath: false,
