@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/blacklist"
+	"go.skia.org/infra/build_scheduler/go/bot_map"
 	"go.skia.org/infra/build_scheduler/go/build_queue"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/buildbot"
@@ -24,6 +25,7 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/skiaversion"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
 )
 
@@ -294,6 +296,13 @@ func main() {
 		glog.Fatal(err)
 	}
 	bb := buildbucket.NewClient(c)
+
+	// Initialize Swarming client, start BotMap metrics.
+	swarm, err := swarming.NewApiClient(c)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	bot_map.StartMetrics(swarm)
 
 	serverURL := "https://" + *host
 	if *local {

@@ -19,9 +19,10 @@ const (
 	AUTH_SCOPE    = "https://www.googleapis.com/auth/userinfo.email"
 	API_BASE_PATH = "https://chromium-swarm.appspot.com/_ah/api/swarming/v1/"
 
-	DIMENSION_POOL_KEY        = "pool"
-	DIMENSION_POOL_VALUE_SKIA = "Skia"
-	DIMENSION_POOL_VALUE_CT   = "CT"
+	DIMENSION_POOL_KEY                 = "pool"
+	DIMENSION_POOL_VALUE_SKIA          = "Skia"
+	DIMENSION_POOL_VALUE_SKIA_TRIGGERS = "SkiaTriggers"
+	DIMENSION_POOL_VALUE_CT            = "CT"
 )
 
 var (
@@ -54,6 +55,14 @@ func (c *ApiClient) SwarmingService() *swarming.Service {
 func (c *ApiClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA,
+	})
+}
+
+// ListSkiaTriggerBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+// corresponding to the Skia Swarming Trigger bots.
+func (c *ApiClient) ListSkiaTriggerBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+	return c.ListBots(map[string]string{
+		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA_TRIGGERS,
 	})
 }
 

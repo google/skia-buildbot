@@ -9,11 +9,13 @@ import (
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/blacklist"
+	"go.skia.org/infra/build_scheduler/go/bot_map"
 	"go.skia.org/infra/build_scheduler/go/build_queue"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/buildbucket"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/swarming"
 )
 
 type buildslaveSlice []*buildbot.BuildSlave
@@ -60,12 +62,39 @@ func getFreeBuildslaves() ([]*buildbot.BuildSlave, error) {
 		}
 	}
 
-	// Return the builders which are connected and idle.
+	// Return the buildslaves which are connected and idle.
+	// TODO(borenet): Include swarm trigger bots in this list.
 	rv := []*buildbot.BuildSlave{}
 	for _, s := range buildslaves {
 		if len(s.RunningBuilds) == 0 && s.Connected {
 			rv = append(rv, s)
 		}
+	}
+	return rv, nil
+}
+
+// getFreeSwarmTriggers returns a map whose keys are free swarming trigger bot
+// names and whose values are slices of builder names which those trigger bots
+// may run.
+func getFreeSwarmTriggers(s *swarming.ApiClient) (map[string][]string, error) {
+	rv := map[string][]string{}
+	bots, err := s.ListSkiaTriggerBots()
+	if err != nil {
+		return nil, err
+	}
+	for _, bot := range bots {
+		if bot.IsDead {
+			glog.Infof("Bot %s is dead! Skipping.", bot.BotId)
+			continue
+		}
+		if bot.Quarantined {
+			glog.Infof("Bot %s is quarantined! Skipping.", bot.BotId)
+			continue
+		}
+		if bot.TaskId != "" {
+			continue
+		}
+		rv[bot.BotId] = bot_map.BUILDERS_BY_SWARMING_BOT[bot.BotId]
 	}
 	return rv, nil
 }
@@ -93,6 +122,7 @@ func (bs *BuildScheduler) Builders() []string {
 
 // updateBuilders updates the known list of builders.
 func (bs *BuildScheduler) updateBuilders() error {
+	// TODO(borenet): Include SwarmBucket builders in this list.
 	buildersMap, err := buildbot.GetBuilders()
 	if err != nil {
 		return fmt.Errorf("Failed to retrieve builders list: %s", err)
