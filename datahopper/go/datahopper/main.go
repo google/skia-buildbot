@@ -299,9 +299,11 @@ func main() {
 			now := time.Now()
 			for _, bot := range bots {
 				glog.Infof("DEBUG: Processing Swarming bot %s", bot.BotId)
+				glog.Flush()
 				last, err := time.Parse("2006-01-02T15:04:05", bot.LastSeenTs)
 				if err != nil {
 					glog.Error(err)
+					glog.Flush()
 					continue
 				}
 
@@ -313,6 +315,7 @@ func main() {
 				}
 
 				glog.Infof("DEBUG: Updating %s for %s", MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
+				glog.Flush()
 
 				// Bot last seen <duration> ago.
 				m1 := metrics2.GetInt64Metric(MEASUREMENT_SWARM_BOTS_LAST_SEEN, tags)
@@ -320,6 +323,7 @@ func main() {
 				oldMetrics = append(oldMetrics, m1)
 
 				glog.Infof("DEBUG: Updating %s for %s", MEASUREMENT_SWARM_BOTS_QUARANTINED, tags)
+				glog.Flush()
 
 				// Bot quarantined status.
 				quarantined := int64(0)
@@ -331,6 +335,7 @@ func main() {
 				oldMetrics = append(oldMetrics, m2)
 			}
 			glog.Infof("DEBUG: oldMetrics after loop %s", oldMetrics)
+			glog.Flush()
 
 		}
 	}()
@@ -344,17 +349,21 @@ func main() {
 
 		for _ = range time.Tick(2 * time.Minute) {
 			glog.Infof("Loading Swarming task data.")
+			glog.Flush()
 			now := time.Now()
 			tasks, err := swarm.ListSkiaTasks(lastLoad, now)
 			if err != nil {
 				glog.Error(err)
+				glog.Flush()
 				continue
 			}
 			glog.Infof("Revisiting %d tasks.", len(revisitTasks))
+			glog.Flush()
 			for id, _ := range revisitTasks {
 				task, err := swarm.GetTask(id)
 				if err != nil {
 					glog.Error(err)
+					glog.Flush()
 					continue
 				}
 				tasks = append(tasks, task)
@@ -372,6 +381,7 @@ func main() {
 					createdTime, err := swarming.Created(task)
 					if err != nil {
 						glog.Errorf("Failed to parse Swarming task created timestamp: %s", err)
+						glog.Flush()
 						continue
 					}
 
@@ -407,10 +417,16 @@ func main() {
 					// Task duration in milliseconds.
 					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_DURATION, tags, int64(task.TaskResult.Duration*float64(1000.0)), createdTime)
 
-					// Overhead stats, in milliseconds.
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT, tags, int64(task.TaskResult.PerformanceStats.BotOverhead*float64(1000.0)), createdTime)
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedDownload.Duration*float64(1000.0)), createdTime)
-					metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedUpload.Duration*float64(1000.0)), createdTime)
+					glog.Infof("DEBUG: task %s task.TaskResult.PerformanceStats %v", tags, task.TaskResult.PerformanceStats)
+					glog.Flush()
+
+					// TODO(benjaminwagner): Does this nil-check eliminate the error "invalid memory address or nil pointer dereference"?
+					if task.TaskResult.PerformanceStats != nil {
+						// Overhead stats, in milliseconds.
+						metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_BOT, tags, int64(task.TaskResult.PerformanceStats.BotOverhead*float64(1000.0)), createdTime)
+						metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_DOWNLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedDownload.Duration*float64(1000.0)), createdTime)
+						metrics2.RawAddInt64PointAtTime(MEASUREMENT_SWARM_TASKS_OVERHEAD_UPLOAD, tags, int64(task.TaskResult.PerformanceStats.IsolatedUpload.Duration*float64(1000.0)), createdTime)
+					}
 
 					// Pending time in milliseconds.
 					startTime, err := swarming.Started(task)
