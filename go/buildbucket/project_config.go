@@ -18,21 +18,11 @@ func GetProjectConfig(repo string) (*BuildbucketCfg, error) {
 	if err := gitiles.NewRepo(repo).ReadFileAtRef(PROJECT_CFG_FILE, INFRA_CONFIG_BRANCH, &buf); err != nil {
 		return nil, err
 	}
-
-	var rv BuildbucketCfg
-	if err := proto.UnmarshalText(buf.String(), &rv); err != nil {
-		return nil, err
-	}
-	return &rv, nil
+	return ParseProjectConfig(buf.String())
 }
 
-// GetBotsForRepo obtains the list of bots from the given repo by reading the
-// cr-buildbucket.cfg file from Gitiles.
-func GetBotsForRepo(repo string) ([]string, error) {
-	cfg, err := GetProjectConfig(repo)
-	if err != nil {
-		return nil, err
-	}
+// GetBotsForConfig obtains the list of bots from the given project config.
+func GetBotsForConfig(cfg *BuildbucketCfg) []string {
 	bots := []string{}
 	for _, bucket := range cfg.Buckets {
 		if bucket.Swarming != nil {
@@ -43,5 +33,24 @@ func GetBotsForRepo(repo string) ([]string, error) {
 			}
 		}
 	}
-	return bots, nil
+	return bots
+}
+
+// GetBotsForRepo obtains the list of bots from the given repo by reading the
+// cr-buildbucket.cfg file from Gitiles.
+func GetBotsForRepo(repo string) ([]string, error) {
+	cfg, err := GetProjectConfig(repo)
+	if err != nil {
+		return nil, err
+	}
+	return GetBotsForConfig(cfg), nil
+}
+
+// ParseProjectConfig parses the string to obtain a project config.
+func ParseProjectConfig(cfg string) (*BuildbucketCfg, error) {
+	var rv BuildbucketCfg
+	if err := proto.UnmarshalText(cfg, &rv); err != nil {
+		return nil, err
+	}
+	return &rv, nil
 }

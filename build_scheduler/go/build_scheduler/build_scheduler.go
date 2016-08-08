@@ -203,7 +203,7 @@ func (bs *BuildScheduler) Trigger(builderNames []string, commit string) ([]*buil
 			}
 		} else {
 			var err error
-			scheduled, err = bs.bb.RequestBuild(b.Name, b.Master, commit, repoName, author)
+			scheduled, err = bs.bb.RequestBuild(b.Name, b.Master, commit, repoName, author, "")
 			if err != nil {
 				return nil, err
 			}
@@ -280,7 +280,7 @@ func (bs *BuildScheduler) scheduleBuilds() error {
 		if bs.local {
 			glog.Infof("Would schedule: %s @ %s, score = %0.3f", build.Builder, build.Commit[0:7], build.Score)
 		} else {
-			scheduled, err := bs.bb.RequestBuild(build.Builder, s.Master, build.Commit, build.Repo, build.Author)
+			scheduled, err := bs.bb.RequestBuild(build.Builder, s.Master, build.Commit, build.Repo, build.Author, "")
 			if err != nil {
 				errs = append(errs, err)
 			} else {

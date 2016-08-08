@@ -1,5 +1,9 @@
 package main
 
+/*
+	Program used for forcibly triggering builds.
+*/
+
 import (
 	"flag"
 	"path"
@@ -20,9 +24,10 @@ var (
 		common.REPO_SKIA_INFRA,
 	}
 
-	builder = flag.String("builder", "", "Builder name.")
-	commit  = flag.String("commit", "", "Commit")
-	workdir = flag.String("workdir", "workdir", "Working directory to use.")
+	builder       = flag.String("builder", "", "Builder name, or comma-separated list of builder names.")
+	commit        = flag.String("commit", "", "Commit")
+	swarmingBotId = flag.String("swarming_bot_id", "", "Swarming bot ID (optional)")
+	workdir       = flag.String("workdir", "workdir", "Working directory to use.")
 )
 
 func main() {
@@ -56,19 +61,38 @@ func main() {
 		glog.Fatalf("Unable to find commit %s in any repo.", *commit)
 	}
 
+	// Obtain the list(s) of valid builders.
 	builderNames := strings.Split(*builder, ",")
 	builders := make([]*buildbot.Builder, 0, len(builderNames))
+	buildbotBuilders, err := buildbot.GetBuilders()
+	if err != nil {
+		glog.Fatal(err)
+	}
+	swarmingBuildersList, err := buildbucket.GetBotsForRepo(repoName)
+	if err != nil {
+		glog.Fatal(err)
+	}
+	swarmingBuilders := make(map[string]bool, len(swarmingBuildersList))
+	for _, b := range swarmingBuildersList {
+		swarmingBuilders[b] = true
+	}
+
+	// Ensure that each of the requested builders is valid.
 	for _, builderName := range builderNames {
-		// Find the builder.
-		allBuilders, err := buildbot.GetBuilders()
-		if err != nil {
-			glog.Fatal(err)
-		}
-		b, ok := allBuilders[builderName]
-		if !ok {
+		if b, ok := buildbotBuilders[builderName]; ok {
+			builders = append(builders, b)
+		} else if _, ok := swarmingBuilders[builderName]; ok {
+			b = &buildbot.Builder{
+				Name:          builderName,
+				Master:        "client.skia.fyi",
+				PendingBuilds: 0,
+				Slaves:        []string{},
+				State:         "",
+			}
+			builders = append(builders, b)
+		} else {
 			glog.Fatalf("Unknown builder %s", builderName)
 		}
-		builders = append(builders, b)
 	}
 
 	// Initialize the BuildBucket client.
@@ -80,10 +104,10 @@ func main() {
 
 	// Schedule the build.
 	for _, b := range builders {
-		scheduled, err := bb.RequestBuild(b.Name, b.Master, *commit, repoName, author)
+		scheduled, err := bb.RequestBuild(b.Name, b.Master, *commit, repoName, author, *swarmingBotId)
 		if err != nil {
 			glog.Fatal(err)
 		}
-		glog.Infof("Triggered %s. Builder page: %s%s/builders/%s", scheduled.Id, buildbot.BUILDBOT_URL, b.Master, b.Name)
+		glog.Infof("Triggered %s : %s", scheduled.Id, scheduled.Url)
 	}
 }

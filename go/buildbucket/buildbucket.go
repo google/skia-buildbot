@@ -32,10 +32,24 @@ type buildBucketChange struct {
 	Revision   string             `json:"revision"`
 }
 
+type buildBucketError struct {
+	Message string `json:"message"`
+	Reason  string `json:"reason"`
+}
+
 type buildBucketParameters struct {
 	BuilderName string               `json:"builder_name"`
 	Changes     []*buildBucketChange `json:"changes"`
 	Properties  map[string]string    `json:"properties"`
+	Swarming    *swarming            `json:"swarming,omitempty"`
+}
+
+type swarming struct {
+	OverrideBuilderCfg swarmingOverrides `json:"override_builder_cfg"`
+}
+
+type swarmingOverrides struct {
+	Dimensions []string `json:"dimensions"`
 }
 
 type buildBucketRequest struct {
@@ -44,9 +58,10 @@ type buildBucketRequest struct {
 }
 
 type buildBucketResponse struct {
-	Build *Build `json:"build"`
-	Kind  string `json:"kind"`
-	Etag  string `json:"etag"`
+	Build *Build            `json:"build"`
+	Error *buildBucketError `json:"error"`
+	Kind  string            `json:"kind"`
+	Etag  string            `json:"etag"`
 }
 
 // Build is a struct containing information about a build in BuildBucket.
@@ -77,8 +92,9 @@ func NewClient(c *http.Client) *Client {
 	return &Client{c}
 }
 
-// RequestBuild adds a request for the given build.
-func (c *Client) RequestBuild(builder, master, commit, repo, author string) (*Build, error) {
+// RequestBuild adds a request for the given build. The swarmingBotId parameter
+// may be the empty string, in which case the build may run on any bot.
+func (c *Client) RequestBuild(builder, master, commit, repo, author, swarmingBotId string) (*Build, error) {
 	p := buildBucketParameters{
 		BuilderName: builder,
 		Changes: []*buildBucketChange{
@@ -93,6 +109,15 @@ func (c *Client) RequestBuild(builder, master, commit, repo, author string) (*Bu
 		Properties: map[string]string{
 			"reason": "Triggered by SkiaScheduler",
 		},
+	}
+	if swarmingBotId != "" {
+		p.Swarming = &swarming{
+			OverrideBuilderCfg: swarmingOverrides{
+				Dimensions: []string{
+					fmt.Sprintf("id:%s", swarmingBotId),
+				},
+			},
+		}
 	}
 	jsonParams, err := json.Marshal(p)
 	if err != nil {
@@ -128,6 +153,9 @@ func (c *Client) RequestBuild(builder, master, commit, repo, author string) (*Bu
 	var res buildBucketResponse
 	if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return nil, fmt.Errorf("Failed to decode response body: %v", err)
+	}
+	if res.Error != nil {
+		return nil, fmt.Errorf("Failed to schedule build: %s", res.Error.Message)
 	}
 	return res.Build, nil
 }
