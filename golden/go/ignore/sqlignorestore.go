@@ -15,11 +15,12 @@ import (
 )
 
 type SQLIgnoreStore struct {
-	vdb        *database.VersionedDB
-	mutex      sync.Mutex
-	revision   int64
-	tileStream <-chan *types.TilePair
-	expStore   expstorage.ExpectationsStore
+	vdb          *database.VersionedDB
+	mutex        sync.Mutex
+	revision     int64
+	tileStream   <-chan *types.TilePair
+	lastTilePair *types.TilePair
+	expStore     expstorage.ExpectationsStore
 }
 
 // NewSQLIgnoreStore creates a new SQL based IgnoreStore.
@@ -133,24 +134,36 @@ func (m *SQLIgnoreStore) addIgnoreCounts(rules []*IgnoreRule) error {
 	select {
 	case tilePair = <-m.tileStream:
 	default:
+		tilePair = m.lastTilePair
 	}
 	if tilePair == nil {
 		return fmt.Errorf("No tile available to count ignores")
 	}
+	m.lastTilePair = tilePair
 
 	// Count the untriaged digests in HEAD.
+	// matchingDigests[rule.ID]map[digest]bool
 	matchingDigests := make(map[int]map[string]bool, len(rules))
+	rulesByDigest := map[string]map[int]bool{}
 	for _, trace := range tilePair.TileWithIgnores.Traces {
 		gTrace := trace.(*types.GoldenTrace)
 		if matchRules, ok := ignoreMatcher(gTrace.Params_); ok {
 			testName := gTrace.Params_[types.PRIMARY_KEY_FIELD]
-			if digest := gTrace.LastDigest(); digest != "" && (exp.Classification(testName, digest) == types.UNTRIAGED) {
+			if digest := gTrace.LastDigest(); digest != types.MISSING_DIGEST && (exp.Classification(testName, digest) == types.UNTRIAGED) {
 				k := testName + ":" + digest
 				for _, r := range matchRules {
+					// Add the digest to all matching rules.
 					if t, ok := matchingDigests[r.ID]; ok {
 						t[k] = true
 					} else {
 						matchingDigests[r.ID] = map[string]bool{k: true}
+					}
+
+					// Add the rule to the test-digest.
+					if t, ok := rulesByDigest[k]; ok {
+						t[r.ID] = true
+					} else {
+						rulesByDigest[k] = map[int]bool{r.ID: true}
 					}
 				}
 			}
@@ -159,6 +172,13 @@ func (m *SQLIgnoreStore) addIgnoreCounts(rules []*IgnoreRule) error {
 
 	for _, r := range rules {
 		r.Count = len(matchingDigests[r.ID])
+		r.ExclusiveCount = 0
+		for testDigestKey := range matchingDigests[r.ID] {
+			// If exactly this one rule matches then account for it.
+			if len(rulesByDigest[testDigestKey]) == 1 {
+				r.ExclusiveCount++
+			}
+		}
 	}
 	return nil
 }

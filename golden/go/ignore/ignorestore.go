@@ -40,13 +40,14 @@ type IgnoreStore interface {
 
 // IgnoreRule is the GUI struct for dealing with Ignore rules.
 type IgnoreRule struct {
-	ID        int       `json:"id"`
-	Name      string    `json:"name"`
-	UpdatedBy string    `json:"updatedBy"`
-	Expires   time.Time `json:"expires"`
-	Query     string    `json:"query"`
-	Note      string    `json:"note"`
-	Count     int       `json:"count"`
+	ID             int       `json:"id"`
+	Name           string    `json:"name"`
+	UpdatedBy      string    `json:"updatedBy"`
+	Expires        time.Time `json:"expires"`
+	Query          string    `json:"query"`
+	Note           string    `json:"note"`
+	Count          int       `json:"count"`
+	ExclusiveCount int       `json:"exclusiveCount"`
 }
 
 // ToQuery makes a slice of url.Values from the given slice of IngoreRules.

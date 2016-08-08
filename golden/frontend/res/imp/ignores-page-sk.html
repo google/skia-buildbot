@@ -27,6 +27,7 @@
 <link rel="import" href="bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="bower_components/paper-input/paper-input.html">
 <link rel="import" href="bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="bower_components/paper-tooltip/paper-tooltip.html">
 
 <link rel=import href="../common/imp/query.html">
 
@@ -57,19 +58,19 @@
       }
 
       #nameHeader {
-        width: 15em;
+        width: 18em;
       }
 
       #updatedByHeader {
-        width: 15em;
+        width: 18em;
       }
 
       #expiresHeader {
-        width: 10em;
+        width: 5em;
       }
 
-      #countHeader {
-        width: 6em;
+      #countHeader  {
+        width: 8em;
       }
 
       #queryHeader {
@@ -122,7 +123,11 @@
         <div id=updatedByHeader>Updated By</div>
         <div id=queryHeader>Filter</div>
         <div id=noteHeader>Note</div>
-        <div id=countHeader>Ignored</div>
+        <div id=countHeader>Ignored  <iron-icon class="headerIcon" icon="icons:info-outline"></iron-icon>
+          <paper-tooltip>Number of images that match this rule: <br>
+             Exclusively matched images / All matched images
+           </paper-tooltip>
+        </div>
       </div>
       <div id=summaries class="vertical layout">
         <template is="dom-repeat" items={{ignores}}>

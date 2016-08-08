@@ -3,7 +3,7 @@
 Displays a summary of an ignore rule.
 
   Attributes:
-    None. 
+    None.
 
   Events:
     'delete'
@@ -16,8 +16,8 @@ Displays a summary of an ignore rule.
        pressed. The state of the ignore rule will be included in e.detail.
 
   Methods:
-    None. 
-    
+    None.
+
 -->
 
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
@@ -35,11 +35,11 @@ Displays a summary of an ignore rule.
         font-family: monospace;
       }
       #name {
-        width: 15em;
+        width: 18em;
         color: #D95F02;
       }
       #updatedBy {
-        width: 15em;
+        width: 18em;
         color: #D95F02;
       }
       #query {
@@ -57,11 +57,11 @@ Displays a summary of an ignore rule.
         vertical-align: middle;
       }
       #expires {
-        width: 10em;
+        width: 5em;
         color: #7570B3;
       }
       #count {
-        width: 6em;
+        width: 8em;
         color: #A6761D;
       }
       paper-button {
@@ -73,7 +73,7 @@ Displays a summary of an ignore rule.
     <div id="updatedBy">{{value.updatedBy}}</div>
     <pre id="query"><a href$="{{_queryHref(value.query)}}">{{_splitAmp(value.query)}}</a></pre>
     <div id="note">{{value.note}}</div>
-    <div id="count">{{value.count}}</div>
+    <div id="count">{{value.exclusiveCount}} / {{value.count}}</div>
     <paper-button id="edit" title="Edit"><iron-icon icon="create"></iron-icon></paper-button>
     <paper-button id="delete" title="Delete"><iron-icon icon="delete"></iron-icon></paper-button>
   </template>
@@ -92,17 +92,17 @@ Displays a summary of an ignore rule.
         ready: function () {
           this.listen(this.$.edit, 'click', "_handleEditClick");
           this.listen(this.$.delete, 'click', "_handleDeleteClick");
-        }, 
+        },
 
         _handleEditClick: function() {
-            this.fire('edit', this.value); 
+            this.fire('edit', this.value);
         },
 
         _handleDeleteClick: function() {
             this.fire('delete', this.value);
         },
 
-        // Make an alias to split by ampersand. 
+        // Make an alias to split by ampersand.
         _splitAmp: sk.query.splitAmp,
 
         _humanDiffDate: function (s) {
@@ -117,4 +117,3 @@ Displays a summary of an ignore rule.
     }());
   </script>
 </dom-module>
-
