@@ -572,6 +572,10 @@ func RunBenchmark(fileInfoName, pathToPagesets, pathToPyFiles, localOutputDir, c
 			return fmt.Errorf("Run benchmark command failed with: %s", err)
 		} else {
 			glog.Errorf("Run benchmark command failed with: %s", err)
+			if targetPlatform == PLATFORM_ANDROID {
+				// Kill the port-forwarder to start from a clean slate.
+				util.LogErr(ExecuteCmd("pkill", []string{"-f", "forwarder_host"}, []string{}, PKILL_TIMEOUT, nil, nil))
+			}
 		}
 	}
 	return nil
