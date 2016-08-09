@@ -171,8 +171,8 @@ bind-address = ":8088"
     #
     # These metrics look like:
     #
-    #    bug_chomper.skia-bugchomper.runtime.ReadMemStats.fifteen-minute
-    #    bug_chomper.skia-bugchomper.skia-bugchomper.runtime.ReadMemStats.fifteen-minute
+    #    statusd.skia-status.runtime.ReadMemStats.fifteen-minute
+    #    statusd.skia-status.skia-status.runtime.ReadMemStats.fifteen-minute
     "*.*.runtime app.host.runtime.measurement*",
     "*.*.*.runtime app.host.host2.runtime.measurement*",
 

@@ -21,10 +21,6 @@ perf:
 alertserver:
 	cd alertserver && $(MAKE) all
 
-.PHONY: bug_chomper
-bug_chomper:
-	cd bug_chomper && $(MAKE) all
-
 .PHONY: build_scheduler
 build_scheduler:
 	cd build_scheduler && $(MAKE) all
@@ -66,7 +62,7 @@ skolo:
 	cd skolo && $(MAKE) all
 
 .PHONY: all
-all: alertserver bug_chomper build_scheduler datahopper datahopper_internal golden perf sharedgo logserver ct ctfe status tags
+all: alertserver build_scheduler datahopper datahopper_internal golden perf sharedgo logserver ct ctfe status tags
 
 .PHONY: tags
 tags:
