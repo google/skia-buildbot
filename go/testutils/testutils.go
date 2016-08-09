@@ -26,7 +26,7 @@ func SkipIfShort(t *testing.T) {
 // AssertDeepEqual fails the test if the two objects do not pass reflect.DeepEqual.
 func AssertDeepEqual(t *testing.T, a, b interface{}) {
 	if !reflect.DeepEqual(a, b) {
-		t.Fatalf("Objects to not match: \na:\n%s\n\nb:\n%s\n", spew.Sprint(a), spew.Sprint(b))
+		assert.FailNow(t, fmt.Sprintf("Objects do not match: \na:\n%s\n\nb:\n%s\n", spew.Sprint(a), spew.Sprint(b)))
 	}
 }
 

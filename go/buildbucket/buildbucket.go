@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"time"
 
 	"go.skia.org/infra/go/util"
 )
@@ -80,6 +82,49 @@ type Build struct {
 	StatusChangedTimestamp string `json:"status_changed_ts"`
 	UpdatedTimestamp       string `json:"updated_ts"`
 	UtcNowTimestamp        string `json:"utcnow_ts"`
+}
+
+func (b *Build) Copy() *Build {
+	return &Build{
+		Bucket:                 b.Bucket,
+		CompletedTimestamp:     b.CompletedTimestamp,
+		CreatedBy:              b.CreatedBy,
+		CreatedTimestamp:       b.CreatedTimestamp,
+		FailureReason:          b.FailureReason,
+		Id:                     b.Id,
+		Url:                    b.Url,
+		ParametersJson:         b.ParametersJson,
+		Result:                 b.Result,
+		ResultDetailsJson:      b.ResultDetailsJson,
+		Status:                 b.Status,
+		StatusChangedTimestamp: b.StatusChangedTimestamp,
+		UpdatedTimestamp:       b.UpdatedTimestamp,
+		UtcNowTimestamp:        b.UtcNowTimestamp,
+	}
+}
+
+func parseTime(t string) (time.Time, error) {
+	i, err := strconv.ParseInt(t, 10, 64)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return time.Unix(0, i), nil
+}
+
+func (b *Build) Created() (time.Time, error) {
+	return parseTime(b.CreatedTimestamp)
+}
+
+func (b *Build) Completed() (time.Time, error) {
+	return parseTime(b.CompletedTimestamp)
+}
+
+func (b *Build) StatusChanged() (time.Time, error) {
+	return parseTime(b.StatusChangedTimestamp)
+}
+
+func (b *Build) Updated() (time.Time, error) {
+	return parseTime(b.UpdatedTimestamp)
 }
 
 // Client is used for interacting with the BuildBucket API.
