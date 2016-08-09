@@ -1,8 +1,8 @@
 {
-  "name": "js",
-  "version": "0.1.0",
-  "private": true,
-  "description": "Tests for common.js",
+  "name": "skia-common-js",
+  "version": "1.0.1",
+  "private": false,
+  "description": "Common JS code for Skia Infrastructure.",
   "scripts": {
     "test": "make test"
   },

@@ -20,7 +20,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      '../res/js/common.js',
+      'common.js',
       'tests/*.js',
       // Make import.html accessible, but don't include it using a <script> tag.
       {pattern: 'tests/import.html', included: false}
@@ -37,7 +37,7 @@ module.exports = function(config) {
     reporters: ['dots'],
 
 
-    // Get the port from KARMA_PORT if it is set. 
+    // Get the port from KARMA_PORT if it is set.
     port: parseInt(process.env.KARMA_PORT || "9876"),
 
 
