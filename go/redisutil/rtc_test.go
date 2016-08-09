@@ -33,7 +33,8 @@ func (b BytesCodec) Decode(byteData []byte) (interface{}, error) {
 	return append([]byte(nil), byteData...), nil
 }
 
-func TestReadThroughCache(t *testing.T) {
+// TODO(stephana): Re-enable when test setup is stable.
+func xTestReadThroughCache(t *testing.T) {
 	testutils.SkipIfShort(t)
 
 	rp := NewRedisPool(REDIS_SERVER_ADDRESS, REDIS_DB_RTCACHE)
