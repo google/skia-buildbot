@@ -29,7 +29,11 @@ VM_PERSISTENT_DISK_SIZE_GB = os.environ.get('VM_PERSISTENT_DISK_SIZE_GB', 300)
 VM_IS_BUILDBOT = os.environ.get('VM_IS_BUILDBOT', 0)
 # If this is true then the swarming image is used.
 VM_IS_SWARMINGBOT = os.environ.get('VM_IS_SWARMINGBOT', 1)
-# If this is true then a CT VM is created.
+# If this is true then a CT VM is created in the SkiaCT pool.
+# These bots are used by the Skia CT builders. Eg: CT_DM_100k_SKPs.
+VM_IS_SKIA_CTBOT = os.environ.get('VM_IS_SKIA_CTBOT', 0)
+# If this is true then a CT VM is created in the CT pool.
+# These bots are used as workers by the CT framework.
 VM_IS_CTBOT = os.environ.get('VM_IS_CTBOT', 0)
 
 # The Project ID is found in the Compute tab of the dev console.
@@ -42,6 +46,10 @@ PROJECT_ID = 'google.com:skia-buildbots'
 # We flip the default one as required by PCRs in bigcluster.
 ZONE_TAG = os.environ.get('ZONE_TAG', 'c')
 
+if VM_IS_SKIA_CTBOT:
+  # Use skia-ct prefix. Swarming uses this prefix to put them in the 'SkiaCT' pool.
+  VM_BOT_NAME = 'skia-ct-vm'
+  VM_PERSISTENT_DISK_SIZE_GB = 3000
 if VM_IS_CTBOT:
   # Use ct prefix. Swarming uses this prefix to put them in the 'CT' pool.
   VM_BOT_NAME = 'ct-vm'
