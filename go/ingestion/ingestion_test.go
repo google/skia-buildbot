@@ -4,12 +4,14 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
+	"path/filepath"
 	"sort"
 	"sync"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/fileutil"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/util"
 	"go.skia.org/infra/go/vcsinfo"
@@ -17,16 +19,18 @@ import (
 
 const LOCAL_STATUS_DIR = "./ingestion_status"
 
+const RFLOCATION_CONTENT = "result file content"
+
 func TestPollingIngester(t *testing.T) {
-	testIngester(t, false)
+	testIngester(t, LOCAL_STATUS_DIR+"-polling", false)
 }
 
 func TestEventIngester(t *testing.T) {
-	testIngester(t, true)
+	testIngester(t, LOCAL_STATUS_DIR+"-events", true)
 }
 
-func testIngester(t *testing.T, asEvents bool) {
-	defer util.RemoveAll(LOCAL_STATUS_DIR)
+func testIngester(t *testing.T, statusDir string, asEvents bool) {
+	defer util.RemoveAll(statusDir)
 
 	now := time.Now()
 	beginningOfTime := now.Add(-time.Hour * 24 * 10).Unix()
@@ -50,10 +54,12 @@ func testIngester(t *testing.T, asEvents bool) {
 	collected := map[string]int{}
 	var mutex sync.Mutex
 
+	resultFiles := []ResultFileLocation{}
 	processFn := func(result ResultFileLocation) error {
 		mutex.Lock()
 		defer mutex.Unlock()
 		collected[result.Name()] += 1
+		resultFiles = append(resultFiles, result)
 		return nil
 	}
 
@@ -65,7 +71,7 @@ func testIngester(t *testing.T, asEvents bool) {
 		RunEvery:  sharedconfig.TomlDuration{Duration: 1 * time.Second},
 		NCommits:  totalCommits / 2,
 		MinDays:   3,
-		StatusDir: LOCAL_STATUS_DIR,
+		StatusDir: statusDir,
 	}
 
 	// Instantiate ingester and start it.
@@ -92,6 +98,12 @@ func testIngester(t *testing.T, asEvents bool) {
 	for _, result := range sources[0].(*mockSource).data[totalCommits/2:] {
 		_, ok := collected[result.Name()]
 		assert.True(t, ok)
+	}
+
+	// Make sure that all the files were written to disk.
+	for _, result := range resultFiles {
+		fPath := filepath.Join(ingester.resultFilesDir, result.Name())
+		assert.True(t, fileutil.FileExists(fPath), fmt.Sprintf("File: %s does not exist", fPath))
 	}
 }
 
@@ -126,6 +138,7 @@ func (m *mockRFLocation) Open() (io.ReadCloser, error) { return nil, nil }
 func (m *mockRFLocation) Name() string                 { return m.path }
 func (m *mockRFLocation) MD5() string                  { return m.md5 }
 func (m *mockRFLocation) TimeStamp() int64             { return m.lastUpdated }
+func (m *mockRFLocation) Content() []byte              { return []byte(RFLOCATION_CONTENT) }
 
 func rfLocation(t time.Time, fname string) ResultFileLocation {
 	path := fmt.Sprintf("root/%d/%d/%d/%d/%d/%s", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), fname)

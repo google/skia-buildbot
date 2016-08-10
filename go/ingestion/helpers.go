@@ -206,6 +206,7 @@ type gsResultFileLocation struct {
 	lastUpdated   int64
 	md5           string
 	storageClient *storage.Client
+	content       []byte
 }
 
 func newGSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storageClient *storage.Client) ResultFileLocation {
@@ -221,16 +222,36 @@ func newGSResultFileLocation(result *storage.ObjectAttrs, rootDir string, storag
 
 // See ResultFileLocation interface.
 func (g *gsResultFileLocation) Open() (io.ReadCloser, error) {
-	for i := 0; i < MAX_URI_GET_TRIES; i++ {
-		reader, err := g.storageClient.Bucket(g.bucket).Object(g.name).NewReader(context.Background())
-		if err != nil {
-			glog.Errorf("New reader failed for %s/%s: %s", g.bucket, g.name, err)
-			continue
-		}
-		glog.Infof("GSFILE READ %s/%s", g.bucket, g.name)
-		return reader, nil
+	// If we have read this before, then just return a reader.
+	if g.content != nil {
+		return ioutil.NopCloser(bytes.NewBuffer(g.content)), nil
 	}
-	return nil, fmt.Errorf("Failed fetching %s/%s after %d attempts", g.bucket, g.name, MAX_URI_GET_TRIES)
+
+	if g.content == nil {
+		var reader io.Reader
+		var err error
+		for i := 0; i < MAX_URI_GET_TRIES; i++ {
+			reader, err = g.storageClient.Bucket(g.bucket).Object(g.name).NewReader(context.Background())
+			if err != nil {
+				glog.Errorf("New reader failed for %s/%s: %s", g.bucket, g.name, err)
+				continue
+			}
+
+			// Read the entire file into memory and return a buffer.
+			if g.content, err = ioutil.ReadAll(reader); err != nil {
+				glog.Errorf("Error reading content of %s/%s: %s", g.bucket, g.name, err)
+				g.content = nil
+				continue
+			}
+
+			glog.Infof("GSFILE READ %s/%s", g.bucket, g.name)
+		}
+		if err != nil {
+			return nil, fmt.Errorf("Failed fetching %s/%s after %d attempts", g.bucket, g.name, MAX_URI_GET_TRIES)
+		}
+	}
+
+	return ioutil.NopCloser(bytes.NewBuffer(g.content)), nil
 }
 
 // See ResultFileLocation interface.
@@ -246,6 +267,11 @@ func (g *gsResultFileLocation) MD5() string {
 // See ResultFileLocation interface.
 func (g *gsResultFileLocation) TimeStamp() int64 {
 	return g.lastUpdated
+}
+
+// See ResultFileLocation interface.
+func (g *gsResultFileLocation) Content() []byte {
+	return g.content
 }
 
 // FileSystemSource implements the Source interface to read from the local
@@ -384,4 +410,9 @@ func (f *fsResultFileLocation) MD5() string {
 // see ResultFileLocation interface.
 func (f *fsResultFileLocation) TimeStamp() int64 {
 	return f.lastUpdated
+}
+
+// see ResultFileLocation interface.
+func (f *fsResultFileLocation) Content() []byte {
+	return f.buf
 }

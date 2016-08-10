@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -65,6 +66,9 @@ type ResultFileLocation interface {
 
 	// Timestamp returns the timestamp when the file was last updated.
 	TimeStamp() int64
+
+	// Content returns the content of the file if has been read or nil otherwise.
+	Content() []byte
 }
 
 // Processor is the core of an ingester. It takes instances of ResultFileLocation
@@ -83,15 +87,16 @@ type Processor interface {
 
 // Ingester is the main type that drives ingestion for a single type.
 type Ingester struct {
-	id          string
-	vcs         vcsinfo.VCS
-	nCommits    int
-	minDuration time.Duration
-	runEvery    time.Duration
-	sources     []Source
-	processor   Processor
-	doneCh      chan bool
-	statusDB    *bolt.DB
+	id             string
+	vcs            vcsinfo.VCS
+	nCommits       int
+	minDuration    time.Duration
+	runEvery       time.Duration
+	sources        []Source
+	processor      Processor
+	doneCh         chan bool
+	statusDB       *bolt.DB
+	resultFilesDir string
 
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
@@ -118,16 +123,18 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 	if err != nil {
 		return nil, fmt.Errorf("Unable to open db at %s. Got error: %s", dbName, err)
 	}
+	resultFilesDir := filepath.Join(statusDir, fmt.Sprintf("%s-results-cache", ingesterID))
 
 	ret := &Ingester{
-		id:          ingesterID,
-		vcs:         vcs,
-		nCommits:    ingesterConf.NCommits,
-		minDuration: time.Duration(ingesterConf.MinDays) * time.Hour * 24,
-		runEvery:    ingesterConf.RunEvery.Duration,
-		sources:     sources,
-		processor:   processor,
-		statusDB:    statusDB,
+		id:             ingesterID,
+		vcs:            vcs,
+		nCommits:       ingesterConf.NCommits,
+		minDuration:    time.Duration(ingesterConf.MinDays) * time.Hour * 24,
+		runEvery:       ingesterConf.RunEvery.Duration,
+		sources:        sources,
+		processor:      processor,
+		statusDB:       statusDB,
+		resultFilesDir: resultFilesDir,
 	}
 	ret.setupMetrics()
 	return ret, nil
@@ -314,6 +321,9 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 				continue
 			}
 
+			// Write the process file to disk.
+			i.saveFileAsync(resultLocation)
+
 			// Gather all successfully processed MD5s
 			processedCounter++
 			processedMD5s = append(processedMD5s, resultLocation.MD5())
@@ -339,7 +349,41 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 		i.addToProcessedFiles(processedMD5s)
 	}
 
+	// Make sure that the finish message is output after all processing messages
+	// are done.
+	glog.Flush()
 	glog.Infof("Finish ingester: %s", i.id)
+	glog.Flush()
+}
+
+// saveFileAsync asynchronously saves the given result file to disk.
+func (i *Ingester) saveFileAsync(resultFile ResultFileLocation) {
+	go func() {
+		content := resultFile.Content()
+		if content == nil {
+			glog.Errorf("Received file to save without content.")
+			return
+		}
+
+		filePath := filepath.Join(i.resultFilesDir, resultFile.Name())
+		targetDir, _ := filepath.Split(filePath)
+
+		if err := os.MkdirAll(targetDir, 0700); err != nil {
+			glog.Errorf("Unable to create directory %s. Got error: %s", targetDir, err)
+			return
+		}
+
+		f, err := os.Create(filePath)
+		if err != nil {
+			glog.Errorf("Unable to create file %s. Got error: %s", filePath, err)
+			return
+		}
+
+		if _, err := f.Write(content); err != nil {
+			glog.Errorf("Could not write file %s. Got error: %s", filePath, err)
+			return
+		}
+	}()
 }
 
 // getCommitRangeOfInterest returns the time range (start, end) that
