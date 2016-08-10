@@ -35,7 +35,6 @@ func (b BytesCodec) Decode(byteData []byte) (interface{}, error) {
 
 func TestReadThroughCache(t *testing.T) {
 	testutils.SkipIfShort(t)
-
 	rp := NewRedisPool(REDIS_SERVER_ADDRESS, REDIS_DB_RTCACHE)
 	defer testutils.CloseInTest(t, rp)
 

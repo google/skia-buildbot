@@ -168,6 +168,14 @@ func (r *RedisRTC) shutdown() {
 	r.shutdownWg.Wait()
 }
 
+// Warm implements rtcache.ReadThroughCache. .
+func (r *RedisRTC) Warm(priority int64, id string) error {
+	// TODO(stephana): Implement directly with a Redis command and avoid
+	// without loading the content.
+	_, err := r.Get(priority, true, id)
+	return err
+}
+
 // getWorkChannel returns a channel that sends tasks to be processed.
 func (r *RedisRTC) getWorkChannel() (<-chan *workerTask, error) {
 	ret := make(chan *workerTask)

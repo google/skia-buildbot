@@ -334,7 +334,11 @@ func (r *RedisPool) List(listKey string) <-chan []byte {
 				// The returned err cannot be different from nil. We are passing nil
 				// as the err argument and any other error is already captured above.
 				data, _ := redis.Bytes(reply[1], nil)
-				ret <- data
+
+				// data can only be nil in the case of a timeout.
+				if data != nil {
+					ret <- data
+				}
 			}
 			util.Close(c)
 		}
