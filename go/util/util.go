@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -561,6 +562,14 @@ func TimeIsZero(t time.Time) bool {
 		return true
 	}
 	return false
+}
+
+func ParseTimeNs(t string) (time.Time, error) {
+	i, err := strconv.ParseInt(t, 10, 64)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return time.Unix(0, i), nil
 }
 
 // Repeat calls the provided function 'fn' immediately and then in intervals

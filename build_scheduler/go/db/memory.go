@@ -9,11 +9,11 @@ import (
 	"github.com/skia-dev/glog"
 )
 
-type BuildSlice []*Build
+type TaskSlice []*Task
 
-func (s BuildSlice) Len() int { return len(s) }
+func (s TaskSlice) Len() int { return len(s) }
 
-func (s BuildSlice) Less(i, j int) bool {
+func (s TaskSlice) Less(i, j int) bool {
 	ts1, err := s[i].Created()
 	if err != nil {
 		glog.Errorf("Failed to parse CreatedTimestamp: %v", s[i])
@@ -25,14 +25,14 @@ func (s BuildSlice) Less(i, j int) bool {
 	return ts1.Before(ts2)
 }
 
-func (s BuildSlice) Swap(i, j int) {
+func (s TaskSlice) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
 type inMemoryDB struct {
-	builds    map[string]*Build
-	buildsMtx sync.RWMutex
-	modBuilds map[string]map[string]*Build
+	tasks     map[string]*Task
+	tasksMtx  sync.RWMutex
+	modTasks  map[string]map[string]*Task
 	modExpire map[string]time.Time
 	modMtx    sync.RWMutex
 }
@@ -43,13 +43,13 @@ func (db *inMemoryDB) Close() error {
 }
 
 // See docs for DB interface.
-func (db *inMemoryDB) GetBuildsFromDateRange(start, end time.Time) ([]*Build, error) {
-	db.buildsMtx.RLock()
-	defer db.buildsMtx.RUnlock()
+func (db *inMemoryDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, error) {
+	db.tasksMtx.RLock()
+	defer db.tasksMtx.RUnlock()
 
-	rv := []*Build{}
+	rv := []*Task{}
 	// TODO(borenet): Binary search.
-	for _, b := range db.builds {
+	for _, b := range db.tasks {
 		created, err := b.Created()
 		if err != nil {
 			return nil, err
@@ -58,25 +58,25 @@ func (db *inMemoryDB) GetBuildsFromDateRange(start, end time.Time) ([]*Build, er
 			rv = append(rv, b.Copy())
 		}
 	}
-	sort.Sort(BuildSlice(rv))
+	sort.Sort(TaskSlice(rv))
 	return rv, nil
 }
 
 // See docs for DB interface.
-func (db *inMemoryDB) GetModifiedBuilds(id string) ([]*Build, error) {
+func (db *inMemoryDB) GetModifiedTasks(id string) ([]*Task, error) {
 	db.modMtx.Lock()
 	defer db.modMtx.Unlock()
-	modifiedBuilds, ok := db.modBuilds[id]
+	modifiedTasks, ok := db.modTasks[id]
 	if !ok {
 		return nil, ErrUnknownId
 	}
-	rv := make([]*Build, 0, len(modifiedBuilds))
-	for _, b := range modifiedBuilds {
+	rv := make([]*Task, 0, len(modifiedTasks))
+	for _, b := range modifiedTasks {
 		rv = append(rv, b.Copy())
 	}
 	db.modExpire[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
-	db.modBuilds[id] = map[string]*Build{}
-	sort.Sort(BuildSlice(rv))
+	db.modTasks[id] = map[string]*Task{}
+	sort.Sort(TaskSlice(rv))
 	return rv, nil
 }
 
@@ -85,35 +85,35 @@ func (db *inMemoryDB) clearExpiredModifiedUsers() {
 	defer db.modMtx.Unlock()
 	for id, t := range db.modExpire {
 		if time.Now().After(t) {
-			delete(db.modBuilds, id)
+			delete(db.modTasks, id)
 			delete(db.modExpire, id)
 		}
 	}
 }
 
-func (db *inMemoryDB) modify(b *Build) {
+func (db *inMemoryDB) modify(b *Task) {
 	db.modMtx.Lock()
 	defer db.modMtx.Unlock()
-	for _, modBuilds := range db.modBuilds {
-		modBuilds[b.Id] = b.Copy()
+	for _, modTasks := range db.modTasks {
+		modTasks[b.Id] = b.Copy()
 	}
 }
 
 // See docs for DB interface.
-func (db *inMemoryDB) PutBuild(build *Build) error {
-	db.buildsMtx.Lock()
-	defer db.buildsMtx.Unlock()
+func (db *inMemoryDB) PutTask(task *Task) error {
+	db.tasksMtx.Lock()
+	defer db.tasksMtx.Unlock()
 
-	// TODO(borenet): Keep builds in a sorted slice.
-	db.builds[build.Id] = build
-	db.modify(build)
+	// TODO(borenet): Keep tasks in a sorted slice.
+	db.tasks[task.Id] = task
+	db.modify(task)
 	return nil
 }
 
 // See docs for DB interface.
-func (db *inMemoryDB) PutBuilds(builds []*Build) error {
-	for _, b := range builds {
-		if err := db.PutBuild(b); err != nil {
+func (db *inMemoryDB) PutTasks(tasks []*Task) error {
+	for _, t := range tasks {
+		if err := db.PutTask(t); err != nil {
 			return err
 		}
 	}
@@ -121,14 +121,14 @@ func (db *inMemoryDB) PutBuilds(builds []*Build) error {
 }
 
 // See docs for DB interface.
-func (db *inMemoryDB) StartTrackingModifiedBuilds() (string, error) {
+func (db *inMemoryDB) StartTrackingModifiedTasks() (string, error) {
 	db.modMtx.Lock()
 	defer db.modMtx.Unlock()
-	if len(db.modBuilds) >= MAX_MODIFIED_BUILDS_USERS {
+	if len(db.modTasks) >= MAX_MODIFIED_BUILDS_USERS {
 		return "", ErrTooManyUsers
 	}
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	db.modBuilds[id] = map[string]*Build{}
+	db.modTasks[id] = map[string]*Task{}
 	db.modExpire[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
 	return id, nil
 }
@@ -136,8 +136,8 @@ func (db *inMemoryDB) StartTrackingModifiedBuilds() (string, error) {
 // NewInMemoryDB returns an extremely simple, inefficient, in-memory DB implementation.
 func NewInMemoryDB() DB {
 	db := &inMemoryDB{
-		builds:    map[string]*Build{},
-		modBuilds: map[string]map[string]*Build{},
+		tasks:     map[string]*Task{},
+		modTasks:  map[string]map[string]*Task{},
 		modExpire: map[string]time.Time{},
 	}
 	go func() {

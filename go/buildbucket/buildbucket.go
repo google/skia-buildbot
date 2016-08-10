@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 
 	"go.skia.org/infra/go/util"
@@ -103,28 +102,20 @@ func (b *Build) Copy() *Build {
 	}
 }
 
-func parseTime(t string) (time.Time, error) {
-	i, err := strconv.ParseInt(t, 10, 64)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return time.Unix(0, i), nil
-}
-
 func (b *Build) Created() (time.Time, error) {
-	return parseTime(b.CreatedTimestamp)
+	return util.ParseTimeNs(b.CreatedTimestamp)
 }
 
 func (b *Build) Completed() (time.Time, error) {
-	return parseTime(b.CompletedTimestamp)
+	return util.ParseTimeNs(b.CompletedTimestamp)
 }
 
 func (b *Build) StatusChanged() (time.Time, error) {
-	return parseTime(b.StatusChangedTimestamp)
+	return util.ParseTimeNs(b.StatusChangedTimestamp)
 }
 
 func (b *Build) Updated() (time.Time, error) {
-	return parseTime(b.UpdatedTimestamp)
+	return util.ParseTimeNs(b.UpdatedTimestamp)
 }
 
 // Client is used for interacting with the BuildBucket API.
