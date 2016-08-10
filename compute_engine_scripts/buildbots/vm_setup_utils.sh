@@ -25,8 +25,7 @@ function install_packages {
     || FAILED="$FAILED InstallPackages"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \
     "sudo apt-get -y --purge remove apache2* && " \
-    "sudo sh -c \"echo 'chrome-bot soft nofile 500000' >> /etc/security/limits.conf\" && " \
-    "sudo sh -c \"echo 'chrome-bot hard nofile 1000000' >> /etc/security/limits.conf\" " \
+    "sudo sh -c \"echo '* - nofile 500000' >> /etc/security/limits.conf\" " \
     || FAILED="$FAILED RemoveApache2FixUlimit"
   echo
 }
