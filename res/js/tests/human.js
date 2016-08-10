@@ -105,5 +105,65 @@ describe('The sk.human functions',
 
     it('should return human-readable duration from diffDate',
        testDiffDate);
+
+    function testBytes() {
+      var testBytes = [
+        [          0, "0 B"],     //                      0 B
+        [          1, "1 B"],     //                      1 B
+        [        499, "499 B"],   //                    499 B
+        [        500, "500 B"],   //                    500 B
+        [       1000, "1000 B"],  //                   1000 B
+        [       1234, "1 KB"],    //               1 KB 210 B
+        [       2000, "2 KB"],    //               1 KB 976 B
+        [       9727, "9 KB"],    //               9 KB 511 B
+        [       9728, "10 KB"],   //               9 KB 512 B
+        [      30000, "29 KB"],   //              29 KB 304 B
+        [    1024000, "1000 KB"], //            1000 KB 000 B
+        [    1048500, "1 MB"],    //            1023 KB 948 B
+        [    1048576, "1 MB"],    //        1 MB 000 KB 000 B
+        [    1048577, "1 MB"],    //        1 MB 000 KB 001 B
+        [  300000000, "286 MB"],  //      286 MB 104 KB 768 B
+        [ 1072693248, "1023 MB"], //     1023 MB 000 KB 000 B
+        [ 1073741300, "1 GB"],    //     1023 MB1023 KB 999 B
+        [ 1073741824, "1 GB"],    // 1 GB 000 MB 000 KB 000 B
+        [ 1073741825, "1 GB"],    // 1 GB 000 MB 000 KB 001 B
+      ];
+      for (var testBytes of testBytes) {
+        var b = testBytes[0];
+        var expected = testBytes[1];
+        assert.equal(sk.human.bytes(b), expected,
+                     'Input is ' + b +", Unit is bytes");
+      }
+      var testMB = [
+        [          0, "0 B"],     //                      0 MB
+        [          1, "1 MB"],    //                      1 MB
+        [        499, "499 MB"],  //                    499 MB
+        [        500, "500 MB"],  //                    500 MB
+        [       1000, "1000 MB"], //                   1000 MB
+        [       1234, "1 GB"],    //               1 GB 210 MB
+        [       2000, "2 GB"],    //               1 GB 976 MB
+        [       9727, "9 GB"],    //               9 GB 511 MB
+        [       9728, "10 GB"],   //               9 GB 512 MB
+        [      30000, "29 GB"],   //              29 GB 304 MB
+        [    1024000, "1000 GB"], //            1000 GB 000 MB
+        [    1048500, "1 TB"],    //            1023 GB 948 MB
+        [    1048576, "1 TB"],    //        1 TB 000 GB 000 MB
+        [    1048577, "1 TB"],    //        1 TB 000 GB 001 MB
+        [  300000000, "286 TB"],  //      286 TB 104 GB 768 MB
+        [ 1072693248, "1023 TB"], //     1023 TB 000 GB 000 MB
+        [ 1073741300, "1 PB"],    //     1023 TB1023 GB 999 MB
+        [ 1073741824, "1 PB"],    // 1 PB 000 TB 000 GB 000 MB
+        [ 1073741825, "1 PB"],    // 1 PB 000 TB 000 GB 001 MB
+      ];
+      for (var testMB of testMB) {
+        var b = testMB[0];
+        var expected = testMB[1];
+        assert.equal(sk.human.bytes(b, sk.MB), expected,
+                     'Input is ' + b +", Unit is Megabytes");
+      }
+    }
+
+    it('should return human-readable bytes from bytes',
+       testBytes);
   }
 );

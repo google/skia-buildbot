@@ -246,12 +246,27 @@ this.sk = this.sk || function() {
   // Namespace for utilities for working with human i/o.
   sk.human = {};
 
-  var DELTAS = [
+  var TIME_DELTAS = [
     { units: "w", delta: 7*24*60*60 },
     { units: "d", delta:   24*60*60 },
     { units: "h", delta:      60*60 },
     { units: "m", delta:         60 },
     { units: "s", delta:          1 },
+  ];
+
+  sk.KB = 1024;
+  sk.MB = sk.KB * 1024;
+  sk.GB = sk.MB * 1024;
+  sk.TB = sk.GB * 1024;
+  sk.PB = sk.TB * 1024;
+
+  var BYTES_DELTAS = [
+    { units: " PB", delta: sk.PB},
+    { units: " TB", delta: sk.TB},
+    { units: " GB", delta: sk.GB},
+    { units: " MB", delta: sk.MB},
+    { units: " KB", delta: sk.KB},
+    { units: " B",  delta:     1},
   ];
 
   /**
@@ -276,14 +291,14 @@ this.sk = this.sk || function() {
     }
     if (seconds == 0) { return '  0s'; }
     var rv = "";
-    for (var i=0; i<DELTAS.length; i++) {
-      if (DELTAS[i].delta <= seconds) {
-        var s = Math.floor(seconds/DELTAS[i].delta)+DELTAS[i].units;
+    for (var i=0; i<TIME_DELTAS.length; i++) {
+      if (TIME_DELTAS[i].delta <= seconds) {
+        var s = Math.floor(seconds/TIME_DELTAS[i].delta)+TIME_DELTAS[i].units;
         while (s.length < 4) {
           s = ' ' + s;
         }
         rv += s;
-        seconds = seconds % DELTAS[i].delta;
+        seconds = seconds % TIME_DELTAS[i].delta;
       }
     }
     return rv;
@@ -304,16 +319,34 @@ this.sk = this.sk || function() {
     if (diff < 0) {
       diff = -1.0 * diff;
     }
-    for (var i=0; i<DELTAS.length-1; i++) {
-      // If diff would round to '60s', return '1m' instead.
+    return humanize(diff, TIME_DELTAS);
+  }
+
+  /**
+   * Formats the amount of bytes in a human friendly format.
+   * unit may be supplied to indicate b is not in bytes, but in something
+   * like kilobytes (sk.KB) or megabytes (sk.MB)
+
+   * For example, a 1234 bytes would be displayed as "1 KB".
+   */
+  sk.human.bytes = function(b, unit) {
+    if (Number.isInteger(unit)) {
+      b = b * unit;
+    }
+    return humanize(b, BYTES_DELTAS);
+  }
+
+  function humanize(n, deltas) {
+    for (var i=0; i<deltas.length-1; i++) {
+      // If n would round to '60s', return '1m' instead.
       var nextDeltaRounded =
-          Math.round(diff/DELTAS[i+1].delta)*DELTAS[i+1].delta;
-      if (nextDeltaRounded/DELTAS[i].delta >= 1) {
-        return Math.round(diff/DELTAS[i].delta)+DELTAS[i].units;
+          Math.round(n/deltas[i+1].delta)*deltas[i+1].delta;
+      if (nextDeltaRounded/deltas[i].delta >= 1) {
+        return Math.round(n/deltas[i].delta)+deltas[i].units;
       }
     }
-    var i = DELTAS.length-1;
-    return Math.round(diff/DELTAS[i].delta)+DELTAS[i].units;
+    var i = deltas.length-1;
+    return Math.round(n/deltas[i].delta)+deltas[i].units;
   }
 
   // Gets the epoch time in seconds.  This is its own function to make it easier to mock.
@@ -522,10 +555,10 @@ this.sk = this.sk || function() {
     return ret;
   }
 
-  // splitAmp returns the given query string as a newline 
-  // separated list of key value pairs. 
+  // splitAmp returns the given query string as a newline
+  // separated list of key value pairs.
   sk.query.splitAmp = function(queryStr) {
-    queryStr = queryStr || ""; 
+    queryStr = queryStr || "";
     return queryStr.split('&').join('\n');
   };
 
@@ -747,7 +780,7 @@ this.sk = this.sk || function() {
     return obj;
   };
 
-  // Utility function for colorHex. 
+  // Utility function for colorHex.
   function _hexify(i) {
     var s = i.toString(16).toUpperCase();
     // Pad out to two hex digits if necessary.
@@ -757,9 +790,9 @@ this.sk = this.sk || function() {
     return s;
   }
 
-  // colorHex returns a hex representation of a given color pixel as a string. 
-  // 'colors' is an array of bytes that contain pixesl in  RGBA format. 
-  // 'offset' is the offset of the pixel of interest. 
+  // colorHex returns a hex representation of a given color pixel as a string.
+  // 'colors' is an array of bytes that contain pixesl in  RGBA format.
+  // 'offset' is the offset of the pixel of interest.
   sk.colorHex = function(colors, offset) {
     return '#'
       + _hexify(colors[offset+0])
@@ -769,12 +802,12 @@ this.sk = this.sk || function() {
   };
 
   // colorRGB returns the given RGBA pixel as a 4-tupel of decimal numbers.
-  // 'colors' is an array of bytes that contain pixesl in  RGBA format. 
-  // 'offset' is the offset of the pixel of interest. 
+  // 'colors' is an array of bytes that contain pixesl in  RGBA format.
+  // 'offset' is the offset of the pixel of interest.
   sk.colorRGB = function(colors, offset) {
-    return "rgba(" + colors[offset] + ", " + 
-              colors[offset + 1] + ", " + 
-              colors[offset + 2] + ", " + 
+    return "rgba(" + colors[offset] + ", " +
+              colors[offset + 1] + ", " +
+              colors[offset + 2] + ", " +
               colors[offset + 3] / 255 + ")";
   };
 
