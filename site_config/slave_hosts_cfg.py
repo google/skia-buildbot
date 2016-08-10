@@ -275,8 +275,6 @@ _slave_host_dicts = {
 
   'skia-vm-015': {
     'slaves': [
-      ('skiabot-ct-trybot-000', '1', False),
-      ('skiabot-ct-trybot-001', '2', False),
       ('skiabot-ct-dm-002', '3', False),
       ('skiabot-ct-dm-004', '4', False),
     ],
