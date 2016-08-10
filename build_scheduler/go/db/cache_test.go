@@ -10,6 +10,10 @@ import (
 
 func testGetTasksForCommits(t *testing.T, c *TaskCache, b *Task) {
 	for _, commit := range b.Commits {
+		found, err := c.GetTaskForCommit(b.Name, commit)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, b, found)
+
 		tasks, err := c.GetTasksForCommits([]string{commit})
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, map[string]map[string]*Task{

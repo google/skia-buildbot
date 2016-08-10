@@ -18,11 +18,29 @@ const (
 
 	// Expiration for GetModifiedTasks users.
 	MODIFIED_BUILDS_TIMEOUT = 10 * time.Minute
+
+	// Swarming task states.
+	TASK_STATE_BOT_DIED  = "BOT_DIED"
+	TASK_STATE_CANCELED  = "CANCELED"
+	TASK_STATE_COMPLETED = "COMPLETED"
+	TASK_STATE_EXPIRED   = "EXPIRED"
+	TASK_STATE_PENDING   = "PENDING"
+	TASK_STATE_RUNNING   = "RUNNING"
+	TASK_STATE_TIMED_OUT = "TIMED_OUT"
 )
 
 var (
 	ErrTooManyUsers = errors.New("Too many users")
 	ErrUnknownId    = errors.New("Unknown ID")
+
+	// Valid final states for Swarming tasks.
+	TASK_FINISHED_STATES = []string{
+		TASK_STATE_BOT_DIED,
+		TASK_STATE_CANCELED,
+		TASK_STATE_COMPLETED,
+		TASK_STATE_EXPIRED,
+		TASK_STATE_TIMED_OUT,
+	}
 )
 
 func IsTooManyUsers(e error) bool {
@@ -45,6 +63,10 @@ type Task struct {
 	// Id is a generated unique identifier for this Task instance.
 	Id string
 
+	// IsolatedOutput is the isolated hash of any outputs produced by this
+	// Task. Filled in when the task is completed.
+	IsolatedOutput string
+
 	// Name is a human-friendly descriptive name for this Task. All Tasks
 	// generated from the same TaskSpec have the same name.
 	Name string
@@ -55,6 +77,14 @@ type Task struct {
 
 func (t *Task) Created() (time.Time, error) {
 	return util.ParseTimeNs(t.TaskResult.CreatedTs)
+}
+
+func (t *Task) Finished() bool {
+	return util.In(t.TaskResult.State, TASK_FINISHED_STATES)
+}
+
+func (t *Task) Success() bool {
+	return t.TaskResult.State == TASK_STATE_COMPLETED && !t.TaskResult.Failure
 }
 
 func (t *Task) Copy() *Task {

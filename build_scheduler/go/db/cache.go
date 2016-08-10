@@ -54,6 +54,20 @@ func (c *TaskCache) GetTasksForCommits(commits []string) (map[string]map[string]
 	return rv, nil
 }
 
+// GetTaskForCommit retrieves the task with the given name which ran at the
+// given commit, or nil if no such task exists.
+func (c *TaskCache) GetTaskForCommit(name, commit string) (*Task, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	if tasks, ok := c.tasksByCommit[commit]; ok {
+		if t, ok := tasks[name]; ok {
+			return t.Copy(), nil
+		}
+	}
+	return nil, nil
+}
+
 // update inserts the new/updated tasks into the cache. Assumes the caller
 // holds a lock.
 func (c *TaskCache) update(tasks []*Task) error {
