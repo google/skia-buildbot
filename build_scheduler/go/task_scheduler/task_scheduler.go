@@ -2,7 +2,9 @@ package task_scheduler
 
 import (
 	"fmt"
+	"math"
 	"sort"
+	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/db"
@@ -12,15 +14,19 @@ import (
 
 // TaskScheduler is a struct used for scheduling builds on bots.
 type TaskScheduler struct {
-	cache        *db.TaskCache
-	taskCfgCache *taskCfgCache
+	cache            *db.TaskCache
+	repos            *gitinfo.RepoMap
+	taskCfgCache     *taskCfgCache
+	timeDecayAmt24Hr float64
 }
 
 func NewTaskScheduler(cache *db.TaskCache, workdir string) *TaskScheduler {
 	repos := gitinfo.NewRepoMap(workdir)
 	return &TaskScheduler{
-		cache:        cache,
-		taskCfgCache: newTaskCfgCache(repos),
+		cache:            cache,
+		repos:            repos,
+		taskCfgCache:     newTaskCfgCache(repos),
+		timeDecayAmt24Hr: 1.0,
 	}
 }
 
@@ -31,6 +37,7 @@ type taskCandidate struct {
 	Repo           string
 	Revision       string
 	Score          float64
+	StealingFrom   *db.Task
 	TaskSpec       *TaskSpec
 }
 
@@ -247,6 +254,68 @@ func (s *TaskScheduler) FindTaskCandidates(commitsByRepo map[string][]string) ([
 	}
 
 	return validCandidates, nil
+}
+
+// ProcessTaskCandidates computes the remaining information about each task
+// candidate, eg. blamelists and scoring.
+func (s *TaskScheduler) ProcessTaskCandidates(candidates []*taskCandidate) error {
+	// Compute blamelists.
+	for _, c := range candidates {
+		commits, stealingFrom, err := ComputeBlamelist(s.cache, s.repos, c)
+		if err != nil {
+			return err
+		}
+		c.Commits = commits
+		c.StealingFrom = stealingFrom
+	}
+
+	// Score the candidates.
+	now := time.Now()
+	for _, c := range candidates {
+		// The score for a candidate is based on the "testedness" increase
+		// provided by running the task.
+		stoleFromCommits := 0
+		if c.StealingFrom != nil {
+			stoleFromCommits = len(c.StealingFrom.Commits)
+		}
+		score := testednessIncrease(len(c.Commits), stoleFromCommits)
+
+		// Scale the score by other factors, eg. time decay.
+		decay, err := s.timeDecayForCommit(now, c.Repo, c.Revision)
+		if err != nil {
+			return err
+		}
+		score *= decay
+
+		c.Score = score
+	}
+
+	return nil
+}
+
+// timeDecay24Hr computes a linear time decay amount for the given duration,
+// given the requested decay amount at 24 hours.
+func timeDecay24Hr(decayAmt24Hr float64, elapsed time.Duration) float64 {
+	return math.Max(1.0-(1.0-decayAmt24Hr)*(float64(elapsed)/float64(24*time.Hour)), 0.0)
+}
+
+// timeDecayForCommit computes a multiplier for a task candidate score based
+// on how long ago the given commit landed. This allows us to prioritize more
+// recent commits.
+func (s *TaskScheduler) timeDecayForCommit(now time.Time, repoName, commit string) (float64, error) {
+	if s.timeDecayAmt24Hr == 1.0 {
+		// Shortcut for special case.
+		return 1.0, nil
+	}
+	repo, err := s.repos.Repo(repoName)
+	if err != nil {
+		return 0.0, err
+	}
+	d, err := repo.Details(commit, false)
+	if err != nil {
+		return 0.0, err
+	}
+	return timeDecay24Hr(s.timeDecayAmt24Hr, now.Sub(d.Timestamp)), nil
 }
 
 // testedness computes the total "testedness" of a set of commits covered by a

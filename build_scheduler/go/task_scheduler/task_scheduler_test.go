@@ -432,3 +432,50 @@ func TestComputeBlamelist(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, util.In(hashes['C'], task.Commits), fmt.Sprintf("Expected not to find %s in %v", hashes['C'], task.Commits))
 }
+
+func TestTimeDecay24Hr(t *testing.T) {
+	tc := []struct {
+		decayAmt24Hr float64
+		elapsed      time.Duration
+		out          float64
+	}{
+		{
+			decayAmt24Hr: 1.0,
+			elapsed:      10 * time.Hour,
+			out:          1.0,
+		},
+		{
+			decayAmt24Hr: 0.5,
+			elapsed:      0 * time.Hour,
+			out:          1.0,
+		},
+		{
+			decayAmt24Hr: 0.5,
+			elapsed:      24 * time.Hour,
+			out:          0.5,
+		},
+		{
+			decayAmt24Hr: 0.5,
+			elapsed:      12 * time.Hour,
+			out:          0.75,
+		},
+		{
+			decayAmt24Hr: 0.5,
+			elapsed:      36 * time.Hour,
+			out:          0.25,
+		},
+		{
+			decayAmt24Hr: 0.5,
+			elapsed:      48 * time.Hour,
+			out:          0.0,
+		},
+		{
+			decayAmt24Hr: 0.5,
+			elapsed:      72 * time.Hour,
+			out:          0.0,
+		},
+	}
+	for i, c := range tc {
+		assert.Equal(t, c.out, timeDecay24Hr(c.decayAmt24Hr, c.elapsed), fmt.Sprintf("test case #%d", i))
+	}
+}
