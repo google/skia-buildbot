@@ -4,30 +4,52 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/metrics2"
 )
 
 // TaskScheduler is a struct used for scheduling builds on bots.
 type TaskScheduler struct {
 	cache            *db.TaskCache
+	period           time.Duration
+	queue            []*taskCandidate
+	queueMtx         sync.RWMutex
 	repos            *gitinfo.RepoMap
 	taskCfgCache     *taskCfgCache
 	timeDecayAmt24Hr float64
 }
 
-func NewTaskScheduler(cache *db.TaskCache, workdir string) *TaskScheduler {
-	repos := gitinfo.NewRepoMap(workdir)
-	return &TaskScheduler{
+func NewTaskScheduler(cache *db.TaskCache, period time.Duration, repos *gitinfo.RepoMap) *TaskScheduler {
+	s := &TaskScheduler{
 		cache:            cache,
+		period:           period,
+		queue:            []*taskCandidate{},
+		queueMtx:         sync.RWMutex{},
 		repos:            repos,
 		taskCfgCache:     newTaskCfgCache(repos),
 		timeDecayAmt24Hr: 1.0,
 	}
+	return s
+}
+
+// Start initiates the TaskScheduler's goroutines for scheduling tasks.
+func (s *TaskScheduler) Start() {
+	go func() {
+		lv := metrics2.NewLiveness("last-successful-queue-regeneration")
+		for _ = range time.Tick(time.Minute) {
+			if err := s.regenerateTaskQueue(); err != nil {
+				glog.Errorf("Failed to regenerate task queue: %s", err)
+			} else {
+				lv.Reset()
+			}
+		}
+	}()
 }
 
 type taskCandidate struct {
@@ -39,6 +61,16 @@ type taskCandidate struct {
 	Score          float64
 	StealingFrom   *db.Task
 	TaskSpec       *TaskSpec
+}
+
+type taskCandidateSlice []*taskCandidate
+
+func (s taskCandidateSlice) Len() int { return len(s) }
+func (s taskCandidateSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s taskCandidateSlice) Less(i, j int) bool {
+	return s[i].Score > s[j].Score // candidates sort in decreasing order.
 }
 
 // MakeTask instantiates a db.Task from the taskCandidate.
@@ -56,9 +88,9 @@ func (c *taskCandidate) MakeTask() *db.Task {
 	}
 }
 
-// AllDepsMet determines whether all dependencies for the given task candidate
+// allDepsMet determines whether all dependencies for the given task candidate
 // have been satisfied, and if so, returns their isolated outputs.
-func (s *TaskScheduler) AllDepsMet(c *taskCandidate) (bool, []string, error) {
+func (s *TaskScheduler) allDepsMet(c *taskCandidate) (bool, []string, error) {
 	isolatedHashes := make([]string, 0, len(c.TaskSpec.Dependencies))
 	for _, depName := range c.TaskSpec.Dependencies {
 		d, err := s.cache.GetTaskForCommit(depName, c.Revision)
@@ -203,7 +235,7 @@ func ComputeBlamelist(cache *db.TaskCache, repos *gitinfo.RepoMap, c *taskCandid
 	return rv, stealFrom, nil
 }
 
-func (s *TaskScheduler) FindTaskCandidates(commitsByRepo map[string][]string) ([]*taskCandidate, error) {
+func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([]*taskCandidate, error) {
 	// Obtain all possible tasks.
 	specs, err := s.taskCfgCache.GetTaskSpecsForCommits(commitsByRepo)
 	if err != nil {
@@ -219,7 +251,7 @@ func (s *TaskScheduler) FindTaskCandidates(commitsByRepo map[string][]string) ([
 				if err != nil {
 					return nil, err
 				}
-				if previous != nil {
+				if previous != nil && previous.Revision == commit {
 					if previous.TaskResult.State == db.TASK_STATE_PENDING || previous.TaskResult.State == db.TASK_STATE_RUNNING {
 						continue
 					}
@@ -242,7 +274,7 @@ func (s *TaskScheduler) FindTaskCandidates(commitsByRepo map[string][]string) ([
 	// Filter out candidates whose dependencies have not been met.
 	validCandidates := make([]*taskCandidate, 0, len(candidates))
 	for _, c := range candidates {
-		depsMet, hashes, err := s.AllDepsMet(c)
+		depsMet, hashes, err := s.allDepsMet(c)
 		if err != nil {
 			return nil, err
 		}
@@ -256,9 +288,9 @@ func (s *TaskScheduler) FindTaskCandidates(commitsByRepo map[string][]string) ([
 	return validCandidates, nil
 }
 
-// ProcessTaskCandidates computes the remaining information about each task
+// processTaskCandidates computes the remaining information about each task
 // candidate, eg. blamelists and scoring.
-func (s *TaskScheduler) ProcessTaskCandidates(candidates []*taskCandidate) error {
+func (s *TaskScheduler) processTaskCandidates(candidates []*taskCandidate) error {
 	// Compute blamelists.
 	for _, c := range candidates {
 		commits, stealingFrom, err := ComputeBlamelist(s.cache, s.repos, c)
@@ -289,7 +321,47 @@ func (s *TaskScheduler) ProcessTaskCandidates(candidates []*taskCandidate) error
 
 		c.Score = score
 	}
+	sort.Sort(taskCandidateSlice(candidates))
+	return nil
+}
 
+// regenerateTaskQueue obtains the set of all eligible task candidates, scores
+// them, and prepares them to be triggered.
+func (s *TaskScheduler) regenerateTaskQueue() error {
+	// Update the task cache.
+	if err := s.cache.Update(); err != nil {
+		return nil
+	}
+
+	// Find the recent commits to use.
+	if err := s.repos.Update(); err != nil {
+		return err
+	}
+	from := time.Now().Add(-s.period)
+	commits := map[string][]string{}
+	for _, repoName := range s.repos.Repos() {
+		repo, err := s.repos.Repo(repoName)
+		if err != nil {
+			return err
+		}
+		commits[repoName] = repo.From(from)
+	}
+
+	// Find and process task candidates.
+	candidates, err := s.findTaskCandidates(commits)
+	if err != nil {
+		return err
+	}
+	if err := s.processTaskCandidates(candidates); err != nil {
+		return err
+	}
+
+	s.queueMtx.Lock()
+	defer s.queueMtx.Unlock()
+	// TODO(borenet): Find a faster data structure for matching candidates
+	// to free Swarming bots so that we don't have to scan the whole queue
+	// every time.
+	s.queue = candidates
 	return nil
 }
 

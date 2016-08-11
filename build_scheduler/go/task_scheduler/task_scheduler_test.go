@@ -2,6 +2,7 @@ package task_scheduler
 
 import (
 	"fmt"
+	"math"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -38,7 +39,6 @@ func TestFindTaskCandidates(t *testing.T) {
 	d := db.NewInMemoryDB()
 	cache, err := db.NewTaskCache(d, time.Hour)
 	assert.NoError(t, err)
-	s := NewTaskScheduler(cache, tr.Dir)
 
 	// The test repo has two commits. The first commit adds a tasks.cfg file
 	// with two task specs: a build task and a test task, the test task
@@ -55,9 +55,14 @@ func TestFindTaskCandidates(t *testing.T) {
 		repo: []string{c1, c2},
 	}
 
+	repos := gitinfo.NewRepoMap(tr.Dir)
+	_, err = repos.Repo(repo)
+	assert.NoError(t, err)
+	s := NewTaskScheduler(cache, time.Duration(math.MaxInt64), repos)
+
 	// Check the initial set of task candidates. The two Build tasks
 	// should be the only ones available.
-	c, err := s.FindTaskCandidates(commits)
+	c, err := s.findTaskCandidates(commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(c))
 	for _, candidate := range c {
@@ -80,7 +85,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
-	c, err = s.FindTaskCandidates(commits)
+	c, err = s.findTaskCandidates(commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(c))
 	for _, candidate := range c {
@@ -93,7 +98,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
-	c, err = s.FindTaskCandidates(commits)
+	c, err = s.findTaskCandidates(commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(c))
 	for _, candidate := range c {
@@ -108,7 +113,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
-	c, err = s.FindTaskCandidates(commits)
+	c, err = s.findTaskCandidates(commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(c))
 	for _, candidate := range c {
@@ -122,7 +127,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
-	c, err = s.FindTaskCandidates(commits)
+	c, err = s.findTaskCandidates(commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(c))
 	for _, candidate := range c {
@@ -145,7 +150,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, cache.Update())
 
 	// All test and perf tasks are now candidates, no build tasks.
-	c, err = s.FindTaskCandidates(commits)
+	c, err = s.findTaskCandidates(commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(c))
 	for _, candidate := range c {
@@ -478,4 +483,149 @@ func TestTimeDecay24Hr(t *testing.T) {
 	for i, c := range tc {
 		assert.Equal(t, c.out, timeDecay24Hr(c.decayAmt24Hr, c.elapsed), fmt.Sprintf("test case #%d", i))
 	}
+}
+
+func TestRegenerateTaskQueue(t *testing.T) {
+	testutils.SkipIfShort(t)
+
+	// Setup.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	d := db.NewInMemoryDB()
+	cache, err := db.NewTaskCache(d, time.Hour)
+	assert.NoError(t, err)
+
+	// The test repo has two commits. The first commit adds a tasks.cfg file
+	// with two task specs: a build task and a test task, the test task
+	// depending on the build task. The second commit adds a perf task spec,
+	// which also depends on the build task. Therefore, there are five total
+	// possible tasks we could run:
+	//
+	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
+	//
+	c1 := "60f5df31760312423e635a342ab122e8117d363e"
+	c2 := "71f2d15f79b7807a4d510b7b8e7c5633daae6859"
+	repo := "skia.git"
+	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
+	testTask := "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+	perfTask := "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+
+	// Pre-load the git repo.
+	repos := gitinfo.NewRepoMap(tr.Dir)
+	_, err = repos.Repo(repo)
+	assert.NoError(t, err)
+	s := NewTaskScheduler(cache, time.Duration(math.MaxInt64), repos)
+
+	// Ensure that the queue is initially empty.
+	assert.Equal(t, 0, len(s.queue))
+
+	// Regenerate the task queue.
+	assert.NoError(t, s.regenerateTaskQueue())
+	assert.Equal(t, 2, len(s.queue)) // Two Build tasks.
+
+	testSort := func() {
+		// Ensure that we sorted correctly.
+		if len(s.queue) == 0 {
+			return
+		}
+		highScore := s.queue[0].Score
+		for _, c := range s.queue {
+			assert.True(t, highScore >= c.Score)
+			highScore = c.Score
+		}
+	}
+	testSort()
+
+	// Since we haven't run any task yet, we should have the two Build
+	// tasks, each with a blamelist of 1 commit (since we don't go past
+	// taskCandidate.Revision when computing blamelists when we haven't run
+	// a given task spec before), and a score of 2.0.
+	for _, c := range s.queue {
+		assert.Equal(t, buildTask, c.Name)
+		assert.Equal(t, 2.0, c.Score)
+		assert.Equal(t, []string{c.Revision}, c.Commits)
+	}
+
+	// Insert one of the tasks.
+	var t1 *db.Task
+	for _, c := range s.queue { // Order not guaranteed; find the right candidate.
+		if c.Revision == c1 {
+			t1 = makeTask(c.Name, c.Revision)
+			break
+		}
+	}
+	assert.NotNil(t, t1)
+	t1.TaskResult.State = db.TASK_STATE_COMPLETED
+	t1.TaskResult.Failure = false
+	t1.IsolatedOutput = "fake isolated hash"
+	assert.NoError(t, d.PutTask(t1))
+
+	// Regenerate the task queue.
+	assert.NoError(t, s.regenerateTaskQueue())
+
+	// Now we expect the queue to contain the other Build task and the one
+	// Test task we unblocked by running the first Build task.
+	assert.Equal(t, 2, len(s.queue))
+	testSort()
+	for _, c := range s.queue {
+		assert.Equal(t, 2.0, c.Score)
+		assert.Equal(t, []string{c.Revision}, c.Commits)
+	}
+	buildIdx := 0
+	testIdx := 1
+	if s.queue[1].Name == buildTask {
+		buildIdx = 1
+		testIdx = 0
+	}
+	assert.Equal(t, buildTask, s.queue[buildIdx].Name)
+	assert.Equal(t, c2, s.queue[buildIdx].Revision)
+
+	assert.Equal(t, testTask, s.queue[testIdx].Name)
+	assert.Equal(t, c1, s.queue[testIdx].Revision)
+
+	// Run the other Build task.
+	t2 := makeTask(s.queue[buildIdx].Name, s.queue[buildIdx].Revision)
+	t2.TaskResult.State = db.TASK_STATE_COMPLETED
+	t2.TaskResult.Failure = false
+	t2.IsolatedOutput = "fake isolated hash"
+	assert.NoError(t, d.PutTask(t2))
+
+	// Regenerate the task queue.
+	assert.NoError(t, s.regenerateTaskQueue())
+	assert.Equal(t, 3, len(s.queue))
+	testSort()
+	perfIdx := -1
+	for i, c := range s.queue {
+		if c.Name == perfTask {
+			perfIdx = i
+		} else {
+			assert.Equal(t, c.Name, testTask)
+		}
+		assert.Equal(t, 2.0, c.Score)
+		assert.Equal(t, []string{c.Revision}, c.Commits)
+	}
+	assert.True(t, perfIdx > -1)
+
+	// Run the Test task at tip of tree, but make its blamelist cover both
+	// commits.
+	t3 := makeTask(testTask, c2)
+	t3.Commits = append(t3.Commits, c1)
+	t3.TaskResult.State = db.TASK_STATE_COMPLETED
+	t3.TaskResult.Failure = false
+	t3.IsolatedOutput = "fake isolated hash"
+	assert.NoError(t, d.PutTask(t3))
+
+	// Regenerate the task queue.
+	assert.NoError(t, s.regenerateTaskQueue())
+
+	// Now we expect the queue to contain one Test and one Perf task. The
+	// Test task is a backfill, and should have a score of 0.5.
+	assert.Equal(t, 2, len(s.queue))
+	testSort()
+	// First candidate should be the perf task.
+	assert.Equal(t, perfTask, s.queue[0].Name)
+	assert.Equal(t, 2.0, s.queue[0].Score)
+	// The test task is next, a backfill.
+	assert.Equal(t, testTask, s.queue[1].Name)
+	assert.Equal(t, 0.5, s.queue[1].Score)
 }
