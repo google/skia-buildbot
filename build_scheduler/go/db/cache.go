@@ -1,17 +1,30 @@
 package db
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
 
 type TaskCache struct {
-	tasks         map[string]*Task
-	tasksByCommit map[string]map[string]*Task
-	db            DB
-	lastUpdate    time.Time
-	mtx           sync.RWMutex
-	queryId       string
+	db             DB
+	knownTaskNames map[string]bool
+	lastUpdate     time.Time
+	mtx            sync.RWMutex
+	queryId        string
+	tasks          map[string]*Task
+	tasksByCommit  map[string]map[string]*Task
+}
+
+// GetTask returns the task with the given ID, or an error if no such task exists.
+func (c *TaskCache) GetTask(id string) (*Task, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	if t, ok := c.tasks[id]; ok {
+		return t, nil
+	}
+	return nil, fmt.Errorf("No such task!")
 }
 
 // GetTasksForCommits retrieves all tasks which included[1] each of the
@@ -54,6 +67,14 @@ func (c *TaskCache) GetTasksForCommits(commits []string) (map[string]map[string]
 	return rv, nil
 }
 
+// KnownTaskName returns true iff the given task name has been seen before.
+func (c *TaskCache) KnownTaskName(name string) bool {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	_, ok := c.knownTaskNames[name]
+	return ok
+}
+
 // GetTaskForCommit retrieves the task with the given name which ran at the
 // given commit, or nil if no such task exists.
 func (c *TaskCache) GetTaskForCommit(name, commit string) (*Task, error) {
@@ -91,6 +112,9 @@ func (c *TaskCache) update(tasks []*Task) error {
 			}
 			c.tasksByCommit[commit][t.Name] = c.tasks[t.Id]
 		}
+
+		// Known task names.
+		c.knownTaskNames[t.Name] = true
 	}
 	return nil
 }
@@ -147,11 +171,12 @@ func NewTaskCache(db DB, timePeriod time.Duration) (*TaskCache, error) {
 		return nil, err
 	}
 	tc := &TaskCache{
-		tasks:         map[string]*Task{},
-		tasksByCommit: map[string]map[string]*Task{},
-		db:            db,
-		lastUpdate:    now,
-		queryId:       queryId,
+		db:             db,
+		knownTaskNames: map[string]bool{},
+		lastUpdate:     now,
+		queryId:        queryId,
+		tasks:          map[string]*Task{},
+		tasksByCommit:  map[string]map[string]*Task{},
 	}
 	if err := tc.update(tasks); err != nil {
 		return nil, err

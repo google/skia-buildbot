@@ -2,6 +2,8 @@ package task_scheduler
 
 import (
 	"fmt"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -10,6 +12,7 @@ import (
 	"github.com/satori/go.uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/build_scheduler/go/db"
+	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -287,4 +290,145 @@ func TestTestednessIncrease(t *testing.T) {
 	for i, c := range tc {
 		assert.Equal(t, c.out, testednessIncrease(c.a, c.b), fmt.Sprintf("test case #%d", i))
 	}
+}
+
+func TestComputeBlamelist(t *testing.T) {
+	testutils.SkipIfShort(t)
+
+	// Setup.
+	_, filename, _, _ := runtime.Caller(0)
+	// Use the test repo from the buildbot package, since it's already set
+	// up for this type of test.
+	zipfile := filepath.Join(filepath.Dir(filename), "..", "..", "..", "go", "buildbot", "testdata", "testrepo.zip")
+	tr := util.NewTempRepoFrom(zipfile)
+	defer tr.Cleanup()
+	d := db.NewInMemoryDB()
+	cache, err := db.NewTaskCache(d, time.Hour)
+	assert.NoError(t, err)
+
+	repos := gitinfo.NewRepoMap(tr.Dir)
+
+	// The test repo is laid out like this:
+	//
+	// *   06eb2a58139d3ff764f10232d5c8f9362d55e20f I (HEAD, master, Task #4)
+	// *   ecb424466a4f3b040586a062c15ed58356f6590e F (Task #3)
+	// |\
+	// | * d30286d2254716d396073c177a754f9e152bbb52 H
+	// | * 8d2d1247ef5d2b8a8d3394543df6c12a85881296 G (Task #2)
+	// * | 67635e7015d74b06c00154f7061987f426349d9f E
+	// * | 6d4811eddfa637fac0852c3a0801b773be1f260d D (Task #1)
+	// * | d74dfd42a48325ab2f3d4a97278fc283036e0ea4 C (Task #6)
+	// |/
+	// *   4b822ebb7cedd90acbac6a45b897438746973a87 B (Task #0)
+	// *   051955c355eb742550ddde4eccc3e90b6dc5b887 A
+	//
+	hashes := map[rune]string{
+		'A': "051955c355eb742550ddde4eccc3e90b6dc5b887",
+		'B': "4b822ebb7cedd90acbac6a45b897438746973a87",
+		'C': "d74dfd42a48325ab2f3d4a97278fc283036e0ea4",
+		'D': "6d4811eddfa637fac0852c3a0801b773be1f260d",
+		'E': "67635e7015d74b06c00154f7061987f426349d9f",
+		'F': "ecb424466a4f3b040586a062c15ed58356f6590e",
+		'G': "8d2d1247ef5d2b8a8d3394543df6c12a85881296",
+		'H': "d30286d2254716d396073c177a754f9e152bbb52",
+		'I': "06eb2a58139d3ff764f10232d5c8f9362d55e20f",
+	}
+
+	// Test cases. Each test case builds on the previous cases.
+	testCases := []struct {
+		Revision    string
+		Expected    []string
+		StoleFromId string
+	}{
+		// 0. The first task.
+		{
+			Revision:    hashes['B'],
+			Expected:    []string{hashes['B']}, // Task #0 is limited to a single commit.
+			StoleFromId: "",
+		},
+		// 1. On a linear set of commits, with at least one previous task.
+		{
+			Revision:    hashes['D'],
+			Expected:    []string{hashes['D'], hashes['C']},
+			StoleFromId: "",
+		},
+		// 2. The first task on a new branch.
+		{
+			Revision:    hashes['G'],
+			Expected:    []string{hashes['G']},
+			StoleFromId: "",
+		},
+		// 3. After a merge.
+		{
+			Revision:    hashes['F'],
+			Expected:    []string{hashes['E'], hashes['H'], hashes['F']},
+			StoleFromId: "",
+		},
+		// 4. One last "normal" task.
+		{
+			Revision:    hashes['I'],
+			Expected:    []string{hashes['I']},
+			StoleFromId: "",
+		},
+		// 5. No Revision.
+		{
+			Revision:    "",
+			Expected:    []string{},
+			StoleFromId: "",
+		},
+		// 6. Steal commits from a previously-ingested task.
+		{
+			Revision:    hashes['C'],
+			Expected:    []string{hashes['C']},
+			StoleFromId: "1",
+		},
+	}
+	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
+	repo := "skia.git"
+	for i, tc := range testCases {
+		// Ensure that we get the expected blamelist.
+		c := &taskCandidate{
+			Name:     name,
+			Repo:     repo,
+			Revision: tc.Revision,
+		}
+		commits, stoleFrom, err := ComputeBlamelist(cache, repos, c)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, tc.Expected, commits)
+		stoleFromId := ""
+		if stoleFrom != nil {
+			stoleFromId = stoleFrom.Id
+		}
+		assert.Equal(t, tc.StoleFromId, stoleFromId)
+
+		// Insert the task into the DB.
+		task := c.MakeTask()
+		task.Commits = commits
+		task.Id = fmt.Sprintf("%d", i)
+		task.SwarmingRpcsTaskRequestMetadata = &swarming.SwarmingRpcsTaskRequestMetadata{
+			TaskResult: &swarming.SwarmingRpcsTaskResult{
+				CreatedTs: fmt.Sprintf("%d", time.Now().UnixNano()),
+			},
+		}
+		if stoleFrom != nil {
+			// Re-insert the stoleFrom task without the commits
+			// which were stolen from it.
+			stoleFromCommits := make([]string, 0, len(stoleFrom.Commits)-len(commits))
+			for _, commit := range stoleFrom.Commits {
+				if !util.In(commit, task.Commits) {
+					stoleFromCommits = append(stoleFromCommits, commit)
+				}
+			}
+			stoleFrom.Commits = stoleFromCommits
+			assert.NoError(t, d.PutTasks([]*db.Task{task, stoleFrom}))
+		} else {
+			assert.NoError(t, d.PutTask(task))
+		}
+		assert.NoError(t, cache.Update())
+	}
+
+	// Extra: ensure that task #6 really stole the commit from #1.
+	task, err := cache.GetTask("1")
+	assert.NoError(t, err)
+	assert.False(t, util.In(hashes['C'], task.Commits), fmt.Sprintf("Expected not to find %s in %v", hashes['C'], task.Commits))
 }

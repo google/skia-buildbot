@@ -54,20 +54,27 @@ type TempRepo struct {
 	Dir string
 }
 
+// NewTempRepoFrom returns a TempRepo instance based on the contents of the
+// given zip file path. Unzips to a temporary directory which is stored in
+// TempRepo.Dir.
+func NewTempRepoFrom(zipfile string) *TempRepo {
+	tmpdir, err := ioutil.TempDir("", "skiaperf")
+	if err != nil {
+		glog.Fatalln("Failed to create testing Git repo:", err)
+	}
+	if err := unzip(zipfile, tmpdir); err != nil {
+		glog.Fatalln("Failed to unzip testing Git repo:", err)
+	}
+	return &TempRepo{Dir: tmpdir}
+}
+
 // NewTempRepo assumes the repo is called testrepo.zip and is in a directory
 // called testdata under the directory of the unit test that is calling it.
 //
 // The directory that was created is stored in TempRepo Path.
 func NewTempRepo() *TempRepo {
-	tmpdir, err := ioutil.TempDir("", "skiaperf")
-	if err != nil {
-		glog.Fatalln("Failed to create testing Git repo:", err)
-	}
 	_, filename, _, _ := runtime.Caller(1)
-	if err := unzip(filepath.Join(filepath.Dir(filename), "testdata", "testrepo.zip"), tmpdir); err != nil {
-		glog.Fatalln("Failed to unzip testing Git repo:", err)
-	}
-	return &TempRepo{Dir: tmpdir}
+	return NewTempRepoFrom(filepath.Join(filepath.Dir(filename), "testdata", "testrepo.zip"))
 }
 
 // Cleanup cleans up the temporary repo.

@@ -71,6 +71,9 @@ type Task struct {
 	// generated from the same TaskSpec have the same name.
 	Name string
 
+	// Repo is the repository of the commit at which this task ran.
+	Repo string
+
 	// Revision is the commit at which this task ran.
 	Revision string
 }
