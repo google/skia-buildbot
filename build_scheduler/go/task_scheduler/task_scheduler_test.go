@@ -1,6 +1,7 @@
 package task_scheduler
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -146,5 +147,144 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.Equal(t, 3, len(c))
 	for _, candidate := range c {
 		assert.True(t, !strings.HasPrefix(candidate.Name, "Build-"))
+	}
+}
+
+func TestTestedness(t *testing.T) {
+	tc := []struct {
+		in  int
+		out float64
+	}{
+		{
+			in:  -1,
+			out: -1.0,
+		},
+		{
+			in:  0,
+			out: 0.0,
+		},
+		{
+			in:  1,
+			out: 1.0,
+		},
+		{
+			in:  2,
+			out: 1.0 + 1.0/2.0,
+		},
+		{
+			in:  3,
+			out: 1.0 + float64(2.0)/float64(3.0),
+		},
+		{
+			in:  4,
+			out: 1.0 + 3.0/4.0,
+		},
+		{
+			in:  4096,
+			out: 1.0 + float64(4095)/float64(4096),
+		},
+	}
+	for i, c := range tc {
+		assert.Equal(t, c.out, testedness(c.in), fmt.Sprintf("test case #%d", i))
+	}
+}
+
+func TestTestednessIncrease(t *testing.T) {
+	tc := []struct {
+		a   int
+		b   int
+		out float64
+	}{
+		// Invalid cases.
+		{
+			a:   -1,
+			b:   10,
+			out: -1.0,
+		},
+		{
+			a:   10,
+			b:   -1,
+			out: -1.0,
+		},
+		{
+			a:   0,
+			b:   -1,
+			out: -1.0,
+		},
+		{
+			a:   0,
+			b:   0,
+			out: -1.0,
+		},
+		// Invalid because if we're re-running at already-tested commits
+		// then we should have a blamelist which is at most the size of
+		// the blamelist of the previous task. We naturally get negative
+		// testedness increase in these cases.
+		{
+			a:   2,
+			b:   1,
+			out: -0.5,
+		},
+		// Testing only new commits.
+		{
+			a:   1,
+			b:   0,
+			out: 1.0 + 1.0,
+		},
+		{
+			a:   2,
+			b:   0,
+			out: 2.0 + (1.0 + 1.0/2.0),
+		},
+		{
+			a:   3,
+			b:   0,
+			out: 3.0 + (1.0 + float64(2.0)/float64(3.0)),
+		},
+		{
+			a:   4096,
+			b:   0,
+			out: 4096.0 + (1.0 + float64(4095.0)/float64(4096.0)),
+		},
+		// Retries.
+		{
+			a:   1,
+			b:   1,
+			out: 0.0,
+		},
+		{
+			a:   2,
+			b:   2,
+			out: 0.0,
+		},
+		{
+			a:   3,
+			b:   3,
+			out: 0.0,
+		},
+		{
+			a:   4096,
+			b:   4096,
+			out: 0.0,
+		},
+		// Bisect/backfills.
+		{
+			a:   1,
+			b:   2,
+			out: 0.5, // (1 + 1) - (1 + 1/2)
+		},
+		{
+			a:   1,
+			b:   3,
+			out: float64(2.5) - (1.0 + float64(2.0)/float64(3.0)),
+		},
+		{
+			a:   5,
+			b:   10,
+			out: 2.0*(1.0+float64(4.0)/float64(5.0)) - (1.0 + float64(9.0)/float64(10.0)),
+		},
+	}
+	for i, c := range tc {
+		assert.Equal(t, c.out, testednessIncrease(c.a, c.b), fmt.Sprintf("test case #%d", i))
 	}
 }
