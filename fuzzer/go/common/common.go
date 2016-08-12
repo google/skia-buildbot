@@ -43,6 +43,13 @@ type FuzzerInfo struct {
 // centralized location to add a new fuzzer, i.e. adding an entry and information here, combined
 // with modifying the fuzzer-be.service should be sufficient to add a new fuzzer into the system.
 var fuzzers = map[string]FuzzerInfo{
+	"api_gradient": {
+		PrettyName:          "API - Gradients",
+		Status:              EXPERIMENTAL_FUZZER,
+		Groomer:             "fmalita",
+		ExtraBugLabels:      nil,
+		ArgsAfterExecutable: []string{"--type", "api", "--name", "Gradients", "--bytes"},
+	},
 	"api_parse_path": {
 		PrettyName:          "API - ParsePath",
 		Status:              STABLE_FUZZER,
