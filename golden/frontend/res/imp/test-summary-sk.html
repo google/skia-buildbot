@@ -1,10 +1,10 @@
   <!-- The <test-summary-sk> custom element declaration.
-  
+
     Displays a summary for the given test.
-  
+
     Attributes:
       summary - A object that gives a summary of a test. Should look like:
-  
+
            {
              "name": "01-original",
              "diameter": 123242,
@@ -13,12 +13,12 @@
              "untHashes": ["ababab...", "2b2b2b2...", ...],
            }
 
-      search - The url-encoded search string to query the test described by summary 
-               against the backend. 
+      search - The url-encoded search string to query the test described by summary
+               against the backend.
 
-      clusterSearch - The url-encoded search string to query for the test in the 
-               cluster view. 
-  
+      clusterSearch - The url-encoded search string to query for the test in the
+               cluster view.
+
     Events:
       None
 
@@ -26,7 +26,7 @@
       None
   -->
 
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="shared-styles.html">
 
@@ -34,47 +34,49 @@
   <template>
     <style include="shared-styles"></style>
     <style include="iron-flex iron-flex-alignment">
-        
-        span {
+        .colEntry {
           width: 25em;
-          display: inline-block;
+          float: left;
           overflow-wrap: break-word;
           margin-left: .6em;
         }
 
-        span.short {
-          width: 10em;
-          text-align: center;
+        .colEntry.short {
+          width: 6em;
+          text-align: left;
+        }
+
+        .row {
+          margin-top: .3em;
         }
 
         .blameColumn {
-          width: 40em;
+          margin-left: .6em;
         }
-
     </style>
     <div class="vertical layout">
-      <div class="horizontal layout">
-        <span>
+      <div class="horizontal layout row">
+        <span class="colEntry">
           <b>
             <a href$="{{_searchHref(search)}}">
               <span>{{summary.name}}</span>
             </a>
           </b>
         </span>
-        <span class="short center-justified">
+        <span class="colEntry short">
           <a href$="{{_cmpHref(summary, search)}}">
             <iron-icon icon="apps"></iron-icon>
           </a>
         </span>
-        <span class="short">
+        <span class="colEntry short">
           <a href$="{{_clusterHref(clusterSearch)}}">
             <iron-icon icon="radio-button-unchecked"></iron-icon>
           </a>
         </span>
-        <span class="short">{{summary.pos}}</span>
-        <span class="short">{{summary.neg}}</span>
-        <span class="short">{{summary.untriaged}}</span>
-        <span class="short">{{summary.num}}</span>
+        <span class="colEntry short">{{summary.pos}}</span>
+        <span class="colEntry short">{{summary.neg}}</span>
+        <span class="colEntry short">{{summary.untriaged}}</span>
+        <span class="colEntry short">{{summary.num}}</span>
         <div class="blameColumn vertical layout">
           <template is="dom-repeat" items="{{summary.blame}}" as="b">
             <div>{{formatPercent(b.prob)}}% - {{b.author}}</div>
@@ -114,7 +116,7 @@
       },
 
       _searchHref: function(search) {
-        return '/search?' + search; 
+        return '/search?' + search;
       },
 
       _cmpHref: function(summary, search) {
@@ -128,4 +130,3 @@
     });
   </script>
 </dom-module>
-  

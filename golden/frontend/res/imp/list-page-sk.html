@@ -43,10 +43,16 @@
 
       .header {
         width: 25em;
+        float: left;
+        margin-left: .6em;
+        color: #1F78B4;
+        text-decoration: none;
+        cursor: pointer;
+        text-transform: uppercase;
       }
 
       .header.short {
-        width: 10em;
+        width: 6em;
       }
 
       #core {
@@ -54,37 +60,34 @@
         margin-left: 1em;
       }
 
-      .blameHeader {
-        padding-top: 0.7em;
-        padding-right: 0.57em;
-        padding-bottom: 0.7em;
-        padding-left: 0.57em;
-        color: #1F78B4;
-        text-transform: uppercase;
-      }
-
       paper-button[disabled] {
         background: transparent;
         color: #1F78B4;
       }
 
+      .wrapper {
+        margin-top: 1em;
+      }
     </style>
 
     <div id="core" class="vertical layout">
       <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
       <div hidden$="{{_hideAll}}">
         <search-controls-sk id="searchControls"></search-controls-sk>
-
-        <sort-sk target="summaries">
-          <paper-button class="header" data-key="name" data-alpha=true>Name</paper-button>
-          <paper-button class="header short" disabled>Grid</paper-button>
-          <paper-button class="header short" disabled >Cluster</paper-button>
-          <paper-button class="header short" data-key="pos">Pos</paper-button>
-          <paper-button class="header short" data-key="neg">Neg</paper-button>
-          <paper-button class="header short" data-key="untriaged">Unt</paper-button>
-          <paper-button class="header short" data-key="num">Total</paper-button>
-          <span class="blameHeader">Blame</span>
-        </sort-sk>
+        <div class="wrapper">
+          <sort-sk target="summaries">
+            <div class="horizontal layout">
+              <a class="header" data-key="name" data-alpha=true>Name</a>
+              <a class="header short">Grid</a>
+              <a class="header short">Cluster</a>
+              <a class="header short" data-key="pos">Pos</a>
+              <a class="header short" data-key="neg">Neg</a>
+              <a class="header short" data-key="untriaged">Unt</a>
+              <a class="header short" data-key="num">Total</a>
+              <a class="header">Blame</a>
+            </div>
+          </sort-sk>
+        </div>
         <div id="summaries"></div>
       </div>
     </div>
