@@ -1,0 +1,27 @@
+{
+   "name": "Notifications for Skia Developers",
+   "version": "1",
+   "description": "Notifications for Skia Developers.",
+   "permissions": [
+     "notifications",
+     "storage",
+     "https://status.skia.org/",
+     "http://skia-tree-status.appspot.com/"
+   ],
+   "background": {
+     "scripts": [
+       "node_modules/skia-common-js/common.js",
+       "background.js"]
+   },
+   "browser_action": {
+     "name": "Display Skia status.",
+     "default_popup": "popup.html",
+     "default_icon": "pencil16.png"
+   },
+   "icons": {
+     "16": "pencil16.png",
+     "48": "pencil48.png",
+     "128": "pencil128.png"
+   },
+  "manifest_version": 2
+}

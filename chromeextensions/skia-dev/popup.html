@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Notifications for Skia Developers</title>
+  </head>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      font-size: 0.8em;
+      width: 700px;
+    }
+
+    #alerts-link {
+      text-align: center;
+    }
+
+    #status-table {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    a {
+      text-decoration: underline;
+      color: #444;
+    }
+
+    a:hover {
+      color: black;
+      cursor: pointer;
+    }
+
+    #info-table {
+      margin-left: auto;
+      margin-right: auto;
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+    #info-table td {
+      padding: 7px 10px;
+      width: 33%;
+      text-align: center;
+      border: 1px solid black;
+    }
+
+    .trunk-status-cell {
+      padding: 0px;
+    }
+
+    .trunk-status-cell > iframe {
+      height: 10px;
+      width: 550px;
+      border: none;
+    }
+
+    [data-issue] + .trunk-status-row > td,
+    .closer-status-row + .other-status-row > td {
+      padding-top: 5px;
+    }
+
+    #errors {
+      color: red;
+    }
+  </style>
+
+  <body>
+    <div id="alerts-link">
+      <a href="https://status.skia.org" target="_blank">Skia Status Page</a>
+    </div>
+    <br/>
+    <table id="info-table">
+      <tr>
+        <td colspan=3>
+          <span id="tree-status"></div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Trooper: <span id="current-trooper"></span>
+        </td>
+        <td>
+          Sheriff: <span id="current-sheriff"></span>
+        </td>
+        <td>
+          Wrangler: <span id="current-gpu-sheriff"></span>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Perf Alerts: <span id="perf-alerts"></span>
+        </td>
+        <td>
+          Failing GMs: <span id="gm-alerts"></span>
+        </td>
+        <td>
+          Failing Images: <span id="image-alerts"></span>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Current Roll: <span id="current-roll"></span>
+        </td>
+        <td>
+          Last Roll: <span id="last-roll"></span>
+        </td>
+        <td>
+          Active Infra Alerts: <span id="infra-alerts"></span>
+        </td>
+      </tr>
+    </table>
+    <br/>
+    <table id="status-table"></table>
+    <div id="errors"></div>
+    <script src="node_modules/skia-common-js/common.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
