@@ -511,7 +511,7 @@ func analyze(workingDirPath, filename, category string) (uploadPackage, error) {
 	} else {
 		upload.Data.Release.Asan = stderr
 	}
-	if r := data.ParseGCSPackage(upload.Data); r.Debug.Flags == data.TerminatedGracefully && r.Release.Flags == data.TerminatedGracefully {
+	if r := data.ParseGCSPackage(upload.Data); r.IsGrey() {
 		upload.FuzzType = GREY_FUZZ
 	}
 	return upload, nil

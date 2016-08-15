@@ -59,7 +59,9 @@ const (
 	SKPICTURE_DuringRendering
 )
 
-var flagNames = []string{
+var _GREY_FLAGS = TerminatedGracefully | TimedOut
+
+var _FLAG_NAMES = []string{
 	"TerminatedGracefully",
 	"ClangCrashed",
 	"ASANCrashed",
@@ -83,9 +85,9 @@ var flagNames = []string{
 func (f FuzzFlag) ToHumanReadableFlags() []string {
 	flags := make([]string, 0)
 	i := 0
-	for mask := 1; mask < (2 << 16); mask *= 2 {
+	for mask := 1; mask < (2 << uint(len(_FLAG_NAMES))); mask *= 2 {
 		if int(f)&mask != 0 {
-			flags = append(flags, flagNames[i])
+			flags = append(flags, _FLAG_NAMES[i])
 		}
 		i++
 	}
@@ -96,6 +98,23 @@ func (f FuzzFlag) ToHumanReadableFlags() []string {
 
 func (f FuzzFlag) String() string {
 	return fmt.Sprintf("FuzzFlag: %016b (%d) [%s]", f, f, strings.Join(f.ToHumanReadableFlags(), " | "))
+}
+
+// IsGrey returns true if the fuzz should be considered grey, that is, is not a real crash.
+func (r *FuzzResult) IsGrey() bool {
+	return isGrey(r.Debug.Flags, r.Release.Flags)
+}
+
+// isGrey returns true if the fuzz should be considered grey, that is, is not a real crash.
+func isGrey(debugFlags, releaseFlags FuzzFlag) bool {
+	// If the only flags are in the _GREY_FLAGS slice, then we should ignore this.
+	// TODO(kjlubick): Possibly change this to be a full-blown, user-editable blacklist
+	// as in skbug.com/5191
+	// 2^n-1 for a mask like 111111111111111111
+	// then XOR it with the grey flags to get a bitmask that removes the
+	// grey flags from the debug/release flags
+	badFlags := (2<<uint(len(_FLAG_NAMES)) - 1) ^ _GREY_FLAGS
+	return debugFlags&badFlags == 0 && releaseFlags&badFlags == 0
 }
 
 // ParseGCSPackage parses the results of analysis of a fuzz and creates a FuzzResult with it.
