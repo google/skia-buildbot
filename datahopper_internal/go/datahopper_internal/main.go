@@ -693,6 +693,7 @@ func main() {
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/builders/{codename}/builds/{buildNumber}", redirectHandler)
 	r.HandleFunc("/builders/{codename}", builderRedirectHandler)
+	// Note: The unobfuscate-status extension relies on the below handler and its contents.
 	r.HandleFunc("/mapping/", mappingHandler)
 	r.HandleFunc("/ingestBuild", ingestBuildHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
