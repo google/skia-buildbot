@@ -94,7 +94,7 @@ func syncDirStep() error {
 	if err != nil {
 		return fmt.Errorf("Error running git pull: %s", err)
 	}
-	err = ExecuteCmd(BINARY_GCLIENT, []string{"sync"}, []string{}, GCLIENT_SYNC_TIMEOUT, nil,
+	err = ExecuteCmd(BINARY_GCLIENT, []string{"sync", "--force"}, []string{}, GCLIENT_SYNC_TIMEOUT, nil,
 		nil)
 	if err != nil {
 		return fmt.Errorf("Error running gclient sync: %s", err)
