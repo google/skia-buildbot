@@ -9,8 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	"github.com/satori/go.uuid"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/gitinfo"
@@ -20,11 +18,7 @@ import (
 
 func makeTask(name, revision string) *db.Task {
 	return &db.Task{
-		SwarmingRpcsTaskRequestMetadata: &swarming.SwarmingRpcsTaskRequestMetadata{
-			TaskResult: &swarming.SwarmingRpcsTaskResult{},
-		},
 		Commits:  []string{revision},
-		Id:       uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String(),
 		Name:     name,
 		Revision: revision,
 	}
@@ -81,7 +75,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NotNil(t, t1)
 
 	// We shouldn't duplicate pending tasks.
-	t1.TaskResult.State = db.TASK_STATE_PENDING
+	t1.Status = db.TASK_STATUS_PENDING
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
@@ -93,23 +87,10 @@ func TestFindTaskCandidates(t *testing.T) {
 		assert.Equal(t, c2, candidate.Revision)
 	}
 
-	// We shouldn't duplicate running tasks.
-	t1.TaskResult.State = db.TASK_STATE_RUNNING
-	assert.NoError(t, d.PutTask(t1))
-	assert.NoError(t, cache.Update())
-
-	c, err = s.findTaskCandidates(commits)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(c))
-	for _, candidate := range c {
-		assert.True(t, strings.HasPrefix(candidate.Name, "Build-"))
-	}
-
 	// The task failed. Ensure that its dependents are not candidates, but
 	// the task itself is back in the list of candidates, in case we want
 	// to retry.
-	t1.TaskResult.State = db.TASK_STATE_COMPLETED
-	t1.TaskResult.Failure = true
+	t1.Status = db.TASK_STATUS_FAILURE
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
@@ -122,7 +103,7 @@ func TestFindTaskCandidates(t *testing.T) {
 
 	// The task succeeded. Ensure that its dependents are candidates and
 	// the task itself is not.
-	t1.TaskResult.Failure = false
+	t1.Status = db.TASK_STATUS_SUCCESS
 	t1.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
@@ -143,8 +124,7 @@ func TestFindTaskCandidates(t *testing.T) {
 		}
 	}
 	assert.NotNil(t, t2)
-	t2.TaskResult.State = db.TASK_STATE_COMPLETED
-	t2.TaskResult.Failure = false
+	t2.Status = db.TASK_STATUS_SUCCESS
 	t2.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t2))
 	assert.NoError(t, cache.Update())
@@ -341,55 +321,56 @@ func TestComputeBlamelist(t *testing.T) {
 
 	// Test cases. Each test case builds on the previous cases.
 	testCases := []struct {
-		Revision    string
-		Expected    []string
-		StoleFromId string
+		Revision     string
+		Expected     []string
+		StoleFromIdx int
 	}{
 		// 0. The first task.
 		{
-			Revision:    hashes['B'],
-			Expected:    []string{hashes['B']}, // Task #0 is limited to a single commit.
-			StoleFromId: "",
+			Revision:     hashes['B'],
+			Expected:     []string{hashes['B']}, // Task #0 is limited to a single commit.
+			StoleFromIdx: -1,
 		},
 		// 1. On a linear set of commits, with at least one previous task.
 		{
-			Revision:    hashes['D'],
-			Expected:    []string{hashes['D'], hashes['C']},
-			StoleFromId: "",
+			Revision:     hashes['D'],
+			Expected:     []string{hashes['D'], hashes['C']},
+			StoleFromIdx: -1,
 		},
 		// 2. The first task on a new branch.
 		{
-			Revision:    hashes['G'],
-			Expected:    []string{hashes['G']},
-			StoleFromId: "",
+			Revision:     hashes['G'],
+			Expected:     []string{hashes['G']},
+			StoleFromIdx: -1,
 		},
 		// 3. After a merge.
 		{
-			Revision:    hashes['F'],
-			Expected:    []string{hashes['E'], hashes['H'], hashes['F']},
-			StoleFromId: "",
+			Revision:     hashes['F'],
+			Expected:     []string{hashes['E'], hashes['H'], hashes['F']},
+			StoleFromIdx: -1,
 		},
 		// 4. One last "normal" task.
 		{
-			Revision:    hashes['I'],
-			Expected:    []string{hashes['I']},
-			StoleFromId: "",
+			Revision:     hashes['I'],
+			Expected:     []string{hashes['I']},
+			StoleFromIdx: -1,
 		},
 		// 5. No Revision.
 		{
-			Revision:    "",
-			Expected:    []string{},
-			StoleFromId: "",
+			Revision:     "",
+			Expected:     []string{},
+			StoleFromIdx: -1,
 		},
 		// 6. Steal commits from a previously-ingested task.
 		{
-			Revision:    hashes['C'],
-			Expected:    []string{hashes['C']},
-			StoleFromId: "1",
+			Revision:     hashes['C'],
+			Expected:     []string{hashes['C']},
+			StoleFromIdx: 1,
 		},
 	}
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
 	repo := "skia.git"
+	ids := make([]string, len(testCases))
 	for i, tc := range testCases {
 		// Ensure that we get the expected blamelist.
 		c := &taskCandidate{
@@ -400,21 +381,17 @@ func TestComputeBlamelist(t *testing.T) {
 		commits, stoleFrom, err := ComputeBlamelist(cache, repos, c)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, tc.Expected, commits)
-		stoleFromId := ""
-		if stoleFrom != nil {
-			stoleFromId = stoleFrom.Id
+		if tc.StoleFromIdx >= 0 {
+			assert.NotNil(t, stoleFrom)
+			assert.Equal(t, ids[tc.StoleFromIdx], stoleFrom.Id)
+		} else {
+			assert.Nil(t, stoleFrom)
 		}
-		assert.Equal(t, tc.StoleFromId, stoleFromId)
 
 		// Insert the task into the DB.
 		task := c.MakeTask()
 		task.Commits = commits
-		task.Id = fmt.Sprintf("%d", i)
-		task.SwarmingRpcsTaskRequestMetadata = &swarming.SwarmingRpcsTaskRequestMetadata{
-			TaskResult: &swarming.SwarmingRpcsTaskResult{
-				CreatedTs: fmt.Sprintf("%d", time.Now().UnixNano()),
-			},
-		}
+		task.Created = time.Now()
 		if stoleFrom != nil {
 			// Re-insert the stoleFrom task without the commits
 			// which were stolen from it.
@@ -429,11 +406,12 @@ func TestComputeBlamelist(t *testing.T) {
 		} else {
 			assert.NoError(t, d.PutTask(task))
 		}
+		ids[i] = task.Id
 		assert.NoError(t, cache.Update())
 	}
 
 	// Extra: ensure that task #6 really stole the commit from #1.
-	task, err := cache.GetTask("1")
+	task, err := cache.GetTask(ids[1])
 	assert.NoError(t, err)
 	assert.False(t, util.In(hashes['C'], task.Commits), fmt.Sprintf("Expected not to find %s in %v", hashes['C'], task.Commits))
 }
@@ -555,8 +533,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 		}
 	}
 	assert.NotNil(t, t1)
-	t1.TaskResult.State = db.TASK_STATE_COMPLETED
-	t1.TaskResult.Failure = false
+	t1.Status = db.TASK_STATUS_SUCCESS
 	t1.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t1))
 
@@ -585,8 +562,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 
 	// Run the other Build task.
 	t2 := makeTask(s.queue[buildIdx].Name, s.queue[buildIdx].Revision)
-	t2.TaskResult.State = db.TASK_STATE_COMPLETED
-	t2.TaskResult.Failure = false
+	t2.Status = db.TASK_STATUS_SUCCESS
 	t2.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t2))
 
@@ -610,8 +586,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	// commits.
 	t3 := makeTask(testTask, c2)
 	t3.Commits = append(t3.Commits, c1)
-	t3.TaskResult.State = db.TASK_STATE_COMPLETED
-	t3.TaskResult.Failure = false
+	t3.Status = db.TASK_STATUS_SUCCESS
 	t3.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t3))
 

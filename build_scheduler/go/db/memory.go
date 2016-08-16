@@ -1,12 +1,12 @@
 package db
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/satori/go.uuid"
-	"github.com/skia-dev/glog"
 )
 
 type TaskSlice []*Task
@@ -14,15 +14,7 @@ type TaskSlice []*Task
 func (s TaskSlice) Len() int { return len(s) }
 
 func (s TaskSlice) Less(i, j int) bool {
-	ts1, err := s[i].Created()
-	if err != nil {
-		glog.Errorf("Failed to parse CreatedTimestamp: %v", s[i])
-	}
-	ts2, err := s[j].Created()
-	if err != nil {
-		glog.Errorf("Failed to parse CreatedTimestamp: %v", s[j])
-	}
-	return ts1.Before(ts2)
+	return s[i].Created.Before(s[j].Created)
 }
 
 func (s TaskSlice) Swap(i, j int) {
@@ -37,9 +29,25 @@ type inMemoryDB struct {
 	modMtx    sync.RWMutex
 }
 
+// See docs for DB interface. Does not take any locks.
+func (db *inMemoryDB) AssignId(t *Task) error {
+	if t.Id != "" {
+		return fmt.Errorf("Task Id already assigned: %v", t.Id)
+	}
+	t.Id = uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
+	return nil
+}
+
 // See docs for DB interface.
 func (db *inMemoryDB) Close() error {
 	return nil
+}
+
+// See docs for DB interface.
+func (db *inMemoryDB) GetTaskById(id string) (*Task, error) {
+	db.tasksMtx.RLock()
+	defer db.tasksMtx.RUnlock()
+	return db.tasks[id], nil
 }
 
 // See docs for DB interface.
@@ -50,11 +58,7 @@ func (db *inMemoryDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, erro
 	rv := []*Task{}
 	// TODO(borenet): Binary search.
 	for _, b := range db.tasks {
-		created, err := b.Created()
-		if err != nil {
-			return nil, err
-		}
-		if (created.Equal(start) || created.After(start)) && created.Before(end) {
+		if (b.Created.Equal(start) || b.Created.After(start)) && b.Created.Before(end) {
 			rv = append(rv, b.Copy())
 		}
 	}
@@ -103,6 +107,12 @@ func (db *inMemoryDB) modify(b *Task) {
 func (db *inMemoryDB) PutTask(task *Task) error {
 	db.tasksMtx.Lock()
 	defer db.tasksMtx.Unlock()
+
+	if task.Id == "" {
+		if err := db.AssignId(task); err != nil {
+			return err
+		}
+	}
 
 	// TODO(borenet): Keep tasks in a sorted slice.
 	db.tasks[task.Id] = task

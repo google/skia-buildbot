@@ -2,24 +2,181 @@ package db
 
 import (
 	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
 	"github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
 )
 
-func makeTask(id string, ts time.Time, commits []string) *Task {
-	return &Task{
-		SwarmingRpcsTaskRequestMetadata: &swarming.SwarmingRpcsTaskRequestMetadata{
-			TaskResult: &swarming.SwarmingRpcsTaskResult{
-				CreatedTs: fmt.Sprintf("%d", ts.UnixNano()),
+func TestUpdateFromSwarming(t *testing.T) {
+	now := time.Now()
+	task := Task{
+		Id:       "A",
+		Name:     "A",
+		Repo:     "A",
+		Revision: "A",
+		Created:  now,
+	}
+
+	// Invalid input.
+	assert.Error(t, task.UpdateFromSwarming(&swarming.SwarmingRpcsTaskRequestMetadata{}))
+	assert.Error(t, task.UpdateFromSwarming(&swarming.SwarmingRpcsTaskRequestMetadata{
+		TaskResult: &swarming.SwarmingRpcsTaskResult{
+			Tags: []string{"invalid"},
+		},
+	}))
+	// Unchanged.
+	testutils.AssertDeepEqual(t, task, Task{
+		Id:             "A",
+		Name:           "A",
+		Repo:           "A",
+		Revision:       "A",
+		Created:        now,
+		Status:         TASK_STATUS_PENDING,
+		IsolatedOutput: "",
+		Swarming:       nil,
+	})
+
+	// Mismatched data.
+	s := &swarming.SwarmingRpcsTaskRequestMetadata{
+		TaskResult: &swarming.SwarmingRpcsTaskResult{
+			CreatedTs: fmt.Sprintf("%d", now.UnixNano()),
+			Failure:   false,
+			State:     SWARMING_STATE_COMPLETED,
+			Tags: []string{
+				fmt.Sprintf("%s:B", SWARMING_TAG_ID),
+				fmt.Sprintf("%s:A", SWARMING_TAG_NAME),
+				fmt.Sprintf("%s:A", SWARMING_TAG_REPO),
+				fmt.Sprintf("%s:A", SWARMING_TAG_REVISION),
 			},
 		},
+	}
+	assert.Error(t, task.UpdateFromSwarming(s))
+	s.TaskResult.Tags[0] = fmt.Sprintf("%s:A", SWARMING_TAG_ID)
+	s.TaskResult.Tags[1] = fmt.Sprintf("%s:B", SWARMING_TAG_NAME)
+	assert.Error(t, task.UpdateFromSwarming(s))
+	s.TaskResult.Tags[1] = fmt.Sprintf("%s:A", SWARMING_TAG_NAME)
+	s.TaskResult.Tags[2] = fmt.Sprintf("%s:B", SWARMING_TAG_REPO)
+	assert.Error(t, task.UpdateFromSwarming(s))
+	s.TaskResult.Tags[0] = fmt.Sprintf("%s:A", SWARMING_TAG_REPO)
+	s.TaskResult.Tags[1] = fmt.Sprintf("%s:B", SWARMING_TAG_REVISION)
+	assert.Error(t, task.UpdateFromSwarming(s))
+	s.TaskResult.Tags[1] = fmt.Sprintf("%s:A", SWARMING_TAG_REVISION)
+	s.TaskResult.CreatedTs = fmt.Sprintf("%d", now.Add(time.Hour).UnixNano())
+	assert.Error(t, task.UpdateFromSwarming(s))
+	// Unchanged.
+	testutils.AssertDeepEqual(t, task, Task{
+		Id:             "A",
+		Name:           "A",
+		Repo:           "A",
+		Revision:       "A",
+		Created:        now,
+		Status:         TASK_STATUS_PENDING,
+		IsolatedOutput: "",
+		Swarming:       nil,
+	})
+
+	// Basic update.
+	task = Task{}
+	s = &swarming.SwarmingRpcsTaskRequestMetadata{
+		TaskResult: &swarming.SwarmingRpcsTaskResult{
+			CreatedTs: fmt.Sprintf("%d", now.Add(2*time.Hour).UnixNano()),
+			Failure:   false,
+			State:     SWARMING_STATE_COMPLETED,
+			Tags: []string{
+				fmt.Sprintf("%s:C", SWARMING_TAG_ID),
+				fmt.Sprintf("%s:C", SWARMING_TAG_NAME),
+				fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
+				fmt.Sprintf("%s:C", SWARMING_TAG_REVISION),
+			},
+			OutputsRef: &swarming.SwarmingRpcsFilesRef{
+				Isolated: "C",
+			},
+		},
+	}
+	assert.NoError(t, task.UpdateFromSwarming(s))
+	testutils.AssertDeepEqual(t, task, Task{
+		Id:             "C",
+		Name:           "C",
+		Repo:           "C",
+		Revision:       "C",
+		Created:        now.Add(2 * time.Hour),
+		Status:         TASK_STATUS_SUCCESS,
+		IsolatedOutput: "C",
+		Swarming:       s,
+	})
+
+	// Status updates.
+
+	s.TaskResult.OutputsRef = nil
+	s.TaskResult.State = SWARMING_STATE_PENDING
+	assert.NoError(t, task.UpdateFromSwarming(s))
+	testutils.AssertDeepEqual(t, task, Task{
+		Id:             "C",
+		Name:           "C",
+		Repo:           "C",
+		Revision:       "C",
+		Created:        now.Add(2 * time.Hour),
+		Status:         TASK_STATUS_PENDING,
+		IsolatedOutput: "",
+		Swarming:       s,
+	})
+
+	s.TaskResult.State = SWARMING_STATE_RUNNING
+	assert.NoError(t, task.UpdateFromSwarming(s))
+	testutils.AssertDeepEqual(t, task, Task{
+		Id:             "C",
+		Name:           "C",
+		Repo:           "C",
+		Revision:       "C",
+		Created:        now.Add(2 * time.Hour),
+		Status:         TASK_STATUS_RUNNING,
+		IsolatedOutput: "",
+		Swarming:       s,
+	})
+
+	s.TaskResult.OutputsRef = &swarming.SwarmingRpcsFilesRef{
+		Isolated: "",
+	}
+	for _, state := range []string{SWARMING_STATE_BOT_DIED, SWARMING_STATE_CANCELED, SWARMING_STATE_EXPIRED, SWARMING_STATE_TIMED_OUT} {
+		s.TaskResult.State = state
+		assert.NoError(t, task.UpdateFromSwarming(s))
+		testutils.AssertDeepEqual(t, task, Task{
+			Id:             "C",
+			Name:           "C",
+			Repo:           "C",
+			Revision:       "C",
+			Created:        now.Add(2 * time.Hour),
+			Status:         TASK_STATUS_MISHAP,
+			IsolatedOutput: "",
+			Swarming:       s,
+		})
+	}
+
+	s.TaskResult.OutputsRef.Isolated = "D"
+	s.TaskResult.State = SWARMING_STATE_COMPLETED
+	s.TaskResult.Failure = true
+	assert.NoError(t, task.UpdateFromSwarming(s))
+	testutils.AssertDeepEqual(t, task, Task{
+		Id:             "C",
+		Name:           "C",
+		Repo:           "C",
+		Revision:       "C",
+		Created:        now.Add(2 * time.Hour),
+		Status:         TASK_STATUS_FAILURE,
+		IsolatedOutput: "D",
+		Swarming:       s,
+	})
+}
+
+func makeTask(ts time.Time, commits []string) *Task {
+	return &Task{
+		Created: ts,
 		Commits: commits,
-		Id:      id,
 		Name:    "Test-Task",
 	}
 }
@@ -37,9 +194,27 @@ func testDB(t *testing.T, db DB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	// Insert a task.
-	t1 := makeTask("task1", time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+	t1 := makeTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+
+	// AssignId should fill in t1.Id.
+	assert.Equal(t, "", t1.Id)
+	assert.NoError(t, db.AssignId(t1))
+	assert.NotEqual(t, "", t1.Id)
+	// Ids must be URL-safe.
+	assert.Equal(t, url.QueryEscape(t1.Id), t1.Id)
+
+	// Task doesn't exist in DB yet.
+	noTask, err := db.GetTaskById(t1.Id)
+	assert.NoError(t, err)
+	assert.Nil(t, noTask)
+
+	// Insert the task.
 	assert.NoError(t, db.PutTask(t1))
+
+	// Task can now be retrieved by Id.
+	t1Again, err := db.GetTaskById(t1.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, t1, t1Again)
 
 	// Ensure that the task shows up in the modified list.
 	tasks, err = db.GetModifiedTasks(id)
@@ -48,8 +223,7 @@ func testDB(t *testing.T, db DB) {
 
 	// Ensure that the task shows up in the correct date ranges.
 	timeStart := time.Time{}
-	t1Before, err := t1.Created()
-	assert.NoError(t, err)
+	t1Before := t1.Created
 	t1After := t1Before.Add(1 * time.Millisecond)
 	timeEnd := time.Now()
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before)
@@ -63,9 +237,16 @@ func testDB(t *testing.T, db DB) {
 	assert.Equal(t, 0, len(tasks))
 
 	// Insert two more tasks.
-	t2 := makeTask("task2", time.Unix(0, 1470674376000000), []string{"e", "f"})
-	t3 := makeTask("task3", time.Unix(0, 1470674884000000), []string{"g", "h"})
+	t2 := makeTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
+	t3 := makeTask(time.Unix(0, 1470674884000000), []string{"g", "h"})
 	assert.NoError(t, db.PutTasks([]*Task{t2, t3}))
+
+	// Check that PutTasks assigned Ids.
+	assert.NotEqual(t, "", t2.Id)
+	assert.NotEqual(t, "", t3.Id)
+	// Ids must be URL-safe.
+	assert.Equal(t, url.QueryEscape(t2.Id), t2.Id)
+	assert.Equal(t, url.QueryEscape(t3.Id), t3.Id)
 
 	// Ensure that both tasks show up in the modified list.
 	tasks, err = db.GetModifiedTasks(id)
@@ -73,12 +254,10 @@ func testDB(t *testing.T, db DB) {
 	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
-	t2Before, err := t2.Created()
-	assert.NoError(t, err)
+	t2Before := t2.Created
 	t2After := t2Before.Add(1 * time.Millisecond)
 
-	t3Before, err := t3.Created()
-	assert.NoError(t, err)
+	t3Before := t3.Created
 	t3After := t3Before.Add(1 * time.Millisecond)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before)

@@ -78,7 +78,6 @@ func (c *taskCandidate) MakeTask() *db.Task {
 	commits := make([]string, 0, len(c.Commits))
 	copy(commits, c.Commits)
 	return &db.Task{
-		SwarmingRpcsTaskRequestMetadata: nil,
 		Commits:        commits,
 		Id:             "", // Filled in when the task is inserted into the DB.
 		IsolatedOutput: "", // Filled in when the task finishes, if successful.
@@ -252,7 +251,7 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([
 					return nil, err
 				}
 				if previous != nil && previous.Revision == commit {
-					if previous.TaskResult.State == db.TASK_STATE_PENDING || previous.TaskResult.State == db.TASK_STATE_RUNNING {
+					if previous.Status == db.TASK_STATUS_PENDING {
 						continue
 					}
 					if previous.Success() {

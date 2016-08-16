@@ -317,6 +317,19 @@ func (c *ApiClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadat
 	}, nil
 }
 
+// TagValues returns map[tag_key]tag_value for all tags from the given Swarming task.
+func TagValues(t *swarming.SwarmingRpcsTaskRequestMetadata) (map[string]string, error) {
+	rv := make(map[string]string, len(t.TaskResult.Tags))
+	for _, tag := range t.TaskResult.Tags {
+		split := strings.SplitN(tag, ":", 2)
+		if len(split) != 2 {
+			return nil, fmt.Errorf("Invalid Swarming task tag: %q %v", tag, t)
+		}
+		rv[split[0]] = split[1]
+	}
+	return rv, nil
+}
+
 // GetTagValue returns the value for the given tag key from the given Swarming task.
 func GetTagValue(t *swarming.SwarmingRpcsTaskRequestMetadata, tagKey string) (string, error) {
 	val := ""

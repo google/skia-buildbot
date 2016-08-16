@@ -30,7 +30,7 @@ func TestDBCache(t *testing.T) {
 
 	// Pre-load a task into the DB.
 	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
-	t1 := makeTask("task1", startTime, []string{"a", "b", "c", "d"})
+	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
 	assert.NoError(t, db.PutTask(t1))
 
 	// Create the cache. Ensure that the existing task is present.
@@ -39,7 +39,7 @@ func TestDBCache(t *testing.T) {
 	testGetTasksForCommits(t, c, t1)
 
 	// Bisect the first task.
-	t2 := makeTask("task2", startTime.Add(time.Minute), []string{"c", "d"})
+	t2 := makeTask(startTime.Add(time.Minute), []string{"c", "d"})
 	t1.Commits = []string{"a", "b"}
 	assert.NoError(t, db.PutTasks([]*Task{t2, t1}))
 	assert.NoError(t, c.Update())
@@ -49,7 +49,7 @@ func TestDBCache(t *testing.T) {
 	testGetTasksForCommits(t, c, t2)
 
 	// Insert a task on a second bot.
-	t3 := makeTask("task3", startTime.Add(2*time.Minute), []string{"a", "b"})
+	t3 := makeTask(startTime.Add(2*time.Minute), []string{"a", "b"})
 	t3.Name = "Another-Task"
 	assert.NoError(t, db.PutTask(t3))
 	assert.NoError(t, c.Update())
