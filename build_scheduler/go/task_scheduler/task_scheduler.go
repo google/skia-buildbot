@@ -254,7 +254,7 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([
 					return nil, err
 				}
 				if previous != nil && previous.Revision == commit {
-					if previous.Status == db.TASK_STATUS_PENDING {
+					if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
 						continue
 					}
 					if previous.Success() {

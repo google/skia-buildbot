@@ -75,17 +75,19 @@ func TestFindTaskCandidates(t *testing.T) {
 	}
 	assert.NotNil(t, t1)
 
-	// We shouldn't duplicate pending tasks.
-	t1.Status = db.TASK_STATUS_PENDING
-	assert.NoError(t, d.PutTask(t1))
-	assert.NoError(t, cache.Update())
+	// We shouldn't duplicate pending or running tasks.
+	for _, status := range []db.TaskStatus{db.TASK_STATUS_PENDING, db.TASK_STATUS_RUNNING} {
+		t1.Status = status
+		assert.NoError(t, d.PutTask(t1))
+		assert.NoError(t, cache.Update())
 
-	c, err = s.findTaskCandidates(commits)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(c))
-	for _, candidate := range c {
-		assert.True(t, strings.HasPrefix(candidate.Name, "Build-"))
-		assert.Equal(t, c2, candidate.Revision)
+		c, err = s.findTaskCandidates(commits)
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(c))
+		for _, candidate := range c {
+			assert.True(t, strings.HasPrefix(candidate.Name, "Build-"))
+			assert.Equal(t, c2, candidate.Revision)
+		}
 	}
 
 	// The task failed. Ensure that its dependents are not candidates, but
