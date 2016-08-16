@@ -193,3 +193,15 @@ func (t *Task) Copy() *Task {
 	}
 	return &rv
 }
+
+type TaskSlice []*Task
+
+func (s TaskSlice) Len() int { return len(s) }
+
+func (s TaskSlice) Less(i, j int) bool {
+	return s[i].Created.Before(s[j].Created)
+}
+
+func (s TaskSlice) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}

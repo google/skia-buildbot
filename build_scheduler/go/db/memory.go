@@ -9,24 +9,10 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-type TaskSlice []*Task
-
-func (s TaskSlice) Len() int { return len(s) }
-
-func (s TaskSlice) Less(i, j int) bool {
-	return s[i].Created.Before(s[j].Created)
-}
-
-func (s TaskSlice) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
 type inMemoryDB struct {
-	tasks     map[string]*Task
-	tasksMtx  sync.RWMutex
-	modTasks  map[string]map[string]*Task
-	modExpire map[string]time.Time
-	modMtx    sync.RWMutex
+	tasks    map[string]*Task
+	tasksMtx sync.RWMutex
+	modTasks ModifiedTasks
 }
 
 // See docs for DB interface. Does not take any locks.
@@ -68,39 +54,7 @@ func (db *inMemoryDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, erro
 
 // See docs for DB interface.
 func (db *inMemoryDB) GetModifiedTasks(id string) ([]*Task, error) {
-	db.modMtx.Lock()
-	defer db.modMtx.Unlock()
-	modifiedTasks, ok := db.modTasks[id]
-	if !ok {
-		return nil, ErrUnknownId
-	}
-	rv := make([]*Task, 0, len(modifiedTasks))
-	for _, b := range modifiedTasks {
-		rv = append(rv, b.Copy())
-	}
-	db.modExpire[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
-	db.modTasks[id] = map[string]*Task{}
-	sort.Sort(TaskSlice(rv))
-	return rv, nil
-}
-
-func (db *inMemoryDB) clearExpiredModifiedUsers() {
-	db.modMtx.Lock()
-	defer db.modMtx.Unlock()
-	for id, t := range db.modExpire {
-		if time.Now().After(t) {
-			delete(db.modTasks, id)
-			delete(db.modExpire, id)
-		}
-	}
-}
-
-func (db *inMemoryDB) modify(b *Task) {
-	db.modMtx.Lock()
-	defer db.modMtx.Unlock()
-	for _, modTasks := range db.modTasks {
-		modTasks[b.Id] = b.Copy()
-	}
+	return db.modTasks.GetModifiedTasks(id)
 }
 
 // See docs for DB interface.
@@ -116,7 +70,7 @@ func (db *inMemoryDB) PutTask(task *Task) error {
 
 	// TODO(borenet): Keep tasks in a sorted slice.
 	db.tasks[task.Id] = task
-	db.modify(task)
+	db.modTasks.TrackModifiedTask(task)
 	return nil
 }
 
@@ -132,28 +86,14 @@ func (db *inMemoryDB) PutTasks(tasks []*Task) error {
 
 // See docs for DB interface.
 func (db *inMemoryDB) StartTrackingModifiedTasks() (string, error) {
-	db.modMtx.Lock()
-	defer db.modMtx.Unlock()
-	if len(db.modTasks) >= MAX_MODIFIED_BUILDS_USERS {
-		return "", ErrTooManyUsers
-	}
-	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	db.modTasks[id] = map[string]*Task{}
-	db.modExpire[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
-	return id, nil
+	return db.modTasks.StartTrackingModifiedTasks()
 }
 
-// NewInMemoryDB returns an extremely simple, inefficient, in-memory DB implementation.
+// NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
+// implementation.
 func NewInMemoryDB() DB {
 	db := &inMemoryDB{
-		tasks:     map[string]*Task{},
-		modTasks:  map[string]map[string]*Task{},
-		modExpire: map[string]time.Time{},
+		tasks: map[string]*Task{},
 	}
-	go func() {
-		for _ = range time.Tick(time.Minute) {
-			db.clearExpiredModifiedUsers()
-		}
-	}()
 	return db
 }
