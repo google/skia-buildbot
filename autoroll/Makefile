@@ -27,11 +27,14 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
-skia_release: autoroll
-	./build_skia_release "$(MESSAGE)"
+catapult_release: autoroll
+	./build_catapult_release "$(MESSAGE)"
 
 nacl_release: autoroll
 	./build_nacl_release "$(MESSAGE)"
 
-catapult_release: autoroll
-	./build_catapult_release "$(MESSAGE)"
+pdfium_release: autoroll
+	./build_pdfium_release "$(MESSAGE)"
+
+skia_release: autoroll
+	./build_skia_release "$(MESSAGE)"

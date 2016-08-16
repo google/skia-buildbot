@@ -296,6 +296,31 @@ server {
     return 301 https://nacl-roll.skia.org$request_uri;
 }
 
+#####   pdfium-roll.skia.org   ###########################
+server {
+    listen      443;
+    server_name pdfium-roll.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/pdfium-roll.access.log;
+    error_log /var/log/nginx/pdfium-roll.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://pdfium-autoroll:8000;
+    }
+}
+server {
+    listen      80;
+    server_name pdfium-roll.skia.org;
+    return 301 https://pdfium-roll.skia.org$request_uri;
+}
+
 #####   mon.skia.org   ###########################
 server {
     listen      443;

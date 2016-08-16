@@ -29,9 +29,13 @@ case "$VM_ID" in
     INSTANCE_NAME=nacl-autoroll
     IP_ADDRESS=104.154.112.123
     ;;
+  pdfium)
+    INSTANCE_NAME=pdfium-autoroll
+    IP_ADDRESS=104.154.123.210
+    ;;
   *)
     # Must provide a target instance id.
-    echo "Usage: $0 {skia | catapult | nacl}"
+    echo "Usage: $0 {skia | catapult | nacl | pdfium}"
     echo "   An instance id must be provided as the first argument."
     exit 1
     ;;
