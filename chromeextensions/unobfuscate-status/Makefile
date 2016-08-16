@@ -5,7 +5,7 @@ default:
 
 zip: default
 	rm -f $(PROJECT).zip
-	zip $(PROJECT) *.js *.png *.html *.css manifest.json
+	zip -r $(PROJECT) node_modules *.js *.png *.html *.css manifest.json
 
 clean:
 	rm $(PROJECT).zip
