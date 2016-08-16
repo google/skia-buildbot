@@ -7,11 +7,14 @@ import (
 	"sync"
 	"time"
 
+	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/metrics2"
+	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/util"
 )
 
 // TaskScheduler is a struct used for scheduling builds on bots.
@@ -364,6 +367,69 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 	return nil
 }
 
+// getCandidatesToSchedule matches the list of free Swarming bots to task
+// candidates in the queue and returns the candidates which should be run.
+// Assumes that the tasks are sorted in decreasing order by score.
+func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*taskCandidate) map[string]*taskCandidate {
+	// Create a bots-by-swarming-dimension mapping.
+	botsByDim := map[string]util.StringSet{}
+	for _, b := range bots {
+		for _, dim := range b.Dimensions {
+			for _, val := range dim.Value {
+				d := fmt.Sprintf("%s:%s", dim.Key, val)
+				if _, ok := botsByDim[d]; !ok {
+					botsByDim[d] = util.StringSet{}
+				}
+				botsByDim[d][b.BotId] = true
+			}
+		}
+	}
+
+	// Match bots to tasks.
+	// TODO(borenet): Some tasks require a more specialized bot. We should
+	// match so that less-specialized tasks don't "steal" more-specialized
+	// bots which they don't actually need.
+	rv := make(map[string]*taskCandidate, len(bots))
+	for _, c := range tasks {
+		// For each dimension of the task, find the set of bots which matches.
+		matches := util.StringSet{}
+		for i, d := range c.TaskSpec.Dimensions {
+			if i == 0 {
+				matches = matches.Union(botsByDim[d])
+			} else {
+				matches = matches.Intersect(botsByDim[d])
+			}
+		}
+		if len(matches) > 0 {
+			// We're going to run this task. Choose a bot. Sort the
+			// bots by ID so that the choice is deterministic.
+			choices := make([]string, 0, len(matches))
+			for botId, _ := range matches {
+				choices = append(choices, botId)
+			}
+			sort.Strings(choices)
+			bot := choices[0]
+
+			// Remove the bot from consideration.
+			for dim, subset := range botsByDim {
+				delete(subset, bot)
+				if len(subset) == 0 {
+					delete(botsByDim, dim)
+				}
+			}
+
+			// Add the task to the scheduling list.
+			rv[bot] = c
+
+			// If we've exhausted the bot list, stop here.
+			if len(botsByDim) == 0 {
+				break
+			}
+		}
+	}
+	return rv
+}
+
 // timeDecay24Hr computes a linear time decay amount for the given duration,
 // given the requested decay amount at 24 hours.
 func timeDecay24Hr(decayAmt24Hr float64, elapsed time.Duration) float64 {
@@ -443,4 +509,26 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 		afterTestedness := testedness(blamelistLength) + testedness(stoleFromBlamelistLength-blamelistLength)
 		return afterTestedness - beforeTestedness
 	}
+}
+
+// getFreeSwarmingBots returns a slice of free swarming bots.
+func getFreeSwarmingBots(s *swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+	bots, err := s.ListSkiaBots()
+	if err != nil {
+		return nil, err
+	}
+	rv := make([]*swarming_api.SwarmingRpcsBotInfo, 0, len(bots))
+	for _, bot := range bots {
+		if bot.IsDead {
+			continue
+		}
+		if bot.Quarantined {
+			continue
+		}
+		if bot.TaskId != "" {
+			continue
+		}
+		rv = append(rv, bot)
+	}
+	return rv, nil
 }

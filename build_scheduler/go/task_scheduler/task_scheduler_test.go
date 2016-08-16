@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/gitinfo"
@@ -603,4 +604,128 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	// The test task is next, a backfill.
 	assert.Equal(t, testTask, s.queue[1].Name)
 	assert.Equal(t, 0.5, s.queue[1].Score)
+}
+
+func makeTaskCandidate(name string, dims []string) *taskCandidate {
+	return &taskCandidate{
+		Name: name,
+		TaskSpec: &TaskSpec{
+			Dimensions: dims,
+		},
+	}
+}
+
+func makeSwarmingBot(id string, dims []string) *swarming_api.SwarmingRpcsBotInfo {
+	d := make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(dims))
+	for _, s := range dims {
+		split := strings.SplitN(s, ":", 2)
+		d = append(d, &swarming_api.SwarmingRpcsStringListPair{
+			Key:   split[0],
+			Value: []string{split[1]},
+		})
+	}
+	return &swarming_api.SwarmingRpcsBotInfo{
+		BotId:      id,
+		Dimensions: d,
+	}
+}
+
+func TestGetCandidatesToSchedule(t *testing.T) {
+	// Empty lists.
+	rv := getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{})
+	assert.Equal(t, 0, len(rv))
+
+	t1 := makeTaskCandidate("task1", []string{"k:v"})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{}, []*taskCandidate{t1})
+	assert.Equal(t, 0, len(rv))
+
+	b1 := makeSwarmingBot("bot1", []string{"k:v"})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{})
+	assert.Equal(t, 0, len(rv))
+
+	// Single match.
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t1,
+	}, rv)
+
+	// No match.
+	t1.TaskSpec.Dimensions[0] = "k:v2"
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
+	assert.Equal(t, 0, len(rv))
+
+	// Add a task candidate to match b1.
+	t2 := makeTaskCandidate("task2", []string{"k:v"})
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t2,
+	}, rv)
+
+	// Switch the task order.
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t2,
+	}, rv)
+
+	// Make both tasks match the bot, ensure that we pick the first one.
+	t1.TaskSpec.Dimensions = []string{"k:v"}
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t1,
+	}, rv)
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t2,
+	}, rv)
+
+	// Multiple dimensions. Ensure that different permutations of the bots
+	// and tasks lists give us the expected results.
+	dims := []string{"k:v", "k2:v2", "k3:v3"}
+	b1 = makeSwarmingBot("bot1", dims)
+	b2 := makeSwarmingBot("bot2", t1.TaskSpec.Dimensions)
+	t2.TaskSpec.Dimensions = dims
+	// In the first two cases, the task with fewer dimensions has the
+	// higher priority. It gets the bot with more dimensions because it
+	// is first in sorted order. The second task does not get scheduled
+	// because there is no bot available which can run it.
+	// TODO(borenet): Use a more optimal solution to avoid this case.
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t1,
+	}, rv)
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t1, t2})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t1,
+	}, rv)
+	// In these two cases, the task with more dimensions has the higher
+	// priority. Both tasks get scheduled.
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t2, t1})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t2,
+		b2.BotId: t1,
+	}, rv)
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t2, t1})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t2,
+		b2.BotId: t1,
+	}, rv)
+
+	// Matching dimensions. More bots than tasks.
+	b2 = makeSwarmingBot("bot2", dims)
+	b3 := makeSwarmingBot("bot3", dims)
+	t1.TaskSpec.Dimensions = dims
+	t3 := makeTaskCandidate("task3", dims)
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t1,
+		b2.BotId: t2,
+	}, rv)
+
+	// More tasks than bots.
+	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
+	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
+		b1.BotId: t1,
+		b2.BotId: t2,
+	}, rv)
+
 }
