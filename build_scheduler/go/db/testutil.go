@@ -18,7 +18,7 @@ func makeTask(ts time.Time, commits []string) *Task {
 	}
 }
 
-func testDB(t *testing.T, db DB) {
+func TestDB(t *testing.T, db DB) {
 	defer testutils.AssertCloses(t, db)
 
 	_, err := db.GetModifiedTasks("dummy-id")
@@ -150,7 +150,7 @@ func testDB(t *testing.T, db DB) {
 	testutils.AssertDeepEqual(t, []*Task{}, tasks)
 }
 
-func testTooManyUsers(t *testing.T, db DB) {
+func TestTooManyUsers(t *testing.T, db DB) {
 	defer testutils.AssertCloses(t, db)
 
 	// Max out the number of modified-tasks users; ensure that we error out.
@@ -160,12 +160,4 @@ func testTooManyUsers(t *testing.T, db DB) {
 	}
 	_, err := db.StartTrackingModifiedTasks()
 	assert.True(t, IsTooManyUsers(err))
-}
-
-func TestInMemoryDB(t *testing.T) {
-	testDB(t, NewInMemoryDB())
-}
-
-func TestInMemoryTooManyUsers(t *testing.T) {
-	testTooManyUsers(t, NewInMemoryDB())
 }

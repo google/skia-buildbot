@@ -61,12 +61,19 @@ func (m *ModifiedTasks) clearExpiredSubscribers() {
 // TrackModifiedTask indicates the given Task should be returned from the next
 // call to GetModifiedTasks from each subscriber.
 func (m *ModifiedTasks) TrackModifiedTask(t *Task) {
+	m.TrackModifiedTasks([]*Task{t})
+}
+
+// TrackModifiedTasks calls TrackModifiedTask on each item.
+func (m *ModifiedTasks) TrackModifiedTasks(tasks []*Task) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	// Make a single copy, since GetModifiedTasks also copies.
-	t = t.Copy()
-	for _, modTasks := range m.tasks {
-		modTasks[t.Id] = t
+	for _, t := range tasks {
+		// Make a single copy, since GetModifiedTasks also copies.
+		t = t.Copy()
+		for _, modTasks := range m.tasks {
+			modTasks[t.Id] = t
+		}
 	}
 }
 
