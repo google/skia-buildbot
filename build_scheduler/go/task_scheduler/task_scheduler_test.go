@@ -43,8 +43,8 @@ func TestFindTaskCandidates(t *testing.T) {
 	//
 	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
 	//
-	c1 := "60f5df31760312423e635a342ab122e8117d363e"
-	c2 := "71f2d15f79b7807a4d510b7b8e7c5633daae6859"
+	c1 := "b993cfa023855f4e27f0280465d477b0e0969708"
+	c2 := "21e4383ee704174c6ca715645181e076c4a30bdd"
 	repo := "skia.git"
 	commits := map[string][]string{
 		repo: []string{c1, c2},
@@ -484,8 +484,8 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	//
 	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
 	//
-	c1 := "60f5df31760312423e635a342ab122e8117d363e"
-	c2 := "71f2d15f79b7807a4d510b7b8e7c5633daae6859"
+	c1 := "b993cfa023855f4e27f0280465d477b0e0969708"
+	c2 := "21e4383ee704174c6ca715645181e076c4a30bdd"
 	repo := "skia.git"
 	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
 	testTask := "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"

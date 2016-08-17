@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 )
 
 const (
-	TASKS_CFG_FILE = "infra/bots/tasks.cfg"
+	TASKS_CFG_FILE = "infra/bots/tasks.json"
 )
 
 // ParseTasksCfg parses the given task cfg file contents and returns the config.
@@ -21,6 +22,13 @@ func ParseTasksCfg(contents string) (*TasksCfg, error) {
 	if err := json.Unmarshal([]byte(contents), &rv); err != nil {
 		return nil, fmt.Errorf("Failed to read tasks cfg: could not parse file: %s", err)
 	}
+
+	for _, t := range rv.Tasks {
+		if err := t.Validate(&rv); err != nil {
+			return nil, err
+		}
+	}
+
 	return &rv, nil
 }
 
@@ -33,7 +41,8 @@ func ReadTasksCfg(repo *gitinfo.GitInfo, commit string) (*TasksCfg, error) {
 	return ParseTasksCfg(contents)
 }
 
-// TasksCfg is a struct which describes all Swarming tasks for a repo.
+// TasksCfg is a struct which describes all Swarming tasks for a repo at a
+// particular commit.
 type TasksCfg struct {
 	// Tasks is a map whose keys are TaskSpec names and values are TaskSpecs
 	// detailing the Swarming tasks to run at each commit.
@@ -43,7 +52,7 @@ type TasksCfg struct {
 // TaskSpec is a struct which describes a Swarming task to run.
 type TaskSpec struct {
 	// CipdPackages are CIPD packages which should be installed for the task.
-	CipdPackages []string `json:"cipd_packages"`
+	CipdPackages []*CipdPackage `json:"cipd_packages"`
 
 	// Dependencies are names of other TaskSpecs for tasks which need to run
 	// before this task.
@@ -58,6 +67,48 @@ type TaskSpec struct {
 
 	// Priority indicates the relative priority of the task, with 0 < p <= 1
 	Priority float64 `json:"priority"`
+}
+
+// Validate ensures that the TaskSpec is defined properly.
+func (t *TaskSpec) Validate(cfg *TasksCfg) error {
+	// Ensure that CIPD packages are specified properly.
+	for _, p := range t.CipdPackages {
+		if p.Name == "" || p.Path == "" {
+			return fmt.Errorf("CIPD packages must have a name, path, and version.")
+		}
+	}
+
+	// Ensure that all dependencies exist in the tasks list. We don't need
+	// to worry about circular dependencies because of the way the scheduler
+	// works.
+	for _, d := range t.Dependencies {
+		if _, ok := cfg.Tasks[d]; !ok {
+			return fmt.Errorf("Dependency on unknown task: %q", d)
+		}
+	}
+
+	// Ensure that the dimensions are specified properly.
+	for _, d := range t.Dimensions {
+		split := strings.SplitN(d, ":", 2)
+		if len(split) != 2 {
+			return fmt.Errorf("Dimension %q does not contain a colon!", d)
+		}
+	}
+
+	// Isolate file is required.
+	if t.Isolate == "" {
+		return fmt.Errorf("Isolate file is required.")
+	}
+
+	return nil
+}
+
+// CipdPackage is a struct representing a CIPD package which needs to be
+// installed on a bot for a particular task.
+type CipdPackage struct {
+	Name    string `json:"name"`
+	Path    string `json:"path"`
+	Version int64  `json:"version"`
 }
 
 // taskCfgCache is a struct used for caching tasks cfg files. The user should
