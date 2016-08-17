@@ -29,6 +29,10 @@ func ParseTasksCfg(contents string) (*TasksCfg, error) {
 		}
 	}
 
+	if err := findCycles(rv.Tasks); err != nil {
+		return nil, err
+	}
+
 	return &rv, nil
 }
 
@@ -75,15 +79,6 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 	for _, p := range t.CipdPackages {
 		if p.Name == "" || p.Path == "" {
 			return fmt.Errorf("CIPD packages must have a name, path, and version.")
-		}
-	}
-
-	// Ensure that all dependencies exist in the tasks list. We don't need
-	// to worry about circular dependencies because of the way the scheduler
-	// works.
-	for _, d := range t.Dependencies {
-		if _, ok := cfg.Tasks[d]; !ok {
-			return fmt.Errorf("Dependency on unknown task: %q", d)
 		}
 	}
 
@@ -203,6 +198,58 @@ func (c *taskCfgCache) Cleanup(period time.Duration) error {
 		}
 		for _, commit := range remove {
 			delete(c.cache[repoName], commit)
+		}
+	}
+	return nil
+}
+
+// findCycles searches for cyclical dependencies in the task specs and returns
+// an error if any are found.
+func findCycles(tasks map[string]*TaskSpec) error {
+	// Create vertex objects with metadata for the depth-first search.
+	type vertex struct {
+		active  bool
+		name    string
+		ts      *TaskSpec
+		visited bool
+	}
+	vertices := make(map[string]*vertex, len(tasks))
+	for name, t := range tasks {
+		vertices[name] = &vertex{
+			active:  false,
+			name:    name,
+			ts:      t,
+			visited: false,
+		}
+	}
+
+	// Perform a depth-first search of the graph.
+	var visit func(*vertex) error
+	visit = func(v *vertex) error {
+		v.active = true
+		v.visited = true
+		for _, dep := range v.ts.Dependencies {
+			e := vertices[dep]
+			if e == nil {
+				return fmt.Errorf("Task %q has unknown task %q as a dependency.", v.name, dep)
+			}
+			if !e.visited {
+				if err := visit(e); err != nil {
+					return err
+				}
+			} else if e.active {
+				return fmt.Errorf("Found a circular dependency involving %q and %q", v.name, e.name)
+			}
+		}
+		v.active = false
+		return nil
+	}
+
+	for _, v := range vertices {
+		if !v.visited {
+			if err := visit(v); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
