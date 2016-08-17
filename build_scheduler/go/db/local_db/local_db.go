@@ -312,6 +312,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 			tasks[i].Id = oldId
 		}
 	}
+	gobs := make([][]byte, 0, len(tasks))
 	err := d.update("PutTasks", func(tx *bolt.Tx) error {
 		// Assign Ids and encode.
 		e := db.TaskEncoder{}
@@ -333,6 +334,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 			if t == nil {
 				break
 			}
+			gobs = append(gobs, serialized)
 			if err := tasksBucket(tx).Put([]byte(t.Id), serialized); err != nil {
 				return err
 			}
@@ -343,8 +345,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 		revertChanges()
 		return err
 	} else {
-		// TODO(benjaminwagner): pass serialized bytes.
-		d.modTasks.TrackModifiedTasks(tasks)
+		d.modTasks.TrackModifiedTasksGOB(gobs)
 	}
 	return nil
 }

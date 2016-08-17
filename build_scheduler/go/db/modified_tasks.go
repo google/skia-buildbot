@@ -1,19 +1,22 @@
 package db
 
 import (
+	"bytes"
+	"encoding/gob"
 	"sort"
 	"sync"
 	"time"
 
 	"github.com/satori/go.uuid"
+	"github.com/skia-dev/glog"
 )
 
 // ModifiedTasks allows subscribers to keep track of Tasks that have been
 // modified. It implements StartTrackingModifiedTasks and GetModifiedTasks from
 // the DB interface.
 type ModifiedTasks struct {
-	// map[subscriber_id][Task.Id]*Task
-	tasks map[string]map[string]*Task
+	// map[subscriber_id][]task_gob
+	tasks map[string][][]byte
 	// After the expiration time, subscribers are automatically removed.
 	expiration map[string]time.Time
 	// Protects tasks and expiration.
@@ -24,16 +27,21 @@ type ModifiedTasks struct {
 func (m *ModifiedTasks) GetModifiedTasks(id string) ([]*Task, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	modifiedTasks, ok := m.tasks[id]
-	if !ok {
+	if _, ok := m.expiration[id]; !ok {
 		return nil, ErrUnknownId
 	}
-	rv := make([]*Task, 0, len(modifiedTasks))
-	for _, t := range modifiedTasks {
-		rv = append(rv, t.Copy())
+	d := TaskDecoder{}
+	for _, g := range m.tasks[id] {
+		if !d.Process(g) {
+			break
+		}
+	}
+	rv, err := d.Result()
+	if err != nil {
+		return nil, err
 	}
 	m.expiration[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
-	m.tasks[id] = map[string]*Task{}
+	delete(m.tasks, id)
 	sort.Sort(TaskSlice(rv))
 	return rv, nil
 }
@@ -61,19 +69,22 @@ func (m *ModifiedTasks) clearExpiredSubscribers() {
 // TrackModifiedTask indicates the given Task should be returned from the next
 // call to GetModifiedTasks from each subscriber.
 func (m *ModifiedTasks) TrackModifiedTask(t *Task) {
-	m.TrackModifiedTasks([]*Task{t})
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(t); err != nil {
+		glog.Fatal(err)
+	}
+	m.TrackModifiedTasksGOB([][]byte{buf.Bytes()})
 }
 
-// TrackModifiedTasks calls TrackModifiedTask on each item.
-func (m *ModifiedTasks) TrackModifiedTasks(tasks []*Task) {
+// TrackModifiedTasksGOB is a batch, GOB version of TrackModifiedTask. It is
+// equivalent to GOB-decoding each element of gobs as a Task and calling
+// TrackModifiedTask on each one. Contents of gobs must not be modified after
+// this call.
+func (m *ModifiedTasks) TrackModifiedTasksGOB(gobs [][]byte) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	for _, t := range tasks {
-		// Make a single copy, since GetModifiedTasks also copies.
-		t = t.Copy()
-		for _, modTasks := range m.tasks {
-			modTasks[t.Id] = t
-		}
+	for id, _ := range m.expiration {
+		m.tasks[id] = append(m.tasks[id], gobs...)
 	}
 }
 
@@ -81,16 +92,15 @@ func (m *ModifiedTasks) TrackModifiedTasks(tasks []*Task) {
 func (m *ModifiedTasks) StartTrackingModifiedTasks() (string, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	if len(m.tasks) == 0 {
+	if len(m.expiration) == 0 {
 		// Initialize the data structure and start expiration goroutine.
-		m.tasks = map[string]map[string]*Task{}
+		m.tasks = map[string][][]byte{}
 		m.expiration = map[string]time.Time{}
 		go m.clearExpiredSubscribers()
-	} else if len(m.tasks) >= MAX_MODIFIED_BUILDS_USERS {
+	} else if len(m.expiration) >= MAX_MODIFIED_BUILDS_USERS {
 		return "", ErrTooManyUsers
 	}
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	m.tasks[id] = map[string]*Task{}
 	m.expiration[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
 	return id, nil
 }
