@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/fiddle/go/buildlib"
 	"go.skia.org/infra/go/buildskia"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
@@ -22,21 +23,6 @@ var (
 	fiddleRoot  = flag.String("fiddle_root", "", "Directory location where all the work is done.")
 )
 
-// buildLib, given a directory that Skia is checked out into, builds libskia.a
-// and fiddle_main.o.
-func buildLib(checkout, depotTools string) error {
-	glog.Info("Starting GNGen")
-	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false"}); err != nil {
-		return fmt.Errorf("Failed GN gen: %s", err)
-	}
-
-	glog.Info("Building fiddle")
-	if msg, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "fiddle", true); err != nil {
-		return fmt.Errorf("Failed ninja build of fiddle: %q %s", msg, err)
-	}
-	return nil
-}
-
 func main() {
 	common.Init()
 	if *fiddleRoot == "" {
@@ -47,7 +33,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Failed to clone Skia: %s", err)
 	}
-	b := buildskia.New(*fiddleRoot, depotTools, repo, buildLib, 2, time.Hour, true)
+	b := buildskia.New(*fiddleRoot, depotTools, repo, buildlib.BuildLib, 2, time.Hour, true)
 	res, err := b.BuildLatestSkia(*force, *head, *installDeps)
 	if err != nil {
 		if err == buildskia.AlreadyExistsErr {

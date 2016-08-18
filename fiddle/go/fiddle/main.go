@@ -18,6 +18,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/fiddle/go/buildlib"
 	"go.skia.org/infra/fiddle/go/named"
 	"go.skia.org/infra/fiddle/go/runner"
 	"go.skia.org/infra/fiddle/go/source"
@@ -522,22 +523,6 @@ func StartTryNamed() {
 	}()
 }
 
-// buildLib, given a directory that Skia is checked out into, builds libskia.a
-// and fiddle_main.o.
-func buildLib(checkout, depotTools string) error {
-	glog.Info("Starting GNGen")
-	if err := buildskia.GNGen(checkout, depotTools, "Release", []string{"is_debug=false"}); err != nil {
-		return fmt.Errorf("Failed GN gen: %s", err)
-	}
-
-	glog.Info("Building fiddle")
-	if output, err := buildskia.GNNinjaBuild(checkout, depotTools, "Release", "fiddle", true); err != nil {
-		glog.Errorf("Compile output: %q", output)
-		return fmt.Errorf("Failed ninja build of fiddle: %s", err)
-	}
-	return nil
-}
-
 func main() {
 	defer common.LogPanic()
 	if *local {
@@ -574,7 +559,7 @@ func main() {
 		glog.Fatalf("Failed to initialize source images: %s", err)
 	}
 	names = named.New(fiddleStore)
-	build = buildskia.New(*fiddleRoot, depotTools, repo, buildLib, 64, *timeBetweenBuilds, true)
+	build = buildskia.New(*fiddleRoot, depotTools, repo, buildlib.BuildLib, 64, *timeBetweenBuilds, true)
 	build.Start()
 	StartTryNamed()
 	r := mux.NewRouter()
