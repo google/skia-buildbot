@@ -94,6 +94,51 @@
      "mimetype": "application/json",
      "responsetest": "validJSON"
    },
+   "catapult_autoroll": {
+     "url": "https://catapult-roll.skia.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "catapult_autoroll_json": {
+     "url": "https://catapult-roll.skia.org/json/status",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "responsetest": "validJSON"
+   },
+   "nacl_autoroll": {
+     "url": "https://nacl-roll.skia.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "nacl_autoroll_json": {
+     "url": "https://nacl-roll.skia.org/json/status",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "responsetest": "validJSON"
+   },
+   "pdfium-autoroll": {
+     "url": "https://pdfium-roll.skia.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": ""
+   },
+   "pdfium-autoroll_json": {
+     "url": "https://pdfium-roll.skia.org/json/status",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "application/json",
+     "responsetest": "validJSON"
+   },
    "skiastatus": {
      "url": "https://status.skia.org",
      "method": "GET",
