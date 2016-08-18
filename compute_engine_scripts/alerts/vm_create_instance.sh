@@ -41,7 +41,7 @@ gcloud compute copy-files ../common/safe_format_and_mount $PROJECT_USER@$INSTANC
 
 gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME \
   --zone $ZONE \
-  --command "/tmp/format_and_mount.sh alerts" \
+  --command "/tmp/format_and_mount.sh $INSTANCE_NAME" \
   || echo "Installation failure."
 
 # The instance believes it is skia-systemd-snapshot-maker until it is rebooted.

@@ -1,7 +1,7 @@
 #! /bin/bash
 set -x
 
-/tmp/format_and_mount.sh imageinfo
+/tmp/format_and_mount.sh skia-imageinfo
 
 set PACKAGES=git build-essential libosmesa-dev libfreetype6-dev libfontconfig-dev libpng12-dev libgif-dev libqt4-dev mesa-common-dev
 sudo apt-get update
