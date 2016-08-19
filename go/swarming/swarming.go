@@ -16,12 +16,10 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
-	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/isolate"
 )
 
 const (
-	ISOLATE_BINARY           = "isolate"
-	ISOLATE_SERVER           = "isolateserver.appspot.com"
 	SWARMING_SERVER          = "chromium-swarm.appspot.com"
 	LUCI_CLIENT_REPO         = "https://github.com/luci/client-py"
 	RECOMMENDED_IO_TIMEOUT   = 20 * time.Minute
@@ -32,7 +30,7 @@ const (
 
 type SwarmingClient struct {
 	WorkDir        string
-	IsolatedServer string
+	isolateClient  *isolate.Client
 	SwarmingServer string
 }
 
@@ -45,12 +43,6 @@ type SwarmingTask struct {
 	Priority     int
 	Expiration   time.Duration
 	Idempotent   bool
-}
-
-type GenJSONFormat struct {
-	Version int      `json:"version"`
-	Dir     string   `json:"dir"`
-	Args    []string `json:"args"`
 }
 
 type ShardOutputFormat struct {
@@ -73,7 +65,7 @@ func (t *SwarmingTask) Trigger(s *SwarmingClient, hardTimeout, ioTimeout time.Du
 	triggerArgs := []string{
 		"trigger",
 		"--swarming", s.SwarmingServer,
-		"--isolate-server", s.IsolatedServer,
+		"--isolate-server", s.isolateClient.ServerUrl,
 		"--priority", strconv.Itoa(t.Priority),
 		"--shards", strconv.Itoa(1),
 		"--task-name", t.Title,
@@ -168,9 +160,16 @@ func NewSwarmingClient(workDir string) (*SwarmingClient, error) {
 	if _, err := gitinfo.CloneOrUpdate(LUCI_CLIENT_REPO, path.Join(workDir, "client-py"), false); err != nil {
 		return nil, fmt.Errorf("Could not checkout %s: %s", LUCI_CLIENT_REPO, err)
 	}
+
+	// Create an isolate client.
+	isolateClient, err := isolate.NewClient(workDir)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create isolate client: %s", err)
+	}
+
 	return &SwarmingClient{
 		WorkDir:        workDir,
-		IsolatedServer: ISOLATE_SERVER,
+		isolateClient:  isolateClient,
 		SwarmingServer: SWARMING_SERVER,
 	}, nil
 }
@@ -184,52 +183,26 @@ func (s *SwarmingClient) CreateIsolatedGenJSON(isolatePath, baseDir, osType, tas
 	}
 
 	isolatedPath := path.Join(s.WorkDir, fmt.Sprintf("%s.isolated", taskName))
-	isolateArgs := []string{"--isolate", isolatePath, "--isolated", isolatedPath, "--config-variable", "OS", osType}
-	for _, b := range blackList {
-		isolateArgs = append(isolateArgs, "--blacklist", b)
-	}
-	for k, v := range extraVars {
-		isolateArgs = append(isolateArgs, "--extra-variable", k, v)
-	}
-
-	isolatedGenJSON := &GenJSONFormat{
-		Version: 1,
-		Dir:     baseDir,
-		Args:    isolateArgs,
-	}
 	isolatedGenJSONPath := path.Join(s.WorkDir, fmt.Sprintf("%s.isolated.gen.json", taskName))
-	f, err := os.Create(isolatedGenJSONPath)
-	if err != nil {
-		return "", fmt.Errorf("Could not create %s: %s", isolatedGenJSONPath, err)
+	t := &isolate.Task{
+		BaseDir:     baseDir,
+		Blacklist:   blackList,
+		ExtraVars:   extraVars,
+		IsolateFile: isolatePath,
+		OsType:      osType,
 	}
-	defer util.Close(f)
-
-	if err := json.NewEncoder(f).Encode(isolatedGenJSON); err != nil {
-		return "", fmt.Errorf("Could not write JSON to %s: %s", isolatedGenJSONPath, err)
+	if err := isolate.WriteIsolatedGenJson(t, isolatedGenJSONPath, isolatedPath); err != nil {
+		return "", err
 	}
-
 	return isolatedGenJSONPath, nil
 }
 
 // BatchArchiveTargets batcharchives the specified isolated.gen.json files.
 func (s *SwarmingClient) BatchArchiveTargets(isolatedGenJSONs []string, d time.Duration) (map[string]string, error) {
-	if err := _VerifyBinaryExists(ISOLATE_BINARY); err != nil {
-		return nil, fmt.Errorf("Could not find isolate binary: %s", err)
-	}
-
 	// Run isolate batcharchive.
 	dumpJSON := path.Join(s.WorkDir, "isolate-output.json")
-	isolateArgs := []string{"batcharchive", "--dump-json", dumpJSON, "--isolate-server", s.IsolatedServer, "--verbose"}
-	isolateArgs = append(isolateArgs, isolatedGenJSONs...)
-	err := exec.Run(&exec.Command{
-		Name:      ISOLATE_BINARY,
-		Args:      isolateArgs,
-		Timeout:   d,
-		LogStdout: true,
-		LogStderr: true,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Isolate batcharchive failed with: %s", err)
+	if err := s.isolateClient.BatchArchiveTasks(isolatedGenJSONs, dumpJSON); err != nil {
+		return nil, err
 	}
 
 	// Read the isolate hashes from the dump JSON.

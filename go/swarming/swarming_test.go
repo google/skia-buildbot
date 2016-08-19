@@ -48,12 +48,17 @@ func TestCreateIsolatedGenJSON(t *testing.T) {
 	assert.NoError(t, err)
 	contents, err := ioutil.ReadFile(genJSON)
 	assert.NoError(t, err)
-	var output GenJSONFormat
+	var output struct {
+		Version int      `json:"version"`
+		Dir     string   `json:"dir"`
+		Args    []string `json:"args"`
+	}
+
 	err = json.Unmarshal(contents, &output)
 	assert.NoError(t, err)
 
 	assert.Equal(t, 1, output.Version)
-	assert.Equal(t, TESTDATA_DIR, output.Dir)
+	assert.Equal(t, TESTDATA_DIR, path.Base(output.Dir))
 	// Assert the args value. The position of the extra vars is non-deterministic
 	// because it is in a map.
 	expectedOutputBeforeExtraVars := []string{
