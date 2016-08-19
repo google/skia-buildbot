@@ -569,7 +569,7 @@ func ParseTimeNs(t string) (time.Time, error) {
 	if err != nil {
 		return time.Time{}, err
 	}
-	return time.Unix(0, i), nil
+	return time.Unix(0, i).UTC(), nil
 }
 
 // Repeat calls the provided function 'fn' immediately and then in intervals
