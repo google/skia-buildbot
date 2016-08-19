@@ -55,60 +55,6 @@ func (s *TaskScheduler) Start() {
 	}()
 }
 
-type taskCandidate struct {
-	Commits        []string
-	IsolatedHashes []string
-	Name           string
-	Repo           string
-	Revision       string
-	Score          float64
-	StealingFrom   *db.Task
-	TaskSpec       *TaskSpec
-}
-
-type taskCandidateSlice []*taskCandidate
-
-func (s taskCandidateSlice) Len() int { return len(s) }
-func (s taskCandidateSlice) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-func (s taskCandidateSlice) Less(i, j int) bool {
-	return s[i].Score > s[j].Score // candidates sort in decreasing order.
-}
-
-// MakeTask instantiates a db.Task from the taskCandidate.
-func (c *taskCandidate) MakeTask() *db.Task {
-	commits := make([]string, 0, len(c.Commits))
-	copy(commits, c.Commits)
-	return &db.Task{
-		Commits:  commits,
-		Id:       "", // Filled in when the task is inserted into the DB.
-		Name:     c.Name,
-		Repo:     c.Repo,
-		Revision: c.Revision,
-	}
-}
-
-// allDepsMet determines whether all dependencies for the given task candidate
-// have been satisfied, and if so, returns their isolated outputs.
-func (s *TaskScheduler) allDepsMet(c *taskCandidate) (bool, []string, error) {
-	isolatedHashes := make([]string, 0, len(c.TaskSpec.Dependencies))
-	for _, depName := range c.TaskSpec.Dependencies {
-		d, err := s.cache.GetTaskForCommit(depName, c.Revision)
-		if err != nil {
-			return false, nil, err
-		}
-		if d == nil {
-			return false, nil, nil
-		}
-		if !d.Done() || !d.Success() || d.IsolatedOutput == "" {
-			return false, nil, nil
-		}
-		isolatedHashes = append(isolatedHashes, d.IsolatedOutput)
-	}
-	return true, isolatedHashes, nil
-}
-
 // ComputeBlamelist computes the blamelist for the given taskCandidate. Returns
 // the list of commits covered by the task, and any previous task which part or
 // all of the blamelist was "stolen" from (see below). There are three cases:
@@ -275,7 +221,7 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([
 	// Filter out candidates whose dependencies have not been met.
 	validCandidates := make([]*taskCandidate, 0, len(candidates))
 	for _, c := range candidates {
-		depsMet, hashes, err := s.allDepsMet(c)
+		depsMet, hashes, err := c.allDepsMet(s.cache)
 		if err != nil {
 			return nil, err
 		}
