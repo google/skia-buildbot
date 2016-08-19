@@ -23,6 +23,10 @@ const (
 	DIMENSION_POOL_VALUE_SKIA          = "Skia"
 	DIMENSION_POOL_VALUE_SKIA_TRIGGERS = "SkiaTriggers"
 	DIMENSION_POOL_VALUE_CT            = "CT"
+
+	// TIMESTAMP_FORMAT represents the timestamp format used by Swarming APIs. Use
+	// with time.Parse/time.Format.
+	TIMESTAMP_FORMAT = "2006-01-02T15:04:05.999999"
 )
 
 var (
@@ -346,22 +350,22 @@ func GetTagValue(t *swarming.SwarmingRpcsTaskRequestMetadata, tagKey string) (st
 	return val, nil
 }
 
-// parseTimestamp returns a time.Time for the given timestamp.
-func parseTimestamp(ts string) (time.Time, error) {
-	return time.Parse("2006-01-02T15:04:05", ts)
+// ParseTimestamp returns a UTC time.Time for the given timestamp.
+func ParseTimestamp(ts string) (time.Time, error) {
+	return time.Parse(TIMESTAMP_FORMAT, ts)
 }
 
 // Created returns a time.Time for the given task's created time.
 func Created(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
-	return parseTimestamp(t.Request.CreatedTs)
+	return ParseTimestamp(t.Request.CreatedTs)
 }
 
 // Started returns a time.Time for the given task's started time.
 func Started(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
-	return parseTimestamp(t.TaskResult.StartedTs)
+	return ParseTimestamp(t.TaskResult.StartedTs)
 }
 
 // Completed returns a time.Time for the given task's started time.
 func Completed(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
-	return parseTimestamp(t.TaskResult.CompletedTs)
+	return ParseTimestamp(t.TaskResult.CompletedTs)
 }

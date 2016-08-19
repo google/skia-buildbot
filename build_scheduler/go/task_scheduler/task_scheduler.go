@@ -81,12 +81,11 @@ func (c *taskCandidate) MakeTask() *db.Task {
 	commits := make([]string, 0, len(c.Commits))
 	copy(commits, c.Commits)
 	return &db.Task{
-		Commits:        commits,
-		Id:             "", // Filled in when the task is inserted into the DB.
-		IsolatedOutput: "", // Filled in when the task finishes, if successful.
-		Name:           c.Name,
-		Repo:           c.Repo,
-		Revision:       c.Revision,
+		Commits:  commits,
+		Id:       "", // Filled in when the task is inserted into the DB.
+		Name:     c.Name,
+		Repo:     c.Repo,
+		Revision: c.Revision,
 	}
 }
 
@@ -102,7 +101,7 @@ func (s *TaskScheduler) allDepsMet(c *taskCandidate) (bool, []string, error) {
 		if d == nil {
 			return false, nil, nil
 		}
-		if !d.Finished() || !d.Success() || d.IsolatedOutput == "" {
+		if !d.Done() || !d.Success() || d.IsolatedOutput == "" {
 			return false, nil, nil
 		}
 		isolatedHashes = append(isolatedHashes, d.IsolatedOutput)

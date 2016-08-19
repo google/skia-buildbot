@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
+	"reflect"
 	"time"
 
 	"go.skia.org/infra/go/swarming"
@@ -59,12 +60,18 @@ type Task struct {
 	// Created is the creation timestamp.
 	Created time.Time
 
+	// Finished is the time the task stopped running or expired from the queue, or
+	//  zero if the task is pending or running.
+	Finished time.Time
+
 	// Id is a generated unique identifier for this Task instance. Must be
 	// URL-safe.
 	Id string
 
-	// IsolatedOutput is the isolated hash of any outputs produced by this
-	// Task. Filled in when the task is completed.
+	// IsolatedOutput is the isolated hash of any outputs produced by this Task.
+	// Filled in when the task is completed. We assume the isolate server is
+	// isolateserver.appspot.com and the namespace is default-gzip. This field
+	// will not be set if the Task does not correspond to a Swarming task.
 	IsolatedOutput string
 
 	// Name is a human-friendly descriptive name for this Task. All Tasks
@@ -77,106 +84,151 @@ type Task struct {
 	// Revision is the commit at which this task ran.
 	Revision string
 
+	// Started is the time the task started running, or zero if the task is
+	// pending, or the same as Finished if the task never ran.
+	Started time.Time
+
 	// Status is the current task status, default TASK_STATUS_PENDING.
 	Status TaskStatus
 
-	// Swarming is information directly from Swarming, including the swarming task
-	// ID. This field will not be set if the Task does not correspond to a
-	// Swarming task.
-	Swarming *swarming_api.SwarmingRpcsTaskRequestMetadata
+	// SwarmingTaskId is the Swarming task ID. This field will not be set if the
+	// Task does not correspond to a Swarming task.
+	SwarmingTaskId string
 }
 
-// UpdateFromSwarming sets or initializes t from data in s.
+// UpdateFromSwarming sets or initializes t from data in s. If any changes were
+// made to t, returns true.
 //
 // If empty, sets t.Id, t.Name, t.Repo, and t.Revision from s's tags named
 // SWARMING_TAG_ID, SWARMING_TAG_NAME, SWARMING_TAG_REPO, and
-// SWARMING_TAG_REVISION, and sets t.Created from s.TaskResult.CreatedTs. If
-// these fields are non-empty, returns an error if they do not match.
+// SWARMING_TAG_REVISION, sets t.Created from s.TaskResult.CreatedTs, and sets
+// t.SwarmingTaskId from s.TaskId. If these fields are non-empty, returns an
+// error if they do not match.
 //
-// Always sets t.Status and t.IsolatedOutput based on s, and retains s as
-// t.Swarming.
-func (t *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskRequestMetadata) error {
+// Always sets t.Status, t.Started, t.Finished, and t.IsolatedOutput based on s.
+func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskRequestMetadata) (bool, error) {
 	if s.TaskResult == nil {
-		return fmt.Errorf("Missing TaskResult. %v", s)
+		return false, fmt.Errorf("Missing TaskResult. %v", s)
 	}
 	tags, err := swarming.TagValues(s)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	if sId, ok := tags[SWARMING_TAG_ID]; ok {
-		if t.Id == "" {
-			t.Id = sId
-		} else if t.Id != sId {
-			return fmt.Errorf("Id does not match for task %v and swarming task %v", t, s)
+	copy := orig.Copy()
+	if !reflect.DeepEqual(orig, copy) {
+		glog.Fatalf("Task.Copy is broken; original and copy differ:\n%#v\n%#v", orig, copy)
+	}
+
+	// "Identity" fields stored in tags.
+	checkOrSetFromTag := func(tagName string, field *string, fieldName string) error {
+		if tagValue, ok := tags[tagName]; ok {
+			if *field == "" {
+				*field = tagValue
+			} else if *field != tagValue {
+				return fmt.Errorf("%s does not match for task %s. Was %s, now %s. %v %v", fieldName, orig.Id, *field, tagValue, orig, s)
+			}
 		}
+		return nil
+	}
+	if err := checkOrSetFromTag(SWARMING_TAG_ID, &copy.Id, "Id"); err != nil {
+		return false, err
+	}
+	if err := checkOrSetFromTag(SWARMING_TAG_NAME, &copy.Name, "Name"); err != nil {
+		return false, err
+	}
+	if err := checkOrSetFromTag(SWARMING_TAG_REPO, &copy.Repo, "Repo"); err != nil {
+		return false, err
+	}
+	if err := checkOrSetFromTag(SWARMING_TAG_REVISION, &copy.Revision, "Revision"); err != nil {
+		return false, err
 	}
 
-	if sName, ok := tags[SWARMING_TAG_NAME]; ok {
-		if t.Name == "" {
-			t.Name = sName
-		} else if t.Name != sName {
-			return fmt.Errorf("Name does not match for task %s. Was %s, now %s. %v", t.Id, t.Name, sName, t)
-		}
-	}
-
-	if sRepo, ok := tags[SWARMING_TAG_REPO]; ok {
-		if t.Repo == "" {
-			t.Repo = sRepo
-		} else if t.Repo != sRepo {
-			return fmt.Errorf("Repo does not match for task %s. Was %s, now %s. %v", t.Id, t.Repo, sRepo, t)
-		}
-	}
-
-	if sRevision, ok := tags[SWARMING_TAG_REVISION]; ok {
-		if t.Revision == "" {
-			t.Revision = sRevision
-		} else if t.Revision != sRevision {
-			return fmt.Errorf("Revision does not match for task %s. Was %s, now %s. %v", t.Id, t.Revision, sRevision, t)
-		}
-	}
-
-	if sCreated, err := util.ParseTimeNs(s.TaskResult.CreatedTs); err == nil {
-		if util.TimeIsZero(t.Created) {
-			t.Created = sCreated
-		} else if t.Created != sCreated {
-			return fmt.Errorf("Creation time has changed for task %s. Was %s, now %s. %v", t.Id, t.Created, sCreated, t)
+	// CreatedTs should always be present.
+	if sCreated, err := swarming.ParseTimestamp(s.TaskResult.CreatedTs); err == nil {
+		if util.TimeIsZero(copy.Created) {
+			copy.Created = sCreated
+		} else if copy.Created != sCreated {
+			return false, fmt.Errorf("Creation time has changed for task %s. Was %s, now %s. %v", orig.Id, orig.Created, sCreated, orig)
 		}
 	} else {
-		return fmt.Errorf("Unable to parse task creation time for task %s. %v %v", t.Id, err, s)
+		return false, fmt.Errorf("Unable to parse task creation time for task %s. %v %v", orig.Id, err, orig)
 	}
 
+	// Swarming TaskId.
+	if copy.SwarmingTaskId == "" {
+		copy.SwarmingTaskId = s.TaskId
+	} else if copy.SwarmingTaskId != s.TaskId {
+		return false, fmt.Errorf("Swarming task ID does not match for task %s. Was %s, now %s. %v", orig.Id, orig.SwarmingTaskId, s.TaskId, orig)
+	}
+
+	// Status.
 	switch s.TaskResult.State {
 	case SWARMING_STATE_BOT_DIED, SWARMING_STATE_CANCELED, SWARMING_STATE_EXPIRED, SWARMING_STATE_TIMED_OUT:
-		t.Status = TASK_STATUS_MISHAP
+		copy.Status = TASK_STATUS_MISHAP
 	case SWARMING_STATE_PENDING:
-		t.Status = TASK_STATUS_PENDING
+		copy.Status = TASK_STATUS_PENDING
 	case SWARMING_STATE_RUNNING:
-		t.Status = TASK_STATUS_RUNNING
+		copy.Status = TASK_STATUS_RUNNING
 	case SWARMING_STATE_COMPLETED:
 		if s.TaskResult.Failure {
-			// TODO(benjaminwagner): Choose FAILURE or MISHAP depending on
-			// ExitCode?
-			t.Status = TASK_STATUS_FAILURE
+			// TODO(benjaminwagner): Choose FAILURE or MISHAP depending on ExitCode?
+			copy.Status = TASK_STATUS_FAILURE
 		} else {
-			t.Status = TASK_STATUS_SUCCESS
+			copy.Status = TASK_STATUS_SUCCESS
 		}
 	default:
-		return fmt.Errorf("Unknown Swarming State %v in %v", s.TaskResult.State, s)
+		return false, fmt.Errorf("Unknown Swarming State %v in %v", s.TaskResult.State, s)
 	}
 
+	// Isolated output.
 	if s.TaskResult.OutputsRef == nil {
-		t.IsolatedOutput = ""
+		copy.IsolatedOutput = ""
 	} else {
-		t.IsolatedOutput = s.TaskResult.OutputsRef.Isolated
+		copy.IsolatedOutput = s.TaskResult.OutputsRef.Isolated
 	}
 
-	t.Swarming = s
+	// Timestamps.
+	maybeUpdateTime := func(newTimeStr string, field *time.Time, name string) error {
+		if newTimeStr == "" {
+			return nil
+		}
+		newTime, err := swarming.ParseTimestamp(newTimeStr)
+		if err != nil {
+			return fmt.Errorf("Unable to parse %s for task %s. %v %v", name, orig.Id, err, s)
+		}
+		*field = newTime
+		return nil
+	}
 
-	return nil
+	if err := maybeUpdateTime(s.TaskResult.StartedTs, &copy.Started, "StartedTs"); err != nil {
+		return false, err
+	}
+	if err := maybeUpdateTime(s.TaskResult.CompletedTs, &copy.Finished, "CompletedTs"); err != nil {
+		return false, err
+	}
+	if s.TaskResult.CompletedTs == "" && copy.Status == TASK_STATUS_MISHAP {
+		if err := maybeUpdateTime(s.TaskResult.AbandonedTs, &copy.Finished, "AbandonedTs"); err != nil {
+			return false, err
+		}
+	}
+	if copy.Done() && util.TimeIsZero(copy.Started) {
+		copy.Started = copy.Finished
+	}
+
+	// TODO(benjaminwagner): SwarmingRpcsTaskResult has a ModifiedTs field that we
+	// could use to detect modifications. Unfortunately, it seems that while the
+	// task is running, ModifiedTs gets updated every 30 seconds, regardless of
+	// whether any other data actually changed. Maybe we could still use it for
+	// pending or completed tasks.
+	if !reflect.DeepEqual(orig, copy) {
+		*orig = *copy
+		return true, nil
+	}
+	return false, nil
 }
 
-func (t *Task) Finished() bool {
+func (t *Task) Done() bool {
 	return t.Status != TASK_STATUS_PENDING && t.Status != TASK_STATUS_RUNNING
 }
 
