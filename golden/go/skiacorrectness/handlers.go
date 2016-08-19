@@ -44,7 +44,24 @@ const (
 // jsonByBlameHandler returns a json object with the digests to be triaged grouped by blamelist.
 func jsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
 	idx := ixr.GetIndex()
-	tile, sum, err := allUntriagedSummaries(idx)
+
+	// Extract the corpus from the query.
+	var query url.Values = nil
+	var err error = nil
+	if q := r.FormValue("query"); q != "" {
+		if query, err = url.ParseQuery(q); query.Get(types.CORPUS_FIELD) == "" {
+			err = fmt.Errorf("Got query field, but did not contain %s field.", types.CORPUS_FIELD)
+		}
+	}
+
+	// If no corpus specified return an error.
+	if err != nil {
+		httputils.ReportError(w, r, nil, fmt.Sprintf("Did not receive value for corpus/%s.", types.CORPUS_FIELD))
+		return
+	}
+
+	// At this point query contains at least a corpus.
+	tile, sum, err := allUntriagedSummaries(idx, query)
 	commits := tile.Commits
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to load summaries.")
@@ -134,11 +151,11 @@ func jsonByBlameHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // allUntriagedSummaries returns a tile and summaries for all untriaged GMs.
-func allUntriagedSummaries(idx *indexer.SearchIndex) (*tiling.Tile, map[string]*summary.Summary, error) {
+func allUntriagedSummaries(idx *indexer.SearchIndex, query url.Values) (*tiling.Tile, map[string]*summary.Summary, error) {
 	tile := idx.GetTile(true)
 
 	// Get a list of all untriaged images by test.
-	sum, err := idx.CalcSummaries([]string{}, url.Values{"source_type": []string{"gm"}}, false, true)
+	sum, err := idx.CalcSummaries([]string{}, query, false, true)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Couldn't load summaries: %s", err)
 	}
@@ -316,6 +333,7 @@ func jsonIgnoresHandler(w http.ResponseWriter, r *http.Request) {
 	ignores, err = storages.IgnoreStore.List(true)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Failed to retrieve ignored traces.")
+		return
 	}
 
 	// TODO(stephana): Wrap in response envelope if it makes sense !
@@ -361,10 +379,11 @@ func jsonIgnoresUpdateHandler(w http.ResponseWriter, r *http.Request) {
 	err = storages.IgnoreStore.Update(int(id), ignoreRule)
 	if err != nil {
 		httputils.ReportError(w, r, err, "Unable to update ignore rule.")
-	} else {
-		// If update worked just list the current ignores and return them.
-		jsonIgnoresHandler(w, r)
+		return
 	}
+
+	// If update worked just list the current ignores and return them.
+	jsonIgnoresHandler(w, r)
 }
 
 // jsonIgnoresDeleteHandler deletes an existing ignores rule.
@@ -704,7 +723,7 @@ func jsonListTestsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idx := ixr.GetIndex()
-	corpus, hasSourceType := query.Query["source_type"]
+	corpus, hasSourceType := query.Query[types.CORPUS_FIELD]
 	sumSlice := []*summary.Summary{}
 	if !query.IncludeIgnores && query.Head && len(query.Query) == 1 && hasSourceType {
 		sumMap := idx.GetSummaries()

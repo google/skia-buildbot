@@ -19,7 +19,7 @@
 
 -->
 
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="../common/imp/commit-panel.html" />
 
 <link rel="import" href="shared-styles.html">
@@ -70,7 +70,7 @@
 
         <template is="dom-repeat" items="{{data}}">
           <div class="group">
-            <a target="_blank" href$="/search?blame={{item.groupID}}&unt=true&head=true&query=source_type%3Dgm">
+            <a target="_blank" href$="/search?blame={{item.groupID}}&unt=true&head=true&{{_queryStr}}">
               {{item.nDigests}} digest(s) need triaging
             </a>
 
@@ -110,6 +110,8 @@
     Polymer({
     	is: "byblame-page-sk",
 
+      behaviors: [gold.PageStateBehavior],
+
       properties:{
         data: {
           type: Array,
@@ -117,10 +119,24 @@
         }
       },
 
+      ready: function() {
+        this._setDefaultState(gold.defaultByBlameState, true);
+      },
+
       // pageSelected is called by the router when this view enters the foreground.
-    	pageSelected: function(routeName) {
+    	pageSelected: function(ctx) {
+        this._initState(ctx, this._getDefaultStateWithCorpus());
+        this.set('_queryStr', window.location.search.slice(1));
+        this._load();
+    	},
+
+      // pageDeselected is called by the router when this view enters the background.
+      pageDeselected: function(routeName) {},
+
+      _load: function() {
+        var q = window.location.search;
         this.$.activityMain.startSpinner("Loading ...");
-        sk.get("/json/byblame").then(JSON.parse).then(function (json) {
+        sk.get("/json/byblame" + q).then(JSON.parse).then(function (json) {
           // Send the commits to the mailboxes identified by the group id.
           json.data.forEach(function(curr) {
             sk.Mailbox.send(curr.groupID, curr.commits);
@@ -131,10 +147,7 @@
           this.$.activityMain.stopSpinner();
           sk.errorMessage(e);
         }.bind(this));
-    	},
-
-      // pageDeselected is called by the router when this view enters the background.
-      pageDeselected: function() {},
+      },
 
       _detailHref: function(item) {
         return '/detail' + gold.detailQuery(item.test, item.sample_digest);

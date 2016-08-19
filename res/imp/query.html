@@ -19,6 +19,8 @@
 
     whitelist - A list of keys for params that should always be shown.
 
+    blacklist - A list of keys for params that should never be shown.
+
     matches - A URL for reporting the number of items that match
        the currentquery. If not the empty string then a request
        will be made to:
@@ -169,6 +171,10 @@
           },
           reflectToAttribute: true
         },
+        blacklist: {
+          type: Array,
+          value: function() { return []; }
+        },
         feedback: {
           type: Boolean,
           value: false,
@@ -288,6 +294,10 @@
         this.splice('_secondary', 0, this._secondary.length);
         for (var i = 0; i < keylist.length; i++) {
           var key = keylist[i];
+          if ((this.blacklist.length > 0) && (this.blacklist.indexOf(key) != -1)) {
+            continue;
+          }
+
           var sel = {
             name: key,
             values: paramset[key].sort()

@@ -87,37 +87,37 @@ func TestCalcSummaries(t *testing.T) {
 			"a": &types.GoldenTrace{
 				Values: []string{"aaa", "bbb"},
 				Params_: map[string]string{
-					"name":        "foo",
-					"config":      "8888",
-					"source_type": "gm"},
+					"name":             "foo",
+					"config":           "8888",
+					types.CORPUS_FIELD: "gm"},
 			},
 			"b": &types.GoldenTrace{
 				Values: []string{"ccc", "ddd"},
 				Params_: map[string]string{
-					"name":        "foo",
-					"config":      "565",
-					"source_type": "gm"},
+					"name":             "foo",
+					"config":           "565",
+					types.CORPUS_FIELD: "gm"},
 			},
 			"c": &types.GoldenTrace{
 				Values: []string{"eee", types.MISSING_DIGEST},
 				Params_: map[string]string{
-					"name":        "foo",
-					"config":      "gpu",
-					"source_type": "gm"},
+					"name":             "foo",
+					"config":           "gpu",
+					types.CORPUS_FIELD: "gm"},
 			},
 			"d": &types.GoldenTrace{
 				Values: []string{"fff", "ggg"},
 				Params_: map[string]string{
-					"name":        "bar",
-					"config":      "8888",
-					"source_type": "gm"},
+					"name":             "bar",
+					"config":           "8888",
+					types.CORPUS_FIELD: "gm"},
 			},
 			"e": &types.GoldenTrace{
 				Values: []string{"jjj", types.MISSING_DIGEST},
 				Params_: map[string]string{
-					"name":        "quux",
-					"config":      "8888",
-					"source_type": "image"},
+					"name":             "quux",
+					"config":           "8888",
+					types.CORPUS_FIELD: "image"},
 			},
 		},
 		Commits: []*tiling.Commit{
@@ -180,7 +180,7 @@ func TestCalcSummaries(t *testing.T) {
 	summaries := New(storages)
 	assert.NoError(t, summaries.Calculate(tileWithoutIgnored, nil, ta, blamer))
 
-	sum, err := summaries.CalcSummaries(tileWithoutIgnored, nil, url.Values{"source_type": {"gm"}}, false)
+	sum, err := summaries.CalcSummaries(tileWithoutIgnored, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false)
 	if err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
@@ -190,8 +190,7 @@ func TestCalcSummaries(t *testing.T) {
 	assert.Equal(t, []string{}, sum["foo"].UntHashes)
 	assert.Equal(t, []string{"ggg"}, sum["bar"].UntHashes)
 
-	// if sum, err = summaries.CalcSummaries(nil, url.Values{"source_type": {"gm"}}, true, false); err != nil {
-	if sum, err = summaries.CalcSummaries(tile, nil, url.Values{"source_type": {"gm"}}, false); err != nil {
+	if sum, err = summaries.CalcSummaries(tile, nil, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 2, len(sum))
@@ -200,8 +199,7 @@ func TestCalcSummaries(t *testing.T) {
 	assert.Equal(t, sum["foo"].UntHashes, []string{"ccc", "ddd"})
 	assert.Equal(t, sum["bar"].UntHashes, []string{"ggg"})
 
-	// if sum, err = summaries.CalcSummaries([]string{"foo"}, url.Values{"source_type": {"gm"}}, true, false); err != nil {
-	if sum, err = summaries.CalcSummaries(tile, []string{"foo"}, url.Values{"source_type": {"gm"}}, false); err != nil {
+	if sum, err = summaries.CalcSummaries(tile, []string{"foo"}, url.Values{types.CORPUS_FIELD: {"gm"}}, false); err != nil {
 		t.Fatalf("Failed to calc: %s", err)
 	}
 	assert.Equal(t, 1, len(sum))

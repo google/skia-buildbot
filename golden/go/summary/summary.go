@@ -163,7 +163,7 @@ func (s *Summaries) CalcSummaries(tile *tiling.Tile, testNames []string, query u
 		digests := util.NewStringSet()
 		corpus := ""
 		for _, trid := range traces {
-			corpus = trid.tr.Params()["source_type"]
+			corpus = trid.tr.Params()[types.CORPUS_FIELD]
 			if head {
 				// Find the last non-missing value in the trace.
 				for i := lastCommitIndex; i >= 0; i-- {

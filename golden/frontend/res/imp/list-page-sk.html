@@ -113,11 +113,12 @@
 
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+        this._setDefaultState(gold.defaultSearchState, false);
       },
 
       pageSelected: function(ctx) {
         this._loadParamset();
-        this._initState(ctx, gold.defaultSearchState);
+        this._initState(ctx, this._getDefaultStateWithCorpus());
         this.$.searchControls.setState(this._state);
         this._load();
       },

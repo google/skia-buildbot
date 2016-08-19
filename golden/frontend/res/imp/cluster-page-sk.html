@@ -133,6 +133,7 @@
           this.listen(this.$.bulkTriage, 'change', '_handleBulkTriageChange');
           this.listen(this, 'triage', '_handleTriage');
           this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
+          this._setDefaultState(gold.defaultSearchState, true);
         },
 
         pageSelected: function(ctx) {
@@ -140,7 +141,7 @@
           this._loadParamset();
 
           // Initialize the state and set values of the controls.
-          this._initState(ctx, gold.defaultSearchState);
+          this._initState(ctx, this._getDefaultStateWithCorpus());
           this.$.searchControls.setState(this._state);
 
           this._loadClusterDiff();

@@ -1,23 +1,23 @@
 <!--
   The <search-page-sk> custom element declaration.
 
-  Shows the results of a search request. 
-  It sends the query string as a JSON request to the 
-  search entpoint ('/json/search') and renders the result. 
+  Shows the results of a search request.
+  It sends the query string as a JSON request to the
+  search entpoint ('/json/search') and renders the result.
 
   It assumes to the be part of a client site routed system
   of views and therefore offers the 'pageSelected' and 'pageUnselected'
-  functions. These need to be called whenever the page goes 
-  in and out of view. 
+  functions. These need to be called whenever the page goes
+  in and out of view.
 
   Attributes:
     None
 
   Methods:
-    pageSelected(ctx) - Called by the router when the view becomes visible. 
-          ctx is the context provided in the route dispatch of page.js. 
-    
-    pageDeselected - Called by the router when the view is no longer visible. 
+    pageSelected(ctx) - Called by the router when the view becomes visible.
+          ctx is the context provided in the route dispatch of page.js.
+
+    pageDeselected - Called by the router when the view is no longer visible.
 
   Events:
     None
@@ -26,7 +26,7 @@
     None
 -->
 
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 <link rel="import" href="activity-sk.html">
@@ -50,7 +50,7 @@
         padding-top: 1em;
         padding-bottom: 1em;
         padding-right: 0;
-      }  
+      }
 
       digest-details-sk[data-focus] {
         box-shadow: 3px 3px 6px 5px #FF7F00;
@@ -71,7 +71,7 @@
         font-size: 18px;
       }
     </style>
-  
+
     <div class="searchPageWrapper">
       <activity-sk id="activityBar" busy="{{_hideAll}}"></activity-sk>
       <div class="layout horizontal">
@@ -89,7 +89,7 @@
         <div hidden$="{{_emptyResult(data)}}">
           <detail-list-sk id="detailList">
             <template is="dom-repeat" items="{{data.digests}}">
-              <digest-details-sk 
+              <digest-details-sk
                       id$="{{_entryId(item)}}"
                       mode="list"
                       triage
@@ -110,7 +110,7 @@
 
       properties: {
         data: {
-          type: Object, 
+          type: Object,
           value: function() { return {}; }
         }
       },
@@ -118,17 +118,18 @@
       ready: function() {
         this.listen(this.$.searchControls, 'state-change', '_handleStateChange');
         this.listen(this.$.triggerSearchButton, 'click', '_handleSearchButton');
+        this._setDefaultState(gold.defaultSearchState, false);
       },
 
       pageSelected: function(ctx) {
         this.$.detailList.startUse();
         this._loadParamset();
 
-        // Initialize the state and set values of the controls. 
-        this._initState(ctx, gold.defaultSearchState);
+        // Initialize the state and set values of the controls.
+        this._initState(ctx, this._getDefaultStateWithCorpus());
         this.$.searchControls.setState(this._state);
 
-        // Only load the page if there were parameters given. 
+        // Only load the page if there were parameters given.
         if (ctx.querystring !== '') {
           this._load();
         }
@@ -139,44 +140,44 @@
       },
 
       _handleSearchButton: function(ev) {
-        // Reload the page with the current state of the controls. 
+        // Reload the page with the current state of the controls.
         this._redirectToState(this.$.searchControls.state);
       },
 
       _handleStateChange: function(ev) {
-        // Reload the page with the new  state in the query parameters. 
-        this._redirectToState(ev.detail); 
-      }, 
+        // Reload the page with the new  state in the query parameters.
+        this._redirectToState(ev.detail);
+      },
 
       _load: function() {
-        var q = window.location.search; 
+        var q = window.location.search;
         this.$.activityBar.startSpinner("Loading ...");
         sk.get("/json/search" + q).then(JSON.parse).then(function (json) {
           this.set('data', json);
           this.$.trybotControls.setIssue(json.issue);
-          this.$.activityBar.stopSpinner(); 
+          this.$.activityBar.stopSpinner();
         }.bind(this)).catch(function(e) {
           this.$.activityBar.stopSpinner();
           sk.errorMessage(e);
-        }.bind(this)); 
-      }, 
+        }.bind(this));
+      },
 
       _loadParamset: function() {
         sk.get("/json/paramset").then(JSON.parse).then(function (json) {
           this.$.searchControls.setParamSet(json);
-        }.bind(this)).catch(sk.errorMessage);          
+        }.bind(this)).catch(sk.errorMessage);
       },
 
       _entryId: function(item) {
-        return item.test + '-' + item.digest; 
+        return item.test + '-' + item.digest;
       },
 
-      // Returns true if there was a query and result is not empty. 
+      // Returns true if there was a query and result is not empty.
       _nonEmptyResult: function(data) {
-        return !data.digests || data.digests.length > 0; 
+        return !data.digests || data.digests.length > 0;
       },
 
-      // Returns true if there was a query and the result is empty. 
+      // Returns true if there was a query and the result is empty.
       _emptyResult: function(data) {
         return !data.digests || data.digests.length === 0;
       }

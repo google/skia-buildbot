@@ -1,26 +1,26 @@
   <!-- The <trybot-controls-sk> custom element declaration.
-    
+
     Shows an overview of the patchsets that have been run for a CL.
     It color codes bots according to their state (running, failed etc.)
-    and exposes links to view the digests associated individual 
-    patchsets.  
-  
+    and exposes links to view the digests associated individual
+    patchsets.
+
     Attributes:
       None
-  
+
     Events:
       None
 
     Methods:
       setIssue(issue) - Sets the current issue as returned by the /json/search endpoint.
-          If issue is null the element does not show and is usually the result of search 
-          that was not querying for an issue. 
+          If issue is null the element does not show and is usually the result of search
+          that was not querying for an issue.
 
     Mailboxes:
       None
 
   -->
-<link rel="import" href="bower_components/polymer/polymer.html"> 
+<link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/paper-toggle-button/paper-toggle-button.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
@@ -37,23 +37,23 @@
 
       .issueRow {
         padding-right: 2em;
-        padding-bottom: 0.5em; 
+        padding-bottom: 0.5em;
         vertical-align: top;
       }
 
-      .runningTryjob { 
-        background-color: #FFD92F; 
+      .runningTryjob {
+        background-color: #FFD92F;
       }
 
-      .completeTryjob { 
-        background-color: #A6D854; 
+      .completeTryjob {
+        background-color: #A6D854;
       }
 
-      .ingestedTryjob { 
-        background-color: #117733; 
+      .ingestedTryjob {
+        background-color: #117733;
       }
-      .failedTryjob { 
-        background-color: #D95F02; 
+      .failedTryjob {
+        background-color: #D95F02;
         color: white;
       }
 
@@ -65,7 +65,7 @@
       }
 
       .issueHeader {
-        font-weight: bold; 
+        font-weight: bold;
       }
 
       .currentPatchset::after {
@@ -79,7 +79,7 @@
       </div>
 
       <table class="issueTable">
-        <thead> 
+        <thead>
           <tr>
             <th class="issueRow">Patchset <br>(*-Showing)</th>
             <th class="issueRow">Jobs <br> (Ingested / Total)</th>
@@ -110,6 +110,8 @@
     Polymer({
       is: "trybot-controls-sk",
 
+      behaviors: [gold.PageStateBehavior],
+
       properties: {
         _issue: {
           type: Object,
@@ -117,27 +119,31 @@
         }
       },
 
+      ready: function() {
+        this._setDefaultState(gold.defaultSearchState, true);
+      },
+
       setIssue: function(issue) {
         this.set("_issue", issue);
 
-        // Get a baseURL that we can customize with pageset ids.  
-        var state = gold.stateFromQuery(gold.defaultSearchState);
+        // Get a baseURL that we can customize with pageset ids.
+        var state = gold.stateFromQuery(this._getDefaultStateWithCorpus());
         delete state['patchsets'];
         var q = gold.queryFromState(state);
         q += ((q === '') ? '?' : '&') + 'patchsets=';
-        this._baseUrl = window.location.pathname + q; 
+        this._baseUrl = window.location.pathname + q;
       },
 
       _patchsetHref: function(patchset) {
-        return this._baseUrl + patchset.id; 
+        return this._baseUrl + patchset.id;
       },
-      
+
       _isCurr: function(patchset) {
-        return (this._issue.queryPatchsets.indexOf(patchset.id.toString()) !== -1) ? 'currentPatchset' : ''; 
-      }, 
+        return (this._issue.queryPatchsets.indexOf(patchset.id.toString()) !== -1) ? 'currentPatchset' : '';
+      },
 
       _plusOne: function(index) {
-        return index+1; 
+        return index+1;
       }
     });
   </script>

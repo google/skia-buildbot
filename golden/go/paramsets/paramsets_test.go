@@ -16,23 +16,23 @@ func TestParamset(t *testing.T) {
 			"a": &types.GoldenTrace{
 				Values: []string{"aaa", "bbb"},
 				Params_: map[string]string{
-					"name":        "foo",
-					"config":      "8888",
-					"source_type": "gm"},
+					"name":             "foo",
+					"config":           "8888",
+					types.CORPUS_FIELD: "gm"},
 			},
 			"b": &types.GoldenTrace{
 				Values: []string{"ccc", "ddd", "aaa"},
 				Params_: map[string]string{
-					"name":        "foo",
-					"config":      "565",
-					"source_type": "gm"},
+					"name":             "foo",
+					"config":           "565",
+					types.CORPUS_FIELD: "gm"},
 			},
 			"c": &types.GoldenTrace{
 				Values: []string{"eee", types.MISSING_DIGEST},
 				Params_: map[string]string{
-					"name":        "foo",
-					"config":      "gpu",
-					"source_type": "gm"},
+					"name":             "foo",
+					"config":           "gpu",
+					types.CORPUS_FIELD: "gm"},
 			},
 		},
 	}

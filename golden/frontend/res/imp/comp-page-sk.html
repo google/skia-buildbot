@@ -191,7 +191,7 @@
       Polymer({
         is: "comp-page-sk",
 
-      behaviors: [gold.ZoomTargetBehavior],
+      behaviors: [gold.ZoomTargetBehavior, gold.PageStateBehavior],
 
         properties: {
           _data: {
@@ -215,14 +215,15 @@
           this.listen(this.$.colSearchControls, 'state-change', '_handleColQueryChange');
           this.listen(this.$.moreColumnsButton, 'click', '_handleMoreColumns');
           this.listen(this.$.moreRowsButton, 'click', '_handleMoreRows');
+          this._setDefaultState(gold.defaultSearchState, true);
         },
 
         pageSelected: function(ctx) {
           this._testName = ctx.params.test;
           this._query = sk.object.shallowCopy(defaultQuery);
           this._query.match = defaultMatchConfigs.slice();
-          this._query.rowQuery = sk.object.shallowCopy(gold.defaultSearchState);
-          this._query.colQuery = sk.object.shallowCopy(gold.defaultSearchState);
+          this._query.rowQuery = this._getDefaultStateWithCorpus();
+          this._query.colQuery = this._getDefaultStateWithCorpus();
           this._load();
         },
 

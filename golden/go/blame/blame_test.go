@@ -41,14 +41,14 @@ func TestBlamerWithSyntheticData(t *testing.T) {
 	}
 
 	params := []map[string]string{
-		map[string]string{"name": "foo", "config": "8888", "source_type": "gm"},
-		map[string]string{"name": "foo", "config": "565", "source_type": "gm"},
-		map[string]string{"name": "foo", "config": "gpu", "source_type": "gm"},
-		map[string]string{"name": "bar", "config": "8888", "source_type": "gm"},
-		map[string]string{"name": "bar", "config": "565", "source_type": "gm"},
-		map[string]string{"name": "bar", "config": "gpu", "source_type": "gm"},
-		map[string]string{"name": "baz", "config": "565", "source_type": "gm"},
-		map[string]string{"name": "baz", "config": "gpu", "source_type": "gm"},
+		map[string]string{"name": "foo", "config": "8888", types.CORPUS_FIELD: "gm"},
+		map[string]string{"name": "foo", "config": "565", types.CORPUS_FIELD: "gm"},
+		map[string]string{"name": "foo", "config": "gpu", types.CORPUS_FIELD: "gm"},
+		map[string]string{"name": "bar", "config": "8888", types.CORPUS_FIELD: "gm"},
+		map[string]string{"name": "bar", "config": "565", types.CORPUS_FIELD: "gm"},
+		map[string]string{"name": "bar", "config": "gpu", types.CORPUS_FIELD: "gm"},
+		map[string]string{"name": "baz", "config": "565", types.CORPUS_FIELD: "gm"},
+		map[string]string{"name": "baz", "config": "gpu", types.CORPUS_FIELD: "gm"},
 	}
 
 	DI_1, DI_2, DI_3 := "digest1", "digest2", "digest3"

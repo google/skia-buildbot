@@ -1,41 +1,98 @@
 <!-- The <gold-status-sk> element displays the status of gold
 
   Attributes:
-    None
+    status: Input attribute that defines the current status. Should be in the format:
+            {
+              corpStatus: [
+                {name: "svg", untriagedCount: 47, negativeCount:949 },
+                {name: "colorImage", untriagedCount: 17, negativeCount:449 },
+                {name: "gm", untriagedCount: 27, negativeCount:649 },
+                {name: "image", untriagedCount: 61, negativeCount:9 }
+              ],
+              lastCommit: {
+                hash: "136baaa927877e0f7fcc97acb456ee0d63f7f343",
+                author: "username",
+              }
+            }
+
+            The keys of corpStatus are the different corpora availalbe.
+
+    corpus: Output attribute that reflects the currently selected corpus.
 
   Events:
-    None
+    corpus-change: Fired whenever the corpus is changed by the user.
 
   Methods:
-    None
+    setCorpus(corpus): Sets the current corpus to the given argument. It does
+                       not fire a corpus-change event.
 -->
+<link rel="import" href="bower_components/polymer/polymer.html">
+<link rel="import" href="bower_components/paper-tabs/paper-tabs.html">
+<link rel="import" href="bower_components/paper-tabs/paper-tab.html">
+<link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <dom-module id="gold-status-sk">
   <template>
     <style>
-    .statusEntry {
+    .wrapper {
+      min-height: 48px;
+      display: inline-block;
       float: left;
-      padding-right: 2em;
+    }
+
+    #corpusSelector {
+      display: inline-block;
+    }
+
+    .statusEntry {
       font-size: 12pt;
+      display: inline-block;
+      float: left;
+      height: 48px;
+      line-height: 48px;
+      padding: 0 1em 0 1em;
+      position: relative;
     }
 
     .statusEntry a {
       color: white;
     }
 
+    /* iron-selected is applied to paper-tab when selected */
+    paper-tab.iron-selected div.marker {
+      height: 6px;
+      background-color: white;
+      position:absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    paper-tab.iron-selected {
+      font-weight: bold;
+    }
+
+    :host {
+      --paper-tabs-selection-bar-color: white;
+    };
     </style>
     <template is="dom-if" if="{{status}}">
-      <template is="dom-repeat" items="{{status.corpStatus}}">
-        <div class="statusEntry">
-          {{item.name}}:{{item.untriagedCount}} / {{item.negativeCount}}
+        <div class="wrapper">
+          <paper-tabs id="corpusSelector" attr-for-selected="data-tabid" selected="{{corpus}}" on-iron-select="_handleCorpusChanged" no-slide no-bar noink>
+            <template is="dom-repeat" items="{{status.corpStatus}}">
+              <paper-tab class="statusEntry" data-tabid$="{{item.name}}">
+                {{item.name}}:{{item.untriagedCount}} / {{item.negativeCount}}
+                <div class="marker"></marker>
+              </paper-tab>
+            </template>
+          </paper-tabs>
         </div>
-      </template>
-
-      <div class="statusEntry">
-        <a href$="https://skia.googlesource.com/skia/+/{{status.lastCommit.hash}}" target="_blank">
-           Last Commit: {{_lastCommitText(status)}}
-        </a>
+        <div class="statusEntry">
+          <a href$="https://skia.googlesource.com/skia/+/{{status.lastCommit.hash}}" target="_blank">
+             Last Commit: {{_lastCommitText(status)}}
+          </a>
+        </div>
       </div>
-    </template>      
+    </template>
   </template>
   <script>
     Polymer({
@@ -44,13 +101,48 @@
       properties: {
         status: {
           type: Object,
-          value: null,
+          value: null
+        },
+        corpus: {
+          type: String,
+          value: "gm",
+          notify: true,
+          reflectToAttribute: true
         }
       },
 
       ready: function() {
         this.status = null;
+        this._noFire = true;
         this._reload();
+      },
+
+      setCorpus: function(corpus) {
+        if (this.corpus == corpus) {
+          return;
+        }
+        this._noFire = true;
+        if (this.status) {
+          for(var i=0, len=this.status.corpStatus.length; i < len; i++) {
+            if (this.status.corpStatus[i].name === corpus) {
+              this.set("corpus", corpus);
+              return;
+            }
+          }
+          // Since this is not a valid status set to default.
+          this.set("corpus", "gm");
+          return;
+        }
+        // If we have to way to validate the status, trust the client.
+        this.set("corpus", corpus);
+      },
+
+      // Called when the user selects a corpus.
+      _handleCorpusChanged: function(ev) {
+        if (!this._noFire) {
+          this.fire('corpus-change', ev.target.selected);
+        }
+        this._noFire = false;
       },
 
       // Load or reload the listing.
