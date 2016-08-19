@@ -425,7 +425,7 @@ func TestTaskEncoderNoTasks(t *testing.T) {
 func TestTaskDecoder(t *testing.T) {
 	d := TaskDecoder{}
 	expectedTasks := map[string]*Task{}
-	for i := 0; i < 25; i++ {
+	for i := 0; i < 250; i++ {
 		task := &Task{}
 		task.Id = fmt.Sprintf("Id-%d", i)
 		task.Name = "Bingo-was-his-name-o"
@@ -469,7 +469,9 @@ func TestTaskDecoderError(t *testing.T) {
 	assert.True(t, d.Process(serialized))
 	// Process may return true or false after encountering an invalid value.
 	_ = d.Process(invalid)
-	_ = d.Process(serialized)
+	for i := 0; i < 250; i++ {
+		_ = d.Process(serialized)
+	}
 
 	// Result should return error.
 	result, err := d.Result()
