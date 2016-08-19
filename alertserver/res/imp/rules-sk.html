@@ -67,7 +67,14 @@
         <div class="rule table">
           <div class="row"><div class="cell">Name</div><div class="cell wide">{{r.name}}</div></div>
           <div class="row"><div class="cell">Query</div><div class="cell wide">{{r.query}}</div></div>
-          <div class="row"><div class="cell">Condition</div><div class="cell wide">{{r.condition}}</div></div>
+          <div class="row">
+            <div class="cell">Conditions</div>
+            <div class="cell wide">
+              <template is="dom-repeat" items="{{r.conditions}}" as="c">
+                <div>{{c}}</div>
+              </template>
+            </div>
+          </div>
           <div class="row"><div class="cell">Message</div><div class="cell wide">{{r.message}}</div></div>
           <div class="row"><div class="cell">Nag</div><div class="cell wide">{{r.nag}}</div></div>
           <div class="row"><div class="cell">Auto-Dismiss</div><div class="cell wide">{{r.autoDismiss}}</div></div>
