@@ -31,7 +31,7 @@ func TestDB(t *testing.T, db DB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	t1 := makeTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+	t1 := makeTask(time.Time{}, []string{"a", "b", "c", "d"})
 
 	// AssignId should fill in t1.Id.
 	assert.Equal(t, "", t1.Id)
@@ -44,6 +44,11 @@ func TestDB(t *testing.T, db DB) {
 	noTask, err := db.GetTaskById(t1.Id)
 	assert.NoError(t, err)
 	assert.Nil(t, noTask)
+
+	// Set Creation time. Ensure Created is not the time of AssignId to test the
+	// sequence (1) AssignId, (2) initialize task, (3) PutTask.
+	now := time.Now().Add(time.Nanosecond)
+	t1.Created = now
 
 	// Insert the task.
 	assert.NoError(t, db.PutTask(t1))
@@ -61,8 +66,8 @@ func TestDB(t *testing.T, db DB) {
 	// Ensure that the task shows up in the correct date ranges.
 	timeStart := time.Time{}
 	t1Before := t1.Created
-	t1After := t1Before.Add(1 * time.Millisecond)
-	timeEnd := time.Now()
+	t1After := t1Before.Add(1 * time.Nanosecond)
+	timeEnd := now.Add(2 * time.Nanosecond)
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
@@ -73,9 +78,10 @@ func TestDB(t *testing.T, db DB) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	// Insert two more tasks.
-	t2 := makeTask(time.Unix(0, 1470674376000000), []string{"e", "f"})
-	t3 := makeTask(time.Unix(0, 1470674884000000), []string{"g", "h"})
+	// Insert two more tasks. Ensure at least 1 nanosecond between task Created
+	// times so that t1After != t2Before and t2After != t3Before.
+	t2 := makeTask(now.Add(time.Nanosecond), []string{"e", "f"})
+	t3 := makeTask(now.Add(2*time.Nanosecond), []string{"g", "h"})
 	assert.NoError(t, db.PutTasks([]*Task{t2, t3}))
 
 	// Check that PutTasks assigned Ids.
@@ -92,10 +98,12 @@ func TestDB(t *testing.T, db DB) {
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
 	t2Before := t2.Created
-	t2After := t2Before.Add(1 * time.Millisecond)
+	t2After := t2Before.Add(1 * time.Nanosecond)
 
 	t3Before := t3.Created
-	t3After := t3Before.Add(1 * time.Millisecond)
+	t3After := t3Before.Add(1 * time.Nanosecond)
+
+	timeEnd = now.Add(3 * time.Nanosecond)
 
 	tasks, err = db.GetTasksFromDateRange(timeStart, t1Before)
 	assert.NoError(t, err)

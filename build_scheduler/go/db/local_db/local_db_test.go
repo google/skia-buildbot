@@ -185,6 +185,11 @@ func TestAssignIdsFromCurrentTime(t *testing.T) {
 	assert.NoError(t, d.AssignId(tasks[6]))
 	id5, id6 := tasks[5].Id, tasks[6].Id
 
+	// Created time is required.
+	for _, task := range tasks {
+		task.Created = time.Now()
+	}
+
 	// Test PutTasks.
 	assert.NoError(t, d.PutTasks(tasks))
 
@@ -220,6 +225,84 @@ func TestAssignIdsFromCurrentTime(t *testing.T) {
 		assert.True(t, begin.Before(ts) || begin.Equal(ts))
 		assert.True(t, ts.Before(end) || ts.Equal(end))
 		prevId = ids[i]
+	}
+}
+
+// Test that PutTask returns an error when AssignId time is too far before (or
+// after) the value subsequently assigned to Task.Created.
+func TestPutTaskValidateCreatedTime(t *testing.T) {
+	d, tmpdir := makeDB(t, "TestAssignIdsFromCreatedTs")
+	defer util.RemoveAll(tmpdir)
+	defer testutils.AssertCloses(t, d)
+
+	task := &db.Task{}
+	beforeAssignId := time.Now().Add(-time.Nanosecond)
+	assert.NoError(t, d.AssignId(task))
+	afterAssignId := time.Now().Add(time.Nanosecond)
+
+	// Test "not set".
+	{
+		err := d.PutTask(task)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Created not set.")
+	}
+
+	// Test "too late".
+	{
+		task.Created = afterAssignId.Add(MAX_CREATED_TIME_SKEW)
+		err := d.PutTask(task)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Created too late.")
+	}
+
+	// Test "too early".
+	{
+		task.Created = beforeAssignId
+		err := d.PutTask(task)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Created too early.")
+
+		// Verify not in DB.
+		noTask, err := d.GetTaskById(task.Id)
+		assert.NoError(t, err)
+		assert.Nil(t, noTask)
+	}
+
+	// Test in range.
+	{
+		task.Created = beforeAssignId.Add(MAX_CREATED_TIME_SKEW)
+		err := d.PutTask(task)
+		assert.NoError(t, err)
+
+		// Verify added to DB.
+		taskCopy, err := d.GetTaskById(task.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, task, taskCopy)
+	}
+
+	// We can even change the Created time if we want. (Not necessarily supported
+	// by all DB implementations.)
+	{
+		task.Created = afterAssignId
+		err := d.PutTask(task)
+		assert.NoError(t, err)
+
+		taskCopy, err := d.GetTaskById(task.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, task, taskCopy)
+	}
+
+	// But we can't change it to be out of range.
+	{
+		prevCreated := task.Created
+		task.Created = beforeAssignId
+		err := d.PutTask(task)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "Created too early.")
+
+		taskCopy, err := d.GetTaskById(task.Id)
+		assert.NoError(t, err)
+		assert.True(t, prevCreated.Equal(taskCopy.Created))
 	}
 }
 

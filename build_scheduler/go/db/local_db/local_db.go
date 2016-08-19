@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -38,6 +39,18 @@ const (
 	// fmt.Sscanf to format/parse the sequence number in the Task ID. It is a
 	// 16-digit zero-padded lowercase hexidecimal number.
 	SEQUENCE_NUMBER_FORMAT = "%016x"
+
+	// MAX_CREATED_TIME_SKEW is the maximum difference between the timestamp in a
+	// Task's Id field and that Task's Created field. This allows AssignId to be
+	// called before creating the Swarming task so that the Id can be included in
+	// the Swarming task tags. GetTasksFromDateRange accounts for this skew when
+	// retrieving tasks. This value can be increased in the future, but can never
+	// be decreased.
+	//
+	// 6 minutes is based on httputils.DIAL_TIMEOUT + httputils.REQUEST_TIMEOUT,
+	// which is assumed to be the approximate maximum duration of a successful
+	// swarming.ApiClient.TriggerTask() call.
+	MAX_CREATED_TIME_SKEW = 6 * time.Minute
 )
 
 // formatId returns the timestamp and sequence number formatted for a Task ID.
@@ -211,6 +224,8 @@ func (d *localDB) assignId(tx *bolt.Tx, t *db.Task, now time.Time) error {
 	}
 	ts := now
 	if !util.TimeIsZero(t.Created) {
+		// TODO(benjaminwagner): Disallow assigning IDs based on t.Created; or
+		// ensure t.Created is > any ID ts in the DB.
 		ts = t.Created
 	}
 	seq, err := tasksBucket(tx).NextSequence()
@@ -260,9 +275,8 @@ func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 }
 
 // See docs for DB interface.
-// TODO(benjaminwagner): Filter Tasks based on Task.Created rather than Task.Id.
 func (d *localDB) GetTasksFromDateRange(start, end time.Time) ([]*db.Task, error) {
-	min := []byte(start.UTC().Format(TIMESTAMP_FORMAT))
+	min := []byte(start.Add(-MAX_CREATED_TIME_SKEW).UTC().Format(TIMESTAMP_FORMAT))
 	max := []byte(end.UTC().Format(TIMESTAMP_FORMAT))
 	decoder := db.TaskDecoder{}
 	if err := d.view("GetTasksFromDateRange", func(tx *bolt.Tx) error {
@@ -278,7 +292,23 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time) ([]*db.Task, error
 	}); err != nil {
 		return nil, err
 	}
-	return decoder.Result()
+	result, err := decoder.Result()
+	if err != nil {
+		return nil, err
+	}
+	sort.Sort(db.TaskSlice(result))
+	// The Tasks retrieved based on Id timestamp may include Tasks with Created
+	// time before/after the desired range.
+	// TODO(benjaminwagner): Biased binary search might be faster.
+	startIdx := 0
+	for startIdx < len(result) && result[startIdx].Created.Before(start) {
+		startIdx++
+	}
+	endIdx := len(result)
+	for endIdx > 0 && !result[endIdx-1].Created.Before(end) {
+		endIdx--
+	}
+	return result[startIdx:endIdx], nil
 }
 
 // See documentation for DB interface.
@@ -289,7 +319,21 @@ func (d *localDB) PutTask(t *db.Task) error {
 // validate returns an error if the task can not be inserted into the DB. Does
 // not modify t.
 func (d *localDB) validate(t *db.Task) error {
-	// TODO(benjaminwagner): Check skew between t.Id (if assigned) and t.Created.
+	if util.TimeIsZero(t.Created) {
+		return fmt.Errorf("Created not set. Task %s created time is %s. %v", t.Id, t.Created, t)
+	}
+	if t.Id != "" {
+		idTs, _, err := parseId(t.Id)
+		if err != nil {
+			return err
+		}
+		if t.Created.Sub(idTs) > MAX_CREATED_TIME_SKEW {
+			return fmt.Errorf("Created too late. Task %s was assigned Id at %s which is %s before Created time %s, more than MAX_CREATED_TIME_SKEW = %s.", t.Id, idTs, t.Created.Sub(idTs), t.Created, MAX_CREATED_TIME_SKEW)
+		}
+		if t.Created.Before(idTs) {
+			return fmt.Errorf("Created too early. Task %s Created time was changed or set to %s after Id assigned at %s.", t.Id, t.Created, idTs)
+		}
+	}
 	return nil
 }
 

@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"go.skia.org/infra/go/util"
+
 	"github.com/satori/go.uuid"
 )
 
@@ -61,6 +63,10 @@ func (db *inMemoryDB) GetModifiedTasks(id string) ([]*Task, error) {
 func (db *inMemoryDB) PutTask(task *Task) error {
 	db.tasksMtx.Lock()
 	defer db.tasksMtx.Unlock()
+
+	if util.TimeIsZero(task.Created) {
+		return fmt.Errorf("Created not set. Task %s created time is %s. %v", task.Id, task.Created, task)
+	}
 
 	if task.Id == "" {
 		if err := db.AssignId(task); err != nil {

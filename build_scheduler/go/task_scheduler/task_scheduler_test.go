@@ -20,6 +20,7 @@ import (
 func makeTask(name, revision string) *db.Task {
 	return &db.Task{
 		Commits:  []string{revision},
+		Created:  time.Now(),
 		Name:     name,
 		Revision: revision,
 	}
