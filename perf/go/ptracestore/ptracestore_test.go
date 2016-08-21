@@ -3,8 +3,11 @@ package ptracestore
 import (
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"testing"
+
+	"go.skia.org/infra/go/query"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -23,6 +26,20 @@ func cleanup() {
 	if err := os.RemoveAll(tmpDir); err != nil {
 		fmt.Printf("Failed to clean up %q: %s", tmpDir, err)
 	}
+}
+
+func TestCommitID(t *testing.T) {
+	c := &CommitID{
+		Offset: 51,
+		Source: "master",
+	}
+	assert.Equal(t, "master-000001.bdb", c.Filename())
+
+	c = &CommitID{
+		Offset: 0,
+		Source: "https://codereview.chromium.org/2251213006",
+	}
+	assert.Equal(t, "https___codereview_chromium_org_2251213006-000000.bdb", c.Filename())
 }
 
 func TestAdd(t *testing.T) {
@@ -91,5 +108,155 @@ func TestAdd(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "gs://skia-perf/nano-json-v1/blah3/blah.json", source)
 	assert.Equal(t, float32(9.99), value)
+}
 
+func TestBuildMapper(t *testing.T) {
+	commitIDs := []*CommitID{
+		&CommitID{
+			Source: "master",
+			Offset: 49,
+		},
+		&CommitID{
+			Source: "master",
+			Offset: 50,
+		},
+		&CommitID{
+			Source: "master",
+			Offset: 51,
+		},
+	}
+
+	want := map[string]*tileMap{
+		"master-000000.bdb": &tileMap{
+			commitID: &CommitID{
+				Source: "master",
+				Offset: 49,
+			},
+			idxmap: map[int]int{
+				49: 0,
+			},
+		},
+		"master-000001.bdb": &tileMap{
+			commitID: &CommitID{
+				Source: "master",
+				Offset: 50,
+			},
+			idxmap: map[int]int{
+				0: 1,
+				1: 2,
+			},
+		},
+	}
+	got := buildMapper(commitIDs)
+	assert.Equal(t, got, want)
+
+	commitIDs = []*CommitID{}
+	want = map[string]*tileMap{}
+	got = buildMapper(commitIDs)
+	assert.Equal(t, got, want)
+}
+
+func TestMatch(t *testing.T) {
+	setupStoreDir(t)
+	defer cleanup()
+
+	d := New(tmpDir)
+	commitID1 := &CommitID{
+		Offset: 1,
+		Source: "master",
+	}
+	values := map[string]float32{
+		",config=565,test=foo,":        1.23,
+		",config=8888,test=foo,":       3.21,
+		",arch=x86,source_type=image,": 5.55,
+	}
+	err := d.Add(commitID1, values, "gs://foo")
+	assert.NoError(t, err)
+
+	commitID2 := &CommitID{
+		Offset: 2,
+		Source: "master",
+	}
+	values = map[string]float32{
+		",config=565,test=foo,":        2.34,
+		",config=8888,test=foo,":       5.43,
+		",arch=x86,source_type=image,": 6.66,
+	}
+	err = d.Add(commitID2, values, "gs://foo")
+	assert.NoError(t, err)
+
+	commitID3 := &CommitID{
+		Offset: COMMITS_PER_TILE + 3,
+		Source: "master",
+	}
+	values = map[string]float32{
+		",config=565,test=foo,":        3.45,
+		",config=8888,test=foo,":       9.10,
+		",arch=x86,source_type=image,": 7.77,
+	}
+	err = d.Add(commitID3, values, "gs://foo")
+	assert.NoError(t, err)
+
+	// A commit with no data.
+	commitID4 := &CommitID{
+		Offset: COMMITS_PER_TILE + 5,
+		Source: "master",
+	}
+
+	_, value, err := d.Details(commitID1, ",config=565,test=foo,")
+	assert.NoError(t, err)
+	assert.Equal(t, float32(1.23), value)
+
+	// Query that matches just one trace.
+	q := query.New(url.Values{
+		"config": []string{"565"},
+	})
+	commits := []*CommitID{commitID1, commitID2, commitID3, commitID4}
+	traces, err := d.Match(commits, q)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(traces))
+	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
+	assert.Equal(t, Trace{1.23, 2.34, 3.45, MISSING_VALUE}, traces[",config=565,test=foo,"])
+
+	// Match both traces.
+	q = query.New(url.Values{
+		"test": []string{"foo"},
+	})
+	traces, err = d.Match(commits, q)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(traces))
+	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
+	assert.Equal(t, Trace{1.23, 2.34, 3.45, MISSING_VALUE}, traces[",config=565,test=foo,"])
+	assert.Equal(t, Trace{3.21, 5.43, 9.10, MISSING_VALUE}, traces[",config=8888,test=foo,"])
+
+	// Query that returns only missing values, including a tile that doesn't exist.
+	commitID5 := &CommitID{
+		Offset: 2*COMMITS_PER_TILE + 6,
+		Source: "master",
+	}
+	commits = []*CommitID{commitID4, commitID5}
+	traces, err = d.Match(commits, q)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(traces))
+	assert.Equal(t, 2, len(traces[",config=565,test=foo,"]))
+	assert.Equal(t, Trace{MISSING_VALUE, MISSING_VALUE}, traces[",config=565,test=foo,"])
+	assert.Equal(t, Trace{MISSING_VALUE, MISSING_VALUE}, traces[",config=8888,test=foo,"])
+
+	// Match all traces with an empty query.
+	q = query.New(url.Values{})
+	commits = []*CommitID{commitID1, commitID2, commitID3, commitID4}
+	traces, err = d.Match(commits, q)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(traces))
+	assert.Equal(t, 4, len(traces[",config=565,test=foo,"]))
+	assert.Equal(t, Trace{1.23, 2.34, 3.45, MISSING_VALUE}, traces[",config=565,test=foo,"])
+	assert.Equal(t, Trace{3.21, 5.43, 9.10, MISSING_VALUE}, traces[",config=8888,test=foo,"])
+	assert.Equal(t, Trace{5.55, 6.66, 7.77, MISSING_VALUE}, traces[",arch=x86,source_type=image,"])
+
+	// Match none of the traces.
+	q = query.New(url.Values{"bar": []string{"baz"}})
+	commits = []*CommitID{commitID1, commitID2, commitID3, commitID4}
+	traces, err = d.Match(commits, q)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(traces))
 }

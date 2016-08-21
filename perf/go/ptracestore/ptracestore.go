@@ -47,9 +47,26 @@ func (c CommitID) Filename() string {
 	return fmt.Sprintf("%s-%06d.bdb", safeRe.ReplaceAllLiteralString(c.Source, "_"), c.Offset/COMMITS_PER_TILE)
 }
 
-// Traces is a placeholder for later CLs. It represents a set of Traces.
-type Traces struct {
+// MISSING_VALUE signifies a missing sample value.
+//
+// JSON doesn't support NaN or +/- Inf, so we need a valid float32 to signal
+// missing data that also has a compact JSON representation.
+const MISSING_VALUE = 1e32
+
+// Trace is just a slice of float32s.
+type Trace []float32
+
+// NewTrace returns a Trace of length 'traceLen' initialized to MISSING_VALUE.
+func NewTrace(traceLen int) Trace {
+	ret := make([]float32, traceLen)
+	for i, _ := range ret {
+		ret[i] = MISSING_VALUE
+	}
+	return ret
 }
+
+// TraceSet is a set of Trace's, keyed by trace id.
+type TraceSet map[string]Trace
 
 // PTraceStore is an interface for storing Perf data.
 //
@@ -69,11 +86,11 @@ type PTraceStore interface {
 	// and a non-nil error if no such point was found.
 	Details(commitID *CommitID, traceID string) (string, float32, error)
 
-	// Match returns Traces that match the given Query and slice of CommitIDs.
+	// Match returns TraceSet that match the given Query and slice of CommitIDs.
 	//
-	// The returned Traces will contain a slice of Trace, and that list will be
+	// The returned TraceSet will contain a slice of Trace, and that list will be
 	// empty if there are no matches.
-	Match(commitIDs []*CommitID, q query.Query) (*Traces, error)
+	Match(commitIDs []*CommitID, q query.Query) (TraceSet, error)
 }
 
 // BoltTraceStore is an implementation of PTraceStore that uses BoltDB.
@@ -310,9 +327,134 @@ func (b *BoltTraceStore) Details(commitID *CommitID, traceID string) (string, fl
 	return sourceRet, valueRet, nil
 }
 
-func (b *BoltTraceStore) Match(commitIDs []*CommitID, q query.Query) (*Traces, error) {
-	// TODO(jcgregorio) Implement.
-	return nil, fmt.Errorf("Not implemented.")
+type tileMap struct {
+	commitID *CommitID
+	idxmap   map[int]int
+}
+
+// buildMapper transforms the slice of commitIDs passed to Match into a mapping
+// from the location of the commit in the DB to the index for that commit in
+// the Trace's returned from Match. I.e. it maps tiles to a map that says where
+// each value stored in the tile trace needs to be copied into the destination
+// Trace.
+//
+// For example, if given:
+//
+//	commitIDs := []*CommitID{
+//		&CommitID{
+//			Source: "master",
+//			Offset: 49,
+//		},
+//		&CommitID{
+//			Source: "master",
+//			Offset: 50,
+//		},
+//		&CommitID{
+//			Source: "master",
+//			Offset: 51,
+//		},
+//	}
+//
+// This will return the following, presuming a tile size of 50:
+//
+//	map[string]*tileMap{
+//		"master-000000.bdb": &tileMap{
+//			commitID: &CommitID{
+//				Source: "master",
+//				Offset: 49,
+//			},
+//			idxmap: map[int]int{
+//				49: 0,
+//			},
+//		},
+//		"master-000001.bdb": &tileMap{
+//			commitID: &CommitID{
+//				Source: "master",
+//				Offset: 50,
+//			},
+//			idxmap: map[int]int{
+//				0: 1,
+//				1: 2,
+//			},
+//		},
+//	}
+//
+// The returned map is used when loading traces out of tiles.
+func buildMapper(commitIDs []*CommitID) map[string]*tileMap {
+	mapper := map[string]*tileMap{}
+	for targetIndex, commitID := range commitIDs {
+		if tm, ok := mapper[commitID.Filename()]; !ok {
+			mapper[commitID.Filename()] = &tileMap{
+				commitID: commitID,
+				idxmap:   map[int]int{commitID.Offset % COMMITS_PER_TILE: targetIndex},
+			}
+		} else {
+			tm.idxmap[commitID.Offset%COMMITS_PER_TILE] = targetIndex
+		}
+	}
+	return mapper
+}
+
+// loadMatches loads values into 'traceSet' that match the query 'q' from the
+// tile in the BoltDB 'db'.  Only values at the offsets in 'idxmap' are
+// actually loaded, and 'idxmap' determines where they are stored in the Trace.
+func loadMatches(db *bolt.DB, idxmap map[int]int, q query.Query, traceSet TraceSet, traceLen int) error {
+	get := func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(TRACE_VALUES_BUCKET_NAME))
+		if bucket == nil {
+			// If the bucket doesn't exist then we've never written to this tile, it's not an error,
+			// it just means it has no data.
+			return nil
+		}
+		v := bucket.Cursor()
+		value := traceValue{}
+		// Loop over the entire bucket.
+		for btraceid, rawValues := v.First(); btraceid != nil; btraceid, rawValues = v.Next() {
+			traceid := string(btraceid)
+			// Does the trace id match the query?
+			if !q.Matches(traceid) {
+				continue
+			}
+
+			// Get the trace.
+			trace := traceSet[traceid]
+			if trace == nil {
+				traceSet[traceid] = NewTrace(traceLen)
+				trace = traceSet[traceid]
+			}
+
+			// Decode all the [index, float32] pairs stored for the trace.
+			buf := bytes.NewBuffer(rawValues)
+			for {
+				if err := binary.Read(buf, binary.LittleEndian, &value); err != nil {
+					break
+				}
+				// Store the value in trace if the index appears in idxmap.
+				if offset, ok := idxmap[int(value.Index)]; ok {
+					trace[offset] = value.Value
+					// Don't break, we want the last value for index.
+				}
+			}
+		}
+		return nil
+	}
+
+	return db.View(get)
+}
+
+func (b *BoltTraceStore) Match(commitIDs []*CommitID, q query.Query) (TraceSet, error) {
+	ret := TraceSet{}
+	mapper := buildMapper(commitIDs)
+	for _, tm := range mapper {
+		db, err := b.getBoltDB(tm.commitID)
+		if err != nil {
+			return nil, fmt.Errorf("Unable to open datastore: %s", err)
+		}
+		if err := loadMatches(db, tm.idxmap, q, ret, len(commitIDs)); err != nil {
+			return nil, fmt.Errorf("Failed to load traces from %s: %s", tm.commitID.Filename(), err)
+		}
+	}
+	return ret, nil
 }
 
 // Ensure that *BoltTraceStore implements PTraceStore.
