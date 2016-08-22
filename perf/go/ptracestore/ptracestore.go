@@ -26,8 +26,6 @@ const (
 	TRACE_VALUES_BUCKET_NAME  = "traces"
 	TRACE_SOURCES_BUCKET_NAME = "sources"
 	SOURCE_LIST_BUCKET_NAME   = "sourceList"
-
-	LAST_SOURCE_ID_KEY = "lastSourceIndex"
 )
 
 var (
