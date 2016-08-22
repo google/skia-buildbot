@@ -1,5 +1,5 @@
 // Package params provides Params and ParamSet.
-package params
+package paramtools
 
 import (
 	"strings"
