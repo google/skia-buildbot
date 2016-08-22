@@ -27,6 +27,8 @@ debug: clean_webtools debug_core_js debug_elements_html
 
 include ../webtools/webtools.mk
 
+release: autoroll catapult_release nacl_release pdfium_release skia_release
+
 catapult_release: autoroll
 	./build_catapult_release "$(MESSAGE)"
 
