@@ -43,15 +43,17 @@ type AutoRoller struct {
 	cqExtraTrybots   string
 	emails           []string
 	includeCommitLog bool
+	emailMtx         sync.RWMutex
 	lastError        error
 	liveness         *metrics2.Liveness
 	modeHistory      *autoroll_modes.ModeHistory
+	modeMtx          sync.Mutex
 	mtx              sync.RWMutex
 	recent           *recent_rolls.RecentRolls
 	rm               repo_manager.RepoManager
 	rietveld         *rietveld.Rietveld
 	runningMtx       sync.Mutex
-	status           string
+	status           *autoRollStatusCache
 }
 
 // NewAutoRoller creates and returns a new AutoRoller which runs at the given frequency.
@@ -80,7 +82,7 @@ func NewAutoRoller(workdir, childPath, cqExtraTrybots string, emails []string, r
 		recent:           recent,
 		rietveld:         rietveld,
 		rm:               rm,
-		status:           STATUS_ERROR,
+		status:           &autoRollStatusCache{},
 	}
 
 	// Cycle once to fill out the current status.
@@ -123,33 +125,93 @@ type AutoRollStatus struct {
 	ValidModes  []string                  `json:"validModes"`
 }
 
-// GetStatus returns the roll-up status of the bot.
-func (r *AutoRoller) GetStatus(includeError bool) AutoRollStatus {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
+// autoRollStatusCache is a struct used for caching roll-up status
+// information about the AutoRoll Bot.
+type autoRollStatusCache struct {
+	currentRoll *autoroll.AutoRollIssue
+	lastError   string
+	lastRoll    *autoroll.AutoRollIssue
+	lastRollRev string
+	mode        string
+	mtx         sync.RWMutex
+	recent      []*autoroll.AutoRollIssue
+	status      string
+}
 
-	recent := r.recent.GetRecentRolls()
-	current := r.recent.CurrentRoll()
-	last := r.recent.LastRoll()
-
-	s := AutoRollStatus{
-		CurrentRoll: current,
-		LastRoll:    last,
-		LastRollRev: r.rm.LastRollRev(),
-		Mode:        r.modeHistory.CurrentMode(),
-		Recent:      recent,
-		Status:      r.status,
-		ValidModes:  autoroll_modes.VALID_MODES,
+// Get returns the current status information.
+func (c *autoRollStatusCache) Get(includeError bool) *AutoRollStatus {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	recent := make([]*autoroll.AutoRollIssue, 0, len(c.recent))
+	for _, r := range c.recent {
+		recent = append(recent, r.Copy())
 	}
-	if includeError && r.lastError != nil {
-		s.Error = r.lastError.Error()
+	validModes := make([]string, len(autoroll_modes.VALID_MODES))
+	copy(validModes, autoroll_modes.VALID_MODES)
+	s := &AutoRollStatus{
+		LastRollRev: c.lastRollRev,
+		Mode:        c.mode,
+		Recent:      recent,
+		Status:      c.status,
+		ValidModes:  validModes,
+	}
+	if c.currentRoll != nil {
+		s.CurrentRoll = c.currentRoll.Copy()
+	}
+	if c.lastRoll != nil {
+		s.LastRoll = c.lastRoll.Copy()
+	}
+	if includeError && c.lastError != "" {
+		s.Error = c.lastError
 	}
 	return s
+}
+
+// set sets the current status information.
+func (c *autoRollStatusCache) set(s *AutoRollStatus) error {
+	if !util.In(string(s.Status), VALID_STATUSES) {
+		return fmt.Errorf("Invalid status: %s", s.Status)
+	}
+	if s.Status == STATUS_ERROR {
+		if s.Error == "" {
+			return fmt.Errorf("Cannot set error status without an error!")
+		}
+	} else if s.Error != "" {
+		return fmt.Errorf("Cannot be in any status other than error when an error occurred.")
+	}
+
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	recent := make([]*autoroll.AutoRollIssue, 0, len(s.Recent))
+	for _, r := range s.Recent {
+		recent = append(recent, r.Copy())
+	}
+	c.currentRoll = nil
+	if s.CurrentRoll != nil {
+		c.currentRoll = s.CurrentRoll.Copy()
+	}
+	c.lastRoll = nil
+	if s.LastRoll != nil {
+		c.lastRoll = s.LastRoll.Copy()
+	}
+	c.lastRollRev = s.LastRollRev
+	c.mode = s.Mode
+	c.recent = recent
+	c.status = s.Status
+
+	return nil
+}
+
+// GetStatus returns the roll-up status of the bot.
+func (r *AutoRoller) GetStatus(includeError bool) *AutoRollStatus {
+	return r.status.Get(includeError)
 }
 
 // SetMode sets the desired mode of the bot. This forces the bot to run and
 // blocks until it finishes.
 func (r *AutoRoller) SetMode(m, user, message string) error {
+	r.modeMtx.Lock()
+	defer r.modeMtx.Unlock()
 	if err := r.modeHistory.Add(m, user, message); err != nil {
 		return err
 	}
@@ -161,37 +223,22 @@ func (r *AutoRoller) isMode(s string) bool {
 	return r.modeHistory.CurrentMode() == s
 }
 
-// setStatus sets the current reporting status of the bot.
-func (r *AutoRoller) setStatus(s string, lastError error) error {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-	if !util.In(string(s), VALID_STATUSES) {
-		return fmt.Errorf("Invalid status: %s", s)
-	}
-	if s == STATUS_ERROR {
-		if lastError == nil {
-			return fmt.Errorf("Cannot set error status without an error!")
-		}
-	} else if lastError != nil {
-		return fmt.Errorf("Cannot be in any status other than error when an error occurred.")
-	}
-	r.status = s
-	r.lastError = lastError
-	return nil
-}
-
 // GetEmails returns the list of email addresses which are copied on DEPS rolls.
 func (r *AutoRoller) GetEmails() []string {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
-	return r.emails
+	r.emailMtx.RLock()
+	defer r.emailMtx.RUnlock()
+	rv := make([]string, len(r.emails))
+	copy(rv, r.emails)
+	return rv
 }
 
 // SetEmails sets the list of email addresses which are copied on DEPS rolls.
 func (r *AutoRoller) SetEmails(e []string) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-	r.emails = e
+	r.emailMtx.Lock()
+	defer r.emailMtx.Unlock()
+	emails := make([]string, len(e))
+	copy(emails, e)
+	r.emails = emails
 }
 
 // closeIssue closes the given issue with the given message.
@@ -251,9 +298,6 @@ func (r *AutoRoller) setDryRun(issue *autoroll.AutoRollIssue, dryRun bool) error
 
 // updateCurrentRoll retrieves updated information about the current DEPS roll.
 func (r *AutoRoller) updateCurrentRoll() error {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
-
 	currentRoll := r.recent.CurrentRoll()
 	if currentRoll == nil {
 		return nil
@@ -314,7 +358,21 @@ func (r *AutoRoller) retrieveRoll(issueNum int64) (*autoroll.AutoRollIssue, erro
 func (r *AutoRoller) doAutoRoll() error {
 	status, lastError := r.doAutoRollInner()
 
-	if err := r.setStatus(status, lastError); err != nil {
+	lastErrorStr := ""
+	if lastError != nil {
+		lastErrorStr = lastError.Error()
+	}
+
+	// Update status information.
+	if err := r.status.set(&AutoRollStatus{
+		CurrentRoll: r.recent.CurrentRoll(),
+		Error:       lastErrorStr,
+		LastRoll:    r.recent.LastRoll(),
+		LastRollRev: r.rm.LastRollRev(),
+		Mode:        r.modeHistory.CurrentMode(),
+		Recent:      r.recent.GetRecentRolls(),
+		Status:      status,
+	}); err != nil {
 		return err
 	}
 

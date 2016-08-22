@@ -56,8 +56,9 @@ type repoManager struct {
 	chromiumParentDir string
 	depot_tools       string
 	gclient           string
+	infoMtx           sync.RWMutex
 	lastRollRev       string
-	mtx               sync.RWMutex
+	repoMtx           sync.RWMutex
 	rollDep           string
 	childDir          string
 	childHead         string
@@ -134,8 +135,8 @@ func NewDefaultRepoManager(workdir, childPath string, frequency time.Duration, d
 // update syncs code in the relevant repositories.
 func (r *repoManager) update() error {
 	// Sync the projects.
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
+	r.repoMtx.Lock()
+	defer r.repoMtx.Unlock()
 
 	// Create the chromium parent directory if needed.
 	if _, err := os.Stat(r.chromiumParentDir); err != nil {
@@ -188,13 +189,15 @@ func (r *repoManager) update() error {
 	if err != nil {
 		return err
 	}
-	r.lastRollRev = lastRollRev
 
 	// Record child HEAD
 	childHead, err := r.childRepo.FullHash("origin/master")
 	if err != nil {
 		return err
 	}
+	r.infoMtx.Lock()
+	defer r.infoMtx.Unlock()
+	r.lastRollRev = lastRollRev
 	r.childHead = childHead
 	return nil
 }
@@ -226,22 +229,22 @@ func (r *repoManager) getLastRollRev() (string, error) {
 // FullChildHash returns the full hash of the given short hash or ref in the
 // child repo.
 func (r *repoManager) FullChildHash(shortHash string) (string, error) {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
+	r.repoMtx.RLock()
+	defer r.repoMtx.RUnlock()
 	return r.childRepo.FullHash(shortHash)
 }
 
 // LastRollRev returns the last-rolled child commit.
 func (r *repoManager) LastRollRev() string {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
+	r.infoMtx.RLock()
+	defer r.infoMtx.RUnlock()
 	return r.lastRollRev
 }
 
 // RolledPast determines whether DEPS has rolled past the given commit.
 func (r *repoManager) RolledPast(hash string) bool {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
+	r.repoMtx.RLock()
+	defer r.repoMtx.RUnlock()
 	if _, err := exec.RunCwd(r.childDir, "git", "merge-base", "--is-ancestor", hash, r.lastRollRev); err != nil {
 		return false
 	}
@@ -250,8 +253,8 @@ func (r *repoManager) RolledPast(hash string) bool {
 
 // ChildHead returns the current child origin/master branch head.
 func (r *repoManager) ChildHead() string {
-	r.mtx.RLock()
-	defer r.mtx.RUnlock()
+	r.infoMtx.RLock()
+	defer r.infoMtx.RUnlock()
 	return r.childHead
 }
 
@@ -279,8 +282,8 @@ func (r *repoManager) cleanChromium() error {
 // CreateNewRoll creates and uploads a new DEPS roll to the given commit.
 // Returns the issue number of the uploaded roll.
 func (r *repoManager) CreateNewRoll(emails []string, cqExtraTrybots string, dryRun bool) (int64, error) {
-	r.mtx.Lock()
-	defer r.mtx.Unlock()
+	r.repoMtx.Lock()
+	defer r.repoMtx.Unlock()
 
 	// Clean the checkout, get onto a fresh branch.
 	if err := r.cleanChromium(); err != nil {

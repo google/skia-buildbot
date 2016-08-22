@@ -108,6 +108,37 @@ func (i *AutoRollIssue) Validate() error {
 	return nil
 }
 
+// Copy returns a copy of the AutoRollIssue.
+func (i *AutoRollIssue) Copy() *AutoRollIssue {
+	var patchsetsCpy []int64
+	if i.Patchsets != nil {
+		patchsetsCpy = make([]int64, len(i.Patchsets))
+		copy(patchsetsCpy, i.Patchsets)
+	}
+	var tryResultsCpy []*TryResult
+	if i.TryResults != nil {
+		tryResultsCpy = make([]*TryResult, 0, len(i.TryResults))
+		for _, t := range i.TryResults {
+			tryResultsCpy = append(tryResultsCpy, t.Copy())
+		}
+	}
+	return &AutoRollIssue{
+		Closed:            i.Closed,
+		Committed:         i.Committed,
+		CommitQueue:       i.CommitQueue,
+		CommitQueueDryRun: i.CommitQueueDryRun,
+		Created:           i.Created,
+		Issue:             i.Issue,
+		Modified:          i.Modified,
+		Patchsets:         patchsetsCpy,
+		Result:            i.Result,
+		RollingFrom:       i.RollingFrom,
+		RollingTo:         i.RollingTo,
+		Subject:           i.Subject,
+		TryResults:        tryResultsCpy,
+	}
+}
+
 // FromRietveldIssue returns an AutoRollIssue instance based on the given
 // rietveld.Issue.
 func FromRietveldIssue(i *rietveld.Issue, fullHashFn func(string) (string, error)) (*AutoRollIssue, error) {
@@ -251,6 +282,18 @@ func (t TryResult) Finished() bool {
 // Succeeded returns true iff the trybot completed successfully.
 func (t TryResult) Succeeded() bool {
 	return t.Finished() && t.Result == TRYBOT_RESULT_SUCCESS
+}
+
+// Copy returns a copy of the TryResult.
+func (t *TryResult) Copy() *TryResult {
+	return &TryResult{
+		Builder:  t.Builder,
+		Category: t.Category,
+		Created:  t.Created,
+		Result:   t.Result,
+		Status:   t.Status,
+		Url:      t.Url,
+	}
 }
 
 type autoRollIssueSlice []*AutoRollIssue
