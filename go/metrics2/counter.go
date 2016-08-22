@@ -74,3 +74,13 @@ func (c *Counter) Get() int64 {
 	defer c.mtx.Unlock()
 	return c.m.Get()
 }
+
+// Delete removes the counter from metrics.
+func (c *Counter) Delete() error {
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	c.m.client.countersMtx.Lock()
+	defer c.m.client.countersMtx.Unlock()
+	delete(c.m.client.counters, c.m.key)
+	return c.m.Delete()
+}

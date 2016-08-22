@@ -16,6 +16,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/db"
+	"go.skia.org/infra/go/boltutil"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
@@ -132,6 +133,8 @@ type localDB struct {
 	txActive map[int64]string
 	txMutex  sync.RWMutex
 
+	dbMetric *boltutil.DbMetric
+
 	modTasks db.ModifiedTasks
 }
 
@@ -231,6 +234,12 @@ func NewDB(name, filename string) (db.DB, error) {
 		return nil, err
 	}
 
+	if dbMetric, err := boltutil.NewDbMetric(boltdb, []string{BUCKET_TASKS}, map[string]string{"database": name}); err != nil {
+		return nil, err
+	} else {
+		d.dbMetric = dbMetric
+	}
+
 	return d, nil
 }
 
@@ -241,11 +250,15 @@ func (d *localDB) Close() error {
 	if len(d.txActive) > 0 {
 		return fmt.Errorf("Can not close DB when transactions are active.")
 	}
-	// TODO(benjaminwagner): Make this work.
-	//if err := d.txCount.Delete(); err != nil {
-	//	return err
-	//}
 	d.txActive = map[int64]string{}
+	if err := d.dbMetric.Delete(); err != nil {
+		return err
+	}
+	d.dbMetric = nil
+	if err := d.txCount.Delete(); err != nil {
+		return err
+	}
+	d.txCount = nil
 	return d.db.Close()
 }
 
@@ -449,19 +462,6 @@ func (d *localDB) GetModifiedTasks(id string) ([]*db.Task, error) {
 // See docs for DB interface.
 func (d *localDB) StartTrackingModifiedTasks() (string, error) {
 	return d.modTasks.StartTrackingModifiedTasks()
-}
-
-// Returns the total number of tasks in the DB.
-// TODO(benjaminwagner): add a metrics goroutine.
-func (d *localDB) NumTasks() (int, error) {
-	var n int
-	if err := d.view("NumTasks", func(tx *bolt.Tx) error {
-		n = tasksBucket(tx).Stats().KeyN
-		return nil
-	}); err != nil {
-		return -1, err
-	}
-	return n, nil
 }
 
 // RunBackupServer runs an HTTP server which provides downloadable database
