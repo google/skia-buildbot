@@ -201,11 +201,19 @@ func (c *Client) pushData() (map[string]int64, error) {
 	return byMeasurement, nil
 }
 
+// Flush pushes any queued data into InfluxDB immediately. Long running apps shouldn't worry about this as Client will auto-push every so often.
+func (c *Client) Flush() error {
+	c.collectMetrics()
+	c.collectAggregateMetrics()
+	if _, err := c.pushData(); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Flush pushes any queued data into InfluxDB.  It is meant to be deferred by short running apps.  Long running apps shouldn't worry about this as metrics2 will auto-push every so often.
 func Flush() {
-	DefaultClient.collectMetrics()
-	DefaultClient.collectAggregateMetrics()
-	if _, err := DefaultClient.pushData(); err != nil {
+	if err := DefaultClient.Flush(); err != nil {
 		glog.Errorf("There was a problem while flushing metrics: %s", err)
 	}
 }
@@ -237,8 +245,16 @@ func (m *rawMetric) update(v interface{}) {
 // Delete removes the metric from its Client's registry.
 func (m *rawMetric) Delete() error {
 	m.mtx.Lock()
-	defer m.mtx.Unlock()
-	return m.client.deleteRawMetric(m.key)
+	key := m.key
+	client := m.client
+	// Release m.mtx before calling Client.deleteRawMetric() to prevent deadlock.
+	//   - Client.collectMetrics() (called periodically from goroutine in
+	//     NewClient()) locks Client.metricsMtx while calling rawMetric.get(),
+	//     which locks rawMetric.mtx.
+	//   - If we don't unlock rawMetric.mtx here, we will be holding it when
+	//     Client.deleteRawMetric() locks Client.metricsMtx.
+	m.mtx.Unlock()
+	return client.deleteRawMetric(key)
 }
 
 // makeMetricKey generates a key for the given metric based on its measurement

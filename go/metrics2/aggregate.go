@@ -51,8 +51,17 @@ func (m *aggregateMetric) reset() interface{} {
 // Delete removes the metric from its Client's registry.
 func (m *aggregateMetric) Delete() error {
 	m.mtx.Lock()
-	defer m.mtx.Unlock()
-	return m.client.deleteAggregateMetric(m.key)
+	client := m.client
+	key := m.key
+	// Release m.mtx before calling Client.deleteAggregateMetric() to prevent
+	// deadlock.
+	//   - Client.collectAggregateMetrics() (called periodically from goroutine in
+	//     NewClient()) locks Client.aggMetricsMtx while calling
+	//     aggregateMetric.reset(), which locks aggregateMetric.mtx.
+	//   - If we don't unlock aggregateMetric.mtx here, we will be holding it when
+	//     Client.deleteAggregateMetric() locks Client.aggMetricsMtx.
+	m.mtx.Unlock()
+	return client.deleteAggregateMetric(key)
 }
 
 // Int64MeanMetric is a metric whose data is aggregated over the sampling period
