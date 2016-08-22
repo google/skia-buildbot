@@ -413,7 +413,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 			tasks[i].Id = oldId
 		}
 	}
-	gobs := make([][]byte, 0, len(tasks))
+	gobs := make(map[string][]byte, len(tasks))
 	err := d.update("PutTasks", func(tx *bolt.Tx) error {
 		// Assign Ids and encode.
 		e := db.TaskEncoder{}
@@ -436,7 +436,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 			if t == nil {
 				break
 			}
-			gobs = append(gobs, serialized)
+			gobs[t.Id] = serialized
 			// BUCKET_TASKS_VERSION = 1
 			value := packV1(now, serialized)
 			if err := bucket.Put([]byte(t.Id), value); err != nil {

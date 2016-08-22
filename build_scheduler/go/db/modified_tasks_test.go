@@ -47,6 +47,32 @@ func TestModifiedTasks(t *testing.T) {
 	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
 }
 
+// Test that if a Task is modified multiple times, it only appears once in the
+// result of GetModifiedTasks.
+func TestMultipleModifications(t *testing.T) {
+	m := ModifiedTasks{}
+
+	id, err := m.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
+
+	t1 := makeTask(time.Unix(0, 1470674132000000), []string{"a", "b", "c", "d"})
+	t1.Id = "1"
+
+	// Insert the task.
+	m.TrackModifiedTask(t1)
+
+	// Make several more modifications.
+	t1.Status = TASK_STATUS_RUNNING
+	m.TrackModifiedTask(t1)
+	t1.Status = TASK_STATUS_SUCCESS
+	m.TrackModifiedTask(t1)
+
+	// Ensure that the task shows up only once in the modified list.
+	tasks, err := m.GetModifiedTasks(id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+}
+
 func TestModifiedTasksTooManyUsers(t *testing.T) {
 	m := ModifiedTasks{}
 
