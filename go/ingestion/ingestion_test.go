@@ -101,6 +101,7 @@ func testIngester(t *testing.T, statusDir string, asEvents bool) {
 	}
 
 	// Make sure that all the files were written to disk.
+	ingester.syncFileWrite()
 	for _, result := range resultFiles {
 		fPath := filepath.Join(ingester.resultFilesDir, result.Name())
 		assert.True(t, fileutil.FileExists(fPath), fmt.Sprintf("File: %s does not exist", fPath))

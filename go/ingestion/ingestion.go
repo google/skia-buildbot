@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -112,6 +113,9 @@ type Ingester struct {
 
 	// processFileTimer measures how long it takes to process an individual file.
 	processFileTimer *metrics2.Timer
+
+	// fileWriterWg allows to synchronize file writes - testing only.
+	fileWriterWg sync.WaitGroup
 }
 
 // NewIngester creates a new ingester with the given id and configuration around
@@ -358,7 +362,9 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 
 // saveFileAsync asynchronously saves the given result file to disk.
 func (i *Ingester) saveFileAsync(resultFile ResultFileLocation) {
+	i.fileWriterWg.Add(1)
 	go func() {
+		defer i.fileWriterWg.Done()
 		content := resultFile.Content()
 		if content == nil {
 			glog.Errorf("Received file to save without content.")
@@ -384,6 +390,11 @@ func (i *Ingester) saveFileAsync(resultFile ResultFileLocation) {
 			return
 		}
 	}()
+}
+
+// syncFileWrite waits for all files to be written. Use for testing only.
+func (i *Ingester) syncFileWrite() {
+	i.fileWriterWg.Wait()
 }
 
 // getCommitRangeOfInterest returns the time range (start, end) that
