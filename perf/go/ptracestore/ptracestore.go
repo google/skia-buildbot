@@ -393,6 +393,16 @@ func buildMapper(commitIDs []*CommitID) map[string]*tileMap {
 	return mapper
 }
 
+// dup makes a copy of a byte slice.
+//
+// Needed since values returned from BoltDB are only valid
+// for the life of the transaction.
+func dup(b []byte) []byte {
+	ret := make([]byte, len(b))
+	copy(ret, b)
+	return ret
+}
+
 // loadMatches loads values into 'traceSet' that match the query 'q' from the
 // tile in the BoltDB 'db'.  Only values at the offsets in 'idxmap' are
 // actually loaded, and 'idxmap' determines where they are stored in the Trace.
@@ -408,11 +418,12 @@ func loadMatches(db *bolt.DB, idxmap map[int]int, q query.Query, traceSet TraceS
 		value := traceValue{}
 		// Loop over the entire bucket.
 		for btraceid, rawValues := v.First(); btraceid != nil; btraceid, rawValues = v.Next() {
-			traceid := string(btraceid)
 			// Does the trace id match the query?
-			if !q.Matches(traceid) {
+			if !q.Matches(string(btraceid)) {
 				continue
 			}
+			// Don't make the copy until we know we are going to need it.
+			traceid := string(dup(btraceid))
 
 			// Get the trace.
 			trace := traceSet[traceid]
