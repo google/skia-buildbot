@@ -9,6 +9,7 @@ import (
 	"go.skia.org/infra/go/util"
 
 	"github.com/satori/go.uuid"
+	"github.com/skia-dev/glog"
 )
 
 type inMemoryDB struct {
@@ -35,7 +36,10 @@ func (db *inMemoryDB) Close() error {
 func (db *inMemoryDB) GetTaskById(id string) (*Task, error) {
 	db.tasksMtx.RLock()
 	defer db.tasksMtx.RUnlock()
-	return db.tasks[id], nil
+	if task := db.tasks[id]; task != nil {
+		return task.Copy(), nil
+	}
+	return nil, nil
 }
 
 // See docs for DB interface.
@@ -72,7 +76,13 @@ func (db *inMemoryDB) PutTask(task *Task) error {
 		if err := db.AssignId(task); err != nil {
 			return err
 		}
+	} else if existing := db.tasks[task.Id]; existing != nil {
+		if !existing.DbModified.Equal(task.DbModified) {
+			glog.Warningf("Cached Task has been modified in the DB. Current:\n%v\nCached:\n%v", existing, task)
+			return ErrConcurrentUpdate
+		}
 	}
+	task.DbModified = time.Now()
 
 	// TODO(borenet): Keep tasks in a sorted slice.
 	db.tasks[task.Id] = task

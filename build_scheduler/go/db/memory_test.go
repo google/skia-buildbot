@@ -9,3 +9,7 @@ func TestInMemoryDB(t *testing.T) {
 func TestInMemoryTooManyUsers(t *testing.T) {
 	TestTooManyUsers(t, NewInMemoryDB())
 }
+
+func TestInMemoryConcurrentUpdate(t *testing.T) {
+	TestConcurrentUpdate(t, NewInMemoryDB())
+}

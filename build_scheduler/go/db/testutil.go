@@ -8,6 +8,7 @@ import (
 	assert "github.com/stretchr/testify/require"
 
 	"go.skia.org/infra/go/testutils"
+	"go.skia.org/infra/go/util"
 )
 
 func makeTask(ts time.Time, commits []string) *Task {
@@ -53,6 +54,10 @@ func TestDB(t *testing.T, db DB) {
 	// Insert the task.
 	assert.NoError(t, db.PutTask(t1))
 
+	// Check that DbModified was set.
+	assert.False(t, util.TimeIsZero(t1.DbModified))
+	t1LastModified := t1.DbModified
+
 	// Task can now be retrieved by Id.
 	t1Again, err := db.GetTaskById(t1.Id)
 	assert.NoError(t, err)
@@ -95,6 +100,19 @@ func TestDB(t *testing.T, db DB) {
 	tasks, err = db.GetModifiedTasks(id)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+
+	// Make an update to t1 and t2. Ensure modified times change.
+	t2LastModified := t2.DbModified
+	t1.Status = TASK_STATUS_RUNNING
+	t2.Status = TASK_STATUS_SUCCESS
+	assert.NoError(t, db.PutTasks([]*Task{t1, t2}))
+	assert.False(t, t1.DbModified.Equal(t1LastModified))
+	assert.False(t, t2.DbModified.Equal(t2LastModified))
+
+	// Ensure that both tasks show up in the modified list.
+	tasks, err = db.GetModifiedTasks(id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Task{t1, t2}, tasks)
 
 	// Ensure that all tasks show up in the correct time ranges, in sorted order.
 	t2Before := t2.Created
@@ -168,4 +186,54 @@ func TestTooManyUsers(t *testing.T, db DB) {
 	}
 	_, err := db.StartTrackingModifiedTasks()
 	assert.True(t, IsTooManyUsers(err))
+}
+
+// Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
+// has been updated in the DB.
+func TestConcurrentUpdate(t *testing.T, db DB) {
+	defer testutils.AssertCloses(t, db)
+
+	// Insert a task.
+	t1 := makeTask(time.Now(), []string{"a", "b", "c", "d"})
+	assert.NoError(t, db.PutTask(t1))
+
+	// Retrieve a copy of the task.
+	t1Cached, err := db.GetTaskById(t1.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, t1, t1Cached)
+
+	// Update the original task.
+	t1.Commits = []string{"a", "b"}
+	assert.NoError(t, db.PutTask(t1))
+
+	// Update the cached copy; should get concurrent update error.
+	t1Cached.Status = TASK_STATUS_RUNNING
+	err = db.PutTask(t1Cached)
+	assert.True(t, IsConcurrentUpdate(err))
+
+	{
+		// DB should still have the old value of t1.
+		t1Again, err := db.GetTaskById(t1.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, t1, t1Again)
+	}
+
+	// Insert a second task.
+	t2 := makeTask(time.Now(), []string{"e", "f"})
+	assert.NoError(t, db.PutTask(t2))
+
+	// Update t2 at the same time as t1Cached; should still get an error.
+	t2.Status = TASK_STATUS_MISHAP
+	err = db.PutTasks([]*Task{t2, t1Cached})
+	assert.True(t, IsConcurrentUpdate(err))
+
+	{
+		// DB should still have the old value of t1.
+		t1Again, err := db.GetTaskById(t1.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, t1, t1Again)
+
+		// DB should also still have the old value of t2, but to keep InMemoryDB
+		// simple, we don't check that here.
+	}
 }

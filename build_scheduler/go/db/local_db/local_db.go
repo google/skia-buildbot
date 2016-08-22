@@ -395,39 +395,61 @@ func (d *localDB) validate(t *db.Task) error {
 }
 
 // See documentation for DB interface.
-// TODO(benjaminwagner): Figure out how to detect write/write conflicts and
-// return "concurrent modification" error.
 func (d *localDB) PutTasks(tasks []*db.Task) error {
 	// If there is an error during the transaction, we should leave the tasks
-	// unchanged. Save the old Ids since we set them below.
-	oldIds := make([]string, len(tasks))
-	// Validate and save current Ids.
+	// unchanged. Save the old Ids and DbModified times since we set them below.
+	type savedData struct {
+		Id         string
+		DbModified time.Time
+	}
+	oldData := make([]savedData, 0, len(tasks))
+	// Validate and save current data.
 	for _, t := range tasks {
 		if err := d.validate(t); err != nil {
 			return err
 		}
-		oldIds = append(oldIds, t.Id)
+		oldData = append(oldData, savedData{
+			Id:         t.Id,
+			DbModified: t.DbModified,
+		})
 	}
 	revertChanges := func() {
-		for i, oldId := range oldIds {
-			tasks[i].Id = oldId
+		for i, data := range oldData {
+			tasks[i].Id = data.Id
+			tasks[i].DbModified = data.DbModified
 		}
 	}
 	gobs := make(map[string][]byte, len(tasks))
 	err := d.update("PutTasks", func(tx *bolt.Tx) error {
+		bucket := tasksBucket(tx)
 		// Assign Ids and encode.
 		e := db.TaskEncoder{}
-		now := time.Now()
+		now := time.Now().UTC()
 		for _, t := range tasks {
 			if t.Id == "" {
 				if err := d.assignId(tx, t, now); err != nil {
 					return err
 				}
+			} else {
+				if value := bucket.Get([]byte(t.Id)); value != nil {
+					modTs, serialized, err := unpackV1(value)
+					if err != nil {
+						return err
+					}
+					if !modTs.Equal(t.DbModified) {
+						var existing db.Task
+						if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&existing); err != nil {
+							return err
+						}
+						glog.Warningf("Cached Task has been modified in the DB. Current:\n%#v\nCached:\n%#v", existing, t)
+						return db.ErrConcurrentUpdate
+					}
+				}
 			}
+			t.DbModified = now
 			e.Process(t)
 		}
 		// Insert/update.
-		bucket := tasksBucket(tx)
 		for {
 			t, serialized, err := e.Next()
 			if err != nil {

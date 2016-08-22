@@ -14,8 +14,9 @@ const (
 )
 
 var (
-	ErrTooManyUsers = errors.New("Too many users")
-	ErrUnknownId    = errors.New("Unknown ID")
+	ErrTooManyUsers     = errors.New("Too many users")
+	ErrUnknownId        = errors.New("Unknown ID")
+	ErrConcurrentUpdate = errors.New("Concurrent update")
 )
 
 func IsTooManyUsers(e error) bool {
@@ -24,6 +25,10 @@ func IsTooManyUsers(e error) bool {
 
 func IsUnknownId(e error) bool {
 	return e != nil && e.Error() == ErrUnknownId.Error()
+}
+
+func IsConcurrentUpdate(e error) bool {
+	return e != nil && e.Error() == ErrConcurrentUpdate.Error()
 }
 
 type DB interface {
@@ -46,11 +51,12 @@ type DB interface {
 	GetTasksFromDateRange(time.Time, time.Time) ([]*Task, error)
 
 	// PutTask inserts or updates the Task in the database. Task's Id field must
-	// be empty or set with AssignId.
+	// be empty or set with AssignId. PutTask will set Task.DbModified.
 	PutTask(*Task) error
 
 	// PutTasks inserts or updates the Tasks in the database. Each Task's Id field
-	// must be empty or set with AssignId.
+	// must be empty or set with AssignId. Each Task's DbModified field will be
+	// set.
 	PutTasks([]*Task) error
 
 	// StartTrackingModifiedTasks initiates tracking of modified builds for

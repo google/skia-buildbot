@@ -68,6 +68,11 @@ type Task struct {
 	// Created is the creation timestamp.
 	Created time.Time
 
+	// DbModified is the time of the last successful call to DB.PutTask/s for this
+	// Task, or zero if the task is new. It is not related to the ModifiedTs time
+	// of the associated Swarming task.
+	DbModified time.Time
+
 	// Finished is the time the task stopped running or expired from the queue, or
 	//  zero if the task is pending or running.
 	Finished time.Time

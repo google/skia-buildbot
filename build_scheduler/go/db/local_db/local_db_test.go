@@ -213,7 +213,7 @@ func TestAssignIdsFromCreatedTs(t *testing.T) {
 // Test that AssignId can generate ids when created timestamp is not set, and
 // generates unique IDs for PutTasks.
 func TestAssignIdsFromCurrentTime(t *testing.T) {
-	d, tmpdir := makeDB(t, "TestAssignIdsFromCreatedTs")
+	d, tmpdir := makeDB(t, "TestAssignIdsFromCurrentTime")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
@@ -275,7 +275,7 @@ func TestAssignIdsFromCurrentTime(t *testing.T) {
 // Test that PutTask returns an error when AssignId time is too far before (or
 // after) the value subsequently assigned to Task.Created.
 func TestPutTaskValidateCreatedTime(t *testing.T) {
-	d, tmpdir := makeDB(t, "TestAssignIdsFromCreatedTs")
+	d, tmpdir := makeDB(t, "TestPutTaskValidateCreatedTime")
 	defer util.RemoveAll(tmpdir)
 	defer testutils.AssertCloses(t, d)
 
@@ -350,6 +350,73 @@ func TestPutTaskValidateCreatedTime(t *testing.T) {
 	}
 }
 
+// Test that PutTask/s does not modify the passed-in Tasks when there is an
+// error.
+func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
+	d, tmpdir := makeDB(t, "TestPutTaskLeavesTasksUnchanged")
+	defer util.RemoveAll(tmpdir)
+	defer testutils.AssertCloses(t, d)
+
+	begin := time.Now().Add(-time.Nanosecond)
+
+	// Create and insert a task that will cause ErrConcurrentUpdate.
+	task1 := &db.Task{
+		Created: time.Now(),
+	}
+	assert.NoError(t, d.PutTask(task1))
+
+	// Retrieve a copy, modify original.
+	task1Cached, err := d.GetTaskById(task1.Id)
+	assert.NoError(t, err)
+	task1.Status = db.TASK_STATUS_RUNNING
+	assert.NoError(t, d.PutTask(task1))
+	task1InDb := task1.Copy()
+
+	// Create and insert a task to check PutTasks doesn't change DbModified.
+	task2 := &db.Task{
+		Created: time.Now(),
+	}
+	assert.NoError(t, d.PutTask(task2))
+	task2InDb := task2.Copy()
+	task2.Status = db.TASK_STATUS_MISHAP
+
+	// Create a task with an Id already set.
+	task3 := &db.Task{}
+	assert.NoError(t, d.AssignId(task3))
+	task3.Created = time.Now()
+
+	// Create a task without an Id set.
+	task4 := &db.Task{
+		Created: time.Now(),
+	}
+
+	// Make an update to task1Cached.
+	task1Cached.Commits = []string{"a", "b"}
+
+	// Copy to compare later.
+	expectedTasks := []*db.Task{task1Cached.Copy(), task2.Copy(), task3.Copy(), task4.Copy()}
+
+	// Attempt to insert; put task1Cached last so that the error comes last.
+	err = d.PutTasks([]*db.Task{task2, task3, task4, task1Cached})
+	assert.True(t, db.IsConcurrentUpdate(err))
+	testutils.AssertDeepEqual(t, expectedTasks, []*db.Task{task1Cached, task2, task3, task4})
+
+	// Check that nothing was updated in the DB.
+	tasksInDb, err := d.GetTasksFromDateRange(begin, time.Now())
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(tasksInDb))
+	for _, task := range tasksInDb {
+		switch task.Id {
+		case task1.Id:
+			testutils.AssertDeepEqual(t, task1InDb, task)
+		case task2.Id:
+			testutils.AssertDeepEqual(t, task2InDb, task)
+		default:
+			assert.Fail(t, "Unexpected task in DB: %v", task)
+		}
+	}
+}
+
 func TestLocalDB(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDB")
 	defer util.RemoveAll(tmpdir)
@@ -360,4 +427,10 @@ func TestLocalDBTooManyUsers(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBTooManyUsers")
 	defer util.RemoveAll(tmpdir)
 	db.TestTooManyUsers(t, d)
+}
+
+func TestLocalDBConcurrentUpdate(t *testing.T) {
+	d, tmpdir := makeDB(t, "TestLocalDBConcurrentUpdate")
+	defer util.RemoveAll(tmpdir)
+	db.TestConcurrentUpdate(t, d)
 }
