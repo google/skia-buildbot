@@ -53,6 +53,13 @@ const (
 // Task describes a Swarming task generated from a TaskSpec, or a "fake" task
 // that can not be executed on Swarming, but can be added to the DB and
 // displayed as if it were a real TaskSpec.
+//
+// Task is stored as a GOB, so changes must maintain backwards compatibility.
+// See gob package documentation for details, but generally:
+//   - Ensure new fields can be initialized with their zero value.
+//   - Do not change the type of any existing field.
+//   - Leave removed fields commented out to ensure the field name is not
+//     reused.
 type Task struct {
 	// Commits are the commits which were tested in this Task. The list may
 	// change due to backfilling/bisecting.

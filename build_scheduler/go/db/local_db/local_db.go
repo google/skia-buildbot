@@ -2,6 +2,7 @@ package local_db
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/gob"
 	"fmt"
 	"net/http"
@@ -21,13 +22,21 @@ import (
 )
 
 const (
-	// Tasks. Key is Task.Id, which is set to (creation time, sequence number)
-	// (see formatId for detail), value is the GOB of the task. Tasks will be
-	// updated in place. All repos share the same bucket.
-	// TODO(benjaminwagner): May need to prefix value with metadata.
+	// BUCKET_TASKS is the name of the Tasks bucket. Key is Task.Id, which is set
+	// to (creation time, sequence number) (see formatId for detail), value is
+	// described in docs for BUCKET_TASKS_VERSION. Tasks will be updated in place.
+	// All repos share the same bucket.
 	BUCKET_TASKS = "tasks"
-	// BUCKET_TASKS will be append-mostly, so use a high fill percent.
+	// BUCKET_TASKS_FILL_PERCENT is the value to set for bolt.Bucket.FillPercent
+	// for BUCKET_TASKS. BUCKET_TASKS will be append-mostly, so use a high fill
+	// percent.
 	BUCKET_TASKS_FILL_PERCENT = 0.9
+	// BUCKET_TASKS_VERSION indicates the format of the value of BUCKET_TASKS
+	// written by PutTasks. Retrieving Tasks from the DB must support all previous
+	// versions. For all versions, the first byte is the version number.
+	//   Version 1: v[0] = 1; v[1:9] is the modified time as UnixNano encoded as
+	//     big endian; v[9:] is the GOB of the Task.
+	BUCKET_TASKS_VERSION = 1
 
 	// TIMESTAMP_FORMAT is a format string passed to Time.Format and time.Parse to
 	// format/parse the timestamp in the Task ID. It is similar to
@@ -83,6 +92,29 @@ func parseId(id string) (time.Time, uint64, error) {
 		return time.Time{}, 0, fmt.Errorf("Unparsable ID: %q; Expected one hex number in %s, got %d", id, parts[1], i)
 	}
 	return t, seq, nil
+}
+
+// packV1 creates a value as described for BUCKET_TASKS_VERSION = 1. t is the
+// modified time and serialized is the GOB of the Task.
+func packV1(t time.Time, serialized []byte) []byte {
+	rv := make([]byte, len(serialized)+9)
+	rv[0] = 1
+	binary.BigEndian.PutUint64(rv[1:9], uint64(t.UnixNano()))
+	copy(rv[9:], serialized)
+	return rv
+}
+
+// unpackV1 gets the modified time and GOB of the Task from a value as described
+// by BUCKET_TASKS_VERSION = 1. The returned GOB shares structure with value.
+func unpackV1(value []byte) (time.Time, []byte, error) {
+	if len(value) < 9 {
+		return time.Time{}, nil, fmt.Errorf("unpackV1 value is too short (%d bytes)", len(value))
+	}
+	if value[0] != 1 {
+		return time.Time{}, nil, fmt.Errorf("unpackV1 called for value with version %d", value[0])
+	}
+	t := time.Unix(0, int64(binary.BigEndian.Uint64(value[1:9]))).UTC()
+	return t, value[9:], nil
 }
 
 // localDB accesses a local BoltDB database containing tasks.
@@ -252,9 +284,16 @@ func (d *localDB) AssignId(t *db.Task) error {
 func (d *localDB) GetTaskById(id string) (*db.Task, error) {
 	var rv *db.Task
 	if err := d.view("GetTaskById", func(tx *bolt.Tx) error {
-		serialized := tasksBucket(tx).Get([]byte(id))
-		if serialized == nil {
+		value := tasksBucket(tx).Get([]byte(id))
+		if value == nil {
 			return nil
+		}
+		// Only BUCKET_TASKS_VERSION = 1 is implemented right now.
+		// TODO(benjaminwagner): Add functions "pack" and "unpack" that determine
+		// which version to use.
+		_, serialized, err := unpackV1(value)
+		if err != nil {
+			return err
 		}
 		var t db.Task
 		if err := gob.NewDecoder(bytes.NewReader(serialized)).Decode(&t); err != nil {
@@ -282,8 +321,13 @@ func (d *localDB) GetTasksFromDateRange(start, end time.Time) ([]*db.Task, error
 	if err := d.view("GetTasksFromDateRange", func(tx *bolt.Tx) error {
 		c := tasksBucket(tx).Cursor()
 		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
-			cpy := make([]byte, len(v))
-			copy(cpy, v)
+			// Only BUCKET_TASKS_VERSION = 1 is implemented right now.
+			_, serialized, err := unpackV1(v)
+			if err != nil {
+				return err
+			}
+			cpy := make([]byte, len(serialized))
+			copy(cpy, serialized)
 			if !decoder.Process(cpy) {
 				return nil
 			}
@@ -370,6 +414,7 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 			e.Process(t)
 		}
 		// Insert/update.
+		bucket := tasksBucket(tx)
 		for {
 			t, serialized, err := e.Next()
 			if err != nil {
@@ -379,7 +424,9 @@ func (d *localDB) PutTasks(tasks []*db.Task) error {
 				break
 			}
 			gobs = append(gobs, serialized)
-			if err := tasksBucket(tx).Put([]byte(t.Id), serialized); err != nil {
+			// BUCKET_TASKS_VERSION = 1
+			value := packV1(now, serialized)
+			if err := bucket.Put([]byte(t.Id), value); err != nil {
 				return err
 			}
 		}

@@ -90,6 +90,50 @@ func TestFormatParseId(t *testing.T) {
 	}
 }
 
+// Check that packV1 and unpackV1 are inverse operations and produce the
+// expected result.
+func TestPackUnpackV1(t *testing.T) {
+	testCases := []struct {
+		ts     time.Time
+		data   []byte
+		packed []byte
+	}{
+		{
+			ts:     time.Unix(0, 0x1174f263b54399dc),
+			data:   []byte{0xab, 0xcd, 0xef, 0x01, 0x23},
+			packed: []byte{0x01, 0x11, 0x74, 0xf2, 0x63, 0xb5, 0x43, 0x99, 0xdc, 0xab, 0xcd, 0xef, 0x01, 0x23},
+		},
+		{
+			ts:     time.Date(2262, time.April, 11, 23, 47, 16, 854775807, time.UTC),
+			data:   []byte("Hi Mom!"),
+			packed: append([]byte{0x01, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff}, "Hi Mom!"...),
+		},
+		{
+			ts:     time.Unix(0, 0),
+			data:   []byte{},
+			packed: []byte{0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+		},
+	}
+	for _, testCase := range testCases {
+		assert.Equal(t, testCase.packed, packV1(testCase.ts, testCase.data))
+		ts, data, err := unpackV1(testCase.packed)
+		assert.NoError(t, err)
+		assert.True(t, testCase.ts.Equal(ts))
+		assert.Equal(t, testCase.data, data)
+		assert.Equal(t, time.UTC, ts.Location())
+	}
+
+	for _, invalid := range [][]byte{
+		[]byte{},
+		[]byte{0x00},
+		[]byte{0x01, 0x00, 0x00},
+		[]byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
+	} {
+		_, _, err := unpackV1(invalid)
+		assert.Error(t, err)
+	}
+}
+
 // Create a localDB for testing. Call defer util.RemoveAll() on the second
 // return value.
 func makeDB(t *testing.T, name string) (db.DB, string) {
