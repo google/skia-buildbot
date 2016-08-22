@@ -1,7 +1,7 @@
 default: datahopper
 
 datahopper:
-	go install -race -v ./go/datahopper
+	go install -v ./go/datahopper
 
 all: datahopper
 
