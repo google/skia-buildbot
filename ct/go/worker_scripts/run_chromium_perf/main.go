@@ -218,10 +218,10 @@ func main() {
 
 	// If "--output-format=csv-pivot-table" was specified then merge all CSV files and upload.
 	if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
-		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, gs, *startRange, false /* handleStrings */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirNoPatch, pathToPyFiles, runIDNoPatch, remoteDirNoPatch, gs, *startRange, true /* handleStrings */); err != nil {
 			glog.Fatalf("Error while processing withpatch CSV files: %s", err)
 		}
-		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirWithPatch, pathToPyFiles, runIDWithPatch, remoteDirWithPatch, gs, *startRange, false /* handleStrings */); err != nil {
+		if err := util.MergeUploadCSVFilesOnWorkers(localOutputDirWithPatch, pathToPyFiles, runIDWithPatch, remoteDirWithPatch, gs, *startRange, true /* handleStrings */); err != nil {
 			glog.Fatalf("Error while processing withpatch CSV files: %s", err)
 		}
 	}
