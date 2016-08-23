@@ -136,6 +136,10 @@ type localDB struct {
 	dbMetric *boltutil.DbMetric
 
 	modTasks db.ModifiedTasks
+
+	// Close will send on each of these channels to indicate goroutines should
+	// stop.
+	notifyOnClose []chan bool
 }
 
 // startTx monitors when a transaction starts.
@@ -219,9 +223,19 @@ func NewDB(name, filename string) (db.DB, error) {
 		txNextId: 0,
 		txActive: map[int64]string{},
 	}
+
+	stopReportActiveTx := make(chan bool)
+	d.notifyOnClose = append(d.notifyOnClose, stopReportActiveTx)
 	go func() {
-		for _ = range time.Tick(time.Minute) {
-			d.reportActiveTx()
+		t := time.NewTicker(time.Minute)
+		for {
+			select {
+			case <-stopReportActiveTx:
+				t.Stop()
+				return
+			case <-t.C:
+				d.reportActiveTx()
+			}
 		}
 	}()
 
@@ -249,6 +263,9 @@ func (d *localDB) Close() error {
 	defer d.txMutex.Unlock()
 	if len(d.txActive) > 0 {
 		return fmt.Errorf("Can not close DB when transactions are active.")
+	}
+	for _, c := range d.notifyOnClose {
+		c <- true
 	}
 	d.txActive = map[int64]string{}
 	if err := d.dbMetric.Delete(); err != nil {

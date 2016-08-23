@@ -50,7 +50,8 @@ func (m *ModifiedTasks) GetModifiedTasks(id string) ([]*Task, error) {
 // haven't been seen within MODIFIED_BUILDS_TIMEOUT. Must be called as a
 // goroutine. Returns when there are no remaining subscribers.
 func (m *ModifiedTasks) clearExpiredSubscribers() {
-	for _ = range time.Tick(time.Minute) {
+	ticker := time.NewTicker(time.Minute)
+	for _ = range ticker.C {
 		m.mtx.Lock()
 		for id, t := range m.expiration {
 			if time.Now().After(t) {
@@ -64,6 +65,7 @@ func (m *ModifiedTasks) clearExpiredSubscribers() {
 			break
 		}
 	}
+	ticker.Stop()
 }
 
 // TrackModifiedTask indicates the given Task should be returned from the next
