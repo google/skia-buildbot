@@ -17,7 +17,7 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-// TaskScheduler is a struct used for scheduling builds on bots.
+// TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
 	cache            *db.TaskCache
 	period           time.Duration

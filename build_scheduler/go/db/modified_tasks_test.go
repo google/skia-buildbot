@@ -77,7 +77,7 @@ func TestModifiedTasksTooManyUsers(t *testing.T) {
 	m := ModifiedTasks{}
 
 	// Max out the number of modified-tasks users; ensure that we error out.
-	for i := 0; i < MAX_MODIFIED_BUILDS_USERS; i++ {
+	for i := 0; i < MAX_MODIFIED_TASKS_USERS; i++ {
 		_, err := m.StartTrackingModifiedTasks()
 		assert.NoError(t, err)
 	}

@@ -40,14 +40,14 @@ func (m *ModifiedTasks) GetModifiedTasks(id string) ([]*Task, error) {
 	if err != nil {
 		return nil, err
 	}
-	m.expiration[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
+	m.expiration[id] = time.Now().Add(MODIFIED_TASKS_TIMEOUT)
 	delete(m.tasks, id)
 	sort.Sort(TaskSlice(rv))
 	return rv, nil
 }
 
 // clearExpiredSubscribers periodically deletes data about any subscribers that
-// haven't been seen within MODIFIED_BUILDS_TIMEOUT. Must be called as a
+// haven't been seen within MODIFIED_TASKS_TIMEOUT. Must be called as a
 // goroutine. Returns when there are no remaining subscribers.
 func (m *ModifiedTasks) clearExpiredSubscribers() {
 	ticker := time.NewTicker(time.Minute)
@@ -106,10 +106,10 @@ func (m *ModifiedTasks) StartTrackingModifiedTasks() (string, error) {
 		m.tasks = map[string]map[string][]byte{}
 		m.expiration = map[string]time.Time{}
 		go m.clearExpiredSubscribers()
-	} else if len(m.expiration) >= MAX_MODIFIED_BUILDS_USERS {
+	} else if len(m.expiration) >= MAX_MODIFIED_TASKS_USERS {
 		return "", ErrTooManyUsers
 	}
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	m.expiration[id] = time.Now().Add(MODIFIED_BUILDS_TIMEOUT)
+	m.expiration[id] = time.Now().Add(MODIFIED_TASKS_TIMEOUT)
 	return id, nil
 }

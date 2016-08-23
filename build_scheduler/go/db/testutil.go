@@ -180,7 +180,7 @@ func TestTooManyUsers(t *testing.T, db DB) {
 	defer testutils.AssertCloses(t, db)
 
 	// Max out the number of modified-tasks users; ensure that we error out.
-	for i := 0; i < MAX_MODIFIED_BUILDS_USERS; i++ {
+	for i := 0; i < MAX_MODIFIED_TASKS_USERS; i++ {
 		_, err := db.StartTrackingModifiedTasks()
 		assert.NoError(t, err)
 	}

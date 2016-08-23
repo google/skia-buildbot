@@ -7,10 +7,10 @@ import (
 
 const (
 	// Maximum number of simultaneous GetModifiedTasks users.
-	MAX_MODIFIED_BUILDS_USERS = 10
+	MAX_MODIFIED_TASKS_USERS = 10
 
 	// Expiration for GetModifiedTasks users.
-	MODIFIED_BUILDS_TIMEOUT = 10 * time.Minute
+	MODIFIED_TASKS_TIMEOUT = 10 * time.Minute
 )
 
 var (
@@ -39,7 +39,7 @@ type DB interface {
 	// Close the [connection to the] DB.
 	Close() error
 
-	// GetModifiedTasks returns all builds modified since the last time
+	// GetModifiedTasks returns all tasks modified since the last time
 	// GetModifiedTasks was run with the given id.
 	GetModifiedTasks(string) ([]*Task, error)
 
@@ -47,7 +47,7 @@ type DB interface {
 	// task is not found.
 	GetTaskById(string) (*Task, error)
 
-	// GetTasksFromDateRange retrieves all builds which started in the given date range.
+	// GetTasksFromDateRange retrieves all tasks which started in the given date range.
 	GetTasksFromDateRange(time.Time, time.Time) ([]*Task, error)
 
 	// PutTask inserts or updates the Task in the database. Task's Id field must
@@ -59,9 +59,9 @@ type DB interface {
 	// set.
 	PutTasks([]*Task) error
 
-	// StartTrackingModifiedTasks initiates tracking of modified builds for
+	// StartTrackingModifiedTasks initiates tracking of modified tasks for
 	// the current caller. Returns a unique ID which can be used by the caller
-	// to retrieve builds which have been modified since the last query. The ID
+	// to retrieve tasks which have been modified since the last query. The ID
 	// expires after a period of inactivity.
 	StartTrackingModifiedTasks() (string, error)
 }
