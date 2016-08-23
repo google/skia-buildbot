@@ -22,7 +22,7 @@ const (
 	MEASUREMENT_BOTMAP_TRIGGERS_MAPPED_EXISTS = "botmap.triggers.mapped-exists"
 )
 
-func StartMetrics(swarm *swarming.ApiClient) {
+func StartMetrics(swarm swarming.ApiClient) {
 	go func() {
 		for _ = range time.Tick(time.Minute) {
 			// Ensure that the Swarming trigger bots in bot_map match reality.

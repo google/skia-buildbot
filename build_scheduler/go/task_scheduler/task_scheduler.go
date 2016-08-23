@@ -457,7 +457,7 @@ func testednessIncrease(blamelistLength, stoleFromBlamelistLength int) float64 {
 }
 
 // getFreeSwarmingBots returns a slice of free swarming bots.
-func getFreeSwarmingBots(s *swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
+func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotInfo, error) {
 	bots, err := s.ListSkiaBots()
 	if err != nil {
 		return nil, err

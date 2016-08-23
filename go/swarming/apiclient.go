@@ -34,53 +34,87 @@ var (
 )
 
 // ApiClient is a Skia-specific wrapper around the Swarming API.
-type ApiClient struct {
+type ApiClient interface {
+	// SwarmingService returns the underlying swarming.Service object.
+	SwarmingService() *swarming.Service
+
+	// ListBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+	// corresponding to the Swarming bots matching the requested dimensions.
+	ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error)
+
+	// ListSkiaBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+	// corresponding to the Skia Swarming bots.
+	ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error)
+
+	// ListSkiaTriggerBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+	// corresponding to the Skia Swarming Trigger bots.
+	ListSkiaTriggerBots() ([]*swarming.SwarmingRpcsBotInfo, error)
+
+	// ListCTBots returns a slice of swarming.SwarmingRpcsBotInfo instances
+	// corresponding to the CT Swarming bots.
+	ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error)
+
+	// ListTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
+	// corresponding to the specified tags and within given time window.
+	// Specify time.Time{} for start and end if you do not want to restrict on time.
+	ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
+
+	// ListSkiaTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
+	// corresponding to Skia Swarming tasks within the given time window.
+	ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error)
+
+	// CancelTask cancels the task with the given ID.
+	CancelTask(id string) error
+
+	// TriggerTask triggers a task with the given request.
+	TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
+
+	// RetryTask triggers a retry of the given task.
+	RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
+
+	// GetTask returns a swarming.SwarmingRpcsTaskRequestMetadata instance
+	// corresponding to the given Skia Swarming task.
+	GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
+}
+
+type apiClient struct {
 	s *swarming.Service
 }
 
 // NewApiClient returns an ApiClient instance which uses the given authenticated
 // http.Client.
-func NewApiClient(c *http.Client) (*ApiClient, error) {
+func NewApiClient(c *http.Client) (ApiClient, error) {
 	s, err := swarming.New(c)
 	if err != nil {
 		return nil, err
 	}
 	s.BasePath = API_BASE_PATH
-	return &ApiClient{s}, nil
+	return &apiClient{s}, nil
 }
 
-// SwarmingService returns the underlying swarming.Service object.
-func (c *ApiClient) SwarmingService() *swarming.Service {
+func (c *apiClient) SwarmingService() *swarming.Service {
 	return c.s
 }
 
-// ListSkiaBots returns a slice of swarming.SwarmingRpcsBotInfo instances
-// corresponding to the Skia Swarming bots.
-func (c *ApiClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *apiClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA,
 	})
 }
 
-// ListSkiaTriggerBots returns a slice of swarming.SwarmingRpcsBotInfo instances
-// corresponding to the Skia Swarming Trigger bots.
-func (c *ApiClient) ListSkiaTriggerBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *apiClient) ListSkiaTriggerBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA_TRIGGERS,
 	})
 }
 
-// ListCTBots returns a slice of swarming.SwarmingRpcsBotInfo instances
-// corresponding to the CT Swarming bots.
-func (c *ApiClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *apiClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_CT,
 	})
 }
 
-// ListBots returns a slice of swarming.SwarmingRpcsBotInfo instances
-// corresponding to the Swarming bots matching the requested dimensions.
-func (c *ApiClient) ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *apiClient) ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	bots := []*swarming.SwarmingRpcsBotInfo{}
 	cursor := ""
 	for {
@@ -108,16 +142,11 @@ func (c *ApiClient) ListBots(dimensions map[string]string) ([]*swarming.Swarming
 	return bots, nil
 }
 
-// ListSkiaTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
-// corresponding to Skia Swarming tasks within the given time window.
-func (c *ApiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *apiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	return c.ListTasks(start, end, []string{"pool:Skia"}, "")
 }
 
-// ListTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
-// corresponding to the specified tags and within given time window.
-// Specify time.Time{} for start and end if you do not want to restrict on time.
-func (c *ApiClient) ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *apiClient) ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	var wg sync.WaitGroup
 
 	// Query for task results.
@@ -231,7 +260,7 @@ func (c *ApiClient) ListTasks(start, end time.Time, tags []string, state string)
 	return rv, nil
 }
 
-func (c *ApiClient) CancelTask(id string) error {
+func (c *apiClient) CancelTask(id string) error {
 	req, reqErr := c.s.Task.Cancel(id).Do()
 	if reqErr != nil {
 		return reqErr
@@ -242,11 +271,11 @@ func (c *ApiClient) CancelTask(id string) error {
 	return nil
 }
 
-func (c *ApiClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *apiClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	return c.s.Tasks.New(t).Do()
 }
 
-func (c *ApiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *apiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	// Swarming API does not have a way to Retry commands. This was done
 	// intentionally by swarming-eng to reduce API surface.
 	newReq := &swarming.SwarmingRpcsNewTaskRequest{}
@@ -281,9 +310,7 @@ func (c *ApiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swa
 	return c.TriggerTask(newReq)
 }
 
-// GetTask returns a swarming.SwarmingRpcsTaskRequestMetadata instance
-// corresponding to the given Skia Swarming task.
-func (c *ApiClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *apiClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	var wg sync.WaitGroup
 
 	// Get the task result.
