@@ -15,6 +15,14 @@ func TestParamsNew(t *testing.T) {
 	assert.Equal(t, Params{"arch": "x86", "config": "565"}, p)
 }
 
+func TestAddParamsFromKey(t *testing.T) {
+	p := ParamSet{}
+	p.AddParamsFromKey(",arch=x86,")
+	assert.Equal(t, ParamSet{"arch": []string{"x86"}}, p)
+	p.AddParamsFromKey(",arch=x86,config=565,")
+	assert.Equal(t, ParamSet{"arch": []string{"x86"}, "config": []string{"565"}}, p)
+}
+
 func TestParams(t *testing.T) {
 	p := Params{"foo": "1", "bar": "2"}
 	p2 := p.Dup()

@@ -87,6 +87,25 @@ func (p ParamSet) AddParams(ps Params) {
 	}
 }
 
+// AddParamsFromKey is the same as calling
+//
+//   paramset.AddParams(NewParams(key))
+//
+// but without creating the intermedite Params.
+//
+// It presumes a valid key, i.e. something that passed query.ValidateKey.
+func (p ParamSet) AddParamsFromKey(key string) {
+	parts := strings.Split(key, ",")
+	parts = parts[1 : len(parts)-1]
+	for _, s := range parts {
+		pair := strings.Split(s, "=")
+		params := p[pair[0]]
+		if !util.In(pair[1], params) {
+			p[pair[0]] = append(params, pair[1])
+		}
+	}
+}
+
 // Add the ParamSet to this ParamSet.
 func (p ParamSet) AddParamSet(ps ParamSet) {
 	for k, arr := range ps {
