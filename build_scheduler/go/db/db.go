@@ -3,6 +3,8 @@ package db
 import (
 	"errors"
 	"time"
+
+	"github.com/skia-dev/glog"
 )
 
 const (
@@ -11,12 +13,16 @@ const (
 
 	// Expiration for GetModifiedTasks users.
 	MODIFIED_TASKS_TIMEOUT = 10 * time.Minute
+
+	// Retries attempted by UpdateWithRetries and UpdateTaskWithRetries.
+	NUM_RETRIES = 5
 )
 
 var (
 	ErrTooManyUsers     = errors.New("Too many users")
 	ErrUnknownId        = errors.New("Unknown ID")
 	ErrConcurrentUpdate = errors.New("Concurrent update")
+	ErrNotFound         = errors.New("Task with given ID does not exist")
 )
 
 func IsTooManyUsers(e error) bool {
@@ -29,6 +35,10 @@ func IsUnknownId(e error) bool {
 
 func IsConcurrentUpdate(e error) bool {
 	return e != nil && e.Error() == ErrConcurrentUpdate.Error()
+}
+
+func IsNotFound(e error) bool {
+	return e != nil && e.Error() == ErrNotFound.Error()
 }
 
 type DB interface {
@@ -64,4 +74,65 @@ type DB interface {
 	// to retrieve tasks which have been modified since the last query. The ID
 	// expires after a period of inactivity.
 	StartTrackingModifiedTasks() (string, error)
+}
+
+// UpdateWithRetries wraps a call to db.PutTasks with retries. It calls
+// db.PutTasks(f()) repeatedly until one of the following happen:
+//  - f or db.PutTasks returns an error, which is then returned from
+//    UpdateWithRetries;
+//  - PutTasks succeeds, in which case UpdateWithRetries returns the updated
+//    Tasks returned by f;
+//  - retries are exhausted, in which case UpdateWithRetries returns
+//    ErrConcurrentUpdate.
+//
+// Within f, tasks should be refreshed from the DB, e.g. with
+// db.GetModifiedTasks or db.GetTaskById.
+func UpdateWithRetries(db DB, f func() ([]*Task, error)) ([]*Task, error) {
+	var lastErr error
+	for i := 0; i < NUM_RETRIES; i++ {
+		t, err := f()
+		if err != nil {
+			return nil, err
+		}
+		lastErr = db.PutTasks(t)
+		if lastErr == nil {
+			return t, nil
+		} else if !IsConcurrentUpdate(lastErr) {
+			return nil, lastErr
+		}
+	}
+	glog.Warningf("UpdateWithRetries: %d consecutive ErrConcurrentUpdate.", NUM_RETRIES)
+	return nil, lastErr
+}
+
+// UpdateTaskWithRetries reads, updates, and writes a single Task in the DB. It:
+//  1. reads the task with the given id,
+//  2. calls f on that task, and
+//  3. calls db.PutTask() on the updated task
+//  4. repeats from step 1 as long as PutTasks returns ErrConcurrentUpdate and
+//     retries have not been exhausted.
+// Returns the updated task if it was successfully updated in the DB.
+// Immediately returns ErrNotFound if db.GetTaskById(id) returns nil.
+// Immediately returns any error returned from f or from PutTasks (except
+// ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
+func UpdateTaskWithRetries(db DB, id string, f func(*Task) error) (*Task, error) {
+	tasks, err := UpdateWithRetries(db, func() ([]*Task, error) {
+		t, err := db.GetTaskById(id)
+		if err != nil {
+			return nil, err
+		}
+		if t == nil {
+			return nil, ErrNotFound
+		}
+		err = f(t)
+		if err != nil {
+			return nil, err
+		}
+		return []*Task{t}, nil
+	})
+	if err != nil {
+		return nil, err
+	} else {
+		return tasks[0], nil
+	}
 }

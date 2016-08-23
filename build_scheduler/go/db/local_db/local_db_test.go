@@ -434,3 +434,9 @@ func TestLocalDBConcurrentUpdate(t *testing.T) {
 	defer util.RemoveAll(tmpdir)
 	db.TestConcurrentUpdate(t, d)
 }
+
+func TestLocalDBUpdateWithRetries(t *testing.T) {
+	d, tmpdir := makeDB(t, "TestLocalDBUpdateWithRetries")
+	defer util.RemoveAll(tmpdir)
+	db.TestUpdateWithRetries(t, d)
+}

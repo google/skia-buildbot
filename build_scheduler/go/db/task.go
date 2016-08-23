@@ -39,15 +39,15 @@ const (
 	// string so that it is the zero value of TaskStatus.
 	TASK_STATUS_PENDING TaskStatus = ""
 	// TASK_STATUS_RUNNING indicates the task is in progress.
-	TASK_STATUS_RUNNING = "RUNNING"
+	TASK_STATUS_RUNNING TaskStatus = "RUNNING"
 	// TASK_STATUS_SUCCESS indicates the task completed successfully.
-	TASK_STATUS_SUCCESS = "SUCCESS"
+	TASK_STATUS_SUCCESS TaskStatus = "SUCCESS"
 	// TASK_STATUS_FAILURE indicates the task completed with failures.
-	TASK_STATUS_FAILURE = "FAILURE"
+	TASK_STATUS_FAILURE TaskStatus = "FAILURE"
 	// TASK_STATUS_MISHAP indicates the task exited early with an error, died
 	// while in progress, was manually canceled, expired while waiting on the
 	// queue, or timed out before completing.
-	TASK_STATUS_MISHAP = "MISHAP"
+	TASK_STATUS_MISHAP TaskStatus = "MISHAP"
 )
 
 // Task describes a Swarming task generated from a TaskSpec, or a "fake" task
