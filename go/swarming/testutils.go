@@ -8,9 +8,10 @@ import (
 	"go.skia.org/infra/go/util"
 
 	"github.com/luci/luci-go/common/api/swarming/swarming/v1"
+	"github.com/satori/go.uuid"
 )
 
-type testClient struct {
+type TestClient struct {
 	botList    []*swarming.SwarmingRpcsBotInfo
 	botListMtx sync.RWMutex
 
@@ -18,19 +19,18 @@ type testClient struct {
 	taskListMtx sync.RWMutex
 }
 
-func NewTestClient() ApiClient {
-	return &testClient{
-		botList: []*swarming.SwarmingRpcsBotInfo{},
-
+func NewTestClient() *TestClient {
+	return &TestClient{
+		botList:  []*swarming.SwarmingRpcsBotInfo{},
 		taskList: []*swarming.SwarmingRpcsTaskRequestMetadata{},
 	}
 }
 
-func (c *testClient) SwarmingService() *swarming.Service {
+func (c *TestClient) SwarmingService() *swarming.Service {
 	return nil
 }
 
-func (c *testClient) ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *TestClient) ListBots(dimensions map[string]string) ([]*swarming.SwarmingRpcsBotInfo, error) {
 	c.botListMtx.RLock()
 	defer c.botListMtx.RUnlock()
 	rv := make([]*swarming.SwarmingRpcsBotInfo, 0, len(c.botList))
@@ -56,25 +56,25 @@ func (c *testClient) ListBots(dimensions map[string]string) ([]*swarming.Swarmin
 	return rv, nil
 }
 
-func (c *testClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *TestClient) ListSkiaBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA,
 	})
 }
 
-func (c *testClient) ListSkiaTriggerBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *TestClient) ListSkiaTriggerBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_SKIA_TRIGGERS,
 	})
 }
 
-func (c *testClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
+func (c *TestClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	return c.ListBots(map[string]string{
 		DIMENSION_POOL_KEY: DIMENSION_POOL_VALUE_CT,
 	})
 }
 
-func (c *testClient) ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *TestClient) ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	c.taskListMtx.RLock()
 	defer c.taskListMtx.RUnlock()
 	rv := make([]*swarming.SwarmingRpcsTaskRequestMetadata, 0, len(c.taskList))
@@ -89,23 +89,45 @@ func (c *testClient) ListTasks(start, end time.Time, tags []string, state string
 	return rv, nil
 }
 
-func (c *testClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *TestClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	return c.ListTasks(start, end, []string{"pool:Skia"}, "")
 }
 
-func (c *testClient) CancelTask(id string) error {
+func (c *TestClient) CancelTask(id string) error {
 	return nil
 }
 
-func (c *testClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
-	return nil, nil
+func (c *TestClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+	createdTs := time.Now().Format(time.RFC3339)
+	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
+	return &swarming.SwarmingRpcsTaskRequestMetadata{
+		Request: &swarming.SwarmingRpcsTaskRequest{
+			CreatedTs:  createdTs,
+			Name:       t.Name,
+			Priority:   t.Priority,
+			Properties: t.Properties,
+			Tags:       t.Tags,
+		},
+		TaskId: id,
+		TaskResult: &swarming.SwarmingRpcsTaskResult{
+			CreatedTs: createdTs,
+			Name:      t.Name,
+			State:     "PENDING",
+			TaskId:    id,
+		},
+	}, nil
 }
 
-func (c *testClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
-	return nil, nil
+func (c *TestClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+	return c.TriggerTask(&swarming.SwarmingRpcsNewTaskRequest{
+		Name:     t.Request.Name,
+		Priority: t.Request.Priority,
+		Tags:     t.Request.Tags,
+		User:     t.Request.User,
+	})
 }
 
-func (c *testClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *TestClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	c.taskListMtx.RLock()
 	defer c.taskListMtx.RUnlock()
 	for _, t := range c.taskList {
@@ -116,13 +138,13 @@ func (c *testClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetada
 	return nil, fmt.Errorf("No such task: %s", id)
 }
 
-func (c *testClient) MockBots(bots []*swarming.SwarmingRpcsBotInfo) {
+func (c *TestClient) MockBots(bots []*swarming.SwarmingRpcsBotInfo) {
 	c.botListMtx.Lock()
 	defer c.botListMtx.Unlock()
 	c.botList = bots
 }
 
-func (c *testClient) MockTasks(tasks []*swarming.SwarmingRpcsTaskRequestMetadata) {
+func (c *TestClient) MockTasks(tasks []*swarming.SwarmingRpcsTaskRequestMetadata) {
 	c.taskListMtx.Lock()
 	defer c.taskListMtx.Unlock()
 	c.taskList = tasks

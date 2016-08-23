@@ -22,6 +22,8 @@ import (
 )
 
 const (
+	DEFAULT_NAMESPACE      = "default-gzip"
+	FAKE_SERVER_URL        = "fake"
 	ISOLATE_EXE_SHA1       = "cf7c1fac12790056ac393774827a5720c7590bac"
 	ISOLATESERVER_EXE_SHA1 = "e45ffb5b03c3e94d07e4bbd1bda51b9f12590177"
 	ISOLATE_SERVER_URL     = "https://isolateserver.appspot.com"
@@ -32,6 +34,8 @@ const (
 )
 
 var (
+	DEFAULT_BLACKLIST = []string{"*.pyc"}
+
 	isolatedHashRegexpPattern = fmt.Sprintf("^([a-f0-9]{40})\\s+.*(%s)\\.isolated$", fmt.Sprintf(TASK_ID_TMPL, "\\d+"))
 	isolatedHashRegexp        = regexp.MustCompile(isolatedHashRegexpPattern)
 )
