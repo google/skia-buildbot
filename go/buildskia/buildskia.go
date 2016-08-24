@@ -185,12 +185,12 @@ func DownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, inst
 	}
 
 	if branch != "" {
-		if err := repo.SetToBranch(branch); err != nil {
+		if err := repo.Checkout(branch); err != nil {
 			return nil, fmt.Errorf("Failed to change to branch %s: %s", branch, err)
 		}
 	}
 
-	if err = repo.SetToCommit(gitHash); err != nil {
+	if err = repo.Reset(gitHash); err != nil {
 		return nil, fmt.Errorf("Problem setting Skia to gitHash %s: %s", gitHash, err)
 	}
 
@@ -277,7 +277,7 @@ func GNDownloadSkia(branch, gitHash, path, depotToolsPath string, clean bool, in
 		return nil, fmt.Errorf("Failed working with Skia repo: %s", err)
 	}
 
-	if err = repo.SetToCommit(gitHash); err != nil {
+	if err = repo.Reset(gitHash); err != nil {
 		return nil, fmt.Errorf("Problem setting Skia to gitHash %s: %s", gitHash, err)
 	}
 

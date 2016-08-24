@@ -395,7 +395,7 @@ func TestSetBranch(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(branches))
 
-	err = r.SetToBranch("test-branch-1")
+	err = r.Checkout("test-branch-1")
 	assert.NoError(t, err)
 
 	commits := r.LastN(10)

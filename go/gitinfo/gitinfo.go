@@ -136,17 +136,17 @@ func (g *GitInfo) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCom
 	return &c, nil
 }
 
-func (g *GitInfo) SetToCommit(hash string) error {
-	_, err := exec.RunCwd(g.dir, "git", "reset", "--hard", hash)
+func (g *GitInfo) Reset(ref string) error {
+	_, err := exec.RunCwd(g.dir, "git", "reset", "--hard", ref)
 	if err != nil {
-		return fmt.Errorf("Failed to roll back/forward to commit %s: %s", hash, err)
+		return fmt.Errorf("Failed to roll back/forward to commit %s: %s", ref, err)
 	}
 	return nil
 }
 
-func (g *GitInfo) SetToBranch(branch string) error {
-	if _, err := exec.RunCwd(g.dir, "git", "checkout", branch); err != nil {
-		return fmt.Errorf("Failed to checkout %s: %s", branch, err)
+func (g *GitInfo) Checkout(ref string) error {
+	if _, err := exec.RunCwd(g.dir, "git", "checkout", ref); err != nil {
+		return fmt.Errorf("Failed to checkout %s: %s", ref, err)
 	}
 	return nil
 }
