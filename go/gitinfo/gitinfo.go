@@ -210,7 +210,7 @@ func (g *GitInfo) Range(begin, end time.Time) []*vcsinfo.IndexCommit {
 	ret := []*vcsinfo.IndexCommit{}
 	first := sort.Search(len(g.hashes), func(i int) bool {
 		ts := g.timestamps[g.hashes[i]]
-		return ts.After(begin) || ts == begin
+		return ts.After(begin) || ts.Equal(begin)
 	})
 	if first == len(g.timestamps) {
 		return ret

@@ -172,11 +172,6 @@ func TestLastNIndex(t *testing.T) {
 		actual := r.LastNIndex(tc.n)
 		assert.Equal(t, len(tc.expected), len(actual))
 		testutils.AssertDeepEqual(t, tc.expected, actual)
-		for i, a := range actual {
-			assert.Equal(t, a.Hash, tc.expected[i].Hash, fmt.Sprintf("For %#v", tc))
-			assert.Equal(t, a.Index, tc.expected[i].Index, fmt.Sprintf("For %#v", tc))
-			assert.Equal(t, a.Timestamp, tc.expected[i].Timestamp, fmt.Sprintf("For %#v", tc))
-		}
 	}
 }
 
