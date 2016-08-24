@@ -210,7 +210,7 @@ func main() {
 	pathToPyFiles := util.GetPathToPyFiles(false)
 	for _, run := range []string{runIDNoPatch, runIDWithPatch} {
 		if strings.Contains(*benchmarkExtraArgs, "--output-format=csv-pivot-table") {
-			if noOutputSlaves, err = util.MergeUploadCSVFiles(run, pathToPyFiles, gs, util.PagesetTypeToInfo[*pagesetType].NumPages, MAX_PAGES_PER_SWARMING_BOT, false /* handleStrings */); err != nil {
+			if noOutputSlaves, err = util.MergeUploadCSVFiles(run, pathToPyFiles, gs, util.PagesetTypeToInfo[*pagesetType].NumPages, MAX_PAGES_PER_SWARMING_BOT, true /* handleStrings */); err != nil {
 				glog.Errorf("Unable to merge and upload CSV files for %s: %s", run, err)
 			}
 			// Cleanup created dir after the run completes.
