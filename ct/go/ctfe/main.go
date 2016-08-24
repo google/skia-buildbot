@@ -2,6 +2,9 @@
 	The Cluster Telemetry Frontend.
 */
 
+
+I am a syntax error!
+
 package main
 
 import (
