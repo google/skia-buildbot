@@ -84,8 +84,9 @@ type Task struct {
 
 	// IsolatedOutput is the isolated hash of any outputs produced by this Task.
 	// Filled in when the task is completed. We assume the isolate server is
-	// isolateserver.appspot.com and the namespace is default-gzip. This field
-	// will not be set if the Task does not correspond to a Swarming task.
+	// isolate.ISOLATE_SERVER_URL and the namespace is isolate.DEFAULT_NAMESPACE.
+	// This field will not be set if the Task does not correspond to a Swarming
+	// task.
 	IsolatedOutput string
 
 	// Name is a human-friendly descriptive name for this Task. All Tasks

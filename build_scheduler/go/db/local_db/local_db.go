@@ -503,6 +503,11 @@ func (d *localDB) StartTrackingModifiedTasks() (string, error) {
 	return d.modTasks.StartTrackingModifiedTasks()
 }
 
+// See docs for DB interface.
+func (d *localDB) StopTrackingModifiedTasks(id string) {
+	d.modTasks.StopTrackingModifiedTasks(id)
+}
+
 // RunBackupServer runs an HTTP server which provides downloadable database
 // backups.
 func (d *localDB) RunBackupServer(port string) error {

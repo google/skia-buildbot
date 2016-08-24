@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/skia-dev/glog"
 )
 
 type TaskCache struct {
 	db             DB
 	knownTaskNames map[string]bool
-	lastUpdate     time.Time
 	mtx            sync.RWMutex
 	queryId        string
 	tasks          map[string]*Task
 	tasksByCommit  map[string]map[string]*Task
+	timePeriod     time.Duration
 }
 
 // GetTask returns the task with the given ID, or an error if no such task exists.
@@ -119,38 +121,46 @@ func (c *TaskCache) update(tasks []*Task) error {
 	return nil
 }
 
+// reset re-initializes c. Assumes the caller holds a lock.
+func (c *TaskCache) reset() error {
+	c.db.StopTrackingModifiedTasks(c.queryId)
+	queryId, err := c.db.StartTrackingModifiedTasks()
+	if err != nil {
+		return err
+	}
+	now := time.Now()
+	start := now.Add(-c.timePeriod)
+	glog.Infof("Reading Tasks from %s to %s.", start, now)
+	tasks, err := c.db.GetTasksFromDateRange(start, now)
+	if err != nil {
+		c.db.StopTrackingModifiedTasks(queryId)
+		return err
+	}
+	c.knownTaskNames = map[string]bool{}
+	c.queryId = queryId
+	c.tasks = map[string]*Task{}
+	c.tasksByCommit = map[string]map[string]*Task{}
+	if err := c.update(tasks); err != nil {
+		return err
+	}
+	return nil
+}
+
 // Load new tasks from the database.
 func (c *TaskCache) Update() error {
-	now := time.Now()
 	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	if err != nil {
-		if err.Error() == ErrUnknownId.Error() {
-			// The database may have restarted. Attempt to re-establish connection.
-			queryId, err := c.db.StartTrackingModifiedTasks()
-			if err != nil {
-				return err
-			}
-			c.queryId = queryId
-			// We may have missed something. Query for tasks since the last
-			// successful query.
-			tasks, err := c.db.GetTasksFromDateRange(c.lastUpdate, now)
-			if err != nil {
-				return err
-			}
-			if err := c.update(tasks); err == nil {
-				c.lastUpdate = now
-				return nil
-			} else {
-				return err
-			}
-		} else {
+	if IsUnknownId(err) {
+		glog.Warningf("Connection to db lost; re-initializing cache from scratch.")
+		if err := c.reset(); err != nil {
 			return err
 		}
+		return nil
+	} else if err != nil {
+		return err
 	}
 	if err := c.update(newTasks); err == nil {
-		c.lastUpdate = now
 		return nil
 	} else {
 		return err
@@ -160,25 +170,11 @@ func (c *TaskCache) Update() error {
 // NewTaskCache returns a local cache which provides more convenient views of
 // task data than the database can provide.
 func NewTaskCache(db DB, timePeriod time.Duration) (*TaskCache, error) {
-	queryId, err := db.StartTrackingModifiedTasks()
-	if err != nil {
-		return nil, err
-	}
-	now := time.Now()
-	start := now.Add(-timePeriod)
-	tasks, err := db.GetTasksFromDateRange(start, now)
-	if err != nil {
-		return nil, err
-	}
 	tc := &TaskCache{
-		db:             db,
-		knownTaskNames: map[string]bool{},
-		lastUpdate:     now,
-		queryId:        queryId,
-		tasks:          map[string]*Task{},
-		tasksByCommit:  map[string]map[string]*Task{},
+		db:         db,
+		timePeriod: timePeriod,
 	}
-	if err := tc.update(tasks); err != nil {
+	if err := tc.reset(); err != nil {
 		return nil, err
 	}
 	return tc, nil

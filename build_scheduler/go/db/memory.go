@@ -105,6 +105,11 @@ func (db *inMemoryDB) StartTrackingModifiedTasks() (string, error) {
 	return db.modTasks.StartTrackingModifiedTasks()
 }
 
+// See docs for DB interface.
+func (db *inMemoryDB) StopTrackingModifiedTasks(id string) {
+	db.modTasks.StopTrackingModifiedTasks(id)
+}
+
 // NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
 // implementation.
 func NewInMemoryDB() DB {

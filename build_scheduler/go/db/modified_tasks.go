@@ -60,6 +60,10 @@ func (m *ModifiedTasks) clearExpiredSubscribers() {
 			}
 		}
 		anyLeft := len(m.expiration) > 0
+		if !anyLeft {
+			m.tasks = nil
+			m.expiration = nil
+		}
 		m.mtx.Unlock()
 		if !anyLeft {
 			break
@@ -101,7 +105,7 @@ func (m *ModifiedTasks) TrackModifiedTasksGOB(gobs map[string][]byte) {
 func (m *ModifiedTasks) StartTrackingModifiedTasks() (string, error) {
 	m.mtx.Lock()
 	defer m.mtx.Unlock()
-	if len(m.expiration) == 0 {
+	if m.expiration == nil {
 		// Initialize the data structure and start expiration goroutine.
 		m.tasks = map[string]map[string][]byte{}
 		m.expiration = map[string]time.Time{}
@@ -112,4 +116,12 @@ func (m *ModifiedTasks) StartTrackingModifiedTasks() (string, error) {
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
 	m.expiration[id] = time.Now().Add(MODIFIED_TASKS_TIMEOUT)
 	return id, nil
+}
+
+// See docs for DB interface.
+func (m *ModifiedTasks) StopTrackingModifiedTasks(id string) {
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+	delete(m.tasks, id)
+	delete(m.expiration, id)
 }

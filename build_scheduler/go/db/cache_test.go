@@ -62,3 +62,31 @@ func TestDBCache(t *testing.T) {
 		},
 	}, tasks)
 }
+
+func TestDBCacheReset(t *testing.T) {
+	db := NewInMemoryDB()
+	defer testutils.AssertCloses(t, db)
+
+	// Pre-load a task into the DB.
+	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	t1 := makeTask(startTime, []string{"a", "b", "c", "d"})
+	assert.NoError(t, db.PutTask(t1))
+
+	// Create the cache. Ensure that the existing task is present.
+	c, err := NewTaskCache(db, time.Hour)
+	assert.NoError(t, err)
+	testGetTasksForCommits(t, c, t1)
+
+	// Pretend the DB connection is lost.
+	db.StopTrackingModifiedTasks(c.queryId)
+
+	// Make an update.
+	t2 := makeTask(startTime.Add(time.Minute), []string{"c", "d"})
+	t1.Commits = []string{"a", "b"}
+	assert.NoError(t, db.PutTasks([]*Task{t2, t1}))
+
+	// Ensure cache gets reset.
+	assert.NoError(t, c.Update())
+	testGetTasksForCommits(t, c, t1)
+	testGetTasksForCommits(t, c, t2)
+}

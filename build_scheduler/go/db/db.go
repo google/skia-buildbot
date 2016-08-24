@@ -74,6 +74,10 @@ type DB interface {
 	// to retrieve tasks which have been modified since the last query. The ID
 	// expires after a period of inactivity.
 	StartTrackingModifiedTasks() (string, error)
+
+	// StopTrackingModifiedTasks cancels tracking of modified tasks for the
+	// provided ID.
+	StopTrackingModifiedTasks(string)
 }
 
 // UpdateWithRetries wraps a call to db.PutTasks with retries. It calls

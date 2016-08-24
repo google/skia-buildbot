@@ -45,6 +45,11 @@ func TestModifiedTasks(t *testing.T) {
 	tasks, err = m.GetModifiedTasks(id)
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, []*Task{t2, t3}, tasks)
+
+	// Check StopTrackingModifiedTasks.
+	m.StopTrackingModifiedTasks(id)
+	_, err = m.GetModifiedTasks(id)
+	assert.True(t, IsUnknownId(err))
 }
 
 // Test that if a Task is modified multiple times, it only appears once in the
@@ -76,11 +81,17 @@ func TestMultipleModifications(t *testing.T) {
 func TestModifiedTasksTooManyUsers(t *testing.T) {
 	m := ModifiedTasks{}
 
+	var oneId string
 	// Max out the number of modified-tasks users; ensure that we error out.
 	for i := 0; i < MAX_MODIFIED_TASKS_USERS; i++ {
-		_, err := m.StartTrackingModifiedTasks()
+		id, err := m.StartTrackingModifiedTasks()
 		assert.NoError(t, err)
+		oneId = id
 	}
 	_, err := m.StartTrackingModifiedTasks()
 	assert.True(t, IsTooManyUsers(err))
+
+	m.StopTrackingModifiedTasks(oneId)
+	_, err = m.StartTrackingModifiedTasks()
+	assert.NoError(t, err)
 }
