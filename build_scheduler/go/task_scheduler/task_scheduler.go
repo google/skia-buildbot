@@ -16,6 +16,7 @@ import (
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
 )
 
@@ -62,7 +63,7 @@ func (s *TaskScheduler) Start() {
 	go func() {
 		lv := metrics2.NewLiveness("last-successful-task-scheduling")
 		for _ = range time.Tick(time.Minute) {
-			if err := s.mainLoop(); err != nil {
+			if err := s.MainLoop(); err != nil {
 				glog.Errorf("Failed to run the task scheduler: %s", err)
 			} else {
 				lv.Reset()
@@ -199,6 +200,7 @@ func ComputeBlamelist(cache *db.TaskCache, repos *gitinfo.RepoMap, c *taskCandid
 }
 
 func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([]*taskCandidate, error) {
+	defer timer.New("TaskScheduler.findTaskCandidates").Stop()
 	// Obtain all possible tasks.
 	specs, err := s.taskCfgCache.GetTaskSpecsForCommits(commitsByRepo)
 	if err != nil {
@@ -256,6 +258,7 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([
 // processTaskCandidates computes the remaining information about each task
 // candidate, eg. blamelists and scoring.
 func (s *TaskScheduler) processTaskCandidates(candidates []*taskCandidate) error {
+	defer timer.New("TaskScheduler.processTaskCandidates").Stop()
 	// Compute blamelists.
 	stoleFrom := make([]*db.Task, len(candidates))
 	for idx, c := range candidates {
@@ -297,6 +300,7 @@ func (s *TaskScheduler) processTaskCandidates(candidates []*taskCandidate) error
 // regenerateTaskQueue obtains the set of all eligible task candidates, scores
 // them, and prepares them to be triggered.
 func (s *TaskScheduler) regenerateTaskQueue() error {
+	defer timer.New("TaskScheduler.regenerateTaskQueue").Stop()
 	// Update the task cache.
 	if err := s.cache.Update(); err != nil {
 		return nil
@@ -350,6 +354,7 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 // candidates in the queue and returns the candidates which should be run.
 // Assumes that the tasks are sorted in decreasing order by score.
 func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*taskCandidate) []*taskCandidate {
+	defer timer.New("task_scheduler.getCandidatesToSchedule").Stop()
 	// Create a bots-by-swarming-dimension mapping.
 	botsByDim := map[string]util.StringSet{}
 	for _, b := range bots {
@@ -415,6 +420,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue.
 func (s *TaskScheduler) scheduleTasks() error {
+	defer timer.New("TaskScheduler.scheduleTasks").Stop()
 	// Find free bots, match them with tasks.
 	bots, err := getFreeSwarmingBots(s.swarming)
 	if err != nil {
@@ -523,12 +529,20 @@ func (s *TaskScheduler) scheduleTasks() error {
 	return nil
 }
 
-// mainLoop runs a single end-to-end task scheduling loop.
-func (s *TaskScheduler) mainLoop() error {
+// MainLoop runs a single end-to-end task scheduling loop.
+func (s *TaskScheduler) MainLoop() error {
+	defer timer.New("TaskSchedulder.MainLoop").Stop()
 	if err := s.regenerateTaskQueue(); err != nil {
 		return err
 	}
 	return s.scheduleTasks()
+}
+
+// QueueLen returns the length of the queue.
+func (s *TaskScheduler) QueueLen() int {
+	s.queueMtx.RLock()
+	defer s.queueMtx.RUnlock()
+	return len(s.queue)
 }
 
 // timeDecay24Hr computes a linear time decay amount for the given duration,
