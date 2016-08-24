@@ -34,12 +34,21 @@ type BenchResults map[string]BenchResult
 
 // BenchData is the top level struct for decoding the nanobench JSON format.
 type BenchData struct {
-	Hash     string                  `json:"gitHash"`
-	Issue    string                  `json:"issue"`
-	PatchSet string                  `json:"patchset"`
-	Key      map[string]string       `json:"key"`
-	Options  map[string]string       `json:"options"`
-	Results  map[string]BenchResults `json:"results"`
+	Hash         string                  `json:"gitHash"`
+	Issue        string                  `json:"issue"`
+	PatchSet     string                  `json:"patchset"`
+	Key          map[string]string       `json:"key"`
+	Options      map[string]string       `json:"options"`
+	Results      map[string]BenchResults `json:"results"`
+	PatchStorage string                  `json:"patch_storage"`
+}
+
+// TODO(stephana): Remove isGerritIssue once we switch to Gerrit.
+
+// isGerritIssue returns true if the issue comes from an instance of the Gerrit
+// code review system.
+func (b *BenchData) isGerritIssue() bool {
+	return (b.Issue != "") && (b.PatchStorage == "gerrit")
 }
 
 // keyPrefix returns the prefix that is common to all trace ids in a single

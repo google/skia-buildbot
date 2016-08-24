@@ -61,6 +61,12 @@ func newGoldTrybotProcessor(vcs vcsinfo.VCS, config *sharedconfig.IngesterConfig
 
 // getCommitID overrides the function with the same name in goldProcessor.
 func (g *goldTrybotProcessor) getCommitID(commit *vcsinfo.LongCommit, dmResults *DMResults) (*tracedb.CommitID, error) {
+	// Ignore results from Gerrit for now.
+	if dmResults.isGerritIssue() {
+		glog.Infof("Ignoring Gerrit issue  %d/%d for now.", dmResults.Issue, dmResults.Patchset)
+		return nil, ingestion.IgnoreResultsFileErr
+	}
+
 	var ts time.Time
 	var ok bool
 	var cacheId = fmt.Sprintf("%d:%d", dmResults.Issue, dmResults.Patchset)
@@ -95,7 +101,8 @@ func (g *goldTrybotProcessor) getPatchset(issueID int64, patchsetID int64) (*rie
 	}
 
 	// If we can find the issue, check if the patchset has been removed.
-	if issueInfo, err := g.review.GetIssueProperties(issueID, false); err == nil {
+	var issueInfo *rietveld.Issue
+	if issueInfo, err = g.review.GetIssueProperties(issueID, false); err == nil {
 		found := false
 		for _, pset := range issueInfo.Patchsets {
 			if pset == patchsetID {
@@ -109,6 +116,8 @@ func (g *goldTrybotProcessor) getPatchset(issueID int64, patchsetID int64) (*rie
 			glog.Warningf("Rietveld issue/patchset (%d/%d) does not exist.", issueID, patchsetID)
 			return nil, ingestion.IgnoreResultsFileErr
 		}
+		// We should not reach this point. Investigate manually if we do.
+		return nil, fmt.Errorf("Found patchset %d for issue %d, but unable to retrieve it.", patchsetID, issueID)
 	}
 
 	return nil, fmt.Errorf("Failed to retrieve trybot issue and patch info for (%d, %d). Got Error: %s", issueID, patchsetID, err)

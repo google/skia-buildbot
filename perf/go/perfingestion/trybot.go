@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
@@ -59,6 +61,13 @@ func (p *perfTrybotProcessor) Process(resultsFile ingestion.ResultFileLocation) 
 	if err != nil {
 		return err
 	}
+
+	// Ignore results from Gerrit for now.
+	if benchData.isGerritIssue() {
+		glog.Infof("Ignoring Gerrit issue %s/%s for now.", benchData.Issue, benchData.PatchSet)
+		return ingestion.IgnoreResultsFileErr
+	}
+
 	issue, err := strconv.Atoi(benchData.Issue)
 	if err != nil {
 		return fmt.Errorf("Failed to parse trybot issue id: %s", err)

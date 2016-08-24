@@ -110,14 +110,23 @@ func (r *Result) UnmarshalJSON(data []byte) error {
 
 // DMResults is the top level structure for decoding DM JSON output.
 type DMResults struct {
-	Master      string            `json:"master"`
-	Builder     string            `json:"builder"`
-	BuildNumber int64             `json:"build_number,string"`
-	GitHash     string            `json:"gitHash"`
-	Key         map[string]string `json:"key"`
-	Issue       int64             `json:"issue,string"`
-	Patchset    int64             `json:"patchset,string"`
-	Results     []*Result         `json:"results"`
+	Master       string            `json:"master"`
+	Builder      string            `json:"builder"`
+	BuildNumber  int64             `json:"build_number,string"`
+	GitHash      string            `json:"gitHash"`
+	Key          map[string]string `json:"key"`
+	Issue        int64             `json:"issue,string"`
+	Patchset     int64             `json:"patchset,string"`
+	Results      []*Result         `json:"results"`
+	PatchStorage string            `json:"patch_storage"`
+}
+
+// TODO(stephana): Remove isGerritIssue once we switch to Gerrit.
+
+// isGerritIssue returns true if the issue comes from an instance of the Gerrit
+// code review system.
+func (d *DMResults) isGerritIssue() bool {
+	return (d.Issue != 0) && (d.PatchStorage == "gerrit")
 }
 
 // idAndParams constructs the Trace ID and the Trace params from the keys and options.
