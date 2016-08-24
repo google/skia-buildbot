@@ -55,6 +55,7 @@ func (m *ModifiedTasks) clearExpiredSubscribers() {
 		m.mtx.Lock()
 		for id, t := range m.expiration {
 			if time.Now().After(t) {
+				glog.Warningf("Deleting expired subscriber with id %s; expiration time %s.", id, t)
 				delete(m.tasks, id)
 				delete(m.expiration, id)
 			}
