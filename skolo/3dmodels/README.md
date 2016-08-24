@@ -21,10 +21,12 @@ component that is specific to a case.
 
 raspirack_v5 adds a way to connect two racks together. The extenders on the
 sides have holes that line up and can be fastened with a
-3/32 by 2.5 inch wire hair pin clip. Similar in shape to this:
+3/32 by 2.5 inch wire hair pin clip (aka cotter pin). Similar in shape to this:
 
   http://www.amazon.com/Koch-Industries-4022333-8-Inch-10-Piece/dp/B00OV7TO0U
 
+Starting in v7, only 1 cotter pin on each side is required to join the racks together,
+further narrowing the design.
 
 Contents:
 =========
