@@ -29,6 +29,19 @@ var gold = gold || {};
     query: "",
   };
 
+  // Default values for pagination objects.
+  gold.defaultPagination = {
+    size: 50,
+    offset: 0,
+    total: 0
+  };
+
+  // Default values for pagination URL state.
+  gold.defaultPaginationState = {
+    size: gold.defaultPagination.size,
+    offset: gold.defaultPagination.offset
+  };
+
   // Table that maps reference point ids to readable titles.
   gold.diffTitles = {
     "tpos" : "Trace positive",
@@ -153,7 +166,7 @@ var gold = gold || {};
     _handleCorpusChange: function(ev) {
       // Only change anything related to corpus if this element is the
       // part of the currently viewed page.
-      if (Polymer.dom(this).parentNode.hasAttribute('activepage')) {
+      if (Polymer.dom(this).parentNode.hasAttribute('activepage') && this._hasQuery) {
         if (this._corpusHome) {
           this._redirectHome();
           return;
@@ -170,14 +183,15 @@ var gold = gold || {};
     _setDefaultState: function(defaultState, corpusHome) {
       this._defaultState = defaultState;
       this._corpusHome = corpusHome;
+      this._hasQuery = defaultState.hasOwnProperty('query');
     },
 
     // _getDefaultStateWithCorpus returns the default search state of this
     // element (previously set via _setDefaultState) with the current corpus
     // injected.
     _getDefaultStateWithCorpus: function() {
-        var ret = this._defaultState;
-        if (this._statusElement) {
+        var ret = this._defaultState || {};
+        if (this._statusElement && this._hasQuery) {
           ret = sk.object.shallowCopy(this._defaultState);
           ret.query = sk.query.fromParamSet({source_type: [this._statusElement.corpus]});
         }
@@ -191,7 +205,9 @@ var gold = gold || {};
     _initState: function(ctx, defaultState) {
       this._ctx = ctx;
       this._state = gold.stateFromQuery(defaultState);
-      this._syncCorpusQuery(defaultState.query);
+      if (this._hasQuery) {
+        this._syncCorpusQuery(defaultState.query);
+      }
       this._setUrlFromState();
     },
 

@@ -104,70 +104,55 @@
   </template>
 
   <script>
-    (function() {
-      var defaultPagination = {
-        size: 50,
-        offset: 0,
-        total: 0
-      };
+    Polymer({
+      is: "trybot-page-sk",
 
-      var defaultState = {
-        size: defaultPagination.size,
-        offset: defaultPagination.offset
-      };
+      behaviors: [gold.PageStateBehavior],
 
-      Polymer({
-        is: "trybot-page-sk",
-
-        behaviors: [gold.PageStateBehavior],
-
-        properties: {
-          _pagination: {
-            type: Object,
-            value: function() { return sk.object.shallowCopy(defaultPagination); }
-          }
-        },
-
-        ready: function() {
-          this.listen(this.$.trybotPagination, 'pagechange', '_stateChanged');
-        },
-
-        pageSelected: function(ctx) {
-          this._initState(ctx, defaultState);
-          this._load();
-        },
-
-        pageDeselected: function() {
-          // This function is called by the router in gold-app-sk for all top level views.
-        },
-
-        _stateChanged: function(ev) {
-          // We only need pagination here, because the toggle writes directly to state.
-          this._redirectToState(this._pagination);
-        },
-
-        // Load the listing.
-        _load: function() {
-          var q = window.location.search;
-          this.$.activityTrybot.startSpinner("Loading ...");
-          sk.get("/json/trybot"+q).then(JSON.parse).then(function (json) {
-            this._trybotEntries = json.data;
-            this._replaceState(json.pagination);
-            this.set('_pagination', json.pagination);
-            this.$.activityTrybot.stopSpinner();
-          }.bind(this)).catch(function(e) {
-            sk.errorMessage(e);
-            this.$.activityTrybot.stopSpinner();
-          }.bind(this));
-        },
-
-        _humanDiffDate: function (timeStampSec) {
-          return sk.human.diffDate(timeStampSec * 1000);
+      properties: {
+        _pagination: {
+          type: Object,
+          value: function() { return sk.object.shallowCopy(gold.defaultPagination); }
         }
+      },
 
-      });
+      ready: function() {
+        this.listen(this.$.trybotPagination, 'pagechange', '_stateChanged');
+        this._setDefaultState(gold.defaultPaginationState, false);
+      },
 
-    })();
+      pageSelected: function(ctx) {
+        this._initState(ctx, this._getDefaultStateWithCorpus());
+        this._load();
+      },
 
+      pageDeselected: function() {
+        // This function is called by the router in gold-app-sk for all top level views.
+      },
+
+      _stateChanged: function(ev) {
+        // We only need pagination here, because the toggle writes directly to state.
+        this._redirectToState(this._pagination);
+      },
+
+      // Load the listing.
+      _load: function() {
+        var q = window.location.search;
+        this.$.activityTrybot.startSpinner("Loading ...");
+        sk.get("/json/trybot"+q).then(JSON.parse).then(function (json) {
+          this._trybotEntries = json.data;
+          this._replaceState(json.pagination);
+          this.set('_pagination', json.pagination);
+          this.$.activityTrybot.stopSpinner();
+        }.bind(this)).catch(function(e) {
+          sk.errorMessage(e);
+          this.$.activityTrybot.stopSpinner();
+        }.bind(this));
+      },
+
+      _humanDiffDate: function (timeStampSec) {
+        return sk.human.diffDate(timeStampSec * 1000);
+      }
+    });
   </script>
 </dom-module>
