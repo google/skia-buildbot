@@ -366,6 +366,79 @@ func TestUpdateFromSwarmingUpdateStatus(t *testing.T) {
 	testUpdateStatus(s, TASK_STATUS_FAILURE)
 }
 
+func TestUpdateDBFromSwarmingTask(t *testing.T) {
+	db := NewInMemoryDB()
+	defer testutils.AssertCloses(t, db)
+
+	// Create task, initialize from swarming, and save.
+	now := time.Now().UTC().Round(time.Microsecond)
+	task := &Task{
+		Name:     "B",
+		Repo:     "C",
+		Revision: "D",
+		Commits:  []string{"D", "Z"},
+		Status:   TASK_STATUS_PENDING,
+	}
+	assert.NoError(t, db.AssignId(task))
+
+	s := &swarming_api.SwarmingRpcsTaskRequestMetadata{
+		TaskId: "E", // This is the Swarming TaskId.
+		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
+			CreatedTs: now.Add(time.Second).Format(swarming.TIMESTAMP_FORMAT),
+			State:     SWARMING_STATE_PENDING,
+			Tags: []string{
+				fmt.Sprintf("%s:%s", SWARMING_TAG_ID, task.Id),
+				fmt.Sprintf("%s:B", SWARMING_TAG_NAME),
+				fmt.Sprintf("%s:C", SWARMING_TAG_REPO),
+				fmt.Sprintf("%s:D", SWARMING_TAG_REVISION),
+			},
+		},
+	}
+	modified, err := task.UpdateFromSwarming(s)
+	assert.NoError(t, err)
+	assert.True(t, modified)
+	assert.NoError(t, db.PutTask(task))
+
+	// Get update from Swarming.
+	s.TaskResult.StartedTs = now.Add(time.Minute).Format(swarming.TIMESTAMP_FORMAT)
+	s.TaskResult.CompletedTs = now.Add(2 * time.Minute).Format(swarming.TIMESTAMP_FORMAT)
+	s.TaskResult.State = SWARMING_STATE_COMPLETED
+	s.TaskResult.Failure = true
+	s.TaskResult.OutputsRef = &swarming_api.SwarmingRpcsFilesRef{
+		Isolated: "G",
+	}
+
+	assert.NoError(t, UpdateDBFromSwarmingTask(db, s))
+
+	updatedTask, err := db.GetTaskById(task.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, updatedTask, &Task{
+		Id:             task.Id,
+		Name:           "B",
+		Repo:           "C",
+		Revision:       "D",
+		Created:        now.Add(time.Second),
+		Commits:        []string{"D", "Z"},
+		Started:        now.Add(time.Minute),
+		Finished:       now.Add(2 * time.Minute),
+		Status:         TASK_STATUS_FAILURE,
+		SwarmingTaskId: "E",
+		IsolatedOutput: "G",
+		// Use value from updatedTask so they are deep-equal.
+		DbModified: updatedTask.DbModified,
+	})
+
+	lastDbModified := updatedTask.DbModified
+
+	// Make an unrelated change; assert no change to Task.
+	s.TaskResult.ModifiedTs = now.Format(swarming.TIMESTAMP_FORMAT)
+
+	assert.NoError(t, UpdateDBFromSwarmingTask(db, s))
+	updatedTask, err = db.GetTaskById(task.Id)
+	assert.NoError(t, err)
+	assert.True(t, lastDbModified.Equal(updatedTask.DbModified))
+}
+
 // Test that sort.Sort(TaskSlice(...)) works correctly.
 func TestSort(t *testing.T) {
 	tasks := []*Task{}
