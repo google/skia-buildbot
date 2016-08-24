@@ -2,9 +2,13 @@ package task_scheduler
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
+	"os"
+	"path"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -12,7 +16,10 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/build_scheduler/go/db"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/isolate"
+	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -44,17 +51,20 @@ func TestFindTaskCandidates(t *testing.T) {
 	//
 	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
 	//
-	c1 := "b993cfa023855f4e27f0280465d477b0e0969708"
-	c2 := "21e4383ee704174c6ca715645181e076c4a30bdd"
+	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
+	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
 	repo := "skia.git"
 	commits := map[string][]string{
 		repo: []string{c1, c2},
 	}
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
-	_, err = repos.Repo(repo)
 	assert.NoError(t, err)
-	s := NewTaskScheduler(cache, time.Duration(math.MaxInt64), repos)
+	isolateClient, err := isolate.NewClient(tr.Dir)
+	assert.NoError(t, err)
+	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
+	swarmingClient := swarming.NewTestClient()
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
+	assert.NoError(t, err)
 
 	// Check the initial set of task candidates. The two Build tasks
 	// should be the only ones available.
@@ -485,18 +495,19 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	//
 	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
 	//
-	c1 := "b993cfa023855f4e27f0280465d477b0e0969708"
-	c2 := "21e4383ee704174c6ca715645181e076c4a30bdd"
-	repo := "skia.git"
+	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
+	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
 	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
 	testTask := "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	perfTask := "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 
-	// Pre-load the git repo.
-	repos := gitinfo.NewRepoMap(tr.Dir)
-	_, err = repos.Repo(repo)
 	assert.NoError(t, err)
-	s := NewTaskScheduler(cache, time.Duration(math.MaxInt64), repos)
+	isolateClient, err := isolate.NewClient(tr.Dir)
+	assert.NoError(t, err)
+	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
+	swarmingClient := swarming.NewTestClient()
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
+	assert.NoError(t, err)
 
 	// Ensure that the queue is initially empty.
 	assert.Equal(t, 0, len(s.queue))
@@ -648,9 +659,7 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 
 	// Single match.
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t1,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
 
 	// No match.
 	t1.TaskSpec.Dimensions[0] = "k:v2"
@@ -658,77 +667,446 @@ func TestGetCandidatesToSchedule(t *testing.T) {
 	assert.Equal(t, 0, len(rv))
 
 	// Add a task candidate to match b1.
+	t1 = makeTaskCandidate("task1", []string{"k:v2"})
 	t2 := makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t2,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
 
 	// Switch the task order.
+	t1 = makeTaskCandidate("task1", []string{"k:v2"})
+	t2 = makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t2,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
 
 	// Make both tasks match the bot, ensure that we pick the first one.
-	t1.TaskSpec.Dimensions = []string{"k:v"}
+	t1 = makeTaskCandidate("task1", []string{"k:v"})
+	t2 = makeTaskCandidate("task2", []string{"k:v"})
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t1,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1}, []*taskCandidate{t2, t1})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t2,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t2}, rv)
 
 	// Multiple dimensions. Ensure that different permutations of the bots
 	// and tasks lists give us the expected results.
 	dims := []string{"k:v", "k2:v2", "k3:v3"}
 	b1 = makeSwarmingBot("bot1", dims)
 	b2 := makeSwarmingBot("bot2", t1.TaskSpec.Dimensions)
-	t2.TaskSpec.Dimensions = dims
+	t1 = makeTaskCandidate("task1", []string{"k:v"})
+	t2 = makeTaskCandidate("task2", dims)
 	// In the first two cases, the task with fewer dimensions has the
 	// higher priority. It gets the bot with more dimensions because it
 	// is first in sorted order. The second task does not get scheduled
 	// because there is no bot available which can run it.
 	// TODO(borenet): Use a more optimal solution to avoid this case.
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t1,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
+	t1 = makeTaskCandidate("task1", []string{"k:v"})
+	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t1,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t1}, rv)
 	// In these two cases, the task with more dimensions has the higher
 	// priority. Both tasks get scheduled.
+	t1 = makeTaskCandidate("task1", []string{"k:v"})
+	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t2, t1})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t2,
-		b2.BotId: t1,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
+	t1 = makeTaskCandidate("task1", []string{"k:v"})
+	t2 = makeTaskCandidate("task2", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b2, b1}, []*taskCandidate{t2, t1})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t2,
-		b2.BotId: t1,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t2, t1}, rv)
 
 	// Matching dimensions. More bots than tasks.
 	b2 = makeSwarmingBot("bot2", dims)
 	b3 := makeSwarmingBot("bot3", dims)
-	t1.TaskSpec.Dimensions = dims
+	t1 = makeTaskCandidate("task1", dims)
+	t2 = makeTaskCandidate("task2", dims)
 	t3 := makeTaskCandidate("task3", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2, b3}, []*taskCandidate{t1, t2})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t1,
-		b2.BotId: t2,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
 
 	// More tasks than bots.
+	t1 = makeTaskCandidate("task1", dims)
+	t2 = makeTaskCandidate("task2", dims)
+	t3 = makeTaskCandidate("task3", dims)
 	rv = getCandidatesToSchedule([]*swarming_api.SwarmingRpcsBotInfo{b1, b2}, []*taskCandidate{t1, t2, t3})
-	testutils.AssertDeepEqual(t, map[string]*taskCandidate{
-		b1.BotId: t1,
-		b2.BotId: t2,
-	}, rv)
+	testutils.AssertDeepEqual(t, []*taskCandidate{t1, t2}, rv)
+}
 
+func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInfo {
+	dimensions := make([]*swarming_api.SwarmingRpcsStringListPair, 0, len(dims))
+	for k, v := range dims {
+		dimensions = append(dimensions, &swarming_api.SwarmingRpcsStringListPair{
+			Key:   k,
+			Value: []string{v},
+		})
+	}
+	return &swarming_api.SwarmingRpcsBotInfo{
+		BotId:      id,
+		Dimensions: dimensions,
+	}
+}
+
+func TestSchedulingE2E(t *testing.T) {
+	testutils.SkipIfShort(t)
+
+	// Setup.
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+	d := db.NewInMemoryDB()
+	cache, err := db.NewTaskCache(d, time.Hour)
+	assert.NoError(t, err)
+
+	// The test repo has two commits. The first commit adds a tasks.cfg file
+	// with two task specs: a build task and a test task, the test task
+	// depending on the build task. The second commit adds a perf task spec,
+	// which also depends on the build task. Therefore, there are five total
+	// possible tasks we could run:
+	//
+	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
+	//
+	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
+	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
+
+	assert.NoError(t, err)
+	isolateClient, err := isolate.NewClient(tr.Dir)
+	assert.NoError(t, err)
+	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
+	swarmingClient := swarming.NewTestClient()
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
+
+	// Start testing. No free bots, so we get a full queue with nothing
+	// scheduled.
+	assert.NoError(t, s.mainLoop())
+	tasks, err := cache.GetTasksForCommits([]string{c1, c2})
+	assert.NoError(t, err)
+	expect := map[string]map[string]*db.Task{
+		c1: map[string]*db.Task{},
+		c2: map[string]*db.Task{},
+	}
+	testutils.AssertDeepEqual(t, expect, tasks)
+
+	// A bot is free but doesn't have all of the right dimensions to run a task.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.mainLoop())
+	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	assert.NoError(t, err)
+	expect = map[string]map[string]*db.Task{
+		c1: map[string]*db.Task{},
+		c2: map[string]*db.Task{},
+	}
+	testutils.AssertDeepEqual(t, expect, tasks)
+	assert.Equal(t, 2, len(s.queue))
+
+	// One bot free, schedule a task, ensure it's not in the queue.
+	bot1.Dimensions = append(bot1.Dimensions, &swarming_api.SwarmingRpcsStringListPair{
+		Key:   "os",
+		Value: []string{"Ubuntu"},
+	})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.mainLoop())
+	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	assert.NoError(t, err)
+	var t1 *db.Task
+	for _, v := range tasks {
+		for _, t := range v {
+			t1 = t
+			break
+		}
+	}
+	assert.NotNil(t, t1)
+	assert.Equal(t, 1, len(s.queue))
+
+	// The task is complete.
+	t1.Status = db.TASK_STATUS_SUCCESS
+	t1.Finished = time.Now()
+	t1.IsolatedOutput = "abc123"
+	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, cache.Update())
+	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	assert.NoError(t, err)
+	for _, v := range tasks {
+		for _, task := range v {
+			assert.True(t, task.Done())
+		}
+	}
+
+	// No bots free. Ensure that the queue is correct.
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
+	assert.NoError(t, s.mainLoop())
+	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	assert.NoError(t, err)
+	// The tests don't use any time-based score scaling, because the commits
+	// in the test repo have fixed timestamps and would eventually result in
+	// zero scores. The side effect is that we don't know which of c1 or c2
+	// will be chosen because they end up with the same score.
+	expectLen := 2 // One remaining build task, plus one test task.
+	if t1.Revision == c2 {
+		expectLen = 3 // c2 adds a perf task.
+	}
+	assert.Equal(t, expectLen, len(s.queue))
+
+	// More bots than tasks free, ensure the queue is correct.
+	bot2 := makeBot("bot2", map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	})
+	bot3 := makeBot("bot3", map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	})
+	bot4 := makeBot("bot4", map[string]string{
+		"pool": "Skia",
+		"os":   "Ubuntu",
+	})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
+	assert.NoError(t, s.mainLoop())
+	_, err = cache.GetTasksForCommits([]string{c1, c2})
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(s.queue))
+
+	// Second compile task finished.
+	var t2 *db.Task
+	var t3 *db.Task
+	var t4 *db.Task
+	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	assert.NoError(t, err)
+	for _, v := range tasks {
+		for _, task := range v {
+			if task.Name == t1.Name {
+				if (t1.Revision == c1 && task.Revision == c2) || (t1.Revision == c2 && task.Revision == c1) {
+					t2 = task
+				}
+			} else {
+				if t3 == nil {
+					t3 = task
+				} else {
+					t4 = task
+				}
+			}
+		}
+	}
+	assert.NotNil(t, t2)
+	assert.NotNil(t, t3)
+	t2.Status = db.TASK_STATUS_SUCCESS
+	t2.Finished = time.Now()
+	t2.IsolatedOutput = "abc123"
+	assert.NoError(t, d.PutTask(t2))
+	assert.NoError(t, cache.Update())
+
+	// No new bots free; ensure that the newly-available tasks are in the queue.
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
+	assert.NoError(t, s.mainLoop())
+	expectLen = 1 // Test task from c1
+	if t2.Revision == c2 {
+		expectLen = 2 // Test and perf tasks from c2
+	}
+	assert.Equal(t, expectLen, len(s.queue))
+
+	// Finish the other tasks.
+	t3.Status = db.TASK_STATUS_SUCCESS
+	t3.Finished = time.Now()
+	t3.IsolatedOutput = "abc123"
+	assert.NoError(t, d.PutTask(t3))
+	if t4 != nil {
+		t4.Status = db.TASK_STATUS_SUCCESS
+		t4.Finished = time.Now()
+		t4.IsolatedOutput = "abc123"
+		assert.NoError(t, d.PutTask(t4))
+	}
+	assert.NoError(t, cache.Update())
+
+	// Ensure that we finally run all of the tasks and insert into the DB.
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
+	assert.NoError(t, s.mainLoop())
+	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(tasks[c1]))
+	assert.Equal(t, 3, len(tasks[c2]))
+	assert.Equal(t, 0, len(s.queue))
+
+	// Mark everything as finished. Ensure that the queue still ends up empty.
+	tasksList := []*db.Task{}
+	for _, v := range tasks {
+		for _, task := range v {
+			if task.Status != db.TASK_STATUS_SUCCESS {
+				task.Status = db.TASK_STATUS_SUCCESS
+				task.Finished = time.Now()
+				task.IsolatedOutput = "abc123"
+			}
+		}
+	}
+	assert.NoError(t, d.PutTasks(tasksList))
+	assert.NoError(t, cache.Update())
+
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
+	assert.NoError(t, s.mainLoop())
+	assert.Equal(t, 0, len(s.queue))
+}
+
+func makeDummyCommits(t *testing.T, repoDir string, numCommits int) {
+	_, err := exec.RunCwd(repoDir, "git", "config", "user.email", "test@skia.org")
+	assert.NoError(t, err)
+	_, err = exec.RunCwd(repoDir, "git", "config", "user.name", "Skia Tester")
+	assert.NoError(t, err)
+	_, err = exec.RunCwd(repoDir, "git", "checkout", "master")
+	assert.NoError(t, err)
+	dummyFile := path.Join(repoDir, "dummyfile.txt")
+	for i := 0; i < numCommits; i++ {
+		title := fmt.Sprintf("Dummy #%d", i)
+		assert.NoError(t, ioutil.WriteFile(dummyFile, []byte(title), os.ModePerm))
+		_, err = exec.RunCwd(repoDir, "git", "add", dummyFile)
+		assert.NoError(t, err)
+		_, err = exec.RunCwd(repoDir, "git", "commit", "-m", title)
+		assert.NoError(t, err)
+		_, err = exec.RunCwd(repoDir, "git", "push", "origin", "master")
+		assert.NoError(t, err)
+	}
+}
+
+func TestSchedulerStealingFrom(t *testing.T) {
+	testutils.SkipIfShort(t)
+
+	// Setup.
+	tr := util.NewTempRepo()
+	d := db.NewInMemoryDB()
+	cache, err := db.NewTaskCache(d, time.Hour)
+	assert.NoError(t, err)
+
+	// The test repo has two commits. The first commit adds a tasks.cfg file
+	// with two task specs: a build task and a test task, the test task
+	// depending on the build task. The second commit adds a perf task spec,
+	// which also depends on the build task. Therefore, there are five total
+	// possible tasks we could run:
+	//
+	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
+	//
+	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
+	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
+	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
+	repoName := "skia.git"
+	repoDir := path.Join(tr.Dir, repoName)
+
+	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repos.Repo(repoName)
+	assert.NoError(t, err)
+	isolateClient, err := isolate.NewClient(tr.Dir)
+	assert.NoError(t, err)
+	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
+	swarmingClient := swarming.NewTestClient()
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
+	assert.NoError(t, err)
+
+	// Run both available compile tasks.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	assert.NoError(t, s.mainLoop())
+	tasks, err := cache.GetTasksForCommits([]string{c1, c2})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tasks[c1]))
+	assert.Equal(t, 1, len(tasks[c2]))
+	tasksList := []*db.Task{}
+	for _, v := range tasks {
+		for _, task := range v {
+			if task.Status != db.TASK_STATUS_SUCCESS {
+				task.Status = db.TASK_STATUS_SUCCESS
+				task.Finished = time.Now()
+				task.IsolatedOutput = "abc123"
+				tasksList = append(tasksList, task)
+			}
+		}
+	}
+	assert.NoError(t, d.PutTasks(tasksList))
+	assert.NoError(t, cache.Update())
+
+	// Add some commits.
+	makeDummyCommits(t, repoDir, 10)
+	commits, err := repo.RevList("HEAD")
+	assert.NoError(t, err)
+
+	// Run one task. Ensure that it's at tip-of-tree.
+	head, err := repo.FullHash("HEAD")
+	assert.NoError(t, err)
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.mainLoop())
+	tasks, err = cache.GetTasksForCommits(commits)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tasks[head]))
+	task := tasks[head][buildTask]
+	assert.Equal(t, head, task.Revision)
+	expect := commits[:len(commits)-2]
+	sort.Strings(expect)
+	testutils.AssertDeepEqual(t, expect, task.Commits)
+
+	task.Status = db.TASK_STATUS_SUCCESS
+	task.Finished = time.Now()
+	task.IsolatedOutput = "abc123"
+	assert.NoError(t, d.PutTask(task))
+	assert.NoError(t, cache.Update())
+
+	oldTasksByCommit := tasks
+
+	// Run backfills, ensuring that each one steals the right set of commits
+	// from previous builds, until all of the build task candidates have run.
+	for i := 0; i < 9; i++ {
+		// Now, run another task. The new task should bisect the old one.
+		swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+		assert.NoError(t, s.mainLoop())
+		tasks, err = cache.GetTasksForCommits(commits)
+		assert.NoError(t, err)
+		var newTask *db.Task
+		for _, v := range tasks {
+			for _, task := range v {
+				if task.Status == db.TASK_STATUS_PENDING {
+					assert.True(t, newTask == nil || task.Id == newTask.Id)
+					newTask = task
+				}
+			}
+		}
+		assert.NotNil(t, newTask)
+
+		oldTask := oldTasksByCommit[newTask.Revision][newTask.Name]
+		assert.NotNil(t, oldTask)
+		assert.True(t, util.In(newTask.Revision, oldTask.Commits))
+
+		// Find the updated old task.
+		updatedOldTask, err := cache.GetTask(oldTask.Id)
+		assert.NoError(t, err)
+		assert.NotNil(t, updatedOldTask)
+
+		// Ensure that the blamelists are correct.
+		old := util.NewStringSet(oldTask.Commits)
+		new := util.NewStringSet(newTask.Commits)
+		updatedOld := util.NewStringSet(updatedOldTask.Commits)
+
+		testutils.AssertDeepEqual(t, old, new.Union(updatedOld))
+		assert.Equal(t, 0, len(new.Intersect(updatedOld)))
+		// Finish the new task.
+		newTask.Status = db.TASK_STATUS_SUCCESS
+		newTask.Finished = time.Now()
+		newTask.IsolatedOutput = "abc123"
+		assert.NoError(t, d.PutTask(newTask))
+		assert.NoError(t, cache.Update())
+		oldTasksByCommit = tasks
+
+	}
+
+	// Ensure that we're really done.
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.mainLoop())
+	tasks, err = cache.GetTasksForCommits(commits)
+	assert.NoError(t, err)
+	var newTask *db.Task
+	for _, v := range tasks {
+		for _, task := range v {
+			if task.Status == db.TASK_STATUS_PENDING {
+				assert.True(t, newTask == nil || task.Id == newTask.Id)
+				newTask = task
+			}
+		}
+	}
+	assert.Nil(t, newTask)
 }

@@ -21,8 +21,8 @@ func TestTaskSpecs(t *testing.T) {
 	repos := gitinfo.NewRepoMap(tr.Dir)
 	cache := newTaskCfgCache(repos)
 
-	c1 := "b993cfa023855f4e27f0280465d477b0e0969708"
-	c2 := "21e4383ee704174c6ca715645181e076c4a30bdd"
+	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
+	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
 	repo := "skia.git"
 	specs, err := cache.GetTaskSpecsForCommits(map[string][]string{
 		repo: []string{c1, c2},
@@ -47,8 +47,8 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	cache := newTaskCfgCache(repos)
 
 	// Load configs into the cache.
-	c1 := "b993cfa023855f4e27f0280465d477b0e0969708"
-	c2 := "21e4383ee704174c6ca715645181e076c4a30bdd"
+	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
+	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
 	repo := "skia.git"
 	_, err := cache.GetTaskSpecsForCommits(map[string][]string{
 		repo: []string{c1, c2},

@@ -3,6 +3,7 @@ package task_scheduler
 import (
 	"fmt"
 	"math"
+	"path"
 	"sort"
 	"sync"
 	"time"
@@ -12,6 +13,7 @@ import (
 	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
@@ -20,34 +22,48 @@ import (
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
 	cache            *db.TaskCache
+	db               db.DB
+	isolate          *isolate.Client
 	period           time.Duration
 	queue            []*taskCandidate
 	queueMtx         sync.RWMutex
 	repos            *gitinfo.RepoMap
+	swarming         swarming.ApiClient
 	taskCfgCache     *taskCfgCache
 	timeDecayAmt24Hr float64
+	workdir          string
 }
 
-func NewTaskScheduler(cache *db.TaskCache, period time.Duration, repos *gitinfo.RepoMap) *TaskScheduler {
+func NewTaskScheduler(d db.DB, cache *db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient) (*TaskScheduler, error) {
+	repos := gitinfo.NewRepoMap(workdir)
+	for _, r := range repoNames {
+		if _, err := repos.Repo(r); err != nil {
+			return nil, err
+		}
+	}
 	s := &TaskScheduler{
 		cache:            cache,
+		db:               d,
+		isolate:          isolateClient,
 		period:           period,
 		queue:            []*taskCandidate{},
 		queueMtx:         sync.RWMutex{},
 		repos:            repos,
+		swarming:         swarmingClient,
 		taskCfgCache:     newTaskCfgCache(repos),
 		timeDecayAmt24Hr: 1.0,
+		workdir:          workdir,
 	}
-	return s
+	return s, nil
 }
 
 // Start initiates the TaskScheduler's goroutines for scheduling tasks.
 func (s *TaskScheduler) Start() {
 	go func() {
-		lv := metrics2.NewLiveness("last-successful-queue-regeneration")
+		lv := metrics2.NewLiveness("last-successful-task-scheduling")
 		for _ = range time.Tick(time.Minute) {
-			if err := s.regenerateTaskQueue(); err != nil {
-				glog.Errorf("Failed to regenerate task queue: %s", err)
+			if err := s.mainLoop(); err != nil {
+				glog.Errorf("Failed to run the task scheduler: %s", err)
 			} else {
 				lv.Reset()
 			}
@@ -192,20 +208,6 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([
 	for repo, commits := range specs {
 		for commit, tasks := range commits {
 			for name, task := range tasks {
-				// We shouldn't duplicate pending, in-progress,
-				// or successfully completed tasks.
-				previous, err := s.cache.GetTaskForCommit(name, commit)
-				if err != nil {
-					return nil, err
-				}
-				if previous != nil && previous.Revision == commit {
-					if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
-						continue
-					}
-					if previous.Success() {
-						continue
-					}
-				}
 				candidates = append(candidates, &taskCandidate{
 					IsolatedHashes: nil,
 					Name:           name,
@@ -218,9 +220,25 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([
 		}
 	}
 
-	// Filter out candidates whose dependencies have not been met.
+	// Filter out candidates we've already run or whose dependencies have not been met.
 	validCandidates := make([]*taskCandidate, 0, len(candidates))
 	for _, c := range candidates {
+		// We shouldn't duplicate pending, in-progress,
+		// or successfully completed tasks.
+		previous, err := s.cache.GetTaskForCommit(c.Name, c.Revision)
+		if err != nil {
+			return nil, err
+		}
+		if previous != nil && previous.Revision == c.Revision {
+			if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
+				continue
+			}
+			if previous.Success() {
+				continue
+			}
+		}
+
+		// Don't consider candidates whose dependencies are not met.
 		depsMet, hashes, err := c.allDepsMet(s.cache)
 		if err != nil {
 			return nil, err
@@ -239,23 +257,27 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([
 // candidate, eg. blamelists and scoring.
 func (s *TaskScheduler) processTaskCandidates(candidates []*taskCandidate) error {
 	// Compute blamelists.
-	for _, c := range candidates {
+	stoleFrom := make([]*db.Task, len(candidates))
+	for idx, c := range candidates {
 		commits, stealingFrom, err := ComputeBlamelist(s.cache, s.repos, c)
 		if err != nil {
 			return err
 		}
 		c.Commits = commits
-		c.StealingFrom = stealingFrom
+		if stealingFrom != nil {
+			c.StealingFromId = stealingFrom.Id
+			stoleFrom[idx] = stealingFrom
+		}
 	}
 
 	// Score the candidates.
 	now := time.Now()
-	for _, c := range candidates {
+	for idx, c := range candidates {
 		// The score for a candidate is based on the "testedness" increase
 		// provided by running the task.
 		stoleFromCommits := 0
-		if c.StealingFrom != nil {
-			stoleFromCommits = len(c.StealingFrom.Commits)
+		if stoleFrom[idx] != nil {
+			stoleFromCommits = len(stoleFrom[idx].Commits)
 		}
 		score := testednessIncrease(len(c.Commits), stoleFromCommits)
 
@@ -281,6 +303,18 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 	}
 
 	// Find the recent commits to use.
+	for _, repoName := range s.repos.Repos() {
+		r, err := s.repos.Repo(repoName)
+		if err != nil {
+			return err
+		}
+		if err := r.Reset("HEAD"); err != nil {
+			return err
+		}
+		if err := r.Checkout("master"); err != nil {
+			return err
+		}
+	}
 	if err := s.repos.Update(); err != nil {
 		return err
 	}
@@ -315,7 +349,7 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 // getCandidatesToSchedule matches the list of free Swarming bots to task
 // candidates in the queue and returns the candidates which should be run.
 // Assumes that the tasks are sorted in decreasing order by score.
-func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*taskCandidate) map[string]*taskCandidate {
+func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*taskCandidate) []*taskCandidate {
 	// Create a bots-by-swarming-dimension mapping.
 	botsByDim := map[string]util.StringSet{}
 	for _, b := range bots {
@@ -334,7 +368,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	// TODO(borenet): Some tasks require a more specialized bot. We should
 	// match so that less-specialized tasks don't "steal" more-specialized
 	// bots which they don't actually need.
-	rv := make(map[string]*taskCandidate, len(bots))
+	rv := make([]*taskCandidate, 0, len(bots))
 	for _, c := range tasks {
 		// For each dimension of the task, find the set of bots which matches.
 		matches := util.StringSet{}
@@ -363,8 +397,11 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 				}
 			}
 
+			// Force the candidate to run on this bot.
+			c.TaskSpec.Dimensions = append(c.TaskSpec.Dimensions, fmt.Sprintf("id:%s", bot))
+
 			// Add the task to the scheduling list.
-			rv[bot] = c
+			rv = append(rv, c)
 
 			// If we've exhausted the bot list, stop here.
 			if len(botsByDim) == 0 {
@@ -373,6 +410,125 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 		}
 	}
 	return rv
+}
+
+// scheduleTasks queries for free Swarming bots and triggers tasks according
+// to relative priorities in the queue.
+func (s *TaskScheduler) scheduleTasks() error {
+	// Find free bots, match them with tasks.
+	bots, err := getFreeSwarmingBots(s.swarming)
+	if err != nil {
+		return err
+	}
+	s.queueMtx.Lock()
+	defer s.queueMtx.Unlock()
+	schedule := getCandidatesToSchedule(bots, s.queue)
+
+	// First, group by commit hash since we have to isolate the code at
+	// a particular revision for each task.
+	byRepoCommit := map[string]map[string][]*taskCandidate{}
+	for _, c := range schedule {
+		if mRepo, ok := byRepoCommit[c.Repo]; !ok {
+			byRepoCommit[c.Repo] = map[string][]*taskCandidate{c.Revision: []*taskCandidate{c}}
+		} else {
+			mRepo[c.Revision] = append(mRepo[c.Revision], c)
+		}
+	}
+
+	// Isolate the tasks by commit.
+	for repoName, commits := range byRepoCommit {
+		infraBotsDir := path.Join(s.workdir, repoName, "infra", "bots")
+		for commit, candidates := range commits {
+			repo, err := s.repos.Repo(repoName)
+			if err != nil {
+				return err
+			}
+			if err := repo.Checkout(commit); err != nil {
+				return err
+			}
+			tasks := make([]*isolate.Task, 0, len(candidates))
+			for _, c := range candidates {
+				tasks = append(tasks, c.MakeIsolateTask(infraBotsDir, s.workdir))
+			}
+			hashes, err := s.isolate.IsolateTasks(tasks)
+			if err != nil {
+				return err
+			}
+			if len(hashes) != len(candidates) {
+				return fmt.Errorf("IsolateTasks returned incorrect number of hashes.")
+			}
+			for i, c := range candidates {
+				c.IsolatedInput = hashes[i]
+			}
+		}
+	}
+
+	// Trigger tasks.
+	tasks := make([]*db.Task, 0, len(schedule)*2)
+	for _, candidate := range schedule {
+		t := candidate.MakeTask()
+		if err := s.db.AssignId(t); err != nil {
+			return err
+		}
+		req := candidate.MakeTaskRequest(t.Id)
+		resp, err := s.swarming.TriggerTask(req)
+		if err != nil {
+			return err
+		}
+		if _, err := t.UpdateFromSwarming(resp); err != nil {
+			return err
+		}
+		tasks = append(tasks, t)
+		// If we're stealing commits from another task, find it and adjust
+		// its blamelist.
+		// TODO(borenet): We're retrieving a cached task which may have been
+		// changed since the cache was last updated. We need to handle that.
+		if candidate.StealingFromId != "" {
+			stealingFrom, err := s.cache.GetTask(candidate.StealingFromId)
+			if err != nil {
+				return err
+			}
+			oldCommits := util.NewStringSet(stealingFrom.Commits)
+			stealing := util.NewStringSet(t.Commits)
+			stealingFrom.Commits = oldCommits.Complement(stealing).Keys()
+			tasks = append(tasks, stealingFrom)
+		}
+	}
+
+	// Insert the tasks into the database.
+	if err := s.db.PutTasks(tasks); err != nil {
+		return err
+	}
+
+	// Update the TaskCache.
+	if err := s.cache.Update(); err != nil {
+		return err
+	}
+
+	// Remove the tasks from the queue.
+	newQueue := make([]*taskCandidate, 0, len(s.queue)-len(schedule))
+	for i, j := 0, 0; i < len(s.queue); {
+		if j >= len(schedule) {
+			newQueue = append(newQueue, s.queue[i:]...)
+			break
+		}
+		if s.queue[i] == schedule[j] {
+			j++
+		} else {
+			newQueue = append(newQueue, s.queue[i])
+		}
+		i++
+	}
+	s.queue = newQueue
+	return nil
+}
+
+// mainLoop runs a single end-to-end task scheduling loop.
+func (s *TaskScheduler) mainLoop() error {
+	if err := s.regenerateTaskQueue(); err != nil {
+		return err
+	}
+	return s.scheduleTasks()
 }
 
 // timeDecay24Hr computes a linear time decay amount for the given duration,

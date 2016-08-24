@@ -27,10 +27,12 @@ const (
 	SWARMING_STATE_TIMED_OUT = "TIMED_OUT"
 
 	// Swarming tags added by Build Scheduler.
-	SWARMING_TAG_ID       = "scheduler_id"
-	SWARMING_TAG_NAME     = "name"
-	SWARMING_TAG_REPO     = "repo"
-	SWARMING_TAG_REVISION = "revision"
+	SWARMING_TAG_ALLOW_MILO = "allow_milo"
+	SWARMING_TAG_ID         = "scheduler_id"
+	SWARMING_TAG_NAME       = "name"
+	SWARMING_TAG_PRIORITY   = "priority"
+	SWARMING_TAG_REPO       = "repo"
+	SWARMING_TAG_REVISION   = "revision"
 )
 
 type TaskStatus string
@@ -447,4 +449,30 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 	case result := <-d.result:
 		return result, nil
 	}
+}
+
+// TagsForTask returns the tags which should be set for a Task.
+func TagsForTask(name, id string, priority float64, repo, revision string, dimensions map[string]string) []string {
+	tags := map[string]string{
+		SWARMING_TAG_ALLOW_MILO: "1",
+		SWARMING_TAG_NAME:       name,
+		SWARMING_TAG_ID:         id,
+		SWARMING_TAG_PRIORITY:   fmt.Sprintf("%f", priority),
+		SWARMING_TAG_REPO:       repo,
+		SWARMING_TAG_REVISION:   revision,
+	}
+
+	for k, v := range dimensions {
+		if _, ok := tags[k]; !ok {
+			tags[k] = v
+		} else {
+			glog.Warningf("Duplicate dimension/tag %q.", k)
+		}
+	}
+
+	tagsList := make([]string, 0, len(tags))
+	for k, v := range tags {
+		tagsList = append(tagsList, fmt.Sprintf("%s:%s", k, v))
+	}
+	return tagsList
 }
