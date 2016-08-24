@@ -1,13 +1,16 @@
 package gitinfo
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	assert "github.com/stretchr/testify/require"
+	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 func TestDisplay(t *testing.T) {
@@ -122,6 +125,129 @@ func TestLastN(t *testing.T) {
 		if got, want := r.LastN(tc.n), tc.values; !util.SSliceEqual(got, want) {
 			t.Errorf("For N: %d Hashes returned is wrong: Got %#v Want %#v", tc.n, got, want)
 		}
+	}
+}
+
+func TestLastNIndex(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c1 := &vcsinfo.IndexCommit{
+		Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
+		Index:     0,
+		Timestamp: time.Unix(1406721642, 0).UTC(),
+	}
+	c2 := &vcsinfo.IndexCommit{
+		Hash:      "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+		Index:     1,
+		Timestamp: time.Unix(1406721715, 0).UTC(),
+	}
+	testCases := []struct {
+		n        int
+		expected []*vcsinfo.IndexCommit
+	}{
+		{
+			n:        0,
+			expected: []*vcsinfo.IndexCommit{},
+		},
+		{
+			n:        1,
+			expected: []*vcsinfo.IndexCommit{c2},
+		},
+		{
+			n:        2,
+			expected: []*vcsinfo.IndexCommit{c1, c2},
+		},
+		{
+			n:        5,
+			expected: []*vcsinfo.IndexCommit{c1, c2},
+		},
+	}
+	for _, tc := range testCases {
+		actual := r.LastNIndex(tc.n)
+		assert.Equal(t, len(tc.expected), len(actual))
+		testutils.AssertDeepEqual(t, tc.expected, actual)
+		for i, a := range actual {
+			assert.Equal(t, a.Hash, tc.expected[i].Hash, fmt.Sprintf("For %#v", tc))
+			assert.Equal(t, a.Index, tc.expected[i].Index, fmt.Sprintf("For %#v", tc))
+			assert.Equal(t, a.Timestamp, tc.expected[i].Timestamp, fmt.Sprintf("For %#v", tc))
+		}
+	}
+}
+
+func TestRange(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts1 := time.Unix(1406721642, 0).UTC()
+	ts2 := time.Unix(1406721715, 0).UTC()
+
+	c1 := &vcsinfo.IndexCommit{
+		Hash:      "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f",
+		Index:     0,
+		Timestamp: ts1,
+	}
+	c2 := &vcsinfo.IndexCommit{
+		Hash:      "8652a6df7dc8a7e6addee49f6ed3c2308e36bd18",
+		Index:     1,
+		Timestamp: ts2,
+	}
+	testCases := []struct {
+		begin    time.Time
+		end      time.Time
+		expected []*vcsinfo.IndexCommit
+		message  string
+	}{
+		{
+			begin:    ts1.Add(-5 * time.Second),
+			end:      ts1.Add(-4 * time.Second),
+			expected: []*vcsinfo.IndexCommit{},
+			message:  "No match, too early",
+		},
+		{
+			begin:    ts1.Add(4 * time.Second),
+			end:      ts1.Add(5 * time.Second),
+			expected: []*vcsinfo.IndexCommit{},
+			message:  "No match, too late",
+		},
+		{
+			begin:    ts2.Add(-1 * time.Millisecond),
+			end:      ts2,
+			expected: []*vcsinfo.IndexCommit{},
+			message:  "Test the end of the half open interval.",
+		},
+		{
+			begin:    ts2,
+			end:      ts2.Add(1 * time.Millisecond),
+			expected: []*vcsinfo.IndexCommit{c2},
+			message:  "Test the beginning of the half open interval.",
+		},
+		{
+			begin:    ts1,
+			end:      ts2.Add(1 * time.Millisecond),
+			expected: []*vcsinfo.IndexCommit{c1, c2},
+			message:  "Test just a little past the second value.",
+		},
+		{
+			begin:    ts1.Add(-1 * time.Second),
+			end:      ts2.Add(5 * time.Second),
+			expected: []*vcsinfo.IndexCommit{c1, c2},
+			message:  "Test larger margins.",
+		},
+	}
+	for idx, tc := range testCases {
+		actual := r.Range(tc.begin, tc.end)
+		assert.Equal(t, len(tc.expected), len(actual), fmt.Sprintf("%d %#v", idx, tc))
+		testutils.AssertDeepEqual(t, tc.expected, actual)
 	}
 }
 

@@ -27,8 +27,8 @@ var commitLineRe = regexp.MustCompile(`([0-9a-f]{40}),([^,\n]+),(.+)$`)
 type GitInfo struct {
 	dir          string
 	hashes       []string
-	timestamps   map[string]time.Time // Key is the hash.
-	detailsCache map[string]*vcsinfo.LongCommit
+	timestamps   map[string]time.Time           // The git hash is the key.
+	detailsCache map[string]*vcsinfo.LongCommit // The git hash is the key.
 
 	// Any access to hashes or timestamps must be protected.
 	mutex sync.Mutex
@@ -198,6 +198,56 @@ func (g *GitInfo) From(start time.Time) []string {
 		if g.timestamps[h].After(start) {
 			ret = append(ret, h)
 		}
+	}
+	return ret
+}
+
+// Range returns all commits from the half open interval ['begin', 'end'), i.e.
+// includes 'begin' and excludes 'end'.
+func (g *GitInfo) Range(begin, end time.Time) []*vcsinfo.IndexCommit {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	ret := []*vcsinfo.IndexCommit{}
+	first := sort.Search(len(g.hashes), func(i int) bool {
+		ts := g.timestamps[g.hashes[i]]
+		return ts.After(begin) || ts == begin
+	})
+	if first == len(g.timestamps) {
+		return ret
+	}
+	for i, h := range g.hashes[first:] {
+		if g.timestamps[h].Before(end) {
+			ret = append(ret, &vcsinfo.IndexCommit{
+				Hash:      h,
+				Index:     first + i,
+				Timestamp: g.timestamps[h],
+			})
+		} else {
+			break
+		}
+	}
+	return ret
+}
+
+// LastNIndex returns the last N commits.
+func (g *GitInfo) LastNIndex(N int) []*vcsinfo.IndexCommit {
+	g.mutex.Lock()
+	defer g.mutex.Unlock()
+	var hashes []string
+	offset := 0
+	if len(g.hashes) < N {
+		hashes = g.hashes
+	} else {
+		hashes = g.hashes[len(g.hashes)-N:]
+		offset = len(g.hashes) - N
+	}
+	ret := []*vcsinfo.IndexCommit{}
+	for i, h := range hashes {
+		ret = append(ret, &vcsinfo.IndexCommit{
+			Hash:      h,
+			Index:     i + offset,
+			Timestamp: g.timestamps[h],
+		})
 	}
 	return ret
 }
@@ -398,6 +448,7 @@ func readCommitsFromGit(dir, branch string) ([]string, map[string]time.Time, err
 			if err != nil {
 				return nil, nil, fmt.Errorf("Failed parsing Git log timestamp: %s", err)
 			}
+			t = t.UTC()
 			hash := parts[0]
 			gitHashes = append(gitHashes, &gitHash{hash: hash, timeStamp: t})
 			timestamps[hash] = t
@@ -581,3 +632,6 @@ func (m *RepoMap) Repos() []string {
 	}
 	return rv
 }
+
+// Ensure that GitInfo implements vscinfo.VCS.
+var _ vcsinfo.VCS = &GitInfo{}

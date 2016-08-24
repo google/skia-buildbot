@@ -2,6 +2,14 @@ package vcsinfo
 
 import "time"
 
+// IndexCommit is information about a commit that includes the offset from
+// the first commit.
+type IndexCommit struct {
+	Hash      string
+	Index     int
+	Timestamp time.Time
+}
+
 // ShortCommit stores the hash, author, and subject of a git commit.
 type ShortCommit struct {
 	Hash    string `json:"hash"`
@@ -32,4 +40,10 @@ type VCS interface {
 	// result will contain all branches that contain the given commit,
 	// otherwise Branches will be empty.
 	Details(hash string, includeBranchInfo bool) (*LongCommit, error)
+
+	// LastNIndex returns the last N commits.
+	LastNIndex(N int) []*IndexCommit
+
+	// Range returns all commits from 'begin' to 'end', exclusive of the endpoints.
+	Range(begin, end time.Time) []*IndexCommit
 }
