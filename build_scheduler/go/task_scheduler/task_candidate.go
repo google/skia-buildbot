@@ -99,7 +99,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 func (c *taskCandidate) allDepsMet(cache *db.TaskCache) (bool, []string, error) {
 	isolatedHashes := make([]string, 0, len(c.TaskSpec.Dependencies))
 	for _, depName := range c.TaskSpec.Dependencies {
-		d, err := cache.GetTaskForCommit(depName, c.Revision)
+		d, err := cache.GetTaskForCommit(c.Repo, c.Revision, depName)
 		if err != nil {
 			return false, nil, err
 		}

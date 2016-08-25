@@ -95,7 +95,7 @@ func ComputeBlamelist(cache *db.TaskCache, repos *gitinfo.RepoMap, c *taskCandid
 
 	// If this is the first invocation of a given task spec, save time by
 	// setting the blamelist to only be c.Revision.
-	if !cache.KnownTaskName(c.Name) {
+	if !cache.KnownTaskName(c.Repo, c.Name) {
 		return []string{c.Revision}, nil, nil
 	}
 
@@ -126,7 +126,7 @@ func ComputeBlamelist(cache *db.TaskCache, repos *gitinfo.RepoMap, c *taskCandid
 		}
 
 		// Determine whether any task already includes this commit.
-		prev, err := cache.GetTaskForCommit(c.Name, hash)
+		prev, err := cache.GetTaskForCommit(c.Repo, hash, c.Name)
 		if err != nil {
 			return fmt.Errorf("Could not find task %q for commit %q: %s", c.Name, hash, err)
 		}
@@ -227,7 +227,7 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string, ou
 				}
 				// We shouldn't duplicate pending, in-progress,
 				// or successfully completed tasks.
-				previous, err := s.cache.GetTaskForCommit(c.Name, c.Revision)
+				previous, err := s.cache.GetTaskForCommit(c.Repo, c.Revision, c.Name)
 				if err != nil {
 					close(out)
 					errs <- err

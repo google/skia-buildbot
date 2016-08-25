@@ -24,11 +24,12 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
-func makeTask(name, revision string) *db.Task {
+func makeTask(name, repo, revision string) *db.Task {
 	return &db.Task{
 		Commits:  []string{revision},
 		Created:  time.Now(),
 		Name:     name,
+		Repo:     repo,
 		Revision: revision,
 	}
 }
@@ -99,7 +100,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	var t1 *db.Task
 	for _, candidate := range c { // Order not guaranteed; find the right candidate.
 		if candidate.Revision == c1 {
-			t1 = makeTask(candidate.Name, candidate.Revision)
+			t1 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
 			break
 		}
 	}
@@ -152,7 +153,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	var t2 *db.Task
 	for _, candidate := range c {
 		if candidate.Revision == c2 && strings.HasPrefix(candidate.Name, "Build-") {
-			t2 = makeTask(candidate.Name, candidate.Revision)
+			t2 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
 			break
 		}
 	}
@@ -519,13 +520,14 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
 	testTask := "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	perfTask := "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+	repoName := "skia.git"
 
 	assert.NoError(t, err)
 	isolateClient, err := isolate.NewClient(tr.Dir)
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient)
 	assert.NoError(t, err)
 
 	// Ensure that the queue is initially empty.
@@ -562,7 +564,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	var t1 *db.Task
 	for _, c := range s.queue { // Order not guaranteed; find the right candidate.
 		if c.Revision == c1 {
-			t1 = makeTask(c.Name, c.Revision)
+			t1 = makeTask(c.Name, c.Repo, c.Revision)
 			break
 		}
 	}
@@ -595,7 +597,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	assert.Equal(t, c1, s.queue[testIdx].Revision)
 
 	// Run the other Build task.
-	t2 := makeTask(s.queue[buildIdx].Name, s.queue[buildIdx].Revision)
+	t2 := makeTask(s.queue[buildIdx].Name, s.queue[buildIdx].Repo, s.queue[buildIdx].Revision)
 	t2.Status = db.TASK_STATUS_SUCCESS
 	t2.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t2))
@@ -618,7 +620,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 
 	// Run the Test task at tip of tree, but make its blamelist cover both
 	// commits.
-	t3 := makeTask(testTask, c2)
+	t3 := makeTask(testTask, repoName, c2)
 	t3.Commits = append(t3.Commits, c1)
 	t3.Status = db.TASK_STATUS_SUCCESS
 	t3.IsolatedOutput = "fake isolated hash"
@@ -786,17 +788,19 @@ func TestSchedulingE2E(t *testing.T) {
 	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
 	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
 
+	repoName := "skia.git"
+
 	assert.NoError(t, err)
 	isolateClient, err := isolate.NewClient(tr.Dir)
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient)
 
 	// Start testing. No free bots, so we get a full queue with nothing
 	// scheduled.
 	assert.NoError(t, s.MainLoop())
-	tasks, err := cache.GetTasksForCommits([]string{c1, c2})
+	tasks, err := cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
 	expect := map[string]map[string]*db.Task{
 		c1: map[string]*db.Task{},
@@ -808,7 +812,7 @@ func TestSchedulingE2E(t *testing.T) {
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 	assert.NoError(t, s.MainLoop())
-	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	tasks, err = cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
 	expect = map[string]map[string]*db.Task{
 		c1: map[string]*db.Task{},
@@ -824,7 +828,7 @@ func TestSchedulingE2E(t *testing.T) {
 	})
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 	assert.NoError(t, s.MainLoop())
-	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	tasks, err = cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
 	var t1 *db.Task
 	for _, v := range tasks {
@@ -842,7 +846,7 @@ func TestSchedulingE2E(t *testing.T) {
 	t1.IsolatedOutput = "abc123"
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
-	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	tasks, err = cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
 	for _, v := range tasks {
 		for _, task := range v {
@@ -853,7 +857,7 @@ func TestSchedulingE2E(t *testing.T) {
 	// No bots free. Ensure that the queue is correct.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
 	assert.NoError(t, s.MainLoop())
-	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	tasks, err = cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
 	// The tests don't use any time-based score scaling, because the commits
 	// in the test repo have fixed timestamps and would eventually result in
@@ -882,7 +886,7 @@ func TestSchedulingE2E(t *testing.T) {
 	})
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
 	assert.NoError(t, s.MainLoop())
-	_, err = cache.GetTasksForCommits([]string{c1, c2})
+	_, err = cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(s.queue))
 
@@ -890,7 +894,7 @@ func TestSchedulingE2E(t *testing.T) {
 	var t2 *db.Task
 	var t3 *db.Task
 	var t4 *db.Task
-	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	tasks, err = cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
 	for _, v := range tasks {
 		for _, task := range v {
@@ -940,7 +944,7 @@ func TestSchedulingE2E(t *testing.T) {
 	// Ensure that we finally run all of the tasks and insert into the DB.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
 	assert.NoError(t, s.MainLoop())
-	tasks, err = cache.GetTasksForCommits([]string{c1, c2})
+	tasks, err = cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(tasks[c1]))
 	assert.Equal(t, 3, len(tasks[c2]))
@@ -1023,7 +1027,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
 	assert.NoError(t, s.MainLoop())
-	tasks, err := cache.GetTasksForCommits([]string{c1, c2})
+	tasks, err := cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks[c1]))
 	assert.Equal(t, 1, len(tasks[c2]))
@@ -1051,7 +1055,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	assert.NoError(t, err)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 	assert.NoError(t, s.MainLoop())
-	tasks, err = cache.GetTasksForCommits(commits)
+	tasks, err = cache.GetTasksForCommits(repoName, commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks[head]))
 	task := tasks[head][buildTask]
@@ -1074,7 +1078,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 		// Now, run another task. The new task should bisect the old one.
 		swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 		assert.NoError(t, s.MainLoop())
-		tasks, err = cache.GetTasksForCommits(commits)
+		tasks, err = cache.GetTasksForCommits(repoName, commits)
 		assert.NoError(t, err)
 		var newTask *db.Task
 		for _, v := range tasks {
@@ -1116,7 +1120,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	// Ensure that we're really done.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
 	assert.NoError(t, s.MainLoop())
-	tasks, err = cache.GetTasksForCommits(commits)
+	tasks, err = cache.GetTasksForCommits(repoName, commits)
 	assert.NoError(t, err)
 	var newTask *db.Task
 	for _, v := range tasks {

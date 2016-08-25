@@ -253,7 +253,7 @@ func main() {
 		defer timer.New("cycle").Stop()
 		swarmingClient.MockBots(bots)
 		assertNoError(s.MainLoop())
-		tasks, err := cache.GetTasksForCommits(commits)
+		tasks, err := cache.GetTasksForCommits(repoName, commits)
 		assertNoError(err)
 		newTasks := map[string]*db.Task{}
 		for _, v := range tasks {
@@ -279,7 +279,7 @@ func main() {
 	// Consume all tasks.
 	for {
 		runTasks(bots)
-		tasks, err := cache.GetTasksForCommits(commits)
+		tasks, err := cache.GetTasksForCommits(repoName, commits)
 		assertNoError(err)
 		if s.QueueLen() == 0 {
 			assertEqual(len(moarTasks), len(tasks[head]))

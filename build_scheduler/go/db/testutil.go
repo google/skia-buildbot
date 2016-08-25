@@ -12,9 +12,12 @@ import (
 	"go.skia.org/infra/go/util"
 )
 
+const DEFAULT_TEST_REPO = "go-on-now.git"
+
 func makeTask(ts time.Time, commits []string) *Task {
 	return &Task{
 		Created: ts,
+		Repo:    DEFAULT_TEST_REPO,
 		Commits: commits,
 		Name:    "Test-Task",
 	}

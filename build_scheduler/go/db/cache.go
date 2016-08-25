@@ -9,13 +9,15 @@ import (
 )
 
 type TaskCache struct {
-	db             DB
-	knownTaskNames map[string]bool
+	db DB
+	// map[repo_name][task_spec_name]bool
+	knownTaskNames map[string]map[string]bool
 	mtx            sync.RWMutex
 	queryId        string
 	tasks          map[string]*Task
-	tasksByCommit  map[string]map[string]*Task
-	timePeriod     time.Duration
+	// map[repo_name][commit_hash][task_spec_name]*Task
+	tasksByCommit map[string]map[string]map[string]*Task
+	timePeriod    time.Duration
 }
 
 // GetTask returns the task with the given ID, or an error if no such task exists.
@@ -51,13 +53,14 @@ func (c *TaskCache) GetTask(id string) (*Task, error) {
 //          blamelist. Its blamelist consists of the commits in the previous
 //          task's blamelist which it also covered. Those commits move out of
 //          the previous task's blamelist and into the newer task's blamelist.
-func (c *TaskCache) GetTasksForCommits(commits []string) (map[string]map[string]*Task, error) {
+func (c *TaskCache) GetTasksForCommits(repo string, commits []string) (map[string]map[string]*Task, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
 	rv := make(map[string]map[string]*Task, len(commits))
+	commitMap := c.tasksByCommit[repo]
 	for _, commit := range commits {
-		if tasks, ok := c.tasksByCommit[commit]; ok {
+		if tasks, ok := commitMap[commit]; ok {
 			rv[commit] = make(map[string]*Task, len(tasks))
 			for k, v := range tasks {
 				rv[commit][k] = v.Copy()
@@ -70,20 +73,24 @@ func (c *TaskCache) GetTasksForCommits(commits []string) (map[string]map[string]
 }
 
 // KnownTaskName returns true iff the given task name has been seen before.
-func (c *TaskCache) KnownTaskName(name string) bool {
+func (c *TaskCache) KnownTaskName(repo, name string) bool {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
-	_, ok := c.knownTaskNames[name]
+	_, ok := c.knownTaskNames[repo][name]
 	return ok
 }
 
 // GetTaskForCommit retrieves the task with the given name which ran at the
 // given commit, or nil if no such task exists.
-func (c *TaskCache) GetTaskForCommit(name, commit string) (*Task, error) {
+func (c *TaskCache) GetTaskForCommit(repo, commit, name string) (*Task, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
-	if tasks, ok := c.tasksByCommit[commit]; ok {
+	commitMap, ok := c.tasksByCommit[repo]
+	if !ok {
+		return nil, nil
+	}
+	if tasks, ok := commitMap[commit]; ok {
 		if t, ok := tasks[name]; ok {
 			return t.Copy(), nil
 		}
@@ -95,12 +102,19 @@ func (c *TaskCache) GetTaskForCommit(name, commit string) (*Task, error) {
 // holds a lock.
 func (c *TaskCache) update(tasks []*Task) error {
 	for _, t := range tasks {
+		repo := t.Repo
+		commitMap, ok := c.tasksByCommit[repo]
+		if !ok {
+			commitMap = map[string]map[string]*Task{}
+			c.tasksByCommit[repo] = commitMap
+		}
+
 		// If we already know about this task, the blamelist might,
 		// have changed, so we need to remove it from tasksByCommit
 		// and re-insert where needed.
 		if old, ok := c.tasks[t.Id]; ok {
 			for _, commit := range old.Commits {
-				delete(c.tasksByCommit[commit], t.Name)
+				delete(commitMap[commit], t.Name)
 			}
 		}
 
@@ -109,14 +123,18 @@ func (c *TaskCache) update(tasks []*Task) error {
 
 		// Insert the task into tasksByCommits.
 		for _, commit := range t.Commits {
-			if _, ok := c.tasksByCommit[commit]; !ok {
-				c.tasksByCommit[commit] = map[string]*Task{}
+			if _, ok := commitMap[commit]; !ok {
+				commitMap[commit] = map[string]*Task{}
 			}
-			c.tasksByCommit[commit][t.Name] = c.tasks[t.Id]
+			commitMap[commit][t.Name] = c.tasks[t.Id]
 		}
 
 		// Known task names.
-		c.knownTaskNames[t.Name] = true
+		if nameMap, ok := c.knownTaskNames[repo]; ok {
+			nameMap[t.Name] = true
+		} else {
+			c.knownTaskNames[repo] = map[string]bool{t.Name: true}
+		}
 	}
 	return nil
 }
@@ -136,10 +154,10 @@ func (c *TaskCache) reset() error {
 		c.db.StopTrackingModifiedTasks(queryId)
 		return err
 	}
-	c.knownTaskNames = map[string]bool{}
+	c.knownTaskNames = map[string]map[string]bool{}
 	c.queryId = queryId
 	c.tasks = map[string]*Task{}
-	c.tasksByCommit = map[string]map[string]*Task{}
+	c.tasksByCommit = map[string]map[string]map[string]*Task{}
 	if err := c.update(tasks); err != nil {
 		return err
 	}

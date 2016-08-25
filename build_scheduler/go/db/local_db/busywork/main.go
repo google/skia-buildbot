@@ -94,11 +94,11 @@ func makeTask(recentCommitsBegin int) *db.Task {
 // tasks' Commits and returns t. If another task's Commits needs to change, also
 // returns that task with its updated Commits.
 func updateBlamelists(cache *db.TaskCache, t *db.Task) ([]*db.Task, error) {
-	if !cache.KnownTaskName(t.Name) {
+	if !cache.KnownTaskName(t.Repo, t.Name) {
 		t.Commits = []string{t.Revision}
 		return []*db.Task{t}, nil
 	}
-	stealFrom, err := cache.GetTaskForCommit(t.Name, t.Revision)
+	stealFrom, err := cache.GetTaskForCommit(t.Repo, t.Revision, t.Name)
 	if err != nil {
 		return nil, fmt.Errorf("Could not find task %q for commit %q: %s", t.Name, t.Revision, err)
 	}
@@ -112,7 +112,7 @@ func updateBlamelists(cache *db.TaskCache, t *db.Task) ([]*db.Task, error) {
 			return []*db.Task{t}, nil
 		}
 		hash := itoh(i)
-		prev, err := cache.GetTaskForCommit(t.Name, hash)
+		prev, err := cache.GetTaskForCommit(t.Repo, hash, t.Name)
 		if err != nil {
 			return nil, fmt.Errorf("Could not find task %q for commit %q: %s", t.Name, hash, err)
 		}

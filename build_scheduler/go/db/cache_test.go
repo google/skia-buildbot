@@ -10,11 +10,11 @@ import (
 
 func testGetTasksForCommits(t *testing.T, c *TaskCache, b *Task) {
 	for _, commit := range b.Commits {
-		found, err := c.GetTaskForCommit(b.Name, commit)
+		found, err := c.GetTaskForCommit(DEFAULT_TEST_REPO, commit, b.Name)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, b, found)
 
-		tasks, err := c.GetTasksForCommits([]string{commit})
+		tasks, err := c.GetTasksForCommits(DEFAULT_TEST_REPO, []string{commit})
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
 			commit: map[string]*Task{
@@ -53,7 +53,7 @@ func TestDBCache(t *testing.T) {
 	t3.Name = "Another-Task"
 	assert.NoError(t, db.PutTask(t3))
 	assert.NoError(t, c.Update())
-	tasks, err := c.GetTasksForCommits([]string{"b"})
+	tasks, err := c.GetTasksForCommits(DEFAULT_TEST_REPO, []string{"b"})
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, map[string]map[string]*Task{
 		"b": map[string]*Task{
@@ -61,6 +61,67 @@ func TestDBCache(t *testing.T) {
 			t3.Name: t3,
 		},
 	}, tasks)
+}
+
+func TestDBCacheMultiRepo(t *testing.T) {
+	db := NewInMemoryDB()
+	defer testutils.AssertCloses(t, db)
+
+	// Insert several tasks with different repos.
+	startTime := time.Now().Add(-30 * time.Minute) // Arbitrary starting point.
+	t1 := makeTask(startTime, []string{"a", "b"})  // Default Repo.
+	t2 := makeTask(startTime, []string{"a", "b"})
+	t2.Repo = "thats-what-you.git"
+	t3 := makeTask(startTime, []string{"b", "c"})
+	t3.Repo = "never-for.git"
+	assert.NoError(t, db.PutTasks([]*Task{t1, t2, t3}))
+
+	// Create the cache.
+	c, err := NewTaskCache(db, time.Hour)
+	assert.NoError(t, err)
+
+	// Check that there's no conflict among the tasks in different repos.
+	{
+		tasks, err := c.GetTasksForCommits(t1.Repo, []string{"a", "b", "c"})
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
+			"a": map[string]*Task{
+				t1.Name: t1,
+			},
+			"b": map[string]*Task{
+				t1.Name: t1,
+			},
+			"c": map[string]*Task{},
+		}, tasks)
+	}
+
+	{
+		tasks, err := c.GetTasksForCommits(t2.Repo, []string{"a", "b", "c"})
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
+			"a": map[string]*Task{
+				t1.Name: t2,
+			},
+			"b": map[string]*Task{
+				t1.Name: t2,
+			},
+			"c": map[string]*Task{},
+		}, tasks)
+	}
+
+	{
+		tasks, err := c.GetTasksForCommits(t3.Repo, []string{"a", "b", "c"})
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, map[string]map[string]*Task{
+			"a": map[string]*Task{},
+			"b": map[string]*Task{
+				t1.Name: t3,
+			},
+			"c": map[string]*Task{
+				t1.Name: t3,
+			},
+		}, tasks)
+	}
 }
 
 func TestDBCacheReset(t *testing.T) {
