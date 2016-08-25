@@ -98,7 +98,7 @@ func (c *TestClient) CancelTask(id string) error {
 }
 
 func (c *TestClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
-	createdTs := time.Now().Format(TIMESTAMP_FORMAT)
+	createdTs := time.Now().UTC().Format(TIMESTAMP_FORMAT)
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
 	return &swarming.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming.SwarmingRpcsTaskRequest{

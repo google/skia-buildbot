@@ -20,6 +20,7 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/build_scheduler/go/db"
+	"go.skia.org/infra/build_scheduler/go/db/local_db"
 	"go.skia.org/infra/build_scheduler/go/task_scheduler"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
@@ -100,7 +101,8 @@ func main() {
 		//	glog.Fatal(err)
 		//}
 	}()
-	d := db.NewInMemoryDB()
+	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"))
+	assertNoError(err)
 	cache, err := db.NewTaskCache(d, time.Hour)
 	assertNoError(err)
 

@@ -514,6 +514,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 	}
 
 	// Trigger tasks.
+	glog.Infof("Triggering %d tasks.", len(schedule))
 	tasks := make([]*db.Task, 0, len(schedule)*2)
 	for _, candidate := range schedule {
 		t := candidate.MakeTask()
