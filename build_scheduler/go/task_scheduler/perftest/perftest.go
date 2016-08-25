@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"path"
 	"reflect"
@@ -285,6 +287,10 @@ func main() {
 
 	// Add more commits to the repo.
 	makeDummyCommits(repoDir, 200)
+
+	go func() {
+		glog.Fatal(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	// Actually run the test.
 	i := 0
