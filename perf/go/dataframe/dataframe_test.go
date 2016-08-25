@@ -75,9 +75,9 @@ var (
 
 	store = mockPTraceStore{
 		traceSet: ptracestore.TraceSet{
-			",arch=x86,config=565,":  ptracestore.Trace{1.2, 2.1},
-			",arch=x86,config=8888,": ptracestore.Trace{1.3, 3.1},
-			",arch=x86,config=gpu,":  ptracestore.Trace{1.4, 4.1},
+			",arch=x86,config=565,":  ptracestore.Trace([]float32{1.2, 2.1}),
+			",arch=x86,config=8888,": ptracestore.Trace([]float32{1.3, 3.1}),
+			",arch=x86,config=gpu,":  ptracestore.Trace([]float32{1.4, 4.1}),
 		},
 	}
 )
