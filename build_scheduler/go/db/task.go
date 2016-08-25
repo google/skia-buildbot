@@ -279,15 +279,25 @@ func (t *Task) Success() bool {
 }
 
 func (t *Task) Copy() *Task {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(t); err != nil {
-		glog.Fatal(err)
+	var commits []string
+	if t.Commits != nil {
+		commits = make([]string, len(t.Commits))
+		copy(commits, t.Commits)
 	}
-	var rv Task
-	if err := gob.NewDecoder(&buf).Decode(&rv); err != nil {
-		glog.Fatal(err)
+	return &Task{
+		Commits:        commits,
+		Created:        t.Created,
+		DbModified:     t.DbModified,
+		Finished:       t.Finished,
+		Id:             t.Id,
+		IsolatedOutput: t.IsolatedOutput,
+		Name:           t.Name,
+		Repo:           t.Repo,
+		Revision:       t.Revision,
+		Started:        t.Started,
+		Status:         t.Status,
+		SwarmingTaskId: t.SwarmingTaskId,
 	}
-	return &rv
 }
 
 // TaskSlice implements sort.Interface. To sort tasks []*Task, use
