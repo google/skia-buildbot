@@ -110,7 +110,7 @@ func runServer(serverURL string) {
 	r.HandleFunc("/logout/", login.LogoutHandler)
 	r.HandleFunc("/loginstatus/", login.StatusHandler)
 	http.Handle("/", httputils.LoggingGzipRequestResponse(r))
-	glog.Infof("Ready to serve on %s", serverURL)
+	glog.Info("Ready to serve on %s", serverURL)
 	glog.Fatal(http.ListenAndServe(*port, nil))
 }
 
