@@ -15,7 +15,6 @@ at HEAD and not wait for that commit to make it into a DEPS rolls.
 SSH into `skia-fiddle` and run:
 
     fiddle_build --force --head --alsologtostderr \
-      --depot_tools=/mnt/pd0/depot_tools \
       --fiddle_root=/mnt/pd0/fiddle
 
 After that finishes restart fiddle:
