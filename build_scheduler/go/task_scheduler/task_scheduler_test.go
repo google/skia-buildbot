@@ -66,9 +66,28 @@ func TestFindTaskCandidates(t *testing.T) {
 	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
 	assert.NoError(t, err)
 
+	findTaskCandidates := func(s *TaskScheduler, commits map[string][]string) ([]*taskCandidate, error) {
+		candidates := make(chan *taskCandidate)
+		errs := make(chan error)
+		go s.findTaskCandidates(commits, candidates, errs)
+		rvCandidates := []*taskCandidate{}
+		for c := range candidates {
+			rvCandidates = append(rvCandidates, c)
+		}
+		select {
+		case err, ok := <-errs:
+			if ok {
+				return nil, err
+			}
+		default:
+			// nothing to do here.
+		}
+		return rvCandidates, nil
+	}
+
 	// Check the initial set of task candidates. The two Build tasks
 	// should be the only ones available.
-	c, err := s.findTaskCandidates(commits)
+	c, err := findTaskCandidates(s, commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(c))
 	for _, candidate := range c {
@@ -92,7 +111,7 @@ func TestFindTaskCandidates(t *testing.T) {
 		assert.NoError(t, d.PutTask(t1))
 		assert.NoError(t, cache.Update())
 
-		c, err = s.findTaskCandidates(commits)
+		c, err = findTaskCandidates(s, commits)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(c))
 		for _, candidate := range c {
@@ -108,7 +127,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
-	c, err = s.findTaskCandidates(commits)
+	c, err = findTaskCandidates(s, commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(c))
 	for _, candidate := range c {
@@ -122,7 +141,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
-	c, err = s.findTaskCandidates(commits)
+	c, err = findTaskCandidates(s, commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(c))
 	for _, candidate := range c {
@@ -144,7 +163,7 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, cache.Update())
 
 	// All test and perf tasks are now candidates, no build tasks.
-	c, err = s.findTaskCandidates(commits)
+	c, err = findTaskCandidates(s, commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(c))
 	for _, candidate := range c {

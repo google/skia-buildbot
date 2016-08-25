@@ -199,101 +199,98 @@ func ComputeBlamelist(cache *db.TaskCache, repos *gitinfo.RepoMap, c *taskCandid
 	return rv, stealFrom, nil
 }
 
-func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) ([]*taskCandidate, error) {
+// findTaskCandidates goes through the given commits-by-repos, loads task specs
+// from each repo/commit pair and passes them onto the out channel, filtering
+// candidates which we don't want to run. The out channel will be closed when
+// all task specs have been considered, or when an error occurs. If an error
+// occurs, it will be passed onto the errs channel, but that channel will not
+// be closed.
+func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string, out chan<- *taskCandidate, errs chan<- error) {
 	defer timer.New("TaskScheduler.findTaskCandidates").Stop()
 	// Obtain all possible tasks.
 	specs, err := s.taskCfgCache.GetTaskSpecsForCommits(commitsByRepo)
 	if err != nil {
-		return nil, err
+		close(out)
+		errs <- err
+		return
 	}
-	candidates := []*taskCandidate{}
 	for repo, commits := range specs {
 		for commit, tasks := range commits {
 			for name, task := range tasks {
-				candidates = append(candidates, &taskCandidate{
+				c := &taskCandidate{
 					IsolatedHashes: nil,
 					Name:           name,
 					Repo:           repo,
 					Revision:       commit,
 					Score:          0.0,
 					TaskSpec:       task,
-				})
+				}
+				// We shouldn't duplicate pending, in-progress,
+				// or successfully completed tasks.
+				previous, err := s.cache.GetTaskForCommit(c.Name, c.Revision)
+				if err != nil {
+					close(out)
+					errs <- err
+					return
+				}
+				if previous != nil && previous.Revision == c.Revision {
+					if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
+						continue
+					}
+					if previous.Success() {
+						continue
+					}
+				}
+
+				// Don't consider candidates whose dependencies are not met.
+				depsMet, hashes, err := c.allDepsMet(s.cache)
+				if err != nil {
+					close(out)
+					errs <- err
+					return
+				}
+				if !depsMet {
+					continue
+				}
+				c.IsolatedHashes = hashes
+				out <- c
 			}
 		}
 	}
-
-	// Filter out candidates we've already run or whose dependencies have not been met.
-	validCandidates := make([]*taskCandidate, 0, len(candidates))
-	for _, c := range candidates {
-		// We shouldn't duplicate pending, in-progress,
-		// or successfully completed tasks.
-		previous, err := s.cache.GetTaskForCommit(c.Name, c.Revision)
-		if err != nil {
-			return nil, err
-		}
-		if previous != nil && previous.Revision == c.Revision {
-			if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
-				continue
-			}
-			if previous.Success() {
-				continue
-			}
-		}
-
-		// Don't consider candidates whose dependencies are not met.
-		depsMet, hashes, err := c.allDepsMet(s.cache)
-		if err != nil {
-			return nil, err
-		}
-		if !depsMet {
-			continue
-		}
-		c.IsolatedHashes = hashes
-		validCandidates = append(validCandidates, c)
-	}
-
-	return validCandidates, nil
+	close(out)
+	return
 }
 
-// processTaskCandidates computes the remaining information about each task
+// processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
-func (s *TaskScheduler) processTaskCandidates(candidates []*taskCandidate) error {
-	defer timer.New("TaskScheduler.processTaskCandidates").Stop()
-	// Compute blamelists.
-	stoleFrom := make([]*db.Task, len(candidates))
-	for idx, c := range candidates {
-		commits, stealingFrom, err := ComputeBlamelist(s.cache, s.repos, c)
-		if err != nil {
-			return err
-		}
-		c.Commits = commits
-		if stealingFrom != nil {
-			c.StealingFromId = stealingFrom.Id
-			stoleFrom[idx] = stealingFrom
-		}
+func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time) error {
+	// Compute blamelist.
+	commits, stealingFrom, err := ComputeBlamelist(s.cache, s.repos, c)
+	if err != nil {
+		return err
+	}
+	c.Commits = commits
+	if stealingFrom != nil {
+		c.StealingFromId = stealingFrom.Id
 	}
 
 	// Score the candidates.
-	now := time.Now()
-	for idx, c := range candidates {
-		// The score for a candidate is based on the "testedness" increase
-		// provided by running the task.
-		stoleFromCommits := 0
-		if stoleFrom[idx] != nil {
-			stoleFromCommits = len(stoleFrom[idx].Commits)
-		}
-		score := testednessIncrease(len(c.Commits), stoleFromCommits)
-
-		// Scale the score by other factors, eg. time decay.
-		decay, err := s.timeDecayForCommit(now, c.Repo, c.Revision)
-		if err != nil {
-			return err
-		}
-		score *= decay
-
-		c.Score = score
+	// The score for a candidate is based on the "testedness" increase
+	// provided by running the task.
+	stoleFromCommits := 0
+	if stealingFrom != nil {
+		stoleFromCommits = len(stealingFrom.Commits)
 	}
-	sort.Sort(taskCandidateSlice(candidates))
+	score := testednessIncrease(len(c.Commits), stoleFromCommits)
+
+	// Scale the score by other factors, eg. time decay.
+	decay, err := s.timeDecayForCommit(now, c.Repo, c.Revision)
+	if err != nil {
+		return err
+	}
+	score *= decay
+
+	c.Score = score
 	return nil
 }
 
@@ -333,20 +330,67 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 	}
 
 	// Find and process task candidates.
-	candidates, err := s.findTaskCandidates(commits)
-	if err != nil {
-		return err
+	now := time.Now()
+	defer timer.New("find and process task candidates").Stop()
+	candidates := make(chan *taskCandidate)
+	errs := make(chan error)
+	go s.findTaskCandidates(commits, candidates, errs)
+	processed := make(chan *taskCandidate)
+	wg := sync.WaitGroup{}
+	workers := 10
+	for i := 0; i < workers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for c := range candidates {
+				if err := s.processTaskCandidate(c, now); err != nil {
+					errs <- err
+					return
+				}
+				processed <- c
+			}
+		}()
 	}
-	if err := s.processTaskCandidates(candidates); err != nil {
-		return err
+	go func() {
+		wg.Wait()
+		close(processed)
+		// Drain any remaining taskCandidates from findTaskCandidates so
+		// that it doesn't end up blocked forever.
+		for _ = range candidates {
+		}
+		close(errs)
+	}()
+	rvCandidates := []*taskCandidate{}
+	rvErrs := []error{}
+	for {
+		select {
+		case c, ok := <-processed:
+			if ok {
+				rvCandidates = append(rvCandidates, c)
+			} else {
+				processed = nil
+			}
+		case err, ok := <-errs:
+			if ok {
+				rvErrs = append(rvErrs, err)
+			} else {
+				errs = nil
+			}
+		}
+		if processed == nil && errs == nil {
+			break
+		}
 	}
+
+	if len(rvErrs) != 0 {
+		return rvErrs[0]
+	}
+	defer timer.New("Sort candidates").Stop()
+	sort.Sort(taskCandidateSlice(rvCandidates))
 
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
-	// TODO(borenet): Find a faster data structure for matching candidates
-	// to free Swarming bots so that we don't have to scan the whole queue
-	// every time.
-	s.queue = candidates
+	s.queue = rvCandidates
 	return nil
 }
 
