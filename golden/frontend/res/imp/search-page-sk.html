@@ -28,6 +28,7 @@
 
 <link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
 
 <link rel="import" href="activity-sk.html">
 <link rel=import href="detail-list-sk.html">
@@ -70,6 +71,10 @@
       #triggerSearchButton {
         font-size: 18px;
       }
+
+      .helpIconContainer {
+        padding-left: 3em;
+      }
     </style>
 
     <div class="searchPageWrapper">
@@ -79,6 +84,7 @@
           <div>
             <paper-button id="triggerSearchButton" raised disabled="{{_hideAll}}">Search</paper-button>
           </div>
+          <div class="helpIconContainer"> <a on-tap="_openHelpDialog"><iron-icon icon="help"></iron-icon></a></div>
       </div>
       <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
 
@@ -147,6 +153,10 @@
       _handleStateChange: function(ev) {
         // Reload the page with the new  state in the query parameters.
         this._redirectToState(ev.detail);
+      },
+
+      _openHelpDialog: function(ev) {
+        this.$.detailList.openHelpDialog();
       },
 
       _load: function() {

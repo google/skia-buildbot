@@ -6,9 +6,9 @@
     Handles the events and also focus highlighting.
     It also responds to keyboard shortcuts. Since keyboard events
     are registered against the global 'document' object, it provides
-    the 'startUse' and 'endUse' functions to indicate when this element 
-    is active. This is particularly important if it's part of dynamic 
-    behavior like pop-up dialogs. 
+    the 'startUse' and 'endUse' functions to indicate when this element
+    is active. This is particularly important if it's part of dynamic
+    behavior like pop-up dialogs.
 
     Attributes:
       None
@@ -17,10 +17,12 @@
       None
 
     Methods:
-      startUse - to be called before the element is atively being used. 
-                 It registers the necessary keyboard shortcuts. 
+      startUse - to be called before the element is atively being used.
+                 It registers the necessary keyboard shortcuts.
 
-      endUse - to be called once the element is not used any more. 
+      endUse - to be called once the element is not used any more.
+
+      openHelpDialog - opens the help dialog for key bindings.
 -->
 
 <link rel="import" href="zoom-dialog-sk.html">
@@ -30,10 +32,10 @@
   <template>
     <content></content>
 
-    <!-- zoom dialog --> 
+    <!-- zoom dialog -->
     <zoom-dialog-sk id="detailsZoomDialog"></zoom-dialog-sk>
 
-    <!-- help dialog --> 
+    <!-- help dialog -->
     <help-dialog-sk id="helpDialog">
       <table>
         <tr><th colspan=2>Keyboard Shortcuts</th></tr>
@@ -61,11 +63,15 @@
 
       startUse: function() {
         this.listen(document, 'keypress', '_handleKeyDown');
-      }, 
+      },
 
       endUse: function() {
         this.unlisten(document, 'keypress', '_handleKeyDown');
-      }, 
+      },
+
+      openHelpDialog: function() {
+        this.$.helpDialog.open();
+      },
 
       _handleKeyDown: function(e) {
         if (this._zooming) {
@@ -93,7 +99,7 @@
             this._handleZoomClicked();
             break;
           case '?':
-            this.$.helpDialog.open();
+            this.openHelpDialog();
             break;
         }
       },
@@ -103,7 +109,7 @@
       },
 
       _handleZoomClicked: function (ev) {
-        var zoomDetail; 
+        var zoomDetail;
 
         // This was triggerd by a keyboard shortcut.
         if (!ev) {
@@ -111,12 +117,12 @@
           if (ele == null) {
             return
           }
-          // Extract the zoom information from the element. 
+          // Extract the zoom information from the element.
           zoomDetail = ele.getZoomDetail();
         } else {
           this._focusSet(ev.target);
-          zoomDetail = ev.detail; 
-          ev.stopPropagation(); 
+          zoomDetail = ev.detail;
+          ev.stopPropagation();
         }
 
         this.$.detailsZoomDialog.open(zoomDetail);
@@ -166,7 +172,7 @@
         if (lastEle != null) {
           nextEle = lastEle.nextElementSibling;
           if (nextEle.nodeName == 'TEMPLATE') {
-            nextEle = null; 
+            nextEle = null;
           }
         }
         this._moveFocus(lastEle, nextEle);
@@ -192,4 +198,3 @@
     });
   </script>
 </dom-module>
-  

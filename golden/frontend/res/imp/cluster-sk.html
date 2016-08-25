@@ -5,7 +5,7 @@
   digest images.
 
   Attributes:
-    disabled: Boolean, if set to true the keyboard shortcuts will be disabled. 
+    disabled: Boolean, if set to true the keyboard shortcuts will be disabled.
 
   Events:
     digest-select - Event generated when a digest is selected. The event
@@ -26,12 +26,12 @@
           ]
         }
 
-    startUse - to be called before the element is atively being used. 
-               It registers the necessary keyboard shortcuts. 
+    startUse - to be called before the element is atively being used.
+               It registers the necessary keyboard shortcuts.
 
-    endUse - to be called once the element is not used any more. 
+    endUse - to be called once the element is not used any more.
 
-    setTextNodes(text, additive) - Takes a map from digests to the text to display 
+    setTextNodes(text, additive) - Takes a map from digests to the text to display
                 next to the digest node.
 
                 If additive is true then just add the text to nodes in addition to
@@ -40,10 +40,14 @@
     newTriageStatus(digests, status) - Set the new triage status for the array
       of given digests.
 -->
+<link rel="import" href="bower_components/iron-icons/iron-icons.html">
+
+<link rel="import" href="help-dialog-sk.html">
+<link rel="import" href="shared-styles.html">
 
 <dom-module id="cluster-sk">
   <template>
-    <style type="text/css" media="screen">
+    <style type="text/css" media="screen" include="shared-styles">
         ::content .link {
           stroke: #ccc;
         }
@@ -92,6 +96,21 @@
           fill: transparent;
         }
     </style>
+
+    <div hidden$="{{!_data}}"><a on-tap="_openHelpDialog"><iron-icon icon="help"></iron-icon></a></div>
+    <!-- help dialog -->
+    <help-dialog-sk id="helpDialog">
+      <table>
+        <tr><th>A</th><td>Increase spring size</td></tr>
+        <tr><th>Z</th><td>Descrease spring size</td></tr>
+        <tr><th>S</th><td>Descrease node overlap</td></tr>
+        <tr><th>X</th><td>Increase node overlap</td></tr>
+        <tr><th>?</th><td>Help</td></tr>
+        <tr><th>Ctrl+Click</th><td>Add to selection, works on both nodes and
+            parameters.
+        </td></tr>
+      </table>
+    </help-dialog-sk>
     <content>
       <svg id="cluster"></svg>
     </content>
@@ -127,7 +146,7 @@
         this.force = null;
         this.dragging = false;
 
-        // Wire up mouse events. 
+        // Wire up mouse events.
         this.svg = d3.select(this.$.cluster)
           .attr('width', this.width)
           .attr('height', this.height)
@@ -137,21 +156,21 @@
       },
 
       setData: function(data) {
-        this._data = data; 
+        this._data = data;
         this._reloadSVG();
       },
 
       startUse: function() {
         this._active = true;
         this.width = this.height = -1;
-        this._resizeWatcher(); 
-        this.listen(document, 'keydown', '_handleKeyDown');
-      }, 
+        this._resizeWatcher();
+        this.listen(document, 'keypress', '_handleKeyDown');
+      },
 
       endUse: function() {
         this._active = false;
         this.cancelAsync(this._resizeHandle);
-        this.unlisten(document, 'keydown', '_handleKeyDown');
+        this.unlisten(document, 'keypress', '_handleKeyDown');
       },
 
       newTriageStatus: function (digests, status) {
@@ -194,6 +213,10 @@
           return text[d.name];
         });
 
+      },
+
+      _openHelpDialog: function() {
+        this.$.helpDialog.open();
       },
 
       _mouseDown: function () {
@@ -276,10 +299,10 @@
 
       _handleKeyDown: function (e) {
         if (this.disabled) {
-          return; 
+          return;
         }
 
-        var c = String.fromCharCode(e.keyCode);
+        var c = String.fromCharCode(e.keyCode).toUpperCase();
         switch (c) {
         case 'A':
           this.scale = this.scale * 2;
@@ -296,6 +319,9 @@
         case 'X':
           this.charge = this.charge / 2;
           this.force.start();
+          break;
+        case '?':
+          this._openHelpDialog();
           break;
         }
       },
@@ -391,8 +417,8 @@
             h
           ]).start();
 
-          // Measure again since the resize of svg might have caused a tiny change in the size of 
-          // the parent window. 
+          // Measure again since the resize of svg might have caused a tiny change in the size of
+          // the parent window.
           w = Math.round(window.getComputedStyle(this, null).getPropertyValue('width').slice(0, -2));
           h = Math.round(window.getComputedStyle(this, null).getPropertyValue('height').slice(0, -2));
           this.width = w;
@@ -407,4 +433,3 @@
     });
   </script>
 </dom-module>
-
