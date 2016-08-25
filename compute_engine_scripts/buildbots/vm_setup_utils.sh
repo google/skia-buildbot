@@ -138,6 +138,8 @@ function copy_files {
   echo
   echo "===== Copying over required files. ====="
     for REQUIRED_FILE in ${REQUIRED_FILES_FOR_BOTS[@]}; do
+      $GCOMPUTE_CMD push --ssh_user=chrome-bot $INSTANCE_NAME \
+        $REQUIRED_FILE /home/chrome-bot/
       $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
         $REQUIRED_FILE /home/$PROJECT_USER/
       $GCOMPUTE_CMD push --ssh_user=$PROJECT_USER $INSTANCE_NAME \
