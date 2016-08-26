@@ -403,16 +403,18 @@ func TestComputeBlamelist(t *testing.T) {
 		},
 	}
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
-	repo := "skia.git"
+	repoName := "skia.git"
+	repo, err := repos.Repo(repoName)
+	assert.NoError(t, err)
 	ids := make([]string, len(testCases))
 	for i, tc := range testCases {
 		// Ensure that we get the expected blamelist.
 		c := &taskCandidate{
 			Name:     name,
-			Repo:     repo,
+			Repo:     repoName,
 			Revision: tc.Revision,
 		}
-		commits, stoleFrom, err := ComputeBlamelist(cache, repos, c)
+		commits, stoleFrom, err := ComputeBlamelist(cache, repo, c.Name, c.Repo, c.Revision)
 		assert.NoError(t, err)
 		testutils.AssertDeepEqual(t, tc.Expected, commits)
 		if tc.StoleFromIdx >= 0 {

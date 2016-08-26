@@ -18,6 +18,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/go/vcsinfo"
 )
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
@@ -72,22 +73,33 @@ func (s *TaskScheduler) Start() {
 	}()
 }
 
-// ComputeBlamelist computes the blamelist for the given taskCandidate. Returns
-// the list of commits covered by the task, and any previous task which part or
-// all of the blamelist was "stolen" from (see below). There are three cases:
+// ComputeBlamelist computes the blamelist for a new task, specified by name,
+// repo, and revision. Returns the list of commits covered by the task, and any
+// previous task which part or all of the blamelist was "stolen" from (see
+// below). There are three cases:
 //
-// 1. This taskCandidate tests commits which have not yet been tested. Trace
-//    commit history, accumulating commits until we find commits which have
-//    been tested by previous tasks.
+// 1. The new task tests commits which have not yet been tested. Trace commit
+//    history, accumulating commits until we find commits which have been tested
+//    by previous tasks.
 //
-// 2. This taskCandidate runs at the same commit as a previous task. This is a
-//    retry, so the entire blamelist of the previous task is "stolen".
+// 2. The new task runs at the same commit as a previous task. This is a retry,
+//    so the entire blamelist of the previous task is "stolen".
 //
-// 3. This taskCandidate runs at a commit which is in a previous task's
-//    blamelist, but no task has run at the same commit. This is a bisect. Trace
-//    commit history, "stealing" commits from the previous task until we find a
-//    commit which was covered by a *different* previous task.
-func ComputeBlamelist(cache *db.TaskCache, repos *gitinfo.RepoMap, c *taskCandidate) ([]string, *db.Task, error) {
+// 3. The new task runs at a commit which is in a previous task's blamelist, but
+//    no task has run at the same commit. This is a bisect. Trace commit
+//    history, "stealing" commits from the previous task until we find a commit
+//    which was covered by a *different* previous task.
+func ComputeBlamelist(cache *db.TaskCache, vcs vcsinfo.VCS, name, repo, revision string) ([]string, *db.Task, error) {
+	c := struct {
+		Name     string
+		Repo     string
+		Revision string
+	}{
+		Name:     name,
+		Repo:     repo,
+		Revision: revision,
+	}
+
 	commits := map[string]bool{}
 	var stealFrom *db.Task
 
@@ -97,11 +109,6 @@ func ComputeBlamelist(cache *db.TaskCache, repos *gitinfo.RepoMap, c *taskCandid
 	// setting the blamelist to only be c.Revision.
 	if !cache.KnownTaskName(c.Repo, c.Name) {
 		return []string{c.Revision}, nil, nil
-	}
-
-	repo, err := repos.Repo(c.Repo)
-	if err != nil {
-		return nil, nil, fmt.Errorf("Could not compute blamelist for task candidate: %s", err)
 	}
 
 	// computeBlamelistRecursive traces through commit history, adding to
@@ -170,7 +177,7 @@ func ComputeBlamelist(cache *db.TaskCache, repos *gitinfo.RepoMap, c *taskCandid
 		commits[hash] = true
 
 		// Recurse on the commit's parents.
-		details, err := repo.Details(hash, false)
+		details, err := vcs.Details(hash, false)
 		if err != nil {
 			return err
 		}
@@ -265,7 +272,11 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string, ou
 // candidate, eg. blamelists and scoring.
 func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time) error {
 	// Compute blamelist.
-	commits, stealingFrom, err := ComputeBlamelist(s.cache, s.repos, c)
+	repo, err := s.repos.Repo(c.Repo)
+	if err != nil {
+		return err
+	}
+	commits, stealingFrom, err := ComputeBlamelist(s.cache, repo, c.Name, c.Repo, c.Revision)
 	if err != nil {
 		return err
 	}
