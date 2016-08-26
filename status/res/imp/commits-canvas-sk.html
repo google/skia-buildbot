@@ -230,6 +230,10 @@
           var v1_flex = true;
           for (var i = 0; i < this.parents.length; i++) {
             var c = allCommits[this.parents[i]];
+            if (!c) {
+              console.warn("Cannot find " + this.parents[i]);
+              continue;
+            }
             if (this.timestamp > c.timestamp && c.timestamp > parent.timestamp) {
               if (this.column == c.column) {
                 v1_flex = false;
@@ -321,6 +325,10 @@
         // Connect the dots.
         for (var p = 0; p < this.parents.length; p++) {
           var parent = displayCommits[this.parents[p]];
+          if (!displayCommits[this.parents[p]]) {
+            console.warn("Cannot find " + this.parents[p]);
+            continue;
+          }
           this.drawConnection(ctx, parent, displayCommits);
         }
 
@@ -413,6 +421,10 @@
         var c = displayCommits[hash];
         if (c.parents) {
           for (var i = 0; i < c.parents.length; i++) {
+            if (!displayCommits[c.parents[i]]) {
+              console.warn("Cannot find " + c.parents[i]);
+              continue;
+            }
             displayCommits[c.parents[i]].children.push(c.hash);
           }
         }
