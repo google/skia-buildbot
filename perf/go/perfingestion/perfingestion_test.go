@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
+	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -74,12 +75,12 @@ func TestBenchData(t *testing.T) {
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, TEST_INGESTION_FILE))
 	assert.NoError(t, err)
 
-	benchData, err := parseBenchDataFromReader(r)
+	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "x86:GTX660:ShuttleA:Ubuntu12", benchData.keyPrefix())
+	assert.Equal(t, "x86:GTX660:ShuttleA:Ubuntu12", keyPrefix(benchData))
 
-	entries := benchData.getTraceDBEntries()
+	entries := getTraceDBEntries(benchData)
 	assert.Equal(t, len(TEST_ENTRIES), len(entries))
 
 	for _, testEntry := range TEST_ENTRIES {

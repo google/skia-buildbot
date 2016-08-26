@@ -9,6 +9,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -43,7 +44,7 @@ func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 		return err
 	}
 
-	benchData, err := parseBenchDataFromReader(r)
+	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,7 @@ func (p *perfProcessor) Process(resultsFile ingestion.ResultFileLocation) error 
 	}
 
 	// Add the column to the trace db.
-	return p.traceDB.Add(cid, benchData.getTraceDBEntries())
+	return p.traceDB.Add(cid, getTraceDBEntries(benchData))
 }
 
 // See ingestion.Processor interface.

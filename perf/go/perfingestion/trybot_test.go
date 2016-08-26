@@ -14,6 +14,7 @@ import (
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/testutils"
 	tracedb "go.skia.org/infra/go/trace/db"
+	"go.skia.org/infra/perf/go/ingestcommon"
 )
 
 // TestTrybotBenchData tests parsing and processing of a single trybot file.
@@ -22,10 +23,10 @@ func TestTrybotBenchData(t *testing.T) {
 	r, err := os.Open(filepath.Join(TEST_DATA_DIR, "trybot.json"))
 	assert.NoError(t, err)
 
-	benchData, err := parseBenchDataFromReader(r)
+	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	assert.NoError(t, err)
 
-	assert.Equal(t, "x86_64:Clang:GPU:GeForce320M:MacMini4.1:Mac10.8", benchData.keyPrefix())
+	assert.Equal(t, "x86_64:Clang:GPU:GeForce320M:MacMini4.1:Mac10.8", keyPrefix(benchData))
 	assert.Equal(t, "1467533002", benchData.Issue)
 	assert.Equal(t, "1", benchData.PatchSet)
 }

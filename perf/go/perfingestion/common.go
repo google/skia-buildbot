@@ -1,15 +1,15 @@
 package perfingestion
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"sort"
 	"strings"
 
 	"github.com/skia-dev/glog"
+
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -18,59 +18,10 @@ const (
 	CONFIG_TRACESERVICE = "TraceService"
 )
 
-// BenchResult represents a single test result.
-//
-// Used in BenchData.
-//
-// Expected to be a map of strings to float64s, with the
-// exception of the "options" entry which should be a
-// map[string]string.
-type BenchResult map[string]interface{}
-
-// BenchResults is the dictionary of individual BenchResult structs.
-//
-// Used in BenchData.
-type BenchResults map[string]BenchResult
-
-// BenchData is the top level struct for decoding the nanobench JSON format.
-type BenchData struct {
-	Hash         string                  `json:"gitHash"`
-	Issue        string                  `json:"issue"`
-	PatchSet     string                  `json:"patchset"`
-	Key          map[string]string       `json:"key"`
-	Options      map[string]string       `json:"options"`
-	Results      map[string]BenchResults `json:"results"`
-	PatchStorage string                  `json:"patch_storage"`
-}
-
-// TODO(stephana): Remove isGerritIssue once we switch to Gerrit.
-
-// isGerritIssue returns true if the issue comes from an instance of the Gerrit
-// code review system.
-func (b *BenchData) isGerritIssue() bool {
-	return (b.Issue != "") && (b.PatchStorage == "gerrit")
-}
-
-// keyPrefix returns the prefix that is common to all trace ids in a single
-// instance of BenchData.
-func (b *BenchData) keyPrefix() string {
-	keys := make([]string, 0, len(b.Key))
-	retval := make([]string, 0, len(b.Key))
-
-	for k, _ := range b.Key {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		retval = append(retval, b.Key[k])
-	}
-	return strings.Join(retval, ":")
-}
-
 // getTraceDBEntries returns a map of tracedb.Entry instances.
-func (b *BenchData) getTraceDBEntries() map[string]*tracedb.Entry {
+func getTraceDBEntries(b *ingestcommon.BenchData) map[string]*tracedb.Entry {
 	ret := make(map[string]*tracedb.Entry, len(b.Results))
-	keyPrefix := b.keyPrefix()
+	keyPrefix := keyPrefix(b)
 	for testName, allConfigs := range b.Results {
 		for configName, result := range allConfigs {
 			key := fmt.Sprintf("%s:%s:%s", keyPrefix, testName, configName)
@@ -123,15 +74,18 @@ func (b *BenchData) getTraceDBEntries() map[string]*tracedb.Entry {
 	return ret
 }
 
-// parseBenchDataFromReader parses the stream out of the io.ReadCloser
-// into BenchData and closes the reader.
-func parseBenchDataFromReader(r io.ReadCloser) (*BenchData, error) {
-	defer util.Close(r)
+// keyPrefix returns the prefix that is common to all trace ids in a single
+// instance of BenchData.
+func keyPrefix(b *ingestcommon.BenchData) string {
+	keys := make([]string, 0, len(b.Key))
+	retval := make([]string, 0, len(b.Key))
 
-	dec := json.NewDecoder(r)
-	benchData := &BenchData{}
-	if err := dec.Decode(benchData); err != nil {
-		return nil, fmt.Errorf("Failed to decode JSON: %s", err)
+	for k, _ := range b.Key {
+		keys = append(keys, k)
 	}
-	return benchData, nil
+	sort.Strings(keys)
+	for _, k := range keys {
+		retval = append(retval, b.Key[k])
+	}
+	return strings.Join(retval, ":")
 }

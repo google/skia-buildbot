@@ -14,6 +14,7 @@ import (
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/vcsinfo"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/ingestcommon"
 	"go.skia.org/infra/perf/go/types"
 )
 
@@ -57,13 +58,13 @@ func (p *perfTrybotProcessor) Process(resultsFile ingestion.ResultFileLocation) 
 	if err != nil {
 		return err
 	}
-	benchData, err := parseBenchDataFromReader(r)
+	benchData, err := ingestcommon.ParseBenchDataFromReader(r)
 	if err != nil {
 		return err
 	}
 
 	// Ignore results from Gerrit for now.
-	if benchData.isGerritIssue() {
+	if benchData.IsGerritIssue() {
 		glog.Infof("Ignoring Gerrit issue %s/%s for now.", benchData.Issue, benchData.PatchSet)
 		return ingestion.IgnoreResultsFileErr
 	}
@@ -100,7 +101,7 @@ func (p *perfTrybotProcessor) Process(resultsFile ingestion.ResultFileLocation) 
 	}
 
 	// Add the column to the trace db.
-	return p.traceDB.Add(cid, benchData.getTraceDBEntries())
+	return p.traceDB.Add(cid, getTraceDBEntries(benchData))
 }
 
 // See ingestion.Processor interface.
