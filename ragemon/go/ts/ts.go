@@ -5,7 +5,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"sort"
 	"sync"
+
+	"github.com/skia-dev/glog"
 )
 
 // Point represents a single sample point.
@@ -21,6 +24,9 @@ type TimeSeries struct {
 	data []Point
 	lock sync.Mutex
 }
+
+// TimeSeriesSet is a map from a structured key to TimeSeries.
+type TimeSeriesSet map[string]*TimeSeries
 
 // encode a singe Point to a byte slice.
 func encode(p Point) []byte {
@@ -86,10 +92,83 @@ func NewFromData(b []byte) (*TimeSeries, error) {
 	return t, nil
 }
 
+// Returns true if p.Timestamp is in [begin, end).
+func inRange(begin, end int64, p Point) bool {
+	return begin <= p.Timestamp && end > p.Timestamp
+}
+
+// PointsInRange returns all the points that have a timestamp that fall in the
+// range [begin, end).
+func (t *TimeSeries) PointsInRange(begin, end int64) []Point {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+
+	ret := []Point{}
+	first := sort.Search(len(t.data), func(i int) bool {
+		return begin <= t.data[i].Timestamp
+	})
+
+	if first == len(t.data) {
+		return ret
+	}
+
+	for _, p := range t.data[first:] {
+		if p.Timestamp < end {
+			ret = append(ret, p)
+		} else {
+			break
+		}
+	}
+
+	return ret
+}
+
+// PointsInRange returns all the points that have a timestamp that fall in the
+// range [begin, end) when 'b' is deserialized as a TimeSeries. A non-nil error
+// is returned if 'b' is not a valid serialize TimeSeries.
+func PointsInRange(begin, end int64, b []byte) ([]Point, error) {
+	if len(b) == 0 {
+		return nil, fmt.Errorf("An empty byte slice is not a valid serialized TimeSeries.")
+	}
+
+	// The first point is stored directly.
+	prevPoint, n, err := decode(b)
+	if err != nil {
+		return nil, err
+	}
+	b = b[n:]
+	ret := []Point{}
+	if inRange(begin, end, prevPoint) {
+		ret = append(ret, prevPoint)
+	}
+	// Process the rest of the samples.
+	for len(b) != 0 {
+		pair, m, err := decode(b)
+		if err != nil {
+			return nil, err
+		}
+		// All points besides the first are stored as deltas from the previous value.
+		pair.Value += prevPoint.Value
+		pair.Timestamp += prevPoint.Timestamp
+		if inRange(begin, end, pair) {
+			ret = append(ret, pair)
+		} else if pair.Timestamp > end {
+			break
+		}
+		prevPoint = pair
+		b = b[m:]
+	}
+	return ret, nil
+}
+
 // Add a new value to the timeseries.
 func (t *TimeSeries) Add(pt Point) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
+	if pt.Timestamp <= t.data[len(t.data)-1].Timestamp {
+		glog.Errorf("Received an out of order point %v", pt)
+		return
+	}
 	t.data = append(t.data, pt)
 }
 
