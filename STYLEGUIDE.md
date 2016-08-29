@@ -46,6 +46,17 @@ If an Element has a helper element that should not be used alone, it may be incl
 in the same file.
 Example: [details-summary.html](https://skia.googlesource.com/buildbot/+/d3624df97a7422c542a739f36668f4831a2cda0b/res/imp/details-summary.html)
 
+Naming Things
+-------------
+
+Properties should be named using one word (if possible) or using snake_case.
+Private properties and methods should be prefixed with an underscore
+(e.g. _super_private).
+
+**Rationale:** The names are consistent in Javascript and HTML land.
+Polymer will automatically convert camelCase into sausage-case otherwise, which
+leads to hilarity and/or tears.
+
 
 Python Style Guide
 ==================
