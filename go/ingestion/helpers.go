@@ -56,6 +56,8 @@ func Register(id string, constructor Constructor) {
 // processors of the current application require an authenticated http client,
 // then it is expected that client meets these requirements.
 func IngestersFromConfig(config *sharedconfig.Config, client *http.Client, evt *eventbus.EventBus) ([]*Ingester, error) {
+	registrationMutex.Lock()
+	defer registrationMutex.Unlock()
 	ret := []*Ingester{}
 
 	// Set up the gitinfo object.
