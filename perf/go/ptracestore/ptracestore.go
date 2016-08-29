@@ -466,5 +466,14 @@ func (b *BoltTraceStore) Match(commitIDs []*CommitID, q query.Query) (TraceSet, 
 	return ret, nil
 }
 
+var Default *BoltTraceStore
+
+func Init(dir string) {
+	if Default != nil {
+		glog.Fatalf("ptracestore should only be initialized once.")
+	}
+	Default = New(dir)
+}
+
 // Ensure that *BoltTraceStore implements PTraceStore.
 var _ PTraceStore = &BoltTraceStore{}
