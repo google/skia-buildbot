@@ -25,6 +25,9 @@ func MockVCS(commits []*vcsinfo.LongCommit) vcsinfo.VCS {
 func (m mockVCS) Update(pull, allBranches bool) error               { return nil }
 func (m mockVCS) LastNIndex(N int) []*vcsinfo.IndexCommit           { return nil }
 func (m mockVCS) Range(begin, end time.Time) []*vcsinfo.IndexCommit { return nil }
+func (m mockVCS) IndexOf(hash string) (int, error) {
+	return 0, nil
+}
 func (m mockVCS) From(start time.Time) []string {
 	idx := sort.Search(len(m), func(i int) bool { return m[i].Timestamp.Unix() >= start.Unix() })
 

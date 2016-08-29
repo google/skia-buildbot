@@ -25,6 +25,15 @@ func (m *mockVcs) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCom
 	return nil, nil
 }
 
+func (m *mockVcs) IndexOf(hash string) (int, error) {
+	for i, c := range m.commits {
+		if c.Hash == hash {
+			return i, nil
+		}
+	}
+	return 0, fmt.Errorf("Not found: %s", hash)
+}
+
 func (m *mockVcs) Update(pull, allBranches bool) error {
 	if m.updateFail {
 		return fmt.Errorf("Failed to update.")

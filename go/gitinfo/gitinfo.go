@@ -29,6 +29,7 @@ type GitInfo struct {
 	hashes       []string
 	timestamps   map[string]time.Time           // The git hash is the key.
 	detailsCache map[string]*vcsinfo.LongCommit // The git hash is the key.
+	firstCommit  string
 
 	// Any access to hashes or timestamps must be protected.
 	mutex sync.Mutex
@@ -94,6 +95,10 @@ func (g *GitInfo) Update(pull, allBranches bool) error {
 	}
 	g.hashes = hashes
 	g.timestamps = timestamps
+	g.firstCommit, err = g.InitialCommit()
+	if err != nil {
+		return fmt.Errorf("Failed to get initial commit: %s", err)
+	}
 	return nil
 }
 
@@ -250,6 +255,25 @@ func (g *GitInfo) LastNIndex(N int) []*vcsinfo.IndexCommit {
 		})
 	}
 	return ret
+}
+
+// IndexOf returns the index of given hash as counted from the first commit in
+// this branch by 'rev-list'. The index is 0 based.
+func (g *GitInfo) IndexOf(hash string) (int, error) {
+	// Count the lines from running:
+	//   git rev-list --count <first-commit>..hash.
+	output, err := g.RevList("--count", fmt.Sprintf("%s..%s", g.firstCommit, hash))
+	if err != nil {
+		return 0, fmt.Errorf("git rev-list failed: %s", err)
+	}
+	if len(output) != 1 {
+		return 0, fmt.Errorf("git rev-list wrong size output: %s", err)
+	}
+	n, err := strconv.Atoi(output[0])
+	if err != nil {
+		return 0, fmt.Errorf("Didn't get a number: %s", err)
+	}
+	return n, nil
 }
 
 // LastN returns the last N commits.

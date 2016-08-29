@@ -71,6 +71,7 @@ func (m *mockVcs) LastNIndex(N int) []*vcsinfo.IndexCommit           { return ni
 func (m *mockVcs) Update(pull, allBranches bool) error               { return nil }
 func (m *mockVcs) From(start time.Time) []string                     { return nil }
 func (m *mockVcs) Range(begin, end time.Time) []*vcsinfo.IndexCommit { return nil }
+func (m *mockVcs) IndexOf(hash string) (int, error)                  { return 0, nil }
 
 // Details returns the full commit information for the given hash.
 // If includeBranchInfo is true the Branches field of the returned

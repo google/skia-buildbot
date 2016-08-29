@@ -115,6 +115,11 @@ func (v StupidVCS) Range(begin, end time.Time) []*vcsinfo.IndexCommit {
 	return nil
 }
 
+func (v StupidVCS) IndexOf(hash string) (int, error) {
+	glog.Fatal("Unimplemented")
+	return 0, nil
+}
+
 // makeTask generates task with random Name, Repo, and Revision. Revision will
 // be picked randomly from a range starting at recentCommitsBegin.
 func makeTask(recentCommitsBegin int) *db.Task {

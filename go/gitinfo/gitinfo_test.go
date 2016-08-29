@@ -175,6 +175,26 @@ func TestLastNIndex(t *testing.T) {
 	}
 }
 
+func TestIndexOf(t *testing.T) {
+	tr := util.NewTempRepo()
+	defer tr.Cleanup()
+
+	r, err := NewGitInfo(filepath.Join(tr.Dir, "testrepo"), false, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	idx, err := r.IndexOf("7a669cfa3f4cd3482a4fd03989f75efcc7595f7f")
+	assert.NoError(t, err)
+	assert.Equal(t, 0, idx)
+	idx, err = r.IndexOf("8652a6df7dc8a7e6addee49f6ed3c2308e36bd18")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, idx)
+	idx, err = r.IndexOf("foo")
+	assert.Error(t, err)
+
+	assert.Equal(t, "7a669cfa3f4cd3482a4fd03989f75efcc7595f7f", r.firstCommit)
+}
+
 func TestRange(t *testing.T) {
 	tr := util.NewTempRepo()
 	defer tr.Cleanup()
