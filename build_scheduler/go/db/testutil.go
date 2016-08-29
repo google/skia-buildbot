@@ -605,3 +605,242 @@ func TestUpdateWithRetries(t *testing.T, db DB) {
 	testUpdateTaskWithRetriesExhausted(t, db)
 	testUpdateTaskWithRetriesTaskNotFound(t, db)
 }
+
+// makeTaskComment creates a comment with its ID fields based on the given repo,
+// name, commit, and ts, and other fields based on n.
+func makeTaskComment(n int, repo int, name int, commit int, ts time.Time) *TaskComment {
+	return &TaskComment{
+		Repo:      fmt.Sprintf("r%d", repo),
+		Name:      fmt.Sprintf("n%d", name),
+		Commit:    fmt.Sprintf("c%d", commit),
+		Timestamp: ts,
+		TaskId:    fmt.Sprintf("id%d", n),
+		User:      fmt.Sprintf("u%d", n),
+		Message:   fmt.Sprintf("m%d", n),
+	}
+}
+
+// makeTaskSpecComment creates a comment with its ID fields based on the given
+// repo, name, and ts, and other fields based on n.
+func makeTaskSpecComment(n int, repo int, name int, ts time.Time) *TaskSpecComment {
+	return &TaskSpecComment{
+		Repo:          fmt.Sprintf("r%d", repo),
+		Name:          fmt.Sprintf("n%d", name),
+		Timestamp:     ts,
+		User:          fmt.Sprintf("u%d", n),
+		Flaky:         n%2 == 0,
+		IgnoreFailure: n>>1%2 == 0,
+		Message:       fmt.Sprintf("m%d", n),
+	}
+}
+
+// makeCommitComment creates a comment with its ID fields based on the given
+// repo, commit, and ts, and other fields based on n.
+func makeCommitComment(n int, repo int, commit int, ts time.Time) *CommitComment {
+	return &CommitComment{
+		Repo:      fmt.Sprintf("r%d", repo),
+		Commit:    fmt.Sprintf("c%d", commit),
+		Timestamp: ts,
+		User:      fmt.Sprintf("u%d", n),
+		Message:   fmt.Sprintf("m%d", n),
+	}
+}
+
+// TestCommentDB validates that db correctly implements the CommentDB interface.
+func TestCommentDB(t *testing.T, db CommentDB) {
+	now := time.Now()
+
+	// Empty db.
+	{
+		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		assert.NoError(t, err)
+		assert.Equal(t, 3, len(actual))
+		assert.Equal(t, "r0", actual[0].Repo)
+		assert.Equal(t, "r1", actual[1].Repo)
+		assert.Equal(t, "r2", actual[2].Repo)
+		for _, rc := range actual {
+			assert.Equal(t, 0, len(rc.TaskComments))
+			assert.Equal(t, 0, len(rc.TaskSpecComments))
+			assert.Equal(t, 0, len(rc.CommitComments))
+		}
+	}
+
+	// Add some comments.
+	tc1 := makeTaskComment(1, 1, 1, 1, now)
+	tc2 := makeTaskComment(2, 1, 1, 1, now.Add(2*time.Second))
+	tc3 := makeTaskComment(3, 1, 1, 1, now.Add(time.Second))
+	tc4 := makeTaskComment(4, 1, 1, 2, now)
+	tc5 := makeTaskComment(5, 1, 2, 2, now)
+	tc6 := makeTaskComment(6, 2, 3, 3, now)
+	tc6copy := tc6.Copy() // Adding identical comment should be ignored.
+	for _, c := range []*TaskComment{tc1, tc2, tc3, tc4, tc5, tc6, tc6copy} {
+		assert.NoError(t, db.PutTaskComment(c))
+	}
+	tc6.Message = "modifying after Put shouldn't affect stored comment"
+
+	sc1 := makeTaskSpecComment(1, 1, 1, now)
+	sc2 := makeTaskSpecComment(2, 1, 1, now.Add(2*time.Second))
+	sc3 := makeTaskSpecComment(3, 1, 1, now.Add(time.Second))
+	sc4 := makeTaskSpecComment(4, 1, 2, now)
+	sc5 := makeTaskSpecComment(5, 2, 3, now)
+	sc5copy := sc5.Copy() // Adding identical comment should be ignored.
+	for _, c := range []*TaskSpecComment{sc1, sc2, sc3, sc4, sc5, sc5copy} {
+		assert.NoError(t, db.PutTaskSpecComment(c))
+	}
+	sc5.Message = "modifying after Put shouldn't affect stored comment"
+
+	cc1 := makeCommitComment(1, 1, 1, now)
+	cc2 := makeCommitComment(2, 1, 1, now.Add(2*time.Second))
+	cc3 := makeCommitComment(3, 1, 1, now.Add(time.Second))
+	cc4 := makeCommitComment(4, 1, 2, now)
+	cc5 := makeCommitComment(5, 2, 3, now)
+	cc5copy := cc5.Copy() // Adding identical comment should be ignored.
+	for _, c := range []*CommitComment{cc1, cc2, cc3, cc4, cc5, cc5copy} {
+		assert.NoError(t, db.PutCommitComment(c))
+	}
+	cc5.Message = "modifying after Put shouldn't affect stored comment"
+
+	// Check that adding duplicate non-identical comment gives an error.
+	tc1different := tc1.Copy()
+	tc1different.Message = "not the same"
+	assert.True(t, IsAlreadyExists(db.PutTaskComment(tc1different)))
+	sc1different := sc1.Copy()
+	sc1different.Message = "not the same"
+	assert.True(t, IsAlreadyExists(db.PutTaskSpecComment(sc1different)))
+	cc1different := cc1.Copy()
+	cc1different.Message = "not the same"
+	assert.True(t, IsAlreadyExists(db.PutCommitComment(cc1different)))
+
+	expected := []*RepoComments{
+		&RepoComments{Repo: "r0"},
+		&RepoComments{
+			Repo: "r1",
+			TaskComments: map[string]map[string][]*TaskComment{
+				"n1": {
+					"c1": {tc1, tc3, tc2},
+					"c2": {tc4},
+				},
+				"n2": {
+					"c2": {tc5},
+				},
+			},
+			TaskSpecComments: map[string][]*TaskSpecComment{
+				"n1": {sc1, sc3, sc2},
+				"n2": {sc4},
+			},
+			CommitComments: map[string][]*CommitComment{
+				"c1": {cc1, cc3, cc2},
+				"c2": {cc4},
+			},
+		},
+		&RepoComments{
+			Repo: "r2",
+			TaskComments: map[string]map[string][]*TaskComment{
+				"n3": {
+					"c3": {tc6copy},
+				},
+			},
+			TaskSpecComments: map[string][]*TaskSpecComment{
+				"n3": {sc5copy},
+			},
+			CommitComments: map[string][]*CommitComment{
+				"c3": {cc5copy},
+			},
+		},
+	}
+	{
+		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, expected, actual)
+	}
+
+	// Specifying a cutoff time shouldn't drop required comments.
+	{
+		actual, err := db.GetCommentsForRepos([]string{"r1"}, now.Add(time.Second))
+		assert.NoError(t, err)
+		assert.Equal(t, 1, len(actual))
+		{
+			tcs := actual[0].TaskComments["n1"]["c1"]
+			assert.True(t, len(tcs) >= 2)
+			offset := 0
+			if !tcs[0].Timestamp.Equal(tc3.Timestamp) {
+				offset = 1
+			}
+			testutils.AssertDeepEqual(t, tc3, tcs[offset])
+			testutils.AssertDeepEqual(t, tc2, tcs[offset+1])
+		}
+		{
+			scs := actual[0].TaskSpecComments["n1"]
+			assert.True(t, len(scs) >= 2)
+			offset := 0
+			if !scs[0].Timestamp.Equal(sc3.Timestamp) {
+				offset = 1
+			}
+			testutils.AssertDeepEqual(t, sc3, scs[offset])
+			testutils.AssertDeepEqual(t, sc2, scs[offset+1])
+		}
+		{
+			ccs := actual[0].CommitComments["c1"]
+			assert.True(t, len(ccs) >= 2)
+			offset := 0
+			if !ccs[0].Timestamp.Equal(cc3.Timestamp) {
+				offset = 1
+			}
+			testutils.AssertDeepEqual(t, cc3, ccs[offset])
+			testutils.AssertDeepEqual(t, cc2, ccs[offset+1])
+		}
+	}
+
+	// Delete some comments.
+	assert.NoError(t, db.DeleteTaskComment(tc3))
+	assert.NoError(t, db.DeleteTaskSpecComment(sc3))
+	assert.NoError(t, db.DeleteCommitComment(cc3))
+	// Delete should only look at the ID fields.
+	assert.NoError(t, db.DeleteTaskComment(tc1different))
+	assert.NoError(t, db.DeleteTaskSpecComment(sc1different))
+	assert.NoError(t, db.DeleteCommitComment(cc1different))
+	// Delete of nonexistent task should succeed.
+	assert.NoError(t, db.DeleteTaskComment(makeTaskComment(99, 1, 1, 1, now.Add(99*time.Second))))
+	assert.NoError(t, db.DeleteTaskComment(makeTaskComment(99, 1, 1, 99, now)))
+	assert.NoError(t, db.DeleteTaskComment(makeTaskComment(99, 1, 99, 1, now)))
+	assert.NoError(t, db.DeleteTaskComment(makeTaskComment(99, 99, 1, 1, now)))
+	assert.NoError(t, db.DeleteTaskSpecComment(makeTaskSpecComment(99, 1, 1, now.Add(99*time.Second))))
+	assert.NoError(t, db.DeleteTaskSpecComment(makeTaskSpecComment(99, 1, 99, now)))
+	assert.NoError(t, db.DeleteTaskSpecComment(makeTaskSpecComment(99, 99, 1, now)))
+	assert.NoError(t, db.DeleteCommitComment(makeCommitComment(99, 1, 1, now.Add(99*time.Second))))
+	assert.NoError(t, db.DeleteCommitComment(makeCommitComment(99, 1, 99, now)))
+	assert.NoError(t, db.DeleteCommitComment(makeCommitComment(99, 99, 1, now)))
+
+	expected[1].TaskComments["n1"]["c1"] = []*TaskComment{tc2}
+	expected[1].TaskSpecComments["n1"] = []*TaskSpecComment{sc2}
+	expected[1].CommitComments["c1"] = []*CommitComment{cc2}
+	{
+		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, expected, actual)
+	}
+
+	// Delete all the comments.
+	for _, c := range []*TaskComment{tc2, tc4, tc5, tc6} {
+		assert.NoError(t, db.DeleteTaskComment(c))
+	}
+	for _, c := range []*TaskSpecComment{sc2, sc4, sc5} {
+		assert.NoError(t, db.DeleteTaskSpecComment(c))
+	}
+	for _, c := range []*CommitComment{cc2, cc4, cc5} {
+		assert.NoError(t, db.DeleteCommitComment(c))
+	}
+	{
+		actual, err := db.GetCommentsForRepos([]string{"r0", "r1", "r2"}, now.Add(-10000*time.Hour))
+		assert.NoError(t, err)
+		assert.Equal(t, 3, len(actual))
+		assert.Equal(t, "r0", actual[0].Repo)
+		assert.Equal(t, "r1", actual[1].Repo)
+		assert.Equal(t, "r2", actual[2].Repo)
+		for _, rc := range actual {
+			assert.Equal(t, 0, len(rc.TaskComments))
+			assert.Equal(t, 0, len(rc.TaskSpecComments))
+			assert.Equal(t, 0, len(rc.CommitComments))
+		}
+	}
+}

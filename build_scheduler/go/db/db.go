@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"io"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -19,18 +20,15 @@ const (
 )
 
 var (
-	ErrTooManyUsers     = errors.New("Too many users")
-	ErrUnknownId        = errors.New("Unknown ID")
+	ErrAlreadyExists    = errors.New("Object already exists and modification not allowed.")
 	ErrConcurrentUpdate = errors.New("Concurrent update")
 	ErrNotFound         = errors.New("Task with given ID does not exist")
+	ErrTooManyUsers     = errors.New("Too many users")
+	ErrUnknownId        = errors.New("Unknown ID")
 )
 
-func IsTooManyUsers(e error) bool {
-	return e != nil && e.Error() == ErrTooManyUsers.Error()
-}
-
-func IsUnknownId(e error) bool {
-	return e != nil && e.Error() == ErrUnknownId.Error()
+func IsAlreadyExists(e error) bool {
+	return e != nil && e.Error() == ErrAlreadyExists.Error()
 }
 
 func IsConcurrentUpdate(e error) bool {
@@ -41,13 +39,17 @@ func IsNotFound(e error) bool {
 	return e != nil && e.Error() == ErrNotFound.Error()
 }
 
-type DB interface {
-	// AssignId sets the given task's Id field. Does not insert the task into the
-	// database.
-	AssignId(*Task) error
+func IsTooManyUsers(e error) bool {
+	return e != nil && e.Error() == ErrTooManyUsers.Error()
+}
 
-	// Close the [connection to the] DB.
-	Close() error
+func IsUnknownId(e error) bool {
+	return e != nil && e.Error() == ErrUnknownId.Error()
+}
+
+// TaskReader is a read-only view of a DB.
+type TaskReader interface {
+	io.Closer
 
 	// GetModifiedTasks returns all tasks modified since the last time
 	// GetModifiedTasks was run with the given id.
@@ -60,15 +62,6 @@ type DB interface {
 	// GetTasksFromDateRange retrieves all tasks which started in the given date range.
 	GetTasksFromDateRange(time.Time, time.Time) ([]*Task, error)
 
-	// PutTask inserts or updates the Task in the database. Task's Id field must
-	// be empty or set with AssignId. PutTask will set Task.DbModified.
-	PutTask(*Task) error
-
-	// PutTasks inserts or updates the Tasks in the database. Each Task's Id field
-	// must be empty or set with AssignId. Each Task's DbModified field will be
-	// set.
-	PutTasks([]*Task) error
-
 	// StartTrackingModifiedTasks initiates tracking of modified tasks for
 	// the current caller. Returns a unique ID which can be used by the caller
 	// to retrieve tasks which have been modified since the last query. The ID
@@ -78,6 +71,24 @@ type DB interface {
 	// StopTrackingModifiedTasks cancels tracking of modified tasks for the
 	// provided ID.
 	StopTrackingModifiedTasks(string)
+}
+
+// DB is used by the task scheduler to store Tasks.
+type DB interface {
+	TaskReader
+
+	// AssignId sets the given task's Id field. Does not insert the task into the
+	// database.
+	AssignId(*Task) error
+
+	// PutTask inserts or updates the Task in the database. Task's Id field must
+	// be empty or set with AssignId. PutTask will set Task.DbModified.
+	PutTask(*Task) error
+
+	// PutTasks inserts or updates the Tasks in the database. Each Task's Id field
+	// must be empty or set with AssignId. Each Task's DbModified field will be
+	// set.
+	PutTasks([]*Task) error
 }
 
 // UpdateWithRetries wraps a call to db.PutTasks with retries. It calls
@@ -139,4 +150,10 @@ func UpdateTaskWithRetries(db DB, id string, f func(*Task) error) (*Task, error)
 	} else {
 		return tasks[0], nil
 	}
+}
+
+// RemoteDB allows retrieving tasks and full access to comments.
+type RemoteDB interface {
+	TaskReader
+	CommentDB
 }
