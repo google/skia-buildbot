@@ -58,7 +58,7 @@ func (m mockPTraceStore) Details(commitID *ptracestore.CommitID, traceID string)
 	return "", 0, nil
 }
 
-func (m mockPTraceStore) Match(commitIDs []*ptracestore.CommitID, q query.Query) (ptracestore.TraceSet, error) {
+func (m mockPTraceStore) Match(commitIDs []*ptracestore.CommitID, q *query.Query) (ptracestore.TraceSet, error) {
 	if m.matchFail {
 		return nil, fmt.Errorf("Failed to retrieve traces.")
 	}
@@ -156,7 +156,7 @@ func TestNew(t *testing.T) {
 	}
 	store.matchFail = false
 
-	d, err := _new(colHeaders, pcommits, query.Query{}, store)
+	d, err := _new(colHeaders, pcommits, &query.Query{}, store)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(d.TraceSet))
 	assert.True(t, util.SSliceEqual(d.ParamSet["arch"], []string{"x86"}))
@@ -173,7 +173,7 @@ func TestVCS(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(d.TraceSet))
 
-	d, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), query.Query{})
+	d, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), &query.Query{})
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(d.TraceSet))
 
@@ -181,13 +181,13 @@ func TestVCS(t *testing.T) {
 	vcs.updateFail = true
 	_, err = New(vcs, store)
 	assert.NoError(t, err)
-	_, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), query.Query{})
+	_, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), &query.Query{})
 	assert.NoError(t, err)
 
 	store.matchFail = true
 	// Test error conditions if the store fails.
 	_, err = New(vcs, store)
 	assert.Error(t, err)
-	_, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), query.Query{})
+	_, err = NewFromQueryAndRange(vcs, store, ts0, ts1.Add(time.Second), &query.Query{})
 	assert.Error(t, err)
 }

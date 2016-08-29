@@ -88,7 +88,7 @@ type PTraceStore interface {
 	//
 	// The returned TraceSet will contain a slice of Trace, and that list will be
 	// empty if there are no matches.
-	Match(commitIDs []*CommitID, q query.Query) (TraceSet, error)
+	Match(commitIDs []*CommitID, q *query.Query) (TraceSet, error)
 }
 
 // BoltTraceStore is an implementation of PTraceStore that uses BoltDB.
@@ -406,7 +406,7 @@ func dup(b []byte) []byte {
 // loadMatches loads values into 'traceSet' that match the query 'q' from the
 // tile in the BoltDB 'db'.  Only values at the offsets in 'idxmap' are
 // actually loaded, and 'idxmap' determines where they are stored in the Trace.
-func loadMatches(db *bolt.DB, idxmap map[int]int, q query.Query, traceSet TraceSet, traceLen int) error {
+func loadMatches(db *bolt.DB, idxmap map[int]int, q *query.Query, traceSet TraceSet, traceLen int) error {
 	get := func(tx *bolt.Tx) error {
 		bucket := tx.Bucket([]byte(TRACE_VALUES_BUCKET_NAME))
 		if bucket == nil {
@@ -451,7 +451,7 @@ func loadMatches(db *bolt.DB, idxmap map[int]int, q query.Query, traceSet TraceS
 	return db.View(get)
 }
 
-func (b *BoltTraceStore) Match(commitIDs []*CommitID, q query.Query) (TraceSet, error) {
+func (b *BoltTraceStore) Match(commitIDs []*CommitID, q *query.Query) (TraceSet, error) {
 	ret := TraceSet{}
 	mapper := buildMapper(commitIDs)
 	for _, tm := range mapper {

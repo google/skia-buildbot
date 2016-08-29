@@ -92,11 +92,13 @@ func MakeKey(m map[string]string) (string, error) {
 
 // queryParam represents a query on a particular parameter in a key.
 type queryParam struct {
-	keyMatch    string   // The param key, including the leading "," and trailing "=".
-	keyMatchLen int      // The length of keyMatch.
-	isWildCard  bool     // True if this is a wildcard value match.
-	isNegative  bool     // True if this is a negative value match.
-	values      []string // The potential matches for the value.
+	keyMatch    string         // The param key, including the leading "," and trailing "=".
+	keyMatchLen int            // The length of keyMatch.
+	isWildCard  bool           // True if this is a wildcard value match.
+	isRegex     bool           // True if this is a regex value match.
+	isNegative  bool           // True if this is a negative value match.
+	values      []string       // The potential matches for the value.
+	reg         *regexp.Regexp // The regexp to match against, if a regexp search.
 }
 
 // Query represents a query against a key, i.e. Query.Matches can return true
@@ -121,6 +123,13 @@ type queryParam struct {
 //
 //		q := New(url.Values{"config": []string{"*"}})
 //
+// If the parameter value begins with '~' then the rest of the value is interpreted
+// as a regular expression. I.e. this will match all keys that have a parameter
+// named 'arch' that begin with 'x':
+//
+//		q := New(url.Values{"arch": []string{"~^x"}})
+//
+//
 // Here is more complex example that matches all tests that have the 'name'
 // parameter with a value of 'desk_nytimes.skp', a 'config' param that does not
 // equal '565' or '8888', and has an 'extra_config' parameter of any value.
@@ -137,7 +146,7 @@ type Query struct {
 
 // New creates a Query from the given url.Values. It represents a query to be
 // used against keys.
-func New(q url.Values) Query {
+func New(q url.Values) (*Query, error) {
 	keys := make([]string, 0, len(q))
 	for k, _ := range q {
 		keys = append(keys, k)
@@ -148,12 +157,22 @@ func New(q url.Values) Query {
 	for _, key := range keys {
 		keyMatch := "," + key + "="
 		isWildCard := false
+		isRegex := false
 		isNegative := false
 		values := q[key]
+		var reg *regexp.Regexp
+		var err error
 		// Is this param query a wildcard?
 		if len(q[key]) == 1 {
 			if q[key][0] == "*" {
 				isWildCard = true
+			}
+			if q[key][0][:1] == "~" {
+				isRegex = true
+				reg, err = regexp.Compile(q[key][0][1:])
+				if err != nil {
+					return nil, fmt.Errorf("Error compiling regexp %q: %s", q[key][0][1:], err)
+				}
 			}
 		}
 		// Is this param query a negative match?
@@ -174,16 +193,18 @@ func New(q url.Values) Query {
 			keyMatch:    keyMatch,
 			keyMatchLen: len(keyMatch),
 			isWildCard:  isWildCard,
+			isRegex:     isRegex,
 			isNegative:  isNegative,
 			values:      values,
+			reg:         reg,
 		})
 	}
 
-	return Query{params: params}
+	return &Query{params: params}, nil
 }
 
 // Matches returns true if the given structured key matches the query.
-func (q Query) Matches(s string) bool {
+func (q *Query) Matches(s string) bool {
 	// Search forward in the given structured key. Since q.params are in
 	// alphabetical order and structured keys have their params in alphabetical
 	// order we can always search forward in the structured key, i.e. once
@@ -203,7 +224,11 @@ func (q Query) Matches(s string) bool {
 		// Extract the value string.
 		valueIndex := strings.Index(s, ",")
 		value := s[:valueIndex]
-		if part.isNegative == util.In(value, part.values) {
+		if part.isRegex {
+			if !part.reg.MatchString(value) {
+				return false
+			}
+		} else if part.isNegative == util.In(value, part.values) {
 			return false
 		}
 		// Truncate to the value.

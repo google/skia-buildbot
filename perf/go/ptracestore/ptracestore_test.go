@@ -208,9 +208,10 @@ func TestMatch(t *testing.T) {
 	assert.Equal(t, float32(1.23), value)
 
 	// Query that matches just one trace.
-	q := query.New(url.Values{
+	q, err := query.New(url.Values{
 		"config": []string{"565"},
 	})
+	assert.NoError(t, err)
 	commits := []*CommitID{commitID1, commitID2, commitID3, commitID4}
 	traces, err := d.Match(commits, q)
 	assert.NoError(t, err)
@@ -219,9 +220,10 @@ func TestMatch(t *testing.T) {
 	assert.Equal(t, Trace{1.23, 2.34, 3.45, MISSING_VALUE}, traces[",config=565,test=foo,"])
 
 	// Match both traces.
-	q = query.New(url.Values{
+	q, err = query.New(url.Values{
 		"test": []string{"foo"},
 	})
+	assert.NoError(t, err)
 	traces, err = d.Match(commits, q)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(traces))
@@ -243,7 +245,8 @@ func TestMatch(t *testing.T) {
 	assert.Equal(t, Trace{MISSING_VALUE, MISSING_VALUE}, traces[",config=8888,test=foo,"])
 
 	// Match all traces with an empty query.
-	q = query.New(url.Values{})
+	q, err = query.New(url.Values{})
+	assert.NoError(t, err)
 	commits = []*CommitID{commitID1, commitID2, commitID3, commitID4}
 	traces, err = d.Match(commits, q)
 	assert.NoError(t, err)
@@ -254,7 +257,8 @@ func TestMatch(t *testing.T) {
 	assert.Equal(t, Trace{5.55, 6.66, 7.77, MISSING_VALUE}, traces[",arch=x86,source_type=image,"])
 
 	// Match none of the traces.
-	q = query.New(url.Values{"bar": []string{"baz"}})
+	q, err = query.New(url.Values{"bar": []string{"baz"}})
+	assert.NoError(t, err)
 	commits = []*CommitID{commitID1, commitID2, commitID3, commitID4}
 	traces, err = d.Match(commits, q)
 	assert.NoError(t, err)

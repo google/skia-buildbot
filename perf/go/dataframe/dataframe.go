@@ -78,7 +78,7 @@ func getRange(vcs vcsinfo.VCS, begin, end time.Time) ([]*ColumnHeader, []*ptrace
 	return rangeImpl(vcs.Range(begin, end))
 }
 
-func _new(colHeaders []*ColumnHeader, commitIDs []*ptracestore.CommitID, q query.Query, store ptracestore.PTraceStore) (*DataFrame, error) {
+func _new(colHeaders []*ColumnHeader, commitIDs []*ptracestore.CommitID, q *query.Query, store ptracestore.PTraceStore) (*DataFrame, error) {
 	traceSet, err := store.Match(commitIDs, q)
 	if err != nil {
 		return nil, fmt.Errorf("DataFrame failed to query for all traces: %s", err)
@@ -98,13 +98,13 @@ func _new(colHeaders []*ColumnHeader, commitIDs []*ptracestore.CommitID, q query
 // 'store', or a non-nil error if there was a failure retrieving the traces.
 func New(vcs vcsinfo.VCS, store ptracestore.PTraceStore) (*DataFrame, error) {
 	colHeaders, commitIDs := lastN(vcs)
-	return _new(colHeaders, commitIDs, query.Query{}, store)
+	return _new(colHeaders, commitIDs, &query.Query{}, store)
 }
 
 // NewFromQueryAndRange returns a populated DataFrame of the traces that match
 // the given time range [begin, end) and the passed in query, or a non-nil
 // error if the traces can't be retrieved.
-func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin, end time.Time, q query.Query) (*DataFrame, error) {
+func NewFromQueryAndRange(vcs vcsinfo.VCS, store ptracestore.PTraceStore, begin, end time.Time, q *query.Query) (*DataFrame, error) {
 	colHeaders, commitIDs := getRange(vcs, begin, end)
 	return _new(colHeaders, commitIDs, q, store)
 }

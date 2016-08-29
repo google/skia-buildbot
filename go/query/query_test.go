@@ -121,11 +121,13 @@ func TestMakeKey(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	q := New(url.Values{"config": []string{"565", "8888"}})
+	q, err := New(url.Values{"config": []string{"565", "8888"}})
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(q.params))
 	assert.Equal(t, false, q.params[0].isWildCard)
 
-	q = New(url.Values{"debug": []string{"false"}, "config": []string{"565", "8888"}})
+	q, err = New(url.Values{"debug": []string{"false"}, "config": []string{"565", "8888"}})
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(q.params))
 	assert.Equal(t, ",config=", q.params[0].keyMatch)
 	assert.Equal(t, ",debug=", q.params[1].keyMatch)
@@ -134,19 +136,22 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, false, q.params[0].isNegative)
 	assert.Equal(t, false, q.params[1].isNegative)
 
-	q = New(url.Values{"debug": []string{"*"}})
+	q, err = New(url.Values{"debug": []string{"*"}})
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(q.params))
 	assert.Equal(t, ",debug=", q.params[0].keyMatch)
 	assert.Equal(t, true, q.params[0].isWildCard)
 	assert.Equal(t, false, q.params[0].isNegative)
 
-	q = New(url.Values{"config": []string{"!565"}})
+	q, err = New(url.Values{"config": []string{"!565"}})
+	assert.NoError(t, err)
 	assert.Equal(t, 1, len(q.params))
 	assert.Equal(t, ",config=", q.params[0].keyMatch)
 	assert.Equal(t, false, q.params[0].isWildCard)
 	assert.Equal(t, true, q.params[0].isNegative)
 
-	q = New(url.Values{"config": []string{"!565", "!8888"}, "debug": []string{"*"}})
+	q, err = New(url.Values{"config": []string{"!565", "!8888"}, "debug": []string{"*"}})
+	assert.NoError(t, err)
 	assert.Equal(t, 2, len(q.params))
 	assert.Equal(t, ",config=", q.params[0].keyMatch)
 	assert.Equal(t, "565", q.params[0].values[0])
@@ -157,7 +162,8 @@ func TestNew(t *testing.T) {
 	assert.Equal(t, true, q.params[1].isWildCard)
 	assert.Equal(t, false, q.params[1].isNegative)
 
-	q = New(url.Values{})
+	q, err = New(url.Values{})
+	assert.NoError(t, err)
 	assert.Equal(t, 0, len(q.params))
 }
 
@@ -264,9 +270,35 @@ func TestMatches(t *testing.T) {
 			matches: true,
 			reason:  "Empty query matches everything.",
 		},
+		{
+			key:     ",arch=x86,config=565,debug=true,",
+			query:   url.Values{"config": []string{"~5.5"}},
+			matches: true,
+			reason:  "Regexp match",
+		},
+		{
+			key:     ",arch=x86,config=565,debug=true,",
+			query:   url.Values{"config": []string{"~8+"}},
+			matches: false,
+			reason:  "Regexp match",
+		},
+		{
+			key:     ",arch=x86,config=8888,debug=true,",
+			query:   url.Values{"arch": []string{"~^x"}, "config": []string{"!565"}, "debug": []string{"*"}},
+			matches: true,
+			reason:  "Negative, wildcard, and regexp",
+		},
+		{
+			key:     ",arch=x86,config=8888,debug=true,",
+			query:   url.Values{"arch": []string{"~^y.*"}, "config": []string{"!565"}, "debug": []string{"*"}},
+			matches: false,
+			reason:  "Negative, wildcard, and miss regexp",
+		},
 	}
 	for _, tc := range testCases {
-		if got, want := New(tc.query).Matches(tc.key), tc.matches; got != want {
+		q, err := New(tc.query)
+		assert.NoError(t, err)
+		if got, want := q.Matches(tc.key), tc.matches; got != want {
 			t.Errorf("Failed matching %q to %#v. Got %v Want %v. %s", tc.key, tc.query, got, want, tc.reason)
 		}
 	}
