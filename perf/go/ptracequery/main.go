@@ -39,6 +39,9 @@ var Usage = func() {
 	fmt.Printf(`Usage: ptracequery <command> [OPTIONS]...
 Inspect and interrogate a ptracestore.
 
+Only one application can interact with a BoltDB database at one time, so the
+Perf application should not be running at the same time as ptracequery.
+
 Commands:
 
   count     	Return the number of traces stored in the given time range.
@@ -86,7 +89,7 @@ func _df(vcs vcsinfo.VCS, store ptracestore.PTraceStore, q *query.Query) (*dataf
 	beginTime := now.Add(-b)
 	endTime := now.Add(-e)
 	if *verbose {
-		fmt.Printf("Requesting from %s to %s\n", now.Add(-b), now.Add(-e))
+		fmt.Printf("Requesting from %s to %s\n", beginTime, endTime)
 	}
 	return dataframe.NewFromQueryAndRange(vcs, store, beginTime, endTime, q)
 }
@@ -136,8 +139,8 @@ func sample(vcs vcsinfo.VCS, store ptracestore.PTraceStore) {
 		if i < SAMPLE_SIZE {
 			res[i] = &results{key: k, value: v}
 		} else {
-			r := rand.Int31n(int32(i + 1))
-			if r < int32(SAMPLE_SIZE) {
+			r := rand.Intn(i + 1)
+			if r < SAMPLE_SIZE {
 				res[r] = &results{key: k, value: v}
 			}
 		}
