@@ -10,8 +10,11 @@ BOWER_DIR=third_party/bower_components
 VULCANIZE1=true
 
 .PHONY: build
-build: web
+build: web ptracequery
 	go install -v ./go/skiaperf
+
+ptracequery:
+	go install -v ./go/ptracequery
 
 .PHONY: web
 web: clean_webtools elements_html core_js
