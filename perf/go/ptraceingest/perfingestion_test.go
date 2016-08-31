@@ -76,7 +76,8 @@ func TestPerfProcessor(t *testing.T) {
 	orig := ptracestore.Default
 	dir, err := ioutil.TempDir("", "ptrace")
 	assert.NoError(t, err)
-	ptracestore.Default = ptracestore.New(dir)
+	ptracestore.Default, err = ptracestore.New(dir)
+	assert.NoError(t, err)
 	defer func() {
 		ptracestore.Default = orig
 		testutils.RemoveAll(t, dir)
