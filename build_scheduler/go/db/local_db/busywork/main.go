@@ -19,10 +19,9 @@ import (
 
 	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/build_scheduler/go/db/local_db"
-	"go.skia.org/infra/build_scheduler/go/task_scheduler"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/influxdb"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 var (
@@ -81,45 +80,6 @@ func htoi(h string) int {
 	return i
 }
 
-type StupidVCS bool
-
-func (v StupidVCS) Update(pull, allBranches bool) error {
-	glog.Fatal("Unimplemented")
-	return nil
-}
-
-func (v StupidVCS) From(start time.Time) []string {
-	glog.Fatal("Unimplemented")
-	return nil
-}
-
-func (v StupidVCS) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCommit, error) {
-	if includeBranchInfo {
-		glog.Fatal("Unimplemented")
-	}
-	return &vcsinfo.LongCommit{
-		ShortCommit: &vcsinfo.ShortCommit{
-			Hash: hash,
-		},
-		Parents: []string{itoh(htoi(hash) - 1)},
-	}, nil
-}
-
-func (v StupidVCS) LastNIndex(N int) []*vcsinfo.IndexCommit {
-	glog.Fatal("Unimplemented")
-	return nil
-}
-
-func (v StupidVCS) Range(begin, end time.Time) []*vcsinfo.IndexCommit {
-	glog.Fatal("Unimplemented")
-	return nil
-}
-
-func (v StupidVCS) IndexOf(hash string) (int, error) {
-	glog.Fatal("Unimplemented")
-	return 0, nil
-}
-
 // makeTask generates task with random Name, Repo, and Revision. Revision will
 // be picked randomly from a range starting at recentCommitsBegin.
 func makeTask(recentCommitsBegin int) *db.Task {
@@ -133,12 +93,41 @@ func makeTask(recentCommitsBegin int) *db.Task {
 // updateBlamelists sets t's Commits based on t.Revision and previously-inserted
 // tasks' Commits and returns t. If another task's Commits needs to change, also
 // returns that task with its updated Commits.
-func updateBlamelists(cache *db.TaskCache, t *db.Task) ([]*db.Task, error) {
-	commits, stealFrom, err := task_scheduler.ComputeBlamelist(cache, StupidVCS(true), t.Name, t.Repo, t.Revision)
-	if err != nil {
-		glog.Fatal(err)
+func updateBlamelists(cache db.TaskCache, t *db.Task) ([]*db.Task, error) {
+	if !cache.KnownTaskName(t.Repo, t.Name) {
+		t.Commits = []string{t.Revision}
+		return []*db.Task{t}, nil
 	}
-	t.Commits = commits
+	stealFrom, err := cache.GetTaskForCommit(t.Repo, t.Revision, t.Name)
+	if err != nil {
+		return nil, fmt.Errorf("Could not find task %q for commit %q: %s", t.Name, t.Revision, err)
+	}
+
+	lastCommit := htoi(t.Revision)
+	firstCommit := lastCommit
+	// Work backwards until prev changes.
+	for i := lastCommit - 1; i > 0; i-- {
+		if lastCommit-firstCommit+1 > buildbot.MAX_BLAMELIST_COMMITS && stealFrom == nil {
+			t.Commits = []string{t.Revision}
+			return []*db.Task{t}, nil
+		}
+		hash := itoh(i)
+		prev, err := cache.GetTaskForCommit(t.Repo, hash, t.Name)
+		if err != nil {
+			return nil, fmt.Errorf("Could not find task %q for commit %q: %s", t.Name, hash, err)
+		}
+		if stealFrom != prev {
+			break
+		}
+		firstCommit = i
+	}
+
+	t.Commits = make([]string, lastCommit-firstCommit+1)
+	for i := 0; i <= lastCommit-firstCommit; i++ {
+		t.Commits[i] = itoh(i + firstCommit)
+	}
+	sort.Strings(t.Commits)
+
 	if stealFrom != nil {
 		newCommits := make([]string, 0, len(stealFrom.Commits)-len(t.Commits))
 		for _, h := range stealFrom.Commits {

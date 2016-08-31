@@ -8,7 +8,47 @@ import (
 	"github.com/skia-dev/glog"
 )
 
-type TaskCache struct {
+type TaskCache interface {
+
+	// GetTask returns the task with the given ID, or an error if no such task exists.
+	GetTask(string) (*Task, error)
+
+	// GetTaskForCommit retrieves the task with the given name which ran at the
+	// given commit, or nil if no such task exists.
+	GetTaskForCommit(string, string, string) (*Task, error)
+
+	// GetTasksForCommits retrieves all tasks which included[1] each of the
+	// given commits. Returns a map whose keys are commit hashes and values are
+	// sub-maps whose keys are task spec names and values are tasks.
+	//
+	// 1) Blamelist calculation is outside the scope of the taskCache, but the
+	//    implied assumption here is that there is at most one task for each
+	//    task spec which has a given commit in its blamelist. The user is
+	//    responsible for inserting tasks into the database so that this invariant
+	//    is maintained. Generally, a more recent task will "steal" commits from an
+	//    earlier task's blamelist, if the blamelists overlap. There are three
+	//    cases to consider:
+	//       1. The newer task ran at a newer commit than the older task. Its
+	//          blamelist consists of all commits not covered by the previous task,
+	//          and therefore does not overlap with the older task's blamelist.
+	//       2. The newer task ran at the same commit as the older task. Its
+	//          blamelist is the same as the previous task's blamelist, and
+	//          therefore it "steals" all commits from the previous task, whose
+	//          blamelist becomes empty.
+	//       3. The newer task ran at a commit which was in the previous task's
+	//          blamelist. Its blamelist consists of the commits in the previous
+	//          task's blamelist which it also covered. Those commits move out of
+	//          the previous task's blamelist and into the newer task's blamelist.
+	GetTasksForCommits(string, []string) (map[string]map[string]*Task, error)
+
+	// KnownTaskName returns true iff the given task name has been seen before.
+	KnownTaskName(string, string) bool
+
+	// Update loads new tasks from the database.
+	Update() error
+}
+
+type taskCache struct {
 	db DB
 	// map[repo_name][task_spec_name]bool
 	knownTaskNames map[string]map[string]bool
@@ -20,40 +60,19 @@ type TaskCache struct {
 	timePeriod    time.Duration
 }
 
-// GetTask returns the task with the given ID, or an error if no such task exists.
-func (c *TaskCache) GetTask(id string) (*Task, error) {
+// See documentation for TaskCache interface.
+func (c *taskCache) GetTask(id string) (*Task, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
 	if t, ok := c.tasks[id]; ok {
-		return t, nil
+		return t.Copy(), nil
 	}
 	return nil, fmt.Errorf("No such task!")
 }
 
-// GetTasksForCommits retrieves all tasks which included[1] each of the
-// given commits. Returns a map whose keys are commit hashes and values are
-// sub-maps whose keys are task spec names and values are tasks.
-//
-// 1) Blamelist calculation is outside the scope of the TaskCache, but the
-//    implied assumption here is that there is at most one task for each
-//    task spec which has a given commit in its blamelist. The user is
-//    responsible for inserting tasks into the database so that this invariant
-//    is maintained. Generally, a more recent task will "steal" commits from an
-//    earlier task's blamelist, if the blamelists overlap. There are three
-//    cases to consider:
-//       1. The newer task ran at a newer commit than the older task. Its
-//          blamelist consists of all commits not covered by the previous task,
-//          and therefore does not overlap with the older task's blamelist.
-//       2. The newer task ran at the same commit as the older task. Its
-//          blamelist is the same as the previous task's blamelist, and
-//          therefore it "steals" all commits from the previous task, whose
-//          blamelist becomes empty.
-//       3. The newer task ran at a commit which was in the previous task's
-//          blamelist. Its blamelist consists of the commits in the previous
-//          task's blamelist which it also covered. Those commits move out of
-//          the previous task's blamelist and into the newer task's blamelist.
-func (c *TaskCache) GetTasksForCommits(repo string, commits []string) (map[string]map[string]*Task, error) {
+// See documentation for TaskCache interface.
+func (c *taskCache) GetTasksForCommits(repo string, commits []string) (map[string]map[string]*Task, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
@@ -72,17 +91,16 @@ func (c *TaskCache) GetTasksForCommits(repo string, commits []string) (map[strin
 	return rv, nil
 }
 
-// KnownTaskName returns true iff the given task name has been seen before.
-func (c *TaskCache) KnownTaskName(repo, name string) bool {
+// See documentation for TaskCache interface.
+func (c *taskCache) KnownTaskName(repo, name string) bool {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 	_, ok := c.knownTaskNames[repo][name]
 	return ok
 }
 
-// GetTaskForCommit retrieves the task with the given name which ran at the
-// given commit, or nil if no such task exists.
-func (c *TaskCache) GetTaskForCommit(repo, commit, name string) (*Task, error) {
+// See documentation for TaskCache interface.
+func (c *taskCache) GetTaskForCommit(repo, commit, name string) (*Task, error) {
 	c.mtx.RLock()
 	defer c.mtx.RUnlock()
 
@@ -100,7 +118,7 @@ func (c *TaskCache) GetTaskForCommit(repo, commit, name string) (*Task, error) {
 
 // update inserts the new/updated tasks into the cache. Assumes the caller
 // holds a lock.
-func (c *TaskCache) update(tasks []*Task) error {
+func (c *taskCache) update(tasks []*Task) error {
 	for _, t := range tasks {
 		repo := t.Repo
 		commitMap, ok := c.tasksByCommit[repo]
@@ -140,7 +158,7 @@ func (c *TaskCache) update(tasks []*Task) error {
 }
 
 // reset re-initializes c. Assumes the caller holds a lock.
-func (c *TaskCache) reset() error {
+func (c *taskCache) reset() error {
 	c.db.StopTrackingModifiedTasks(c.queryId)
 	queryId, err := c.db.StartTrackingModifiedTasks()
 	if err != nil {
@@ -164,8 +182,8 @@ func (c *TaskCache) reset() error {
 	return nil
 }
 
-// Load new tasks from the database.
-func (c *TaskCache) Update() error {
+// See documentation for TaskCache interface.
+func (c *taskCache) Update() error {
 	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
@@ -187,8 +205,8 @@ func (c *TaskCache) Update() error {
 
 // NewTaskCache returns a local cache which provides more convenient views of
 // task data than the database can provide.
-func NewTaskCache(db DB, timePeriod time.Duration) (*TaskCache, error) {
-	tc := &TaskCache{
+func NewTaskCache(db DB, timePeriod time.Duration) (TaskCache, error) {
+	tc := &taskCache{
 		db:         db,
 		timePeriod: timePeriod,
 	}

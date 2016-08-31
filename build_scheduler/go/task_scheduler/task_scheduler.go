@@ -13,33 +13,40 @@ import (
 	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
-	"go.skia.org/infra/go/vcsinfo"
 )
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
-	cache            *db.TaskCache
+	cache            db.TaskCache
 	db               db.DB
 	isolate          *isolate.Client
 	period           time.Duration
 	queue            []*taskCandidate
 	queueMtx         sync.RWMutex
-	repos            *gitinfo.RepoMap
+	repoMap          *gitinfo.RepoMap
+	repos            map[string]*gitrepo.Repo
 	swarming         swarming.ApiClient
 	taskCfgCache     *taskCfgCache
 	timeDecayAmt24Hr float64
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, cache *db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient) (*TaskScheduler, error) {
-	repos := gitinfo.NewRepoMap(workdir)
+func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient) (*TaskScheduler, error) {
+	repos := make(map[string]*gitrepo.Repo, len(repoNames))
+	rm := gitinfo.NewRepoMap(workdir)
 	for _, r := range repoNames {
-		if _, err := repos.Repo(r); err != nil {
+		repo, err := gitrepo.NewRepo(r, path.Join(workdir, r))
+		if err != nil {
+			return nil, err
+		}
+		repos[r] = repo
+		if _, err := rm.Repo(r); err != nil {
 			return nil, err
 		}
 	}
@@ -50,9 +57,10 @@ func NewTaskScheduler(d db.DB, cache *db.TaskCache, period time.Duration, workdi
 		period:           period,
 		queue:            []*taskCandidate{},
 		queueMtx:         sync.RWMutex{},
+		repoMap:          rm,
 		repos:            repos,
 		swarming:         swarmingClient,
-		taskCfgCache:     newTaskCfgCache(repos),
+		taskCfgCache:     newTaskCfgCache(rm),
 		timeDecayAmt24Hr: 1.0,
 		workdir:          workdir,
 	}
@@ -73,6 +81,87 @@ func (s *TaskScheduler) Start() {
 	}()
 }
 
+// computeBlamelistRecursive traces through commit history, adding to
+// the commits map until the blamelist for the task is complete.
+//
+// Args:
+//  - repoName:  Name of the repository.
+//  - commit:    Current commit as we're recursing through history.
+//  - taskName:  Name of the task.
+//  - revision:  Revision at which the task would run.
+//  - commits:   Buffer in which to place the blamelist commits as they accumulate.
+//  - cache:     TaskCache, for finding previous tasks.
+//  - repo:      gitrepo.Repo corresponding to the repository.
+//  - stealFrom: Existing Task from which this Task will steal commits, if one exists.
+func computeBlamelistRecursive(repoName string, commit *gitrepo.Commit, taskName string, revision *gitrepo.Commit, commits []*gitrepo.Commit, cache db.TaskCache, repo *gitrepo.Repo, stealFrom *db.Task) ([]*gitrepo.Commit, *db.Task, error) {
+	// Shortcut in case we missed this case before; if this is the first
+	// task for this task spec which has a valid Revision, the blamelist will
+	// be the entire Git history. If we find too many commits, assume we've
+	// hit this case and just return the Revision as the blamelist.
+	if len(commits) > buildbot.MAX_BLAMELIST_COMMITS && stealFrom == nil {
+		commits = append(commits[:0], commit)
+		return commits, nil, nil
+	}
+
+	// Determine whether any task already includes this commit.
+	prev, err := cache.GetTaskForCommit(repoName, commit.Hash, taskName)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// If we're stealing commits from a previous task but the current
+	// commit is not in any task's blamelist, we must have scrolled past
+	// the beginning of the tasks. Just return.
+	if prev == nil && stealFrom != nil {
+		return commits, stealFrom, nil
+	}
+
+	// If a previous task already included this commit, we have to make a decision.
+	if prev != nil {
+		// If this Task's Revision is already included in a different
+		// Task, then we're either bisecting or retrying a task. We'll
+		// "steal" commits from the previous Task's blamelist.
+		if len(commits) == 0 {
+			stealFrom = prev
+
+			// Another shortcut: If our Revision is the same as the
+			// Revision of the Task we're stealing commits from,
+			// ie. both tasks ran at the same commit, then this is a
+			// retry. Just steal all of the commits without doing
+			// any more work.
+			if stealFrom.Revision == revision.Hash {
+				commits = commits[:0]
+				for _, c := range stealFrom.Commits {
+					ptr := repo.Get(c)
+					if ptr == nil {
+						return nil, nil, fmt.Errorf("No such commit: %q", c)
+					}
+					commits = append(commits, ptr)
+				}
+				return commits, stealFrom, nil
+			}
+		}
+		if stealFrom == nil || prev != stealFrom {
+			// If we've hit a commit belonging to a different task,
+			// we're done.
+			return commits, stealFrom, nil
+		}
+	}
+
+	// Add the commit.
+	commits = append(commits, commit)
+
+	// Recurse on the commit's parents.
+	for _, p := range commit.Parents {
+		var err error
+		commits, stealFrom, err = computeBlamelistRecursive(repoName, p, taskName, revision, commits, cache, repo, stealFrom)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return commits, stealFrom, nil
+}
+
 // ComputeBlamelist computes the blamelist for a new task, specified by name,
 // repo, and revision. Returns the list of commits covered by the task, and any
 // previous task which part or all of the blamelist was "stolen" from (see
@@ -89,120 +178,54 @@ func (s *TaskScheduler) Start() {
 //    no task has run at the same commit. This is a bisect. Trace commit
 //    history, "stealing" commits from the previous task until we find a commit
 //    which was covered by a *different* previous task.
-func ComputeBlamelist(cache *db.TaskCache, vcs vcsinfo.VCS, name, repo, revision string) ([]string, *db.Task, error) {
-	c := struct {
-		Name     string
-		Repo     string
-		Revision string
-	}{
-		Name:     name,
-		Repo:     repo,
-		Revision: revision,
-	}
-
-	commits := map[string]bool{}
-	var stealFrom *db.Task
-
+//
+// Args:
+//   - cache:      TaskCache instance.
+//   - repo:       gitrepo.Repo instance corresponding to the repository of the task.
+//   - name:       Name of the task.
+//   - repoName:   Name of the repository for the task.
+//   - revision:   Revision at which the task would run.
+//   - commitsBuf: Buffer for use as scratch space.
+func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, name, repoName, revision string, commitsBuf []*gitrepo.Commit) ([]string, *db.Task, error) {
 	// TODO(borenet): If this is a try job, don't compute the blamelist.
 
 	// If this is the first invocation of a given task spec, save time by
 	// setting the blamelist to only be c.Revision.
-	if !cache.KnownTaskName(c.Repo, c.Name) {
-		return []string{c.Revision}, nil, nil
+	if !cache.KnownTaskName(repoName, name) {
+		return []string{revision}, nil, nil
 	}
 
-	// computeBlamelistRecursive traces through commit history, adding to
-	// the commits map until the blamelist for the task is complete.
-	var computeBlamelistRecursive func(string) error
-	computeBlamelistRecursive = func(hash string) error {
-		// Shortcut for empty hashes. This can happen when a commit has
-		// no parents.
-		if hash == "" {
-			return nil
-		}
-
-		// Shortcut in case we missed this case before; if this is the first
-		// task for this task spec which has a valid Revision, the blamelist will
-		// be the entire Git history. If we find too many commits, assume we've
-		// hit this case and just return the Revision as the blamelist.
-		if len(commits) > buildbot.MAX_BLAMELIST_COMMITS && stealFrom == nil {
-			commits = map[string]bool{
-				c.Revision: true,
-			}
-			return nil
-		}
-
-		// Determine whether any task already includes this commit.
-		prev, err := cache.GetTaskForCommit(c.Repo, hash, c.Name)
-		if err != nil {
-			return fmt.Errorf("Could not find task %q for commit %q: %s", c.Name, hash, err)
-		}
-
-		// If we're stealing commits from a previous task but the current
-		// commit is not in any task's blamelist, we must have scrolled past
-		// the beginning of the tasks. Just return.
-		if prev == nil && stealFrom != nil {
-			return nil
-		}
-
-		// If a previous task already included this commit, we have to make a decision.
-		if prev != nil {
-			// If this Task's Revision is already included in a different
-			// Task, then we're either bisecting or retrying a task. We'll
-			// "steal" commits from the previous Task's blamelist.
-			if len(commits) == 0 {
-				stealFrom = prev
-
-				// Another shortcut: If our Revision is the same as the
-				// Revision of the Task we're stealing commits from,
-				// ie. both tasks ran at the same commit, then this is a
-				// retry. Just steal all of the commits without doing
-				// any more work.
-				if stealFrom.Revision == c.Revision {
-					commits = map[string]bool{}
-					for _, c := range stealFrom.Commits {
-						commits[c] = true
-					}
-					return nil
-				}
-			}
-			if stealFrom == nil || prev.Id != stealFrom.Id {
-				// If we've hit a commit belonging to a different task,
-				// we're done.
-				return nil
-			}
-		}
-
-		// Add the commit.
-		commits[hash] = true
-
-		// Recurse on the commit's parents.
-		details, err := vcs.Details(hash, false)
-		if err != nil {
-			return err
-		}
-		for _, p := range details.Parents {
-			// If we've already seen this parent commit, don't revisit it.
-			if _, ok := commits[p]; ok {
-				continue
-			}
-			if err := computeBlamelistRecursive(p); err != nil {
-				return err
-			}
-		}
-		return nil
+	commit := repo.Get(revision)
+	if commit == nil {
+		return nil, nil, fmt.Errorf("No such commit: %q", revision)
 	}
+
+	commitsBuf = commitsBuf[:0]
 
 	// Run the helper function to recurse on commit history.
-	if err := computeBlamelistRecursive(c.Revision); err != nil {
+	commits, stealFrom, err := computeBlamelistRecursive(repoName, commit, name, commit, commitsBuf, cache, repo, nil)
+	if err != nil {
 		return nil, nil, err
 	}
 
+	// De-duplicate the commits list. Duplicates are rare but will occur
+	// in the case of a task which runs after a short-lived branch is merged
+	// so that the blamelist includes both the branch point and the merge
+	// commit. In this case, any commits just before the branch point will
+	// be duplicated.
+	// TODO(borenet): This has never happened in the Skia repo, but the
+	// below 8 lines of code account for ~10% of the execution time of this
+	// function, which is the critical path for the scheduler. Consider
+	// either ignoring this case or come up with an alternate solution which
+	// moves this logic out of the critical path.
 	rv := make([]string, 0, len(commits))
-	for c, _ := range commits {
-		rv = append(rv, c)
+	visited := make(map[*gitrepo.Commit]bool, len(commits))
+	for _, c := range commits {
+		if !visited[c] {
+			rv = append(rv, c.Hash)
+			visited[c] = true
+		}
 	}
-	sort.Strings(rv)
 	return rv, stealFrom, nil
 }
 
@@ -212,15 +235,15 @@ func ComputeBlamelist(cache *db.TaskCache, vcs vcsinfo.VCS, name, repo, revision
 // all task specs have been considered, or when an error occurs. If an error
 // occurs, it will be passed onto the errs channel, but that channel will not
 // be closed.
-func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string, out chan<- *taskCandidate, errs chan<- error) {
+func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (map[string][]*taskCandidate, error) {
 	defer timer.New("TaskScheduler.findTaskCandidates").Stop()
 	// Obtain all possible tasks.
 	specs, err := s.taskCfgCache.GetTaskSpecsForCommits(commitsByRepo)
 	if err != nil {
-		close(out)
-		errs <- err
-		return
+		return nil, err
 	}
+	bySpec := map[string][]*taskCandidate{}
+	total := 0
 	for repo, commits := range specs {
 		for commit, tasks := range commits {
 			for name, task := range tasks {
@@ -236,9 +259,7 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string, ou
 				// or successfully completed tasks.
 				previous, err := s.cache.GetTaskForCommit(c.Repo, c.Revision, c.Name)
 				if err != nil {
-					close(out)
-					errs <- err
-					return
+					return nil, err
 				}
 				if previous != nil && previous.Revision == c.Revision {
 					if previous.Status == db.TASK_STATUS_PENDING || previous.Status == db.TASK_STATUS_RUNNING {
@@ -252,31 +273,36 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string, ou
 				// Don't consider candidates whose dependencies are not met.
 				depsMet, hashes, err := c.allDepsMet(s.cache)
 				if err != nil {
-					close(out)
-					errs <- err
-					return
+					return nil, err
 				}
 				if !depsMet {
 					continue
 				}
 				c.IsolatedHashes = hashes
-				out <- c
+
+				key := fmt.Sprintf("%s|%s", c.Repo, c.Name)
+				candidates, ok := bySpec[key]
+				if !ok {
+					candidates = make([]*taskCandidate, 0, len(commits))
+				}
+				bySpec[key] = append(candidates, c)
+				total++
 			}
 		}
 	}
-	close(out)
-	return
+	glog.Infof("Found %d candidates in %d specs:", total, len(bySpec))
+	return bySpec, nil
 }
 
 // processTaskCandidate computes the remaining information about the task
 // candidate, eg. blamelists and scoring.
-func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time) error {
+func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, cache *cacheWrapper, commitsBuf []*gitrepo.Commit) error {
 	// Compute blamelist.
-	repo, err := s.repos.Repo(c.Repo)
-	if err != nil {
-		return err
+	repo, ok := s.repos[c.Repo]
+	if !ok {
+		return fmt.Errorf("No such repo: %s", c.Repo)
 	}
-	commits, stealingFrom, err := ComputeBlamelist(s.cache, repo, c.Name, c.Repo, c.Revision)
+	commits, stealingFrom, err := ComputeBlamelist(cache, repo, c.Name, c.Repo, c.Revision, commitsBuf)
 	if err != nil {
 		return err
 	}
@@ -315,8 +341,8 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 	}
 
 	// Find the recent commits to use.
-	for _, repoName := range s.repos.Repos() {
-		r, err := s.repos.Repo(repoName)
+	for _, repoName := range s.repoMap.Repos() {
+		r, err := s.repoMap.Repo(repoName)
 		if err != nil {
 			return err
 		}
@@ -327,13 +353,13 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 			return err
 		}
 	}
-	if err := s.repos.Update(); err != nil {
+	if err := s.repoMap.Update(); err != nil {
 		return err
 	}
 	from := time.Now().Add(-s.period)
 	commits := map[string][]string{}
-	for _, repoName := range s.repos.Repos() {
-		repo, err := s.repos.Repo(repoName)
+	for _, repoName := range s.repoMap.Repos() {
+		repo, err := s.repoMap.Repo(repoName)
 		if err != nil {
 			return err
 		}
@@ -341,34 +367,66 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 	}
 
 	// Find and process task candidates.
+	candidates, err := s.findTaskCandidates(commits)
+	if err != nil {
+		return err
+	}
+	defer timer.New("process task candidates").Stop()
 	now := time.Now()
-	defer timer.New("find and process task candidates").Stop()
-	candidates := make(chan *taskCandidate)
-	errs := make(chan error)
-	go s.findTaskCandidates(commits, candidates, errs)
 	processed := make(chan *taskCandidate)
+	errs := make(chan error)
 	wg := sync.WaitGroup{}
-	workers := 10
-	for i := 0; i < workers; i++ {
+	for _, c := range candidates {
 		wg.Add(1)
-		go func() {
+		go func(candidates []*taskCandidate) {
 			defer wg.Done()
-			for c := range candidates {
-				if err := s.processTaskCandidate(c, now); err != nil {
-					errs <- err
+			cache := newCacheWrapper(s.cache)
+			commitsBuf := make([]*gitrepo.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
+			for {
+				// Find the best candidate.
+				idx := -1
+				var best *taskCandidate
+				for i, candidate := range candidates {
+					c := candidate.Copy()
+					if err := s.processTaskCandidate(c, now, cache, commitsBuf); err != nil {
+						errs <- err
+						return
+					}
+					if best == nil || c.Score > best.Score {
+						best = c
+						idx = i
+					}
+				}
+				if best == nil {
 					return
 				}
-				processed <- c
+				processed <- best
+				t := best.MakeTask()
+				t.Id = best.MakeId()
+				cache.insert(t)
+				if best.StealingFromId != "" {
+					stoleFrom, err := cache.GetTask(best.StealingFromId)
+					if err != nil {
+						errs <- err
+						return
+					}
+					stole := util.NewStringSet(best.Commits)
+					oldC := util.NewStringSet(stoleFrom.Commits)
+					newC := oldC.Complement(stole)
+					commits := make([]string, 0, len(newC))
+					for c, _ := range newC {
+						commits = append(commits, c)
+					}
+					stoleFrom.Commits = commits
+					cache.insert(stoleFrom)
+				}
+				candidates = append(candidates[:idx], candidates[idx+1:]...)
 			}
-		}()
+		}(c)
 	}
 	go func() {
 		wg.Wait()
 		close(processed)
-		// Drain any remaining taskCandidates from findTaskCandidates so
-		// that it doesn't end up blocked forever.
-		for _ = range candidates {
-		}
 		close(errs)
 	}()
 	rvCandidates := []*taskCandidate{}
@@ -396,7 +454,6 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 	if len(rvErrs) != 0 {
 		return rvErrs[0]
 	}
-	defer timer.New("Sort candidates").Stop()
 	sort.Sort(taskCandidateSlice(rvCandidates))
 
 	s.queueMtx.Lock()
@@ -469,6 +526,7 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 			}
 		}
 	}
+	sort.Sort(taskCandidateSlice(rv))
 	return rv
 }
 
@@ -500,7 +558,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 	for repoName, commits := range byRepoCommit {
 		infraBotsDir := path.Join(s.workdir, repoName, "infra", "bots")
 		for commit, candidates := range commits {
-			repo, err := s.repos.Repo(repoName)
+			repo, err := s.repoMap.Repo(repoName)
 			if err != nil {
 				return err
 			}
@@ -525,8 +583,8 @@ func (s *TaskScheduler) scheduleTasks() error {
 	}
 
 	// Trigger tasks.
-	glog.Infof("Triggering %d tasks.", len(schedule))
-	tasks := make([]*db.Task, 0, len(schedule)*2)
+	byCandidateId := make(map[string]*db.Task, len(schedule))
+	tasksToInsert := make(map[string]*db.Task, len(schedule)*2)
 	for _, candidate := range schedule {
 		t := candidate.MakeTask()
 		if err := s.db.AssignId(t); err != nil {
@@ -540,21 +598,38 @@ func (s *TaskScheduler) scheduleTasks() error {
 		if _, err := t.UpdateFromSwarming(resp); err != nil {
 			return err
 		}
-		tasks = append(tasks, t)
+		byCandidateId[candidate.MakeId()] = t
+		tasksToInsert[t.Id] = t
 		// If we're stealing commits from another task, find it and adjust
 		// its blamelist.
 		// TODO(borenet): We're retrieving a cached task which may have been
 		// changed since the cache was last updated. We need to handle that.
 		if candidate.StealingFromId != "" {
-			stealingFrom, err := s.cache.GetTask(candidate.StealingFromId)
-			if err != nil {
-				return err
+			var stealingFrom *db.Task
+			if _, _, _, err := parseId(candidate.StealingFromId); err == nil {
+				stealingFrom = byCandidateId[candidate.StealingFromId]
+				if stealingFrom == nil {
+					return fmt.Errorf("Attempting to backfill a just-triggered candidate but can't find it: %q", candidate.StealingFromId)
+				}
+			} else {
+				var ok bool
+				stealingFrom, ok = tasksToInsert[candidate.StealingFromId]
+				if !ok {
+					stealingFrom, err = s.cache.GetTask(candidate.StealingFromId)
+					if err != nil {
+						return err
+					}
+				}
 			}
 			oldCommits := util.NewStringSet(stealingFrom.Commits)
 			stealing := util.NewStringSet(t.Commits)
 			stealingFrom.Commits = oldCommits.Complement(stealing).Keys()
-			tasks = append(tasks, stealingFrom)
+			tasksToInsert[stealingFrom.Id] = stealingFrom
 		}
+	}
+	tasks := make([]*db.Task, 0, len(tasksToInsert))
+	for _, t := range tasksToInsert {
+		tasks = append(tasks, t)
 	}
 
 	// Insert the tasks into the database.
@@ -582,16 +657,39 @@ func (s *TaskScheduler) scheduleTasks() error {
 		i++
 	}
 	s.queue = newQueue
+
+	// Note; if regenerateQueue and scheduleTasks are ever decoupled so that
+	// the queue is reused by multiple runs of scheduleTasks, we'll need to
+	// address the fact that some candidates may still have their
+	// StoleFromId pointing to candidates which have been triggered and
+	// removed from the queue. In that case, we should just need to write a
+	// loop which updates those candidates to use the IDs of the newly-
+	// inserted Tasks in the database rather than the candidate ID.
+
+	glog.Infof("Triggered %d tasks on %d bots.", len(schedule), len(bots))
 	return nil
 }
 
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop() error {
 	defer timer.New("TaskSchedulder.MainLoop").Stop()
+	if err := s.updateRepos(); err != nil {
+		return err
+	}
 	if err := s.regenerateTaskQueue(); err != nil {
 		return err
 	}
 	return s.scheduleTasks()
+}
+
+// updateRepos syncs the scheduler's repos.
+func (s *TaskScheduler) updateRepos() error {
+	for _, r := range s.repos {
+		if err := r.Update(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // QueueLen returns the length of the queue.
@@ -615,7 +713,7 @@ func (s *TaskScheduler) timeDecayForCommit(now time.Time, repoName, commit strin
 		// Shortcut for special case.
 		return 1.0, nil
 	}
-	repo, err := s.repos.Repo(repoName)
+	repo, err := s.repoMap.Repo(repoName)
 	if err != nil {
 		return 0.0, err
 	}

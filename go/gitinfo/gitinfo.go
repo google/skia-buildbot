@@ -126,13 +126,17 @@ func (g *GitInfo) Details(hash string, includeBranchInfo bool) (*vcsinfo.LongCom
 		}
 	}
 
+	parents := []string{}
+	if lines[1] != "" {
+		parents = strings.Split(lines[1], " ")
+	}
 	c := vcsinfo.LongCommit{
 		ShortCommit: &vcsinfo.ShortCommit{
 			Hash:    lines[0],
 			Author:  lines[2],
 			Subject: lines[3],
 		},
-		Parents:   strings.Split(lines[1], " "),
+		Parents:   parents,
 		Body:      lines[4],
 		Timestamp: g.timestamps[hash],
 		Branches:  branches,

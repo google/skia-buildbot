@@ -1,6 +1,7 @@
 package task_scheduler
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -16,8 +17,10 @@ import (
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/build_scheduler/go/db"
+	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
@@ -54,6 +57,9 @@ func TestFindTaskCandidates(t *testing.T) {
 	//
 	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
 	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
+	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
+	testTask := "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+	perfTask := "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	repo := "skia.git"
 	commits := map[string][]string{
 		repo: []string{c1, c2},
@@ -67,41 +73,26 @@ func TestFindTaskCandidates(t *testing.T) {
 	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
 	assert.NoError(t, err)
 
-	findTaskCandidates := func(s *TaskScheduler, commits map[string][]string) ([]*taskCandidate, error) {
-		candidates := make(chan *taskCandidate)
-		errs := make(chan error)
-		go s.findTaskCandidates(commits, candidates, errs)
-		rvCandidates := []*taskCandidate{}
-		for c := range candidates {
-			rvCandidates = append(rvCandidates, c)
-		}
-		select {
-		case err, ok := <-errs:
-			if ok {
-				return nil, err
-			}
-		default:
-			// nothing to do here.
-		}
-		return rvCandidates, nil
-	}
-
 	// Check the initial set of task candidates. The two Build tasks
 	// should be the only ones available.
-	c, err := findTaskCandidates(s, commits)
+	c, err := s.findTaskCandidates(commits)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(c))
-	for _, candidate := range c {
-		assert.True(t, strings.HasPrefix(candidate.Name, "Build-"))
+	assert.Equal(t, 1, len(c))
+	key := fmt.Sprintf("%s|%s", repo, buildTask)
+	assert.Equal(t, 2, len(c[key]))
+	for _, candidate := range c[key] {
+		assert.Equal(t, candidate.Name, buildTask)
 	}
 
 	// Insert a the Build task at c1 (1 dependent) into the database,
 	// transition through various states.
 	var t1 *db.Task
-	for _, candidate := range c { // Order not guaranteed; find the right candidate.
-		if candidate.Revision == c1 {
-			t1 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
-			break
+	for _, candidates := range c { // Order not guaranteed; find the right candidate.
+		for _, candidate := range candidates {
+			if candidate.Revision == c1 {
+				t1 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
+				break
+			}
 		}
 	}
 	assert.NotNil(t, t1)
@@ -112,12 +103,14 @@ func TestFindTaskCandidates(t *testing.T) {
 		assert.NoError(t, d.PutTask(t1))
 		assert.NoError(t, cache.Update())
 
-		c, err = findTaskCandidates(s, commits)
+		c, err = s.findTaskCandidates(commits)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(c))
-		for _, candidate := range c {
-			assert.True(t, strings.HasPrefix(candidate.Name, "Build-"))
-			assert.Equal(t, c2, candidate.Revision)
+		for _, candidates := range c {
+			for _, candidate := range candidates {
+				assert.Equal(t, candidate.Name, buildTask)
+				assert.Equal(t, c2, candidate.Revision)
+			}
 		}
 	}
 
@@ -128,11 +121,14 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
-	c, err = findTaskCandidates(s, commits)
+	c, err = s.findTaskCandidates(commits)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(c))
-	for _, candidate := range c {
-		assert.True(t, strings.HasPrefix(candidate.Name, "Build-"))
+	assert.Equal(t, 1, len(c))
+	for _, candidates := range c {
+		assert.Equal(t, 2, len(candidates))
+		for _, candidate := range candidates {
+			assert.Equal(t, candidate.Name, buildTask)
+		}
 	}
 
 	// The task succeeded. Ensure that its dependents are candidates and
@@ -142,19 +138,23 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, d.PutTask(t1))
 	assert.NoError(t, cache.Update())
 
-	c, err = findTaskCandidates(s, commits)
+	c, err = s.findTaskCandidates(commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(c))
-	for _, candidate := range c {
-		assert.False(t, t1.Name == candidate.Name && t1.Revision == candidate.Revision)
+	for _, candidates := range c {
+		for _, candidate := range candidates {
+			assert.False(t, t1.Name == candidate.Name && t1.Revision == candidate.Revision)
+		}
 	}
 
 	// Create the other Build task.
 	var t2 *db.Task
-	for _, candidate := range c {
-		if candidate.Revision == c2 && strings.HasPrefix(candidate.Name, "Build-") {
-			t2 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
-			break
+	for _, candidates := range c {
+		for _, candidate := range candidates {
+			if candidate.Revision == c2 && strings.HasPrefix(candidate.Name, "Build-") {
+				t2 = makeTask(candidate.Name, candidate.Repo, candidate.Revision)
+				break
+			}
 		}
 	}
 	assert.NotNil(t, t2)
@@ -164,11 +164,15 @@ func TestFindTaskCandidates(t *testing.T) {
 	assert.NoError(t, cache.Update())
 
 	// All test and perf tasks are now candidates, no build tasks.
-	c, err = findTaskCandidates(s, commits)
+	c, err = s.findTaskCandidates(commits)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(c))
-	for _, candidate := range c {
-		assert.True(t, !strings.HasPrefix(candidate.Name, "Build-"))
+	assert.Equal(t, 2, len(c))
+	assert.Equal(t, 2, len(c[fmt.Sprintf("%s|%s", repo, testTask)]))
+	assert.Equal(t, 1, len(c[fmt.Sprintf("%s|%s", repo, perfTask)]))
+	for _, candidates := range c {
+		for _, candidate := range candidates {
+			assert.NotEqual(t, candidate.Name, buildTask)
+		}
 	}
 }
 
@@ -325,8 +329,6 @@ func TestComputeBlamelist(t *testing.T) {
 	cache, err := db.NewTaskCache(d, time.Hour)
 	assert.NoError(t, err)
 
-	repos := gitinfo.NewRepoMap(tr.Dir)
-
 	// The test repo is laid out like this:
 	//
 	// *   06eb2a58139d3ff764f10232d5c8f9362d55e20f I (HEAD, master, Task #4)
@@ -404,18 +406,20 @@ func TestComputeBlamelist(t *testing.T) {
 	}
 	name := "Test-Ubuntu12-ShuttleA-GTX660-x86-Release"
 	repoName := "skia.git"
-	repo, err := repos.Repo(repoName)
+	repo, err := gitrepo.NewRepo(repoName, path.Join(tr.Dir, repoName))
 	assert.NoError(t, err)
 	ids := make([]string, len(testCases))
+	commitsBuf := make([]*gitrepo.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
 	for i, tc := range testCases {
 		// Ensure that we get the expected blamelist.
-		c := &taskCandidate{
-			Name:     name,
-			Repo:     repoName,
-			Revision: tc.Revision,
+		commits, stoleFrom, err := ComputeBlamelist(cache, repo, name, repoName, tc.Revision, commitsBuf)
+		if tc.Revision == "" {
+			assert.Error(t, err)
+			continue
+		} else {
+			assert.NoError(t, err)
 		}
-		commits, stoleFrom, err := ComputeBlamelist(cache, repo, c.Name, c.Repo, c.Revision)
-		assert.NoError(t, err)
+		sort.Strings(commits)
 		testutils.AssertDeepEqual(t, tc.Expected, commits)
 		if tc.StoleFromIdx >= 0 {
 			assert.NotNil(t, stoleFrom)
@@ -425,6 +429,11 @@ func TestComputeBlamelist(t *testing.T) {
 		}
 
 		// Insert the task into the DB.
+		c := &taskCandidate{
+			Name:     name,
+			Repo:     repoName,
+			Revision: tc.Revision,
+		}
 		task := c.MakeTask()
 		task.Commits = commits
 		task.Created = time.Now()
@@ -558,8 +567,8 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	// a given task spec before), and a score of 2.0.
 	for _, c := range s.queue {
 		assert.Equal(t, buildTask, c.Name)
-		assert.Equal(t, 2.0, c.Score)
 		assert.Equal(t, []string{c.Revision}, c.Commits)
+		assert.Equal(t, 2.0, c.Score)
 	}
 
 	// Insert one of the tasks.
@@ -792,7 +801,6 @@ func TestSchedulingE2E(t *testing.T) {
 
 	repoName := "skia.git"
 
-	assert.NoError(t, err)
 	isolateClient, err := isolate.NewClient(tr.Dir)
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
@@ -1064,6 +1072,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	assert.Equal(t, head, task.Revision)
 	expect := commits[:len(commits)-2]
 	sort.Strings(expect)
+	sort.Strings(task.Commits)
 	testutils.AssertDeepEqual(t, expect, task.Commits)
 
 	task.Status = db.TASK_STATUS_SUCCESS
@@ -1134,4 +1143,177 @@ func TestSchedulerStealingFrom(t *testing.T) {
 		}
 	}
 	assert.Nil(t, newTask)
+}
+
+func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
+	testutils.SkipIfShort(t)
+
+	workdir, err := ioutil.TempDir("", "")
+	assert.NoError(t, err)
+	defer testutils.RemoveAll(t, workdir)
+
+	run := func(dir string, cmd ...string) {
+		_, err := exec.RunCwd(dir, cmd...)
+		assert.NoError(t, err)
+	}
+
+	addFile := func(repoDir, subPath, contents string) {
+		assert.NoError(t, ioutil.WriteFile(path.Join(repoDir, subPath), []byte(contents), os.ModePerm))
+		run(repoDir, "git", "add", subPath)
+	}
+
+	repoName := "skia.git"
+	repoDir := path.Join(workdir, repoName)
+
+	assert.NoError(t, ioutil.WriteFile(path.Join(workdir, ".gclient"), []byte("dummy"), os.ModePerm))
+
+	assert.NoError(t, os.Mkdir(path.Join(workdir, repoName), os.ModePerm))
+	run(repoDir, "git", "init")
+	run(repoDir, "git", "remote", "add", "origin", ".")
+
+	infraBotsSubDir := path.Join("infra", "bots")
+	infraBotsDir := path.Join(repoDir, infraBotsSubDir)
+	assert.NoError(t, os.MkdirAll(infraBotsDir, os.ModePerm))
+
+	addFile(repoDir, "somefile.txt", "dummy3")
+	addFile(repoDir, path.Join(infraBotsSubDir, "dummy.isolate"), `{
+  'variables': {
+    'command': [
+      'python', 'recipes.py', 'run',
+    ],
+    'files': [
+      '../../somefile.txt',
+    ],
+  },
+}`)
+
+	// Create a single task in the config.
+	taskName := "dummytask"
+	cfg := &TasksCfg{
+		Tasks: map[string]*TaskSpec{
+			taskName: &TaskSpec{
+				CipdPackages: []*CipdPackage{},
+				Dependencies: []string{},
+				Dimensions:   []string{"pool:Skia"},
+				Isolate:      "dummy.isolate",
+				Priority:     1.0,
+			},
+		},
+	}
+	f, err := os.Create(path.Join(repoDir, TASKS_CFG_FILE))
+	assert.NoError(t, err)
+	assert.NoError(t, json.NewEncoder(f).Encode(&cfg))
+	assert.NoError(t, f.Close())
+	run(repoDir, "git", "add", TASKS_CFG_FILE)
+	run(repoDir, "git", "commit", "-m", "Add more tasks!")
+	run(repoDir, "git", "push", "origin", "master")
+	run(repoDir, "git", "branch", "-u", "origin/master")
+
+	// Setup the scheduler.
+	repos := gitinfo.NewRepoMap(workdir)
+	repo, err := repos.Repo(repoName)
+	assert.NoError(t, err)
+	d := db.NewInMemoryDB()
+	cache, err := db.NewTaskCache(d, time.Hour)
+	assert.NoError(t, err)
+	isolateClient, err := isolate.NewClient(workdir)
+	assert.NoError(t, err)
+	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
+	swarmingClient := swarming.NewTestClient()
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), workdir, []string{repoName}, isolateClient, swarmingClient)
+	assert.NoError(t, err)
+
+	// Cycle once.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
+	assert.NoError(t, s.MainLoop())
+	assert.Equal(t, 0, len(s.queue))
+	head, err := repo.FullHash("HEAD")
+	assert.NoError(t, err)
+	tasks, err := cache.GetTasksForCommits(repoName, []string{head})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tasks[head]))
+
+	// Add some commits to the repo.
+	makeDummyCommits(t, repoDir, 8)
+	commits, err := repo.RevList(fmt.Sprintf("%s..HEAD", head))
+	assert.Nil(t, err)
+	assert.Equal(t, 8, len(commits))
+
+	// Trigger builds simultaneously.
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia"})
+	bot3 := makeBot("bot3", map[string]string{"pool": "Skia"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3})
+	assert.NoError(t, s.MainLoop())
+	assert.Equal(t, 5, len(s.queue))
+	tasks, err = cache.GetTasksForCommits(repoName, commits)
+	assert.NoError(t, err)
+
+	// If we're queueing correctly, we should've triggered tasks at
+	// commits[0], commits[4], and either commits[2] or commits[6].
+	var t1, t2, t3 *db.Task
+	for _, byName := range tasks {
+		for _, task := range byName {
+			if task.Revision == commits[0] {
+				t1 = task
+			} else if task.Revision == commits[4] {
+				t2 = task
+			} else if task.Revision == commits[2] || task.Revision == commits[6] {
+				t3 = task
+			} else {
+				assert.FailNow(t, fmt.Sprintf("Task has unknown revision: %v", task))
+			}
+		}
+	}
+	assert.NotNil(t, t1)
+	assert.NotNil(t, t2)
+	assert.NotNil(t, t3)
+
+	// Ensure that we got the blamelists right.
+	mkCopy := func(orig []string) []string {
+		rv := make([]string, len(orig))
+		copy(rv, orig)
+		return rv
+	}
+	var expect1, expect2, expect3 []string
+	if t3.Revision == commits[2] {
+		expect1 = mkCopy(commits[:2])
+		expect2 = mkCopy(commits[4:])
+		expect3 = mkCopy(commits[2:4])
+	} else {
+		expect1 = mkCopy(commits[:4])
+		expect2 = mkCopy(commits[4:6])
+		expect3 = mkCopy(commits[6:])
+	}
+	sort.Strings(expect1)
+	sort.Strings(expect2)
+	sort.Strings(expect3)
+	sort.Strings(t1.Commits)
+	sort.Strings(t2.Commits)
+	sort.Strings(t3.Commits)
+	testutils.AssertDeepEqual(t, expect1, t1.Commits)
+	testutils.AssertDeepEqual(t, expect2, t2.Commits)
+	testutils.AssertDeepEqual(t, expect3, t3.Commits)
+
+	// Just for good measure, check the task at the head of the queue.
+	expectIdx := 2
+	if t3.Revision == commits[expectIdx] {
+		expectIdx = 6
+	}
+	assert.Equal(t, commits[expectIdx], s.queue[0].Revision)
+
+	// Run again with 5 bots to check the case where we bisect the same
+	// task twice.
+	bot4 := makeBot("bot4", map[string]string{"pool": "Skia"})
+	bot5 := makeBot("bot5", map[string]string{"pool": "Skia"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4, bot5})
+	assert.NoError(t, s.MainLoop())
+	assert.Equal(t, 0, len(s.queue))
+	tasks, err = cache.GetTasksForCommits(repoName, commits)
+	assert.NoError(t, err)
+	for _, byName := range tasks {
+		for _, task := range byName {
+			assert.Equal(t, 1, len(task.Commits))
+		}
+	}
 }

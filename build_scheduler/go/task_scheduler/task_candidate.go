@@ -24,6 +24,47 @@ type taskCandidate struct {
 	TaskSpec       *TaskSpec
 }
 
+// Copy returns a copy of the taskCandidate.
+func (c *taskCandidate) Copy() *taskCandidate {
+	commits := make([]string, len(c.Commits))
+	copy(commits, c.Commits)
+	isolatedHashes := make([]string, len(c.IsolatedHashes))
+	copy(isolatedHashes, c.IsolatedHashes)
+	return &taskCandidate{
+		Commits:        commits,
+		IsolatedInput:  c.IsolatedInput,
+		IsolatedHashes: isolatedHashes,
+		Name:           c.Name,
+		Repo:           c.Repo,
+		Revision:       c.Revision,
+		Score:          c.Score,
+		StealingFromId: c.StealingFromId,
+		TaskSpec:       c.TaskSpec.Copy(),
+	}
+}
+
+// MakeId generates a string ID for the taskCandidate.
+func (c *taskCandidate) MakeId() string {
+	return fmt.Sprintf("taskCandidate|%s|%s|%s", c.Repo, c.Name, c.Revision)
+}
+
+// ParseId generates taskCandidate information from the ID.
+func parseId(id string) (string, string, string, error) {
+	split := strings.Split(id, "|")
+	if len(split) != 4 {
+		return "", "", "", fmt.Errorf("Invalid ID: %q", id)
+	}
+	if split[0] != "taskCandidate" {
+		return "", "", "", fmt.Errorf("Invalid ID: %q", id)
+	}
+	for _, s := range split[1:] {
+		if s == "" {
+			return "", "", "", fmt.Errorf("Invalid ID: %q", id)
+		}
+	}
+	return split[1], split[2], split[3], nil
+}
+
 // MakeTask instantiates a db.Task from the taskCandidate.
 func (c *taskCandidate) MakeTask() *db.Task {
 	commits := make([]string, len(c.Commits))
@@ -96,7 +137,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 
 // allDepsMet determines whether all dependencies for the given task candidate
 // have been satisfied, and if so, returns their isolated outputs.
-func (c *taskCandidate) allDepsMet(cache *db.TaskCache) (bool, []string, error) {
+func (c *taskCandidate) allDepsMet(cache db.TaskCache) (bool, []string, error) {
 	isolatedHashes := make([]string, 0, len(c.TaskSpec.Dependencies))
 	for _, depName := range c.TaskSpec.Dependencies {
 		d, err := cache.GetTaskForCommit(c.Repo, c.Revision, depName)

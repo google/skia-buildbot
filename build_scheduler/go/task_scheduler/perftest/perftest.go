@@ -27,7 +27,6 @@ import (
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
-	"go.skia.org/infra/go/timer"
 )
 
 func assertNoError(err error) {
@@ -62,6 +61,19 @@ func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInf
 	}
 }
 
+var commitDate = time.Unix(1472647568, 0)
+
+func commit(repoDir, message string) {
+	assertNoError(exec.SimpleRun(&exec.Command{
+		Name:        "git",
+		Args:        []string{"commit", "-m", message},
+		Env:         []string{fmt.Sprintf("GIT_AUTHOR_DATE=%d +0000", commitDate.Unix()), fmt.Sprintf("GIT_COMMITTER_DATE=%d +0000", commitDate.Unix())},
+		InheritPath: true,
+		Dir:         repoDir,
+	}))
+	commitDate = commitDate.Add(10 * time.Second)
+}
+
 func makeDummyCommits(repoDir string, numCommits int) {
 	_, err := exec.RunCwd(repoDir, "git", "checkout", "master")
 	assertNoError(err)
@@ -71,8 +83,7 @@ func makeDummyCommits(repoDir string, numCommits int) {
 		assertNoError(ioutil.WriteFile(dummyFile, []byte(title), os.ModePerm))
 		_, err = exec.RunCwd(repoDir, "git", "add", dummyFile)
 		assertNoError(err)
-		_, err = exec.RunCwd(repoDir, "git", "commit", "-m", title)
-		assertNoError(err)
+		commit(repoDir, title)
 		_, err = exec.RunCwd(repoDir, "git", "push", "origin", "master")
 		assertNoError(err)
 	}
@@ -97,9 +108,9 @@ func main() {
 	workdir, err := ioutil.TempDir("", "")
 	assertNoError(err)
 	defer func() {
-		//if err := os.RemoveAll(workdir); err != nil {
-		//	glog.Fatal(err)
-		//}
+		if err := os.RemoveAll(workdir); err != nil {
+			glog.Fatal(err)
+		}
 	}()
 	d, err := local_db.NewDB("testdb", path.Join(workdir, "tasks.db"))
 	assertNoError(err)
@@ -213,7 +224,7 @@ func main() {
 	assertNoError(json.NewEncoder(f).Encode(&cfg))
 	assertNoError(f.Close())
 	run(repoDir, "git", "add", task_scheduler.TASKS_CFG_FILE)
-	run(repoDir, "git", "commit", "-m", "Add more tasks!")
+	commit(repoDir, "Add more tasks!")
 	run(repoDir, "git", "push", "origin", "master")
 	run(repoDir, "git", "branch", "-u", "origin/master")
 
@@ -223,7 +234,7 @@ func main() {
 		dims := map[string]string{
 			"pool": "Skia",
 		}
-		if idx > 50 {
+		if idx >= 50 {
 			dims["os"] = "Ubuntu"
 		} else {
 			dims["os"] = "Android"
@@ -250,9 +261,9 @@ func main() {
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {
-		defer timer.New("cycle").Stop()
 		swarmingClient.MockBots(bots)
 		assertNoError(s.MainLoop())
+		assertNoError(cache.Update())
 		tasks, err := cache.GetTasksForCommits(repoName, commits)
 		assertNoError(err)
 		newTasks := map[string]*db.Task{}
@@ -289,7 +300,10 @@ func main() {
 
 	// Add more commits to the repo.
 	makeDummyCommits(repoDir, 200)
+	commits, err = repo.RevList(fmt.Sprintf("%s..HEAD", head))
+	assertNoError(err)
 
+	// Start the profiler.
 	go func() {
 		glog.Fatal(http.ListenAndServe("localhost:6060", nil))
 	}()

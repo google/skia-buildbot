@@ -8,7 +8,7 @@ import (
 	"go.skia.org/infra/go/testutils"
 )
 
-func testGetTasksForCommits(t *testing.T, c *TaskCache, b *Task) {
+func testGetTasksForCommits(t *testing.T, c TaskCache, b *Task) {
 	for _, commit := range b.Commits {
 		found, err := c.GetTaskForCommit(DEFAULT_TEST_REPO, commit, b.Name)
 		assert.NoError(t, err)
@@ -139,7 +139,7 @@ func TestDBCacheReset(t *testing.T) {
 	testGetTasksForCommits(t, c, t1)
 
 	// Pretend the DB connection is lost.
-	db.StopTrackingModifiedTasks(c.queryId)
+	db.StopTrackingModifiedTasks(c.(*taskCache).queryId)
 
 	// Make an update.
 	t2 := makeTask(startTime.Add(time.Minute), []string{"c", "d"})

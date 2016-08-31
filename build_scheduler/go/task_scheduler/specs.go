@@ -1,8 +1,6 @@
 package task_scheduler
 
 import (
-	"bytes"
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -98,6 +96,27 @@ func (t *TaskSpec) Validate(cfg *TasksCfg) error {
 	return nil
 }
 
+// Copy returns a copy of the TaskSpec.
+func (t *TaskSpec) Copy() *TaskSpec {
+	cipdPackages := make([]*CipdPackage, 0, len(t.CipdPackages))
+	pkgs := make([]CipdPackage, len(t.CipdPackages))
+	for i, p := range t.CipdPackages {
+		pkgs[i] = *p
+		cipdPackages = append(cipdPackages, &pkgs[i])
+	}
+	deps := make([]string, len(t.Dependencies))
+	copy(deps, t.Dependencies)
+	dims := make([]string, len(t.Dimensions))
+	copy(dims, t.Dimensions)
+	return &TaskSpec{
+		CipdPackages: cipdPackages,
+		Dependencies: deps,
+		Dimensions:   dims,
+		Isolate:      t.Isolate,
+		Priority:     t.Priority,
+	}
+}
+
 // CipdPackage is a struct representing a CIPD package which needs to be
 // installed on a bot for a particular task.
 type CipdPackage struct {
@@ -153,25 +172,22 @@ func (c *taskCfgCache) readTasksCfg(repo, commit string) (*TasksCfg, error) {
 func (c *taskCfgCache) GetTaskSpecsForCommits(commitsByRepo map[string][]string) (map[string]map[string]map[string]*TaskSpec, error) {
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
-	rv := map[string]map[string]map[string]*TaskSpec{}
+	rv := make(map[string]map[string]map[string]*TaskSpec, len(commitsByRepo))
 	for repo, commits := range commitsByRepo {
-		rv[repo] = map[string]map[string]*TaskSpec{}
+		tasksByCommit := make(map[string]map[string]*TaskSpec, len(commits))
 		for _, commit := range commits {
 			cfg, err := c.readTasksCfg(repo, commit)
 			if err != nil {
 				return nil, err
 			}
 			// Make a copy of the task specs.
-			var buf bytes.Buffer
-			if err := gob.NewEncoder(&buf).Encode(cfg.Tasks); err != nil {
-				return nil, err
+			tasks := make(map[string]*TaskSpec, len(cfg.Tasks))
+			for name, task := range cfg.Tasks {
+				tasks[name] = task.Copy()
 			}
-			var tasks map[string]*TaskSpec
-			if err := gob.NewDecoder(&buf).Decode(&tasks); err != nil {
-				return nil, err
-			}
-			rv[repo][commit] = tasks
+			tasksByCommit[commit] = tasks
 		}
+		rv[repo] = tasksByCommit
 	}
 	return rv, nil
 }
