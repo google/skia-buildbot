@@ -1,0 +1,105 @@
+[submodule "vendor/cloud.google.com/go"]
+	path = vendor/cloud.google.com/go
+	url = https://code.googlesource.com/gocloud
+[submodule "vendor/github.com/BurntSushi/toml"]
+	path = vendor/github.com/BurntSushi/toml
+	url = https://github.com/BurntSushi/toml
+[submodule "vendor/github.com/bitly/go-nsq"]
+	path = vendor/github.com/bitly/go-nsq
+	url = https://github.com/bitly/go-nsq
+[submodule "vendor/github.com/boltdb/bolt"]
+	path = vendor/github.com/boltdb/bolt
+	url = https://github.com/boltdb/bolt
+[submodule "vendor/github.com/cenkalti/backoff"]
+	path = vendor/github.com/cenkalti/backoff
+	url = https://github.com/cenkalti/backoff
+[submodule "vendor/github.com/davecgh/go-spew"]
+	path = vendor/github.com/davecgh/go-spew
+	url = https://github.com/davecgh/go-spew
+[submodule "vendor/github.com/fiorix/go-web"]
+	path = vendor/github.com/fiorix/go-web
+	url = https://github.com/fiorix/go-web
+[submodule "vendor/github.com/garyburd/redigo"]
+	path = vendor/github.com/garyburd/redigo
+	url = https://github.com/garyburd/redigo
+[submodule "vendor/github.com/go-sql-driver/mysql"]
+	path = vendor/github.com/go-sql-driver/mysql
+	url = https://github.com/go-sql-driver/mysql
+[submodule "vendor/github.com/godbus/dbus"]
+	path = vendor/github.com/godbus/dbus
+	url = https://github.com/godbus/dbus
+[submodule "vendor/github.com/golang/groupcache"]
+	path = vendor/github.com/golang/groupcache
+	url = https://github.com/golang/groupcache
+[submodule "vendor/github.com/golang/protobuf"]
+	path = vendor/github.com/golang/protobuf
+	url = https://github.com/golang/protobuf
+[submodule "vendor/github.com/golang/snappy"]
+	path = vendor/github.com/golang/snappy
+	url = https://github.com/golang/snappy
+[submodule "vendor/github.com/gorilla/context"]
+	path = vendor/github.com/gorilla/context
+	url = https://github.com/gorilla/context
+[submodule "vendor/github.com/gorilla/mux"]
+	path = vendor/github.com/gorilla/mux
+	url = https://github.com/gorilla/mux
+[submodule "vendor/github.com/gorilla/securecookie"]
+	path = vendor/github.com/gorilla/securecookie
+	url = https://github.com/gorilla/securecookie
+[submodule "vendor/github.com/hashicorp/golang-lru"]
+	path = vendor/github.com/hashicorp/golang-lru
+	url = https://github.com/hashicorp/golang-lru
+[submodule "vendor/github.com/jmoiron/sqlx"]
+	path = vendor/github.com/jmoiron/sqlx
+	url = https://github.com/jmoiron/sqlx
+[submodule "vendor/github.com/luci/luci-go"]
+	path = vendor/github.com/luci/luci-go
+	url = https://github.com/luci/luci-go
+[submodule "vendor/github.com/mreiferson/go-snappystream"]
+	path = vendor/github.com/mreiferson/go-snappystream
+	url = https://github.com/mreiferson/go-snappystream
+[submodule "vendor/github.com/nfnt/resize"]
+	path = vendor/github.com/nfnt/resize
+	url = https://github.com/nfnt/resize
+[submodule "vendor/github.com/patrickmn/go-cache"]
+	path = vendor/github.com/patrickmn/go-cache
+	url = https://github.com/patrickmn/go-cache
+[submodule "vendor/github.com/petar/GoLLRB"]
+	path = vendor/github.com/petar/GoLLRB
+	url = https://github.com/petar/GoLLRB
+[submodule "vendor/github.com/pmezard/go-difflib"]
+	path = vendor/github.com/pmezard/go-difflib
+	url = https://github.com/pmezard/go-difflib
+[submodule "vendor/github.com/russross/blackfriday"]
+	path = vendor/github.com/russross/blackfriday
+	url = https://github.com/russross/blackfriday
+[submodule "vendor/github.com/satori/go.uuid"]
+	path = vendor/github.com/satori/go.uuid
+	url = https://github.com/satori/go.uuid
+[submodule "vendor/github.com/shurcooL/sanitized_anchor_name"]
+	path = vendor/github.com/shurcooL/sanitized_anchor_name
+	url = https://github.com/shurcooL/sanitized_anchor_name
+[submodule "vendor/github.com/skia-dev/glog"]
+	path = vendor/github.com/skia-dev/glog
+	url = https://github.com/skia-dev/glog
+[submodule "vendor/github.com/skia-dev/go-systemd"]
+	path = vendor/github.com/skia-dev/go-systemd
+	url = https://github.com/skia-dev/go-systemd
+[submodule "vendor/github.com/skia-dev/influxdb"]
+	path = vendor/github.com/skia-dev/influxdb
+	url = https://github.com/skia-dev/influxdb
+[submodule "vendor/github.com/stretchr/testify"]
+	path = vendor/github.com/stretchr/testify
+	url = https://github.com/stretchr/testify
+[submodule "vendor/github.com/syndtr/goleveldb"]
+	path = vendor/github.com/syndtr/goleveldb
+	url = https://github.com/syndtr/goleveldb
+[submodule "vendor/github.com/zeebo/bencode"]
+	path = vendor/github.com/zeebo/bencode
+	url = https://github.com/zeebo/bencode
+[submodule "vendor/google.golang.org/api"]
+	path = vendor/google.golang.org/api
+	url = https://code.googlesource.com/google-api-go-client
+[submodule "vendor/google.golang.org/grpc"]
+	path = vendor/google.golang.org/grpc
+	url = https://github.com/grpc/grpc-go
