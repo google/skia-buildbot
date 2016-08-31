@@ -394,12 +394,12 @@ func main() {
 
 					// Find the tags for the task, including ID, name, dimensions,
 					// and components of the builder name.
-					name, err := swarming.GetTagValue(task, "name")
+					name, err := swarming.GetTagValue(task.TaskResult, "name")
 					if err != nil || name == "" {
 						glog.Errorf("Failed to find name for Swarming task: %v", task)
 						continue
 					}
-					builderName, err := swarming.GetTagValue(task, "buildername")
+					builderName, err := swarming.GetTagValue(task.TaskResult, "buildername")
 					if err != nil || builderName == "" {
 						glog.Errorf("Failed to find buildername for Swarming task: %v", task)
 						continue

@@ -595,7 +595,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 		if err != nil {
 			return err
 		}
-		if _, err := t.UpdateFromSwarming(resp); err != nil {
+		if _, err := t.UpdateFromSwarming(resp.TaskResult); err != nil {
 			return err
 		}
 		byCandidateId[candidate.MakeId()] = t

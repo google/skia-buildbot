@@ -118,13 +118,13 @@ type Task struct {
 //
 // If empty, sets t.Id, t.Name, t.Repo, and t.Revision from s's tags named
 // SWARMING_TAG_ID, SWARMING_TAG_NAME, SWARMING_TAG_REPO, and
-// SWARMING_TAG_REVISION, sets t.Created from s.TaskResult.CreatedTs, and sets
+// SWARMING_TAG_REVISION, sets t.Created from s.CreatedTs, and sets
 // t.SwarmingTaskId from s.TaskId. If these fields are non-empty, returns an
 // error if they do not match.
 //
 // Always sets t.Status, t.Started, t.Finished, and t.IsolatedOutput based on s.
-func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskRequestMetadata) (bool, error) {
-	if s.TaskResult == nil {
+func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bool, error) {
+	if s == nil {
 		return false, fmt.Errorf("Missing TaskResult. %v", s)
 	}
 	tags, err := swarming.TagValues(s)
@@ -162,7 +162,7 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskRequestMeta
 	}
 
 	// CreatedTs should always be present.
-	if sCreated, err := swarming.ParseTimestamp(s.TaskResult.CreatedTs); err == nil {
+	if sCreated, err := swarming.ParseTimestamp(s.CreatedTs); err == nil {
 		if util.TimeIsZero(copy.Created) {
 			copy.Created = sCreated
 		} else if copy.Created != sCreated {
@@ -180,7 +180,7 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskRequestMeta
 	}
 
 	// Status.
-	switch s.TaskResult.State {
+	switch s.State {
 	case SWARMING_STATE_BOT_DIED, SWARMING_STATE_CANCELED, SWARMING_STATE_EXPIRED, SWARMING_STATE_TIMED_OUT:
 		copy.Status = TASK_STATUS_MISHAP
 	case SWARMING_STATE_PENDING:
@@ -188,21 +188,21 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskRequestMeta
 	case SWARMING_STATE_RUNNING:
 		copy.Status = TASK_STATUS_RUNNING
 	case SWARMING_STATE_COMPLETED:
-		if s.TaskResult.Failure {
+		if s.Failure {
 			// TODO(benjaminwagner): Choose FAILURE or MISHAP depending on ExitCode?
 			copy.Status = TASK_STATUS_FAILURE
 		} else {
 			copy.Status = TASK_STATUS_SUCCESS
 		}
 	default:
-		return false, fmt.Errorf("Unknown Swarming State %v in %v", s.TaskResult.State, s)
+		return false, fmt.Errorf("Unknown Swarming State %v in %v", s.State, s)
 	}
 
 	// Isolated output.
-	if s.TaskResult.OutputsRef == nil {
+	if s.OutputsRef == nil {
 		copy.IsolatedOutput = ""
 	} else {
-		copy.IsolatedOutput = s.TaskResult.OutputsRef.Isolated
+		copy.IsolatedOutput = s.OutputsRef.Isolated
 	}
 
 	// Timestamps.
@@ -218,14 +218,14 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskRequestMeta
 		return nil
 	}
 
-	if err := maybeUpdateTime(s.TaskResult.StartedTs, &copy.Started, "StartedTs"); err != nil {
+	if err := maybeUpdateTime(s.StartedTs, &copy.Started, "StartedTs"); err != nil {
 		return false, err
 	}
-	if err := maybeUpdateTime(s.TaskResult.CompletedTs, &copy.Finished, "CompletedTs"); err != nil {
+	if err := maybeUpdateTime(s.CompletedTs, &copy.Finished, "CompletedTs"); err != nil {
 		return false, err
 	}
-	if s.TaskResult.CompletedTs == "" && copy.Status == TASK_STATUS_MISHAP {
-		if err := maybeUpdateTime(s.TaskResult.AbandonedTs, &copy.Finished, "AbandonedTs"); err != nil {
+	if s.CompletedTs == "" && copy.Status == TASK_STATUS_MISHAP {
+		if err := maybeUpdateTime(s.AbandonedTs, &copy.Finished, "AbandonedTs"); err != nil {
 			return false, err
 		}
 	}
@@ -248,7 +248,7 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskRequestMeta
 var errNotModified = errors.New("Task not modified")
 
 // UpdateDBFromSwarmingTask updates a task in db from data in s.
-func UpdateDBFromSwarmingTask(db DB, s *swarming_api.SwarmingRpcsTaskRequestMetadata) error {
+func UpdateDBFromSwarmingTask(db DB, s *swarming_api.SwarmingRpcsTaskResult) error {
 	id, err := swarming.GetTagValue(s, SWARMING_TAG_ID)
 	if err != nil {
 		return err
