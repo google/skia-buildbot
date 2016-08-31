@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"sync"
@@ -114,14 +115,18 @@ func closer(key lru.Key, value interface{}) {
 }
 
 // New creates a new BoltTraceStore that stores tiles in the given directory.
-func New(dir string) *BoltTraceStore {
+func New(dir string) (*BoltTraceStore, error) {
 	cache := lru.New(MAX_CACHED_TILES)
 	cache.OnEvicted = closer
+
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return nil, fmt.Errorf("Failed to create %q for ptracestore: %s", dir, err)
+	}
 
 	return &BoltTraceStore{
 		dir:   dir,
 		cache: cache,
-	}
+	}, nil
 }
 
 // traceValue is used to encode/decode trace values.
@@ -472,7 +477,11 @@ func Init(dir string) {
 	if Default != nil {
 		glog.Fatalf("ptracestore should only be initialized once.")
 	}
-	Default = New(dir)
+	var err error
+	Default, err = New(dir)
+	if err != nil {
+		glog.Fatalf("ptracestore failed to init: %s", err)
+	}
 }
 
 // Ensure that *BoltTraceStore implements PTraceStore.

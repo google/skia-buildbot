@@ -18,14 +18,19 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
+	storage "google.golang.org/api/storage/v1"
+
+	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/eventbus"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
 	"go.skia.org/infra/go/rietveld"
+	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/tiling"
 	tracedb "go.skia.org/infra/go/trace/db"
 	"go.skia.org/infra/go/util"
@@ -36,6 +41,8 @@ import (
 	"go.skia.org/infra/perf/go/config"
 	idb "go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/parser"
+	_ "go.skia.org/infra/perf/go/ptraceingest"
+	"go.skia.org/infra/perf/go/ptracestore"
 	"go.skia.org/infra/perf/go/quartiles"
 	"go.skia.org/infra/perf/go/shortcut"
 	"go.skia.org/infra/perf/go/stats"
@@ -91,6 +98,7 @@ var (
 
 // flags
 var (
+	configFilename = flag.String("config_filename", "default.toml", "Configuration file in TOML format.")
 	gitRepoDir     = flag.String("git_repo_dir", "../../../skia", "Directory location for the Skia repo.")
 	gitRepoURL     = flag.String("git_repo_url", "https://skia.googlesource.com/skia", "The URL to pass to git clone for the source repository.")
 	influxDatabase = flag.String("influxdb_database", influxdb.DEFAULT_DATABASE, "The InfluxDB database.")
@@ -99,6 +107,7 @@ var (
 	influxUser     = flag.String("influxdb_name", influxdb.DEFAULT_USER, "The InfluxDB username.")
 	local          = flag.Bool("local", false, "Running locally if true. As opposed to in production.")
 	port           = flag.String("port", ":8000", "HTTP service address (e.g., ':8000')")
+	ptraceStoreDir = flag.String("ptrace_store_dir", "/tmp/ptracestore", "The directory where the ptracestore tiles are stored.")
 	resourcesDir   = flag.String("resources_dir", "", "The directory to find templates, JS, and CSS files. If blank the current directory will be used.")
 	tileSize       = flag.Int("tile_size", 100, "The size of Tiles.")
 	traceservice   = flag.String("trace_service", "localhost:9090", "The address of the traceservice endpoint.")
@@ -160,6 +169,9 @@ func Init() {
 	}
 	evt := eventbus.New(nil)
 	tileStats = tilestats.New(evt)
+
+	ptracestore.Init(*ptraceStoreDir)
+	initIngestion()
 
 	// Connect to traceDB and create the builders.
 	db, err := tracedb.NewTraceServiceDBFromAddress(*traceservice, types.PerfTraceBuilder)
@@ -1123,6 +1135,30 @@ func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Cache-Control", "max-age=300")
 		fileServer.ServeHTTP(w, r)
+	}
+}
+
+func initIngestion() {
+	evt := eventbus.New(nil)
+
+	// Initialize oauth client and start the ingesters.
+	client, err := auth.NewDefaultJWTServiceAccountClient(storage.CloudPlatformScope)
+	if err != nil {
+		glog.Fatalf("Failed to auth: %s", err)
+	}
+
+	// Start the ingesters.
+	config, err := sharedconfig.ConfigFromTomlFile(*configFilename)
+	if err != nil {
+		glog.Fatalf("Unable to read config file %s. Got error: %s", *configFilename, err)
+	}
+
+	ingesters, err := ingestion.IngestersFromConfig(config, client, evt)
+	if err != nil {
+		glog.Fatalf("Unable to instantiate ingesters: %s", err)
+	}
+	for _, oneIngester := range ingesters {
+		oneIngester.Start()
 	}
 }
 

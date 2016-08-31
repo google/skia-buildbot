@@ -28,6 +28,12 @@ test: testgo
 testgo:
 	go test ./go/...
 
+.PHONY: push
+push: build
+	./build_release "`git log -n1 --format=%s`"
+	go install -v ../push/go/pushcli
+	pushcli skiaperfd skia-perf
+
 .PHONY: logs
 logs:
 	go install -v ../logserver/go/logserver

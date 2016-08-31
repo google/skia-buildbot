@@ -1,4 +1,4 @@
-GitRepoDir     = "../../../../../skia_for_perf/"       # Directory location for the Skia repo.
+GitRepoDir     = "/mnt/pd0/skiaperf/repo"              # Directory location for the Skia repo.
 GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the repo.
 
 [Ingesters]
@@ -8,7 +8,7 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 	RunEvery       = "5m"
 	NCommits       = 10
 	MinDays        = 2
-	StatusDir      = "/tmp/ingest_status"
+	StatusDir      = "/mnt/pd0/skiaperf/ingest_status"
 	MetricName     = "nano-ingest"
 
 		[[Ingesters.nano.Sources]]
@@ -24,9 +24,10 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 	RunEvery       = "5m"
 	NCommits       = 10
 	MinDays        = 2
-	StatusDir      = "/tmp/trybot_ingest_status"
+	StatusDir      = "/mnt/pd0/skiaperf/trybot_ingest_status"
 	MetricName     = "nano-trybot-ingest"
 
     [[Ingesters.nano-trybot.Sources]]
     Bucket         = "skia-perf"
     Dir            = "trybot/nano-json-v1"
+
