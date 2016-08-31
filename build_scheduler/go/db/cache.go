@@ -44,6 +44,10 @@ type TaskCache interface {
 	// KnownTaskName returns true iff the given task name has been seen before.
 	KnownTaskName(string, string) bool
 
+	// UnfinishedTasks returns a list of tasks which were not finished at
+	// the time of the last cache update.
+	UnfinishedTasks() ([]*Task, error)
+
 	// Update loads new tasks from the database.
 	Update() error
 }
@@ -58,6 +62,7 @@ type taskCache struct {
 	// map[repo_name][commit_hash][task_spec_name]*Task
 	tasksByCommit map[string]map[string]map[string]*Task
 	timePeriod    time.Duration
+	unfinished    map[string]*Task
 }
 
 // See documentation for TaskCache interface.
@@ -116,6 +121,18 @@ func (c *taskCache) GetTaskForCommit(repo, commit, name string) (*Task, error) {
 	return nil, nil
 }
 
+// See documentation for TaskCache interface.
+func (c *taskCache) UnfinishedTasks() ([]*Task, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	rv := make([]*Task, 0, len(c.unfinished))
+	for _, t := range c.unfinished {
+		rv = append(rv, t.Copy())
+	}
+	return rv, nil
+}
+
 // update inserts the new/updated tasks into the cache. Assumes the caller
 // holds a lock.
 func (c *taskCache) update(tasks []*Task) error {
@@ -137,14 +154,23 @@ func (c *taskCache) update(tasks []*Task) error {
 		}
 
 		// Insert the new task into the main map.
-		c.tasks[t.Id] = t.Copy()
+		cpy := t.Copy()
+		c.tasks[t.Id] = cpy
 
 		// Insert the task into tasksByCommits.
 		for _, commit := range t.Commits {
 			if _, ok := commitMap[commit]; !ok {
 				commitMap[commit] = map[string]*Task{}
 			}
-			commitMap[commit][t.Name] = c.tasks[t.Id]
+			commitMap[commit][t.Name] = cpy
+		}
+
+		// Unfinished tasks.
+		if _, ok := c.unfinished[t.Id]; ok {
+			delete(c.unfinished, t.Id)
+		}
+		if !t.Done() {
+			c.unfinished[t.Id] = cpy
 		}
 
 		// Known task names.
@@ -176,6 +202,7 @@ func (c *taskCache) reset() error {
 	c.queryId = queryId
 	c.tasks = map[string]*Task{}
 	c.tasksByCommit = map[string]map[string]map[string]*Task{}
+	c.unfinished = map[string]*Task{}
 	if err := c.update(tasks); err != nil {
 		return err
 	}

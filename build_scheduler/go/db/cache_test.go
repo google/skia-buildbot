@@ -151,3 +151,58 @@ func TestDBCacheReset(t *testing.T) {
 	testGetTasksForCommits(t, c, t1)
 	testGetTasksForCommits(t, c, t2)
 }
+
+func TestCacheUnfinished(t *testing.T) {
+	db := NewInMemoryDB()
+	defer testutils.AssertCloses(t, db)
+
+	// Insert a task.
+	startTime := time.Now().Add(-30 * time.Minute)
+	t1 := makeTask(startTime, []string{"a"})
+	assert.False(t, t1.Done())
+	assert.NoError(t, db.PutTask(t1))
+
+	// Create the cache. Ensure that the existing task is present.
+	c, err := NewTaskCache(db, time.Hour)
+	assert.NoError(t, err)
+	tasks, err := c.UnfinishedTasks()
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Task{t1}, tasks)
+
+	// Finish the task. Insert it, ensure that it's not unfinished.
+	t1.Status = TASK_STATUS_SUCCESS
+	assert.True(t, t1.Done())
+	assert.NoError(t, db.PutTask(t1))
+	assert.NoError(t, c.Update())
+	tasks, err = c.UnfinishedTasks()
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Task{}, tasks)
+
+	// Already-finished task.
+	t2 := makeTask(time.Now(), []string{"a"})
+	t2.Status = TASK_STATUS_MISHAP
+	assert.True(t, t2.Done())
+	assert.NoError(t, db.PutTask(t2))
+	assert.NoError(t, c.Update())
+	tasks, err = c.UnfinishedTasks()
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Task{}, tasks)
+
+	// An unfinished task, created after the cache was created.
+	t3 := makeTask(time.Now(), []string{"b"})
+	assert.False(t, t3.Done())
+	assert.NoError(t, db.PutTask(t3))
+	assert.NoError(t, c.Update())
+	tasks, err = c.UnfinishedTasks()
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
+
+	// Update the task.
+	t3.Commits = []string{"c", "d", "f"}
+	assert.False(t, t3.Done())
+	assert.NoError(t, db.PutTask(t3))
+	assert.NoError(t, c.Update())
+	tasks, err = c.UnfinishedTasks()
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Task{t3}, tasks)
+}

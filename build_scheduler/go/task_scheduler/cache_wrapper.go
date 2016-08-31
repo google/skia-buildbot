@@ -54,6 +54,11 @@ func (c *cacheWrapper) KnownTaskName(repo, name string) bool {
 }
 
 // See documentation for TaskCache interface.
+func (c *cacheWrapper) UnfinishedTasks() ([]*db.Task, error) {
+	return nil, fmt.Errorf("cacheWrapper.UnfinishedTasks not implemented.")
+}
+
+// See documentation for TaskCache interface.
 func (c *cacheWrapper) Update() error {
 	return fmt.Errorf("cacheWrapper.Update not implemented.")
 }
