@@ -9,6 +9,7 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 	MinDays        = 3                             
 	StatusDir      = "/mnt/pd0/gold/ingest_status" 
 	MetricName     = "gold-ingest"                 
+  LocalCache     = true
 
 		[[Ingesters.gold.Sources]]
 		Bucket         = "chromium-skia-gm"
@@ -29,6 +30,7 @@ GitRepoURL     = "https://skia.googlesource.com/skia"  # URL location for the re
 	MinDays        = 3 
 	StatusDir      = "/mnt/pd0/gold/ingest_status" 
 	MetricName     = "gold-ingest-trybot"
+  LocalCache     = true
 
 		[[Ingesters.gold-trybot.Sources]]
 		Bucket         = "chromium-skia-gm"

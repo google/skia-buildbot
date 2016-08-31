@@ -31,6 +31,7 @@ type IngesterConfig struct {
 	MinDays     int               // Minimum number of days that should be covered by the ingested commits.
 	StatusDir   string            // Path where the ingest process keeps its status between restarts.
 	MetricName  string            // What to call this ingester's data when imported to Graphite
+	LocalCache  bool              // Should the ingester keep a local cache of ingested files.
 	Sources     []*DataSource     // Input sources where the ingester reads from.
 	ExtraParams map[string]string // Any additional needed parameters (ingester specific)
 }

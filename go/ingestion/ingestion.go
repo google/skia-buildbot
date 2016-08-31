@@ -98,6 +98,7 @@ type Ingester struct {
 	doneCh         chan bool
 	statusDB       *bolt.DB
 	resultFilesDir string
+	localCache     bool
 
 	// srcMetrics capture a set of metrics for each input source.
 	srcMetrics []*sourceMetrics
@@ -139,6 +140,7 @@ func NewIngester(ingesterID string, ingesterConf *sharedconfig.IngesterConfig, v
 		processor:      processor,
 		statusDB:       statusDB,
 		resultFilesDir: resultFilesDir,
+		localCache:     ingesterConf.LocalCache,
 	}
 	ret.setupMetrics()
 	return ret, nil
@@ -325,8 +327,10 @@ func (i *Ingester) processResults(resultFiles []ResultFileLocation, targetMetric
 				continue
 			}
 
-			// Write the process file to disk.
-			i.saveFileAsync(resultLocation)
+			if i.localCache {
+				// Write the process file to disk.
+				i.saveFileAsync(resultLocation)
+			}
 
 			// Gather all successfully processed MD5s
 			processedCounter++
