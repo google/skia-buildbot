@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	influx_client "github.com/skia-dev/influxdb/client/v2"
+	influx_client "github.com/influxdata/influxdb/client/v2"
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/metrics2"

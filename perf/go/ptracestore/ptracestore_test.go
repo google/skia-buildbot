@@ -46,7 +46,8 @@ func TestAdd(t *testing.T) {
 	setupStoreDir(t)
 	defer cleanup()
 
-	d := New(tmpDir)
+	d, err := New(tmpDir)
+	assert.NoError(t, err)
 	commitID := &CommitID{
 		Offset: COMMITS_PER_TILE + 1,
 		Source: "master",
@@ -55,7 +56,7 @@ func TestAdd(t *testing.T) {
 		",config=565,test=foo,":  1.23,
 		",config=8888,test=foo,": 3.21,
 	}
-	err := d.Add(commitID, values, "gs://skia-perf/nano-json-v1/blah/blah.json")
+	err = d.Add(commitID, values, "gs://skia-perf/nano-json-v1/blah/blah.json")
 	assert.NoError(t, err)
 
 	source, value, err := d.Details(commitID, ",config=565,test=foo,")
@@ -160,7 +161,8 @@ func TestMatch(t *testing.T) {
 	setupStoreDir(t)
 	defer cleanup()
 
-	d := New(tmpDir)
+	d, err := New(tmpDir)
+	assert.NoError(t, err)
 	commitID1 := &CommitID{
 		Offset: 1,
 		Source: "master",
@@ -170,7 +172,7 @@ func TestMatch(t *testing.T) {
 		",config=8888,test=foo,":       3.21,
 		",arch=x86,source_type=image,": 5.55,
 	}
-	err := d.Add(commitID1, values, "gs://foo")
+	err = d.Add(commitID1, values, "gs://foo")
 	assert.NoError(t, err)
 
 	commitID2 := &CommitID{
