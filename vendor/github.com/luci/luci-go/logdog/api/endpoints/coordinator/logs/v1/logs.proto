@@ -1,0 +1,355 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package logdog;
+
+import "github.com/luci/luci-go/logdog/api/endpoints/coordinator/logs/v1/state.proto";
+import "github.com/luci/luci-go/logdog/api/logpb/log.proto";
+import "google/protobuf/timestamp.proto";
+
+// GetRequest is the request structure for the user Get endpoint.
+//
+// If the requested log stream exists, a valid GetRequest will succeed
+// regardless of whether the requested log range was available.
+//
+// Note that this endpoint may return fewer logs than requested due to either
+// availability or internal constraints.
+message GetRequest {
+  // The request project to request.
+  string project = 1;
+  // The path of the log stream to get.
+  //
+  // This can either be a LogDog stream path or the SHA256 hash of a LogDog
+  // stream path.
+  //
+  // Some utilities may find passing around a full LogDog path to be cumbersome
+  // due to its length. They can opt to pass around the hash instead and
+  // retrieve logs using it.
+  string path = 2;
+
+  // If true, requests that the log stream's state is returned.
+  bool state = 3;
+
+  // The initial log stream index to retrieve.
+  int64 index = 4;
+
+  // The maximum number of bytes to return. If non-zero, it is applied as a
+  // constraint to limit the number of logs that are returned.
+  //
+  // This only returns complete logs. Assuming logs are available, it will
+  // return at least one log (even if it violates the size constraint) and as
+  // many additional logs as it can without exceeding this constraint.
+  int32 byte_count = 5;
+
+  // The maximum number of log records to request.
+  //
+  // If this value is zero, no count constraint will be applied. If this value
+  // is less than zero, no log entries will be returned. This can be used to
+  // fetch log stream descriptors without fetching any log records.
+  int32 log_count = 6;
+
+  // If true, allows the range request to return non-contiguous records.
+  //
+  // A contiguous request (default) will iterate forwards from the supplied
+  // Index and stop if either the end of stream is encountered or there is a
+  // missing stream index. A NonContiguous request will remove the latter
+  // condition.
+  //
+  // For example, say the log stream consists of:
+  // [3, 4, 6, 7]
+  //
+  // A contiguous request with Index 3 will return: [3, 4], stopping because
+  // 5 is missing. A non-contiguous request will return [3, 4, 6, 7].
+  bool non_contiguous = 7;
+}
+
+// TailRequest is the request structure for the user Tail endpoint. It returns
+// the last log in a given log stream at the time of the request.
+message TailRequest {
+  // The request project to request.
+  string project = 1;
+  // The path of the log stream to get.
+  //
+  // This can either be a LogDog stream path or the SHA256 hash of a LogDog
+  // stream path.
+  //
+  // Some utilities may find passing around a full LogDog path to be cumbersome
+  // due to its length. They can opt to pass around the hash instead and
+  // retrieve logs using it.
+  string path = 2;
+
+  // If true, requests that the log stream's state is returned.
+  bool state = 3;
+}
+
+// GetResponse is the response structure for the user Get endpoint.
+message GetResponse {
+  // Project is the project name that these logs belong to.
+  string project = 1;
+
+  // The log stream descriptor and state for this stream.
+  //
+  // It can be requested by setting the request's State field to true. If the
+  // Proto field is true, the State's Descriptor field will not be included.
+  LogStreamState state = 2;
+
+  // The expanded LogStreamDescriptor protobuf. It is intended for JSON
+  // consumption.
+  //
+  // If the GetRequest's Proto field is false, this will be populated;
+  // otherwise, the serialized protobuf will be written to the DescriptorProto
+  // field.
+  logpb.LogStreamDescriptor desc = 3;
+
+  // Log represents the set of retrieved log records.
+  repeated logpb.LogEntry logs = 4;
+}
+
+// QueryRequest is the request structure for the user Query endpoint.
+message QueryRequest {
+  // Trinary represents a trinary value.
+  enum Trinary {
+    // Both positive and negative results will be returned.
+    BOTH = 0;
+    // Only positive results will be returned.
+    YES = 1;
+    // Only negative results will be returned.
+    NO = 2;
+  }
+
+  // The request project to request.
+  string project = 1;
+
+  // The query parameter.
+  //
+  // The path expression may substitute a glob ("*") for a specific path
+  // component. That is, any stream that matches the remaining structure qualifies
+  // regardless of its value in that specific positional field.
+  //
+  // An unbounded wildcard may appear as a component at the end of both the
+  // prefix and name query components. "**" matches all remaining components.
+  //
+  // If the supplied path query does not contain a path separator ("+"), it will
+  // be treated as if the prefix is "**".
+  //
+  // Examples:
+  //   - Empty ("") will return all streams.
+  //   - **/+/** will return all streams.
+  //   - foo/bar/** will return all streams with the "foo/bar" prefix.
+  //   - foo/bar/**/+/baz will return all streams beginning with the "foo/bar"
+  //     prefix and named "baz" (e.g., "foo/bar/qux/lol/+/baz")
+  //   - foo/bar/+/** will return all streams with a "foo/bar" prefix.
+  //   - foo/*/+/baz will return all streams with a two-component prefix whose
+  //     first value is "foo" and whose name is "baz".
+  //   - foo/bar will return all streams whose name is "foo/bar".
+  //   - */* will return all streams with two-component names.
+  string path = 2;
+
+  // If true, returns that the streams' full state is returned instead of just
+  // its Path.
+  bool state = 3;
+
+  // If true, causes the requested state to be returned as serialized protobuf
+  // data instead of deserialized JSON structures.
+  bool proto = 4;
+
+  // Next, if not empty, indicates that this query should continue at the point
+  // where the previous query left off.
+  string next = 5;
+
+  // MaxResults is the maximum number of query results to return.
+  //
+  // If MaxResults is zero, no upper bound will be indicated. However, the
+  // returned result count is still be subject to internal constraints.
+  int32 max_results = 6;
+
+  // ContentType, if not empty, restricts results to streams with the supplied
+  // content type.
+  string content_type = 10;
+
+  // The stream type to filter on.
+  message StreamTypeFilter {
+    // The StreamType value to filter on.
+    logpb.StreamType value = 1;
+  }
+  StreamTypeFilter stream_type = 11;
+
+  // Newer restricts results to streams created after the specified date.
+  google.protobuf.Timestamp newer = 12;
+  // Older restricts results to streams created before the specified date.
+  google.protobuf.Timestamp older = 13;
+
+  // If not empty, constrains the results to those whose protobuf version string
+  // matches the supplied version.
+  string proto_version = 14;
+
+  // Tags is the set of tags to constrain the query with.
+  //
+  // A Tag entry may either be:
+  // - A key/value query, in which case the results are constrained by logs
+  //   whose tag includes that key/value pair.
+  // - A key with an missing (nil) value, in which case the results are
+  //   constraints by logs that have that tag key, regardless of its value.
+  map<string, string> tags = 15;
+
+  // Purged restricts the query to streams that have or haven't been purged.
+  Trinary purged = 16;
+}
+
+// QueryResponse is the response structure for the user Query endpoint.
+message QueryResponse {
+  // Project is the project name that all responses belong to.
+  string project = 1;
+
+  // Stream represents a single query response stream.
+  message Stream {
+    // Path is the log stream path.
+    string path = 1;
+
+    // State is the log stream descriptor and state for this stream.
+    //
+    // It can be requested by setting the request's State field to true. If the
+    // Proto field is true, the State's Descriptor field will not be included.
+    LogStreamState state = 2;
+
+    // The JSON-packed log stream descriptor protobuf.
+    //
+    // A Descriptor entry corresponds to the Path with the same index.
+    //
+    // If the query request's State field is set, the descriptor will be
+    // populated. If the Proto field is false, Descriptor will be populated;
+    // otherwise, DescriptorProto will be populated with the serialized descriptor
+    // protobuf.
+    logpb.LogStreamDescriptor desc = 3;
+    // The serialized log stream Descriptor protobuf.
+    bytes desc_proto= 4;
+  }
+
+  // The list of streams that were identified as the result of the query.
+  repeated Stream streams = 2;
+
+  // If not empty, indicates that there are more query results available.
+  // These results can be requested by repeating the Query request with the
+  // same Path field and supplying this value in the Next field.
+  string next = 3;
+}
+
+// ListRequest is the request structure for the user List endpoint.
+//
+// The List endpoint enables a directory-tree style traversal of the project
+// and log stream space.
+//
+// For example, if project "myproj" had streams "a/+/baz", a listing would
+// return:
+// - Request: project="", path="", Response: {myproj} (Project names)
+// - Request: project="myproj", path="", Response: {a} (Path components)
+// - Request: project="myproj", path="a", Response: {+} (Path component)
+// - Request: project="myproj", path="a/+", Response: {baz} (Stream component)
+message ListRequest {
+  // The project to query.
+  //
+  // If this is empty, the list results will show all projects that the user can
+  // access.
+  string project = 1;
+
+  // The path base to query.
+  //
+  // For example, log streams:
+  // - foo/bar/+/baz
+  // - foo/+/qux
+  //
+  // A query to path_base "foo" will return "bar" and "+", both path
+  // components.
+  string path_base = 2;
+
+  // State, if true, returns that the streams' full state instead of just its
+  // Path.
+  bool state = 3;
+
+  // If not empty, indicates that this query should continue at the point where
+  // the previous query left off.
+  string next = 4;
+
+  // If true, will return only streams. Otherwise, intermediate path components
+  // will also be returned.
+  bool stream_only = 5;
+
+  // If true, indicates that purged streams should show up in the listing. It is
+  // an error if a non-admin user requests this option.
+  bool include_purged = 6;
+
+  // Offset, if >= 0, instructs the list operation to skip the supplied number
+  // of results. This can be used for pagination.
+  int32 offset = 7;
+  // The maximum number of componts to return.
+  //
+  // If <= 0, no upper bound will be indicated. However, the returned result
+  // count is still be subject to internal constraints.
+  int32 max_results = 8;
+}
+
+// ListResponse is the response structure for the user List endpoint.
+message ListResponse {
+  // The project that the streams belong to.
+  //
+  // If the request was for the project tier of the list hierarchy, this will
+  // be empty, and the components list will contain project elements.
+  string project = 1;
+  // The hierarchy base that was requested.
+  string path_base = 2;
+
+  // If not empty, indicates that there are more list results available.
+  // These results can be requested by repeating the List request with the
+  // same Path field and supplying this value in the Next field.
+  string next = 3;
+
+  // The set of listed stream components.
+  message Component {
+    enum Type {
+      PATH = 0;
+      STREAM = 1;
+      PROJECT = 2;
+    }
+
+    // Name is the name of this path component.  When combined with the
+    // response Base, this will form the full stream path.
+    string name = 1;
+    // The type of the component.
+    Type type = 2;
+
+    // State is the log stream descriptor and state for this stream. It will
+    // only be filled if this is a STREAM component.
+    //
+    // It can be requested by setting the request's State field to true. If the
+    // Proto field is true, the State's Descriptor field will not be included.
+    LogStreamState state = 3;
+
+    // Descriptor is the JSON-packed log stream descriptor protobuf. It will
+    // only be filled if this is a STREAM component.
+    //
+    // A Descriptor entry corresponds to the Path with the same index.
+    //
+    // If the list request's State field is set, the descriptor will be
+    // populated.
+    logpb.LogStreamDescriptor desc = 4;
+  }
+  repeated Component components = 4;
+}
+
+// Logs is the user-facing log access and query endpoint service.
+service Logs {
+  // Get returns state and log data for a single log stream.
+  rpc Get(GetRequest) returns (GetResponse);
+
+  // Tail returns the last log in the log stream at the time of the request.
+  rpc Tail(TailRequest) returns (GetResponse);
+
+  // Query returns log stream paths that match the requested query.
+  rpc Query(QueryRequest) returns (QueryResponse);
+
+  // List returns log stream paths rooted under the path hierarchy.
+  rpc List(ListRequest) returns (ListResponse);
+}

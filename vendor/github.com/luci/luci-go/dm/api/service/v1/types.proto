@@ -1,0 +1,52 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+package dm;
+
+message MultiPropertyValue {
+  repeated PropertyValue values = 1;
+}
+
+message PropertyValue {
+  // reserve 4 for floats. This is omitted because equality-comparison with
+  // floats is notoriously difficult. In the initial implementation of DM,
+  // payloads and results with floats will be rejected. Hopefully they're not
+  // needed, and we don't need to support them.
+  reserved 4;
+
+  oneof value {
+    string str = 1;
+    bytes  dat = 2;
+    int64  num = 3;
+    bool   bin = 5;
+
+    // Time should only be used with the start/end PropertyValues in
+    // GraphQuerySearch. If specified in a filter map, it will be ignored.
+    google.protobuf.Timestamp time = 6;
+
+    google.protobuf.Empty null = 7;
+  }
+}
+
+// AttemptList is logically a listing of unique attempts, which has a compact
+// representation in the common scenario of listing multiple attempts of the
+// same quest(s).
+message AttemptList {
+  message Nums {
+    repeated uint32 nums = 1 [packed=true];
+  }
+
+  // To is a map of quests-to-attempts to depend on. So if you want to depend
+  // on the attempt "foo|1", "foo|2" and "bar|1", this would look like:
+  //   {
+  //     "foo": [1, 2],
+  //     "bar": [1],
+  //   }
+  map<string, Nums> to = 2;
+}

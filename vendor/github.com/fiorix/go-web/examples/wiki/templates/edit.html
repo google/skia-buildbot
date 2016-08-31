@@ -1,0 +1,19 @@
+{{template "base_pre"}}
+<h1>Editing {{.Title}}</h1>
+
+<form class="form" action="/save/{{.Title}}" method="POST">
+<textarea class="input-block-level" name="body" rows="20" cols="80">{{printf "%s" .Body}}</textarea>
+<button class="btn btn-success" type="submit">Save</button>
+<button class="btn" id="cancel">Cancel</button>
+</form>
+
+{{template "base_scripts"}}
+<script>
+  $(document).ready(function(){
+    $("#cancel").click(function(el){
+      el.preventDefault();
+      document.location.href="/";
+    });
+  });
+</script>
+{{template "base_pos"}}

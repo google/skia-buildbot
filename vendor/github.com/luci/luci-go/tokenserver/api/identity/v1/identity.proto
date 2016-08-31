@@ -1,0 +1,47 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package tokenserver.identity;
+
+import "google/protobuf/empty.proto";
+
+// IdentityFetcher knows how retrieve caller's identity.
+service IdentityFetcher {
+  // GetCallerIdentity returns caller identity as understood by the auth layer.
+  //
+  // Is uses various authentication tokens supplied by the caller to
+  // authenticate the request. It exercises exact same authentication paths as
+  // regular services. Useful for debugging access tokens.
+  rpc GetCallerIdentity(google.protobuf.Empty) returns (CallerIdentity);
+}
+
+// CallerIdentity is returned by GetCallerIdentity.
+//
+// It contains identity of a caller as understood by auth system
+// (e.g. "user:<email>"), as well as additional authentication related
+// information about the requester.
+message CallerIdentity {
+  // Identity of a caller conveyed by their authentication (and possibly
+  // delegation) tokens.
+  //
+  // It is the identity used in all authorization checks. Usually matches
+  // peer_identity, but may be different if delegation is used.
+  string identity = 1;
+
+  // Identity of whoever is making the request ignoring delegation tokens.
+  //
+  // It's an identity directly extracted from user credentials.
+  string peer_identity = 2;
+
+  // IP address of the caller as seen by the server.
+  string peer_ip = 3;
+
+  // Client ID is set if the caller is using OAuth2 access token for
+  // authentication.
+  //
+  // It is OAuth2 client ID used when making the token.
+  string oauth2_client_id = 4;
+}

@@ -1,0 +1,145 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package svcconfig;
+
+import "github.com/luci/luci-go/logdog/api/config/svcconfig/archival.proto";
+import "github.com/luci/luci-go/logdog/api/config/svcconfig/storage.proto";
+import "github.com/luci/luci-go/logdog/api/config/svcconfig/transport.proto";
+
+import "google/protobuf/duration.proto";
+
+// Config is the overall instance configuration.
+message Config {
+  // Configuration for the Butler's log transport.
+  Transport transport = 10;
+  // Configuration for intermediate Storage.
+  Storage storage = 11;
+
+  // Coordinator is the coordinator service configuration.
+  Coordinator coordinator = 20;
+  // Collector is the collector fleet configuration.
+  Collector collector = 21;
+  // Archivist microservice configuration.
+  Archivist archivist = 22;
+}
+
+// Coordinator is the Coordinator service configuration.
+message Coordinator {
+  // The name of the authentication group for administrators.
+  string admin_auth_group = 10;
+  // The name of the authentication group for backend services.
+  string service_auth_group = 11;
+
+  // A list of origin URLs that are allowed to perform CORS RPC calls.
+  repeated string rpc_allow_origins = 20;
+
+  // The maximum amount of time after a prefix has been registered when log
+  // streams may also be registered under that prefix.
+  //
+  // After the expiration period has passed, new log stream registration will
+  // fail.
+  //
+  // Project configurations or stream prefix regitrations may override this by
+  // providing >= 0 values for prefix expiration. The smallest configured
+  // expiration will be applied.
+  google.protobuf.Duration prefix_expiration = 21;
+
+  // The full path of the archival Pub/Sub topic.
+  //
+  // The Coordinator must have permission to publish to this topic.
+  string archive_topic = 30;
+
+  // The amount of time after an archive request has been dispatched before it
+  // should be executed.
+  //
+  // Since terminal messages can arrive out of order, the archival request may
+  // be kicked off before all of the log stream data has been loaded into
+  // intermediate storage. If this happens, the Archivist will retry archival
+  // later autometically.
+  //
+  // This parameter is an optimization to stop the archivist from wasting its
+  // time until the log stream has a reasonable expectation of being available.
+  google.protobuf.Duration archive_settle_delay = 31;
+
+  // The amount of time before a log stream is candidate for archival regardless
+  // of whether or not it's been terminated or complete.
+  //
+  // This is a failsafe designed to ensure that log streams with missing records
+  // or no terminal record (e.g., Butler crashed) are eventually archived.
+  //
+  // This should be fairly large (days) to avoid prematurely archiving
+  // long-running streams, but should be considerably smaller than the
+  // intermediate storage data retention period.
+  //
+  // If a project's "max_stream_age" is smaller than this value, it will be used
+  // on that project's streams.
+  google.protobuf.Duration archive_delay_max = 32;
+}
+
+// Collector is the set of configuration parameters for Collector instances.
+message Collector {
+  // The maximum number of concurrent transport messages to process. If <= 0,
+  // a default will be chosen based on the transport.
+  int32 max_concurrent_messages = 1;
+
+  // The maximum number of concurrent workers to process each ingested message.
+  // If <= 0, collector.DefaultMaxMessageWorkers will be used.
+  int32 max_message_workers = 2;
+
+  // The maximum number of log stream states to cache locally. If <= 0, a
+  // default will be used.
+  int32 state_cache_size = 3;
+
+  // The maximum amount of time that cached stream state is valid. If <= 0, a
+  // default will be used.
+  google.protobuf.Duration state_cache_expiration = 4;
+}
+
+// Configuration for the Archivist microservice.
+message Archivist {
+  // The name of the archival Pub/Sub subscription.
+  //
+  // This should be connected to "archive_topic", and the Archivist must have
+  // permission to consume from this subscription.
+  string subscription = 1;
+
+  // The number of tasks to run at a time. If blank, the archivist will choose a
+  // default value.
+  int32 tasks = 2;
+
+  // The name of the staging storage bucket. All projects will share the same
+  // staging bucket. Logs for a project will be staged under:
+  //
+  // gs://<gs_staging_bucket>/<app-id>/<project-name>/...
+  string gs_staging_bucket = 3;
+
+  // Service-wide index configuration. This is used if per-project configuration
+  // is not specified.
+  ArchiveIndexConfig archive_index_config = 10;
+
+  // If true, always render the log entries as a binary file during archival,
+  // regardless of whether a specific stream has a binary file extension.
+  //
+  // By default, a stream will only be rendered as a binary if its descriptor
+  // includes a non-empty binary file extension field.
+  //
+  // The binary stream consists of each log entry's data rendered back-to-back.
+  //   - For text streams, this produces a text document similar to the source
+  //     text.
+  //   - For binary streams and datagram streams, this reproduces the source
+  //     contiguous binary file.
+  //   - For datagram streams, the size-prefixed datagrams are written back-to-
+  //     back.
+  //
+  // Enabling this option will consume roughly twice the archival space, as each
+  // stream's data will be archived once as a series of log entries and once as
+  // a binary file.
+  //
+  // Streams without an explicit binary file extension will default to ".bin" if
+  // this is enabled.
+  bool render_all_streams = 13;
+}

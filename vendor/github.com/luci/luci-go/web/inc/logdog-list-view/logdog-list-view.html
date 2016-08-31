@@ -1,0 +1,513 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+  -->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../logdog-styles/app-theme.html">
+<link rel="import" href="../rpc/rpc-client.html">
+<link rel="import" href="../logdog-stream/logdog-stream.html">
+
+
+<!--
+  This element is the paging component, allowing a user to navigate through
+  list offsets.
+
+  It is constructed as a separate element because it is repeated both above and
+  below the actual list.
+
+  This has two "offset" concepts: the bound requested offset is the offset that
+  is bound to the "logdog-list-view" RPC offset parameter. The display offset
+  is the offset that the latest list refresh used.
+
+  These are distinguished because we want the user's intent to change offset
+  (e.g., tap) event to immediately change the offset, but we don't want the
+  rendered offsets to actually update until the next set of list elements has
+  been loaded and rendered.
+-->
+<dom-module id="logdog-list-view-paging">
+
+  <style is="custom-style">
+    #nav {
+      padding: 4px 4px 4px 4px;
+    }
+
+    paper-button {
+      margin: 8px;
+      padding: 4px 4px 4px 4px;
+    }
+  </style>
+
+  <template>
+    <div id="nav">
+      <!-- "Back to the beginning" zero button -->
+      <template is="dom-if" if="[[_hasValue(_links.zero)]]">
+        <paper-button
+            raised
+            data-args$="[[_links.zero]]"
+            on-tap="_loadOffset">
+          [[_links.zero]]
+        </paper-button>
+      </template>
+
+      <!-- Previous page button -->
+      <template is="dom-if" if="[[_hasValue(_links.prev)]]">
+        <paper-button
+            raised
+            data-args$="[[_links.prev]]"
+            on-tap="_loadOffset">
+          <iron-icon icon="icons:chevron-left"></iron-icon>
+          [[_links.prev]]
+        </paper-button>
+      </template>
+
+      <!-- Next page button -->
+      <template is="dom-if" if="[[_hasValue(_links.next)]]">
+        <paper-button
+            raised
+            data-args$="[[_links.next]]"
+            on-tap="_loadOffset">
+          [[_links.next]]
+          <iron-icon icon="icons:chevron-right"></iron-icon>
+        </paper-button>
+      </template>
+    </div>
+  </template>
+
+</dom-module>
+
+<script>
+  "use strict";
+
+  Polymer({
+    is: 'logdog-list-view-paging',
+    properties: {
+      /**
+       * The request-bound offset parameter. This is changed when a button is
+       * clicked.
+       */
+      offset: {
+        type: Number,
+        value: 0,
+        notify: true,
+      },
+
+      /** The offset of the currently-rendered list. Used to generate links. */
+      displayOffset: {
+        type: Number,
+        value: 0,
+        notify: true,
+      },
+
+      /** True if there is at least one more page after the current one. */
+      hasMore: {
+        type: Boolean,
+        notify: true,
+      },
+
+      /** The offset increment amount */
+      size: {
+        type: Number,
+        value: 0,
+        notify: true,
+      },
+
+      /** A dictionary with the current zero, prev, and next offset values. */
+      _links: {
+        computed: '_computeLinks(displayOffset, size, hasMore)',
+      },
+    },
+
+    /**
+     * Computed function which rebuilds the links when any parameters change.
+     */
+    _computeLinks: function(offset, size, hasMore) {
+      return {
+        next: (hasMore) ? (offset + size) : null,
+        prev: (offset > size) ? (offset - size) : null,
+        zero: (offset > 0) ? (0) : null,
+      };
+    },
+
+    /** Filter function to test if a given value is not null. */
+    _hasValue: function(v) {
+      return (v !== null);
+    },
+
+    /** Loads the offset from a nav button into the "offset" parameter. */
+    _loadOffset: function(e) {
+      this.offset = parseInt(e.currentTarget.dataset.args || "0");
+    },
+  });
+</script>
+
+<!--
+An element for fetching complete LogDog log streams.
+-->
+<dom-module id="logdog-list-view">
+
+  <style>
+    #components {
+      background-color: var(--nav-background-color);
+      padding: 4px 4px 4px 4px;
+      margin: 4px 4px 4px 4px;
+    }
+    #components a {
+      color: var(--primary-text-color);
+      text-decoration: none;
+    }
+    #components ul {
+      padding: 0;
+      margin: 0;
+    }
+    #components li {
+      display: inline;
+    }
+    #components paper-material {
+      padding: 4px 4px 4px 4px;
+      margin-left: 4px;
+      margin-right: 4px;
+      display: inline-block;
+      background-color: var(--nav-item-color);
+    }
+
+    #list {
+      text-decoration: none;
+      width: 90%;
+    }
+    #list a {
+      color: var(--primary-text-color);
+      text-decoration: none;
+    }
+    #list ul {
+      padding: 0;
+      margin: 0;
+      list-style-type: none;
+    }
+    #list li {
+      padding: 2px 2px 2px 2px;
+    }
+    #list li:nth-of-type(odd) {
+      background-color: var(--light-primary-color);
+    }
+    #list li:nth-of-type(even) {
+      background-color: var(--light-primary-alternate-color);
+    }
+    #list .stream-component {
+      font-weight: bold;
+    }
+    #list paper-material {
+      padding: 4px 4px 4px 4px;
+    }
+  </style>
+
+  <template>
+    <!-- Load server description -->
+    <rpc-client
+        id="client"
+        auto-token
+        host="[[host]]"
+        service="logdog.Logs"
+        method="List"
+        request="[[_body]]"
+        last-response="{{lastResponse}}"></rpc-client>
+
+    <!--
+      The current set of components. For example, for "foo/bar/+/baz", this
+      expands into:
+
+      [foo] [bar] [+] [baz]
+    -->
+    <div id="components">
+      <ul>
+        <template is="dom-repeat" items="[[components]]">
+          <li>
+            <paper-material elevation="1">
+              <a href="[[linkBase]][[item.path]]">[[item.name]]</a>
+            </paper-material>
+          </li>
+        </template>
+      </ul>
+    </div>
+
+    <!-- Prev/Next links (top) -->
+    <logdog-list-view-paging
+        base="[[base]]"
+        offset="{{offset}}"
+        display-offset="[[currentOffset]]"
+        has-more="[[_hasMore]]"
+        size="[[count]]">
+    </logdog-list-view-paging>
+
+    <!-- The current list view. -->
+    <div id="list" flex>
+      <ul>
+        <!-- Sub-paths (directories) -->
+        <template is="dom-repeat" items="[[paths]]">
+          <li class="path-component">
+            <a href="[[linkBase]][[item.full]]">
+              <paper-material elevation="1">
+              [[item.value]]
+              </paper-material>
+            </a>
+          </li>
+        </template>
+
+        <!-- Stream contents (files) -->
+        <template is="dom-repeat" items="[[streams]]">
+          <li class="stream-component">
+            <a href="[[streamLinkBase]]?s=[[item.full]]">
+              <paper-material elevation="1">
+                [[item.value]]
+              </paper-material>
+            </a>
+          </li>
+        </template>
+      </ul>
+    </div>
+
+    <!-- Prev/Next links (bottom) -->
+    <logdog-list-view-paging
+        base="[[base]]"
+        offset="{{offset}}"
+        display-offset="[[currentOffset]]"
+        has-more="[[_hasMore]]"
+        size="[[count]]">
+    </logdog-list-view-paging>
+  </template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: "logdog-list-view",
+    properties: {
+
+      hostAttributes: {
+        hidden: true,
+      },
+
+      /** The name ([host][:port]) of the pRPC host. */
+      host: {
+        type: String,
+        notify: true,
+      },
+
+      /** Generated path links will have this prepended to them. */
+      linkBase: {
+        type: String,
+        value: "",
+        notify: true,
+      },
+
+      /**
+       * Generated stream links will use this parameter, referencing the
+       * selected streams with "s" query parameters.
+       */
+      streamLinkBase: {
+        type: String,
+        notify: true,
+      },
+
+      /**
+       * The current log list base.
+       *
+       * Base is a unified "project/path..." string. If empty, the list will be
+       * project-level.
+       */
+      base: {
+        type: Object,
+        value: "",
+        notify: true,
+      },
+
+      /** The maximum number of list elements to request. */
+      count: {
+        type: Number,
+        value: 50,
+        notify: true,
+      },
+
+      /** The list request offset. */
+      offset: {
+        type: Number,
+        value: 0,
+        notify: true,
+      },
+
+      /** The path components under "base". */
+      paths: {
+        type: Array,
+        value: function() {
+          return [];
+        },
+        readOnly: true,
+      },
+
+      /** The stream components under "base". */
+      streams: {
+        type: Array,
+        value: [],
+        readOnly: true,
+      },
+
+      /**
+       * Split "base" into components (e.g., "foo/bar" => [foo, foo/bar])
+       * for navigation.
+       */
+      components: {
+        type: Array,
+        value: [],
+        readOnly: true,
+      },
+
+      /**
+       * The "next" cursor value from the latest response.
+       *
+       * This will be null if there is no next cursor value.
+       */
+      nextPage: {
+        type: String,
+        value: null,
+        readOnly: true,
+      },
+
+      /** The offset of the current list. */
+      currentOffset: {
+        type: Number,
+        value: 0,
+        readOnly: true,
+      },
+
+      _body: {
+        computed: "_computeBody(base, count, offset)",
+      },
+
+      /** True if the latest request specified additional pages. */
+      _hasMore: {
+        computed: "_computeHasMore(nextPage)",
+      },
+
+      lastResponse: {
+        type: Object,
+        observer: '_onLastResponseChanged',
+      },
+    },
+
+    observers: [
+      "_hostChanged(host, base)",
+      "_baseChanged(base)",
+    ],
+
+    /** Called when the host value has changed. Reset. */
+    _hostChanged: function(host, base) {
+      if (host !== this.host) {
+        this.base = "/";
+        this._resetOffset();
+      }
+
+      // Enable automatic request sending once our "host" has loaded. */
+      this.$.client.auto = (!!this.host);
+    },
+
+    /** Called when the base value has changed. */
+    _baseChanged: function(base) {
+      this._resetOffset();
+    },
+
+    /** Reset offset parameters. */
+    _resetOffset: function() {
+      this.offset = 0;
+      this._setCurrentOffset(0);
+    },
+
+    /**
+     * Returns true if there are additional list results. We know this if the
+     * latest response supplied a non-empty "next" cursor value.
+     */
+    _computeHasMore: function(nextPage) {
+      return (!!nextPage);
+    },
+
+    _computeBody: function(base, count, offset) {
+      var req = {
+        "maxResults": count,
+        "offset": offset,
+      };
+
+      // Split our base into project and path.
+      var lds = LogDogStream.splitProject(base);
+      req.project = lds.project;
+      req.pathBase = lds.path;
+      return req;
+    },
+
+    _onLastResponseChanged: function(resp) {
+      this._setNextPage(resp.next);
+      this._setCurrentOffset(this.offset);
+
+      // Calculate our unified path base (project/path...).
+      var components = [];
+      if (resp.project) {
+        components.push(resp.project);
+
+        if (resp.pathBase) {
+          components.push.apply(components, resp.pathBase.split("/"));
+        }
+      }
+
+      // Calculate partial components.
+      if (components.length && components[0] === "") {
+        // Remove the initial "/" element. It will be forcefully inserted at the
+        // end.
+        components.shift();
+      }
+
+      // Generate our individual components.
+      this.base = components.join("/");
+      components = components.map(function(cur, idx, arr) {
+        return {
+          name: cur,
+          path: arr.slice(0, idx+1).join("/"),
+        };
+      });
+      components.unshift({
+          name: "/",
+          path: "",
+      });
+      this._setComponents(components);
+
+      // Calculate path components.
+      this._setPaths((resp.components || []).filter(function(e) {
+        return (e.type !== "STREAM");
+      }).map(function(e) {
+        var full = e.name;
+        if (this.base !== "") {
+          full = this.base + "/" + full;
+        }
+        return {
+          value: e.name,
+          full: full,
+        };
+      }.bind(this)));
+
+      // Calculate stream components.
+      this._setStreams((resp.components || []).filter(function(e) {
+        return (e.type === "STREAM");
+      }).map(function(e) {
+        var full = e.name;
+        if (resp.base !== "") {
+          full = this.base + "/" + full;
+        };
+        return {
+          value: e.name,
+          full: full,
+        };
+      }.bind(this)));
+    },
+  });
+</script>

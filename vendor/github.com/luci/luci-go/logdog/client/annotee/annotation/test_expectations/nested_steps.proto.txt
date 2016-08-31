@@ -1,0 +1,56 @@
+name: "steps"
+status: SUCCESS
+substep: <
+  step: <
+    name: "not nested"
+    status: SUCCESS
+    started: <
+      seconds: 1420070400
+    >
+    ended: <
+      seconds: 1420070400
+    >
+  >
+>
+substep: <
+  step: <
+    name: "nesting.parent"
+    status: SUCCESS
+    substep: <
+      step: <
+        name: "nesting.child0"
+        status: SUCCESS
+        started: <
+          seconds: 1420070400
+        >
+        ended: <
+          seconds: 1420070400
+        >
+      >
+    >
+    substep: <
+      step: <
+        name: "nesting.child1"
+        status: SUCCESS
+        started: <
+          seconds: 1420070400
+        >
+        ended: <
+          seconds: 1420070400
+        >
+      >
+    >
+    started: <
+      seconds: 1420070400
+    >
+    ended: <
+      seconds: 1420070400
+    >
+  >
+>
+started: <
+  seconds: 1420070400
+>
+ended: <
+  seconds: 1420070400
+>

@@ -1,0 +1,9 @@
+# Copyright 2015 The LUCI Authors. All rights reserved.
+# Use of this source code is governed under the Apache License, Version 2.0
+# that can be found in the LICENSE file.
+
+# CIPD package definition for LogDog's "annotee" binary.
+package: infra/tools/luci/logdog/butler/linux-amd64
+install_mode: copy
+data:
+  - file: logdog_butler

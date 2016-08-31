@@ -1,0 +1,31 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+import "github.com/luci/luci-go/dm/api/service/v1/graph_data.proto";
+
+import "github.com/luci/luci-go/dm/api/service/v1/ensure_graph_data.proto";
+import "github.com/luci/luci-go/dm/api/service/v1/activate_execution.proto";
+import "github.com/luci/luci-go/dm/api/service/v1/finish_attempt.proto";
+import "github.com/luci/luci-go/dm/api/service/v1/walk_graph.proto";
+
+package dm;
+
+// DM's Dependency Server API.
+service Deps {
+  // allows you to add additional data to the current dependency graph.
+  rpc EnsureGraphData(dm.EnsureGraphDataReq) returns (dm.EnsureGraphDataRsp);
+
+  // is called by Execution clients to activate themselves with DM.
+  rpc ActivateExecution(dm.ActivateExecutionReq) returns (google.protobuf.Empty);
+
+  // is called by Execution clients to indicate that an Attempt is finished.
+  rpc FinishAttempt(dm.FinishAttemptReq) returns (google.protobuf.Empty);
+
+  // runs queries, and walks along the dependency graph from the query results.
+  rpc WalkGraph(dm.WalkGraphReq) returns (dm.GraphData);
+}

@@ -1,0 +1,210 @@
+{
+  "builds": [
+    {
+      "status": "SCHEDULED",
+      "created_ts": "1467329015736830",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/rietveld/codereview.chromium.org/2114743004/1",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2863",
+      "bucket": "master.tryserver.infra",
+      "status_changed_ts": "1467329015736830",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008387727896135840",
+      "utcnow_ts": "1467330289691490",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"recipe-roller@chromium.org\"}}], \"properties\": {\"attempt_start_ts\": 1467328983724880, \"category\": \"cq\", \"issue\": \"2114743004\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra\", \"patch_storage\": \"rietveld\", \"patchset\": \"1\", \"reason\": \"CQ\", \"revision\": \"HEAD\", \"rietveld\": \"https://codereview.chromium.org\"}}",
+      "updated_ts": "1467329015736830"
+    },
+    {
+      "status": "STARTED",
+      "created_ts": "1467327832844720",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/rietveld/codereview.chromium.org/2112113002/1",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2862",
+      "bucket": "master.tryserver.infra",
+      "status_changed_ts": "1467327910549160",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008388967818877792",
+      "utcnow_ts": "1467330289692260",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"recipe-roller@chromium.org\"}}], \"properties\": {\"attempt_start_ts\": 1467327804024810, \"category\": \"cq\", \"issue\": \"2112113002\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra\", \"patch_storage\": \"rietveld\", \"patchset\": \"1\", \"reason\": \"CQ\", \"revision\": \"HEAD\", \"rietveld\": \"https://codereview.chromium.org\"}}",
+      "updated_ts": "1467327910549480"
+    },
+    {
+      "status": "COMPLETED",
+      "created_ts": "1467327232001740",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/gerrit/chromium-review.googlesource.com/357600/3",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2861",
+      "bucket": "master.tryserver.infra",
+      "result_details_json": "{\"properties\": {\"got_revision\": \"dddc95f56ec03d509f4dbb366a5f8cd88afdcad6\", \"recipe\": \"run_presubmit\", \"event.change.url\": \"https://chromium-review.googlesource.com/#/c/357600\", \"patch_project\": \"infra/infra\", \"build_revision\": \"c62890265b947bf33fe45001298f3522ae205a01\", \"category\": \"cq\", \"runhooks\": true, \"event.change.id\": \"infra%2Finfra~master~I183be786b3b67d9d78a010df93e7f060055386cc\", \"slavename\": \"slave426-c4\", \"attempt_start_ts\": 1467327205646000, \"blamelist\": [\"martiniss@chromium.org\"], \"branch\": null, \"master\": \"master.tryserver.infra\", \"event.patchSet.ref\": \"refs/changes/00/357600/3\", \"repo_name\": \"infra\", \"project\": \"\", \"workdir\": \"/b/build/slave/presubmit_infra\", \"repository\": \"https://chromium.googlesource.com/infra/infra\", \"buildername\": \"Infra Presubmit\", \"event.change.number\": 357600, \"mastername\": \"tryserver.infra\", \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"requester\": \"commit-bot@chromium.org\", \"buildbotURL\": \"https://build.chromium.org/p/tryserver.infra/\", \"build_scm\": \"git\", \"gerrit\": \"https://chromium-review.googlesource.com\", \"buildnumber\": 2861, \"requestedAt\": 1467327241, \"revision\": \"\"}}",
+      "status_changed_ts": "1467327303989510",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008389596654299440",
+      "result": "SUCCESS",
+      "utcnow_ts": "1467330289693050",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"martiniss@chromium.org\"}, \"repo_url\": \"https://chromium.googlesource.com/infra/infra\"}], \"properties\": {\"attempt_start_ts\": 1467327205646000, \"category\": \"cq\", \"event.change.id\": \"infra%2Finfra~master~I183be786b3b67d9d78a010df93e7f060055386cc\", \"event.change.number\": 357600, \"event.change.url\": \"https://chromium-review.googlesource.com/#/c/357600\", \"event.patchSet.ref\": \"refs/changes/00/357600/3\", \"gerrit\": \"https://chromium-review.googlesource.com\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra/infra\", \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"revision\": \"HEAD\"}}",
+      "completed_ts": "1467327303989540",
+      "updated_ts": "1467327303989740"
+    },
+    {
+      "status": "COMPLETED",
+      "created_ts": "1467326953007120",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/rietveld/codereview.chromium.org/2104113002/40001",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2860",
+      "bucket": "master.tryserver.infra",
+      "result_details_json": "{\"properties\": {\"got_revision\": \"d8b7edd57c2584d80aee77c45b84b9b4aed95fcf\", \"recipe\": \"run_presubmit\", \"patch_project\": \"infra\", \"build_revision\": \"c62890265b947bf33fe45001298f3522ae205a01\", \"category\": \"cq\", \"runhooks\": true, \"slavename\": \"slave912-c4\", \"attempt_start_ts\": 1467326932942060, \"blamelist\": [\"stgao@chromium.org\"], \"branch\": null, \"master\": \"master.tryserver.infra\", \"patchset\": \"40001\", \"issue\": \"2104113002\", \"repo_name\": \"infra\", \"project\": \"\", \"workdir\": \"/b/build/slave/presubmit_infra\", \"repository\": \"\", \"buildername\": \"Infra Presubmit\", \"mastername\": \"tryserver.infra\", \"patch_storage\": \"rietveld\", \"reason\": \"CQ\", \"requester\": \"commit-bot@chromium.org\", \"buildbotURL\": \"https://build.chromium.org/p/tryserver.infra/\", \"build_scm\": \"git\", \"rietveld\": \"https://codereview.chromium.org\", \"buildnumber\": 2860, \"requestedAt\": 1467326961, \"revision\": \"\"}}",
+      "status_changed_ts": "1467327065456620",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008389889105031200",
+      "result": "SUCCESS",
+      "utcnow_ts": "1467330289693810",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"stgao@chromium.org\"}}], \"properties\": {\"attempt_start_ts\": 1467326932942060, \"category\": \"cq\", \"issue\": \"2104113002\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra\", \"patch_storage\": \"rietveld\", \"patchset\": \"40001\", \"reason\": \"CQ\", \"revision\": \"HEAD\", \"rietveld\": \"https://codereview.chromium.org\"}}",
+      "completed_ts": "1467327065456660",
+      "updated_ts": "1467327065456890"
+    },
+    {
+      "status": "COMPLETED",
+      "created_ts": "1467326472287140",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/rietveld/codereview.chromium.org/2103043008/1",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2859",
+      "bucket": "master.tryserver.infra",
+      "result_details_json": "{\"properties\": {\"got_revision\": \"d8b7edd57c2584d80aee77c45b84b9b4aed95fcf\", \"recipe\": \"run_presubmit\", \"patch_project\": \"infra\", \"build_revision\": \"c62890265b947bf33fe45001298f3522ae205a01\", \"category\": \"cq\", \"runhooks\": true, \"slavename\": \"slave872-c4\", \"attempt_start_ts\": 1467326442594030, \"blamelist\": [\"lukasperaza@google.com\"], \"branch\": null, \"master\": \"master.tryserver.infra\", \"patchset\": \"1\", \"issue\": \"2103043008\", \"repo_name\": \"infra\", \"project\": \"\", \"workdir\": \"/b/build/slave/presubmit_infra\", \"repository\": \"\", \"buildername\": \"Infra Presubmit\", \"mastername\": \"tryserver.infra\", \"patch_storage\": \"rietveld\", \"reason\": \"CQ\", \"requester\": \"commit-bot@chromium.org\", \"buildbotURL\": \"https://build.chromium.org/p/tryserver.infra/\", \"build_scm\": \"git\", \"rietveld\": \"https://codereview.chromium.org\", \"buildnumber\": 2859, \"requestedAt\": 1467326481, \"revision\": \"\"}}",
+      "status_changed_ts": "1467326613396860",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008390393807541984",
+      "result": "SUCCESS",
+      "utcnow_ts": "1467330289694660",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"lukasperaza@google.com\"}}], \"properties\": {\"attempt_start_ts\": 1467326442594030, \"category\": \"cq\", \"issue\": \"2103043008\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra\", \"patch_storage\": \"rietveld\", \"patchset\": \"1\", \"reason\": \"CQ\", \"revision\": \"HEAD\", \"rietveld\": \"https://codereview.chromium.org\"}}",
+      "completed_ts": "1467326613396880",
+      "updated_ts": "1467326613397100"
+    },
+    {
+      "status": "COMPLETED",
+      "created_ts": "1467326193429920",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/gerrit/chromium-review.googlesource.com/357930/1",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2858",
+      "bucket": "master.tryserver.infra",
+      "result_details_json": "{\"properties\": {\"got_revision\": \"d8b7edd57c2584d80aee77c45b84b9b4aed95fcf\", \"recipe\": \"run_presubmit\", \"event.change.url\": \"https://chromium-review.googlesource.com/#/c/357930\", \"patch_project\": \"infra/infra\", \"build_revision\": \"c62890265b947bf33fe45001298f3522ae205a01\", \"category\": \"cq\", \"runhooks\": true, \"event.change.id\": \"infra%2Finfra~master~Ib28ae613d3e0d374962a8b30b0d477ce83ff9e55\", \"slavename\": \"slave872-c4\", \"attempt_start_ts\": 1467326170488000, \"blamelist\": [\"martiniss@chromium.org\"], \"branch\": null, \"master\": \"master.tryserver.infra\", \"event.patchSet.ref\": \"refs/changes/30/357930/1\", \"repo_name\": \"infra\", \"project\": \"\", \"workdir\": \"/b/build/slave/presubmit_infra\", \"repository\": \"https://chromium.googlesource.com/infra/infra\", \"buildername\": \"Infra Presubmit\", \"event.change.number\": 357930, \"mastername\": \"tryserver.infra\", \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"requester\": \"commit-bot@chromium.org\", \"buildbotURL\": \"https://build.chromium.org/p/tryserver.infra/\", \"build_scm\": \"git\", \"gerrit\": \"https://chromium-review.googlesource.com\", \"buildnumber\": 2858, \"requestedAt\": 1467326201, \"revision\": \"\"}}",
+      "status_changed_ts": "1467326266963150",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008390686948297584",
+      "result": "SUCCESS",
+      "utcnow_ts": "1467330289695540",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"martiniss@chromium.org\"}, \"repo_url\": \"https://chromium.googlesource.com/infra/infra\"}], \"properties\": {\"attempt_start_ts\": 1467326170488000, \"category\": \"cq\", \"event.change.id\": \"infra%2Finfra~master~Ib28ae613d3e0d374962a8b30b0d477ce83ff9e55\", \"event.change.number\": 357930, \"event.change.url\": \"https://chromium-review.googlesource.com/#/c/357930\", \"event.patchSet.ref\": \"refs/changes/30/357930/1\", \"gerrit\": \"https://chromium-review.googlesource.com\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra/infra\", \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"revision\": \"HEAD\"}}",
+      "completed_ts": "1467326266963180",
+      "updated_ts": "1467326266963430"
+    },
+    {
+      "status": "COMPLETED",
+      "created_ts": "1467324714438650",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/rietveld/codereview.chromium.org/2042873005/20001",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2857",
+      "bucket": "master.tryserver.infra",
+      "result_details_json": "{\"properties\": {\"got_revision\": \"94903b909a5adf941207d5d3bab4663e494477f6\", \"recipe\": \"run_presubmit\", \"patch_project\": \"infra\", \"build_revision\": \"b653c9855b2d06e50006e3dcf49d3c420c97b95c\", \"category\": \"cq\", \"runhooks\": true, \"slavename\": \"slave864-c4\", \"attempt_start_ts\": 1467324695260360, \"blamelist\": [\"jrobbins@chromium.org\"], \"branch\": null, \"master\": \"master.tryserver.infra\", \"patchset\": \"20001\", \"issue\": \"2042873005\", \"repo_name\": \"infra\", \"project\": \"\", \"workdir\": \"/b/build/slave/presubmit_infra\", \"repository\": \"\", \"buildername\": \"Infra Presubmit\", \"mastername\": \"tryserver.infra\", \"patch_storage\": \"rietveld\", \"reason\": \"CQ\", \"requester\": \"commit-bot@chromium.org\", \"buildbotURL\": \"https://build.chromium.org/p/tryserver.infra/\", \"build_scm\": \"git\", \"rietveld\": \"https://codereview.chromium.org\", \"buildnumber\": 2857, \"requestedAt\": 1467324721, \"revision\": \"\"}}",
+      "status_changed_ts": "1467324870672310",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008392236683556896",
+      "result": "SUCCESS",
+      "utcnow_ts": "1467330289696370",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"jrobbins@chromium.org\"}}], \"properties\": {\"attempt_start_ts\": 1467324695260360, \"category\": \"cq\", \"issue\": \"2042873005\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra\", \"patch_storage\": \"rietveld\", \"patchset\": \"20001\", \"reason\": \"CQ\", \"revision\": \"HEAD\", \"rietveld\": \"https://codereview.chromium.org\"}}",
+      "completed_ts": "1467324870672360",
+      "updated_ts": "1467324870672650"
+    },
+    {
+      "status": "COMPLETED",
+      "created_ts": "1467320987078010",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/gerrit/chromium-review.googlesource.com/357863/1",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2856",
+      "bucket": "master.tryserver.infra",
+      "result_details_json": "{\"properties\": {\"got_revision\": \"99ec078b9ae1eb2b06bbd80133faaf78b18ede34\", \"recipe\": \"run_presubmit\", \"event.change.url\": \"https://chromium-review.googlesource.com/#/c/357863\", \"patch_project\": \"infra/infra\", \"build_revision\": \"30bdf0d025513509dfc2115224c27d44af581100\", \"category\": \"cq\", \"runhooks\": true, \"event.change.id\": \"infra%2Finfra~master~I8354bed85a7408edce50df32fdb1b174710f3dc0\", \"slavename\": \"slave913-c4\", \"attempt_start_ts\": 1467320962596000, \"blamelist\": [\"martiniss@chromium.org\"], \"branch\": null, \"master\": \"master.tryserver.infra\", \"event.patchSet.ref\": \"refs/changes/63/357863/1\", \"repo_name\": \"infra\", \"project\": \"\", \"workdir\": \"/b/build/slave/presubmit_infra\", \"repository\": \"https://chromium.googlesource.com/infra/infra\", \"buildername\": \"Infra Presubmit\", \"event.change.number\": 357863, \"mastername\": \"tryserver.infra\", \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"requester\": \"commit-bot@chromium.org\", \"buildbotURL\": \"https://build.chromium.org/p/tryserver.infra/\", \"build_scm\": \"git\", \"gerrit\": \"https://chromium-review.googlesource.com\", \"buildnumber\": 2856, \"requestedAt\": 1467320991, \"revision\": \"\"}}",
+      "status_changed_ts": "1467321111113350",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008396144967591984",
+      "result": "SUCCESS",
+      "utcnow_ts": "1467330289697170",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"martiniss@chromium.org\"}, \"repo_url\": \"https://chromium.googlesource.com/infra/infra\"}], \"properties\": {\"attempt_start_ts\": 1467320962596000, \"category\": \"cq\", \"event.change.id\": \"infra%2Finfra~master~I8354bed85a7408edce50df32fdb1b174710f3dc0\", \"event.change.number\": 357863, \"event.change.url\": \"https://chromium-review.googlesource.com/#/c/357863\", \"event.patchSet.ref\": \"refs/changes/63/357863/1\", \"gerrit\": \"https://chromium-review.googlesource.com\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra/infra\", \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"revision\": \"HEAD\"}}",
+      "completed_ts": "1467321111113380",
+      "updated_ts": "1467321111113550"
+    },
+    {
+      "status": "COMPLETED",
+      "created_ts": "1467320967324880",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/gerrit/chromium-review.googlesource.com/357600/2",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2855",
+      "bucket": "master.tryserver.infra",
+      "result_details_json": "{\"properties\": {\"got_revision\": \"99ec078b9ae1eb2b06bbd80133faaf78b18ede34\", \"recipe\": \"run_presubmit\", \"event.change.url\": \"https://chromium-review.googlesource.com/#/c/357600\", \"patch_project\": \"infra/infra\", \"build_revision\": \"30bdf0d025513509dfc2115224c27d44af581100\", \"category\": \"cq\", \"runhooks\": true, \"event.change.id\": \"infra%2Finfra~master~I183be786b3b67d9d78a010df93e7f060055386cc\", \"slavename\": \"slave426-c4\", \"attempt_start_ts\": 1467320945633000, \"blamelist\": [\"martiniss@chromium.org\"], \"branch\": null, \"master\": \"master.tryserver.infra\", \"event.patchSet.ref\": \"refs/changes/00/357600/2\", \"repo_name\": \"infra\", \"project\": \"\", \"workdir\": \"/b/build/slave/presubmit_infra\", \"repository\": \"https://chromium.googlesource.com/infra/infra\", \"buildername\": \"Infra Presubmit\", \"event.change.number\": 357600, \"mastername\": \"tryserver.infra\", \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"requester\": \"commit-bot@chromium.org\", \"buildbotURL\": \"https://build.chromium.org/p/tryserver.infra/\", \"build_scm\": \"git\", \"gerrit\": \"https://chromium-review.googlesource.com\", \"buildnumber\": 2855, \"requestedAt\": 1467320970, \"revision\": \"\"}}",
+      "status_changed_ts": "1467321169774350",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008396165440778528",
+      "result": "SUCCESS",
+      "utcnow_ts": "1467330289697980",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"martiniss@chromium.org\"}, \"repo_url\": \"https://chromium.googlesource.com/infra/infra\"}], \"properties\": {\"attempt_start_ts\": 1467320945633000, \"category\": \"cq\", \"event.change.id\": \"infra%2Finfra~master~I183be786b3b67d9d78a010df93e7f060055386cc\", \"event.change.number\": 357600, \"event.change.url\": \"https://chromium-review.googlesource.com/#/c/357600\", \"event.patchSet.ref\": \"refs/changes/00/357600/2\", \"gerrit\": \"https://chromium-review.googlesource.com\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra/infra\", \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"revision\": \"HEAD\"}}",
+      "completed_ts": "1467321169774420",
+      "updated_ts": "1467321169774670"
+    },
+    {
+      "status": "COMPLETED",
+      "created_ts": "1467320909758820",
+      "tags": [
+        "builder:Infra Presubmit",
+        "buildset:patch/rietveld/codereview.chromium.org/2118503003/20001",
+        "master:master.tryserver.infra",
+        "user_agent:cq"
+      ],
+      "url": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2854",
+      "bucket": "master.tryserver.infra",
+      "result_details_json": "{\"properties\": {\"got_revision\": \"99ec078b9ae1eb2b06bbd80133faaf78b18ede34\", \"recipe\": \"run_presubmit\", \"patch_project\": \"infra\", \"build_revision\": \"30bdf0d025513509dfc2115224c27d44af581100\", \"category\": \"cq\", \"runhooks\": true, \"slavename\": \"slave913-c4\", \"attempt_start_ts\": 1467320880887920, \"blamelist\": [\"sheyang@chromium.org\"], \"branch\": null, \"master\": \"master.tryserver.infra\", \"patchset\": \"20001\", \"issue\": \"2118503003\", \"repo_name\": \"infra\", \"project\": \"\", \"workdir\": \"/b/build/slave/presubmit_infra\", \"repository\": \"\", \"buildername\": \"Infra Presubmit\", \"mastername\": \"tryserver.infra\", \"patch_storage\": \"rietveld\", \"reason\": \"CQ\", \"requester\": \"commit-bot@chromium.org\", \"buildbotURL\": \"https://build.chromium.org/p/tryserver.infra/\", \"build_scm\": \"git\", \"rietveld\": \"https://codereview.chromium.org\", \"buildnumber\": 2854, \"requestedAt\": 1467320911, \"revision\": \"\"}}",
+      "status_changed_ts": "1467320979632270",
+      "created_by": "user:5071639625-1lppvbtck1morgivc6sq4dul7klu27sd@developer.gserviceaccount.com",
+      "id": "9008396226850643824",
+      "result": "SUCCESS",
+      "utcnow_ts": "1467330289698730",
+      "parameters_json": "{\"builder_name\": \"Infra Presubmit\", \"changes\": [{\"author\": {\"email\": \"sheyang@chromium.org\"}}], \"properties\": {\"attempt_start_ts\": 1467320880887920, \"category\": \"cq\", \"issue\": \"2118503003\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra\", \"patch_storage\": \"rietveld\", \"patchset\": \"20001\", \"reason\": \"CQ\", \"revision\": \"HEAD\", \"rietveld\": \"https://codereview.chromium.org\"}}",
+      "completed_ts": "1467320979632320",
+      "updated_ts": "1467320979632590"
+    }
+  ],
+  "kind": "buildbucket#resourcesItem",
+  "etag": "\"-PZn5aJw-26ikbp-_SfonhyavpU/69MC48Y98t6DCwlnXVjVgvV-R4k\""
+}

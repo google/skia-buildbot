@@ -1,0 +1,61 @@
+// Copyright (c) 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package config;
+
+// Project is a project definition for Milo.
+message Project {
+  // ID is the identifier for the project, if different from its repository name.
+  string ID = 1;
+
+  // Readers is the list of gaia users or Chrome-infra-auth groups allowed to view
+  // the project.
+  repeated string Readers = 2;
+
+  // Writers is the list of gaia users or Chrome-infra-auth groups allowed to
+  // perform actions on parts of the project.
+  repeated string Writers = 3;
+
+  // Consoles is a list of consoles to define under /console/
+  repeated Console Consoles = 4;
+}
+
+// Console is a waterfall definition consisting of one or more builders.
+message Console {
+  // ID is the reference to the console, and will be the address to make the
+  // console reachable from /console/<Project>/<ID>.
+  string ID = 1;
+
+  // Name is the longform name of the waterfall, and will be used to be
+  // displayed in the title.
+  string Name = 2;
+
+  // RepoURL is the name of the git repository to display as the rows of the console.
+  string RepoURL = 3;
+
+  // Branch is the branch to pull commits from when displaying the console.
+  string Branch = 4;
+
+  // Builders is a list of builder configurations to display as the columns of the console.
+  repeated Builder Builders = 5;
+}
+
+// A builder is a reference to a Milo builder.
+message Builder {
+  // Module is the name of the Milo module this builder is in reference to.
+  string Module = 1;
+
+  // Name is the identifier to find the builder within the module.
+  string Name = 2;
+
+  // Category describes the hierarchy of the builder on the header of the
+  // console as a "|" delimited list.  Neighboring builders with common ancestors
+  // will be have their headers merged.
+  string Category = 3;
+
+  // ShortName is the 1-3 character abbreviation of the builder.
+  string ShortName = 4;
+}

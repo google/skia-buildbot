@@ -1,0 +1,2 @@
+# This directory contains configs setup by integration tests.
+services/*

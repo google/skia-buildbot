@@ -1,0 +1,98 @@
+{
+  "Name": "InfraPresubmit",
+  "Warning": "",
+  "CurrentBuilds": [
+    {
+      "Link": {
+        "Label": "2862",
+        "Img": "",
+        "URL": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2862",
+        "Alt": ""
+      },
+      "Status": "Running",
+      "PendingTime": {
+        "Started": "2016-06-30T23:03:52.84472Z",
+        "Finished": "2016-06-30T23:05:10.54916Z",
+        "Duration": 77704440000
+      },
+      "ExecutionTime": {
+        "Started": "2016-06-30T23:05:10.54916Z",
+        "Finished": "0001-01-01T00:00:00Z",
+        "Duration": -9374632844720000
+      },
+      "Revision": "HEAD",
+      "Text": [
+        "buildbucket id 9008388967818877792"
+      ],
+      "Blame": [
+        {
+          "AuthorName": "",
+          "AuthorEmail": "recipe-roller@chromium.org",
+          "Repo": "",
+          "Branch": "",
+          "RequestRevision": "HEAD",
+          "Revision": "",
+          "Description": "",
+          "Title": "",
+          "Changelist": {
+            "Label": "Rietveld CL 2112113002",
+            "Img": "",
+            "URL": "https://codereview.chromium.org/2112113002/#ps1",
+            "Alt": ""
+          },
+          "CommitURL": "",
+          "File": null
+        }
+      ],
+      "Build": null
+    }
+  ],
+  "PendingBuilds": [
+    {
+      "Link": {
+        "Label": "2863",
+        "Img": "",
+        "URL": "https://build.chromium.org/p/tryserver.infra/builders/Infra%20Presubmit/builds/2863",
+        "Alt": ""
+      },
+      "Status": "NotRun",
+      "PendingTime": {
+        "Started": "2016-06-30T23:23:35.73683Z",
+        "Finished": "0001-01-01T00:00:00Z",
+        "Duration": -9375815736830000
+      },
+      "ExecutionTime": {
+        "Started": "0001-01-01T00:00:00Z",
+        "Finished": "0001-01-01T00:00:00Z",
+        "Duration": 0
+      },
+      "Revision": "HEAD",
+      "Text": [
+        "buildbucket id 9008387727896135840"
+      ],
+      "Blame": [
+        {
+          "AuthorName": "",
+          "AuthorEmail": "recipe-roller@chromium.org",
+          "Repo": "",
+          "Branch": "",
+          "RequestRevision": "HEAD",
+          "Revision": "",
+          "Description": "",
+          "Title": "",
+          "Changelist": {
+            "Label": "Rietveld CL 2114743004",
+            "Img": "",
+            "URL": "https://codereview.chromium.org/2114743004/#ps1",
+            "Alt": ""
+          },
+          "CommitURL": "",
+          "File": null
+        }
+      ],
+      "Build": null
+    }
+  ],
+  "FinishedBuilds": null,
+  "MachinePool": null
+}

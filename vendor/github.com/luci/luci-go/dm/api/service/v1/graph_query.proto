@@ -1,0 +1,134 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "github.com/luci/luci-go/dm/api/service/v1/types.proto";
+
+package dm;
+
+// GraphQuery represents a single query into the state of DM's dependency graph.
+// It's a required parameter for WalkGraphReq.
+message GraphQuery {
+  // AttemptList allows you to list one or more specific attempts as the result
+  // of the query. If a quest contains the attempt number 0, or is empty, it
+  // means 'all attempts for this quest'.
+  dm.AttemptList attempt_list = 1;
+
+  message AttemptRange {
+    string quest = 1;
+    uint32 low = 2;
+    uint32 high = 3;
+  }
+  // attempt_range allows you to list a range of attempts in a single quest.
+  // low must be > 0, and high must be > low. The range is [low, high). High may
+  // be higher than the highest attempt, and low may be lower than the lowest
+  // attempt (but not 0).
+  repeated AttemptRange attempt_range = 2;
+
+  // A Search allows you to query objects whose properties match all of the
+  // provided filters. Filters take the form of a dot-delimited path. For
+  // example, say that we had the following objects:
+  //
+  //   Quest(id=deadbeef):
+  //     created = <timestamp>  #sort
+  //     descriptor.distributor_config_name = "foo"
+  //     descriptor.json_payload = {
+  //       "key": "value",
+  //       "multi": ["some", 10, "values", true],
+  //       "sub": [{"msg": 11}, {"msg": 12}],
+  //     }
+  //
+  //   Attempt(id=deadbeef|1):
+  //     created = <timestamp>  #sort
+  //     attempt_type = Finished
+  //     finished.expiration = <timestamp>
+  //     finished.json_result = {
+  //       "rslt": "yes",
+  //       "ok": true,
+  //     }
+  //
+  // Then you could query (in pseudo-proto):
+  //   domain: Attempt
+  //   approx_filters: {
+  //     "attempt_type": ["Finished"],
+  //     "$quest.descriptor.json_payload.multi": [true, 10],
+  //     "$quest.descriptor.json_payload.sub.msg": [11, 10],
+  //     "finished.json_result.ok": [true],
+  //   }
+  //
+  // Or:
+  //
+  //   domain: Attempt
+  //   exact_filters: {
+  //     "$quest.descriptor.json_payload.multi[1]": [10],
+  //     "$quest.descriptor.json_payload.sub[0].msg": [11],
+  //   }
+  //
+  // Literal '.' and '[' characters may be escaped with a backslash.
+  message Search {
+    enum Domain {
+      QUEST = 0;
+      ATTEMPT = 1;
+    }
+    // Domain indicates which class of objects your query applies to. The fields
+    // available to query are defined by the `data` field in the corresponding
+    // GraphData message.
+    //
+    // Additionally `Attempt` has a special field $quest whose subfields are
+    // queriable in the exact same way that a search in a Quest domain works.
+    Domain domain = 1;
+
+    // 2 is reserved for sort_by. For now everything will sort by "created", but
+    // it may be possible to expand quest and/or result payloads in the future
+    // so that they can elect alternate sort-orders for themselves.
+    reserved "sort_by";
+    reserved 2;
+
+    // Start and End are optional restrictions on the first sort property. For
+    // now, these are just restrictions on the 'created' timestamp for either
+    // the Quest or Attempt, depending on the SearchDomain.
+    dm.PropertyValue start = 3;
+    dm.PropertyValue end = 4;
+
+    // ApproxFilters allows you to filter on 'approximate' fields. Approximate
+    // fields are the json path to the value, without any array subscripts. For
+    // example, if your document looked like:
+    //
+    //   {
+    //     "some": ["list", {"of": ["data", "and", "stuff"]}],
+    //   }
+    //
+    // Then the following approximate filters would match:
+    //   "some" = ["list"]
+    //   "some.of" = ["data"]
+    //   "some.of" = ["and"]
+    //   "some.of" = ["stuff"]
+    //   "some.of" = ["stuff", "and"]
+    //   "some.of" = ["stuff", "and", "data"]
+    //
+    // This is useful for filtering documents where the order of parameters
+    // in a list or sublist isn't known, or doesn't matter.
+    map<string, dm.MultiPropertyValue> approx_filters = 5;
+
+    // ExactFilters allows you to filter on 'exact' fields. Exact fields are the
+    // json path to the value, including array subscripts. For example if your
+    // document looked like:
+    //
+    //   {
+    //     "some": ["list", {"of": ["data", "and", "stuff"]}],
+    //   }
+    //
+    // Then the following exact filters would match:
+    //   "some[0]" = "list"
+    //   "some[1].of[0]" = "data"
+    //   "some[1].of[1]" = "and"
+    //   "some[1].of[2]" = "stuff"
+    //
+    // This is useful for filtering documents where the order of parameters
+    // in a list or sublist matters.
+    map<string, dm.PropertyValue> exact_filters = 6;
+  }
+  repeated Search search = 3;
+}

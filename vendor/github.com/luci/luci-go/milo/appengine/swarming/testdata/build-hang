@@ -1,0 +1,42 @@
+@@@CURRENT_TIMESTAMP@1467120204@@@
+@@@SEED_STEP@recipe bootstrap@@@
+@@@STEP_CURSOR@recipe bootstrap@@@
+@@@CURRENT_TIMESTAMP@1467120204@@@
+@@@STEP_STARTED@@@
+$ git clone https://chromium.googlesource.com/infra/infra infra
+Cloning into 'infra'...
+Running command "e:\\b\\depot_tools\\python276_bin\\python.exe" ["python" "infra/recipes/recipes.py" "run" "--properties" "{\"attempt_start_ts\": 1467120174498000, \"blamelist\": [\"tandrii@chromium.org\"], \"buildername\": \"Infra Win Tester (Swarming)\", \"category\": \"cq_experimental\", \"event.change.id\": \"infra%2Finfra~master~I52cf35351ad2ef77d4fb1e838f2633ea8e66608b\", \"event.change.number\": 356372, \"event.change.url\": \"https://chromium-review.googlesource.com/#/c/356372\", \"event.patchSet.ref\": \"refs/changes/72/356372/2\", \"gerrit\": \"https://chromium-review.googlesource.com\", \"master\": \"master.tryserver.infra\", \"patch_project\": \"infra/infra\", \"patch_storage\": \"gerrit\", \"reason\": \"CQ\", \"repository\": \"https://chromium.googlesource.com/infra/infra\", \"revision\": \"HEAD\"}" "--properties-file" "" "--workdir" "C:\\Users\\CHROME~2\\AppData\\Local\\Temp\\kitchen-901488807" "--output-result-json" "" "--timestamps" "infra_repo_trybot"] in ""
+Cloning into 'e:\b\swarm_slave\work\isolated\isolated_runjle71l\infra\recipes\.recipe_deps\recipe_engine'...
+fatal: Needed a single revision
+@@@CURRENT_TIMESTAMP@1467120232.23@@@
+@@@HONOR_ZERO_RETURN_CODE@@@
+@@@SEED_STEP@setup_build@@@
+@@@STEP_CURSOR@setup_build@@@
+@@@CURRENT_TIMESTAMP@1467120232.23@@@
+@@@STEP_STARTED@@@
+@@@STEP_LOG_LINE@run_recipe@To repro this locally, run the following line from a build checkout:@@@
+@@@STEP_LOG_LINE@run_recipe@@@@
+@@@STEP_LOG_LINE@run_recipe@./scripts/tools/run_recipe.py infra_repo_trybot --properties-file - <<EOF@@@
+@@@STEP_LOG_LINE@run_recipe@{u'repository': u'https://chromium.googlesource.com/infra/infra', u'buildername': u'Infra Win Tester (Swarming)', 'recipe': 'infra_repo_trybot', u'patch_storage': u'gerrit', u'reason': u'CQ', u'event.change.url': u'https://chromium-review.googlesource.com/#/c/356372', u'patch_project': u'infra/infra', u'category': u'cq_experimental', u'event.change.id': u'infra%2Finfra~master~I52cf35351ad2ef77d4fb1e838f2633ea8e66608b', u'gerrit': u'https://chromium-review.googlesource.com', u'event.change.number': 356372, u'attempt_start_ts': 1467120174498000L, u'blamelist': [u'tandrii@chromium.org'], u'master': u'master.tryserver.infra', u'event.patchSet.ref': u'refs/changes/72/356372/2', u'revision': u'HEAD'}@@@
+@@@STEP_LOG_LINE@run_recipe@EOF@@@
+@@@STEP_LOG_LINE@run_recipe@@@@
+@@@STEP_LOG_LINE@run_recipe@To run on Windows, you can put the JSON in a file and redirect the@@@
+@@@STEP_LOG_LINE@run_recipe@contents of the file into run_recipe.py, with the < operator.@@@
+@@@STEP_LOG_END@run_recipe@@@
+Warning: could not find patch tool because there is no
+build_internal present.
+Warning: could not find patch tool because there is no
+build_internal present.
+Running recipe with {u'category': u'cq_experimental', u'repository': u'https://chromium.googlesource.com/infra/infra', u'buildername': u'Infra Win Tester (Swarming)', u'event.change.id': u'infra%2Finfra~master~I52cf35351ad2ef77d4fb1e838f2633ea8e66608b', 'recipe': 'infra_repo_trybot', u'gerrit': u'https://chromium-review.googlesource.com', u'patch_storage': u'gerrit', u'event.change.number': 356372, u'attempt_start_ts': 1467120174498000L, u'event.change.url': u'https://chromium-review.googlesource.com/#/c/356372', u'blamelist': [u'tandrii@chromium.org'], u'reason': u'CQ', u'master': u'master.tryserver.infra', u'event.patchSet.ref': u'refs/changes/72/356372/2', u'patch_project': u'infra/infra', u'revision': u'HEAD'}
+@@@STEP_TEXT@running recipe: "infra_repo_trybot"@@@
+@@@CURRENT_TIMESTAMP@1467120232.34@@@
+@@@STEP_CLOSED@@@
+@@@SEED_STEP@bot_update@@@
+@@@STEP_CURSOR@bot_update@@@
+@@@CURRENT_TIMESTAMP@1467120232.34@@@
+@@@STEP_STARTED@@@
+doing bot_update...
+@@@STEP_CURSOR@recipe bootstrap@@@
+@@@CURRENT_TIMESTAMP@1467131012@@@
+@@@STEP_CLOSED@@@
+@@@CURRENT_TIMESTAMP@1467131012@@@

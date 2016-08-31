@@ -1,0 +1,92 @@
+{
+  "Summary": {
+    "ParentLabel": null,
+    "Label": "2d8d62f6be545b10",
+    "Status": "Running",
+    "Banner": null,
+    "Bot": null,
+    "Source": {
+      "Label": "Task 2d8d62f6be545b10",
+      "Img": "",
+      "URL": "https://debug/user/task/2d8d62f6be545b10",
+      "Alt": ""
+    },
+    "MainLink": {
+      "Label": "Task 2d8d62f6be545b10",
+      "Img": "",
+      "URL": "https://debug/user/task/2d8d62f6be545b10",
+      "Alt": ""
+    },
+    "SubLink": [
+      {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/stdout",
+        "Alt": ""
+      }
+    ],
+    "Progress": null,
+    "Started": "2016-03-14T10:00:01.85071Z",
+    "Finished": "0001-01-01T00:00:00Z",
+    "Duration": 3598149290000,
+    "Type": "Recipe",
+    "LevelsDeep": 0,
+    "Verbosity": 0,
+    "Text": [
+      "Running recipe bootstrap"
+    ]
+  },
+  "SourceStamp": null,
+  "Components": [
+    {
+      "ParentLabel": null,
+      "Label": "recipe bootstrap",
+      "Status": "Running",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/recipe_bootstrap/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "Confused? README here",
+          "Img": "",
+          "URL": "https://chromium.googlesource.com/external/github.com/luci/recipes-py/+/master/doc/workflow.md",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-03-14T10:00:02Z",
+      "Finished": "0001-01-01T00:00:00Z",
+      "Duration": 3598000000000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": null
+    }
+  ],
+  "PropertyGroup": [
+    {
+      "GroupName": "recipe bootstrap",
+      "Property": null
+    },
+    {
+      "GroupName": "Main",
+      "Property": null
+    },
+    {
+      "GroupName": "Swarming Tags",
+      "Property": [
+        {
+          "Key": "allow_milo",
+          "Value": "1"
+        }
+      ]
+    }
+  ],
+  "Blame": null
+}

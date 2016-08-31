@@ -1,0 +1,4 @@
+cron:
+- description: Reads cron job definitions from config
+  url: /internal/cron/read-config
+  schedule: every 5 minutes

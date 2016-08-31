@@ -1,0 +1,163 @@
+{
+  "Summary": {
+    "ParentLabel": null,
+    "Label": "2fafff1d46fc5010",
+    "Status": "InfraFailure",
+    "Banner": null,
+    "Bot": {
+      "Label": "vm517-m4",
+      "Img": "",
+      "URL": "https://debug/restricted/bot/vm517-m4",
+      "Alt": ""
+    },
+    "Source": {
+      "Label": "Task 2fafff1d46fc5010",
+      "Img": "",
+      "URL": "https://debug/user/task/2fafff1d46fc5010",
+      "Alt": ""
+    },
+    "MainLink": {
+      "Label": "Task 2fafff1d46fc5010",
+      "Img": "",
+      "URL": "https://debug/user/task/2fafff1d46fc5010",
+      "Alt": ""
+    },
+    "SubLink": [
+      {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/stdout",
+        "Alt": ""
+      }
+    ],
+    "Progress": null,
+    "Started": "2016-06-28T13:23:16.61592Z",
+    "Finished": "2016-06-28T16:24:03.24387Z",
+    "Duration": 10846627950000,
+    "Type": "Recipe",
+    "LevelsDeep": 0,
+    "Verbosity": 2,
+    "Text": [
+      "Task timed out",
+      "InfraFailure bot_update"
+    ]
+  },
+  "SourceStamp": null,
+  "Components": [
+    {
+      "ParentLabel": null,
+      "Label": "recipe bootstrap",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/recipe_bootstrap/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-28T13:23:24Z",
+      "Finished": "2016-06-28T16:23:32Z",
+      "Duration": 10808000000000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 1,
+      "Text": null
+    },
+    {
+      "ParentLabel": null,
+      "Label": "setup_build",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/setup_build/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "run_recipe",
+          "Img": "",
+          "URL": "foo/steps/setup_build/0/logs/run_recipe/0",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-28T13:23:52.230000128Z",
+      "Finished": "2016-06-28T13:23:52.34Z",
+      "Duration": 109999872,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 1,
+      "Text": [
+        "running recipe: \"infra_repo_trybot\""
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "bot_update",
+      "Status": "InfraFailure",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/bot_update/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-28T13:23:52.34Z",
+      "Finished": "0001-01-01T00:00:00Z",
+      "Duration": 10810903870000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 2,
+      "Text": null
+    }
+  ],
+  "PropertyGroup": [
+    {
+      "GroupName": "recipe bootstrap",
+      "Property": null
+    },
+    {
+      "GroupName": "setup_build",
+      "Property": null
+    },
+    {
+      "GroupName": "bot_update",
+      "Property": null
+    },
+    {
+      "GroupName": "Main",
+      "Property": null
+    },
+    {
+      "GroupName": "Swarming",
+      "Property": [
+        {
+          "Key": "Exit Code",
+          "Value": "-1"
+        }
+      ]
+    },
+    {
+      "GroupName": "Swarming Tags",
+      "Property": [
+        {
+          "Key": "allow_milo",
+          "Value": "1"
+        }
+      ]
+    }
+  ],
+  "Blame": null
+}

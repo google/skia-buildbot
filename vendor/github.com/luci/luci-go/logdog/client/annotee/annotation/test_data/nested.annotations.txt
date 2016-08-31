@@ -1,0 +1,22 @@
+BUILD_STEP@not nested
++error level must be >= 0
+STEP_NEST_LEVEL@-1
+STEP_CLOSED
+
+# This is the pattern used by recipe engine.
+SEED_STEP nesting.parent
+
+SEED_STEP nesting.child0
+STEP_CURSOR nesting.child0
+STEP_STARTED
+STEP_NEST_LEVEL@1
+STEP_CLOSED
+
+SEED_STEP nesting.child1
+STEP_CURSOR nesting.child1
+STEP_STARTED
+STEP_NEST_LEVEL@1
+STEP_CLOSED
+
+STEP_CURSOR nesting.parent
+STEP_CLOSED

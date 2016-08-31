@@ -1,0 +1,133 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+  -->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<script>
+  /**
+   * Patches a JSONPB LogStreamDescriptor object.
+   *
+   * @param state {Object} The LogStreamDescriptor object to patch.
+   */
+  function patchDescriptor(desc) {
+    desc.timestamp = new Date(desc.timestamp);
+  };
+
+  /**
+   * Patches a JSONPB LogStreamState object.
+   *
+   * @param state {Object} The LogStreamState object to patch.
+   */
+  function patchState(state) {
+    state.created = new Date(state.created);
+    state.terminalIndex = int64(state.terminalIndex);
+  };
+
+  /**
+   * Patches a JSONPB LogEntry object.
+   *
+   * @param ls {Object} The LogEntry object to patch.
+   * @param desc {Object, null} If supplied, link it to this LogStreamDescriptor
+   *     object.
+   */
+  function patchLogEntry(le, desc) {
+    le.timeOffset = durationProtoToMillis(le.timeOffset);
+    le.prefixIndex = int64(le.prefixIndex);
+    le.streamIndex = int64(le.streamIndex);
+
+    if (desc) {
+      le.desc = desc;
+      le.timestamp = addMillisecondsToDate(desc.timestamp, le.timeOffset);
+    }
+  };
+
+  /**
+   * Converts a string int64 into a Javascript number.
+   *
+   * Note that Javascript cannot hold a value larger than 2^53-1. If log streams
+   * ever approach this length, we will need to rework this value as an integer-
+   * string with helper functions.
+   */
+  function int64(s) {
+    if (!s) {
+      return 0;
+    }
+    var value = parseInt(s, 10);
+    if (isNaN(value)) {
+      throw ("Value is not a number: " + s);
+    }
+    return value;
+  }
+
+  /**
+   * Adds a specified duration protobuf to the supplied Date.
+   *
+   * Duration protos are expressed as a string referencing a floating point
+   * number of seconds followed by the letter "s":
+   * - "1337s"
+   * - "3.141592s"
+   */
+  function durationProtoToMillis(value) {
+    if ((!value) || value.charAt(value.length - 1) !== "s") {
+      throw ("Seconds string does not end in 's': " + value);
+    }
+    return (parseFloat(value) * 1000.0);
+  }
+
+  /**
+   * Returns a new Date object whose value is the initial date object with the
+   * specified number of milliseconds added to it.
+   *
+   * @param d {Date} The base Date object.
+   * @param ms {Number} The number of milliseconds to add.
+   */
+  function addMillisecondsToDate(d, ms) {
+    d = new Date(d);
+    d.setMilliseconds(d.getMilliseconds() + ms);
+    return d;
+  }
+
+  /**
+   * Defines a LogDog stream, which is specified by its project and path.
+   */
+  function LogDogStream(project, path) {
+    this.project = project;
+    this.path = path;
+  }
+  LogDogStream.splitProject = function(v) {
+    var parts = LogDogStream.split(v, 2);
+    if (parts.length === 1) {
+      return new LogDogStream(v, "");
+    }
+
+    // TODO: Remove this exception when project-less paths are no longer
+    // supported.
+    if (parts[0] === "_") {
+      parts[0] = "";
+    }
+    return new LogDogStream(parts[0], parts[1]);
+  };
+  LogDogStream.split = function(v, count) {
+    var parts = v.split("/");
+    if (!count) {
+      return parts;
+    }
+    result = parts.splice(0, count-1);
+    if (parts.length) {
+      result.push(parts.join("/"));
+    }
+    return result;
+  };
+  LogDogStream.cmp = function(a, b) {
+    if (a.project < b.project) {
+      return -1;
+    }
+    if (a.project > b.project) {
+      return 1;
+    }
+    return (a.path < b.path) ? -1 : ((a.path > b.path) ? 1 : 0);
+  };
+</script>

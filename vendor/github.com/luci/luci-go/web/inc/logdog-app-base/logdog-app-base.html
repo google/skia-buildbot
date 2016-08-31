@@ -1,0 +1,80 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+  -->
+
+<script>
+  /**
+   * Basic common LogDog application functionality.
+   *
+   * @param {window} window the application window to bind to
+   */
+  LogDogApp = function(window) {
+    // Set up our default LogDog host.
+    this.host = window.location.hostname;
+    if (this.host === "localhost") {
+      // Running locally. Bind to our development instance.
+      this.host = "luci-logdog-dev.appspot.com";
+    }
+
+    this.production = (window.location.port === "");
+  };
+
+  /**
+   * Returns an Array of values for a given query parameter.
+   *
+   * For example, if the query parameter was, "...?a=asdf&a=qwer", this would
+   * return ["asdf", "qwer"].
+   *
+   * @param {string} q the query parameter text.
+   * @param {string} key the query parameter key to extract.
+   * @returns {Array} the array of ordered query parameters for key.
+   */
+  LogDogApp.prototype.getQueryValues = function(q, key) {
+    var value = [];
+    q.split("&").forEach(function(v) {
+      var pair = v.split("=");
+      if (decodeURIComponent(pair[0]) === key) {
+        value.push(decodeURIComponent(pair[1]));
+      }
+    });
+    return value;
+  };
+
+  /**
+   * Returns the first value for a given query parameter.
+   *
+   * For example, if the query parameter was, "...?a=asdf&a=qwer", this would
+   * return "asdf".
+   *
+   * @param {string} q the query parameter text.
+   * @param {string} key the query parameter key to extract.
+   * @param {*} def the value to return if the query parameter does not exist.
+   * @returns {*} the first query value, or def if none.
+   */
+  LogDogApp.prototype.getQueryValue = function(q, key, def) {
+    var values = this.getQueryValues(q, key);
+    if (!values.length) {
+      return def;
+    }
+    return values[0];
+  };
+
+  /**
+   * Fixes a LogDog log stream path that was supplied in a URL.
+   *
+   * URL encoding specially converts the "+" characer into a space. Since spaces
+   * are not permitted in a LogDog log stream name, it is safe to convert spaces
+   * back into "+".
+   *
+   * @param {string} v the stream path value
+   * @returns {string} the fixed stream path value
+   */
+  LogDogApp.prototype.correctStreamPath = function(v) {
+    return v.replace(" ", "+");
+  };
+
+  /** Global LogDogApp instance bound to the current window. */
+  var logdog = new LogDogApp(window);
+</script>

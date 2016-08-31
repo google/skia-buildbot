@@ -1,0 +1,118 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../../inc/bower_components/polymer/polymer.html">
+<link rel="import" href="../../inc/logdog-app-base/logdog-app-base.html">
+<link rel="import" href="../../inc/logdog-stream-view/logdog-stream-view.html">
+<link rel="import" href="../../inc/auth/auth-signin.html">
+
+<link rel="stylesheet" href="../../styles/main.css">
+
+
+<!--
+An element for the LogDog lightweight view app of a single set of streams.
+
+The streams are specified by full path using the "s=" query parameter.
+-->
+<dom-module id="logdog-view">
+<style>
+  .banner {
+    width:100%;
+    height:40px;
+  }
+  .banner-left {
+    width:auto;
+    overflow:hidden;
+  }
+  .banner-right {
+    width:auto;
+    float:right;
+  }
+
+  #dev-message {
+    background-color: #FFE0B2;
+    text-align: center;
+    vertical-align: middle;
+    border-style: groove;
+    border-width: 1px;
+    font-family: 'Roboto', 'Noto', sans-serif;
+    font-size: 16px;
+  }
+</style>
+
+<template>
+  <div id="banner" class="banner">
+    <template is="dom-if" if="{{clientId}}">
+      <div class="banner-right">
+        <auth-signin
+            client-id="[[clientId]]"></auth-signin>
+      </div>
+    </template>
+
+    <div class="banner-left">
+      <div id="dev-message">
+        The LogDog log streaming system and this stream viewer are in early
+        developer preview. For more information,
+        <a href="/app/">visit the home page</a>.
+      </div>
+    </div>
+  </div>
+
+  <logdog-stream-view
+    id="view"
+    host="[[host]]"
+    streams="[[streams]]"></logdog-stream-view>
+</template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: "logdog-view",
+    properties: {
+      host: {
+        type: String,
+        notify: true,
+      },
+      clientId: {
+        type: String,
+        notify: true,
+      },
+      accessToken: {
+        type: String,
+        notify: true,
+        readOnly: true,
+      },
+      streams: {
+        type: Array,
+        notify: true,
+        readOnly: true,
+      },
+    },
+
+    attached: function() {
+      // Parse the stream names from the "s" query parameter.
+      var queryString = window.location.search.replace(/^\?/, "");
+      var streams = logdog.getQueryValues(queryString, "s").
+          map(logdog.correctStreamPath);
+      this._setStreams(streams);
+    },
+
+    _onSignin: function(e) {
+      this._setAccessToken(e.detail.access_token);
+    },
+    _onSignout: function(e) {
+      this._setAccessToken(null);
+    },
+  });
+
+  (function(i,s,o,g,r,a,m){i['CrDXObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://storage.googleapis.com/crdx-feedback.appspot.com/feedback.js','crdx');
+
+  crdx('setFeedbackButtonLink', 'https://bugs.chromium.org/p/chromium/issues/entry?components=Infra>Platforms>LogDog&labels=Infra-DX');
+</script>

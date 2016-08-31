@@ -1,0 +1,68 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package svcconfig;
+
+import "github.com/luci/luci-go/logdog/api/config/svcconfig/archival.proto";
+
+import "google/protobuf/duration.proto";
+
+// ProjectConfig is a set of per-project configuration parameters. Each
+// luci-config project must include one of these configs in order to register
+// or view log streams in that project's log stream space.
+//
+// A project's configuration should reside in the "projects/<project>" config
+// set and be named "<app-id>.cfg".
+//
+// Many of the parameters here can be bounded by GlobalConfig parameters.
+message ProjectConfig {
+  // The set of auth service groups that are permitted READ access to this
+  // project's log streams.
+  repeated string reader_auth_groups = 2;
+
+  // The set of chrome-infra-auth groups that are permitted WRITE access to this
+  // project's log streams.
+  repeated string writer_auth_groups = 3;
+
+  // The maximum lifetime of a log stream.
+  //
+  // If a stream has not terminated after this period of time, it will be
+  // forcefully archived, and additional stream data will be discarded.
+  //
+  // This is upper-bounded by the global "archive_delay_max" parameter.
+  google.protobuf.Duration max_stream_age = 4;
+
+  // The maximum amount of time after a prefix has been registered when log
+  // streams may also be registered under that prefix.
+  //
+  // See Config's "prefix_expiration" for more information.
+  google.protobuf.Duration prefix_expiration = 5;
+
+  // The archival Google Storage bucket name.
+  //
+  // Log streams artifacts will be stored in a subdirectory of this bucket:
+  // gs://<archive_gs_bucket>/<app-id>/<project-name>/<log-path>/artifact...
+  //
+  // Note that the Archivist microservice must have WRITE access to this
+  // bucket, and the Coordinator must have READ access.
+  //
+  // If this is not set, the logs will be archived in a project-named
+  // subdirectory in the global "archive_gs_base" location.
+  string archive_gs_bucket = 10;
+
+  // If true, always create an additional data file that is the rendered content
+  // of the stream data. By default, only streams that explicitly register a
+  // binary file extension must be rendered.
+  //
+  // See Config's "always_create_binary" for more information.
+  bool render_all_streams = 11;
+
+  // Project-specific archive index configuration.
+  //
+  // Any unspecified index configuration will default to the service archival
+  // config.
+  ArchiveIndexConfig archive_index_config = 12;
+}

@@ -1,0 +1,101 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/duration.proto";
+
+import "github.com/luci/luci-go/dm/api/distributor/swarming/v1/isolate_ref.proto";
+
+package swarmingV1;
+
+// Parameters represents the set of swarming parameters that the Swarming v1
+// distributor can interpret for use with a Swarming v1 compatible service.
+message Parameters {
+  // These parameters affect how the Executions for this Quest are scheduled.
+  message Scheduling {
+    // Priority adjusts the scheduling preference for Executions. The higher the
+    // priority number, the longer it will take to schedule, and vice versa (ala
+    // `nice`).
+    //
+    // A value of 0 (default) corresponds to a default priority (currently 100).
+    // Other values correspond directly to the swarming task Priority.
+    //
+    // THIS MEANS THAT PRIORITY 0 IS NOT PERMITTED HERE! If you want 0, use
+    // 1 instead.
+    //
+    // This must be <= 255.
+    uint32 priority = 1;
+
+    // These specifiy the profile of the machine to use for Execuions of this
+    // quest. These can indicate OS, number of cores, amount of ram, GPU type,
+    // pool, etc. See the swarming service instance for available dimensions.
+    map<string, string> dimensions = 2;
+
+    // This indicates the maximum amount of time that an Execution may run
+    // without emitting IO on stdout/err. 0 means 'no timeout'.
+    google.protobuf.Duration io_timeout = 3;
+  }
+  Scheduling scheduling = 1;
+
+  message Meta {
+    // The 'human readable' name prefix for Executions of this quest. DM will
+    // automatically prepend this to the execution ID. So if this was "cool
+    // job", the swarming task name would be
+    //   "cool job / <quest_ID>|<attempt>|<execution>"
+    string name_prefix = 1;
+  }
+  Meta meta = 2;
+
+  message Job {
+    message Inputs {
+      // 0 or more isolated IDs that will be 'included' together into the final
+      // job .isolated sent to swarming.
+      //
+      // The "server" value must either be omitted, or equal the isolate server
+      // defined by this distributor's config (the `isolate.host` field,
+      // prepended with "https://").
+      repeated swarmingV1.IsolatedRef isolated = 1;
+
+      message CipdPackage {
+        string name = 1;
+        string path = 2;
+        string version = 3;
+      }
+      // 0 or more cipd packages for the job.
+      repeated CipdPackage packages = 2;
+
+      // Server to use for cipd packages. Required (though it may be specified
+      // by the quest's designated distributor config). This must be
+      // scheme://<hostname>, e.g. "https://example.appspot.com". The only
+      // supported schemes are http and https.
+      string cipd_server = 3;
+    }
+    Inputs inputs = 1;
+
+    // This is the "argv" to run with this job. This includes substitution
+    // paramters defined by swarming's run_isolated.py script:
+    //   https://github.com/luci/luci-py/blob/master/client/run_isolated.py
+    //
+    // Additionally, DM provides the following substitutions:
+    //   ${DM.PREVIOUS.EXECUTION.STATE:PATH} - the path to a JSONPB encoding of
+    //     the swarming_v1.Result from the previous Execution of this Attempt.
+    //   ${DM.QUEST.DATA.DESC:PATH} - the path to the
+    //     dm.Quest.Data.Desc JSONPB for the quest that this execution is part
+    //     of.
+    //   ${DM.EXECUTION.AUTH:PATH} - the path to the JSONPB of a
+    //     dm.Execution.Auth for the current execution. Consuming this file is
+    //     currently required to interact with DM, making this substitution
+    //     parameter a requirement.
+    //   ${DM.HOST} - the hostname to use to access DM's pRPC API.
+    //
+    // Command MUST be specified; specifying a command in any of the isolated
+    // inputs WILL NOT DO ANYTHING.
+    repeated string command = 2;
+
+    // Environment variables for the executions.
+    map<string, string> env = 4;
+  }
+  Job job = 3;
+}

@@ -1,0 +1,11 @@
+inc/bower_components
+node_modules
+
+# Gulp build/dist artifacts.
+dist/*/**
+!dist/*/.keep
+apps/*/.tmp
+
+# Tag files for installed Bower/NPM.
+.npm.installed
+.bower.installed

@@ -1,0 +1,104 @@
+name: "steps"
+status: FAILURE
+substep: <
+  step: <
+    name: "baz"
+    status: SUCCESS
+    started: <
+      seconds: 1420070402
+    >
+    ended: <
+      seconds: 1420070404
+    >
+    text: "seeded text"
+    other_links: <
+      label: "cats"
+      url: "http://example.com/cats"
+    >
+    other_links: <
+      label: "dogs"
+      url: "http://example.com/dogs"
+    >
+  >
+>
+substep: <
+  step: <
+    name: "foo"
+    status: SUCCESS
+    substep: <
+      step: <
+        name: "bar"
+        status: FAILURE
+        failure_details: <
+          type: EXCEPTION
+        >
+        substep: <
+          step: <
+            name: "qux"
+            status: FAILURE
+            started: <
+              seconds: 1420070404
+            >
+            ended: <
+              seconds: 1420070405
+            >
+          >
+        >
+        started: <
+          seconds: 1420070401
+        >
+        ended: <
+          seconds: 1420070404
+        >
+        text: "final summary"
+        text: "message0"
+        text: "message1"
+        text: "message2"
+        other_links: <
+          label: "logging.json"
+          logdog_stream: <
+            name: "base/steps/bar/0/logs/logging.json/0"
+          >
+        >
+        other_links: <
+          label: "lorem.txt"
+          logdog_stream: <
+            name: "base/steps/bar/0/logs/lorem.txt/0"
+          >
+        >
+        other_links: <
+          label: "example"
+          url: "http://example.com"
+        >
+        other_links: <
+          label: "example"
+          alias_label: "alias"
+          url: "http://example.com/alias"
+        >
+        property: <
+          name: "foo"
+          value: "bar"
+        >
+        property: <
+          name: "baz"
+          value: "qux"
+        >
+        property: <
+          name: "quux"
+        >
+      >
+    >
+    started: <
+      seconds: 1420070400
+    >
+    ended: <
+      seconds: 1420070401
+    >
+  >
+>
+started: <
+  seconds: 1420070400
+>
+ended: <
+  seconds: 1420070405
+>

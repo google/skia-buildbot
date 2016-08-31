@@ -1,0 +1,264 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<!doctype html>
+<title>rpc-client</title>
+
+<link rel="import" href="../rpc-client.html">
+<script src="../../bower_components/web-component-tester/browser.js"></script>
+
+<test-fixture id="client">
+  <template>
+    <rpc-client service="service" method="ok"></rpc-client>
+  </template>
+</test-fixture>
+<script>
+  'use strict';
+
+  suite('<rpc-client>', function() {
+    var client;
+    var server;
+
+    setup(function() {
+      var prefix = ')]}\'\n';
+
+      server = sinon.fakeServer.create();
+      var okResponseHeaders = {
+        'Content-Type': 'application/json',
+        'X-Prpc-Grpc-Code': '' + luci.rpc.Code.OK
+      }
+      server.respondWith('POST', '/prpc/service/ok', [
+        200,
+        okResponseHeaders,
+        prefix + '{"secure": false}'
+      ]);
+      server.respondWith(
+        'POST',
+        'https://' + document.location.host + '/prpc/service/ok',
+        [
+          200,
+          okResponseHeaders,
+          prefix + '{"secure": true}'
+        ])
+
+      server.respondWith('POST', '/prpc/service/notFound', [
+        404,
+        {
+          'Content-Type': 'text/plain',
+          'X-Prpc-Grpc-Code': '' + luci.rpc.Code.NOT_FOUND
+        },
+        'Not found'
+      ]);
+
+      server.respondWith('POST', '/prpc/service/noCode', [
+        200,
+        {
+          'Content-Type': 'text/json',
+        },
+        '{"blah": "bleh"}'
+      ]);
+
+      server.respondWith('POST', '/prpc/service/invalidCode', [
+        200,
+        {
+          'Content-Type': 'text/json',
+          'X-Prpc-Grpc-Code': 'abc'
+        },
+        '{"blah": "bleh"}'
+      ]);
+
+      server.respondWith('POST', '/prpc/service/malformedResponse', [
+        200,
+        {
+          'Content-Type': 'text/json',
+          'X-Prpc-Grpc-Code': '' + luci.rpc.Code.OK
+        },
+        '}}}'
+      ]);
+
+      client = fixture('client');
+    });
+
+    teardown(function() {
+      server.restore();
+    });
+
+    function expectResponse(fn) {
+      var call = client.call();
+      server.respond();
+      return call.completes.then(function () {
+        expect(client.lastError).not.to.be.error;
+        expect(client.lastResponse).to.equal(call.response);
+        fn(call);
+      });
+    }
+
+    function expectError(fn) {
+      var call = client.call();
+      server.respond();
+      return call.completes.then(function() {
+        assert.fail('no error', 'error');
+      }).catch(function (error) {
+        expect(error).not.to.be.null;
+        expect(client.lastResponse).to.be.null;
+        expect(client.lastError).to.be.equal(error);
+        fn(error);
+      });
+    }
+
+    test('by default host is current', function() {
+      expect(client.host).to.be.equal(document.location.host);
+    });
+
+    test('with a request', function() {
+      client.request = { msg: 'hi' };
+      var call = client.call();
+      expect(call.xhr.requestBody).to.equal('{"msg":"hi"}');
+    });
+
+    test('loading property changes', function() {
+      expect(client.loading).to.be.false;
+
+      var call = client.call();
+      expect(client.loading).to.be.true;
+
+      server.respond();
+      return call.completes.then(function() {
+        expect(client.loading).to.be.false;
+      });
+    });
+
+    test('reads response', function() {
+      return expectResponse(function(call) {
+        expect(call.response).to.be.deep.equal({ secure: false });
+        expect(call.code).to.equal(luci.rpc.Code.OK);
+      });
+    });
+
+    test('sets code', function() {
+      return expectResponse(function(call) {
+        expect(call.code).to.equal(luci.rpc.Code.OK);
+        expect(client.lastCode).to.equal(call.code);
+      });
+    });
+
+    test('secure', function() {
+      client.insecure = false;
+      return expectResponse(function(call) {
+        expect(call.response).to.be.deep.equal({ secure: true });
+      });
+    });
+
+    test('authenticated', function() {
+      client.accessToken = 'deadbeef';
+      var call = client.call();
+      expect(call.xhr.requestHeaders['authorization']).to.equal(
+          'Bearer deadbeef'
+      );
+    });
+
+    test('with timeout', function() {
+      client.timeout = 1000;
+      var call = client.call();
+      var timeoutHeader = call.xhr.requestHeaders['x-prpc-timeout'];
+      expect(timeoutHeader).to.be.equal('1000m');
+    });
+
+    test('error code', function() {
+      client.method = 'notFound';
+      return expectError(function(e) {
+        expect(e).to.be.an.instanceof(luci.rpc.GrpcError);
+        expect(e.code).to.equal(luci.rpc.Code.NOT_FOUND);
+        expect(e.description).to.equal('Not found');
+        expect(client.lastCall.code).to.equal(luci.rpc.Code.NOT_FOUND);
+        expect(client.lastCode).to.equal(luci.rpc.Code.NOT_FOUND);
+      });
+    });
+
+    test('no code', function() {
+      client.method = 'noCode';
+      return expectError(function(e) {
+        expect(e.message).to.contain('no X-Prpc-Grpc-Code');
+      });
+    });
+
+    test('malformed response', function() {
+      client.method = 'malformedResponse';
+      return expectError(function(e) {
+        expect(e.message).to.contain('could not parse response');
+      });
+    });
+
+    test('invalid code', function() {
+      client.method = 'invalidCode';
+      return expectError(function(e) {
+        expect(e.message).to.contain('Invalid X-Prpc-Grpc-Code');
+      });
+    });
+
+    test('request event', function() {
+      client.request = { msg: 'hi' };
+      var event = null;
+      client.addEventListener('request', function(e) {
+        event = e;
+      });
+      expect(event).to.be.null;
+      var call = client.call();
+      expect(event).to.be.ok
+      expect(event.detail.call).to.equal(call);
+      expect(client.lastCall).to.equal(call);
+      expect(call.host).to.equal(document.location.host);
+      expect(call.service).to.equal('service');
+      expect(call.method).to.equal('ok');
+      expect(call.request).to.equal(client.request);
+    });
+
+    test('response event', function() {
+      var event = null;
+      client.addEventListener('response', function(e) {
+        event = e;
+      });
+      expect(event).to.be.null;
+      return expectResponse(function(call) {
+        expect(event).to.be.ok
+        expect(event.detail.call).to.equal(call);
+        expect(call.host).to.equal(document.location.host);
+        expect(call.service).to.equal('service');
+        expect(call.method).to.equal('ok');
+        expect(call.request).to.equal(client.request);
+
+        expect(call.response).to.deep.equal({secure: false});
+        expect(call.error).to.be.null;
+      });
+    });
+
+    test('error event', function() {
+      client.method = 'notFound';
+      var event = null;
+      client.addEventListener('error', function(e) {
+        event = e;
+      });
+      expect(event).to.be.null;
+      var call = client.call();
+      expect(event).to.be.null;
+
+      server.respond();
+
+      return expectError(function(call) {
+        var call = client.lastCall;
+        expect(event).to.be.ok
+        expect(event.detail.call).to.equal(call);
+        expect(call.host).to.equal(document.location.host);
+        expect(call.service).to.equal('service');
+        expect(call.method).to.equal('notFound');
+        expect(call.request).to.equal(client.request);
+
+        expect(call.response).to.be.null;
+        expect(call.error).to.be.an.instanceof(luci.rpc.GrpcError);
+      });
+    });
+  });
+</script>

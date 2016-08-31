@@ -1,0 +1,266 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package logpb;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+/* A log stream type. */
+enum StreamType {
+  TEXT = 0;
+  BINARY = 1;
+  DATAGRAM = 2;
+}
+
+/**
+ * Log stream descriptor data. This is the full set of information that
+ * describes a logging stream.
+ */
+message LogStreamDescriptor {
+  /*
+   * The stream's prefix (required).
+   *
+   * Logs originating from the same Butler instance will share a Prefix.
+   *
+   * A valid prefix value is a StreamName described in:
+   * https://github.com/luci/luci-go/common/logdog/types
+   */
+  string prefix = 1;
+  /*
+   * The log stream's name (required).
+   *
+   * This is used to uniquely identify a log stream within the scope of its
+   * prefix.
+   *
+   * A valid name value is a StreamName described in:
+   * https://github.com/luci/luci-go/common/logdog/types
+   */
+  string name = 2;
+
+  /* The log stream's content type (required). */
+  StreamType stream_type = 3;
+
+  /*
+   * The stream's content type (required).
+   *
+   * This must be an HTTP Content-Type value. It is made available to LogDog
+   * clients when querying stream metadata. It will also be applied to archived
+   * binary log data.
+   */
+  string content_type = 4;
+
+  /*
+   * The log stream's base timestamp (required).
+   *
+   * This notes the start time of the log stream. All LogEntries express their
+   * timestamp as microsecond offsets from this field.
+   */
+  google.protobuf.Timestamp timestamp = 5;
+
+  /*
+   * Tag is an arbitrary key/value tag associated with this log stream.
+   *
+   * LogDog clients can query for log streams based on tag values.
+   */
+  map<string, string> tags = 6;
+
+  /*
+   * If set, the stream will be joined together during archival to recreate the
+   * original stream and made available at <prefix>/+/<name>.ext.
+   */
+  string binary_file_ext = 7;
+}
+
+/* Text stream content. */
+message Text {
+  /* Contiguous text lines and their delimiters. */
+  message Line {
+    /* The line's text content, not including its delimiter. */
+    string value = 1;
+
+    /*
+     * The line's delimiter string.
+     *
+     * If this is an empty string, this line is continued in the next sequential
+     * line, and the line's sequence number does not advance.
+     */
+    string delimiter = 2;
+  }
+  repeated Line lines = 1;
+}
+
+/* Binary stream content. */
+message Binary {
+  /* The byte offset in the stream of the first byte of data. */
+  uint64 offset = 1;
+  /* The binary stream's data. */
+  bytes data = 2;
+}
+
+/* Datagram stream content type. */
+message Datagram {
+  /* This datagram data. */
+  bytes data = 1;
+
+  /*
+   * If this is not a partial datagram, this field will include reassembly and
+   * state details for the full datagram.
+   */
+  message Partial {
+    /*
+     * The index, starting with zero, of this datagram fragment in the full
+     * datagram.
+     */
+    uint32 index = 1;
+
+    /* The size of the full datagram */
+    uint64 size = 2;
+
+    /* If true, this is the last partial datagram in the overall datagram. */
+    bool last = 3;
+  }
+  Partial partial = 2;
+}
+
+/**
+ * An individual log entry.
+ *
+ * This contains the superset of transmissible log data. Its content fields
+ * should be interpreted in the context of the log stream's content type.
+ */
+message LogEntry {
+  /*
+   * The stream time offset for this content.
+   *
+   * This offset is added to the log stream's base "timestamp" to resolve the
+   * timestamp for this specific Content.
+   */
+  google.protobuf.Duration time_offset = 1;
+
+  /*
+   * The message index within the Prefix (required).
+   *
+   * This is value is unique to this LogEntry across the entire set of entries
+   * sharing the stream's Prefix. It is used to designate unambiguous log
+   * ordering.
+   */
+  uint64 prefix_index = 2;
+
+  /*
+   * The message index within its Stream (required).
+   *
+   * This value is unique across all entries sharing the same Prefix and Stream
+   * Name. It is used to designate unambiguous log ordering within the stream.
+   */
+  uint64 stream_index = 3;
+
+  /*
+   * The sequence number of the first content entry in this LogEntry.
+   *
+   * Text: This is the line index of the first included line. Line indices begin
+   *     at zero.
+   * Binary: This is the byte offset of the first byte in the included data.
+   * Datagram: This is the index of the datagram. The first datagram has index
+   *     zero.
+   */
+  uint64 sequence = 4;
+
+  /*
+   * The content of the message. The field that is populated here must
+   * match the log's `stream_type`.
+   */
+  oneof content {
+    /* Text Stream: Lines of log text. */
+    Text text = 10;
+
+    /* Binary stream: data segment. */
+    Binary binary = 11;
+
+    /* Datagram stream: Datagrams. */
+    Datagram datagram = 12;
+  }
+}
+
+/**
+ * LogIndex is an index into an at-rest log storage.
+ *
+ * The log stream and log index are generated by the Archivist during archival.
+ *
+ * An archived log stream is a series of contiguous LogEntry frames. The index
+ * maps a log's logical logation in its stream, prefix, and timeline to its
+ * frame's binary offset in the archived log stream blob.
+ */
+message LogIndex {
+  /*
+   * The LogStreamDescriptor for this log stream (required).
+   *
+   * The index stores the stream's LogStreamDescriptor so that a client can
+   * know the full set of log metadata by downloading its index.
+   */
+  LogStreamDescriptor desc = 1;
+
+  /*
+   * Entry is a single index entry.
+   *
+   * The index is composed of a series of entries, each corresponding to a
+   * sequential snapshot of of the log stream.
+   */
+  message Entry {
+    /*
+     * The byte offset in the emitted log stream of the RecordIO entry for the
+     * LogEntry corresponding to this Entry.
+     */
+    uint64 offset = 1;
+    /*
+     * The sequence number of the first content entry.
+     *
+     * Text: This is the line index of the first included line. Line indices
+     *     begin at zero.
+     * Binary: This is the byte offset of the first byte in the included data.
+     * Datagram: This is the index of the datagram. The first datagram has index
+     *     zero.
+     */
+    uint64 sequence = 2;
+
+    /*
+     * The log index that this entry describes (required).
+     *
+     * This is used by clients to identify a specific LogEntry within a set of
+     * streams sharing a Prefix.
+     */
+    uint64 prefix_index = 3;
+
+    /*
+     * The time offset of this log entry (required).
+     *
+     * This is used by clients to identify a specific LogEntry within a log
+     * stream.
+     */
+    uint64 stream_index = 4;
+
+    /*
+     * The time offset of this log entry, in microseconds.
+     *
+     * This is added to the descriptor's "timestamp" field to identify the
+     * specific timestamp of this log. It is used by clients to identify a
+     * specific LogEntry by time.
+     */
+    google.protobuf.Duration time_offset = 5;
+  }
+
+  /*
+   * A series of ascending-ordered Entry messages representing snapshots of an
+   * archived log stream.
+   *
+   * Within this set of Entry messages, the "offset", "prefix_index",
+   * "stream_index", and "time_offset" fields will be ascending.
+   *
+   * The frequency of Entry messages is not defined; it is up to the Archivist
+   * process to choose a frequency.
+   */
+  repeated Entry entries = 2;
+}

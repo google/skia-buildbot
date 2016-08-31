@@ -1,0 +1,25 @@
+// Copyright 2015 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto3";
+
+package jobsim;
+
+// Config is ONLY for testing purposes in dm/service. However, because of the
+// way that the distributor proto works it needs to be included in the main
+// distributor.proto file. For consistency, this jobsim proto lives here.
+message Config {
+  // Pool specifies the unique 'pool' name for this jobsim configuration. This
+  // will be used to namespace jobsim objects in the datastore, and can be used
+  // to demonstrate cross-distributor dependencies (by having one pool's jobs
+  // depend on another pool's results).
+  string pool = 1;
+
+  // DoPollback controls whether or not this configuration will force DM to
+  // poll back when recieving a HandleNotification. If this is true, then
+  // HandleNotification will return (nil, nil), and DM will call GetStatus
+  // at some later point. If this is false, then HandleNotification will
+  // directly return the job's status.
+  bool do_pollback = 2;
+}

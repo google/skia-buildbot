@@ -1,0 +1,200 @@
+// Copyright 2015 The Swarming Authors. All rights reserved.
+// Use of this source code is governed by the Apache v2.0 license that can be
+// that can be found in the LICENSE file.
+
+// Schemas for config files in services/luci-config config set.
+//
+// In this file, "string pattern" is an exact string (can't have a colon) or a
+// string that starts with "regex:", followed by a regular expression. In case
+// of regex, the pattern must match an entire string, as if it was sorrounded by
+// ^ and $.
+
+syntax = "proto2";
+
+package config;
+
+// Used to specify project/service configuration location.
+message ConfigSetLocation {
+  // Depending on repository type, config service imports configuration files
+  // differently.
+  enum StorageType {
+    // Will be used if storage_type is not set.
+    UNSET = 0;
+    // Gitiles REST API is used to fetch config files.
+    GITILES = 1;
+  }
+  // URL of the repository where project-wide configurations are stored.
+  optional string url = 1;
+  // Type of the configuration repository, e.g. GITILES.
+  optional StorageType storage_type = 2;
+}
+
+/******************************************************************************/
+/* Projects                                                                   */
+/******************************************************************************/
+
+// A tenant of a service. Defined in projects.cfg.
+message Project {
+  // Globally unique id of the project.
+  optional string id = 1;
+  // Where to import "projects/<id>" config set from.
+  optional ConfigSetLocation config_location = 2;
+}
+
+// Schema of projects.cfg file. Represents luci tenants registry.
+message ProjectsCfg {
+  // All projects served by this instance of Luci.
+  repeated Project projects = 1;
+}
+
+/******************************************************************************/
+/* Services                                                                   */
+/******************************************************************************/
+
+// Describes one luci service.
+message Service {
+  // Globally unique id of the service. Required.
+  // Used in "services/<service_id>" config set name.
+  optional string id = 1;
+  // Email addresses of responsible and point-of-contacts for the service.
+  repeated string owners = 2;
+  // Where to import "services/<id>" config set from. If config_location.url is
+  // relative, it is relative to the current configuration file.
+  // If not specified, defaults to "../<id>/".
+  optional ConfigSetLocation config_location = 3;
+  // An HTTPS endpoint that returns JSON-encoded ServiceDynamicMetadata in body.
+  optional string metadata_url = 4;
+  // A list of identities that have access to this service's configs.
+  // of:
+  // * "group:<group>", where group is defined on auth server.
+  // * "<email>"
+  // * "<identity>"
+  //
+  // If not specified, only admins and trusted services have access.
+  repeated string access = 5;
+}
+
+// Machine-generated service metadata, exposed by a service endpoint.
+// Typically implemented by config component, embedded in an app:
+// see appengine/components/components/config/endpoint.py
+//
+// If you add a field here, also add it to ServiceDynamicMetadata in endpoint.py
+message ServiceDynamicMetadata {
+  // Format version. Supported versions: 1.0.
+  optional string version = 1;
+  // What configs this service can validate and how to validate them.
+  optional Validator validation = 2;
+}
+
+// Schema of services.cfg
+message ServicesCfg {
+  // A list of all luci services. Should be sorted by id.
+  repeated Service services = 1;
+}
+
+/******************************************************************************/
+/* Misc                                                                       */
+/******************************************************************************/
+
+
+// Schema of acl.cfg file.
+message AclCfg {
+  // Name of the group that has access to all projects/* config sets.
+  // Only trusted services should be in this group.
+  optional string project_access_group = 2;
+}
+
+// Schema for import.cfg. It specified how to import configuration files from
+// external sources.
+message ImportCfg {
+
+  message Gitiles {
+    // Request timeout in seconds when requesting commit log.
+    optional int32 fetch_log_deadline = 1;
+    // Request timeout in seconds when requesting directory archive.
+    optional int32 fetch_archive_deadline = 2;
+    // Default ref for project configs.
+    optional string project_config_default_ref = 3;
+    // Default directory for project configs.
+    optional string project_config_default_path = 4;
+    // Default directory for ref configs.
+    optional string ref_config_default_path = 5;
+  }
+
+  // Configuration of import from Gitiles repositories.
+  optional Gitiles gitiles = 1;
+}
+
+// Schema of schemas.cfg
+message SchemasCfg {
+  message Schema {
+    // Name of schema.
+    // For service configs, "<config_set>:<path>"
+    // For project configs, "projects:<path>"
+    // For ref configs, "projects/refs:<path>"
+    optional string name = 1;
+    // URL to the schema definition, e.g. to a .proto file in a repository.
+    optional string url = 2;
+  }
+  // List of known schemas. They are available at /schemas/<name> as a short
+  // mutable link.
+  repeated Schema schemas = 1;
+}
+
+/******************************************************************************/
+/* Validation                                                                 */
+/******************************************************************************/
+
+// Defines a pattern of a config identity. Both config_set and path must
+// match.
+message ConfigPattern {
+  // A string pattern for config_set.
+  optional string config_set = 1;
+  // A string pattern for config file path.
+  optional string path = 2;
+}
+
+// Describes what configuration can be validated and how to validate them.
+message Validator {
+  // A list of configuration patterns that this validator can validate.
+  repeated ConfigPattern patterns = 1;
+  // URL of a validation endpoint. The config service will send an HTTP POST
+  // request to the endpoint, where body is JSON-encoded
+  // ValidationRequestMessage. The endpoint is expected to respond with
+  // HTTP status 200 and JSON-encoded ValidationResponseMessage.
+  optional string url = 2;
+}
+
+// This message is used only in JSON form. It is sent as request body to an
+// external validation endpoint in order to validate a config.
+message ValidationRequestMessage {
+  // Config set of the config file to validate.
+  optional string config_set = 1;
+  // Path of the config file to validate.
+  optional string path = 2;
+  // Base64-encoded contents of the file.
+  optional string content = 3;
+}
+
+// This message is used only in JSON form. It is expected from an external
+// validation endpoint that validates a config.
+message ValidationResponseMessage {
+  // Severity of a validation response message. In JSON encoded as a string.
+  enum Severity {
+    DEBUG = 10;
+    INFO = 20;
+    WARNING = 30;
+    ERROR = 40;
+    CRITICAL = 50;
+  }
+  // A message that explains why a config is valid or not.
+  message Message {
+    // Textual representation of the message.
+    optional string text = 1;
+    // If an error, a config is considered invalid. Defaults to INFO.
+    optional Severity severity = 2;
+  }
+  // Errors, warnings and other information found during validation.
+  // If at least one error is found, the config is considered invalid.
+  repeated Message messages = 1;
+}

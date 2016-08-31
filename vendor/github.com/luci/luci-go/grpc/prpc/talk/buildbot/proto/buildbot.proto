@@ -1,0 +1,75 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package buildbot;
+
+// Buildbot can run builds.
+service Buildbot {
+    // Search returns builds matching a criteria.
+    rpc Search(SearchRequest) returns (SearchResponse) {}
+    // Schedule puts new builds to a queue.
+    rpc Schedule(ScheduleRequest) returns (ScheduleResponse) {}
+}
+
+// SearchReqeust specifies a search criteria.
+message SearchRequest {
+    // Master filters by master name, e.g. "master.XXX".
+    string master = 1;
+    // State filters by build state.
+    BuildState state = 2;
+    // Builder filters by builder name.
+    string builder = 3;
+}
+
+enum BuildState {
+    UNSET = 0;
+    PENDING = 1;
+    RUNNING = 2;
+    SUCCESS = 3;
+    FAILURE = 4;
+    EXCEPTION = 5;
+}
+
+message SearchResponse {
+    repeated Build builds = 1;
+}
+
+message Build {
+    string master = 1;
+    string builder = 2;
+    int32 number = 3;
+    BuildState state = 4;
+}
+
+// ScheduleRequest defines builds to schedule.
+message ScheduleRequest {
+    // Build is a build to schedule.
+    message BuildDef {
+        // Builder defines the build script.
+        string builder = 1;
+        // Branch defines what to fetch.
+        string branch = 2;
+        // Revision is a commit hash to checkout
+        string revision = 3;
+        // Properties are "key:value" pairs.
+        repeated string properties = 4;
+        // Blamelist is a list of user email addressed to blame if this build
+        // fails.
+        repeated string blamelist = 5;
+    }
+
+    // Master is a "master.XXX" string that defines where to schedule builds.
+    string master = 1;
+    // Builds is a list of builds to schedule.
+    repeated BuildDef builds = 2;
+}
+
+
+// HelloReply contains a greeting.
+message ScheduleResponse {
+    repeated Build builds = 1;
+}
+

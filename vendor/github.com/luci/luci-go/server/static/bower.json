@@ -1,0 +1,19 @@
+{
+  "name": "luci-go common",
+  "version": "0.0.0",
+  "description": "Common static files needed by luci-go apps",
+  "license": "BSD",
+  "private": true,
+  "dependencies": {
+    "app-router": "~2.6.1",
+    "bootstrap": "~3.3.6",
+    "iron-ajax": "PolymerElements/iron-ajax#~1.1.1",
+    "jquery": "~2.2.0",
+    "polymer": "Polymer/polymer#^1.2.0",
+    "html5-history-anchor": "~0.4.0",
+    "paper-spinner": "PolymerElements/paper-spinner#~1.1.1"
+  },
+  "devDependencies": {
+    "web-component-tester": "~4.2.0"
+  }
+}

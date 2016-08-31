@@ -1,0 +1,19 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package internal;
+
+import "github.com/luci/luci-go/common/proto/milo/annotations.proto";
+
+// Item is a full annotation protobuf state item. It is used to serialize and
+// deserialize Step and associated fetch data into memcache.
+message CachedStep {
+  // Step is the root annotation step.
+  milo.Step step = 1;
+
+  // Finished is true if this is the last annotation protobuf in the stream.
+  bool finished = 2;
+}

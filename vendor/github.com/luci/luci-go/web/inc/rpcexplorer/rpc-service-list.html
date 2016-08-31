@@ -1,0 +1,73 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import"
+    href="../bower_components/html5-history-anchor/html5-history-anchor.html">
+
+<link rel="import" href="rpc-descriptor-util.html">
+
+<!-- The `rpc-service-list` is a service list page -->
+<dom-module id="rpc-service-list">
+  <template>
+    <p>Services:</p>
+    <ul>
+      <template is="dom-repeat" items="[[services]]" as="service">
+        <li>
+          <a is="html5-history-anchor" pushstate popstate
+              href="[[service.name]]/">[[service.name]]</a>
+          <span class="text-muted comment">[[_comment(service)]]</span>
+        </li>
+      </template>
+    </ul>
+  </template>
+  <script>
+    'use strict';
+
+    Polymer({
+      is: 'rpc-service-list',
+
+      properties: {
+        /** @type {FileDescriptorSet}
+        description: Object,
+
+        /** @type {Array.<string>} */
+        serviceNames: Array,
+
+        /** @type {Array.<{name: string, comment: string}>} */
+        services: {
+          type: Array,
+          computed: '_resolveServices(description, serviceNames)'
+        }
+      },
+
+      _resolveServices: function(desc, names) {
+        var result = [];
+        for (var i = 0; i < names.length; i++) {
+          var svc = rpcExplorer.descUtil.resolve(desc, names[i]);
+          if (svc && svc.type === 'service') {
+            var info = svc.desc.sourceCodeInfo;
+            result.push({
+              name: names[i],
+              comments: info && info.leadingComments
+            });
+          }
+        }
+        return result;
+      },
+
+      _comment: function(service) {
+        // A.B.C.D => D.
+        var name = service.name;
+        var idx = name.lastIndexOf('.');
+        if (idx != -1) {
+          name = name.substr(idx+1);
+        }
+        return rpcExplorer.descUtil.normalizeComment(service.comments, name);
+      }
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,53 @@
+{
+  "Name": "InfraPresubmit.Swarming",
+  "Warning": "",
+  "CurrentBuilds": [
+    {
+      "Link": {
+        "Label": "2fbc7169a3b9a010",
+        "Img": "",
+        "URL": "/swarming/prod/2fbc7169a3b9a010",
+        "Alt": ""
+      },
+      "Status": "Running",
+      "PendingTime": {
+        "Started": "2016-06-30T23:23:32.89983Z",
+        "Finished": "2016-06-30T23:25:02.96203Z",
+        "Duration": 90062200000
+      },
+      "ExecutionTime": {
+        "Started": "2016-06-30T23:25:02.96203Z",
+        "Finished": "0001-01-01T00:00:00Z",
+        "Duration": -9375812899830000
+      },
+      "Revision": "HEAD",
+      "Text": [
+        "buildbucket id 9008387734773878544"
+      ],
+      "Blame": [
+        {
+          "AuthorName": "",
+          "AuthorEmail": "recipe-roller@chromium.org",
+          "Repo": "",
+          "Branch": "",
+          "RequestRevision": "HEAD",
+          "Revision": "",
+          "Description": "",
+          "Title": "",
+          "Changelist": {
+            "Label": "Rietveld CL 2114743004",
+            "Img": "",
+            "URL": "https://codereview.chromium.org/2114743004/#ps1",
+            "Alt": ""
+          },
+          "CommitURL": "",
+          "File": null
+        }
+      ],
+      "Build": null
+    }
+  ],
+  "PendingBuilds": null,
+  "FinishedBuilds": null,
+  "MachinePool": null
+}

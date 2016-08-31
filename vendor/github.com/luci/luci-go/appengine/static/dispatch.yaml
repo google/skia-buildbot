@@ -1,0 +1,8 @@
+# This is a boilerplate dispatch.yaml that will work for most of apps.
+# You can symlink it to yours like helloworld app does.
+
+dispatch:
+  - url: "*/rpcexplorer/*"
+    module: static
+  - url: "*/static/*"
+    module: static

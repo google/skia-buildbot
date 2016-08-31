@@ -1,0 +1,90 @@
+# Emit annotations to get full coverage of the annotation state machine.
+
+SEED_STEP baz
+
+SEED_STEP_TEXT@baz@seeded text
+# Invalid SEED_STEP_TEXT (needs 3 parameters) is ignored.
+SEED_STEP_TEXT@baz
+
+# Invalid STEP_CURSOR for nonexistent step.
++error STEP_CURSOR could not lookup step
+STEP_CURSOR missing
+
+# Erroneous SEED_STEP_TEXT for nonexistent step.
++error no step named "missing"
+SEED_STEP_TEXT@missing@nonexistent
+
+# Start "foo". BUILD_STEP twice is to assert we don't close "foo" if it's the
+# current step.
+BUILD_STEP foo
+BUILD_STEP foo
++time
+
+# This will close "foo".
+BUILD_STEP bar
+# Choose a small nest level to hit our optimized level resolution case.
+STEP_NEST_LEVEL@1
++time
+STEP_LOG_LINE@logging.json@{
+STEP_LOG_LINE@logging.json@  "foo": "bar",
+STEP_LOG_LINE@logging.json@  "baz": "qux"
+STEP_LOG_LINE@logging.json@}
+STEP_LOG_END@logging.json
+
+# We will not end this log to exercise the auto-closing logic.
+STEP_LOG_LINE@lorem.txt@Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+STEP_LOG_LINE@lorem.txt@Sed suscipit libero at dui blandit, ut aliquam ligula dignissim.
+
+# All no-op annotations.
+STEP_LOG_END_PERF@noop
+HONOR_ZERO_RETURN_CODE
+STEP_TRIGGER@noop
+
+# Invalid annotations are silently dropped.
+OHAICANHASCHEEZBURGER@PLZ
+
+# Invalid link (missing URL).
++error missing URL
+STEP_LINK@missingurl
+
+link@example@http://example.com
+STEP_LINK@alias-->example@http://example.com/alias
+BUILD_EXCEPTION
+
+STEP_CURSOR baz
+STEP_STARTED
++time
+STEP_LINK@cats@http://example.com/cats
+STEP_LINK@dogs@http://example.com/dogs
+BUILD_WARNINGS
+
+STEP_CURSOR bar
++time
+
+# Test text emission and summary overriding/clearing.
+STEP_TEXT@will be cleared
+STEP_CLEAR
+
+STEP_TEXT@message0
+STEP_SUMMARY_TEXT@summary0
+STEP_TEXT@message1
+STEP_SUMMARY_TEXT@summary1
+STEP_SUMMARY_CLEAR
+STEP_SUMMARY_TEXT@final summary
+STEP_TEXT@message2
+
+# Test build properties.
+SET_BUILD_PROPERTY@foo@willchange
+SET_BUILD_PROPERTY@foo@bar
+SET_BUILD_PROPERTY@baz@qux
+SET_BUILD_PROPERTY@quux
+
+STEP_CLOSED
+
+BUILD_STEP qux
+# Nest at a really high number to hit our sparse case and test level skipping.
+STEP_NEST_LEVEL@999999999
++time
+HALT_ON_FAILURE
+BUILD_FAILED
+STEP_TEXT@will not be emitted, since we're halting on failure.

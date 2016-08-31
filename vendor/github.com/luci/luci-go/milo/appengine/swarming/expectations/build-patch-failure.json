@@ -1,0 +1,290 @@
+{
+  "Summary": {
+    "ParentLabel": null,
+    "Label": "2d8d62f6be545b10",
+    "Status": "Failure",
+    "Banner": null,
+    "Bot": null,
+    "Source": {
+      "Label": "Task 2d8d62f6be545b10",
+      "Img": "",
+      "URL": "https://debug/user/task/2d8d62f6be545b10",
+      "Alt": ""
+    },
+    "MainLink": {
+      "Label": "Task 2d8d62f6be545b10",
+      "Img": "",
+      "URL": "https://debug/user/task/2d8d62f6be545b10",
+      "Alt": ""
+    },
+    "SubLink": [
+      {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/stdout",
+        "Alt": ""
+      }
+    ],
+    "Progress": null,
+    "Started": "2016-03-14T10:00:01Z",
+    "Finished": "0001-01-01T00:00:00Z",
+    "Duration": 0,
+    "Type": "Recipe",
+    "LevelsDeep": 0,
+    "Verbosity": 2,
+    "Text": [
+      "Failure Patch failure"
+    ]
+  },
+  "SourceStamp": null,
+  "Components": [
+    {
+      "ParentLabel": null,
+      "Label": "update_scripts",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/update_scripts/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "gclient_json",
+          "Img": "",
+          "URL": "foo/steps/update_scripts/0/logs/gclient_json/0",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-03-14T10:00:02Z",
+      "Finished": "2016-03-14T10:00:03Z",
+      "Duration": 1000000000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "git - 1fb19c56e954ada4c990ed04cf8a004e16def555"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "setup_build",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/setup_build/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "run_recipe",
+          "Img": "",
+          "URL": "foo/steps/setup_build/0/logs/run_recipe/0",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-03-14T10:00:04Z",
+      "Finished": "2016-03-14T10:00:05Z",
+      "Duration": 1000000000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 1,
+      "Text": [
+        "running recipe: \"infra/infra_repo_trybot\""
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "bot_update",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/bot_update/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "foo/steps/bot_update/0/logs/json.output/0",
+          "Alt": ""
+        },
+        {
+          "Label": "patch error",
+          "Img": "",
+          "URL": "foo/steps/bot_update/0/logs/patch_error/0",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-03-14T10:00:06Z",
+      "Finished": "2016-03-14T10:00:07Z",
+      "Duration": 1000000000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "[21GB/295GB used (7%)] PATCH FAILED"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "Patch failure",
+      "Status": "Failure",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/Patch_failure/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-03-14T10:00:08Z",
+      "Finished": "2016-03-14T10:00:09Z",
+      "Duration": 1000000000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 2,
+      "Text": [
+        "Check the bot_update step for details"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "recipe failure reason",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/recipe_failure_reason/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "failure reason",
+          "Img": "",
+          "URL": "foo/steps/recipe_failure_reason/0/logs/failure_reason/0",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-03-14T10:00:10Z",
+      "Finished": "2016-03-14T10:00:11Z",
+      "Duration": 1000000000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": null
+    }
+  ],
+  "PropertyGroup": [
+    {
+      "GroupName": "update_scripts",
+      "Property": [
+        {
+          "Key": "build_scm",
+          "Value": "\"git\""
+        },
+        {
+          "Key": "build_revision",
+          "Value": "\"1fb19c56e954ada4c990ed04cf8a004e16def555\""
+        }
+      ]
+    },
+    {
+      "GroupName": "setup_build",
+      "Property": null
+    },
+    {
+      "GroupName": "bot_update",
+      "Property": null
+    },
+    {
+      "GroupName": "Patch failure",
+      "Property": null
+    },
+    {
+      "GroupName": "recipe failure reason",
+      "Property": null
+    },
+    {
+      "GroupName": "Main",
+      "Property": [
+        {
+          "Key": "recipe",
+          "Value": "infra/infra_repo_trybot"
+        },
+        {
+          "Key": "buildername",
+          "Value": "Infra Linux Trusty 64 Tester"
+        },
+        {
+          "Key": "mastername",
+          "Value": "tryserver.infra"
+        },
+        {
+          "Key": "buildnumber",
+          "Value": "1"
+        },
+        {
+          "Key": "slavename",
+          "Value": "fakeslave"
+        },
+        {
+          "Key": "patchset",
+          "Value": "1"
+        },
+        {
+          "Key": "issue",
+          "Value": "1431683003"
+        },
+        {
+          "Key": "patch_project",
+          "Value": "infra"
+        },
+        {
+          "Key": "revision",
+          "Value": "HEAD"
+        }
+      ]
+    },
+    {
+      "GroupName": "Swarming",
+      "Property": [
+        {
+          "Key": "Exit Code",
+          "Value": "0"
+        }
+      ]
+    },
+    {
+      "GroupName": "Swarming Tags",
+      "Property": [
+        {
+          "Key": "allow_milo",
+          "Value": "1"
+        }
+      ]
+    }
+  ],
+  "Blame": null
+}

@@ -1,0 +1,59 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package tokenserver.admin;
+
+// TokenServerConfig is read from tokenserver.cfg in luci-config.
+message TokenServerConfig {
+  // List of CAs we trust.
+  repeated CertificateAuthorityConfig certificate_authority = 1;
+}
+
+// CertificateAuthorityConfig defines a single CA we trust.
+//
+// Such CA issues certificates for nodes that use The Token Service. Each node
+// has a private key and certificate with Common Name set to the FQDN of this
+// node, e.g. "CN=slave43-c1.c.chromecompute.google.com.internal".
+//
+// The Token Server uses this CN to derive an identity string for a machine. It
+// splits FQDN into a hostname ("slave43-c1") and a domain name
+// ("c.chromecompute.google.com.internal"), searches for a domain name in
+// "known_domains" set, and, if it is present, uses parameters described there
+// for generating a token with machine_id <hostname>@<token-server-url>.
+message CertificateAuthorityConfig {
+  int64  unique_id = 6; // ID of this CA, will be embedded into tokens.
+  string cn = 1;        // CA Common Name, must match Subject CN in the cert
+  string cert_path = 2; // path to the root certificate file in luci-config
+  string crl_url = 3;   // where to fetch CRL from
+  bool   use_oauth = 4; // true to send Authorization header when fetching CRL
+
+  // KnownDomains describes parameters to use for each particular domain.
+  repeated DomainConfig known_domains = 5;
+}
+
+// DomainConfig is used inside CertificateAuthorityConfig.
+message DomainConfig {
+  reserved 4, 6; // deleted fields, do not reuse.
+
+  // Domain is domain names of hosts this config applies to.
+  repeated string domain = 1;
+
+  // CloudProjectName is a name of Google Cloud Project to create service
+  // accounts in (used for OAuth2 tokens).
+  //
+  // The Token Server's own service account must have Editor permission in this
+  // project.
+  string cloud_project_name = 2;
+
+  // AllowedOauth2Scope is a whitelist of OAuth2 scopes the token server is
+  // willing to mint an OAuth2 access token with.
+  repeated string allowed_oauth2_scope = 3;
+
+  // MachineTokenLifetime is how long generated machine tokens live, in seconds.
+  //
+  // If 0, machine tokens are not allowed.
+  int64 machine_token_lifetime = 5;
+}

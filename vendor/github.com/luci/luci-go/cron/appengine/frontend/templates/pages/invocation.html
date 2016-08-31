@@ -1,0 +1,63 @@
+{{define "title"}}Cron Service :: {{.ProjectID}} :: {{.JobID}} :: {{.Inv.InvID}}{{end}}
+
+{{define "head"}}
+<style type="text/css">
+.underline {
+  text-decoration: underline !important;
+}
+</style>
+{{template "invocation-action-scripts" .}}
+{{end}}
+
+{{define "content"}}
+
+<ol class="breadcrumb">
+  <li><a href="/">All projects</a></li>
+  <li><a href="/jobs/{{.ProjectID}}">{{.ProjectID}}</a></li>
+  <li><a href="/jobs/{{.ProjectID}}/{{.JobID}}">{{.JobID}}</a></li>
+  <li class="active"><a href="/jobs/{{.ProjectID}}/{{.JobID}}/{{.Inv.InvID}}">{{.Inv.InvID}}</a></li>
+</ol>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-3"><b>Status:</b>
+      {{if .Inv.ViewURL}}
+        <a href="{{.Inv.ViewURL}}" target="_blank" class="underline label {{.Inv.LabelClass}}">{{.Inv.Status}}</a>
+      {{else}}
+        <span class="label {{.Inv.LabelClass}}">{{.Inv.Status}}</span>
+      {{end}}
+    </div>
+    <div class="col-sm-3"><b>Triggered by:</b> {{.Inv.TriggeredBy}}</div>
+    <div class="col-sm-3"><b>Duration:</b> {{.Inv.Duration}}</div>
+    <div class="col-sm-3"><b>Actions:</b>{{template "invocation-action-buttons" .Inv}}</div>
+  </div>
+
+  <div class="col-sm-12">
+    <hr>
+  </div>
+
+  {{if .Inv.Revision}}
+  <h4>Definition
+  {{if .Inv.RevisionURL}}
+    (rev <a href="{{.Inv.RevisionURL}}" target="_blank">{{.Inv.Revision}}</a>)
+  {{else}}
+    (rev {{.Inv.Revision}})
+  {{end}}
+  </h4>
+  <div class="row">
+    <div class="col-sm-12">
+      <pre>{{.Inv.Definition}}</pre>
+    </div>
+  </div>
+  {{end}}
+
+  <h4>Debug log (UTC)</h4>
+  <div class="row">
+    <div class="col-sm-12">
+      <pre>{{.Inv.DebugLog}}</pre>
+    </div>
+  </div>
+
+</div>
+
+{{end}}

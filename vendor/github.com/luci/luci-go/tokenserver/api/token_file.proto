@@ -1,0 +1,47 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package tokenserver;
+
+// TokenFile is representation of a token file on disk (serialized as JSON).
+//
+// The token file is consumed by whoever wishes to use machine tokens. It is
+// intentionally made as simple as possible (e.g. uses unix timestamps instead
+// of fancy protobuf ones).
+message TokenFile {
+  // Google OAuth2 access token of a machine service account.
+  string access_token = 1 [json_name="access_token"];
+
+  // OAuth2 access token type, usually "Bearer".
+  string token_type = 2 [json_name="token_type"];
+
+  // Machine token understood by LUCI backends (alternative to access_token).
+  string luci_machine_token = 3 [json_name="luci_machine_token"];
+
+  // Unix timestamp (in seconds) when this token expires.
+  //
+  // The token file is expected to be updated before the token expires, see
+  // 'next_update' for next expected update time.
+  int64 expiry = 4 [json_name="expiry"];
+
+  // Unix timestamp of when this file was updated the last time.
+  int64 last_update = 5 [json_name="last_update"];
+
+  // Unix timestamp of when this file is expected to be updated next time.
+  int64 next_update = 6 [json_name="next_update"];
+
+  // Email of the associated service account.
+  string service_account_email = 7 [json_name="service_account_email"];
+
+  // Unique stable ID of the associated service account.
+  string service_account_unique_id = 8 [json_name="service_account_unique_id"];
+
+  // Any information tokend daemon wishes to associate with the token.
+  //
+  // Consumers of the token file should ignore this field. It is used
+  // exclusively by tokend daemon.
+  bytes tokend_state = 50 [json_name="tokend_state"];
+}

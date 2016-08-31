@@ -1,0 +1,60 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import"
+    href="../bower_components/html5-history-anchor/html5-history-anchor.html">
+
+<link rel="import" href="rpc-descriptor-util.html">
+
+<!-- The `rpc-service` is a service page -->
+<dom-module id="rpc-service">
+  <template>
+    <p>Methods:</p>
+    <ul>
+      <template is="dom-repeat" items="[[serviceDesc.method]]" as="method">
+        <li>
+          <a is="html5-history-anchor" pushstate popstate
+              href="[[method.name]]">[[method.name]]</a>
+          <span class="text-muted comment">
+            [[_comment(method)]]
+          </span>
+        </li>
+      </template>
+    </ul>
+  </template>
+
+  <script>
+    'use strict';
+
+    Polymer({
+      is: 'rpc-service',
+
+      properties: {
+        description: Object, // FileDescriptorSet message
+        service: String,
+        serviceDesc: {
+          type: Object, // ServiceDescriptorProto message
+          computed: '_resolveServiceDesc(description, service)'
+        }
+      },
+
+      _resolveServiceDesc: function(desc, service) {
+        var searchResult = rpcExplorer.descUtil.resolve(desc, service);
+        if (!searchResult || searchResult.type != 'service') {
+          return null;
+        }
+        return searchResult.desc;
+      },
+
+      _comment: function(method) {
+        return rpcExplorer.descUtil.normalizeComment(
+            method.sourceCodeInfo.leadingComments,
+            method.name);
+      }
+    });
+  </script>
+</dom-module>

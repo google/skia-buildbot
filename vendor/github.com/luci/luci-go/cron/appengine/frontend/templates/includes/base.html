@@ -1,0 +1,174 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<!-- Copyright 2015 The LUCI Authors. All rights reserved.
+Use of this source code is governed under the Apache License, Version 2.0
+that can be found in the LICENSE file. -->
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <title>{{template "title" .}}</title>
+  <style type="text/css">
+    body {
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+    .navbar {
+      margin-bottom: 20px;
+    }
+    #account-picture-nav {
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    #account-picture-nav img {
+      border-radius: 6px;
+    }
+    #account-text-nav {
+      margin-left: 8px;
+      margin-right: 0px;
+    }
+    footer hr {
+      margin: 10px 0px;
+    }
+  </style>
+  {{template "head" .}}
+</head>
+
+<body>
+  <div class="container">
+    <div class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle"
+                data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <span class="navbar-brand">
+          <span id="progress-spinner" class="not-spinning">
+            <a href="/">Cron Service</a>
+          </span>
+        </span>
+      </div>
+      <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav"></ul>
+        <p class="nav navbar-text navbar-right" id="account-text-nav">
+          {{if .IsAnonymous}}
+            <a href="{{.LoginURL}}" class="navbar-link">Login</a>
+          {{else}}
+            <span>{{.User.Email}}</span>
+            <span> |</span>
+            <a href="{{.LogoutURL}}" class="navbar-link">Logout</a>
+          {{end}}
+          {{if .User.Picture}}
+          <p class="nav navbar-right" id="account-picture-nav">
+            <img src="{{.User.Picture}}" width="30" height="30">
+          </p>
+          {{end}}
+        </p>
+      </div>
+    </div>
+
+    <div id="content-box">
+      {{template "content" .}}
+    </div>
+
+    <footer>
+      <hr>
+      <p class="text-right" style="color: #cccccc">
+        <small>Version: <span>{{.AppVersion}}</span></small>
+      </p>
+    </footer>
+  </div>
+
+  <script src="/static/jquery/jquery.min.js"></script>
+  <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+</body>
+
+</html>
+{{end}}
+
+
+{{define "job-action-scripts"}}
+<script>
+var xsrfToken = "{{.XsrfToken}}";
+
+var postJobAction = function(btn, action) {
+  var form = $(btn).closest("form");
+  var projectID = $("input#projectID", form).val();
+  var jobID = $("input#jobID", form).val();
+  var url = "/actions/" + action + "/" + projectID + "/" + jobID;
+  if (!form.attr("submitted")) {
+    $("input#xsrf_token", form).val(xsrfToken);
+    form.attr("action", url);
+    form.attr("submitted", "yes");
+    form.submit();
+  }
+};
+</script>
+{{end}}
+
+
+{{define "job-action-buttons"}}
+<form style="display: inline" method="POST">
+  <input type="hidden" id="xsrf_token" name="xsrf_token" value="">
+  <input type="hidden" id="projectID" value="{{.ProjectID}}">
+  <input type="hidden" id="jobID" value="{{.JobID}}">
+  <div class="btn-group btn-group-xs" role="group">
+    {{if .Paused}}
+      <button type="button" class="btn btn-primary" onclick="postJobAction(this, 'resumeJob')">
+        Resume
+      </button>
+    {{else}}
+      <button type="button" class="btn btn-primary" onclick="postJobAction(this, 'pauseJob')">
+        Pause
+      </button>
+    {{end}}
+    <button type="button" class="btn btn-danger" onclick="postJobAction(this, 'abortJob')">
+      Abort
+    </button>
+    <button type="button" class="btn btn-success" onclick="postJobAction(this, 'runJob')">
+      Run now
+    </button>
+  </div>
+</form>
+{{end}}
+
+
+{{define "invocation-action-scripts"}}
+<script>
+var xsrfToken = "{{.XsrfToken}}";
+
+var postInvocationAction = function(btn, action) {
+  var form = $(btn).closest("form");
+  var projectID = $("input#projectID", form).val();
+  var jobID = $("input#jobID", form).val();
+  var invID = $("input#invID", form).val();
+  var url = "/actions/" + action + "/" + projectID + "/" + jobID + "/" + invID;
+  if (!form.attr("submitted")) {
+    $("input#xsrf_token", form).val(xsrfToken);
+    form.attr("action", url);
+    form.attr("submitted", "yes");
+    form.submit();
+  }
+};
+</script>
+{{end}}
+
+
+{{define "invocation-action-buttons"}}
+<form style="display: inline" method="POST">
+  <input type="hidden" id="xsrf_token" name="xsrf_token" value="">
+  <input type="hidden" id="projectID" value="{{.ProjectID}}">
+  <input type="hidden" id="jobID" value="{{.JobID}}">
+  <input type="hidden" id="invID" value="{{.InvID}}">
+  <div class="btn-group btn-group-xs" role="group">
+    <button type="button" class="btn btn-danger" onclick="postInvocationAction(this, 'abortInvocation')">
+      Abort
+    </button>
+  </div>
+</form>
+{{end}}

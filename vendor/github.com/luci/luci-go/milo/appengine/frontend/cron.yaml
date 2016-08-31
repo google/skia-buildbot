@@ -1,0 +1,7 @@
+cron:
+ - description: Send ts_mon metrics
+   url: /internal/cron/ts_mon/housekeeping
+   schedule: every 1 minutes
+ - description: Update luci config
+   url: /admin/update
+   schedule: every 1 minutes

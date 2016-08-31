@@ -1,0 +1,188 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+  -->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../rpc/rpc-client.html">
+<link rel="import" href="../logdog-stream/logdog-stream.html">
+
+<!--
+A class for issuing a LogDog query.
+-->
+<script>
+  "use strict";
+
+  function LogDogQueryParams(project) {
+    this.project = project;
+
+    this._getMeta = false;
+    this._path = null;
+    this._contentType = null;
+    this._streamType = null;
+    this._purged = null;
+    this._newer = null;
+    this._older = null;
+    this._protoVersion = null;
+    this._tags = {};
+  }
+
+  /** Enables fetching of stream metadata. */
+  LogDogQueryParams.prototype.getMeta = function() {
+    this._getMeta = true;
+    return this;
+  };
+
+  /** Set the log stream path glob to fetch. */
+  LogDogQueryParams.prototype.path = function(v) {
+    this._path = v;
+    return this;
+  };
+
+  /** The content type to filter on. */
+  LogDogQueryParams.prototype.contentType = function(v) {
+    this._contentType = v;
+    return this;
+  };
+
+  /**
+   * The stream type. Can be "text", "binary", "datagram", or null for any.
+   */
+  LogDogQueryParams.prototype.streamType = function(v) {
+    this._streamType = v;
+    return this;
+  };
+
+  /** Filter purged streams? true, false, or null for no filter. */
+  LogDogQueryParams.prototype.purged = function(v) {
+    this._purged = v;
+    return this;
+  };
+
+  /** Filter streams newer than this value? Null for no lower bound. */
+  LogDogQueryParams.prototype.newer = function(v) {
+    this._newer = v.toISOString();
+    return this;
+  };
+
+  /** Filter streams older than this value? Null for no lower bound. */
+  LogDogQueryParams.prototype.older = function(v) {
+    this._older = v.toISOString();
+    return this;
+  };
+
+  /** Filter on protocol version (null for no filter). */
+  LogDogQueryParams.prototype.protoVersion = function(v) {
+    this._protoVersion = v;
+    return this;
+  };
+
+  /** Filter on protocol version (null for no filter). */
+  LogDogQueryParams.prototype.addTag = function(key, value) {
+    this._tags[key] = value;
+    return this;
+  };
+
+  function LogDogQuery(client, params) {
+    this.client = client;
+    this.params = params;
+  }
+
+  /** Returns true if "s" has glob characters in it. */
+  LogDogQuery.isQuery = function(s) {
+    return (s.indexOf("*") >= 0);
+  };
+
+  LogDogQuery.prototype.get = function(cursor, limit) {
+    var body = {
+      project: this.params.project,
+      path: this.params._path,
+      content_type: this.params._contentType,
+      proto_version: this.params._protoVersion,
+      tags: this.params._tags,
+      next: cursor,
+      count: limit,
+    };
+
+    var trinary = function(field, v) {
+      if (v != null) {
+        body[field] = ((v) ? "YES" : "NO");
+      }
+    }
+    trinary("purged", this.params._purged);
+
+    if (this.params._streamType) {
+      var filter = {};
+      switch (this.params._streamType) {
+      case "text":
+        filter.value = "TEXT";
+        break;
+      case "binary":
+        filter.value = "BINARY";
+        break;
+      case "datagram":
+        filter.value = "DATAGRAM";
+        break;
+      default:
+        throw ("Invalid stream type: " + this.params._streamType);
+      }
+      body.stream_type = filter;
+    }
+    if (this.params._newer) {
+      body.newer = this.params._newer;
+    }
+    if (this.params._older) {
+      body.older = this.params._older;
+    }
+
+    this.client.service = "logdog.Logs";
+    this.client.method = "Query";
+    this.client.request = body;
+
+    return this.client.call().completes.then(function(resp) {
+      resp = resp.response;
+
+      // Normalize the JSON values in "desc".
+      //
+      // JSONPB timestamps are in the form of RFC3339 strings.
+      (resp.streams || []).forEach(function(s) {
+        s.stream = new LogDogStream(resp.project, s.path);
+        if (s.state) {
+          patchState(s.state);
+        }
+        if (s.desc) {
+          patchDescriptor(s.desc);
+        }
+      });
+      return resp;
+    });
+  };
+
+  /**
+   * Issues a query and iteratively pulls up to "this.limit" results.
+   */
+  LogDogQuery.prototype.getAll = function(limit) {
+    var streams = [];
+    var cursor = null;
+    limit = (limit || 100);
+
+    fetchRound = function(inStreams) {
+      if (inStreams) {
+        streams.push.apply(streams, inStreams);
+      }
+
+      var remaining = (limit - streams.length);
+      if (remaining <= 0 || cursor === null) {
+        return streams;
+      }
+
+      return this.get(cursor, remaining).then(function(resp) {
+        cursor = resp.next;
+        return fetchRound(resp.streams);
+      });
+    }.bind(this);
+
+    return fetchRound(null);
+  };
+</script>

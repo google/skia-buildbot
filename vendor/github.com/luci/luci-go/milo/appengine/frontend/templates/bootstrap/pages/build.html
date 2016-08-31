@@ -1,0 +1,63 @@
+{{define "title"}}Luci Build{{end}}
+
+
+{{define "head"}}{{end}}
+
+{{define "body"}}
+<div class="row">
+  <div class="col-md-12">
+    <div class="alert alert-success">
+      This build passed
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <h4>Steps and Logfiles</h4>
+    <table class="table table-condensed table-hover">
+      {{ range .Build.Components }}
+        {{ if eq .Status.String "Running" }}
+            <tr class="warning"><td>
+        {{ else if eq .Status.String "Success" }}
+          <tr class="success"><td>
+        {{ else if eq .Status.String "Failure" }}
+          <tr class="danger"><td>
+        {{ else }}
+          <tr><td>
+        {{ end }}
+        <strong>{{ .Label }}</strong>
+        {{ if .MainLink }}
+          (<a href="{{.MainLink.URL}}">{{ .MainLink.Label }}</a>)
+        {{ end }}
+        <small class="muted">
+          {{ range .Text }}<div>{{ . }}</div>{{ end }}
+        </small>
+        <span class="pull-right muted">
+          {{ .Duration | humanDuration }}
+        </span>
+          <ol>
+            {{ range .SubLink }}
+              <li><a href="{{.URL}}">{{.Label}}</a></li>
+            {{ end }}
+          </ol>
+        </td></tr>
+      {{ end }}
+    </table>
+  </div>
+
+  <div class="col-md-6">
+    <h4>Build Properties</h4>
+    {{ range .Build.PropertyGroup }}
+      {{ $group := .GroupName }}
+      {{ range .Property }}
+        <strong>{{ .Key }}</strong>:
+        {{ .Value }}
+        <small class="muted">({{ $group }})</small>
+        <br>
+      {{ end }}
+    {{ end }}
+
+  </div>
+</div>
+{{end}}

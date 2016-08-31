@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package main;
+
+
+// Enum comment.
+// next line.
+enum E1 {
+	// V0
+	// next line.
+	V0 = 0;
+	// V1
+	// next line.
+	V1 = 1;
+}
+
+// M1
+// next line.
+message M1 {
+	// f1
+	// next line.
+	string f1 = 1;
+}
+
+// M2
+// next line.
+message M2 {
+	// f1
+	// next line.
+	repeated M1 f1 = 1;
+	// f2
+	// next line.
+	E1 f2 = 2;
+}
+
+// M3
+message M3 {
+	// O1
+	oneof O1 {
+		// f1
+		int32 f1 = 1;
+		// f2
+		int32 f2 = 2;
+	}
+	// O2
+	oneof O2 {
+		// f3
+		int32 f3 = 3;
+		// f4
+		int32 f4 = 4;
+	}
+	// f5
+	string f5 = 5;
+	// f6
+	int32 f6 = 6;
+}
+
+
+// S1
+service S1 {
+	// R1
+	rpc R1(M1) returns (M2) {};
+}
+
+// S2
+service S2 {
+	// R1
+	rpc R1(M1) returns (M2) {};
+	// R2
+	rpc R2(M1) returns (M2) {};
+}
+
+message NestedMessageParent {
+	message NestedMessage {
+		int32 f1 = 1;
+		int32 f2 = 2;
+	}
+	enum NestedEnum {
+		V0 = 0;
+		V1 = 1;
+	}
+}
+

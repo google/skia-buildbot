@@ -1,0 +1,185 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "github.com/luci/luci-go/common/data/text/templateproto/template.proto";
+import "github.com/luci/luci-go/dm/api/service/v1/graph_data.proto";
+import "github.com/luci/luci-go/dm/api/service/v1/types.proto";
+
+package dm;
+
+message TemplateInstantiation {
+  // project is the luci-config project which defines the template.
+  string project = 1;
+
+  // ref is the git ref of the project that defined this template. If omitted,
+  // this will use the template definition from the project-wide configuration
+  // and not the configuration located on a particular ref (like
+  // 'refs/heads/master').
+  string ref = 2;
+
+  // reserve 3 for luci-config version
+  reserved 3;
+
+  // specifier specifies the actual template name, as well as any substitution
+  // parameters which that template might require.
+  templateproto.Specifier specifier = 4;
+}
+
+// EnsureGraphDataReq allows you to assert the existence of Attempts in DM's
+// graph, and allows you to declare dependencies from one Attempt to another.
+//
+// You can declare Attempts by any combination of:
+//   * Providing a quest description plus a list of Attempt numbers for that
+//     quest.
+//   * Providing a template instantiation (for a project-declared quest
+//     template) plus a list of Attempt numbers for that quest.
+//   * Providing a raw set of quest_id -> attempt numbers for quests that you
+//     already know that DM has a definition for.
+//
+// In response, DM will tell you what the IDs of all supplied Quests/Attempts
+// are.
+//
+// To create a dependencies, call this method while running as part of an
+// execution by filling the for_execution field. All attempts named as described
+// above will become dependencies for the indicated execution. It is only
+// possible for a currently-running execution to create dependencies for its own
+// Attempt. In particular, it is not possible to create dependencies as
+// a non-execution user (e.g. a human), nor is it possible for an execution to
+// create attempts on behalf of some other execution.
+//
+// If the attempts were being created as dependencies, and were already in the
+// Finished state, this request can also opt to include the AttemptResults
+// directly.
+message EnsureGraphDataReq {
+  // Quest is a list of quest descriptors. DM will ensure that the
+  // corresponding Quests exist. If they don't, they'll be created.
+  repeated dm.Quest.Desc quest = 1;
+
+  // QuestAttempt allows the addition of attempts which are derived from
+  // the quest bodies provided above.
+  // Each entry here maps 1:1 with the equivalent quest.
+  repeated dm.AttemptList.Nums quest_attempt = 2;
+
+  // TemplateQuest allows the addition of quests which are derived from
+  // Templates, as defined on a per-project basis.
+  repeated TemplateInstantiation template_quest = 3;
+
+  // TemplateAttempt allows the addition of attempts which are derived from
+  // Templates. This must be equal in length to template_quest.
+  // Each entry here maps 1:1 with the equivalent quest in template_quest.
+  repeated dm.AttemptList.Nums template_attempt = 4;
+
+  // RawAttempts is a list that asserts that the following attempts should
+  // exist. The quest ids in this list must be already-known to DM, NOT
+  // included in the quest field above. This is useful when you know the ID of
+  // the Quest, but not the actual definition of the quest.
+  dm.AttemptList raw_attempts = 5;
+
+  // ForExecution is an authentication pair (Execution_ID, Token).
+  //
+  // If this is provided then it will serve as authorization for the creation of
+  // any `quests` included, and any `attempts` indicated will be set as
+  // dependencies for the execution.
+  //
+  // If this omitted, then the request requires some user/bot authentication,
+  // and any quests/attempts provided will be made standalone (e.g. nothing will
+  // depend on them).
+  dm.Execution.Auth for_execution = 6;
+
+  message Limit {
+    // to be compatible with WalkGraphReq.Limit, should we later expand this
+    // Limit message. However, right now we ONLY use max_data_size.
+    reserved 1, 2;
+
+    // MaxDataSize sets the maximum amount of 'Data' (in bytes) that can be
+    // returned, if include.attempt_result is set. If this limit is hit, then
+    // the appropriate 'partial' value will be set for that object, but the base
+    // object would still be included in the result.
+    //
+    // If this limit is 0, a default limit of 16MB will be used. If this limit
+    // exceeds 30MB, it will be reduced to 30MB.
+    uint32 max_data_size = 3;
+  }
+  Limit limit = 7;
+
+  message Include {
+    // to be compatible with WalkGraphReq.Include, should we later expand this
+    // Include message. However, right now we ONLY use attempt.
+    reserved 1, 3, 5, 6;
+
+    message Options {
+      // to be compatible with WalkGraphReq.Include.Options, should we later
+      // expand this Include.Options message. However, right now we ONLY use
+      // result.
+      reserved 1, 2, 4, 5;
+
+      // Instructs finished objects to include the Result field.
+      bool result = 3;
+    }
+
+    Options attempt = 4;
+  }
+  Include include = 8;
+}
+
+message EnsureGraphDataRsp {
+  // accepted is true when all new graph data was journaled successfully. This
+  // means that `quests`, `attempts`, `template_quest`, `template_attempt` were
+  // all well-formed and are scheduled to be added. They will 'eventually' be
+  // readable via other APIs (like WalkGraph), but when they are, they'll have
+  // the IDs reflected in this response.
+  //
+  // If `attempts` referrs to quests that don't exist and weren't provided in
+  // `quests`, those quests will be listed in `result` with the DNE flag set.
+  //
+  // If `template_quest` had errors (missing template, bad params, etc.), the
+  // errors will be located in `template_error`. If all of the templates parsed
+  // successfully, the quest ids for those rendered `template_quest` will be in
+  // `template_ids`.
+  bool accepted = 1;
+
+  // quest_ids will be populated with the Quest.IDs of any quests defined
+  // by quest in the initial request. Its length is guaranteed to match
+  // the length of quest, if there were no errors.
+  repeated dm.Quest.ID quest_ids = 2;
+
+  // template_ids will be populated with the Quest.IDs of any templates defined
+  // by template_quest in the initial request. Its length is guaranteed to match
+  // the length of template_quest, if there were no errors.
+  repeated dm.Quest.ID template_ids = 3;
+
+  // template_error is either empty if there were no template errors, or the
+  // length of template_quest. Non-empty strings are errors.
+  repeated string template_error = 4;
+
+  // result holds the graph data pertaining to the request, containing any
+  // graph state that already existed at the time of the call. Any new data
+  // that was added to the graph state (accepted==true) will appear with
+  // `DNE==true`.
+  //
+  // Quest data will always be returned for any Quests which exist.
+  //
+  // If accepted==false, you can inspect this to determine why:
+  //   * Quests (without data) mentioned by the `attempts` field that do not
+  //     exist will have `DNE==true`.
+  //
+  // This also can be used to make adding dependencies a stateless
+  // single-request action:
+  //   * Attempts requested (assuming the corresponding Quest exists) will
+  //     contain their current state. If Include.AttemptResult was true, the
+  //     results will be populated (with the size limit mentioned in the request
+  //     documentation).
+  dm.GraphData result = 5;
+
+  // (if `for_execution` was specified) ShouldHalt indicates that the request
+  // was accepted by DM, and the execution should halt (DM will re-execute the
+  // Attempt when it becomes unblocked). If this is true, then the execution's
+  // auth Token is also revoked and will no longer work for futher API calls.
+  //
+  // If `for_execution` was provided in the request and this is false, it means
+  // that the execution may continue executing.
+  bool should_halt = 6;
+}

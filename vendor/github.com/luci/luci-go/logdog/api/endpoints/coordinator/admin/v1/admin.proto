@@ -1,0 +1,37 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package logdog;
+
+// GlobalConfig is the LogDog Coordinator global configuration.
+//
+// This is intended to act as an entry point. The majority of the configuration
+// will be stored in a "luci-config" service Config protobuf.
+message SetConfigRequest {
+  // ConfigServiceURL is the API URL of the base "luci-config" service. If
+  // empty, the defualt service URL will be used.
+  string config_service_url = 1;
+
+  // ConfigSet is the name of the configuration set to load from.
+  string config_set = 2;
+  // ConfigPath is the path of the text-serialized configuration protobuf.
+  string config_path = 3;
+
+  // If not empty, is the service account JSON file data that will be used for
+  // Storage access.
+  //
+  // TODO(dnj): Remove this option once Cloud BigTable has cross-project ACLs.
+  bytes storage_service_account_json = 100;
+}
+
+// Admin service is an administrative service endpoint for LogDog Coordinator.
+service Admin {
+  // SetConfig loads the supplied configuration into a config.GlobalConfig
+  // instance.
+  rpc SetConfig(SetConfigRequest) returns (google.protobuf.Empty);
+}

@@ -1,0 +1,17 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html>
+<!-- Copyright 2015 The LUCI Authors. All rights reserved.
+Use of this source code is governed under the Apache License, Version 2.0
+that can be found in the LICENSE file. -->
+<head><title>{{template "title" .}}</title></head>
+<style>
+{{includeCSS "third_party/bootstrap/bootstrap.min.css"}}
+</style>
+<body>
+<div class="container">
+{{template "content" .}}
+</div>
+</body>
+</html>
+{{end}}

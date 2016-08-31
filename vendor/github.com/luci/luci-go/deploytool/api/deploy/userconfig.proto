@@ -1,0 +1,28 @@
+// Copyright 2016 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto3";
+
+package deploy;
+
+import "github.com/luci/luci-go/deploytool/api/deploy/config.proto";
+
+/**
+ * User configuration file.
+ *
+ * This is where user preferences will be written. Currently, no user
+ * preferences are defined.
+ */
+message UserConfig {
+  /**
+   * Defines a local path override to a repository URL.
+   *
+   * When checkout is run with the "--local" flag, repositories whose URLs match
+   * the key, the value URL will be used instead.
+   *
+   * The key is the repository URL to override, and the value is the override
+   * URL, typically "file:///...".
+   */
+  map<string, deploy.Source> source_override = 1;
+}

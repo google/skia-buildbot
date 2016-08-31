@@ -1,0 +1,25 @@
+{{define "title"}}Cron Service :: {{.ProjectID}} :: {{.JobID}}{{end}}
+
+{{define "head"}}
+{{end}}
+
+{{define "content"}}
+
+<ol class="breadcrumb">
+  <li><a href="/">All projects</a></li>
+  <li><a href="/jobs/{{.ProjectID}}">{{.ProjectID}}</a></li>
+  <li class="active"><a href="/jobs/{{.ProjectID}}/{{.JobID}}">{{.JobID}}</a></li>
+</ol>
+
+<div class="container">
+  <h3>{{if .Error}}Error{{else}}Success{{end}}</h3>
+  <hr>
+  {{if .Error}}
+    <p>Failed to start the invocation - {{.Error}}.</p>
+  {{else}}
+    <p>The invocation was successfully queued.</p>
+    <p>It will appear in the invocations list in a few moments.</p>
+  {{end}}
+</div>
+
+{{end}}

@@ -1,0 +1,29 @@
+{{define "title"}}settings{{end}}
+
+{{define "head"}}{{end}}
+
+{{ define "body" }}
+  <div class="header">
+    <a href="{{ .Navi.SiteTitle.URL }}">{{ .Navi.SiteTitle.Label }}</a>
+  </div>
+  <hr/>
+  <div class="content">
+    <h1>Settings</h1>
+
+    <div class="column">
+      <h2>Themes</h2>
+      <form action="{{.Settings.ActionURL}}" method='POST'>
+      <input type="hidden" name="xsrf_token" value="{{.XsrfToken}}">
+      <select name="theme">
+        {{ $selected := .Settings.Theme.Selected }}
+        {{ range $index, $value := .Settings.Theme.Choices }}
+          {{ if eq $value $selected }}
+            <option value={{$value}} selected>{{$value}}</option>
+          {{ else }}
+            <option value={{$value}}>{{$value}}</option>
+          {{ end }}
+        {{ end}}
+      </select>
+      <button type="submit" label="submit">submit</button>
+    </div>
+{{ end }}

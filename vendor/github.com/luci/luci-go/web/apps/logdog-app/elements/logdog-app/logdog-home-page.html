@@ -1,0 +1,125 @@
+<!--
+  Copyright 2015 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../../inc/bower_components/polymer/polymer.html">
+<link rel="import" href="../../inc/bower_components/paper-styles/default-theme.html">
+<link rel="import" href="../../inc/bower_components/paper-styles/typography.html">
+
+<link rel="stylesheet" href="../../styles/main.css">
+
+<!--
+An element for the main LogDog web app.
+-->
+<dom-module id="logdog-home-page">
+
+<template>
+  <style>
+    :host {
+      @apply(--paper-font-common-base);
+    }
+
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 4px;
+    }
+
+    aside > h1 {
+      font-size: 1em;
+    }
+
+    aside > p {
+      font-size: .9em;
+    }
+
+    section {
+
+    }
+  </style>
+
+
+  <div class="content">
+
+  <h1>Welcome to LogDog!</h1>
+
+  <section>
+    <!-- Introduction -->
+    <div>
+      <p>LogDog is an ongoing Chrome Infrastructure Team project to stream,
+      collect, archive, and serve Chromium build logs and associated data. It is
+      part of the larger <a href="https://github.com/luci">LUCI</a> project.</p>
+
+      <p><strong>Note: LogDog is currently in development.</strong> It is being
+      rolled out to select Chromium project waterfalls to exercise the system
+      under load and collect real-world data for other LUCI systems to use.</p>
+
+      <p>While there is developer aim to keep its APIs, data format, and data
+      archives stable, Chrome Infra may need to disrupt some or all of these
+      during development and preparation for production deployment.</p>
+    </div>
+
+    <!-- FAQ -->
+    <div>
+      <h1>How do I contact the LogDog/LUCI team?</h1>
+      <p>Send e-mails or requests to
+      <a href="mailto:infra-dev@chromium.org">infra-dev@chromium.org</a>.
+    </div>
+
+    <div>
+      <h1>Where are the LogDog APIs?</h1>
+
+      </p>LogDog supports interaction via
+      <a href="https://github.com/luci/luci-go/tree/master/common/prpc">pRPC</a>,
+      a gRPC-inspired protocol. It supports <strong>JSON</strong> and
+      <strong>Protocol Buffers</strong> formats.</p>
+
+      <p>You can try its APIs with the <a href="/rpcexplorer/">RPC Explorer</a>!
+    </div>
+
+    <div>
+      <h1>How long is log data stored?</h1>
+
+      </p>LogDog currently stores log data indefinitely in
+      <a href="https://cloud.google.com/storage/docs/overview">Google Cloud
+        Storage</a>. It is accessible immediately through LogDog APIs. If
+      programmatic log data access is needed, please contact the Chrome
+      Infrastructure team..</p>
+    </div>
+
+    <div>
+      <h1>What sort of data is LogDog good for?</h1>
+
+      <p>LogDog is designed for any sort of streaming data. It supports three
+      data formats:
+        <ul>
+          <li><strong>Text</strong>: Newline-delimited lines of UTF8 text.</li>
+          <li><strong>Binary</strong>: A single binary stream (e.g., file).</li>
+          <li><strong>Datagram</strong>: A series of length-prefixed binary
+            blobs.</li>
+        </ul>
+
+        <aside>Chances are your data will fit into one of those three formats.
+        </aside>
+      </p>
+
+      <p>LogDog streams are expected to terminate within a "reasonable" period
+      of time. This period is currently set to <strong>1 day</strong>, but will
+      likely be extended on release. If your data stream takes longer than this
+      to send, please contact
+      <a href="mailto:infra-dev@chromium.org">infra-dev@chromium.org</a> so we
+      can discuss your use case.</p>
+    </div>
+  </section>
+
+  </div>
+</template>
+
+</dom-module>
+
+<script>
+  Polymer({
+    is: "logdog-home-page",
+  });
+</script>

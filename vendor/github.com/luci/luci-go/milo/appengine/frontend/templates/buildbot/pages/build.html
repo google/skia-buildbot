@@ -1,0 +1,245 @@
+{{define "title"}}
+  {{ with .Build.Summary -}}
+    {{ if eq .Status.String "InfraFailure" }}
+      Exception
+    {{ else if eq .Status.String "Failure" }}
+      Failed
+    {{ else if eq .Status.String "NotRun" }}
+      Pending
+    {{ else }}
+      {{ .Status.String }}
+    {{ end }}
+    -
+    {{ if .ParentLabel }} {{ .ParentLabel.Label }} {{ end }}
+    {{ .Label }}
+  {{- end }}
+{{end}}
+
+{{define "head"}}{{end}}
+
+{{define "body"}}
+  <div class="content">
+    <h1>
+      {{ if .Build.Summary.ParentLabel }}
+        Builder {{ .Build.Summary.ParentLabel | linkify }}
+      {{ end }}
+      Build {{.Build.Summary.Label}}
+      {{ if .Build.Summary.Banner }}
+        {{ range .Build.Summary.Banner.OS }}
+          <img src="/static/common/logos/{{.LogoBase.Img}}" alt="{{.LogoBase.Alt}}"
+               width="25px">
+        {{ end }}
+        {{ range .Build.Summary.Banner.Device }}
+          <img src="/static/common/logos/{{.LogoBase.Img}}" alt="{{.LogoBase.Alt}}"
+               width="25px">
+        {{ end }}
+      {{ end }}
+    </h1>
+
+    <div class="column">
+
+      <h2>Results:</h2>
+      {{ with .Build.Summary }}
+        {{ if eq .Status.String "Running" }}
+          <p class="running result">Build Running
+        {{ else if eq .Status.String "Success" }}
+          <p class="success result">Build Successful
+        {{ else if eq .Status.String "InfraFailure" }}
+          <p class="exception result">Internal Failure
+        {{ else if eq .Status.String "Failure" }}
+          <p class="failure result">Build Failed
+        {{ else if eq .Status.String "NotRun" }}
+          <p class="pending result">Build Pending
+        {{ else }}
+          <p class="failure result">Unknown status {{.Status.String }}
+        {{ end }}
+        <span class="subtitle">
+          {{ range .Text }}<div class="step-text">{{ . }}</div>{{ end }}
+        </span>
+        </p>
+      {{ end }} <!-- with -->
+
+
+      {{ if .Build.SourceStamp }}
+      {{ with .Build.SourceStamp }}
+
+      <h2>SourceStamp:</h2>
+
+      <table class="info" width="100%">
+
+      {{ if .Commit.Repo }}
+        <tr><td class="left">Repository</td><td>{{ .Commit.Repo }}</td></tr>
+      {{ end }}
+
+      {{ if .Commit.Branch }}
+        <tr><td class="left">Branch</td><td>{{ .Commit.Branch }}</td></tr>
+      {{ end }}
+
+      {{ if .Commit.RequestRevision }}
+        <tr><td class="left">Revision</td><td>{{ .Commit.RequestRevision }}</td></tr>
+      {{ end }}
+
+      {{ if .Commit.Revision }}
+        <tr><td class="left">Got Revision</td><td>{{ .Commit.Revision }}</td></tr>
+      {{ end }}
+
+      {{ if .Commit.Changelist }}
+        <tr><td class="left">Patch</td><td>{{ .Commit.Changelist | linkify }}</td></tr>
+      {{ end }}
+
+      </table>
+      {{ end }}  <!-- with -->
+      {{ end }}  <!-- if -->
+
+      {{ if or .Build.Summary.Bot .Build.Summary.Source }}
+      <h2>Execution:</h2>
+      <ul>
+        {{ if .Build.Summary.Source }}
+        <li>
+          Source:
+          <a href="{{ .Build.Summary.Source.URL }}">{{ .Build.Summary.Source.Label }}</a>
+        </li>
+        {{ end }}
+
+        {{ if .Build.Summary.Bot }}
+        <li>
+          Bot:
+          <a href="{{ .Build.Summary.Bot.URL }}">{{ .Build.Summary.Bot.Label }}</a>
+        </li>
+        {{ end }}
+      </ul>
+      {{ end }} <!-- if -->
+
+      {{ if .Build.SourceStamp }}
+        {{ if .Build.SourceStamp.Source }}
+          <h2>Reason:</h2>
+          <p>{{ .Source }}</p>
+        {{ end }}
+      {{ end }}
+
+      {{ if .Build.Components }}
+        <h2>Steps and Logfiles:</h2>
+        <input type="checkbox" id="showHidden">
+        <label for="showHidden">Show hidden</label>
+        <ol>
+          {{ range .Build.Components  }}
+          <li class="verbosity-{{.Verbosity.String}} default">
+            <div class="status-{{.Status}} result">
+              <b>{{.Label}}</b>
+              {{ if .Duration -}}
+                <span style="float:right">( {{ .Duration | humanDuration }} )</span>
+              {{- end }}
+              <span>
+                {{ range .Text }}<div class="step-text">{{ . }}</div>{{ end }}
+              </span>
+            </div>
+            <ul>
+              {{ if .MainLink }}
+                <li>{{.MainLink | linkify}}</li>
+              {{ end }}
+              {{- if eq .Verbosity.String "Interesting" -}}
+                <link rel="prerender" href="{{.MainLink.URL}}">
+                <link rel="prefetch" href="{{.MainLink.URL}}">
+              {{- end }}
+              {{ range .SubLink }}
+                <li>{{. | linkify}}</li>
+              {{ end }}
+              {{ if not (or .MainLink .SubLink) }}
+                <li> - no logs - </li>
+              {{ end }}
+            </ul>
+          </li>
+          {{ end }}
+        </ol>
+      {{ end }} <!-- if .Build.Components -->
+
+    </div>
+
+    <div class="column">
+
+      <h2>Build Properties:</h2>
+
+      <table class="info" width="100%">
+      <tr><th>Name</th><th>Value</th><th>Source</th></tr>
+
+        {{ range .Build.PropertyGroup }}
+        {{ $name := .GroupName }}
+          {{ range .Property }}
+            <tr>
+              <td class="left">{{.Key}}</td>
+              <td>
+                {{ if (eq .Key "requestedAt") }}
+                  {{ .Value | parseRFC3339 | localTime "" }}
+                {{ else if (eq .Key "blamelist") }}
+                  {{ .Value | obfuscateEmail }}
+                {{ else if (startswith .Value "https://") }}
+                  <a href="{{.Value}}">{{.Value}}</a>
+                {{ else }}
+                  {{.Value}}
+                {{ end }}
+              </td>
+              <td>{{$name}}</td>
+            </tr>
+          {{ end }}
+        {{ end }}
+      </table>
+
+      {{ if .Build.Blame }}
+        <h2>Blamelist:</h2>
+        <ol>
+        {{ range .Build.Blame }}
+          <li>{{ .AuthorName }} ({{ .AuthorEmail | obfuscateEmail }})</li>
+        {{ end }}
+        </ol>
+      {{ end }}
+
+      <h2>Timing:</h2>
+      <table class="info" width="100%">
+        <tr class="alt"><td class="left">Start</td>
+        <td>
+          {{ .Build.Summary.Started | localTime "N/A" }}
+        </td></tr>
+        <tr><td class="left">End</td>
+        <td>
+          {{ .Build.Summary.Finished | localTime "N/A" }}
+        </td></tr>
+        <tr class="alt"><td class="left">Elapsed</td>
+        <td id="duration">
+          {{ if .Build.Summary.Started.IsZero }}
+            N/A
+          {{ else }}
+            {{ .Build.Summary.Duration | humanDuration }}
+          {{ end }}
+        </td></tr>
+      </table>
+
+    </div>
+
+    {{ if .Build.Blame}}
+    <div class="column">
+      <h2>All Changes:</h2>
+      <ol>
+      {{ range .Build.Blame }}
+      <li>
+        <h3>{{.Title}}</h3>
+        <!--- TODO(hinoka): Layout the rest of this -->
+      </li>
+      {{ end }}
+      </ol>
+    </div>
+    {{ end }}
+  </div>
+</div>
+<script language="javascript">
+$("#showHidden").click(function(e) {
+  var checked = $(this).is(":checked");
+  $(".verbosity-Hidden").each(function(i, obj) {
+    if (checked) {
+      $(this).removeClass("default");
+    } else {
+      $(this).addClass("default");
+    }
+  });
+});
+</script>
+{{end}}

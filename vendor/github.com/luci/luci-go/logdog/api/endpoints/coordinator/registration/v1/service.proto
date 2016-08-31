@@ -1,0 +1,60 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package logdog;
+
+import "google/protobuf/duration.proto";
+
+// RegisterPrefixRequest registers a new Prefix with the Coordinator.
+message RegisterPrefixRequest {
+  // The log stream's project.
+  string project = 1;
+
+  // The log stream prefix to register.
+  string prefix = 2;
+
+  // Optional information about the registering agent.
+  repeated string source_info = 3;
+
+  // The prefix expiration time. If <= 0, the project's default prefix
+  // expiration period will be applied.
+  //
+  // The prefix will be closed by the Coordinator after its expiration period.
+  // Once closed, new stream registration requests will no longer be accepted.
+  //
+  // If supplied, this value should exceed the timeout of the local task, else
+  // some of the task's streams may be dropped due to failing registration.
+  google.protobuf.Duration expiration = 10;
+}
+
+// The response message for the RegisterPrefix RPC.
+message RegisterPrefixResponse {
+  // Secret is the prefix's secret. This must be included verbatim in Butler
+  // bundles to assert ownership of this prefix.
+  bytes secret = 1;
+
+  // The name of the Pub/Sub topic to publish butlerproto-formatted Butler log
+  // bundles to.
+  string log_bundle_topic = 2;
+}
+
+// Registration service is a LogDog Coordinator endpoint that interfaces with
+// LogDog Butler instances and enables stream prefix registration and Butler
+// streaming initialization.
+service Registration {
+  // RegisterStream allows a Butler instance to register a log stream with the
+  // Coordinator. Upon success, the Coordinator will return registration
+  // information and streaming parameters to the Butler.
+  //
+  // This should be called by a Butler instance to gain the ability to publish
+  // to a prefix space. The caller must have WRITE access to its project's
+  // stream space. If WRITE access is not present, this will fail with the
+  // "PermissionDenied" gRPC code.
+  //
+  // A stream prefix may be registered at most once. Additional registration
+  // requests will fail with the "AlreadyExists" gRPC code.
+  rpc RegisterPrefix(RegisterPrefixRequest) returns (RegisterPrefixResponse);
+}

@@ -1,0 +1,49 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package deploy;
+
+import "github.com/luci/luci-go/deploytool/api/deploy/config.proto";
+import "github.com/luci/luci-go/deploytool/api/deploy/checkout.proto";
+
+/**
+ * Frozen copy of layout configuration, associated with the current checkout.
+ *
+ * The "checkout" command creates this file after reading the current layout
+ * configuration. This is then used in subsequent operations to operate on the
+ * checkout.
+ */
+message FrozenLayout {
+  /** A single Source. */
+  message Source {
+    /** The backing Source entry. */
+    deploy.Source source = 1;
+
+    /** Relative path to the source's checkout. */
+    string relpath = 2;
+    /** Revision. */
+    string revision = 3;
+    /** Major version. */
+    string major_version = 4;
+    /** Minor version. */
+    string minor_version = 5;
+
+    /** If source initialization was performed, the result. */
+    deploy.SourceInitResult init_result = 6;
+  }
+
+  /** A single source group. */
+  message SourceGroup {
+    /** The Sources in this source group. */
+    map<string, Source> source = 1;
+
+    /** The calculated revision hash for this source group. */
+    string revision_hash = 2;
+    /** Is this source group tained? */
+    bool tainted = 3;
+  }
+  map<string, SourceGroup> source_group = 1;
+}

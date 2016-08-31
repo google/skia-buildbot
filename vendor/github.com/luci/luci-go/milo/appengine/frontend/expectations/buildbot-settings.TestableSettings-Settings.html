@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+<title>Settings</title>
+<link rel="stylesheet" href="/static/buildbot/css/default.css" type="text/css">
+<script src="/static/common/js/time.js"></script>
+<script src="/static/common/third_party/js/jquery.min.js"></script>
+
+
+<body class="interface">
+  <header>
+    Luci
+    <div>
+      
+        <a href="https://login.url/">login</a>
+      
+    </div>
+  </header>
+  <hr>
+  
+<div class="header">
+  <a href=""></a>
+</div>
+<div class="content">
+  <h1>Build </h1>
+
+  <div class="column">
+    <h2>Themes</h2>
+    <form action="/post/action" method='POST'>
+    <input type="hidden" name="xsrf_token" value="thisisatoken">
+    <select name="theme">
+      
+      
+        
+          <option value=bootstrap selected>bootstrap</option>
+        
+      
+        
+          <option value=buildbot>buildbot</option>
+        
+      
+    </select>
+    <button type="submit" label="Submit">Submit!!!</button>
+  </div>
+</div>
+
+  <footer>
+    <hr>
+    <a href="https://github.com/luci">luci</a>,
+    working for the <a href="https://chromium.org/">Chromium</a> project.<br>
+    Page built: <b><span class="local-time" data-timestamp="-6792498672871">Saturday, 03-Feb-01 04:05:06 UTC</span></b> (All times local)
+  </footer>
+<script>
+(function () {
+  'use strict';
+  milo.makeTimesLocal();
+})();
+</script>
+
+<script>
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+	ga('create', 'UA-12345-01', 'auto');
+	ga('send', 'pageview');
+</script>
+

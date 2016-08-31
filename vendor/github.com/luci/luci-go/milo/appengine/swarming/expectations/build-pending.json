@@ -1,0 +1,55 @@
+{
+  "Summary": {
+    "ParentLabel": null,
+    "Label": "2fb1b35e1da25710",
+    "Status": "NotRun",
+    "Banner": null,
+    "Bot": null,
+    "Source": {
+      "Label": "Task 2fb1b35e1da25710",
+      "Img": "",
+      "URL": "https://debug/user/task/2fb1b35e1da25710",
+      "Alt": ""
+    },
+    "MainLink": null,
+    "SubLink": null,
+    "Progress": null,
+    "Started": "0001-01-01T00:00:00Z",
+    "Finished": "0001-01-01T00:00:00Z",
+    "Duration": 0,
+    "Type": "Recipe",
+    "LevelsDeep": 0,
+    "Verbosity": 0,
+    "Text": null
+  },
+  "SourceStamp": null,
+  "Components": null,
+  "PropertyGroup": [
+    {
+      "GroupName": "Swarming Tags",
+      "Property": [
+        {
+          "Key": "os",
+          "Value": "Linux"
+        },
+        {
+          "Key": "pool",
+          "Value": "default"
+        },
+        {
+          "Key": "priority",
+          "Value": "10"
+        },
+        {
+          "Key": "user",
+          "Value": ""
+        },
+        {
+          "Key": "allow_milo",
+          "Value": "1"
+        }
+      ]
+    }
+  ],
+  "Blame": null
+}

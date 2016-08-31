@@ -1,0 +1,231 @@
+{
+  "Summary": {
+    "ParentLabel": {
+      "Label": "infra-continuous-precise-32",
+      "Img": "",
+      "URL": "/buildbucket/estaab-infra-waterfall-test/infra-continuous-precise-32?server=cr-buildbucket-dev.appspot.com",
+      "Alt": ""
+    },
+    "Label": "2d8d62f6be545b10",
+    "Status": "InfraFailure",
+    "Banner": {
+      "OS": [
+        {
+          "Img": "ubuntu.svg",
+          "Alt": "Canonical Ubuntu",
+          "Subtitle": "12.04",
+          "Count": 1
+        }
+      ],
+      "Device": null
+    },
+    "Bot": {
+      "Label": "swarm3-c4",
+      "Img": "",
+      "URL": "https://debug/restricted/bot/swarm3-c4",
+      "Alt": ""
+    },
+    "Source": {
+      "Label": "Task 2d8d62f6be545b10",
+      "Img": "",
+      "URL": "https://debug/user/task/2d8d62f6be545b10",
+      "Alt": ""
+    },
+    "MainLink": {
+      "Label": "Task 2d8d62f6be545b10",
+      "Img": "",
+      "URL": "https://debug/user/task/2d8d62f6be545b10",
+      "Alt": ""
+    },
+    "SubLink": [
+      {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/stdout",
+        "Alt": ""
+      }
+    ],
+    "Progress": null,
+    "Started": "2016-03-14T10:00:01.85071Z",
+    "Finished": "2016-03-14T11:00:18.48602Z",
+    "Duration": 3616635310000,
+    "Type": "Recipe",
+    "LevelsDeep": 0,
+    "Verbosity": 2,
+    "Text": [
+      "Task timed out"
+    ]
+  },
+  "SourceStamp": null,
+  "Components": [
+    {
+      "ParentLabel": null,
+      "Label": "recipe bootstrap",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/recipe_bootstrap/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-03-14T10:00:02Z",
+      "Finished": "2016-03-14T10:00:04Z",
+      "Duration": 2000000000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 1,
+      "Text": null
+    },
+    {
+      "ParentLabel": null,
+      "Label": "setup_build",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdout",
+        "Img": "",
+        "URL": "foo/steps/setup_build/0/stdout",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "run_recipe",
+          "Img": "",
+          "URL": "foo/steps/setup_build/0/logs/run_recipe/0",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-03-14T10:00:02Z",
+      "Finished": "2016-03-14T10:00:03Z",
+      "Duration": 1000000000,
+      "Type": "Step",
+      "LevelsDeep": 0,
+      "Verbosity": 1,
+      "Text": [
+        "running recipe: \"v8\""
+      ]
+    }
+  ],
+  "PropertyGroup": [
+    {
+      "GroupName": "recipe bootstrap",
+      "Property": [
+        {
+          "Key": "path_config",
+          "Value": "kitchen"
+        },
+        {
+          "Key": "slavename",
+          "Value": "fakeslave"
+        },
+        {
+          "Key": "buildername",
+          "Value": "infra-continuous-precise-32"
+        },
+        {
+          "Key": "mastername",
+          "Value": "chromium.infra"
+        }
+      ]
+    },
+    {
+      "GroupName": "setup_build",
+      "Property": null
+    },
+    {
+      "GroupName": "Main",
+      "Property": null
+    },
+    {
+      "GroupName": "Swarming",
+      "Property": [
+        {
+          "Key": "Cost of job (USD)",
+          "Value": "$0.52"
+        },
+        {
+          "Key": "Exit Code",
+          "Value": "-15"
+        }
+      ]
+    },
+    {
+      "GroupName": "Swarming Tags",
+      "Property": [
+        {
+          "Key": "buildbucket_bucket",
+          "Value": "estaab-infra-waterfall-test"
+        },
+        {
+          "Key": "buildbucket_hostname",
+          "Value": "cr-buildbucket-dev.appspot.com"
+        },
+        {
+          "Key": "builder",
+          "Value": "infra-continuous-precise-32"
+        },
+        {
+          "Key": "cores",
+          "Value": "8"
+        },
+        {
+          "Key": "cron_invocation_id",
+          "Value": "9183652815541395264"
+        },
+        {
+          "Key": "cron_job_id",
+          "Value": "infra-experimental/buildbucket-job-estaab-infra-waterfall-test"
+        },
+        {
+          "Key": "master",
+          "Value": "master.estaab-infra-waterfall-test"
+        },
+        {
+          "Key": "os",
+          "Value": "Ubuntu-12.04"
+        },
+        {
+          "Key": "pool",
+          "Value": "default"
+        },
+        {
+          "Key": "priority",
+          "Value": "100"
+        },
+        {
+          "Key": "recipe_name",
+          "Value": "infra/infra_continuous"
+        },
+        {
+          "Key": "recipe_repository",
+          "Value": "https://chromium.googlesource.com/chromium/tools/build"
+        },
+        {
+          "Key": "recipe_revision",
+          "Value": ""
+        },
+        {
+          "Key": "user",
+          "Value": ""
+        },
+        {
+          "Key": "user_agent",
+          "Value": "luci-cron"
+        },
+        {
+          "Key": "allow_milo",
+          "Value": "1"
+        }
+      ]
+    }
+  ],
+  "Blame": null
+}

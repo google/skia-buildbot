@@ -1,0 +1,4 @@
+# Integration tests prepare consistent config directories in .devcfg_versions
+# and symlink them to ../devcfg (where appengine/gaeconfig component reads them
+# from when it runs on dev server).
+.devcfg_versions

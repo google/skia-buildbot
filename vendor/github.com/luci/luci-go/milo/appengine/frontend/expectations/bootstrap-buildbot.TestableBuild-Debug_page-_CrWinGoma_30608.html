@@ -1,0 +1,614 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="description" content="">
+    <meta name="author" content="Luci Authors">
+    
+
+    <title>Luci Build</title>
+
+    
+    <link href="/static/bootstrap/third_party/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+body {
+  padding-top: 70px;
+}
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
+  </style>
+  
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Luci</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/settings">Settings</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      
+<div class="row">
+  <div class="col-md-12">
+    <div class="alert alert-success">
+      This build passed
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <h4>Steps and Logfiles</h4>
+    <table class="table table-condensed table-hover">
+      
+        
+          <tr class="success"><td>
+        
+        <strong>steps</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/steps/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>running steps via annotated script</div>
+        </small>
+        <span class="pull-right muted">
+          15 mins 30 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/steps/logs/preamble">preamble</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>update_scripts</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/update_scripts/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>update_scripts</div><div>git - 94dbe001292dcec3423c5d1b0374826ff89a8f46</div>
+        </small>
+        <span class="pull-right muted">
+          24 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/update_scripts/logs/gclient_json">gclient_json</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>setup_properties</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/setup_properties/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>setup_properties</div>
+        </small>
+        <span class="pull-right muted">
+          6 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>setup_build</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/setup_build/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>setup_build</div><div>running recipe: &#34;chromium&#34;</div>
+        </small>
+        <span class="pull-right muted">
+          1 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/setup_build/logs/run_recipe">run_recipe</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>taskkill</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/taskkill/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>taskkill</div>
+        </small>
+        <span class="pull-right muted">
+          11 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>bot_update</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/bot_update/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>bot_update</div><div>[133GB/2047GB used (6%)]</div>
+        </small>
+        <span class="pull-right muted">
+          1 mins 4 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/bot_update/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>ensure_goma</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/ensure_goma/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>ensure_goma</div>
+        </small>
+        <span class="pull-right muted">
+          2 ms
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>ensure_goma.install cipd</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/ensure_goma.install%20cipd/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>ensure_goma.install cipd</div><div>cipd instance_id: bccdb9a605037e3dd2a8a64e79e08f691a6f159d</div>
+        </small>
+        <span class="pull-right muted">
+          5 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/ensure_goma.install%20cipd/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>ensure_goma.ensure_installed</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/ensure_goma.ensure_installed/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>ensure_goma.ensure_installed</div>
+        </small>
+        <span class="pull-right muted">
+          4 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/ensure_goma.ensure_installed/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>gclient runhooks</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/gclient%20runhooks/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>gclient runhooks</div>
+        </small>
+        <span class="pull-right muted">
+          15 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>get compile targets for scripts</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/get%20compile%20targets%20for%20scripts/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>get compile targets for scripts</div>
+        </small>
+        <span class="pull-right muted">
+          2 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/get%20compile%20targets%20for%20scripts/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>read test spec</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/read%20test%20spec/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>read test spec</div><div>path: C:\b\build\slave\CrWinGoma\build\src\testing\buildbot\chromium.fyi.json</div>
+        </small>
+        <span class="pull-right muted">
+          10 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/read%20test%20spec/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>cleanup_temp</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/cleanup_temp/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>cleanup_temp</div>
+        </small>
+        <span class="pull-right muted">
+          12 ms
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>generate_build_files</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/generate_build_files/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>generate_build_files</div>
+        </small>
+        <span class="pull-right muted">
+          45 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>compile</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/compile/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>compile</div>
+        </small>
+        <span class="pull-right muted">
+          11 mins 2 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/compile/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>base_unittests</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/base_unittests/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>base_unittests</div><div>base_unittests</div><div>36 disabled</div><div>2 flaky</div>
+        </small>
+        <span class="pull-right muted">
+          35 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>content_unittests</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/content_unittests/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>content_unittests</div><div>content_unittests</div><div>10 disabled</div>
+        </small>
+        <span class="pull-right muted">
+          40 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>process_dumps</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/process_dumps/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>process_dumps</div>
+        </small>
+        <span class="pull-right muted">
+          2 ms
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>recipe result</strong>
+        
+          (<a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/recipe%20result/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>recipe result</div>
+        </small>
+        <span class="pull-right muted">
+          86 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/chromium.fyi/builders/CrWinGoma/builds/30608/steps/recipe%20result/logs/result">result</a></li>
+            
+          </ol>
+        </td></tr>
+      
+    </table>
+  </div>
+
+  <div class="col-md-6">
+    <h4>Build Properties</h4>
+    
+      
+      
+        <strong>got_angle_revision</strong>:
+        07529ff8dcacd94b93d432122d0c6aa68631843a
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_buildtools_revision</strong>:
+        8dd3c8e39a48743c4eb790d9a8abe9676b617046
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_nacl_revision</strong>:
+        f9308087f764c0f4341e3200baded605c917eb49
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_revision</strong>:
+        bfdee36d31a624d330b60b481fc26d10dff81b97
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_revision_cp</strong>:
+        refs/heads/master@{#398661}
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_swarming_client_revision</strong>:
+        df6e95e7669883c8fe9ef956c69a544154701a49
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_v8_revision</strong>:
+        af2ed87b122bd32cc53285dc7579530ae08731e5
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_v8_revision_cp</strong>:
+        refs/heads/5.3.182@{#1}
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_webrtc_revision</strong>:
+        393886f22bb16e991b0fc57d7e290637d307448a
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_webrtc_revision_cp</strong>:
+        refs/heads/master@{#13070}
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+    
+      
+      
+        <strong>recipe</strong>:
+        chromium
+        <small class="muted">(Annotation(setup_properties))</small>
+        <br>
+      
+    
+      
+      
+        <strong>build_revision</strong>:
+        94dbe001292dcec3423c5d1b0374826ff89a8f46
+        <small class="muted">(Annotation(update_scripts))</small>
+        <br>
+      
+        <strong>build_scm</strong>:
+        git
+        <small class="muted">(Annotation(update_scripts))</small>
+        <br>
+      
+    
+      
+      
+        <strong>blamelist</strong>:
+        [agrieve@chromium.org dcheng@chromium.org dtseng@chromium.org fsamuel@chromium.org gab@chromium.org moshayedi@chromium.org yolandyan@google.com]
+        <small class="muted">(Build)</small>
+        <br>
+      
+        <strong>branch</strong>:
+        master
+        <small class="muted">(Build)</small>
+        <br>
+      
+        <strong>buildnumber</strong>:
+        30608
+        <small class="muted">(Build)</small>
+        <br>
+      
+        <strong>project</strong>:
+        chromium
+        <small class="muted">(Build)</small>
+        <br>
+      
+        <strong>repository</strong>:
+        https://chromium.googlesource.com/chromium/src
+        <small class="muted">(Build)</small>
+        <br>
+      
+        <strong>requestedAt</strong>:
+        2016-06-08T20:24:36Z
+        <small class="muted">(Build)</small>
+        <br>
+      
+        <strong>revision</strong>:
+        bfdee36d31a624d330b60b481fc26d10dff81b97
+        <small class="muted">(Build)</small>
+        <br>
+      
+    
+      
+      
+        <strong>slavename</strong>:
+        build28-m1
+        <small class="muted">(BuildSlave)</small>
+        <br>
+      
+    
+      
+      
+        <strong>buildername</strong>:
+        CrWinGoma
+        <small class="muted">(Builder)</small>
+        <br>
+      
+    
+      
+      
+        <strong>git_revision</strong>:
+        bfdee36d31a624d330b60b481fc26d10dff81b97
+        <small class="muted">(Change)</small>
+        <br>
+      
+    
+      
+      
+        <strong>scheduler</strong>:
+        chromium
+        <small class="muted">(Scheduler)</small>
+        <br>
+      
+    
+      
+      
+        <strong>buildbotURL</strong>:
+        http://build.chromium.org/p/chromium.fyi/
+        <small class="muted">(master.cfg)</small>
+        <br>
+      
+        <strong>mastername</strong>:
+        chromium.fyi
+        <small class="muted">(master.cfg)</small>
+        <br>
+      
+    
+      
+      
+        <strong>workdir</strong>:
+        C:\b\build\slave/CrWinGoma
+        <small class="muted">(slave)</small>
+        <br>
+      
+    
+
+  </div>
+</div>
+
+    </div>
+
+
+    
+    
+    <script src="/static/common/third_party/js/jquery.min.js"></script>
+    <script src="/static/bootstrap/third_party/js/bootstrap.min.js"></script>
+  </body>
+</html>

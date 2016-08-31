@@ -1,0 +1,21 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+// Copied from https://chromium.googlesource.com/infra/infra/+/master/infra_libs/ts_mon/protos/
+
+syntax = "proto2";
+
+package ts_mon.proto;
+
+message NetworkDevice {
+  enum TypeId { MESSAGE_TYPE_ID = 34049749; };
+
+  optional bool alertable = 101;
+  optional string realm = 102;
+  optional string metro = 104;
+  optional string role = 105;
+  optional string hostname = 106;
+  optional string hostgroup = 108;
+}
+

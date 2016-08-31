@@ -1,0 +1,22 @@
+name: "testcommand"
+command: <
+  command_line: "testcommand"
+  command_line: "foo"
+  command_line: "bar"
+  cwd: "/path/to/dir"
+  environ: <
+    key: "BAZ"
+    value: "QUX"
+  >
+  environ: <
+    key: "FOO"
+    value: "BAR"
+  >
+>
+status: SUCCESS
+started: <
+  seconds: 1420070400
+>
+ended: <
+  seconds: 1420070400
+>

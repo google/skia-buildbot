@@ -1,0 +1,1130 @@
+{
+  "Summary": {
+    "ParentLabel": {
+      "Label": "win_chromium_rel_ng",
+      "Img": "",
+      "URL": ".",
+      "Alt": ""
+    },
+    "Label": "#246309",
+    "Status": "Failure",
+    "Banner": null,
+    "Bot": {
+      "Label": "vm774-m4",
+      "Img": "",
+      "URL": "https://build.chromium.org/p//buildslaves/vm774-m4",
+      "Alt": ""
+    },
+    "Source": {
+      "Label": "/win_chromium_rel_ng/246309",
+      "Img": "",
+      "URL": "https://build.chromium.org/p//builders/win_chromium_rel_ng/builds/246309",
+      "Alt": ""
+    },
+    "MainLink": null,
+    "SubLink": null,
+    "Progress": null,
+    "Started": "2016-06-27T23:30:30.080228096Z",
+    "Finished": "2016-06-27T23:50:06.476459008Z",
+    "Duration": 1176396230912,
+    "Type": "Summary",
+    "LevelsDeep": 1,
+    "Verbosity": 0,
+    "Text": []
+  },
+  "SourceStamp": {
+    "AuthorName": "",
+    "AuthorEmail": "",
+    "Repo": "",
+    "Branch": "",
+    "RequestRevision": "",
+    "Revision": "cb7c961aea3ee23c4e246f50441e5dc582565129",
+    "Description": "",
+    "Title": "",
+    "Changelist": {
+      "Label": "Issue 2101793003",
+      "Img": "",
+      "URL": "https://codereview.chromium.org/2101793003",
+      "Alt": ""
+    },
+    "CommitURL": "",
+    "File": null,
+    "Source": ""
+  },
+  "Components": [
+    {
+      "ParentLabel": null,
+      "Label": "steps",
+      "Status": "Failure",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/steps/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "preamble",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/steps/logs/preamble",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:30:30.081103104Z",
+      "Finished": "2016-06-27T23:50:06.475020032Z",
+      "Duration": 1176393916928,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "running steps via annotated script"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "update_scripts",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/update_scripts/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "gclient_json",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/update_scripts/logs/gclient_json",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:30:35.09594112Z",
+      "Finished": "2016-06-27T23:30:46.68953984Z",
+      "Duration": 11593598720,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "update_scripts\u003cbr\u003egit - 0a2c62a48b28ce87da2409b08cdf2c6d50d75bc1"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "setup_properties",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/setup_properties/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:30:46.691456Z",
+      "Finished": "2016-06-27T23:30:52.447081216Z",
+      "Duration": 5755625216,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "setup_properties"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "setup_build",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/setup_build/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "run_recipe",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/setup_build/logs/run_recipe",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:31:03.472230912Z",
+      "Finished": "2016-06-27T23:31:03.473319168Z",
+      "Duration": 1088256,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "setup_build\u003cbr\u003erunning recipe: \"chromium_trybot\""
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "taskkill",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/taskkill/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:31:03.473850112Z",
+      "Finished": "2016-06-27T23:31:08.51218304Z",
+      "Duration": 5038332928,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "taskkill"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "bot_update",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/bot_update/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/bot_update/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:31:08.514825216Z",
+      "Finished": "2016-06-27T23:33:25.91620992Z",
+      "Duration": 137401384704,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "bot_update\u003cbr\u003e[165GB/249GB used (66%)]"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "ensure_goma",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:33:26.039238912Z",
+      "Finished": "2016-06-27T23:33:26.039799808Z",
+      "Duration": 560896,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "ensure_goma"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "ensure_goma.install cipd",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma.install%20cipd/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma.install%20cipd/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:33:25.917628928Z",
+      "Finished": "2016-06-27T23:33:25.922281984Z",
+      "Duration": 4653056,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "ensure_goma.install cipd\u003cbr\u003ecipd instance_id: bccdb9a605037e3dd2a8a64e79e08f691a6f159d"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "ensure_goma.ensure_installed",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma.ensure_installed/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma.ensure_installed/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:33:26.034848Z",
+      "Finished": "2016-06-27T23:33:26.036921856Z",
+      "Duration": 2073856,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "ensure_goma.ensure_installed"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "swarming.py --version",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/swarming.py%20--version/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:33:26.040410112Z",
+      "Finished": "2016-06-27T23:33:31.579828992Z",
+      "Duration": 5539418880,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "swarming.py --version\u003cbr\u003e0.8.4"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "gclient runhooks (with patch)",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/gclient%20runhooks%20%28with%20patch%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:33:31.580763136Z",
+      "Finished": "2016-06-27T23:33:41.259195136Z",
+      "Duration": 9678432000,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "gclient runhooks (with patch)"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "get compile targets for scripts",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/get%20compile%20targets%20for%20scripts/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/get%20compile%20targets%20for%20scripts/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:33:41.260574208Z",
+      "Finished": "2016-06-27T23:33:41.271374848Z",
+      "Duration": 10800640,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "get compile targets for scripts"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "read test spec (chromium.gpu.json)",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20test%20spec%20%28chromium.gpu.json%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20test%20spec%20%28chromium.gpu.json%29/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:33:41.272736Z",
+      "Finished": "2016-06-27T23:33:42.05425408Z",
+      "Duration": 781518080,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "read test spec (chromium.gpu.json)\u003cbr\u003epath: E:\\b\\build\\slave\\win\\build\\src\\testing\\buildbot\\chromium.gpu.json"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "read test spec (chromium.win.json)",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20test%20spec%20%28chromium.win.json%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20test%20spec%20%28chromium.win.json%29/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:33:42.05572096Z",
+      "Finished": "2016-06-27T23:33:47.072043008Z",
+      "Duration": 5016322048,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "read test spec (chromium.win.json)\u003cbr\u003epath: E:\\b\\build\\slave\\win\\build\\src\\testing\\buildbot\\chromium.win.json"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "ensure git tooling on windows",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure%20git%20tooling%20on%20windows/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:33:47.073534976Z",
+      "Finished": "2016-06-27T23:33:47.098063872Z",
+      "Duration": 24528896,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "ensure git tooling on windows"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "git diff to analyze patch",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/git%20diff%20to%20analyze%20patch/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "files",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/git%20diff%20to%20analyze%20patch/logs/files",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:33:47.098714112Z",
+      "Finished": "2016-06-27T23:33:47.100142848Z",
+      "Duration": 1428736,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "git diff to analyze patch"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "read filter exclusion spec",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20filter%20exclusion%20spec/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20filter%20exclusion%20spec/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:33:47.100784896Z",
+      "Finished": "2016-06-27T23:33:47.105908992Z",
+      "Duration": 5124096,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "read filter exclusion spec\u003cbr\u003epath: 'testing\\\\buildbot\\\\trybot_analyze_config.json'"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "analyze",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/analyze/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/analyze/logs/json.output",
+          "Alt": ""
+        },
+        {
+          "Label": "analyze_details",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/analyze/logs/analyze_details",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:33:47.106699008Z",
+      "Finished": "2016-06-27T23:34:11.730665984Z",
+      "Duration": 24623966976,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "analyze"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "cleanup_temp",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/cleanup_temp/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:34:11.731990016Z",
+      "Finished": "2016-06-27T23:34:11.738818048Z",
+      "Duration": 6828032,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "cleanup_temp"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "clean isolated files",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/clean%20isolated%20files/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:34:11.739718912Z",
+      "Finished": "2016-06-27T23:34:11.742013952Z",
+      "Duration": 2295040,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "clean isolated files"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "generate_build_files (with patch)",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/generate_build_files%20%28with%20patch%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "swarming-targets-file.txt",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/generate_build_files%20%28with%20patch%29/logs/swarming-targets-file.txt",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:34:11.742561024Z",
+      "Finished": "2016-06-27T23:34:17.824329984Z",
+      "Duration": 6081768960,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "generate_build_files (with patch)"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "compile (with patch)",
+      "Status": "Failure",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/compile%20%28with%20patch%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/compile%20%28with%20patch%29/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:34:17.825577984Z",
+      "Finished": "2016-06-27T23:36:30.258343936Z",
+      "Duration": 132432765952,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "compile (with patch)"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "taskkill (2)",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/taskkill%20%282%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:36:30.259512832Z",
+      "Finished": "2016-06-27T23:36:35.313368064Z",
+      "Duration": 5053855232,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "taskkill (2)"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "bot_update (without patch)",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/bot_update%20%28without%20patch%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/bot_update%20%28without%20patch%29/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:36:35.31565696Z",
+      "Finished": "2016-06-27T23:37:40.311572992Z",
+      "Duration": 64995916032,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "bot_update (without patch)\u003cbr\u003e[165GB/249GB used (66%)]"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "gclient runhooks (without patch)",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/gclient%20runhooks%20%28without%20patch%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:37:40.314949888Z",
+      "Finished": "2016-06-27T23:37:51.91056896Z",
+      "Duration": 11595619072,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "gclient runhooks (without patch)"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "generate_build_files (without patch)",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/generate_build_files%20%28without%20patch%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "swarming-targets-file.txt",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/generate_build_files%20%28without%20patch%29/logs/swarming-targets-file.txt",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:37:51.912841984Z",
+      "Finished": "2016-06-27T23:38:00.260381952Z",
+      "Duration": 8347539968,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "generate_build_files (without patch)"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "compile (without patch)",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/compile%20%28without%20patch%29/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "json.output",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/compile%20%28without%20patch%29/logs/json.output",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:38:00.263896832Z",
+      "Finished": "2016-06-27T23:50:06.384504064Z",
+      "Duration": 726120607232,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "compile (without patch)"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "mark: before_tests",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/mark%3A%20before_tests/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": null,
+      "Progress": null,
+      "Started": "2016-06-27T23:50:06.385912832Z",
+      "Finished": "2016-06-27T23:50:06.387008Z",
+      "Duration": 1095168,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "mark: before_tests"
+      ]
+    },
+    {
+      "ParentLabel": null,
+      "Label": "Failure reason",
+      "Status": "Success",
+      "Banner": null,
+      "Bot": null,
+      "Source": null,
+      "MainLink": {
+        "Label": "stdio",
+        "Img": "",
+        "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/Failure%20reason/logs/stdio",
+        "Alt": ""
+      },
+      "SubLink": [
+        {
+          "Label": "reason",
+          "Img": "",
+          "URL": "http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/Failure%20reason/logs/reason",
+          "Alt": ""
+        }
+      ],
+      "Progress": null,
+      "Started": "2016-06-27T23:50:06.387504128Z",
+      "Finished": "2016-06-27T23:50:06.388197888Z",
+      "Duration": 693760,
+      "Type": "Recipe",
+      "LevelsDeep": 0,
+      "Verbosity": 0,
+      "Text": [
+        "Failure reason"
+      ]
+    }
+  ],
+  "PropertyGroup": [
+    {
+      "GroupName": "Annotation(bot_update)",
+      "Property": [
+        {
+          "Key": "got_angle_revision",
+          "Value": "be5a8a400fd182fba174bd9110e470a54f8b14b6"
+        },
+        {
+          "Key": "got_buildtools_revision",
+          "Value": "56eaae134648135663c4aa1ed82278572b5f35ef"
+        },
+        {
+          "Key": "got_nacl_revision",
+          "Value": "d1ea091dad378d32067570114e19c0e1f15d5baa"
+        },
+        {
+          "Key": "got_revision",
+          "Value": "cb7c961aea3ee23c4e246f50441e5dc582565129"
+        },
+        {
+          "Key": "got_revision_cp",
+          "Value": "refs/heads/master@{#402330}"
+        },
+        {
+          "Key": "got_swarming_client_revision",
+          "Value": "df6e95e7669883c8fe9ef956c69a544154701a49"
+        },
+        {
+          "Key": "got_v8_revision",
+          "Value": "3238ca22a1baefea0665b528f259c66db1bf1b17"
+        },
+        {
+          "Key": "got_v8_revision_cp",
+          "Value": "refs/heads/5.3.329@{#1}"
+        },
+        {
+          "Key": "got_webrtc_revision",
+          "Value": "105bb15c86ba535a9abf42c29de9344c4664523e"
+        },
+        {
+          "Key": "got_webrtc_revision_cp",
+          "Value": "refs/heads/master@{#13292}"
+        }
+      ]
+    },
+    {
+      "GroupName": "Annotation(compile (without patch))",
+      "Property": [
+        {
+          "Key": "failure_type",
+          "Value": "COMPILE_FAILURE"
+        }
+      ]
+    },
+    {
+      "GroupName": "Annotation(git diff to analyze patch)",
+      "Property": [
+        {
+          "Key": "subproject_tag",
+          "Value": "chromium"
+        }
+      ]
+    },
+    {
+      "GroupName": "Annotation(mark: before_tests)",
+      "Property": [
+        {
+          "Key": "failure_hash",
+          "Value": "4d6a903860330c798a14ca4fb8a3b9ea8c90b814"
+        }
+      ]
+    },
+    {
+      "GroupName": "Annotation(setup_properties)",
+      "Property": [
+        {
+          "Key": "$recipe_engine",
+          "Value": "map[mode_flags:map[use_subprocess42:true]]"
+        },
+        {
+          "Key": "recipe",
+          "Value": "chromium_trybot"
+        }
+      ]
+    },
+    {
+      "GroupName": "Annotation(update_scripts)",
+      "Property": [
+        {
+          "Key": "build_revision",
+          "Value": "0a2c62a48b28ce87da2409b08cdf2c6d50d75bc1"
+        },
+        {
+          "Key": "build_scm",
+          "Value": "git"
+        }
+      ]
+    },
+    {
+      "GroupName": "Build",
+      "Property": [
+        {
+          "Key": "blamelist",
+          "Value": "[sky@chromium.org]"
+        },
+        {
+          "Key": "buildnumber",
+          "Value": "246309"
+        },
+        {
+          "Key": "requestedAt",
+          "Value": "2016-06-27T23:30:30Z"
+        }
+      ]
+    },
+    {
+      "GroupName": "BuildSlave",
+      "Property": [
+        {
+          "Key": "slavename",
+          "Value": "vm774-m4"
+        }
+      ]
+    },
+    {
+      "GroupName": "Builder",
+      "Property": [
+        {
+          "Key": "buildername",
+          "Value": "win_chromium_rel_ng"
+        }
+      ]
+    },
+    {
+      "GroupName": "buildbucket",
+      "Property": [
+        {
+          "Key": "buildbucket",
+          "Value": "https://cr-buildbucket.appspot.com/b/9008659093349989168"
+        },
+        {
+          "Key": "category",
+          "Value": "git_cl_try"
+        },
+        {
+          "Key": "issue",
+          "Value": "https://codereview.chromium.org/2101793003"
+        },
+        {
+          "Key": "master",
+          "Value": "master.tryserver.chromium.win"
+        },
+        {
+          "Key": "patch_project",
+          "Value": "chromium"
+        },
+        {
+          "Key": "patch_storage",
+          "Value": "rietveld"
+        },
+        {
+          "Key": "patchset",
+          "Value": "1"
+        },
+        {
+          "Key": "reason",
+          "Value": "move_maximized_files"
+        },
+        {
+          "Key": "requester",
+          "Value": "sky@chromium.org"
+        },
+        {
+          "Key": "testfilter",
+          "Value": "[defaulttests]"
+        }
+      ]
+    },
+    {
+      "GroupName": "master.cfg",
+      "Property": [
+        {
+          "Key": "buildbotURL",
+          "Value": "http://build.chromium.org/p/tryserver.chromium.win/"
+        },
+        {
+          "Key": "mastername",
+          "Value": "tryserver.chromium.win"
+        }
+      ]
+    },
+    {
+      "GroupName": "slave",
+      "Property": [
+        {
+          "Key": "workdir",
+          "Value": "E:\\b\\build\\slave/win"
+        }
+      ]
+    }
+  ],
+  "Blame": [
+    {
+      "AuthorName": "",
+      "AuthorEmail": "sky@chromium.org",
+      "Repo": "",
+      "Branch": "",
+      "RequestRevision": "",
+      "Revision": "",
+      "Description": "",
+      "Title": "",
+      "Changelist": null,
+      "CommitURL": "",
+      "File": []
+    }
+  ]
+}

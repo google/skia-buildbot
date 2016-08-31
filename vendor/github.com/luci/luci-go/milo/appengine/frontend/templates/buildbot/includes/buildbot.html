@@ -1,0 +1,43 @@
+{{define "buildbot"}}
+<!DOCTYPE html>
+<!-- Copyright 2015 The LUCI Authors. All rights reserved.
+Use of this source code is governed under the Apache License, Version 2.0.
+that can be found in the LICENSE file. -->
+<meta charset="utf-8">
+<title>{{template "title" .}}</title>
+<link rel="stylesheet" href="/static/buildbot/css/default.css" type="text/css">
+<script src="/static/common/js/time.js"></script>
+<script src="/static/common/third_party/js/jquery.min.js"></script>
+{{template "head" . }}
+
+<body class="interface">
+  <header>
+    Luci
+    <div>
+      {{ if .IsAnonymous }}
+        <a href="{{.LoginURL}}">login</a>
+      {{ else }}
+        {{ if .User.Picture }}
+          <img class="account-picture" src="{{.User.Picture}}">
+        {{ end }}
+        {{ .User.Email }} |
+        <a href="{{.LogoutURL}}">logout</a>
+      {{ end }}
+    </div>
+  </header>
+  <hr>
+  {{template "body" .}}
+  <footer>
+    <hr>
+    <a href="https://github.com/luci">luci</a>,
+    working for the <a href="https://chromium.org/">Chromium</a> project.<br>
+    Page built: <b>{{.CurrentTime | localTime "" }}</b> (All times local)
+  </footer>
+<script>
+(function () {
+  'use strict';
+  milo.makeTimesLocal();
+})();
+</script>
+{{ .Analytics }}
+{{end}}

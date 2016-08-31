@@ -1,0 +1,58 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../inc/logdog-app-base/logdog-app-base.html">
+
+<script src="../inc/bower_components/page/page.js"></script>
+
+<script>
+  window.addEventListener('WebComponentsReady', function() {
+    // We use Page.js for routing. This is a Micro
+    // client-side router inspired by the Express router
+    // More info: https://visionmedia.github.io/page.js/
+    // Removes end / from app.baseUrl which page.base requires for production
+    page.base(app.baseUrl);
+
+    // Middleware
+    function scrollToTop(ctx, next) {
+      app.scrollPageToTop();
+      next();
+    }
+    function closeDrawer(ctx, next) {
+      app.closeDrawer();
+      next();
+    }
+
+    // Routes
+    page('*', scrollToTop, closeDrawer, function(ctx, next) {
+      next();
+    });
+    page('/', function() {
+      app.route = 'root';
+    });
+    page('/list/*', function(data) {
+      app.route = 'list';
+      app.$.list.base = logdog.correctStreamPath(data.params[0]);
+    });
+    page('/stream/*', function(data) {
+      app.route = 'stream';
+      app.$.stream.streams = logdog.getQueryValues(data.querystring, "s").
+          map(logdog.correctStreamPath);
+    });
+
+    // 404
+    page(function() {
+      app.$.toast.text = "Can't find: " + window.location.href +
+                         ". Redirected you to Home Page";
+      app.$.toast.show();
+      page.redirect(app.baseUrl);
+    });
+    // add #! before urls
+    page({
+      hashbang: true,
+    });
+  });
+</script>

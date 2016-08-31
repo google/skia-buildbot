@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style type="text/css">
+    body {
+      margin: 50px;
+      padding: 0px;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    #console {
+      width: 650px;
+      margin: 0px auto;
+      padding: 50px;
+      text-align: left;
+      font-family: courier;
+      border: solid 1px white;
+    }
+    small {
+      color: #ccc;
+      font-size: .5em;
+    }
+  </style>
+  <script>
+    var frameNo = 0;
+    var qs = window.location.search.substring(1);
+    function rewind() {
+      window.location = window.location.href.split('?')[0] + '?startFrame='+(frameNo-100);
+    }
+    function fastfwd() {
+      window.location = window.location.href.split('?')[0] + '?startFrame='+(frameNo+100);
+    }
+    var source = new EventSource('/sse?' + qs);
+    source.onmessage = function(ev) {
+      var data = JSON.parse(ev.data);
+      document.getElementById("eventid").innerHTML = ev.lastEventId;
+      document.getElementById("console").innerHTML = data.FrameBuf;
+      document.getElementById("frameno").innerHTML = frameNo = data.FrameNo;
+    };
+  </script>
+</head>
+<body>
+  <p><a href="https://github.com/fiorix/go-web/">github.com/fiorix/go-web</a></p>
+  <p>Push notifications: Server-Sent events</p>
+  <pre id="console"></pre>
+  <p><a href="/">restart</a></p>
+  <p>
+  <a href="#" onclick="rewind();">&lsaquo;&lsaquo;</a>
+  Event <span id="eventid"></span> Frame: <span id="frameno"></span>
+  <a href="#" onclick="fastfwd();">&rsaquo;&rsaquo;</a>
+  </p>
+</body>
+</html>

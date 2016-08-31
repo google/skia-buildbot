@@ -1,0 +1,247 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../bower_components/iron-ajax/iron-request.html">
+
+<!--
+  The `rpc-call` is a single RPC call. Produced by <rpc-client>.
+-->
+<dom-module id="rpc-client">
+  <script>
+    'use strict';
+
+    Polymer({
+      is: 'rpc-call',
+
+      properties: {
+        /**
+         * if true, use HTTP instead of HTTPS.
+         * If null or undefined (default), determined automatically:
+         * - If host equals current host and current protocol is http, then
+         *   false.
+         * - otherwise true.
+         */
+        insecure: {
+          type: Boolean,
+          readOnly: true
+        },
+
+        /**
+         * pRPC server host, defaults to current document host.
+         */
+        host: {
+          type: String,
+          readOnly: true
+        },
+
+        /**
+         * Full service name, including package name.
+         */
+        service: {
+          type: String,
+          readOnly: true
+        },
+
+        /**
+         * Service method name.
+         */
+        method: {
+          type: String,
+          readOnly: true
+        },
+
+        /**
+         * Request object.
+         */
+        request: {
+          type: Object,
+          readOnly: true
+        },
+
+        /**
+         * Request timeout in milliseconds.
+         */
+        timeout: {
+          type: Number,
+          readOnly: true
+        },
+
+        /**
+          * OAuth 2.0 access token.
+          */
+        accessToken: {
+          type: String,
+          readOnly: true
+        },
+
+        /**
+         * A promise that resolves when the response comes back, or rejects
+         * if there is an error.
+         *
+         * @type {Promise}
+         */
+        completes: {
+          type: Object,
+          readOnly: true,
+          notify: true,
+          value: function() {
+            return new Promise(function(resolve, reject) {
+              this._resolveCompletes = resolve;
+              this._rejectCompletes = reject;
+            }.bind(this));
+          }
+        },
+
+        /**
+         * Response object.
+         */
+        response: {
+          type: Object,
+          notify: true,
+          readOnly: true
+        },
+
+        /**
+         * Response code.
+         * @type {luci.rpc.Code}
+         */
+        code: {
+          type: Number,
+          readOnly: true,
+        },
+
+        /**
+         * Response error
+         * @type {Error|luci.rpc.GrpcError}
+         */
+        error: {
+          type: Object,
+          notify: true,
+          readOnly: true
+        },
+
+        _ironRequest: Object
+      },
+
+      _generateUrl: function() {
+        var insecure = this.insecure;
+        var host = this.host;
+        var service = this.service;
+        var method = this.method;
+
+        if (!host) {
+          throw Error('no host');
+        }
+        if (!service) {
+          throw Error('no service');
+        }
+        if (!method) {
+          throw Error('no method');
+        }
+
+        if (!host || !service || !method) {
+          return '';
+        }
+
+        var protocol = 'https:';
+        if (insecure === true) {
+          protocol = 'http:';
+        } else if (insecure == null && host === document.location.host) {
+          protocol = document.location.protocol;
+        }
+
+        return protocol + '//' + host + '/prpc/' + service + '/' + method;
+      },
+
+      toRequestOptions: function() {
+        var headers = {};
+        if (this.request != null) {
+          headers['content-type'] = 'application/json'
+        }
+        if (this.timeout) {
+          headers['x-prpc-timeout'] = this.timeout + 'm';
+        }
+        if (this.accessToken) {
+          headers['authorization'] = 'Bearer ' + this.accessToken;
+        }
+
+        return {
+          url: this._generateUrl(),
+          method: 'POST',
+          headers: headers,
+          body: this.request,
+          handleAs: 'json',
+          jsonPrefix: ')]}\'',
+          timeout: this.timeout
+        };
+      },
+
+      send: function(options) {
+        if (this.xhr) {
+          throw Error('Already sent');
+        }
+
+        this._setInsecure(options.insecure);
+        this._setHost(options.host);
+        this._setService(options.service);
+        this._setMethod(options.method);
+        this._setRequest(options.request);
+        this._setTimeout(options.timeout);
+        this._setAccessToken(options.accessToken);
+
+        this._ironRequest = document.createElement('iron-request');
+        this._ironRequest.send(this.toRequestOptions());
+        this.xhr = this._ironRequest.xhr;
+        this._ironRequest.completes
+          .then(this._done.bind(this, null))
+          .catch(this._done.bind(this));
+      },
+
+      _done: function(error) {
+        try {
+          if (error && typeof this.xhr.status !== 'number') {
+            // We didn't receive the response.
+            throw error;
+          }
+
+          var codeHeader = this.xhr.getResponseHeader('X-Prpc-Grpc-Code');
+          if (!codeHeader) {
+            throw Error(
+                'Invalid response: no X-Prpc-Grpc-Code response header');
+          }
+
+          try {
+            this._setCode(parseInt(codeHeader, 10));
+            if (this.code == null || isNaN(this.code)) {
+              throw Error('code is not defined');
+            }
+          } catch (e) {
+            throw Error(
+                'Invalid X-Prpc-Grpc-Code response header "' + codeHeader +
+                '": ' + e
+            );
+          }
+
+          if (this.code !== luci.rpc.Code.OK) {
+            throw new luci.rpc.GrpcError(this.code, this.xhr.responseText);
+          }
+
+          if (this._ironRequest.response == null) {
+            throw Error('could not parse response');
+          }
+
+          this._setResponse(this._ironRequest.response);
+          this._setError(null);
+          this._resolveCompletes(this);
+        } catch (e) {
+          this._setResponse(null);
+          this._setError(e);
+          this._rejectCompletes(e);
+        }
+      }
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,18 @@
+{
+ "name": "hang build",
+ "created_ts": "2016-06-28T13:23:14.875780",
+ "task_id": "2fafff1d46fc5010",
+ "tags": [
+  "allow_milo:1"
+ ],
+ "internal_failure": false,
+ "exit_code": "-1",
+ "failure": true,
+ "state": "TIMED_OUT",
+ "modified_ts": "2016-06-28T16:24:03.243870",
+ "bot_id": "vm517-m4",
+ "duration": 10807.630000114441,
+ "try_number": "1",
+ "completed_ts": "2016-06-28T16:24:03.243870",
+ "started_ts": "2016-06-28T13:23:16.615920"
+}

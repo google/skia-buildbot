@@ -1,0 +1,16 @@
+version: 1
+module: static
+runtime: go
+api_version: go1
+
+handlers:
+- url: /static/bootstrap
+  static_dir: bootstrap
+  secure: always
+
+- url: /static/jquery
+  static_dir: jquery
+  secure: always
+
+includes:
+  - common

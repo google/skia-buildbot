@@ -1,0 +1,43 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/duration.proto";
+
+package svcconfig;
+
+// Storage is the in-transit storage configuration.
+message Storage {
+  // BigTable is the set of BigTable configuration parameters.
+  message BigTable {
+    // The name of the BigTable instance project.
+    string project = 1;
+    // The name of the BigTable instance.
+    string instance = 2;
+
+    // The name of the BigTable instance's log table.
+    string log_table_name = 3;
+  }
+
+  // Type is the transport configuration that is being used.
+  oneof Type {
+    BigTable bigtable = 1;
+  }
+
+  // The maximum lifetime of a log's intermediate storage entries. The Storage
+  // instance is free to begin deleting log entries if they are older than this.
+  //
+  // It is recommended that this be set to 4*[terminal archival threshold],
+  // where the terminal archival threshold is the amount of time that the
+  // Coordinator will wait on a log stream that has not been terminated before
+  // constructing an archive.
+  //
+  // Waiting at least the archival threshold ensures that the log entries are
+  // available for streams that expire. Waiting longer than the threshold is
+  // good because a user may be streaming logs from intermediate storage as they
+  // become archived. Waiting a *lot* longer is useful to prevent data loss in
+  // the event of issues with the archival process.
+  google.protobuf.Duration max_log_age = 2;
+}

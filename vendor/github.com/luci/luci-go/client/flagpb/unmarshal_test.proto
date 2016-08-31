@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package flagpb;
+
+enum E {
+	V0 = 0;
+	V1 = 1;
+}
+
+message M1 {
+	string s = 1;
+	int32 i = 2;
+	repeated int32 ri = 3;
+	bool b = 4;
+	repeated bool rb = 6;
+	bytes bb = 5;
+}
+
+message M2 {
+	M1 m1 = 1;
+	E e = 2;
+}
+
+message M3 {
+	repeated M1 m1 = 1;
+	M2 m2 = 2;
+	bool b = 3;
+	string s = 4;
+	bytes bt = 5;
+}
+
+message MapContainer {
+	map<string, string> ss = 1;
+	map<int32, int32> ii = 2;
+	map<string, M1> sm1 = 3;
+}

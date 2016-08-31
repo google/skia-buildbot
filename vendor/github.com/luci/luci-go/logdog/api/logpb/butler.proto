@@ -1,0 +1,139 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package logpb;
+
+import "github.com/luci/luci-go/logdog/api/logpb/log.proto";
+import "google/protobuf/timestamp.proto";
+
+/*
+ * ButlerMetadata appears as a frame at the beginning of Butler published data
+ * to describe the remainder of the contents.
+ */
+message ButlerMetadata {
+  /*
+   * This enumerates the possible contents of published Butler data.
+   */
+  enum ContentType {
+    /* An invalid content type. Do not use. */
+    Invalid = 0;
+    /* The published data is a ButlerLogBundle protobuf message. */
+    ButlerLogBundle = 1;
+  }
+  /* This is the type of data in the subsequent frame. */
+  ContentType type = 1;
+
+  /* Compression scheme of attached data. */
+  enum Compression {
+    NONE = 0;
+    ZLIB = 1;
+  }
+  Compression compression = 2;
+
+  /* The protobuf version string (see version.go). */
+  string proto_version = 3;
+}
+
+/*
+ * A message containing log data in transit from the Butler.
+ *
+ * The Butler is capable of conserving bandwidth by bundling collected log
+ * messages together into this protocol buffer. Based on Butler bundling
+ * settings, this message can represent anything from a single LogRecord to
+ * multiple LogRecords belonging to several different streams.
+ *
+ * Entries in a Log Bundle are fully self-descriptive: no additional information
+ * is needed to fully associate the contained data with its proper place in
+ * the source log stream.
+ */
+message ButlerLogBundle {
+  /*
+   * (DEPRECATED) Stream source information. Now supplied during prefix
+   * registration.
+   */
+  string deprecated_source = 1;
+
+  /* The timestamp when this bundle was generated.
+   *
+   * This field will be used for debugging and internal accounting.
+   */
+  google.protobuf.Timestamp timestamp = 2;
+
+  /*
+   * A bundle Entry describes a set of LogEntry messages originating from the
+   * same log stream.
+   */
+  message Entry {
+    /*
+     * The descriptor for this entry's log stream.
+     *
+     * Each LogEntry in the "logs" field is shares this common descriptor.
+     */
+    logpb.LogStreamDescriptor desc = 1;
+
+    /* (DEPRECATED) Per-entry secret replaced with Butler-wide secret. */
+    bytes deprecated_entry_secret = 2;
+
+    /*
+     * Whether this log entry terminates its stream.
+     *
+     * If present and "true", this field declares that this Entry is the last
+     * such entry in the stream. This fact is recorded by the Collector and
+     * registered with the Coordinator. The largest stream prefix in this Entry
+     * will be bound the stream's LogEntry records to [0:largest_prefix]. Once
+     * all messages in that range have been received, the log may be archived.
+     *
+     * Further log entries belonging to this stream with stream indices
+     * exceeding the terminal log's index will be discarded.
+     */
+    bool terminal = 3;
+
+    /*
+     * If terminal is true, this is the terminal stream index; that is, the last
+     * message index in the stream.
+     */
+    uint64 terminal_index = 4;
+
+    /*
+     * Log entries attached to this record. These MUST be sequential.
+     *
+     * This is the main log entry content.
+     */
+    repeated logpb.LogEntry logs = 5;
+  }
+
+  /**
+   * Each Entry is an individual set of log records for a given log stream.
+   */
+  repeated Entry entries = 3;
+
+  /** Project specifies which luci-config project this stream belongs to. */
+  string project = 4;
+
+  /**
+   * The log stream prefix that is shared by all bundled streams.
+   *
+   * This prefix is valid within the supplied project scope.
+   */
+  string prefix = 5;
+
+  /*
+   * The log prefix's secret value (required).
+   *
+   * The secret is bound to all log streams that share the supplied Prefix, and
+   * The Coordinator will record the secret associated with a given log Prefix,
+   * but will not expose the secret to users.
+   *
+   * The Collector will check the secret prior to ingesting logs. If the
+   * secret doesn't match the value recorded by the Coordinator, the log
+   * will be discarded.
+   *
+   * This ensures that only the Butler instance that generated the log stream
+   * can emit log data for that stream. It also ensures that only authenticated
+   * users can write to a Prefix.
+   */
+  bytes secret = 6;
+}

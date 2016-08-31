@@ -1,0 +1,217 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/google-signin/google-signin-aware.html">
+
+<link rel="import" href="../rpc/rpc-client.html">
+
+<link rel="import" href="rpc-descriptor-util.html">
+<link rel="import" href="rpc-editor.html">
+
+<!-- The `rpc-method` is a service method page -->
+<dom-module id="rpc-method">
+  <template>
+    <style>
+      rpc-editor {
+        height: 300px;
+      }
+      button {
+        margin: 5px;
+      }
+    </style>
+
+    <div on-keypress="_onKeypress">
+      <rpc-client
+          id="client"
+          service="[[service]]"
+          method="[[method]]"
+          request="[[requestObject]]"
+          on-response="_onCallComplete"
+          on-error="_onCallComplete">
+      </rpc-client>
+      <div>[[methodDesc.sourceCodeInfo.leadingComments]]</div>
+      <hr>
+
+      <p>Request:</p>
+      <div class="row">
+        <div class="col-md-7">
+          <rpc-editor value="{{requestText}}"
+              description="[[description]]"
+              root-type-name="[[requestTypeName]]"></rpc-editor>
+        </div>
+        <div class="col-md-3">
+          <p>Ctrl+Space for Autocomplete</p>
+          <p>Shift+Enter for Send</p>
+        </div>
+      </div>
+
+      <div>
+        <button on-tap="send">Send</button>
+      </div>
+
+      <div class="alert alert-danger" role="alert" hidden="[[!error]]">
+        <template is="dom-if" if="[[error.isGrpcError]]">
+          <div>
+            Code: [[error.code]]
+            <template is="dom-if" if="[[error.codeName]]">
+              ([[error.codeName]])
+            </template>
+          </div>
+          <div>Description: [[error.description]]</div>
+        </template>
+
+        <template is="dom-if" if="[[!error.isGrpcError]]">
+          [[error]]
+        </template>
+      </div>
+
+      <div class="row">
+        <div class="col-md-7">
+          <rpc-editor value="[[responseText]]"></rpc-editor>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    'use strict';
+
+    Polymer({
+      is: 'rpc-method',
+
+      properties: {
+        /** @type {FileDescriptorSet} */
+        description: Object,
+
+        service: String,
+
+        method: String,
+
+        /** @type {MethodDescriptorProto} */
+        methodDesc: {
+          type: Object,
+          computed: '_resolveMethod(description, service, method)'
+        },
+
+        requestTypeName: {
+          type: String,
+          computed: '_getRequestTypeName(methodDesc)'
+        },
+
+        /** "request" query string parameter. */
+        request: {
+          type: String,
+          value: '{}',
+          observer: '_onRequestChanged',
+          notify: true
+        },
+
+        /** Request editor text. */
+        requestText: String,
+
+        /** Parsed from requestText. */
+        requestObject: Object,
+
+        /** Response editor text. */
+        responseText: String,
+
+        error: {
+          type: Object,
+          value: null
+        }
+      },
+
+      _resolveMethod: function(desc, service, method) {
+        if (!desc || !service || !method) {
+          return null;
+        }
+        var methodDesc = rpcExplorer.descUtil.resolve(
+            desc, service + '.' + method);
+        return methodDesc && methodDesc.type === 'method' && methodDesc.desc;
+      },
+
+      _getRequestTypeName: function(methodDesc) {
+        return (methodDesc &&
+            rpcExplorer.descUtil.trimPrefixDot(methodDesc.inputType));
+      },
+
+      _onRequestChanged: function() {
+        try {
+          this.requestObject = JSON.parse(this.request);
+        } catch (e) {
+          console.error('Invalid request: ' + this.request);
+          this.requestText = this.request;
+          return;
+        }
+
+        // Reformat the request read from query string parameter
+        // because it gets corrupted there.
+        this.requestText = JSON.stringify(this.requestObject, null, 4);
+      },
+
+      _onKeypress: function(e) {
+        if (e.key === 'Enter' && e.shiftKey) {
+          this.send();
+          e.preventDefault();
+        }
+      },
+
+      getAccessToken: function() {
+        var user = gapi.auth2.getAuthInstance().currentUser.get();
+        if (!user) {
+          return null;
+        }
+        return user.getAuthResponse().access_token;
+      },
+
+      send: function() {
+        this.error = null;
+        try {
+          this.requestObject = JSON.parse(this.requestText);
+
+          // Reformat request
+          this.requestText = JSON.stringify(this.requestObject, null, 4);
+
+          // Update URL without a refresh.
+          history.replaceState(
+              history.state, document.title, "?request=" + this.requestText);
+
+          this.$.client.accessToken = this.getAccessToken();
+
+          // Actually send the request.
+          this.$.client.call();
+        } catch (e) {
+          this.error = e;
+          console.error(this.error)
+        }
+      },
+
+      _onCallComplete: function() {
+        var client = this.$.client;
+        if (client.lastError) {
+          console.error(client.lastError);
+        }
+
+        if (client.lastResponse) {
+          this.responseText = JSON.stringify(client.lastResponse, null, 4);
+        } else {
+          this.responseText = '';
+        }
+
+        this.error = client.lastError;
+        if (this.error instanceof luci.rpc.GrpcError) {
+          this.error = {
+            isGrpcError: true,
+            code: this.error.code,
+            codeName: luci.rpc.CodeName(this.error.code),
+            description: this.error.description
+          };
+        }
+      }
+    });
+  </script>
+</dom-module>

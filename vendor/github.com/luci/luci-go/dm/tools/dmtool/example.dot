@@ -1,0 +1,21 @@
+digraph {
+  subgraph cluster_q1 {
+    style=dashed
+    label="query1"
+
+    subgraph cluster_α {
+      style=solid
+
+      label=α
+      "α:1" [style=solid label="1"]
+      "α:2" [style=solid label="2"]
+    }
+
+    subgraph cluster_q2 {
+      style=dashed
+      "β:1" [ style=solid ]
+    }
+  }
+
+  "α:1" -> "β:1"
+}

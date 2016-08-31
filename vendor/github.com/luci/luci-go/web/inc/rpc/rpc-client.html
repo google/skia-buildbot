@@ -1,0 +1,263 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/google-signin/google-signin-aware.html">
+
+<link rel="import" href="rpc-code.html">
+<link rel="import" href="rpc-error.html">
+<link rel="import" href="rpc-call.html">
+
+<!--
+  The `rpc-client` element can send a RPC request.
+  Supports pRPC.
+  Protocol: https://godoc.org/github.com/luci/luci-go/common/prpc#hdr-Protocol
+-->
+<dom-module id="rpc-client">
+  <template>
+    <google-signin-aware
+      id="aware"
+      on-google-signin-aware-success="_onSignin"
+      on-google-signin-aware-signed-out="_onSignout"></google-signin-aware>
+  </template>
+
+  <script>
+    'use strict';
+
+    Polymer({
+      is: 'rpc-client',
+
+      properties: {
+        /**
+         * If true, use HTTP instead of HTTPS.
+         * If null or undefined (default), determined automatically:
+         * - If host equals current host and current protocol is http, then
+         *   false.
+         * - otherwise true.
+         */
+        insecure: {
+          type: Boolean,
+          value: null
+        },
+
+        /**
+         * pRPC server host, defaults to current document host.
+         */
+        host: {
+          type: String,
+          value: document.location.host,
+        },
+
+        /**
+         * Full service name, including package name.
+         */
+        service: String,
+
+        /**
+         * Service method name.
+         */
+        method: String,
+
+        /**
+         * Request object.
+         */
+        request: {
+          type: Object,
+          value: function() {
+            return {};
+          }
+        },
+
+        /**
+         * Request timeout in milliseconds.
+         */
+        timeout: {
+          type: Number,
+          value: 0,
+        },
+
+        /**
+          * OAuth 2.0 access token to use in RPC.
+          */
+        accessToken: {
+          type: String,
+          value: null
+        },
+
+        /**
+          * If true, automatically update "accessToken" with the current access
+          * token when the sign-in singleton's authentication state changes.
+          */
+        autoToken: {
+          type: Boolean,
+          value: false,
+        },
+
+        /**
+         * If true, automatically sends a request when host, service, method,
+         * request or accessToken changes.
+         */
+        auto: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * If true, error messages will automatically be logged to the console.
+         */
+        verbose: {
+          type: Boolean,
+          value: false
+        },
+
+        /**
+         * The most recent call made by this client.
+         */
+        lastCall: {
+          type: Object,
+          notify: true,
+          readOnly: true
+        },
+
+        /**
+         * True while lastCall is in flight.
+         */
+        loading: {
+          type: Boolean,
+          notify: true,
+          readOnly: true,
+          value: false
+        },
+
+        /**
+         * lastCall's response.
+         *
+         * Note that lastResponse, lastCode and lastError are set when
+         * lastCall finishes, so if loading is true, they will correspond to the
+         * result of the previous request.
+         */
+        lastResponse: {
+          type: Object,
+          notify: true,
+          readOnly: true
+        },
+
+        /**
+         * lastCall's response code.
+         */
+        lastCode: {
+          type: Number,
+          notify: true,
+          readOnly: true
+        },
+
+        /**
+         * lastCall's error, if any.
+         * May be an instance of luci.rpc.GrpcError which has response code
+         * and description.
+         */
+        lastError: {
+          type: Number,
+          notify: true,
+          readOnly: true
+        },
+
+        /**
+         * Length of time in milliseconds to debounce multiple automatically
+         * generated requests.
+         */
+        debounceDuration: {
+          type: Number,
+          value: 0,
+          notify: true
+        }
+      },
+
+      observers: [
+        ('_callOptionsChanged(' +
+          'host, service, method, request.*, accessToken, auto)')
+      ],
+
+      _canCall: function () {
+        return this.host && this.service && this.method;
+      },
+
+      _callOptionsChanged: function() {
+        this.debounce('call', function() {
+          if (this.auto && this._canCall()) {
+            this.call();
+          }
+        }, this.debounceDuration);
+      },
+
+      /**
+        * Send an RPC request.
+        * @return {!RpcCallElement}
+        */
+      call: function() {
+        var call = document.createElement('rpc-call');
+        call.send({
+          insecure: this.insecure,
+          host: this.host,
+          service: this.service,
+          method: this.method,
+          request: this.request,
+          timeout: this.timeout,
+          accessToken: this.accessToken
+        });
+        this._setLastCall(call);
+
+        call.completes.then(
+            this._onResponse.bind(this)
+        ).catch(
+            this._onError.bind(this, call)
+        );
+
+        this._setLoading(true);
+        this.fire('request', {call: call}, {bubbles: false});
+        return call;
+      },
+
+      _onError: function(call, error) {
+        this._onCallComplete(call);
+        if (this.verbose) {
+          console.error(error);
+        }
+        this.fire('error', {
+          call: call,
+          error: error
+        }, {bubbles: false});
+      },
+
+      _onResponse: function(call) {
+        this._onCallComplete(call);
+        this.fire('response', {call: call}, {bubbles: false});
+      },
+
+      _onCallComplete: function(call) {
+        if (call === this.lastCall) {
+          this._setLastError(call.error);
+          this._setLastResponse(call.response);
+          this._setLastCode(call.code);
+          this._setLoading(false);
+        }
+      },
+
+      _onSignin: function(e) {
+        if (this.autoToken) {
+          this.accessToken = e.detail.access_token;
+        }
+      },
+
+      _onSignout: function(e) {
+        if (this.autoToken) {
+          this.accessToken = null;
+        }
+      },
+
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,1443 @@
+{
+ "kind": "discovery#restDescription",
+ "etag": "\"zRMgE0l9nVDW4S28VYYcYQF9UW4/stcRi2opcnMI_33ybfewv4rTtu4\"",
+ "discoveryVersion": "v1",
+ "id": "swarming:v1",
+ "name": "swarming",
+ "version": "v1",
+ "description": "API to interact with the Swarming service. Permits to create, view and cancel tasks, query tasks and bots",
+ "icons": {
+  "x16": "http://www.google.com/images/icons/product/search-16.gif",
+  "x32": "http://www.google.com/images/icons/product/search-32.gif"
+ },
+ "protocol": "rest",
+ "baseUrl": "https://chromium-swarm.appspot.com/_ah/api/swarming/v1/",
+ "basePath": "/_ah/api/swarming/v1/",
+ "rootUrl": "https://chromium-swarm.appspot.com/_ah/api/",
+ "servicePath": "swarming/v1/",
+ "batchPath": "batch",
+ "parameters": {
+  "alt": {
+   "type": "string",
+   "description": "Data format for the response.",
+   "default": "json",
+   "enum": [
+    "json"
+   ],
+   "enumDescriptions": [
+    "Responses with Content-Type of application/json"
+   ],
+   "location": "query"
+  },
+  "fields": {
+   "type": "string",
+   "description": "Selector specifying which fields to include in a partial response.",
+   "location": "query"
+  },
+  "key": {
+   "type": "string",
+   "description": "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
+   "location": "query"
+  },
+  "oauth_token": {
+   "type": "string",
+   "description": "OAuth 2.0 token for the current user.",
+   "location": "query"
+  },
+  "prettyPrint": {
+   "type": "boolean",
+   "description": "Returns response with indentations and line breaks.",
+   "default": "true",
+   "location": "query"
+  },
+  "quotaUser": {
+   "type": "string",
+   "description": "Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters. Overrides userIp if both are provided.",
+   "location": "query"
+  },
+  "userIp": {
+   "type": "string",
+   "description": "IP address of the site where the request originates. Use this if you want to enforce per-user limits.",
+   "location": "query"
+  }
+ },
+ "auth": {
+  "oauth2": {
+   "scopes": {
+    "https://www.googleapis.com/auth/userinfo.email": {
+     "description": "View your email address"
+    }
+   }
+  }
+ },
+ "schemas": {
+  "SwarmingRpcsBotEvent": {
+   "id": "SwarmingRpcsBotEvent",
+   "type": "object",
+   "properties": {
+    "authenticated_as": {
+     "type": "string"
+    },
+    "dimensions": {
+     "type": "array",
+     "description": "Represents a mapping of string to list of strings.",
+     "items": {
+      "$ref": "SwarmingRpcsStringListPair"
+     }
+    },
+    "event_type": {
+     "type": "string"
+    },
+    "external_ip": {
+     "type": "string"
+    },
+    "message": {
+     "type": "string"
+    },
+    "quarantined": {
+     "type": "boolean"
+    },
+    "state": {
+     "type": "string"
+    },
+    "task_id": {
+     "type": "string"
+    },
+    "ts": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "version": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsBotEvents": {
+   "id": "SwarmingRpcsBotEvents",
+   "type": "object",
+   "properties": {
+    "cursor": {
+     "type": "string"
+    },
+    "items": {
+     "type": "array",
+     "items": {
+      "$ref": "SwarmingRpcsBotEvent"
+     }
+    },
+    "now": {
+     "type": "string",
+     "format": "date-time"
+    }
+   }
+  },
+  "SwarmingRpcsBotInfo": {
+   "id": "SwarmingRpcsBotInfo",
+   "type": "object",
+   "description": "Representation of the BotInfo ndb model.",
+   "properties": {
+    "authenticated_as": {
+     "type": "string"
+    },
+    "bot_id": {
+     "type": "string"
+    },
+    "dimensions": {
+     "type": "array",
+     "description": "Represents a mapping of string to list of strings.",
+     "items": {
+      "$ref": "SwarmingRpcsStringListPair"
+     }
+    },
+    "external_ip": {
+     "type": "string"
+    },
+    "first_seen_ts": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "is_dead": {
+     "type": "boolean"
+    },
+    "last_seen_ts": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "quarantined": {
+     "type": "boolean"
+    },
+    "state": {
+     "type": "string"
+    },
+    "task_id": {
+     "type": "string"
+    },
+    "task_name": {
+     "type": "string"
+    },
+    "version": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsBotList": {
+   "id": "SwarmingRpcsBotList",
+   "type": "object",
+   "description": "Wraps a list of BotInfo.",
+   "properties": {
+    "cursor": {
+     "type": "string"
+    },
+    "death_timeout": {
+     "type": "string",
+     "format": "int64"
+    },
+    "items": {
+     "type": "array",
+     "description": "Representation of the BotInfo ndb model.",
+     "items": {
+      "$ref": "SwarmingRpcsBotInfo"
+     }
+    },
+    "now": {
+     "type": "string",
+     "format": "date-time"
+    }
+   }
+  },
+  "SwarmingRpcsBotTasks": {
+   "id": "SwarmingRpcsBotTasks",
+   "type": "object",
+   "properties": {
+    "cursor": {
+     "type": "string"
+    },
+    "items": {
+     "type": "array",
+     "description": "Representation of the TaskResultSummary or TaskRunResult ndb model.",
+     "items": {
+      "$ref": "SwarmingRpcsTaskResult"
+     }
+    },
+    "now": {
+     "type": "string",
+     "format": "date-time"
+    }
+   }
+  },
+  "SwarmingRpcsBotsCount": {
+   "id": "SwarmingRpcsBotsCount",
+   "type": "object",
+   "description": "Returns the count, as requested.",
+   "properties": {
+    "busy": {
+     "type": "string",
+     "format": "int64"
+    },
+    "count": {
+     "type": "string",
+     "format": "int64"
+    },
+    "dead": {
+     "type": "string",
+     "format": "int64"
+    },
+    "now": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "quarantined": {
+     "type": "string",
+     "format": "int64"
+    }
+   }
+  },
+  "SwarmingRpcsCancelResponse": {
+   "id": "SwarmingRpcsCancelResponse",
+   "type": "object",
+   "description": "Result of a request to cancel a task.",
+   "properties": {
+    "ok": {
+     "type": "boolean"
+    },
+    "was_running": {
+     "type": "boolean"
+    }
+   }
+  },
+  "SwarmingRpcsCipdInput": {
+   "id": "SwarmingRpcsCipdInput",
+   "type": "object",
+   "description": "Defines CIPD packages to install in $CIPD_PATH. A command may use $CIPD_PATH in its arguments. It will be expanded to the path of the CIPD site root.",
+   "properties": {
+    "client_package": {
+     "$ref": "SwarmingRpcsCipdPackage",
+     "description": "A CIPD package to install in $CIPD_PATH and $PATH before task execution."
+    },
+    "packages": {
+     "type": "array",
+     "description": "A CIPD package to install in $CIPD_PATH and $PATH before task execution.",
+     "items": {
+      "$ref": "SwarmingRpcsCipdPackage"
+     }
+    },
+    "server": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsCipdPackage": {
+   "id": "SwarmingRpcsCipdPackage",
+   "type": "object",
+   "description": "A CIPD package to install in $CIPD_PATH and $PATH before task execution.",
+   "properties": {
+    "package_name": {
+     "type": "string"
+    },
+    "path": {
+     "type": "string"
+    },
+    "version": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsDeletedResponse": {
+   "id": "SwarmingRpcsDeletedResponse",
+   "type": "object",
+   "description": "Indicates whether a bot was deleted.",
+   "properties": {
+    "deleted": {
+     "type": "boolean"
+    }
+   }
+  },
+  "SwarmingRpcsFileContent": {
+   "id": "SwarmingRpcsFileContent",
+   "type": "object",
+   "description": "Content of a file.",
+   "properties": {
+    "content": {
+     "type": "string"
+    },
+    "version": {
+     "type": "string",
+     "format": "int64"
+    },
+    "when": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "who": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsFileContentRequest": {
+   "id": "SwarmingRpcsFileContentRequest",
+   "type": "object",
+   "description": "Content of a file.",
+   "properties": {
+    "content": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsFilesRef": {
+   "id": "SwarmingRpcsFilesRef",
+   "type": "object",
+   "description": "Defines a data tree reference, normally a reference to a .isolated file.",
+   "properties": {
+    "isolated": {
+     "type": "string"
+    },
+    "isolatedserver": {
+     "type": "string"
+    },
+    "namespace": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsNewTaskRequest": {
+   "id": "SwarmingRpcsNewTaskRequest",
+   "type": "object",
+   "description": "Description of a new task request as described by the client.",
+   "properties": {
+    "expiration_secs": {
+     "type": "string",
+     "format": "int64"
+    },
+    "name": {
+     "type": "string"
+    },
+    "parent_task_id": {
+     "type": "string"
+    },
+    "priority": {
+     "type": "string",
+     "format": "int64"
+    },
+    "properties": {
+     "$ref": "SwarmingRpcsTaskProperties",
+     "description": "Important metadata about a particular task."
+    },
+    "pubsub_auth_token": {
+     "type": "string"
+    },
+    "pubsub_topic": {
+     "type": "string"
+    },
+    "pubsub_userdata": {
+     "type": "string"
+    },
+    "tags": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "user": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsOperationStats": {
+   "id": "SwarmingRpcsOperationStats",
+   "type": "object",
+   "properties": {
+    "duration": {
+     "type": "number",
+     "format": "double"
+    },
+    "initial_number_items": {
+     "type": "string",
+     "format": "int64"
+    },
+    "initial_size": {
+     "type": "string",
+     "format": "int64"
+    },
+    "items_cold": {
+     "type": "string",
+     "format": "byte"
+    },
+    "items_hot": {
+     "type": "string",
+     "format": "byte"
+    }
+   }
+  },
+  "SwarmingRpcsPerformanceStats": {
+   "id": "SwarmingRpcsPerformanceStats",
+   "type": "object",
+   "properties": {
+    "bot_overhead": {
+     "type": "number",
+     "format": "double"
+    },
+    "isolated_download": {
+     "$ref": "SwarmingRpcsOperationStats"
+    },
+    "isolated_upload": {
+     "$ref": "SwarmingRpcsOperationStats"
+    }
+   }
+  },
+  "SwarmingRpcsServerDetails": {
+   "id": "SwarmingRpcsServerDetails",
+   "type": "object",
+   "description": "Reports the server version.",
+   "properties": {
+    "server_version": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsStringListPair": {
+   "id": "SwarmingRpcsStringListPair",
+   "type": "object",
+   "description": "Represents a mapping of string to list of strings.",
+   "properties": {
+    "key": {
+     "type": "string"
+    },
+    "value": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    }
+   }
+  },
+  "SwarmingRpcsStringPair": {
+   "id": "SwarmingRpcsStringPair",
+   "type": "object",
+   "description": "Represents a mapping of string to string.",
+   "properties": {
+    "key": {
+     "type": "string"
+    },
+    "value": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsTaskList": {
+   "id": "SwarmingRpcsTaskList",
+   "type": "object",
+   "description": "Wraps a list of TaskResult.",
+   "properties": {
+    "cursor": {
+     "type": "string"
+    },
+    "items": {
+     "type": "array",
+     "description": "Representation of the TaskResultSummary or TaskRunResult ndb model.",
+     "items": {
+      "$ref": "SwarmingRpcsTaskResult"
+     }
+    },
+    "now": {
+     "type": "string",
+     "format": "date-time"
+    }
+   }
+  },
+  "SwarmingRpcsTaskOutput": {
+   "id": "SwarmingRpcsTaskOutput",
+   "type": "object",
+   "description": "A task's output as a string.",
+   "properties": {
+    "output": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsTaskProperties": {
+   "id": "SwarmingRpcsTaskProperties",
+   "type": "object",
+   "description": "Important metadata about a particular task.",
+   "properties": {
+    "cipd_input": {
+     "$ref": "SwarmingRpcsCipdInput",
+     "description": "Defines CIPD packages to install in $CIPD_PATH. A command may use $CIPD_PATH in its arguments. It will be expanded to the path of the CIPD site root."
+    },
+    "command": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "dimensions": {
+     "type": "array",
+     "description": "Represents a mapping of string to string.",
+     "items": {
+      "$ref": "SwarmingRpcsStringPair"
+     }
+    },
+    "env": {
+     "type": "array",
+     "description": "Represents a mapping of string to string.",
+     "items": {
+      "$ref": "SwarmingRpcsStringPair"
+     }
+    },
+    "execution_timeout_secs": {
+     "type": "string",
+     "format": "int64"
+    },
+    "extra_args": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "grace_period_secs": {
+     "type": "string",
+     "format": "int64"
+    },
+    "idempotent": {
+     "type": "boolean"
+    },
+    "inputs_ref": {
+     "$ref": "SwarmingRpcsFilesRef",
+     "description": "Defines a data tree reference, normally a reference to a .isolated file."
+    },
+    "io_timeout_secs": {
+     "type": "string",
+     "format": "int64"
+    }
+   }
+  },
+  "SwarmingRpcsTaskRequest": {
+   "id": "SwarmingRpcsTaskRequest",
+   "type": "object",
+   "description": "Description of a task request as registered by the server.",
+   "properties": {
+    "authenticated": {
+     "type": "string"
+    },
+    "created_ts": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "expiration_secs": {
+     "type": "string",
+     "format": "int64"
+    },
+    "name": {
+     "type": "string"
+    },
+    "parent_task_id": {
+     "type": "string"
+    },
+    "priority": {
+     "type": "string",
+     "format": "int64"
+    },
+    "properties": {
+     "$ref": "SwarmingRpcsTaskProperties",
+     "description": "Important metadata about a particular task."
+    },
+    "pubsub_topic": {
+     "type": "string"
+    },
+    "pubsub_userdata": {
+     "type": "string"
+    },
+    "tags": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "user": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsTaskRequestMetadata": {
+   "id": "SwarmingRpcsTaskRequestMetadata",
+   "type": "object",
+   "description": "Provides the ID of the requested TaskRequest.",
+   "properties": {
+    "request": {
+     "$ref": "SwarmingRpcsTaskRequest",
+     "description": "Description of a task request as registered by the server."
+    },
+    "task_id": {
+     "type": "string"
+    },
+    "task_result": {
+     "$ref": "SwarmingRpcsTaskResult",
+     "description": "Representation of the TaskResultSummary or TaskRunResult ndb model."
+    }
+   }
+  },
+  "SwarmingRpcsTaskRequests": {
+   "id": "SwarmingRpcsTaskRequests",
+   "type": "object",
+   "description": "Wraps a list of TaskRequest.",
+   "properties": {
+    "cursor": {
+     "type": "string"
+    },
+    "items": {
+     "type": "array",
+     "description": "Description of a task request as registered by the server.",
+     "items": {
+      "$ref": "SwarmingRpcsTaskRequest"
+     }
+    },
+    "now": {
+     "type": "string",
+     "format": "date-time"
+    }
+   }
+  },
+  "SwarmingRpcsTaskResult": {
+   "id": "SwarmingRpcsTaskResult",
+   "type": "object",
+   "description": "Representation of the TaskResultSummary or TaskRunResult ndb model.",
+   "properties": {
+    "abandoned_ts": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "bot_dimensions": {
+     "type": "array",
+     "description": "Represents a mapping of string to list of strings.",
+     "items": {
+      "$ref": "SwarmingRpcsStringListPair"
+     }
+    },
+    "bot_id": {
+     "type": "string"
+    },
+    "bot_version": {
+     "type": "string"
+    },
+    "children_task_ids": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "completed_ts": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "cost_saved_usd": {
+     "type": "number",
+     "format": "double"
+    },
+    "costs_usd": {
+     "type": "array",
+     "items": {
+      "type": "number",
+      "format": "double"
+     }
+    },
+    "created_ts": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "deduped_from": {
+     "type": "string"
+    },
+    "duration": {
+     "type": "number",
+     "format": "double"
+    },
+    "exit_code": {
+     "type": "string",
+     "format": "int64"
+    },
+    "failure": {
+     "type": "boolean"
+    },
+    "internal_failure": {
+     "type": "boolean"
+    },
+    "modified_ts": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "name": {
+     "type": "string"
+    },
+    "outputs_ref": {
+     "$ref": "SwarmingRpcsFilesRef",
+     "description": "Defines a data tree reference, normally a reference to a .isolated file."
+    },
+    "performance_stats": {
+     "$ref": "SwarmingRpcsPerformanceStats"
+    },
+    "properties_hash": {
+     "type": "string"
+    },
+    "server_versions": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "started_ts": {
+     "type": "string",
+     "format": "date-time"
+    },
+    "state": {
+     "type": "string",
+     "enum": [
+      "BOT_DIED",
+      "CANCELED",
+      "COMPLETED",
+      "EXPIRED",
+      "PENDING",
+      "RUNNING",
+      "TIMED_OUT"
+     ],
+     "enumDescriptions": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+     ]
+    },
+    "tags": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    },
+    "task_id": {
+     "type": "string"
+    },
+    "try_number": {
+     "type": "string",
+     "format": "int64"
+    },
+    "user": {
+     "type": "string"
+    }
+   }
+  },
+  "SwarmingRpcsTasksCount": {
+   "id": "SwarmingRpcsTasksCount",
+   "type": "object",
+   "description": "Returns the count, as requested.",
+   "properties": {
+    "count": {
+     "type": "string",
+     "format": "int64"
+    },
+    "now": {
+     "type": "string",
+     "format": "date-time"
+    }
+   }
+  },
+  "SwarmingRpcsTerminateResponse": {
+   "id": "SwarmingRpcsTerminateResponse",
+   "type": "object",
+   "description": "Returns the pseudo taskid to wait for the bot to shut down.",
+   "properties": {
+    "task_id": {
+     "type": "string"
+    }
+   }
+  }
+ },
+ "resources": {
+  "bot": {
+   "methods": {
+    "delete": {
+     "id": "swarming.bot.delete",
+     "path": "bot/{bot_id}/delete",
+     "httpMethod": "POST",
+     "description": "Deletes the bot corresponding to a provided bot_id. At that point, the bot will not appears in the list of bots but it is still possible to get information about the bot with its bot id is known, as historical data is not deleted. It is meant to remove from the DB the presence of a bot that was retired, e.g. the VM was shut down already. Use 'terminate' instead of the bot is still alive.",
+     "parameters": {
+      "bot_id": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "bot_id"
+     ],
+     "response": {
+      "$ref": "SwarmingRpcsDeletedResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "events": {
+     "id": "swarming.bot.events",
+     "path": "bot/{bot_id}/events",
+     "httpMethod": "GET",
+     "description": "Returns events that happened on a bot.",
+     "parameters": {
+      "bot_id": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "bot_id"
+     ],
+     "response": {
+      "$ref": "SwarmingRpcsBotEvents"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "get": {
+     "id": "swarming.bot.get",
+     "path": "bot/{bot_id}/get",
+     "httpMethod": "GET",
+     "description": "Returns information about a known bot. This includes its state and dimensions, and if it is currently running a task.",
+     "parameters": {
+      "bot_id": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "bot_id"
+     ],
+     "response": {
+      "$ref": "SwarmingRpcsBotInfo"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "tasks": {
+     "id": "swarming.bot.tasks",
+     "path": "bot/{bot_id}/tasks",
+     "httpMethod": "GET",
+     "description": "Lists a given bot's tasks within the specified date range. In this case, the tasks are effectively TaskRunResult since it's individual task tries sent to this specific bot. It is impossible to search by both tags and bot id. If there's a need, TaskRunResult.tags will be added (via a copy from TaskRequest.tags).",
+     "parameters": {
+      "bot_id": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "bot_id"
+     ],
+     "response": {
+      "$ref": "SwarmingRpcsBotTasks"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "terminate": {
+     "id": "swarming.bot.terminate",
+     "path": "bot/{bot_id}/terminate",
+     "httpMethod": "POST",
+     "description": "Asks a bot to terminate itself gracefully. The bot will stay in the DB, use 'delete' to remove it from the DB afterward. This request returns a pseudo-taskid that can be waited for to wait for the bot to turn down. This command is particularly useful when a privileged user needs to safely debug a machine specific issue. The user can trigger a terminate for one of the bot exhibiting the issue, wait for the pseudo-task to run then access the machine with the guarantee that the bot is not running anymore.",
+     "parameters": {
+      "bot_id": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "bot_id"
+     ],
+     "response": {
+      "$ref": "SwarmingRpcsTerminateResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    }
+   }
+  },
+  "bots": {
+   "methods": {
+    "count": {
+     "id": "swarming.bots.count",
+     "path": "bots/count",
+     "httpMethod": "GET",
+     "description": "Counts number of bots with given dimensions.",
+     "parameters": {
+      "cursor": {
+       "type": "string",
+       "location": "query"
+      },
+      "dimensions": {
+       "type": "string",
+       "repeated": true,
+       "location": "query"
+      },
+      "limit": {
+       "type": "string",
+       "default": "200",
+       "format": "int64",
+       "location": "query"
+      }
+     },
+     "response": {
+      "$ref": "SwarmingRpcsBotsCount"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "list": {
+     "id": "swarming.bots.list",
+     "path": "bots/list",
+     "httpMethod": "GET",
+     "description": "Provides list of known bots. Deleted bots will not be listed.",
+     "parameters": {
+      "cursor": {
+       "type": "string",
+       "location": "query"
+      },
+      "dimensions": {
+       "type": "string",
+       "repeated": true,
+       "location": "query"
+      },
+      "limit": {
+       "type": "string",
+       "default": "200",
+       "format": "int64",
+       "location": "query"
+      }
+     },
+     "response": {
+      "$ref": "SwarmingRpcsBotList"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    }
+   }
+  },
+  "server": {
+   "methods": {
+    "details": {
+     "id": "swarming.server.details",
+     "path": "server/details",
+     "httpMethod": "GET",
+     "description": "Returns information about the server.",
+     "response": {
+      "$ref": "SwarmingRpcsServerDetails"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "get_bootstrap": {
+     "id": "swarming.server.get_bootstrap",
+     "path": "server/get_bootstrap",
+     "httpMethod": "GET",
+     "description": "Retrieves the current or a previous version of bootstrap.py.",
+     "parameters": {
+      "version": {
+       "type": "string",
+       "format": "int64",
+       "location": "query"
+      }
+     },
+     "response": {
+      "$ref": "SwarmingRpcsFileContent"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "get_bot_config": {
+     "id": "swarming.server.get_bot_config",
+     "path": "server/get_bot_config",
+     "httpMethod": "GET",
+     "description": "Retrieves the current or a previous version of bot_config.py.",
+     "parameters": {
+      "version": {
+       "type": "string",
+       "format": "int64",
+       "location": "query"
+      }
+     },
+     "response": {
+      "$ref": "SwarmingRpcsFileContent"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "put_bootstrap": {
+     "id": "swarming.server.put_bootstrap",
+     "path": "server/put_bootstrap",
+     "httpMethod": "POST",
+     "description": "Stores a new version of bootstrap.py.",
+     "request": {
+      "$ref": "SwarmingRpcsFileContentRequest",
+      "parameterName": "resource"
+     },
+     "response": {
+      "$ref": "SwarmingRpcsFileContent"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "put_bot_config": {
+     "id": "swarming.server.put_bot_config",
+     "path": "server/put_bot_config",
+     "httpMethod": "POST",
+     "description": "Stores a new version of bot_config.py.",
+     "request": {
+      "$ref": "SwarmingRpcsFileContentRequest",
+      "parameterName": "resource"
+     },
+     "response": {
+      "$ref": "SwarmingRpcsFileContent"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    }
+   }
+  },
+  "task": {
+   "methods": {
+    "cancel": {
+     "id": "swarming.task.cancel",
+     "path": "task/{task_id}/cancel",
+     "httpMethod": "POST",
+     "description": "Cancels a task. If a bot was running the task, the bot will forcibly cancel the task.",
+     "parameters": {
+      "task_id": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "task_id"
+     ],
+     "response": {
+      "$ref": "SwarmingRpcsCancelResponse"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "request": {
+     "id": "swarming.task.request",
+     "path": "task/{task_id}/request",
+     "httpMethod": "GET",
+     "description": "Returns the task request corresponding to a task ID.",
+     "parameters": {
+      "task_id": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "task_id"
+     ],
+     "response": {
+      "$ref": "SwarmingRpcsTaskRequest"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "result": {
+     "id": "swarming.task.result",
+     "path": "task/{task_id}/result",
+     "httpMethod": "GET",
+     "description": "Reports the result of the task corresponding to a task ID. It can be a 'run' ID specifying a specific retry or a 'summary' ID hidding the fact that a task may have been retried transparently, when a bot reports BOT_DIED. A summary ID ends with '0', a run ID ends with '1' or '2'.",
+     "parameters": {
+      "include_performance_stats": {
+       "type": "boolean",
+       "location": "query"
+      },
+      "task_id": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "task_id"
+     ],
+     "response": {
+      "$ref": "SwarmingRpcsTaskResult"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "stdout": {
+     "id": "swarming.task.stdout",
+     "path": "task/{task_id}/stdout",
+     "httpMethod": "GET",
+     "description": "Returns the output of the task corresponding to a task ID.",
+     "parameters": {
+      "task_id": {
+       "type": "string",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "task_id"
+     ],
+     "response": {
+      "$ref": "SwarmingRpcsTaskOutput"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    }
+   }
+  },
+  "tasks": {
+   "methods": {
+    "count": {
+     "id": "swarming.tasks.count",
+     "path": "tasks/count",
+     "httpMethod": "GET",
+     "description": "Counts number of tasks in a given state.",
+     "parameters": {
+      "end": {
+       "type": "number",
+       "format": "double",
+       "location": "query"
+      },
+      "start": {
+       "type": "number",
+       "format": "double",
+       "location": "query"
+      },
+      "state": {
+       "type": "string",
+       "default": "ALL",
+       "enum": [
+        "ALL",
+        "BOT_DIED",
+        "CANCELED",
+        "COMPLETED",
+        "COMPLETED_FAILURE",
+        "COMPLETED_SUCCESS",
+        "DEDUPED",
+        "EXPIRED",
+        "PENDING",
+        "PENDING_RUNNING",
+        "RUNNING",
+        "TIMED_OUT"
+       ],
+       "enumDescriptions": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+       ],
+       "location": "query"
+      },
+      "tags": {
+       "type": "string",
+       "repeated": true,
+       "location": "query"
+      }
+     },
+     "response": {
+      "$ref": "SwarmingRpcsTasksCount"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "list": {
+     "id": "swarming.tasks.list",
+     "path": "tasks/list",
+     "httpMethod": "GET",
+     "description": "Returns tasks results based on the filters. This endpoint is significantly slower than 'count'. Use 'count' when possible.",
+     "parameters": {
+      "cursor": {
+       "type": "string",
+       "location": "query"
+      },
+      "end": {
+       "type": "number",
+       "format": "double",
+       "location": "query"
+      },
+      "include_performance_stats": {
+       "type": "boolean",
+       "location": "query"
+      },
+      "limit": {
+       "type": "string",
+       "default": "200",
+       "format": "int64",
+       "location": "query"
+      },
+      "sort": {
+       "type": "string",
+       "default": "CREATED_TS",
+       "enum": [
+        "ABANDONED_TS",
+        "COMPLETED_TS",
+        "CREATED_TS",
+        "MODIFIED_TS"
+       ],
+       "enumDescriptions": [
+        "",
+        "",
+        "",
+        ""
+       ],
+       "location": "query"
+      },
+      "start": {
+       "type": "number",
+       "format": "double",
+       "location": "query"
+      },
+      "state": {
+       "type": "string",
+       "default": "ALL",
+       "enum": [
+        "ALL",
+        "BOT_DIED",
+        "CANCELED",
+        "COMPLETED",
+        "COMPLETED_FAILURE",
+        "COMPLETED_SUCCESS",
+        "DEDUPED",
+        "EXPIRED",
+        "PENDING",
+        "PENDING_RUNNING",
+        "RUNNING",
+        "TIMED_OUT"
+       ],
+       "enumDescriptions": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+       ],
+       "location": "query"
+      },
+      "tags": {
+       "type": "string",
+       "repeated": true,
+       "location": "query"
+      }
+     },
+     "response": {
+      "$ref": "SwarmingRpcsTaskList"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "new": {
+     "id": "swarming.tasks.new",
+     "path": "tasks/new",
+     "httpMethod": "POST",
+     "description": "Creates a new task. The task will be enqueued in the tasks list and will be executed at the earliest opportunity by a bot that has at least the dimensions as described in the task request.",
+     "request": {
+      "$ref": "SwarmingRpcsNewTaskRequest",
+      "parameterName": "resource"
+     },
+     "response": {
+      "$ref": "SwarmingRpcsTaskRequestMetadata"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    },
+    "requests": {
+     "id": "swarming.tasks.requests",
+     "path": "tasks/requests",
+     "httpMethod": "GET",
+     "description": "Returns tasks requests based on the filters. This endpoint is slightly slower than 'list'. Use 'list' or 'count' when possible.",
+     "parameters": {
+      "cursor": {
+       "type": "string",
+       "location": "query"
+      },
+      "end": {
+       "type": "number",
+       "format": "double",
+       "location": "query"
+      },
+      "include_performance_stats": {
+       "type": "boolean",
+       "location": "query"
+      },
+      "limit": {
+       "type": "string",
+       "default": "200",
+       "format": "int64",
+       "location": "query"
+      },
+      "sort": {
+       "type": "string",
+       "default": "CREATED_TS",
+       "enum": [
+        "ABANDONED_TS",
+        "COMPLETED_TS",
+        "CREATED_TS",
+        "MODIFIED_TS"
+       ],
+       "enumDescriptions": [
+        "",
+        "",
+        "",
+        ""
+       ],
+       "location": "query"
+      },
+      "start": {
+       "type": "number",
+       "format": "double",
+       "location": "query"
+      },
+      "state": {
+       "type": "string",
+       "default": "ALL",
+       "enum": [
+        "ALL",
+        "BOT_DIED",
+        "CANCELED",
+        "COMPLETED",
+        "COMPLETED_FAILURE",
+        "COMPLETED_SUCCESS",
+        "DEDUPED",
+        "EXPIRED",
+        "PENDING",
+        "PENDING_RUNNING",
+        "RUNNING",
+        "TIMED_OUT"
+       ],
+       "enumDescriptions": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+       ],
+       "location": "query"
+      },
+      "tags": {
+       "type": "string",
+       "repeated": true,
+       "location": "query"
+      }
+     },
+     "response": {
+      "$ref": "SwarmingRpcsTaskRequests"
+     },
+     "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email"
+     ]
+    }
+   }
+  }
+ }
+}

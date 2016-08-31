@@ -1,0 +1,38 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>RPC Explorer</title>
+  <script type="text/javascript"
+      src="/rpcexplorer/inc/bower_components/webcomponentsjs/webcomponents-lite.min.js">
+  </script>
+
+  <!-- Because this project uses vulcanize this should be your only html import
+       in this file. All other imports should go in elements.html -->
+  <link rel="import" href="/rpcexplorer/elements/elements.html">
+
+  <link rel="stylesheet" href="/rpcexplorer/inc/bower_components/bootstrap/dist/css/bootstrap.min.css">
+
+  <style>
+    .ace_editor.ace_autocomplete {
+      width: 500px !important;
+    }
+    body {
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body unresolved>
+  <div class="container">
+    <rpc-explorer
+        root-path="/rpcexplorer"
+        client-id="446450136466-e77v49thuh5dculh78gumq3oncqe28m3.apps.googleusercontent.com">
+    </rpc-explorer>
+  </div>
+</body>

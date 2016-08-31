@@ -1,0 +1,562 @@
+// Copyright 2016 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto3";
+
+package deploy;
+
+import "google/protobuf/duration.proto";
+
+/**
+ * Component represents a single deployable component.
+ *
+ * Deployment tool projects are composed of Components. Each Component is
+ * defined in a project's components directory, and describes a deployment
+ * Component that the project offers.
+ *
+ * Components are located under a Source's components directory, and are
+ * named "<component-name>.cfg". The internal name for a given component is
+ * "<component-name>".
+ *
+ * Components themselves are source-relative links to actual Component
+ * configuration files, which define various component types.
+ */
+message Component {
+  /**
+   * Build is a single build operation execution. It can be attached to a
+   * Component, and will be executed as a precondition to completing that
+   * Component.
+   *
+   * Any `dir_key` exposed through Build will become available to directory
+   * fields in the Component definition.
+   *
+   * Note that the source repository's `run_scripts` directive must be enabled.
+   */
+  message Build {
+    /**
+     * The variable substitution key that the build directory for this directive
+     * can be substituted with.
+     */
+    string dir_key = 1;
+
+    /**
+     * A Python build script.
+     *
+     * The script will be run out of a directory generated specifically for it
+     * during the build phase of a Component.
+     * $ PYTHON PATH SOURCE-ROOT BUILD-DIR [EXTRA-ARGS...]
+     *
+     * - PYTHON is the deploy tool-resolved Python interpreter.
+     * - PATH is the absolute path of the script.
+     * - SOURCE-ROOT is the root of the source that is being initialized.
+     * - BUILD-DIR is the build output directory. Each build script invocation
+     *   will be allocated a temporary output directory for its build artifacts.
+     *   Note that this will also be the current working directory.
+     * - EXTRA_ARGS is any additional arguments supplied via the `extra_args`
+     *   field.
+     */
+    message PythonScript {
+      /** The source-relative path of the Python script. */
+      string path = 1;
+      /** Additional arguments supplied at the end of the script. */
+      repeated string extra_args = 2;
+    }
+
+    oneof operation {
+      PythonScript python_script = 2;
+    }
+  }
+  repeated Build build = 1;
+
+  /**
+   * Source-relative path to other Build message files to build with this
+   * component.
+   */
+  repeated string build_path = 2;
+
+  /** The Component that this file describes. */
+  oneof component {
+    /** A Google AppEngine module. */
+    AppEngineModule appengine_module = 10;
+    /** A Google Container Engine container deployment. */
+    ContainerEnginePod gke_pod = 11;
+  }
+}
+
+/**
+ * A BuildPath is a path that is relative to either a source root or, if
+ * specified, a Build `dir_key`.
+ */
+message BuildPath {
+  /** The Build `dir_key` to use as a root instead of the source root. */
+  string dir_key = 1;
+  /**
+   * The relative path. If `dir_key` is empty, this is relative to the source
+   * root. Otherwise, this is relative to `dir_key`'s directory root.
+   */
+  string path = 2;
+}
+
+/**
+ * Describes an AppEngine module.
+ */
+message AppEngineModule {
+  /** The name of the module. Leave blank for default module. */
+  string module_name = 1;
+
+  /**
+   * A Go AppEngine module.
+   *
+   * The entry point must be declared here.
+   */
+  message GoModule {
+    /** The Go package path of the module's entry package. */
+    string entry_package = 1;
+  }
+
+  /**
+   * A module that is really hosting static content via handlers and uploads.
+   */
+  message StaticModule {}
+
+  /** The module's runtime. */
+  oneof runtime {
+    GoModule go_module = 2;
+    StaticModule static_module = 3;
+  }
+
+  /** Parameters for Managed VM */
+  message ManagedVmParams {
+    /** Scopes are additional service account scopes to include. */
+    repeated string scopes = 1;
+  }
+  /**
+   * If set, this is a Managed VM AppEngine module, and these are additional
+   * parameters.
+   */
+  ManagedVmParams managed_vm = 10;
+
+  /** Handler is the set of handlers. */
+  message Handler {
+    /** The handler URL / regexp. */
+    string url = 1;
+
+    /** Option for "login" handler field. */
+    enum LoginOption {
+      LOGIN_OPTIONAL = 0;
+      LOGIN_REQUIRED = 1;
+      LOGIN_ADMIN = 2;
+    }
+    LoginOption login = 2;
+
+    /** Option for "secure" handler field. */
+    enum SecureOption {
+      SECURE_ALWAYS = 0;
+      SECURE_OPTIONAL = 1;
+      SECURE_NEVER = 2;
+    }
+    SecureOption secure = 3;
+
+    /**
+     * Script is the name of the script to invoke.
+     *
+     * For Go runtime VMs, this will default to "_go_app".
+     */
+    message StaticFiles {
+      /** The base directory where the content is located. */
+      oneof base_dir {
+        /** The source-relative path to the base directory. */
+        string path = 1;
+        /** The base directory can be specified as a build path. */
+        BuildPath build = 2;
+      }
+
+      /** Regexp pattern within "base_dir" to upload files. */
+      string upload = 3;
+
+      /**
+       * URL to file mapping substitution regexp. This should not include the
+       * "base_dir" component.
+       */
+      string url_map = 4;
+    }
+    oneof content {
+      /** Run a script. */
+      string script = 4;
+      /** Static content definition. */
+      StaticFiles static_files = 5;
+
+      /** A source-relative directory to upload and bind to the handler URL. */
+      string static_dir = 6;
+      /** The build path of a directory to upload and bind to the handler URL */
+      BuildPath static_build_dir = 7;
+    }
+  }
+  /** A set of Handler messages. */
+  message HandlerSet {
+    /** The handler messages. */
+    repeated Handler handler = 1;
+  }
+  /** Module handlers. */
+  HandlerSet handlers = 20;
+  /** Source-relative paths to HandlerSet protobufs to include. */
+  repeated string handler_path = 21;
+
+  /**
+   * Module resources.
+   *
+   * All resources defined by this module are automatically configured to be
+   * handled by this module without explicit "handle_*" directives.
+   */
+  AppEngineResources resources = 22;
+  /**
+   * Source-relative path of additional AppEngineResources text protobuf files
+   * to load and associate with this module.
+   *
+   * Resources imported here are treated the same as if they were declared in
+   * the "resources" field.
+   *
+   * Resource paths may include deployment parameters.
+   */
+  repeated string resource_path = 23;
+}
+
+/**
+ * Defines a set of AppEngine-wide resources.
+ *
+ * These are aggregated between all registered AppEngine modules within a
+ * project.
+ */
+message AppEngineResources {
+  /* Defines an index. */
+  message Index {
+    /* The entity Kind for the index. */
+    string kind = 1;
+
+    /* Property sort direction. */
+    enum Direction {
+      /* Ascending order (default). */
+      ASCENDING = 0;
+      /* Descending order. */
+      DESCENDING = 1;
+    }
+    /* Single property definition. */
+    message Property {
+      string name = 1;
+      Direction direction = 2;
+    }
+    /* The list of properties in the index (ordered). */
+    repeated Property property = 2;
+    /* True if this will be used by an ancestor query. */
+    bool ancestor = 4;
+  }
+  /** The index messages. */
+  repeated Index index = 1;
+
+  /**
+   * Defines a dispatch directive.
+   *
+   * This dispatch entry will redirect requests to the module in which it is
+   * declared.
+   */
+  repeated string dispatch = 2;
+
+  /* Defines a task queue. */
+  message TaskQueue {
+    string name = 1;
+
+    /**
+     * Defines a push queue.
+     *
+     * This queue will push requests to the module in which it is declared.
+     */
+    message Push {
+      string rate = 1;
+      int32 bucket_size = 2;
+      string retry_task_age_limit = 3;
+      int32 retry_min_backoff_seconds = 4;
+      int32 retry_max_backoff_seconds = 5;
+      int32 retry_max_doublings = 6;
+    }
+
+    oneof type {
+      Push push = 2;
+    }
+  }
+  /** Task queues. */
+  repeated TaskQueue task_queue = 3;
+
+  /**
+   * Defines a cron entry.
+   *
+   * This cron will send requests to the module in which it is declared.
+   */
+  message Cron {
+    /* The URL. */
+    string url = 1;
+    /* The description. */
+    string description = 2;
+    /* The cron's schedule string. */
+    string schedule = 3;
+  }
+  /** The cron message. */
+  repeated Cron cron = 4;
+}
+
+/** A Google Container Engine deployment. */
+message ContainerEnginePod {
+  /** The pod definition. */
+  KubernetesPod kube_pod = 1;
+
+  /** OAuth2 scopes that pods in this cluster require. */
+  repeated string scopes = 2;
+}
+
+/**
+ * Describes a Kubernetes deployment, which is a collecton of Kubernetes pods.
+ *
+ * Currently built from:
+ * http://kubernetes.io/docs/api-reference/extensions/v1beta1/definitions
+ *
+ * Modelled after:
+ * - [v1.PodSpec]
+ * - [v1.PodTemplateSpec]
+ */
+message KubernetesPod {
+  /**
+   * The name of this pod. It must be unique within its deployment.
+   *
+   * If empty, Kubernetes will automatically generate one.
+   */
+  string name = 1;
+
+  enum RestartPolicy {
+    RESTART_ALWAYS = 0;
+    RESTART_ON_FAILURE = 1;
+    RESTART_NEVER = 2;
+  }
+  RestartPolicy restart_policy = 2;
+
+  /**
+   * The termination grace period. This will be truncated to seconds.
+   *
+   * If not specified, the Kubernetes default will be used (currently 30
+   * seconds).
+   */
+  google.protobuf.Duration termination_grace_period = 3;
+
+  /**
+   * The activation deadline. This will be truncated to seconds.
+   *
+   * If not specified, the Kubernetes default will be used.
+   */
+  google.protobuf.Duration active_deadline = 4;
+
+  /**
+   * Describes a single Kubernetes container.
+   *
+   * Modelled after:
+   * - [v1.beta1.DeploymentSpec]
+   * - [v1.Container]
+   * - [v1.ObjectMeta]
+   */
+  message Container {
+    /**
+     * The name of this container. It must be unique within the deployment.
+     *
+     * If empty, Kubernetes will automatically generate one.
+     */
+    string name = 1;
+
+    /** The Dockerfile that builds this pod. */
+    oneof dockerfile {
+      /** The source-relative path to the Dockerfile that builds this pod. */
+      string path = 2;
+
+      /** The build path to the Dockerfile that builds this pod. */
+      BuildPath build = 3;
+    }
+
+    enum Type {
+      /**
+       * A Go container.
+       *
+       * The image for this container will be built in a
+       * directory containing all of the immediate contents of "path" and
+       * the contents of GOPATH at "_gopath/src".
+       */
+      GO = 0;
+    }
+    Type type = 4;
+
+    /**
+     * The entrypoint command array. If not specified, the Docker image's
+     * ENTRYPOINT will be used.
+     */
+    repeated string command = 10;
+    /**
+     * Entrypoint arguments. If not specified, the docker image's CMD will be
+     * used.
+     */
+    repeated string args = 11;
+    /**
+     * The container's working directory. If not specified, the runtime's
+     * default working directory will be used.
+     */
+    string working_dir = 12;
+
+    message ContainerPort {
+      /**
+       * Optional container port name. If supplied, must be unique within
+       * deployment.
+       */
+      string name = 1;
+      /** The container port. */
+      int32 container_port = 2;
+
+      enum Protocol {
+        TCP = 0;
+        UDP = 1;
+      }
+      /** The protocol to forward. */
+      Protocol protocol = 4;
+    }
+    /** Container port forwarding setup. */
+    repeated ContainerPort ports = 6;
+
+    /** Environment variables to set for the container. */
+    map<string, string> env = 13;
+
+    /** Resources is a resource requirements specification. */
+    message Resources {
+      /** CPU resource requirements, between [0.0 and 100.0]. */
+      float cpu = 1;
+
+      /** Resource unit granularity. */
+      enum Unit {
+        BYTE = 0;
+
+        /** 1000 */
+        KILOBYTE = 1;
+        /** 1000^2 */
+        MEGABYTE = 2;
+        /** 1000^3 */
+        GIGABYTE = 3;
+        /** 1000^4 */
+        TERABYTE = 4;
+        /** 1000^5 */
+        PETABYTE = 5;
+        /** 1000^6 */
+        EXABYTE = 6;
+
+        /** 1024 */
+        KIBIBYTE = 7;
+        /** 1024^2 */
+        MEBIBYTE = 8;
+        /** 1024^3 */
+        GIBIBYTE = 9;
+        /** 1024^4 */
+        TEBIBYTE = 10;
+        /** 1024^5 */
+        PEBIBYTE = 11;
+        /** 1024^6 */
+        EXBIBYTE = 12;
+      }
+      /** Memory spec. */
+      message Memory {
+        /** The unit of memory to specify. */
+        Unit unit = 1;
+        /** The number of units. */
+        int32 amount = 2;
+      }
+      Memory memory = 2;
+    }
+    /** The maximum amount of resources to use. */
+    Resources limits = 14;
+    /** The requested amount of resources to use. */
+    Resources requested = 15;
+
+    /**
+     * HTTP Get specification.
+     *
+     * Modelled after [v1.HTTPGetAction].
+     */
+    message HttpGet {
+      /** The HTTP path to access. */
+      string path = 1;
+      /** The port to GET from. */
+      int32 port = 2;
+      /** The hostname to connect to. Defaults to pod IP. */
+      string host = 3;
+      /** Scheme to use. Defaults to HTTP. */
+      string scheme = 4;
+
+      /**
+       * Custom HTTP headers. Repeated headers are allowed.
+       *
+       * Modelled after [v1.HTTPHeader].
+       */
+      message Header {
+        /** The HTTP header name. */
+        string name = 1;
+        /** The HTTP header value. */
+        string value = 2;
+      }
+      repeated Header headers = 5;
+    }
+
+    /**
+     * Probe defines a Kubernetes probe type.
+     *
+     * Modelled after [v1.Probe].
+     */
+    message Probe {
+      /** Command to execute, exit status 0 is healthy, non-zero is not. */
+      repeated string exec = 1;
+      /** Get status from HTTP. */
+      HttpGet http_get = 2;
+
+      google.protobuf.Duration initial_delay = 3;
+      google.protobuf.Duration timeout = 4;
+      google.protobuf.Duration period = 5;
+
+      /** Minimum number of consecutive successes to count as success. */
+      int32 success_threshold = 6;
+      /** Minimum number of consecutive failures to count as failure. */
+      int32 failure_threshold = 7;
+    }
+    /** A periodic Probe for container liveness. */
+    Probe liveness_probe = 16;
+    /** A periodic Probe for container readiness. */
+    Probe readiness_probe = 17;
+
+    /**
+     * A handler.
+     *
+     * Modelled after [v1.Handler].
+     */
+    message Handler {
+      /** Command to execute inside the container. */
+      repeated string exec_command = 1;
+
+      /** Handler defines an HTTP Get action. */
+      HttpGet http_get = 2;
+    }
+    /** Handler to execute immediately after the container has started. */
+    Handler post_start = 18;
+    /** Handler to execute immediately before a container is terminated. */
+    Handler pre_stop = 19;
+  }
+  /** Containers in this Deployment. */
+  repeated Container container = 10;
+
+  /** Labels to apply to this pod. */
+  map<string, string> labels = 11;
+
+  /**
+   * Deployment configuration value for amount of non-crashing time before this
+   * pod is available.
+   */
+  google.protobuf.Duration min_ready = 12;
+}

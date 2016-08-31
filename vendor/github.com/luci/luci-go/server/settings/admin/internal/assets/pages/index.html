@@ -1,0 +1,25 @@
+{{define "title"}}Settings{{end}}
+
+{{define "content"}}
+<div class="row">
+<div class="col-md-offset-2 col-md-8">
+
+<h2>All settings</h2>
+<hr>
+
+<ul>
+  {{range .Entries}}
+  <li><a href="/admin/settings/{{.ID}}">{{.Title}}</a></li>
+  {{end}}
+</ul>
+
+{{if .WaitingForConsistency}}
+  <hr>
+  <small>
+    {{.TimeToConsistency}} until last setting change is propagated everywhere.
+  </small>
+{{end}}
+
+</div>
+</div>
+{{end}}

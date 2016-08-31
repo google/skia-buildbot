@@ -1,0 +1,150 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package logdog;
+
+import "github.com/luci/luci-go/logdog/api/endpoints/coordinator/services/v1/state.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
+
+// GetConfigResponse is the response structure for the user
+// "GetConfig" endpoint.
+message GetConfigResponse {
+  // The API URL of the base "luci-config" service. If empty, the default
+  // service URL will be used.
+  string config_service_url = 1;
+
+  // The name of the configuration set to load from.
+  string config_set = 2;
+  // The path of the text-serialized service configuration protobuf.
+  string service_config_path = 3;
+}
+
+// RegisterStreamRequest is the set of caller-supplied data for the
+// RegisterStream Coordinator service endpoint.
+message RegisterStreamRequest {
+  // The log stream's project.
+  string project = 1;
+  // The log stream's secret.
+  bytes secret = 2;
+
+  // The protobuf version string for this stream.
+  string proto_version = 3;
+  // The serialized LogStreamDescriptor protobuf for this stream.
+  bytes desc = 4;
+
+  // The stream's terminal index. If >= 0, the terminal index will be set
+  // in the registration request, avoiding the need for an additional
+  // termination RPC.
+  int64 terminal_index = 5;
+}
+
+// The response message for the RegisterStream RPC.
+message RegisterStreamResponse {
+  // The Coordinator ID of the log stream.
+  string id = 1;
+  // The state of the requested log stream.
+  LogStreamState state = 2;
+}
+
+// LoadStreamRequest loads the current state of a log stream.
+message LoadStreamRequest {
+  // The log stream's project.
+  string project = 1;
+  // The log stream's path Coordinator ID.
+  string id = 2;
+
+  // If true, include the log stream descriptor.
+  bool desc = 3;
+}
+
+// The response message for the LoadStream RPC.
+message LoadStreamResponse {
+  // The state of the requested log stream.
+  LogStreamState state = 1;
+
+  // If requested, the serialized log stream descriptor. The protobuf version
+  // of this descriptor will match the "proto_version" field in "state".
+  bytes desc = 2;
+
+  // The age of the log stream.
+  google.protobuf.Duration age = 3;
+
+  // The archival key of the log stream. If this key doesn't match the key in
+  // the archival request, the request is superfluous and should be deleted.
+  bytes archival_key = 4;
+}
+
+// TerminateStreamRequest is the set of caller-supplied data for the
+// TerminateStream service endpoint.
+message TerminateStreamRequest {
+  // The log stream's project.
+  string project = 1;
+  // The log stream's path Coordinator ID.
+  string id = 2;
+  // The log stream's secret.
+  bytes secret = 3;
+
+  // The terminal index of the stream.
+  int64 terminal_index = 4;
+}
+
+// ArchiveStreamRequest is the set of caller-supplied data for the ArchiveStream
+// service endpoint.
+message ArchiveStreamRequest {
+  // The log stream's project.
+  string project = 1;
+  // The Coordinator ID of the log stream that was archived.
+  string id = 2;
+  // The number of log entries that were archived.
+  int64 log_entry_count = 3;
+  // The highest log stream index that was archived.
+  int64 terminal_index = 4;
+  // If not empty, there was an archival error.
+  //
+  // This field serves to indicate that an error occured (being non-empty) and
+  // to supply an value that will show up in the Coordinator ArchiveStream
+  // endpoint logs.
+  string error = 5;
+
+  // The archive URL of the log stream's stream data.
+  string stream_url = 10;
+  // The size of the log stream's stream data.
+  int64 stream_size = 11;
+
+  // The archive URL of the log stream's index data.
+  string index_url = 20;
+  // The size of the log stream's index data.
+  int64 index_size = 21;
+
+  // The archive URL of the log stream's binary data.
+  string data_url = 30;
+  // The size of the log stream's binary data.
+  int64 data_size = 31;
+}
+
+// Services service is a LogDog Coordinator endpoint that interfaces with
+// LogDog processing services.
+service Services {
+  // GetConfig allows a service to retrieve the current service configuration
+  // parameters.
+  rpc GetConfig(google.protobuf.Empty) returns (GetConfigResponse);
+
+  // RegisterStream is an idempotent stream state register operation.
+  rpc RegisterStream(RegisterStreamRequest) returns (RegisterStreamResponse);
+
+  // LoadStream loads the current state of a log stream.
+  rpc LoadStream(LoadStreamRequest) returns (LoadStreamResponse);
+
+  // TerminateStream is an idempotent operation to update the stream's terminal
+  // index.
+  rpc TerminateStream(TerminateStreamRequest) returns (google.protobuf.Empty);
+
+  // ArchiveStream is an idempotent operation to record a log stream's archival
+  // parameters. It is used by the Archivist service upon successful stream
+  // archival.
+  rpc ArchiveStream(ArchiveStreamRequest) returns (google.protobuf.Empty);
+}

@@ -1,0 +1,25 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/duration.proto";
+
+package swarmingV1;
+
+message Config {
+  message Swarming {
+    string url = 1;
+  }
+  Swarming swarming = 1;
+
+  message Isolate {
+    // The host of the isolate service, e.g. isolateserver.appspot.com.
+    string url = 1;
+
+    // The default assumed expiration period for execution results.
+    google.protobuf.Duration expiration = 2;
+  }
+  Isolate isolate = 2;
+}

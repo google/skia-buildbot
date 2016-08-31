@@ -1,0 +1,61 @@
+{{define "title"}}Settings - {{.Title}}{{end}}
+
+{{define "content"}}
+<div class="row">
+<div class="col-md-offset-2 col-md-8">
+
+<h2>{{.Title}}</h2>
+<hr>
+
+<form class="form-horizontal" method="POST">
+  {{.XsrfTokenField}}
+
+  {{if .Overview}}
+  <div class="form-group">
+    <div class="col-sm-9">{{.Overview}}</div>
+  </div>
+  <hr>
+  {{end}}
+
+  {{range $field := .Fields}}
+  <div class="form-group">
+    <label for="{{$field.ID}}" class="col-sm-3 control-label">{{$field.Title}}</label>
+    <div class="col-sm-9">
+      {{if eq $field.Type "text"}}
+        <input
+          type="text" class="form-control" aria-describedby="{{$field.ID}}-help"
+          {{if $field.Placeholder}}
+          placeholder="{{$field.Placeholder}}"
+          {{end}}
+          name="{{$field.ID}}" value="{{$field.Value}}">
+      {{else if eq .Type "choice"}}
+        <select class="form-control" aria-describedby="{{$field.ID}}-help"
+          name="{{$field.ID}}" value="{{$field.Value}}">
+          {{range $choice := $field.ChoiceVariants}}
+            <option {{if eq $field.Value $choice}}selected{{end}}>{{$choice}}</option>
+          {{end}}
+        </select>
+      {{else if eq $field.Type "static"}}
+        <p class="form-control-static">{{$field.Value}}</p>
+      {{end}}
+      {{if $field.Help}}
+        <span id="{{$field.ID}}-help" class="help-block">{{$field.Help}}</span>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+
+  <hr>
+  <div class="form-group">
+    <div class="col-sm-2">
+      <button type="submit" class="btn btn-primary">Save settings</button>
+    </div>
+    <div class="col-sm-2">
+      <a href="/admin/settings" class="btn btn-default">Back</a>
+    </div>
+  </div>
+</form>
+
+</div>
+</div>
+{{end}}

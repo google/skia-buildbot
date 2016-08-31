@@ -1,0 +1,50 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package logdog;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+// ArchiveTask is a task queue task description for the archival of a single
+// log stream.
+message ArchiveTask {
+  // The name of the project that this stream is bound to.
+  string project = 1;
+  // The hash ID of the log stream to archive.
+  string id = 2;
+
+  // The archival key of the log stream. If this key doesn't match the key in
+  // the log stream state, the request is superfluous and should be deleted.
+  bytes key = 3;
+
+  // Don't waste time archiving the log stream until it is at least this old.
+  //
+  // This is in place to prevent overly-aggressive archivals from wasting time
+  // trying, then failing, becuase the log stream data is still being collected
+  // into intermediate storage.
+  google.protobuf.Duration settle_delay = 4;
+
+  // The amount of time after the task was created that log stream completeness
+  // will be used as a success criteria. If the task's age is older than this
+  // value, completeness will not be enforced.
+  //
+  // The task's age can be calculated by subtracting its lease expiration time
+  // (leaseTimestamp) from its enqueued timestamp (enqueueTimestamp).
+  google.protobuf.Duration complete_period = 5;
+
+  // The time when this archive task was dispatched.
+  //
+  // This time is optional, and will be based on the Coordinator's clock. If not
+  // zero, it can be used by the Archivist to avoid superfluous archival
+  // processing by asserting that IF this time is close to the Archivist's local
+  // clock by a specific threshold, it will punt the archival task.
+  //
+  // Because archival is dispatched by Tumble, the actual encoding of archival
+  // parameters is oftentimes delayed such that the request is dispatched to
+  // Pub/Sub before the datastore has been updated.
+  google.protobuf.Timestamp dispatched_at = 6;
+}

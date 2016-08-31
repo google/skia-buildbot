@@ -1,0 +1,10 @@
+# TODO(vadimsh): Configure retry parameters.
+queue:
+- name: read-project-config
+  rate: 10/m
+
+- name: timers
+  rate: 500/s
+
+- name: invocations
+  rate: 500/s

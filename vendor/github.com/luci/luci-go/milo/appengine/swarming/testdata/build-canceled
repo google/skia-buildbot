@@ -1,0 +1,74 @@
+@@@CURRENT_TIMESTAMP@1457949601@@@
+@@@SEED_STEP recipe bootstrap@@@
+
+@@@STEP_CURSOR recipe bootstrap@@@
+
+@@@CURRENT_TIMESTAMP@1457949602@@@
+@@@STEP_STARTED@@@
+
+@@@SET_BUILD_PROPERTY@path_config@kitchen@@@
+
+@@@SET_BUILD_PROPERTY@slavename@fakeslave@@@
+
+@@@SET_BUILD_PROPERTY@buildername@infra-continuous-precise-32@@@
+
+@@@SET_BUILD_PROPERTY@mastername@chromium.infra@@@
+
+$ git clone https://chromium.googlesource.com/chromium/tools/build build
+Cloning into 'build'...
+build$ git checkout 3b6bb3ed9f5d05bce52f864623b3a1a7da32f68b
+Note: checking out '3b6bb3ed9f5d05bce52f864623b3a1a7da32f68b'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by performing another checkout.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -b with the checkout command again. Example:
+
+  git checkout -b <new-branch-name>
+
+HEAD is now at 3b6bb3e... Roll recipe dependencies (trivial).
+Cloning into '/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine'...
+
+@@@HONOR_ZERO_RETURN_CODE@@@
+
+@@@SEED_STEP setup_build@@@
+
+@@@STEP_CURSOR setup_build@@@
+
+@@@CURRENT_TIMESTAMP@1457949602@@@
+@@@STEP_STARTED@@@
+
+@@@STEP_LOG_LINE@run_recipe@To repro this locally, run the following line from a build checkout:@@@
+
+@@@STEP_LOG_LINE@run_recipe@@@@
+
+@@@STEP_LOG_LINE@run_recipe@./scripts/tools/run_recipe.py v8 --properties-file - <<EOF@@@
+
+@@@STEP_LOG_LINE@run_recipe@{u'slavename': u'abc', 'recipe': 'v8', u'mastername': u'client.v8', u'buildername': u'V8 Linux - builder'}@@@
+
+@@@STEP_LOG_LINE@run_recipe@EOF@@@
+
+@@@STEP_LOG_LINE@run_recipe@@@@
+
+@@@STEP_LOG_LINE@run_recipe@To run on Windows, you can put the JSON in a file and redirect the@@@
+
+@@@STEP_LOG_LINE@run_recipe@contents of the file into run_recipe.py, with the < operator.@@@
+
+@@@STEP_LOG_END@run_recipe@@@
+
+Running recipe with {u'slavename': u'abc', 'recipe': 'v8', u'mastername': u'client.v8', u'buildername': u'V8 Linux - builder'}
+
+@@@STEP_TEXT@running recipe: "v8"@@@
+
+@@@STEP_CURSOR setup_build@@@
+
+@@@CURRENT_TIMESTAMP@1457949603@@@
+@@@STEP_CLOSED@@@
+
+@@@STEP_CURSOR recipe bootstrap@@@
+@@@CURRENT_TIMESTAMP@1457949604@@@
+@@@STEP_CLOSED@@@
+
+@@@CURRENT_TIMESTAMP@1457949605@@@

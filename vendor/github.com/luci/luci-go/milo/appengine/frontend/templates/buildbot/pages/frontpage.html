@@ -1,0 +1,22 @@
+{{define "title"}}Milo{{end}}
+
+{{define "head"}}{{end}}
+
+{{define "body"}}
+<h1>Milo</h1>
+
+{{ range .frontpage.Module }}
+  <h2> {{.Name}} </h2>
+  {{ range .Masters }}
+    <h3> Master {{.Name}} </h3>
+    {{ range .Builders }}
+      <li>{{ . | linkify }}</li>
+    {{ else }}
+      No builders found...
+    {{ end }}
+  {{ else}}
+    No masters found...
+  {{ end }}
+{{ end }}
+
+{{end}} <!-- Body -->

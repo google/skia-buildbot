@@ -1,0 +1,191 @@
+@@@CURRENT_TIMESTAMP@1457949601@@@
+@@@SEED_STEP recipe bootstrap@@@
+
+@@@STEP_CURSOR recipe bootstrap@@@
+
+@@@CURRENT_TIMESTAMP@1457949602@@@
+@@@STEP_STARTED@@@
+
+@@@SET_BUILD_PROPERTY@path_config@kitchen@@@
+
+@@@SET_BUILD_PROPERTY@slavename@fakeslave@@@
+
+@@@SET_BUILD_PROPERTY@buildername@infra-continuous-precise-32@@@
+
+@@@SET_BUILD_PROPERTY@mastername@chromium.infra@@@
+
+$ git clone https://chromium.googlesource.com/chromium/tools/build build
+Cloning into 'build'...
+build$ git checkout 3b6bb3ed9f5d05bce52f864623b3a1a7da32f68b
+Note: checking out '3b6bb3ed9f5d05bce52f864623b3a1a7da32f68b'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by performing another checkout.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -b with the checkout command again. Example:
+
+  git checkout -b <new-branch-name>
+
+HEAD is now at 3b6bb3e... Roll recipe dependencies (trivial).
+Cloning into '/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine'...
+
+@@@HONOR_ZERO_RETURN_CODE@@@
+
+@@@SEED_STEP setup_build@@@
+
+@@@STEP_CURSOR setup_build@@@
+
+@@@CURRENT_TIMESTAMP@1457949603@@@
+@@@STEP_STARTED@@@
+
+@@@STEP_LOG_LINE@run_recipe@To repro this locally, run the following line from a build checkout:@@@
+
+@@@STEP_LOG_LINE@run_recipe@@@@
+
+@@@STEP_LOG_LINE@run_recipe@./scripts/tools/run_recipe.py v8 --properties-file - <<EOF@@@
+
+@@@STEP_LOG_LINE@run_recipe@{u'slavename': u'abc', 'recipe': 'v8', u'mastername': u'client.v8', u'buildername': u'V8 Linux - builder'}@@@
+
+@@@STEP_LOG_LINE@run_recipe@EOF@@@
+
+@@@STEP_LOG_LINE@run_recipe@@@@
+
+@@@STEP_LOG_LINE@run_recipe@To run on Windows, you can put the JSON in a file and redirect the@@@
+
+@@@STEP_LOG_LINE@run_recipe@contents of the file into run_recipe.py, with the < operator.@@@
+
+@@@STEP_LOG_END@run_recipe@@@
+
+Running recipe with {u'slavename': u'abc', 'recipe': 'v8', u'mastername': u'client.v8', u'buildername': u'V8 Linux - builder'}
+
+@@@STEP_TEXT@running recipe: "v8"@@@
+
+@@@STEP_CURSOR setup_build@@@
+
+@@@CURRENT_TIMESTAMP@1457949604@@@
+@@@STEP_CLOSED@@@
+
+@@@SEED_STEP bot_update@@@
+
+@@@STEP_CURSOR bot_update@@@
+
+@@@CURRENT_TIMESTAMP@1457949605@@@
+@@@STEP_STARTED@@@
+
+python -u build/scripts/slave/bot_update.py --master client.v8 --builder 'V8 Linux - builder' --slave abc --spec $'cache_dir = None\nsolutions = [{\'custom_vars\': {\'chromium_trunk\': \'svn://svn-mirror.golo.chromium.org/chrome/trunk\'}, \'deps_file\': \'DEPS\', \'managed\': True, \'name\': \'v8\', \'url\': \'https://chromium.googlesource.com/v8/v8\'}]' --root v8 --revision_mapping_file /tmp/tmpnZr9kN.json --output_json /tmp/tmpHHthow.json --revision v8@HEAD --no_shallow --output_manifest
+in dir /tmp/kitchen-132832531:
+ allow_subannotations: False
+ cmd: ['python', '-u', 'build/scripts/slave/bot_update.py', '--master', 'client.v8', '--builder', 'V8 Linux - builder', '--slave', 'abc', '--spec', "cache_dir = None\nsolutions = [{'custom_vars': {'chromium_trunk': 'svn://svn-mirror.golo.chromium.org/chrome/trunk'}, 'deps_file': 'DEPS', 'managed': True, 'name': 'v8', 'url': 'https://chromium.googlesource.com/v8/v8'}]", '--root', 'v8', '--revision_mapping_file', '/tmp/tmpnZr9kN.json', '--output_json', '/tmp/tmpHHthow.json', '--revision', 'v8@HEAD', '--no_shallow', '--output_manifest']
+ cwd: /tmp/kitchen-132832531
+ name: bot_update
+full environment:
+ HOME: /home/chrome-bot
+ PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ PWD: /
+ USER: chrome-bot
+ USERNAME: ${USER}
+
+python: can't open file 'build/scripts/slave/bot_update.py': [Errno 2] No such file or directory
+
+@@@STEP_CURSOR bot_update@@@
+
+@@@STEP_LOG_LINE@json.output (invalid)@null@@@
+
+@@@STEP_LOG_END@json.output (invalid)@@@
+
+@@@STEP_EXCEPTION@@@
+
+@@@STEP_CURSOR bot_update@@@
+
+@@@CURRENT_TIMESTAMP@1457949606@@@
+@@@STEP_CLOSED@@@
+
+@@@SEED_STEP Uncaught Exception@@@
+
+@@@STEP_CURSOR Uncaught Exception@@@
+
+@@@CURRENT_TIMESTAMP@1457949607@@@
+@@@STEP_STARTED@@@
+
+@@@STEP_EXCEPTION@@@
+
+@@@STEP_LOG_LINE@exception@Traceback (most recent call last):@@@
+
+@@@STEP_LOG_LINE@exception@  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/run.py", line 889, in run@@@
+
+@@@STEP_LOG_LINE@exception@    recipe_result = recipe_script.run(api, api._engine.properties)@@@
+
+@@@STEP_LOG_LINE@exception@  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/loader.py", line 50, in run@@@
+
+@@@STEP_LOG_LINE@exception@    self.RunSteps, properties, self.PROPERTIES, api=api)@@@
+
+@@@STEP_LOG_LINE@exception@  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/loader.py", line 486, in invoke_with_properties@@@
+
+@@@STEP_LOG_LINE@exception@    **additional_args)@@@
+
+@@@STEP_LOG_LINE@exception@  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/loader.py", line 449, in _invoke_with_properties@@@
+
+@@@STEP_LOG_LINE@exception@    return callable_obj(*props, **additional_args)@@@
+
+@@@STEP_LOG_LINE@exception@  File "/tmp/run6L2Uju/build/scripts/slave/recipes/v8.py", line 42, in RunSteps@@@
+
+@@@STEP_LOG_LINE@exception@    update_step = v8.checkout()@@@
+
+@@@STEP_LOG_LINE@exception@  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/recipe_api.py", line 220, in _inner@@@
+
+@@@STEP_LOG_LINE@exception@    return func(*a, **kw)@@@
+
+@@@STEP_LOG_LINE@exception@  File "/tmp/run6L2Uju/build/scripts/slave/recipe_modules/v8/api.py", line 157, in checkout@@@
+
+@@@STEP_LOG_LINE@exception@    **kwargs)@@@
+
+@@@STEP_LOG_LINE@exception@  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/recipe_api.py", line 220, in _inner@@@
+
+@@@STEP_LOG_LINE@exception@    return func(*a, **kw)@@@
+
+@@@STEP_LOG_LINE@exception@  File "/tmp/run6L2Uju/build/scripts/slave/recipe_modules/bot_update/api.py", line 221, in ensure_checkout@@@
+
+@@@STEP_LOG_LINE@exception@    self._properties = step_result.json.output.get('properties', {})@@@
+
+@@@STEP_LOG_LINE@exception@AttributeError: 'NoneType' object has no attribute 'get'@@@
+
+@@@STEP_LOG_END@exception@@@
+
+@@@STEP_CURSOR Uncaught Exception@@@
+
+@@@CURRENT_TIMESTAMP@1457949608@@@
+@@@STEP_CLOSED@@@
+Traceback (most recent call last):
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipes.py", line 348, in <module>
+    sys.exit(main())
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipes.py", line 320, in main
+    return run(package_deps, args)
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipes.py", line 121, in run
+    ret = recipe_run.run_steps(properties, stream, universe=universe)
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/run.py", line 487, in run_steps
+    return engine.run(recipe_script, api)
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/run.py", line 889, in run
+    recipe_result = recipe_script.run(api, api._engine.properties)
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/loader.py", line 50, in run
+    self.RunSteps, properties, self.PROPERTIES, api=api)
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/loader.py", line 486, in invoke_with_properties
+    **additional_args)
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/loader.py", line 449, in _invoke_with_properties
+    return callable_obj(*props, **additional_args)
+  File "/tmp/run6L2Uju/build/scripts/slave/recipes/v8.py", line 42, in RunSteps
+    update_step = v8.checkout()
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/recipe_api.py", line 220, in _inner
+    return func(*a, **kw)
+  File "/tmp/run6L2Uju/build/scripts/slave/recipe_modules/v8/api.py", line 157, in checkout
+    **kwargs)
+  File "/tmp/run6L2Uju/build/scripts/slave/.recipe_deps/recipe_engine/recipe_engine/recipe_api.py", line 220, in _inner
+    return func(*a, **kw)
+  File "/tmp/run6L2Uju/build/scripts/slave/recipe_modules/bot_update/api.py", line 221, in ensure_checkout
+    self._properties = step_result.json.output.get('properties', {})
+AttributeError: 'NoneType' object has no attribute 'get'
+@@@STEP_CURSOR recipe bootstrap@@@
+
+@@@CURRENT_TIMESTAMP@1457949609@@@
+@@@STEP_CLOSED@@@

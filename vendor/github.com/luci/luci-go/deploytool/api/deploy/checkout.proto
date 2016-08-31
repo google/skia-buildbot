@@ -1,0 +1,84 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package deploy;
+
+/**
+ * Source layout configuration file.
+ *
+ * Each Source checkout may include a textproto layout file named
+ * "luci-deploy.cfg". If present, this file will be loaded and used to
+ * integrate the source into the deployment.
+ *
+ * Uncooperative repositories, or those not owned by the author, may have the
+ * same effect by specifying the SourceLayout in the Source's layout definition.
+ */
+message SourceLayout {
+  /**
+   * Init is a single initialization operation execution.
+   */
+  message Init {
+    /**
+     * A Python initialization script.
+     *
+     * The script will be run as follows:
+     * $ PYTHON PATH SOURCE-ROOT RESULT-PATH
+     *
+     * - PYTHON is the deploy tool-resolved Python interpreter.
+     * - PATH is the absolute path of the script.
+     * - SOURCE-ROOT is the root of the source that is being initialized.
+     * - RESULT-PATH is the path where, optionally, a SourceInitResult protobuf
+     *   may be written. If the file is present, it will be read and linked into
+     *   the deployment runtime.
+     */
+    message PythonScript {
+      /** The source-relative path of the Python script. */
+      string path = 1;
+    }
+
+    oneof operation {
+      PythonScript python_script = 1;
+    }
+  }
+  /** The source initialization operations to execute, in order. */
+  repeated Init init = 1;
+
+  /** Go Paths to add to this repository. */
+  repeated GoPath go_path = 10;
+}
+
+/**
+ * SourceInitResult is a protobuf that can be emitted from a SourceInit Script
+ * to describe how to link the results of that initialization into the
+ * deployment layout.
+ */
+message SourceInitResult {
+  /** Source-relative entries to add to GOPATH. */
+  repeated GoPath go_path = 1;
+}
+
+/**
+ * Describes how to link a source-relative directory into the generated GOPATH.
+ */
+message GoPath {
+  /**
+   * The source-relative path to add to GOPATH. If empty, this is the source
+   * root.
+   */
+  string path = 1;
+
+  /**
+   * The name of the Go package to bind to "path".
+   *
+   * For example, given checkout:
+   *   path: gosrc/my/thing
+   *   go_package: github.com/example/mything
+   *
+   * This will add a GOPATH entry:
+   * src/github.com/example/mything => <root>/gosrc/my/thing
+   */
+  string go_package = 2;
+}

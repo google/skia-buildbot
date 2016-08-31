@@ -1,0 +1,858 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="description" content="">
+    <meta name="author" content="Luci Authors">
+    
+
+    <title>Luci Build</title>
+
+    
+    <link href="/static/bootstrap/third_party/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+body {
+  padding-top: 70px;
+}
+.starter-template {
+  padding: 40px 15px;
+  text-align: center;
+}
+  </style>
+  
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Luci</a>
+        </div>
+        <div id="navbar" class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="/settings">Settings</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      
+<div class="row">
+  <div class="col-md-12">
+    <div class="alert alert-success">
+      This build passed
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <h4>Steps and Logfiles</h4>
+    <table class="table table-condensed table-hover">
+      
+        
+          <tr class="danger"><td>
+        
+        <strong>steps</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/steps/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>running steps via annotated script</div>
+        </small>
+        <span class="pull-right muted">
+          19 mins 36 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/steps/logs/preamble">preamble</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>update_scripts</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/update_scripts/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>update_scripts&lt;br&gt;git - 0a2c62a48b28ce87da2409b08cdf2c6d50d75bc1</div>
+        </small>
+        <span class="pull-right muted">
+          11 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/update_scripts/logs/gclient_json">gclient_json</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>setup_properties</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/setup_properties/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>setup_properties</div>
+        </small>
+        <span class="pull-right muted">
+          5 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>setup_build</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/setup_build/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>setup_build&lt;br&gt;running recipe: &#34;chromium_trybot&#34;</div>
+        </small>
+        <span class="pull-right muted">
+          1 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/setup_build/logs/run_recipe">run_recipe</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>taskkill</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/taskkill/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>taskkill</div>
+        </small>
+        <span class="pull-right muted">
+          5 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>bot_update</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/bot_update/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>bot_update&lt;br&gt;[165GB/249GB used (66%)]</div>
+        </small>
+        <span class="pull-right muted">
+          2 mins 17 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/bot_update/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>ensure_goma</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>ensure_goma</div>
+        </small>
+        <span class="pull-right muted">
+          0
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>ensure_goma.install cipd</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma.install%20cipd/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>ensure_goma.install cipd&lt;br&gt;cipd instance_id: bccdb9a605037e3dd2a8a64e79e08f691a6f159d</div>
+        </small>
+        <span class="pull-right muted">
+          4 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma.install%20cipd/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>ensure_goma.ensure_installed</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma.ensure_installed/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>ensure_goma.ensure_installed</div>
+        </small>
+        <span class="pull-right muted">
+          2 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure_goma.ensure_installed/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>swarming.py --version</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/swarming.py%20--version/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>swarming.py --version&lt;br&gt;0.8.4</div>
+        </small>
+        <span class="pull-right muted">
+          5 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>gclient runhooks (with patch)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/gclient%20runhooks%20%28with%20patch%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>gclient runhooks (with patch)</div>
+        </small>
+        <span class="pull-right muted">
+          9 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>get compile targets for scripts</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/get%20compile%20targets%20for%20scripts/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>get compile targets for scripts</div>
+        </small>
+        <span class="pull-right muted">
+          10 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/get%20compile%20targets%20for%20scripts/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>read test spec (chromium.gpu.json)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20test%20spec%20%28chromium.gpu.json%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>read test spec (chromium.gpu.json)&lt;br&gt;path: E:\b\build\slave\win\build\src\testing\buildbot\chromium.gpu.json</div>
+        </small>
+        <span class="pull-right muted">
+          781 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20test%20spec%20%28chromium.gpu.json%29/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>read test spec (chromium.win.json)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20test%20spec%20%28chromium.win.json%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>read test spec (chromium.win.json)&lt;br&gt;path: E:\b\build\slave\win\build\src\testing\buildbot\chromium.win.json</div>
+        </small>
+        <span class="pull-right muted">
+          5 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20test%20spec%20%28chromium.win.json%29/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>ensure git tooling on windows</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/ensure%20git%20tooling%20on%20windows/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>ensure git tooling on windows</div>
+        </small>
+        <span class="pull-right muted">
+          24 ms
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>git diff to analyze patch</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/git%20diff%20to%20analyze%20patch/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>git diff to analyze patch</div>
+        </small>
+        <span class="pull-right muted">
+          1 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/git%20diff%20to%20analyze%20patch/logs/files">files</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>read filter exclusion spec</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20filter%20exclusion%20spec/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>read filter exclusion spec&lt;br&gt;path: &#39;testing\\buildbot\\trybot_analyze_config.json&#39;</div>
+        </small>
+        <span class="pull-right muted">
+          5 ms
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/read%20filter%20exclusion%20spec/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>analyze</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/analyze/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>analyze</div>
+        </small>
+        <span class="pull-right muted">
+          24 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/analyze/logs/json.output">json.output</a></li>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/analyze/logs/analyze_details">analyze_details</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>cleanup_temp</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/cleanup_temp/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>cleanup_temp</div>
+        </small>
+        <span class="pull-right muted">
+          6 ms
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>clean isolated files</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/clean%20isolated%20files/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>clean isolated files</div>
+        </small>
+        <span class="pull-right muted">
+          2 ms
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>generate_build_files (with patch)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/generate_build_files%20%28with%20patch%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>generate_build_files (with patch)</div>
+        </small>
+        <span class="pull-right muted">
+          6 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/generate_build_files%20%28with%20patch%29/logs/swarming-targets-file.txt">swarming-targets-file.txt</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="danger"><td>
+        
+        <strong>compile (with patch)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/compile%20%28with%20patch%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>compile (with patch)</div>
+        </small>
+        <span class="pull-right muted">
+          2 mins 12 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/compile%20%28with%20patch%29/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>taskkill (2)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/taskkill%20%282%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>taskkill (2)</div>
+        </small>
+        <span class="pull-right muted">
+          5 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>bot_update (without patch)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/bot_update%20%28without%20patch%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>bot_update (without patch)&lt;br&gt;[165GB/249GB used (66%)]</div>
+        </small>
+        <span class="pull-right muted">
+          1 mins 4 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/bot_update%20%28without%20patch%29/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>gclient runhooks (without patch)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/gclient%20runhooks%20%28without%20patch%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>gclient runhooks (without patch)</div>
+        </small>
+        <span class="pull-right muted">
+          11 secs
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>generate_build_files (without patch)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/generate_build_files%20%28without%20patch%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>generate_build_files (without patch)</div>
+        </small>
+        <span class="pull-right muted">
+          8 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/generate_build_files%20%28without%20patch%29/logs/swarming-targets-file.txt">swarming-targets-file.txt</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>compile (without patch)</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/compile%20%28without%20patch%29/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>compile (without patch)</div>
+        </small>
+        <span class="pull-right muted">
+          12 mins 6 secs
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/compile%20%28without%20patch%29/logs/json.output">json.output</a></li>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>mark: before_tests</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/mark%3A%20before_tests/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>mark: before_tests</div>
+        </small>
+        <span class="pull-right muted">
+          1 ms
+        </span>
+          <ol>
+            
+          </ol>
+        </td></tr>
+      
+        
+          <tr class="success"><td>
+        
+        <strong>Failure reason</strong>
+        
+          (<a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/Failure%20reason/logs/stdio">stdio</a>)
+        
+        <small class="muted">
+          <div>Failure reason</div>
+        </small>
+        <span class="pull-right muted">
+          0
+        </span>
+          <ol>
+            
+              <li><a href="http://build.chromium.org/p/tryserver.chromium.win/builders/win_chromium_rel_ng/builds/246309/steps/Failure%20reason/logs/reason">reason</a></li>
+            
+          </ol>
+        </td></tr>
+      
+    </table>
+  </div>
+
+  <div class="col-md-6">
+    <h4>Build Properties</h4>
+    
+      
+      
+        <strong>got_angle_revision</strong>:
+        be5a8a400fd182fba174bd9110e470a54f8b14b6
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_buildtools_revision</strong>:
+        56eaae134648135663c4aa1ed82278572b5f35ef
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_nacl_revision</strong>:
+        d1ea091dad378d32067570114e19c0e1f15d5baa
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_revision</strong>:
+        cb7c961aea3ee23c4e246f50441e5dc582565129
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_revision_cp</strong>:
+        refs/heads/master@{#402330}
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_swarming_client_revision</strong>:
+        df6e95e7669883c8fe9ef956c69a544154701a49
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_v8_revision</strong>:
+        3238ca22a1baefea0665b528f259c66db1bf1b17
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_v8_revision_cp</strong>:
+        refs/heads/5.3.329@{#1}
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_webrtc_revision</strong>:
+        105bb15c86ba535a9abf42c29de9344c4664523e
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+        <strong>got_webrtc_revision_cp</strong>:
+        refs/heads/master@{#13292}
+        <small class="muted">(Annotation(bot_update))</small>
+        <br>
+      
+    
+      
+      
+        <strong>failure_type</strong>:
+        COMPILE_FAILURE
+        <small class="muted">(Annotation(compile (without patch)))</small>
+        <br>
+      
+    
+      
+      
+        <strong>subproject_tag</strong>:
+        chromium
+        <small class="muted">(Annotation(git diff to analyze patch))</small>
+        <br>
+      
+    
+      
+      
+        <strong>failure_hash</strong>:
+        4d6a903860330c798a14ca4fb8a3b9ea8c90b814
+        <small class="muted">(Annotation(mark: before_tests))</small>
+        <br>
+      
+    
+      
+      
+        <strong>$recipe_engine</strong>:
+        map[mode_flags:map[use_subprocess42:true]]
+        <small class="muted">(Annotation(setup_properties))</small>
+        <br>
+      
+        <strong>recipe</strong>:
+        chromium_trybot
+        <small class="muted">(Annotation(setup_properties))</small>
+        <br>
+      
+    
+      
+      
+        <strong>build_revision</strong>:
+        0a2c62a48b28ce87da2409b08cdf2c6d50d75bc1
+        <small class="muted">(Annotation(update_scripts))</small>
+        <br>
+      
+        <strong>build_scm</strong>:
+        git
+        <small class="muted">(Annotation(update_scripts))</small>
+        <br>
+      
+    
+      
+      
+        <strong>blamelist</strong>:
+        [sky@chromium.org]
+        <small class="muted">(Build)</small>
+        <br>
+      
+        <strong>buildnumber</strong>:
+        246309
+        <small class="muted">(Build)</small>
+        <br>
+      
+        <strong>requestedAt</strong>:
+        2016-06-27T23:30:30Z
+        <small class="muted">(Build)</small>
+        <br>
+      
+    
+      
+      
+        <strong>slavename</strong>:
+        vm774-m4
+        <small class="muted">(BuildSlave)</small>
+        <br>
+      
+    
+      
+      
+        <strong>buildername</strong>:
+        win_chromium_rel_ng
+        <small class="muted">(Builder)</small>
+        <br>
+      
+    
+      
+      
+        <strong>buildbucket</strong>:
+        https://cr-buildbucket.appspot.com/b/9008659093349989168
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+        <strong>category</strong>:
+        git_cl_try
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+        <strong>issue</strong>:
+        https://codereview.chromium.org/2101793003
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+        <strong>master</strong>:
+        master.tryserver.chromium.win
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+        <strong>patch_project</strong>:
+        chromium
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+        <strong>patch_storage</strong>:
+        rietveld
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+        <strong>patchset</strong>:
+        1
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+        <strong>reason</strong>:
+        move_maximized_files
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+        <strong>requester</strong>:
+        sky@chromium.org
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+        <strong>testfilter</strong>:
+        [defaulttests]
+        <small class="muted">(buildbucket)</small>
+        <br>
+      
+    
+      
+      
+        <strong>buildbotURL</strong>:
+        http://build.chromium.org/p/tryserver.chromium.win/
+        <small class="muted">(master.cfg)</small>
+        <br>
+      
+        <strong>mastername</strong>:
+        tryserver.chromium.win
+        <small class="muted">(master.cfg)</small>
+        <br>
+      
+    
+      
+      
+        <strong>workdir</strong>:
+        E:\b\build\slave/win
+        <small class="muted">(slave)</small>
+        <br>
+      
+    
+
+  </div>
+</div>
+
+    </div>
+
+
+    
+    
+    <script src="/static/common/third_party/js/jquery.min.js"></script>
+    <script src="/static/bootstrap/third_party/js/bootstrap.min.js"></script>
+  </body>
+</html>

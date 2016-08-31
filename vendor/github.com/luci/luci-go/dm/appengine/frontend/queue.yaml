@@ -1,0 +1,9 @@
+queue:
+- name: tumble
+  rate: 32/s
+  bucket_size: 32
+  retry_parameters:
+    task_age_limit: 2m
+    min_backoff_seconds: 2
+    max_backoff_seconds: 6
+    max_doublings: 7  # tops out at 2**(6 - 1) * 2 == 128 sec

@@ -1,0 +1,89 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import"
+    href="../bower_components/google-signin/google-signin-aware.html">
+
+<!--
+  The `auth-signin` element displays sign-in/sign-out button, user email and
+  avatar.
+-->
+<dom-module id="auth-signin">
+  <template>
+    <style>
+      #avatar {
+        border-radius: 5px;
+      }
+      #signinContainer {
+        margin-top: 14px;
+      }
+    </style>
+
+    <google-signin-aware id="aware"
+      client-id="[[clientId]]"
+      scopes="email"
+      on-google-signin-aware-success="_onSignin"
+      on-google-signin-aware-signed-out="_onSignout"
+    ></google-signin-aware>
+
+    <template is="dom-if" if="[[!signedIn]]">
+      <div id="signinContainer">
+        <a on-tap="signIn" href="#">Sign in</a>
+      </div>
+    </template>
+
+    <template is="dom-if" if="[[signedIn]]">
+      <img id="avatar" src="[[profile.imageUrl]]" width="30" height="30">
+      <span>[[profile.email]]</span>
+      <span>|</span>
+      <a on-tap="signOut" href="#">Sign out</a>
+    </template>
+  </template>
+  <script>
+    'use strict';
+
+    Polymer({
+      is: 'auth-signin',
+
+      properties: {
+        signedIn: {
+          type: Boolean,
+          readOnly: true,
+          value: false
+        },
+
+        profile: {
+          type: Object,
+          readOnly: true
+        }
+      },
+
+      _onSignin: function(e) {
+        this._setSignedIn(true);
+        var user = gapi.auth2.getAuthInstance().currentUser.get();
+        var profile = user.getBasicProfile();
+        this._setProfile({
+          email: profile.getEmail(),
+          imageUrl: profile.getImageUrl()
+        });
+      },
+
+      _onSignout: function(e) {
+        this._setSignedIn(false);
+        this._setProfile(null);
+      },
+
+      signIn: function() {
+        this.$.aware.signIn();
+      },
+
+      signOut: function() {
+        this.$.aware.signOut();
+      }
+    });
+  </script>
+</dom-module>

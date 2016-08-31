@@ -1,0 +1,103 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<script src="third_party/ace/ace.js"></script>
+<script src="third_party/ace/ext-language_tools.js"></script>
+<script src="third_party/ace/mode-json.js"></script>
+
+<link rel="import" href="rpc-completer.html">
+
+<!-- The `rpc-editor` is an Ace editor for JSON with optional autocomplete -->
+<dom-module id="rpc-editor">
+  <template>
+    <style>
+      :host, pre {
+        display: block;
+        height: 100%;
+      }
+    </style>
+    <pre id="editor" class="editor"></pre>
+    <rpc-completer id="completer"
+        description="[[description]]" root-type-name="[[rootTypeName]]">
+    </rpc-completer>
+  </template>
+
+  <script>
+    'use strict';
+
+    Polymer({
+      is: 'rpc-editor',
+
+      properties: {
+        value: {
+          type: String,
+          notify: true,
+          observer: '_onValueChanged'
+        },
+
+        editor: {
+          type: Object,
+          readOnly: true
+        },
+
+        /** @type {FileDescriptorSet} */
+        description: Object,
+
+        rootTypeName: String
+      },
+
+      ready: function() {
+        var self = this;
+        this._setEditor(ace.edit(this.$.editor));
+        this.editor.session.setMode('ace/mode/json');
+
+        // Set and sync text;
+        this.editor.session.setValue(this.value || '');
+        this.editor.session.on('change', function() {
+          var text = self.editor.session.getValue();
+          if (text !== self.value) {
+            self._maybeSync(function() {
+              self.value = text;
+            });
+          }
+        });
+
+        this.editor.commands.removeCommands(['gotoline', 'find']);
+
+        this.editor.setOptions({
+          enableBasicAutocompletion: [this.$.completer],
+        });
+      },
+
+      _onValueChanged: function(newVal) {
+        var newText = newVal || '';
+        if (this.editor && this.editor.session.getValue() != newText) {
+          this._maybeSync(function() {
+            var selection = this.editor.selection;
+            var origRange = selection.getRange();
+            this.editor.session.setValue(newText);
+            // Restore cursor position, in a lame way, best effort.
+            selection.setSelectionRange(origRange);
+          })
+        }
+      },
+
+      _maybeSync: function(action) {
+        if (this._syncing) {
+          return;
+        }
+        this._syncing = true;
+        try {
+          action.call(this);
+        } finally {
+          this._syncing = false;
+        }
+      }
+    });
+  </script>
+</dom-module>

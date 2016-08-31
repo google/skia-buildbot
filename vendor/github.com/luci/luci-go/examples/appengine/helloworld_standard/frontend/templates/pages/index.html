@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>Example</title>
+  </head>
+  <body>
+    {{if not .IsAnonymous}}
+      <p>Hi there, {{.User.Email}}!</p>
+      <p>I'm GAE Standard app</p>
+      {{if .User.Picture}}
+        <p>Here's your picture: <img src="{{.User.Picture}}"></p>
+      {{end}}
+      {{if .IsAdmin}}
+        <p>Looks like you are in <b>administrators</b> group.</p>
+      {{end}}
+      <a href="{{.LogoutURL}}">Logout</a>
+    {{else}}
+      <a href="{{.LoginURL}}">Login</a>
+    {{end}}
+  <hr>
+  <small>App version: {{.AppVersion}}</small>
+  </body>
+</html>

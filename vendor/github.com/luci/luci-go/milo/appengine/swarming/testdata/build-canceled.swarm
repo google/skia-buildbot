@@ -1,0 +1,99 @@
+{
+ "created_ts": "2016-03-14T10:00:01.468360",
+ "bot_version": "02233557e20b68d33d7812c0465b582ed288a9bb",
+ "task_id": "2d8d62f6be545b10",
+ "tags": [
+  "buildbucket_bucket:estaab-infra-waterfall-test",
+  "buildbucket_hostname:cr-buildbucket-dev.appspot.com",
+  "builder:infra-continuous-precise-32",
+  "cores:8",
+  "cron_invocation_id:9183652815541395264",
+  "cron_job_id:infra-experimental/buildbucket-job-estaab-infra-waterfall-test",
+  "master:master.estaab-infra-waterfall-test",
+  "os:Ubuntu-12.04",
+  "pool:default",
+  "priority:100",
+  "recipe_name:infra/infra_continuous",
+  "recipe_repository:https://chromium.googlesource.com/chromium/tools/build",
+  "recipe_revision:",
+  "user:",
+  "user_agent:luci-cron",
+  "allow_milo:1"
+ ],
+ "internal_failure": false,
+ "costs_usd": [
+  0.5220010006994543
+ ],
+ "bot_dimensions": [
+  {
+  "value": [
+    "8"
+   ],
+   "key": "cores"
+  },
+  {
+   "value": [
+    "x86",
+    "x86-64"
+   ],
+   "key": "cpu"
+  },
+  {
+   "value": [
+    "none"
+   ],
+   "key": "gpu"
+  },
+  {
+   "value": [
+    "swarm3-c4"
+   ],
+   "key": "id"
+  },
+  {
+   "value": [
+    "n1-standard-8"
+   ],
+   "key": "machine_type"
+  },
+  {
+   "value": [
+    "Linux",
+    "Ubuntu",
+    "Ubuntu-12.04"
+   ],
+   "key": "os"
+  },
+  {
+   "value": [
+    "default",
+    "Chrome",
+    "QO"
+   ],
+   "key": "pool"
+  },
+  {
+   "value": [
+    "us-central1-f"
+   ],
+   "key": "zone"
+  }
+ ],
+ "server_versions": [
+  "1931-8ffe4d1"
+ ],
+ "exit_code": "-15",
+ "name": "buildbucket-estaab-infra-waterfall-test-infra-continuous-precise-32",
+ "failure": true,
+ "state": "CANCELED",
+ "modified_ts": "2016-03-14T11:00:18.486020",
+ "user": "",
+ "bot_id": "swarm3-c4",
+ "duration": 3615.243180990219,
+ "try_number": "1",
+ "completed_ts": "2016-03-14T11:00:18.486020",
+ "started_ts": "2016-03-14T10:00:01.850710",
+ "kind": "swarming#taskItem",
+ "etag": "\"8T7hve1eF1AtJxly4TygH4Vsei8/BOiXFFzC_twa1KB8vfr-umqxc4Q\""
+}
+

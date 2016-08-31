@@ -1,0 +1,21 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package svcconfig;
+
+// ArchiveIndexConfig specifies how archive indexes should be generated.
+//
+// By default, each log entry will be present in the index. This is generally
+// overkill; instead, the index can be more sparse at the expense of a slightly
+// higher data load.
+message ArchiveIndexConfig {
+  // If not zero, the maximum number of stream indices between index entries.
+  int32 stream_range = 1;
+  // If not zero, the maximum number of prefix indices between index entries.
+  int32 prefix_range = 2;
+  // If not zero, the maximum number of log data bytes between index entries.
+  int32 byte_range = 3;
+}

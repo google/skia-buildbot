@@ -1,0 +1,184 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../bower_components/app-router/app-router.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import"
+    href="../bower_components/html5-history-anchor/html5-history-anchor.html">
+<link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,500,500italic,700,700italic">
+<link rel="import"
+    href="../bower_components/google-signin/google-signin-aware.html">
+<link rel="import" href="../bower_components/paper-spinner/paper-spinner.html">
+
+<link rel="import" href="../rpc/rpc-client.html">
+
+<link rel="import" href="rpc-descriptor-util.html">
+<link rel="import" href="rpc-method.html">
+<link rel="import" href="rpc-service-list.html">
+<link rel="import" href="rpc-service.html">
+<link rel="import" href="../auth/auth-signin.html">
+
+<!-- The `rpc-explorer` is the top-level element of RPC Explorer -->
+<dom-module id="rpc-explorer">
+  <template>
+    <style>
+      li[hidden] {
+        display: none;
+      }
+      :host {
+        font-family: 'RobotoDraft','Roboto',arial,sans-serif;
+      }
+      #signinContainer {
+        margin-right: 10px;
+        margin-top: 10px;
+      }
+      #loadingContainer {
+        text-align: center;
+      }
+    </style>
+
+    <!-- Load server description -->
+    <rpc-client
+        auto
+        service="discovery.Discovery"
+        method="Describe"
+        last-response="{{serverDescription}}"
+        loading="{{loadingDescription}}">
+    </rpc-client>
+
+    <div class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <button
+            class="navbar-toggle collapsed"
+            data-toggle="collapse"
+            aria-expanded="false">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <span class="navbar-brand">
+          <span id="progress-spinner" class="not-spinning">
+            <a is="html5-history-anchor" pushstate popstate
+                href="[[rootPath]]">RPC Explorer</a>
+          </span>
+        </span>
+      </div>
+
+      <div class="navbar-collapse collapse">
+        <div class="nav navbar-nav navbar-right">
+          <div id="signinContainer">
+            <auth-signin client-id="[[clientId]]"></auth-signin>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <ol class="breadcrumb">
+      <li>
+        <a is="html5-history-anchor" pushstate popstate
+            href="[[rootPath]]/services/">Home</a>
+      </li>
+      <li hidden="[[!service]]">
+        <a is="html5-history-anchor" pushstate popstate
+            href="[[rootPath]]/services/[[service]]/">[[service]]</a>
+      </li>
+      <li hidden="[[!method]]">
+        <a is="html5-history-anchor" pushstate popstate
+            href="[[rootPath]]/services/[[service]]/[[method]]">
+          [[method]]
+        </a>
+      </li>
+    </ol>
+
+    <template is="dom-if" if="[[loadingDescription]]">
+      <div id="loadingContainer">
+        <paper-spinner alt="Loading description" active></paper-spinner>
+      </div>
+    </template>
+
+    <app-router
+        id="router"
+        mode="pushstate"
+        on-activate-route-end="_onRouted"
+        on-before-data-binding="_onRouteBinding"
+        hidden="[[loadingDescription]]">
+      <!--
+        "path" attributes in <app-route> elements are set dynamically, but
+        unless we set them to a string, app-router prints errors to the console.
+      -->
+      <app-route id="servicesRoute" path="" element="rpc-service-list">
+      </app-route>
+      <app-route id="serviceRoute" path="" element="rpc-service"></app-route>
+      <app-route id="methodRoute" path="" element="rpc-method"></app-route>
+      <app-route id="catchAllRoute" path="*"></app-route>
+    </app-router>
+  </template>
+
+  <script>
+    'use strict';
+
+    Polymer({
+      is: 'rpc-explorer',
+
+      properties: {
+        rootPath: {
+          type: String,
+          value: '',
+          observer: '_onRootPathChanged'
+        },
+
+        clientId: String,
+
+        service: String,
+
+        method: String,
+
+        /** @type {DescribeResponse} */
+        serverDescription: {
+          type: Object,
+          observer: '_onServerDescriptionChanged'
+        }
+      },
+
+      _onRootPathChanged: function (newVal) {
+        // The app-router element does not like data-binding in its attributes
+        // so we update their values manually.
+        var rootPath = newVal || '',
+            servicesPath = rootPath + '/services/',
+            servicePath = servicesPath + ':service/',
+            methodPath = servicePath + ':method';
+        this.$.servicesRoute.setAttribute('path', servicesPath);
+        this.$.serviceRoute.setAttribute('path', servicePath);
+        this.$.methodRoute.setAttribute('path', methodPath);
+        this.$.catchAllRoute.setAttribute('redirect', servicesPath);
+      },
+
+      _onRouteBinding: function(e) {
+        if (this.serverDescription) {
+          e.detail.model.description = this.serverDescription.description;
+          e.detail.model.serviceNames = this.serverDescription.services;
+        }
+      },
+
+      _onServerDescriptionChanged: function(e) {
+        if (this.serverDescription) {
+          rpcExplorer.descUtil.annotateSet(this.serverDescription.description);
+          // Recreate route model.
+          this.$.router.go(document.location.toString());
+        }
+      },
+
+      _onRouted: function(e) {
+        var model = e.detail.model || {};
+        this.service = model.service || '';
+        this.method = model.method || '';
+      }
+    });
+  </script>
+</dom-module>

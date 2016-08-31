@@ -1,0 +1,46 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package messages;
+
+// BlobWithSHA1 is a wrapper around a binary blob with SHA1 hash to verify
+// its integrity.
+message BlobWithSHA1 {
+  bytes blob = 1;
+  bytes sha1 = 2;
+}
+
+// TagCache stores a mapping (package name, tag) -> instance ID to speed up
+// subsequence ResolveVersion calls when tags are used.
+message TagCache {
+  message Entry {
+    string package = 1;
+    string tag = 2;
+    string instance_id = 3;
+  }
+
+  // Capped list of entries, most recently resolved is last.
+  repeated Entry entries = 1;
+}
+
+// InstanceCache stores a list of instances in cache
+// and their last access time.
+message InstanceCache {
+  // Entry stores info about an instance.
+  message Entry {
+    // LastAccess is last time this instance was retrieved from or put to the
+    // cache.
+    google.protobuf.Timestamp last_access = 2;
+  }
+
+  // Entries is a map of {instance id -> information about instance}.
+  map<string, Entry> entries = 1;
+  // LastSynced is timestamp when we synchronized Entries with actual
+  // instance files.
+  google.protobuf.Timestamp last_synced = 2;
+}

@@ -1,0 +1,37 @@
+{{define "title"}}Configs{{end}}
+
+{{ define "head" }}{{ end }}
+
+{{define "body"}}
+<div class="header">
+  <a href="{{ .Navi.SiteTitle.URL }}">{{ .Navi.SiteTitle.Label }}</a>
+</div>
+<div class="content">
+  <h1>All Projects</h1>
+  <h2>These are all of the projects and their settings as defined by luci config</h2>
+  {{ range .Projects }}
+    <h3> {{ .ID }} </h3>
+    <h4> Readers </h4>
+    <ul>
+      {{ range .Readers }}
+        <li> {{ . }} </li>
+      {{ end }}
+    </ul>
+    {{ range .Consoles }}
+      <h4> Console: {{ .Name }} </h4>
+      <p> <b>ID</b>: {{ .ID }} </p>
+      <p> <b>Repo</b>: {{ .RepoURL }} </p>
+      <p> <b>Branch</b>: {{ .Branch}} </p>
+      <ul>
+        {{ range .Builders }}
+        <li> <b>{{ .Module }}/{{ .Name }}</b>: {{ .Category }} - {{ .ShortName }} </li>
+        {{ end }}
+      </ul>
+    {{ else }}
+      <h4> No consoles defined </h4>
+    {{ end }}
+  {{ else }}
+    <h3> No projects defined </h3>
+  {{ end }}
+</div>
+{{end}}

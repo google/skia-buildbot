@@ -1,0 +1,19 @@
+{
+ "created_ts": "2016-06-28T21:19:45.146360",
+ "name": "cipd test",
+ "task_id": "2fb1b35e1da25710",
+ "tags": [
+  "os:Linux",
+  "pool:default",
+  "priority:10",
+  "user:",
+  "allow_milo:1"
+ ],
+ "internal_failure": false,
+ "failure": false,
+ "state": "PENDING",
+ "modified_ts": "2016-06-28T21:19:45.496930",
+ "user": "",
+ "kind": "swarming#taskItem",
+ "etag": "\"gaJHHV0EOm6X5R9LefcQ1Vn0P2k/s3rYAHDh9d3OTM4C8T8is7hT9Q0\""
+}

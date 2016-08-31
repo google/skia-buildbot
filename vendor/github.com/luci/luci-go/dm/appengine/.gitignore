@@ -1,0 +1,3 @@
+# Integration tests use devcfg directory (a symlink actually) to supply configs
+# to the locally running DM instance. See integration_tests/*.
+devcfg

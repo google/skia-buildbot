@@ -1,0 +1,13 @@
+{{define "title"}}Settings - {{.Title}}{{end}}
+
+{{define "content"}}
+<div class="row">
+  <div class="col-md-offset-2 col-md-8">
+    <h2>Changes saved</h2>
+    <hr>
+    <p>They may take few minutes to fully propagate.</p>
+    <hr>
+    <a href="/admin/settings/{{.ID}}">Back to settings</a>
+  </div>
+</div>
+{{end}}

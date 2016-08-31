@@ -1,0 +1,30 @@
+{{template "base_pre"}}
+<h1>Wiki index</h1>
+<hr>
+{{if .Pages}}
+  <h3>Pages:</h3>
+  {{range .Pages}}
+  <a href="/view/{{.Title}}">{{.Title}}</a><br>
+  {{end}}
+{{else}}
+  <p>This Wiki has no pages yet...</p>
+{{end}}
+<hr>
+<form class="form form-inline" action="#">
+  <input type="text" name="title" placeholder="PageTitle">
+  <button class="btn btn-success" type="submit">Create</button>
+</form>
+{{template "base_scripts"}}
+<script>
+  $(document).ready(function(){
+    $("form").submit(function(el){
+      el.preventDefault();
+      var title = $("input[name=title]").val();
+      console.log("title:"+title);
+      if (title) {
+        document.location.href="/edit/"+title;
+      }
+    });
+  });
+</script>
+{{template "base_pos"}}

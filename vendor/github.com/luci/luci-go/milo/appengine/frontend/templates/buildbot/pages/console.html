@@ -1,0 +1,36 @@
+{{define "title"}}Milo{{end}}
+
+{{define "head"}}
+<style>
+th {
+  border: 1px silver;
+}
+</style>
+{{end}}
+
+{{define "body"}}
+<h1>{{.Console.Name}}</h1>
+
+<table>
+  <thead>
+    {{ .Console.BuilderRef | consoleHeader }}
+  </thead>
+{{ range .Console.Commit }}
+  <tr>
+    <td>
+      {{ .Commit.Revision }}
+    </td>
+    {{ range .Build }}
+    <td {{ if . }}class="status-{{.Status.String}}"{{ end }}>
+      {{ if . }}
+        {{ if .Link }}
+          <a href="{{.Link.URL}}">x</a>
+        {{ end }}
+      {{ end }}
+    </td>
+    {{ end }}
+  </tr>
+{{ end }}
+</table>
+
+{{end}} <!-- Body -->

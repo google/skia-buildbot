@@ -1,0 +1,11 @@
+@@@CURRENT_TIMESTAMP@1457949601@@@
+
+@@@SEED_STEP recipe bootstrap@@@
+
+@@@STEP_CURSOR recipe bootstrap@@@
+
+@@@CURRENT_TIMESTAMP@1457949602@@@
+@@@STEP_STARTED@@@
+@@@STEP_LINK@Confused? README here@https://chromium.googlesource.com/external/github.com/luci/recipes-py/+/master/doc/workflow.md@@@
+
+Some output

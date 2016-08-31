@@ -1,0 +1,6 @@
+# This file is used by gcl to get repository specific information.
+CODE_REVIEW_SERVER: codereview.chromium.org
+VIEW_VC: https://skia.googlesource.com/buildbot/+/
+CC_LIST:
+BUG_PREFIX: skia:
+PROJECT: skia-dev/glog

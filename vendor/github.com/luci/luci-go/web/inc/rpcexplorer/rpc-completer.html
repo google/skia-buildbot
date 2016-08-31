@@ -1,0 +1,332 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="rpc-descriptor-util.html">
+
+<!--
+  The `rpc-completer` element implements Ace editor completer interface
+  based on a protobuf message descriptors.
+-->
+<script>
+  'use strict';
+
+  Polymer({
+    is: 'rpc-completer',
+
+    properties: {
+      /** @type {FileDescriptorSet} */
+      description: Object,
+
+      rootTypeName: String,
+
+      /** @type {DescriptorProto} */
+      rootType: {
+        type: Object,
+        computed: '_resolveType(description, rootTypeName)'
+      }
+    },
+
+    /**
+     * Returns elements to display in autocomplete.
+     */
+    getCompletions: function(editor, session, pos, prefix, callback) {
+      if (!this.rootType) {
+        return;
+      }
+
+      // Get all text left to the current selection.
+      var beforePos = {
+        start: {row: 0, col: 0},
+        end: session.selection.getRange().start
+      };
+      var text = session.getTextRange(beforePos);
+      var completions = this.getCompletionsForText(this.rootType, text);
+      if (completions) {
+        callback(null, completions);
+      }
+    },
+
+    /**
+     * Returns leading comments of a completion.
+     * The result is displayed to the right of the selected completion.
+     */
+    getDocTooltip: function(completion) {
+      return completion.docTooltip;
+    },
+
+    getCompletionsForText: function(type, text) {
+      if (!type) {
+        return [];
+      }
+
+      // Resolve path.
+      var path = this.getCurrentPath(text);
+      if (path == null) {
+        return [];
+      }
+
+      // Resolve type.
+      var util = rpcExplorer.descUtil;
+      for (var i = 0; i < path.length; i++) {
+        if (type.type != 'messageType') {
+          return [];
+        }
+        var field = util.findByJsonName(type.desc.field, path[i]);
+        if (!field) {
+          console.log('Field ' + path[i] + ' not found');
+          return [];
+        }
+        type = field.rpcExpTypeInfo;
+        if (!type) {
+          return [];
+        }
+
+        if (type.desc.options && type.desc.options.mapEntry) {
+          // map<K, V> fields are converted to repeated messages, where the
+          // message has fields "key" and "value".
+          // JSONPB, however, expects a object with keys and values,
+          // not an array of key-value objects.
+          if (i + 1 == path.length) {
+            // We don't have completions for key values.
+            return [];
+          } else {
+            // path[i+1] is key value which is irrelevant for completions.
+            // Get completions for the "value" field of the map entry type.
+            path[i + 1] = 'value';
+          }
+        }
+      }
+
+      // Automatically surround with quotes.
+      var quoteCount = (text.match(/"/g) || []).length;
+      var shouldQuote = quoteCount % 2 === 0;
+
+      function docTooltip(desc) {
+        var info = desc.sourceCodeInfo;
+        return info && info.leadingComments || '';
+      }
+
+      var completions = [];
+      switch (type.type) {
+        case 'messageType':
+          if (!type.desc.field) {
+            break;
+          }
+          for (var i = 0; i < type.desc.field.length; i++) {
+            var field = type.desc.field[i];
+            var fType =  field.rpcExpTypeInfo && field.rpcExpTypeInfo.desc;
+            var isMap = fType && fType.options && fType.options.mapEntry;
+            var meta;
+            if (isMap) {
+              var keyType = this.fieldTypeName(fType.field[0]);
+              var valueType = this.fieldTypeName(fType.field[1]);
+              meta = 'map<' + keyType + ', ' + valueType + '>';
+            } else {
+              meta = this.fieldTypeName(field);
+              if (field.label === 'LABEL_REPEATED') {
+                meta = 'repeated ' + meta;
+              }
+            }
+
+            completions.push({
+              caption: field.jsonName,
+              snippet: this.snippetForField(field, shouldQuote, isMap),
+              meta: meta,
+              docTooltip: docTooltip(field)
+            });
+          }
+          break;
+
+        case 'enumType':
+          for (var i = 0; i < type.desc.value.length; i++) {
+            var value = type.desc.value[i];
+            var snippet = value.name;
+            if (shouldQuote) {
+              snippet = '"' + snippet + '"';
+            }
+            completions.push({
+              caption: value.name,
+              snippet: snippet,
+              meta: '' + value.number,
+              docTooltip: docTooltip(value)
+            });
+          }
+          break;
+      }
+      return completions;
+    },
+
+    snippetForField: function(field, shouldQuote, isMap) {
+      // snippet docs:
+      // https://cloud9-sdk.readme.io/docs/snippets
+      var snippet = field.jsonName;
+      if (shouldQuote) {
+        snippet = '"' + snippet + '"';
+      }
+      if (!shouldQuote) {
+        return snippet;
+      }
+
+      snippet += ': ';
+
+      var open = '';
+      var close = '';
+
+      if (isMap) {
+        open = '{';
+        close = '}';
+      } else {
+        if (field.label === 'LABEL_REPEATED') {
+          open += '[';
+          close = ']' + close;
+        }
+
+        switch (field.type) {
+          case 'TYPE_MESSAGE':
+            open += '{';
+            close = '}' + close;
+            break;
+          case 'TYPE_STRING':
+          case 'TYPE_ENUM':
+            open += '"';
+            close = '"' + close;
+            break;
+        }
+      }
+
+      // ${0} is the position of cursor after insertion.
+      snippet += open + '${0}' + close;
+      return snippet;
+    },
+
+    /**
+     * Resolves path at the end of text, best effort.
+     * e.g. for text '{ "a": { "b": [' returns ['a', 'b']
+     * For '{ "a": {}, "b": {' returns ['b'].
+     * For '{ "a":' returns ['a'].
+     */
+    getCurrentPath: function(text) {
+      var path = [];
+      for (var i = 0; i < text.length;) {
+        i = text.indexOf(':', i);
+        if (i === -1) {
+          break;
+        }
+        var colon = i;
+
+        i++;
+        i = this._skipWhitespace(text, i);
+
+        if (i === text.length ||
+            text.charAt(i) === '"' && i+1 === text.length) {
+          // the path is a field.
+        } else if (text.charAt(i) in {'{':0, '[': 0}) {
+          // there is an array or object after the colon
+          var closingIndex = this.findMatching(text, i);
+          if (closingIndex !== -1) {
+            // Not an object/array or closed. Ignore.
+            continue;
+          }
+        } else {
+          continue
+        }
+
+        // read the name to the left of colon.
+        var secondQuote = text.lastIndexOf('"', colon);
+        if (secondQuote === -1) {
+          return null;
+        }
+
+        var firstQuote = text.lastIndexOf('"', secondQuote - 1);
+        if (firstQuote === -1) {
+          return null;
+        }
+
+        path.push(text.substring(firstQuote + 1, secondQuote));
+      }
+      return path;
+    },
+
+    /** Finds index of the matching brace. */
+    findMatching: function(text, i) {
+      var level = 0;
+      var open = text.charAt(i);
+      var close;
+      switch (open) {
+        case '{':
+          close = '}';
+          break;
+
+        case '[':
+          close = ']';
+          break;
+
+        default:
+          throw Error('Unexpected brace: ' + open);
+      }
+
+      for (; i < text.length; i++) {
+        switch (text.charAt(i)) {
+          case open:
+            level++;
+            break;
+          case close:
+            level--;
+            if (level === 0) {
+              return i;
+            }
+            break;
+        }
+      }
+      return -1;
+    },
+
+    _resolveType: function(desc, name) {
+      return rpcExplorer.descUtil.resolve(desc, name);
+    },
+
+    _scalarTypeNames: {
+      TYPE_DOUBLE: 'double',
+      TYPE_FLOAT: 'float',
+      TYPE_INT64: 'int64',
+      TYPE_UINT64: 'uint64',
+      TYPE_INT32: 'int32',
+      TYPE_FIXED64: 'fixed64',
+      TYPE_FIXED32: 'fixed32',
+      TYPE_BOOL: 'bool',
+      TYPE_STRING: 'string',
+      TYPE_BYTES: 'bytes',
+      TYPE_UINT32: 'uint32',
+      TYPE_SFIXED32: 'sfixed32',
+      TYPE_SFIXED64: 'sfixed64',
+      TYPE_SINT32: 'sint32',
+      TYPE_SINT64: 'sint64',
+    },
+
+    fieldTypeName: function(field) {
+      var name = this._scalarTypeNames[field.type];
+      if (!name) {
+        name = rpcExplorer.descUtil.trimPrefixDot(field.typeName);
+      }
+      return name;
+    },
+
+    _skipWhitespace: function(text, i) {
+      var space = {
+        ' ': 1,
+        '\n': 1,
+        '\r': 1,
+        '\t': 1
+      };
+      while (space[text.charAt(i)]) {
+        i++;
+      }
+      return i;
+    }
+  });
+</script>

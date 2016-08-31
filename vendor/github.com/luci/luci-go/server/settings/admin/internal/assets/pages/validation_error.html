@@ -1,0 +1,18 @@
+{{define "title"}}Settings - {{.Title}}{{end}}
+
+{{define "content"}}
+<div class="row">
+<div class="col-md-offset-2 col-md-8">
+
+<h2>Bad values</h2>
+<hr>
+
+<ul>
+{{range .Errors}}
+  <li>In field <b>{{.FieldTitle}}</b> value <code>"{{.Value}}"</code>: {{.Error}}.</li>
+{{end}}
+</ul>
+
+</div>
+</div>
+{{end}}

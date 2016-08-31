@@ -1,0 +1,15 @@
+application: luci-dm
+version: v1
+threadsafe: true
+
+runtime: go
+api_version: go1
+
+handlers:
+- url: /_ah/push-handlers/.*
+  script: _go_app
+  secure: always
+  login: admin
+- url: /.*
+  script: _go_app
+  secure: always

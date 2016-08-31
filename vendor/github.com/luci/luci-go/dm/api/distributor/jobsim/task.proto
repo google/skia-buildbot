@@ -1,0 +1,104 @@
+// Copyright 2016 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+package jobsim;
+
+// Phrase is a task to do. It consists of zero or more stages, followed by
+// an optional ReturnStage.
+message Phrase {
+  string name = 1;
+  // Seed should be selected via a fair dice roll (using a d1.84e19).
+  int64 seed = 2;
+  repeated Stage stages = 3;
+  ReturnStage return_stage = 4;
+}
+
+// ReturnStage indicates that the Phrase should return the numerical value
+// 'retval' as the result of the current Phrase. If expiration is provided,
+// it will set that as the expiration timestamp for the provided retval.
+message ReturnStage {
+  int64 retval = 1;
+  google.protobuf.Timestamp expiration = 2;
+}
+
+// Stage is the union of the following stage types:
+//   * FailureStage
+//   * StallStage
+//   * DepsStage
+message Stage {
+  oneof stage_type {
+    FailureStage failure = 1;
+    StallStage stall = 2;
+    DepsStage deps = 3;
+  }
+}
+
+// FailureStage is the /chance/ to fail with a certain liklihood. The chance
+// is calculated using the current Phrase's 'seed' with the "math/rand" package,
+// The seed is either 0 (unspecified), or the value of the 'seed' property for
+// the currently running phrase.
+//
+// 0 is a 0-percent chance of failure.
+// 1 is a 100-percent chance of failure.
+message FailureStage {
+  float chance = 1;
+}
+
+// StallStage delays the phrase for the provided Duration. This could be used
+// to simulate long-running tasks (like builds).
+message StallStage {
+  google.protobuf.Duration delay = 1;
+}
+
+// DepsStage represents the opportunity to depend on 1 or more dependencies
+// simultaneously.
+message DepsStage {
+  repeated Dependency deps = 1;
+}
+
+// Dependency represents a nested Phrase that this Phrase depends on.
+message Dependency {
+  // shards append [1], [2], [3], etc. to the "name"s of the dependencies, making
+  // them unique quests.
+  uint64 shards = 1;
+
+  oneof attempt_strategy {
+    SparseRange attempts = 2;
+    uint32 retries = 3;
+  }
+
+  // MixSeed will blend the current seed with the seed in the phrase seed,
+  // when depending on it.
+  //
+  //   mix_seed phrase.seed==0 -> dep uses "random" seed
+  //   mix_seed phrase.seed!=0 -> dep uses blend(current seed, phrase.seed)
+  //  !mix_seed phrase.seed==0 -> dep uses current seed
+  //  !mix_seed phrase.seed!=0 -> dep uses phrase.seed
+  bool mix_seed = 4;
+  Phrase phrase = 5;
+}
+
+// SparseRange allows the expression of mixed partial ranges like [1,3-10,19,21].
+message SparseRange {
+  repeated RangeItem items = 1;
+}
+
+// RangeItem is either a single number or a Range.
+message RangeItem {
+  oneof range_item {
+    uint32 single = 1;
+    Range range = 2;
+  }
+}
+
+// Range represents a single low-high pair (e.g. [3-40])
+message Range {
+  uint32 low = 1;
+  uint32 high = 2;
+}

@@ -1,0 +1,481 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+import "github.com/luci/luci-go/dm/api/service/v1/types.proto";
+
+package dm;
+
+message AbnormalFinish {
+  enum Status {
+    // This status is invalid and should not be used intentionally.
+    //
+    // It is a placeholder to identify 0-initialized AbnormalFinish structures.
+    INVALID = 0;
+
+    // This entity has a failed result.
+    //
+    // Executions: the distributor reported that the task executed and failed, OR
+    // the distributor reports success while the Execution is in the RUNNING
+    // state.
+    //
+    // Attempts: the last Execution had a FAILED Status.
+    //
+    // Retryable.
+    FAILED = 1;
+
+    // This entity failed in a bad way.
+    //
+    // Executions: The distributor told us that the job died violently while in
+    // the SCHEDULING, RUNNING or STOPPING state.
+    //
+    // Attempts: the last Execution had a CRASHED Status.
+    //
+    // Retryable.
+    CRASHED = 2;
+
+    // Waited too long for the job to start.
+    //
+    // Executions: the distributor couldn't start the job in time, OR DM failed
+    // to get a status update from the distributor in time (e.g. the state was
+    // SCHEDULING for too long).
+    //
+    // Attempts: the last Execution had an EXPIRED Status.
+    //
+    // Retryable.
+    EXPIRED = 3;
+
+    // The job started, but took too long.
+    //
+    // Executions: the distributor started the job, but it couldn't complete in
+    // time, OR DM failed to get a status update from the distributor in time
+    // (e.g. the state was RUNNING for too long).
+    //
+    // Attempts: the last Execution had an TIMED_OUT Status.
+    //
+    // Retryable.
+    TIMED_OUT = 4;
+
+    // The job was cancelled by an external entity (human, automated system).
+    //
+    // Executions: the distributor informing DM that the job was preemptively
+    // cancelled.
+    //
+    // Attempts: the last Execution had a CANCELLED Status, or this Attempt
+    // was cancelled via DM.
+    CANCELLED = 5;
+
+    // The job was prevented from running by the distributor (quota, permissions,
+    // etc.)
+    //
+    // Executions: the distributor refused to run this job.
+    //
+    // Attempts: the last Execution had a REJECTED Status.
+    REJECTED = 6;
+
+    // The job is unrecognized.
+    //
+    // Executions: the distributor doesn't know about this job, or has forgotten
+    // about it.
+    //
+    // Attempts: the last Execution had a MISSING Status.
+    MISSING = 7;
+
+    // The distributor ran the job, but returned garbage.
+    //
+    // Executions: the distributor returned a nominally successful result, but
+    // the Data portion of the result wasn't able to be normalized.
+    //
+    // Attempts: the last Execution had a RESULT_MALFORMED Status.
+    RESULT_MALFORMED = 8;
+  }
+
+  Status status = 1;
+  string reason = 2;
+}
+
+message Quest {
+  message ID {
+    string id = 1;
+  }
+  ID id = 1;
+
+  // DNE is set to true if this Quest does not exist. None of the following
+  // fields are valid if this is set to true.
+  bool DNE = 2;
+
+  message Desc {
+    // TODO(iannucci): have a 'simple_idempotent' quest mode which:
+    //   * isn't allowed/expected to call any API methods (ActivateExecution,
+    //   EnsureGraphData, or WalkGraph)
+    //   * only provides data back through the distributor-specific 'state'
+    //   field.
+    //
+    // Examples of use for this would be:
+    //   * simple test binaries that run/output to an ISOLATED_OUTDIR
+    //   * testing / ad-hoc bash scripts
+
+    // This names a specific distributor configuration (or alias) in the
+    // service's distributors.cfg file. This will be used to look up the
+    // distributor's implementation and connection information when Attempts for
+    // this Quest are Executed.
+    string distributor_config_name = 1;
+
+    // A JSON object which corresponds to the input parameters for the job.
+    // These will be passed in a distributor-specific way to the job. This is
+    // a freeform JSON object, and must parse as such, but otherwise doesn't
+    // necessarily have a server-enforced schema.
+    //
+    // The distributor implementation in DM will not use the contents of these
+    // to make any scheduling decisions.
+    //
+    // The distributor MAY choose to validate some schema for these parameters.
+    string parameters = 2;
+
+    // A JSON object which corresponds to the distributor-specific parameters
+    // for the job.
+    //
+    // The distributor defines and validates the schema for these, and will use
+    // the values herein to make decisions about how the job is run. It is up to
+    // the distributor whether these values are passed on to the job, and if so
+    // in what form.
+    string distributor_parameters = 3;
+
+    message Meta {
+      // This names the user/service account for all Attempts on this quest. You
+      // must have permission to use this account when creating the Quest and/or
+      // Attempts.
+      string as_account = 1;
+
+      // Retry specifies the number of times in a row that DM should re-Execute
+      // an Attempt due to the provided abnormal result.
+      //
+      // NOTE: The proto tag numbers for these MUST be aligned with the
+      // enumeration values of AbnormalFinish.Status!
+      message Retry {
+        // The number of times in a row to retry Executions which have an
+        // ABNORMAL_FINISHED status of FAILED.
+        uint32 failed = 1;
+
+        // The number of times in a row to retry Executions which have an
+        // ABNORMAL_FINISHED status of CRASHED.
+        uint32 crashed = 2;
+
+        // The number of times in a row to retry Executions which have an
+        // ABNORMAL_FINISHED status of EXPIRED.
+        uint32 expired = 3;
+
+        // The number of times in a row to retry Executions which have an
+        // ABNORMAL_FINISHED status of TIMED_OUT.
+        uint32 timed_out = 4;
+      }
+
+      // This affects how DM will retry the job payload in various exceptional
+      // circumstances.
+      Retry retry = 2;
+
+      // Timing describes the amount of time that Executions for this Quest
+      // should have, on the following timeline:
+      //   Event: execution sent to distributor
+      //     ^ "start" v
+      //   Event: execution sends ActivateExecution
+      //     ^ "run" v
+      //   Event: execution sends halting RPC (either ActivateExecution or
+      //     EnsureGraphData)
+      //     ^ "stop" v
+      //   Event: distributor gives execution result back to DM
+      //
+      // If the given timeout hits before the next event in the timeline, DM
+      // will mark the Execution as TIMED_OUT, and the appropriate retry policy
+      // will be applied.
+      //
+      // If a given timeout is unlimited, leave the duration unset or 0.
+      message Timeouts {
+        google.protobuf.Duration start = 1;
+        google.protobuf.Duration run = 2;
+        google.protobuf.Duration stop = 3;
+      }
+
+      Timeouts timeouts = 3;
+    }
+
+    // This is metadata which doesn't affect the functionality of the payload,
+    // but does affect how DM interacts with the distributor when scheduling
+    // Executions.
+    Meta meta = 4;
+  }
+
+  message TemplateSpec {
+    string project = 1;
+    string ref = 2;
+    string version = 3;
+    string name = 4;
+  }
+
+  message Data {
+    google.protobuf.Timestamp created = 1;
+    dm.Quest.Desc desc = 2;
+    repeated dm.Quest.TemplateSpec built_by = 3;
+  }
+  Data data = 3;
+
+  // key is the `id` field of the Attempt.ID
+  map<uint32, Attempt> attempts = 4;
+
+  // Partial is true iff the request asked for QuestData, but wasn't able to
+  // completely fill it.
+  bool partial = 16;
+}
+
+// JsonResult represents a free-form JSON object. It has a maximum size of
+// 256KB normalized (no extra whitespace). DM will normalize incoming
+// JSONObjects before recalculating their size.
+message JsonResult {
+  // Guaranteed to be a JSON object `{...}` or the empty string (if this is part
+  // of a Partial result from e.g. a WalkGraph RPC).
+  string object = 1;
+
+  // The length of data. If this message is non-nil, this will have a value even
+  // if object is empty (e.g. for a partial result). This is useful for query
+  // results where you either opt to not load the data (include.*.data ==
+  // false), or the response exceeds the size limit (so you can see how big the
+  // data would have been if the limit wasn't exceeded).
+  uint32 size = 2;
+
+  // The timestamp of when this JsonResult's contents expire. If omitted, it
+  // should be assumed that the contents never expire.
+  google.protobuf.Timestamp expiration = 3;
+}
+
+// Result holds either data OR abnormal finish information.
+message Result {
+  JsonResult data = 1;
+  AbnormalFinish abnormal_finish = 2;
+}
+
+message Attempt {
+  message ID {
+    string quest = 1;
+    uint32 id = 2;
+  }
+  ID id = 1;
+
+  // DNE is set to true if this Attempt does not exist. None of the following
+  // fields are valid if this is set to true.
+  bool DNE = 2;
+
+  enum State {
+    // The Attempt is waiting to be Executed.
+    SCHEDULING = 0;
+
+    // The Attempt is currently waiting for its current Execution to finish.
+    EXECUTING = 1;
+
+    // The Attempt is waiting for dependent Attempts to be resolved.
+    WAITING = 2;
+
+    // The Attempt is in its final state.
+    FINISHED = 3;
+
+    // The Attempt is in an abnormal final state.
+    ABNORMAL_FINISHED = 4;
+  }
+
+  message Data {
+    google.protobuf.Timestamp created = 1;
+    google.protobuf.Timestamp modified = 2;
+    uint32 num_executions = 3;
+
+    // This attempt is ready to be Executed, but hasn't been sent to the
+    // distributor yet.
+    message Scheduling {}
+
+    // This attempt has a live Execution (with the specified ID). Check the
+    // Execution state for more information.
+    message Executing {
+      uint32 cur_execution_id = 1;
+    }
+
+    // This attempt's last Execution stopped by adding dependencies.
+    message Waiting {
+      uint32 num_waiting = 1;
+    }
+
+    // This attempt is complete.
+    message Finished {
+      // The result of the Attempt. To obtain the distributor specific result
+      // for the last execution, make sure to include at least one Execution in
+      // your query.
+      //
+      // Only if `include.attempt.data == true`, will the response include
+      // data.object.
+      JsonResult data = 1;
+    }
+
+    oneof attempt_type {
+      Scheduling scheduling = 5;
+      Executing executing = 6;
+      Waiting waiting = 7;
+      Finished finished = 8;
+      AbnormalFinish abnormal_finish = 9;
+    }
+  }
+  Data data = 3;
+
+  // key is the `id` field of the Execution.ID
+  map<uint32, Execution> executions = 4;
+
+  dm.AttemptList fwd_deps = 5;
+  dm.AttemptList back_deps = 6;
+
+  message Partial {
+    // Data is true iff the AttemptData should have been filled, but wasn't
+    bool data = 1;
+
+    // Executions is true iff the Executions were requested, but not all of
+    // them could be loaded.
+    bool executions = 2;
+
+    // FwdDeps is true iff FwdDeps were requested, but not all of them could be
+    // loaded.
+    bool fwd_deps = 3;
+
+    // BackDeps is true iff BackDeps were requested, but not all of them could be
+    // loaded.
+    bool back_deps = 4;
+
+    enum Result {
+      // LOADED implies that the result was, in fact, loaded.
+      LOADED = 0;
+
+      // NOT_LOADED is set if the result failed to load because there was
+      // a transient error or the request ran out of time.
+      NOT_LOADED = 1;
+
+      // NOT_AUTHORIZED is set if the query was authenticated from an Execution
+      // whose Attempt doesn't depend on this one.
+      NOT_AUTHORIZED = 2;
+
+      // DATA_SIZE_LIMIT is set if the max_data_size limit was reached.
+      DATA_SIZE_LIMIT = 3;
+    }
+    // result is set if AttemptResults were requested, and the attempt_type is
+    // Finished, but for some reason the result but wasn't loaded.
+    Result result = 5;
+  }
+  // Partial values are true iff the request asked for AttemptData, Executions
+  // or Deps, but wasn't able to completely fill them. If Partial is omitted,
+  // it means that no partial data exists in this Attempt.
+  Partial partial = 16;
+}
+
+message Execution {
+  // Execution_Auth is a tuple of the requesting ExecutionID and the activated
+  // Execution Token (see the ActivateExecution rpc).
+  message Auth {
+    dm.Execution.ID id = 1;
+    bytes token = 2;
+  }
+
+  message ID {
+    string quest = 1;
+    uint32 attempt = 2;
+    uint32 id = 3;
+  }
+  ID id = 1;
+
+  enum State {
+    // The execution has been accepted by the distributor, but is not running
+    // yet.
+    SCHEDULING = 0;
+
+    // The execution is running (has activated with DM).
+    RUNNING = 1;
+
+    // The execution has been told to stop by DM, but we haven't heard from
+    // the distributor yet.
+    STOPPING = 2;
+
+    // The execution is in its final state.
+    FINISHED = 3;
+
+    // The execution is in an abnormal final state
+    ABNORMAL_FINISHED = 4;
+  }
+
+  message Data {
+    google.protobuf.Timestamp created = 1;
+    google.protobuf.Timestamp modified = 2;
+
+    message DistributorInfo {
+      string config_name = 1;
+      string config_version = 2;
+      string token = 3;
+      string url = 4;
+    }
+    DistributorInfo distributor_info = 3;
+
+    message Scheduling {}
+
+    message Running {}
+
+    message Stopping {}
+
+    message Finished {
+      JsonResult data = 1;
+    }
+
+    oneof execution_type {
+      Scheduling scheduling = 4;
+      Running running = 5;
+      Stopping stopping = 6;
+      Finished finished = 7;
+      AbnormalFinish abnormal_finish = 8;
+    }
+  }
+  Data data = 2;
+
+  // Partial is true iff the request asked for Executions, but wasn't able to
+  // completely fill them.
+  bool partial = 16;
+}
+
+// GraphData defines all of the DM graph data that may be returned from DM.
+//
+// Currently only WalkGraph returns GraphData, but in the future other APIs will
+// explore the graph in other ways, and they'll return this same data structure.
+//
+// The design of this message is intended to allow clients to easily accumulate
+// various GraphData from different sources in order to maintain an in-memory
+// cache of data that exists in DM, where that data is discovered across
+// multiple RPCs.
+message GraphData {
+  // Quests is the main entry point for all the graph data.
+  // key is the `id` field of the QuestID
+  map<string, Quest> quests = 1;
+
+  // HadErrors is set to true if the data represented here is a partial view
+  // of the requested data due to internal errors. The request may be repeated
+  // or the client may chose to make smaller queries into the portions of the
+  // graph that are missing.
+  //
+  // If HadErrors is set HadMore will also be set.
+  bool had_errors = 2;
+
+  // HadMore is set to true if the request stopped short of the full query
+  // result set due to things like:
+  //   * max response size limit
+  //   * max time limit (e.g. WalkGraphReq.MaxTime) being hit
+  //   * non-terminal errors encountered during the request (HadErrors will also
+  //     be true in this case).
+  //
+  // Note that this is different than the Partial booleans: This refers
+  // specifically to situations when Queries do not run to completion.
+  bool had_more = 3;
+}
+

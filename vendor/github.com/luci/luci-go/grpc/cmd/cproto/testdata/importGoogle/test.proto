@@ -1,0 +1,17 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package test;
+
+import "google/protobuf/descriptor.proto";
+import "google/protobuf/timestamp.proto";
+
+service Greeter {
+  rpc Describe (Void) returns (google.protobuf.FileDescriptorProto) {}
+  rpc Timestamp (Void) returns (google.protobuf.Timestamp) {}
+}
+
+message Void {}

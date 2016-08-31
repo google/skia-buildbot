@@ -1,0 +1,24 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+  -->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<!--
+  Generates a Promise object that resolves after a specified delay.
+-->
+<dom-module id="luci-sleep-promise">
+
+<script>
+  "use strict";
+
+  function LuciSleepPromise(delay) {
+    return new Promise(function(resolve, reject) {
+      setTimeout(resolve, delay);
+    });
+  }
+</script>
+
+</dom-module>

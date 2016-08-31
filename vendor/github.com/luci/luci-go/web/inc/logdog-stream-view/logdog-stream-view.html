@@ -1,0 +1,644 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+  -->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-checkbox/paper-checkbox.html">
+
+<link rel="import" href="../logdog-stream/logdog-stream.html">
+<link rel="import" href="logdog-stream-fetcher.html">
+<link rel="import" href="logdog-stream-query.html">
+
+<!--
+An element for rendering muxed LogDog log streams.
+-->
+<dom-module id="logdog-stream-view">
+
+  <template>
+    <style>
+      .buttons {
+        position: fixed;
+        background-color: white;
+      }
+
+      #counter {
+        position: fixed;
+        right: 16px;
+      }
+
+      #logContent {
+        padding-top: 20px;
+      }
+
+      #logs {
+        display: inline-block;
+        list-style: none;
+      }
+
+      .log-entry {
+        padding: 0 0 0 0;
+        clear: left;
+      }
+
+      .log-entry-meta {
+        vertical-align: top;
+        padding: 0 8px 0 0;
+        margin: 0 0 0 0;
+        float: left;
+        font-style: italic;
+        font-family: Courier New, Courier, monospace;
+        font-size: 10px;
+
+        /* Can be toggled by applying .showMeta class to #logs. */
+        display: none;
+      }
+      .showMeta .log-entry-meta {
+        display: block;
+      }
+
+      .log-entry-content {
+        padding: 0 0 0 0;
+        margin: 0 0 0 0;
+        float: none;
+        font-family: Courier New, Courier, monospace;
+        font-size: 16px;
+        list-style: none;
+      }
+
+      /*
+      .log-entry {
+        list-style: none;
+        padding-left: 0;
+      }
+      */
+
+      .log-entry-line {
+        padding-left: 0;
+
+        /* Can be toggled by applying .wrapLines class to #logs. */
+        white-space: pre;
+      }
+      .wrapLines .log-entry-line {
+        white-space: pre-wrap;
+      }
+
+      .log-entry-line:nth-last-child(2) {
+        border-bottom: 1px solid #CCCCCC;
+      }
+
+      #bottom {
+        background-color: lightcoral;
+        height: 2px;
+        margin-bottom: 10px;
+      }
+    </style>
+
+    <rpc-client
+      id="client"
+      auto-token
+      host="[[host]]"></rpc-client>
+
+    <!-- Stream view options. -->
+    <div class="buttons">
+      <paper-checkbox checked="{{showMetadata}}">
+        Show Metadata
+      </paper-checkbox>
+      <paper-checkbox checked="{{wrapLines}}">
+        Wrap Lines
+      </paper-checkbox>
+      <paper-checkbox checked="{{follow}}">
+        Follow
+      </paper-checkbox>
+    </div>
+
+    <!-- Display current fetching status, if stream data is still loading. -->
+    <template is="dom-if" if="{{fetch}}">
+      <div id="counter">
+        <table>
+          <template is="dom-repeat" items="{{fetch.status}}">
+            <tr>
+              <td>{{item.name}}</td>
+              <td>{{item.status}}</td>
+            </tr>
+          </template>
+        </table>
+      </div>
+    </template>
+
+    <!-- Muxed log content. -->
+    <div id="logContent" on-mousewheel="_handleMouseWheel">
+      <table id="logTable">
+        <tbody id="logs">
+          <template is="dom-repeat" items="{{logs}}" as="log">
+            <tr class="log-entry">
+              <td class="log-entry-meta">
+                <div class="log-entry-meta-line">
+                  {{log.timestamp}}
+                </div>
+                <div class="log-entry-meta-line">
+                  {{log.desc.name}}
+                </div>
+                <div class="log-entry-meta-line">
+                  {{log.streamIndex}}
+                </div>
+              </td>
+
+              <td class="log-entry-content">
+                <template is="dom-if" if="{{log.text}}">
+                  <template is="dom-repeat" items="{{log.text.lines}}"
+                            as="line">
+                    <div class="log-entry-line">{{line.value}}</div>
+                  </template>
+                </template>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+
+      <!-- Current red bottom line. -->
+      <div id="bottom"></div>
+    </div>
+
+  </template>
+
+</dom-module>
+
+<script>
+  "use strict";
+
+  Polymer({
+    is: "logdog-stream-view",
+
+    properties: {
+      /** The name ([host][:port]) of the pRPC host. */
+      host: {
+        type: String,
+        notify: true,
+      },
+
+      /**
+       * An array of log stream names to load and mux.
+       *
+       * Each stream entry is a valid stream path prefixed with that stream's
+       * project. For example, for stream "foo/bar/+/baz" in project "chromium",
+       * the stream path would be: "chromium/foo/bar/+/baz".
+       */
+      streams: {
+        type: Array,
+        value: [],
+        notify: true,
+        observer: "_streamsChanged",
+      },
+
+      /**
+       * The number of logs to load before forcing a page refresh.
+       *
+       * The smaller the value, the smoother the page will behave while logs are
+       * loading. However, the logs will also load slower because of forced
+       * renders in between elements.
+       */
+      burst: {
+        type: Array,
+        value: 100,
+        notify: true,
+      },
+
+      /**
+       * The current muxed log entries.
+       */
+      logs: {
+        type: Array,
+        value: [],
+        notify: true,
+        readOnly: true,
+      },
+
+      /** If true, show log metadata column. */
+      showMetadata: {
+        type: Boolean,
+        value: false,
+        observer: "_showMetadataChanged",
+      },
+
+      /** If true, wrap log lines to the screen. */
+      wrapLines: {
+        type: Boolean,
+        value: false,
+        observer: "_wrapLinesChanged",
+      },
+
+      /**
+       * If true, automatically scroll the page to the bottom of the logs
+       * while they are streaming.
+       */
+      follow: {
+        type: Boolean,
+        value: false,
+        observer: "_followChanged",
+      },
+
+      /**
+       * The current log fetching context.
+       *
+       * The "Fetch" object is structured:
+       * fatch.streams: An array of _BufferedStream instances for each muxed
+       *     stream.
+       * fetch.status: The renderable status for a given stream.
+       */
+      fetch: {
+        type: Object,
+        value: null,
+        notify: true,
+        readOnly: true,
+      },
+    },
+
+    ready: function() {
+      this._setFetch(null);
+      this._scheduledWrite = null;
+      this._bufferedLogs = null;
+    },
+
+    detached: function() {
+      this.stop();
+    },
+
+    stop: function() {
+      this._cancelFetch();
+    },
+
+    /** Clears state and begins fetching log data. */
+    reset: function() {
+      var parts = {
+        queries: [],
+        streams: [],
+      };
+      var query = new LogDogQuery(this.project);
+      this.streams.map(LogDogStream.splitProject).forEach(function(v) {
+        if (LogDogQuery.isQuery(v.path)) {
+          parts.queries.push(v);
+        } else {
+          parts.streams.push(v);
+        }
+      });
+
+      Promise.all(parts.queries.map(function(v) {
+        var params = new LogDogQueryParams(v.project).
+            path(v.path).
+            streamType("text");
+        return new LogDogQuery(this.$.client, params).getAll();
+      }.bind(this))).then(function(results) {
+        // Add query results (if any) to streams.
+        results.forEach(function(streams) {
+          (streams || []).forEach(function(stream) {
+            parts.streams.push(stream.stream);
+          });
+        });
+
+        // Start loading the streams.
+        this._resetToStreams(parts.streams);
+      }.bind(this));
+    },
+
+    _resetToStreams: function(streams) {
+      this._cancelFetch();
+      this._clearLogs();
+
+      // Unique streams.
+      if (!streams.length) {
+        return;
+      }
+      streams.sort(LogDogStream.cmp);
+
+      // Construct our fetch context.
+      var fetch = {};
+      fetch.streams = streams.map(function(stream) {
+        // TODO: Re-use fetcher if it already exists in the previous streams
+        // map.
+        return new _BufferedStream(stream, new LogDogFetcher(
+              this.$.client, stream.project, stream.path));
+      }.bind(this));
+      fetch.status = fetch.streams.map(function(v, idx) {
+        var name = v.stream.path;
+        var lidx = name.lastIndexOf("/");
+        if (lidx >= 0) {
+          name = idx + " [.../" + name.substr(lidx+1) + "]";
+        }
+
+        return {
+          name: name,
+          status: this._buildStreamStatus(v, null),
+        };
+      }.bind(this));
+      this._setFetch(fetch);
+
+      // Kick off our log fetching.
+      this._scheduleWriteNextLogs();
+    },
+
+    /** Cancels any currently-executing log stream fetch. */
+    _cancelFetch: function() {
+      if (this.fetch) {
+        this._setFetch(null);
+      }
+      this._cancelScheduledWrite();
+    },
+
+    /** Cancels any scheduled asynchronous write. */
+    _cancelScheduledWrite: function() {
+      if (this._scheduledWrite) {
+        this.cancelAsync(this._scheduledWrite);
+        this._scheduledWrite = null;
+      }
+    },
+
+    /** Called when the bound log stream variables has changed. */
+    _streamsChanged: function(v, old) {
+      this.reset();
+    },
+
+    /** Schedules the next asynchronous log write. */
+    _scheduleWriteNextLogs: function() {
+      // This is called after refresh, so use this opportunity to maybe scroll
+      // to the bottom.
+      this._maybeScrollToBottom();
+
+      if (!this._scheduledWrite) {
+        this._scheduledWrite = this.async(this._writeNextLogs);
+      }
+    },
+
+    /**
+     * This is an iterative function that grabs the next set of logs and renders
+     * them. Afterwards, it will continue rescheduling itself until there are
+     * no more logs to render.
+     */
+    _writeNextLogs: function() {
+      this._cancelScheduledWrite();
+
+      if (this._writeNextLogsImpl()) {
+        // Yield so that our browser can refresh. We can't directly use
+        // this.async since a timeout of "0" causes immediate execution instead
+        // of yielding.
+        setTimeout(this._scheduleWriteNextLogs.bind(this), 0);
+      }
+    },
+
+    /**
+     * Primary implementation of _writeNextLogs.
+     *
+     * Returns true if any logs were rendered.
+     */
+    _writeNextLogsImpl: function() {
+      var fetch = this.fetch;
+      if (!(fetch && fetch.streams.length)) {
+        return false;
+      }
+
+      // Render any buffered logs.
+      var buffer = this._getOrBuildLogBuffer(fetch.streams);
+      if (buffer) {
+        // We will track how many log entries that we've rendered. If we exceed
+        // this amount, we will force a refresh so the logs appear streaming and
+        // the app remains responsive.
+        var rendered = 0;
+        var updated = {};
+
+        while (buffer.length && rendered < this.burst) {
+          // Get the next log. The buffer is sorted descendingly, so we can use
+          // pop to get it.
+          var log = buffer.pop();
+          rendered += this._appendLogEntry(log);
+
+          // Record our last appended log entry for this stream.
+          updated[log.fetchIndex] = log.streamIndex;
+        }
+
+        Object.keys(updated).forEach(function(idx) {
+          var statusKey = ("fetch.status." + idx + ".status");
+          this.set(statusKey, this._buildStreamStatus(
+                fetch.streams[idx], updated[idx]));
+        }.bind(this));
+
+        // If we rendered any logs, we will finish this write round.
+        if (rendered) {
+          return true;
+        }
+      }
+
+      // We didn't have any buffered logs, so either all of our streams are
+      // finished, or our buffer is empty and needs to be refreshed.
+      if(fetch.streams.every(function(v) {
+        return (v.finished());
+      })) {
+        console.log("All streams have been exhausted.");
+        this._cancelFetch();
+        return false;
+      }
+
+      // Fetch any streams' missing logs. If a stream already has buffered logs,
+      // skip it in this fetch.
+      Promise.all(fetch.streams.map(function(v) {
+        if (v.finished() || v.peek() !== null) {
+          // This stream still has buffered logs.
+          return null;
+        }
+        return v.fetcher.next();
+      })).then(function(result) {
+        result.forEach(function(v, i) {
+          if (v) {
+            fetch.streams[i].load(v.entries);
+          }
+        }.bind(this));
+        this._scheduleWriteNextLogs();
+      }.bind(this));
+      return false;
+    },
+
+    /**
+     * Examines the current buffered set of logs/streams. If sufficient logs
+     * are buffered to render the next log, it will be immediately added and
+     * this function will return "true". Otherwise, it will return "false",
+     * indicating that log fetch must be performed.
+     */
+    _getOrBuildLogBuffer: function(streams) {
+      if (this._bufferedLogs && this._bufferedLogs.length) {
+        return this._bufferedLogs;
+      }
+
+      // If we have no active streams, we can't buffer anything.
+      var active = [];
+      streams.forEach(function(v, idx) {
+        var next = v.peek();
+        if (next) {
+          active.push({
+            stream: v,
+            streamIndex: idx,
+            next: next,
+          });
+        }
+      });
+      if (!active.length) {
+        return null;
+      }
+
+      // Build our log buffer.
+      //
+      // TODO: A binary heap would be pretty great for this.
+      var buffer = [];
+      while (true) {
+        // Choose the next stream.
+        var earliest = 0;
+        for (var i = 1; i < active.length; i++) {
+          if (active[i].next.timestamp < active[earliest].next.timestamp) {
+            earliest = i;
+          }
+        }
+
+        // Get the next log from the earliest stream.
+        //
+        // Additionally, record the index in the original streams array that
+        // this log came from. We need this to update stream status when the
+        // log is consumed.
+        var nextStream = active[earliest];
+        var nextLog = nextStream.stream.pop();
+        nextLog.fetchIndex = nextStream.streamIndex;
+        buffer.push(nextLog);
+
+        nextStream.next = nextStream.stream.peek();
+        if (nextStream.next) {
+          // This stream has more logs, so we can continue building our buffer.
+          continue;
+        }
+
+        // This stream has no more buffered entries, so we're done.
+        //
+        // Reverse our log buffer so we can easily pop logs from it.
+        buffer.reverse();
+        this._bufferedLogs = buffer;
+        return buffer;
+      }
+    },
+
+    /** Adds a LogEntry to the log view. */
+    _appendLogEntry: function(le) {
+      var text = le.text;
+      if (!(text && text.lines)) {
+        return 0;
+      }
+      this.push("logs", le);
+      return le.text.lines.length;
+    },
+
+    /** Clears all current logs. */
+    _clearLogs: function() {
+      if (this.logs) {
+        this.splice("logs", 0, this.logs.length);
+      }
+      this._bufferedLogs = null;
+    },
+
+    /** Constructs the log stream status object for a given stream. */
+    _buildStreamStatus: function(stream, lastStreamIndex) {
+      if (!lastStreamIndex && lastStreamIndex !== 0) {
+        return "(Fetching)";
+      }
+
+      var tidx = stream.fetcher.terminalIndex;
+      if (tidx >= 0) {
+        return lastStreamIndex + " / " + tidx;
+      }
+      return lastStreamIndex + " (Streaming)";
+    },
+
+    /** Scrolls to the bottom if "follow" is enabled. */
+    _maybeScrollToBottom: function() {
+      if (this.follow) {
+        this.$.bottom.scrollIntoView({
+          "behavior": "smooth",
+          "block": "end",
+        });
+      }
+    },
+
+    /**
+     * Callback when "showMetadata" has changed. This adds/removes the
+     * "showMeta" CSS class from the metadata column.
+     */
+    _showMetadataChanged: function(v) {
+      this.toggleClass("showMeta", v, this.$.logs);
+     },
+    /**
+     * Callback when "wrapLines" has changed. This adds/removes the
+     * "wrapLines" CSS class to the logs table.
+     */
+    _wrapLinesChanged: function(v) {
+      this.toggleClass("wrapLines", v, this.$.logs);
+     },
+    /** Callback when "follow" has changed. */
+    _followChanged: function(v) {
+      this._maybeScrollToBottom();
+     },
+
+    /** Callback for when the mouse wheel has scrolled. Disables follow. */
+    _handleMouseWheel: function() {
+      this.follow = false;
+    },
+  });
+
+  /**
+   * Container for logs that have been punted.
+   */
+  function _BufferedStream(stream, fetcher) {
+    this.stream = stream;
+    this.fetcher = fetcher;
+
+    this._logs = null;
+  };
+  /**
+   * Refresh the buffer with the contents of the supplied logs array.
+   *
+   * @param {Array[Object]} logs The LogEntry protobuf objects from the fetcher
+   *     to load.
+   */
+  _BufferedStream.prototype.load = function(logs) {
+    // Disallow a state where "logs" is not null but empty.
+    if (!(logs && logs.length)) {
+      this._logs = null;
+      return;
+    }
+
+    // Clone and reverse the logs. This means that the last log will be the
+    // earliest.
+    this._logs = logs.splice(0);
+    this._logs.reverse();
+  };
+  /** @returns {Object} The next buffered log, or null if none are buffered */
+  _BufferedStream.prototype.peek = function() {
+    return (this._logs) ? (this._logs[this._logs.length-1]) : (null);
+  };
+  /**
+   * Returns the next buffered log, removing it from the buffer.
+   *
+   * @return {Object} The next buffered LogEntry, or null if the buffer is
+   *     empty.
+   */
+  _BufferedStream.prototype.pop = function() {
+    if (!this._logs) {
+      return null;
+    }
+
+    var log = this._logs.pop();
+    if (!this._logs.length) {
+      this._logs = null;
+    }
+    return log;
+  };
+  /** @returns {bool} true if the log stream is finished being fetched. */
+  _BufferedStream.prototype.finished = function() {
+    return this.fetcher.finished;
+  };
+</script>

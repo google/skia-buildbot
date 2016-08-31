@@ -1,0 +1,19 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "github.com/luci/luci-go/dm/api/service/v1/graph_data.proto";
+
+package dm;
+
+// FinishAttemptReq sets the final result of an Attempt.
+message FinishAttemptReq {
+  // required
+  dm.Execution.Auth auth = 1;
+
+  // The result data for this Attempt. The `size` field is recalculated after
+  // the data field is normalized, and may be omitted.
+  JsonResult data = 2;
+}

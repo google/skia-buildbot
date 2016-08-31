@@ -1,0 +1,15 @@
+indexes:
+
+- kind: Build
+  ancestor: yes
+  properties:
+  - name: revisions.generation
+    direction: desc
+
+- kind: buildbotBuild
+  properties:
+  - name: finished
+  - name: master
+  - name: builder
+  - name: number
+    direction: desc

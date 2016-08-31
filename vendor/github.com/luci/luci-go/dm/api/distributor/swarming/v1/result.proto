@@ -1,0 +1,15 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "github.com/luci/luci-go/dm/api/distributor/swarming/v1/isolate_ref.proto";
+
+package swarmingV1;
+
+// This is the swarming-specific result for Executions run via swarming.
+message Result {
+  int64 exit_code = 1;
+  swarmingV1.IsolatedRef isolated_outdir = 2;
+}

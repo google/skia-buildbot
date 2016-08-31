@@ -1,0 +1,117 @@
+# This presentation is in go present format
+# https://godoc.org/golang.org/x/tools/present
+# To render it, use https://godoc.org/golang.org/x/tools/cmd/present
+
+pRPC
+Basic gRPC on AppEngine
+9 Mar 2016
+Tags: rpc, prpc, grpc
+
+Nodir Turakulov
+Chrome-Infra / Platforms
+nodir@
+
+* Talk structure
+
+- gRPC overview
+- pRPC overview
+- demo
+- tools
+
+# I will start with a brief overview gRPC and the background of the pRPC project
+# Then I'll give an overview of pRPC.
+# Then I'll show pRPC in action.
+# And then I'll talk about some RPC tools that we've built for gRPC/pRPC.
+
+* gRPC
+
+* gRPC overview
+
+- new Google standard
+- next gen Stubby
+- open-source
+- Go, C++, Java, Python
+- based on HTTP/2
+- binary
+- unary, streaming, duplex requests
+- response codes
+
+# gRPC is the next generation Stubby.
+# It is open-source, so external developers like us can use it.
+# It supports C++, Java, Python and Go, but in this talk I will focus on Go.
+# Last but not least it is based on HTTP/2, which means it is faster than
+# HTTP 1.x
+
+* IDL
+
+.code helloworld.proto
+
+# In gRPC you define services in protocol buffers v3.
+
+# It supports comments, so when someone asks you what's your API
+# you don't have to point them out to your code, but the documentd proto file.
+
+* Go interfaces
+
+.code interfaces.go.snippet
+
+# After you compile the proto files to Go using the protobuf compiler, for each
+# service you have server and client interfaces.
+
+* Service code
+
+.code service.go.snippet
+
+* Client code
+
+.code client.go.snippet
+
+* gRPC issues
+
+- not supported by GAE
+- no browser support
+- no server-side OAuth 2.0
+- no discovery, no API Explorer
+
+* Dilemma
+
+.image dilemma.gif
+
+* pRPC (provisional RPC)
+
+* you write gRPC code, pRPC runs it on GAE
+
+* pRPC overview
+
+- same IDL, service and client interfaces
+- wire protocol based on HTTP 1.x, works on GAE
+- works in browser
+- supports binary, json and text protobuf formats.
+- server-side OAuth 2.0. Implemented by luci-go repo
+- does not support streaming, duplex
+- cproto tool: wrapped protobuf compiler
+
+* Extras
+
+- discovery
+- RPC Explorer
+- CLI tool
+- etc
+
+* Demo
+
+* Summary
+
+- pRPC runs gRPC code on GAE
+- discovery
+- RPC Explorer
+- CLI tool
+
+* Resources
+
+- slides, buildbot: [[https://github.com/luci/luci-go/tree/master/grpc/prpc/talk][luci-go/grpc/prpc/talk]]
+- demo: [[https://prpc-talk.appspot.com]]
+- docs: [[https://godoc.org/github.com/luci/luci-go/grpc/prpc]]
+- rpc explorer: [[https://github.com/luci/luci-go/tree/master/server/static/rpcexplorer][luci-go/server/static/rpcexplorer]]
+- polymer element: [[https://github.com/luci/luci-go/tree/master/server/static/rpc/][luci-go/server/static/rpc/]]
+- cproto, svxmux, svcdec: [[https://github.com/luci/luci-go/tree/master/tools/cmd][luci-go/tools/cmd]]

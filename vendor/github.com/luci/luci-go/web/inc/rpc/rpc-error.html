@@ -1,0 +1,28 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<script>
+  'use strict';
+
+  var luci = (function(luci) {
+
+    var rpc = luci.rpc = luci.rpc || {};
+
+    function GrpcError(code, description) {
+      if (code == null) {
+        throw Error('code is not set')
+      }
+      this.name = 'GrpcError';
+      this.code = code;
+      this.description = description;
+      this.message = 'code = ' + code + ' desc = ' + description;
+    }
+    GrpcError.prototype = Error();
+    rpc.GrpcError = GrpcError;
+
+    return luci;
+  }(luci || {}));
+</script>

@@ -1,0 +1,115 @@
+{{define "title"}}Cron Service :: {{.Job.ProjectID}} :: {{.Job.JobID}}{{end}}
+
+{{define "head"}}
+<style type="text/css">
+#invocations-table {
+  table-layout: fixed;
+}
+.underline {
+  text-decoration: underline !important;
+}
+</style>
+{{template "job-action-scripts" .}}
+{{end}}
+
+{{define "content"}}
+
+<ol class="breadcrumb">
+  <li><a href="/">All projects</a></li>
+  <li><a href="/jobs/{{.Job.ProjectID}}">{{.Job.ProjectID}}</a></li>
+  <li class="active"><a href="/jobs/{{.Job.ProjectID}}/{{.Job.JobID}}">{{.Job.JobID}}</a></li>
+</ol>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-3"><b>State:</b>
+      <span class="label {{.Job.LabelClass}}">{{.Job.State}}</span>
+    </div>
+    <div class="col-sm-3"><b>Schedule:</b> {{.Job.Schedule}}</div>
+    <div class="col-sm-3"><b>Next run:</b> {{.Job.NextRun}}</div>
+    <div class="col-sm-3"><b>Actions:</b>{{template "job-action-buttons" .Job}}</div>
+  </div>
+
+  <div class="col-sm-12">
+    <hr>
+  </div>
+
+  <h4>Definition
+  {{if .Job.RevisionURL}}
+    (rev <a href="{{.Job.RevisionURL}}" target="_blank">{{.Job.Revision}}</a>)
+  {{else}}
+    (rev {{.Job.Revision}})
+  {{end}}
+  </h4>
+  <div class="row">
+    <div class="col-sm-12">
+      <pre>{{.Job.Definition}}</pre>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-sm-12">
+      <table class="table table-condensed" id="invocations-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Started</th>
+            <th>Triggered by</th>
+            <th>Duration</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+        {{range .Invocations }}
+          <tr class="{{.RowClass}}">
+            <td><a href="/jobs/{{$.Job.ProjectID}}/{{$.Job.JobID}}/{{.InvID}}">{{.InvID}}</a></td>
+            <td>{{.Started}}</td>
+            <td>{{.TriggeredBy}}</td>
+            <td>{{.Duration}}</td>
+            <td>
+            {{if .ViewURL}}
+              <a href="{{.ViewURL}}" target="_blank" class="underline label {{.LabelClass}}">{{.Status}}</a>
+            {{else}}
+              <span class="label {{.LabelClass}}">{{.Status}}</span>
+            {{end}}
+            </td>
+          </tr>
+        {{end}}
+        </tbody>
+      </table>
+      <nav>
+        <ul class="pager">
+          {{if .PrevCursor}}
+            <li class="previous">
+              {{if eq .PrevCursor "NULL"}}
+              <a href="/jobs/{{$.Job.ProjectID}}/{{$.Job.JobID}}">
+              {{else}}
+              <a href="/jobs/{{$.Job.ProjectID}}/{{$.Job.JobID}}?c={{.PrevCursor}}">
+              {{end}}
+                <span aria-hidden="true">&larr;</span> Newer
+              </a>
+            </li>
+          {{else}}
+            <li class="previous disabled">
+              <a href="#"><span aria-hidden="true">&larr;</span> Newer</a>
+            </li>
+          {{end}}
+          {{if .NextCursor}}
+            <li class="next">
+              <a href="/jobs/{{$.Job.ProjectID}}/{{$.Job.JobID}}?c={{.NextCursor}}">
+                Older <span aria-hidden="true">&rarr;</span>
+              </a>
+            </li>
+          {{else}}
+            <li class="next disabled">
+              <a href="#">Older <span aria-hidden="true">&rarr;</span></a>
+            </li>
+          {{end}}
+        </ul>
+      </nav>
+    </div>
+  </div>
+
+</div>
+
+{{end}}

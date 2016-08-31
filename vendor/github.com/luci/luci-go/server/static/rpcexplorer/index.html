@@ -1,0 +1,30 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+  -->
+
+<!doctype html>
+<meta charset="UTF-8">
+<title>RPC Explorer</title>
+<script type="text/javascript"
+  src="/static/common/bower_components/webcomponentsjs/webcomponents-lite.js">
+</script>
+<link rel="stylesheet"
+      href="/static/common/bower_components/bootstrap/css/bootstrap.min.css">
+<link rel="import" href="/static/common/rpcexplorer/rpc-explorer.html">
+<style>
+  .ace_editor.ace_autocomplete {
+    width: 500px !important;
+  }
+  body {
+    margin-top: 5px;
+  }
+</style>
+
+<div class="container">
+  <rpc-explorer
+      root-path="/rpcexplorer"
+      client-id="446450136466-e77v49thuh5dculh78gumq3oncqe28m3.apps.googleusercontent.com"
+  ></rpc-explorer>
+</div>

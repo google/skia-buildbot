@@ -1,0 +1,33 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package test;
+
+import "github.com/luci/luci-go/grpc/internal/svctool/testdata/sub/sub.proto";
+import "google/protobuf/empty.proto";
+
+service S1 {
+  rpc M (M1) returns (M2) {}
+}
+
+service S2 {
+  rpc Get (Void) returns (M1) {}
+  rpc Set (M1) returns (Void) {}
+  rpc Imp(sub.Sub) returns (google.protobuf.Empty) {}
+}
+
+
+// The request message containing the user's name.
+message M1 {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message M2 {
+  string message = 1;
+}
+
+message Void {}

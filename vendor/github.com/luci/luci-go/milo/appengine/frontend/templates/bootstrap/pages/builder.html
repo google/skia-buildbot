@@ -1,0 +1,90 @@
+{{define "title"}}Builder {{.Builder.Name}}{{end}}
+
+{{define "head"}}{{end}}
+
+{{define "body"}}
+
+<div class="row">
+
+  <div class="col-md-6">
+    {{ if .Builder.CurrentBuilds }}
+      <h4>Current Builds</h4>
+      <ul>
+      {{ range .Builder.CurrentBuilds }}
+        <li>{{ .Link | linkify }}</a>
+          [Running for: {{ .ExecutionTime.Duration }}]
+          {{ .Text }}
+        </li>
+      {{ end }}
+      </ul>
+    {{ else }}
+      <h5>No current builds</h5>
+    {{ end }}
+  </div>
+
+  <div class="col-md-6">
+    {{ if .Builder.CurrentBuilds }}
+      <h4>Pending Build Requests</h4>
+      <ul>
+      {{ range .Builder.PendingBuilds }}
+        <li><small>({{ .PendingTime.Started | localTime "" }}, waiting {{ .PendingTime.Duration }})</small>
+        {{ $nb := len .Blame }}
+        {{ if lt $nb 4 }}
+          {{ range $i, $c := .Blame }}
+            (<a href="{{ .CommitURL }}">{{ .AuthorEmail }}</a>)
+            {{ if ne $i (sub $nb 1) }},{{ end }}
+          {{ end }}
+        {{ else }}
+          ({{ $nb }} changes)
+        {{ end }}
+        </li>
+      {{ end }}
+      </ul>
+    {{ else }}
+      <h5>No Pending Build Requests</h5>
+    {{ end }}
+  </div>
+
+  <div class="col-md-6">
+    <h2>Recent Builds:</h2>
+    <table class="table table-condensed table-hover table-striped">
+      <tr>
+        <th>Time</th>
+        <th>Revision</th>
+        <th>Result</th>
+        <th>Build #</th>
+        <th>Info</th>
+      </tr>
+
+      {{ range .Builder.FinishedBuilds }}
+          {{ if eq .Status.String "Success" }}
+            <tr class="success">
+              <td>{{ .ExecutionTime.Finished | localTime "" }}</td>
+              <td class="revision">{{ .Revision | shortHash}}</td>
+              <td>Success</td>
+              <td><a href="{{ .URL }}">{{ .URL }}</a></td>
+              <td class="left">{{ .Text }}</td>
+            </tr>
+          {{ else if eq .Status.String "Failure" }}
+            <tr class="danger">
+              <td>{{ .ExecutionTime.Finished | localTime "" }}</td>
+              <td>{{ .Revision | shortHash }}</td>
+              <td class="danger">Failed</td>
+              <td><a href="{{ .URL }}">{{ .URL }}</a></td>
+              <td class="left">{{ .Text }}</td>
+            </tr>
+          {{ else }}
+            <tr>
+              <td>{{ .ExecutionTime.Finished | localTime "" }}</td>
+              <td>{{ .Revision | shortHash }}</td>
+              <td> {{ .Status.String }} </td>
+              <td>{{.Link | linkify}}</td>
+              <td class="left">{{ .Text }}</td>
+            </tr>
+          {{ end }}
+      {{ end }}
+    </table>
+  </div>
+
+</div>
+{{ end }}

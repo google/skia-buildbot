@@ -1,0 +1,25 @@
+// Copyright 2015 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package svcconfig;
+
+// Transport is the transport configuration.
+message Transport {
+  // PubSub is a transport configuration for Google Cloud Pub/Sub.
+  message PubSub {
+    // The name of the authentication group for administrators.
+    string project = 1;
+    // The name of the authentication group for administrators.
+    string topic = 2;
+    // The name of the authentication group for administrators.
+    string subscription = 3;
+  }
+
+  // Type is the transport configuration that is being used.
+  oneof Type {
+    PubSub pubsub = 1;
+  }
+}

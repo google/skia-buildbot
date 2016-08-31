@@ -1,0 +1,83 @@
+<!--
+  Copyright 2016 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<!doctype html>
+<title>rpc-descriptor-util</title>
+
+<script src="../../bower_components/web-component-tester/browser.js"></script>
+<link rel="import" href="../rpc-descriptor-util.html">
+<link rel="import" href="descriptor.html">
+
+<script>
+  suite('rpcExplorer.descUtil', function() {
+    var util = rpcExplorer.descUtil;
+
+    suite('resolve', function() {
+      function testResolve(fullName, type, name) {
+        test(fullName, function () {
+          var result = util.resolve(discoveryDescriptor, fullName);
+          expect(result).to.ok;
+          expect(result.type).to.equal(type);
+          expect(result.desc).to.ok;
+          expect(result.desc.name).to.equal(name);
+        });
+      }
+
+      testResolve('discovery.Discovery', 'service', 'Discovery');
+      testResolve('discovery.Discovery.Describe', 'method', 'Describe');
+      testResolve(
+          'google.protobuf.FileDescriptorSet',
+          'messageType',
+          'FileDescriptorSet');
+      testResolve(
+          'google.protobuf.FileDescriptorSet.file',
+          'field',
+          'file');
+      testResolve(
+          'google.protobuf.FieldDescriptorProto.Type',
+          'enumType',
+          'Type');
+      testResolve(
+          'google.protobuf.FieldOptions.JSType.JS_NORMAL',
+          'enumValue',
+          'JS_NORMAL');
+    });
+
+    suite('annotate', function() {
+      var descriptor = JSON.parse(JSON.stringify(discoveryDescriptor));
+      util.annotateSet(descriptor);
+
+      function testAnnotate(name, comment) {
+        test(name, function() {
+          var desc = util.resolve(descriptor, name).desc;
+          expect(desc).to.be.ok;
+          expect(desc.sourceCodeInfo).to.be.ok;
+          expect(desc.sourceCodeInfo.leadingComments).to.equal(comment);
+        });
+      }
+
+      testAnnotate(
+          'discovery.Discovery',
+          ' Discovery describes services.\n');
+      testAnnotate(
+          'discovery.Discovery.Describe',
+          (' Describe returns a list of services and a ' +
+           'descriptor.FileDescriptorSet\n that covers them all.\n'));
+      testAnnotate(
+          'discovery.Void',
+          ' Void is an empty message.\n');
+      testAnnotate(
+          'discovery.DescribeResponse.services',
+          ' Services are service names provided by a server.\n');
+      testAnnotate(
+          'google.protobuf.FileOptions.OptimizeMode',
+          ' Generated classes can be optimized for speed or code size.\n');
+      testAnnotate(
+          'google.protobuf.FieldOptions.JSType.JS_NORMAL',
+          ' Use the default type.\n');
+    });
+  });
+</script>

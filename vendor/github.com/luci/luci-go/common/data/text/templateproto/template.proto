@@ -1,0 +1,114 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package templateproto;
+
+// Value defines a specific value for a parameter, and is used at Template
+// expansion time.
+message Value {
+  oneof value {
+    int64  int   = 1;
+    uint64 uint  = 2;
+    double float = 3;
+    bool   bool  = 4;
+
+    string str   = 5;
+    bytes  bytes = 6;
+
+    string object = 7;
+    string array  = 8;
+
+    google.protobuf.Empty null = 9;
+  }
+}
+
+message Schema {
+  message Set {
+    message Entry {
+      // Markdown-formatted documentation for this schema entry.
+      string doc = 1;
+      string token = 2;
+    }
+    // entry lists the possible tokens that this set can have.
+    repeated Entry entry = 1;
+  }
+
+  message JSON {
+    // restricts the maximum amount of bytes that a Value for this field may
+    // take.
+    uint32 max_length = 1;
+
+    // TODO(iannucci): allow some sort of sub-schema for these suckers.
+  }
+
+  message Sequence {
+    // restricts the maximum amount of bytes that a Value for this field may
+    // take.
+    uint32 max_length = 1;
+  }
+
+  message Atom {}
+
+  oneof schema {
+    Atom int = 1;
+    Atom uint = 2;
+    Atom float = 3;
+    Atom bool = 4;
+
+    Sequence str = 5;
+    Sequence bytes = 6;
+
+    Set enum = 7; // populated with Value_Str
+
+    JSON object = 8;
+    JSON array = 9;
+  }
+}
+
+// File represents a file full of template definitions.
+message File {
+  // Template defines a single template.
+  message Template {
+    // Markdown-formatted documentation for this schema entry.
+    string doc = 1;
+
+    // body is the main JSON output for this template. It must have the form
+    // of valid json, modulo the substitution parameters. In order for this
+    // Template to be valid, body must parse as valid JSON, after all
+    // substitutions have been applied.
+    string body = 2;
+
+    message Parameter {
+      // Markdown-formatted documentation for this schema entry.
+      string doc = 1;
+
+      Value default = 2;
+
+      // nullable indicates if 'null' is a valid value for this parameter. This
+      // can be used to distinguish e.g. "" from not-supplied. If default is
+      // Value{null: {}}, this must be true.
+      bool nullable = 3;
+
+      Schema schema = 4;
+    }
+
+    // param is a listing of all of the parameterized bits in the Template body.
+    // The key must match the regex /\${[^}]+}/. So "${foo}" would be ok, but
+    // "foo", "$foo", or "${}" would not.
+    //
+    // params provided here must be present in Body at least once in order
+    // for the Template to be valid.
+    map<string, Parameter> param = 3;
+  }
+  map<string, Template> template = 1;
+}
+
+message Specifier {
+  string template_name = 1;
+  map<string, Value> params = 2;
+}

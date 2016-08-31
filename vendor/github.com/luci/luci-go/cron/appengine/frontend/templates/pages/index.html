@@ -1,0 +1,49 @@
+{{define "title"}}Cron Service{{end}}
+
+{{define "head"}}
+<style type="text/css">
+#jobs-table {
+  table-layout: fixed;
+}
+</style>
+{{template "job-action-scripts" .}}
+{{end}}
+
+{{define "content"}}
+
+<ol class="breadcrumb">
+  <li class="active"><a href="/">All projects</a></li>
+</ol>
+
+<div class="container">
+  <div class="row">
+    <div class="col-sm-12">
+      <table class="table" id="jobs-table">
+        <thead>
+          <tr>
+            <th style="width: 150px;">Project</th>
+            <th style="width: 300px;">Job</th>
+            <th style="width: 200px;">Schedule</th>
+            <th style="width: 120px;">State</th>
+            <th>Next run</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {{range .Jobs }}
+          <tr>
+            <td><a href="/jobs/{{.ProjectID}}">{{.ProjectID}}</a></td>
+            <td><a href="/jobs/{{.ProjectID}}/{{.JobID}}">{{.JobID}}</a></td>
+            <td>{{.Schedule}}</td>
+            <td><span class="label {{.LabelClass}}">{{.State}}</span></td>
+            <td>{{.NextRun}}</td>
+            <td>{{template "job-action-buttons" .}}</td>
+          </tr>
+        {{end}}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{{end}}

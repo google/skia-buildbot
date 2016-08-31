@@ -1,0 +1,205 @@
+<!--
+  Copyright 2015 The LUCI Authors. All rights reserved.
+  Use of this source code is governed under the Apache License, Version 2.0
+  that can be found in the LICENSE file.
+-->
+
+<link rel="import" href="../../inc/bower_components/polymer/polymer.html">
+<link rel="import" href="../../inc/bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../inc/bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../../inc/bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../inc/bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../inc/bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../../inc/bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../inc/bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../../inc/bower_components/paper-menu/paper-submenu.html">
+<link rel="import" href="../../inc/bower_components/paper-scroll-header-panel/paper-scroll-header-panel.html">
+<link rel="import" href="../../inc/bower_components/paper-styles/typography.html">
+<link rel="import" href="../../inc/bower_components/paper-styles/default-theme.html">
+<link rel="import" href="../../inc/bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../../inc/bower_components/paper-toolbar/paper-toolbar.html">
+
+<link rel="import" href="logdog-home-page.html">
+<link rel="import" href="../../inc/logdog-list-view/logdog-list-view.html">
+<link rel="import" href="../../inc/logdog-stream-view/logdog-stream-view.html">
+<link rel="import" href="../../inc/auth/auth-signin.html">
+
+<!--
+An element for the main LogDog web app.
+-->
+<dom-module id="logdog-app">
+
+<template>
+  <style is="custom-style">
+    :host {
+      @apply(--paper-font-common-base);
+
+      /* Needed because default (1) cuts off "g" in LogDog. */
+      --paper-toolbar-title: {
+        line-height: 2;
+      };
+    }
+
+    #auth-signin-block {
+        background-color: var(--paper-light-blue-300);
+        padding: 10px 5px 10px 5px;
+        border-radius: 10px;
+        @apply(--paper-font-common-base);
+    }
+
+    .content {
+      overflow-x: auto;
+      height: 100%;
+    }
+  </style>
+
+  <paper-drawer-panel id="paperDrawerPanel">
+    <!-- Drawer Scroll Header Panel -->
+    <paper-scroll-header-panel drawer fixed>
+
+      <!-- Drawer Toolbar -->
+      <paper-toolbar id="drawerToolbar">
+        <span class="title">Menu</span>
+      </paper-toolbar>
+
+      <!-- Drawer Content -->
+      <paper-menu selected="{{route}}" attr-for-selected="data-route">
+        <paper-icon-item on-tap="_menuSelected" data-route="root" path="#!/">
+          <iron-icon icon="home"></iron-icon>
+          Home
+        </paper-icon-item>
+
+        <paper-icon-item on-tap="_menuSelected" data-route="list"
+                         path="#!/list/">
+          <iron-icon icon="info"></iron-icon>
+          List
+        </paper-icon-item>
+
+        <paper-icon-item on-tap="_menuSelected" data-route="stream"
+                         path="#!/stream/">
+          <iron-icon icon="info"></iron-icon>
+          Stream
+        </paper-icon-item>
+      </paper-menu>
+    </paper-scroll-header-panel>
+
+    <!-- Main Area -->
+    <paper-scroll-header-panel main id="headerPanelMain"
+        condenses keep-condensed-header>
+      <!-- Main Toolbar -->
+      <paper-toolbar id="mainToolbar">
+        <paper-icon-button id="paperToggle" role="button" tabindex="0"
+            icon="menu" paper-drawer-toggle></paper-icon-button>
+
+        <!-- Application name -->
+        <span class="title">LogDog</span>
+
+        <!-- Toolbar icons -->
+        <template is="dom-if" if="{{clientId}}">
+          <div id="auth-signin-block">
+            <auth-signin
+                client-id="[[clientId]]"></auth-signin>
+          </div>
+        </template>
+      </paper-toolbar>
+
+      <!-- Main Content -->
+      <div class="content">
+        <iron-pages selected="[[route]]" attr-for-selected="data-route"
+            on-iron-select="_contentSelect"
+            on-iron-deselect="_contentDeselect">
+          <section data-route="root">
+            <logdog-home-page></logdog-home-page>
+          </section>
+
+          <section data-route="list">
+            <logdog-list-view
+                id="list"
+                host="[[host]]"
+                link-base="#!/list/"
+                stream-link-base="#!/stream/"
+                show-metadata="[[streamMetadata]]"
+                wrap-lines="[[streamWrapLines]]"
+                >
+            </logdog-list-view>
+          </section>
+
+          <section data-route="stream">
+            <logdog-stream-view
+              id="stream"
+              host="[[host]]"></logdog-stream-view>
+          </section>
+        </iron-pages>
+      </div>
+    </paper-scroll-header-panel>
+  </paper-drawer-panel>
+
+  <paper-toast id="toast">
+    <span class="toast-hide-button" role="button" tabindex="0"
+        onclick="app.$.toast.hide()">Ok</span>
+  </paper-toast>
+
+</template>
+
+</dom-module>
+
+<script>
+  "use strict";
+
+  Polymer({
+    is: "logdog-app",
+    properties: {
+      route: {
+        type: String,
+        notify: true,
+      },
+      host: {
+        type: String,
+        notify: true,
+        value: app.host,
+      },
+      clientId: {
+        type: String,
+        notify: true,
+      },
+      listBase: {
+        type: String,
+        notify: true,
+      },
+    },
+
+    _menuSelected: function(e) {
+      var path = e.currentTarget.getAttribute("path");
+      this.scrollPageToTop();
+      page.redirect(path);
+    },
+
+    _contentSelect: function(e) {
+      if (this.route === "stream") {
+        this.$.stream.reset();
+      }
+    },
+    _contentDeselect: function(e) {
+      // Tell our stream to stop if the selection changes.
+      if (this.route !== "stream") {
+        this.$.stream.stop();
+      }
+    },
+
+    // Scroll page to top and expand header
+    scrollPageToTop: function() {
+      this.$.headerPanelMain.scrollToTop(true);
+    },
+
+    closeDrawer: function() {
+      this.$.paperDrawerPanel.closeDrawer();
+    },
+  });
+
+  (function(i,s,o,g,r,a,m){i['CrDXObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://storage.googleapis.com/crdx-feedback.appspot.com/feedback.js','crdx');
+
+  crdx('setFeedbackButtonLink', 'https://bugs.chromium.org/p/chromium/issues/entry?components=Infra>Platforms>LogDog&labels=Infra-DX');
+</script>

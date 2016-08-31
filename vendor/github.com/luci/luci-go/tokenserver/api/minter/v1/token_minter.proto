@@ -1,0 +1,260 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package tokenserver.minter;
+
+import "google/protobuf/timestamp.proto";
+
+import "github.com/luci/luci-go/tokenserver/api/machine_token.proto";
+import "github.com/luci/luci-go/tokenserver/api/service_account.proto";
+
+// The kinds of tokens the token server can mint.
+enum TokenType {
+  UNKNOWN_TYPE               = 0; // used if the field is not initialized
+  GOOGLE_OAUTH2_ACCESS_TOKEN = 1; // OAuth2 service account access token
+  LUCI_MACHINE_TOKEN         = 2; // luci-specific short lived machine token
+}
+
+// Supported ways of singing the request.
+enum SignatureAlgorithm {
+  UNKNOWN_ALGO    = 0; // used if the field is not initialized
+  SHA256_RSA_ALGO = 1; // matches x509's sha256WithRSAEncryption
+}
+
+// Possible kinds of fatal errors.
+//
+// Non fatal errors are returned as grpc.Internal errors instead.
+enum ErrorCode {
+  SUCCESS                = 0;
+  UNSUPPORTED_SIGNATURE  = 1; // used signature_algorithm is not supported
+  UNSUPPORTED_TOKEN_TYPE = 2; // requested token_type is not supported
+  BAD_TIMESTAMP          = 3; // issued_at field is wrong
+  BAD_CERTIFICATE_FORMAT = 4; // malformed or unsupported certificate
+  BAD_SIGNATURE          = 5; // signature doesn't match or can't be verified
+  UNTRUSTED_CERTIFICATE  = 6; // invalid certificate or can't verify it yet
+  BAD_TOKEN_ARGUMENTS    = 7; // FQDN or Scopes are invalid or not whitelisted
+  TOKEN_MINTING_ERROR    = 8; // unspecified fatal error when minting a token
+}
+
+// TokenMinter implements main API of the token server.
+service TokenMinter {
+  // MintMachineToken generates a new token for an authenticated machine.
+  //
+  // It checks that provided certificate was signed by some trusted CA, and it
+  // is still valid (non-expired and hasn't been revoked). It then checks that
+  // the request was signed by the corresponding private key. Finally it checks
+  // that the caller is authorized to generate requested kind of token.
+  //
+  // If everything checks out, it generates and returns a new machine token.
+  //
+  // On fatal error it returns detailed error response via same
+  // MintMachineTokenResponse. On transient errors it returns generic
+  // grpc.Internal error.
+  rpc MintMachineToken(MintMachineTokenRequest) returns (MintMachineTokenResponse);
+
+  // InspectMachineToken decodes a machine token and verifies it is valid.
+  //
+  // It verifies the token was signed by a private key of the token server and
+  // checks token's expiration time and revocation status.
+  //
+  // It tries to give as much information about the token and its status as
+  // possible (e.g. it checks for revocation status even if token is already
+  // expired).
+  //
+  // Administrators can use this call to debug issues with tokens.
+  //
+  // Returns:
+  //   InspectMachineTokenResponse for tokens of supported kind.
+  //   grpc.InvalidArgument error for unsupported token kind.
+  //   grpc.Internal error for transient errors.
+  rpc InspectMachineToken(InspectMachineTokenRequest) returns (InspectMachineTokenResponse);
+}
+
+// MintMachineTokenRequest wraps a serialized and signed MachineTokenRequest
+// message.
+message MintMachineTokenRequest {
+  // The protobuf-serialized MachineTokenRequest message, signed by the private
+  // key that matches MachineTokenRequest.certificate.
+  //
+  // We have to send it as a byte blob to avoid dealing with possible protobuf
+  // serialization inconsistencies when checking the signature.
+  bytes serialized_token_request = 1;
+
+  // The signature of 'serialized_token_parameters' blob.
+  //
+  // See MachineTokenRequest.signature_algorithm for exact meaning.
+  bytes signature = 2;
+}
+
+// MachineTokenRequest contains the actual request parameters.
+message MachineTokenRequest {
+  // The certificate that identifies a caller (as ASN1-serialized blob).
+  //
+  // It will be used to extract machine FQDN (it's CN of the cert) and CA name
+  // to use to check the cert.
+  bytes certificate = 1;
+
+  // The signature algorithm used to sign this request.
+  //
+  // Defines what's in MintMachineTokenRequest.signature field.
+  SignatureAlgorithm signature_algorithm = 2;
+
+  // Timestamp when this request was created, by the issuer clock.
+  google.protobuf.Timestamp issued_at = 3;
+
+  // The token type being requested.
+  //
+  // Defines what fields of the response are set.
+  TokenType token_type = 4;
+
+  // The list of API scopes to grant to the OAuth2 token.
+  //
+  // It is validated against a whitelist specified in config.DomainConfig.
+  repeated string oauth2_scopes = 5;
+}
+
+// MintMachineTokenResponse is returned by 'MintMachineToken' if the server
+// processed the request.
+//
+// It's returned even if server refuses to mint a token. It contains the error
+// details in that case.
+message MintMachineTokenResponse {
+  // Possible kinds of fatal errors.
+  //
+  // Non fatal errors are returned as grpc.Internal errors instead.
+  ErrorCode error_code = 1;
+
+  // Optional detailed error message.
+  string error_message = 2;
+
+  // On success (SUCCESS error code) contains the produced token.
+  MachineTokenResponse token_response = 3;
+
+  // Identifier of the service and its version that produced the response.
+  //
+  // Set for both successful responses and errors. On success, it is identical
+  // to token_response.service_version.
+  string service_version = 4;
+}
+
+// MachineTokenResponse contains a token requested by MachineTokenRequest.
+message MachineTokenResponse {
+  // The service account associated with the returned token (if any).
+  tokenserver.ServiceAccount service_account = 1;
+
+  // Identifier of the service and its version that produced the token.
+  //
+  // Has the form "<app-id>/<module-version>". Reported to the monitoring by
+  // the client. This is _not_ a part of the token.
+  string service_version = 2;
+
+  // The generated token.
+  //
+  // The exact field set here depends on a requested type of the token, see
+  // MachineTokenRequest.token_type.
+  oneof token_type {
+    OAuth2AccessToken google_oauth2_access_token = 20;
+    LuciMachineToken luci_machine_token = 21;
+  }
+}
+
+// OAuth2AccessToken represent short lived OAuth2 access token that can be put
+// into Authorization header.
+//
+// Usually it is standard OAuth2 tokens as understood by Google Cloud Platform.
+//
+// TODO(vadimsh): Remove.
+message OAuth2AccessToken {
+  string access_token = 1;              // the actual token
+  string token_type = 2;                // type of the token, usually "Bearer"
+  google.protobuf.Timestamp expiry = 3; // when the token expires
+}
+
+// LuciMachineToken is short lived machine token.
+//
+// It is understood only by LUCI backends. It is a bearer token, that embeds
+// machine hostname and details about the machine certificate it was issued for.
+// It has short lifetime (usually 1h).
+//
+// It is expected to be sent to backends in 'X-Luci-Machine-Token' HTTP header.
+//
+// The token here is supposed to be treated as an opaque base64-encoded blob,
+// but in reality it is serialized MachineTokenEnvelope, see machine_token.proto
+// and read the comment there for more info about the token format.
+message LuciMachineToken {
+  string machine_token = 1;             // the actual token
+  google.protobuf.Timestamp expiry = 2; // when the token expires
+}
+
+// InspectMachineTokenRequest is body of InspectMachineToken RPC call.
+//
+// It contains machine token of some kind.
+message InspectMachineTokenRequest {
+  // The type of token being checked.
+  //
+  // Currently only LUCI_MACHINE_TOKEN is supported.
+  TokenType token_type = 1;
+
+  // The token body. Exact meaning depends on token_type.
+  string token = 2;
+}
+
+// InspectMachineTokenResponse is return value of InspectMachineToken RPC call.
+message InspectMachineTokenResponse {
+  // True if the token is valid.
+  //
+  // A token is valid if its signature is correct, it hasn't expired yet and
+  // the credentials it was built from (e.g. a certificate) wasn't revoked.
+  bool valid = 1;
+
+  // Human readable summary of why token is invalid.
+  //
+  // Summarizes the rest of the fields of this struct. Set only if 'valid' is
+  // false.
+  string invalidity_reason = 2;
+
+  // True if the token signature was verified.
+  //
+  // It means the token was generated by the trusted server and its body is not
+  // a garbage. Note that a token can be correctly signed, but invalid (if it
+  // has expired or was revoked).
+  //
+  // If 'signed' is false, token_type below may (or may not) be a garbage.
+  // The token server uses private keys managed by Google Cloud Platform, they
+  // are constantly being rotated and "old" signatures become invalid over time
+  // (when corresponding keys are rotated out of existence).
+  //
+  // If 'signed' is false, use the rest of the response only as FYI, possibly
+  // invalid or even maliciously constructed.
+  bool signed = 3;
+
+  // True if the token signature was verified and token hasn't expired yet.
+  //
+  // We use "non_" prefix to make default 'false' value safer.
+  bool non_expired =45;
+
+  // True if the token signature was verified and the token wasn't revoked.
+  //
+  // It is possible for an expired token to be non revoked. They are independent
+  // properties.
+  //
+  // We use "non_" prefix to make default 'false' value safer.
+  bool non_revoked = 5;
+
+  // Id of a private key used to sign this token, if applicable.
+  string signing_key_id = 6;
+
+  // Name of a CA that issued the cert the token is based on, if applicable.
+  //
+  // Resolved from 'ca_id' field of the token body.
+  string cert_ca_name = 7;
+
+  // The decoded token body (depends on token_type request parameter). Empty if
+  // token was malformed and couldn't be deserialized.
+  oneof token_type {
+    tokenserver.MachineTokenBody luci_machine_token = 20;
+  }
+}

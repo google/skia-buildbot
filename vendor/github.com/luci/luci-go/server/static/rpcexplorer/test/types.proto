@@ -1,0 +1,40 @@
+// Copyright 2016 The LUCI Authors. All rights reserved.
+// Use of this source code is governed under the Apache License, Version 2.0
+// that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package rpcexplorer;
+
+message M {
+    // i is integer
+    int32 i = 1;
+    repeated int32 ri = 2;
+    string s = 3;
+    E e = 4;
+    M2 m = 10;
+    // mr is repeated message
+    // second line.
+    repeated M2 mr = 11;
+}
+
+message M2 {
+    int32 i = 1;
+    string s = 2;
+}
+
+message MapContainer {
+    map<int32, M> im = 1;
+    map<int32, int32> ii = 2;
+}
+
+enum E {
+    // V0 comment.
+    V0 = 0;
+    // V1 comment.
+    V1 = 1;
+}
+
+message MultiWord {
+    string foo_bar = 1;
+}
