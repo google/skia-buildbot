@@ -13,6 +13,7 @@ import (
 )
 
 type inMemoryDB struct {
+	CommentBox
 	tasks    map[string]*Task
 	tasksMtx sync.RWMutex
 	modTasks ModifiedTasks
@@ -112,7 +113,7 @@ func (db *inMemoryDB) StopTrackingModifiedTasks(id string) {
 
 // NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
 // implementation.
-func NewInMemoryDB() DB {
+func NewInMemoryDB() TaskAndCommentDB {
 	db := &inMemoryDB{
 		tasks: map[string]*Task{},
 	}
