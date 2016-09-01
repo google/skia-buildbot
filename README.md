@@ -36,6 +36,27 @@ $ gclient sync
 
 This fetches additional dependencies specified by the DEPS file.
 
+Install [Node.js](https://nodejs.org/en/download/) (not as root) and add the bin dir to your
+path. Optionally run `npm install npm -g`, as suggested by the
+[npm getting started doc](https://docs.npmjs.com/getting-started/installing-node#updating-npm).
+
+Install other dependencies:
+
+```
+$ sudo apt-get install python-django redis-server
+$ go get github.com/kisielk/errcheck \
+  golang.org/x/tools/cmd/goimports \
+  github.com/luci/luci-go/client/cmd/isolate
+$ npm install -g polylint bower
+```
+
+Build from GOPATH:
+
+```
+$ cd $GOPATH/src/go.skia.org/infra/
+$ make all
+```
+
 Database Setup for Testing
 ==========================
 
@@ -63,23 +84,6 @@ Running unit tests
 ==================
 
 Install [Cloud SDK](https://cloud.google.com/sdk/).
-
-Install other dependencies:
-
-```
-$ sudo apt-get install npm nodejs-legacy python-django redis-server
-$ go get github.com/kisielk/errcheck
-$ go get golang.org/x/tools/cmd/goimports
-$ go get github.com/luci/luci-go/client/cmd/isolate
-$ sudo npm install -g polylint bower
-```
-
-Build from GOPATH:
-
-```
-$ cd $GOPATH/src/go.skia.org/infra/
-$ make all
-```
 
 Use this command to run the presubmit tests:
 
