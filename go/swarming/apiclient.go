@@ -72,9 +72,13 @@ type ApiClient interface {
 	// RetryTask triggers a retry of the given task.
 	RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
 
-	// GetTask returns a swarming.SwarmingRpcsTaskRequestMetadata instance
-	// corresponding to the given Skia Swarming task.
-	GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
+	// GetTask returns a swarming.SwarmingRpcsTaskResult instance
+	// corresponding to the given Swarming task.
+	GetTask(id string) (*swarming.SwarmingRpcsTaskResult, error)
+
+	// GetTaskMetadata returns a swarming.SwarmingRpcsTaskRequestMetadata instance
+	// corresponding to the given Swarming task.
+	GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error)
 }
 
 type apiClient struct {
@@ -310,7 +314,13 @@ func (c *apiClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swa
 	return c.TriggerTask(newReq)
 }
 
-func (c *apiClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *apiClient) GetTask(id string) (*swarming.SwarmingRpcsTaskResult, error) {
+	call := c.s.Task.Result(id)
+	call.IncludePerformanceStats(true)
+	return call.Do()
+}
+
+func (c *apiClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	var wg sync.WaitGroup
 
 	// Get the task result.
@@ -319,9 +329,7 @@ func (c *apiClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadat
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		call := c.s.Task.Result(id)
-		call.IncludePerformanceStats(true)
-		task, taskErr = call.Do()
+		task, taskErr = c.GetTask(id)
 	}()
 
 	// Get the task request.

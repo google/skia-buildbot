@@ -367,7 +367,7 @@ func main() {
 			glog.Infof("Revisiting %d tasks.", len(revisitTasks))
 			glog.Flush()
 			for id, _ := range revisitTasks {
-				task, err := swarm.GetTask(id)
+				task, err := swarm.GetTaskMetadata(id)
 				if err != nil {
 					glog.Error(err)
 					glog.Flush()

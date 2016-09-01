@@ -37,6 +37,56 @@ func makeTask(name, repo, revision string) *db.Task {
 	}
 }
 
+func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_api.SwarmingRpcsTaskRequestMetadata {
+	tag := func(k, v string) string {
+		return fmt.Sprintf("%s:%s", k, v)
+	}
+	ts := func(t time.Time) string {
+		return t.Format(swarming.TIMESTAMP_FORMAT)
+	}
+	abandoned := ""
+	state := db.SWARMING_STATE_PENDING
+	failed := false
+	switch task.Status {
+	case db.TASK_STATUS_MISHAP:
+		state = db.SWARMING_STATE_BOT_DIED
+		abandoned = ts(task.Finished)
+	case db.TASK_STATUS_RUNNING:
+		state = db.SWARMING_STATE_RUNNING
+	case db.TASK_STATUS_FAILURE:
+		state = db.SWARMING_STATE_COMPLETED
+		failed = true
+	case db.TASK_STATUS_SUCCESS:
+		state = db.SWARMING_STATE_COMPLETED
+	case db.TASK_STATUS_PENDING:
+		// noop
+	default:
+		assert.FailNow(t, "Unknown task status: %s", task.Status)
+	}
+	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
+		Request: &swarming_api.SwarmingRpcsTaskRequest{},
+		TaskId:  task.SwarmingTaskId,
+		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
+			AbandonedTs: abandoned,
+			CreatedTs:   ts(task.Created),
+			CompletedTs: ts(task.Finished),
+			Failure:     failed,
+			OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
+				Isolated: "???",
+			},
+			StartedTs: ts(task.Started),
+			State:     state,
+			Tags: []string{
+				tag(db.SWARMING_TAG_ID, task.Id),
+				tag(db.SWARMING_TAG_NAME, task.Name),
+				tag(db.SWARMING_TAG_REPO, task.Repo),
+				tag(db.SWARMING_TAG_REVISION, task.Revision),
+			},
+			TaskId: task.SwarmingTaskId,
+		},
+	}
+}
+
 func TestFindTaskCandidates(t *testing.T) {
 	testutils.SkipIfShort(t)
 
@@ -583,6 +633,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	t1.Status = db.TASK_STATUS_SUCCESS
 	t1.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t1))
+	assert.NoError(t, cache.Update())
 
 	// Regenerate the task queue.
 	assert.NoError(t, s.regenerateTaskQueue())
@@ -612,6 +663,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	t2.Status = db.TASK_STATUS_SUCCESS
 	t2.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t2))
+	assert.NoError(t, cache.Update())
 
 	// Regenerate the task queue.
 	assert.NoError(t, s.regenerateTaskQueue())
@@ -636,6 +688,7 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	t3.Status = db.TASK_STATUS_SUCCESS
 	t3.IsolatedOutput = "fake isolated hash"
 	assert.NoError(t, d.PutTask(t3))
+	assert.NoError(t, cache.Update())
 
 	// Regenerate the task queue.
 	assert.NoError(t, s.regenerateTaskQueue())
@@ -855,14 +908,9 @@ func TestSchedulingE2E(t *testing.T) {
 	t1.Finished = time.Now()
 	t1.IsolatedOutput = "abc123"
 	assert.NoError(t, d.PutTask(t1))
-	assert.NoError(t, cache.Update())
-	tasks, err = cache.GetTasksForCommits(repoName, []string{c1, c2})
-	assert.NoError(t, err)
-	for _, v := range tasks {
-		for _, task := range v {
-			assert.True(t, task.Done())
-		}
-	}
+	swarmingClient.MockTasks([]*swarming_api.SwarmingRpcsTaskRequestMetadata{
+		makeSwarmingRpcsTaskRequestMetadata(t, t1),
+	})
 
 	// No bots free. Ensure that the queue is correct.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
@@ -926,11 +974,17 @@ func TestSchedulingE2E(t *testing.T) {
 	t2.Status = db.TASK_STATUS_SUCCESS
 	t2.Finished = time.Now()
 	t2.IsolatedOutput = "abc123"
-	assert.NoError(t, d.PutTask(t2))
-	assert.NoError(t, cache.Update())
 
 	// No new bots free; ensure that the newly-available tasks are in the queue.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{})
+	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{
+		makeSwarmingRpcsTaskRequestMetadata(t, t2),
+		makeSwarmingRpcsTaskRequestMetadata(t, t3),
+	}
+	if t4 != nil {
+		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, t4))
+	}
+	swarmingClient.MockTasks(mockTasks)
 	assert.NoError(t, s.MainLoop())
 	expectLen = 1 // Test task from c1
 	if t2.Revision == c2 {
@@ -939,20 +993,27 @@ func TestSchedulingE2E(t *testing.T) {
 	assert.Equal(t, expectLen, len(s.queue))
 
 	// Finish the other tasks.
+	t3, err = cache.GetTask(t3.Id)
+	assert.NoError(t, err)
 	t3.Status = db.TASK_STATUS_SUCCESS
 	t3.Finished = time.Now()
 	t3.IsolatedOutput = "abc123"
-	assert.NoError(t, d.PutTask(t3))
 	if t4 != nil {
+		t4, err = cache.GetTask(t4.Id)
+		assert.NoError(t, err)
 		t4.Status = db.TASK_STATUS_SUCCESS
 		t4.Finished = time.Now()
 		t4.IsolatedOutput = "abc123"
-		assert.NoError(t, d.PutTask(t4))
 	}
-	assert.NoError(t, cache.Update())
 
 	// Ensure that we finally run all of the tasks and insert into the DB.
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
+	mockTasks = []*swarming_api.SwarmingRpcsTaskRequestMetadata{
+		makeSwarmingRpcsTaskRequestMetadata(t, t3),
+	}
+	if t4 != nil {
+		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, t4))
+	}
 	assert.NoError(t, s.MainLoop())
 	tasks, err = cache.GetTasksForCommits(repoName, []string{c1, c2})
 	assert.NoError(t, err)
@@ -968,12 +1029,15 @@ func TestSchedulingE2E(t *testing.T) {
 				task.Status = db.TASK_STATUS_SUCCESS
 				task.Finished = time.Now()
 				task.IsolatedOutput = "abc123"
+				tasksList = append(tasksList, task)
 			}
 		}
 	}
-	assert.NoError(t, d.PutTasks(tasksList))
-	assert.NoError(t, cache.Update())
-
+	mockTasks = make([]*swarming_api.SwarmingRpcsTaskRequestMetadata, 0, len(tasksList))
+	for _, task := range tasksList {
+		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task))
+	}
+	swarmingClient.MockTasks(mockTasks)
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2, bot3, bot4})
 	assert.NoError(t, s.MainLoop())
 	assert.Equal(t, 0, len(s.queue))
@@ -1223,6 +1287,12 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), workdir, []string{repoName}, isolateClient, swarmingClient)
 	assert.NoError(t, err)
 
+	mockTasks := []*swarming_api.SwarmingRpcsTaskRequestMetadata{}
+	mock := func(task *db.Task) {
+		mockTasks = append(mockTasks, makeSwarmingRpcsTaskRequestMetadata(t, task))
+		swarmingClient.MockTasks(mockTasks)
+	}
+
 	// Cycle once.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia"})
 	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1})
@@ -1233,6 +1303,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	tasks, err := cache.GetTasksForCommits(repoName, []string{head})
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks[head]))
+	mock(tasks[head][taskName])
 
 	// Add some commits to the repo.
 	makeDummyCommits(t, repoDir, 8)
@@ -1268,6 +1339,9 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	assert.NotNil(t, t1)
 	assert.NotNil(t, t2)
 	assert.NotNil(t, t3)
+	mock(t1)
+	mock(t2)
+	mock(t3)
 
 	// Ensure that we got the blamelists right.
 	mkCopy := func(orig []string) []string {

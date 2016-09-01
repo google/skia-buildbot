@@ -335,10 +335,6 @@ func (s *TaskScheduler) processTaskCandidate(c *taskCandidate, now time.Time, ca
 // them, and prepares them to be triggered.
 func (s *TaskScheduler) regenerateTaskQueue() error {
 	defer timer.New("TaskScheduler.regenerateTaskQueue").Stop()
-	// Update the task cache.
-	if err := s.cache.Update(); err != nil {
-		return nil
-	}
 
 	// Find the recent commits to use.
 	for _, repoName := range s.repoMap.Repos() {
@@ -637,11 +633,6 @@ func (s *TaskScheduler) scheduleTasks() error {
 		return err
 	}
 
-	// Update the TaskCache.
-	if err := s.cache.Update(); err != nil {
-		return err
-	}
-
 	// Remove the tasks from the queue.
 	newQueue := make([]*taskCandidate, 0, len(s.queue)-len(schedule))
 	for i, j := 0, 0; i < len(s.queue); {
@@ -673,13 +664,53 @@ func (s *TaskScheduler) scheduleTasks() error {
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop() error {
 	defer timer.New("TaskSchedulder.MainLoop").Stop()
-	if err := s.updateRepos(); err != nil {
+	var e1, e2 error
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := s.updateRepos(); err != nil {
+			e1 = err
+		}
+	}()
+
+	// TODO(borenet): Do we have to fail out of scheduling if we fail to
+	// updateUnfinishedTasks? Maybe we can just add a liveness metric and
+	// alert if we go too long without updating successfully.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := updateUnfinishedTasks(s.cache, s.db, s.swarming); err != nil {
+			e2 = err
+		}
+	}()
+	wg.Wait()
+
+	if e1 != nil {
+		return e1
+	}
+	if e2 != nil {
+		return e2
+	}
+
+	// Update the task cache.
+	if err := s.cache.Update(); err != nil {
 		return err
 	}
+
+	// Regenerate the queue, schedule tasks.
+	// TODO(borenet): Query for free Swarming bots while we're regenerating
+	// the queue.
 	if err := s.regenerateTaskQueue(); err != nil {
 		return err
 	}
-	return s.scheduleTasks()
+	if err := s.scheduleTasks(); err != nil {
+		return err
+	}
+
+	// Update the cache again to include the newly-inserted tasks.
+	return s.cache.Update()
 }
 
 // updateRepos syncs the scheduler's repos.
@@ -800,4 +831,41 @@ func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotI
 		rv = append(rv, bot)
 	}
 	return rv, nil
+}
+
+// updateUnfinishedTasks queries Swarming for all unfinished tasks and updates
+// their status in the DB.
+func updateUnfinishedTasks(cache db.TaskCache, d db.DB, s swarming.ApiClient) error {
+	tasks, err := cache.UnfinishedTasks()
+	if err != nil {
+		return err
+	}
+	sort.Sort(db.TaskSlice(tasks))
+
+	// TODO(borenet): This would be faster if Swarming had a
+	// get-multiple-tasks-by-ID endpoint.
+	var wg sync.WaitGroup
+	errs := make([]error, len(tasks))
+	for i, t := range tasks {
+		wg.Add(1)
+		go func(idx int, t *db.Task) {
+			defer wg.Done()
+			swarmTask, err := s.GetTask(t.SwarmingTaskId)
+			if err != nil {
+				errs[idx] = fmt.Errorf("Failed to update unfinished task; failed to get updated task from swarming: %s", err)
+				return
+			}
+			if err := db.UpdateDBFromSwarmingTask(d, swarmTask); err != nil {
+				errs[idx] = fmt.Errorf("Failed to update unfinished task: %s", err)
+				return
+			}
+		}(i, t)
+	}
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

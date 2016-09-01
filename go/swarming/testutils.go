@@ -127,7 +127,15 @@ func (c *TestClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*sw
 	})
 }
 
-func (c *TestClient) GetTask(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
+func (c *TestClient) GetTask(id string) (*swarming.SwarmingRpcsTaskResult, error) {
+	m, err := c.GetTaskMetadata(id)
+	if err != nil {
+		return nil, err
+	}
+	return m.TaskResult, nil
+}
+
+func (c *TestClient) GetTaskMetadata(id string) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	c.taskListMtx.RLock()
 	defer c.taskListMtx.RUnlock()
 	for _, t := range c.taskList {
