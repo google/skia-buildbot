@@ -54,7 +54,6 @@ function setup_symlinks {
 }
 
 function install_go {
-  GO_VERSION="go1.6.linux-amd64"
   echo
   echo "Install Go"
   $GCOMPUTE_CMD ssh --ssh_user=$PROJECT_USER $INSTANCE_NAME \

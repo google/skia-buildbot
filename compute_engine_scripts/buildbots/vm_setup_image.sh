@@ -48,7 +48,7 @@ echo
 
 echo "Setup .bashrc."
 $GCOMPUTE_CMD ssh --ssh_user=default $VM_COMPLETE_NAME \
-  "echo 'PATH=\"/home/default/depot_tools:/usr/local/sbin:/usr/sbin:/sbin:$PATH\"' >> ~/.bashrc && " \
+  "echo 'PATH=\"/home/default/depot_tools:/usr/local/sbin:/usr/sbin:/sbin:\$PATH\"' >> ~/.bashrc && " \
   "echo 'alias ll=\"ls -l\"' >> ~/.bashrc && " \
   "echo 'alias m=\"cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_master_scripts\"' >> ~/.bashrc && " \
   "echo 'alias s=\"cd /home/default/skia-repo/buildbot/compute_engine_scripts/telemetry/telemetry_slave_scripts\"' >> ~/.bashrc;" \
