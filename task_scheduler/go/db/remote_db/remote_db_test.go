@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"go.skia.org/infra/build_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 // clientWithBackdoor allows us to test the client/server pair as a
