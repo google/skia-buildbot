@@ -65,8 +65,22 @@ option {
   padding: 0.4em 1.2em;
   background-color: white;
   border: none;
+  outline: none;
   line-height: 20px;
   vertical-align: middle;
+}
+
+select {
+  border: solid 1px #A6CEE3;
+}
+
+option:hover {
+  background-color: #A6CEE3;
+}
+
+option:checked {
+  background-color: #A6CEE3;
+  color: #1F78B4;
 }
 
 select {

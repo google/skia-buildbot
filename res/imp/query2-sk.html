@@ -1,0 +1,142 @@
+<!-- The <query2-sk> custom element declaration.
+
+  Starting from a serialized paramtools.ParamSet, this control allows the user
+  to build up a query, suitable for passing to query.New.
+
+  Attributes:
+    current_query - The current query formatted as a URL formatted query string.
+
+    paramset - A serialized paramtools.ParamSet, that is the source
+      of the options for the query.
+
+  Events:
+    'query-change'
+      The 'query2-sk' element will produce 'query-change' events when the query
+      parameters chosen have changed. The event contains the current
+      selections formatted as a URL query, found in e.detail.q.
+
+  Methods:
+    setCurrentQuery(s) - Sets the query selections of the control, where 's'
+    is a URL formatted query string, as returned from current_query.
+-->
+
+<link rel="stylesheet" href="/res/common/css/md.css">
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<dom-module id="query2-sk">
+  <style include="iron-flex iron-flex-alignment iron-positioning">
+    select {
+      margin: 0 1em;
+    }
+  </style>
+  <template>
+    <div class="horizontal layout">
+      <div class="vertical layout">
+        <select id=keys size=12 on-change="_keyChange">
+          <template is="dom-repeat" items="[[_keys]]" >
+            <option value="[[item]]">[[item]]</option>
+          </template>
+        </select>
+        <button on-tap="_clear">Clear</button>
+      </div>
+      <div class="vertical layout">
+        <select id=values size=12 on-change="_valueChange" multiple>
+          <template is="dom-repeat" items="[[_values]]" >
+            <option value="[[item]]" selected="[[_isSelected(item)]]">[[item]]</option>
+          </template>
+        </select>
+      </div>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "query2-sk",
+
+    properties: {
+      // A serialized paramtools.ParamSet, which we are building a query around.
+      paramset: {
+        type: Object,
+        value: function() { return {}; },
+        observer: "_paramsetChange",
+      },
+
+      // The serialized form of _query.
+      current_query: {
+        type: String,
+        value: "",
+        reflectToAttribute: true,
+      },
+
+      // The keys of paramset.
+      _keys: {
+        type: Array,
+        value: function() { return []; },
+      },
+
+      // The currently selected key from _keys.
+      _selectedKey: {
+        type: String,
+        value: "",
+      },
+
+      // The values of paramset at _selectedKey.
+      _values: {
+        type: Array,
+        value: function() { return []; },
+      },
+
+      // The current set of user selections.
+      _query: {
+        type: Object,
+        value: function() { return {}; },
+      },
+    },
+
+    setCurrentQuery: function(s) {
+      this._query = sk.query.toParamSet(s);
+    },
+
+    _paramsetChange: function() {
+      var keys = Object.keys(this.paramset);
+      keys.sort();
+      this.set("_keys", keys);
+    },
+
+    _isSelected: function(paramValue) {
+      var selections = this._query[this._selectedKey];
+      if (!selections) {
+        return false;
+      }
+      return selections.indexOf(paramValue) !== -1;
+    },
+
+    _keyChange: function(e) {
+      var value = this.$.keys.selectedOptions[0].value;
+      this.set("_values", this.paramset[value]);
+      this.set("_selectedKey", value);
+    },
+
+    _valueChange: function(e) {
+      var selectedValues = [];
+      $$("option", this.$.values).forEach(function(e){
+        if (e.selected) {
+          selectedValues.push(e.value);
+        }
+      }.bind(this));
+      this._query[this._selectedKey] = selectedValues;
+      this._queryChanged();
+    },
+
+    _queryChanged: function() {
+      this.current_query = sk.query.fromParamSet(this._query);
+      this.fire('query-change', {q: this.current_query});
+    },
+
+    _clear: function() {
+      this._query = {};
+      this._queryChanged();
+    },
+
+  });
+</script>
