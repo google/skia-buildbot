@@ -6,6 +6,17 @@ set -x
 
 source vm_config.sh
 
+REQUIRED_FILES=(/tmp/.gitconfig \
+                /tmp/.netrc)
+
+# Check that all required files exist.
+for REQUIRED_FILE in ${REQUIRED_FILES[@]}; do
+  if [ ! -f $REQUIRED_FILE ]; then
+    echo "Please create $REQUIRED_FILE!"
+    exit 1
+  fi
+done
+
 MACHINE_TYPE=n1-highmem-16
 SOURCE_SNAPSHOT=skia-systemd-pushable-base
 SCOPES='https://www.googleapis.com/auth/devstorage.full_control https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile'
@@ -50,6 +61,14 @@ gcloud compute --project $PROJECT_ID ssh $PROJECT_USER@$INSTANCE_NAME \
   --zone $ZONE \
   --command "/tmp/format_and_mount.sh $INSTANCE_NAME" \
   || echo "Installation failure."
+
+echo
+echo "===== Copying over required files. ====="
+  for REQUIRED_FILE in ${REQUIRED_FILES[@]}; do
+    echo "Copy ${REQUIRED_FILE}"
+    gcloud compute --project $PROJECT_ID copy-files $REQUIRED_FILE $PROJECT_USER@$INSTANCE_NAME:/home/$PROJECT_USER/ --zone $ZONE
+  done
+echo
 
 # The instance believes it is skia-systemd-snapshot-maker until it is rebooted.
 echo
