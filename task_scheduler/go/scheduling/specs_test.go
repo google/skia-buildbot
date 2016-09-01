@@ -1,4 +1,4 @@
-package task_scheduler
+package scheduling
 
 import (
 	"encoding/json"

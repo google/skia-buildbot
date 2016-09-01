@@ -9,8 +9,8 @@ import (
 	"io/ioutil"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/build_scheduler/go/task_scheduler"
 	"go.skia.org/infra/go/common"
+	"go.skia.org/infra/task_scheduler/go/scheduling"
 )
 
 var (
@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	if _, err := task_scheduler.ParseTasksCfg(string(b)); err != nil {
+	if _, err := scheduling.ParseTasksCfg(string(b)); err != nil {
 		glog.Fatal(err)
 	}
 }

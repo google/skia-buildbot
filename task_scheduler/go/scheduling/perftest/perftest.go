@@ -19,14 +19,14 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/build_scheduler/go/db"
-	"go.skia.org/infra/build_scheduler/go/db/local_db"
-	"go.skia.org/infra/build_scheduler/go/task_scheduler"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/scheduling"
 )
 
 func assertNoError(err error) {
@@ -175,30 +175,30 @@ func main() {
 }`)
 
 	// Add tasks to the repo.
-	var tasks = map[string]*task_scheduler.TaskSpec{
-		"Build-Ubuntu-GCC-Arm7-Release-Android": &task_scheduler.TaskSpec{
-			CipdPackages: []*task_scheduler.CipdPackage{},
+	var tasks = map[string]*scheduling.TaskSpec{
+		"Build-Ubuntu-GCC-Arm7-Release-Android": &scheduling.TaskSpec{
+			CipdPackages: []*scheduling.CipdPackage{},
 			Dependencies: []string{},
 			Dimensions:   []string{"pool:Skia", "os:Ubuntu"},
 			Isolate:      "compile_skia.isolate",
 			Priority:     0.9,
 		},
-		"Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &task_scheduler.TaskSpec{
-			CipdPackages: []*task_scheduler.CipdPackage{},
+		"Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &scheduling.TaskSpec{
+			CipdPackages: []*scheduling.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
 			Isolate:      "test_skia.isolate",
 			Priority:     0.9,
 		},
-		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &task_scheduler.TaskSpec{
-			CipdPackages: []*task_scheduler.CipdPackage{},
+		"Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release": &scheduling.TaskSpec{
+			CipdPackages: []*scheduling.CipdPackage{},
 			Dependencies: []string{"Build-Ubuntu-GCC-Arm7-Release-Android"},
 			Dimensions:   []string{"pool:Skia", "os:Android", "device_type:grouper"},
 			Isolate:      "perf_skia.isolate",
 			Priority:     0.9,
 		},
 	}
-	moarTasks := map[string]*task_scheduler.TaskSpec{}
+	moarTasks := map[string]*scheduling.TaskSpec{}
 	for name, task := range tasks {
 		for i := 0; i < 100; i++ {
 			newName := fmt.Sprintf("%s%d", name, i)
@@ -206,7 +206,7 @@ func main() {
 			for _, d := range task.Dependencies {
 				deps = append(deps, fmt.Sprintf("%s%d", d, i))
 			}
-			newTask := &task_scheduler.TaskSpec{
+			newTask := &scheduling.TaskSpec{
 				CipdPackages: task.CipdPackages,
 				Dependencies: deps,
 				Dimensions:   task.Dimensions,
@@ -216,14 +216,14 @@ func main() {
 			moarTasks[newName] = newTask
 		}
 	}
-	cfg := task_scheduler.TasksCfg{
+	cfg := scheduling.TasksCfg{
 		Tasks: moarTasks,
 	}
-	f, err := os.Create(path.Join(repoDir, task_scheduler.TASKS_CFG_FILE))
+	f, err := os.Create(path.Join(repoDir, scheduling.TASKS_CFG_FILE))
 	assertNoError(err)
 	assertNoError(json.NewEncoder(f).Encode(&cfg))
 	assertNoError(f.Close())
-	run(repoDir, "git", "add", task_scheduler.TASKS_CFG_FILE)
+	run(repoDir, "git", "add", scheduling.TASKS_CFG_FILE)
 	commit(repoDir, "Add more tasks!")
 	run(repoDir, "git", "push", "origin", "master")
 	run(repoDir, "git", "branch", "-u", "origin/master")
@@ -257,7 +257,7 @@ func main() {
 	assertNoError(err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := task_scheduler.NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), workdir, []string{"skia.git"}, isolateClient, swarmingClient)
+	s, err := scheduling.NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), workdir, []string{"skia.git"}, isolateClient, swarmingClient)
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {

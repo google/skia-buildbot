@@ -5,9 +5,6 @@ import (
 	"path"
 
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/build_scheduler/go/db"
-	"go.skia.org/infra/build_scheduler/go/db/local_db"
-	"go.skia.org/infra/build_scheduler/go/task_scheduler"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/gitinfo"
@@ -17,6 +14,9 @@ import (
 	"go.skia.org/infra/go/skiaversion"
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/local_db"
+	"go.skia.org/infra/task_scheduler/go/scheduling"
 )
 
 const (
@@ -40,7 +40,7 @@ var (
 	}
 
 	// Task Scheduler instance.
-	ts *task_scheduler.TaskScheduler
+	ts *scheduling.TaskScheduler
 
 	// Git repo objects.
 	repos *gitinfo.RepoMap
@@ -109,7 +109,7 @@ func main() {
 
 	// Create and start the task scheduler.
 	glog.Infof("Creating task scheduler.")
-	ts, err = task_scheduler.NewTaskScheduler(d, cache, period, *workdir, REPOS, isolate, swarm)
+	ts, err = scheduling.NewTaskScheduler(d, cache, period, *workdir, REPOS, isolate, swarm)
 	if err != nil {
 		glog.Fatal(err)
 	}

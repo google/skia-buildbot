@@ -1,4 +1,4 @@
-package task_scheduler
+package scheduling
 
 import (
 	"encoding/json"
@@ -16,7 +16,6 @@ import (
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	assert "github.com/stretchr/testify/require"
-	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
@@ -25,6 +24,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 func makeTask(name, repo, revision string) *db.Task {

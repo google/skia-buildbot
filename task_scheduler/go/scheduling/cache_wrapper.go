@@ -1,9 +1,9 @@
-package task_scheduler
+package scheduling
 
 import (
 	"fmt"
 
-	"go.skia.org/infra/build_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 // cacheWrapper is an implementation of db.TaskCache which allows insertion of

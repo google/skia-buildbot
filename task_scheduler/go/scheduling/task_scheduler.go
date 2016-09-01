@@ -1,4 +1,4 @@
-package task_scheduler
+package scheduling
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/gitrepo"
@@ -19,6 +18,7 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
@@ -462,7 +462,7 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 // candidates in the queue and returns the candidates which should be run.
 // Assumes that the tasks are sorted in decreasing order by score.
 func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*taskCandidate) []*taskCandidate {
-	defer timer.New("task_scheduler.getCandidatesToSchedule").Stop()
+	defer timer.New("scheduling.getCandidatesToSchedule").Stop()
 	// Create a bots-by-swarming-dimension mapping.
 	botsByDim := map[string]util.StringSet{}
 	for _, b := range bots {

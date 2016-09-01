@@ -15,11 +15,11 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
 	"github.com/skia-dev/glog"
-	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/boltutil"
 	"go.skia.org/infra/go/httputils"
 	"go.skia.org/infra/go/metrics2"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 const (

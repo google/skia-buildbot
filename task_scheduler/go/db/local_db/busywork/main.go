@@ -1,5 +1,5 @@
 // busywork is an end-to-end test for local_db. It performs inserts and updates
-// roughly mimicking what we might expect from build_scheduler. It also tracks
+// roughly mimicking what we might expect from task_scheduler. It also tracks
 // performance for various operations.
 package main
 
@@ -17,11 +17,11 @@ import (
 
 	"github.com/skia-dev/glog"
 
-	"go.skia.org/infra/build_scheduler/go/db"
-	"go.skia.org/infra/build_scheduler/go/db/local_db"
 	"go.skia.org/infra/go/buildbot"
 	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/influxdb"
+	"go.skia.org/infra/task_scheduler/go/db"
+	"go.skia.org/infra/task_scheduler/go/db/local_db"
 )
 
 var (

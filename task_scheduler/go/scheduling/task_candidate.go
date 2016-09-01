@@ -1,4 +1,4 @@
-package task_scheduler
+package scheduling
 
 import (
 	"fmt"
@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
-	"go.skia.org/infra/build_scheduler/go/db"
 	"go.skia.org/infra/go/isolate"
 	"go.skia.org/infra/go/swarming"
+	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 // taskCandidate is a struct used for determining which tasks to schedule.
@@ -131,7 +131,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 			IoTimeoutSecs: int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds()),
 		},
 		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.Revision, dimsMap),
-		User: "skia-build-scheduler",
+		User: "skia-task-scheduler",
 	}
 }
 
