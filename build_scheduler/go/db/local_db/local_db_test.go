@@ -136,7 +136,7 @@ func TestPackUnpackV1(t *testing.T) {
 
 // Create a localDB for testing. Call defer util.RemoveAll() on the second
 // return value.
-func makeDB(t *testing.T, name string) (db.DB, string) {
+func makeDB(t *testing.T, name string) (db.TaskAndCommentDB, string) {
 	//testutils.SkipIfShort(t)
 	tmpdir, err := ioutil.TempDir("", name)
 	assert.NoError(t, err)
@@ -439,4 +439,10 @@ func TestLocalDBUpdateWithRetries(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDBUpdateWithRetries")
 	defer util.RemoveAll(tmpdir)
 	db.TestUpdateWithRetries(t, d)
+}
+
+func TestLocalDBCommentDB(t *testing.T) {
+	d, tmpdir := makeDB(t, "TestLocalDBCommentDB")
+	defer util.RemoveAll(tmpdir)
+	db.TestCommentDB(t, d)
 }

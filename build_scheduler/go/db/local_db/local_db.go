@@ -39,6 +39,12 @@ const (
 	//     big endian; v[9:] is the GOB of the Task.
 	BUCKET_TASKS_VERSION = 1
 
+	// BUCKET_COMMENTS is the name of the comments bucket. Key is KEY_COMMENT_MAP,
+	// value is the GOB of the map provided by db.CommentBox. The comment map will
+	// be updated in place. All repos share the same bucket.
+	BUCKET_COMMENTS = "comments"
+	KEY_COMMENT_MAP = "comment-map"
+
 	// TIMESTAMP_FORMAT is a format string passed to Time.Format and time.Parse to
 	// format/parse the timestamp in the Task ID. It is similar to
 	// util.RFC3339NanoZeroPad, but since Task.Id can not contain colons, we omit
@@ -137,6 +143,10 @@ type localDB struct {
 
 	modTasks db.ModifiedTasks
 
+	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
+	// this localDB to persist the comments.
+	*db.CommentBox
+
 	// Close will send on each of these channels to indicate goroutines should
 	// stop.
 	notifyOnClose []chan bool
@@ -209,7 +219,7 @@ func tasksBucket(tx *bolt.Tx) *bolt.Bucket {
 }
 
 // NewDB returns a local DB instance.
-func NewDB(name, filename string) (db.DB, error) {
+func NewDB(name, filename string) (db.TaskAndCommentDB, error) {
 	boltdb, err := bolt.Open(filename, 0600, nil)
 	if err != nil {
 		return nil, err
@@ -239,16 +249,32 @@ func NewDB(name, filename string) (db.DB, error) {
 		}
 	}()
 
+	comments := map[string]*db.RepoComments{}
+
 	if err := d.update("NewDB", func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(BUCKET_TASKS)); err != nil {
 			return err
 		}
+		commentsBucket, err := tx.CreateBucketIfNotExists([]byte(BUCKET_COMMENTS))
+		if err != nil {
+			return err
+		}
+
+		serializedCommentMap := commentsBucket.Get([]byte(KEY_COMMENT_MAP))
+		if serializedCommentMap != nil {
+			if err := gob.NewDecoder(bytes.NewReader(serializedCommentMap)).Decode(&comments); err != nil {
+				return err
+			}
+		}
+
 		return nil
 	}); err != nil {
 		return nil, err
 	}
 
-	if dbMetric, err := boltutil.NewDbMetric(boltdb, []string{BUCKET_TASKS}, map[string]string{"database": name}); err != nil {
+	d.CommentBox = db.NewCommentBoxWithPersistence(comments, d.writeCommentsMap)
+
+	if dbMetric, err := boltutil.NewDbMetric(boltdb, []string{BUCKET_TASKS, BUCKET_COMMENTS}, map[string]string{"database": name}); err != nil {
 		return nil, err
 	} else {
 		d.dbMetric = dbMetric
@@ -506,6 +532,18 @@ func (d *localDB) StartTrackingModifiedTasks() (string, error) {
 // See docs for DB interface.
 func (d *localDB) StopTrackingModifiedTasks(id string) {
 	d.modTasks.StopTrackingModifiedTasks(id)
+}
+
+// writeCommentsMap is passed to db.NewCommentBoxWithPersistence to persist
+// comments after every change. Updates the value stored in BUCKET_COMMENTS.
+func (d *localDB) writeCommentsMap(comments map[string]*db.RepoComments) error {
+	var buf bytes.Buffer
+	if err := gob.NewEncoder(&buf).Encode(comments); err != nil {
+		return err
+	}
+	return d.update("writeCommentsMap", func(tx *bolt.Tx) error {
+		return tx.Bucket([]byte(BUCKET_COMMENTS)).Put([]byte(KEY_COMMENT_MAP), buf.Bytes())
+	})
 }
 
 // RunBackupServer runs an HTTP server which provides downloadable database

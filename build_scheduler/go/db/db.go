@@ -157,3 +157,9 @@ type RemoteDB interface {
 	TaskReader
 	CommentDB
 }
+
+// TaskAndCommentDB implements both DB and CommentDB.
+type TaskAndCommentDB interface {
+	DB
+	CommentDB
+}
