@@ -61,8 +61,12 @@ fuzzer:
 skolo:
 	cd skolo && $(MAKE) all
 
+.PHONY: task_scheduler
+task_scheduler:
+	cd task_scheduler && $(MAKE) all
+
 .PHONY: all
-all: alertserver build_scheduler datahopper datahopper_internal golden perf sharedgo logserver ct ctfe status tags
+all: alertserver build_scheduler datahopper datahopper_internal golden perf sharedgo logserver ct ctfe status task_scheduler tags
 
 .PHONY: tags
 tags:

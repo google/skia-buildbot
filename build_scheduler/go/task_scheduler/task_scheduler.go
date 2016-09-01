@@ -41,7 +41,7 @@ func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir
 	repos := make(map[string]*gitrepo.Repo, len(repoNames))
 	rm := gitinfo.NewRepoMap(workdir)
 	for _, r := range repoNames {
-		repo, err := gitrepo.NewRepo(r, path.Join(workdir, r))
+		repo, err := gitrepo.NewRepo(r, path.Join(workdir, path.Base(r)))
 		if err != nil {
 			return nil, err
 		}
@@ -664,6 +664,8 @@ func (s *TaskScheduler) scheduleTasks() error {
 // MainLoop runs a single end-to-end task scheduling loop.
 func (s *TaskScheduler) MainLoop() error {
 	defer timer.New("TaskSchedulder.MainLoop").Stop()
+
+	glog.Infof("Task Scheduler updating...")
 	var e1, e2 error
 	var wg sync.WaitGroup
 
@@ -702,9 +704,12 @@ func (s *TaskScheduler) MainLoop() error {
 	// Regenerate the queue, schedule tasks.
 	// TODO(borenet): Query for free Swarming bots while we're regenerating
 	// the queue.
+	glog.Infof("Task Scheduler regenerating the queue...")
 	if err := s.regenerateTaskQueue(); err != nil {
 		return err
 	}
+
+	glog.Infof("Task Scheduler scheduling tasks...")
 	if err := s.scheduleTasks(); err != nil {
 		return err
 	}

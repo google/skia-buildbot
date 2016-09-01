@@ -157,7 +157,15 @@ func (c *taskCfgCache) readTasksCfg(repo, commit string) (*TasksCfg, error) {
 	if _, ok := c.cache[repo][commit]; !ok {
 		cfg, err := ReadTasksCfg(r, commit)
 		if err != nil {
-			return nil, err
+			// The tasks.cfg file may not exist for a particular commit.
+			if strings.Contains(err.Error(), "does not exist in") {
+				// In this case, use an empty config.
+				cfg = &TasksCfg{
+					Tasks: map[string]*TaskSpec{},
+				}
+			} else {
+				return nil, err
+			}
 		}
 		c.cache[repo][commit] = cfg
 	}

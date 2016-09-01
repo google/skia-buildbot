@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 )
@@ -42,13 +44,23 @@ func NewRepo(repoUrl, workdir string) (*Repo, error) {
 		repoUrl: repoUrl,
 		workdir: workdir,
 	}
-	if _, err := os.Stat(path.Join(workdir, ".git")); err != nil {
+	if _, err := os.Stat(workdir); err != nil {
 		if os.IsNotExist(err) {
-			if _, err := exec.RunCwd(workdir, "git", "clone", repoUrl, "."); err != nil {
-				return nil, err
+			if err := os.MkdirAll(workdir, os.ModePerm); err != nil {
+				return nil, fmt.Errorf("Failed to create workdir for gitrepo.Repo: %s", err)
 			}
 		} else {
-			return nil, err
+			return nil, fmt.Errorf("There is a problem with the workdir for gitrepo.Repo: %s", err)
+		}
+	}
+	if _, err := os.Stat(path.Join(workdir, ".git")); err != nil {
+		if os.IsNotExist(err) {
+			glog.Infof("Cloning %s...", repoUrl)
+			if _, err := exec.RunCwd(workdir, "git", "clone", repoUrl, "."); err != nil {
+				return nil, fmt.Errorf("Failed to clone gitrepo.Repo: %s", err)
+			}
+		} else {
+			return nil, fmt.Errorf("Failed to create gitrepo.Repo: %s", err)
 		}
 	}
 	if err := rv.Update(); err != nil {
@@ -60,7 +72,7 @@ func NewRepo(repoUrl, workdir string) (*Repo, error) {
 func getCommit(hash string, commits map[string]*Commit, workdir string) (*Commit, error) {
 	output, err := exec.RunCwd(workdir, "git", "log", "-n", "1", "--format=format:%P", hash)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to execute Git: %s", err)
+		return nil, fmt.Errorf("gitrepo.Repo: Failed to obtain Git commit details: %s", err)
 	}
 	parentHashes := strings.Split(strings.Trim(output, "\n"), " ")
 	parents := make([]*Commit, 0, len(parentHashes))
@@ -70,7 +82,7 @@ func getCommit(hash string, commits map[string]*Commit, workdir string) (*Commit
 		}
 		p, ok := commits[h]
 		if !ok {
-			return nil, fmt.Errorf("Could not find parent commit %q", h)
+			return nil, fmt.Errorf("gitrepo.Repo: Could not find parent commit %q", h)
 		}
 		parents = append(parents, p)
 	}
@@ -87,14 +99,16 @@ func (r *Repo) Update() error {
 	defer r.mtx.Unlock()
 
 	// Update the local copy.
+	glog.Infof("Updating %s...", r.repoUrl)
 	if _, err := exec.RunCwd(r.workdir, "git", "fetch", "origin"); err != nil {
-		return err
+		return fmt.Errorf("Failed to update gitrepo.Repo: %s", err)
 	}
 
 	// Obtain the list of branches.
+	glog.Info("  Getting branches...")
 	branches, err := gitinfo.GetBranches(r.workdir)
 	if err != nil {
-		return err
+		return fmt.Errorf("Failed to get branches for gitrepo.Repo: %s", err)
 	}
 	filteredBranches := make([]*gitinfo.GitBranch, 0, len(branches))
 	for _, b := range branches {
@@ -110,10 +124,11 @@ func (r *Repo) Update() error {
 	r.branches = filteredBranches
 
 	// Load all commits from the repo.
+	glog.Infof("  Loading commits...")
 	for _, b := range r.branches {
 		output, err := exec.RunCwd(r.workdir, "git", "rev-list", REMOTE_BRANCH_PREFIX+b.Name)
 		if err != nil {
-			return err
+			return fmt.Errorf("Failed to 'git rev-list' for gitrepo.Repo: %s", err)
 		}
 		split := strings.Split(output, "\n")
 		for i := len(split) - 1; i >= 0; i-- {
@@ -131,6 +146,7 @@ func (r *Repo) Update() error {
 			r.commits[hash] = commit
 		}
 	}
+	glog.Infof("  Done.")
 	return nil
 }
 
