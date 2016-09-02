@@ -3,6 +3,7 @@ package diffstore
 import (
 	"bytes"
 	"crypto/md5"
+	"errors"
 	"fmt"
 	"image"
 	"io"
@@ -13,7 +14,6 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/fileutil"
-	"go.skia.org/infra/go/redisutil"
 	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/util"
 	"golang.org/x/net/context"
@@ -28,23 +28,10 @@ const (
 	N_IMG_WORKERS = 10
 )
 
-// Redis keys. The lists are used like queues to send file data from the
-// slaves to the master.
-const (
-	// R_IMAGE_FILE_LIST is the key of the list that holds image file information.
-	R_IMAGE_FILE_LIST = "fds:image_file_list"
-
-	R_IMG_QUEUE = "fds:imq"
-)
-
-// ImageLoader facilitates to continously download images and cache them
-// in Redis.
+// ImageLoader facilitates to continously download images and cache them in RAM.
 type ImageLoader struct {
 	// client is the Google storage client to local content form GS.
 	storageClient *storage.Client
-
-	// redisPool is the connection to Redis.
-	redisPool *redisutil.RedisPool
 
 	// localImgDir is the local directory where images should be written to.
 	localImgDir string
@@ -60,36 +47,26 @@ type ImageLoader struct {
 
 	// keep ?
 	isMaster bool
+
+	wg sync.WaitGroup
 }
 
-// Creates a new instance of ImageLoader. isMaster indicates whether
-// this is running on the master node and files loaded on slave nodes
-// should be pushed to Redis for caching on the master.
-func newImgLoader(client *http.Client, imgDir, gsBucketName, gsImageBaseDir string, redisPool *redisutil.RedisPool, isMaster bool) (*ImageLoader, error) {
+// Creates a new instance of ImageLoader.
+func newImgLoader(client *http.Client, imgDir, gsBucketName, gsImageBaseDir string) (*ImageLoader, error) {
 	storageClient, err := storage.NewClient(context.Background(), option.WithHTTPClient(client))
 	if err != nil {
 		return nil, err
 	}
 
 	ret := &ImageLoader{
-		redisPool:      redisPool,
 		storageClient:  storageClient,
 		localImgDir:    imgDir,
 		gsBucketName:   gsBucketName,
 		gsImageBaseDir: gsImageBaseDir,
-		isMaster:       isMaster,
 	}
 
 	// Set up the work queues that balance the load.
-	if ret.imageCache, err = redisutil.NewReadThroughCache(redisPool, R_IMG_QUEUE, ret.imageLoadWorker, NRGBACodec{}, N_IMG_WORKERS); err != nil {
-		return nil, err
-	}
-
-	// Save all images asynchronously to disk.
-	if isMaster {
-		startFileWriter(ret.redisPool, R_IMAGE_FILE_LIST, ret.localImgDir)
-	}
-
+	ret.imageCache = rtcache.New(ret.imageLoadWorker, N_IMG_WORKERS)
 	return ret, nil
 }
 
@@ -98,33 +75,63 @@ func newImgLoader(client *http.Client, imgDir, gsBucketName, gsImageBaseDir stri
 // The synchronous flag determines whether the call is blocking or not.
 // It workes in sync with Get, any image that is scheduled be retrieved by get
 // will not be fetched again.
-func (il *ImageLoader) Warm(priority int64, digests []string, synchronous bool) error {
-	var wg sync.WaitGroup
+func (il *ImageLoader) Warm(priority int64, digests []string) {
 	for _, digest := range digests {
-		wg.Add(1)
+		il.wg.Add(1)
 		go func(digest string) {
+			defer il.wg.Done()
 			if err := il.imageCache.Warm(priority, digest); err != nil {
-				glog.Errorf("Fetch caused errorf: %s", err)
+				glog.Errorf("Unable to retrive digest %s. Got error: %s", digest, err)
 			}
-			wg.Done()
 		}(digest)
 	}
+}
 
-	if synchronous {
-		wg.Wait()
-	}
-
-	return nil
+// sync waits until all pending go routines have terminated.
+func (il *ImageLoader) sync() {
+	il.wg.Wait()
 }
 
 // Get returns the images identified by digests and returns it as an NRGBA image.
 // Priority determines the order in which multiple concurrent calls are processed.
-func (il *ImageLoader) Get(priority int64, digest string) (*image.NRGBA, error) {
-	img, err := il.imageCache.Get(priority, false, digest)
-	if err != nil {
-		return nil, err
+// func (il *ImageLoader) Get(priority int64, digests []string) (*image.NRGBA, error) {
+// 	// img, err := il.imageCache.Get(priority, digests)
+// 	// if err != nil {
+// 	// 	return nil, err
+// 	// }
+// 	// return img.(*image.NRGBA), nil
+// 	return nil, nil
+// }
+
+func (il *ImageLoader) Get(priority int64, digests []string) ([]*image.NRGBA, error) {
+	// Parallel load the requested images.
+	result := make([]*image.NRGBA, len(digests))
+	errCh := make(chan error, len(digests))
+	var wg sync.WaitGroup
+	wg.Add(len(digests))
+	for idx, digest := range digests {
+		go func(idx int, digest string) {
+			defer wg.Done()
+			img, err := il.imageCache.Get(priority, digest)
+			if err != nil {
+				errCh <- err
+			} else {
+				result[idx] = img.(*image.NRGBA)
+			}
+		}(idx, digest)
 	}
-	return img.(*image.NRGBA), nil
+	wg.Wait()
+	if len(errCh) > 0 {
+		close(errCh)
+		var msg bytes.Buffer
+		for err := range errCh {
+			_, _ = msg.WriteString(err.Error())
+			_, _ = msg.WriteString("\n")
+		}
+		return nil, errors.New(msg.String())
+	}
+
+	return result, nil
 }
 
 // imageLoadWorker implements the rtcache.ReadThroughFunc signature.
@@ -134,7 +141,9 @@ func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface
 	imageFileName := getDigestImageFileName(digest)
 	imagePath := fileutil.TwoLevelRadixPath(il.localImgDir, imageFileName)
 	if fileutil.FileExists(imagePath) {
-		return loadImg(imagePath)
+		img, err := loadImg(imagePath)
+		glog.Infof("Loaded img %s from disk", imagePath)
+		return img, err
 	}
 
 	// Download the image
@@ -143,14 +152,21 @@ func (il *ImageLoader) imageLoadWorker(priority int64, digest string) (interface
 		return nil, err
 	}
 
-	// Store it on disk and send it to the master if necessary.
-	saveFileAsyncRadixPath(il.localImgDir, imageFileName, bytes.NewBuffer(imgBytes))
-	if !il.isMaster {
-		enqueueFileInfo(il.redisPool, R_IMAGE_FILE_LIST, &fileData{imageFileName, imgBytes})
-	}
+	// Save the file to disk.
+	il.saveImgInfoAsync(imageFileName, imgBytes)
 
 	// Decode it and return it.
 	return decodeImg(bytes.NewBuffer(imgBytes))
+}
+
+func (il *ImageLoader) saveImgInfoAsync(imageFileName string, imgBytes []byte) {
+	il.wg.Add(1)
+	go func() {
+		defer il.wg.Done()
+		if err := saveFileRadixPath(il.localImgDir, imageFileName, bytes.NewBuffer(imgBytes)); err != nil {
+			glog.Error(err)
+		}
+	}()
 }
 
 // downloadImg retrieves the given image from Google storage.

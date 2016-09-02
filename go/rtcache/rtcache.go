@@ -11,17 +11,16 @@ import "go.skia.org/infra/go/util"
 type ReadThroughCache interface {
 	// Get returns the item identified by 'id' or an error if the item
 	// cannot be retrieved. If the item is not in the cache a worker function
-	// is called to retrieve it. If returnBytes is true any stored values
-	// are not de-serialized before returning. In that case the return value
-	// will be of type []byte. How the worker function is set is up to the
-	// implementation.
-	Get(priority int64, returnBytes bool, id string) (interface{}, error)
+	// is called to retrieve it.
+	Get(priority int64, id string) (interface{}, error)
 
 	// Warm is identical to Get except it does not return the cached elements
-	// just makes sure they are in the cache. Ideally this means no
-	// (de)serialization happens and no memory has to be allocated (other than
-	// the for cached item itself).
+	// just makes sure they are in the cache. If an error occurs generating the
+	// item desired item via the worker function, an error is returned.
 	Warm(priority int64, id string) error
+
+	// Contains returns true if the identfied item is currently cached.
+	Contains(id string) bool
 }
 
 // WorkerFn defines the function that is called when an item is not in the

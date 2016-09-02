@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
-	"sort"
 	"strconv"
 	"strings"
 	"testing"
@@ -17,7 +15,6 @@ import (
 	assert "github.com/stretchr/testify/require"
 	"go.skia.org/infra/go/gs"
 	"go.skia.org/infra/go/metadata"
-	"go.skia.org/infra/go/rtcache"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
 )
@@ -172,88 +169,6 @@ func TestRedisPrimitives(t *testing.T) {
 	rp := NewRedisPool(REDIS_SERVER_ADDRESS, REDIS_DB_PRIMITIVE_TESTS)
 	defer util.Close(rp)
 	assert.NoError(t, rp.FlushDB())
-
-	// create a worker queue for a given type
-	codec := StringCodec{}
-	qRet, err := NewReadThroughCache(rp, Q_NAME_PRIMITIVES, nil, codec, runtime.NumCPU()-2)
-	assert.NoError(t, err)
-
-	// Cast to WorkerQueue since we are testing internals.
-	q := qRet.(*RedisRTC)
-
-	inProgress, err := q.inProgress()
-	assert.NoError(t, err)
-	assert.Equal(t, 0, len(inProgress))
-
-	ID_1, ID_2, ID_3, ID_4, ID_5 := "id_1", "id_2", "id_3", "id_4", "id_5"
-	p1 := rtcache.PriorityTimeCombined(3)
-	found, err := q.enqueue(ID_1, p1)
-	assert.NoError(t, err)
-	assert.False(t, found)
-	time.Sleep(time.Millisecond * 1)
-
-	found, err = q.enqueue(ID_2, rtcache.PriorityTimeCombined(1))
-	assert.NoError(t, err)
-	assert.False(t, found)
-	time.Sleep(time.Millisecond * 1)
-
-	p3 := rtcache.PriorityTimeCombined(1)
-	found, err = q.enqueue(ID_3, p3)
-	assert.NoError(t, err)
-	assert.False(t, found)
-	time.Sleep(time.Millisecond * 1)
-
-	p2 := rtcache.PriorityTimeCombined(0)
-	found, err = q.enqueue(ID_2, p2)
-	assert.NoError(t, err)
-	assert.False(t, found)
-
-	dequedItem, itemsLeft, err := q.dequeue()
-	assert.NoError(t, err)
-	assert.Equal(t, &workerTask{"id_2", p2}, dequedItem)
-	assert.Equal(t, 2, itemsLeft)
-
-	dequedItem, itemsLeft, err = q.dequeue()
-	assert.NoError(t, err)
-	assert.Equal(t, &workerTask{"id_3", p3}, dequedItem)
-	assert.Equal(t, 1, itemsLeft)
-
-	dequedItem, itemsLeft, err = q.dequeue()
-	assert.NoError(t, err)
-	assert.Equal(t, &workerTask{"id_1", p1}, dequedItem)
-	assert.Equal(t, 0, itemsLeft)
-
-	dequedItem, itemsLeft, err = q.dequeue()
-	assert.NoError(t, err)
-	assert.Nil(t, dequedItem)
-	assert.Equal(t, 0, itemsLeft)
-
-	inProgress, err = q.inProgress()
-	assert.NoError(t, err)
-	sort.Strings(inProgress)
-	assert.Equal(t, []string{"id_1", "id_2", "id_3"}, inProgress)
-
-	found, err = q.enqueue(ID_4, 1)
-	assert.NoError(t, err)
-	assert.False(t, found)
-	time.Sleep(time.Millisecond * 5)
-
-	found, err = q.enqueue(ID_5, 1)
-	assert.NoError(t, err)
-	assert.False(t, found)
-
-	inQueue, err := q.inQueue(100)
-	assert.NoError(t, err)
-	assert.Equal(t, []string{ID_4, ID_5}, inQueue)
-	time.Sleep(time.Millisecond * 5)
-
-	found, err = q.enqueue(ID_5, 0)
-	assert.NoError(t, err)
-	assert.False(t, found)
-
-	inQueue, err = q.inQueue(100)
-	assert.NoError(t, err)
-	assert.Equal(t, []string{ID_5, ID_4}, inQueue)
 
 	// Test listening to a list.
 	const N_MESSAGES = 10000
