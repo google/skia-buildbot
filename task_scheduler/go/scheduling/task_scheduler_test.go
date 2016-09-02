@@ -64,8 +64,10 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 		assert.FailNow(t, "Unknown task status: %s", task.Status)
 	}
 	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
-		Request: &swarming_api.SwarmingRpcsTaskRequest{},
-		TaskId:  task.SwarmingTaskId,
+		Request: &swarming_api.SwarmingRpcsTaskRequest{
+			CreatedTs: ts(task.Created),
+		},
+		TaskId: task.SwarmingTaskId,
 		TaskResult: &swarming_api.SwarmingRpcsTaskResult{
 			AbandonedTs: abandoned,
 			CreatedTs:   ts(task.Created),

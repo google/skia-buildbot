@@ -7,7 +7,6 @@ import (
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/auth"
 	"go.skia.org/infra/go/common"
-	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/human"
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/isolate"
@@ -41,9 +40,6 @@ var (
 
 	// Task Scheduler instance.
 	ts *scheduling.TaskScheduler
-
-	// Git repo objects.
-	repos *gitinfo.RepoMap
 
 	// Flags.
 	local      = flag.Bool("local", false, "Whether we're running on a dev machine vs in production.")

@@ -1,16 +1,21 @@
 package scheduling
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math"
+	"os"
 	"path"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
 	swarming_api "github.com/luci/luci-go/common/api/swarming/swarming/v1"
 	"github.com/skia-dev/glog"
 	"go.skia.org/infra/go/buildbot"
+	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
 	"go.skia.org/infra/go/gitrepo"
 	"go.skia.org/infra/go/isolate"
@@ -526,6 +531,36 @@ func getCandidatesToSchedule(bots []*swarming_api.SwarmingRpcsBotInfo, tasks []*
 	return rv
 }
 
+// tempGitRepo creates a git repository in a temporary directory and returns its
+// location.
+func (s *TaskScheduler) tempGitRepo(repoUrl, subdir string) (string, error) {
+	tmpRepoDir := path.Join(s.workdir, "tmp_git_repos")
+	if err := os.Mkdir(tmpRepoDir, os.ModePerm); err != nil && !os.IsExist(err) {
+		return "", err
+	}
+	tmp, err := ioutil.TempDir(tmpRepoDir, fmt.Sprintf("tmp_%s", path.Base(repoUrl)))
+	if err != nil {
+		return "", err
+	}
+	d := path.Join(tmp, subdir)
+	if err := os.MkdirAll(d, os.ModePerm); err != nil {
+		if !os.IsExist(err) {
+			return "", err
+		}
+	}
+	if _, err := exec.RunCwd(d, "git", "clone", repoUrl, "."); err != nil {
+		return "", err
+	}
+	if _, err := exec.RunCwd(d, "git", "checkout", "master"); err != nil {
+		return "", err
+	}
+	// Write a dummy .gclient file in the parent of the checkout.
+	if err := ioutil.WriteFile(path.Join(d, "..", ".gclient"), []byte(""), os.ModePerm); err != nil {
+		return "", err
+	}
+	return d, nil
+}
+
 // scheduleTasks queries for free Swarming bots and triggers tasks according
 // to relative priorities in the queue.
 func (s *TaskScheduler) scheduleTasks() error {
@@ -550,15 +585,19 @@ func (s *TaskScheduler) scheduleTasks() error {
 		}
 	}
 
+	// Cleanup.
+	defer s.cleanupRepos()
+
 	// Isolate the tasks by commit.
 	for repoName, commits := range byRepoCommit {
-		infraBotsDir := path.Join(s.workdir, repoName, "infra", "bots")
+		repoDir, err := s.tempGitRepo(path.Join(s.workdir, path.Base(repoName)), strings.TrimSuffix(path.Base(repoName), ".git"))
+		if err != nil {
+			return err
+		}
+		defer util.RemoveAll(repoDir)
+		infraBotsDir := path.Join(repoDir, "infra", "bots")
 		for commit, candidates := range commits {
-			repo, err := s.repoMap.Repo(repoName)
-			if err != nil {
-				return err
-			}
-			if err := repo.Checkout(commit); err != nil {
+			if _, err := exec.RunCwd(repoDir, "git", "checkout", commit); err != nil {
 				return err
 			}
 			tasks := make([]*isolate.Task, 0, len(candidates))
@@ -587,13 +626,22 @@ func (s *TaskScheduler) scheduleTasks() error {
 			return err
 		}
 		req := candidate.MakeTaskRequest(t.Id)
+		j, err := json.MarshalIndent(req, "", "    ")
+		if err != nil {
+			glog.Errorf("Failed to marshal JSON: %s", err)
+		} else {
+			glog.Infof("Requesting Swarming Task:\n\n%s\n\n", string(j))
+		}
 		resp, err := s.swarming.TriggerTask(req)
 		if err != nil {
 			return err
 		}
-		if _, err := t.UpdateFromSwarming(resp.TaskResult); err != nil {
-			return err
+		created, err := swarming.ParseTimestamp(resp.Request.CreatedTs)
+		if err != nil {
+			return fmt.Errorf("Failed to parse timestamp of created task: %s", err)
 		}
+		t.Created = created
+		t.SwarmingTaskId = resp.TaskId
 		byCandidateId[candidate.MakeId()] = t
 		tasksToInsert[t.Id] = t
 		// If we're stealing commits from another task, find it and adjust
@@ -718,8 +766,31 @@ func (s *TaskScheduler) MainLoop() error {
 	return s.cache.Update()
 }
 
+// cleanupRepos cleans up the scheduler's repos. It logs errors rather than
+// returning them.
+func (s *TaskScheduler) cleanupRepos() {
+	for _, repoName := range s.repoMap.Repos() {
+		repo, err := s.repoMap.Repo(repoName)
+		if err != nil {
+			glog.Errorf("Failed to cleanup repo: %s", err)
+			continue
+		}
+		if err := repo.Reset("HEAD"); err != nil {
+			glog.Errorf("Failed to cleanup repo: %s", err)
+			continue
+		}
+		// TODO(borenet): With trybots, we probably need to "git clean -d -f".
+		if err := repo.Checkout("master"); err != nil {
+			glog.Errorf("Failed to cleanup repo: %s", err)
+			continue
+		}
+
+	}
+}
+
 // updateRepos syncs the scheduler's repos.
 func (s *TaskScheduler) updateRepos() error {
+	s.cleanupRepos()
 	for _, r := range s.repos {
 		if err := r.Update(); err != nil {
 			return err

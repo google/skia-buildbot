@@ -91,13 +91,18 @@ func (c *taskCandidate) MakeIsolateTask(infraBotsDir, baseDir string) *isolate.T
 
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
 func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNewTaskRequest {
-	cipdPackages := make([]*swarming_api.SwarmingRpcsCipdPackage, 0, len(c.TaskSpec.CipdPackages))
-	for _, p := range c.TaskSpec.CipdPackages {
-		cipdPackages = append(cipdPackages, &swarming_api.SwarmingRpcsCipdPackage{
-			PackageName: p.Name,
-			Path:        p.Path,
-			Version:     fmt.Sprintf("%d", p.Version),
-		})
+	var cipdInput *swarming_api.SwarmingRpcsCipdInput
+	if len(c.TaskSpec.CipdPackages) > 0 {
+		cipdInput = &swarming_api.SwarmingRpcsCipdInput{
+			Packages: make([]*swarming_api.SwarmingRpcsCipdPackage, 0, len(c.TaskSpec.CipdPackages)),
+		}
+		for _, p := range c.TaskSpec.CipdPackages {
+			cipdInput.Packages = append(cipdInput.Packages, &swarming_api.SwarmingRpcsCipdPackage{
+				PackageName: p.Name,
+				Path:        p.Path,
+				Version:     fmt.Sprintf("%d", p.Version),
+			})
+		}
 	}
 
 	dims := make([]*swarming_api.SwarmingRpcsStringPair, 0, len(c.TaskSpec.Dimensions))
@@ -118,9 +123,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 		Name:           c.Name,
 		Priority:       int64(100.0 * c.TaskSpec.Priority),
 		Properties: &swarming_api.SwarmingRpcsTaskProperties{
-			CipdInput: &swarming_api.SwarmingRpcsCipdInput{
-				Packages: cipdPackages,
-			},
+			CipdInput:            cipdInput,
 			Dimensions:           dims,
 			ExecutionTimeoutSecs: int64(swarming.RECOMMENDED_HARD_TIMEOUT.Seconds()),
 			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
