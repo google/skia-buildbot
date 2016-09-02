@@ -356,7 +356,7 @@ this.sk = this.sk || function() {
     // Savings time and having some times be erroneously in EST instead of
     // EDT, for example
     var str = date.toString();
-    timezone = str.substring(str.indexOf("("));
+    var timezone = str.substring(str.indexOf("("));
     return date.toLocaleString() + " " + timezone;
   }
 
