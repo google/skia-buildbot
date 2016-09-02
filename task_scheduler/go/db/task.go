@@ -473,8 +473,9 @@ func TagsForTask(name, id string, priority float64, repo, revision string, dimen
 	}
 
 	for k, v := range dimensions {
-		if _, ok := tags[k]; !ok {
-			tags[fmt.Sprintf("sk_%s", k)] = v
+		key := fmt.Sprintf("sk_dim_%s", k)
+		if _, ok := tags[key]; !ok {
+			tags[key] = v
 		} else {
 			glog.Warningf("Duplicate dimension/tag %q.", k)
 		}
