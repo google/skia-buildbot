@@ -295,7 +295,7 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 			}
 		}
 	}
-	glog.Infof("Found %d candidates in %d specs:", total, len(bySpec))
+	glog.Infof("Found %d candidates in %d specs", total, len(bySpec))
 	return bySpec, nil
 }
 

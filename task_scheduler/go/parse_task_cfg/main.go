@@ -25,7 +25,12 @@ func main() {
 	if err != nil {
 		glog.Fatal(err)
 	}
-	if _, err := scheduling.ParseTasksCfg(string(b)); err != nil {
+	cfg, err := scheduling.ParseTasksCfg(string(b))
+	if err != nil {
 		glog.Fatal(err)
+	}
+	glog.Infof("Task config:")
+	for name, t := range cfg.Tasks {
+		glog.Infof("  %s: %v", name, t)
 	}
 }

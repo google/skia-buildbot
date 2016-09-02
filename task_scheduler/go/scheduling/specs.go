@@ -52,6 +52,7 @@ type TasksCfg struct {
 }
 
 // TaskSpec is a struct which describes a Swarming task to run.
+// Be sure to add any new fields to the Copy() method.
 type TaskSpec struct {
 	// CipdPackages are CIPD packages which should be installed for the task.
 	CipdPackages []*CipdPackage `json:"cipd_packages"`
@@ -114,10 +115,18 @@ func (t *TaskSpec) Copy() *TaskSpec {
 	copy(deps, t.Dependencies)
 	dims := make([]string, len(t.Dimensions))
 	copy(dims, t.Dimensions)
+	environment := make(map[string]string, len(t.Environment))
+	for k, v := range t.Environment {
+		environment[k] = v
+	}
+	extraArgs := make([]string, len(t.ExtraArgs))
+	copy(extraArgs, t.ExtraArgs)
 	return &TaskSpec{
 		CipdPackages: cipdPackages,
 		Dependencies: deps,
 		Dimensions:   dims,
+		Environment:  environment,
+		ExtraArgs:    extraArgs,
 		Isolate:      t.Isolate,
 		Priority:     t.Priority,
 	}
