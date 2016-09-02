@@ -142,8 +142,13 @@ func (n *trieNode) String(indent int) string {
 		return rv + "})"
 	}
 	rv += "\n"
-	for k, c := range n.children {
-		rv += fmt.Sprintf("%s\"%s\": %s,\n", util.RepeatJoin("  ", "", indent+1), k, c.String(indent+1))
+	childKeys := make([]string, 0, len(n.children))
+	for k, _ := range n.children {
+		childKeys = append(childKeys, k)
+	}
+	sort.Strings(childKeys)
+	for _, k := range childKeys {
+		rv += fmt.Sprintf("%s\"%s\": %s,\n", util.RepeatJoin("  ", "", indent+1), k, n.children[k].String(indent+1))
 	}
 	rv += fmt.Sprintf("%s})", util.RepeatJoin("  ", "", indent))
 	return rv
