@@ -107,8 +107,8 @@ func TestFindTaskCandidates(t *testing.T) {
 	//
 	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
 	//
-	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
-	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
+	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
+	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
 	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
 	testTask := "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	perfTask := "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
@@ -578,8 +578,8 @@ func TestRegenerateTaskQueue(t *testing.T) {
 	//
 	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
 	//
-	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
-	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
+	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
+	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
 	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
 	testTask := "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
 	perfTask := "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
@@ -851,8 +851,8 @@ func TestSchedulingE2E(t *testing.T) {
 	//
 	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
 	//
-	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
-	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
+	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
+	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
 
 	repoName := "skia.git"
 
@@ -1082,8 +1082,8 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	//
 	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
 	//
-	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
-	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
+	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
+	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
 	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
 	repoName := "skia.git"
 	repoDir := path.Join(tr.Dir, repoName)

@@ -121,7 +121,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 			cipdInput.Packages = append(cipdInput.Packages, &swarming_api.SwarmingRpcsCipdPackage{
 				PackageName: p.Name,
 				Path:        p.Path,
-				Version:     fmt.Sprintf("%d", p.Version),
+				Version:     p.Version,
 			})
 		}
 	}

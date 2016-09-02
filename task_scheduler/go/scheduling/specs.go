@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/skia-dev/glog"
+
 	"go.skia.org/infra/go/gitinfo"
 )
 
@@ -137,7 +139,7 @@ func (t *TaskSpec) Copy() *TaskSpec {
 type CipdPackage struct {
 	Name    string `json:"name"`
 	Path    string `json:"path"`
-	Version int64  `json:"version"`
+	Version string `json:"version"`
 }
 
 // taskCfgCache is a struct used for caching tasks cfg files. The user should
@@ -201,7 +203,10 @@ func (c *taskCfgCache) GetTaskSpecsForCommits(commitsByRepo map[string][]string)
 		for _, commit := range commits {
 			cfg, err := c.readTasksCfg(repo, commit)
 			if err != nil {
-				return nil, err
+				// We may have changed the task config format. Just log an error.
+				// TODO(borenet): Remove this? Blacklist commits with bad tasks cfg instead?
+				glog.Errorf("Failed to obtain tasks cfg at %s: %s", commit, err)
+				continue
 			}
 			// Make a copy of the task specs.
 			tasks := make(map[string]*TaskSpec, len(cfg.Tasks))

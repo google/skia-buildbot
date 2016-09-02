@@ -21,8 +21,8 @@ func TestTaskSpecs(t *testing.T) {
 	repos := gitinfo.NewRepoMap(tr.Dir)
 	cache := newTaskCfgCache(repos)
 
-	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
-	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
+	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
+	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
 	repo := "skia.git"
 	specs, err := cache.GetTaskSpecsForCommits(map[string][]string{
 		repo: []string{c1, c2},
@@ -47,8 +47,8 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	cache := newTaskCfgCache(repos)
 
 	// Load configs into the cache.
-	c1 := "c06ac6093d3029dffe997e9d85e8e61fee5f87b9"
-	c2 := "0f87799ac791b8d8573e93694d05b05a65e09668"
+	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
+	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
 	repo := "skia.git"
 	_, err := cache.GetTaskSpecsForCommits(map[string][]string{
 		repo: []string{c1, c2},
@@ -61,8 +61,8 @@ func TestTaskCfgCacheCleanup(t *testing.T) {
 	assert.NoError(t, err)
 	d1, err := r.Details(c1, false)
 	assert.NoError(t, err)
-	// c1 and c2 are about 1 minute apart.
-	period := time.Now().Sub(d1.Timestamp) - 25*time.Second
+	// c1 and c2 are about 5 seconds apart.
+	period := time.Now().Sub(d1.Timestamp) - 2*time.Second
 	assert.NoError(t, cache.Cleanup(period))
 	assert.Equal(t, 1, len(cache.cache[repo]))
 }
