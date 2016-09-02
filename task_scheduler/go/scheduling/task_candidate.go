@@ -118,6 +118,17 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 		dimsMap[key] = val
 	}
 
+	var env []*swarming_api.SwarmingRpcsStringPair
+	if len(c.TaskSpec.Environment) > 0 {
+		env = make([]*swarming_api.SwarmingRpcsStringPair, 0, len(c.TaskSpec.Environment))
+		for k, v := range c.TaskSpec.Environment {
+			env = append(env, &swarming_api.SwarmingRpcsStringPair{
+				Key:   k,
+				Value: v,
+			})
+		}
+	}
+
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: int64(swarming.RECOMMENDED_EXPIRATION.Seconds()),
 		Name:           c.Name,
@@ -125,7 +136,9 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 		Properties: &swarming_api.SwarmingRpcsTaskProperties{
 			CipdInput:            cipdInput,
 			Dimensions:           dims,
+			Env:                  env,
 			ExecutionTimeoutSecs: int64(swarming.RECOMMENDED_HARD_TIMEOUT.Seconds()),
+			ExtraArgs:            c.TaskSpec.ExtraArgs,
 			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
 				Isolated:       c.IsolatedInput,
 				Isolatedserver: isolate.ISOLATE_SERVER_URL,

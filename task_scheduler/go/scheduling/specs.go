@@ -64,6 +64,12 @@ type TaskSpec struct {
 	// which may run this task.
 	Dimensions []string `json:"dimensions"`
 
+	// Environment is a set of environment variables needed by the task.
+	Environment map[string]string `json:"environment"`
+
+	// ExtraArgs are extra command-line arguments to pass to the task.
+	ExtraArgs []string `json:"extra_args"`
+
 	// Isolate is the name of the isolate file used by this task.
 	Isolate string `json:"isolate"`
 
