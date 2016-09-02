@@ -32,6 +32,7 @@ const (
 	SWARMING_TAG_NAME       = "sk_name"
 	SWARMING_TAG_PRIORITY   = "sk_priority"
 	SWARMING_TAG_REPO       = "sk_repo"
+	SWARMING_TAG_RETRY_OF   = "sk_retry_of"
 	SWARMING_TAG_REVISION   = "sk_revision"
 )
 
@@ -63,6 +64,7 @@ const (
 //   - Do not change the type of any existing field.
 //   - Leave removed fields commented out to ensure the field name is not
 //     reused.
+//   - Add any new fields to the Copy() method.
 type Task struct {
 	// Commits are the commits which were tested in this Task. The list may
 	// change due to backfilling/bisecting.
@@ -97,6 +99,9 @@ type Task struct {
 
 	// Repo is the repository of the commit at which this task ran.
 	Repo string
+
+	// RetryOf is the ID of the task which this task is a retry of, if any.
+	RetryOf string
 
 	// Revision is the commit at which this task ran.
 	Revision string
@@ -155,6 +160,9 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 		return false, err
 	}
 	if err := checkOrSetFromTag(SWARMING_TAG_REPO, &copy.Repo, "Repo"); err != nil {
+		return false, err
+	}
+	if err := checkOrSetFromTag(SWARMING_TAG_RETRY_OF, &copy.RetryOf, "RetryOf"); err != nil {
 		return false, err
 	}
 	if err := checkOrSetFromTag(SWARMING_TAG_REVISION, &copy.Revision, "Revision"); err != nil {
@@ -293,6 +301,7 @@ func (t *Task) Copy() *Task {
 		IsolatedOutput: t.IsolatedOutput,
 		Name:           t.Name,
 		Repo:           t.Repo,
+		RetryOf:        t.RetryOf,
 		Revision:       t.Revision,
 		Started:        t.Started,
 		Status:         t.Status,
@@ -462,13 +471,14 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 }
 
 // TagsForTask returns the tags which should be set for a Task.
-func TagsForTask(name, id string, priority float64, repo, revision string, dimensions map[string]string) []string {
+func TagsForTask(name, id string, priority float64, repo, retryOf, revision string, dimensions map[string]string) []string {
 	tags := map[string]string{
 		SWARMING_TAG_ALLOW_MILO: "1",
 		SWARMING_TAG_NAME:       name,
 		SWARMING_TAG_ID:         id,
 		SWARMING_TAG_PRIORITY:   fmt.Sprintf("%f", priority),
 		SWARMING_TAG_REPO:       repo,
+		SWARMING_TAG_RETRY_OF:   retryOf,
 		SWARMING_TAG_REVISION:   revision,
 	}
 

@@ -26,6 +26,7 @@ type taskCandidate struct {
 	IsolatedHashes []string
 	Name           string
 	Repo           string
+	RetryOf        string
 	Revision       string
 	Score          float64
 	StealingFromId string
@@ -44,6 +45,7 @@ func (c *taskCandidate) Copy() *taskCandidate {
 		IsolatedHashes: isolatedHashes,
 		Name:           c.Name,
 		Repo:           c.Repo,
+		RetryOf:        c.RetryOf,
 		Revision:       c.Revision,
 		Score:          c.Score,
 		StealingFromId: c.StealingFromId,
@@ -82,6 +84,7 @@ func (c *taskCandidate) MakeTask() *db.Task {
 		Id:       "", // Filled in when the task is inserted into the DB.
 		Name:     c.Name,
 		Repo:     c.Repo,
+		RetryOf:  c.RetryOf,
 		Revision: c.Revision,
 	}
 }
@@ -172,7 +175,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 			},
 			IoTimeoutSecs: int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds()),
 		},
-		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.Revision, dimsMap),
+		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.RetryOf, c.Revision, dimsMap),
 		User: "skia-task-scheduler",
 	}
 }

@@ -273,6 +273,11 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 					if previous.Success() {
 						continue
 					}
+					// Only retry a task once.
+					if previous.RetryOf != "" {
+						continue
+					}
+					c.RetryOf = previous.Id
 				}
 
 				// Don't consider candidates whose dependencies are not met.

@@ -1393,3 +1393,62 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 		}
 	}
 }
+
+func TestSchedulingRetry(t *testing.T) {
+	testutils.SkipIfShort(t)
+
+	// Setup.
+	tr := util.NewTempRepo()
+	d := db.NewInMemoryDB()
+	cache, err := db.NewTaskCache(d, time.Hour)
+	assert.NoError(t, err)
+
+	isolateClient, err := isolate.NewClient(tr.Dir)
+	assert.NoError(t, err)
+	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
+	swarmingClient := swarming.NewTestClient()
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
+	assert.NoError(t, err)
+
+	// Run both available compile tasks.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	assert.NoError(t, s.MainLoop())
+	tasks, err := cache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(tasks))
+	t1 := tasks[0]
+	assert.NotNil(t, t1)
+	t2 := tasks[1]
+	assert.NotNil(t, t2)
+
+	// One task successful, the other not.
+	t1.Status = db.TASK_STATUS_FAILURE
+	t1.Finished = time.Now()
+	t2.Status = db.TASK_STATUS_SUCCESS
+	t2.Finished = time.Now()
+	t2.IsolatedOutput = "abc123"
+
+	assert.NoError(t, d.PutTasks([]*db.Task{t1, t2}))
+	assert.NoError(t, cache.Update())
+
+	// Cycle. Ensure that we schedule a retry of t1.
+	assert.NoError(t, s.MainLoop())
+	tasks, err = cache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(tasks))
+	t3 := tasks[0]
+	assert.NotNil(t, t3)
+	assert.Equal(t, t1.Id, t3.RetryOf)
+
+	// The retry failed. Ensure that we don't schedule another.
+	t3.Status = db.TASK_STATUS_FAILURE
+	t3.Finished = time.Now()
+	assert.NoError(t, d.PutTask(t3))
+	assert.NoError(t, cache.Update())
+	assert.NoError(t, s.MainLoop())
+	tasks, err = cache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(tasks))
+}
