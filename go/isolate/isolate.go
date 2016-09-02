@@ -214,29 +214,45 @@ type isolatedFile struct {
 	Version     string                 `json:"version"`
 }
 
-// addIsolatedIncludes inserts the given isolated hashes as includes into the
-// given isolated file.
-func addIsolatedIncludes(filepath string, includes []string) error {
-	f, err := os.OpenFile(filepath, os.O_RDWR, 0777)
+// readIsolatedFile reads the given isolated file.
+func readIsolatedFile(filepath string) (*isolatedFile, error) {
+	f, err := os.Open(filepath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer util.Close(f)
 	var isolated isolatedFile
 	if err := json.NewDecoder(f).Decode(&isolated); err != nil {
+		return nil, err
+	}
+	return &isolated, nil
+}
+
+// writeIsolatedFile writes the given isolated file.
+func writeIsolatedFile(filepath string, i *isolatedFile) error {
+	f, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	if err := json.NewEncoder(f).Encode(i); err != nil {
+		defer util.Close(f)
+		return err
+	}
+	return f.Close()
+}
+
+// addIsolatedIncludes inserts the given isolated hashes as includes into the
+// given isolated file.
+func addIsolatedIncludes(filepath string, includes []string) error {
+	isolated, err := readIsolatedFile(filepath)
+	if err != nil {
 		return err
 	}
 	if isolated.Includes == nil {
 		isolated.Includes = make([]string, 0, len(includes))
 	}
 	isolated.Includes = append(isolated.Includes, includes...)
-	if err := f.Truncate(0); err != nil {
-		return err
-	}
-	if err := json.NewEncoder(f).Encode(&isolated); err != nil {
-		return err
-	}
-	return nil
+	return writeIsolatedFile(filepath, isolated)
 }
 
 // BatchArchiveTasks runs `isolate batcharchive` for the tasks.
