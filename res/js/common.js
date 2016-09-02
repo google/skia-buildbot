@@ -349,6 +349,17 @@ this.sk = this.sk || function() {
     return Math.round(n/deltas[i].delta)+deltas[i].units;
   }
 
+  // localeTime formats the provided Date object in locale time and appends the timezone to the end.
+  sk.human.localeTime = function(date) {
+    // caching timezone could be buggy, especially if times from a wide range
+    // of dates are used. The main concern would be crossing over Daylight
+    // Savings time and having some times be erroneously in EST instead of
+    // EDT, for example
+    var str = date.toString();
+    timezone = str.substring(str.indexOf("("));
+    return date.toLocaleString() + " " + timezone;
+  }
+
   // Gets the epoch time in seconds.  This is its own function to make it easier to mock.
   sk.now = function() {
     return Math.round(new Date().getTime() / 1000);
