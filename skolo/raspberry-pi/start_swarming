@@ -7,6 +7,10 @@ sudo chmod 777 /b
 # when trying to download the bootstrap code.
 sleep 10s
 
+# Copy authentication to home directory
+cp /opt/.gitconfig /home/chrome-bot/.gitconfig
+cp /opt/.netrc /home/chrome-bot/.netrc
+
 if [ ! -d "/b/s" ]; then
   cd /b
   echo "Bootstrapping swarming, expect a reboot"

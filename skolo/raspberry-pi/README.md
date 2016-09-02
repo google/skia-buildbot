@@ -68,6 +68,16 @@ adduser chrome-bot
 # Download from https://pantheon.corp.google.com/storage/browser/skia-buildbots/rpi_auth/?project=google.com:skia-buildbots
 # then use chown to make chrome-bot own them.
 
+# Take the rpi-master and rpi-spare ssh public keys and put them in /home/chrome-bot/.ssh/authorized_keys
+
+# Acquire .gitconfig and .netrc for the bots. Put them in /opt/
+# Design decision note:  These configs may change; by putting them in /opt/ with
+# a script to copy them to $HOME on boot, new keys can be deployed by updating
+# them in /opt and then rebooting the rpis. If a faster deploy is required, then
+# they can be put in /opt and deployed immediately using Ansible. There is more
+# flexibility this way. (Reminder that $HOME is not NFS mounted, and so updating
+# $HOME on the master image does not autoupdate all the pis)
+
 # Ctrl+D to exit chroot
 ```
   - `./setup-swarming.sh`  This will do all automatic, idempotent setup that is possible.  If Ansible can be configured to act inside a chroot, this should be ported to Ansible.
