@@ -28,11 +28,11 @@ const (
 
 	// Swarming tags added by Build Scheduler.
 	SWARMING_TAG_ALLOW_MILO = "allow_milo"
-	SWARMING_TAG_ID         = "scheduler_id"
-	SWARMING_TAG_NAME       = "name"
-	SWARMING_TAG_PRIORITY   = "priority"
-	SWARMING_TAG_REPO       = "repo"
-	SWARMING_TAG_REVISION   = "revision"
+	SWARMING_TAG_ID         = "sk_id"
+	SWARMING_TAG_NAME       = "sk_name"
+	SWARMING_TAG_PRIORITY   = "sk_priority"
+	SWARMING_TAG_REPO       = "sk_repo"
+	SWARMING_TAG_REVISION   = "sk_revision"
 )
 
 type TaskStatus string
@@ -474,7 +474,7 @@ func TagsForTask(name, id string, priority float64, repo, revision string, dimen
 
 	for k, v := range dimensions {
 		if _, ok := tags[k]; !ok {
-			tags[k] = v
+			tags[fmt.Sprintf("sk_%s", k)] = v
 		} else {
 			glog.Warningf("Duplicate dimension/tag %q.", k)
 		}
