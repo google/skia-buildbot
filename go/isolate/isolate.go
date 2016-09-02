@@ -34,7 +34,7 @@ const (
 )
 
 var (
-	DEFAULT_BLACKLIST = []string{"*.pyc"}
+	DEFAULT_BLACKLIST = []string{"*.pyc", ".git", "out", ".recipe_deps"}
 
 	isolatedHashRegexpPattern = fmt.Sprintf("^([a-f0-9]{40})\\s+.*(%s)\\.isolated$", fmt.Sprintf(TASK_ID_TMPL, "\\d+"))
 	isolatedHashRegexp        = regexp.MustCompile(isolatedHashRegexpPattern)

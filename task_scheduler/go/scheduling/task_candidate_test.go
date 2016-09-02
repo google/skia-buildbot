@@ -27,3 +27,16 @@ func TestTaskCandidateId(t *testing.T) {
 		assert.Error(t, err)
 	}
 }
+
+func TestReplaceVar(t *testing.T) {
+	c := makeTaskCandidate("c", []string{"k:v"})
+	c.Repo = "my-repo"
+	c.Revision = "abc123"
+	c.Name = "my-task"
+	assert.Equal(t, "", replaceVars(c, ""))
+	assert.Equal(t, "my-repo", replaceVars(c, "<(REPO)"))
+	assert.Equal(t, "my-task", replaceVars(c, "<(TASK_NAME)"))
+	assert.Equal(t, "abc123", replaceVars(c, "<(REVISION)"))
+	assert.Equal(t, "<(REVISION", replaceVars(c, "<(REVISION"))
+	assert.Equal(t, "my-repo_my-task_abc123", replaceVars(c, "<(REPO)_<(TASK_NAME)_<(REVISION)"))
+}

@@ -11,6 +11,14 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
+const (
+	VARIABLE_SYNTAX = "<(%s)"
+
+	VARIABLE_REPO      = "REPO"
+	VARIABLE_REVISION  = "REVISION"
+	VARIABLE_TASK_NAME = "TASK_NAME"
+)
+
 // taskCandidate is a struct used for determining which tasks to schedule.
 type taskCandidate struct {
 	Commits        []string
@@ -89,6 +97,19 @@ func (c *taskCandidate) MakeIsolateTask(infraBotsDir, baseDir string) *isolate.T
 	}
 }
 
+// replaceVars replaces variable names with their values in a given string.
+func replaceVars(c *taskCandidate, s string) string {
+	replacements := map[string]string{
+		VARIABLE_REPO:      c.Repo,
+		VARIABLE_REVISION:  c.Revision,
+		VARIABLE_TASK_NAME: c.Name,
+	}
+	for k, v := range replacements {
+		s = strings.Replace(s, fmt.Sprintf(VARIABLE_SYNTAX, k), v, -1)
+	}
+	return s
+}
+
 // MakeTaskRequest creates a SwarmingRpcsNewTaskRequest object from the taskCandidate.
 func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNewTaskRequest {
 	var cipdInput *swarming_api.SwarmingRpcsCipdInput
@@ -129,6 +150,11 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 		}
 	}
 
+	extraArgs := make([]string, 0, len(c.TaskSpec.ExtraArgs))
+	for _, arg := range c.TaskSpec.ExtraArgs {
+		extraArgs = append(extraArgs, replaceVars(c, arg))
+	}
+
 	return &swarming_api.SwarmingRpcsNewTaskRequest{
 		ExpirationSecs: int64(swarming.RECOMMENDED_EXPIRATION.Seconds()),
 		Name:           c.Name,
@@ -138,7 +164,7 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 			Dimensions:           dims,
 			Env:                  env,
 			ExecutionTimeoutSecs: int64(swarming.RECOMMENDED_HARD_TIMEOUT.Seconds()),
-			ExtraArgs:            c.TaskSpec.ExtraArgs,
+			ExtraArgs:            extraArgs,
 			InputsRef: &swarming_api.SwarmingRpcsFilesRef{
 				Isolated:       c.IsolatedInput,
 				Isolatedserver: isolate.ISOLATE_SERVER_URL,
