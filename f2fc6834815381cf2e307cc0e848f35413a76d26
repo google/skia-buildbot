@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56d96b0c_b37422c7",
+        "filename": "res/imp/query2-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T21:00:03Z",
+      "side": 1,
+      "message": "The layout in your screenshot seems a bit awkward. Would it be better if the invert button were below the values list?",
+      "revId": "f2fc6834815381cf2e307cc0e848f35413a76d26",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
