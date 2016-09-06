@@ -7,13 +7,15 @@
   <script src="/res/common/js/common.js"></script>
   <script src="/res/imp/bower_components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel=import href="query2-sk.html">
+  <link rel=import href="query-summary-sk.html">
 </head>
 <body>
   <h1>Query2</h1>
 
   <query2-sk id=basic></query2-sk>
   <p>
-    <b>Query String:</b> <code id=q></code>
+    <b>Query String:</b>
+    <query-summary-sk id=q selection=""></query-summary-sk>
   </p>
 
   <script type="text/javascript" charset="utf-8">
@@ -42,11 +44,11 @@
     $$$('#basic').paramset = paramset;
     setTimeout(function() {
       $$$('#basic').setCurrentQuery("config=565&type=GPU");
-      $$$('#q').textContent = $$$('#basic').current_query;
+      $$$('#q').selection = $$$('#basic').current_query;
     }, 10);
 
     $$$('#basic').addEventListener('query-change', function(e){
-      $$$('#q').textContent = e.detail.q;
+      $$$('#q').selection = e.detail.q;
     });
 
   </script>
