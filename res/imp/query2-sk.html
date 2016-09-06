@@ -22,11 +22,21 @@
 
 <link rel="stylesheet" href="/res/common/css/md.css">
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <dom-module id="query2-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
     select {
       margin: 0 1em;
     }
+
+    paper-checkbox {
+      --paper-checkbox-checked-color: #1F78B4;
+      --paper-checkbox-checked-ink-color: #1F78B4;
+      --paper-checkbox-unchecked-color: #1F78B4;
+      --paper-checkbox-unchecked-ink-color: #1F78B4;
+      margin: 0 1em 0.5em 1em;
+    }
+
   </style>
   <template>
     <div class="horizontal layout">
@@ -39,6 +49,10 @@
         <button on-tap="_clear">Clear</button>
       </div>
       <div class="vertical layout">
+        <paper-checkbox
+          id=invert
+          on-change="_valueChange"
+          title="Match items that aren't selected below.">Invert</paper-checkbox>
         <select id=values size=12 on-change="_valueChange" multiple>
           <template is="dom-repeat" items="[[_values]]" >
             <option value="[[item]]" selected="[[_isSelected(item)]]">[[item]]</option>
@@ -95,6 +109,7 @@
 
     setCurrentQuery: function(s) {
       this._query = sk.query.toParamSet(s);
+      this._queryChanged();
     },
 
     _paramsetChange: function() {
@@ -103,25 +118,31 @@
       this.set("_keys", keys);
     },
 
+    // Returns the prefixed value, for example, "!" if it is an inverted search.
+    _prefixValue: function(v) {
+      return (this.$.invert.checked ? '!' : '') + v;
+    },
+
     _isSelected: function(paramValue) {
       var selections = this._query[this._selectedKey];
       if (!selections) {
         return false;
       }
-      return selections.indexOf(paramValue) !== -1;
+      return selections.indexOf(this._prefixValue(paramValue)) !== -1;
     },
 
     _keyChange: function(e) {
       var value = this.$.keys.selectedOptions[0].value;
       this.set("_values", this.paramset[value]);
       this.set("_selectedKey", value);
+      this.$.invert.checked = (this._query[value] && this._query[value][0][0] === "!");
     },
 
     _valueChange: function(e) {
       var selectedValues = [];
       $$("option", this.$.values).forEach(function(e){
         if (e.selected) {
-          selectedValues.push(e.value);
+          selectedValues.push(this._prefixValue(e.value));
         }
       }.bind(this));
       this._query[this._selectedKey] = selectedValues;
