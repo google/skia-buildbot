@@ -1,0 +1,231 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "56d96b0c_33fa725e",
+        "filename": "task_scheduler/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "Do we need a task_scheduler_debug target?",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_f3b4ead1",
+        "filename": "task_scheduler/build_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "nit: other build_release scripts do this:\n${INSTALL_DIR} --mode\u003d755                                  ${ROOT}/usr/local/share/${APPNAME}/templates\n${INSTALL}     --mode\u003d644    ./templates/*                 ${ROOT}/usr/local/share/${APPNAME}/templates",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_33ecb2b6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "nit: say which mutex protects which fields. I assume that recentMtx protects recentCommits and recentTaskSpecs, but I wouldn\u0027t have guessed that queueMtx protects lastScheduled.",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_531296c6",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "Doesn\u0027t seem to be set anywhere? Same for recentTaskSpecs.",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_f322aa11",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "nit: argument order for other functions (computeBlamelistRecursive, TaskCache.GetTaskForCommit) is repo, commit, taskName. (OTOH, ComputeBlamelist is name, repo, commit also. I\u0027ve sort of been preferring repo, commit, taskName because taskName is only meaningful in the context of the config file from a particular repo at a particular commit.)",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_535a9655",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "Maybe should return *db.Task or SwarmingTaskId so that we can link to the Swarming task.",
+      "range": {
+        "startLine": 143,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 4
+      },
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_932f9ef8",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "nit: this seems inaccurate, given code in reloadTemplates: \"If blank the current directory will be used.\"",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_f3394a2f",
+        "filename": "task_scheduler/res/imp/task-scheduler-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "Author and Repo don\u0027t seem to be used. Is that a TODO?",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_f3a5ca52",
+        "filename": "task_scheduler/res/imp/task-trigger-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "/json/trigger doesn\u0027t (currently) return any data.",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_735f9a44",
+        "filename": "task_scheduler/templates/blacklist.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "s/Status/Blacklist/?",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_336912ef",
+        "filename": "task_scheduler/templates/blacklist.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "Would it be simpler to just JSON-encode the data in blacklistHandler and do something like this here:\nvar data \u003d JSON.parse(\"{{.Data}}\");\nelem.task_specs \u003d data.task_specs;\nelem.commits \u003d data.commits;\nelem.rules \u003d data.rules;",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_d33c4622",
+        "filename": "task_scheduler/templates/main.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "I don\u0027t understand how this works. Doesn\u0027t this produce javascript like:\nelem.last_scheduled \u003d 2016-09-06 20:26:00 +0000 UTC;",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "56d96b0c_d36d26fb",
+        "filename": "task_scheduler/templates/main.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-06T20:52:33Z",
+      "side": 1,
+      "message": "debugging?",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
