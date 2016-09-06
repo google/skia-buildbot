@@ -183,7 +183,7 @@ func main() {
 	chromiumBuildWithPatch := chromiumBuilds[1]
 
 	// Parse out the Chromium and Skia hashes.
-	chromiumHash, skiaHash := getHashesFromBuild(chromiumBuildNoPatch)
+	chromiumHash, skiaHash := util.GetHashesFromBuild(chromiumBuildNoPatch)
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
@@ -268,10 +268,4 @@ func main() {
 	}
 
 	taskCompletedSuccessfully = true
-}
-
-// getHashesFromBuild returns the Chromium and Skia hashes from a CT build string.
-func getHashesFromBuild(chromiumBuild string) (string, string) {
-	tokens := strings.Split(chromiumBuild, "-")
-	return tokens[1], tokens[2]
 }
