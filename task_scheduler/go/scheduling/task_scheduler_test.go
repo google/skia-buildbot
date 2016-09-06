@@ -42,6 +42,9 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 		return fmt.Sprintf("%s:%s", k, v)
 	}
 	ts := func(t time.Time) string {
+		if util.TimeIsZero(t) {
+			return ""
+		}
 		return t.Format(swarming.TIMESTAMP_FORMAT)
 	}
 	abandoned := ""
@@ -63,6 +66,16 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 	default:
 		assert.FailNow(t, "Unknown task status: %s", task.Status)
 	}
+	tags := []string{
+		tag(db.SWARMING_TAG_ID, task.Id),
+		tag(db.SWARMING_TAG_NAME, task.Name),
+		tag(db.SWARMING_TAG_REPO, task.Repo),
+		tag(db.SWARMING_TAG_REVISION, task.Revision),
+	}
+	for _, p := range task.ParentTaskIds {
+		tags = append(tags, tag(db.SWARMING_TAG_PARENT_TASK_ID, p))
+	}
+
 	return &swarming_api.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming_api.SwarmingRpcsTaskRequest{
 			CreatedTs: ts(task.Created),
@@ -74,17 +87,12 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 			CompletedTs: ts(task.Finished),
 			Failure:     failed,
 			OutputsRef: &swarming_api.SwarmingRpcsFilesRef{
-				Isolated: "???",
+				Isolated: task.IsolatedOutput,
 			},
 			StartedTs: ts(task.Started),
 			State:     state,
-			Tags: []string{
-				tag(db.SWARMING_TAG_ID, task.Id),
-				tag(db.SWARMING_TAG_NAME, task.Name),
-				tag(db.SWARMING_TAG_REPO, task.Repo),
-				tag(db.SWARMING_TAG_REVISION, task.Revision),
-			},
-			TaskId: task.SwarmingTaskId,
+			Tags:      tags,
+			TaskId:    task.SwarmingTaskId,
 		},
 	}
 }
@@ -1451,4 +1459,72 @@ func TestSchedulingRetry(t *testing.T) {
 	tasks, err = cache.UnfinishedTasks()
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
+}
+
+func TestParentTaskId(t *testing.T) {
+	testutils.SkipIfShort(t)
+
+	// Setup.
+	tr := util.NewTempRepo()
+	d := db.NewInMemoryDB()
+	cache, err := db.NewTaskCache(d, time.Hour)
+	assert.NoError(t, err)
+
+	isolateClient, err := isolate.NewClient(tr.Dir)
+	assert.NoError(t, err)
+	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
+	swarmingClient := swarming.NewTestClient()
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
+	assert.NoError(t, err)
+
+	// Run both available compile tasks.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	assert.NoError(t, s.MainLoop())
+	tasks, err := cache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(tasks))
+	for _, task := range tasks {
+		task.Status = db.TASK_STATUS_SUCCESS
+		task.Finished = time.Now()
+		task.IsolatedOutput = "abc123"
+		assert.Equal(t, 0, len(task.ParentTaskIds))
+	}
+	assert.NoError(t, d.PutTasks(tasks))
+	assert.NoError(t, cache.Update())
+
+	t1 := tasks[0]
+	t2 := tasks[1]
+
+	// Run the dependent tasks. Ensure that their parent IDs are correct.
+	bot3 := makeBot("bot3", map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	})
+	bot4 := makeBot("bot4", map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	})
+	bot5 := makeBot("bot5", map[string]string{
+		"pool":        "Skia",
+		"os":          "Android",
+		"device_type": "grouper",
+	})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot3, bot4, bot5})
+	assert.NoError(t, s.MainLoop())
+	tasks, err = cache.UnfinishedTasks()
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(tasks))
+	for _, task := range tasks {
+		assert.Equal(t, 1, len(task.ParentTaskIds))
+		p := task.ParentTaskIds[0]
+		assert.True(t, p == t1.Id || p == t2.Id)
+
+		updated, err := task.UpdateFromSwarming(makeSwarmingRpcsTaskRequestMetadata(t, task).TaskResult)
+		assert.NoError(t, err)
+		assert.False(t, updated)
+	}
 }

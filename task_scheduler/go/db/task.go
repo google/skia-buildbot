@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
 	"sync"
 	"time"
 
@@ -27,13 +28,14 @@ const (
 	SWARMING_STATE_TIMED_OUT = "TIMED_OUT"
 
 	// Swarming tags added by Build Scheduler.
-	SWARMING_TAG_ALLOW_MILO = "allow_milo"
-	SWARMING_TAG_ID         = "sk_id"
-	SWARMING_TAG_NAME       = "sk_name"
-	SWARMING_TAG_PRIORITY   = "sk_priority"
-	SWARMING_TAG_REPO       = "sk_repo"
-	SWARMING_TAG_RETRY_OF   = "sk_retry_of"
-	SWARMING_TAG_REVISION   = "sk_revision"
+	SWARMING_TAG_ALLOW_MILO     = "allow_milo"
+	SWARMING_TAG_ID             = "sk_id"
+	SWARMING_TAG_NAME           = "sk_name"
+	SWARMING_TAG_PARENT_TASK_ID = "sk_parent_task_id"
+	SWARMING_TAG_PRIORITY       = "sk_priority"
+	SWARMING_TAG_REPO           = "sk_repo"
+	SWARMING_TAG_RETRY_OF       = "sk_retry_of"
+	SWARMING_TAG_REVISION       = "sk_revision"
 )
 
 type TaskStatus string
@@ -96,6 +98,9 @@ type Task struct {
 	// Name is a human-friendly descriptive name for this Task. All Tasks
 	// generated from the same TaskSpec have the same name.
 	Name string
+
+	// ParentTaskIds are IDs of tasks which satisfied this task's dependencies.
+	ParentTaskIds []string
 
 	// Repo is the repository of the commit at which this task ran.
 	Repo string
@@ -168,6 +173,16 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 	if err := checkOrSetFromTag(SWARMING_TAG_REVISION, &copy.Revision, "Revision"); err != nil {
 		return false, err
 	}
+
+	// Set ParentTaskIds.
+	var parentTaskIds []string
+	for k, v := range tags {
+		if k == SWARMING_TAG_PARENT_TASK_ID {
+			parentTaskIds = append(parentTaskIds, v)
+		}
+	}
+	sort.Strings(parentTaskIds)
+	copy.ParentTaskIds = parentTaskIds
 
 	// CreatedTs should always be present.
 	if sCreated, err := swarming.ParseTimestamp(s.CreatedTs); err == nil {
@@ -292,6 +307,11 @@ func (t *Task) Copy() *Task {
 		commits = make([]string, len(t.Commits))
 		copy(commits, t.Commits)
 	}
+	var parentTaskIds []string
+	if t.ParentTaskIds != nil {
+		parentTaskIds = make([]string, len(t.ParentTaskIds))
+		copy(parentTaskIds, t.ParentTaskIds)
+	}
 	return &Task{
 		Commits:        commits,
 		Created:        t.Created,
@@ -300,6 +320,7 @@ func (t *Task) Copy() *Task {
 		Id:             t.Id,
 		IsolatedOutput: t.IsolatedOutput,
 		Name:           t.Name,
+		ParentTaskIds:  parentTaskIds,
 		Repo:           t.Repo,
 		RetryOf:        t.RetryOf,
 		Revision:       t.Revision,
@@ -471,7 +492,7 @@ func (d *TaskDecoder) Result() ([]*Task, error) {
 }
 
 // TagsForTask returns the tags which should be set for a Task.
-func TagsForTask(name, id string, priority float64, repo, retryOf, revision string, dimensions map[string]string) []string {
+func TagsForTask(name, id string, priority float64, repo, retryOf, revision string, dimensions map[string]string, parentTaskIds []string) []string {
 	tags := map[string]string{
 		SWARMING_TAG_ALLOW_MILO: "1",
 		SWARMING_TAG_NAME:       name,
@@ -491,9 +512,12 @@ func TagsForTask(name, id string, priority float64, repo, retryOf, revision stri
 		}
 	}
 
-	tagsList := make([]string, 0, len(tags))
+	tagsList := make([]string, 0, len(tags)+len(parentTaskIds))
 	for k, v := range tags {
 		tagsList = append(tagsList, fmt.Sprintf("%s:%s", k, v))
+	}
+	for _, id := range parentTaskIds {
+		tagsList = append(tagsList, fmt.Sprintf("%s:%s", SWARMING_TAG_PARENT_TASK_ID, id))
 	}
 	return tagsList
 }

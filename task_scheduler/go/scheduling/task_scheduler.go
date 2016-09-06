@@ -281,14 +281,22 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 				}
 
 				// Don't consider candidates whose dependencies are not met.
-				depsMet, hashes, err := c.allDepsMet(s.cache)
+				depsMet, idsToHashes, err := c.allDepsMet(s.cache)
 				if err != nil {
 					return nil, err
 				}
 				if !depsMet {
 					continue
 				}
+				hashes := make([]string, 0, len(idsToHashes))
+				parentTaskIds := make([]string, 0, len(idsToHashes))
+				for id, hash := range idsToHashes {
+					hashes = append(hashes, hash)
+					parentTaskIds = append(parentTaskIds, id)
+				}
 				c.IsolatedHashes = hashes
+				sort.Strings(parentTaskIds)
+				c.ParentTaskIds = parentTaskIds
 
 				key := fmt.Sprintf("%s|%s", c.Repo, c.Name)
 				candidates, ok := bySpec[key]

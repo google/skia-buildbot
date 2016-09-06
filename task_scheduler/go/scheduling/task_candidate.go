@@ -25,6 +25,7 @@ type taskCandidate struct {
 	IsolatedInput  string
 	IsolatedHashes []string
 	Name           string
+	ParentTaskIds  []string
 	Repo           string
 	RetryOf        string
 	Revision       string
@@ -39,11 +40,14 @@ func (c *taskCandidate) Copy() *taskCandidate {
 	copy(commits, c.Commits)
 	isolatedHashes := make([]string, len(c.IsolatedHashes))
 	copy(isolatedHashes, c.IsolatedHashes)
+	parentTaskIds := make([]string, len(c.ParentTaskIds))
+	copy(parentTaskIds, c.ParentTaskIds)
 	return &taskCandidate{
 		Commits:        commits,
 		IsolatedInput:  c.IsolatedInput,
 		IsolatedHashes: isolatedHashes,
 		Name:           c.Name,
+		ParentTaskIds:  parentTaskIds,
 		Repo:           c.Repo,
 		RetryOf:        c.RetryOf,
 		Revision:       c.Revision,
@@ -79,13 +83,16 @@ func parseId(id string) (string, string, string, error) {
 func (c *taskCandidate) MakeTask() *db.Task {
 	commits := make([]string, len(c.Commits))
 	copy(commits, c.Commits)
+	parentTaskIds := make([]string, len(c.ParentTaskIds))
+	copy(parentTaskIds, c.ParentTaskIds)
 	return &db.Task{
-		Commits:  commits,
-		Id:       "", // Filled in when the task is inserted into the DB.
-		Name:     c.Name,
-		Repo:     c.Repo,
-		RetryOf:  c.RetryOf,
-		Revision: c.Revision,
+		Commits:       commits,
+		Id:            "", // Filled in when the task is inserted into the DB.
+		Name:          c.Name,
+		ParentTaskIds: parentTaskIds,
+		Repo:          c.Repo,
+		RetryOf:       c.RetryOf,
+		Revision:      c.Revision,
 	}
 }
 
@@ -175,15 +182,16 @@ func (c *taskCandidate) MakeTaskRequest(id string) *swarming_api.SwarmingRpcsNew
 			},
 			IoTimeoutSecs: int64(swarming.RECOMMENDED_IO_TIMEOUT.Seconds()),
 		},
-		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.RetryOf, c.Revision, dimsMap),
+		Tags: db.TagsForTask(c.Name, id, c.TaskSpec.Priority, c.Repo, c.RetryOf, c.Revision, dimsMap, c.ParentTaskIds),
 		User: "skia-task-scheduler",
 	}
 }
 
 // allDepsMet determines whether all dependencies for the given task candidate
-// have been satisfied, and if so, returns their isolated outputs.
-func (c *taskCandidate) allDepsMet(cache db.TaskCache) (bool, []string, error) {
-	isolatedHashes := make([]string, 0, len(c.TaskSpec.Dependencies))
+// have been satisfied, and if so, returns a map of whose keys are task IDs and
+// values are their isolated outputs.
+func (c *taskCandidate) allDepsMet(cache db.TaskCache) (bool, map[string]string, error) {
+	rv := make(map[string]string, len(c.TaskSpec.Dependencies))
 	for _, depName := range c.TaskSpec.Dependencies {
 		d, err := cache.GetTaskForCommit(c.Repo, c.Revision, depName)
 		if err != nil {
@@ -195,9 +203,9 @@ func (c *taskCandidate) allDepsMet(cache db.TaskCache) (bool, []string, error) {
 		if !d.Done() || !d.Success() || d.IsolatedOutput == "" {
 			return false, nil, nil
 		}
-		isolatedHashes = append(isolatedHashes, d.IsolatedOutput)
+		rv[d.Id] = d.IsolatedOutput
 	}
-	return true, isolatedHashes, nil
+	return true, rv, nil
 }
 
 // taskCandidateSlice is an alias used for sorting a slice of taskCandidates.
