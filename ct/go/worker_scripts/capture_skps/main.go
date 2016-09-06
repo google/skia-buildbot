@@ -57,7 +57,7 @@ func main() {
 		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
+	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{}); err != nil {
 		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
