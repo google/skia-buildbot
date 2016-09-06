@@ -24,7 +24,25 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/testutils"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
+)
+
+const (
+	// The test repo has two commits. The first commit adds a tasks.cfg file
+	// with two task specs: a build task and a test task, the test task
+	// depending on the build task. The second commit adds a perf task spec,
+	// which also depends on the build task. Therefore, there are five total
+	// possible tasks we could run:
+	//
+	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
+	//
+	c1        = "81add9e329cde292667a1ce427007b5ff701fad1"
+	c2        = "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
+	buildTask = "Build-Ubuntu-GCC-Arm7-Release-Android"
+	testTask  = "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+	perfTask  = "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
+	repoName  = "skia.git"
 )
 
 func makeTask(name, repo, revision string) *db.Task {
@@ -97,48 +115,39 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 	}
 }
 
-func TestFindTaskCandidates(t *testing.T) {
+// Common setup for TaskScheduler tests.
+func setup(t *testing.T) (*util.TempRepo, db.DB, db.TaskCache, *gitinfo.RepoMap, *gitinfo.GitInfo, *swarming.TestClient, *TaskScheduler) {
 	testutils.SkipIfShort(t)
-
-	// Setup.
 	tr := util.NewTempRepo()
-	defer tr.Cleanup()
 	d := db.NewInMemoryDB()
 	cache, err := db.NewTaskCache(d, time.Hour)
 	assert.NoError(t, err)
-
-	// The test repo has two commits. The first commit adds a tasks.cfg file
-	// with two task specs: a build task and a test task, the test task
-	// depending on the build task. The second commit adds a perf task spec,
-	// which also depends on the build task. Therefore, there are five total
-	// possible tasks we could run:
-	//
-	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
-	//
-	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
-	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
-	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
-	testTask := "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
-	perfTask := "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
-	repo := "skia.git"
-	commits := map[string][]string{
-		repo: []string{c1, c2},
-	}
-
+	repos := gitinfo.NewRepoMap(tr.Dir)
+	repo, err := repos.Repo(repoName)
 	assert.NoError(t, err)
 	isolateClient, err := isolate.NewClient(tr.Dir)
 	assert.NoError(t, err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
+	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient)
 	assert.NoError(t, err)
+	return tr, d, cache, repos, repo, swarmingClient, s
+}
+
+func TestFindTaskCandidates(t *testing.T) {
+	tr, d, cache, _, _, _, s := setup(t)
+	defer tr.Cleanup()
+
+	commits := map[string][]string{
+		repoName: []string{c1, c2},
+	}
 
 	// Check the initial set of task candidates. The two Build tasks
 	// should be the only ones available.
 	c, err := s.findTaskCandidates(commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(c))
-	key := fmt.Sprintf("%s|%s", repo, buildTask)
+	key := fmt.Sprintf("%s|%s", repoName, buildTask)
 	assert.Equal(t, 2, len(c[key]))
 	for _, candidate := range c[key] {
 		assert.Equal(t, candidate.Name, buildTask)
@@ -227,8 +236,8 @@ func TestFindTaskCandidates(t *testing.T) {
 	c, err = s.findTaskCandidates(commits)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(c))
-	assert.Equal(t, 2, len(c[fmt.Sprintf("%s|%s", repo, testTask)]))
-	assert.Equal(t, 1, len(c[fmt.Sprintf("%s|%s", repo, perfTask)]))
+	assert.Equal(t, 2, len(c[fmt.Sprintf("%s|%s", repoName, testTask)]))
+	assert.Equal(t, 1, len(c[fmt.Sprintf("%s|%s", repoName, perfTask)]))
 	for _, candidates := range c {
 		for _, candidate := range candidates {
 			assert.NotEqual(t, candidate.Name, buildTask)
@@ -569,37 +578,8 @@ func TestTimeDecay24Hr(t *testing.T) {
 }
 
 func TestRegenerateTaskQueue(t *testing.T) {
-	testutils.SkipIfShort(t)
-
-	// Setup.
-	tr := util.NewTempRepo()
+	tr, d, cache, _, _, _, s := setup(t)
 	defer tr.Cleanup()
-	d := db.NewInMemoryDB()
-	cache, err := db.NewTaskCache(d, time.Hour)
-	assert.NoError(t, err)
-
-	// The test repo has two commits. The first commit adds a tasks.cfg file
-	// with two task specs: a build task and a test task, the test task
-	// depending on the build task. The second commit adds a perf task spec,
-	// which also depends on the build task. Therefore, there are five total
-	// possible tasks we could run:
-	//
-	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
-	//
-	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
-	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
-	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
-	testTask := "Test-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
-	perfTask := "Perf-Android-GCC-Nexus7-GPU-Tegra3-Arm7-Release"
-	repoName := "skia.git"
-
-	assert.NoError(t, err)
-	isolateClient, err := isolate.NewClient(tr.Dir)
-	assert.NoError(t, err)
-	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
-	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient)
-	assert.NoError(t, err)
 
 	// Ensure that the queue is initially empty.
 	assert.Equal(t, 0, len(s.queue))
@@ -842,33 +822,8 @@ func makeBot(id string, dims map[string]string) *swarming_api.SwarmingRpcsBotInf
 }
 
 func TestSchedulingE2E(t *testing.T) {
-	testutils.SkipIfShort(t)
-
-	// Setup.
-	tr := util.NewTempRepo()
+	tr, d, cache, _, _, swarmingClient, s := setup(t)
 	defer tr.Cleanup()
-	d := db.NewInMemoryDB()
-	cache, err := db.NewTaskCache(d, time.Hour)
-	assert.NoError(t, err)
-
-	// The test repo has two commits. The first commit adds a tasks.cfg file
-	// with two task specs: a build task and a test task, the test task
-	// depending on the build task. The second commit adds a perf task spec,
-	// which also depends on the build task. Therefore, there are five total
-	// possible tasks we could run:
-	//
-	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
-	//
-	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
-	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
-
-	repoName := "skia.git"
-
-	isolateClient, err := isolate.NewClient(tr.Dir)
-	assert.NoError(t, err)
-	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
-	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{repoName}, isolateClient, swarmingClient)
 
 	// Start testing. No free bots, so we get a full queue with nothing
 	// scheduled.
@@ -1074,37 +1029,8 @@ func makeDummyCommits(t *testing.T, repoDir string, numCommits int) {
 }
 
 func TestSchedulerStealingFrom(t *testing.T) {
-	testutils.SkipIfShort(t)
-
-	// Setup.
-	tr := util.NewTempRepo()
-	d := db.NewInMemoryDB()
-	cache, err := db.NewTaskCache(d, time.Hour)
-	assert.NoError(t, err)
-
-	// The test repo has two commits. The first commit adds a tasks.cfg file
-	// with two task specs: a build task and a test task, the test task
-	// depending on the build task. The second commit adds a perf task spec,
-	// which also depends on the build task. Therefore, there are five total
-	// possible tasks we could run:
-	//
-	// Build@c1, Test@c1, Build@c2, Test@c2, Perf@c2
-	//
-	c1 := "81add9e329cde292667a1ce427007b5ff701fad1"
-	c2 := "4595a2a2662d6cef863870ca68f64824c4b5ef2d"
-	buildTask := "Build-Ubuntu-GCC-Arm7-Release-Android"
-	repoName := "skia.git"
-	repoDir := path.Join(tr.Dir, repoName)
-
-	repos := gitinfo.NewRepoMap(tr.Dir)
-	repo, err := repos.Repo(repoName)
-	assert.NoError(t, err)
-	isolateClient, err := isolate.NewClient(tr.Dir)
-	assert.NoError(t, err)
-	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
-	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
-	assert.NoError(t, err)
+	tr, d, cache, _, repo, swarmingClient, s := setup(t)
+	defer tr.Cleanup()
 
 	// Run both available compile tasks.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
@@ -1130,6 +1056,7 @@ func TestSchedulerStealingFrom(t *testing.T) {
 	assert.NoError(t, cache.Update())
 
 	// Add some commits.
+	repoDir := path.Join(tr.Dir, repoName)
 	makeDummyCommits(t, repoDir, 10)
 	commits, err := repo.RevList("HEAD")
 	assert.NoError(t, err)
@@ -1403,20 +1330,8 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 }
 
 func TestSchedulingRetry(t *testing.T) {
-	testutils.SkipIfShort(t)
-
-	// Setup.
-	tr := util.NewTempRepo()
-	d := db.NewInMemoryDB()
-	cache, err := db.NewTaskCache(d, time.Hour)
-	assert.NoError(t, err)
-
-	isolateClient, err := isolate.NewClient(tr.Dir)
-	assert.NoError(t, err)
-	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
-	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
-	assert.NoError(t, err)
+	tr, d, cache, _, _, swarmingClient, s := setup(t)
+	defer tr.Cleanup()
 
 	// Run both available compile tasks.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
@@ -1462,20 +1377,8 @@ func TestSchedulingRetry(t *testing.T) {
 }
 
 func TestParentTaskId(t *testing.T) {
-	testutils.SkipIfShort(t)
-
-	// Setup.
-	tr := util.NewTempRepo()
-	d := db.NewInMemoryDB()
-	cache, err := db.NewTaskCache(d, time.Hour)
-	assert.NoError(t, err)
-
-	isolateClient, err := isolate.NewClient(tr.Dir)
-	assert.NoError(t, err)
-	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
-	swarmingClient := swarming.NewTestClient()
-	s, err := NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), tr.Dir, []string{"skia.git"}, isolateClient, swarmingClient)
-	assert.NoError(t, err)
+	tr, d, cache, _, _, swarmingClient, s := setup(t)
+	defer tr.Cleanup()
 
 	// Run both available compile tasks.
 	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
@@ -1527,4 +1430,29 @@ func TestParentTaskId(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, updated)
 	}
+}
+
+func TestBlacklist(t *testing.T) {
+	// The blacklist has its own tests, so this test just verifies that it's
+	// actually integrated into the scheduler.
+	tr, _, cache, repos, _, swarmingClient, s := setup(t)
+	defer tr.Cleanup()
+
+	// Mock some bots, add one of the build tasks to the blacklist.
+	bot1 := makeBot("bot1", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	bot2 := makeBot("bot2", map[string]string{"pool": "Skia", "os": "Ubuntu"})
+	swarmingClient.MockBots([]*swarming_api.SwarmingRpcsBotInfo{bot1, bot2})
+	assert.NoError(t, s.GetBlacklist().AddRule(&blacklist.Rule{
+		AddedBy:          "Tests",
+		TaskSpecPatterns: []string{".*"},
+		Commits:          []string{c1},
+		Description:      "desc",
+		Name:             "My-Rule",
+	}, repos))
+	assert.NoError(t, s.MainLoop())
+	tasks, err := cache.UnfinishedTasks()
+	assert.NoError(t, err)
+	// The blacklisted commit should not have been triggered.
+	assert.Equal(t, 1, len(tasks))
+	assert.NotEqual(t, c1, tasks[0].Revision)
 }

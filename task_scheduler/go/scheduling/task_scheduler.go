@@ -23,11 +23,13 @@ import (
 	"go.skia.org/infra/go/swarming"
 	"go.skia.org/infra/go/timer"
 	"go.skia.org/infra/go/util"
+	"go.skia.org/infra/task_scheduler/go/blacklist"
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
+	bl               *blacklist.Blacklist
 	cache            db.TaskCache
 	db               db.DB
 	isolate          *isolate.Client
@@ -43,6 +45,11 @@ type TaskScheduler struct {
 }
 
 func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient) (*TaskScheduler, error) {
+	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
+	if err != nil {
+		return nil, err
+	}
+
 	repos := make(map[string]*gitrepo.Repo, len(repoNames))
 	rm := gitinfo.NewRepoMap(workdir)
 	for _, r := range repoNames {
@@ -56,6 +63,7 @@ func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir
 		}
 	}
 	s := &TaskScheduler{
+		bl:               bl,
 		cache:            cache,
 		db:               d,
 		isolate:          isolateClient,
@@ -252,6 +260,10 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 	for repo, commits := range specs {
 		for commit, tasks := range commits {
 			for name, task := range tasks {
+				if rule := s.bl.MatchRule(name, commit); rule != "" {
+					glog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", name, commit, rule)
+					continue
+				}
 				c := &taskCandidate{
 					IsolatedHashes: nil,
 					Name:           name,
@@ -842,6 +854,10 @@ func (s *TaskScheduler) timeDecayForCommit(now time.Time, repoName, commit strin
 		return 0.0, err
 	}
 	return timeDecay24Hr(s.timeDecayAmt24Hr, now.Sub(d.Timestamp)), nil
+}
+
+func (ts *TaskScheduler) GetBlacklist() *blacklist.Blacklist {
+	return ts.bl
 }
 
 // testedness computes the total "testedness" of a set of commits covered by a
