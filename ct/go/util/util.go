@@ -65,7 +65,7 @@ func ExecuteCmd(binary string, args, env []string, timeout time.Duration, stdout
 }
 
 // SyncDir runs "git pull" and "gclient sync" on the specified directory.
-func SyncDir(dir string) error {
+func SyncDir(dir string, revisions map[string]string) error {
 	err := os.Chdir(dir)
 	if err != nil {
 		return fmt.Errorf("Could not chdir to %s: %s", dir, err)
@@ -76,7 +76,7 @@ func SyncDir(dir string) error {
 			glog.Warningf("%d. retry for syncing %s", i, dir)
 		}
 
-		err = syncDirStep()
+		err = syncDirStep(revisions)
 		if err == nil {
 			break
 		}
@@ -89,16 +89,27 @@ func SyncDir(dir string) error {
 	return err
 }
 
-func syncDirStep() error {
+func syncDirStep(revisions map[string]string) error {
 	err := ExecuteCmd(BINARY_GIT, []string{"pull"}, []string{}, GIT_PULL_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running git pull: %s", err)
 	}
-	err = ExecuteCmd(BINARY_GCLIENT, []string{"sync", "--force"}, []string{}, GCLIENT_SYNC_TIMEOUT, nil,
-		nil)
+	syncCmd := []string{"sync", "--force"}
+	for branch, rev := range revisions {
+		syncCmd = append(syncCmd, "--revision")
+		syncCmd = append(syncCmd, fmt.Sprintf("%s@%s", branch, rev))
+	}
+	err = ExecuteCmd(BINARY_GCLIENT, syncCmd, []string{}, GCLIENT_SYNC_TIMEOUT, nil, nil)
 	if err != nil {
 		return fmt.Errorf("Error running gclient sync: %s", err)
 	}
+	// "gclient sync" just downloads all of the commits. In order to actually sync
+	// to the desired commit, we have to "git reset" to that commit.
+	// Hopefully the below is not required!!!
+	//for branch, rev in range revisions {
+	//	// We are already in the dir, run...
+	//	shell_utils.run([GIT, 'reset', '--hard', revision])
+	//}
 	return nil
 }
 
@@ -297,7 +308,7 @@ func ValidateSKPs(pathToSkps, pathToPyFiles string) error {
 
 	glog.Info("Calling remove_invalid_skp.py")
 	// Sync Skia tree.
-	util.LogErr(SyncDir(SkiaTreeDir))
+	util.LogErr(SyncDir(SkiaTreeDir, map[string]string{}))
 	// Build tools.
 	util.LogErr(BuildSkiaTools())
 	// Run remove_invalid_skp.py in parallel goroutines.
@@ -774,4 +785,11 @@ func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout strin
 		}
 	}
 	return nil
+}
+
+// GetHashesFromBuild returns the Chromium and Skia hashes from a CT build string.
+// Example build string: try-27af50f-d5dcd58-rmistry-20151026102511-nopatch.
+func GetHashesFromBuild(chromiumBuild string) (string, string) {
+	tokens := strings.Split(chromiumBuild, "-")
+	return tokens[1], tokens[2]
 }

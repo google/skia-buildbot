@@ -80,7 +80,7 @@ func main() {
 		remoteDirs = append(remoteDirs, fmt.Sprintf("try-%s-withpatch", util.ChromiumBuildDir(chromiumHash, skiaHash, *runID)))
 	} else if *repoName == "pdfium" {
 		// Sync PDFium and build pdfium_test binary.
-		if err := util.SyncDir(util.PDFiumTreeDir); err != nil {
+		if err := util.SyncDir(util.PDFiumTreeDir, map[string]string{}); err != nil {
 			glog.Fatalf("Could not sync PDFium: %s", err)
 		}
 		if err := util.BuildPDFium(); err != nil {
