@@ -92,6 +92,11 @@ func NewFromData(b []byte) (*TimeSeries, error) {
 	return t, nil
 }
 
+// Points returns the Points that the timeseries contains.
+func (t *TimeSeries) Points() []Point {
+	return t.data
+}
+
 // Returns true if p.Timestamp is in [begin, end).
 func inRange(begin, end int64, p Point) bool {
 	return begin <= p.Timestamp && end > p.Timestamp

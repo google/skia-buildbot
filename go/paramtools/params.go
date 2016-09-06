@@ -130,3 +130,15 @@ func (p ParamSet) Keys() []string {
 
 	return ret
 }
+
+// Copy returns a copy of the ParamSet.
+func (p ParamSet) Copy() ParamSet {
+	ret := ParamSet{}
+	for k, v := range p {
+		newV := make([]string, len(v), len(v))
+		copy(newV, v)
+		ret[k] = newV
+	}
+
+	return ret
+}

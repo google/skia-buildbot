@@ -172,3 +172,16 @@ func TestAddParamSetToParamSet(t *testing.T) {
 		}
 	}
 }
+
+func TestParamSetCopy(t *testing.T) {
+	p := ParamSet{
+		"foo": []string{"bar", "baz"},
+		"qux": []string{"quux"},
+	}
+	cp := p.Copy()
+	assert.Equal(t, p, cp)
+	p["foo"] = []string{"fred"}
+	assert.NotEqual(t, p, cp)
+
+	assert.Equal(t, ParamSet{}, ParamSet{}.Copy())
+}
