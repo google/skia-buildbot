@@ -7,6 +7,8 @@
 
     {
       message: "The error message to display goes here.",
+      duration: Integer, the number of ms to display or 0 for indefinitely.
+                Defaults to 10000 (10s)
     }
 
   Attributes:
@@ -17,7 +19,7 @@
 
 <dom-module id="error-toast-sk">
   <template>
-    <paper-toast id=toast duration=10000></paper-toast>
+    <paper-toast id=toast></paper-toast>
   </template>
 </dom-module>
 
@@ -26,8 +28,11 @@
     is: "error-toast-sk",
     ready: function() {
       document.addEventListener('error-sk', function(e) {
+        this.$.toast.close();
         if (e.detail.message) {
           this.$.toast.text = e.detail.message;
+          // duration = 0 is a valid input for "keep open indefinitely".
+          this.$.toast.duration = (e.detail.duration === undefined ? 10000 : e.detail.duration)
           this.$.toast.show();
         } else {
           console.log("Empty message?", e);

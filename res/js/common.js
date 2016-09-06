@@ -71,10 +71,11 @@ this.sk = this.sk || function() {
    * and displays the error messages.
    *
    */
-  sk.errorMessage = function(message) {
+  sk.errorMessage = function(message, duration) {
     var detail = {
       message: message,
     }
+    detail.duration = duration;
     document.dispatchEvent(new CustomEvent('error-sk', {detail: detail, bubbles: true}));
   }
 
