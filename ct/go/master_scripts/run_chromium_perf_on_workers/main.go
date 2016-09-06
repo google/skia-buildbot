@@ -115,10 +115,10 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_perf.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", *runID, *description))
+	//skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
-	defer sendEmail(emailsArr)
+	//defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -218,6 +218,23 @@ func main() {
 		}
 	}
 
+	var totalArchivedWebpages string
+	// Only display the totalArchivedWebpages if --use-live-sites is not used.
+	if strings.Contains(*benchmarkExtraArgs, "--use-live-sites") {
+		totalArchivedWebpages = ""
+	} else {
+		// "--use-live-sites"
+		// Calculate the number of archives the workers worked with.
+		archivesRemoteDir := filepath.Join(util.SWARMING_DIR_NAME, util.WEB_ARCHIVES_DIR_NAME, *pagesetType)
+		totalArchiveArtifacts, err := gs.GetRemoteDirCount(archivesRemoteDir)
+		if err != nil {
+			glog.Errorf("Could not find archives in %s: %s", archivesRemoteDir, err)
+			return
+		}
+		// Each archive has a JSON file, a WPR file and a WPR.sha1 file.
+		totalArchivedWebpages = strconv.Itoa(totalArchiveArtifacts / 3)
+	}
+
 	// Compare the resultant CSV files using csv_comparer.py
 	noPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch, runIDNoPatch+".output")
 	withPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDWithPatch, runIDWithPatch+".output")
@@ -254,6 +271,7 @@ func main() {
 		"--skia_hash=" + skiaHash,
 		"--missing_output_slaves=" + strings.Join(noOutputSlaves, " "),
 		"--logs_link_prefix=" + fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_perf_"),
+		"--total_archives=" + totalArchivedWebpages,
 	}
 	err = util.ExecuteCmd("python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
