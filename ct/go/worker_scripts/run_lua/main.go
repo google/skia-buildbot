@@ -40,7 +40,7 @@ func main() {
 	}
 
 	// Sync Skia tree.
-	skutil.LogErr(util.SyncDir(util.SkiaTreeDir))
+	skutil.LogErr(util.SyncDir(util.SkiaTreeDir, map[string]string{}))
 
 	// Build tools.
 	skutil.LogErr(util.BuildSkiaTools())

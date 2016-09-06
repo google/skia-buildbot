@@ -57,8 +57,10 @@ func main() {
 	if err := util.ResetChromiumCheckout(util.ChromiumSrcDir); err != nil {
 		glog.Fatalf("Could not reset %s: %s", util.ChromiumSrcDir, err)
 	}
+	// Parse out the Chromium and Skia hashes.
+	chromiumHash, _ := util.GetHashesFromBuild(*chromiumBuild)
 	// Sync the local chromium checkout.
-	if err := util.SyncDir(util.ChromiumSrcDir); err != nil {
+	if err := util.SyncDir(util.ChromiumSrcDir, map[string]string{"src": chromiumHash}); err != nil {
 		glog.Fatalf("Could not gclient sync %s: %s", util.ChromiumSrcDir, err)
 	}
 
