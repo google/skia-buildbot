@@ -1,0 +1,34 @@
+{{template "header.html"}}
+
+<h2>Task Scheduler Status</h2>
+<task-scheduler-blacklist-sk id="blacklist_sk"></task-scheduler-blacklist-sk>
+
+<script>
+// Add status information from the server to the task-scheduler-blacklist-sk.
+var elem = document.getElementById("blacklist_sk");
+elem.task_specs = [
+  {{range .TaskSpecs}}
+  "{{.}}",
+  {{end}}
+];
+elem.commits = [
+  {{range .Commits}}
+  "{{.}}",
+  {{end}}
+];
+elem.rules = [
+  {{range .Blacklist.Rules}}{
+    "added_by": "{{.AddedBy}}",
+    "task_spec_patterns": [
+      {{range .TaskSpecPatterns}}"{{.}}",
+      {{end}}],
+    "commits": [
+      {{range .Commits}}"{{.}}",
+      {{end}}],
+    "description": "{{.Description}}",
+    "name": "{{.Name}}",
+  },
+  {{end}}
+];
+</script>
+{{template "footer.html"}}
