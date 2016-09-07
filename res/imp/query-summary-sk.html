@@ -48,12 +48,19 @@
     },
 
     _display: function(s) {
-      var re = new RegExp('&', 'g');
-      if (s) {
-        return s.replace(re, '\n');
-      } else {
+      if (!s) {
         return "[No filters applied]";
       }
+      var p = sk.query.toParamSet(s);
+      var keys = Object.keys(p);
+      keys.sort();
+      var ret = [];
+      keys.forEach(function(key) {
+        p[key].forEach(function(value) {
+          ret.push(key + "=" + value);
+        });
+      });
+      return ret.join("\n");
     },
   });
 </script>
