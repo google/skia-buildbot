@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16e1b3e4_e189c0d0",
+        "filename": "alertserver/alerts.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 836,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-07T17:45:06Z",
+      "side": 1,
+      "message": "Needs link to PROD.md.\n\nSame for both rules.",
+      "revId": "b63aa105fd1d1daa70f98d3211eb415e8e8f8e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
