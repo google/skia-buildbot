@@ -69,7 +69,7 @@ class CsvComparer(object):
                num_repeated, target_platform, crashed_instances,
                missing_devices, browser_args_nopatch, browser_args_withpatch,
                pageset_type, chromium_hash, skia_hash, missing_output_slaves,
-               logs_link_prefix, description):
+               logs_link_prefix, description, total_archives):
     """Constructs a CsvComparer instance."""
     self._csv_file1 = csv_file1
     self._csv_file2 = csv_file2
@@ -96,6 +96,7 @@ class CsvComparer(object):
     self._missing_output_slaves = missing_output_slaves
     self._logs_link_prefix = logs_link_prefix
     self._description = description
+    self._total_archives = total_archives
 
   def _IsPercDiffSameOrAboveThreshold(self, perc_diff):
     """Compares the specified diff to the variance threshold.
@@ -333,6 +334,7 @@ class CsvComparer(object):
            'page_values': page_values,
            'discard_outliers': self._discard_outliers,
            'discarded_webpages': fieldnames_to_discards.get(fieldname, []),
+           'total_archives': self._total_archives,
            'absolute_url': self._absolute_url})
       fieldname_html = open(
           os.path.join(self._output_html_dir,
@@ -428,6 +430,9 @@ if '__main__' == __name__:
   option_parser.add_option(
       '', '--description',
       help='The description of the run as entered by the requester.')
+  option_parser.add_option(
+      '', '--total_archives',
+      help='Number of archives that were used to get these results.')
 
   options, unused_args = option_parser.parse_args()
   if not (options.csv_file1 and options.csv_file2 and options.output_html_dir
@@ -437,9 +442,9 @@ if '__main__' == __name__:
           and options.raw_csv_withpatch and options.num_repeated
           and options.target_platform and options.pageset_type
           and options.chromium_hash and options.skia_hash
-          and options.description):
+          and options.description and options.total_archives):
     option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
-                        'variance_threshold, requester_email, '
+                        'variance_threshold, requester_email, total_archives, '
                         'chromium_patch_link, benchmark_patch_link, '
                         'skia_patch_link, raw_csv_nopatch, description, '
                         'raw_csv_withpatch, num_repeated, pageset_type, '
@@ -457,5 +462,5 @@ if '__main__' == __name__:
       options.browser_args_nopatch, options.browser_args_withpatch,
       options.pageset_type, options.chromium_hash, options.skia_hash,
       options.missing_output_slaves, options.logs_link_prefix,
-      options.description).Compare())
+      options.description, options.total_archives).Compare())
 
