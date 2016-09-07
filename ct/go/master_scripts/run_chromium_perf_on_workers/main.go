@@ -115,10 +115,10 @@ func main() {
 		return
 	}
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_perf.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", *runID, *description))
+	//skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium perf", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
-	defer sendEmail(emailsArr)
+	//defer sendEmail(emailsArr)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.ChromiumPerfRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -217,6 +217,11 @@ func main() {
 			defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, run))
 		}
 	}
+	totalArchivedWebpages, err := util.GetArchivesNum(gs, *benchmarkExtraArgs, *pagesetType)
+	if err != nil {
+		glog.Errorf("Error when calculating number of archives: %s", err)
+		return
+	}
 
 	// Compare the resultant CSV files using csv_comparer.py
 	noPatchCSVPath := filepath.Join(util.StorageDir, util.BenchmarkRunsDir, runIDNoPatch, runIDNoPatch+".output")
@@ -254,6 +259,7 @@ func main() {
 		"--skia_hash=" + skiaHash,
 		"--missing_output_slaves=" + strings.Join(noOutputSlaves, " "),
 		"--logs_link_prefix=" + fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_perf_"),
+		"--total_archives=" + strconv.Itoa(totalArchivedWebpages),
 	}
 	err = util.ExecuteCmd("python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
