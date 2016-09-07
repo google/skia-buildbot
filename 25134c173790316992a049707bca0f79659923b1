@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16e1b3e4_4159942d",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T19:49:14Z",
+      "side": 1,
+      "message": "Are these direct or both direct and indirect?",
+      "revId": "25134c173790316992a049707bca0f79659923b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_a147b846",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T19:49:14Z",
+      "side": 1,
+      "message": "If it\u0027s not too hard to recompute this mapping dynamically, it would make things a bit easier, because then we don\u0027t need to worry about atomically adding a Task and updating this field.",
+      "revId": "25134c173790316992a049707bca0f79659923b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
