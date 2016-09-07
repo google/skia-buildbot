@@ -44,7 +44,7 @@ var (
 	outputLink         = util.MASTER_LOGSERVER_LINK
 )
 
-func sendEmail(recipients []string) {
+func sendEmail(recipients []string, gs *util.GsUtil) {
 	// Send completion email.
 	emailSubject := fmt.Sprintf("Cluster telemetry chromium analysis task has completed (%s)", *runID)
 	failureHtml := ""
@@ -64,11 +64,21 @@ func sendEmail(recipients []string) {
 			return
 		}
 	}
+
+	totalArchivedWebpages, err := util.GetArchivesNum(gs, *benchmarkExtraArgs, *pagesetType)
+	if err != nil {
+		glog.Errorf("Error when calculating number of archives: %s", err)
+	}
+	archivedWebpagesText := ""
+	if totalArchivedWebpages != -1 {
+		archivedWebpagesText = fmt.Sprintf(" %d WPR archives were used.", totalArchivedWebpages)
+	}
+
 	bodyTemplate := `
 	The chromium analysis %s benchmark task on %s pageset has completed.<br/>
 	Run description: %s<br/>
 	%s
-	The CSV output is <a href='%s'>here</a>.<br/>
+	The CSV output is <a href='%s'>here</a>.%s<br/>
 	The patch(es) you specified are here:
 	<a href='%s'>chromium</a>/<a href='%s'>catapult</a>/<a href='%s'>telemetry</a>
 	<br/><br/>
@@ -76,7 +86,7 @@ func sendEmail(recipients []string) {
 	<br/><br/>
 	Thanks!
 	`
-	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, outputLink, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, frontend.ChromiumAnalysisTasksWebapp)
+	emailBody := fmt.Sprintf(bodyTemplate, *benchmarkName, *pagesetType, *description, failureHtml, outputLink, archivedWebpagesText, chromiumPatchLink, catapultPatchLink, benchmarkPatchLink, frontend.ChromiumAnalysisTasksWebapp)
 	if err := util.SendEmailWithMarkup(recipients, emailSubject, emailBody, viewActionMarkup); err != nil {
 		glog.Errorf("Error while sending email: %s", err)
 		return
@@ -102,12 +112,18 @@ func main() {
 		glog.Error("At least one email address must be specified")
 		return
 	}
+	// Instantiate GsUtil object.
+	gs, err := util.NewGsUtil(nil)
+	if err != nil {
+		glog.Errorf("Could not instantiate gsutil object: %s", err)
+		return
+	}
 
 	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID))
 	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
-	defer sendEmail(emailsArr)
+	defer sendEmail(emailsArr, gs)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -127,12 +143,6 @@ func main() {
 		return
 	}
 
-	// Instantiate GsUtil object.
-	gs, err := util.NewGsUtil(nil)
-	if err != nil {
-		glog.Errorf("Could not instantiate gsutil object: %s", err)
-		return
-	}
 	remoteOutputDir := filepath.Join(util.ChromiumAnalysisRunsDir, *runID)
 
 	// Copy the patches to Google Storage.

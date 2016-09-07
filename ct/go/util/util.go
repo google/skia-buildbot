@@ -782,6 +782,22 @@ func DownloadAndApplyPatch(patchName, localDir, remotePatchesDir, checkout strin
 	return nil
 }
 
+// GetArchivesNum returns the number of archives for the specified pagesetType.
+// -1 is returned if --use-live-sites is specified or if there is an error.
+func GetArchivesNum(gs *GsUtil, benchmarkArgs, pagesetType string) (int, error) {
+	if strings.Contains(benchmarkArgs, "--use-live-sites") {
+		return -1, nil
+	}
+	// Calculate the number of archives the workers worked with.
+	archivesRemoteDir := filepath.Join(SWARMING_DIR_NAME, WEB_ARCHIVES_DIR_NAME, pagesetType)
+	totalArchiveArtifacts, err := gs.GetRemoteDirCount(archivesRemoteDir)
+	if err != nil {
+		return -1, fmt.Errorf("Could not find archives in %s: %s", archivesRemoteDir, err)
+	}
+	// Each archive has a JSON file, a WPR file and a WPR.sha1 file.
+	return totalArchiveArtifacts / 3, nil
+}
+
 // GetHashesFromBuild returns the Chromium and Skia hashes from a CT build string.
 // Example build string: try-27af50f-d5dcd58-rmistry-20151026102511-nopatch.
 func GetHashesFromBuild(chromiumBuild string) (string, string) {
