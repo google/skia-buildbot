@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16e1b3e4_dee025eb",
+        "filename": "res/imp/query2-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T14:21:24Z",
+      "side": 1,
+      "message": "nit: This might be a little easier to follow if s/value/key/.",
+      "revId": "4ed5e29ac8f9f0d5d4ffec1ead5fb76f123582fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_7ef9d1af",
+        "filename": "res/imp/query2-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T14:21:24Z",
+      "side": 1,
+      "message": "selectedValue is not defined",
+      "revId": "4ed5e29ac8f9f0d5d4ffec1ead5fb76f123582fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
