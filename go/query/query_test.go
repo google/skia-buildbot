@@ -2,6 +2,7 @@ package query
 
 import (
 	"net/url"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -302,4 +303,61 @@ func TestMatches(t *testing.T) {
 			t.Errorf("Failed matching %q to %#v. Got %v Want %v. %s", tc.key, tc.query, got, want, tc.reason)
 		}
 	}
+}
+
+func TestParseKey(t *testing.T) {
+	testCases := []struct {
+		key      string
+		parsed   map[string]string
+		hasError bool
+		reason   string
+	}{
+		{
+			key: ",arch=x86,config=565,debug=true,",
+			parsed: map[string]string{
+				"arch":   "x86",
+				"config": "565",
+				"debug":  "true",
+			},
+			hasError: false,
+			reason:   "Simple parse",
+		},
+		{
+			key:      ",config=565,arch=x86,",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Unsorted",
+		},
+		{
+			key:      ",,",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Invalid regex",
+		},
+		{
+			key:      "x/y",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Invalid",
+		},
+		{
+			key:      "",
+			parsed:   map[string]string{},
+			hasError: true,
+			reason:   "Empty string",
+		},
+	}
+	for _, tc := range testCases {
+		p, err := ParseKey(tc.key)
+		if got, want := (err != nil), tc.hasError; got != want {
+			t.Errorf("Failed error status parsing %q, Got %v Want %v. %s", tc.key, got, want, tc.reason)
+		}
+		if err != nil {
+			continue
+		}
+		if got, want := p, tc.parsed; !reflect.DeepEqual(got, want) {
+			t.Errorf("Failed matching parsed values. Got %v Want %v. %s", got, want, tc.reason)
+		}
+	}
+
 }
