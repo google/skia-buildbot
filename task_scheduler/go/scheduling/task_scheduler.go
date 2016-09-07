@@ -215,7 +215,7 @@ func computeBlamelistRecursive(repoName string, commit *gitrepo.Commit, taskName
 	commits = append(commits, commit)
 
 	// Recurse on the commit's parents.
-	for _, p := range commit.Parents {
+	for _, p := range commit.GetParents() {
 		var err error
 		commits, stealFrom, err = computeBlamelistRecursive(repoName, p, taskName, revision, commits, cache, repo, stealFrom)
 		if err != nil {

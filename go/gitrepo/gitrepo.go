@@ -5,6 +5,7 @@ package gitrepo
 */
 
 import (
+	"encoding/gob"
 	"fmt"
 	"os"
 	"path"
@@ -15,9 +16,14 @@ import (
 
 	"go.skia.org/infra/go/exec"
 	"go.skia.org/infra/go/gitinfo"
+	"go.skia.org/infra/go/util"
 )
 
 const (
+	// Name of the file we store inside the Git checkout to speed up the
+	// initial Update().
+	CACHE_FILE = ".git/sk_gitrepo.gob"
+
 	// We only consider branches on the "origin" remote.
 	REMOTE_BRANCH_PREFIX = "origin/"
 )
@@ -25,24 +31,42 @@ const (
 // Commit represents a commit in a Git repo.
 type Commit struct {
 	Hash    string
-	Parents []*Commit
+	Parents []int
+	repo    *Repo
+}
+
+// Parents returns the parents of this commit.
+func (c *Commit) GetParents() []*Commit {
+	rv := make([]*Commit, 0, len(c.Parents))
+	for _, idx := range c.Parents {
+		rv = append(rv, c.repo.commitsData[idx])
+	}
+	return rv
 }
 
 // Repo represents an entire Git repo.
 type Repo struct {
-	branches []*gitinfo.GitBranch
-	commits  map[string]*Commit
-	mtx      sync.RWMutex
-	repoUrl  string
-	workdir  string
+	branches    []*gitinfo.GitBranch
+	commits     map[string]int
+	commitsData []*Commit
+	mtx         sync.RWMutex
+	repoUrl     string
+	workdir     string
+}
+
+// gobRepo is a utility struct used for serializing a Repo using gob.
+type gobRepo struct {
+	Commits     map[string]int
+	CommitsData []*Commit
 }
 
 // NewRepo returns a Repo instance which uses the given repoUrl and workdir.
 func NewRepo(repoUrl, workdir string) (*Repo, error) {
 	rv := &Repo{
-		commits: map[string]*Commit{},
-		repoUrl: repoUrl,
-		workdir: workdir,
+		commits:     map[string]int{},
+		commitsData: []*Commit{},
+		repoUrl:     repoUrl,
+		workdir:     workdir,
 	}
 	if _, err := os.Stat(workdir); err != nil {
 		if os.IsNotExist(err) {
@@ -63,33 +87,60 @@ func NewRepo(repoUrl, workdir string) (*Repo, error) {
 			return nil, fmt.Errorf("Failed to create gitrepo.Repo: %s", err)
 		}
 	}
+	cacheFile := path.Join(workdir, CACHE_FILE)
+	f, err := os.Open(cacheFile)
+	if err == nil {
+		var r gobRepo
+		if err := gob.NewDecoder(f).Decode(&r); err != nil {
+			util.Close(f)
+			return nil, err
+		}
+		util.Close(f)
+		rv.commits = r.Commits
+		rv.commitsData = r.CommitsData
+		for _, c := range rv.commitsData {
+			c.repo = rv
+		}
+	} else if !os.IsNotExist(err) {
+		return nil, fmt.Errorf("Failed to read cache file: %s", err)
+	}
 	if err := rv.Update(); err != nil {
 		return nil, err
 	}
 	return rv, nil
 }
 
-func getCommit(hash string, commits map[string]*Commit, workdir string) (*Commit, error) {
-	output, err := exec.RunCwd(workdir, "git", "log", "-n", "1", "--format=format:%P", hash)
+func (r *Repo) addCommit(hash string) error {
+	output, err := exec.RunCwd(r.workdir, "git", "log", "-n", "1", "--format=format:%P", hash)
 	if err != nil {
-		return nil, fmt.Errorf("gitrepo.Repo: Failed to obtain Git commit details: %s", err)
+		return fmt.Errorf("gitrepo.Repo: Failed to obtain Git commit details: %s", err)
 	}
-	parentHashes := strings.Split(strings.Trim(output, "\n"), " ")
-	parents := make([]*Commit, 0, len(parentHashes))
-	for _, h := range parentHashes {
-		if h == "" {
-			continue
+	split := strings.Split(strings.Trim(output, "\n"), " ")
+	var parents []int
+	if len(split) > 0 {
+		parentHashes := make([]int, 0, len(split))
+		for _, h := range split {
+			if h == "" {
+				continue
+			}
+			p, ok := r.commits[h]
+			if !ok {
+				return fmt.Errorf("gitrepo.Repo: Could not find parent commit %q", h)
+			}
+			parentHashes = append(parentHashes, p)
 		}
-		p, ok := commits[h]
-		if !ok {
-			return nil, fmt.Errorf("gitrepo.Repo: Could not find parent commit %q", h)
+		if len(parentHashes) > 0 {
+			parents = parentHashes
 		}
-		parents = append(parents, p)
 	}
-	return &Commit{
+	c := &Commit{
 		Hash:    hash,
 		Parents: parents,
-	}, nil
+		repo:    r,
+	}
+	r.commits[hash] = len(r.commitsData)
+	r.commitsData = append(r.commitsData, c)
+	return nil
 }
 
 // Update syncs the local copy of the repo and loads new commits/branches into
@@ -139,12 +190,28 @@ func (r *Repo) Update() error {
 			if _, ok := r.commits[hash]; ok {
 				continue
 			}
-			commit, err := getCommit(hash, r.commits, r.workdir)
-			if err != nil {
+			if err := r.addCommit(hash); err != nil {
 				return err
 			}
-			r.commits[hash] = commit
 		}
+	}
+
+	// Write to the cache file.
+	glog.Infof("  Writing cache file...")
+	cacheFile := path.Join(r.workdir, CACHE_FILE)
+	f, err := os.Create(cacheFile)
+	if err != nil {
+		return err
+	}
+	if err := gob.NewEncoder(f).Encode(gobRepo{
+		Commits:     r.commits,
+		CommitsData: r.commitsData,
+	}); err != nil {
+		defer util.Close(f)
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
 	}
 	glog.Infof("  Done.")
 	return nil
@@ -168,12 +235,12 @@ func (r *Repo) Get(ref string) *Commit {
 	r.mtx.RLock()
 	defer r.mtx.RUnlock()
 	if c, ok := r.commits[ref]; ok {
-		return c
+		return r.commitsData[c]
 	}
 	for _, b := range r.branches {
 		if ref == b.Name {
 			if c, ok := r.commits[b.Head]; ok {
-				return c
+				return r.commitsData[c]
 			}
 		}
 	}
