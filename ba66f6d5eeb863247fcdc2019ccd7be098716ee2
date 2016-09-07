@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_de9825c8",
+        "filename": "task_scheduler/Makefile",
+        "patchSetId": 1
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56d96b0c_33fa725e",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56d96b0c_f3b4ead1",
         "filename": "task_scheduler/build_release",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-06T20:52:33Z",
       "side": 1,
       "message": "nit: other build_release scripts do this:\n${INSTALL_DIR} --mode\u003d755                                  ${ROOT}/usr/local/share/${APPNAME}/templates\n${INSTALL}     --mode\u003d644    ./templates/*                 ${ROOT}/usr/local/share/${APPNAME}/templates",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_9eb5bd3f",
+        "filename": "task_scheduler/build_release",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56d96b0c_f3b4ead1",
       "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_3e9029a3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56d96b0c_33ecb2b6",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56d96b0c_531296c6",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 1
@@ -64,6 +118,24 @@
       "writtenOn": "2016-09-06T20:52:33Z",
       "side": 1,
       "message": "Doesn\u0027t seem to be set anywhere? Same for recentTaskSpecs.",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_debf4519",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Weird. I think something got lost in rebase.",
+      "parentUuid": "56d96b0c_531296c6",
       "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -110,6 +182,42 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_7e8ab170",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "I put this here as a placeholder; I\u0027m really not sure how this should look yet.  This will use the same mechanism as trybots, which I think needs to be a separate queue which tracks the status of each try (and force-trigger) request.  Because a single swarming task is no longer a \"complete\" bot run (ie. we may need to compile first), a try/trigger request will have to consist of a set of tasks.  This is something we need to brainstorm about soon.",
+      "parentUuid": "56d96b0c_535a9655",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_9e9e9db3",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56d96b0c_f322aa11",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56d96b0c_932f9ef8",
         "filename": "task_scheduler/go/task_scheduler/main.go",
         "patchSetId": 1
@@ -121,6 +229,24 @@
       "writtenOn": "2016-09-06T20:52:33Z",
       "side": 1,
       "message": "nit: this seems inaccurate, given code in reloadTemplates: \"If blank the current directory will be used.\"",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_be9b59c2",
+        "filename": "task_scheduler/go/task_scheduler/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "56d96b0c_932f9ef8",
       "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -144,6 +270,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_fe95e18e",
+        "filename": "task_scheduler/res/imp/task-scheduler-status-sk.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Removed Author but not Repo. I\u0027m probably going to augment this to include more information, eg. blamelist length, which task it\u0027s backfilling, etc etc.",
+      "parentUuid": "56d96b0c_f3394a2f",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56d96b0c_f3a5ca52",
         "filename": "task_scheduler/res/imp/task-trigger-sk-demo.html",
         "patchSetId": 1
@@ -155,6 +299,24 @@
       "writtenOn": "2016-09-06T20:52:33Z",
       "side": 1,
       "message": "/json/trigger doesn\u0027t (currently) return any data.",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_3ef589e8",
+        "filename": "task_scheduler/res/imp/task-trigger-sk-demo.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Removed the return data.",
+      "parentUuid": "56d96b0c_f3a5ca52",
       "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -178,6 +340,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_5efa55d7",
+        "filename": "task_scheduler/templates/blacklist.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 3,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Changed to \"Task Blacklist\"",
+      "parentUuid": "56d96b0c_735f9a44",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56d96b0c_336912ef",
         "filename": "task_scheduler/templates/blacklist.html",
         "patchSetId": 1
@@ -189,6 +369,24 @@
       "writtenOn": "2016-09-06T20:52:33Z",
       "side": 1,
       "message": "Would it be simpler to just JSON-encode the data in blacklistHandler and do something like this here:\nvar data \u003d JSON.parse(\"{{.Data}}\");\nelem.task_specs \u003d data.task_specs;\nelem.commits \u003d data.commits;\nelem.rules \u003d data.rules;",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_feea41fe",
+        "filename": "task_scheduler/templates/blacklist.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Sure, done.",
+      "parentUuid": "56d96b0c_336912ef",
       "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -212,6 +410,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_9e613da9",
+        "filename": "task_scheduler/templates/main.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Added quotes. I guess template must have been quoting this?",
+      "parentUuid": "56d96b0c_d33c4622",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "56d96b0c_d36d26fb",
         "filename": "task_scheduler/templates/main.html",
         "patchSetId": 1
@@ -223,6 +439,24 @@
       "writtenOn": "2016-09-06T20:52:33Z",
       "side": 1,
       "message": "debugging?",
+      "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_7e5d51e8",
+        "filename": "task_scheduler/templates/main.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T13:13:56Z",
+      "side": 1,
+      "message": "Removed.",
+      "parentUuid": "56d96b0c_d36d26fb",
       "revId": "ba66f6d5eeb863247fcdc2019ccd7be098716ee2",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
