@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_217d6878",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T19:55:23Z",
+      "side": 1,
+      "message": "I was thinking direct, and then we could trace the tree recursively to obtain the real set of all dependencies when we want it.",
+      "parentUuid": "16e1b3e4_4159942d",
+      "revId": "25134c173790316992a049707bca0f79659923b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16e1b3e4_a147b846",
         "filename": "task_scheduler/go/db/job.go",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-07T19:49:14Z",
       "side": 1,
       "message": "If it\u0027s not too hard to recompute this mapping dynamically, it would make things a bit easier, because then we don\u0027t need to worry about atomically adding a Task and updating this field.",
+      "revId": "25134c173790316992a049707bca0f79659923b1",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_61777098",
+        "filename": "task_scheduler/go/db/job.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T19:55:23Z",
+      "side": 1,
+      "message": "I was thinking it\u0027d be useful to know exactly which Task satisfied which dependency, but I can\u0027t think of a situation where we wouldn\u0027t also have a TaskCache, and then we can just GetTaskForCommit for each of the dependencies down the line.",
+      "parentUuid": "16e1b3e4_a147b846",
       "revId": "25134c173790316992a049707bca0f79659923b1",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
