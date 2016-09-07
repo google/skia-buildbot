@@ -25,6 +25,7 @@
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <dom-module id="query2-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
+    input,
     select {
       margin: 0 1em;
     }
@@ -35,6 +36,10 @@
       --paper-checkbox-unchecked-color: #1F78B4;
       --paper-checkbox-unchecked-ink-color: #1F78B4;
       margin: 0 1em 0.5em 1em;
+    }
+
+    .hidden {
+      display: none;
     }
 
   </style>
@@ -53,6 +58,11 @@
           id=invert
           on-change="_valueChange"
           title="Match items that aren't selected below.">Invert</paper-checkbox>
+        <paper-checkbox
+          id=regex
+          on-tap="_regexTap"
+          title="Match items via regular expression.">Regex</paper-checkbox>
+        <input type="text" id="regexValue" value="" class=hidden on-input="_valueChange" />
         <select id=values size=12 on-change="_valueChange" multiple>
           <template is="dom-repeat" items="[[_values]]" >
             <option value="[[item]]" selected="[[_isSelected(item)]]">[[item]]</option>
@@ -131,21 +141,47 @@
       return selections.indexOf(this._prefixValue(paramValue)) !== -1;
     },
 
+    _regexChange: function() {
+      if (this.$.regex.checked) {
+        this.$.regexValue.classList.remove("hidden");
+        this.$.values.classList.add("hidden");
+        this.$.invert.disabled = true;
+      } else {
+        this.$.regexValue.classList.add("hidden");
+        this.$.values.classList.remove("hidden");
+        this.$.invert.disabled = false;
+      }
+    },
+
+    _regexTap: function() {
+      this._regexChange();
+      this._valueChange();
+    },
+
     _keyChange: function(e) {
       var value = this.$.keys.selectedOptions[0].value;
       this.set("_values", this.paramset[value]);
+      this.$.regex.checked = (this._query[value] && this._query[value].length == 1 && this._query[value][0][0] === "~");
+      this.$.invert.checked = (this._query[value] && this._query[value].length >= 1 && this._query[value][0][0] === "!");
+      if (this.$.regex.checked) {
+        this.$.regexValue.value = this._query[value][0].slice(1);
+      }
       this.set("_selectedKey", value);
-      this.$.invert.checked = (this._query[value] && this._query[value][0][0] === "!");
+      this._regexChange();
     },
 
     _valueChange: function(e) {
-      var selectedValues = [];
-      $$("option", this.$.values).forEach(function(e){
-        if (e.selected) {
-          selectedValues.push(this._prefixValue(e.value));
-        }
-      }.bind(this));
-      this._query[this._selectedKey] = selectedValues;
+      if (this.$.regex.checked) {
+        this._query[this._selectedKey] = ["~" + this.$.regexValue.value];
+      } else {
+        var selectedValues = [];
+        $$("#values option", this).forEach(function(e){
+          if (e.selected) {
+            selectedValues.push(this._prefixValue(e.value));
+          }
+        }.bind(this));
+        this._query[this._selectedKey] = selectedValues;
+      }
       this._queryChanged();
     },
 
@@ -158,6 +194,10 @@
       this._query = {};
       this._queryChanged();
     },
+
+    _not: function(x) {
+      return !x;
+    }
 
   });
 </script>
