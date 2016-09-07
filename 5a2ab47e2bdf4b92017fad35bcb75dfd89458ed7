@@ -16,6 +16,24 @@
       "revId": "5a2ab47e2bdf4b92017fad35bcb75dfd89458ed7",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_01878cbd",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T17:45:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16e1b3e4_619690f9",
+      "revId": "5a2ab47e2bdf4b92017fad35bcb75dfd89458ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
