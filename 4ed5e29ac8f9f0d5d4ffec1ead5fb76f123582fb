@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_21c48836",
+        "filename": "res/imp/query2-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-07T14:58:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16e1b3e4_dee025eb",
+      "revId": "4ed5e29ac8f9f0d5d4ffec1ead5fb76f123582fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16e1b3e4_7ef9d1af",
         "filename": "res/imp/query2-sk.html",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-07T14:21:24Z",
       "side": 1,
       "message": "selectedValue is not defined",
+      "revId": "4ed5e29ac8f9f0d5d4ffec1ead5fb76f123582fb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_41c9944b",
+        "filename": "res/imp/query2-sk.html",
+        "patchSetId": 7
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-07T14:58:38Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "16e1b3e4_7ef9d1af",
       "revId": "4ed5e29ac8f9f0d5d4ffec1ead5fb76f123582fb",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
