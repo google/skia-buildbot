@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_e136203f",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T16:55:39Z",
+      "side": 1,
+      "message": "nit: add totalArchivedWebpages \u003d -1\n\nIt\u0027s risky to rely on the return value when an error is returned.",
+      "parentUuid": "16e1b3e4_7ea0f1a3",
+      "revId": "096f0accdd895b646a5f770e2a7f5f8b098d56c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16e1b3e4_9eabfd8d",
         "filename": "ct/go/util/gs.go",
         "patchSetId": 6
