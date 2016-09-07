@@ -483,6 +483,14 @@
      "mimetype": "application/json",
      "responsetest": "ctfeGetTasksNonEmptyJSON"
    },
+   "task_scheduler": {
+     "url": "https://task-scheduler.skia.org",
+     "method": "GET",
+     "expected": [200],
+     "body": "",
+     "mimetype": "",
+     "responsetest": "nonZeroContenLength"
+   },
    "timelapse_camera_1": {
      "url": "https://storage.googleapis.com/skia-timelapse/public/today_1.webm",
      "method": "HEAD",
