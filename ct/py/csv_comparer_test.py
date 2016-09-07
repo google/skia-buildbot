@@ -76,6 +76,7 @@ class TestCsvComparer(unittest.TestCase):
                           'limit=500&sort=created_ts&state=all&task_tag='
                           'runid:testing%0D%0Aname:perf_task_'),
         description='E2EComparerWithDiscardOutliers',
+        total_archives='',
     )
     comparer.Compare()
     self._AssertHTMLFiles('discard_outliers')
@@ -107,6 +108,7 @@ class TestCsvComparer(unittest.TestCase):
         missing_output_slaves='',
         logs_link_prefix='',
         description='E2EComparerWithNoDiscardOutliers',
+        total_archives='10',
     )
     comparer.Compare()
     self._AssertHTMLFiles('keep_outliers',
