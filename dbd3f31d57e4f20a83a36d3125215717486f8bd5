@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16e1b3e4_deb585ec",
+        "filename": "compute_engine_scripts/perf/vm_create_instance.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T14:34:19Z",
+      "side": 1,
+      "message": "FWIW, BoltDB works better on an SSD. Might be a non-issue given the small size of the BoltDBs though.",
+      "revId": "dbd3f31d57e4f20a83a36d3125215717486f8bd5",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
