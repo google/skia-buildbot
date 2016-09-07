@@ -35,7 +35,7 @@ const (
 type TaskScheduler struct {
 	bl               *blacklist.Blacklist
 	cache            db.TaskCache
-	db               db.DB
+	db               db.TaskDB
 	isolate          *isolate.Client
 	lastScheduled    time.Time // protected by queueMtx.
 	period           time.Duration
@@ -52,7 +52,7 @@ type TaskScheduler struct {
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.TaskDB, cache db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -1003,7 +1003,7 @@ func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotI
 
 // updateUnfinishedTasks queries Swarming for all unfinished tasks and updates
 // their status in the DB.
-func updateUnfinishedTasks(cache db.TaskCache, d db.DB, s swarming.ApiClient) error {
+func updateUnfinishedTasks(cache db.TaskCache, d db.TaskDB, s swarming.ApiClient) error {
 	tasks, err := cache.UnfinishedTasks()
 	if err != nil {
 		return err

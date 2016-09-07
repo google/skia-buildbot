@@ -116,7 +116,7 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 }
 
 // Common setup for TaskScheduler tests.
-func setup(t *testing.T) (*util.TempRepo, db.DB, db.TaskCache, *gitinfo.RepoMap, *gitinfo.GitInfo, *swarming.TestClient, *TaskScheduler) {
+func setup(t *testing.T) (*util.TempRepo, db.TaskDB, db.TaskCache, *gitinfo.RepoMap, *gitinfo.GitInfo, *swarming.TestClient, *TaskScheduler) {
 	testutils.SkipIfShort(t)
 	tr := util.NewTempRepo()
 	d := db.NewInMemoryDB()

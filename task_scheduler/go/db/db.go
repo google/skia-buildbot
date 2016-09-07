@@ -47,7 +47,7 @@ func IsUnknownId(e error) bool {
 	return e != nil && e.Error() == ErrUnknownId.Error()
 }
 
-// TaskReader is a read-only view of a DB.
+// TaskReader is a read-only view of a TaskDB.
 type TaskReader interface {
 	io.Closer
 
@@ -73,8 +73,8 @@ type TaskReader interface {
 	StopTrackingModifiedTasks(string)
 }
 
-// DB is used by the task scheduler to store Tasks.
-type DB interface {
+// TaskDB is used by the task scheduler to store Tasks.
+type TaskDB interface {
 	TaskReader
 
 	// AssignId sets the given task's Id field. Does not insert the task into the
@@ -91,18 +91,18 @@ type DB interface {
 	PutTasks([]*Task) error
 }
 
-// UpdateWithRetries wraps a call to db.PutTasks with retries. It calls
+// UpdateTasksWithRetries wraps a call to db.PutTasks with retries. It calls
 // db.PutTasks(f()) repeatedly until one of the following happen:
 //  - f or db.PutTasks returns an error, which is then returned from
-//    UpdateWithRetries;
-//  - PutTasks succeeds, in which case UpdateWithRetries returns the updated
+//    UpdateTasksWithRetries;
+//  - PutTasks succeeds, in which case UpdateTasksWithRetries returns the updated
 //    Tasks returned by f;
-//  - retries are exhausted, in which case UpdateWithRetries returns
+//  - retries are exhausted, in which case UpdateTasksWithRetries returns
 //    ErrConcurrentUpdate.
 //
 // Within f, tasks should be refreshed from the DB, e.g. with
 // db.GetModifiedTasks or db.GetTaskById.
-func UpdateWithRetries(db DB, f func() ([]*Task, error)) ([]*Task, error) {
+func UpdateTasksWithRetries(db TaskDB, f func() ([]*Task, error)) ([]*Task, error) {
 	var lastErr error
 	for i := 0; i < NUM_RETRIES; i++ {
 		t, err := f()
@@ -130,8 +130,8 @@ func UpdateWithRetries(db DB, f func() ([]*Task, error)) ([]*Task, error) {
 // Immediately returns ErrNotFound if db.GetTaskById(id) returns nil.
 // Immediately returns any error returned from f or from PutTasks (except
 // ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
-func UpdateTaskWithRetries(db DB, id string, f func(*Task) error) (*Task, error) {
-	tasks, err := UpdateWithRetries(db, func() ([]*Task, error) {
+func UpdateTaskWithRetries(db TaskDB, id string, f func(*Task) error) (*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		t, err := db.GetTaskById(id)
 		if err != nil {
 			return nil, err
@@ -152,14 +152,115 @@ func UpdateTaskWithRetries(db DB, id string, f func(*Task) error) (*Task, error)
 	}
 }
 
-// RemoteDB allows retrieving tasks and full access to comments.
+// JobReader is a read-only view of a JobDB.
+type JobReader interface {
+	io.Closer
+
+	// GetModifiedJobs returns all tasks modified since the last time
+	// GetModifiedJobs was run with the given id.
+	GetModifiedJobs(string) ([]*Job, error)
+
+	// GetJobById returns the task with the given Id field. Returns nil, nil if
+	// task is not found.
+	GetJobById(string) (*Job, error)
+
+	// GetJobsFromDateRange retrieves all jobs which started in the given date range.
+	GetJobsFromDateRange(time.Time, time.Time) ([]*Job, error)
+
+	// StartTrackingModifiedJobs initiates tracking of modified jobs for
+	// the current caller. Returns a unique ID which can be used by the caller
+	// to retrieve jobs which have been modified since the last query. The ID
+	// expires after a period of inactivity.
+	StartTrackingModifiedJobs() (string, error)
+
+	// StopTrackingModifiedJobs cancels tracking of modified tasks for the
+	// provided ID.
+	StopTrackingModifiedJobs(string)
+}
+
+// JobDB is used by the task scheduler to store Jobs.
+type JobDB interface {
+	JobReader
+
+	// PutJob inserts or updates the Job in the database. Job's Id field must
+	// be empty. PutJob will set Job.DbModified.
+	PutJob(*Job) error
+
+	// PutJobs inserts or updates the Jobs in the database. Each Job's Id field
+	// must be empty. Each Job's DbModified field will be set.
+	PutJobs([]*Job) error
+}
+
+// UpdateJobsWithRetries wraps a call to db.PutJobs with retries. It calls
+// db.PutJobs(f()) repeatedly until one of the following happen:
+//  - f or db.PutJobs returns an error, which is then returned from
+//    UpdateJobsWithRetries;
+//  - PutJobs succeeds, in which case UpdateJobsWithRetries returns the updated
+//    Jobs returned by f;
+//  - retries are exhausted, in which case UpdateJobsWithRetries returns
+//    ErrConcurrentUpdate.
+//
+// Within f, tasks should be refreshed from the DB, e.g. with
+// db.GetModifiedJobs or db.GetJobById.
+func UpdateJobsWithRetries(db JobDB, f func() ([]*Job, error)) ([]*Job, error) {
+	var lastErr error
+	for i := 0; i < NUM_RETRIES; i++ {
+		t, err := f()
+		if err != nil {
+			return nil, err
+		}
+		lastErr = db.PutJobs(t)
+		if lastErr == nil {
+			return t, nil
+		} else if !IsConcurrentUpdate(lastErr) {
+			return nil, lastErr
+		}
+	}
+	glog.Warningf("UpdateWithRetries: %d consecutive ErrConcurrentUpdate.", NUM_RETRIES)
+	return nil, lastErr
+}
+
+// UpdateJobWithRetries reads, updates, and writes a single Job in the DB. It:
+//  1. reads the job with the given id,
+//  2. calls f on that job, and
+//  3. calls db.PutJob() on the updated job
+//  4. repeats from step 1 as long as PutJobs returns ErrConcurrentUpdate and
+//     retries have not been exhausted.
+// Returns the updated job if it was successfully updated in the DB.
+// Immediately returns ErrNotFound if db.GetJobById(id) returns nil.
+// Immediately returns any error returned from f or from PutJobs (except
+// ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
+func UpdateJobWithRetries(db JobDB, id string, f func(*Job) error) (*Job, error) {
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+		t, err := db.GetJobById(id)
+		if err != nil {
+			return nil, err
+		}
+		if t == nil {
+			return nil, ErrNotFound
+		}
+		err = f(t)
+		if err != nil {
+			return nil, err
+		}
+		return []*Job{t}, nil
+	})
+	if err != nil {
+		return nil, err
+	} else {
+		return jobs[0], nil
+	}
+}
+
+// RemoteDB allows retrieving tasks and jobs and full access to comments.
 type RemoteDB interface {
+	//JobReader
 	TaskReader
 	CommentDB
 }
 
-// TaskAndCommentDB implements both DB and CommentDB.
+// TaskAndCommentDB implements both TaskDB and CommentDB.
 type TaskAndCommentDB interface {
-	DB
+	TaskDB
 	CommentDB
 }
