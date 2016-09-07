@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16e1b3e4_619690f9",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T17:42:16Z",
+      "side": 1,
+      "message": "nit: should check if this returns error. (It\u0027s unlikely, but could happen.)",
+      "revId": "5a2ab47e2bdf4b92017fad35bcb75dfd89458ed7",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
