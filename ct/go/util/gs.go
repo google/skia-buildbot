@@ -356,6 +356,25 @@ func (gs *GsUtil) DownloadSwarmingArtifacts(localDir, remoteDirName, pagesetType
 	return artifactToIndex, nil
 }
 
+// GetRemoteDirCount returns the number of objects in the specified dir.
+func (gs *GsUtil) GetRemoteDirCount(gsDir string) (int, error) {
+	req := gs.service.Objects.List(GSBucketName).Prefix(gsDir + "/")
+	count := 0
+	for req != nil {
+		resp, err := req.Do()
+		if err != nil {
+			return -1, fmt.Errorf("Error occured while listing %s: %s", gsDir, err)
+		}
+		count += len(resp.Items)
+		if len(resp.NextPageToken) > 0 {
+			req.PageToken(resp.NextPageToken)
+		} else {
+			req = nil
+		}
+	}
+	return count, nil
+}
+
 func (gs *GsUtil) downloadFromSwarmingDir(remoteDir, gsDir, localDir string, runID int, mtx *sync.Mutex, artifactToIndex map[string]int) error {
 	req := gs.service.Objects.List(GSBucketName).Prefix(remoteDir + "/")
 	for req != nil {
