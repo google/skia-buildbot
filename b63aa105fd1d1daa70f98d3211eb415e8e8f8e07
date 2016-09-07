@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_613db0ed",
+        "filename": "alertserver/alerts.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 836,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T18:16:43Z",
+      "side": 1,
+      "message": "Done, and fixed some autoroll alerts pointed at the wrong PROD.md.",
+      "parentUuid": "16e1b3e4_e189c0d0",
+      "revId": "b63aa105fd1d1daa70f98d3211eb415e8e8f8e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16e1b3e4_c17cc4c1",
         "filename": "alertserver/alerts.cfg",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "16e1b3e4_0175ccc1",
+        "filename": "alertserver/alerts.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 840,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T18:16:43Z",
+      "side": 1,
+      "message": "Hrm, yeah, liveness appears to be in seconds where most other metrics follow time.Duration and use nanoseconds.  Fixed here and other instances of absurdly large time periods.",
+      "parentUuid": "16e1b3e4_c17cc4c1",
+      "revId": "b63aa105fd1d1daa70f98d3211eb415e8e8f8e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16e1b3e4_e1a2a048",
         "filename": "prober/probers.json",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2016-09-07T17:50:09Z",
       "side": 1,
       "message": "nit: misspellled",
+      "revId": "b63aa105fd1d1daa70f98d3211eb415e8e8f8e07",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_e150e028",
+        "filename": "prober/probers.json",
+        "patchSetId": 1
+      },
+      "lineNbr": 492,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-07T18:16:43Z",
+      "side": 1,
+      "message": "Actually, they\u0027re all (mis)spelled this way.",
+      "parentUuid": "16e1b3e4_e1a2a048",
       "revId": "b63aa105fd1d1daa70f98d3211eb415e8e8f8e07",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
