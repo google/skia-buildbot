@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16e1b3e4_015b0c82",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T16:52:34Z",
+      "side": 1,
+      "message": "1. Repo.commitsData needs to be []*Commit because we use *Commit as the key in some maps. (By making a new []Commit, all of the *Commits stored as map keys will no longer be \u003d\u003d to *Commits from this Repo.)\n\n2. I don\u0027t see a reason to manually track commitsLen and manually copy rather than:\nr.commits[hash] \u003d len(r.commitsData)\nr.commitsData \u003d append(r.commitsData, \u0026Commit{\n  Hash: hash,\n  Parents: parents,\n  repo: r,\n}",
+      "revId": "18026c7966ae5c94b90611b74e7a054929375778",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_a13c1821",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T16:52:34Z",
+      "side": 1,
+      "message": "Missing f.Close()",
+      "revId": "18026c7966ae5c94b90611b74e7a054929375778",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_a153386c",
+        "filename": "go/gitrepo/gitrepo_test.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T16:52:34Z",
+      "side": 1,
+      "message": "nit: Maybe put this comment on gitSetup?",
+      "revId": "18026c7966ae5c94b90611b74e7a054929375778",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
