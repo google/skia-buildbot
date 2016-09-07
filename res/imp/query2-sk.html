@@ -17,7 +17,7 @@
 
   Methods:
     setCurrentQuery(s) - Sets the query selections of the control, where 's'
-    is a URL formatted query string, as returned from current_query.
+      is a URL formatted query string, as returned from current_query.
 -->
 
 <link rel="stylesheet" href="/res/common/css/md.css">
@@ -25,6 +25,7 @@
 <link rel="import" href="/res/imp/bower_components/paper-checkbox/paper-checkbox.html">
 <dom-module id="query2-sk">
   <style include="iron-flex iron-flex-alignment iron-positioning">
+    input,
     select {
       margin: 0 1em;
     }
@@ -35,6 +36,10 @@
       --paper-checkbox-unchecked-color: #1F78B4;
       --paper-checkbox-unchecked-ink-color: #1F78B4;
       margin: 0 1em 0.5em 1em;
+    }
+
+    .hidden {
+      display: none;
     }
 
   </style>
@@ -53,9 +58,20 @@
           id=invert
           on-change="_valueChange"
           title="Match items that aren't selected below.">Invert</paper-checkbox>
+        <paper-checkbox
+          id=regex
+          on-tap="_regexTap"
+          title="Match items via regular expression.">Regex</paper-checkbox>
+        <input
+          type="text"
+          id="regexValue"
+          value="[[_regexDisplayValue(_selectedValue)]]"
+          class=hidden
+          on-input="_valueChange"
+        />
         <select id=values size=12 on-change="_valueChange" multiple>
           <template is="dom-repeat" items="[[_values]]" >
-            <option value="[[item]]" selected="[[_isSelected(item)]]">[[item]]</option>
+            <option value="[[item]]" selected="[[_isSelected(item, _selectedValue)]]">[[item]]</option>
           </template>
         </select>
       </div>
@@ -94,6 +110,12 @@
         value: "",
       },
 
+      // The currently selected value, i.e. _query[_selectedKey].
+      _selectedValue: {
+        type: Array,
+        value: function() { return []; },
+      },
+
       // The values of paramset at _selectedKey.
       _values: {
         type: Array,
@@ -123,29 +145,49 @@
       return (this.$.invert.checked ? '!' : '') + v;
     },
 
-    _isSelected: function(paramValue) {
-      var selections = this._query[this._selectedKey];
-      if (!selections) {
-        return false;
+    // Toggles between displaying the text box for a regular expression and
+    // the select box of the param values, depending on the regex checkbox
+    // being checked.
+    _toggleRegexDisplay: function() {
+      if (this.$.regex.checked) {
+        this.$.regexValue.classList.remove("hidden");
+        this.$.values.classList.add("hidden");
+        this.$.invert.disabled = true;
+      } else {
+        this.$.regexValue.classList.add("hidden");
+        this.$.values.classList.remove("hidden");
+        this.$.invert.disabled = false;
       }
-      return selections.indexOf(this._prefixValue(paramValue)) !== -1;
+    },
+
+    _regexTap: function() {
+      this._toggleRegexDisplay();
+      this._valueChange();
     },
 
     _keyChange: function(e) {
-      var value = this.$.keys.selectedOptions[0].value;
-      this.set("_values", this.paramset[value]);
-      this.set("_selectedKey", value);
-      this.$.invert.checked = (this._query[value] && this._query[value][0][0] === "!");
+      var key = this.$.keys.selectedOptions[0].value;
+      this.set("_values", this.paramset[key]);
+      this.set("_selectedValue", this._query[key] || []);
+      this.set("_selectedKey", key);
+      // Use !! to force a boolean value, to work around: https://github.com/PolymerElements/paper-checkbox/issues/140
+      this.$.regex.checked = !!(this._query[key] && this._query[key].length == 1 && this._query[key][0][0] === "~");
+      this.$.invert.checked = !!(this._query[key] && this._query[key].length >= 1 && this._query[key][0][0] === "!");
+      this._toggleRegexDisplay();
     },
 
     _valueChange: function(e) {
-      var selectedValues = [];
-      $$("option", this.$.values).forEach(function(e){
-        if (e.selected) {
-          selectedValues.push(this._prefixValue(e.value));
-        }
-      }.bind(this));
-      this._query[this._selectedKey] = selectedValues;
+      if (this.$.regex.checked) {
+        this._query[this._selectedKey] = ["~" + this.$.regexValue.value];
+      } else {
+        var selectedValues = [];
+        $$("#values option", this).forEach(function(e){
+          if (e.selected) {
+            selectedValues.push(this._prefixValue(e.value));
+          }
+        }.bind(this));
+        this._query[this._selectedKey] = selectedValues;
+      }
       this._queryChanged();
     },
 
@@ -157,6 +199,21 @@
     _clear: function() {
       this._query = {};
       this._queryChanged();
+      this._keyChange();
+    },
+
+    _isSelected: function(paramValue, selectedValues) {
+      if (!selectedValues) {
+        return false;
+      }
+      return selectedValues.indexOf(this._prefixValue(paramValue)) !== -1;
+    },
+
+    _regexDisplayValue: function(arr) {
+      if (arr && arr.length > 0) {
+        return arr[0].slice(1);
+      }
+      return "";
     },
 
   });
