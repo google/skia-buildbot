@@ -1,0 +1,16 @@
+{{template "header.html"}}
+
+<h2>Task Scheduler Status</h2>
+<task-scheduler-status-sk id="status_sk"></task-scheduler-status-sk>
+
+<script>
+// Add status information from the server to the task-scheduler-status-sk.
+var elem = document.getElementById("status_sk");
+elem.last_scheduled = "{{.LastScheduled}}";
+elem.top_candidates = [
+  {{range .TopCandidates}}
+    {"TaskSpec": "{{.Name}}", "Commit": "{{.Revision}}", "Score": "{{.Score}}"},
+  {{end}}
+];
+</script>
+{{template "footer.html"}}

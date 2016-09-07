@@ -257,7 +257,7 @@ func main() {
 	assertNoError(err)
 	isolateClient.ServerUrl = isolate.FAKE_SERVER_URL
 	swarmingClient := swarming.NewTestClient()
-	s, err := scheduling.NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), workdir, []string{"skia.git"}, isolateClient, swarmingClient)
+	s, err := scheduling.NewTaskScheduler(d, cache, time.Duration(math.MaxInt64), workdir, []string{"skia.git"}, isolateClient, swarmingClient, 0.9)
 	assertNoError(err)
 
 	runTasks := func(bots []*swarming_api.SwarmingRpcsBotInfo) {

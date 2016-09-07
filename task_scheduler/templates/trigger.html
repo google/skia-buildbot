@@ -1,0 +1,22 @@
+{{template "header.html"}}
+
+<h2>Trigger Tasks</h2>
+<task-trigger-sk id="trigger_sk"></task-trigger-sk>
+
+<script>
+// Add task_spec and commit lists from the server to the task-trigger-sk.
+var bt = document.getElementById("trigger_sk");
+bt.task_specs = [
+  {{range .TaskSpecs}}
+  "{{.}}",
+  {{end}}
+];
+bt.commits = [
+  {{range .Commits}}
+  "{{.}}",
+  {{end}}
+];
+
+</script>
+
+{{template "footer.html"}}

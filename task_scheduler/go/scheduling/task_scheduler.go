@@ -27,15 +27,23 @@ import (
 	"go.skia.org/infra/task_scheduler/go/db"
 )
 
+const (
+	NUM_TOP_CANDIDATES = 50
+)
+
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
 	bl               *blacklist.Blacklist
 	cache            db.TaskCache
 	db               db.DB
 	isolate          *isolate.Client
+	lastScheduled    time.Time // protected by queueMtx.
 	period           time.Duration
-	queue            []*taskCandidate
+	queue            []*taskCandidate // protected by queueMtx.
 	queueMtx         sync.RWMutex
+	recentCommits    []string // protected by recentMtx.
+	recentMtx        sync.RWMutex
+	recentTaskSpecs  []string // protected by recentMtx.
 	repoMap          *gitinfo.RepoMap
 	repos            map[string]*gitrepo.Repo
 	swarming         swarming.ApiClient
@@ -44,7 +52,7 @@ type TaskScheduler struct {
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient) (*TaskScheduler, error) {
+func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -74,7 +82,7 @@ func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir
 		repos:            repos,
 		swarming:         swarmingClient,
 		taskCfgCache:     newTaskCfgCache(rm),
-		timeDecayAmt24Hr: 1.0,
+		timeDecayAmt24Hr: timeDecayAmt24Hr,
 		workdir:          workdir,
 	}
 	return s, nil
@@ -92,6 +100,48 @@ func (s *TaskScheduler) Start() {
 			}
 		}
 	}()
+}
+
+// TaskSchedulerStatus is a struct which provides status information about the
+// TaskScheduler.
+type TaskSchedulerStatus struct {
+	LastScheduled time.Time        `json:"last_scheduled"`
+	TopCandidates []*taskCandidate `json:"top_candidates"`
+}
+
+// Status returns the current status of the TaskScheduler.
+func (s *TaskScheduler) Status() *TaskSchedulerStatus {
+	s.queueMtx.RLock()
+	defer s.queueMtx.RUnlock()
+	candidates := make([]*taskCandidate, 0, NUM_TOP_CANDIDATES)
+	n := NUM_TOP_CANDIDATES
+	if len(s.queue) < n {
+		n = len(s.queue)
+	}
+	for _, c := range s.queue[:n] {
+		candidates = append(candidates, c.Copy())
+	}
+	return &TaskSchedulerStatus{
+		LastScheduled: s.lastScheduled,
+		TopCandidates: candidates,
+	}
+}
+
+// RecentTaskSpecsAndCommits returns the lists of recent TaskSpec names and
+// commit hashes.
+func (s *TaskScheduler) RecentTaskSpecsAndCommits() ([]string, []string) {
+	s.recentMtx.RLock()
+	defer s.recentMtx.RUnlock()
+	c := make([]string, len(s.recentCommits))
+	copy(c, s.recentCommits)
+	t := make([]string, len(s.recentTaskSpecs))
+	copy(t, s.recentTaskSpecs)
+	return t, c
+}
+
+// Trigger adds the given task request to the queue.
+func (s *TaskScheduler) Trigger(repo, commit, taskSpec string) error {
+	return fmt.Errorf("TaskScheduler.Trigger not implemented.")
 }
 
 // computeBlamelistRecursive traces through commit history, adding to
@@ -257,9 +307,13 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 	}
 	bySpec := map[string][]*taskCandidate{}
 	total := 0
+	recentCommits := []string{}
+	recentTaskSpecsMap := map[string]bool{}
 	for repo, commits := range specs {
 		for commit, tasks := range commits {
+			recentCommits = append(recentCommits, commit)
 			for name, task := range tasks {
+				recentTaskSpecsMap[name] = true
 				if rule := s.bl.MatchRule(name, commit); rule != "" {
 					glog.Warningf("Skipping blacklisted task candidate: %s @ %s due to rule %q", name, commit, rule)
 					continue
@@ -321,6 +375,14 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 		}
 	}
 	glog.Infof("Found %d candidates in %d specs", total, len(bySpec))
+	recentTaskSpecs := make([]string, 0, len(recentTaskSpecsMap))
+	for spec, _ := range recentTaskSpecsMap {
+		recentTaskSpecs = append(recentTaskSpecs, spec)
+	}
+	s.recentMtx.Lock()
+	defer s.recentMtx.Unlock()
+	s.recentCommits = recentCommits
+	s.recentTaskSpecs = recentTaskSpecs
 	return bySpec, nil
 }
 
@@ -484,6 +546,7 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 
 	s.queueMtx.Lock()
 	defer s.queueMtx.Unlock()
+	s.lastScheduled = time.Now()
 	s.queue = rvCandidates
 	return nil
 }
