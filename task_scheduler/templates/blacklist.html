@@ -1,0 +1,14 @@
+{{template "header.html"}}
+
+<h2>Task Blacklist</h2>
+<task-scheduler-blacklist-sk id="blacklist_sk"></task-scheduler-blacklist-sk>
+
+<script>
+// Add status information from the server to the task-scheduler-blacklist-sk.
+var elem = document.getElementById("blacklist_sk");
+var data = JSON.parse("{{.Data}}");
+elem.task_specs = data.TaskSpecs;
+elem.commits = data.Commits;
+elem.rules = data.Rules;
+</script>
+{{template "footer.html"}}

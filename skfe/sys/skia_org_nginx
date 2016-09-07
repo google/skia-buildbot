@@ -756,3 +756,28 @@ server {
     rewrite ^/(.+)$ https://code.google.com/p/chromium/codesearch#search/&q=$1%20file:%5Esrc/third_party/skia/&sq=package:chromium redirect;
     rewrite ^ https://code.google.com/p/chromium/codesearch#chromium/src/third_party/skia/ redirect;
 }
+
+#####   task-scheduler.skia.org   ###########################
+server {
+    listen      443;
+    server_name task-scheduler.skia.org;
+
+    ssl on;
+
+    access_log /var/log/nginx/task-scheduler.access.log;
+    error_log /var/log/nginx/task-scheduler.error.log error;
+
+    # Enforce browser XSS protection
+    add_header X-XSS-Protection "1; mode=block";
+    # Disable content sniffing
+    add_header X-Content-Type-Options nosniff;
+
+    location / {
+        proxy_pass http://skia-task-scheduler:8000;
+    }
+}
+server {
+    listen      80;
+    server_name task-scheduler.skia.org;
+    return 301 https://task-scheduler.skia.org$request_uri;
+}

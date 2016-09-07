@@ -9,10 +9,13 @@ copy_release_files()
 {
 INSTALL="sudo install -D --verbose --backup=none --group=root --owner=root"
 INSTALL_DIR="sudo install -d --verbose --backup=none --group=root --owner=root"
-${INSTALL} --mode=644 -T ./sys/${APPNAME}.service     ${ROOT}/etc/systemd/system/${APPNAME}.service
-${INSTALL} --mode=755 -T ${GOPATH}/bin/task_scheduler ${ROOT}/usr/local/bin/task_scheduler
-${INSTALL} --mode=644 -T ./templates/trigger.html     ${ROOT}/usr/local/share/task_scheduler/templates/trigger.html
-${INSTALL_DIR} --mode=777                             ${ROOT}/mnt/pd0/task_scheduler_workdir
+${INSTALL}     --mode=644 -T ./sys/${APPNAME}.service     ${ROOT}/etc/systemd/system/${APPNAME}.service
+${INSTALL}     --mode=755 -T ${GOPATH}/bin/task_scheduler ${ROOT}/usr/local/bin/task_scheduler
+${INSTALL}     --mode=644 -T ./res/js/core.js             ${ROOT}/usr/local/share/${APPNAME}/res/js/core.js
+${INSTALL}     --mode=644 -T ./res/vul/elements.html      ${ROOT}/usr/local/share/${APPNAME}/res/vul/elements.html
+${INSTALL_DIR} --mode=755                                 ${ROOT}/usr/local/share/${APPNAME}/templates
+${INSTALL}     --mode=644 ./templates/*                   ${ROOT}/usr/local/share/${APPNAME}/templates
+${INSTALL_DIR} --mode=777                                 ${ROOT}/mnt/pd0/task_scheduler_workdir
 }
 
 source ../bash/release.sh
