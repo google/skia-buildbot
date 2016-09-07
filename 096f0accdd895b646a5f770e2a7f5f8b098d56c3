@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "16e1b3e4_3ebd89d7",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T14:32:47Z",
+      "side": 1,
+      "message": "nit: might be nice to send email without archivedWebpagesText.",
+      "revId": "096f0accdd895b646a5f770e2a7f5f8b098d56c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "16e1b3e4_9eabfd8d",
+        "filename": "ct/go/util/gs.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-07T14:32:47Z",
+      "side": 1,
+      "message": "nit: \"for {\" and \"break\" instead of \"req \u003d nil\"",
+      "revId": "096f0accdd895b646a5f770e2a7f5f8b098d56c3",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
