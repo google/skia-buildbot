@@ -265,10 +265,10 @@ func runServer(serverURL string) {
 func main() {
 	defer common.LogPanic()
 
-	reloadTemplates()
-
 	// Global init.
 	common.InitWithMetrics2(APP_NAME, influxHost, influxUser, influxPassword, influxDatabase, local)
+
+	reloadTemplates()
 
 	v, err := skiaversion.GetVersion()
 	if err != nil {
