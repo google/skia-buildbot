@@ -1196,6 +1196,7 @@ func main() {
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 
 	router.HandleFunc("/", templateHandler("index.html"))
+	router.HandleFunc("/new/", templateHandler("newindex.html"))
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
 	router.PathPrefix("/tiles/").HandlerFunc(tileHandler)
