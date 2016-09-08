@@ -119,11 +119,11 @@ func main() {
 		return
 	}
 
-	skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID))
-	skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium analysis", *runID, *description))
+	//skutil.LogErr(frontend.UpdateWebappTaskSetStarted(&chromium_analysis.UpdateVars{}, *gaeTaskID))
+	//skutil.LogErr(util.SendTaskStartEmail(emailsArr, "Chromium analysis", *runID, *description))
 	// Ensure webapp is updated and email is sent even if task fails.
 	defer updateWebappTask()
-	defer sendEmail(emailsArr, gs)
+	//defer sendEmail(emailsArr, gs)
 	// Cleanup dirs after run completes.
 	defer skutil.RemoveAll(filepath.Join(util.StorageDir, util.BenchmarkRunsDir, *runID))
 	// Finish with glog flush and how long the task took.
@@ -159,17 +159,18 @@ func main() {
 	catapultPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, catapultPatchName)
 	benchmarkPatchLink = util.GS_HTTP_LINK + filepath.Join(util.GSBucketName, remoteOutputDir, benchmarkPatchName)
 
-	// Create the required chromium build.
-	chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", "Linux", []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
-	if err != nil {
-		glog.Errorf("Error encountered when swarming build repo task: %s", err)
-		return
-	}
-	if len(chromiumBuilds) != 1 {
-		glog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
-		return
-	}
-	chromiumBuild := chromiumBuilds[0]
+	//// Create the required chromium build.
+	//chromiumBuilds, err := util.TriggerBuildRepoSwarmingTask("build_chromium", *runID, "chromium", "Linux", []string{}, []string{filepath.Join(remoteOutputDir, chromiumPatchName)}, true /*singleBuild*/, 3*time.Hour, 1*time.Hour)
+	//if err != nil {
+	//	glog.Errorf("Error encountered when swarming build repo task: %s", err)
+	//	return
+	//}
+	//if len(chromiumBuilds) != 1 {
+	//	glog.Errorf("Expected 1 build but instead got %d: %v", len(chromiumBuilds), chromiumBuilds)
+	//	return
+	//}
+	//chromiumBuild := chromiumBuilds[0]
+	chromiumBuild := "try-999da6c-e050555-rmistry-20160907145612-withpatch"
 
 	// Archive, trigger and collect swarming tasks.
 	isolateExtraArgs := map[string]string{
