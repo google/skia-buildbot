@@ -1,0 +1,62 @@
+<!-- The <explore-sk> custom element declaration.
+
+  Main page of Perf, for exploring data.
+
+  Attributes:
+    None.
+
+  Events:
+    None.
+
+  Methods:
+    None.
+
+-->
+<link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+
+<link rel="import" href="/res/common/imp/query2-sk.html" />
+<link rel="import" href="/res/common/imp/query-summary-sk.html" />
+
+<link rel="import" href="/res/imp/plot-simple.html" />
+
+<dom-module id="explore-sk">
+  <style include="iron-flex iron-flex-alignment iron-positioning">
+    h3 {
+      margin: 0;
+    }
+
+    #selections {
+      margin-left: 1em;
+    }
+
+  </style>
+  <template>
+    <div class="layout vertical">
+      <plot-simple-sk id=plot></plot-simple-sk>
+      <div class="layout horizontal">
+        <query2-sk id=query></query2-sk>
+        <div class="layout vertical" id=selections>
+          <h3>Selections</h3>
+          <query-summary-sk id=summary></query-summary-sk>
+        </div>
+      </div>
+    </div>
+  </template>
+</dom-module>
+
+<script>
+  Polymer({
+    is: "explore-sk",
+
+    ready: function() {
+      sk.get("/_/paramset/").then(JSON.parse).then(function(json) {
+        this.$.query.paramset = json;
+      }.bind(this)).catch(sk.errorMessage);
+
+      this.$.query.addEventListener('query-change', function(e){
+        this.$.summary.selection = e.detail.q;
+      }.bind(this));
+    },
+
+  });
+</script>

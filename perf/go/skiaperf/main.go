@@ -39,6 +39,7 @@ import (
 	"go.skia.org/infra/perf/go/annotate"
 	"go.skia.org/infra/perf/go/clustering"
 	"go.skia.org/infra/perf/go/config"
+	"go.skia.org/infra/perf/go/dataframe"
 	idb "go.skia.org/infra/perf/go/db"
 	"go.skia.org/infra/perf/go/parser"
 	_ "go.skia.org/infra/perf/go/ptraceingest"
@@ -123,6 +124,8 @@ var (
 	templates *template.Template
 
 	tileStats *tilestats.TileStats
+
+	df *dataframe.DataFrame
 )
 
 func loadTemplates() {
@@ -136,6 +139,10 @@ func loadTemplates() {
 		filepath.Join(*resourcesDir, "templates/help.html"),
 		filepath.Join(*resourcesDir, "templates/frame.html"),
 		filepath.Join(*resourcesDir, "templates/percommit.html"),
+
+		// ptracestore pages go here.
+		filepath.Join(*resourcesDir, "templates/newindex.html"),
+
 		// Sub templates used by other templates.
 		filepath.Join(*resourcesDir, "templates/header.html"),
 	))
@@ -171,6 +178,12 @@ func Init() {
 	tileStats = tilestats.New(evt)
 
 	ptracestore.Init(*ptraceStoreDir)
+	// TODO(jcgregorio) Fix this, should be updated regularly from fresh data,
+	// protected with a mutex, etc.
+	df, err = dataframe.New(git, ptracestore.Default)
+	if err != nil {
+		glog.Fatalf("Failed to build normal dataframe: %s", err)
+	}
 	initIngestion()
 
 	// Connect to traceDB and create the builders.
@@ -1130,6 +1143,18 @@ func helpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func paramsetHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		loadTemplates()
+	}
+	if r.Method == "GET" {
+		w.Header().Set("Content-Type", "application/json")
+		if err := json.NewEncoder(w).Encode(df.ParamSet); err != nil {
+			glog.Errorf("Failed to encode paramset: %s", err)
+		}
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1196,6 +1221,11 @@ func main() {
 	router.PathPrefix("/res/").HandlerFunc(makeResourceHandler())
 
 	router.HandleFunc("/", templateHandler("index.html"))
+
+	// New endpoints that use ptracestore will go here.
+	router.HandleFunc("/new/", templateHandler("newindex.html"))
+	router.HandleFunc("/_/paramset/", paramsetHandler)
+
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)
 	router.PathPrefix("/tiles/").HandlerFunc(tileHandler)

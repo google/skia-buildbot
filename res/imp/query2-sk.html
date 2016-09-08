@@ -69,7 +69,7 @@
           class=hidden
           on-input="_valueChange"
         />
-        <select id=values size=12 on-change="_valueChange" multiple>
+        <select id=values size=10 on-change="_valueChange" multiple>
           <template is="dom-repeat" items="[[_values]]" >
             <option value="[[item]]" selected="[[_isSelected(item, _selectedValue)]]">[[item]]</option>
           </template>
