@@ -90,6 +90,37 @@ func MakeKey(m map[string]string) (string, error) {
 	return ret, nil
 }
 
+// ParseKey parses the structured key, and if valid, returns the parsed values
+// as a map[string]string, otherwise is returns a non-nil error.
+func ParseKey(key string) (map[string]string, error) {
+	if !keyRe.MatchString(key) {
+		return nil, fmt.Errorf("Key is not valid, fails to match regex: %s", key)
+	}
+	ret := map[string]string{}
+	parts := strings.Split(key, ",")
+	if len(parts) < 3 {
+		// Maybe should be an error?
+		return map[string]string{}, nil
+	}
+	parts = parts[1 : len(parts)-1]
+	if !sort.IsSorted(sort.StringSlice(parts)) {
+		return nil, fmt.Errorf("Key is not valid, params are unsorted: %v", parts)
+	}
+	lastName := ""
+	for _, s := range parts {
+		pair := strings.Split(s, "=")
+		if len(pair) != 2 {
+			return nil, fmt.Errorf("Invalid key=value pair: %s", s)
+		}
+		if lastName == pair[0] {
+			return nil, fmt.Errorf("Duplicate key: %s", s)
+		}
+		ret[pair[0]] = pair[1]
+		lastName = pair[0]
+	}
+	return ret, nil
+}
+
 // queryParam represents a query on a particular parameter in a key.
 type queryParam struct {
 	keyMatch    string         // The param key, including the leading "," and trailing "=".
