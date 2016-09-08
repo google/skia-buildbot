@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9634c3bf_8a8b2bce",
+        "filename": "go/query/query.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-08T11:40:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16e1b3e4_01eb0c04",
+      "revId": "ecf93a3510649dcdf339fe792a0f53678909b0af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16e1b3e4_61d3f057",
         "filename": "ragemon/go/client/client.go",
         "patchSetId": 9
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9634c3bf_ea9ae718",
+        "filename": "ragemon/go/client/client.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-08T11:40:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16e1b3e4_61d3f057",
+      "revId": "ecf93a3510649dcdf339fe792a0f53678909b0af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "16e1b3e4_415354e0",
         "filename": "ragemon/go/client/client_test.go",
         "patchSetId": 9
@@ -47,6 +83,24 @@
       "writtenOn": "2016-09-07T21:13:54Z",
       "side": 1,
       "message": "typo s/Not/Now/",
+      "revId": "ecf93a3510649dcdf339fe792a0f53678909b0af",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9634c3bf_ca9523ec",
+        "filename": "ragemon/go/client/client_test.go",
+        "patchSetId": 9
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5205
+      },
+      "writtenOn": "2016-09-08T11:40:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "16e1b3e4_415354e0",
       "revId": "ecf93a3510649dcdf339fe792a0f53678909b0af",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
