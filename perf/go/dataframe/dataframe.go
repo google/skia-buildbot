@@ -4,6 +4,7 @@ package dataframe
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/skia-dev/glog"
@@ -86,6 +87,9 @@ func _new(colHeaders []*ColumnHeader, commitIDs []*ptracestore.CommitID, q *quer
 	paramSet := paramtools.ParamSet{}
 	for key, _ := range traceSet {
 		paramSet.AddParamsFromKey(key)
+	}
+	for _, values := range paramSet {
+		sort.Strings(values)
 	}
 	return &DataFrame{
 		TraceSet: traceSet,
