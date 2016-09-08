@@ -220,7 +220,7 @@ func buildChromium(chromiumDir, targetPlatform string, useWhitelistedFonts bool)
 	// Run "ninja -C out/Release -j100 ${build_target}".
 	// Use the full system env while building chromium.
 	args := []string{"-C", "out/Release", "-j100", buildTarget}
-	return ExecuteCmd("ninja", args, os.Environ(), NINJA_TIMEOUT, nil, nil)
+	return ExecuteCmd(filepath.Join(DepotToolsDir, "ninja"), args, os.Environ(), NINJA_TIMEOUT, nil, nil)
 }
 
 func getTruncatedHash(commitHash string) string {
