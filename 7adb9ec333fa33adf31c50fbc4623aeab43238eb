@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9634c3bf_caae0338",
+        "filename": "ct/go/master_scripts/run_chromium_analysis_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-08T12:57:20Z",
+      "side": 1,
+      "message": "Feedback from https://skia-review.googlesource.com/c/2304/#message-08f8247da3d41930b425419f0876a1688409d164",
+      "range": {
+        "startLine": 71,
+        "startChar": 2,
+        "endLine": 71,
+        "endChar": 23
+      },
+      "revId": "7adb9ec333fa33adf31c50fbc4623aeab43238eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9634c3bf_eab3c7a0",
+        "filename": "ct/go/master_scripts/run_chromium_perf_on_workers/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 5145
+      },
+      "writtenOn": "2016-09-08T12:57:20Z",
+      "side": 1,
+      "message": "Logging as error to make it stand out.",
+      "range": {
+        "startLine": 265,
+        "startChar": 21,
+        "endLine": 265,
+        "endChar": 33
+      },
+      "revId": "7adb9ec333fa33adf31c50fbc4623aeab43238eb",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
