@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9634c3bf_ad9009fd",
+        "filename": "perf/go/skiaperf/main.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 1177,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-08T21:22:46Z",
+      "side": 1,
+      "message": "unused",
+      "revId": "9f6b608991a43826023ecfa7c292eb18f17e975e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9634c3bf_cd953dec",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-08T21:22:46Z",
+      "side": 1,
+      "message": "nit: wrong indentation",
+      "revId": "9f6b608991a43826023ecfa7c292eb18f17e975e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9634c3bf_ed9a0119",
+        "filename": "perf/res/imp/explore.html",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-08T21:22:46Z",
+      "side": 1,
+      "message": "debugging?",
+      "revId": "9f6b608991a43826023ecfa7c292eb18f17e975e",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
