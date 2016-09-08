@@ -30,11 +30,11 @@ gcloud compute --project $PROJECT_ID instances create $INSTANCE_NAME \
   --network "default" \
   --maintenance-policy "MIGRATE" \
   --scopes $SCOPES \
-  --tags "http-server" "https-server" \
+  --tags "http-server,https-server" \
   --metadata-from-file "startup-script=startup-script.sh" \
   --metadata "owner_primary=jcgregorio,owner_secondary=stephana" \
-  --disk name=${INSTANCE_NAME}      device-name=${INSTANCE_NAME}      "mode=rw" "boot=yes" "auto-delete=yes" \
-  --disk name=${INSTANCE_NAME}-data device-name=${INSTANCE_NAME}-data "mode=rw" "boot=no" \
+  --disk name=${INSTANCE_NAME},device-name=${INSTANCE_NAME},mode=rw,boot=yes,auto-delete=yes \
+  --disk name=${INSTANCE_NAME}-data,device-name=${INSTANCE_NAME}-data,mode=rw,boot=no \
   --address=$IP_ADDRESS
 
 # Wait until the instance is up.
