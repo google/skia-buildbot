@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/skia-dev/glog"
+	"go.skia.org/infra/go/common"
 	"go.skia.org/infra/go/util"
 
 	swarming "github.com/luci/luci-go/common/api/swarming/swarming/v1"
@@ -53,6 +54,8 @@ type ApiClient interface {
 	// ListCTBots returns a slice of swarming.SwarmingRpcsBotInfo instances
 	// corresponding to the CT Swarming bots.
 	ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error)
+
+	GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error)
 
 	// ListTasks returns a slice of swarming.SwarmingRpcsTaskResult instances
 	// corresponding to the specified tags and within given time window.
@@ -144,6 +147,10 @@ func (c *apiClient) ListBots(dimensions map[string]string) ([]*swarming.Swarming
 	}
 
 	return bots, nil
+}
+
+func (c *apiClient) GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error) {
+	return c.s.Bot.Terminate(id).Do()
 }
 
 func (c *apiClient) ListSkiaTasks(start, end time.Time) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
@@ -403,4 +410,19 @@ func Started(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
 // Completed returns a time.Time for the given task's started time.
 func Completed(t *swarming.SwarmingRpcsTaskRequestMetadata) (time.Time, error) {
 	return ParseTimestamp(t.TaskResult.CompletedTs)
+}
+
+func ParseDimensions(dimensionFlags *common.MultiString) (map[string]string, error) {
+	dims := map[string]string{}
+	if dimensionFlags == nil {
+		return dims, nil
+	}
+	for _, dim := range *dimensionFlags {
+		split := strings.SplitN(dim, ":", 2)
+		if len(split) != 2 {
+			return nil, fmt.Errorf("dimension must take the form \"key:value\"; %q is invalid", dim)
+		}
+		dims[split[0]] = split[1]
+	}
+	return dims, nil
 }

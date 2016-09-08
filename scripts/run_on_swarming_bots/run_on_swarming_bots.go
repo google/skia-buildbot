@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"path"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
@@ -58,18 +57,12 @@ func main() {
 		*taskName = fmt.Sprintf("run_%s", scriptName)
 	}
 
-	dims := map[string]string{
-		"pool": *pool,
+	dims, err := swarming.ParseDimensions(dimensions)
+	if err != nil {
+		glog.Fatalf("Problem parsing dimensions: %s", err)
 	}
-	for _, dim := range *dimensions {
-		split := strings.SplitN(dim, ":", 2)
-		if len(split) != 2 {
-			glog.Fatalf("--dimension must take the form \"key:value\"; %q is invalid", dim)
-		}
-		dims[split[0]] = split[1]
-	}
+	dims["pool"] = *pool
 
-	var err error
 	*workdir, err = filepath.Abs(*workdir)
 	if err != nil {
 		glog.Fatal(err)

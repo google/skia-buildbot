@@ -74,6 +74,10 @@ func (c *TestClient) ListCTBots() ([]*swarming.SwarmingRpcsBotInfo, error) {
 	})
 }
 
+func (c *TestClient) GracefullyShutdownBot(id string) (*swarming.SwarmingRpcsTerminateResponse, error) {
+	return nil, nil
+}
+
 func (c *TestClient) ListTasks(start, end time.Time, tags []string, state string) ([]*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	c.taskListMtx.RLock()
 	defer c.taskListMtx.RUnlock()
