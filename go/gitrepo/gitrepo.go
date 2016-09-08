@@ -104,16 +104,16 @@ func NewRepo(repoUrl, workdir string) (*Repo, error) {
 	} else if !os.IsNotExist(err) {
 		return nil, fmt.Errorf("Failed to read cache file: %s", err)
 	}
-	if err := rv.Update(); err != nil {
+	if _, err := rv.Update(); err != nil {
 		return nil, err
 	}
 	return rv, nil
 }
 
-func (r *Repo) addCommit(hash string) error {
+func (r *Repo) addCommit(hash string) (*Commit, error) {
 	output, err := exec.RunCwd(r.workdir, "git", "log", "-n", "1", "--format=format:%P", hash)
 	if err != nil {
-		return fmt.Errorf("gitrepo.Repo: Failed to obtain Git commit details: %s", err)
+		return nil, fmt.Errorf("gitrepo.Repo: Failed to obtain Git commit details: %s", err)
 	}
 	split := strings.Split(strings.Trim(output, "\n"), " ")
 	var parents []int
@@ -125,7 +125,7 @@ func (r *Repo) addCommit(hash string) error {
 			}
 			p, ok := r.commits[h]
 			if !ok {
-				return fmt.Errorf("gitrepo.Repo: Could not find parent commit %q", h)
+				return nil, fmt.Errorf("gitrepo.Repo: Could not find parent commit %q", h)
 			}
 			parentHashes = append(parentHashes, p)
 		}
@@ -140,26 +140,26 @@ func (r *Repo) addCommit(hash string) error {
 	}
 	r.commits[hash] = len(r.commitsData)
 	r.commitsData = append(r.commitsData, c)
-	return nil
+	return c, nil
 }
 
 // Update syncs the local copy of the repo and loads new commits/branches into
-// the Repo object.
-func (r *Repo) Update() error {
+// the Repo object. Returns the list of new Commits since the last update.
+func (r *Repo) Update() ([]*Commit, error) {
 	r.mtx.Lock()
 	defer r.mtx.Unlock()
 
 	// Update the local copy.
 	glog.Infof("Updating %s...", r.repoUrl)
 	if _, err := exec.RunCwd(r.workdir, "git", "fetch", "origin"); err != nil {
-		return fmt.Errorf("Failed to update gitrepo.Repo: %s", err)
+		return nil, fmt.Errorf("Failed to update gitrepo.Repo: %s", err)
 	}
 
 	// Obtain the list of branches.
 	glog.Info("  Getting branches...")
 	branches, err := gitinfo.GetBranches(r.workdir)
 	if err != nil {
-		return fmt.Errorf("Failed to get branches for gitrepo.Repo: %s", err)
+		return nil, fmt.Errorf("Failed to get branches for gitrepo.Repo: %s", err)
 	}
 	filteredBranches := make([]*gitinfo.GitBranch, 0, len(branches))
 	for _, b := range branches {
@@ -176,10 +176,11 @@ func (r *Repo) Update() error {
 
 	// Load all commits from the repo.
 	glog.Infof("  Loading commits...")
+	newCommits := []*Commit{}
 	for _, b := range r.branches {
 		output, err := exec.RunCwd(r.workdir, "git", "rev-list", REMOTE_BRANCH_PREFIX+b.Name)
 		if err != nil {
-			return fmt.Errorf("Failed to 'git rev-list' for gitrepo.Repo: %s", err)
+			return nil, fmt.Errorf("Failed to 'git rev-list' for gitrepo.Repo: %s", err)
 		}
 		split := strings.Split(output, "\n")
 		for i := len(split) - 1; i >= 0; i-- {
@@ -190,9 +191,11 @@ func (r *Repo) Update() error {
 			if _, ok := r.commits[hash]; ok {
 				continue
 			}
-			if err := r.addCommit(hash); err != nil {
-				return err
+			c, err := r.addCommit(hash)
+			if err != nil {
+				return nil, err
 			}
+			newCommits = append(newCommits, c)
 		}
 	}
 
@@ -201,20 +204,20 @@ func (r *Repo) Update() error {
 	cacheFile := path.Join(r.workdir, CACHE_FILE)
 	f, err := os.Create(cacheFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if err := gob.NewEncoder(f).Encode(gobRepo{
 		Commits:     r.commits,
 		CommitsData: r.commitsData,
 	}); err != nil {
 		defer util.Close(f)
-		return err
+		return nil, err
 	}
 	if err := f.Close(); err != nil {
-		return err
+		return nil, err
 	}
 	glog.Infof("  Done.")
-	return nil
+	return newCommits, nil
 }
 
 // Branches returns the list of known branches in the repo.
