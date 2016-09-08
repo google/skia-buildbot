@@ -68,6 +68,7 @@ func sendEmail(recipients []string, gs *util.GsUtil) {
 	totalArchivedWebpages, err := util.GetArchivesNum(gs, *benchmarkExtraArgs, *pagesetType)
 	if err != nil {
 		glog.Errorf("Error when calculating number of archives: %s", err)
+		totalArchivedWebpages = -1
 	}
 	archivedWebpagesText := ""
 	if totalArchivedWebpages != -1 {

@@ -261,6 +261,8 @@ func main() {
 		"--logs_link_prefix=" + fmt.Sprintf(util.SWARMING_RUN_ID_TASK_LINK_PREFIX_TEMPLATE, *runID, "chromium_perf_"),
 		"--total_archives=" + strconv.Itoa(totalArchivedWebpages),
 	}
+	// TODO(rmistry): Remove the below debugging stmt.
+	glog.Errorf("Args of csv_comparer.py: %v", args)
 	err = util.ExecuteCmd("python", args, []string{}, util.CSV_COMPARER_TIMEOUT, nil, nil)
 	if err != nil {
 		glog.Errorf("Error running csv_comparer.py: %s", err)
