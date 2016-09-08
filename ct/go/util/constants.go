@@ -265,7 +265,7 @@ var (
 			Description:                "Top 10K (with mobile user-agent)",
 		},
 		PAGESET_TYPE_DUMMY_1k: &PagesetTypeInfo{
-			NumPages:                   1000,
+			NumPages:                   10,
 			CSVSource:                  "csv/android-top-1m.csv",
 			UserAgent:                  "mobile",
 			CreatePagesetsTimeoutSecs:  1800,
