@@ -141,7 +141,7 @@ type localDB struct {
 
 	dbMetric *boltutil.DbMetric
 
-	modTasks db.ModifiedTasks
+	modTasks *db.ModifiedTasks
 
 	// CommentBox is embedded in order to implement db.CommentDB. CommentBox uses
 	// this localDB to persist the comments.
@@ -225,8 +225,9 @@ func NewDB(name, filename string) (db.TaskAndCommentDB, error) {
 		return nil, err
 	}
 	d := &localDB{
-		name: name,
-		db:   boltdb,
+		name:     name,
+		db:       boltdb,
+		modTasks: db.NewModifiedTasks(),
 		txCount: metrics2.GetCounter("db-active-tx", map[string]string{
 			"database": name,
 		}),

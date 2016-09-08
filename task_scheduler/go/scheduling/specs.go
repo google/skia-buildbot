@@ -33,6 +33,17 @@ func ParseTasksCfg(contents string) (*TasksCfg, error) {
 		return nil, err
 	}
 
+	for name, j := range rv.Jobs {
+		for _, t := range j.TaskSpecs {
+			if _, ok := rv.Tasks[t]; !ok {
+				return nil, fmt.Errorf("Job %q references unknown task %q", name, t)
+			}
+		}
+	}
+
+	// TODO(borenet): Find any TaskSpecs which are not referenced by any
+	// JobSpec?
+
 	return &rv, nil
 }
 
@@ -48,8 +59,12 @@ func ReadTasksCfg(repo *gitinfo.GitInfo, commit string) (*TasksCfg, error) {
 // TasksCfg is a struct which describes all Swarming tasks for a repo at a
 // particular commit.
 type TasksCfg struct {
+	// Jobs is a map whose keys are JobSpec names and values are JobSpecs
+	// which describe sets of tasks to run.
+	Jobs map[string]*JobSpec `json:"jobs"`
+
 	// Tasks is a map whose keys are TaskSpec names and values are TaskSpecs
-	// detailing the Swarming tasks to run at each commit.
+	// detailing the Swarming tasks which may be run.
 	Tasks map[string]*TaskSpec `json:"tasks"`
 }
 
@@ -142,6 +157,24 @@ type CipdPackage struct {
 	Version string `json:"version"`
 }
 
+// JobSpec is a struct which describes a set of TaskSpecs to run as part of a
+// larger effort.
+type JobSpec struct {
+	TaskSpecs []string `json:"tasks"`
+}
+
+// Copy returns a copy of the JobSpec.
+func (j *JobSpec) Copy() *JobSpec {
+	var taskSpecs []string
+	if j.TaskSpecs != nil {
+		taskSpecs = make([]string, len(j.TaskSpecs))
+		copy(taskSpecs, j.TaskSpecs)
+	}
+	return &JobSpec{
+		TaskSpecs: taskSpecs,
+	}
+}
+
 // taskCfgCache is a struct used for caching tasks cfg files. The user should
 // periodically call Cleanup() to remove old entries.
 type taskCfgCache struct {
@@ -178,6 +211,7 @@ func (c *taskCfgCache) readTasksCfg(repo, commit string) (*TasksCfg, error) {
 			if strings.Contains(err.Error(), "does not exist in") || strings.Contains(err.Error(), "exists on disk, but not in") {
 				// In this case, use an empty config.
 				cfg = &TasksCfg{
+					Jobs:  map[string]*JobSpec{},
 					Tasks: map[string]*TaskSpec{},
 				}
 			} else {

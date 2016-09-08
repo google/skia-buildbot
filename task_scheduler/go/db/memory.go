@@ -12,15 +12,15 @@ import (
 	"github.com/skia-dev/glog"
 )
 
-type inMemoryDB struct {
+type inMemoryTaskDB struct {
 	CommentBox
 	tasks    map[string]*Task
 	tasksMtx sync.RWMutex
-	modTasks ModifiedTasks
+	modTasks *ModifiedTasks
 }
 
-// See docs for DB interface. Does not take any locks.
-func (db *inMemoryDB) AssignId(t *Task) error {
+// See docs for TaskDB interface. Does not take any locks.
+func (db *inMemoryTaskDB) AssignId(t *Task) error {
 	if t.Id != "" {
 		return fmt.Errorf("Task Id already assigned: %v", t.Id)
 	}
@@ -28,13 +28,13 @@ func (db *inMemoryDB) AssignId(t *Task) error {
 	return nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) Close() error {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) Close() error {
 	return nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) GetTaskById(id string) (*Task, error) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) GetTaskById(id string) (*Task, error) {
 	db.tasksMtx.RLock()
 	defer db.tasksMtx.RUnlock()
 	if task := db.tasks[id]; task != nil {
@@ -43,8 +43,8 @@ func (db *inMemoryDB) GetTaskById(id string) (*Task, error) {
 	return nil, nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, error) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, error) {
 	db.tasksMtx.RLock()
 	defer db.tasksMtx.RUnlock()
 
@@ -59,13 +59,13 @@ func (db *inMemoryDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, erro
 	return rv, nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) GetModifiedTasks(id string) ([]*Task, error) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) GetModifiedTasks(id string) ([]*Task, error) {
 	return db.modTasks.GetModifiedTasks(id)
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) PutTask(task *Task) error {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) PutTask(task *Task) error {
 	db.tasksMtx.Lock()
 	defer db.tasksMtx.Unlock()
 
@@ -91,8 +91,8 @@ func (db *inMemoryDB) PutTask(task *Task) error {
 	return nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) PutTasks(tasks []*Task) error {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
 	for _, t := range tasks {
 		if err := db.PutTask(t); err != nil {
 			return err
@@ -101,21 +101,128 @@ func (db *inMemoryDB) PutTasks(tasks []*Task) error {
 	return nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) StartTrackingModifiedTasks() (string, error) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) StartTrackingModifiedTasks() (string, error) {
 	return db.modTasks.StartTrackingModifiedTasks()
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) StopTrackingModifiedTasks(id string) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) StopTrackingModifiedTasks(id string) {
 	db.modTasks.StopTrackingModifiedTasks(id)
 }
 
-// NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
+// NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
-func NewInMemoryDB() TaskAndCommentDB {
-	db := &inMemoryDB{
-		tasks: map[string]*Task{},
+func NewInMemoryTaskDB() TaskAndCommentDB {
+	db := &inMemoryTaskDB{
+		modTasks: NewModifiedTasks(),
+		tasks:    map[string]*Task{},
+	}
+	return db
+}
+
+type inMemoryJobDB struct {
+	jobs    map[string]*Job
+	jobsMtx sync.RWMutex
+	modJobs *ModifiedJobs
+}
+
+func (db *inMemoryJobDB) assignId(j *Job) error {
+	if j.Id != "" {
+		return fmt.Errorf("Job Id already assigned: %v", j.Id)
+	}
+	j.Id = uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
+	return nil
+}
+
+// See docs for JobDB interface.
+func (db *inMemoryJobDB) Close() error {
+	return nil
+}
+
+// See docs for JobDB interface.
+func (db *inMemoryJobDB) GetJobById(id string) (*Job, error) {
+	db.jobsMtx.RLock()
+	defer db.jobsMtx.RUnlock()
+	if job := db.jobs[id]; job != nil {
+		return job.Copy(), nil
+	}
+	return nil, nil
+}
+
+// See docs for JobDB interface.
+func (db *inMemoryJobDB) GetJobsFromDateRange(start, end time.Time) ([]*Job, error) {
+	db.jobsMtx.RLock()
+	defer db.jobsMtx.RUnlock()
+
+	rv := []*Job{}
+	// TODO(borenet): Binary search.
+	for _, b := range db.jobs {
+		if (b.Created.Equal(start) || b.Created.After(start)) && b.Created.Before(end) {
+			rv = append(rv, b.Copy())
+		}
+	}
+	return rv, nil
+}
+
+// See docs for JobDB interface.
+func (db *inMemoryJobDB) GetModifiedJobs(id string) ([]*Job, error) {
+	return db.modJobs.GetModifiedJobs(id)
+}
+
+// See docs for JobDB interface.
+func (db *inMemoryJobDB) PutJob(job *Job) error {
+	db.jobsMtx.Lock()
+	defer db.jobsMtx.Unlock()
+
+	if util.TimeIsZero(job.Created) {
+		return fmt.Errorf("Created not set. Job %s created time is %s. %v", job.Id, job.Created, job)
+	}
+
+	if job.Id == "" {
+		if err := db.assignId(job); err != nil {
+			return err
+		}
+	} else if existing := db.jobs[job.Id]; existing != nil {
+		if !existing.DbModified.Equal(job.DbModified) {
+			glog.Warningf("Cached Job has been modified in the DB. Current:\n%v\nCached:\n%v", existing, job)
+			return ErrConcurrentUpdate
+		}
+	}
+	job.DbModified = time.Now()
+
+	// TODO(borenet): Keep jobs in a sorted slice.
+	db.jobs[job.Id] = job
+	db.modJobs.TrackModifiedJob(job)
+	return nil
+}
+
+// See docs for JobDB interface.
+func (db *inMemoryJobDB) PutJobs(jobs []*Job) error {
+	for _, t := range jobs {
+		if err := db.PutJob(t); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// See docs for JobDB interface.
+func (db *inMemoryJobDB) StartTrackingModifiedJobs() (string, error) {
+	return db.modJobs.StartTrackingModifiedJobs()
+}
+
+// See docs for JobDB interface.
+func (db *inMemoryJobDB) StopTrackingModifiedJobs(id string) {
+	db.modJobs.StopTrackingModifiedJobs(id)
+}
+
+// NewInMemoryJobDB returns an extremely simple, inefficient, in-memory JobDB
+// implementation.
+func NewInMemoryJobDB() JobDB {
+	db := &inMemoryJobDB{
+		modJobs: NewModifiedJobs(),
+		jobs:    map[string]*Job{},
 	}
 	return db
 }

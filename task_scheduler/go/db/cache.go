@@ -53,7 +53,7 @@ type TaskCache interface {
 }
 
 type taskCache struct {
-	db DB
+	db TaskDB
 	// map[repo_name][task_spec_name]bool
 	knownTaskNames map[string]map[string]bool
 	mtx            sync.RWMutex
@@ -232,8 +232,130 @@ func (c *taskCache) Update() error {
 
 // NewTaskCache returns a local cache which provides more convenient views of
 // task data than the database can provide.
-func NewTaskCache(db DB, timePeriod time.Duration) (TaskCache, error) {
+func NewTaskCache(db TaskDB, timePeriod time.Duration) (TaskCache, error) {
 	tc := &taskCache{
+		db:         db,
+		timePeriod: timePeriod,
+	}
+	if err := tc.reset(); err != nil {
+		return nil, err
+	}
+	return tc, nil
+}
+
+type JobCache interface {
+
+	// GetJob returns the job with the given ID, or an error if no such job exists.
+	GetJob(string) (*Job, error)
+
+	// UnfinishedJobs returns a list of jobs which were not finished at
+	// the time of the last cache update.
+	UnfinishedJobs() ([]*Job, error)
+
+	// Update loads new jobs from the database.
+	Update() error
+}
+
+type jobCache struct {
+	db         JobDB
+	mtx        sync.RWMutex
+	queryId    string
+	jobs       map[string]*Job
+	timePeriod time.Duration
+	unfinished map[string]*Job
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) GetJob(id string) (*Job, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	if j, ok := c.jobs[id]; ok {
+		return j.Copy(), nil
+	}
+	return nil, fmt.Errorf("No such job!")
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) UnfinishedJobs() ([]*Job, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	rv := make([]*Job, 0, len(c.unfinished))
+	for _, t := range c.unfinished {
+		rv = append(rv, t.Copy())
+	}
+	return rv, nil
+}
+
+// update inserts the new/updated jobs into the cache. Assumes the caller
+// holds a lock.
+func (c *jobCache) update(jobs []*Job) error {
+	for _, j := range jobs {
+		// Insert the new job into the main map.
+		cpy := j.Copy()
+		c.jobs[j.Id] = cpy
+
+		// Unfinished jobs.
+		if _, ok := c.unfinished[j.Id]; ok {
+			delete(c.unfinished, j.Id)
+		}
+		if !j.Done() {
+			c.unfinished[j.Id] = cpy
+		}
+	}
+	return nil
+}
+
+// reset re-initializes c. Assumes the caller holds a lock.
+func (c *jobCache) reset() error {
+	c.db.StopTrackingModifiedJobs(c.queryId)
+	queryId, err := c.db.StartTrackingModifiedJobs()
+	if err != nil {
+		return err
+	}
+	now := time.Now()
+	start := now.Add(-c.timePeriod)
+	glog.Infof("Reading Jobs from %s to %s.", start, now)
+	jobs, err := c.db.GetJobsFromDateRange(start, now)
+	if err != nil {
+		c.db.StopTrackingModifiedJobs(queryId)
+		return err
+	}
+	c.queryId = queryId
+	c.jobs = map[string]*Job{}
+	c.unfinished = map[string]*Job{}
+	if err := c.update(jobs); err != nil {
+		return err
+	}
+	return nil
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) Update() error {
+	newJobs, err := c.db.GetModifiedJobs(c.queryId)
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	if IsUnknownId(err) {
+		glog.Warningf("Connection to db lost; re-initializing cache from scratch.")
+		if err := c.reset(); err != nil {
+			return err
+		}
+		return nil
+	} else if err != nil {
+		return err
+	}
+	if err := c.update(newJobs); err == nil {
+		return nil
+	} else {
+		return err
+	}
+}
+
+// NewJobCache returns a local cache which provides more convenient views of
+// job data than the database can provide.
+func NewJobCache(db JobDB, timePeriod time.Duration) (JobCache, error) {
+	tc := &jobCache{
 		db:         db,
 		timePeriod: timePeriod,
 	}

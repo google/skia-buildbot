@@ -116,10 +116,10 @@ func makeSwarmingRpcsTaskRequestMetadata(t *testing.T, task *db.Task) *swarming_
 }
 
 // Common setup for TaskScheduler tests.
-func setup(t *testing.T) (*util.TempRepo, db.DB, db.TaskCache, *gitinfo.RepoMap, *gitinfo.GitInfo, *swarming.TestClient, *TaskScheduler) {
+func setup(t *testing.T) (*util.TempRepo, db.TaskDB, db.TaskCache, *gitinfo.RepoMap, *gitinfo.GitInfo, *swarming.TestClient, *TaskScheduler) {
 	testutils.SkipIfShort(t)
 	tr := util.NewTempRepo()
-	d := db.NewInMemoryDB()
+	d := db.NewInMemoryTaskDB()
 	cache, err := db.NewTaskCache(d, time.Hour)
 	assert.NoError(t, err)
 	repos := gitinfo.NewRepoMap(tr.Dir)
@@ -394,7 +394,7 @@ func TestComputeBlamelist(t *testing.T) {
 	zipfile := filepath.Join(filepath.Dir(filename), "..", "..", "..", "go", "buildbot", "testdata", "testrepo.zip")
 	tr := util.NewTempRepoFrom(zipfile)
 	defer tr.Cleanup()
-	d := db.NewInMemoryDB()
+	d := db.NewInMemoryTaskDB()
 	cache, err := db.NewTaskCache(d, time.Hour)
 	assert.NoError(t, err)
 
@@ -1214,7 +1214,7 @@ func TestMultipleCandidatesBackfillingEachOther(t *testing.T) {
 	repos := gitinfo.NewRepoMap(workdir)
 	repo, err := repos.Repo(repoName)
 	assert.NoError(t, err)
-	d := db.NewInMemoryDB()
+	d := db.NewInMemoryTaskDB()
 	cache, err := db.NewTaskCache(d, time.Hour)
 	assert.NoError(t, err)
 	isolateClient, err := isolate.NewClient(workdir)

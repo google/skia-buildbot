@@ -10,7 +10,7 @@ import (
 )
 
 func TestModifiedTasks(t *testing.T) {
-	m := ModifiedTasks{}
+	m := NewModifiedTasks()
 
 	_, err := m.GetModifiedTasks("dummy-id")
 	assert.True(t, IsUnknownId(err))
@@ -55,7 +55,7 @@ func TestModifiedTasks(t *testing.T) {
 // Test that if a Task is modified multiple times, it only appears once in the
 // result of GetModifiedTasks.
 func TestMultipleModifications(t *testing.T) {
-	m := ModifiedTasks{}
+	m := NewModifiedTasks()
 
 	id, err := m.StartTrackingModifiedTasks()
 	assert.NoError(t, err)
@@ -79,11 +79,11 @@ func TestMultipleModifications(t *testing.T) {
 }
 
 func TestModifiedTasksTooManyUsers(t *testing.T) {
-	m := ModifiedTasks{}
+	m := NewModifiedTasks()
 
 	var oneId string
 	// Max out the number of modified-tasks users; ensure that we error out.
-	for i := 0; i < MAX_MODIFIED_TASKS_USERS; i++ {
+	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		id, err := m.StartTrackingModifiedTasks()
 		assert.NoError(t, err)
 		oneId = id
