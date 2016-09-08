@@ -442,9 +442,9 @@ if '__main__' == __name__:
           and options.raw_csv_withpatch and options.num_repeated
           and options.target_platform and options.pageset_type
           and options.chromium_hash and options.skia_hash
-          and options.description and options.total_archives):
+          and options.description):
     option_parser.error('Must specify csv_file1, csv_file2, output_html_dir, '
-                        'variance_threshold, requester_email, total_archives, '
+                        'variance_threshold, requester_email, '
                         'chromium_patch_link, benchmark_patch_link, '
                         'skia_patch_link, raw_csv_nopatch, description, '
                         'raw_csv_withpatch, num_repeated, pageset_type, '
