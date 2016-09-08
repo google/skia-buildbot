@@ -104,7 +104,7 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 	util.RemoveAll(localDir)
 	// Create the local dir.
 	util.MkdirAll(localDir, 0700)
-	// The channel where the storage objects to be deleted will be sent to.
+	// The channel where the storage objects to be downloaded will be sent to.
 	chStorageObjects := make(chan filePathToStorageObject, DOWNLOAD_UPLOAD_GOROUTINE_POOL_SIZE)
 
 	// Kick off one goroutine to populate the channel.
@@ -151,26 +151,10 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 		go func(goroutineNum int) {
 			defer wgConsumer.Done()
 			for obj := range chStorageObjects {
-				result := obj.storageObject
-				filePath := obj.filePath
-				respBody, err := getRespBody(result, gs.client)
-				if err != nil {
-					glog.Errorf("Could not fetch %s: %s", result.MediaLink, err)
+				if err := downloadStorageObj(obj, gs.client, localDir, goroutineNum); err != nil {
+					glog.Errorf("Could not download storage object: %s", err)
 					return
 				}
-				defer util.Close(respBody)
-				outputFile := filepath.Join(localDir, filePath)
-				out, err := os.Create(outputFile)
-				if err != nil {
-					glog.Errorf("Unable to create file %s: %s", outputFile, err)
-					return
-				}
-				defer util.Close(out)
-				if _, err = io.Copy(out, respBody); err != nil {
-					glog.Error(err)
-					return
-				}
-				glog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GSBucketName, result.Name, outputFile, goroutineNum)
 				// Sleep for a second after downloading file to avoid bombarding Cloud
 				// storage.
 				time.Sleep(time.Second)
@@ -188,6 +172,27 @@ func (gs *GsUtil) downloadRemoteDir(localDir, gsDir string) error {
 		}
 	default:
 	}
+	return nil
+}
+
+func downloadStorageObj(obj filePathToStorageObject, c *http.Client, localDir string, goroutineNum int) error {
+	result := obj.storageObject
+	filePath := obj.filePath
+	respBody, err := getRespBody(result, c)
+	if err != nil {
+		return fmt.Errorf("Could not fetch %s: %s", result.MediaLink, err)
+	}
+	defer util.Close(respBody)
+	outputFile := filepath.Join(localDir, filePath)
+	out, err := os.Create(outputFile)
+	if err != nil {
+		return fmt.Errorf("Unable to create file %s: %s", outputFile, err)
+	}
+	defer util.Close(out)
+	if _, err = io.Copy(out, respBody); err != nil {
+		return err
+	}
+	glog.Infof("Downloaded gs://%s/%s to %s with goroutine#%d", GSBucketName, result.Name, outputFile, goroutineNum)
 	return nil
 }
 
