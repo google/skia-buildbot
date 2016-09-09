@@ -1,5 +1,5 @@
 # This file is used by gcl to get repository specific information.
-CODE_REVIEW_SERVER: https://skia-review.googlesource.com
+CODE_REVIEW_SERVER: codereview.chromium.org
 VIEW_VC: https://skia.googlesource.com/buildbot/+/
 CC_LIST: reviews@skia.org
 BUG_PREFIX: skia:
