@@ -135,3 +135,23 @@ func TestSerialize(t *testing.T) {
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, repo, repo2)
 }
+
+func TestRecurse(t *testing.T) {
+	tmp, repo, commits := gitSetup(t)
+	defer testutils.RemoveAll(t, tmp)
+
+	// Get the list of commits using head.Recurse(). Ensure that we get all
+	// of the commits but don't get any duplicates.
+	head := repo.Get("master")
+	assert.NotNil(t, head)
+	gotCommits := map[*Commit]bool{}
+	assert.NoError(t, head.Recurse(func(c *Commit) (bool, error) {
+		assert.False(t, gotCommits[c])
+		gotCommits[c] = true
+		return true, nil
+	}))
+	assert.Equal(t, len(commits), len(gotCommits))
+	for _, c := range commits {
+		assert.True(t, gotCommits[c])
+	}
+}
