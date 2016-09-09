@@ -15,6 +15,7 @@
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 <link rel="import" href="/res/common/imp/query2-sk.html" />
+<link rel="import" href="/res/common/imp/paramset.html" />
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
@@ -30,20 +31,30 @@
       margin: 0 1em;
     }
 
+    paramset-sk  {
+      margin: 1em;
+    }
+
   </style>
   <template>
-    <div class="layout vertical">
-      <plot-simple-sk id=plot></plot-simple-sk>
-      <div class="layout horizontal wrap">
-        <query2-sk id=query></query2-sk>
-        <div class="layout vertical" id=selections>
-          <h3>Selections</h3>
-          <query-summary-sk id=summary></query-summary-sk>
+    <div class="layout horizontal">
+      <div class="layout vertical">
+        <plot-simple-sk width=640 height=480 id=plot></plot-simple-sk>
+        <div class="layout horizontal wrap">
+          <query2-sk id=query></query2-sk>
+          <div class="layout vertical" id=selections>
+            <h3>Selections</h3>
+            <query-summary-sk id=summary></query-summary-sk>
+          </div>
+          <div class="layout vertical">
+            <button on-tap="_add">Add</button>
+          </div>
         </div>
         <div class="layout vertical">
           <button on-tap="_add">Add</button>
         </div>
       </div>
+      <paramset-sk id=paramset clickable-values></paramset-sk>
     </div>
   </template>
 </dom-module>
@@ -52,29 +63,59 @@
   Polymer({
     is: "explore-sk",
 
+    properties: {
+      // Keep track of the data sent to plot.
+      _lines: {
+        type: Object,
+        value: function() { return {}; },
+      },
+    },
+
     ready: function() {
+      // Populate the query element.
       sk.get("/_/paramset/").then(JSON.parse).then(function(json) {
         this.$.query.paramset = json;
       }.bind(this)).catch(sk.errorMessage);
 
+      // Reflect the current query to the query summary.
       this.$.query.addEventListener('query-change', function(e){
         this.$.summary.selection = e.detail.q;
+      }.bind(this));
+
+      // Highlight trace when a paramset value is clicked.
+      this.$.paramset.addEventListener('paramset-key-value-click', function(e){
+        var keys = [];
+        Object.keys(this._lines).forEach(function(key) {
+          if (sk.key.matches(key, e.detail.key, e.detail.value)) {
+            keys.push(key);
+          }
+        });
+        // Additively highlight if the ctrl key is pressed.
+        if (!e.detail.ctrl) {
+          this.$.plot.clearHighlight();
+        }
+        this.$.plot.setHighlight(keys);
       }.bind(this));
     },
 
     _add: function() {
       sk.post("/_/search/", this.$.query.current_query, "application/x-www-form-urlencoded").then(JSON.parse).then(function(dataframe) {
+        // Convert the dataframe into a form suitable for the plot element.
         var lines = {};
-        Object.keys(dataframe.traceset).forEach(function(id) {
+        Object.keys(dataframe.traceset).forEach(function(key) {
           var values = [];
-          dataframe.traceset[id].forEach(function(y, x) {
+          dataframe.traceset[key].forEach(function(y, x) {
             if (y != 1e32) {
               values.push([x, y]);
             }
           });
-          lines[id] = values;
+          lines[key] = values;
         });
+        this._lines = lines;
         this.$.plot.addLines(lines);
+
+        // Populate the paramset element.
+        this.$.paramset.setParamSets([dataframe.paramset]);
       }.bind(this)).catch(sk.errorMessage);
     },
 
