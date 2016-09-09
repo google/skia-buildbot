@@ -2,6 +2,7 @@ package scheduling
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -29,6 +30,10 @@ import (
 
 const (
 	NUM_TOP_CANDIDATES = 50
+)
+
+var (
+	ERR_BLAMELIST_DONE = errors.New("ERR_BLAMELIST_DONE")
 )
 
 // TaskScheduler is a struct used for scheduling tasks on bots.
@@ -144,87 +149,6 @@ func (s *TaskScheduler) Trigger(repo, commit, taskSpec string) error {
 	return fmt.Errorf("TaskScheduler.Trigger not implemented.")
 }
 
-// computeBlamelistRecursive traces through commit history, adding to
-// the commits map until the blamelist for the task is complete.
-//
-// Args:
-//  - repoName:  Name of the repository.
-//  - commit:    Current commit as we're recursing through history.
-//  - taskName:  Name of the task.
-//  - revision:  Revision at which the task would run.
-//  - commits:   Buffer in which to place the blamelist commits as they accumulate.
-//  - cache:     TaskCache, for finding previous tasks.
-//  - repo:      gitrepo.Repo corresponding to the repository.
-//  - stealFrom: Existing Task from which this Task will steal commits, if one exists.
-func computeBlamelistRecursive(repoName string, commit *gitrepo.Commit, taskName string, revision *gitrepo.Commit, commits []*gitrepo.Commit, cache db.TaskCache, repo *gitrepo.Repo, stealFrom *db.Task) ([]*gitrepo.Commit, *db.Task, error) {
-	// Shortcut in case we missed this case before; if this is the first
-	// task for this task spec which has a valid Revision, the blamelist will
-	// be the entire Git history. If we find too many commits, assume we've
-	// hit this case and just return the Revision as the blamelist.
-	if len(commits) > buildbot.MAX_BLAMELIST_COMMITS && stealFrom == nil {
-		commits = append(commits[:0], commit)
-		return commits, nil, nil
-	}
-
-	// Determine whether any task already includes this commit.
-	prev, err := cache.GetTaskForCommit(repoName, commit.Hash, taskName)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	// If we're stealing commits from a previous task but the current
-	// commit is not in any task's blamelist, we must have scrolled past
-	// the beginning of the tasks. Just return.
-	if prev == nil && stealFrom != nil {
-		return commits, stealFrom, nil
-	}
-
-	// If a previous task already included this commit, we have to make a decision.
-	if prev != nil {
-		// If this Task's Revision is already included in a different
-		// Task, then we're either bisecting or retrying a task. We'll
-		// "steal" commits from the previous Task's blamelist.
-		if len(commits) == 0 {
-			stealFrom = prev
-
-			// Another shortcut: If our Revision is the same as the
-			// Revision of the Task we're stealing commits from,
-			// ie. both tasks ran at the same commit, then this is a
-			// retry. Just steal all of the commits without doing
-			// any more work.
-			if stealFrom.Revision == revision.Hash {
-				commits = commits[:0]
-				for _, c := range stealFrom.Commits {
-					ptr := repo.Get(c)
-					if ptr == nil {
-						return nil, nil, fmt.Errorf("No such commit: %q", c)
-					}
-					commits = append(commits, ptr)
-				}
-				return commits, stealFrom, nil
-			}
-		}
-		if stealFrom == nil || prev != stealFrom {
-			// If we've hit a commit belonging to a different task,
-			// we're done.
-			return commits, stealFrom, nil
-		}
-	}
-
-	// Add the commit.
-	commits = append(commits, commit)
-
-	// Recurse on the commit's parents.
-	for _, p := range commit.GetParents() {
-		var err error
-		commits, stealFrom, err = computeBlamelistRecursive(repoName, p, taskName, revision, commits, cache, repo, stealFrom)
-		if err != nil {
-			return nil, nil, err
-		}
-	}
-	return commits, stealFrom, nil
-}
-
 // ComputeBlamelist computes the blamelist for a new task, specified by name,
 // repo, and revision. Returns the list of commits covered by the task, and any
 // previous task which part or all of the blamelist was "stolen" from (see
@@ -245,16 +169,16 @@ func computeBlamelistRecursive(repoName string, commit *gitrepo.Commit, taskName
 // Args:
 //   - cache:      TaskCache instance.
 //   - repo:       gitrepo.Repo instance corresponding to the repository of the task.
-//   - name:       Name of the task.
+//   - taskName:   Name of the task.
 //   - repoName:   Name of the repository for the task.
 //   - revision:   Revision at which the task would run.
 //   - commitsBuf: Buffer for use as scratch space.
-func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, name, repoName, revision string, commitsBuf []*gitrepo.Commit) ([]string, *db.Task, error) {
+func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, taskName, repoName, revision string, commitsBuf []*gitrepo.Commit) ([]string, *db.Task, error) {
 	// TODO(borenet): If this is a try job, don't compute the blamelist.
 
 	// If this is the first invocation of a given task spec, save time by
 	// setting the blamelist to only be c.Revision.
-	if !cache.KnownTaskName(repoName, name) {
+	if !cache.KnownTaskName(repoName, taskName) {
 		return []string{revision}, nil, nil
 	}
 
@@ -264,30 +188,77 @@ func ComputeBlamelist(cache db.TaskCache, repo *gitrepo.Repo, name, repoName, re
 	}
 
 	commitsBuf = commitsBuf[:0]
+	var stealFrom *db.Task
 
 	// Run the helper function to recurse on commit history.
-	commits, stealFrom, err := computeBlamelistRecursive(repoName, commit, name, commit, commitsBuf, cache, repo, nil)
-	if err != nil {
+	if err := commit.Recurse(func(commit *gitrepo.Commit) (bool, error) {
+		// Shortcut in case we missed this case before; if this is the first
+		// task for this task spec which has a valid Revision, the blamelist will
+		// be the entire Git history. If we find too many commits, assume we've
+		// hit this case and just return the Revision as the blamelist.
+		if len(commitsBuf) > buildbot.MAX_BLAMELIST_COMMITS && stealFrom == nil {
+			commitsBuf = append(commitsBuf[:0], commit)
+			return false, ERR_BLAMELIST_DONE
+		}
+
+		// Determine whether any task already includes this commit.
+		prev, err := cache.GetTaskForCommit(repoName, commit.Hash, taskName)
+		if err != nil {
+			return false, err
+		}
+
+		// If we're stealing commits from a previous task but the current
+		// commit is not in any task's blamelist, we must have scrolled past
+		// the beginning of the tasks. Just return.
+		if prev == nil && stealFrom != nil {
+			return false, nil
+		}
+
+		// If a previous task already included this commit, we have to make a decision.
+		if prev != nil {
+			// If this Task's Revision is already included in a different
+			// Task, then we're either bisecting or retrying a task. We'll
+			// "steal" commits from the previous Task's blamelist.
+			if len(commitsBuf) == 0 {
+				stealFrom = prev
+
+				// Another shortcut: If our Revision is the same as the
+				// Revision of the Task we're stealing commits from,
+				// ie. both tasks ran at the same commit, then this is a
+				// retry. Just steal all of the commits without doing
+				// any more work.
+				if stealFrom.Revision == revision {
+					commitsBuf = commitsBuf[:0]
+					for _, c := range stealFrom.Commits {
+						ptr := repo.Get(c)
+						if ptr == nil {
+							return false, fmt.Errorf("No such commit: %q", c)
+						}
+						commitsBuf = append(commitsBuf, ptr)
+					}
+					return false, ERR_BLAMELIST_DONE
+				}
+			}
+			if stealFrom == nil || prev != stealFrom {
+				// If we've hit a commit belonging to a different task,
+				// we're done.
+				return false, nil
+			}
+		}
+
+		// Add the commit.
+		commitsBuf = append(commitsBuf, commit)
+
+		// Recurse on the commit's parents.
+		return true, nil
+
+	}); err != nil && err != ERR_BLAMELIST_DONE {
 		return nil, nil, err
 	}
 
-	// De-duplicate the commits list. Duplicates are rare but will occur
-	// in the case of a task which runs after a short-lived branch is merged
-	// so that the blamelist includes both the branch point and the merge
-	// commit. In this case, any commits just before the branch point will
-	// be duplicated.
-	// TODO(borenet): This has never happened in the Skia repo, but the
-	// below 8 lines of code account for ~10% of the execution time of this
-	// function, which is the critical path for the scheduler. Consider
-	// either ignoring this case or come up with an alternate solution which
-	// moves this logic out of the critical path.
-	rv := make([]string, 0, len(commits))
-	visited := make(map[*gitrepo.Commit]bool, len(commits))
-	for _, c := range commits {
-		if !visited[c] {
-			rv = append(rv, c.Hash)
-			visited[c] = true
-		}
+	rv := make([]string, 0, len(commitsBuf))
+	for _, c := range commitsBuf {
+		rv = append(rv, c.Hash)
 	}
 	return rv, stealFrom, nil
 }
