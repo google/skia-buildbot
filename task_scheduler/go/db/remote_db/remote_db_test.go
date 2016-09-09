@@ -19,7 +19,7 @@ type clientWithBackdoor struct {
 	// *client; implements the methods being tested.
 	db.RemoteDB
 	// The DB passed to NewServer.
-	backdoor db.DB
+	backdoor db.TaskDB
 	// *server; keep a reference so that we can call Close().
 	dbserver io.Closer
 	// The test HTTP server listening on the loopback address.
@@ -52,7 +52,7 @@ func (b *clientWithBackdoor) PutTasks(t []*db.Task) error {
 
 // makeDB sets up a client/server pair wrapped in a clientWithBackdoor.
 func makeDB(t *testing.T) db.TaskAndCommentDB {
-	baseDB := db.NewInMemoryDB()
+	baseDB := db.NewInMemoryTaskDB()
 	r := mux.NewRouter()
 	dbserver, err := NewServer(baseDB, r.PathPrefix("/db").Subrouter())
 	assert.NoError(t, err)
@@ -69,7 +69,7 @@ func makeDB(t *testing.T) db.TaskAndCommentDB {
 
 func TestRemoteDB(t *testing.T) {
 	d := makeDB(t)
-	db.TestDB(t, d)
+	db.TestTaskDB(t, d)
 }
 
 func TestRemoteDBTooManyUsers(t *testing.T) {
@@ -82,9 +82,9 @@ func TestRemoteDBConcurrentUpdate(t *testing.T) {
 	db.TestConcurrentUpdate(t, d)
 }
 
-func TestRemoteDBUpdateWithRetries(t *testing.T) {
+func TestRemoteDBUpdateTasksWithRetries(t *testing.T) {
 	d := makeDB(t)
-	db.TestUpdateWithRetries(t, d)
+	db.TestUpdateTasksWithRetries(t, d)
 }
 
 func TestRemoteDBCommentDB(t *testing.T) {
