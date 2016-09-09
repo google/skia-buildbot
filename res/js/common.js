@@ -613,6 +613,13 @@ this.sk = this.sk || function() {
     return ret;
   };
 
+  // Namespace for utilities for working with structured keys.
+  sk.key = {};
+
+  // Returns true if the query 'q' matches the given structured key.
+  sk.key.matches = function(key, q) {
+  };
+
   // Track the state of a page and reflect it to and from the URL.
   //
   // page - An object with a property 'state' where the state to be reflected
