@@ -613,6 +613,36 @@ this.sk = this.sk || function() {
     return ret;
   };
 
+  // Namespace for utilities for working with structured keys.
+  //
+  // See /go/query for a description of structured keys.
+  sk.key = {};
+
+  // Returns true if paramName=paramValue appears in the given structured key.
+  sk.key.matches = function(key, paramName, paramValue) {
+    return key.indexOf("," + paramName + "=" + paramValue + ",") >= 0;
+  };
+
+  // Parses the structured key and returns a populated object with all
+  // the param names and values.
+  sk.key.toObject = function(key) {
+    var ret = {};
+    key.split(",").forEach(function(s, i) {
+      if (i == 0 ) {
+        return
+      }
+      if (s === "") {
+        return;
+      }
+      var parts = s.split("=");
+      if (parts.length != 2) {
+        return
+      }
+      ret[parts[0]] = parts[1];
+    });
+    return ret;
+  };
+
   // Track the state of a page and reflect it to and from the URL.
   //
   // page - An object with a property 'state' where the state to be reflected
