@@ -43,6 +43,9 @@
 
     getZoomDetail: Return the information used by the multi-zoom-sk element to show a zoomed
                    view of the images related to this digest.
+
+    statusClosest: Returns the status of the closest digest as a string or null if there is
+                   no closest digest.
 -->
 
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
@@ -336,11 +339,9 @@
 
       triggerTriage: function (status) {
         this.set('$.triageControls.value', status);
-        var detail = {
-          'test': this.$.triageControls.dataset.test,
-          'digest': [this.$.triageControls.dataset.digest],
-          'status': status
-        };
+        var detail = gold.makeTriageQuery(this.$.triageControls.dataset.test,
+                                          this.$.triageControls.dataset.digest,
+                                          status);
         this.fire('triage', detail);
       },
 
@@ -362,11 +363,9 @@
 
       _triageChangeHandler: function(e) {
         // Convert the change event from the triage button into a more detailed triage event.
-        var detail = {
-          'test': this.details.test,
-          'digest': [this.details.digest],
-          'status': this.details.status
-        };
+        var detail = gold.makeTriageQuery(this.details.test,
+                                          this.details.digest,
+                                          this.details.status);
         this.fire('triage', detail);
       },
 
@@ -425,9 +424,7 @@
       },
 
       _setRightFromDetails: function(detailsView) {
-        var status = "",
-            POSITIVE = 'positive',
-            NEGATIVE = 'negative';
+        var status = "";
         var foundDiff = null;
 
         this._right = null;
@@ -440,21 +437,21 @@
           if (pos && neg) {
             if (neg.closest.diff < pos.closest.diff) {
               foundDiff = neg;
-              status = NEGATIVE;
+              status = gold.NEGATIVE;
             } else {
               foundDiff = pos;
-              status = POSITIVE;
+              status = gold.POSITIVE;
             }
           } else if (pos) {
             foundDiff = pos;
-            status = POSITIVE;
+            status = gold.POSITIVE;
           } else if (neg) {
             foundDiff = neg;
-            status = NEGATIVE;
+            status = gold.NEGATIVE;
           }
 
           if (foundDiff) {
-            this._negIsClosest = (status === NEGATIVE);
+            this._negIsClosest = (status === gold.NEGATIVE);
             this._right = this._digestFromDiff(this.details.test, foundDiff, status);
             this._diff = foundDiff.closest;
             this._rightParamTitle = 'Closest ' + this._statusStr(this._negIsClosest);
@@ -464,6 +461,10 @@
         // Set the blame, dots, dotlegend
         this.$.dots.setCommits(this.commits);
         this.$.dots.setValue(this.details.traces);
+      },
+
+      statusClosest: function() {
+        return (this._right) ? ((this._negIsClosest) ? gold.NEGATIVE : gold.POSITIVE) : null;
       },
 
       _digestFromDiff: function(test, diff, status) {

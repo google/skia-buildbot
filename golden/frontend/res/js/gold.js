@@ -10,6 +10,10 @@
 var gold = gold || {};
 
 (function(){
+  // Constants for status values.
+  gold.POSITIVE = 'positive',
+  gold.NEGATIVE = 'negative';
+  gold.UNTRIAGED = 'untriage';
 
   // Default values for the search controls.
   gold.defaultSearchState = {
@@ -143,6 +147,30 @@ var gold = gold || {};
     });
   },
 
+  // makeTriageQuery returns an object that can be sent as a query to the
+  // backend to triage digests. The arguments can either be a triple:
+  //    makeTriageQuery(testName, digests, status)
+  // or an array containing triples (as arrays) with the same information.
+  gold.makeTriageQuery = function(triageList) {
+    if (arguments.length === 3) {
+      triageList = [[arguments[0], arguments[1], arguments[2]]];
+    }
+
+    var ret = {};
+    triageList.forEach(function(t) {
+      var test=t[0], digest=t[1], status=t[2];
+      var found = ret[test];
+      if (!found) {
+        ret[test] = {};
+        found = ret[test];
+      }
+      found[digest] = status;
+    });
+    return {
+      testDigestStatus: ret
+    };
+  };
+
   // PageStateBehavior is a re-usable behavior what adds the _state and
   // _ctx (page.js context) variables to a Polymer element. All methods are
   // implemented as private since they should only be used within a
@@ -159,7 +187,9 @@ var gold = gold || {};
       // Find the status element and listen to corpus changes.
       this.async(function() {
         this._statusElement = $$$('gold-status-sk');
-        this.listen(this._statusElement, 'corpus-change', '_handleCorpusChange');
+        if (this._statusElement) {
+          this.listen(this._statusElement, 'corpus-change', '_handleCorpusChange');
+        }
       });
     },
 

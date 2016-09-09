@@ -57,6 +57,12 @@ func LabelFromString(s string) Label {
 	return UNTRIAGED
 }
 
+// ValidLabel returns true if the given label is a valid label string.
+func ValidLabel(s string) bool {
+	_, ok := labels[s]
+	return ok
+}
+
 // Stores the digests and their associated labels.
 // Note: The name of the test is assumed to be handled by the client of this
 // type. Most likely in the keys of a map.
