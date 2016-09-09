@@ -98,13 +98,13 @@ func TestRangeImpl(t *testing.T) {
 			Source:    "master",
 			ID:        "0",
 			Desc:      "",
-			Timestamp: ts0,
+			Timestamp: ts0.Unix(),
 		},
 		&ColumnHeader{
 			Source:    "master",
 			ID:        "1",
 			Desc:      "",
-			Timestamp: ts1,
+			Timestamp: ts1.Unix(),
 		},
 	}
 	expected_pcommits := []*ptracestore.CommitID{
@@ -135,13 +135,13 @@ func TestNew(t *testing.T) {
 			Source:    "master",
 			ID:        "0",
 			Desc:      "",
-			Timestamp: ts0,
+			Timestamp: ts0.Unix(),
 		},
 		&ColumnHeader{
 			Source:    "master",
 			ID:        "1",
 			Desc:      "",
-			Timestamp: ts1,
+			Timestamp: ts1.Unix(),
 		},
 	}
 	pcommits := []*ptracestore.CommitID{
