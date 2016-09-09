@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb7ef69b_b5198031",
+        "filename": "res/js/common.js",
+        "patchSetId": 4
+      },
+      "lineNbr": 631,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T14:59:20Z",
+      "side": 1,
+      "message": "nit: seems redundant with s\u003d\u003d\u003d\"\"",
+      "revId": "3cf88269fccc3e2015e44460aef631cee58b1a71",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
