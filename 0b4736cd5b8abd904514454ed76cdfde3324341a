@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb7ef69b_1529544a",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T14:55:02Z",
+      "side": 1,
+      "message": "Maybe make this a little clearer by saying something like \"Returning false indicates the current commit should be treated as a leaf of the commit tree and recursion should continue with other branches.\"",
+      "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_b57e603b",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T14:55:02Z",
+      "side": 1,
+      "message": "nit: If we\u0027re going through 1000s of commits, we might run out of stack space. It\u0027s likely to be more efficient to iterate down the path of c.Parents[0] and only recurse when there are multiple parents, given that there is almost always only one parent.",
+      "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_75244873",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T14:55:02Z",
+      "side": 1,
+      "message": "I think you need to put this outside of Recurse, or return an error here. Returning false does not stop the tree walk, it just indicates that we\u0027re treating this Commit as a leaf.",
+      "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_352ed053",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T14:55:02Z",
+      "side": 1,
+      "message": "I think this is ok, because it can only happen when we haven\u0027t recursed at all.",
+      "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
