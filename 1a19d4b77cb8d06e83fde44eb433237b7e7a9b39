@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb7ef69b_18de69ce",
+        "filename": "task_scheduler/go/db/memory.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T19:10:22Z",
+      "side": 1,
+      "message": "nit: odd spacing",
+      "revId": "1a19d4b77cb8d06e83fde44eb433237b7e7a9b39",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_588f01de",
+        "filename": "task_scheduler/go/db/modified_data.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T19:10:22Z",
+      "side": 1,
+      "message": "Could we just return map[string][]byte so we don\u0027t need to do any copying? (We delete the entry from the map anyway.)",
+      "revId": "1a19d4b77cb8d06e83fde44eb433237b7e7a9b39",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_78943ded",
+        "filename": "task_scheduler/go/db/modified_data.go",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T19:10:22Z",
+      "side": 1,
+      "message": "nit: method not in TaskDB",
+      "revId": "1a19d4b77cb8d06e83fde44eb433237b7e7a9b39",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
