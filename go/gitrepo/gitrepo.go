@@ -44,6 +44,24 @@ func (c *Commit) GetParents() []*Commit {
 	return rv
 }
 
+// Recurse runs the given function recursively over commit history, starting
+// at the given commit.
+func (c *Commit) Recurse(f func(*Commit) (bool, error)) error {
+	keepGoing, err := f(c)
+	if err != nil {
+		return err
+	}
+	if !keepGoing {
+		return nil
+	}
+	for _, p := range c.Parents {
+		if err := c.repo.commitsData[p].Recurse(f); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Repo represents an entire Git repo.
 type Repo struct {
 	branches    []*gitinfo.GitBranch
