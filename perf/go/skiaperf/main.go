@@ -29,6 +29,7 @@ import (
 	"go.skia.org/infra/go/influxdb"
 	"go.skia.org/infra/go/ingestion"
 	"go.skia.org/infra/go/login"
+	"go.skia.org/infra/go/query"
 	"go.skia.org/infra/go/rietveld"
 	"go.skia.org/infra/go/sharedconfig"
 	"go.skia.org/infra/go/tiling"
@@ -1155,6 +1156,32 @@ func paramsetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// searchHandler takes the POST'd query and runs that against the last 50
+// commits and returns a serialized DataFrame of the results.
+func searchHandler(w http.ResponseWriter, r *http.Request) {
+	if *local {
+		loadTemplates()
+	}
+	w.Header().Set("Content-Type", "application/json")
+	if err := r.ParseForm(); err != nil {
+		httputils.ReportError(w, r, err, "Invalid URL query.")
+		return
+	}
+	var err error
+	var q *query.Query
+	if q, err = query.New(r.Form); err != nil {
+		httputils.ReportError(w, r, err, "Invalid query.")
+		return
+	}
+	begin := git.LastNIndex(dataframe.DEFAULT_NUM_COMMITS)[0].Timestamp
+	end := time.Now()
+	df, err := dataframe.NewFromQueryAndRange(git, ptracestore.Default, begin, end, q)
+	// TODO(jcgregorio) Limit the results if there are too many?
+	if err := json.NewEncoder(w).Encode(df); err != nil {
+		glog.Errorf("Failed to encode paramset: %s", err)
+	}
+}
+
 func makeResourceHandler() func(http.ResponseWriter, *http.Request) {
 	fileServer := http.FileServer(http.Dir(*resourcesDir))
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -1225,6 +1252,7 @@ func main() {
 	// New endpoints that use ptracestore will go here.
 	router.HandleFunc("/new/", templateHandler("newindex.html"))
 	router.HandleFunc("/_/paramset/", paramsetHandler)
+	router.HandleFunc("/_/search/", searchHandler)
 
 	router.HandleFunc("/frame/", templateHandler("frame.html"))
 	router.HandleFunc("/shortcuts/", shortcutHandler)

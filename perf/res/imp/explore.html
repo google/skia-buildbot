@@ -16,6 +16,7 @@
 
 <link rel="import" href="/res/common/imp/query2-sk.html" />
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
+<link rel="stylesheet" href="/res/common/css/md.css">
 
 <link rel="import" href="/res/imp/plot-simple.html" />
 
@@ -26,19 +27,22 @@
     }
 
     #selections {
-      margin-left: 1em;
+      margin: 0 1em;
     }
 
   </style>
   <template>
     <div class="layout vertical">
       <plot-simple-sk id=plot></plot-simple-sk>
-      <div class="layout horizontal">
+      <div class="layout horizontal wrap">
         <query2-sk id=query></query2-sk>
         <div class="layout vertical" id=selections>
           <h3>Selections</h3>
           <query-summary-sk id=summary></query-summary-sk>
         </div>
+        <div class="layout vertical">
+          <button on-tap="_add">Add</button>
+      </div>
       </div>
     </div>
   </template>
@@ -56,6 +60,23 @@
       this.$.query.addEventListener('query-change', function(e){
         this.$.summary.selection = e.detail.q;
       }.bind(this));
+    },
+
+    _add: function() {
+      sk.post("/_/search/", this.$.query.current_query, "application/x-www-form-urlencoded").then(JSON.parse).then(function(dataframe) {
+        console.log(Object.keys(dataframe.traceset).length);
+        var lines = {};
+        Object.keys(dataframe.traceset).forEach(function(id) {
+          var values = [];
+          dataframe.traceset[id].forEach(function(y, x) {
+            if (y != 1e32) {
+              values.push([x, y]);
+            }
+          });
+          lines[id] = values;
+        });
+        this.$.plot.addLines(lines);
+      }.bind(this)).catch(sk.errorMessage);
     },
 
   });
