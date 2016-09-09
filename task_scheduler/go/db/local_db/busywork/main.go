@@ -145,7 +145,7 @@ func updateBlamelists(cache db.TaskCache, t *db.Task) ([]*db.Task, error) {
 
 // findApproxLatestCommit scans the DB backwards and returns the commit # of the
 // last-created task.
-func findApproxLatestCommit(d db.DB) int {
+func findApproxLatestCommit(d db.TaskDB) int {
 	glog.Infof("findApproxLatestCommit begin")
 	for t := time.Now(); t.After(epoch); t = t.Add(-24 * time.Hour) {
 		begin := t.Add(-24 * time.Hour)
@@ -178,7 +178,7 @@ func findApproxLatestCommit(d db.DB) int {
 }
 
 // putTasks inserts randomly-generated tasks into the DB. Does not return.
-func putTasks(d db.DB) {
+func putTasks(d db.TaskDB) {
 	glog.Infof("putTasks begin")
 	cache, err := db.NewTaskCache(d, 4*24*time.Hour)
 	if err != nil {
@@ -195,7 +195,7 @@ func putTasks(d db.DB) {
 			t := makeTask(currentCommit)
 			putTasksDur := time.Duration(0)
 			before := time.Now()
-			updatedTasks, err := db.UpdateWithRetries(d, func() ([]*db.Task, error) {
+			updatedTasks, err := db.UpdateTasksWithRetries(d, func() ([]*db.Task, error) {
 				putTasksDur += time.Now().Sub(before)
 				t := t.Copy()
 				if err := cache.Update(); err != nil {
@@ -278,7 +278,7 @@ func (h *updateEntryHeap) Pop() interface{} {
 
 // updateTasks makes random updates to pending and running tasks in the DB. Does
 // not return.
-func updateTasks(d db.DB) {
+func updateTasks(d db.TaskDB) {
 	glog.Infof("updateTasks begin")
 	updateQueue := updateEntryHeap{}
 	idMap := map[string]*updateEntry{}
@@ -354,7 +354,7 @@ func updateTasks(d db.DB) {
 		}
 		glog.Infof("updateTasks performing updates; %d tasks on queue", len(updateQueue))
 		for len(updateQueue) > 0 && updateQueue[0].updateTime.Before(now) {
-			if time.Now().Sub(now) >= db.MODIFIED_TASKS_TIMEOUT-5*time.Second {
+			if time.Now().Sub(now) >= db.MODIFIED_DATA_TIMEOUT-5*time.Second {
 				break
 			}
 			entry := heap.Pop(&updateQueue).(*updateEntry)
@@ -406,7 +406,7 @@ func updateTasks(d db.DB) {
 }
 
 // readTasks reads the last hour of tasks every second. Does not return.
-func readTasks(d db.DB) {
+func readTasks(d db.TaskDB) {
 	glog.Infof("readTasks begin")
 	var taskCount uint64 = 0
 	var readCount uint64 = 0
