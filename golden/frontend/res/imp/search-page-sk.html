@@ -29,12 +29,15 @@
 <link rel="import" href="bower_components/polymer/polymer.html">
 <link rel="import" href="bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 <link rel="import" href="bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="bower_components/paper-button/paper-button.html">
 
 <link rel="import" href="activity-sk.html">
 <link rel=import href="detail-list-sk.html">
 <link rel=import href="digest-details-sk.html">
 <link rel=import href="search-controls-sk.html">
 <link rel=import href="trybot-controls-sk.html">
+<link rel="import" href="triage-sk.html">
 
 <dom-module id="search-page-sk">
   <template>
@@ -75,6 +78,31 @@
       .helpIconContainer {
         padding-left: 3em;
       }
+
+      paper-button {
+        min-width: 2em;
+        margin: 5px;
+        background: #eee;
+      }
+
+
+      #openBulkDialog {
+        max-width: 10em;
+        margin-left: 10em;
+      }
+
+      #closestButton[raised] > iron-icon {
+        color: #bbb;
+      }
+
+      #closestButton[raised] {
+        background: #fff;
+      }
+
+      #closestButton:hover,
+      #closestButton[raised]:hover {
+        background: #ddd;
+      }
     </style>
 
     <div class="searchPageWrapper">
@@ -85,6 +113,7 @@
             <paper-button id="triggerSearchButton" raised disabled="{{_hideAll}}">Search</paper-button>
           </div>
           <div class="helpIconContainer"> <a on-tap="_openHelpDialog"><iron-icon icon="help"></iron-icon></a></div>
+          <paper-button class="flex self-end" id="openBulkDialog" raised on-tap="_handleBulkButton" disabled="{{_hideAll}}">Bulk Triage</paper-button>
       </div>
       <trybot-controls-sk id="trybotControls"></trybot-controls-sk>
 
@@ -107,6 +136,21 @@
         </div>
       </div>
     </div>
+    <paper-dialog id="bulkDialog" with-backdrop>
+      <h2>Bulk Triage</h2>
+      <p>Assign the status to all images on this page at once.</p>
+      <div class="layout horizontal">
+        <triage-sk value="{{_bulkStatus}}" id="triageControls"></triage-sk>
+        <paper-button id="closestButton" on-tap="_handleClosestButton" title="Assign status of closest image">
+          <iron-icon icon="icons:view-agenda"></iron-icon>
+        </paper-button>
+      </div>
+      <div class="buttons">
+        <paper-button raise dialog-dismiss>Cancel</paper-button>
+        <paper-button raise dialog-dismiss on-tap="_doBulkTriage" disabled="[[!_bulkStatus]]">Triage</paper-button>
+      </div>
+    </paper-dialog>
+
   </template>
   <script>
     Polymer({
@@ -118,6 +162,12 @@
         data: {
           type: Object,
           value: function() { return {}; }
+        },
+
+        _bulkStatus: {
+          type: String,
+          value: "",
+          observer: "_handleBulkStatusChanged"
         }
       },
 
@@ -159,6 +209,52 @@
         this.$.detailList.openHelpDialog();
       },
 
+      _handleBulkButton: function(ev) {
+        this.set("_bulkStatus", "");
+        this.$.bulkDialog.open();
+      },
+
+      _handleClosestButton: function(ev) {
+        this.set("_bulkStatus", '=');
+      },
+
+      _handleBulkStatusChanged: function(newVal) {
+        if (newVal === '=') {
+          Polymer.dom(this.$.closestButton).removeAttribute('raised');
+        } else {
+          Polymer.dom(this.$.closestButton).setAttribute('raised', '');
+        }
+      },
+
+      _doBulkTriage: function(ev) {
+        var targetStatus = this.$.triageControls.value;
+        var digests = this.data.digests;
+        var triageList = [];
+        if (targetStatus === '=') {
+          for(var i=0; i < digests.length; i++) {
+            var element= this.$$('#' + this._entryId(digests[i]));
+            if (element) {
+              var status = element.statusClosest();
+              if (status) {
+                triageList.push([digests[i].test, digests[i].digest, status]);
+              }
+            }
+          }
+        } else {
+          for(var i=0; i < digests.length; i++) {
+            triageList.push([digests[i].test, digests[i].digest, targetStatus]);
+          }
+        }
+        var query = gold.makeTriageQuery(triageList);
+        this.$.activityBar.startSpinner("Triaging ...");
+        sk.post('/json/triage', JSON.stringify(query)).then(function() {
+          this.$.activityBar.stopSpinner();
+        }.bind(this)).catch(function(e) {
+          this.$.activityBar.stopSpinner();
+          sk.errorMessage(e);
+        }.bind(this));
+      },
+
       _load: function() {
         var q = window.location.search;
         this.$.activityBar.startSpinner("Loading ...");
@@ -179,7 +275,8 @@
       },
 
       _entryId: function(item) {
-        return item.test + '-' + item.digest;
+        // Make sure it's a valid selector.
+        return (item.test + '_' + item.digest).replace(/[^_A-Za-z0-9]/g, '_');
       },
 
       // Returns true if there was a query and result is not empty.
