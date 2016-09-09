@@ -34,9 +34,9 @@ type ColumnHeader struct {
 //
 // The name DataFrame was gratuitously borrowed from R.
 type DataFrame struct {
-	TraceSet ptracestore.TraceSet
-	Header   []*ColumnHeader
-	ParamSet paramtools.ParamSet
+	TraceSet ptracestore.TraceSet `json:"traceset"`
+	Header   []*ColumnHeader      `json:"header"`
+	ParamSet paramtools.ParamSet  `json:"paramset"`
 }
 
 // rangeImpl returns the slices of ColumnHeader and ptracestore.CommitID that
