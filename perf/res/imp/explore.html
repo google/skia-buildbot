@@ -15,6 +15,7 @@
 <link rel="import" href="/res/imp/bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 <link rel="import" href="/res/common/imp/query2-sk.html" />
+<link rel="import" href="/res/common/imp/paramset.html" />
 <link rel="import" href="/res/common/imp/query-summary-sk.html" />
 <link rel="stylesheet" href="/res/common/css/md.css">
 
@@ -32,18 +33,21 @@
 
   </style>
   <template>
-    <div class="layout vertical">
-      <plot-simple-sk id=plot></plot-simple-sk>
-      <div class="layout horizontal wrap">
-        <query2-sk id=query></query2-sk>
-        <div class="layout vertical" id=selections>
-          <h3>Selections</h3>
-          <query-summary-sk id=summary></query-summary-sk>
+    <div class="layout horizontal">
+      <div class="layout vertical">
+        <plot-simple-sk id=plot></plot-simple-sk>
+        <div class="layout horizontal wrap">
+          <query2-sk id=query></query2-sk>
+          <div class="layout vertical" id=selections>
+            <h3>Selections</h3>
+            <query-summary-sk id=summary></query-summary-sk>
+          </div>
+          <div class="layout vertical">
+            <button on-tap="_add">Add</button>
+          </div>
         </div>
-        <div class="layout vertical">
-          <button on-tap="_add">Add</button>
       </div>
-      </div>
+      <paramset-sk id=paramset clickableValues></paramset-sk>
     </div>
   </template>
 </dom-module>
@@ -76,6 +80,7 @@
           lines[id] = values;
         });
         this.$.plot.addLines(lines);
+        this.$.paramset.setParamSets([dataframe.paramset]);
       }.bind(this)).catch(sk.errorMessage);
     },
 
