@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "eb7ef69b_95b804e2",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-09T17:58:48Z",
+      "side": 1,
+      "message": "Ok, I think I described it sufficiently.",
+      "parentUuid": "eb7ef69b_1529544a",
+      "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb7ef69b_b57e603b",
         "filename": "go/gitrepo/gitrepo.go",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2016-09-09T14:55:02Z",
       "side": 1,
       "message": "nit: If we\u0027re going through 1000s of commits, we might run out of stack space. It\u0027s likely to be more efficient to iterate down the path of c.Parents[0] and only recurse when there are multiple parents, given that there is almost always only one parent.",
+      "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_b5b500e9",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-09T17:58:48Z",
+      "side": 1,
+      "message": "Done. Also, added a map to track which commits are visited to avoid duplication.",
+      "parentUuid": "eb7ef69b_b57e603b",
       "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "8b281ac7_0d0a552c",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-09T17:58:48Z",
+      "side": 1,
+      "message": "Good catch. Returned a special error.",
+      "parentUuid": "eb7ef69b_75244873",
+      "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "eb7ef69b_352ed053",
         "filename": "task_scheduler/go/scheduling/task_scheduler.go",
         "patchSetId": 3
@@ -64,6 +118,24 @@
       "writtenOn": "2016-09-09T14:55:02Z",
       "side": 1,
       "message": "I think this is ok, because it can only happen when we haven\u0027t recursed at all.",
+      "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8b281ac7_4d144d4b",
+        "filename": "task_scheduler/go/scheduling/task_scheduler.go",
+        "patchSetId": 3
+      },
+      "lineNbr": 234,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-09T17:58:48Z",
+      "side": 1,
+      "message": "Returned ERR_BLAMELIST_DONE anyway, just for good measure.",
+      "parentUuid": "eb7ef69b_352ed053",
       "revId": "0b4736cd5b8abd904514454ed76cdfde3324341a",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
