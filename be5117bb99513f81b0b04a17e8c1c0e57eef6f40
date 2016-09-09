@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb7ef69b_78319df7",
+        "filename": "golden/frontend/res/imp/search-page-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2016-09-09T20:17:01Z",
+      "side": 1,
+      "message": "if this goes well we might want to fold closest into the standard set of triage controls.",
+      "range": {
+        "startLine": 143,
+        "startChar": 47,
+        "endLine": 143,
+        "endChar": 61
+      },
+      "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_3814854a",
+        "filename": "golden/frontend/res/imp/search-page-sk.html",
+        "patchSetId": 6
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2016-09-09T20:17:01Z",
+      "side": 1,
+      "message": "cute",
+      "range": {
+        "startLine": 145,
+        "startChar": 28,
+        "endLine": 145,
+        "endChar": 44
+      },
+      "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_b8fc1505",
+        "filename": "golden/frontend/res/js/gold.js",
+        "patchSetId": 6
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2016-09-09T20:17:01Z",
+      "side": 1,
+      "message": "spelling here",
+      "range": {
+        "startLine": 153,
+        "startChar": 28,
+        "endLine": 153,
+        "endChar": 34
+      },
+      "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_5805c11a",
+        "filename": "golden/go/skiacorrectness/handlers.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 450,
+      "author": {
+        "id": 5045
+      },
+      "writtenOn": "2016-09-09T20:17:01Z",
+      "side": 1,
+      "message": "might help to note somewhere around here what the string, string, and string are.",
+      "range": {
+        "startLine": 450,
+        "startChar": 18,
+        "endLine": 450,
+        "endChar": 46
+      },
+      "revId": "be5117bb99513f81b0b04a17e8c1c0e57eef6f40",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
