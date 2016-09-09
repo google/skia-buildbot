@@ -44,6 +44,59 @@ func (c *Commit) GetParents() []*Commit {
 	return rv
 }
 
+// Recurse runs the given function recursively over commit history, starting
+// at the given commit. The function accepts the current Commit as a parameter.
+// Returning false from the function indicates that recursion should stop for
+// the current branch, however, recursion will continue for any other branches
+// until they are similarly terminated. Returning an error causes recursion to
+// stop without properly terminating other branchces. The error will bubble to
+// the top and be returned. Here's an example of printing out the entire
+// ancestry of a given commit:
+//
+// commit.Recurse(func(c *Commit) (bool, error) {
+// 	glog.Info(c.Hash)
+// 	return true, nil
+// })
+func (c *Commit) Recurse(f func(*Commit) (bool, error)) error {
+	return c.recurse(f, make(map[*Commit]bool, len(c.repo.commitsData)))
+}
+
+// recurse is a helper function used by Recurse.
+func (c *Commit) recurse(f func(*Commit) (bool, error), visited map[*Commit]bool) error {
+	// For large repos, we may not have enough stack space to recurse
+	// through the whole commit history. Since most commits only have
+	// one parent, avoid recursion when possible.
+	for {
+		visited[c] = true
+		keepGoing, err := f(c)
+		if err != nil {
+			return err
+		}
+		if !keepGoing {
+			return nil
+		}
+		if len(c.Parents) == 1 {
+			p := c.repo.commitsData[c.Parents[0]]
+			if visited[p] {
+				return nil
+			}
+			c = p
+		} else {
+			break
+		}
+	}
+	for _, parentIdx := range c.Parents {
+		p := c.repo.commitsData[parentIdx]
+		if visited[p] {
+			continue
+		}
+		if err := p.recurse(f, visited); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Repo represents an entire Git repo.
 type Repo struct {
 	branches    []*gitinfo.GitBranch
