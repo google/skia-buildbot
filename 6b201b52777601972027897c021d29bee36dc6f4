@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "eb7ef69b_38f7a575",
+        "filename": "go/gitrepo/gitrepo.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T18:26:16Z",
+      "side": 1,
+      "message": "We should check visited[c] here (or before setting it above).",
+      "revId": "6b201b52777601972027897c021d29bee36dc6f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "eb7ef69b_f8084d89",
+        "filename": "go/gitrepo/gitrepo_test.go",
+        "patchSetId": 6
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 5120
+      },
+      "writtenOn": "2016-09-09T18:26:16Z",
+      "side": 1,
+      "message": "Before this line, assert.False(t, gotCommits[c]).",
+      "revId": "6b201b52777601972027897c021d29bee36dc6f4",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
+    }
+  ]
+}
