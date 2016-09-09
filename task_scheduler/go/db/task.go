@@ -75,7 +75,7 @@ type Task struct {
 	// Created is the creation timestamp.
 	Created time.Time
 
-	// DbModified is the time of the last successful call to DB.PutTask/s for this
+	// DbModified is the time of the last successful call to TaskDB.PutTask/s for this
 	// Task, or zero if the task is new. It is not related to the ModifiedTs time
 	// of the associated Swarming task.
 	DbModified time.Time
@@ -271,7 +271,7 @@ func (orig *Task) UpdateFromSwarming(s *swarming_api.SwarmingRpcsTaskResult) (bo
 var errNotModified = errors.New("Task not modified")
 
 // UpdateDBFromSwarmingTask updates a task in db from data in s.
-func UpdateDBFromSwarmingTask(db DB, s *swarming_api.SwarmingRpcsTaskResult) error {
+func UpdateDBFromSwarmingTask(db TaskDB, s *swarming_api.SwarmingRpcsTaskResult) error {
 	id, err := swarming.GetTagValue(s, SWARMING_TAG_ID)
 	if err != nil {
 		return err

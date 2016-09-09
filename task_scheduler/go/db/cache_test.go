@@ -25,7 +25,7 @@ func testGetTasksForCommits(t *testing.T, c TaskCache, b *Task) {
 }
 
 func TestDBCache(t *testing.T) {
-	db := NewInMemoryDB()
+	db := NewInMemoryTaskDB()
 	defer testutils.AssertCloses(t, db)
 
 	// Pre-load a task into the DB.
@@ -64,7 +64,7 @@ func TestDBCache(t *testing.T) {
 }
 
 func TestDBCacheMultiRepo(t *testing.T) {
-	db := NewInMemoryDB()
+	db := NewInMemoryTaskDB()
 	defer testutils.AssertCloses(t, db)
 
 	// Insert several tasks with different repos.
@@ -125,7 +125,7 @@ func TestDBCacheMultiRepo(t *testing.T) {
 }
 
 func TestDBCacheReset(t *testing.T) {
-	db := NewInMemoryDB()
+	db := NewInMemoryTaskDB()
 	defer testutils.AssertCloses(t, db)
 
 	// Pre-load a task into the DB.
@@ -153,7 +153,7 @@ func TestDBCacheReset(t *testing.T) {
 }
 
 func TestCacheUnfinished(t *testing.T) {
-	db := NewInMemoryDB()
+	db := NewInMemoryTaskDB()
 	defer testutils.AssertCloses(t, db)
 
 	// Insert a task.

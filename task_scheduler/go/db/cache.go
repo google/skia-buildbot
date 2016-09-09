@@ -53,7 +53,7 @@ type TaskCache interface {
 }
 
 type taskCache struct {
-	db DB
+	db TaskDB
 	// map[repo_name][task_spec_name]bool
 	knownTaskNames map[string]map[string]bool
 	mtx            sync.RWMutex
@@ -232,7 +232,7 @@ func (c *taskCache) Update() error {
 
 // NewTaskCache returns a local cache which provides more convenient views of
 // task data than the database can provide.
-func NewTaskCache(db DB, timePeriod time.Duration) (TaskCache, error) {
+func NewTaskCache(db TaskDB, timePeriod time.Duration) (TaskCache, error) {
 	tc := &taskCache{
 		db:         db,
 		timePeriod: timePeriod,

@@ -39,8 +39,6 @@ var (
 // TaskScheduler is a struct used for scheduling tasks on bots.
 type TaskScheduler struct {
 	bl               *blacklist.Blacklist
-	cache            db.TaskCache
-	db               db.DB
 	isolate          *isolate.Client
 	lastScheduled    time.Time // protected by queueMtx.
 	period           time.Duration
@@ -53,11 +51,13 @@ type TaskScheduler struct {
 	repos            map[string]*gitrepo.Repo
 	swarming         swarming.ApiClient
 	taskCfgCache     *taskCfgCache
+	taskDB           db.TaskDB
+	tCache           db.TaskCache
 	timeDecayAmt24Hr float64
 	workdir          string
 }
 
-func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
+func NewTaskScheduler(taskDB db.TaskDB, tCache db.TaskCache, period time.Duration, workdir string, repoNames []string, isolateClient *isolate.Client, swarmingClient swarming.ApiClient, timeDecayAmt24Hr float64) (*TaskScheduler, error) {
 	bl, err := blacklist.FromFile(path.Join(workdir, "blacklist.json"))
 	if err != nil {
 		return nil, err
@@ -77,8 +77,6 @@ func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir
 	}
 	s := &TaskScheduler{
 		bl:               bl,
-		cache:            cache,
-		db:               d,
 		isolate:          isolateClient,
 		period:           period,
 		queue:            []*taskCandidate{},
@@ -87,6 +85,8 @@ func NewTaskScheduler(d db.DB, cache db.TaskCache, period time.Duration, workdir
 		repos:            repos,
 		swarming:         swarmingClient,
 		taskCfgCache:     newTaskCfgCache(rm),
+		taskDB:           taskDB,
+		tCache:           tCache,
 		timeDecayAmt24Hr: timeDecayAmt24Hr,
 		workdir:          workdir,
 	}
@@ -299,7 +299,7 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 				}
 				// We shouldn't duplicate pending, in-progress,
 				// or successfully completed tasks.
-				previous, err := s.cache.GetTaskForCommit(c.Repo, c.Revision, c.Name)
+				previous, err := s.tCache.GetTaskForCommit(c.Repo, c.Revision, c.Name)
 				if err != nil {
 					return nil, err
 				}
@@ -318,7 +318,7 @@ func (s *TaskScheduler) findTaskCandidates(commitsByRepo map[string][]string) (m
 				}
 
 				// Don't consider candidates whose dependencies are not met.
-				depsMet, idsToHashes, err := c.allDepsMet(s.cache)
+				depsMet, idsToHashes, err := c.allDepsMet(s.tCache)
 				if err != nil {
 					return nil, err
 				}
@@ -439,7 +439,7 @@ func (s *TaskScheduler) regenerateTaskQueue() error {
 		wg.Add(1)
 		go func(candidates []*taskCandidate) {
 			defer wg.Done()
-			cache := newCacheWrapper(s.cache)
+			cache := newCacheWrapper(s.tCache)
 			commitsBuf := make([]*gitrepo.Commit, 0, buildbot.MAX_BLAMELIST_COMMITS)
 			for {
 				// Find the best candidate.
@@ -681,7 +681,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 	tasksToInsert := make(map[string]*db.Task, len(schedule)*2)
 	for _, candidate := range schedule {
 		t := candidate.MakeTask()
-		if err := s.db.AssignId(t); err != nil {
+		if err := s.taskDB.AssignId(t); err != nil {
 			return err
 		}
 		req := candidate.MakeTaskRequest(t.Id)
@@ -718,7 +718,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 				var ok bool
 				stealingFrom, ok = tasksToInsert[candidate.StealingFromId]
 				if !ok {
-					stealingFrom, err = s.cache.GetTask(candidate.StealingFromId)
+					stealingFrom, err = s.tCache.GetTask(candidate.StealingFromId)
 					if err != nil {
 						return err
 					}
@@ -736,7 +736,7 @@ func (s *TaskScheduler) scheduleTasks() error {
 	}
 
 	// Insert the tasks into the database.
-	if err := s.db.PutTasks(tasks); err != nil {
+	if err := s.taskDB.PutTasks(tasks); err != nil {
 		return err
 	}
 
@@ -790,7 +790,7 @@ func (s *TaskScheduler) MainLoop() error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := updateUnfinishedTasks(s.cache, s.db, s.swarming); err != nil {
+		if err := updateUnfinishedTasks(s.tCache, s.taskDB, s.swarming); err != nil {
 			e2 = err
 		}
 	}()
@@ -804,7 +804,7 @@ func (s *TaskScheduler) MainLoop() error {
 	}
 
 	// Update the task cache.
-	if err := s.cache.Update(); err != nil {
+	if err := s.tCache.Update(); err != nil {
 		return err
 	}
 
@@ -822,7 +822,7 @@ func (s *TaskScheduler) MainLoop() error {
 	}
 
 	// Update the cache again to include the newly-inserted tasks.
-	return s.cache.Update()
+	return s.tCache.Update()
 }
 
 // cleanupRepos cleans up the scheduler's repos. It logs errors rather than
@@ -974,7 +974,7 @@ func getFreeSwarmingBots(s swarming.ApiClient) ([]*swarming_api.SwarmingRpcsBotI
 
 // updateUnfinishedTasks queries Swarming for all unfinished tasks and updates
 // their status in the DB.
-func updateUnfinishedTasks(cache db.TaskCache, d db.DB, s swarming.ApiClient) error {
+func updateUnfinishedTasks(cache db.TaskCache, d db.TaskDB, s swarming.ApiClient) error {
 	tasks, err := cache.UnfinishedTasks()
 	if err != nil {
 		return err

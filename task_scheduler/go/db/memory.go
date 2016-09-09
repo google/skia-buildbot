@@ -12,15 +12,15 @@ import (
 	"github.com/skia-dev/glog"
 )
 
-type inMemoryDB struct {
+type inMemoryTaskDB struct {
 	CommentBox
 	tasks    map[string]*Task
 	tasksMtx sync.RWMutex
 	modTasks ModifiedTasks
 }
 
-// See docs for DB interface. Does not take any locks.
-func (db *inMemoryDB) AssignId(t *Task) error {
+// See docs for TaskDB interface. Does not take any locks.
+func (db *inMemoryTaskDB) AssignId(t *Task) error {
 	if t.Id != "" {
 		return fmt.Errorf("Task Id already assigned: %v", t.Id)
 	}
@@ -28,13 +28,13 @@ func (db *inMemoryDB) AssignId(t *Task) error {
 	return nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) Close() error {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) Close() error {
 	return nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) GetTaskById(id string) (*Task, error) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) GetTaskById(id string) (*Task, error) {
 	db.tasksMtx.RLock()
 	defer db.tasksMtx.RUnlock()
 	if task := db.tasks[id]; task != nil {
@@ -43,8 +43,8 @@ func (db *inMemoryDB) GetTaskById(id string) (*Task, error) {
 	return nil, nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, error) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, error) {
 	db.tasksMtx.RLock()
 	defer db.tasksMtx.RUnlock()
 
@@ -59,13 +59,13 @@ func (db *inMemoryDB) GetTasksFromDateRange(start, end time.Time) ([]*Task, erro
 	return rv, nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) GetModifiedTasks(id string) ([]*Task, error) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) GetModifiedTasks(id string) ([]*Task, error) {
 	return db.modTasks.GetModifiedTasks(id)
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) PutTask(task *Task) error {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) PutTask(task *Task) error {
 	db.tasksMtx.Lock()
 	defer db.tasksMtx.Unlock()
 
@@ -91,8 +91,8 @@ func (db *inMemoryDB) PutTask(task *Task) error {
 	return nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) PutTasks(tasks []*Task) error {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) PutTasks(tasks []*Task) error {
 	for _, t := range tasks {
 		if err := db.PutTask(t); err != nil {
 			return err
@@ -101,20 +101,20 @@ func (db *inMemoryDB) PutTasks(tasks []*Task) error {
 	return nil
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) StartTrackingModifiedTasks() (string, error) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) StartTrackingModifiedTasks() (string, error) {
 	return db.modTasks.StartTrackingModifiedTasks()
 }
 
-// See docs for DB interface.
-func (db *inMemoryDB) StopTrackingModifiedTasks(id string) {
+// See docs for TaskDB interface.
+func (db *inMemoryTaskDB) StopTrackingModifiedTasks(id string) {
 	db.modTasks.StopTrackingModifiedTasks(id)
 }
 
-// NewInMemoryDB returns an extremely simple, inefficient, in-memory DB
+// NewInMemoryTaskDB returns an extremely simple, inefficient, in-memory TaskDB
 // implementation.
-func NewInMemoryDB() TaskAndCommentDB {
-	db := &inMemoryDB{
+func NewInMemoryTaskDB() TaskAndCommentDB {
+	db := &inMemoryTaskDB{
 		tasks: map[string]*Task{},
 	}
 	return db

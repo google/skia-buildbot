@@ -23,7 +23,7 @@ func makeTask(ts time.Time, commits []string) *Task {
 	}
 }
 
-func TestDB(t *testing.T, db DB) {
+func TestTaskDB(t *testing.T, db TaskDB) {
 	defer testutils.AssertCloses(t, db)
 
 	_, err := db.GetModifiedTasks("dummy-id")
@@ -180,11 +180,11 @@ func TestDB(t *testing.T, db DB) {
 	testutils.AssertDeepEqual(t, []*Task{}, tasks)
 }
 
-func TestTooManyUsers(t *testing.T, db DB) {
+func TestTooManyUsers(t *testing.T, db TaskDB) {
 	defer testutils.AssertCloses(t, db)
 
 	// Max out the number of modified-tasks users; ensure that we error out.
-	for i := 0; i < MAX_MODIFIED_TASKS_USERS; i++ {
+	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
 		_, err := db.StartTrackingModifiedTasks()
 		assert.NoError(t, err)
 	}
@@ -194,7 +194,7 @@ func TestTooManyUsers(t *testing.T, db DB) {
 
 // Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
 // has been updated in the DB.
-func TestConcurrentUpdate(t *testing.T, db DB) {
+func TestConcurrentUpdate(t *testing.T, db TaskDB) {
 	defer testutils.AssertCloses(t, db)
 
 	// Insert a task.
@@ -242,19 +242,19 @@ func TestConcurrentUpdate(t *testing.T, db DB) {
 	}
 }
 
-// Test UpdateWithRetries when no errors or retries.
-func testUpdateWithRetriesSimple(t *testing.T, db DB) {
+// Test UpdateTasksWithRetries when no errors or retries.
+func testUpdateTasksWithRetriesSimple(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	// Test no-op.
-	tasks, err := UpdateWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		return nil, nil
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(tasks))
 
-	// Create new task t1. (UpdateWithRetries isn't actually useful in this case.)
-	tasks, err = UpdateWithRetries(db, func() ([]*Task, error) {
+	// Create new task t1. (UpdateTasksWithRetries isn't actually useful in this case.)
+	tasks, err = UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		t1 := makeTask(time.Time{}, []string{"a", "b", "c", "d"})
 		assert.NoError(t, db.AssignId(t1))
 		t1.Created = time.Now().Add(time.Nanosecond)
@@ -265,7 +265,7 @@ func testUpdateWithRetriesSimple(t *testing.T, db DB) {
 	t1 := tasks[0]
 
 	// Update t1 and create t2.
-	tasks, err = UpdateWithRetries(db, func() ([]*Task, error) {
+	tasks, err = UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		t1, err := db.GetTaskById(t1.Id)
 		assert.NoError(t, err)
 		t1.Status = TASK_STATUS_RUNNING
@@ -294,8 +294,8 @@ func testUpdateWithRetriesSimple(t *testing.T, db DB) {
 	assert.Equal(t, t2.Id, tasks[1].Id)
 }
 
-// Test UpdateWithRetries when there are some retries, but eventual success.
-func testUpdateWithRetriesSuccess(t *testing.T, db DB) {
+// Test UpdateTasksWithRetries when there are some retries, but eventual success.
+func testUpdateTasksWithRetriesSuccess(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -309,7 +309,7 @@ func testUpdateWithRetriesSuccess(t *testing.T, db DB) {
 
 	// Attempt update.
 	callCount := 0
-	tasks, err := UpdateWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		callCount++
 		if callCount >= 3 {
 			if task, err := db.GetTaskById(t1.Id); err != nil {
@@ -345,13 +345,13 @@ func testUpdateWithRetriesSuccess(t *testing.T, db DB) {
 	assert.Equal(t, t2.Id, tasks[1].Id)
 }
 
-// Test UpdateWithRetries when f returns an error.
-func testUpdateWithRetriesErrorInFunc(t *testing.T, db DB) {
+// Test UpdateTasksWithRetries when f returns an error.
+func testUpdateTasksWithRetriesErrorInFunc(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	myErr := fmt.Errorf("NO! Bad dog!")
 	callCount := 0
-	tasks, err := UpdateWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		callCount++
 		// Return a task just for fun.
 		return []*Task{
@@ -369,12 +369,12 @@ func testUpdateWithRetriesErrorInFunc(t *testing.T, db DB) {
 	assert.Equal(t, 0, len(tasks))
 }
 
-// Test UpdateWithRetries when PutTasks returns an error.
-func testUpdateWithRetriesErrorInPutTasks(t *testing.T, db DB) {
+// Test UpdateTasksWithRetries when PutTasks returns an error.
+func testUpdateTasksWithRetriesErrorInPutTasks(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	callCount := 0
-	tasks, err := UpdateWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		callCount++
 		// Task has zero Created time.
 		return []*Task{
@@ -392,8 +392,8 @@ func testUpdateWithRetriesErrorInPutTasks(t *testing.T, db DB) {
 	assert.Equal(t, 0, len(tasks))
 }
 
-// Test UpdateWithRetries when retries are exhausted.
-func testUpdateWithRetriesExhausted(t *testing.T, db DB) {
+// Test UpdateTasksWithRetries when retries are exhausted.
+func testUpdateTasksWithRetriesExhausted(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	// Create and cache.
@@ -407,7 +407,7 @@ func testUpdateWithRetriesExhausted(t *testing.T, db DB) {
 
 	// Attempt update.
 	callCount := 0
-	tasks, err := UpdateWithRetries(db, func() ([]*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		callCount++
 		t1Cached.Status = TASK_STATUS_SUCCESS
 		t2 := makeTask(begin.Add(2*time.Nanosecond), []string{"e", "f"})
@@ -426,7 +426,7 @@ func testUpdateWithRetriesExhausted(t *testing.T, db DB) {
 }
 
 // Test UpdateTaskWithRetries when no errors or retries.
-func testUpdateTaskWithRetriesSimple(t *testing.T, db DB) {
+func testUpdateTaskWithRetriesSimple(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -450,7 +450,7 @@ func testUpdateTaskWithRetriesSimple(t *testing.T, db DB) {
 	assert.NoError(t, err)
 	testutils.AssertDeepEqual(t, t1Again, t1Updated)
 
-	// Check no extra tasks in the DB.
+	// Check no extra tasks in the TaskDB.
 	tasks, err := db.GetTasksFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(tasks))
@@ -458,7 +458,7 @@ func testUpdateTaskWithRetriesSimple(t *testing.T, db DB) {
 }
 
 // Test UpdateTaskWithRetries when there are some retries, but eventual success.
-func testUpdateTaskWithRetriesSuccess(t *testing.T, db DB) {
+func testUpdateTaskWithRetriesSuccess(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -495,7 +495,7 @@ func testUpdateTaskWithRetriesSuccess(t *testing.T, db DB) {
 }
 
 // Test UpdateTaskWithRetries when f returns an error.
-func testUpdateTaskWithRetriesErrorInFunc(t *testing.T, db DB) {
+func testUpdateTaskWithRetriesErrorInFunc(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -529,7 +529,7 @@ func testUpdateTaskWithRetriesErrorInFunc(t *testing.T, db DB) {
 }
 
 // Test UpdateTaskWithRetries when retries are exhausted.
-func testUpdateTaskWithRetriesExhausted(t *testing.T, db DB) {
+func testUpdateTaskWithRetriesExhausted(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	// Create new task t1.
@@ -568,7 +568,7 @@ func testUpdateTaskWithRetriesExhausted(t *testing.T, db DB) {
 }
 
 // Test UpdateTaskWithRetries when the given ID is not found in the DB.
-func testUpdateTaskWithRetriesTaskNotFound(t *testing.T, db DB) {
+func testUpdateTaskWithRetriesTaskNotFound(t *testing.T, db TaskDB) {
 	begin := time.Now()
 
 	// Assign ID for a task, but don't put it in the DB.
@@ -592,13 +592,13 @@ func testUpdateTaskWithRetriesTaskNotFound(t *testing.T, db DB) {
 	assert.Equal(t, 0, len(tasks))
 }
 
-// Test UpdateWithRetries and UpdateTaskWithRetries.
-func TestUpdateWithRetries(t *testing.T, db DB) {
-	testUpdateWithRetriesSimple(t, db)
-	testUpdateWithRetriesSuccess(t, db)
-	testUpdateWithRetriesErrorInFunc(t, db)
-	testUpdateWithRetriesErrorInPutTasks(t, db)
-	testUpdateWithRetriesExhausted(t, db)
+// Test UpdateTasksWithRetries and UpdateTaskWithRetries.
+func TestUpdateTasksWithRetries(t *testing.T, db TaskDB) {
+	testUpdateTasksWithRetriesSimple(t, db)
+	testUpdateTasksWithRetriesSuccess(t, db)
+	testUpdateTasksWithRetriesErrorInFunc(t, db)
+	testUpdateTasksWithRetriesErrorInPutTasks(t, db)
+	testUpdateTasksWithRetriesExhausted(t, db)
 	testUpdateTaskWithRetriesSimple(t, db)
 	testUpdateTaskWithRetriesSuccess(t, db)
 	testUpdateTaskWithRetriesErrorInFunc(t, db)

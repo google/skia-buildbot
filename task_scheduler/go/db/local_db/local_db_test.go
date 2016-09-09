@@ -420,7 +420,7 @@ func TestPutTaskLeavesTasksUnchanged(t *testing.T) {
 func TestLocalDB(t *testing.T) {
 	d, tmpdir := makeDB(t, "TestLocalDB")
 	defer util.RemoveAll(tmpdir)
-	db.TestDB(t, d)
+	db.TestTaskDB(t, d)
 }
 
 func TestLocalDBTooManyUsers(t *testing.T) {
@@ -435,10 +435,10 @@ func TestLocalDBConcurrentUpdate(t *testing.T) {
 	db.TestConcurrentUpdate(t, d)
 }
 
-func TestLocalDBUpdateWithRetries(t *testing.T) {
-	d, tmpdir := makeDB(t, "TestLocalDBUpdateWithRetries")
+func TestLocalDBUpdateTasksWithRetries(t *testing.T) {
+	d, tmpdir := makeDB(t, "TestLocalDBUpdateTasksWithRetries")
 	defer util.RemoveAll(tmpdir)
-	db.TestUpdateWithRetries(t, d)
+	db.TestUpdateTasksWithRetries(t, d)
 }
 
 func TestLocalDBCommentDB(t *testing.T) {

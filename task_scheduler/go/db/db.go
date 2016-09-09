@@ -10,10 +10,10 @@ import (
 
 const (
 	// Maximum number of simultaneous GetModifiedTasks users.
-	MAX_MODIFIED_TASKS_USERS = 10
+	MAX_MODIFIED_DATA_USERS = 10
 
 	// Expiration for GetModifiedTasks users.
-	MODIFIED_TASKS_TIMEOUT = 10 * time.Minute
+	MODIFIED_DATA_TIMEOUT = 10 * time.Minute
 
 	// Retries attempted by UpdateWithRetries and UpdateTaskWithRetries.
 	NUM_RETRIES = 5
@@ -47,7 +47,7 @@ func IsUnknownId(e error) bool {
 	return e != nil && e.Error() == ErrUnknownId.Error()
 }
 
-// TaskReader is a read-only view of a DB.
+// TaskReader is a read-only view of a TaskDB.
 type TaskReader interface {
 	io.Closer
 
@@ -73,8 +73,8 @@ type TaskReader interface {
 	StopTrackingModifiedTasks(string)
 }
 
-// DB is used by the task scheduler to store Tasks.
-type DB interface {
+// TaskDB is used by the task scheduler to store Tasks.
+type TaskDB interface {
 	TaskReader
 
 	// AssignId sets the given task's Id field. Does not insert the task into the
@@ -91,18 +91,18 @@ type DB interface {
 	PutTasks([]*Task) error
 }
 
-// UpdateWithRetries wraps a call to db.PutTasks with retries. It calls
+// UpdateTasksWithRetries wraps a call to db.PutTasks with retries. It calls
 // db.PutTasks(f()) repeatedly until one of the following happen:
 //  - f or db.PutTasks returns an error, which is then returned from
-//    UpdateWithRetries;
-//  - PutTasks succeeds, in which case UpdateWithRetries returns the updated
+//    UpdateTasksWithRetries;
+//  - PutTasks succeeds, in which case UpdateTasksWithRetries returns the updated
 //    Tasks returned by f;
-//  - retries are exhausted, in which case UpdateWithRetries returns
+//  - retries are exhausted, in which case UpdateTasksWithRetries returns
 //    ErrConcurrentUpdate.
 //
 // Within f, tasks should be refreshed from the DB, e.g. with
 // db.GetModifiedTasks or db.GetTaskById.
-func UpdateWithRetries(db DB, f func() ([]*Task, error)) ([]*Task, error) {
+func UpdateTasksWithRetries(db TaskDB, f func() ([]*Task, error)) ([]*Task, error) {
 	var lastErr error
 	for i := 0; i < NUM_RETRIES; i++ {
 		t, err := f()
@@ -130,8 +130,8 @@ func UpdateWithRetries(db DB, f func() ([]*Task, error)) ([]*Task, error) {
 // Immediately returns ErrNotFound if db.GetTaskById(id) returns nil.
 // Immediately returns any error returned from f or from PutTasks (except
 // ErrConcurrentUpdate). Returns ErrConcurrentUpdate if retries are exhausted.
-func UpdateTaskWithRetries(db DB, id string, f func(*Task) error) (*Task, error) {
-	tasks, err := UpdateWithRetries(db, func() ([]*Task, error) {
+func UpdateTaskWithRetries(db TaskDB, id string, f func(*Task) error) (*Task, error) {
+	tasks, err := UpdateTasksWithRetries(db, func() ([]*Task, error) {
 		t, err := db.GetTaskById(id)
 		if err != nil {
 			return nil, err
@@ -158,8 +158,8 @@ type RemoteDB interface {
 	CommentDB
 }
 
-// TaskAndCommentDB implements both DB and CommentDB.
+// TaskAndCommentDB implements both TaskDB and CommentDB.
 type TaskAndCommentDB interface {
-	DB
+	TaskDB
 	CommentDB
 }

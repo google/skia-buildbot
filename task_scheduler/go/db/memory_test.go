@@ -2,18 +2,18 @@ package db
 
 import "testing"
 
-func TestInMemoryDB(t *testing.T) {
-	TestDB(t, NewInMemoryDB())
+func TestInMemoryTaskDB(t *testing.T) {
+	TestTaskDB(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryTooManyUsers(t *testing.T) {
-	TestTooManyUsers(t, NewInMemoryDB())
+	TestTooManyUsers(t, NewInMemoryTaskDB())
 }
 
 func TestInMemoryConcurrentUpdate(t *testing.T) {
-	TestConcurrentUpdate(t, NewInMemoryDB())
+	TestConcurrentUpdate(t, NewInMemoryTaskDB())
 }
 
-func TestInMemoryUpdateWithRetries(t *testing.T) {
-	TestUpdateWithRetries(t, NewInMemoryDB())
+func TestInMemoryUpdateTasksWithRetries(t *testing.T) {
+	TestUpdateTasksWithRetries(t, NewInMemoryTaskDB())
 }
