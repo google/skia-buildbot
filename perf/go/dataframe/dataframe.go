@@ -22,10 +22,10 @@ const (
 
 // ColumnHeader describes each column in a DataFrame.
 type ColumnHeader struct {
-	Source    string    `json:"source"`
-	ID        string    `json:"id"`
-	Desc      string    `json:"desc"`
-	Timestamp time.Time `json:"timestamp"`
+	Source    string `json:"source"`
+	ID        string `json:"id"`
+	Desc      string `json:"desc"`
+	Timestamp int64  `json:"timestamp"` // In seconds from the Unix epoch.
 }
 
 // DataFrame stores Perf measurements in a table where each row is a Trace
@@ -53,7 +53,7 @@ func rangeImpl(resp []*vcsinfo.IndexCommit) ([]*ColumnHeader, []*ptracestore.Com
 		headers = append(headers, &ColumnHeader{
 			Source:    "master",
 			ID:        fmt.Sprintf("%d", r.Index),
-			Timestamp: r.Timestamp,
+			Timestamp: r.Timestamp.Unix(),
 		})
 	}
 	return headers, commits
