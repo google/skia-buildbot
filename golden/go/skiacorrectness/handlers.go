@@ -442,16 +442,20 @@ func jsonIgnoresAddHandler(w http.ResponseWriter, r *http.Request) {
 	jsonIgnoresHandler(w, r)
 }
 
+// TODO(stephana): Triage by query is not used on the front-end and we should
+// see if we can remove it from jsonTriageHandler.
+
 // TriageRequest is the form of the JSON posted to jsonTriageHandler.
 type TriageRequest struct {
-	Test    string   `json:"test"`
-	Digest  []string `json:"digest"`
-	Status  string   `json:"status"`
-	All     bool     `json:"all"` // Ignore Digest and instead use the query, filter, and include.
-	Query   string   `json:"query"`
-	Filter  string   `json:"filter"`
-	Include bool     `json:"include"` // Include ignored digests.
-	Head    bool     `json:"head"`    // Only include digests at head if true.
+	// TestDigestStatus maps status to test name and digests as: map[testName][digest]status
+	TestDigestStatus map[string]map[string]string `json:"testDigestStatus"`
+	All              bool                         `json:"all"`     // Ignore TestDigestStatus and instead use the query, filter, and include.
+	Test             string                       `json:"qTest"`   // Name of the test to query for.
+	Status           string                       `json:"qStatus"` // Status for the digests in the query result.
+	Query            string                       `json:"query"`
+	Filter           string                       `json:"filter"`
+	Include          bool                         `json:"include"` // Include ignored digests.
+	Head             bool                         `json:"head"`    // Only include digests at head if true.
 }
 
 // jsonTriageHandler handles a request to change the triage status of one or more
@@ -460,47 +464,60 @@ type TriageRequest struct {
 // It accepts a POST'd JSON serialization of TriageRequest and updates
 // the expectations.
 func jsonTriageHandler(w http.ResponseWriter, r *http.Request) {
-	req := &TriageRequest{}
-	if err := parseJson(r, req); err != nil {
-		httputils.ReportError(w, r, err, "Failed to parse JSON request.")
-		return
-	}
-	glog.Infof("Triage request: %#v", req)
 	user := login.LoggedInAs(r)
 	if user == "" {
 		httputils.ReportError(w, r, fmt.Errorf("Not logged in."), "You must be logged in to triage.")
 		return
 	}
 
-	// Build the expecations change request from the list of digests passed in.
-	digests := req.Digest
+	req := &TriageRequest{}
+	if err := parseJson(r, req); err != nil {
+		httputils.ReportError(w, r, err, "Failed to parse JSON request.")
+		return
+	}
+	glog.Infof("Triage request: %#v", req)
 
-	// Or build the expectations change request from filter, query, and include.
+	var tc map[string]types.TestClassification
+
+	// Build the expectations change request from filter, query, and include.
 	if req.All {
 		exp, err := storages.ExpectationsStore.Get()
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to load expectations.")
 			return
 		}
+
 		e := exp.Tests[req.Test]
-		digests, err = filterDigests(req.Filter, req.Query, req.Test, e, req.Include, req.Head)
+		digests, err := filterDigests(req.Filter, req.Query, req.Test, e, req.Include, req.Head)
 		if err != nil {
 			httputils.ReportError(w, r, err, "Failed to filter requested digests.")
 			return
 		}
+		// Label the digests.
+		labelledDigests := map[string]types.Label{}
+		for _, d := range digests {
+			labelledDigests[d] = types.LabelFromString(req.Status)
+		}
+
+		tc = map[string]types.TestClassification{
+			req.Test: labelledDigests,
+		}
+	} else {
+		// Build the expecations change request from the list of digests passed in.
+		tc = make(map[string]types.TestClassification, len(req.TestDigestStatus))
+		for test, digests := range req.TestDigestStatus {
+			labeledDigests := make(map[string]types.Label, len(digests))
+			for d, label := range digests {
+				if !types.ValidLabel(label) {
+					httputils.ReportError(w, r, nil, "Receive invalid label in triage request.")
+					return
+				}
+				labeledDigests[d] = types.LabelFromString(label)
+			}
+			tc[test] = labeledDigests
+		}
 	}
 
-	// Label the digests.
-	labelledDigests := map[string]types.Label{}
-	for _, d := range digests {
-		labelledDigests[d] = types.LabelFromString(req.Status)
-	}
-
-	tc := map[string]types.TestClassification{
-		req.Test: labelledDigests,
-	}
-
-	// Otherwise update the expectations directly.
 	if err := storages.ExpectationsStore.AddChange(tc, user); err != nil {
 		httputils.ReportError(w, r, err, "Failed to store the updated expectations.")
 		return
