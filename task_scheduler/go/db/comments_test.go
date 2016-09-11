@@ -37,32 +37,32 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 	tc1 := makeTaskComment(1, 1, 1, 1, now)
 	expected["r1"] = &RepoComments{
 		Repo:             "r1",
-		TaskComments:     map[string]map[string][]*TaskComment{"n1": {"c1": {tc1}}},
+		TaskComments:     map[string]map[string][]*TaskComment{"c1": {"n1": {tc1}}},
 		TaskSpecComments: map[string][]*TaskSpecComment{},
 		CommitComments:   map[string][]*CommitComment{},
 	}
 	assert.NoError(t, db.PutTaskComment(tc1))
 
 	tc2 := makeTaskComment(2, 1, 1, 1, now.Add(2*time.Second))
-	expected["r1"].TaskComments["n1"]["c1"] = []*TaskComment{tc1, tc2}
+	expected["r1"].TaskComments["c1"]["n1"] = []*TaskComment{tc1, tc2}
 	assert.NoError(t, db.PutTaskComment(tc2))
 
 	tc3 := makeTaskComment(3, 1, 1, 1, now.Add(time.Second))
-	expected["r1"].TaskComments["n1"]["c1"] = []*TaskComment{tc1, tc3, tc2}
+	expected["r1"].TaskComments["c1"]["n1"] = []*TaskComment{tc1, tc3, tc2}
 	assert.NoError(t, db.PutTaskComment(tc3))
 
 	tc4 := makeTaskComment(4, 1, 1, 2, now)
-	expected["r1"].TaskComments["n1"]["c2"] = []*TaskComment{tc4}
+	expected["r1"].TaskComments["c2"] = map[string][]*TaskComment{"n1": {tc4}}
 	assert.NoError(t, db.PutTaskComment(tc4))
 
 	tc5 := makeTaskComment(5, 1, 2, 2, now)
-	expected["r1"].TaskComments["n2"] = map[string][]*TaskComment{"c2": {tc5}}
+	expected["r1"].TaskComments["c2"]["n2"] = []*TaskComment{tc5}
 	assert.NoError(t, db.PutTaskComment(tc5))
 
 	tc6 := makeTaskComment(6, 2, 3, 3, now)
 	expected["r2"] = &RepoComments{
 		Repo:             "r2",
-		TaskComments:     map[string]map[string][]*TaskComment{"n3": {"c3": {tc6.Copy()}}},
+		TaskComments:     map[string]map[string][]*TaskComment{"c3": {"n3": {tc6.Copy()}}},
 		TaskSpecComments: map[string][]*TaskSpecComment{},
 		CommitComments:   map[string][]*CommitComment{},
 	}
@@ -119,7 +119,7 @@ func TestCommentBoxWithPersistence(t *testing.T) {
 	assert.Equal(t, 0, callCount)
 
 	// Delete some comments.
-	expected["r1"].TaskComments["n1"]["c1"] = []*TaskComment{tc1, tc2}
+	expected["r1"].TaskComments["c1"]["n1"] = []*TaskComment{tc1, tc2}
 	assert.NoError(t, db.DeleteTaskComment(tc3))
 	expected["r1"].TaskSpecComments = map[string][]*TaskSpecComment{}
 	assert.NoError(t, db.DeleteTaskSpecComment(sc1))
@@ -206,12 +206,12 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 		&RepoComments{
 			Repo: "r1",
 			TaskComments: map[string]map[string][]*TaskComment{
-				"n1": {
-					"c1": {tc1, tc3, tc2},
-					"c2": {tc4},
+				"c1": {
+					"n1": {tc1, tc3, tc2},
 				},
-				"n2": {
-					"c2": {tc5},
+				"c2": {
+					"n1": {tc4},
+					"n2": {tc5},
 				},
 			},
 			TaskSpecComments: map[string][]*TaskSpecComment{
@@ -224,8 +224,8 @@ func TestCommentBoxWithPersistenceError(t *testing.T) {
 		&RepoComments{
 			Repo: "r2",
 			TaskComments: map[string]map[string][]*TaskComment{
-				"n3": {
-					"c3": {tc6},
+				"c3": {
+					"n3": {tc6},
 				},
 			},
 			TaskSpecComments: map[string][]*TaskSpecComment{},
