@@ -611,8 +611,8 @@ func TestUpdateTasksWithRetries(t *testing.T, db TaskDB) {
 func makeTaskComment(n int, repo int, name int, commit int, ts time.Time) *TaskComment {
 	return &TaskComment{
 		Repo:      fmt.Sprintf("r%d", repo),
+		Revision:  fmt.Sprintf("c%d", commit),
 		Name:      fmt.Sprintf("n%d", name),
-		Commit:    fmt.Sprintf("c%d", commit),
 		Timestamp: ts,
 		TaskId:    fmt.Sprintf("id%d", n),
 		User:      fmt.Sprintf("u%d", n),
@@ -639,7 +639,7 @@ func makeTaskSpecComment(n int, repo int, name int, ts time.Time) *TaskSpecComme
 func makeCommitComment(n int, repo int, commit int, ts time.Time) *CommitComment {
 	return &CommitComment{
 		Repo:      fmt.Sprintf("r%d", repo),
-		Commit:    fmt.Sprintf("c%d", commit),
+		Revision:  fmt.Sprintf("c%d", commit),
 		Timestamp: ts,
 		User:      fmt.Sprintf("u%d", n),
 		Message:   fmt.Sprintf("m%d", n),
@@ -716,12 +716,12 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 		&RepoComments{
 			Repo: "r1",
 			TaskComments: map[string]map[string][]*TaskComment{
-				"n1": {
-					"c1": {tc1, tc3, tc2},
-					"c2": {tc4},
+				"c1": {
+					"n1": {tc1, tc3, tc2},
 				},
-				"n2": {
-					"c2": {tc5},
+				"c2": {
+					"n1": {tc4},
+					"n2": {tc5},
 				},
 			},
 			TaskSpecComments: map[string][]*TaskSpecComment{
@@ -736,8 +736,8 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 		&RepoComments{
 			Repo: "r2",
 			TaskComments: map[string]map[string][]*TaskComment{
-				"n3": {
-					"c3": {tc6copy},
+				"c3": {
+					"n3": {tc6copy},
 				},
 			},
 			TaskSpecComments: map[string][]*TaskSpecComment{
@@ -760,7 +760,7 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(actual))
 		{
-			tcs := actual[0].TaskComments["n1"]["c1"]
+			tcs := actual[0].TaskComments["c1"]["n1"]
 			assert.True(t, len(tcs) >= 2)
 			offset := 0
 			if !tcs[0].Timestamp.Equal(tc3.Timestamp) {
@@ -811,7 +811,7 @@ func TestCommentDB(t *testing.T, db CommentDB) {
 	assert.NoError(t, db.DeleteCommitComment(makeCommitComment(99, 1, 99, now)))
 	assert.NoError(t, db.DeleteCommitComment(makeCommitComment(99, 99, 1, now)))
 
-	expected[1].TaskComments["n1"]["c1"] = []*TaskComment{tc2}
+	expected[1].TaskComments["c1"]["n1"] = []*TaskComment{tc2}
 	expected[1].TaskSpecComments["n1"] = []*TaskSpecComment{sc2}
 	expected[1].CommitComments["c1"] = []*CommitComment{cc2}
 	{
