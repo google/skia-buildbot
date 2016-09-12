@@ -289,20 +289,6 @@ func main() {
 		glog.Fatal(err)
 	}
 
-	// Initialize Swarming client.
-	var swarm swarming.ApiClient
-	if *local {
-		swarm = swarming.NewTestClient()
-		if err != nil {
-			glog.Fatal(err)
-		}
-	} else {
-		swarm, err = swarming.NewApiClient(httpClient)
-		if err != nil {
-			glog.Fatal(err)
-		}
-	}
-
 	// Initialize Isolate client.
 	isolateClient, err := isolate.NewClient(*workdir)
 	if err != nil {
@@ -330,6 +316,20 @@ func main() {
 	repos = gitinfo.NewRepoMap(*workdir)
 	for _, r := range REPOS {
 		if _, err := repos.Repo(r); err != nil {
+			glog.Fatal(err)
+		}
+	}
+
+	// Initialize Swarming client.
+	var swarm swarming.ApiClient
+	if *local {
+		swarmTestClient := swarming.NewTestClient()
+		swarmTestClient.MockBots(mockSwarmingBotsForAllTasksForTesting(repos))
+		go periodicallyUpdateMockTasksForTesting(swarmTestClient)
+		swarm = swarmTestClient
+	} else {
+		swarm, err = swarming.NewApiClient(httpClient)
+		if err != nil {
 			glog.Fatal(err)
 		}
 	}

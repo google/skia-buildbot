@@ -101,10 +101,12 @@ func (c *TestClient) CancelTask(id string) error {
 	return nil
 }
 
+// TriggerTask automatically appends its result to the mocked tasks set by
+// MockTasks.
 func (c *TestClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
 	createdTs := time.Now().UTC().Format(TIMESTAMP_FORMAT)
 	id := uuid.NewV5(uuid.NewV1(), uuid.NewV4().String()).String()
-	return &swarming.SwarmingRpcsTaskRequestMetadata{
+	rv := &swarming.SwarmingRpcsTaskRequestMetadata{
 		Request: &swarming.SwarmingRpcsTaskRequest{
 			CreatedTs:  createdTs,
 			Name:       t.Name,
@@ -118,8 +120,13 @@ func (c *TestClient) TriggerTask(t *swarming.SwarmingRpcsNewTaskRequest) (*swarm
 			Name:      t.Name,
 			State:     "PENDING",
 			TaskId:    id,
+			Tags:      t.Tags,
 		},
-	}, nil
+	}
+	c.taskListMtx.Lock()
+	defer c.taskListMtx.Unlock()
+	c.taskList = append(c.taskList, rv)
+	return rv, nil
 }
 
 func (c *TestClient) RetryTask(t *swarming.SwarmingRpcsTaskRequestMetadata) (*swarming.SwarmingRpcsTaskRequestMetadata, error) {
@@ -156,8 +163,21 @@ func (c *TestClient) MockBots(bots []*swarming.SwarmingRpcsBotInfo) {
 	c.botList = bots
 }
 
+// MockTasks sets the tasks that can be returned from ListTasks, ListSkiaTasks,
+// GetTaskMetadata, and GetTask. Replaces any previous tasks, including those
+// automatically added by TriggerTask.
 func (c *TestClient) MockTasks(tasks []*swarming.SwarmingRpcsTaskRequestMetadata) {
 	c.taskListMtx.Lock()
 	defer c.taskListMtx.Unlock()
 	c.taskList = tasks
+}
+
+// DoMockTasks calls f for each mocked task, allowing goroutine-safe updates. f
+// must not call any other method on c.
+func (c *TestClient) DoMockTasks(f func(*swarming.SwarmingRpcsTaskRequestMetadata)) {
+	c.taskListMtx.Lock()
+	defer c.taskListMtx.Unlock()
+	for _, task := range c.taskList {
+		f(task)
+	}
 }
