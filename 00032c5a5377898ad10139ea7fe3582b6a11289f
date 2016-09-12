@@ -22,6 +22,24 @@
       "revId": "00032c5a5377898ad10139ea7fe3582b6a11289f",
       "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "8bc2da6f_bd390b03",
+        "filename": "alertserver/alerts.cfg",
+        "patchSetId": 1
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 5015
+      },
+      "writtenOn": "2016-09-12T15:00:11Z",
+      "side": 1,
+      "message": "I copy/pasted from the Skia autoroll alert, which was written that way so that we could potentially remove that case and get alerts for all rollers.  IMO this is more convenient than explicitly typing \"src/third_party/catapult\"",
+      "parentUuid": "8bc2da6f_1d7477c1",
+      "revId": "00032c5a5377898ad10139ea7fe3582b6a11289f",
+      "serverId": "5086850b-e599-37d2-8ec8-ff16aeccbf02",
+      "unresolved": false
     }
   ]
 }
