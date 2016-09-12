@@ -185,7 +185,9 @@ func (c *taskCache) update(tasks []*Task) error {
 
 // reset re-initializes c. Assumes the caller holds a lock.
 func (c *taskCache) reset() error {
-	c.db.StopTrackingModifiedTasks(c.queryId)
+	if c.queryId != "" {
+		c.db.StopTrackingModifiedTasks(c.queryId)
+	}
 	queryId, err := c.db.StartTrackingModifiedTasks()
 	if err != nil {
 		return err
@@ -211,6 +213,8 @@ func (c *taskCache) reset() error {
 
 // See documentation for TaskCache interface.
 func (c *taskCache) Update() error {
+	// TODO(borenet): We need to flush old jobs/commits which are outside
+	// of our timePeriod so that the cache size is not unbounded.
 	newTasks, err := c.db.GetModifiedTasks(c.queryId)
 	c.mtx.Lock()
 	defer c.mtx.Unlock()
@@ -234,6 +238,149 @@ func (c *taskCache) Update() error {
 // task data than the database can provide.
 func NewTaskCache(db TaskDB, timePeriod time.Duration) (TaskCache, error) {
 	tc := &taskCache{
+		db:         db,
+		timePeriod: timePeriod,
+	}
+	if err := tc.reset(); err != nil {
+		return nil, err
+	}
+	return tc, nil
+}
+
+type JobCache interface {
+	// GetJob returns the job with the given ID, or an error if no such job exists.
+	GetJob(string) (*Job, error)
+
+	// ScheduledJobsForCommit indicates whether or not we triggered any jobs
+	// for the given repo/commit.
+	ScheduledJobsForCommit(string, string) (bool, error)
+
+	// UnfinishedJobs returns a list of jobs which were not finished at
+	// the time of the last cache update.
+	UnfinishedJobs() ([]*Job, error)
+
+	// Update loads new jobs from the database.
+	Update() error
+}
+
+type jobCache struct {
+	db                 JobDB
+	mtx                sync.RWMutex
+	queryId            string
+	jobs               map[string]*Job
+	timePeriod         time.Duration
+	triggeredForCommit map[string]map[string]bool
+	unfinished         map[string]*Job
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) GetJob(id string) (*Job, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	if j, ok := c.jobs[id]; ok {
+		return j.Copy(), nil
+	}
+	return nil, ErrNotFound
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) ScheduledJobsForCommit(repo, rev string) (bool, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+	return c.triggeredForCommit[repo][rev], nil
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) UnfinishedJobs() ([]*Job, error) {
+	c.mtx.RLock()
+	defer c.mtx.RUnlock()
+
+	rv := make([]*Job, 0, len(c.unfinished))
+	for _, t := range c.unfinished {
+		rv = append(rv, t.Copy())
+	}
+	return rv, nil
+}
+
+// update inserts the new/updated jobs into the cache. Assumes the caller
+// holds a lock.
+func (c *jobCache) update(jobs []*Job) error {
+	for _, j := range jobs {
+		// Insert the new job into the main map.
+		cpy := j.Copy()
+		c.jobs[j.Id] = cpy
+
+		// ScheduledJobsForCommit.
+		if _, ok := c.triggeredForCommit[j.Repo]; !ok {
+			c.triggeredForCommit[j.Repo] = map[string]bool{}
+		}
+		c.triggeredForCommit[j.Repo][j.Revision] = true
+
+		// Unfinished jobs.
+		if j.Done() {
+			delete(c.unfinished, j.Id)
+		} else {
+			c.unfinished[j.Id] = cpy
+		}
+	}
+	return nil
+}
+
+// reset re-initializes c. Assumes the caller holds a lock.
+func (c *jobCache) reset() error {
+	if c.queryId != "" {
+		c.db.StopTrackingModifiedJobs(c.queryId)
+	}
+	queryId, err := c.db.StartTrackingModifiedJobs()
+	if err != nil {
+		return err
+	}
+	now := time.Now()
+	start := now.Add(-c.timePeriod)
+	glog.Infof("Reading Jobs from %s to %s.", start, now)
+	jobs, err := c.db.GetJobsFromDateRange(start, now)
+	if err != nil {
+		c.db.StopTrackingModifiedJobs(queryId)
+		return err
+	}
+	c.queryId = queryId
+	c.jobs = map[string]*Job{}
+	c.triggeredForCommit = map[string]map[string]bool{}
+	c.unfinished = map[string]*Job{}
+	if err := c.update(jobs); err != nil {
+		return err
+	}
+	return nil
+}
+
+// See documentation for JobCache interface.
+func (c *jobCache) Update() error {
+	// TODO(borenet): We need to flush old jobs/commits which are outside
+	// of our timePeriod so that the cache size is not unbounded.
+	newJobs, err := c.db.GetModifiedJobs(c.queryId)
+	c.mtx.Lock()
+	defer c.mtx.Unlock()
+	if IsUnknownId(err) {
+		glog.Warningf("Connection to db lost; re-initializing cache from scratch.")
+		if err := c.reset(); err != nil {
+			return err
+		}
+		return nil
+	} else if err != nil {
+		return err
+	}
+	if err := c.update(newJobs); err == nil {
+		return nil
+	} else {
+		return err
+	}
+}
+
+// NewJobCache returns a local cache which provides more convenient views of
+// job data than the database can provide.
+func NewJobCache(db JobDB, timePeriod time.Duration) (JobCache, error) {
+	tc := &jobCache{
 		db:         db,
 		timePeriod: timePeriod,
 	}

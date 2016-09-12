@@ -23,6 +23,15 @@ func makeTask(ts time.Time, commits []string) *Task {
 	}
 }
 
+func makeJob(ts time.Time) *Job {
+	return &Job{
+		Created: ts,
+		Repo:    DEFAULT_TEST_REPO,
+		Name:    "Test-Job",
+	}
+}
+
+// TestTaskDB performs basic tests for an implementation of TaskDB.
 func TestTaskDB(t *testing.T, db TaskDB) {
 	defer testutils.AssertCloses(t, db)
 
@@ -180,7 +189,8 @@ func TestTaskDB(t *testing.T, db TaskDB) {
 	testutils.AssertDeepEqual(t, []*Task{}, tasks)
 }
 
-func TestTooManyUsers(t *testing.T, db TaskDB) {
+// Test that a TaskDB properly tracks its maximum number of users.
+func TestTaskDBTooManyUsers(t *testing.T, db TaskDB) {
 	defer testutils.AssertCloses(t, db)
 
 	// Max out the number of modified-tasks users; ensure that we error out.
@@ -194,7 +204,7 @@ func TestTooManyUsers(t *testing.T, db TaskDB) {
 
 // Test that PutTask and PutTasks return ErrConcurrentUpdate when a cached Task
 // has been updated in the DB.
-func TestConcurrentUpdate(t *testing.T, db TaskDB) {
+func TestTaskDBConcurrentUpdate(t *testing.T, db TaskDB) {
 	defer testutils.AssertCloses(t, db)
 
 	// Insert a task.
@@ -604,6 +614,577 @@ func TestUpdateTasksWithRetries(t *testing.T, db TaskDB) {
 	testUpdateTaskWithRetriesErrorInFunc(t, db)
 	testUpdateTaskWithRetriesExhausted(t, db)
 	testUpdateTaskWithRetriesTaskNotFound(t, db)
+}
+
+// TestJobDB performs basic tests on an implementation of JobDB.
+func TestJobDB(t *testing.T, db JobDB) {
+	defer testutils.AssertCloses(t, db)
+
+	_, err := db.GetModifiedJobs("dummy-id")
+	assert.True(t, IsUnknownId(err))
+
+	id, err := db.StartTrackingModifiedJobs()
+	assert.NoError(t, err)
+
+	jobs, err := db.GetModifiedJobs(id)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+
+	now := time.Now().Add(time.Nanosecond)
+	j1 := makeJob(now)
+
+	// Insert the job.
+	assert.NoError(t, db.PutJob(j1))
+
+	// Ids must be URL-safe.
+	assert.NotEqual(t, "", j1.Id)
+	assert.Equal(t, url.QueryEscape(j1.Id), j1.Id)
+
+	// Check that DbModified was set.
+	assert.False(t, util.TimeIsZero(j1.DbModified))
+	j1LastModified := j1.DbModified
+
+	// Job can now be retrieved by Id.
+	j1Again, err := db.GetJobById(j1.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, j1, j1Again)
+
+	// Ensure that the job shows up in the modified list.
+	jobs, err = db.GetModifiedJobs(id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+
+	// Ensure that the job shows up in the correct date ranges.
+	timeStart := time.Time{}
+	j1Before := j1.Created
+	j1After := j1Before.Add(1 * time.Nanosecond)
+	timeEnd := now.Add(2 * time.Nanosecond)
+	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+	jobs, err = db.GetJobsFromDateRange(j1Before, j1After)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+
+	// Insert two more jobs. Ensure at least 1 nanosecond between job Created
+	// times so that j1After != j2Before and j2After != j3Before.
+	j2 := makeJob(now.Add(time.Nanosecond))
+	j3 := makeJob(now.Add(2 * time.Nanosecond))
+	assert.NoError(t, db.PutJobs([]*Job{j2, j3}))
+
+	// Check that PutJobs assigned Ids.
+	assert.NotEqual(t, "", j2.Id)
+	assert.NotEqual(t, "", j3.Id)
+	// Ids must be URL-safe.
+	assert.Equal(t, url.QueryEscape(j2.Id), j2.Id)
+	assert.Equal(t, url.QueryEscape(j3.Id), j3.Id)
+
+	// Ensure that both jobs show up in the modified list.
+	jobs, err = db.GetModifiedJobs(id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+
+	// Make an update to j1 and j2. Ensure modified times change.
+	j2LastModified := j2.DbModified
+	j1.Status = JOB_STATUS_IN_PROGRESS
+	j2.Status = JOB_STATUS_SUCCESS
+	assert.NoError(t, db.PutJobs([]*Job{j1, j2}))
+	assert.False(t, j1.DbModified.Equal(j1LastModified))
+	assert.False(t, j2.DbModified.Equal(j2LastModified))
+
+	// Ensure that both jobs show up in the modified list.
+	jobs, err = db.GetModifiedJobs(id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1, j2}, jobs)
+
+	// Ensure that all jobs show up in the correct time ranges, in sorted order.
+	j2Before := j2.Created
+	j2After := j2Before.Add(1 * time.Nanosecond)
+
+	j3Before := j3.Created
+	j3After := j3Before.Add(1 * time.Nanosecond)
+
+	timeEnd = now.Add(3 * time.Nanosecond)
+
+	jobs, err = db.GetJobsFromDateRange(timeStart, j1Before)
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+
+	jobs, err = db.GetJobsFromDateRange(timeStart, j1After)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(timeStart, j2Before)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(timeStart, j2After)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1, j2}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(timeStart, j3Before)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1, j2}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(timeStart, j3After)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(timeStart, timeEnd)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(j1Before, timeEnd)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j1, j2, j3}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(j1After, timeEnd)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(j2Before, timeEnd)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j2, j3}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(j2After, timeEnd)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j3}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(j3Before, timeEnd)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{j3}, jobs)
+
+	jobs, err = db.GetJobsFromDateRange(j3After, timeEnd)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, []*Job{}, jobs)
+}
+
+// Test that a JobDB properly tracks its maximum number of users.
+func TestJobDBTooManyUsers(t *testing.T, db JobDB) {
+	defer testutils.AssertCloses(t, db)
+
+	// Max out the number of modified-jobs users; ensure that we error out.
+	for i := 0; i < MAX_MODIFIED_DATA_USERS; i++ {
+		_, err := db.StartTrackingModifiedJobs()
+		assert.NoError(t, err)
+	}
+	_, err := db.StartTrackingModifiedJobs()
+	assert.True(t, IsTooManyUsers(err))
+}
+
+// Test that PutJob and PutJobs return ErrConcurrentUpdate when a cached Job
+// has been updated in the DB.
+func TestJobDBConcurrentUpdate(t *testing.T, db JobDB) {
+	defer testutils.AssertCloses(t, db)
+
+	// Insert a job.
+	j1 := makeJob(time.Now())
+	assert.NoError(t, db.PutJob(j1))
+
+	// Retrieve a copy of the job.
+	j1Cached, err := db.GetJobById(j1.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, j1, j1Cached)
+
+	// Update the original job.
+	j1.Repo = "another-repo"
+	assert.NoError(t, db.PutJob(j1))
+
+	// Update the cached copy; should get concurrent update error.
+	j1Cached.Status = JOB_STATUS_IN_PROGRESS
+	err = db.PutJob(j1Cached)
+	assert.True(t, IsConcurrentUpdate(err))
+
+	{
+		// DB should still have the old value of j1.
+		j1Again, err := db.GetJobById(j1.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, j1, j1Again)
+	}
+
+	// Insert a second job.
+	j2 := makeJob(time.Now())
+	assert.NoError(t, db.PutJob(j2))
+
+	// Update j2 at the same time as j1Cached; should still get an error.
+	j2.Status = JOB_STATUS_MISHAP
+	err = db.PutJobs([]*Job{j2, j1Cached})
+	assert.True(t, IsConcurrentUpdate(err))
+
+	{
+		// DB should still have the old value of j1.
+		j1Again, err := db.GetJobById(j1.Id)
+		assert.NoError(t, err)
+		testutils.AssertDeepEqual(t, j1, j1Again)
+
+		// DB should also still have the old value of j2, but to keep InMemoryDB
+		// simple, we don't check that here.
+	}
+}
+
+// Test UpdateJobsWithRetries when no errors or retries.
+func testUpdateJobsWithRetriesSimple(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	// Test no-op.
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+		return nil, nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+
+	// Create new job j1. (UpdateJobsWithRetries isn't actually useful in this case.)
+	jobs, err = UpdateJobsWithRetries(db, func() ([]*Job, error) {
+		j1 := makeJob(time.Time{})
+		j1.Created = time.Now().Add(time.Nanosecond)
+		return []*Job{j1}, nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs))
+	j1 := jobs[0]
+
+	// Update j1 and create j2.
+	jobs, err = UpdateJobsWithRetries(db, func() ([]*Job, error) {
+		j1, err := db.GetJobById(j1.Id)
+		assert.NoError(t, err)
+		j1.Status = JOB_STATUS_IN_PROGRESS
+		j2 := makeJob(j1.Created.Add(time.Nanosecond))
+		j2.Repo = "j2-repo"
+		return []*Job{j1, j2}, nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
+	assert.Equal(t, JOB_STATUS_IN_PROGRESS, jobs[0].Status)
+	assert.Equal(t, "j2-repo", jobs[1].Repo)
+
+	// Check that return value matches what's in the DB.
+	j1, err = db.GetJobById(j1.Id)
+	assert.NoError(t, err)
+	j2, err := db.GetJobById(jobs[1].Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, jobs[0], j1)
+	testutils.AssertDeepEqual(t, jobs[1], j2)
+
+	// Check no extra jobs in the DB.
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
+	assert.Equal(t, j2.Id, jobs[1].Id)
+}
+
+// Test UpdateJobsWithRetries when there are some retries, but eventual success.
+func testUpdateJobsWithRetriesSuccess(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	// Create and cache.
+	j1 := makeJob(begin.Add(time.Nanosecond))
+	assert.NoError(t, db.PutJob(j1))
+	j1Cached := j1.Copy()
+
+	// Update original.
+	j1.Status = JOB_STATUS_IN_PROGRESS
+	assert.NoError(t, db.PutJob(j1))
+
+	// Attempt update.
+	callCount := 0
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+		callCount++
+		if callCount >= 3 {
+			if job, err := db.GetJobById(j1.Id); err != nil {
+				return nil, err
+			} else {
+				j1Cached = job
+			}
+		}
+		j1Cached.Status = JOB_STATUS_SUCCESS
+		j2 := makeJob(begin.Add(2 * time.Nanosecond))
+		j2.Repo = "j2-repo"
+		return []*Job{j1Cached, j2}, nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, 3, callCount)
+	assert.Equal(t, 2, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
+	assert.Equal(t, JOB_STATUS_SUCCESS, jobs[0].Status)
+	assert.Equal(t, "j2-repo", jobs[1].Repo)
+
+	// Check that return value matches what's in the DB.
+	j1, err = db.GetJobById(j1.Id)
+	assert.NoError(t, err)
+	j2, err := db.GetJobById(jobs[1].Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, jobs[0], j1)
+	testutils.AssertDeepEqual(t, jobs[1], j2)
+
+	// Check no extra jobs in the DB.
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
+	assert.Equal(t, j2.Id, jobs[1].Id)
+}
+
+// Test UpdateJobsWithRetries when f returns an error.
+func testUpdateJobsWithRetriesErrorInFunc(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	myErr := fmt.Errorf("NO! Bad dog!")
+	callCount := 0
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+		callCount++
+		// Return a job just for fun.
+		return []*Job{
+			makeJob(begin.Add(time.Nanosecond)),
+		}, myErr
+	})
+	assert.Error(t, err)
+	assert.Equal(t, myErr, err)
+	assert.Equal(t, 0, len(jobs))
+	assert.Equal(t, 1, callCount)
+
+	// Check no jobs in the DB.
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+}
+
+// Test UpdateJobsWithRetries when PutJobs returns an error.
+func testUpdateJobsWithRetriesErrorInPutJobs(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	callCount := 0
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+		callCount++
+		// Job has zero Created time.
+		return []*Job{
+			makeJob(time.Time{}),
+		}, nil
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Created not set.")
+	assert.Equal(t, 0, len(jobs))
+	assert.Equal(t, 1, callCount)
+
+	// Check no jobs in the DB.
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+}
+
+// Test UpdateJobsWithRetries when retries are exhausted.
+func testUpdateJobsWithRetriesExhausted(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	// Create and cache.
+	j1 := makeJob(begin.Add(time.Nanosecond))
+	assert.NoError(t, db.PutJob(j1))
+	j1Cached := j1.Copy()
+
+	// Update original.
+	j1.Status = JOB_STATUS_IN_PROGRESS
+	assert.NoError(t, db.PutJob(j1))
+
+	// Attempt update.
+	callCount := 0
+	jobs, err := UpdateJobsWithRetries(db, func() ([]*Job, error) {
+		callCount++
+		j1Cached.Status = JOB_STATUS_SUCCESS
+		j2 := makeJob(begin.Add(2 * time.Nanosecond))
+		return []*Job{j1Cached, j2}, nil
+	})
+	assert.True(t, IsConcurrentUpdate(err))
+	assert.Equal(t, NUM_RETRIES, callCount)
+	assert.Equal(t, 0, len(jobs))
+
+	// Check no extra jobs in the DB.
+	jobs, err = db.GetJobsFromDateRange(begin, time.Now().Add(3*time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
+	assert.Equal(t, JOB_STATUS_IN_PROGRESS, jobs[0].Status)
+}
+
+// Test UpdateJobWithRetries when no errors or retries.
+func testUpdateJobWithRetriesSimple(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	// Create new job j1.
+	j1 := makeJob(time.Now())
+	assert.NoError(t, db.PutJob(j1))
+
+	// Update j1.
+	j1Updated, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
+		job.Status = JOB_STATUS_IN_PROGRESS
+		return nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, j1.Id, j1Updated.Id)
+	assert.Equal(t, JOB_STATUS_IN_PROGRESS, j1Updated.Status)
+	assert.NotEqual(t, j1.DbModified, j1Updated.DbModified)
+
+	// Check that return value matches what's in the DB.
+	j1Again, err := db.GetJobById(j1.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, j1Again, j1Updated)
+
+	// Check no extra jobs in the JobDB.
+	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
+}
+
+// Test UpdateJobWithRetries when there are some retries, but eventual success.
+func testUpdateJobWithRetriesSuccess(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	// Create new job j1.
+	j1 := makeJob(begin.Add(time.Nanosecond))
+	assert.NoError(t, db.PutJob(j1))
+
+	// Attempt update.
+	callCount := 0
+	j1Updated, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
+		callCount++
+		if callCount < 3 {
+			// Sneakily make an update in the background.
+			j1.Repo = "some-other-repo.git"
+			assert.NoError(t, db.PutJob(j1))
+		}
+		job.Status = JOB_STATUS_SUCCESS
+		return nil
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, 3, callCount)
+	assert.Equal(t, j1.Id, j1Updated.Id)
+	assert.Equal(t, JOB_STATUS_SUCCESS, j1Updated.Status)
+
+	// Check that return value matches what's in the DB.
+	j1Again, err := db.GetJobById(j1.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, j1Again, j1Updated)
+
+	// Check no extra jobs in the DB.
+	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
+}
+
+// Test UpdateJobWithRetries when f returns an error.
+func testUpdateJobWithRetriesErrorInFunc(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	// Create new job j1.
+	j1 := makeJob(begin.Add(time.Nanosecond))
+	assert.NoError(t, db.PutJob(j1))
+
+	// Update and return an error.
+	myErr := fmt.Errorf("Um, actually, I didn't want to update that job.")
+	callCount := 0
+	noJob, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
+		callCount++
+		// Update job to test nothing changes in DB.
+		job.Status = JOB_STATUS_IN_PROGRESS
+		return myErr
+	})
+	assert.Error(t, err)
+	assert.Equal(t, myErr, err)
+	assert.Nil(t, noJob)
+	assert.Equal(t, 1, callCount)
+
+	// Check job did not change in the DB.
+	j1Again, err := db.GetJobById(j1.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, j1, j1Again)
+
+	// Check no extra jobs in the DB.
+	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
+}
+
+// Test UpdateJobWithRetries when retries are exhausted.
+func testUpdateJobWithRetriesExhausted(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	// Create new job j1.
+	j1 := makeJob(begin.Add(time.Nanosecond))
+	assert.NoError(t, db.PutJob(j1))
+
+	// Update original.
+	j1.Status = JOB_STATUS_IN_PROGRESS
+	assert.NoError(t, db.PutJob(j1))
+
+	// Attempt update.
+	callCount := 0
+	noJob, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
+		callCount++
+		// Sneakily make an update in the background.
+		j1.Repo = "some-other-repo"
+		assert.NoError(t, db.PutJob(j1))
+
+		job.Status = JOB_STATUS_SUCCESS
+		return nil
+	})
+	assert.True(t, IsConcurrentUpdate(err))
+	assert.Equal(t, NUM_RETRIES, callCount)
+	assert.Nil(t, noJob)
+
+	// Check job did not change in the DB.
+	j1Again, err := db.GetJobById(j1.Id)
+	assert.NoError(t, err)
+	testutils.AssertDeepEqual(t, j1, j1Again)
+
+	// Check no extra jobs in the DB.
+	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(jobs))
+	assert.Equal(t, j1.Id, jobs[0].Id)
+}
+
+// Test UpdateJobWithRetries when the given ID is not found in the DB.
+func testUpdateJobWithRetriesJobNotFound(t *testing.T, db JobDB) {
+	begin := time.Now()
+
+	// Assign ID for a job, but don't put it in the DB.
+	j1 := makeJob(begin.Add(time.Nanosecond))
+
+	// Attempt to update non-existent job. Function shouldn't be called.
+	callCount := 0
+	noJob, err := UpdateJobWithRetries(db, j1.Id, func(job *Job) error {
+		callCount++
+		job.Status = JOB_STATUS_IN_PROGRESS
+		return nil
+	})
+	assert.True(t, IsNotFound(err))
+	assert.Nil(t, noJob)
+	assert.Equal(t, 0, callCount)
+
+	// Check no jobs in the DB.
+	jobs, err := db.GetJobsFromDateRange(begin, time.Now().Add(2*time.Nanosecond))
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(jobs))
+}
+
+// Test UpdateJobsWithRetries and UpdateJobWithRetries.
+func TestUpdateJobsWithRetries(t *testing.T, db JobDB) {
+	testUpdateJobsWithRetriesSimple(t, db)
+	testUpdateJobsWithRetriesSuccess(t, db)
+	testUpdateJobsWithRetriesErrorInFunc(t, db)
+	testUpdateJobsWithRetriesErrorInPutJobs(t, db)
+	testUpdateJobsWithRetriesExhausted(t, db)
+	testUpdateJobWithRetriesSimple(t, db)
+	testUpdateJobWithRetriesSuccess(t, db)
+	testUpdateJobWithRetriesErrorInFunc(t, db)
+	testUpdateJobWithRetriesExhausted(t, db)
+	testUpdateJobWithRetriesJobNotFound(t, db)
 }
 
 // makeTaskComment creates a comment with its ID fields based on the given repo,
